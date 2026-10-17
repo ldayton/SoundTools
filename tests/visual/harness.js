@@ -1,6 +1,7 @@
 // Controlled replay through the production PraatStream, acceptFrames and render.
 (async()=>{
  window.visualReplay={status:'running'};
+ applyPreset('praat');
  try{
   // Isolate signal rendering from platform font metrics in surrounding chrome.
   const fixtureHeight=window.innerWidth<=600?707:739;

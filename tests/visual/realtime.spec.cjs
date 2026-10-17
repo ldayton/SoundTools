@@ -3,6 +3,7 @@ test('English example runs through the real AudioWorklet and worker',async({page
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/dist/index.html');await page.getByRole('button',{name:'Play an Example',exact:true}).click();
  await expect(page.locator('#state')).toHaveText('EXAMPLE');
+ const clip=await page.evaluate(()=>({duration:speechBuffer.duration,channels:speechBuffer.numberOfChannels,peak:Math.max(...speechBuffer.getChannelData(0).subarray(48000,96000).map(Math.abs))}));expect(clip.duration).toBeGreaterThan(38);expect(clip.duration).toBeLessThan(39);expect(clip.channels).toBe(1);expect(clip.peak).toBeGreaterThan(.01);
  await page.waitForFunction(()=>Number(document.getElementById('spectrogram').dataset.processedFrames)>200,undefined,{timeout:10000});
  const progress=testInfo.project.name==='wide-retina'?12:2;
  const start=await page.locator('#spectrogram').getAttribute('data-plotted-until');

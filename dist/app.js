@@ -153,7 +153,7 @@ function microphoneError(e){
 $('refreshMic').onclick=microphones;
 $('microphone').onchange=async()=>{notice('');if(running&&inputMode==='mic'){stop();await start();}};
 async function start(){if(starting)return;showSpectrogram();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
-function updateResolution(){if(audio)$('resolution').textContent=`PRAAT · ${((value('analysisRate')||audio.sampleRate)/1000).toFixed(1)} kHz · ${spectrumStep.toFixed(1)} Hz / bin`}
+function updateResolution(){$('resolution').textContent=$('preset').selectedOptions?.[0]?.textContent||$('preset').value}
 $('start').onclick=start;$('begin').onclick=start;
 async function togglePause(){
   if(!running||starting)return;
@@ -273,7 +273,7 @@ async function startSpeech(){
   stop();starting=true;setBusy(true);notice('');state('LOADING');
   try{
     audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();
-    const response=await fetch('audio/speech-english.wav');if(returningHome)return;if(!response.ok)throw new Error('Speech recording could not be loaded. Please retry.');
+    const response=await fetch('audio/alice-waters.m4a');if(returningHome)return;if(!response.ok)throw new Error('Speech recording could not be loaded. Please retry.');
     const bytes=await response.arrayBuffer();if(returningHome)return;speechBuffer=await audio.decodeAudioData(bytes);if(returningHome)return;
     speechDestination=audio.createMediaStreamDestination();stream=speechDestination.stream;await connectInput(stream);
     monitor=audio.createGain();$('listen').checked=true;monitor.gain.value=1;monitor.connect(audio.destination);
@@ -297,7 +297,7 @@ $('home').onclick=e=>{
   stop();showSpectrogram();redraw();notice('');
   $('welcome').hidden=false;state('MIC OFF');
   $('device').textContent='MICROPHONE SPECTROGRAM';
-  $('resolution').textContent='LOCAL AUDIO · NO UPLOADS';
+  updateResolution();
 };
 
 // Optional overlays live on a separate canvas; toggling them never recolours the plot.
@@ -346,8 +346,11 @@ function validSavedPreset(preset){
 try{
  const stored=JSON.parse(localStorage.getItem(presetStorageKey)||'null');
  if(stored?.version===1&&Array.isArray(stored.presets)){
-  const ids=new Set(),names=new Set(['praat','voice tools']);
+  const ids=new Set(),names=new Set(['soundglow','praat','voice tools']);
   stored.presets=stored.presets.map(p=>p&&typeof p.settings==='object'?{...p,settings:{...AnalysisSettings.defaults,...p.settings}}:p);
+  // Preserve an older custom preset whose name is now used by the new built-in.
+  const existingNames=new Set(stored.presets.map(p=>typeof p?.name==='string'?p.name.trim().toLowerCase():null));
+  for(const p of stored.presets)if(typeof p?.name==='string'&&p.name.trim().toLowerCase()==='soundglow'){let name='Soundglow (custom)',n=2;while(existingNames.has(name.toLowerCase())){name='Soundglow (custom '+n+')';n++;}p.name=name;existingNames.add(name.toLowerCase())}
   savedPresets=stored.presets.filter(p=>{if(!validSavedPreset(p)||ids.has(p.id)||names.has(p.name.trim().toLowerCase()))return false;ids.add(p.id);names.add(p.name.trim().toLowerCase());return true});
   selectedPreset=stored.selected;
  }
@@ -376,7 +379,7 @@ function syncPreset(edited=false){
  $('floor').disabled=$('colourLevels').value==='held';
  $('resampleQuality').disabled=$('resampling').value!=='polyphase';
  $('fixedMaximumControl').hidden=$('colourLevels').value!=='fixed';
- $('fixedMaximumOut').textContent=value('fixedMaximum')+' dB';$('suppressionOut').textContent=value('suppression')+' dB';
+ $('fixedMaximumOut').textContent=value('fixedMaximum')+' dB';$('suppressionOut').textContent=value('suppression')+' dB';updateResolution();
 }
 function applyPreset(id){
  const settings=settingsForPreset(id);if(!settings)return;
@@ -398,7 +401,7 @@ function commitPresetName(closeEditor=true){
  const name=$('presetName').value.trim();if(!name)return false;
  if(name.length>60||name.includes('*')){savedPresetStatus('Preset names cannot include * and must be at most 60 characters.');return false}
  const existing=savedPresets.find(p=>p.id===editingPresetId);
- if(['praat','voice tools',...savedPresets.filter(p=>p.id!==existing?.id).map(p=>p.name.toLowerCase())].includes(name.toLowerCase())){savedPresetStatus('That preset name is already in use. Choose another name.');return false}
+ if(['soundglow','praat','voice tools',...savedPresets.filter(p=>p.id!==existing?.id).map(p=>p.name.toLowerCase())].includes(name.toLowerCase())){savedPresetStatus('That preset name is already in use. Choose another name.');return false}
  if(existing&&existing.name===name){if(closeEditor)closePresetEditor();return true}
  const preset=existing?{...existing,name}:{id:'saved-'+crypto.randomUUID(),name,settings:currentPresetSettings()};
  const next=existing?savedPresets.map(p=>p.id===preset.id?preset:p):[...savedPresets,preset];
@@ -417,8 +420,8 @@ $('editPresets').onclick=()=>{
 };
 $('deletePreset').onclick=()=>{
  const preset=savedPresets.find(p=>p.id===$('preset').value);if(!preset)return;
- const next=savedPresets.filter(p=>p.id!==preset.id);if(!persistPresets(next,'praat'))return;
- savedPresets=next;renderSavedPresets();applyPreset('praat');closePresetEditor();savedPresetStatus('Deleted “'+preset.name+'”.');
+ const next=savedPresets.filter(p=>p.id!==preset.id);if(!persistPresets(next,'soundglow'))return;
+ savedPresets=next;renderSavedPresets();applyPreset('soundglow');closePresetEditor();savedPresetStatus('Deleted “'+preset.name+'”.');
 };
 for(const id of savedSettingIds)$(id).addEventListener('input',()=>{
  savedPresetStatus('');
@@ -430,7 +433,7 @@ for(const id of savedSettingIds)$(id).addEventListener('input',()=>{
  closePresetEditor();if(['colourLevels','fixedMaximum','suppression'].includes(id))redraw();
 });
 renderSavedPresets();
-if(settingsForPreset(selectedPreset))applyPreset(selectedPreset);else syncPreset();
+if(settingsForPreset(selectedPreset))applyPreset(selectedPreset);else applyPreset('soundglow');
 
 for(const id of Object.keys(AnalysisSettings.defaults))$(id).addEventListener('input',()=>{if(!['palette','interpolation','frameInterpolation'].includes(id))resetAnalysis();colourMap();redraw()});
 $('colourLevels').addEventListener('input',()=>{resetAnalysis();redraw()});

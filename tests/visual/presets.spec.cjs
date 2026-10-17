@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 test('Voice Tools and Praat presets switch during English playback',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html#settings');
  await expect(page.locator('#unnamedPreset')).toHaveAttribute('hidden','');await expect(page.locator('#savePresetForm')).toBeHidden();expect(await page.evaluate(()=>!document.getElementById('presetSettings').contains(document.getElementById('microphone'))&&!!(document.getElementById('microphone').compareDocumentPosition(document.getElementById('preset'))&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
- await expect(page.locator('#preset')).toHaveValue('praat');await page.locator('#preset').selectOption('voice');
+ await expect(page.locator('#preset')).toHaveValue('soundglow');await page.locator('#preset').selectOption('voice');
  for(const [id,value] of Object.entries({maximum:'4000',scale:'erb',window:'0.064',preemphasis:'0',floor:'100',suppression:'0',colourLevels:'held',windowShape:'hann',analysisRate:'8000',frameStep:'0.016',fftPadding:'2',spectrumUnits:'amplitude',palette:'plasma',interpolation:'bucket',resampling:'polyphase',resampleQuality:'2',normalizationClock:'wall'}))await expect(page.locator('#'+id)).toHaveValue(value);
  await expect(page.locator('#fixedMaximumControl')).toBeHidden();await expect(page.locator('#floor')).toBeDisabled();
  for(const f of [0,100,500,1000,3500])expect(await page.evaluate(f=>Math.abs(frequency(yFor(f)-padTop)-f),f)).toBeLessThan(1e-8);
@@ -28,7 +28,7 @@ test('naming, renaming and deleting presets persist without a saved grouping or 
  await page.reload();await expect(page.locator('#preset')).toHaveValue(saved);await expect(page.locator('#floor')).toHaveValue('45');
  await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('Voice Tools');await page.locator('#presetName').press('Enter');await expect(page.locator('#presetStatus')).toContainText('already in use');
  await page.locator('#presetName').fill('Vowel practice');await page.getByRole('button',{name:'Rename',exact:true}).click();await expect(page.locator('#preset option:checked')).toHaveText('Vowel practice');
- await page.reload();await expect(page.locator('#preset option:checked')).toHaveText('Vowel practice');await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.getByRole('button',{name:'Delete',exact:true}).click();await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(0);await expect(page.locator('#preset')).toHaveValue('praat');await expect(page.locator('#floor')).toHaveValue('70');await page.reload();await expect(page.locator('#preset')).toHaveValue('praat');await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(0);
+ await page.reload();await expect(page.locator('#preset option:checked')).toHaveText('Vowel practice');await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.getByRole('button',{name:'Delete',exact:true}).click();await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(0);await expect(page.locator('#preset')).toHaveValue('soundglow');await expect(page.locator('#floor')).toHaveValue('50');await page.reload();await expect(page.locator('#preset')).toHaveValue('soundglow');await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(0);
 });
 
 test('failed local storage reports failure without claiming the preset was saved',async({page})=>{
@@ -44,7 +44,7 @@ test('renaming cannot take a built-in or another custom preset name',async({page
  }
  const id=await page.locator('#preset').inputValue(),before=await page.evaluate(()=>localStorage.getItem('soundglow-presets-v1'));
  await page.getByRole('button',{name:'Edit presets',exact:true}).click();
- for(const name of ['Praat','  PRAAT  ','Voice Tools',' voice tools ','First view','  FIRST VIEW  ']){
+ for(const name of ['Soundglow',' SOUNDGLOW ','Praat','  PRAAT  ','Voice Tools',' voice tools ','First view','  FIRST VIEW  ']){
   await page.locator('#presetName').fill(name);await page.locator('#presetName').press('Enter');await expect(page.locator('#presetStatus')).toContainText('already in use');await expect(page.locator('#preset')).toHaveValue(id);await expect(page.locator('#preset option:checked')).toHaveText('Second view');expect(await page.evaluate(()=>localStorage.getItem('soundglow-presets-v1'))).toBe(before);
  }
 });
@@ -112,4 +112,17 @@ test('normalization timing uses the selected clock in the production frame consu
   try{return {audio:replay('audio'),wall:replay('wall')}}finally{Date.now=now;audio=null}
  });
  expect(holds.audio[4]).toBeCloseTo(80,4);expect(holds.wall[4]).toBeLessThan(holds.audio[4]);
+});
+
+test('Soundglow defaults favor clarity, remain editable, and restore saved selections',async({page})=>{
+ await page.goto('/dist/index.html#settings');await expect(page.locator('#preset')).toHaveValue('soundglow');
+ for(const [id,v]of Object.entries({window:'0.025',maximum:'5000',scale:'voice',history:'6',floor:'50',suppression:'10',preemphasis:'3',colourLevels:'fixed',fixedMaximum:'100',compression:'0',formants:'off'}))await expect(page.locator('#'+id)).toHaveValue(v);
+ await page.locator('#window').selectOption('0.015');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');
+ await page.locator('#preset').selectOption('praat');await page.reload();await expect(page.locator('#preset')).toHaveValue('praat');await expect(page.locator('#window')).toHaveValue('0.005');
+});
+
+test('a pre-existing custom Soundglow preset is preserved under a distinct name',async({page})=>{
+ const settings={...require('../../dist/analysis-settings.js').presets.praat,formants:'off',formantCeiling:'5500'};
+ await page.addInitScript(settings=>localStorage.setItem('soundglow-presets-v1',JSON.stringify({version:1,selected:'saved-old',presets:[{id:'saved-invalid',name:42,settings},{id:'saved-old',name:'Soundglow',settings}]})),settings);
+ await page.goto('/dist/index.html#settings');await expect(page.locator('#preset')).toHaveValue('saved-old');await expect(page.locator('#preset option:checked')).toHaveText('Soundglow (custom)');await expect(page.locator('#window')).toHaveValue('0.005');
 });

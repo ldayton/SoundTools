@@ -164,3 +164,37 @@ investigation command, separate from the headless build checks.
 
 The looping WAV capture flags are documented in
 [Chromium’s media switches](https://chromium.googlesource.com/chromium/src/+/main/media/base/media_switches.cc).
+
+## Releases, caching and updates
+
+`npm run build` verifies the app and writes the deployable `site/` directory.
+HTML refers to immutable, content-addressed UI, engine and recording URLs. UI
+changes reuse unchanged WASM and audio downloads. The source preview in `dist/`
+does not register a service worker; test production caching using packaged files
+served at `/Soundglow/` on localhost.
+
+The packaged app caches a complete release, checking every downloaded file's
+SHA-256 before selecting it. Navigation checks a fresh release manifest; offline
+or incomplete deployments fall back to the last complete cached release. Once
+cached, the English example and processing engine also work offline.
+
+Open tabs check for updates every minute while visible and on focus, reconnection
+or returning to the tab (checks are throttled to 15 seconds). A fully downloaded
+new release shows **Update available** in the toolbar. Clicking it reloads into
+the new release and ends the current audio session. Background downloads and
+service-worker activation never reload the app or interrupt capture. Other live
+tabs keep their own release; obsolete browser caches are removed after those
+tabs close, with a ten-minute navigation grace period.
+
+Deployment retains at least three previous releases and all releases from the
+last 24 hours, using the prior successful build artifact. This keeps briefly
+stale entry HTML usable while GitHub Pages caches settle. A first visit still
+uses the host's HTML caching policy; existing pre-service-worker tabs need one
+reload to acquire the update feature. Browser storage eviction can remove offline
+availability; caching failures do not prevent normal online microphone use.
+
+`npm run test:updates` exercises actual packaged releases behind ten-minute HTTP
+cache headers: active fake-microphone capture across updates, two-tab isolation,
+worker activation, WASM reuse, rejected missing/corrupt assets, offline reload
+and English speech, and cache cleanup. It runs as part of `npm run build` before
+GitHub Pages deploys the exact verified artifact.

@@ -60,3 +60,5 @@
 #welcome #begin:is(:hover,:focus-visible,:disabled)::before,#welcome[hidden] #begin::before{animation:none;opacity:0}
 #welcome #begin:is(:hover,:focus-visible,:disabled)::after,#welcome[hidden] #begin::after{animation:none;opacity:0}
 @media(prefers-reduced-motion:reduce){#welcome #begin svg,#welcome #begin::after{animation:none}#welcome #begin::after{display:none}}
+
+#update[hidden]{display:none}#update{border-color:#f2ac77;color:#f2ac77;font-size:12px;min-height:44px}

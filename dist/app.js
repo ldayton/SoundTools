@@ -1,5 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id),canvas=$('spectrogram'),ctx=canvas.getContext('2d',{alpha:false}),overlay=$('labels'),axis=overlay.getContext('2d');
+let returningHome=false;
 let inputMode='mic',speechBuffer=null,speechNode=null,speechDestination=null,monitor=null,clipOffset=0,clipStarted=0;
 let audio,stream,source,analyser,bins,running=false,paused=false,starting=false,last=0,carry=0,raf=0,nyquist=24000,w=0,h=0,plotW=0,plotH=0,map=[],lut=[],dpr=1,pxLeft=0,pxTop=0,pxW=1,pxH=1,previousSlice=null;
 const left=52,padTop=20,bottom=27,right=12;
@@ -100,7 +101,7 @@ function microphoneError(e){
 }
 $('refreshMic').onclick=microphones;
 $('microphone').onchange=async()=>{notice('');if(running&&inputMode==='mic'){stop();await start();}};
-async function start(){if(starting)return;showSpectrogram();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(audio.state==='suspended')await audio.resume();connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();notice(microphoneError(e));panel(true);microphones();}finally{starting=false;setBusy(false)}}
+async function start(){if(starting)return;showSpectrogram();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
 function updateResolution(){if(audio&&analyser)$('resolution').textContent=`${(audio.sampleRate/1000).toFixed(1)} kHz · ${(audio.sampleRate/analyser.fftSize).toFixed(1)} Hz / bin`}
 $('start').onclick=start;$('begin').onclick=start;
 async function togglePause(){
@@ -172,15 +173,15 @@ async function startSpeech(){
   stop();starting=true;setBusy(true);notice('');state('LOADING');
   try{
     audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();
-    const response=await fetch('audio/speech-english.wav');if(!response.ok)throw new Error('Speech recording could not be loaded. Please retry.');
-    speechBuffer=await audio.decodeAudioData(await response.arrayBuffer());
+    const response=await fetch('audio/speech-english.wav');if(returningHome)return;if(!response.ok)throw new Error('Speech recording could not be loaded. Please retry.');
+    const bytes=await response.arrayBuffer();if(returningHome)return;speechBuffer=await audio.decodeAudioData(bytes);if(returningHome)return;
     speechDestination=audio.createMediaStreamDestination();stream=speechDestination.stream;connectInput(stream);
     monitor=audio.createGain();$('listen').checked=true;monitor.gain.value=1;monitor.connect(audio.destination);
     inputMode='speech';running=true;paused=false;$('seek').max=speechBuffer.duration;
     $('testControls').hidden=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('freeze','⏸','Pause');$('demo').textContent='Example';$('demo').setAttribute('aria-pressed','true');setIcon('start','🎙︎','Use microphone');
     $('device').textContent='TEST INPUT · RECORDED SPEECH';state('EXAMPLE',true);updateResolution();redraw();playFrom(0);raf=requestAnimationFrame(render);
-  }catch(e){stop();notice(e.message||'Could not start recorded speech.')}
-  finally{starting=false;setBusy(false)}
+  }catch(e){stop();if(!returningHome)notice(e.message||'Could not start recorded speech.')}
+  finally{starting=false;returningHome=false;setBusy(false)}
 }
 $('demo').onclick=startSpeech;
 $('seek').oninput=()=>{if(running&&inputMode==='speech')playFrom(value('seek'))};
@@ -189,3 +190,12 @@ $('loop').onchange=()=>{if(speechNode){const position=speechPosition();clipOffse
 $('listen').onchange=()=>{if(monitor)monitor.gain.value=$('listen').checked?1:0};
 
 function setIcon(id,icon,label){$(id).textContent=id==='start'&&icon==='🎙︎'?'●':icon;$(id).setAttribute('aria-label',label);$(id).title=label;}
+
+$('home').onclick=e=>{
+  e.preventDefault();
+  returningHome=starting;
+  stop();showSpectrogram();redraw();notice('');
+  $('welcome').hidden=false;state('MIC OFF');
+  $('device').textContent='MICROPHONE SPECTROGRAM';
+  $('resolution').textContent='LOCAL AUDIO · NO UPLOADS';
+};

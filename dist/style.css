@@ -40,3 +40,5 @@
 #full[hidden]{display:none}
 @media(max-width:600px){#full{display:none}}
 #state{display:inline-flex;align-items:center;justify-content:center;flex:0 0 82px;width:82px;white-space:nowrap}
+
+#home{display:inline-flex;align-items:center;gap:10px;color:inherit;text-decoration:none;border-radius:5px}#home:focus-visible{outline:2px solid #ffb880;outline-offset:5px}#home:hover{color:#f2ac77}

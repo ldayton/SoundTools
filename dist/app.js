@@ -105,7 +105,26 @@ async function start(){if(starting)return;if(running){const wasSpeech=inputMode=
 function updateResolution(){if(audio&&analyser)$('resolution').textContent=`${(audio.sampleRate/1000).toFixed(1)} kHz · ${(audio.sampleRate/analyser.fftSize).toFixed(1)} Hz / bin`}
 $('start').onclick=async()=>{if(running&&audio?.state==='suspended'){try{await audio.resume();notice('');state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);$('start').textContent='Stop mic'}catch(e){notice(e.message)}}else start()};$('begin').onclick=start;
 $('freeze').onclick=()=>{paused=!paused;if(inputMode==='speech'){if(paused)audio.suspend();else audio.resume();}$('freeze').textContent=paused?'Resume':'Pause';state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);last=0};
-function panel(open){if(open)microphones();$('panel').hidden=!open;$('settings').setAttribute('aria-expanded',String(open))}$('settings').onclick=()=>panel($('panel').hidden);$('close').onclick=()=>panel(false);document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
+function syncSettings(){
+  const open=location.hash==='#settings';
+  $('panel').hidden=false;$('panel').inert=!open;$('visual').inert=open;
+  $('stage').classList.toggle('settings-open',open);
+  $('panel').setAttribute('aria-hidden',String(!open));
+  $('settings').setAttribute('aria-expanded',String(open));
+  $('settings').textContent=open?'Spectrogram':'Settings';
+  if(open)microphones();
+}
+function panel(open){
+  if(open===(location.hash==='#settings'))return;
+  if(open)history.pushState({soundglowSettings:true},'',location.pathname+location.search+'#settings');
+  else if(history.state?.soundglowSettings){history.back();return}
+  else history.replaceState(null,'',location.pathname+location.search);
+  syncSettings();
+}
+window.addEventListener('popstate',syncSettings);window.addEventListener('hashchange',syncSettings);
+$('settings').onclick=()=>panel(location.hash!=='#settings');$('close').onclick=()=>panel(false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
+syncSettings();
 for(const id of ['maximum','scale','history','floor','gain','fft','palette'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(id==='fft'&&analyser){analyser.fftSize=value('fft');bins=new Float32Array(analyser.frequencyBinCount);updateResolution()}if(id==='palette'){colourMap();redraw();}if(['maximum','scale','history','fft'].includes(id))redraw()});$('clear').onclick=redraw;
 $('full').hidden=!document.documentElement.requestFullscreen;$('full').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch(e){notice('Full screen is unavailable in this browser.')}};
 window.addEventListener('pagehide',stop);colourMap();resize();

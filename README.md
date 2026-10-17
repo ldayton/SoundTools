@@ -230,9 +230,12 @@ is a visual approximation of the supplied reference screenshot, not a port of
 that app's algorithms. It uses a 3.5 kHz ceiling and an offset-logarithmic scale:
 vertical position is proportional to `log(1 + frequency / 250 Hz)`. This includes
 0 Hz and expands the low-frequency region to resemble the reference's tick spacing.
-It uses fixed 100 dB colour maximum, 55 dB dynamic range, 10 dB background
+It uses fixed 100 dB colour maximum, 45 dB dynamic range, 15 dB background
 suppression, zero display pre-emphasis, zero quiet-frame boost and ten seconds
-of history. A 25 ms analysis window separates the harmonic bands; the colour palette is retained.
+of history. A 40 ms analysis window separates the harmonic bands; the colour palette is retained.
+These are ordinary shared settings, with no preset-specific processing or rendering.
+The narrower range and higher threshold hide weak background energy; the longer
+window sharpens frequency bands at the expense of timing detail.
 
 Praat restores the existing 5 kHz linear view, automatic colour maximum, 70 dB
 range, 6 dB/octave emphasis, zero suppression and boost, and ten-second history.

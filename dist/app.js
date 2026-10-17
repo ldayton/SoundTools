@@ -314,7 +314,7 @@ for(const id of ['preemphasis','compression'])$(id).addEventListener('input',()=
 // Presets change display/analysis-window settings; formant overlays stay independent.
 const displayPresets={
  praat:{maximum:'5000',scale:'linear',history:'10',floor:'70',gain:'0',window:'0.005',preemphasis:'6',compression:'0',colourLevels:'auto',fixedMaximum:'100',suppression:'0'},
- voice:{maximum:'3500',scale:'voice',history:'10',floor:'55',gain:'0',window:'0.025',preemphasis:'0',compression:'0',colourLevels:'fixed',fixedMaximum:'100',suppression:'10'}
+ voice:{maximum:'3500',scale:'voice',history:'10',floor:'45',gain:'0',window:'0.04',preemphasis:'0',compression:'0',colourLevels:'fixed',fixedMaximum:'100',suppression:'15'}
 };
 const presetStorageKey='soundglow-presets-v1';
 const savedSettingIds=[...Object.keys(displayPresets.praat),'formants','formantCeiling'];

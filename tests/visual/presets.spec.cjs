@@ -3,7 +3,7 @@ test('Voice Tools and Praat presets switch during English playback',async({page}
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html#settings');
  await expect(page.locator('#unnamedPreset')).toHaveAttribute('hidden','');await expect(page.locator('#savePresetForm')).toBeHidden();expect(await page.evaluate(()=>!document.getElementById('presetSettings').contains(document.getElementById('microphone'))&&!!(document.getElementById('microphone').compareDocumentPosition(document.getElementById('preset'))&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
  await expect(page.locator('#preset')).toHaveValue('praat');await page.locator('#preset').selectOption('voice');
- for(const [id,value] of Object.entries({maximum:'3500',scale:'voice',window:'0.025',preemphasis:'0',suppression:'10',colourLevels:'fixed'}))await expect(page.locator('#'+id)).toHaveValue(value);
+ for(const [id,value] of Object.entries({maximum:'3500',scale:'voice',window:'0.04',preemphasis:'0',floor:'45',suppression:'15',colourLevels:'fixed'}))await expect(page.locator('#'+id)).toHaveValue(value);
  await expect(page.locator('#fixedMaximumControl')).toBeVisible();
  for(const f of [0,100,500,1000,3500])expect(await page.evaluate(f=>Math.abs(frequency(yFor(f)-padTop)-f),f)).toBeLessThan(1e-8);
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.getByRole('button',{name:'Play an Example',exact:true}).click();

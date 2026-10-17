@@ -13,7 +13,8 @@ const microphone=path.join(work,'capture.wav');fs.writeFileSync(microphone,captu
 const releases=[];
 for(let revision=0;revision<3;revision++){
  const source=path.join(work,'source-'+revision),out=path.join(work,'site-'+revision);fs.cpSync(path.join(root,'dist'),source,{recursive:true});fs.appendFileSync(path.join(source,'style.css'),'\n/* test release '+revision+' */');
- const pack=build({source,out,base:'/Soundglow/'});releases.push({out,pack});
+ // CI has a real previous-site for deployment retention; fixtures must stay isolated.
+ const pack=build({source,out,base:'/Soundglow/',previous:path.join(work,'no-previous-site')});releases.push({out,pack});
 }
 assert.notEqual(releases[0].pack.version,releases[1].pack.version);
 assert.deepEqual(releases[0].pack.files.filter(f=>f.url.includes('/engines/')),releases[1].pack.files.filter(f=>f.url.includes('/engines/')),'UI releases reuse the same engine URLs');

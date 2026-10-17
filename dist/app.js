@@ -122,7 +122,7 @@ function panel(open){
   syncSettings();
 }
 window.addEventListener('popstate',syncSettings);window.addEventListener('hashchange',syncSettings);
-$('settings').onclick=()=>panel(location.hash!=='#settings');$('close').onclick=()=>panel(false);
+$('settings').onclick=()=>panel(location.hash!=='#settings');
 document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
 syncSettings();
 for(const id of ['maximum','scale','history','floor','gain','fft','palette'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(id==='fft'&&analyser){analyser.fftSize=value('fft');bins=new Float32Array(analyser.frequencyBinCount);updateResolution()}if(id==='palette'){colourMap();redraw();}if(['maximum','scale','history','fft'].includes(id))redraw()});$('clear').onclick=redraw;

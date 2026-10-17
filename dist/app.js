@@ -128,7 +128,7 @@ async function startSpeech(){
   if(starting)return;if(running&&inputMode==='speech'){stop();return}stop();starting=true;notice('');state('LOADING');$('demo').disabled=$('demoBegin').disabled=$('start').disabled=true;
   try{
     audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();
-    const response=await fetch('audio/speech.wav');if(!response.ok)throw new Error('Speech recording could not be loaded. Please retry.');
+    const response=await fetch('audio/speech-english.wav');if(!response.ok)throw new Error('Speech recording could not be loaded. Please retry.');
     speechBuffer=await audio.decodeAudioData(await response.arrayBuffer());
     speechDestination=audio.createMediaStreamDestination();stream=speechDestination.stream;connectInput(stream);
     monitor=audio.createGain();monitor.gain.value=$('listen').checked?1:0;monitor.connect(audio.destination);

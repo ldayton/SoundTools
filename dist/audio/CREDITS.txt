@@ -1,7 +1,7 @@
-Speech test recording: Matthias Ponnier reading chapter 8 of Hiero (2010), by Ulrich Schödlbauer. 30-second excerpt prepared by Wikimedia Commons contributor Qualoki (2011).
-Source: https://commons.wikimedia.org/wiki/File:Sample_german_speech_without_in-ear-localisation.ogg
-Original recording: https://commons.wikimedia.org/wiki/File:Matthias_Ponnier_liest_aus_Hiero.ogg
-License: Free Art License (FAL). https://artlibre.org/licence/lal/en/
-Original Ogg provided as speech-original.ogg. speech.wav is a mono, 24 kHz PCM format conversion of the same excerpt, with no editorial changes, distributed under the same Free Art License.
+English speech test recording: Alice’s Adventures in Wonderland (version 3), by Lewis Carroll, read by Peter Yearsley for LibriVox (2007).
+Source: https://librivox.org/alices-adventures-in-wonderland-by-lewis-carroll-3/
+Audio: https://archive.org/download/alice_wonderland_0711_librivox/alice_01_carroll_128kb.mp3
+LibriVox identifies its recordings as public domain in the USA.
+Excerpt: chapter 1, 01:00–01:30. Converted to mono 24 kHz PCM WAV; no other changes.
 
-A bundled copy of the license is available in FREE-ART-LICENSE.html in this directory.
+The previous German recording remains in speech-original.ogg and speech.wav: Matthias Ponnier reading Hiero, by Ulrich Schödlbauer, excerpt by Qualoki. Free Art License; copy in FREE-ART-LICENSE.html. Source: https://commons.wikimedia.org/wiki/File:Sample_german_speech_without_in-ear-localisation.ogg

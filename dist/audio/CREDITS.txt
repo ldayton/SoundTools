@@ -1,0 +1,7 @@
+Speech test recording: Matthias Ponnier reading chapter 8 of Hiero (2010), by Ulrich Schödlbauer. 30-second excerpt prepared by Wikimedia Commons contributor Qualoki (2011).
+Source: https://commons.wikimedia.org/wiki/File:Sample_german_speech_without_in-ear-localisation.ogg
+Original recording: https://commons.wikimedia.org/wiki/File:Matthias_Ponnier_liest_aus_Hiero.ogg
+License: Free Art License (FAL). https://artlibre.org/licence/lal/en/
+Original Ogg provided as speech-original.ogg. speech.wav is a mono, 24 kHz PCM format conversion of the same excerpt, with no editorial changes, distributed under the same Free Art License.
+
+A bundled copy of the license is available in FREE-ART-LICENSE.html in this directory.

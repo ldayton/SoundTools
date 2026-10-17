@@ -225,26 +225,37 @@ The vendored source archive includes the extended C ABI and all new dependencies
 
 ## Display presets
 
-Settings offers **Praat** (the existing default) and **Voice Tools**. Voice Tools
-is a visual approximation of the supplied reference screenshot, not a port of
-that app's algorithms. It uses a 3.5 kHz ceiling and an offset-logarithmic scale:
-vertical position is proportional to `log(1 + frequency / 250 Hz)`. This includes
-0 Hz and expands the low-frequency region to resemble the reference's tick spacing.
-It uses fixed 100 dB colour maximum, 45 dB dynamic range, 15 dB background
-suppression, zero display pre-emphasis, zero quiet-frame boost and ten seconds
-of history. A 40 ms analysis window separates the harmonic bands; the colour palette is retained.
-These are ordinary shared settings, with no preset-specific processing or rendering.
-The narrower range and higher threshold hide weak background energy; the longer
-window sharpens frequency bands at the expense of timing detail.
+Presets are collections of the same editable settings. **Voice Tools** selects an
+ERB axis, 4 kHz ceiling, 64 ms periodic Hann window, 8 kHz analysis, 2× FFT padding,
+16 ms frame spacing, DC removal, amplitude levels, held-peak normalization, full
+Plasma palette, frequency buckets and held frames. Frequency and frame
+interpolation, peak memory and decay can be adjusted independently. Changing the
+ceiling alone cannot exceed the selected analysis sample rate's Nyquist limit.
 
-Praat restores the existing 5 kHz linear view, automatic colour maximum, 70 dB
-range, 6 dB/octave emphasis, zero suppression and boost, and ten-second history.
-Both presets leave the optional formant overlay independent. Manual adjustments
-show Unnamed Preset*; selecting either preset restores its display settings.
-Background suppression hides levels below the colour-range floor plus the
-chosen suppression amount. It is a display threshold, not audio noise removal.
-Fixed colour levels keep the same input power mapped to the same colour;
-microphone levels remain uncalibrated.
+The original **Praat** preset keeps Gaussian power-density analysis, device sample
+rate, 5 ms spacing, the existing palette, smooth interpolation and visible-history
+autoscaling. Its native numerical and visual references remain unchanged.
+
+The additional generic frame-analysis ABI uses Praat's existing FFT and sinc
+resampler; no second FFT library is loaded. `engine/frame-analysis.h` is the
+reviewable source for the added ABI. Its generated copy and the unchanged base
+adapter are included in `dist/vendor/praat/source.tar.gz`. To rebuild from the
+archive, use the earlier build instructions. To update from a separate checkout,
+copy this header to `wasm/frame-analysis.h` and include it after the existing array
+adapter in `wasm/spectrogram.cpp` before rebuilding; the vendor script verifies
+that the header matches. The original Gaussian entry point stays available.
+
+Amplitude levels use a shifted/clipped decibel scale and held-peak mode remembers
+peak levels in one-second buckets (default five), with a selectable decay per
+frame. Historical frames keep their original normalization. Dynamic range is
+available for fixed and visible-history colour levels; held-peak levels use a
+relative 0–1 scale. These are display measures, not calibrated acoustic SPL.
+
+`tests/voice-settings.cjs` compares 24 original Voice Tools binary-derived DSP
+fixtures and checks real WASM streams resampled from 24/44.1/48 kHz. The recovered
+DSP stage matches within 0.01 dB. This does not establish complete iPhone parity:
+Praat's resampler differs from Apple's polyphase resampler, and platform capture
+processing and overlay algorithms can differ. All computation remains local.
 
 ### Named custom presets
 
@@ -257,8 +268,8 @@ Unnamed Preset*. Failed writes leave the changes unnamed and preserve the stored
 Editing an existing name renames that preset; the pencil also exposes Delete.
 The * character is reserved for the unsaved indicator and is not allowed in names. Built-in presets
 cannot be renamed or deleted. Deleting the selected custom preset immediately applies Praat and persists that selection. Names must be unique (ignoring case); built-in names are reserved. Storage failures
-are reported and leave the entered name available to retry. Invalid stored entries
-are ignored. Presets are local to the browser and site origin, not synced or uploaded.
+are reported and leave the entered name available to retry. Older named presets inherit the new analysis controls’ previous defaults while
+retaining their existing values. Invalid stored entries are ignored. Presets are local to the browser and site origin, not synced or uploaded.
 Microphone selection and playback position are not included.
 
 Preset management uses a native modal dialog (a bottom sheet on mobile), opened

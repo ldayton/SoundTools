@@ -11,3 +11,8 @@ The English recording is public-domain LibriVox audio; see audio/CREDITS.txt.
 Third-party code retains its original licenses/notices in the source archive.
 Emscripten-generated runtime: MIT and University of Illinois/NCSA licenses;
 see https://github.com/emscripten-core/emscripten/blob/6.0.12/LICENSE.
+
+Plasma colour map: Nathaniel J. Smith and Stefan van der Walt, CC0 / public domain.
+Source data: Matplotlib 3.10.7, lib/matplotlib/_cm_listed.py.
+Original dedication: https://github.com/BIDS/colormap/blob/master/colormaps.py
+CC0: https://creativecommons.org/publicdomain/zero/1.0/

@@ -5,7 +5,10 @@ let returningHome=false;
 let featureHistory=[];
 const analysisCanvas=$('analysisOverlay'),analysisContext=analysisCanvas.getContext('2d');
 const analysisFlags=()=>$('formants').value!=='off'?7:0; // Pitch/intensity gate formant reliability internally.
-const displayDb=(power,frequency)=>PraatDisplay.powerDb(power,frequency,value('preemphasis'));
+let spectrumUnits='density',heldPeak=newPeakState();
+const displayDb=(power,frequency)=>spectrumUnits==='amplitude'?AnalysisSettings.level(power,frequency,spectrumUnits,value('preemphasis')):PraatDisplay.powerDb(power,frequency,value('preemphasis'));
+function newPeakState(){return AnalysisSettings.peakState(Number($('peakSeconds').value),Number($('peakDecay').value))}
+function resetAnalysis(){heldPeak=newPeakState();featureHistory=[];processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}
 let engine=null,pcmNode=null,frameQueue=[],spectrumStep=20,spectrumFirst=0;
 const analysisDelay=.3; // 100 ms capture packets + overlap + delivery headroom.
 let currentSpectrumFrame=null,lastPlotTime=0;
@@ -15,27 +18,28 @@ canvas.dataset.engine='praat-wasm';
 let inputMode='mic',speechBuffer=null,speechNode=null,speechDestination=null,monitor=null,clipOffset=0,clipStarted=0;
 let audio,stream,source,bins,running=false,paused=false,starting=false,last=0,carry=0,raf=0,nyquist=24000,w=0,h=0,plotW=0,plotH=0,map=[],lut=[],packedColours,dpr=1,pxLeft=0,pxTop=0,pxW=1,pxH=1,previousSlice=null;
 const left=52,padTop=20,bottom=27,right=12;
-const value=id=>Number($(id).value),maxHz=()=>Math.min(value('maximum'),nyquist);
-function frequency(y){const f=1-y/plotH;return $('scale').value==='voice'?250*(Math.pow(1+maxHz()/250,f)-1):$('scale').value==='log'?60*Math.pow(maxHz()/60,f):maxHz()*f}
-function yFor(f){return padTop+plotH*(1-($('scale').value==='voice'?Math.log1p(f/250)/Math.log1p(maxHz()/250):$('scale').value==='log'?Math.log(f/60)/Math.log(maxHz()/60):f/maxHz()))}
-function colourMap(){let stops='reference'==='reference'?[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]]:'reference'==='ocean'?[[6,11,19],[20,37,86],[18,110,141],[74,209,190],[232,255,213]]:'reference'==='mono'?[[8,11,16],[55,62,73],[115,128,139],[190,207,216],[255,255,255]]:[[8,11,16],[61,39,85],[152,57,93],[231,120,59],[255,243,175]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});packedColours=PraatDisplay.palette(lut);$('legend').querySelector('i').style.background=`linear-gradient(90deg,${stops.map(c=>`rgb(${c.join(',')})`).join(',')})`}
+const value=id=>Number($(id).value),maxHz=()=>Math.min(value('maximum'),nyquist,value('analysisRate')?value('analysisRate')/2:nyquist);
+function frequency(y){return AnalysisSettings.frequency(1-y/plotH,maxHz(),$('scale').value)}
+function yFor(f){return padTop+plotH*(1-AnalysisSettings.position(f,maxHz(),$('scale').value))}
+function colourMap(){const stops=[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});if($('palette').value==='plasma')lut=AnalysisSettings.plasma;packedColours=PraatDisplay.palette(lut,$('interpolation').value==='bucket');$('legend').querySelector('i').style.background=`linear-gradient(90deg,${($('palette').value==='plasma'?[lut[0],lut[64],lut[128],lut[192],lut[255]]:stops).map(c=>`rgb(${c.join(',')})`).join(',')})`}
 function redraw(){
   if(!w)return;
-  ctx.fillStyle='reference'==='reference'?'#110885':'#080b10';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle=`rgb(${lut?.[0]?.join(',')||'17,8,133'})`;ctx.fillRect(0,0,canvas.width,canvas.height);
   carry=0;last=0;previousSlice=null;paintedSlices=[];paintedMaximum=displayMaximum;
   const step=spectrumStep;
   // Sample at physical-pixel centres; interpolate spectral levels before colouring.
-  map=Array.from({length:pxH},(_,y)=>(frequency((y+.5)*plotH/pxH)-spectrumFirst)/step);
+  map=Array.from({length:pxH},(_,y)=>(frequency((y+($('interpolation').value==='bucket'?1:.5))*plotH/pxH)-spectrumFirst)/step+($('interpolation').value==='bucket'?1:0));
   if(currentSpectrumFrame)delete currentSpectrumFrame.rows;for(const frame of frameQueue)delete frame.rows;
   drawAxes();drawAnalysis();
 }
 function sampleSpectrum(position,values=bins){
   const index=Math.max(0,Math.min(values.length-1,position));
+  if($('interpolation').value==='bucket')return Number.isFinite(values[Math.trunc(index)])?values[Math.trunc(index)]:-160;
   const lo=Math.floor(index),hi=Math.min(values.length-1,lo+1),mix=index-lo;
   const a=Number.isFinite(values[lo])?values[lo]:-160,b=Number.isFinite(values[hi])?values[hi]:-160;
   return a+(b-a)*mix;
 }
-function drawAxes(){axis.setTransform(dpr,0,0,dpr,0,0);axis.clearRect(0,0,w,h);axis.font='10px system-ui';axis.textBaseline='middle';const ticks=$('scale').value==='voice'?[0,100,200,300,400,500,1000,1500,2000,2500,3000,3500,5000,8000,16000,20000]:$('scale').value==='log'?[60,100,200,500,1000,2000,5000,10000,20000]:Array.from({length:9},(_,i)=>maxHz()*i/8);for(const f of ticks){if(f>maxHz()||f<($('scale').value==='log'?60:0))continue;const y=yFor(f);axis.fillStyle='#8796aa';axis.textAlign='right';axis.fillText(f>=1000?`${+(f/1000).toFixed(1)}k`:`${Math.round(f)}`,left-9,y);axis.strokeStyle='#96b3d313';axis.beginPath();axis.moveTo(left,y+.5);axis.lineTo(w-right,y+.5);axis.stroke()}axis.textAlign='left';axis.fillStyle='#657489';axis.fillText('Hz',10,10);axis.textAlign='center';for(let i=0;i<=4;i++){const x=left+plotW*i/4;axis.fillText(i===4?'now':`−${+(value('history')*(1-i/4)).toFixed(1)}s`,Math.min(w-20,Math.max(left,x)),h-11)}}
+function drawAxes(){axis.setTransform(dpr,0,0,dpr,0,0);axis.clearRect(0,0,w,h);axis.font='10px system-ui';axis.textBaseline='middle';const ticks=['voice','erb','mel'].includes($('scale').value)?[0,100,200,300,400,500,1000,1500,2000,2500,3000,3500,5000,8000,16000,20000]:$('scale').value==='log'?[60,100,200,500,1000,2000,5000,10000,20000]:Array.from({length:9},(_,i)=>maxHz()*i/8);for(const f of ticks){if(f>maxHz()||f<($('scale').value==='log'?60:0))continue;const y=yFor(f);axis.fillStyle='#8796aa';axis.textAlign='right';axis.fillText(f>=1000?`${+(f/1000).toFixed(1)}k`:`${Math.round(f)}`,left-9,y);axis.strokeStyle='#96b3d313';axis.beginPath();axis.moveTo(left,y+.5);axis.lineTo(w-right,y+.5);axis.stroke()}axis.textAlign='left';axis.fillStyle='#657489';axis.fillText('Hz',10,10);axis.textAlign='center';for(let i=0;i<=4;i++){const x=left+plotW*i/4;axis.fillText(i===4?'now':`−${+(value('history')*(1-i/4)).toFixed(1)}s`,Math.min(w-20,Math.max(left,x)),h-11)}}
 function resize(){
   const box=canvas.getBoundingClientRect();w=Math.max(1,Math.round(box.width));h=Math.max(1,Math.round(box.height));
   dpr=Math.max(1,window.devicePixelRatio||1);
@@ -63,16 +67,16 @@ function render(time){
   const prior=previousSlice||current;
   const cutoff=target-value('history');
   while(displayPeaks.length&&displayPeaks[0].time<cutoff)displayPeaks.shift();
-  displayMaximum=$('colourLevels').value==='fixed'?value('fixedMaximum'):displayPeaks.reduce((peak,frame)=>frame.time<=target?Math.max(peak,frame.peak):peak,0);
+  displayMaximum=$('colourLevels').value==='held'?100:$('colourLevels').value==='fixed'?value('fixedMaximum'):displayPeaks.reduce((peak,frame)=>frame.time<=target?Math.max(peak,frame.peak):peak,0);
   const dbPixels=new Float32Array(pixels*pxH);
   const secondsPerPixel=value('history')/pxW,endTime=target-carry*secondsPerPixel;
-  function frameRows(frame){if(!frame.rows){const levels=Float32Array.from(frame.power,(p,f)=>displayDb(p,spectrumFirst+f*spectrumStep));frame.rows=Float32Array.from(map,position=>sampleSpectrum(position,levels))}return frame.rows}
+  function frameRows(frame){if(!frame.rows){const levels=Float32Array.from(frame.power,(p,f)=>displayDb(p,spectrumFirst+f*spectrumStep));if($('colourLevels').value==='held')for(let i=0;i<levels.length;i++)levels[i]=frame.levelMaximum>0?levels[i]/frame.levelMaximum*100:0;frame.rows=Float32Array.from(map,position=>sampleSpectrum(position,levels))}return frame.rows}
   for(let x=0;x<pixels;x++){
     const columnTime=endTime-(pixels-x-.5)*secondsPerPixel;
     while(frameQueue.length&&frameQueue[0].time<=columnTime){currentSpectrumFrame=frameQueue.shift();canvas.dataset.frameTime=currentSpectrumFrame.time}
     if(currentSpectrumFrame){
       const a=frameRows(currentSpectrumFrame),next=frameQueue[0];
-      const b=next?frameRows(next):a,mix=next?Math.max(0,Math.min(1,(columnTime-currentSpectrumFrame.time)/(next.time-currentSpectrumFrame.time))):0;
+      const b=next?frameRows(next):a,mix=next&&$('frameInterpolation').value==='linear'?Math.max(0,Math.min(1,(columnTime-currentSpectrumFrame.time)/(next.time-currentSpectrumFrame.time))):0;
       for(let y=0;y<pxH;y++)dbPixels[y*pixels+x]=columnTime-currentSpectrumFrame.time>.03?-160:a[y]+(b[y]-a[y])*mix;
     }else for(let y=0;y<pxH;y++)dbPixels[y*pixels+x]=prior[y]+(current[y]-prior[y])*(x+1)/pixels;
   }
@@ -83,7 +87,7 @@ function render(time){
   while(excess>0&&paintedSlices.length){const first=paintedSlices[0];if(first.width<=excess){excess-=first.width;paintedSlices.shift()}else{const width=first.width-excess,db=new Float32Array(width*pxH);for(let y=0;y<pxH;y++)db.set(first.db.subarray(y*first.width+excess,(y+1)*first.width),y*width);paintedSlices[0]={width,db};excess=0}}
   function paint(slices,width,x){
     // Autoscaling can repaint millions of Retina pixels; read controls once.
-    const range=value('floor'),gain=value('gain');
+    const range=$('colourLevels').value==='held'?100:value('floor'),gain=value('gain');
     const image=ctx.createImageData(width,pxH);
     PraatDisplay.colourPixels(slices,width,pxH,displayMaximum,range,gain,packedColours,image.data,value('compression'),value('suppression'));
     ctx.putImageData(image,x,pxTop);
@@ -99,7 +103,7 @@ function render(time){
 }
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
 function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
-function stop(){featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
+function stop(){heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   if(!navigator.mediaDevices?.enumerateDevices)return [];
@@ -142,7 +146,7 @@ function microphoneError(e){
 $('refreshMic').onclick=microphones;
 $('microphone').onchange=async()=>{notice('');if(running&&inputMode==='mic'){stop();await start();}};
 async function start(){if(starting)return;showSpectrogram();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
-function updateResolution(){if(audio)$('resolution').textContent=`PRAAT · ${(audio.sampleRate/1000).toFixed(1)} kHz · ${spectrumStep.toFixed(1)} Hz / bin`}
+function updateResolution(){if(audio)$('resolution').textContent=`PRAAT · ${((value('analysisRate')||audio.sampleRate)/1000).toFixed(1)} kHz · ${spectrumStep.toFixed(1)} Hz / bin`}
 $('start').onclick=start;$('begin').onclick=start;
 async function togglePause(){
   if(!running||starting)return;
@@ -198,22 +202,23 @@ document.addEventListener('keydown',e=>{
   if(!e.repeat)void togglePause();
 });
 syncSettings();
-for(const id of ['maximum','scale','history','floor','gain','window'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(['maximum','window'].includes(id)){processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}if(['maximum','scale','history','window','floor','gain'].includes(id))redraw()});
+for(const id of ['maximum','scale','history','floor','gain','window'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(['maximum','window'].includes(id)){heldPeak=newPeakState();processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}if(['maximum','scale','history','window','floor','gain'].includes(id))redraw()});
 window.addEventListener('pagehide',stop);colourMap();resize();
 
 function acceptFrames(frames,result){
+      spectrumUnits=result.spectrumUnits||'density';
       const cutoff=audio.currentTime-value('history')-1;
       featureHistory.push(...(result.features||[]));while(featureHistory.length&&featureHistory[0].time<cutoff)featureHistory.shift();
 
       if(frames.length){
-        if(processingStats.lastFrameTime!=null&&frames[0].time-processingStats.lastFrameTime>result.timeStep*1.5)processingStats.discontinuousBatches=(processingStats.discontinuousBatches||0)+1;
+        if(processingStats.lastFrameTime!=null&&frames[0].time-processingStats.lastFrameTime>result.timeStep*1.5){processingStats.discontinuousBatches=(processingStats.discontinuousBatches||0)+1;heldPeak=newPeakState();}
         processingStats.lastFrameTime=frames.at(-1).time;
       }
 
       if(spectrumStep!==result.frequencyStep||spectrumFirst!==result.firstFrequency){spectrumStep=result.frequencyStep;spectrumFirst=result.firstFrequency;redraw()}
       if(!bins||bins.length!==result.bins){bins=new Float32Array(result.bins);bins.fill(-160)}
       while(displayPeaks.length&&displayPeaks[0].time<audio.currentTime-value('history')-.2)displayPeaks.shift();
-      for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));displayPeaks.push({time:frame.time,peak})}
+      for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,frame.time);displayPeaks.push({time:frame.time,peak})}
       frameQueue.push(...frames);if(frameQueue.length>200)frameQueue.splice(0,frameQueue.length-200);
       processingStats.frames+=frames.length;processingStats.blocks++;processingStats.lastMs=result.timings.analysisMs;canvas.dataset.processedFrames=processingStats.frames;canvas.dataset.analysisMs=processingStats.lastMs;updateResolution();
 
@@ -222,7 +227,7 @@ async function connectInput(input){
   const context=audio;
   const client=new PraatClient({workerURL:'vendor/praat/worker.js?profile=release'});
   engine=new PraatStream({client,sampleRate:context.sampleRate,
-    settings:()=>({maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}),
+    settings:()=>({maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:$('windowShape').value,analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:$('removeDC').value==='on',spectrumUnits:$('spectrumUnits').value,analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}),
     onFrames:acceptFrames,onError:error=>{stop();notice('Praat audio processing failed: '+error.message)}
   });
   await client.init();
@@ -237,6 +242,7 @@ async function connectInput(input){
 function speechPosition(){if(!speechBuffer)return 0;const t=clipOffset+Math.max(0,audio.currentTime-clipStarted);return speechNode?.loop?t%speechBuffer.duration:Math.min(t,speechBuffer.duration)}
 function updatePosition(){const t=speechPosition();$('seek').value=t;const format=n=>`${Math.floor(n/60)}:${String(Math.floor(n%60)).padStart(2,'0')}`;$('position').textContent=`${format(t)} / ${format(Math.ceil(speechBuffer.duration))}`}
 function playFrom(offset){
+  heldPeak=newPeakState();
   featureHistory=[];drawAnalysis();
   if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect()}
   processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);pcmNode?.port.postMessage('reset');
@@ -303,19 +309,17 @@ function drawAnalysis(){
   g.restore();analysisCanvas.dataset.frames=rows.length;
 }
 for(const id of ['formants','formantCeiling'])$(id).addEventListener('change',()=>{
-  featureHistory=[];processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;drawAnalysis();
+  resetAnalysis();drawAnalysis();
 });
 for(const id of ['preemphasis','compression'])$(id).addEventListener('input',()=>{
   $('preemphasisOut').textContent=value('preemphasis')+' dB/octave';$('compressionOut').textContent=Math.round(value('compression')*100)+'%';
+  if(id==='preemphasis'&&$('colourLevels').value==='held')resetAnalysis();
   if(id==='preemphasis'){displayPeaks=[];displayMaximum=0;for(const frame of frameQueue)delete frame.rows;}
   redraw();
 });
 
 // Presets change display/analysis-window settings; formant overlays stay independent.
-const displayPresets={
- praat:{maximum:'5000',scale:'linear',history:'10',floor:'70',gain:'0',window:'0.005',preemphasis:'6',compression:'0',colourLevels:'auto',fixedMaximum:'100',suppression:'0'},
- voice:{maximum:'3500',scale:'voice',history:'10',floor:'45',gain:'0',window:'0.04',preemphasis:'0',compression:'0',colourLevels:'fixed',fixedMaximum:'100',suppression:'15'}
-};
+const displayPresets=AnalysisSettings.presets;
 const presetStorageKey='soundglow-presets-v1';
 const savedSettingIds=[...Object.keys(displayPresets.praat),'formants','formantCeiling'];
 let savedPresets=[],selectedPreset=null;
@@ -332,6 +336,7 @@ try{
  const stored=JSON.parse(localStorage.getItem(presetStorageKey)||'null');
  if(stored?.version===1&&Array.isArray(stored.presets)){
   const ids=new Set(),names=new Set(['praat','voice tools']);
+  stored.presets=stored.presets.map(p=>p&&typeof p.settings==='object'?{...p,settings:{...AnalysisSettings.defaults,...p.settings}}:p);
   savedPresets=stored.presets.filter(p=>{if(!validSavedPreset(p)||ids.has(p.id)||names.has(p.name.trim().toLowerCase()))return false;ids.add(p.id);names.add(p.name.trim().toLowerCase());return true});
   selectedPreset=stored.selected;
  }
@@ -357,6 +362,7 @@ function syncPreset(edited=false){
  const match=active&&matches(active)?[$('preset').value]:savedPresets.filter(p=>matches(p.settings)).map(p=>p.id);
  $('preset').value=edited?'custom':match[0]||(!wasSaved&&Object.entries(displayPresets).find(([,settings])=>matches(settings))?.[0])||'custom';
  $('unnamedPreset').hidden=$('preset').value!=='custom';
+ $('floor').disabled=$('colourLevels').value==='held';
  $('fixedMaximumControl').hidden=$('colourLevels').value!=='fixed';
  $('fixedMaximumOut').textContent=value('fixedMaximum')+' dB';$('suppressionOut').textContent=value('suppression')+' dB';
 }
@@ -365,8 +371,7 @@ function applyPreset(id){
  for(const [id,v] of Object.entries(settings))$(id).value=v;
  $('preset').value=id;
  for(const [id,text] of [['maxOut',value('maximum')/1000+' kHz'],['historyOut',value('history')+' s'],['floorOut',value('floor')+' dB'],['gainOut',value('gain')+' dB'],['preemphasisOut',value('preemphasis')+' dB/octave'],['compressionOut',Math.round(value('compression')*100)+'%']])$(id).textContent=text;
- processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);
- featureHistory=[];syncPreset();redraw();
+ resetAnalysis();syncPreset();colourMap();redraw();
 }
 $('preset').addEventListener('change',()=>{applyPreset($('preset').value);closePresetEditor();savedPresetStatus('');persistPresets()});
 let editingPresetId=null;
@@ -414,3 +419,6 @@ for(const id of savedSettingIds)$(id).addEventListener('input',()=>{
 });
 renderSavedPresets();
 if(settingsForPreset(selectedPreset))applyPreset(selectedPreset);else syncPreset();
+
+for(const id of Object.keys(AnalysisSettings.defaults))$(id).addEventListener('input',()=>{if(!['palette','interpolation','frameInterpolation'].includes(id))resetAnalysis();colourMap();redraw()});
+$('colourLevels').addEventListener('input',()=>{resetAnalysis();redraw()});

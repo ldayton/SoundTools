@@ -5,10 +5,10 @@
  function intensity(db,maximum,range=70,gain=0){return Math.max(0,Math.min(1,(db+gain-maximum+range)/range))}
  // 256 KiB replaces three interpolations and channel writes per output pixel.
  // Build through RGBA bytes so packed writes also work on either byte order.
- function palette(lut){
+ function palette(lut,discrete=false){
   const bytes=new Uint8ClampedArray(65536*4);
   for(let i=0;i<65536;i++){
-   const level=i*255/65535,lo=Math.floor(level),hi=Math.min(255,lo+1),mix=level-lo;
+   const level=i*255/65535,lo=Math.floor(level),hi=discrete?lo:Math.min(255,lo+1),mix=level-lo;
    for(let c=0;c<3;c++)bytes[i*4+c]=Math.round(lut[lo][c]+(lut[hi][c]-lut[lo][c])*mix);
    bytes[i*4+3]=255;
   }

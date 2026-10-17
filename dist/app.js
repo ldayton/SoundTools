@@ -154,6 +154,7 @@ async function togglePause(){
   finally{starting=false;setBusy(false)}
 }
 $('freeze').onclick=togglePause;
+$('freeze').setAttribute('aria-keyshortcuts','Space');
 function showSpectrogram(){
   if(location.hash==='#settings'){history.replaceState(null,'',location.pathname+location.search);syncSettings()}
 }
@@ -181,7 +182,15 @@ function panel(open){
 }
 window.addEventListener('popstate',syncSettings);window.addEventListener('hashchange',syncSettings);
 $('settings').onclick=()=>panel(location.hash!=='#settings');
-document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')panel(false);
+  if(e.code!=='Space'&&e.key!==' ')return;
+  if(e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey||!running)return;
+  if(e.target?.isContentEditable||e.target?.closest?.('input,select,textarea,[role="textbox"]'))return;
+  // Override toolbar button activation too, so Space after Example pauses it.
+  e.preventDefault();
+  if(!e.repeat)void togglePause();
+});
 syncSettings();
 for(const id of ['maximum','scale','history','floor','gain','window'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(['maximum','window'].includes(id)){processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}if(['maximum','scale','history','window','floor','gain'].includes(id))redraw()});
 window.addEventListener('pagehide',stop);colourMap();resize();

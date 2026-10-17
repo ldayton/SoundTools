@@ -10,6 +10,7 @@ let engine=null,pcmNode=null,frameQueue=[],spectrumStep=20,spectrumFirst=0;
 const analysisDelay=.3; // 100 ms capture packets + overlap + delivery headroom.
 let currentSpectrumFrame=null,lastPlotTime=0;
 let displayPeaks=[],paintedSlices=[],displayMaximum=0,paintedMaximum=0;
+const performanceSession=typeof SoundglowPerformance==='object'?new SoundglowPerformance.PerformanceSession():null;
 let processingStats={frames:0,blocks:0,lastMs:0};
 canvas.dataset.engine='praat-wasm';
 let inputMode='mic',speechBuffer=null,speechNode=null,speechDestination=null,monitor=null,clipOffset=0,clipStarted=0;
@@ -20,6 +21,7 @@ function frequency(y){const f=1-y/plotH;return $('scale').value==='voice'?250*(M
 function yFor(f){return padTop+plotH*(1-($('scale').value==='voice'?Math.log1p(f/250)/Math.log1p(maxHz()/250):$('scale').value==='log'?Math.log(f/60)/Math.log(maxHz()/60):f/maxHz()))}
 function colourMap(){let stops='reference'==='reference'?[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]]:'reference'==='ocean'?[[6,11,19],[20,37,86],[18,110,141],[74,209,190],[232,255,213]]:'reference'==='mono'?[[8,11,16],[55,62,73],[115,128,139],[190,207,216],[255,255,255]]:[[8,11,16],[61,39,85],[152,57,93],[231,120,59],[255,243,175]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});packedColours=PraatDisplay.palette(lut);$('legend').querySelector('i').style.background=`linear-gradient(90deg,${stops.map(c=>`rgb(${c.join(',')})`).join(',')})`}
 function redraw(){
+  performanceSession?.break();
   if(!w)return;
   ctx.fillStyle='reference'==='reference'?'#110885':'#080b10';ctx.fillRect(0,0,canvas.width,canvas.height);
   carry=0;last=0;previousSlice=null;paintedSlices=[];paintedMaximum=displayMaximum;
@@ -47,6 +49,11 @@ function resize(){
 window.addEventListener('resize',resize);
 new ResizeObserver(resize).observe($('plot'));
 function render(time){
+ if(!performanceSession?.enabled)return renderFrame(time);
+ const started=performance.now();
+ try{return renderFrame(time)}finally{performanceSession?.frame({time,cost:performance.now()-started,audioTime:audio?.currentTime||0,plotted:Number(canvas.dataset.plottedUntil),active:running&&!paused&&!document.hidden&&location.hash!=='#settings'});}
+}
+function renderFrame(time){
   if(!running)return;
   if(inputMode==='speech')updatePosition();
   raf=requestAnimationFrame(render);
@@ -55,7 +62,7 @@ function render(time){
   const available=frameQueue.at(-1)?.time??currentSpectrumFrame?.time;
   const target=available===undefined?desired:Math.min(desired,available);
   processingStats.maxPlayoutLag=Math.max(processingStats.maxPlayoutLag||0,audio.currentTime-target);
-  if(target<desired-1e-6)processingStats.underflowHolds=(processingStats.underflowHolds||0)+1;
+  if(target<desired-1e-6){processingStats.underflowHolds=(processingStats.underflowHolds||0)+1;performanceSession?.count('underflowCallbacks');}
   if(!last){last=time;lastPlotTime=target;return}
   const dt=Math.max(0,Math.min(value('history'),target-lastPlotTime));last=time;lastPlotTime=target;
   carry+=dt*pxW/value('history');const pixels=Math.min(pxW,Math.floor(carry+1e-9));if(!pixels)return;carry=Math.max(0,carry-pixels);
@@ -202,11 +209,14 @@ for(const id of ['maximum','scale','history','floor','gain','window'])$(id).addE
 window.addEventListener('pagehide',stop);colourMap();resize();
 
 function acceptFrames(frames,result){
+      for(const [name,ms] of Object.entries(result.timings||{}))performanceSession?.add(name,ms);
+      performanceSession?.add('pendingAudioMs',result.pendingAudioMs);
+      performanceSession?.add('analysisDeliveryAgeMs',(audio.currentTime-(frames.at(-1)?.time??audio.currentTime))*1000);
       const cutoff=audio.currentTime-value('history')-1;
       featureHistory.push(...(result.features||[]));while(featureHistory.length&&featureHistory[0].time<cutoff)featureHistory.shift();
 
       if(frames.length){
-        if(processingStats.lastFrameTime!=null&&frames[0].time-processingStats.lastFrameTime>result.timeStep*1.5)processingStats.discontinuousBatches=(processingStats.discontinuousBatches||0)+1;
+        if(processingStats.lastFrameTime!=null&&frames[0].time-processingStats.lastFrameTime>result.timeStep*1.5){processingStats.discontinuousBatches=(processingStats.discontinuousBatches||0)+1;performanceSession?.count('discontinuousBatches');}
         processingStats.lastFrameTime=frames.at(-1).time;
       }
 
@@ -214,14 +224,14 @@ function acceptFrames(frames,result){
       if(!bins||bins.length!==result.bins){bins=new Float32Array(result.bins);bins.fill(-160)}
       while(displayPeaks.length&&displayPeaks[0].time<audio.currentTime-value('history')-.2)displayPeaks.shift();
       for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));displayPeaks.push({time:frame.time,peak})}
-      frameQueue.push(...frames);if(frameQueue.length>200)frameQueue.splice(0,frameQueue.length-200);
+      frameQueue.push(...frames);if(frameQueue.length>200){performanceSession?.count('discardedAnalysisFrames',frameQueue.length-200);frameQueue.splice(0,frameQueue.length-200);}
       processingStats.frames+=frames.length;processingStats.blocks++;processingStats.lastMs=result.timings.analysisMs;canvas.dataset.processedFrames=processingStats.frames;canvas.dataset.analysisMs=processingStats.lastMs;updateResolution();
 
 }
 async function connectInput(input){
   const context=audio;
   const client=new PraatClient({workerURL:'vendor/praat/worker.js?profile=release'});
-  engine=new PraatStream({client,sampleRate:context.sampleRate,
+  engine=new PraatStream({onEvent:(name,details)=>performanceSession?.event(name,{audioTime:audio?.currentTime,...details}),client,sampleRate:context.sampleRate,
     settings:()=>({maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}),
     onFrames:acceptFrames,onError:error=>{stop();notice('Praat audio processing failed: '+error.message)}
   });
@@ -230,7 +240,7 @@ async function connectInput(input){
   if(returningHome||context!==audio){client.dispose();throw new Error('Input stopped')}
   source=context.createMediaStreamSource(input);pcmNode=new AudioWorkletNode(context,'pcm-input');
   const activeEngine=engine;
-  pcmNode.port.onmessage=({data})=>{if(!paused&&engine===activeEngine)activeEngine.push(data.pcm,data.start)};
+  pcmNode.port.onmessage=({data})=>{performanceSession?.add('capturePacketAgeMs',(audio.currentTime-data.start-data.pcm.length/audio.sampleRate)*1000);if(!paused&&engine===activeEngine)activeEngine.push(data.pcm,data.start)};
   source.connect(pcmNode);pcmNode.connect(context.destination);nyquist=context.sampleRate/2;
   bins=new Float32Array(400);bins.fill(-160);
 }
@@ -414,3 +424,13 @@ for(const id of savedSettingIds)$(id).addEventListener('input',()=>{
 });
 renderSavedPresets();
 if(settingsForPreset(selectedPreset))applyPreset(selectedPreset);else syncPreset();
+
+function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:Object.fromEntries(savedSettingIds.map(id=>[id,$(id).value])),preset:$('preset').selectedOptions[0]?.textContent,visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',health:{...processingStats}})}
+window.soundglowPerformance={report:performanceReport,reset:()=>performanceSession.reset()};
+if($('measurePerformance')){
+ $('measurePerformance').onchange=()=>{performanceSession.enabled=$('measurePerformance').checked;performanceSession.reset();};
+ $('resetPerformance').onclick=()=>performanceSession.reset();
+ $('exportPerformance').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(performanceReport(),null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='soundglow-performance-'+Date.now()+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+}
+
+document.addEventListener('visibilitychange',()=>{performanceSession?.count('visibilityChanges');performanceSession?.break();});

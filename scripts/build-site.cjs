@@ -13,14 +13,14 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soun
  const release=base+'releases/'+version+'/',output=new Map();
  for(const file of engineFiles)output.set(engine+file.slice('vendor/praat/'.length),read(file));
  for(const file of mediaFiles)output.set(media+file.slice('audio/'.length),read(file));
- for(const file of ['style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
+ for(const file of ['performance.js','style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
  let app=read('app.js').toString();
  for(const [before,after] of [["'vendor/praat/worker.js?profile=release'",JSON.stringify(engine+'worker.js?profile=release')],["'pcm-worklet.js'",JSON.stringify(release+'pcm-worklet.js')],["'audio/speech-english.wav'",JSON.stringify(media+'speech-english.wav')]]){
   if(app.split(before).length!==2)throw Error('Missing or duplicate production asset: '+before);app=app.replace(before,after);
  }
  output.set(release+'app.js',Buffer.from(app));
  let html=read('index.html').toString().replace('<head>','<head><meta name="soundglow-release" content="'+version+'"><meta name="soundglow-base" content="'+base+'">');
- const mappings={'praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
+ const mappings={'performance.js':release+'performance.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
  html=html.replace(/\b(src|href)="([^"?]+)(?:\?[^"]*)?"/g,(all,attribute,name)=>mappings[name]?attribute+'="'+mappings[name]+'"':all).replace('href="audio/CREDITS.txt"','href="'+media+'CREDITS.txt"');
  output.set(release+'index.html',Buffer.from(html));
  const manifest={schema:1,version,base,html:release+'index.html',files:[...output].map(([url,bytes])=>({url,sha256:digest(bytes),bytes:bytes.length}))};

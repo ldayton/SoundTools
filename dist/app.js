@@ -58,7 +58,7 @@ function render(time){
 }
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
 function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
-function stop(){running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Test speech';cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=analyser=null;paused=false;$('freeze').disabled=true;$('freeze').textContent='Pause';$('start').textContent='Start microphone';state('MIC OFF');$('device').textContent='MICROPHONE OFF · HISTORY RETAINED'}
+function stop(){running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Test';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=analyser=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('MIC OFF');$('device').textContent='MICROPHONE OFF · HISTORY RETAINED'}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   if(!navigator.mediaDevices?.enumerateDevices)return [];
@@ -101,10 +101,10 @@ function microphoneError(e){
 }
 $('refreshMic').onclick=microphones;
 $('microphone').onchange=()=>{if(running)stop();notice('');};
-async function start(){if(starting)return;if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;$('start').disabled=$('begin').disabled=true;notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(audio.state==='suspended')await audio.resume();connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;$('start').textContent='Stop mic';state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');$('start').textContent='Resume audio'}})}catch(e){stop();notice(microphoneError(e));panel(true);microphones();}finally{starting=false;$('start').disabled=$('begin').disabled=false}}
+async function start(){if(starting)return;if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;$('start').disabled=$('begin').disabled=true;notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(audio.state==='suspended')await audio.resume();connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();notice(microphoneError(e));panel(true);microphones();}finally{starting=false;$('start').disabled=$('begin').disabled=false}}
 function updateResolution(){if(audio&&analyser)$('resolution').textContent=`${(audio.sampleRate/1000).toFixed(1)} kHz · ${(audio.sampleRate/analyser.fftSize).toFixed(1)} Hz / bin`}
-$('start').onclick=async()=>{if(running&&audio?.state==='suspended'){try{await audio.resume();notice('');state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);$('start').textContent='Stop mic'}catch(e){notice(e.message)}}else start()};$('begin').onclick=start;
-$('freeze').onclick=()=>{paused=!paused;if(inputMode==='speech'){if(paused)audio.suspend();else audio.resume();}$('freeze').textContent=paused?'Resume':'Pause';state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);last=0};
+$('start').onclick=async()=>{if(running&&audio?.state==='suspended'){try{await audio.resume();notice('');state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);setIcon('start','■','Stop microphone')}catch(e){notice(e.message)}}else start()};$('begin').onclick=start;
+$('freeze').onclick=()=>{paused=!paused;if(inputMode==='speech'){if(paused)audio.suspend();else audio.resume();}setIcon('freeze',paused?'▶':'⏸',paused?'Resume':'Pause');state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);last=0};
 function syncSettings(){
   const open=location.hash==='#settings';
   $('panel').hidden=false;$('panel').inert=!open;$('visual').inert=open;
@@ -154,7 +154,7 @@ async function startSpeech(){
     speechDestination=audio.createMediaStreamDestination();stream=speechDestination.stream;connectInput(stream);
     monitor=audio.createGain();monitor.gain.value=$('listen').checked?1:0;monitor.connect(audio.destination);
     inputMode='speech';running=true;paused=false;$('seek').max=speechBuffer.duration;
-    $('testControls').hidden=false;$('welcome').hidden=true;$('freeze').disabled=false;$('freeze').textContent='Pause';$('demo').textContent='Stop test';$('start').textContent='Use microphone';
+    $('testControls').hidden=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('freeze','⏸','Pause');$('demo').textContent='Test';$('demo').setAttribute('aria-pressed','true');setIcon('start','🎙︎','Use microphone');
     $('device').textContent='TEST INPUT · RECORDED SPEECH';state('TEST SPEECH',true);updateResolution();redraw();playFrom(0);panel(true);raf=requestAnimationFrame(render);
   }catch(e){stop();notice(e.message||'Could not start recorded speech.')}
   finally{starting=false;$('demo').disabled=$('demoBegin').disabled=$('start').disabled=false}
@@ -164,3 +164,5 @@ $('seek').oninput=()=>{if(running&&inputMode==='speech')playFrom(value('seek'))}
 $('restart').onclick=()=>{if(running&&inputMode==='speech'){playFrom(0);redraw()}};
 $('loop').onchange=()=>{if(speechNode){const position=speechPosition();clipOffset=position;clipStarted=audio.currentTime;speechNode.loop=$('loop').checked}};
 $('listen').onchange=()=>{if(monitor)monitor.gain.value=$('listen').checked?1:0};
+
+function setIcon(id,icon,label){$(id).textContent=icon;$(id).setAttribute('aria-label',label);$(id).title=label;}

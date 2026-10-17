@@ -14,3 +14,5 @@
 @media(prefers-reduced-motion:reduce){#visual,#stage #panel{transition:none}}
 
 #settings{font-size:23px;line-height:1;min-width:44px;min-height:44px;padding:8px}#settings[aria-expanded=true]{color:#f2ac77;border-color:#f2ac77}
+
+#freeze,#start,#full{font-size:21px;line-height:1;min-width:44px;min-height:44px;padding:8px}#demo[aria-pressed=true]{color:#f2ac77;border-color:#f2ac77}

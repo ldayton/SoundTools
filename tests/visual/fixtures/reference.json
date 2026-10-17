@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "description": "English speech 12\u201322 s, with right context; native Praat reference, not WASM-derived",
+  "native": {
+    "version": "Praat 7.0.03beta (October 13 2026)",
+    "executableSha256": "9b7600a152a1208130dc7e6b4607b179ce86bc9ff34c4e0eb66b747825e3ccb4",
+    "script": "Read from file: \"$REPO/dist/audio/speech-english.wav\"\nExtract part: 12, 22.1, \"rectangular\", 1, \"no\"\nTo Spectrogram: 0.005, 5000, 0.005, 10, \"Gaussian\"\nSelect outer viewport: 0, 6, 0, 7.2\nPaint: 0, 10, 0, 5000, 100, \"yes\", 70, 6, 0, \"no\"\nSave as 300-dpi PNG file: \"$REPO/tests/visual/generated/native-reference.png\"\nTo Matrix\nSave as text file: \"$REPO/tests/visual/generated/matched-native-matrix.txt\"\n"
+  },
+  "settings": {
+    "sampleRate": 24000,
+    "windowSeconds": 0.005,
+    "maximumFrequency": 5000,
+    "timeStep": 0.005,
+    "frequencyStep": 10
+  },
+  "expected": {
+    "frames": 2000,
+    "bins": 213,
+    "firstTime": 0.004999999999998818,
+    "timeStep": 0.005,
+    "firstFrequency": 0.0,
+    "frequencyStep": 23.4375
+  },
+  "tolerance": {
+    "relativeRMSE": 1e-06,
+    "peakRelativeMaxError": 1e-06,
+    "absoluteErrorFloor": 1e-12
+  },
+  "assets": {
+    "english.f32.gz": {
+      "sha256": "218cec54df5c8e6be89e59272e15f8056e2ff2fdaf584f6eb0b91b3f216166d3",
+      "decodedSha256": "0c8349bde3c656d3cef4439972f9d12164aa358322dc9277e42584ef130ec760",
+      "decodedBytes": 979196
+    },
+    "native-power.f64.gz": {
+      "sha256": "3505b065c2c6b1e0e8459c9fd191e0ae0f10a85c57ca296efdf6cbee07005d33",
+      "decodedSha256": "7179aa3476450537f6d53243a054bb2a764946f22eda069b8a68520480c6fb23",
+      "decodedBytes": 3408000
+    }
+  }
+}

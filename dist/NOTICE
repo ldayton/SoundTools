@@ -1,0 +1,13 @@
+Soundglow is licensed under GNU GPL version 3 or, at your option, any later version.
+Copyright (C) 2026 Soundglow contributors.
+
+Praat signal processing: Copyright (C) Paul Boersma, David Weenink and contributors.
+The original notices are preserved in the bundled source archive.
+Praat source: https://github.com/praat/praat.github.io
+Local integration source fork: https://github.com/ldayton/praat
+This build includes local changes: see dist/vendor/praat/source.tar.gz and manifest.
+
+The English recording is public-domain LibriVox audio; see audio/CREDITS.txt.
+Third-party code retains its original licenses/notices in the source archive.
+Emscripten-generated runtime: MIT and University of Illinois/NCSA licenses;
+see https://github.com/emscripten-core/emscripten/blob/6.0.12/LICENSE.

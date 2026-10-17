@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "description": "Original Voice Tools 2.0.186 DSP; English speech at 48 kHz, first 10 seconds with right context. Reference clock values are Unix milliseconds. No proprietary DLL included.",
+  "librarySha256": "fe3a1c4e087f0d68e99b97e121b1d97681afcfc631adcdaabdde933634d875a9",
+  "palette": "Matplotlib 3.10.7 Plasma, rounded RGB8, CC0",
+  "sampleRate": 48000,
+  "seconds": 10,
+  "frameCount": 623,
+  "firstTime": 0.032,
+  "timeStep": 0.016,
+  "bins": 513,
+  "frequencyStep": 7.8125,
+  "maximumFrequency": 4000,
+  "assets": {
+    "speech.f32.gz": {
+      "sha256": "2d27d8ebbb24d3ca0e2671d2d7b5d10a8a244f865f0b3a7b6d6d722dc2cb5f7f",
+      "decodedSha256": "679c0afbc8a835f88147d0d7ac7ea6ccd24805a53641e0c84bb914664b0b4279",
+      "decodedBytes": 1958392
+    },
+    "reference.json.gz": {
+      "sha256": "11d8eaafc223f6c6d0d57ec9c4d0708faa04e3d5ef41f051a5cf7e31db33387a",
+      "decodedSha256": "661e262806ef66ab7421f36e367655d172b68224dbb4fc06530cd480c4f128a8",
+      "decodedBytes": 5498572
+    }
+  }
+}

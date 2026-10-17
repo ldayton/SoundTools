@@ -2,7 +2,7 @@
   "profile": "release",
   "toolchain": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.12 (5488e0871d46d19a3209988190fa6a653126256f)",
   "sourceCommit": "bbbe091c7b760530b69f267941ddf230ffbbaef2",
-  "sourceInputsSha256": "2fd907ca2d48755f1147037ae79c487a419f53e150ccc668a863a2f512cdfd11",
+  "sourceInputsSha256": "bb48a0706ed24fe545700bf41343e021aef1070728663d8a2635340350317e8b",
   "compileFlags": [
     "-O3",
     "-flto"
@@ -25,14 +25,14 @@
   ],
   "assets": {
     "praat-spectrogram.js": {
-      "sha256": "a5a31ca42906734f67ae37e4e54cb7f0f0114e882e3c33ff9e00e7c6733c7ac1",
-      "bytes": 25588,
-      "gzipBytes": 6733
+      "sha256": "b66055509263f7ac67247d5ee038bc0405ac5e07099923b58f4cb1c32501b630",
+      "bytes": 26042,
+      "gzipBytes": 6769
     },
     "praat-spectrogram.wasm": {
-      "sha256": "b9d657e7870a8e2e0fb9a0b284475df7af8ba904eaa61754a9573dcb1592aa64",
-      "bytes": 4815566,
-      "gzipBytes": 1004339
+      "sha256": "c23cf584f4ebc6041b65e8dd56e86cc54a01202557cc98cf26220862e0d90eb6",
+      "bytes": 4821305,
+      "gzipBytes": 1006805
     }
   }
 }

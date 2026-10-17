@@ -9,3 +9,10 @@ const count=Math.floor(pcm.length/2*48000/rate),capture=Buffer.alloc(44+count*2)
 capture.write('RIFF');capture.writeUInt32LE(capture.length-8,4);capture.write('WAVEfmt ',8);capture.writeUInt32LE(16,16);capture.writeUInt16LE(1,20);capture.writeUInt16LE(1,22);capture.writeUInt32LE(48000,24);capture.writeUInt32LE(96000,28);capture.writeUInt16LE(2,32);capture.writeUInt16LE(16,34);capture.write('data',36);capture.writeUInt32LE(count*2,40);
 for(let i=0;i<count;i++){const x=i*rate/48000,a=Math.floor(x),b=Math.min(a+1,pcm.length/2-1);capture.writeInt16LE(Math.round(pcm.readInt16LE(a*2)*(1-x+a)+pcm.readInt16LE(b*2)*(x-a)),44+i*2)}
 const microphone=path.join(generated,'capture.wav');fs.writeFileSync(microphone,capture);
+
+// Original Voice Tools oracle: these are independently captured, hash-pinned assets.
+const voice=require('./voice-fixture.cjs');
+fs.writeFileSync(path.join(generated,'voice-speech.f32'),voice.load('speech.f32.gz'));
+fs.writeFileSync(path.join(generated,'voice-reference.json'),voice.load('reference.json.gz'));
+const voiceHtml=fs.readFileSync(path.join(root,'dist/index.html'),'utf8').replace('<head>','<head><base href="/dist/">').replace('</body>','<script src="/tests/visual/voice-harness.js"></script></body>');
+fs.writeFileSync(path.join(generated,'voice.html'),voiceHtml);

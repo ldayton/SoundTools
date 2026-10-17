@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 test('English example runs through the real AudioWorklet and worker',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
- await page.goto('/dist/index.html');await page.getByRole('button',{name:'Example',exact:true}).click();
+ await page.goto('/dist/index.html');await page.getByRole('button',{name:'Play an Example',exact:true}).click();
  await expect(page.locator('#state')).toHaveText('EXAMPLE');
  await page.waitForFunction(()=>Number(document.getElementById('spectrogram').dataset.processedFrames)>200,undefined,{timeout:10000});
  const progress=testInfo.project.name==='wide-retina'?12:2;

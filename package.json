@@ -4,7 +4,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "test": "npm run test:core && npm run test:visual && npm run test:updates",
-    "test:core": "node scripts/verify-assets.cjs && node --check dist/app.js && node --check dist/pcm-worklet.js && node tests/display.cjs && node tests/spectrum.cjs && node tests/praat.cjs && node tests/visual/numeric.cjs",
+    "test:core": "node scripts/verify-assets.cjs && node --check dist/app.js && node --check dist/pcm-worklet.js && node tests/display.cjs && node tests/spectrum.cjs && node tests/praat.cjs && node tests/overlays.cjs && node tests/visual/numeric.cjs",
     "test:visual": "node tests/visual/prepare-replay.cjs && playwright test",
     "test:visual:update": "node tests/visual/prepare-replay.cjs && playwright test --update-snapshots",
     "build": "npm test && node scripts/build-site.cjs",

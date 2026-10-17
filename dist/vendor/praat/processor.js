@@ -34,11 +34,19 @@
     m.HEAPF32.set(pcm,pointer>>>2);
     const analysisStart=now(),inputCopyMs=analysisStart-inputStart;
     if(m._sg_analyse(pointer,pcm.length,sampleRate,windowSeconds,maximumFrequency,timeStep,frequencyStep)!==0){return {id,error:m.UTF8ToString(m._sg_error()),code:'ANALYSIS_ERROR'}}
-    const outputStart=now(),analysisMs=outputStart-analysisStart;
+    const outputStart=now();let analysisMs=outputStart-analysisStart,featureMs=0;
     const frames=m._sg_frames(),bins=m._sg_bins(),base=m._sg_data()>>>2;
     // Copy, then transfer the copy. Transferring a WASM heap is incorrect.
     const power=m.HEAPF32.slice(base,base+frames*bins);
-    return {id,frames,bins,firstTime:m._sg_first_time(),timeStep:m._sg_time_step(),firstFrequency:m._sg_first_frequency(),frequencyStep:m._sg_frequency_step(),power,heapBytes:m.HEAPF32.buffer.byteLength,timings:{loadMs,inputCopyMs,analysisMs,outputCopyMs:now()-outputStart,totalMs:now()-started}};
+    let features=[];
+    if(data.analysisFlags){
+     const featureStart=now(),count=m._sg_features(pointer,pcm.length,sampleRate,data.analysisFlags,data.formantCeiling||5500,75,600);
+     featureMs=now()-featureStart;analysisMs+=featureMs;
+     if(count<0)throw Error(m.UTF8ToString(m._sg_error()));
+     const base=m._sg_features_data()>>>2,values=m.HEAPF32.slice(base,base+count*10);
+     for(let i=0;i<values.length;i+=10)features.push({time:values[i],formants:Array.from(values.subarray(i+1,i+4)),bandwidths:Array.from(values.subarray(i+4,i+7)),pitch:values[i+7],intensity:values[i+8],strength:values[i+9]});
+    }
+    return {id,features,frames,bins,firstTime:m._sg_first_time(),timeStep:m._sg_time_step(),firstFrequency:m._sg_first_frequency(),frequencyStep:m._sg_frequency_step(),power,heapBytes:m.HEAPF32.buffer.byteLength,timings:{loadMs,inputCopyMs,analysisMs,featureMs,outputCopyMs:now()-outputStart-featureMs,totalMs:now()-started}};
    }catch(e){
     if(stage==='analysis')reset(); // A trap/abort poisons the instance; recreate it next time.
     return {id,error:e?.message||String(e),code:stage==='load'?'LOAD_FAILED':'RUNTIME_ERROR'};

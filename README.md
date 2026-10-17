@@ -198,3 +198,74 @@ cache headers: active fake-microphone capture across updates, two-tab isolation,
 worker activation, WASM reuse, rejected missing/corrupt assets, offline reload
 and English speech, and cache cleanup. It runs as part of `npm run build` before
 GitHub Pages deploys the exact verified artifact.
+
+## Optional speech overlays
+
+Settings include formant markers or connected F1–F3 tracks. These start off. Pre-emphasis defaults to the existing
+6 dB/octave; quiet-frame boost defaults to zero. With these defaults, the approved
+spectrogram reference images and numerical analysis are unchanged.
+
+The same Praat WASM worker computes Burg formants (five candidates, 25 ms window,
+50 Hz pre-emphasis, adjustable 5000/5500/6000 Hz ceiling), autocorrelation pitch
+(75–600 Hz), and intensity (75 Hz minimum pitch, mean pressure subtracted).
+Optional features use a 10 ms grid with at least 50 ms of surrounding context.
+The existing spectrogram retains its 5 ms hop. Analysis runs only for enabled
+overlays; formant display also calculates pitch and intensity to gate unreliable
+measurements. These measurements are estimates, not a calibrated SPL reading.
+
+Tracks connect adjacent acceptable estimates rather than running Praat's offline
+whole-selection Viterbi tracking command. Voicing, relative intensity and formant
+bandwidth gate the points; gaps over 25 ms and jumps over 0.22 octaves break lines.
+This deliberately leaves gaps instead of inventing continuity through consonants.
+
+
+Tests exercise real Praat tone/silence measurements, gating and continuity, and
+English playback with settings enabled/disabled on desktop and Retina mobile.
+The vendored source archive includes the extended C ABI and all new dependencies.
+
+## Display presets
+
+Settings offers **Praat** (the existing default) and **Voice Tools**. Voice Tools
+is a visual approximation of the supplied reference screenshot, not a port of
+that app's algorithms. It uses a 3.5 kHz ceiling and an offset-logarithmic scale:
+vertical position is proportional to `log(1 + frequency / 250 Hz)`. This includes
+0 Hz and expands the low-frequency region to resemble the reference's tick spacing.
+It uses fixed 100 dB colour maximum, 55 dB dynamic range, 10 dB background
+suppression, zero display pre-emphasis, zero quiet-frame boost and ten seconds
+of history. A 25 ms analysis window separates the harmonic bands; the colour palette is retained.
+
+Praat restores the existing 5 kHz linear view, automatic colour maximum, 70 dB
+range, 6 dB/octave emphasis, zero suppression and boost, and ten-second history.
+Both presets leave the optional formant overlay independent. Manual adjustments
+show Unnamed Preset*; selecting either preset restores its display settings.
+Background suppression hides levels below the colour-range floor plus the
+chosen suppression amount. It is a display threshold, not audio noise removal.
+Fixed colour levels keep the same input power mapped to the same colour;
+microphone levels remain uncalibrated.
+
+### Named custom presets
+
+Use the pencil beside Preset and enter a name to store the current
+display and formant settings in this browser's local storage. Named presets appear directly in the dropdown alongside the built-in presets.
+Choose Create or Rename beside the name field to confirm; Enter also works. Selecting one restores its settings; the last selected
+preset is restored on reload. Changing settings while a named custom preset is selected updates that preset
+in local storage. Built-in presets stay unchanged; modifying one creates
+Unnamed Preset*. Failed writes leave the changes unnamed and preserve the stored copy.
+Editing an existing name renames that preset; the pencil also exposes Delete.
+The * character is reserved for the unsaved indicator and is not allowed in names. Built-in presets
+cannot be renamed or deleted. Deleting the selected custom preset immediately applies Praat and persists that selection. Names must be unique (ignoring case); built-in names are reserved. Storage failures
+are reported and leave the entered name available to retry. Invalid stored entries
+are ignored. Presets are local to the browser and site origin, not synced or uploaded.
+Microphone selection and playback position are not included.
+
+Preset management uses a native modal dialog (a bottom sheet on mobile), opened
+from the pencil beside the standalone selector. Naming, validation messages,
+and deletion do not insert content into the settings list. Cancel and Escape
+discard naming edits and return focus; leaving Settings also closes the dialog.
+Brief out-of-dialog feedback is a fixed overlay. Controls are grouped by purpose
+(Spectrogram, Appearance, Formants); Microphone and example playback are separate.
+Browser tests compare control positions across create/delete and exercise dialog
+focus, cancellation and browser Back. The interaction follows the
+[W3C modal dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)
+and uses [progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/)
+for occasional preset management.

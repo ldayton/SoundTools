@@ -16,7 +16,8 @@
   }
   async drain(){
    const settings=this.settings(),windowSeconds=settings.windowSeconds||.025;
-   const length=Math.round(this.sampleRate*(.1+2*windowSeconds)),advance=Math.round(this.sampleRate*.1);
+   const margin=settings.analysisFlags?Math.max(windowSeconds,.05):windowSeconds;
+   const length=Math.round(this.sampleRate*(.1+2*margin)),advance=Math.round(this.sampleRate*.1);
    if(this.closed||this.busy||this.pending.length<length)return;
    const generation=this.generation,start=this.start,pcm=this.pending.slice(0,length);
    this.pending=this.pending.slice(advance);this.start+=advance/this.sampleRate;this.busy=true;
@@ -24,7 +25,8 @@
     const result=await this.client.analyse({pcm,sampleRate:this.sampleRate,windowSeconds:.025,timeStep:.005,frequencyStep:20,...settings},{transfer:true});
     if(!this.closed&&generation===this.generation){
      // Right boundary belongs to the following block. Each centre appears once.
-     const frames=[];for(let i=0;i<result.frames;i++){const local=result.firstTime+i*result.timeStep;if(local>=windowSeconds+.1-1e-7)break;frames.push({time:start+local,power:result.power.slice(i*result.bins,(i+1)*result.bins)})}
+     const frames=[];for(let i=0;i<result.frames;i++){const local=result.firstTime+i*result.timeStep;if(local>=margin+.1-1e-7)break;if(local<margin-1e-7)continue;frames.push({time:start+local,power:result.power.slice(i*result.bins,(i+1)*result.bins)})}
+     result.features=(result.features||[]).filter(f=>f.time>=margin-1e-6&&f.time<margin+.1-1e-6).map(f=>({...f,time:start+f.time}));
      this.onFrames(frames,result);
     }
    }catch(error){if(!this.closed&&generation===this.generation)this.onError(error)}

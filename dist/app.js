@@ -14,11 +14,53 @@ function render(time){if(!running)return;raf=requestAnimationFrame(render);if(pa
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
 function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
 function stop(){running=false;cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=analyser=null;paused=false;$('freeze').disabled=true;$('freeze').textContent='Pause';$('start').textContent='Start microphone';state('MIC OFF');$('device').textContent='MICROPHONE OFF · HISTORY RETAINED'}
-async function start(){if(starting)return;if(running){stop();return}starting=true;$('start').disabled=$('begin').disabled=true;notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});if(audio.state==='suspended')await audio.resume();analyser=audio.createAnalyser();analyser.fftSize=value('fft');analyser.smoothingTimeConstant=0;bins=new Float32Array(analyser.frequencyBinCount);source=audio.createMediaStreamSource(stream);source.connect(analyser);nyquist=audio.sampleRate/2;running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;$('start').textContent='Stop mic';state('LIVE',true);$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');$('start').textContent='Resume audio'}})}catch(e){stop();notice(e.name==='NotAllowedError'?'Microphone access was denied. Allow microphone access in your browser settings, then try again.':e.name==='NotFoundError'?'No microphone was found. Connect one and try again.':e.message||'Could not start the microphone.')}finally{starting=false;$('start').disabled=$('begin').disabled=false}}
+const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
+async function microphones(){
+  if(!navigator.mediaDevices?.enumerateDevices)return [];
+  try{
+    const devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput');
+    const select=$('microphone'), selected=select.value;
+    select.replaceChildren(new Option('System default',''));
+    devices.filter(d=>d.deviceId&&d.deviceId!=='default'&&d.deviceId!=='communications').forEach((d,i)=>select.add(new Option(d.label||`Microphone ${i+1}`,d.deviceId)));
+    if([...select.options].some(o=>o.value===selected))select.value=selected;
+    $('micHint').textContent=devices.length?'Choose a physical microphone if the default or a virtual audio device fails. Changing the input stops capture; tap Start microphone to reconnect.':'No microphone inputs are visible yet. Allow microphone access, then refresh. If this embedded browser cannot capture audio, open this page in Safari or Chrome.';
+    return devices;
+  }catch{return []}
+}
+async function capture(){
+  const selected=$('microphone').value;
+  const raw={echoCancellation:false,noiseSuppression:false,autoGainControl:false};
+  if(selected)raw.deviceId={exact:selected};
+  try{return await navigator.mediaDevices.getUserMedia({audio:raw,video:false})}
+  catch(first){
+    if(!recoverable(first))throw first;
+    // Some drivers cannot open an unprocessed stream. Retry with native defaults.
+    try{return await navigator.mediaDevices.getUserMedia({audio:selected?{deviceId:{exact:selected}}:true,video:false})}
+    catch(second){
+      if(!recoverable(second)||selected)throw second;
+      const devices=await microphones();
+      const candidates=devices.filter(d=>d.deviceId&&!['default','communications'].includes(d.deviceId)).sort((a,b)=>Number(/virtual|teams|blackhole|loopback/i.test(a.label))-Number(/virtual|teams|blackhole|loopback/i.test(b.label)));
+      for(const d of candidates){
+        try{const result=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:d.deviceId}},video:false});$('microphone').value=d.deviceId;return result}
+        catch(e){if(!recoverable(e)&&e.name!=='NotFoundError')throw e}
+      }
+      throw second;
+    }
+  }
+}
+function microphoneError(e){
+  if(e.name==='NotAllowedError')return 'Microphone access was denied. Allow it for this site in the browser and system microphone settings, then try again.';
+  if(e.name==='NotFoundError')return 'No microphone was found. Connect one, then open Settings → Refresh microphones.';
+  if(recoverable(e))return 'The browser could not open the microphone. In Settings, choose a physical microphone instead of a virtual input, then retry. Close other apps using it. If this persists in the in-app browser, open this page in Safari or Chrome. ('+e.name+')';
+  return e.message||'Could not start the microphone.';
+}
+$('refreshMic').onclick=microphones;
+$('microphone').onchange=()=>{if(running)stop();notice('');};
+async function start(){if(starting)return;if(running){stop();return}starting=true;$('start').disabled=$('begin').disabled=true;notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(audio.state==='suspended')await audio.resume();analyser=audio.createAnalyser();analyser.fftSize=value('fft');analyser.smoothingTimeConstant=0;bins=new Float32Array(analyser.frequencyBinCount);source=audio.createMediaStreamSource(stream);source.connect(analyser);nyquist=audio.sampleRate/2;running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;$('start').textContent='Stop mic';state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');$('start').textContent='Resume audio'}})}catch(e){stop();notice(microphoneError(e));panel(true);microphones();}finally{starting=false;$('start').disabled=$('begin').disabled=false}}
 function updateResolution(){if(audio&&analyser)$('resolution').textContent=`${(audio.sampleRate/1000).toFixed(1)} kHz · ${(audio.sampleRate/analyser.fftSize).toFixed(1)} Hz / bin`}
 $('start').onclick=async()=>{if(running&&audio?.state==='suspended'){try{await audio.resume();notice('');state(paused?'PAUSED':'LIVE',!paused);$('start').textContent='Stop mic'}catch(e){notice(e.message)}}else start()};$('begin').onclick=start;
 $('freeze').onclick=()=>{paused=!paused;$('freeze').textContent=paused?'Resume':'Pause';state(paused?'PAUSED':'LIVE',!paused);last=0};
-function panel(open){$('panel').hidden=!open;$('settings').setAttribute('aria-expanded',String(open))}$('settings').onclick=()=>panel($('panel').hidden);$('close').onclick=()=>panel(false);document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
+function panel(open){if(open)microphones();$('panel').hidden=!open;$('settings').setAttribute('aria-expanded',String(open))}$('settings').onclick=()=>panel($('panel').hidden);$('close').onclick=()=>panel(false);document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
 for(const id of ['maximum','scale','history','floor','gain','fft','palette'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(id==='fft'&&analyser){analyser.fftSize=value('fft');bins=new Float32Array(analyser.frequencyBinCount);updateResolution()}if(id==='palette')colourMap();if(['maximum','scale','history','fft'].includes(id))redraw()});$('clear').onclick=redraw;
 $('full').hidden=!document.documentElement.requestFullscreen;$('full').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch(e){notice('Full screen is unavailable in this browser.')}};
 window.addEventListener('pagehide',stop);colourMap();resize();

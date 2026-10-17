@@ -2,7 +2,7 @@
 // Advance by 100 ms, retaining one effective Gaussian window on each side.
 (function(scope){
  class PraatStream {
-  constructor({client,sampleRate,onFrames,onError,settings=()=>({})}){Object.assign(this,{client,sampleRate,onFrames,onError,settings});this.generation=0;this.busy=false;this.closed=false;this.reset()}
+  constructor({client,sampleRate,onFrames,onError,settings=()=>({}),onEvent=()=>{}}){Object.assign(this,{client,sampleRate,onFrames,onError,settings,onEvent});this.generation=0;this.busy=false;this.closed=false;this.reset()}
   reset(){this.generation++;this.pending=new Float32Array(0);this.start=null;this.lastEnd=null}
   filterPadding(settings=this.settings()){
    const target=settings.analysisRate||0;
@@ -13,14 +13,14 @@
   }
   push(pcm,start){
    if(this.closed)return;
-   if(this.lastEnd!==null&&Math.abs(start-this.lastEnd)>2/this.sampleRate)this.reset();
+   if(this.lastEnd!==null&&Math.abs(start-this.lastEnd)>2/this.sampleRate){this.onEvent('captureDiscontinuities',{expected:this.lastEnd,actual:start,gapMs:(start-this.lastEnd)*1000});this.reset();}
    this.lastEnd=start+pcm.length/this.sampleRate;
    if(this.start===null){
     const padding=this.filterPadding();this.pending=new Float32Array(padding);this.start=start-padding/this.sampleRate;
    }
    const next=new Float32Array(this.pending.length+pcm.length);next.set(this.pending);next.set(pcm,this.pending.length);this.pending=next;
    // Bound latency if a device is too slow; keep an honest gap in timestamps.
-   if(this.pending.length>this.sampleRate*.5){this.reset();const padding=this.filterPadding();this.pending=new Float32Array(padding+pcm.length);this.pending.set(pcm,padding);this.start=start-padding/this.sampleRate;this.lastEnd=start+pcm.length/this.sampleRate}
+   if(this.pending.length>this.sampleRate*.5){this.onEvent('backlogResets');this.reset();const padding=this.filterPadding();this.pending=new Float32Array(padding+pcm.length);this.pending.set(pcm,padding);this.start=start-padding/this.sampleRate;this.lastEnd=start+pcm.length/this.sampleRate}
    this.drain();
   }
   async drain(){
@@ -38,11 +38,13 @@
    const generation=this.generation,start=this.start,pcm=this.pending.slice(0,length);
    this.pending=this.pending.slice(advance);this.start+=advance/this.sampleRate;this.busy=true;
    try{
+    const requestStarted=performance.now();
     const result=await this.client.analyse({pcm,sampleRate:this.sampleRate,windowSeconds:.025,timeStep:.005,frequencyStep:20,...settings,firstCentre:margin},{transfer:true});
     if(!this.closed&&generation===this.generation){
      // Right boundary belongs to the following block. Each centre appears once.
      const frames=[];for(let i=0;i<result.frames;i++){const local=result.firstTime+i*result.timeStep;if(local>=margin+duration-1e-7)break;if(local<margin-1e-7)continue;frames.push({time:start+local,power:result.power.slice(i*result.bins,(i+1)*result.bins)})}
      result.features=(result.features||[]).filter(f=>f.time>=margin-1e-6&&f.time<margin+duration-1e-6).map(f=>({...f,time:start+f.time}));
+     result.timings={...result.timings,workerRoundTripMs:performance.now()-requestStarted};result.pendingAudioMs=this.pending.length/this.sampleRate*1000;
      this.onFrames(frames,result);
     }
    }catch(error){if(!this.closed&&generation===this.generation)this.onError(error)}

@@ -295,3 +295,56 @@ focus, cancellation and browser Back. The interaction follows the
 [W3C modal dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)
 and uses [progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/)
 for occasional preset management.
+
+### Measuring performance on phones
+
+In Settings, expand **Developer settings** and enable **Measure performance**, select the configuration to test,
+return to the spectrogram and start the microphone (or **Play an Example**).
+Run for at least five minutes, then return to Settings and **Export report**.
+Use **Reset measurements** before each configuration. Reports remain on the
+user's device and contain no audio; exporting creates a JSON download without
+sending it anywhere. Collection is off by default and is not saved in presets.
+
+For physical microphone access on a phone, serve the local build through a trusted
+HTTPS origin reachable from the phone; plain HTTP on a LAN IP does not provide
+the secure context required by getUserMedia. The Mac localhost URL is not a
+phone-accessible address. No deployment is required for the instrumentation.
+
+For a representative matrix, use real iPhone Safari and midrange Android Chrome,
+both presets, formants off/on, and normal/battery-saving modes. Record the phone
+model, OS/browser version, battery mode and duration alongside each JSON file;
+viewport emulation on a Mac is not evidence of phone performance. Compare early
+and late portions with separate resets to investigate thermal degradation.
+Repeat background/foreground and pause/resume checks. Use a repeatable recording
+through a speaker for physical-microphone comparisons; the Example button tests
+the real worklet/worker pipeline but bypasses microphone hardware.
+
+The report contains render callback cost and cadence, plotted age relative to
+AudioContext time, plot advance intervals, capture packet delivery age, actual
+per-batch worker timings and round trips, queued PCM duration, and counters for
+stalls over 100 ms, discontinuities, discarded frames and backlog resets. A stall
+counter is one event per uninterrupted stall, not one event per callback. Frame
+metrics exclude Settings, hidden/paused periods and the first two seconds after
+those transitions. Batch timings include startup and engine loading. Changing
+settings does not automatically reset the session: reset explicitly so the
+reported current configuration describes the whole measurement.
+
+Percentiles retain the latest 18,000 values per metric; lifetime counts, means
+and maxima remain available. Animation callback cadence does not establish that
+a frame reached the display. Plotted age excludes microphone hardware latency,
+physical display latency and output-device latency; it is not a measured
+mouth-to-screen delay. An OS-imposed 30 Hz cadence is not itself a failure.
+Use Safari/Chrome rendering traces and real-device observation for presentation
+issues; desktop CPU throttling cannot reproduce mobile GPUs or thermal limits.
+
+`npm run build` runs deterministic instrumentation tests (including injected
+stalls and bounded storage), live English-playback lag checks for both presets
+and formants, and a looping fake Chrome microphone test across the 30-second
+recording boundary with pause/resume. The live checks reject p95 plotted age
+at or above 650 ms, any sampled age at or above 1500 ms, plot-advance intervals
+at or above one second, and unexpected steady-state capture/analysis losses.
+Capture gaps during the two-second warmup remain in lifetime counters and
+timestamped events (tagged `warmup`); they do not fail the steady-capture gate.
+The report retains the latest 256 event details. These are loose
+CI regression limits, not validated human-perception targets or a mobile
+performance certification. Browser test attachments include JSON reports.

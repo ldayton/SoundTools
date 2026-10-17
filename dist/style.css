@@ -77,3 +77,7 @@
 
 /* Only the settings body scrolls; its heading never moves into a sticky position. */
 #stage #panel{display:flex;flex-direction:column;padding:0;overflow:hidden}#panel .panelhead{position:static;flex:none;margin:0;padding:24px max(20px,calc((100% - 680px)/2)) 16px}#settingsBody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:20px max(20px,calc((100% - 680px)/2)) 24px}
+
+#developerSettings{margin-top:1.5rem;border-top:1px solid #303c49;padding-top:1rem}
+#developerSettings>summary{cursor:pointer;font-weight:600;padding:.5rem 0;color:var(--muted,#9ba8b8)}
+#developerSettings>summary:focus-visible{outline:2px solid #f5ad72;outline-offset:4px}

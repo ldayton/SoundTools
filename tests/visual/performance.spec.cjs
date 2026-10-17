@@ -7,7 +7,7 @@ for(const [preset,formants]of [['praat','off'],['voice','off'],['voice','both']]
  expect(report.metadata.source).toBe('speech');expect(report.metrics.analysisMs.count).toBeGreaterThan(30);expect(report.metrics.workerRoundTripMs.count).toBeGreaterThan(30);
  expect(report.metrics.plottedAgeMs.p95,'Sustained excessive visual lag must fail').toBeLessThan(650);expect(report.metrics.plottedAgeMs.max).toBeLessThan(1500);
  expect(report.metrics.animationIntervalMs.p95).toBeLessThan(80);expect(report.metrics.plotAdvanceIntervalMs.max).toBeLessThan(1000);
- for(const name of ['discontinuousBatches','discardedAnalysisFrames','captureDiscontinuities','backlogResets'])expect(report.counts[name]||0,name).toBe(0);
+ for(const name of ['discontinuousBatches','discardedAnalysisFrames','captureDiscontinuitiesAfterWarmup','backlogResets'])expect(report.counts[name]||0,name).toBe(0);
  await page.getByRole('button',{name:'Settings',exact:true}).click();const downloadPromise=page.waitForEvent('download');await page.locator('#exportPerformance').click();const download=await downloadPromise;expect(download.suggestedFilename()).toMatch(/^soundglow-performance-.*\.json$/);
  await page.locator('#resetPerformance').click();expect((await page.evaluate(()=>window.soundglowPerformance.report())).metrics).toEqual({});
 });

@@ -52,10 +52,10 @@ layers. Comparison permits perceptual threshold 0.08 on at most 0.1% of pixels;
 it catches substantive palette, geometry and interpolation changes. It does not
 assert pixel equivalence with native Praat's grayscale renderer.
 
-Snapshots were generated and reviewed locally on macOS. CI uses Ubuntu 24.04;
-the raw canvas avoids font/platform dependencies, but its first Linux execution
-is still to be verified after these local changes are pushed. Do not loosen the
-tolerance or automatically replace a baseline merely to make CI pass.
+Snapshots were generated and reviewed locally on macOS. CI uses Ubuntu 24.04.
+The replay fixes canvas dimensions (629×739 and 748×1414 physical pixels) so
+platform font metrics in surrounding controls cannot change the signal plot.
+Do not loosen tolerances or automatically replace baselines to make CI pass.
 
 ## Failure evidence
 

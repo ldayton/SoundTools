@@ -2,6 +2,9 @@
 (async()=>{
  window.visualReplay={status:'running'};
  try{
+  // Isolate signal rendering from platform font metrics in surrounding chrome.
+  const fixtureHeight=window.innerWidth<=600?707:739;
+  canvas.style.height=overlay.style.height=fixtureHeight+'px';
   await document.fonts.ready;
   const pcm=new Float32Array(await (await fetch('/tests/visual/generated/matched.f32')).arrayBuffer());
   const client=new PraatClient({workerURL:'vendor/praat/worker.js?profile=release'});

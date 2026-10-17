@@ -4,6 +4,7 @@ import pathlib, subprocess, shutil, tarfile, argparse, hashlib, json, io, re
 parser=argparse.ArgumentParser();parser.add_argument('checkout',type=pathlib.Path);args=parser.parse_args()
 root=args.checkout.resolve();target=pathlib.Path(__file__).resolve().parents[1]/'dist/vendor/praat'
 if (root/'wasm/frame-analysis.h').read_bytes() != (target.parents[2]/'engine/frame-analysis.h').read_bytes():raise SystemExit('Frame-analysis source differs from engine/frame-analysis.h')
+if (root/'wasm/voice-analysis.h').read_bytes() != (target.parents[2]/'engine/voice-analysis.h').read_bytes():raise SystemExit('Voice-analysis source differs from engine/voice-analysis.h')
 (target/'build-release').mkdir(parents=True,exist_ok=True)
 for name in ['worker.js','processor.js','client.js']:shutil.copy2(root/'wasm'/name,target/name)
 manifest=json.loads((root/'wasm/build-release/manifest.json').read_text())

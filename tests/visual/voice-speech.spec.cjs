@@ -35,7 +35,7 @@ async function compareSpeech(page,testInfo){
   }
   // Always retain a reviewable comparison, including on threshold failure.
   const view=document.createElement('canvas');view.width=pxW*3;view.height=pxH+36;const c=view.getContext('2d');c.fillStyle='#101521';c.fillRect(0,0,view.width,view.height);c.fillStyle='white';c.font='16px sans-serif';
-  for(const [i,label,data] of [[0,'Voice Tools original DSP (reconstructed)',expected],[1,'Soundglow production renderer',actual],[2,'Palette-index difference (red)',difference]]){c.fillText(label,i*pxW+8,23);c.putImageData(data,i*pxW,36)}
+  for(const [i,label,data] of [[0,'Independent corrected JS DSP',expected],[1,'Soundglow production renderer',actual],[2,'Palette-index difference (red)',difference]]){c.fillText(label,i*pxW+8,23);c.putImageData(data,i*pxW,36)}
   window.voiceComparisonPng=view.toDataURL('image/png').split(',')[1];
   return {frames:frames.length,bins:frames[0].power.length,maxTime,maxDb,meanDb:sumDb/dbCount,maxHold,maxNormalized,pixels,unknown,withinOne:withinOne/pixels,meanPaletteError:sumIndex/pixels,maxPaletteError:maxIndex};
  });
@@ -44,11 +44,11 @@ async function compareSpeech(page,testInfo){
  return result;
 }
 
-test('full speech maintains original Voice Tools DSP, timing and rendered similarity',async({page},testInfo)=>{
+test('full speech matches corrected independent DSP, timing and rendering',async({page},testInfo)=>{
  const result=await compareSpeech(page,testInfo);
  expect(result.frames).toBe(manifest.frameCount);expect(result.bins).toBe(manifest.bins);expect(result.maxTime).toBeLessThan(1e-8);
- expect(result.maxDb,'Original speech spectrum drift, bins above -72 dB').toBeLessThan(.001);
- expect(result.meanDb).toBeLessThan(.00005);expect(result.maxHold,'Original wall-clock normalization drift').toBeLessThan(.001);expect(result.maxNormalized).toBeLessThan(.00001);
+ expect(result.maxDb,'Corrected speech spectrum drift, bins above -72 dB').toBeLessThan(.001);
+ expect(result.meanDb).toBeLessThan(.00005);expect(result.maxHold,'Timestamped wall-clock normalization drift').toBeLessThan(.001);expect(result.maxNormalized).toBeLessThan(.00001);
  expect(result.unknown,'Every rendered pixel must use the original discrete Plasma palette').toBe(0);
  expect(result.withinOne,'At least 99.99% of plot pixels must stay within one palette step').toBeGreaterThanOrEqual(.9999);
  expect(result.meanPaletteError).toBeLessThan(.02);expect(result.maxPaletteError).toBeLessThanOrEqual(2);

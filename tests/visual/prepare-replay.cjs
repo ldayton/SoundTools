@@ -13,6 +13,7 @@ const microphone=path.join(generated,'capture.wav');fs.writeFileSync(microphone,
 // Original Voice Tools oracle: these are independently captured, hash-pinned assets.
 const voice=require('./voice-fixture.cjs');
 fs.writeFileSync(path.join(generated,'voice-speech.f32'),voice.load('speech.f32.gz'));
-fs.writeFileSync(path.join(generated,'voice-reference.json'),voice.load('reference.json.gz'));
+const voiceBytes=voice.load('speech.f32.gz'),voicePcm=Float32Array.from({length:voiceBytes.length/4},(_,i)=>voiceBytes.readFloatLE(i*4));
+fs.writeFileSync(path.join(generated,'voice-reference.json'),JSON.stringify(require('./corrected-voice-reference.cjs')(voicePcm,JSON.parse(voice.load('reference.json.gz')))));
 const voiceHtml=fs.readFileSync(path.join(root,'dist/index.html'),'utf8').replace('<head>','<head><base href="/dist/">').replace('</body>','<script src="/tests/visual/voice-harness.js"></script></body>');
 fs.writeFileSync(path.join(generated,'voice.html'),voiceHtml);

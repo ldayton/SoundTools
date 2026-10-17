@@ -9,6 +9,7 @@ let spectrumUnits='density',heldPeak=newPeakState();
 const displayDb=(power,frequency)=>spectrumUnits==='amplitude'?AnalysisSettings.level(power,frequency,spectrumUnits,value('preemphasis')):PraatDisplay.powerDb(power,frequency,value('preemphasis'));
 function newPeakState(){return AnalysisSettings.peakState(Number($('peakSeconds').value),Number($('peakDecay').value))}
 function resetAnalysis(){heldPeak=newPeakState();featureHistory=[];processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}
+const praatWorkerURL='vendor/praat/worker.js?profile=release';
 let engine=null,pcmNode=null,frameQueue=[],spectrumStep=20,spectrumFirst=0;
 const analysisDelay=.3; // 100 ms capture packets + overlap + delivery headroom.
 let currentSpectrumFrame=null,lastPlotTime=0;
@@ -236,7 +237,7 @@ function acceptFrames(frames,result){
 function analysisSettings(){return {maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:$('windowShape').value,analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:$('removeDC').value==='on',spectrumUnits:$('spectrumUnits').value,resampling:$('resampling').value,resampleQuality:value('resampleQuality'),analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}}
 async function connectInput(input){
   const context=audio;
-  const client=new PraatClient({workerURL:'vendor/praat/worker.js?profile=release'});
+  const client=new PraatClient({workerURL:praatWorkerURL});
   engine=new PraatStream({onEvent:(name,details)=>performanceSession?.event(name,{audioTime:audio?.currentTime,...details}),client,sampleRate:context.sampleRate,
     settings:analysisSettings,
     onFrames:acceptFrames,onError:error=>{stop();notice('Praat audio processing failed: '+error.message)}
@@ -446,3 +447,6 @@ if($('measurePerformance')){
 }
 
 document.addEventListener('visibilitychange',()=>{performanceSession?.count('visibilityChanges');performanceSession?.break();});
+
+// Programmatic capabilities only: no new analysis, settings or views are enabled.
+if(typeof VoiceFeedback==='object')window.soundglowAnalysis=Object.freeze({...VoiceFeedback,createClient:()=>new PraatClient({workerURL:praatWorkerURL})});

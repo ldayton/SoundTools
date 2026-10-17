@@ -1,0 +1,32 @@
+Independent native Praat LPC reference
+
+Captured from Praat 7.0.03beta (October 13 2026) on macOS. The compressed JSON
+records the native executable SHA-256, source speech hash, exact float32 PCM
+and hashes, native LPC coefficients/gain, full Spectrum response and frame time.
+No expected values are calculated by the WASM adapter or its JS helpers.
+
+Six inputs cover speech, a four-resonance synthetic vowel and noise, 24/44.1/48
+kHz capture rates, 5/5.5/6 kHz ceilings, orders 10/14, pre-emphasis 0/50/100 Hz
+and effective Gaussian windows 15/25/40 ms. Inputs use float32 WAV to preserve
+exact equality between native and WASM samples. Synthetic input generation is
+seeded; speech is from the unchanged public-domain LibriVox regression fixture.
+
+Native commands: Resample (precision 50), To LPC (burg), To Spectrum (slice)
+with bandwidth reduction 0 and de-emphasis disabled. One centered frame is
+requested using a one-second frame step. Native coefficients use denominator
+signs; API coefficients use the opposite, positive predictor signs. The gain
+is converted from native summed error to mean error by dividing by frame size.
+Native Spectrum squared magnitude is multiplied by analysisRate*df/frameSize
+to remove its FFT scaling. Tests compare every envelope bin, not only peaks.
+
+The fixture hash in lpc-native.json is verified before use. Builds never run
+capture or rewrite references. To explicitly recapture using an independently
+built native executable:
+
+python3 scripts/capture-lpc-reference.py --praat /absolute/path/to/Praat --output tests/fixtures/lpc-native.json.gz
+
+Review the source, version, cases and numerical differences, then update the
+metadata hash explicitly. Do not regenerate fixtures to make a failing test pass.
+Current guards: coefficient absolute error <1e-6, relative mean gain error <1e-8,
+and maximum full-envelope dB error <1e-4. Mutations of coefficients, gain, a
+non-peak bin and actual pre-emphasis settings must be rejected by these guards.

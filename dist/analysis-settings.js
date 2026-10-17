@@ -8,11 +8,21 @@
  const inverse=(x,scale)=>scale==='erb'?Math.expm1(x)/.00437:scale==='mel'?700*Math.expm1(x):scale==='voice'?250*Math.expm1(x):scale==='log'?60*Math.exp(x):x;
  function frequency(fraction,maximum,scale){return inverse(transform(maximum,scale)*fraction,scale)}
  function position(hz,maximum,scale){return transform(hz,scale)/transform(maximum,scale)}
- function peakState(seconds=5,decay=.995){return {buckets:new Float32Array(seconds),decay,hold:0}}
+ function peakState(seconds=5,decay=.995){return {buckets:new Float32Array(seconds),decay,hold:0,times:new Float64Array(seconds).fill(-Infinity),lastTime:null}}
  function normalizationTime(clock,audioTime,wallMilliseconds=Date.now()){return clock==='wall'?wallMilliseconds/1000:audioTime}
  function heldMaximum(state,peak,time){
-  const count=state.buckets.length,i=((Math.floor(time)%count)+count)%count;state.buckets[(i+1)%count]=0;state.buckets[i]=Math.max(peak,state.buckets[i]);
-  const max=Math.max(...state.buckets);const f=Math.fround,decay=f(state.decay);state.hold=Math.max(f(f(decay*f(state.hold))+f(f(1-decay)*max)),max);return state.hold;
+  const count=state.buckets.length,second=Math.floor(time);
+  // Track bucket epochs: skipped seconds and backwards clock changes cannot revive old peaks.
+  if(state.lastTime!==null&&time<state.lastTime){state.buckets.fill(0);state.times.fill(-Infinity);state.hold=0;}
+  for(let j=0;j<count;j++)if(second-state.times[j]>=count){state.buckets[j]=0;state.times[j]=-Infinity;}
+  const i=((second%count)+count)%count;
+  if(state.times[i]!==second){state.buckets[i]=0;state.times[i]=second;}
+  state.buckets[i]=Math.max(peak,state.buckets[i]);
+  const max=Math.max(...state.buckets),f=Math.fround,decay=f(state.decay);
+  // Decay over elapsed frame intervals, including intervals skipped by a clock jump.
+  const elapsed=state.lastTime===null?1:Math.max(0,(time-state.lastTime)/.016);
+  const retention=Math.pow(decay,elapsed);
+  state.hold=Math.max(f(retention*f(state.hold)+(1-retention)*max),max);state.lastTime=time;return state.hold;
  }
  function level(power,frequency,units,preemphasis){
   return units==='amplitude'?Math.max(0,Math.min(255,10*Math.log10(power)+92))+preemphasis*Math.log2(Math.max(frequency,1)/1000):null;

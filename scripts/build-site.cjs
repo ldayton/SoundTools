@@ -20,7 +20,7 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soun
  }
  output.set(release+'app.js',Buffer.from(app));
  let html=read('index.html').toString().replace('<head>','<head><meta name="soundglow-release" content="'+version+'"><meta name="soundglow-base" content="'+base+'">');
- const mappings={'performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
+ const mappings={'voice-feedback.js':release+'voice-feedback.js','performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
  html=html.replace(/\b(src|href)="([^"?]+)(?:\?[^"]*)?"/g,(all,attribute,name)=>mappings[name]?attribute+'="'+mappings[name]+'"':all).replace('href="audio/CREDITS.txt"','href="'+media+'CREDITS.txt"');
  output.set(release+'index.html',Buffer.from(html));
  const manifest={schema:1,version,base,html:release+'index.html',files:[...output].map(([url,bytes])=>({url,sha256:digest(bytes),bytes:bytes.length}))};

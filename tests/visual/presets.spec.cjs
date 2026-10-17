@@ -103,7 +103,7 @@ test('normalization timing uses the selected clock in the production frame consu
   applyPreset('voice');audio={currentTime:0};const now=Date.now;const result={spectrumUnits:'amplitude',bins:3,firstFrequency:0,frequencyStep:7.8125,timeStep:.016,timings:{analysisMs:0}};
   function replay(clock){
    $('normalizationClock').value=clock;heldPeak=newPeakState();processingStats.lastFrameTime=null;frameQueue=[];const values=[];
-   for(let i=0;i<5;i++){
+   for(let i=0;i<6;i++){
     Date.now=()=>i*1000;const level=i===0?80:40;const frame={time:i*.016,power:new Float32Array(3).fill(10**((level-92)/10))};
     acceptFrames([frame],result);values.push(frame.levelMaximum);
    }
@@ -111,7 +111,7 @@ test('normalization timing uses the selected clock in the production frame consu
   }
   try{return {audio:replay('audio'),wall:replay('wall')}}finally{Date.now=now;audio=null}
  });
- expect(holds.audio[4]).toBeCloseTo(80,4);expect(holds.wall[4]).toBeLessThan(holds.audio[4]);
+ expect(holds.audio[5]).toBeCloseTo(80,4);expect(holds.wall[4]).toBeCloseTo(80,4);expect(holds.wall[5]).toBeLessThan(holds.audio[5]);
 });
 
 test('Soundglow defaults favor clarity, remain editable, and restore saved selections',async({page})=>{

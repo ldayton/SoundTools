@@ -87,12 +87,12 @@ extern "C" EMSCRIPTEN_KEEPALIVE int sg_transform(const float *pcm,int length,dou
    const int begin=int(std::lround((centre+frame*hop)*rate-win*.5));double mean=0;
    if(begin<0||begin+win>sound->nx){error="Frame lies outside supplied PCM";return -1;}
    for(int j=0;j<n;j++){data[j+1]=j<win?float(sound->z[1][begin+j+1]):0;mean+=data[j+1];}
-   const float dc=removeDC?float(mean/n):0;
-   for(int j=0;j<n;j++){const float value=float(float(data[j+1])-dc);data[j+1]=j<win?float(value*weights[j]):value;}
+   const float dc=removeDC?float(mean/win):0;
+   for(int j=0;j<n;j++){const float value=float(float(data[j+1])-dc);data[j+1]=j<win?float(value*weights[j]):0;}
    NUMfft_forward(fft.get(),data.get());
    for(int k=0;k<nf;k++){
     double power=k==0?data[1]*data[1]:k==n/2?data[n]*data[n]:data[2*k]*data[2*k]+data[2*k+1]*data[2*k+1];
-    const double factor=(k==0||k==n/2?1.0:2.0)/n;
+    const double factor=(k==0||k==n/2?1.0:2.0)/win;
     output[size_t(frame)*nf+k]=float(amplitude?power*factor*factor:power/weightPower);
    }
   }

@@ -8,7 +8,8 @@
     "test:visual": "node tests/visual/prepare-replay.cjs && playwright test",
     "test:visual:update": "node tests/visual/prepare-replay.cjs && playwright test --update-snapshots",
     "build": "npm test && node scripts/build-site.cjs",
-    "test:updates": "node tests/updates.cjs"
+    "test:updates": "node tests/updates.cjs",
+    "test:voice": "node tests/visual/prepare-replay.cjs && playwright test voice-speech.spec.cjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

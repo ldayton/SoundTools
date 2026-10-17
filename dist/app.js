@@ -233,11 +233,12 @@ function acceptFrames(frames,result){
       processingStats.frames+=frames.length;processingStats.blocks++;processingStats.lastMs=result.timings.analysisMs;canvas.dataset.processedFrames=processingStats.frames;canvas.dataset.analysisMs=processingStats.lastMs;updateResolution();
 
 }
+function analysisSettings(){return {maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:$('windowShape').value,analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:$('removeDC').value==='on',spectrumUnits:$('spectrumUnits').value,resampling:$('resampling').value,resampleQuality:value('resampleQuality'),analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}}
 async function connectInput(input){
   const context=audio;
   const client=new PraatClient({workerURL:'vendor/praat/worker.js?profile=release'});
   engine=new PraatStream({onEvent:(name,details)=>performanceSession?.event(name,{audioTime:audio?.currentTime,...details}),client,sampleRate:context.sampleRate,
-    settings:()=>({maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:$('windowShape').value,analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:$('removeDC').value==='on',spectrumUnits:$('spectrumUnits').value,resampling:$('resampling').value,resampleQuality:value('resampleQuality'),analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}),
+    settings:analysisSettings,
     onFrames:acceptFrames,onError:error=>{stop();notice('Praat audio processing failed: '+error.message)}
   });
   await client.init();

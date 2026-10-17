@@ -6,10 +6,10 @@ const left=52,padTop=20,bottom=27,right=12;
 const value=id=>Number($(id).value),maxHz=()=>Math.min(value('maximum'),nyquist);
 function frequency(y){const f=1-y/plotH;return $('scale').value==='log'?60*Math.pow(maxHz()/60,f):maxHz()*f}
 function yFor(f){return padTop+plotH*(1-($('scale').value==='log'?Math.log(f/60)/Math.log(maxHz()/60):f/maxHz()))}
-function colourMap(){let stops=$('palette').value==='ocean'?[[6,11,19],[20,37,86],[18,110,141],[74,209,190],[232,255,213]]:$('palette').value==='mono'?[[8,11,16],[55,62,73],[115,128,139],[190,207,216],[255,255,255]]:[[8,11,16],[61,39,85],[152,57,93],[231,120,59],[255,243,175]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});$('legend').querySelector('i').style.background=`linear-gradient(90deg,${stops.map(c=>`rgb(${c.join(',')})`).join(',')})`}
+function colourMap(){let stops=$('palette').value==='reference'?[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]]:$('palette').value==='ocean'?[[6,11,19],[20,37,86],[18,110,141],[74,209,190],[232,255,213]]:$('palette').value==='mono'?[[8,11,16],[55,62,73],[115,128,139],[190,207,216],[255,255,255]]:[[8,11,16],[61,39,85],[152,57,93],[231,120,59],[255,243,175]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});$('legend').querySelector('i').style.background=`linear-gradient(90deg,${stops.map(c=>`rgb(${c.join(',')})`).join(',')})`}
 function redraw(){
   if(!w)return;
-  ctx.fillStyle='#080b10';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle=$('palette').value==='reference'?'#110885':'#080b10';ctx.fillRect(0,0,canvas.width,canvas.height);
   carry=0;last=0;previousSlice=null;
   const step=(audio?.sampleRate||48000)/(analyser?.fftSize||4096);
   // Sample at physical-pixel centres; interpolate spectral levels before colouring.
@@ -106,7 +106,7 @@ function updateResolution(){if(audio&&analyser)$('resolution').textContent=`${(a
 $('start').onclick=async()=>{if(running&&audio?.state==='suspended'){try{await audio.resume();notice('');state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);$('start').textContent='Stop mic'}catch(e){notice(e.message)}}else start()};$('begin').onclick=start;
 $('freeze').onclick=()=>{paused=!paused;if(inputMode==='speech'){if(paused)audio.suspend();else audio.resume();}$('freeze').textContent=paused?'Resume':'Pause';state(paused?'PAUSED':inputMode==='speech'?'TEST SPEECH':'LIVE',!paused);last=0};
 function panel(open){if(open)microphones();$('panel').hidden=!open;$('settings').setAttribute('aria-expanded',String(open))}$('settings').onclick=()=>panel($('panel').hidden);$('close').onclick=()=>panel(false);document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
-for(const id of ['maximum','scale','history','floor','gain','fft','palette'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(id==='fft'&&analyser){analyser.fftSize=value('fft');bins=new Float32Array(analyser.frequencyBinCount);updateResolution()}if(id==='palette')colourMap();if(['maximum','scale','history','fft'].includes(id))redraw()});$('clear').onclick=redraw;
+for(const id of ['maximum','scale','history','floor','gain','fft','palette'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(id==='fft'&&analyser){analyser.fftSize=value('fft');bins=new Float32Array(analyser.frequencyBinCount);updateResolution()}if(id==='palette'){colourMap();redraw();}if(['maximum','scale','history','fft'].includes(id))redraw()});$('clear').onclick=redraw;
 $('full').hidden=!document.documentElement.requestFullscreen;$('full').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch(e){notice('Full screen is unavailable in this browser.')}};
 window.addEventListener('pagehide',stop);colourMap();resize();
 

@@ -111,7 +111,9 @@ function syncSettings(){
   $('stage').classList.toggle('settings-open',open);
   $('panel').setAttribute('aria-hidden',String(!open));
   $('settings').setAttribute('aria-expanded',String(open));
-  $('settings').textContent=open?'Spectrogram':'Settings';
+  $('settings').textContent='⚙';
+  $('settings').setAttribute('aria-label',open?'Return to spectrogram':'Settings');
+  $('settings').title=open?'Return to spectrogram':'Settings';
   if(open)microphones();
 }
 function panel(open){

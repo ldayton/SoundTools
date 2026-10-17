@@ -16,3 +16,27 @@
 #settings{font-size:23px;line-height:1;min-width:44px;min-height:44px;padding:8px}#settings[aria-expanded=true]{color:#f2ac77;border-color:#f2ac77}
 
 #freeze,#start,#full{font-size:21px;line-height:1;min-width:44px;min-height:44px;padding:8px}#demo[aria-pressed=true]{color:#f2ac77;border-color:#f2ac77}
+
+#welcome{background:#0c1020}#welcome .vintage-mic{display:grid;place-items:center;width:210px;height:290px;padding:20px;background:transparent;border:0;border-radius:30px;color:#f2ac77;transition:color .2s,transform .2s}#welcome .vintage-mic svg{width:150px;height:225px}#welcome .vintage-mic:hover{color:#ffd0a8;transform:translateY(-3px)}#welcome .vintage-mic:active{transform:scale(.96)}#welcome .vintage-mic:disabled{opacity:.45}
+
+#welcome .vintage-mic{position:relative;width:240px;height:240px;border:2px solid #f2ac7780;border-radius:50%;background:#f2ac770b;box-shadow:0 0 0 10px #f2ac7705;animation:mic-invite 3s ease-in-out infinite;isolation:isolate}
+#welcome .vintage-mic svg{width:112px;height:168px}
+#welcome .vintage-mic::before{content:'';position:absolute;inset:-2px;border:1px solid #f2ac7760;border-radius:50%;z-index:-1;animation:mic-ripple 3s ease-out infinite;pointer-events:none}
+#welcome .vintage-mic:hover{background:#f2ac771a;border-color:#ffd0a8;box-shadow:0 0 35px #f2ac7720;animation:none;transform:scale(1.035)}
+#welcome .vintage-mic:hover::before{animation:none;opacity:0}
+#welcome .vintage-mic:active{transform:scale(.96);background:#f2ac7728}
+#welcome .vintage-mic:disabled{animation:none}#welcome .vintage-mic:disabled::before{animation:none;opacity:0}
+@keyframes mic-invite{0%,100%{box-shadow:0 0 0 8px #f2ac7704,0 0 18px #f2ac7706}50%{box-shadow:0 0 0 12px #f2ac7708,0 0 32px #f2ac7715}}
+@keyframes mic-ripple{0%{transform:scale(1);opacity:0}15%{opacity:.55}75%,100%{transform:scale(1.18);opacity:0}}
+@media(prefers-reduced-motion:reduce){#welcome .vintage-mic,#welcome .vintage-mic::before{animation:none}#welcome .vintage-mic::before{display:none}#welcome .vintage-mic{transition:none}}
+@media(max-width:400px){#welcome .vintage-mic{width:210px;height:210px}#welcome .vintage-mic svg{width:100px;height:150px}}
+@media(max-height:420px){#welcome .vintage-mic{width:160px;height:160px}#welcome .vintage-mic svg{width:76px;height:114px}}
+
+#start svg{display:block;width:21px;height:28px;margin:auto}header .actions{flex-wrap:nowrap}
+
+/* Keep transport controls stable when their icons change. */
+#start,#freeze,#full,#settings{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;min-width:44px;max-width:44px;min-height:44px;max-height:44px;padding:8px;box-sizing:border-box}
+#start svg{width:21px;height:28px;margin:0}
+#full[hidden]{display:none}
+@media(max-width:600px){#full{display:none}}
+#state{display:inline-flex;align-items:center;justify-content:center;flex:0 0 82px;width:82px;white-space:nowrap}

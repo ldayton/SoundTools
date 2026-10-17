@@ -12,12 +12,40 @@ vm.createContext(env);vm.runInContext(fs.readFileSync('dist/app.js','utf8'),env)
 assert.equal(elements.spectrogram.width,780);assert.equal(elements.labels.height,1400);
 vm.runInContext('bins.fill(-100);bins[10]=-20;bins[11]=-40',env);assert.equal(vm.runInContext('sampleSpectrum(10.5)',env),-30);
 vm.runInContext('bins.fill(-Infinity)',env);assert.equal(vm.runInContext('sampleSpectrum(10.5)',env),-160);
-const count=images.length;elements.freeze.onclick();vm.runInContext('render(300)',env);assert.equal(images.length,count);elements.freeze.onclick();vm.runInContext('stop()',env);assert(stopped);assert.equal(elements.state.textContent,'MIC OFF');env.navigator.mediaDevices.getUserMedia=async()=>{throw Object.assign(new Error('denied'),{name:'NotAllowedError'})};await vm.runInContext('start()',env);assert.match(elements.notice.textContent,/denied/);let attempts=[];
+const count=images.length;await elements.freeze.onclick();vm.runInContext('render(300)',env);assert.equal(images.length,count);await elements.freeze.onclick();vm.runInContext('stop()',env);assert(stopped);assert.equal(elements.state.textContent,'STOPPED');env.navigator.mediaDevices.getUserMedia=async()=>{throw Object.assign(new Error('denied'),{name:'NotAllowedError'})};await vm.runInContext('start()',env);assert.match(elements.notice.textContent,/denied/);let attempts=[];
 env.navigator.mediaDevices.getUserMedia=async args=>{attempts.push(args);if(attempts.length===1)throw Object.assign(new Error('driver'),{name:'NotReadableError'});return {getTracks:()=>[track],getAudioTracks:()=>[track]}};
 await vm.runInContext('start()',env);assert.equal(attempts.length,2);assert.equal(attempts[1].audio,true);assert.equal(elements.state.textContent,'LIVE');vm.runInContext('stop()',env);
 elements.microphone.value='chosen';attempts=[];
 env.navigator.mediaDevices.getUserMedia=async args=>{attempts.push(args);throw Object.assign(new Error('driver'),{name:'NotReadableError'})};
 await vm.runInContext('start()',env);assert.equal(attempts.length,2);assert.equal(attempts[1].audio.deviceId.exact,'chosen');assert.match(elements.notice.textContent,/physical microphone/);assert.equal(elements.panel.hidden,false);
 env.navigator.mediaDevices.getUserMedia=()=>{throw new Error('Fake mic must not request hardware')};
-elements.loop.checked=true;await vm.runInContext('startSpeech()',env);assert.equal(elements.state.textContent,'TEST SPEECH');assert.equal(elements.testControls.hidden,false);assert.equal(vm.runInContext('inputMode',env),'speech');elements.freeze.onclick();assert.equal(vm.runInContext('audio.state',env),'suspended');elements.freeze.onclick();assert.equal(vm.runInContext('audio.state',env),'running');elements.seek.value='12';elements.seek.oninput();assert.equal(vm.runInContext('clipOffset',env),12);elements.listen.checked=true;elements.listen.onchange();assert.equal(vm.runInContext('monitor.gain.value',env),1);vm.runInContext('stop()',env);assert.equal(elements.testControls.hidden,true);
-console.log('PASS: fake microphone without hardware, pause, seek, monitor, cleanup; signal rendering, pause, cleanup, permission denial, driver fallback, selected-input preservation and recovery UI');})().catch(e=>{console.error(e);process.exitCode=1});
+elements.loop.checked=true;await vm.runInContext('startSpeech()',env);assert.equal(elements.state.textContent,'EXAMPLE');assert.equal(elements.testControls.hidden,false);assert.equal(vm.runInContext('inputMode',env),'speech');await elements.freeze.onclick();assert.equal(vm.runInContext('audio.state',env),'suspended');await elements.freeze.onclick();assert.equal(vm.runInContext('audio.state',env),'running');elements.seek.value='12';elements.seek.oninput();assert.equal(vm.runInContext('clipOffset',env),12);elements.listen.checked=true;elements.listen.onchange();assert.equal(vm.runInContext('monitor.gain.value',env),1);vm.runInContext('stop()',env);assert.equal(elements.testControls.hidden,true);
+// Exercise every transport action from each source/pause/view combination.
+const fakeStream=()=>({getTracks:()=>[track],getAudioTracks:()=>[track]});
+for(const mode of ['idle','mic','mic-paused','speech','speech-paused'])for(const settings of [false,true])for(const action of ['record','sample','pause','settings']){
+  vm.runInContext('stop()',env);history.replaceState(null,'','/');vm.runInContext('syncSettings()',env);
+  env.navigator.mediaDevices.getUserMedia=async()=>fakeStream();
+  if(mode.startsWith('mic'))await vm.runInContext('start()',env);
+  if(mode.startsWith('speech'))await vm.runInContext('startSpeech()',env);
+  if(mode.endsWith('paused'))await elements.freeze.onclick();
+  if(settings)vm.runInContext('panel(true)',env);
+  const before=vm.runInContext('({running,paused,inputMode})',env);
+  if(action==='record')await elements.start.onclick();
+  if(action==='sample')await elements.demo.onclick();
+  if(action==='pause')await elements.freeze.onclick();
+  if(action==='settings')elements.settings.onclick();
+  const after=vm.runInContext('({running,paused,inputMode})',env);
+  const tag=`${mode}/${settings}/${action}`;
+  if(action==='sample'){assert(after.running&&!after.paused&&after.inputMode==='speech',tag);assert.equal(location.hash,'',tag);assert.equal(elements.listen.checked,true,tag)}
+  if(action==='record'){assert.equal(after.running,!mode.startsWith('mic'),tag);assert.equal(after.inputMode,'mic',tag);assert.equal(location.hash,'',tag)}
+  if(action==='pause'&&before.running){assert.equal(after.paused,!before.paused,tag);assert.equal(location.hash,'',tag)}
+  if(action==='settings'){assert.equal(after.running,before.running,tag);assert.equal(after.paused,before.paused,tag);assert.equal(location.hash,settings?'':'#settings',tag)}
+}
+// Double activation during loading cannot create parallel input sessions.
+vm.runInContext('stop()',env);let release;
+env.fetch=()=>new Promise(resolve=>{release=()=>resolve({ok:true,arrayBuffer:async()=>new ArrayBuffer(8)})});
+const pending=vm.runInContext('startSpeech()',env);await Promise.resolve();await Promise.resolve();
+assert.equal(elements.start.disabled,true);assert.equal(elements.begin.disabled,true);
+await elements.start.onclick();release();await pending;assert.equal(vm.runInContext('inputMode',env),'speech');
+console.log('PASS: 40 source/view/action combinations, duplicate-start guard, speech routing, interpolation and capture fallback');
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -2,12 +2,54 @@
 #include "NUM2.h"
 // Included after the array adapter; shares its output buffers, metadata and error owner.
 // Configurable frame FFT. The original Gaussian PSD entry point is unchanged.
+// Polyphase sinc filter with float coefficients and split float dot products.
+// The compatible Kaiser series preserves the observed first-divisor convention.
+struct SgPolyphase {
+ double rate=0,target=0;int quality=-1,half=0,phases=0;
+ std::vector<float> right,left;
+ static double i0(double x){double sum=1,y=x*x/4,term=y;int k=1;while(term>1e-12&&k<100){sum+=term;term*=y/(k*k);k++;}return sum;}
+ static double sinc(double x){return x==0?1:sin(NUMpi*x)/(NUMpi*x);}
+ void configure(double input,double output,int q){
+  if(rate==input&&target==output&&quality==q)return;
+  rate=input;target=output;quality=q;
+  const double rolloffs[]={.9,.92,.94,.965,.965},attenuations[]={55,68,80,96,96};
+  const int mins[]={96,128,160,192,256},maxs[]={160,192,256,384,640},pmins[]={512,1024,1024,2048,4096},pmaxs[]={1024,2048,2048,4096,8192};
+  const double rolloff=rolloffs[q],atten=attenuations[q],factor=output/input;
+  int taps=int(ceil((atten-8)/(14.36*std::max(.0001,.5*(1-rolloff)*std::max(.25,std::min(1.0,factor))))));
+  taps=std::clamp(taps,mins[q],maxs[q]);if(taps%2)taps++;half=taps/2;
+  phases=1;while(phases<std::clamp(taps*8,pmins[q],pmaxs[q]))phases*=2;
+  const double beta=atten>50?.1102*(atten-8.7):0,cutoff=.5*std::min(1.0,factor)*rolloff,denom=i0(beta);
+  std::vector<double> window(taps);for(int j=0;j<taps;j++){double x=2.0*j/(taps-1)-1;window[j]=i0(beta*sqrt(1-x*x))/denom;}
+  right.resize(phases*half);left.resize(phases*half);
+  for(int p=0;p<phases;p++){
+   const double fraction=double(p)/phases;double sum=0;
+   for(int j=-half;j<half;j++)sum+=sinc(2*cutoff*(j-fraction))*window[j+half];
+   const double gain=sum==0?1:1/sum;
+   for(int j=0;j<half;j++){
+    right[p*half+j]=float(sinc(2*cutoff*(j-fraction))*window[j+half]*gain);
+    left[p*half+j]=float(sinc(2*cutoff*(-j-1-fraction))*window[half-j-1]*gain);
+   }
+  }
+ }
+ float sample(constSound sound,double time){
+  const int centre=int(floor(time));const double phase=(time-centre)*phases;
+  const int a=std::min(phases-1,int(phase)),b=(a+1)%phases;const double mix=phase-a;
+  float ar=0,al=0,br=0,bl=0;
+  for(int j=0;j<half;j++){
+   const int ri=centre+j,li=centre-j-1;
+   const float rv=ri>=0&&ri<sound->nx?float(sound->z[1][ri+1]):0,lv=li>=0&&li<sound->nx?float(sound->z[1][li+1]):0;
+   ar+=rv*right[a*half+j];al+=lv*left[a*half+j];br+=rv*right[b*half+j];bl+=lv*left[b*half+j];
+  }
+  const double av=float(ar+al),bv=float(br+bl);return float(av+(bv-av)*mix);
+ }
+};
+static SgPolyphase sgPolyphase;
 extern "C" EMSCRIPTEN_KEEPALIVE int sg_transform(const float *pcm,int length,double rate,
  double targetRate,double window,double hop,int shape,int padding,int removeDC,int amplitude,
- double firstCentre){
+ double firstCentre,int resampling,int quality){
  output.clear();error.clear();nt=nf=0;
  try{
-  if(!pcm||length<2||!std::isfinite(rate)||rate<8000||rate>192000||length>rate||
+  if((resampling!=0&&resampling!=1)||quality<0||quality>4||!pcm||length<2||!std::isfinite(rate)||rate<8000||rate>192000||length>rate||
    !std::isfinite(window)||window<.001||window>.1||!std::isfinite(hop)||hop<.001||hop>.1||
    (shape!=0&&shape!=1)||(padding!=0&&padding!=2)||
    (targetRate!=0&&targetRate!=8000&&targetRate!=16000)||(!std::isfinite(firstCentre)||firstCentre<0||firstCentre>1)){
@@ -15,7 +57,16 @@ extern "C" EMSCRIPTEN_KEEPALIVE int sg_transform(const float *pcm,int length,dou
   }
   auto sound=Sound_create(1,0,double(length)/rate,length,1/rate,.5/rate);
   for(int i=0;i<length;i++){if(!std::isfinite(pcm[i])){error="Nonfinite PCM";return -1;}sound->z[1][i+1]=pcm[i];}
-  if(targetRate&&targetRate!=rate){sound=Sound_resample(sound.get(),targetRate,50);rate=targetRate;}
+  if(targetRate&&targetRate!=rate){
+   if(resampling){
+    sgPolyphase.configure(rate,targetRate,quality);
+    const int count=int(floor(sound->nx*targetRate/rate));
+    auto resampled=Sound_create(1,0,double(count)/targetRate,count,1/targetRate,.5/targetRate);
+    for(int i=0;i<count;i++)resampled->z[1][i+1]=sgPolyphase.sample(sound.get(),i*rate/targetRate);
+    sound=resampled.move();
+   }else sound=Sound_resample(sound.get(),targetRate,50);
+   rate=targetRate;
+  }
   const int win=int(std::lround(window*rate*(shape==0?2:1)));
   int n=1;while(n<win*(padding==2?2:1))n*=2;
   if(n>65536||win<2){error="FFT size exceeds supported bounds";return -1;}

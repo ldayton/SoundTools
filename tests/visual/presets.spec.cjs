@@ -3,7 +3,7 @@ test('Voice Tools and Praat presets switch during English playback',async({page}
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html#settings');
  await expect(page.locator('#unnamedPreset')).toHaveAttribute('hidden','');await expect(page.locator('#savePresetForm')).toBeHidden();expect(await page.evaluate(()=>!document.getElementById('presetSettings').contains(document.getElementById('microphone'))&&!!(document.getElementById('microphone').compareDocumentPosition(document.getElementById('preset'))&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
  await expect(page.locator('#preset')).toHaveValue('praat');await page.locator('#preset').selectOption('voice');
- for(const [id,value] of Object.entries({maximum:'4000',scale:'erb',window:'0.064',preemphasis:'0',floor:'100',suppression:'0',colourLevels:'held',windowShape:'hann',analysisRate:'8000',frameStep:'0.016',fftPadding:'2',spectrumUnits:'amplitude',palette:'plasma',interpolation:'bucket'}))await expect(page.locator('#'+id)).toHaveValue(value);
+ for(const [id,value] of Object.entries({maximum:'4000',scale:'erb',window:'0.064',preemphasis:'0',floor:'100',suppression:'0',colourLevels:'held',windowShape:'hann',analysisRate:'8000',frameStep:'0.016',fftPadding:'2',spectrumUnits:'amplitude',palette:'plasma',interpolation:'bucket',resampling:'polyphase',resampleQuality:'2',normalizationClock:'wall'}))await expect(page.locator('#'+id)).toHaveValue(value);
  await expect(page.locator('#fixedMaximumControl')).toBeHidden();await expect(page.locator('#floor')).toBeDisabled();
  for(const f of [0,100,500,1000,3500])expect(await page.evaluate(f=>Math.abs(frequency(yFor(f)-padTop)-f),f)).toBeLessThan(1e-8);
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.getByRole('button',{name:'Play an Example',exact:true}).click();
@@ -87,11 +87,29 @@ test('manual settings reproduce the Voice Tools preset and survive as a named pr
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.getByRole('button',{name:'Play an Example',exact:true}).click();
  await page.waitForFunction(()=>processingStats.frames>100);
  const details=await page.evaluate(()=>({units:spectrumUnits,step:spectrumStep,settings:engine.settings(),gaps:processingStats.discontinuousBatches||0}));
- expect(details.units).toBe('amplitude');expect(details.step).toBe(7.8125);expect(details.settings.windowShape).toBe('hann');expect(details.gaps).toBe(0);
+ expect(details.units).toBe('amplitude');expect(details.step).toBe(7.8125);expect(details.settings.windowShape).toBe('hann');expect(details.settings.resampling).toBe('polyphase');expect(details.settings.resampleQuality).toBe(2);expect(details.gaps).toBe(0);
 });
 
 test('legacy named presets retain their settings and acquire compatible analysis defaults',async({page})=>{
  await page.goto('/dist/index.html');
  await page.evaluate(()=>{const settings={...AnalysisSettings.presets.praat,formants:'off',formantCeiling:'5500'};for(const key of Object.keys(AnalysisSettings.defaults))delete settings[key];settings.maximum='3500';settings.window='0.04';localStorage.setItem('soundglow-presets-v1',JSON.stringify({version:1,selected:'saved-legacy',presets:[{id:'saved-legacy',name:'Old settings',settings}]}))});
  await page.reload();await expect(page.locator('#preset')).toHaveValue('saved-legacy');await expect(page.locator('#maximum')).toHaveValue('3500');await expect(page.locator('#window')).toHaveValue('0.04');await expect(page.locator('#windowShape')).toHaveValue('gaussian');await expect(page.locator('#analysisRate')).toHaveValue('0');
+});
+
+
+test('normalization timing uses the selected clock in the production frame consumer',async({page})=>{
+ await page.goto('/dist/index.html#settings');
+ const holds=await page.evaluate(()=>{
+  applyPreset('voice');audio={currentTime:0};const now=Date.now;const result={spectrumUnits:'amplitude',bins:3,firstFrequency:0,frequencyStep:7.8125,timeStep:.016,timings:{analysisMs:0}};
+  function replay(clock){
+   $('normalizationClock').value=clock;heldPeak=newPeakState();processingStats.lastFrameTime=null;frameQueue=[];const values=[];
+   for(let i=0;i<5;i++){
+    Date.now=()=>i*1000;const level=i===0?80:40;const frame={time:i*.016,power:new Float32Array(3).fill(10**((level-92)/10))};
+    acceptFrames([frame],result);values.push(frame.levelMaximum);
+   }
+   return values;
+  }
+  try{return {audio:replay('audio'),wall:replay('wall')}}finally{Date.now=now;audio=null}
+ });
+ expect(holds.audio[4]).toBeCloseTo(80,4);expect(holds.wall[4]).toBeLessThan(holds.audio[4]);
 });

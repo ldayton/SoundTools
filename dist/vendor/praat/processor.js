@@ -34,8 +34,8 @@
     m.HEAPF32.set(pcm,pointer>>>2);
     const analysisStart=now(),inputCopyMs=analysisStart-inputStart;
     const configured=(data.windowShape&&data.windowShape!=='gaussian')||data.analysisRate||data.fftPadding||data.removeDC||data.spectrumUnits==='amplitude';
-    if(data.windowShape&&!['gaussian','hann'].includes(data.windowShape)||data.spectrumUnits&&!['density','amplitude'].includes(data.spectrumUnits))return {id,error:'Invalid analysis settings',code:'INVALID_REQUEST'};
-    const status=configured?m._sg_transform(pointer,pcm.length,sampleRate,data.analysisRate||0,windowSeconds,timeStep,data.windowShape==='hann'?1:0,data.fftPadding||0,data.removeDC?1:0,data.spectrumUnits==='amplitude'?1:0,data.firstCentre||0):m._sg_analyse(pointer,pcm.length,sampleRate,windowSeconds,maximumFrequency,timeStep,frequencyStep);
+    if(data.resampling&&!['praat','polyphase'].includes(data.resampling)||data.resampleQuality!==undefined&&(!Number.isInteger(data.resampleQuality)||data.resampleQuality<0||data.resampleQuality>4)||data.windowShape&&!['gaussian','hann'].includes(data.windowShape)||data.spectrumUnits&&!['density','amplitude'].includes(data.spectrumUnits))return {id,error:'Invalid analysis settings',code:'INVALID_REQUEST'};
+    const status=configured?m._sg_transform(pointer,pcm.length,sampleRate,data.analysisRate||0,windowSeconds,timeStep,data.windowShape==='hann'?1:0,data.fftPadding||0,data.removeDC?1:0,data.spectrumUnits==='amplitude'?1:0,data.firstCentre||0,data.resampling==='polyphase'?1:0,data.resampleQuality??2):m._sg_analyse(pointer,pcm.length,sampleRate,windowSeconds,maximumFrequency,timeStep,frequencyStep);
     if(status!==0){return {id,error:m.UTF8ToString(m._sg_error()),code:'ANALYSIS_ERROR'}}
     const outputStart=now();let analysisMs=outputStart-analysisStart,featureMs=0;
     const frames=m._sg_frames(),bins=m._sg_bins(),base=m._sg_data()>>>2;

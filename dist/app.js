@@ -218,7 +218,7 @@ function acceptFrames(frames,result){
       if(spectrumStep!==result.frequencyStep||spectrumFirst!==result.firstFrequency){spectrumStep=result.frequencyStep;spectrumFirst=result.firstFrequency;redraw()}
       if(!bins||bins.length!==result.bins){bins=new Float32Array(result.bins);bins.fill(-160)}
       while(displayPeaks.length&&displayPeaks[0].time<audio.currentTime-value('history')-.2)displayPeaks.shift();
-      for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,frame.time);displayPeaks.push({time:frame.time,peak})}
+      for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,AnalysisSettings.normalizationTime($('normalizationClock').value,frame.time));displayPeaks.push({time:frame.time,peak})}
       frameQueue.push(...frames);if(frameQueue.length>200)frameQueue.splice(0,frameQueue.length-200);
       processingStats.frames+=frames.length;processingStats.blocks++;processingStats.lastMs=result.timings.analysisMs;canvas.dataset.processedFrames=processingStats.frames;canvas.dataset.analysisMs=processingStats.lastMs;updateResolution();
 
@@ -227,7 +227,7 @@ async function connectInput(input){
   const context=audio;
   const client=new PraatClient({workerURL:'vendor/praat/worker.js?profile=release'});
   engine=new PraatStream({client,sampleRate:context.sampleRate,
-    settings:()=>({maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:$('windowShape').value,analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:$('removeDC').value==='on',spectrumUnits:$('spectrumUnits').value,analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}),
+    settings:()=>({maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:$('windowShape').value,analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:$('removeDC').value==='on',spectrumUnits:$('spectrumUnits').value,resampling:$('resampling').value,resampleQuality:value('resampleQuality'),analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}),
     onFrames:acceptFrames,onError:error=>{stop();notice('Praat audio processing failed: '+error.message)}
   });
   await client.init();
@@ -363,6 +363,7 @@ function syncPreset(edited=false){
  $('preset').value=edited?'custom':match[0]||(!wasSaved&&Object.entries(displayPresets).find(([,settings])=>matches(settings))?.[0])||'custom';
  $('unnamedPreset').hidden=$('preset').value!=='custom';
  $('floor').disabled=$('colourLevels').value==='held';
+ $('resampleQuality').disabled=$('resampling').value!=='polyphase';
  $('fixedMaximumControl').hidden=$('colourLevels').value!=='fixed';
  $('fixedMaximumOut').textContent=value('fixedMaximum')+' dB';$('suppressionOut').textContent=value('suppression')+' dB';
 }

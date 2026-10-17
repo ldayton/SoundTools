@@ -21,6 +21,55 @@ const make=require('../dist/vendor/praat/build-release/praat-spectrogram.js');
   for(const frame of frames.slice(2)){const peak=frame.power.indexOf(Math.max(...frame.power));assert.equal(peak*7.8125,1000);}
   stream.dispose();
  }
+ // Independent original-binary fixtures include fractional-rate phases and FIR batch boundaries.
+ const resamplingOracle=JSON.parse(zlib.gunzipSync(fs.readFileSync(__dirname+'/fixtures/resampling-dsp.json.gz')));let filterError=0;
+ for(const t of resamplingOracle){
+  let caseError=0,strong=0;
+  const frames=[];let failure;
+  const config={windowSeconds:.064,windowShape:'hann',analysisRate:t.target,timeStep:.016,fftPadding:2,removeDC:true,spectrumUnits:'amplitude',resampling:'polyphase',resampleQuality:2};
+  const stream=new PraatStream({client:{analyse,dispose(){}},sampleRate:t.rate,settings:()=>config,onFrames:f=>frames.push(...f),onError:e=>failure=e});
+  for(let start=0;start<t.input.length;start+=t.rate/10){stream.push(Float32Array.from(t.input.slice(start,start+t.rate/10)),start/t.rate);while(stream.busy)await new Promise(r=>setImmediate(r));}
+  assert(!failure,String(failure));assert(frames.length>=t.spectra.length);
+  for(let j=0;j<t.spectra.length;j++){
+   assert(Math.abs(frames[j].time-(.032+j*.016))<1e-8);
+   for(let i=0;i<t.spectra[j].length;i++){
+    const db=settings.level(frames[j].power[i],i*7.8125,'amplitude',0),ref=t.spectra[j][i];
+    if(ref>40)strong=Math.max(strong,Math.abs(db-ref));if(ref>20){caseError=Math.max(caseError,Math.abs(db-ref));filterError=Math.max(filterError,Math.abs(db-ref));}
+   }
+  }
+  // Fractional-rate reference phases depend on native accumulated time and wrap rounding.
+  // Preserve a strict bound on stronger peaks as well as weak bins, rather than hide it.
+  assert(caseError<(t.rate===44100?.7:.001),`Filter mismatch at ${t.rate}/${t.target}: ${caseError}`);
+  assert(strong<(t.rate===44100?.12:.001),`Peak mismatch at ${t.rate}/${t.target}: ${strong}`);
+  // Discontinuities reset FIR context and retain the new source's time origin.
+  stream.reset();frames.length=0;stream.push(Float32Array.from(t.input),2);while(stream.busy)await new Promise(r=>setImmediate(r));assert(Math.abs(frames[0].time-2.032)<1e-8);
+  // Dropping a slow/stale batch must restore FIR padding at the retained packet.
+  stream.reset();frames.length=0;stream.push(Float32Array.from(t.input),3);stream.push(Float32Array.from(t.input),3.4);while(stream.busy)await new Promise(r=>setImmediate(r));assert(Math.abs(frames[0].time-3.432)<1e-8);stream.dispose();
+ }
+ assert(filterError<.7,`Original polyphase oracle differs: ${filterError} dB`);
+ // Selecting a filter at device rate is inert: no implicit FFT/density-path change.
+ const devicePcm=Float32Array.from(resamplingOracle[0].input);
+ const defaultPath=await analyse({pcm:devicePcm,sampleRate:24000});
+ const noResample=await analyse({pcm:devicePcm,sampleRate:24000,resampling:'polyphase',resampleQuality:2});
+ assert.deepEqual(noResample.power,defaultPath.power);
+ // Quality is a working filter parameter, not just a saved label.
+ const edgeLevels=[];
+ for(let quality=0;quality<=4;quality++){
+  const t=resamplingOracle[0],r=await analyse({pcm:Float32Array.from(t.input),sampleRate:t.rate,windowSeconds:.064,timeStep:.016,windowShape:'hann',analysisRate:8000,fftPadding:2,removeDC:true,spectrumUnits:'amplitude',resampling:'polyphase',resampleQuality:quality});
+  assert(r.power.every(Number.isFinite));edgeLevels.push(settings.level(r.power[4*r.bins+486],3796.875,'amplitude',0));
+ }
+ assert(edgeLevels[0]<edgeLevels[2]-1);assert(edgeLevels[4]>edgeLevels[2]);
+ const badFilter=await processor.handle({pcm:new Float32Array(1600),sampleRate:8000,resampling:'unknown'});assert(badFilter.error);
+ const badQuality=await processor.handle({pcm:new Float32Array(1600),sampleRate:8000,resampling:'polyphase',resampleQuality:9});assert(badQuality.error);
+ // Audio and wall clocks deliberately diverge on seek/pause; the selected clock owns bucket expiry.
+ assert.equal(settings.normalizationTime('audio',.25,4321),.25);assert.equal(settings.normalizationTime('wall',.25,4321),4.321);
+ const audioPeak=settings.peakState(),wallPeak=settings.peakState();
+ for(const [audioTime,wallTime,peak] of [[0,0,80],[.1,1,40],[.2,2,40],[.3,3,40],[.4,4,40]]){
+  settings.heldMaximum(audioPeak,peak,settings.normalizationTime('audio',audioTime,wallTime*1000));
+  settings.heldMaximum(wallPeak,peak,settings.normalizationTime('wall',audioTime,wallTime*1000));
+ }
+ assert.equal(audioPeak.hold,80);assert(wallPeak.hold<80);
+ console.log(`PASS: ${resamplingOracle.length} original polyphase streams (${filterError.toFixed(6)} dB max), FIR context/reset and clock selection`);
  // Small device-rate windows can have odd sample counts; bounds must remain valid.
  for(const windowShape of ['gaussian','hann']){
   const r=await analyse({pcm:Float32Array.from({length:8820},(_,i)=>.1*Math.sin(2*Math.PI*1000*i/44100)),sampleRate:44100,windowSeconds:.005,timeStep:.005,windowShape,fftPadding:2,spectrumUnits:'amplitude'});assert(r.frames>30);

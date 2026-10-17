@@ -227,17 +227,23 @@ The vendored source archive includes the extended C ABI and all new dependencies
 
 Presets are collections of the same editable settings. **Voice Tools** selects an
 ERB axis, 4 kHz ceiling, 64 ms periodic Hann window, 8 kHz analysis, 2× FFT padding,
-16 ms frame spacing, DC removal, amplitude levels, held-peak normalization, full
+16 ms frame spacing, DC removal, amplitude levels, balanced compatible Kaiser
+polyphase resampling, wall-clock held-peak normalization, full
 Plasma palette, frequency buckets and held frames. Frequency and frame
-interpolation, peak memory and decay can be adjusted independently. Changing the
+interpolation, resampling quality, normalization timing, peak memory and decay can
+be adjusted independently. Changing the
 ceiling alone cannot exceed the selected analysis sample rate's Nyquist limit.
 
 The original **Praat** preset keeps Gaussian power-density analysis, device sample
 rate, 5 ms spacing, the existing palette, smooth interpolation and visible-history
 autoscaling. Its native numerical and visual references remain unchanged.
 
-The additional generic frame-analysis ABI uses Praat's existing FFT and sinc
-resampler; no second FFT library is loaded. `engine/frame-analysis.h` is the
+The additional generic frame-analysis ABI uses Praat's existing FFT and offers
+either its sinc resampler or a compatible Kaiser polyphase filter; no second FFT
+library is loaded. Filter quality controls the transition band, coefficient
+count and phase resolution. Balanced uses 94% roll-off, up to 256 taps and 2,048
+phases. Streaming retains aligned FIR context across batches and clears it on
+source changes, seek and discontinuities. `engine/frame-analysis.h` is the
 reviewable source for the added ABI. Its generated copy and the unchanged base
 adapter are included in `dist/vendor/praat/source.tar.gz`. To rebuild from the
 archive, use the earlier build instructions. To update from a separate checkout,
@@ -247,15 +253,21 @@ that the header matches. The original Gaussian entry point stays available.
 
 Amplitude levels use a shifted/clipped decibel scale and held-peak mode remembers
 peak levels in one-second buckets (default five), with a selectable decay per
-frame. Historical frames keep their original normalization. Dynamic range is
+frame, using float arithmetic. Timing can follow audio frame time or processing
+wall time. Audio time gives reproducible replay independent of processing speed;
+wall time matches the original app's bucket expiry, including elapsed pauses.
+Historical frames keep their original normalization. Dynamic range is
 available for fixed and visible-history colour levels; held-peak levels use a
 relative 0–1 scale. These are display measures, not calibrated acoustic SPL.
 
 `tests/voice-settings.cjs` compares 24 original Voice Tools binary-derived DSP
-fixtures and checks real WASM streams resampled from 24/44.1/48 kHz. The recovered
-DSP stage matches within 0.01 dB. This does not establish complete iPhone parity:
-Praat's resampler differs from Apple's polyphase resampler, and platform capture
-processing and overlay algorithms can differ. All computation remains local.
+fixtures plus six independent original polyphase speech/noise/impulse fixtures
+at 24/44.1/48 kHz into 8/16 kHz. Integer-ratio resampling matches within 0.001 dB;
+fractional 44.1 kHz native phase accumulation/wrap rounding leaves differences
+bounded in the fixtures by 0.7 dB in weak bins above -72 dB and 0.12 dB above
+-52 dB. This does not establish complete iPhone parity: platform capture
+processing, normalization scheduling and overlay algorithms can differ. All
+computation remains local.
 
 ### Named custom presets
 

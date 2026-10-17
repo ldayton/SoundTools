@@ -89,3 +89,20 @@ npm run build
 Review native provenance, settings and fixture hashes alongside the engine
 update. These commands are maintainer actions and never run in routine CI.
 The native image in generated/ is available for a separate grayscale comparison.
+
+## Delivery-stall regression
+
+Both paced and jittered replays feed capture packets independently of rendering.
+Selected WASM replies are held for 120, 280 and 350 ms while the plot clock keeps
+running. The renderer buffers 300 ms and clamps its position to completed
+analysis, then catches up. Both replays must match the same existing PNG; no
+extra image tolerance is granted to the delayed case. The test asserts that the
+delayed case actually exercised the analysis-availability limit. Disabling that
+limit was verified to fail the image comparison.
+
+A separate real-time English example test covers AudioContext → MediaStream →
+AudioWorklet → worker → renderer at desktop, mobile Retina and wide Retina sizes.
+It verifies progression, no script/audio errors, and no discontinuous output
+batches during fresh playback. The wide Retina run exceeds the 10-second
+history length to exercise autoscaling as old peaks expire. Hardware-dependent timing is attached as a
+diagnostic, not treated as a universal frame-rate benchmark.

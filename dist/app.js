@@ -3,17 +3,18 @@
 const $=id=>document.getElementById(id),canvas=$('spectrogram'),ctx=canvas.getContext('2d',{alpha:false}),overlay=$('labels'),axis=overlay.getContext('2d');
 let returningHome=false;
 let engine=null,pcmNode=null,frameQueue=[],spectrumStep=20,spectrumFirst=0;
-let currentSpectrumFrame=null,lastAudioTime=0;
+const analysisDelay=.3; // 100 ms capture packets + overlap + delivery headroom.
+let currentSpectrumFrame=null,lastPlotTime=0;
 let displayPeaks=[],paintedSlices=[],displayMaximum=0,paintedMaximum=0;
 let processingStats={frames:0,blocks:0,lastMs:0};
 canvas.dataset.engine='praat-wasm';
 let inputMode='mic',speechBuffer=null,speechNode=null,speechDestination=null,monitor=null,clipOffset=0,clipStarted=0;
-let audio,stream,source,bins,running=false,paused=false,starting=false,last=0,carry=0,raf=0,nyquist=24000,w=0,h=0,plotW=0,plotH=0,map=[],lut=[],dpr=1,pxLeft=0,pxTop=0,pxW=1,pxH=1,previousSlice=null;
+let audio,stream,source,bins,running=false,paused=false,starting=false,last=0,carry=0,raf=0,nyquist=24000,w=0,h=0,plotW=0,plotH=0,map=[],lut=[],packedColours,dpr=1,pxLeft=0,pxTop=0,pxW=1,pxH=1,previousSlice=null;
 const left=52,padTop=20,bottom=27,right=12;
 const value=id=>Number($(id).value),maxHz=()=>Math.min(value('maximum'),nyquist);
 function frequency(y){const f=1-y/plotH;return $('scale').value==='log'?60*Math.pow(maxHz()/60,f):maxHz()*f}
 function yFor(f){return padTop+plotH*(1-($('scale').value==='log'?Math.log(f/60)/Math.log(maxHz()/60):f/maxHz()))}
-function colourMap(){let stops='reference'==='reference'?[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]]:'reference'==='ocean'?[[6,11,19],[20,37,86],[18,110,141],[74,209,190],[232,255,213]]:'reference'==='mono'?[[8,11,16],[55,62,73],[115,128,139],[190,207,216],[255,255,255]]:[[8,11,16],[61,39,85],[152,57,93],[231,120,59],[255,243,175]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});$('legend').querySelector('i').style.background=`linear-gradient(90deg,${stops.map(c=>`rgb(${c.join(',')})`).join(',')})`}
+function colourMap(){let stops='reference'==='reference'?[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]]:'reference'==='ocean'?[[6,11,19],[20,37,86],[18,110,141],[74,209,190],[232,255,213]]:'reference'==='mono'?[[8,11,16],[55,62,73],[115,128,139],[190,207,216],[255,255,255]]:[[8,11,16],[61,39,85],[152,57,93],[231,120,59],[255,243,175]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});packedColours=PraatDisplay.palette(lut);$('legend').querySelector('i').style.background=`linear-gradient(90deg,${stops.map(c=>`rgb(${c.join(',')})`).join(',')})`}
 function redraw(){
   if(!w)return;
   ctx.fillStyle='reference'==='reference'?'#110885':'#080b10';ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -46,15 +47,19 @@ function render(time){
   if(inputMode==='speech')updatePosition();
   raf=requestAnimationFrame(render);
   if(paused||document.hidden){last=0;previousSlice=null;return}
-  if(!last){last=time;lastAudioTime=audio.currentTime;return}
-  const dt=Math.max(0,Math.min(value('history'),audio.currentTime-lastAudioTime));last=time;lastAudioTime=audio.currentTime;
+  const desired=audio.currentTime-analysisDelay;
+  const available=frameQueue.at(-1)?.time??currentSpectrumFrame?.time;
+  const target=available===undefined?desired:Math.min(desired,available);
+  processingStats.maxPlayoutLag=Math.max(processingStats.maxPlayoutLag||0,audio.currentTime-target);
+  if(target<desired-1e-6)processingStats.underflowHolds=(processingStats.underflowHolds||0)+1;
+  if(!last){last=time;lastPlotTime=target;return}
+  const dt=Math.max(0,Math.min(value('history'),target-lastPlotTime));last=time;lastPlotTime=target;
   carry+=dt*pxW/value('history');const pixels=Math.min(pxW,Math.floor(carry+1e-9));if(!pixels)return;carry=Math.max(0,carry-pixels);
-  const target=audio.currentTime-.16;
   const current=Float32Array.from(map,position=>sampleSpectrum(position));
   const prior=previousSlice||current;
-  const cutoff=audio.currentTime-.16-value('history');
+  const cutoff=target-value('history');
   while(displayPeaks.length&&displayPeaks[0].time<cutoff)displayPeaks.shift();
-  displayMaximum=displayPeaks.reduce((peak,frame)=>frame.time<=audio.currentTime-.16?Math.max(peak,frame.peak):peak,0);
+  displayMaximum=displayPeaks.reduce((peak,frame)=>frame.time<=target?Math.max(peak,frame.peak):peak,0);
   const dbPixels=new Float32Array(pixels*pxH);
   const secondsPerPixel=value('history')/pxW,endTime=target-carry*secondsPerPixel;
   function frameRows(frame){if(!frame.rows){const levels=Float32Array.from(frame.power,(p,f)=>PraatDisplay.powerDb(p,spectrumFirst+f*spectrumStep));frame.rows=Float32Array.from(map,position=>sampleSpectrum(position,levels))}return frame.rows}
@@ -67,17 +72,17 @@ function render(time){
       for(let y=0;y<pxH;y++)dbPixels[y*pixels+x]=columnTime-currentSpectrumFrame.time>.03?-160:a[y]+(b[y]-a[y])*mix;
     }else for(let y=0;y<pxH;y++)dbPixels[y*pixels+x]=prior[y]+(current[y]-prior[y])*(x+1)/pixels;
   }
-  if(inputMode==='speech')canvas.dataset.clipEndTime=speechPosition()-.16-carry*secondsPerPixel;
+  canvas.dataset.plottedUntil=endTime;
+  if(inputMode==='speech')canvas.dataset.clipEndTime=speechPosition()-(audio.currentTime-endTime);
   paintedSlices.push({width:pixels,db:dbPixels});
   let excess=paintedSlices.reduce((sum,s)=>sum+s.width,0)-pxW;
   while(excess>0&&paintedSlices.length){const first=paintedSlices[0];if(first.width<=excess){excess-=first.width;paintedSlices.shift()}else{const width=first.width-excess,db=new Float32Array(width*pxH);for(let y=0;y<pxH;y++)db.set(first.db.subarray(y*first.width+excess,(y+1)*first.width),y*width);paintedSlices[0]={width,db};excess=0}}
   function paint(slices,width,x){
-    const image=ctx.createImageData(width,pxH);let offset=0;
-    for(const slice of slices){for(let y=0;y<pxH;y++)for(let i=0;i<slice.width;i++){
-      const level=PraatDisplay.intensity(slice.db[y*slice.width+i],displayMaximum,value('floor'),value('gain'))*255;
-      const lo=Math.floor(level),hi=Math.min(255,lo+1),fraction=level-lo,p=(y*width+offset+i)*4;
-      for(let c=0;c<3;c++)image.data[p+c]=Math.round(lut[lo][c]+(lut[hi][c]-lut[lo][c])*fraction);image.data[p+3]=255;
-    }offset+=slice.width}ctx.putImageData(image,x,pxTop);
+    // Autoscaling can repaint millions of Retina pixels; read controls once.
+    const range=value('floor'),gain=value('gain');
+    const image=ctx.createImageData(width,pxH);
+    PraatDisplay.colourPixels(slices,width,pxH,displayMaximum,range,gain,packedColours,image.data);
+    ctx.putImageData(image,x,pxTop);
   }
   if(displayMaximum!==paintedMaximum){
     const width=paintedSlices.reduce((sum,s)=>sum+s.width,0);paint(paintedSlices,width,pxLeft+pxW-width);paintedMaximum=displayMaximum;
@@ -90,7 +95,7 @@ function render(time){
 }
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
 function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
-function stop(){engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
+function stop(){processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   if(!navigator.mediaDevices?.enumerateDevices)return [];
@@ -142,7 +147,7 @@ async function togglePause(){
   try{
     if(inputMode==='speech'){if(next)await audio.suspend();else await audio.resume();}
     else if(!next&&audio.state==='suspended')await audio.resume();
-    engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);pcmNode?.port.postMessage('reset');
+    processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);pcmNode?.port.postMessage('reset');
     paused=next;setIcon('freeze',paused?'▶':'⏸',paused?'Resume':'Pause');
     state(paused?'PAUSED':inputMode==='speech'?'EXAMPLE':'LIVE',!paused);last=0;previousSlice=null;
   }catch(e){notice(e.message||'Could not resume audio. Please restart the input.')}
@@ -178,10 +183,15 @@ window.addEventListener('popstate',syncSettings);window.addEventListener('hashch
 $('settings').onclick=()=>panel(location.hash!=='#settings');
 document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
 syncSettings();
-for(const id of ['maximum','scale','history','floor','gain','window'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(['maximum','window'].includes(id)){engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}if(['maximum','scale','history','window','floor','gain'].includes(id))redraw()});
+for(const id of ['maximum','scale','history','floor','gain','window'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(['maximum','window'].includes(id)){processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}if(['maximum','scale','history','window','floor','gain'].includes(id))redraw()});
 window.addEventListener('pagehide',stop);colourMap();resize();
 
 function acceptFrames(frames,result){
+      if(frames.length){
+        if(processingStats.lastFrameTime!=null&&frames[0].time-processingStats.lastFrameTime>result.timeStep*1.5)processingStats.discontinuousBatches=(processingStats.discontinuousBatches||0)+1;
+        processingStats.lastFrameTime=frames.at(-1).time;
+      }
+
       if(spectrumStep!==result.frequencyStep||spectrumFirst!==result.firstFrequency){spectrumStep=result.frequencyStep;spectrumFirst=result.firstFrequency;redraw()}
       if(!bins||bins.length!==result.bins){bins=new Float32Array(result.bins);bins.fill(-160)}
       while(displayPeaks.length&&displayPeaks[0].time<audio.currentTime-value('history')-.2)displayPeaks.shift();
@@ -210,7 +220,7 @@ function speechPosition(){if(!speechBuffer)return 0;const t=clipOffset+Math.max(
 function updatePosition(){const t=speechPosition();$('seek').value=t;const format=n=>`${Math.floor(n/60)}:${String(Math.floor(n%60)).padStart(2,'0')}`;$('position').textContent=`${format(t)} / ${format(Math.ceil(speechBuffer.duration))}`}
 function playFrom(offset){
   if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect()}
-  engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);pcmNode?.port.postMessage('reset');
+  processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);pcmNode?.port.postMessage('reset');
   clipOffset=Math.max(0,Math.min(offset,speechBuffer.duration-.001));clipStarted=audio.currentTime;
   speechNode=audio.createBufferSource();speechNode.buffer=speechBuffer;speechNode.loop=$('loop').checked;
   speechNode.connect(speechDestination);speechNode.connect(monitor);

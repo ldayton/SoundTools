@@ -27,7 +27,7 @@ right-boundary frames are excluded. Praat centres its frame grid in each finite
 block; fixed-length blocks preserve its phase across the stream. Settings changes,
 seek and discontinuities reset the grid and reject stale results.
 
-The UI consumes timestamped frames with a 160 ms scheduling buffer, applies Praat’s reference power conversion and 6 dB/octave pre-emphasis,
+The UI consumes timestamped frames with a 300 ms scheduling buffer, applies Praat’s reference power conversion and 6 dB/octave pre-emphasis,
 autoscales to the visible history’s peak over a 70 dB range, and interpolates
 for the existing smooth Canvas display. This is not a calibrated SPL meter.
 The buffer is intentional latency, not measured microphone-to-screen latency.
@@ -130,3 +130,37 @@ GitHub Actions runs it before Pages deployment and uploads diagnostic reports an
 image differences on failure. Native Praat is only required when deliberately
 updating the checked-in reference; routine builds use frozen fixtures.
 See [regression test policy](tests/visual/README.md) for tolerances and updates.
+
+The scrolling clock stops at the newest completed analysis frame during delayed
+delivery and catches up at original timestamps when results arrive. Regression
+tests deliver 100 ms PCM independently of rendering and hold selected worker
+replies for up to 350 ms; their finished image must match the normal reference.
+Real English playback also runs through the AudioWorklet at desktop, mobile
+Retina and wide Retina sizes, checking progression and missing frame batches.
+
+Autoscale repaints use a 256 KiB packed RGBA lookup table instead of interpolating
+three colour channels for every screen pixel. `tests/display.cjs` compares the
+result against the original interpolation across clipping, brightness and range
+settings, allowing at most one byte of channel difference. The approved visual
+baselines remain unchanged.
+
+## Local Chrome fake microphone
+
+```sh
+node scripts/chrome-fake-mic.cjs --seconds 70 --keep-open
+```
+
+With local Soundglow running on port 8765, this launches installed Google Chrome
+in a separate test profile and feeds the English WAV through Chrome’s fake
+`getUserMedia` microphone (looping by default). It clicks the microphone button,
+checks the device is fake, and records packet envelopes, frame delivery, plot
+lag, render/full-repaint durations, long tasks and screenshots in
+`test-results/chrome-mic/`. It does not open
+the physical microphone or change the regular Chrome profile. Close the test
+window to end a `--keep-open` session. Optional `--url`, `--audio`, `--profile`
+and `--output` arguments select local test resources. Add `--cpu-profile` to save
+a Chrome renderer CPU profile alongside the report. This is an interactive
+investigation command, separate from the headless build checks.
+
+The looping WAV capture flags are documented in
+[Chromium’s media switches](https://chromium.googlesource.com/chromium/src/+/main/media/base/media_switches.cc).

@@ -13,7 +13,7 @@ assert.equal(elements.spectrogram.width,780);assert.equal(elements.labels.height
 vm.runInContext('bins.fill(-100);bins[10]=-20;bins[11]=-40',env);assert.equal(vm.runInContext('sampleSpectrum(10.5)',env),-30);
 vm.runInContext('bins.fill(-Infinity)',env);assert.equal(vm.runInContext('sampleSpectrum(10.5)',env),-160);
 // A short analysis-frame peak between display refreshes must survive column sampling.
-vm.runInContext(`currentSpectrumFrame=null;frameQueue=[{time:.79,power:new Float32Array(2048).fill(4e-9)},{time:.81,power:new Float32Array(2048).fill(4e-4)},{time:.83,power:new Float32Array(2048).fill(4e-9)}];last=900;lastAudioTime=.9;carry=0;audio.currentTime=1;render(1000)`,env);
+vm.runInContext(`currentSpectrumFrame=null;frameQueue=[{time:.79,power:new Float32Array(2048).fill(4e-9)},{time:.81,power:new Float32Array(2048).fill(4e-4)},{time:.83,power:new Float32Array(2048).fill(4e-9)},{time:.85,power:new Float32Array(2048).fill(4e-9)}];last=900;lastPlotTime=.74;carry=0;audio.currentTime=1.14;render(1000)`,env);
 const sampled=vm.runInContext('Array.from(paintedSlices.at(-1).db.subarray(0,paintedSlices.at(-1).width))',env);
 assert(Math.max(...sampled)>sampled.at(-1)+15,'Intermediate analysis peak should be sampled rather than skipped');
 const count=images.length;await elements.freeze.onclick();vm.runInContext('audio.currentTime=300/1000;render(300)',env);assert.equal(images.length,count);await elements.freeze.onclick();vm.runInContext('stop()',env);assert(stopped);assert.equal(elements.state.textContent,'STOPPED');env.navigator.mediaDevices.getUserMedia=async()=>{throw Object.assign(new Error('denied'),{name:'NotAllowedError'})};await vm.runInContext('start()',env);assert.match(elements.notice.textContent,/denied/);let attempts=[];

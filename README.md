@@ -557,3 +557,10 @@ Assertions check a matching immutable observation and the committed settings,
 not a mutable "last request" slot. Four-times-throttled large desktop rendering
 can still exceed the live processing budget; the constrained-device CI case
 models a phone viewport rather than asserting that heavier workload is supported.
+
+Speech pause suspends the audio context but still accepts packets already posted
+by its worklet, preventing a missing packet on resume. Paused microphone input
+is deliberately discarded. Retired input ports are ignored before reading any
+context state, including late messages after Stop. The frozen-view regression
+compares only source frames up to the displayed endpoint: queued analysis is
+allowed to finish without changing that view.

@@ -334,7 +334,14 @@ async function connectInput(input){
   if(returningHome||context!==audio){client.dispose();throw new Error('Input stopped')}
   source=context.createMediaStreamSource(input);pcmNode=new AudioWorkletNode(context,'pcm-input');
   const activeEngine=engine;
-  pcmNode.port.onmessage=({data})=>{performanceSession?.add('capturePacketAgeMs',(audio.currentTime-data.start-data.pcm.length/audio.sampleRate)*1000);if(!paused&&engine===activeEngine)activeEngine.push(data.pcm,data.start)};
+  pcmNode.port.onmessage=({data})=>{
+   // Suspend can resolve before already-posted packets reach the main thread.
+   // Keep those speech packets; microphone pause deliberately discards input.
+   // Ignore retired ports before touching a potentially closed audio context.
+   if(engine!==activeEngine||audio!==context)return;
+   performanceSession?.add('capturePacketAgeMs',(context.currentTime-data.start-data.pcm.length/context.sampleRate)*1000);
+   if(!paused||inputMode==='speech')activeEngine.push(data.pcm,data.start);
+  };
   source.connect(pcmNode);pcmNode.connect(context.destination);nyquist=context.sampleRate/2;
   bins=new Float32Array(400);bins.fill(-160);
 }

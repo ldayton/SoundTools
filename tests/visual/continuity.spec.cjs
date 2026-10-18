@@ -7,7 +7,8 @@ test('sidebar and display changes preserve frozen source history and live playba
  const snapshot=(pixels=true)=>page.evaluate(pixels=>{
   let hash=null;
   if(pixels){const image=ctx.getImageData(pxLeft,pxTop,pxW,pxH).data;hash=2166136261;for(const byte of image)hash=Math.imul(hash^byte,16777619)>>>0;}
-  return {hash,end:Number(canvas.dataset.plottedUntil),generation:engine.generation,frames:spectrumHistory.frames.length,bytes:spectrumHistory.bytes};
+  const end=Number(canvas.dataset.plottedUntil),visible=spectrumHistory.frames.filter(frame=>frame.time<=end);
+  return {hash,end,generation:engine.generation,frames:visible.length,bytes:visible.reduce((sum,frame)=>sum+frame.power.byteLength,0)};
  },pixels);
  await page.evaluate(()=>redraw());const before=await snapshot();
  for(let i=0;i<4;i++){await page.locator('#openSettings').click();await page.waitForTimeout(350)}
@@ -62,4 +63,28 @@ test('English playback survives rapid DSP changes and frozen rebuild matches fre
  expect(comparison.wallSpan).toBeGreaterThan(2);expect(comparison.frames).toBeGreaterThan(300);expect(comparison.error).toBe(0);expect(comparison.monotonic).toBe(true);
  await page.locator('#freeze').click();await page.waitForFunction(end=>Number(canvas.dataset.plottedUntil)>end+.5,end);
  expect(await page.evaluate(()=>running&&!paused&&assertSettingsConsistent())).toBe(true);
+});
+test('speech pause retains queued capture packets and resumes continuously',async({page})=>{
+ await page.goto('/dist/index.html');await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>1);
+ const generation=await page.evaluate(()=>{
+  window.heldCapturePackets=[];window.deliverCapturePacket=pcmNode.port.onmessage;
+  pcmNode.port.onmessage=event=>heldCapturePackets.push(event.data);
+  return engine.generation;
+ });
+ // Force the MessagePort ordering from CI: audio was produced before pause,
+ // but its already-posted packets reach the app only after suspend resolves.
+ await page.waitForFunction(()=>heldCapturePackets.length>0);await page.locator('#freeze').click();
+ const before=await page.evaluate(()=>Number(canvas.dataset.plottedUntil));
+ const delivered=await page.evaluate(async()=>{
+  let count=0;
+  while(heldCapturePackets.length){
+   deliverCapturePacket({data:heldCapturePackets.shift()});count++;
+   while(engine.busy)await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  pcmNode.port.onmessage=deliverCapturePacket;return count;
+ });
+ expect(delivered).toBeGreaterThan(0);expect(await page.evaluate(()=>Number(canvas.dataset.plottedUntil))).toBe(before);
+ await page.locator('#freeze').click();await page.waitForFunction(end=>Number(canvas.dataset.plottedUntil)>end+.5,before);
+ expect(await page.evaluate(()=>engine.generation)).toBe(generation);
+ expect(await page.evaluate(()=>processingStats.discontinuousBatches||0)).toBe(0);
 });

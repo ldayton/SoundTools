@@ -9,7 +9,12 @@ for(const [preset,formants]of [['praat','off'],['voice','off'],['voice','both']]
  expect(report.metrics.animationIntervalMs.p95).toBeLessThan(80);expect(report.metrics.plotAdvanceIntervalMs.max).toBeLessThan(1000);
  for(const name of ['discontinuousBatches','discardedAnalysisFrames','captureDiscontinuitiesAfterWarmup','backlogResets'])expect(report.counts[name]||0,name).toBe(0);
  await page.getByRole('button',{name:'Settings',exact:true}).click();const downloadPromise=page.waitForEvent('download');await page.locator('#exportPerformance').click();const download=await downloadPromise;expect(download.suggestedFilename()).toMatch(/^soundglow-performance-.*\.json$/);
- await page.locator('#resetPerformance').click();expect((await page.evaluate(()=>window.soundglowPerformance.report())).metrics).toEqual({});
+ // Observe reset synchronously in the real click event: live collection is
+ // intentionally allowed to add fresh samples before the next test command.
+ await page.evaluate(()=>document.getElementById('resetPerformance').addEventListener('click',()=>{window.performanceResetSnapshot=window.soundglowPerformance.report()},{once:true}));
+ await page.locator('#resetPerformance').click();
+ const reset=await page.evaluate(()=>window.performanceResetSnapshot);expect(reset.metrics).toEqual({});expect(reset.counts).toEqual({});expect(reset.events).toEqual([]);
+ await page.waitForFunction(()=>window.soundglowPerformance.report().metrics.analysisMs?.count>0);
 });
 
 test('looping fake microphone exports bounded lag across the recording loop',async({playwright},testInfo)=>{

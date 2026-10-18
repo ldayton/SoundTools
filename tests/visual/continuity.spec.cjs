@@ -1,12 +1,14 @@
 const {test,expect}=require('@playwright/test');
-test('sidebar and display changes preserve frozen source history and live playback',async({page})=>{
+test('sidebar and display changes preserve frozen source history and live playback',async({page},testInfo)=>{
+ const slowdown=Number(process.env.SOUNDGLOW_CPU_SLOWDOWN||testInfo.project.metadata.cpuSlowdown||1);
+ if(slowdown>1){const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:slowdown});}
  await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html');await page.locator('#demo').click();
- await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>3);await page.locator('#freeze').click();
- const snapshot=()=>page.evaluate(()=>{
-  const image=ctx.getImageData(pxLeft,pxTop,pxW,pxH).data;let hash=2166136261;
-  for(const byte of image)hash=Math.imul(hash^byte,16777619)>>>0;
+ await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>3);await page.locator('#freeze').click();await page.waitForFunction(()=>!engine.busy);
+ const snapshot=(pixels=true)=>page.evaluate(pixels=>{
+  let hash=null;
+  if(pixels){const image=ctx.getImageData(pxLeft,pxTop,pxW,pxH).data;hash=2166136261;for(const byte of image)hash=Math.imul(hash^byte,16777619)>>>0;}
   return {hash,end:Number(canvas.dataset.plottedUntil),generation:engine.generation,frames:spectrumHistory.frames.length,bytes:spectrumHistory.bytes};
- });
+ },pixels);
  await page.evaluate(()=>redraw());const before=await snapshot();
  for(let i=0;i<4;i++){await page.locator('#openSettings').click();await page.waitForTimeout(350)}
  expect(await snapshot()).toEqual(before);
@@ -16,7 +18,7 @@ test('sidebar and display changes preserve frozen source history and live playba
   const now=await snapshot();expect(now.end).toBe(before.end);expect(now.generation).toBe(before.generation);expect(now.frames).toBe(before.frames);
  }
  await page.locator('#openSettings').click();await page.waitForTimeout(350);expect(await snapshot()).toEqual(before);
- await page.locator('#freeze').click();const start=await snapshot();
+ await page.locator('#freeze').click();const start=await snapshot(false);
  for(let i=0;i<4;i++){await page.locator('#openSettings').click();await page.waitForTimeout(350)}
  await page.waitForFunction(end=>Number(canvas.dataset.plottedUntil)>end+.5,start.end);
  expect(await page.evaluate(()=>engine.generation)).toBe(start.generation);

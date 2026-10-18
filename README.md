@@ -538,3 +538,14 @@ speech spectra must exactly match fresh analysis. Performance reports distinguis
 rebuild work from live delivery and include retained PCM/spectrum byte counts.
 These automated desktop/mobile viewport checks do not establish real-phone CPU
 headroom; that still needs measurements on physical devices.
+
+
+The continuity suite also runs a Retina sidebar/display test with 4x Chromium CPU
+throttling (`slow-retina`). It preserves the zero-reset and exact paused-pixel
+assertions. Full canvas readback/hashing happens only while paused so the test
+itself does not stall live capture. The renderer caches dB levels independently
+of canvas dimensions and frequency positions independently of audio frames;
+normalization changes invalidate level caches, while mapping/resize invalidates
+row/position caches. Native/independent rendering oracles still check the result.
+Diagnostics Reset is asserted in its actual click event; sampling is then checked
+to resume, rather than incorrectly requiring measurements to remain empty.

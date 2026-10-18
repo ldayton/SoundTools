@@ -9,7 +9,7 @@ const $=id=>document.getElementById(id),canvas=$('spectrogram'),ctx=canvas.getCo
 let returningHome=false;
 let featureHistory=[];
 const spectrumHistory=new PraatDisplay.SpectrumHistory();
-let rowCache=new WeakMap();
+let rowCache=new WeakMap(),levelCache=new WeakMap(),positionCache=new Map();
 let committedAnalysisValues=null;
 const analysisCanvas=$('analysisOverlay'),analysisContext=analysisCanvas.getContext('2d');
 const analysisFlags=()=>setting('formants')!=='off'?7:0; // Pitch/intensity gate formant reliability internally.
@@ -39,18 +39,28 @@ function redraw(){
   const step=spectrumStep;
   // Sample at physical-pixel centres; interpolate spectral levels before colouring.
   map=Array.from({length:pxH},(_,y)=>(frequency((y+(viewSetting('interpolation')==='bucket'?1:.5))*plotH/pxH)-spectrumFirst)/step+(viewSetting('interpolation')==='bucket'?1:0));
-  rowCache=new WeakMap();
+  rowCache=new WeakMap();positionCache=new Map();
   repaintHistory();drawAxes();drawAnalysis();
 }
 // Rebuild pixels from source spectra, never from previously interpolated pixels.
 function spectrumRows(frame){
  let rows=rowCache.get(frame);if(rows)return rows;
- const levels=Float32Array.from(frame.power,(p,f)=>frame.spectrumUnits==='amplitude'?AnalysisSettings.level(p,frame.firstFrequency+f*frame.frequencyStep,frame.spectrumUnits,viewValue('preemphasis')):PraatDisplay.powerDb(p,frame.firstFrequency+f*frame.frequencyStep,viewValue('preemphasis')));
- if(viewSetting('colourLevels')==='held')for(let i=0;i<levels.length;i++)levels[i]=frame.levelMaximum>0?levels[i]/frame.levelMaximum*100:0;
- rows=Float32Array.from({length:pxH},(_,y)=>{
-  const hz=frequency((y+(viewSetting('interpolation')==='bucket'?1:.5))*plotH/pxH);
-  return sampleSpectrum((hz-frame.firstFrequency)/frame.frequencyStep+(viewSetting('interpolation')==='bucket'?1:0),levels);
- });rowCache.set(frame,rows);return rows;
+ // dB levels depend on the source and normalization, not canvas dimensions.
+ // Frequency positions depend on geometry, not on individual audio frames.
+ let levels=levelCache.get(frame);
+ if(!levels){
+  levels=Float32Array.from(frame.power,(p,f)=>frame.spectrumUnits==='amplitude'?AnalysisSettings.level(p,frame.firstFrequency+f*frame.frequencyStep,frame.spectrumUnits,viewValue('preemphasis')):PraatDisplay.powerDb(p,frame.firstFrequency+f*frame.frequencyStep,viewValue('preemphasis')));
+  if(viewSetting('colourLevels')==='held')for(let i=0;i<levels.length;i++)levels[i]=frame.levelMaximum>0?levels[i]/frame.levelMaximum*100:0;
+  levelCache.set(frame,levels);
+ }
+ const key=frame.firstFrequency+':'+frame.frequencyStep;let positions=positionCache.get(key);
+ if(!positions){
+  positions=frame.firstFrequency===spectrumFirst&&frame.frequencyStep===spectrumStep?map:Array.from({length:pxH},(_,y)=>{
+   const hz=frequency((y+(viewSetting('interpolation')==='bucket'?1:.5))*plotH/pxH);
+   return (hz-frame.firstFrequency)/frame.frequencyStep+(viewSetting('interpolation')==='bucket'?1:0);
+  });positionCache.set(key,positions);
+ }
+ rows=Float32Array.from(positions,position=>sampleSpectrum(position,levels));rowCache.set(frame,rows);return rows;
 }
 function visibleMaximum(end){
  return viewSetting('colourLevels')==='held'?100:viewSetting('colourLevels')==='fixed'?viewValue('fixedMaximum'):displayPeaks.reduce((peak,frame)=>frame.time>=end-viewValue('history')&&frame.time<=end?Math.max(peak,frame.peak):peak,0);
@@ -62,7 +72,7 @@ function repaintHistory(){
  displayMaximum=visibleMaximum(end);paintedMaximum=displayMaximum;paintedSlices=[slice];paintSpectrum(paintedSlices,pxW,pxLeft);
 }
 function rebuildDisplayLevels(){
- heldPeak=newPeakState();displayPeaks=[];rowCache=new WeakMap();
+ heldPeak=newPeakState();displayPeaks=[];rowCache=new WeakMap();levelCache=new WeakMap();
  for(const frame of spectrumHistory.frames){
   let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,frame.spectrumUnits==='amplitude'?AnalysisSettings.level(frame.power[f],frame.firstFrequency+f*frame.frequencyStep,frame.spectrumUnits,viewValue('preemphasis')):PraatDisplay.powerDb(frame.power[f],frame.firstFrequency+f*frame.frequencyStep,viewValue('preemphasis')));
   frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,viewSetting('normalizationClock')==='wall'?frame.wallTime:frame.time);displayPeaks.push({time:frame.time,peak});

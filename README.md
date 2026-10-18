@@ -541,7 +541,8 @@ headroom; that still needs measurements on physical devices.
 
 
 The continuity suite also runs a Retina sidebar/display test with 4x Chromium CPU
-throttling (`slow-retina`). It preserves the zero-reset and exact paused-pixel
+throttling at a landscape-phone viewport of 844x390 CSS pixels (`slow-retina`).
+Normal desktop continuity coverage retains the 1280x900 Retina workload. It preserves the zero-reset and exact paused-pixel
 assertions. Full canvas readback/hashing happens only while paused so the test
 itself does not stall live capture. The renderer caches dB levels independently
 of canvas dimensions and frequency positions independently of audio frames;
@@ -549,3 +550,10 @@ normalization changes invalidate level caches, while mapping/resize invalidates
 row/position caches. Native/independent rendering oracles still check the result.
 Diagnostics Reset is asserted in its actual click event; sampling is then checked
 to resume, rather than incorrectly requiring measurements to remain empty.
+
+Worker request tests keep a history of observed configurations: old live requests
+and new replay requests legitimately interleave until a configuration commits.
+Assertions check a matching immutable observation and the committed settings,
+not a mutable "last request" slot. Four-times-throttled large desktop rendering
+can still exceed the live processing budget; the constrained-device CI case
+models a phone viewport rather than asserting that heavier workload is supported.

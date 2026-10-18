@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 test('sidebar and display changes preserve frozen source history and live playback',async({page},testInfo)=>{
  const slowdown=Number(process.env.SOUNDGLOW_CPU_SLOWDOWN||testInfo.project.metadata.cpuSlowdown||1);
  if(slowdown>1){const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:slowdown});}
- await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html');await page.locator('#demo').click();
+ await page.setViewportSize(testInfo.project.metadata.viewport||{width:1280,height:900});await page.goto('/dist/index.html');await page.locator('#demo').click();
  await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>3);await page.locator('#freeze').click();await page.waitForFunction(()=>!engine.busy);
  const snapshot=(pixels=true)=>page.evaluate(pixels=>{
   let hash=null;

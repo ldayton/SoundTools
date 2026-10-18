@@ -590,3 +590,12 @@ Performance reports include `historyCommitMs` and `historyProjectionMs` to isola
 these operations from normal animation callbacks. The full-retention regression
 checks that no source-level cache misses occur inside either settings commit,
 then confirms continuous playback; native/WASM numerical tests still apply.
+
+Chrome may advance `currentFrame` across a few worklet callbacks on resume.
+The capture worklet represents clock gaps of at most one 100 ms packet as
+explicit zero samples, preserving timestamps without inventing a signal. Reports
+record `captureClockPadding` with the exact padded sample count and duration.
+Larger jumps discard partial capture and remain discontinuities; explicit seek
+and microphone-resume resets also clear the gap tracker. A deterministic worklet
+regression reproduces the three-quantum jump observed in CI at all supported test
+rates, compares every sample and timestamp, and verifies the long-gap bound.

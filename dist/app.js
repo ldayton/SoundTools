@@ -343,6 +343,7 @@ async function connectInput(input){
    // Keep those speech packets; microphone pause deliberately discards input.
    // Ignore retired ports before touching a potentially closed audio context.
    if(engine!==activeEngine||audio!==context)return;
+   if(data.paddedFrames)performanceSession?.event('captureClockPadding',{audioTime:context.currentTime,paddedFrames:data.paddedFrames,paddedAudioMs:data.paddedFrames/context.sampleRate*1000});
    performanceSession?.add('capturePacketAgeMs',(context.currentTime-data.start-data.pcm.length/context.sampleRate)*1000);
    if(!paused||inputMode==='speech')activeEngine.push(data.pcm,data.start);
   };

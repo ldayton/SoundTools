@@ -27,6 +27,23 @@ for(const rate of [24000,44100,48000]){
   const packet=sent[i],start=(i-offset)*Math.round(rate*.1);
   assert.equal(packet.start,start/rate);assert.deepEqual(Array.from(packet.pcm),expected.slice(start,start+packet.pcm.length));
  }
+ // Reproduce CI's skipped callbacks after resume. Every omitted sample is
+ // explicitly silent; packet start times remain contiguous across the jump.
+ const jumping=new Worklet(),begin=sent.length;clock=0;expected=[];
+ for(let q=0;q<Math.ceil(rate*.31/128);q++){
+  if(q===7){clock+=384;expected.push(...Array(384).fill(0))}
+  context.currentFrame=clock;jumping.process([[new Float32Array(128).fill(.5)]]);
+  expected.push(...Array(128).fill(.5));clock+=128;
+ }
+ const bridged=sent.slice(begin);assert(bridged.length>=3);assert.equal(bridged.reduce((sum,p)=>sum+p.paddedFrames,0),384);
+ for(let i=0;i<bridged.length;i++){
+  const start=i*Math.round(rate*.1);assert.equal(bridged[i].start,start/rate);
+  assert.deepEqual(Array.from(bridged[i].pcm),expected.slice(start,start+bridged[i].pcm.length));
+ }
+ // Long gaps must stay gaps, rather than creating arbitrarily much fake audio.
+ const count=sent.length;context.currentFrame=clock+rate*2;jumping.process([[new Float32Array(128).fill(.5)]]);
+ assert.equal(sent.length,count);assert.equal(jumping.used,128);assert.equal(jumping.start,context.currentFrame/rate);
+ jumping.port.onmessage();assert.equal(jumping.nextFrame,null);assert.equal(jumping.paddedFrames,0);
  worklet.port.onmessage();assert.equal(worklet.used,0);
 }
 (async()=>{

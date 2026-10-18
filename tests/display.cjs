@@ -59,3 +59,25 @@ console.log('PASS: timestamped projection, gap handling, resize stability, sourc
  const first=new Uint8Array(colours.buffer,0,4);assert.deepEqual(Array.from(rgba.subarray(0,4)),Array.from(first));
 }
 console.log('PASS: missing capture time stays background under maximum quiet-frame boost');
+
+// Cached levels must preserve both unit conventions, pre-emphasis and peaks.
+{
+ const {LevelCache,powerDb}=require('../dist/praat-display.js'),{level}=require('../dist/analysis-settings.js');
+ const cache=new LevelCache();
+ for(const spectrumUnits of ['density','amplitude'])for(const preemphasis of [0,3,6])for(const firstFrequency of [0,20]){
+  const frame={power:new Float32Array([0,1e-30,4e-10,1e-4,1,1e20]),firstFrequency,frequencyStep:1000,spectrumUnits};
+  const actual=cache.get(frame,preemphasis);let peak=0;
+  for(let i=0;i<frame.power.length;i++){
+   const hz=firstFrequency+i*1000,db=spectrumUnits==='amplitude'?level(frame.power[i],hz,spectrumUnits,preemphasis):powerDb(frame.power[i],hz,preemphasis);
+   assert.equal(actual.levels[i],Math.fround(db));peak=Math.max(peak,db);
+  }
+  assert.equal(actual.peak,peak);assert.equal(cache.get({...frame},preemphasis),actual,'History ownership copies must share the cache');
+  assert.notEqual(cache.get(frame,preemphasis+1),actual,'Pre-emphasis must invalidate levels');
+  for(const patch of [{frequencyStep:500},{firstFrequency:firstFrequency+100},{spectrumUnits:spectrumUnits==='density'?'amplitude':'density'}]){
+   const baseline=cache.get(frame,preemphasis);assert.notEqual(cache.get({...frame,...patch},preemphasis),baseline,'Geometry and units must invalidate levels');
+  }
+ }
+ for(let i=0;i<30;i++)cache.get({power:new Float32Array([1]),frequencyStep:i+1},3);
+ assert(cache.geometry.size<=16,'Frequency corrections must remain bounded');
+}
+console.log('PASS: shared display-level cache, exact density/amplitude conversion, peak precision and invalidation');

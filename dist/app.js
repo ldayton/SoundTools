@@ -9,12 +9,11 @@ const $=id=>document.getElementById(id),canvas=$('spectrogram'),ctx=canvas.getCo
 let returningHome=false;
 let featureHistory=[];
 const spectrumHistory=new PraatDisplay.SpectrumHistory();
-let rowCache=new WeakMap(),levelCache=new WeakMap(),positionCache=new Map(),rowGeometry=null;
+let rowCache=new WeakMap(),levelCache=new PraatDisplay.LevelCache(),positionCache=new Map(),rowGeometry=null;
 let committedAnalysisValues=null;
 const analysisCanvas=$('analysisOverlay'),analysisContext=analysisCanvas.getContext('2d');
 const analysisFlags=()=>setting('formants')!=='off'?7:0; // Pitch/intensity gate formant reliability internally.
 let spectrumUnits='density',heldPeak=newPeakState();
-const displayDb=(power,frequency)=>spectrumUnits==='amplitude'?AnalysisSettings.level(power,frequency,spectrumUnits,viewValue('preemphasis')):PraatDisplay.powerDb(power,frequency,viewValue('preemphasis'));
 function newPeakState(){return AnalysisSettings.peakState(Number(viewSetting('peakSeconds')),Number(viewSetting('peakDecay')))}
 function resetAnalysis(){spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}
 const praatWorkerURL='vendor/praat/worker.js?profile=release';
@@ -48,14 +47,10 @@ function redraw(){
 // Rebuild pixels from source spectra, never from previously interpolated pixels.
 function spectrumRows(frame){
  let rows=rowCache.get(frame);if(rows)return rows;
- // dB levels depend on the source and normalization, not canvas dimensions.
+ // Source dB levels depend on pre-emphasis, not normalization or dimensions.
  // Frequency positions depend on geometry, not on individual audio frames.
- let levels=levelCache.get(frame);
- if(!levels){
-  levels=Float32Array.from(frame.power,(p,f)=>frame.spectrumUnits==='amplitude'?AnalysisSettings.level(p,frame.firstFrequency+f*frame.frequencyStep,frame.spectrumUnits,viewValue('preemphasis')):PraatDisplay.powerDb(p,frame.firstFrequency+f*frame.frequencyStep,viewValue('preemphasis')));
-  if(viewSetting('colourLevels')==='held')for(let i=0;i<levels.length;i++)levels[i]=frame.levelMaximum>0?levels[i]/frame.levelMaximum*100:0;
-  levelCache.set(frame,levels);
- }
+ const sourceLevels=levelCache.get(frame,viewValue('preemphasis')).levels;
+ const levels=viewSetting('colourLevels')==='held'?Float32Array.from(sourceLevels,level=>frame.levelMaximum>0?level/frame.levelMaximum*100:0):sourceLevels;
  const key=frame.firstFrequency+':'+frame.frequencyStep;let positions=positionCache.get(key);
  if(!positions){
   positions=frame.firstFrequency===spectrumFirst&&frame.frequencyStep===spectrumStep?map:Array.from({length:pxH},(_,y)=>{
@@ -69,15 +64,17 @@ function visibleMaximum(end){
  return viewSetting('colourLevels')==='held'?100:viewSetting('colourLevels')==='fixed'?viewValue('fixedMaximum'):displayPeaks.reduce((peak,frame)=>frame.time>=end-viewValue('history')&&frame.time<=end?Math.max(peak,frame.peak):peak,0);
 }
 function repaintHistory(){
+ const started=performanceSession?.enabled?performanceSession.now():null;
  const end=Number(canvas.dataset.plottedUntil);
  if(!spectrumHistory.frames.length||!Number.isFinite(end))return;
  const slice=spectrumHistory.project({end,duration:viewValue('history'),width:pxW,height:pxH,rowsFor:spectrumRows,interpolate:viewSetting('frameInterpolation')==='linear'});
  displayMaximum=visibleMaximum(end);paintedMaximum=displayMaximum;paintedSlices=[slice];paintSpectrum(paintedSlices,pxW,pxLeft);
+ if(started!==null)performanceSession.add('historyProjectionMs',performanceSession.now()-started);
 }
 function rebuildDisplayLevels(){
- heldPeak=newPeakState();displayPeaks=[];rowCache=new WeakMap();levelCache=new WeakMap();
+ heldPeak=newPeakState();displayPeaks=[];rowCache=new WeakMap();
  for(const frame of spectrumHistory.frames){
-  let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,frame.spectrumUnits==='amplitude'?AnalysisSettings.level(frame.power[f],frame.firstFrequency+f*frame.frequencyStep,frame.spectrumUnits,viewValue('preemphasis')):PraatDisplay.powerDb(frame.power[f],frame.firstFrequency+f*frame.frequencyStep,viewValue('preemphasis')));
+  const {peak}=levelCache.get(frame,viewValue('preemphasis'));
   frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,viewSetting('normalizationClock')==='wall'?frame.wallTime:frame.time);displayPeaks.push({time:frame.time,peak});
  }
 }
@@ -296,7 +293,7 @@ function acceptFrames(frames,result,replay=false){
       if(spectrumStep!==result.frequencyStep||spectrumFirst!==result.firstFrequency){spectrumStep=result.frequencyStep;spectrumFirst=result.firstFrequency;if(!replay)redraw()}
       if(!bins||bins.length!==result.bins){bins=new Float32Array(result.bins);bins.fill(-160)}
       while(displayPeaks.length&&displayPeaks[0].time<audio.currentTime-spectrumHistory.seconds)displayPeaks.shift();
-      for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,viewSetting('normalizationClock')==='wall'?frame.wallTime:frame.time);displayPeaks.push({time:frame.time,peak})}
+      for(const frame of frames){const {peak}=levelCache.get(frame,viewValue('preemphasis'));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,viewSetting('normalizationClock')==='wall'?frame.wallTime:frame.time);displayPeaks.push({time:frame.time,peak})}
       const queueLimit=Math.ceil(3/result.timeStep); // Two-second capture burst plus delivery/context headroom.
       if(!replay)frameQueue.push(...frames);if(frameQueue.length>queueLimit){performanceSession?.count('discardedAnalysisFrames',frameQueue.length-queueLimit);frameQueue.splice(0,frameQueue.length-queueLimit);}
       if(replay)processingStats.rebuiltFrames=(processingStats.rebuiltFrames||0)+frames.length;else{processingStats.frames+=frames.length;processingStats.blocks++;}processingStats.lastMs=result.timings.analysisMs;canvas.dataset.processedFrames=processingStats.frames;canvas.dataset.analysisMs=processingStats.lastMs;updateResolution();
@@ -305,6 +302,7 @@ function acceptFrames(frames,result,replay=false){
 function analysisSettings(){return {maximumFrequency:requestedMaxHz(),windowSeconds:value('window'),frequencyStep:requestedMaxHz()/500,windowShape:setting('windowShape'),analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:setting('removeDC')==='on',spectrumUnits:setting('spectrumUnits'),resampling:setting('resampling'),resampleQuality:value('resampleQuality'),analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}}
 function analysisValues(){return Object.fromEntries(SettingsState.ids.filter(id=>SettingsState.registry[id].effect==='analysis').map(id=>[id,setting(id)]))}
 function replaceAnalysisHistory(groups){
+ const started=performanceSession?.enabled?performanceSession.now():null;
  const oldFrames=spectrumHistory.frames;let oldIndex=0;
  for(const {frames}of groups)for(const frame of frames){
   while(oldIndex+1<oldFrames.length&&oldFrames[oldIndex+1].time<=frame.time)oldIndex++;
@@ -321,12 +319,14 @@ function replaceAnalysisHistory(groups){
  rebuildDisplayLevels();colourMap();redraw();
  // Keep the old displayed endpoint; the new stream continues immediately after it.
  if(Number.isFinite(end)){lastPlotTime=end;carry=0;}
+ if(started!==null)performanceSession.add('historyCommitMs',performanceSession.now()-started);
 }
 async function connectInput(input){
   const context=audio;nyquist=context.sampleRate/2;setViewSettings(settingsState.values);committedAnalysisValues=analysisValues();heldPeak=newPeakState();colourMap();
   const client=new PraatClient({workerURL:praatWorkerURL});
   engine=new PraatStream({onEvent:(name,details)=>performanceSession?.event(name,{audioTime:audio?.currentTime,...details}),client,sampleRate:context.sampleRate,
     settings:analysisSettings,onReconfigured:replaceAnalysisHistory,
+    onRebuildFrames:(frames,result)=>{for(const frame of frames)levelCache.get({...frame,firstFrequency:result.firstFrequency,frequencyStep:result.frequencyStep,spectrumUnits:result.spectrumUnits||'density'},value('preemphasis'));},
     onReconfigureError:error=>{
      if(committedAnalysisValues)updateSettings({type:'apply',selected:'custom',values:{...settingsState.values,...committedAnalysisValues}});
      notice('Could not apply analysis settings: '+error.message);

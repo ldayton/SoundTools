@@ -46,6 +46,28 @@
   }
   return [{width,db}];
  }
+ // Source levels are shared by peak detection and painting. Key by the PCM
+ // analysis result's power buffer, which survives history ownership copies.
+ class LevelCache {
+  constructor(){this.frames=new WeakMap();this.geometry=new Map()}
+  get(frame,preemphasis){
+   const {power,firstFrequency=0,frequencyStep=20,spectrumUnits='density'}=frame;
+   const key=[power.length,firstFrequency,frequencyStep,spectrumUnits,preemphasis].join(':');
+   const cached=this.frames.get(power);if(cached?.key===key)return cached;
+   let correction=this.geometry.get(key);
+   if(!correction){
+    correction=Float64Array.from(power,(_,i)=>{const hz=firstFrequency+i*frequencyStep;return preemphasis*Math.log2(spectrumUnits==='amplitude'?Math.max(hz,1)/1000:Math.max(0,hz)/1000+1e-308)});
+    if(this.geometry.size>=16)this.geometry.delete(this.geometry.keys().next().value);
+    this.geometry.set(key,correction);
+   }
+   const levels=new Float32Array(power.length);let peak=0;
+   for(let i=0;i<power.length;i++){
+    const db=(spectrumUnits==='amplitude'?Math.max(0,Math.min(255,10*Math.log10(power[i])+92)):10*Math.log10(power[i]/4e-10+1e-308))+correction[i];
+    levels[i]=db;peak=Math.max(peak,db);
+   }
+   const result={key,levels,peak};this.frames.set(power,result);return result;
+  }
+ }
  // Timestamped source spectra outlive any particular canvas geometry. The byte
  // cap also bounds retention for unusually dense FFTs on high-rate devices.
  class SpectrumHistory {
@@ -82,5 +104,5 @@
    return {width,db};
   }
  }
- const api={powerDb,intensity,palette,colourPixels,resizeSlices,SpectrumHistory};if(typeof module==='object'&&module.exports)module.exports=api;else scope.PraatDisplay=api;
+ const api={powerDb,intensity,palette,colourPixels,resizeSlices,LevelCache,SpectrumHistory};if(typeof module==='object'&&module.exports)module.exports=api;else scope.PraatDisplay=api;
 })(typeof self==='object'?self:globalThis);

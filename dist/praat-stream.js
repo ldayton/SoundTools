@@ -2,7 +2,7 @@
 // Advance by 100 ms, retaining one effective Gaussian window on each side.
 (function(scope){
  class PraatStream {
-  constructor({client,sampleRate,onFrames,onError,settings=()=>({}),onEvent=()=>{},onReconfigured=()=>{},onReconfigureError=()=>{},retain=true}){Object.assign(this,{client,sampleRate,onFrames,onError,settings,onEvent,onReconfigured,onReconfigureError});this.retain=retain;this.activeSettings={...settings()};this.raw=[];this.rawBytes=0;this.revision=0;this.requests=[];this.requestBusy=false;this.generation=0;this.busy=false;this.closed=false;this.reset()}
+  constructor({client,sampleRate,onFrames,onError,settings=()=>({}),onEvent=()=>{},onReconfigured=()=>{},onRebuildFrames=()=>{},onReconfigureError=()=>{},retain=true}){Object.assign(this,{client,sampleRate,onFrames,onError,settings,onEvent,onReconfigured,onRebuildFrames,onReconfigureError});this.retain=retain;this.activeSettings={...settings()};this.raw=[];this.rawBytes=0;this.revision=0;this.requests=[];this.requestBusy=false;this.generation=0;this.busy=false;this.closed=false;this.reset()}
   reset({keepHistory=false}={}){const rebuilding=!!this.rebuild;this.revision++;this.rebuild?.dispose();this.rebuild=null;if(!keepHistory){this.raw=[];this.rawBytes=0;}this.generation++;this.backlogged=false;this.pending=new Float32Array(0);this.start=null;this.lastEnd=null;if(rebuilding&&!this.closed)this.onReconfigureError(Error('Audio discontinuity interrupted the settings update'))}
   filterPadding(settings=this.activeSettings){
    const target=settings.analysisRate||0;
@@ -86,7 +86,7 @@
    const replay=new PraatStream({retain:false,sampleRate:this.sampleRate,settings:()=>requested,
     client:{analyse:(data,options)=>this.request(data,options,true,()=>!this.closed&&revision===this.revision),dispose(){}},
     onFrames:(frames,result)=>{
-     delete result.power;groups.push({frames,result});bytes+=frames.reduce((sum,frame)=>sum+frame.power.byteLength,0);
+     this.onRebuildFrames(frames,result);delete result.power;groups.push({frames,result});bytes+=frames.reduce((sum,frame)=>sum+frame.power.byteLength,0);
      while(groups.length>1&&bytes>32*1024*1024){const old=groups.shift();bytes-=old.frames.reduce((sum,frame)=>sum+frame.power.byteLength,0);}
     },onError:error=>{failure=error}});
    this.rebuild=replay;

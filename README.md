@@ -579,3 +579,14 @@ than analyzing a longer finite sound (which can change Praat’s frame phase). A
 real WASM regression checks exact frame-power equality and matching timestamps
 against normal single-block deliveries. The shipped GPL source archive includes
 the updated processor and worker.
+
+History commits share cached source dB levels and exact peak values with live
+painting. Frequency corrections are cached separately (16 geometries maximum).
+Background rebuild replies prepare these levels one analysis block at a time,
+so the atomic commit does not repeat logarithms across the full retained history.
+Pre-emphasis, spectral units and frequency geometry form the cache key; raw power
+remains unchanged. Cache entries follow the lifetime of retained power buffers.
+Performance reports include `historyCommitMs` and `historyProjectionMs` to isolate
+these operations from normal animation callbacks. The full-retention regression
+checks that no source-level cache misses occur inside either settings commit,
+then confirms continuous playback; native/WASM numerical tests still apply.

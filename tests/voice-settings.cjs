@@ -57,8 +57,12 @@ const make=require('../dist/vendor/praat/build-release/praat-spectrogram.js');
   }
   // Discontinuities reset FIR context and retain the new source's time origin.
   stream.reset();frames.length=0;stream.push(Float32Array.from(t.input),2);while(stream.busy)await new Promise(r=>setImmediate(r));assert(Math.abs(frames[0].time-2.032)<1e-8);
-  // Dropping a slow/stale batch must restore FIR padding at the retained packet.
-  stream.reset();frames.length=0;stream.push(Float32Array.from(t.input),3);stream.push(Float32Array.from(t.input),3.4);while(stream.busy)await new Promise(r=>setImmediate(r));assert(Math.abs(frames[0].time-3.432)<1e-8);stream.dispose();
+  // A brief queued burst must preserve the original FIR context and frame grid.
+  stream.reset();frames.length=0;stream.push(Float32Array.from(t.input),3);stream.push(Float32Array.from(t.input),3.4);while(stream.busy)await new Promise(r=>setImmediate(r));assert(Math.abs(frames[0].time-3.032)<1e-8);
+  for(let i=1;i<frames.length;i++)assert(Math.abs(frames[i].time-frames[i-1].time-.016)<1e-8);
+  // Sustained overload beyond two seconds still drops the stale batch and
+  // restores FIR padding at the retained packet's actual source timestamp.
+  stream.reset();frames.length=0;for(let packet=0;packet<7;packet++)stream.push(Float32Array.from(t.input),3+packet*.4);while(stream.busy)await new Promise(r=>setImmediate(r));assert(Math.abs(frames[0].time-5.032)<1e-8);stream.dispose();
  }
  // Selecting a filter at device rate is inert: no implicit FFT/density-path change.
  const devicePcm=Float32Array.from(resamplingOracle[0].input);

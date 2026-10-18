@@ -554,9 +554,9 @@ to resume, rather than incorrectly requiring measurements to remain empty.
 Worker request tests keep a history of observed configurations: old live requests
 and new replay requests legitimately interleave until a configuration commits.
 Assertions check a matching immutable observation and the committed settings,
-not a mutable "last request" slot. Four-times-throttled large desktop rendering
-can still exceed the live processing budget; the constrained-device CI case
-models a phone viewport rather than asserting that heavier workload is supported.
+not a mutable "last request" slot. A second constrained-CPU project (`slow-desktop-retina`) retains the original
+1280x900 Retina workload. Continuity tests attach diagnostics so a processing
+reset can be distinguished from capture-packet loss around pause/resume.
 
 Speech pause suspends the audio context but still accepts packets already posted
 by its worklet, preventing a missing packet on resume. Paused microphone input
@@ -564,3 +564,11 @@ is deliberately discarded. Retired input ports are ignored before reading any
 context state, including late messages after Stop. The frozen-view regression
 compares only source frames up to the displayed endpoint: queued analysis is
 allowed to finish without changing that view.
+
+Short UI-delivery bursts are buffered for catch-up: crossing 0.5 seconds emits
+`backlogHighWater`, while a hard two-second PCM limit still triggers a bounded
+reset for sustained overload. The output queue retains three seconds of frames
+so catch-up does not discard results before the renderer can consume them.
+Existing lag assertions are unchanged. A blocked-worker regression verifies
+continuous frame timestamps through an eight-packet burst, and a separate test
+still requires overload resets beyond the hard bound.

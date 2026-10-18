@@ -294,7 +294,8 @@ function acceptFrames(frames,result,replay=false){
       if(!bins||bins.length!==result.bins){bins=new Float32Array(result.bins);bins.fill(-160)}
       while(displayPeaks.length&&displayPeaks[0].time<audio.currentTime-spectrumHistory.seconds)displayPeaks.shift();
       for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,viewSetting('normalizationClock')==='wall'?frame.wallTime:frame.time);displayPeaks.push({time:frame.time,peak})}
-      if(!replay)frameQueue.push(...frames);if(frameQueue.length>200){performanceSession?.count('discardedAnalysisFrames',frameQueue.length-200);frameQueue.splice(0,frameQueue.length-200);}
+      const queueLimit=Math.ceil(3/result.timeStep); // Two-second capture burst plus delivery/context headroom.
+      if(!replay)frameQueue.push(...frames);if(frameQueue.length>queueLimit){performanceSession?.count('discardedAnalysisFrames',frameQueue.length-queueLimit);frameQueue.splice(0,frameQueue.length-queueLimit);}
       if(replay)processingStats.rebuiltFrames=(processingStats.rebuiltFrames||0)+frames.length;else{processingStats.frames+=frames.length;processingStats.blocks++;}processingStats.lastMs=result.timings.analysisMs;canvas.dataset.processedFrames=processingStats.frames;canvas.dataset.analysisMs=processingStats.lastMs;updateResolution();
       return frames;
 }

@@ -3,7 +3,7 @@
 (function(scope){
  class PraatStream {
   constructor({client,sampleRate,onFrames,onError,settings=()=>({}),onEvent=()=>{},onReconfigured=()=>{},onReconfigureError=()=>{},retain=true}){Object.assign(this,{client,sampleRate,onFrames,onError,settings,onEvent,onReconfigured,onReconfigureError});this.retain=retain;this.activeSettings={...settings()};this.raw=[];this.rawBytes=0;this.revision=0;this.requests=[];this.requestBusy=false;this.generation=0;this.busy=false;this.closed=false;this.reset()}
-  reset({keepHistory=false}={}){const rebuilding=!!this.rebuild;this.revision++;this.rebuild?.dispose();this.rebuild=null;if(!keepHistory){this.raw=[];this.rawBytes=0;}this.generation++;this.pending=new Float32Array(0);this.start=null;this.lastEnd=null;if(rebuilding&&!this.closed)this.onReconfigureError(Error('Audio discontinuity interrupted the settings update'))}
+  reset({keepHistory=false}={}){const rebuilding=!!this.rebuild;this.revision++;this.rebuild?.dispose();this.rebuild=null;if(!keepHistory){this.raw=[];this.rawBytes=0;}this.generation++;this.backlogged=false;this.pending=new Float32Array(0);this.start=null;this.lastEnd=null;if(rebuilding&&!this.closed)this.onReconfigureError(Error('Audio discontinuity interrupted the settings update'))}
   filterPadding(settings=this.activeSettings){
    const target=settings.analysisRate||0;
    if(settings.resampling!=='polyphase'||!target||target===this.sampleRate)return 0;
@@ -23,8 +23,10 @@
     const padding=this.filterPadding();this.pending=new Float32Array(padding);this.start=start-padding/this.sampleRate;
    }
    const next=new Float32Array(this.pending.length+pcm.length);next.set(this.pending);next.set(pcm,this.pending.length);this.pending=next;
-   // Bound latency if a device is too slow; keep an honest gap in timestamps.
-   if(this.pending.length>this.sampleRate*.5){this.onEvent('backlogResets');this.reset({keepHistory:true});const padding=this.filterPadding();this.pending=new Float32Array(padding+pcm.length);this.pending.set(pcm,padding);this.start=start-padding/this.sampleRate;this.lastEnd=start+pcm.length/this.sampleRate}
+   // UI stalls can deliver several capture packets in one burst. Let a fast
+   // worker catch up without dropping audio; still bound sustained overload.
+   if(this.pending.length>this.sampleRate*.5&&!this.backlogged){this.backlogged=true;this.onEvent('backlogHighWater',{pendingAudioMs:this.pending.length/this.sampleRate*1000});}
+   if(this.pending.length>this.sampleRate*2){this.onEvent('backlogResets');this.reset({keepHistory:true});const padding=this.filterPadding();this.pending=new Float32Array(padding+pcm.length);this.pending.set(pcm,padding);this.start=start-padding/this.sampleRate;this.lastEnd=start+pcm.length/this.sampleRate}
    return this.drain();
   }
   async drain(){
@@ -40,7 +42,7 @@
    const length=Math.round(this.sampleRate*(duration+2*margin)),advance=Math.round(this.sampleRate*duration);
    if(this.closed||this.busy||this.pending.length<length)return;
    const generation=this.generation,start=this.start,pcm=this.pending.slice(0,length);
-   this.pending=this.pending.slice(advance);this.start+=advance/this.sampleRate;this.busy=true;
+   this.pending=this.pending.slice(advance);if(this.pending.length<=this.sampleRate*.5)this.backlogged=false;this.start+=advance/this.sampleRate;this.busy=true;
    try{
     const requestStarted=performance.now();
     const result=await this.request({pcm,sampleRate:this.sampleRate,windowSeconds:.025,timeStep:.005,frequencyStep:20,...settings,firstCentre:margin},{transfer:true});

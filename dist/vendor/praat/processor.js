@@ -12,6 +12,17 @@
    const started=now(),id=data?.id??null,type=data?.type||'analyse';
    if(!data||typeof data!=='object')return {id,error:'Expected a request object',code:'INVALID_REQUEST'};
    if(busy)return {id,error:'Worker is busy; wait for the prior reply',code:'BUSY'};
+   if(data.batchSteps!==undefined){
+    if(type!=='analyse'||!Number.isInteger(data.batchSteps)||data.batchSteps<1||data.batchSteps>4||!Number.isFinite(data.batchDuration)||data.batchDuration<=0||data.batchDuration>.101||!(data.pcm instanceof Float32Array)||!Number.isFinite(data.firstCentre)||data.firstCentre<=0)return {id,error:'Invalid batch geometry',code:'INVALID_REQUEST'};
+    const advance=Math.round(data.batchDuration*data.sampleRate),length=Math.round((data.batchDuration+2*data.firstCentre)*data.sampleRate);
+    if(!Number.isSafeInteger(advance)||advance<1||data.pcm.length!==length+(data.batchSteps-1)*advance)return {id,error:'Invalid batch PCM length',code:'INVALID_REQUEST'};
+    const batches=[];for(let i=0;i<data.batchSteps;i++){
+     const {batchSteps,batchDuration,...request}=data;
+     const result=await handle({...request,pcm:data.pcm.subarray(i*advance,i*advance+length)});
+     if(result.error)return result;batches.push({...result,offset:i*data.batchDuration});
+    }
+    return {id,batches};
+   }
    if(!['init','analyse','lpc','dispose'].includes(type))return {id,error:'Unknown request type',code:'INVALID_REQUEST'};
    if(type==='dispose'){
     if(module){if(pointer)module._free(pointer);module._sg_release();module._sg_lpc_release()}

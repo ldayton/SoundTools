@@ -31,8 +31,9 @@ The UI consumes timestamped frames with a 300 ms scheduling buffer, applies Praa
 autoscales to the visible history’s peak over a 70 dB range, and interpolates
 for the existing smooth Canvas display. This is not a calibrated SPL meter.
 The buffer is intentional latency, not measured microphone-to-screen latency.
-Pending PCM is bounded to 500 ms and output to 200 frames; slow devices drop
-old input and preserve a timestamp gap instead of accumulating unbounded delay.
+Pending PCM has a two-second hard bound and output retains three seconds of frames.
+Queued audio is processed in groups of up to four original 100 ms blocks per worker
+delivery. Sustained overload still drops old input with a visible timestamp gap.
 Pause freezes the display (and suspends example playback); microphone audio during
 pause is discarded. Stop/home dispose the worker, graph and microphone tracks.
 
@@ -572,3 +573,9 @@ so catch-up does not discard results before the renderer can consume them.
 Existing lag assertions are unchanged. A blocked-worker regression verifies
 continuous frame timestamps through an eight-packet burst, and a separate test
 still requires overload resets beyond the hard bound.
+
+Worker catch-up groups up to four unchanged analysis blocks in one message, rather
+than analyzing a longer finite sound (which can change Praat’s frame phase). A
+real WASM regression checks exact frame-power equality and matching timestamps
+against normal single-block deliveries. The shipped GPL source archive includes
+the updated processor and worker.

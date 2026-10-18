@@ -38,20 +38,27 @@
    const hop=settings.timeStep||.005;
    let steps=Math.max(1,Math.floor(.1/hop));
    while(steps>1&&Math.abs(steps*hop*this.sampleRate-Math.round(steps*hop*this.sampleRate))>1e-6)steps--;
-   const duration=steps*hop;
+   const baseDuration=steps*hop;
+   // Amortize MessagePort delivery under main-thread contention. Keep the
+   // same aligned hop grid and all frames, but catch up in at most 400 ms.
+   const batches=Math.min(4,Math.max(1,Math.floor((this.pending.length/this.sampleRate-2*margin+1e-9)/baseDuration)));
+   const duration=batches*baseDuration;
    const length=Math.round(this.sampleRate*(duration+2*margin)),advance=Math.round(this.sampleRate*duration);
    if(this.closed||this.busy||this.pending.length<length)return;
    const generation=this.generation,start=this.start,pcm=this.pending.slice(0,length);
    this.pending=this.pending.slice(advance);if(this.pending.length<=this.sampleRate*.5)this.backlogged=false;this.start+=advance/this.sampleRate;this.busy=true;
    try{
     const requestStarted=performance.now();
-    const result=await this.request({pcm,sampleRate:this.sampleRate,windowSeconds:.025,timeStep:.005,frequencyStep:20,...settings,firstCentre:margin},{transfer:true});
+    const response=await this.request({...(batches>1?{batchSteps:batches,batchDuration:baseDuration}:{}),pcm,sampleRate:this.sampleRate,windowSeconds:.025,timeStep:.005,frequencyStep:20,...settings,firstCentre:margin},{transfer:true});
     if(!this.closed&&generation===this.generation){
+     for(const result of response.batches||[response]){
+     const blockStart=start+(result.offset||0);
      // Right boundary belongs to the following block. Each centre appears once.
-     const frames=[];for(let i=0;i<result.frames;i++){const local=result.firstTime+i*result.timeStep;if(local>=margin+duration-1e-7)break;if(local<margin-1e-7)continue;frames.push({time:start+local,power:result.power.slice(i*result.bins,(i+1)*result.bins)})}
-     result.features=(result.features||[]).filter(f=>f.time>=margin-1e-6&&f.time<margin+duration-1e-6).map(f=>({...f,time:start+f.time}));
+     const frames=[];for(let i=0;i<result.frames;i++){const local=result.firstTime+i*result.timeStep;if(local>=margin+baseDuration-1e-7)break;if(local<margin-1e-7)continue;frames.push({time:blockStart+local,power:result.power.slice(i*result.bins,(i+1)*result.bins)})}
+     result.features=(result.features||[]).filter(f=>f.time>=margin-1e-6&&f.time<margin+baseDuration-1e-6).map(f=>({...f,time:blockStart+f.time}));
      result.timings={...result.timings,workerRoundTripMs:performance.now()-requestStarted};result.pendingAudioMs=this.pending.length/this.sampleRate*1000;
      result.analysisSettings={...settings};this.onFrames(frames,result);
+     }
     }
    }catch(error){if(!this.closed&&generation===this.generation)this.onError(error)}
    finally{this.busy=false;if(!this.closed)await this.drain()}

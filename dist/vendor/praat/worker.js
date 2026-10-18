@@ -32,5 +32,5 @@ const processor=PraatProcessor.createProcessor({load:async()=>{
 }});
 self.onmessage=async({data})=>{
  const reply=await processor.handle(data);
- self.postMessage(reply,reply.power?[reply.power.buffer]:[]);
+ self.postMessage(reply,reply.batches?reply.batches.map(batch=>batch.power.buffer):reply.power?[reply.power.buffer]:[]);
 };

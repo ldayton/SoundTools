@@ -33,6 +33,27 @@ for(const rate of [24000,44100,48000]){
  const module=await create();
  const p=createProcessor({load:async()=>module});
  const analyse=async r=>{const result=await p.handle(r);if(result.error)throw new Error(result.error);return result};
+
+ // A real WASM catch-up batch must agree with normal 100 ms deliveries,
+ // including power values and the frame grid at both batch boundaries.
+ {
+  const rate=48000,pcm=Float32Array.from({length:rate},(_,i)=>.2*Math.sin(2*Math.PI*733*i/rate));
+  const reference=[],caughtUp=[];let release,first=true;
+  const make=(output,client)=>new PraatStream({sampleRate:rate,client,settings:()=>({windowSeconds:.025}),onFrames:frames=>output.push(...frames),onError:e=>{throw e}});
+  const normal=make(reference,{analyse,dispose(){}});
+  for(let i=0;i<10;i++)await normal.push(pcm.slice(i*4800,(i+1)*4800),i*.1);
+  const burst=make(caughtUp,{analyse:async request=>{if(first){first=false;await new Promise(resolve=>{release=resolve})}return analyse(request)},dispose(){}});
+  const complete=burst.push(pcm.slice(0,4800),0);burst.push(pcm.slice(4800,9600),.1);
+  for(let i=2;i<10;i++)burst.push(pcm.slice(i*4800,(i+1)*4800),i*.1);
+  release();while(burst.busy)await new Promise(resolve=>setImmediate(resolve));await complete;
+  assert.equal(caughtUp.length,reference.length);
+  for(let i=0;i<reference.length;i++){assert(Math.abs(caughtUp[i].time-reference[i].time)<1e-9);assert.deepEqual(caughtUp[i].power,reference[i].power)}
+  normal.dispose();burst.dispose();
+ }
+ for(const patch of [{batchSteps:5},{batchSteps:1.5},{batchDuration:0},{pcm:new Float32Array(10)}]){
+  const reply=await p.handle({pcm:new Float32Array(12000),sampleRate:48000,firstCentre:.025,batchSteps:2,batchDuration:.1,...patch});
+  assert.equal(reply.code,'INVALID_REQUEST','Malformed batch must be rejected');
+ }
  const speech=wav('dist/audio/speech-english.wav');assert.equal(speech.rate,24000);
  for(const rate of [24000,44100,48000])for(const windowSeconds of [.005,.015,.025,.04]){
   const pcm=rate===24000?speech.pcm.slice(0,rate):Float32Array.from({length:rate},(_,i)=>.2*Math.sin(2*Math.PI*1000*i/rate));

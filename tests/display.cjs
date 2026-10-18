@@ -30,3 +30,32 @@ console.log(`PASS: packed repaint matches interpolated RGB within ${maxError}/25
  assert.deepEqual(resizeSlices([],8,2,16,4),[]);assert.deepEqual(Array.from(source[0].db),[0,20]);
 }
 console.log('PASS: resize preserves occupied history, row order and bilinear levels');
+// Projection always starts from immutable spectra, independent of prior sizes.
+{
+ const {SpectrumHistory}=require('../dist/praat-display.js');
+ const history=new SpectrumHistory({seconds:31,maxBytes:1024});
+ history.append([{time:0,power:new Float32Array([0,20])},{time:1,power:new Float32Array([10,30])}],{firstFrequency:0,frequencyStep:100});
+ const options={end:1,duration:1,width:2,height:2,rowsFor:f=>f.power,maxGap:2};
+ assert.deepEqual(Array.from(history.project(options).db),[2.5,7.5,22.5,27.5]);
+ assert.deepEqual(Array.from(history.project({...options,interpolate:false}).db),[0,0,20,20]);
+ const original=history.project(options);
+ for(let i=0;i<20;i++)history.project({...options,width:i%2?7:19});
+ assert.deepEqual(history.project(options),original);
+ assert.deepEqual(Array.from(history.frames[0].power),[0,20]);
+ assert.deepEqual(Array.from(history.project({...options,end:4,maxGap:.03}).db),[-Infinity,-Infinity,-Infinity,-Infinity]);
+ assert.deepEqual(Array.from(history.project({...options,end:-1}).db),[-Infinity,-Infinity,-Infinity,-Infinity]);
+ const bounded=new SpectrumHistory({seconds:2,maxBytes:24});
+ for(let time=0;time<20;time++)bounded.append([{time,power:new Float32Array([time,time])}],{frequencyStep:10});
+ assert(bounded.bytes<=24);assert.equal(bounded.frames.length,3);assert.equal(bounded.frames[0].time,17);
+ assert.equal(bounded.append([{time:19,power:new Float32Array(2)}],{}).length,0);
+ bounded.clear();assert.equal(bounded.bytes,0);assert.equal(bounded.frames.length,0);
+}
+console.log('PASS: timestamped projection, gap handling, resize stability, source ownership and bounded retention');
+
+// Missing time is never made bright by quiet-frame boost, even at its maximum.
+{
+ const rgba=new Uint8ClampedArray(8);
+ colourPixels([{width:2,db:new Float32Array([-Infinity,80])}],2,1,100,70,30,colours,rgba,1,0);
+ const first=new Uint8Array(colours.buffer,0,4);assert.deepEqual(Array.from(rgba.subarray(0,4)),Array.from(first));
+}
+console.log('PASS: missing capture time stays background under maximum quiet-frame boost');

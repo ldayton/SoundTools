@@ -492,7 +492,10 @@ the registry is never inferred from one preset. Its immutable state snapshot is
 the source for controls, worker requests, overlays and the preset footer.
 `updateSettings` handles individual edits and full preset application through the
 same transition. Overlay-only edits redraw without restarting analysis; colour
-edits repaint retained history; DSP and normalization edits reset the stream.
+edits repaint retained history. Normalization, axis and history edits reproject
+retained spectra without resetting analysis. DSP changes rebuild buffered PCM
+in cancellable background jobs on the same serialized worker, prioritizing live
+requests, then replace history and the processing cursor together.
 Microphone selection, transport, route/layout and developer diagnostics remain
 outside preset state. Built-in edits become Unnamed Preset*, whereas edits to a
 named custom preset update that preset. Failed storage writes leave an unsaved
@@ -502,7 +505,36 @@ before use.
 `tests/settings-state.cjs` independently checks HTML control coverage, preset
 completeness, validation and transition effects. Browser sequences check every
 available control against state/preset/footer consistency, saved preset lifecycle,
-playing/paused changes, actual worker request options and analysis reset counts.
+playing/paused changes, actual worker request options and nondestructive DSP handovers.
 `assertSettingsConsistent()` is available for browser test/debug assertions.
 The update tests also verify that every packaged page script/style is present in
 the immutable release manifest, including optional formant APIs.
+
+
+### Playback continuity
+
+Source spectra are retained by timestamp and frequency geometry, independently
+of canvas size. Retention covers up to 31 seconds with a 32 MiB spectral-power
+budget; dense FFTs can shorten that interval. Canvas rows are derived caches,
+never resize inputs. Sidebar animation temporarily scales the existing canvas;
+the final size is rendered from spectra. Display changes preserve the displayed
+endpoint, including while paused. Speech pause preserves queued analysis.
+
+The stream retains up to approximately 32 seconds / 24 MiB of mono PCM in memory.
+Analysis changes replay those packets in 100 ms jobs with the requested settings,
+while old live analysis continues. One worker serializes both; queued live work
+has priority. A revision cancels stale jobs, and a generation rejects old live
+replies after the atomic handover. Replay output is bounded to 32 MiB and an
+update that cannot complete within 15 seconds is rejected while the active
+analysis remains usable. Failed updates restore the committed analysis controls
+as an unnamed configuration. Stop, seek, source changes and capture discontinuity
+cancel outstanding rebuilds. Audio is neither persisted nor uploaded.
+
+`tests/handover.cjs` checks real WASM replay/fresh equality, cursor continuity,
+stale requests, concurrent input, worker serialization and error recovery.
+`tests/visual/continuity.spec.cjs` exercises the English recording, animated
+sidebar round trips, frozen settings changes and rapid DSP updates; the rebuilt
+speech spectra must exactly match fresh analysis. Performance reports distinguish
+rebuild work from live delivery and include retained PCM/spectrum byte counts.
+These automated desktop/mobile viewport checks do not establish real-phone CPU
+headroom; that still needs measurements on physical devices.

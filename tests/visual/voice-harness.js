@@ -25,7 +25,7 @@
       await new Promise(resolve=>{waiting={due:started+delay,resolve};nativePending=false});return result;
     }finally{nativePending=false}
   }};
-  engine=new PraatStream({client:delayedClient,sampleRate:48000,settings:()=>settings,onFrames:(batch,result)=>{frames.push(...batch);const now=Date.now;try{for(const frame of batch){const i=Math.round((frame.time-.032)/.016);if(i>=reference.clockTimes.length)throw Error('Clock oracle exhausted');Date.now=()=>reference.clockTimes[i];acceptFrames([frame],result)}}finally{Date.now=now}},onError:e=>{failure=e}});
+  engine=new PraatStream({client:delayedClient,sampleRate:48000,settings:()=>settings,onFrames:(batch,result)=>{const now=Date.now;try{for(const frame of batch){const i=Math.round((frame.time-.032)/.016);if(i>=reference.clockTimes.length)throw Error('Clock oracle exhausted');Date.now=()=>reference.clockTimes[i];frames.push(...acceptFrames([frame],result))}}finally{Date.now=now}},onError:e=>{failure=e}});
   async function settle(){
     for(;;){while(nativePending)await new Promise(resolve=>setTimeout(resolve,0));if(failure)throw failure;
       if(engine.busy&&!waiting&&!nativePending){await new Promise(resolve=>setTimeout(resolve,0));continue}

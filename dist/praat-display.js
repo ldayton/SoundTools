@@ -46,5 +46,39 @@
   }
   return [{width,db}];
  }
- const api={powerDb,intensity,palette,colourPixels,resizeSlices};if(typeof module==='object'&&module.exports)module.exports=api;else scope.PraatDisplay=api;
+ // Timestamped source spectra outlive any particular canvas geometry. The byte
+ // cap also bounds retention for unusually dense FFTs on high-rate devices.
+ class SpectrumHistory {
+  constructor({seconds=31,maxBytes=32*1024*1024}={}){this.seconds=seconds;this.maxBytes=maxBytes;this.clear()}
+  clear(){this.frames=[];this.bytes=0}
+  append(frames,geometry){
+   const added=[];
+   for(const source of frames){
+    if(!Number.isFinite(source.time)||this.frames.length&&source.time<=this.frames.at(-1).time)continue;
+    const frame={...source,...geometry};this.frames.push(frame);added.push(frame);this.bytes+=frame.power.byteLength;
+   }
+   const cutoff=(this.frames.at(-1)?.time??0)-this.seconds;
+   // Keep one left neighbour where the byte budget permits interpolation.
+   while(this.frames.length&&(this.bytes>this.maxBytes||this.frames.length>1&&this.frames[1].time<cutoff)){
+    this.bytes-=this.frames.shift().power.byteLength;
+   }
+   return added;
+  }
+  project({end,duration,width,height,rowsFor,interpolate=true,maxGap=.03}){
+   const db=new Float32Array(width*height);db.fill(-Infinity);
+   const frames=this.frames;let index=-1;
+   for(let x=0;x<width;x++){
+    const time=end-duration+(x+.5)*duration/width;
+    while(index+1<frames.length&&frames[index+1].time<=time)index++;
+    if(index<0)continue;
+    const frame=frames[index],next=frames[index+1];
+    if(time-frame.time>maxGap)continue;
+    const a=rowsFor(frame),b=next?rowsFor(next):a;
+    const mix=interpolate&&next&&next.time-frame.time<=maxGap?Math.max(0,Math.min(1,(time-frame.time)/(next.time-frame.time))):0;
+    for(let y=0;y<height;y++)db[y*width+x]=a[y]+(b[y]-a[y])*mix;
+   }
+   return {width,db};
+  }
+ }
+ const api={powerDb,intensity,palette,colourPixels,resizeSlices,SpectrumHistory};if(typeof module==='object'&&module.exports)module.exports=api;else scope.PraatDisplay=api;
 })(typeof self==='object'?self:globalThis);

@@ -19,7 +19,7 @@ assert.throws(()=>S.transition(S.create(),{type:'edit',id:'microphone',value:'de
 assert.deepEqual(S.transition(S.create(),{type:'edit',id:'formantSmoothing',value:'strong'}).effects,['overlay']);
 assert.deepEqual(S.transition(S.create(),{type:'edit',id:'palette',value:'plasma'}).effects,['colour']);
 assert.deepEqual(S.transition(S.create(),{type:'edit',id:'window',value:'0.025'}).changed,[]);
-assert(S.transition(S.create(presets.voice,'voice'),{type:'edit',id:'preemphasis',value:'3'}).effects.includes('analysis'));
+assert(S.transition(S.create(presets.voice,'voice'),{type:'edit',id:'preemphasis',value:'3'}).effects.includes('preemphasis'));
 console.log('PASS: independent registry/UI completeness, validation, immutable transitions, preset rules and effects');
 
 // Alternate numeric spellings and tolerated step noise must have one canonical

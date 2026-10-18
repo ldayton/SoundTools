@@ -15,7 +15,7 @@ test('all registered controls agree with authoritative state across deterministi
   }
  }
 });
-test('settings effects do not restart analysis for overlay and colour changes, and do reset for DSP',async({page})=>{
+test('settings effects do not restart analysis for overlay and colour changes, and hand over DSP without resetting capture',async({page})=>{
  await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html#settings');
  await page.locator('#formants').selectOption('both');await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.processedFrames)>100);
  await page.locator('#openSettings').click();
@@ -23,7 +23,8 @@ test('settings effects do not restart analysis for overlay and colour changes, a
  await page.locator('#formantSmoothing').selectOption('strong');await page.locator('#formantFiltering').selectOption('off');await page.locator('#palette').selectOption('plasma');
  await consistent(page);expect(await page.evaluate(()=>settingsResets)).toBe(0);
  const frames=await page.evaluate(()=>processingStats.frames);await page.waitForFunction(n=>processingStats.frames>n+50,frames);
- await page.locator('#window').selectOption('0.015');expect(await page.evaluate(()=>settingsResets)).toBe(1);await page.waitForFunction(()=>window.requestedSettings?.windowSeconds===.015);expect(await page.evaluate(()=>requestedSettings)).toEqual({windowSeconds:.015,timeStep:.005,analysisFlags:7});await consistent(page);
+ await page.locator('#window').selectOption('0.015');expect(await page.evaluate(()=>settingsResets)).toBe(0);await page.waitForFunction(()=>window.requestedSettings?.windowSeconds===.015);expect(await page.evaluate(()=>requestedSettings)).toEqual({windowSeconds:.015,timeStep:.005,analysisFlags:7});await consistent(page);
+ await page.waitForFunction(()=>engine.activeSettings.windowSeconds===.015&&!engine.rebuild);
  await page.locator('#freeze').click();await page.locator('#openSettings').click();
  await page.locator('#preset').selectOption('soundglow');await consistent(page);await expect(page.locator('#formants')).toHaveValue('off');
  expect(await page.evaluate(()=>analysisFlags())).toBe(0);expect(await page.evaluate(()=>paused)).toBe(true);

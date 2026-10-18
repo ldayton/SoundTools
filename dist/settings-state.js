@@ -87,7 +87,7 @@
    "fixed",
    "held"
   ],
-  "effect": "analysis",
+  "effect": "normalization",
   "preset": true
  },
  "fixedMaximum": {
@@ -197,7 +197,7 @@
    "5",
    "10"
   ],
-  "effect": "analysis",
+  "effect": "normalization",
   "preset": true
  },
  "peakDecay": {
@@ -207,7 +207,7 @@
    "0.995",
    "0.999"
   ],
-  "effect": "analysis",
+  "effect": "normalization",
   "preset": true
  },
  "resampling": {
@@ -237,7 +237,7 @@
    "audio",
    "wall"
   ],
-  "effect": "analysis",
+  "effect": "normalization",
   "preset": true
  },
  "formants": {
@@ -311,7 +311,6 @@
   }else throw TypeError('Unknown settings event');
   const next=create(values,selected),changed=ids.filter(id=>state.values[id]!==next.values[id]);
   const effects=[...new Set(changed.map(id=>registry[id].effect))];
-  if(changed.includes('preemphasis')&&next.values.colourLevels==='held'&&!effects.includes('analysis'))effects.push('analysis');
   return {state:next,changed,effects};
  }
  function assertPresets(presets){for(const [name,values]of Object.entries(presets))if(!validate(values))throw TypeError('Incomplete or invalid preset: '+name)}

@@ -12,6 +12,16 @@ vm.createContext(env);vm.runInContext(fs.readFileSync('dist/app.js','utf8'),env)
 for(const [id,v]of Object.entries(fixtureSettings))elements[id].value=v;vm.runInContext("updateSettings({type:'apply',selected:'praat',values:Object.fromEntries(SettingsState.ids.map(id=>[id,document.getElementById(id).value]))})",env);
 (async()=>{await vm.runInContext('start()',env);assert.equal(elements.state.textContent,'LIVE');vm.runInContext('bins=new Float32Array(2048);bins.fill(-120);bins[Math.round(1000/48000*4096)]=-10;spectrumStep=48000/4096;redraw();audio.currentTime=100/1000;render(100);audio.currentTime=200/1000;render(200)',env);assert(images.length>0);const img=images.at(-1);let brightRow=-1;for(let y=0;y<img.height;y++)if(img.data[y*img.width*4]>200){brightRow=y;break}const expected=2*(700-20-27)*(1-Math.log(1000/60)/Math.log(8000/60));assert(Math.abs(brightRow-expected)<9,`1kHz plotted at ${brightRow}, expected ${expected}`);signalDb=-60;vm.runInContext('bins[Math.round(1000/48000*4096)]=-60;audio.currentTime=300/1000;render(300)',env);const transition=images.at(-1),row=brightRow;assert(transition.data[row*transition.width*4]>transition.data[(row*transition.width+transition.width-1)*4],'Time slices should interpolate');vm.runInContext('audio.currentTime=400/1000;render(400)',env);const settled=images.at(-1);assert.equal(settled.data[row*settled.width*4],settled.data[(row*settled.width+settled.width-1)*4],'No averaging tail');
 assert.equal(elements.spectrogram.width,780);assert.equal(elements.labels.height,1400);
+// Sidebar width changes reuse the same source rows; vertical geometry changes
+// must reproject them. The projection itself remains independent of width.
+vm.runInContext(`{
+ const f={power:new Float32Array(2048).fill(4e-9),firstFrequency:spectrumFirst,frequencyStep:spectrumStep,spectrumUnits:'density'};
+ const initial=spectrumRows(f),width=pxW,height=pxH;
+ pxW-=100;redraw();if(spectrumRows(f)!==initial)throw Error('Width-only resize rebuilt frequency rows');
+ pxH-=100;redraw();if(spectrumRows(f)===initial||spectrumRows(f).length!==pxH)throw Error('Height resize reused stale rows');
+ pxW=width;pxH=height;redraw();
+}`,env);
+
 vm.runInContext('bins.fill(-100);bins[10]=-20;bins[11]=-40',env);assert.equal(vm.runInContext('sampleSpectrum(10.5)',env),-30);
 vm.runInContext('bins.fill(-Infinity)',env);assert.equal(vm.runInContext('sampleSpectrum(10.5)',env),-160);
 // A short analysis-frame peak between display refreshes must survive column sampling.

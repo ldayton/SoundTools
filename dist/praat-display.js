@@ -66,7 +66,7 @@
   }
   project({end,duration,width,height,rowsFor,interpolate=true,maxGap=.03}){
    const db=new Float32Array(width*height);db.fill(-Infinity);
-   const frames=this.frames;let index=-1;
+   const frames=this.frames,columns=[];let index=-1;
    for(let x=0;x<width;x++){
     const time=end-duration+(x+.5)*duration/width;
     while(index+1<frames.length&&frames[index+1].time<=time)index++;
@@ -75,8 +75,10 @@
     if(time-frame.time>maxGap)continue;
     const a=rowsFor(frame),b=next?rowsFor(next):a;
     const mix=interpolate&&next&&next.time-frame.time<=maxGap?Math.max(0,Math.min(1,(time-frame.time)/(next.time-frame.time))):0;
-    for(let y=0;y<height;y++)db[y*width+x]=a[y]+(b[y]-a[y])*mix;
+    columns.push({x,a,b,mix});
    }
+   // Write consecutive memory instead of striding a large Retina buffer.
+   for(let y=0;y<height;y++){const offset=y*width;for(const {x,a,b,mix} of columns)db[offset+x]=a[y]+(b[y]-a[y])*mix;}
    return {width,db};
   }
  }

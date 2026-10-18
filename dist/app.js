@@ -9,7 +9,7 @@ const $=id=>document.getElementById(id),canvas=$('spectrogram'),ctx=canvas.getCo
 let returningHome=false;
 let featureHistory=[];
 const spectrumHistory=new PraatDisplay.SpectrumHistory();
-let rowCache=new WeakMap(),levelCache=new WeakMap(),positionCache=new Map();
+let rowCache=new WeakMap(),levelCache=new WeakMap(),positionCache=new Map(),rowGeometry=null;
 let committedAnalysisValues=null;
 const analysisCanvas=$('analysisOverlay'),analysisContext=analysisCanvas.getContext('2d');
 const analysisFlags=()=>setting('formants')!=='off'?7:0; // Pitch/intensity gate formant reliability internally.
@@ -38,8 +38,11 @@ function redraw(){
   previousSlice=null;paintedSlices=[];
   const step=spectrumStep;
   // Sample at physical-pixel centres; interpolate spectral levels before colouring.
-  map=Array.from({length:pxH},(_,y)=>(frequency((y+(viewSetting('interpolation')==='bucket'?1:.5))*plotH/pxH)-spectrumFirst)/step+(viewSetting('interpolation')==='bucket'?1:0));
-  rowCache=new WeakMap();positionCache=new Map();
+  const geometry=[pxH,maxHz(),viewSetting('scale'),viewSetting('interpolation'),spectrumFirst,step].join(':');
+  if(geometry!==rowGeometry){
+   map=Array.from({length:pxH},(_,y)=>(frequency((y+(viewSetting('interpolation')==='bucket'?1:.5))*plotH/pxH)-spectrumFirst)/step+(viewSetting('interpolation')==='bucket'?1:0));
+   rowCache=new WeakMap();positionCache=new Map();rowGeometry=geometry;
+  }
   repaintHistory();drawAxes();drawAnalysis();
 }
 // Rebuild pixels from source spectra, never from previously interpolated pixels.

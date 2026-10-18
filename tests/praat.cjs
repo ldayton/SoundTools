@@ -15,6 +15,18 @@ for(const rate of [24000,44100,48000]){
  vm.createContext(context);vm.runInContext(fs.readFileSync('dist/pcm-worklet.js','utf8'),context);
  const worklet=new Worklet();for(let i=0;i<Math.ceil(rate*.31/128);i++){context.currentFrame=i*128;worklet.process([[new Float32Array(128).fill(.2),new Float32Array(128).fill(-.1)]])}
  assert.equal(sent.length,3);for(let i=0;i<3;i++){assert.equal(sent[i].pcm.length,Math.round(rate*.1));assert(Math.abs(sent[i].start-i*.1)<1e-10);assert(sent[i].pcm.every(x=>Math.abs(x-.05)<1e-6))}
+ // Empty input quanta between real audio must occupy their clock time as
+ // silence, including when a partial packet crosses the disconnect boundary.
+ const intermittent=new Worklet(),offset=sent.length;let clock=0,expected=[];
+ for(let q=0;q<Math.ceil(rate*.21/128);q++){
+  const present=q%7!==3;context.currentFrame=clock;
+  intermittent.process(present?[[new Float32Array(128).fill(.25)]]:[[]],[[new Float32Array(128)]]);
+  expected.push(...Array(128).fill(present?.25:0));clock+=128;
+ }
+ for(let i=offset;i<sent.length;i++){
+  const packet=sent[i],start=(i-offset)*Math.round(rate*.1);
+  assert.equal(packet.start,start/rate);assert.deepEqual(Array.from(packet.pcm),expected.slice(start,start+packet.pcm.length));
+ }
  worklet.port.onmessage();assert.equal(worklet.used,0);
 }
 (async()=>{

@@ -59,9 +59,9 @@ test('full speech matches corrected independent DSP, timing and rendering',async
 // Mutate only the served test harness, never the source or the pinned reference.
 test('speech oracle detects filter, clock and display-scale regressions',async({page},testInfo)=>{
  for(const [name,mutation] of [
-  ['filter',"$('resampling').value='praat';"],
-  ['clock',"$('normalizationClock').value='audio';"],
-  ['scale',"$('scale').value='linear';"]
+  ['filter',"updateSettings({type:'edit',id:'resampling',value:'praat'});"],
+  ['clock',"updateSettings({type:'edit',id:'normalizationClock',value:'audio'});"],
+  ['scale',"updateSettings({type:'edit',id:'scale',value:'linear'});"]
  ]){
   await page.unroute('**/tests/visual/voice-harness.js');
   await page.route('**/tests/visual/voice-harness.js',async route=>{

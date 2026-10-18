@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 'use strict';
+let settingsState=SettingsState.create(),settingsReady=false;
+const setting=id=>settingsState.values[id];
 const $=id=>document.getElementById(id),canvas=$('spectrogram'),ctx=canvas.getContext('2d',{alpha:false}),overlay=$('labels'),axis=overlay.getContext('2d');
 let returningHome=false;
 let featureHistory=[];
 const analysisCanvas=$('analysisOverlay'),analysisContext=analysisCanvas.getContext('2d');
-const analysisFlags=()=>$('formants').value!=='off'?7:0; // Pitch/intensity gate formant reliability internally.
+const analysisFlags=()=>setting('formants')!=='off'?7:0; // Pitch/intensity gate formant reliability internally.
 let spectrumUnits='density',heldPeak=newPeakState();
 const displayDb=(power,frequency)=>spectrumUnits==='amplitude'?AnalysisSettings.level(power,frequency,spectrumUnits,value('preemphasis')):PraatDisplay.powerDb(power,frequency,value('preemphasis'));
-function newPeakState(){return AnalysisSettings.peakState(Number($('peakSeconds').value),Number($('peakDecay').value))}
+function newPeakState(){return AnalysisSettings.peakState(Number(setting('peakSeconds')),Number(setting('peakDecay')))}
 function resetAnalysis(){heldPeak=newPeakState();featureHistory=[];processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}
 const praatWorkerURL='vendor/praat/worker.js?profile=release';
 let engine=null,pcmNode=null,frameQueue=[],spectrumStep=20,spectrumFirst=0;
@@ -20,10 +22,10 @@ canvas.dataset.engine='praat-wasm';
 let inputMode='mic',speechBuffer=null,speechNode=null,speechDestination=null,monitor=null,clipOffset=0,clipStarted=0;
 let audio,stream,source,bins,running=false,paused=false,starting=false,last=0,carry=0,raf=0,nyquist=24000,w=0,h=0,plotW=0,plotH=0,map=[],lut=[],packedColours,dpr=1,pxLeft=0,pxTop=0,pxW=1,pxH=1,previousSlice=null;
 const left=52,padTop=20,bottom=27,right=12;
-const value=id=>Number($(id).value),maxHz=()=>Math.min(value('maximum'),nyquist,value('analysisRate')?value('analysisRate')/2:nyquist);
-function frequency(y){return AnalysisSettings.frequency(1-y/plotH,maxHz(),$('scale').value)}
-function yFor(f){return padTop+plotH*(1-AnalysisSettings.position(f,maxHz(),$('scale').value))}
-function colourMap(){const stops=[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});if($('palette').value==='plasma')lut=AnalysisSettings.plasma;packedColours=PraatDisplay.palette(lut,$('interpolation').value==='bucket');$('legend').querySelector('i').style.background=`linear-gradient(90deg,${($('palette').value==='plasma'?[lut[0],lut[64],lut[128],lut[192],lut[255]]:stops).map(c=>`rgb(${c.join(',')})`).join(',')})`}
+const value=id=>Number(Object.hasOwn(SettingsState.registry,id)?setting(id):$(id).value),maxHz=()=>Math.min(value('maximum'),nyquist,value('analysisRate')?value('analysisRate')/2:nyquist);
+function frequency(y){return AnalysisSettings.frequency(1-y/plotH,maxHz(),setting('scale'))}
+function yFor(f){return padTop+plotH*(1-AnalysisSettings.position(f,maxHz(),setting('scale')))}
+function colourMap(){const stops=[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});if(setting('palette')==='plasma')lut=AnalysisSettings.plasma;packedColours=PraatDisplay.palette(lut,setting('interpolation')==='bucket');$('legend').querySelector('i').style.background=`linear-gradient(90deg,${(setting('palette')==='plasma'?[lut[0],lut[64],lut[128],lut[192],lut[255]]:stops).map(c=>`rgb(${c.join(',')})`).join(',')})`}
 function redraw(){
   performanceSession?.break();
   if(!w)return;
@@ -31,18 +33,18 @@ function redraw(){
   carry=0;last=0;previousSlice=null;paintedSlices=[];paintedMaximum=displayMaximum;
   const step=spectrumStep;
   // Sample at physical-pixel centres; interpolate spectral levels before colouring.
-  map=Array.from({length:pxH},(_,y)=>(frequency((y+($('interpolation').value==='bucket'?1:.5))*plotH/pxH)-spectrumFirst)/step+($('interpolation').value==='bucket'?1:0));
+  map=Array.from({length:pxH},(_,y)=>(frequency((y+(setting('interpolation')==='bucket'?1:.5))*plotH/pxH)-spectrumFirst)/step+(setting('interpolation')==='bucket'?1:0));
   if(currentSpectrumFrame)delete currentSpectrumFrame.rows;for(const frame of frameQueue)delete frame.rows;
   drawAxes();drawAnalysis();
 }
 function sampleSpectrum(position,values=bins){
   const index=Math.max(0,Math.min(values.length-1,position));
-  if($('interpolation').value==='bucket')return Number.isFinite(values[Math.trunc(index)])?values[Math.trunc(index)]:-160;
+  if(setting('interpolation')==='bucket')return Number.isFinite(values[Math.trunc(index)])?values[Math.trunc(index)]:-160;
   const lo=Math.floor(index),hi=Math.min(values.length-1,lo+1),mix=index-lo;
   const a=Number.isFinite(values[lo])?values[lo]:-160,b=Number.isFinite(values[hi])?values[hi]:-160;
   return a+(b-a)*mix;
 }
-function drawAxes(){axis.setTransform(dpr,0,0,dpr,0,0);axis.clearRect(0,0,w,h);axis.font='10px system-ui';axis.textBaseline='middle';const ticks=['voice','erb','mel'].includes($('scale').value)?[0,100,200,300,400,500,1000,1500,2000,2500,3000,3500,5000,8000,16000,20000]:$('scale').value==='log'?[60,100,200,500,1000,2000,5000,10000,20000]:Array.from({length:9},(_,i)=>maxHz()*i/8);for(const f of ticks){if(f>maxHz()||f<($('scale').value==='log'?60:0))continue;const y=yFor(f);axis.fillStyle='#8796aa';axis.textAlign='right';axis.fillText(f>=1000?`${+(f/1000).toFixed(1)}k`:`${Math.round(f)}`,left-9,y);axis.strokeStyle='#96b3d313';axis.beginPath();axis.moveTo(left,y+.5);axis.lineTo(w-right,y+.5);axis.stroke()}axis.textAlign='left';axis.fillStyle='#657489';axis.fillText('Hz',10,10);axis.textAlign='center';for(let i=0;i<=4;i++){const x=left+plotW*i/4;axis.fillText(i===4?'now':`−${+(value('history')*(1-i/4)).toFixed(1)}s`,Math.min(w-20,Math.max(left,x)),h-11)}}
+function drawAxes(){axis.setTransform(dpr,0,0,dpr,0,0);axis.clearRect(0,0,w,h);axis.font='10px system-ui';axis.textBaseline='middle';const ticks=['voice','erb','mel'].includes(setting('scale'))?[0,100,200,300,400,500,1000,1500,2000,2500,3000,3500,5000,8000,16000,20000]:setting('scale')==='log'?[60,100,200,500,1000,2000,5000,10000,20000]:Array.from({length:9},(_,i)=>maxHz()*i/8);for(const f of ticks){if(f>maxHz()||f<(setting('scale')==='log'?60:0))continue;const y=yFor(f);axis.fillStyle='#8796aa';axis.textAlign='right';axis.fillText(f>=1000?`${+(f/1000).toFixed(1)}k`:`${Math.round(f)}`,left-9,y);axis.strokeStyle='#96b3d313';axis.beginPath();axis.moveTo(left,y+.5);axis.lineTo(w-right,y+.5);axis.stroke()}axis.textAlign='left';axis.fillStyle='#657489';axis.fillText('Hz',10,10);axis.textAlign='center';for(let i=0;i<=4;i++){const x=left+plotW*i/4;axis.fillText(i===4?'now':`−${+(value('history')*(1-i/4)).toFixed(1)}s`,Math.min(w-20,Math.max(left,x)),h-11)}}
 function resize(){
   const box=canvas.getBoundingClientRect(),nextW=Math.max(1,Math.round(box.width)),nextH=Math.max(1,Math.round(box.height)),nextDpr=Math.max(1,window.devicePixelRatio||1);
   if(w===nextW&&h===nextH&&dpr===nextDpr&&canvas.width===Math.round(nextW*nextDpr)&&canvas.height===Math.round(nextH*nextDpr))return;
@@ -80,16 +82,16 @@ function renderFrame(time){
   const prior=previousSlice||current;
   const cutoff=target-value('history');
   while(displayPeaks.length&&displayPeaks[0].time<cutoff)displayPeaks.shift();
-  displayMaximum=$('colourLevels').value==='held'?100:$('colourLevels').value==='fixed'?value('fixedMaximum'):displayPeaks.reduce((peak,frame)=>frame.time<=target?Math.max(peak,frame.peak):peak,0);
+  displayMaximum=setting('colourLevels')==='held'?100:setting('colourLevels')==='fixed'?value('fixedMaximum'):displayPeaks.reduce((peak,frame)=>frame.time<=target?Math.max(peak,frame.peak):peak,0);
   const dbPixels=new Float32Array(pixels*pxH);
   const secondsPerPixel=value('history')/pxW,endTime=target-carry*secondsPerPixel;
-  function frameRows(frame){if(!frame.rows){const levels=Float32Array.from(frame.power,(p,f)=>displayDb(p,spectrumFirst+f*spectrumStep));if($('colourLevels').value==='held')for(let i=0;i<levels.length;i++)levels[i]=frame.levelMaximum>0?levels[i]/frame.levelMaximum*100:0;frame.rows=Float32Array.from(map,position=>sampleSpectrum(position,levels))}return frame.rows}
+  function frameRows(frame){if(!frame.rows){const levels=Float32Array.from(frame.power,(p,f)=>displayDb(p,spectrumFirst+f*spectrumStep));if(setting('colourLevels')==='held')for(let i=0;i<levels.length;i++)levels[i]=frame.levelMaximum>0?levels[i]/frame.levelMaximum*100:0;frame.rows=Float32Array.from(map,position=>sampleSpectrum(position,levels))}return frame.rows}
   for(let x=0;x<pixels;x++){
     const columnTime=endTime-(pixels-x-.5)*secondsPerPixel;
     while(frameQueue.length&&frameQueue[0].time<=columnTime){currentSpectrumFrame=frameQueue.shift();canvas.dataset.frameTime=currentSpectrumFrame.time}
     if(currentSpectrumFrame){
       const a=frameRows(currentSpectrumFrame),next=frameQueue[0];
-      const b=next?frameRows(next):a,mix=next&&$('frameInterpolation').value==='linear'?Math.max(0,Math.min(1,(columnTime-currentSpectrumFrame.time)/(next.time-currentSpectrumFrame.time))):0;
+      const b=next?frameRows(next):a,mix=next&&setting('frameInterpolation')==='linear'?Math.max(0,Math.min(1,(columnTime-currentSpectrumFrame.time)/(next.time-currentSpectrumFrame.time))):0;
       for(let y=0;y<pxH;y++)dbPixels[y*pixels+x]=columnTime-currentSpectrumFrame.time>.03?-160:a[y]+(b[y]-a[y])*mix;
     }else for(let y=0;y<pxH;y++)dbPixels[y*pixels+x]=prior[y]+(current[y]-prior[y])*(x+1)/pixels;
   }
@@ -110,7 +112,7 @@ function renderFrame(time){
 }
 function paintSpectrum(slices,width,x,maximum=displayMaximum){
   // Autoscaling can repaint millions of Retina pixels; read controls once.
-  const range=$('colourLevels').value==='held'?100:value('floor'),gain=value('gain');
+  const range=setting('colourLevels')==='held'?100:value('floor'),gain=value('gain');
   const image=ctx.createImageData(width,pxH);
   PraatDisplay.colourPixels(slices,width,pxH,maximum,range,gain,packedColours,image.data,value('compression'),value('suppression'));
   ctx.putImageData(image,x,pxTop);
@@ -160,7 +162,8 @@ function microphoneError(e){
 $('refreshMic').onclick=microphones;
 $('microphone').onchange=async()=>{notice('');if(running&&inputMode==='mic'){stop();await start();}};
 async function start(){if(starting)return;showSpectrogram();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
-function updateResolution(){$('resolution').textContent=$('preset').selectedOptions?.[0]?.textContent||$('preset').value}
+function selectedPresetLabel(){return ({soundglow:'Soundglow',praat:'Praat',voice:'Voice Tools',custom:'Unnamed Preset*'})[settingsState.selected]||savedPresets.find(p=>p.id===settingsState.selected)?.name||'Unnamed Preset*'}
+function updateResolution(){$('resolution').textContent=selectedPresetLabel()}
 $('start').onclick=start;$('begin').onclick=start;
 async function togglePause(){
   if(!running||starting)return;
@@ -226,7 +229,6 @@ document.addEventListener('keydown',e=>{
   if(!e.repeat)void togglePause();
 });
 syncSettings();
-for(const id of ['maximum','scale','history','floor','gain','window'])$(id).addEventListener('input',()=>{$('maxOut').textContent=`${value('maximum')/1000} kHz`;$('historyOut').textContent=`${value('history')} s`;$('floorOut').textContent=`${value('floor')} dB`;$('gainOut').textContent=`${value('gain')} dB`;if(['maximum','window'].includes(id)){heldPeak=newPeakState();processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}if(['maximum','scale','history','window','floor','gain'].includes(id))redraw()});
 window.addEventListener('pagehide',stop);colourMap();resize();
 
 function acceptFrames(frames,result){
@@ -245,12 +247,12 @@ function acceptFrames(frames,result){
       if(spectrumStep!==result.frequencyStep||spectrumFirst!==result.firstFrequency){spectrumStep=result.frequencyStep;spectrumFirst=result.firstFrequency;redraw()}
       if(!bins||bins.length!==result.bins){bins=new Float32Array(result.bins);bins.fill(-160)}
       while(displayPeaks.length&&displayPeaks[0].time<audio.currentTime-value('history')-.2)displayPeaks.shift();
-      for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,AnalysisSettings.normalizationTime($('normalizationClock').value,frame.time));displayPeaks.push({time:frame.time,peak})}
+      for(const frame of frames){let peak=0;for(let f=0;f<frame.power.length;f++)peak=Math.max(peak,displayDb(frame.power[f],result.firstFrequency+f*result.frequencyStep));frame.levelMaximum=AnalysisSettings.heldMaximum(heldPeak,peak,AnalysisSettings.normalizationTime(setting('normalizationClock'),frame.time));displayPeaks.push({time:frame.time,peak})}
       frameQueue.push(...frames);if(frameQueue.length>200){performanceSession?.count('discardedAnalysisFrames',frameQueue.length-200);frameQueue.splice(0,frameQueue.length-200);}
       processingStats.frames+=frames.length;processingStats.blocks++;processingStats.lastMs=result.timings.analysisMs;canvas.dataset.processedFrames=processingStats.frames;canvas.dataset.analysisMs=processingStats.lastMs;updateResolution();
 
 }
-function analysisSettings(){return {maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:$('windowShape').value,analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:$('removeDC').value==='on',spectrumUnits:$('spectrumUnits').value,resampling:$('resampling').value,resampleQuality:value('resampleQuality'),analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}}
+function analysisSettings(){return {maximumFrequency:maxHz(),windowSeconds:value('window'),frequencyStep:maxHz()/500,windowShape:setting('windowShape'),analysisRate:value('analysisRate'),timeStep:value('frameStep'),fftPadding:value('fftPadding'),removeDC:setting('removeDC')==='on',spectrumUnits:setting('spectrumUnits'),resampling:setting('resampling'),resampleQuality:value('resampleQuality'),analysisFlags:analysisFlags(),formantCeiling:value('formantCeiling')}}
 async function connectInput(input){
   const context=audio;
   const client=new PraatClient({workerURL:praatWorkerURL});
@@ -325,45 +327,31 @@ function drawAnalysis(){
   let rows=featureHistory.filter(f=>f.time>=begin&&f.time<=end);
   const xFor=time=>left+(time-begin)/value('history')*plotW;
   g.save();g.beginPath();g.rect(left,padTop,plotW,plotH);g.clip();g.font='11px system-ui';g.lineWidth=1.4;
-  const mode=$('formants').value,peak=rows.reduce((a,f)=>Math.max(a,f.intensity),-160);
+  const mode=setting('formants'),peak=rows.reduce((a,f)=>Math.max(a,f.intensity),-160);
   function contour(getValue,colour,dots=false,lines=true,canConnect=()=>true){
     g.strokeStyle=colour;g.fillStyle=colour;let previous=null;g.beginPath();
-    for(const row of rows){const value=getValue(row);if(!Number.isFinite(value)||value<=0||value>maxHz()||$('scale').value==='log'&&value<60){previous=null;continue}const point={time:row.time,value},x=xFor(row.time),y=yFor(value);
+    for(const row of rows){const value=getValue(row);if(!Number.isFinite(value)||value<=0||value>maxHz()||setting('scale')==='log'&&value<60){previous=null;continue}const point={time:row.time,value},x=xFor(row.time),y=yFor(value);
       if(lines&&canConnect(row)&&PraatOverlays.connected(previous,point)){g.moveTo(xFor(previous.time),yFor(previous.value));g.lineTo(x,y)}
       if(dots){g.moveTo(x+1.5,y);g.arc(x,y,1.5,0,Math.PI*2)}previous=point;
     }g.stroke();
   }
   if(mode!=='off'){
-    const tracker=new VoiceFeedback.FormantTracker({smoothingSeconds:({off:0,light:.025,strong:.06})[$('formantSmoothing').value],filterUncertain:$('formantFiltering').value==='on'});
+    const tracker=new VoiceFeedback.FormantTracker({smoothingSeconds:({off:0,light:.025,strong:.06})[setting('formantSmoothing')],filterUncertain:setting('formantFiltering')==='on'});
     // Warm the causal tracker from retained left context; never use future frames.
     rows=featureHistory.filter(row=>row.time<=end).map(row=>({...row,trackedFormants:tracker.push(row,{referenceIntensity:peak}).formants})).filter(row=>row.time>=begin);
     for(let i=0;i<3;i++)contour(row=>row.trackedFormants[i].hz,['#b6ffff','#ffffff','#baffb0'][i],mode==='dots'||mode==='both',mode!=='dots',row=>row.trackedFormants[i].connected);
   }
   g.restore();analysisCanvas.dataset.frames=rows.length;
 }
-for(const id of ['formants','formantCeiling'])$(id).addEventListener('change',()=>{
-  resetAnalysis();drawAnalysis();
-});
-for(const id of ['preemphasis','compression'])$(id).addEventListener('input',()=>{
-  $('preemphasisOut').textContent=value('preemphasis')+' dB/octave';$('compressionOut').textContent=Math.round(value('compression')*100)+'%';
-  if(id==='preemphasis'&&$('colourLevels').value==='held')resetAnalysis();
-  if(id==='preemphasis'){displayPeaks=[];displayMaximum=0;for(const frame of frameQueue)delete frame.rows;}
-  redraw();
-});
-
 // Presets own all spectrogram and formant display settings.
 const displayPresets=AnalysisSettings.presets;
 const presetStorageKey='soundglow-presets-v1';
-const savedSettingIds=Object.keys(displayPresets.praat);
-let savedPresets=[],selectedPreset=null;
+SettingsState.assertPresets(displayPresets);
+const savedSettingIds=SettingsState.ids;
+let savedPresets=[],restoredPreset=null;
 function validSavedPreset(preset){
  if(!preset||typeof preset.id!=='string'||!/^saved-[a-zA-Z0-9-]+$/.test(preset.id)||typeof preset.name!=='string'||!preset.name.trim()||preset.name.length>60||preset.name.includes('*'))return false;
- if(!preset.settings||typeof preset.settings!=='object'||Object.keys(preset.settings).length!==savedSettingIds.length)return false;
- return savedSettingIds.every(id=>{
-  const setting=preset.settings?.[id],control=$(id);if(typeof setting!=='string')return false;
-  if(control.tagName==='SELECT')return [...control.options].some(option=>option.value===setting);
-  const n=Number(setting),step=Number(control.step)||1;return setting.trim()!==''&&Number.isFinite(n)&&n>=Number(control.min)&&n<=Number(control.max)&&Math.abs((n-Number(control.min))/step-Math.round((n-Number(control.min))/step))<1e-6;
- });
+ return SettingsState.validate(preset.settings);
 }
 try{
  const stored=JSON.parse(localStorage.getItem(presetStorageKey)||'null');
@@ -373,8 +361,8 @@ try{
   // Preserve an older custom preset whose name is now used by the new built-in.
   const existingNames=new Set(stored.presets.map(p=>typeof p?.name==='string'?p.name.trim().toLowerCase():null));
   for(const p of stored.presets)if(typeof p?.name==='string'&&p.name.trim().toLowerCase()==='soundglow'){let name='Soundglow (custom)',n=2;while(existingNames.has(name.toLowerCase())){name='Soundglow (custom '+n+')';n++;}p.name=name;existingNames.add(name.toLowerCase())}
-  savedPresets=stored.presets.filter(p=>{if(!validSavedPreset(p)||ids.has(p.id)||names.has(p.name.trim().toLowerCase()))return false;ids.add(p.id);names.add(p.name.trim().toLowerCase());return true});
-  selectedPreset=stored.selected;
+  savedPresets=stored.presets.filter(p=>{if(!validSavedPreset(p)||ids.has(p.id)||names.has(p.name.trim().toLowerCase()))return false;ids.add(p.id);names.add(p.name.trim().toLowerCase());return true}).map(p=>({...p,settings:{...SettingsState.create(p.settings,p.id).values}}));
+  restoredPreset=stored.selected;
  }
 }catch{/* Corrupt or unavailable storage must not prevent audio use. */}
 let presetToastTimer;
@@ -382,7 +370,7 @@ function savedPresetStatus(text){
  $('presetStatus').textContent=text;$('presetToast').hidden=true;clearTimeout(presetToastTimer);
  if(text&&!$('presetDialog').open){$('presetToast').textContent=text;$('presetToast').hidden=false;presetToastTimer=setTimeout(()=>$('presetToast').hidden=true,6000)}
 }
-function persistPresets(presets=savedPresets,selected=$('preset').value){
+function persistPresets(presets=savedPresets,selected=settingsState.selected){
  try{localStorage.setItem(presetStorageKey,JSON.stringify({version:1,presets,selected}));return true}
  catch{savedPresetStatus('Could not save presets in this browser. Allow local storage and try again.');return false}
 }
@@ -390,25 +378,62 @@ function renderSavedPresets(){
  for(const option of [...$('preset').options])if(option.value.startsWith('saved-'))option.remove();
  for(const preset of savedPresets)$('preset').add(new Option(preset.name,preset.id));
 }
-function currentPresetSettings(){return Object.fromEntries(savedSettingIds.map(id=>[id,$(id).value]))}
+function currentPresetSettings(){return {...settingsState.values}}
 function settingsForPreset(id){return (Object.hasOwn(displayPresets,id)?displayPresets[id]:null)||savedPresets.find(p=>p.id===id)?.settings}
 function syncPreset(edited=false){
- const matches=settings=>Object.entries(settings).every(([id,v])=>$(id).value===v);
- const wasSaved=$('preset').value.startsWith('saved-'),active=settingsForPreset($('preset').value);
- const match=active&&matches(active)?[$('preset').value]:savedPresets.filter(p=>matches(p.settings)).map(p=>p.id);
- $('preset').value=edited?'custom':match[0]||(!wasSaved&&Object.entries(displayPresets).find(([,settings])=>matches(settings))?.[0])||'custom';
+ $('preset').value=settingsState.selected;
  $('unnamedPreset').hidden=$('preset').value!=='custom';
- $('floor').disabled=$('colourLevels').value==='held';
- $('resampleQuality').disabled=$('resampling').value!=='polyphase';
- $('fixedMaximumControl').hidden=$('colourLevels').value!=='fixed';
+ $('floor').disabled=setting('colourLevels')==='held';
+ $('resampleQuality').disabled=setting('resampling')!=='polyphase';
+ $('fixedMaximumControl').hidden=setting('colourLevels')!=='fixed';
  $('fixedMaximumOut').textContent=value('fixedMaximum')+' dB';$('suppressionOut').textContent=value('suppression')+' dB';updateResolution();
 }
-function applyPreset(id){
- const settings=settingsForPreset(id);if(!settings)return;
- for(const [id,v] of Object.entries(settings))$(id).value=v;
- $('preset').value=id;
+function renderSettingsControls(){
+ for(const id of savedSettingIds)$(id).value=setting(id);
  for(const [id,text] of [['maxOut',value('maximum')/1000+' kHz'],['historyOut',value('history')+' s'],['floorOut',value('floor')+' dB'],['gainOut',value('gain')+' dB'],['preemphasisOut',value('preemphasis')+' dB/octave'],['compressionOut',Math.round(value('compression')*100)+'%']])$(id).textContent=text;
- resetAnalysis();syncPreset();colourMap();redraw();
+ syncPreset();
+}
+function applySettingsEffects({changed,effects}){
+ const initial=!settingsReady;settingsReady=true;
+ if(initial||effects.includes('analysis')){
+  resetAnalysis();
+  if(!initial&&changed.every(id=>id.startsWith('formant'))){drawAnalysis();return}
+  colourMap();redraw();return;
+ }
+ if(effects.includes('preemphasis')){displayPeaks=[];displayMaximum=0;if(currentSpectrumFrame)delete currentSpectrumFrame.rows;for(const frame of frameQueue)delete frame.rows;}
+ if(effects.includes('mapping')||effects.includes('preemphasis')){colourMap();redraw();return}
+ if(effects.includes('colour')){
+  colourMap();
+  const width=paintedSlices.reduce((sum,s)=>sum+s.width,0),maximum=setting('colourLevels')==='fixed'?value('fixedMaximum'):paintedMaximum;
+  if(width)paintSpectrum(paintedSlices,width,pxLeft+pxW-width,maximum);paintedMaximum=maximum;
+ }
+ drawAnalysis();
+}
+function updateSettings(event){
+ let result;try{result=SettingsState.transition(settingsState,event)}catch(error){renderSettingsControls();notice(error.message);return false;}
+ if(event.type==='edit'){
+  savedPresetStatus('');
+  const selected=savedPresets.find(p=>p.id===settingsState.selected);
+  if(selected){
+   const next=savedPresets.map(p=>p.id===selected.id?{...p,settings:{...result.state.values}}:p);
+   if(persistPresets(next,selected.id))savedPresets=next;
+   else result={...result,state:SettingsState.create(result.state.values,'custom')};
+  }
+  closePresetEditor();
+ }
+ settingsState=result.state;renderSettingsControls();applySettingsEffects(result);
+}
+function applyPreset(id){
+ const settings=settingsForPreset(id);if(settings)updateSettings({type:'apply',selected:id,values:settings});else renderSettingsControls();
+}
+// Reusable invariant: state, controls, identity and footer must describe one configuration.
+function assertSettingsConsistent(){
+ for(const id of savedSettingIds)if($(id).value!==setting(id))throw Error('Control differs from settings: '+id);
+ if($('preset').value!==settingsState.selected)throw Error('Preset selection differs from settings');
+ const selected=settingsForPreset(settingsState.selected);
+ if(selected&&savedSettingIds.some(id=>selected[id]!==setting(id)))throw Error('Selected preset differs from settings');
+ if($('resolution').textContent!==selectedPresetLabel()||$('preset').selectedOptions?.[0]?.textContent&&$('preset').selectedOptions[0].textContent!==selectedPresetLabel())throw Error('Preset footer differs from selection');
+ return true;
 }
 $('preset').addEventListener('change',()=>{applyPreset($('preset').value);closePresetEditor();savedPresetStatus('');persistPresets()});
 let editingPresetId=null;
@@ -428,12 +453,12 @@ function commitPresetName(closeEditor=true){
  const preset=existing?{...existing,name}:{id:'saved-'+crypto.randomUUID(),name,settings:currentPresetSettings()};
  const next=existing?savedPresets.map(p=>p.id===preset.id?preset:p):[...savedPresets,preset];
  if(!persistPresets(next,preset.id))return false;
- savedPresets=next;renderSavedPresets();$('preset').value=preset.id;syncPreset();if(closeEditor)closePresetEditor();savedPresetStatus('');return true;
+ savedPresets=next;renderSavedPresets();updateSettings({type:'apply',selected:preset.id,values:preset.settings});if(closeEditor)closePresetEditor();savedPresetStatus('');return true;
 }
 $('savePresetForm').onsubmit=event=>{event.preventDefault();commitPresetName()};
 $('editPresets').onclick=()=>{
  if(!$('savePresetForm').hidden){closePresetEditor();return}
- editingPresetId=savedPresets.find(p=>p.id===$('preset').value)?.id||null;
+ editingPresetId=savedPresets.find(p=>p.id===settingsState.selected)?.id||null;
  $('deletePreset').hidden=!editingPresetId;
  $('confirmPresetName').textContent=editingPresetId?'Rename':'Create';
  $('presetName').value=savedPresets.find(p=>p.id===editingPresetId)?.name||'';
@@ -441,25 +466,15 @@ $('editPresets').onclick=()=>{
  $('savePresetForm').hidden=false;$('editPresets').setAttribute('aria-expanded','true');$('presetDialog').showModal();$('presetName').focus();
 };
 $('deletePreset').onclick=()=>{
- const preset=savedPresets.find(p=>p.id===$('preset').value);if(!preset)return;
+ const preset=savedPresets.find(p=>p.id===settingsState.selected);if(!preset)return;
  const next=savedPresets.filter(p=>p.id!==preset.id);if(!persistPresets(next,'soundglow'))return;
  savedPresets=next;renderSavedPresets();applyPreset('soundglow');closePresetEditor();savedPresetStatus('Deleted “'+preset.name+'”.');
 };
-for(const id of savedSettingIds)$(id).addEventListener('input',()=>{
- savedPresetStatus('');
- const selected=savedPresets.find(p=>p.id===$('preset').value);
- if(selected){
-  const next=savedPresets.map(p=>p.id===selected.id?{...p,settings:currentPresetSettings()}:p);
-  if(persistPresets(next,selected.id)){savedPresets=next;syncPreset()}else syncPreset(true);
- }else syncPreset(true);
- closePresetEditor();if(['colourLevels','fixedMaximum','suppression'].includes(id))redraw();
-});
+for(const id of savedSettingIds)$(id).addEventListener('input',()=>updateSettings({type:'edit',id,value:$(id).value}));
 renderSavedPresets();
-if(settingsForPreset(selectedPreset))applyPreset(selectedPreset);else applyPreset('soundglow');
+if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
 
-for(const id of Object.keys(AnalysisSettings.defaults))$(id).addEventListener('input',()=>{if(['formantSmoothing','formantFiltering'].includes(id)){drawAnalysis();return;}if(!['palette','interpolation','frameInterpolation'].includes(id))resetAnalysis();colourMap();redraw()});
-$('colourLevels').addEventListener('input',()=>{resetAnalysis();redraw()});
-function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:Object.fromEntries(savedSettingIds.map(id=>[id,$(id).value])),preset:$('preset').selectedOptions[0]?.textContent,visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',health:{...processingStats}})}
+function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:currentPresetSettings(),preset:selectedPresetLabel(),visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',health:{...processingStats}})}
 window.soundglowPerformance={report:performanceReport,reset:()=>performanceSession.reset()};
 if($('measurePerformance')){
  $('measurePerformance').onchange=()=>{performanceSession.enabled=$('measurePerformance').checked;performanceSession.reset();};
@@ -469,5 +484,5 @@ if($('measurePerformance')){
 
 document.addEventListener('visibilitychange',()=>{performanceSession?.count('visibilityChanges');performanceSession?.break();});
 
-// Programmatic capabilities only: no new analysis, settings or views are enabled.
+// Optional analysis API; creating a client does not start capture or add views.
 if(typeof VoiceFeedback==='object')window.soundglowAnalysis=Object.freeze({...VoiceFeedback,createClient:()=>new PraatClient({workerURL:praatWorkerURL})});

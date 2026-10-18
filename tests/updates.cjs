@@ -16,6 +16,11 @@ for(let revision=0;revision<3;revision++){
  // CI has a real previous-site for deployment retention; fixtures must stay isolated.
  const pack=build({source,out,base:'/Soundglow/',previous:path.join(work,'no-previous-site')});releases.push({out,pack});
 }
+// Every rewritten script/style reference must exist in the immutable release manifest.
+for(const {out,pack}of releases){
+ const html=fs.readFileSync(path.join(out,pack.html.slice('/Soundglow/'.length)),'utf8'),urls=new Set(pack.files.map(f=>f.url));
+ for(const match of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"/g))if(match[1].startsWith('/Soundglow/'))assert(urls.has(match[1]),'Unpackaged page dependency: '+match[1]);
+}
 assert.notEqual(releases[0].pack.version,releases[1].pack.version);
 assert.deepEqual(releases[0].pack.files.filter(f=>f.url.includes('/engines/')),releases[1].pack.files.filter(f=>f.url.includes('/engines/')),'UI releases reuse the same engine URLs');
 const retained=path.join(work,'retained-site');build({source:path.join(work,'source-1'),out:retained,base:'/Soundglow/',previous:releases[0].out});

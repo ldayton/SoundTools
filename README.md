@@ -483,3 +483,26 @@ scaling is undone explicitly. See `tests/fixtures/lpc-native.txt` for recapture.
 The build also extracts and runs the processor protocol test from the shipped
 GPL source archive, checks that it matches the packaged processor, and verifies
 that disposal releases both spectrum and LPC resources exactly once.
+
+### Settings consistency
+
+`dist/settings-state.js` owns an independent registry of preset settings, allowed
+values, defaults and update effects. Presets are validated against this registry;
+the registry is never inferred from one preset. Its immutable state snapshot is
+the source for controls, worker requests, overlays and the preset footer.
+`updateSettings` handles individual edits and full preset application through the
+same transition. Overlay-only edits redraw without restarting analysis; colour
+edits repaint retained history; DSP and normalization edits reset the stream.
+Microphone selection, transport, route/layout and developer diagnostics remain
+outside preset state. Built-in edits become Unnamed Preset*, whereas edits to a
+named custom preset update that preset. Failed storage writes leave an unsaved
+configuration visibly unnamed. Existing stored presets are validated/migrated
+before use.
+
+`tests/settings-state.cjs` independently checks HTML control coverage, preset
+completeness, validation and transition effects. Browser sequences check every
+available control against state/preset/footer consistency, saved preset lifecycle,
+playing/paused changes, actual worker request options and analysis reset counts.
+`assertSettingsConsistent()` is available for browser test/debug assertions.
+The update tests also verify that every packaged page script/style is present in
+the immutable release manifest, including optional formant APIs.

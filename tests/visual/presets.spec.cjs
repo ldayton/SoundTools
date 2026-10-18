@@ -102,7 +102,7 @@ test('normalization timing uses the selected clock in the production frame consu
  const holds=await page.evaluate(()=>{
   applyPreset('voice');audio={currentTime:0};const now=Date.now;const result={spectrumUnits:'amplitude',bins:3,firstFrequency:0,frequencyStep:7.8125,timeStep:.016,timings:{analysisMs:0}};
   function replay(clock){
-   $('normalizationClock').value=clock;heldPeak=newPeakState();processingStats.lastFrameTime=null;frameQueue=[];const values=[];
+   updateSettings({type:'edit',id:'normalizationClock',value:clock});heldPeak=newPeakState();processingStats.lastFrameTime=null;frameQueue=[];const values=[];
    for(let i=0;i<6;i++){
     Date.now=()=>i*1000;const level=i===0?80:40;const frame={time:i*.016,power:new Float32Array(3).fill(10**((level-92)/10))};
     acceptFrames([frame],result);values.push(frame.levelMaximum);

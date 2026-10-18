@@ -178,16 +178,24 @@ function setBusy(busy){
   for(const id of ['start','begin','demo','microphone'])$(id).disabled=busy;
   $('freeze').disabled=busy||!running;
 }
+const desktopSettings=window.matchMedia('(min-width: 761px)');
+desktopSettings.addEventListener('change',syncSettings);
 function syncSettings(){
-  const open=location.hash==='#settings';
+  const open=location.hash==='#settings',sidebar=desktopSettings.matches;
+  const transport=$(sidebar?'workspaceTransport':'headerActions');
+  if($('start').parentElement!==transport){if(sidebar)transport.append($('start'),$('freeze'));else transport.prepend($('start'),$('freeze'));}
   if(!open&&$('presetDialog').open)closePresetEditor();
-  $('panel').hidden=false;$('panel').inert=!open;$('visual').inert=open;
+  $('panel').hidden=false;$('panel').inert=!open;$('visual').inert=open&&!sidebar;
   $('stage').classList.toggle('settings-open',open);
   $('panel').setAttribute('aria-hidden',String(!open));
   $('settings').setAttribute('aria-expanded',String(open));
+  $('openSettings').setAttribute('aria-expanded',String(open));
+  $('openSettings').setAttribute('aria-label',open?'Hide settings':'Show settings');
+  $('openSettings').title=open?'Hide settings':'Show settings';
+  if(!open&&$('panel').contains?.(document.activeElement))$(sidebar?'openSettings':'settings').focus();
   $('settings').textContent='⚙';
-  $('settings').setAttribute('aria-label',open?'Return to spectrogram':'Settings');
-  $('settings').title=open?'Return to spectrogram':'Settings';
+  $('settings').setAttribute('aria-label',open?(sidebar?'Close settings':'Return to spectrogram'):'Settings');
+  $('settings').title=open?(sidebar?'Close settings':'Return to spectrogram'):'Settings';
   if(open)microphones();
 }
 function panel(open){
@@ -199,6 +207,8 @@ function panel(open){
 }
 window.addEventListener('popstate',syncSettings);window.addEventListener('hashchange',syncSettings);
 $('settings').onclick=()=>panel(location.hash!=='#settings');
+$('openSettings').onclick=()=>panel(location.hash!=='#settings');
+$('collapseSettings').onclick=()=>panel(false);
 document.addEventListener('keydown',e=>{
   if($('presetDialog').open)return;
   if(e.key==='Escape')panel(false);

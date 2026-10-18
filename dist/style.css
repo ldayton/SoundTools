@@ -81,3 +81,32 @@
 #developerSettings{margin-top:1.5rem;border-top:1px solid #303c49;padding-top:1rem}
 #developerSettings>summary{cursor:pointer;font-weight:600;padding:.5rem 0;color:var(--muted,#9ba8b8)}
 #developerSettings>summary:focus-visible{outline:2px solid #f5ad72;outline-offset:4px}
+
+/* Desktop settings slide left, releasing their space to the spectrogram. */
+@media(min-width:761px){
+ #stage{display:grid;grid-template-columns:0px minmax(0,1fr);perspective:none;transition:grid-template-columns .25s ease}
+ #stage.settings-open{grid-template-columns:300px minmax(0,1fr)}
+ #stage #panel{position:relative;inset:auto;grid-column:1;grid-row:1;width:300px;height:100%;min-height:0;transform:translateX(-100%);transition:transform .25s ease,visibility .25s;visibility:hidden;pointer-events:none;backface-visibility:visible;border-right:1px solid #283345}
+ #stage #visual,#stage.settings-open #visual{position:relative;inset:auto;grid-column:2;grid-row:1;min-width:0;transform:none;transition:none;pointer-events:auto;backface-visibility:visible}
+ #panel .panelhead{padding:20px 20px 16px}
+ #settingsBody{padding:16px 20px 24px}
+ #panel label{font-size:12px;margin:18px 0}
+ #panel .panelhead h2{font-size:18px}
+ #stage.settings-open #panel{transform:translateX(0);visibility:visible;pointer-events:auto}
+}
+
+@media(min-width:761px) and (prefers-reduced-motion:reduce){#stage,#stage #panel{transition:none}}
+
+/* One compact workspace toolbar groups sidebar and transport controls. */
+#workspaceToolbar,#collapseSettings{display:none}
+@media(min-width:761px){
+ header #settings{display:none}
+ #workspaceToolbar{display:flex;align-items:center;gap:10px;flex:none;padding:8px 20px;border-bottom:1px solid #202630;background:#0d1118}
+ #workspaceTransport{display:flex;align-items:center;gap:8px}
+ #openSettings{display:grid;place-items:center;width:44px;height:44px;padding:10px;background:transparent;color:#b9c4d2}
+ #openSettings:hover{background:#263141;color:#f2ac77}
+ #openSettings[aria-expanded=true]{color:#f2ac77;border-color:#f2ac77}
+ .toolbarDivider{width:1px;height:24px;background:#303b4a;margin:0 2px}
+ #collapseSettings{display:grid;place-items:center;width:36px;height:36px;padding:7px;background:transparent;border:0}
+ #panel .panelhead{padding:14px 14px 14px 20px}
+}

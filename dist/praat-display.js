@@ -30,5 +30,21 @@
    offset+=columns;
   }
  }
- const api={powerDb,intensity,palette,colourPixels};if(typeof module==='object'&&module.exports)module.exports=api;else scope.PraatDisplay=api;
+ // Preserve the painted time span when the plot's physical dimensions change.
+ function resizeSlices(slices,oldWidth,oldHeight,newWidth,newHeight){
+  const columns=slices.reduce((sum,s)=>sum+s.width,0);
+  if(!columns||!oldWidth||!oldHeight)return [];
+  const width=Math.min(newWidth,Math.max(1,Math.round(columns/oldWidth*newWidth))),source=new Float32Array(columns*oldHeight),db=new Float32Array(width*newHeight);
+  let offset=0;for(const slice of slices){for(let y=0;y<oldHeight;y++)source.set(slice.db.subarray(y*slice.width,(y+1)*slice.width),y*columns+offset);offset+=slice.width;}
+  for(let y=0;y<newHeight;y++){
+   const sy=Math.max(0,Math.min(oldHeight-1,(y+.5)*oldHeight/newHeight-.5)),y0=Math.floor(sy),y1=Math.min(oldHeight-1,y0+1),fy=sy-y0;
+   for(let x=0;x<width;x++){
+    const sx=Math.max(0,Math.min(columns-1,(x+.5)*columns/width-.5)),x0=Math.floor(sx),x1=Math.min(columns-1,x0+1),fx=sx-x0;
+    const top=source[y0*columns+x0]*(1-fx)+source[y0*columns+x1]*fx,bottom=source[y1*columns+x0]*(1-fx)+source[y1*columns+x1]*fx;
+    db[y*width+x]=top*(1-fy)+bottom*fy;
+   }
+  }
+  return [{width,db}];
+ }
+ const api={powerDb,intensity,palette,colourPixels,resizeSlices};if(typeof module==='object'&&module.exports)module.exports=api;else scope.PraatDisplay=api;
 })(typeof self==='object'?self:globalThis);

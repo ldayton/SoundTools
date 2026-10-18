@@ -399,9 +399,16 @@ regression fixture; numerical/visual oracles are not regenerated for this change
 
 ### Optional voice-feedback capabilities (programmatic API)
 
-`window.soundglowAnalysis` exposes opt-in building blocks. They add no settings,
-views or automatic processing, and do not change any preset. Recording/replay
-is not included in this analysis-only pass.
+Formant overlay settings expose **Formant smoothing** (Off / Light / Strong)
+and **Hide uncertain formants** (On / Off). All built-in presets default to
+Light (25 ms time constant) and filtering On; Strong uses 60 ms. Formants remain
+off initially in Soundglow. These options redraw the existing overlay without
+clearing the spectrogram or restarting capture, and are saved in custom presets.
+Older saved presets acquire the new defaults without losing their settings.
+
+`window.soundglowAnalysis` also exposes opt-in building blocks. The other
+capabilities remain programmatic, with no additional views or automatic analysis.
+Recording/replay is not included.
 
 - `new FormantTracker({smoothingSeconds: .03})` consumes existing Praat feature
   rows with `push(row, {referenceIntensity: visiblePeakDb})`. It returns raw and
@@ -411,7 +418,10 @@ is not included in this analysis-only pass.
   break continuity; no stale values or interpolated gaps are emitted. The
   caller supplies the rolling intensity reference. Smoothing is causal in log
   frequency with elapsed-time weighting; the time constant trades flicker for
-  lag and defaults to zero. This does not solve formant identity tracking.
+  lag and defaults to zero in the programmatic API. `filterUncertain: false`
+  bypasses pitch/strength, intensity and bandwidth gates, while still rejecting
+  nonfinite/out-of-range frequencies and breaking lines across gaps and jumps.
+  This does not solve formant identity tracking.
 - `new VowelTargets()` stores user-defined `{id, vowel, language, centreHz,
   halfWidthHz}` entries. `relativeTarget({baselineHz, shiftSemitones, ...target})`
   constructs a baseline-relative target. `compare(id, trackedFrame,

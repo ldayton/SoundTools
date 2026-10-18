@@ -21,3 +21,12 @@ for(const [maximum,range,gain] of [[100,70,0],[80,30,12],[130,100,-20]]){
 }
 assert(maxError<=1,`Palette changed a colour channel by ${maxError}`);
 console.log(`PASS: packed repaint matches interpolated RGB within ${maxError}/255 across 634899 pixels`);
+// Resize retains occupied history width and independently interpolates both axes.
+{
+ const {resizeSlices}=require('../dist/praat-display.js');
+ const source=[{width:1,db:new Float32Array([0,20])},{width:1,db:new Float32Array([10,30])}];
+ assert.deepEqual(resizeSlices(source,8,2,8,2),[{width:2,db:new Float32Array([0,10,20,30])}]);
+ const [scaled]=resizeSlices(source,8,2,16,4);assert.equal(scaled.width,4);assert.deepEqual(Array.from(scaled.db),[0,2.5,7.5,10,5,7.5,12.5,15,15,17.5,22.5,25,20,22.5,27.5,30]);
+ assert.deepEqual(resizeSlices([],8,2,16,4),[]);assert.deepEqual(Array.from(source[0].db),[0,20]);
+}
+console.log('PASS: resize preserves occupied history, row order and bilinear levels');

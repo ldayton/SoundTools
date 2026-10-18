@@ -3,9 +3,9 @@
 (function(scope){
  const finitePositive=n=>Number.isFinite(n)&&n>0;
  class FormantTracker{
-  constructor({smoothingSeconds=0,maxGapSeconds=.025,maxJumpOctaves=.22,minStrength=.45,relativeFloorDb=35}={}){
-   if(!Number.isFinite(smoothingSeconds)||smoothingSeconds<0||smoothingSeconds>.2||!finitePositive(maxGapSeconds)||maxGapSeconds>.2||!finitePositive(maxJumpOctaves)||!Number.isFinite(minStrength)||minStrength<0||minStrength>1||!finitePositive(relativeFloorDb))throw RangeError('Invalid formant tracking options');
-   Object.assign(this,{smoothingSeconds,maxGapSeconds,maxJumpOctaves,minStrength,relativeFloorDb});this.reset();
+  constructor({smoothingSeconds=0,maxGapSeconds=.025,maxJumpOctaves=.22,minStrength=.45,relativeFloorDb=35,filterUncertain=true}={}){
+   if(typeof filterUncertain!=='boolean'||!Number.isFinite(smoothingSeconds)||smoothingSeconds<0||smoothingSeconds>.2||!finitePositive(maxGapSeconds)||maxGapSeconds>.2||!finitePositive(maxJumpOctaves)||!Number.isFinite(minStrength)||minStrength<0||minStrength>1||!finitePositive(relativeFloorDb))throw RangeError('Invalid formant tracking options');
+   Object.assign(this,{smoothingSeconds,maxGapSeconds,maxJumpOctaves,minStrength,relativeFloorDb,filterUncertain});this.reset();
   }
   reset(){this.previous=[null,null,null];this.lastTime=null}
   push(row,{referenceIntensity=row.intensity}={}){
@@ -17,13 +17,13 @@
    return {time:row.time,smoothingSeconds:this.smoothingSeconds,qualityKind:'heuristic-not-probability',formants:[0,1,2].map(i=>{
     const raw=row.formants?.[i],bandwidth=row.bandwidths?.[i];
     const valid=finitePositive(raw)&&raw>=90&&raw<7500&&finitePositive(bandwidth)&&bandwidth<Math.min(700,raw*.45);
-    if(!voiced||!audible||!valid){this.previous[i]=null;return {rawHz:Number.isFinite(raw)?raw:null,hz:null,quality:0,connected:false,reason:!voiced?'unvoiced-or-weak':!audible?'quiet':'invalid-frequency-or-bandwidth'}}
+    if(!finitePositive(raw)||raw<90||raw>=7500||this.filterUncertain&&(!voiced||!audible||!valid)){this.previous[i]=null;return {rawHz:Number.isFinite(raw)?raw:null,hz:null,quality:0,connected:false,reason:!voiced?'unvoiced-or-weak':!audible?'quiet':'invalid-frequency-or-bandwidth'}}
     const prior=this.previous[i],dt=prior?row.time-prior.time:0;
     const linked=!!prior&&dt>0&&dt<=this.maxGapSeconds&&Math.abs(Math.log2(raw/prior.raw))<this.maxJumpOctaves;
     const alpha=this.smoothingSeconds? -Math.expm1(-dt/this.smoothingSeconds):1;
     const hz=linked?Math.exp(Math.log(prior.hz)+alpha*(Math.log(raw)-Math.log(prior.hz))):raw;
     this.previous[i]={time:row.time,hz,raw};
-    return {rawHz:raw,hz,bandwidthHz:bandwidth,quality:Math.max(0,Math.min(1,row.strength*(1-bandwidth/Math.min(700,raw*.45)))),connected:linked,reason:linked?'tracked':'new-segment'};
+    return {rawHz:raw,hz,bandwidthHz:finitePositive(bandwidth)?bandwidth:null,quality:valid&&Number.isFinite(row.strength)?Math.max(0,Math.min(1,row.strength*(1-bandwidth/Math.min(700,raw*.45)))):0,connected:linked,reason:linked?'tracked':'new-segment'};
    })};
   }
  }

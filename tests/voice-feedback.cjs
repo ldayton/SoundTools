@@ -8,6 +8,11 @@ assert.equal(tracker.push({...row(.4),intensity:20},{referenceIntensity:75}).for
 assert.throws(()=>new FormantTracker({smoothingSeconds:NaN}));assert.throws(()=>tracker.push({...row(0),time:NaN}));
 // Equivalent smoothing after equal elapsed time at 10 ms and 20 ms input hops.
 const a=new FormantTracker({smoothingSeconds:.03}),b=new FormantTracker({smoothingSeconds:.03});a.push(row(0));b.push(row(0));let ar,br;for(let i=1;i<=4;i++)ar=a.push(row(i*.01,1600));for(let i=1;i<=2;i++)br=b.push(row(i*.02,1600));assert(Math.abs(ar.formants[1].hz-br.formants[1].hz)<1e-8);
+// Disabling uncertainty gates exposes raw finite estimates, while retaining numeric safety.
+const unfiltered=new FormantTracker({filterUncertain:false});
+assert.equal(unfiltered.push({...row(0),pitch:0,strength:0,intensity:-100,bandwidths:[900,900,900]}).formants[1].hz,1500);
+assert.equal(unfiltered.push({...row(.01),formants:[NaN,-1,Infinity]}).formants[1].hz,null);
+assert.throws(()=>new FormantTracker({filterUncertain:'off'}));
 const target=relativeTarget({id:'my-vowel',vowel:'i',language:'en-US',baselineHz:1500,shiftSemitones:12,halfWidthHz:100});assert.equal(target.centreHz,3000);
 const targets=new VowelTargets([target]);assert.equal(targets.compare(target.id,first,{vowel:'a',language:'en-US',nowSeconds:.01}).available,false);assert.equal(targets.compare(target.id,invalid,{vowel:'i',language:'en-US',nowSeconds:.03}).available,false);assert.equal(targets.compare(target.id,first,{vowel:'i',language:'en-US',nowSeconds:.03}).offsetHz,-1500);
 let stored;const storage={setItem:(k,v)=>{stored=v},getItem:()=>stored};targets.save(storage);assert.deepEqual(VowelTargets.load(storage).list(),targets.list());targets.delete(target.id);assert.equal(targets.list().length,0);assert.throws(()=>targets.set({...target,centreHz:NaN}));assert.throws(()=>targets.save({setItem(){throw Error('full')}}));

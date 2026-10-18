@@ -44,12 +44,17 @@ function sampleSpectrum(position,values=bins){
 }
 function drawAxes(){axis.setTransform(dpr,0,0,dpr,0,0);axis.clearRect(0,0,w,h);axis.font='10px system-ui';axis.textBaseline='middle';const ticks=['voice','erb','mel'].includes($('scale').value)?[0,100,200,300,400,500,1000,1500,2000,2500,3000,3500,5000,8000,16000,20000]:$('scale').value==='log'?[60,100,200,500,1000,2000,5000,10000,20000]:Array.from({length:9},(_,i)=>maxHz()*i/8);for(const f of ticks){if(f>maxHz()||f<($('scale').value==='log'?60:0))continue;const y=yFor(f);axis.fillStyle='#8796aa';axis.textAlign='right';axis.fillText(f>=1000?`${+(f/1000).toFixed(1)}k`:`${Math.round(f)}`,left-9,y);axis.strokeStyle='#96b3d313';axis.beginPath();axis.moveTo(left,y+.5);axis.lineTo(w-right,y+.5);axis.stroke()}axis.textAlign='left';axis.fillStyle='#657489';axis.fillText('Hz',10,10);axis.textAlign='center';for(let i=0;i<=4;i++){const x=left+plotW*i/4;axis.fillText(i===4?'now':`−${+(value('history')*(1-i/4)).toFixed(1)}s`,Math.min(w-20,Math.max(left,x)),h-11)}}
 function resize(){
-  const box=canvas.getBoundingClientRect();w=Math.max(1,Math.round(box.width));h=Math.max(1,Math.round(box.height));
-  dpr=Math.max(1,window.devicePixelRatio||1);
+  const box=canvas.getBoundingClientRect(),nextW=Math.max(1,Math.round(box.width)),nextH=Math.max(1,Math.round(box.height)),nextDpr=Math.max(1,window.devicePixelRatio||1);
+  if(w===nextW&&h===nextH&&dpr===nextDpr&&canvas.width===Math.round(nextW*nextDpr)&&canvas.height===Math.round(nextH*nextDpr))return;
+  const retained=paintedSlices,retainedMaximum=paintedMaximum,oldWidth=pxW,oldHeight=pxH;
+  w=nextW;h=nextH;dpr=nextDpr;
   canvas.width=overlay.width=analysisCanvas.width=Math.round(w*dpr);canvas.height=overlay.height=analysisCanvas.height=Math.round(h*dpr);
   plotW=Math.max(1,w-left-right);plotH=Math.max(1,h-padTop-bottom);
   pxLeft=Math.round(left*dpr);pxTop=Math.round(padTop*dpr);pxW=Math.max(1,Math.round(plotW*dpr));pxH=Math.max(1,Math.round(plotH*dpr));
   redraw();
+  paintedSlices=PraatDisplay.resizeSlices(retained,oldWidth,oldHeight,pxW,pxH);
+  paintedMaximum=retainedMaximum;
+  if(paintedSlices.length)paintSpectrum(paintedSlices,paintedSlices[0].width,pxLeft+pxW-paintedSlices[0].width,retainedMaximum);
 }
 window.addEventListener('resize',resize);
 new ResizeObserver(resize).observe($('plot'));
@@ -93,21 +98,22 @@ function renderFrame(time){
   paintedSlices.push({width:pixels,db:dbPixels});
   let excess=paintedSlices.reduce((sum,s)=>sum+s.width,0)-pxW;
   while(excess>0&&paintedSlices.length){const first=paintedSlices[0];if(first.width<=excess){excess-=first.width;paintedSlices.shift()}else{const width=first.width-excess,db=new Float32Array(width*pxH);for(let y=0;y<pxH;y++)db.set(first.db.subarray(y*first.width+excess,(y+1)*first.width),y*width);paintedSlices[0]={width,db};excess=0}}
-  function paint(slices,width,x){
-    // Autoscaling can repaint millions of Retina pixels; read controls once.
-    const range=$('colourLevels').value==='held'?100:value('floor'),gain=value('gain');
-    const image=ctx.createImageData(width,pxH);
-    PraatDisplay.colourPixels(slices,width,pxH,displayMaximum,range,gain,packedColours,image.data,value('compression'),value('suppression'));
-    ctx.putImageData(image,x,pxTop);
-  }
+
   if(displayMaximum!==paintedMaximum){
-    const width=paintedSlices.reduce((sum,s)=>sum+s.width,0);paint(paintedSlices,width,pxLeft+pxW-width);paintedMaximum=displayMaximum;
+    const width=paintedSlices.reduce((sum,s)=>sum+s.width,0);paintSpectrum(paintedSlices,width,pxLeft+pxW-width);paintedMaximum=displayMaximum;
   }else{
     if(pixels<pxW)ctx.drawImage(canvas,pxLeft+pixels,pxTop,pxW-pixels,pxH,pxLeft,pxTop,pxW-pixels,pxH);
-    paint([{width:pixels,db:dbPixels}],pixels,pxLeft+pxW-pixels);
+    paintSpectrum([{width:pixels,db:dbPixels}],pixels,pxLeft+pxW-pixels);
   }
   previousSlice=current;drawAnalysis();
 
+}
+function paintSpectrum(slices,width,x,maximum=displayMaximum){
+  // Autoscaling can repaint millions of Retina pixels; read controls once.
+  const range=$('colourLevels').value==='held'?100:value('floor'),gain=value('gain');
+  const image=ctx.createImageData(width,pxH);
+  PraatDisplay.colourPixels(slices,width,pxH,maximum,range,gain,packedColours,image.data,value('compression'),value('suppression'));
+  ctx.putImageData(image,x,pxTop);
 }
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
 function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
@@ -316,18 +322,23 @@ function drawAnalysis(){
   if(!w)return;
   const g=analysisContext;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
   const end=Number(canvas.dataset.plottedUntil)||lastPlotTime,begin=end-value('history');
-  const rows=featureHistory.filter(f=>f.time>=begin&&f.time<=end);
+  let rows=featureHistory.filter(f=>f.time>=begin&&f.time<=end);
   const xFor=time=>left+(time-begin)/value('history')*plotW;
   g.save();g.beginPath();g.rect(left,padTop,plotW,plotH);g.clip();g.font='11px system-ui';g.lineWidth=1.4;
   const mode=$('formants').value,peak=rows.reduce((a,f)=>Math.max(a,f.intensity),-160);
-  function contour(getValue,colour,dots=false,lines=true){
+  function contour(getValue,colour,dots=false,lines=true,canConnect=()=>true){
     g.strokeStyle=colour;g.fillStyle=colour;let previous=null;g.beginPath();
     for(const row of rows){const value=getValue(row);if(!Number.isFinite(value)||value<=0||value>maxHz()||$('scale').value==='log'&&value<60){previous=null;continue}const point={time:row.time,value},x=xFor(row.time),y=yFor(value);
-      if(lines&&PraatOverlays.connected(previous,point)){g.moveTo(xFor(previous.time),yFor(previous.value));g.lineTo(x,y)}
+      if(lines&&canConnect(row)&&PraatOverlays.connected(previous,point)){g.moveTo(xFor(previous.time),yFor(previous.value));g.lineTo(x,y)}
       if(dots){g.moveTo(x+1.5,y);g.arc(x,y,1.5,0,Math.PI*2)}previous=point;
     }g.stroke();
   }
-  if(mode!=='off')for(let i=0;i<3;i++)contour(row=>row.pitch>0&&row.strength>=.45&&row.intensity>=peak-35?PraatOverlays.formants(row)[i]:0,['#b6ffff','#ffffff','#baffb0'][i],mode==='dots'||mode==='both',mode!=='dots');
+  if(mode!=='off'){
+    const tracker=new VoiceFeedback.FormantTracker({smoothingSeconds:({off:0,light:.025,strong:.06})[$('formantSmoothing').value],filterUncertain:$('formantFiltering').value==='on'});
+    // Warm the causal tracker from retained left context; never use future frames.
+    rows=featureHistory.filter(row=>row.time<=end).map(row=>({...row,trackedFormants:tracker.push(row,{referenceIntensity:peak}).formants})).filter(row=>row.time>=begin);
+    for(let i=0;i<3;i++)contour(row=>row.trackedFormants[i].hz,['#b6ffff','#ffffff','#baffb0'][i],mode==='dots'||mode==='both',mode!=='dots',row=>row.trackedFormants[i].connected);
+  }
   g.restore();analysisCanvas.dataset.frames=rows.length;
 }
 for(const id of ['formants','formantCeiling'])$(id).addEventListener('change',()=>{
@@ -340,10 +351,10 @@ for(const id of ['preemphasis','compression'])$(id).addEventListener('input',()=
   redraw();
 });
 
-// Presets change display/analysis-window settings; formant overlays stay independent.
+// Presets own all spectrogram and formant display settings.
 const displayPresets=AnalysisSettings.presets;
 const presetStorageKey='soundglow-presets-v1';
-const savedSettingIds=[...Object.keys(displayPresets.praat),'formants','formantCeiling'];
+const savedSettingIds=Object.keys(displayPresets.praat);
 let savedPresets=[],selectedPreset=null;
 function validSavedPreset(preset){
  if(!preset||typeof preset.id!=='string'||!/^saved-[a-zA-Z0-9-]+$/.test(preset.id)||typeof preset.name!=='string'||!preset.name.trim()||preset.name.length>60||preset.name.includes('*'))return false;
@@ -446,7 +457,7 @@ for(const id of savedSettingIds)$(id).addEventListener('input',()=>{
 renderSavedPresets();
 if(settingsForPreset(selectedPreset))applyPreset(selectedPreset);else applyPreset('soundglow');
 
-for(const id of Object.keys(AnalysisSettings.defaults))$(id).addEventListener('input',()=>{if(!['palette','interpolation','frameInterpolation'].includes(id))resetAnalysis();colourMap();redraw()});
+for(const id of Object.keys(AnalysisSettings.defaults))$(id).addEventListener('input',()=>{if(['formantSmoothing','formantFiltering'].includes(id)){drawAnalysis();return;}if(!['palette','interpolation','frameInterpolation'].includes(id))resetAnalysis();colourMap();redraw()});
 $('colourLevels').addEventListener('input',()=>{resetAnalysis();redraw()});
 function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:Object.fromEntries(savedSettingIds.map(id=>[id,$(id).value])),preset:$('preset').selectedOptions[0]?.textContent,visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',health:{...processingStats}})}
 window.soundglowPerformance={report:performanceReport,reset:()=>performanceSession.reset()};

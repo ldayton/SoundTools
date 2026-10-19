@@ -1,0 +1,528 @@
+{
+  "selection": "Three fixed, disjoint 30-second passages per meeting, chosen before detector comparison. Source channels kept separate.",
+  "rate": 48000,
+  "clips": [
+    {
+      "id": "ES2004a-060-far",
+      "meeting": "ES2004a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/ES2004a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Array1-01.wav",
+        "sha256": "6936edac5d0904fc5c4ab175546c5cc5366601fdc1b1e5183a6ea2c10f05d150",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1049.354687"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 60,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/ES2004a-060-far.wav",
+      "pcmSha256": "fec20dd70939dcb707688a1e30644410a752726d7912dd464b7c2c0a65b9da69",
+      "wavSha256": "43541ec3b20790c17fd88264b53f204a7a3f99744c6810cebfa809012f56fb1d"
+    },
+    {
+      "id": "ES2004a-060-headset",
+      "meeting": "ES2004a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/ES2004a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Mix-Headset.wav",
+        "sha256": "3e2560b19bee6952c7c7ce041b0f1ea8a7ea9468044c4eea79d2a2c67e24ab0f",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1049.354687"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 60,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/ES2004a-060-headset.wav",
+      "pcmSha256": "fc4e71ba75a7b68e0b55732ad4accc6fb83ad45595688e141b2b6ba6408a9e09",
+      "wavSha256": "2f4d4a42603e15f48a0b73cde7f2075cb36adb4aa136d80ec698771aee472018"
+    },
+    {
+      "id": "ES2004a-180-far",
+      "meeting": "ES2004a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/ES2004a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Array1-01.wav",
+        "sha256": "6936edac5d0904fc5c4ab175546c5cc5366601fdc1b1e5183a6ea2c10f05d150",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1049.354687"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 180,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/ES2004a-180-far.wav",
+      "pcmSha256": "17e2d05884777eca8404c73fe0aed9de0a96af795b4cddb0eddae2c66d989576",
+      "wavSha256": "47b4cc61489ce5fa4c38edfc2054a14be255cfc9bcd164dab3616a82dc72a357"
+    },
+    {
+      "id": "ES2004a-180-headset",
+      "meeting": "ES2004a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/ES2004a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Mix-Headset.wav",
+        "sha256": "3e2560b19bee6952c7c7ce041b0f1ea8a7ea9468044c4eea79d2a2c67e24ab0f",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1049.354687"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 180,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/ES2004a-180-headset.wav",
+      "pcmSha256": "c0363457a750037a20e921b7b6922bd9722d9f46e68a1a77e4b3aa4456fc73bc",
+      "wavSha256": "2e49b64f3fd0d47737fac998cad4a46f16979d488f7efbe4232330e8443657f8"
+    },
+    {
+      "id": "ES2004a-360-far",
+      "meeting": "ES2004a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/ES2004a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Array1-01.wav",
+        "sha256": "6936edac5d0904fc5c4ab175546c5cc5366601fdc1b1e5183a6ea2c10f05d150",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1049.354687"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 360,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/ES2004a-360-far.wav",
+      "pcmSha256": "3a9a52c5d5ec02802013cbaf4b2ffdc89405dfe6d00248d5bb5656ade2339a02",
+      "wavSha256": "f51bf0fbb93ec65a0bc119e328431558918b9217fa1fa9360f0b6ad680a8d271"
+    },
+    {
+      "id": "ES2004a-360-headset",
+      "meeting": "ES2004a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/ES2004a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Mix-Headset.wav",
+        "sha256": "3e2560b19bee6952c7c7ce041b0f1ea8a7ea9468044c4eea79d2a2c67e24ab0f",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1049.354687"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 360,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/ES2004a-360-headset.wav",
+      "pcmSha256": "3bfe06de7bd6996bebe531e09cb4af711bac819d3b7acb3fd68cbfeebfe62f4d",
+      "wavSha256": "0b50c0ddc270ceb939d354464eae4f7c4ec56b4cd997937abb1d5b078ccfe45f"
+    },
+    {
+      "id": "IS1009a-090-far",
+      "meeting": "IS1009a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/IS1009a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009a/audio/IS1009a.Array1-01.wav",
+        "sha256": "23fd54fd6dbe23870f10317b256f7c648fe0fd587e56d2f940840309f1578b60",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "838.997313"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 90,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/IS1009a-090-far.wav",
+      "pcmSha256": "c5bfd67d9a468011bc0f4869cafab8aa4f56cd342fd164bd08543902a9242156",
+      "wavSha256": "e5fd13040bb1b0681f3221b0f529742214c16ee0a358c8c63d77327f2ba18cb2"
+    },
+    {
+      "id": "IS1009a-090-headset",
+      "meeting": "IS1009a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/IS1009a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009a/audio/IS1009a.Mix-Headset.wav",
+        "sha256": "6eb5a0ede0d9e72794f976ce7bea5b78133eae969f99b4c5418b43c2468d25b1",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "838.833313"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 90,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/IS1009a-090-headset.wav",
+      "pcmSha256": "d7dc7cefffbb5a2d1f603866b9310460c7321d54d3a9903521607688eb971d79",
+      "wavSha256": "3e439f928f030e4743b1840b62545b66fb1d3e8019709cb88525a49c1beb801a"
+    },
+    {
+      "id": "IS1009a-240-far",
+      "meeting": "IS1009a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/IS1009a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009a/audio/IS1009a.Array1-01.wav",
+        "sha256": "23fd54fd6dbe23870f10317b256f7c648fe0fd587e56d2f940840309f1578b60",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "838.997313"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 240,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/IS1009a-240-far.wav",
+      "pcmSha256": "71ffc8dcfeee16007f526b8bdd51710c1c3950f023f9af38ffd820263dcb3c0e",
+      "wavSha256": "8d38797057556c0a7108e7d35bec1b638c870760c34f346c6d05d98f7727474b"
+    },
+    {
+      "id": "IS1009a-240-headset",
+      "meeting": "IS1009a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/IS1009a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009a/audio/IS1009a.Mix-Headset.wav",
+        "sha256": "6eb5a0ede0d9e72794f976ce7bea5b78133eae969f99b4c5418b43c2468d25b1",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "838.833313"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 240,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/IS1009a-240-headset.wav",
+      "pcmSha256": "8d74f8c8c1e35698e1a1db8bfd9cda813c74941a3d749a17190fc01ee38671a9",
+      "wavSha256": "6fe2ae6275333a2e7ed982f5bd82ff1301613a454212d5780d3dd2ec12ae74b0"
+    },
+    {
+      "id": "IS1009a-420-far",
+      "meeting": "IS1009a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/IS1009a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009a/audio/IS1009a.Array1-01.wav",
+        "sha256": "23fd54fd6dbe23870f10317b256f7c648fe0fd587e56d2f940840309f1578b60",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "838.997313"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 420,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/IS1009a-420-far.wav",
+      "pcmSha256": "2128cbfb5bd26ebba2695d7e93dece41985c22a9176b1a05ca3cfca700185a00",
+      "wavSha256": "7f416e5bab91edffeeaf4b1d51f6e82c314fbdf5eadb22f428f7f7a4e2f42bc0"
+    },
+    {
+      "id": "IS1009a-420-headset",
+      "meeting": "IS1009a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/IS1009a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/IS1009a/audio/IS1009a.Mix-Headset.wav",
+        "sha256": "6eb5a0ede0d9e72794f976ce7bea5b78133eae969f99b4c5418b43c2468d25b1",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "838.833313"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 420,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/IS1009a-420-headset.wav",
+      "pcmSha256": "1a91b88dda8213b6043d0b43c9c11da64477d9ca111363679eac576a863c6719",
+      "wavSha256": "d5d1dca8791663c3deaaccb1f35279d3fb9a1c271eeacdf6e9dc8fadfeea8534"
+    },
+    {
+      "id": "TS3003a-060-far",
+      "meeting": "TS3003a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/TS3003a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/TS3003a/audio/TS3003a.Array1-01.wav",
+        "sha256": "46f81fb403e40a98c1b694c842404c0db24f3a6c67397b247faf0d3f42cf9163",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1505.642625"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 60,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/TS3003a-060-far.wav",
+      "pcmSha256": "fd8d9b6dd2a848677c1ed2a0fd7e84ccd61937e22d371d3c977b758575c11ae3",
+      "wavSha256": "cea21a1a266acc75a5f496a91e38f98cffa1f0a2c85b1dce19e08790ce8e1e22"
+    },
+    {
+      "id": "TS3003a-060-headset",
+      "meeting": "TS3003a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/TS3003a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/TS3003a/audio/TS3003a.Mix-Headset.wav",
+        "sha256": "b6ce59ff735c234afdd94b13744aa26f6785af746170543fd03b33160e920a6d",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1505.642625"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 60,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/TS3003a-060-headset.wav",
+      "pcmSha256": "833d89d6ffb44e3af680649cdedc52fc517e2abe812a4c17d1b9ca398692016b",
+      "wavSha256": "a0169d7735b7479732ff34d4d2173cfd1a036cb3bf354d08e3bad9c20dc02100"
+    },
+    {
+      "id": "TS3003a-180-far",
+      "meeting": "TS3003a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/TS3003a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/TS3003a/audio/TS3003a.Array1-01.wav",
+        "sha256": "46f81fb403e40a98c1b694c842404c0db24f3a6c67397b247faf0d3f42cf9163",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1505.642625"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 180,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/TS3003a-180-far.wav",
+      "pcmSha256": "aed1ce25fe777f1ab1e8735d46b80162f829cbd7f49bb62b2df7f593e86ed8b3",
+      "wavSha256": "4b5ace6e51624a91345f4fdc4194965c370955e2e3df9032dc309d5d661d1791"
+    },
+    {
+      "id": "TS3003a-180-headset",
+      "meeting": "TS3003a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/TS3003a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/TS3003a/audio/TS3003a.Mix-Headset.wav",
+        "sha256": "b6ce59ff735c234afdd94b13744aa26f6785af746170543fd03b33160e920a6d",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1505.642625"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 180,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/TS3003a-180-headset.wav",
+      "pcmSha256": "1fb751d91c5a2fb5c1d81ed9a3e4770b4f6342cd838836022fd9b6533c3632f5",
+      "wavSha256": "b6022fe6a0fb349b98fda5e0abc1083b9e7f8328872d0d9f6b6c066563686a09"
+    },
+    {
+      "id": "TS3003a-300-far",
+      "meeting": "TS3003a",
+      "channel": "Array1-01",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/TS3003a.Array1-01.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/TS3003a/audio/TS3003a.Array1-01.wav",
+        "sha256": "46f81fb403e40a98c1b694c842404c0db24f3a6c67397b247faf0d3f42cf9163",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1505.642625"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 300,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/TS3003a-300-far.wav",
+      "pcmSha256": "9e5c76687932533472050a7b8ec219e7a5245b3c1713272ed3a601665b80b0a5",
+      "wavSha256": "bb14cc24c31bb54840f5dde47058db0fa5649d4b50597208b0495f6ef55b99a0"
+    },
+    {
+      "id": "TS3003a-300-headset",
+      "meeting": "TS3003a",
+      "channel": "Mix-Headset",
+      "source": {
+        "file": "outputs/pitch-comparison/continuous-sources/TS3003a.Mix-Headset.wav",
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/TS3003a/audio/TS3003a.Mix-Headset.wav",
+        "sha256": "b6ce59ff735c234afdd94b13744aa26f6785af746170543fd03b33160e920a6d",
+        "probe": {
+          "programs": [],
+          "stream_groups": [],
+          "streams": [
+            {
+              "sample_rate": "16000",
+              "channels": 1,
+              "duration": "1505.642625"
+            }
+          ]
+        },
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh, AMI Meeting Corpus"
+      },
+      "sourceStart": 300,
+      "seconds": 30,
+      "wav": "outputs/pitch-comparison/filtered-stream/audio/TS3003a-300-headset.wav",
+      "pcmSha256": "b8106e1c5d9ff8f1972ccd9bf59028e0225262689069fdbe50967106c34b45ed",
+      "wavSha256": "c08a6dffc248493ead4431728efda6848e2692f290bca30bf9212c60a72b3456"
+    }
+  ]
+}

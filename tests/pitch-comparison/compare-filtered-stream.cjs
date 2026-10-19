@@ -1,0 +1,16 @@
+// Matched streaming experiment through the actual processor and PraatStream.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),F=require('../../dist/feature-state.js'),{engine,measure}=require('./matched-stream.cjs');
+const root=path.resolve(__dirname,'../..'),out=path.join(root,'outputs/pitch-comparison/filtered-stream'),hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+(async()=>{const manifest=JSON.parse(fs.readFileSync(path.join(out,'continuous.json'))),clips=[];
+// First prove parity on the clean control and all eight previously audited noisy files.
+const controls=[{id:'clean',pcm:'outputs/pitch-comparison/audit-v2/case-00.f32'},...JSON.parse(fs.readFileSync(path.join(root,'outputs/pitch-comparison/worst-cases/audit.json'))).clips.map(c=>({id:path.basename(c.file).slice(0,4),file:c.file,sourceSha256:c.sha256}))];
+const instances={production:await engine('production'),raw:await engine(0),filteredMatched:await engine(1),filteredDefaults:await engine(2)};
+for(const clip of [...controls,...manifest.clips]){
+ let bytes;if(clip.pcm)bytes=fs.readFileSync(path.join(root,clip.pcm));else if(clip.file){const original=fs.readFileSync(path.join(root,clip.file));assert.equal(hash(original),clip.sourceSha256);bytes=require('node:child_process').execFileSync('ffmpeg',['-v','error','-i',path.join(root,clip.file),'-ar','48000','-ac','1','-f','f32le','pipe:1']);}else{const wav=fs.readFileSync(path.join(root,clip.wav));assert.equal(hash(wav),clip.wavSha256);bytes=fs.readFileSync(path.join(out,'audio',clip.id+'.f32'));assert.equal(hash(bytes),clip.pcmSha256);}
+ const pcm=new Float32Array(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.length)),variants={};let requests;
+ for(const [name,instance]of Object.entries(instances)){const result=await measure(pcm,instance);if(!requests)requests=result.requests;else assert.deepEqual(result.requests,requests,'Input/context mismatch '+clip.id+' '+name);const points=F.points(result.rows,F.presets.voice);variants[name]={rows:result.rows,points,timings:result.timings,voicedRaw:result.rows.filter(r=>r.pitch>0&&r.strength>=.45).length,voicedGroups:points.filter(p=>p.hz>0).length};if(name==='raw')assert.deepEqual(result.rows,variants.production.rows,'Raw WASM parity failure '+clip.id);else if(name!=='production')assert.deepEqual(result.rows.map(r=>r.time),variants.production.rows.map(r=>r.time),'Timestamp mismatch');}
+ // Unchanged raw modes have equal rows, so omit duplicate production arrays.
+ delete variants.production;clips.push({...clip,pcmSha256:hash(bytes),seconds:pcm.length/48000,requests,variants});console.log(clip.id,JSON.stringify(Object.fromEntries(Object.entries(variants).map(([k,v])=>[k,v.voicedRaw]))));
+ }
+ fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({method:'Identical production stream inputs; raw parity asserted for every observation. Range 50–1200 Hz in all modes; no temporal post-filter.',researchBuild:JSON.parse(fs.readFileSync(path.join(out,'build/research-manifest.json'))),productionBuild:JSON.parse(fs.readFileSync(path.join(root,'dist/vendor/praat/build-release/manifest.json'))),clips},null,2));
+})().catch(e=>{console.error(e);process.exitCode=1});

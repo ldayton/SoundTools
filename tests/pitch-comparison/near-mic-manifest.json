@@ -1,0 +1,413 @@
+{
+  "target": "One prominent voice, ordinary microphone imperfections; original recordings primary, labelled controlled-noise variants secondary. Four speakers from one meeting, not a representative phone benchmark.",
+  "clips": [
+    {
+      "id": "voice-0-original",
+      "wav": "outputs/pitch-comparison/near-mic/voice-0-original.wav",
+      "seconds": 12,
+      "wavSha256": "86acd03ff0588fc687f5a8c43a30b37c29c3cd6424de84db3e7b83662d96386b",
+      "pcmSha256": "ab751f7a1337a60fa825b0c013cc2531390e5289220875ce2bca818b16ad2d70",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-0.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-0.wav",
+        "sha256": "abb4917719c6e033b066fbd400b6d37fe46ddd62c89b513f77016a51f54e2ad1",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 318.88,
+      "dominantFrameFraction": 0.7316666666666667,
+      "competingFrameFraction": 0.006666666666666667,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Original headset recording, other voices distant"
+    },
+    {
+      "id": "voice-0-variable-noise",
+      "wav": "outputs/pitch-comparison/near-mic/voice-0-variable-noise.wav",
+      "seconds": 12,
+      "wavSha256": "78221888965b1b85579351ecd208137a4de78bf3dff72c0a4584345b49eadd70",
+      "pcmSha256": "6448d04e60bb526b5c2643e4a5a06cb28d48b453dfd898980430433de1496be9",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-0.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-0.wav",
+        "sha256": "abb4917719c6e033b066fbd400b6d37fe46ddd62c89b513f77016a51f54e2ad1",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 318.88,
+      "dominantFrameFraction": 0.7316666666666667,
+      "competingFrameFraction": 0.006666666666666667,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Controlled synthetic addition of three nonvoice noises, 24/14/20 dB global-RMS SNR; not a real phone recording",
+      "noiseSources": [
+        {
+          "filename": "1-17367-A-10.wav",
+          "fold": "1",
+          "target": "10",
+          "category": "rain",
+          "esc10": "True",
+          "src_file": "17367",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-17367-A-10.wav",
+          "sha256": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea"
+        },
+        {
+          "filename": "1-100210-A-36.wav",
+          "fold": "1",
+          "target": "36",
+          "category": "vacuum_cleaner",
+          "esc10": "False",
+          "src_file": "100210",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100210-A-36.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-100210-A-36.wav",
+          "sha256": "f97e97b0fe0afce323d858503b6fa3ffd6c8cb1162c43cf3b24461300fb9abf6"
+        },
+        {
+          "filename": "1-137-A-32.wav",
+          "fold": "1",
+          "target": "32",
+          "category": "keyboard_typing",
+          "esc10": "False",
+          "src_file": "137",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137-A-32.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-137-A-32.wav",
+          "sha256": "d68e4716f74f073be8f78f5fe8e45daf7c09b0ec0575b21f57989d803536abb3"
+        }
+      ],
+      "noiseIntervals": [
+        [
+          0,
+          4,
+          "rain",
+          24
+        ],
+        [
+          4,
+          8,
+          "vacuum_cleaner",
+          14
+        ],
+        [
+          8,
+          12,
+          "keyboard_typing",
+          20
+        ]
+      ],
+      "snrNote": "Relative to whole-excerpt speech RMS; not per-frame speech SNR. Source speech and its original background are unchanged."
+    },
+    {
+      "id": "voice-1-original",
+      "wav": "outputs/pitch-comparison/near-mic/voice-1-original.wav",
+      "seconds": 12,
+      "wavSha256": "41aefa62802c7c10adc46717fde670e5343ff86152626c844b82c8689d3aae98",
+      "pcmSha256": "7269e51b319306766b2a160d2e7a7e8615a7760e04cad553ada17d06777e8bfa",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-1.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-1.wav",
+        "sha256": "9be8e84e4ef93ea7eef669470cd6db017856f38f7321e0054199ad7393a1199c",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 171.58,
+      "dominantFrameFraction": 0.6866666666666666,
+      "competingFrameFraction": 0.041666666666666664,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Original headset recording, other voices distant"
+    },
+    {
+      "id": "voice-1-variable-noise",
+      "wav": "outputs/pitch-comparison/near-mic/voice-1-variable-noise.wav",
+      "seconds": 12,
+      "wavSha256": "e550eb754dbbc6097239ca6d41c7823f2deca27a0e9d7372adc8202cdad45ace",
+      "pcmSha256": "05ae9a8e7f00d752e75c2d1312dea1e1d3d1a8d6ac63d690277e1223e98688ad",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-1.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-1.wav",
+        "sha256": "9be8e84e4ef93ea7eef669470cd6db017856f38f7321e0054199ad7393a1199c",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 171.58,
+      "dominantFrameFraction": 0.6866666666666666,
+      "competingFrameFraction": 0.041666666666666664,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Controlled synthetic addition of three nonvoice noises, 24/14/20 dB global-RMS SNR; not a real phone recording",
+      "noiseSources": [
+        {
+          "filename": "1-17367-A-10.wav",
+          "fold": "1",
+          "target": "10",
+          "category": "rain",
+          "esc10": "True",
+          "src_file": "17367",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-17367-A-10.wav",
+          "sha256": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea"
+        },
+        {
+          "filename": "1-100210-A-36.wav",
+          "fold": "1",
+          "target": "36",
+          "category": "vacuum_cleaner",
+          "esc10": "False",
+          "src_file": "100210",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100210-A-36.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-100210-A-36.wav",
+          "sha256": "f97e97b0fe0afce323d858503b6fa3ffd6c8cb1162c43cf3b24461300fb9abf6"
+        },
+        {
+          "filename": "1-137-A-32.wav",
+          "fold": "1",
+          "target": "32",
+          "category": "keyboard_typing",
+          "esc10": "False",
+          "src_file": "137",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137-A-32.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-137-A-32.wav",
+          "sha256": "d68e4716f74f073be8f78f5fe8e45daf7c09b0ec0575b21f57989d803536abb3"
+        }
+      ],
+      "noiseIntervals": [
+        [
+          0,
+          4,
+          "rain",
+          24
+        ],
+        [
+          4,
+          8,
+          "vacuum_cleaner",
+          14
+        ],
+        [
+          8,
+          12,
+          "keyboard_typing",
+          20
+        ]
+      ],
+      "snrNote": "Relative to whole-excerpt speech RMS; not per-frame speech SNR. Source speech and its original background are unchanged."
+    },
+    {
+      "id": "voice-2-original",
+      "wav": "outputs/pitch-comparison/near-mic/voice-2-original.wav",
+      "seconds": 12,
+      "wavSha256": "46b0bd3c431c4dea8ae5652246d4d4668d49213a87d6f139b6093ed75ca690a1",
+      "pcmSha256": "39e8c2b41d11c25a6712554b3d459debf912177bbc43c6031309a41082463831",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-2.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-2.wav",
+        "sha256": "a4f2f8ea7d965ede2c010e36bfc31c14c7792d07419bd5bc9519c8ddd1c8bc28",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 992.86,
+      "dominantFrameFraction": 0.7533333333333333,
+      "competingFrameFraction": 0.005,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Original headset recording, other voices distant"
+    },
+    {
+      "id": "voice-2-variable-noise",
+      "wav": "outputs/pitch-comparison/near-mic/voice-2-variable-noise.wav",
+      "seconds": 12,
+      "wavSha256": "23a19934d0d0c447b74c67ae05d32c7484cf7b0e65150ab87c97a2846e2571f8",
+      "pcmSha256": "07b49dadde5afb8ac69181061bcf3133bfee9d73a3193f0b40b150f989301a2d",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-2.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-2.wav",
+        "sha256": "a4f2f8ea7d965ede2c010e36bfc31c14c7792d07419bd5bc9519c8ddd1c8bc28",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 992.86,
+      "dominantFrameFraction": 0.7533333333333333,
+      "competingFrameFraction": 0.005,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Controlled synthetic addition of three nonvoice noises, 24/14/20 dB global-RMS SNR; not a real phone recording",
+      "noiseSources": [
+        {
+          "filename": "1-17367-A-10.wav",
+          "fold": "1",
+          "target": "10",
+          "category": "rain",
+          "esc10": "True",
+          "src_file": "17367",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-17367-A-10.wav",
+          "sha256": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea"
+        },
+        {
+          "filename": "1-100210-A-36.wav",
+          "fold": "1",
+          "target": "36",
+          "category": "vacuum_cleaner",
+          "esc10": "False",
+          "src_file": "100210",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100210-A-36.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-100210-A-36.wav",
+          "sha256": "f97e97b0fe0afce323d858503b6fa3ffd6c8cb1162c43cf3b24461300fb9abf6"
+        },
+        {
+          "filename": "1-137-A-32.wav",
+          "fold": "1",
+          "target": "32",
+          "category": "keyboard_typing",
+          "esc10": "False",
+          "src_file": "137",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137-A-32.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-137-A-32.wav",
+          "sha256": "d68e4716f74f073be8f78f5fe8e45daf7c09b0ec0575b21f57989d803536abb3"
+        }
+      ],
+      "noiseIntervals": [
+        [
+          0,
+          4,
+          "rain",
+          24
+        ],
+        [
+          4,
+          8,
+          "vacuum_cleaner",
+          14
+        ],
+        [
+          8,
+          12,
+          "keyboard_typing",
+          20
+        ]
+      ],
+      "snrNote": "Relative to whole-excerpt speech RMS; not per-frame speech SNR. Source speech and its original background are unchanged."
+    },
+    {
+      "id": "voice-3-original",
+      "wav": "outputs/pitch-comparison/near-mic/voice-3-original.wav",
+      "seconds": 12,
+      "wavSha256": "cebe69c5d8db6aa0f727fc47d84eb5e73ce13fc1f8a5dfe14b67869612d605a9",
+      "pcmSha256": "d745c958f0136bb989b4c6547a9e9b8648255215af867e26ae48ba2df1cc08c2",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-3.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-3.wav",
+        "sha256": "5b3cf59816d5160d77ff00315dc7f6db816c175edb65e0d61691679fae633572",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 714.04,
+      "dominantFrameFraction": 0.7666666666666667,
+      "competingFrameFraction": 0.065,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Original headset recording, other voices distant"
+    },
+    {
+      "id": "voice-3-variable-noise",
+      "wav": "outputs/pitch-comparison/near-mic/voice-3-variable-noise.wav",
+      "seconds": 12,
+      "wavSha256": "6f8cc66a7350d6b7e59678627d53b830acd6cb0d44aa12af6d57b21e118db9cf",
+      "pcmSha256": "2b55b8971a3bd8d19d7857222157a128c1abe58c1e27754322b9d635308f0cf1",
+      "source": {
+        "url": "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/ES2004a/audio/ES2004a.Headset-3.wav",
+        "file": "outputs/pitch-comparison/near-mic/sources/ES2004a.Headset-3.wav",
+        "sha256": "5b3cf59816d5160d77ff00315dc7f6db816c175edb65e0d61691679fae633572",
+        "license": "CC BY 4.0",
+        "licenseSource": "https://groups.inf.ed.ac.uk/ami/download/",
+        "attribution": "AMI Consortium / University of Edinburgh"
+      },
+      "sourceStart": 714.04,
+      "dominantFrameFraction": 0.7666666666666667,
+      "competingFrameFraction": 0.065,
+      "selection": "Best 12-second target-dominance energy window, before pitch evaluation; no claim of frame-level speaker labels.",
+      "condition": "Controlled synthetic addition of three nonvoice noises, 24/14/20 dB global-RMS SNR; not a real phone recording",
+      "noiseSources": [
+        {
+          "filename": "1-17367-A-10.wav",
+          "fold": "1",
+          "target": "10",
+          "category": "rain",
+          "esc10": "True",
+          "src_file": "17367",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-17367-A-10.wav",
+          "sha256": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea"
+        },
+        {
+          "filename": "1-100210-A-36.wav",
+          "fold": "1",
+          "target": "36",
+          "category": "vacuum_cleaner",
+          "esc10": "False",
+          "src_file": "100210",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100210-A-36.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-100210-A-36.wav",
+          "sha256": "f97e97b0fe0afce323d858503b6fa3ffd6c8cb1162c43cf3b24461300fb9abf6"
+        },
+        {
+          "filename": "1-137-A-32.wav",
+          "fold": "1",
+          "target": "32",
+          "category": "keyboard_typing",
+          "esc10": "False",
+          "src_file": "137",
+          "take": "A",
+          "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137-A-32.wav",
+          "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+          "file": "outputs/voice-gating/1-137-A-32.wav",
+          "sha256": "d68e4716f74f073be8f78f5fe8e45daf7c09b0ec0575b21f57989d803536abb3"
+        }
+      ],
+      "noiseIntervals": [
+        [
+          0,
+          4,
+          "rain",
+          24
+        ],
+        [
+          4,
+          8,
+          "vacuum_cleaner",
+          14
+        ],
+        [
+          8,
+          12,
+          "keyboard_typing",
+          20
+        ]
+      ],
+      "snrNote": "Relative to whole-excerpt speech RMS; not per-frame speech SNR. Source speech and its original background are unchanged."
+    }
+  ]
+}

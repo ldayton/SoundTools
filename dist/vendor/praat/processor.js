@@ -63,7 +63,8 @@
     const power=m.HEAPF32.slice(base,base+frames*bins);
     let features=[];
     if(data.analysisFlags){
-     const featureStart=now(),count=m._sg_features(pointer,pcm.length,sampleRate,data.analysisFlags,data.formantCeiling||5500,75,600);
+     const floor=data.pitchFloor??75,ceiling=data.pitchCeiling??600;if(!Number.isFinite(floor)||!Number.isFinite(ceiling)||floor<50||ceiling<=floor||ceiling>1200)return {id,error:'Invalid pitch analysis range',code:'INVALID_REQUEST'};
+     const featureStart=now(),count=m._sg_features(pointer,pcm.length,sampleRate,data.analysisFlags,data.formantCeiling||5500,data.pitchFloor??75,data.pitchCeiling??600);
      featureMs=now()-featureStart;analysisMs+=featureMs;
      if(count<0)throw Error(m.UTF8ToString(m._sg_error()));
      const base=m._sg_features_data()>>>2,values=m.HEAPF32.slice(base,base+count*10);

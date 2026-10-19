@@ -110,3 +110,17 @@
  #collapseSettings{display:grid;place-items:center;width:36px;height:36px;padding:7px;background:transparent;border:0}
  #panel .panelhead{padding:14px 14px 14px 20px}
 }
+
+/* Feature navigation and scoped controls share a single audio workspace. */
+#featureTabs{display:flex;gap:4px;padding:7px 20px;background:#0d1118;border-bottom:1px solid #28313c}
+#featureTabs button{border-color:transparent;background:transparent;color:#96a3b5;padding:8px 14px}
+#featureTabs button[aria-selected=true]{color:#f4b78a;background:#f2ac7710;border-color:#f2ac7755}
+canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!important}
+.pitch-active #spectrogram,.pitch-active #labels,.pitch-active #analysisOverlay,.pitch-active #legend{visibility:hidden}
+.pitch-active #pitchCanvas{visibility:visible}
+#pitchSettings input[type=number],#pitchRanges input{font:inherit;color:inherit;background:#171e28;border:1px solid #303b4a;border-radius:7px;padding:10px;min-width:0}
+.pitchRange{border-top:1px solid #283345;padding:10px 0}.pitchRange .limits{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pitchRange label{margin:10px 0!important}
+#pitchError{color:#ffa6a6!important}
+@media(max-width:760px){#featureTabs{padding:5px 10px}#featureTabs button{flex:1}}
+
+#workspaceToolbar #featureTabs{padding:0;margin-left:8px;border:0;background:transparent}

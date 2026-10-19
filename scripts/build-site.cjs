@@ -13,14 +13,14 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soun
  const release=base+'releases/'+version+'/',output=new Map();
  for(const file of engineFiles)output.set(engine+file.slice('vendor/praat/'.length),read(file));
  for(const file of mediaFiles)output.set(media+file.slice('audio/'.length),read(file));
- for(const file of ['settings-state.js','voice-feedback.js','performance.js','analysis-settings.js','style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
+ for(const file of ['feature-state.js','workspace.js','settings-state.js','voice-feedback.js','performance.js','analysis-settings.js','style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
  let app=read('app.js').toString();
  for(const [before,after] of [["'vendor/praat/worker.js?profile=release'",JSON.stringify(engine+'worker.js?profile=release')],["'pcm-worklet.js'",JSON.stringify(release+'pcm-worklet.js')],["'audio/alice-waters.m4a'",JSON.stringify(media+'alice-waters.m4a')]]){
   if(app.split(before).length!==2)throw Error('Missing or duplicate production asset: '+before);app=app.replace(before,after);
  }
  output.set(release+'app.js',Buffer.from(app));
  let html=read('index.html').toString().replace('<head>','<head><meta name="soundglow-release" content="'+version+'"><meta name="soundglow-base" content="'+base+'">');
- const mappings={'settings-state.js':release+'settings-state.js','voice-feedback.js':release+'voice-feedback.js','performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
+ const mappings={'feature-state.js':release+'feature-state.js','workspace.js':release+'workspace.js','settings-state.js':release+'settings-state.js','voice-feedback.js':release+'voice-feedback.js','performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
  html=html.replace(/\b(src|href)="([^"?]+)(?:\?[^"]*)?"/g,(all,attribute,name)=>mappings[name]?attribute+'="'+mappings[name]+'"':all).replace('href="audio/CREDITS.txt"','href="'+media+'CREDITS.txt"');
  output.set(release+'index.html',Buffer.from(html));
  const manifest={schema:1,version,base,html:release+'index.html',files:[...output].map(([url,bytes])=>({url,sha256:digest(bytes),bytes:bytes.length}))};

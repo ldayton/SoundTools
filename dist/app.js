@@ -18,6 +18,16 @@ function newPeakState(){return AnalysisSettings.peakState(Number(viewSetting('pe
 function resetAnalysis(){spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}
 const praatWorkerURL='vendor/praat/worker.js?profile=release';
 let engine=null,pcmNode=null,frameQueue=[],spectrumStep=20,spectrumFirst=0;
+// Feature views share this transport and worker without owning microphone access.
+const featureSubscribers=new Set();
+function notifyFeatures(type){for(const listener of featureSubscribers)listener(type)}
+window.soundglowSession={
+ subscribe(listener){featureSubscribers.add(listener);return ()=>featureSubscribers.delete(listener)},
+ measure:(name,ms)=>performanceSession?.add(name,ms),
+ state:()=>({running,paused,time:audio?.currentTime||0,displayedUntil:Number(canvas.dataset.plottedUntil),sampleRate:audio?.sampleRate||0}),
+ raw:()=>engine?.raw||[],
+ analyse:(request,options)=>engine.request(request,options),
+};
 const analysisDelay=.3; // 100 ms capture packets + overlap + delivery headroom.
 let currentSpectrumFrame=null,lastPlotTime=0;
 let displayPeaks=[],paintedSlices=[],displayMaximum=0,paintedMaximum=0;
@@ -161,7 +171,7 @@ function paintSpectrum(slices,width,x,maximum=displayMaximum){
 }
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
 function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
-function stop(){performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
+function stop(){notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   if(!navigator.mediaDevices?.enumerateDevices)return [];
@@ -205,7 +215,7 @@ $('refreshMic').onclick=microphones;
 $('microphone').onchange=async()=>{notice('');if(running&&inputMode==='mic'){stop();await start();}};
 async function start(){if(starting)return;showSpectrogram();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
 function selectedPresetLabel(){return ({soundglow:'Soundglow',praat:'Praat',voice:'Voice Tools',custom:'Unnamed Preset*'})[settingsState.selected]||savedPresets.find(p=>p.id===settingsState.selected)?.name||'Unnamed Preset*'}
-function updateResolution(){$('resolution').textContent=selectedPresetLabel()}
+function updateResolution(){$('resolution').textContent=window.soundglowSession?.viewLabel?.()||selectedPresetLabel()}
 $('start').onclick=start;$('begin').onclick=start;
 async function togglePause(){
   if(!running||starting)return;
@@ -247,7 +257,7 @@ function syncSettings(){
   $('settings').textContent='⚙';
   $('settings').setAttribute('aria-label',open?(sidebar?'Close settings':'Return to spectrogram'):'Settings');
   $('settings').title=open?(sidebar?'Close settings':'Return to spectrogram'):'Settings';
-  if(open)microphones();
+  if(open)microphones();notifyFeatures('layout');
 }
 function panel(open){
   if(open===(location.hash==='#settings'))return;
@@ -345,7 +355,7 @@ async function connectInput(input){
    if(engine!==activeEngine||audio!==context)return;
    if(data.paddedFrames)performanceSession?.event('captureClockPadding',{audioTime:context.currentTime,paddedFrames:data.paddedFrames,paddedAudioMs:data.paddedFrames/context.sampleRate*1000});
    performanceSession?.add('capturePacketAgeMs',(context.currentTime-data.start-data.pcm.length/context.sampleRate)*1000);
-   if(!paused||inputMode==='speech')activeEngine.push(data.pcm,data.start);
+   if(!paused||inputMode==='speech'){activeEngine.push(data.pcm,data.start);notifyFeatures('capture');}
   };
   source.connect(pcmNode);pcmNode.connect(context.destination);nyquist=context.sampleRate/2;
   bins=new Float32Array(400);bins.fill(-160);
@@ -357,7 +367,7 @@ function playFrom(offset){
   heldPeak=newPeakState();
   featureHistory=[];drawAnalysis();
   if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect()}
-  processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);pcmNode?.port.postMessage('reset');
+  processingStats.lastFrameTime=null;engine?.reset();notifyFeatures('seek');frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160);pcmNode?.port.postMessage('reset');
   clipOffset=Math.max(0,Math.min(offset,speechBuffer.duration-.001));clipStarted=audio.currentTime;
   speechNode=audio.createBufferSource();speechNode.buffer=speechBuffer;speechNode.loop=$('loop').checked;
   speechNode.connect(speechDestination);speechNode.connect(monitor);
@@ -397,13 +407,13 @@ $('home').onclick=e=>{
   returningHome=starting;
   stop();showSpectrogram();redraw();notice('');
   $('welcome').hidden=false;state('MIC OFF');
-  $('device').textContent='MICROPHONE SPECTROGRAM';
+  $('device').textContent='MICROPHONE';
   updateResolution();
 };
 
 // Optional overlays live on a separate canvas; toggling them never recolours the plot.
 function drawAnalysis(){
-  if(!w)return;
+  if(!w)return;notifyFeatures('render');
   const g=analysisContext;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
   const end=Number(canvas.dataset.plottedUntil)||lastPlotTime,begin=end-viewValue('history');
   let rows=featureHistory.filter(f=>f.time>=begin&&f.time<=end);
@@ -559,7 +569,7 @@ for(const id of savedSettingIds)$(id).addEventListener('input',()=>updateSetting
 renderSavedPresets();
 if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
 
-function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:currentPresetSettings(),preset:selectedPresetLabel(),visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',retention:{spectraBytes:spectrumHistory.bytes,pcmBytes:engine?.rawBytes||0},appliedAnalysis:committedAnalysisValues,updatingAnalysis:!!engine?.rebuild,health:{...processingStats}})}
+function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,workspace:window.soundglowSession?.featureState?.(),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:currentPresetSettings(),preset:selectedPresetLabel(),visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',retention:{spectraBytes:spectrumHistory.bytes,pcmBytes:engine?.rawBytes||0},appliedAnalysis:committedAnalysisValues,updatingAnalysis:!!engine?.rebuild,health:{...processingStats}})}
 window.soundglowPerformance={report:performanceReport,reset:()=>performanceSession.reset()};
 if($('measurePerformance')){
  $('measurePerformance').onchange=()=>{performanceSession.enabled=$('measurePerformance').checked;performanceSession.reset();};

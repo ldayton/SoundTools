@@ -599,3 +599,24 @@ Larger jumps discard partial capture and remain discontinuities; explicit seek
 and microphone-resume resets also clear the gap tracker. A deterministic worklet
 regression reproduces the three-quantum jump observed in CI at all supported test
 rates, compares every sample and timestamp, and verifies the long-gap bound.
+
+## Feature workspace
+
+Spectrogram and Pitch share microphone capture, example playback, pause/resume,
+seeking and diagnostic controls. Switching tabs preserves the transport and audio
+clock. Spectrogram presets retain their existing storage and settings. Pitch has
+its own validated `soundglow-workspace-v1` state: 50–450 Hz display, 10 seconds of
+history, optional causal smoothing and three editable reference bands (85–145,
+145–175 and 175–275 Hz). Pitch preferences do not edit spectrogram presets.
+
+`feature-state.js` owns feature validation and pitch display gating.
+`workspace.js` consumes the public `soundglowSession` interface for capture
+notifications, bounded retained PCM and serialized worker requests. Pitch starts
+lazily on first use, processes the original audio through Praat's pitch analysis,
+and retains 31 seconds of scalar measurements. It does not open another microphone
+or own a second WASM instance. Analysis is queued through the existing persistent
+worker. The spectrogram continues in the background in this first implementation;
+this keeps switching immediate and its frozen/history behavior unchanged.
+Silence, uncertain measurements, missing frames and octave jumps break the trace.
+Band shading uses editable references, rather than deriving a classification.
+All feature assets are included in the versioned offline shell.

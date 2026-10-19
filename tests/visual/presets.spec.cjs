@@ -117,7 +117,7 @@ test('normalization timing uses the selected clock in the production frame consu
 test('Soundglow defaults favor clarity, remain editable, and restore saved selections',async({page})=>{
  await page.goto('/dist/index.html#settings');await expect(page.locator('#preset')).toHaveValue('soundglow');
  for(const [id,v]of Object.entries({window:'0.025',maximum:'5000',scale:'voice',history:'6',floor:'50',suppression:'10',preemphasis:'3',colourLevels:'fixed',fixedMaximum:'100',compression:'0',formants:'off'}))await expect(page.locator('#'+id)).toHaveValue(v);
- await page.locator('#window').selectOption('0.015');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');
+ if(await page.locator('#advancedAnalysis').getAttribute('open')===null)await page.locator('#advancedAnalysis > summary').click();await page.locator('#window').selectOption('0.015');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');
  await page.locator('#preset').selectOption('praat');await page.reload();await expect(page.locator('#preset')).toHaveValue('praat');await expect(page.locator('#window')).toHaveValue('0.005');
 });
 

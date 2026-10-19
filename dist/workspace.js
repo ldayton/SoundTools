@@ -55,10 +55,10 @@
   $('pitchBands').checked=p.bands;
   if(!$('pitchRanges').children.length)p.ranges.forEach((band,i)=>{
    const group=document.createElement('div');group.className='pitchRange';
-   const label=document.createElement('label');label.textContent='Band '+(i+1)+' name';const name=document.createElement('input');name.value=band.name;name.maxLength=40;name.dataset.band=i;name.dataset.field='name';name.setAttribute('aria-label','Band '+(i+1)+' name');label.append(name);group.append(label);
+   const title=document.createElement('h5');title.textContent='Band '+(i+1);group.append(title);
    const limits=document.createElement('div');limits.className='limits';
    for(const field of ['low','high']){const label=document.createElement('label');label.textContent=field==='low'?'From (Hz)':'To (Hz)';const input=document.createElement('input');input.type='number';input.dataset.band=i;input.dataset.field=field;input.min=50;input.max=1200;input.value=band[field];input.setAttribute('aria-label','Band '+(i+1)+' '+field+' Hz');input.onchange=()=>edit(p=>{p.ranges[i][field]=Number(input.value)});label.append(input);limits.append(label)}
-   name.onchange=()=>edit(p=>{p.ranges[i].name=name.value.trim()});group.append(limits);$('pitchRanges').append(group);
+   group.append(limits);$('pitchRanges').append(group);
   });
   for(const input of $('pitchRanges').querySelectorAll('input[data-band]'))if(force||document.activeElement!==input)input.value=p.ranges[Number(input.dataset.band)][input.dataset.field];
  }
@@ -67,7 +67,7 @@
  function layout(){
   const signature=[state.active,$('settings').getAttribute('aria-expanded'),window.matchMedia('(min-width: 761px)').matches].join(':');if(signature===lastLayout)return;lastLayout=signature;
   const desktop=window.matchMedia('(min-width: 761px)').matches,nav=$('featureTabs'),toolbar=$('workspaceToolbar');
-  if(desktop&&nav.parentElement!==toolbar)toolbar.append(nav);else if(!desktop&&nav.parentElement!==$('app'))$('app').insertBefore(nav,toolbar);
+  if(nav.parentElement!==$('app')||nav.previousElementSibling!==toolbar)$('app').insertBefore(nav,toolbar.nextSibling);
   const pitch=state.active==='pitch';document.getElementById('app').classList.toggle('pitch-active',pitch);chart.hidden=!pitch;$('spectrogramSettings').hidden=pitch;$('pitchSettings').hidden=!pitch;
   $('spectrogramTab').setAttribute('aria-selected',String(!pitch));$('pitchTab').setAttribute('aria-selected',String(pitch));$('spectrogramTab').tabIndex=pitch?-1:0;$('pitchTab').tabIndex=pitch?0:-1;
   $('plot').setAttribute('aria-labelledby',pitch?'pitchTab':'spectrogramTab');
@@ -76,7 +76,8 @@
   if(pitch)$('resolution').textContent='Pitch';
   if($('settings').getAttribute('aria-expanded')==='true'){const label=desktop?'Close settings':'Return to '+state.active;$('settings').setAttribute('aria-label',label);$('settings').title=label;}
  }
- function select(feature){state.active=feature;persist();lastPaint='';layout();if(feature==='spectrogram')updateResolution();syncPitch();paint()}
+ const scrollPositions={spectrogram:0,pitch:0};
+ function select(feature){if(feature===state.active)return;scrollPositions[state.active]=$('settingsBody').scrollTop;state.active=feature;persist();lastPaint='';layout();$('settingsBody').scrollTop=scrollPositions[feature];if(feature==='spectrogram')updateResolution();syncPitch();paint()}
  $('featureTabs').addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const feature=event.key==='Home'?'spectrogram':event.key==='End'?'pitch':state.active==='pitch'?'spectrogram':'pitch';select(feature);$(feature+'Tab').focus()}});
  $('spectrogramTab').onclick=()=>select('spectrogram');$('pitchTab').onclick=()=>select('pitch');
  for(const [id,field]of [['pitchMinimum','minimum'],['pitchMaximum','maximum'],['pitchHistory','history']])$(id).onchange=()=>edit(p=>{p[field]=Number($(id).value)});

@@ -21,7 +21,7 @@ test('formant controls apply actual tracking without clearing analysis or spectr
 test('paused speech and formant overlays survive desktop sidebar and mobile resizing',async({page})=>{
  await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html#settings');
  await page.locator('#formants').selectOption('both');await page.locator('#demo').click();await page.waitForFunction(()=>Number(document.querySelector('#spectrogram').dataset.processedFrames)>300);
- await page.locator('#freeze').click();
+ await page.locator('#freeze').click();if(await page.locator('#openSettings').getAttribute('aria-expanded')==='true')await page.locator('#collapseSettings').click();
  async function coverage(){await page.waitForFunction(()=>{const c=document.querySelector('#spectrogram'),r=c.getBoundingClientRect();return c.width===Math.round(Math.round(r.width)*devicePixelRatio)&&c.height===Math.round(Math.round(r.height)*devicePixelRatio)});return page.evaluate(()=>{const canvas=document.querySelector('#spectrogram'),data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let coloured=0;for(let i=0;i<data.length;i+=4)if(data[i]>30)coloured++;return coloured/(canvas.width*canvas.height);});}
  const before=await coverage();expect(before).toBeGreaterThan(.001);
  await page.locator('#openSettings').click();const open=await coverage();expect(open).toBeGreaterThan(before*.7);expect(open).toBeLessThan(before*1.3);

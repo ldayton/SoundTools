@@ -171,7 +171,7 @@ function paintSpectrum(slices,width,x,maximum=displayMaximum){
 }
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
 function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
-function stop(){notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
+function stop(){notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('microphoneScope').hidden=true;$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   if(!navigator.mediaDevices?.enumerateDevices)return [];
@@ -213,13 +213,13 @@ function microphoneError(e){
 }
 $('refreshMic').onclick=microphones;
 $('microphone').onchange=async()=>{notice('');if(running&&inputMode==='mic'){stop();await start();}};
-async function start(){if(starting)return;showSpectrogram();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
+async function start(){if(starting)return;revealActiveView();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
 function selectedPresetLabel(){return ({soundglow:'Soundglow',praat:'Praat',voice:'Voice Tools',custom:'Unnamed Preset*'})[settingsState.selected]||savedPresets.find(p=>p.id===settingsState.selected)?.name||'Unnamed Preset*'}
 function updateResolution(){$('resolution').textContent=window.soundglowSession?.viewLabel?.()||selectedPresetLabel()}
 $('start').onclick=start;$('begin').onclick=start;
 async function togglePause(){
   if(!running||starting)return;
-  showSpectrogram();
+  revealActiveView();
   const next=!paused;starting=true;setBusy(true);
   try{
     if(inputMode==='speech'){if(next)await audio.suspend();else await audio.resume();}
@@ -232,6 +232,9 @@ async function togglePause(){
 }
 $('freeze').onclick=togglePause;
 $('freeze').setAttribute('aria-keyshortcuts','Space');
+// Desktop settings are an independent inspector. Mobile settings replace the
+// chart, so transport actions return to the active visualization there.
+function revealActiveView(){if(!desktopSettings.matches)showSpectrogram()}
 function showSpectrogram(){
   if(location.hash==='#settings'){history.replaceState(null,'',location.pathname+location.search);syncSettings()}
 }
@@ -257,6 +260,7 @@ function syncSettings(){
   $('settings').textContent='⚙';
   $('settings').setAttribute('aria-label',open?(sidebar?'Close settings':'Return to spectrogram'):'Settings');
   $('settings').title=open?(sidebar?'Close settings':'Return to spectrogram'):'Settings';
+  $('microphoneScope').hidden=inputMode!=='speech';
   if(open)microphones();notifyFeatures('layout');
 }
 function panel(open){
@@ -375,7 +379,7 @@ function playFrom(offset){
   speechNode.start(0,clipOffset);last=0;previousSlice=null;updatePosition();
 }
 async function startSpeech(){
-  if(starting)return;showSpectrogram();
+  if(starting)return;revealActiveView();
   if(running&&inputMode==='speech'){
     $('listen').checked=true;monitor.gain.value=1;
     if(paused){await togglePause();return}
@@ -388,7 +392,7 @@ async function startSpeech(){
     const bytes=await response.arrayBuffer();if(returningHome)return;speechBuffer=await audio.decodeAudioData(bytes);if(returningHome)return;
     speechDestination=audio.createMediaStreamDestination();stream=speechDestination.stream;await connectInput(stream);
     monitor=audio.createGain();$('listen').checked=true;monitor.gain.value=1;monitor.connect(audio.destination);
-    inputMode='speech';running=true;paused=false;$('seek').max=speechBuffer.duration;
+    inputMode='speech';$('microphoneScope').hidden=false;running=true;paused=false;$('seek').max=speechBuffer.duration;
     $('testControls').hidden=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('freeze','⏸','Pause');$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','true');setIcon('start','🎙︎','Use microphone');
     $('device').textContent='TEST INPUT · RECORDED SPEECH';state('EXAMPLE',true);updateResolution();redraw();playFrom(0);raf=requestAnimationFrame(render);
   }catch(e){stop();if(!returningHome)notice(e.message||'Could not start recorded speech.')}

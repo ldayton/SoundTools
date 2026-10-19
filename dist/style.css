@@ -124,3 +124,18 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 @media(max-width:760px){#featureTabs{padding:5px 10px}#featureTabs button{flex:1}}
 
 #workspaceToolbar #featureTabs{padding:0;margin-left:8px;border:0;background:transparent}
+
+/* Navigation sits apart from transport; settings distinguish shared and view scope. */
+#featureTabs{flex:none;padding:0 20px;gap:20px;background:#080b10}
+#featureTabs button{border:0;border-radius:0;border-bottom:2px solid transparent;padding:11px 4px}
+#featureTabs button[aria-selected=true]{background:transparent;border-bottom-color:#f2ac77}
+#settingsBody>.settingsGroup,#testControls{border-bottom:1px solid #283345;padding-bottom:18px;margin-bottom:20px}
+#settingsBody h3{margin:0 0 14px;font-size:16px}
+#settingsBody h4{font-size:14px;margin:22px 0 12px;color:#e9edf3}
+#settingsBody h5{font-size:13px;margin:6px 0;color:#b9c4d2}
+#settingsBody details:not(#developerSettings){border-top:1px solid #283345;margin-top:20px;padding-top:14px}
+#settingsBody summary{cursor:pointer;font-weight:600;padding:6px 0}
+#settingsBody .presetBar{margin:12px 0 20px}
+#settingsBody .microphoneRow label{margin:0}
+#settingsBody #presetSettings{border:0;padding:0}
+@media(max-width:760px){#featureTabs{padding:0 14px;gap:20px}#featureTabs button{flex:1}}

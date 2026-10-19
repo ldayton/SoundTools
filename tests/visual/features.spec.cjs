@@ -8,11 +8,11 @@ test('pitch shares transport while feature settings and presets remain isolated'
  await settings(page); // Same toolbar action on both layouts.
  await expect(page.locator('#pitchSettings')).toBeVisible();await expect(page.locator('#spectrogramSettings')).toBeHidden();
  await page.locator('#pitchHistory').fill('7');await page.locator('#pitchSmoothing').selectOption('off');
- await page.getByLabel('Band 3 name',{exact:true}).fill('My target');await page.getByLabel('Band 3 name',{exact:true}).dispatchEvent('change');
+ await page.getByLabel('Band 3 low Hz',{exact:true}).fill('180');await page.getByLabel('Band 3 low Hz',{exact:true}).dispatchEvent('change');
  expect(await page.evaluate(()=>settingsState.selected)).toBe(identity);
  expect(await page.evaluate(()=>Object.entries(transportBefore).every(([key,object])=>({engine,audio,source,pcmNode})[key]===object))).toBe(true);
  await page.getByRole('tab',{name:'Spectrogram',exact:true}).click();await expect(page.locator('#spectrogramSettings')).toBeVisible();await expect(page.locator('#pitchSettings')).toBeHidden();await expect(page.locator('#history')).toHaveValue('6');
- await page.getByRole('tab',{name:'Pitch',exact:true}).click();await expect(page.locator('#pitchHistory')).toHaveValue('7');await expect(page.getByLabel('Band 3 name',{exact:true})).toHaveValue('My target');
+ await page.getByRole('tab',{name:'Pitch',exact:true}).click();await expect(page.locator('#pitchHistory')).toHaveValue('7');await expect(page.getByLabel('Band 3 low Hz',{exact:true})).toHaveValue('180');
  await page.reload();await expect(page.getByRole('tab',{name:'Pitch',exact:true})).toHaveAttribute('aria-selected','true');
  if(!await page.locator('#pitchSettings').isVisible())await settings(page);await expect(page.locator('#pitchHistory')).toHaveValue('7');expect(errors).toEqual([]);
 });

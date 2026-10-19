@@ -602,6 +602,15 @@ rates, compares every sample and timestamp, and verifies the long-gap bound.
 
 ## Feature workspace
 
+View tabs sit outside the shared transport toolbar on desktop and mobile.
+Desktop transport actions preserve the settings sidebar; on mobile, they return
+to the chart because settings replaces it. Home explicitly leaves settings.
+Settings separates audio input, conditional example playback and the active view.
+Spectrogram analysis and advanced colour controls use initially collapsed sections;
+these remain part of spectrogram presets. Each view keeps its own settings scroll
+position during tab switching. Pitch band limits are editable; chart labels and
+band-name inputs are omitted.
+
 Spectrogram and Pitch share microphone capture, example playback, pause/resume,
 seeking and diagnostic controls. Switching tabs preserves the transport and audio
 clock. Spectrogram presets retain their existing storage and settings. Pitch has

@@ -2,7 +2,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
 const S=require('../dist/settings-state.js'),{presets}=require('../dist/analysis-settings.js');
 S.assertPresets(presets);assert.deepEqual(S.defaults,presets.soundglow);assert.equal(presets.soundglow.formants,'off');assert.equal(S.defaults.formantFiltering,'on');assert.equal(S.defaults.formantSmoothing,'light');
 // The registry must cover the actual editable preset UI, independent of any preset.
-const html=fs.readFileSync('dist/index.html','utf8').split('<section id="presetSettings"')[1].split('</section>')[0];
+const document=fs.readFileSync('dist/index.html','utf8');
+const sectionStart=document.indexOf('<section id="presetSettings"');assert(sectionStart>=0);
+let sectionEnd=sectionStart,depth=0;
+for(const match of document.slice(sectionStart).matchAll(/<\/?section\b[^>]*>/g)){
+ depth+=match[0].startsWith('</')?-1:1;
+ if(depth===0){sectionEnd=sectionStart+match.index+match[0].length;break;}
+}
+assert(sectionEnd>sectionStart,'Preset section must close');
+const html=document.slice(sectionStart,sectionEnd);
 const controls=[...html.matchAll(/<(?:input|select)\b[^>]*\bid="([^"]+)"/g)].map(m=>m[1]);assert.deepEqual(controls.sort(),[...S.ids].sort());assert(!S.ids.includes('microphone'));
 for(const [id,entry]of Object.entries(S.registry)){
  assert(S.validValue(id,entry.default));assert(!S.validValue(id,'not-a-value'));assert(!S.validValue(id,NaN));

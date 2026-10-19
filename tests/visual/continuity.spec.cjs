@@ -15,6 +15,7 @@ test('sidebar and display changes preserve frozen source history and live playba
  for(let i=0;i<4;i++){await page.locator('#openSettings').click();await page.waitForTimeout(350)}
  expect(await snapshot()).toEqual(before);
  await page.locator('#openSettings').click();await page.waitForTimeout(350);
+ await page.locator('#advancedColour > summary').click();
  for(const [id,value] of [['scale','linear'],['preemphasis','6'],['history','3'],['colourLevels','auto'],['peakDecay','0.98'],['colourLevels','fixed'],['scale','voice'],['preemphasis','3'],['history','6'],['peakDecay','0.995']]){
   const control=page.locator('#'+id);if(await control.evaluate(el=>el.tagName==='SELECT'))await control.selectOption(value);else await control.fill(value);
   const now=await snapshot();expect(now.end).toBe(before.end);expect(now.generation).toBe(before.generation);expect(now.frames).toBe(before.frames);

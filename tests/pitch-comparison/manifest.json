@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "preset": "voice",
+  "history": 10,
+  "minimum": 50,
+  "maximum": 500,
+  "silenceSeconds": 3,
+  "gain": 1,
+  "clips": [
+    {
+      "id": "case-00",
+      "file": "dist/audio/alice-waters.m4a",
+      "sha256": "67fb7a841e60b31540ad52abff4cb3262d7474f665a076385237570566c0520e",
+      "category": "cleaner-speech-control",
+      "seconds": 8,
+      "source": "dist/audio/CREDITS.txt",
+      "license": "See dist/audio/CREDITS.txt",
+      "annotations": []
+    },
+    {
+      "id": "case-01",
+      "file": "outputs/voice-gating/chime6/0098__S02__U05__0758929.wav",
+      "sha256": "944dffdc0cda92dfc66e45ce360e9eb46e7f3c56f47815b057fb9cd394ee8768",
+      "category": "far-field-speech",
+      "seconds": 4,
+      "source": "https://zenodo.org/records/21892821",
+      "license": "CC BY-SA 4.0",
+      "annotations": []
+    },
+    {
+      "id": "case-02",
+      "file": "outputs/voice-gating/chime6/0005__S02__U02__0088317.wav",
+      "sha256": "a820adba5f88853619c39d8432bf01e85d602bab8c96b8d9e173b11454789809",
+      "category": "far-field-speech",
+      "seconds": 4,
+      "source": "https://zenodo.org/records/21892821",
+      "license": "CC BY-SA 4.0",
+      "annotations": []
+    },
+    {
+      "id": "case-03",
+      "file": "outputs/voice-gating/chime6/0010__S02__U05__0560349.wav",
+      "sha256": "3c5af9641256526206ee528c368be8f5b8921ac8d1b964e782de9b0c9161d4fe",
+      "category": "far-field-speech",
+      "seconds": 4,
+      "source": "https://zenodo.org/records/21892821",
+      "license": "CC BY-SA 4.0",
+      "annotations": []
+    },
+    {
+      "id": "case-04",
+      "file": "outputs/voice-gating/1-17367-A-10.wav",
+      "sha256": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea",
+      "category": "rain",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    },
+    {
+      "id": "case-05",
+      "file": "outputs/voice-gating/1-137296-A-16.wav",
+      "sha256": "73e2dd5e66dda29f76a54b53c3c8e33441d105fc35c1d231bfbd8f7a18442969",
+      "category": "wind",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137296-A-16.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    },
+    {
+      "id": "case-06",
+      "file": "outputs/voice-gating/1-100210-A-36.wav",
+      "sha256": "f97e97b0fe0afce323d858503b6fa3ffd6c8cb1162c43cf3b24461300fb9abf6",
+      "category": "vacuum_cleaner",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100210-A-36.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    },
+    {
+      "id": "case-07",
+      "file": "outputs/voice-gating/1-17124-A-43.wav",
+      "sha256": "9d5e01e07a386ee36c2e73f40817d132a54d91c936eccc01414280abca5a4209",
+      "category": "car_horn",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17124-A-43.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    },
+    {
+      "id": "case-08",
+      "file": "outputs/voice-gating/1-110389-A-0.wav",
+      "sha256": "4a18f3f834eb184b9f02595ac74c7de37ef8048a3da92f58f27018fec580b36a",
+      "category": "dog",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-110389-A-0.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    },
+    {
+      "id": "case-09",
+      "file": "outputs/voice-gating/1-103995-A-30.wav",
+      "sha256": "1c1d3e65b7a58658766180d2faeeb9bdd1fe7405119bf100d9cd2f671a6e2b11",
+      "category": "door_wood_knock",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-103995-A-30.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    },
+    {
+      "id": "case-10",
+      "file": "outputs/voice-gating/1-53501-A-32.wav",
+      "sha256": "7edf3a6b856987de4fc2da27906d70abb00c40fba3352275eec840917daf2e50",
+      "category": "keyboard_typing",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-53501-A-32.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    },
+    {
+      "id": "case-11",
+      "file": "outputs/voice-gating/1-119125-A-45.wav",
+      "sha256": "d78fe04767546d49b741d9d7df6173152e06dcb4224d70f350c3cb73768f265d",
+      "category": "train",
+      "seconds": 5,
+      "source": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-119125-A-45.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "annotations": []
+    }
+  ]
+}

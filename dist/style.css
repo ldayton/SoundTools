@@ -139,3 +139,8 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 #settingsBody .microphoneRow label{margin:0}
 #settingsBody #presetSettings{border:0;padding:0}
 @media(max-width:760px){#featureTabs{padding:0 14px;gap:20px}#featureTabs button{flex:1}}
+
+#pitchPresetDialog{color:#e9edf3;background:#111822;border:1px solid #364456;border-radius:12px;padding:24px;width:min(420px,calc(100vw - 32px))}
+#pitchPresetDialog::backdrop{background:#0009}
+#pitchPresetName{width:100%;font:inherit;color:inherit;background:#171e28;border:1px solid #354252;border-radius:7px;padding:10px;margin-top:10px}
+#pitchPresetStatus{min-height:1.5em;color:#ffa6a6}

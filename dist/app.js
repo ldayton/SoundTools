@@ -249,6 +249,7 @@ function syncSettings(){
   const transport=$(sidebar?'workspaceTransport':'headerActions');
   if($('start').parentElement!==transport){if(sidebar)transport.append($('start'),$('freeze'));else transport.prepend($('start'),$('freeze'));}
   if(!open&&$('presetDialog').open)closePresetEditor();
+  if(!open&&$('pitchPresetDialog')?.open)$('pitchPresetDialog').close();
   $('panel').hidden=false;$('panel').inert=!open;$('visual').inert=open&&!sidebar;
   $('stage').classList.toggle('settings-open',open);
   $('panel').setAttribute('aria-hidden',String(!open));
@@ -258,8 +259,9 @@ function syncSettings(){
   $('openSettings').title=open?'Hide settings':'Show settings';
   if(!open&&$('panel').contains?.(document.activeElement))$(sidebar?'openSettings':'settings').focus();
   $('settings').textContent='⚙';
-  $('settings').setAttribute('aria-label',open?(sidebar?'Close settings':'Return to spectrogram'):'Settings');
-  $('settings').title=open?(sidebar?'Close settings':'Return to spectrogram'):'Settings';
+  const settingsLabel=open?(sidebar?'Close settings':`Return to ${window.soundglowSession?.featureState?.().active==='pitch'?'pitch':'spectrogram'}`):'Settings';
+  $('settings').setAttribute('aria-label',settingsLabel);
+  $('settings').title=settingsLabel;
   $('microphoneScope').hidden=inputMode!=='speech';
   if(open)microphones();notifyFeatures('layout');
 }
@@ -275,7 +277,7 @@ $('settings').onclick=()=>panel(location.hash!=='#settings');
 $('openSettings').onclick=()=>panel(location.hash!=='#settings');
 $('collapseSettings').onclick=()=>panel(false);
 document.addEventListener('keydown',e=>{
-  if($('presetDialog').open)return;
+  if($('presetDialog').open||$('pitchPresetDialog')?.open)return;
   if(e.key==='Escape')panel(false);
   if(e.code!=='Space'&&e.key!==' ')return;
   if(e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey||!running)return;

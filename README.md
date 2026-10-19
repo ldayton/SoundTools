@@ -629,3 +629,12 @@ this keeps switching immediate and its frozen/history behavior unchanged.
 Silence, uncertain measurements, missing frames and octave jumps break the trace.
 Band shading uses editable references, rather than deriving a classification.
 All feature assets are included in the versioned offline shell.
+
+Pitch presets include Soundglow, Voice Tools and Praat, plus named local presets with
+automatic edits, rename and delete. Built-in edits become Unnamed Preset*; deleting
+a named pitch preset returns to Soundglow. Trace settings are shared renderer
+parameters, not preset-specific code. See [pitch drawing evidence and limitations](docs/pitch-voice-tools.md)
+for the original-library oracle, audio probes and remaining detector differences.
+
+The [Praat pitch drawing notes](docs/pitch-praat.md) document the inspected native
+source, automatic curve/speckle rules, logarithmic display and half-frame caps.

@@ -64,6 +64,8 @@
     let features=[];
     if(data.analysisFlags){
      const floor=data.pitchFloor??75,ceiling=data.pitchCeiling??600;if(!Number.isFinite(floor)||!Number.isFinite(ceiling)||floor<50||ceiling<=floor||ceiling>1200)return {id,error:'Invalid pitch analysis range',code:'INVALID_REQUEST'};
+     const method=data.pitchMethod??'raw';if(!['raw','filtered'].includes(method))return {id,error:'Invalid pitch method',code:'INVALID_REQUEST'};
+     if(m._sg_set_pitch_method){if(m._sg_set_pitch_method(method==='filtered'?1:0)!==0)throw Error('Pitch method selection failed');}else if(method!=='raw')throw Error('This engine does not support filtered pitch');
      const featureStart=now(),count=m._sg_features(pointer,pcm.length,sampleRate,data.analysisFlags,data.formantCeiling||5500,data.pitchFloor??75,data.pitchCeiling??600);
      featureMs=now()-featureStart;analysisMs+=featureMs;
      if(count<0)throw Error(m.UTF8ToString(m._sg_error()));

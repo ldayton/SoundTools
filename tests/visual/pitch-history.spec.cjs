@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
-test('Voice Tools preserves established pitch values after raw history pruning',async({page},info)=>{
+test('Soundglow preserves established pitch values after raw history pruning',async({page},info)=>{
  test.skip(info.project.name!=='desktop','One real-time pruning run is sufficient; numerical grouping cases are viewport independent');test.setTimeout(60000);
- await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html#settings');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#pitchPreset').selectOption('voice');
+ await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html#settings');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#pitchPreset').selectOption('soundglow');
  await page.evaluate(()=>{
   const original=FeatureState.points,all=new Map();window.prunedPitchChecks={checks:0,error:null};
   FeatureState.points=(rows,p,seed)=>{
@@ -22,5 +22,5 @@ test('Voice Tools preserves established pitch values after raw history pruning',
  });
  await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>33,undefined,{timeout:45000});
  const result=await page.evaluate(()=>prunedPitchChecks);expect(result.checks).toBeGreaterThan(20);expect(result.error).toBeNull();
- await expect(page.locator('#pitchPreset')).toHaveValue('voice');await expect(page.locator('#state')).toHaveText('EXAMPLE');
+ await expect(page.locator('#pitchPreset')).toHaveValue('soundglow');await expect(page.locator('#state')).toHaveText('EXAMPLE');
 });

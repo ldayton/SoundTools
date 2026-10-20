@@ -1,0 +1,3 @@
+// Browser-playable IEEE float WAV: retain the exact analysis samples, without gain or quantization.
+function floatWave(pcm,rate=48000){if(!Buffer.isBuffer(pcm)||pcm.length%4||!Number.isInteger(rate)||rate<=0)throw Error('Invalid float PCM');const header=Buffer.alloc(56);header.write('RIFF');header.writeUInt32LE(pcm.length+48,4);header.write('WAVEfmt ',8);header.writeUInt32LE(16,16);header.writeUInt16LE(3,20);header.writeUInt16LE(1,22);header.writeUInt32LE(rate,24);header.writeUInt32LE(rate*4,28);header.writeUInt16LE(4,32);header.writeUInt16LE(32,34);header.write('fact',36);header.writeUInt32LE(4,40);header.writeUInt32LE(pcm.length/4,44);header.write('data',48);header.writeUInt32LE(pcm.length,52);return Buffer.concat([header,pcm]);}
+module.exports={floatWave};

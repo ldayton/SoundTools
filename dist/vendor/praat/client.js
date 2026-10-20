@@ -3,7 +3,7 @@
  class PraatClient{
   constructor({workerURL='worker.js',WorkerType=scope.Worker,timeoutMs=30000}={}){this.url=workerURL;this.WorkerType=WorkerType;this.timeoutMs=timeoutMs;this.worker=null;this.pending=null;this.sequence=0}
   init(options){return this.request({type:'init'},options)}
-  analyse(data,options){return this.request({...data,type:'analyse'},options)}
+  analyse(data,options){return this.request({...data,type:data.type==='speech'?'speech':'analyse'},options)}
   lpc(data,options){return this.request({...data,type:'lpc'},options)}
   request(data,{signal,transfer=false}={}){
    const fail=(message,code)=>Object.assign(new Error(message),{code});

@@ -1,0 +1,41 @@
+[
+  {
+    "filename": "1-17367-A-10.wav",
+    "fold": "1",
+    "target": "10",
+    "category": "rain",
+    "esc10": "True",
+    "src_file": "17367",
+    "take": "A",
+    "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav",
+    "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+    "file": "outputs/voice-gating/1-17367-A-10.wav",
+    "sha256": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea"
+  },
+  {
+    "filename": "1-100210-A-36.wav",
+    "fold": "1",
+    "target": "36",
+    "category": "vacuum_cleaner",
+    "esc10": "False",
+    "src_file": "100210",
+    "take": "A",
+    "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100210-A-36.wav",
+    "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+    "file": "outputs/voice-gating/1-100210-A-36.wav",
+    "sha256": "f97e97b0fe0afce323d858503b6fa3ffd6c8cb1162c43cf3b24461300fb9abf6"
+  },
+  {
+    "filename": "1-137-A-32.wav",
+    "fold": "1",
+    "target": "32",
+    "category": "keyboard_typing",
+    "esc10": "False",
+    "src_file": "137",
+    "take": "A",
+    "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137-A-32.wav",
+    "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+    "file": "outputs/voice-gating/1-137-A-32.wav",
+    "sha256": "d68e4716f74f073be8f78f5fe8e45daf7c09b0ec0575b21f57989d803536abb3"
+  }
+]

@@ -3,18 +3,32 @@
 (function(){
  const $=id=>document.getElementById(id),host=window.soundglowSession,key='soundglow-workspace-v1';
  let saved;try{saved=localStorage.getItem(key)}catch{}
- let state=FeatureState.restore(saved),pitchStream=null,cursor=null,pumping=false,epoch=0,rows=[],lastPaint='',lastLayout='',paintQueued=false;
+ let state=FeatureState.restore(saved),pitchStream=null,cursor=null,pumping=false,epoch=0,rows=[],rawRows=[],contour=null,contourKey='',speechFrames=[],speechSession=crypto.randomUUID(),lastPaint='',lastLayout='',paintQueued=false;
  let grouping={key:null,settings:null,seed:null};
  const chart=$('pitchCanvas'),g=chart.getContext('2d');
  function persist(){try{localStorage.setItem(key,JSON.stringify({version:1,...state}))}catch{}}
- function reset(){epoch++;pitchStream?.dispose();pitchStream=null;cursor=null;rows=[];grouping={key:null,settings:null,seed:null};lastPaint=''}
+ function reset(){epoch++;pitchStream?.dispose();pitchStream=null;cursor=null;rows=[];rawRows=[];contour=null;contourKey='';speechFrames=[];speechSession=crypto.randomUUID();grouping={key:null,settings:null,seed:null};lastPaint=''}
+ function trimPitch(){
+  const latest=rawRows.at(-1)?.time||0;
+  while(rawRows.length&&rawRows[0].time<latest-32)rawRows.shift();
+  const discarded=[];while(rows.length&&rows[0].time<latest-31)discarded.push(rows.shift());
+  if(discarded.length&&grouping.settings?.samplingMs)grouping.seed=FeatureState.groupSeed(discarded,grouping.settings,grouping.seed);
+ }
+ function updateContour(incoming=[]){
+  const p=state.pitch,key=JSON.stringify([p.speechGate,p.confirmationMs,p.confidence,p.voicingCeiling]);
+  if(key!==contourKey){contourKey=key;contour=new PitchContour({speechGate:p.speechGate,confirmationMs:p.confirmationMs,confidence:p.confidence,ceiling:p.voicingCeiling});rows=contour.push(rawRows);grouping={key:null,settings:null,seed:null};trimPitch();}
+  else rows.push(...contour.push(incoming));
+ }
+ function withSpeech(row){return {...row,speech:speechFrames.some(f=>f.time>=row.time-.1&&f.time<=row.time+.03&&f.speech)}}
  function syncPitch(){
   if((state.active!=='pitch'&&!pitchStream)||!host.state().running)return;
   if(!pitchStream){
-   pitchStream=new PraatStream({sampleRate:host.state().sampleRate,retain:false,
+   pitchStream=new PraatStream({sampleRate:host.state().sampleRate,retain:true,
     client:{analyse:(r,o)=>host.analyse(r,o),dispose(){}},
-    settings:()=>({windowSeconds:.025,timeStep:.005,maximumFrequency:1000,frequencyStep:20,analysisFlags:6,pitchFloor:50,pitchCeiling:1200}),
-    onFrames:(_,result)=>{host.measure('pitchAnalysisMs',result.timings.analysisMs);host.measure('pitchWorkerRoundTripMs',result.timings.workerRoundTripMs);rows.push(...result.features);const cutoff=(rows.at(-1)?.time||0)-31;const discarded=[];while(rows.length&&rows[0].time<cutoff)discarded.push(rows.shift());if(discarded.length&&grouping.settings?.samplingMs)grouping.seed=FeatureState.groupSeed(discarded,grouping.settings,grouping.seed);if(host.state().paused&&!paintQueued){paintQueued=true;requestAnimationFrame(()=>{paintQueued=false;paint()})}},
+    settings:()=>({windowSeconds:.025,timeStep:.005,maximumFrequency:1000,frequencyStep:20,analysisFlags:6,pitchFloor:50,pitchCeiling:1200,pitchMethod:state.pitch.method}),
+    onFrames:(_,result)=>{host.measure('pitchAnalysisMs',result.timings.analysisMs);host.measure('pitchWorkerRoundTripMs',result.timings.workerRoundTripMs);const features=result.features.map(withSpeech);rawRows.push(...features);updateContour(features);trimPitch();if(host.state().paused&&!paintQueued){paintQueued=true;requestAnimationFrame(()=>{paintQueued=false;paint()})}},
+    onReconfigured:groups=>{rawRows=groups.flatMap(({result})=>result.features.map(withSpeech));rows=[];contourKey='';contour=null;grouping={key:null,settings:null,seed:null};pitchStream.requestedMethod=null;lastPaint='';paint()},
+    onReconfigureError:error=>{const method=pitchStream?.activeSettings.pitchMethod;if(method)state=FeatureState.changed(state,{...state.pitch,method});if(pitchStream)pitchStream.requestedMethod=null;persist();controls(true);$('pitchError').textContent=error.message;$('pitchError').hidden=false},
     onError:error=>{$('pitchError').textContent=error.message;$('pitchError').hidden=false},
    });
    const raw=host.raw(),end=raw.at(-1);cursor=end?Math.max(raw[0].start,end.start-31):null;
@@ -24,15 +38,17 @@
    try{while(generation===epoch){
     const block=host.raw().find(b=>cursor===null||b.start+b.pcm.length/host.state().sampleRate>cursor+1e-7);if(!block)break;
     const rate=host.state().sampleRate,offset=cursor===null?0:Math.max(0,Math.round((cursor-block.start)*rate));
-    await stream.push(block.pcm.slice(offset),block.start+offset/rate);if(generation!==epoch)return;cursor=block.start+block.pcm.length/rate;
+    const speech=await host.analyse({type:'speech',session:speechSession,pcm:block.pcm.slice(offset),start:block.start+offset/rate,sampleRate:rate},{transfer:true});if(generation!==epoch)return;host.measure('speechDetectionMs',speech.ms);speechFrames.push(...speech.decisions);while(speechFrames.length&&speechFrames[0].time<block.start-33)speechFrames.shift();await stream.push(block.pcm.slice(offset),block.start+offset/rate);if(generation!==epoch)return;cursor=block.start+block.pcm.length/rate;
    }}catch(error){if(generation===epoch){$('pitchError').textContent=error.message;$('pitchError').hidden=false}}
    finally{if(generation===epoch)pumping=false;}
   })();
  }
  function paint(){
   if(state.active!=='pitch')return;
+  if(pitchStream&&(pitchStream.requestedMethod||pitchStream.activeSettings.pitchMethod)!==state.pitch.method){pitchStream.requestedMethod=state.pitch.method;void pitchStream.reconfigure({...pitchStream.activeSettings,pitchMethod:state.pitch.method});}
+  updateContour();
   const box=$('plot').getBoundingClientRect(),ratio=window.devicePixelRatio||1,w=Math.max(1,Math.round(box.width)),h=Math.max(1,Math.round(box.height));
-  const end=host.state().displayedUntil||0,signature=[end,w,h,ratio,rows.length,JSON.stringify(state.pitch)].join(':');if(signature===lastPaint)return;lastPaint=signature;
+  const end=Math.max(0,(host.state().displayedUntil||0)-state.pitch.confirmationMs/1000),signature=[end,w,h,ratio,rows.length,JSON.stringify(state.pitch)].join(':');if(signature===lastPaint)return;lastPaint=signature;
   if(chart.width!==Math.round(w*ratio)||chart.height!==Math.round(h*ratio)){chart.width=Math.round(w*ratio);chart.height=Math.round(h*ratio)}
   g.setTransform(ratio,0,0,ratio,0,0);g.fillStyle='#090f19';g.fillRect(0,0,w,h);
   const p=state.pitch,left=48,right=w-15,top=34,bottom=h-28,width=Math.max(1,right-left),height=Math.max(1,bottom-top),begin=end-p.history;
@@ -47,7 +63,10 @@
   const frameStep=p.samplingMs?p.samplingMs/1000:.01,policy=FeatureState.drawingPolicy(p,frameStep,p.history);
   const groupingKey=JSON.stringify([p.samplingMs,p.aggregation,p.voicingCeiling,p.confidence]);
   if(grouping.key!==groupingKey)grouping={key:groupingKey,settings:p,seed:null};
-  const points=FeatureState.points(rows.filter(r=>r.time<=end+(p.edgeExtension==='half-frame'?frameStep:0)),p,grouping.seed).filter(r=>r.time>=begin-(p.edgeExtension==='half-frame'?frameStep:0));
+  // Grouped measurements belong at their bucket centre. Complete the bucket
+  // using already analysed context before showing it; never flash partial groups.
+  const lookahead=p.samplingMs/2000,available=rows.at(-1)?.time??-Infinity;
+  const points=FeatureState.points(rows.filter(r=>r.time<=end+lookahead+(p.edgeExtension==='half-frame'?frameStep:0)),p,grouping.seed).filter(r=>r.time>=begin-(p.edgeExtension==='half-frame'?frameStep:0)&&(!p.samplingMs||r.time<=end&&r.time+lookahead<=available+1e-8));
   const curvePoints=p.edgeExtension==='half-frame'?FeatureState.edges(points,frameStep):points;
   g.save();g.beginPath();g.rect(left,top,width,height);g.clip();g.strokeStyle='#ff9a70';g.lineWidth=p.lineWidth;g.lineJoin='round';g.lineCap='round';g.beginPath();
   for(const [command,...args] of FeatureState.path(curvePoints.map(point=>({...point,x:x(point.time),y:y(point.hz)})),p.cornerRadius/ratio))g[command](...args);
@@ -55,11 +74,11 @@
   g.fillStyle='#e0efff';for(const point of points){if(point.hz&&point.time>=begin&&point.time<=end&&(policy.dots||p.drawing==='curve'&&point.marker)){g.beginPath();g.arc(x(point.time),y(point.hz),p.markerRadius,0,2*Math.PI);g.fill()}}g.restore();
   g.font='10px system-ui';g.fillStyle='#b8c8da';g.textAlign='center';
   for(let i=0;i<=4;i++)g.fillText(i===4?'now':'−'+ +(p.history*(1-i/4)).toFixed(1)+'s',left+width*i/4,h-11);
-  chart.dataset.plottedUntil=String(end);chart.dataset.voiced=String(points.filter(r=>r.hz>0&&r.time>=begin&&r.time<=end).length);
+  chart.dataset.pitchMethod=pitchStream?.activeSettings.pitchMethod||state.pitch.method;chart.dataset.plottedUntil=String(end);chart.dataset.voiced=String(points.filter(r=>r.hz>0&&r.time>=begin&&r.time<=end).length);
  }
  function controls(force=false){
-  const p=state.pitch;for(const [id,value]of [['pitchMinimum',p.minimum],['pitchMaximum',p.maximum],['pitchHistory',p.history],['pitchSmoothing',p.smoothing],['pitchSampling',p.samplingMs],['pitchAggregation',p.aggregation],['pitchGap',p.gapMs],['pitchJumps',p.jumpCents],['pitchCorners',p.cornerRadius],['pitchMarkers',p.markers],['pitchLineWidth',p.lineWidth],['pitchMarkerRadius',p.markerRadius],['pitchAxis',p.axis],['pitchDrawing',p.drawing],['pitchEdges',p.edgeExtension],['pitchConfidence',p.confidence],['pitchOutline',p.outlineWidth],['pitchVoicingCeiling',p.voicingCeiling]])if(force||document.activeElement!==$(id))$(id).value=value;
-  $('pitchMarkers').disabled=p.drawing!=='curve';$('pitchBridge').checked=p.bridgeUnvoiced;presetControls();$('pitchBands').checked=p.bands;
+  const p=state.pitch;for(const [id,value]of [['pitchMethod',p.method],['pitchConfirmation',p.confirmationMs],['pitchMinimum',p.minimum],['pitchMaximum',p.maximum],['pitchHistory',p.history],['pitchSmoothing',p.smoothing],['pitchSampling',p.samplingMs],['pitchAggregation',p.aggregation],['pitchGap',p.gapMs],['pitchJumps',p.jumpCents],['pitchCorners',p.cornerRadius],['pitchMarkers',p.markers],['pitchLineWidth',p.lineWidth],['pitchMarkerRadius',p.markerRadius],['pitchAxis',p.axis],['pitchDrawing',p.drawing],['pitchEdges',p.edgeExtension],['pitchConfidence',p.confidence],['pitchOutline',p.outlineWidth],['pitchVoicingCeiling',p.voicingCeiling]])if(force||document.activeElement!==$(id))$(id).value=value;
+  $('pitchSpeechGate').checked=p.speechGate;$('pitchMarkers').disabled=p.drawing!=='curve';$('pitchBridge').checked=p.bridgeUnvoiced;presetControls();$('pitchBands').checked=p.bands;
   if(!$('pitchRanges').children.length)p.ranges.forEach((band,i)=>{
    const group=document.createElement('div');group.className='pitchRange';
    const title=document.createElement('h5');title.textContent='Band '+(i+1);group.append(title);
@@ -90,12 +109,13 @@
  for(const [id,field]of [['pitchMinimum','minimum'],['pitchMaximum','maximum'],['pitchHistory','history']])$(id).onchange=()=>edit(p=>{p[field]=Number($(id).value)});
  $('pitchSmoothing').onchange=()=>edit(p=>{p.smoothing=$('pitchSmoothing').value});$('pitchBands').onchange=()=>edit(p=>{p.bands=$('pitchBands').checked});$('resetPitch').onclick=()=>{state=FeatureState.choose(state,'soundglow');$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint()};
  function presetControls(){
-  const select=$('pitchPreset'),entries=[['soundglow','Soundglow'],['voice','Voice Tools'],['praat','Praat'],...state.presets.map(p=>[p.id,p.name])];if(state.selected==='custom')entries.push(['custom','Unnamed Preset*']);
+  const select=$('pitchPreset'),entries=[['soundglow','Soundglow'],['praat','Praat'],...state.presets.map(p=>[p.id,p.name])];if(state.selected==='custom')entries.push(['custom','Unnamed Preset*']);
   const signature=JSON.stringify(entries);if(select.dataset.entries!==signature){select.replaceChildren(...entries.map(([id,name])=>new Option(name,id)));select.dataset.entries=signature}select.value=state.selected;updateResolution();
  }
  function applyPitch(id){state=FeatureState.choose(state,id);$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint();}
  $('pitchPreset').onchange=()=>{if($('pitchPreset').value!=='custom')applyPitch($('pitchPreset').value)};
- for(const [id,key,numeric] of [['pitchSampling','samplingMs',true],['pitchAggregation','aggregation'],['pitchGap','gapMs',true],['pitchJumps','jumpCents',true],['pitchCorners','cornerRadius',true],['pitchMarkers','markers'],['pitchLineWidth','lineWidth',true],['pitchMarkerRadius','markerRadius',true],['pitchAxis','axis'],['pitchDrawing','drawing'],['pitchEdges','edgeExtension'],['pitchConfidence','confidence',true],['pitchOutline','outlineWidth',true],['pitchVoicingCeiling','voicingCeiling',true]])$(id).onchange=()=>edit(p=>{p[key]=numeric?Number($(id).value):$(id).value});
+ for(const [id,key,numeric] of [['pitchMethod','method'],['pitchConfirmation','confirmationMs',true],['pitchSampling','samplingMs',true],['pitchAggregation','aggregation'],['pitchGap','gapMs',true],['pitchJumps','jumpCents',true],['pitchCorners','cornerRadius',true],['pitchMarkers','markers'],['pitchLineWidth','lineWidth',true],['pitchMarkerRadius','markerRadius',true],['pitchAxis','axis'],['pitchDrawing','drawing'],['pitchEdges','edgeExtension'],['pitchConfidence','confidence',true],['pitchOutline','outlineWidth',true],['pitchVoicingCeiling','voicingCeiling',true]])$(id).onchange=()=>edit(p=>{p[key]=numeric?Number($(id).value):$(id).value});
+ $('pitchSpeechGate').onchange=()=>edit(p=>{p.speechGate=$('pitchSpeechGate').checked});
  $('pitchBridge').onchange=()=>edit(p=>{p.bridgeUnvoiced=$('pitchBridge').checked});
  $('editPitchPreset').onclick=()=>{const saved=state.presets.find(p=>p.id===state.selected);$('pitchPresetName').value=saved?.name||'';$('deletePitchPreset').hidden=!saved;$('pitchPresetStatus').textContent='';$('pitchPresetDialog').showModal();$('pitchPresetName').focus()};
  $('cancelPitchPreset').onclick=()=>$('pitchPresetDialog').close();

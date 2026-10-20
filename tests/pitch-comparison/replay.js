@@ -4,7 +4,7 @@ window.runPitchComparison=async function(pcm,rate=48000){
  const observations=new Map(),original=FeatureState.points;
  FeatureState.points=function(rows,...args){const points=original(rows,...args);for(const p of points)observations.set(p.time,p);return points};
  Object.assign(host,{raw:()=>blocks,state:()=>({running:true,paused:true,sampleRate:rate,time,displayedUntil:time}),analyse:async(r,o)=>{pending++;try{return await client.analyse(r,o)}catch(e){failure=e;throw e}finally{pending--}}});
- document.getElementById('pitchTab').click();document.getElementById('pitchPreset').value='voice';document.getElementById('pitchPreset').dispatchEvent(new Event('change'));document.getElementById('welcome').hidden=true;
+ document.getElementById('pitchTab').click();document.getElementById('pitchPreset').value='soundglow';document.getElementById('pitchPreset').dispatchEvent(new Event('change'));document.getElementById('welcome').hidden=true;
  async function settle(){for(let i=0;i<3||pending;i++){await new Promise(r=>setTimeout(r,0));if(failure)throw failure}}
  try{
   for(let i=0;i<pcm.length;i+=rate/10){const data=pcm.slice(i,i+rate/10);blocks.push({pcm:data,start:i/rate});time=(i+data.length)/rate;notifyFeatures('capture');await settle();notifyFeatures('render');}

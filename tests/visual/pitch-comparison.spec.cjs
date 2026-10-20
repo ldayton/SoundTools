@@ -3,7 +3,7 @@ const base=path.resolve(__dirname,'../..'),folder=path.join(base,'outputs/pitch-
 test('controlled pitch replay uses production drawing and preserves silence',async({page},info)=>{
  test.skip(info.project.name!=='desktop');await page.goto('/dist/index.html');await page.addScriptTag({url:'/tests/pitch-comparison/replay.js'});
  const result=await page.evaluate(async()=>{const rate=48000,pcm=Float32Array.from({length:rate*3},(_,i)=>i<rate?0:.1*Math.sin(2*Math.PI*200*i/rate)+.04*Math.sin(2*Math.PI*400*i/rate));return runPitchComparison(pcm,rate)});
- expect(result.plottedUntil).toBe(3);expect(result.observations.filter(p=>p.time<.7&&p.hz>0)).toHaveLength(0);expect(result.observations.filter(p=>p.time>1.3&&p.time<2.7&&Math.abs(p.hz-200)<5).length).toBeGreaterThan(8);
+ expect(result.plottedUntil).toBeCloseTo(3-result.preset.confirmationMs/1000,8);expect(result.observations.filter(p=>p.time<.7&&p.hz>0)).toHaveLength(0);expect(result.observations.filter(p=>p.time>1.3&&p.time<2.7&&Math.abs(p.hz-200)<5).length).toBeGreaterThan(8);
 });
 test('selected corpus replay produces inspectable pitch artifacts',async({page},info)=>{
  test.skip(info.project.name!=='desktop'||process.env.PITCH_COMPARISON!=='1','Local corpus run is explicitly enabled');test.setTimeout(120000);

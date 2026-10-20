@@ -19,9 +19,14 @@ def fetch(i):
  return x.astype(float)/32768,{'url':url,'file':str(p.relative_to(ROOT)),'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'license':'CC BY 4.0','licenseSource':'https://groups.inf.ed.ac.uk/ami/download/','attribution':'AMI Consortium / University of Edinburgh'}
 with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:loaded=list(pool.map(fetch,range(4)))
 length=min(len(x) for x,_ in loaded);signals=np.stack([x[:length] for x,_ in loaded]);hop=320;frames=length//hop;energy=np.sqrt(np.mean(signals[:,:frames*hop].reshape(4,frames,hop)**2,axis=2));clips=[]
-noise_meta=json.loads((ROOT/'outputs/voice-gating/manifest.json').read_text());noise_categories=['rain','vacuum_cleaner','keyboard_typing'];noise=[];noise_sources=[]
+noise_meta=next(c['noiseSources'] for c in json.loads((ROOT/'tests/pitch-comparison/near-mic-manifest.json').read_text())['clips'] if 'noiseSources' in c);noise_categories=['rain','vacuum_cleaner','keyboard_typing'];noise=[];noise_sources=[]
 for category in noise_categories:
- info=next(c for c in noise_meta if c['category']==category);p=ROOT/info['file'];assert hashlib.sha256(p.read_bytes()).hexdigest()==info['sha256'];sr,x=wavfile.read(p);x=x.astype(float)/32768;x=resample_poly(x,16000,sr);assert len(x)>=64000;noise.append(x[:64000]);noise_sources.append(info)
+ info=next(c for c in noise_meta if c['category']==category);p=ROOT/info['file']
+ if not p.exists():
+  with urllib.request.urlopen(info['url'],timeout=45) as response:data=response.read()
+  assert hashlib.sha256(data).hexdigest()==info['sha256'],'Noise source differs from pin'
+  p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
+ assert hashlib.sha256(p.read_bytes()).hexdigest()==info['sha256'];sr,x=wavfile.read(p);x=x.astype(float)/32768;x=resample_poly(x,16000,sr);assert len(x)>=64000;noise.append(x[:64000]);noise_sources.append(info)
 noise=np.concatenate(noise);noise=sosfilt(butter(3,[80,5000],fs=16000,btype='band',output='sos'),noise)
 def save(ident,x,meta):
  assert len(x)==192000 and np.max(np.abs(x))<1,'No clipping/padding allowed';p=STAGE/(ident+'.wav');wavfile.write(p,16000,np.round(x*32767).astype(np.int16));pcm=subprocess.check_output(['ffmpeg','-v','error','-i',str(p),'-ar','48000','-ac','1','-f','f32le','pipe:1']);(STAGE/(ident+'.f32')).write_bytes(pcm);clips.append({'id':ident,'wav':str((OUT/p.name).relative_to(ROOT)),'seconds':12,'wavSha256':hashlib.sha256(p.read_bytes()).hexdigest(),'pcmSha256':hashlib.sha256(pcm).hexdigest(),**meta})

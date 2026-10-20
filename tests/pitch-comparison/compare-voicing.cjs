@@ -13,7 +13,7 @@ methods.pastSupport=temporal(rows,{minimumFrames:6,supportSeconds:.3});
 methods.bothSupport=temporal(rows,{minimumFrames:6,supportSeconds:.15,pastOnly:false});
 methods.pastHybrid25=temporal(rows,{minimumFrames:6,rescueDifference:.25,supportSeconds:.3});
 for(const threshold of [.2,.4,.6])methods['correlation'+threshold]=rows.map(r=>eligible(r)&&r.correlation!==null&&r.correlation<threshold?{...r,pitch:0,strength:0}:r);
-const variants={};for(const [name,filtered]of Object.entries(methods)){const points=F.points(filtered,F.presets.voice);variants[name]={retained:filtered.filter(eligible).length,groups:points.filter(p=>p.hz>0).length,highGroups:points.filter(p=>p.hz>400),rejected:rows.filter((r,i)=>eligible(r)&&!eligible(filtered[i])).map(r=>r.time),points};}
+const variants={};for(const [name,filtered]of Object.entries(methods)){const points=F.points(filtered,F.legacyVoice);variants[name]={retained:filtered.filter(eligible).length,groups:points.filter(p=>p.hz>0).length,highGroups:points.filter(p=>p.hz>400),rejected:rows.filter((r,i)=>eligible(r)&&!eligible(filtered[i])).map(r=>r.time),points};}
 clips.push({id:clip.id,file:clip.file,category:clip.category,sourceSha256:clip.sourceSha256,pcmSha256:clip.pcmSha256,rows,variants});console.log(clip.id,clip.category);
 }
 fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({warning:'Retention, not annotated accuracy. Temporal rules use future observations. Cached production analysis; new acoustic scores recomputed from verified PCM.',clips},null,2));

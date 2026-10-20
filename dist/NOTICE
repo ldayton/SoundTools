@@ -11,3 +11,8 @@ The English recording is public-domain LibriVox audio; see audio/CREDITS.txt.
 Third-party code retains its original licenses/notices in the source archive.
 Emscripten-generated runtime: MIT and University of Illinois/NCSA licenses;
 see https://github.com/emscripten-core/emscripten/blob/6.0.12/LICENSE.
+
+Speech activity detection: WebRTC/libfvad, vendored from
+@ozymandiasthegreat/vad 2.0.7 (https://github.com/OzymandiasTheGreat/libfvad-wasm).
+See vendor/praat/SPEECH-VAD-LICENSE, SPEECH-VAD-AUTHORS and SPEECH-VAD-PATENTS.
+The JS streaming adapter is part of Soundglow.

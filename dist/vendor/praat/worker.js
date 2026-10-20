@@ -1,5 +1,13 @@
 /* Lazy load once per persistent worker; no work is performed on the UI thread. */
-importScripts('processor.js');
+const glueVersion=new URL(self.location.href).searchParams.get('v');
+importScripts('processor.js'+(glueVersion?'?v='+encodeURIComponent(glueVersion):''),'speech-detector.js');
+let speechModule=null,speechDetector=null,speechSession=null;
+async function speech(data){
+ if(!speechModule)speechModule=fetch(new URL('speech-vad.wasm',self.location.href)).then(r=>{if(!r.ok)throw Error('Speech engine unavailable');return WebAssembly.instantiateStreaming(r)}).then(r=>r.instance.exports).catch(e=>{speechModule=null;throw e});
+ const lib=await speechModule;
+ if(speechSession!==data.session||speechDetector?.rate!==data.sampleRate||speechDetector?.lastEnd!==null&&speechDetector?.lastEnd!==undefined&&Math.abs(data.start-speechDetector.lastEnd)>1/data.sampleRate+1e-7){speechDetector?.dispose();speechDetector=new SpeechDetector(lib,data.sampleRate);speechSession=data.session;}
+ const start=performance.now(),decisions=speechDetector.push(data.pcm,data.start);return {id:data.id,decisions,ms:performance.now()-start};
+}
 const profile=new URL(self.location.href).searchParams.get('profile')||'baseline';
 const directory=['release','size','debug'].includes(profile)?'build-'+profile:'build';
 const base=new URL(directory+'/',self.location.href);
@@ -31,6 +39,6 @@ const processor=PraatProcessor.createProcessor({load:async()=>{
  }});
 }});
 self.onmessage=async({data})=>{
- const reply=await processor.handle(data);
+ let reply;try{reply=data.type==='speech'?await speech(data):await processor.handle(data)}catch(error){reply={id:data.id,error:error.message}};
  self.postMessage(reply,reply.batches?reply.batches.map(batch=>batch.power.buffer):reply.power?[reply.power.buffer]:[]);
 };

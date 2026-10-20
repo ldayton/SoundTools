@@ -21,6 +21,8 @@ for(const {out,pack}of releases){
  const html=fs.readFileSync(path.join(out,pack.html.slice('/Soundglow/'.length)),'utf8'),urls=new Set(pack.files.map(f=>f.url));
  for(const match of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"/g))if(match[1].startsWith('/Soundglow/'))assert(urls.has(match[1]),'Unpackaged page dependency: '+match[1]);
 }
+// Large optional speech assets must not delay app-cache installation or update readiness.
+for(const {out,pack} of releases){assert(!pack.files.some(f=>f.url.includes('/vendor/neural/')));const pin=JSON.parse(fs.readFileSync(path.join(out,'vendor/praat/neural-manifest.json')));assert(fs.existsSync(path.join(out,'vendor/neural',pin.version,'silero.onnx')));}
 assert.notEqual(releases[0].pack.version,releases[1].pack.version);
 assert.deepEqual(releases[0].pack.files.filter(f=>f.url.includes('/engines/')),releases[1].pack.files.filter(f=>f.url.includes('/engines/')),'UI releases reuse the same engine URLs');
 const retained=path.join(work,'retained-site');build({source:path.join(work,'source-1'),out:retained,base:'/Soundglow/',previous:releases[0].out});
@@ -33,7 +35,7 @@ const server=http.createServer((req,res)=>{
  const relative=url.pathname.slice('/Soundglow/'.length)||'index.html',file=path.resolve(releases[revision].out,relative);
  if(!file.startsWith(releases[revision].out+path.sep)){res.writeHead(403).end();return}
  if(fault&&url.pathname===releases[2].pack.files.find(f=>f.url.endsWith('/app.js')).url){res.writeHead(fault==='network'?503:200,{'Content-Type':'text/javascript'}).end('broken deployment');return}
- fs.readFile(file,(error,bytes)=>{if(error){res.writeHead(404).end();return}const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm'};res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':'max-age=600'}).end(bytes)});
+ fs.readFile(file,(error,bytes)=>{if(error){res.writeHead(404).end();return}const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm'};res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':'max-age=600'}).end(bytes)});
 });
 const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new MessageChannel(),timer=setTimeout(()=>{c.port1.close();reject(Error('Update RPC timeout'))},20000);c.port1.onmessage=e=>{clearTimeout(timer);c.port1.close();resolve(e.data)};navigator.serviceWorker.controller.postMessage({type:'prepare-update'},[c.port2])}));
 (async()=>{

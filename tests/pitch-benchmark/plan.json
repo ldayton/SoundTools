@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "goal": "One prominent adult speaking near a phone or microphone, quiet speech and moderate household noise; preserve real intonation and high speech, prefer gaps to wrong octaves.",
+  "excludedClaims": [
+    "overlapping speakers",
+    "singing",
+    "unintelligible distant speech"
+  ],
+  "datasets": [
+    {
+      "id": "ptdb",
+      "source": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/DOCUMENTATION/PTDB-TUG_REPORT.pdf",
+      "utterances": 4720,
+      "speakers": 20,
+      "license": "ODbL-1.0 / DbCL-1.0",
+      "role": "broad labelled screen",
+      "limitations": [
+        "studio read speech",
+        "algorithm-derived laryngograph reference",
+        "reference clock requires verification"
+      ],
+      "neuralTrainingOverlap": {
+        "penn": "known; use published held-out partition",
+        "swift-f0": "known; not independent evidence"
+      }
+    },
+    {
+      "id": "avid",
+      "source": "https://zenodo.org/records/10524873",
+      "speakers": 50,
+      "role": "independent soft/normal/loud speech evaluation",
+      "limitations": [
+        "EGG labels must be generated and audited",
+        "verify exact package license and model training overlap",
+        "controlled recording conditions"
+      ]
+    },
+    {
+      "id": "private-device",
+      "role": "natural microphone regression and blind listening",
+      "redistribute": false,
+      "limitations": [
+        "no complete independent F0 reference",
+        "never count model agreement as truth"
+      ]
+    }
+  ],
+  "algorithms": [
+    {
+      "id": "soundglow-frozen",
+      "role": "product baseline",
+      "commit": "cdf3adb"
+    },
+    {
+      "id": "praat-stock-raw",
+      "role": "documented standard baseline",
+      "status": "stock offline adapter implemented and smoke-tested"
+    },
+    {
+      "id": "praat-stock-filtered",
+      "role": "documented standard baseline",
+      "status": "stock offline adapter implemented and smoke-tested"
+    },
+    {
+      "id": "swift-f0",
+      "source": "https://github.com/lars76/swift-f0",
+      "role": "new deployment candidate",
+      "lookaheadMs": 176,
+      "status": "v0.3.0 offline adapter implemented and smoke-tested; independent validation pending"
+    },
+    {
+      "id": "reaper",
+      "source": "https://github.com/google/REAPER",
+      "role": "independent offline reference, not truth or a streaming result",
+      "status": "upstream built locally; offline adapter smoke-tested"
+    }
+  ],
+  "splitPolicy": "Speaker-disjoint development/calibration/locked test. Keep every original and all its degradations together. Published neural model test partitions override generic splits; unknown training overlap is not held-out evidence.",
+  "metrics": [
+    "pitch precision/recall/F1 at 50 and 100 cents",
+    "missed voiced seconds",
+    "false voiced seconds",
+    "octave up/down events and duration",
+    "quiet and genuine-high-speech strata",
+    "speaker-bootstrap uncertainty"
+  ],
+  "decision": "Choose tolerances before locked evaluation. Require fewer wrong pitch events without unacceptable quiet-speech losses, preserved genuine high speech, and acceptable measured phone latency. If no convincing winner, keep baseline.",
+  "deploymentChecks": [
+    "matched future-audio budget",
+    "chunk-boundary invariance",
+    "reset/seek behavior",
+    "cold load and model size",
+    "iPhone Safari and Android Chrome sustained latency, memory and thermal behavior"
+  ],
+  "notYetImplemented": [
+    "full4718utterance acquisition (400originals completed)",
+    "complete independent voicing ground truth (AVID provides partial EGG-derived voiced anchors only)",
+    "genuine high-register speech above400Hz",
+    "physical iPhone/Android performance and end-to-end UI latency",
+    "continuous natural phone/microphone corpus beyond controlled noise mixtures"
+  ],
+  "completedRun": {
+    "date": "2026-10-20",
+    "productionChanged": false,
+    "ptdbOriginals": 400,
+    "ptdbSpeakers": 20,
+    "avidExcerpts": 64,
+    "avidNewSpeakers": 8,
+    "moderateNoiseVariants": 40,
+    "noiseOnlySources": 3,
+    "report": "outputs/pitch-benchmark/report.html",
+    "decision": "Retain current detector. Standard filtered settings reduce gross errors but increase false pitched noise; Swift adds delay without decisive independent gain. Physical phone and genuine high speech validation remain outstanding."
+  }
+}

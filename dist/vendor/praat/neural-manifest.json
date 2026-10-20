@@ -1,0 +1,35 @@
+{
+  "version": "6b7664889cbe976d20994fa5ed63fb9c",
+  "modelSource": "1e261b036686cd0017d500ee96acd1c4ba572a9d",
+  "runtime": "onnxruntime-web@1.23.2",
+  "files": {
+    "silero.onnx": {
+      "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3",
+      "bytes": 2327524
+    },
+    "SILERO-LICENSE.txt": {
+      "sha256": "2e63e9a38b6e8fc0c7bc37ce174caca1862870856c6daf5697cfb785e925520b",
+      "bytes": 1075
+    },
+    "ort.wasm.min.js": {
+      "sha256": "c6bc9f8e1d0ecc3983a57910e6a30b2230a512bcd2e0207cd64306459c3de7b4",
+      "bytes": 49926
+    },
+    "ort-wasm-simd-threaded.mjs": {
+      "sha256": "90a557d15c02bac4504d95b67f431d8594635ed2a0a62a7f2cd83d090ff91d3e",
+      "bytes": 20321
+    },
+    "ort-wasm-simd-threaded.wasm": {
+      "sha256": "45eaee27761ad883742a8d4b8fce1538d60ce43b51adf1726fafccc59b8c1a15",
+      "bytes": 11905541
+    },
+    "ORT-LICENSE.txt": {
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+      "bytes": 1073
+    },
+    "ORT-ThirdPartyNotices.txt": {
+      "sha256": "e9e90971a8e75a9a8ac0c6412e29c1202d079998389915aa485f46c816c3b4cc",
+      "bytes": 326866
+    }
+  }
+}

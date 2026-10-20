@@ -1,0 +1,6 @@
+# Use Python3.12: ONNX Runtime wheels do not currently support this Mac's3.14runtime.
+swift-f0[audio]==0.3.0
+onnxruntime==1.31.0
+numpy==2.5.4
+scipy==1.18.1
+matplotlib==3.11.2

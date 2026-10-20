@@ -3,11 +3,14 @@
 (function(){
  const $=id=>document.getElementById(id),host=window.soundglowSession,key='soundglow-workspace-v1';
  let saved;try{saved=localStorage.getItem(key)}catch{}
- let state=FeatureState.restore(saved),pitchStream=null,cursor=null,pumping=false,epoch=0,rows=[],rawRows=[],contour=null,contourKey='',speechFrames=[],speechSession=crypto.randomUUID(),lastPaint='',lastLayout='',paintQueued=false;
+ let state=FeatureState.restore(saved),pitchStream=null,cursor=null,pumping=false,epoch=0,rows=[],rawRows=[],contour=null,contourKey='',speechFrames=[],neuralEvidence=new NeuralEvidence(),speechSession=crypto.randomUUID(),lastPaint='',lastLayout='',paintQueued=false;
  let grouping={key:null,settings:null,seed:null};
+ // Experimental speech confirmation failed the quiet-speech acceptance limit.
+ // Keep it opt-in until a matched streaming trial passes.
+ const experimentalSpeechGate=new URLSearchParams(location.search).get('experimentalSpeechGate')==='1';
  const chart=$('pitchCanvas'),g=chart.getContext('2d');
  function persist(){try{localStorage.setItem(key,JSON.stringify({version:1,...state}))}catch{}}
- function reset(){epoch++;pitchStream?.dispose();pitchStream=null;cursor=null;rows=[];rawRows=[];contour=null;contourKey='';speechFrames=[];speechSession=crypto.randomUUID();grouping={key:null,settings:null,seed:null};lastPaint=''}
+ function reset(){epoch++;pitchStream?.dispose();pitchStream=null;cursor=null;rows=[];rawRows=[];contour=null;contourKey='';speechFrames=[];neuralEvidence=new NeuralEvidence();speechSession=crypto.randomUUID();grouping={key:null,settings:null,seed:null};lastPaint=''}
  function trimPitch(){
   const latest=rawRows.at(-1)?.time||0;
   while(rawRows.length&&rawRows[0].time<latest-32)rawRows.shift();
@@ -19,7 +22,7 @@
   if(key!==contourKey){contourKey=key;contour=new PitchContour({speechGate:p.speechGate,confirmationMs:p.confirmationMs,confidence:p.confidence,ceiling:p.voicingCeiling});rows=contour.push(rawRows);grouping={key:null,settings:null,seed:null};trimPitch();}
   else rows.push(...contour.push(incoming));
  }
- function withSpeech(row){return {...row,speech:speechFrames.some(f=>f.time>=row.time-.1&&f.time<=row.time+.03&&f.speech)}}
+ function withSpeech(row){return {...row,speech:neuralEvidence.allows(row.time)&&speechFrames.some(f=>f.time>=row.time-.1&&f.time<=row.time+.03&&f.speech)}}
  function syncPitch(){
   if((state.active!=='pitch'&&!pitchStream)||!host.state().running)return;
   if(!pitchStream){
@@ -38,7 +41,7 @@
    try{while(generation===epoch){
     const block=host.raw().find(b=>cursor===null||b.start+b.pcm.length/host.state().sampleRate>cursor+1e-7);if(!block)break;
     const rate=host.state().sampleRate,offset=cursor===null?0:Math.max(0,Math.round((cursor-block.start)*rate));
-    const speech=await host.analyse({type:'speech',session:speechSession,pcm:block.pcm.slice(offset),start:block.start+offset/rate,sampleRate:rate},{transfer:true});if(generation!==epoch)return;host.measure('speechDetectionMs',speech.ms);speechFrames.push(...speech.decisions);while(speechFrames.length&&speechFrames[0].time<block.start-33)speechFrames.shift();await stream.push(block.pcm.slice(offset),block.start+offset/rate);if(generation!==epoch)return;cursor=block.start+block.pcm.length/rate;
+    const speech=await host.analyse({type:'speech',session:speechSession,neural:state.pitch.speechGate&&experimentalSpeechGate,pcm:block.pcm.slice(offset),start:block.start+offset/rate,sampleRate:rate},{transfer:true});if(generation!==epoch)return;host.measure('speechDetectionMs',speech.ms);chart.dataset.neuralStatus=speech.neuralStatus;neuralEvidence.record(speech,block.start+offset/rate);speechFrames.push(...speech.decisions);while(speechFrames.length&&speechFrames[0].time<block.start-33)speechFrames.shift();await stream.push(block.pcm.slice(offset),block.start+offset/rate);if(generation!==epoch)return;cursor=block.start+block.pcm.length/rate;
    }}catch(error){if(generation===epoch){$('pitchError').textContent=error.message;$('pitchError').hidden=false}}
    finally{if(generation===epoch)pumping=false;}
   })();

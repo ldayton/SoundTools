@@ -7,7 +7,7 @@ Praat source: https://github.com/praat/praat.github.io
 Local integration source fork: https://github.com/ldayton/praat
 This build includes local changes: see dist/vendor/praat/source.tar.gz and manifest.
 
-The English recording is public-domain LibriVox audio; see audio/CREDITS.txt.
+The English example is an Alice Waters/BBC excerpt, CC BY 3.0; see audio/CREDITS.txt (dist/audio/CREDITS.txt in the source repository).
 Third-party code retains its original licenses/notices in the source archive.
 Emscripten-generated runtime: MIT and University of Illinois/NCSA licenses;
 see https://github.com/emscripten-core/emscripten/blob/6.0.12/LICENSE.
@@ -16,3 +16,11 @@ Speech activity detection: WebRTC/libfvad, vendored from
 @ozymandiasthegreat/vad 2.0.7 (https://github.com/OzymandiasTheGreat/libfvad-wasm).
 See vendor/praat/SPEECH-VAD-LICENSE, SPEECH-VAD-AUTHORS and SPEECH-VAD-PATENTS.
 The JS streaming adapter is part of Soundglow.
+
+Optional speech confirmation: Silero VAD (MIT), source commit
+1e261b036686cd0017d500ee96acd1c4ba572a9d, https://github.com/snakers4/silero-vad.
+ONNX Runtime Web 1.23.2 (MIT), https://github.com/microsoft/onnxruntime.
+Their licenses and ONNX Runtime third-party notices are preserved in
+vendor/neural/<content-hash>/ (dist/vendor/neural/ in the source repository).
+These optional assets load only when pitch speech filtering is used; they are
+separate from the mandatory offline release cache. Processing remains local.

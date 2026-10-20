@@ -26,5 +26,17 @@
    return out;
   }
  }
- const api={PitchContour};if(typeof module==='object'&&module.exports)module.exports=api;else scope.PitchContour=PitchContour;
+ // Evidence is scoped to activation epochs, so late loading/re-enabling cannot rewrite old decisions.
+ class NeuralEvidence {
+  constructor(){this.frames=[];this.ranges=[];this.sequence=0;this.last=-Infinity}
+  record(reply,start){
+   if(!Number.isFinite(start)||start<this.last-1e-8)throw Error('Unsorted neural evidence');this.last=start;let range=this.ranges.at(-1);
+   if(reply.neuralActive){if(!range||range.end!==Infinity){range={id:++this.sequence,start,end:Infinity};this.ranges.push(range)}for(const f of reply.neuralDecisions||[])this.frames.push({...f,epoch:range.id});}
+   else if(range?.end===Infinity)range.end=start;
+   this.frames=this.frames.filter(f=>f.end>=start-33);this.ranges=this.ranges.filter(r=>r.end>=start-33);
+  }
+  allows(time){const range=this.ranges.find(r=>time>=r.start&&time<r.end);return !range||this.frames.some(f=>f.epoch===range.id&&f.end>=time-.1&&f.start<=time+.03&&f.speech)}
+ }
+ const api={PitchContour,NeuralEvidence};
+ if(typeof module==='object'&&module.exports)module.exports=api;else {scope.PitchContour=PitchContour;scope.NeuralEvidence=NeuralEvidence;}
 })(typeof self==='object'?self:globalThis);

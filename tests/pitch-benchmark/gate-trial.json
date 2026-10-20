@@ -1,0 +1,27 @@
+{
+  "candidate": "Current WebRTC gate AND Silero speech confirmation",
+  "sileroSourceCommit": "1e261b036686cd0017d500ee96acd1c4ba572a9d",
+  "threshold": 0.3,
+  "thresholdSource": "https://docs.vad.ricky0123.com/user-guide/api/ (MicVAD default)",
+  "blockSamples": 512,
+  "sampleRate": 16000,
+  "historyMs": 100,
+  "futureEvidenceMs": 30,
+  "resampling": "Prototype: stateful soxr LQ. Shipped evaluation: causal Kaiser FIR polyphase resampler, independently checked against SciPy; actual 100ms packet availability recorded.",
+  "pitchDetector": "Frozen app-corroborated; no replacement or retuning",
+  "passCriteria": {
+    "minimumFalsePitchReductionEachNoiseCondition": 0.25,
+    "minimumNoiseOnlyFalsePitchReduction": 0.4,
+    "maximumCorrectVoicedRecallLossEachCondition": 0.01,
+    "maximumAddedPitchDelayMs": 0,
+    "conditions": [
+      "soft",
+      "normal",
+      "noise20",
+      "noise10",
+      "clean PTDB evaluation"
+    ]
+  },
+  "evaluationPolicy": "Fixed candidate and criteria before computing candidate scores. No threshold search; failure means no default integration. Partial EGG anchors do not establish complete voicing truth or high-register preservation. Local only.",
+  "frameSemantics": "32ms positive frame intervals overlap the fixed -100/+30ms evidence window; frame must already be available. Initial point-sampled port overstated soft loss; correction does not change threshold or acceptance limits."
+}

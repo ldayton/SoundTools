@@ -83,10 +83,10 @@ test('pitch detector switching rebuilds history without restarting or unpausing 
  if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});
  await page.goto('/dist/index.html');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#demo').click();
  await page.waitForFunction(()=>Number(document.getElementById('pitchCanvas').dataset.voiced)>10);await settings(page);await page.locator('#advancedPitchTrace > summary').click();
- await expect(page.locator('#pitchMethod')).toHaveValue('filtered');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','filtered');
+ await expect(page.locator('#pitchMethod')).toHaveValue('corroborated');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','corroborated');
  await page.evaluate(()=>window.detectorTransport={engine,audio,source});await page.locator('#pitchPreset').selectOption('praat');await expect(page.locator('#pitchMethod')).toHaveValue('raw');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','raw',{timeout:15000});
- await page.locator('#pitchPreset').selectOption('soundglow');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','filtered',{timeout:15000});
+ await page.locator('#pitchPreset').selectOption('soundglow');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','corroborated',{timeout:15000});
  await page.locator('#freeze').click();const frozen=await page.locator('#pitchCanvas').getAttribute('data-plotted-until');await page.locator('#pitchMethod').selectOption('raw');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','raw',{timeout:15000});await expect(page.locator('#state')).toHaveText('PAUSED');expect(await page.locator('#pitchCanvas').getAttribute('data-plotted-until')).toBe(frozen);
- await page.locator('#pitchMethod').selectOption('filtered');await page.locator('#pitchMethod').selectOption('raw');await page.locator('#pitchMethod').selectOption('filtered');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','filtered',{timeout:15000});
+ await page.locator('#pitchMethod').selectOption('corroborated');await page.locator('#pitchMethod').selectOption('raw');await page.locator('#pitchMethod').selectOption('corroborated');await expect(page.locator('#pitchCanvas')).toHaveAttribute('data-pitch-method','corroborated',{timeout:15000});
  await expect(page.locator('#pitchError')).toBeHidden();expect(await page.evaluate(()=>Object.entries(detectorTransport).every(([k,v])=>({engine,audio,source})[k]===v))).toBe(true);
 });

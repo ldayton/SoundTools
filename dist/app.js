@@ -16,7 +16,7 @@ const analysisFlags=()=>setting('formants')!=='off'?7:0; // Pitch/intensity gate
 let spectrumUnits='density',heldPeak=newPeakState();
 function newPeakState(){return AnalysisSettings.peakState(Number(viewSetting('peakSeconds')),Number(viewSetting('peakDecay')))}
 function resetAnalysis(){spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];processingStats.lastFrameTime=null;engine?.reset();frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;bins?.fill(-160)}
-const praatWorkerURL='vendor/praat/worker.js?profile=release&v=20261020-filtered';
+const praatWorkerURL='vendor/praat/worker.js?profile=release&v=20261020-corroborated-review';
 let engine=null,pcmNode=null,frameQueue=[],spectrumStep=20,spectrumFirst=0;
 // Feature views share this transport and worker without owning microphone access.
 const featureSubscribers=new Set();

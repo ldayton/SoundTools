@@ -49,7 +49,7 @@ assert.equal(F.pitch(F.presets.soundglow).confirmationMs,50);
 assert.equal(F.restore(JSON.stringify({version:1,selected:'voice',pitch:F.legacyVoice})).selected,'soundglow');
 assert.deepEqual(F.restore(null).pitch,F.pitch(F.presets.soundglow));
 assert.deepEqual(F.restore(JSON.stringify({version:1,selected:'soundglow',pitch:F.defaults})).pitch,F.pitch(F.presets.soundglow));
-assert.equal(F.pitch(F.presets.soundglow).method,'filtered');
+assert.equal(F.pitch(F.presets.soundglow).method,'corroborated');
 assert.equal(F.pitch(F.presets.praat).method,'raw');
 assert.equal(F.pitch({}).method,'raw'); // Old named custom presets retain their original method.
 assert.throws(()=>F.pitch({method:'unknown'}));

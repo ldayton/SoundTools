@@ -15,7 +15,7 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soun
  for(const file of mediaFiles)output.set(media+file.slice('audio/'.length),read(file));
  for(const file of ['pitch-contour.js','feature-state.js','workspace.js','settings-state.js','voice-feedback.js','performance.js','analysis-settings.js','style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
  let app=read('app.js').toString();
- for(const [before,after] of [["'vendor/praat/worker.js?profile=release&v=20261020-filtered'",JSON.stringify(engine+'worker.js?profile=release')],["'pcm-worklet.js'",JSON.stringify(release+'pcm-worklet.js')],["'audio/alice-waters.m4a'",JSON.stringify(media+'alice-waters.m4a')]]){
+ for(const [before,after] of [["'vendor/praat/worker.js?profile=release&v=20261020-corroborated-review'",JSON.stringify(engine+'worker.js?profile=release')],["'pcm-worklet.js'",JSON.stringify(release+'pcm-worklet.js')],["'audio/alice-waters.m4a'",JSON.stringify(media+'alice-waters.m4a')]]){
   if(app.split(before).length!==2)throw Error('Missing or duplicate production asset: '+before);app=app.replace(before,after);
  }
  output.set(release+'app.js',Buffer.from(app));

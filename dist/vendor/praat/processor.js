@@ -64,12 +64,21 @@
     let features=[];
     if(data.analysisFlags){
      const floor=data.pitchFloor??75,ceiling=data.pitchCeiling??600;if(!Number.isFinite(floor)||!Number.isFinite(ceiling)||floor<50||ceiling<=floor||ceiling>1200)return {id,error:'Invalid pitch analysis range',code:'INVALID_REQUEST'};
-     const method=data.pitchMethod??'raw';if(!['raw','filtered'].includes(method))return {id,error:'Invalid pitch method',code:'INVALID_REQUEST'};
+     const method=data.pitchMethod??'raw';if(!['raw','filtered','corroborated'].includes(method))return {id,error:'Invalid pitch method',code:'INVALID_REQUEST'};
      if(m._sg_set_pitch_method){if(m._sg_set_pitch_method(method==='filtered'?1:0)!==0)throw Error('Pitch method selection failed');}else if(method!=='raw')throw Error('This engine does not support filtered pitch');
      const featureStart=now(),count=m._sg_features(pointer,pcm.length,sampleRate,data.analysisFlags,data.formantCeiling||5500,data.pitchFloor??75,data.pitchCeiling??600);
      featureMs=now()-featureStart;analysisMs+=featureMs;
      if(count<0)throw Error(m.UTF8ToString(m._sg_error()));
      const base=m._sg_features_data()>>>2,values=m.HEAPF32.slice(base,base+count*10);
+     if(method==='corroborated'&&(data.analysisFlags&2)&&values.some((v,i)=>i%10===7&&v>500)){
+      const started=now();if(m._sg_set_pitch_method(1)!==0)throw Error('Pitch method selection failed');
+      const n=m._sg_features(pointer,pcm.length,sampleRate,2,data.formantCeiling||5500,floor,ceiling);
+      const elapsed=now()-started;featureMs+=elapsed;analysisMs+=elapsed;
+      if(n<0)throw Error(m.UTF8ToString(m._sg_error()));if(n!==count)throw Error('Pitch corroboration grid mismatch');
+      const filteredBase=m._sg_features_data()>>>2,other=m.HEAPF32.slice(filteredBase,filteredBase+n*10);
+      for(let i=0;i<values.length;i+=10){if(Math.abs(values[i]-other[i])>1e-7)throw Error('Pitch corroboration timestamp mismatch');
+       if(values[i+7]>500&&!(other[i+7]>=50&&other[i+7]<1200&&other[i+9]>=.45&&Math.abs(1200*Math.log2(values[i+7]/other[i+7]))<=100)){values[i+7]=0;values[i+9]=0;}}
+     }
      for(let i=0;i<values.length;i+=10)features.push({time:values[i],formants:Array.from(values.subarray(i+1,i+4)),bandwidths:Array.from(values.subarray(i+4,i+7)),pitch:values[i+7],intensity:values[i+8],strength:values[i+9]});
     }
     return {id,spectrumUnits:data.spectrumUnits||'density',features,frames,bins,firstTime:m._sg_first_time(),timeStep:m._sg_time_step(),firstFrequency:m._sg_first_frequency(),frequencyStep:m._sg_frequency_step(),power,heapBytes:m.HEAPF32.buffer.byteLength,timings:{loadMs,inputCopyMs,analysisMs,featureMs,outputCopyMs:now()-outputStart-featureMs,totalMs:now()-started}};

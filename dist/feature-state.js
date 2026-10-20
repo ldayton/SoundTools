@@ -8,12 +8,12 @@
   if(p.maximum-p.minimum<50||!['off','light'].includes(p.smoothing)||typeof p.bands!=='boolean'||p.ranges.length!==3)throw Error('Invalid pitch settings');
   for(const r of p.ranges)if(typeof r.name!=='string'||!r.name.trim()||r.name.length>40||!Number.isFinite(r.low)||!Number.isFinite(r.high)||r.low<50||r.high>1200||r.low>=r.high||!/^#[a-f0-9]{6}$/i.test(r.colour))throw Error('Invalid pitch band');
   for(const [key,min,max] of [['voicingCeiling',100,1200],['confidence',0,1],['outlineWidth',0,6],['lineWidth',1,6],['markerRadius',1,6],['samplingMs',0,500],['gapMs',0,2000],['jumpCents',0,2400],['cornerRadius',0,40]])if(!Number.isFinite(p[key])||p[key]<min||p[key]>max)throw Error('Invalid pitch '+key);
-  if(!['raw','filtered'].includes(p.method))throw Error('Invalid pitch method');
+  if(!['raw','filtered','corroborated'].includes(p.method))throw Error('Invalid pitch method');
   if(typeof p.speechGate!=='boolean'||![0,30,50].includes(p.confirmationMs)||!['linear','log'].includes(p.axis)||!['curve','dots','auto'].includes(p.drawing)||!['none','half-frame'].includes(p.edgeExtension)||typeof p.bridgeUnvoiced!=='boolean'||![0,50,100,200].includes(p.samplingMs)||![0,600,1200].includes(p.jumpCents)||!['mean','continuity'].includes(p.aggregation)||!['spaced','all','off'].includes(p.markers))throw Error('Invalid pitch trace');
   return p;
  }
  const voiceDefaults={...defaults,maximum:500,lineWidth:2,markerRadius:2.5,smoothing:'off',samplingMs:100,aggregation:'continuity',bridgeUnvoiced:true,gapMs:800,jumpCents:0,cornerRadius:20,markers:'all'};
- const presets={soundglow:{...voiceDefaults,method:'filtered',speechGate:true,confirmationMs:50,gapMs:200},praat:{...defaults,voicingCeiling:800,maximum:800,axis:'log',drawing:'auto',edgeExtension:'half-frame',confidence:0,outlineWidth:3,lineWidth:1,smoothing:'off',gapMs:15,jumpCents:0,markers:'off',bands:false}};
+ const presets={soundglow:{...voiceDefaults,method:'corroborated',speechGate:true,confirmationMs:50,gapMs:200},praat:{...defaults,voicingCeiling:800,maximum:800,axis:'log',drawing:'auto',edgeExtension:'half-frame',confidence:0,outlineWidth:3,lineWidth:1,smoothing:'off',gapMs:15,jumpCents:0,markers:'off',bands:false}};
  function presetName(state){return ({soundglow:'Soundglow',praat:'Praat',custom:'Unnamed Preset*'})[state.selected]||state.presets.find(p=>p.id===state.selected)?.name||'Unnamed Preset*'}
  function validName(name,list=[],except=''){
   if(typeof name!=='string')throw Error('Enter a preset name.');name=name.trim();if(!name||name.length>60||name.includes('*')||['soundglow','praat',...list.filter(p=>p.id!==except).map(p=>p.name.toLowerCase())].includes(name.toLowerCase()))throw Error('Choose a unique name without an asterisk.');return name;

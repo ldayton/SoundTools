@@ -185,7 +185,15 @@ try {
       '2',
       '3',
       '4',
+      '5',
+      '6',
+      '7',
+      '8',
     ]);
+  await page.locator('#repeat-select').selectOption('8');
+  assert.equal(await page.locator('#repetitions').inputValue(), '9');
+  await page.locator('#rest-select').selectOption('8');
+  assert.equal(await page.locator('#restBeats').inputValue(), '8');
   await page.locator('#repeat-select').selectOption('0');
   assert.equal(await page.locator('#repetitions').inputValue(), '1');
   await page.locator('#repeat-select').selectOption('1');

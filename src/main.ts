@@ -171,7 +171,7 @@ $('#app').innerHTML = `
             ]
               .map(
                 ({ id, key, label, max }) =>
-                  `<div class="field"><span>${label}</span><div class="desktop-count"><input id="${id}-count" class="count-input" type="number" min="0" max="${max}" step="1" aria-label="${label}" /><div class="count-arrows"><button type="button" data-count="${id}" data-step="1" aria-label="Increase ${id === 'repeat' ? 'repeats' : 'rest'}"><i data-lucide="chevron-up"></i></button><button type="button" data-count="${id}" data-step="-1" aria-label="Decrease ${id === 'repeat' ? 'repeats' : 'rest'}"><i data-lucide="chevron-down"></i></button></div></div><select id="${id}-select" class="mobile-count" aria-label="${label}">${Array.from({ length: 5 }, (_, value) => `<option value="${value}">${value === 0 ? 'None' : value}</option>`).join('')}</select><input name="${key}" id="${key}" type="hidden" /></div>`
+                  `<div class="field"><span>${label}</span><div class="desktop-count"><input id="${id}-count" class="count-input" type="number" min="0" max="${max}" step="1" aria-label="${label}" /><div class="count-arrows"><button type="button" data-count="${id}" data-step="1" aria-label="Increase ${id === 'repeat' ? 'repeats' : 'rest'}"><i data-lucide="chevron-up"></i></button><button type="button" data-count="${id}" data-step="-1" aria-label="Decrease ${id === 'repeat' ? 'repeats' : 'rest'}"><i data-lucide="chevron-down"></i></button></div></div><select id="${id}-select" class="mobile-count" aria-label="${label}">${Array.from({ length: 9 }, (_, value) => `<option value="${value}">${value === 0 ? 'None' : value}</option>`).join('')}</select><input name="${key}" id="${key}" type="hidden" /></div>`
               )
               .join('')}</div>
             <div class="field"><span>Count-in</span><button type="button" id="countIn-trigger" class="anchored-trigger" role="combobox" aria-label="Count-in"><span></span><i data-lucide="chevron-down"></i></button><select name="countIn" id="countIn" class="count-in-native" aria-label="Count-in"><option value="0">0 bars</option><option value="2">½ bar</option><option value="4">1 bar</option><option value="8">2 bars</option></select></div>
@@ -539,8 +539,8 @@ function syncCounts() {
     const value = spec[key] - offset;
     $<HTMLInputElement>(`#${id}-count`).value = String(value);
     const select = $<HTMLSelectElement>(`#${id}-select`);
-    for (const option of [...select.options]) if (Number(option.value) > 4) option.remove();
-    if (value > 4) select.add(new Option(String(value), String(value)));
+    for (const option of [...select.options]) if (Number(option.value) > 8) option.remove();
+    if (value > 8) select.add(new Option(String(value), String(value)));
     select.value = String(value);
     $<HTMLButtonElement>(`[data-count="${id}"][data-step="1"]`).disabled = value >= max;
     $<HTMLButtonElement>(`[data-count="${id}"][data-step="-1"]`).disabled = value <= 0;

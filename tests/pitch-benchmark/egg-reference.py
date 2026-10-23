@@ -1,3 +1,4 @@
+import os
 """Conservative EGG voiced anchors; unknown frames are excluded, never silent truth."""
 import hashlib,json
 from pathlib import Path
@@ -30,7 +31,7 @@ def derive(egg,sr=8000):
  return rows
 
 def main():
- ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'outputs/pitch-benchmark/avid';doc=json.loads((OUT/'decoded.json').read_text());summary=[]
+ ROOT=Path(__file__).resolve().parents[2];OUT=Path(os.environ.get('AVID_OUTPUT',str(ROOT/'outputs/pitch-benchmark/avid')));doc=json.loads((OUT/'decoded.json').read_text());summary=[]
  for c in doc['clips']:
   sr,w=wavfile.read(ROOT/c['paired']);assert sr==44100;egg=resample_poly(w[:,c['eggChannel']].astype(float),80,441);sr=8000;egg=sosfiltfilt(butter(3,20,btype='highpass',fs=sr,output='sos'),egg);rows=derive(egg,sr)
   # Both analysis input and EGG are cropped from the same raw stereo samples.

@@ -12,7 +12,7 @@
     "test:voice": "node tests/visual/prepare-replay.cjs && playwright test voice-speech.spec.cjs",
     "test:pitch-comparison": "node tests/pitch-comparison/prepare.cjs && PITCH_COMPARISON=1 playwright test pitch-comparison.spec.cjs --project desktop",
     "test:pitch-practice": "node tests/pitch-comparison/compare-practice.cjs && node tests/pitch-comparison/report-practice.cjs",
-    "test:pitch-benchmark": "node tests/pitch-benchmark/metrics.test.cjs && node tests/pitch-benchmark/gate-trial.test.cjs",
+    "test:pitch-benchmark": "node tests/pitch-benchmark/metrics.test.cjs && node tests/pitch-benchmark/gate-trial.test.cjs && node tests/pitch-benchmark/gate-cycle-policy.test.cjs && node tests/pitch-benchmark/gate-reset-policy.test.cjs && node tests/pitch-benchmark/gate-reset-stream.test.cjs",
     "benchmark:pitch": "node tests/pitch-benchmark/run.cjs"
   },
   "devDependencies": {

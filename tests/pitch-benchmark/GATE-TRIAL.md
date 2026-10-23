@@ -1,3 +1,43 @@
+# Bounded follow-up cycle (2026-10-21, rejected research archive)
+
+This trial did not change app analysis. The experimental gate stays at its existing configuration and remains off by default. Trial scripts are archived here; generated inputs and outputs remain local and ignored. The source hashes describe the code at trial time, before subsequent pitch-display changes.
+
+The two fixed follow-up candidates are in `gate-cycle.json`: fixed0.2 with the existing100ms evidence history, and0.3/0.15 hysteresis with96ms of low-score evidence before exit and no additional100ms history. No threshold sweep was performed.
+
+Diagnosis: the previous18 correctly pitched EGG anchors lost at0.3 occur at0.10–0.25seconds in `sp5_s1_sen1_soft` and `sp13_s1_sen1_soft`. Scores remain below0.3 during these onsets.0.2 recovers them all; hysteresis cannot help before its entry threshold is reached.
+
+The follow-up covers400PTDB originals,64existing AVID excerpts,40moderate-noise variants plus3noise-only controls,31scoreable excerpts from8previously unused AVID speakers, and20fixed context sequences. One of32requested fresh excerpts failed the unchanged0.4locator-correlation floor and is explicitly unscored; no replacement was selected. EGG anchors remain partial ground truth. Context sequences concatenate pinned public speech/noise, with joins excluded and original PTDB transition masks preserved; they are not natural phone recordings.
+
+Fixed0.2 results after the actual PitchContour stage (early-ready scenario):
+
+| Condition | Correct voiced recall loss | False pitched noise reduction |
+|---|---:|---:|
+| Existing AVID soft/normal/loud/veryloud |0pp|Not identifiable from partial EGG anchors|
+| Fresh speakers, soft/normal |0pp|Not identifiable from partial EGG anchors|
+| PTDB evaluation |0pp|1.45%|
+|20dB controlled noise|0pp|38.81%|
+|10dB controlled noise|0pp|42.24%|
+|Noise-only controls|Not applicable|92.73%|
+|Speech after10s noise|15.21pp|90.70%|
+|Speech after prior normal utterance|0pp|81.95%|
+
+The lower threshold passes the original primary limits but fails the same1pp preservation limit on the new noise-before context test in all three activation scenarios. Hysteresis fails the original quiet-onset criterion as well. Neither candidate is eligible for enabling. Comparing the production contour against candidate contours found no newly admitted wrong-pitch reference frames in these tested cases.
+
+A separate diagnostic (`gate-cycle-state-probe.cjs`) feeds identical model input and64sample context on the same frame grid to two branches. The alternate branch clears only recurrent state at the known source speech boundary. Speech-positive frame counts at0.2 change9→34,0→31,23→37,and14→41 across the four affected AVID context sequences. The script checks that inference does not mutate the shared input. This establishes sensitivity to recurrent history for these cases. The boundary reset is an oracle control, not a causal candidate or pass result; a safe automatic state policy remains unproven.
+
+Reproduction:
+
+- Run `gate-cycle.cjs MANIFEST OUTPUT_DIRECTORY` for each corpus. It records gate decisions, actual PitchContour output, actual preset plotted points, per-frame model evidence, loading/activation epochs, and input/source/model hashes.
+- `gate-cycle-context.cjs` generates the20fixed context sequences from pinned public inputs.
+- `gate-cycle-state-probe.cjs` runs the non-deployable state-only diagnostic.
+- `gate-cycle-report.cjs` independently reconstructs gate and contour scores from saved observations, rechecks all hashes/coverage/aggregate counts, and writes `outputs/pitch-benchmark/gate-cycle/report.html` plus `decision.json`. It deliberately reports no passing candidate.
+- `npm run test:pitch-benchmark` includes fixed-candidate threshold/hysteresis regressions. Existing EGG reference synthetic tests also pass.
+- Corpus preparation supports `AVID_OUTPUT`, `AVID_SPEAKERS`, and `AVID_INTENSITIES`; the new speaker reservation is recorded before scoring. `AVID_ALLOW_UNMATCHED=1` records and excludes failed locator matches without changing the quality floor. The default remains strict failure.
+
+No physical-phone validation or high-register preservation claim is made. Private recordings were neither acquired nor committed in this cycle.
+
+---
+
 # Speech-confirmation trial: not enabled by default
 
 The corrected matched streaming evaluation fails the fixed quiet-speech limit: early-ready model loses approximately 2.98 percentage points of correct soft-speech tracking. The earlier padded evaluation below is historical and does not justify default activation. Threshold and acceptance limits remain unchanged.

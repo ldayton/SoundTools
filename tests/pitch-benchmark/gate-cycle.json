@@ -1,0 +1,51 @@
+{
+  "purpose": "Bounded follow-up to the failed quiet-speech trial; no detector changes",
+  "candidates": [
+    {
+      "id": "lower",
+      "on": 0.2,
+      "off": 0.2,
+      "releaseMs": 0,
+      "historyMs": 100
+    },
+    {
+      "id": "stateful",
+      "on": 0.3,
+      "off": 0.15,
+      "releaseMs": 96,
+      "historyMs": 0
+    }
+  ],
+  "controls": [
+    "production WebRTC gate",
+    "experimental fixed 0.3 gate"
+  ],
+  "selectionPolicy": "Two candidates fixed before examining the 18 diagnostic frames; no additional threshold sweep. Existing corpus is development/regression, not fresh held-out evidence.",
+  "freshSpeakerReservation": [
+    1,
+    2,
+    3,
+    8,
+    9,
+    10,
+    15,
+    16
+  ],
+  "freshSpeakerTasks": [
+    "sen1_soft",
+    "sen2_soft",
+    "sen1_normal",
+    "sen2_normal"
+  ],
+  "acceptance": "Keep gate-trial.json primary limits unchanged. Check gate and actual PitchContour outputs separately, report per-speaker/clip losses, and audit plotted points. Fresh speaker confirmation and physical phones are required before enabling by default.",
+  "contextTests": [
+    "cold startup",
+    "10 seconds environmental noise then speech",
+    "preceding normal utterance then speech",
+    "delayed readiness",
+    "disable/re-enable"
+  ],
+  "unknownTruth": "AVID EGG anchors establish pitch only where confident; unknown frames never become unvoiced truth. Private recordings are listening/visual regressions, not complete pitch references.",
+  "displaySettingsSourceCommit": "3e9f9e2df06dd8997431fccaac7a090259aa9800",
+  "featureStateSha256": "2464d216e83e36581b3a9cd4d67b9071abfe49188c7ffd234b9f36d70df24096"
+}

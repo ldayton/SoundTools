@@ -24,9 +24,20 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build:pages
+        env:
+          VITE_SENTRY_DSN: ${{ vars.DOREGO_SENTRY_DSN }}
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:diagnostics-ui
       - run: npm run test:pages
       - run: npm run test:offline
+      - name: Save source maps for debugging
+        uses: actions/upload-artifact@v4
+        with:
+          name: dorego-source-maps
+          path: dist-pages/assets/*.map
+          retention-days: 14
+      - name: Exclude source maps from the public site
+        run: find dist-pages -name '*.map' -delete
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: dist-pages

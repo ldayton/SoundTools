@@ -32,7 +32,7 @@ export function offlineBuild(): Plugin {
       const shell = [
         base,
         ...Object.keys(bundle)
-          .filter((path) => path !== 'index.html')
+          .filter((path) => path !== 'index.html' && !path.endsWith('.map'))
           .map((path) => base + path),
         ...[
           'manifest.webmanifest',

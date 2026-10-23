@@ -144,3 +144,9 @@ Downloads use two concurrent requests, preserve completed files on cancellation 
 The build generates a service worker and sound inventory under the configured base path. Interface versions are cached together; sound caches are keyed by the recording contents and reused across interface-only updates. Online navigation/refresh revalidates a small inventory, prepares the entire new interface before serving it, and falls back to a complete saved version if the network or deployment fails. Workers activate immediately without reloading documents or touching audio. Each open tab keeps its own interface and sound-cache version; caches still used by live tabs are retained, with a ten-minute grace period for pending navigations. A changed sound bank requires another offline download. The worker only manages DoReGo caches, not other projects on the GitHub Pages origin.
 
 Offline registration is disabled in `npm run dev` to avoid stale development builds. Test the production build with `npm run build && npm start`; after rebuilding an already installed version, refresh to load the new interface; other open tabs can continue their exercises. `npm run build:pages && npm run test:offline` verifies cancelled/interrupted downloads, resuming, single-tab refresh into a new JavaScript version while another tab keeps playing, failed-deployment fallback, disconnected reopening, all seven exercises at both range extremes and 60 BPM, and missing-file detection/repair. Phone screen locking and audio interruptions remain separate from offline storage and require real-device testing.
+
+### Browser debug reports
+
+The collapsed Debug reports section exports bounded technical reports locally.
+Optional Sentry collection requires a configured browser DSN and explicit user
+opt-in. Audio and recordings are excluded. See [diagnostics setup and shared code](DIAGNOSTICS.md).

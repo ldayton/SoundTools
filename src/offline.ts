@@ -1,3 +1,4 @@
+import { diagnostics } from './diagnostics';
 type SoundPack = {
   cache: string;
   files: { url: string; bytes: number }[];
@@ -116,7 +117,8 @@ export function setupOffline() {
       void navigator.storage?.persist?.().catch(() => false);
       downloading = null;
       await check();
-    } catch {
+    } catch (error) {
+      if (navigator.onLine && controller.signal.reason?.name !== 'AbortError') diagnostics.capture(error, 'cache.download_failed');
       status.textContent = !navigator.onLine
         ? 'Internet required to download'
         : controller.signal.reason?.name === 'AbortError'
@@ -169,7 +171,8 @@ export function setupOffline() {
       document.addEventListener('visibilitychange', () => {
         if (!document.hidden) void check();
       });
-    } catch {
+    } catch (error) {
+      diagnostics.capture(error, 'cache.setup_failed');
       status.textContent = 'Offline setup unavailable. Reconnect and reload to try again.';
       button.hidden = true;
     }

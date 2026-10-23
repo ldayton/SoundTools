@@ -110,6 +110,7 @@ export class Player {
       this.interrupt('audio-interrupted');
   };
   private publish(state: PlaybackState, reason?: PlaybackInterruption) {
+    if (typeof window !== 'undefined') window.doregoDiagnostics?.event('audio.state', { audioState: playbackContext?.state || 'unavailable' });
     this.state = state;
     this.onStateChange?.(state, this.position, reason);
   }
@@ -144,7 +145,9 @@ export class Player {
     try {
       await Tone.start();
       if (token !== this.pending) return false;
+      const prepareStarted = performance.now();
       await prepareLive(exercise);
+      if (typeof window !== 'undefined') window.doregoDiagnostics?.metric('samples.prepare_ms', performance.now() - prepareStarted);
       if (token !== this.pending) return false;
       if (playbackContext?.state !== 'running')
         throw new Error('Audio is unavailable. Try Resume when the interruption ends.');
@@ -212,6 +215,7 @@ export class Player {
       next ? clock.timeAt(Math.max(this.seekBeat, next.onsetBeat)) : Infinity
     );
     if (interruption) {
+      if (typeof window !== 'undefined') window.doregoDiagnostics?.event('audio.interruption', { reason: interruption.reason });
       this.interrupt(interruption.reason, interruption.audioTime);
       return;
     }

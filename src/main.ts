@@ -1,3 +1,4 @@
+import { diagnostics, diagnosticsContext, mountDiagnostics } from './diagnostics';
 import { practiceRange } from './keyboard-layout';
 import {
   createIcons,
@@ -201,6 +202,7 @@ $('#app').innerHTML = `
 
 $('.builder-column').insertAdjacentHTML('beforeend', `<section class="offline-section" aria-label="Offline use"><div><h2>Take it with you</h2><p id="offline-status" role="status">Preparing offline support…</p></div><button type="button" id="offline-download" class="quiet-button" disabled>Download for offline use</button><progress id="offline-progress" aria-label="Offline download progress" hidden></progress></section>`);
 setupOffline();
+mountDiagnostics($('.builder-column'));
 
 const canvas = $<HTMLCanvasElement>('#stage');
 canvas.width = WIDTH;
@@ -447,6 +449,7 @@ async function warmPiano() {
     if (generation !== warmupGeneration) return;
     pianoWarming = false;
     pianoFailed = true;
+    diagnostics.capture(error, 'samples.prepare_failed');
     toast(error instanceof Error ? error.message : 'Could not load the recordings. Try again.');
   }
   update();
@@ -469,6 +472,7 @@ function stop(reset = true) {
   else player.pause();
 }
 function refresh() {
+  diagnostics.event('exercise.changed');
   stop();
   try {
     spec = readForm();
@@ -484,6 +488,7 @@ function refresh() {
 }
 form.addEventListener('submit', (e) => e.preventDefault());
 function changeTempo() {
+  diagnostics.event('exercise.tempo_changed');
   const bpm = Number($<HTMLInputElement>('#bpm').value);
   syncTempoSteps();
   if (!Number.isFinite(bpm) || bpm < 60 || bpm > 240) return;
@@ -578,6 +583,7 @@ for (const [id, change] of [
   });
 let announced = '';
 function update() {
+  diagnosticsContext(spec, mode, pianoWarming, pianoFailed);
   const duration = secondsAt(exercise.totalBeats, spec.bpm);
   const time = mode === 'ready' ? -1 : position;
   $<HTMLInputElement>('#bpm').style.width = `${String(spec.bpm).length}ch`;
@@ -646,12 +652,15 @@ function update() {
     : `${exercise.notes.length} notes · ${spec.repetitions} ${spec.repetitions === 1 ? 'round' : 'rounds'} · ${spec.countIn ? (spec.countIn % 4 === 0 ? `${spec.countIn / 4}-bar count-in` : `${spec.countIn}-beat count-in`) : 'No count-in'}`;
 }
 function tick() {
+  diagnostics.frame(performance.now(), mode === 'playing' && !document.hidden);
   if (mode !== 'playing') return;
   position = player.position;
   update();
   raf = requestAnimationFrame(tick);
 }
 player.onStateChange = (state, nextPosition, reason) => {
+  diagnostics.frame(performance.now(), false);
+  diagnostics.event('playback.state', { mode: state, reason });
   mode = state;
   position = nextPosition;
   cancelAnimationFrame(raf);
@@ -675,6 +684,7 @@ async function togglePlay() {
     await player.play(exercise, position);
   } catch (error) {
     if (request !== playRequest) return;
+    diagnostics.capture(error, 'playback.start_failed');
     toast(error instanceof Error ? error.message : 'Could not start audio.');
   }
 }

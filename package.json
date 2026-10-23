@@ -8,7 +8,7 @@
     "dev": "tsx server/index.ts",
     "build": "tsc --noEmit && vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "npm run test:diagnostics && tsx --test tests/*.test.ts",
     "test:e2e": "tsx tests/e2e.ts",
     "format": "prettier --write .",
     "setup:browser": "playwright install chromium",
@@ -19,9 +19,12 @@
     "test:pages": "tsx tests/pages.e2e.ts",
     "export": "tsx scripts/export.ts",
     "test:lifecycle": "tsx tests/lifecycle.e2e.ts",
-    "test:offline": "tsx tests/offline.e2e.ts"
+    "test:offline": "tsx tests/offline.e2e.ts",
+    "test:diagnostics": "node node_modules/@ldayton/browser-diagnostics/verify.cjs",
+    "test:diagnostics-ui": "tsx tests/diagnostics.e2e.ts"
   },
   "dependencies": {
+    "@ldayton/browser-diagnostics": "file:vendor/ldayton-browser-diagnostics-0.1.0.tgz",
     "@tonejs/midi": "^2.0.28",
     "express": "^5.1.0",
     "lucide": "^0.468.0",

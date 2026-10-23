@@ -18,8 +18,8 @@
   if(discarded.length&&grouping.settings?.samplingMs)grouping.seed=FeatureState.groupSeed(discarded,grouping.settings,grouping.seed);
  }
  function updateContour(incoming=[]){
-  const p=state.pitch,key=JSON.stringify([p.speechGate,p.confirmationMs,p.confidence,p.voicingCeiling]);
-  if(key!==contourKey){contourKey=key;contour=new PitchContour({speechGate:p.speechGate,confirmationMs:p.confirmationMs,confidence:p.confidence,ceiling:p.voicingCeiling});rows=contour.push(rawRows);grouping={key:null,settings:null,seed:null};trimPitch();}
+  const p=state.pitch,key=JSON.stringify([p.speechGate,p.confirmationMs,p.confidence,p.voicingCeiling,p.breakUnconfirmedJumps]);
+  if(key!==contourKey){contourKey=key;contour=new PitchContour({speechGate:p.speechGate,confirmationMs:p.confirmationMs,confidence:p.confidence,ceiling:p.voicingCeiling,breakUnconfirmedJumps:p.breakUnconfirmedJumps});rows=contour.push(rawRows);grouping={key:null,settings:null,seed:null};trimPitch();}
   else rows.push(...contour.push(incoming));
  }
  function withSpeech(row){return {...row,speech:neuralEvidence.allows(row.time)&&speechFrames.some(f=>f.time>=row.time-.1&&f.time<=row.time+.03&&f.speech)}}
@@ -57,7 +57,7 @@
   const p=state.pitch,left=48,right=w-15,top=34,bottom=h-28,width=Math.max(1,right-left),height=Math.max(1,bottom-top),begin=end-p.history;
   const y=hz=>bottom-FeatureState.position(hz,p)*height,x=t=>left+(t-begin)/p.history*width;
   g.save();g.beginPath();g.rect(left,top,width,height);g.clip();
-  if(p.bands)for(const band of p.ranges){g.fillStyle=band.colour+'52';g.fillRect(left,y(band.high),width,y(band.low)-y(band.high));}
+  if(p.bands)for(const band of (p.bandMode==='target'?[{low:p.targetLow,high:p.targetHigh,colour:'#f58caa'}]:p.ranges)){g.fillStyle=band.colour+'52';g.fillRect(left,y(band.high),width,y(band.low)-y(band.high));}
   g.restore();g.font='11px system-ui';g.lineWidth=1;g.textBaseline='middle';
   const step=p.maximum-p.minimum>700?100:50;
   const ticks=p.axis==='log'?[...new Set([p.minimum,50,100,200,500,1000,p.maximum])].filter(hz=>hz>=p.minimum&&hz<=p.maximum).sort((a,b)=>a-b):Array.from({length:Math.floor(p.maximum/step)-Math.ceil(p.minimum/step)+1},(_,i)=>(Math.ceil(p.minimum/step)+i)*step);
@@ -69,10 +69,10 @@
   // Grouped measurements belong at their bucket centre. Complete the bucket
   // using already analysed context before showing it; never flash partial groups.
   const lookahead=p.samplingMs/2000,available=rows.at(-1)?.time??-Infinity;
-  const points=FeatureState.points(rows.filter(r=>r.time<=end+lookahead+(p.edgeExtension==='half-frame'?frameStep:0)),p,grouping.seed).filter(r=>r.time>=begin-(p.edgeExtension==='half-frame'?frameStep:0)&&(!p.samplingMs||r.time<=end&&r.time+lookahead<=available+1e-8));
+  const points=FeatureState.completedPoints(FeatureState.points(rows.filter(r=>r.time<=end+lookahead+(p.edgeExtension==='half-frame'?frameStep:0)),p,grouping.seed),p,end,available).filter(r=>r.time>=begin-(p.edgeExtension==='half-frame'?frameStep:0));
   const curvePoints=p.edgeExtension==='half-frame'?FeatureState.edges(points,frameStep):points;
   g.save();g.beginPath();g.rect(left,top,width,height);g.clip();g.strokeStyle='#ff9a70';g.lineWidth=p.lineWidth;g.lineJoin='round';g.lineCap='round';g.beginPath();
-  for(const [command,...args] of FeatureState.path(curvePoints.map(point=>({...point,x:x(point.time),y:y(point.hz)})),p.cornerRadius/ratio))g[command](...args);
+  for(const [command,...args] of FeatureState.path(curvePoints.map(point=>({...point,x:x(point.time),y:y(point.hz)})),p.cornerRadius))g[command](...args);
   if(policy.curve){if(p.outlineWidth){g.strokeStyle='#8cdcff';g.lineWidth=p.outlineWidth;g.stroke()}g.strokeStyle='#ff9a70';g.lineWidth=p.lineWidth;g.stroke();}
   g.fillStyle='#e0efff';for(const point of points){if(point.hz&&point.time>=begin&&point.time<=end&&(policy.dots||p.drawing==='curve'&&point.marker)){g.beginPath();g.arc(x(point.time),y(point.hz),p.markerRadius,0,2*Math.PI);g.fill()}}g.restore();
   g.font='10px system-ui';g.fillStyle='#b8c8da';g.textAlign='center';
@@ -80,8 +80,8 @@
   chart.dataset.pitchMethod=pitchStream?.activeSettings.pitchMethod||state.pitch.method;chart.dataset.plottedUntil=String(end);chart.dataset.voiced=String(points.filter(r=>r.hz>0&&r.time>=begin&&r.time<=end).length);
  }
  function controls(force=false){
-  const p=state.pitch;for(const [id,value]of [['pitchMethod',p.method],['pitchConfirmation',p.confirmationMs],['pitchMinimum',p.minimum],['pitchMaximum',p.maximum],['pitchHistory',p.history],['pitchSmoothing',p.smoothing],['pitchSampling',p.samplingMs],['pitchAggregation',p.aggregation],['pitchGap',p.gapMs],['pitchJumps',p.jumpCents],['pitchCorners',p.cornerRadius],['pitchMarkers',p.markers],['pitchLineWidth',p.lineWidth],['pitchMarkerRadius',p.markerRadius],['pitchAxis',p.axis],['pitchDrawing',p.drawing],['pitchEdges',p.edgeExtension],['pitchConfidence',p.confidence],['pitchOutline',p.outlineWidth],['pitchVoicingCeiling',p.voicingCeiling]])if(force||document.activeElement!==$(id))$(id).value=value;
-  $('pitchSpeechGate').checked=p.speechGate;$('pitchMarkers').disabled=p.drawing!=='curve';$('pitchBridge').checked=p.bridgeUnvoiced;presetControls();$('pitchBands').checked=p.bands;
+  const p=state.pitch;for(const [id,value]of [['pitchBandMode',p.bandMode],['pitchTargetLow',p.targetLow],['pitchTargetHigh',p.targetHigh],['pitchMethod',p.method],['pitchConfirmation',p.confirmationMs],['pitchMinimum',p.minimum],['pitchMaximum',p.maximum],['pitchHistory',p.history],['pitchSmoothing',p.smoothing],['pitchSampling',p.samplingMs],['pitchAggregation',p.aggregation],['pitchGap',p.gapMs],['pitchJumps',p.jumpCents],['pitchCorners',p.cornerRadius],['pitchMarkers',p.markers],['pitchLineWidth',p.lineWidth],['pitchMarkerRadius',p.markerRadius],['pitchAxis',p.axis],['pitchDrawing',p.drawing],['pitchEdges',p.edgeExtension],['pitchConfidence',p.confidence],['pitchOutline',p.outlineWidth],['pitchVoicingCeiling',p.voicingCeiling]])if(force||document.activeElement!==$(id))$(id).value=value;
+  $('pitchUncertainJumps').checked=p.breakUnconfirmedJumps;$('pitchTarget').hidden=p.bandMode!=='target';$('pitchReference').hidden=p.bandMode!=='ranges';$('pitchSpeechGate').checked=p.speechGate;$('pitchMarkers').disabled=p.drawing!=='curve';$('pitchBridge').checked=p.bridgeUnvoiced;presetControls();$('pitchBands').checked=p.bands;
   if(!$('pitchRanges').children.length)p.ranges.forEach((band,i)=>{
    const group=document.createElement('div');group.className='pitchRange';
    const title=document.createElement('h5');title.textContent='Band '+(i+1);group.append(title);
@@ -117,7 +117,8 @@
  }
  function applyPitch(id){state=FeatureState.choose(state,id);$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint();}
  $('pitchPreset').onchange=()=>{if($('pitchPreset').value!=='custom')applyPitch($('pitchPreset').value)};
- for(const [id,key,numeric] of [['pitchMethod','method'],['pitchConfirmation','confirmationMs',true],['pitchSampling','samplingMs',true],['pitchAggregation','aggregation'],['pitchGap','gapMs',true],['pitchJumps','jumpCents',true],['pitchCorners','cornerRadius',true],['pitchMarkers','markers'],['pitchLineWidth','lineWidth',true],['pitchMarkerRadius','markerRadius',true],['pitchAxis','axis'],['pitchDrawing','drawing'],['pitchEdges','edgeExtension'],['pitchConfidence','confidence',true],['pitchOutline','outlineWidth',true],['pitchVoicingCeiling','voicingCeiling',true]])$(id).onchange=()=>edit(p=>{p[key]=numeric?Number($(id).value):$(id).value});
+ for(const [id,key,numeric] of [['pitchBandMode','bandMode'],['pitchTargetLow','targetLow',true],['pitchTargetHigh','targetHigh',true],['pitchMethod','method'],['pitchConfirmation','confirmationMs',true],['pitchSampling','samplingMs',true],['pitchAggregation','aggregation'],['pitchGap','gapMs',true],['pitchJumps','jumpCents',true],['pitchCorners','cornerRadius',true],['pitchMarkers','markers'],['pitchLineWidth','lineWidth',true],['pitchMarkerRadius','markerRadius',true],['pitchAxis','axis'],['pitchDrawing','drawing'],['pitchEdges','edgeExtension'],['pitchConfidence','confidence',true],['pitchOutline','outlineWidth',true],['pitchVoicingCeiling','voicingCeiling',true]])$(id).onchange=()=>edit(p=>{p[key]=numeric?Number($(id).value):$(id).value});
+ $('pitchUncertainJumps').onchange=()=>edit(p=>{p.breakUnconfirmedJumps=$('pitchUncertainJumps').checked});
  $('pitchSpeechGate').onchange=()=>edit(p=>{p.speechGate=$('pitchSpeechGate').checked});
  $('pitchBridge').onchange=()=>edit(p=>{p.bridgeUnvoiced=$('pitchBridge').checked});
  $('editPitchPreset').onclick=()=>{const saved=state.presets.find(p=>p.id===state.selected);$('pitchPresetName').value=saved?.name||'';$('deletePitchPreset').hidden=!saved;$('pitchPresetStatus').textContent='';$('pitchPresetDialog').showModal();$('pitchPresetName').focus()};

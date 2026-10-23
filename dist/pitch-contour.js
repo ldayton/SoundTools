@@ -2,9 +2,9 @@
 // Bounded, chronological decisions over raw pitch observations. No replacement pitches.
 (function(scope){
  class PitchContour {
-  constructor({speechGate=false,confirmationMs=0,confidence=.45,ceiling=1200}={}){
-   if(typeof speechGate!=='boolean'||![0,30,50].includes(confirmationMs)||!Number.isFinite(confidence)||confidence<0||confidence>1||!Number.isFinite(ceiling)||ceiling<=50)throw Error('Invalid pitch contour settings');
-   this.speechGate=speechGate;this.delay=confirmationMs/1000;this.confidence=confidence;this.ceiling=ceiling;this.pending=[];this.history=[];this.last=-Infinity;
+  constructor({speechGate=false,confirmationMs=0,confidence=.45,ceiling=1200,breakUnconfirmedJumps=false}={}){
+   if(typeof breakUnconfirmedJumps!=='boolean'||typeof speechGate!=='boolean'||![0,30,50].includes(confirmationMs)||!Number.isFinite(confidence)||confidence<0||confidence>1||!Number.isFinite(ceiling)||ceiling<=50)throw Error('Invalid pitch contour settings');
+   this.breakUnconfirmedJumps=breakUnconfirmedJumps;this.previous=null;this.recent=[];this.speechGate=speechGate;this.delay=confirmationMs/1000;this.confidence=confidence;this.ceiling=ceiling;this.pending=[];this.history=[];this.last=-Infinity;
   }
   eligible(r){return Number.isFinite(r.pitch)&&r.pitch>=50&&r.pitch<this.ceiling&&Number.isFinite(r.strength)&&r.strength>=this.confidence}
   push(rows){
@@ -21,7 +21,23 @@
      if(confirmed)this.history=[];else reject=true;
     }
     if(reject)out.push({...r,pitch:0,strength:0});
-    else {out.push(r);if(this.eligible(r))this.history.push(r);}
+    else {
+     if(this.breakUnconfirmedJumps&&this.eligible(r)&&this.previous){
+      const jump=Math.abs(1200*Math.log2(r.pitch/this.previous.pitch));
+      const count=Math.round(this.delay/.01),next=[r,...this.pending.slice(0,count)];
+      // A line across an octave needs stable measurements on both sides. This
+      // uses the existing confirmation buffer and never changes accepted pitch.
+      const past=this.recent.slice(-count-1);
+      const supported=this.delay>0&&past.length===count+1&&past.every((p,k)=>this.eligible(p)&&Math.abs(r.time-p.time-(count+1-k)*.01)<1e-6&&Math.abs(1200*Math.log2(p.pitch/this.previous.pitch))<=600)&&next.length===count+1&&next.every((p,k)=>this.eligible(p)&&(!k||Math.abs(p.time-next[k-1].time-.01)<1e-6)&&Math.abs(1200*Math.log2(p.pitch/r.pitch))<=600);
+      if(supported)r.supportedTransitions=[{from:this.previous.pitch,to:r.pitch}];
+      r.pitchSupported=supported&&past.every(p=>Math.abs(1200*Math.log2(p.pitch/r.pitch))<=600);
+      if(jump>=1200-1e-8&&r.time-this.previous.time<=.2+1e-8&&!supported)r.breakBefore=true;
+     }
+     if(this.breakUnconfirmedJumps&&this.eligible(r)&&r.pitchSupported===undefined)r.pitchSupported=false;
+     out.push(r);if(this.eligible(r))this.history.push(r);
+    }
+    if(!reject&&this.eligible(r))this.previous=r;
+    if(this.breakUnconfirmedJumps){this.recent.push(out.at(-1));if(this.recent.length>6)this.recent.shift();}
    }
    return out;
   }

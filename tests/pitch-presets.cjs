@@ -53,3 +53,47 @@ assert.equal(F.pitch(F.presets.soundglow).method,'corroborated');
 assert.equal(F.pitch(F.presets.praat).method,'raw');
 assert.equal(F.pitch({}).method,'raw'); // Old named custom presets retain their original method.
 assert.throws(()=>F.pitch({method:'unknown'}));
+
+const sg=F.pitch(F.presets.soundglow);
+assert.equal(sg.breakUnconfirmedJumps,true);assert.equal(sg.bandMode,'target');assert.equal(sg.targetLow,175);assert.equal(sg.targetHigh,275);
+assert.equal(praat.breakUnconfirmedJumps,false);assert.equal(praat.bandMode,'ranges');
+for(const p of [{targetLow:275,targetHigh:175},{targetLow:NaN},{targetHigh:1201},{bandMode:'invalid'},{breakUnconfirmedJumps:'yes'}])assert.throws(()=>F.pitch(p));
+// Preserve old custom ranges instead of silently switching them to a target.
+const savedRanges=F.restore(JSON.stringify({version:1,selected:'saved-range',presets:[{id:'saved-range',name:'Old ranges',settings:{bands:true,ranges:F.defaults.ranges}}]}));assert.equal(savedRanges.pitch.bandMode,'ranges');
+const marked=[{time:.01,pitch:200,strength:1},{time:.11,pitch:100,strength:1,breakBefore:true},{time:.21,pitch:200,strength:1,breakBefore:true}];
+assert.deepEqual(F.points(marked,sg).map(r=>r.connected),[false,false,false]);
+const all=F.points(marked,sg);for(let cut=1;cut<marked.length;cut++){const seed=F.groupSeed(marked.slice(0,cut),sg);assert.deepEqual(F.points(marked.slice(cut),sg,seed).slice(-1),all.slice(-1),'Pruning preserves line breaks');}
+const first=[{time:.01,pitch:200,strength:1},{time:.09,pitch:210,strength:1}],next=[...first,{time:.1,pitch:220,strength:1}];
+assert.equal(F.completedPoints(F.points(first,sg),sg,.099,.09).length,0);
+assert.equal(F.completedPoints(F.points(next,sg),sg,.1,.1).length,1);
+const visible=F.completedPoints(F.points(next,sg),sg,.1,.1);
+assert.deepEqual(F.completedPoints(F.points([...next,{time:.19,pitch:250,strength:1}],sg),sg,.19,.19),visible,'Later partial bucket cannot revise the completed one');
+assert.equal(F.completedPoints(F.points(next,praat),praat,.1,.1).length,next.length,'Ungrouped Praat measurements are unaffected');
+console.log('PASS: Soundglow target validation, custom preset migration, line-break pruning, stable complete buckets and unchanged Praat sampling');
+
+const {PitchContour}=require('../dist/pitch-contour.js');
+const note=(pitch,n,start)=>Array.from({length:n},(_,i)=>({time:start+i*.01,pitch,strength:.9}));
+function displayedPitch(input){const contour=new PitchContour({confirmationMs:50,breakUnconfirmedJumps:true});return F.points(contour.push(input),sg)}
+const held=[...note(200,20,0),...note(100,20,.2),...note(200,20,.4),...note(0,10,.6)];
+assert.equal(displayedPitch(held).find(p=>Math.abs(p.time-.25)<1e-8).connected,true,'Stable lower octave remains connected after bucketing');
+// A rapid excursion can move through intermediate raw pitches without making
+// any individual one-octave step. Check the actual displayed group boundary.
+const slidingDip=[...note(200,15,0),...[180,150,120,95,80,75].map((pitch,i)=>({time:.15+i*.01,pitch,strength:.9})),...note(0,9,.21),...note(200,20,.3),...note(0,10,.5)];
+const dipped=displayedPitch(slidingDip);assert.equal(dipped.find(p=>Math.abs(p.time-.25)<1e-8).connected,false);assert.equal(dipped.find(p=>Math.abs(p.time-.35)<1e-8).connected,false,'Both sides of an unsupported grouped excursion disconnect');
+const opts={confirmationMs:50,breakUnconfirmedJumps:true},processed=new PitchContour(opts).push(slidingDip);
+for(let cut=1;cut<processed.length;cut++){const seed=F.groupSeed(processed.slice(0,cut),sg),snapshot=structuredClone(seed),remaining=processed.slice(cut);assert.deepEqual(F.points(remaining,sg,seed).slice(-1),F.points(processed,sg).slice(-1));assert.deepEqual(seed,snapshot,'Support aggregation never mutates pruning seed');}
+console.log('PASS: displayed jump support survives grouping, gradual excursions, sustained octave transitions and every history-pruning cut');
+
+// A discarded candidate must not affect the line between selected buckets.
+const flatWithOutlier=Array.from({length:50},(_,i)=>({time:i*.01,pitch:i===12?100:200,strength:.9}));
+const flatContour=new PitchContour(opts).push(flatWithOutlier),flatPoints=F.points(flatContour,sg);
+assert(flatContour.some(r=>r.breakBefore),'Fixture must exercise raw line-break evidence');
+assert.deepEqual(flatPoints.map(p=>p.hz),[200,200,200,200,200]);
+assert.deepEqual(flatPoints.map(p=>p.connected),[false,true,true,true,true]);
+for(let cut=1;cut<flatContour.length;cut++){const seed=F.groupSeed(flatContour.slice(0,cut),sg);const from=(Math.floor((flatContour[cut].time+1e-8)/.1)+.5)*.1;assert.deepEqual(F.points(flatContour.slice(cut),sg,seed).filter(p=>p.time>=from-1e-8),flatPoints.filter(p=>p.time>=from-1e-8));}
+const descending=Array.from({length:50},(_,i)=>({time:i*.01,pitch:i<15?400:400*2**(-Math.min(i-14,6)*500/1200),strength:.9}));
+const descent=new PitchContour(opts).push(descending);
+assert.equal(descent.find(r=>Math.abs(r.time-.2)<1e-8).pitchSupported,false,'A chain of small steps is not a stable preceding window');
+const descentPoints=F.points(descent,sg);assert.equal(descentPoints.find(r=>Math.abs(r.time-.25)<1e-8).connected,false,'Unsupported multi-octave display jump breaks');
+for(const size of [1,2,7,13]){const c=new PitchContour(opts),out=[];for(let i=0;i<descending.length;i+=size)out.push(...c.push(descending.slice(i,i+size)));assert.deepEqual(out,descent);}
+console.log('PASS: discarded outliers preserve flat connections; full-window support rejects rapid drift, with pruning and packet invariance');

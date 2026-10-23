@@ -13,3 +13,18 @@ assert.deepEqual(run(transient,3,{confirmationMs:0}),transient,'Off is transpare
 const p=new PitchContour({confirmationMs:50});p.push(base);assert.throws(()=>p.push([{time:.2,pitch:200,strength:1},{time:.1,pitch:200,strength:1}]));assert.equal(p.last,.19,'Invalid batches are atomic');
 for(const value of [-1,40,NaN])assert.throws(()=>new PitchContour({confirmationMs:value}));
 console.log('PASS: bounded pitch confirmation, packet invariance, stable commitment, quiet/brief/high/low notes, transparent off and atomic validation');
+
+// Line eligibility is independent of pitch acceptance. Octave dips are retained,
+// but neither edge of an isolated dip should be drawn as a confident transition.
+const lineOptions={confirmationMs:50,breakUnconfirmedJumps:true};
+const dip=[...base,...make(100,2,.2),...make(200,18,.22),...tail];
+const guarded=run(dip,1,lineOptions),plain=run(dip,1,{confirmationMs:50});
+assert.deepEqual(guarded.map(({breakBefore,pitchSupported,supportedTransitions,...r})=>r),plain);
+assert.deepEqual(guarded.filter(r=>r.breakBefore).map(r=>+r.time.toFixed(2)),[.2,.22]);
+for(const n of [2,3,7,13])assert.deepEqual(run(dip,n,lineOptions),guarded);
+for(const hz of [100,400]){const rs=[...base,...make(hz,20,.2),...tail];assert.equal(run(rs,3,lineOptions).some(r=>r.breakBefore),false,'Supported octave changes remain connected');}
+assert.equal(run(transient,2,lineOptions).filter(r=>r.pitch===850).length,0,'Existing high-spike rejection unchanged');
+const afterGap=[...base,...make(0,3,.2),...make(100,20,.23),...make(0,8,.43)];
+assert.equal(run(afterGap,2,lineOptions).filter(r=>r.pitch===100).length,20,'Gaps cannot erase accepted pitch');
+assert.equal(run(afterGap,2,lineOptions).find(r=>Math.abs(r.time-.23)<1e-8).breakBefore,true,'An unvoiced gap cannot corroborate an octave transition');
+console.log('PASS: uncertain octave dip disconnects both edges, accepted values unchanged, sustained transitions and packet invariance');

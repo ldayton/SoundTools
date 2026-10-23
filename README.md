@@ -638,3 +638,10 @@ for the original-library oracle, audio probes and remaining detector differences
 
 The [Praat pitch drawing notes](docs/pitch-praat.md) document the inspected native
 source, automatic curve/speckle rules, logarithmic display and half-frame caps.
+
+### Browser debug reports
+
+Bounded local reports and optional, explicitly enabled Sentry reporting are shared
+with DoReGo through `@ldayton/browser-diagnostics`. See [setup, privacy and tests](docs-diagnostics.md)
+and the [shared package release workflow](packages/browser-diagnostics/README.md).
+No remote collection is configured by default.

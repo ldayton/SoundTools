@@ -31,8 +31,8 @@
     settings:()=>({windowSeconds:.025,timeStep:.005,maximumFrequency:1000,frequencyStep:20,analysisFlags:6,pitchFloor:50,pitchCeiling:1200,pitchMethod:state.pitch.method}),
     onFrames:(_,result)=>{host.measure('pitchAnalysisMs',result.timings.analysisMs);host.measure('pitchWorkerRoundTripMs',result.timings.workerRoundTripMs);const features=result.features.map(withSpeech);rawRows.push(...features);updateContour(features);trimPitch();if(host.state().paused&&!paintQueued){paintQueued=true;requestAnimationFrame(()=>{paintQueued=false;paint()})}},
     onReconfigured:groups=>{rawRows=groups.flatMap(({result})=>result.features.map(withSpeech));rows=[];contourKey='';contour=null;grouping={key:null,settings:null,seed:null};pitchStream.requestedMethod=null;lastPaint='';paint()},
-    onReconfigureError:error=>{const method=pitchStream?.activeSettings.pitchMethod;if(method)state=FeatureState.changed(state,{...state.pitch,method});if(pitchStream)pitchStream.requestedMethod=null;persist();controls(true);$('pitchError').textContent=error.message;$('pitchError').hidden=false},
-    onError:error=>{$('pitchError').textContent=error.message;$('pitchError').hidden=false},
+    onReconfigureError:error=>{const method=pitchStream?.activeSettings.pitchMethod;if(method)state=FeatureState.changed(state,{...state.pitch,method});if(pitchStream)pitchStream.requestedMethod=null;persist();controls(true);window.SoundglowDiagnostics?.capture(error,'pitch.analysis_failed');$('pitchError').textContent=error.message;$('pitchError').hidden=false},
+    onError:error=>{window.SoundglowDiagnostics?.capture(error,'pitch.analysis_failed');$('pitchError').textContent=error.message;$('pitchError').hidden=false},
    });
    const raw=host.raw(),end=raw.at(-1);cursor=end?Math.max(raw[0].start,end.start-31):null;
   }
@@ -42,7 +42,7 @@
     const block=host.raw().find(b=>cursor===null||b.start+b.pcm.length/host.state().sampleRate>cursor+1e-7);if(!block)break;
     const rate=host.state().sampleRate,offset=cursor===null?0:Math.max(0,Math.round((cursor-block.start)*rate));
     const speech=await host.analyse({type:'speech',session:speechSession,neural:state.pitch.speechGate&&experimentalSpeechGate,pcm:block.pcm.slice(offset),start:block.start+offset/rate,sampleRate:rate},{transfer:true});if(generation!==epoch)return;host.measure('speechDetectionMs',speech.ms);chart.dataset.neuralStatus=speech.neuralStatus;chart.dataset.neuralError=speech.neuralError||'';neuralEvidence.record(speech,block.start+offset/rate);speechFrames.push(...speech.decisions);while(speechFrames.length&&speechFrames[0].time<block.start-33)speechFrames.shift();await stream.push(block.pcm.slice(offset),block.start+offset/rate);if(generation!==epoch)return;cursor=block.start+block.pcm.length/rate;
-   }}catch(error){if(generation===epoch){$('pitchError').textContent=error.message;$('pitchError').hidden=false}}
+   }}catch(error){if(generation===epoch){window.SoundglowDiagnostics?.capture(error,'pitch.analysis_failed');$('pitchError').textContent=error.message;$('pitchError').hidden=false}}
    finally{if(generation===epoch)pumping=false;}
   })();
  }

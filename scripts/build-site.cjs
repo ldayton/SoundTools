@@ -2,26 +2,28 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),worker=require('./service-worker.cjs');
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function files(directory){return fs.readdirSync(directory,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name)).flatMap(e=>e.isDirectory()?files(path.join(directory,e.name)).map(f=>e.name+'/'+f):[e.name])}
-function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soundglow/',previous=path.resolve('previous-site')}={}){
+function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soundglow/',previous=path.resolve('previous-site'),diagnosticsDsn=process.env.SOUNDGLOW_SENTRY_DSN||''}={}){
  if(!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(base))throw Error('Invalid deployment base');
  const sourceFiles=files(source),read=f=>fs.readFileSync(path.join(source,f));
  const hashGroup=list=>digest(Buffer.concat(list.flatMap(f=>[Buffer.from(f+'\0'),read(f)]))).slice(0,32);
  const engineFiles=sourceFiles.filter(f=>f.startsWith('vendor/praat/')&&!f.endsWith('source.tar.gz'));
  const mediaFiles=sourceFiles.filter(f=>f.startsWith('audio/'));
  const engine=base+'engines/'+hashGroup(engineFiles)+'/',media=base+'media/'+hashGroup(mediaFiles)+'/';
- const version=digest(Buffer.concat([Buffer.from(base),fs.readFileSync(__filename),fs.readFileSync(require.resolve('./service-worker.cjs')),...sourceFiles.flatMap(f=>[Buffer.from(f+'\0'),read(f)])])).slice(0,32);
+ const version=digest(Buffer.concat([Buffer.from(base),Buffer.from(diagnosticsDsn),fs.readFileSync(__filename),fs.readFileSync(require.resolve('./service-worker.cjs')),...sourceFiles.flatMap(f=>[Buffer.from(f+'\0'),read(f)])])).slice(0,32);
  const release=base+'releases/'+version+'/',output=new Map();
  for(const file of engineFiles)output.set(engine+file.slice('vendor/praat/'.length),read(file));
  for(const file of mediaFiles)output.set(media+file.slice('audio/'.length),read(file));
- for(const file of ['pitch-contour.js','feature-state.js','workspace.js','settings-state.js','voice-feedback.js','performance.js','analysis-settings.js','style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
+ for(const file of ['diagnostics.js','pitch-contour.js','feature-state.js','workspace.js','settings-state.js','voice-feedback.js','performance.js','analysis-settings.js','style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
+ for(const file of sourceFiles.filter(f=>f.startsWith('vendor/diagnostics/')))output.set(release+'diagnostics/'+file.slice('vendor/diagnostics/'.length),read(file));
  let app=read('app.js').toString();
  for(const [before,after] of [["'vendor/praat/live-worker.js?profile=release&v=20261020-neural-gate'",JSON.stringify(engine+'live-worker.js?profile=release')],["'pcm-worklet.js'",JSON.stringify(release+'pcm-worklet.js')],["'audio/alice-waters.m4a'",JSON.stringify(media+'alice-waters.m4a')]]){
   if(app.split(before).length!==2)throw Error('Missing or duplicate production asset: '+before);app=app.replace(before,after);
  }
  output.set(release+'app.js',Buffer.from(app));
- let html=read('index.html').toString().replace('<head>','<head><meta name="soundglow-release" content="'+version+'"><meta name="soundglow-base" content="'+base+'">');
- const mappings={'pitch-contour.js':release+'pitch-contour.js','feature-state.js':release+'feature-state.js','workspace.js':release+'workspace.js','settings-state.js':release+'settings-state.js','voice-feedback.js':release+'voice-feedback.js','performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
+ let html=read('index.html').toString().replace('<head>','<head><meta name="soundglow-sentry-dsn" content="'+diagnosticsDsn.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'"><meta name="soundglow-release" content="'+version+'"><meta name="soundglow-base" content="'+base+'">');
+ const mappings={'diagnostics.js':release+'diagnostics.js','vendor/diagnostics/core.js':release+'diagnostics/core.js','pitch-contour.js':release+'pitch-contour.js','feature-state.js':release+'feature-state.js','workspace.js':release+'workspace.js','settings-state.js':release+'settings-state.js','voice-feedback.js':release+'voice-feedback.js','performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
  html=html.replace(/\b(src|href)="([^"?]+)(?:\?[^"]*)?"/g,(all,attribute,name)=>mappings[name]?attribute+'="'+mappings[name]+'"':all).replace('href="audio/CREDITS.txt"','href="'+media+'CREDITS.txt"');
+ html=html.replace('data-reporter="vendor/diagnostics/sentry.js"','data-reporter="'+release+'diagnostics/sentry.js"');
  output.set(release+'index.html',Buffer.from(html));
  const manifest={schema:1,version,base,html:release+'index.html',files:[...output].map(([url,bytes])=>({url,sha256:digest(bytes),bytes:bytes.length}))};
  fs.rmSync(out,{recursive:true,force:true});fs.cpSync(source,out,{recursive:true});

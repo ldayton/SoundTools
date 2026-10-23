@@ -24,7 +24,7 @@ function notifyFeatures(type){for(const listener of featureSubscribers)listener(
 window.soundglowSession={
  subscribe(listener){featureSubscribers.add(listener);return ()=>featureSubscribers.delete(listener)},
  measure:(name,ms)=>performanceSession?.add(name,ms),
- state:()=>({running,paused,time:audio?.currentTime||0,displayedUntil:Number(canvas.dataset.plottedUntil),sampleRate:audio?.sampleRate||0}),
+ state:()=>({running,paused,time:audio?.currentTime||0,displayedUntil:Number(canvas.dataset.plottedUntil),sampleRate:audio?.sampleRate||0,audioState:audio?.state||'unavailable'}),
  raw:()=>engine?.raw||[],
  analyse:(request,options)=>engine.request(request,options),
 };
@@ -114,6 +114,8 @@ for(const name of ['transitionend','transitioncancel'])$('stage').addEventListen
 window.addEventListener('resize',resize);
 new ResizeObserver(resize).observe($('plot'));
 function render(time){
+ window.SoundglowDiagnostics?.frame(time,running&&!paused&&!document.hidden&&(desktopSettings.matches||location.hash!=='#settings'));
+ if(running&&!paused&&audio&&window.soundglowSession?.featureState?.().active!=='pitch')window.SoundglowDiagnostics?.metric('plot.age_ms',Math.max(0,(audio.currentTime-Number(canvas.dataset.plottedUntil))*1000));
  if(!performanceSession?.enabled)return renderFrame(time);
  const started=performance.now();
  try{return renderFrame(time)}finally{performanceSession?.frame({time,cost:performance.now()-started,audioTime:audio?.currentTime||0,plotted:Number(canvas.dataset.plottedUntil),active:running&&!paused&&!document.hidden&&(desktopSettings.matches||location.hash!=='#settings')});}
@@ -170,8 +172,8 @@ function paintSpectrum(slices,width,x,maximum=displayMaximum){
   ctx.putImageData(image,x,pxTop);
 }
 function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
-function state(text,live=false){$('state').textContent=text;$('state').classList.toggle('live',live)}
-function stop(){notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('microphoneScope').hidden=true;$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
+function state(text,live=false){if(['CONNECTING','LOADING'].includes(text))window.SoundglowDiagnostics?.frame(performance.now(),false);window.SoundglowDiagnostics?.event('transport.state',{state:text});$('state').textContent=text;$('state').classList.toggle('live',live)}
+function stop(){window.SoundglowDiagnostics?.frame(performance.now(),false);notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('microphoneScope').hidden=true;$('testControls').hidden=true;$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed')audio.close().catch(()=>{});stream=source=audio=null;paused=false;$('freeze').disabled=true;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   if(!navigator.mediaDevices?.enumerateDevices)return [];
@@ -213,7 +215,7 @@ function microphoneError(e){
 }
 $('refreshMic').onclick=microphones;
 $('microphone').onchange=async()=>{notice('');if(running&&inputMode==='mic'){stop();await start();}};
-async function start(){if(starting)return;revealActiveView();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
+async function start(){if(starting)return;revealActiveView();if(running){const wasSpeech=inputMode==='speech';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){if(!returningHome){if(e.name==='NotAllowedError')window.SoundglowDiagnostics?.event('microphone.permission_denied');else window.SoundglowDiagnostics?.capture(e,'microphone.start_failed');}stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
 function selectedPresetLabel(){return ({soundglow:'Soundglow',praat:'Praat',voice:'Voice Tools',custom:'Unnamed Preset*'})[settingsState.selected]||savedPresets.find(p=>p.id===settingsState.selected)?.name||'Unnamed Preset*'}
 function updateResolution(){$('resolution').textContent=window.soundglowSession?.viewLabel?.()||selectedPresetLabel()}
 $('start').onclick=start;$('begin').onclick=start;
@@ -345,14 +347,14 @@ async function connectInput(input){
     onRebuildFrames:(frames,result)=>{for(const frame of frames)levelCache.get({...frame,firstFrequency:result.firstFrequency,frequencyStep:result.frequencyStep,spectrumUnits:result.spectrumUnits||'density'},value('preemphasis'));},
     onReconfigureError:error=>{
      if(committedAnalysisValues)updateSettings({type:'apply',selected:'custom',values:{...settingsState.values,...committedAnalysisValues}});
-     notice('Could not apply analysis settings: '+error.message);
+     window.SoundglowDiagnostics?.capture(error,'analysis.reconfigure_failed');notice('Could not apply analysis settings: '+error.message);
     },
-    onFrames:acceptFrames,onError:error=>{stop();notice('Praat audio processing failed: '+error.message)}
+    onFrames:acceptFrames,onError:error=>{window.SoundglowDiagnostics?.capture(error,'analysis.failed');stop();notice('Praat audio processing failed: '+error.message)}
   });
   await client.init();
   await context.audioWorklet.addModule('pcm-worklet.js');
   if(returningHome||context!==audio){client.dispose();throw new Error('Input stopped')}
-  source=context.createMediaStreamSource(input);pcmNode=new AudioWorkletNode(context,'pcm-input');
+  source=context.createMediaStreamSource(input);pcmNode=new AudioWorkletNode(context,'pcm-input');pcmNode.addEventListener('processorerror',event=>window.SoundglowDiagnostics?.capture(event.error,'audio.worklet_failed'));
   const activeEngine=engine;
   pcmNode.port.onmessage=({data})=>{
    // Suspend can resolve before already-posted packets reach the main thread.
@@ -397,7 +399,7 @@ async function startSpeech(){
     inputMode='speech';$('microphoneScope').hidden=false;running=true;paused=false;$('seek').max=speechBuffer.duration;
     $('testControls').hidden=false;$('welcome').hidden=true;$('freeze').disabled=false;setIcon('freeze','⏸','Pause');$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','true');setIcon('start','🎙︎','Use microphone');
     $('device').textContent='TEST INPUT · RECORDED SPEECH';state('EXAMPLE',true);updateResolution();redraw();playFrom(0);raf=requestAnimationFrame(render);
-  }catch(e){stop();if(!returningHome)notice(e.message||'Could not start recorded speech.')}
+  }catch(e){if(!returningHome)window.SoundglowDiagnostics?.capture(e,'example.start_failed');stop();if(!returningHome)notice(e.message||'Could not start recorded speech.')}
   finally{starting=false;returningHome=false;setBusy(false)}
 }
 $('demo').onclick=startSpeech;

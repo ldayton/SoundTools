@@ -1,0 +1,4 @@
+Bundled license information:
+
+@sentry/core/build/esm/utils/env.js:
+  /*! __SENTRY_SDK_SOURCE__ */

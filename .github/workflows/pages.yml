@@ -33,6 +33,8 @@ jobs:
             fi
           fi
       - name: Verify packaged engine, numerical reference, and screenshots
+        env:
+          SOUNDGLOW_SENTRY_DSN: ${{ vars.SOUNDGLOW_SENTRY_DSN }}
         run: npm run build
       - name: Save verification reports and image differences
         if: always()

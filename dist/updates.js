@@ -21,7 +21,7 @@
      navigator.serviceWorker.controller.postMessage({type:'prepare-update'},[channel.port2]);
     });
     // Worker installation/activation never reloads a page or touches audio.
-    if(reply.ready&&reply.version!==version){button.hidden=false;button.dataset.version=reply.version}
+    if(reply.ready&&reply.version!==version){window.SoundglowDiagnostics?.event('cache.update_available');button.hidden=false;button.dataset.version=reply.version}
     else if(reply.ready){button.hidden=true;delete button.dataset.version}
    }catch{/* The currently running release remains usable while offline. */}
    finally{checking=false}
@@ -31,5 +31,5 @@
   window.addEventListener('online',()=>void check());window.addEventListener('focus',()=>void check());
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check()});
   setInterval(()=>void check(),60000);announce();void check();
- }catch{/* Caching is optional; failure must not prevent microphone use. */}
+ }catch(error){window.SoundglowDiagnostics?.capture(error,'cache.setup_failed');/* Caching is optional; failure must not prevent microphone use. */}
 })();

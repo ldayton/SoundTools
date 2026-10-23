@@ -4,7 +4,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "test": "npm run test:core && npm run test:visual && npm run test:updates",
-    "test:core": "node scripts/verify-assets.cjs && node --check dist/app.js && node --check dist/pcm-worklet.js && node tests/features.cjs && node tests/pitch-contour.cjs && node tests/pitch-comparison/practice-metrics.test.cjs && node tests/speech-detector.cjs && node tests/neural-detector.cjs && node tests/pitch-presets.cjs && node tests/pitch-filtered.cjs && node tests/pitch-corroborated.cjs && node tests/pitch-comparison/metrics.test.cjs && node tests/pitch-comparison/capture.test.cjs && node tests/processor-archive.cjs && node tests/performance.cjs && node tests/display.cjs && node tests/handover.cjs && node tests/settings-state.cjs && node tests/spectrum.cjs && node tests/praat.cjs && node tests/voice-settings.cjs && node tests/overlays.cjs && node tests/voice-feedback.cjs && node tests/lpc-native.cjs && node tests/visual/numeric.cjs && npm run test:pitch-benchmark",
+    "test:core": "npm run test:diagnostics && node scripts/verify-assets.cjs && node --check dist/app.js && node --check dist/pcm-worklet.js && node tests/features.cjs && node tests/pitch-contour.cjs && node tests/pitch-comparison/practice-metrics.test.cjs && node tests/speech-detector.cjs && node tests/neural-detector.cjs && node tests/pitch-presets.cjs && node tests/pitch-filtered.cjs && node tests/pitch-corroborated.cjs && node tests/pitch-comparison/metrics.test.cjs && node tests/pitch-comparison/capture.test.cjs && node tests/processor-archive.cjs && node tests/performance.cjs && node tests/display.cjs && node tests/handover.cjs && node tests/settings-state.cjs && node tests/spectrum.cjs && node tests/praat.cjs && node tests/voice-settings.cjs && node tests/overlays.cjs && node tests/voice-feedback.cjs && node tests/lpc-native.cjs && node tests/visual/numeric.cjs && npm run test:pitch-benchmark",
     "test:visual": "node tests/visual/prepare-replay.cjs && playwright test",
     "test:visual:update": "node tests/visual/prepare-replay.cjs && playwright test --update-snapshots",
     "build": "npm test && node scripts/build-site.cjs",
@@ -13,11 +13,15 @@
     "test:pitch-comparison": "node tests/pitch-comparison/prepare.cjs && PITCH_COMPARISON=1 playwright test pitch-comparison.spec.cjs --project desktop",
     "test:pitch-practice": "node tests/pitch-comparison/compare-practice.cjs && node tests/pitch-comparison/report-practice.cjs",
     "test:pitch-benchmark": "node tests/pitch-benchmark/metrics.test.cjs && node tests/pitch-benchmark/gate-trial.test.cjs && node tests/pitch-benchmark/gate-cycle-policy.test.cjs && node tests/pitch-benchmark/gate-reset-policy.test.cjs && node tests/pitch-benchmark/gate-reset-stream.test.cjs",
-    "benchmark:pitch": "node tests/pitch-benchmark/run.cjs"
+    "benchmark:pitch": "node tests/pitch-benchmark/run.cjs",
+    "test:diagnostics": "node node_modules/@ldayton/browser-diagnostics/verify.cjs && node --test packages/browser-diagnostics/test/core.cjs && node tests/diagnostics-browser.cjs && node tests/diagnostics-build.cjs"
   },
   "devDependencies": {
     "@ozymandiasthegreat/vad": "2.0.7",
     "@playwright/test": "1.64.1",
     "onnxruntime-web": "1.23.2"
+  },
+  "dependencies": {
+    "@ldayton/browser-diagnostics": "file:vendor/ldayton-browser-diagnostics-0.1.0.tgz"
   }
 }

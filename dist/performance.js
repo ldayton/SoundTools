@@ -4,7 +4,7 @@
   constructor({now=()=>performance.now(),limit=18000}={}){this.now=now;this.limit=limit;this.enabled=false;this.reset()}
   reset(){this.started=this.now();this.metrics={};this.counts={};this.events=[];this.break()}
   break(){this.previous=null;this.readyAt=this.now()+2000}
-  add(name,value){if(!this.enabled||!Number.isFinite(value))return;const m=this.metrics[name]||(this.metrics[name]={samples:new Float64Array(this.limit),count:0,max:-Infinity,sum:0});m.samples[m.count%this.limit]=value;m.count++;m.sum+=value;m.max=Math.max(m.max,value)}
+  add(name,value){scope.SoundglowDiagnostics?.metric(name.replace(/[A-Z]/g,c=>'_'+c.toLowerCase()),value);if(!this.enabled||!Number.isFinite(value))return;const m=this.metrics[name]||(this.metrics[name]={samples:new Float64Array(this.limit),count:0,max:-Infinity,sum:0});m.samples[m.count%this.limit]=value;m.count++;m.sum+=value;m.max=Math.max(m.max,value)}
   count(name,n=1){if(this.enabled)this.counts[name]=(this.counts[name]||0)+n}
   event(name,details={}){if(!this.enabled)return;this.count(name);const warmup=this.now()<this.readyAt;if(!warmup)this.count(name+'AfterWarmup');this.events.push({name,elapsedMs:this.now()-this.started,warmup,...details});if(this.events.length>256)this.events.shift()}
   frame({time,cost,audioTime,plotted,active}){

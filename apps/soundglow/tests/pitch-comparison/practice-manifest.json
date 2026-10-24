@@ -1,0 +1,408 @@
+{
+  "source": "PTDB-TUG, TU Graz; Pirker et al. 2011",
+  "license": "ODbL 1.0 / Database Contents License 1.0",
+  "licenseSource": "https://www.spsc.tugraz.at/databases-and-tools/ptdb-tug-pitch-tracking-database-from-graz-university-of-technology.html",
+  "selection": "First four speakers in each supplied category, two shared sentences; fixed before detector evaluation. F01/F02/M01/M02 development; F03/F04/M03/M04 evaluation. Clean headset read speech, not phone recordings.",
+  "clips": [
+    {
+      "id": "F01-sa1",
+      "speaker": "F01",
+      "split": "development",
+      "seconds": 7.99,
+      "pcm": "outputs/pitch-comparison/practice/F01-sa1.f32",
+      "pcmSha256": "141ddc156b4a3b6a27bdf87c41422001fd3a13c899679fe1f657b6ecd1061643",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F01/mic_F01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F01_sa1.wav",
+          "sha256": "4d06714d605aafdd4f5923170b182b25879c42fe9f5275e7c076134f4f490fc1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F01/lar_F01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F01_sa1.wav",
+          "sha256": "3886d357e3f0fa89c2b47f3406c03ef94b00d648180995e57b15019c16121011"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F01/ref_F01_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F01_sa1.f0",
+          "sha256": "947f6bfcbb38776e7730aca30784aac16d6ec1c06c72803d9985af56181a21ea"
+        }
+      }
+    },
+    {
+      "id": "F01-sa2",
+      "speaker": "F01",
+      "split": "development",
+      "seconds": 7.296,
+      "pcm": "outputs/pitch-comparison/practice/F01-sa2.f32",
+      "pcmSha256": "440b8f3ca6238d3d6adc2f4dbc6128120dcdb32f38d1e789f1f25e103d2a62c2",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F01/mic_F01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F01_sa2.wav",
+          "sha256": "5d8e665d2a40eafaf14d5e754c285c2a9ece0e0e4cdb77b37fbf47614b18418c"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F01/lar_F01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F01_sa2.wav",
+          "sha256": "cb8930404a874da1021b7c405bc9eb24ff6d3e76e58b1cc53940108e177eb92c"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F01/ref_F01_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F01_sa2.f0",
+          "sha256": "87b309727658350a0e8702a15268ee61ea51a1e5b58d62bc553c74733b9f4019"
+        }
+      }
+    },
+    {
+      "id": "F02-sa1",
+      "speaker": "F02",
+      "split": "development",
+      "seconds": 7.89,
+      "pcm": "outputs/pitch-comparison/practice/F02-sa1.f32",
+      "pcmSha256": "37605fb0afa47577098c422b367e5912a0c7e86dbd960ca0ba3c39c4c81dae9b",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F02/mic_F02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F02_sa1.wav",
+          "sha256": "364abf464860bb1b96265074e8305e2eb19cf4b4b3d4ae5e6e8251bdef4746c5"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F02/lar_F02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F02_sa1.wav",
+          "sha256": "4909fac166b026ac89b1002e2ae6278b787a14ed38b528f8eba1a4b9728fcb9f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F02/ref_F02_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F02_sa1.f0",
+          "sha256": "1d418a7c461e863d670fdb0f81372427274eae52b8c873adaabee8ead04cd233"
+        }
+      }
+    },
+    {
+      "id": "F02-sa2",
+      "speaker": "F02",
+      "split": "development",
+      "seconds": 6.88,
+      "pcm": "outputs/pitch-comparison/practice/F02-sa2.f32",
+      "pcmSha256": "c24d13c9c04fb7c4ee3e40e8f353f37b570aa900c847789328473bee6aca7dc6",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F02/mic_F02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F02_sa2.wav",
+          "sha256": "f1895bedb770230330bf1c773df46578a22a359d5d9cc7340c10b3d88ea07526"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F02/lar_F02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F02_sa2.wav",
+          "sha256": "9e4207af2fe37e3cc6f70654c13eda0fdfd4011a79f6c41dca4114c44fa23bd2"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F02/ref_F02_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F02_sa2.f0",
+          "sha256": "d2886a2e92da41b27142389d34de69904bd4633fe69feb361a4152ae638b6ba4"
+        }
+      }
+    },
+    {
+      "id": "F03-sa1",
+      "speaker": "F03",
+      "split": "evaluation",
+      "seconds": 7.74,
+      "pcm": "outputs/pitch-comparison/practice/F03-sa1.f32",
+      "pcmSha256": "48765bc4fa28a741bec91ae088fd5bbc6fc92992df274babe4f91c61fd8bd80b",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F03/mic_F03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F03_sa1.wav",
+          "sha256": "ab4a801fe68acb0fdc5722e286ac9ad401d43efc32cef205d2edc8a8631f960d"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F03/lar_F03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F03_sa1.wav",
+          "sha256": "854f385eff5b1d95054a702ee5fcd8730190fd89a6cba22a055ec7d71bc26f61"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F03/ref_F03_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F03_sa1.f0",
+          "sha256": "a43b638ae98414aee20df5d6bee2ef8bb3b315381e5614c8a3ac017379ebeae9"
+        }
+      }
+    },
+    {
+      "id": "F03-sa2",
+      "speaker": "F03",
+      "split": "evaluation",
+      "seconds": 6.96,
+      "pcm": "outputs/pitch-comparison/practice/F03-sa2.f32",
+      "pcmSha256": "4092a78c338f45182f3423108c75da0a5765874fe7d8a687d4db0579fdb8cc65",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F03/mic_F03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F03_sa2.wav",
+          "sha256": "594743066020e8eb7c826604de0ca56e4193d8defac3ceb677970c6c23cbd43e"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F03/lar_F03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F03_sa2.wav",
+          "sha256": "389a7fadc5ec15ae35bcc3eb19099231253174e7b2c97f98c5fef7aa86f94bdf"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F03/ref_F03_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F03_sa2.f0",
+          "sha256": "5f1f2efac01cf7ee55da873a446acb00d797e51465fe0ca1c5aacdf5a2dffd45"
+        }
+      }
+    },
+    {
+      "id": "F04-sa1",
+      "speaker": "F04",
+      "split": "evaluation",
+      "seconds": 8.28,
+      "pcm": "outputs/pitch-comparison/practice/F04-sa1.f32",
+      "pcmSha256": "44807697a0ae4faa419d89dbe3676ae41831f8f9de1569de60e594b32b6577a0",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F04/mic_F04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F04_sa1.wav",
+          "sha256": "4ebe1fb20e93b8302fe1f1313f4889fb84a296dde8a3d804820bb218568a03ee"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F04/lar_F04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F04_sa1.wav",
+          "sha256": "8067070eb5fa14f3af31114a07c340ad7fda1b2f40542a13a9e0c2fc887b203f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F04/ref_F04_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F04_sa1.f0",
+          "sha256": "360ddc1f6a3b7a016a7b7267a4fa8bdb56dea2e3b84ebe21746867f746bf0e2d"
+        }
+      }
+    },
+    {
+      "id": "F04-sa2",
+      "speaker": "F04",
+      "split": "evaluation",
+      "seconds": 7.54,
+      "pcm": "outputs/pitch-comparison/practice/F04-sa2.f32",
+      "pcmSha256": "14da9c54cf9902b251b7b5faa3ca748dbcdc2d4e7b8240569046c2482c9f6c6a",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F04/mic_F04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F04_sa2.wav",
+          "sha256": "467b751327efe271ad752af196a7f172bdddaed5a094062d84ed0a49a9a930f3"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F04/lar_F04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F04_sa2.wav",
+          "sha256": "de7362576d965fc5921ded77bdfa5026aab8d79327835418d41ac653ce6c5e93"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F04/ref_F04_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F04_sa2.f0",
+          "sha256": "fcfe28024543fbb2b7e172f787a74aac9215e8be3c332099cb92f89961cc553b"
+        }
+      }
+    },
+    {
+      "id": "M01-sa1",
+      "speaker": "M01",
+      "split": "development",
+      "seconds": 8.42,
+      "pcm": "outputs/pitch-comparison/practice/M01-sa1.f32",
+      "pcmSha256": "9a0e7f66ec0399a715a806bed3943ded795e89ffa1e434aaae99e363f310a0b9",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M01/mic_M01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M01_sa1.wav",
+          "sha256": "831c88e139267895e68f71050f668b7f32fae8676af0200bf59bfa8bdbfa8d26"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M01/lar_M01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M01_sa1.wav",
+          "sha256": "475eab034bd34f4bca1c6f2aa3550c76439439f5ed354d120e7799985c6f1b85"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M01/ref_M01_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M01_sa1.f0",
+          "sha256": "58d67bbedc5d870a9fdbb13baca19b6be9adb1201e27f5895e5a699163522bc7"
+        }
+      }
+    },
+    {
+      "id": "M01-sa2",
+      "speaker": "M01",
+      "split": "development",
+      "seconds": 7.39,
+      "pcm": "outputs/pitch-comparison/practice/M01-sa2.f32",
+      "pcmSha256": "076cb36051402d4d53ec40d24b056c4e226a8cd646130300f3ba5e9aed016827",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M01/mic_M01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M01_sa2.wav",
+          "sha256": "1ae864329ed7586594096998500f94e4719bd0cb7228b6954790633c60bcd04f"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M01/lar_M01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M01_sa2.wav",
+          "sha256": "cdd0bdbc045496c1b85bcfc20c409a7b1e7ac4b7e5ae33b78c38444dfeeccab2"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M01/ref_M01_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M01_sa2.f0",
+          "sha256": "862f183a3cf72d0f5b992b328cba019bade56f7fe96415e1a2378be3f2626259"
+        }
+      }
+    },
+    {
+      "id": "M02-sa1",
+      "speaker": "M02",
+      "split": "development",
+      "seconds": 6.88,
+      "pcm": "outputs/pitch-comparison/practice/M02-sa1.f32",
+      "pcmSha256": "b48139ec4613a9337a18f614c824b2678cddde66726c9b579bae380dde98cfdb",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M02/mic_M02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M02_sa1.wav",
+          "sha256": "a4b65b9f360fb0e49e697206bf4ed87eac67ede22b6aca29d54d579a6cab5d80"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M02/lar_M02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M02_sa1.wav",
+          "sha256": "18f6100cb63d3e85b26a1264736a5c3712002bfa53a4d443c6a2bcf876c3f76f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M02/ref_M02_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M02_sa1.f0",
+          "sha256": "a073e449b36c63006b10bdfce2bca17262c29be3f97367677fc2cd883bf18a30"
+        }
+      }
+    },
+    {
+      "id": "M02-sa2",
+      "speaker": "M02",
+      "split": "development",
+      "seconds": 6.88,
+      "pcm": "outputs/pitch-comparison/practice/M02-sa2.f32",
+      "pcmSha256": "cf87b51ab27cb7b5f0af6e14c7db5cc36eedaa13e86b9cf4e9d5e20259f629ac",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M02/mic_M02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M02_sa2.wav",
+          "sha256": "a4637d24d317eb8a127006277e6fd83471c37154d1b5767ae2e5da19323252df"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M02/lar_M02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M02_sa2.wav",
+          "sha256": "83021c76d9fe8106181459bae7076e5351cac4221fbcb92143d879ba912092f4"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M02/ref_M02_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M02_sa2.f0",
+          "sha256": "4e84a59ec7360ddf69c418aa0df0ea3609f7d61b15c22fea0d6ae4bdc638519e"
+        }
+      }
+    },
+    {
+      "id": "M03-sa1",
+      "speaker": "M03",
+      "split": "evaluation",
+      "seconds": 8.01,
+      "pcm": "outputs/pitch-comparison/practice/M03-sa1.f32",
+      "pcmSha256": "b02cd6b764d4042e4c73a8a0c57d29535b81d96b0f015d9d18f143e81d76ed10",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M03/mic_M03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M03_sa1.wav",
+          "sha256": "e5e4db95f958b3206f2ac1b89f8a44a3c802a35450ec26565fac5b274346dadc"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M03/lar_M03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M03_sa1.wav",
+          "sha256": "6f4943e9a4ec343a2ab5559f121a23cd329d88f0096476ac084164adf89b3d24"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M03/ref_M03_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M03_sa1.f0",
+          "sha256": "c3a14dd8fbb545cba1bb47c23fecf5b560970e38b55274c8e7d7cf4263f5859e"
+        }
+      }
+    },
+    {
+      "id": "M03-sa2",
+      "speaker": "M03",
+      "split": "evaluation",
+      "seconds": 7.18,
+      "pcm": "outputs/pitch-comparison/practice/M03-sa2.f32",
+      "pcmSha256": "11f1a0b3afefb7562b21dc7d7ee63c91a0d1e71a99a1b9bb135eb68dd28180e3",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M03/mic_M03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M03_sa2.wav",
+          "sha256": "215b1c13aa6d69ee2c708aaa04ac054be4034504db299655e8ec170a829ddbd1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M03/lar_M03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M03_sa2.wav",
+          "sha256": "61a3680fc7d00478652e5be0b724e19be0b1c4a91797f9bf724e889202e9ed73"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M03/ref_M03_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M03_sa2.f0",
+          "sha256": "95d9991de8d7f269e6bcc4a8a40c96c348a7c2f009b6213b77ad7bdc93db5d13"
+        }
+      }
+    },
+    {
+      "id": "M04-sa1",
+      "speaker": "M04",
+      "split": "evaluation",
+      "seconds": 7.24,
+      "pcm": "outputs/pitch-comparison/practice/M04-sa1.f32",
+      "pcmSha256": "30092ca86f7a418d16527d832e6a0c44aab34f77eba3e55fce21e68d81b303e8",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M04/mic_M04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M04_sa1.wav",
+          "sha256": "87b2901418178025387cf14654dbc25a5f9598f9f5131f890317da635c7e7ea1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M04/lar_M04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M04_sa1.wav",
+          "sha256": "37e99a811188e9e46850339764c361f5d9dcefedcd7352c08dfe4fdcd919fc80"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M04/ref_M04_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M04_sa1.f0",
+          "sha256": "e1d4d9a017f45a8e01394b9fcf377ad6d61d1c6223822c443f6156a9b9ec23df"
+        }
+      }
+    },
+    {
+      "id": "M04-sa2",
+      "speaker": "M04",
+      "split": "evaluation",
+      "seconds": 6.98,
+      "pcm": "outputs/pitch-comparison/practice/M04-sa2.f32",
+      "pcmSha256": "e03022f9e5046021be8db692d2223c549af09bb2f4edee74f43bff1f4b5b578b",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M04/mic_M04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M04_sa2.wav",
+          "sha256": "98cdb0f8c0f2e60ecb4aa65464ade9b6f91c4d85d4a5f0a47bfc05974c33a1e9"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M04/lar_M04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M04_sa2.wav",
+          "sha256": "6a64567ef6d99acc1d8419301ca2762370b68ffb600700f259f54e7b91ca5231"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M04/ref_M04_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M04_sa2.f0",
+          "sha256": "585a2b7c00c75a7fde5d2ad9f8467a21e57d3fe1e5343641b8153d98fa76089c"
+        }
+      }
+    }
+  ]
+}

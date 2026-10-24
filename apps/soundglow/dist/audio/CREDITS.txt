@@ -1,0 +1,21 @@
+Current app example: Alice Waters speaking on BBC Radio 4's The Food Programme.
+Copyright holder / author: BBC.
+Date: 12 January 2013 (as listed by the source).
+Source: https://commons.wikimedia.org/wiki/File:Alice_Waters_BBC_Radio4_The_Food_Programme_12_Jan_2013_b03jyf6r.flac
+Programme: https://www.bbc.co.uk/programmes/b03jyf6r
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0).
+License URL: https://creativecommons.org/licenses/by/3.0/
+Only this explicitly released excerpt is covered, not the complete BBC programme.
+Changes: full excerpt converted from FLAC to mono AAC-LC at 128 kbps in an
+M4A container, with fast-start metadata. No cuts, denoising or level adjustment.
+This audio license is separate from Soundglow's GPL source-code license.
+No endorsement by Alice Waters or the BBC is implied.
+
+Original regression fixture (speech-english.wav; retained unchanged for tests):
+English speech test recording: Alice’s Adventures in Wonderland (version 3), by Lewis Carroll, read by Peter Yearsley for LibriVox (2007).
+Source: https://librivox.org/alices-adventures-in-wonderland-by-lewis-carroll-3/
+Audio: https://archive.org/download/alice_wonderland_0711_librivox/alice_01_carroll_128kb.mp3
+LibriVox identifies its recordings as public domain in the USA.
+Excerpt: chapter 1, 01:00–01:30. Converted to mono 24 kHz PCM WAV; no other changes.
+
+The previous German recording remains in speech-original.ogg and speech.wav: Matthias Ponnier reading Hiero, by Ulrich Schödlbauer, excerpt by Qualoki. Free Art License; copy in FREE-ART-LICENSE.html. Source: https://commons.wikimedia.org/wiki/File:Sample_german_speech_without_in-ear-localisation.ogg

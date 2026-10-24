@@ -1,0 +1,9 @@
+// Optional research build test; does not require downloaded recordings.
+const assert=require('node:assert/strict'),{engine,measure}=require('./matched-stream.cjs');
+(async()=>{const rate=48000,pcm=Float32Array.from({length:rate*2},(_,i)=>i<rate*.5?0:.1*Math.sin(2*Math.PI*200*i/rate)+.04*Math.sin(2*Math.PI*400*i/rate));let baseline;
+for(const mode of ['production',0,1,2]){const instance=await engine(mode);if(mode===0){assert.equal(instance.m._sg_set_pitch_mode(3),-1);assert.equal(instance.m._sg_set_pitch_mode(0),0);}const r=await measure(pcm,instance);if(mode==='production')baseline=r;else{assert.deepEqual(r.requests,baseline.requests);assert.deepEqual(r.rows.map(p=>p.time),baseline.rows.map(p=>p.time));if(mode===0)assert.deepEqual(r.rows,baseline.rows);}
+const voiced=r.rows.filter(r=>r.time>.8&&r.time<1.7);assert(voiced.length>60);assert(voiced.every(r=>Math.abs(r.pitch-200)<2&&r.strength>.8));assert(r.rows.filter(r=>r.time<.3).every(r=>r.pitch===0));}
+for(const mode of [0,1,2]){const instance=await engine(mode);const small=await measure(pcm,instance,{packetSamples:128}),large=await measure(pcm,instance);assert.deepEqual(small.requests,large.requests);assert.deepEqual(small.rows,large.rows);}
+for(const hz of [60,1000]){const signal=Float32Array.from({length:rate},(_,i)=>.1*Math.sin(2*Math.PI*hz*i/rate));for(const mode of [0,1,2]){const result=await measure(signal,await engine(mode));const center=result.rows.filter(r=>r.time>.3&&r.time<.7);assert(center.length>20);assert(center.every(r=>Math.abs(r.pitch-hz)<2),'Known pitch '+hz+' mode '+mode);}}
+console.log('PASS: 128-sample and 100 ms packets yield identical PCM requests and observations; low and high notes preserved');
+console.log('PASS: raw build parity, identical production stream PCM/context/timestamps, all modes recover known pitch and preserve silence, invalid mode rejected');})().catch(e=>{console.error(e);process.exitCode=1});

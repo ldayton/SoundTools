@@ -1,0 +1,8 @@
+{
+  "id": "alice-control",
+  "pcm": "outputs/pitch-comparison/audit-v2/case-00.f32",
+  "wav": "outputs/pitch-comparison/audit-v2/case-00.wav",
+  "seconds": 8,
+  "pcmSha256": "93d28e5643eb3b3941dcc8af99c34f10fad287cb337cda1bdb8396494a9602cb",
+  "wavSha256": "06640a73c2d715c072f72d71a788344d55741618901b10337179e24602df22a7"
+}

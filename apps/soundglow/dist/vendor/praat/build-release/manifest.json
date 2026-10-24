@@ -1,0 +1,38 @@
+{
+  "profile": "release",
+  "toolchain": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.12 (5488e0871d46d19a3209988190fa6a653126256f)",
+  "sourceCommit": "bbbe091c7b760530b69f267941ddf230ffbbaef2",
+  "sourceInputsSha256": "03512fc8c0353b8409d769911a85ace56036a92a3e73de4b69eed86a91429cf6",
+  "compileFlags": [
+    "-O3",
+    "-flto"
+  ],
+  "linkFlags": [
+    "-O3",
+    "-flto",
+    "-sUSE_ZLIB=1",
+    "-fexceptions",
+    "--no-entry",
+    "-sMODULARIZE=1",
+    "-sEXPORT_NAME=PraatSpectrogram",
+    "-sALLOW_MEMORY_GROWTH=1",
+    "-sINITIAL_MEMORY=67108864",
+    "-sMAXIMUM_MEMORY=268435456",
+    "-sSTACK_SIZE=1048576",
+    "-sENVIRONMENT=web,worker,node",
+    "-sEXPORTED_FUNCTIONS=[\"_malloc\",\"_free\"]",
+    "-sEXPORTED_RUNTIME_METHODS=[\"HEAPF32\",\"UTF8ToString\"]"
+  ],
+  "assets": {
+    "praat-spectrogram.js": {
+      "sha256": "839ba661d8ebab9bd7694d5fae98c566af153ca3565f96118d1827183e950f01",
+      "bytes": 27436,
+      "gzipBytes": 6938
+    },
+    "praat-spectrogram.wasm": {
+      "sha256": "d4a8551d26f91a76bd78fda32e9cf5bc07ddb18786911863759f07270aa096d9",
+      "bytes": 4836295,
+      "gzipBytes": 1010689
+    }
+  }
+}

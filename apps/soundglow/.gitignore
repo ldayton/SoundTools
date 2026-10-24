@@ -1,0 +1,9 @@
+tests/visual/generated/
+node_modules/
+test-results/
+playwright-report/
+
+site/
+previous-site/
+
+outputs/

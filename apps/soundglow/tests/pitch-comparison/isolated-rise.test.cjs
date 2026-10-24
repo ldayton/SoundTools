@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),{isolatedRise}=require('./isolated-rise.cjs'),{eligible}=require('./temporal-filters.cjs');
+const make=(hz,n,start=0)=>Array.from({length:n},(_,i)=>({time:start+i*.01,pitch:hz,strength:.7}));
+const base=make(200,20);
+assert.equal(isolatedRise([...base,...make(850,3,.2),...make(200,10,.23)]).filter(eligible).length,30);
+assert.equal(isolatedRise([...base,...make(850,6,.2)]).filter(eligible).length,26,'Sustained high note preserved');
+assert.deepEqual(isolatedRise(make(1000,3)),make(1000,3),'No reference means no censorship');
+assert.deepEqual(isolatedRise([...base,...make(400,3,.2)]),[...base,...make(400,3,.2)],'Ordinary octave jump preserved');
+assert.deepEqual(isolatedRise([...base,...make(60,3,.2)]),[...base,...make(60,3,.2)],'Brief low/fry preserved');
+assert.deepEqual(isolatedRise([...base,...make(850,3,1)]),[...base,...make(850,3,1)],'Stale reference expires');
+const x=[...base,...make(850,3,.2),...make(200,10,.23)];for(const end of [.25,.3,.35])assert.deepEqual(isolatedRise(x.filter(r=>r.time<=end)).filter(r=>r.time<end-.051),isolatedRise(x).filter(r=>r.time<end-.051));
+assert.throws(()=>isolatedRise([...base,base[0]]));assert.throws(()=>isolatedRise([],{confirmationFrames:0}));
+console.log('PASS: isolated rises, sustained high notes, unanchored onsets, ordinary jumps, fry, stale context and bounded decisions');

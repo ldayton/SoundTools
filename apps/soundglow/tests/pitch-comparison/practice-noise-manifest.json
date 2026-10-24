@@ -1,0 +1,1103 @@
+{
+  "sources": [
+    {
+      "filename": "1-17367-A-10.wav",
+      "fold": "1",
+      "target": "10",
+      "category": "rain",
+      "esc10": "True",
+      "src_file": "17367",
+      "take": "A",
+      "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-17367-A-10.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "file": "outputs/voice-gating/1-17367-A-10.wav",
+      "sha256": "d732acd2e0c7c40405968010f49f250740c86998fc416eff2ed5330fc8c89dea"
+    },
+    {
+      "filename": "1-100210-A-36.wav",
+      "fold": "1",
+      "target": "36",
+      "category": "vacuum_cleaner",
+      "esc10": "False",
+      "src_file": "100210",
+      "take": "A",
+      "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-100210-A-36.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "file": "outputs/voice-gating/1-100210-A-36.wav",
+      "sha256": "f97e97b0fe0afce323d858503b6fa3ffd6c8cb1162c43cf3b24461300fb9abf6"
+    },
+    {
+      "filename": "1-137-A-32.wav",
+      "fold": "1",
+      "target": "32",
+      "category": "keyboard_typing",
+      "esc10": "False",
+      "src_file": "137",
+      "take": "A",
+      "url": "https://raw.githubusercontent.com/karolpiczak/ESC-50/master/audio/1-137-A-32.wav",
+      "license": "CC BY-NC 3.0 (ESC-50); research only, not shipped",
+      "file": "outputs/voice-gating/1-137-A-32.wav",
+      "sha256": "d68e4716f74f073be8f78f5fe8e45daf7c09b0ec0575b21f57989d803536abb3"
+    }
+  ],
+  "mixing": "Distinct 5-second ESC-50 noises concatenated once; no looping, denoising, speech normalization, or clipping. SNR uses whole original speech RMS. Exact original speech inserted at 2 s. Research only.",
+  "clips": [
+    {
+      "id": "F01-sa1-noise20",
+      "speaker": "F01",
+      "split": "development",
+      "seconds": 11.99,
+      "pcm": "outputs/pitch-comparison/practice/noise/F01-sa1-noise20.f32",
+      "pcmSha256": "24b3792834a37507c727a352801e02216b07a6826078ece406280bcff88feada",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F01/mic_F01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F01_sa1.wav",
+          "sha256": "4d06714d605aafdd4f5923170b182b25879c42fe9f5275e7c076134f4f490fc1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F01/lar_F01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F01_sa1.wav",
+          "sha256": "3886d357e3f0fa89c2b47f3406c03ef94b00d648180995e57b15019c16121011"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F01/ref_F01_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F01_sa1.f0",
+          "sha256": "947f6bfcbb38776e7730aca30784aac16d6ec1c06c72803d9985af56181a21ea"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.99,
+      "sourcePcmSha256": "141ddc156b4a3b6a27bdf87c41422001fd3a13c899679fe1f657b6ecd1061643",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F01-sa1-noise20.wav",
+      "wavSha256": "ee9274dc7f35bec9e6d5df1e26f34c05e2dee9c5b19788464493c3a27c8cb303"
+    },
+    {
+      "id": "F01-sa1-noise10",
+      "speaker": "F01",
+      "split": "development",
+      "seconds": 11.99,
+      "pcm": "outputs/pitch-comparison/practice/noise/F01-sa1-noise10.f32",
+      "pcmSha256": "405d3b2af7a90bd8d4a45b60d988322388e82b182cc99161d7dadb7cb51f3137",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F01/mic_F01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F01_sa1.wav",
+          "sha256": "4d06714d605aafdd4f5923170b182b25879c42fe9f5275e7c076134f4f490fc1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F01/lar_F01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F01_sa1.wav",
+          "sha256": "3886d357e3f0fa89c2b47f3406c03ef94b00d648180995e57b15019c16121011"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F01/ref_F01_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F01_sa1.f0",
+          "sha256": "947f6bfcbb38776e7730aca30784aac16d6ec1c06c72803d9985af56181a21ea"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.99,
+      "sourcePcmSha256": "141ddc156b4a3b6a27bdf87c41422001fd3a13c899679fe1f657b6ecd1061643",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F01-sa1-noise10.wav",
+      "wavSha256": "b655e15b19dc9e15ca63ce0eaeae33b61c673a077fbf3469def2d032590eb9c1"
+    },
+    {
+      "id": "F01-sa2-noise20",
+      "speaker": "F01",
+      "split": "development",
+      "seconds": 11.296,
+      "pcm": "outputs/pitch-comparison/practice/noise/F01-sa2-noise20.f32",
+      "pcmSha256": "3152806fc5bf2d0888ab5188f436bd1f6f1d22e173a47c38e1f35b7ec08097b1",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F01/mic_F01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F01_sa2.wav",
+          "sha256": "5d8e665d2a40eafaf14d5e754c285c2a9ece0e0e4cdb77b37fbf47614b18418c"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F01/lar_F01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F01_sa2.wav",
+          "sha256": "cb8930404a874da1021b7c405bc9eb24ff6d3e76e58b1cc53940108e177eb92c"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F01/ref_F01_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F01_sa2.f0",
+          "sha256": "87b309727658350a0e8702a15268ee61ea51a1e5b58d62bc553c74733b9f4019"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.296,
+      "sourcePcmSha256": "440b8f3ca6238d3d6adc2f4dbc6128120dcdb32f38d1e789f1f25e103d2a62c2",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F01-sa2-noise20.wav",
+      "wavSha256": "5b53344e316b394568bf0ad1bbce6e1c3be9b7cb189f6c9ddde8be4112923dfc"
+    },
+    {
+      "id": "F01-sa2-noise10",
+      "speaker": "F01",
+      "split": "development",
+      "seconds": 11.296,
+      "pcm": "outputs/pitch-comparison/practice/noise/F01-sa2-noise10.f32",
+      "pcmSha256": "833ed7abe69ce4e08e6b9d91d10d2b5438279b5a869c14c27455da561218b9aa",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F01/mic_F01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F01_sa2.wav",
+          "sha256": "5d8e665d2a40eafaf14d5e754c285c2a9ece0e0e4cdb77b37fbf47614b18418c"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F01/lar_F01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F01_sa2.wav",
+          "sha256": "cb8930404a874da1021b7c405bc9eb24ff6d3e76e58b1cc53940108e177eb92c"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F01/ref_F01_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F01_sa2.f0",
+          "sha256": "87b309727658350a0e8702a15268ee61ea51a1e5b58d62bc553c74733b9f4019"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.296,
+      "sourcePcmSha256": "440b8f3ca6238d3d6adc2f4dbc6128120dcdb32f38d1e789f1f25e103d2a62c2",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F01-sa2-noise10.wav",
+      "wavSha256": "9d5d6996d64d464ec57ecdb6ed31a1b6fe5410947050612749fe9cc475fb7313"
+    },
+    {
+      "id": "F02-sa1-noise20",
+      "speaker": "F02",
+      "split": "development",
+      "seconds": 11.89,
+      "pcm": "outputs/pitch-comparison/practice/noise/F02-sa1-noise20.f32",
+      "pcmSha256": "a69c8e8d5238f7ef7f217b6ac1ffdc71df7ccd20a21e798752796dc063922c26",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F02/mic_F02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F02_sa1.wav",
+          "sha256": "364abf464860bb1b96265074e8305e2eb19cf4b4b3d4ae5e6e8251bdef4746c5"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F02/lar_F02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F02_sa1.wav",
+          "sha256": "4909fac166b026ac89b1002e2ae6278b787a14ed38b528f8eba1a4b9728fcb9f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F02/ref_F02_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F02_sa1.f0",
+          "sha256": "1d418a7c461e863d670fdb0f81372427274eae52b8c873adaabee8ead04cd233"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.89,
+      "sourcePcmSha256": "37605fb0afa47577098c422b367e5912a0c7e86dbd960ca0ba3c39c4c81dae9b",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F02-sa1-noise20.wav",
+      "wavSha256": "e585948fc9e3ddcb8e864142d34c559f79412f9ea7b588ee246c601a6a02a946"
+    },
+    {
+      "id": "F02-sa1-noise10",
+      "speaker": "F02",
+      "split": "development",
+      "seconds": 11.89,
+      "pcm": "outputs/pitch-comparison/practice/noise/F02-sa1-noise10.f32",
+      "pcmSha256": "0aa7f27c142719fbbeb4b1931a48be384adf948b329707efd73f6b6490cd13e4",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F02/mic_F02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F02_sa1.wav",
+          "sha256": "364abf464860bb1b96265074e8305e2eb19cf4b4b3d4ae5e6e8251bdef4746c5"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F02/lar_F02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F02_sa1.wav",
+          "sha256": "4909fac166b026ac89b1002e2ae6278b787a14ed38b528f8eba1a4b9728fcb9f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F02/ref_F02_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F02_sa1.f0",
+          "sha256": "1d418a7c461e863d670fdb0f81372427274eae52b8c873adaabee8ead04cd233"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.89,
+      "sourcePcmSha256": "37605fb0afa47577098c422b367e5912a0c7e86dbd960ca0ba3c39c4c81dae9b",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F02-sa1-noise10.wav",
+      "wavSha256": "2a89fecd7cb4c12df8df886c6ee43f5dc0c872942a4c2d80bb1aee3fbd513e23"
+    },
+    {
+      "id": "F02-sa2-noise20",
+      "speaker": "F02",
+      "split": "development",
+      "seconds": 10.88,
+      "pcm": "outputs/pitch-comparison/practice/noise/F02-sa2-noise20.f32",
+      "pcmSha256": "305e019a2a55a5a0c5b98bba646fea749de433cac80dfe6255f7c34838f04a3c",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F02/mic_F02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F02_sa2.wav",
+          "sha256": "f1895bedb770230330bf1c773df46578a22a359d5d9cc7340c10b3d88ea07526"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F02/lar_F02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F02_sa2.wav",
+          "sha256": "9e4207af2fe37e3cc6f70654c13eda0fdfd4011a79f6c41dca4114c44fa23bd2"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F02/ref_F02_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F02_sa2.f0",
+          "sha256": "d2886a2e92da41b27142389d34de69904bd4633fe69feb361a4152ae638b6ba4"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.88,
+      "sourcePcmSha256": "c24d13c9c04fb7c4ee3e40e8f353f37b570aa900c847789328473bee6aca7dc6",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F02-sa2-noise20.wav",
+      "wavSha256": "381c683e73dc1518a2c16c4177c2b0de2d6f5350debcb321dac65dd1a61148e7"
+    },
+    {
+      "id": "F02-sa2-noise10",
+      "speaker": "F02",
+      "split": "development",
+      "seconds": 10.88,
+      "pcm": "outputs/pitch-comparison/practice/noise/F02-sa2-noise10.f32",
+      "pcmSha256": "0d620c102205a3ca12206613f43865c5255323c8b6ee0d9e47aadc783e742cd5",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F02/mic_F02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F02_sa2.wav",
+          "sha256": "f1895bedb770230330bf1c773df46578a22a359d5d9cc7340c10b3d88ea07526"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F02/lar_F02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F02_sa2.wav",
+          "sha256": "9e4207af2fe37e3cc6f70654c13eda0fdfd4011a79f6c41dca4114c44fa23bd2"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F02/ref_F02_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F02_sa2.f0",
+          "sha256": "d2886a2e92da41b27142389d34de69904bd4633fe69feb361a4152ae638b6ba4"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.88,
+      "sourcePcmSha256": "c24d13c9c04fb7c4ee3e40e8f353f37b570aa900c847789328473bee6aca7dc6",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F02-sa2-noise10.wav",
+      "wavSha256": "23ae146fc631e73323282c1804a4dd0809fa575fbc281b2a4147ae2ea20cd387"
+    },
+    {
+      "id": "F03-sa1-noise20",
+      "speaker": "F03",
+      "split": "evaluation",
+      "seconds": 11.74,
+      "pcm": "outputs/pitch-comparison/practice/noise/F03-sa1-noise20.f32",
+      "pcmSha256": "d4a0e573c8bef7adbfdae08dd82a1bb130e061e3ff4c73e9a19c6cd6e106573c",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F03/mic_F03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F03_sa1.wav",
+          "sha256": "ab4a801fe68acb0fdc5722e286ac9ad401d43efc32cef205d2edc8a8631f960d"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F03/lar_F03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F03_sa1.wav",
+          "sha256": "854f385eff5b1d95054a702ee5fcd8730190fd89a6cba22a055ec7d71bc26f61"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F03/ref_F03_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F03_sa1.f0",
+          "sha256": "a43b638ae98414aee20df5d6bee2ef8bb3b315381e5614c8a3ac017379ebeae9"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.74,
+      "sourcePcmSha256": "48765bc4fa28a741bec91ae088fd5bbc6fc92992df274babe4f91c61fd8bd80b",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F03-sa1-noise20.wav",
+      "wavSha256": "2760791a6dae9aff9e6395a117f6f0c20b61339c5b7e646dc3ee9c508aef575a"
+    },
+    {
+      "id": "F03-sa1-noise10",
+      "speaker": "F03",
+      "split": "evaluation",
+      "seconds": 11.74,
+      "pcm": "outputs/pitch-comparison/practice/noise/F03-sa1-noise10.f32",
+      "pcmSha256": "fe8785fd9c09f02aa9da10ce76c14fdf1ce2d71f903986a9a37d3250d07969eb",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F03/mic_F03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F03_sa1.wav",
+          "sha256": "ab4a801fe68acb0fdc5722e286ac9ad401d43efc32cef205d2edc8a8631f960d"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F03/lar_F03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F03_sa1.wav",
+          "sha256": "854f385eff5b1d95054a702ee5fcd8730190fd89a6cba22a055ec7d71bc26f61"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F03/ref_F03_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F03_sa1.f0",
+          "sha256": "a43b638ae98414aee20df5d6bee2ef8bb3b315381e5614c8a3ac017379ebeae9"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.74,
+      "sourcePcmSha256": "48765bc4fa28a741bec91ae088fd5bbc6fc92992df274babe4f91c61fd8bd80b",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F03-sa1-noise10.wav",
+      "wavSha256": "de0f90d6e9ccd53751d5a62bb7aace007812093da6f4bcc036468b07b161f7e2"
+    },
+    {
+      "id": "F03-sa2-noise20",
+      "speaker": "F03",
+      "split": "evaluation",
+      "seconds": 10.96,
+      "pcm": "outputs/pitch-comparison/practice/noise/F03-sa2-noise20.f32",
+      "pcmSha256": "f4a20f5d0faf6837ce7870ad0eceefe39175e90964e390faeb686e5b49d3203e",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F03/mic_F03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F03_sa2.wav",
+          "sha256": "594743066020e8eb7c826604de0ca56e4193d8defac3ceb677970c6c23cbd43e"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F03/lar_F03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F03_sa2.wav",
+          "sha256": "389a7fadc5ec15ae35bcc3eb19099231253174e7b2c97f98c5fef7aa86f94bdf"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F03/ref_F03_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F03_sa2.f0",
+          "sha256": "5f1f2efac01cf7ee55da873a446acb00d797e51465fe0ca1c5aacdf5a2dffd45"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.96,
+      "sourcePcmSha256": "4092a78c338f45182f3423108c75da0a5765874fe7d8a687d4db0579fdb8cc65",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F03-sa2-noise20.wav",
+      "wavSha256": "d0e78a92a6bb88fe24ab3e2d38204e0753dd7708e12815f33f4a9a9302236977"
+    },
+    {
+      "id": "F03-sa2-noise10",
+      "speaker": "F03",
+      "split": "evaluation",
+      "seconds": 10.96,
+      "pcm": "outputs/pitch-comparison/practice/noise/F03-sa2-noise10.f32",
+      "pcmSha256": "f7debb90bce9ee0c84d4a6cc4c1d6c0812a30659c26bf722436f6f098e9a74fd",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F03/mic_F03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F03_sa2.wav",
+          "sha256": "594743066020e8eb7c826604de0ca56e4193d8defac3ceb677970c6c23cbd43e"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F03/lar_F03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F03_sa2.wav",
+          "sha256": "389a7fadc5ec15ae35bcc3eb19099231253174e7b2c97f98c5fef7aa86f94bdf"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F03/ref_F03_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F03_sa2.f0",
+          "sha256": "5f1f2efac01cf7ee55da873a446acb00d797e51465fe0ca1c5aacdf5a2dffd45"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.96,
+      "sourcePcmSha256": "4092a78c338f45182f3423108c75da0a5765874fe7d8a687d4db0579fdb8cc65",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F03-sa2-noise10.wav",
+      "wavSha256": "12ed78e585260a83178369b1a90130a527022be935fac3155227e64abe62d728"
+    },
+    {
+      "id": "F04-sa1-noise20",
+      "speaker": "F04",
+      "split": "evaluation",
+      "seconds": 12.28,
+      "pcm": "outputs/pitch-comparison/practice/noise/F04-sa1-noise20.f32",
+      "pcmSha256": "03add459a3a9ce9f98272d6f41301eb3a9b7438719cd29bd82575abe16609561",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F04/mic_F04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F04_sa1.wav",
+          "sha256": "4ebe1fb20e93b8302fe1f1313f4889fb84a296dde8a3d804820bb218568a03ee"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F04/lar_F04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F04_sa1.wav",
+          "sha256": "8067070eb5fa14f3af31114a07c340ad7fda1b2f40542a13a9e0c2fc887b203f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F04/ref_F04_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F04_sa1.f0",
+          "sha256": "360ddc1f6a3b7a016a7b7267a4fa8bdb56dea2e3b84ebe21746867f746bf0e2d"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 8.28,
+      "sourcePcmSha256": "44807697a0ae4faa419d89dbe3676ae41831f8f9de1569de60e594b32b6577a0",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F04-sa1-noise20.wav",
+      "wavSha256": "89ff5531fdfc79d2995683edd29e3f796dfa2ad214ce5d8088d2100f7defd85f"
+    },
+    {
+      "id": "F04-sa1-noise10",
+      "speaker": "F04",
+      "split": "evaluation",
+      "seconds": 12.28,
+      "pcm": "outputs/pitch-comparison/practice/noise/F04-sa1-noise10.f32",
+      "pcmSha256": "f5b466cf4018095d75b91c6b3ac7c8b6f8f012513d610129dd69814ba308faff",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F04/mic_F04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F04_sa1.wav",
+          "sha256": "4ebe1fb20e93b8302fe1f1313f4889fb84a296dde8a3d804820bb218568a03ee"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F04/lar_F04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F04_sa1.wav",
+          "sha256": "8067070eb5fa14f3af31114a07c340ad7fda1b2f40542a13a9e0c2fc887b203f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F04/ref_F04_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F04_sa1.f0",
+          "sha256": "360ddc1f6a3b7a016a7b7267a4fa8bdb56dea2e3b84ebe21746867f746bf0e2d"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 8.28,
+      "sourcePcmSha256": "44807697a0ae4faa419d89dbe3676ae41831f8f9de1569de60e594b32b6577a0",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F04-sa1-noise10.wav",
+      "wavSha256": "b3c9368fdc1b30b4e9891e8908ebef4d88315576af6142ab2097135c58f93ddf"
+    },
+    {
+      "id": "F04-sa2-noise20",
+      "speaker": "F04",
+      "split": "evaluation",
+      "seconds": 11.54,
+      "pcm": "outputs/pitch-comparison/practice/noise/F04-sa2-noise20.f32",
+      "pcmSha256": "a302a1944fb389faff81d79534e98775e4d73b7dafb2539ca5eb2c5d6315371c",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F04/mic_F04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F04_sa2.wav",
+          "sha256": "467b751327efe271ad752af196a7f172bdddaed5a094062d84ed0a49a9a930f3"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F04/lar_F04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F04_sa2.wav",
+          "sha256": "de7362576d965fc5921ded77bdfa5026aab8d79327835418d41ac653ce6c5e93"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F04/ref_F04_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F04_sa2.f0",
+          "sha256": "fcfe28024543fbb2b7e172f787a74aac9215e8be3c332099cb92f89961cc553b"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.54,
+      "sourcePcmSha256": "14da9c54cf9902b251b7b5faa3ca748dbcdc2d4e7b8240569046c2482c9f6c6a",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/F04-sa2-noise20.wav",
+      "wavSha256": "1c79956d578fb12ccbc00cb82ed8469352c75cbb4df9e2143d90177f79c7c6b6"
+    },
+    {
+      "id": "F04-sa2-noise10",
+      "speaker": "F04",
+      "split": "evaluation",
+      "seconds": 11.54,
+      "pcm": "outputs/pitch-comparison/practice/noise/F04-sa2-noise10.f32",
+      "pcmSha256": "868e02e06b91533cf9a6ba884ccfe6111595616fb8076221ce70e137e770b2a7",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/MIC/F04/mic_F04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_F04_sa2.wav",
+          "sha256": "467b751327efe271ad752af196a7f172bdddaed5a094062d84ed0a49a9a930f3"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/LAR/F04/lar_F04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_F04_sa2.wav",
+          "sha256": "de7362576d965fc5921ded77bdfa5026aab8d79327835418d41ac653ce6c5e93"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/FEMALE/REF/F04/ref_F04_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_F04_sa2.f0",
+          "sha256": "fcfe28024543fbb2b7e172f787a74aac9215e8be3c332099cb92f89961cc553b"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.54,
+      "sourcePcmSha256": "14da9c54cf9902b251b7b5faa3ca748dbcdc2d4e7b8240569046c2482c9f6c6a",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/F04-sa2-noise10.wav",
+      "wavSha256": "6075484e44ed7d98ae0d73e25e381034b4245dea16b4fe410812da4d5d480318"
+    },
+    {
+      "id": "M01-sa1-noise20",
+      "speaker": "M01",
+      "split": "development",
+      "seconds": 12.42,
+      "pcm": "outputs/pitch-comparison/practice/noise/M01-sa1-noise20.f32",
+      "pcmSha256": "93a6f7c40a627b302706fec9b7ca2d5cc8a3a1952d6647b4ae2101138c319355",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M01/mic_M01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M01_sa1.wav",
+          "sha256": "831c88e139267895e68f71050f668b7f32fae8676af0200bf59bfa8bdbfa8d26"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M01/lar_M01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M01_sa1.wav",
+          "sha256": "475eab034bd34f4bca1c6f2aa3550c76439439f5ed354d120e7799985c6f1b85"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M01/ref_M01_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M01_sa1.f0",
+          "sha256": "58d67bbedc5d870a9fdbb13baca19b6be9adb1201e27f5895e5a699163522bc7"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 8.42,
+      "sourcePcmSha256": "9a0e7f66ec0399a715a806bed3943ded795e89ffa1e434aaae99e363f310a0b9",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M01-sa1-noise20.wav",
+      "wavSha256": "bdb7e69e170ebc7db143a4ac6e1e81fdb6b30ad855318828c72acb0d16aff93d"
+    },
+    {
+      "id": "M01-sa1-noise10",
+      "speaker": "M01",
+      "split": "development",
+      "seconds": 12.42,
+      "pcm": "outputs/pitch-comparison/practice/noise/M01-sa1-noise10.f32",
+      "pcmSha256": "855c03b7b5f6ac844c0739ebfbdd93c2298abe8974770e6d52d9cc76687a6048",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M01/mic_M01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M01_sa1.wav",
+          "sha256": "831c88e139267895e68f71050f668b7f32fae8676af0200bf59bfa8bdbfa8d26"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M01/lar_M01_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M01_sa1.wav",
+          "sha256": "475eab034bd34f4bca1c6f2aa3550c76439439f5ed354d120e7799985c6f1b85"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M01/ref_M01_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M01_sa1.f0",
+          "sha256": "58d67bbedc5d870a9fdbb13baca19b6be9adb1201e27f5895e5a699163522bc7"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 8.42,
+      "sourcePcmSha256": "9a0e7f66ec0399a715a806bed3943ded795e89ffa1e434aaae99e363f310a0b9",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M01-sa1-noise10.wav",
+      "wavSha256": "01e215ecb0b536642cb7263971482a3e6d8ddba3ef7ae86734369ef87c02336f"
+    },
+    {
+      "id": "M01-sa2-noise20",
+      "speaker": "M01",
+      "split": "development",
+      "seconds": 11.39,
+      "pcm": "outputs/pitch-comparison/practice/noise/M01-sa2-noise20.f32",
+      "pcmSha256": "43616676d0a685d6af070b7ff52f0b35e35ca554e9bb4e9bfa5cc67d0f9e35e8",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M01/mic_M01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M01_sa2.wav",
+          "sha256": "1ae864329ed7586594096998500f94e4719bd0cb7228b6954790633c60bcd04f"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M01/lar_M01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M01_sa2.wav",
+          "sha256": "cdd0bdbc045496c1b85bcfc20c409a7b1e7ac4b7e5ae33b78c38444dfeeccab2"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M01/ref_M01_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M01_sa2.f0",
+          "sha256": "862f183a3cf72d0f5b992b328cba019bade56f7fe96415e1a2378be3f2626259"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.39,
+      "sourcePcmSha256": "076cb36051402d4d53ec40d24b056c4e226a8cd646130300f3ba5e9aed016827",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M01-sa2-noise20.wav",
+      "wavSha256": "4547bc1c4e920f22e82b1c32a548dacbbff1d444d9777130bd056fd97e4a9fb9"
+    },
+    {
+      "id": "M01-sa2-noise10",
+      "speaker": "M01",
+      "split": "development",
+      "seconds": 11.39,
+      "pcm": "outputs/pitch-comparison/practice/noise/M01-sa2-noise10.f32",
+      "pcmSha256": "3d2f569630e982a0610efae1bd4af94047feddc8bb7dcbf078b27dc70bf9964a",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M01/mic_M01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M01_sa2.wav",
+          "sha256": "1ae864329ed7586594096998500f94e4719bd0cb7228b6954790633c60bcd04f"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M01/lar_M01_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M01_sa2.wav",
+          "sha256": "cdd0bdbc045496c1b85bcfc20c409a7b1e7ac4b7e5ae33b78c38444dfeeccab2"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M01/ref_M01_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M01_sa2.f0",
+          "sha256": "862f183a3cf72d0f5b992b328cba019bade56f7fe96415e1a2378be3f2626259"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.39,
+      "sourcePcmSha256": "076cb36051402d4d53ec40d24b056c4e226a8cd646130300f3ba5e9aed016827",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M01-sa2-noise10.wav",
+      "wavSha256": "2d95691ac118ea270333c9f07a2f48fbdc2118621813dedee0b3e6017ae1fc32"
+    },
+    {
+      "id": "M02-sa1-noise20",
+      "speaker": "M02",
+      "split": "development",
+      "seconds": 10.88,
+      "pcm": "outputs/pitch-comparison/practice/noise/M02-sa1-noise20.f32",
+      "pcmSha256": "cddc043682d315582f67b0622391b8a22f8c85bdaa20546ac660eb2db293a9dc",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M02/mic_M02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M02_sa1.wav",
+          "sha256": "a4b65b9f360fb0e49e697206bf4ed87eac67ede22b6aca29d54d579a6cab5d80"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M02/lar_M02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M02_sa1.wav",
+          "sha256": "18f6100cb63d3e85b26a1264736a5c3712002bfa53a4d443c6a2bcf876c3f76f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M02/ref_M02_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M02_sa1.f0",
+          "sha256": "a073e449b36c63006b10bdfce2bca17262c29be3f97367677fc2cd883bf18a30"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.88,
+      "sourcePcmSha256": "b48139ec4613a9337a18f614c824b2678cddde66726c9b579bae380dde98cfdb",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M02-sa1-noise20.wav",
+      "wavSha256": "d1b5b3efb5a8892a03f2308885f01e228e530c80517fa07cbab5c3b230f1c96b"
+    },
+    {
+      "id": "M02-sa1-noise10",
+      "speaker": "M02",
+      "split": "development",
+      "seconds": 10.88,
+      "pcm": "outputs/pitch-comparison/practice/noise/M02-sa1-noise10.f32",
+      "pcmSha256": "5621ab3edc0a78c7fc5c289c6d2132a2961e6f18de3465a69a3c7ca343043259",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M02/mic_M02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M02_sa1.wav",
+          "sha256": "a4b65b9f360fb0e49e697206bf4ed87eac67ede22b6aca29d54d579a6cab5d80"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M02/lar_M02_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M02_sa1.wav",
+          "sha256": "18f6100cb63d3e85b26a1264736a5c3712002bfa53a4d443c6a2bcf876c3f76f"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M02/ref_M02_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M02_sa1.f0",
+          "sha256": "a073e449b36c63006b10bdfce2bca17262c29be3f97367677fc2cd883bf18a30"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.88,
+      "sourcePcmSha256": "b48139ec4613a9337a18f614c824b2678cddde66726c9b579bae380dde98cfdb",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M02-sa1-noise10.wav",
+      "wavSha256": "831393d0c2de78d41c075b035bcfb643c0cc1b756a4d78155f7dbbbed97716ef"
+    },
+    {
+      "id": "M02-sa2-noise20",
+      "speaker": "M02",
+      "split": "development",
+      "seconds": 10.88,
+      "pcm": "outputs/pitch-comparison/practice/noise/M02-sa2-noise20.f32",
+      "pcmSha256": "c63e7e342eaa7581e4ec5c2401b18ec6744c23a2da77ced3f0f9f0d1366c2bca",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M02/mic_M02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M02_sa2.wav",
+          "sha256": "a4637d24d317eb8a127006277e6fd83471c37154d1b5767ae2e5da19323252df"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M02/lar_M02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M02_sa2.wav",
+          "sha256": "83021c76d9fe8106181459bae7076e5351cac4221fbcb92143d879ba912092f4"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M02/ref_M02_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M02_sa2.f0",
+          "sha256": "4e84a59ec7360ddf69c418aa0df0ea3609f7d61b15c22fea0d6ae4bdc638519e"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.88,
+      "sourcePcmSha256": "cf87b51ab27cb7b5f0af6e14c7db5cc36eedaa13e86b9cf4e9d5e20259f629ac",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M02-sa2-noise20.wav",
+      "wavSha256": "8cea6b048431e18994e4d9a4c725bec16a750985d73270ce3e82b6fef803fd97"
+    },
+    {
+      "id": "M02-sa2-noise10",
+      "speaker": "M02",
+      "split": "development",
+      "seconds": 10.88,
+      "pcm": "outputs/pitch-comparison/practice/noise/M02-sa2-noise10.f32",
+      "pcmSha256": "6020b857f4846974a20a5445cae69a9f9cf9dcc250a7d672950af97da3c8080a",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M02/mic_M02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M02_sa2.wav",
+          "sha256": "a4637d24d317eb8a127006277e6fd83471c37154d1b5767ae2e5da19323252df"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M02/lar_M02_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M02_sa2.wav",
+          "sha256": "83021c76d9fe8106181459bae7076e5351cac4221fbcb92143d879ba912092f4"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M02/ref_M02_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M02_sa2.f0",
+          "sha256": "4e84a59ec7360ddf69c418aa0df0ea3609f7d61b15c22fea0d6ae4bdc638519e"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.88,
+      "sourcePcmSha256": "cf87b51ab27cb7b5f0af6e14c7db5cc36eedaa13e86b9cf4e9d5e20259f629ac",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M02-sa2-noise10.wav",
+      "wavSha256": "f139c29b9bdb099ae25404d320443a9e25bbe9bb358f919030ebf817ccdb003f"
+    },
+    {
+      "id": "M03-sa1-noise20",
+      "speaker": "M03",
+      "split": "evaluation",
+      "seconds": 12.01,
+      "pcm": "outputs/pitch-comparison/practice/noise/M03-sa1-noise20.f32",
+      "pcmSha256": "c45abe0fafa7b2fb93c71ccc2572a8f0a0e234b7b175ab23fea35cbf8d7b062c",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M03/mic_M03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M03_sa1.wav",
+          "sha256": "e5e4db95f958b3206f2ac1b89f8a44a3c802a35450ec26565fac5b274346dadc"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M03/lar_M03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M03_sa1.wav",
+          "sha256": "6f4943e9a4ec343a2ab5559f121a23cd329d88f0096476ac084164adf89b3d24"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M03/ref_M03_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M03_sa1.f0",
+          "sha256": "c3a14dd8fbb545cba1bb47c23fecf5b560970e38b55274c8e7d7cf4263f5859e"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 8.01,
+      "sourcePcmSha256": "b02cd6b764d4042e4c73a8a0c57d29535b81d96b0f015d9d18f143e81d76ed10",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M03-sa1-noise20.wav",
+      "wavSha256": "b8dfef513bb6222b7e3a1c086394bdf0ee4636d970d9a0371cfafe9dead16655"
+    },
+    {
+      "id": "M03-sa1-noise10",
+      "speaker": "M03",
+      "split": "evaluation",
+      "seconds": 12.01,
+      "pcm": "outputs/pitch-comparison/practice/noise/M03-sa1-noise10.f32",
+      "pcmSha256": "f46347770846c4458000e62756314d66adf1f1bf96d6fdf03e80c4fa46e66ee5",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M03/mic_M03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M03_sa1.wav",
+          "sha256": "e5e4db95f958b3206f2ac1b89f8a44a3c802a35450ec26565fac5b274346dadc"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M03/lar_M03_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M03_sa1.wav",
+          "sha256": "6f4943e9a4ec343a2ab5559f121a23cd329d88f0096476ac084164adf89b3d24"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M03/ref_M03_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M03_sa1.f0",
+          "sha256": "c3a14dd8fbb545cba1bb47c23fecf5b560970e38b55274c8e7d7cf4263f5859e"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 8.01,
+      "sourcePcmSha256": "b02cd6b764d4042e4c73a8a0c57d29535b81d96b0f015d9d18f143e81d76ed10",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M03-sa1-noise10.wav",
+      "wavSha256": "aa0d83a449c2f110e33c2ce70a521e752720fff01f3352badff822ff7398a610"
+    },
+    {
+      "id": "M03-sa2-noise20",
+      "speaker": "M03",
+      "split": "evaluation",
+      "seconds": 11.18,
+      "pcm": "outputs/pitch-comparison/practice/noise/M03-sa2-noise20.f32",
+      "pcmSha256": "9909e42257a01e79ef2aa2c7bfa8e0d7054bbb79beb90580435baf8a30bb68c8",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M03/mic_M03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M03_sa2.wav",
+          "sha256": "215b1c13aa6d69ee2c708aaa04ac054be4034504db299655e8ec170a829ddbd1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M03/lar_M03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M03_sa2.wav",
+          "sha256": "61a3680fc7d00478652e5be0b724e19be0b1c4a91797f9bf724e889202e9ed73"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M03/ref_M03_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M03_sa2.f0",
+          "sha256": "95d9991de8d7f269e6bcc4a8a40c96c348a7c2f009b6213b77ad7bdc93db5d13"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.18,
+      "sourcePcmSha256": "11f1a0b3afefb7562b21dc7d7ee63c91a0d1e71a99a1b9bb135eb68dd28180e3",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M03-sa2-noise20.wav",
+      "wavSha256": "8300e328d767cf6a5f074bc33eee31421f7da969ad7c0ee19d46552eb968ea43"
+    },
+    {
+      "id": "M03-sa2-noise10",
+      "speaker": "M03",
+      "split": "evaluation",
+      "seconds": 11.18,
+      "pcm": "outputs/pitch-comparison/practice/noise/M03-sa2-noise10.f32",
+      "pcmSha256": "1466ae0e3cb0180dcae2869d8e800bd0c8f686ccff46a5bb7748c9610681ab90",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M03/mic_M03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M03_sa2.wav",
+          "sha256": "215b1c13aa6d69ee2c708aaa04ac054be4034504db299655e8ec170a829ddbd1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M03/lar_M03_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M03_sa2.wav",
+          "sha256": "61a3680fc7d00478652e5be0b724e19be0b1c4a91797f9bf724e889202e9ed73"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M03/ref_M03_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M03_sa2.f0",
+          "sha256": "95d9991de8d7f269e6bcc4a8a40c96c348a7c2f009b6213b77ad7bdc93db5d13"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.18,
+      "sourcePcmSha256": "11f1a0b3afefb7562b21dc7d7ee63c91a0d1e71a99a1b9bb135eb68dd28180e3",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M03-sa2-noise10.wav",
+      "wavSha256": "3521d7ae0cc3c259b1bdb9f4e58d24340940b838f73ae49d15f5d206902e7fe8"
+    },
+    {
+      "id": "M04-sa1-noise20",
+      "speaker": "M04",
+      "split": "evaluation",
+      "seconds": 11.24,
+      "pcm": "outputs/pitch-comparison/practice/noise/M04-sa1-noise20.f32",
+      "pcmSha256": "fecc335bd202895696b2159ab63d87abe6d207bc00cb0f0abdb37e7a3c5e2a0f",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M04/mic_M04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M04_sa1.wav",
+          "sha256": "87b2901418178025387cf14654dbc25a5f9598f9f5131f890317da635c7e7ea1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M04/lar_M04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M04_sa1.wav",
+          "sha256": "37e99a811188e9e46850339764c361f5d9dcefedcd7352c08dfe4fdcd919fc80"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M04/ref_M04_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M04_sa1.f0",
+          "sha256": "e1d4d9a017f45a8e01394b9fcf377ad6d61d1c6223822c443f6156a9b9ec23df"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.24,
+      "sourcePcmSha256": "30092ca86f7a418d16527d832e6a0c44aab34f77eba3e55fce21e68d81b303e8",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M04-sa1-noise20.wav",
+      "wavSha256": "d8e49126335ba10fedfdd62b0d82d8549039c19ab98794aaf397ef8af09a4f06"
+    },
+    {
+      "id": "M04-sa1-noise10",
+      "speaker": "M04",
+      "split": "evaluation",
+      "seconds": 11.24,
+      "pcm": "outputs/pitch-comparison/practice/noise/M04-sa1-noise10.f32",
+      "pcmSha256": "670accf42e0cd6c1053049e4ab7a372f2e9ef98cd1ca2695c9077016f9ab4568",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M04/mic_M04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M04_sa1.wav",
+          "sha256": "87b2901418178025387cf14654dbc25a5f9598f9f5131f890317da635c7e7ea1"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M04/lar_M04_sa1.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M04_sa1.wav",
+          "sha256": "37e99a811188e9e46850339764c361f5d9dcefedcd7352c08dfe4fdcd919fc80"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M04/ref_M04_sa1.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M04_sa1.f0",
+          "sha256": "e1d4d9a017f45a8e01394b9fcf377ad6d61d1c6223822c443f6156a9b9ec23df"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 7.24,
+      "sourcePcmSha256": "30092ca86f7a418d16527d832e6a0c44aab34f77eba3e55fce21e68d81b303e8",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M04-sa1-noise10.wav",
+      "wavSha256": "f5702d72f04fddd71d3d2fa91f1a05d6c978e85ba569aca53152b9bcf8fe6977"
+    },
+    {
+      "id": "M04-sa2-noise20",
+      "speaker": "M04",
+      "split": "evaluation",
+      "seconds": 10.98,
+      "pcm": "outputs/pitch-comparison/practice/noise/M04-sa2-noise20.f32",
+      "pcmSha256": "30800586b1a90576e816109e0bcf91bbfb235c1e65d78c69c16eb539956a8de5",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M04/mic_M04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M04_sa2.wav",
+          "sha256": "98cdb0f8c0f2e60ecb4aa65464ade9b6f91c4d85d4a5f0a47bfc05974c33a1e9"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M04/lar_M04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M04_sa2.wav",
+          "sha256": "6a64567ef6d99acc1d8419301ca2762370b68ffb600700f259f54e7b91ca5231"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M04/ref_M04_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M04_sa2.f0",
+          "sha256": "585a2b7c00c75a7fde5d2ad9f8467a21e57d3fe1e5343641b8153d98fa76089c"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 20 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.98,
+      "sourcePcmSha256": "e03022f9e5046021be8db692d2223c549af09bb2f4edee74f43bff1f4b5b578b",
+      "snr": 20,
+      "wav": "outputs/pitch-comparison/practice/noise/M04-sa2-noise20.wav",
+      "wavSha256": "4c126e0be10d690b30799192d31c0db560a9e6f8af35c9b796ee4ce8ecdfe6fb"
+    },
+    {
+      "id": "M04-sa2-noise10",
+      "speaker": "M04",
+      "split": "evaluation",
+      "seconds": 10.98,
+      "pcm": "outputs/pitch-comparison/practice/noise/M04-sa2-noise10.f32",
+      "pcmSha256": "b81966836d194e09b567829f54e06f7d36a4e4933ab173e304ffcea3d14cd073",
+      "files": {
+        "mic": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/MIC/M04/mic_M04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/mic_M04_sa2.wav",
+          "sha256": "98cdb0f8c0f2e60ecb4aa65464ade9b6f91c4d85d4a5f0a47bfc05974c33a1e9"
+        },
+        "lar": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/LAR/M04/lar_M04_sa2.wav",
+          "file": "outputs/pitch-comparison/practice/sources/lar_M04_sa2.wav",
+          "sha256": "6a64567ef6d99acc1d8419301ca2762370b68ffb600700f259f54e7b91ca5231"
+        },
+        "ref": {
+          "url": "https://www2.spsc.tugraz.at/databases/PTDB-TUG/SPEECH%20DATA/MALE/REF/M04/ref_M04_sa2.f0",
+          "file": "outputs/pitch-comparison/practice/sources/ref_M04_sa2.f0",
+          "sha256": "585a2b7c00c75a7fde5d2ad9f8467a21e57d3fe1e5343641b8153d98fa76089c"
+        }
+      },
+      "referenceOrigin": 2,
+      "condition": "Synthetic changing noise 10 dB whole-excerpt RMS SNR, 2-second speech-free bookends",
+      "speechSeconds": 6.98,
+      "sourcePcmSha256": "e03022f9e5046021be8db692d2223c549af09bb2f4edee74f43bff1f4b5b578b",
+      "snr": 10,
+      "wav": "outputs/pitch-comparison/practice/noise/M04-sa2-noise10.wav",
+      "wavSha256": "90035696e4c65fecd56ebff929f506f04b016db32dba055dea07bdffd5969217"
+    },
+    {
+      "id": "noise-only-rain",
+      "split": "negative",
+      "condition": "Original nonvoice noise only",
+      "noiseOnly": true,
+      "pcm": "outputs/pitch-comparison/practice/noise/noise-only-rain.f32",
+      "pcmSha256": "7ee2e2680dbae0b2aa7fbac2a395ace686d671dd549653a8f35b230633ec01b9",
+      "wav": "outputs/pitch-comparison/practice/noise/noise-only-rain.wav",
+      "wavSha256": "01a20a6d0bbe06faad347b9f0594f606c0a7907e4e7e2e7b6d7525f75fbda5f8",
+      "seconds": 5
+    },
+    {
+      "id": "noise-only-vacuum_cleaner",
+      "split": "negative",
+      "condition": "Original nonvoice noise only",
+      "noiseOnly": true,
+      "pcm": "outputs/pitch-comparison/practice/noise/noise-only-vacuum_cleaner.f32",
+      "pcmSha256": "17e2a623467325e0e2ef8a2e245b0db2c8969d26d2941e29ace977096927c6a0",
+      "wav": "outputs/pitch-comparison/practice/noise/noise-only-vacuum_cleaner.wav",
+      "wavSha256": "a0475bb8a46bce1e82e1956d52adfae5e40d87c9c307b715267797deb66bafbe",
+      "seconds": 5
+    },
+    {
+      "id": "noise-only-keyboard_typing",
+      "split": "negative",
+      "condition": "Original nonvoice noise only",
+      "noiseOnly": true,
+      "pcm": "outputs/pitch-comparison/practice/noise/noise-only-keyboard_typing.f32",
+      "pcmSha256": "62c815be52fdbae6e234238cf0499c7a238d58d05955eef7a067c99518c9b76c",
+      "wav": "outputs/pitch-comparison/practice/noise/noise-only-keyboard_typing.wav",
+      "wavSha256": "2cbf14e3b233e46274ea99bc13e09b91215c4a0052efa6af9a973ff7b27a4bbc",
+      "seconds": 5
+    }
+  ]
+}

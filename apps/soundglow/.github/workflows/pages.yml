@@ -1,0 +1,76 @@
+name: Verify and deploy Soundglow
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: soundglow-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Retain published immutable assets
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prior=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow pages.yml --branch main --event push --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$prior" ]; then
+            artifact=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$prior/artifacts" --jq '.artifacts[] | select(.name == "verified-site" and .expired == false) | .id')
+            if [ -n "$artifact" ]; then
+              gh run download "$prior" --repo "$GITHUB_REPOSITORY" --name verified-site --dir previous-site
+            fi
+          fi
+      - name: Verify packaged engine, numerical reference, and screenshots
+        env:
+          SOUNDGLOW_SENTRY_DSN: ${{ vars.SOUNDGLOW_SENTRY_DSN }}
+        run: npm run build
+      - name: Save verification reports and image differences
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+      - name: Save verified site
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-site
+          path: site/
+          include-hidden-files: true
+  deploy:
+    needs: verify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: verified-site
+          path: site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

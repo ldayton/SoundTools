@@ -1,0 +1,13 @@
+bitKlavier Grand - Piano Bar, 44.1 kHz / 16-bit stereo
+Steinway Model D, recorded at Princeton Taplin Auditorium, January 2021.
+Recorded by Andres Villalta; piano played by Matt Wang; produced by Dan Trueman.
+Full credits and original recordings: https://bitklavier.com/the-bitklavier-grand/
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+Source: https://archive.org/download/bitKlavierGrand_PianoBar_44k16b/bitKlavierGrand_PianoBar_44k16b.zip
+Adaptation: main sustained notes converted losslessly from WAV to FLAC and renamed.
+DoReGo maps the 16 recorded layers to equal MIDI velocity ranges and uses nearest-note transposition.
+Release, pedal and harmonic samples are not included in this browser adaptation.
+Source archive SHA256: 05876ad6e86ebf5740a610a55cbf908f3b2f67172e161b22e140bcc854d74a9a
+
+Web adaptation: recordings shortened to their first two or five seconds, without changing retained PCM samples. Full originals remain in ../bitklavier/.

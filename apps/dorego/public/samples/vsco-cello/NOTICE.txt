@@ -1,0 +1,14 @@
+VSCO 2 Community Edition — Cello Section (sustained vibrato, quiet layer).
+Published by Versilian Studios / Sam Gossner under CC0 1.0.
+https://versilian-studios.com/vsco-community/
+https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Recordings: Strings/Cello Section/susvib/*_v1_*.wav
+Source: https://github.com/sgossner/VSCO-2-CE
+Mapping: https://github.com/sgossner/VSCO-2-CE/blob/SFZ/CelloEnsSusVib-Quiet.sfz
+Original WAVs converted losslessly to FLAC and named by their verified MIDI key.
+For MIDI 40, take susvib_E1_v1_2.wav; other keys use take v1_1.
+Playback adaptations: normalization, soft high-shelf EQ, envelope fades,
+crossfaded sustain loops, and continuous digital pitch shifts.
+These are sustained ensemble recordings, not recorded portamento transitions.

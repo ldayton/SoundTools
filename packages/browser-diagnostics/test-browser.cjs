@@ -8,10 +8,24 @@ const { chromium, firefox, webkit } = require("playwright");
   const root = path.dirname(
     require.resolve("@ldayton/browser-diagnostics/package.json"),
   );
+  const peer = require("esbuild").buildSync({
+    stdin: {
+      contents: 'export {getIsolationScope} from "@sentry/browser";',
+      resolveDir: root,
+    },
+    bundle: true,
+    format: "iife",
+    globalName: "SentryPeer",
+    write: false,
+  }).outputFiles[0].text;
   const server = http.createServer((req, res) => {
     if (req.url === "/") {
       res.setHeader("Content-Type", "text/html");
       return res.end("<!doctype html><title>Diagnostics test</title>");
+    }
+    if (req.url === "/peer.js") {
+      res.setHeader("Content-Type", "text/javascript");
+      return res.end(peer);
     }
     res.setHeader("Content-Type", "text/javascript");
     res.end(fs.readFileSync(path.join(root, req.url)));
@@ -56,6 +70,11 @@ const { chromium, firefox, webkit } = require("playwright");
       });
     });
     await page.goto(`http://127.0.0.1:${server.address().port}/`);
+    await page.addScriptTag({ url: "/peer.js" });
+    await page.evaluate(() => {
+      SentryPeer.getIsolationScope().setUser({ email: "PRIVATE" });
+      SentryPeer.getIsolationScope().setAttributes({ private_text: "PRIVATE" });
+    });
     await page.addScriptTag({ url: "/core.js" });
     await page.evaluate(async () => {
       localStorage.setItem("soundglow:diagnostics:sharing", "no");
@@ -184,6 +203,23 @@ const { chromium, firefox, webkit } = require("playwright");
         }),
     );
     assert((await queued()) <= 30);
+    assert(
+      await page.evaluate(
+        async () =>
+          new Promise((resolve) => {
+            const request = indexedDB.open("soundglow-sentry-offline");
+            request.onsuccess = () => {
+              const db = request.result,
+                tx = db.transaction("queue"),
+                all = tx.objectStore("queue").getAll();
+              all.onsuccess = () =>
+                resolve(!/PRIVATE|SECRET/.test(JSON.stringify(all.result)));
+              tx.oncomplete = () => db.close();
+            };
+          }),
+      ),
+      "Offline persistence must also exclude inherited private attributes",
+    );
     fail = false;
     for (let i = 0; i < 150 && (await queued()) > 0; i++)
       await page.waitForTimeout(100);

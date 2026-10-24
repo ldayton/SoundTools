@@ -29,7 +29,7 @@ checks, and Soundglow's core, visual and update suites. Install browsers first w
 lifecycle, Pages and offline matrix is `npm run test:browsers --workspace=dorego`.
 GitHub CI runs that matrix and Soundglow's suite on each main push and PR.
 For a deployed root-path site, run
-`PAGES_TEST_URL=https://dorego-six.vercel.app/ npm run test:pages --workspace=dorego`
+`PAGES_TEST_URL=https://do-re-go.vercel.app/ npm run test:pages --workspace=dorego`
 and `node scripts/smoke-soundglow.cjs https://soundglow.vercel.app/`.
 The latter checks real WASM analysis and recorded-speech playback after an offline
 reload, as well as immutable asset headers and MIME types.
@@ -49,7 +49,7 @@ in separate snapshot commits before restructuring.
 
 ## Vercel
 
-Production: [DoReGo](https://dorego-six.vercel.app/) and
+Production: [DoReGo](https://do-re-go.vercel.app/) and
 [Soundglow](https://soundglow.vercel.app/), in the `team-lily` Vercel account.
 Both projects are connected to `ldayton/SoundTools`.
 

@@ -66,6 +66,49 @@ export function create({
     }
     return safe;
   }
+  // Browser isolation scopes are global. SDK serialization can merge their
+  // attributes after beforeSendLog/beforeSendMetric, so enforce the allowlist
+  // again at the transport boundary, before either persistence or networking.
+  function sanitizeEnvelope(envelope) {
+    return [
+      envelope[0],
+      envelope[1].map(([header, payload]) => {
+        if (header.type !== "log" && header.type !== "trace_metric")
+          return [header, payload];
+        return [
+          header,
+          {
+            ...payload,
+            ingest_settings: { infer_ip: "never", infer_user_agent: "never" },
+            items: payload.items.map((item) => {
+              const values = Object.fromEntries(
+                Object.entries(item.attributes || {}).map(([name, entry]) => [
+                  name,
+                  entry?.value,
+                ]),
+              );
+              const safe = attributes(values);
+              const encoded = Object.fromEntries(
+                Object.entries(safe).map(([name, value]) => [
+                  name,
+                  {
+                    value,
+                    type:
+                      typeof value === "number"
+                        ? Number.isInteger(value)
+                          ? "integer"
+                          : "double"
+                        : typeof value,
+                  },
+                ]),
+              );
+              return { ...item, attributes: encoded };
+            }),
+          },
+        ];
+      }),
+    ];
+  }
   const gated = (options) => {
     const transport = makeFetchTransport(options);
     return {
@@ -73,7 +116,7 @@ export function create({
       send(envelope) {
         if (!active() || !freshEnvelope(envelope))
           return Promise.resolve({ statusCode: 200 });
-        return transport.send(envelope);
+        return transport.send(sanitizeEnvelope(envelope));
       },
     };
   };
@@ -84,7 +127,15 @@ export function create({
       ...options,
       createStore: () => store,
     });
-    return offlineTransport;
+    const instance = offlineTransport;
+    return {
+      ...instance,
+      send(envelope) {
+        if (!freshEnvelope(envelope))
+          return Promise.resolve({ statusCode: 200 });
+        return instance.send(sanitizeEnvelope(envelope));
+      },
+    };
   };
   const online = () => {
     void offlineTransport?.flush().catch(() => {});
@@ -163,12 +214,16 @@ export function create({
             {
               type: error.name,
               value: error.code,
-              stacktrace: {
-                frames: error.frames
-                  .slice()
-                  .reverse()
-                  .map((frame) => ({ ...frame, in_app: true })),
-              },
+              ...(error.frames.length
+                ? {
+                    stacktrace: {
+                      frames: error.frames
+                        .slice()
+                        .reverse()
+                        .map((frame) => ({ ...frame, in_app: true })),
+                    },
+                  }
+                : {}),
             },
           ],
         },

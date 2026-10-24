@@ -27,7 +27,9 @@ The historical localStorage sharing preference no longer controls collection.
 The collector does not send audio, recordings, pitch/formant histories, microphone
 labels, raw text, console output, DOM content, network bodies, cookies, URL queries
 or fragments. No replay, automatic tracing, profiling or global Sentry integrations
-are installed. Each app owns an isolated SDK client and scope. The provider receives
+are installed. Each app owns an isolated SDK client and scope. A transport allowlist also
+removes attributes inherited from other SDKs before offline persistence and
+networking, since browser SDK isolation scopes can remain global. The provider receives
 network connection metadata; disable IP retention in both Sentry projects.
 
 ## Runtime and failure behavior
@@ -102,7 +104,8 @@ alone is not proof.
 ## Configured service
 
 Organization: `team-lily`; projects: `dorego` and `soundglow`. Both projects discard
-IP addresses and use the default sensitive-field scrubber. Accepted origins are
+IP addresses, remove user/location context, and use the default sensitive-field
+scrubber. Accepted origins are
 the canonical production domain and each app's team/main aliases on Vercel.
 Automatic AI debugging and automatic release creation are disabled. No automatic
 alert emails or paid upgrades were configured.
@@ -111,3 +114,10 @@ Vercel receives a dedicated `org:ci` credential for release/source-map uploads,
 separate from the temporary setup credential used to configure and verify the
 service. Revoke the setup credential after production verification. Keep the
 build credential as a sensitive Production-only variable on both projects.
+
+Live verification on 2026-10-24 confirmed error, structured-log and metric ingestion
+for both apps. A controlled DoReGo UI exception resolved from its deployed minified
+frame to `src/main.ts` (`changeTempo`). Browser tests also seed another SDK's
+isolation scope with private sentinel values and verify that neither network
+payloads nor the offline queue include them. Exceptions without source frames
+omit stacktrace rather than sending an invalid empty frame list.

@@ -51,3 +51,15 @@ test("Soundglow copies shared browser assets only as generated build output", ()
         .equals(fs.readFileSync(path.join(output, file))),
     );
 });
+
+test("Soundglow's offline resource loader comes from the workspace source", () => {
+  assert(
+    fs
+      .readFileSync(path.join(root, "packages/browser-offline/resources.cjs"))
+      .equals(
+        fs.readFileSync(
+          path.join(root, "apps/soundglow/dist/vendor/offline/resources.js"),
+        ),
+      ),
+  );
+});

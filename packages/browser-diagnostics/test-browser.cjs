@@ -102,6 +102,16 @@ const { chromium, firefox, webkit } = require("playwright");
       .check();
     await page.waitForFunction(() => d.getState().status === "connected");
     await page.evaluate(async () => {
+      d.offline("download", "paused", {
+        cacheReason: "cancelled",
+        url: "PRIVATE",
+      });
+      d.offline("storage", "failed", {
+        cacheReason: "quota",
+        durationMs: 25,
+        fileCount: 3,
+        private_text: "PRIVATE",
+      });
       d.event("transport.play", { running: true, title: "PRIVATE" });
       d.metric("analysis.ms", 12);
       d.capture(
@@ -119,7 +129,12 @@ const { chromium, firefox, webkit } = require("playwright");
     const deadline = Date.now() + 5000;
     const complete = () =>
       ["event", "log", "trace_metric"].every((type) =>
-        items().some((item) => item.type === type),
+        items().some(
+          (item) =>
+            item.type === type &&
+            (type !== "event" ||
+              item.payload.exception?.values?.[0]?.value === "audio.failed"),
+        ),
       );
     while (!complete() && Date.now() < deadline)
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -127,11 +142,16 @@ const { chromium, firefox, webkit } = require("playwright");
       complete(),
       "Missing event/log/metric envelopes: " + items().map((item) => item.type),
     );
-    const event = items().find((i) => i.type === "event").payload;
+    const event = items().find(
+      (i) =>
+        i.type === "event" &&
+        i.payload.exception?.values?.[0]?.value === "audio.failed",
+    ).payload;
     assert.equal(event.release, "soundglow@test-1");
     assert(!event.request && !event.user);
     assert.equal(
-      event.contexts.diagnostics.errors[0].frames[0].filename,
+      event.contexts.diagnostics.errors.find((e) => e.code === "audio.failed")
+        .frames[0].filename,
       "https://example.org/app.js",
     );
     assert(!event.contexts.trace);
@@ -140,6 +160,20 @@ const { chromium, firefox, webkit } = require("playwright");
       .flatMap((i) => i.payload.items);
     assert(logs.some((log) => log.body === "transport.play"));
     assert(logs.some((log) => log.body === "session.started"));
+    assert(
+      logs.some(
+        (log) =>
+          log.body === "cache.download.paused" &&
+          log.attributes.cacheReason.value === "cancelled",
+      ),
+    );
+    assert(
+      items().some(
+        (item) =>
+          item.type === "event" &&
+          item.payload.exception?.values?.[0]?.value === "cache.storage_failed",
+      ),
+    );
     const metrics = items()
       .filter((i) => i.type === "trace_metric")
       .flatMap((i) => i.payload.items);
@@ -178,6 +212,11 @@ const { chromium, firefox, webkit } = require("playwright");
     fail = true;
     await page.evaluate(() => {
       d.capture(Error("PRIVATE"), "audio.offline");
+      d.offline("update", "failed", {
+        cacheReason: "integrity",
+        durationMs: 123,
+        url: "PRIVATE",
+      });
       d.event("browser.offline");
       d.metric("analysis.ms", 20);
       d.flush();
@@ -236,6 +275,14 @@ const { chromium, firefox, webkit } = require("playwright");
     for (let i = 0; i < 150 && (await queued()) > 0; i++)
       await page.waitForTimeout(100);
     assert.equal(await queued(), 0, "Offline retry drains successfully");
+    assert(
+      items().some(
+        (item) =>
+          item.type === "event" &&
+          item.payload.exception?.values?.[0]?.value === "cache.update_failed",
+      ),
+      "Offline fault is delivered after reconnect",
+    );
     await page
       .getByRole("checkbox", {
         name: "Share diagnostic information",

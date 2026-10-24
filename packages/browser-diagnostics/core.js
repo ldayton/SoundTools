@@ -21,6 +21,43 @@
     width: "number",
     height: "number",
     dpr: "number",
+    cacheSource: ["cache", "network"],
+    cacheOperation: [
+      "setup",
+      "navigation",
+      "download",
+      "update",
+      "storage",
+      "worker",
+      "model",
+    ],
+    cacheOutcome: [
+      "started",
+      "ready",
+      "paused",
+      "failed",
+      "fallback",
+      "recovered",
+      "retrying",
+      "unsupported",
+      "unavailable",
+    ],
+    cacheReason: [
+      "none",
+      "network",
+      "timeout",
+      "quota",
+      "integrity",
+      "storage",
+      "cancelled",
+      "unavailable",
+      "unknown",
+    ],
+    durationMs: "number",
+    byteCount: "number",
+    fileCount: "number",
+    retryCount: "number",
+    persistent: "boolean",
   };
   function fields(input, spec) {
     const out = {};
@@ -113,6 +150,7 @@
     const maxSends = 20,
       sendWindow = 60000;
     const sharingKey = app + ":diagnostics:sharing";
+    let navigationDiagnosticsAllowed = sharing;
     function readSharing() {
       try {
         return (
@@ -134,6 +172,7 @@
       value = value === true;
       if (value === sharing || disposed) return;
       sharing = value;
+      if (!sharing) navigationDiagnosticsAllowed = false;
       automatic = sharing && !!options.dsn && options.enabled !== false;
       const token = ++epoch;
       if (save)
@@ -165,6 +204,117 @@
       await loadRemote();
     }
     let logTimes = [];
+    // Shared low-cardinality offline telemetry; never accepts URLs or messages.
+    function offline(operation, outcome, details = {}, error) {
+      if (
+        !baseFields.cacheOperation.includes(operation) ||
+        !baseFields.cacheOutcome.includes(outcome)
+      )
+        return;
+      let reason = details.cacheReason;
+      if (!baseFields.cacheReason.includes(reason)) {
+        reason =
+          {
+            QuotaExceededError: "quota",
+            TimeoutError: "timeout",
+            AbortError: "timeout",
+            TypeError: "network",
+            SyntaxError: "integrity",
+            SecurityError: "storage",
+            InvalidStateError: "storage",
+            UnknownError: "storage",
+          }[error?.name] || "unknown";
+        if (baseFields.cacheReason.includes(error?.offlineReason))
+          reason = error.offlineReason;
+        if (
+          outcome === "ready" ||
+          outcome === "started" ||
+          outcome === "recovered"
+        )
+          reason = "none";
+      }
+      if (operation === "storage" && reason === "network") reason = "storage";
+      const safe = fields(
+        {
+          ...details,
+          cacheOperation: operation,
+          cacheOutcome: outcome,
+          cacheReason: reason,
+        },
+        baseFields,
+      );
+      event("cache." + operation + "." + outcome, safe);
+      if (Number.isFinite(safe.durationMs) && safe.durationMs >= 0)
+        metric("cache." + operation + "_ms", safe.durationMs);
+      // A disconnected network, timeout or deliberate cancellation is expected.
+      if (
+        (outcome === "failed" ||
+          (outcome === "fallback" &&
+            ["quota", "integrity", "storage"].includes(reason))) &&
+        !["network", "timeout", "cancelled"].includes(reason)
+      )
+        capture(error, "cache." + operation + "_failed");
+    }
+    const watchedWorkers = new WeakSet();
+    function observeOffline(registration) {
+      if (!registration) return;
+      const watch = (worker) => {
+        if (!worker || watchedWorkers.has(worker)) return;
+        watchedWorkers.add(worker);
+        on(worker, "error", () =>
+          offline("worker", "failed", { cacheReason: "unknown" }),
+        );
+        let completed = worker.state !== "installing";
+        on(worker, "statechange", () => {
+          if (["installed", "activating", "activated"].includes(worker.state))
+            completed = true;
+          if (!completed && worker.state === "redundant")
+            offline("setup", "unavailable", { cacheReason: "unavailable" });
+        });
+      };
+      watch(registration.installing);
+      watch(registration.waiting);
+      watch(registration.active);
+      on(registration, "updatefound", () => watch(registration.installing));
+    }
+    // Only the current controlling worker may supply coded offline diagnostics.
+    const serviceWorker = env.navigator?.serviceWorker;
+    const initialSharing = sharing;
+    on(serviceWorker, "message", (e) => {
+      if (
+        e.source !== serviceWorker.controller ||
+        e.data?.type !== "offline-diagnostic"
+      )
+        return;
+      const { operation, outcome, details } = e.data;
+      if (operation === "navigation" && !navigationDiagnosticsAllowed) return;
+      offline(operation, outcome, details);
+    });
+    function requestNavigationDiagnostic() {
+      try {
+        serviceWorker?.controller?.postMessage({
+          type: "offline-diagnostics",
+          sharing: navigationDiagnosticsAllowed && sharing,
+        });
+      } catch {}
+    }
+    on(serviceWorker, "controllerchange", requestNavigationDiagnostic);
+    on(serviceWorker, "messageerror", () =>
+      offline("worker", "failed", { cacheReason: "unknown" }),
+    );
+    requestNavigationDiagnostic();
+    // Measure actual response time even when a worker's transient result is lost.
+    if (initialSharing) {
+      try {
+        const navigation =
+          env.performance.getEntriesByType?.("navigation")?.[0];
+        if (navigation?.responseEnd > 0)
+          metric(
+            "cache.navigation_response_ms",
+            navigation.responseEnd - navigation.startTime,
+          );
+      } catch {}
+    }
     function increment(code) {
       if (!pendingCounts[code] && Object.keys(pendingCounts).length >= 100)
         return;
@@ -320,6 +470,8 @@
       }
       if (loading) return loading;
       status = "loading";
+      const reporterStarted = now();
+      const recovering = retryAt > 0;
       notify();
       loading = (async () => {
         try {
@@ -339,6 +491,8 @@
             return;
           }
           remote = client;
+          metric("monitoring.reporter_startup_ms", now() - reporterStarted);
+          if (recovering) event("monitoring.reporter_recovered");
           retryAt = 0;
           retryDelay = 30000;
           status = "connected";
@@ -348,6 +502,8 @@
         } catch {
           if (disposed || token !== epoch) return;
           status = "unavailable";
+          event("monitoring.reporter_unavailable");
+          metric("monitoring.reporter_startup_ms", now() - reporterStarted);
           retryAt = now() + retryDelay;
           retryDelay = Math.min(300000, retryDelay * 2);
           notify();
@@ -558,6 +714,8 @@
       snapshot,
       ready,
       setSharing,
+      offline,
+      observeOffline,
       getState: () => ({
         sharing,
         automatic: automatic,

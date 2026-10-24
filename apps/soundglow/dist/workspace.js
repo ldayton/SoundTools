@@ -4,6 +4,7 @@
  const $=id=>document.getElementById(id),host=window.soundglowSession,key='soundglow-workspace-v1';
  let saved;try{saved=localStorage.getItem(key)}catch{}
  let state=FeatureState.restore(saved),pitchStream=null,cursor=null,pumping=false,epoch=0,rows=[],rawRows=[],contour=null,contourKey='',speechFrames=[],neuralEvidence=new NeuralEvidence(),speechSession=crypto.randomUUID(),lastPaint='',lastLayout='',paintQueued=false;
+ let lastModelStatus=null;
  let grouping={key:null,settings:null,seed:null};
  // Experimental speech confirmation failed the quiet-speech acceptance limit.
  // Keep it opt-in until a matched streaming trial passes.
@@ -41,7 +42,7 @@
    try{while(generation===epoch){
     const block=host.raw().find(b=>cursor===null||b.start+b.pcm.length/host.state().sampleRate>cursor+1e-7);if(!block)break;
     const rate=host.state().sampleRate,offset=cursor===null?0:Math.max(0,Math.round((cursor-block.start)*rate));
-    const speech=await host.analyse({type:'speech',session:speechSession,neural:state.pitch.speechGate&&experimentalSpeechGate,pcm:block.pcm.slice(offset),start:block.start+offset/rate,sampleRate:rate},{transfer:true});if(generation!==epoch)return;host.measure('speechDetectionMs',speech.ms);chart.dataset.neuralStatus=speech.neuralStatus;chart.dataset.neuralError=speech.neuralError||'';neuralEvidence.record(speech,block.start+offset/rate);speechFrames.push(...speech.decisions);while(speechFrames.length&&speechFrames[0].time<block.start-33)speechFrames.shift();await stream.push(block.pcm.slice(offset),block.start+offset/rate);if(generation!==epoch)return;cursor=block.start+block.pcm.length/rate;
+    const speech=await host.analyse({type:'speech',session:speechSession,neural:state.pitch.speechGate&&experimentalSpeechGate,pcm:block.pcm.slice(offset),start:block.start+offset/rate,sampleRate:rate},{transfer:true});if(generation!==epoch)return;host.measure('speechDetectionMs',speech.ms);chart.dataset.neuralStatus=speech.neuralStatus;chart.dataset.neuralError=speech.neuralError||'';if(experimentalSpeechGate&&state.pitch.speechGate&&speech.neuralStatus!==lastModelStatus){lastModelStatus=speech.neuralStatus;if(['loading','ready','unavailable'].includes(lastModelStatus))window.SoundglowDiagnostics?.offline('model',lastModelStatus==='loading'?'started':lastModelStatus==='ready'?'ready':'unavailable',{cacheReason:lastModelStatus==='unavailable'?'unavailable':'none'});}neuralEvidence.record(speech,block.start+offset/rate);speechFrames.push(...speech.decisions);while(speechFrames.length&&speechFrames[0].time<block.start-33)speechFrames.shift();await stream.push(block.pcm.slice(offset),block.start+offset/rate);if(generation!==epoch)return;cursor=block.start+block.pcm.length/rate;
    }}catch(error){if(generation===epoch){window.SoundglowDiagnostics?.capture(error,'pitch.analysis_failed');$('pitchError').textContent=error.message;$('pitchError').hidden=false}}
    finally{if(generation===epoch)pumping=false;}
   })();

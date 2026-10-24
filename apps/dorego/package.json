@@ -19,6 +19,7 @@
     "test:pages": "tsx tests/pages.e2e.ts",
     "export": "tsx scripts/export.ts",
     "test:lifecycle": "tsx tests/lifecycle.e2e.ts",
+    "test:resilience": "node ../../scripts/test-resilience.cjs dorego",
     "test:offline": "tsx tests/offline.e2e.ts",
     "setup:browsers": "playwright install chromium firefox webkit",
     "test:desktop": "tsx tests/desktop.e2e.ts",

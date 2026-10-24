@@ -523,7 +523,7 @@ test("opting out during SDK startup cannot send through a late client", async ()
   const { env, storage } = environment();
   storage.clear();
   let began;
-  const started = new Promise(r => began = r);
+  const started = new Promise((r) => (began = r));
   let resolve,
     enabled,
     closed = false;
@@ -555,5 +555,102 @@ test("opting out during SDK startup cannot send through a late client", async ()
   assert.equal(enabled(), false);
   assert(closed);
   assert.equal(d.getState().sharing, false);
+  await d.dispose();
+});
+
+test("offline telemetry separates expected outages from faults, strips private details and honors opt-out", async () => {
+  const { env } = environment();
+  const d = create({ app: "dorego", release: "test" }, env);
+  await d.ready;
+  d.offline(
+    "download",
+    "failed",
+    { durationMs: 100, url: "PRIVATE", cacheReason: "network" },
+    Error("PRIVATE"),
+  );
+  d.offline("download", "paused", { cacheReason: "cancelled" });
+  assert.equal(d.snapshot().errors.length, 0);
+  d.offline(
+    "storage",
+    "failed",
+    {},
+    new DOMException("PRIVATE", "QuotaExceededError"),
+  );
+  assert.equal(d.snapshot().errors[0].code, "cache.storage_failed");
+  assert.equal(d.snapshot().events.at(-2).details.cacheReason, "quota");
+  assert(!JSON.stringify(d.snapshot()).includes("PRIVATE"));
+  await d.setSharing(false);
+  d.offline("worker", "failed", {}, Error("PRIVATE"));
+  assert.equal(d.snapshot().errors.length, 0);
+  assert.equal(d.snapshot().events.length, 0);
+  await d.dispose();
+});
+test("offline worker messages must come from the current controller; navigation handoff needs pre-existing consent", async () => {
+  const { env, storage } = environment();
+  const sw = new EventTarget(),
+    requests = [];
+  sw.controller = { postMessage: (x) => requests.push(x) };
+  env.navigator.serviceWorker = sw;
+  const d = create({ app: "dorego", release: "test" }, env);
+  await d.ready;
+  assert.equal(requests[0].sharing, true);
+  const message = (source) =>
+    sw.dispatchEvent(
+      Object.assign(new Event("message"), {
+        source,
+        data: {
+          type: "offline-diagnostic",
+          operation: "navigation",
+          outcome: "fallback",
+          details: { durationMs: 123, cacheReason: "timeout", url: "PRIVATE" },
+        },
+      }),
+    );
+  message({});
+  assert.equal(d.snapshot().events.length, 1);
+  message(sw.controller);
+  assert.equal(d.snapshot().metrics["cache.navigation_ms"].max, 123);
+  assert(!JSON.stringify(d.snapshot()).includes("PRIVATE"));
+  await d.setSharing(false);
+  await d.setSharing(true);
+  message(sw.controller);
+  assert.equal(
+    d.snapshot().metrics["cache.navigation_ms"],
+    undefined,
+    "A delayed old navigation result cannot replay after opt-out",
+  );
+  await d.dispose();
+  storage.clear();
+  requests.length = 0;
+  const other = create({ app: "dorego", release: "test" }, env);
+  await other.ready;
+  assert.equal(requests[0].sharing, false);
+  await other.setSharing(true);
+  sw.dispatchEvent(new Event("controllerchange"));
+  assert.equal(requests.at(-1).sharing, false);
+  await other.dispose();
+});
+
+test("normal worker replacement is not reported as failed installation", async () => {
+  const { env } = environment();
+  const d = create({ app: "dorego", release: "test" }, env);
+  await d.ready;
+  const worker = Object.assign(new EventTarget(), { state: "installing" });
+  const registration = Object.assign(new EventTarget(), { installing: worker });
+  d.observeOffline(registration);
+  for (const state of ["installed", "activated", "redundant"]) {
+    worker.state = state;
+    worker.dispatchEvent(new Event("statechange"));
+  }
+  assert(
+    !d.snapshot().events.some((e) => e.code === "cache.setup.unavailable"),
+  );
+  const failed = Object.assign(new EventTarget(), { state: "installing" });
+  registration.installing = failed;
+  registration.dispatchEvent(new Event("updatefound"));
+  failed.state = "redundant";
+  failed.dispatchEvent(new Event("statechange"));
+  assert(d.snapshot().events.some((e) => e.code === "cache.setup.unavailable"));
+  assert.equal(d.snapshot().errors.length, 0);
   await d.dispose();
 });

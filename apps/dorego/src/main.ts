@@ -204,7 +204,7 @@ $('#app').innerHTML = `
   <div id="toast" class="toast" role="status" hidden></div>
 `;
 
-$('.builder-column').insertAdjacentHTML('beforeend', `<section class="offline-section" aria-label="Offline use"><div><h2>Take it with you</h2><p id="offline-status" role="status">Preparing offline support…</p></div><button type="button" id="offline-download" class="quiet-button" disabled>Download for offline use</button><progress id="offline-progress" aria-label="Offline download progress" hidden></progress></section>`);
+$('.builder-column').insertAdjacentHTML('beforeend', `<section class="offline-section" aria-label="Offline use"><div><h2>Take it with you</h2><p id="offline-status" role="status">Preparing offline support…</p></div><button type="button" id="offline-download" class="quiet-button" disabled>Download for offline use</button><button type="button" id="offline-update" class="quiet-button" hidden>Update available</button><progress id="offline-progress" aria-label="Offline download progress" hidden></progress></section>`);
 setupOffline();
 mountDiagnostics($('.builder-column'));
 

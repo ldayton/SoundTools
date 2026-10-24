@@ -9,7 +9,14 @@ Both apps consume the same npm workspace source and embed the runtime directly i
 Shared behavior: scoped GET filtering, metadata JSON storage, deadlines, complete
 asset checks, atomic cache population or per-file SHA-256 verification, deduplicated
 serialized staging, cleanup fences, live-tab protection, ten-minute navigation
-grace, complete-release navigation fallback, and install/activate lifecycle.
+grace, cached-first navigation with background staging, and install/activate
+lifecycle. Cache failures never make a working network page depend on a write.
+A no-copy fallback explains why an unsaved app cannot open offline.
+
+`createResources()` supplies the same cancellable downloader in pages and workers:
+header/idle deadlines, size-aware budgets, bounded retries/backoff, SHA-256/size
+verification and late-operation tracking. Soundglow consumes a generated UMD copy
+at `vendor/offline/resources.js`; edit the workspace source, not that copy.
 
 Adapters own manifest validation, cache names/layouts, document consistency checks,
 client messages, fallback ordering and cache eviction. DoReGo retains optional

@@ -9,6 +9,29 @@ export interface Report {
   [key: string]: unknown;
 }
 export interface Client {
+  offline(
+    operation:
+      | "setup"
+      | "navigation"
+      | "download"
+      | "update"
+      | "storage"
+      | "worker"
+      | "model",
+    outcome:
+      | "started"
+      | "ready"
+      | "paused"
+      | "failed"
+      | "fallback"
+      | "recovered"
+      | "retrying"
+      | "unsupported"
+      | "unavailable",
+    details?: Record<string, unknown>,
+    error?: unknown,
+  ): void;
+  observeOffline(registration: ServiceWorkerRegistration): void;
   event(code: string, details?: Record<string, unknown>): void;
   frame(time: number, active: boolean): void;
   metric(name: string, value: number): void;

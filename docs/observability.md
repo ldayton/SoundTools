@@ -89,7 +89,7 @@ Development and preview builds do not publish monitoring releases.
 
 ## Verification
 
-Shared unit tests cover boundedness, automatic all-session collection, privacy,
+Shared unit tests cover boundedness, consent-gated collection, privacy,
 delta correctness, delayed startup/disposal, error flooding and blocked IndexedDB.
 Soundglow's real-SDK browser test intercepts every request and checks actual error,
 log and metric envelopes, release isolation, expiry and offline queue replay.
@@ -123,3 +123,8 @@ frame to `src/main.ts` (`changeTempo`). Browser tests also seed another SDK's
 isolation scope with private sentinel values and verify that neither network
 payloads nor the offline queue include them. Exceptions without source frames
 omit stacktrace rather than sending an invalid empty frame list.
+
+Offline scenario coverage and remaining resilience work are documented in
+[offline resilience](offline-resilience.md). Expected disconnection, timeouts and
+user cancellation are informational; integrity, quota and unexpected worker or
+storage failures produce bounded error issues, only with sharing enabled.

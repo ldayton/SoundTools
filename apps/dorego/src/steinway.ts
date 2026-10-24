@@ -1,3 +1,5 @@
+import { createResources } from '@ldayton/browser-offline';
+const resources = createResources();
 import { holdParam, type LiveVoice } from './tempo-clock';
 import * as Tone from 'tone';
 import { BITKLAVIER_SAMPLES } from './bitklavier-samples';
@@ -63,10 +65,7 @@ export async function preloadSteinway(exercise: Exercise) {
     [...files].map(async ([name, { path, cacheKey, needed }]) => {
       if (!buffers.has(cacheKey)) {
         const retained = await sampleLoader.load(cacheKey, async (signal) => {
-          const response = await fetch(`${import.meta.env.BASE_URL}samples/${path}`, { signal });
-          if (!response.ok)
-            throw new Error('Could not load the piano recordings. Please try again.');
-          const encoded = await response.arrayBuffer();
+          const encoded = await resources.fetchBytes(`${import.meta.env.BASE_URL}samples/${path}`, { signal, timeoutMs:15000, idleMs:5000, attempts:2 });
           signal.throwIfAborted();
           const context = Tone.getContext();
           const decoded = await context.decodeAudioData(encoded);

@@ -65,13 +65,17 @@ jobs:
           name: dorego-source-maps
           path: apps/dorego/dist-pages/assets/*.map
           retention-days: 14
+      - run: npm run test:resilience --workspace=dorego
+        if: matrix.browser == 'chromium'
       - run: npm run build:dorego
         if: matrix.browser == 'chromium'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: dorego-browser-results-${{ matrix.browser }}
-          path: apps/dorego/work/
+          path: |
+            apps/dorego/work/
+            work/resilience-dorego/
   soundglow:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -85,6 +89,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build:shared
       - run: npm run test:soundglow
+      - run: npm run test:resilience --workspace=soundglow
       - run: npm run build:soundglow
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -93,3 +98,4 @@ jobs:
           path: |
             apps/soundglow/test-results/
             apps/soundglow/playwright-report/
+            work/resilience-soundglow/

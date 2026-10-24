@@ -40,7 +40,8 @@ const previous = path.join(root, "work", "previous-" + app);
     const before = process.cwd();
     try {
       process.chdir(project);
-      currentAssets = build({ out: output, base: "/", previous }).files.map(
+      const pack = build({ out: output, base: "/", previous });
+      currentAssets = [...pack.files,...(pack.optional||[])].map(
         (file) => file.url,
       );
     } finally {

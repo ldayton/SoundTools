@@ -30,10 +30,12 @@ assert.deepEqual(releases[0].pack.files.filter(f=>f.url.includes('/engines/')),r
 const retained=path.join(work,'retained-site');build({source:path.join(work,'source-1'),out:retained,base:'/Soundglow/',previous:releases[0].out});
 for(const file of releases[0].pack.files)assert(fs.existsSync(path.join(retained,file.url.slice('/Soundglow/'.length))),'Previous deployment asset retained');
 assert.equal(JSON.parse(fs.readFileSync(path.join(retained,'release-history.json'))).length,2);
-let revision=0,fault=null;const requests=[];
+let revision=0,fault=null,modelFailures=0,holdModel=false,modelAborted=false;const requests=[];
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://localhost');requests.push(url.pathname+url.search);
  if(!url.pathname.startsWith('/Soundglow/')){res.writeHead(404).end();return}
+ if(url.pathname.endsWith('/silero.onnx')&&holdModel){res.on('close',()=>{modelAborted=true});return}
+ if(url.pathname.endsWith('/silero.onnx')&&modelFailures-->0){res.writeHead(503).end('temporary interruption');return}
  const relative=url.pathname.slice('/Soundglow/'.length)||'index.html',file=path.resolve(releases[revision].out,relative);
  if(!file.startsWith(releases[revision].out+path.sep)){res.writeHead(403).end();return}
  if(fault&&url.pathname===releases[2].pack.files.find(f=>f.url.endsWith('/app.js')).url){res.writeHead(fault==='network'?503:200,{'Content-Type':'text/javascript'}).end('broken deployment');return}
@@ -44,7 +46,7 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port,url=origin+'/Soundglow/';
  const browser=await chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+microphone]});
  try{
- const context=await browser.newContext({permissions:['microphone']}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(url);
+ const context=await browser.newContext({permissions:['microphone']});await context.addInitScript(()=>{try{localStorage.setItem('soundglow:diagnostics:sharing','yes')}catch{}});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(url);
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
  assert.equal(await page.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version);
  await page.locator('#begin').click();await page.waitForFunction(()=>running&&processingStats.frames>200);
@@ -75,20 +77,52 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  assert.equal(await page.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version);
  console.log('PASS: live microphone survives background staging, explicit update and worker activation; WASM reused');
  revision=2;fault='network';assert.equal((await rpc(other)).ready,false);
- fault='integrity';assert.equal((await rpc(other)).ready,false,'Reject mixed or corrupted release bytes');
+ fault='integrity';const integrity=await rpc(other);assert.equal(integrity.ready,false,'Reject mixed or corrupted release bytes');assert.equal(integrity.reason,'integrity');
  await other.reload();assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version,'Failed deployment falls back to the last complete release');
  assert.equal(await other.locator('#update').isVisible(),false);
+ // Explicit full offline preparation includes the optional model, with retry.
+ await other.locator('#openSettings:visible, #settings:visible').click();
+ holdModel=true;
+ // Same-task clicks force cancellation before the worker's inventory lookup completes.
+ await other.evaluate(()=>{const button=document.getElementById('offlineDownload');button.click();button.click()});
+ await other.getByRole('button',{name:'Download for offline use',exact:true}).waitFor();
+ holdModel=true;
+ const modelBefore=requests.filter(p=>p.endsWith('/silero.onnx')).length;
+ await other.getByRole('button',{name:'Download for offline use',exact:true}).click();
+ for(let i=0;i<100&&requests.filter(p=>p.endsWith('/silero.onnx')).length===modelBefore;i++)await other.waitForTimeout(50);
+ assert(requests.filter(p=>p.endsWith('/silero.onnx')).length>modelBefore,'Model transfer started');
+ await other.getByRole('button',{name:'Cancel download',exact:true}).click();
+ await other.getByRole('button',{name:'Download for offline use',exact:true}).waitFor();
+ for(let i=0;i<100&&!modelAborted;i++)await other.waitForTimeout(50);
+ assert(modelAborted,'Cancellation aborts the in-flight model transfer');
+ holdModel=false;modelFailures=1;
+ await other.getByRole('button',{name:'Download for offline use',exact:true}).click();
+ await other.waitForFunction(()=>document.getElementById('offlineStatus').textContent.includes('Available offline'));
+ assert(requests.filter(p=>p.endsWith('/silero.onnx')).length>=2,'Transient model failure retried');
  await context.setOffline(true);await other.reload();
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version);
+ await other.waitForFunction(()=>SoundglowDiagnostics.snapshot().events.some(e=>e.code==='cache.navigation.ready'&&e.details.cacheSource==='cache'));
  await other.getByRole('button',{name:'Play an Example',exact:true}).click();await other.waitForFunction(()=>inputMode==='speech'&&processingStats.frames>200);
  await other.locator('#freeze').click();
  console.log('PASS: failed/inconsistent deployments rejected; offline reload and English speech use cached worklet, worker, WASM and audio');
+ await other.goto(url+'?experimentalSpeechGate=1');
+ await other.locator('#pitchTab').click();await other.getByRole('button',{name:'Play an Example',exact:true}).click();
+ await other.waitForFunction(()=>document.getElementById('pitchCanvas').dataset.neuralStatus==='ready',undefined,{timeout:45000});
+ await other.locator('#freeze').click();
+ console.log('PASS: optional neural model, ONNX runtime and WASM execute fully offline');
  await context.setOffline(false);revision=1;fault=null;
  // Expire navigation grace while an old tab is still alive: its release stays.
  await other.evaluate(async()=>{for(const name of await caches.keys())if(name.startsWith('soundglow-release-')){const cache=await caches.open(name);const request=(await cache.keys()).find(r=>r.url.endsWith('/__cache__/savedAt'));await cache.put(request,new Response('0'))}});
  const announce=p=>p.evaluate(()=>navigator.serviceWorker.controller.postMessage({type:'using-release',version:document.querySelector('meta[name="soundglow-release"]').content}));
  await announce(other);await other.waitForTimeout(200);assert(await other.evaluate(version=>caches.has('soundglow-release-'+version),releases[0].pack.version));
- await page.close();await announce(other);await other.waitForFunction(async version=>!await caches.has('soundglow-release-'+version),releases[0].pack.version);
+ await page.close();await announce(other);assert(await other.evaluate(version=>caches.has('soundglow-release-'+version),releases[0].pack.version),'Keep one committed recovery release after old tabs close');
+ // A present but corrupted cached document must fall back to a verified recovery release.
+ await other.evaluate(async html=>{const cache=await caches.open('soundglow-assets-v1');await cache.put(html,new Response('corrupt cached document',{headers:{'Content-Type':'text/html'}}))},releases[1].pack.html);
+ await context.setOffline(true);await other.reload();
+ assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version,'Corrupt cached HTML must never be used as the startup document');
+ await context.setOffline(false);assert.equal((await rpc(other)).ready,true);await other.reload();
+ assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version,'Online repair restores the latest verified release');
+ console.log('PASS: cancellation aborts transfers; corrupted startup document falls back and repairs');
  assert.deepEqual(errors,[]);assert(requests.some(p=>p.includes('/release.json?check=')),'Release discovery must bypass stale CDN URLs');
  await other.screenshot({path:path.join(work,'offline-example.png')});
  fs.writeFileSync(path.join(work,'report.json'),JSON.stringify({passed:true,versions:releases.map(r=>r.pack.version),wasmDownloads:wasmBefore,requests:requests.length},null,2));

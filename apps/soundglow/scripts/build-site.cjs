@@ -16,6 +16,7 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base=proces
  for(const file of engineFiles)output.set(engine+file.slice('vendor/praat/'.length),read(file));
  for(const file of mediaFiles)output.set(media+file.slice('audio/'.length),read(file));
  for(const file of ['favicon.svg','diagnostics.js','pitch-contour.js','feature-state.js','workspace.js','settings-state.js','voice-feedback.js','performance.js','analysis-settings.js','style.css','praat-overlays.js','praat-display.js','praat-stream.js','pcm-worklet.js','updates.js'])output.set(release+file,read(file));
+ for(const file of sourceFiles.filter(f=>f.startsWith('vendor/offline/')))output.set(release+'offline/'+file.slice('vendor/offline/'.length),read(file));
  for(const file of sourceFiles.filter(f=>f.startsWith('vendor/diagnostics/')))output.set(release+'diagnostics/'+file.slice('vendor/diagnostics/'.length),read(file));
  let app=read('app.js').toString();
  for(const [before,after] of [["'vendor/praat/live-worker.js?profile=release&v=20261020-neural-gate'",JSON.stringify(engine+'live-worker.js?profile=release')],["'pcm-worklet.js'",JSON.stringify(release+'pcm-worklet.js')],["'audio/alice-waters.m4a'",JSON.stringify(media+'alice-waters.m4a')]]){
@@ -23,11 +24,12 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base=proces
  }
  output.set(release+'app.js',Buffer.from(app));
  let html=read('index.html').toString().replace('<head>','<head><meta name="soundglow-sentry-dsn" content="'+diagnosticsDsn.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'"><meta name="soundglow-diagnostics-environment" content="'+diagnosticsEnvironment+'"><meta name="soundglow-release" content="'+version+'"><meta name="soundglow-base" content="'+base+'">');
- const mappings={'favicon.svg':release+'favicon.svg','diagnostics.js':release+'diagnostics.js','vendor/diagnostics/core.js':release+'diagnostics/core.js','pitch-contour.js':release+'pitch-contour.js','feature-state.js':release+'feature-state.js','workspace.js':release+'workspace.js','settings-state.js':release+'settings-state.js','voice-feedback.js':release+'voice-feedback.js','performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
+ const mappings={'vendor/offline/resources.js':release+'offline/resources.js','favicon.svg':release+'favicon.svg','diagnostics.js':release+'diagnostics.js','vendor/diagnostics/core.js':release+'diagnostics/core.js','pitch-contour.js':release+'pitch-contour.js','feature-state.js':release+'feature-state.js','workspace.js':release+'workspace.js','settings-state.js':release+'settings-state.js','voice-feedback.js':release+'voice-feedback.js','performance.js':release+'performance.js','analysis-settings.js':release+'analysis-settings.js','praat-overlays.js':release+'praat-overlays.js','style.css':release+'style.css','app.js':release+'app.js','updates.js':release+'updates.js','praat-display.js':release+'praat-display.js','praat-stream.js':release+'praat-stream.js','vendor/praat/client.js':engine+'client.js'};
  html=html.replace(/\b(src|href)="([^"?]+)(?:\?[^"]*)?"/g,(all,attribute,name)=>mappings[name]?attribute+'="'+mappings[name]+'"':all).replace('href="audio/CREDITS.txt"','href="'+media+'CREDITS.txt"');
  html=html.replace('data-reporter="vendor/diagnostics/sentry.js"','data-reporter="'+release+'diagnostics/sentry.js"');
  output.set(release+'index.html',Buffer.from(html));
- const manifest={schema:1,version,base,html:release+'index.html',files:[...output].map(([url,bytes])=>({url,sha256:digest(bytes),bytes:bytes.length}))};
+ const optional=sourceFiles.filter(f=>f.startsWith('vendor/neural/')).map(file=>({url:base+file,sha256:digest(read(file)),bytes:read(file).length}));
+ const manifest={schema:1,version,base,optional,html:release+'index.html',files:[...output].map(([url,bytes])=>({url,sha256:digest(bytes),bytes:bytes.length}))};
  fs.rmSync(out,{recursive:true,force:true});fs.cpSync(source,out,{recursive:true});
  for(const [url,bytes] of output){const target=path.join(out,url.slice(base.length));fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes)}
  const history=[{manifest,publishedAt:Date.now()}];
@@ -37,8 +39,8 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base=proces
   for(const [index,entry] of old.entries()){
    const pack=entry.manifest;
    if(pack.version===version||pack.base!==base||index>=3&&Date.now()-entry.publishedAt>86400000)continue;
-   for(const file of pack.files){
-    if(![base+'releases/',base+'engines/',base+'media/'].some(prefix=>file.url.startsWith(prefix))||file.url.includes('..'))throw Error('Invalid retained asset');
+   for(const file of [...pack.files,...(pack.optional||[])]){
+    if(![base+'releases/',base+'engines/',base+'media/',base+'vendor/neural/'].some(prefix=>file.url.startsWith(prefix))||file.url.includes('..'))throw Error('Invalid retained asset');
     const relative=file.url.slice(base.length),bytes=fs.readFileSync(path.join(previous,relative));
     if(digest(bytes)!==file.sha256)throw Error('Retained asset integrity mismatch');
     const target=path.join(out,relative);fs.mkdirSync(path.dirname(target),{recursive:true});if(!fs.existsSync(target))fs.writeFileSync(target,bytes);

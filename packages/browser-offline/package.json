@@ -9,6 +9,7 @@
     "index.cjs",
     "index.d.ts",
     "runtime.cjs",
+    "resources.cjs",
     "README.md",
     "LICENSE"
   ],

@@ -1,3 +1,5 @@
+import { createResources } from '@ldayton/browser-offline';
+const resources = createResources();
 import { holdParam, type LiveVoice } from './tempo-clock';
 import * as Tone from 'tone';
 import { glideOffset, type Exercise } from './music';
@@ -24,9 +26,7 @@ export async function preloadCello(exercise: Exercise) {
     keys.map(async (key) => {
       if (buffers.has(key)) return;
       const buffer = await sampleLoader.load(path(key), async (signal) => {
-        const response = await fetch(`${import.meta.env.BASE_URL}samples/${path(key)}`, { signal });
-        if (!response.ok) throw new Error('Could not load the cello recordings. Please try again.');
-        const encoded = await response.arrayBuffer();
+        const encoded = await resources.fetchBytes(`${import.meta.env.BASE_URL}samples/${path(key)}`, { signal, timeoutMs:15000, idleMs:5000, attempts:2 });
         signal.throwIfAborted();
         const buffer = await Tone.getContext().decodeAudioData(encoded);
         signal.throwIfAborted();

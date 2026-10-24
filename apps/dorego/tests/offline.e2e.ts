@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { DEFAULT_SPEC, PATTERNS, vocalSpan, type Pattern } from '../src/music';
 
 // Serve the actual Pages build. Faults occur at the server so they also affect workers.
@@ -12,6 +13,8 @@ const initialHTML = await readFile(resolve(root, 'index.html'), 'utf8');
 const legacyWorker = process.env.LEGACY_WORKER_PATH
   ? await readFile(process.env.LEGACY_WORKER_PATH, 'utf8')
   : null;
+const initialPack = JSON.parse(await readFile(resolve(root, 'offline-pack.json'), 'utf8'));
+const originalMain = await readFile(resolve(root, initialHTML.match(/src="([^"]+\.js)"/)![1].slice('/DoReGo/'.length)), 'utf8');
 const mainAsset = initialHTML.match(/src="([^"]+\.js)"/)![1];
 let failInterface = false;
 let failSounds = false;
@@ -58,6 +61,15 @@ const server = createServer(async (request, response) => {
         .replaceAll(mainAsset, `/DoReGo/assets/main-r${revision}.js`);
     if (actualPath === mainAsset)
       body = `window.__testBuild = ${alias ? alias[1] : 1};\n` + body.toString();
+    if (path.endsWith('offline-pack.json') || path.endsWith('sw.js')) {
+      const main = revision > 1 ? `/DoReGo/assets/main-r${revision}.js` : mainAsset;
+      const hashes = { ...initialPack.hashes };
+      delete hashes[mainAsset];
+      hashes['/DoReGo/'] = createHash('sha256').update(revision > 1 ? initialHTML.replaceAll(mainAsset, main) : initialHTML).digest('hex');
+      hashes[main] = createHash('sha256').update(`window.__testBuild = ${revision};\n` + originalMain).digest('hex');
+      if (path.endsWith('offline-pack.json')) {const pack=JSON.parse(body.toString());pack.hashes=hashes;body=JSON.stringify(pack);}
+      else body=body.toString().replace(/^const CONFIG = (.*);$/m, (_line, raw) => {const config=JSON.parse(raw);config.hashes=hashes;return 'const CONFIG = '+JSON.stringify(config)+';';});
+    }
     const type: Record<string, string> = {
       '.js': 'text/javascript',
       '.css': 'text/css',
@@ -81,6 +93,7 @@ await new Promise<void>((resolve) => server.listen(4325, '127.0.0.1', resolve));
 const base = 'http://127.0.0.1:4325/DoReGo/';
 const browser = await launchTestBrowser();
 const context = await browser.newContext();
+await context.addInitScript(() => { try { localStorage.setItem('dorego:diagnostics:sharing', 'yes'); } catch {} });
 const errors: string[] = [];
 let page = await context.newPage();
 context.on('page', (p) => p.on('pageerror', (error) => errors.push(error.message)));
@@ -106,6 +119,7 @@ try {
   await page.getByRole('button', { name: 'Cancel download' }).click();
   await page.getByRole('button', { name: 'Resume download' }).waitFor();
   assert.match(await status().innerText(), /paused/);
+  assert.ok(await page.evaluate(() => (window.doregoDiagnostics!.snapshot().events as any[]).some(e => e.code === 'cache.download.paused' && e.details.cacheReason === 'cancelled')));
 
   // A failed download can resume without starting again from an empty cache.
   slowSounds = false;
@@ -120,6 +134,7 @@ try {
     () => document.querySelector('#offline-status')?.textContent?.endsWith('Available offline'),
     { timeout: 30000 }
   );
+  assert.ok(await page.evaluate(() => (window.doregoDiagnostics!.snapshot().events as any[]).some(e => e.code === 'cache.download.ready')));
   const count = await page.evaluate(async () => {
     const pack = await (await fetch('/DoReGo/offline-pack.json')).json();
     return (await (await caches.open(pack.cache)).keys()).length;
@@ -156,6 +171,10 @@ try {
   revision = 2;
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await other.reload();
+  await ready(other);
+  assert.equal(await other.evaluate(() => (window as any).__testBuild), 1, 'Cached startup opens immediately before checking for an update');
+  await other.getByRole('button', {name:'Update available',exact:true}).waitFor();
+  await other.getByRole('button', {name:'Update available',exact:true}).click();
   await ready(other);
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 2);
   assert.equal(await page.evaluate(() => (window as any).__testBuild), 1);
@@ -217,13 +236,13 @@ try {
       cache: pack.cache,
     });
   });
-  await page.waitForFunction(async (name) => !(await caches.keys()).includes(name), packs[0]);
+  assert.equal(await page.evaluate(async (name) => (await caches.keys()).includes(name), packs[0]), true, 'Keep one committed recovery copy');
   assert.equal(
     await page.evaluate(async (name) => (await caches.keys()).includes(name), packs[1]),
     true
   );
   console.log(
-    'Incomplete update falls back safely; closed-tab caches are cleaned while the current version is retained.'
+    'Incomplete update falls back safely; a committed recovery copy is retained without disturbing the current version.'
   );
 
   // Real disconnected reload, then uncached exercise configurations at both range extremes.
@@ -257,6 +276,7 @@ try {
         }
       );
       await page.reload();
+      await page.waitForFunction(() => (window.doregoDiagnostics?.snapshot().events as any[] | undefined)?.some(e => e.code === 'cache.navigation.ready' && e.details.cacheSource === 'cache'));
       await ready(page);
       await page.locator('#play').click();
       await page.getByRole('button', { name: 'Pause', exact: true }).waitFor();
@@ -280,19 +300,27 @@ try {
   });
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await page.waitForFunction(
-    () => document.querySelector('#offline-status')?.textContent === 'Internet required to download'
+    () => document.querySelector('#offline-status')?.textContent?.startsWith('Save all exercises')
   );
-  assert.equal(await page.locator('#offline-download').isDisabled(), true);
+  assert.equal(await page.locator('#offline-download').isDisabled(), false);
   await context.setOffline(false);
   // Firefox's emulated reconnect can omit `online` for a page opened offline.
   // Deliver the lifecycle signal explicitly; requests still use the real browser network.
   await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await page.evaluate("Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false})");
   await page.locator('#offline-download').click();
-  await page.waitForFunction(() =>
-    document.querySelector('#offline-status')?.textContent?.endsWith('Available offline')
-  );
+  await page.waitForFunction(() => document.querySelector('#offline-status')?.textContent?.endsWith('Available offline'));
   assert.deepEqual(errors, []);
   console.log('Missing-file detection and repair passed; no uncaught page errors.');
+} catch (error) {
+  console.error('Offline failure state:', JSON.stringify(await page.evaluate(async () => {
+    const pack=await(await fetch('/DoReGo/offline-pack.json')).json();
+    const shell=await caches.open(pack.shellCache), sounds=await caches.open(pack.cache);
+    return {status:document.querySelector('#offline-status')?.textContent, pack:pack.shellCache,
+      missingShell:await Promise.all(pack.shell.map(async(url:string)=>(await shell.match(url))?null:url)),
+      soundCount:(await sounds.keys()).length,diagnostics:window.doregoDiagnostics?.snapshot()};
+  }).catch(()=>null),null,2));
+  throw error;
 } finally {
   await browser.close();
   await new Promise<void>((resolve) => server.close(() => resolve()));

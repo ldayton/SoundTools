@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => ({
   define: { __DOREGO_BUILD__: JSON.stringify(revision + '-' + fingerprint), 'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(process.env.VERCEL_ENV || 'development') },
   base: mode === 'pages' ? '/DoReGo/' : '/',
   plugins: [offlineBuild(revision + '-' + fingerprint)],
-  optimizeDeps: { include: ['@ldayton/browser-diagnostics'] },
+  optimizeDeps: { include: ['@ldayton/browser-diagnostics', '@ldayton/browser-offline'] },
   build: {
-    commonjsOptions: { include: [/node_modules/, /packages\/browser-diagnostics/] },
+    commonjsOptions: { include: [/node_modules/, /packages\/browser-(diagnostics|offline)/] },
     sourcemap: 'hidden',
     rollupOptions: { input: { main: resolve('index.html'), render: resolve('render.html') } },
   },

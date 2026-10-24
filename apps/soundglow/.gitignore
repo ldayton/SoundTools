@@ -10,3 +10,5 @@ outputs/
 
 dist/vendor/diagnostics/
 .vercel/
+
+dist/vendor/offline/

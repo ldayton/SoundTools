@@ -11,12 +11,12 @@ concurrency:
   cancel-in-progress: true
 jobs:
   shared:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -25,16 +25,25 @@ jobs:
       - run: npm run build:shared
       - run: npm run test:shared
   dorego:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Provide a clocked audio output for Firefox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pulseaudio pulseaudio-utils
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio rate=48000 channels=2
+          pactl set-default-sink ci_audio
+          pactl info
+          node scripts/check-audio-device.cjs
       - run: npm run build:shared
       - run: npm test --workspace=dorego
       - run: npm run build:pages --workspace=dorego
@@ -52,11 +61,11 @@ jobs:
           name: dorego-browser-results
           path: apps/dorego/work/
   soundglow:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: 24
           cache: npm

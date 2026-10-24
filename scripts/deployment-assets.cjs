@@ -120,7 +120,9 @@ function publishAssets(output, previous, history, version, currentAssets) {
       else if (
         prefixes.some((prefix) => file.startsWith(prefix)) &&
         !file.endsWith(".map") &&
-        (!current || current.has("/" + file))
+        (!current ||
+          current.has("/" + file) ||
+          file.startsWith("vendor/neural/"))
       )
         files.push({
           url: "/" + file,

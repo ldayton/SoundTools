@@ -75,3 +75,27 @@ test("a new deployment retains verified old lazy assets; failed download/integri
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("optional models belong to the current inventory without extending old release lifetimes", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "soundtools-inventory-"));
+  try {
+    for (const file of [
+      "releases/current/app.js",
+      "releases/older/app.js",
+      "vendor/neural/current/model.onnx",
+    ]) {
+      const target = path.join(dir, file);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, file);
+    }
+    const history = publishAssets(dir, "", [], "current", [
+      "/releases/current/app.js",
+    ]);
+    assert.deepEqual(history[0].files.map((file) => file.url).sort(), [
+      "/releases/current/app.js",
+      "/vendor/neural/current/model.onnx",
+    ]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

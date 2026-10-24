@@ -19,5 +19,8 @@
     "build:dorego": "npm run build:vercel --workspace=dorego",
     "build:soundglow": "npm run build:vercel --workspace=soundglow",
     "verify:history": "node scripts/verify-history.cjs"
+  },
+  "devDependencies": {
+    "@sentry/cli": "3.8.2"
   }
 }

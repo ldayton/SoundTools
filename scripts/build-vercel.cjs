@@ -47,6 +47,7 @@ const previous = path.join(root, "work", "previous-" + app);
       process.chdir(before);
     }
   }
+  require("./publish-diagnostics.cjs").publishDiagnostics({ app, output });
   // Static hosting does not publish source maps.
   function removeMaps(dir) {
     for (const file of fs.readdirSync(dir, { withFileTypes: true })) {

@@ -154,8 +154,7 @@ Offline registration is disabled in `npm run dev` to avoid stale development bui
 ### Browser debug reports
 
 The collapsed Debug reports section exports bounded technical reports locally.
-Optional Sentry collection requires a configured browser DSN and explicit user
-opt-in. Audio and recordings are excluded. See [diagnostics setup and shared code](DIAGNOSTICS.md).
+Configured production builds automatically collect technical diagnostics with Sentry. Audio and recordings are excluded. See [diagnostics setup and shared code](DIAGNOSTICS.md).
 
 ### Shared offline runtime
 

@@ -3,7 +3,8 @@ test('local diagnostics remain private and usable during English playback',async
  const remote=[];page.on('request',r=>{if(/sentry\.io|telemetry\.invalid/.test(r.url()))remote.push(r.url())});
  await page.goto('/dist/index.html');await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>2);
  await page.locator('#openSettings:visible, #settings:visible').click();await page.locator('#developerSettings > summary').click();await page.locator('.diagnostics-panel > summary').click();
- await expect(page.locator('.diagnostics-panel input')).toBeDisabled();
+ await expect(page.locator('.diagnostics-panel input')).toHaveCount(0);
+ expect(await page.evaluate(()=>SoundglowDiagnostics.getState().automatic)).toBe(false);
  const before=await page.evaluate(()=>soundglowSession.state());
  // Exercise the actual processorerror listener without stopping or corrupting audio.
  await page.evaluate(()=>pcmNode.dispatchEvent(new Event('processorerror')));

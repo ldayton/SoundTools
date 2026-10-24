@@ -7,7 +7,7 @@ applications and deployments.
 | --- | --- |
 | `apps/dorego` | Vocal warm-ups, recorded instruments, MIDI/video CLI |
 | `apps/soundglow` | Live voice analysis and visual feedback |
-| `packages/browser-diagnostics` | Privacy-limited diagnostics and optional reporting |
+| `packages/browser-diagnostics` | Bounded diagnostics and automatic production monitoring |
 | `packages/browser-offline` | Common service worker caching and lifecycle runtime |
 
 ## Development

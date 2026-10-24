@@ -14,7 +14,7 @@
     "test:pitch-practice": "node tests/pitch-comparison/compare-practice.cjs && node tests/pitch-comparison/report-practice.cjs",
     "test:pitch-benchmark": "node tests/pitch-benchmark/metrics.test.cjs && node tests/pitch-benchmark/gate-trial.test.cjs && node tests/pitch-benchmark/gate-cycle-policy.test.cjs && node tests/pitch-benchmark/gate-reset-policy.test.cjs && node tests/pitch-benchmark/gate-reset-stream.test.cjs",
     "benchmark:pitch": "node tests/pitch-benchmark/run.cjs",
-    "test:diagnostics": "npm run test --workspace=@ldayton/browser-diagnostics && node tests/diagnostics-browser.cjs && node tests/diagnostics-build.cjs",
+    "test:diagnostics": "npm run test --workspace=@ldayton/browser-diagnostics && node ../../packages/browser-diagnostics/test-browser.cjs && node tests/diagnostics-build.cjs",
     "test:offline-package": "npm run test --workspace=@ldayton/browser-offline",
     "build:vercel": "node ../../scripts/build-vercel.cjs soundglow",
     "prepare:shared": "node scripts/prepare-diagnostics.cjs",

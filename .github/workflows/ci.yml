@@ -53,6 +53,9 @@ jobs:
       - run: npm run build:pages --workspace=dorego
       - run: npm run test:diagnostics-ui --workspace=dorego
         if: matrix.browser == 'chromium'
+      - run: npm run test:browser --workspace=@ldayton/browser-diagnostics
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:browsers --workspace=dorego
         env:
           TEST_BROWSERS: ${{ matrix.browser }}

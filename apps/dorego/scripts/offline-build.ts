@@ -6,7 +6,7 @@ import type { Plugin } from 'vite';
 import { offlineWorker } from './offline-worker';
 
 // Only the web sound bank belongs in an offline download, never the 401 MB originals.
-export function offlineBuild(): Plugin {
+export function offlineBuild(release?: string): Plugin {
   let base = '/';
   return {
     name: 'dorego-offline',
@@ -16,6 +16,7 @@ export function offlineBuild(): Plugin {
       base = config.base;
     },
     generateBundle(_options, bundle) {
+      if (release) this.emitFile({ type: 'asset', fileName: 'diagnostics-release.json', source: JSON.stringify({ release }) });
       const sounds = ['bitklavier-web-v1', 'vsco-cello'].flatMap((folder) =>
         readdirSync(resolve('public/samples', folder))
           .filter((file) => file.endsWith('.flac'))

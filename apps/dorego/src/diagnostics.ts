@@ -8,6 +8,8 @@ export const diagnostics = create({
   release: __DOREGO_BUILD__,
   dsn: import.meta.env.VITE_SENTRY_DSN || '',
   sdkUrl: reporterUrl,
+  enabled: import.meta.env.VITE_DEPLOY_ENV === 'production',
+  environment: import.meta.env.PROD ? 'production' : 'development',
   fields: {
     mode: ['ready', 'starting', 'playing', 'paused', 'complete'],
     reason: ['audio-interrupted', 'clock-stalled', 'scheduling-gap', 'page-hidden'],

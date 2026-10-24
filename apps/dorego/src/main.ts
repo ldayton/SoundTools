@@ -270,7 +270,11 @@ function syncSpinners() {
     notePickers.get(id)!.setValue(value);
   }
 }
-mobileQuery.addEventListener('change', () => syncSpinners());
+mobileQuery.addEventListener('change', () => {
+  syncSpinners();
+  // WebKit can update media queries after its window resize callback.
+  resizeStage();
+});
 function stepNote(id: string, step: number, absolute?: number) {
   const input = $<HTMLInputElement>(`#${id}`);
   input.value = String(Math.max(24, Math.min(96, absolute ?? Number(input.value) + step)));

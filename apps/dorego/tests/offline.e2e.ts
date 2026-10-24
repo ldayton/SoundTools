@@ -1,4 +1,5 @@
-import { chromium, type Page } from 'playwright';
+import type { Page } from 'playwright';
+import { launchTestBrowser } from './browser-harness';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
@@ -8,6 +9,9 @@ import { DEFAULT_SPEC, PATTERNS, vocalSpan, type Pattern } from '../src/music';
 // Serve the actual Pages build. Faults occur at the server so they also affect workers.
 const root = resolve('dist-pages');
 const initialHTML = await readFile(resolve(root, 'index.html'), 'utf8');
+const legacyWorker = process.env.LEGACY_WORKER_PATH
+  ? await readFile(process.env.LEGACY_WORKER_PATH, 'utf8')
+  : null;
 const mainAsset = initialHTML.match(/src="([^"]+\.js)"/)![1];
 let failInterface = false;
 let failSounds = false;
@@ -40,7 +44,10 @@ const server = createServer(async (request, response) => {
     return;
   }
   try {
-    let body: Buffer | string = await readFile(file);
+    let body: Buffer | string =
+      path.endsWith('sw.js') && revision === 1 && legacyWorker
+        ? legacyWorker
+        : await readFile(file);
     if (
       revision > 1 &&
       (path.endsWith('sw.js') || path.endsWith('offline-pack.json') || file.endsWith('index.html'))
@@ -72,7 +79,7 @@ const server = createServer(async (request, response) => {
 });
 await new Promise<void>((resolve) => server.listen(4325, '127.0.0.1', resolve));
 const base = 'http://127.0.0.1:4325/DoReGo/';
-const browser = await chromium.launch();
+const browser = await launchTestBrowser();
 const context = await browser.newContext();
 const errors: string[] = [];
 let page = await context.newPage();
@@ -135,6 +142,17 @@ try {
   await other.goto(base);
   await ready(other);
   await page.locator('#play').click();
+  // Observe replacement on the tab that stays alive; the reloaded tab gets a new global.
+  await page.evaluate(() => {
+    (window as any).__offlineReplaced = false;
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      () => {
+        (window as any).__offlineReplaced = true;
+      },
+      { once: true }
+    );
+  });
   revision = 2;
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await other.reload();
@@ -143,14 +161,17 @@ try {
   assert.equal(await page.evaluate(() => (window as any).__testBuild), 1);
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())!.update());
-  await page.waitForFunction(async () => {
-    const registration = await navigator.serviceWorker.getRegistration();
-    return (
-      registration?.active?.state === 'activated' &&
-      !registration.installing &&
-      !registration.waiting
-    );
-  });
+  await page.waitForFunction(() => (window as any).__offlineReplaced);
+  for (const tab of [page, other])
+    await tab.waitForFunction(async () => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      return (
+        registration?.active?.state === 'activated' &&
+        navigator.serviceWorker.controller === registration.active &&
+        !registration.installing &&
+        !registration.waiting
+      );
+    });
 
   const packs = await Promise.all(
     [page, other].map((p) =>
@@ -263,6 +284,9 @@ try {
   );
   assert.equal(await page.locator('#offline-download').isDisabled(), true);
   await context.setOffline(false);
+  // Firefox's emulated reconnect can omit `online` for a page opened offline.
+  // Deliver the lifecycle signal explicitly; requests still use the real browser network.
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
   await page.locator('#offline-download').click();
   await page.waitForFunction(() =>
     document.querySelector('#offline-status')?.textContent?.endsWith('Available offline')

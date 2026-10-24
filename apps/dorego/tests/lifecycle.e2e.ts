@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { launchTestBrowser } from './browser-harness';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { DEFAULT_SPEC } from '../src/music';
@@ -10,7 +10,7 @@ const server = spawn(
   ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4323', '--strictPort'],
   { stdio: 'pipe' }
 );
-const browser = await chromium.launch();
+const browser = await launchTestBrowser();
 try {
   for (let i = 0; i < 60; i++) {
     try {

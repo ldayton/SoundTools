@@ -1,4 +1,4 @@
-import { chromium } from 'playwright';
+import { launchTestBrowser } from './browser-harness';
 import { DEFAULT_SPEC } from '../src/music';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -34,11 +34,19 @@ try {
     if (server?.exitCode !== null && server) throw new Error('Static preview could not start.');
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  browser = await chromium.launch({ headless: true });
+  browser = await launchTestBrowser({ headless: true });
   const page = await browser.newPage({ acceptDownloads: true });
-  const errors: string[] = [];
   const samples: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
+  const errors: string[] = [];
+  await page.exposeFunction('recordRuntimeError', (message: string) => errors.push(message));
+  // WebKit's inspector also reports caught, aborted fetches as page errors.
+  // Observe actual script exceptions/rejections instead of network diagnostics.
+  await page.addInitScript(() => {
+    window.addEventListener('error', (event) => (window as any).recordRuntimeError(event.message));
+    window.addEventListener('unhandledrejection', (event) =>
+      (window as any).recordRuntimeError(String(event.reason))
+    );
+  });
   page.on('response', (response) => {
     if (response.url().includes('/samples/')) {
       assert.ok(response.ok(), `Sample unavailable: ${response.url()}`);

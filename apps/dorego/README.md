@@ -129,6 +129,12 @@ Source: https://versilian-studios.com/vsco-community/ and https://github.com/sgo
 
 `npm run test:lifecycle` injects controlled faults into real browser playback: audio suspension and recovery, page restoration and freeze events, a delayed obsolete startup rejection, an audio clock stuck while reporting running, a 1.9-second scheduling stall, context closure, rapid play/pause, and completion with animation callbacks disabled. The player owns playback state and completion; drawing only observes it. Healthy hidden playback continues. Interrupted or frozen sessions preserve their place and require Resume; missed scheduling coverage pauses at the last safe checkpoint instead of skipping the exercise. Old startup results cannot alter a newer session. A closed context is recreated on the next start. These checks simulate lifecycle conditions; actual mobile screen locks, incoming calls, and OS sleep still need device testing.
 
+### Desktop and cross-browser checks
+
+Run `npm run setup:browsers` once, then `npm run build:pages && npm run test:browsers`. The matrix runs the desktop, Pages, lifecycle, and offline suites sequentially in Chromium, Firefox, and WebKit and writes `work/browser-results.json`. Use `TEST_BROWSERS=firefox,webkit` for a subset, or `TEST_BROWSER=webkit npm run test:desktop` for one suite. Do not rebuild the static files while these tests run.
+
+The desktop suite checks real piano/cello PCM, rapid play/pause and voice cleanup, live tempo/volume, pointer seeking, viewport changes, tab changes, exercise/range replacement, persisted preferences, and stale failed sample loads with retry. Headless tab changes do not prove native window visibility behavior. For an agent-assisted native check, run `HEADED=1 NATIVE_WINDOW_TEST=1 npm run test:desktop` in an interactive terminal, minimize/restore/zoom the dedicated test browser at its checkpoint, then press Enter; the suite verifies continued progress and saves a screenshot. Lifecycle fault tests remain simulated; WebKit coverage uses Playwright's WebKit build rather than the installed Safari app. Firefox's simulated reconnect can omit the online event for a document opened offline; the offline test explicitly delivers that signal, and focus-based recovery was checked separately. On macOS the Firefox harness isolates test-process app data to avoid the protected-profile launch issue without changing browser permissions.
+
 ## GitHub Pages
 
 The public site is https://ldayton.github.io/DoReGo/ . `.github/workflows/deploy.yml` tests, builds, and deploys each push to `main`; it can also be run manually from Actions. Repository Settings → Pages must use GitHub Actions as the source. Failed checks prevent deployment.
@@ -150,3 +156,30 @@ Offline registration is disabled in `npm run dev` to avoid stale development bui
 The collapsed Debug reports section exports bounded technical reports locally.
 Optional Sentry collection requires a configured browser DSN and explicit user
 opt-in. Audio and recordings are excluded. See [diagnostics setup and shared code](DIAGNOSTICS.md).
+
+### Shared offline runtime
+
+Both apps embed the same pinned `@ldayton/browser-offline` package in their generated
+workers. Its canonical source is Soundglow's `packages/browser-offline`; the tarball
+and SHA-256/file pins live in `vendor/`. Normal builds are independent of Soundglow.
+`npm test` verifies the installed package against the pin. Shared-runtime changes
+contribute to the interface cache fingerprint, so deploying a runtime fix creates
+a new interface generation even when application code is unchanged.
+
+The core owns deadlines, complete-file checks, serialized/deduplicated preparation,
+live-client protection, navigation fallback and worker lifecycle. This app's
+`scripts/offline-worker.ts` retains sound-cache policy, manifest validation and HTML
+consistency checks. Installation still refreshes its inventory from the deployment;
+it does not assume a cache populated by an older worker is sufficient. Existing
+cache names, client records and `using-cache` messages remain compatible.
+
+Release from Soundglow with `node scripts/sync-offline.cjs /path/to/DoReGo`. It
+requires version increments for changed package contents, rejects version rollback
+and overwrites, runs shared tests, updates both consumers and runs both apps'
+offline integration checks. Failures leave reviewable local changes; nothing is
+committed or pushed automatically. `npm ci` builds either app on its own.
+
+`LEGACY_WORKER_PATH=/absolute/path/to/previous-sw.js npm run test:offline` tests an
+actual previous worker's cache and live tabs migrating to the shared-runtime worker.
+The normal test also waits for controller replacement in both tabs before testing
+failure fallback, rather than accepting the old worker's active state.

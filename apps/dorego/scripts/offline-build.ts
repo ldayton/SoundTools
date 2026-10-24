@@ -1,3 +1,4 @@
+import { workerSource } from '@ldayton/browser-offline';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -47,7 +48,8 @@ export function offlineBuild(): Plugin {
       ];
       const version = createHash('sha256')
         .update(soundPack)
-        .update(readFileSync(resolve('scripts/offline-worker.ts')));
+        .update(readFileSync(resolve('scripts/offline-worker.ts')))
+        .update(workerSource());
       for (const entry of Object.values(bundle))
         version.update(entry.type === 'chunk' ? entry.code : entry.source);
       for (const path of [

@@ -11,8 +11,11 @@ let playbackContext: AudioContext | undefined;
 function initPlayback() {
   if (!playbackContext || playbackContext.state === 'closed') {
     // This is a sequenced player: reliability matters more than live-key latency.
-    playbackContext = new AudioContext({ latencyHint: 'playback' });
-    Tone.setContext(new Tone.Context({ context: playbackContext, lookAhead: 0.15 }), true);
+    // Let Tone create its compatible context: Firefox still exposes a legacy
+    // AudioListener, which cannot be passed directly to Tone's spatial parameters.
+    const context = new Tone.Context({ latencyHint: 'playback', lookAhead: 0.15 });
+    playbackContext = context.rawContext as AudioContext;
+    Tone.setContext(context, true);
   }
 }
 function makeGraph(volume: number) {

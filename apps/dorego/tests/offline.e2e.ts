@@ -140,6 +140,29 @@ try {
     return (await (await caches.open(pack.cache)).keys()).length;
   });
   assert.equal(count, 133);
+  // An interrupted cache read can produce an empty body during page teardown.
+  // It must not let the obsolete readiness check delete a previously verified file.
+  await page.evaluate(async () => {
+    const pack=await(await fetch('/DoReGo/offline-pack.json')).json(),file=pack.files[0];
+    const original=Cache.prototype.match;
+    let enter!:()=>void,release!:()=>void;
+    const entered=new Promise<void>(resolve=>enter=resolve),gate=new Promise<void>(resolve=>release=resolve);
+    Cache.prototype.match=async function(request,options){
+      const response=await original.call(this,request,options);
+      const url=new URL(typeof request==='string'?request:request instanceof URL?request.href:request.url,location.href);
+      if(response&&url.pathname===file.url)response.arrayBuffer=async()=>{enter();await gate;return new ArrayBuffer(0)};
+      return response;
+    };
+    try{
+      window.dispatchEvent(new Event('focus'));await entered;
+      window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));
+    }finally{Cache.prototype.match=original;release()}
+    // Let the obsolete read finish while this document is still suspended.
+    await new Promise(resolve=>setTimeout(resolve,100));
+    window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));
+  });
+  await page.waitForFunction(()=>document.querySelector('#offline-status')?.textContent?.endsWith('Available offline'));
+  assert.equal(await page.evaluate(async()=>{const pack=await(await fetch('/DoReGo/offline-pack.json')).json();return(await(await caches.open(pack.cache)).keys()).length}),133,'An obsolete cache check preserves every recording');
   assert.equal(await page.locator('#offline-download').isVisible(), false);
   assert.equal(await page.locator('.builder-column > .offline-section').count(), 1);
   assert.equal(await page.locator('#how-dialog .offline-section').count(), 0);
@@ -175,6 +198,8 @@ try {
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 1, 'Cached startup opens immediately before checking for an update');
   await other.getByRole('button', {name:'Update available',exact:true}).waitFor();
   await other.getByRole('button', {name:'Update available',exact:true}).click();
+  // WebKit may finish the click while the old document's Play button is still enabled.
+  await other.waitForFunction(() => (window as any).__testBuild === 2);
   await ready(other);
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 2);
   assert.equal(await page.evaluate(() => (window as any).__testBuild), 1);

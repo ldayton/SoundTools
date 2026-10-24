@@ -16,6 +16,7 @@ export function setupOffline() {
   const base = import.meta.env.BASE_URL;
   let pack: SoundPack | undefined,
     downloading: AbortController | null = null;
+  let active = true;
   let checkGeneration = 0,
     lastComplete: boolean | undefined,
     initializing: Promise<void> | null = null;
@@ -54,7 +55,7 @@ export function setupOffline() {
   }
   const readCache = <T>(action: () => Promise<T>) => resources.deadline(2000, action);
   async function check() {
-    if (!pack || downloading) return;
+    if (!active || !pack || downloading) return;
     const current = pack,
       generation = ++checkGeneration;
     try {
@@ -74,6 +75,7 @@ export function setupOffline() {
                 return true;
               } catch (error) {
                 if ((error as { offlineReason?: string }).offlineReason !== 'integrity') throw error;
+                if (!active || generation !== checkGeneration) return false;
                 await cache.delete(file.url);
                 diagnostics.offline('storage', 'failed', { cacheReason: 'integrity' }, error);
                 return false;
@@ -145,6 +147,7 @@ export function setupOffline() {
             return true;
           } catch (error) {
             if ((error as { offlineReason?: string }).offlineReason !== 'integrity') throw error;
+            controller.signal.throwIfAborted();
             await cache.delete(file.url);
             return false;
           }
@@ -419,7 +422,13 @@ export function setupOffline() {
   window.addEventListener('offline', () => {
     if (!downloading) void check();
   });
-  window.addEventListener('pageshow', wake);
+  window.addEventListener('pagehide', () => {
+    active = false;
+    checkGeneration++;
+    // Preserve download intent for reopen, while stopping work owned by this document.
+    downloading?.abort(Object.assign(new Error('Page suspended'), { offlineReason: 'timeout' }));
+  });
+  window.addEventListener('pageshow', () => { active = true; wake(); });
   window.addEventListener('focus', wake);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) wake();

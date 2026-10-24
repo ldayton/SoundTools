@@ -153,7 +153,7 @@ self.addEventListener('fetch', event => {
       if(file){
         soundCache=pack.cache;
         const cache=await caches.open(soundCache), response=await cache.match(request);
-        if(response && request.cache !== 'reload'){try{await offlineResources.verify(await response.clone().arrayBuffer(),file);return response}catch(error){if(error.offlineReason!=='integrity')throw error;await cache.delete(request);}}
+        if(response && request.cache !== 'reload'){try{await offlineResources.verify(await response.clone().arrayBuffer(),file);return response}catch(error){if(error.offlineReason!=='integrity'||request.signal.aborted)throw error;await cache.delete(request);}}
       }
       if(pack?.shell.includes(url.pathname))return (await caches.open(pack.shellCache)).match(url.pathname);
       if(url.pathname.startsWith(ROOT+'assets/'))for(const name of(await caches.keys()).filter(shellName)){

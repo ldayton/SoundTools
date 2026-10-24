@@ -63,7 +63,9 @@ try {
   const label = () => play.innerText();
   const position = () => page.locator('#position').inputValue().then(Number);
   await play.click();
-  await page.waitForTimeout(600);
+  await page.waitForFunction(
+    () => Number(document.querySelector<HTMLInputElement>('#position')!.value) > 0.05
+  );
   await page.evaluate(() => (window as any).lifecycleProbe.context.suspend());
   await page.waitForFunction(() => document.querySelector('#play')?.textContent === 'Resume');
   const paused = await position();

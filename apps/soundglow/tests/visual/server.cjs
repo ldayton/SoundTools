@@ -1,4 +1,4 @@
 // Test server only: same-origin static files with required streaming WASM MIME.
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');const root=path.resolve(__dirname,'../..');
-const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.m4a':'audio/mp4','.wasm':'application/wasm','.f32':'application/octet-stream'};
+const mime={'.svg':'image/svg+xml','.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.m4a':'audio/mp4','.wasm':'application/wasm','.f32':'application/octet-stream'};
 http.createServer((request,response)=>{try{const name=decodeURIComponent(new URL(request.url,'http://localhost').pathname),file=path.resolve(root,'.'+name);if(!file.startsWith(root+path.sep)){response.writeHead(403).end();return}fs.readFile(file,(error,bytes)=>{if(error){response.writeHead(404).end();return}response.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':'no-store'});response.end(bytes)})}catch{response.writeHead(400).end()}}).listen(8779,'127.0.0.1');

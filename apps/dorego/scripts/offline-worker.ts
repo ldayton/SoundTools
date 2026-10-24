@@ -110,6 +110,7 @@ offline.lifecycle(() => offline.withDeadline(60000, signal => offline.publish(CO
   if(pack.shellCache!==CONFIG.shell||CONFIG.hashes&&Object.entries(CONFIG.hashes).some(([url,hash])=>pack.hashes?.[url]!==hash))throw Object.assign(Error('Inconsistent installation'),{offlineReason:'integrity'});
   await(await caches.open(CONFIG.shell)).put(manifestURL,new Response(JSON.stringify(pack),{headers:{'Content-Type':'application/json'}}));
   if(!await savedDocument(pack))throw Object.assign(Error('Incomplete installation'),{offlineReason:'integrity'});
+  signal.throwIfAborted();await metadata.write('latest',{shellCache:pack.shellCache,cache:pack.cache,savedAt:Date.now()});
 })));
 self.addEventListener('message', event => {
   if(event.data?.type==='prepare-update'){event.waitUntil((async()=>{try{const pack=await latest();event.ports[0]?.postMessage({ready:true,shellCache:pack.shellCache})}catch(error){event.ports[0]?.postMessage({ready:false,reason:offline.reason(error)})}})());return;}

@@ -43,7 +43,7 @@ async function cleanup(){return offline.cleanup(async()=>{
  const meta=await caches.open(META),live=new Set(clients.map(c=>key('client/'+c.id)));
  for(const request of await meta.keys())if(request.url.includes('/__cache__/client/')&&!live.has(request.url)){const data=await(await meta.match(request)).json();if(!offline.recent(data.savedAt))await meta.delete(request)}
 })}
-offline.lifecycle(()=>stage(CONFIG,180000));
+offline.lifecycle(async()=>{const pack=await stage(CONFIG,180000);await offline.withDeadline(2000,()=>write('latest',{version:pack.version}));});
 const downloads=new Map();
 self.addEventListener('message',event=>{
  if(event.data?.type==='using-release'&&event.source?.id)event.waitUntil((async()=>{await record(event.source.id,event.data.version);await cleanup()})().catch(error=>offline.report(event.source,'storage','failed',{cacheReason:offline.reason(error)})));

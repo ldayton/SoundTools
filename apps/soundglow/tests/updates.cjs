@@ -30,9 +30,10 @@ assert.deepEqual(releases[0].pack.files.filter(f=>f.url.includes('/engines/')),r
 const retained=path.join(work,'retained-site');build({source:path.join(work,'source-1'),out:retained,base:'/Soundglow/',previous:releases[0].out});
 for(const file of releases[0].pack.files)assert(fs.existsSync(path.join(retained,file.url.slice('/Soundglow/'.length))),'Previous deployment asset retained');
 assert.equal(JSON.parse(fs.readFileSync(path.join(retained,'release-history.json'))).length,2);
-let revision=0,fault=null,modelFailures=0,holdModel=false,modelAborted=false;const requests=[];
+let revision=0,fault=null,modelFailures=0,holdModel=false,modelAborted=false,failDiscovery=false;const requests=[];
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://localhost');requests.push(url.pathname+url.search);
+ if(failDiscovery&&url.pathname==='/Soundglow/release.json'){res.writeHead(503).end();return}
  if(!url.pathname.startsWith('/Soundglow/')){res.writeHead(404).end();return}
  if(url.pathname.endsWith('/silero.onnx')&&holdModel){res.on('close',()=>{modelAborted=true});return}
  if(url.pathname.endsWith('/silero.onnx')&&modelFailures-->0){res.writeHead(503).end('temporary interruption');return}
@@ -123,6 +124,12 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await context.setOffline(false);assert.equal((await rpc(other)).ready,true);await other.reload();
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version,'Online repair restores the latest verified release');
  console.log('PASS: cancellation aborts transfers; corrupted startup document falls back and repairs');
+ // Installing a worker already saves its embedded release; startup must use it even if discovery is down.
+ revision=2;fault=null;failDiscovery=true;
+ await other.evaluate(async()=>{const changed=new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));await(await navigator.serviceWorker.getRegistration()).update();await changed});
+ await context.setOffline(true);await other.reload();
+ assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[2].pack.version,'Newly installed release must supersede a stale discovery pointer while offline');
+ console.log('PASS: newly installed release opens offline without update discovery');
  assert.deepEqual(errors,[]);assert(requests.some(p=>p.includes('/release.json?check=')),'Release discovery must bypass stale CDN URLs');
  await other.screenshot({path:path.join(work,'offline-example.png')});
  fs.writeFileSync(path.join(work,'report.json'),JSON.stringify({passed:true,versions:releases.map(r=>r.pack.version),wasmDownloads:wasmBefore,requests:requests.length},null,2));

@@ -1,0 +1,77 @@
+const { test } = require("node:test"),
+  assert = require("node:assert/strict");
+const fs = require("node:fs"),
+  os = require("node:os"),
+  path = require("node:path"),
+  http = require("node:http");
+const {
+  sha,
+  safePath,
+  selectHistory,
+  publishAssets,
+  restorePrevious,
+} = require("../scripts/deployment-assets.cjs");
+test("deployment retention rejects unsafe paths and protects recent releases", () => {
+  for (const url of [
+    "/../private",
+    "/assets/../x",
+    "//evil/asset",
+    "/assets/x.js?secret=x",
+    "/assets/x.map",
+    "/index.html",
+    "/assets/%2e%2e/x",
+  ])
+    assert.throws(() => safePath(url));
+  const now = Date.now(),
+    entries = Array.from({ length: 5 }, (_, i) => ({
+      version: String(i),
+      publishedAt: i === 4 ? now : 0,
+      files: [],
+    }));
+  assert.deepEqual(
+    selectHistory(entries, now).map((x) => x.version),
+    ["0", "1", "2", "4"],
+  );
+});
+test("a new deployment retains verified old lazy assets; failed download/integrity stops publication", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "voice-tools-retention-")),
+    old = path.join(dir, "old"),
+    next = path.join(dir, "next"),
+    previous = path.join(dir, "previous");
+  fs.mkdirSync(path.join(old, "assets"), { recursive: true });
+  fs.writeFileSync(path.join(old, "assets/a.js"), "old");
+  fs.writeFileSync(path.join(old, "index.html"), "old html");
+  publishAssets(old, previous, [], "old");
+  let corrupt = false;
+  const server = http.createServer((req, res) => {
+    const file = path.join(old, new URL(req.url, "http://test").pathname);
+    if (!fs.existsSync(file)) {
+      res.writeHead(404).end();
+      return;
+    }
+    res.end(
+      corrupt && file.endsWith("a.js") ? "corrupt" : fs.readFileSync(file),
+    );
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  try {
+    const origin = "http://127.0.0.1:" + server.address().port;
+    const history = await restorePrevious(origin, previous);
+    fs.mkdirSync(path.join(next, "assets"), { recursive: true });
+    fs.writeFileSync(path.join(next, "assets/b.js"), "new");
+    publishAssets(next, previous, history, "new");
+    assert.equal(
+      fs.readFileSync(path.join(next, "assets/a.js"), "utf8"),
+      "old",
+    );
+    assert.equal(
+      sha(fs.readFileSync(path.join(next, "assets/b.js"))),
+      sha(Buffer.from("new")),
+    );
+    corrupt = true;
+    await assert.rejects(restorePrevious(origin, previous), /integrity/);
+  } finally {
+    await new Promise((r) => server.close(r));
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

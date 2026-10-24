@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
 import { launchTestBrowser } from './browser-harness';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -7,7 +9,7 @@ import { DEFAULT_SPEC } from '../src/music';
 const base = 'http://127.0.0.1:4323';
 const server = spawn(
   process.execPath,
-  ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4323', '--strictPort'],
+  [viteCli, '--host', '127.0.0.1', '--port', '4323', '--strictPort'],
   { stdio: 'pipe' }
 );
 const browser = await launchTestBrowser();

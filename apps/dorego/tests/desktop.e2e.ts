@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
@@ -8,7 +10,7 @@ const base = 'http://127.0.0.1:4327/DoReGo/';
 const server = spawn(
   process.execPath,
   [
-    'node_modules/vite/bin/vite.js',
+    viteCli,
     'preview',
     '--mode',
     'pages',

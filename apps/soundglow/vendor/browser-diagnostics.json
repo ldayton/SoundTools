@@ -1,9 +1,0 @@
-{
-  "name": "@ldayton/browser-diagnostics",
-  "version": "0.1.0",
-  "sha256": "3abfda4d920f554bb64442d8062501438734a1a7b885ef2314e3618515aee39a",
-  "sourceRepository": "https://github.com/ldayton/Soundglow",
-  "sourceDirectory": "packages/browser-diagnostics",
-  "sourceSha256": "b7a3f27238d6021ae329d806f367d9d8199d3c77c993093d2d445d0f26ccffc4",
-  "artifact": "ldayton-browser-diagnostics-0.1.0.tgz"
-}

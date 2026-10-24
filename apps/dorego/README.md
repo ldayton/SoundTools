@@ -159,12 +159,10 @@ opt-in. Audio and recordings are excluded. See [diagnostics setup and shared cod
 
 ### Shared offline runtime
 
-Both apps embed the same pinned `@ldayton/browser-offline` package in their generated
-workers. Its canonical source is Soundglow's `packages/browser-offline`; the tarball
-and SHA-256/file pins live in `vendor/`. Normal builds are independent of Soundglow.
-`npm test` verifies the installed package against the pin. Shared-runtime changes
-contribute to the interface cache fingerprint, so deploying a runtime fix creates
-a new interface generation even when application code is unchanged.
+Both apps embed the same `@ldayton/browser-offline` workspace package in their
+workers. Its canonical source is `../../packages/browser-offline`; dependencies
+are installed with `npm ci` at the monorepo root. Shared-runtime changes contribute
+to the interface fingerprint, so runtime fixes create a new interface generation.
 
 The core owns deadlines, complete-file checks, serialized/deduplicated preparation,
 live-client protection, navigation fallback and worker lifecycle. This app's
@@ -173,11 +171,8 @@ consistency checks. Installation still refreshes its inventory from the deployme
 it does not assume a cache populated by an older worker is sufficient. Existing
 cache names, client records and `using-cache` messages remain compatible.
 
-Release from Soundglow with `node scripts/sync-offline.cjs /path/to/DoReGo`. It
-requires version increments for changed package contents, rejects version rollback
-and overwrites, runs shared tests, updates both consumers and runs both apps'
-offline integration checks. Failures leave reviewable local changes; nothing is
-committed or pushed automatically. `npm ci` builds either app on its own.
+Edit shared source in the monorepo, run root `npm test`, and commit both adapters
+and the shared implementation together. No package archives or sync step is needed.
 
 `LEGACY_WORKER_PATH=/absolute/path/to/previous-sw.js npm run test:offline` tests an
 actual previous worker's cache and live tabs migrating to the shared-runtime worker.

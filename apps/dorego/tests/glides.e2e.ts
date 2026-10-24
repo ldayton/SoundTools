@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -7,7 +9,7 @@ const port = 4321;
 const base = `http://127.0.0.1:${port}`;
 const server = spawn(
   process.execPath,
-  ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
+  [viteCli, '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
   { stdio: 'pipe' }
 );
 const browser = await chromium.launch();

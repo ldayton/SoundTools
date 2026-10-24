@@ -1,15 +1,18 @@
+import { createRequire } from 'node:module';
+const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
 import { launchTestBrowser } from './browser-harness';
 import { DEFAULT_SPEC } from '../src/music';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
 
 const base = process.env.PAGES_TEST_URL || 'http://127.0.0.1:4318/DoReGo/';
+const basePath = new URL(base).pathname;
 const server = process.env.PAGES_TEST_URL
   ? null
   : spawn(
       process.execPath,
       [
-        'node_modules/vite/bin/vite.js',
+        viteCli,
         'preview',
         '--mode',
         'pages',
@@ -88,7 +91,7 @@ try {
     '1 bar',
     '2 bars',
   ]);
-  assert.equal(await page.locator('.brand').getAttribute('href'), '/DoReGo/');
+  assert.equal(await page.locator('.brand').getAttribute('href'), basePath);
   assert.equal(
     await page.locator('#video-button, #midi-download, #export-dialog, .export-card').count(),
     0
@@ -147,7 +150,7 @@ try {
   assert.equal(samples.length, preparedSamples, 'Play must use the preloaded samples');
   await page.locator('#play').click();
   assert.ok(samples.length > 0);
-  assert.ok(samples.every((url) => url.includes('/DoReGo/samples/bitklavier-web-v1/')));
+  assert.ok(samples.every((url) => url.includes(basePath + 'samples/bitklavier-web-v1/')));
   await page.locator('#how-button').click();
   const credits = page.locator('#how-dialog a[href*="bitklavier"]');
   const creditsPath = await credits.getAttribute('href');
@@ -268,7 +271,7 @@ try {
     await page.locator('input[name="direction"][value="up"]').check();
     assert.ok(await page.locator('#form-error').isHidden());
   }
-  assert.ok(samples.some((url) => url.includes('/DoReGo/samples/vsco-cello/')));
+  assert.ok(samples.some((url) => url.includes(basePath + 'samples/vsco-cello/')));
   await page.locator('input[name="progression"][value="down"]').check();
   await page.locator('#high-spin').press('Enter');
   await page

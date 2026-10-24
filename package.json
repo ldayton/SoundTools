@@ -1,0 +1,23 @@
+{
+  "name": "@ldayton/sound-tools",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "npm@11.20.0",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "build:shared": "npm run build --workspace=@ldayton/browser-diagnostics && npm run prepare:shared --workspace=soundglow",
+    "test:shared": "npm run test --workspace=@ldayton/browser-diagnostics && npm run test --workspace=@ldayton/browser-offline && node --test tests/*.test.cjs",
+    "test:dorego": "npm test --workspace=dorego && npm run build:pages --workspace=dorego && npm run test:pages --workspace=dorego && npm run test:offline --workspace=dorego",
+    "test:soundglow": "npm run build --workspace=soundglow",
+    "test": "npm run build:shared && npm run test:shared && npm run test:dorego && npm run test:soundglow",
+    "build:dorego": "npm run build:vercel --workspace=dorego",
+    "build:soundglow": "npm run build:vercel --workspace=soundglow",
+    "verify:history": "node scripts/verify-history.cjs"
+  }
+}

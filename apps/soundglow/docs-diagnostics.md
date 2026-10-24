@@ -1,8 +1,8 @@
 # Shared browser debugging
 
-The implementation lives in `packages/browser-diagnostics`; see its README for
-privacy, lifecycle, retention, and release details. Both repos consume the same
-checked-in npm tarball and provenance hash. Their app adapters are intentionally
+The implementation lives in `../../packages/browser-diagnostics`; see its README for
+privacy, lifecycle, retention, and workspace details. Both apps consume the same
+workspace source through the root lockfile. Their app adapters are intentionally
 small: Soundglow `dist/diagnostics.js`, DoReGo `src/diagnostics.ts`.
 
 ## Current behavior

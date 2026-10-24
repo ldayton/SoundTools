@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {chromium,firefox,webkit}=require('playwright');
 (async()=>{
- const root=path.resolve('node_modules/@ldayton/browser-diagnostics');
+ const root=path.dirname(require.resolve('@ldayton/browser-diagnostics/package.json'));
  const server=http.createServer((req,res)=>{if(req.url==='/'){res.setHeader('Content-Type','text/html');return res.end('<!doctype html><title>Diagnostics test</title>')}const file=path.join(root,req.url);res.setHeader('Content-Type','text/javascript');res.end(fs.readFileSync(file))});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{

@@ -1,0 +1,19 @@
+{
+  "name": "@ldayton/browser-offline",
+  "version": "0.1.0",
+  "description": "Release staging, navigation fallback and live-tab cache protection for service workers",
+  "license": "MIT",
+  "main": "index.cjs",
+  "types": "index.d.ts",
+  "files": [
+    "index.cjs",
+    "index.d.ts",
+    "runtime.cjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.cjs"
+  },
+  "private": true
+}

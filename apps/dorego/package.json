@@ -23,28 +23,29 @@
     "setup:browsers": "playwright install chromium firefox webkit",
     "test:desktop": "tsx tests/desktop.e2e.ts",
     "test:browsers": "tsx scripts/test-browsers.ts",
-    "test:diagnostics": "node node_modules/@ldayton/browser-diagnostics/verify.cjs",
+    "test:diagnostics": "npm run test --workspace=@ldayton/browser-diagnostics",
     "test:diagnostics-ui": "tsx tests/diagnostics.e2e.ts",
-    "test:offline-package": "node node_modules/@ldayton/browser-offline/verify.cjs"
+    "test:offline-package": "npm run test --workspace=@ldayton/browser-offline",
+    "build:vercel": "node ../../scripts/build-vercel.cjs dorego"
   },
   "dependencies": {
-    "@ldayton/browser-diagnostics": "file:vendor/ldayton-browser-diagnostics-0.1.0.tgz",
-    "@ldayton/browser-offline": "file:vendor/ldayton-browser-offline-0.1.0.tgz",
-    "@tonejs/midi": "^2.0.28",
-    "express": "^5.1.0",
-    "lucide": "^0.468.0",
-    "playwright": "^1.56.0",
-    "tone": "^15.1.22",
-    "tsx": "^4.20.6",
-    "vite": "^7.1.9"
+    "@ldayton/browser-diagnostics": "*",
+    "@ldayton/browser-offline": "*",
+    "@tonejs/midi": "2.0.28",
+    "express": "5.3.0",
+    "lucide": "0.468.0",
+    "playwright": "1.64.1",
+    "tone": "15.1.22",
+    "tsx": "4.23.15",
+    "vite": "7.3.7"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.7.2",
-    "prettier": "^3.9.10",
-    "typescript": "^5.9.3"
+    "@types/express": "5.0.6",
+    "@types/node": "24.19.2",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": "24.x"
   }
 }

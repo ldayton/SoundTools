@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const tsxCli = createRequire(import.meta.url).resolve('tsx/cli');
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 const names = (process.env.TEST_BROWSERS || 'chromium,firefox,webkit').split(',');
@@ -11,7 +13,7 @@ for (const browser of names) {
     const passed = await new Promise<boolean>((resolve) => {
       const child = spawn(
         process.execPath,
-        ['node_modules/tsx/dist/cli.mjs', `tests/${suite}.e2e.ts`],
+        [tsxCli, `tests/${suite}.e2e.ts`],
         {
           stdio: 'inherit',
           env: { ...process.env, TEST_BROWSER: browser },

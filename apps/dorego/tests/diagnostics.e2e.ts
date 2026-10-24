@@ -1,8 +1,10 @@
+import { createRequire } from 'node:module';
+const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
 import {chromium} from 'playwright';
 import {spawn} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','preview','--mode','pages','--outDir','dist-pages','--host','127.0.0.1','--port','4329','--strictPort'],{stdio:'pipe'});
+const server=spawn(process.execPath,[viteCli,'preview','--mode','pages','--outDir','dist-pages','--host','127.0.0.1','--port','4329','--strictPort'],{stdio:'pipe'});
 let browser;
 try{
  const url='http://127.0.0.1:4329/DoReGo/';for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break}catch{}await new Promise(r=>setTimeout(r,100))}

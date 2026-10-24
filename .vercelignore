@@ -1,0 +1,14 @@
+.git
+node_modules
+work
+**/node_modules
+**/work
+**/test-results
+**/playwright-report
+apps/dorego/dist
+apps/dorego/dist-pages
+apps/dorego/public/samples/bitklavier/*
+!apps/dorego/public/samples/bitklavier/NOTICE.txt
+apps/soundglow/site
+.env*
+**/.env*

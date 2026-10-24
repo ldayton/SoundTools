@@ -2,8 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),worker=require('./service-worker.cjs');
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function files(directory){return fs.readdirSync(directory,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name)).flatMap(e=>e.isDirectory()?files(path.join(directory,e.name)).map(f=>e.name+'/'+f):[e.name])}
-function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soundglow/',previous=path.resolve('previous-site'),diagnosticsDsn=process.env.SOUNDGLOW_SENTRY_DSN||''}={}){
+function build({source=path.resolve('dist'),out=path.resolve('site'),base=process.env.PUBLIC_BASE||'/Soundglow/',previous=path.resolve('previous-site'),diagnosticsDsn=process.env.SOUNDGLOW_SENTRY_DSN||''}={}){
  if(!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(base))throw Error('Invalid deployment base');
+ require('./prepare-diagnostics.cjs');
  const sourceFiles=files(source),read=f=>fs.readFileSync(path.join(source,f));
  const hashGroup=list=>digest(Buffer.concat(list.flatMap(f=>[Buffer.from(f+'\0'),read(f)]))).slice(0,32);
  const engineFiles=sourceFiles.filter(f=>f.startsWith('vendor/praat/')&&!f.endsWith('source.tar.gz'));

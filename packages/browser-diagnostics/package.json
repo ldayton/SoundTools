@@ -1,0 +1,26 @@
+{
+  "name": "@ldayton/browser-diagnostics",
+  "version": "0.1.0",
+  "description": "Bounded, audio-free browser diagnostics shared by Soundglow and DoReGo",
+  "license": "MIT",
+  "main": "core.js",
+  "types": "index.d.ts",
+  "files": [
+    "core.js",
+    "index.d.ts",
+    "sentry.js",
+    "LICENSE",
+    "SENTRY-LICENSE",
+    "sentry.js.LEGAL.txt",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "esbuild src/sentry.js --bundle --format=iife --global-name=BrowserDiagnosticsSentry --target=es2022 --minify --legal-comments=external --outfile=sentry.js",
+    "test": "node --test test/*.cjs"
+  },
+  "devDependencies": {
+    "@sentry/browser": "11.9.0",
+    "esbuild": "0.28.2"
+  },
+  "private": true
+}

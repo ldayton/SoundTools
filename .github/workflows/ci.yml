@@ -1,0 +1,64 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:history
+      - run: npm run build:shared
+      - run: npm run test:shared
+  dorego:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run build:shared
+      - run: npm test --workspace=dorego
+      - run: npm run build:pages --workspace=dorego
+      - run: npm run test:browsers --workspace=dorego
+      - run: npm run build:dorego
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: dorego-browser-results
+          path: apps/dorego/work/
+  soundglow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:shared
+      - run: npm run test:soundglow
+      - run: npm run build:soundglow
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: soundglow-browser-results
+          path: |
+            apps/soundglow/test-results/
+            apps/soundglow/playwright-report/

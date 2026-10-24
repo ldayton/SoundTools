@@ -1,10 +1,14 @@
 name: CI
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   shared:
     runs-on: ubuntu-latest
@@ -34,7 +38,13 @@ jobs:
       - run: npm run build:shared
       - run: npm test --workspace=dorego
       - run: npm run build:pages --workspace=dorego
+      - run: npm run test:diagnostics-ui --workspace=dorego
       - run: npm run test:browsers --workspace=dorego
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dorego-source-maps
+          path: apps/dorego/dist-pages/assets/*.map
+          retention-days: 14
       - run: npm run build:dorego
       - uses: actions/upload-artifact@v4
         if: failure()

@@ -28,6 +28,11 @@ checks, and Soundglow's core, visual and update suites. Install browsers first w
 `npx playwright install chromium firefox webkit`. DoReGo's complete desktop,
 lifecycle, Pages and offline matrix is `npm run test:browsers --workspace=dorego`.
 GitHub CI runs that matrix and Soundglow's suite on each main push and PR.
+For a deployed root-path site, run
+`PAGES_TEST_URL=https://dorego-six.vercel.app/ npm run test:pages --workspace=dorego`
+and `node scripts/smoke-soundglow.cjs https://soundglow.vercel.app/`.
+The latter checks real WASM analysis and recorded-speech playback after an offline
+reload, as well as immutable asset headers and MIME types.
 
 `npm run build:dorego` and `npm run build:soundglow` produce root-path Vercel
 static sites. Original piano recordings stay in Git for local CLI use; DoReGo's

@@ -12,10 +12,10 @@ const metadata=offline.jsonStore(META,key),read=metadata.read,write=metadata.wri
 async function record(id,version){if(id&&/^[a-f0-9]{32}$/.test(version))await write('client/'+id,{version,savedAt:Date.now()})}
 async function inventory(version){const r=await(await caches.open(PREFIX+version)).match(key('manifest'));return r?await r.json():null}
 async function complete(pack){return valid(pack)&&offline.complete(ASSETS,pack.files.map(f=>f.url))}
-async function stage(pack){
+async function stage(pack,timeout=10000){
  if(!valid(pack))throw Error('Invalid release manifest');
  return offline.publish(pack.version,async()=>{
-  await offline.withDeadline(10000,signal=>offline.stageAssets(ASSETS,pack.files,{signal}));
+  await offline.withDeadline(timeout,signal=>offline.stageAssets(ASSETS,pack.files,{signal}));
   if(!await complete(pack))throw Error('Release missing files');
   const cacheMeta=await caches.open(PREFIX+pack.version);
   // Commit metadata last. Partial downloads are never selected for navigation.
@@ -46,7 +46,9 @@ async function cleanup(){return offline.cleanup(async()=>{
  const meta=await caches.open(META),live=new Set(clients.map(c=>key('client/'+c.id)));
  for(const request of await meta.keys())if(request.url.includes('/__cache__/client/')&&!live.has(request.url)){const data=await(await meta.match(request)).json();if(!offline.recent(data.savedAt))await meta.delete(request)}
 })}
-offline.lifecycle(()=>stage(CONFIG));
+// First installation can download the complete analysis engine and example audio.
+// Keep background update checks short; only the cold install gets a larger budget.
+offline.lifecycle(()=>stage(CONFIG,60000));
 self.addEventListener('message',event=>{
  if(event.data?.type==='using-release'&&event.source?.id)event.waitUntil((async()=>{await record(event.source.id,event.data.version);await cleanup()})());
  if(event.data?.type==='prepare-update')event.waitUntil((async()=>{try{const pack=await latest();event.ports[0]?.postMessage({ready:true,version:pack.version,workerVersion:CONFIG.version})}catch{event.ports[0]?.postMessage({ready:false})}})());

@@ -106,11 +106,28 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await other.getByRole('button',{name:'Play an Example',exact:true}).click();await other.waitForFunction(()=>inputMode==='speech'&&processingStats.frames>200);
  await other.locator('#freeze').click();
  console.log('PASS: failed/inconsistent deployments rejected; offline reload and English speech use cached worklet, worker, WASM and audio');
+ // Prove model loading and real inference independently of the live 80 ms overload guard.
+ // Slow CI CPUs may deliberately fall back during live capture; missing assets must still fail.
+ const neuralWorker=releases[1].pack.files.find(f=>f.url.endsWith('/neural-worker.js')).url;
+ const inference=await other.evaluate(workerURL=>new Promise((resolve,reject)=>{
+  const worker=new Worker(workerURL),timer=setTimeout(()=>finish(Error('Offline neural worker timed out')),45000);
+  const finish=(error,value)=>{clearTimeout(timer);worker.terminate();error?reject(error):resolve(value)};
+  worker.onerror=e=>finish(Error(e.message));worker.onmessage=({data})=>{
+   if(data.type==='unavailable'||data.error)finish(Error(data.error||'Neural engine unavailable'));
+   else if(data.type==='ready')worker.postMessage({id:1,session:'offline-test',rate:16000,blocks:[{start:0,pcm:new Float32Array(512)}]});
+   else if(data.id===1)finish(null,data);
+  };
+ }),neuralWorker);
+ assert.equal(inference.flags.length,1);assert(Number.isFinite(inference.flags[0].probability));assert(inference.flags[0].probability>=0&&inference.flags[0].probability<=1);
  await other.goto(url+'?experimentalSpeechGate=1');
  await other.locator('#pitchTab').click();await other.getByRole('button',{name:'Play an Example',exact:true}).click();
- await other.waitForFunction(()=>document.getElementById('pitchCanvas').dataset.neuralStatus==='ready',undefined,{timeout:45000});
+ await other.waitForFunction(()=>['ready','unavailable'].includes(document.getElementById('pitchCanvas').dataset.neuralStatus),undefined,{timeout:50000});
+ const neural=await other.locator('#pitchCanvas').evaluate(e=>({...e.dataset}));
+ if(neural.neuralStatus==='unavailable')assert.equal(neural.neuralError,'Speech confirmation exceeded inference deadline','Only the intended real-time overload fallback is acceptable');
+ await other.waitForFunction(()=>inputMode==='speech'&&running&&!paused&&processingStats.frames>200);
+ assert.equal(await other.evaluate(()=>inputMode==='speech'&&running&&!paused),true,'Native analysis survives optional inference overload');
  await other.locator('#freeze').click();
- console.log('PASS: optional neural model, ONNX runtime and WASM execute fully offline');
+ console.log('PASS: optional neural model, ONNX runtime and actual inference execute fully offline; live overload preserves native analysis');
  await context.setOffline(false);revision=1;fault=null;
  // Expire navigation grace while an old tab is still alive: its release stays.
  await other.evaluate(async()=>{for(const name of await caches.keys())if(name.startsWith('soundglow-release-')){const cache=await caches.open(name);const request=(await cache.keys()).find(r=>r.url.endsWith('/__cache__/savedAt'));await cache.put(request,new Response('0'))}});

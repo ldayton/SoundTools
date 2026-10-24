@@ -90,6 +90,18 @@ const { chromium, firefox, webkit } = require("playwright");
         }),
       });
       await d.ready;
+      BrowserDiagnostics.attachPanel(d, document.body);
+    });
+    assert.equal(sdkLoads, 0, "No SDK loads before consent");
+    assert.equal(payloads.length, 0, "No uploads before consent");
+    await page
+      .getByRole("checkbox", {
+        name: "Share diagnostic information",
+        exact: true,
+      })
+      .check();
+    await page.waitForFunction(() => d.getState().status === "connected");
+    await page.evaluate(async () => {
       d.event("transport.play", { running: true, title: "PRIVATE" });
       d.metric("analysis.ms", 12);
       d.capture(
@@ -224,6 +236,31 @@ const { chromium, firefox, webkit } = require("playwright");
     for (let i = 0; i < 150 && (await queued()) > 0; i++)
       await page.waitForTimeout(100);
     assert.equal(await queued(), 0, "Offline retry drains successfully");
+    await page
+      .getByRole("checkbox", {
+        name: "Share diagnostic information",
+        exact: true,
+      })
+      .uncheck();
+    await page.waitForFunction(() => !d.getState().automatic);
+    await page.waitForTimeout(300);
+    const afterOptOut = payloads.length;
+    await page.evaluate(() => {
+      d.capture(Error("PRIVATE"), "after.opt_out");
+      d.metric("after.ms", 999);
+      d.flush();
+      window.dispatchEvent(new Event("online"));
+    });
+    await page.waitForTimeout(300);
+    assert.equal(payloads.length, afterOptOut, "No uploads after opt-out");
+    await page
+      .getByRole("checkbox", {
+        name: "Share diagnostic information",
+        exact: true,
+      })
+      .check();
+    await page.waitForFunction(() => d.getState().status === "connected");
+    assert(!payloads.join("").includes("after.opt_out"));
     await page.evaluate(async () => {
       window.other = BrowserDiagnostics.create({
         app: "dorego",
@@ -232,6 +269,7 @@ const { chromium, firefox, webkit } = require("playwright");
         sdkUrl: "/sentry.js",
       });
       await other.ready;
+      await other.setSharing(true);
       other.capture(Error("PRIVATE"), "audio.second_app");
       await other.dispose();
       d.capture(Error("PRIVATE"), "audio.first_app");
@@ -264,7 +302,7 @@ const { chromium, firefox, webkit } = require("playwright");
       await d.dispose();
       return r.previousReports;
     });
-    assert(saved.length > 0);
+    assert.equal(saved.length, 0);
     assert(!JSON.stringify(saved).includes("PRIVATE"));
     const broken = await context.newPage();
     await broken.addInitScript(() =>
@@ -288,26 +326,16 @@ const { chromium, firefox, webkit } = require("playwright");
       await local.ready;
       BrowserDiagnostics.attachPanel(local, document.body);
     });
-    await broken.getByText("Debug reports", { exact: true }).click();
-    assert.equal(await broken.locator("input[type=checkbox]").count(), 0);
-    const download = broken.waitForEvent("download");
-    await broken
-      .getByRole("button", { name: "Download debug report", exact: true })
-      .click();
-    const file = await (await download).path();
-    assert.equal(
-      JSON.parse(fs.readFileSync(file, "utf8")).errors[0].code,
-      "audio.storage_fault",
-    );
-    await broken
-      .getByRole("button", { name: "Clear saved reports", exact: true })
-      .click();
-    await broken
-      .getByText(
-        "In-memory reports cleared. Browser storage is unavailable; saved reports could not be removed.",
-        { exact: true },
-      )
-      .waitFor();
+    const sharing = broken.getByRole("checkbox", {
+      name: "Share diagnostic information",
+      exact: true,
+    });
+    assert.equal(await broken.locator("button").count(), 0);
+    assert.equal(await sharing.isChecked(), false);
+    await sharing.check();
+    assert.equal(await broken.evaluate(() => local.getState().sharing), true);
+    await sharing.uncheck();
+    assert.equal(await broken.evaluate(() => local.getState().sharing), false);
     fail = true;
     await broken.evaluate(async () => {
       window.memory = BrowserDiagnostics.create({
@@ -318,6 +346,7 @@ const { chromium, firefox, webkit } = require("playwright");
         storageTimeoutMs: 25,
       });
       await memory.ready;
+      await memory.setSharing(true);
       memory.capture(Error("PRIVATE"), "audio.memory_only");
       memory.flush();
     });
@@ -341,7 +370,7 @@ const { chromium, firefox, webkit } = require("playwright");
     await broken.evaluate(() => memory.dispose());
     await broken.close();
     console.log(
-      "Automatic diagnostics: isolated SDK, error/log/metric envelopes, privacy, TTL, offline retry and local export passed:",
+      "Opt-in diagnostics: isolated SDK, error/log/metric envelopes, privacy, TTL, offline retry and consent controls passed:",
       process.env.TEST_BROWSER || "chromium",
     );
   } finally {

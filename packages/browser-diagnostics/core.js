@@ -83,23 +83,20 @@
       remoteDb = app + "-sentry-offline",
       limit = 100,
       maxErrors = 30,
-      maxMetrics = 40,
-      ttl = 86400000;
+      maxMetrics = 40;
     const session =
       env.crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
     let started = now(),
       events = [],
       errors = [],
       metrics = Object.create(null),
-      automatic = !!options.dsn && options.enabled !== false,
+      sharing = readSharing(),
+      automatic = sharing && !!options.dsn && options.enabled !== false,
       remote = null,
       loading = null,
       epoch = 0,
       disposed = false,
-      persisting = false,
-      dirty = false,
-      status = "local",
-      previous = [],
+      status = sharing ? "local" : "off",
       lastFlush = now(),
       retryAt = 0,
       retryDelay = 30000,
@@ -108,21 +105,65 @@
       pendingLogs = [];
     let frameState = null,
       warmUntil = now() + 2000;
-    let diskFailed = false,
-      dbPromise;
     const listeners = [],
       subscribers = new Set(),
       sent = new Map();
     let seen = new WeakSet();
-    const storageTimeout = Math.max(
-      1,
-      Math.min(5000, options.storageTimeoutMs || 1500),
-    );
     let recentSends = [];
     const maxSends = 20,
       sendWindow = 60000;
-    // Production adapters decide whether a DSN is enabled. Old consent storage is
-    // deliberately ignored: every configured session contributes technical data.
+    const sharingKey = app + ":diagnostics:sharing";
+    function readSharing() {
+      try {
+        return (
+          env.localStorage?.getItem(app + ":diagnostics:sharing") === "yes"
+        );
+      } catch {
+        return false;
+      }
+    }
+    function discardDatabase(name) {
+      try {
+        env.indexedDB?.deleteDatabase(name);
+      } catch {}
+    }
+    // Retire local reports. Only the sharing preference is retained locally.
+    discardDatabase(dbName);
+    if (!sharing) discardDatabase(remoteDb);
+    async function setSharing(value, save = true) {
+      value = value === true;
+      if (value === sharing || disposed) return;
+      sharing = value;
+      automatic = sharing && !!options.dsn && options.enabled !== false;
+      const token = ++epoch;
+      if (save)
+        try {
+          env.localStorage?.setItem(sharingKey, value ? "yes" : "no");
+        } catch {}
+      const old = remote;
+      remote = null;
+      loading = null;
+      status = sharing ? "local" : "off";
+      await clear();
+      pendingMetrics = Object.create(null);
+      pendingCounts = Object.create(null);
+      pendingLogs = [];
+      recentSends = [];
+      logTimes = [];
+      lastFlush = now();
+      retryAt = 0;
+      notify();
+      try {
+        await old?.close?.();
+      } catch {}
+      if (token !== epoch || disposed) return;
+      if (!sharing) {
+        discardDatabase(remoteDb);
+        return;
+      }
+      event("session.started");
+      await loadRemote();
+    }
     let logTimes = [];
     function increment(code) {
       if (!pendingCounts[code] && Object.keys(pendingCounts).length >= 100)
@@ -213,14 +254,13 @@
       };
     }
     function event(code, details = {}) {
-      if (disposed || !codePattern.test(code)) return;
+      if (disposed || !sharing || !codePattern.test(code)) return;
       events.push({
         code,
         elapsedMs: Math.max(0, now() - started),
         details: fields(details, spec),
       });
       if (events.length > limit) events.shift();
-      dirty = true;
       increment(code);
       if (pendingLogs.length < 50)
         pendingLogs.push({ code, details: fields(details, spec) });
@@ -228,6 +268,7 @@
     function metric(name, value) {
       if (
         disposed ||
+        !sharing ||
         !codePattern.test(name) ||
         !Number.isFinite(value) ||
         value < 0
@@ -247,14 +288,12 @@
       m.count++;
       m.sum += value;
       m.max = Math.max(m.max, value);
-      dirty = true;
       let delta = pendingMetrics[name];
       if (!delta && Object.keys(pendingMetrics).length >= maxMetrics) return;
       if (!delta) delta = pendingMetrics[name] = { count: 0, sum: 0, max: 0 };
       delta.count++;
       delta.sum += value;
       delta.max = Math.max(delta.max, value);
-      dirty = true;
     }
     function frame(time, active) {
       if (!active || env.document?.visibilityState === "hidden") {
@@ -269,134 +308,8 @@
       if (frameState !== null) metric("render.interval_ms", time - frameState);
       frameState = time;
     }
-    // Every storage wait has a deadline. Timed-out local storage is disabled for
-    // this client; in-memory recording and export remain available.
-    function storageTask(fallback, run, local = true) {
-      return new Promise((resolve) => {
-        let settled = false,
-          cancel = () => {};
-        const set = env.setTimeout?.bind(env) || setTimeout,
-          clear = env.clearTimeout?.bind(env) || clearTimeout;
-        const finish = (value) => {
-          if (settled) return;
-          settled = true;
-          clear(timer);
-          resolve(value);
-        };
-        const timer = set(() => {
-          if (local) diskFailed = true;
-          finish(fallback);
-          try {
-            cancel();
-          } catch {}
-        }, storageTimeout);
-        try {
-          cancel = run(finish, () => settled) || cancel;
-        } catch {
-          if (local) diskFailed = true;
-          finish(fallback);
-        }
-      });
-    }
-    async function open() {
-      if (diskFailed || !env.indexedDB || disposed) return null;
-      if (!dbPromise)
-        dbPromise = storageTask(null, (finish, done) => {
-          const request = env.indexedDB.open(dbName, 1);
-          request.onupgradeneeded = () => {
-            if (done()) {
-              request.transaction?.abort();
-              return;
-            }
-            if (!request.result.objectStoreNames.contains("reports"))
-              request.result.createObjectStore("reports", {
-                keyPath: "session",
-              });
-          };
-          request.onerror = request.onblocked = () => {
-            diskFailed = true;
-            finish(null);
-          };
-          request.onsuccess = () => {
-            const db = request.result;
-            if (done() || disposed) {
-              db.close();
-              finish(null);
-              return;
-            }
-            db.onversionchange = () => {
-              diskFailed = true;
-              db.close();
-            };
-            finish(db);
-          };
-          return () => {
-            try {
-              request.transaction?.abort();
-            } catch {}
-          };
-        });
-      return dbPromise;
-    }
-    async function stored() {
-      const db = await open();
-      if (!db) return [];
-      return storageTask([], (finish) => {
-        const tx = db.transaction("reports"),
-          r = tx.objectStore("reports").getAll();
-        r.onsuccess = () => finish(r.result || []);
-        r.onerror = tx.onabort = () => finish([]);
-        return () => {
-          try {
-            tx.abort();
-          } catch {}
-          db.close();
-        };
-      });
-    }
-    async function persist() {
-      if (disposed || persisting || !dirty) return;
-      persisting = true;
-      dirty = false;
-      try {
-        const report = snapshot(),
-          db = await open();
-        if (!db) return;
-        await storageTask(false, (finish, done) => {
-          const tx = db.transaction("reports", "readwrite"),
-            store = tx.objectStore("reports"),
-            r = store.getAll();
-          r.onsuccess = () => {
-            if (done()) return;
-            try {
-              const old = r.result
-                .filter((x) => x.session !== session)
-                .sort((a, b) => b.savedAt - a.savedAt);
-              for (let i = 0; i < old.length; i++)
-                if (i >= 4 || wall() - old[i].savedAt > ttl)
-                  store.delete(old[i].session);
-              store.put({ ...report, savedAt: wall() });
-            } catch {
-              try {
-                tx.abort();
-              } catch {}
-              finish(false);
-            }
-          };
-          tx.oncomplete = () => finish(true);
-          tx.onerror = tx.onabort = () => finish(false);
-          return () => {
-            try {
-              tx.abort();
-            } catch {}
-            db.close();
-          };
-        });
-      } catch {
-      } finally {
-        persisting = false;
-      }
-    }
+    // Reports are never saved on the device or offered for export.
+    async function persist() {}
     async function loadRemote() {
       if (disposed || !automatic || !options.dsn || now() < retryAt) return;
       const token = epoch;
@@ -417,7 +330,7 @@
             release,
             dsn: options.dsn,
             dbName: remoteDb,
-            enabled: () => automatic,
+            enabled: () => automatic && token === epoch,
             environment: options.environment || "production",
             fields: spec,
           });
@@ -433,12 +346,13 @@
           flush();
           notify();
         } catch {
+          if (disposed || token !== epoch) return;
           status = "unavailable";
           retryAt = now() + retryDelay;
           retryDelay = Math.min(300000, retryDelay * 2);
           notify();
         } finally {
-          loading = null;
+          if (token === epoch) loading = null;
         }
       })();
       return loading;
@@ -504,7 +418,7 @@
       }
     }
     function capture(error, code = "runtime.error") {
-      if (disposed || !codePattern.test(code)) return;
+      if (disposed || !sharing || !codePattern.test(code)) return;
       if (error && typeof error === "object") {
         if (seen.has(error)) return;
         seen.add(error);
@@ -558,11 +472,7 @@
       }
     }
     async function report() {
-      await persist();
-      previous = (await stored())
-        .filter((r) => r.session !== session && wall() - r.savedAt <= ttl)
-        .slice(-4);
-      return { ...snapshot(), previousReports: previous };
+      return { ...snapshot(), previousReports: [] };
     }
     async function clear() {
       seen = new WeakSet();
@@ -573,25 +483,8 @@
       metrics = Object.create(null);
       sent.clear();
       started = now();
-      dirty = false;
-      let cleared = !env.indexedDB;
-      const db = await open();
-      if (db)
-        cleared = await storageTask(false, (finish) => {
-          const tx = db.transaction("reports", "readwrite");
-          tx.objectStore("reports").clear();
-          tx.oncomplete = () => finish(true);
-          tx.onerror = tx.onabort = () => finish(false);
-          return () => {
-            try {
-              tx.abort();
-            } catch {}
-            db.close();
-          };
-        });
-      previous = [];
       notify();
-      return cleared;
+      return true;
     }
     on(
       env,
@@ -613,6 +506,10 @@
       event("browser.online");
       void loadRemote();
       flush();
+    });
+    on(env, "storage", (e) => {
+      if (e.key === sharingKey || e.key === null)
+        void setSharing(readSharing(), false);
     });
     on(env, "offline", () => event("browser.offline"));
     on(env.document, "visibilitychange", () => {
@@ -648,12 +545,7 @@
     // Remote initialization must not wait for a slow or blocked local database.
     event("session.started");
     const remoteReady = loadRemote();
-    const ready = Promise.all([
-      stored().then((rows) => {
-        previous = rows.filter((r) => wall() - r.savedAt <= ttl).slice(-4);
-      }),
-      remoteReady,
-    ]).then(() => api);
+    const ready = Promise.resolve(remoteReady).then(() => api);
     const api = {
       event,
       metric,
@@ -665,7 +557,9 @@
       flush,
       snapshot,
       ready,
+      setSharing,
       getState: () => ({
+        sharing,
         automatic: automatic,
         configured: !!options.dsn,
         status,
@@ -684,7 +578,6 @@
         for (const remove of listeners) remove();
         env.clearInterval?.(timer);
         subscribers.clear();
-        void dbPromise?.then((db) => db?.close());
         try {
           await remote?.close?.();
         } catch {}
@@ -693,49 +586,23 @@
     return api;
   }
   function attachPanel(client, parent) {
-    const doc = parent.ownerDocument,
-      details = doc.createElement("details");
-    details.className = "diagnostics-panel";
-    details.innerHTML =
-      '<summary>Debug reports</summary><p>Technical reports help diagnose problems. Audio and recordings are never included.</p><p role="status"></p><button type="button">Download debug report</button> <button type="button">Clear saved reports</button>';
-    const status = details.querySelector('[role="status"]'),
-      buttons = details.querySelectorAll("button");
-    function render() {
-      const s = client.getState();
-      status.textContent = !s.automatic
-        ? "Reports stay on this device. Central reporting is not enabled for this build."
-        : s.status === "unavailable"
-          ? "Central reporting is unavailable. You can still download a report."
-          : "Technical errors, usage counts and performance measurements are collected automatically. Audio and recordings are never sent.";
-    }
-    buttons[0].onclick = async () => {
-      try {
-        const report = await client.report(),
-          url = URL.createObjectURL(
-            new Blob([JSON.stringify(report, null, 2)], {
-              type: "application/json",
-            }),
-          ),
-          link = doc.createElement("a");
-        link.href = url;
-        link.download = report.app + "-debug-" + Date.now() + ".json";
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } catch {
-        status.textContent = "Could not download the report. Try again.";
-      }
+    const panel = parent.ownerDocument.createElement("div");
+    panel.className = "diagnostics-panel";
+    const label = parent.ownerDocument.createElement("label");
+    const checkbox = parent.ownerDocument.createElement("input");
+    checkbox.type = "checkbox";
+    label.append(checkbox, " Share diagnostic information");
+    panel.append(label);
+    checkbox.onchange = () => {
+      void client.setSharing(checkbox.checked);
     };
-    buttons[1].onclick = () => {
-      void client.clear().then((cleared) => {
-        status.textContent = cleared
-          ? "Saved reports cleared on this device."
-          : "In-memory reports cleared. Browser storage is unavailable; saved reports could not be removed.";
-      });
+    const render = () => {
+      checkbox.checked = client.getState().sharing;
     };
     client.subscribe(render);
     render();
-    parent.append(details);
-    return details;
+    parent.append(panel);
+    return panel;
   }
   const api = { create, attachPanel, version };
   if (typeof module === "object" && module.exports) module.exports = api;

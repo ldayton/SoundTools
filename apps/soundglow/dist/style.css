@@ -145,4 +145,4 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 #pitchPresetName{width:100%;font:inherit;color:inherit;background:#171e28;border:1px solid #354252;border-radius:7px;padding:10px;margin-top:10px}
 #pitchPresetStatus{min-height:1.5em;color:#ffa6a6}
 
-.diagnostics-panel{margin:16px 0}.diagnostics-panel p{font-size:13px;line-height:1.5}.diagnostics-panel label{display:flex;gap:8px;align-items:center}.diagnostics-panel input[type=checkbox]{width:auto}.diagnostics-panel button{margin:6px 0}
+.diagnostics-panel{margin:16px 0;font-size:13px}.diagnostics-panel label{display:flex;gap:8px;align-items:center;cursor:pointer}.diagnostics-panel input{width:16px;height:16px;margin:0}

@@ -1795,7 +1795,26 @@ main {
 .offline-section progress[hidden] { display: none; }
 .offline-section button { border: 1px solid #dfe2d5; border-radius: 8px; padding: 10px 14px; }
 
-.diagnostics-panel{padding:16px;border:1px solid var(--border,#ccd0d4);border-radius:12px;margin-top:16px}.diagnostics-panel summary{cursor:pointer}.diagnostics-panel p{font-size:13px;line-height:1.5}.diagnostics-panel label{display:flex;align-items:center;gap:8px;font-size:13px}.diagnostics-panel input[type=checkbox]{width:auto}.diagnostics-panel button{margin:8px 8px 0 0;padding:8px;border-radius:6px}
+.diagnostics-panel {
+  margin-top: 12px;
+  padding: 0 23px 4px;
+  color: #7c8276;
+  font-size: 12px;
+  line-height: 20px;
+}
+.diagnostics-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.diagnostics-panel input {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent, #91a66c);
+}
 
 .note-repeats {
   border: 0;

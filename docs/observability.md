@@ -1,10 +1,15 @@
 # Central diagnostics
 
 SoundTools uses one shared browser diagnostics package with thin adapters in both
-apps. Configured **production** builds automatically collect technical diagnostics
-from every session. Preview builds, development servers, and builds without a DSN
-keep reports local. This is operational monitoring, not a visitor identity system.
-The historical localStorage sharing preference no longer controls collection.
+apps. Configured **production** builds collect technical diagnostics only after
+explicit opt-in. Preview builds, development servers, and builds without a DSN do
+not transmit diagnostics.
+
+A single unchecked-by-default “Share diagnostic information” checkbox controls
+collection. The preference is remembered per app and synchronized across tabs.
+Opting out stops sending and discards pending data; information from before
+consent or while opted out is never uploaded. There are no saved local debug
+reports, downloads, or clear buttons. Old saved reports are removed on startup.
 
 ## Data model
 
@@ -15,12 +20,11 @@ The historical localStorage sharing preference no longer controls collection.
 - Metrics are batched interval **deltas**. Every numeric series sends `.count`,
   `.total`, and `.max`; calculate weighted mean as sum(total)/sum(count). Max is a
   gauge per reporting interval. These are not raw sample distributions: do not call
-  a percentile of these aggregates frame p95. The downloadable local report has
-  recent-sample p95 and session aggregates.
+  a percentile of these aggregates frame p95.
 - Usage counters count coded lifecycle/control events. Structured logs retain their
   allowlisted numeric/enum details. Logs are bounded to 50 pending entries and 60
   entries per minute per session; counters continue when detailed logs are dropped.
-- `session.started` counts app loads, not unique people. `session.elapsed_ms` is
+- `session.started` counts opted-in sessions, not unique people. `session.elapsed_ms` is
   elapsed wall time between flushes, including background time, not active practice
   time. No persistent user identifier is collected.
 
@@ -38,8 +42,7 @@ Audio/render hot paths only update bounded in-memory accumulators. SDK loading,
 IndexedDB and networking happen asynchronously. Remote startup does not wait for
 local storage. Measurements batch every 15 seconds and flush on visibility,
 pagehide, online and disposal. Startup failures retry with 30-second to five-minute
-backoff. Errors send separately with a budget of 20 per minute; clearing local
-reports does not reset this budget. SDK internals buffer logs/metrics before sending.
+backoff. Errors send separately with a budget of 20 per minute. SDK internals buffer logs/metrics before sending.
 
 Failed transmissions use app-namespaced IndexedDB queues, limited to 30 envelopes.
 Queue opens and transactions have 1.5-second deadlines; stalled or unavailable
@@ -47,12 +50,11 @@ storage falls back to a 30-envelope in-memory queue for this page.
 Original timestamps expire errors, logs and metric batches after 24 hours; retries
 cannot renew their age. Sentry rate limits are honored by its transport. Memory,
 storage, delivery on shutdown, and offline retries are best effort. Ad blockers,
-network policy, quota limits or storage eviction can prevent collection; “automatic
-for all sessions” does not promise delivery of every event.
+network policy, quota limits or storage eviction can prevent delivery even when
+sharing is enabled.
 
-Local reports retain five sessions for up to 24 hours. Storage operations have
-1.5-second deadlines and fall back to memory. Debug reports offers download and
-local clearing; clearing does not delete data already received by Sentry.
+Only consenting sessions create an offline upload queue. Opting out closes the
+reporter and deletes its queue. Already transmitted data remains in Sentry.
 
 ## Production setup
 
@@ -91,7 +93,7 @@ Shared unit tests cover boundedness, automatic all-session collection, privacy,
 delta correctness, delayed startup/disposal, error flooding and blocked IndexedDB.
 Soundglow's real-SDK browser test intercepts every request and checks actual error,
 log and metric envelopes, release isolation, expiry and offline queue replay.
-DoReGo's browser test covers report UI, export, clearing and playback timing.
+DoReGo's browser test covers checkbox persistence, opt-in privacy and playback timing.
 These tests use fake DSNs and never contact the live service.
 
 After configuring real projects, deploy, open both production apps, and verify

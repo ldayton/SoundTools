@@ -18,7 +18,13 @@ export interface Client {
   persist(): Promise<void>;
   clear(): Promise<boolean>;
   flush(): void;
-  getState(): { automatic: boolean; configured: boolean; status: string };
+  setSharing(value: boolean): Promise<void>;
+  getState(): {
+    sharing: boolean;
+    automatic: boolean;
+    configured: boolean;
+    status: string;
+  };
   ready: Promise<Client>;
   subscribe(fn: () => void): () => void;
   dispose(): Promise<void>;
@@ -40,5 +46,5 @@ export function create(
 export function attachPanel(
   client: Client,
   parent: HTMLElement,
-): HTMLDetailsElement;
+): HTMLDivElement;
 export const version: string;

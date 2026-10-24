@@ -5,7 +5,10 @@ function environment() {
   const env = new EventTarget(),
     document = new EventTarget();
   document.visibilityState = "visible";
-  const storage = new Map();
+  const storage = new Map([
+    ["soundglow:diagnostics:sharing", "yes"],
+    ["dorego:diagnostics:sharing", "yes"],
+  ]);
   Object.assign(env, {
     document,
     navigator: {
@@ -65,36 +68,52 @@ test("bounded histories, numeric summaries and allowlisted data exclude voice/us
   );
   await d.dispose();
 });
-test("every configured session reports automatically and ignores legacy preferences", async () => {
+test("sharing is opt-in, remembered, and revocable without uploading off-period data", async () => {
   const { env, storage } = environment();
-  storage.set("soundglow:diagnostics:sharing", "no");
-  let factories = 0,
-    calls = 0;
-  const options = {
-    app: "soundglow",
-    release: "a",
-    dsn: "public",
-    random: () => 1,
-    remoteFactory: async () => {
-      factories++;
-      return {
-        capture() {
-          calls++;
-        },
-      };
+  storage.clear();
+  let factories = 0;
+  const batches = [],
+    errors = [];
+  const d = create(
+    {
+      app: "soundglow",
+      release: "test",
+      dsn: "x",
+      remoteFactory: async ({ enabled }) => {
+        factories++;
+        return {
+          summary: (b) => {
+            if (enabled()) batches.push(b);
+          },
+          capture: (e) => {
+            if (enabled()) errors.push(e);
+          },
+          close() {},
+        };
+      },
     },
-  };
-  const d = create(options, env);
+    env,
+  );
   await d.ready;
-  d.capture(Error(), "audio.one");
-  assert.equal(calls, 1);
-  assert.equal(d.getState().automatic, true);
-  const other = create({ ...options, app: "dorego" }, env);
-  await other.ready;
-  assert.equal(other.getState().automatic, true);
-  assert.equal(factories, 2);
+  d.capture(Error(), "before.opt_in");
+  d.metric("before.ms", 10);
+  d.flush();
+  assert.equal(factories, 0);
+  assert.equal(d.getState().sharing, false);
+  assert.equal(d.snapshot().errors.length, 0);
+  await d.setSharing(true);
+  assert.equal(storage.get("soundglow:diagnostics:sharing"), "yes");
+  d.capture(Error(), "during.opt_in");
+  assert.equal(errors.length, 1);
+  await d.setSharing(false);
+  d.capture(Error(), "after.opt_out");
+  d.metric("after.ms", 20);
+  d.flush();
+  assert.equal(errors.length, 1);
+  await d.setSharing(true);
+  assert(!JSON.stringify(batches).includes("before."));
+  assert(!JSON.stringify(batches).includes("after."));
   await d.dispose();
-  await other.dispose();
 });
 test("failed storage and reporter do not break capture; clear removes retained context", async () => {
   const { env } = environment();
@@ -123,6 +142,7 @@ test("failed storage and reporter do not break capture; clear removes retained c
     env,
   );
   await d.ready;
+  await d.setSharing(true);
   assert.equal(d.getState().status, "unavailable");
   d.capture(Error("failed"), "sample.failed");
   assert.equal((await d.report()).errors.length, 1);
@@ -319,97 +339,38 @@ test("remote startup does not wait for blocked local IndexedDB", async () => {
   await d.ready;
   await d.dispose();
 });
-test("stalled IDB open falls back to memory and closes a late connection", async () => {
+test("debug reports never open or write IndexedDB", async () => {
   const { env } = environment();
-  let request,
-    closed = false;
+  let opens = 0;
   env.indexedDB = {
     open() {
-      return (request = {});
+      opens++;
+      throw Error();
     },
+    deleteDatabase() {},
   };
-  const d = create(
-    { app: "soundglow", release: "test", storageTimeoutMs: 10 },
-    env,
-  );
-  d.capture(Error(), "audio.stalled_storage");
+  const d = create({ app: "soundglow", release: "test" }, env);
   await d.ready;
-  const r = await d.report();
-  assert.equal(r.errors[0].code, "audio.stalled_storage");
-  await d.clear();
-  assert.equal((await d.report()).errors.length, 0);
-  request.result = {
-    close() {
-      closed = true;
-    },
-  };
-  request.onsuccess();
-  assert(closed);
+  d.capture(Error(), "audio.failed");
+  await d.persist();
+  assert.equal(opens, 0);
+  assert.deepEqual((await d.report()).previousReports, []);
   await d.dispose();
 });
-test("stalled IDB reads and writes abort and keep export/clear usable", async () => {
-  for (const operation of ["read", "write", "clear"]) {
-    const { env } = environment();
-    let aborted = 0,
-      closed = 0,
-      transactions = 0;
-    const db = {
-      objectStoreNames: { contains: () => true },
-      close() {
-        closed++;
-      },
-      transaction(_store, mode) {
-        transactions++;
-        const tx = {
-          abort() {
-            aborted++;
-          },
-          objectStore() {
-            return {
-              getAll() {
-                const r = {};
-                if (operation !== "read" && mode !== "readwrite")
-                  queueMicrotask(() => {
-                    r.result = [];
-                    r.onsuccess?.();
-                    tx.oncomplete?.();
-                  });
-                return r;
-              },
-              clear() {},
-              put() {},
-            };
-          },
-        };
-        return tx;
-      },
-    };
-    env.indexedDB = {
-      open() {
-        const r = {};
-        queueMicrotask(() => {
-          r.result = db;
-          r.onsuccess();
-        });
-        return r;
-      },
-    };
-    const d = create(
-      { app: "soundglow", release: "test", storageTimeoutMs: 10 },
-      env,
-    );
-    await d.ready;
-    if (operation === "write") {
-      d.event("transport.play");
-      await d.persist();
-    } else if (operation === "clear") await d.clear();
-    const r = await d.report();
-    assert(r);
-    assert(aborted > 0);
-    assert(closed > 0);
-    assert(transactions > 0);
-    await d.dispose();
-  }
+test("another tab opting out stops this tab", async () => {
+  const { env, storage } = environment();
+  const d = create({ app: "soundglow", release: "test" }, env);
+  await d.ready;
+  storage.set("soundglow:diagnostics:sharing", "no");
+  env.dispatchEvent(
+    Object.assign(new Event("storage"), {
+      key: "soundglow:diagnostics:sharing",
+    }),
+  );
+  assert.equal(d.getState().sharing, false);
+  d.capture(Error(), "after.opt_out");
+  assert.equal(d.snapshot().errors.length, 0);
+  await d.dispose();
 });
 test("error floods have bounded rate-limit state and recover after the window", async () => {
   const fs = require("node:fs"),
@@ -555,5 +516,44 @@ test("local clearing cannot grow pending remote metric cardinality", async () =>
   }
   d.flush();
   assert.equal(Object.keys(batches.at(-1).metrics).length, 40);
+  await d.dispose();
+});
+
+test("opting out during SDK startup cannot send through a late client", async () => {
+  const { env, storage } = environment();
+  storage.clear();
+  let began;
+  const started = new Promise(r => began = r);
+  let resolve,
+    enabled,
+    closed = false;
+  const wait = new Promise((r) => (resolve = r));
+  const d = create(
+    {
+      app: "dorego",
+      release: "test",
+      dsn: "x",
+      remoteFactory: async (options) => {
+        enabled = options.enabled;
+        began();
+        await wait;
+        return {
+          close() {
+            closed = true;
+          },
+        };
+      },
+    },
+    env,
+  );
+  await d.ready;
+  const start = d.setSharing(true);
+  await started;
+  await d.setSharing(false);
+  resolve();
+  await start;
+  assert.equal(enabled(), false);
+  assert(closed);
+  assert.equal(d.getState().sharing, false);
   await d.dispose();
 });

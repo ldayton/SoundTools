@@ -60,6 +60,8 @@ export function directionName(direction: Direction) {
 export type Voice = 'bitklavier';
 export interface ExerciseSpec {
   startingChords?: boolean;
+  repeatTurn?: boolean;
+  repeatHome?: boolean;
   pattern: Pattern;
   key: number;
   low: number;
@@ -136,6 +138,8 @@ export interface Scene {
 }
 export const DEFAULT_SPEC: ExerciseSpec = {
   pattern: 'arpeggio',
+  repeatTurn: false,
+  repeatHome: false,
   key: 4,
   low: 52,
   high: 76,
@@ -218,6 +222,11 @@ export function validateSpec(input: unknown): ExerciseSpec {
     solfege: s.solfege as boolean,
     transition: s.transition === null ? null : num('transition', 24, 96, true),
   };
+  for (const key of ['repeatTurn', 'repeatHome'] as const) {
+    if (s[key] !== undefined && typeof s[key] !== 'boolean')
+      throw new Error(`Invalid ${key} setting.`);
+    result[key] = s[key] === true;
+  }
   if (s.progression !== undefined) result.progression = s.progression as Direction;
   if (s.startingChords !== undefined && typeof s.startingChords !== 'boolean')
     throw new Error('Invalid starting chords setting.');
@@ -572,8 +581,8 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
           ? 'Octave Arpeggio needs a range of at least an octave (12 semitones).'
           : 'These vocal phrases need a range of at least seven semitones (a perfect fifth).'
     );
-  const offsets =
-    spec.pattern === 'fiveNote'
+  const offsets: number[] = [
+    ...(spec.pattern === 'fiveNote'
       ? descending
         ? [0, -2, -3, -5, -7, -5, -3, -2, 0]
         : PATTERNS.fiveNote.intervals
@@ -585,11 +594,28 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
           ? PATTERNS.rossini.intervals
           : descending
             ? [0, -3, -7, -5, -3, -2, 0, -3, -7, -5, -3, -2, 0]
-            : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0];
+            : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0]),
+  ];
   const lengths =
     spec.pattern === 'arpeggio'
       ? [2, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2]
       : offsets.map((_, index) => (index === offsets.length - 1 ? 2 : 1));
+  // Add three distinct attacks; retain the original held finish on the fourth home note.
+  if (['octaveArpeggio', 'rossini', 'fiveNote'].includes(spec.pattern)) {
+    const turn = offsets.indexOf((descending ? Math.min : Math.max)(...offsets));
+    const expanded: number[] = [],
+      durations: number[] = [];
+    offsets.forEach((offset, index) => {
+      const repeat =
+        (index === turn && spec.repeatTurn) || (index === offsets.length - 1 && spec.repeatHome);
+      for (let strike = 0; strike < (repeat ? 4 : 1); strike++) {
+        expanded.push(offset);
+        durations.push(repeat && strike < 3 ? 1 : lengths[index]);
+      }
+    });
+    offsets.splice(0, offsets.length, ...expanded);
+    lengths.splice(0, lengths.length, ...durations);
+  }
   const roots: number[] = [];
   if (descending) for (let root = spec.high; root >= spec.low + span; root--) roots.push(root);
   else for (let root = spec.low; root <= spec.high - span; root++) roots.push(root);

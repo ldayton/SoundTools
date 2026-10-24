@@ -23,6 +23,8 @@ for(const {out,pack}of releases){
 }
 // Large optional speech assets must not delay app-cache installation or update readiness.
 for(const {out,pack} of releases){assert(!pack.files.some(f=>f.url.includes('/vendor/neural/')));const pin=JSON.parse(fs.readFileSync(path.join(out,'vendor/praat/neural-manifest.json')));assert(fs.existsSync(path.join(out,'vendor/neural',pin.version,'silero.onnx')));}
+// Optional migration probe: run an actual previous worker against the first release.
+if(process.env.LEGACY_WORKER_SOURCE)fs.writeFileSync(path.join(releases[0].out,'sw.js'),require(path.resolve(process.env.LEGACY_WORKER_SOURCE))(releases[0].pack));
 assert.notEqual(releases[0].pack.version,releases[1].pack.version);
 assert.deepEqual(releases[0].pack.files.filter(f=>f.url.includes('/engines/')),releases[1].pack.files.filter(f=>f.url.includes('/engines/')),'UI releases reuse the same engine URLs');
 const retained=path.join(work,'retained-site');build({source:path.join(work,'source-1'),out:retained,base:'/Soundglow/',previous:releases[0].out});

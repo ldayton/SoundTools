@@ -9,7 +9,7 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base='/Soun
  const engineFiles=sourceFiles.filter(f=>f.startsWith('vendor/praat/')&&!f.endsWith('source.tar.gz'));
  const mediaFiles=sourceFiles.filter(f=>f.startsWith('audio/'));
  const engine=base+'engines/'+hashGroup(engineFiles)+'/',media=base+'media/'+hashGroup(mediaFiles)+'/';
- const version=digest(Buffer.concat([Buffer.from(base),Buffer.from(diagnosticsDsn),fs.readFileSync(__filename),fs.readFileSync(require.resolve('./service-worker.cjs')),...sourceFiles.flatMap(f=>[Buffer.from(f+'\0'),read(f)])])).slice(0,32);
+ const version=digest(Buffer.concat([Buffer.from(base),Buffer.from(diagnosticsDsn),fs.readFileSync(__filename),fs.readFileSync(require.resolve('./service-worker.cjs')),Buffer.from(require('@ldayton/browser-offline').workerSource()),...sourceFiles.flatMap(f=>[Buffer.from(f+'\0'),read(f)])])).slice(0,32);
  const release=base+'releases/'+version+'/',output=new Map();
  for(const file of engineFiles)output.set(engine+file.slice('vendor/praat/'.length),read(file));
  for(const file of mediaFiles)output.set(media+file.slice('audio/'.length),read(file));

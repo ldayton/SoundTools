@@ -645,3 +645,35 @@ Bounded local reports and optional, explicitly enabled Sentry reporting are shar
 with DoReGo through `@ldayton/browser-diagnostics`. See [setup, privacy and tests](docs-diagnostics.md)
 and the [shared package release workflow](packages/browser-diagnostics/README.md).
 No remote collection is configured by default.
+
+## Shared offline workers
+
+`packages/browser-offline` is the canonical source for the pinned
+`@ldayton/browser-offline` npm tarball consumed by Soundglow and DoReGo.
+Both builders inline the same runtime into `sw.js`; no runtime CDN, registry,
+or sibling checkout is needed. Both build fingerprints include runtime source.
+
+| Contract | Shared core | App adapters |
+| --- | --- | --- |
+| Complete releases | Complete-file checks, staged writes, deadlines, atomic batches or per-file SHA-256 | Manifest schemas and validation; commit metadata last |
+| Concurrent updates | Deduplicate/serialize preparations; drain failed writes before retry or cleanup | Release discovery and explicit update messages |
+| Active tabs | Scope filtering, protect unknown clients, ten-minute grace | Cache names, retained releases/sound banks, metadata formats |
+| Navigation | Try current release, skip invalid fallbacks, remember selected release | Fallback ordering and document consistency checks |
+| Activation | Install preparation before skipWaiting; claim requests without reloading documents | Soundglow immutable assets; DoReGo installation inventory refresh |
+
+Soundglow's adapter is `scripts/service-worker.cjs`. It retains immutable release,
+engine and media URLs, SHA-256 validation, explicit update preparation and shared
+asset eviction. DoReGo retains its separate interface/sound caches and optional
+133-file sound download. Existing metadata, cache prefixes and messages are unchanged.
+
+Run `node scripts/sync-offline.cjs /path/to/DoReGo` to release. Changed contents need
+a version bump; version rollback and different tarballs under the same version are
+rejected. The script tests the package, installs/pins it in both consumers, verifies
+both copies, then runs Soundglow's update test and DoReGo's build/offline test.
+It never commits or pushes; a failed consumer check leaves local changes to fix.
+Install Playwright Chromium first in both checkouts for these browser checks.
+`npm run test:offline-package` checks provenance plus shared-core/release-guard tests.
+
+For migration testing, `LEGACY_WORKER_SOURCE=/absolute/path/to/previous-worker.cjs
+npm run test:updates` uses the old generator for the first fixture, then exercises
+the new worker during real microphone processing and offline example playback.

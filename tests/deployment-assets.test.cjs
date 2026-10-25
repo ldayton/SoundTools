@@ -99,3 +99,24 @@ test("optional models belong to the current inventory without extending old rele
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+
+test("web sound banks survive deployments and cannot change at immutable URLs", () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'soundtools-banks-'));
+  const old=path.join(dir,'old'),next=path.join(dir,'next');
+  try {
+    const bank='samples/bitklavier-web-v1/C4.flac';
+    for(const root of [old,next])fs.mkdirSync(path.join(root,path.dirname(bank)),{recursive:true});
+    fs.writeFileSync(path.join(old,bank),'recording');
+    fs.mkdirSync(path.join(old,'samples/bitklavier'),{recursive:true});
+    fs.writeFileSync(path.join(old,'samples/bitklavier/original.wav'),'original');
+    const history=publishAssets(old,'',[],'old');
+    assert.deepEqual(history[0].files.map(f=>f.url),['/'+bank]);
+    publishAssets(next,old,history,'next');
+    assert.equal(fs.readFileSync(path.join(next,bank),'utf8'),'recording');
+    fs.writeFileSync(path.join(next,bank),'changed');
+    assert.throws(()=>publishAssets(next,old,history,'bad'),/Immutable deployment path reused/);
+    assert.throws(()=>safePath('/samples/bitklavier/original.wav'));
+    assert.throws(()=>safePath('/samples/bitklavier-web-v1/nested/file.flac'));
+  } finally {fs.rmSync(dir,{recursive:true,force:true})}
+});

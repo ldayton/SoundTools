@@ -8,10 +8,15 @@ builds never upload. No raw error messages, URLs, model output or audio is added
 ## Current behavior
 
 - A complete cached release opens before update discovery begins. Updates stage in
-  the background; both apps show an explicit **Update available** button. Neither
-  reloads automatically or interrupts running audio.
-- Cache lookup is bounded at 1.2 seconds and version-record writes at 200 ms.
-  Blocked storage falls back to the network without requiring a cache write. If
+  the background. A verified update automatically refreshes an untouched foreground
+  page once. After any interaction, **Update available** requires an explicit click;
+  playing, recording and editing are never automatically interrupted. A per-tab
+  guard prevents repeated automatic refreshes of the same stale document.
+- Navigation gives cached startup a 1.2-second fast path and bounds version-record
+  writes at 200 ms. Slow verified cache lookup remains available for up to eight
+  seconds while the network is tried independently; an outage does not discard a
+  late healthy saved copy. Blocked storage falls back to the network without
+  requiring a cache write. If
   neither a saved copy nor the network works, a small uncached page explains why
   the app cannot open and offers **Try again**.
 - DoReGo downloads all 133 web recordings (about 33 MB), verifying SHA-256 and byte
@@ -109,3 +114,10 @@ seven exercises play offline. Soundglow's update suite asserts integrity reasons
 and cached navigation handoff while a separate live microphone session survives.
 It also confirms that cancellation aborts the active transfer and that corrupt
 cached HTML falls back to a verified recovery release, then repairs online.
+
+
+## Freshness review
+
+See [the complete scenario review](cache-freshness-review.md) for deployment
+retention, update policy, lifecycle cancellation, partial media requests,
+startup-script recovery, online references and remaining browser limits.

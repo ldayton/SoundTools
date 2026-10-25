@@ -772,3 +772,5 @@ document.addEventListener('visibilitychange', () => {
     update();
   }
 });
+
+window.dispatchEvent(new Event('soundtools:ready'));

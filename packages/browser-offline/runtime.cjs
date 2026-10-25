@@ -43,6 +43,11 @@ function createRuntime(env, base, resources) {
       } catch {}
     }
   });
+  function reply(event, data) {
+    // A document can close while its worker job completes. WebKit can throw
+    // when posting to that stopped context; a lost receiver is not a job error.
+    try { event.ports?.[0]?.postMessage(data); } catch {}
+  }
   function report(client, operation, outcome, details = {}) {
     try {
       client?.postMessage({
@@ -88,7 +93,7 @@ function createRuntime(env, base, resources) {
   }
   function requestURL(request) {
     const url = new URL(request.url);
-    return request.method === "GET" &&
+    return ["GET", "HEAD"].includes(request.method) &&
       url.origin === env.location.origin &&
       url.pathname.startsWith(base)
       ? url
@@ -100,7 +105,14 @@ function createRuntime(env, base, resources) {
         const response = await (
           await env.caches.open(cacheName)
         ).match(keyURL(key));
-        return response ? response.json() : null;
+        if (!response) return null;
+        try {
+          const value = await response.json();
+          return value && typeof value === "object" && !Array.isArray(value) ? value : null;
+        } catch (error) {
+          if (error.name === "SyntaxError") return null;
+          throw error;
+        }
       },
       async write(key, value) {
         await (
@@ -153,7 +165,8 @@ function createRuntime(env, base, resources) {
             } catch (error) {
               if (error.offlineReason !== "integrity") throw error;
               valid = false;
-              await cache.delete(file.url);
+              // Verification is read-only: a concurrent repair may already have
+              // replaced the response we examined. Staging owns replacement.
               onCorrupt?.();
             }
         }
@@ -197,6 +210,7 @@ function createRuntime(env, base, resources) {
                 continue;
               } catch (error) {
                 if (error.offlineReason !== "integrity") throw error;
+                signal?.throwIfAborted();
                 await cache.delete(file.url);
               }
             }
@@ -355,61 +369,90 @@ function createRuntime(env, base, resources) {
         });
       event.waitUntil?.(task);
     };
-    try {
-      const selected = await withDeadline(1200, async (signal) => {
-        for (const id of await adapter.candidates()) {
+    // A cold disk/hash check may exceed the fast-start budget. Keep that work
+    // available as an offline fallback while independently trying the network.
+    const selection = withDeadline(8000, async (signal) => {
+      const candidates = await adapter.candidates();
+      const requested = new URL(event.request.url).searchParams.get('__soundtools_update');
+      // A verified update action names its intended release. Generic latest
+      // metadata or an outgoing worker must not silently select an older one.
+      if (requested && candidates.includes(requested))
+        candidates.unshift(...candidates.splice(candidates.indexOf(requested),1));
+      for (const id of candidates) {
+        signal.throwIfAborted();
+        try {
+          const pack = await adapter.load(id);
+          const response = pack && await adapter.document(pack);
           signal.throwIfAborted();
-          try {
-            const pack = await adapter.load(id),
-              response = pack && (await adapter.document(pack));
-            signal.throwIfAborted();
-            if (response?.ok) {
-              // A failed metadata write must not prevent a good cached page opening.
-              try {
-                await withDeadline(200, () =>
-                  adapter.remember(event.resultingClientId, pack),
-                );
-              } catch {}
-              return response;
-            }
-          } catch (error) {
-            failureReason = reason(error);
-          }
-        }
-      });
-      if (selected) {
-        navigationResult(event, "ready", failureReason, started, "cache");
-        background();
-        return selected;
+          if (response?.ok) return {response, pack};
+        } catch (error) { failureReason = reason(error); }
       }
-    } catch (error) {
-      failureReason = reason(error);
+      return null;
+    }).catch(error => { failureReason = reason(error); return null; });
+    let timer;
+    const fast = await Promise.race([
+      selection,
+      new Promise(resolve => { timer = setTimeout(() => resolve(null), 1200); }),
+    ]);
+    clearTimeout(timer);
+    const cached = async selected => {
+      // Pin only the chosen document: a late cache read must not overwrite the
+      // version announced by a newer network document in the same client.
+      try { await withDeadline(200, () => adapter.remember(event.resultingClientId, selected.pack)); } catch {}
+      navigationResult(event, "ready", failureReason, started, "cache");
+      background();
+      return selected.response;
+    };
+    if (fast) return cached(fast);
+    const network = networkDocument(event.request)
+      .then(response => ({response}), error => ({error}));
+    const winner = await Promise.race([
+      network.then(result => ({network: result})),
+      selection.then(selected => selected ? {selected} : network.then(result => ({network: result}))),
+    ]);
+    if (winner.selected) {
+      event.waitUntil?.(network.then(() => {}));
+      return cached(winner.selected);
     }
-    // Never require a successful cache write to open a working network page.
-    background();
-    try {
-      const response = await networkDocument(event.request);
-      navigationResult(
-        event,
-        response.ok ? "ready" : "failed",
-        response.ok ? failureReason : "network",
-        started,
-        "network",
-      );
+    const {response, error} = winner.network;
+    if (response?.ok) {
+      navigationResult(event, "ready", failureReason, started, "network");
+      background();
       return response;
-    } catch (error) {
-      navigationResult(event, "failed", reason(error), started, "network");
-      return new Response(
-        '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline copy unavailable</title><style>body{font:16px system-ui;max-width:32rem;margin:15vh auto;padding:24px;line-height:1.5}button{font:inherit;padding:10px 18px}</style><h1>No offline copy available</h1><p>This app is not saved on this device yet, or browser storage is unavailable. Check your connection and try again.</p><button onclick="location.reload()">Try again</button>',
-        {
-          status: 503,
-          headers: {
-            "Content-Type": "text/html; charset=utf-8",
-            "Cache-Control": "no-store",
-          },
-        },
-      );
     }
+    const late = await selection;
+    if (late) return cached(late);
+    background();
+    if (response) {
+      navigationResult(event, "failed", "network", started, "network");
+      return response;
+    }
+    navigationResult(event, "failed", reason(error), started, "network");
+    return new Response(
+      '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline copy unavailable</title><style>body{font:16px system-ui;max-width:32rem;margin:15vh auto;padding:24px;line-height:1.5}button{font:inherit;padding:10px 18px}</style><h1>No offline copy available</h1><p>This app is not saved on this device yet, or browser storage is unavailable. Check your connection and try again.</p><button onclick="location.reload()">Try again</button>',
+      {status: 503, headers: {"Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store"}},
+    );
+  }
+  async function assetResponse(request, response) {
+    if (request.method === "HEAD") return new Response(null, {status:response.status,statusText:response.statusText,headers:response.headers});
+    const range = request.headers.get("Range");
+    if (!range || response.status !== 200) return response;
+    const match = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
+    // Unsupported/multipart/invalid ranges may be ignored per HTTP semantics.
+    if (!match || !match[1] && !match[2]) return response;
+    const ifRange = request.headers.get("If-Range");
+    if (ifRange && (ifRange.startsWith("W/") || ![response.headers.get("ETag"),response.headers.get("Last-Modified")].includes(ifRange))) return response;
+    const bytes = await response.arrayBuffer(), length = bytes.byteLength;
+    const start = match[1] ? Number(match[1]) : Math.max(0,length-Number(match[2]));
+    const end = match[1] && match[2] ? Math.min(length-1,Number(match[2])) : length-1;
+    const headers = new Headers(response.headers);
+    headers.delete("Content-Encoding");headers.set("Accept-Ranges","bytes");
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= length || !match[1] && Number(match[2])===0) {
+      headers.set("Content-Range", "bytes */"+length);headers.set("Content-Length","0");
+      return new Response(null,{status:416,headers});
+    }
+    headers.set("Content-Range",`bytes ${start}-${end}/${length}`);headers.set("Content-Length",String(end-start+1));
+    return new Response(bytes.slice(start,end+1),{status:206,headers});
   }
   async function networkResponse(request) {
     try {
@@ -432,13 +475,22 @@ function createRuntime(env, base, resources) {
     );
     // Claim requests only: never reload a document or touch an audio context.
     env.addEventListener("activate", (event) =>
-      event.waitUntil(env.clients.claim()),
+      // Claim is an optimization for existing tabs, not a prerequisite for
+      // serving the next navigation. A stuck browser claim must not leave the
+      // worker activating forever with all new requests queued behind it.
+      event.waitUntil(withDeadline(2000,()=>env.clients.claim()).catch(error=>{
+        void env.clients.matchAll({type:'window'}).then(clients=>{
+          for(const client of clients)report(client,'worker','failed',{cacheReason:reason(error)});
+        }).catch(()=>{});
+      })),
     );
   }
   return {
     reason,
     networkResponse,
+    assetResponse,
     report,
+    reply,
     verified,
     requestURL,
     jsonStore,

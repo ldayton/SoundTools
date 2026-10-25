@@ -40,7 +40,7 @@ const server = createServer(async (request, response) => {
     return;
   }
   const alias = path.match(/\/main-r(\d+)\.js$/);
-  const actualPath = alias ? mainAsset : path;
+  const actualPath = alias ? mainAsset : path.replace(/(dorego-shell-[a-f0-9]+)-r[0-9]+(\/offline-pack[.]json)$/, '$1$2');
   const file = resolve(root, actualPath.slice('/DoReGo/'.length) || 'index.html');
   if (!file.startsWith(root + '/')) {
     response.writeHead(403).end();
@@ -65,7 +65,7 @@ const server = createServer(async (request, response) => {
       const main = revision > 1 ? `/DoReGo/assets/main-r${revision}.js` : mainAsset;
       const hashes = { ...initialPack.hashes };
       delete hashes[mainAsset];
-      hashes['/DoReGo/'] = createHash('sha256').update(revision > 1 ? initialHTML.replaceAll(mainAsset, main) : initialHTML).digest('hex');
+      hashes['/DoReGo/'] = createHash('sha256').update(revision > 1 ? initialHTML.replaceAll(mainAsset, main).replace(/dorego-shell-([a-f0-9]+)/g, `dorego-shell-$1-r${revision}`) : initialHTML).digest('hex');
       hashes[main] = createHash('sha256').update(`window.__testBuild = ${revision};\n` + originalMain).digest('hex');
       if (path.endsWith('offline-pack.json')) {const pack=JSON.parse(body.toString());pack.hashes=hashes;body=JSON.stringify(pack);}
       else body=body.toString().replace(/^const CONFIG = (.*);$/m, (_line, raw) => {const config=JSON.parse(raw);config.hashes=hashes;return 'const CONFIG = '+JSON.stringify(config)+';';});
@@ -96,7 +96,7 @@ const context = await browser.newContext();
 await context.addInitScript(() => { try { localStorage.setItem('dorego:diagnostics:sharing', 'yes'); } catch {} });
 const errors: string[] = [];
 let page = await context.newPage();
-context.on('page', (p) => p.on('pageerror', (error) => errors.push(error.message)));
+context.on('page', (p) => p.on('pageerror', (error) => {errors.push(error.message);console.error('Page error stack:',error.stack)}));
 page.on('pageerror', (error) => errors.push(error.message));
 const ready = async (p: Page) =>
   p.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
@@ -191,13 +191,25 @@ try {
       { once: true }
     );
   });
-  revision = 2;
+
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await other.reload();
   await ready(other);
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 1, 'Cached startup opens immediately before checking for an update');
+  await other.getByRole('button',{name:'Help',exact:true}).click();
+  await other.getByRole('button',{name:'Close how it works',exact:true}).click();
+  const untouched=await context.newPage();let automaticNavigations=0;
+  untouched.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===untouched.mainFrame())automaticNavigations++});
+  await untouched.goto(base);await ready(untouched);
+  revision=2;
+  for(const tab of [other,untouched])await tab.evaluate(()=>window.dispatchEvent(new Event('online')));
+  await untouched.waitForFunction(()=>(window as any).__testBuild===2);
+  assert.equal(automaticNavigations,2,'An untouched page automatically adopts the verified release once');
+  await untouched.close();
+  await other.bringToFront();
+
   await other.getByRole('button', {name:'Update available',exact:true}).waitFor();
-  await other.getByRole('button', {name:'Update available',exact:true}).click();
+  await other.getByRole('button', {name:'Update available',exact:true}).click({noWaitAfter:true});
   // WebKit may finish the click while the old document's Play button is still enabled.
   await other.waitForFunction(() => (window as any).__testBuild === 2);
   await ready(other);

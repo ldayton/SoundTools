@@ -328,3 +328,70 @@ test("exhausted storage tracking still permits a healthy network navigation", as
   );
   assert.equal(await response.text(), "ok");
 });
+
+test("a slow verified cache remains usable when the network is offline or returns 503", async () => {
+  for (const outage of [true, false]) {
+    const {env,runtime}=fixture();
+    env.fetch=async()=>{if(outage)throw new TypeError('offline');return new Response('outage',{status:503})};
+    const response=await runtime.navigate({request:new Request('https://example.test/app/')},{
+      candidates:async()=>['saved'],load:async()=>({version:'saved'}),
+      document:async()=>{await new Promise(resolve=>setTimeout(resolve,1500));return new Response('verified saved app')},
+      remember:async()=>{},latest:async()=>{},
+    });
+    assert.equal(await response.text(),'verified saved app');
+  }
+});
+
+test("a late cache lookup never pins the version of a healthy network document", async()=>{
+  const {runtime}=fixture();let pinned=false;
+  const response=await runtime.navigate({request:new Request('https://example.test/app/')},{
+    candidates:async()=>['old'],load:async()=>({}),document:async()=>{await new Promise(resolve=>setTimeout(resolve,1500));return new Response('old')},
+    remember:async()=>{pinned=true},latest:async()=>{},
+  });
+  assert.equal(await response.text(),'ok');await new Promise(resolve=>setTimeout(resolve,400));assert.equal(pinned,false);
+});
+
+test("damaged advisory JSON metadata cannot prevent release-cache recovery",async()=>{
+  const {runtime,env}=fixture(),cache=await env.caches.open('metadata');
+  const store=runtime.jsonStore('metadata',key=>'https://example.test/app/'+key);
+  for(const body of ['{broken','null','[]','123']){await cache.put('https://example.test/app/latest',new Response(body));assert.equal(await store.read('latest'),null)}
+});
+
+test('complete cached assets support offline byte ranges and HEAD without modifying the stored response',async()=>{
+ const{runtime}=fixture();
+ for(const [range,status,text]of [['bytes=1-3',206,'bcd'],['bytes=3-',206,'def'],['bytes=-2',206,'ef'],['bytes=50-',416,''],['bytes=-0',416,''],['bytes=4-1',416,''],['bytes=0-1,4-5',200,'abcdef'],['invalid',200,'abcdef']]){
+  const response=await runtime.assetResponse(new Request('https://example.test/app/audio',{headers:{Range:range}}),new Response('abcdef'));
+  assert.equal(response.status,status,range);assert.equal(await response.text(),text,range);
+ }
+ const head=await runtime.assetResponse(new Request('https://example.test/app/audio',{method:'HEAD'}),new Response('abcdef',{headers:{'Content-Length':'6'}}));assert.equal(await head.text(),'');assert.equal(head.headers.get('Content-Length'),'6');
+ const full=await runtime.assetResponse(new Request('https://example.test/app/audio',{headers:{Range:'bytes=0-1','If-Range':'"old"'}}),new Response('abcdef',{headers:{ETag:'"new"'}}));assert.equal(full.status,200);
+});
+
+
+test("readiness verification cannot delete a concurrently repaired response", async () => {
+  const {createResources}=require('../index.cjs');
+  let deleted=false;
+  const env={caches:{open:async()=>({match:async()=>new Response('corrupt'),delete:async()=>{deleted=true}})},addEventListener(){}};
+  const offline=createRuntime(env,'/',createResources());
+  assert.equal(await offline.verified('app',[{url:'/asset',sha256:'0'.repeat(64)}]),false);
+  assert.equal(deleted,false);
+});
+
+
+test("explicit update navigation prefers its verified release over a stale latest pointer", async () => {
+ const {env}=fixture(),runtime=createRuntime(env,'/app/');
+ const response=await runtime.navigate({request:new Request('https://example.test/app/?__soundtools_update=new'),waitUntil(){}},{candidates:async()=>['old','new'],load:async id=>({id}),document:async pack=>new Response(pack.id),remember:async()=>{},latest:async()=>{}});
+ assert.equal(await response.text(),'new');
+});
+
+
+test("a stalled claim cannot hold activation and future navigations indefinitely", async()=>{
+ const {env,handlers,runtime}=fixture();env.clients={claim:()=>new Promise(()=>{}),matchAll:async()=>[]};runtime.lifecycle(async()=>{});
+ let activated;const start=Date.now();handlers.activate({waitUntil:task=>activated=task});await activated;
+ assert(Date.now()-start<3000);
+});
+
+
+test("late worker replies to a closed document cannot reject completed jobs",()=>{
+ const {runtime}=fixture();assert.doesNotThrow(()=>runtime.reply({ports:[{postMessage(){throw new DOMException('Context is stopped','InvalidStateError')}}]},{ready:true}));assert.doesNotThrow(()=>runtime.reply({ports:[]},{ready:false}));
+});

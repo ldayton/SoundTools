@@ -6,7 +6,7 @@ The CommonJS build API emits a self-contained worker runtime after `CONFIG.base`
 Both apps consume the same npm workspace source and embed the runtime directly in
 `sw.js`; normal builds never read another checkout. No runtime CDN or registry.
 
-Shared behavior: scoped GET filtering, metadata JSON storage, deadlines, complete
+Shared behavior: scoped GET/HEAD filtering, metadata JSON storage, deadlines, complete
 asset checks, atomic cache population or per-file SHA-256 verification, deduplicated
 serialized staging, cleanup fences, live-tab protection, ten-minute navigation
 grace, cached-first navigation with background staging, and install/activate
@@ -29,3 +29,16 @@ resolve the same source through the root npm lockfile. Commit shared code and ap
 adapters together; no tarball synchronization or sibling checkout is needed.
 `test:offline` and `test:updates` exercise actual generated workers, not a runtime
 mock. Install all workspace dependencies with `npm ci` at the root.
+
+
+`createUpdatePolicy()` applies a verified release only before interaction and while
+visible. `startupHTML()` captures interaction before external scripts run and
+provides a dependency-free delayed startup retry. Apps dispatch `soundtools:ready`
+after successful UI initialization. `createWorkerSession()` aborts and closes
+obsolete RPC channels when a document is suspended or its worker changes.
+Adapters must reset their UI operation flags as well as the session, and preserve
+explicit download intent across those interruptions.
+
+Cached navigation has a fast path and retains a bounded late recovery candidate
+while trying the network. `assetResponse()` serves HEAD and single byte ranges
+from complete saved files; partial responses are never written as complete files.

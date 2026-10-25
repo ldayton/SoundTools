@@ -10,3 +10,5 @@ const offlineOutput=path.resolve(__dirname,'../dist/vendor/offline');
 fs.mkdirSync(offlineOutput,{recursive:true});
 fs.copyFileSync(path.join(offline,'resources.cjs'),path.join(offlineOutput,'resources.js'));
 fs.copyFileSync(path.join(offline,'LICENSE'),path.join(offlineOutput,'LICENSE'));
+
+fs.copyFileSync(path.join(offline,'client.cjs'),path.join(offlineOutput,'client.js'));

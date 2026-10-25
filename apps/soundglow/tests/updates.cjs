@@ -11,7 +11,7 @@ capture.write('RIFF');capture.writeUInt32LE(capture.length-8,4);capture.write('W
 for(let i=0;i<count;i++){const x=i*rate/48000,a=Math.floor(x),b=Math.min(a+1,pcm.length/2-1);capture.writeInt16LE(Math.round(pcm.readInt16LE(a*2)*(1-x+a)+pcm.readInt16LE(b*2)*(x-a)),44+i*2)}
 const microphone=path.join(work,'capture.wav');fs.writeFileSync(microphone,capture);
 const releases=[];
-for(let revision=0;revision<3;revision++){
+for(let revision=0;revision<4;revision++){
  const source=path.join(work,'source-'+revision),out=path.join(work,'site-'+revision);fs.cpSync(path.join(root,'dist'),source,{recursive:true});fs.appendFileSync(path.join(source,'style.css'),'\n/* test release '+revision+' */');
  // CI has a real previous-site for deployment retention; fixtures must stay isolated.
  const pack=build({source,out,base:'/Soundglow/',previous:path.join(work,'no-previous-site')});releases.push({out,pack});
@@ -31,7 +31,7 @@ const retained=path.join(work,'retained-site');build({source:path.join(work,'sou
 for(const file of releases[0].pack.files)assert(fs.existsSync(path.join(retained,file.url.slice('/Soundglow/'.length))),'Previous deployment asset retained');
 assert.equal(JSON.parse(fs.readFileSync(path.join(retained,'release-history.json'))).length,2);
 let revision=0,fault=null,modelFailures=0,holdModel=false,modelAborted=false,failDiscovery=false;const requests=[];
-const server=http.createServer((req,res)=>{
+const server=http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');requests.push(url.pathname+url.search);
  if(failDiscovery&&url.pathname==='/Soundglow/release.json'){res.writeHead(503).end();return}
  if(!url.pathname.startsWith('/Soundglow/')){res.writeHead(404).end();return}
@@ -52,6 +52,7 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  assert.equal(await page.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version);
  await page.locator('#begin').click();await page.waitForFunction(()=>running&&processingStats.frames>200);
  const other=await context.newPage();other.on('pageerror',e=>errors.push(e.message));await other.goto(url);await other.waitForFunction(()=>!!navigator.serviceWorker.controller);
+ await other.locator('#openSettings:visible, #settings:visible').click();await other.locator('#openSettings:visible, #settings:visible').click();
  const before=await page.evaluate(()=>processingStats.frames),wasmBefore=requests.filter(p=>p.split('?')[0].endsWith('.wasm')).length;
  revision=1;
  // Let the production check throttle elapse while real microphone processing continues.
@@ -96,8 +97,24 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await other.getByRole('button',{name:'Download for offline use',exact:true}).waitFor();
  for(let i=0;i<100&&!modelAborted;i++)await other.waitForTimeout(50);
  assert(modelAborted,'Cancellation aborts the in-flight model transfer');
- holdModel=false;modelFailures=1;
+ // Kill the actual service worker while a model transfer is held. The page's
+ // liveness probe must exit its busy state without waiting for the long RPC timeout.
+ const cdp=await context.newCDPSession(other);let versions=[];
+ cdp.on('ServiceWorker.workerVersionUpdated',event=>{versions=event.versions});
+ await cdp.send('ServiceWorker.enable');
+ const stoppedBefore=requests.filter(p=>p.endsWith('/silero.onnx')).length;
  await other.getByRole('button',{name:'Download for offline use',exact:true}).click();
+ await other.waitForFunction(()=>!document.getElementById('offlineProgress').hidden);
+ for(let i=0;i<100&&requests.filter(p=>p.endsWith('/silero.onnx')).length===stoppedBefore;i++)await other.waitForTimeout(50);
+ const active=versions.find(v=>v.status==='activated'&&v.scriptURL===url+'sw.js');assert(active,'Find the active worker through Chromium');
+ await cdp.send('ServiceWorker.stopWorker',{versionId:active.versionId});
+ await other.getByRole('button',{name:'Resume download',exact:true}).waitFor({timeout:30000});
+ assert.equal(await other.locator('#offlineProgress').isHidden(),true,'A stopped worker cannot leave the page permanently busy');
+ assert.equal(await other.evaluate(()=>localStorage.getItem('soundglow.offlineDownloadWanted')),'yes');
+ await cdp.detach();
+ console.log('PASS: real worker termination during transfer recovers the UI and preserves resume intent');
+ holdModel=false;modelFailures=1;
+ await other.getByRole('button',{name:'Resume download',exact:true}).click();
  await other.waitForFunction(()=>document.getElementById('offlineStatus').textContent.includes('Available offline'));
  assert(requests.filter(p=>p.endsWith('/silero.onnx')).length>=2,'Transient model failure retried');
  await context.setOffline(true);await other.reload();
@@ -138,14 +155,28 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await other.evaluate(async html=>{const cache=await caches.open('soundglow-assets-v1');await cache.put(html,new Response('corrupt cached document',{headers:{'Content-Type':'text/html'}}))},releases[1].pack.html);
  await context.setOffline(true);await other.reload();
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version,'Corrupt cached HTML must never be used as the startup document');
- await context.setOffline(false);assert.equal((await rpc(other)).ready,true);await other.reload();
+ await other.locator('#openSettings:visible, #settings:visible').click();
+ await context.setOffline(false);assert.equal((await rpc(other)).ready,true);await other.reload({waitUntil:'commit'});
+ await other.waitForFunction(version=>document.querySelector('meta[name="soundglow-release"]')?.content===version,releases[1].pack.version);
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version,'Online repair restores the latest verified release');
  console.log('PASS: cancellation aborts transfers; corrupted startup document falls back and repairs');
  // Installing a worker already saves its embedded release; startup must use it even if discovery is down.
- revision=2;fault=null;failDiscovery=true;
- await other.evaluate(async()=>{const changed=new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));await(await navigator.serviceWorker.getRegistration()).update();await changed});
+ revision=1;fault=null;
+ const untouched=await context.newPage();let automaticNavigations=0;untouched.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===untouched.mainFrame())automaticNavigations++});
+ await untouched.goto(url,{waitUntil:'commit',timeout:15000});
+ await untouched.waitForFunction(()=>!!document.querySelector('meta[name="soundglow-release"]'));
+ assert.equal(await untouched.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version);
+ revision=2;
+ for(const tab of [other,untouched])await tab.evaluate(()=>window.dispatchEvent(new Event('online')));
+ await untouched.waitForFunction(version=>document.querySelector('meta[name="soundglow-release"]').content===version,releases[2].pack.version);
+ assert.equal(automaticNavigations,2,'An untouched cached page automatically opens the verified update once');await untouched.close();await other.bringToFront();
+ await other.evaluate(async version=>{const cache=await caches.open('soundglow-clients-v1');await cache.put(new URL('/Soundglow/__cache__/latest',location.origin),new Response(JSON.stringify({version})))},releases[1].pack.version);
+ failDiscovery=true;revision=3;
+ await other.evaluate(async()=>{await(await navigator.serviceWorker.getRegistration()).update()});
+ for(let i=0;i<100;i++){state=await rpc(other);if(state.workerVersion===releases[3].pack.version)break;await other.waitForTimeout(100)}
+ assert.equal(state.workerVersion,releases[3].pack.version,'Wait for the intended worker generation, not an earlier pending controllerchange');
  await context.setOffline(true);await other.reload();
- assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[2].pack.version,'Newly installed release must supersede a stale discovery pointer while offline');
+ assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[3].pack.version,'Newly installed release must supersede a stale discovery pointer while offline');
  console.log('PASS: newly installed release opens offline without update discovery');
  assert.deepEqual(errors,[]);assert(requests.some(p=>p.includes('/release.json?check=')),'Release discovery must bypass stale CDN URLs');
  await other.screenshot({path:path.join(work,'offline-example.png')});

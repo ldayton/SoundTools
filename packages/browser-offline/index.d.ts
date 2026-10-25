@@ -29,3 +29,12 @@ export interface Resources {
   busy(): boolean;
 }
 export function createResources(env?: unknown): Resources;
+
+export function createUpdatePolicy(options: {env?: unknown; app: string; current: string; apply?: (version:string) => void}): {offer(next: string): boolean; dispose(): void};
+
+export function createWorkerSession(options: {env?: unknown; resources: Resources}): {call<T=unknown>(type:string, data?:Record<string,unknown>, timeout?:number, signal?:AbortSignal):Promise<T>;settle(registration:ServiceWorkerRegistration|undefined, timeout?:number):Promise<void>;reset(reason?:unknown):void;abort(reason?:unknown):void;generation():number;signal():AbortSignal};
+
+/** Inline first-interaction tracking and a dependency-free startup retry. */
+export function startupHTML(): string;
+
+export function applyUpdate(version:string, env?:unknown):void;

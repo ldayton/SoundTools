@@ -1,4 +1,4 @@
-import { workerSource } from '@ldayton/browser-offline';
+import { workerSource, startupHTML } from '@ldayton/browser-offline';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -16,6 +16,8 @@ export function offlineBuild(release?: string): Plugin {
       base = config.base;
     },
     generateBundle(_options, bundle) {
+      const html = bundle['index.html'];
+      if (html?.type === 'asset') html.source = String(html.source).replace('<head>', '<head>' + startupHTML());
       if (release) this.emitFile({ type: 'asset', fileName: 'diagnostics-release.json', source: JSON.stringify({ release }) });
       const sounds = ['bitklavier-web-v1', 'vsco-cello'].flatMap((folder) =>
         readdirSync(resolve('public/samples', folder))
@@ -72,8 +74,15 @@ export function offlineBuild(release?: string): Plugin {
       ])
         version.update(readFileSync(resolve('public', path)));
       const shellCache = `dorego-shell-${version.digest('hex').slice(0, 16)}`;
+      const packURL = base + `releases/${shellCache}/offline-pack.json`;
+      const index = bundle['index.html'];
+      if (index?.type === 'asset') {
+        index.source = String(index.source).replace('<head>', `<head><meta name="dorego-shell" content="${shellCache}"><meta name="dorego-inventory" content="${packURL}">`);
+        hashes[base] = createHash('sha256').update(index.source).digest('hex');
+      }
       const pack = JSON.stringify({ cache: soundCache, files, shellCache, shell, hashes });
-      const worker = offlineWorker({ shell: shellCache, sounds: soundCache, files: shell, hashes, base });
+      const worker = offlineWorker({ shell: shellCache, sounds: soundCache, files: shell, hashes, base, packURL });
+      this.emitFile({ type: 'asset', fileName: packURL.slice(base.length), source: pack });
       this.emitFile({ type: 'asset', fileName: 'offline-pack.json', source: pack });
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: worker });
     },

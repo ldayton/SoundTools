@@ -7,6 +7,7 @@ export function offlineWorker(config: {
   files: string[];
   hashes?: Record<string, string>;
   base: string;
+  packURL?: string;
 }) {
   return (
     `const CONFIG = ${JSON.stringify(config)};\n` +
@@ -17,6 +18,16 @@ const inventories = new Map();
 const usableInventories = new Set();
 const META = 'dorego-clients-v1';
 const manifestURL = ROOT + 'offline-pack.json';
+function validPack(pack){
+  try{
+    const path=url=>typeof url==='string'&&url.startsWith(ROOT)&&new URL(url,self.location.origin).pathname===url;
+    return shellName(pack?.shellCache)&&soundName(pack.cache)&&Array.isArray(pack.shell)&&pack.shell.length>0&&pack.shell.length<=1024&&Array.isArray(pack.files)&&pack.files.length<=1024&&
+      new Set(pack.shell).size===pack.shell.length&&pack.shell.includes(ROOT)&&pack.shell.includes(manifestURL)&&pack.shell.every(path)&&
+      new Set(pack.files.map(f=>f.url)).size===pack.files.length&&pack.files.every(f=>path(f.url)&&f.url.startsWith(ROOT+'samples/')&&Number.isSafeInteger(f.bytes)&&f.bytes>0&&f.bytes<=64*1024*1024&&(!f.sha256||/^[a-f0-9]{64}$/.test(f.sha256)))&&
+      (!pack.hashes||typeof pack.hashes==='object'&&pack.shell.every(url=>url===manifestURL||/^[a-f0-9]{64}$/.test(pack.hashes[url])));
+  }catch{return false}
+}
+
 const metadataURL = id => new URL(ROOT + '__offline_client__/' + id, self.location.origin).href;
 const metadata = offline.jsonStore(META, metadataURL);
 let latestTask;
@@ -26,7 +37,7 @@ async function latest(){
     const response=await fetch(manifestURL,{cache:'no-store',signal});
     if(!response.ok)throw Object.assign(Error('No update inventory'),{offlineReason:response.status>=500?'network':'unavailable'});
     const pack=await response.json();
-    if(!shellName(pack.shellCache)||!soundName(pack.cache))throw Error('Invalid inventory');
+    if(!validPack(pack))throw Object.assign(Error('Invalid inventory'),{offlineReason:'integrity'});
     await offline.publish(pack.shellCache,async()=>{
       await offline.stageAssets(pack.shellCache,pack.shell.filter(url=>url!==manifestURL).map(url=>({url,sha256:pack.hashes?.[url]})),{signal});
       signal.throwIfAborted();await(await caches.open(pack.shellCache)).put(manifestURL,new Response(JSON.stringify(pack),{headers:{'Content-Type':'application/json'}}));
@@ -54,7 +65,8 @@ async function inventory(name) {
   if (inventories.has(name)) return inventories.get(name);
   const response = await (await caches.open(name)).match(manifestURL);
   if (!response?.ok) return null;
-  const pack = await response.json();
+  const pack = await response.json().catch(()=>null);
+  if(!validPack(pack))return null;
   inventories.set(name, pack);
   return pack;
 }
@@ -65,7 +77,7 @@ async function usableInventory(name) {
 async function cachedVersion(id) {
   const known=await clientVersion(id);
   if(known){const pack=await usableInventory(known.shellCache);if(pack)return pack;}
-  const newest=await metadata.read('latest');
+  const newest=await metadata.read('latest').catch(()=>null);
   if(newest){const pack=await usableInventory(newest.shellCache);if(pack)return pack;}
   for(const name of(await caches.keys()).filter(shellName).reverse()){
     const pack=await usableInventory(name);if(pack)return pack;
@@ -88,8 +100,8 @@ async function cleanup() { return offline.cleanup(async () => {
   for (const request of entries) {
     const response = await meta.match(request);
     if (!response) continue;
-    const record = await response.json();
-    if (offline.recent(record.savedAt)) { keep.add(record.shellCache); keep.add(record.cache); }
+    const record = await response.json().catch(()=>null);
+    if (record && offline.recent(record.savedAt)) { keep.add(record.shellCache); keep.add(record.cache); }
   }
   for (const name of await caches.keys()) {
     if ((shellName(name) || soundName(name)) && !keep.has(name)) { await caches.delete(name); inventories.delete(name); usableInventories.delete(name); }
@@ -98,27 +110,28 @@ async function cleanup() { return offline.cleanup(async () => {
   for (const request of entries) {
     const response = await meta.match(request);
     if (!response) continue;
-    const record = await response.json();
+    const record = await response.json().catch(()=>null);
+    if (!record){await meta.delete(request);continue;}
     if (request.url !== metadataURL('latest') && !ids.has(request.url) && !offline.recent(record.savedAt)) await meta.delete(request);
   }
 }); }
 // Publish the inventory last, only after the complete interface is verified.
 offline.lifecycle(() => offline.withDeadline(60000, signal => offline.publish(CONFIG.shell, async () => {
   await offline.stageAssets(CONFIG.shell, CONFIG.files.filter(url=>url!==manifestURL).map(url=>({url,sha256:CONFIG.hashes?.[url]})),{signal});
-  const response=await fetch(manifestURL,{cache:'reload',signal});if(!response.ok)throw Error('Offline inventory unavailable');
+  const response=await fetch(CONFIG.packURL||manifestURL,{cache:'reload',signal});if(!response.ok)throw Error('Offline inventory unavailable');
   const pack=await response.json();signal.throwIfAborted();
-  if(pack.shellCache!==CONFIG.shell||CONFIG.hashes&&Object.entries(CONFIG.hashes).some(([url,hash])=>pack.hashes?.[url]!==hash))throw Object.assign(Error('Inconsistent installation'),{offlineReason:'integrity'});
+  if(!validPack(pack)||pack.shellCache!==CONFIG.shell||CONFIG.hashes&&Object.entries(CONFIG.hashes).some(([url,hash])=>pack.hashes?.[url]!==hash))throw Object.assign(Error('Inconsistent installation'),{offlineReason:'integrity'});
   await(await caches.open(CONFIG.shell)).put(manifestURL,new Response(JSON.stringify(pack),{headers:{'Content-Type':'application/json'}}));
   if(!await savedDocument(pack))throw Object.assign(Error('Incomplete installation'),{offlineReason:'integrity'});
   signal.throwIfAborted();await metadata.write('latest',{shellCache:pack.shellCache,cache:pack.cache,savedAt:Date.now()});
 })));
 self.addEventListener('message', event => {
-  if(event.data?.type==='prepare-update'){event.waitUntil((async()=>{try{const pack=await latest();event.ports[0]?.postMessage({ready:true,shellCache:pack.shellCache})}catch(error){event.ports[0]?.postMessage({ready:false,reason:offline.reason(error)})}})());return;}
+  if(event.data?.type==='prepare-update'){event.waitUntil((async()=>{try{const pack=await latest();offline.reply(event,{ready:true,shellCache:pack.shellCache})}catch(error){offline.reply(event,{ready:false,reason:offline.reason(error)})}})());return;}
   if (event.data?.type !== 'using-cache' || !event.source?.id) return;
   event.waitUntil((async () => { await remember(event.source.id, event.data); await cleanup(); })().catch(error => offline.report(event.source, 'storage', 'failed', {cacheReason:offline.reason(error)})));
 });
 async function savedDocument(pack) {
-  if (!await offline.complete(pack.shellCache, pack.shell) || pack.hashes && !await offline.verified(pack.shellCache,pack.shell.filter(url=>url!==manifestURL).map(url=>({url,sha256:pack.hashes[url]})))) {usableInventories.delete(pack.shellCache);return null;}
+  if (!validPack(pack) || !await offline.complete(pack.shellCache, pack.shell) || pack.hashes && !await offline.verified(pack.shellCache,pack.shell.filter(url=>url!==manifestURL).map(url=>({url,sha256:pack.hashes[url]})))) {usableInventories.delete(pack.shellCache);return null;}
   const html = await (await caches.open(pack.shellCache)).match(ROOT);
   if (!html?.ok) {usableInventories.delete(pack.shellCache);return null;}
   // The HTML and inventory must refer to the same interface generation.
@@ -133,7 +146,7 @@ function navigation(event) {
   return offline.navigate(event, {
     latest,
     candidates: async () => {
-      const known = await clientVersion(event.clientId), newest = await metadata.read('latest');
+      const known = await clientVersion(event.clientId), newest = await metadata.read('latest').catch(()=>null);
       return [...new Set([newest?.shellCache, known?.shellCache, ...(await caches.keys()).filter(shellName).reverse()])].filter(Boolean);
     },
     load: inventory, document: savedDocument, remember
@@ -146,29 +159,37 @@ self.addEventListener('fetch', event => {
     event.respondWith(navigation(event)); return;
   }
   event.respondWith((async () => {
+    const pinned=url.pathname.slice(ROOT.length).match(/^releases\/(dorego-shell-[a-f0-9]{16}(?:-r[0-9]+)?)\/offline-pack[.]json$/)?.[1];
+    if(pinned){
+      const saved=await offline.withDeadline(1500,async()=>{
+        if(!await caches.has(pinned))return null;
+        const pack=await usableInventory(pinned);return pack?(await caches.open(pinned)).match(manifestURL):null;
+      }).catch(()=>null);
+      return saved?offline.assetResponse(request,saved):offline.networkResponse(request);
+    }
     let file, soundCache;
     const cached = await offline.withDeadline(1500, async () => {
       const pack=await cachedVersion(event.clientId);
       file=pack?.files.find(file=>file.url===url.pathname);
       if(file){
         soundCache=pack.cache;
-        const cache=await caches.open(soundCache), response=await cache.match(request);
-        if(response && request.cache !== 'reload'){try{await offlineResources.verify(await response.clone().arrayBuffer(),file);return response}catch(error){if(error.offlineReason!=='integrity'||request.signal.aborted)throw error;await cache.delete(request);}}
+        const cache=await caches.open(soundCache), response=await cache.match(url.pathname);
+        if(response && request.cache !== 'reload'){try{await offlineResources.verify(await response.clone().arrayBuffer(),file);return response}catch(error){if(error.offlineReason!=='integrity'||request.signal.aborted)throw error;await cache.delete(url.pathname);}}
       }
       if(pack?.shell.includes(url.pathname))return (await caches.open(pack.shellCache)).match(url.pathname);
       if(url.pathname.startsWith(ROOT+'assets/'))for(const name of(await caches.keys()).filter(shellName)){
         const response=await(await caches.open(name)).match(request);if(response)return response;
       }
     }).catch(error=>{void self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)})).catch(()=>{});return null});
-    if(cached)return cached;
-    if(!file)return offline.networkResponse(request);
+    if(cached)return offline.assetResponse(request,cached);
+    if(!file||request.method==='HEAD')return offline.networkResponse(request);
     let bytes;
     try { bytes=await offlineResources.fetchBytes(request.url,{...file,signal:request.signal,attempts:1,timeoutMs:25000,idleMs:7000}); }
     catch(error){const reason=offline.reason(error);return new Response('',{status:reason==='unavailable'?404:503,headers:{'X-Offline-Reason':reason}});}
     const response=new Response(bytes,{headers:{'Content-Type':'audio/flac','Content-Length':String(bytes.byteLength)}});
     const saved=response.clone();
-    event.waitUntil(offline.withDeadline(1500,async()=>{await(await caches.open(soundCache)).put(request,saved)}).catch(error=>self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)})).catch(()=>{})));
-    return response;
+    event.waitUntil(offline.withDeadline(1500,async()=>{await(await caches.open(soundCache)).put(url.pathname,saved)}).catch(error=>self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)})).catch(()=>{})));
+    return offline.assetResponse(request,response);
   })());
 });
 `

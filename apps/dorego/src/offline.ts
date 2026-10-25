@@ -1,11 +1,17 @@
 import { diagnostics } from './diagnostics';
-import { createResources } from '@ldayton/browser-offline';
+import {
+  createResources,
+  createUpdatePolicy,
+  createWorkerSession,
+  applyUpdate,
+} from '@ldayton/browser-offline';
 
 type SoundPack = {
   cache: string;
   files: { url: string; bytes: number; sha256?: string }[];
   shellCache: string;
   shell: string[];
+  hashes?: Record<string, string>;
 };
 const resources = createResources();
 export function setupOffline() {
@@ -14,9 +20,18 @@ export function setupOffline() {
   const status = document.querySelector<HTMLElement>('#offline-status')!;
   const progress = document.querySelector<HTMLProgressElement>('#offline-progress')!;
   const base = import.meta.env.BASE_URL;
+  const expectedShell = document.querySelector<HTMLMetaElement>(
+    'meta[name="dorego-shell"]'
+  )?.content;
+  const inventoryURL =
+    document.querySelector<HTMLMetaElement>('meta[name="dorego-inventory"]')?.content ||
+    `${base}offline-pack.json`;
+  const session = createWorkerSession({ resources });
+  const freshness = createUpdatePolicy({ app: 'dorego', current: expectedShell || 'unversioned' });
   let pack: SoundPack | undefined,
     downloading: AbortController | null = null;
-  let active = true;
+  let active = true,
+    interfaceNeedsRepair = false;
   let checkGeneration = 0,
     lastComplete: boolean | undefined,
     initializing: Promise<void> | null = null;
@@ -74,7 +89,8 @@ export function setupOffline() {
                 await resources.verify(await response.arrayBuffer(), file);
                 return true;
               } catch (error) {
-                if ((error as { offlineReason?: string }).offlineReason !== 'integrity') throw error;
+                if ((error as { offlineReason?: string }).offlineReason !== 'integrity')
+                  throw error;
                 if (!active || generation !== checkGeneration) return false;
                 await cache.delete(file.url);
                 diagnostics.offline('storage', 'failed', { cacheReason: 'integrity' }, error);
@@ -85,8 +101,28 @@ export function setupOffline() {
         })
       );
       const shell = await readCache(() => caches.open(current.shellCache));
-      const interfacePresent = await readCache(() =>
-        Promise.all(current.shell.map(async (url) => (await shell.match(url))?.ok))
+      const interfacePresent: boolean[] = [];
+      const shellFiles = current.shell.map((url, index) => ({ url, index }));
+      await Promise.all(
+        Array.from({ length: 2 }, async () => {
+          while (shellFiles.length) {
+            const { url, index } = shellFiles.shift()!;
+            interfacePresent[index] = await readCache(async () => {
+              const response = await shell.match(url);
+              if (!response?.ok) return false;
+              const sha256 = current.hashes?.[url];
+              if (!sha256) return true;
+              try {
+                await resources.verify(await response.arrayBuffer(), { sha256 });
+                return true;
+              } catch (error) {
+                if ((error as { offlineReason?: string }).offlineReason !== 'integrity')
+                  throw error;
+                return false;
+              }
+            });
+          }
+        })
       );
       const complete = present.every(Boolean) && interfacePresent.every(Boolean);
       if (generation !== checkGeneration || downloading) return;
@@ -98,13 +134,16 @@ export function setupOffline() {
         });
         lastComplete = complete;
       }
-      status.textContent = complete
-        ? '✓ Available offline'
-        : `Save all exercises and sounds · ${Math.ceil(current.files.reduce((sum, f) => sum + f.bytes, 0) / 1e6)} MB`;
+      interfaceNeedsRepair = !interfacePresent.every(Boolean);
+      status.textContent = interfaceNeedsRepair
+        ? 'Offline app needs repair. Reload when connected.'
+        : complete
+          ? '✓ Available offline'
+          : `Save all exercises and sounds · ${Math.ceil(current.files.reduce((sum, f) => sum + f.bytes, 0) / 1e6)} MB`;
       status.classList.toggle('is-ready', complete);
       button.hidden = complete;
       button.disabled = false;
-      button.textContent = 'Download for offline use';
+      button.textContent = interfaceNeedsRepair ? 'Repair offline app' : 'Download for offline use';
       if (complete) rememberIntent(false);
       else if (resumeWanted && !document.hidden) void download();
     } catch (error) {
@@ -121,6 +160,7 @@ export function setupOffline() {
     if (downloading || !pack) return;
     clearTimeout(retryTimer);
     rememberIntent(true);
+    const epoch = session.generation();
     const current = pack,
       controller = new AbortController(),
       started = performance.now();
@@ -209,6 +249,7 @@ export function setupOffline() {
         })
       );
       controller.signal.throwIfAborted();
+      if (!active || epoch !== session.generation()) return;
       diagnostics.offline('download', 'ready', {
         durationMs: performance.now() - started,
         byteCount: completed,
@@ -219,6 +260,7 @@ export function setupOffline() {
       downloading = null;
       await check();
     } catch (error) {
+      if (!active || epoch !== session.generation()) return;
       const reason = error as { offlineReason?: string; name?: string };
       const cancelled = controller.signal.reason?.name === 'AbortError';
       diagnostics.offline(
@@ -249,8 +291,10 @@ export function setupOffline() {
       button.textContent = 'Resume download';
       button.disabled = false;
     } finally {
-      downloading = null;
-      progress.hidden = true;
+      if (epoch === session.generation()) {
+        downloading = null;
+        progress.hidden = true;
+      }
     }
   }
   button.onclick = () => {
@@ -258,6 +302,10 @@ export function setupOffline() {
       rememberIntent(false);
       clearTimeout(retryTimer);
       downloading.abort();
+      return;
+    }
+    if (interfaceNeedsRepair) {
+      location.reload();
       return;
     }
     if (!pack) {
@@ -271,119 +319,138 @@ export function setupOffline() {
       .catch((error) => diagnostics.offline('storage', 'failed', {}, error));
     void download();
   };
-  update.onclick = () => location.reload();
-  function rpc(): Promise<{ ready: boolean; shellCache?: string; reason?: string }> {
-    return resources.deadline(
-      40000,
-      (signal) =>
-        new Promise((resolve, reject) => {
-          const channel = new MessageChannel();
-          const abort = () => {
-            channel.port1.close();
-            reject(signal.reason);
-          };
-          signal.addEventListener('abort', abort, { once: true });
-          channel.port1.onmessage = ({ data }) => {
-            signal.removeEventListener('abort', abort);
-            channel.port1.close();
-            resolve(data);
-          };
-          try {
-            navigator.serviceWorker.controller!.postMessage({ type: 'prepare-update' }, [
-              channel.port2,
-            ]);
-          } catch (error) {
-            signal.removeEventListener('abort', abort);
-            channel.port1.close();
-            reject(error);
-          }
-        })
+  update.onclick = () =>
+    update.dataset.release ? applyUpdate(update.dataset.release) : location.reload();
+  const rpc = () =>
+    session.call<{ ready: boolean; shellCache?: string; reason?: string }>(
+      'prepare-update',
+      {},
+      40000
     );
-  }
-  async function checkUpdate() {
+  async function checkUpdate(force = false) {
     if (
+      !active ||
       !pack ||
       updating ||
       document.hidden ||
-      Date.now() - lastUpdate < 15000 ||
+      (!force && Date.now() - lastUpdate < 15000) ||
       !navigator.serviceWorker.controller
     )
       return;
+    const epoch = session.generation();
     updating = true;
     lastUpdate = Date.now();
     const started = performance.now();
     diagnostics.offline('update', 'started');
     try {
       const reply = await rpc();
+      if (!active || epoch !== session.generation()) return;
+      // Finish worker replacement before offering a navigation. Otherwise a
+      // newly refreshed tab can close while its replacement is still activating.
+      await resources.deadline(15000, () => registration?.update(), session.signal());
+      await session.settle(registration);
+      if (!active || epoch !== session.generation()) return;
       diagnostics.offline('update', reply.ready ? 'ready' : 'failed', {
         durationMs: performance.now() - started,
         ...(reply.reason ? { cacheReason: reply.reason } : {}),
       });
-      if (reply.ready) update.hidden = reply.shellCache === pack.shellCache;
+      if (reply.ready) {
+        update.hidden = reply.shellCache === pack.shellCache;
+        if (!update.hidden && reply.shellCache) {
+          update.dataset.release = reply.shellCache;
+          freshness.offer(reply.shellCache);
+        }
+      }
     } catch (error) {
-      diagnostics.offline('update', 'failed', {}, error);
+      if (active && epoch === session.generation())
+        diagnostics.offline('update', 'failed', {}, error);
     } finally {
-      updating = false;
+      if (epoch === session.generation()) updating = false;
     }
-    void registration
-      ?.update()
-      .catch((error) => diagnostics.offline('worker', 'failed', {}, error));
+    if (!active || epoch !== session.generation()) return;
   }
   function initialize(): Promise<void> {
     if (initializing) return initializing;
-    const started = performance.now();
+    const epoch = session.generation(),
+      signal = session.signal(),
+      started = performance.now();
     diagnostics.offline('setup', 'started');
     initializing = (async () => {
       try {
-        // Existing cached pages do not wait on a potentially hanging sw.js update.
-        if (navigator.serviceWorker.controller) {
-          registration = await resources.deadline(2000, () =>
-            navigator.serviceWorker.getRegistration()
+        if (navigator.serviceWorker.controller)
+          registration = await resources.deadline(
+            2000,
+            () => navigator.serviceWorker.getRegistration(),
+            signal
           );
-        }
-        if (!navigator.serviceWorker.controller) {
-          registration = await resources.deadline(15000, () =>
-            navigator.serviceWorker.register(`${base}sw.js`, {
-              scope: base,
-              updateViaCache: 'none',
-            })
+        else {
+          registration = await resources.deadline(
+            15000,
+            () =>
+              navigator.serviceWorker.register(`${base}sw.js`, {
+                scope: base,
+                updateViaCache: 'none',
+              }),
+            signal
           );
           diagnostics.observeOffline(registration);
-          await resources.deadline(15000, () => navigator.serviceWorker.ready);
+          await resources.deadline(60000, () => navigator.serviceWorker.ready, signal);
           if (!navigator.serviceWorker.controller)
             await resources.deadline(
               5000,
-              (signal) =>
+              (inner) =>
                 new Promise<void>((resolve, reject) => {
+                  const cleanup = () => {
+                    navigator.serviceWorker.removeEventListener('controllerchange', done);
+                    inner.removeEventListener('abort', abort);
+                  };
                   const done = () => {
                       cleanup();
                       resolve();
                     },
                     abort = () => {
                       cleanup();
-                      reject(signal.reason);
-                    },
-                    cleanup = () => {
-                      navigator.serviceWorker.removeEventListener('controllerchange', done);
-                      signal.removeEventListener('abort', abort);
+                      reject(inner.reason);
                     };
                   navigator.serviceWorker.addEventListener('controllerchange', done, {
                     once: true,
                   });
-                  signal.addEventListener('abort', abort, { once: true });
-                })
+                  inner.addEventListener('abort', abort, { once: true });
+                }),
+              signal
             );
         }
-        const bytes = await resources.fetchBytes(`${base}offline-pack.json`, {
+        const bytes = await resources.fetchBytes(inventoryURL, {
+          signal,
           timeoutMs: 8000,
           idleMs: 5000,
           attempts: 2,
         });
+        if (!active || epoch !== session.generation()) return;
         const candidate = JSON.parse(new TextDecoder().decode(bytes)) as SoundPack;
-        if (!candidate.shellCache?.startsWith('dorego-shell-') || !candidate.cache?.startsWith('dorego-sounds-') || !Array.isArray(candidate.files) || !Array.isArray(candidate.shell) ||
-          !candidate.files.every(file => {const url=new URL(file.url,location.href);return url.origin===location.origin&&url.pathname.startsWith(base+'samples/')&&Number.isSafeInteger(file.bytes)&&file.bytes>0&&file.bytes<=64*1024*1024&&(!file.sha256||/^[a-f0-9]{64}$/.test(file.sha256));}) ||
-          !candidate.shell.every(path => {const url=new URL(path,location.href);return url.origin===location.origin&&url.pathname.startsWith(base);}))
-          throw Object.assign(Error('Invalid offline inventory'),{offlineReason:'integrity'});
+        if (
+          (expectedShell && candidate.shellCache !== expectedShell) ||
+          !candidate.shellCache?.startsWith('dorego-shell-') ||
+          !candidate.cache?.startsWith('dorego-sounds-') ||
+          !Array.isArray(candidate.files) ||
+          !Array.isArray(candidate.shell) ||
+          !candidate.files.every((file) => {
+            const url = new URL(file.url, location.href);
+            return (
+              url.origin === location.origin &&
+              url.pathname.startsWith(base + 'samples/') &&
+              Number.isSafeInteger(file.bytes) &&
+              file.bytes > 0 &&
+              file.bytes <= 64 * 1024 * 1024 &&
+              (!file.sha256 || /^[a-f0-9]{64}$/.test(file.sha256))
+            );
+          }) ||
+          !candidate.shell.every((path) => {
+            const url = new URL(path, location.href);
+            return url.origin === location.origin && url.pathname.startsWith(base);
+          })
+        )
+          throw Object.assign(Error('Invalid offline inventory'), { offlineReason: 'integrity' });
         pack = candidate;
         navigator.serviceWorker.controller?.postMessage({
           type: 'using-cache',
@@ -392,10 +459,12 @@ export function setupOffline() {
         });
         if (registration) diagnostics.observeOffline(registration);
         await check();
+        if (!active || epoch !== session.generation()) return;
         diagnostics.offline('setup', 'ready', { durationMs: performance.now() - started });
         retryDelay = 30000;
         void checkUpdate();
       } catch (error) {
+        if (!active || epoch !== session.generation()) return;
         diagnostics.offline('setup', 'failed', { durationMs: performance.now() - started }, error);
         status.textContent =
           'Offline setup unavailable. Retry when your connection or storage improves.';
@@ -404,20 +473,23 @@ export function setupOffline() {
         button.textContent = 'Retry offline setup';
         schedule();
       }
-    })().finally(() => (initializing = null));
+    })().finally(() => {
+      if (epoch === session.generation()) initializing = null;
+    });
     return initializing;
   }
-  const wake = () => {
+  const wake = (force = false) => {
+    if (!active) return;
     if (!pack) void initialize();
     else {
       void check();
-      void checkUpdate();
+      void checkUpdate(force);
     }
   };
   window.addEventListener('online', () => {
     retryDelay = 30000;
     if (resumeWanted && pack) void download();
-    wake();
+    wake(true);
   });
   window.addEventListener('offline', () => {
     if (!downloading) void check();
@@ -425,15 +497,34 @@ export function setupOffline() {
   window.addEventListener('pagehide', () => {
     active = false;
     checkGeneration++;
+    clearTimeout(retryTimer);
+    session.abort();
+    initializing = null;
+    updating = false;
+    lastUpdate = 0;
     // Preserve download intent for reopen, while stopping work owned by this document.
     downloading?.abort(Object.assign(new Error('Page suspended'), { offlineReason: 'timeout' }));
+    downloading = null;
+    progress.hidden = true;
   });
-  window.addEventListener('pageshow', () => { active = true; wake(); });
-  window.addEventListener('focus', wake);
+  window.addEventListener('pageshow', () => {
+    if (!active) session.reset();
+    active = true;
+    wake(true);
+  });
+  window.addEventListener('focus', () => wake());
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) wake();
+    if (!document.hidden) wake(true);
   });
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    session.reset();
+    initializing = null;
+    updating = false;
+    lastUpdate = 0;
+    checkGeneration++;
+    downloading?.abort(Object.assign(new Error('Worker replaced'), { offlineReason: 'timeout' }));
+    downloading = null;
+    progress.hidden = true;
     if (pack)
       navigator.serviceWorker.controller?.postMessage({
         type: 'using-cache',

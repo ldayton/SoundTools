@@ -15,6 +15,7 @@ let stall=false,failed=false;const held=new Set(),sockets=new Set();
 const cacheFaultHook=`let testCacheFault='';const nativeCacheStorage=self.caches;Object.defineProperty(self,'caches',{value:new Proxy(nativeCacheStorage,{get(target,name){if(['open','keys','match','has','delete'].includes(name))return(...args)=>testCacheFault==='stall'?new Promise(()=>{}):testCacheFault==='deny'?Promise.reject(new DOMException('denied','SecurityError')):target[name](...args);return Reflect.get(target,name)}})});self.addEventListener('message',event=>{if(event.data?.type==='test-storage-fault'){testCacheFault=event.data.kind;event.ports[0]?.postMessage(true)}});\n`;
 const server=http.createServer((req,res)=>{
  const name=new URL(req.url,'http://localhost').pathname;
+ if(name==='/__resilience-away'){res.writeHead(200,{'Content-Type':'text/html'}).end('<!doctype html><title>Away</title>History probe');return}
  if(!name.startsWith(base)){res.writeHead(404).end();return}
  if(stall&&(name.endsWith('offline-pack.json')||name.endsWith('release.json'))){held.add(res);res.on('close',()=>held.delete(res));return}
  if(!failed&&(name===retryPath||name.endsWith('/silero.onnx'))){failed=true;res.writeHead(503).end('temporary failure');return}
@@ -28,6 +29,7 @@ const server=http.createServer((req,res)=>{
 let context;
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url='http://127.0.0.1:'+server.address().port+base;
+ await require('./test-startup-recovery.cjs').testStartupRecovery(url,app);
  const launch=()=>chromium.launchPersistentContext(profile,{headless:true});
  context=await launch();await context.addInitScript(app=>{try{localStorage.setItem(app+':diagnostics:sharing','yes')}catch{}},app);
  let page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
@@ -43,12 +45,30 @@ let context;
  stall=true;const started=Date.now();await page.reload({waitUntil:'domcontentloaded'});const cachedMs=Date.now()-started;
  assert(cachedMs<2000,'Cached startup waited for a stalled update: '+cachedMs+' ms');
  stall=false;for(const response of held)response.writeHead(503).end();
+ await page.goto(new URL('/__resilience-away',url).href);await page.goBack({waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>window.__soundtoolsStartup?.ready);
+ await page.waitForFunction(selector=>document.querySelector(selector).textContent.includes('Available offline'),status);
  await context.close();context=await launch();await context.setOffline(true);page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
  const restarted=Date.now();await page.goto(url,{waitUntil:'domcontentloaded'});const restartMs=Date.now()-restarted;
  if(app==='dorego'){await page.waitForFunction(()=>!document.querySelector('#play').disabled);await page.locator('#play').click();await page.getByRole('button',{name:'Pause',exact:true}).waitFor();await page.locator('#play').click();}
  else{await page.getByRole('button',{name:'Play an Example',exact:true}).click();await page.waitForFunction(()=>inputMode==='speech'&&processingStats.frames>200);await page.locator('#freeze').click();await page.locator('#openSettings:visible, #settings:visible').click();}
  await page.waitForFunction(selector=>document.querySelector(selector).textContent.includes('Available offline'),status,{timeout:15000});
  await page.screenshot({path:path.join(artifact,'offline-after-restart.png')});
+ // Browser-driven partial requests must work without network and never replace full cache entries.
+ const media=await page.evaluate(async app=>{
+  let pack;
+  if(app==='dorego')pack=await(await fetch(document.querySelector('meta[name="dorego-inventory"]').content)).json();
+  else{const version=document.querySelector('meta[name="soundglow-release"]').content;const cache=await caches.open('soundglow-release-'+version);pack=await(await cache.match(new URL('/__cache__/manifest',location.origin))).json()}
+  const file=pack.files.find(f=>app==='dorego'?f.url.endsWith('.flac'):f.url.endsWith('.m4a'));
+  const response=await fetch(file.url+'?offline-probe=1',{headers:{Range:'bytes=0-31'}}),head=await fetch(file.url,{method:'HEAD'}),full=await fetch(file.url);
+  return{rangeStatus:response.status,rangeSize:(await response.arrayBuffer()).byteLength,headStatus:head.status,headSize:(await head.arrayBuffer()).byteLength,fullSize:(await full.arrayBuffer()).byteLength,expected:file.bytes};
+ },app);
+ assert.deepEqual(media,{rangeStatus:206,rangeSize:32,headStatus:200,headSize:0,fullSize:media.expected,expected:media.expected});
+ await page.evaluate(async app=>{const cache=await caches.open(app==='dorego'?'dorego-clients-v1':'soundglow-clients-v1');for(const request of await cache.keys())await cache.put(request,new Response('{broken advisory json'))},app);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>!!window.__soundtoolsStartup?.ready);
+ console.log('PASS: offline Range, HEAD, query normalization and corrupt advisory metadata recovery');
+
  await context.setOffline(false);
  const fault=kind=>page.evaluate(kind=>new Promise(resolve=>{const channel=new MessageChannel();channel.port1.onmessage=()=>{channel.port1.close();resolve()};navigator.serviceWorker.controller.postMessage({type:'test-storage-fault',kind},[channel.port2])}),kind);
  await fault('stall');const blockedStart=Date.now();await page.reload({waitUntil:'domcontentloaded'});const blockedMs=Date.now()-blockedStart;

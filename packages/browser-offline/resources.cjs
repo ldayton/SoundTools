@@ -231,5 +231,5 @@
   }
   if (typeof module === "object" && module.exports)
     module.exports = { createResources };
-  else root.BrowserOffline = { createResources };
+  else Object.assign(root.BrowserOffline || (root.BrowserOffline = {}), { createResources });
 })(typeof globalThis === "object" ? globalThis : this);

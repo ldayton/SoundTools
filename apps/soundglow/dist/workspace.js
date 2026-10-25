@@ -129,3 +129,5 @@
  host.subscribe(type=>{if(type==='stop'||type==='seek'){reset();pumping=false;}if(type==='capture'||type==='seek')syncPitch();if(type==='render'||type==='layout'){layout();paint()}});
  controls();layout();
 })();
+
+window.dispatchEvent(new Event('soundtools:ready'));

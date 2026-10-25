@@ -15,7 +15,7 @@
       ]
     },
     {
-      "source": "/(release.json|release-history.json|offline-pack.json|asset-history.json)",
+      "source": "/(release.json|release-history.json|offline-pack.json|asset-history.json|diagnostics-release.json)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -24,7 +24,34 @@
       ]
     },
     {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(index.html|manifest.webmanifest|favicon.svg|icon.svg|icon-192.png|icon-512.png|apple-touch-icon.png)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/(assets|releases|engines|media|vendor/neural)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/samples/(bitklavier-web-v[0-9]+|vsco-cello(?:-v[0-9]+)?)/(.*).flac",
       "headers": [
         {
           "key": "Cache-Control",

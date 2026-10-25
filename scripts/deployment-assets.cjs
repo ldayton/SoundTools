@@ -9,6 +9,11 @@ const prefixes = [
   "media/",
   "vendor/neural/",
 ];
+// Original studio recordings never belong in deployment retention.
+function immutablePath(relative) {
+  return prefixes.some(prefix => relative.startsWith(prefix)) ||
+    /^samples\/(?:bitklavier-web-v[0-9]+|vsco-cello(?:-v[0-9]+)?)\/[^/]+[.]flac$/.test(relative);
+}
 function safePath(url) {
   if (
     typeof url !== "string" ||
@@ -20,7 +25,7 @@ function safePath(url) {
   )
     throw Error("Invalid retained asset path");
   const relative = url.slice(1);
-  if (!prefixes.some((prefix) => relative.startsWith(prefix)))
+  if (!immutablePath(relative))
     throw Error("Asset is outside immutable directories");
   return relative;
 }
@@ -118,7 +123,7 @@ function publishAssets(output, previous, history, version, currentAssets) {
       if (entry.isDirectory())
         walk(path.join(directory, entry.name), file + "/");
       else if (
-        prefixes.some((prefix) => file.startsWith(prefix)) &&
+        immutablePath(file) &&
         !file.endsWith(".map") &&
         (!current ||
           current.has("/" + file) ||

@@ -10,8 +10,10 @@
     "index.d.ts",
     "runtime.cjs",
     "resources.cjs",
+    "client.cjs",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "bootstrap.cjs"
   ],
   "scripts": {
     "test": "node --test test/*.cjs"

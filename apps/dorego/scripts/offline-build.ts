@@ -41,6 +41,9 @@ export function offlineBuild(release?: string): Plugin {
         ...[
           'manifest.webmanifest',
           'icon.svg',
+          'favicon.ico',
+          'favicon-48.png',
+          'icon-maskable.png',
           'icon-192.png',
           'icon-512.png',
           'apple-touch-icon.png',
@@ -68,6 +71,9 @@ export function offlineBuild(release?: string): Plugin {
       for (const path of [
         'manifest.webmanifest',
         'icon.svg',
+        'favicon.ico',
+        'favicon-48.png',
+        'icon-maskable.png',
         'icon-192.png',
         'icon-512.png',
         'apple-touch-icon.png',

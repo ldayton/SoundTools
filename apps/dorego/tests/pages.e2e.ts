@@ -1,5 +1,7 @@
 import { createRequire } from 'node:module';
-const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
+const viteCli = createRequire(import.meta.url)
+  .resolve('vite/package.json')
+  .replace(/package\.json$/, 'bin/vite.js');
 import { launchTestBrowser } from './browser-harness';
 import { DEFAULT_SPEC } from '../src/music';
 import { spawn } from 'node:child_process';
@@ -230,6 +232,7 @@ try {
     'Arpeggio & Scale (Rising first)'
   );
   for (const [pattern, label] of [
+    ['pentatonic12', '12-Note Pentatonic Scale'],
     ['fiveNote', 'Five-Note Scale'],
     ['octaveArpeggio', 'Octave Arpeggio'],
   ]) {
@@ -251,6 +254,7 @@ try {
     'Octave Arpeggio',
     'Rossini Scale',
     'Five-Note Scale',
+    '12-Note Pentatonic Scale',
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',

@@ -91,7 +91,14 @@ test('without rests, keyboard slides from the prior position without jumping', (
 });
 
 test('mobile key width is fixed to the widest round, including during every slide', () => {
-  for (const pattern of ['arpeggio', 'fiveNote', 'octaveArpeggio', 'rossini', 'major'] as const)
+  for (const pattern of [
+    'arpeggio',
+    'fiveNote',
+    'octaveArpeggio',
+    'pentatonic12',
+    'rossini',
+    'major',
+  ] as const)
     for (const direction of ['up', 'down'] as const)
       for (const restBeats of [0, 2]) {
         const exercise = generateExercise({

@@ -28,7 +28,7 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
 
 ## Practice
 
-- Seven exercises: **Arpeggio & Scale** (default: E3–E5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
+- Eight exercises: **Arpeggio & Scale** (default: E3–E5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **12-Note Pentatonic Scale**, **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
 - Choose your lowest/highest vocal notes, phrase contour, and round progression. Major Scale instead uses a single Key selector for the starting note, including its octave; the other exercises move by semitone through your range.
 - Click anywhere on a desktop note field to open a note grid organized by octave; typing is disabled. Enter or Space also opens the picker. Mobile uses snapping swipe wheels. Arrow keys move by semitone and Page Up/Down by octave.
 - Transpose the key and range together with the minus/plus buttons.
@@ -93,9 +93,15 @@ All runtime dependency versions are pinned by `package-lock.json`. The app does 
 
 ### Generated exercises
 
-**Within each round** controls the phrase, with a small preview of its actual contour. Arpeggio & Scale, Octave Arpeggio and Five-Note Scale offer **Rising first** and **Falling first**; these phrases already return to their starting note. Glides offer **Up**, **Down** (eight beats each, no return), or **Up & back** (fourteen beats). Rossini has a fixed contour, so this control is hidden.
+**Within each round** controls the phrase, with a small preview of its actual contour. Arpeggio & Scale, Octave Arpeggio, Five-Note Scale and 12-Note Pentatonic Scale offer **Rising first** and **Falling first**; these phrases already return to their starting note. Glides offer **Up**, **Down** (eight beats each, no return), or **Up & back** (fourteen beats). Rossini has a fixed contour, so this control is hidden.
 
 **Between rounds** independently chooses **Rising**, **Falling**, or **Rising then falling**, with diagonal contour icons, one semitone at a time. The starting-note preview reflects the actual practice targets, including phrases that start high. The same phrase, rhythm and starting chords are retained throughout the sweep. The turnaround key is played once; a one-key range plays one round per repeat and hides the between-round controls while remembering the selection. Rossini supports all three progressions while keeping its fixed melody.
+
+**12-Note Pentatonic Scale** uses the major pentatonic notes through one octave and back,
+with two separate strikes at the turn: C4–D4–E4–G4–A4–C5–C5–A4–G4–E4–D4–C4.
+Falling first starts on C5, descends to C4 twice, and returns to C5. The last home note
+is held, as in the other scale exercises. It uses the usual starting-note chords and
+independent between-round progression, and requires a range of at least one octave.
 
 **Major Scale** uses Key as its starting note and generates one octave **Up**, **Down**, or **Up then down**. It repeats on that key, so range and between-round progression controls are hidden.
 

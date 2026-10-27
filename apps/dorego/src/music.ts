@@ -19,6 +19,11 @@ export const PATTERNS = {
     intervals: [0, 2, 4, 5, 7, 5, 4, 2, 0],
     description: 'A five-note major scale out and back, moving one semitone per round.',
   },
+  pentatonic12: {
+    name: '12-Note Pentatonic Scale',
+    intervals: [0, 2, 4, 7, 9, 12, 12, 9, 7, 4, 2, 0],
+    description: 'A major pentatonic scale through an octave and back, repeating the turning note.',
+  },
   major: {
     name: 'Major Scale',
     intervals: [0, 2, 4, 5, 7, 9, 11],
@@ -45,7 +50,7 @@ export function isVocalPattern(pattern: Pattern) {
 export function vocalSpan(pattern: Pattern) {
   return pattern === 'rossini'
     ? 19
-    : pattern === 'octaveArpeggio' || pattern === 'octaveGlide'
+    : pattern === 'octaveArpeggio' || pattern === 'octaveGlide' || pattern === 'pentatonic12'
       ? 12
       : 7;
 }
@@ -316,6 +321,8 @@ export function phraseContour(pattern: Pattern, direction: Direction): readonly 
     return direction === 'down'
       ? [7, 4, 0, 2, 4, 5, 7, 4, 0, 2, 4, 5, 7]
       : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0];
+  if (direction === 'down' && pattern === 'pentatonic12')
+    return [12, 9, 7, 4, 2, 0, 0, 2, 4, 7, 9, 12];
   if (direction === 'down' && pattern === 'fiveNote') return [7, 5, 4, 2, 0, 2, 4, 5, 7];
   if (direction === 'down' && pattern === 'octaveArpeggio') return [12, 7, 4, 0, 4, 7, 12];
   return PATTERNS[pattern].intervals;
@@ -578,23 +585,27 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
       rossini
         ? 'Rossini Scale needs a range of at least an octave and a fifth (19 semitones).'
         : span === 12
-          ? 'Octave Arpeggio needs a range of at least an octave (12 semitones).'
+          ? `${PATTERNS[spec.pattern].name} needs a range of at least an octave (12 semitones).`
           : 'These vocal phrases need a range of at least seven semitones (a perfect fifth).'
     );
   const offsets: number[] = [
-    ...(spec.pattern === 'fiveNote'
-      ? descending
-        ? [0, -2, -3, -5, -7, -5, -3, -2, 0]
-        : PATTERNS.fiveNote.intervals
-      : spec.pattern === 'octaveArpeggio'
+    ...(spec.pattern === 'pentatonic12'
+      ? phraseContour(spec.pattern, spec.direction).map(
+          (offset) => offset - (descending ? span : 0)
+        )
+      : spec.pattern === 'fiveNote'
         ? descending
-          ? [0, -5, -8, -12, -8, -5, 0]
-          : PATTERNS.octaveArpeggio.intervals
-        : rossini
-          ? PATTERNS.rossini.intervals
-          : descending
-            ? [0, -3, -7, -5, -3, -2, 0, -3, -7, -5, -3, -2, 0]
-            : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0]),
+          ? [0, -2, -3, -5, -7, -5, -3, -2, 0]
+          : PATTERNS.fiveNote.intervals
+        : spec.pattern === 'octaveArpeggio'
+          ? descending
+            ? [0, -5, -8, -12, -8, -5, 0]
+            : PATTERNS.octaveArpeggio.intervals
+          : rossini
+            ? PATTERNS.rossini.intervals
+            : descending
+              ? [0, -3, -7, -5, -3, -2, 0, -3, -7, -5, -3, -2, 0]
+              : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0]),
   ];
   const lengths =
     spec.pattern === 'arpeggio'

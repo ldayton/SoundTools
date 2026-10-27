@@ -60,6 +60,7 @@ try {
     'Octave Arpeggio',
     'Rossini Scale',
     'Five-Note Scale',
+    '12-Note Pentatonic Scale',
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',

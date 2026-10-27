@@ -328,7 +328,7 @@ try {
     document.querySelector('#offline-status')?.textContent?.endsWith('Available offline')
   );
   await page.screenshot({ path: 'work/offline-ready.png' });
-  console.log('All seven exercises reopened and played offline at low/high extremes and 60 BPM.');
+  console.log(`All ${Object.keys(PATTERNS).length} exercises reopened and played offline at low/high extremes and 60 BPM.`);
 
   // A missing recording must invalidate readiness, and repair must restore it.
   await page.evaluate(async () => {

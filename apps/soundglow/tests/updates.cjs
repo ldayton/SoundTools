@@ -78,7 +78,16 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  assert.equal(state.workerVersion,releases[1].pack.version);
  assert.equal(await page.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version);
  console.log('PASS: live microphone survives background staging, explicit update and worker activation; WASM reused');
- revision=2;fault='network';assert.equal((await rpc(other)).ready,false);
+ revision=2;fault='network';
+ // A background check may already be staging release 1 when the server switches.
+ // Shared in-flight checks can legitimately finish that verified release first.
+ let broken;
+ for(let attempt=0;attempt<5;attempt++){
+  broken=await rpc(other);if(!broken.ready)break;
+  assert.equal(broken.version,releases[1].pack.version,'A broken release must never be ready');
+  await other.waitForTimeout(100);
+ }
+ assert.equal(broken.ready,false,'A fresh check rejects the broken deployment');
  fault='integrity';const integrity=await rpc(other);assert.equal(integrity.ready,false,'Reject mixed or corrupted release bytes');assert.equal(integrity.reason,'integrity');
  await other.reload();assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version,'Failed deployment falls back to the last complete release');
  assert.equal(await other.locator('#update').isVisible(),false);

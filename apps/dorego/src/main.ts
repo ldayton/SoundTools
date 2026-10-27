@@ -19,6 +19,7 @@ import {
 import {
   DEFAULT_SPEC,
   isVocalPattern,
+  supportsNoteRepeats,
   isGlidePattern,
   vocalSpan,
   directionName,
@@ -168,7 +169,7 @@ $('#app').innerHTML = `
           <details class="more-settings"><summary>More options <i data-lucide="chevron-down"></i></summary><div class="advanced"><label id="starting-chords-field" class="toggle-row" hidden><span>Starting-note chords</span><input name="startingChords" id="startingChords" type="checkbox" role="switch" checked /></label>
           <fieldset id="note-repeats" class="note-repeats" hidden><legend>Repeat notes</legend>
             <label class="toggle-row"><span id="repeat-turn-label">Highest note</span><input name="repeatTurn" id="repeatTurn" type="checkbox" role="switch" aria-labelledby="repeat-turn-label" /></label>
-            <label class="toggle-row"><span>Home note on return</span><input name="repeatHome" id="repeatHome" type="checkbox" role="switch" aria-label="Home note on return" /></label>
+            <label class="toggle-row"><span id="repeat-home-label">Home note on return</span><input name="repeatHome" id="repeatHome" type="checkbox" role="switch" aria-labelledby="repeat-home-label" /></label>
           </fieldset>
             <div class="field-row">${[
               { id: 'repeat', key: 'repetitions', label: 'Repeats', max: 15 },
@@ -383,7 +384,8 @@ function populate() {
   $('#range-heading').hidden = !vocal;
   $('#note-range').hidden = !vocal;
   if (vocal) syncSpinners();
-  $('#note-repeats').hidden = !['octaveArpeggio', 'rossini', 'fiveNote'].includes(spec.pattern);
+  $('#note-repeats').hidden = !supportsNoteRepeats(spec.pattern);
+  $('#repeat-home-label').textContent = 'Home note on return';
   $('#repeat-turn-label').textContent = spec.direction === 'down' ? 'Lowest note' : 'Highest note';
   $('#starting-chords-field').hidden = !vocal;
   $<HTMLInputElement>('#startingChords').checked = spec.startingChords ?? true;

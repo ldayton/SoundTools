@@ -231,8 +231,27 @@ try {
     await page.locator('#exercise-title').textContent(),
     'Arpeggio & Scale (Rising first)'
   );
+  await page.locator('#pattern').selectOption('pentatonic12');
+  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Sequence (Threes) (Rising first)');
+  assert.deepEqual(await page.locator('#direction label span').allTextContents(), ['Rising first', 'Falling first']);
+  if (await page.locator('.more-settings').getAttribute('open') === null)
+    await page.locator('.more-settings > summary').click();
+  assert.ok(await page.locator('#note-repeats').isVisible());
+  assert.equal(await page.locator('#repeat-home-label').textContent(), 'Home note on return');
+  assert.equal(await page.locator('#repeat-turn-label').textContent(), 'Highest note');
+  await page.getByRole('switch', { name: 'Home note on return', exact: true }).check();
+  await page.getByRole('switch', { name: 'Highest note', exact: true }).check();
+  await page.locator('input[name="direction"][value="down"]').check();
+  assert.equal(await page.locator('#repeat-turn-label').textContent(), 'Lowest note');
+  assert.ok(await page.getByRole('switch', { name: 'Lowest note', exact: true }).isChecked());
+  await page.locator('#repeatTurn').uncheck();
+  await page.locator('#repeatHome').uncheck();
+  await page.locator('.more-settings > summary').click();
+
+  await page.locator('input[name="direction"][value="down"]').check();
+  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Sequence (Threes) (Falling first)');
+  await page.locator('input[name="direction"][value="up"]').check();
   for (const [pattern, label] of [
-    ['pentatonic12', '12-Note Pentatonic Scale'],
     ['fiveNote', 'Five-Note Scale'],
     ['octaveArpeggio', 'Octave Arpeggio'],
   ]) {
@@ -254,7 +273,7 @@ try {
     'Octave Arpeggio',
     'Rossini Scale',
     'Five-Note Scale',
-    '12-Note Pentatonic Scale',
+    'Pentatonic Sequence (Threes)',
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',

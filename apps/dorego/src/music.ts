@@ -20,9 +20,9 @@ export const PATTERNS = {
     description: 'A five-note major scale out and back, moving one semitone per round.',
   },
   pentatonic12: {
-    name: '12-Note Pentatonic Scale',
-    intervals: [0, 2, 4, 7, 9, 12, 12, 9, 7, 4, 2, 0],
-    description: 'A major pentatonic scale through an octave and back, repeating the turning note.',
+    name: 'Pentatonic Sequence (Threes)',
+    intervals: [0, 2, 4, 2, 4, 7, 4, 7, 9, 7, 9, 12, 9, 7, 4, 2, 0],
+    description: 'Four overlapping pentatonic groups of three with a rhythmic stepwise return home.',
   },
   major: {
     name: 'Major Scale',
@@ -43,6 +43,9 @@ export const PATTERNS = {
 export type Pattern = keyof typeof PATTERNS;
 export function isGlidePattern(pattern: Pattern) {
   return pattern === 'fifthGlide' || pattern === 'octaveGlide';
+}
+export function supportsNoteRepeats(pattern: Pattern) {
+  return ['octaveArpeggio', 'rossini', 'fiveNote', 'pentatonic12'].includes(pattern);
 }
 export function isVocalPattern(pattern: Pattern) {
   return pattern !== 'major';
@@ -322,7 +325,7 @@ export function phraseContour(pattern: Pattern, direction: Direction): readonly 
       ? [7, 4, 0, 2, 4, 5, 7, 4, 0, 2, 4, 5, 7]
       : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0];
   if (direction === 'down' && pattern === 'pentatonic12')
-    return [12, 9, 7, 4, 2, 0, 0, 2, 4, 7, 9, 12];
+    return [12, 9, 7, 9, 7, 4, 7, 4, 2, 4, 2, 0, 2, 4, 7, 9, 12];
   if (direction === 'down' && pattern === 'fiveNote') return [7, 5, 4, 2, 0, 2, 4, 5, 7];
   if (direction === 'down' && pattern === 'octaveArpeggio') return [12, 7, 4, 0, 4, 7, 12];
   return PATTERNS[pattern].intervals;
@@ -610,15 +613,18 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
   const lengths =
     spec.pattern === 'arpeggio'
       ? [2, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2]
-      : offsets.map((_, index) => (index === offsets.length - 1 ? 2 : 1));
-  // Add three distinct attacks; retain the original held finish on the fourth home note.
-  if (['octaveArpeggio', 'rossini', 'fiveNote'].includes(spec.pattern)) {
+      : spec.pattern === 'pentatonic12'
+        ? [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2]
+        : offsets.map((_, index) => (index === offsets.length - 1 ? 2 : 1));
+  // Add three distinct attacks, retaining the original duration on the fourth.
+  if (supportsNoteRepeats(spec.pattern)) {
     const turn = offsets.indexOf((descending ? Math.min : Math.max)(...offsets));
+    const home = offsets.length - 1;
     const expanded: number[] = [],
       durations: number[] = [];
     offsets.forEach((offset, index) => {
       const repeat =
-        (index === turn && spec.repeatTurn) || (index === offsets.length - 1 && spec.repeatHome);
+        (index === turn && spec.repeatTurn) || (index === home && spec.repeatHome);
       for (let strike = 0; strike < (repeat ? 4 : 1); strike++) {
         expanded.push(offset);
         durations.push(repeat && strike < 3 ? 1 : lengths[index]);

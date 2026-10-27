@@ -75,7 +75,14 @@ app.use('/api', (_req, res) => {
 });
 if (process.env.NODE_ENV === 'production') app.use(express.static(join(root, 'dist')));
 else {
-  const vite = await createViteServer({ root, server: { middlewareMode: true }, appType: 'mpa' });
+  const vite = await createViteServer({
+    root,
+    server: { middlewareMode: true },
+    appType: 'mpa',
+    // Linked CommonJS workspace packages change without a lockfile/version bump.
+    // Rebuild their optimized exports instead of reusing a previous dev session.
+    optimizeDeps: { force: true },
+  });
   app.use(vite.middlewares);
 }
 app.use(

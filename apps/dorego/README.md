@@ -111,6 +111,21 @@ independent between-round progression, and requires a range of at least one octa
 
 Preferences are saved automatically. Legacy descending selections become falling-first phrases with lower round progression; legacy combined selections become rising-first phrases with higher-then-lower progression. CLI JSON can specify `direction` for phrase orientation and `progression` (`up`, `down`, `both`) independently. Omitting `progression` retains the old coupled CLI behavior for compatibility. For glide phrases and Major Scale, `direction: "both"` means up and back; other vocal patterns use `both` only for progression. Existing saved upward glides migrate to Up & back, preserving their sound.
 
+### Note names
+
+Range selectors use stable pitch names: C, D♭, D, E♭, E, F, F♯, G, A♭, A, B♭, B.
+The desktop picker and mobile wheels also show common alternatives such as D♭4 / C♯4;
+mobile wheels include both names in their accessible value. Selecting either name still selects
+the same MIDI pitch. The Major Scale key selector also includes both common spellings.
+
+Musical labels use each round's actual major key, including its diatonic letter names.
+F-major phrases use B♭; F♯-major phrases use E♯. Current and next rounds get separate
+contexts, and falling-first phrases use the underlying tonic rather than mistaking
+the initial fifth for the key. Descending does not change a key's spelling. The piano,
+per-round ranges, accessible descriptions and exported video use the same formatter.
+The overall range footer uses the same stable names as the range inputs. This changes
+labels only; generated pitches, timing, MIDI and audio are unchanged.
+
 ## bitKlavier Grand
 
 Piano exercises and starting cues use bitKlavier Grand Piano Bar (Steinway D). Older saved sound choices are automatically migrated to bitKlavier. Main sustained recordings retain all 16 velocity layers and stereo 44.1 kHz / 16-bit resolution, losslessly converted to FLAC. Only the samples needed by an exercise load into memory. The browser adaptation uses nearest sampled pitches, equal velocity zones, and an envelope release; it does not implement the original instrument's pedal, sympathetic resonance, or release samples. Playback and video export use the same adaptation.

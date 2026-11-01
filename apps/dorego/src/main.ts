@@ -26,6 +26,8 @@ import {
   PATTERNS,
   generateExercise as generateBoundedExercise,
   noteName,
+  noteChoiceLabel,
+  roundNoteName,
   secondsAt,
   formatTime,
   stateAt,
@@ -147,7 +149,7 @@ $('#app').innerHTML = `
             { length: 73 },
             (_, i) => i + 24
           )
-            .map((midi) => `<option value="${midi}">${noteName(midi)}</option>`)
+            .map((midi) => `<option value="${midi}">${noteChoiceLabel(midi)}</option>`)
             .join('')}</select></label>
           <fieldset id="direction" class="direction-field"><legend>Within each round</legend><div class="direction-toggle" id="phrase-options"></div></fieldset>
           <div id="range-heading" class="range-label"><span>Range</span><span class="range-actions"><button type="button" id="transpose-down" title="Move range and key down one semitone" aria-label="Transpose down one semitone"><i data-lucide="minus"></i></button><button type="button" id="transpose-up" title="Move range and key up one semitone" aria-label="Transpose up one semitone"><i data-lucide="plus"></i></button></span></div>
@@ -352,7 +354,7 @@ function populate() {
     spec.progression ?? 'up'
   );
   const offset = spec.direction === 'down' ? vocalSpan(spec.pattern) : 0;
-  const targets = roots.map((root) => noteName(root + offset, spec.key));
+  const targets = roots.map((root) => noteName(root + offset, root));
   const preview =
     targets.length <= 5
       ? targets.join(' → ')
@@ -615,7 +617,7 @@ function update() {
   const practice = practiceAt(exercise, time);
   const describeRound = (round: typeof practice.current) => {
     const range = practiceRange(exercise, round);
-    return `${noteName(round.midi, spec.key)}, range ${noteName(range.low, spec.key)} to ${noteName(range.high, spec.key)}`;
+    return `${roundNoteName(round.midi, round)}, range ${roundNoteName(range.low, round)} to ${roundNoteName(range.high, round)}`;
   };
   const description =
     scene.phase === 'countin'

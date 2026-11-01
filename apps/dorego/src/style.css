@@ -1285,6 +1285,7 @@ main {
 }
 .note-wheel-item {
   display: flex;
+  gap: 6px;
   align-items: center;
   justify-content: center;
   height: 32px;
@@ -1296,6 +1297,11 @@ main {
   transition:
     transform 0.12s,
     color 0.12s;
+}
+.note-wheel-alias {
+  font-size: 10px;
+  font-weight: 400;
+  color: #596653;
 }
 .note-wheel-item.is-selected {
   color: var(--ink);
@@ -1414,12 +1420,23 @@ main {
   text-align: center;
 }
 .note-picker-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 32px;
   padding: 0;
   border-radius: 5px;
   background: #fffefa;
   font-size: 11px;
   border: 1px solid #e5e7dd;
+}
+.note-picker-alias {
+  min-height: 10px;
+  font-size: 9px;
+  line-height: 10px;
+  color: #596653;
+  font-weight: 400;
 }
 .note-picker-grid button:hover {
   background: #edf2df;

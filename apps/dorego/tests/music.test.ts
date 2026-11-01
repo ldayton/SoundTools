@@ -206,7 +206,7 @@ test('invalid input and removed exercises/directions are rejected', () => {
 });
 test('note labels use standard MIDI middle C', () => {
   assert.equal(noteName(60), 'C4');
-  assert.equal(noteName(61), 'C♯4');
+  assert.equal(noteName(61), 'D♭4');
   assert.equal(noteName(70, 5), 'B♭4');
 });
 test('practice targets stay fixed through chords and melody and advance only at round boundaries', () => {

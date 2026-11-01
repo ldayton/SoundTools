@@ -1,4 +1,4 @@
-import { noteName } from './music';
+import { noteName, noteAlternative, noteChoiceLabel } from './note-spelling';
 
 export function parseNote(value: string): number | null {
   const match = /^\s*([a-g])([#♯b♭]?)([1-7])\s*$/i.exec(value);
@@ -34,7 +34,7 @@ export class NotePicker {
           (_, pitch) => {
             const midi = 24 + row * 12 + pitch;
             return midi <= 96
-              ? `<button type="button" data-midi="${midi}" tabindex="-1" aria-label="${noteName(midi)}">${noteName(midi)}</button>`
+              ? `<button type="button" data-midi="${midi}" tabindex="-1" aria-label="${noteName(midi)}" title="${noteChoiceLabel(midi)}"${noteAlternative(midi) ? ` aria-description="Also ${noteAlternative(midi)}"` : ''}><span>${noteName(midi)}</span><small class="note-picker-alias" aria-hidden="true">${noteAlternative(midi) ?? ''}</small></button>`
               : '<span></span>';
           }
         ).join('')}`
@@ -125,6 +125,7 @@ export class NotePicker {
   setValue(midi: number) {
     this.value = midi;
     this.input.value = noteName(midi);
+    this.input.title = noteChoiceLabel(midi);
     this.input.setCustomValidity('');
     this.input.removeAttribute('aria-invalid');
     for (const button of this.popover.querySelectorAll<HTMLButtonElement>('[data-midi]')) {

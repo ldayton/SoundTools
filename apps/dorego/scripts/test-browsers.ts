@@ -3,7 +3,7 @@ const tsxCli = createRequire(import.meta.url).resolve('tsx/cli');
 import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 const names = (process.env.TEST_BROWSERS || 'chromium,firefox,webkit').split(',');
-const suites = ['desktop', 'pages', 'lifecycle', 'offline'];
+const suites = ['desktop', 'pages', 'lifecycle', 'offline', 'spelling'];
 const results: { browser: string; suite: string; passed: boolean; seconds: number }[] = [];
 // Sequential execution avoids audio underruns caused by competing test engines.
 for (const browser of names) {

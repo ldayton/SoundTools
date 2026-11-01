@@ -1,3 +1,6 @@
+import { noteName } from './note-spelling';
+export { noteName, noteAlternative, noteChoiceLabel, SHARPS } from './note-spelling';
+
 export const PATTERNS = {
   arpeggio: {
     name: 'Arpeggio & Scale',
@@ -164,10 +167,10 @@ export const DEFAULT_SPEC: ExerciseSpec = {
   solfege: false,
   transition: null,
 };
-export const SHARPS = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
-const FLATS = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
-export function noteName(midi: number, key = 0): string {
-  return `${([1, 3, 5, 8, 10].includes(key) ? FLATS : SHARPS)[midi % 12]}${Math.floor(midi / 12) - 1}`;
+// The target may be a fifth/octave above the tonic in falling-first phrases.
+// degree also preserves the key of legacy CLI scales whose range omits the tonic.
+export function roundNoteName(midi: number, round: PracticeRound): string {
+  return noteName(midi, round.midi - round.degree);
 }
 export function secondsAt(beat: number, bpm: number) {
   return (beat * 60) / bpm;

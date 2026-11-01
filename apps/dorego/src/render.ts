@@ -1,5 +1,6 @@
 import {
   noteName,
+  roundNoteName,
   notePitchAt,
   PATTERNS,
   solfege,
@@ -59,7 +60,77 @@ function text(
   ctx.textBaseline = 'middle';
   ctx.fillText(value, x, y);
 }
-// Center the visible glyphs rather than the font's em box or advance width.
+type GlyphRun = { value: string; size: number; left: number; baseline: number };
+type GlyphLayout = {
+  width: number;
+  height: number;
+  ascent: number;
+  descent: number;
+  runs: GlyphRun[];
+};
+const glyphLayouts = new WeakMap<CanvasRenderingContext2D, Map<string, GlyphLayout>>();
+function glyphLayout(ctx: CanvasRenderingContext2D, value: string, size: number): GlyphLayout {
+  let cache = glyphLayouts.get(ctx);
+  if (!cache) {
+    cache = new Map();
+    glyphLayouts.set(ctx, cache);
+  }
+  const key = `${size}:${value}`;
+  const saved = cache.get(key);
+  if (saved) return saved;
+  ctx.font = `500 ${size}px Arial, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const note = /^([A-G])([♯♭])(-?\d+)$/.exec(value);
+  let layout: GlyphLayout;
+  if (note) {
+    const [, letter, accidental, octave] = note;
+    const a = ctx.measureText(letter),
+      n = ctx.measureText(octave),
+      symbol = ctx.measureText(accidental);
+    const ascent = Math.max(a.actualBoundingBoxAscent, n.actualBoundingBoxAscent);
+    const descent = Math.max(a.actualBoundingBoxDescent, n.actualBoundingBoxDescent);
+    // Treat an accidental as a compact upper-right modifier, not a full-size letter.
+    // Size from actual ink bounds because the flat's font fallback has a tall stem.
+    const accidentalSize =
+      (size * ascent * 0.62) / (symbol.actualBoundingBoxAscent + symbol.actualBoundingBoxDescent);
+    ctx.font = `500 ${accidentalSize}px Arial, sans-serif`;
+    const m = ctx.measureText(accidental);
+    const gap = size * 0.035;
+    const letterWidth = a.actualBoundingBoxLeft + a.actualBoundingBoxRight;
+    const accidentalWidth = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+    const numberLeft = letterWidth + accidentalWidth + gap * 2;
+    layout = {
+      width: numberLeft + n.actualBoundingBoxLeft + n.actualBoundingBoxRight,
+      height: ascent + descent,
+      ascent,
+      descent,
+      runs: [
+        { value: letter, size, left: a.actualBoundingBoxLeft, baseline: 0 },
+        {
+          value: accidental,
+          size: accidentalSize,
+          left: letterWidth + gap + m.actualBoundingBoxLeft,
+          baseline: -ascent * 0.96 + m.actualBoundingBoxAscent,
+        },
+        { value: octave, size, left: numberLeft + n.actualBoundingBoxLeft, baseline: 0 },
+      ],
+    };
+  } else {
+    const m = ctx.measureText(value);
+    layout = {
+      width: m.actualBoundingBoxLeft + m.actualBoundingBoxRight,
+      height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
+      ascent: m.actualBoundingBoxAscent,
+      descent: m.actualBoundingBoxDescent,
+      runs: [{ value, size, left: m.actualBoundingBoxLeft, baseline: 0 }],
+    };
+  }
+  if (cache.size >= 256) cache.delete(cache.keys().next().value!);
+  cache.set(key, layout);
+  return layout;
+}
+// Center the combined visible ink, keeping note names and progress bars aligned.
 function centeredGlyphs(
   ctx: CanvasRenderingContext2D,
   value: string,
@@ -68,19 +139,17 @@ function centeredGlyphs(
   size: number,
   color: string
 ) {
-  ctx.font = `500 ${size}px Arial, sans-serif`;
+  const layout = glyphLayout(ctx, value, size);
+  const left = x - layout.width / 2;
+  const baseline = y + (layout.ascent - layout.descent) / 2;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  const m = ctx.measureText(value);
-  const width = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
-  const height = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
   ctx.fillStyle = color;
-  ctx.fillText(
-    value,
-    x + (m.actualBoundingBoxLeft - m.actualBoundingBoxRight) / 2,
-    y + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2
-  );
-  return { left: x - width / 2, top: y - height / 2, width, height };
+  for (const run of layout.runs) {
+    ctx.font = `500 ${run.size}px Arial, sans-serif`;
+    ctx.fillText(run.value, left + run.left, baseline + run.baseline);
+  }
+  return { left, top: y - layout.height / 2, width: layout.width, height: layout.height };
 }
 export function drawExercise(
   canvas: HTMLCanvasElement,
@@ -227,11 +296,8 @@ export function drawExercise(
   const currentSize = compact ? (mobile ? 48 : 28) : mobile ? 250 : 148;
   const nextSize = compact ? currentSize : mobile ? 190 : 110;
   const noteLabel = (round: PracticeRound | null) =>
-    round ? (spec.solfege ? solfege(round.degree) : noteName(round.midi, spec.key)) : '—';
-  ctx.font = `500 ${currentSize}px Arial, sans-serif`;
-  const primaryMetrics = ctx.measureText(noteLabel(practice.current));
-  const primaryHeight =
-    primaryMetrics.actualBoundingBoxAscent + primaryMetrics.actualBoundingBoxDescent;
+    round ? (spec.solfege ? solfege(round.degree) : roundNoteName(round.midi, round)) : '—';
+  const primaryHeight = glyphLayout(ctx, noteLabel(practice.current), currentSize).height;
   const labelY = compact ? (mobile ? 764 : 524) : noteY - primaryHeight / 2 - (mobile ? 56 : 34);
   const currentX = compact ? 650 : 520;
   const nextX = compact ? 950 : 1080;
@@ -264,7 +330,7 @@ export function drawExercise(
       const range = practiceRange(exercise, round);
       text(
         ctx,
-        `${noteName(range.low, spec.key)} – ${noteName(range.high, spec.key)}`,
+        `${roundNoteName(range.low, round)} – ${roundNoteName(range.high, round)}`,
         x,
         rangeY,
         compact ? (mobile ? 28 : 14) : mobile ? 44 : 22,
@@ -315,7 +381,7 @@ export function drawExercise(
     if (n % 12 === 0 || active)
       text(
         ctx,
-        noteName(n, spec.key),
+        roundNoteName(n, practice.current),
         x0 + (i + 0.5) * keyW,
         y0 + keyH - (mobile ? 48 : 25),
         Math.min(mobile ? 42 : 18, keyW * (mobile ? 0.48 : 0.3)),
@@ -380,7 +446,7 @@ export function drawExercise(
   }
   text(
     ctx,
-    `${noteName(spec.low, spec.key)} — ${noteName(spec.high, spec.key)}`,
+    `${noteName(spec.low)} — ${noteName(spec.high)}`,
     inset,
     mobile ? 1510 : 850,
     mobile ? 40 : 18,

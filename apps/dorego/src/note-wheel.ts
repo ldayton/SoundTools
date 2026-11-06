@@ -1,4 +1,4 @@
-import { noteName, noteAlternative, noteChoiceLabel } from './note-spelling';
+import { noteChoiceLabel } from './note-spelling';
 
 const ROW = 32;
 const LOW = 24;
@@ -15,7 +15,7 @@ export class NoteWheel {
     element.innerHTML = Array.from(
       { length: HIGH - LOW + 1 },
       (_, i) =>
-        `<span class="note-wheel-item" data-midi="${i + LOW}" aria-hidden="true"><span class="note-wheel-primary">${noteName(i + LOW)}</span>${noteAlternative(i + LOW) ? `<small class="note-wheel-alias">${noteAlternative(i + LOW)}</small>` : ''}</span>`
+        `<span class="note-wheel-item" data-midi="${i + LOW}" aria-hidden="true"><span class="note-wheel-primary">${noteChoiceLabel(i + LOW)}</span></span>`
     ).join('');
     element.addEventListener('scroll', () => {
       this.highlight(this.nearest());

@@ -28,7 +28,7 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
 
 ## Practice
 
-- Eight exercises: **Arpeggio & Scale** (default: E3–E5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **Pentatonic Sequence (Threes)**, **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
+- Nine exercises: **Arpeggio & Scale** (default: E3–E5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **Pentatonic Threes (9 notes)**, **Pentatonic Threes (12 notes)**, **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
 - Choose your lowest/highest vocal notes, phrase contour, and round progression. Major Scale instead uses a single Key selector for the starting note, including its octave; the other exercises move by semitone through your range.
 - Click anywhere on a desktop note field to open a note grid organized by octave; typing is disabled. Enter or Space also opens the picker. Mobile uses snapping swipe wheels. Arrow keys move by semitone and Page Up/Down by octave.
 - Transpose the key and range together with the minus/plus buttons.
@@ -93,11 +93,11 @@ All runtime dependency versions are pinned by `package-lock.json`. The app does 
 
 ### Generated exercises
 
-**Within each round** controls the phrase, with a small preview of its actual contour. Arpeggio & Scale, Octave Arpeggio, Five-Note Scale and Pentatonic Sequence (Threes) offer **Rising first** and **Falling first**; these phrases already return to their starting note. Glides offer **Up**, **Down** (eight beats each, no return), or **Up & back** (fourteen beats). Rossini has a fixed contour, so this control is hidden.
+**Within each round** controls the phrase, with a small preview of its actual contour. Arpeggio & Scale, Octave Arpeggio, Five-Note Scale and both Pentatonic Threes sequences offer **Rising first** and **Falling first**; these phrases already return to their starting note. Glides offer **Up**, **Down** (eight beats each, no return), or **Up & back** (fourteen beats). Rossini has a fixed contour, so this control is hidden.
 
 **Between rounds** independently chooses **Rising**, **Falling**, or **Rising then falling**, with diagonal contour icons, one semitone at a time. The starting-note preview reflects the actual practice targets, including phrases that start high. The same phrase, rhythm and starting chords are retained throughout the sweep. The turnaround key is played once; a one-key range plays one round per repeat and hides the between-round controls while remembering the selection. Rossini supports all three progressions while keeping its fixed melody.
 
-**Pentatonic Sequence (Threes)** climbs in four overlapping groups of three major pentatonic notes,
+**Pentatonic Threes (12 notes)** climbs in four overlapping groups of three major pentatonic notes,
 then descends stepwise home: C4–D4–E4 | D4–E4–G4 | E4–G4–A4 | G4–A4–C5–A4–G4–E4–D4–C4.
 The first eleven notes each last one beat. The return, including the top C5, uses
 **long–short–long–short–short–long**: C5 (2), A4 (1), G4 (2), E4 (1), D4 (1), C4 (2).
@@ -107,16 +107,20 @@ before climbing stepwise back to its starting note. Under More options, repeat t
 the fourth strike retains the two-beat hold. It uses the usual starting-note chords and
 independent between-round progression, and requires a range of at least one octave.
 
+**Pentatonic Threes (9 notes)** uses three groups before returning home:
+C4–D4–E4 | D4–E4–G4 | E4–G4–A4–G4–E4–D4–C4.
+The return including A4 is long–short–long–short–long. It spans a major sixth,
+supports falling first, and has the same repeat-note and round-progression options.
+The 9/12 labels count the grouped passage before the stepwise return.
+
 **Major Scale** uses Key as its starting note and generates one octave **Up**, **Down**, or **Up then down**. It repeats on that key, so range and between-round progression controls are hidden.
 
 Preferences are saved automatically. Legacy descending selections become falling-first phrases with lower round progression; legacy combined selections become rising-first phrases with higher-then-lower progression. CLI JSON can specify `direction` for phrase orientation and `progression` (`up`, `down`, `both`) independently. Omitting `progression` retains the old coupled CLI behavior for compatibility. For glide phrases and Major Scale, `direction: "both"` means up and back; other vocal patterns use `both` only for progression. Existing saved upward glides migrate to Up & back, preserving their sound.
 
 ### Note names
 
-Range selectors use stable pitch names: C, D♭, D, E♭, E, F, F♯, G, A♭, A, B♭, B.
-The desktop picker and mobile wheels also show common alternatives such as D♭4 / C♯4;
-mobile wheels include both names in their accessible value. Selecting either name still selects
-the same MIDI pitch. The Major Scale key selector also includes both common spellings.
+Range and key selectors use sharp-only pitch names: C, C♯, D, D♯, E, F, F♯, G, G♯, A, A♯, B.
+Desktop pickers and mobile wheels show one name per pitch.
 
 Musical labels use each round's actual major key, including its diatonic letter names.
 F-major phrases use B♭; F♯-major phrases use E♯. Current and next rounds get separate

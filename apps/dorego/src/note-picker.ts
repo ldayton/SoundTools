@@ -1,4 +1,4 @@
-import { noteName, noteAlternative, noteChoiceLabel } from './note-spelling';
+import { noteChoiceLabel } from './note-spelling';
 
 export function parseNote(value: string): number | null {
   const match = /^\s*([a-g])([#♯b♭]?)([1-7])\s*$/i.exec(value);
@@ -34,7 +34,7 @@ export class NotePicker {
           (_, pitch) => {
             const midi = 24 + row * 12 + pitch;
             return midi <= 96
-              ? `<button type="button" data-midi="${midi}" tabindex="-1" aria-label="${noteName(midi)}" title="${noteChoiceLabel(midi)}"${noteAlternative(midi) ? ` aria-description="Also ${noteAlternative(midi)}"` : ''}><span>${noteName(midi)}</span><small class="note-picker-alias" aria-hidden="true">${noteAlternative(midi) ?? ''}</small></button>`
+              ? `<button type="button" data-midi="${midi}" tabindex="-1" aria-label="${noteChoiceLabel(midi)}" title="${noteChoiceLabel(midi)}"><span>${noteChoiceLabel(midi)}</span></button>`
               : '<span></span>';
           }
         ).join('')}`
@@ -87,7 +87,7 @@ export class NotePicker {
         return;
       }
       if (event.key === 'Escape') {
-        input.value = noteName(this.value);
+        input.value = noteChoiceLabel(this.value);
         input.setCustomValidity('');
         input.removeAttribute('aria-invalid');
         return;
@@ -124,7 +124,7 @@ export class NotePicker {
   }
   setValue(midi: number) {
     this.value = midi;
-    this.input.value = noteName(midi);
+    this.input.value = noteChoiceLabel(midi);
     this.input.title = noteChoiceLabel(midi);
     this.input.setCustomValidity('');
     this.input.removeAttribute('aria-invalid');

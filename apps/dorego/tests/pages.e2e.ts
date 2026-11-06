@@ -232,7 +232,7 @@ try {
     'Arpeggio & Scale (Rising first)'
   );
   await page.locator('#pattern').selectOption('pentatonic12');
-  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Sequence (Threes) (Rising first)');
+  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Threes (12 notes) (Rising first)');
   assert.deepEqual(await page.locator('#direction label span').allTextContents(), ['Rising first', 'Falling first']);
   if (await page.locator('.more-settings').getAttribute('open') === null)
     await page.locator('.more-settings > summary').click();
@@ -249,7 +249,7 @@ try {
   await page.locator('.more-settings > summary').click();
 
   await page.locator('input[name="direction"][value="down"]').check();
-  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Sequence (Threes) (Falling first)');
+  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Threes (12 notes) (Falling first)');
   await page.locator('input[name="direction"][value="up"]').check();
   for (const [pattern, label] of [
     ['fiveNote', 'Five-Note Scale'],
@@ -273,7 +273,8 @@ try {
     'Octave Arpeggio',
     'Rossini Scale',
     'Five-Note Scale',
-    'Pentatonic Sequence (Threes)',
+    'Pentatonic Threes (9 notes)',
+    'Pentatonic Threes (12 notes)',
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',

@@ -156,7 +156,7 @@ try {
     /Next D♭4, range D♭4 to A♭5/
   );
   assert.ok((await labels()).join('').includes('D♭4'));
-  assert.equal(await page.locator('#high-spin').inputValue(), 'A♭5');
+  assert.equal(await page.locator('#high-spin').inputValue(), 'G♯5');
   const before = [
     await page.locator('#low-spin').inputValue(),
     await page.locator('#high-spin').inputValue(),
@@ -177,23 +177,20 @@ try {
   const grid = page.getByRole('dialog', { name: 'Choose lowest note' });
   await mkdir('work', { recursive: true });
   await grid.screenshot({ path: `work/spelling-${browserName}-picker.png` });
-  const flat = grid.getByRole('button', { name: 'D♭4', exact: true });
+  const flat = grid.getByRole('button', { name: 'C♯4', exact: true });
   assert.match((await flat.textContent())!, /C♯4/);
-  assert.equal(await flat.getAttribute('aria-description'), 'Also C♯4');
+  assert.equal(await flat.getAttribute('aria-description'), null);
   await flat.click();
   assert.equal(await page.locator('#low').inputValue(), '61');
-  assert.equal(await page.locator('#low-spin').inputValue(), 'D♭4');
+  assert.equal(await page.locator('#low-spin').inputValue(), 'C♯4');
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.locator('#low-wheel').getAttribute('aria-valuetext'), 'D♭4 / C♯4');
+  assert.equal(await page.locator('#low-wheel').getAttribute('aria-valuetext'), 'C♯4');
   assert.equal(
     await page.locator('#low-wheel [data-midi="61"] .note-wheel-primary').textContent(),
-    'D♭4'
-  );
-
-  assert.equal(
-    await page.locator('#low-wheel [data-midi="61"] .note-wheel-alias').textContent(),
     'C♯4'
   );
+
+  assert.equal(await page.locator('.note-wheel-alias, .note-picker-alias').count(), 0);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 
   for (const mobile of [false, true]) {
@@ -214,9 +211,16 @@ try {
   await configure({ ...spec, pattern: 'major', key: 6, low: 66, high: 78, direction: 'down' });
   await seek(secondsAt(1.2, spec.bpm));
   assert.ok((await labels()).join('').includes('E♯5'));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await configure({ ...spec, pattern: 'pentatonic9', low: 60, high: 69, direction: 'up' });
+  assert.equal(await page.locator('#pattern').inputValue(), 'pentatonic9');
+  assert.equal(await page.locator('#pattern option[value="pentatonic12"]').count(), 1);
+  assert.ok((await page.locator('#pattern option:checked').textContent())!.includes('9 notes'));
+  await seek(secondsAt(1.2, spec.bpm));
+  await page.screenshot({ path: `work/pentatonic-nine-${browserName}.png`, fullPage: true });
   assert.deepEqual(errors, []);
   console.log(
-    'PASS: context-aware current/next notes and piano, stable selectors, aliases, mobile labels and descending key spelling.'
+    'PASS: context-aware current/next notes and piano, sharp-only selectors, nine-note pentatonic, mobile labels and descending key spelling.'
   );
   await context.close();
 } finally {

@@ -138,3 +138,58 @@ test('pentatonic turn and returning-home repeats preserve both double-length fin
           }
         }
 });
+
+test('nine-note threes has three groups and a rhythmic return in either direction', () => {
+  const up = [0, 2, 4, 2, 4, 7, 4, 7, 9, 7, 4, 2, 0];
+  const down = [9, 7, 4, 7, 4, 2, 4, 2, 0, 2, 4, 7, 9];
+  const lengths = [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2];
+  assert.equal(vocalSpan('pentatonic9'), 9);
+  for (const direction of ['up', 'down'] as const)
+    for (const progression of ['up', 'down', 'both'] as const)
+      for (const repeatTurn of [false, true])
+        for (const repeatHome of [false, true]) {
+          const e = generateExercise({
+            ...base,
+            pattern: 'pentatonic9',
+            high: 71,
+            direction,
+            progression,
+            repeatTurn,
+            repeatHome,
+          });
+          const expected = (direction === 'up' ? up : down).flatMap((pitch, i) =>
+            Array((i === 8 && repeatTurn) || (i === 12 && repeatHome) ? 4 : 1).fill(pitch)
+          );
+          for (const round of e.rounds) {
+            const notes = e.notes.filter(
+              (n) => n.onsetBeat >= round.onsetBeat && n.onsetBeat < round.endBeat
+            );
+            const root = round.midi - (direction === 'down' ? 9 : 0);
+            assert.deepEqual(
+              notes.map((n) => n.midi),
+              expected.map((n) => root + n)
+            );
+            assert.equal(notes.at(-1)!.midi, notes[0].midi);
+            assert.equal(notes.at(-1)!.slotBeats, 2);
+            assert.equal(
+              round.endBeat - round.onsetBeat,
+              16 + 3 * (Number(repeatTurn) + Number(repeatHome))
+            );
+            if (!repeatTurn && !repeatHome)
+              assert.deepEqual(
+                notes.map((n) => n.slotBeats),
+                lengths
+              );
+          }
+          assert.ok(e.notes.every((n) => n.midi >= 60 && n.midi <= 71));
+          const midi = new Midi(exportMidi(e));
+          assert.deepEqual(
+            midi.tracks.flatMap((t) => t.notes.map((n) => n.midi)),
+            e.notes.map((n) => n.midi)
+          );
+        }
+  assert.throws(
+    () => generateExercise({ ...base, pattern: 'pentatonic9', high: 68 }),
+    /major sixth/
+  );
+});

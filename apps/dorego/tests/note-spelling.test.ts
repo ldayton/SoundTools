@@ -11,11 +11,13 @@ test('pitch selectors use stable familiar names and expose equivalent alternativ
     Array.from({ length: 12 }, (_, i) => noteName(60 + i)),
     ['C4', 'D♭4', 'D4', 'E♭4', 'E4', 'F4', 'F♯4', 'G4', 'A♭4', 'A4', 'B♭4', 'B4']
   );
-  assert.equal(noteChoiceLabel(61), 'D♭4 / C♯4');
-  assert.equal(noteChoiceLabel(66), 'F♯4 / G♭4');
+  assert.equal(noteChoiceLabel(61), 'C♯4');
+  assert.equal(noteChoiceLabel(66), 'F♯4');
   assert.equal(noteChoiceLabel(60), 'C4');
   for (let midi = 24; midi <= 96; midi++) {
     assert.equal(parseNote(noteName(midi)), midi);
+    assert.equal(parseNote(noteChoiceLabel(midi)), midi);
+    assert.ok(!/[♭/]/.test(noteChoiceLabel(midi)));
     const alias = noteAlternative(midi);
     if (alias) assert.equal(parseNote(alias), midi);
   }

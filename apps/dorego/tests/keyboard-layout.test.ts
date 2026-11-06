@@ -95,6 +95,7 @@ test('mobile key width is fixed to the widest round, including during every slid
     'arpeggio',
     'fiveNote',
     'octaveArpeggio',
+    'pentatonic9',
     'pentatonic12',
     'rossini',
     'major',

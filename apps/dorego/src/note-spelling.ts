@@ -48,6 +48,5 @@ export function noteAlternative(midi: number): string | null {
 }
 
 export function noteChoiceLabel(midi: number): string {
-  const alternative = noteAlternative(midi);
-  return alternative ? `${noteName(midi)} / ${alternative}` : noteName(midi);
+  return withOctave(midi, SHARPS[pitchClass(midi)]);
 }

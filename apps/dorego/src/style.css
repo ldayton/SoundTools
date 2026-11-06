@@ -1298,11 +1298,6 @@ main {
     transform 0.12s,
     color 0.12s;
 }
-.note-wheel-alias {
-  font-size: 10px;
-  font-weight: 400;
-  color: #596653;
-}
 .note-wheel-item.is-selected {
   color: var(--ink);
   font-weight: 600;
@@ -1430,13 +1425,6 @@ main {
   background: #fffefa;
   font-size: 11px;
   border: 1px solid #e5e7dd;
-}
-.note-picker-alias {
-  min-height: 10px;
-  font-size: 9px;
-  line-height: 10px;
-  color: #596653;
-  font-weight: 400;
 }
 .note-picker-grid button:hover {
   background: #edf2df;

@@ -22,10 +22,17 @@ export const PATTERNS = {
     intervals: [0, 2, 4, 5, 7, 5, 4, 2, 0],
     description: 'A five-note major scale out and back, moving one semitone per round.',
   },
+  pentatonic9: {
+    name: 'Pentatonic Threes (9 notes)',
+    intervals: [0, 2, 4, 2, 4, 7, 4, 7, 9, 7, 4, 2, 0],
+    description:
+      'Three overlapping pentatonic groups of three with a rhythmic stepwise return home.',
+  },
   pentatonic12: {
-    name: 'Pentatonic Sequence (Threes)',
+    name: 'Pentatonic Threes (12 notes)',
     intervals: [0, 2, 4, 2, 4, 7, 4, 7, 9, 7, 9, 12, 9, 7, 4, 2, 0],
-    description: 'Four overlapping pentatonic groups of three with a rhythmic stepwise return home.',
+    description:
+      'Four overlapping pentatonic groups of three with a rhythmic stepwise return home.',
   },
   major: {
     name: 'Major Scale',
@@ -48,17 +55,19 @@ export function isGlidePattern(pattern: Pattern) {
   return pattern === 'fifthGlide' || pattern === 'octaveGlide';
 }
 export function supportsNoteRepeats(pattern: Pattern) {
-  return ['octaveArpeggio', 'rossini', 'fiveNote', 'pentatonic12'].includes(pattern);
+  return ['octaveArpeggio', 'rossini', 'fiveNote', 'pentatonic9', 'pentatonic12'].includes(pattern);
 }
 export function isVocalPattern(pattern: Pattern) {
   return pattern !== 'major';
 }
 export function vocalSpan(pattern: Pattern) {
-  return pattern === 'rossini'
-    ? 19
-    : pattern === 'octaveArpeggio' || pattern === 'octaveGlide' || pattern === 'pentatonic12'
-      ? 12
-      : 7;
+  return pattern === 'pentatonic9'
+    ? 9
+    : pattern === 'rossini'
+      ? 19
+      : pattern === 'octaveArpeggio' || pattern === 'octaveGlide' || pattern === 'pentatonic12'
+        ? 12
+        : 7;
 }
 export type Direction = 'up' | 'down' | 'both';
 export function directionName(direction: Direction) {
@@ -327,6 +336,8 @@ export function phraseContour(pattern: Pattern, direction: Direction): readonly 
     return direction === 'down'
       ? [7, 4, 0, 2, 4, 5, 7, 4, 0, 2, 4, 5, 7]
       : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0];
+  if (direction === 'down' && pattern === 'pentatonic9')
+    return [9, 7, 4, 7, 4, 2, 4, 2, 0, 2, 4, 7, 9];
   if (direction === 'down' && pattern === 'pentatonic12')
     return [12, 9, 7, 9, 7, 4, 7, 4, 2, 4, 2, 0, 2, 4, 7, 9, 12];
   if (direction === 'down' && pattern === 'fiveNote') return [7, 5, 4, 2, 0, 2, 4, 5, 7];
@@ -592,10 +603,12 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
         ? 'Rossini Scale needs a range of at least an octave and a fifth (19 semitones).'
         : span === 12
           ? `${PATTERNS[spec.pattern].name} needs a range of at least an octave (12 semitones).`
-          : 'These vocal phrases need a range of at least seven semitones (a perfect fifth).'
+          : span === 9
+            ? 'Pentatonic Threes (9 notes) needs a range of at least a major sixth (9 semitones).'
+            : 'These vocal phrases need a range of at least seven semitones (a perfect fifth).'
     );
   const offsets: number[] = [
-    ...(spec.pattern === 'pentatonic12'
+    ...(['pentatonic9', 'pentatonic12'].includes(spec.pattern)
       ? phraseContour(spec.pattern, spec.direction).map(
           (offset) => offset - (descending ? span : 0)
         )
@@ -616,9 +629,11 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
   const lengths =
     spec.pattern === 'arpeggio'
       ? [2, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2]
-      : spec.pattern === 'pentatonic12'
-        ? [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2]
-        : offsets.map((_, index) => (index === offsets.length - 1 ? 2 : 1));
+      : spec.pattern === 'pentatonic9'
+        ? [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2]
+        : spec.pattern === 'pentatonic12'
+          ? [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2]
+          : offsets.map((_, index) => (index === offsets.length - 1 ? 2 : 1));
   // Add three distinct attacks, retaining the original duration on the fourth.
   if (supportsNoteRepeats(spec.pattern)) {
     const turn = offsets.indexOf((descending ? Math.min : Math.max)(...offsets));
@@ -626,8 +641,7 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
     const expanded: number[] = [],
       durations: number[] = [];
     offsets.forEach((offset, index) => {
-      const repeat =
-        (index === turn && spec.repeatTurn) || (index === home && spec.repeatHome);
+      const repeat = (index === turn && spec.repeatTurn) || (index === home && spec.repeatHome);
       for (let strike = 0; strike < (repeat ? 4 : 1); strike++) {
         expanded.push(offset);
         durations.push(repeat && strike < 3 ? 1 : lengths[index]);

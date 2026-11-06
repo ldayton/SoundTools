@@ -99,7 +99,8 @@ export function keyboardView(
       }
     }
   }
-  const t = Math.max(0, Math.min(1, amount));
+  // Snap numerical residue at the end of a slide to the exact destination.
+  const t = amount >= 1 - 1e-9 ? 1 : Math.max(0, amount);
   const eased = t * t * t * (t * (t * 6 - 15) + 10);
   const mix = (a: number, b: number) => a + (b - a) * eased;
   const left = mix(whiteKeyPosition(from.low), whiteKeyPosition(to.low));

@@ -63,6 +63,11 @@ export function loadProgress(raw: string | null): Progress {
       if (KEYS.some((k) => k.id === source.key)) profile.key = source.key;
       if (mode === "piano" && ["staff", "name"].includes(source.pianoPrompt))
         profile.pianoPrompt = source.pianoPrompt;
+      if (
+        mode === "signature" &&
+        ["major", "minor", "both"].includes(source.signaturePractice)
+      )
+        profile.signaturePractice = source.signaturePractice;
       const positions = mode === "piano" ? PIANO_POSITIONS : POSITIONS;
       if (source.naturalsOnly === true) profile.naturalsOnly = true;
       if (
@@ -112,7 +117,7 @@ export function loadProgress(raw: string | null): Progress {
     )
       result.profiles.name.strings = [1, 2, 3, 4, 5, 6];
     const patterns =
-      /^((piano-(staff|name)):[A-G][3-6]:-?[01]|staff:[A-G][234]:-?[01]|(name|find|tab|staff-find):[1-6]:([0-9]|1[0-2]))$/;
+      /^(signature:(major|minor):[A-G](#|b)?|(piano-(staff|name)):[A-G][3-6]:-?[01]|staff:[A-G][234]:-?[01]|(name|find|tab|staff-find):[1-6]:([0-9]|1[0-2]))$/;
     for (const [id, s] of Object.entries(data.stats || {}) as [string, any][]) {
       if (
         patterns.test(id) &&

@@ -127,6 +127,9 @@ jobs:
       - run: npm run test:piano --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:signatures --workspace=notecards
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:offline --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}
@@ -139,3 +142,4 @@ jobs:
           path: |
             apps/notecards/work/
             work/piano-*.png
+            work/key-signatures-*.png

@@ -55,6 +55,9 @@ export function drawNotation(
     });
     Formatter.FormatAndDraw(context, stave, [note]);
   }
+  finishNotation(element, tab);
+}
+function finishNotation(element: HTMLDivElement, tab = false) {
   const svg = element.querySelector("svg")!;
   // Leave headroom for high guitar pitches spelled above E (for example F♭6).
   svg.setAttribute("viewBox", tab ? "0 0 600 300" : "0 -25 600 325");
@@ -63,4 +66,20 @@ export function drawNotation(
   group.setAttribute("transform", "scale(2.2)");
   while (svg.firstChild) group.append(svg.firstChild);
   svg.append(group);
+}
+
+export function drawKeySignature(element: HTMLDivElement, key: string) {
+  element.replaceChildren();
+  const renderer = new Renderer(element, Renderer.Backends.SVG);
+  renderer.resize(600, 325);
+  const context = renderer.getContext();
+  context.setFillStyle("#302d55").setStrokeStyle("#302d55");
+  new Stave(14, -2, 244)
+    .addClef("treble")
+    .addKeySignature(key)
+    .setBegBarType(BarlineType.NONE)
+    .setEndBarType(BarlineType.NONE)
+    .setContext(context)
+    .draw();
+  finishNotation(element);
 }

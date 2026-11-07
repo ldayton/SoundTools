@@ -870,3 +870,25 @@ input:focus-visible {
     height: 176px;
   }
 }
+
+#signature-prompt {
+  margin: 28px 0 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 1px;
+  color: #81768e;
+}
+.signature-question #notation {
+  height: 225px;
+}
+#signature-practice-setting {
+  align-items: stretch;
+  flex-direction: column;
+  max-width: 280px;
+}
+@media (max-width: 600px) {
+  .signature-question #notation {
+    height: 200px;
+  }
+}

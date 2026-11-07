@@ -1,6 +1,6 @@
 # Note by Note
 
-Guitar note recognition in the SoundTools workspace. No audio, microphone, account, or sync.
+Note recognition and key-signature practice in the SoundTools workspace. No audio, microphone, account, or sync.
 
 From the repository root:
 
@@ -9,6 +9,8 @@ From the repository root:
 - `npm test --workspace=notecards`
 - `npm run test:browser --workspace=notecards` (original staff regression suite)
 - `npm run test:guitar --workspace=notecards` (all five modes)
+- `npm run test:piano --workspace=notecards` (responsive piano answers)
+- `npm run test:signatures --workspace=notecards` (all 30 major/minor answers)
 - `TEST_BROWSER=firefox npm run test:guitar --workspace=notecards` (also `webkit`)
 
 Browser suites start their own built preview. `TEST_BASE_URL` targets an existing server; `TEST_PORT` changes the guitar preview port.
@@ -22,12 +24,18 @@ Browser suites start their own built preview. `TEST_BASE_URL` targets an existin
 | Read tab | Single tab number on six lines | Letter plus optional accidental |
 | Staff to fretboard | Guitar staff note and specified string | Its exact sounding pitch on that string |
 | Read staff | Guitar staff note | Letter plus optional accidental |
+| Find on piano | Staff note or note name | Piano key; exact octave for staff prompts |
+| Read key signatures | Key signature, with Major key / Minor key prompt | Correctly spelled tonic letter plus optional accidental |
 
-Fresh profiles start with Read staff in C major. Name the note starts with all six strings, frets 0–5, and all twelve pitches. It has an All notes / Naturals only selector and does not filter by musical key. Other guitar modes start with low E string, frets 0–5. Practice order is Read staff, Name the note, Find the note, Staff to fretboard, Read tab. Existing users retain Read staff and their previous range, key, and progress. All modes remember independent settings and learning history. Find-the-note progress identifies a string and pitch class; octave-equivalent prompts are deduplicated. Other guitar modes track individual string/fret locations. Changing settings starts a fresh session. At least one string remains selected. Empty key/string/fret combinations explain how to recover rather than generating invalid questions.
+Fresh profiles start with Read staff in C major. Name the note starts with all six strings, frets 0–5, and all twelve pitches. It has an All notes / Naturals only selector and does not filter by musical key. Other guitar modes start with low E string, frets 0–5. Practice order is Read staff, Name the note, Find the note, Staff to fretboard, Read tab, Find on piano, Read key signatures. Existing users retain Read staff and their previous range, key, and progress. All modes remember independent settings and learning history. Find-the-note progress identifies a string and pitch class; octave-equivalent prompts are deduplicated. Other guitar modes track individual string/fret locations. Changing settings starts a fresh session. At least one string remains selected. Empty key/string/fret combinations explain how to recover rather than generating invalid questions.
+
+Piano practice defaults to C4–B5 on an ordinary treble clef, with exact-octave grading. Note-name prompts use a single C–B octave and grade pitch class. The stable, unlabeled HTML keyboard is continuous on desktop and splits into two rows at natural gaps on mobile, without scrolling. Range controls allow at most fourteen diatonic positions; enharmonic boundary keys remain reachable.
+
+Key-signature practice defaults to Major only, followed by Minor only and Major & minor options. All fifteen conventional signatures are engraved with VexFlow; C major / A minor has no accidentals. Every card explicitly asks for the major or minor tonic because relative keys share a signature. Major and minor cards have separate review history. No individual key selector or note-range controls are shown in this mode.
 
 Rounds contain 12, 24, 36, or 48 exercises (default 12), remembered across modes and visits. Changing the count starts a fresh round. Each question is graded once. Correct answers advance after 450ms; corrections remain for 1.6 seconds. Selection excludes only the immediately previous question, and softly balances recency, coverage, accuracy and delayed mistake revisits. No fixed repeat queue or shuffled-deck order is imposed. Lightweight review spacing across visits uses 1, 3, 7, 14 and 30 days. Practice remains available before a review is due. No mastery claim comes from one successful session; suggestions require repeated accurate answers. Continue resets the round score while retaining recent questions, exposure counts and pending mistake revisits. Changing settings starts a fresh selection context. One-card sets repeat; two-card sets alternate.
 
-Desktop name input: press A–G to answer. First press + for sharp; − for flat; 0 to return to natural. Touch uses modifier buttons, then a letter. Enharmonic equivalents count as correct; no octave is required when naming. Location input supports pointer/touch, focusable frets, left/right navigation and Enter. Held keys and double clicks cannot answer successive cards during feedback.
+Desktop name input: press A–G to answer. First press + for sharp; − for flat; 0 to return to natural. Touch uses modifier buttons, then a letter. Enharmonic equivalents count as correct for note naming; no octave is required. Key-signature answers require the written key name (D♭ major and C♯ major have different signatures). Location input supports pointer/touch, focusable frets, left/right navigation and Enter. Held keys and double clicks cannot answer successive cards during feedback.
 
 Fretboard views put high E at the top, low E at the bottom, with a separate open-string column, nut, fret numbers and position markers. The diagram always starts at Open and includes frets 1–5, extending to the highest selected fret when needed. Narrow practice ranges do not shrink the diagram; out-of-range answers are disabled. Wide diagrams scroll horizontally on mobile, with large touch targets. Staff and tab use bundled VexFlow Bravura fonts, without a font CDN. Standard tuning is fixed; fret range is 0–12. Staff range uses E2–A4 sounding guitar pitches and the octave-down treble clef. Key signatures determine available notes in the notation/key-based modes. Name the note includes every selected fret by default; enharmonic answers remain equivalent.
 
@@ -37,7 +45,9 @@ Fretboard views put high E at the top, low E at the bottom, with a separate open
 - `guitar.ts`: tuning, pitch/location mapping and guitar question generation.
 - `session.ts`: question selection, feedback guards and session completion.
 - `progress.ts`: validated versioned storage, legacy migration and review history.
-- `notation.ts`: staff/tab SVG renderer.
+- `notation.ts`: staff/tab/key-signature SVG renderer.
+- `piano-model.ts` / `piano.ts`: piano decks, grading and responsive keyboard.
+- `key-signatures.ts`: major/relative minor question generation and spelling-aware grading.
 - `fretboard.ts`: fretboard renderer, anchored axis, horizontal scrolling and keyboard navigation.
 - `main.ts`: UI coordination.
 

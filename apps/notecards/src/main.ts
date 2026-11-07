@@ -24,7 +24,14 @@ import {
 } from "./guitar";
 import { loadProgress, STORAGE_KEY } from "./progress";
 import { PracticeSession } from "./session";
-import { drawNotation, VexFlow } from "./notation";
+import {
+  signatureDeck,
+  matchesSignature,
+  signatureAnswer,
+  type SignatureCard,
+  type SignaturePractice,
+} from "./key-signatures";
+import { drawKeySignature, drawNotation, VexFlow } from "./notation";
 import { Piano } from "./piano";
 import {
   PIANO_POSITIONS,
@@ -72,7 +79,7 @@ $("#app").innerHTML =
 <main><div class="intro"><p class="eyebrow">A LITTLE PRACTICE, EVERY DAY</p><h1>Get to know your notes.</h1></div>
 <label class="mode-selector">Practice<select id="mode">${MODES.map((m) => `<option value="${m.id}">${m.label}</option>`).join("")}</select></label>
 <section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${progress.roundLength}" value="0" aria-label="Session progress"></progress>
-<div id="question"><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
+<div id="question"><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <div id="piano" hidden></div>
 <div class="answer-line"><span id="feedback" role="status" aria-live="polite">Loading notation…</span></div>
 <div class="keyboard" aria-label="Answer keyboard"><div class="modifiers" role="group" aria-label="Accidental"><button data-mod="-1" aria-label="Flat" aria-pressed="false">♭</button><button data-mod="0" aria-label="Natural" aria-pressed="true">♮</button><button data-mod="1" aria-label="Sharp" aria-pressed="false">♯</button></div><div class="letters" role="group" aria-label="Note letter">${"CDEFGAB"
@@ -82,6 +89,7 @@ $("#app").innerHTML =
 <p class="hint piano-hint" hidden>Choose the matching piano key.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p><p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
 <div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
 <div class="below"><details><summary>Practice options</summary><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
+<label id="signature-practice-setting" hidden>Keys<select id="signaturePractice"><option value="major">Major only</option><option value="minor">Minor only</option><option value="both">Major & minor</option></select></label>
 <label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
 <label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes · sharps & flats</option><option value="naturals">Naturals only</option></select></label>
 <div class="range" id="pitch-range" role="group" aria-label="Sounding guitar pitch range">${(["low", "high"] as const).map((f) => `<label>${f === "low" ? "Lowest" : "Highest"}<select id="${f}">${POSITIONS.map((n) => `<option>${n}</option>`).join("")}</select></label>`).join("")}</div>
@@ -145,6 +153,10 @@ function syncOptions() {
   $<HTMLSelectElement>("#mode").value = progress.mode;
   $<HTMLSelectElement>("#key").value = p.key;
   const isPiano = progress.mode === "piano";
+  const isSignature = progress.mode === "signature";
+  $("#signature-practice-setting").hidden = !isSignature;
+  $<HTMLSelectElement>("#signaturePractice").value =
+    p.signaturePractice || "major";
   const positions = isPiano ? PIANO_POSITIONS : POSITIONS;
   $("#piano-prompt-setting").hidden = !isPiano;
   $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
@@ -154,8 +166,9 @@ function syncOptions() {
     "aria-label",
     isPiano ? "Piano pitch range" : "Sounding guitar pitch range",
   );
-  $("#guitar-options").hidden = progress.mode === "staff" || isPiano;
-  $("#key-setting").hidden = progress.mode === "name";
+  $("#guitar-options").hidden =
+    progress.mode === "staff" || isPiano || isSignature;
+  $("#key-setting").hidden = progress.mode === "name" || isSignature;
   $("#name-notes-setting").hidden = progress.mode !== "name";
   $<HTMLSelectElement>("#nameNotes").value = p.naturalsOnly
     ? "naturals"
@@ -191,13 +204,14 @@ function syncOptions() {
     b.setAttribute("aria-pressed", String(active));
     b.setAttribute("aria-disabled", String(active && p.strings.length === 1));
   }
-  $("#context").textContent =
-    (isPiano ? "Piano · " : "Guitar · ") +
-    (progress.mode === "name"
-      ? p.naturalsOnly
-        ? "Naturals only"
-        : "All notes"
-      : KEYS.find((k) => k.id === p.key)!.label.split(" · ")[0]);
+  $("#context").textContent = isSignature
+    ? "Key signatures"
+    : (isPiano ? "Piano · " : "Guitar · ") +
+      (progress.mode === "name"
+        ? p.naturalsOnly
+          ? "Naturals only"
+          : "All notes"
+        : KEYS.find((k) => k.id === p.key)!.label.split(" · ")[0]);
 }
 function renderQuestion(card: Card | GuitarCard) {
   const renderStarted = performance.now();
@@ -205,20 +219,33 @@ function renderQuestion(card: Card | GuitarCard) {
   $("#question").classList.toggle("paired", progress.mode === "staff-find");
   const mode = progress.mode,
     isPiano = mode === "piano",
+    isSignature = mode === "signature",
     location = isLocationMode(mode),
     notation =
-      ["staff", "staff-find", "tab"].includes(mode) ||
+      ["staff", "staff-find", "tab", "signature"].includes(mode) ||
       (isPiano && profile().pianoPrompt !== "name");
   $("#notation").hidden = !notation;
   $("#named-note").hidden = mode !== "find" && !(isPiano && !notation);
   $("#string-prompt").hidden = mode !== "staff-find";
-  $("#fretboard").hidden = mode === "staff" || mode === "tab" || isPiano;
+  $("#fretboard").hidden =
+    mode === "staff" || mode === "tab" || isPiano || isSignature;
   $("#piano").hidden = !isPiano;
   $(".piano-hint").hidden = !isPiano;
   $(".keyboard").hidden = location || isPiano;
   $("#name-hint").hidden = location || isPiano;
   $(".location-hint").hidden = !location;
-  if (notation) {
+  $("#signature-prompt").hidden = !isSignature;
+  $("#question").classList.toggle("signature-question", isSignature);
+  if (isSignature) {
+    const signature = card as SignatureCard;
+    $("#signature-prompt").textContent =
+      signature.tonality === "major" ? "Major key" : "Minor key";
+    $("#notation").setAttribute(
+      "aria-label",
+      `Treble clef key signature; identify the ${signature.tonality} key`,
+    );
+    drawKeySignature($<HTMLDivElement>("#notation"), signature.signature);
+  } else if (notation) {
     $("#notation").setAttribute(
       "aria-label",
       mode === "tab"
@@ -240,7 +267,7 @@ function renderQuestion(card: Card | GuitarCard) {
     piano.show(...pianoBounds(profile()), named);
     $("#target-name").textContent = name(card);
     $("#target-string").textContent = "";
-  } else if (mode !== "staff") {
+  } else if (mode !== "staff" && !isSignature) {
     const guitar = card as GuitarCard;
     const prompt = `On string ${guitar.string} · ${STRINGS.find((s) => s.number === guitar.string)!.name}`;
     $("#target-name").textContent = name(card);
@@ -248,13 +275,15 @@ function renderQuestion(card: Card | GuitarCard) {
     $("#string-prompt").textContent = prompt;
     if (mode !== "tab") board.show(guitar, profile(), location);
   }
-  $("#feedback").textContent = isPiano
-    ? "Find this note."
-    : location
+  $("#feedback").textContent = isSignature
+    ? `Name the ${(card as SignatureCard).tonality} key.`
+    : isPiano
       ? "Find this note."
-      : mode === "name"
-        ? "Name the highlighted note."
-        : "Name this note.";
+      : location
+        ? "Find this note."
+        : mode === "name"
+          ? "Name the highlighted note."
+          : "Name this note.";
   $("#feedback").className = "";
   diagnostics.metric("practice.render_ms", performance.now() - renderStarted);
 }
@@ -317,13 +346,19 @@ function answerName(letter: Letter) {
     !session.current
   )
     return;
-  const card = session.current,
-    correct = matches(card, letter, modifier);
+  const card = session.current;
+  const isSignature = progress.mode === "signature";
+  const correct = isSignature
+    ? matchesSignature(card as SignatureCard, letter, modifier)
+    : matches(card, letter, modifier);
+  const target = isSignature
+    ? signatureAnswer(card as SignatureCard)
+    : name(card);
   feedback(
     correct,
     correct
-      ? `Yes — ${name(card)}`
-      : `That’s ${name(card)}. You answered ${letter}${symbol(modifier)}.`,
+      ? `Yes — ${target}`
+      : `That’s ${target}. You answered ${letter}${symbol(modifier)}.`,
   );
 }
 function answerLocation(string: number, fret: number, keyboard: boolean) {
@@ -388,7 +423,9 @@ function start(continuing = false) {
       ? deck(profile())
       : progress.mode === "piano"
         ? pianoDeck(profile())
-        : guitarQuestions(progress.mode, profile());
+        : progress.mode === "signature"
+          ? signatureDeck(profile().signaturePractice)
+          : guitarQuestions(progress.mode, profile());
   if (!continuing || !session?.continueRound())
     session = new PracticeSession(
       pool,
@@ -404,6 +441,9 @@ function start(continuing = false) {
     $("#named-note").hidden = true;
     $("#string-prompt").hidden = true;
     $("#fretboard").hidden = true;
+    $("#piano").hidden = true;
+    $("#signature-prompt").hidden = true;
+    $(".piano-hint").hidden = true;
     enableAnswers(false);
     $("#feedback").textContent =
       progress.mode === "name"
@@ -430,6 +470,11 @@ $<HTMLSelectElement>("#roundLength").onchange = (e) => {
 };
 $<HTMLSelectElement>("#mode").onchange = (e) => {
   progress.mode = (e.target as HTMLSelectElement).value as Mode;
+  changed();
+};
+$<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
+  profile().signaturePractice = (e.target as HTMLSelectElement)
+    .value as SignaturePractice;
   changed();
 };
 $<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {

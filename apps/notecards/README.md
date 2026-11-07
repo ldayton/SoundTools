@@ -41,6 +41,16 @@ Fretboard views put high E at the top, low E at the bottom, with a separate open
 - `fretboard.ts`: fretboard renderer, anchored axis, horizontal scrolling and keyboard navigation.
 - `main.ts`: UI coordination.
 
-Storage failures never prevent practice. Background tabs do not advance to additional questions; changes cancel pending feedback timers. Saved history is bounded by the finite card identities; raw answer logs are not stored. The app has no service worker yet.
+Storage failures never prevent practice. Background tabs do not advance to additional questions; changes cancel pending feedback timers. Saved history is bounded by the finite card identities; raw answer logs are not stored. Built releases save a verified offline copy automatically; development mode does not register a service worker.
 
 Vercel deploys the committed main branch as the note-by-note project. Local changes do not deploy until explicitly pushed.
+
+## Offline use and updates
+
+After one completed connected visit, the full app (including notation fonts and icons) is saved automatically. The bottom “Take it with you” section confirms “Available offline”; failed storage or network setup offers a retry. Practice and saved settings work without a connection. Browser eviction can remove the offline copy; a connected visit repairs it. A first-ever offline visit cannot load an app that has never been saved.
+
+The app uses the shared `@ldayton/browser-offline` runtime for cached-first startup, bounded network/storage operations, SHA-256 verification, serialized release staging, and live-tab protection. Each build has a content-derived generation and complete inventory. An incomplete release cannot replace a verified one. Corrupt or missing files fall back to a complete older copy where available. Offline failures never block a working online practice session.
+
+A verified update applies automatically only before interaction. After any interaction, “Update available” lets the user apply it explicitly; worker replacement never resets a round. Old tabs keep their generation's assets. Update checks run on reconnect, foreground return, and periodically while visible. Stable worker and inventory URLs require revalidation; hashed assets retain immutable caching.
+
+Run `npm run build --workspace=notecards`, then `npm run test:offline --workspace=notecards` (or set `TEST_BROWSER=firefox` / `webkit`). The real-worker suite serves two actual builds and exercises offline grading, cached startup under a stalled network, active and untouched update policies, old tabs, corruption fallback and repair, eviction, and incomplete first-install retries. Local offline review requires the built preview rather than Vite's development server.

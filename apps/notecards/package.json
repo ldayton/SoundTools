@@ -8,9 +8,11 @@
     "build": "tsc --noEmit && vite build",
     "test": "tsx --test tests/*.test.ts",
     "test:browser": "tsx tests/browser.ts",
-    "test:guitar": "tsx tests/guitar.browser.ts"
+    "test:guitar": "tsx tests/guitar.browser.ts",
+    "test:offline": "tsx tests/offline.browser.ts"
   },
   "dependencies": {
+    "@ldayton/browser-offline": "^0.1.0",
     "vexflow": "5.0.0"
   },
   "devDependencies": {

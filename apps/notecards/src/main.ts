@@ -27,6 +27,7 @@ import { PracticeSession } from "./session";
 import { drawNotation, VexFlow } from "./notation";
 import { Fretboard } from "./fretboard";
 import "./style.css";
+import { setupOffline } from "./offline";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
   document.querySelector<T>(s)!;
 let returnBoardFocus = false;
@@ -69,7 +70,7 @@ $("#app").innerHTML =
     .join(
       "",
     )}</fieldset><div class="range">${(["minFret", "maxFret"] as const).map((f) => `<label>${f === "minFret" ? "Lowest fret" : "Highest fret"}<select id="${f}">${Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i === 0 ? "0 · Open" : i}</option>`).join("")}</select></label>`).join("")}</div><p class="tuning">Standard tuning · E A D G B E</p></div>
-<p>Changing options starts a fresh session.</p></details><p id="saved" class="saved">Progress remembered on this device.</p></div></main><footer>One note at a time.</footer>`;
+<p>Changing options starts a fresh session.</p></details><p id="saved" class="saved">Progress remembered on this device.</p></div><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section></main><footer>One note at a time.</footer>`;
 const board = new Fretboard($("#fretboard"), answerLocation);
 function save() {
   try {
@@ -420,6 +421,14 @@ document.fonts.ready
   .then(() => {
     VexFlow.setFonts("Bravura", "Academico");
     start();
+    window.dispatchEvent(new Event("soundtools:ready"));
+    try {
+      setupOffline();
+    } catch (error) {
+      $("#offline-status").textContent =
+        "Offline setup isn’t available in this browser. Practice still works while connected.";
+      console.warn("Offline setup unavailable", error);
+    }
   })
   .catch(() => {
     $("#feedback").textContent =

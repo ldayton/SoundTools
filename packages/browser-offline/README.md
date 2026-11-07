@@ -3,7 +3,7 @@
 Canonical source: this monorepo workspace package.
 
 The CommonJS build API emits a self-contained worker runtime after `CONFIG.base`.
-Both apps consume the same npm workspace source and embed the runtime directly in
+All three apps consume the same npm workspace source and embed the runtime directly in
 `sw.js`; normal builds never read another checkout. No runtime CDN or registry.
 
 Shared behavior: scoped GET/HEAD filtering, metadata JSON storage, deadlines, complete
@@ -22,9 +22,9 @@ Adapters own manifest validation, cache names/layouts, document consistency chec
 client messages, fallback ordering and cache eviction. DoReGo retains optional
 sound downloads and a separate sound cache. Soundglow retains immutable release
 paths, per-file integrity checks, explicit update preparation and shared assets.
-Existing cache names, metadata schemas and messages remain compatible with old tabs.
+Note by Note saves its small complete shell automatically, without a separate media download. Existing cache names, metadata schemas and messages remain compatible with old tabs.
 
-From the repository root, edit this package and run `npm test`. Both consumers
+From the repository root, edit this package and run `npm test`. All consumers
 resolve the same source through the root npm lockfile. Commit shared code and app
 adapters together; no tarball synchronization or sibling checkout is needed.
 `test:offline` and `test:updates` exercise actual generated workers, not a runtime

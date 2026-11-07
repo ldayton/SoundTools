@@ -663,3 +663,42 @@ input:focus-visible {
   height: 32px;
   flex: 0 0 32px;
 }
+
+.offline-section {
+  margin: 28px auto 0;
+  max-width: 720px;
+  padding: 20px 24px;
+  border: 1px solid #ded9cc;
+  border-radius: 16px;
+  background: #fcfaf5;
+}
+.offline-section h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+  letter-spacing: 0;
+}
+.offline-section p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  color: #81768e;
+}
+.offline-section p.is-ready {
+  color: #537758;
+}
+.offline-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.offline-actions:has(button:not([hidden])) {
+  margin-top: 12px;
+}
+.offline-actions button {
+  padding: 10px 14px;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  background: #fffdf8;
+  color: #302d55;
+  font-size: 13px;
+}

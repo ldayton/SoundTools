@@ -25,6 +25,7 @@ export type Profile = Settings & {
   strings: number[];
   minFret: number;
   maxFret: number;
+  naturalsOnly?: boolean;
 };
 export type GuitarCard = Card & { string: number; fret: number; midi: number };
 const natural: Record<Letter, number> = {
@@ -61,7 +62,32 @@ export function spellPitch(midi: number, key: string): Card | null {
   }
   return null;
 }
-export function guitarDeck(profile: Profile): GuitarCard[] {
+const CHROMATIC = [
+  "C",
+  "C♯",
+  "D",
+  "E♭",
+  "E",
+  "F",
+  "F♯",
+  "G",
+  "A♭",
+  "A",
+  "B♭",
+  "B",
+];
+export function chromaticPitch(midi: number): Card {
+  const spelling = CHROMATIC[midi % 12];
+  const letter = spelling[0] as Letter,
+    modifier: Modifier = spelling.includes("♯")
+      ? 1
+      : spelling.includes("♭")
+        ? -1
+        : 0;
+  const octave = Math.floor(midi / 12) - 1;
+  return { id: `${letter}${octave}:${modifier}`, letter, octave, modifier };
+}
+export function guitarDeck(profile: Profile, chromatic = false): GuitarCard[] {
   const { minFret, maxFret, strings } = profile;
   if (
     !Number.isInteger(minFret) ||
@@ -77,7 +103,7 @@ export function guitarDeck(profile: Profile): GuitarCard[] {
     Array.from({ length: maxFret - minFret + 1 }, (_, i) => {
       const fret = minFret + i,
         midi = midiAt(s.number, fret),
-        card = spellPitch(midi, profile.key);
+        card = chromatic ? chromaticPitch(midi) : spellPitch(midi, profile.key);
       return card
         ? { ...card, id: `${s.number}:${fret}`, string: s.number, fret, midi }
         : null;
@@ -112,7 +138,9 @@ export function locationLabel(string: number, fret: number) {
 // A find question asks for a pitch class, not a particular octave/location.
 // Deduplicate octave equivalents so the same prompt does not appear as two cards.
 export function guitarQuestions(mode: Mode, profile: Profile): GuitarCard[] {
-  const cards = guitarDeck(profile);
+  const cards = guitarDeck(profile, mode === "name").filter(
+    (card) => mode !== "name" || !profile.naturalsOnly || card.modifier === 0,
+  );
   if (mode !== "find") return cards;
   const seen = new Set<string>();
   return cards.flatMap((card) => {

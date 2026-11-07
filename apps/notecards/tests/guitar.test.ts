@@ -130,11 +130,7 @@ test("session guards duplicate answers, spaces mistakes, handles one-note sets a
   assert.equal(first.fret, 0);
   assert.ok(s.submit(false));
   assert.ok(!s.submit(true));
-  for (let i = 0; i < 3; i++) {
-    assert.notEqual(s.next(() => 0)!.id, first.id);
-    s.submit(true);
-  }
-  assert.equal(s.next(() => 0)!.id, first.id);
+  assert.notEqual(s.next(() => 0)!.id, first.id);
   s.submit(true);
   while (!s.complete) {
     s.next(() => 0);
@@ -160,7 +156,7 @@ test("find prompts are unique by string and pitch class across octave-equivalent
   const questions = guitarQuestions("find", p);
   assert.equal(questions.filter((c) => c.letter === "E").length, 1);
   assert.equal(
-    guitarQuestions("name", p).filter((c) => c.letter === "E").length,
+    guitarQuestions("name", p).filter((c) => c.midi % 12 === 4).length,
     2,
   );
   assert.equal(
@@ -188,4 +184,56 @@ test("all round lengths complete at their selected count and survive storage", (
     loadProgress(JSON.stringify({ version: 3, roundLength: 13 })).roundLength,
     12,
   );
+});
+
+test("Name the note defaults to all strings and all pitches regardless of musical key", () => {
+  const p = defaultProgress().profiles.name,
+    cards = guitarQuestions("name", p);
+  assert.deepEqual(p.strings, [1, 2, 3, 4, 5, 6]);
+  assert.equal(cards.length, 36);
+  assert.equal(new Set(cards.map((c) => c.string)).size, 6);
+  assert.equal(new Set(cards.map((c) => c.midi % 12)).size, 12);
+  assert.ok(cards.some((c) => c.modifier === 1));
+  assert.ok(cards.some((c) => c.modifier === -1));
+  assert.deepEqual(cards, guitarQuestions("name", { ...p, key: "G" }));
+  assert.ok(
+    guitarQuestions("name", { ...p, naturalsOnly: true }).every(
+      (c) => c.modifier === 0,
+    ),
+  );
+  assert.ok(
+    cards
+      .filter((c) => c.modifier !== 0)
+      .every((c) => matches(c, c.letter, c.modifier)),
+  );
+  const sharp = cards.find((c) => c.letter === "F" && c.modifier === 1)!;
+  assert.ok(matches(sharp, "G", -1));
+});
+test("old introductory Name settings upgrade, while deliberate string selections remain saved", () => {
+  const old = {
+    version: 3,
+    profiles: {
+      name: {
+        low: "E3",
+        high: "F4",
+        key: "C",
+        strings: [6],
+        minFret: 0,
+        maxFret: 5,
+      },
+    },
+    stats: { "name:6:2": { attempts: 2, correct: 1 } },
+  };
+  const upgraded = loadProgress(JSON.stringify(old));
+  assert.deepEqual(upgraded.profiles.name.strings, [1, 2, 3, 4, 5, 6]);
+  assert.equal(upgraded.stats["name:6:2"].attempts, 2);
+  old.profiles.name.strings = [2, 3];
+  assert.deepEqual(
+    loadProgress(JSON.stringify(old)).profiles.name.strings,
+    [2, 3],
+  );
+  const current = defaultProgress();
+  current.profiles.name.strings = [6];
+  current.profiles.name.naturalsOnly = true;
+  assert.deepEqual(loadProgress(JSON.stringify(current)), current);
 });

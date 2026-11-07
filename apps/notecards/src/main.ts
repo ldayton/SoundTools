@@ -55,7 +55,8 @@ $("#app").innerHTML =
     .join("")}</div></div>
 <p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
 <div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
-<div class="below"><details><summary>Practice options</summary><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label>Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
+<div class="below"><details><summary>Practice options</summary><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
+<label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes · sharps & flats</option><option value="naturals">Naturals only</option></select></label>
 <div class="range" id="pitch-range" role="group" aria-label="Sounding guitar pitch range">${(["low", "high"] as const).map((f) => `<label>${f === "low" ? "Lowest" : "Highest"}<select id="${f}">${POSITIONS.map((n) => `<option>${n}</option>`).join("")}</select></label>`).join("")}</div>
 <div id="guitar-options" hidden><fieldset class="strings"><legend>Strings</legend>${[
     ...STRINGS,
@@ -95,6 +96,11 @@ function syncOptions() {
   $<HTMLSelectElement>("#key").value = p.key;
   $("#pitch-range").hidden = progress.mode !== "staff";
   $("#guitar-options").hidden = progress.mode === "staff";
+  $("#key-setting").hidden = progress.mode === "name";
+  $("#name-notes-setting").hidden = progress.mode !== "name";
+  $<HTMLSelectElement>("#nameNotes").value = p.naturalsOnly
+    ? "naturals"
+    : "all";
   for (const field of ["low", "high"] as const) {
     const select = $<HTMLSelectElement>("#" + field);
     select.value = p[field];
@@ -121,7 +127,12 @@ function syncOptions() {
     b.setAttribute("aria-disabled", String(active && p.strings.length === 1));
   }
   $("#context").textContent =
-    "Guitar · " + KEYS.find((k) => k.id === p.key)!.label.split(" · ")[0];
+    "Guitar · " +
+    (progress.mode === "name"
+      ? p.naturalsOnly
+        ? "Naturals only"
+        : "All notes"
+      : KEYS.find((k) => k.id === p.key)!.label.split(" · ")[0]);
 }
 function renderQuestion(card: Card | GuitarCard) {
   $("#question").classList.toggle("paired", progress.mode === "staff-find");
@@ -252,7 +263,7 @@ function answerLocation(string: number, fret: number) {
       : `${name(card)} is ${accepted === "open" ? "open" : `at fret ${accepted}`} on string ${string}. You chose ${fret === 0 ? "open" : `fret ${fret}`}.`,
   );
 }
-function start() {
+function start(continuing = false) {
   clearTimeout(timer);
   returnBoardFocus = false;
   pendingNext = false;
@@ -265,7 +276,8 @@ function start() {
     progress.mode === "staff"
       ? deck(profile())
       : guitarQuestions(progress.mode, profile());
-  session = new PracticeSession(pool, progress, progress.mode + ":");
+  if (!continuing || !session?.continueRound())
+    session = new PracticeSession(pool, progress, progress.mode + ":");
   if (!pool.length) {
     phase = "empty";
     $("#notation").hidden = true;
@@ -274,7 +286,9 @@ function start() {
     $("#fretboard").hidden = true;
     enableAnswers(false);
     $("#feedback").textContent =
-      "No notes in this key and fret range. Choose more frets or another string.";
+      progress.mode === "name"
+        ? "No natural notes in this fret range. Choose more frets or all notes."
+        : "No notes in this key and fret range. Choose more frets or another string.";
     $("#feedback").className = "incorrect";
     $("#counter").textContent = "";
     return;
@@ -294,6 +308,10 @@ $<HTMLSelectElement>("#roundLength").onchange = (e) => {
 };
 $<HTMLSelectElement>("#mode").onchange = (e) => {
   progress.mode = (e.target as HTMLSelectElement).value as Mode;
+  changed();
+};
+$<HTMLSelectElement>("#nameNotes").onchange = (e) => {
+  profile().naturalsOnly = (e.target as HTMLSelectElement).value === "naturals";
   changed();
 };
 $<HTMLSelectElement>("#key").onchange = (e) => {
@@ -328,7 +346,7 @@ for (const b of document.querySelectorAll<HTMLButtonElement>("[data-mod]"))
   b.onclick = () => {
     if (phase === "question") setModifier(Number(b.dataset.mod) as Modifier);
   };
-$("#continue").onclick = start;
+$("#continue").onclick = () => start(true);
 window.addEventListener("keydown", (event) => {
   // Native button activation also repeats on held Enter: suppress it before mode guards.
   if (

@@ -38,7 +38,14 @@ try {
   await context.addInitScript(() => {
     Math.random = () => 0;
     // Existing staff users retain their original mode and range.
-    localStorage.setItem('soundtools:notecards:v1', JSON.stringify({version:2,settings:{low:'E3',high:'F4',key:'C'},stats:{}}));
+    localStorage.setItem(
+      "soundtools:notecards:v1",
+      JSON.stringify({
+        version: 2,
+        settings: { low: "E3", high: "F4", key: "C" },
+        stats: {},
+      }),
+    );
   });
   const page = await context.newPage();
   const errors: string[] = [];
@@ -89,10 +96,11 @@ try {
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
   assert.equal(await page.locator(".vf-keysignature").count(), 1);
   await page.locator("#key").selectOption("C");
-  // A fresh natural-only session cycles deterministically through E F G A.
+  // A one-note range checks completion without prescribing the scheduler order.
+  await page.locator("#high").selectOption("E3");
   for (let i = 0; i < 12; i++) {
-    await page.locator(`[data-letter="${"EFGA"[i % 4]}"]:enabled`).waitFor();
-    await page.locator(`[data-letter="${"EFGA"[i % 4]}"]`).click();
+    await page.locator(`[data-letter="E"]:enabled`).waitFor();
+    await page.locator(`[data-letter="E"]`).click();
     if (i < 11)
       await page.waitForFunction(
         () =>

@@ -58,6 +58,36 @@ try {
   assert.equal(await page.locator("#mode").inputValue(), "staff");
   await page.locator("#mode").selectOption("name");
   assert.equal(
+    await page.locator('[data-string-toggle][aria-pressed="true"]').count(),
+    6,
+  );
+  assert.equal(await page.locator("#nameNotes").inputValue(), "all");
+  assert.ok(await page.locator("#key").isHidden());
+  await page.getByText("Practice options", { exact: true }).click();
+  for (const string of [1, 2, 3, 4, 5])
+    await page.locator(`[data-string-toggle="${string}"]`).click();
+  await page.locator("#minFret").selectOption("2");
+  await page.locator("#maxFret").selectOption("2");
+  await page.getByRole("button", { name: "Flat", exact: true }).click();
+  await page.locator('[data-letter="G"]').click();
+  assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
+  await next();
+  await page.locator("#nameNotes").selectOption("naturals");
+  assert.match(
+    (await page.locator("#feedback").textContent())!,
+    /No natural notes/,
+  );
+  await page.locator("#nameNotes").selectOption("all");
+  await ready();
+  await page.getByRole("button", { name: "Sharp", exact: true }).click();
+  await page.locator('[data-letter="F"]').click();
+  assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
+  await page.locator("#minFret").selectOption("0");
+  await page.locator("#maxFret").selectOption("5");
+  await page.locator("#nameNotes").selectOption("naturals");
+  await page.getByText("Practice options", { exact: true }).click();
+  await page.locator('[data-letter="E"]').focus();
+  assert.equal(
     await page.locator(".is-target").getAttribute("aria-label"),
     "Highlighted: String 6, open",
   );
@@ -146,15 +176,16 @@ try {
   await page.locator('[data-fret="12"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /E is open/);
   await next();
-  // Empty key/string/fret combinations recover without getting stuck.
-  await page.locator("#mode").selectOption("name");
+  // Empty key/string/fret combinations in keyed modes recover without getting stuck.
+  await page.locator("#mode").selectOption("find");
   await page.locator("#key").selectOption("G");
   await page.locator("#minFret").selectOption("1");
   await page.locator("#maxFret").selectOption("1");
   assert.match((await page.locator("#feedback").textContent())!, /No notes/);
   assert.ok(await page.locator('[data-letter="E"]').isDisabled());
   await page.locator("#maxFret").selectOption("5");
-  await ready();
+  await next();
+  await page.locator("#maxFret").selectOption("12");
   assert.ok(await page.locator('[data-string-toggle="6"]').isDisabled());
   assert.equal(
     await page.locator('[data-string-toggle="6"]').getAttribute("aria-pressed"),
@@ -219,9 +250,7 @@ try {
   });
   // A backgrounded correction must not consume another card.
   await page.locator("#mode").selectOption("name");
-  await page.locator("#key").selectOption("C");
   await page.locator("#minFret").selectOption("0");
-  await page.locator('[data-string-toggle="5"]').click();
   await ready();
   await page.evaluate(
     "Object.defineProperty(document, 'hidden', {configurable:true,get:()=>true})",

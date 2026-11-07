@@ -16,7 +16,7 @@ export type RecordStats = {
   due: number;
 };
 export type Progress = {
-  version: 3;
+  version: 4;
   roundLength: RoundLength;
   mode: Mode;
   profiles: Record<Mode, Profile>;
@@ -26,17 +26,24 @@ export function defaultProgress(): Progress {
   const profiles = Object.fromEntries(
     MODES.map((m) => [
       m.id,
-      { low: "E3", high: "F4", key: "C", strings: [6], minFret: 0, maxFret: 5 },
+      {
+        low: "E3",
+        high: "F4",
+        key: "C",
+        strings: m.id === "name" ? [1, 2, 3, 4, 5, 6] : [6],
+        minFret: 0,
+        maxFret: 5,
+      },
     ]),
   ) as Record<Mode, Profile>;
-  return { version: 3, roundLength: 12, mode: "staff", profiles, stats: {} };
+  return { version: 4, roundLength: 12, mode: "staff", profiles, stats: {} };
 }
 export function loadProgress(raw: string | null): Progress {
   const result = defaultProgress();
   try {
     const data = JSON.parse(raw || "null");
     if (!data) return result;
-    if (data.version !== 3) {
+    if (![3, 4].includes(data.version)) {
       if (![1, 2].includes(data.version)) return result;
       const old = readProgress(raw);
       result.mode = "staff";
@@ -53,6 +60,7 @@ export function loadProgress(raw: string | null): Progress {
         profile = result.profiles[mode];
       if (!source) continue;
       if (KEYS.some((k) => k.id === source.key)) profile.key = source.key;
+      if (source.naturalsOnly === true) profile.naturalsOnly = true;
       if (
         POSITIONS.includes(source.low) &&
         POSITIONS.includes(source.high) &&
@@ -86,6 +94,17 @@ export function loadProgress(raw: string | null): Progress {
         profile.maxFret = source.maxFret;
       }
     }
+    // Upgrade the old introductory Name default; retain deliberately narrowed ranges/subsets.
+    const oldName = data.profiles?.name;
+    if (
+      data.version === 3 &&
+      oldName?.strings?.length === 1 &&
+      oldName.strings[0] === 6 &&
+      oldName.minFret === 0 &&
+      oldName.maxFret === 5 &&
+      oldName.key === "C"
+    )
+      result.profiles.name.strings = [1, 2, 3, 4, 5, 6];
     const patterns =
       /^(staff:[A-G][234]:-?[01]|(name|find|tab|staff-find):[1-6]:([0-9]|1[0-2]))$/;
     for (const [id, s] of Object.entries(data.stats || {}) as [string, any][]) {

@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import type { Plugin } from "vite";
 import { startupHTML, workerSource } from "@ldayton/browser-offline";
 import { offlineWorker } from "./offline-worker";
-export function offlineBuild(): Plugin {
+export function offlineBuild(release: string): Plugin {
   let base = "/";
   return {
     name: "notecards-offline",
@@ -14,6 +14,11 @@ export function offlineBuild(): Plugin {
       base = config.base;
     },
     generateBundle(_, bundle) {
+      this.emitFile({
+        type: "asset",
+        fileName: "diagnostics-release.json",
+        source: JSON.stringify({ release }),
+      });
       const html = bundle["index.html"];
       if (!html || html.type !== "asset") throw Error("Missing app document");
       html.source = String(html.source).replace(

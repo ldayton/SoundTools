@@ -278,7 +278,8 @@
       on(registration, "updatefound", () => watch(registration.installing));
     }
     // Only the current controlling worker may supply coded offline diagnostics.
-    const serviceWorker = env.navigator?.serviceWorker;
+    let serviceWorker;
+    try { serviceWorker = env.navigator?.serviceWorker; } catch { /* Browser policy must not block the app. */ }
     const initialSharing = sharing;
     on(serviceWorker, "message", (e) => {
       if (

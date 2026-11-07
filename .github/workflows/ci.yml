@@ -124,6 +124,11 @@ jobs:
       - run: npm run test:guitar --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:offline --workspace=notecards
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:diagnostics --workspace=notecards
+        if: matrix.browser == 'chromium'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

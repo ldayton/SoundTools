@@ -654,3 +654,18 @@ test("normal worker replacement is not reported as failed installation", async (
   assert.equal(d.snapshot().errors.length, 0);
   await d.dispose();
 });
+
+test("blocked service-worker access never prevents diagnostics or app initialization", async () => {
+  const { env } = environment();
+  Object.defineProperty(env.navigator, "serviceWorker", {
+    get() {
+      throw new DOMException("Blocked", "SecurityError");
+    },
+  });
+  const d = create({ app: "notecards", release: "test" }, env);
+  await d.ready;
+  await d.setSharing(true);
+  d.event("practice.started");
+  assert.equal(d.snapshot().app, "notecards");
+  await d.dispose();
+});

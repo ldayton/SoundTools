@@ -702,3 +702,22 @@ input:focus-visible {
   color: #302d55;
   font-size: 13px;
 }
+
+.diagnostics-panel {
+  margin: 16px auto 0;
+  max-width: 720px;
+  padding: 0 24px;
+  color: #81768e;
+  font-size: 12px;
+}
+.diagnostics-panel label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.diagnostics-panel input {
+  margin: 0;
+  accent-color: #8979b3;
+}

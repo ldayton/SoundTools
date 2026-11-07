@@ -9,9 +9,12 @@
     "test": "tsx --test tests/*.test.ts",
     "test:browser": "tsx tests/browser.ts",
     "test:guitar": "tsx tests/guitar.browser.ts",
-    "test:offline": "tsx tests/offline.browser.ts"
+    "test:offline": "tsx tests/offline.browser.ts",
+    "build:vercel": "node ../../scripts/build-vercel.cjs notecards",
+    "test:diagnostics": "tsx tests/diagnostics.browser.ts"
   },
   "dependencies": {
+    "@ldayton/browser-diagnostics": "^0.2.0",
     "@ldayton/browser-offline": "^0.1.0",
     "vexflow": "5.0.0"
   },

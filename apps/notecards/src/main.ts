@@ -28,6 +28,11 @@ import { drawNotation, VexFlow } from "./notation";
 import { Fretboard } from "./fretboard";
 import "./style.css";
 import { setupOffline } from "./offline";
+import {
+  diagnostics,
+  diagnosticsContext,
+  mountDiagnostics,
+} from "./diagnostics";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
   document.querySelector<T>(s)!;
 let returnBoardFocus = false;
@@ -43,6 +48,16 @@ let modifier: Modifier = 0,
   timer: ReturnType<typeof setTimeout> | undefined,
   pendingNext = false;
 const profile = () => progress.profiles[progress.mode];
+function syncDiagnosticsContext() {
+  diagnosticsContext({
+    mode: progress.mode,
+    phase,
+    roundLength: progress.roundLength,
+    minFret: profile().minFret,
+    maxFret: profile().maxFret,
+    stringCount: profile().strings.length,
+  });
+}
 $("#app").innerHTML =
   `<header><a class="brand" href="/" aria-label="Note by Note home"><img class="brand-icon" src="/icon.svg" width="32" height="32" alt="" /> Note by Note<span class="dot">.</span></a><span class="family">SOUNDTOOLS</span></header>
 <main><div class="intro"><p class="eyebrow">A LITTLE PRACTICE, EVERY DAY</p><h1>Get to know your notes.</h1></div>
@@ -71,11 +86,13 @@ $("#app").innerHTML =
       "",
     )}</fieldset><div class="range">${(["minFret", "maxFret"] as const).map((f) => `<label>${f === "minFret" ? "Lowest fret" : "Highest fret"}<select id="${f}">${Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i === 0 ? "0 · Open" : i}</option>`).join("")}</select></label>`).join("")}</div><p class="tuning">Standard tuning · E A D G B E</p></div>
 <p>Changing options starts a fresh session.</p></details><p id="saved" class="saved">Progress remembered on this device.</p></div><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section></main><footer>One note at a time.</footer>`;
+mountDiagnostics(document.querySelector("main")!);
 const board = new Fretboard($("#fretboard"), answerLocation);
 function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   } catch {
+    diagnostics.offline("storage", "failed", { cacheReason: "storage" });
     $("#saved").textContent = "Progress can’t be saved in this browser.";
   }
 }
@@ -151,6 +168,7 @@ function syncOptions() {
       : KEYS.find((k) => k.id === p.key)!.label.split(" · ")[0]);
 }
 function renderQuestion(card: Card | GuitarCard) {
+  const renderStarted = performance.now();
   $("#question").classList.toggle("paired", progress.mode === "staff-find");
   const mode = progress.mode,
     location = isLocationMode(mode),
@@ -190,6 +208,7 @@ function renderQuestion(card: Card | GuitarCard) {
       ? "Name the highlighted note."
       : "Name this note.";
   $("#feedback").className = "";
+  diagnostics.metric("practice.render_ms", performance.now() - renderStarted);
 }
 function next() {
   pendingNext = false;
@@ -199,6 +218,7 @@ function next() {
     return;
   }
   phase = "question";
+  syncDiagnosticsContext();
   setModifier(0);
   clearAnswerHover();
   renderQuestion(card);
@@ -214,6 +234,8 @@ function next() {
 }
 function finish() {
   phase = "complete";
+  syncDiagnosticsContext();
+  diagnostics.event("practice.completed", { roundLength: session.length });
   $("#question").hidden = true;
   $("#summary").hidden = false;
   $("#counter").textContent = `${session.length} / ${session.length}`;
@@ -224,6 +246,8 @@ function finish() {
 function feedback(correct: boolean, text: string) {
   if (!session.submit(correct)) return;
   phase = "feedback";
+  syncDiagnosticsContext();
+  diagnostics.event(correct ? "answer.correct" : "answer.incorrect");
   save();
   enableAnswers(false);
   $("#feedback").textContent = text;
@@ -298,6 +322,7 @@ function start(continuing = false) {
     session = new PracticeSession(pool, progress, progress.mode + ":");
   if (!pool.length) {
     phase = "empty";
+    syncDiagnosticsContext();
     $("#notation").hidden = true;
     $("#named-note").hidden = true;
     $("#string-prompt").hidden = true;
@@ -311,9 +336,11 @@ function start(continuing = false) {
     $("#counter").textContent = "";
     return;
   }
+  diagnostics.event("practice.started", { roundLength: progress.roundLength });
   next();
 }
 function changed() {
+  diagnostics.event("practice.settings_changed");
   syncOptions();
   save();
   if (phase !== "loading") start();
@@ -427,10 +454,11 @@ document.fonts.ready
     } catch (error) {
       $("#offline-status").textContent =
         "Offline setup isn’t available in this browser. Practice still works while connected.";
-      console.warn("Offline setup unavailable", error);
+      diagnostics.offline("setup", "failed", {}, error);
     }
   })
-  .catch(() => {
+  .catch((error) => {
+    diagnostics.capture(error, "notation.startup_failed");
     $("#feedback").textContent =
       "Notation couldn’t load. Please reload to try again.";
   });

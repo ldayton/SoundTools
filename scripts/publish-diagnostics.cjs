@@ -15,7 +15,7 @@ function publishDiagnostics({
     ),
 }) {
   const dsn =
-    env[app === "dorego" ? "VITE_SENTRY_DSN" : "SOUNDGLOW_SENTRY_DSN"];
+    env[app === "soundglow" ? "SOUNDGLOW_SENTRY_DSN" : "VITE_SENTRY_DSN"];
   if (env.VERCEL_ENV !== "production" || !dsn) return false;
   for (const key of ["SENTRY_AUTH_TOKEN", "SENTRY_ORG", "SENTRY_PROJECT"])
     if (!env[key])
@@ -23,7 +23,7 @@ function publishDiagnostics({
         `Automatic production reporting needs ${key} for release publication`,
       );
   const version =
-    app === "dorego"
+    app !== "soundglow"
       ? JSON.parse(
           fs.readFileSync(path.join(output, "diagnostics-release.json")),
         ).release
@@ -32,7 +32,7 @@ function publishDiagnostics({
     throw Error("Invalid diagnostics release");
   const release = app + "@" + version;
   run(["releases", "new", release]);
-  if (app === "dorego")
+  if (app !== "soundglow")
     run([
       "sourcemaps",
       "upload",

@@ -4,6 +4,7 @@ import {
   createUpdatePolicy,
   applyUpdate,
 } from "@ldayton/browser-offline";
+import { diagnostics } from "./diagnostics";
 
 export function setupOffline() {
   const status = document.querySelector<HTMLElement>("#offline-status")!;
@@ -15,6 +16,7 @@ export function setupOffline() {
   }
   if (!("serviceWorker" in navigator) || !("caches" in window)) {
     status.textContent = "Offline use isn’t supported in this browser.";
+    diagnostics.offline("setup", "unsupported");
     return;
   }
   const current = document.querySelector<HTMLMetaElement>(
@@ -59,7 +61,8 @@ export function setupOffline() {
     const epoch = session.generation(),
       signal = session.signal();
     retry.disabled = true;
-    let operation = "registration lookup";
+    const started = performance.now();
+    diagnostics.offline("setup", "started");
     try {
       registration = await resources.deadline(
         2000,
@@ -74,7 +77,6 @@ export function setupOffline() {
           registration.waiting,
         ].some((worker) => worker && worker.state !== "redundant")
       ) {
-        operation = "worker registration";
         registration = await resources.deadline(
           15000,
           () =>
@@ -85,10 +87,9 @@ export function setupOffline() {
           signal,
         );
       }
-      operation = "worker activation";
+      diagnostics.observeOffline(registration);
       await session.settle(registration);
       if (!navigator.serviceWorker.controller) {
-        operation = "worker control";
         await resources.deadline(
           5000,
           (inner) =>
@@ -121,13 +122,18 @@ export function setupOffline() {
       if (!active || epoch !== session.generation()) return;
       announce();
       retry.textContent = "Retry offline setup";
-      operation = "offline status";
       const saved = await session.call<{ ready: boolean; reason?: string }>(
         "offline-status",
         { shellCache: current },
         12000,
       );
       if (!active || epoch !== session.generation()) return;
+      diagnostics.offline("storage", saved.ready ? "ready" : "unavailable", {
+        cacheReason: saved.reason || (saved.ready ? "none" : "unavailable"),
+      });
+      diagnostics.offline("setup", "ready", {
+        durationMs: performance.now() - started,
+      });
       status.textContent = saved.ready
         ? "Available offline"
         : "Offline copy needs repair. Retry when connected.";
@@ -135,11 +141,18 @@ export function setupOffline() {
       status.classList.toggle("is-ready", saved.ready);
       // Offline startup and practice never wait for a network check.
       try {
+        const updateStarted = performance.now();
+        diagnostics.offline("update", "started");
         const result = await session.call<{
           ready: boolean;
           shellCache?: string;
+          reason?: string;
         }>("prepare-update", {}, 45000);
         if (!active || epoch !== session.generation()) return;
+        diagnostics.offline("update", result.ready ? "ready" : "failed", {
+          durationMs: performance.now() - updateStarted,
+          cacheReason: result.reason || "none",
+        });
         if (result.ready && result.shellCache) {
           if (result.shellCache === current && !saved.ready) {
             status.textContent = "Available offline";
@@ -150,12 +163,19 @@ export function setupOffline() {
         } else later();
         // Replacing the worker does not replace the document or interrupt practice.
         await resources.deadline(15000, () => registration?.update(), signal);
-      } catch {
+      } catch (error) {
+        if (!active || epoch !== session.generation()) return;
+        diagnostics.offline("update", "failed", {}, error);
         later();
       }
     } catch (error) {
       if (!active || epoch !== session.generation()) return;
-      console.warn("Offline setup failed", operation, error);
+      diagnostics.offline(
+        "setup",
+        "failed",
+        { durationMs: performance.now() - started },
+        error,
+      );
       status.textContent =
         "Couldn’t save an offline copy. Retry when your connection or storage improves.";
       retry.textContent = "Retry offline setup";
@@ -172,7 +192,10 @@ export function setupOffline() {
   retry.onclick = () => {
     void resources
       .deadline(2000, () => navigator.storage?.persist?.())
-      .catch(() => {});
+      .then((persistent) =>
+        diagnostics.offline("storage", "ready", { persistent }),
+      )
+      .catch((error) => diagnostics.offline("storage", "failed", {}, error));
     status.textContent = "Saving for offline use…";
     void check(true);
   };

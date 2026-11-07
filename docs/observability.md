@@ -1,6 +1,6 @@
 # Central diagnostics
 
-SoundTools uses one shared browser diagnostics package with thin adapters in both
+SoundTools uses one shared browser diagnostics package with thin adapters in all three
 apps. Configured **production** builds collect technical diagnostics only after
 explicit opt-in. Preview builds, development servers, and builds without a DSN do
 not transmit diagnostics.
@@ -58,19 +58,19 @@ reporter and deletes its queue. Already transmitted data remains in Sentry.
 
 ## Production setup
 
-Create separate **dorego** and **soundglow** browser projects in the same Sentry
+Create separate **dorego**, **soundglow**, and **notecards** browser projects in the same Sentry
 organization. Use the free plan initially; do not enable paid overage or Replay.
 Set IP scrubbing and restrict access in the service. Alerts are optional; central
 collection does not require notification emails.
 
 Configure these **Production-only** Vercel variables on each corresponding project:
 
-| Variable | DoReGo | Soundglow |
-| --- | --- | --- |
-| Public browser DSN | `VITE_SENTRY_DSN` | `SOUNDGLOW_SENTRY_DSN` |
-| Organization slug | `SENTRY_ORG` | `SENTRY_ORG` |
-| Project slug | `SENTRY_PROJECT=dorego` | `SENTRY_PROJECT=soundglow` |
-| Secret release upload credential | `SENTRY_AUTH_TOKEN` | `SENTRY_AUTH_TOKEN` |
+| Variable | DoReGo | Soundglow | Note by Note |
+| --- | --- | --- | --- |
+| Public browser DSN | `VITE_SENTRY_DSN` | `SOUNDGLOW_SENTRY_DSN` | `VITE_SENTRY_DSN` |
+| Organization slug | `SENTRY_ORG` | `SENTRY_ORG` | `SENTRY_ORG` |
+| Project slug | `SENTRY_PROJECT=dorego` | `SENTRY_PROJECT=soundglow` | `SENTRY_PROJECT=notecards` |
+| Secret release upload credential | `SENTRY_AUTH_TOKEN` | `SENTRY_AUTH_TOKEN` | `SENTRY_AUTH_TOKEN` |
 
 Use a restricted organization release-upload credential, store it as a sensitive
 build variable, and never put it into VITE variables, HTML or the repository.
@@ -105,7 +105,7 @@ alone is not proof.
 
 ## Configured service
 
-Organization: `team-lily`; projects: `dorego` and `soundglow`. Both projects discard
+Organization: `team-lily`; projects: `dorego`, `soundglow`, and `notecards`. All three projects discard
 IP addresses, remove user/location context, and use the default sensitive-field
 scrubber. Accepted origins are
 the canonical production domain and each app's team/main aliases on Vercel.
@@ -115,7 +115,7 @@ alert emails or paid upgrades were configured.
 Vercel receives a dedicated `org:ci` credential for release/source-map uploads,
 separate from the temporary setup credential used to configure and verify the
 service. Revoke the setup credential after production verification. Keep the
-build credential as a sensitive Production-only variable on both projects.
+build credential as a sensitive Production-only variable on the corresponding projects.
 
 Live verification on 2026-10-24 confirmed error, structured-log and metric ingestion
 for both apps. A controlled DoReGo UI exception resolved from its deployed minified
@@ -128,3 +128,9 @@ Offline scenario coverage and remaining resilience work are documented in
 [offline resilience](offline-resilience.md). Expected disconnection, timeouts and
 user cancellation are informational; integrity, quota and unexpected worker or
 storage failures produce bounded error issues, only with sharing enabled.
+
+## Note by Note
+
+Note by Note uses the same unchecked consent control and self-hosted reporter. Only production builds with a configured DSN send data. Technical events cover practice/session controls, aggregate answer outcomes, render durations, storage failures, and the shared offline setup/update/navigation lifecycle; note answers and card contents are not sent. Context is limited to mode, phase, round length, fret bounds, and selected-string count. No student identity or practice history is uploaded.
+
+Its release is `notecards@<commit-prefix>-<source-fingerprint>`. The Vercel build uploads hidden source maps through the shared publisher before removing them from public output. Offline inventories exclude maps and include the self-hosted SDK. Opted-in failed uploads use the same bounded, expiring queue as the other apps, and can resume after reconnection. The app-specific real-SDK test intercepts all ingestion requests with a fake DSN and verifies opt-in/out, privacy, error/log/metric envelopes, offline error reporting, and failed-send retry.

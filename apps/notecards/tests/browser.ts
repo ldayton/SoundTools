@@ -37,6 +37,8 @@ try {
   const context = await browser.newContext();
   await context.addInitScript(() => {
     Math.random = () => 0;
+    // Existing staff users retain their original mode and range.
+    localStorage.setItem('soundtools:notecards:v1', JSON.stringify({version:2,settings:{low:'E3',high:'F4',key:'C'},stats:{}}));
   });
   const page = await context.newPage();
   const errors: string[] = [];
@@ -177,7 +179,7 @@ try {
   const retained = await page.evaluate(() =>
     localStorage.getItem("soundtools:notecards:v1"),
   );
-  assert.ok(JSON.parse(retained!).stats["E3:0"].attempts > 0);
+  assert.ok(JSON.parse(retained!).stats["staff:E3:0"].attempts > 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: notation, desktop modifier-first input, enharmonics, answer guard, full session, continuation, mobile controls, saved progress and no page errors.",

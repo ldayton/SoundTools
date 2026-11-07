@@ -1,27 +1,46 @@
 # Note by Note
 
-Local guitar note recognition in the SoundTools workspace.
+Guitar note recognition in the SoundTools workspace. No audio, microphone, account, or sync.
 
-Run `npm run dev --workspace=notecards` from the repository root and open
-http://127.0.0.1:4320/. Build with `npm run build --workspace=notecards`.
+From the repository root:
 
-Twelve-card sessions use A–G plus an optional modifier, with no octave required. A single-choice major-key selector starts in C major.
-The signature is drawn on the staff and each card belongs to that key. Select sharp with + or flat with − before pressing the
-letter, which submits. Escape or 0 resets to natural. Touch controls use the same
-modifier-first interaction. Held keys cannot submit multiple answers.
-Enharmonic equivalents count as correct. A mistake displays the written answer
-for 1.6 seconds before advancing; correct answers advance after 450ms. Background
-tabs do not consume further cards. Each session can be continued with another 12.
+- `npm run dev --workspace=notecards` → http://127.0.0.1:4320/
+- `npm run build --workspace=notecards`
+- `npm test --workspace=notecards`
+- `npm run test:browser --workspace=notecards` (original staff regression suite)
+- `npm run test:guitar --workspace=notecards` (all five modes)
+- `TEST_BROWSER=firefox npm run test:guitar --workspace=notecards` (also `webkit`)
 
-The clef has an octave-down 8: range labels are sounding pitches, and the staff renders one octave higher. The default range is E3–F4. Lowest/highest selectors span E2–A4; E2 is one octave below the bottom staff line (sounding E3). Single-note ranges are allowed. The selected key determines sharps/flats; no extra chromatic accidentals are added. Selection balances coverage with weaker cards,
-excluding the previous three questions. This is adaptive drill practice, not a
-calendar-based spaced repetition scheduler. Progress/settings are validated and
-saved locally; unavailable storage does not prevent practice. No audio or sync.
+Browser suites start their own built preview. `TEST_BASE_URL` targets an existing server; `TEST_PORT` changes the guitar preview port.
 
-VexFlow's Bravura entry bundles notation fonts. There are no runtime font CDNs.
-Vercel deploys this workspace from main as the note-by-note project. The app has no service worker yet.
+## Practice modes
 
-`npm test --workspace=notecards` tests card generation, equivalence, selection,
-and storage validation. After building,
-`npm run test:browser --workspace=notecards` starts its own preview server and exercises desktop and mobile input,
-a full session, continuation, persistence, and visual captures.
+| Mode | Prompt | Answer |
+| --- | --- | --- |
+| Name the note | Highlighted fretboard position | Letter plus optional accidental |
+| Find the note | Named note and specified string | Any matching pitch class in the selected fret range on that string |
+| Read tab | Single tab number on six lines | Letter plus optional accidental |
+| Staff to fretboard | Guitar staff note and specified string | Its exact sounding pitch on that string |
+| Read staff | Guitar staff note | Letter plus optional accidental |
+
+Fresh profiles start with Read staff in C major. The guitar modes start with low E string, frets 0–5. Practice order is Read staff, Name the note, Find the note, Staff to fretboard, Read tab. Existing users retain Read staff and their previous range, key, and progress. All modes remember independent settings and learning history. Find-the-note progress identifies a string and pitch class; octave-equivalent prompts are deduplicated. Other guitar modes track individual string/fret locations. Changing settings starts a fresh session. At least one string remains selected. Empty key/string/fret combinations explain how to recover rather than generating invalid questions.
+
+Rounds contain 12, 24, 36, or 48 exercises (default 12), remembered across modes and visits. Changing the count starts a fresh round. Each question is graded once. Correct answers advance after 450ms; corrections remain for 1.6 seconds. Misses are revisited after intervening questions. Selection combines coverage, accuracy, and lightweight review spacing across visits (1, 3, 7, 14, 30 days). Practice remains available before a review is due. No mastery claim comes from one successful session; suggestions require repeated accurate answers. Continue starts another session.
+
+Desktop name input: press A–G to answer. First press + for sharp; − for flat; 0 to return to natural. Touch uses modifier buttons, then a letter. Enharmonic equivalents count as correct; no octave is required when naming. Location input supports pointer/touch, focusable frets, left/right navigation and Enter. Held keys and double clicks cannot answer successive cards during feedback.
+
+Fretboard views put high E at the top, low E at the bottom, with a separate open-string column, nut, fret numbers and position markers. Wider ranges use mobile-friendly six-column windows. Staff and tab use bundled VexFlow Bravura fonts, without a font CDN. Standard tuning is fixed; fret range is 0–12. Staff range uses E2–A4 sounding guitar pitches and the octave-down treble clef. Key signatures determine available notes.
+
+## Structure
+
+- `model.ts`: musical spelling and existing staff question generation.
+- `guitar.ts`: tuning, pitch/location mapping and guitar question generation.
+- `session.ts`: question selection, feedback guards and session completion.
+- `progress.ts`: validated versioned storage, legacy migration and review history.
+- `notation.ts`: staff/tab SVG renderer.
+- `fretboard.ts`: fretboard renderer, mobile windows and keyboard navigation.
+- `main.ts`: UI coordination.
+
+Storage failures never prevent practice. Background tabs do not advance to additional questions; changes cancel pending feedback timers. Saved history is bounded by the finite card identities; raw answer logs are not stored. The app has no service worker yet.
+
+Vercel deploys the committed main branch as the note-by-note project. Local changes do not deploy until explicitly pushed.

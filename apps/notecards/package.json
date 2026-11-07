@@ -7,7 +7,8 @@
     "dev": "vite --host 127.0.0.1 --port 4320 --strictPort",
     "build": "tsc --noEmit && vite build",
     "test": "tsx --test tests/*.test.ts",
-    "test:browser": "tsx tests/browser.ts"
+    "test:browser": "tsx tests/browser.ts",
+    "test:guitar": "tsx tests/guitar.browser.ts"
   },
   "dependencies": {
     "vexflow": "5.0.0"

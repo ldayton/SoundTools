@@ -18,6 +18,8 @@ const naturals: Record<Letter, number> = {
   B: 11,
 };
 export const SESSION_SIZE = 12;
+export const ROUND_LENGTHS = [12, 24, 36, 48] as const;
+export type RoundLength = (typeof ROUND_LENGTHS)[number];
 export const symbol = (modifier: Modifier) =>
   modifier === 1 ? "♯" : modifier === -1 ? "♭" : "";
 export const name = (card: Pick<Card, "letter" | "modifier">) =>
@@ -86,30 +88,6 @@ export function deck(settings: Settings): Card[] {
       : 0;
     return { id: position + ":" + modifier, letter, octave, modifier };
   });
-}
-// Mix weaker cards with broad coverage; give every card a nonzero chance.
-// Recent cards are excluded so an error is revisited after intervening questions.
-export function choose(
-  cards: Card[],
-  stats: Stats,
-  recent: string[],
-  random = Math.random,
-): Card {
-  const candidates = cards.filter((c) => !recent.slice(-3).includes(c.id));
-  const pool = candidates.length ? candidates : cards;
-  if (!pool.length) throw Error("No notes selected");
-  const weight = (c: Card) => {
-    const s = stats[c.id];
-    return s
-      ? 1 + 3 * (1 - s.correct / Math.max(1, s.attempts)) + 1 / (1 + s.attempts)
-      : 4;
-  };
-  let point = random() * pool.reduce((sum, c) => sum + weight(c), 0);
-  for (const c of pool) {
-    point -= weight(c);
-    if (point < 0) return c;
-  }
-  return pool[pool.length - 1];
 }
 export function readProgress(raw: string | null): {
   stats: Stats;

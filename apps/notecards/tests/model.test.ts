@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { deck, matches, choose, readProgress, KEYS } from "../src/model";
+import { deck, matches, readProgress, KEYS } from "../src/model";
 test("treble deck covers staff or ledger range with no unsupported spellings", () => {
   const staff = deck({ low: "E3", high: "F4", key: "C" });
   assert.equal(staff.length, 9);
@@ -26,13 +26,6 @@ test("answers compare pitch class, accepting enharmonics without octave", () => 
   assert.ok(
     !matches({ id: "B3:-1", letter: "B", octave: 4, modifier: -1 }, "B", 0),
   );
-});
-test("adaptive selection avoids the previous three cards and handles all random boundaries", () => {
-  const cards = deck({ low: "E3", high: "F4", key: "C" });
-  const recent = cards.slice(0, 3).map((c) => c.id);
-  for (const random of [() => 0, () => 0.5, () => 0.999999])
-    assert.ok(!recent.includes(choose(cards, {}, recent, random).id));
-  assert.throws(() => choose([], {}, []));
 });
 test("saved progress is validated and damaged storage starts safely", () => {
   assert.deepEqual(readProgress("invalid").stats, {});

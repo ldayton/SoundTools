@@ -1,4 +1,4 @@
-// Render both existing SVG marks consistently. Run: node scripts/generate-branding.cjs
+// Render the app SVG marks consistently. Run: node scripts/generate-branding.cjs
 // Playwright is already a workspace development dependency; no image tooling is required.
 const { chromium } = require('playwright');
 const fs = require('node:fs');
@@ -10,6 +10,7 @@ const path = require('node:path');
   for (const [directory, svg, background] of [
    ['apps/dorego/public', 'icon.svg', '#f5f3ec'],
    ['apps/soundglow/dist', 'favicon.svg', '#080b10'],
+   ['apps/notecards/public', 'icon.svg', '#f5f1e7'],
   ]) {
    const folder = path.resolve(__dirname, '..', directory);
    const source = fs.readFileSync(path.join(folder, svg), 'utf8');

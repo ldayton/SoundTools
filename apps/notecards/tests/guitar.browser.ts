@@ -81,6 +81,23 @@ try {
   await page.locator('[data-letter="G"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
   await next();
+  assert.equal(
+    await page.locator(".answer-hover").count(),
+    0,
+    "Previous letter hover clears with the card",
+  );
+  assert.equal(
+    await page.locator('[data-mod="0"]').getAttribute("aria-pressed"),
+    "true",
+  );
+  await page.locator('[data-letter="G"]').hover();
+  await page.mouse.move(1, 1);
+  await page.locator('[data-letter="G"]').hover();
+  assert.equal(
+    await page.locator('[data-letter="G"].answer-hover').count(),
+    1,
+    "Fresh pointer movement restores hover",
+  );
   await page.locator("#nameNotes").selectOption("naturals");
   assert.match(
     (await page.locator("#feedback").textContent())!,
@@ -115,6 +132,17 @@ try {
   assert.equal(await page.locator('[data-fret="0"]').textContent(), "✓");
   assert.equal(await page.locator('[data-fret="1"]').textContent(), "×");
   await next();
+  assert.equal(
+    await page.locator(".is-right,.is-wrong,.answer-hover").count(),
+    0,
+  );
+  assert.equal(
+    await page.evaluate(() =>
+      document.activeElement?.hasAttribute("data-fret"),
+    ),
+    false,
+    "Mouse answer does not restore fret focus",
+  );
   await page.locator('[data-fret="0"]').focus();
   await page.keyboard.press("ArrowRight");
   assert.equal(
@@ -362,6 +390,28 @@ try {
     !requests.some((u) => /googleapis|gstatic|jsdelivr/.test(u)),
     "No external font dependency",
   );
+  const touch = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+  });
+  const touchPage = await touch.newPage();
+  await touchPage.goto(base);
+  await touchPage.locator('[data-letter="E"]:enabled').waitFor();
+  await touchPage.locator('[data-mod="1"]').tap();
+  await touchPage.locator('[data-letter="E"]').tap();
+  await touchPage.waitForFunction(
+    () => document.querySelector("#counter")?.textContent === "2 / 12",
+  );
+  assert.equal(
+    await touchPage.locator(".answer-hover").count(),
+    0,
+    "Touch leaves no sticky answer hover",
+  );
+  assert.equal(
+    await touchPage.locator('[data-mod="0"]').getAttribute("aria-pressed"),
+    "true",
+  );
+  await touch.close();
   console.log(
     `PASS ${name}: five modes, pitch/location grading, anchored fret axis, mobile scrolling, keyboard/touch, full session, profiles, persistence and empty ranges.`,
   );

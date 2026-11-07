@@ -40,17 +40,16 @@ header {
   border-bottom: 1px solid #ded9cc;
 }
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
   text-decoration: none;
   color: inherit;
   font-size: 23px;
   font-weight: 650;
   letter-spacing: -1px;
 }
-.brand > span:first-child {
-  margin-right: 8px;
-  color: #8979b3;
-  font-size: 32px;
-}
+
 .dot {
   color: #bd785b;
 }
@@ -182,7 +181,7 @@ progress::-moz-progress-bar {
   font-size: 22px;
   font-weight: 500;
 }
-.letters button:hover {
+.letters button.answer-hover {
   background: #eee7f5;
 }
 .letters button:active {
@@ -556,7 +555,7 @@ input:focus-visible {
 .fret-cell:disabled {
   opacity: 1;
 }
-.fret-cell:not(:disabled):is(button):hover {
+.fret-cell:not(:disabled):is(button).answer-hover {
   background: #e5def080;
 }
 .location-hint {
@@ -656,4 +655,11 @@ input:focus-visible {
   .board-track {
     min-width: calc(25px + var(--columns) * 44px);
   }
+}
+
+.brand-icon {
+  margin-right: 8px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
 }

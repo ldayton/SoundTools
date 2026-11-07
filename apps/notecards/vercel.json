@@ -33,8 +33,22 @@
       ]
     },
     {
+      "source": "/(favicon.ico|favicon-48.png|icon.svg|icon-192.png|icon-512.png|icon-maskable.png|apple-touch-icon.png|manifest.webmanifest)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
-      "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }]
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
   ]
 }

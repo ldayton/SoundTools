@@ -43,7 +43,7 @@ let modifier: Modifier = 0,
   pendingNext = false;
 const profile = () => progress.profiles[progress.mode];
 $("#app").innerHTML =
-  `<header><a class="brand" href="/" aria-label="Note by Note home"><span aria-hidden="true">♩</span> Note by Note<span class="dot">.</span></a><span class="family">SOUNDTOOLS</span></header>
+  `<header><a class="brand" href="/" aria-label="Note by Note home"><img class="brand-icon" src="/icon.svg" width="32" height="32" alt="" /> Note by Note<span class="dot">.</span></a><span class="family">SOUNDTOOLS</span></header>
 <main><div class="intro"><p class="eyebrow">A LITTLE PRACTICE, EVERY DAY</p><h1>Get to know your notes.</h1></div>
 <label class="mode-selector">Practice<select id="mode">${MODES.map((m) => `<option value="${m.id}">${m.label}</option>`).join("")}</select></label>
 <section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${progress.roundLength}" value="0" aria-label="Session progress"></progress>
@@ -83,6 +83,21 @@ function setModifier(value: Modifier) {
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-mod]"))
     b.setAttribute("aria-pressed", String(Number(b.dataset.mod) === value));
 }
+// Hover belongs to pointer movement on this question, never to the previous guess.
+const answerSelector = "[data-letter],[data-fret]";
+function clearAnswerHover() {
+  for (const button of document.querySelectorAll(".answer-hover"))
+    button.classList.remove("answer-hover");
+}
+$("#question").addEventListener("pointermove", (event) => {
+  if (event.pointerType !== "mouse" || phase !== "question") return;
+  clearAnswerHover();
+  const button = (event.target as Element).closest<HTMLButtonElement>(
+    answerSelector,
+  );
+  if (button && !button.disabled) button.classList.add("answer-hover");
+});
+$("#question").addEventListener("pointerleave", clearAnswerHover);
 function enableAnswers(enabled: boolean) {
   for (const b of document.querySelectorAll<HTMLButtonElement>(
     "[data-mod],[data-letter]",
@@ -184,6 +199,7 @@ function next() {
   }
   phase = "question";
   setModifier(0);
+  clearAnswerHover();
   renderQuestion(card);
   if (
     returnBoardFocus &&
@@ -232,7 +248,7 @@ function answerName(letter: Letter) {
       : `That’s ${name(card)}. You answered ${letter}${symbol(modifier)}.`,
   );
 }
-function answerLocation(string: number, fret: number) {
+function answerLocation(string: number, fret: number, keyboard: boolean) {
   if (
     phase !== "question" ||
     !isLocationMode(progress.mode) ||
@@ -246,7 +262,8 @@ function answerLocation(string: number, fret: number) {
     fret,
     progress.mode === "staff-find",
   );
-  returnBoardFocus = $("#fretboard").contains(document.activeElement);
+  returnBoardFocus =
+    keyboard && $("#fretboard").contains(document.activeElement);
   board.feedback(
     fret,
     locations(card, profile(), progress.mode === "staff-find").map(

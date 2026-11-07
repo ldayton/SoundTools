@@ -14,7 +14,7 @@ export class Fretboard {
   private focusFret = 0;
   constructor(
     private element: HTMLElement,
-    private answer: (string: number, fret: number) => void,
+    private answer: (string: number, fret: number, keyboard: boolean) => void,
   ) {
     element.addEventListener("click", (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
@@ -22,7 +22,11 @@ export class Fretboard {
       );
       if (!button) return;
       if (button.dataset.fret !== undefined && this.interactive && !this.locked)
-        this.answer(this.card.string, Number(button.dataset.fret));
+        this.answer(
+          this.card.string,
+          Number(button.dataset.fret),
+          event.detail === 0,
+        );
     });
     element.addEventListener("keydown", (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>(

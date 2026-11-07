@@ -1,16 +1,17 @@
 # App branding
 
-Keep the names **DoReGo** and **Soundglow** consistent in page titles, visible headers,
+Keep the names **DoReGo**, **Soundglow**, and **Note by Note** consistent in page titles, visible headers,
 app manifests, and share metadata. Their existing SVG marks are the source artwork:
 
 - DoReGo: `apps/dorego/public/icon.svg`
 - Soundglow: `apps/soundglow/dist/favicon.svg`
+- Note by Note: `apps/notecards/public/icon.svg`
 
-Run `node scripts/generate-branding.cjs` from the repository root to regenerate both
+Run `node scripts/generate-branding.cjs` from the repository root to regenerate all three
 sets of raster icons using the workspace's Playwright Chromium installation.
 DoReGo's older Python entry point delegates to the same generator.
 
-Both apps supply:
+All three apps supply:
 
 | Surface | Asset |
 | --- | --- |
@@ -31,9 +32,11 @@ its linked icons and manifest in each immutable release; that manifest launches 
 app root, while its relative icons resolve within the release. Root icon files remain
 available for browser discovery. Vercel root icon responses require revalidation.
 
-After an artwork change, regenerate, build both apps, and check the icon links and
+After an artwork change, regenerate, build the affected apps, and check the icon links and
 manifest icon dimensions in the packaged output, including subpath deployment.
 Inspect icons at small sizes and with circular cropping. Browser-owned bookmark and
 new-tab icon databases can lag behind the page's favicon; the site cannot force those
 to refresh. Revisit the saved URL after deployment, and recreate the shortcut if its
 icon remains stale. This is separate from the app's service-worker update mechanism.
+
+Note by Note uses its staff-and-note SVG in the header and the same complete icon set. Its Vite build copies the public assets; root icons and manifest require revalidation on Vercel.

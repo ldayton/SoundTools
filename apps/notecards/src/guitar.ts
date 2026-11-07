@@ -11,6 +11,7 @@ export const MODES = [
   { id: "find", label: "Find the note" },
   { id: "staff-find", label: "Staff to fretboard" },
   { id: "tab", label: "Read tab" },
+  { id: "piano", label: "Find on piano" },
 ] as const;
 export type Mode = (typeof MODES)[number]["id"];
 export const STRINGS = [
@@ -26,6 +27,7 @@ export type Profile = Settings & {
   minFret: number;
   maxFret: number;
   naturalsOnly?: boolean;
+  pianoPrompt?: "staff" | "name";
 };
 export type GuitarCard = Card & { string: number; fret: number; midi: number };
 const natural: Record<Letter, number> = {

@@ -69,16 +69,16 @@ export const KEYS = [
   { id: "Gb", label: "G♭ major · 6 flats", count: -6 },
   { id: "Cb", label: "C♭ major · 7 flats", count: -7 },
 ];
-export function deck(settings: Settings): Card[] {
-  const low = POSITIONS.indexOf(settings.low),
-    high = POSITIONS.indexOf(settings.high);
+export function deck(settings: Settings, positions = POSITIONS): Card[] {
+  const low = positions.indexOf(settings.low),
+    high = positions.indexOf(settings.high);
   const key = KEYS.find((k) => k.id === settings.key);
   if (low < 0 || high < low || !key) throw Error("Invalid note range or key");
   const altered = (key.count < 0 ? "BEADGCF" : "FCGDAEB").slice(
     0,
     Math.abs(key.count),
   );
-  return POSITIONS.slice(low, high + 1).map((position) => {
+  return positions.slice(low, high + 1).map((position) => {
     const letter = position[0] as Letter,
       octave = Number(position[1]);
     const modifier: Modifier = altered.includes(letter)

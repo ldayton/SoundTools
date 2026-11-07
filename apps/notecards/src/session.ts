@@ -105,7 +105,7 @@ export class PracticeSession<T extends Card> {
       );
     }).length;
     return mastered === this.pool.length
-      ? "Feeling comfortable? Try another string or a wider range."
+      ? "Feeling comfortable? Try another practice mode or a wider range."
       : "Keep going to revisit notes and build familiarity.";
   }
 }

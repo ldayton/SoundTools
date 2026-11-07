@@ -721,3 +721,152 @@ input:focus-visible {
   margin: 0;
   accent-color: #8979b3;
 }
+
+/* A continuous desktop keyboard becomes octave rows on narrow screens. */
+#question.piano-question {
+  display: flex;
+  flex-direction: column;
+}
+.piano-question #notation,
+.piano-question #named-note {
+  height: 225px;
+  padding: 12px 24px 0;
+}
+.piano-question #named-note {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.piano-question .answer-line {
+  order: 1;
+  min-height: 50px;
+  padding: 0 20px 16px;
+}
+#piano {
+  order: 2;
+  padding: 20px 24px 24px;
+  background: #f1eee6;
+  border-top: 1px solid #e8e2d7;
+}
+.piano-hint {
+  order: 3;
+  padding-bottom: 18px;
+}
+.piano-layout {
+  display: flex;
+}
+.piano-octave {
+  position: relative;
+  flex-basis: 0;
+  min-width: 0;
+  --white: calc(100% / var(--whites));
+  --black: max(24px, calc(var(--white) * 0.62));
+}
+.piano-keys {
+  position: relative;
+  height: 176px;
+}
+.piano-key {
+  position: absolute;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  touch-action: manipulation;
+  color: #81768e;
+  transition:
+    background-color 100ms,
+    box-shadow 100ms;
+}
+.white-key {
+  width: var(--white);
+  height: 100%;
+  border: 1px solid #d4cfc4;
+  border-bottom: 4px solid #d9d3c7;
+  border-radius: 0 0 5px 5px;
+  background: linear-gradient(#fffdf8 85%, #f4f0e7);
+  box-shadow: inset 0 0 0 1px #ffffffb0;
+}
+.black-key {
+  z-index: 1;
+  width: var(--black);
+  height: 61%;
+  background: linear-gradient(90deg, #34313b, #45414c 45%, #2c2934);
+  border: 1px solid #27242f;
+  border-bottom: 5px solid #201d28;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 3px 3px #302d5530;
+}
+.piano-key.answer-hover {
+  background: #dcd2ed;
+}
+.black-key.answer-hover {
+  background: #75698c;
+}
+.piano-key:active:not([aria-disabled="true"]) {
+  box-shadow: inset 0 3px 6px #302d5525;
+  border-bottom-width: 2px;
+}
+.piano-key.is-right {
+  background: #a5c1a3;
+  border-color: #698b6b;
+  color: #253f29;
+}
+.piano-key.is-wrong {
+  background: #dfad99;
+  border-color: #ac6146;
+}
+.piano-key.is-right::after,
+.piano-key.is-wrong::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 30%;
+  font-size: 19px;
+  font-weight: 600;
+  content: "✓";
+}
+.piano-key.is-wrong::after {
+  content: "×";
+}
+.piano-key[aria-disabled="true"] {
+  cursor: default;
+}
+.piano-key:focus-visible {
+  outline: 3px solid #988cc5;
+  outline-offset: -4px;
+  z-index: 2;
+}
+.piano-named {
+  padding-top: 0;
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+}
+#piano-prompt-setting {
+  align-items: stretch;
+  flex-direction: column;
+  max-width: 280px;
+}
+@media (max-width: 600px) {
+  .piano-question #notation,
+  .piano-question #named-note {
+    height: 150px;
+    padding: 4px 12px 0;
+  }
+  #piano {
+    padding: 16px 14px 20px;
+  }
+  .piano-layout {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .piano-octave {
+    flex-basis: auto;
+  }
+  .piano-keys {
+    height: 120px;
+  }
+  .piano-named .piano-keys {
+    height: 176px;
+  }
+}

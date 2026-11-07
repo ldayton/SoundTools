@@ -25,6 +25,15 @@ import {
 import { loadProgress, STORAGE_KEY } from "./progress";
 import { PracticeSession } from "./session";
 import { drawNotation, VexFlow } from "./notation";
+import { Piano } from "./piano";
+import {
+  PIANO_POSITIONS,
+  pianoDeck,
+  pianoBounds,
+  pitch,
+  acceptsPiano,
+  keyLabel,
+} from "./piano-model";
 import { Fretboard } from "./fretboard";
 import "./style.css";
 import { setupOffline } from "./offline";
@@ -64,14 +73,16 @@ $("#app").innerHTML =
 <label class="mode-selector">Practice<select id="mode">${MODES.map((m) => `<option value="${m.id}">${m.label}</option>`).join("")}</select></label>
 <section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${progress.roundLength}" value="0" aria-label="Session progress"></progress>
 <div id="question"><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
+<div id="piano" hidden></div>
 <div class="answer-line"><span id="feedback" role="status" aria-live="polite">Loading notation…</span></div>
 <div class="keyboard" aria-label="Answer keyboard"><div class="modifiers" role="group" aria-label="Accidental"><button data-mod="-1" aria-label="Flat" aria-pressed="false">♭</button><button data-mod="0" aria-label="Natural" aria-pressed="true">♮</button><button data-mod="1" aria-label="Sharp" aria-pressed="false">♯</button></div><div class="letters" role="group" aria-label="Note letter">${"CDEFGAB"
     .split("")
     .map((l) => `<button data-letter="${l}">${l}</button>`)
     .join("")}</div></div>
-<p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
+<p class="hint piano-hint" hidden>Choose the matching piano key.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p><p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
 <div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
 <div class="below"><details><summary>Practice options</summary><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
+<label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
 <label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes · sharps & flats</option><option value="naturals">Naturals only</option></select></label>
 <div class="range" id="pitch-range" role="group" aria-label="Sounding guitar pitch range">${(["low", "high"] as const).map((f) => `<label>${f === "low" ? "Lowest" : "Highest"}<select id="${f}">${POSITIONS.map((n) => `<option>${n}</option>`).join("")}</select></label>`).join("")}</div>
 <div id="guitar-options" hidden><fieldset class="strings"><legend>Strings</legend>${[
@@ -88,6 +99,7 @@ $("#app").innerHTML =
 <p>Changing options starts a fresh session.</p></details><p id="saved" class="saved">Progress remembered on this device.</p></div><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section></main><footer>One note at a time.</footer>`;
 mountDiagnostics(document.querySelector("main")!);
 const board = new Fretboard($("#fretboard"), answerLocation);
+const piano = new Piano($("#piano"), answerPiano);
 function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
@@ -102,7 +114,7 @@ function setModifier(value: Modifier) {
     b.setAttribute("aria-pressed", String(Number(b.dataset.mod) === value));
 }
 // Hover belongs to pointer movement on this question, never to the previous guess.
-const answerSelector = "[data-letter],[data-fret]";
+const answerSelector = "[data-letter],[data-fret],[data-piano]";
 function clearAnswerHover() {
   for (const button of document.querySelectorAll(".answer-hover"))
     button.classList.remove("answer-hover");
@@ -113,7 +125,12 @@ $("#question").addEventListener("pointermove", (event) => {
   const button = (event.target as Element).closest<HTMLButtonElement>(
     answerSelector,
   );
-  if (button && !button.disabled) button.classList.add("answer-hover");
+  if (
+    button &&
+    !button.disabled &&
+    button.getAttribute("aria-disabled") !== "true"
+  )
+    button.classList.add("answer-hover");
 });
 $("#question").addEventListener("pointerleave", clearAnswerHover);
 function enableAnswers(enabled: boolean) {
@@ -127,8 +144,17 @@ function syncOptions() {
   $<HTMLSelectElement>("#roundLength").value = String(progress.roundLength);
   $<HTMLSelectElement>("#mode").value = progress.mode;
   $<HTMLSelectElement>("#key").value = p.key;
-  $("#pitch-range").hidden = progress.mode !== "staff";
-  $("#guitar-options").hidden = progress.mode === "staff";
+  const isPiano = progress.mode === "piano";
+  const positions = isPiano ? PIANO_POSITIONS : POSITIONS;
+  $("#piano-prompt-setting").hidden = !isPiano;
+  $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
+  $("#pitch-range").hidden =
+    progress.mode !== "staff" && !(isPiano && p.pianoPrompt !== "name");
+  $("#pitch-range").setAttribute(
+    "aria-label",
+    isPiano ? "Piano pitch range" : "Sounding guitar pitch range",
+  );
+  $("#guitar-options").hidden = progress.mode === "staff" || isPiano;
   $("#key-setting").hidden = progress.mode === "name";
   $("#name-notes-setting").hidden = progress.mode !== "name";
   $<HTMLSelectElement>("#nameNotes").value = p.naturalsOnly
@@ -136,12 +162,18 @@ function syncOptions() {
     : "all";
   for (const field of ["low", "high"] as const) {
     const select = $<HTMLSelectElement>("#" + field);
+    if ([...select.options].map((o) => o.value).join() !== positions.join())
+      select.innerHTML = positions.map((n) => `<option>${n}</option>`).join("");
     select.value = p[field];
     for (const option of select.options)
       option.disabled =
         field === "low"
-          ? POSITIONS.indexOf(option.value) > POSITIONS.indexOf(p.high)
-          : POSITIONS.indexOf(option.value) < POSITIONS.indexOf(p.low);
+          ? positions.indexOf(option.value) > positions.indexOf(p.high) ||
+            (isPiano &&
+              positions.indexOf(p.high) - positions.indexOf(option.value) >= 14)
+          : positions.indexOf(option.value) < positions.indexOf(p.low) ||
+            (isPiano &&
+              positions.indexOf(option.value) - positions.indexOf(p.low) >= 14);
   }
   for (const field of ["minFret", "maxFret"] as const) {
     const select = $<HTMLSelectElement>("#" + field);
@@ -160,7 +192,7 @@ function syncOptions() {
     b.setAttribute("aria-disabled", String(active && p.strings.length === 1));
   }
   $("#context").textContent =
-    "Guitar · " +
+    (isPiano ? "Piano · " : "Guitar · ") +
     (progress.mode === "name"
       ? p.naturalsOnly
         ? "Naturals only"
@@ -169,32 +201,46 @@ function syncOptions() {
 }
 function renderQuestion(card: Card | GuitarCard) {
   const renderStarted = performance.now();
+  $("#question").classList.toggle("piano-question", progress.mode === "piano");
   $("#question").classList.toggle("paired", progress.mode === "staff-find");
   const mode = progress.mode,
+    isPiano = mode === "piano",
     location = isLocationMode(mode),
-    notation = ["staff", "staff-find", "tab"].includes(mode);
+    notation =
+      ["staff", "staff-find", "tab"].includes(mode) ||
+      (isPiano && profile().pianoPrompt !== "name");
   $("#notation").hidden = !notation;
-  $("#named-note").hidden = mode !== "find";
+  $("#named-note").hidden = mode !== "find" && !(isPiano && !notation);
   $("#string-prompt").hidden = mode !== "staff-find";
-  $("#fretboard").hidden = mode === "staff" || mode === "tab";
-  $(".keyboard").hidden = location;
-  $("#name-hint").hidden = location;
+  $("#fretboard").hidden = mode === "staff" || mode === "tab" || isPiano;
+  $("#piano").hidden = !isPiano;
+  $(".piano-hint").hidden = !isPiano;
+  $(".keyboard").hidden = location || isPiano;
+  $("#name-hint").hidden = location || isPiano;
   $(".location-hint").hidden = !location;
   if (notation) {
     $("#notation").setAttribute(
       "aria-label",
       mode === "tab"
         ? "Single guitar tab note to identify"
-        : "Guitar treble clef with octave-down 8; identify the note",
+        : isPiano
+          ? "Treble clef; find the note on the piano"
+          : "Guitar treble clef with octave-down 8; identify the note",
     );
     drawNotation(
       $<HTMLDivElement>("#notation"),
       card,
       profile().key,
       mode === "tab",
+      !isPiano,
     );
   }
-  if (mode !== "staff") {
+  if (isPiano) {
+    const named = profile().pianoPrompt === "name";
+    piano.show(...pianoBounds(profile()), named);
+    $("#target-name").textContent = name(card);
+    $("#target-string").textContent = "";
+  } else if (mode !== "staff") {
     const guitar = card as GuitarCard;
     const prompt = `On string ${guitar.string} · ${STRINGS.find((s) => s.number === guitar.string)!.name}`;
     $("#target-name").textContent = name(card);
@@ -202,11 +248,13 @@ function renderQuestion(card: Card | GuitarCard) {
     $("#string-prompt").textContent = prompt;
     if (mode !== "tab") board.show(guitar, profile(), location);
   }
-  $("#feedback").textContent = location
+  $("#feedback").textContent = isPiano
     ? "Find this note."
-    : mode === "name"
-      ? "Name the highlighted note."
-      : "Name this note.";
+    : location
+      ? "Find this note."
+      : mode === "name"
+        ? "Name the highlighted note."
+        : "Name this note.";
   $("#feedback").className = "";
   diagnostics.metric("practice.render_ms", performance.now() - renderStarted);
 }
@@ -262,7 +310,12 @@ function feedback(correct: boolean, text: string) {
   );
 }
 function answerName(letter: Letter) {
-  if (phase !== "question" || isLocationMode(progress.mode) || !session.current)
+  if (
+    phase !== "question" ||
+    progress.mode === "piano" ||
+    isLocationMode(progress.mode) ||
+    !session.current
+  )
     return;
   const card = session.current,
     correct = matches(card, letter, modifier);
@@ -305,6 +358,22 @@ function answerLocation(string: number, fret: number, keyboard: boolean) {
       : `${name(card)} is ${accepted === "open" ? "open" : `at fret ${accepted}`} on string ${string}. You chose ${fret === 0 ? "open" : `fret ${fret}`}.`,
   );
 }
+function answerPiano(midi: number) {
+  if (phase !== "question" || progress.mode !== "piano" || !session.current)
+    return;
+  const card = session.current;
+  const named = profile().pianoPrompt === "name";
+  const correct = acceptsPiano(card, midi, profile().pianoPrompt);
+  const correctMidi = named ? 60 + (pitch(card) % 12) : pitch(card);
+  piano.feedback(midi, correctMidi);
+  const target = name(card) + (named ? "" : card.octave);
+  feedback(
+    correct,
+    correct
+      ? `Yes — ${target}`
+      : `That’s ${target}. You chose ${keyLabel(midi, !named)}.`,
+  );
+}
 function start(continuing = false) {
   clearTimeout(timer);
   returnBoardFocus = false;
@@ -317,9 +386,17 @@ function start(continuing = false) {
   const pool =
     progress.mode === "staff"
       ? deck(profile())
-      : guitarQuestions(progress.mode, profile());
+      : progress.mode === "piano"
+        ? pianoDeck(profile())
+        : guitarQuestions(progress.mode, profile());
   if (!continuing || !session?.continueRound())
-    session = new PracticeSession(pool, progress, progress.mode + ":");
+    session = new PracticeSession(
+      pool,
+      progress,
+      (progress.mode === "piano"
+        ? "piano-" + (profile().pianoPrompt || "staff")
+        : progress.mode) + ":",
+    );
   if (!pool.length) {
     phase = "empty";
     syncDiagnosticsContext();
@@ -353,6 +430,11 @@ $<HTMLSelectElement>("#roundLength").onchange = (e) => {
 };
 $<HTMLSelectElement>("#mode").onchange = (e) => {
   progress.mode = (e.target as HTMLSelectElement).value as Mode;
+  changed();
+};
+$<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {
+  profile().pianoPrompt = (e.target as HTMLSelectElement).value as
+    "staff" | "name";
   changed();
 };
 $<HTMLSelectElement>("#nameNotes").onchange = (e) => {
@@ -409,7 +491,8 @@ window.addEventListener("keydown", (event) => {
     event.metaKey ||
     event.altKey ||
     phase !== "question" ||
-    isLocationMode(progress.mode)
+    isLocationMode(progress.mode) ||
+    progress.mode === "piano"
   )
     return;
   if (

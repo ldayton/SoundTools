@@ -16,6 +16,7 @@ export function drawNotation(
   card: Card,
   key: string,
   tab = false,
+  guitar = true,
 ) {
   element.replaceChildren();
   const renderer = new Renderer(element, Renderer.Backends.SVG);
@@ -40,14 +41,14 @@ export function drawNotation(
   } else {
     const stave = new Stave(14, -2, 244);
     stave
-      .addClef("treble", "default", "8vb")
+      .addClef("treble", "default", guitar ? "8vb" : undefined)
       .addKeySignature(key)
       .setBegBarType(BarlineType.NONE)
       .setEndBarType(BarlineType.NONE)
       .setContext(context)
       .draw();
     const note = new StaveNote({
-      keys: [`${card.letter.toLowerCase()}/${card.octave + 1}`],
+      keys: [`${card.letter.toLowerCase()}/${card.octave + (guitar ? 1 : 0)}`],
       duration: "w",
       clef: "treble",
       alignCenter: true,

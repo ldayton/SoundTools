@@ -6,6 +6,7 @@ import {
   type RoundLength,
   type Stats,
 } from "./model";
+import { PIANO_POSITIONS } from "./piano-model";
 import { MODES, type Mode, type Profile } from "./guitar";
 export const STORAGE_KEY = "soundtools:notecards:v1";
 export type RecordStats = {
@@ -27,8 +28,8 @@ export function defaultProgress(): Progress {
     MODES.map((m) => [
       m.id,
       {
-        low: "E3",
-        high: "F4",
+        low: m.id === "piano" ? "C4" : "E3",
+        high: m.id === "piano" ? "B5" : "F4",
         key: "C",
         strings: m.id === "name" ? [1, 2, 3, 4, 5, 6] : [6],
         minFret: 0,
@@ -60,11 +61,16 @@ export function loadProgress(raw: string | null): Progress {
         profile = result.profiles[mode];
       if (!source) continue;
       if (KEYS.some((k) => k.id === source.key)) profile.key = source.key;
+      if (mode === "piano" && ["staff", "name"].includes(source.pianoPrompt))
+        profile.pianoPrompt = source.pianoPrompt;
+      const positions = mode === "piano" ? PIANO_POSITIONS : POSITIONS;
       if (source.naturalsOnly === true) profile.naturalsOnly = true;
       if (
-        POSITIONS.includes(source.low) &&
-        POSITIONS.includes(source.high) &&
-        POSITIONS.indexOf(source.low) <= POSITIONS.indexOf(source.high)
+        positions.includes(source.low) &&
+        positions.includes(source.high) &&
+        positions.indexOf(source.low) <= positions.indexOf(source.high) &&
+        (mode !== "piano" ||
+          positions.indexOf(source.high) - positions.indexOf(source.low) < 14)
       ) {
         profile.low = source.low;
         profile.high = source.high;
@@ -106,7 +112,7 @@ export function loadProgress(raw: string | null): Progress {
     )
       result.profiles.name.strings = [1, 2, 3, 4, 5, 6];
     const patterns =
-      /^(staff:[A-G][234]:-?[01]|(name|find|tab|staff-find):[1-6]:([0-9]|1[0-2]))$/;
+      /^((piano-(staff|name)):[A-G][3-6]:-?[01]|staff:[A-G][234]:-?[01]|(name|find|tab|staff-find):[1-6]:([0-9]|1[0-2]))$/;
     for (const [id, s] of Object.entries(data.stats || {}) as [string, any][]) {
       if (
         patterns.test(id) &&

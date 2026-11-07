@@ -124,6 +124,9 @@ jobs:
       - run: npm run test:guitar --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:piano --workspace=notecards
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:offline --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}
@@ -133,4 +136,6 @@ jobs:
         if: failure()
         with:
           name: notecards-browser-results-${{ matrix.browser }}
-          path: apps/notecards/work/
+          path: |
+            apps/notecards/work/
+            work/piano-*.png

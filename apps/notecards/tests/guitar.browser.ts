@@ -68,6 +68,15 @@ try {
     await page.locator(`[data-string-toggle="${string}"]`).click();
   await page.locator("#minFret").selectOption("2");
   await page.locator("#maxFret").selectOption("2");
+  assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
+    "",
+    "Open",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+  ]);
   await page.getByRole("button", { name: "Flat", exact: true }).click();
   await page.locator('[data-letter="G"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
@@ -164,15 +173,42 @@ try {
   // Find supports every octave of the target; staff-to-fretboard accepts only the exact pitch.
   await page.locator("#mode").selectOption("find");
   await page.locator("#maxFret").selectOption("12");
-  await page.getByRole("button", { name: "Higher frets" }).click();
-  await page.getByRole("button", { name: "Higher frets" }).click();
+  assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
+    "",
+    "Open",
+    ...Array.from({ length: 12 }, (_, i) => String(i + 1)),
+  ]);
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await page.locator('[data-fret="0"]').focus();
+  await page.keyboard.press("End");
+  assert.equal(
+    await page.evaluate(() =>
+      document.activeElement?.getAttribute("data-fret"),
+    ),
+    "12",
+  );
+  assert.ok(
+    await page.locator(".board-scroll").evaluate((el) => el.scrollLeft > 0),
+  );
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await page.screenshot({
+    path: `work/guitar-${name}-extended-axis-mobile.png`,
+    fullPage: true,
+  });
   await page.locator('[data-fret="12"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
   await next();
   await page.locator("#mode").selectOption("staff-find");
   await page.locator("#maxFret").selectOption("12");
-  await page.getByRole("button", { name: "Higher frets" }).click();
-  await page.getByRole("button", { name: "Higher frets" }).click();
+  assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
+    "",
+    "Open",
+    ...Array.from({ length: 12 }, (_, i) => String(i + 1)),
+  ]);
   await page.locator('[data-fret="12"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /E is open/);
   await next();
@@ -284,6 +320,29 @@ try {
     path: `work/guitar-${name}-round-length.png`,
     fullPage: true,
   });
+  await page.locator("#mode").selectOption("find");
+  if (
+    (await page
+      .locator('[data-string-toggle="5"]')
+      .getAttribute("aria-pressed")) === "true"
+  )
+    await page.locator('[data-string-toggle="5"]').click();
+  await page.locator("#key").selectOption("G");
+  await page.locator("#minFret").selectOption("2");
+  await page.locator("#maxFret").selectOption("2");
+  assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
+    "",
+    "Open",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+  ]);
+  assert.ok(await page.locator('[data-fret="0"]').isDisabled());
+  assert.ok(await page.locator('[data-fret="2"]').isEnabled());
+  await page.locator('[data-fret="2"]').click();
+  assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
   const storageContext = await browser.newContext();
   await storageContext.addInitScript(
     "Storage.prototype.setItem = () => {throw Error('Storage unavailable');}",
@@ -304,7 +363,7 @@ try {
     "No external font dependency",
   );
   console.log(
-    `PASS ${name}: five modes, pitch/location grading, mobile windows, keyboard/touch, full session, profiles, persistence and empty ranges.`,
+    `PASS ${name}: five modes, pitch/location grading, anchored fret axis, mobile scrolling, keyboard/touch, full session, profiles, persistence and empty ranges.`,
   );
 } finally {
   await browser?.close();

@@ -29,7 +29,7 @@ Rounds contain 12, 24, 36, or 48 exercises (default 12), remembered across modes
 
 Desktop name input: press A–G to answer. First press + for sharp; − for flat; 0 to return to natural. Touch uses modifier buttons, then a letter. Enharmonic equivalents count as correct; no octave is required when naming. Location input supports pointer/touch, focusable frets, left/right navigation and Enter. Held keys and double clicks cannot answer successive cards during feedback.
 
-Fretboard views put high E at the top, low E at the bottom, with a separate open-string column, nut, fret numbers and position markers. Wider ranges use mobile-friendly six-column windows. Staff and tab use bundled VexFlow Bravura fonts, without a font CDN. Standard tuning is fixed; fret range is 0–12. Staff range uses E2–A4 sounding guitar pitches and the octave-down treble clef. Key signatures determine available notes in the notation/key-based modes. Name the note includes every selected fret by default; enharmonic answers remain equivalent.
+Fretboard views put high E at the top, low E at the bottom, with a separate open-string column, nut, fret numbers and position markers. The diagram always starts at Open and includes frets 1–5, extending to the highest selected fret when needed. Narrow practice ranges do not shrink the diagram; out-of-range answers are disabled. Wide diagrams scroll horizontally on mobile, with large touch targets. Staff and tab use bundled VexFlow Bravura fonts, without a font CDN. Standard tuning is fixed; fret range is 0–12. Staff range uses E2–A4 sounding guitar pitches and the octave-down treble clef. Key signatures determine available notes in the notation/key-based modes. Name the note includes every selected fret by default; enharmonic answers remain equivalent.
 
 ## Structure
 
@@ -38,7 +38,7 @@ Fretboard views put high E at the top, low E at the bottom, with a separate open
 - `session.ts`: question selection, feedback guards and session completion.
 - `progress.ts`: validated versioned storage, legacy migration and review history.
 - `notation.ts`: staff/tab SVG renderer.
-- `fretboard.ts`: fretboard renderer, mobile windows and keyboard navigation.
+- `fretboard.ts`: fretboard renderer, anchored axis, horizontal scrolling and keyboard navigation.
 - `main.ts`: UI coordination.
 
 Storage failures never prevent practice. Background tabs do not advance to additional questions; changes cancel pending feedback timers. Saved history is bounded by the finite card identities; raw answer logs are not stored. The app has no service worker yet.

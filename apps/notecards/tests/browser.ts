@@ -1,0 +1,188 @@
+import { chromium } from "playwright";
+import assert from "node:assert/strict";
+import { mkdir } from "node:fs/promises";
+import { KEYS } from "../src/model";
+import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
+const base = process.env.TEST_BASE_URL || "http://127.0.0.1:4321/";
+const vite = createRequire(import.meta.url)
+  .resolve("vite/package.json")
+  .replace(/package\.json$/, "bin/vite.js");
+const server = process.env.TEST_BASE_URL
+  ? undefined
+  : spawn(
+      process.execPath,
+      [
+        vite,
+        "preview",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "4321",
+        "--strictPort",
+      ],
+      { stdio: "ignore" },
+    );
+if (server) {
+  for (let i = 0; i < 100; i++) {
+    if (server.exitCode !== null) throw Error("Preview server exited");
+    try {
+      if ((await fetch(base)).ok) break;
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+const browser = await chromium.launch();
+try {
+  const context = await browser.newContext();
+  await context.addInitScript(() => {
+    Math.random = () => 0;
+  });
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto(base);
+  await page.locator('[data-letter="E"]:enabled').waitFor();
+  assert.equal(await page.locator("#notation svg").count(), 1);
+  for (const [key, modifier] of [
+    ["ArrowUp", "Sharp"],
+    ["+", "Sharp"],
+    ["=", "Sharp"],
+    ["ArrowDown", "Flat"],
+    ["-", "Flat"],
+  ] as const) {
+    await page.keyboard.press(key);
+    assert.equal(
+      await page
+        .getByRole("button", { name: modifier, exact: true })
+        .getAttribute("aria-pressed"),
+      "true",
+    );
+  }
+  await page.keyboard.press("Escape");
+  // Start in C major, then switch to G major and check its F-sharp.
+  assert.equal(await page.locator("#key").inputValue(), "C");
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("E");
+  assert.match((await page.locator("#feedback").textContent())!, /That’s E/);
+  await page.keyboard.press("E");
+  assert.equal(
+    await page.locator("#progress").getAttribute("value"),
+    "1",
+    "One answer per card",
+  );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#feedback")?.textContent === "Name this note.",
+  );
+  await page.getByText("Practice options", { exact: true }).click();
+  await page.locator("#key").selectOption("G");
+  await page.locator('[data-letter="E"]').click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#feedback")?.textContent === "Name this note.",
+  );
+  await page.getByRole("button", { name: "Flat", exact: true }).click();
+  await page.locator('[data-letter="G"]').click();
+  assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
+  assert.equal(await page.locator(".vf-keysignature").count(), 1);
+  await page.locator("#key").selectOption("C");
+  // A fresh natural-only session cycles deterministically through E F G A.
+  for (let i = 0; i < 12; i++) {
+    await page.locator(`[data-letter="${"EFGA"[i % 4]}"]:enabled`).waitFor();
+    await page.locator(`[data-letter="${"EFGA"[i % 4]}"]`).click();
+    if (i < 11)
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#feedback")?.textContent ===
+          "Name this note.",
+      );
+  }
+  await page.locator("#continue").waitFor();
+  assert.equal(await page.locator("#result").textContent(), "12 of 12 correct");
+  await page.getByRole("button", { name: "Keep going" }).click();
+  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  for (const b of await page.locator("[data-letter]").all()) {
+    const box = await b.boundingBox();
+    assert.ok(box && box.height >= 44);
+  }
+  await page.locator("#key").selectOption("G");
+  await page.getByRole("button", { name: "Sharp", exact: true }).click();
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Sharp", exact: true })
+      .getAttribute("aria-pressed"),
+    "true",
+  );
+  await page.getByRole("button", { name: "Natural", exact: true }).click();
+  await page.locator('[data-letter="E"]').click();
+  assert.match((await page.locator("#feedback").textContent())!, /Yes/);
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#feedback")?.textContent === "Name this note.",
+  );
+  await page.getByText("Practice options", { exact: true }).click();
+  await mkdir("work", { recursive: true });
+  await page.screenshot({ path: "work/notecards-mobile.png", fullPage: true });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.screenshot({ path: "work/notecards-desktop.png", fullPage: true });
+  await page.getByText("Practice options", { exact: true }).click();
+  await page.locator("#low").selectOption("E2");
+  await page.locator("#high").selectOption("E2");
+  assert.equal(await page.locator("#low option").first().textContent(), "E2");
+  assert.ok(
+    await page
+      .locator("#low option")
+      .filter({ hasText: /^F2$/ })
+      .evaluate((option) => (option as HTMLOptionElement).disabled),
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('[data-letter="E"]:enabled').waitFor();
+  const bounds = await page.locator(".vf-stavenote rect").evaluate((rect) => {
+    const top = Number(rect.getAttribute("y")),
+      height = Number(rect.getAttribute("height"));
+    return { top: top * 2.2, bottom: (top + height) * 2.2 };
+  });
+  assert.ok(
+    bounds.top >= 0 && bounds.bottom <= 300,
+    "Lowest ledger note remains inside the drawing: " + JSON.stringify(bounds),
+  );
+  await page.screenshot({
+    path: "work/notecards-range-mobile.png",
+    fullPage: true,
+  });
+  await page.locator('[data-letter="E"]').click();
+  assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
+  for (const key of KEYS) {
+    await page.locator("#key").selectOption(key.id);
+    assert.equal(await page.locator("#key").inputValue(), key.id);
+    assert.equal(await page.locator(".vf-stavenote").count(), 1);
+    assert.equal(
+      await page.locator(".vf-accidental").count(),
+      0,
+      "Use the key signature, not explicit accidentals",
+    );
+  }
+  await page.locator("#key").selectOption("Gb");
+  await page.screenshot({
+    path: "work/notecards-keys-mobile.png",
+    fullPage: true,
+  });
+  const retained = await page.evaluate(() =>
+    localStorage.getItem("soundtools:notecards:v1"),
+  );
+  assert.ok(JSON.parse(retained!).stats["E3:0"].attempts > 0);
+  assert.deepEqual(errors, []);
+  console.log(
+    "PASS: notation, desktop modifier-first input, enharmonics, answer guard, full session, continuation, mobile controls, saved progress and no page errors.",
+  );
+} finally {
+  await browser.close();
+  server?.kill();
+}

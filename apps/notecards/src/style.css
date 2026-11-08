@@ -892,3 +892,63 @@ input:focus-visible {
     height: 200px;
   }
 }
+
+#midi-panel {
+  order: 3;
+  padding: 0 24px 18px;
+  background: #f1eee6;
+}
+.piano-hint {
+  order: 4;
+}
+.midi-status {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 12px;
+  color: #81768e;
+  line-height: 1.5;
+}
+.midi-connected .midi-status {
+  color: #4b7655;
+}
+.midi-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.midi-actions:not(:has(button:not([hidden]), label:not([hidden]))) {
+  display: none;
+}
+.midi-actions button {
+  min-height: 40px;
+  border: 1px solid #d8d1c5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #fffdf8;
+  color: #655c75;
+  font-size: 12px;
+}
+.midi-actions .midi-disconnect {
+  background: transparent;
+}
+.midi-device {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #655c75;
+  min-width: 0;
+  max-width: 100%;
+}
+.midi-device select {
+  min-width: 0;
+  max-width: 100%;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  #midi-panel {
+    padding: 0 16px 18px;
+  }
+}

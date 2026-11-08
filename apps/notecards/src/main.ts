@@ -32,6 +32,7 @@ import {
   type SignaturePractice,
 } from "./key-signatures";
 import { drawKeySignature, drawNotation, VexFlow } from "./notation";
+import { mountMidiPanel } from "./midi-panel";
 import { Piano } from "./piano";
 import {
   PIANO_POSITIONS,
@@ -65,6 +66,7 @@ let modifier: Modifier = 0,
   pendingNext = false;
 const profile = () => progress.profiles[progress.mode];
 function syncDiagnosticsContext() {
+  refreshMidiAcceptance();
   diagnosticsContext({
     mode: progress.mode,
     phase,
@@ -86,6 +88,7 @@ $("#app").innerHTML =
     .split("")
     .map((l) => `<button data-letter="${l}">${l}</button>`)
     .join("")}</div></div>
+<div id="midi-panel" hidden></div>
 <p class="hint piano-hint" hidden>Choose the matching piano key.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p><p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
 <div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
 <div class="below"><details><summary>Practice options</summary><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
@@ -108,6 +111,21 @@ $("#app").innerHTML =
 mountDiagnostics(document.querySelector("main")!);
 const board = new Fretboard($("#fretboard"), answerLocation);
 const piano = new Piano($("#piano"), answerPiano);
+const midi = mountMidiPanel(
+  $("#midi-panel"),
+  (note) => {
+    if (!document.hidden && document.hasFocus()) answerPiano(note);
+  },
+  (state) => diagnostics.event("midi.state", { midiState: state }),
+);
+function refreshMidiAcceptance() {
+  midi.setAccepting(
+    progress.mode === "piano" &&
+      phase === "question" &&
+      !document.hidden &&
+      document.hasFocus(),
+  );
+}
 function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
@@ -158,6 +176,7 @@ function syncOptions() {
   $<HTMLSelectElement>("#signaturePractice").value =
     p.signaturePractice || "major";
   const positions = isPiano ? PIANO_POSITIONS : POSITIONS;
+  $("#midi-panel").hidden = !isPiano;
   $("#piano-prompt-setting").hidden = !isPiano;
   $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
   $("#pitch-range").hidden =
@@ -400,7 +419,7 @@ function answerPiano(midi: number) {
   const named = profile().pianoPrompt === "name";
   const correct = acceptsPiano(card, midi, profile().pianoPrompt);
   const correctMidi = named ? 60 + (pitch(card) % 12) : pitch(card);
-  piano.feedback(midi, correctMidi);
+  piano.feedback(named ? 60 + (midi % 12) : midi, correctMidi);
   const target = name(card) + (named ? "" : card.octave);
   feedback(
     correct,
@@ -565,9 +584,15 @@ window.addEventListener("keydown", (event) => {
     );
   }
 });
-window.addEventListener("blur", () => setModifier(0));
+window.addEventListener("blur", () => {
+  setModifier(0);
+  midi.setAccepting(false);
+});
+window.addEventListener("focus", refreshMidiAcceptance);
+window.addEventListener("pagehide", () => midi.disconnect());
 document.addEventListener("visibilitychange", () => {
   setModifier(0);
+  refreshMidiAcceptance();
   if (!document.hidden && pendingNext) next();
 });
 syncOptions();

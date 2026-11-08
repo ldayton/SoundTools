@@ -10,6 +10,16 @@ export const diagnostics = create({
   environment: import.meta.env.PROD ? "production" : "development",
   fields: {
     mode: ["staff", "name", "find", "staff-find", "tab", "piano", "signature"],
+    midiState: [
+      "unsupported",
+      "idle",
+      "requesting",
+      "waiting",
+      "opening",
+      "connected",
+      "denied",
+      "error",
+    ],
     phase: ["loading", "question", "feedback", "complete", "empty"],
     roundLength: "number",
     minFret: "number",

@@ -9,6 +9,7 @@ From the repository root:
 - `npm test --workspace=notecards`
 - `npm run test:browser --workspace=notecards` (original staff regression suite)
 - `npm run test:guitar --workspace=notecards` (all five modes)
+- `npm run test:midi --workspace=notecards` (simulated MIDI input and connection lifecycle)
 - `npm run test:piano --workspace=notecards` (responsive piano answers)
 - `npm run test:signatures --workspace=notecards` (all 30 major/minor answers)
 - `TEST_BROWSER=firefox npm run test:guitar --workspace=notecards` (also `webkit`)
@@ -31,6 +32,8 @@ Fresh profiles start with Read staff in C major. Name the note starts with all s
 
 Piano practice defaults to C4–B5 on an ordinary treble clef, with exact-octave grading. Note-name prompts use a single C–B octave and grade pitch class. The stable, unlabeled HTML keyboard is continuous on desktop and splits into two rows at natural gaps on mobile, without scrolling. Range controls allow at most fourteen diatonic positions; enharmonic boundary keys remain reachable.
 
+Piano mode also accepts Web MIDI input. Connect the keyboard's USB COMPUTER port with a data-capable cable, open the app in desktop Chrome, and choose **Connect MIDI keyboard**. Access is requested only by that action, without SysEx or software synth access; no MIDI output or audio recording is used. A GO:KEYS input is preferred automatically; multiple other inputs require a selection. The app handles hotplug/replug, permission denial/revocation, input changes and cancellation. Held notes/chords latch until all keys are released, and feedback, hidden or unfocused pages, other practice modes and finished rounds do not accept answers. Each new question rejects older queued MIDI messages. MIDI note data, velocity, port IDs and device names are not persisted or included in diagnostics; opted-in diagnostics report only a categorical connection state. Reconnect manually after reload. MIDI input also works with the installed offline copy in a supported browser; Safari falls back to the on-screen keys. Simulated browser tests exercise the protocol and UI; a real Roland/device test still requires the keyboard to be connected.
+
 Key-signature practice defaults to Major only, followed by Minor only and Major & minor options. All fifteen conventional signatures are engraved with VexFlow; C major / A minor has no accidentals. Every card explicitly asks for the major or minor tonic because relative keys share a signature. Major and minor cards have separate review history. No individual key selector or note-range controls are shown in this mode.
 
 Rounds contain 12, 24, 36, or 48 exercises (default 12), remembered across modes and visits. Changing the count starts a fresh round. Each question is graded once. Correct answers advance after 450ms; corrections remain for 1.6 seconds. Selection excludes only the immediately previous question, and softly balances recency, coverage, accuracy and delayed mistake revisits. No fixed repeat queue or shuffled-deck order is imposed. Lightweight review spacing across visits uses 1, 3, 7, 14 and 30 days. Practice remains available before a review is due. No mastery claim comes from one successful session; suggestions require repeated accurate answers. Continue resets the round score while retaining recent questions, exposure counts and pending mistake revisits. Changing settings starts a fresh selection context. One-card sets repeat; two-card sets alternate.
@@ -46,6 +49,7 @@ Fretboard views put high E at the top, low E at the bottom, with a separate open
 - `session.ts`: question selection, feedback guards and session completion.
 - `progress.ts`: validated versioned storage, legacy migration and review history.
 - `notation.ts`: staff/tab/key-signature SVG renderer.
+- `midi-input.ts` / `midi-panel.ts`: permission-gated MIDI input, gesture guards and connection UI.
 - `piano-model.ts` / `piano.ts`: piano decks, grading and responsive keyboard.
 - `key-signatures.ts`: major/relative minor question generation and spelling-aware grading.
 - `fretboard.ts`: fretboard renderer, anchored axis, horizontal scrolling and keyboard navigation.

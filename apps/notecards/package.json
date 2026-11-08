@@ -9,6 +9,7 @@
     "test": "tsx --test tests/*.test.ts",
     "test:browser": "tsx tests/browser.ts",
     "test:signatures": "tsx tests/key-signatures.browser.ts",
+    "test:midi": "tsx tests/midi.browser.ts",
     "test:piano": "tsx tests/piano.browser.ts",
     "test:guitar": "tsx tests/guitar.browser.ts",
     "test:offline": "tsx tests/offline.browser.ts",

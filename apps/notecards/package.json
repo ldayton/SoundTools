@@ -14,7 +14,8 @@
     "test:guitar": "tsx tests/guitar.browser.ts",
     "test:offline": "tsx tests/offline.browser.ts",
     "build:vercel": "node ../../scripts/build-vercel.cjs notecards",
-    "test:diagnostics": "tsx tests/diagnostics.browser.ts"
+    "test:diagnostics": "tsx tests/diagnostics.browser.ts",
+    "test:notation": "tsx tests/notation.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",

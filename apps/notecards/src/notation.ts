@@ -58,10 +58,13 @@ export function drawNotation(
   finishNotation(element, tab);
   if (!guitar && !tab) {
     const svg = element.querySelector("svg")!;
-    const box = svg.querySelector("g")!.getBBox();
-    const top = Math.min(-25, box.y * 2.2 - 16);
-    const bottom = Math.max(300, (box.y + box.height) * 2.2 + 16);
-    svg.setAttribute("viewBox", `0 ${top} 600 ${bottom - top}`);
+    // Fixed bounds include C2–B6 ledger lines and every supported key signature.
+    // Per-note bounds change SVG scaling and make the staff appear to breathe.
+    svg.setAttribute("viewBox", "0 -220 600 765");
+    svg.setAttribute("height", "765");
+    // VexFlow writes fixed inline pixel dimensions; let CSS preserve this aspect ratio.
+    svg.style.removeProperty("width");
+    svg.style.removeProperty("height");
   }
 }
 function finishNotation(element: HTMLDivElement, tab = false) {

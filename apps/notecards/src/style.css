@@ -1040,3 +1040,12 @@ input:focus-visible {
   border-radius: 8px;
   font-weight: 600;
 }
+
+/* A fixed piano notation frame preserves staff scale between prompts. */
+.piano-question #notation {
+  height: auto;
+}
+.piano-question #notation svg {
+  max-width: 400px;
+  max-height: none;
+}

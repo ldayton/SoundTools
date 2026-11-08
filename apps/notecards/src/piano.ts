@@ -105,6 +105,11 @@ export class Piano {
     // Do not leave keyboard focus identifying the previous answer on the next card.
     if (hadFocus) this.buttons()[0]?.focus({ preventScroll: true });
   }
+  setUnavailable(unavailable: boolean) {
+    this.locked = unavailable;
+    for (const button of this.buttons())
+      button.setAttribute("aria-disabled", String(unavailable));
+  }
   feedback(selected: number, correct: number) {
     this.locked = true;
     for (const button of this.buttons()) {

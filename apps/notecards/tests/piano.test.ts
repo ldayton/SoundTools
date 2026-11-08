@@ -55,7 +55,7 @@ test("piano preferences and review statistics survive reload independently of gu
   };
   assert.deepEqual(loadProgress(JSON.stringify(progress)), progress);
   const bad = structuredClone(progress);
-  bad.profiles.piano.low = "C3";
+  bad.profiles.piano.low = "C1";
   assert.equal(loadProgress(JSON.stringify(bad)).profiles.piano.low, "C4");
 });
 
@@ -70,4 +70,34 @@ test("narrow ranges keep octave landmarks and wider ranges stay near two octaves
     const [low, high] = pianoBounds({ ...p, key: key.id });
     assert.ok(high - low <= 24, key.id);
   }
+});
+
+test("C2–B6 practice persists and grades exact MIDI pitches with a compact keyboard", () => {
+  const progress = defaultProgress();
+  Object.assign(progress.profiles.piano, {
+    low: "C2",
+    high: "B6",
+    pianoPrompt: "staff",
+  });
+  const p = progress.profiles.piano;
+  const cards = pianoDeck(p);
+  assert.equal(cards.length, 35);
+  assert.equal(pitch(cards[0]), 36);
+  assert.equal(pitch(cards.at(-1)!), 95);
+  assert.deepEqual(pianoBounds(p), [60, 83]);
+  for (const card of cards) {
+    assert.ok(acceptsPiano(card, pitch(card), "staff"));
+    assert.ok(!acceptsPiano(card, pitch(card) + 12, "staff"));
+  }
+  for (const card of [cards[0], cards.at(-1)!])
+    progress.stats["piano-staff:" + card.id] = {
+      attempts: 1,
+      correct: 1,
+      streak: 1,
+      lastSeen: 1,
+      due: 1,
+    };
+  assert.deepEqual(loadProgress(JSON.stringify(progress)), progress);
+  const old = defaultProgress();
+  assert.deepEqual(loadProgress(JSON.stringify(old)), old);
 });

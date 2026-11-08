@@ -250,9 +250,99 @@ try {
   );
   assert.ok(await fallback.locator('[data-piano="60"]').isVisible());
   await unsupported.close();
+  // The full range stays available through MIDI without enlarging the on-screen piano.
+  await page.bringToFront();
+  await off(60);
+  await page.getByText("Practice options", { exact: true }).click();
+  await page.locator("#pianoPrompt").selectOption("staff");
+  const chooseRange = async (field: string, note: string) => {
+    await page.locator(`#${field}-spin`).click();
+    await page
+      .locator(`#${field}-spin-picker`)
+      .getByRole("button", { name: note, exact: true })
+      .click();
+  };
+  await chooseRange("low", "C2");
+  await chooseRange("high", "B6");
+  assert.equal(await page.locator(".piano-key").count(), 24);
+  assert.ok(await page.locator("#piano-range-notice").isVisible());
+  assert.ok(await page.locator("#piano-midi-required").isVisible());
+  assert.equal(
+    await page.locator('[data-piano="60"]').getAttribute("aria-disabled"),
+    "true",
+  );
+  await page.locator('[data-piano="60"]').click({ force: true });
+  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  await on(48); // C3 is wrong for C2 despite sharing its pitch class.
+  assert.equal(
+    await page.locator("#feedback").textContent(),
+    "That’s C2. You chose C3.",
+  );
+  await off(48);
+  await page.waitForFunction(
+    () => document.querySelector("#counter")?.textContent === "2 / 12",
+  );
+  // Reset selection to test the low endpoint with a fresh question.
+  await chooseRange("low", "C2");
+  await on(36);
+  assert.equal(await page.locator("#feedback").textContent(), "Yes — C2");
+  await off(36);
+  await page.evaluate(() => (Math.random = () => 0.999999));
+  await chooseRange("high", "B6");
+  await mkdir("../../work", { recursive: true });
+  await page.screenshot({ path: "../../work/piano-B6.png", fullPage: true });
+  await on(95);
+  assert.equal(await page.locator("#feedback").textContent(), "Yes — B6");
+  await off(95);
+  await page.reload();
+  await page.getByText("Practice options", { exact: true }).click();
+  assert.equal(await page.locator("#low-spin").inputValue(), "C2");
+  assert.equal(await page.locator("#high-spin").inputValue(), "B6");
+  assert.ok(await page.locator("#piano-midi-required").isVisible());
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.locator("#low-spin").click();
+    const box = await page.locator("#low-spin-picker").boundingBox();
+    assert.ok(box && box.x >= 0 && box.x + box.width <= width);
+    assert.ok(
+      await page
+        .locator("#low-spin-picker")
+        .getByRole("button", { name: "C2", exact: true })
+        .isVisible(),
+    );
+    assert.ok(
+      await page
+        .locator("#low-spin-picker")
+        .getByRole("button", { name: "B6", exact: true })
+        .isVisible(),
+    );
+    await page.screenshot({
+      path: `../../work/piano-range-picker-${width}.png`,
+      fullPage: true,
+    });
+    await page.keyboard.press("Escape");
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await mkdir("../../work", { recursive: true });
+    await page.screenshot({
+      path: `../../work/piano-full-range-${width}.png`,
+      fullPage: true,
+    });
+  }
+  await page.locator("#low-spin").focus();
+  await page.keyboard.press("PageUp");
+  assert.equal(await page.locator("#low-spin").inputValue(), "C3");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator("#low-spin").inputValue(), "C4");
+
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: simulated MIDI grading, held/chord guards, focus, hotplug, input switching, denied/retry, offline and unsupported fallback passed`,
+    `${engine}: simulated MIDI grading, held/chord guards, focus, hotplug, input switching, denied/retry, offline, unsupported fallback, C2–B6 grading, compact keyboard, MIDI-only notices and range picker passed`,
   );
 } finally {
   await browser?.close();

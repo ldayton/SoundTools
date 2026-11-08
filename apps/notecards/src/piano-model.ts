@@ -1,6 +1,6 @@
 import { deck, type Card } from "./model";
 import type { Profile } from "./guitar";
-export const PIANO_POSITIONS = [3, 4, 5].flatMap((o) =>
+export const PIANO_POSITIONS = [2, 3, 4, 5, 6].flatMap((o) =>
   [..."CDEFGAB"].map((l) => l + o),
 );
 const naturals = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -29,6 +29,8 @@ export function pianoBounds(profile: Profile): [number, number] {
   }
   if (isBlack(low)) low--;
   if (isBlack(high)) high++;
+  // Preserve the existing compact keyboard for extended MIDI practice ranges.
+  if (high - low > 24 || low < 48 || high > 84) return [60, 83];
   return [low, high];
 }
 export function acceptsPiano(

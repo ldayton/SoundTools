@@ -952,3 +952,91 @@ input:focus-visible {
     padding: 0 16px 18px;
   }
 }
+
+.note-picker {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(620px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid #dddfd4;
+  border-radius: 12px;
+  background: #faf9f4;
+  color: #302d55;
+  box-shadow: 0 12px 40px #29382b25;
+}
+.note-picker-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.note-picker-grid {
+  display: grid;
+  grid-template-columns: 24px repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+.note-picker-octave {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+.note-picker-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0;
+  border-radius: 5px;
+  background: #fffefa;
+  font-size: 11px;
+  border: 1px solid #e5e7dd;
+}
+.note-picker-grid button:hover {
+  background: #edf2df;
+}
+.note-picker-grid button[aria-pressed="true"] {
+  background: #dcd2ed;
+  border-color: #a4b87a;
+  font-weight: 600;
+}
+
+.note-field {
+  display: flex;
+  border: 1px solid #d4cfc4;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.note-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 0;
+  background: #fffdf8;
+  font: inherit;
+  cursor: pointer;
+}
+.note-field button {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 10px 14px;
+}
+.note-picker-grid button:focus-visible {
+  outline: 3px solid #988cc5;
+  outline-offset: 1px;
+}
+
+.piano-range-notice {
+  font-size: 14px;
+  color: #62566e;
+}
+.piano-midi-required {
+  padding: 10px 16px;
+  background: #eee8f4;
+  border-radius: 8px;
+  font-weight: 600;
+}

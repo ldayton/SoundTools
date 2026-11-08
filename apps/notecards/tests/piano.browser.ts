@@ -101,8 +101,16 @@ try {
   assert.equal(await page.locator("#key").inputValue(), "Bb");
   await page.getByText("Practice options", { exact: true }).click();
   await page.locator("#pianoPrompt").selectOption("staff");
-  await page.locator("#low").selectOption("B5");
-  await page.locator("#high").selectOption("B5");
+  await page.locator("#low-spin").click();
+  await page
+    .locator("#low-spin-picker")
+    .getByRole("button", { name: "B5", exact: true })
+    .click();
+  await page.locator("#high-spin").click();
+  await page
+    .locator("#high-spin-picker")
+    .getByRole("button", { name: "B5", exact: true })
+    .click();
   assert.equal(await key(82).count(), 1);
   await key(82).click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — B♭5/);
@@ -116,7 +124,11 @@ try {
         ],
     ),
   );
-  await page.locator("#low").selectOption("C4");
+  await page.locator("#low-spin").click();
+  await page
+    .locator("#low-spin-picker")
+    .getByRole("button", { name: "C4", exact: true })
+    .click();
   await page.locator("#key").selectOption("C");
   await page.getByText("Practice options", { exact: true }).click();
   await mkdir("../../work", { recursive: true });

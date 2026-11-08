@@ -56,6 +56,13 @@ export function drawNotation(
     Formatter.FormatAndDraw(context, stave, [note]);
   }
   finishNotation(element, tab);
+  if (!guitar && !tab) {
+    const svg = element.querySelector("svg")!;
+    const box = svg.querySelector("g")!.getBBox();
+    const top = Math.min(-25, box.y * 2.2 - 16);
+    const bottom = Math.max(300, (box.y + box.height) * 2.2 + 16);
+    svg.setAttribute("viewBox", `0 ${top} 600 ${bottom - top}`);
+  }
 }
 function finishNotation(element: HTMLDivElement, tab = false) {
   const svg = element.querySelector("svg")!;

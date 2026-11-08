@@ -1,3 +1,4 @@
+import { RangePicker } from "./range-picker";
 import {
   deck,
   POSITIONS,
@@ -82,7 +83,7 @@ $("#app").innerHTML =
 <label class="mode-selector">Practice<select id="mode">${MODES.map((m) => `<option value="${m.id}">${m.label}</option>`).join("")}</select></label>
 <section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${progress.roundLength}" value="0" aria-label="Session progress"></progress>
 <div id="question"><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
-<div id="piano" hidden></div>
+<p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
 <div class="answer-line"><span id="feedback" role="status" aria-live="polite">Loading notation…</span></div>
 <div class="keyboard" aria-label="Answer keyboard"><div class="modifiers" role="group" aria-label="Accidental"><button data-mod="-1" aria-label="Flat" aria-pressed="false">♭</button><button data-mod="0" aria-label="Natural" aria-pressed="true">♮</button><button data-mod="1" aria-label="Sharp" aria-pressed="false">♯</button></div><div class="letters" role="group" aria-label="Note letter">${"CDEFGAB"
     .split("")
@@ -96,6 +97,8 @@ $("#app").innerHTML =
 <label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
 <label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes · sharps & flats</option><option value="naturals">Naturals only</option></select></label>
 <div class="range" id="pitch-range" role="group" aria-label="Sounding guitar pitch range">${(["low", "high"] as const).map((f) => `<label>${f === "low" ? "Lowest" : "Highest"}<select id="${f}">${POSITIONS.map((n) => `<option>${n}</option>`).join("")}</select></label>`).join("")}</div>
+<div class="range" id="piano-range" role="group" aria-label="Piano pitch range" hidden>${(["low", "high"] as const).map((f) => `<div><label for="${f}-spin">${f === "low" ? "Lowest" : "Highest"}</label><div class="note-field"><input id="${f}-spin" aria-label="${f === "low" ? "Lowest" : "Highest"} note" readonly /><button id="${f}-choose" type="button" aria-label="Choose ${f === "low" ? "lowest" : "highest"} note">⌄</button></div></div>`).join("")}</div>
+<p id="piano-range-notice" class="piano-range-notice" hidden></p>
 <div id="guitar-options" hidden><fieldset class="strings"><legend>Strings</legend>${[
     ...STRINGS,
   ]
@@ -110,6 +113,23 @@ $("#app").innerHTML =
 <p>Changing options starts a fresh session.</p></details><p id="saved" class="saved">Progress remembered on this device.</p></div><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section></main><footer>One note at a time.</footer>`;
 mountDiagnostics(document.querySelector("main")!);
 const board = new Fretboard($("#fretboard"), answerLocation);
+const rangePickers = (["low", "high"] as const).map(
+  (field) =>
+    new RangePicker(
+      $<HTMLInputElement>(`#${field}-spin`),
+      $<HTMLButtonElement>(`#${field}-choose`),
+      (value) => {
+        profile()[field] = value;
+        const other = field === "low" ? "high" : "low";
+        if (
+          PIANO_POSITIONS.indexOf(profile().low) >
+          PIANO_POSITIONS.indexOf(profile().high)
+        )
+          profile()[other] = value;
+        changed();
+      },
+    ),
+);
 const piano = new Piano($("#piano"), answerPiano);
 const midi = mountMidiPanel(
   $("#midi-panel"),
@@ -179,12 +199,26 @@ function syncOptions() {
   $("#midi-panel").hidden = !isPiano;
   $("#piano-prompt-setting").hidden = !isPiano;
   $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
-  $("#pitch-range").hidden =
-    progress.mode !== "staff" && !(isPiano && p.pianoPrompt !== "name");
+  $("#pitch-range").hidden = progress.mode !== "staff";
+  $("#piano-range").hidden = !isPiano || p.pianoPrompt === "name";
+  rangePickers.forEach((picker, i) => {
+    picker.close();
+    if (isPiano) picker.setValue(p[i === 0 ? "low" : "high"]);
+  });
   $("#pitch-range").setAttribute(
     "aria-label",
     isPiano ? "Piano pitch range" : "Sounding guitar pitch range",
   );
+  const [screenLow, screenHigh] = isPiano ? pianoBounds(p) : [60, 83];
+  const midiOnlyRange =
+    isPiano &&
+    p.pianoPrompt !== "name" &&
+    pianoDeck(p).some(
+      (card) => pitch(card) < screenLow || pitch(card) > screenHigh,
+    );
+  $("#piano-range-notice").hidden = !midiOnlyRange;
+  $("#piano-range-notice").textContent =
+    `On-screen keys: ${keyLabel(screenLow)}–${keyLabel(screenHigh)}. Notes outside these keys require MIDI keyboard input. Connect your keyboard or choose a smaller range to answer on screen.`;
   $("#guitar-options").hidden =
     progress.mode === "staff" || isPiano || isSignature;
   $("#key-setting").hidden = progress.mode === "name" || isSignature;
@@ -200,12 +234,8 @@ function syncOptions() {
     for (const option of select.options)
       option.disabled =
         field === "low"
-          ? positions.indexOf(option.value) > positions.indexOf(p.high) ||
-            (isPiano &&
-              positions.indexOf(p.high) - positions.indexOf(option.value) >= 14)
-          : positions.indexOf(option.value) < positions.indexOf(p.low) ||
-            (isPiano &&
-              positions.indexOf(option.value) - positions.indexOf(p.low) >= 14);
+          ? positions.indexOf(option.value) > positions.indexOf(p.high)
+          : positions.indexOf(option.value) < positions.indexOf(p.low);
   }
   for (const field of ["minFret", "maxFret"] as const) {
     const select = $<HTMLSelectElement>("#" + field);
@@ -249,6 +279,7 @@ function renderQuestion(card: Card | GuitarCard) {
   $("#fretboard").hidden =
     mode === "staff" || mode === "tab" || isPiano || isSignature;
   $("#piano").hidden = !isPiano;
+  $("#piano-midi-required").hidden = true;
   $(".piano-hint").hidden = !isPiano;
   $(".keyboard").hidden = location || isPiano;
   $("#name-hint").hidden = location || isPiano;
@@ -283,7 +314,14 @@ function renderQuestion(card: Card | GuitarCard) {
   }
   if (isPiano) {
     const named = profile().pianoPrompt === "name";
-    piano.show(...pianoBounds(profile()), named);
+    const [low, high] = pianoBounds(profile());
+    piano.show(low, high, named);
+    const midiRequired = !named && (pitch(card) < low || pitch(card) > high);
+    piano.setUnavailable(midiRequired);
+    $("#piano-midi-required").hidden = !midiRequired;
+    $("#piano-midi-required").textContent =
+      "MIDI keyboard required — this note is outside the on-screen keys. Play it on your connected keyboard, or change the practice range.";
+    $(".piano-hint").hidden = midiRequired;
     $("#target-name").textContent = name(card);
     $("#target-string").textContent = "";
   } else if (mode !== "staff" && !isSignature) {

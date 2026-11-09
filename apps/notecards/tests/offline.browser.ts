@@ -128,7 +128,7 @@ try {
   // A new untouched page opens the latest verified generation.
   const fresh = await context.newPage();
   await fresh.goto(base);
-  await fresh.locator('[data-letter="E"]:enabled').waitFor();
+  await fresh.locator("#persistence-notice").waitFor();
   await fresh.waitForFunction(
     (v) =>
       document
@@ -146,6 +146,7 @@ try {
     );
   }
   console.log("new page latest ready");
+  await page.close();
   // No connection: reload, notation fonts, grading, options, and progress all work.
   await context.setOffline(true);
   networkDown = true;
@@ -208,8 +209,21 @@ try {
   networkDown = false;
   await fresh.evaluate(() => window.dispatchEvent(new Event("online")));
   await fresh.locator("#offline-update:visible").waitFor({ timeout: 20000 });
+  const gradedFeedback = await fresh.locator("#feedback").textContent();
+  const gradedCount = await fresh.locator("#progress").getAttribute("value");
   await fresh.locator("#offline-update").click();
-  await fresh.locator('[data-letter="E"]:enabled').waitFor();
+  await fresh.locator("#feedback-next").waitFor();
+  assert.equal(
+    await fresh.locator("#feedback").textContent(),
+    gradedFeedback,
+    "feedback survives release update",
+  );
+  assert.equal(
+    await fresh.locator("#progress").getAttribute("value"),
+    gradedCount,
+    "update never grades twice",
+  );
+  await fresh.locator("#feedback-next").click();
   await fresh.waitForFunction(
     (v) =>
       document

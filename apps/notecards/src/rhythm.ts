@@ -8,10 +8,13 @@ import {
 } from "./rhythm-model";
 import { drawPracticeScore, highlightScore } from "./practice-score";
 import { diagnostics } from "./diagnostics";
-const STORAGE = "soundtools:notecards:rhythm:v1";
+import { persistence } from "./persistence";
 export class RhythmPractice {
   readonly midiSlot: HTMLElement;
   private active = false;
+  private result:
+    | { hits: number[]; total: number; missed: number; extras: number }
+    | undefined;
   private state: "ready" | "countin" | "playing" | "complete" = "ready";
   private bpm = 80;
   private level: RhythmLevel = "pulse";
@@ -29,7 +32,35 @@ export class RhythmPractice {
     private changed: () => void,
   ) {
     try {
-      const s = JSON.parse(localStorage.getItem(STORAGE) || "null");
+      const s = (persistence.read<any>("rhythm") ||
+        persistence.state.legacy.rhythm) as any;
+      if (
+        s?.version === 1 &&
+        Array.isArray(s.bars) &&
+        s.bars.length === 4 &&
+        s.bars.every(
+          (b: any) =>
+            Array.isArray(b) &&
+            b.length > 0 &&
+            b.every((n: any) => [0.5, 1, 2].includes(n?.beats)) &&
+            b.reduce((sum: number, n: any) => sum + n.beats, 0) === 4,
+        )
+      ) {
+        this.bars = structuredClone(s.bars);
+        if (
+          s.result &&
+          Array.isArray(s.result.hits) &&
+          s.result.hits.every(
+            (n: any) => Number.isInteger(n) && n >= 0 && n < 32,
+          ) &&
+          [s.result.total, s.result.missed, s.result.extras].every(
+            (n: any) => Number.isSafeInteger(n) && n >= 0,
+          )
+        ) {
+          this.result = structuredClone(s.result);
+          this.state = "complete";
+        }
+      }
       if (
         Number.isInteger(s?.bpm) &&
         s.bpm >= 40 &&
@@ -118,12 +149,14 @@ export class RhythmPractice {
   }
   get listening() {
     return (
-      this.active && (this.state === "countin" || this.state === "playing")
+      persistence.writable &&
+      this.active &&
+      (this.state === "countin" || this.state === "playing")
     );
   }
   setActive(active: boolean) {
     this.active = active;
-    if (!active) this.stop();
+    if (!active) this.interrupted();
     else {
       if (!this.bars.length) this.bars = makeRhythm(this.level);
       this.render();
@@ -138,18 +171,18 @@ export class RhythmPractice {
     }
   }
   private save() {
-    try {
-      localStorage.setItem(
-        STORAGE,
-        JSON.stringify({ bpm: this.bpm, level: this.level }),
-      );
-    } catch {
-      diagnostics.offline("storage", "failed", { cacheReason: "storage" });
-    }
+    persistence.write("rhythm", {
+      version: 1,
+      bpm: this.bpm,
+      level: this.level,
+      bars: this.bars,
+      result: this.result,
+    });
   }
   private stop() {
     cancelAnimationFrame(this.frame);
     this.state = "ready";
+    this.result = undefined;
     this.attempt = undefined;
     this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
     this.$(".rhythm-start").textContent = "Start · 2-bar count-in";
@@ -171,6 +204,8 @@ export class RhythmPractice {
       );
       this.$(".hymn-feedback").textContent =
         "Two bars to count in, then your turn.";
+      if (this.result) this.showResult();
+      this.save();
     } catch (e) {
       this.$(".hymn-feedback").textContent =
         "The rhythm couldn’t load. Try a new rhythm.";
@@ -191,6 +226,7 @@ export class RhythmPractice {
       .querySelectorAll(".rhythm-hit,.rhythm-missed")
       .forEach((e) => e.classList.remove("rhythm-hit", "rhythm-missed"));
     this.changed();
+    this.save();
     this.tick();
   }
   private tick = () => {
@@ -260,18 +296,30 @@ export class RhythmPractice {
     this.state = "complete";
     this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
     highlightScore(this.$(".rhythm-paper"), undefined, this.$(".hymn-score"));
+    this.result = {
+      hits: [...this.attempt.hits.keys()],
+      total: this.attempt.times.length,
+      missed: this.attempt.missed,
+      extras: this.attempt.extras,
+    };
+    this.showResult();
+    this.save();
+  }
+  private showResult() {
+    if (!this.result) return;
+    this.state = "complete";
     this.events.forEach((event, i) =>
       (event.elements || [])
         .flat()
         .filter(Boolean)
         .forEach((e) =>
           e.classList.add(
-            this.attempt!.hits.has(i) ? "rhythm-hit" : "rhythm-missed",
+            this.result!.hits.includes(i) ? "rhythm-hit" : "rhythm-missed",
           ),
         ),
     );
     this.$(".hymn-feedback").textContent =
-      `${this.attempt.hits.size} of ${this.attempt.times.length} on the beat · ${this.attempt.missed} missed · ${this.attempt.extras} extra`;
+      `${this.result.hits.length} of ${this.result.total} on the beat · ${this.result.missed} missed · ${this.result.extras} extra`;
     this.$(".rhythm-start").textContent = "Try again · 2-bar count-in";
     this.changed();
   }

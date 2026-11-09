@@ -1468,3 +1468,108 @@ input:focus-visible {
     grid-column: 1/-1;
   }
 }
+
+/* Give the score room; the engraver wraps at a smaller logical width so notes
+   and words enlarge together instead of merely extending staff lines. */
+main.hymn-layout {
+  max-width: 1480px;
+}
+.hymn-layout .hymn-score {
+  max-height: min(60vh, 720px);
+}
+#persistence-notice {
+  margin: 24px auto;
+  max-width: 900px;
+  padding: 20px;
+  background: #fff0d5;
+  color: #543e20;
+  border-radius: 12px;
+}
+#saved {
+  min-height: 20px;
+}
+#feedback-next,
+#restart-round {
+  margin: 12px 8px 0 0;
+}
+@media (max-width: 600px) {
+  .hymn-layout .hymn-score {
+    max-height: 52vh;
+  }
+}
+
+/* A classic scrollbar remains visible even on systems using overlay scrollbars. */
+.hymn-layout .hymn-score {
+  overflow-y: scroll;
+  scrollbar-width: auto;
+  scrollbar-color: #8b829e #eae5da;
+}
+.hymn-layout .hymn-score::-webkit-scrollbar {
+  width: 12px;
+}
+.hymn-layout .hymn-score::-webkit-scrollbar-track {
+  background: #eae5da;
+  border-radius: 6px;
+}
+.hymn-layout .hymn-score::-webkit-scrollbar-thumb {
+  background: #8b829e;
+  border: 2px solid #eae5da;
+  border-radius: 6px;
+}
+.hymn-scroll-hint {
+  margin: 8px 0;
+  color: #625773;
+  font-size: 13px;
+  text-align: right;
+}
+#midi-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+#midi-panel .midi-status {
+  flex: 0 1 auto;
+  margin: 0;
+}
+#midi-panel .midi-actions {
+  margin: 0;
+  flex: 0 1 auto;
+}
+
+/* A reserved feedback row keeps corrections prominent without moving controls. */
+.hymn-layout .hymn-feedback {
+  height: 112px;
+  overflow-y: auto;
+  padding: 14px 18px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-size: clamp(18px, 1.5vw, 23px);
+  font-weight: 600;
+  line-height: 1.45;
+  background: #f0ece4;
+}
+.hymn-layout .hymn-feedback[data-kind="wrong"] {
+  color: #71351f;
+  background: #fff0df;
+  border-color: #aa633d;
+}
+.hymn-layout .hymn-feedback[data-kind="partial"] {
+  color: #373150;
+  border-color: #8b829e;
+}
+@supports selector(::-webkit-scrollbar) {
+  .hymn-layout .hymn-score {
+    scrollbar-color: auto;
+  }
+}
+@media (max-width: 600px) {
+  .hymn-layout .hymn-feedback {
+    height: 176px;
+    padding: 12px;
+  }
+}
+
+.hymn-layout .hymn-practice[data-arrangement="melody"] .hymn-feedback {
+  height: 88px;
+}

@@ -162,6 +162,7 @@ try {
   assert.equal(await page.locator("#progress").getAttribute("value"), "0");
   assert.ok(await page.locator("#midi-panel").isHidden());
   await page.locator("#mode").selectOption("piano");
+  await page.locator("#restart-round").click();
   await page.getByRole("button", { name: "Disconnect", exact: true }).click();
   await on(60, "second");
   assert.equal(await page.locator("#progress").getAttribute("value"), "0");
@@ -226,8 +227,18 @@ try {
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
     .waitFor();
-  await on(60);
-  assert.equal(await page.locator("#feedback").textContent(), "Yes — C");
+  const restoredTarget = await page.locator("#target-name").textContent();
+  const restoredNote = (
+    { C: 60, D: 62, E: 64, F: 65, G: 67, A: 69, B: 71 } as Record<
+      string,
+      number
+    >
+  )[restoredTarget!];
+  await on(restoredNote);
+  assert.equal(
+    await page.locator("#feedback").textContent(),
+    "Yes — " + restoredTarget,
+  );
   await context.setOffline(false);
   const unsupported = await browser.newContext();
   await unsupported.addInitScript(() =>

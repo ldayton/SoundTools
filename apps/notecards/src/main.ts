@@ -25,7 +25,8 @@ import {
   type Mode,
   type GuitarCard,
 } from "./guitar";
-import { loadProgress, STORAGE_KEY } from "./progress";
+import { defaultProgress } from "./progress";
+import { persistence } from "./persistence";
 import { PracticeSession } from "./session";
 import {
   signatureDeck,
@@ -63,11 +64,7 @@ const activePractice = () =>
 const practiceElement = (mode: LiveMode) =>
   mode === "sight" ? "#sight-reading" : "#" + mode + "-practice";
 let returnBoardFocus = false;
-let raw: string | null = null;
-try {
-  raw = localStorage.getItem(STORAGE_KEY);
-} catch {}
-const progress = loadProgress(raw);
+let progress = defaultProgress();
 let phase: "loading" | "question" | "feedback" | "complete" | "empty" =
   "loading";
 let session: PracticeSession<Card | GuitarCard>;
@@ -88,7 +85,7 @@ function syncDiagnosticsContext() {
 }
 $("#app").innerHTML =
   `<header><a class="brand" href="/" aria-label="Note by Note home"><img class="brand-icon" src="/icon.svg" width="32" height="32" alt="" /> Note by Note<span class="dot">.</span></a><span class="family">SOUNDTOOLS</span></header>
-<main><div class="intro"><p class="eyebrow">A LITTLE PRACTICE, EVERY DAY</p><h1>Get to know your notes.</h1></div>
+<p id="persistence-notice" role="alert" hidden></p><main><p id="saved" class="saved" role="status">Opening saved practice…</p><div class="intro"><p class="eyebrow">A LITTLE PRACTICE, EVERY DAY</p><h1>Get to know your notes.</h1></div>
 <label class="mode-selector">Practice<select id="mode">${MODES.map((m) => `<option value="${m.id}">${m.label}</option>`).join("")}</select></label>
 <div id="sight-reading" hidden></div><div id="patterns-practice" hidden></div><div id="rhythm-practice" hidden></div>
 <section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${progress.roundLength}" value="0" aria-label="Session progress"></progress>
@@ -101,7 +98,7 @@ $("#app").innerHTML =
     .join("")}</div></div>
 <div id="midi-panel" hidden></div>
 <p class="hint piano-hint" hidden>Choose the matching piano key.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p><p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
-<div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
+<button id="feedback-next" hidden>Next question →</button><button id="restart-round" type="button">Start round again</button><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
 <div class="below"><details class="practice-options"><summary>Practice options</summary><div class="options-row"><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
 <label id="signature-practice-setting" hidden>Keys<select id="signaturePractice"><option value="major">Major only</option><option value="minor">Minor only</option><option value="both">Major & minor</option></select></label>
 <label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
@@ -127,7 +124,9 @@ $("#app").innerHTML =
     .join(
       "",
     )}</fieldset><div class="range">${(["minFret", "maxFret"] as const).map((f) => `<label>${f === "minFret" ? "Lowest fret" : "Highest fret"}<select id="${f}">${Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i === 0 ? "0 · Open" : i}</option>`).join("")}</select></label>`).join("")}</div><p class="tuning">Standard tuning · E A D G B E</p></div>
-<p>Changing options starts a fresh session.</p></details><p id="saved" class="saved">Progress remembered on this device.</p></div><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section></main><footer>One note at a time.</footer>`;
+<p>Changing options starts a fresh session.</p></details></div><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section></main><footer>One note at a time.</footer>`;
+document.querySelector("main")!.inert = true;
+$<HTMLSelectElement>("#mode").disabled = true;
 mountDiagnostics(document.querySelector("main")!);
 const board = new Fretboard($("#fretboard"), answerLocation);
 const rangePickers = (["low", "high"] as const).map(
@@ -164,19 +163,22 @@ midi.setPerformanceListener((note, held, timestamp) => {
 });
 function refreshMidiAcceptance() {
   midi.setAccepting(
-    ((progress.mode === "piano" && phase === "question") ||
-      (isLiveMode(progress.mode) && activePractice()?.listening === true)) &&
+    persistence.writable &&
+      ((progress.mode === "piano" && phase === "question") ||
+        (isLiveMode(progress.mode) && activePractice()?.listening === true)) &&
       !document.hidden &&
       document.hasFocus(),
   );
 }
 function save() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  } catch {
-    diagnostics.offline("storage", "failed", { cacheReason: "storage" });
-    $("#saved").textContent = "Progress can’t be saved in this browser.";
-  }
+  if (!persistence.writable) return Promise.resolve(false);
+  if (!isLiveMode(progress.mode) && session)
+    persistence.state.activities[progress.mode] = {
+      version: 1,
+      settings: JSON.stringify(profile()),
+      session: session.snapshot(),
+    };
+  return persistence.save();
 }
 function setModifier(value: Modifier) {
   modifier = value;
@@ -212,6 +214,9 @@ function enableAnswers(enabled: boolean) {
 function syncOptions() {
   const p = profile();
   const isSight = isLiveMode(progress.mode);
+  document
+    .querySelector("main")!
+    .classList.toggle("hymn-layout", progress.mode === "sight");
   for (const mode of ["sight", "patterns", "rhythm"] as const)
     $(practiceElement(mode)).hidden = progress.mode !== mode;
   $(".practice").hidden = isSight;
@@ -335,7 +340,10 @@ function renderQuestion(card: Card | GuitarCard) {
     );
     drawKeySignature($<HTMLDivElement>("#notation"), signature.signature);
   } else if (isPiano && notation) {
-    const representation = pianoNotation(card, profile());
+    const representation = (session.representation ||= pianoNotation(
+      card,
+      profile(),
+    ));
     const label =
       representation.layout === "grand"
         ? "Grand staff"
@@ -406,10 +414,16 @@ function renderQuestion(card: Card | GuitarCard) {
   diagnostics.metric("practice.render_ms", performance.now() - renderStarted);
 }
 function next() {
+  clearTimeout(timer);
+  if (!persistence.writable) return;
+  $("#feedback-next").hidden = true;
   pendingNext = false;
   const card = session.next();
   if (!card) {
-    if (session.complete) finish();
+    if (session.complete) {
+      finish();
+      save();
+    }
     return;
   }
   phase = "question";
@@ -417,6 +431,7 @@ function next() {
   setModifier(0);
   clearAnswerHover();
   renderQuestion(card);
+  save();
   if (
     returnBoardFocus &&
     isLocationMode(progress.mode) &&
@@ -439,24 +454,44 @@ function finish() {
   $("#continue").focus({ preventScroll: true });
 }
 function feedback(correct: boolean, text: string) {
-  if (!session.submit(correct)) return;
+  if (!persistence.writable || !session.submit(correct)) return;
+  session.feedback = { correct, text };
   phase = "feedback";
   syncDiagnosticsContext();
   diagnostics.event(correct ? "answer.correct" : "answer.incorrect");
-  save();
+  const committed = save();
   enableAnswers(false);
   $("#feedback").textContent = text;
   $("#feedback").className = correct ? "correct" : "incorrect";
   $<HTMLProgressElement>("#progress").value = session.answered;
-  timer = setTimeout(
-    () => {
-      if (document.hidden) pendingNext = true;
-      else next();
-    },
-    correct ? 450 : 1600,
-  );
+  $("#feedback-next").hidden = false;
+  const answeredSession = session,
+    answerNumber = session.answered;
+  void committed.then((saved) => {
+    if (
+      !saved ||
+      session !== answeredSession ||
+      session.answered !== answerNumber ||
+      phase !== "feedback"
+    )
+      return;
+    timer = setTimeout(
+      () => {
+        if (
+          !document.hidden &&
+          document.hasFocus() &&
+          session === answeredSession &&
+          session.answered === answerNumber &&
+          phase === "feedback"
+        )
+          next();
+      },
+      correct ? 450 : 1600,
+    );
+  });
 }
 function answerName(letter: Letter) {
+  if (!persistence.writable) return;
   if (
     phase !== "question" ||
     progress.mode === "piano" ||
@@ -481,6 +516,7 @@ function answerName(letter: Letter) {
   );
 }
 function answerLocation(string: number, fret: number, keyboard: boolean) {
+  if (!persistence.writable) return;
   if (
     phase !== "question" ||
     !isLocationMode(progress.mode) ||
@@ -513,6 +549,7 @@ function answerLocation(string: number, fret: number, keyboard: boolean) {
   );
 }
 function answerPiano(midi: number) {
+  if (!persistence.writable) return;
   if (phase !== "question" || progress.mode !== "piano" || !session.current)
     return;
   const card = session.current;
@@ -528,8 +565,9 @@ function answerPiano(midi: number) {
       : `That’s ${target}. You chose ${keyLabel(midi, !named)}.`,
   );
 }
-function start(continuing = false) {
+function start(continuing = false, restart = false) {
   clearTimeout(timer);
+  $("#feedback-next").hidden = true;
   pendingNext = false;
   for (const [mode, controller] of Object.entries(live))
     if (mode !== progress.mode) controller.setActive(false);
@@ -582,14 +620,67 @@ function start(continuing = false) {
         : progress.mode === "signature"
           ? signatureDeck(profile().signaturePractice)
           : guitarQuestions(progress.mode, profile());
-  if (!continuing || !session?.continueRound())
-    session = new PracticeSession(
-      pool,
-      progress,
-      (progress.mode === "piano"
-        ? "piano-" + (profile().pianoPrompt || "staff")
-        : progress.mode) + ":",
-    );
+  const prefix =
+    (progress.mode === "piano"
+      ? "piano-" + (profile().pianoPrompt || "staff")
+      : progress.mode) + ":";
+  const saved = persistence.read<{
+    version: number;
+    settings: string;
+    session: unknown;
+  }>(progress.mode);
+  if (continuing && session?.continueRound()) {
+    /* Preserve selection context. */
+  } else {
+    session =
+      (!restart &&
+      saved?.version === 1 &&
+      saved.settings === JSON.stringify(profile())
+        ? PracticeSession.restore(pool, progress, prefix, saved.session)
+        : null) || new PracticeSession(pool, progress, prefix);
+    if (
+      !restart &&
+      saved &&
+      saved.settings === JSON.stringify(profile()) &&
+      !session.current &&
+      !session.complete
+    ) {
+      persistence.state.legacy["recovery:" + progress.mode] =
+        structuredClone(saved);
+      const notice = $("#persistence-notice");
+      notice.hidden = false;
+      notice.textContent =
+        "This activity checkpoint could not be restored. Its original data is preserved; this round starts again.";
+    }
+    progress.roundLength = session.length;
+    $<HTMLSelectElement>("#roundLength").value = String(session.length);
+    $<HTMLProgressElement>("#progress").max = session.length;
+    const state = session.snapshot();
+    if (state.phase === "complete" && session.complete) {
+      finish();
+      save();
+      return;
+    }
+    if (session.current) {
+      phase = state.phase === "feedback" ? "feedback" : "question";
+      renderQuestion(session.current);
+      $("#counter").textContent =
+        `${Math.min(session.answered + (phase === "question" ? 1 : 0), session.length)} / ${session.length}`;
+      $<HTMLProgressElement>("#progress").value = session.answered;
+      enableAnswers(phase === "question");
+      $("#feedback-next").hidden = phase !== "feedback";
+      if (phase === "feedback" && session.feedback) {
+        $("#feedback").textContent = session.feedback.text;
+        $("#feedback").className = session.feedback.correct
+          ? "correct"
+          : "incorrect";
+        piano.setUnavailable(true);
+      }
+      syncDiagnosticsContext();
+      save();
+      return;
+    }
+  }
   if (!pool.length) {
     phase = "empty";
     syncDiagnosticsContext();
@@ -615,8 +706,7 @@ function start(continuing = false) {
 function changed() {
   diagnostics.event("practice.settings_changed");
   syncOptions();
-  save();
-  if (phase !== "loading") start();
+  if (phase !== "loading") start(false, true);
 }
 $<HTMLSelectElement>("#roundLength").onchange = (e) => {
   progress.roundLength = Number(
@@ -625,8 +715,10 @@ $<HTMLSelectElement>("#roundLength").onchange = (e) => {
   changed();
 };
 $<HTMLSelectElement>("#mode").onchange = (e) => {
+  save();
   progress.mode = (e.target as HTMLSelectElement).value as Mode;
-  changed();
+  void persistence.save();
+  start();
 };
 $<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
   profile().signaturePractice = (e.target as HTMLSelectElement)
@@ -635,7 +727,8 @@ $<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
 };
 $<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {
   profile().pianoPrompt = (e.target as HTMLSelectElement).value as
-    "staff" | "name";
+    | "staff"
+    | "name";
   changed();
 };
 for (const field of [
@@ -690,6 +783,8 @@ for (const b of document.querySelectorAll<HTMLButtonElement>("[data-mod]"))
     if (phase === "question") setModifier(Number(b.dataset.mod) as Modifier);
   };
 $("#continue").onclick = () => start(true);
+$("#feedback-next").onclick = () => next();
+$("#restart-round").onclick = () => start(false, true);
 window.addEventListener("keydown", (event) => {
   // Native button activation also repeats on held Enter: suppress it before mode guards.
   if (
@@ -744,18 +839,26 @@ window.addEventListener("blur", () => {
 });
 window.addEventListener("focus", refreshMidiAcceptance);
 window.addEventListener("pagehide", () => midi.disconnect());
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
 document.addEventListener("visibilitychange", () => {
   activePractice()?.interrupted();
   setModifier(0);
   refreshMidiAcceptance();
-  if (!document.hidden && pendingNext) next();
+  // Feedback never advances while away; Continue is an explicit transition.
 });
 syncOptions();
 enableAnswers(false);
 document.fonts.ready
-  .then(() => {
+  .then(async () => {
+    await persistence.initialize();
+    progress = persistence.state.progress;
+    document.querySelector("main")!.inert = !persistence.writable;
+    $<HTMLSelectElement>("#mode").disabled = !persistence.writable;
     VexFlow.setFonts("Bravura", "Academico");
     start();
+    if (!persistence.writable) document.querySelector("main")!.inert = true;
     window.dispatchEvent(new Event("soundtools:ready"));
     try {
       setupOffline();

@@ -1,3 +1,4 @@
+import { savedProgress } from "./persistence-helper";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -91,9 +92,7 @@ try {
     0,
   );
   await page.evaluate(() => (Math.random = () => 0));
-  const saved = await page.evaluate(() =>
-    JSON.parse(localStorage.getItem("soundtools:notecards:v1")!),
-  );
+  const saved = await savedProgress(page);
   assert.equal(saved.profiles.piano.pianoPrompt, "name");
   await page.reload();
   await ready();
@@ -116,14 +115,7 @@ try {
   assert.match((await page.locator("#feedback").textContent())!, /Yes — B♭5/);
   await ready();
   // Staff and name profiles do not share review history.
-  assert.ok(
-    await page.evaluate(
-      () =>
-        !!JSON.parse(localStorage.getItem("soundtools:notecards:v1")!).stats[
-          "piano-staff:B5:-1"
-        ],
-    ),
-  );
+  assert.ok((await savedProgress(page)).stats["piano-staff:B5:-1"]);
   await page.locator("#low-spin").click();
   await page
     .locator("#low-spin-picker")
@@ -182,10 +174,13 @@ try {
       document.querySelector("#offline-status")?.textContent ===
       "Available offline",
   );
+  const beforeOffline = await page.locator("#counter").textContent();
   await context.setOffline(true);
   await page.reload();
   await ready();
   assert.equal(await page.locator("#mode").inputValue(), "piano");
+  assert.equal(await page.locator("#counter").textContent(), beforeOffline);
+  await page.locator("#restart-round").click();
   await key(60).click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — C4/);
   await context.setOffline(false);

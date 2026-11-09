@@ -5,6 +5,7 @@ import {
   applyUpdate,
 } from "@ldayton/browser-offline";
 import { diagnostics } from "./diagnostics";
+import { persistence } from "./persistence";
 
 export function setupOffline() {
   const status = document.querySelector<HTMLElement>("#offline-status")!;
@@ -25,7 +26,14 @@ export function setupOffline() {
   const base = import.meta.env.BASE_URL;
   const resources = createResources();
   const session = createWorkerSession({ resources });
-  const policy = createUpdatePolicy({ app: "notecards", current });
+  const applySavedUpdate = async (version: string) => {
+    if (await persistence.prepareUpdate()) applyUpdate(version);
+  };
+  const policy = createUpdatePolicy({
+    app: "notecards",
+    current,
+    apply: applySavedUpdate,
+  });
   let registration: ServiceWorkerRegistration | undefined;
   let active = true,
     busy = false,
@@ -45,7 +53,7 @@ export function setupOffline() {
   const offer = (version: string) => {
     if (version === current) return;
     update.hidden = false;
-    update.onclick = () => applyUpdate(version);
+    update.onclick = () => void applySavedUpdate(version);
     policy.offer(version);
   };
   async function check(force = false) {

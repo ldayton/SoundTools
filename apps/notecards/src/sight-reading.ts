@@ -1,4 +1,5 @@
-import type { NoteTimingEvent } from "abcjs";
+import { feedbackForNotes } from "./sight-feedback";
+import type { PracticeEvent } from "./practice-score";
 import {
   drawPracticeScore,
   eventSteps,
@@ -14,7 +15,17 @@ import hymns from "./hymns.json";
 import { WaitForMe, searchHymns } from "./sight-reading-model";
 import { Piano } from "./piano";
 import { diagnostics } from "./diagnostics";
-const STORAGE = "soundtools:notecards:sight-reading:v1";
+import { persistence } from "./persistence";
+import { bookmark, restoreBookmark, type Bookmark } from "./bookmarks";
+type HymnState = {
+  version: 1;
+  hymn: string;
+  arrangement: Arrangement;
+  sectionBars: number;
+  section: number;
+  bookmarks: Record<string, Bookmark>;
+  sections: Record<string, number>;
+};
 const escape = (text: string) =>
   text.replace(
     /[&<>"']/g,
@@ -30,9 +41,25 @@ export class SightReading {
   private section = 0;
   private sections = 1;
   private position = 0;
+  private bookmarks: Record<string, Bookmark> = {};
+  private content = "";
+  private legacyBookmark?: { key: string; position: number };
+  private savedSections: Record<string, number> = {};
+  private selectionKey() {
+    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}`;
+  }
+  private restoreSection() {
+    const n = this.savedSections[this.selectionKey()];
+    this.section = Number.isSafeInteger(n) && n >= 0 ? n : 0;
+  }
+  private restorePending = true;
+  private bookmarkKey() {
+    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}:${this.section}`;
+  }
+
   private active = false;
   private paused = false;
-  private events: NoteTimingEvent[] = [];
+  private events: PracticeEvent[] = [];
   private session?: WaitForMe;
   private piano: Piano;
   private observer: ResizeObserver;
@@ -45,7 +72,21 @@ export class SightReading {
     private acceptanceChanged: () => void,
   ) {
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE) || "null");
+      const saved =
+        persistence.read<HymnState>("sight") ||
+        (persistence.state.legacy.sight as any);
+      if (
+        saved?.version === 1 &&
+        saved.bookmarks &&
+        typeof saved.bookmarks === "object"
+      )
+        this.bookmarks = structuredClone(saved.bookmarks);
+      if (
+        saved?.version === 1 &&
+        saved.sections &&
+        typeof saved.sections === "object"
+      )
+        this.savedSections = structuredClone(saved.sections);
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
       if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
         this.arrangement = saved.arrangement;
@@ -57,14 +98,32 @@ export class SightReading {
         this.sectionBars = saved.sectionBars;
       if (Number.isSafeInteger(saved?.section) && saved.section >= 0)
         this.section = saved.section;
-      if (Number.isSafeInteger(saved?.position) && saved.position >= 0)
-        this.position = saved.position;
+      if (
+        saved &&
+        saved.version !== 1 &&
+        Number.isSafeInteger(saved.position) &&
+        saved.position > 0
+      )
+        this.legacyBookmark = {
+          key: this.bookmarkKey(),
+          position: saved.position,
+        };
+      // Legacy positions had no content identity: preserve preferences and original payload,
+      // but start the selected section safely instead of applying an unverifiable index.
+      if (saved && saved.version !== 1 && saved.position > 0) {
+        const notice = document.querySelector<HTMLElement>(
+          "#persistence-notice",
+        )!;
+        notice.hidden = false;
+        notice.textContent =
+          "Your hymn preferences were imported; its older unversioned bookmark starts at the section beginning. You can restore its older position if this is the same score.";
+      }
     } catch {
       /* Private browsing or an older saved preference. */
     }
     element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div></div>
     <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars at a time</option><option value="2">2 bars at a time</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
-    <section class="hymn-practice" aria-label="Hymn sight reading"><div class="hymn-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="hymn-title"></h2><p class="hymn-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="hymn-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics"><div class="hymn-paper"></div></div><p class="hymn-feedback" role="status" aria-live="polite"></p><div class="hymn-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p>Public-domain words, melody and setting. First verse and refrain.</p></details></section>`;
+    <section class="hymn-practice" aria-label="Hymn sight reading"><div class="hymn-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="hymn-title"></h2><p class="hymn-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="hymn-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll to see the full score ↕</p><p class="hymn-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="hymn-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p>Public-domain words, melody and setting. First verse and refrain.</p></details></section>`;
     this.midiSlot = this.$(".hymn-midi-slot");
     this.piano = new Piano(this.$(".hymn-piano"), (note) => {
       if (this.accepting) this.answer(note);
@@ -129,8 +188,8 @@ export class SightReading {
           this.section = 0;
         }
         if (field === "section") this.section = Number(value);
-        this.position = 0;
-        this.paused = false;
+        else this.restoreSection();
+        this.restorePending = true;
         this.render();
         this.save();
       };
@@ -139,12 +198,32 @@ export class SightReading {
       this.paused = !this.paused;
       this.session?.resetGesture();
       this.update();
+      this.save();
     };
     this.$(".hymn-restart").onclick = () => {
       this.position = 0;
       this.paused = false;
+      this.restorePending = false;
       this.render();
       this.save();
+    };
+    this.$(".hymn-restore-legacy").onclick = () => {
+      const old = this.legacyBookmark;
+      if (
+        !persistence.writable ||
+        !old ||
+        old.key !== this.bookmarkKey() ||
+        !this.session ||
+        old.position > this.session.steps.length
+      )
+        return;
+      this.position = old.position;
+      this.paused = false;
+      this.legacyBookmark = undefined;
+      this.restorePending = false;
+      this.render();
+      this.save();
+      document.querySelector<HTMLElement>("#persistence-notice")!.hidden = true;
     };
     this.$(".hymn-next").onclick = () => {
       if (this.section + 1 < this.sections)
@@ -166,7 +245,12 @@ export class SightReading {
     return this.element.querySelector<T>(s)!;
   }
   get listening() {
-    return this.active && this.$("#hymn-results").hidden && !!this.session;
+    return (
+      persistence.writable &&
+      this.active &&
+      this.$("#hymn-results").hidden &&
+      !!this.session
+    );
   }
   get accepting() {
     return this.listening && !this.paused && !this.session!.complete;
@@ -185,20 +269,23 @@ export class SightReading {
     this.clearPianoSelection();
   }
   private save() {
-    try {
-      localStorage.setItem(
-        STORAGE,
-        JSON.stringify({
-          hymn: this.hymn.id,
-          arrangement: this.arrangement,
-          sectionBars: this.sectionBars,
-          section: this.section,
-          position: this.position,
-        }),
+    if (this.session && this.content)
+      this.bookmarks[this.bookmarkKey()] = bookmark(
+        this.content,
+        this.position,
+        this.paused,
+        this.session.steps.length,
       );
-    } catch {
-      diagnostics.offline("storage", "failed", { cacheReason: "storage" });
-    }
+    this.savedSections[this.selectionKey()] = this.section;
+    persistence.write("sight", {
+      version: 1,
+      hymn: this.hymn.id,
+      arrangement: this.arrangement,
+      sectionBars: this.sectionBars,
+      section: this.section,
+      bookmarks: this.bookmarks,
+      sections: this.savedSections,
+    } satisfies HymnState);
   }
   private showResults(query: string) {
     this.interrupted();
@@ -240,17 +327,15 @@ export class SightReading {
   }
   private choose(hymn: (typeof hymns)[number]) {
     this.hymn = hymn;
-    this.section = 0;
-    this.position = 0;
-    this.paused = false;
+    this.restoreSection();
+    this.restorePending = true;
     this.closeResults();
     this.render();
     this.save();
   }
   private changeSection(section: number) {
     this.section = section;
-    this.position = 0;
-    this.paused = false;
+    this.restorePending = true;
     this.render();
     this.save();
   }
@@ -261,6 +346,7 @@ export class SightReading {
     this.session = undefined;
     this.acceptanceChanged();
     this.$(".hymn-title").textContent = this.hymn.title;
+    this.$(".hymn-practice").dataset.arrangement = this.arrangement;
     this.$(".hymn-credits").textContent = this.hymn.credits.join(" ");
     // Link to the verified source mirror; the original site's TLS currently fails.
     this.$<HTMLAnchorElement>(".hymn-source-link").href =
@@ -288,11 +374,33 @@ export class SightReading {
       this.$(".hymn-help").textContent =
         ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
         " Sing along with the words.";
-      this.events = drawPracticeScore(paper, score.abc, this.lastWidth);
-      this.session = new WaitForMe(eventSteps(this.events), this.position);
+      this.events = drawPracticeScore(
+        paper,
+        score.abc,
+        this.lastWidth,
+        this.lastWidth >= 900 ? 1.55 : this.lastWidth >= 600 ? 1.35 : 1.12,
+      );
+      const steps = eventSteps(this.events);
+      const content = JSON.stringify({ matcher: 1, abc: score.abc, steps });
+      if (this.restorePending || (this.content && this.content !== content)) {
+        const restored = restoreBookmark(
+          this.bookmarks[this.bookmarkKey()],
+          content,
+          steps.length,
+        );
+        this.position = restored.position;
+        this.paused = restored.paused;
+        this.restorePending = false;
+      }
+      this.content = content;
+      this.session = new WaitForMe(steps, this.position);
       this.position = this.session.index;
+      const viewport = this.$(".hymn-score");
+      this.$(".hymn-scroll-hint").hidden =
+        viewport.scrollHeight <= viewport.clientHeight + 1;
       this.preparePiano();
       this.update(true);
+      this.save();
     } catch (error) {
       this.session = undefined;
       this.events = [];
@@ -321,15 +429,17 @@ export class SightReading {
     const result = this.session!.answer(note, held, !this.paused);
     if (result === "ignored") return;
     if (result === "restarted") this.paused = false;
-    if (result === "wrong") {
-      this.$(".hymn-feedback").textContent =
-        "Try again — follow the highlighted notes.";
-      return;
-    }
-    if (result === "partial") {
-      this.$(".hymn-feedback").textContent = held
-        ? "Keep those notes held and add the rest of the chord."
-        : "Now add the rest of the highlighted chord.";
+    if (result === "wrong" || result === "partial") {
+      this.$(".hymn-feedback").dataset.kind = result;
+      this.$(".hymn-feedback").textContent = feedbackForNotes(
+        note,
+        this.session!.current.pitches,
+        this.session!.selected,
+        result,
+        this.events[this.session!.index]?.spellings,
+        held,
+      );
+      if (result === "wrong") return;
       if (!held)
         this.element
           .querySelector(`[data-piano="${note}"]`)
@@ -350,6 +460,14 @@ export class SightReading {
       this.$(".hymn-score"),
       scroll,
     );
+    const restore = this.$<HTMLButtonElement>(".hymn-restore-legacy");
+    const old = this.legacyBookmark;
+    restore.hidden =
+      !old ||
+      old.key !== this.bookmarkKey() ||
+      old.position > session.steps.length;
+    if (!restore.hidden)
+      restore.textContent = `Restore older bookmark (${Math.min(old!.position + 1, session.steps.length)} / ${session.steps.length})`;
     const complete = session.complete;
     this.$(".hymn-count").textContent = complete
       ? "Complete"
@@ -357,6 +475,7 @@ export class SightReading {
     const progress = this.$<HTMLProgressElement>(".hymn-progress");
     progress.max = session.steps.length;
     progress.value = session.index;
+    delete this.$(".hymn-feedback").dataset.kind;
     this.$(".hymn-feedback").textContent = complete
       ? "Lovely. Sing it again, or choose another hymn."
       : this.paused

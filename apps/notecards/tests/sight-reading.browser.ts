@@ -103,11 +103,31 @@ try {
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
     .waitFor();
+  const feedbackBoxBefore = await page.locator(".hymn-feedback").boundingBox();
   await on(61);
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
   assert.match(
     (await page.locator(".hymn-feedback").textContent())!,
-    /Try again/,
+    /You played C♯4 \/ D♭4; play D4/,
+  );
+  const feedbackBoxAfter = await page.locator(".hymn-feedback").boundingBox();
+  assert.equal(
+    feedbackBoxAfter!.height,
+    feedbackBoxBefore!.height,
+    "Feedback must not move the controls",
+  );
+  assert.equal(
+    await page.locator(".hymn-feedback").getAttribute("data-kind"),
+    "wrong",
+  );
+  assert.equal(
+    await page.locator(".hymn-feedback").getAttribute("aria-atomic"),
+    "true",
+  );
+  assert.ok(
+    await page
+      .locator(".hymn-feedback")
+      .evaluate((e) => parseFloat(getComputedStyle(e).fontSize) >= 18),
   );
   await off(61);
   await send([0x90, 62, 100], true);
@@ -154,7 +174,7 @@ try {
   assert.match((await page.locator(".hymn-count").textContent())!, /^2 \/ /);
   assert.equal(await page.locator(".sight-key-selected").count(), 0);
   // All songs in both arrangements must render with lyrics, at desktop and phone widths.
-  for (const width of [1100, 390, 320]) {
+  for (const width of [2048, 1100, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const chords of [false, true]) {
       await page
@@ -162,6 +182,7 @@ try {
         .selectOption(chords ? "original" : "melody");
       for (const hymn of hymns) {
         await choose(hymn.title);
+        await page.locator(".hymn-restart").click();
         assert.match(
           (await page.locator(".hymn-count").textContent())!,
           /^1 \/ [1-9]\d*$/,
@@ -210,7 +231,13 @@ try {
                   Math.abs(previous.box.y - current.box.y) < 2 &&
                   current.box.x - previous.box.right < 4
                 )
-                  collisions.push(previous.text + " / " + current.text);
+                  collisions.push(
+                    previous.text +
+                      " / " +
+                      current.text +
+                      ": " +
+                      (current.box.x - previous.box.right),
+                  );
               }
               return collisions;
             });
@@ -291,6 +318,12 @@ try {
       .filter({ hasText: "Jesus Loves Me" })
       .waitFor();
     await choose("Amazing Grace");
+    assert.equal(
+      await page.locator(".hymn-count").textContent(),
+      "Complete",
+      "completed bookmark survives offline reload",
+    );
+    await page.locator(".hymn-restart").click();
     assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
     await context.setOffline(false);
     // A fresh tab can enter hymns for the first time offline: not merely reuse an in-memory module.

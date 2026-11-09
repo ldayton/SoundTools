@@ -14,7 +14,7 @@ import {
 } from "./patterns-model";
 import { spellPitch } from "./guitar";
 import { diagnostics } from "./diagnostics";
-const STORAGE = "soundtools:notecards:patterns:v1";
+import { persistence } from "./persistence";
 export class IntervalPatterns {
   readonly midiSlot: HTMLElement;
   private active = false;
@@ -35,7 +35,26 @@ export class IntervalPatterns {
     private changed: () => void,
   ) {
     try {
-      const s = JSON.parse(localStorage.getItem(STORAGE) || "null");
+      const s = (persistence.read<any>("patterns") ||
+        persistence.state.legacy.patterns) as any;
+      if (
+        s?.version === 1 &&
+        Array.isArray(s.notes) &&
+        s.notes.length === 4 &&
+        s.notes.every(
+          (n: unknown) =>
+            Number.isInteger(n) && Number(n) >= 21 && Number(n) <= 108,
+        )
+      ) {
+        this.notes = [...s.notes];
+        if (
+          Number.isSafeInteger(s.position) &&
+          s.position >= 0 &&
+          s.position <= 4
+        )
+          this.position = s.position;
+        this.paused = s.paused === true;
+      }
       if (PATTERN_KEYS.some((k) => k.id === s?.key)) this.settings.key = s.key;
       if (["right", "left"].includes(s?.hand)) this.settings.hand = s.hand;
       if (["steps", "skips", "leaps"].includes(s?.level))
@@ -75,7 +94,7 @@ export class IntervalPatterns {
     return this.element.querySelector<T>(s)!;
   }
   get listening() {
-    return this.active && !!this.session;
+    return persistence.writable && this.active && !!this.session;
   }
   get accepting() {
     return this.listening && !this.paused && !this.session!.complete;
@@ -92,11 +111,13 @@ export class IntervalPatterns {
     this.session?.resetGesture();
   }
   private save() {
-    try {
-      localStorage.setItem(STORAGE, JSON.stringify(this.settings));
-    } catch {
-      diagnostics.offline("storage", "failed", { cacheReason: "storage" });
-    }
+    persistence.write("patterns", {
+      version: 1,
+      ...this.settings,
+      notes: this.notes,
+      position: this.position,
+      paused: this.paused,
+    });
   }
   private next() {
     this.notes = makePattern(this.settings, Math.random, this.notes);
@@ -172,5 +193,6 @@ export class IntervalPatterns {
     this.$<HTMLButtonElement>(".pattern-pause").disabled = s.complete;
     this.piano.setUnavailable(!this.accepting);
     this.changed();
+    this.save();
   }
 }

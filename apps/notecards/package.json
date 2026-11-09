@@ -18,7 +18,8 @@
     "test:notation": "tsx tests/notation.browser.ts",
     "import:hymns": "tsx scripts/import-hymns.ts",
     "test:sight": "tsx tests/sight-reading.browser.ts",
-    "test:practice": "tsx tests/piano-practice.browser.ts"
+    "test:practice": "tsx tests/piano-practice.browser.ts",
+    "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",

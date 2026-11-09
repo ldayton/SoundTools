@@ -59,7 +59,26 @@ try {
       (i) => localStorage.setItem("test:signature-index", String(i)),
       index,
     );
+    // Each notation fixture starts with no review weighting; recovery has its own suite.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          const r = indexedDB.open("soundtools-notecards");
+          r.onsuccess = () => {
+            const db = r.result;
+            const tx = db.transaction("state", "readwrite");
+            tx.objectStore("state").delete("root");
+            tx.oncomplete = () => {
+              db.close();
+              resolve();
+            };
+          };
+        }),
+    );
     await page.reload();
+    if (await page.locator("#feedback-next").isVisible())
+      await page.locator("#feedback-next").click();
+    await page.locator("#restart-round").click();
     await page.locator('[data-letter="C"]:enabled').waitFor();
     assert.equal(await page.locator("#mode").inputValue(), "signature");
     assert.equal(
@@ -129,6 +148,21 @@ try {
     assert.equal(await page.locator("#progress").getAttribute("value"), "1");
   }
   // Incorrect and repeated inputs count only once, then the accidental resets.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const r = indexedDB.open("soundtools-notecards");
+        r.onsuccess = () => {
+          const db = r.result;
+          const tx = db.transaction("state", "readwrite");
+          tx.objectStore("state").delete("root");
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+        };
+      }),
+  );
   await page.reload();
   await page.locator('[data-letter="C"]:enabled').waitFor();
   await page.keyboard.press("+");

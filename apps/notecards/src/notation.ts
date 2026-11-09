@@ -11,7 +11,9 @@ import {
 } from "vexflow/bravura";
 import type { Card } from "./model";
 import type { GuitarCard } from "./guitar";
-import type { PianoNotation } from "./piano-notation";
+import { pianoNotation, type PianoNotation } from "./piano-notation";
+import { pianoDeck } from "./piano-model";
+import type { Profile } from "./guitar";
 export { VexFlow };
 export function drawNotation(
   element: HTMLDivElement,
@@ -101,6 +103,7 @@ export function drawPianoNotation(
   element: HTMLDivElement,
   notation: PianoNotation,
   key: string,
+  practiceFrame?: readonly [number, number],
 ) {
   element.replaceChildren();
   const { layout, clef, written, octaveShift } = notation;
@@ -137,6 +140,13 @@ export function drawPianoNotation(
   finishNotation(element);
   const svg = element.querySelector("svg")!;
   const group = svg.querySelector("g")!;
+  // SVG text bounds include the font's whole em box, not just the musical glyph.
+  // Use staff geometry and the notehead/ledger position for the painted envelope.
+  let inkTop = Math.min(top.getYForLine(0) - 24, note.getYs()[0] - 8);
+  let inkBottom = Math.max(
+    (bottom || top).getYForLine(4) + 24,
+    note.getYs()[0] + 8,
+  );
   if (octaveShift) {
     // A one-note ottava bracket: above for 8va, below for 8vb; hook points toward the staff.
     const up = octaveShift > 0;
@@ -144,6 +154,8 @@ export function drawPianoNotation(
     const y = up
       ? Math.min(stave.getYForLine(0) - 24, note.getYs()[0] - 24)
       : Math.max(stave.getYForLine(4) + 28, note.getYs()[0] + 28);
+    inkTop = Math.min(inkTop, y - 16);
+    inkBottom = Math.max(inkBottom, y + 6);
     const label = document.createElementNS(svg.namespaceURI, "text");
     label.setAttribute("x", String(x));
     label.setAttribute("y", String(y));
@@ -166,18 +178,73 @@ export function drawPianoNotation(
   }
   // Bass-only uses the same frame height/scale as treble, shifted up for its ledger notes.
   const frame =
-    layout === "grand"
+    practiceFrame ??
+    (layout === "grand"
       ? [-240, 1000]
       : layout === "bass"
         ? [-370, 765]
-        : [-220, 765];
+        : [-220, 765]);
   svg.setAttribute("viewBox", `0 ${frame[0]} 600 ${frame[1]}`);
   svg.setAttribute("height", String(frame[1]));
   svg.style.removeProperty("width");
   svg.style.removeProperty("height");
+  svg.dataset.inkTop = String(inkTop * 2.2);
+  svg.dataset.inkBottom = String(inkBottom * 2.2);
   svg.dataset.clef = clef;
   svg.dataset.octaveShift = String(octaveShift);
   svg.dataset.written = `${written.letter}${written.octave}`;
   svg.dataset.noteY = String(note.getYs()[0]);
   svg.dataset.staffTop = String(stave.getYForLine(0));
+}
+
+const pianoFrames = new Map<string, readonly [number, number]>();
+/** Measure the union of every allowed prompt, once per settings combination.
+ * Never use the current question to size the frame: that would move the staff.
+ */
+export function pianoPracticeFrame(
+  profile: Profile,
+): readonly [number, number] {
+  const signature = JSON.stringify([
+    profile.low,
+    profile.high,
+    profile.key,
+    profile.staffLayout || "grand",
+    profile.overlapPractice || "standard",
+    profile.octavePractice || "off",
+  ]);
+  const cached = pianoFrames.get(signature);
+  if (cached) return cached;
+  const probe = document.createElement("div");
+  probe.setAttribute("aria-hidden", "true");
+  probe.style.cssText =
+    "position:fixed;left:-10000px;top:0;width:600px;visibility:hidden;pointer-events:none";
+  document.body.append(probe);
+  let top = Infinity,
+    bottom = -Infinity;
+  try {
+    for (const card of pianoDeck(profile)) {
+      // Eligible overlap and octave ranges are disjoint; the two extremes cover both choices.
+      for (const choice of [0, 1]) {
+        drawPianoNotation(
+          probe,
+          pianoNotation(card, profile, () => choice),
+          profile.key,
+        );
+        const svg = probe.querySelector("svg")!;
+        top = Math.min(top, Number(svg.dataset.inkTop));
+        bottom = Math.max(bottom, Number(svg.dataset.inkBottom));
+      }
+    }
+  } finally {
+    probe.remove();
+  }
+  const frame = [
+    Math.floor(top - 20),
+    Math.ceil(bottom + 20) - Math.floor(top - 20),
+  ] as const;
+  // Bound the cache while retaining recently used practice settings.
+  if (pianoFrames.size >= 32)
+    pianoFrames.delete(pianoFrames.keys().next().value!);
+  pianoFrames.set(signature, frame);
+  return frame;
 }

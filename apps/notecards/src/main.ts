@@ -1,5 +1,5 @@
 import { pianoNotation } from "./piano-notation";
-import { drawPianoNotation } from "./notation";
+import { drawPianoNotation, pianoPracticeFrame } from "./notation";
 import { RangePicker } from "./range-picker";
 import {
   deck,
@@ -98,14 +98,15 @@ $("#app").innerHTML =
 <div id="midi-panel" hidden></div>
 <p class="hint piano-hint" hidden>Choose the matching piano key.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p><p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
 <div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
-<div class="below"><details><summary>Practice options</summary><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
+<div class="below"><details class="practice-options"><summary>Practice options</summary><div class="options-row"><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
 <label id="signature-practice-setting" hidden>Keys<select id="signaturePractice"><option value="major">Major only</option><option value="minor">Minor only</option><option value="both">Major & minor</option></select></label>
 <label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
-<div id="piano-notation-options" hidden>
+</div>
+<div id="piano-notation-options" hidden><div class="options-row">
 <label>Staff layout<select id="staffLayout"><option value="treble">Treble</option><option value="bass">Bass</option><option value="grand">Grand staff</option></select></label>
 <label id="overlap-setting">Overlapping notes<select id="overlapPractice"><option value="standard">Standard placement</option><option value="both">Practice both clefs</option></select></label>
 <label>Octave markings<select id="octavePractice"><option value="off">Off</option><option value="practice">Practice 8va/8vb</option></select></label>
-<p class="notation-help">8va: play an octave higher than written. 8vb: play an octave lower. Pitch range always refers to the sounding notes.</p>
+</div><p class="notation-help">8va: play an octave higher than written. 8vb: play an octave lower. Pitch range always refers to the sounding notes.</p>
 </div>
 <label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes · sharps & flats</option><option value="naturals">Naturals only</option></select></label>
 <div class="range" id="pitch-range" role="group" aria-label="Sounding guitar pitch range">${(["low", "high"] as const).map((f) => `<label>${f === "low" ? "Lowest" : "Highest"}<select id="${f}">${POSITIONS.map((n) => `<option>${n}</option>`).join("")}</select></label>`).join("")}</div>
@@ -347,6 +348,7 @@ function renderQuestion(card: Card | GuitarCard) {
       $<HTMLDivElement>("#notation"),
       representation,
       profile().key,
+      pianoPracticeFrame(profile()),
     );
   } else if (notation) {
     $("#notation").setAttribute(
@@ -615,8 +617,7 @@ $<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
 };
 $<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {
   profile().pianoPrompt = (e.target as HTMLSelectElement).value as
-    | "staff"
-    | "name";
+    "staff" | "name";
   changed();
 };
 for (const field of [

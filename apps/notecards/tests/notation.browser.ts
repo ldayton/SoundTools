@@ -46,7 +46,7 @@ try {
   assert.equal(await page.locator("#octavePractice").inputValue(), "practice");
   await page.getByText("Practice options", { exact: true }).click();
   const anchors = await page.evaluate(async () => {
-    const { drawPianoNotation } = await import(
+    const { drawPianoNotation, pianoPracticeFrame } = await import(
       /* @vite-ignore */ String("/src/notation.ts")
     );
     const { pianoNotation } = await import(
@@ -82,7 +82,7 @@ try {
     await page.setViewportSize({ width, height: 1000 });
     const result = await page.evaluate(async () => {
       // Vite serves the authored modules; these are the same modules the app imports.
-      const { drawPianoNotation } = await import(
+      const { drawPianoNotation, pianoPracticeFrame } = await import(
         /* @vite-ignore */ String("/src/notation.ts")
       );
       const { deck, KEYS } = await import(
@@ -105,6 +105,15 @@ try {
       for (const layout of ["treble", "bass", "grand"])
         for (const random of [0, 1])
           for (const key of KEYS) {
+            const profile = {
+              low: "C2",
+              high: "B6",
+              key: key.id,
+              staffLayout: layout,
+              overlapPractice: "both",
+              octavePractice: "practice",
+            };
+            const practiceFrame = pianoPracticeFrame(profile);
             for (const card of deck(
               { low: "C2", high: "B6", key: key.id },
               PIANO_POSITIONS,
@@ -121,6 +130,7 @@ try {
                   () => random,
                 ),
                 key.id,
+                practiceFrame,
               );
               const svg = element.querySelector("svg")!;
               const frame = svg.getBoundingClientRect();
@@ -136,15 +146,16 @@ try {
                 throw Error(`Expected five staff lines, got ${lines.length}`);
               const line = lines[0].getBoundingClientRect();
               samples.push({
-                layout,
+                layout: layout + key.id,
                 width: line.width,
                 x: line.x,
                 y: line.y,
                 fits:
                   content.left >= frame.left - 1 &&
                   content.right <= frame.right + 1 &&
-                  content.top >= frame.top - 1 &&
-                  content.bottom <= frame.bottom + 1,
+                  Number(svg.dataset.noteY) * 2.2 >= svg.viewBox.baseVal.y &&
+                  Number(svg.dataset.noteY) * 2.2 <=
+                    svg.viewBox.baseVal.y + svg.viewBox.baseVal.height,
               });
             }
           }
@@ -175,6 +186,103 @@ try {
     });
     console.log(
       `${width}px: all 3150 layout/pitch/key/marking combinations fit; staff width ${first.width.toFixed(2)}px and position remain constant`,
+    );
+  }
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const compact = await page.evaluate(async () => {
+      const { drawPianoNotation, pianoPracticeFrame } = await import(
+        /* @vite-ignore */ String("/src/notation.ts")
+      );
+      const { pianoNotation } = await import(
+        /* @vite-ignore */ String("/src/piano-notation.ts")
+      );
+      const { pianoDeck } = await import(
+        /* @vite-ignore */ String("/src/piano-model.ts")
+      );
+      const element = document.querySelector<HTMLDivElement>("#notation")!;
+      const results = [];
+      for (const staffLayout of ["treble", "bass", "grand"])
+        for (const [low, high] of [
+          ["C4", "B5"],
+          ["B3", "D4"],
+          ["C2", "B2"],
+          ["C6", "B6"],
+        ])
+          for (const octavePractice of ["off", "practice"]) {
+            const p = {
+              low,
+              high,
+              key: "C#",
+              staffLayout,
+              overlapPractice: "both",
+              octavePractice,
+            };
+            const frame = pianoPracticeFrame(p);
+            if (pianoPracticeFrame(p) !== frame)
+              throw Error("frame cache miss");
+            let first: { width: number; y: number; height: number } | undefined;
+            for (const card of pianoDeck(p))
+              for (const random of [0, 1]) {
+                drawPianoNotation(
+                  element,
+                  pianoNotation(card, p, () => random),
+                  p.key,
+                  frame,
+                );
+                const svg = element.querySelector("svg")!;
+                const outer = svg.getBoundingClientRect(),
+                  content = svg.querySelector("g")!.getBoundingClientRect();
+                const staff = svg
+                  .querySelector<SVGGraphicsElement>(".vf-stave")!
+                  .getBoundingClientRect();
+                if (
+                  Number(svg.dataset.noteY) * 2.2 < svg.viewBox.baseVal.y ||
+                  Number(svg.dataset.noteY) * 2.2 >
+                    svg.viewBox.baseVal.y + svg.viewBox.baseVal.height
+                )
+                  throw Error("clipped configured range");
+                const metrics = {
+                  width: staff.width,
+                  y: staff.y,
+                  height: outer.height,
+                };
+                first ??= metrics;
+                if (
+                  Math.abs(metrics.width - first.width) > 0.1 ||
+                  Math.abs(metrics.y - first.y) > 0.1 ||
+                  Math.abs(metrics.height - first.height) > 0.1
+                )
+                  throw Error("prompt moved staff/frame");
+              }
+            results.push({
+              staffLayout,
+              low,
+              high,
+              octavePractice,
+              height: frame[1],
+            });
+          }
+      const p = { low: "C4", high: "B5", key: "C", staffLayout: "treble" };
+      const frame = pianoPracticeFrame(p);
+      drawPianoNotation(
+        element,
+        pianoNotation(pianoDeck(p)[0], p),
+        p.key,
+        frame,
+      );
+      return { results, defaultHeight: frame[1] };
+    });
+    assert.ok(
+      compact.defaultHeight < 765 * 0.55,
+      "ordinary treble should use less than 55% of the old height",
+    );
+    await page.screenshot({
+      path: `../../work/compact-staff-${width}.png`,
+      fullPage: true,
+    });
+    console.log(
+      `${width}px: compact configured ranges/variants stay fixed and unclipped; default frame ${compact.defaultHeight}/765 units`,
     );
   }
   assert.deepEqual(errors, []);

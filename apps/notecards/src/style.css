@@ -842,11 +842,6 @@ input:focus-visible {
   max-width: 480px;
   margin: auto;
 }
-#piano-prompt-setting {
-  align-items: stretch;
-  flex-direction: column;
-  max-width: 280px;
-}
 @media (max-width: 600px) {
   .piano-question #notation,
   .piano-question #named-note {
@@ -881,11 +876,6 @@ input:focus-visible {
 }
 .signature-question #notation {
   height: 225px;
-}
-#signature-practice-setting {
-  align-items: stretch;
-  flex-direction: column;
-  max-width: 280px;
 }
 @media (max-width: 600px) {
   .signature-question #notation {
@@ -1050,13 +1040,6 @@ input:focus-visible {
   max-height: none;
 }
 
-#piano-notation-options label {
-  display: flex;
-  flex-direction: column;
-  max-width: 320px;
-  margin-top: 16px;
-  gap: 6px;
-}
 .notation-help {
   max-width: 400px;
   font-size: 13px;
@@ -1283,5 +1266,99 @@ input:focus-visible {
   }
   .hymn-feedback {
     min-height: 42px;
+  }
+}
+
+/* Practice controls share full-width rows and a generous native disclosure target. */
+.below {
+  display: block;
+}
+.below .saved {
+  margin-top: 16px;
+  text-align: left;
+}
+.practice-options {
+  width: 100%;
+  min-width: 0;
+}
+.practice-options > summary {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: 16px;
+  border: 1px solid #d8d1c5;
+  border-radius: 10px;
+  background: #faf8f2;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  touch-action: manipulation;
+}
+.practice-options > summary:hover {
+  background: #eee8f4;
+}
+.practice-options > summary:focus-visible {
+  outline: 3px solid #988cc5;
+  outline-offset: 3px;
+}
+.practice-options[open] > summary {
+  margin-bottom: 18px;
+  background: #eee8f4;
+}
+.options-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.practice-options .options-row > label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  max-width: none;
+  text-align: left;
+  font-size: 13px;
+}
+.practice-options .options-row #key,
+.practice-options .options-row select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 44px;
+}
+.practice-options .notation-help {
+  max-width: none;
+  margin: 0 0 18px;
+  font-size: 13px;
+}
+.practice-options #piano-range {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+.practice-options #piano-range > div {
+  min-width: 0;
+}
+.practice-options #piano-range label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-align: left;
+}
+.practice-options .note-field {
+  box-sizing: border-box;
+  min-height: 44px;
+}
+@media (max-width: 640px) {
+  .options-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .practice-options #piano-range {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

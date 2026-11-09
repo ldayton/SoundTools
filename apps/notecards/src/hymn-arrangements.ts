@@ -162,6 +162,10 @@ function serialize(bars: Bar[], melody = false) {
         first?.startTie && next?.pitches?.some((p) => p.pitch === first.pitch);
       const length = Math.round(note.duration * 64);
       let value =
+        (note.chord || [])
+          .filter((c: { position: string }) => c.position === "default")
+          .map((c: { name: string }) => `"${c.name}"`)
+          .join("") +
         "(".repeat(opens) +
         (note.decoration || []).map((d: string) => `!${d}!`).join("") +
         (!names?.length

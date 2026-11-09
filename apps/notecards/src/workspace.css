@@ -558,3 +558,39 @@ main.piano-layout-wide {
   color: inherit;
   font-size: 12px;
 }
+.hymn-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-basis: 420px;
+}
+.hymn-picker {
+  flex: 1;
+  min-width: 0;
+}
+.hymn-key-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 126px;
+  font-size: 11px;
+}
+.hymn-key-field select {
+  width: 100%;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .hymn-controls {
+    flex-basis: 100%;
+  }
+  .hymn-key-field {
+    flex-basis: 112px;
+    font-size: 10px;
+  }
+  .hymn-key-field select {
+    font-size: 11px;
+  }
+}
+.hymn-controls {
+  flex-direction: row;
+}

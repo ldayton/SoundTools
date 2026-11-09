@@ -1,3 +1,11 @@
+import {
+  HYMN_KEYS,
+  type HymnKey,
+  hymnKeyLabel,
+  hymnKeySuffix,
+  hymnTransposition,
+  isHymnKey,
+} from "./hymn-transpose";
 import { feedbackForNotes } from "./sight-feedback";
 import type { PracticeEvent } from "./practice-score";
 import {
@@ -20,6 +28,7 @@ import { persistence } from "./persistence";
 import { bookmark, restoreBookmark, type Bookmark } from "./bookmarks";
 type HymnState = {
   version: 1;
+  key?: HymnKey;
   zoom?: number;
   hymn: string;
   arrangement: Arrangement;
@@ -38,6 +47,7 @@ const escape = (text: string) =>
   );
 export class SightReading {
   private hymn = hymns[0];
+  private key: HymnKey = "original";
   private arrangement: Arrangement = "melody";
   private sectionBars = 4;
   private section = 0;
@@ -48,7 +58,7 @@ export class SightReading {
   private legacyBookmark?: { key: string; position: number };
   private savedSections: Record<string, number> = {};
   private selectionKey() {
-    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}`;
+    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}${hymnKeySuffix(this.hymn.key, this.key)}`;
   }
   private restoreSection() {
     const n = this.savedSections[this.selectionKey()];
@@ -56,7 +66,7 @@ export class SightReading {
   }
   private restorePending = true;
   private bookmarkKey() {
-    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}:${this.section}`;
+    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}:${this.section}${hymnKeySuffix(this.hymn.key, this.key)}`;
   }
 
   private active = false;
@@ -91,6 +101,7 @@ export class SightReading {
       )
         this.savedSections = structuredClone(saved.sections);
       if ([0.85, 1, 1.2].includes(saved?.zoom)) this.zoom = saved.zoom;
+      if (isHymnKey(saved?.key)) this.key = saved.key;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
       if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
         this.arrangement = saved.arrangement;
@@ -125,7 +136,7 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div></div>
+    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label></div>
     <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars at a time</option><option value="2">2 bars at a time</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
     <section class="hymn-practice" aria-label="Hymn sight reading"><div class="hymn-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="hymn-title"></h2><p class="hymn-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="hymn-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll to see the full score ↕</p><p class="hymn-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="hymn-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p>Public-domain words, melody and setting. First verse and refrain.</p></details></section>`;
     const context = document.createElement("div");
@@ -139,6 +150,10 @@ export class SightReading {
     context.append(tools);
     element.prepend(context);
     this.$(".hymn-source").append(this.$(".hymn-help"));
+    this.$(".hymn-source").insertAdjacentHTML(
+      "beforeend",
+      '<p class="hymn-transpose-help"></p>',
+    );
     this.$(".hymn-top").append(this.$(".hymn-scroll-hint"));
     this.$<HTMLSelectElement>('[aria-label="Score size"]').value = String(
       this.zoom,
@@ -217,6 +232,17 @@ export class SightReading {
       if (hymn) this.choose(hymn);
     };
     input.onblur = () => this.closeResults();
+    this.$<HTMLSelectElement>("#hymn-key").value = this.key;
+    this.$<HTMLSelectElement>("#hymn-key").onchange = (e) => {
+      const key = (e.target as HTMLSelectElement).value;
+      if (!isHymnKey(key)) return;
+      this.save(); // Save under the old key before changing the bookmark namespace.
+      this.interrupted();
+      this.key = key;
+      this.restoreSection();
+      this.restorePending = true;
+      this.render();
+    };
     this.$<HTMLSelectElement>("#hymn-arrangement").value = this.arrangement;
     this.$<HTMLSelectElement>("#hymn-length").value = String(this.sectionBars);
     for (const field of ["arrangement", "length", "section"])
@@ -322,6 +348,7 @@ export class SightReading {
     this.savedSections[this.selectionKey()] = this.section;
     persistence.write("sight", {
       version: 1,
+      key: this.key,
       zoom: this.zoom,
       hymn: this.hymn.id,
       arrangement: this.arrangement,
@@ -411,6 +438,15 @@ export class SightReading {
         this.sectionBars,
         this.section,
       );
+      const transposition = hymnTransposition(this.hymn.key, this.key);
+      this.$<HTMLOptionElement>(
+        '#hymn-key option[value="original"]',
+      ).textContent =
+        `Original (${this.hymn.key.replace(/b/g, "♭").replace(/#/g, "♯")})`;
+      this.$(".hymn-transpose-help").textContent = transposition.semitones
+        ? `${hymnKeyLabel(transposition.key)}, ${transposition.semitones > 0 ? "up" : "down"} ${Math.abs(transposition.semitones)} semitones from ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress. The nearest register is used; no notes are folded into another octave.`
+        : `Original ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress.`;
+      this.$("#hymn-key").title = this.$(".hymn-transpose-help").textContent!;
       this.section = score.section;
       this.sections = score.sections;
       this.$(".hymn-section-field").hidden = this.sections === 1;
@@ -430,9 +466,17 @@ export class SightReading {
         this.lastWidth,
         (this.lastWidth >= 900 ? 1.55 : this.lastWidth >= 600 ? 1.35 : 1.12) *
           this.zoom,
+        transposition.semitones,
       );
       const steps = eventSteps(this.events);
-      const content = JSON.stringify({ matcher: 1, abc: score.abc, steps });
+      const content = JSON.stringify({
+        matcher: 1,
+        abc: score.abc,
+        steps,
+        ...(transposition.semitones
+          ? { transpose: transposition.semitones }
+          : {}),
+      });
       if (this.restorePending || (this.content && this.content !== content)) {
         const restored = restoreBookmark(
           this.bookmarks[this.bookmarkKey()],

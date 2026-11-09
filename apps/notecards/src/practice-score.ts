@@ -6,9 +6,11 @@ export function drawPracticeScore(
   abc: string,
   width: number,
   musicScale = 1,
+  transpose = 0,
 ): PracticeEvent[] {
   const tune = abcjs.renderAbc(paper, "%%vocalfont sans-serif 12\n" + abc, {
     add_classes: true,
+    visualTranspose: transpose,
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing(tune) {
@@ -42,7 +44,9 @@ export function drawPracticeScore(
         "",
       );
   });
-  tune.setUpAudio({});
+  // abcjs keeps audio at source pitch unless both transpositions are specified.
+  // Use the same shift so notation, spellings and MIDI grading agree.
+  tune.setUpAudio({ midiTranspose: transpose });
   tune.setTiming(60, 0);
   paper
     .querySelectorAll(".abcjs-title,.abcjs-subtitle")

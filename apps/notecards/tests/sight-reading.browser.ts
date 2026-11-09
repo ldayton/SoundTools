@@ -65,6 +65,7 @@ try {
   await page.locator('[data-letter="E"]:enabled').waitFor();
   await page.locator("#mode").selectOption("sight");
   await page.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
+  await page.locator("#hymn-length").selectOption("0");
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
   const input = page.getByRole("combobox", { name: "Hymn", exact: true });
@@ -130,7 +131,7 @@ try {
   await page.locator(".hymn-screen summary").click();
   await page.locator('.hymn-piano [data-piano="67"]').click();
   assert.equal(await page.locator(".hymn-count").textContent(), "5 / 35");
-  await page.locator("#hymn-chords").check();
+  await page.locator("#hymn-arrangement").selectOption("original");
   const initial = await page.locator(".hymn-count").textContent();
   assert.match(initial!, /^1 \/ /);
   await page
@@ -156,7 +157,9 @@ try {
   for (const width of [1100, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const chords of [false, true]) {
-      await page.locator("#hymn-chords").setChecked(chords);
+      await page
+        .locator("#hymn-arrangement")
+        .selectOption(chords ? "original" : "melody");
       for (const hymn of hymns) {
         await choose(hymn.title);
         assert.match(
@@ -233,7 +236,7 @@ try {
     "Praise God From Whom All Blessings Flow",
   );
   await choose("Amazing Grace");
-  await page.locator("#hymn-chords").uncheck();
+  await page.locator("#hymn-arrangement").selectOption("melody");
   await page.locator(".hymn-screen summary").click(); // close to keep the review screenshot focused on the score
   await mkdir("work", { recursive: true });
   await page.screenshot({
@@ -301,6 +304,8 @@ try {
     );
     await cold.setOffline(true);
     await firstUse.locator("#mode").selectOption("sight");
+    await firstUse.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
+    await firstUse.locator("#hymn-length").selectOption("0");
     await firstUse
       .locator(".hymn-count")
       .filter({ hasText: "1 / 35" })

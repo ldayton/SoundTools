@@ -28,13 +28,21 @@ export class MidiKeyboard {
   private acceptAfter = Infinity;
   private state: MidiState;
   private performanceMode = false;
-  private performanceListener?: (note: number, held: readonly number[]) => void;
+  private performanceListener?: (
+    note: number,
+    held: readonly number[],
+    timestamp: number,
+  ) => void;
   /** Continuous note-on gestures for sight reading; flashcard release guards stay unchanged. */
   setPerformanceMode(enabled: boolean) {
     this.performanceMode = enabled;
   }
   setPerformanceListener(
-    listener: (note: number, held: readonly number[]) => void,
+    listener: (
+      note: number,
+      held: readonly number[],
+      timestamp: number,
+    ) => void,
   ) {
     this.performanceListener = listener;
   }
@@ -207,9 +215,11 @@ export class MidiKeyboard {
       // Notes received during feedback/background still latch until released.
       if (this.accepting && event.timeStamp >= this.acceptAfter) {
         if (this.performanceMode)
-          this.performanceListener?.(note, [
-            ...new Set([...this.held].map((key) => key % 128)),
-          ]);
+          this.performanceListener?.(
+            note,
+            [...new Set([...this.held].map((key) => key % 128))],
+            event.timeStamp,
+          );
         else if (released) this.answer(note);
       }
     }

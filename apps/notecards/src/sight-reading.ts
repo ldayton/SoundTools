@@ -1,10 +1,20 @@
-import abcjs, { type NoteTimingEvent, type TuneObject } from "abcjs";
+import type { NoteTimingEvent } from "abcjs";
+import {
+  drawPracticeScore,
+  eventSteps,
+  highlightScore,
+  keyboardRange,
+} from "./practice-score";
+import {
+  ARRANGEMENTS,
+  arrangeHymn,
+  type Arrangement,
+} from "./hymn-arrangements";
 import hymns from "./hymns.json";
 import { WaitForMe, searchHymns } from "./sight-reading-model";
 import { Piano } from "./piano";
 import { diagnostics } from "./diagnostics";
 const STORAGE = "soundtools:notecards:sight-reading:v1";
-type VisualTune = TuneObject & { noteTimings: NoteTimingEvent[] };
 const escape = (text: string) =>
   text.replace(
     /[&<>"']/g,
@@ -15,7 +25,10 @@ const escape = (text: string) =>
   );
 export class SightReading {
   private hymn = hymns[0];
-  private chords = false;
+  private arrangement: Arrangement = "melody";
+  private sectionBars = 4;
+  private section = 0;
+  private sections = 1;
   private position = 0;
   private active = false;
   private paused = false;
@@ -34,14 +47,24 @@ export class SightReading {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE) || "null");
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
-      this.chords = saved?.chords === true;
+      if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
+        this.arrangement = saved.arrangement;
+      else if (saved) {
+        this.arrangement = saved.chords === true ? "original" : "melody";
+        this.sectionBars = 0;
+      }
+      if ([0, 2, 4].includes(saved?.sectionBars))
+        this.sectionBars = saved.sectionBars;
+      if (Number.isSafeInteger(saved?.section) && saved.section >= 0)
+        this.section = saved.section;
       if (Number.isSafeInteger(saved?.position) && saved.position >= 0)
         this.position = saved.position;
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div><label class="hymn-chords"><input id="hymn-chords" type="checkbox" /> Include chords</label></div>
-    <section class="hymn-practice" aria-label="Hymn sight reading"><div class="hymn-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="hymn-title"></h2><p class="hymn-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="hymn-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics"><div class="hymn-paper"></div></div><p class="hymn-feedback" role="status" aria-live="polite"></p><div class="hymn-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p>Public-domain words, melody and setting. First verse and refrain.</p></details></section>`;
+    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div></div>
+    <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars at a time</option><option value="2">2 bars at a time</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
+    <section class="hymn-practice" aria-label="Hymn sight reading"><div class="hymn-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="hymn-title"></h2><p class="hymn-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="hymn-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics"><div class="hymn-paper"></div></div><p class="hymn-feedback" role="status" aria-live="polite"></p><div class="hymn-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p>Public-domain words, melody and setting. First verse and refrain.</p></details></section>`;
     this.midiSlot = this.$(".hymn-midi-slot");
     this.piano = new Piano(this.$(".hymn-piano"), (note) => {
       if (this.accepting) this.answer(note);
@@ -95,14 +118,23 @@ export class SightReading {
       if (hymn) this.choose(hymn);
     };
     input.onblur = () => this.closeResults();
-    this.$<HTMLInputElement>("#hymn-chords").checked = this.chords;
-    this.$<HTMLInputElement>("#hymn-chords").onchange = (e) => {
-      this.chords = (e.target as HTMLInputElement).checked;
-      this.position = 0;
-      this.paused = false;
-      this.render();
-      this.save();
-    };
+    this.$<HTMLSelectElement>("#hymn-arrangement").value = this.arrangement;
+    this.$<HTMLSelectElement>("#hymn-length").value = String(this.sectionBars);
+    for (const field of ["arrangement", "length", "section"])
+      this.$<HTMLSelectElement>("#hymn-" + field).onchange = (e) => {
+        const value = (e.target as HTMLSelectElement).value;
+        if (field === "arrangement") this.arrangement = value as Arrangement;
+        if (field === "length") {
+          this.sectionBars = Number(value);
+          this.section = 0;
+        }
+        if (field === "section") this.section = Number(value);
+        this.position = 0;
+        this.paused = false;
+        this.render();
+        this.save();
+      };
+    this.$(".hymn-prev").onclick = () => this.changeSection(this.section - 1);
     this.$(".hymn-pause").onclick = () => {
       this.paused = !this.paused;
       this.session?.resetGesture();
@@ -114,8 +146,11 @@ export class SightReading {
       this.render();
       this.save();
     };
-    this.$(".hymn-next").onclick = () =>
-      this.choose(hymns[(hymns.indexOf(this.hymn) + 1) % hymns.length]);
+    this.$(".hymn-next").onclick = () => {
+      if (this.section + 1 < this.sections)
+        this.changeSection(this.section + 1);
+      else this.choose(hymns[(hymns.indexOf(this.hymn) + 1) % hymns.length]);
+    };
     this.$(".hymn-screen").addEventListener("toggle", () => {
       if ((this.$(".hymn-screen") as HTMLDetailsElement).open)
         this.preparePiano();
@@ -155,7 +190,9 @@ export class SightReading {
         STORAGE,
         JSON.stringify({
           hymn: this.hymn.id,
-          chords: this.chords,
+          arrangement: this.arrangement,
+          sectionBars: this.sectionBars,
+          section: this.section,
           position: this.position,
         }),
       );
@@ -203,9 +240,17 @@ export class SightReading {
   }
   private choose(hymn: (typeof hymns)[number]) {
     this.hymn = hymn;
+    this.section = 0;
     this.position = 0;
     this.paused = false;
     this.closeResults();
+    this.render();
+    this.save();
+  }
+  private changeSection(section: number) {
+    this.section = section;
+    this.position = 0;
+    this.paused = false;
     this.render();
     this.save();
   }
@@ -224,56 +269,28 @@ export class SightReading {
       "/" +
       encodeURIComponent(this.hymn.file);
     try {
-      const tune = abcjs.renderAbc(
-        paper,
-        "%%vocalfont sans-serif 12\n" +
-          (this.chords ? this.hymn.harmony : this.hymn.melody),
-        {
-          add_classes: true,
-          minPadding: 6,
-          responsive: "resize",
-          oneSvgPerLine: true,
-          staffwidth: Math.max(240, this.lastWidth - 28),
-          wrap: {
-            minSpacing: 2,
-            maxSpacing: 2.6,
-            preferredMeasuresPerLine: 4,
-          },
-          paddingtop: 12,
-          paddingbottom: 18,
-          paddingleft: 12,
-          paddingright: 12,
-        },
-      )[0] as VisualTune;
-      if (!tune || tune.warnings?.length)
-        throw Error("Hymn notation could not be read");
-      // Computes pitches/ties, not sound: no AudioContext, samples, or audio playback.
-      tune.setUpAudio({});
-      tune.setTiming(60, 0);
-      this.events = tune.noteTimings.filter(
-        (e) => e.type === "event" && e.midiPitches?.length,
+      const score = arrangeHymn(
+        this.hymn,
+        this.arrangement,
+        this.sectionBars,
+        this.section,
       );
-      this.session = new WaitForMe(
-        this.events.map((e) => ({
-          pitches: [...new Set(e.midiPitches!.map((p) => p.pitch))],
-        })),
-        this.position,
+      this.section = score.section;
+      this.sections = score.sections;
+      this.$(".hymn-section-field").hidden = this.sections === 1;
+      this.$<HTMLSelectElement>("#hymn-section").replaceChildren(
+        ...Array.from(
+          { length: this.sections },
+          (_, i) => new Option(`${i + 1} of ${this.sections}`, String(i)),
+        ),
       );
+      this.$<HTMLSelectElement>("#hymn-section").value = String(this.section);
+      this.$(".hymn-help").textContent =
+        ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
+        " Sing along with the words.";
+      this.events = drawPracticeScore(paper, score.abc, this.lastWidth);
+      this.session = new WaitForMe(eventSteps(this.events), this.position);
       this.position = this.session.index;
-      paper
-        .querySelectorAll(".abcjs-title,.abcjs-subtitle")
-        .forEach((el) => el.remove());
-      paper.querySelectorAll("svg").forEach((svg) => {
-        if (!svg.querySelector(".abcjs-staff")) {
-          const wrapper = svg.parentElement;
-          svg.remove();
-          if (
-            wrapper !== paper &&
-            wrapper?.classList.contains("abcjs-container")
-          )
-            wrapper.remove();
-        }
-      });
       this.preparePiano();
       this.update(true);
     } catch (error) {
@@ -287,14 +304,12 @@ export class SightReading {
   }
   private preparePiano() {
     if (!this.session) return;
-    const pitches = this.session.steps.flatMap((s) => s.pitches);
-    const low = Math.floor(Math.min(...pitches) / 12) * 12;
-    const high = Math.ceil((Math.max(...pitches) + 1) / 12) * 12 - 1;
-    this.piano.show(low, high, false);
+    this.piano.show(...keyboardRange(this.events), false);
     this.clearPianoSelection();
-    this.$(".hymn-screen-hint").textContent = this.chords
-      ? "Tap each note in the highlighted chord, in any order."
-      : "Tap the highlighted note’s key.";
+    this.$(".hymn-screen-hint").textContent =
+      this.arrangement !== "melody"
+        ? "Tap each note in the highlighted chord, in any order."
+        : "Tap the highlighted note’s key.";
   }
   private clearPianoSelection() {
     this.element
@@ -329,24 +344,12 @@ export class SightReading {
   private update(scroll = false) {
     const session = this.session;
     if (!session) return;
-    this.element
-      .querySelectorAll(".sight-current")
-      .forEach((el) => el.classList.remove("sight-current"));
-    if (!session.complete) {
-      const event = this.events[session.index];
-      const elements = (event.elements || []).flat().filter(Boolean);
-      elements.forEach((el) => el.classList.add("sight-current"));
-      if (scroll && elements[0]) {
-        const viewport = this.$(".hymn-score");
-        const note = (
-          elements[0].closest("svg") || elements[0]
-        ).getBoundingClientRect();
-        const box = viewport.getBoundingClientRect();
-        // Scroll only this score, never the entire page or the piano below it.
-        if (note.top < box.top || note.bottom > box.bottom)
-          viewport.scrollTop += note.top - box.top - 12;
-      }
-    }
+    highlightScore(
+      this.$(".hymn-paper"),
+      this.events[session.index],
+      this.$(".hymn-score"),
+      scroll,
+    );
     const complete = session.complete;
     this.$(".hymn-count").textContent = complete
       ? "Complete"
@@ -358,12 +361,16 @@ export class SightReading {
       ? "Lovely. Sing it again, or choose another hymn."
       : this.paused
         ? "Paused. Continue when you’re ready."
-        : this.chords
+        : this.arrangement !== "melody"
           ? "Play the highlighted notes together."
           : "Play the highlighted note.";
     this.$<HTMLButtonElement>(".hymn-pause").disabled = complete;
     this.$(".hymn-pause").textContent = this.paused ? "Continue" : "Pause";
-    this.$(".hymn-next").hidden = !complete;
+    this.$(".hymn-prev").hidden = this.section === 0;
+    this.$(".hymn-next").hidden =
+      !complete && this.section + 1 === this.sections;
+    this.$(".hymn-next").textContent =
+      this.section + 1 < this.sections ? "Next section →" : "Next hymn →";
     this.piano.setUnavailable(!this.accepting);
     this.acceptanceChanged();
   }

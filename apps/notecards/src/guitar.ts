@@ -13,6 +13,8 @@ export const MODES = [
   { id: "tab", label: "Read tab" },
   { id: "piano", label: "Find on piano" },
   { id: "sight", label: "Sight read hymns" },
+  { id: "patterns", label: "Interval patterns" },
+  { id: "rhythm", label: "Rhythm only" },
   { id: "signature", label: "Read key signatures" },
 ] as const;
 export type Mode = (typeof MODES)[number]["id"];

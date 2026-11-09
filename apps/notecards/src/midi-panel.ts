@@ -96,7 +96,11 @@ export function mountMidiPanel(
     setAccepting: (enabled: boolean) => keyboard.setAccepting(enabled),
     disconnect: () => keyboard.disconnect(),
     setPerformanceListener: (
-      listener: (note: number, held: readonly number[]) => void,
+      listener: (
+        note: number,
+        held: readonly number[],
+        timestamp: number,
+      ) => void,
     ) => keyboard.setPerformanceListener(listener),
     setPerformanceMode(enabled: boolean) {
       performanceMode = enabled;

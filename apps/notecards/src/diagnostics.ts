@@ -18,6 +18,8 @@ export const diagnostics = create({
       "piano",
       "signature",
       "sight",
+      "patterns",
+      "rhythm",
     ],
     midiState: [
       "unsupported",

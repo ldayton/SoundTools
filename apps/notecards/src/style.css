@@ -1176,7 +1176,9 @@ input:focus-visible {
 .hymn-paper svg {
   display: block;
 }
-.hymn-paper .sight-current {
+.hymn-paper .sight-current,
+.pattern-paper .sight-current,
+.rhythm-paper .sight-current {
   fill: #b0653e;
   stroke: #b0653e;
 }
@@ -1360,5 +1362,109 @@ input:focus-visible {
   }
   .practice-options #piano-range {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.practice-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.practice-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 650;
+  min-width: 0;
+}
+.practice-controls select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d7d1e0;
+  border-radius: 10px;
+  background: #fcfaf5;
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+}
+.hymn-grades {
+  grid-template-columns: 1.5fr 1fr 0.7fr;
+}
+.pattern-progress {
+  width: 100%;
+  margin: 0 0 18px;
+}
+.pattern-piano {
+  margin-top: 20px;
+}
+.rhythm-beats {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  justify-content: center;
+}
+.rhythm-beats span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #d7d1e0;
+  border-radius: 50%;
+  color: #837b94;
+  font-variant-numeric: tabular-nums;
+}
+.rhythm-beats .is-beat {
+  background: #e7e0f3;
+  color: #302d55;
+  border-color: #988cc5;
+}
+.rhythm-beats [data-beat="1"].is-beat {
+  background: #b7a7d3;
+  border-width: 2px;
+  font-weight: 750;
+}
+.rhythm-tap {
+  width: 100%;
+  min-height: 76px;
+  border: 1px solid #b7a7d3;
+  border-radius: 12px;
+  background: #e7e0f3;
+  color: #302d55;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 20px;
+  touch-action: manipulation;
+}
+.rhythm-tap:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.rhythm-tap:active:not(:disabled) {
+  background: #b7a7d3;
+}
+.rhythm-paper .rhythm-hit {
+  fill: #49805b;
+  stroke: #49805b;
+}
+.rhythm-paper .rhythm-missed {
+  fill: #b0653e;
+  stroke: #b0653e;
+}
+@media (max-width: 600px) {
+  .practice-controls {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .practice-controls label:first-child {
+    grid-column: 1/-1;
+  }
+  .practice-controls select {
+    font-size: 16px;
+  }
+  .hymn-grades label:first-child {
+    grid-column: 1/-1;
   }
 }

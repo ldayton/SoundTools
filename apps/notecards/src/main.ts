@@ -53,11 +53,15 @@ import {
   diagnosticsContext,
   mountDiagnostics,
 } from "./diagnostics";
-import type { SightReading } from "./sight-reading";
+import { isLiveMode, type LiveMode, type LivePractice } from "./live-practice";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
   document.querySelector<T>(s)!;
-let sight: SightReading | undefined;
-let sightLoading: Promise<void> | undefined;
+const live: Partial<Record<LiveMode, LivePractice>> = {};
+const loading: Partial<Record<LiveMode, Promise<void>>> = {};
+const activePractice = () =>
+  isLiveMode(progress.mode) ? live[progress.mode] : undefined;
+const practiceElement = (mode: LiveMode) =>
+  mode === "sight" ? "#sight-reading" : "#" + mode + "-practice";
 let returnBoardFocus = false;
 let raw: string | null = null;
 try {
@@ -86,7 +90,7 @@ $("#app").innerHTML =
   `<header><a class="brand" href="/" aria-label="Note by Note home"><img class="brand-icon" src="/icon.svg" width="32" height="32" alt="" /> Note by Note<span class="dot">.</span></a><span class="family">SOUNDTOOLS</span></header>
 <main><div class="intro"><p class="eyebrow">A LITTLE PRACTICE, EVERY DAY</p><h1>Get to know your notes.</h1></div>
 <label class="mode-selector">Practice<select id="mode">${MODES.map((m) => `<option value="${m.id}">${m.label}</option>`).join("")}</select></label>
-<div id="sight-reading" hidden></div>
+<div id="sight-reading" hidden></div><div id="patterns-practice" hidden></div><div id="rhythm-practice" hidden></div>
 <section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${progress.roundLength}" value="0" aria-label="Session progress"></progress>
 <div id="question"><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
@@ -150,18 +154,18 @@ const midi = mountMidiPanel(
     if (!document.hidden && document.hasFocus()) answerPiano(note);
   },
   (state) => {
-    if (state !== "connected") sight?.interrupted();
+    if (state !== "connected") activePractice()?.interrupted();
     diagnostics.event("midi.state", { midiState: state });
   },
 );
-midi.setPerformanceListener((note, held) => {
-  if (progress.mode === "sight" && !document.hidden && document.hasFocus())
-    sight?.answer(note, held);
+midi.setPerformanceListener((note, held, timestamp) => {
+  if (isLiveMode(progress.mode) && !document.hidden && document.hasFocus())
+    activePractice()?.answer(note, held, timestamp);
 });
 function refreshMidiAcceptance() {
   midi.setAccepting(
     ((progress.mode === "piano" && phase === "question") ||
-      (progress.mode === "sight" && sight?.listening === true)) &&
+      (isLiveMode(progress.mode) && activePractice()?.listening === true)) &&
       !document.hidden &&
       document.hasFocus(),
   );
@@ -207,8 +211,9 @@ function enableAnswers(enabled: boolean) {
 }
 function syncOptions() {
   const p = profile();
-  const isSight = progress.mode === "sight";
-  $("#sight-reading").hidden = !isSight;
+  const isSight = isLiveMode(progress.mode);
+  for (const mode of ["sight", "patterns", "rhythm"] as const)
+    $(practiceElement(mode)).hidden = progress.mode !== mode;
   $(".practice").hidden = isSight;
   $(".below").hidden = isSight;
   $<HTMLSelectElement>("#roundLength").value = String(progress.roundLength);
@@ -221,7 +226,8 @@ function syncOptions() {
     p.signaturePractice || "major";
   const positions = isPiano ? PIANO_POSITIONS : POSITIONS;
   $("#midi-panel").hidden = !isPiano && !isSight;
-  if (isSight && sight) sight.midiSlot.append($("#midi-panel"));
+  if (isSight && activePractice())
+    activePractice()!.midiSlot.append($("#midi-panel"));
   else if (!isSight) $("#question").append($("#midi-panel"));
   midi.setPerformanceMode(isSight);
   $("#piano-prompt-setting").hidden = !isPiano;
@@ -454,7 +460,7 @@ function answerName(letter: Letter) {
   if (
     phase !== "question" ||
     progress.mode === "piano" ||
-    progress.mode === "sight" ||
+    isLiveMode(progress.mode) ||
     isLocationMode(progress.mode) ||
     !session.current
   )
@@ -525,25 +531,37 @@ function answerPiano(midi: number) {
 function start(continuing = false) {
   clearTimeout(timer);
   pendingNext = false;
-  sight?.setActive(progress.mode === "sight");
-  if (progress.mode === "sight") {
+  for (const [mode, controller] of Object.entries(live))
+    if (mode !== progress.mode) controller.setActive(false);
+  if (isLiveMode(progress.mode)) {
+    const mode = progress.mode;
     phase = "question";
     syncOptions();
-    if (!sight && !sightLoading) {
-      $("#sight-reading").textContent = "Loading hymns…";
-      sightLoading = import("./sight-reading")
-        .then(({ SightReading }) => {
-          sight = new SightReading($("#sight-reading"), refreshMidiAcceptance);
+    if (live[mode]) live[mode]!.setActive(true);
+    else if (!loading[mode]) {
+      $(practiceElement(mode)).textContent = "Loading practice…";
+      loading[mode] = (
+        mode === "sight"
+          ? import("./sight-reading").then((m) => m.SightReading)
+          : mode === "patterns"
+            ? import("./patterns").then((m) => m.IntervalPatterns)
+            : import("./rhythm").then((m) => m.RhythmPractice)
+      )
+        .then((Controller) => {
+          live[mode] = new Controller(
+            $(practiceElement(mode)),
+            refreshMidiAcceptance,
+          );
           syncOptions();
-          sight.setActive(progress.mode === "sight");
+          live[mode]!.setActive(progress.mode === mode);
         })
         .catch((error) => {
-          $("#sight-reading").textContent =
-            "Hymns couldn’t load. Choose another practice mode, then try again.";
-          diagnostics.capture(error, "sight_reading.load_failed");
+          $(practiceElement(mode)).textContent =
+            "Practice couldn’t load. Choose another mode, then try again.";
+          diagnostics.capture(error, "practice.load_failed");
         })
         .finally(() => {
-          sightLoading = undefined;
+          delete loading[mode];
         });
     }
     syncDiagnosticsContext();
@@ -691,7 +709,7 @@ window.addEventListener("keydown", (event) => {
     phase !== "question" ||
     isLocationMode(progress.mode) ||
     progress.mode === "piano" ||
-    progress.mode === "sight"
+    isLiveMode(progress.mode)
   )
     return;
   if (
@@ -720,14 +738,14 @@ window.addEventListener("keydown", (event) => {
   }
 });
 window.addEventListener("blur", () => {
-  sight?.interrupted();
+  activePractice()?.interrupted();
   setModifier(0);
   midi.setAccepting(false);
 });
 window.addEventListener("focus", refreshMidiAcceptance);
 window.addEventListener("pagehide", () => midi.disconnect());
 document.addEventListener("visibilitychange", () => {
-  sight?.interrupted();
+  activePractice()?.interrupted();
   setModifier(0);
   refreshMidiAcceptance();
   if (!document.hidden && pendingNext) next();

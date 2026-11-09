@@ -17,7 +17,7 @@ export type RecordStats = {
   due: number;
 };
 export type Progress = {
-  version: 4;
+  version: 5;
   roundLength: RoundLength;
   mode: Mode;
   profiles: Record<Mode, Profile>;
@@ -37,14 +37,19 @@ export function defaultProgress(): Progress {
       },
     ]),
   ) as Record<Mode, Profile>;
-  return { version: 4, roundLength: 12, mode: "staff", profiles, stats: {} };
+  Object.assign(profiles.piano, {
+    staffLayout: "grand",
+    overlapPractice: "standard",
+    octavePractice: "off",
+  });
+  return { version: 5, roundLength: 12, mode: "staff", profiles, stats: {} };
 }
 export function loadProgress(raw: string | null): Progress {
   const result = defaultProgress();
   try {
     const data = JSON.parse(raw || "null");
     if (!data) return result;
-    if (![3, 4].includes(data.version)) {
+    if (![3, 4, 5].includes(data.version)) {
       if (![1, 2].includes(data.version)) return result;
       const old = readProgress(raw);
       result.mode = "staff";
@@ -68,6 +73,16 @@ export function loadProgress(raw: string | null): Progress {
         ["major", "minor", "both"].includes(source.signaturePractice)
       )
         profile.signaturePractice = source.signaturePractice;
+      if (mode === "piano") {
+        // Existing piano users practiced ordinary treble; do not silently change their clef.
+        if (data.version < 5) profile.staffLayout = "treble";
+        if (["treble", "bass", "grand"].includes(source.staffLayout))
+          profile.staffLayout = source.staffLayout;
+        if (["standard", "both"].includes(source.overlapPractice))
+          profile.overlapPractice = source.overlapPractice;
+        if (["off", "practice"].includes(source.octavePractice))
+          profile.octavePractice = source.octavePractice;
+      }
       const positions = mode === "piano" ? PIANO_POSITIONS : POSITIONS;
       if (source.naturalsOnly === true) profile.naturalsOnly = true;
       if (

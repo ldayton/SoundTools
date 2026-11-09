@@ -340,6 +340,75 @@ try {
   await page.keyboard.press("Enter");
   assert.equal(await page.locator("#low-spin").inputValue(), "C4");
 
+  // Notation changes never change the sounding answer, including MIDI-only notes.
+  await page.evaluate(() => (Math.random = () => 0));
+  await page.locator("#staffLayout").selectOption("grand");
+  await page.locator("#overlapPractice").selectOption("both");
+  await page.locator("#octavePractice").selectOption("practice");
+  await page
+    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
+    .click();
+  await page
+    .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
+    .waitFor();
+  await chooseRange("low", "C6");
+  await chooseRange("high", "C6");
+  assert.equal(
+    await page.locator("#notation svg").getAttribute("data-written"),
+    "C5",
+  );
+  assert.equal(
+    await page.locator("#notation svg").getAttribute("data-octave-shift"),
+    "12",
+  );
+  assert.ok(await page.locator("#piano-midi-required").isVisible());
+  assert.equal(await page.locator(".piano-key").count(), 24);
+  await on(72);
+  await off(72);
+  assert.equal(
+    await page.locator("#feedback").textContent(),
+    "That’s C6. You chose C5.",
+  );
+  await page.waitForFunction(
+    () => document.querySelector("#counter")?.textContent === "2 / 12",
+  );
+  await on(84);
+  await off(84);
+  assert.equal(await page.locator("#feedback").textContent(), "Yes — C6");
+  await page.locator("#staffLayout").selectOption("bass");
+  await chooseRange("low", "C2");
+  await chooseRange("high", "C2");
+  assert.equal(
+    await page.locator("#notation svg").getAttribute("data-written"),
+    "C3",
+  );
+  assert.equal(
+    await page.locator("#notation svg").getAttribute("data-octave-shift"),
+    "-12",
+  );
+  await on(48);
+  await off(48);
+  assert.equal(
+    await page.locator("#feedback").textContent(),
+    "That’s C2. You chose C3.",
+  );
+  await page.waitForFunction(
+    () => document.querySelector("#counter")?.textContent === "2 / 12",
+  );
+  await on(36);
+  await off(36);
+  assert.equal(await page.locator("#feedback").textContent(), "Yes — C2");
+  await page.locator("#staffLayout").selectOption("grand");
+  await chooseRange("low", "C4");
+  await chooseRange("high", "C4");
+  assert.equal(
+    await page.locator("#notation svg").getAttribute("data-clef"),
+    "bass",
+  );
+  assert.ok(await page.locator("#piano-midi-required").isHidden());
+  await on(60);
+  await off(60);
+  assert.equal(await page.locator("#feedback").textContent(), "Yes — C4");
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: simulated MIDI grading, held/chord guards, focus, hotplug, input switching, denied/retry, offline, unsupported fallback, C2–B6 grading, compact keyboard, MIDI-only notices and range picker passed`,

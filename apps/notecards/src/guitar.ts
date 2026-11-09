@@ -29,6 +29,9 @@ export type Profile = Settings & {
   maxFret: number;
   naturalsOnly?: boolean;
   pianoPrompt?: "staff" | "name";
+  staffLayout?: "treble" | "bass" | "grand";
+  overlapPractice?: "standard" | "both";
+  octavePractice?: "off" | "practice";
   signaturePractice?: "major" | "minor" | "both";
 };
 export type GuitarCard = Card & { string: number; fret: number; midi: number };

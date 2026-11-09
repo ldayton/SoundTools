@@ -1,3 +1,5 @@
+import { pianoNotation } from "./piano-notation";
+import { drawPianoNotation } from "./notation";
 import { RangePicker } from "./range-picker";
 import {
   deck,
@@ -95,6 +97,12 @@ $("#app").innerHTML =
 <div class="below"><details><summary>Practice options</summary><label class="round-length">Exercises per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label}</option>`).join("")}</select></label>
 <label id="signature-practice-setting" hidden>Keys<select id="signaturePractice"><option value="major">Major only</option><option value="minor">Minor only</option><option value="both">Major & minor</option></select></label>
 <label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
+<div id="piano-notation-options" hidden>
+<label>Staff layout<select id="staffLayout"><option value="treble">Treble</option><option value="bass">Bass</option><option value="grand">Grand staff</option></select></label>
+<label id="overlap-setting">Overlapping notes<select id="overlapPractice"><option value="standard">Standard placement</option><option value="both">Practice both clefs</option></select></label>
+<label>Octave markings<select id="octavePractice"><option value="off">Off</option><option value="practice">Practice 8va/8vb</option></select></label>
+<p class="notation-help">8va: play an octave higher than written. 8vb: play an octave lower. Pitch range always refers to the sounding notes.</p>
+</div>
 <label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes · sharps & flats</option><option value="naturals">Naturals only</option></select></label>
 <div class="range" id="pitch-range" role="group" aria-label="Sounding guitar pitch range">${(["low", "high"] as const).map((f) => `<label>${f === "low" ? "Lowest" : "Highest"}<select id="${f}">${POSITIONS.map((n) => `<option>${n}</option>`).join("")}</select></label>`).join("")}</div>
 <div class="range" id="piano-range" role="group" aria-label="Piano pitch range" hidden>${(["low", "high"] as const).map((f) => `<div><label for="${f}-spin">${f === "low" ? "Lowest" : "Highest"}</label><div class="note-field"><input id="${f}-spin" aria-label="${f === "low" ? "Lowest" : "Highest"} note" readonly /><button id="${f}-choose" type="button" aria-label="Choose ${f === "low" ? "lowest" : "highest"} note">⌄</button></div></div>`).join("")}</div>
@@ -199,6 +207,12 @@ function syncOptions() {
   $("#midi-panel").hidden = !isPiano;
   $("#piano-prompt-setting").hidden = !isPiano;
   $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
+  $("#piano-notation-options").hidden = !isPiano || p.pianoPrompt === "name";
+  $<HTMLSelectElement>("#staffLayout").value = p.staffLayout || "grand";
+  $<HTMLSelectElement>("#overlapPractice").value =
+    p.overlapPractice || "standard";
+  $<HTMLSelectElement>("#octavePractice").value = p.octavePractice || "off";
+  $("#overlap-setting").hidden = p.staffLayout !== "grand";
   $("#pitch-range").hidden = progress.mode !== "staff";
   $("#piano-range").hidden = !isPiano || p.pianoPrompt === "name";
   rangePickers.forEach((picker, i) => {
@@ -295,6 +309,27 @@ function renderQuestion(card: Card | GuitarCard) {
       `Treble clef key signature; identify the ${signature.tonality} key`,
     );
     drawKeySignature($<HTMLDivElement>("#notation"), signature.signature);
+  } else if (isPiano && notation) {
+    const representation = pianoNotation(card, profile());
+    const label =
+      representation.layout === "grand"
+        ? "Grand staff"
+        : `${representation.clef === "bass" ? "Bass" : "Treble"} clef`;
+    const shift =
+      representation.octaveShift === 12
+        ? "; 8va, play one octave higher"
+        : representation.octaveShift === -12
+          ? "; 8vb, play one octave lower"
+          : "";
+    $("#notation").setAttribute(
+      "aria-label",
+      `${label}${shift}; find the sounding note on the piano`,
+    );
+    drawPianoNotation(
+      $<HTMLDivElement>("#notation"),
+      representation,
+      profile().key,
+    );
   } else if (notation) {
     $("#notation").setAttribute(
       "aria-label",
@@ -539,6 +574,21 @@ $<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {
     "staff" | "name";
   changed();
 };
+for (const field of [
+  "staffLayout",
+  "overlapPractice",
+  "octavePractice",
+] as const)
+  $<HTMLSelectElement>("#" + field).onchange = (e) => {
+    const value = (e.target as HTMLSelectElement).value;
+    if (field === "staffLayout")
+      profile().staffLayout = value as "treble" | "bass" | "grand";
+    if (field === "overlapPractice")
+      profile().overlapPractice = value as "standard" | "both";
+    if (field === "octavePractice")
+      profile().octavePractice = value as "off" | "practice";
+    changed();
+  };
 $<HTMLSelectElement>("#nameNotes").onchange = (e) => {
   profile().naturalsOnly = (e.target as HTMLSelectElement).value === "naturals";
   changed();

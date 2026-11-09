@@ -1049,3 +1049,17 @@ input:focus-visible {
   max-width: 400px;
   max-height: none;
 }
+
+#piano-notation-options label {
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+  margin-top: 16px;
+  gap: 6px;
+}
+.notation-help {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #62566e;
+}

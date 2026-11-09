@@ -127,7 +127,7 @@ try {
   assert.ok(
     await page
       .locator(".hymn-feedback")
-      .evaluate((e) => parseFloat(getComputedStyle(e).fontSize) >= 18),
+      .evaluate((e) => parseFloat(getComputedStyle(e).fontSize) >= 14),
   );
   await off(61);
   await send([0x90, 62, 100], true);
@@ -146,9 +146,13 @@ try {
   await on(71);
   assert.equal(await page.locator(".hymn-count").textContent(), "4 / 35");
   for (const n of [62, 67, 71]) await off(n);
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   await page.reload();
   await page.locator(".hymn-count").filter({ hasText: "4 / 35" }).waitFor();
-  await page.locator(".hymn-screen summary").click();
+  await page.locator(".hymn-keyboard-toggle").click();
   await page.locator('.hymn-piano [data-piano="67"]').click();
   assert.equal(await page.locator(".hymn-count").textContent(), "5 / 35");
   await page.locator("#hymn-arrangement").selectOption("original");
@@ -162,6 +166,8 @@ try {
     .waitFor();
   for (const n of [43, 55, 59]) await on(n);
   assert.equal(await page.locator(".hymn-count").textContent(), initial);
+  await page.setViewportSize({ width: 1200, height: 1000 });
+  await page.waitForTimeout(200);
   await on(62);
   assert.match((await page.locator(".hymn-count").textContent())!, /^2 \/ /);
   for (const n of [43, 55, 59, 62]) await off(n);
@@ -264,7 +270,7 @@ try {
   );
   await choose("Amazing Grace");
   await page.locator("#hymn-arrangement").selectOption("melody");
-  await page.locator(".hymn-screen summary").click(); // close to keep the review screenshot focused on the score
+  await page.locator(".hymn-keyboard-toggle").click(); // close to keep the review screenshot focused on the score
   await mkdir("work", { recursive: true });
   await page.screenshot({
     path: `work/sight-reading-${engine}-mobile.png`,

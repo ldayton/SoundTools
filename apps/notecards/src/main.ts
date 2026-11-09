@@ -48,6 +48,7 @@ import {
 } from "./piano-model";
 import { Fretboard } from "./fretboard";
 import "./style.css";
+import "./workspace.css";
 import { setupOffline } from "./offline";
 import {
   diagnostics,
@@ -125,9 +126,44 @@ $("#app").innerHTML =
       "",
     )}</fieldset><div class="range">${(["minFret", "maxFret"] as const).map((f) => `<label>${f === "minFret" ? "Lowest fret" : "Highest fret"}<select id="${f}">${Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i === 0 ? "0 · Open" : i}</option>`).join("")}</select></label>`).join("")}</div><p class="tuning">Standard tuning · E A D G B E</p></div>
 <p>Changing options starts a fresh session.</p></details></div><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section></main><footer>One note at a time.</footer>`;
+// Keep controls inside the persistence-inert main while placing them above practice.
+const toolbar = document.createElement("div");
+toolbar.className = "app-toolbar";
+const options = $(".practice-options");
+const roundSettings = document.createElement("div");
+roundSettings.id = "round-settings";
+for (const child of [...options.children])
+  if (child.tagName !== "SUMMARY") roundSettings.append(child);
+const settingsBody = document.createElement("div");
+settingsBody.className = "settings-body";
+const closeSettings = document.createElement("button");
+closeSettings.type = "button";
+closeSettings.className = "settings-close";
+closeSettings.textContent = "Close options";
+const dismissSettings = () => {
+  (options as HTMLDetailsElement).open = false;
+  options.querySelector("summary")!.focus();
+};
+closeSettings.onclick = dismissSettings;
+options.addEventListener("keydown", (event) => {
+  if (
+    event.key === "Escape" &&
+    !event.defaultPrevented &&
+    !document.querySelector(":popover-open")
+  )
+    dismissSettings();
+});
+settingsBody.append(closeSettings, roundSettings);
+options.append(settingsBody);
+toolbar.append($(".mode-selector"), options, $("#midi-panel"));
+document.querySelector("main")!.prepend(toolbar);
+const statusBar = document.createElement("div");
+statusBar.className = "app-status";
+statusBar.append($("#saved"), $("#offline-status"), $(".offline-actions"));
+document.querySelector("header")!.append(statusBar);
 document.querySelector("main")!.inert = true;
 $<HTMLSelectElement>("#mode").disabled = true;
-mountDiagnostics(document.querySelector("main")!);
+mountDiagnostics(settingsBody);
 const board = new Fretboard($("#fretboard"), answerLocation);
 const rangePickers = (["low", "high"] as const).map(
   (field) =>
@@ -146,7 +182,7 @@ const rangePickers = (["low", "high"] as const).map(
       },
     ),
 );
-const piano = new Piano($("#piano"), answerPiano);
+const piano = new Piano($("#piano"), answerPiano, refreshPianoRange);
 const midi = mountMidiPanel(
   $("#midi-panel"),
   (note) => {
@@ -169,6 +205,23 @@ function refreshMidiAcceptance() {
       !document.hidden &&
       document.hasFocus(),
   );
+}
+function refreshPianoRange() {
+  if (progress.mode !== "piano") return;
+  const named = profile().pianoPrompt === "name";
+  const [low, high] = piano.visibleBounds;
+  const outside =
+    !named && pianoDeck(profile()).some((card) => !piano.contains(pitch(card)));
+  $("#piano-range-notice").hidden = !outside;
+  $("#piano-range-notice").textContent =
+    `On-screen keys: ${keyLabel(low)}–${keyLabel(high)}. Notes outside these keys require MIDI keyboard input.`;
+  const required =
+    !named && !!session?.current && !piano.contains(pitch(session.current));
+  piano.setUnavailable(phase !== "question" || required);
+  $("#piano-midi-required").hidden = !required;
+  $("#piano-midi-required").textContent =
+    "MIDI keyboard required — this note is outside the on-screen keys. Play it on your connected keyboard, or change the practice range.";
+  $(".piano-hint").hidden = required;
 }
 function save() {
   if (!persistence.writable) return Promise.resolve(false);
@@ -221,6 +274,10 @@ function syncOptions() {
     $(practiceElement(mode)).hidden = progress.mode !== mode;
   $(".practice").hidden = isSight;
   $(".below").hidden = isSight;
+  $("#round-settings").hidden = isSight;
+  document
+    .querySelector("main")!
+    .classList.toggle("piano-layout-wide", progress.mode === "piano");
   $<HTMLSelectElement>("#roundLength").value = String(progress.roundLength);
   $<HTMLSelectElement>("#mode").value = progress.mode;
   $<HTMLSelectElement>("#key").value = p.key;
@@ -231,9 +288,6 @@ function syncOptions() {
     p.signaturePractice || "major";
   const positions = isPiano ? PIANO_POSITIONS : POSITIONS;
   $("#midi-panel").hidden = !isPiano && !isSight;
-  if (isSight && activePractice())
-    activePractice()!.midiSlot.append($("#midi-panel"));
-  else if (!isSight) $("#question").append($("#midi-panel"));
   midi.setPerformanceMode(isSight);
   $("#piano-prompt-setting").hidden = !isPiano;
   $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
@@ -253,16 +307,6 @@ function syncOptions() {
     "aria-label",
     isPiano ? "Piano pitch range" : "Sounding guitar pitch range",
   );
-  const [screenLow, screenHigh] = isPiano ? pianoBounds(p) : [60, 83];
-  const midiOnlyRange =
-    isPiano &&
-    p.pianoPrompt !== "name" &&
-    pianoDeck(p).some(
-      (card) => pitch(card) < screenLow || pitch(card) > screenHigh,
-    );
-  $("#piano-range-notice").hidden = !midiOnlyRange;
-  $("#piano-range-notice").textContent =
-    `On-screen keys: ${keyLabel(screenLow)}–${keyLabel(screenHigh)}. Notes outside these keys require MIDI keyboard input. Connect your keyboard or choose a smaller range to answer on screen.`;
   $("#guitar-options").hidden =
     progress.mode === "staff" || isPiano || isSignature;
   $("#key-setting").hidden = progress.mode === "name" || isSignature;
@@ -385,12 +429,7 @@ function renderQuestion(card: Card | GuitarCard) {
     const named = profile().pianoPrompt === "name";
     const [low, high] = pianoBounds(profile());
     piano.show(low, high, named);
-    const midiRequired = !named && (pitch(card) < low || pitch(card) > high);
-    piano.setUnavailable(midiRequired);
-    $("#piano-midi-required").hidden = !midiRequired;
-    $("#piano-midi-required").textContent =
-      "MIDI keyboard required — this note is outside the on-screen keys. Play it on your connected keyboard, or change the practice range.";
-    $(".piano-hint").hidden = midiRequired;
+    refreshPianoRange();
     $("#target-name").textContent = name(card);
     $("#target-string").textContent = "";
   } else if (mode !== "staff" && !isSignature) {
@@ -727,8 +766,7 @@ $<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
 };
 $<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {
   profile().pianoPrompt = (e.target as HTMLSelectElement).value as
-    | "staff"
-    | "name";
+    "staff" | "name";
   changed();
 };
 for (const field of [

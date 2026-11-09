@@ -48,9 +48,10 @@ try {
   await page.locator("#mode").selectOption("patterns");
   await page.locator(".pattern-count").filter({ hasText: "1 / 4" }).waitFor();
   assert.equal(
-    await page.locator(".pattern-paper .sight-current").first().evaluate(
-      (e) => getComputedStyle(e).fill,
-    ),
+    await page
+      .locator(".pattern-paper .sight-current")
+      .first()
+      .evaluate((e) => getComputedStyle(e).fill),
     "rgb(176, 101, 62)",
   );
   await page
@@ -113,6 +114,7 @@ try {
     (await page.locator(".hymn-feedback:visible").textContent())!,
     /Count-in/,
   );
+  await page.setViewportSize({ width: 900, height: 1000 });
   await page.clock.runFor(4000);
   for (let i = 0; i < 16; i++) {
     await on(60);

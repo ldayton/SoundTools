@@ -52,6 +52,12 @@ export class RangePicker {
       input.focus({ preventScroll: true });
     });
     this.popover.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this.close();
+        input.focus({ preventScroll: true });
+        return;
+      }
       const selected = (event.target as HTMLElement).closest<HTMLElement>(
         "[data-position]",
       );
@@ -90,6 +96,7 @@ export class RangePicker {
         return;
       }
       if (event.key === "Escape") {
+        event.preventDefault();
         input.value = noteChoiceLabel(this.value);
         input.setCustomValidity("");
         input.removeAttribute("aria-invalid");

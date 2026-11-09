@@ -135,14 +135,14 @@ export class RhythmPractice {
         this.answer(60);
       }
     });
-    new ResizeObserver(() => {
-      const w = this.$(".hymn-score").clientWidth;
-      if (this.active && w > 0 && Math.abs(w - this.width) > 2) {
-        if (this.state === "playing" || this.state === "countin")
-          this.interrupted();
-        this.render();
-      }
-    }).observe(this.$(".hymn-score"));
+    new ResizeObserver(() =>
+      requestAnimationFrame(() => {
+        const w = this.$(".hymn-score").clientWidth;
+        if (this.active && w > 0 && Math.abs(w - this.width) > 2) {
+          this.render(true);
+        }
+      }),
+    ).observe(this.$(".hymn-score"));
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;
@@ -193,7 +193,7 @@ export class RhythmPractice {
       .forEach((e) => e.classList.remove("is-beat"));
     this.changed();
   }
-  private render() {
+  private render(layoutOnly = false) {
     this.width = this.$(".hymn-score").clientWidth;
     if (!this.width) return;
     try {
@@ -202,10 +202,11 @@ export class RhythmPractice {
         `X:1\nM:4/4\nL:1/8\nK:C clef=perc stafflines=1\n${this.bars.map((bar) => bar.map((n) => (n.rest ? "z" : "B") + n.beats * 2).join(" ")).join(" | ")} |]\n`,
         this.width,
       );
-      this.$(".hymn-feedback").textContent =
-        "Two bars to count in, then your turn.";
+      if (!layoutOnly)
+        this.$(".hymn-feedback").textContent =
+          "Two bars to count in, then your turn.";
       if (this.result) this.showResult();
-      this.save();
+      if (!layoutOnly) this.save();
     } catch (e) {
       this.$(".hymn-feedback").textContent =
         "The rhythm couldn’t load. Try a new rhythm.";

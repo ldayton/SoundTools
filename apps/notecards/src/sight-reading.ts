@@ -14,11 +14,13 @@ import {
 import hymns from "./hymns.json";
 import { WaitForMe, searchHymns } from "./sight-reading-model";
 import { Piano } from "./piano";
+import { keyLabel } from "./piano-model";
 import { diagnostics } from "./diagnostics";
 import { persistence } from "./persistence";
 import { bookmark, restoreBookmark, type Bookmark } from "./bookmarks";
 type HymnState = {
   version: 1;
+  zoom?: number;
   hymn: string;
   arrangement: Arrangement;
   sectionBars: number;
@@ -64,6 +66,7 @@ export class SightReading {
   private piano: Piano;
   private observer: ResizeObserver;
   private lastWidth = 0;
+  private zoom = 1;
   private matches = hymns;
   private choice = -1;
   readonly midiSlot: HTMLElement;
@@ -87,6 +90,7 @@ export class SightReading {
         typeof saved.sections === "object"
       )
         this.savedSections = structuredClone(saved.sections);
+      if ([0.85, 1, 1.2].includes(saved?.zoom)) this.zoom = saved.zoom;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
       if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
         this.arrangement = saved.arrangement;
@@ -124,10 +128,46 @@ export class SightReading {
     element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div></div>
     <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars at a time</option><option value="2">2 bars at a time</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
     <section class="hymn-practice" aria-label="Hymn sight reading"><div class="hymn-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="hymn-title"></h2><p class="hymn-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="hymn-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll to see the full score ↕</p><p class="hymn-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="hymn-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p>Public-domain words, melody and setting. First verse and refrain.</p></details></section>`;
+    const context = document.createElement("div");
+    context.className = "hymn-context";
+    context.append(this.$(".hymn-controls"), this.$(".hymn-grades"));
+    const tools = document.createElement("div");
+    tools.className = "hymn-tools";
+    tools.innerHTML =
+      '<label>Score size<select aria-label="Score size"><option value="0.85">Small</option><option value="1" selected>Medium</option><option value="1.2">Large</option></select></label><button type="button" class="hymn-keyboard-toggle" aria-expanded="false">On-screen piano</button>';
+    tools.append(this.$(".hymn-transport"), this.$(".hymn-source"));
+    context.append(tools);
+    element.prepend(context);
+    this.$(".hymn-source").append(this.$(".hymn-help"));
+    this.$(".hymn-top").append(this.$(".hymn-scroll-hint"));
+    this.$<HTMLSelectElement>('[aria-label="Score size"]').value = String(
+      this.zoom,
+    );
+    this.$<HTMLSelectElement>('[aria-label="Score size"]').onchange = (e) => {
+      this.zoom = Number((e.target as HTMLSelectElement).value);
+      this.render(true);
+      this.save();
+    };
+    this.$(".hymn-keyboard-toggle").onclick = () => {
+      const screen = this.$<HTMLDetailsElement>(".hymn-screen");
+      screen.open = !screen.open;
+      this.$(".hymn-keyboard-toggle").setAttribute(
+        "aria-expanded",
+        String(screen.open),
+      );
+    };
+    this.$(".hymn-top").insertAdjacentHTML(
+      "beforeend",
+      '<span class="hymn-range-hint" hidden></span>',
+    );
     this.midiSlot = this.$(".hymn-midi-slot");
-    this.piano = new Piano(this.$(".hymn-piano"), (note) => {
-      if (this.accepting) this.answer(note);
-    });
+    this.piano = new Piano(
+      this.$(".hymn-piano"),
+      (note) => {
+        if (this.accepting) this.answer(note);
+      },
+      () => this.updateRangeHint(),
+    );
     const input = this.$<HTMLInputElement>("#hymn-search");
     input.value = this.hymn.title;
     input.onfocus = () => {
@@ -231,14 +271,17 @@ export class SightReading {
       else this.choose(hymns[(hymns.indexOf(this.hymn) + 1) % hymns.length]);
     };
     this.$(".hymn-screen").addEventListener("toggle", () => {
+      this.updateRangeHint();
       if ((this.$(".hymn-screen") as HTMLDetailsElement).open)
         this.preparePiano();
     });
-    this.observer = new ResizeObserver(() => {
-      const width = Math.round(this.$(".hymn-score").clientWidth);
-      if (this.active && width > 0 && Math.abs(width - this.lastWidth) > 2)
-        this.render();
-    });
+    this.observer = new ResizeObserver(() =>
+      requestAnimationFrame(() => {
+        const width = Math.round(this.$(".hymn-score").clientWidth);
+        if (this.active && width > 0 && Math.abs(width - this.lastWidth) > 2)
+          this.render(true);
+      }),
+    );
     this.observer.observe(this.$(".hymn-score"));
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
@@ -279,6 +322,7 @@ export class SightReading {
     this.savedSections[this.selectionKey()] = this.section;
     persistence.write("sight", {
       version: 1,
+      zoom: this.zoom,
       hymn: this.hymn.id,
       arrangement: this.arrangement,
       sectionBars: this.sectionBars,
@@ -339,12 +383,18 @@ export class SightReading {
     this.render();
     this.save();
   }
-  private render() {
+  private render(layoutOnly = false) {
     const paper = this.$(".hymn-paper");
     this.lastWidth = Math.round(this.$(".hymn-score").clientWidth);
     if (!this.lastWidth) return;
-    this.session = undefined;
-    this.acceptanceChanged();
+    const previous = this.session;
+    const feedback = this.$(".hymn-feedback");
+    const previousText = feedback.textContent;
+    const previousKind = feedback.dataset.kind;
+    if (!layoutOnly) {
+      this.session = undefined;
+      this.acceptanceChanged();
+    }
     this.$(".hymn-title").textContent = this.hymn.title;
     this.$(".hymn-practice").dataset.arrangement = this.arrangement;
     this.$(".hymn-credits").textContent = this.hymn.credits.join(" ");
@@ -378,7 +428,8 @@ export class SightReading {
         paper,
         score.abc,
         this.lastWidth,
-        this.lastWidth >= 900 ? 1.55 : this.lastWidth >= 600 ? 1.35 : 1.12,
+        (this.lastWidth >= 900 ? 1.55 : this.lastWidth >= 600 ? 1.35 : 1.12) *
+          this.zoom,
       );
       const steps = eventSteps(this.events);
       const content = JSON.stringify({ matcher: 1, abc: score.abc, steps });
@@ -392,15 +443,47 @@ export class SightReading {
         this.paused = restored.paused;
         this.restorePending = false;
       }
+      const keepSession = layoutOnly && previous && this.content === content;
       this.content = content;
-      this.session = new WaitForMe(steps, this.position);
+      this.session = keepSession
+        ? previous
+        : new WaitForMe(steps, this.position);
       this.position = this.session.index;
       const viewport = this.$(".hymn-score");
+      // Two single-staff systems, or one grand-staff system, on a phone.
+      const lines = [...paper.querySelectorAll("svg")];
+      if (lines.length) {
+        const grand = lines.some(
+          (line) => line.querySelectorAll(".abcjs-staff").length > 1,
+        );
+        const height = Math.max(
+          ...lines.map((line, i) => {
+            const last = grand
+              ? line
+              : lines[Math.min(i + 1, lines.length - 1)];
+            return (
+              last.getBoundingClientRect().bottom -
+              line.getBoundingClientRect().top
+            );
+          }),
+        );
+        viewport.style.setProperty(
+          "--phone-score-height",
+          `${Math.ceil(height + 8)}px`,
+        );
+      }
       this.$(".hymn-scroll-hint").hidden =
         viewport.scrollHeight <= viewport.clientHeight + 1;
       this.preparePiano();
-      this.update(true);
-      this.save();
+      this.update(true, !!keepSession);
+      if (keepSession) {
+        feedback.textContent = previousText;
+        if (previousKind) feedback.dataset.kind = previousKind;
+        for (const note of this.session.selected)
+          this.element
+            .querySelector(`[data-piano="${note}"]`)
+            ?.classList.add("sight-key-selected");
+      } else this.save();
     } catch (error) {
       this.session = undefined;
       this.events = [];
@@ -418,6 +501,16 @@ export class SightReading {
       this.arrangement !== "melody"
         ? "Tap each note in the highlighted chord, in any order."
         : "Tap the highlighted note’s key.";
+  }
+  private updateRangeHint() {
+    if (!this.piano) return;
+    const missing = (this.session?.current?.pitches || []).filter(
+      (note) => !this.piano.contains(note),
+    );
+    const hint = this.$(".hymn-range-hint");
+    hint.hidden =
+      !this.$<HTMLDetailsElement>(".hymn-screen").open || !missing.length;
+    hint.textContent = `MIDI needed: ${missing.map((note) => keyLabel(note)).join(", ")}`;
   }
   private clearPianoSelection() {
     this.element
@@ -451,7 +544,7 @@ export class SightReading {
     this.save();
     this.update(true);
   }
-  private update(scroll = false) {
+  private update(scroll = false, preserveAcceptance = false) {
     const session = this.session;
     if (!session) return;
     highlightScore(
@@ -490,7 +583,8 @@ export class SightReading {
       !complete && this.section + 1 === this.sections;
     this.$(".hymn-next").textContent =
       this.section + 1 < this.sections ? "Next section →" : "Next hymn →";
+    this.updateRangeHint();
     this.piano.setUnavailable(!this.accepting);
-    this.acceptanceChanged();
+    if (!preserveAcceptance) this.acceptanceChanged();
   }
 }

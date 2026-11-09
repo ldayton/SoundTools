@@ -69,6 +69,7 @@ try {
     `http://127.0.0.1:${(server.address() as { port: number }).port}/`,
   );
   await page.locator('[data-letter="E"]:enabled').waitFor();
+  await page.getByText("Practice options", { exact: true }).click();
   const checkbox = page.getByRole("checkbox", {
     name: "Share diagnostic information",
     exact: true,
@@ -146,10 +147,12 @@ try {
     await new Promise((r) => setTimeout(r, 200));
   assert.ok(uploads.some((s) => s.includes("monitoring.offline_retry")));
   await page.reload();
+  await page.getByText("Practice options", { exact: true }).click();
   await checkbox.waitFor();
   assert.equal(await checkbox.isChecked(), true);
   await checkbox.uncheck();
   await page.reload();
+  await page.getByText("Practice options", { exact: true }).click();
   await checkbox.waitFor();
   assert.equal(await checkbox.isChecked(), false);
   const count = uploads.length;

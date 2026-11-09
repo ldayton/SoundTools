@@ -25,7 +25,8 @@ export function drawPracticeScore(
     responsive: "resize",
     oneSvgPerLine: true,
     staffwidth: Math.max(240, width / musicScale - 28),
-    wrap: { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 4 },
+    // Balance all systems instead of stranding a final bar on its own line.
+    wrap: { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     paddingtop: 12,
     paddingbottom: 18,
     paddingleft: 12,

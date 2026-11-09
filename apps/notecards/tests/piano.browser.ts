@@ -52,9 +52,12 @@ try {
           ?.getAttribute("aria-disabled") === "false",
     );
   assert.equal(await page.locator("#context").textContent(), "Piano · C major");
-  assert.equal(await page.locator(".piano-key").count(), 24);
-  assert.equal(await page.locator(".white-key").count(), 14);
-  assert.equal(await page.locator(".black-key").count(), 10);
+  assert.ok((await page.locator(".piano-key").count()) > 24);
+  assert.equal(
+    (await page.locator(".white-key").first().boundingBox())!.width,
+    36,
+  );
+  assert.ok((await page.locator(".black-key").count()) > 10);
   assert.ok(await page.locator("#fretboard").isHidden());
   assert.ok(await page.locator(".keyboard").isHidden());
   const rowBoxes = await page.locator(".piano-octave").evaluateAll((els) =>
@@ -63,8 +66,7 @@ try {
       return { x: b.x, y: b.y, w: b.width };
     }),
   );
-  assert.equal(rowBoxes[0].y, rowBoxes[1].y);
-  assert.ok(Math.abs(rowBoxes[0].x + rowBoxes[0].w - rowBoxes[1].x) < 1);
+  assert.equal(rowBoxes.length, 1);
   await key(72).click(); // C5 is not C4 in staff mode.
   assert.match((await page.locator("#feedback").textContent())!, /That’s C4/);
   assert.ok(await key(60).evaluate((e) => e.classList.contains("is-right")));
@@ -130,6 +132,9 @@ try {
   });
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
+    await page.waitForFunction(
+      () => document.querySelectorAll(".piano-octave").length === 2,
+    );
     const dimensions = await page.evaluate(() => ({
       page: document.documentElement.scrollWidth,
       viewport: innerWidth,

@@ -85,10 +85,13 @@ export class IntervalPatterns {
       this.interrupted();
       this.update();
     };
-    new ResizeObserver(() => {
-      const w = this.$(".hymn-score").clientWidth;
-      if (this.active && w > 0 && Math.abs(w - this.width) > 2) this.render();
-    }).observe(this.$(".hymn-score"));
+    new ResizeObserver(() =>
+      requestAnimationFrame(() => {
+        const w = this.$(".hymn-score").clientWidth;
+        if (this.active && w > 0 && Math.abs(w - this.width) > 2)
+          this.render(true);
+      }),
+    ).observe(this.$(".hymn-score"));
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;
@@ -125,11 +128,14 @@ export class IntervalPatterns {
     this.paused = false;
     this.render();
   }
-  private render() {
+  private render(layoutOnly = false) {
     this.width = this.$(".hymn-score").clientWidth;
     if (!this.width) return;
-    this.session = undefined;
-    this.changed();
+    const previous = this.session;
+    if (!layoutOnly) {
+      this.session = undefined;
+      this.changed();
+    }
     const music = this.notes
       .map((m) => {
         const n = spellPitch(m, this.settings.key)!;
@@ -146,7 +152,10 @@ export class IntervalPatterns {
         `X:1\nM:4/4\nL:1/64\nK:${this.settings.key} clef=${this.settings.hand === "left" ? "bass" : "treble"}\n${music} |]\n`,
         this.width,
       );
-      this.session = new WaitForMe(eventSteps(this.events), this.position);
+      this.session =
+        layoutOnly && previous
+          ? previous
+          : new WaitForMe(eventSteps(this.events), this.position);
       this.piano.show(...keyboardRange(this.events), false);
       this.update(true);
     } catch (e) {

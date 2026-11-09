@@ -217,6 +217,10 @@ try {
       document.querySelector("#offline-status")?.textContent ===
       "Available offline",
   );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   await context.setOffline(true);
   await page.reload();
   await ready();
@@ -261,7 +265,9 @@ try {
   );
   assert.ok(await fallback.locator('[data-piano="60"]').isVisible());
   await unsupported.close();
-  // The full range stays available through MIDI without enlarging the on-screen piano.
+  // A phone still grades the full range through MIDI outside its visible keys.
+  await page.setViewportSize({ width: 390, height: 844 });
+
   await page.bringToFront();
   await off(60);
   await page.getByText("Practice options", { exact: true }).click();
@@ -357,11 +363,15 @@ try {
   await page.locator("#overlapPractice").selectOption("both");
   await page.locator("#octavePractice").selectOption("practice");
   await page
+    .getByRole("button", { name: "Close options", exact: true })
+    .click();
+  await page
     .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
     .click();
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
     .waitFor();
+  await page.getByText("Practice options", { exact: true }).click();
   await chooseRange("low", "C6");
   await chooseRange("high", "C6");
   assert.equal(

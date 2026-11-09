@@ -1,0 +1,321 @@
+[
+  {
+    "id": "amazing-grace",
+    "title": "Amazing Grace",
+    "file": "Amazing_Grace-New_Britain.abc",
+    "folder": "Amazing_Grace",
+    "key": "G",
+    "meter": "3/4",
+    "credits": [
+      "Words: John Newton, 1779.  last verse author unknown, before 1829.",
+      "Music: 'New Britain' James P. Carrell and David L. Clayton, 1831.  Setting: Edwin Othello Excell, 1900.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2006 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Amazing_Grace-New_Britain.abc",
+    "melody": "X:1\nT:Amazing Grace\nM:3/4\nL:1/64\nK:G\nD16 | G32 B8G8 | B32 A16 | G32 E16 | D32 D16 |\nw: A- maz- ing * grace! How sweet the sound That\nG32 B8G8 | B32 A16 | d48- | d32 B16 | (d24 B8) d8B8 | G32 D16 |\nw: saved a * wretch like me! * I once * was * lost, but\n(E24 G8) G8E8 | D32 D16 | G32 B8G8 | B32 A16 | G48- | G32 |]\nw: now * am * found; Was blind, but * now I see. *\n",
+    "harmony": "X: 1\nT: Amazing Grace\nM: 3/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]    D | G2 B/G/ | B2 A | G2 E | D2 D |\nw: A- maz- ing * grace! How sweet the sound That \n[V: S1V2]  B, | B,2 D | D2 C | B,2 C | B,2 B, |\n[V: S2V1]  G, | D,2 G, | G,2 F, | G,2 G, | G,2 G, |\n[V: S2V2]  G,, | G,,2 G,,/B,,/ | D,2 D, | E,2 C, | G,,2 G,, |\n[V: S1V1]  G2 B/G/ | B2 A | d3- | d2 B | (d3/2 B/) d/B/ | G2 D |\nw: saved a * wretch like me! * I once * was * lost, but\n[V: S1V2]  B,2 D | D2 D | D3- | D2 D | D2 D | D2 D |\n[V: S2V1]  D,2 G, | G,2 F, | G,3- | G,2 G, | (B,3/2 G,/) B,/G,/ | G,2 G, |\n[V: S2V2]  G,,2 G,,/B,,/ | D,2 C, | B,,3- | B,,2 G,, | G,2 G, | B,,2 B,, |\n[V: S1V1]  (E3/2 G/) G/E/ | D2 D | G2 B/G/ | B2 A | G3- | G2 |]\nw:   now * am * found; Was blind, but * now I see. * \n[V: S1V2]  C3/2 D/ C | B,2 D | B,2 D | G2 F | D3- | D2 |]\n[V: S2V1]  G,2 E,/G,/ | G,2 G, | G,2 G,/B,/ | D2 C | B,3- | B,2 |]\n[V: S2V2]  (C,3/2 B,,/) C, | G,,2 B,, | E,2 D, | D,2 D, | G,3- | G,2 |]\n"
+  },
+  {
+    "id": "jesus-loves-me",
+    "title": "Jesus Loves Me",
+    "file": "Jesus_Loves_Me-untitled.abc",
+    "folder": "Jesus_Loves_Me",
+    "key": "Eb",
+    "meter": "4/4",
+    "credits": [
+      "Words: Anna B. Warner, 1860.",
+      "Music: 'untitled' by William B. Bradbury, 1862.  Setting: William B. Bradbury, 1866.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2006 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Jesus_Loves_Me-untitled.abc",
+    "melody": "X:1\nT:Jesus Loves Me\nM:4/4\nL:1/64\nK:Eb\nB16 G16 G16 F16 | G16 B16 B32 | c16 c16 e16 c16 | c16 B16 B32 |\nw: Je- sus loves me! This I know, For the Bi- ble tells me so.\nB16 G16 G16 F16 | G16 B16 B32 | c16 c16 B16 E16 | G16 F16 E32 |\nw: Lit- tle ones to Him be- long; They are weak, but He is strong.\nB32 G16 B16 | c16 e48 | B32 G16 E16 | G16 F48 |\nw: Yes, Je- sus loves me! Yes, Je- sus loves me!\nB32 G16 B16 | c16 e32 c16 | B16 E16 G24 F8 | E64 |]\nw: Yes, Je- sus loves me! The Bi- ble tells me so.\n",
+    "harmony": "X: 1\nT: Jesus Loves Me\nM: 4/4\nL: 1/4\n%%staves S1 | S2 \nV: S1 clef=treble \nV: S2 clef=bass \nK: Eb\n[V: S1]   [GB] [EG] [EG] [DF] | [EG] [GB] [G2B2] | [Ac] [Ac] [ce] [Ac] | [Ac] [GB] [G2B2] |\nw: Je- sus loves me! This I know, For the Bi- ble tells me so. \n[V: S2]   [E,B,] [E,B,] [E,B,] [B,,B,] | [E,B,] [E,B,] [E,2B,2] | [A,,A,] [A,,A,] [A,,A,] [C,A,] | [E,A,] [E,B,] [E,2B,2] |\n[V: S1]  [GB] [EG] [EG] [DF] | [EG] [GB] [G2B2] | [Ac] [Ac] [GB] E | [EG] [DF] E2 |\nw: Lit- tle ones to Him be- long; They are weak, but He is strong. \n[V: S2]  [E,B,] [E,B,] [E,B,] [B,,B,] | [E,B,] [E,B,] [E,2B,2] | [A,,A,] [C,A,] [E,G,] [E,G,] | B, [B,,A,] [E,2G,2] |\n[V: S1]  [G2B2] [EG] [GB] | [Ac] [c3e3] | [G2B2] [EG] E | [EG] [D3F3] |\nw: Yes, Je- sus loves me! Yes, Je- sus loves me! \n[V: S2]  [E,2G,2] [E,B,] [E,E] | [A,,E] [A,,3E3] | [E,2E2] [E,B,] [G,B,] | [B,,B,] [B,,3B,3] |\n[V: S1]  [E2B2] [EG] [GB] | [Ac] [c2e2] [Ac] | [GB] E [E3/2G3/2] [D/F/] | E4 |]\nw: Yes, Je- sus loves me! The Bi- ble tells me so. \n[V: S2]  [G,2B,2] [E,B,] [E,E] | [A,,E] [A,,2E2] [C,E] | [E,E] [G,B,] B,3/2 [B,,/A,/] | [E,4G,4] |]\n"
+  },
+  {
+    "id": "holy-holy-holy",
+    "title": "Holy, Holy, Holy",
+    "file": "Holy_Holy_Holy-Nicaea.abc",
+    "folder": "Holy_Holy_Holy",
+    "key": "D",
+    "meter": "4/4",
+    "credits": [
+      "Words: Reginald Heber, 1826. ",
+      "Music: 'Nicaea' John Bacchus Dykes, 1861.  Setting: \"Hymns Ancient and Modern\", 1869.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2005 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Holy_Holy_Holy-Nicaea.abc",
+    "melody": "X:1\nT:Holy, Holy, Holy\nM:4/4\nL:1/64\nK:D\nD16 D16 F16 F16 | A32 A32 | B16- B16 B16 B16 | A32 F32 | A24 A8 A16 A16 |\nw: Ho- ly, ho- ly, ho- ly! Lord * God Al- migh- ty! Ear- ly in the\nd16- d16 c16 A16 | E16 A16 B24 A8 | A64 | D16 D16 F16 F16 | A16- A16 A32 |\nw: morn- * ing our song shall rise to Thee; Ho- ly, ho- ly, ho- * ly,\nB24 B8 B16 B16 | A32 A32 | d32 A16 A16 | B32 F32 | G16 E16 E24 D8 | D64 |]\nw: mer- ci- ful and might- y! God in three Per- sons, bless- ed Tri- ni- ty!\n",
+    "harmony": "X: 1\nT: Holy, Holy, Holy\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: D\n[V: S1V1]  D D F F | A2 A2 | B- B B B | A2 F2 | A3/2 A/ A A |\nw: Ho- ly, ho- ly, ho- ly! Lord * God Al- migh- ty! Ear- ly in the \n[V: S1V2]  A, A, D D | (C E) (D C) | (B, C) D E | F2 D2 | E E F E |\n[V: S2V1]  F, F, D, D, | (E, G,) (F, A,) | (G, A,) B, C | (D A,) A,2 | A, A, A, A, |\n[V: S2V2]  D, D, B,, B,, | A,,2 D,2 | G,,- G,, G, G, | D,2 D,2 | C, C, D, C, |\n[V: S1V1]  d- d c A | E A B3/2 A/ | A4 | D D F F | A- A A2 |\nw: morn- * ing our song shall rise to Thee; Ho- ly, ho- ly, ho- * ly, \n[V: S1V2]  (D E) E F | E C D3/2 C/ | C4 | A, A, D D | (C E) (D C) |\n[V: S2V1]  (F, ^G,) A, A, | C A, ^G,3/2 A,/ | (A,2 =G,2) | F, F, D, D, | (E, G,) (F, A,) |\n[V: S2V2]  B,,- B,, C, D, | E, E, E,3/2 A,,/ | A,,4 | D, D, B,, B,, | A,,- A,, D,2 |\n[V: S1V1]  B3/2 B/ B B | A2 A2 | d2 A A | B2 F2 | G E E3/2 D/ | D4 |]\nw: mer- ci- ful and might- y! God in three Per- sons, bless- ed Tri- ni- ty! \n[V: S1V2]  B, C D E | F2 D2 | D2 D D | D2 (D =C) | B, B, ^C3/2 D/ | D4 |]\n[V: S2V1]  G, A, B, C | (D A,) F,2 | (F, G,) A, =C | B,2 A,2 | G, G, G,3/2 F,/ | D,4 |]\n[V: S2V2]  G,,3/2 G,,/ G, G, | D,2 D,2 | B,,2 F,, F,, | G,,2 D,2 | G,, G,, A,,3/2 D,/ | F,4 |]\n"
+  },
+  {
+    "id": "blessed-assurance",
+    "title": "Blessed Assurance",
+    "file": "Blessed_Assurance-Blessed_Assurance-Assurance.abc",
+    "folder": "Blessed_Assurance",
+    "key": "D",
+    "meter": "9/8",
+    "credits": [
+      "Words: Fanny Crosby, 1873. ",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2008 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Blessed_Assurance-Blessed_Assurance-Assurance.abc",
+    "melody": "X:1\nT:Blessed Assurance\nM:9/8\nL:1/64\nK:D\nF8 E8 D8 | A24 A24 G8 A8 B8 | A48 A8 F8 A8 | d24 c16 c8 B8 A8 ^G8 | A48\nw: Bless- èd a- ssu- rance, Je- sus is mine! O what a fore- taste of glo- ry di- vine!\nF8 E8 D8 | A24 A24 G8 A8 B8 | A48 D8 E8 F8 | G24 E24 D8 E8 C8 | D48\nw: Heir of sal- va- tion, pur- chase of God, Born of His Spi- rit, washed in His blood.\nA8 A8 A8 | d24 A24 B8 B8 B8 | A48 A8 A8 A8 | B24 d24 c8 c8 B8 | c48\nw: This is my stor- y, this is my song, Prais- ing my Sa- vior, all the day long;\nc8 d8 e8 | d24 A24 B8 A8 B8 | A48 D8 E8 F8 | G24 E24 D12 E4 C8 | D48 |]\nw: This is my stor- y, this is my song, Prais- ing my Sa- vior, all the day long.\n",
+    "harmony": "X: 1\nT: Blessed Assurance\nM: 9/8\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: D\n[V: S1V1]  F/ E/ D/ | A3/2 A3/2 G/ A/ B/ | A3 A/ F/ A/ | d3/2 c c/ B/ A/ ^G/ | A3\nw: Bless- èd a- ssu- rance, Je- sus is mine! O what a fore- taste of glo- ry di- vine! \n[V: S1V2]  D/ D/ D/ | F3/2 F3/2 D/ D/ D/ | D3 F/ D/ F/ | F3/2 E E/ E/ E/ E/ | E3\n[V: S2V1]  A,/ G,/ F,/ | A,3/2 A,3/2 B,/ F,/ G,/ | F,3 A,/ A,/ A,/ | A,3/2 A, A,/ D/ C/ B,/ | C3\n[V: S2V2]  D,/ D,/ D,/ | D,3/2 D,3/2 D,/ D,/ D,/ | D,3 D,/ D,/ D,/ | D,3/2 E, E,/ E,/ E,/ E,/ | A,,3\n[V: S1V1]  F/ E/ D/ | A3/2 A3/2 G/ A/ B/ | A3 D/ E/ F/ | G3/2 E3/2 D/ E/ C/ | D3\nw: Heir of sal- va- tion, pur- chase of God, Born of His Spi- rit, washed in His blood. \n[V: S1V2]  D/ D/ D/ | F3/2 F3/2 D/ D/ D/ | D3 D/ D/ D/ | E3/2 B,3/2 D/ C/ A,/ | A,3\n[V: S2V1]  A,/ G,/ F,/ | A,3/2 A,3/2 B,/ F,/ G,/ | F,3 F,/ G,/ A,/ | B,3/2 G,3/2 F,/ G,/ G,/ | F,3\n[V: S2V2]  D,/ D,/ D,/ | D,3/2 D,3/2 D,/ D,/ D,/ | D,3 D,/ D,/ D,/ | G,,3/2 G,,3/2 A,,/ A,,/ A,,/ | D,3\n[V: S1V1]  A/ A/ A/ | d3/2 A3/2 B/ B/ B/ | A3 A/ A/ A/ | B3/2 d3/2 c/ c/ B/ | c3\nw: This is my stor- y, this is my song, Prais- ing my Sa- vior, all the day long; \n[V: S1V2]  F/ F/ F/ | F3/2 F3/2 G/ G/ G/ | F3 F/ F/ F/ | G3/2 A3/2 A/ A/ ^G/ | A3\n[V: S2V1]  D/ D/ D/ | A,3/2 D3/2 D/ D/ D/ | D3 D/ D/ D/ | D3/2 D3/2 E/ E/ E/ | E3\n[V: S2V2]  D,/ D,/ D,/ | D,3/2 D,3/2 G,/ G,/ G,/ | D,3 D,/ D,/ D,/ | G,3/2 F,3/2 E,/ E,/ E,/ | A,3\n[V: S1V1]  c/ d/ e/ | d3/2 A3/2 B/ A/ B/ | A3 D/ E/ F/ | G3/2 E3/2 D3/4 E// C/ | D3 |]\nw: This is my stor- y, this is my song, Prais- ing my Sa- vior, all the day long. \n[V: S1V2]  =G/ G/ G/ | F3/2 F3/2 G/ F/ G/ | F3 D/ C/ D/ | E3/2 B,3/2 D3/4 C// A,/ | A,3 |]\n[V: S2V1]  A,/ B,/ C/ | D3/2 D3/2 D/ D/ D/ | D3 A,/ A,/ A,/ | B,3/2 G,3/2 F,3/4 G,// E,/ | F,3 |]\n[V: S2V2]  A,/ A,/ A,/ | D,3/2 D,3/2 D,/ D,/ D,/ | D,3 F,/ E,/ D,/ | G,,3/2 G,,3/2 A,,3/4 A,,// A,,/ | D,3 |]\n"
+  },
+  {
+    "id": "what-a-friend-we-have-in-jesus",
+    "title": "What A Friend We Have In Jesus",
+    "file": "What_A_Friend_We_Have_In_Jesus-untitled.abc",
+    "folder": "What_A_Friend_We_Have_In_Jesus",
+    "key": "F",
+    "meter": "4/4",
+    "credits": [
+      "Words: Joseph M. Scriven, 1855. ",
+      "Music: 'untitled' Charles C. Converse, 1868.  Setting: \"Book of hymns and tunes\", 1874.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2005 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/What_A_Friend_We_Have_In_Jesus-untitled.abc",
+    "melody": "X:1\nT:What A Friend We Have In Jesus\nM:4/4\nL:1/64\nK:F\nc24 c8 d8c8 A8F8 | F32 D32 | C24 F8 A8F8 c8A8 | G48 z16 |\nw: What a Friend we have in Je- sus, all our sins and griefs to bear!\nc24 c8 d8c8 A8F8 | F32 D32 | C24 F8 A8G8 F8E8 | F48 z16 |\nw: What a priv- i- lege to car- ry ev- ery- thing to God in prayer!\nG24 ^F8 G8A8 B8G8 | A32 c32 | d24 d8 c8A8 B8A8 | G48 z16 |\nw: O what peace we of- ten for- feit, O what need- less pain we bear,\nc24 c8 d8c8 A8F8 | F32 D32 | C24 F8 A8G8 F8E8 | F48 z16 |]\nw: All be- cause we do not ca- rry ev- ery- thing to God in prayer.\n",
+    "harmony": "X: 1\nT: What A Friend We Have In Jesus\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: F\n[V: S1V1]   c3/2 c/ d/c/ A/F/ | F2 D2 | C3/2 F/ A/F/ c/A/ | G3 z |\nw: What a Friend we have in Je- sus, all our sins and griefs to bear! \n[V: S1V2]  F3/2 F/ F/F/ F/C/ | D2 B,2 | C3/2 C/ C/C/ F/F/ | E3 x |\n[V: S2V1]  A,3/2 A,/ B,/A,/ C/A,/ | B,2 F,2 | A,3/2 A,/ A,/A,/ A,/C/ | C3 z |\n[V: S2V2]  F,3/2 F,/ F,/F,/ F,/F,/ | B,,2 B,,2 | F,3/2 F,/ F,/F,/ F,/F,/ | C,3 x |\n[V: S1V1]  c3/2 c/ d/c/ A/F/ | F2 D2 | C3/2 F/ A/G/ F/E/ | F3 z |\nw: What a priv- i- lege to car- ry ev- ery- thing to God in prayer! \n[V: S1V2]  F3/2 F/ F/F/ F/C/ | D2 B,2 | A,3/2 C/ F/C/ C/C/ | C3 x |\n[V: S2V1]  A,3/2 A,/ B,/A,/ C/A,/ | B,2 F,2 | F,3/2 A,/ C/B,/ A,/G,/ | A,3 z |\n[V: S2V2]  F,3/2 F,/ F,/F,/ F,/F,/ | B,,2 B,,2 | C,3/2 C,/ C,/C,/ C,/C,/ | F,3 x |\n[V: S1V1]  G3/2 ^F/ G/A/ B/G/ | A2 c2 | d3/2 d/ c/A/ B/A/ | G3 z |\nw: O what peace we of- ten for- feit, O what need- less pain we bear, \n[V: S1V2]  E3/2 ^D/ E/=F/ G/E/ | F2 F2 | F3/2 F/ F/F/ G/F/ | E3 x |\n[V: S2V1]  C3/2 C/ C/C/ C/C/ | C2 A,2 | B,3/2 B,/ C/C/ C/C/ | C3 z |\n[V: S2V2]  C,3/2 C,/ C,/C,/ C,/C,/ | F,2 F,2 | B,3/2 B,/ A,/F,/ E,/F,/ | C3 x |\n[V: S1V1]  c3/2 c/ d/c/ A/F/ | F2 D2 | C3/2 F/ A/G/ F/E/ | F3 z |]\nw: All be- cause we do not ca- rry ev- ery- thing to God in prayer. \n[V: S1V2]  F3/2 F/ F/F/ F/C/ | D2 B,2 | A,3/2 C/ F/C/ C/C/ | C3 x |]\n[V: S2V1]  A,3/2 A,/ B,/A,/ C/A,/ | B,2 F,2 | F,3/2 A,/ C/B,/ A,/G,/ | A,3 z |]\n[V: S2V2]  F,3/2 F,/ F,/F,/ F,/F,/ | B,,2 B,,2 | C,3/2 C,/ C,/C,/ C,/C,/ | F,3 x |]\n"
+  },
+  {
+    "id": "it-is-well-with-my-soul",
+    "title": "It Is Well With My Soul",
+    "file": "It_Is_Well_With_My_Soul-It_Is_Well-Ville_Du_Havre.abc",
+    "folder": "It_Is_Well_With_My_Soul",
+    "key": "Db",
+    "meter": "4/4",
+    "credits": [
+      "Words: Horatio G. Spafford, 1873.  Music and Setting: 'It Is Well' or 'Ville Du Havre' Philip P. Bliss, 1876.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2010 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/It_Is_Well_With_My_Soul-It_Is_Well-Ville_Du_Havre.abc",
+    "melody": "X:1\nT:It Is Well With My Soul\nM:4/4\nL:1/64\nK:Db\nA16 | A32 G16 F16 | F32 E16 F16 | (G16 B16) A16 G16 | F48 A16 | d32 c16\nw: When peace, like a ri- ver, at- ten- * deth my way, When sor- rows\nB16 | B32 A16 =G16 | A48 A16 | d32 d16 c16 | B32 B16 B16 | e32 e16 d16 |\nw: like sea bil- lows roll; What- ev- er my lot, Thou has taught me to\nc32 B16 A16 | d32 d16 d16 | d32 c24 d8 | !fermata!d32 A16 A16 |\nw: say, It is well, it is well, with my soul. It is\nA64- | A32 A16 A16 | A64- | A32 F16 A16 | B32 B16 d16 | d32 c24 d8 | d48 |]\nw: well, * with my soul, * It is well, it is well with my soul.\n",
+    "harmony": "X: 1\nT: It Is Well With My Soul\nT: (also known as When Peace Like a River)\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: Db\n[V: S1V1]  A | A2 G F | F2 E F | (G B) A G | F3 A | d2 c\nw: When peace, like a ri- ver, at- ten- * deth my way, When sor- rows \n[V: S1V2]  F | F2 E D | D2 C D | C2 C E | D3 F | F2 E\n[V: S2V1]  A, | A,2 A, A, | A,2 A, A, | A,2 A, C | D3 A, | B,2 =A,\n[V: S2V2]  D, | D,2 D, D,/F,/ | A,2 G, F, | E,2 A,, A,, | D,3 D, | B,,2 C,\n[V: S1V1]  B | B2 A =G | A3 A | d2 d c | B2 B B | e2 e d |\nw: like sea bil- lows roll; What- ev- er my lot, Thou has taught me to \n[V: S1V2]  D | F2 E E | E3 G | F2 F A | G2 B A | =G2 =G =G |\n[V: S2V1]  B, | D2 C B, | C3 C | D2 D D | D2 D =D | E2 E E |\n[V: S2V2]  D, | D,2 E, E, | A,,3 A, | D,2 D, F, | G,2 G, F, | E,2 E, E, |\n[V: S1V1]  c2 B A | d2 d d | d2 c3/2 d/ | !fermata!d2 \"^Refrain\" A A |\nw: say, It is well, it is well, with my soul. It is \n[V: S1V2]  A2 A A | A2 D D | F2 E3/2 F/ | !fermata!F2 z2 |\n[V: S2V1]  E2 D C | D2 A, B, | A,2 A,3/2 A,/ | !invertedfermata!A,2 z2 |\n[V: S2V2]  A,2 A, A,/G,/ | F,2 F, G, | A,2 A,,3/2 A,,/ | !fermata!D,2 z2 |\n[V: S1V1]  A4- | A2 A A | A4- | A2 F A | B2 B d | d2 c3/2 d/ | d3 |]\nw: well,  * with my soul,  * It is well, it is well with my soul. \n[V: S1V2]  z2 F F | E2 z2 | z2 E G | F2 D F | G2 G G | F2 E3/2 F/ | F3 |]\n[V: S2V1]  z2 A, D | C2 z2 | z2 C E | D2 A, D | D2 D B, | A,2 A,3/2 A,/ | A,3 |]\nw: It is well,  with my soul,  * * * * * * * * *\n[V: S2V2]  z2 D, F, | A,2 z2 | z2 A,, A,, | D,2 D, D, | G,2 G, G, | A,2 A,,3/2 A,,/ | D,3 |]\n"
+  },
+  {
+    "id": "be-thou-my-vision",
+    "title": "Be Thou My Vision",
+    "file": "Be_Thou_My_Vision-Slane.abc",
+    "folder": "Be_Thou_My_Vision",
+    "key": "Eb",
+    "meter": "3/4",
+    "credits": [
+      "Words: Attr. Dallan Forgaill, 8th Century.  Translated by Mary Byrne, 1905 and Eleanor Hull, 1912. ",
+      "Music: 'Slane' Traditional Irish.  Setting: Mark Hamilton Dewey, 2007.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2008 Revision. "
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Be_Thou_My_Vision-Slane.abc",
+    "melody": "X:1\nT:Be Thou My Vision\nM:3/4\nL:1/64\nK:Eb\nE16 E16 F8E8 | C16 B,16 B,8C8 | E16 E16 F16 | G48 |\nw: Be Thou my * Vi- sion, O * Lord of my heart;\nF16 F16 F16 | F16 G16 B16 | c16 B16 G16 | B48 |\nw: Naught be all else to me, save that Thou art.\nc16 c8d8e8d8 | c16 B16 G16 | B16 E16 D16 | (C32 B,16) |\nw: Thou my * * * best Thought, by day or by night, *\nE16 G16 B16 | c8B8 G16 E8G8 | F16 E16 E16 | E48 |]\nw: Wa- king or sleep- * ing, Thy * pre- sence my light.\n",
+    "harmony": "X: 1\nT: Be Thou My Vision\nM: 3/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: Eb\n[V: S1V1]  E E F/E/ | C B, B,/C/ | E E F | G3 |\nw: Be Thou my * Vi- sion, O * Lord of my heart; \n[V: S1V2]  E E D/E/ | C B, B,/C/ | E E D | E3 |\n[V: S2V1]  B, B, B,/B,/ | A, F, F,/A,/ | B, B, B, | B,3 |\n[V: S2V2]  G, G, F,/G,/ | E, D, D,/E,/ | G, G, F, | E,3 |\n[V: S1V1]  F F F | F G B | c B G | B3 |\nw: Naught be all else to me, save that Thou art. \n[V: S1V2]  D D D | D D G | E F G | (E2 G) |\n[V: S2V1]  B, B, B, | B, B, B, | C D E | (B, E2) |\n[V: S2V2]  B,, B,, B,, | B,, G,, E, | A, B, C | G,3 |\n[V: S1V1]  c c/d/e/d/ | c B G | B E D | (C2 B,) |\nw: Thou my * * * best Thought, by day or by night, * \n[V: S1V2]  A E/A/c/B/ | A F E | E B, B, | (A,2 B,) |\n[V: S2V1]  E C/D/E/D/ | E D B, | B, G, F, | (E,2 G,) |\n[V: S2V2]  C A,/F,/A,/B,/ | A, B, G, | G, E, B,, | (A,,2 G,,) |\n[V: S1V1]  E G B | c/B/ G E/G/ | F E E | E3 |]\nw: Wa- king or sleep- * ing, Thy * pre- sence my light. \n[V: S1V2]  B, E G | A/G/ G E/E/ | D E E | E3 |]\n[V: S2V1]  G, B, B, | C/B,/ E B, | B, B, B, | B,3 |]\n[V: S2V2]  B,, B,, G, | A,/G,/ B, G, | F, E, B,, | G,3 |]\n"
+  },
+  {
+    "id": "come-thou-fount",
+    "title": "Come Thou Fount Of Every Blessing",
+    "file": "Come_Thou_Fount-Nettleton.abc",
+    "folder": "Come_Thou_Fount",
+    "key": "Eb",
+    "meter": "3/4",
+    "credits": [
+      "Words: Robert Robinson, 1758.  Music: 'Nettleton' Asahel Nettleton, 1812. ",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2010 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Come_Thou_Fount-Nettleton.abc",
+    "melody": "X:1\nT:Come Thou Fount Of Every Blessing\nM:3/4\nL:1/64\nK:Eb\nG8 F8 | E16 E16 G8 B8 | F16 F16 G8 B8 | c16 B16 G8 F8 | E32\nw: Come, Thou Fount of ev- ery bless- ing, Tune my heart to sing Thy grace;\nG8 F8 | E16 E16 G8 B8 | F16 F16 G8 B8 | c16 B16 G8 F8 | E32\nw: Streams of mer- cy, ne- ver ceas- ing, Call for songs of loud- est praise.\nB8 c4d4 | e16 d16 c8 B8 | c8B8 G16 B8 c4d4 | e16 d16 c8 B8 | e32\nw: Teach me * some me- lo- dious son- * net, Sung by * fla- ming tongues a- bove.\nG8 F8 | E16 E16 G8 B8 | F16 F16 G8 B8 | c16 B16 G8 F8 | E32 |]\nw: Praise the mount! I'm fixed u- pon it, Mount of Thy re- deem- ing love.\n",
+    "harmony": "X: 1\nT: Come Thou Fount Of Every Blessing\nM: 3/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: Eb\n[V: S1V1]  G/ F/ | E E G/ B/ | F F G/ B/ | c B G/ F/ | E2\nw: Come, Thou Fount of ev- ery bless- ing, Tune my heart to sing Thy grace; \n[V: S1V2]  E/ D/ | E E E/ E/ | D D E/ E/ | E E E/ D/ | E2\n[V: S2V1]  B,/ A,/ | G, G, B,/ B,/ | B, B, B,/ G,/ | A, G, B,/ A,/ | G,2\n[V: S2V2]  E,/ E,/ | E, E, E,/ G,,/ | B,, B,, E,/ E,/ | A, E, B,,/ B,,/ | E,2\n[V: S1V1]  G/ F/ | E E G/ B/ | F F G/ B/ | c B G/ F/ | E2\nw: Streams of mer- cy, ne- ver ceas- ing, Call for songs of loud- est praise. \n[V: S1V2]  E/ D/ | E E E/ E/ | D D E/ E/ | E E E/ D/ | E2\n[V: S2V1]  B,/ A,/ | G, G, B,/ B,/ | B, B, B,/ G,/ | A, G, B,/ A,/ | G,2\n[V: S2V2]  E,/ E,/ | E, E, E,/ G,,/ | B,, B,, E,/ E,/ | A, E, B,,/ B,,/ | E,2\n[V: S1V1]  B/ c//d// | e d c/ B/ | c/B/ G B/ c//d// | e d c/ B/ | e2\nw: Teach me * some me- lo- dious son- * net, Sung by * fla- ming tongues a- bove. \n[V: S1V2]  E/ A/ | G B A/ G/ | E E G/ F/ | E B A/ F/ | G2\n[V: S2V1]  B,/ A,/ | B, G, A,/ B,/ | A,/B,/ B, B,/ F,/ | G, B, E/ D/ | E2\n[V: S2V2]  G,/ F,/ | E, E, E,/ E,/ | A,/G,/ E, E,/ D,/ | C, G, A,/ B,/ | E,2\n[V: S1V1]  G/ F/ | E E G/ B/ | F F G/ B/ | c B G/ F/ | E2 |]\nw: Praise the mount! I'm fixed u- pon it, Mount of Thy re- deem- ing love. \n[V: S1V2]  E/ D/ | E E E/ E/ | D D E/ E/ | E E E/ D/ | E2 |]\n[V: S2V1]  B,/ A,/ | G, G, B,/ B,/ | B, B, B,/ G,/ | A, G, B,/ A,/ | G,2 |]\n[V: S2V2]  E,/ E,/ | E, E, E,/ G,,/ | B,, B,, E,/ E,/ | A, E, B,,/ B,,/ | E,2 |]\n"
+  },
+  {
+    "id": "abide-with-me",
+    "title": "Abide With Me",
+    "file": "Abide_With_Me-Eventide.abc",
+    "folder": "Abide_With_Me",
+    "key": "Eb",
+    "meter": "4/4",
+    "credits": [
+      "Words: Henry F. Lyte, 1847.  Music: 'Eventide' William H. Monk, 1861.  Setting: William H. Monk, 1861.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2008 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Abide_With_Me-Eventide.abc",
+    "melody": "X:1\nT:Abide With Me\nM:4/4\nL:1/64\nK:Eb\nG32 G16 F16 | E32 B32 | c16 B16 B16 A16 | G64 | G32 A16 B16 |\nw: A- bide with me; fast falls the ev- en- tide; The dark- ness\nc32 B32 | A16 F16 G16 =A16 | B64 | G32 G16 F16 | E32 B32 |\nw: deep- ens; Lord with me a- bide. When o- ther help- ers\nB16 A16 A16 G16 | F64 | F32 G16 A16 | G16 F16 E16 A16 | G32 F32 | E64 |]\nw: fail and com- forts flee, Help of the help- less, O a- bide with me.\n",
+    "harmony": "X: 1\nT: Abide With Me\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: Eb\n[V: S1V1]  G2 G F | E2 B2 | c B B A | G4 | G2 A B |\nw: A- bide with me; fast falls the ev- en- tide; The dark- ness \n[V: S1V2]  E2 D D | E2 E2 | E D E F | E4 | E2 E E |\n[V: S2V1]  B,2 B, A, | G,2 E,2 | E, B, B, B, | B,4 | B,2 A, G, |\n[V: S2V2]  E,2 B,, B,, | C,2 G,,2 | A,, B,, C, D, | E,4 | (E, D,) C, B,, |\n[V: S1V1]  c2 B2 | A F G =A | B4 | G2 G F | E2 B2 |\nw: deep- ens; Lord with me a- bide. When o- ther help- ers \n[V: S1V2]  E2 E2 | E F E E | D4 | E2 D D | E2 E2 |\n[V: S2V1]  A,2 G,2 | C B, B, E, | F,4 | (G, A,) B, A, | G,2 (E D) |\n[V: S2V2]  A,,2 E,2 | F, D, E, C, | B,,4 | E,2 B,, B,, | C,2 G,,2 |\n[V: S1V1]  B A A G | F4 | F2 G A | G F E A | G2 F2 | E4 |]\nw: fail and com- forts flee, Help of the help- less, O a- bide with me. \n[V: S1V2]  E E =E =E | F4 | D2 E D | E D E F | E2 D2 | E4 |]\n[V: S2V1]  C C C B, | A,4 | B,2 B, B, | B, A, G, C | B,3 A, | G,4 |]\n[V: S2V2]  A,,3/2 B,,/ C, C, | F,4 | A,2 G, F, | E, B,, C, A,, | B,,2 B,,2 | E,4 |]\n"
+  },
+  {
+    "id": "praise-god-from-whom-all-blessings-flow",
+    "title": "Praise God From Whom All Blessings Flow",
+    "file": "Praise_God_From_Whom_All_Blessings_Flow-Old_100th.abc",
+    "aliases": [
+      "Doxology",
+      "Old Hundredth"
+    ],
+    "folder": "Praise_God_From_Whom_All_Blessings_Flow",
+    "key": "G",
+    "meter": "none",
+    "credits": [
+      "Words: Thomas Ken, 1674.  Music: 'Old 100th' Genevan Psalter, attr. Louis Bourgeois, c. 1551.  ",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2006 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Praise_God_From_Whom_All_Blessings_Flow-Old_100th.abc",
+    "melody": "X:1\nT:Praise God From Whom All Blessings Flow\nM:none\nL:1/64\nK:G\nG32 G16 F16 E16 D16 | G32 A32 B48 | B32 B16 B16 A16 G16 | c32 B32 A48 |\nw: Praise God, from Whom all bles- sings flow; Praise Him, all crea- tures here be- low;\nG32 A16 B16 A16 G16 | E32 F32 G48 | d32 B16 G16 A16 c16 | B32 A32 G48 |]\nw: Praise Him a- bove, ye heav'n- ly host; Praise Fa- ther, Son, and Ho- ly Ghost.\n",
+    "harmony": "X: 1\nT: Praise God From Whom All Blessings Flow \nT: (Doxology; see also 'Awake, My Soul, And With The Sun')\nM: none\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  G2 G F E D | G2 A2 B3 | B2 B B A G | c2 B2 A3 |\nw: Praise God, from Whom all bles- sings flow; Praise Him, all crea- tures here be- low;\n[V: S1V2]  D2 D D B, B, | B,2 D2 D3 | D2 D G F G | G2 G2 F3 |\n[V: S2V1]  B,2 B, A, G, F, | G,2 F,2 G,3 | G,2 B, D C B, | E2 D2 D3 |\n[V: S2V2]  G,2 G, D, E, B,, | E,2 D,2 G,,3 | G,2 G, G, D, E, | C,2 G,,2 D,3 |\n[V: S1V1]  G2 A B A G | E2 F2 G3 | d2 B G A c | B2 A2 G3 |]\nw: Praise Him a- bove, ye heav'n- ly host; Praise Fa- ther, Son, and Ho- ly Ghost.\n[V: S1V2]  G2 F G F D | E2 D2 D3 | D2 D G F E/F/ | G2 F2 D3 |]\n[V: S2V1]  B,2 D D D D | (C B,) A,2 B,3 | B,2 G, B, D E | D2 (D C) B,3 |]\n[V: S2V2]  E,2 D, G, D, B,, | C,2 D,2 G,,3 | G,2 G, E, D, A,, | (B,, C,) D,2 G,,3 |]\n"
+  },
+  {
+    "id": "nearer-my-god-to-thee",
+    "title": "Nearer, My God, To Thee",
+    "file": "Nearer_My_God_To_Thee-Bethany.abc",
+    "folder": "Nearer_My_God_To_Thee",
+    "key": "G",
+    "meter": "6/4",
+    "credits": [
+      "Words: st. 1-2 by Sarah F. Adams, 1841. st. 3-5 by Hervey D. Ganse (1822-1891).",
+      "Music: 'Bethany (Mason)' Lowell Mason, 1856.  Setting: Lowell Mason, 1859.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2008 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Nearer_My_God_To_Thee-Bethany.abc",
+    "melody": "X:1\nT:Nearer, My God, To Thee\nM:6/4\nL:1/64\nK:G\nB48 A32 G16 | G32 E16 E48 | D48 G32 B16 | A48- A32 z16 |\nw: Near- er, my God, to Thee, near- er to Thee! *\nB48 A32 G16 | G32 E16 E48 | (D32 G16) F32 A16 | G48- G32 z16 |\nw: E'en though it be a cross that * rais- eth me, *\nd48 e32 d16 | d32 B16 d48 | d48 e32 d16 | d32 B16 A48 |\nw: Still all my song shall be, near- er, my God, to Thee.\nB48 A32 G16 | G32 E16 E48 | (D32 G16) F32 A16 | G48- G32 z16 |]\nw: Near- er, my God, to Thee, Near- * er to Thee! *\n",
+    "harmony": "X: 1\nT: Nearer, My God, To Thee\nM: 6/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  B3 A2 G | G2 E E3 | D3 G2 B | A3- A2 z |\nw: Near- er, my God, to Thee, near- er to Thee!  * \n[V: S1V2]  D3 C2 B, | E2 C C3 | D3 D2 D | D3- D2 x |\n[V: S2V1]  G,3 F,2 G, | C2 G, G,3 | B,3 G,2 G, | F,3- F,2 z |\n[V: S2V2]  G,3 D,2 E, | C,2 C, C,3 | G,,3 B,,2 G,, | D,3- D,2 x |\n[V: S1V1]  B3 A2 G | G2 E E3 | (D2 G) F2 A | G3- G2 z |\nw: E'en though it be a cross that * rais- eth me,  * \n[V: S1V2]  D3 C2 B, | E2 C C3 | (B,2 D) D2 D | D3- D2 x |\n[V: S2V1]  G,3 F,2 G, | C2 G, G,3 | (G,2 B,) A,2 C | B,3- B,2 z |\n[V: S2V2]  G,3 D,2 E, | C,2 C, C,3 | D,3 D,2 D, | G,,3- G,,2 x |\n[V: S1V1]  d3 e2 d | d2 B d3 | d3 e2 d | d2 B A3 |\nw: Still all my song shall be, near- er, my God, to Thee. \n[V: S1V2]  G3 G2 G | G2 G G3 | G3 G2 G | D2 D D3 |\n[V: S2V1]  B,3 C2 B, | B,2 G, B,3 | B,3 C2 B, | A,2 G, F,3 |\n[V: S2V2]  G,3 G,2 G, | G,2 G, G,3 | G,3 C,2 G, | F,2 G, D,3 |\n[V: S1V1]  B3 A2 G | G2 E E3 | (D2 G) F2 A | G3- G2 z |]\nw: Near- er, my God, to Thee, Near- * er to Thee!  * \n[V: S1V2]  D3 C2 B, | E2 C C3 | (B,2 D) D2 D | D3- D2 x |]\n[V: S2V1]  G,3 F,2 G, | C2 G, G,3 | (G,2 B,) A,2 C | B,3- B,2 z |]\n[V: S2V2]  G,3 D,2 E, | C,2 E, C,3 | D,3 D,2 D, | G,,3- G,,2 x |]\n"
+  },
+  {
+    "id": "all-hail-the-power-of-jesus-name",
+    "title": "All Hail The Power Of Jesus' Name",
+    "file": "All_Hail_The_Power_Of_Jesus_Name-Coronation.abc",
+    "folder": "All_Hail_The_Power_Of_Jesus_Name",
+    "key": "G",
+    "meter": "4/4",
+    "credits": [
+      "Words: Edward Perronet, 1780.  Music: 'Coronation' Oliver Holden, 1793.  ",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2007 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/All_Hail_The_Power_Of_Jesus_Name-Coronation.abc",
+    "melody": "X:1\nT:All Hail The Power Of Jesus' Name\nM:4/4\nL:1/64\nK:G\nD16 | G16 G16 B16 B16 | A16 G16 A16 B16 | A16 G16 B16 A16 | G48\nw: All hail the pow'r of Je- sus' Name! Let an- gels pros- trate fall;\nA16 | B16 A16 G16 B16 | d8c8 B8A8 B16 d16 | d32 d32 | e32 (d16 ^c16) | d48\nw: Bring forth the ro- yal di- * a- * dem, and crown Him Lord of * all.\nB16 | d16 B16 G16 B16 | A8G8 A8B8 A16 G16 | d32 c32 | (B24 c8 A16) A16 | G48 |]\nw: Bring forth the ro- yal di- * a- * dem, and crown Him Lord * * of all.\n",
+    "harmony": "X: 1\nT: All Hail The Power Of Jesus' Name\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  D | G G B B | A G A B | A G B A | G3\nw: All hail the pow'r of Je- sus' Name! Let an- gels pros- trate fall; \n[V: S1V2]  D | B, D G G | F E F G | F G G F | G3\n[V: S2V1]  D, | G, B, D D | D B, D D | C B, D C | B,3\n[V: S2V2]  D, | G, G, G, G, | D, E, D, B,, | D, E, D, D, | G,,3\n[V: S1V1]  A | B A G B | d/c/ B/A/ B d | d2 d2 | e2 (d ^c) | d3\nw: Bring forth the ro- yal di- * a- * dem, and crown Him Lord of * all. \n[V: S1V2]  D | G D B, G | B/A/ G/F/ G F | G2 A2 | G2 (F E) | F3\n[V: S2V1]  A, | B, A, G, B, | D/C/ B,/A,/ B, A, | B,2 A,2 | B,2 A,2 | A,3\n[V: S2V2]  D, | G, D, B,, G, | B,/A,/ G,/F,/ G, D, | G,2 F,2 | E,2 A,,2 | D,3\n[V: S1V1]  B | d B G B | A/G/ A/B/ A G | d2 c2 | (B3/2 c/ A) A | G3 |]\nw: Bring forth the ro- yal di- * a- * dem, and crown Him Lord * * of all. \n[V: S1V2]  D | D D D G | F/E/ F/G/ F G | G2 G2 | G3 F | G3 |]\n[V: S2V1]  G, | B, G, G, D | C/B,/ C/D/ C B, | G,2 G,2 | (G,3/2 A,/ F,/A,/) C | B,3 |]\n[V: S2V2]  G, | G, G,, B,, G,, | D, D, D, E, | B,,2 C,2 | D,3 D, | G,,3 |]\n"
+  },
+  {
+    "id": "to-god-be-the-glory",
+    "title": "To God Be The Glory",
+    "file": "To_God_Be_the_Glory-To_God_Be_the_Glory.abc",
+    "folder": "To_God_Be_the_Glory",
+    "key": "Ab",
+    "meter": "3/4",
+    "credits": [
+      "Words: Fanny Crosby, 1875. Music and Setting: 'To God Be The Glory' William Howard Doane, 1875. ",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2013 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/To_God_Be_the_Glory-To_God_Be_the_Glory.abc",
+    "melody": "X:1\nT:To God Be The Glory\nM:3/4\nL:1/64\nK:Ab\nE16 | E32 F8 G8 | A16 E16 A16 | B16 E16 B16 | c32 c16 | d16 F16\nw: To God be the glor- y, great things He has done; So loved He\nd16 | c16 A16 c16 | c16 B16 F16 | B32 E16 | E32 F8 G8 | A16 E16 A16 |\nw: the world that He gave us His Son Who yield- ed His life an a-\nB16 E16 B16 | c32 c16 | e16 d16 B16 | A16 G16 A16 | c16 c16 B16 | A32\nw: tone- ment for sin, And o- pened the life gate that all may go in.\nc12 d4 | e32 c12 d4 | e32 e12 c4 | A16 B16 c16 | B32 B12 c4 | d32\nw: Praise the Lord, praise the Lord, Let the earth hear His voice! Praise the Lord,\nB12 c4 | d32 d8 A8 | e16 e16 d16 | c32 E16 | E32 F8 G8 | A16 E16 A16 |\nw: praise the Lord, Let the peo- ple re- joice! O come to the Fa- ther, through\nB16 E16 B16 | c32 c16 | e16 d16 B16 | A16 G16 A16 | c16 c16 B16 | A32 |]\nw: Je- sus the Son, And give Him the glor- y, great things He has done.\n",
+    "harmony": "X: 1\nT: To God Be The Glory\nM: 3/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: Ab\n[V: S1V1]  E | E2 F/ G/  | A E A | B E B | c2 c | d F\nw: To God be the glor- y, great things He has done; So loved He \n[V: S1V2] C | (C E) D/ D/ | C C E | E D E | E2 E | F D\n[V: S2V1] A, | A,2 G,/ E,/ | E, A, E, | G, G, G,  | A,2 A, | A, A,\n[V: S2V2] A,, | (A,, C,) E,/ E,/ | A,, A,, C, | E, E, E, | A,,2 A,, | D, D,\n[V: S1V1] d | c A c | c B F | B2 E | E2 F/ G/ | A E A |\nw: the world that He gave us His Son Who yield- ed His life an a- \n[V: S1V2] E | E E E | =D D D | E2 _D | (C E) D/ D/ | C C E |\n[V: S2V1] A, | A, A, A, | F, F,  B,/A,/ | G,2 G, | A,2 G,/ E,/ | E, A, A, |\n[V: S2V2] D, | A,, C, A,, | B,, B,, B,, | E,2 E, | (A,, C,) E,/ E,/ | A,, A,, C, |\n[V: S1V1] B E B | c2 c | e d B | A G A | c c B | A2\nw: tone- ment for sin, And o- pened the life gate that all may go in.\n[V: S1V2] E E E | E2 _G | F F F | E E E | E E D | C2\n[V: S2V1] G, G, G,  | A,2 A, | A, B, D | C B, C | A, A, G, | A,2\n[V: S2V2] E, E, E, | A,,2 A,, | D, D, D, | E, E, E, | E, E, E, | A,,2\n[V: S1V1] c3/4 d/4 | e2 c3/4 d/4 | e2 e3/4 c/4 | A B c | B2 B3/4 c/4 | d2\nw: Praise the Lord, praise the Lord, Let the earth hear His voice! Praise the Lord, \n[V: S1V2] E3/4 E/4 | E2 A3/4 G/4 | A2 E3/4 E/4 | E E E | E2 E3/4 E/4 | E2\n[V: S2V1] A,3/4 B,/4 | C2 A,3/4 B,/4 | C2 C3/4 A,/4 | A, G, A, | G,2 G,3/4 A,/4 | B,2\n[V: S2V2] A,3/4 A,/4 | A,2 A,3/4 A,,/4 | A,2 A,3/4 A,,/4 | C, B,, A,, | E,2 E,3/4 E,/4 | E,2\n[V: S1V1] B3/4 c/4 | d2 d/ A/ | e e d | c2 E | E2 F/ G/ | A E A |\nw: praise the Lord, Let the peo- ple re- joice! O come to the Fa- ther, through \n[V: S1V2] E3/4 E/4 | E2 E/ E/ | E E E | E2 _D | (C E) D/ D/ | C C E |\n[V: S2V1] G,3/4 A,/4 | B,2 B,/ G,/ | A, A, G, | A,2G, | A,2 G,/ E,/ | E, A, A, |\n[V: S2V2] E,3/4 E,/4 | E,2 E,/ D,/ | C, C, B,, | A,,2 E, | (A,, C,) E,/ E,/ | A,, A,, C, |\n[V: S1V1] B E B | c2 c | e d B | A G A | c c B | A2 |]\nw: Je- sus the Son, And give Him the glor- y, great things He has done. \n[V: S1V2] E E E | E2 _G | F F F | E E E | E E D | C2 |]\n[V: S2V1]  G, G, G,  | A,2 A, | A, B, D | C B, C | A, A, G, | A,2 |]\n[V: S2V2] E, E, E, | A,,2 A,, | D, D, D, | E, E, E, | E, E, E, | A,,2|]\n"
+  },
+  {
+    "id": "when-i-survey-the-wondrous-cross",
+    "title": "When I Survey the Wondrous Cross",
+    "file": "When_I_Survey_The_Wondrous_Cross-Duke_Street.abc",
+    "folder": "When_I_Survey_The_Wondrous_Cross",
+    "key": "Eb",
+    "meter": "4/4",
+    "credits": [
+      "Words: Isaac Watts, 1707.",
+      "Music: 'Duke Street' John Hatton, 1793.  Setting: \"Finest of the Wheat No. 3\" Hymnal, 1904.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2014 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/When_I_Survey_The_Wondrous_Cross-Duke_Street.abc",
+    "melody": "X:1\nT:When I Survey the Wondrous Cross\nM:4/4\nL:1/64\nK:Eb\nE32 G16 A16 | B32 (c16 d16) | e32 (d16 c16) | B64 |\nw: When I sur- vey the * won- drous * cross\nB32 B16 B16 | c32 B32 | A32 G32 | F64 |\nw: On which the Prince of Glo- ry died,\nG32 G16 F16 | (E16 G16) (B16 e16) | (c16 B16) (A16 G16) | F64 |\nw: My rich- est gain * I * count * but * loss,\nB32 c16 d16 | e48 A16 | G32 F32 | E64 |]\nw: And pour con- tempt on all my pride.\n",
+    "harmony": "X:1\nT: When I Survey the Wondrous Cross\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: Eb\n[V: S1V1]  E2 G A | B2 (c d) | e2 (d c) | B4 | \nw: When I sur- vey the * won- drous * cross \n[V: S1V2] E2 E D | E2 (E F) | G2 (F E) | D4 | \n[V: S2V1] G,2 B, B, | B,2 A,2 | (G, B,) (B, =A,) | B,4 |\n[V: S2V2] E,2 E, F, | G,2 (A, F,) | E,2 F,2 | B,,4 |\n[V: S1V1] B2 B B | c2 B2 | A2 G2 | F4 | \nw: On which the Prince of Glo- ry died, \n[V: S1V2] E2 E E | E2 (E B,) | (C D) E2 | D4 | \n[V: S2V1] G,2 G, B, | A,2 (B, G,) | A,2 B,2 | B,4 | \n[V: S2V2] E,2 E, G, | A,2 G,2 | F,2 E,2 | B,,4 | \n[V: S1V1] G2 G F | (E G) (B e) | (c B) (A G) | F4 | \nw: My rich-est gain * I * count * but * loss, \n[V: S1V2] E2 E B, | (B, E) E2 | E2 (D E) | D4 | \n[V: S2V1] B,2 B, B, | (G, B,) B,2 | (C E) B,2 | B,4 | \n[V: S2V2] E,2 E, D, | E,2 G,2 | (A, G,) (F, E,) | B,,4 | \n[V: S1V1] B2 cd | e3 A | G2 F2 | E4 |]\nw: And pour con- tempt on all my pride.\n[V: S1V2] E2 E F | (G> F E) F | E2 D2 | E4 |]\n[V: S2V1] B,2 A, A, | (G,> A, B,) C | B,2 A,2 | G,4 |]\n[V: S2V2] G,2 A, F, | (E,> F, G,) A, | B,2 B,,2 | E,4 |]\n"
+  },
+  {
+    "id": "the-churchs-one-foundation",
+    "title": "The Church's One Foundation",
+    "file": "The_Churchs_One_Foundation-Aurelia.abc",
+    "folder": "The_Churchs_One_Foundation",
+    "key": "D",
+    "meter": "4/4",
+    "credits": [
+      "Words: Samuel John Stone, 1866.  Music: 'Aurelia' Samuel Sebastian Wesley, 1864. ",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2005 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/The_Churchs_One_Foundation-Aurelia.abc",
+    "melody": "X:1\nT:The Church's One Foundation\nM:4/4\nL:1/64\nK:D\nF16 | F16 F16 G16 F16 | F32 E16 D16 | D16 B16 A16 G16 | F48\nw: The Church- 's one foun- da- tion Is Je- sus Christ her Lord,\nG16 | A16 d16 d16 c16 | c32 B16 A16 | G16 A16 F16 D16 | E48\nw: She is His new cre- a- tion By wa- ter and the Word.\nE16 | F16 G16 A16 B16 | B32 A16 d16 | d24 c8 B16 F16 | G48\nw: From heav'n He came and sought her To be His ho- ly bride;\nE16 | F16 F16 G16 F16 | F32 E16 D16 | D16 E16 D16 C16 | D48 |]\nw: With His own blood He bought her And for her life He died.\n",
+    "harmony": "X: 1\nT: The Church's One Foundation\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: D\n[V: S1V1]  F | F F G F | F2 E D | D B A G | F3\nw: The Church- 's one foun- da- tion Is Je- sus Christ her Lord, \n[V: S1V2]  D | D D D D | D2 C D | B, D D C | D3\n[V: S2V1]  A, | A, A, B, A, | A,2 A, A, | E, E, F, A, | A,3\n[V: S2V2]  D, | D, D, D, D, | A,,2 G,, F,, | G,, G,, A,, A,, | D,3\n[V: S1V1]  G | A d d c | c2 B A | G A F D | E3\nw: She is His new cre- a- tion By wa- ter and the Word. \n[V: S1V2]  C | D D F E | E2 D F | G E D D | C3\n[V: S2V1]  A, | A, A, ^A, A, | ^A,2 B, C | D E A, ^G, | A,3\n[V: S2V2]  E, | F, F, F, F,, | G,,2 G,, =A,, | B,, C, D, B,, | A,,3\n[V: S1V1]  E | F G A B | B2 A d | d3/2 c/ B F | G3\nw: From heav'n He came and sought her To be His ho- ly bride; \n[V: S1V2]  C | D C D D | D2 D F | F3/2 F/ F F | E3\n[V: S2V1]  A, | A, A, A, G, | G,2 A, B, | B,3/2 ^A,/ B, B, | B,3\n[V: S2V2]  A,, | D, E, F, G, | G,2 F, B,, | F,3/2 E,/ D, ^D, | E,3\n[V: S1V1]  E | F F G F | F2 E D | D E D C | D3 |]\nw: With His own blood He bought her And for her life He died. \n[V: S1V2]  E | D D D D | B,2 B, B, | B, B, B, A, | A,3 |]\n[V: S2V1]  A, | A, A, B, A, | A,2 G, G, | G, G, E, G, | F,3 |]\n[V: S2V2]  C, | D, D, D, D, | G,,2 G,, G,, | E,, E,, A,, A,, | D,3 |]\n"
+  },
+  {
+    "id": "silent-night",
+    "title": "Silent Night",
+    "file": "Silent_Night-Stille_Nacht.abc",
+    "folder": "Silent_Night",
+    "key": "Bb",
+    "meter": "3/4",
+    "credits": [
+      "Words: Josef Mohr, 1818. stanzas 1,3 Translated by John Freeman Young, 1863. ",
+      "Music: 'Stille Nacht' Franz Xaver Gruber, 1818.  Setting: \"Concordia Kinderchöre\", 1908.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2005 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Silent_Night-Stille_Nacht.abc",
+    "melody": "X:1\nT:Silent Night\nM:3/4\nL:1/64\nK:Bb\nF12G4 F8 D24 | F12G4 F8 D24 | c16 c8 A24 | B16 B8 F24 |\nw: Si- * lent night, ho- * ly night, All is calm, all is bright\nG16 G8 B12A4 G8 | F12G4 F8 D24 | G16 G8 B12A4 G8 | F12G4 F8\nw: Round yon vir- * gin mo- ther and Child. Ho- ly In- fant, so ten- der and\nD24 | c16 c8 e12c4 A8 | (B24 d24) | B8F8 D8 F12E4 C8 | B,48 |]\nw: mild, Sleep in hea- ven- ly peace, * Sleep * in hea- ven- ly peace.\n",
+    "harmony": "X: 1\nT: Silent Night\nM: 3/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: Bb\n[V: S1V1]  F3/4G// F/ D3/2 | F3/4G// F/ D3/2 | c c/ A3/2 | B B/ F3/2 |\nw: Si- * lent night, ho- * ly night, All is calm, all is bright \n[V: S1V2]  D3/4E// D/ B,3/2 | D3/4E// D/ B,3/2 | E E/ E3/2 | D D/ D3/2 |\n[V: S2V1]  F, F,/ F,3/2 | F, F,/ F,3/2 | A, A,/ C3/2 | B, B,/ B,3/2 |\n[V: S2V2]  B,, B,,/ B,,3/2 | B,, B,,/ B,,3/2 | F, F,/ F,3/2 | B,, B,,/ B,,3/2 |\n[V: S1V1]  G G/ B3/4A// G/ | F3/4G// F/ D3/2 | G G/ B3/4A// G/ | F3/4G// F/\nw: Round yon vir- * gin mo- ther and Child. Ho- ly In- fant, so ten- der and \n[V: S1V2]  E E/ G3/4F// E/ | D3/4E// D/ B,3/2 | E E/ G3/4F// E/ | D3/4E// D/\n[V: S2V1]  B, B,/ B, B,/ | B,3/4B,// B,/ B,3/2 | B, B,/ B,3/4B,// B,/ | B,3/4B,// B,/\n[V: S2V2]  E, E,/ E, E,/ | B,,3/4B,,// B,,/ B,,3/2 | E, E,/ E,3/4E,// E,/ | B,,3/4B,,// B,,/\n[V: S1V1]  D3/2 | c c/ e3/4c// A/ | (B3/2 d3/2) | B/F/ D/ F3/4E// C/ | B,3 |]\nw: mild, Sleep in hea- ven- ly peace, * Sleep * in hea- ven- ly peace. \n[V: S1V2]  B,3/2 | F F/ F3/4F// F/ | F3 | B, B,/ A,3/4A,// A,/ | B,3 |]\n[V: S2V1]  B,3/2 | A, A,/ A,3/4A,// E/ | (D3/2 B,3/2) | F, F,/ F,3/4F,// E,/ | D,3 |]\n[V: S2V2]  B,,3/2 | F, F,/ F,3/4F,// F,/ | B,3 | D, B,,/ F,,3/4F,,// F,,/ | B,,3 |]\n"
+  },
+  {
+    "id": "joy-to-the-world",
+    "title": "Joy to the World",
+    "file": "Joy_To_The_World-Antioch.abc",
+    "folder": "Joy_To_The_World",
+    "key": "D",
+    "meter": "2/4",
+    "credits": [
+      "Words: Isaac Watts, 1719.",
+      "Music: 'Antioch' pieced together from \"Messiah\" George F. Handel, 1741.  Setting: Lowell Mason, 1836.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2005 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Joy_To_The_World-Antioch.abc",
+    "melody": "X:1\nT:Joy to the World\nM:2/4\nL:1/64\nK:D\nd16 c12B4 | A24 G8 | F16 E16 | D24 A8 | B24 B8 | c24 c8 | d24\nw: Joy to the world, the Lord is come! Let earth re- ceive her King;\nd8 | d8c8 B8A8 | A12G4F8 d8 | d8c8 B8A8 | A12G4F8 F8 | F8F8 F8F4G4 | A24\nw: Let ev- * 'ry * heart * * pre- pare * Him * room, * * And Heav'n and na- ture * sing,\nG4F4 | E8E8 E8E4F4 | G24 F4E4 | (D8 d16) B8 | A12G4F8 G8 | F16 E16 | D32 |]\nw: And * Heav'n and na- ture * sing, And * Heav'n, * and Heav'n, * * and na- ture sing.\n",
+    "harmony": "X: 1\nT: Joy to the World\nM: 2/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: D\n[V: S1V1]  d c3/4B// | A3/2 G/ | F E | D3/2 A/ | B3/2 B/ | c3/2 c/ | d3/2\nw: Joy to the world, the Lord is come! Let earth re- ceive her King; \n[V: S1V2]  F A3/4G// | F3/2 E/ | D C | D3/2 D/ | G3/2 G/ | E3/2 E/ | F3/2\n[V: S2V1]  D D3/4D// | D3/2 B,/ | A,3/2 G,/ | F,3/2 D/ | D3/2 D/ | A,3/2 A,/ | A,3/2\n[V: S2V2]  D, D,3/4D,// | D,3/2 G,,/ | A,, A,, | D,3/2 F,/ | G,3/2 G,/ | A,3/2 A,/ | D,3/2\n[V: S1V1]  d/ | d/c/ B/A/ | A3/4G//F/ d/ | d/c/ B/A/ | A3/4G//F/ F/ | F/F/ F/F//G// | A3/2\nw: Let ev- * 'ry * heart * * pre- pare * Him * room, * * And Heav'n and na- ture * sing, \n[V: S1V2]  F/ | F/A/ G/F/ | F3/4E//D/ F/ | F/A/ G/F/ | F3/4E//D/ D/ | D/D/ D/D//E// | F3/2\n[V: S2V1]  A,/ | A, D | D3/2 A,/ | A, D | D3/2 z/ | z3/2 A,/ | A,/A,/A,/\n[V: S2V2]  D,/ | D, D, | D,3/2 D,/ | D, D, | D,3/2 x/ | x3/2 D,/ | D,/D,/D,/\n[V: S1V1]  G//F// | E/E/ E/E//F// | G3/2 F//E// | (D/ d) B/ | A3/4G//F/ G/ | F E | D2 |]\nw: And * Heav'n and na- ture * sing, And * Heav'n, * and Heav'n, * * and na- ture sing. \n[V: S1V2]  E//D// | C/C/ C/C//D// | E3/2 D//C// | (D/ F) G/ | F3/4E//D/ E/ | D C | D2 |]\n[V: S2V1]  A,/ | A,2 | A,3/2 A,//G,// | (F,/ A,) D/ | D3/2 B,/ | A, A,/G,/ | F,2 |]\n[V: S2V2]  D,/ | A,3/2 A,,/ | A,,/A,,/ A,,/A,,/ | D,3/2 D,/ | D,3/2 G,,/ | A,, A,, | D,2 |]\n"
+  },
+  {
+    "id": "hark-the-herald-angels-sing",
+    "title": "Hark! The Herald Angels Sing",
+    "file": "Hark_The_Herald_Angels_Sing-Mendelssohn.abc",
+    "folder": "Hark_The_Herald_Angels_Sing",
+    "key": "F",
+    "meter": "4/4",
+    "credits": [
+      "Words: Charles Wesley, 1739, alt. ",
+      "Music: 'Mendelssohn' from 'Festgesang' Felix Mendelssohn, 1840.  Setting: William H. Cummings, 1857.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2005 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Hark_The_Herald_Angels_Sing-Mendelssohn.abc",
+    "melody": "X:1\nT:Hark! The Herald Angels Sing\nM:4/4\nL:1/64\nK:F\nC16 F16 F24 E8 | F16 A16 (A16 G16) | c16 c16 c24 B8 | A16 G16 A32 |\nw: Hark! The her- ald an- gels sing, * \"Glo- ry to the new- born King;\nC16 F16 F24 E8 | F16 A16 (A16 G16) | c16 G16 G24 E8 | E16 D16 C32 |\nw: Peace on earth, and mer- cy mild, * God and sin- ners re- con- ciled!\"\nc16 c16 c16 F16 | B16 A16 (A16 G16) | c16 c16 c16 F16 | B16 A16 (A16 G16) |\nw: Joy- ful, all ye na- tions rise, * Join the tri- umph of the skies; *\nd16 d16 d16 c16 | B16 A16 B32 | G16 A8B8 c24 F8 | F16 G16 A32 |\nw: With th'an- gel- ic host pro- claim, \"Christ is * born in Beth- le- hem!\"\nd24 d8 d16 c16 | B16 A16 B32 | G16 A8B8 c24 F8 | F16 G16 F32 |]\nw: Hark! the her- ald an- gels sing, \"Glo- ry * to the new- born King!\"\n",
+    "harmony": "X: 1\nT: Hark! The Herald Angels Sing\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: F\n[V: S1V1]  C F F3/2 E/ | F A (A G) | c c c3/2 B/ | A G A2 |\nw: Hark! The her- ald an- gels sing, * \"Glo- ry to the new- born King; \n[V: S1V2]  C C C3/2 C/ | C F (F E) | F E D G | F E F2 | C C C3/2 C/ |\n[V: S2V1]  A, A, A,3/2 G,/ | F, C C2 | C C D D | C C C2 | A, A, A,3/2 G,/ |\n[V: S2V2]  F, F, F, C, | A,, F,, C,2 | A,, A,, B,, B,, | C, C, F,2 | F, F, F, C, |\n[V: S1V1]  C F F3/2 E/ | F A (A G) | c G G3/2 E/ | E D C2 |\nw: Peace on earth, and mer- cy mild, * God and sin- ners re- con- ciled!\" \n[V: S1V2]  A, F F2 | E D E3/2 C/ | C =B, C2 |\n[V: S2V1]  F, C D2 | C D C3/2 G,/ | A, F, E,2 |\n[V: S2V2]  D, C, (=B,,3/2 G,,/) | A,, =B,, C, E, | F, G,, C,2 |\n[V: S1V1]  c c c F | B A (A G) | c c c F | B A (A G) |\nw: Joy- ful, all ye na- tions rise, * Join the tri- umph of the skies; * \n[V: S1V2]  C C C F | G F (F E) | C C C F | G F (F E) |\n[V: S2V1]  C C C C | C C C2 | C C C C | C C C2 |\n[V: S2V2]  C C C A, | E, F, C,2 | C C C A, | E, F, C,2 |\n[V: S1V1]  d d d c | B A B2 | G A/B/ c3/2 F/ | F G A2 |\nw: With th'an- gel- ic host pro- claim, \"Christ is * born in Beth- le- hem!\" \n[V: S1V2]  B B B A | G ^F G2 | E E F3/2 C/ | C E F2 |\n[V: S2V1]  D D D D | D D D2 | C C C3/2 A,/ | A, C C2 |\n[V: S2V2]  B,, B,, B,, B,, | B,, D, G,2 | B, B, A, F, | C, C, F,2 |\n[V: S1V1]  d3/2 d/ d c | B A B2 | G A/B/ c3/2 F/ | F G F2 |]\nw: Hark! the her- ald an- gels sing, \"Glo- ry * to the new- born King!\" \n[V: S1V2]  B B B A | G ^F G2 | C E F3/2 F/ | C C C2 |]\n[V: S2V1]  D D D C | B, A, B,2 | C C C3/2 A,/ | A, B, A,2 |]\n[V: S2V2]  B, B, B, A, | G, ^F, (G, =F,) | E, B, A, F, | C, C, F,2 |]\n"
+  },
+  {
+    "id": "o-come-all-ye-faithful",
+    "title": "O Come, All Ye Faithful",
+    "file": "O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
+    "aliases": [
+      "Adeste Fideles"
+    ],
+    "folder": "O_Come_All_Ye_Faithful",
+    "key": "G",
+    "meter": "4/4",
+    "credits": [
+      "Words:  John F. Wade, circa 1743. v.1-3, 6 Translated by Frederick Oakeley, 1841;",
+      "Music: 'Adeste Fideles' or 'Portuguese Hymn' John F. Wade, 1743.  Setting: \"A Hymnal\" (Episcopal), 1916.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2007 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
+    "melody": "X:1\nT:O Come, All Ye Faithful\nM:4/4\nL:1/64\nK:G\nG16 | G32 D16 G16 | A32 D32 | B16 A16 B16 c16 | B32 A16 G16 |\nw: O come, all ye faith- ful, joy- ful and tri- um- phant, O\nG32 (F16 E16) | (F16 G16) (A16 B16) | (F32 E24) D8 | D48 z16 | d32 c16 B16 |\nw: come ye, O come * ye, to Beth- * le- hem. Come and be-\n(c32 B32) | A16 B16 G16 A16 | (F24 E8) D16 G16 | G16 F16 G16 A16 |\nw: hold Him, born the King of an- * gels; O come, let us a-\nG32 D16 B16 | B16 A16 B16 c16 | B32 A16 B16 | c16 B16 A16 G16 | F32 (G16 c16) | (B32 A24) G8 | G48 |]\nw: dore Him, O come, let us a- dore Him, O come, let us a- dore Him, * Christ * the Lord.\n",
+    "harmony": "X: 1\nT: O Come, All Ye Faithful\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  G | G2 D G | A2 D2 | B A B c | B2 A G |\nw: O come, all ye faith- ful, joy- ful and tri- um- phant, O \n[V: S1V2]  D | D2 D D | D2 D2 | D D D E | D2 D B, |\n[V: S2V1]  B, | B,2 B, B, | A,2 A,2 | G, A, G, G, | G,2 F, G, |\n[V: S2V2]  G, | G,2 B, G, | F,2 F,2 | G, F, G, C, | D,2 D, E, |\n[V: S1V1]  G2 (F E) | (F G) (A B) | (F2 E3/2) D/ | D3 z | d2 c B |\nw: come ye, O come * ye, to Beth- * le- hem. Come and be- \n[V: S1V2]  (B, ^C) (D ^C) | (D D) (D D) | (D2 ^C3/2) D/ | D3 x | D2 E/F/ G |\n[V: S2V1]  G,2 (A, A,) | (A, G,) (F, E,) | (A,2 G,3/2) F,/ | F,3 z | B,2 C D |\n[V: S2V2]  E,2 (D, A,,) | (D, B,,) (F,, G,,) | (A,,2 A,,3/2) D,/ | D,3 x | B,2 A, G, |\n[V: S1V1]  (c2 B2) | A B G A | (F3/2 E/) D G | G F G A |\nw: hold Him, born the King of an- * gels; O come, let us a- \n[V: S1V2]  ((G F) G2) | D D E E | D2 D D | D4 |\n[V: S2V1]  (C2 D2) | A, G, B, C | (A,3/2 G,/) F, B, | B, A, B, C |\n[V: S2V2]  (A,2 G,2) | F, G, E, C, | D,2 D, B, | B, A, B, C |\n[V: S1V1]  G2 D B | B A B c | B2 A B | c B A G | F2 (G c) | (B2 A3/2) G/ | G3 |]\nw: dore Him, O come, let us a- dore Him, O come, let us a- dore Him, * Christ * the Lord. \n[V: S1V2]  D3 D | D D D D | D2 D G | F G D D/^C/ | D2 (D E) | D2- D3/2 B,/ | B,3 |]\n[V: S2V1]  B,3 G, | G, F, G, A, | G,2 F, D | D D A, A, | A,2 G,2 | (G,2 F,3/2) G,/ | G,3 |]\n[V: S2V2]  B,3 G, | G, F, G, A, | G,2 F, G, | A, G, F, E, | D, C, (B,, C,) | (D,2 D,3/2) G,,/ | G,,3 |]\n"
+  },
+  {
+    "id": "joyful-joyful-we-adore-thee",
+    "title": "Joyful, Joyful, We Adore Thee",
+    "file": "Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
+    "folder": "Joyful_Joyful_We_Adore_Thee",
+    "key": "G",
+    "meter": "4/4",
+    "credits": [
+      "Words: Henry J. van Dyke, 1907. ",
+      "Music: 'Ode to Joy' Ludwig van Beethoven; Adapted by Edward Hodges, 1824. ",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2005 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
+    "melody": "X:1\nT:Joyful, Joyful, We Adore Thee\nM:4/4\nL:1/64\nK:G\nB16 B16 c16 d16 | d16 c16 B16 A16 | G16 G16 A16 B16 | B24 A8 A32 |\nw: Joy- ful, joy- ful, we a- dore Thee, God of glor- y, Lord of love;\nB16 B16 c16 d16 | d16 c16 B16 A16 | G16 G16 A16 B16 | A24 G8 G32 |\nw: Hearts un- fold like flowers be- fore Thee, o- pening to the sun a- bove.\nA16 A16 B16 G16 | A16 B8c8 B16 G16 | A16 B8c8 B16 A16 | G16 A16 D32 |\nw: Melt the clouds of sin and * sad- ness; drive the * dark of doubt a- way;\nB16 B16 c16 d16 | d16 c16 B16 A16 | G16 G16 A16 B16 | A24 G8 G32 |]\nw: Giv- er of im- mor- tal glad- ness, fill us with the light of day!\n",
+    "harmony": "X: 1\nT: Joyful, Joyful, We Adore Thee\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  B B c d | d c B A | G G A B | B3/2 A/ A2 |\nw: Joy- ful, joy- ful, we a- dore Thee, God of glor- y, Lord of love; \n[V: S1V2]  D D D D | D E/F/ G D | D D F G | G3/2 F/ F2 |\n[V: S2V1]  G, G, A, B, | B, A, G, F, | G, B, C D | D3/2 D/ D2 |\n[V: S2V2]  G, G, G, G, | D, D, D, C, | B,, B,, A,, G,, | D,3/2 D,/ D,2 |\n[V: S1V1]  B B c d | d c B A | G G A B | A3/2 G/ G2 |\nw: Hearts un- fold like flowers be- fore Thee, o- pening to the sun a- bove. \n[V: S1V2]  G D E =F | =F E D E | D D F G | F3/2 G/ G2 |\n[V: S2V1]  D D C B, | G, A, B, C | B, B, C D | C3/2 B,/ B,2 |\n[V: S2V2]  G, G, G, G, | C, C, C, C, | D, D, D, D, | D,3/2 G,/ G,2 |\n[V: S1V1]  A A B G | A B/c/ B G | A B/c/ B A | G A D2 |\nw: Melt the clouds of sin and * sad- ness; drive the * dark of doubt a- way; \n[V: S1V2]  F D D G | F G/F/ G G | F F F ^D | E/=D/ ^C D2 |\n[V: S2V1]  D F, G, B, | C B,/A,/ G, B, | C B,/A,/ B, B, | B, A,/G,/ F,2 |\n[V: S2V2]  D, D, D, D, | D, D, D, D, | D, D, ^D, B,, | E, A,, D,2 |\n[V: S1V1]  B B c d | d c B A | G G A B | A3/2 G/ G2 |]\nw: Giv- er of im- mor- tal glad- ness, fill us with the light of day! \n[V: S1V2]  D D E =F | =F E D E | D D F G | F3/2 G/ G2 |]\n[V: S2V1]  G, D C B, | G, A, B, C | B, B, C D | C3/2 B,/ B,2 |]\n[V: S2V2]  G, G, G, G, | C, C, C, C, | D, D, D, D, | D,3/2 G,/ G,2 |]\n"
+  }
+]

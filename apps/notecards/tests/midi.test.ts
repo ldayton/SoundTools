@@ -222,3 +222,42 @@ test("permission revocation immediately detaches inputs and requires a new conne
   await f.keyboard.connect();
   assert.equal(f.states.at(-1)?.state, "connected");
 });
+
+test("sight reading accepts legato and polyphony without weakening flashcard guards or re-arming on each note", async () => {
+  const f = fixture();
+  const gestures: { note: number; held: readonly number[] }[] = [];
+  f.keyboard.setPerformanceListener((note, held) =>
+    gestures.push({ note, held }),
+  );
+  await f.keyboard.connect();
+  f.keyboard.setPerformanceMode(true);
+  f.keyboard.setAccepting(true);
+  f.send([0x90, 60, 100]);
+  f.now();
+  f.keyboard.setAccepting(true);
+  f.send([0x90, 64, 100], 100); // Same queued timestamp remains valid throughout the continuous session.
+  f.send([0x90, 67, 100]);
+  f.send([0x90, 67, 100]);
+  assert.deepEqual(gestures, [
+    { note: 60, held: [60] },
+    { note: 64, held: [60, 64] },
+    { note: 67, held: [60, 64, 67] },
+  ]);
+  assert.deepEqual(f.notes, []);
+  f.keyboard.setAccepting(false);
+  f.send([0x80, 60, 0]);
+  f.send([0x90, 62, 100]);
+  assert.equal(gestures.length, 3);
+  f.keyboard.setAccepting(true);
+  f.send([0x90, 62, 100]);
+  assert.equal(gestures.length, 3);
+  f.send([0x80, 62, 0]);
+  f.send([0x90, 62, 100]);
+  assert.equal(gestures.length, 4);
+  f.keyboard.setPerformanceMode(false);
+  f.send([0x90, 65, 100]);
+  assert.deepEqual(f.notes, []);
+  for (const n of [60, 62, 64, 65, 67]) f.send([0x80, n, 0]);
+  f.send([0x90, 65, 100]);
+  assert.deepEqual(f.notes, [65]);
+});

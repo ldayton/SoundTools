@@ -27,6 +27,17 @@ export class MidiKeyboard {
   private accepting = false;
   private acceptAfter = Infinity;
   private state: MidiState;
+  private performanceMode = false;
+  private performanceListener?: (note: number, held: readonly number[]) => void;
+  /** Continuous note-on gestures for sight reading; flashcard release guards stay unchanged. */
+  setPerformanceMode(enabled: boolean) {
+    this.performanceMode = enabled;
+  }
+  setPerformanceListener(
+    listener: (note: number, held: readonly number[]) => void,
+  ) {
+    this.performanceListener = listener;
+  }
   constructor(
     private request: MidiRequest | undefined,
     private answer: (midi: number) => void,
@@ -54,6 +65,7 @@ export class MidiKeyboard {
     });
   }
   setAccepting(enabled: boolean) {
+    if (enabled === this.accepting) return;
     this.accepting = enabled;
     this.acceptAfter = enabled ? this.now() : Infinity;
   }
@@ -193,8 +205,13 @@ export class MidiKeyboard {
       const released = this.held.size === 0;
       this.held.add(key);
       // Notes received during feedback/background still latch until released.
-      if (released && this.accepting && event.timeStamp >= this.acceptAfter)
-        this.answer(note);
+      if (this.accepting && event.timeStamp >= this.acceptAfter) {
+        if (this.performanceMode)
+          this.performanceListener?.(note, [
+            ...new Set([...this.held].map((key) => key % 128)),
+          ]);
+        else if (released) this.answer(note);
+      }
     }
   }
   disconnect() {

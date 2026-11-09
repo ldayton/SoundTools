@@ -12,6 +12,7 @@ export const MODES = [
   { id: "staff-find", label: "Staff to fretboard" },
   { id: "tab", label: "Read tab" },
   { id: "piano", label: "Find on piano" },
+  { id: "sight", label: "Sight read hymns" },
   { id: "signature", label: "Read key signatures" },
 ] as const;
 export type Mode = (typeof MODES)[number]["id"];

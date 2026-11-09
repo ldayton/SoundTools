@@ -15,11 +15,14 @@
     "test:offline": "tsx tests/offline.browser.ts",
     "build:vercel": "node ../../scripts/build-vercel.cjs notecards",
     "test:diagnostics": "tsx tests/diagnostics.browser.ts",
-    "test:notation": "tsx tests/notation.browser.ts"
+    "test:notation": "tsx tests/notation.browser.ts",
+    "import:hymns": "tsx scripts/import-hymns.ts",
+    "test:sight": "tsx tests/sight-reading.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",
     "@ldayton/browser-offline": "^0.1.0",
+    "abcjs": "6.5.2",
     "vexflow": "5.0.0"
   },
   "devDependencies": {

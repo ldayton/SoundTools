@@ -1063,3 +1063,225 @@ input:focus-visible {
   line-height: 1.5;
   color: #62566e;
 }
+
+/* Hymns keep their score and live controls together, without horizontal scrolling. */
+.hymn-controls {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin: 24px 0;
+}
+.hymn-picker {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.hymn-picker > label {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+  margin-bottom: 9px;
+}
+.hymn-search-field {
+  position: relative;
+}
+.hymn-search-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 14px 38px 14px 15px;
+  border: 1px solid #d7d1e0;
+  border-radius: 12px;
+  background: #fcfaf5;
+  color: inherit;
+  font-size: 16px;
+}
+.hymn-search-field span {
+  position: absolute;
+  right: 15px;
+  top: 12px;
+  pointer-events: none;
+}
+.hymn-search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+#hymn-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 73px;
+  z-index: 10;
+  margin: 0;
+  padding: 6px;
+  max-height: 290px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid #d7d1e0;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px #302d551c;
+  background: #fcfaf5;
+}
+#hymn-results li {
+  padding: 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+}
+#hymn-results [role="option"]:hover,
+#hymn-results [aria-selected="true"] {
+  background: #e7e0f3;
+}
+.hymn-no-results {
+  color: #837b94;
+}
+.hymn-order {
+  margin: 7px 0 0;
+  color: #837b94;
+  font-size: 11px;
+}
+.hymn-chords {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  white-space: nowrap;
+  margin: 0;
+}
+.hymn-chords input {
+  width: 18px;
+  height: 18px;
+  accent-color: #766899;
+}
+.hymn-practice {
+  border: 1px solid #ded9cc;
+  border-radius: 22px;
+  background: #fcfaf5;
+  padding: 24px;
+  overflow: hidden;
+}
+.hymn-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #837b94;
+}
+.hymn-title {
+  font-size: 25px;
+  font-weight: 550;
+  letter-spacing: -0.5px;
+  margin: 20px 0 7px;
+}
+.hymn-help {
+  font-size: 13px;
+  margin: 0 0 20px;
+  color: #837b94;
+}
+.hymn-progress {
+  width: 100%;
+  margin: 0 0 18px;
+}
+.hymn-score {
+  max-height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  border-bottom: 1px solid #e5dfd3;
+  overscroll-behavior: contain;
+}
+.hymn-paper {
+  color: #302d55;
+}
+.hymn-paper svg {
+  display: block;
+}
+.hymn-paper .sight-current {
+  fill: #b0653e;
+  stroke: #b0653e;
+}
+.hymn-feedback {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  margin: 12px 0;
+}
+.hymn-transport {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.hymn-transport button {
+  background: transparent;
+  border: 1px solid #d7d1e0;
+  color: inherit;
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-size: 13px;
+  min-height: 42px;
+}
+.hymn-transport .hymn-pause {
+  background: #e7e0f3;
+  border-color: #c8bcdc;
+  min-width: 100px;
+}
+.hymn-transport button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.hymn-midi-slot #midi-panel {
+  margin: 0 0 18px;
+}
+.hymn-screen,
+.hymn-source {
+  border-top: 1px solid #e5dfd3;
+  padding: 16px 0 0;
+  margin-top: 16px;
+}
+.hymn-screen summary,
+.hymn-source summary {
+  font-size: 13px;
+  cursor: pointer;
+}
+.hymn-screen-hint {
+  font-size: 12px;
+  color: #837b94;
+}
+.hymn-piano .piano-layout {
+  margin: 16px 0;
+}
+.hymn-source {
+  color: #837b94;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.hymn-source p {
+  margin: 10px 0;
+}
+.hymn-source a {
+  color: #766899;
+}
+.hymn-piano .sight-key-selected {
+  background: #b7a7d3;
+}
+@media (max-width: 600px) {
+  .hymn-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .hymn-chords {
+    align-self: flex-start;
+  }
+  .hymn-practice {
+    padding: 18px 14px;
+  }
+  .hymn-title {
+    font-size: 22px;
+  }
+  .hymn-score {
+    max-height: 300px;
+  }
+  .hymn-feedback {
+    min-height: 42px;
+  }
+}

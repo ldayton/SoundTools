@@ -18,7 +18,10 @@ export function mountMidiPanel(
   const disconnect =
     element.querySelector<HTMLButtonElement>(".midi-disconnect")!;
   let previous: MidiState | undefined;
+  let performanceMode = false;
+  let latest: MidiStatus | undefined;
   function render(value: MidiStatus) {
+    latest = value;
     const { state } = value;
     const text: Record<MidiState, string> = {
       idle: "Have a keyboard? Play your answers.",
@@ -29,7 +32,7 @@ export function mountMidiPanel(
       waiting: value.inputs.length
         ? "Choose your MIDI input."
         : "Connect your keyboard by USB. It will appear here automatically.",
-      connected: `${value.name} connected. Play one note at a time.`,
+      connected: `${value.name} connected. ${performanceMode ? "Play at your own pace." : "Play one note at a time."}`,
       denied:
         "MIDI access wasn’t allowed. Allow it in your browser’s site settings, then retry.",
       error:
@@ -89,5 +92,16 @@ export function mountMidiPanel(
   select.onchange = () => {
     void keyboard.select(select.value);
   };
-  return keyboard;
+  return {
+    setAccepting: (enabled: boolean) => keyboard.setAccepting(enabled),
+    disconnect: () => keyboard.disconnect(),
+    setPerformanceListener: (
+      listener: (note: number, held: readonly number[]) => void,
+    ) => keyboard.setPerformanceListener(listener),
+    setPerformanceMode(enabled: boolean) {
+      performanceMode = enabled;
+      keyboard.setPerformanceMode(enabled);
+      if (latest) render(latest);
+    },
+  };
 }

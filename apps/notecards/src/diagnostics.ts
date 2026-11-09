@@ -9,7 +9,16 @@ export const diagnostics = create({
   enabled: import.meta.env.VITE_DEPLOY_ENV === "production",
   environment: import.meta.env.PROD ? "production" : "development",
   fields: {
-    mode: ["staff", "name", "find", "staff-find", "tab", "piano", "signature"],
+    mode: [
+      "staff",
+      "name",
+      "find",
+      "staff-find",
+      "tab",
+      "piano",
+      "signature",
+      "sight",
+    ],
     midiState: [
       "unsupported",
       "idle",

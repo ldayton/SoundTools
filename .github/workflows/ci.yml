@@ -127,6 +127,9 @@ jobs:
       - run: npm run test:piano --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:sight --workspace=notecards
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:midi --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}

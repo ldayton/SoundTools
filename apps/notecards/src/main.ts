@@ -53,8 +53,11 @@ import {
   diagnosticsContext,
   mountDiagnostics,
 } from "./diagnostics";
+import type { SightReading } from "./sight-reading";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
   document.querySelector<T>(s)!;
+let sight: SightReading | undefined;
+let sightLoading: Promise<void> | undefined;
 let returnBoardFocus = false;
 let raw: string | null = null;
 try {
@@ -83,6 +86,7 @@ $("#app").innerHTML =
   `<header><a class="brand" href="/" aria-label="Note by Note home"><img class="brand-icon" src="/icon.svg" width="32" height="32" alt="" /> Note by Note<span class="dot">.</span></a><span class="family">SOUNDTOOLS</span></header>
 <main><div class="intro"><p class="eyebrow">A LITTLE PRACTICE, EVERY DAY</p><h1>Get to know your notes.</h1></div>
 <label class="mode-selector">Practice<select id="mode">${MODES.map((m) => `<option value="${m.id}">${m.label}</option>`).join("")}</select></label>
+<div id="sight-reading" hidden></div>
 <section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${progress.roundLength}" value="0" aria-label="Session progress"></progress>
 <div id="question"><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
@@ -144,12 +148,19 @@ const midi = mountMidiPanel(
   (note) => {
     if (!document.hidden && document.hasFocus()) answerPiano(note);
   },
-  (state) => diagnostics.event("midi.state", { midiState: state }),
+  (state) => {
+    if (state !== "connected") sight?.interrupted();
+    diagnostics.event("midi.state", { midiState: state });
+  },
 );
+midi.setPerformanceListener((note, held) => {
+  if (progress.mode === "sight" && !document.hidden && document.hasFocus())
+    sight?.answer(note, held);
+});
 function refreshMidiAcceptance() {
   midi.setAccepting(
-    progress.mode === "piano" &&
-      phase === "question" &&
+    ((progress.mode === "piano" && phase === "question") ||
+      (progress.mode === "sight" && sight?.listening === true)) &&
       !document.hidden &&
       document.hasFocus(),
   );
@@ -195,6 +206,10 @@ function enableAnswers(enabled: boolean) {
 }
 function syncOptions() {
   const p = profile();
+  const isSight = progress.mode === "sight";
+  $("#sight-reading").hidden = !isSight;
+  $(".practice").hidden = isSight;
+  $(".below").hidden = isSight;
   $<HTMLSelectElement>("#roundLength").value = String(progress.roundLength);
   $<HTMLSelectElement>("#mode").value = progress.mode;
   $<HTMLSelectElement>("#key").value = p.key;
@@ -204,7 +219,10 @@ function syncOptions() {
   $<HTMLSelectElement>("#signaturePractice").value =
     p.signaturePractice || "major";
   const positions = isPiano ? PIANO_POSITIONS : POSITIONS;
-  $("#midi-panel").hidden = !isPiano;
+  $("#midi-panel").hidden = !isPiano && !isSight;
+  if (isSight && sight) sight.midiSlot.append($("#midi-panel"));
+  else if (!isSight) $("#question").append($("#midi-panel"));
+  midi.setPerformanceMode(isSight);
   $("#piano-prompt-setting").hidden = !isPiano;
   $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
   $("#piano-notation-options").hidden = !isPiano || p.pianoPrompt === "name";
@@ -434,6 +452,7 @@ function answerName(letter: Letter) {
   if (
     phase !== "question" ||
     progress.mode === "piano" ||
+    progress.mode === "sight" ||
     isLocationMode(progress.mode) ||
     !session.current
   )
@@ -503,6 +522,31 @@ function answerPiano(midi: number) {
 }
 function start(continuing = false) {
   clearTimeout(timer);
+  pendingNext = false;
+  sight?.setActive(progress.mode === "sight");
+  if (progress.mode === "sight") {
+    phase = "question";
+    syncOptions();
+    if (!sight && !sightLoading) {
+      $("#sight-reading").textContent = "Loading hymns…";
+      sightLoading = import("./sight-reading")
+        .then(({ SightReading }) => {
+          sight = new SightReading($("#sight-reading"), refreshMidiAcceptance);
+          syncOptions();
+          sight.setActive(progress.mode === "sight");
+        })
+        .catch((error) => {
+          $("#sight-reading").textContent =
+            "Hymns couldn’t load. Choose another practice mode, then try again.";
+          diagnostics.capture(error, "sight_reading.load_failed");
+        })
+        .finally(() => {
+          sightLoading = undefined;
+        });
+    }
+    syncDiagnosticsContext();
+    return;
+  }
   returnBoardFocus = false;
   pendingNext = false;
   syncOptions();
@@ -571,7 +615,8 @@ $<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
 };
 $<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {
   profile().pianoPrompt = (e.target as HTMLSelectElement).value as
-    "staff" | "name";
+    | "staff"
+    | "name";
   changed();
 };
 for (const field of [
@@ -644,7 +689,8 @@ window.addEventListener("keydown", (event) => {
     event.altKey ||
     phase !== "question" ||
     isLocationMode(progress.mode) ||
-    progress.mode === "piano"
+    progress.mode === "piano" ||
+    progress.mode === "sight"
   )
     return;
   if (
@@ -673,12 +719,14 @@ window.addEventListener("keydown", (event) => {
   }
 });
 window.addEventListener("blur", () => {
+  sight?.interrupted();
   setModifier(0);
   midi.setAccepting(false);
 });
 window.addEventListener("focus", refreshMidiAcceptance);
 window.addEventListener("pagehide", () => midi.disconnect());
 document.addEventListener("visibilitychange", () => {
+  sight?.interrupted();
   setModifier(0);
   refreshMidiAcceptance();
   if (!document.hidden && pendingNext) next();

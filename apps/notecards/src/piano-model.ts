@@ -1,5 +1,5 @@
 import { deck, type Card } from "./model";
-import type { Profile } from "./guitar";
+import type { Profile } from "./exercise-settings";
 export const PIANO_POSITIONS = [2, 3, 4, 5, 6].flatMap((o) =>
   [..."CDEFGAB"].map((l) => l + o),
 );

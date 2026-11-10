@@ -1,3 +1,8 @@
+import {
+  practiceOption,
+  selectPractice,
+  midiAction,
+} from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -47,15 +52,13 @@ try {
   await page.goto(base);
   await page.locator('[data-letter="E"]:enabled').waitFor();
   assert.ok(await page.locator("#midi-panel").isHidden());
-  await page.locator("#mode").selectOption("piano");
+  await selectPractice(page, "piano");
   assert.deepEqual(errors, []);
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   assert.deepEqual(
     await page.evaluate(() => (window as any).midiTest.options),
     [{ sysex: false, software: false }],
@@ -108,7 +111,7 @@ try {
   await off(60);
   await ready();
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#pianoPrompt").selectOption("name");
+  await practiceOption(page, "#pianoPrompt", "name");
   await on(48); // C in any octave answers a letter prompt.
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C");
   assert.ok(
@@ -128,16 +131,23 @@ try {
   );
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   await page.evaluate(() =>
     (window as any).midiTest.add("Second keyboard", "second"),
   );
+  await page.locator(".keyboard-menu summary").click();
   await page.getByLabel("MIDI input", { exact: true }).selectOption("second");
   await page
     .getByText("Second keyboard connected. Play one note at a time.", {
       exact: true,
     })
-    .waitFor();
+    .waitFor({ state: "attached" });
+  if (
+    await page
+      .locator(".keyboard-menu")
+      .evaluate((e: HTMLDetailsElement) => e.open)
+  )
+    await page.locator(".keyboard-menu summary").click();
   await on(62, "replugged");
   assert.equal(await page.locator("#progress").getAttribute("value"), "1");
   await on(62, "second");
@@ -156,34 +166,41 @@ try {
     path: `../../work/midi-mobile-${engine}.png`,
     fullPage: true,
   });
-  await page.locator("#mode").selectOption("signature");
+  await selectPractice(page, "signature");
   await on(60, "second");
   await off(60, "second");
   assert.equal(await page.locator("#progress").getAttribute("value"), "0");
   assert.ok(await page.locator("#midi-panel").isHidden());
-  await page.locator("#mode").selectOption("piano");
-  await page.getByRole("button", { name: "Disconnect", exact: true }).click();
+  await selectPractice(page, "piano");
+  // Navigation now resumes the saved round; deliberately start a fresh one for the following checks.
+  if (!(await page.locator("#pianoPrompt").isVisible()))
+    await page.getByText("Practice options", { exact: true }).click();
+  await practiceOption(page, "#pianoPrompt", "staff");
+  await practiceOption(page, "#pianoPrompt", "name");
+  await midiAction(page, "Disconnect");
   await on(60, "second");
   assert.equal(await page.locator("#progress").getAttribute("value"), "0");
   await page.evaluate(() => (window as any).midiTest.deny(true));
+  await midiAction(page, "Connect MIDI keyboard");
   await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
-  await page.getByText(/MIDI access wasn’t allowed/).waitFor();
+    .getByText(/MIDI access wasn’t allowed/)
+    .waitFor({ state: "attached" });
   await page.evaluate(() => (window as any).midiTest.deny(false));
-  await page.getByRole("button", { name: "Retry MIDI", exact: true }).click();
+  await midiAction(page, "Retry MIDI");
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   await page.evaluate(() => (window as any).midiTest.revoke());
-  await page.getByText(/MIDI access wasn’t allowed/).waitFor();
+  await page
+    .getByText(/MIDI access wasn’t allowed/)
+    .waitFor({ state: "attached" });
   await on(60, "replugged");
   assert.equal(await page.locator("#progress").getAttribute("value"), "0");
   await page.evaluate(() => (window as any).midiTest.deny(false));
-  await page.getByRole("button", { name: "Retry MIDI", exact: true }).click();
+  await midiAction(page, "Retry MIDI");
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   // Complete a whole round using only physical-note messages.
   for (let i = 0; i < 12; i++) {
     await ready();
@@ -220,12 +237,10 @@ try {
   await page.reload();
   await ready();
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   await on(60);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C");
   await context.setOffline(false);
@@ -236,13 +251,13 @@ try {
   const fallback = await unsupported.newPage();
   await fallback.goto(base);
   await fallback.locator('[data-letter="E"]:enabled').waitFor();
-  await fallback.locator("#mode").selectOption("piano");
+  await selectPractice(fallback, "piano");
   await fallback
     .getByText(
       "To use a MIDI keyboard, open this app in Chrome on a computer.",
       { exact: true },
     )
-    .waitFor();
+    .waitFor({ state: "attached" });
   assert.ok(
     await fallback
       .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
@@ -254,7 +269,7 @@ try {
   await page.bringToFront();
   await off(60);
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#pianoPrompt").selectOption("staff");
+  await practiceOption(page, "#pianoPrompt", "staff");
   const chooseRange = async (field: string, note: string) => {
     await page.locator(`#${field}-spin`).click();
     await page
@@ -342,15 +357,13 @@ try {
 
   // Notation changes never change the sounding answer, including MIDI-only notes.
   await page.evaluate(() => (Math.random = () => 0));
-  await page.locator("#staffLayout").selectOption("grand");
-  await page.locator("#overlapPractice").selectOption("both");
-  await page.locator("#octavePractice").selectOption("practice");
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  await practiceOption(page, "#staffLayout", "grand");
+  await practiceOption(page, "#overlapPractice", "both");
+  await practiceOption(page, "#octavePractice", "practice");
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   await chooseRange("low", "C6");
   await chooseRange("high", "C6");
   assert.equal(
@@ -375,7 +388,7 @@ try {
   await on(84);
   await off(84);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C6");
-  await page.locator("#staffLayout").selectOption("bass");
+  await practiceOption(page, "#staffLayout", "bass");
   await chooseRange("low", "C2");
   await chooseRange("high", "C2");
   assert.equal(
@@ -398,7 +411,7 @@ try {
   await on(36);
   await off(36);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C2");
-  await page.locator("#staffLayout").selectOption("grand");
+  await practiceOption(page, "#staffLayout", "grand");
   await chooseRange("low", "C4");
   await chooseRange("high", "C4");
   assert.equal(

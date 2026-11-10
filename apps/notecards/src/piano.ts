@@ -89,7 +89,7 @@ export class Piano {
           })
           .join("");
         rows.push(
-          `<div class="piano-octave" style="--whites:${whites.length};flex-grow:${whites.length}"><div class="piano-keys">${keys}</div></div>`,
+          `<div class="piano-octave" style="--whites:${whites.length}"><div class="piano-keys">${keys}</div></div>`,
         );
       }
       this.element.innerHTML = `<div class="piano-layout ${named ? "piano-named" : "piano-staff"}" role="group" aria-label="Piano answer keys">${rows.join("")}</div>`;

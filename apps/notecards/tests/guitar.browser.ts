@@ -1,3 +1,4 @@
+import { practiceOption, selectPractice } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -55,8 +56,11 @@ try {
       ].includes(document.querySelector("#feedback")?.textContent || ""),
     );
   await ready();
-  assert.equal(await page.locator("#mode").inputValue(), "staff");
-  await page.locator("#mode").selectOption("name");
+  assert.equal(
+    await page.locator("nav a[aria-current]").getAttribute("data-mode"),
+    "staff",
+  );
+  await selectPractice(page, "name");
   assert.equal(
     await page.locator('[data-string-toggle][aria-pressed="true"]').count(),
     6,
@@ -66,8 +70,8 @@ try {
   await page.getByText("Practice options", { exact: true }).click();
   for (const string of [1, 2, 3, 4, 5])
     await page.locator(`[data-string-toggle="${string}"]`).click();
-  await page.locator("#minFret").selectOption("2");
-  await page.locator("#maxFret").selectOption("2");
+  await practiceOption(page, "#minFret", "2");
+  await practiceOption(page, "#maxFret", "2");
   assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
     "",
     "Open",
@@ -98,19 +102,19 @@ try {
     1,
     "Fresh pointer movement restores hover",
   );
-  await page.locator("#nameNotes").selectOption("naturals");
+  await practiceOption(page, "#nameNotes", "naturals");
   assert.match(
     (await page.locator("#feedback").textContent())!,
     /No natural notes/,
   );
-  await page.locator("#nameNotes").selectOption("all");
+  await practiceOption(page, "#nameNotes", "all");
   await ready();
   await page.getByRole("button", { name: "Sharp", exact: true }).click();
   await page.locator('[data-letter="F"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
-  await page.locator("#minFret").selectOption("0");
-  await page.locator("#maxFret").selectOption("5");
-  await page.locator("#nameNotes").selectOption("naturals");
+  await practiceOption(page, "#minFret", "0");
+  await practiceOption(page, "#maxFret", "5");
+  await practiceOption(page, "#nameNotes", "naturals");
   await page.getByText("Practice options", { exact: true }).click();
   await page.locator('[data-letter="E"]').focus();
   assert.equal(
@@ -126,7 +130,7 @@ try {
   await page.keyboard.press("F");
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F/);
   await next();
-  await page.locator("#mode").selectOption("find");
+  await selectPractice(page, "find");
   await page.locator('[data-fret="1"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /E is open/);
   assert.equal(await page.locator('[data-fret="0"]').textContent(), "✓");
@@ -165,8 +169,8 @@ try {
   await page.keyboard.up("Enter");
   // Complete a fresh location session using the known C-major low-E positions.
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#maxFret").selectOption("4");
-  await page.locator("#maxFret").selectOption("5");
+  await practiceOption(page, "#maxFret", "4");
+  await practiceOption(page, "#maxFret", "5");
   const frets: Record<string, number> = { E: 0, F: 1, G: 3, A: 5 };
   for (let i = 0; i < 12; i++) {
     const note = (await page.locator("#target-name").textContent())!;
@@ -177,21 +181,21 @@ try {
   assert.equal(await page.locator("#result").textContent(), "12 of 12 correct");
   await page.locator("#continue").click();
   assert.equal(await page.locator("#progress").getAttribute("value"), "0");
-  await page.locator("#mode").selectOption("tab");
+  await selectPractice(page, "tab");
   await ready();
   assert.equal(await page.locator(".vf-tabnote").count(), 1);
   await page.keyboard.press("E");
   assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
   await next();
-  await page.locator("#mode").selectOption("staff-find");
+  await selectPractice(page, "staff-find");
   assert.equal(await page.locator(".vf-stavenote").count(), 1);
   await page.locator('[data-fret="0"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes/);
   await next();
-  await page.locator("#mode").selectOption("staff");
+  await selectPractice(page, "staff");
   await ready();
-  assert.equal(await page.locator("#low").inputValue(), "E3");
-  await page.locator("#key").selectOption("G");
+  assert.equal(await page.locator("#staff-low-spin").inputValue(), "E3");
+  await practiceOption(page, "#key", "G");
   await ready();
   await page.keyboard.press("E");
   await next();
@@ -199,8 +203,8 @@ try {
   await page.keyboard.press("F");
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
   // Find supports every octave of the target; staff-to-fretboard accepts only the exact pitch.
-  await page.locator("#mode").selectOption("find");
-  await page.locator("#maxFret").selectOption("12");
+  await selectPractice(page, "find");
+  await practiceOption(page, "#maxFret", "12");
   assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
     "",
     "Open",
@@ -230,8 +234,8 @@ try {
   await page.locator('[data-fret="12"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
   await next();
-  await page.locator("#mode").selectOption("staff-find");
-  await page.locator("#maxFret").selectOption("12");
+  await selectPractice(page, "staff-find");
+  await practiceOption(page, "#maxFret", "12");
   assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
     "",
     "Open",
@@ -241,15 +245,15 @@ try {
   assert.match((await page.locator("#feedback").textContent())!, /E is open/);
   await next();
   // Empty key/string/fret combinations in keyed modes recover without getting stuck.
-  await page.locator("#mode").selectOption("find");
-  await page.locator("#key").selectOption("G");
-  await page.locator("#minFret").selectOption("1");
-  await page.locator("#maxFret").selectOption("1");
+  await selectPractice(page, "find");
+  await practiceOption(page, "#key", "G");
+  await practiceOption(page, "#minFret", "1");
+  await practiceOption(page, "#maxFret", "1");
   assert.match((await page.locator("#feedback").textContent())!, /No notes/);
   assert.ok(await page.locator('[data-letter="E"]').isDisabled());
-  await page.locator("#maxFret").selectOption("5");
+  await practiceOption(page, "#maxFret", "5");
   await next();
-  await page.locator("#maxFret").selectOption("12");
+  await practiceOption(page, "#maxFret", "12");
   assert.ok(await page.locator('[data-string-toggle="6"]').isDisabled());
   assert.equal(
     await page.locator('[data-string-toggle="6"]').getAttribute("aria-pressed"),
@@ -260,14 +264,17 @@ try {
     await page.locator('[data-string-toggle="5"]').getAttribute("aria-pressed"),
     "true",
   );
-  await page.locator("#mode").selectOption("find");
+  await selectPractice(page, "find");
   assert.equal(await page.locator("#maxFret").inputValue(), "12");
   await page.reload();
   await page.locator("[data-fret]").first().waitFor();
-  assert.equal(await page.locator("#mode").inputValue(), "find");
+  assert.equal(
+    await page.locator("nav a[aria-current]").getAttribute("data-mode"),
+    "find",
+  );
   await mkdir("work", { recursive: true });
   for (const mode of ["name", "find", "tab", "staff-find", "staff"]) {
-    await page.locator("#mode").selectOption(mode);
+    await selectPractice(page, mode);
     await page.setViewportSize({ width: 390, height: 1000 });
     assert.ok(
       await page.evaluate(
@@ -286,18 +293,18 @@ try {
     });
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
-  await page.locator("#mode").selectOption("name");
+  await selectPractice(page, "name");
   await page.screenshot({
     path: `work/guitar-${name}-desktop.png`,
     fullPage: true,
   });
   // Extreme key spelling: high-E fret 12 is F-flat in C-flat major, written F-flat6.
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#mode").selectOption("staff-find");
+  await selectPractice(page, "staff-find");
   await page.locator('[data-string-toggle="1"]').click();
   await page.locator('[data-string-toggle="6"]').click();
-  await page.locator("#minFret").selectOption("12");
-  await page.locator("#key").selectOption("Cb");
+  await practiceOption(page, "#minFret", "12");
+  await practiceOption(page, "#key", "Cb");
   const edge = await page.locator(".vf-stavenote rect").evaluate((rect) => ({
     top: Number(rect.getAttribute("y")) * 2.2,
     bottom:
@@ -313,8 +320,8 @@ try {
     fullPage: true,
   });
   // A backgrounded correction must not consume another card.
-  await page.locator("#mode").selectOption("name");
-  await page.locator("#minFret").selectOption("0");
+  await selectPractice(page, "name");
+  await practiceOption(page, "#minFret", "0");
   await ready();
   await page.evaluate(
     "Object.defineProperty(document, 'hidden', {configurable:true,get:()=>true})",
@@ -328,8 +335,8 @@ try {
   );
   await next();
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
-  await page.locator("#roundLength").selectOption("24");
-  await page.locator("#maxFret").selectOption("0");
+  await practiceOption(page, "#roundLength", "24");
+  await practiceOption(page, "#maxFret", "0");
   assert.equal(await page.locator("#counter").textContent(), "1 / 24");
   assert.equal(await page.locator("#progress").getAttribute("max"), "24");
   for (let i = 0; i < 24; i++) {
@@ -348,16 +355,16 @@ try {
     path: `work/guitar-${name}-round-length.png`,
     fullPage: true,
   });
-  await page.locator("#mode").selectOption("find");
+  await selectPractice(page, "find");
   if (
     (await page
       .locator('[data-string-toggle="5"]')
       .getAttribute("aria-pressed")) === "true"
   )
     await page.locator('[data-string-toggle="5"]').click();
-  await page.locator("#key").selectOption("G");
-  await page.locator("#minFret").selectOption("2");
-  await page.locator("#maxFret").selectOption("2");
+  await practiceOption(page, "#key", "G");
+  await practiceOption(page, "#minFret", "2");
+  await practiceOption(page, "#maxFret", "2");
   assert.deepEqual(await page.locator(".fret-labels span").allTextContents(), [
     "",
     "Open",

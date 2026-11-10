@@ -1,0 +1,386 @@
+/* Shared controls. Component rules live here rather than as overrides of activity-specific styles. */
+.primary {
+  border: 0;
+  background: #302d55;
+  color: #fffdf8;
+  border-radius: 11px;
+  padding: 15px 28px;
+  font-weight: 550;
+}
+
+.primary span {
+  margin-left: 25px;
+}
+
+select {
+  font: inherit;
+  color: #302d55;
+  background: #fffdf8;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  min-height: 44px;
+  padding: 8px 32px 8px 12px;
+}
+
+.strings {
+  border: 0;
+  padding: 0;
+  margin: 20px 0 0;
+  display: flex;
+  gap: 7px;
+}
+
+.strings legend {
+  margin-bottom: 9px;
+  padding: 0;
+}
+
+.strings button {
+  min-width: 43px;
+  min-height: 52px;
+  background: #fffdf8;
+  border: 1px solid #d8d1c5;
+  border-radius: 8px;
+  color: #655c75;
+}
+
+.strings button small {
+  display: block;
+  font-size: 9px;
+  font-weight: 400;
+  margin-top: 3px;
+}
+
+.strings button[aria-pressed="true"] {
+  background: #e5def0;
+  border-color: #a99ac1;
+  color: #302d55;
+}
+
+@media (max-width: 600px) {
+  .strings {
+    gap: 6px;
+  }
+  .strings button {
+    min-width: 42px;
+  }
+}
+
+.note-picker {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(620px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid #dddfd4;
+  border-radius: 12px;
+  background: #faf9f4;
+  color: #302d55;
+  box-shadow: 0 12px 40px #29382b25;
+}
+
+.note-picker-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.note-picker-grid {
+  display: grid;
+  grid-template-columns: 24px repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+
+.note-picker-octave {
+  font-size: 11px;
+  color: #837b94;
+  text-align: center;
+}
+
+.note-picker-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0;
+  border-radius: 5px;
+  background: #fffefa;
+  font-size: 11px;
+  border: 1px solid #e5e7dd;
+}
+
+.note-picker-grid button:hover {
+  background: #edf2df;
+}
+
+.note-picker-grid button[aria-pressed="true"] {
+  background: #dcd2ed;
+  border-color: #a4b87a;
+  font-weight: 600;
+}
+
+.note-picker-grid button:focus-visible {
+  outline: 3px solid #988cc5;
+  outline-offset: 1px;
+}
+.below {
+  display: block;
+}
+.below .saved {
+  margin-top: 16px;
+  text-align: left;
+}
+.practice-options {
+  width: 100%;
+  min-width: 0;
+}
+.practice-options .range {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.practice-options .notation-help {
+  font-size: 13px;
+  margin: 0 0 18px;
+  max-width: none;
+}
+.note-field {
+  display: flex;
+  overflow: hidden;
+  min-height: 44px;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+}
+.note-field input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: #fffdf8;
+  cursor: pointer;
+}
+.note-field button {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 10px 14px;
+}
+.sequence-transport {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.sequence-transport button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.exercise-options {
+  padding: 0;
+  margin: 0 0 24px;
+}
+.practice-options {
+  margin: 0 0 24px;
+}
+.exercise-options .practice-options {
+  margin-bottom: 0;
+}
+.disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  background: #fcfaf5;
+  color: #302d55;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.disclosure > summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #837b94;
+  border-bottom: 1.5px solid #837b94;
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+.disclosure[open] > summary::after {
+  transform: rotate(225deg);
+}
+.disclosure > summary:hover {
+  background: #eee8f4;
+}
+.disclosure[open] > summary {
+  margin-bottom: 0;
+  background: #eee8f4;
+}
+.practice-options-content {
+  padding: 20px 0 0;
+}
+.practice-options .options-row,
+.practice-options .practice-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 16px;
+}
+.practice-options label,
+.practice-options .options-row > label,
+.practice-options .practice-controls label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  min-width: 0;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #625d70;
+}
+.practice-options select,
+.practice-options .options-row select,
+.practice-options .practice-controls select,
+.practice-options #key {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 44px;
+  height: 44px;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  background: #fffdf8;
+  color: #302d55;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+}
+.practice-options .note-field {
+  min-height: 44px;
+  border-color: #d8d1c5;
+  border-radius: 9px;
+}
+.practice-options .note-field input {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #302d55;
+}
+.practice-options .note-field button {
+  color: #837b94;
+  background: #fffdf8;
+}
+.practice-options #pitch-range,
+.practice-options #piano-range {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.practice-options #pitch-range label,
+.practice-options #piano-range label {
+  margin: 0 0 8px;
+}
+.practice-options .options-help,
+.practice-options-content > p:last-child {
+  font-size: 12px;
+  color: #837b94;
+  line-height: 1.5;
+  margin: 16px 0 0;
+}
+.practice-options .hymn-controls {
+  margin: 0 0 16px;
+}
+.practice-options .hymn-search-field input {
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  background: #fffdf8;
+  font-size: 14px;
+}
+.practice-options .hymn-picker > label {
+  margin: 0 0 8px;
+}
+.sequence-transport button,
+.midi-actions button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  background: #fffdf8;
+  color: #302d55;
+  font-size: 14px;
+  font-weight: 500;
+}
+.sequence-transport button:first-child {
+  min-width: 104px;
+}
+.sequence-transport .primary,
+.primary {
+  border-color: #302d55;
+  background: #302d55;
+  color: #fffdf8;
+}
+
+.sequence-practice > .disclosure {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 16px;
+}
+.sequence-practice > .disclosure[open] > summary {
+  margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+  .practice-options .options-row,
+  .practice-options .practice-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .practice-options .practice-controls label:first-child {
+    grid-column: auto;
+  }
+  .practice-options #pitch-range,
+  .practice-options #piano-range {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .practice-options select,
+  .practice-options .options-row select,
+  .practice-options .practice-controls select,
+  .practice-options #key,
+  .practice-options .note-field input,
+  .practice-options .hymn-search-field input {
+    font-size: 16px;
+  }
+}
+/* Keep the field chrome consistent while retaining native select menus. */
+.practice-options select,
+.practice-options .options-row select,
+.practice-options .practice-controls select,
+.practice-options #key,
+.midi-actions select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23837b94' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+}

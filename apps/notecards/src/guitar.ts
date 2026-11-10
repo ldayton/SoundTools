@@ -1,23 +1,5 @@
-import {
-  KEYS,
-  type Card,
-  type Letter,
-  type Modifier,
-  type Settings,
-} from "./model";
-export const MODES = [
-  { id: "staff", label: "Read staff" },
-  { id: "name", label: "Name the note" },
-  { id: "find", label: "Find the note" },
-  { id: "staff-find", label: "Staff to fretboard" },
-  { id: "tab", label: "Read tab" },
-  { id: "piano", label: "Find on piano" },
-  { id: "sight", label: "Sight read hymns" },
-  { id: "patterns", label: "Interval patterns" },
-  { id: "rhythm", label: "Rhythm only" },
-  { id: "signature", label: "Read key signatures" },
-] as const;
-export type Mode = (typeof MODES)[number]["id"];
+import { KEYS, type Card, type Letter, type Modifier } from "./model";
+import type { Mode } from "./exercises";
 export const STRINGS = [
   { number: 1, name: "High E", midi: 64 },
   { number: 2, name: "B", midi: 59 },
@@ -26,17 +8,7 @@ export const STRINGS = [
   { number: 5, name: "A", midi: 45 },
   { number: 6, name: "Low E", midi: 40 },
 ];
-export type Profile = Settings & {
-  strings: number[];
-  minFret: number;
-  maxFret: number;
-  naturalsOnly?: boolean;
-  pianoPrompt?: "staff" | "name";
-  staffLayout?: "treble" | "bass" | "grand";
-  overlapPractice?: "standard" | "both";
-  octavePractice?: "off" | "practice";
-  signaturePractice?: "major" | "minor" | "both";
-};
+import type { Profile } from "./exercise-settings";
 export type GuitarCard = Card & { string: number; fret: number; midi: number };
 const natural: Record<Letter, number> = {
   C: 0,

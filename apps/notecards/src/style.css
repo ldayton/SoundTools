@@ -203,27 +203,9 @@ button:disabled {
 .mobile-hint {
   display: none;
 }
-.below {
-  padding: 22px 5px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 15px;
-  color: #80798a;
-  font-size: 12px;
-}
 summary {
   cursor: pointer;
   color: #655c75;
-}
-details label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 14px;
-}
-details p {
-  font-size: 11px;
 }
 .saved {
   margin: 0;
@@ -250,17 +232,6 @@ footer {
 #result {
   color: #81768e;
   margin: 18px 0 28px;
-}
-.primary {
-  border: 0;
-  background: #302d55;
-  color: #fffdf8;
-  border-radius: 11px;
-  padding: 15px 28px;
-  font-weight: 550;
-}
-.primary span {
-  margin-left: 25px;
 }
 .summary-note {
   font-size: 12px;
@@ -317,10 +288,6 @@ footer {
   .mobile-hint {
     display: inline;
   }
-  .below {
-    flex-direction: column;
-    gap: 20px;
-  }
   .saved {
     text-align: left;
   }
@@ -337,95 +304,15 @@ footer {
     scroll-behavior: auto !important;
   }
 }
-
-.range {
-  display: flex;
-  gap: 14px;
-  margin-top: 6px;
-}
-.range label {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  flex: 1;
-}
-.range select,
-#key {
-  font: inherit;
-  color: #302d55;
-  background: #fffdf8;
-  border: 1px solid #d8d1c5;
-  border-radius: 8px;
-  min-height: 42px;
-  padding: 8px 28px 8px 12px;
-}
-
-#key {
-  width: 100%;
-  max-width: 280px;
-}
 details > label:has(#key) {
   align-items: stretch;
   flex-direction: column;
   gap: 6px;
 }
-.mode-selector {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 0 4px 18px;
-  font-size: 13px;
-  color: #655c75;
-  font-weight: 550;
-}
-.mode-selector select {
-  flex: 1;
-  max-width: 300px;
-}
-select {
-  font: inherit;
-  color: #302d55;
-  background: #fffdf8;
-  border: 1px solid #d8d1c5;
-  border-radius: 9px;
-  min-height: 44px;
-  padding: 8px 32px 8px 12px;
-}
 select:focus-visible,
 input:focus-visible {
   outline: 3px solid #988cc5;
   outline-offset: 3px;
-}
-.strings {
-  border: 0;
-  padding: 0;
-  margin: 20px 0 0;
-  display: flex;
-  gap: 7px;
-}
-.strings legend {
-  margin-bottom: 9px;
-  padding: 0;
-}
-.strings button {
-  min-width: 43px;
-  min-height: 52px;
-  background: #fffdf8;
-  border: 1px solid #d8d1c5;
-  border-radius: 8px;
-  color: #655c75;
-}
-.strings button small {
-  display: block;
-  font-size: 9px;
-  font-weight: 400;
-  margin-top: 3px;
-}
-.strings button[aria-pressed="true"] {
-  background: #e5def0;
-  border-color: #a99ac1;
-  color: #302d55;
 }
 .tuning {
   color: #8b8493;
@@ -562,27 +449,12 @@ input:focus-visible {
   border-top: 1px solid #e8e2d7;
   padding: 16px 15px;
 }
-.below details {
-  max-width: 100%;
-}
 @media (max-width: 600px) {
   #fretboard {
     padding: 12px 10px 10px;
   }
-  .mode-selector {
-    gap: 12px;
-  }
-  .mode-selector select {
-    max-width: none;
-  }
   .board-toolbar {
     font-size: 11px;
-  }
-  .strings {
-    gap: 6px;
-  }
-  .strings button {
-    min-width: 42px;
   }
   .fret-labels,
   .fret-markers {
@@ -753,18 +625,22 @@ input:focus-visible {
   padding-bottom: 18px;
 }
 .piano-layout {
+  --white: 32px;
+  --black: 24px;
   display: flex;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
 }
 .piano-octave {
   position: relative;
-  flex-basis: 0;
-  min-width: 0;
-  --white: calc(100% / var(--whites));
-  --black: max(24px, calc(var(--white) * 0.62));
+  flex: 0 0 auto;
+  width: calc(var(--whites) * var(--white));
 }
 .piano-keys {
   position: relative;
-  height: 176px;
+  height: 144px;
 }
 .piano-key {
   position: absolute;
@@ -838,8 +714,6 @@ input:focus-visible {
 }
 .piano-named {
   padding-top: 0;
-  width: 100%;
-  max-width: 480px;
   margin: auto;
 }
 @media (max-width: 600px) {
@@ -854,15 +728,6 @@ input:focus-visible {
   .piano-layout {
     flex-direction: column;
     gap: 16px;
-  }
-  .piano-octave {
-    flex-basis: auto;
-  }
-  .piano-keys {
-    height: 120px;
-  }
-  .piano-named .piano-keys {
-    height: 176px;
   }
 }
 
@@ -943,83 +808,6 @@ input:focus-visible {
   }
 }
 
-.note-picker {
-  position: fixed;
-  inset: auto;
-  margin: 0;
-  width: min(620px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
-  overflow: auto;
-  padding: 16px;
-  border: 1px solid #dddfd4;
-  border-radius: 12px;
-  background: #faf9f4;
-  color: #302d55;
-  box-shadow: 0 12px 40px #29382b25;
-}
-.note-picker-title {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-.note-picker-grid {
-  display: grid;
-  grid-template-columns: 24px repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  align-items: center;
-}
-.note-picker-octave {
-  font-size: 11px;
-  color: var(--muted);
-  text-align: center;
-}
-.note-picker-grid button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  padding: 0;
-  border-radius: 5px;
-  background: #fffefa;
-  font-size: 11px;
-  border: 1px solid #e5e7dd;
-}
-.note-picker-grid button:hover {
-  background: #edf2df;
-}
-.note-picker-grid button[aria-pressed="true"] {
-  background: #dcd2ed;
-  border-color: #a4b87a;
-  font-weight: 600;
-}
-
-.note-field {
-  display: flex;
-  border: 1px solid #d4cfc4;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.note-field input {
-  width: 100%;
-  min-width: 0;
-  padding: 12px;
-  border: 0;
-  background: #fffdf8;
-  font: inherit;
-  cursor: pointer;
-}
-.note-field button {
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  padding: 10px 14px;
-}
-.note-picker-grid button:focus-visible {
-  outline: 3px solid #988cc5;
-  outline-offset: 1px;
-}
-
 .piano-range-notice {
   font-size: 14px;
   color: #62566e;
@@ -1059,33 +847,14 @@ input:focus-visible {
   flex: 1;
   min-width: 0;
 }
-.hymn-picker > label {
-  display: block;
-  font-size: 13px;
-  font-weight: 650;
-  margin-bottom: 9px;
-}
 .hymn-search-field {
   position: relative;
-}
-.hymn-search-field input {
-  width: 100%;
-  min-width: 0;
-  padding: 14px 38px 14px 15px;
-  border: 1px solid #d7d1e0;
-  border-radius: 12px;
-  background: #fcfaf5;
-  color: inherit;
-  font-size: 16px;
 }
 .hymn-search-field span {
   position: absolute;
   right: 15px;
   top: 12px;
   pointer-events: none;
-}
-.hymn-search-field input::-webkit-search-cancel-button {
-  display: none;
 }
 #hymn-results {
   position: absolute;
@@ -1121,39 +890,26 @@ input:focus-visible {
   color: #837b94;
   font-size: 11px;
 }
-.hymn-chords {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13px;
-  white-space: nowrap;
-  margin: 0;
-}
-.hymn-chords input {
-  width: 18px;
-  height: 18px;
-  accent-color: #766899;
-}
-.hymn-practice {
+.sequence-practice {
   border: 1px solid #ded9cc;
   border-radius: 22px;
   background: #fcfaf5;
   padding: 24px;
   overflow: hidden;
 }
-.hymn-top {
+.sequence-top {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   color: #837b94;
 }
-.hymn-title {
+.sequence-title {
   font-size: 25px;
   font-weight: 550;
   letter-spacing: -0.5px;
   margin: 20px 0 7px;
 }
-.hymn-help {
+.sequence-help {
   font-size: 13px;
   margin: 0 0 20px;
   color: #837b94;
@@ -1162,7 +918,7 @@ input:focus-visible {
   width: 100%;
   margin: 0 0 18px;
 }
-.hymn-score {
+.sequence-score {
   max-height: 380px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1182,39 +938,12 @@ input:focus-visible {
   fill: #b0653e;
   stroke: #b0653e;
 }
-.hymn-feedback {
+.sequence-feedback {
   min-height: 38px;
   display: flex;
   align-items: center;
   font-size: 13px;
   margin: 12px 0;
-}
-.hymn-transport {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 22px;
-}
-.hymn-transport button {
-  background: transparent;
-  border: 1px solid #d7d1e0;
-  color: inherit;
-  border-radius: 9px;
-  padding: 10px 16px;
-  font-size: 13px;
-  min-height: 42px;
-}
-.hymn-transport .hymn-pause {
-  background: #e7e0f3;
-  border-color: #c8bcdc;
-  min-width: 100px;
-}
-.hymn-transport button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.hymn-midi-slot #midi-panel {
-  margin: 0 0 18px;
 }
 .hymn-screen,
 .hymn-source {
@@ -1222,17 +951,12 @@ input:focus-visible {
   padding: 16px 0 0;
   margin-top: 16px;
 }
-.hymn-screen summary,
-.hymn-source summary {
-  font-size: 13px;
-  cursor: pointer;
-}
 .hymn-screen-hint {
   font-size: 12px;
   color: #837b94;
 }
 .hymn-piano .piano-layout {
-  margin: 16px 0;
+  margin: 16px auto;
 }
 .hymn-source {
   color: #837b94;
@@ -1254,144 +978,18 @@ input:focus-visible {
     align-items: stretch;
     gap: 16px;
   }
-  .hymn-chords {
-    align-self: flex-start;
-  }
-  .hymn-practice {
+  .sequence-practice {
     padding: 18px 14px;
   }
-  .hymn-title {
+  .sequence-title {
     font-size: 22px;
   }
-  .hymn-score {
+  .sequence-score {
     max-height: 300px;
   }
-  .hymn-feedback {
+  .sequence-feedback {
     min-height: 42px;
   }
-}
-
-/* Practice controls share full-width rows and a generous native disclosure target. */
-.below {
-  display: block;
-}
-.below .saved {
-  margin-top: 16px;
-  text-align: left;
-}
-.practice-options {
-  width: 100%;
-  min-width: 0;
-}
-.practice-options > summary {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 56px;
-  padding: 16px;
-  border: 1px solid #d8d1c5;
-  border-radius: 10px;
-  background: #faf8f2;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  touch-action: manipulation;
-}
-.practice-options > summary:hover {
-  background: #eee8f4;
-}
-.practice-options > summary:focus-visible {
-  outline: 3px solid #988cc5;
-  outline-offset: 3px;
-}
-.practice-options[open] > summary {
-  margin-bottom: 18px;
-  background: #eee8f4;
-}
-.options-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
-}
-.practice-options .options-row > label {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-end;
-  gap: 8px;
-  margin: 0;
-  min-width: 0;
-  max-width: none;
-  text-align: left;
-  font-size: 13px;
-}
-.practice-options .options-row #key,
-.practice-options .options-row select {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  height: 44px;
-}
-.practice-options .notation-help {
-  max-width: none;
-  margin: 0 0 18px;
-  font-size: 13px;
-}
-.practice-options #piano-range {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 18px;
-}
-.practice-options #piano-range > div {
-  min-width: 0;
-}
-.practice-options #piano-range label {
-  margin: 0 0 8px;
-  font-size: 13px;
-  text-align: left;
-}
-.practice-options .note-field {
-  box-sizing: border-box;
-  min-height: 44px;
-}
-@media (max-width: 640px) {
-  .options-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .practice-options #piano-range {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.practice-controls {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin: 24px 0;
-}
-.practice-controls label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 650;
-  min-width: 0;
-}
-.practice-controls select {
-  width: 100%;
-  min-width: 0;
-  padding: 12px;
-  border: 1px solid #d7d1e0;
-  border-radius: 10px;
-  background: #fcfaf5;
-  color: inherit;
-  font: inherit;
-  font-weight: 400;
-}
-.hymn-grades {
-  grid-template-columns: 1.5fr 1fr 0.7fr;
 }
 .pattern-progress {
   width: 100%;
@@ -1453,18 +1051,320 @@ input:focus-visible {
   fill: #b0653e;
   stroke: #b0653e;
 }
-@media (max-width: 600px) {
-  .practice-controls {
-    grid-template-columns: 1fr 1fr;
+
+/* Application navigation. Exercise controls stay inside the main workspace. */
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  z-index: 100;
+  padding: 12px;
+  background: #fcfaf5;
+}
+.skip-link:focus {
+  top: 12px;
+}
+.app-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 244px;
+  padding: 28px 18px 18px;
+  background: #f0ece2;
+  border-right: 1px solid #ded9cc;
+  overflow-y: auto;
+  z-index: 30;
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-brand .brand {
+  font-size: 20px;
+  letter-spacing: -0.8px;
+  white-space: nowrap;
+}
+.sidebar-brand .brand-icon {
+  width: 28px;
+  height: 28px;
+  margin-right: 7px;
+}
+.sidebar-caption {
+  margin: 16px 12px 30px;
+  color: #837b94;
+  font-size: 11px;
+}
+.nav-group {
+  margin-bottom: 25px;
+}
+.nav-group h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 12px 8px;
+  font-size: 11px;
+  font-weight: 650;
+  color: #777180;
+}
+.nav-group h2 svg {
+  width: 17px;
+  height: 17px;
+}
+.nav-group a {
+  display: block;
+  padding: 10px 12px;
+  margin: 2px 0;
+  border-radius: 8px;
+  color: #625d70;
+  font-size: 13px;
+  text-decoration: none;
+  line-height: 1.4;
+}
+.nav-group a:hover {
+  background: #e9e3d9;
+}
+.nav-group a[aria-current] {
+  color: #302d55;
+  background: #e3ddee;
+  box-shadow: inset 3px 0 #9582ba;
+  font-weight: 650;
+}
+.sidebar-family {
+  margin: 28px 12px 8px;
+  letter-spacing: 2px;
+  font-size: 9px;
+  color: #8b8794;
+}
+.app-body {
+  margin-left: 244px;
+}
+.app-topbar {
+  max-width: none;
+  margin: 0;
+  padding: 23px 36px;
+  min-height: 93px;
+  background: #f5f1e7;
+  gap: 16px;
+}
+.page-heading {
+  flex: 1;
+  min-width: 0;
+}
+.page-heading p {
+  margin: 0 0 5px;
+  font-size: 11px;
+  color: #837b94;
+}
+.page-heading h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.7px;
+  outline: none;
+}
+.app-body main {
+  max-width: 920px;
+  margin: 28px auto 0;
+  padding: 0 36px 32px;
+}
+.keyboard-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+.keyboard-menu summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #ded9cc;
+  border-radius: 9px;
+  font-size: 12px;
+  cursor: pointer;
+  list-style: none;
+  background: #fcfaf5;
+}
+.keyboard-menu summary::-webkit-details-marker {
+  display: none;
+}
+.midi-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c4becd;
+}
+.midi-indicator.is-connected {
+  background: #578366;
+}
+.keyboard-popover {
+  position: absolute;
+  z-index: 25;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 310px;
+  padding: 18px;
+  border: 1px solid #ded9cc;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px #302d5520;
+  background: #fcfaf5;
+}
+.keyboard-popover #midi-panel {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+.keyboard-popover .midi-status {
+  margin: 0 0 14px;
+}
+.keyboard-popover .midi-actions {
+  align-items: stretch;
+}
+.settings-page {
+  max-width: 680px;
+}
+.settings-page > section {
+  border: 1px solid #ded9cc;
+  border-radius: 16px;
+  background: #fcfaf5;
+  padding: 24px;
+  margin: 0 0 20px;
+}
+.settings-page h2 {
+  font-size: 17px;
+  margin: 0 0 12px;
+  letter-spacing: -0.3px;
+}
+.settings-page .offline-section {
+  width: 100%;
+  max-width: none;
+}
+.settings-page .offline-section p {
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+.settings-page .diagnostics-panel {
+  margin: 0;
+  padding: 0;
+}
+.settings-page .privacy-settings label {
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+.nav-utilities {
+  border-top: 1px solid #ded9cc;
+  padding-top: 15px;
+}
+.nav-utilities .settings-link {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.settings-update {
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b0653e;
+}
+.nav-toggle,
+.nav-close {
+  display: none;
+}
+.route-missing {
+  padding: 36px 0;
+}
+@media (max-width: 900px) {
+  .app-sidebar {
+    width: 224px;
+  }
+  .app-body {
+    margin-left: 224px;
+  }
+  .app-topbar {
+    padding: 22px 24px;
+  }
+  .app-body main {
+    padding: 0 24px 28px;
+  }
+}
+@media (max-width: 760px) {
+  .app-sidebar {
+    width: min(300px, calc(100vw - 48px));
+    pointer-events: none;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.2s ease,
+      visibility 0.2s;
+    padding-top: 22px;
+  }
+  .app-sidebar.is-open {
+    pointer-events: auto;
+    transform: none;
+    visibility: visible;
+  }
+  .app-body {
+    margin-left: 0;
+  }
+  .app-topbar {
+    padding: 16px;
+    min-height: 76px;
     gap: 12px;
   }
-  .practice-controls label:first-child {
-    grid-column: 1/-1;
+  .page-heading h1 {
+    font-size: 19px;
+    letter-spacing: -0.5px;
   }
-  .practice-controls select {
-    font-size: 16px;
+  .page-heading p {
+    font-size: 10px;
   }
-  .hymn-grades label:first-child {
-    grid-column: 1/-1;
+  .app-body main {
+    padding: 0 16px 24px;
+    margin-top: 20px;
+  }
+  .nav-toggle,
+  .nav-close {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: 1px solid #ded9cc;
+    border-radius: 8px;
+    background: #fcfaf5;
+    color: #625d70;
+  }
+  .nav-close {
+    width: 32px;
+    height: 32px;
+    font-size: 22px;
+  }
+  .keyboard-menu summary {
+    padding: 10px;
+  }
+  .keyboard-menu summary > span {
+    display: none;
+  }
+  .keyboard-popover {
+    width: min(310px, calc(100vw - 32px));
+  }
+  .nav-shade {
+    position: fixed;
+    inset: 0;
+    border: none;
+    border-radius: 0;
+    background: #302d5545;
+    z-index: 29;
+  }
+  body.navigation-open {
+    overflow: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar {
+    transition: none;
   }
 }

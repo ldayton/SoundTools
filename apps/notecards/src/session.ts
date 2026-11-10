@@ -94,6 +94,9 @@ export class PracticeSession<T extends Card> {
   get complete() {
     return this.answered >= this.length;
   }
+  get status() {
+    return this.phase;
+  }
   get suggestion() {
     if (this.pool.length < 2) return "Try adding another note to your range.";
     if (this.pool.length === 2)

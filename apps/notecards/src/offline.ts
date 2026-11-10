@@ -45,6 +45,7 @@ export function setupOffline() {
   const offer = (version: string) => {
     if (version === current) return;
     update.hidden = false;
+    document.querySelector<HTMLElement>(".settings-update")!.hidden = false;
     update.onclick = () => applyUpdate(version);
     policy.offer(version);
   };

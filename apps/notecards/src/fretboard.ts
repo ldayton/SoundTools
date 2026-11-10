@@ -1,8 +1,8 @@
+import type { Profile } from "./exercise-settings";
 import {
   STRINGS,
   locationLabel,
   type GuitarCard,
-  type Profile,
 } from "./guitar";
 export class Fretboard {
   private selected: number | null = null;

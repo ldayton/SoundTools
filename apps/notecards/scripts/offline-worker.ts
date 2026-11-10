@@ -1,3 +1,4 @@
+import { APP_ROUTE_ROOTS } from "../src/exercise-catalog";
 import { workerSource } from "@ldayton/browser-offline";
 export function offlineWorker(config: {
   base: string;
@@ -5,7 +6,7 @@ export function offlineWorker(config: {
   inventory: string;
 }) {
   return (
-    `const CONFIG=${JSON.stringify(config)};\n` +
+    `const CONFIG=${JSON.stringify({ ...config, routeRoots: APP_ROUTE_ROOTS })};\n` +
     workerSource() +
     String.raw`
 const ROOT=CONFIG.base, MANIFEST=ROOT+'offline-pack.json', META='notecards-clients-v1';
@@ -99,7 +100,7 @@ self.addEventListener('message',event=>{
 });
 self.addEventListener('fetch',event=>{
   const request=event.request,url=offline.requestURL(request);if(!url)return;
-  if(request.mode==='navigate'&&(url.pathname===ROOT||url.pathname===ROOT+'index.html')){
+  if(request.mode==='navigate'&&(url.pathname===ROOT||url.pathname===ROOT+'index.html'||(CONFIG.routeRoots.includes(url.pathname.slice(ROOT.length).split('/')[0])&&/^([a-z0-9-]+\/?)+$/.test(url.pathname.slice(ROOT.length))))){
     event.respondWith(offline.navigate(event,{latest,candidates:()=>candidates(event.clientId),load:inventory,document:savedDocument,remember}));return;
   }
   // A stable URL must always be checked against the network for update discovery.

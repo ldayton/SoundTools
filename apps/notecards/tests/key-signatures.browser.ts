@@ -1,3 +1,4 @@
+import { practiceOption, selectPractice } from "./navigation-helpers";
 import { signatureDeck, signatureAnswer } from "../src/key-signatures";
 import { KEYS } from "../src/model";
 import { chromium, firefox, webkit } from "playwright";
@@ -61,7 +62,10 @@ try {
     );
     await page.reload();
     await page.locator('[data-letter="C"]:enabled').waitFor();
-    assert.equal(await page.locator("#mode").inputValue(), "signature");
+    assert.equal(
+      await page.locator("nav a[aria-current]").getAttribute("data-mode"),
+      "signature",
+    );
     assert.equal(
       await page.locator("#context").textContent(),
       "Key signatures",
@@ -147,17 +151,17 @@ try {
     "true",
   );
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#signaturePractice").selectOption("major");
+  await practiceOption(page, "#signaturePractice", "major");
   assert.equal(
     await page.locator("#signature-prompt").textContent(),
     "Major key",
   );
-  await page.locator("#signaturePractice").selectOption("minor");
+  await practiceOption(page, "#signaturePractice", "minor");
   assert.equal(
     await page.locator("#signature-prompt").textContent(),
     "Minor key",
   );
-  await page.locator("#mode").selectOption("piano");
+  await selectPractice(page, "piano");
   assert.ok(await page.locator("#signature-prompt").isHidden());
   assert.ok(await page.locator("#piano").isVisible());
   assert.deepEqual(errors, []);

@@ -1,13 +1,15 @@
+import { ROUND_LENGTHS, readProgress, type RoundLength } from "./model";
 import {
-  KEYS,
-  POSITIONS,
-  ROUND_LENGTHS,
-  readProgress,
-  type RoundLength,
-  type Stats,
-} from "./model";
-import { PIANO_POSITIONS } from "./piano-model";
-import { MODES, type Mode, type Profile } from "./guitar";
+  EXERCISES,
+  FLASHCARD_EXERCISES,
+  type FlashcardMode,
+  type Mode,
+} from "./exercises";
+import {
+  defaultProfile,
+  mergeProfile,
+  type Profile,
+} from "./exercise-settings";
 export const STORAGE_KEY = "soundtools:notecards:v1";
 export type RecordStats = {
   attempts: number;
@@ -20,28 +22,13 @@ export type Progress = {
   version: 5;
   roundLength: RoundLength;
   mode: Mode;
-  profiles: Record<Mode, Profile>;
+  profiles: Record<FlashcardMode, Profile>;
   stats: Record<string, RecordStats>;
 };
 export function defaultProgress(): Progress {
   const profiles = Object.fromEntries(
-    MODES.map((m) => [
-      m.id,
-      {
-        low: m.id === "piano" ? "C4" : "E3",
-        high: m.id === "piano" ? "B5" : "F4",
-        key: "C",
-        strings: m.id === "name" ? [1, 2, 3, 4, 5, 6] : [6],
-        minFret: 0,
-        maxFret: 5,
-      },
-    ]),
-  ) as Record<Mode, Profile>;
-  Object.assign(profiles.piano, {
-    staffLayout: "grand",
-    overlapPractice: "standard",
-    octavePractice: "off",
-  });
+    FLASHCARD_EXERCISES.map((m) => [m.mode, defaultProfile(m.mode)]),
+  ) as Record<FlashcardMode, Profile>;
   return { version: 5, roundLength: 12, mode: "staff", profiles, stats: {} };
 }
 export function loadProgress(raw: string | null): Progress {
@@ -60,63 +47,12 @@ export function loadProgress(raw: string | null): Progress {
     }
     if (ROUND_LENGTHS.includes(data.roundLength))
       result.roundLength = data.roundLength;
-    if (MODES.some((m) => m.id === data.mode)) result.mode = data.mode;
-    for (const mode of MODES.map((m) => m.id)) {
-      const source = data.profiles?.[mode],
-        profile = result.profiles[mode];
-      if (!source) continue;
-      if (KEYS.some((k) => k.id === source.key)) profile.key = source.key;
-      if (mode === "piano" && ["staff", "name"].includes(source.pianoPrompt))
-        profile.pianoPrompt = source.pianoPrompt;
-      if (
-        mode === "signature" &&
-        ["major", "minor", "both"].includes(source.signaturePractice)
-      )
-        profile.signaturePractice = source.signaturePractice;
-      if (mode === "piano") {
-        // Existing piano users practiced ordinary treble; do not silently change their clef.
-        if (data.version < 5) profile.staffLayout = "treble";
-        if (["treble", "bass", "grand"].includes(source.staffLayout))
-          profile.staffLayout = source.staffLayout;
-        if (["standard", "both"].includes(source.overlapPractice))
-          profile.overlapPractice = source.overlapPractice;
-        if (["off", "practice"].includes(source.octavePractice))
-          profile.octavePractice = source.octavePractice;
-      }
-      const positions = mode === "piano" ? PIANO_POSITIONS : POSITIONS;
-      if (source.naturalsOnly === true) profile.naturalsOnly = true;
-      if (
-        positions.includes(source.low) &&
-        positions.includes(source.high) &&
-        positions.indexOf(source.low) <= positions.indexOf(source.high)
-      ) {
-        profile.low = source.low;
-        profile.high = source.high;
-      }
-      if (Array.isArray(source.strings)) {
-        const strings = [
-          ...new Set<number>(
-            source.strings.filter(
-              (n: unknown) =>
-                typeof n === "number" &&
-                Number.isInteger(n) &&
-                n >= 1 &&
-                n <= 6,
-            ),
-          ),
-        ];
-        if (strings.length) profile.strings = strings;
-      }
-      if (
-        Number.isInteger(source.minFret) &&
-        Number.isInteger(source.maxFret) &&
-        source.minFret >= 0 &&
-        source.maxFret <= 12 &&
-        source.minFret <= source.maxFret
-      ) {
-        profile.minFret = source.minFret;
-        profile.maxFret = source.maxFret;
-      }
+    if (EXERCISES.some((m) => m.mode === data.mode)) result.mode = data.mode;
+    for (const { mode } of FLASHCARD_EXERCISES) {
+      if (!data.profiles?.[mode]) continue;
+      const base = result.profiles[mode];
+      if (mode === "piano" && data.version < 5) base.staffLayout = "treble";
+      result.profiles[mode] = mergeProfile(mode, base, data.profiles?.[mode]);
     }
     // Upgrade the old introductory Name default; retain deliberately narrowed ranges/subsets.
     const oldName = data.profiles?.name;

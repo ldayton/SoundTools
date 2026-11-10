@@ -1,3 +1,7 @@
+import { loadPreferences, savePreferences } from "./preferences";
+import { mergePatternSettings } from "./patterns-model";
+import type { InputPolicy, Interruption } from "./live-practice";
+import { mountPracticeOptions } from "./practice-controls";
 import type { NoteTimingEvent } from "abcjs";
 import { Piano } from "./piano";
 import { WaitForMe } from "./sight-reading-model";
@@ -16,7 +20,7 @@ import { spellPitch } from "./guitar";
 import { diagnostics } from "./diagnostics";
 const STORAGE = "soundtools:notecards:patterns:v1";
 export class IntervalPatterns {
-  readonly midiSlot: HTMLElement;
+  private resizeFrame = 0;
   private active = false;
   private paused = false;
   private position = 0;
@@ -34,15 +38,13 @@ export class IntervalPatterns {
     private element: HTMLElement,
     private changed: () => void,
   ) {
-    try {
-      const s = JSON.parse(localStorage.getItem(STORAGE) || "null");
-      if (PATTERN_KEYS.some((k) => k.id === s?.key)) this.settings.key = s.key;
-      if (["right", "left"].includes(s?.hand)) this.settings.hand = s.hand;
-      if (["steps", "skips", "leaps"].includes(s?.level))
-        this.settings.level = s.level;
-    } catch {}
-    element.innerHTML = `<div class="practice-controls"><label>Patterns<select id="pattern-level"><option value="steps">Steps & repeated notes</option><option value="skips">Add skips · thirds</option><option value="leaps">Add fourths & fifths</option></select></label><label>Key<select id="pattern-key">${PATTERN_KEYS.map((k) => `<option>${k.id}</option>`).join("")}</select></label><label>Hand<select id="pattern-hand"><option value="right">Right hand</option><option value="left">Left hand</option></select></label></div><section class="hymn-practice" aria-label="Interval pattern practice"><div class="hymn-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="hymn-title">Follow the pattern.</h2><p class="hymn-help">Find the first note, then follow the steps and skips.</p><progress class="pattern-progress" aria-label="Pattern progress"></progress><div class="hymn-score" role="region" tabindex="0" aria-label="Four-note interval pattern"><div class="pattern-paper"></div></div><p class="hymn-feedback" role="status" aria-live="polite"></p><div class="hymn-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Try again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><details><summary>On-screen piano</summary><div class="pattern-piano"></div></details></section>`;
-    this.midiSlot = this.$(".pattern-midi-slot");
+    this.settings = loadPreferences(STORAGE, this.settings, mergePatternSettings);
+    element.innerHTML = `<div class="practice-controls"><label>Patterns<select id="pattern-level"><option value="steps">Steps & repeated notes</option><option value="skips">Add skips · thirds</option><option value="leaps">Add fourths & fifths</option></select></label><label>Key<select id="pattern-key">${PATTERN_KEYS.map((k) => `<option value="${k.id}">${k.id} major</option>`).join("")}</select></label><label>Hand<select id="pattern-hand"><option value="right">Right hand</option><option value="left">Left hand</option></select></label></div><section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><p class="sequence-help">Find the first note, then follow the steps and skips.</p><progress class="pattern-progress" aria-label="Pattern progress"></progress><div class="sequence-score" role="region" tabindex="0" aria-label="Four-note interval pattern"><div class="pattern-paper"></div></div><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><details><summary>On-screen piano</summary><div class="pattern-piano"></div></details></section>`;
+    mountPracticeOptions(
+      element,
+      [this.$(".practice-controls")],
+      "Changing options starts a new pattern.",
+    );
     this.piano = new Piano(this.$(".pattern-piano"), (n) => {
       if (this.accepting) this.answer(n);
     });
@@ -63,41 +65,42 @@ export class IntervalPatterns {
     };
     this.$(".pattern-pause").onclick = () => {
       this.paused = !this.paused;
-      this.interrupted();
+      this.interrupt("controls");
       this.update();
     };
     new ResizeObserver(() => {
-      const w = this.$(".hymn-score").clientWidth;
-      if (this.active && w > 0 && Math.abs(w - this.width) > 2) this.render();
-    }).observe(this.$(".hymn-score"));
+      cancelAnimationFrame(this.resizeFrame);
+      this.resizeFrame = requestAnimationFrame(() => {
+        const w = this.$(".sequence-score").clientWidth;
+        if (this.active && w > 0 && Math.abs(w - this.width) > 2) this.render();
+      });
+    }).observe(this.$(".sequence-score"));
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;
   }
-  get listening() {
-    return this.active && !!this.session;
+  get inputPolicy(): InputPolicy {
+    if (!this.active || !this.session) return "none";
+    return this.paused || this.session.complete ? "restart" : "answer";
   }
   get accepting() {
-    return this.listening && !this.paused && !this.session!.complete;
+    return this.inputPolicy === "answer";
   }
-  setActive(active: boolean) {
-    this.active = active;
-    if (active) {
-      if (!this.notes.length) this.notes = makePattern(this.settings);
-      this.render();
-    } else this.interrupted();
+  enter() {
+    this.active = true;
+    if (!this.notes.length) this.notes = makePattern(this.settings);
+    this.render();
     this.changed();
   }
-  interrupted() {
+  leave() {
+    this.active = false;
+    this.interrupt("navigation");
+    this.changed();
+  }
+  interrupt(_reason: Interruption) {
     this.session?.resetGesture();
   }
-  private save() {
-    try {
-      localStorage.setItem(STORAGE, JSON.stringify(this.settings));
-    } catch {
-      diagnostics.offline("storage", "failed", { cacheReason: "storage" });
-    }
-  }
+  private save() { savePreferences(STORAGE, this.settings); }
   private next() {
     this.notes = makePattern(this.settings, Math.random, this.notes);
     this.position = 0;
@@ -105,7 +108,7 @@ export class IntervalPatterns {
     this.render();
   }
   private render() {
-    this.width = this.$(".hymn-score").clientWidth;
+    this.width = this.$(".sequence-score").clientWidth;
     if (!this.width) return;
     this.session = undefined;
     this.changed();
@@ -129,18 +132,18 @@ export class IntervalPatterns {
       this.piano.show(...keyboardRange(this.events), false);
       this.update(true);
     } catch (e) {
-      this.$(".hymn-feedback").textContent =
+      this.$(".sequence-feedback").textContent =
         "The pattern couldn’t load. Try a new pattern.";
       diagnostics.capture(e, "patterns.render_failed");
       this.changed();
     }
   }
   answer(note: number, held?: readonly number[]) {
-    if (!this.listening) return;
+    if (this.inputPolicy === "none") return;
     const result = this.session!.answer(note, held, !this.paused);
     if (result === "ignored") return;
     if (result === "wrong") {
-      this.$(".hymn-feedback").textContent =
+      this.$(".sequence-feedback").textContent =
         "Try again — follow the highlighted note.";
       return;
     }
@@ -154,7 +157,7 @@ export class IntervalPatterns {
     highlightScore(
       this.$(".pattern-paper"),
       this.events[s.index],
-      this.$(".hymn-score"),
+      this.$(".sequence-score"),
       scroll,
     );
     this.$(".pattern-count").textContent = s.complete
@@ -163,13 +166,15 @@ export class IntervalPatterns {
     const p = this.$<HTMLProgressElement>(".pattern-progress");
     p.max = s.steps.length;
     p.value = s.index;
-    this.$(".hymn-feedback").textContent = s.complete
+    this.$(".sequence-feedback").textContent = s.complete
       ? "Well done. Try a fresh pattern."
       : this.paused
-        ? "Paused. Continue when you’re ready."
+        ? "Paused. Resume when you’re ready."
         : "Play the highlighted note.";
-    this.$(".pattern-pause").textContent = this.paused ? "Continue" : "Pause";
+    this.$(".pattern-pause").textContent = this.paused ? "Resume" : "Pause";
     this.$<HTMLButtonElement>(".pattern-pause").disabled = s.complete;
+    this.$(".pattern-pause").classList.toggle("primary", !s.complete);
+    this.$(".pattern-next").classList.toggle("primary", s.complete);
     this.piano.setUnavailable(!this.accepting);
     this.changed();
   }

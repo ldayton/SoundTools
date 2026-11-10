@@ -1,12 +1,14 @@
-export const LIVE_MODES = ["sight", "patterns", "rhythm"] as const;
-export type LiveMode = (typeof LIVE_MODES)[number];
-export function isLiveMode(mode: string): mode is LiveMode {
-  return (LIVE_MODES as readonly string[]).includes(mode);
-}
+export { isLiveMode } from "./exercises";
+export type { LiveMode } from "./exercises";
+export type Interruption =
+  "navigation" | "focus" | "visibility" | "connection" | "controls" | "resize";
+export type InputPolicy = "none" | "answer" | "restart";
 export interface LivePractice {
-  readonly midiSlot: HTMLElement;
-  readonly listening: boolean;
-  setActive(active: boolean): void;
-  interrupted(): void;
+  applyRoute?(route: import("./navigation").PracticeRoute): boolean;
+  /** Paused/completed note sequences can still accept the intentional hands-free restart gesture. */
+  readonly inputPolicy: InputPolicy;
+  enter(): void;
+  leave(): void;
+  interrupt(reason: Interruption): void;
   answer(note: number, held?: readonly number[], timestamp?: number): void;
 }

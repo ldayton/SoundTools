@@ -1,3 +1,4 @@
+import { object, choice } from "./exercise-settings";
 export type RhythmNote = { beats: number; rest?: boolean };
 export type RhythmLevel = "pulse" | "long-short" | "eighths";
 const tiles: Record<RhythmLevel, RhythmNote[][]> = {
@@ -75,4 +76,20 @@ export class RhythmAttempt {
   get missed() {
     return this.times.length - this.hits.size;
   }
+}
+
+export type RhythmSettings = { bpm: number; level: RhythmLevel };
+export const RHYTHM_TEMPOS = Array.from({ length: 25 }, (_, i) => 40 + i * 5);
+export function mergeRhythmSettings(
+  base: RhythmSettings,
+  input: unknown,
+): RhythmSettings {
+  const s = object(input);
+  return {
+    bpm:
+      typeof s.bpm === "number" && RHYTHM_TEMPOS.includes(s.bpm)
+        ? s.bpm
+        : base.bpm,
+    level: choice(s.level, ["pulse", "long-short", "eighths"], base.level),
+  };
 }

@@ -1,5 +1,4 @@
 import { PIANO_POSITIONS } from "./piano-model";
-const noteChoiceLabel = (index: number) => PIANO_POSITIONS[index];
 /** DoReGo-style picker for written staff positions; the key signature supplies accidentals. */
 export class RangePicker {
   private value = 0;
@@ -8,6 +7,7 @@ export class RangePicker {
     private input: HTMLInputElement,
     private button: HTMLButtonElement,
     private commit: (note: string) => void,
+    private positions: readonly string[] = PIANO_POSITIONS,
   ) {
     const title = input.getAttribute("aria-label")!;
     input.readOnly = true;
@@ -17,19 +17,23 @@ export class RangePicker {
     this.popover.setAttribute("popover", "auto");
     this.popover.setAttribute("role", "dialog");
     this.popover.setAttribute("aria-label", `Choose ${title.toLowerCase()}`);
-    this.popover.innerHTML = `<div class="note-picker-title">${title}</div><div class="note-picker-grid" role="group" aria-label="Notes by octave">${Array.from(
-      { length: 5 },
-      (_, row) =>
-        `<span class="note-picker-octave" aria-hidden="true">${row + 2}</span>${Array.from(
-          { length: 7 },
-          (_, pitch) => {
-            const index = row * 7 + pitch;
-            return index < PIANO_POSITIONS.length
-              ? `<button type="button" data-position="${index}" tabindex="-1" aria-label="${noteChoiceLabel(index)}" title="${noteChoiceLabel(index)}"><span>${noteChoiceLabel(index)}</span></button>`
-              : "<span></span>";
-          },
-        ).join("")}`,
-    ).join("")}</div>`;
+    const octaves = [...new Set(positions.map((n) => Number(n.slice(1))))];
+    this.popover.innerHTML = `<div class="note-picker-title">${title}</div><div class="note-picker-grid" role="group" aria-label="Notes by octave">${octaves
+      .map(
+        (octave) =>
+          `<span class="note-picker-octave" aria-hidden="true">${octave}</span>${[
+            ..."CDEFGAB",
+          ]
+            .map((letter) => {
+              const note = letter + octave;
+              const index = positions.indexOf(note);
+              return index < 0
+                ? "<span></span>"
+                : `<button type="button" data-position="${index}" tabindex="-1" aria-label="${note}" title="${note}"><span>${note}</span></button>`;
+            })
+            .join("")}`,
+      )
+      .join("")}</div>`;
     document.body.append(this.popover);
     for (const element of [input, button]) {
       element.setAttribute("aria-controls", this.popover.id);
@@ -47,7 +51,7 @@ export class RangePicker {
         "[data-position]",
       );
       if (!selected) return;
-      this.commit(noteChoiceLabel(Number(selected.dataset.position)));
+      this.commit(this.noteLabel(Number(selected.dataset.position)));
       this.close();
       input.focus({ preventScroll: true });
     });
@@ -67,7 +71,7 @@ export class RangePicker {
       const index = Math.max(
         0,
         Math.min(
-          PIANO_POSITIONS.length - 1,
+          this.positions.length - 1,
           Number(selected.dataset.position) + steps[event.key],
         ),
       );
@@ -90,7 +94,7 @@ export class RangePicker {
         return;
       }
       if (event.key === "Escape") {
-        input.value = noteChoiceLabel(this.value);
+        input.value = this.noteLabel(this.value);
         input.setCustomValidity("");
         input.removeAttribute("aria-invalid");
         return;
@@ -104,11 +108,11 @@ export class RangePicker {
       if (event.key in steps) {
         event.preventDefault();
         this.commit(
-          noteChoiceLabel(
+          this.noteLabel(
             Math.max(
               0,
               Math.min(
-                PIANO_POSITIONS.length - 1,
+                this.positions.length - 1,
                 this.value + steps[event.key],
               ),
             ),
@@ -117,6 +121,9 @@ export class RangePicker {
       }
     });
     window.addEventListener("resize", () => this.close());
+  }
+  private noteLabel(index: number) {
+    return this.positions[index];
   }
   private toggle() {
     if (this.popover.matches(":popover-open")) {
@@ -136,10 +143,10 @@ export class RangePicker {
     if (this.popover.matches(":popover-open")) this.popover.hidePopover();
   }
   setValue(note: string) {
-    const index = PIANO_POSITIONS.indexOf(note);
+    const index = this.positions.indexOf(note);
     this.value = index;
-    this.input.value = noteChoiceLabel(index);
-    this.input.title = noteChoiceLabel(index);
+    this.input.value = this.noteLabel(index);
+    this.input.title = this.noteLabel(index);
     this.input.setCustomValidity("");
     this.input.removeAttribute("aria-invalid");
     for (const button of this.popover.querySelectorAll<HTMLButtonElement>(

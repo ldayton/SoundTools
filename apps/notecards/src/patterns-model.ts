@@ -1,3 +1,4 @@
+import { object, choice } from "./exercise-settings";
 export const PATTERN_KEYS = [
   { id: "C", midi: 60 },
   { id: "G", midi: 67 },
@@ -55,4 +56,18 @@ export function makePattern(
   return indexes.map(
     (n) => key.midi + scale[n] - (settings.hand === "left" ? 12 : 0),
   );
+}
+
+export function mergePatternSettings(
+  base: PatternSettings,
+  input: unknown,
+): PatternSettings {
+  const s = object(input);
+  return {
+    key: PATTERN_KEYS.some((k) => k.id === s.key)
+      ? (s.key as string)
+      : base.key,
+    hand: choice(s.hand, ["right", "left"], base.hand),
+    level: choice(s.level, ["steps", "skips", "leaps"], base.level),
+  };
 }

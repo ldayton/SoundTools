@@ -13,7 +13,7 @@ import type { Card } from "./model";
 import type { GuitarCard } from "./guitar";
 import { pianoNotation, type PianoNotation } from "./piano-notation";
 import { pianoDeck } from "./piano-model";
-import type { Profile } from "./guitar";
+import type { Profile } from "./exercise-settings";
 export { VexFlow };
 export function drawNotation(
   element: HTMLDivElement,

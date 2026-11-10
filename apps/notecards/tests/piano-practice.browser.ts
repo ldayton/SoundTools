@@ -1,3 +1,8 @@
+import {
+  practiceOption,
+  selectPractice,
+  midiAction,
+} from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -45,20 +50,19 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
   await page.locator('[data-letter="E"]:enabled').waitFor();
-  await page.locator("#mode").selectOption("patterns");
+  await selectPractice(page, "patterns");
   await page.locator(".pattern-count").filter({ hasText: "1 / 4" }).waitFor();
   assert.equal(
-    await page.locator(".pattern-paper .sight-current").first().evaluate(
-      (e) => getComputedStyle(e).fill,
-    ),
+    await page
+      .locator(".pattern-paper .sight-current")
+      .first()
+      .evaluate((e) => getComputedStyle(e).fill),
     "rgb(176, 101, 62)",
   );
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   const on = (note: number) =>
     page.evaluate(
       (note) => (window as any).midiTest.send([0x90, note, 100]),
@@ -79,38 +83,36 @@ try {
   await on(62);
   assert.equal(await page.locator(".pattern-count").textContent(), "2 / 4");
   await off(62);
-  await page.locator("#pattern-hand").selectOption("left");
+  await practiceOption(page, "#pattern-hand", "left");
   assert.equal(await page.locator(".pattern-count").textContent(), "1 / 4");
-  await page.locator("#mode").selectOption("sight");
-  await page.locator("#hymn-arrangement").waitFor();
-  await page.locator("#hymn-length").selectOption("2");
+  await selectPractice(page, "sight");
+  await page.locator("#hymn-arrangement").waitFor({ state: "attached" });
+  await practiceOption(page, "#hymn-length", "2");
   for (const stage of ["melody", "bass", "chords", "broken", "original"]) {
-    await page.locator("#hymn-arrangement").selectOption(stage);
+    await practiceOption(page, "#hymn-arrangement", stage);
     assert.ok((await page.locator(".hymn-paper .sight-current").count()) > 0);
     await page.locator(".hymn-next").click();
     assert.equal(await page.locator("#hymn-section").inputValue(), "1");
     await page.locator(".hymn-prev").click();
     assert.equal(await page.locator("#hymn-section").inputValue(), "0");
   }
-  await page.locator("#hymn-arrangement").selectOption("bass");
-  await page.locator("#hymn-section").selectOption("2");
+  await practiceOption(page, "#hymn-arrangement", "bass");
+  await practiceOption(page, "#hymn-section", "2");
   await page.reload();
-  await page.locator("#hymn-arrangement").waitFor();
+  await page.locator("#hymn-arrangement").waitFor({ state: "attached" });
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "bass");
   assert.equal(await page.locator("#hymn-section").inputValue(), "2");
-  await page.locator("#mode").selectOption("rhythm");
+  await selectPractice(page, "rhythm");
   await page.locator(".rhythm-start").waitFor();
   await page.clock.install();
-  await page.locator("#rhythm-tempo").selectOption("120");
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  await practiceOption(page, "#rhythm-tempo", "120");
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   await page.locator(".rhythm-start").click();
   assert.match(
-    (await page.locator(".hymn-feedback:visible").textContent())!,
+    (await page.locator(".sequence-feedback:visible").textContent())!,
     /Count-in/,
   );
   await page.clock.runFor(4000);
@@ -121,7 +123,7 @@ try {
   }
   await page.clock.runFor(250);
   assert.match(
-    (await page.locator(".hymn-feedback:visible").textContent())!,
+    (await page.locator(".sequence-feedback:visible").textContent())!,
     /16 of 16 on the beat · 0 missed · 0 extra/,
   );
   await page.locator(".rhythm-start").click();
@@ -129,16 +131,17 @@ try {
   await page.evaluate(() => window.dispatchEvent(new Event("blur")));
   await page.clock.runFor(20000);
   assert.match(
-    (await page.locator(".hymn-feedback:visible").textContent())!,
-    /Paused/,
+    (await page.locator(".sequence-feedback:visible").textContent())!,
+    /Stopped/,
   );
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   for (const mode of ["patterns", "rhythm", "sight"]) {
-    await page.locator("#mode").selectOption(mode);
+    await selectPractice(page, mode);
     await page.setViewportSize({ width: 320, height: 844 });
     if (mode === "patterns") await page.locator(".pattern-count").waitFor();
     if (mode === "rhythm") await page.locator(".rhythm-start").waitFor();
-    if (mode === "sight") await page.locator("#hymn-arrangement").waitFor();
+    if (mode === "sight")
+      await page.locator("#hymn-arrangement").waitFor({ state: "attached" });
     await page.clock.runFor(100);
     assert.ok(
       await page.evaluate(

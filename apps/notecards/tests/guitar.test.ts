@@ -1,3 +1,5 @@
+import type { Profile } from "../src/exercise-settings";
+import { EXERCISES } from "../src/exercises";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -6,9 +8,7 @@ import {
   midiAt,
   spellPitch,
   acceptsLocation,
-  MODES,
   STRINGS,
-  type Profile,
 } from "../src/guitar";
 import { KEYS, matches, deck } from "../src/model";
 import { defaultProgress, loadProgress, recordAnswer } from "../src/progress";
@@ -145,8 +145,8 @@ test("session guards duplicate answers, spaces mistakes, handles one-note sets a
     assert.ok(single.submit(true));
   }
   assert.equal(single.next(), null);
-  for (const mode of MODES) {
-    const cards = mode.id === "staff" ? deck(p.profiles.staff) : pool;
+  for (const mode of EXERCISES) {
+    const cards = mode.mode === "staff" ? deck(p.profiles.staff) : pool;
     assert.ok(cards.length);
   }
 });

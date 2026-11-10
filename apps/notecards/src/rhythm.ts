@@ -1,3 +1,7 @@
+import { loadPreferences, savePreferences } from "./preferences";
+import { mergeRhythmSettings, RHYTHM_TEMPOS } from "./rhythm-model";
+import type { InputPolicy, Interruption } from "./live-practice";
+import { mountPracticeOptions } from "./practice-controls";
 import type { NoteTimingEvent } from "abcjs";
 import {
   makeRhythm,
@@ -10,7 +14,7 @@ import { drawPracticeScore, highlightScore } from "./practice-score";
 import { diagnostics } from "./diagnostics";
 const STORAGE = "soundtools:notecards:rhythm:v1";
 export class RhythmPractice {
-  readonly midiSlot: HTMLElement;
+  private resizeFrame = 0;
   private active = false;
   private state: "ready" | "countin" | "playing" | "complete" = "ready";
   private bpm = 80;
@@ -28,27 +32,18 @@ export class RhythmPractice {
     private element: HTMLElement,
     private changed: () => void,
   ) {
-    try {
-      const s = JSON.parse(localStorage.getItem(STORAGE) || "null");
-      if (
-        Number.isInteger(s?.bpm) &&
-        s.bpm >= 40 &&
-        s.bpm <= 160 &&
-        s.bpm % 5 === 0
-      )
-        this.bpm = s.bpm;
-      if (["pulse", "long-short", "eighths"].includes(s?.level))
-        this.level = s.level;
-    } catch {}
-    element.innerHTML = `<div class="practice-controls"><label>Rhythm<select id="rhythm-level"><option value="pulse">Steady quarter notes</option><option value="long-short">Long & short notes</option><option value="eighths">Eighth notes & rests</option></select></label><label>Tempo<select id="rhythm-tempo">${Array.from(
-      { length: 25 },
-      (_, i) => 40 + i * 5,
-    )
+    const saved = loadPreferences(STORAGE, {bpm:this.bpm,level:this.level}, mergeRhythmSettings);
+    this.bpm = saved.bpm; this.level = saved.level;
+    element.innerHTML = `<div class="practice-controls"><label>Rhythm<select id="rhythm-level"><option value="pulse">Steady quarter notes</option><option value="long-short">Long & short notes</option><option value="eighths">Eighth notes & rests</option></select></label><label>Tempo<select id="rhythm-tempo">${RHYTHM_TEMPOS
       .map((n) => `<option value="${n}">${n} BPM</option>`)
       .join(
         "",
-      )}</select></label></div><section class="hymn-practice" aria-label="Rhythm practice"><div class="hymn-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="hymn-title">Find the pulse.</h2><p class="hymn-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="hymn-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><p class="hymn-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><button class="rhythm-tap" disabled>Tap</button><div class="hymn-transport"><button class="rhythm-start">Start · 2-bar count-in</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
-    this.midiSlot = this.$(".rhythm-midi-slot");
+      )}</select></label></div><section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><button class="rhythm-tap" disabled>Tap</button><div class="sequence-transport"><button class="rhythm-start primary">Start</button><button class="rhythm-new">New rhythm</button></div></section>`;
+    mountPracticeOptions(
+      element,
+      [this.$(".practice-controls")],
+      "Changing options starts a new rhythm.",
+    );
     for (const field of ["level", "tempo"]) {
       const select = this.$<HTMLSelectElement>("#rhythm-" + field);
       select.value = String(field === "level" ? this.level : this.bpm);
@@ -63,7 +58,7 @@ export class RhythmPractice {
     }
     this.$(".rhythm-start").onclick = () => {
       if (this.state === "playing" || this.state === "countin")
-        this.interrupted();
+        this.interrupt("controls");
       else this.start();
     };
     this.$(".rhythm-new").onclick = () => {
@@ -105,63 +100,59 @@ export class RhythmPractice {
       }
     });
     new ResizeObserver(() => {
-      const w = this.$(".hymn-score").clientWidth;
-      if (this.active && w > 0 && Math.abs(w - this.width) > 2) {
-        if (this.state === "playing" || this.state === "countin")
-          this.interrupted();
-        this.render();
-      }
-    }).observe(this.$(".hymn-score"));
+      cancelAnimationFrame(this.resizeFrame);
+      this.resizeFrame = requestAnimationFrame(() => {
+        const w = this.$(".sequence-score").clientWidth;
+        if (this.active && w > 0 && Math.abs(w - this.width) > 2) {
+          if (this.state === "playing" || this.state === "countin")
+            this.interrupt("controls");
+          this.render();
+        }
+      });
+    }).observe(this.$(".sequence-score"));
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;
   }
-  get listening() {
-    return (
-      this.active && (this.state === "countin" || this.state === "playing")
-    );
+  get inputPolicy(): InputPolicy {
+    return this.active && (this.state === "countin" || this.state === "playing")
+      ? "answer"
+      : "none";
   }
-  setActive(active: boolean) {
-    this.active = active;
-    if (!active) this.stop();
-    else {
-      if (!this.bars.length) this.bars = makeRhythm(this.level);
-      this.render();
-    }
+  enter() {
+    this.active = true;
+    if (!this.bars.length) this.bars = makeRhythm(this.level);
+    this.render();
     this.changed();
   }
-  interrupted() {
+  leave() {
+    this.active = false;
+    this.stop();
+    this.changed();
+  }
+  interrupt(_reason: Interruption) {
     if (this.state === "countin" || this.state === "playing") {
       this.stop();
-      this.$(".hymn-feedback").textContent =
-        "Paused. Start again when you’re ready.";
+      this.$(".sequence-feedback").textContent =
+        "Stopped. Start again when you’re ready.";
     }
   }
-  private save() {
-    try {
-      localStorage.setItem(
-        STORAGE,
-        JSON.stringify({ bpm: this.bpm, level: this.level }),
-      );
-    } catch {
-      diagnostics.offline("storage", "failed", { cacheReason: "storage" });
-    }
-  }
+  private save() { savePreferences(STORAGE, {bpm:this.bpm,level:this.level}); }
   private stop() {
     cancelAnimationFrame(this.frame);
     this.state = "ready";
     this.attempt = undefined;
     this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
-    this.$(".rhythm-start").textContent = "Start · 2-bar count-in";
+    this.$(".rhythm-start").textContent = "Start";
     this.beat = this.step = -1;
-    highlightScore(this.$(".rhythm-paper"), undefined, this.$(".hymn-score"));
+    highlightScore(this.$(".rhythm-paper"), undefined, this.$(".sequence-score"));
     this.element
       .querySelectorAll(".is-beat")
       .forEach((e) => e.classList.remove("is-beat"));
     this.changed();
   }
   private render() {
-    this.width = this.$(".hymn-score").clientWidth;
+    this.width = this.$(".sequence-score").clientWidth;
     if (!this.width) return;
     try {
       this.events = drawPracticeScore(
@@ -169,10 +160,10 @@ export class RhythmPractice {
         `X:1\nM:4/4\nL:1/8\nK:C clef=perc stafflines=1\n${this.bars.map((bar) => bar.map((n) => (n.rest ? "z" : "B") + n.beats * 2).join(" ")).join(" | ")} |]\n`,
         this.width,
       );
-      this.$(".hymn-feedback").textContent =
+      this.$(".sequence-feedback").textContent =
         "Two bars to count in, then your turn.";
     } catch (e) {
-      this.$(".hymn-feedback").textContent =
+      this.$(".sequence-feedback").textContent =
         "The rhythm couldn’t load. Try a new rhythm.";
       diagnostics.capture(e, "rhythm.render_failed");
     }
@@ -186,7 +177,7 @@ export class RhythmPractice {
     const pattern = rhythmOnsets(this.bars);
     this.end = start + pattern.beats * beatMs;
     this.attempt = new RhythmAttempt(pattern.starts, this.bpm, start);
-    this.$(".rhythm-start").textContent = "Pause";
+    this.$(".rhythm-start").textContent = "Stop";
     this.element
       .querySelectorAll(".rhythm-hit,.rhythm-missed")
       .forEach((e) => e.classList.remove("rhythm-hit", "rhythm-missed"));
@@ -206,7 +197,7 @@ export class RhythmPractice {
     if (!counting && this.state === "countin") {
       this.state = "playing";
       this.$<HTMLButtonElement>(".rhythm-tap").disabled = false;
-      this.$(".hymn-feedback").textContent = "Your turn. Keep a steady pulse.";
+      this.$(".sequence-feedback").textContent = "Your turn. Keep a steady pulse.";
       this.changed();
     }
     const beat = Math.floor(
@@ -223,7 +214,7 @@ export class RhythmPractice {
           ),
         );
       if (counting)
-        this.$(".hymn-feedback").textContent =
+        this.$(".sequence-feedback").textContent =
           `Count-in · bar ${Math.floor(beat / 4) + 1} of 2 · beat ${(beat % 4) + 1}`;
     }
     if (!counting) {
@@ -236,7 +227,7 @@ export class RhythmPractice {
         highlightScore(
           this.$(".rhythm-paper"),
           this.events[index],
-          this.$(".hymn-score"),
+          this.$(".sequence-score"),
           true,
         );
       }
@@ -252,14 +243,14 @@ export class RhythmPractice {
     _held?: readonly number[],
     timestamp = performance.now(),
   ) {
-    if (!this.listening || !this.attempt) return;
+    if (this.inputPolicy === "none" || !this.attempt) return;
     this.attempt.tap(timestamp);
   }
   private finish() {
     if (!this.attempt) return;
     this.state = "complete";
     this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
-    highlightScore(this.$(".rhythm-paper"), undefined, this.$(".hymn-score"));
+    highlightScore(this.$(".rhythm-paper"), undefined, this.$(".sequence-score"));
     this.events.forEach((event, i) =>
       (event.elements || [])
         .flat()
@@ -270,9 +261,9 @@ export class RhythmPractice {
           ),
         ),
     );
-    this.$(".hymn-feedback").textContent =
+    this.$(".sequence-feedback").textContent =
       `${this.attempt.hits.size} of ${this.attempt.times.length} on the beat · ${this.attempt.missed} missed · ${this.attempt.extras} extra`;
-    this.$(".rhythm-start").textContent = "Try again · 2-bar count-in";
+    this.$(".rhythm-start").textContent = "Start again";
     this.changed();
   }
 }

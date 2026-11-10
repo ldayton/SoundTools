@@ -1,3 +1,4 @@
+import { practiceOption, selectPractice } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -41,7 +42,7 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
   await page.locator('[data-letter="E"]:enabled').waitFor();
-  await page.locator("#mode").selectOption("piano");
+  await selectPractice(page, "piano");
   const key = (midi: number) => page.locator(`[data-piano="${midi}"]`);
   const ready = () =>
     page.waitForFunction(
@@ -75,13 +76,13 @@ try {
   );
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#pianoPrompt").selectOption("name");
+  await practiceOption(page, "#pianoPrompt", "name");
   assert.equal(await page.locator(".piano-key").count(), 12);
   assert.equal(await page.locator("#target-name").textContent(), "C");
   assert.ok(await page.locator("#notation").isHidden());
   assert.ok(await page.locator("#pitch-range").isHidden());
   await page.evaluate(() => (Math.random = () => 0.999999));
-  await page.locator("#key").selectOption("Bb");
+  await practiceOption(page, "#key", "Bb");
   assert.equal(await page.locator("#target-name").textContent(), "B♭");
   await key(70).click(); // The same physical key answers A-sharp and B-flat.
   assert.match((await page.locator("#feedback").textContent())!, /Yes — B♭/);
@@ -100,7 +101,7 @@ try {
   assert.equal(await page.locator("#pianoPrompt").inputValue(), "name");
   assert.equal(await page.locator("#key").inputValue(), "Bb");
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#pianoPrompt").selectOption("staff");
+  await practiceOption(page, "#pianoPrompt", "staff");
   await page.locator("#low-spin").click();
   await page
     .locator("#low-spin-picker")
@@ -129,13 +130,14 @@ try {
     .locator("#low-spin-picker")
     .getByRole("button", { name: "C4", exact: true })
     .click();
-  await page.locator("#key").selectOption("C");
+  await practiceOption(page, "#key", "C");
   await page.getByText("Practice options", { exact: true }).click();
   await mkdir("../../work", { recursive: true });
   await page.screenshot({
     path: `../../work/piano-desktop-${engine}.png`,
     fullPage: true,
   });
+  assert.equal(await page.locator(".white-key").first().evaluate(e => e.getBoundingClientRect().width), 32);
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     const dimensions = await page.evaluate(() => ({
@@ -145,14 +147,17 @@ try {
         const b = e.getBoundingClientRect();
         return { x: b.x, y: b.y, bottom: b.bottom };
       }),
+      whiteWidth: document.querySelector(".white-key")!.getBoundingClientRect().width,
       blackWidth: document.querySelector(".black-key")!.getBoundingClientRect()
         .width,
     }));
     assert.ok(dimensions.page <= dimensions.viewport);
     assert.equal(dimensions.rows[0].x, dimensions.rows[1].x);
     assert.ok(dimensions.rows[1].y > dimensions.rows[0].bottom);
-    assert.ok(dimensions.blackWidth >= 24);
+    assert.equal(dimensions.whiteWidth, 32);
+    assert.equal(dimensions.blackWidth, 24);
     // Click through actual black/white geometry near the overlap, not just button centers.
+    await key(61).scrollIntoViewIfNeeded();
     const black = await key(61).boundingBox();
     assert.ok(black);
     await page.mouse.click(black!.x + black!.width / 2, black!.y + 15);
@@ -185,13 +190,16 @@ try {
   await context.setOffline(true);
   await page.reload();
   await ready();
-  assert.equal(await page.locator("#mode").inputValue(), "piano");
+  assert.equal(
+    await page.locator("nav a[aria-current]").getAttribute("data-mode"),
+    "piano",
+  );
   await key(60).click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — C4/);
   await context.setOffline(false);
-  await page.locator("#mode").selectOption("staff");
+  await selectPractice(page, "staff");
   assert.ok(await page.locator("#piano").isHidden());
-  assert.equal(await page.locator("#low").inputValue(), "E3");
+  assert.equal(await page.locator("#staff-low-spin").inputValue(), "E3");
   await page.locator('[data-letter="E"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
   assert.deepEqual(errors, []);

@@ -1,3 +1,8 @@
+import {
+  practiceOption,
+  selectPractice,
+  midiAction,
+} from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
@@ -63,19 +68,22 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
   await page.locator('[data-letter="E"]:enabled').waitFor();
-  await page.locator("#mode").selectOption("sight");
+  await selectPractice(page, "sight");
   await page.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
-  await page.locator("#hymn-length").selectOption("0");
+  await practiceOption(page, "#hymn-length", "0");
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
   const input = page.getByRole("combobox", { name: "Hymn", exact: true });
   const choose = async (title: string) => {
+    const options = page.locator("#sight-reading .practice-options");
+    if (!(await options.evaluate((e: HTMLDetailsElement) => e.open)))
+      await options.locator("summary").click();
     await input.click();
     await input.fill(title);
     await page.locator("#hymn-results [role=option]").first().waitFor();
     await input.press("ArrowDown");
     await input.press("Enter");
-    assert.equal(await page.locator(".hymn-title").textContent(), title);
+    assert.equal(await page.locator(".sequence-title").textContent(), title);
   };
   // A second search must replace the selected title, even while the input still has focus.
   await choose("Amazing Grace");
@@ -83,7 +91,7 @@ try {
   await input.pressSequentially("silent");
   assert.equal(await input.inputValue(), "silent");
   await input.press("Enter");
-  assert.equal(await page.locator(".hymn-title").textContent(), "Silent Night");
+  assert.equal(await page.locator(".sequence-title").textContent(), "Silent Night");
   await choose("Amazing Grace");
   const send = async (data: number[], stale = false) =>
     page.evaluate(
@@ -97,16 +105,14 @@ try {
     );
   const on = (n: number) => send([0x90, n, 100]);
   const off = (n: number) => send([0x80, n, 0]);
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   await on(61);
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
   assert.match(
-    (await page.locator(".hymn-feedback").textContent())!,
+    (await page.locator(".sequence-feedback").textContent())!,
     /Try again/,
   );
   await off(61);
@@ -131,15 +137,13 @@ try {
   await page.locator(".hymn-screen summary").click();
   await page.locator('.hymn-piano [data-piano="67"]').click();
   assert.equal(await page.locator(".hymn-count").textContent(), "5 / 35");
-  await page.locator("#hymn-arrangement").selectOption("original");
+  await practiceOption(page, "#hymn-arrangement", "original");
   const initial = await page.locator(".hymn-count").textContent();
   assert.match(initial!, /^1 \/ /);
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
-    .waitFor();
+    .waitFor({ state: "attached" });
   for (const n of [43, 55, 59]) await on(n);
   assert.equal(await page.locator(".hymn-count").textContent(), initial);
   await on(62);
@@ -176,7 +180,7 @@ try {
         );
         assert.equal(
           await page
-            .locator(".hymn-score")
+            .locator(".sequence-score")
             .evaluate((e) => e.scrollWidth <= e.clientWidth + 1),
           true,
           hymn.title,
@@ -189,7 +193,7 @@ try {
           hymn.title,
         );
         assert.doesNotMatch(
-          (await page.locator(".hymn-feedback").textContent())!,
+          (await page.locator(".sequence-feedback").textContent())!,
           /couldn’t/,
         );
         if (hymn.id === "praise-god-from-whom-all-blessings-flow") {
@@ -232,11 +236,11 @@ try {
   await input.fill("doxology");
   await input.press("Enter");
   assert.equal(
-    await page.locator(".hymn-title").textContent(),
+    await page.locator(".sequence-title").textContent(),
     "Praise God From Whom All Blessings Flow",
   );
   await choose("Amazing Grace");
-  await page.locator("#hymn-arrangement").selectOption("melody");
+  await practiceOption(page, "#hymn-arrangement", "melody");
   await page.locator(".hymn-screen summary").click(); // close to keep the review screenshot focused on the score
   await mkdir("work", { recursive: true });
   await page.screenshot({
@@ -263,9 +267,7 @@ try {
           .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
           .isVisible())
       )
-        await page
-          .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-          .click();
+        await midiAction(page, "Connect MIDI keyboard");
     });
   for (const n of sequence) {
     await on(n);
@@ -274,7 +276,7 @@ try {
   assert.equal(await page.locator(".hymn-count").textContent(), "Complete");
   await page.locator(".hymn-next").click();
   assert.equal(
-    await page.locator(".hymn-title").textContent(),
+    await page.locator(".sequence-title").textContent(),
     "Jesus Loves Me",
   );
   // New feature and its entire library are available offline, including lazy-loaded code.
@@ -287,7 +289,7 @@ try {
     await context.setOffline(true);
     await page.reload();
     await page
-      .locator(".hymn-title")
+      .locator(".sequence-title")
       .filter({ hasText: "Jesus Loves Me" })
       .waitFor();
     await choose("Amazing Grace");
@@ -303,9 +305,9 @@ try {
         "Available offline",
     );
     await cold.setOffline(true);
-    await firstUse.locator("#mode").selectOption("sight");
+    await selectPractice(firstUse, "sight");
     await firstUse.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
-    await firstUse.locator("#hymn-length").selectOption("0");
+    await practiceOption(firstUse, "#hymn-length", "0");
     await firstUse
       .locator(".hymn-count")
       .filter({ hasText: "1 / 35" })
@@ -313,9 +315,9 @@ try {
     await cold.close();
     await page.bringToFront();
   }
-  await page.locator("#mode").selectOption("piano");
+  await selectPractice(page, "piano");
   await page.locator("#piano [data-piano]").first().waitFor();
-  assert.ok(await page.locator("#midi-panel").isVisible());
+  assert.ok(await page.locator(".keyboard-menu summary").isVisible());
   assert.ok(await page.locator("#sight-reading").isHidden());
   assert.deepEqual(errors, []);
   console.log(

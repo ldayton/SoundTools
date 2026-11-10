@@ -1,3 +1,4 @@
+import { practiceOption } from "./navigation-helpers";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
@@ -85,7 +86,7 @@ try {
       document.querySelector("#feedback")?.textContent === "Name this note.",
   );
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#key").selectOption("G");
+  await practiceOption(page, "#key", "G");
   await page.locator('[data-letter="E"]').click();
   await page.waitForFunction(
     () =>
@@ -95,9 +96,9 @@ try {
   await page.locator('[data-letter="G"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
   assert.equal(await page.locator(".vf-keysignature").count(), 1);
-  await page.locator("#key").selectOption("C");
+  await practiceOption(page, "#key", "C");
   // A one-note range checks completion without prescribing the scheduler order.
-  await page.locator("#high").selectOption("E3");
+  await practiceOption(page, "#high", "E3");
   for (let i = 0; i < 12; i++) {
     await page.locator(`[data-letter="E"]:enabled`).waitFor();
     await page.locator(`[data-letter="E"]`).click();
@@ -122,7 +123,7 @@ try {
     const box = await b.boundingBox();
     assert.ok(box && box.height >= 44);
   }
-  await page.locator("#key").selectOption("G");
+  await practiceOption(page, "#key", "G");
   await page.getByRole("button", { name: "Sharp", exact: true }).click();
   assert.equal(
     await page
@@ -143,14 +144,13 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.screenshot({ path: "work/notecards-desktop.png", fullPage: true });
   await page.getByText("Practice options", { exact: true }).click();
-  await page.locator("#low").selectOption("E2");
-  await page.locator("#high").selectOption("E2");
-  assert.equal(await page.locator("#low option").first().textContent(), "E2");
-  assert.ok(
-    await page
-      .locator("#low option")
-      .filter({ hasText: /^F2$/ })
-      .evaluate((option) => (option as HTMLOptionElement).disabled),
+  await practiceOption(page, "#low", "E2");
+  await practiceOption(page, "#high", "E2");
+  assert.equal(await page.locator("#staff-low-spin").inputValue(), "E2");
+  assert.equal(await page.locator("#staff-high-spin").inputValue(), "E2");
+  assert.equal(
+    await page.locator("#staff-low-spin-picker [data-position]").count(),
+    18,
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('[data-letter="E"]:enabled').waitFor();
@@ -170,7 +170,7 @@ try {
   await page.locator('[data-letter="E"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
   for (const key of KEYS) {
-    await page.locator("#key").selectOption(key.id);
+    await practiceOption(page, "#key", key.id);
     assert.equal(await page.locator("#key").inputValue(), key.id);
     assert.equal(await page.locator(".vf-stavenote").count(), 1);
     assert.equal(
@@ -179,7 +179,7 @@ try {
       "Use the key signature, not explicit accidentals",
     );
   }
-  await page.locator("#key").selectOption("Gb");
+  await practiceOption(page, "#key", "Gb");
   await page.screenshot({
     path: "work/notecards-keys-mobile.png",
     fullPage: true,

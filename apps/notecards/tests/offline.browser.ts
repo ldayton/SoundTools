@@ -1,3 +1,4 @@
+import { selectPractice } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { createServer } from "node:http";
 import { readFile, mkdir, mkdtemp, rm, cp } from "node:fs/promises";
@@ -44,7 +45,12 @@ const mime: Record<string, string> = {
 };
 const server = createServer(async (req, res) => {
   const url = new URL(req.url!, "http://localhost"),
-    path = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
+    path =
+      url.pathname === "/" ||
+      url.pathname === "/settings" ||
+      /^\/(piano|guitar|rhythm|theory)(\/[a-z0-9-]+)*\/?$/.test(url.pathname)
+        ? "index.html"
+        : url.pathname.slice(1);
   if (path === "sw.js" && failInstall) {
     breakAssets = true;
     failInstall = false;
@@ -108,7 +114,7 @@ try {
   // Verified update is staged while a session is active, never replacing the question.
   root = rootB;
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
-  await page.locator("#offline-update:visible").waitFor({ timeout: 20000 });
+  await page.locator(".settings-update:visible").waitFor({ timeout: 20000 });
   assert.equal(
     await page.locator('meta[name="notecards-shell"]').getAttribute("content"),
     packA.shellCache,
@@ -157,12 +163,12 @@ try {
       "Available offline",
   );
   assert.equal(await fresh.locator("#notation svg").count(), 1);
-  await fresh.locator("#mode").selectOption("find");
+  await selectPractice(fresh, "find");
   await fresh.locator('[data-fret="0"]').click();
   await fresh.waitForFunction(
     () => document.querySelector("#counter")?.textContent === "2 / 12",
   );
-  await fresh.locator("#mode").selectOption("staff");
+  await selectPractice(fresh, "staff");
   // A complete cached copy starts without waiting for a hung network navigation.
   await context.setOffline(false);
   networkDown = false;
@@ -176,6 +182,27 @@ try {
   );
   slowNavigation = false;
   console.log("offline practice and fast startup ready");
+  // A never-visited deep URL uses the same verified offline shell and honours its settings.
+  await context.setOffline(true);
+  networkDown = true;
+  await fresh.goto(base + "piano/keys?key=G&low=C4&high=B5&clef=grand");
+  await fresh.locator("#notation svg").waitFor();
+  assert.equal(await fresh.locator("#key").inputValue(), "G");
+  assert.equal(await fresh.locator("#staffLayout").inputValue(), "grand");
+  await fresh.goto(
+    base + "piano/hymns/amazing-grace?arrangement=bass&bars=2&section=2",
+  );
+  await fresh.locator("#hymn-section").waitFor({ state: "attached" });
+  assert.equal(await fresh.locator("#hymn-section").inputValue(), "1");
+  await selectPractice(fresh, "staff");
+  await fresh.goto(base + "settings");
+  await fresh.locator(".settings-page").waitFor();
+  assert.equal(
+    await fresh.locator("#offline-status").textContent(),
+    "Available offline",
+  );
+  await selectPractice(fresh, "staff");
+  console.log("unvisited offline deep links ready");
   // Corrupt newest copy: offline navigation falls back to a verified older generation.
   await fresh.evaluate(
     async ({ version, url }) => {
@@ -207,9 +234,9 @@ try {
   await context.setOffline(false);
   networkDown = false;
   await fresh.evaluate(() => window.dispatchEvent(new Event("online")));
-  await fresh.locator("#offline-update:visible").waitFor({ timeout: 20000 });
+  await fresh.locator(".settings-update:visible").waitFor({ timeout: 20000 });
+  await fresh.locator("a[data-settings]").click();
   await fresh.locator("#offline-update").click();
-  await fresh.locator('[data-letter="E"]:enabled').waitFor();
   await fresh.waitForFunction(
     (v) =>
       document
@@ -222,6 +249,8 @@ try {
       document.querySelector("#offline-status")?.textContent ===
       "Available offline",
   );
+  await selectPractice(fresh, "staff");
+  await fresh.locator('[data-letter="E"]:enabled').waitFor();
   console.log("repair ready");
   // Storage eviction leaves a useful offline explanation, not a blank app.
   await context.setOffline(true);
@@ -265,6 +294,7 @@ try {
     await partial.locator("#offline-status").textContent(),
   );
   breakAssets = false;
+  await partial.locator("a[data-settings]").click();
   await partial.locator("#offline-retry").click();
   try {
     await partial.waitForFunction(

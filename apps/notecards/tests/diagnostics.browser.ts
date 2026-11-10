@@ -32,12 +32,23 @@ const server = createServer(async (req, res) => {
   const path = new URL(req.url!, "http://localhost").pathname;
   try {
     const bytes = await readFile(
-      resolve(output, path === "/" ? "index.html" : path.slice(1)),
+      resolve(
+        output,
+        path === "/" ||
+          path === "/settings" ||
+          /^\/(piano|guitar|rhythm|theory)(\/[a-z0-9-]+)*\/?$/.test(path)
+          ? "index.html"
+          : path.slice(1),
+      ),
     );
     res.setHeader(
       "Content-Type",
       mime[extname(path)] ||
-        (path === "/" ? "text/html" : "application/octet-stream"),
+        (/^\/(piano|guitar|rhythm|theory)(\/[a-z0-9-]+)*\/?$/.test(path) ||
+        path === "/" ||
+        path === "/settings"
+          ? "text/html"
+          : "application/octet-stream"),
     );
     res.end(bytes);
   } catch {
@@ -69,6 +80,7 @@ try {
     `http://127.0.0.1:${(server.address() as { port: number }).port}/`,
   );
   await page.locator('[data-letter="E"]:enabled').waitFor();
+  await page.locator("a[data-settings]").click();
   const checkbox = page.getByRole("checkbox", {
     name: "Share diagnostic information",
     exact: true,

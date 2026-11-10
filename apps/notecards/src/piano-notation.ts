@@ -1,5 +1,5 @@
 import type { Card } from "./model";
-import type { Profile } from "./guitar";
+import type { Profile } from "./exercise-settings";
 import { pitch } from "./piano-model";
 export type PianoNotation = {
   layout: "treble" | "bass" | "grand";

@@ -6,6 +6,15 @@
   "outputDirectory": "dist",
   "headers": [
     {
+      "source": "/settings",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/",
       "headers": [
         {
@@ -16,6 +25,15 @@
     },
     {
       "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(piano|guitar|rhythm|theory)/:path*",
       "headers": [
         {
           "key": "Cache-Control",
@@ -58,6 +76,28 @@
           "value": "nosniff"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/piano/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/guitar/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/rhythm/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/theory/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/index.html"
     }
   ]
 }

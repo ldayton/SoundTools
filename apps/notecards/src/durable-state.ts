@@ -1,3 +1,7 @@
+import {
+  legacyGuitarScaleProfile,
+  mergeGuitarScaleSettings,
+} from "./guitar-scale-settings";
 import { defaultProgress, loadProgress, type Progress } from "./progress";
 export type DurableState = {
   version: 1;
@@ -41,10 +45,13 @@ export function decodeState(raw: unknown): DurableState {
         "Unsupported activity version; update this app before continuing.",
       );
   }
-  return {
-    ...structuredClone(s),
-    progress: loadProgress(JSON.stringify(s.progress)),
-  };
+  return migrateGuitarScalePreview(
+    {
+      ...structuredClone(s),
+      progress: loadProgress(JSON.stringify(s.progress)),
+    },
+    s.progress,
+  );
 }
 export function migrateLegacy(
   raw: Record<string, string | null>,
@@ -68,12 +75,32 @@ export function migrateLegacy(
     } catch {
       legacy[id] = null;
     }
-  return {
+  return migrateGuitarScalePreview(
+    {
+      version: 1,
+      progress: raw.progress ? loadProgress(raw.progress) : defaultProgress(),
+      activities: {},
+      legacy,
+    },
+    raw.progress ? JSON.parse(raw.progress) : undefined,
+  );
+}
+function migrateGuitarScalePreview(
+  state: DurableState,
+  rawProgress: unknown,
+): DurableState {
+  const profile = legacyGuitarScaleProfile(rawProgress);
+  if (!profile) return state;
+  state.legacy["guitar-scales-profile"] ??= structuredClone(profile);
+  state.activities["guitar-scales"] ??= {
     version: 1,
-    progress: raw.progress ? loadProgress(raw.progress) : defaultProgress(),
-    activities: {},
-    legacy,
+    settings: mergeGuitarScaleSettings({
+      tonic: profile.scaleTonic,
+      quality: profile.scaleQuality,
+    }),
   };
+  if (state.progress.mode === "scales") state.progress.mode = "guitar-scales";
+  return state;
 }
 /** Queue immutable snapshots; the adapter fences every write by ownership and revision. */
 export class DurableStore {

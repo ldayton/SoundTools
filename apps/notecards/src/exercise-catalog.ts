@@ -67,6 +67,15 @@ export const EXERCISES = [
     kind: "flashcard",
   },
   {
+    mode: "guitar-scales",
+    title: "Scales",
+    area: "Guitar",
+    icon: "guitar",
+    path: "/guitar/scales",
+    rootId: "guitar-scales-practice",
+    kind: "live",
+  },
+  {
     mode: "rhythm",
     title: "Rhythm reading",
     area: "Rhythm",

@@ -1,0 +1,185 @@
+.scale-card {
+  max-width: 540px;
+  margin: 0 auto;
+  border: 1px solid #e1e2e4;
+  border-radius: 16px;
+  background: #fff;
+  padding: 20px 24px 16px;
+}
+.scale-heading {
+  text-align: center;
+}
+.scale-heading h2 {
+  font-size: 26px;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+.scale-notes {
+  font-size: 16px;
+  margin: 0;
+  color: #31353b;
+}
+.scale-orientation {
+  text-align: center;
+  font-size: 12px;
+  color: #626771;
+  margin: 12px 0 6px;
+}
+.scale-diagram {
+  max-width: 352px;
+  margin: auto;
+}
+.scale-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.scale-diagram text {
+  text-anchor: middle;
+  font-family: inherit;
+}
+.scale-fret {
+  stroke: #d5d7da;
+  stroke-width: 1.3;
+}
+.scale-string {
+  stroke: #92969b;
+}
+.scale-nut {
+  stroke: #202327;
+  stroke-width: 8;
+}
+.scale-fret-marker {
+  fill: #e6e7e9;
+}
+.scale-fret-number,
+.scale-tuning {
+  fill: #5c6168;
+  font-size: 13px;
+}
+.scale-tone circle {
+  fill: #202327;
+}
+.scale-tone text {
+  fill: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.scale-root circle {
+  fill: #ffca45;
+  stroke: #765800;
+  stroke-width: 1;
+}
+.scale-root text {
+  fill: #202327;
+}
+.scale-root .scale-root-mark {
+  font-size: 9px;
+  fill: #5e4700;
+}
+.scale-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  margin: 10px 0;
+  color: #42474f;
+}
+.scale-root-swatch,
+.scale-note-swatch {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+.scale-root-swatch {
+  background: #ffca45;
+  border: 1px solid #765800;
+  color: #202327;
+}
+.scale-note-swatch {
+  background: #202327;
+  margin-left: 10px;
+}
+.scale-footnote {
+  text-align: center;
+  font-size: 11px;
+  color: #626771;
+  margin: 8px 0 0;
+}
+.scale-note-list {
+  margin-top: 16px;
+  border-top: 1px solid #e1e2e4;
+  padding-top: 12px;
+  font-size: 12px;
+}
+.scale-note-list summary {
+  cursor: pointer;
+}
+.scale-note-list table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  text-align: left;
+}
+.scale-note-list caption {
+  text-align: left;
+  padding-bottom: 8px;
+  font-weight: 600;
+}
+.scale-note-list th,
+.scale-note-list td {
+  padding: 8px 4px;
+  border-bottom: 1px solid #ececee;
+  vertical-align: top;
+}
+.scale-note-list th:first-child {
+  min-width: 64px;
+}
+@media (max-width: 600px) {
+  .scale-card {
+    padding: 16px 12px 12px;
+    border-radius: 12px;
+  }
+  .scale-heading h2 {
+    font-size: 23px;
+  }
+  .scale-notes {
+    font-size: 14px;
+  }
+  .scale-orientation {
+    font-size: 11px;
+  }
+}
+
+.scale-optional circle {
+  fill: #d4d6da;
+  stroke: #737880;
+  stroke-width: 1;
+}
+.scale-optional text {
+  fill: #30343b;
+}
+.scale-optional-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #535961;
+  margin: 8px 0;
+}
+.scale-optional-swatch {
+  flex: 0 0 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #d4d6da;
+  border: 1px solid #737880;
+}

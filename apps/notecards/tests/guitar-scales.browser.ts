@@ -1,0 +1,274 @@
+import {
+  selectPractice,
+  practiceOption,
+  midiAction,
+  setPianoVisible,
+  openPracticeOptions,
+  closePracticeOptions,
+} from "./navigation-helpers";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { chromium, firefox, webkit } from "playwright";
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
+import { readFile } from "node:fs/promises";
+const vite = createRequire(import.meta.url)
+  .resolve("vite/package.json")
+  .replace(/package\.json$/, "bin/vite.js");
+const server = spawn(
+  process.execPath,
+  [vite, "preview", "--host", "127.0.0.1", "--port", "4352", "--strictPort"],
+  { stdio: "ignore" },
+);
+for (let i = 0; i < 100; i++) {
+  try {
+    if ((await fetch("http://127.0.0.1:4352")).ok) break;
+  } catch {}
+  await new Promise((r) => setTimeout(r, 100));
+}
+const fixed = await mkdtemp(join(tmpdir(), "notecards-guitar-scales-"));
+const browser = await (
+  { chromium, firefox, webkit }[process.env.TEST_BROWSER || "chromium"] ||
+  chromium
+).launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+try {
+  const page = await browser.newPage({
+    viewport: { width: 1440, height: 1000 },
+    serviceWorkers: "block",
+  });
+  await page.addInitScript({
+    content: await readFile(
+      new URL("./fixtures/midi.js", import.meta.url),
+      "utf8",
+    ),
+  });
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("http://127.0.0.1:4352");
+  await page.locator('[data-letter="E"]:enabled').waitFor();
+  const saved = () =>
+    page.evaluate(async () => {
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const r = indexedDB.open("soundtools-notecards", 1);
+        r.onsuccess = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+      });
+      return new Promise<any>((resolve, reject) => {
+        const r = db
+          .transaction("state", "readonly")
+          .objectStore("state")
+          .get("root");
+        r.onsuccess = () => {
+          db.close();
+          resolve(r.result.state);
+        };
+        r.onerror = () => reject(r.error);
+      });
+    });
+  await selectPractice(page, "sight");
+  await page.locator(".hymn-paper svg").first().waitFor();
+  await practiceOption(page, "#hymn-length", "0");
+  await midiAction(page, "Connect MIDI keyboard");
+  await page
+    .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
+    .waitFor({ state: "attached" });
+  await page.evaluate(() => {
+    (window as any).midiTest.send([0x90, 62, 100]);
+    (window as any).midiTest.send([0x80, 62, 0]);
+  });
+  await page.getByText("2 / 35", { exact: true }).waitFor();
+  await selectPractice(page, "guitar-scales");
+  await page.getByRole("heading", { name: "E major", exact: true }).waitFor();
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  const before = await saved();
+  assert.equal(await page.locator("#midi-panel").isVisible(), false);
+  assert.equal(await page.locator("#flashcards").isVisible(), false);
+  assert.equal(await page.locator('.scale-tone[data-fret="0"]').count(), 4);
+  await openPracticeOptions(page);
+  for (const quality of ["major", "minor"]) {
+    await page.getByLabel("Scale type", { exact: true }).selectOption(quality);
+    assert.equal(await page.locator("#scale-key option").count(), 12);
+    for (let tonic = 0; tonic < 12; tonic++) {
+      await page
+        .getByLabel("Scale key", { exact: true })
+        .selectOption(String(tonic));
+      assert.ok((await page.locator(".scale-root").count()) > 0);
+      assert.equal(
+        await page.locator(".scale-root-mark").count(),
+        await page.locator(".scale-root").count(),
+      );
+      assert.equal(
+        (await page.locator(".scale-notes").textContent())!.split(" · ").length,
+        7,
+      );
+    }
+  }
+  await page.getByLabel("Scale key", { exact: true }).selectOption("3");
+  await page
+    .getByRole("heading", { name: "E♭ natural minor", exact: true })
+    .waitFor();
+  assert.match(
+    (await page
+      .locator('.scale-tone[data-string="2"][data-fret="0"]')
+      .textContent())!,
+    /C♭/,
+  );
+  await page.keyboard.press("a");
+  await page.evaluate(() => {
+    (window as any).midiTest.send([0x90, 64, 100]);
+    (window as any).midiTest.send([0x80, 64, 0]);
+  });
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  await page.reload();
+  await page
+    .getByRole("heading", { name: "E♭ natural minor", exact: true })
+    .waitFor();
+  const after = await saved();
+  for (const [id, checkpoint] of Object.entries(before.activities))
+    if (id !== "guitar-scales")
+      assert.deepEqual(after.activities[id], checkpoint);
+  assert.deepEqual(after.activities["guitar-scales"], {
+    version: 1,
+    settings: { tonic: 3, quality: "minor" },
+  });
+  assert.deepEqual(after.progress.stats, before.progress.stats);
+  for (const [mode, profile] of Object.entries(before.progress.profiles))
+    if (mode !== "scales")
+      assert.deepEqual(after.progress.profiles[mode], profile);
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    await closePracticeOptions(page);
+    assert.equal(
+      await page.getByLabel("Scale key", { exact: true }).isVisible(),
+      false,
+    );
+    await openPracticeOptions(page);
+    assert.ok(await page.getByLabel("Scale key", { exact: true }).isVisible());
+    const select = await page
+      .getByLabel("Scale key", { exact: true })
+      .boundingBox();
+    assert.equal(select!.height, 44);
+    await closePracticeOptions(page);
+    const bounds = await page.locator(".scale-diagram").boundingBox();
+    assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= width);
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      "no horizontal overflow",
+    );
+    assert.ok(
+      (await page.locator(".scale-footnote").boundingBox())!.y < 844,
+      "full neck and legend fit",
+    );
+  }
+  await page.getByText("Notes by string and fret", { exact: true }).click();
+  assert.match(
+    await page.locator(".scale-note-list table").innerText(),
+    /Open: C♭4/,
+  );
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await selectPractice(page, "sight");
+  await page.getByText("2 / 35", { exact: true }).waitFor();
+  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  await selectPractice(page, "piano");
+  await setPianoVisible(page, true);
+  await page.locator("#piano [data-piano]").first().waitFor();
+  await selectPractice(page, "guitar-scales");
+  await page
+    .getByRole("heading", { name: "E♭ natural minor", exact: true })
+    .waitFor();
+  await selectPractice(page, "scales");
+  await page.locator("#scales-practice .abcjs-note").first().waitFor();
+  await selectPractice(page, "guitar-scales");
+  await page
+    .getByRole("heading", { name: "E♭ natural minor", exact: true })
+    .waitFor();
+  await page.goto("http://127.0.0.1:4352/guitar/scales?key=E&scale=major");
+  await page.getByRole("heading", { name: "E major", exact: true }).waitFor();
+  const optionalRoot = page.locator(
+    '.scale-root.scale-optional[data-string="2"][data-fret="5"]',
+  );
+  assert.equal(
+    await optionalRoot.locator(".scale-root-mark").textContent(),
+    "R",
+  );
+  assert.equal(
+    await optionalRoot
+      .locator("circle")
+      .evaluate((e) => getComputedStyle(e).fill),
+    "rgb(212, 214, 218)",
+  );
+  assert.equal(
+    await page.locator('.scale-optional[data-string="1"]').count(),
+    0,
+  );
+  // Exercise the actual IndexedDB upgrade from yesterday's local preview.
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const r = indexedDB.open("soundtools-notecards", 1);
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("state", "readwrite");
+      const store = tx.objectStore("state");
+      const r = store.get("root");
+      r.onsuccess = () => {
+        const record = r.result;
+        record.state.progress.mode = "scales";
+        record.state.progress.profiles.scales = {
+          scaleTonic: 5,
+          scaleQuality: "major",
+        };
+        delete record.state.activities["guitar-scales"];
+        store.put(record, "root");
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+  await page.goto("http://127.0.0.1:4352/");
+  await page.getByRole("heading", { name: "F major", exact: true }).waitFor();
+  assert.equal(new URL(page.url()).pathname, "/guitar/scales");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  const migrated = await saved();
+  assert.deepEqual(migrated.activities["guitar-scales"], {
+    version: 1,
+    settings: { tonic: 5, quality: "major" },
+  });
+  assert.equal(migrated.progress.mode, "guitar-scales");
+  assert.deepEqual(migrated.activities.sight, before.activities.sight);
+  assert.deepEqual(errors, []);
+  console.log(
+    "Guitar scales: all 24 keys, enharmonics, responsive layouts, MIDI isolation, reload and preserved practice passed",
+  );
+} finally {
+  await browser.close();
+  server.kill();
+  await rm(fixed, { recursive: true, force: true }).catch(
+    (e: NodeJS.ErrnoException) => {
+      if (e.code !== "EACCES" && e.code !== "EPERM") throw e;
+    },
+  );
+}

@@ -863,6 +863,8 @@ $("#sight-reading").addEventListener("hymn-route", (e) => {
   )
     return;
   const url = new URL((e as CustomEvent<string>).detail, location.origin);
+  if (location.pathname === url.pathname && location.search === url.search)
+    return;
   if (
     location.pathname !== url.pathname &&
     location.pathname !== exercise("sight").path

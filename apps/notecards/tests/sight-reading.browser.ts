@@ -91,7 +91,10 @@ try {
   await input.pressSequentially("silent");
   assert.equal(await input.inputValue(), "silent");
   await input.press("Enter");
-  assert.equal(await page.locator(".sequence-title").textContent(), "Silent Night");
+  assert.equal(
+    await page.locator(".sequence-title").textContent(),
+    "Silent Night",
+  );
   await choose("Amazing Grace");
   const send = async (data: number[], stale = false) =>
     page.evaluate(
@@ -109,6 +112,16 @@ try {
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
     .waitFor({ state: "attached" });
+  await page.evaluate(() => {
+    (window as any).routeWrites = 0;
+    for (const method of ["pushState", "replaceState"] as const) {
+      const write = history[method].bind(history);
+      history[method] = (...args) => {
+        (window as any).routeWrites++;
+        return write(...args);
+      };
+    }
+  });
   await on(61);
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
   assert.match(
@@ -131,6 +144,11 @@ try {
   await off(71);
   await on(71);
   assert.equal(await page.locator(".hymn-count").textContent(), "4 / 35");
+  assert.equal(
+    await page.evaluate(() => (window as any).routeWrites),
+    0,
+    "answering, pausing and resuming must not rewrite an unchanged hymn URL",
+  );
   for (const n of [62, 67, 71]) await off(n);
   await page.waitForFunction(
     () =>

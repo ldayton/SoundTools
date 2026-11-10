@@ -66,7 +66,7 @@ export function loadProgress(raw: string | null): Progress {
     )
       result.profiles.name.strings = [1, 2, 3, 4, 5, 6];
     const patterns =
-      /^(signature:(major|minor):[A-G](#|b)?|(piano-(staff|name)):[A-G][2-6]:-?[01]|staff:[A-G][234]:-?[01]|(name|find|tab|staff-find):[1-6]:([0-9]|1[0-2]))$/;
+      /^(theory-(scales|intervals):[A-Za-z0-9:#-]+|signature:(major|minor):[A-G](#|b)?|(piano-(staff|name)):[A-G][2-6]:-?[01]|staff:[A-G][234]:-?[01]|(name|find|tab|staff-find):[1-6]:([0-9]|1[0-2]))$/;
     for (const [id, s] of Object.entries(data.stats || {}) as [string, any][]) {
       if (
         patterns.test(id) &&

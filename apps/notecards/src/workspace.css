@@ -69,8 +69,7 @@
   margin: 0;
   height: 3px;
 }
-#patterns-practice,
-#rhythm-practice {
+.live-workspace:not(#sight-reading) {
   max-width: 1000px;
   margin: auto;
 }
@@ -82,9 +81,7 @@
     max-width: none;
   }
   #flashcards:has(.practice-options),
-  #sight-reading:has(> .practice-options),
-  #patterns-practice:has(> .practice-options),
-  #rhythm-practice:has(> .practice-options) {
+  .live-workspace:has(> .practice-options) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
     align-items: start;
@@ -92,28 +89,21 @@
     max-width: none;
   }
   #flashcards:has(.practice-options.is-collapsed),
-  :is(#sight-reading, #patterns-practice, #rhythm-practice):has(
-    > .practice-options.is-collapsed
-  ) {
+  .live-workspace:has(> .practice-options.is-collapsed) {
     grid-template-columns: minmax(0, 1fr) 52px;
   }
   #flashcards:has(.practice-options) > .below,
-  :is(#sight-reading, #patterns-practice, #rhythm-practice)
-    > .practice-options {
+  .live-workspace > .practice-options {
     grid-column: 2;
     grid-row: 1;
   }
   #flashcards:has(.practice-options) > .practice,
-  :is(#sight-reading, #patterns-practice, #rhythm-practice):has(
-      > .practice-options
-    )
-    > .sequence-practice {
+  .live-workspace:has(> .practice-options) > .sequence-practice {
     grid-column: 1;
     grid-row: 1;
   }
   #flashcards .practice-options,
-  :is(#sight-reading, #patterns-practice, #rhythm-practice)
-    > .practice-options {
+  .live-workspace > .practice-options {
     max-width: none;
     margin: 0;
     padding-left: 18px;
@@ -123,15 +113,11 @@
     top: 20px;
   }
   #flashcards .practice-options.is-collapsed,
-  :is(#sight-reading, #patterns-practice, #rhythm-practice)
-    > .practice-options.is-collapsed {
+  .live-workspace > .practice-options.is-collapsed {
     padding-left: 7px;
   }
-  :is(#sight-reading, #patterns-practice, #rhythm-practice):has(
-      > .practice-options
-    )
-    #flashcards:has(.practice-options)
-    > :is(.below, .practice) {
+  .live-workspace:has(> .practice-options) > .sequence-practice,
+  #flashcards:has(.practice-options) > :is(.below, .practice) {
     min-width: 0;
   }
   #flashcards .flashcard-options {
@@ -164,19 +150,15 @@
   .practice-options :is(.hymn-key-field, .hymn-size-field) {
     width: 100%;
   }
-  :is(#sight-reading, #patterns-practice, #rhythm-practice) .practice-controls {
+  .live-workspace .practice-controls {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px 10px;
   }
-  :is(#sight-reading, #patterns-practice, #rhythm-practice)
-    .practice-controls
-    label {
+  .live-workspace .practice-controls label {
     width: 100%;
   }
-  :is(#sight-reading, #patterns-practice, #rhythm-practice)
-    .practice-controls
-    label:first-child {
+  .live-workspace .practice-controls label:first-child {
     grid-column: 1 / -1;
   }
 }

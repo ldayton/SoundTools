@@ -212,3 +212,118 @@
 .rhythm-tap + .sequence-transport {
   margin-top: 0;
 }
+
+.theory-notation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 168px;
+  overflow: hidden;
+}
+.theory-notation > div {
+  max-width: 100%;
+}
+.theory-answers,
+.theory-choices > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.theory-answers button,
+.theory-choices button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 12px;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  color: #302d55;
+  background: #fffdf8;
+  font-size: 14px;
+}
+.theory-answers button {
+  text-transform: capitalize;
+}
+.theory-choices {
+  border: 0;
+  padding: 0;
+  margin: 16px 0;
+  min-width: 0;
+}
+.theory-choices legend {
+  font-size: 13px;
+  font-weight: 600;
+  color: #625d70;
+  margin-bottom: 8px;
+}
+.theory-choices > div {
+  justify-content: flex-start;
+  gap: 6px;
+}
+.theory-choices button[aria-pressed="true"] {
+  background: #e5def0;
+  border-color: #a99ac1;
+}
+.theory-choices[data-choices="keys"] > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.theory-choices[data-choices="keys"] button {
+  padding-inline: 8px;
+}
+.theory-explanation,
+.theory-midi-notice,
+.theory-example p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.theory-explanation {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f0ece4;
+}
+.theory-midi-notice {
+  color: #71351f;
+}
+.theory-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+.theory-steps span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d8d1c5;
+  border-radius: 50%;
+  font-size: 12px;
+}
+.theory-steps .is-done {
+  background: #dcebdd;
+  border-color: #698a70;
+}
+.theory-summary {
+  text-align: center;
+  padding: 24px 0;
+}
+.theory-options .options-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.theory-options .options-row > label {
+  width: 100%;
+}
+.theory-options .theory-task-field,
+.theory-options .theory-quality-field {
+  grid-column: 1 / -1;
+}
+.theory-options .theory-range {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.theory-options .theory-range label {
+  width: auto;
+  margin-bottom: 8px;
+}

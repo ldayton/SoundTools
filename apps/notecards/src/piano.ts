@@ -26,6 +26,7 @@ export class Piano {
       );
       if (button && !this.locked) {
         const note = Number(button.dataset.piano);
+        this.focusMidi = note;
         void playPianoNote(note);
         this.answer(note);
       }
@@ -63,13 +64,14 @@ export class Piano {
       ...this.element.querySelectorAll<HTMLButtonElement>("[data-piano]"),
     ];
   }
-  show(low: number, high: number, named: boolean) {
+  show(low: number, high: number, named: boolean, preserveFocus = false) {
     const hadFocus = this.element.contains(document.activeElement);
     this.request = [low, high, named];
     this.locked = false;
     this.marked = undefined;
     this.draw();
-    this.focusMidi = this.visibleBounds[0];
+    if (!preserveFocus || !this.contains(this.focusMidi))
+      this.focusMidi = this.visibleBounds[0];
     for (const b of this.buttons()) {
       b.classList.remove("is-right", "is-wrong", "answer-hover");
       b.setAttribute("aria-disabled", "false");
@@ -142,7 +144,11 @@ export class Piano {
         "sight-key-selected",
         selected.includes(b.dataset.piano),
       );
-    if (this.marked) this.feedback(...this.marked);
+    if (this.marked) {
+      const locked = this.locked;
+      this.feedback(...this.marked);
+      this.setUnavailable(locked);
+    }
     if (hadFocus)
       this.buttons()
         .find((b) => Number(b.dataset.piano) === this.focusMidi)

@@ -20,6 +20,8 @@ export const diagnostics = create({
       "sight",
       "patterns",
       "rhythm",
+      "scales",
+      "intervals",
     ],
     midiState: [
       "unsupported",

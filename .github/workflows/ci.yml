@@ -135,6 +135,9 @@ jobs:
       - run: npm run test:practice --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:theory --workspace=notecards
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:navigation --workspace=notecards
         env:
           TEST_BROWSER: ${{ matrix.browser }}

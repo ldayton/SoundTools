@@ -15,6 +15,8 @@ type Constructor = new (
 ) => LivePractice;
 /** Browser-only factories. The exhaustive mapping is checked against the data-only catalog used by build tooling. */
 const loaders = {
+  scales: () => import("./theory").then((m) => m.ScalesPractice),
+  intervals: () => import("./theory").then((m) => m.IntervalsPractice),
   patterns: () => import("./patterns").then((m) => m.IntervalPatterns),
   sight: () => import("./sight-reading").then((m) => m.SightReading),
   rhythm: () => import("./rhythm").then((m) => m.RhythmPractice),

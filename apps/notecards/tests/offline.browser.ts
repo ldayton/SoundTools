@@ -233,6 +233,25 @@ try {
       "Available offline",
   );
   await selectPractice(fresh, "staff");
+  await fresh.goto(base + "theory/scales?task=build-scale");
+  await fresh
+    .locator('#scales-practice [data-piano="60"][aria-disabled="false"]')
+    .click();
+  assert.equal(
+    await fresh.locator("#scales-practice .theory-steps .is-done").count(),
+    1,
+    "scale building works on a never-visited offline route",
+  );
+  await fresh.goto(base + "theory/intervals");
+  await fresh
+    .locator("#intervals-practice .theory-answers button")
+    .first()
+    .waitFor();
+  assert.equal(
+    await fresh.locator("#intervals-practice .theory-answers button").count(),
+    2,
+  );
+  await selectPractice(fresh, "staff");
   console.log("unvisited offline deep links ready");
   // Corrupt newest copy: offline navigation falls back to a verified older generation.
   await fresh.evaluate(

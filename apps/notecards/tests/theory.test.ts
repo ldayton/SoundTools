@@ -9,6 +9,8 @@ import {
   mergeTheorySettings,
   defaultTheorySettings,
   questionAnswer,
+  taskSettings,
+  intervalWalk,
 } from "../src/theory-model";
 import { name, KEYS } from "../src/model";
 import { defaultProgress, loadProgress } from "../src/progress";
@@ -107,4 +109,44 @@ test("theory sessions preserve feedback and review stats across reloads", () => 
   assert.equal(restored.answered, 1);
   assert.equal(restored.correct, 0);
   assert.notEqual(restored.next(() => 0)!.id, q.id);
+});
+
+test("interval practice excludes unisons, starts full naming with contrasting thirds, and canonicalizes simultaneous pairs", () => {
+  const distance = taskSettings("name-interval", {
+    ...defaultTheorySettings(),
+    intervals: [1, 3, 2],
+  });
+  assert.deepEqual(distance.intervals, [2, 3]);
+  assert.ok(
+    theoryPool("name-interval", distance).every((q) => q.interval! >= 2),
+  );
+  const full = taskSettings("name-quality");
+  assert.deepEqual(full.intervals, [3]);
+  assert.deepEqual(
+    [...new Set(theoryPool("name-quality", full).map((q) => q.quality))],
+    ["major", "minor"],
+  );
+  assert.equal(
+    theoryPool("name-quality", { ...full, qualities: ["major"] }).length,
+    0,
+    "single forced answer is not a useful identification quiz",
+  );
+  const together = {
+    ...distance,
+    presentation: "together" as const,
+    direction: "both" as const,
+  };
+  assert.deepEqual(
+    theoryPool("name-interval", together),
+    theoryPool("name-interval", { ...together, direction: "up" }),
+  );
+});
+test("key-based interval construction spells diatonic targets and gives counted staff positions", () => {
+  const s = { ...defaultTheorySettings(), intervalKey: "G", intervals: [3] };
+  const q = theoryPool("build-interval", s).find(
+    (q) => q.notes[0].letter === "D",
+  )!;
+  assert.equal(name(q.notes[1]), "F♯");
+  assert.equal(q.keyName, "G major");
+  assert.deepEqual(intervalWalk(q).map(name), ["D", "E", "F♯"]);
 });

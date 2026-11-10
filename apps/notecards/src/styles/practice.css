@@ -327,3 +327,35 @@
   width: auto;
   margin-bottom: 8px;
 }
+
+.theory-walk {
+  margin: 12px 0;
+  overflow: hidden;
+}
+.theory-walk .theory-intermediate {
+  fill: #837b94;
+  stroke: #837b94;
+}
+.theory-walk .theory-endpoint {
+  fill: #504365;
+  stroke: #504365;
+}
+.theory-quality-choices > fieldset {
+  margin-bottom: 12px;
+}
+.theory-advanced {
+  margin: 0 0 16px;
+}
+.theory-answers kbd {
+  text-transform: none;
+  margin-left: 6px;
+  font:
+    11px ui-monospace,
+    monospace;
+  color: #837b94;
+}
+@media (max-width: 760px) {
+  .theory-answers kbd {
+    display: none;
+  }
+}

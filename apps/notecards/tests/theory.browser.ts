@@ -47,6 +47,8 @@ try {
   const page = await context.newPage(),
     errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  await page.clock.install();
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
   await page.goto(base + "/theory/scales");
   const root = () =>
     page.locator("#scales-practice:visible,#intervals-practice:visible");
@@ -54,7 +56,11 @@ try {
     await openPracticeOptions(page);
     await root().locator(`[data-field="${id}"]`).selectOption(value);
   };
-  const next = () => root().locator(".theory-next").click();
+  const next = async () => {
+    const button = root().locator(".theory-next");
+    if (await button.isVisible()) await button.click();
+    else await page.clock.runFor(1000);
+  };
   const send = async (n: number) => {
     await page.evaluate((n) => {
       (window as any).midiTest.send([0x90, n, 100]);
@@ -79,13 +85,32 @@ try {
     "1 / 12",
     "feedback retains the answered question number",
   );
-  await next();
+  assert.ok(
+    await root().locator(".theory-next").isHidden(),
+    "correct answers need no Next click",
+  );
+  await page.clock.runFor(599);
+  assert.equal(await root().locator(".theory-count").textContent(), "1 / 12");
+  await page.clock.runFor(1);
+  assert.equal(
+    await root().locator(".theory-count").textContent(),
+    "2 / 12",
+    "correct answer advances automatically",
+  );
   await page.locator("#page-title").focus();
   await page.keyboard.press("3");
   assert.match(
     (await root().locator(".sequence-feedback").textContent())!,
     /Correct/,
   );
+  await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+  await page.clock.runFor(1000);
+  assert.ok(
+    await root().locator(".theory-next").isVisible(),
+    "interruption leaves feedback for manual continuation",
+  );
+  assert.equal(await root().locator(".theory-count").textContent(), "2 / 12");
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await next();
   await root()
     .locator(".theory-answers")
@@ -94,6 +119,11 @@ try {
   assert.match(
     (await root().locator(".theory-explanation").textContent())!,
     /C is degree 1/,
+  );
+  await page.clock.runFor(1500);
+  assert.ok(
+    await root().locator(".theory-next").isVisible(),
+    "mistakes do not auto-advance",
   );
   await page.waitForFunction(
     () =>
@@ -127,6 +157,12 @@ try {
     /Correct/,
   );
   await field("task", "build-scale");
+  await page.clock.runFor(1000);
+  assert.equal(
+    await root().locator(".theory-progress").getAttribute("value"),
+    "0",
+    "old task timer cannot advance a new task",
+  );
   await root().locator('[data-piano="61"]').click();
   assert.equal(
     await page.evaluate(() =>
@@ -152,7 +188,7 @@ try {
   );
   await send(64);
   await page.setViewportSize({ width: 1200, height: 1000 });
-  await page.waitForTimeout(100);
+  await page.clock.runFor(100);
   assert.equal(
     await root().locator('[data-piano="65"]').getAttribute("aria-disabled"),
     "false",
@@ -210,14 +246,15 @@ try {
     (await root().locator(".theory-explanation").textContent())!,
     /C–D–E/,
   );
-  await field("quality", "basic");
+  assert.equal(
+    await root().locator('[data-choice="1"]').count(),
+    0,
+    "no unison practice option",
+  );
+  await field("task", "name-quality");
   await root()
     .locator(".theory-answers")
-    .getByRole("button", { name: "2nd", exact: true })
-    .click();
-  await root()
-    .locator(".theory-answers")
-    .getByRole("button", { name: "major 2nd", exact: true })
+    .getByRole("button", { name: "major 3rd", exact: true })
     .click();
   assert.match(
     (await root().locator(".sequence-feedback").textContent())!,
@@ -227,14 +264,35 @@ try {
   assert.ok(
     await root()
       .locator(".theory-answers")
-      .getByRole("button", { name: "2nd", exact: true })
+      .getByRole("button", { name: "minor 3rd", exact: true })
       .isVisible(),
-    "previous size choice resets",
   );
+  await page.locator("#page-title").focus();
+  await page.keyboard.press("m");
+  assert.match(
+    (await root().locator(".sequence-feedback").textContent())!,
+    /Correct/,
+  );
+  await next();
   await field("presentation", "together");
-  assert.equal(await root().locator(".abcjs-notehead").count(), 2);
+  assert.equal(
+    await root().locator(".theory-notation .abcjs-notehead").count(),
+    2,
+  );
+  assert.ok(
+    await root().locator(".theory-direction").isHidden(),
+    "simultaneous notes have no direction control",
+  );
   await field("task", "build-interval");
+  assert.match(
+    (await root().locator(".sequence-feedback").textContent())!,
+    /In C major/,
+  );
   await send(60);
+  assert.ok(
+    (await root().locator(".theory-walk .abcjs-note").count()) >= 2,
+    "mistakes show counted staff positions",
+  );
   assert.match(
     (await root().locator(".sequence-feedback").textContent())!,
     /Try D4/,
@@ -274,7 +332,7 @@ try {
   for (const width of [320, 390, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await openPracticeOptions(page);
-    await page.waitForTimeout(100);
+    await page.clock.runFor(100);
     assert.ok(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

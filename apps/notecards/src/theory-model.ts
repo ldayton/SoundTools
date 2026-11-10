@@ -15,7 +15,8 @@ export const TASKS = {
     ["build-scale", "Build the scale"],
   ],
   intervals: [
-    ["name-interval", "Name the interval"],
+    ["name-interval", "Read the distance"],
+    ["name-quality", "Name the full interval"],
     ["build-interval", "Build the interval"],
   ],
 } as const;
@@ -34,6 +35,8 @@ export type TheorySettings = {
   quality: "number" | "basic" | "all";
   accidentals: "naturals" | "simple";
   presentation: "successive" | "together";
+  qualities: Quality[];
+  intervalKey: string;
   roundLength: RoundLength;
 };
 export type TheoryNote = Card & { midi: number };
@@ -98,6 +101,8 @@ export function defaultTheorySettings(): TheorySettings {
     quality: "number",
     accidentals: "naturals",
     presentation: "successive",
+    qualities: ["major", "minor", "perfect"],
+    intervalKey: "C",
     roundLength: 12,
   };
 }
@@ -118,7 +123,7 @@ export function mergeTheorySettings(raw: unknown): TheorySettings {
   d.degrees = subset(s.degrees, [1, 2, 3, 4, 5, 6, 7], d.degrees).sort(
     (a, b) => a - b,
   );
-  d.intervals = subset(s.intervals, [1, 2, 3, 4, 5, 6, 7, 8], d.intervals).sort(
+  d.intervals = subset(s.intervals, [2, 3, 4, 5, 6, 7, 8], d.intervals).sort(
     (a, b) => a - b,
   );
   if (s.mode === "minor") d.mode = "minor";
@@ -140,6 +145,15 @@ export function mergeTheorySettings(raw: unknown): TheorySettings {
   if (s.quality === "basic" || s.quality === "all") d.quality = s.quality;
   if (s.accidentals === "simple") d.accidentals = s.accidentals;
   if (s.presentation === "together") d.presentation = "together";
+  d.qualities = subset(
+    s.qualities,
+    ["major", "minor", "perfect", "augmented", "diminished"] as Quality[],
+    s.quality === "all"
+      ? ["major", "minor", "perfect", "augmented", "diminished"]
+      : d.qualities,
+  );
+  if (KEYS.some((k) => k.id === s.intervalKey))
+    d.intervalKey = String(s.intervalKey);
   if (ROUND_LENGTHS.includes(s.roundLength as RoundLength))
     d.roundLength = s.roundLength as RoundLength;
   return d;
@@ -190,12 +204,29 @@ export function intervalQuality(
         ? "minor"
         : "diminished";
 }
+export function intervalAnswers(s: TheorySettings) {
+  return s.intervals
+    .filter((n) => n >= 2 && n <= 8)
+    .flatMap((size) =>
+      s.qualities
+        .filter((q) =>
+          perfect(size) ? !["major", "minor"].includes(q) : q !== "perfect",
+        )
+        .map((quality) => ({ size, quality })),
+    );
+}
 export function theoryPool(
   task: TheoryTask,
   s: TheorySettings,
 ): TheoryQuestion[] {
+  if (task === "name-quality" && intervalAnswers(s).length < 2) return [];
   const directions: ("up" | "down")[] =
-    s.direction === "both" ? ["up", "down"] : [s.direction];
+    (task === "name-interval" || task === "name-quality") &&
+    s.presentation === "together"
+      ? ["up"]
+      : s.direction === "both"
+        ? ["up", "down"]
+        : [s.direction];
   if (task.includes("degree") || task === "build-scale") {
     return s.keys.flatMap((key) => {
       const notes = scaleNotes(
@@ -228,53 +259,68 @@ export function theoryPool(
   const low = POSITIONS.indexOf(s.low),
     high = POSITIONS.indexOf(s.high);
   return POSITIONS.slice(low, high + 1).flatMap((p) => {
-    const root = noteAt(Number(p[1]) * 7 + LETTERS.indexOf(p[0]));
-    return s.intervals.flatMap((size) =>
-      directions.flatMap((direction) => {
-        const natural = noteAt(
-          staffIndex(root) + (direction === "up" ? 1 : -1) * (size - 1),
-        );
-        const qualities: Quality[] =
-          s.quality === "number"
-            ? [intervalQuality(root, natural, size)]
-            : [
-                ...(perfect(size)
-                  ? ["perfect" as const]
-                  : ["major" as const, "minor" as const]),
-                ...(s.quality === "all"
-                  ? ["augmented" as const, "diminished" as const]
-                  : []),
-              ];
-        return qualities.flatMap((quality) => {
-          const target = intervalTarget(root, size, direction, quality);
-          if (
-            !target ||
-            staffIndex(target) <
-              staffIndex(
-                noteAt(Number(s.low[1]) * 7 + LETTERS.indexOf(s.low[0])),
-              ) ||
-            staffIndex(target) >
-              staffIndex(
-                noteAt(Number(s.high[1]) * 7 + LETTERS.indexOf(s.high[0])),
-              ) ||
-            (s.accidentals === "naturals" && target.modifier !== 0)
-          )
-            return [];
-          return [
-            {
-              ...target,
-              id: `interval-${root.id}-${size}-${direction}-${quality}`,
-              notes: [root, target],
-              key: "C",
-              keyName: "",
-              interval: size,
-              quality,
-              direction,
-            },
-          ];
-        });
-      }),
-    );
+    const withinKey = task === "build-interval" && s.quality === "number";
+    const keyNote = (index: number) => {
+      const natural = noteAt(index);
+      const scale = scaleNotes(s.intervalKey, "major", natural.octave);
+      return noteAt(
+        index,
+        scale.find((n) => n.letter === natural.letter)!.modifier,
+      );
+    };
+    const rootIndex = Number(p[1]) * 7 + LETTERS.indexOf(p[0]);
+    const root = withinKey ? keyNote(rootIndex) : noteAt(rootIndex);
+    return s.intervals
+      .filter((n) => n >= 2 && n <= 8)
+      .flatMap((size) =>
+        directions.flatMap((direction) => {
+          const index =
+            staffIndex(root) + (direction === "up" ? 1 : -1) * (size - 1);
+          const natural = withinKey ? keyNote(index) : noteAt(index);
+          const qualities: Quality[] =
+            task === "name-interval" || withinKey
+              ? [intervalQuality(root, natural, size)]
+              : s.qualities.filter((q) =>
+                  perfect(size)
+                    ? !["major", "minor"].includes(q)
+                    : q !== "perfect",
+                );
+          return qualities.flatMap((quality) => {
+            const target = intervalTarget(root, size, direction, quality);
+            if (
+              !target ||
+              staffIndex(target) <
+                staffIndex(
+                  noteAt(Number(s.low[1]) * 7 + LETTERS.indexOf(s.low[0])),
+                ) ||
+              staffIndex(target) >
+                staffIndex(
+                  noteAt(Number(s.high[1]) * 7 + LETTERS.indexOf(s.high[0])),
+                ) ||
+              (!withinKey &&
+                s.accidentals === "naturals" &&
+                target.modifier !== 0)
+            )
+              return [];
+            return [
+              {
+                ...target,
+                id: `interval-${root.id}-${size}-${direction}-${quality}${withinKey ? "-key-" + s.intervalKey : ""}`,
+                notes: [root, target],
+                key: withinKey ? s.intervalKey : "C",
+                keyName: withinKey
+                  ? KEYS.find((k) => k.id === s.intervalKey)!.label.split(
+                      " ·",
+                    )[0]
+                  : "",
+                interval: size,
+                quality,
+                direction,
+              },
+            ];
+          });
+        }),
+      );
   });
 }
 export function questionAnswer(
@@ -284,8 +330,8 @@ export function questionAnswer(
 ) {
   return task === "name-degree"
     ? String(q.degree)
-    : task === "name-interval"
-      ? `${s.quality === "number" ? "" : q.quality + " "}${ordinal(q.interval!)}`
+    : task === "name-interval" || task === "name-quality"
+      ? `${task === "name-interval" ? "" : q.quality + " "}${ordinal(q.interval!)}`
       : task === "build-scale"
         ? q.notes.map(name).join("–")
         : name(q);
@@ -306,5 +352,38 @@ export function theoryExplanation(
     { length: q.interval! },
     (_, i) => noteAt(staffIndex(a) + sign * i).letter,
   ).join("–");
-  return `${name(a)}–${name(b)}: ${letters} counts ${q.interval} letter ${q.interval === 1 ? "name" : "names"}, so a ${ordinal(q.interval!)}.${s.quality !== "number" ? ` ${Math.abs(b.midi - a.midi)} semitones: ${q.quality} ${ordinal(q.interval!)}.` : ""}`;
+  return `${name(a)}–${name(b)}: ${letters} counts ${q.interval} letter ${q.interval === 1 ? "name" : "names"}, so ${q.interval === 8 ? "an" : "a"} ${ordinal(q.interval!)}.${task === "name-quality" || (task === "build-interval" && s.quality !== "number") ? ` ${Math.abs(b.midi - a.midi)} semitones: ${q.quality} ${ordinal(q.interval!)}.` : ""}`;
+}
+
+export function taskSettings(task: TheoryTask, raw?: unknown): TheorySettings {
+  const defaults =
+    task === "name-quality"
+      ? {
+          ...defaultTheorySettings(),
+          intervals: [3],
+          quality: "basic",
+          accidentals: "simple",
+          qualities: ["major", "minor"],
+        }
+      : defaultTheorySettings();
+  const settings = mergeTheorySettings(raw === undefined ? defaults : raw);
+  if (task === "name-interval") settings.quality = "number";
+  if (task === "name-quality") settings.quality = "basic";
+  return settings;
+}
+export function intervalWalk(q: TheoryQuestion): TheoryNote[] {
+  const sign = q.direction === "up" ? 1 : -1;
+  return Array.from({ length: q.interval! }, (_, i) =>
+    i === 0
+      ? q.notes[0]
+      : i === q.interval! - 1
+        ? q.notes[1]
+        : (() => {
+            const note = noteAt(staffIndex(q.notes[0]) + sign * i);
+            const spelling = scaleNotes(q.key, "major", note.octave).find(
+              (n) => n.letter === note.letter,
+            )!;
+            return noteAt(staffIndex(note), spelling.modifier);
+          })(),
+  );
 }

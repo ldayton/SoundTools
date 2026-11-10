@@ -1,3 +1,4 @@
+import { mountPracticePiano, isPianoVisible } from "./practice-piano";
 import { hymnSettingsFromQuery, type HymnSettings } from "./hymn-settings";
 import type { InputPolicy, Interruption } from "./live-practice";
 import { mountPracticeOptions } from "./practice-controls";
@@ -139,26 +140,26 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label></div>
-    <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars at a time</option><option value="2">2 bars at a time</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
-    <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll to see the full score ↕</p><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
+    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns" hidden></ul></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label></div>
+    <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars</option><option value="2">2 bars</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
+    <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
     const context = document.createElement("div");
     context.className = "hymn-context";
     context.append(this.$(".hymn-controls"), this.$(".hymn-grades"));
     const tools = document.createElement("div");
     tools.className = "hymn-tools";
     tools.innerHTML =
-      '<label>Score size<select aria-label="Score size"><option value="0.85">Small</option><option value="1" selected>Medium</option><option value="1.2">Large</option></select></label><button type="button" class="hymn-keyboard-toggle" aria-expanded="false">On-screen piano</button>';
+      '<label class="hymn-size-field">Score size<select aria-label="Score size"><option value="0.85">Small</option><option value="1" selected>Medium</option><option value="1.2">Large</option></select></label>';
+    context
+      .querySelector(".hymn-controls")!
+      .append(tools.querySelector("label")!);
     tools.append(this.$(".hymn-source"));
     context.append(tools);
-    mountPracticeOptions(
-      element,
-      [context],
-      "Changing options starts the selected section again.",
-    );
-    this.$<HTMLElement>(".hymn-screen > summary").hidden = true;
-    this.$(".sequence-transport").before(this.$(".hymn-screen"));
-    this.$(".sequence-transport").append(this.$(".hymn-keyboard-toggle"));
+    mountPracticeOptions(element, [context]);
+    mountPracticePiano(this.$(".hymn-piano"), this.$(".sequence-transport"), {
+      buttonClass: "hymn-keyboard-toggle",
+      changed: () => this.updateRangeHint(),
+    });
     this.$(".hymn-source").append(this.$(".sequence-help"));
     this.$(".hymn-source").insertAdjacentHTML(
       "beforeend",
@@ -172,14 +173,6 @@ export class SightReading {
       this.zoom = Number((e.target as HTMLSelectElement).value);
       this.render(true);
       this.save();
-    };
-    this.$(".hymn-keyboard-toggle").onclick = () => {
-      const screen = this.$<HTMLDetailsElement>(".hymn-screen");
-      screen.open = !screen.open;
-      this.$(".hymn-keyboard-toggle").setAttribute(
-        "aria-expanded",
-        String(screen.open),
-      );
     };
     this.$(".sequence-top").insertAdjacentHTML(
       "beforeend",
@@ -306,11 +299,6 @@ export class SightReading {
         this.changeSection(this.section + 1);
       else this.choose(hymns[(hymns.indexOf(this.hymn) + 1) % hymns.length]);
     };
-    this.$(".hymn-screen").addEventListener("toggle", () => {
-      this.updateRangeHint();
-      if ((this.$(".hymn-screen") as HTMLDetailsElement).open)
-        this.preparePiano();
-    });
     this.observer = new ResizeObserver(() =>
       requestAnimationFrame(() => {
         const width = Math.round(this.$(".sequence-score").clientWidth);
@@ -537,14 +525,10 @@ export class SightReading {
       this.$(".sequence-help").textContent =
         ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
         " Sing along with the words.";
-      this.events = drawPracticeScore(
-        paper,
-        score.abc,
-        this.lastWidth,
-        (this.lastWidth >= 900 ? 1.55 : this.lastWidth >= 600 ? 1.35 : 1.12) *
-          this.zoom,
-        transposition.semitones,
-      );
+      this.events = drawPracticeScore(paper, score.abc, this.lastWidth, {
+        scale: this.zoom,
+        transpose: transposition.semitones,
+      });
       const steps = eventSteps(this.events);
       const content = JSON.stringify({
         matcher: 1,
@@ -618,19 +602,18 @@ export class SightReading {
     if (!this.session) return;
     this.piano.show(...keyboardRange(this.events), false);
     this.clearPianoSelection();
-    this.$(".hymn-screen-hint").textContent =
-      this.arrangement !== "melody"
-        ? "Tap each note in the highlighted chord, in any order."
-        : "Tap the highlighted note’s key.";
   }
   private updateRangeHint() {
     if (!this.piano) return;
+    if (!isPianoVisible()) {
+      this.$<HTMLElement>(".hymn-range-hint").hidden = true;
+      return;
+    }
     const missing = (this.session?.current?.pitches || []).filter(
       (note) => !this.piano.contains(note),
     );
     const hint = this.$(".hymn-range-hint");
-    hint.hidden =
-      !this.$<HTMLDetailsElement>(".hymn-screen").open || !missing.length;
+    hint.hidden = !missing.length;
     hint.textContent = `MIDI needed: ${missing.map((note) => keyLabel(note)).join(", ")}`;
   }
   private clearPianoSelection() {

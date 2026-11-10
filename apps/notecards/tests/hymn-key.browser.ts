@@ -3,6 +3,7 @@ import {
   practiceOption,
   midiAction,
   closePracticeOptions,
+  setPianoVisible,
 } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
@@ -185,7 +186,7 @@ try {
   assert.equal(await page.locator("#hymn-section").inputValue(), "1");
   await practiceOption(page, "#hymn-length", "0");
   await closePracticeOptions(page);
-  await page.locator(".hymn-keyboard-toggle").click();
+  await setPianoVisible(page, true);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(250);
   assert.ok(
@@ -202,7 +203,12 @@ try {
   );
   assert.ok(score!.y < 400, "phone controls remain compact");
   assert.ok(feedback!.height <= 64);
-  assert.ok(kb!.y - feedback!.y - feedback!.height < 20);
+  const scoreBox = (await page.locator(".sequence-score").boundingBox())!;
+  assert.ok(feedback!.y + feedback!.height <= scoreBox.y);
+  const transport = (await page
+    .locator(".sequence-transport:visible")
+    .boundingBox())!;
+  assert.ok(kb!.y - transport.y - transport.height < 48);
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

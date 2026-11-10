@@ -2,6 +2,8 @@ import {
   practiceOption,
   selectPractice,
   midiAction,
+  openPracticeOptions,
+  closePracticeOptions,
 } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -110,7 +112,7 @@ try {
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C4");
   await off(60);
   await ready();
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#pianoPrompt", "name");
   await on(48); // C in any octave answers a letter prompt.
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C");
@@ -155,7 +157,7 @@ try {
   await off(62, "second");
   await ready();
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByText("Practice options", { exact: true }).click();
+  await closePracticeOptions(page);
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -174,7 +176,7 @@ try {
   await selectPractice(page, "piano");
   // Navigation now resumes the saved round; deliberately start a fresh one for the following checks.
   if (!(await page.locator("#pianoPrompt").isVisible()))
-    await page.getByText("Practice options", { exact: true }).click();
+    await openPracticeOptions(page);
   await practiceOption(page, "#pianoPrompt", "staff");
   await practiceOption(page, "#pianoPrompt", "name");
   await midiAction(page, "Disconnect");
@@ -274,7 +276,7 @@ try {
 
   await page.bringToFront();
   await off(60);
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#pianoPrompt", "staff");
   const chooseRange = async (field: string, note: string) => {
     await page.locator(`#${field}-spin`).click();
@@ -316,7 +318,7 @@ try {
   assert.equal(await page.locator("#feedback").textContent(), "Yes — B6");
   await off(95);
   await page.reload();
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#low-spin").inputValue(), "C2");
   assert.equal(await page.locator("#high-spin").inputValue(), "B6");
   assert.ok(await page.locator("#piano-midi-required").isVisible());

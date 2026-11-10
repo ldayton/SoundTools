@@ -34,6 +34,8 @@ export function icon(name: string) {
     settings:
       '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="9" cy="18" r="2" fill="currentColor"/>',
     theory: '<path d="M4 7h16M4 12h16M4 17h16M10 3 8 21m8-18-2 18"/>',
+    panelLeft:
+      '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16m6-11-3 3 3 3"/>',
     menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
     keyboard:
       '<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M10 13h.01M14 13h.01M18 13h.01M8 16h8"/>',
@@ -41,5 +43,5 @@ export function icon(name: string) {
   return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.theory}</svg>`;
 }
 export function navigationHTML() {
-  return `<a class="skip-link" href="#practice-content">Skip to practice</a><button class="nav-shade" aria-label="Close navigation" hidden></button><aside class="app-sidebar" id="practice-navigation" aria-label="Practice navigation"><div class="sidebar-brand"><a class="brand" href="/" aria-label="Note by Note home"><img class="brand-icon" src="/icon.svg" width="32" height="32" alt=""/>Note by Note<span class="dot">.</span></a><button class="nav-close" aria-label="Close navigation">×</button></div><p class="sidebar-caption">A little practice, every day</p><nav aria-label="Exercises">${AREAS.map((a) => `<section class="nav-group"><h2>${icon(a.icon)}<span>${a.label}</span></h2>${a.items.map((e) => `<a href="${e.path}" data-mode="${e.mode}">${e.title}</a>`).join("")}</section>`).join("")}<section class="nav-group nav-utilities"><a href="/settings" class="settings-link" data-settings>${icon("settings")}<span>Settings</span><span class="settings-update" hidden aria-label="Update available"></span></a></section></nav><div class="sidebar-family">SOUNDTOOLS</div></aside>`;
+  return `<a class="skip-link" href="#practice-content">Skip to practice</a><button class="nav-shade" aria-label="Close navigation" hidden></button><aside class="app-sidebar" id="practice-navigation" aria-label="Practice navigation"><div class="sidebar-brand"><a class="brand" href="/" aria-label="Note by Note home"><img class="brand-icon" src="/icon.svg" width="32" height="32" alt=""/>Note by Note<span class="dot">.</span></a><button class="nav-close" aria-label="Close navigation">${icon("panelLeft")}</button></div><p class="sidebar-caption">A little practice, every day</p><nav aria-label="Exercises">${AREAS.map((a) => `<section class="nav-group"><h2>${icon(a.icon)}<span>${a.label}</span></h2>${a.items.map((e) => `<a href="${e.path}" data-mode="${e.mode}">${e.title}</a>`).join("")}</section>`).join("")}<section class="nav-group nav-utilities"><a href="/settings" class="settings-link" data-settings>${icon("settings")}<span>Settings</span><span class="settings-update" hidden aria-label="Update available"></span></a></section></nav><div class="sidebar-family">SOUNDTOOLS</div></aside>`;
 }

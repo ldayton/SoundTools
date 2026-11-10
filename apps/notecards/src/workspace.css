@@ -20,40 +20,37 @@
   font-size: 12px;
   min-height: 34px;
 }
-.sequence-transport {
-  margin: 0;
-  gap: 6px;
-}
-.sequence-transport .hymn-pause {
-  background: #ece6f3;
-  color: #504365;
-}
+
 .hymn-source {
   position: relative;
   margin: 0;
-  padding: 8px;
+  padding: 0;
   border: 0;
   font-size: 12px;
-  max-width: 400px;
+  max-width: 65ch;
 }
 .hymn-source[open] {
   flex-basis: 100%;
-  background: #eee9de;
-  border-radius: 8px;
+  background: transparent;
 }
 .hymn-source p {
   font-size: 12px;
 }
-.sequence-practice {
-  padding: 10px 16px;
-  border-radius: 12px;
+
+/* Keep the selected hymn visible when its options are collapsed. */
+#sight-reading .sequence-title {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  font-size: 20px;
+  line-height: 1.3;
+  margin: 10px 0 12px;
 }
-.sequence-title {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
+#patterns-practice .sequence-title,
+#rhythm-practice .sequence-title {
+  display: none;
 }
 .sequence-top {
   align-items: center;
@@ -72,47 +69,116 @@
   margin: 0;
   height: 3px;
 }
-#sight-reading .sequence-score {
-  height: clamp(280px, calc(100dvh - 360px), 750px);
-  max-height: none;
-}
-#sight-reading:has(.hymn-screen[open]) .sequence-score {
-  height: clamp(240px, calc(100dvh - 450px), 650px);
-}
-.hymn-layout .sequence-feedback,
-.hymn-layout .sequence-practice[data-arrangement="melody"] .sequence-feedback {
-  height: auto;
-  min-height: 34px;
-  max-height: 64px;
-  overflow: auto;
-  margin: 6px 0;
-  padding: 6px 10px;
-  border-width: 1px;
-  border-radius: 6px;
-  font-size: 14px;
-  line-height: 1.4;
-  font-weight: 500;
-}
-.hymn-screen {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.hymn-screen > summary,
-.hymn-screen-hint {
-  display: none;
-}
-.hymn-piano .piano-layout {
-  margin: 0 auto;
-}
 #patterns-practice,
 #rhythm-practice {
   max-width: 1000px;
   margin: auto;
 }
-#patterns-practice .sequence-score,
-#rhythm-practice .sequence-score {
-  max-height: 320px;
+
+/* Open options use the space beside the score rather than displacing it.
+   Narrow windows retain a single column and content-sized score. */
+@media (min-width: 1120px) {
+  .app-body main:has(.practice-options) {
+    max-width: none;
+  }
+  #flashcards:has(.practice-options),
+  #sight-reading:has(> .practice-options),
+  #patterns-practice:has(> .practice-options),
+  #rhythm-practice:has(> .practice-options) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    align-items: start;
+    gap: 20px;
+    max-width: none;
+  }
+  #flashcards:has(.practice-options.is-collapsed),
+  :is(#sight-reading, #patterns-practice, #rhythm-practice):has(
+    > .practice-options.is-collapsed
+  ) {
+    grid-template-columns: minmax(0, 1fr) 52px;
+  }
+  #flashcards:has(.practice-options) > .below,
+  :is(#sight-reading, #patterns-practice, #rhythm-practice)
+    > .practice-options {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  #flashcards:has(.practice-options) > .practice,
+  :is(#sight-reading, #patterns-practice, #rhythm-practice):has(
+      > .practice-options
+    )
+    > .sequence-practice {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  #flashcards .practice-options,
+  :is(#sight-reading, #patterns-practice, #rhythm-practice)
+    > .practice-options {
+    max-width: none;
+    margin: 0;
+    padding-left: 18px;
+    border-left: 1px solid #ded9cc;
+    min-height: calc(100dvh - 160px);
+    position: sticky;
+    top: 20px;
+  }
+  #flashcards .practice-options.is-collapsed,
+  :is(#sight-reading, #patterns-practice, #rhythm-practice)
+    > .practice-options.is-collapsed {
+    padding-left: 7px;
+  }
+  :is(#sight-reading, #patterns-practice, #rhythm-practice):has(
+      > .practice-options
+    )
+    #flashcards:has(.practice-options)
+    > :is(.below, .practice) {
+    min-width: 0;
+  }
+  #flashcards .flashcard-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+  }
+  #flashcards
+    .practice-options
+    :is(.options-row, #piano-notation-options, #pitch-range, #piano-range) {
+    display: contents;
+  }
+  #flashcards .practice-options label {
+    width: 100%;
+  }
+  #flashcards :is(#guitar-options, .notation-help, .piano-range-notice) {
+    grid-column: 1 / -1;
+  }
+  #flashcards .strings {
+    gap: 4px;
+  }
+  .practice-options .hymn-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+  }
+  .practice-options .hymn-picker {
+    grid-column: 1 / -1;
+  }
+  .practice-options :is(.hymn-key-field, .hymn-size-field) {
+    width: 100%;
+  }
+  :is(#sight-reading, #patterns-practice, #rhythm-practice) .practice-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+  }
+  :is(#sight-reading, #patterns-practice, #rhythm-practice)
+    .practice-controls
+    label {
+    width: 100%;
+  }
+  :is(#sight-reading, #patterns-practice, #rhythm-practice)
+    .practice-controls
+    label:first-child {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 600px) {
@@ -122,11 +188,9 @@
     gap: 8px;
   }
   #sight-reading .sequence-score,
-  #sight-reading:has(.hymn-screen[open]) .sequence-score {
-    height: var(--phone-score-height, 260px);
-  }
-  .sequence-practice {
-    padding: 8px;
+  #sight-reading:has(.practice-piano:not([hidden])) .sequence-score {
+    height: auto;
+    max-height: var(--phone-score-height, 260px);
   }
 }
 .piano-landmark {
@@ -162,15 +226,4 @@
 
 .piano-layout-wide .practice {
   max-width: none;
-}
-.piano-question #notation {
-  width: min(100%, 360px);
-  padding: 14px 0;
-  margin-inline: auto;
-}
-.piano-question #notation svg {
-  width: 100%;
-  height: auto;
-  max-width: 360px;
-  max-height: 380px;
 }

@@ -23,12 +23,38 @@ export function mountAppShell(
     `<div class="app-body"><header class="app-topbar"><button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="practice-navigation">${icon("menu")}</button><div class="page-heading"><p id="page-area"></p><h1 id="page-title" tabindex="-1"></h1></div><details class="keyboard-menu"><summary>${icon("keyboard")}<span>Keyboard</span><i class="midi-indicator" aria-hidden="true"></i></summary><div class="keyboard-popover"><div id="midi-panel"></div></div></details></header>
 <p id="persistence-notice" role="alert" hidden></p><main id="practice-content" tabindex="-1"><section class="route-missing" hidden><h2>Page not found</h2><p>Choose an exercise from the navigation to keep practising.</p><a href="/piano/keys" data-mode="piano">Find piano keys →</a></section><p id="saved" class="saved" role="status">Opening saved practice…</p><div id="exercise-content">
 ${LIVE_EXERCISES.map((e) => `<div id="${e.rootId}" hidden></div>`).join("")}<div id="flashcards"></div></div><section class="settings-page" hidden aria-label="App settings"><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section><section class="privacy-settings"><h2>Privacy</h2></section></section></main></div>`;
+  const mobileNavigation = window.matchMedia("(max-width: 760px)");
+  let navigationCollapsed = false;
+  function syncNavigation() {
+    const mobile = mobileNavigation.matches;
+    document.body.classList.toggle(
+      "navigation-collapsed",
+      !mobile && navigationCollapsed,
+    );
+    $(".app-sidebar").inert = mobile
+      ? !$(".app-sidebar").classList.contains("is-open")
+      : navigationCollapsed;
+    $(".nav-close").setAttribute(
+      "aria-label",
+      mobile ? "Close navigation" : "Collapse navigation",
+    );
+    $(".nav-close").title = mobile ? "Close navigation" : "Collapse navigation";
+    $(".nav-toggle").setAttribute(
+      "aria-expanded",
+      String(
+        mobile
+          ? $(".app-sidebar").classList.contains("is-open")
+          : !navigationCollapsed,
+      ),
+    );
+  }
   function closeNavigation(focus = false) {
     $(".app-sidebar").classList.remove("is-open");
     $(".nav-shade").hidden = true;
     $(".nav-toggle").setAttribute("aria-expanded", "false");
     document.body.classList.remove("navigation-open");
     $(".app-body").inert = false;
+    syncNavigation();
     events.inputChanged();
     if (focus) $(".nav-toggle").focus();
   }
@@ -53,19 +79,32 @@ ${LIVE_EXERCISES.map((e) => `<div id="${e.rootId}" hidden></div>`).join("")}<div
     events.navigate(new URL(location.href), false),
   );
   $(".nav-toggle").onclick = () => {
+    if (!mobileNavigation.matches) {
+      navigationCollapsed = false;
+      syncNavigation();
+      $(".nav-close").focus();
+      return;
+    }
     events.interrupt("controls");
     $(".app-sidebar").classList.add("is-open");
     $(".nav-shade").hidden = false;
     $(".nav-toggle").setAttribute("aria-expanded", "true");
     document.body.classList.add("navigation-open");
+    syncNavigation();
     $(".app-body").inert = true;
     events.inputChanged();
     $(".nav-close").focus();
   };
-  window
-    .matchMedia("(max-width: 760px)")
-    .addEventListener("change", () => closeNavigation());
-  $(".nav-close").onclick = () => closeNavigation(true);
+  mobileNavigation.addEventListener("change", () => closeNavigation());
+  $(".nav-close").onclick = () => {
+    if (mobileNavigation.matches) closeNavigation(true);
+    else {
+      navigationCollapsed = true;
+      syncNavigation();
+      $(".nav-toggle").focus();
+    }
+  };
+  syncNavigation();
   $(".nav-shade").onclick = () => closeNavigation(true);
   $<HTMLDetailsElement>(".keyboard-menu").addEventListener("toggle", () => {
     if ($<HTMLDetailsElement>(".keyboard-menu").open)

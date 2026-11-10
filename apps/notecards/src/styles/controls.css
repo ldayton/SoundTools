@@ -136,12 +136,13 @@ select {
 }
 .practice-options {
   width: 100%;
+  max-width: 760px;
   min-width: 0;
 }
 .practice-options .range {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 152px));
+  gap: 12px;
   margin: 16px 0;
 }
 .practice-options .notation-help {
@@ -169,12 +170,6 @@ select {
   border-radius: 0;
   padding: 10px 14px;
 }
-.sequence-transport {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 22px;
-}
 .sequence-transport button:disabled {
   opacity: 0.5;
   cursor: default;
@@ -193,11 +188,13 @@ select {
 .disclosure > summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
+  width: fit-content;
+  max-width: 100%;
   list-style: none;
-  min-height: 48px;
-  padding: 12px 16px;
+  min-height: 44px;
+  padding: 10px 14px;
   border: 1px solid #d8d1c5;
   border-radius: 9px;
   background: #fcfaf5;
@@ -209,7 +206,8 @@ select {
 .disclosure > summary::-webkit-details-marker {
   display: none;
 }
-.disclosure > summary::after {
+.disclosure > summary::before {
+  order: -1;
   content: "";
   width: 7px;
   height: 7px;
@@ -218,7 +216,7 @@ select {
   transform: rotate(45deg);
   flex-shrink: 0;
 }
-.disclosure[open] > summary::after {
+.disclosure[open] > summary::before {
   transform: rotate(225deg);
 }
 .disclosure > summary:hover {
@@ -228,14 +226,51 @@ select {
   margin-bottom: 0;
   background: #eee8f4;
 }
+.options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+}
+.options-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.options-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid #d8d1c5;
+  border-radius: 9px;
+  background: #fcfaf5;
+  color: #625d70;
+}
+.options-toggle:hover {
+  background: #eee8f4;
+}
+.practice-options.is-collapsed .options-header h2 {
+  display: none;
+}
+.practice-options.is-collapsed .options-header {
+  justify-content: flex-end;
+}
+.options-toggle[aria-expanded="false"] svg {
+  transform: rotate(180deg);
+}
 .practice-options-content {
-  padding: 20px 0 0;
+  padding: 16px 0 0;
 }
 .practice-options .options-row,
 .practice-options .practice-controls {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px 12px;
   margin: 0 0 16px;
 }
 .practice-options label,
@@ -245,8 +280,10 @@ select {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-end;
+  width: var(--control-width, 190px);
+  max-width: 100%;
   min-width: 0;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   font-size: 13px;
   font-weight: 600;
@@ -288,20 +325,14 @@ select {
 .practice-options #pitch-range,
 .practice-options #piano-range {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 152px));
+  gap: 12px;
   margin: 16px 0;
 }
 .practice-options #pitch-range label,
 .practice-options #piano-range label {
+  width: auto;
   margin: 0 0 8px;
-}
-.practice-options .options-help,
-.practice-options-content > p:last-child {
-  font-size: 12px;
-  color: #837b94;
-  line-height: 1.5;
-  margin: 16px 0 0;
 }
 .practice-options .hymn-controls {
   margin: 0 0 16px;
@@ -330,9 +361,6 @@ select {
   font-size: 14px;
   font-weight: 500;
 }
-.sequence-transport button:first-child {
-  min-width: 104px;
-}
 .sequence-transport .primary,
 .primary {
   border-color: #302d55;
@@ -348,19 +376,96 @@ select {
 .sequence-practice > .disclosure[open] > summary {
   margin-bottom: 16px;
 }
+/* Fields follow their values rather than the width of the score. */
+.practice-options .tempo-field,
+.practice-options .round-length {
+  --control-width: 124px;
+}
+.practice-options .key-field,
+.practice-options .hand-field,
+.practice-options #key-setting,
+.practice-options #signature-practice-setting,
+.practice-options .hymn-key-field {
+  --control-width: 148px;
+}
+.practice-options #piano-prompt-setting {
+  --control-width: 148px;
+}
+.practice-options #name-notes-setting {
+  --control-width: 172px;
+}
+.practice-options .practice-controls label:first-child {
+  --control-width: 232px;
+}
+.practice-options .hymn-section-field {
+  --control-width: 112px;
+}
+.practice-options .hymn-size-field {
+  --control-width: 112px;
+}
+.practice-options .hymn-controls {
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.practice-options .hymn-picker {
+  flex: 0 1 360px;
+}
+.practice-options #hymn-results {
+  top: calc(100% + 6px);
+}
+
 @media (max-width: 640px) {
   .practice-options .options-row,
   .practice-options .practice-controls {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+  }
+  .practice-options label,
+  .practice-options .options-row > label,
+  .practice-options .practice-controls label {
+    width: 100%;
   }
   .practice-options .practice-controls label:first-child {
-    grid-column: auto;
+    width: 100%;
+    grid-column: 1 / -1;
   }
   .practice-options #pitch-range,
   .practice-options #piano-range {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
+  }
+  .practice-options .flashcard-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+  }
+  .practice-options .flashcard-options .options-row,
+  .practice-options #piano-notation-options,
+  .practice-options #pitch-range,
+  .practice-options #piano-range {
+    display: contents;
+  }
+  .practice-options #guitar-options,
+  .practice-options .notation-help,
+  .practice-options .piano-range-notice {
+    grid-column: 1 / -1;
+  }
+  .practice-options #pitch-range label,
+  .practice-options #piano-range label {
+    margin-bottom: 6px;
+  }
+  .practice-options .hymn-controls {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+  .practice-options .hymn-picker {
+    flex-basis: 100%;
+  }
+  .practice-options .hymn-key-field,
+  .practice-options .hymn-size-field {
+    width: calc((100% - 12px) / 2);
   }
   .practice-options select,
   .practice-options .options-row select,

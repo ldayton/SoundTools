@@ -1,3 +1,8 @@
+import {
+  mountPracticePiano,
+  restorePianoVisibility,
+  isPianoVisible,
+} from "./practice-piano";
 import { mountAppShell } from "./app-shell";
 import { mountFlashcardView } from "./flashcard-view";
 import { ActivityHost } from "./activity-host";
@@ -53,6 +58,7 @@ import { Fretboard } from "./fretboard";
 import "./style.css";
 import "./workspace.css";
 import "./styles/controls.css";
+import "./styles/practice.css";
 import { setupOffline } from "./offline";
 import {
   diagnostics,
@@ -147,6 +153,12 @@ const rangePickers = [
     positions,
   ),
 }));
+const pianoPanel = mountPracticePiano($("#piano"), $(".flashcard-transport"), {
+  changed: () => {
+    if (fontsReady) refreshPianoRange();
+  },
+});
+pianoPanel.setAvailable(false);
 const piano = new Piano($("#piano"), answerPiano, refreshPianoRange);
 const midi = mountMidiPanel(
   $("#midi-panel"),
@@ -181,17 +193,21 @@ function refreshPianoRange() {
   const named = profile().pianoPrompt === "name";
   const [low, high] = piano.visibleBounds;
   const outside =
-    !named && pianoDeck(profile()).some((card) => !piano.contains(pitch(card)));
+    isPianoVisible() &&
+    !named &&
+    pianoDeck(profile()).some((card) => !piano.contains(pitch(card)));
   $("#piano-range-notice").hidden = !outside;
   $("#piano-range-notice").textContent =
     `On-screen keys: ${keyLabel(low)}–${keyLabel(high)}. Notes outside these keys require MIDI keyboard input.`;
   const required =
-    !named && !!session?.current && !piano.contains(pitch(session.current));
+    isPianoVisible() &&
+    !named &&
+    !!session?.current &&
+    !piano.contains(pitch(session.current));
   piano.setUnavailable(phase !== "question" || required);
   $("#piano-midi-required").hidden = !required;
   $("#piano-midi-required").textContent =
     "MIDI keyboard required — this note is outside the on-screen keys. Play it on your connected keyboard, or change the practice range.";
-  $(".piano-hint").hidden = required;
 }
 function save() {
   if (!persistence.writable) return Promise.resolve(false);
@@ -255,6 +271,7 @@ function syncOptions() {
     p.overlapPractice || "standard";
   $<HTMLSelectElement>("#octavePractice").value = p.octavePractice || "off";
   $("#overlap-setting").hidden = p.staffLayout !== "grand";
+  $(".notation-help").hidden = p.octavePractice !== "practice";
   $("#pitch-range").hidden = progress.mode !== "staff";
   $("#piano-range").hidden = !isPiano || p.pianoPrompt === "name";
   rangePickers.forEach(({ picker, prefix, field }) => {
@@ -314,8 +331,8 @@ function renderQuestion(card: Card | GuitarCard) {
   $("#fretboard").hidden =
     mode === "staff" || mode === "tab" || isPiano || isSignature;
   $("#piano").hidden = !isPiano;
+  pianoPanel.setAvailable(isPiano);
   $("#piano-midi-required").hidden = true;
-  $(".piano-hint").hidden = !isPiano;
   $(".keyboard").hidden = location || isPiano;
   $("#name-hint").hidden = location || isPiano;
   $(".location-hint").hidden = !location;
@@ -878,6 +895,7 @@ enableAnswers(false);
 document.fonts.ready
   .then(async () => {
     await persistence.initialize();
+    restorePianoVisibility();
     progress = persistence.state.progress;
     document.querySelector("main")!.inert = !persistence.writable;
     route = readRoute(new URL(location.href), progress.mode);

@@ -1,5 +1,14 @@
 import type { Page } from "playwright";
 export async function selectPractice(page: Page, mode: string) {
+  // matchMedia handlers finish after the viewport CSS changes. Wait for the
+  // mobile drawer's focus state before deciding whether it needs opening.
+  await page.waitForFunction(() => {
+    const nav = document.querySelector<HTMLElement>(".app-sidebar")!;
+    return (
+      !matchMedia("(max-width: 760px)").matches ||
+      nav.inert === !nav.classList.contains("is-open")
+    );
+  });
   const link = page.locator(`nav a[data-mode="${mode}"]`);
   if (
     (await page.locator(".nav-toggle").isVisible()) &&
@@ -24,9 +33,7 @@ export async function practiceOption(
   selector: string,
   value: string,
 ) {
-  const scope = page.locator("#exercise-content .practice-options:visible");
-  if (!(await scope.evaluate((e: HTMLDetailsElement) => e.open)))
-    await scope.locator(":scope > summary").click();
+  await openPracticeOptions(page);
   if (selector === "#low" || selector === "#high") {
     const input = page.locator(`#staff-${selector.slice(1)}-spin`);
     await input.click();
@@ -37,8 +44,23 @@ export async function practiceOption(
   } else await page.locator(selector).selectOption(value);
 }
 
+export async function openPracticeOptions(page: Page) {
+  const button = page.locator(
+    "#exercise-content .practice-options:visible .options-toggle",
+  );
+  if ((await button.getAttribute("aria-expanded")) !== "true")
+    await button.click();
+}
 export async function closePracticeOptions(page: Page) {
-  const scope = page.locator("#exercise-content .practice-options:visible");
-  if (await scope.evaluate((e: HTMLDetailsElement) => e.open))
-    await scope.locator(":scope > summary").click();
+  const button = page.locator(
+    "#exercise-content .practice-options:visible .options-toggle",
+  );
+  if ((await button.getAttribute("aria-expanded")) === "true")
+    await button.click();
+}
+
+export async function setPianoVisible(page: Page, visible: boolean) {
+  const button = page.locator(".piano-toggle:visible");
+  if ((await button.getAttribute("aria-expanded")) !== String(visible))
+    await button.click();
 }

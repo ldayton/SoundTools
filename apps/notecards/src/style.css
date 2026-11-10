@@ -83,17 +83,10 @@ h1 {
 .practice {
   border: 1px solid #ded9cc;
   background: #fcfaf5;
-  border-radius: 22px;
   overflow: hidden;
   box-shadow: 0 7px 26px #302d5504;
 }
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  padding: 23px 28px 18px;
-  font-size: 12px;
-  color: #837b94;
-}
+
 progress {
   display: block;
   width: calc(100% - 56px);
@@ -113,26 +106,7 @@ progress::-webkit-progress-value {
 progress::-moz-progress-bar {
   background: #9582ba;
 }
-#notation {
-  height: 280px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 25px;
-}
-#notation svg {
-  width: 100%;
-  max-width: 600px;
-  height: auto;
-  max-height: 250px;
-}
-.answer-line {
-  min-height: 48px;
-  text-align: center;
-  padding: 0 20px 14px;
-  font-size: 15px;
-  line-height: 1.5;
-}
+
 .correct {
   color: #4b7655;
 }
@@ -207,11 +181,17 @@ summary {
   cursor: pointer;
   color: #655c75;
 }
+/* Save confirmations remain announced without occupying a row on every exercise.
+   Save failures are displayed separately in the persistent alert above the page. */
 .saved {
-  margin: 0;
-  line-height: 1.5;
-  text-align: right;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
+
 footer {
   text-align: center;
   color: #a29aa8;
@@ -261,16 +241,10 @@ footer {
   h1 {
     font-size: 28px;
   }
-  .card-top {
-    padding: 20px 20px 17px;
-  }
+
   progress {
     width: calc(100% - 40px);
     margin: 0 20px;
-  }
-  #notation {
-    height: 250px;
-    padding: 0 6px;
   }
   .keyboard {
     padding: 18px 16px;
@@ -474,21 +448,6 @@ input:focus-visible {
   }
 }
 
-#question.paired #notation {
-  height: 220px;
-}
-#question.paired #notation svg {
-  max-height: 210px;
-}
-@media (max-width: 600px) {
-  #question.paired #notation {
-    height: 190px;
-  }
-  #question.paired #notation svg {
-    max-height: 190px;
-  }
-}
-
 .round-length {
   flex-direction: column;
   align-items: stretch;
@@ -599,7 +558,6 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
 }
-.piano-question #notation,
 .piano-question #named-note {
   height: 225px;
   padding: 12px 24px 0;
@@ -609,21 +567,7 @@ input:focus-visible {
   flex-direction: column;
   justify-content: center;
 }
-.piano-question .answer-line {
-  order: 1;
-  min-height: 50px;
-  padding: 0 20px 16px;
-}
-#piano {
-  order: 2;
-  padding: 20px 24px 24px;
-  background: #f1eee6;
-  border-top: 1px solid #e8e2d7;
-}
-.piano-hint {
-  order: 3;
-  padding-bottom: 18px;
-}
+
 .piano-layout {
   --white: 32px;
   --black: 24px;
@@ -717,14 +661,11 @@ input:focus-visible {
   margin: auto;
 }
 @media (max-width: 600px) {
-  .piano-question #notation,
   .piano-question #named-note {
     height: 150px;
     padding: 4px 12px 0;
   }
-  #piano {
-    padding: 16px 14px 20px;
-  }
+
   .piano-layout {
     flex-direction: column;
     gap: 16px;
@@ -739,23 +680,13 @@ input:focus-visible {
   letter-spacing: 1px;
   color: #81768e;
 }
-.signature-question #notation {
-  height: 225px;
-}
-@media (max-width: 600px) {
-  .signature-question #notation {
-    height: 200px;
-  }
-}
 
 #midi-panel {
   order: 3;
   padding: 0 24px 18px;
   background: #f1eee6;
 }
-.piano-hint {
-  order: 4;
-}
+
 .midi-status {
   overflow-wrap: anywhere;
   margin: 0;
@@ -819,15 +750,6 @@ input:focus-visible {
   font-weight: 600;
 }
 
-/* A fixed piano notation frame preserves staff scale between prompts. */
-.piano-question #notation {
-  height: auto;
-}
-.piano-question #notation svg {
-  max-width: 400px;
-  max-height: none;
-}
-
 .notation-help {
   max-width: 400px;
   font-size: 13px;
@@ -885,16 +807,9 @@ input:focus-visible {
 .hymn-no-results {
   color: #837b94;
 }
-.hymn-order {
-  margin: 7px 0 0;
-  color: #837b94;
-  font-size: 11px;
-}
 .sequence-practice {
   border: 1px solid #ded9cc;
-  border-radius: 22px;
   background: #fcfaf5;
-  padding: 24px;
   overflow: hidden;
 }
 .sequence-top {
@@ -938,25 +853,11 @@ input:focus-visible {
   fill: #b0653e;
   stroke: #b0653e;
 }
-.sequence-feedback {
-  min-height: 38px;
-  display: flex;
-  align-items: center;
-  font-size: 13px;
-  margin: 12px 0;
-}
-.hymn-screen,
+
 .hymn-source {
   border-top: 1px solid #e5dfd3;
   padding: 16px 0 0;
   margin-top: 16px;
-}
-.hymn-screen-hint {
-  font-size: 12px;
-  color: #837b94;
-}
-.hymn-piano .piano-layout {
-  margin: 16px auto;
 }
 .hymn-source {
   color: #837b94;
@@ -986,9 +887,6 @@ input:focus-visible {
   }
   .sequence-score {
     max-height: 300px;
-  }
-  .sequence-feedback {
-    min-height: 42px;
   }
 }
 .pattern-progress {
@@ -1269,9 +1167,41 @@ input:focus-visible {
   border-radius: 50%;
   background: #b0653e;
 }
-.nav-toggle,
-.nav-close {
+.nav-toggle {
   display: none;
+}
+.nav-close {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid #ded9cc;
+  border-radius: 8px;
+  background: #fcfaf5;
+  color: #625d70;
+  font-size: 22px;
+}
+@media (min-width: 761px) {
+  body.navigation-collapsed .app-sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  body.navigation-collapsed .app-body {
+    margin-left: 0;
+  }
+  body.navigation-collapsed .nav-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: 1px solid #ded9cc;
+    border-radius: 8px;
+    background: #fcfaf5;
+    color: #625d70;
+  }
 }
 .route-missing {
   padding: 36px 0;
@@ -1375,9 +1305,6 @@ input:focus-visible {
 .app-body main.piano-layout-wide {
   max-width: 1480px;
 }
-.hymn-layout .sequence-score {
-  max-height: min(60vh, 720px);
-}
 #persistence-notice {
   margin: 24px auto;
   max-width: 900px;
@@ -1393,15 +1320,10 @@ input:focus-visible {
 #restart-round {
   margin: 12px 8px 0 0;
 }
-@media (max-width: 600px) {
-  .hymn-layout .sequence-score {
-    max-height: 52vh;
-  }
-}
 
-/* A classic scrollbar remains visible even on systems using overlay scrollbars. */
+/* Reserve the scrollbar gutter without drawing a track for a short score. */
 .hymn-layout .sequence-score {
-  overflow-y: scroll;
+  overflow-y: auto;
   scrollbar-width: auto;
   scrollbar-color: #8b829e #eae5da;
 }
@@ -1436,41 +1358,4 @@ input:focus-visible {
 #midi-panel .midi-actions {
   margin: 0;
   flex: 0 1 auto;
-}
-
-/* A reserved feedback row keeps corrections prominent without moving controls. */
-.hymn-layout .sequence-feedback {
-  height: 112px;
-  overflow-y: auto;
-  padding: 14px 18px;
-  border: 2px solid transparent;
-  border-radius: 10px;
-  font-size: clamp(18px, 1.5vw, 23px);
-  font-weight: 600;
-  line-height: 1.45;
-  background: #f0ece4;
-}
-.hymn-layout .sequence-feedback[data-kind="wrong"] {
-  color: #71351f;
-  background: #fff0df;
-  border-color: #aa633d;
-}
-.hymn-layout .sequence-feedback[data-kind="partial"] {
-  color: #373150;
-  border-color: #8b829e;
-}
-@supports selector(::-webkit-scrollbar) {
-  .hymn-layout .sequence-score {
-    scrollbar-color: auto;
-  }
-}
-@media (max-width: 600px) {
-  .hymn-layout .sequence-feedback {
-    height: 176px;
-    padding: 12px;
-  }
-}
-
-.hymn-layout .sequence-practice[data-arrangement="melody"] .sequence-feedback {
-  height: 88px;
 }

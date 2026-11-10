@@ -3,6 +3,8 @@ import {
   practiceOption,
   midiAction,
   closePracticeOptions,
+  openPracticeOptions,
+  setPianoVisible,
 } from "./navigation-helpers";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
@@ -45,13 +47,79 @@ try {
   await page.locator('[data-letter="E"]:enabled').waitFor();
   await selectPractice(page, "sight");
   await page.locator(".hymn-paper svg").first().waitFor();
+  const sidebarToggle = page.locator("#sight-reading .options-toggle");
+  assert.equal(
+    await sidebarToggle.getAttribute("aria-expanded"),
+    "true",
+    "options default open",
+  );
+  const initialTask = (await page.locator(".sequence-practice").boundingBox())!;
+  const initialToggle = (await sidebarToggle.boundingBox())!;
+  await closePracticeOptions(page);
+  const collapsedTask = (await page
+    .locator(".sequence-practice")
+    .boundingBox())!;
+  const collapsedToggle = (await sidebarToggle.boundingBox())!;
+  assert.equal(
+    collapsedTask.y,
+    initialTask.y,
+    "collapse does not move exercise down",
+  );
+  assert.ok(
+    Math.abs(collapsedToggle.x - initialToggle.x) < 2,
+    "right toggle stays docked",
+  );
+  assert.equal(collapsedToggle.y, initialToggle.y);
+  await page
+    .getByRole("button", { name: "Collapse navigation", exact: true })
+    .click();
+  assert.ok(
+    await page.locator(".app-sidebar").evaluate((e: HTMLElement) => e.inert),
+  );
+  await page
+    .getByRole("button", { name: "Open navigation", exact: true })
+    .click();
+  assert.ok(
+    !(await page.locator(".app-sidebar").evaluate((e: HTMLElement) => e.inert)),
+  );
+  await openPracticeOptions(page);
+
+  await practiceOption(page, "#hymn-length", "2");
+  await page.waitForFunction(() => {
+    const score = document.querySelector<HTMLElement>(".sequence-score")!;
+    const paper = document.querySelector<HTMLElement>(".hymn-paper")!;
+    return (
+      paper.clientHeight > 0 && score.clientHeight <= paper.clientHeight + 2
+    );
+  });
+  const options = await page
+    .locator("#sight-reading .practice-options")
+    .boundingBox();
+  const practice = await page
+    .locator("#sight-reading .sequence-practice")
+    .boundingBox();
+  assert.ok(
+    options!.x >= practice!.x + practice!.width,
+    "desktop options sit to the right of the music",
+  );
+  assert.ok(
+    Math.abs(practice!.y - options!.y) < 2,
+    "options do not push music down",
+  );
+  const transport = await page
+    .locator(".sequence-transport:visible")
+    .boundingBox();
+  assert.ok(
+    transport!.y + transport!.height < 1000,
+    "short scores keep transport on screen",
+  );
   await practiceOption(page, "#hymn-length", "0");
   await closePracticeOptions(page);
   assert.ok(
-    (await page.locator(".sequence-score").boundingBox())!.y < 300,
-    "music begins near the top",
+    (await page.locator(".sequence-score").boundingBox())!.y < 340,
+    "music begins near the top beneath its instruction",
   );
-  await page.locator(".hymn-keyboard-toggle").click();
+  await setPianoVisible(page, true);
   const wideCount = await page.locator(".hymn-piano [data-piano]").count();
   const keyWidth = (await page
     .locator(".hymn-piano .white-key")
@@ -101,10 +169,25 @@ try {
   await page.locator(".hymn-piano [data-piano]").first().click();
   const feedback = await page.locator(".sequence-feedback").boundingBox();
   const keyboard = await page.locator(".hymn-piano").boundingBox();
+  const scoreBox = (await page.locator(".sequence-score").boundingBox())!;
   assert.ok(feedback!.height <= 64, "phone alert is compact");
   assert.ok(
-    keyboard!.y - feedback!.y - feedback!.height < 20,
-    "keyboard immediately follows feedback",
+    feedback!.y + feedback!.height <= scoreBox.y,
+    "instruction is above the score",
+  );
+  assert.ok(
+    Math.abs(
+      feedback!.x + feedback!.width / 2 - scoreBox.x - scoreBox.width / 2,
+    ) < 2,
+    "instruction is centered over the score",
+  );
+  assert.ok(
+    keyboard!.y -
+      (await page.locator(".sequence-transport:visible").boundingBox())!.y -
+      (await page.locator(".sequence-transport:visible").boundingBox())!
+        .height <
+      48,
+    "keyboard follows the shared controls",
   );
   assert.ok(
     await page.evaluate(
@@ -154,8 +237,8 @@ try {
     "visible C2 must be playable",
   );
   assert.ok(
-    (await page.locator("#notation").boundingBox())!.height < 420,
-    "single note stays bounded",
+    (await page.locator("#notation").boundingBox())!.height < 560,
+    "extreme ledger range fits without shrinking the staff",
   );
   const question = await page.locator("#notation").innerHTML();
   const position = await page.locator("#counter").textContent();
@@ -175,6 +258,72 @@ try {
     .locator('#piano [data-piano="36"]')
     .click({ position: { x: 18, y: 110 } });
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C2");
+  // Both engraving engines use the same physical staff size in every view.
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const mode of ["piano", "staff", "signature", "patterns", "sight"]) {
+      await selectPractice(page, mode);
+      const gap = await page.waitForFunction(() => {
+        const svg = [
+          ...document.querySelectorAll<SVGSVGElement>("#exercise-content svg"),
+        ].find(
+          (s) =>
+            s.getBoundingClientRect().width > 0 &&
+            s.querySelector(".vf-stave,.abcjs-staff"),
+        );
+        if (!svg) return false;
+        const lines = [
+          ...svg.querySelectorAll<SVGGraphicsElement>(
+            ".vf-stave path,.abcjs-staff path",
+          ),
+        ].filter((p) => {
+          const b = p.getBBox();
+          return b.width > 100 && b.height < 2;
+        });
+        if (lines.length < 2) return false;
+        const measured =
+          lines[1].getBoundingClientRect().y -
+          lines[0].getBoundingClientRect().y;
+        return Math.abs(measured - 10) < (innerWidth <= 360 ? 0.4 : 0.15)
+          ? measured
+          : false;
+      });
+      assert.ok(
+        await gap.jsonValue(),
+        `${width}px ${mode}: staff-line spacing is 10px`,
+      );
+      assert.ok(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      );
+    }
+  }
+  await setPianoVisible(page, false);
+  await selectPractice(page, "patterns");
+  assert.equal(
+    await page.locator(".piano-toggle:visible").getAttribute("aria-expanded"),
+    "false",
+  );
+  assert.ok(
+    await page.locator("#patterns-practice .practice-piano").isHidden(),
+  );
+  await setPianoVisible(page, true);
+  await selectPractice(page, "sight");
+  assert.equal(
+    await page.locator(".piano-toggle:visible").getAttribute("aria-expanded"),
+    "true",
+  );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  await page.reload();
+  await page.locator(".hymn-paper svg").first().waitFor();
+  assert.equal(
+    await page.locator(".piano-toggle:visible").getAttribute("aria-expanded"),
+    "true",
+  );
   assert.deepEqual(errors, []);
   console.log(
     "Responsive score, keyboard, note/lyric preservation and compact feedback passed",

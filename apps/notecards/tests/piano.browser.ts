@@ -1,5 +1,10 @@
 import { savedProgress } from "./persistence-helper";
-import { practiceOption, selectPractice } from "./navigation-helpers";
+import {
+  practiceOption,
+  selectPractice,
+  openPracticeOptions,
+  closePracticeOptions,
+} from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -78,7 +83,7 @@ try {
     0,
   );
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#pianoPrompt", "name");
   assert.equal(await page.locator(".piano-key").count(), 12);
   assert.equal(await page.locator("#target-name").textContent(), "C");
@@ -101,7 +106,7 @@ try {
   await ready();
   assert.equal(await page.locator("#pianoPrompt").inputValue(), "name");
   assert.equal(await page.locator("#key").inputValue(), "Bb");
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#pianoPrompt", "staff");
   await page.locator("#low-spin").click();
   await page
@@ -125,7 +130,7 @@ try {
     .getByRole("button", { name: "C4", exact: true })
     .click();
   await practiceOption(page, "#key", "C");
-  await page.getByText("Practice options", { exact: true }).click();
+  await closePracticeOptions(page);
   await mkdir("../../work", { recursive: true });
   await page.screenshot({
     path: `../../work/piano-desktop-${engine}.png`,

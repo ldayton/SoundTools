@@ -1,4 +1,9 @@
-import { practiceOption, selectPractice } from "./navigation-helpers";
+import {
+  practiceOption,
+  selectPractice,
+  openPracticeOptions,
+  closePracticeOptions,
+} from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -67,7 +72,7 @@ try {
   );
   assert.equal(await page.locator("#nameNotes").inputValue(), "all");
   assert.ok(await page.locator("#key").isHidden());
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   for (const string of [1, 2, 3, 4, 5])
     await page.locator(`[data-string-toggle="${string}"]`).click();
   await practiceOption(page, "#minFret", "2");
@@ -115,7 +120,7 @@ try {
   await practiceOption(page, "#minFret", "0");
   await practiceOption(page, "#maxFret", "5");
   await practiceOption(page, "#nameNotes", "naturals");
-  await page.getByText("Practice options", { exact: true }).click();
+  await closePracticeOptions(page);
   await page.locator('[data-letter="E"]').focus();
   assert.equal(
     await page.locator(".is-target").getAttribute("aria-label"),
@@ -168,7 +173,7 @@ try {
   assert.equal(await page.locator("#progress").getAttribute("value"), "2");
   await page.keyboard.up("Enter");
   // Complete a fresh location session using the known C-major low-E positions.
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#maxFret", "4");
   await practiceOption(page, "#maxFret", "5");
   const frets: Record<string, number> = { E: 0, F: 1, G: 3, A: 5 };
@@ -299,7 +304,7 @@ try {
     fullPage: true,
   });
   // Extreme key spelling: high-E fret 12 is F-flat in C-flat major, written F-flat6.
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await selectPractice(page, "staff-find");
   await page.locator('[data-string-toggle="1"]').click();
   await page.locator('[data-string-toggle="6"]').click();
@@ -348,10 +353,13 @@ try {
   assert.equal(await page.locator("#result").textContent(), "24 of 24 correct");
   await page.locator("#continue").click();
   assert.equal(await page.locator("#counter").textContent(), "1 / 24");
-  await page.waitForFunction(() => document.querySelector("#saved")?.textContent === "Saved on this device.");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   await page.reload();
   await ready();
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#roundLength").inputValue(), "24");
   await page.screenshot({
     path: `work/guitar-${name}-round-length.png`,
@@ -389,8 +397,14 @@ try {
   await storagePage.goto(base);
   await storagePage.locator('[data-letter="E"]:enabled').waitFor();
   await storagePage.locator('[data-letter="E"]').click();
-  await storagePage.waitForFunction(() => document.querySelector("#saved")?.textContent === "Saved on this device.");
-  assert.ok(await storagePage.locator("#feedback-next").isVisible(), "IndexedDB works when localStorage writes fail");
+  await storagePage.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  assert.ok(
+    await storagePage.locator("#feedback-next").isVisible(),
+    "IndexedDB works when localStorage writes fail",
+  );
   await storageContext.close();
   assert.deepEqual(errors, []);
   assert.ok(

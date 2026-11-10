@@ -2,6 +2,9 @@ import {
   practiceOption,
   selectPractice,
   midiAction,
+  openPracticeOptions,
+  setPianoVisible,
+  closePracticeOptions,
 } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { createHash } from "node:crypto";
@@ -76,8 +79,7 @@ try {
   const input = page.getByRole("combobox", { name: "Hymn", exact: true });
   const choose = async (title: string) => {
     const options = page.locator("#sight-reading .practice-options");
-    if (!(await options.evaluate((e: HTMLDetailsElement) => e.open)))
-      await options.locator(":scope > summary").click();
+    await openPracticeOptions(page);
     await input.click();
     await input.fill(title);
     await page.locator("#hymn-results [role=option]").first().waitFor();
@@ -156,7 +158,7 @@ try {
   );
   await page.reload();
   await page.locator(".hymn-count").filter({ hasText: "4 / 35" }).waitFor();
-  await page.locator(".hymn-keyboard-toggle").click();
+  await setPianoVisible(page, true);
   await page.locator('.hymn-piano [data-piano="67"]').click();
   assert.equal(await page.locator(".hymn-count").textContent(), "5 / 35");
   await practiceOption(page, "#hymn-arrangement", "original");
@@ -173,6 +175,9 @@ try {
   await on(62);
   assert.match((await page.locator(".hymn-count").textContent())!, /^2 \/ /);
   for (const n of [43, 55, 59, 62]) await off(n);
+  // Expand the keyboard viewport before entering this wide bass-to-treble chord.
+  // Keys retain their fixed width when the options sidebar is open.
+  await closePracticeOptions(page);
   await page.locator(".hymn-restart").click();
   for (const n of [43, 55, 59, 62]) {
     const key = page.locator(`.hymn-piano [data-piano="${n}"]`);
@@ -184,6 +189,7 @@ try {
   // All songs in both arrangements must render with lyrics, at desktop and phone widths.
   for (const width of [2048, 1100, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
+    await openPracticeOptions(page);
     for (const chords of [false, true]) {
       await page
         .locator("#hymn-arrangement")
@@ -272,7 +278,7 @@ try {
   );
   await choose("Amazing Grace");
   await practiceOption(page, "#hymn-arrangement", "melody");
-  await page.locator(".hymn-keyboard-toggle").click(); // close to keep the review screenshot focused on the score
+  await setPianoVisible(page, false); // keep the review screenshot focused on the score
   await mkdir("work", { recursive: true });
   await page.screenshot({
     path: `work/sight-reading-${engine}-mobile.png`,
@@ -353,6 +359,12 @@ try {
     await page.bringToFront();
   }
   await selectPractice(page, "piano");
+  assert.equal(
+    await page.locator(".piano-toggle:visible").getAttribute("aria-expanded"),
+    "false",
+    "piano visibility is shared between hymns and note recognition",
+  );
+  await setPianoVisible(page, true);
   await page.locator("#piano [data-piano]").first().waitFor();
   assert.ok(await page.locator(".keyboard-menu summary").isVisible());
   assert.ok(await page.locator("#sight-reading").isHidden());

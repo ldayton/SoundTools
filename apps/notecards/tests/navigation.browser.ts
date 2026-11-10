@@ -2,6 +2,7 @@ import {
   practiceOption,
   selectPractice,
   midiAction,
+  openPracticeOptions,
 } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -167,15 +168,23 @@ try {
       ),
     );
   }
-  // Every exercise uses the same configuration location, field dimensions and action language.
+  // Wide-screen options sit beside every exercise, with shared field dimensions and actions.
   for (const mode of ["piano", "staff", "patterns", "sight", "rhythm"]) {
     await selectPractice(page, mode);
     const options = page.locator("#exercise-content .practice-options:visible");
     await options.waitFor();
-    if (!(await options.evaluate((e: HTMLDetailsElement) => e.open)))
-      await options.locator(":scope > summary").click();
+    await openPracticeOptions(page);
     const task = page.locator(".practice:visible,.sequence-practice:visible");
-    assert.ok((await options.boundingBox())!.y < (await task.boundingBox())!.y);
+    const optionBox = (await options.boundingBox())!;
+    const taskBox = (await task.boundingBox())!;
+    assert.ok(
+      optionBox.x >= taskBox.x + taskBox.width,
+      `${mode}: options to the right of exercise`,
+    );
+    assert.ok(
+      Math.abs(optionBox.y - taskBox.y) < 2,
+      `${mode}: top edges align`,
+    );
     const fields = await options
       .locator("select:visible,.note-field:visible")
       .evaluateAll((els) =>

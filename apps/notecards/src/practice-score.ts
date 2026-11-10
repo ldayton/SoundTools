@@ -1,3 +1,4 @@
+import { STAFF_LINE_GAP, ABC_STAFF_LINE_GAP } from "./notation-metrics";
 import abcjs, { type NoteTimingEvent, type TuneObject } from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
 export type PracticeEvent = NoteTimingEvent & { spellings?: PitchSpellings };
@@ -5,9 +6,10 @@ export function drawPracticeScore(
   paper: HTMLElement,
   abc: string,
   width: number,
-  musicScale = 1,
-  transpose = 0,
+  options: { scale?: number; transpose?: number; compact?: boolean } = {},
 ): PracticeEvent[] {
+  const scale = (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1);
+  const transpose = options.transpose ?? 0;
   const tune = abcjs.renderAbc(paper, "%%vocalfont sans-serif 12\n" + abc, {
     add_classes: true,
     visualTranspose: transpose,
@@ -26,7 +28,7 @@ export function drawPracticeScore(
     },
     responsive: "resize",
     oneSvgPerLine: true,
-    staffwidth: Math.max(240, width / musicScale - 28),
+    staffwidth: Math.max(140, width / scale - 24),
     // Balance all systems instead of stranding a final bar on its own line.
     wrap: { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     paddingtop: 12,
@@ -58,6 +60,30 @@ export function drawPracticeScore(
       if (wrapper !== paper && wrapper?.classList.contains("abcjs-container"))
         wrapper.remove();
     }
+  });
+  // Explicit physical size prevents short systems and responsive wrappers from
+  // stretching staff lines and glyphs differently in each exercise.
+  paper.querySelectorAll("svg").forEach((svg) => {
+    if (options.compact) {
+      const group = svg.querySelector<SVGGraphicsElement>(
+        ".abcjs-staff-wrapper",
+      );
+      if (group) {
+        const ink = group.getBBox();
+        const box = svg.viewBox.baseVal;
+        svg.setAttribute(
+          "viewBox",
+          `${box.x} ${box.y} ${Math.min(box.width, Math.ceil(ink.x + ink.width + 12))} ${box.height}`,
+        );
+      }
+      svg.style.marginInline = "auto";
+    }
+    const box = svg.viewBox.baseVal;
+    const fittedScale = Math.min(scale, width / box.width);
+    svg.style.display = "block";
+    svg.style.width = `${box.width * fittedScale}px`;
+    svg.style.height = `${box.height * fittedScale}px`;
+    svg.style.maxWidth = "100%";
   });
   const spellings = scoreSpellings(tune);
   return tune.noteTimings

@@ -1,5 +1,9 @@
 import { savedProgress } from "./persistence-helper";
-import { practiceOption } from "./navigation-helpers";
+import {
+  practiceOption,
+  openPracticeOptions,
+  closePracticeOptions,
+} from "./navigation-helpers";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
@@ -86,7 +90,7 @@ try {
     () =>
       document.querySelector("#feedback")?.textContent === "Name this note.",
   );
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#key", "G");
   await page.locator('[data-letter="E"]').click();
   await page.waitForFunction(
@@ -139,12 +143,12 @@ try {
     () =>
       document.querySelector("#feedback")?.textContent === "Name this note.",
   );
-  await page.getByText("Practice options", { exact: true }).click();
+  await closePracticeOptions(page);
   await mkdir("work", { recursive: true });
   await page.screenshot({ path: "work/notecards-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.screenshot({ path: "work/notecards-desktop.png", fullPage: true });
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#low", "E2");
   await practiceOption(page, "#high", "E2");
   assert.equal(await page.locator("#staff-low-spin").inputValue(), "E2");

@@ -1,4 +1,8 @@
-import { selectPractice, practiceOption } from "./navigation-helpers";
+import {
+  selectPractice,
+  practiceOption,
+  openPracticeOptions,
+} from "./navigation-helpers";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,7 +20,7 @@ page.on("pageerror", (e) => console.error("pageerror", e.message));
 try {
   await page.goto(origin);
   await selectPractice(page, "piano");
-  await page.locator("summary").filter({ hasText: "Practice options" }).click();
+  await openPracticeOptions(page);
   await page.locator("#staffLayout").selectOption("grand");
   await page.locator("#overlapPractice").selectOption("both");
   const question = () =>

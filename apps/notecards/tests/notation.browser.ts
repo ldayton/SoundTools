@@ -1,4 +1,9 @@
-import { practiceOption, selectPractice } from "./navigation-helpers";
+import {
+  practiceOption,
+  selectPractice,
+  openPracticeOptions,
+  closePracticeOptions,
+} from "./navigation-helpers";
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -31,7 +36,7 @@ try {
   await page.goto(base);
   await selectPractice(page, "piano");
   await mkdir("../../work", { recursive: true });
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#staffLayout").inputValue(), "grand");
   assert.ok(await page.locator("#overlap-setting").isVisible());
   await practiceOption(page, "#staffLayout", "bass");
@@ -40,12 +45,12 @@ try {
   await practiceOption(page, "#pianoPrompt", "name");
   assert.ok(await page.locator("#piano-notation-options").isHidden());
   await page.reload();
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#pianoPrompt").inputValue(), "name");
   await practiceOption(page, "#pianoPrompt", "staff");
   assert.equal(await page.locator("#staffLayout").inputValue(), "bass");
   assert.equal(await page.locator("#octavePractice").inputValue(), "practice");
-  await page.getByText("Practice options", { exact: true }).click();
+  await closePracticeOptions(page);
   const anchors = await page.evaluate(async () => {
     const { drawPianoNotation, pianoPracticeFrame } = await import(
       /* @vite-ignore */ String("/src/notation.ts")

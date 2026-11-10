@@ -1,4 +1,9 @@
-import { practiceOption, selectPractice } from "./navigation-helpers";
+import {
+  practiceOption,
+  selectPractice,
+  openPracticeOptions,
+  closePracticeOptions,
+} from "./navigation-helpers";
 import { signatureDeck, signatureAnswer } from "../src/key-signatures";
 import { KEYS } from "../src/model";
 import { chromium, firefox, webkit } from "playwright";
@@ -99,10 +104,10 @@ try {
     assert.equal(await page.locator(".vf-keysignature").count(), 1);
     assert.ok(await page.locator("#piano").isHidden());
     assert.ok(await page.locator("#fretboard").isHidden());
-    await page.getByText("Practice options", { exact: true }).click();
+    await openPracticeOptions(page);
     for (const id of ["#key-setting", "#guitar-options", "#pitch-range"])
       assert.ok(await page.locator(id).isHidden());
-    await page.getByText("Practice options", { exact: true }).click();
+    await closePracticeOptions(page);
     // Each new card contains exactly the same correctly positioned signature as our established renderer.
     const paths = await page.locator(".vf-keysignature text").count();
     const accidentalCount = Math.abs(
@@ -186,7 +191,7 @@ try {
     await page.locator('[data-mod="0"]').getAttribute("aria-pressed"),
     "true",
   );
-  await page.getByText("Practice options", { exact: true }).click();
+  await openPracticeOptions(page);
   await practiceOption(page, "#signaturePractice", "major");
   assert.equal(
     await page.locator("#signature-prompt").textContent(),

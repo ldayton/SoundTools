@@ -1,3 +1,4 @@
+import { FLASHCARD_NOTATION_WIDTH } from "./notation-metrics";
 import {
   Renderer,
   Stave,
@@ -67,8 +68,8 @@ export function drawNotation(
     svg.setAttribute("viewBox", "0 -220 600 765");
     svg.setAttribute("height", "765");
     // VexFlow writes fixed inline pixel dimensions; let CSS preserve this aspect ratio.
-    svg.style.removeProperty("width");
-    svg.style.removeProperty("height");
+    svg.style.width = `${FLASHCARD_NOTATION_WIDTH}px`;
+    svg.style.height = "auto";
   }
 }
 function finishNotation(element: HTMLDivElement, tab = false) {
@@ -76,6 +77,8 @@ function finishNotation(element: HTMLDivElement, tab = false) {
   // Leave headroom for high guitar pitches spelled above E (for example F♭6).
   svg.setAttribute("viewBox", tab ? "0 0 600 300" : "0 -25 600 325");
   svg.setAttribute("aria-hidden", "true");
+  svg.style.width = `${FLASHCARD_NOTATION_WIDTH}px`;
+  svg.style.height = "auto";
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
   group.setAttribute("transform", "scale(2.2)");
   while (svg.firstChild) group.append(svg.firstChild);
@@ -186,8 +189,8 @@ export function drawPianoNotation(
         : [-220, 765]);
   svg.setAttribute("viewBox", `0 ${frame[0]} 600 ${frame[1]}`);
   svg.setAttribute("height", String(frame[1]));
-  svg.style.removeProperty("width");
-  svg.style.removeProperty("height");
+  svg.style.width = `${FLASHCARD_NOTATION_WIDTH}px`;
+  svg.style.height = "auto";
   svg.dataset.inkTop = String(inkTop * 2.2);
   svg.dataset.inkBottom = String(inkBottom * 2.2);
   svg.dataset.clef = clef;

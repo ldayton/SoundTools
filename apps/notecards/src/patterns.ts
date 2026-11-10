@@ -1,3 +1,4 @@
+import { mountPracticePiano } from "./practice-piano";
 import type { InputPolicy, Interruption } from "./live-practice";
 import { mountPracticeOptions } from "./practice-controls";
 import type { NoteTimingEvent } from "abcjs";
@@ -60,12 +61,9 @@ export class IntervalPatterns {
       }
       this.settings = mergePatternSettings(this.settings, s);
     } catch {}
-    element.innerHTML = `<div class="practice-controls"><label>Patterns<select id="pattern-level"><option value="steps">Steps & repeated notes</option><option value="skips">Add skips · thirds</option><option value="leaps">Add fourths & fifths</option></select></label><label>Key<select id="pattern-key">${PATTERN_KEYS.map((k) => `<option>${k.id}</option>`).join("")}</select></label><label>Hand<select id="pattern-hand"><option value="right">Right hand</option><option value="left">Left hand</option></select></label></div><section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><p class="sequence-help">Find the first note, then follow the steps and skips.</p><progress class="pattern-progress" aria-label="Pattern progress"></progress><div class="sequence-score" role="region" tabindex="0" aria-label="Four-note interval pattern"><div class="pattern-paper"></div></div><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><details><summary>On-screen piano</summary><div class="pattern-piano"></div></details></section>`;
-    mountPracticeOptions(
-      element,
-      [this.$(".practice-controls")],
-      "Changing options starts a new pattern.",
-    );
+    element.innerHTML = `<div class="practice-controls"><label>Patterns<select id="pattern-level"><option value="steps">Steps & repeated notes</option><option value="skips">Add skips · thirds</option><option value="leaps">Add fourths & fifths</option></select></label><label class="key-field">Key<select id="pattern-key">${PATTERN_KEYS.map((k) => `<option>${k.id}</option>`).join("")}</select></label><label class="hand-field">Hand<select id="pattern-hand"><option value="right">Right hand</option><option value="left">Left hand</option></select></label></div><section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Four-note interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
+    mountPracticeOptions(element, [this.$(".practice-controls")]);
+    mountPracticePiano(this.$(".pattern-piano"), this.$(".sequence-transport"));
     this.midiSlot = this.$(".pattern-midi-slot");
     this.piano = new Piano(this.$(".pattern-piano"), (n) => {
       if (this.accepting) this.answer(n);
@@ -160,6 +158,7 @@ export class IntervalPatterns {
         this.$(".pattern-paper"),
         `X:1\nM:4/4\nL:1/64\nK:${this.settings.key} clef=${this.settings.hand === "left" ? "bass" : "treble"}\n${music} |]\n`,
         this.width,
+        { compact: true },
       );
       this.session =
         layoutOnly && previous

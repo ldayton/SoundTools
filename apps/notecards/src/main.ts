@@ -260,7 +260,17 @@ function syncOptions() {
   $<HTMLSelectElement>("#key").value = p.key;
   const isPiano = progress.mode === "piano";
   const isSignature = progress.mode === "signature";
-  $("#signature-practice-setting").hidden = !isSignature;
+  for (const id of [
+    "signature-practice-setting",
+    "signature-limit-setting",
+    "signature-accidentals-setting",
+  ])
+    $("#" + id).hidden = !isSignature;
+  $<HTMLSelectElement>("#signatureMaxAccidentals").value = String(
+    p.signatureMaxAccidentals ?? 1,
+  );
+  $<HTMLSelectElement>("#signatureAccidentals").value =
+    p.signatureAccidentals || "both";
   $<HTMLSelectElement>("#signaturePractice").value =
     p.signaturePractice || "major";
   $("#piano-prompt-setting").hidden = !isPiano;
@@ -602,7 +612,11 @@ function start(continuing = false, restoring = false, restart = false) {
       : progress.mode === "piano"
         ? pianoDeck(profile())
         : progress.mode === "signature"
-          ? signatureDeck(profile().signaturePractice)
+          ? signatureDeck(
+              profile().signaturePractice,
+              profile().signatureMaxAccidentals ?? 1,
+              profile().signatureAccidentals,
+            )
           : guitarQuestions(progress.mode, profile());
   if (!restoring && (!continuing || !session?.continueRound())) {
     const cached = !restart
@@ -638,7 +652,6 @@ function start(continuing = false, restoring = false, restart = false) {
     $("#fretboard").hidden = true;
     $("#piano").hidden = true;
     $("#signature-prompt").hidden = true;
-    $(".piano-hint").hidden = true;
     enableAnswers(false);
     $("#feedback").textContent =
       progress.mode === "name"
@@ -695,6 +708,17 @@ $<HTMLSelectElement>("#roundLength").onchange = (e) => {
 $<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
   profile().signaturePractice = (e.target as HTMLSelectElement)
     .value as SignaturePractice;
+  changed();
+};
+$<HTMLSelectElement>("#signatureMaxAccidentals").onchange = (e) => {
+  profile().signatureMaxAccidentals = Number(
+    (e.target as HTMLSelectElement).value,
+  );
+  changed();
+};
+$<HTMLSelectElement>("#signatureAccidentals").onchange = (e) => {
+  profile().signatureAccidentals = (e.target as HTMLSelectElement).value as
+    "both" | "sharps" | "flats";
   changed();
 };
 $<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {

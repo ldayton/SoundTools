@@ -213,16 +213,6 @@
   margin: 12px 24px;
   color: #71351f;
 }
-#restart-round,
-#feedback-next {
-  margin: 10px 16px;
-  padding: 7px 10px;
-  border: 1px solid #d7d1e0;
-  border-radius: 7px;
-  background: #fcfaf5;
-  color: inherit;
-  font-size: 12px;
-}
 
 .piano-layout-wide .practice {
   max-width: none;

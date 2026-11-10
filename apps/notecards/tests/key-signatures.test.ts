@@ -53,3 +53,29 @@ test("signature sessions and saved preferences keep major and minor review histo
   assert.ok(!p.stats["signature:major:C"]);
   assert.deepEqual(loadProgress(JSON.stringify(p)), p);
 });
+
+test("beginner limits filter signatures by count and kind, keeping the natural key", () => {
+  assert.deepEqual(signatureDeck("major", 1).map(signatureAnswer), [
+    "C major",
+    "G major",
+    "F major",
+  ]);
+  assert.deepEqual(signatureDeck("minor", 1, "sharps").map(signatureAnswer), [
+    "A minor",
+    "E minor",
+  ]);
+  assert.deepEqual(signatureDeck("major", 2, "flats").map(signatureAnswer), [
+    "C major",
+    "F major",
+    "B♭ major",
+  ]);
+  assert.deepEqual(signatureDeck("both", 0).map(signatureAnswer), [
+    "C major",
+    "A minor",
+  ]);
+  const p = defaultProgress();
+  assert.equal(p.profiles.signature.signatureMaxAccidentals, 1);
+  p.profiles.signature.signatureMaxAccidentals = 2;
+  p.profiles.signature.signatureAccidentals = "flats";
+  assert.deepEqual(loadProgress(JSON.stringify(p)), p);
+});

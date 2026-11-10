@@ -53,7 +53,9 @@ try {
       JSON.stringify({
         version: 4,
         mode: "signature",
-        profiles: { signature: { signaturePractice: "both" } },
+        profiles: {
+          signature: { signaturePractice: "both", signatureMaxAccidentals: 7 },
+        },
       }),
     );
   });
@@ -201,6 +203,27 @@ try {
   assert.equal(
     await page.locator("#signature-prompt").textContent(),
     "Minor key",
+  );
+  await practiceOption(page, "#signatureMaxAccidentals", "0");
+  await practiceOption(page, "#signatureAccidentals", "flats");
+  assert.equal(
+    await page.locator(".vf-keysignature text").count(),
+    0,
+    "natural-only practice has no engraved accidentals",
+  );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  await page.reload();
+  await page.locator("#notation svg").waitFor();
+  assert.equal(
+    await page.locator("#signatureMaxAccidentals").inputValue(),
+    "0",
+  );
+  assert.equal(
+    await page.locator("#signatureAccidentals").inputValue(),
+    "flats",
   );
   await selectPractice(page, "piano");
   assert.ok(await page.locator("#signature-prompt").isHidden());

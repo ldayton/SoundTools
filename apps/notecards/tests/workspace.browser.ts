@@ -146,6 +146,27 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);
   assert.equal(
+    await sidebarToggle.getAttribute("aria-expanded"),
+    "false",
+    "mobile options start closed independently of desktop",
+  );
+  const mobileToggle = (await sidebarToggle.boundingBox())!;
+  const mobilePanel = (await page
+    .locator("#sight-reading .practice-options")
+    .boundingBox())!;
+  assert.ok(
+    Math.abs(mobileToggle.width - mobilePanel.width) < 1,
+    "mobile label uses the full row",
+  );
+  assert.ok(await sidebarToggle.locator(".options-toggle-label").isVisible());
+  await sidebarToggle.click();
+  assert.equal(await sidebarToggle.getAttribute("aria-expanded"), "true");
+  assert.ok(
+    await page.locator("#sight-reading .practice-options-content").isVisible(),
+  );
+  await sidebarToggle.click();
+  assert.equal(await sidebarToggle.getAttribute("aria-expanded"), "false");
+  assert.equal(
     await page.locator(".hymn-count").textContent(),
     count,
     "resize preserves bookmark",

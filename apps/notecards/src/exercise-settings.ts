@@ -12,6 +12,8 @@ export type Profile = Settings & {
   overlapPractice?: "standard" | "both";
   octavePractice?: "off" | "practice";
   signaturePractice?: "major" | "minor" | "both";
+  signatureMaxAccidentals?: number;
+  signatureAccidentals?: "both" | "sharps" | "flats";
 };
 export function object(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -31,6 +33,9 @@ export function defaultProfile(mode: FlashcardMode): Profile {
     high: mode === "piano" ? "B5" : "F4",
     key: "C",
     strings: mode === "name" ? [1, 2, 3, 4, 5, 6] : [6],
+    ...(mode === "signature"
+      ? { signatureMaxAccidentals: 1, signatureAccidentals: "both" as const }
+      : {}),
     minFret: 0,
     maxFret: 5,
     ...(mode === "piano"
@@ -81,6 +86,20 @@ export function mergeProfile(
       ["major", "minor", "both"],
       base.signaturePractice || "major",
     );
+  if (mode === "signature") {
+    if (
+      typeof source.signatureMaxAccidentals === "number" &&
+      Number.isInteger(source.signatureMaxAccidentals) &&
+      source.signatureMaxAccidentals >= 0 &&
+      source.signatureMaxAccidentals <= 7
+    )
+      result.signatureMaxAccidentals = source.signatureMaxAccidentals;
+    result.signatureAccidentals = choice(
+      source.signatureAccidentals,
+      ["both", "sharps", "flats"],
+      base.signatureAccidentals || "both",
+    );
+  }
   if (typeof source.naturalsOnly === "boolean")
     result.naturalsOnly = source.naturalsOnly;
   const positions = mode === "piano" ? PIANO_POSITIONS : POSITIONS;

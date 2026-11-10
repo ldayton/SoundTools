@@ -1,3 +1,4 @@
+import { playPianoNote, preparePianoSound } from "./piano-audio";
 import { visiblePianoLayout } from "./piano-layout";
 import { isBlack, keyLabel } from "./piano-model";
 /** Native buttons preserve precise hit testing, focus, and screen-reader access. */
@@ -23,7 +24,11 @@ export class Piano {
       const button = (event.target as Element).closest<HTMLButtonElement>(
         "[data-piano]",
       );
-      if (button && !this.locked) this.answer(Number(button.dataset.piano));
+      if (button && !this.locked) {
+        const note = Number(button.dataset.piano);
+        void playPianoNote(note);
+        this.answer(note);
+      }
     });
     element.addEventListener("keydown", (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>(
@@ -84,6 +89,7 @@ export class Piano {
       parseFloat(style.paddingLeft) -
       parseFloat(style.paddingRight);
     if (width <= 0) return;
+    preparePianoSound();
     const [requestedLow, requestedHigh, named] = this.request;
     const layout = visiblePianoLayout(
       width,

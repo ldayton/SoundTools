@@ -26,17 +26,23 @@ select {
   border: 0;
   padding: 0;
   margin: 20px 0 0;
-  display: flex;
-  gap: 7px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  max-width: 360px;
 }
 
 .strings legend {
+  font-size: 13px;
+  font-weight: 600;
+  color: #625d70;
   margin-bottom: 9px;
   padding: 0;
 }
 
 .strings button {
-  min-width: 43px;
+  min-width: 0;
   min-height: 52px;
   background: #fffdf8;
   border: 1px solid #d8d1c5;
@@ -55,15 +61,6 @@ select {
   background: #e5def0;
   border-color: #a99ac1;
   color: #302d55;
-}
-
-@media (max-width: 600px) {
-  .strings {
-    gap: 6px;
-  }
-  .strings button {
-    min-width: 42px;
-  }
 }
 
 .note-picker {
@@ -259,7 +256,7 @@ select {
 .practice-options.is-collapsed .options-header {
   justify-content: flex-end;
 }
-.options-toggle[aria-expanded="false"] svg {
+.options-toggle[aria-expanded="false"] .options-panel-icon {
   transform: rotate(180deg);
 }
 .practice-options-content {
@@ -288,6 +285,7 @@ select {
   font-size: 13px;
   font-weight: 600;
   color: #625d70;
+  line-height: 1.4;
 }
 .practice-options select,
 .practice-options .options-row select,
@@ -415,7 +413,7 @@ select {
   top: calc(100% + 6px);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1119px) {
   .practice-options .options-row,
   .practice-options .practice-controls {
     display: grid;
@@ -488,4 +486,50 @@ select {
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 12px;
+}
+
+/* Fret ranges share the same columns as the options above them. */
+.practice-options #guitar-options .range {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 360px;
+}
+.practice-options #guitar-options .range label {
+  width: 100%;
+}
+@media (max-width: 640px) {
+  .practice-options #guitar-options .range,
+  .strings {
+    max-width: none;
+  }
+}
+
+.options-toggle-label,
+.options-chevron {
+  display: none;
+}
+@media (max-width: 760px) {
+  .practice-options .options-header h2,
+  .options-toggle .options-panel-icon {
+    display: none;
+  }
+  .options-toggle {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+  }
+  .options-toggle-label,
+  .options-chevron {
+    display: block;
+  }
+  .options-chevron {
+    flex-shrink: 0;
+  }
+  .options-toggle[aria-expanded="true"] .options-chevron {
+    transform: rotate(180deg);
+  }
 }

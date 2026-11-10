@@ -27,7 +27,9 @@ export function mountPracticePiano(
   const button = document.createElement("button");
   button.type = "button";
   button.className = `piano-toggle ${options.buttonClass || ""}`.trim();
-  button.textContent = "On-screen piano";
+  button.setAttribute("aria-label", "On-screen piano");
+  button.innerHTML =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v8m8-8v8M8 13v6m8-6v6"/></svg><span>Piano</span>';
   button.setAttribute("aria-controls", panel.id);
   transport.append(button);
   let available = true;
@@ -35,6 +37,7 @@ export function mountPracticePiano(
     panel.hidden = !available || !visible;
     button.hidden = !available;
     button.setAttribute("aria-expanded", String(visible));
+    button.title = `${visible ? "Hide" : "Show"} on-screen piano`;
     options.changed?.();
   }
   panels.add(render);

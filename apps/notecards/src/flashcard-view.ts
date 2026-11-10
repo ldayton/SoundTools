@@ -5,6 +5,8 @@ import { mountPracticeOptions } from "./practice-controls";
 export function mountFlashcardView(element: HTMLElement, roundLength: number) {
   element.innerHTML = `<div class="below"><div class="flashcard-options"><div class="options-row"><label class="round-length">Cards per round<select id="roundLength">${ROUND_LENGTHS.map((n) => `<option value="${n}">${n}</option>`).join("")}</select></label><label id="key-setting">Key<select id="key">${KEYS.map((k) => `<option value="${k.id}">${k.label.replace(/ ·.*$/, "")}</option>`).join("")}</select></label>
 <label id="signature-practice-setting" hidden>Keys<select id="signaturePractice"><option value="major">Major only</option><option value="minor">Minor only</option><option value="both">Major & minor</option></select></label>
+<label id="signature-limit-setting" hidden>Maximum sharps / flats<select id="signatureMaxAccidentals">${Array.from({ length: 8 }, (_, n) => `<option value="${n}">${n === 0 ? "None" : `Up to ${n}`}</option>`).join("")}</select></label>
+<label id="signature-accidentals-setting" hidden>Include<select id="signatureAccidentals"><option value="both">Sharps & flats</option><option value="sharps">Sharps only</option><option value="flats">Flats only</option></select></label>
 <label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
 <label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes</option><option value="naturals">Naturals</option></select></label>
 </div>
@@ -38,7 +40,7 @@ export function mountFlashcardView(element: HTMLElement, roundLength: number) {
     .join("")}</div></div>
 
 <p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
-<div class="sequence-transport flashcard-transport"><button id="feedback-next" hidden>Next question →</button><button id="restart-round" type="button">Start round again</button></div><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
+<div class="sequence-transport flashcard-transport"><button id="feedback-next" hidden>Next question →</button><button id="restart-round" type="button">Start again</button></div><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
 `;
   mountPracticeOptions(element.querySelector<HTMLElement>(".below")!, [
     element.querySelector<HTMLElement>(".flashcard-options")!,

@@ -6,7 +6,12 @@ export function drawPracticeScore(
   paper: HTMLElement,
   abc: string,
   width: number,
-  options: { scale?: number; transpose?: number; compact?: boolean } = {},
+  options: {
+    scale?: number;
+    transpose?: number;
+    compact?: boolean;
+    rhythmGrid?: boolean;
+  } = {},
 ): PracticeEvent[] {
   const scale = (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1);
   const transpose = options.transpose ?? 0;
@@ -30,7 +35,12 @@ export function drawPracticeScore(
     oneSvgPerLine: true,
     staffwidth: Math.max(140, width / scale - 24),
     // Balance all systems instead of stranding a final bar on its own line.
-    wrap: { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
+    wrap: options.rhythmGrid
+      ? undefined
+      : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
+    timeBasedLayout: options.rhythmGrid
+      ? { minPadding: 8, minWidth: Math.max(100, width / scale - 24) }
+      : undefined,
     paddingtop: 12,
     paddingbottom: 18,
     paddingleft: 12,

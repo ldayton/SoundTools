@@ -30,6 +30,7 @@ export class RhythmPractice {
   private width = 0;
   private beat = -1;
   private step = -1;
+  private tapFeedbackTimer = 0;
   constructor(
     private element: HTMLElement,
     private changed: () => void,
@@ -78,7 +79,7 @@ export class RhythmPractice {
       .map((n) => `<option value="${n}">${n} BPM</option>`)
       .join(
         "",
-      )}</select></label></div><section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><button class="rhythm-tap" disabled>Tap</button><div class="sequence-transport"><button class="rhythm-start">Start</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
+      )}</select></label></div><section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><button class="rhythm-tap" type="button" aria-label="Tap rhythm"><span>Tap</span><small class="rhythm-tap-response" aria-live="polite"></small></button><div class="sequence-transport"><button class="rhythm-start">Start</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
     this.midiSlot = this.$(".rhythm-midi-slot");
     mountPracticeOptions(element, [this.$(".practice-controls")]);
     for (const field of ["level", "tempo"]) {
@@ -105,24 +106,24 @@ export class RhythmPractice {
     };
     const tap = this.$<HTMLButtonElement>(".rhythm-tap");
     tap.onpointerdown = (e) => {
-      if (e.button === 0 && !tap.disabled) {
+      if (e.button === 0) {
         e.preventDefault();
-        this.answer(60);
+        this.tapButton();
       }
     };
     tap.onclick = (e) => {
-      if (e.detail === 0 && !tap.disabled) this.answer(60);
+      if (e.detail === 0) this.tapButton();
     };
     tap.onkeydown = (e) => {
       if ([" ", "Enter"].includes(e.key)) {
         e.preventDefault();
-        if (!e.repeat) this.answer(60);
+        if (!e.repeat) this.tapButton();
       }
     };
     window.addEventListener("keydown", (e) => {
       if (
         this.active &&
-        this.state === "playing" &&
+        ["countin", "playing"].includes(this.state) &&
         e.key === " " &&
         !e.repeat &&
         !e.ctrlKey &&
@@ -187,7 +188,7 @@ export class RhythmPractice {
     this.state = "ready";
     this.result = undefined;
     this.attempt = undefined;
-    this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
+    this.clearTapFeedback();
     this.$(".rhythm-start").textContent = "Start";
     this.beat = this.step = -1;
     highlightScore(
@@ -204,11 +205,22 @@ export class RhythmPractice {
     this.width = this.$(".sequence-score").clientWidth;
     if (!this.width) return;
     try {
-      this.events = drawPracticeScore(
-        this.$(".rhythm-paper"),
-        `X:1\nM:4/4\nL:1/8\nK:C clef=perc stafflines=1\n${this.bars.map((bar) => bar.map((n) => (n.rest ? "z" : "B") + n.beats * 2).join(" ")).join(" | ")} |]\n`,
-        this.width,
-      );
+      const paper = this.$(".rhythm-paper");
+      const columns = this.width >= 620 ? 2 : 1;
+      paper.style.setProperty("--rhythm-columns", String(columns));
+      paper.replaceChildren();
+      this.events = this.bars.flatMap((bar, index) => {
+        const measure = document.createElement("div");
+        measure.className = "rhythm-bar";
+        measure.setAttribute("aria-label", `Bar ${index + 1}`);
+        paper.append(measure);
+        return drawPracticeScore(
+          measure,
+          `X:1\nM:4/4\nL:1/8\nK:C clef=perc stafflines=1\n${bar.map((n) => (n.rest ? "z" : "B") + n.beats * 2).join(" ")} ${index === this.bars.length - 1 ? "|]" : "|"}\n`,
+          (this.width - (columns - 1) * 16) / columns,
+          { rhythmGrid: true },
+        );
+      });
       if (!layoutOnly)
         this.$(".sequence-feedback").textContent =
           "Two bars to count in, then your turn.";
@@ -249,7 +261,6 @@ export class RhythmPractice {
     const counting = now < this.attempt.start;
     if (!counting && this.state === "countin") {
       this.state = "playing";
-      this.$<HTMLButtonElement>(".rhythm-tap").disabled = false;
       this.$(".sequence-feedback").textContent =
         "Your turn. Keep a steady pulse.";
       this.changed();
@@ -298,12 +309,50 @@ export class RhythmPractice {
     timestamp = performance.now(),
   ) {
     if (this.inputPolicy === "none" || !this.attempt) return;
-    this.attempt.tap(timestamp);
+    const result = this.attempt.tap(timestamp);
+    this.reactToTap(
+      result === "ignored"
+        ? "Wait…"
+        : result === "hit"
+          ? "On beat"
+          : "Off beat",
+      result,
+    );
+    for (const index of this.attempt.hits.keys())
+      for (const e of (this.events[index]?.elements || [])
+        .flat()
+        .filter(Boolean))
+        e.classList.add("rhythm-hit");
+  }
+  private tapButton() {
+    if (!this.active || !persistence.writable) return;
+    if (this.state === "ready" || this.state === "complete") {
+      this.reactToTap(
+        this.state === "ready" ? "Press Start" : "Start again",
+        "ignored",
+      );
+      return;
+    }
+    this.answer(60);
+  }
+  private clearTapFeedback() {
+    clearTimeout(this.tapFeedbackTimer);
+    this.$(".rhythm-tap-response").textContent = "";
+    delete this.$(".rhythm-tap").dataset.feedback;
+  }
+  private reactToTap(text: string, kind: string) {
+    this.clearTapFeedback();
+    this.$(".rhythm-tap").dataset.feedback = kind;
+    this.$(".rhythm-tap-response").textContent = text;
+    this.tapFeedbackTimer = window.setTimeout(
+      () => this.clearTapFeedback(),
+      400,
+    );
   }
   private finish() {
     if (!this.attempt) return;
     this.state = "complete";
-    this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
+    this.clearTapFeedback();
     highlightScore(
       this.$(".rhythm-paper"),
       undefined,

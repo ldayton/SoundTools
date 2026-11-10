@@ -22,7 +22,8 @@
     "test:sight": "tsx tests/sight-reading.browser.ts",
     "test:practice": "tsx tests/piano-practice.browser.ts",
     "test:navigation": "tsx tests/navigation.browser.ts",
-    "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts"
+    "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts",
+    "test:piano-audio": "tsx tests/piano-audio.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",

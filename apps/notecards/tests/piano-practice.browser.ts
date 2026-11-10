@@ -104,7 +104,42 @@ try {
   assert.equal(await page.locator("#hymn-section").inputValue(), "2");
   await selectPractice(page, "rhythm");
   await page.locator(".rhythm-start").waitFor();
+  const tap = page.locator(".rhythm-tap");
+  await tap.click();
+  assert.equal(
+    await page.locator(".rhythm-tap-response").textContent(),
+    "Press Start",
+  );
+  assert.equal(
+    await tap.evaluate((e) => getComputedStyle(e).userSelect),
+    "none",
+  );
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.waitForTimeout(100);
+    const widths = await page
+      .locator(".rhythm-bar svg")
+      .evaluateAll((es) => es.map((e) => e.getBoundingClientRect().width));
+    assert.equal(widths.length, 4);
+    assert.ok(
+      widths.every((w) => Math.abs(w - widths[0]) < 1),
+      `equal bar widths at ${width}px: ${widths}`,
+    );
+    const above =
+      (await tap.boundingBox())!.y -
+      ((await page.locator("#rhythm-practice .sequence-score").boundingBox())!
+        .y +
+        (await page.locator("#rhythm-practice .sequence-score").boundingBox())!
+          .height);
+    const below =
+      (await page
+        .locator("#rhythm-practice .sequence-transport")
+        .boundingBox())!.y -
+      ((await tap.boundingBox())!.y + (await tap.boundingBox())!.height);
+    assert.ok(Math.abs(above - below) < 1, "tap spacing is balanced");
+  }
   await page.clock.install();
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
   await practiceOption(page, "#rhythm-tempo", "120");
   await midiAction(page, "Connect MIDI keyboard");
   await page
@@ -114,6 +149,11 @@ try {
   assert.match(
     (await page.locator(".sequence-feedback:visible").textContent())!,
     /Count-in/,
+  );
+  await tap.click();
+  assert.equal(
+    await page.locator(".rhythm-tap-response").textContent(),
+    "Wait…",
   );
   await page.setViewportSize({ width: 900, height: 1000 });
   await page.clock.runFor(4000);

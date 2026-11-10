@@ -11,8 +11,15 @@ export type SignaturePractice = Tonality | "both";
 export type SignatureCard = Card & { signature: string; tonality: Tonality };
 export function signatureDeck(
   practice: SignaturePractice = "major",
+  maxAccidentals = 7,
+  accidentals: "both" | "sharps" | "flats" = "both",
 ): SignatureCard[] {
-  return KEYS.flatMap((key) => {
+  return KEYS.filter(
+    (key) =>
+      Math.abs(key.count) <= maxAccidentals &&
+      (accidentals === "both" ||
+        (accidentals === "sharps" ? key.count >= 0 : key.count <= 0)),
+  ).flatMap((key) => {
     // The sixth degree of a major scale is its relative minor, with the same signature.
     const scale = deck({ low: "C3", high: "B3", key: key.id });
     const tonic = "CDEFGAB".indexOf(key.id[0]);

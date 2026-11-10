@@ -36,6 +36,8 @@ try {
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
   const context = await browser.newContext({
+    // Rapid notation-fixture reloads are independent of the dedicated worker/update suite.
+    serviceWorkers: "block",
     viewport: { width: 1280, height: 1000 },
   });
   await context.addInitScript(() => {

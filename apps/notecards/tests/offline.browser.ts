@@ -170,6 +170,10 @@ try {
     () => document.querySelector("#counter")?.textContent === "2 / 12",
   );
   await selectPractice(fresh, "staff");
+  await fresh.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   // A complete cached copy starts without waiting for a hung network navigation.
   await context.setOffline(false);
   networkDown = false;
@@ -187,7 +191,7 @@ try {
   await context.setOffline(true);
   networkDown = true;
   await fresh.goto(base + "piano/keys?key=G&low=C4&high=B5&clef=grand");
-  await fresh.locator("#notation svg").waitFor();
+  await fresh.locator("main:not([inert]) #notation svg").waitFor();
   assert.equal(await fresh.locator("#key").inputValue(), "G");
   assert.equal(await fresh.locator("#staffLayout").inputValue(), "grand");
   await fresh.goto(
@@ -198,9 +202,10 @@ try {
   await selectPractice(fresh, "staff");
   await fresh.goto(base + "settings");
   await fresh.locator(".settings-page").waitFor();
-  assert.equal(
-    await fresh.locator("#offline-status").textContent(),
-    "Available offline",
+  await fresh.waitForFunction(
+    () =>
+      document.querySelector("#offline-status")?.textContent ===
+      "Available offline",
   );
   await selectPractice(fresh, "staff");
   console.log("unvisited offline deep links ready");
@@ -251,6 +256,8 @@ try {
       "Available offline",
   );
   await selectPractice(fresh, "staff");
+  await fresh.locator("#feedback-next").waitFor();
+  await fresh.locator("#feedback-next").click();
   await fresh.locator('[data-letter="E"]:enabled').waitFor();
   console.log("repair ready");
   // Storage eviction leaves a useful offline explanation, not a blank app.

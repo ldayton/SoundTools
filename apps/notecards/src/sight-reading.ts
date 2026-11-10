@@ -141,7 +141,7 @@ export class SightReading {
     }
     element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns · familiar favourites first" hidden></ul><p class="hymn-order">Familiar favourites first · ${hymns.length} hymns</p></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label></div>
     <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars at a time</option><option value="2">2 bars at a time</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
-    <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll to see the full score ↕</p><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p>Public-domain words, melody and setting. First verse and refrain.</p></details></section>`;
+    <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll to see the full score ↕</p><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" hidden>← Previous section</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><details class="hymn-screen"><summary>On-screen piano</summary><p class="hymn-screen-hint">Tap the highlighted note’s key.</p><div class="hymn-piano"></div></details><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
     const context = document.createElement("div");
     context.className = "hymn-context";
     context.append(this.$(".hymn-controls"), this.$(".hymn-grades"));
@@ -493,12 +493,21 @@ export class SightReading {
     this.$(".sequence-title").textContent = this.hymn.title;
     this.$(".sequence-practice").dataset.arrangement = this.arrangement;
     this.$(".hymn-credits").textContent = this.hymn.credits.join(" ");
-    // Link to the verified source mirror; the original site's TLS currently fails.
+    const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
+    this.$(".hymn-source-link").textContent = tabMusic
+      ? "Tab music source"
+      : "Open Hymnal source";
+    this.$(".hymn-source-description").textContent = tabMusic
+      ? "Keyboard melody with simplified harmony from your tab-music edition."
+      : "Public-domain words, melody and setting. First verse and refrain.";
+    // Open Hymnal uses a verified mirror; imported practice editions retain their source.
     this.$<HTMLAnchorElement>(".hymn-source-link").href =
-      "https://github.com/mzealey/openhymnal/blob/d35811b2d5c9b0bbc5887d60a2936454815416e8/Complete/" +
-      encodeURIComponent(this.hymn.folder) +
-      "/" +
-      encodeURIComponent(this.hymn.file);
+      "source" in this.hymn && this.hymn.source === "tab-music"
+        ? this.hymn.sourceUrl
+        : "https://github.com/mzealey/openhymnal/blob/d35811b2d5c9b0bbc5887d60a2936454815416e8/Complete/" +
+          encodeURIComponent(this.hymn.folder) +
+          "/" +
+          encodeURIComponent(this.hymn.file);
     try {
       const score = arrangeHymn(
         this.hymn,

@@ -125,5 +125,21 @@
     "title": "Joyful, Joyful, We Adore Thee",
     "file": "Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
     "folder": "Joyful_Joyful_We_Adore_Thee"
+  },
+  {
+    "id": "in-christ-alone",
+    "title": "In Christ Alone",
+    "file": "in-christ-alone-tab-music.abc",
+    "folder": "in-christ-alone",
+    "source": "tab-music",
+    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/in-christ-alone-music.ily"
+  },
+  {
+    "id": "ill-fly-away",
+    "title": "I'll Fly Away",
+    "file": "ill-fly-away-tab-music.abc",
+    "folder": "ill-fly-away",
+    "source": "tab-music",
+    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/ill-fly-away-music.ily"
   }
 ]

@@ -48,7 +48,7 @@ test("screen chords allow sequential entry, saved positions are validated, and s
   assert.deepEqual(searchHymns(hymns, ""), hymns);
 });
 test("all imported melodies preserve soprano pitch, rhythm, rests, ties, and every lyric slot from their harmonized sources", () => {
-  assert.equal(hymns.length, 20);
+  assert.equal(hymns.length, 22);
   const notes = (source: string) =>
     abcjs
       .parseOnly(source)[0]
@@ -72,7 +72,12 @@ test("all imported melodies preserve soprano pitch, rhythm, rests, ties, and eve
         };
       });
   for (const hymn of hymns) {
-    assert.match(hymn.credits.join(" "), /copyright: public domain/);
+    assert.match(
+      hymn.credits.join(" "),
+      "source" in hymn && hymn.source === "tab-music"
+        ? /copyright: Rights remain with/
+        : /copyright: public domain/,
+    );
     assert.deepEqual(notes(hymn.melody), notes(hymn.harmony), hymn.title);
   }
   const grace = notes(hymns[0].melody);
@@ -148,4 +153,33 @@ test("restart is available after completion and while ordinary advancement is pa
   assert.equal(session.answer(60), "ignored");
   assert.equal(session.answer(60), "restarted");
   assert.equal(session.complete, false);
+});
+
+test("tab-music keyboard melodies match independently rendered source MIDI, including pickups and tied durations", async () => {
+  const { default: fixtures } =
+    await import("./fixtures/tab-music-melodies.json");
+  for (const [id, fixture] of Object.entries(fixtures)) {
+    const hymn = hymns.find((h) => h.id === id)!;
+    assert.ok(hymn, id);
+    assert.equal(searchHymns(hymns, hymn.title)[0].id, id);
+    const tune = abcjs.parseOnly(hymn.melody)[0];
+    assert.equal(tune.warnings?.length || 0, 0);
+    tune.setUpAudio({});
+    const notes: number[][] = [];
+    for (const item of tune.lines.flatMap(
+      (l) => l.staff?.[0]?.voices?.[0] || [],
+    )) {
+      if (item.el_type !== "note" || !item.pitches?.length) continue;
+      if (item.pitches[0].endTie)
+        notes[notes.length - 1][1] += item.duration * 4;
+      else {
+        const sounding = item as typeof item & {
+          midiPitches: { pitch: number }[];
+        };
+        notes.push([sounding.midiPitches[0].pitch, item.duration * 4]);
+      }
+    }
+    assert.deepEqual(notes, fixture.notes, id);
+    assert.ok(hymn.sourceUrl.includes(fixture.sourceCommit));
+  }
 });

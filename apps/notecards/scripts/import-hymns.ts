@@ -1,4 +1,4 @@
-/** Rebuild the bundled library from the checked-in, unmodified Open Hymnal sources. */
+/** Rebuild the bundled library from the checked-in ABC sources and their credits. */
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import abcjs from "abcjs";
@@ -11,6 +11,8 @@ const curated = JSON.parse(
   file: string;
   folder: string;
   aliases?: string[];
+  source?: "tab-music";
+  sourceUrl?: string;
 }[];
 const library = curated.map((entry) => {
   const bytes = readFileSync(root + "hymns/source/" + entry.file);
@@ -20,7 +22,16 @@ const library = curated.map((entry) => {
   } catch {
     source = new TextDecoder("windows-1252").decode(bytes);
   }
-  if (!/^C: copyright: public domain\./im.test(source))
+  if (entry.source === "tab-music") {
+    if (
+      !entry.sourceUrl?.startsWith(
+        "https://github.com/ldayton/tab-music/blob/",
+      ) ||
+      !/^% Adapted from ldayton\/tab-music at [a-f0-9]{40}$/m.test(source) ||
+      !/^C: copyright: Rights remain with /m.test(source)
+    )
+      throw Error("Missing tab-music provenance: " + entry.id);
+  } else if (!/^C: copyright: public domain\./im.test(source))
     throw Error("Uncleared score: " + entry.id);
   let firstLyric = true;
   const clean =
@@ -139,12 +150,12 @@ const library = curated.map((entry) => {
       .split("\n")
       .filter((l) => /^C: (Words:|Music:|copyright:)/.test(l))
       .map((l) => l.slice(3)),
-    sourceUrl: "https://openhymnal.org/Abc/" + entry.file,
+    sourceUrl: entry.sourceUrl || "https://openhymnal.org/Abc/" + entry.file,
     melody,
     harmony: clean,
   };
 });
 writeFileSync(root + "src/hymns.json", JSON.stringify(library, null, 2) + "\n");
 console.log(
-  `Imported ${library.length} public-domain hymns with aligned first-verse lyrics.`,
+  `Imported ${library.length} hymns with source credits and aligned lyrics.`,
 );

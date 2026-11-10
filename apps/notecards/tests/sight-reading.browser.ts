@@ -358,7 +358,7 @@ try {
   assert.ok(await page.locator("#sight-reading").isHidden());
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: hymn search, all 40 scores at desktop/mobile widths, MIDI legato/chords, pause, reload, completion and offline passed.`,
+    `${engine}: hymn search, all ${hymns.length * 2} scores at desktop/mobile widths, MIDI legato/chords, pause, reload, completion and offline passed.`,
   );
 } finally {
   await browser?.close();

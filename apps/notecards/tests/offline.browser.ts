@@ -98,6 +98,31 @@ try {
     {},
     { timeout: 20000 },
   );
+  // A reconnect during an existing check must schedule a follow-up, not be dropped.
+  await page.evaluate(() => {
+    const post = ServiceWorker.prototype.postMessage;
+    let injected = false;
+    (window as any).offlineRechecks = 0;
+    (window as any).restoreWorkerPost = () => {
+      ServiceWorker.prototype.postMessage = post;
+    };
+    ServiceWorker.prototype.postMessage = function (
+      message: any,
+      ...rest: any[]
+    ) {
+      if (message?.type === "prepare-update") {
+        (window as any).offlineRechecks++;
+        if (!injected) {
+          injected = true;
+          window.dispatchEvent(new Event("online"));
+        }
+      }
+      return Reflect.apply(post, this, [message, ...rest]);
+    };
+    window.dispatchEvent(new Event("online"));
+  });
+  await page.waitForFunction(() => (window as any).offlineRechecks >= 2);
+  await page.evaluate(() => (window as any).restoreWorkerPost());
   console.log("initial save ready");
   assert.ok(await page.evaluate(() => !!navigator.serviceWorker.controller));
   await page.locator('[data-letter="E"]').click();
@@ -175,8 +200,8 @@ try {
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   // A complete cached copy starts without waiting for a hung network navigation.
-  await context.setOffline(false);
   networkDown = false;
+  await context.setOffline(false);
   slowNavigation = true;
   const start = Date.now();
   await fresh.goto(base);
@@ -237,8 +262,8 @@ try {
   console.log("corruption fallback ready");
   // Reconnect repairs the corrupt copy, then applies only on the user's update action.
   await fresh.locator('[data-letter="E"]').click();
-  await context.setOffline(false);
   networkDown = false;
+  await context.setOffline(false);
   await fresh.evaluate(() => window.dispatchEvent(new Event("online")));
   await fresh.locator(".settings-update:visible").waitFor({ timeout: 20000 });
   await fresh.locator("a[data-settings]").click();
@@ -278,8 +303,8 @@ try {
     .waitFor();
   assert.ok(await fresh.getByRole("button", { name: "Try again" }).isVisible());
   assert.deepEqual(errors, []);
-  await context.setOffline(false);
   networkDown = false;
+  await context.setOffline(false);
   await context.close();
   // A failed/incomplete first installation cannot advertise offline readiness.
   networkDown = false;

@@ -37,6 +37,7 @@ export function setupOffline() {
   let registration: ServiceWorkerRegistration | undefined;
   let active = true,
     busy = false,
+    checkRequested = false,
     lastCheck = 0;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
   const announce = () =>
@@ -60,11 +61,15 @@ export function setupOffline() {
   async function check(force = false) {
     if (
       !active ||
-      busy ||
       document.hidden ||
       (!force && Date.now() - lastCheck < 15000)
     )
       return;
+    if (busy) {
+      checkRequested ||= force;
+      return;
+    }
+    checkRequested = false;
     busy = true;
     lastCheck = Date.now();
     const epoch = session.generation(),
@@ -195,6 +200,7 @@ export function setupOffline() {
       if (epoch === session.generation()) {
         busy = false;
         retry.disabled = false;
+        if (checkRequested) queueMicrotask(() => void check(true));
       }
     }
   }
@@ -217,6 +223,7 @@ export function setupOffline() {
   });
   window.addEventListener("pagehide", () => {
     active = false;
+    checkRequested = false;
     clearTimeout(retryTimer);
     session.abort();
     busy = false;

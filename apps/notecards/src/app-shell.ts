@@ -21,7 +21,7 @@ export function mountAppShell(
   element.innerHTML =
     navigationHTML() +
     `<div class="app-body"><header class="app-topbar"><button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="practice-navigation">${icon("menu")}</button><div class="page-heading"><p id="page-area"></p><h1 id="page-title" tabindex="-1"></h1></div><details class="keyboard-menu"><summary>${icon("keyboard")}<span>Keyboard</span><i class="midi-indicator" aria-hidden="true"></i></summary><div class="keyboard-popover"><div id="midi-panel"></div></div></details></header>
-<main id="practice-content" tabindex="-1"><section class="route-missing" hidden><h2>Page not found</h2><p>Choose an exercise from the navigation to keep practising.</p><a href="/piano/keys" data-mode="piano">Find piano keys →</a></section><div id="exercise-content">
+<p id="persistence-notice" role="alert" hidden></p><main id="practice-content" tabindex="-1"><section class="route-missing" hidden><h2>Page not found</h2><p>Choose an exercise from the navigation to keep practising.</p><a href="/piano/keys" data-mode="piano">Find piano keys →</a></section><p id="saved" class="saved" role="status">Opening saved practice…</p><div id="exercise-content">
 ${LIVE_EXERCISES.map((e) => `<div id="${e.rootId}" hidden></div>`).join("")}<div id="flashcards"></div></div><section class="settings-page" hidden aria-label="App settings"><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section><section class="privacy-settings"><h2>Privacy</h2></section></section></main></div>`;
   function closeNavigation(focus = false) {
     $(".app-sidebar").classList.remove("is-open");
@@ -146,6 +146,14 @@ ${LIVE_EXERCISES.map((e) => `<div id="${e.rootId}" hidden></div>`).join("")}<div
         $("#" + definition.rootId).hidden =
           route.kind !== "exercise" || mode !== definition.mode;
       $("#flashcards").hidden = route.kind !== "exercise" || isLiveMode(mode);
+      $("#practice-content").classList.toggle(
+        "hymn-layout",
+        route.kind === "exercise" && mode === "sight",
+      );
+      $("#practice-content").classList.toggle(
+        "piano-layout-wide",
+        route.kind === "exercise" && mode === "piano",
+      );
       const current = exercise(mode);
       $("#page-area").textContent =
         route.kind === "settings" || route.kind === "not-found"

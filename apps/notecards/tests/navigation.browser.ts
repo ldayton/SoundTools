@@ -173,7 +173,7 @@ try {
     const options = page.locator("#exercise-content .practice-options:visible");
     await options.waitFor();
     if (!(await options.evaluate((e: HTMLDetailsElement) => e.open)))
-      await options.locator("summary").click();
+      await options.locator(":scope > summary").click();
     const task = page.locator(".practice:visible,.sequence-practice:visible");
     assert.ok((await options.boundingBox())!.y < (await task.boundingBox())!.y);
     const fields = await options
@@ -211,7 +211,7 @@ try {
         .click();
     }
     if (mode === "rhythm") {
-      await page.getByRole("button", { name: "Start", exact: true }).click();
+      await page.locator(".rhythm-start").click();
       await page.getByRole("button", { name: "Stop", exact: true }).click();
       assert.match(
         (await page.locator(".sequence-feedback:visible").textContent())!,

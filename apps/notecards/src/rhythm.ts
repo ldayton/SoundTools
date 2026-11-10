@@ -1,5 +1,3 @@
-import { loadPreferences, savePreferences } from "./preferences";
-import { mergeRhythmSettings, RHYTHM_TEMPOS } from "./rhythm-model";
 import type { InputPolicy, Interruption } from "./live-practice";
 import { mountPracticeOptions } from "./practice-controls";
 import type { NoteTimingEvent } from "abcjs";
@@ -12,10 +10,14 @@ import {
 } from "./rhythm-model";
 import { drawPracticeScore, highlightScore } from "./practice-score";
 import { diagnostics } from "./diagnostics";
-const STORAGE = "soundtools:notecards:rhythm:v1";
+import { mergeRhythmSettings } from "./rhythm-model";
+import { persistence } from "./persistence";
 export class RhythmPractice {
-  private resizeFrame = 0;
+  readonly midiSlot: HTMLElement;
   private active = false;
+  private result:
+    | { hits: number[]; total: number; missed: number; extras: number }
+    | undefined;
   private state: "ready" | "countin" | "playing" | "complete" = "ready";
   private bpm = 80;
   private level: RhythmLevel = "pulse";
@@ -32,13 +34,52 @@ export class RhythmPractice {
     private element: HTMLElement,
     private changed: () => void,
   ) {
-    const saved = loadPreferences(STORAGE, {bpm:this.bpm,level:this.level}, mergeRhythmSettings);
-    this.bpm = saved.bpm; this.level = saved.level;
-    element.innerHTML = `<div class="practice-controls"><label>Rhythm<select id="rhythm-level"><option value="pulse">Steady quarter notes</option><option value="long-short">Long & short notes</option><option value="eighths">Eighth notes & rests</option></select></label><label>Tempo<select id="rhythm-tempo">${RHYTHM_TEMPOS
+    try {
+      const s = (persistence.read<any>("rhythm") ||
+        persistence.state.legacy.rhythm) as any;
+      if (
+        s?.version === 1 &&
+        Array.isArray(s.bars) &&
+        s.bars.length === 4 &&
+        s.bars.every(
+          (b: any) =>
+            Array.isArray(b) &&
+            b.length > 0 &&
+            b.every((n: any) => [0.5, 1, 2].includes(n?.beats)) &&
+            b.reduce((sum: number, n: any) => sum + n.beats, 0) === 4,
+        )
+      ) {
+        this.bars = structuredClone(s.bars);
+        if (
+          s.result &&
+          Array.isArray(s.result.hits) &&
+          s.result.hits.every(
+            (n: any) => Number.isInteger(n) && n >= 0 && n < 32,
+          ) &&
+          [s.result.total, s.result.missed, s.result.extras].every(
+            (n: any) => Number.isSafeInteger(n) && n >= 0,
+          )
+        ) {
+          this.result = structuredClone(s.result);
+          this.state = "complete";
+        }
+      }
+      const settings = mergeRhythmSettings(
+        { bpm: this.bpm, level: this.level },
+        s,
+      );
+      this.bpm = settings.bpm;
+      this.level = settings.level;
+    } catch {}
+    element.innerHTML = `<div class="practice-controls"><label>Rhythm<select id="rhythm-level"><option value="pulse">Steady quarter notes</option><option value="long-short">Long & short notes</option><option value="eighths">Eighth notes & rests</option></select></label><label>Tempo<select id="rhythm-tempo">${Array.from(
+      { length: 25 },
+      (_, i) => 40 + i * 5,
+    )
       .map((n) => `<option value="${n}">${n} BPM</option>`)
       .join(
         "",
-      )}</select></label></div><section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><button class="rhythm-tap" disabled>Tap</button><div class="sequence-transport"><button class="rhythm-start primary">Start</button><button class="rhythm-new">New rhythm</button></div></section>`;
+      )}</select></label></div><section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><button class="rhythm-tap" disabled>Tap</button><div class="sequence-transport"><button class="rhythm-start">Start</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
+    this.midiSlot = this.$(".rhythm-midi-slot");
     mountPracticeOptions(
       element,
       [this.$(".practice-controls")],
@@ -99,23 +140,22 @@ export class RhythmPractice {
         this.answer(60);
       }
     });
-    new ResizeObserver(() => {
-      cancelAnimationFrame(this.resizeFrame);
-      this.resizeFrame = requestAnimationFrame(() => {
+    new ResizeObserver(() =>
+      requestAnimationFrame(() => {
         const w = this.$(".sequence-score").clientWidth;
         if (this.active && w > 0 && Math.abs(w - this.width) > 2) {
-          if (this.state === "playing" || this.state === "countin")
-            this.interrupt("controls");
-          this.render();
+          this.render(true);
         }
-      });
-    }).observe(this.$(".sequence-score"));
+      }),
+    ).observe(this.$(".sequence-score"));
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;
   }
   get inputPolicy(): InputPolicy {
-    return this.active && (this.state === "countin" || this.state === "playing")
+    return persistence.writable &&
+      this.active &&
+      (this.state === "countin" || this.state === "playing")
       ? "answer"
       : "none";
   }
@@ -137,21 +177,34 @@ export class RhythmPractice {
         "Stopped. Start again when you’re ready.";
     }
   }
-  private save() { savePreferences(STORAGE, {bpm:this.bpm,level:this.level}); }
+  private save() {
+    persistence.write("rhythm", {
+      version: 1,
+      bpm: this.bpm,
+      level: this.level,
+      bars: this.bars,
+      result: this.result,
+    });
+  }
   private stop() {
     cancelAnimationFrame(this.frame);
     this.state = "ready";
+    this.result = undefined;
     this.attempt = undefined;
     this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
     this.$(".rhythm-start").textContent = "Start";
     this.beat = this.step = -1;
-    highlightScore(this.$(".rhythm-paper"), undefined, this.$(".sequence-score"));
+    highlightScore(
+      this.$(".rhythm-paper"),
+      undefined,
+      this.$(".sequence-score"),
+    );
     this.element
       .querySelectorAll(".is-beat")
       .forEach((e) => e.classList.remove("is-beat"));
     this.changed();
   }
-  private render() {
+  private render(layoutOnly = false) {
     this.width = this.$(".sequence-score").clientWidth;
     if (!this.width) return;
     try {
@@ -160,8 +213,11 @@ export class RhythmPractice {
         `X:1\nM:4/4\nL:1/8\nK:C clef=perc stafflines=1\n${this.bars.map((bar) => bar.map((n) => (n.rest ? "z" : "B") + n.beats * 2).join(" ")).join(" | ")} |]\n`,
         this.width,
       );
-      this.$(".sequence-feedback").textContent =
-        "Two bars to count in, then your turn.";
+      if (!layoutOnly)
+        this.$(".sequence-feedback").textContent =
+          "Two bars to count in, then your turn.";
+      if (this.result) this.showResult();
+      if (!layoutOnly) this.save();
     } catch (e) {
       this.$(".sequence-feedback").textContent =
         "The rhythm couldn’t load. Try a new rhythm.";
@@ -182,6 +238,7 @@ export class RhythmPractice {
       .querySelectorAll(".rhythm-hit,.rhythm-missed")
       .forEach((e) => e.classList.remove("rhythm-hit", "rhythm-missed"));
     this.changed();
+    this.save();
     this.tick();
   }
   private tick = () => {
@@ -197,7 +254,8 @@ export class RhythmPractice {
     if (!counting && this.state === "countin") {
       this.state = "playing";
       this.$<HTMLButtonElement>(".rhythm-tap").disabled = false;
-      this.$(".sequence-feedback").textContent = "Your turn. Keep a steady pulse.";
+      this.$(".sequence-feedback").textContent =
+        "Your turn. Keep a steady pulse.";
       this.changed();
     }
     const beat = Math.floor(
@@ -250,19 +308,35 @@ export class RhythmPractice {
     if (!this.attempt) return;
     this.state = "complete";
     this.$<HTMLButtonElement>(".rhythm-tap").disabled = true;
-    highlightScore(this.$(".rhythm-paper"), undefined, this.$(".sequence-score"));
+    highlightScore(
+      this.$(".rhythm-paper"),
+      undefined,
+      this.$(".sequence-score"),
+    );
+    this.result = {
+      hits: [...this.attempt.hits.keys()],
+      total: this.attempt.times.length,
+      missed: this.attempt.missed,
+      extras: this.attempt.extras,
+    };
+    this.showResult();
+    this.save();
+  }
+  private showResult() {
+    if (!this.result) return;
+    this.state = "complete";
     this.events.forEach((event, i) =>
       (event.elements || [])
         .flat()
         .filter(Boolean)
         .forEach((e) =>
           e.classList.add(
-            this.attempt!.hits.has(i) ? "rhythm-hit" : "rhythm-missed",
+            this.result!.hits.includes(i) ? "rhythm-hit" : "rhythm-missed",
           ),
         ),
     );
     this.$(".sequence-feedback").textContent =
-      `${this.attempt.hits.size} of ${this.attempt.times.length} on the beat · ${this.attempt.missed} missed · ${this.attempt.extras} extra`;
+      `${this.result.hits.length} of ${this.result.total} on the beat · ${this.result.missed} missed · ${this.result.extras} extra`;
     this.$(".rhythm-start").textContent = "Start again";
     this.changed();
   }

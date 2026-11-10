@@ -16,11 +16,21 @@ export class FlashcardSessions {
     pool: (Card | GuitarCard)[],
     progress: Progress,
     profile: Profile,
+    checkpoint?: unknown,
+    rejected?: (checkpoint: unknown) => void,
   ) {
     const prefix =
       (mode === "piano" ? "piano-" + (profile.pianoPrompt || "staff") : mode) +
       ":";
-    const session = new PracticeSession(pool, progress, prefix);
+    const saved = checkpoint as
+      { version?: number; settings?: string; session?: unknown } | undefined;
+    const restored =
+      saved?.version === 1 && saved.settings === JSON.stringify(profile)
+        ? PracticeSession.restore(pool, progress, prefix, saved.session)
+        : null;
+    if (saved && saved.settings === JSON.stringify(profile) && !restored)
+      rejected?.(checkpoint);
+    const session = restored || new PracticeSession(pool, progress, prefix);
     this.remember(mode, session, profile);
     return session;
   }

@@ -7,6 +7,8 @@
     "dev": "vite --host 127.0.0.1 --port 4320 --strictPort",
     "build": "tsc --noEmit && vite build",
     "test": "tsx --test tests/*.test.ts",
+    "test:hymn-keys": "tsx tests/hymn-key.browser.ts",
+    "test:workspace": "tsx tests/workspace.browser.ts",
     "test:browser": "tsx tests/browser.ts",
     "test:signatures": "tsx tests/key-signatures.browser.ts",
     "test:midi": "tsx tests/midi.browser.ts",
@@ -19,7 +21,8 @@
     "import:hymns": "tsx scripts/import-hymns.ts",
     "test:sight": "tsx tests/sight-reading.browser.ts",
     "test:practice": "tsx tests/piano-practice.browser.ts",
-    "test:navigation": "tsx tests/navigation.browser.ts"
+    "test:navigation": "tsx tests/navigation.browser.ts",
+    "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",

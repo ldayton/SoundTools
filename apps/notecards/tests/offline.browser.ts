@@ -134,7 +134,7 @@ try {
   // A new untouched page opens the latest verified generation.
   const fresh = await context.newPage();
   await fresh.goto(base);
-  await fresh.locator('[data-letter="E"]:enabled').waitFor();
+  await fresh.locator("#persistence-notice").waitFor();
   await fresh.waitForFunction(
     (v) =>
       document
@@ -152,6 +152,7 @@ try {
     );
   }
   console.log("new page latest ready");
+  await page.close();
   // No connection: reload, notation fonts, grading, options, and progress all work.
   await context.setOffline(true);
   networkDown = true;

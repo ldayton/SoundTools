@@ -26,7 +26,7 @@ export async function practiceOption(
 ) {
   const scope = page.locator("#exercise-content .practice-options:visible");
   if (!(await scope.evaluate((e: HTMLDetailsElement) => e.open)))
-    await scope.locator("summary").click();
+    await scope.locator(":scope > summary").click();
   if (selector === "#low" || selector === "#high") {
     const input = page.locator(`#staff-${selector.slice(1)}-spin`);
     await input.click();
@@ -35,4 +35,10 @@ export async function practiceOption(
       .getByRole("button", { name: value, exact: true })
       .click();
   } else await page.locator(selector).selectOption(value);
+}
+
+export async function closePracticeOptions(page: Page) {
+  const scope = page.locator("#exercise-content .practice-options:visible");
+  if (await scope.evaluate((e: HTMLDetailsElement) => e.open))
+    await scope.locator(":scope > summary").click();
 }

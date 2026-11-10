@@ -28,7 +28,7 @@ export function mountFlashcardView(element: HTMLElement, roundLength: number) {
     .join(
       "",
     )}</fieldset><div class="range">${(["minFret", "maxFret"] as const).map((f) => `<label>${f === "minFret" ? "Lowest fret" : "Highest fret"}<select id="${f}">${Array.from({ length: 13 }, (_, i) => `<option value="${i}">${i === 0 ? "0 · Open" : i}</option>`).join("")}</select></label>`).join("")}</div><p class="tuning">Standard tuning · E A D G B E</p></div>
-</div><p id="saved" class="saved">Progress remembered on this device.</p></div><section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${roundLength}" value="0" aria-label="Session progress"></progress>
+</div></div><section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${roundLength}" value="0" aria-label="Session progress"></progress>
 <div id="question"><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
 <div class="answer-line"><span id="feedback" role="status" aria-live="polite">Loading notation…</span></div>
@@ -38,7 +38,7 @@ export function mountFlashcardView(element: HTMLElement, roundLength: number) {
     .join("")}</div></div>
 
 <p class="hint piano-hint" hidden>Choose the matching piano key.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p><p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
-<div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
+<button id="feedback-next" hidden>Next question →</button><button id="restart-round" type="button">Start round again</button><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
 `;
   mountPracticeOptions(
     element.querySelector<HTMLElement>(".below")!,

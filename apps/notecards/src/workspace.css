@@ -1,0 +1,176 @@
+.hymn-tools {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.hymn-tools > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+.hymn-tools button {
+  padding: 8px 10px;
+  border: 1px solid #d7d1e0;
+  border-radius: 7px;
+  background: #fcfaf5;
+  color: inherit;
+  font-size: 12px;
+  min-height: 34px;
+}
+.sequence-transport {
+  margin: 0;
+  gap: 6px;
+}
+.sequence-transport .hymn-pause {
+  background: #ece6f3;
+  color: #504365;
+}
+.hymn-source {
+  position: relative;
+  margin: 0;
+  padding: 8px;
+  border: 0;
+  font-size: 12px;
+  max-width: 400px;
+}
+.hymn-source[open] {
+  flex-basis: 100%;
+  background: #eee9de;
+  border-radius: 8px;
+}
+.hymn-source p {
+  font-size: 12px;
+}
+.sequence-practice {
+  padding: 10px 16px;
+  border-radius: 12px;
+}
+.sequence-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.sequence-top {
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+.hymn-count {
+  margin-left: auto;
+}
+.hymn-scroll-hint {
+  margin: 0;
+  font-size: 11px;
+}
+.hymn-progress {
+  margin: 0;
+  height: 3px;
+}
+#sight-reading .sequence-score {
+  height: clamp(280px, calc(100dvh - 360px), 750px);
+  max-height: none;
+}
+#sight-reading:has(.hymn-screen[open]) .sequence-score {
+  height: clamp(240px, calc(100dvh - 450px), 650px);
+}
+.hymn-layout .sequence-feedback,
+.hymn-layout .sequence-practice[data-arrangement="melody"] .sequence-feedback {
+  height: auto;
+  min-height: 34px;
+  max-height: 64px;
+  overflow: auto;
+  margin: 6px 0;
+  padding: 6px 10px;
+  border-width: 1px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.hymn-screen {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.hymn-screen > summary,
+.hymn-screen-hint {
+  display: none;
+}
+.hymn-piano .piano-layout {
+  margin: 0 auto;
+}
+#patterns-practice,
+#rhythm-practice {
+  max-width: 1000px;
+  margin: auto;
+}
+#patterns-practice .sequence-score,
+#rhythm-practice .sequence-score {
+  max-height: 320px;
+}
+
+@media (max-width: 600px) {
+  .piano-layout {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  #sight-reading .sequence-score,
+  #sight-reading:has(.hymn-screen[open]) .sequence-score {
+    height: var(--phone-score-height, 260px);
+  }
+  .sequence-practice {
+    padding: 8px;
+  }
+}
+.piano-landmark {
+  position: absolute;
+  bottom: 7px;
+  left: 0;
+  width: 100%;
+  font-size: 10px;
+  color: #8b8296;
+  pointer-events: none;
+}
+.sequence-top {
+  flex-wrap: wrap;
+}
+.hymn-range-hint {
+  color: #71351f;
+  font-weight: 600;
+}
+#persistence-notice {
+  margin: 12px 24px;
+  color: #71351f;
+}
+#restart-round,
+#feedback-next {
+  margin: 10px 16px;
+  padding: 7px 10px;
+  border: 1px solid #d7d1e0;
+  border-radius: 7px;
+  background: #fcfaf5;
+  color: inherit;
+  font-size: 12px;
+}
+
+.piano-layout-wide .practice {
+  max-width: none;
+}
+.piano-question #notation {
+  width: min(100%, 360px);
+  padding: 14px 0;
+  margin-inline: auto;
+}
+.piano-question #notation svg {
+  width: 100%;
+  height: auto;
+  max-width: 360px;
+  max-height: 380px;
+}

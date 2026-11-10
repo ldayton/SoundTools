@@ -162,3 +162,43 @@ test("deployment rewrites cover every registered route scope and exclude asset r
     ),
   );
 });
+
+test("durable flashcard checkpoints restore exact feedback and retain rejected payloads for recovery", () => {
+  const progress = defaultProgress(),
+    settings = progress.profiles.staff,
+    pool = deck(settings);
+  const rounds = new FlashcardSessions();
+  const original = rounds.create("staff", pool, progress, settings);
+  original.next(() => 0);
+  original.submit(false);
+  original.feedback = { correct: false, text: "Try E" };
+  const checkpoint = {
+    version: 1,
+    settings: JSON.stringify(settings),
+    session: original.snapshot(),
+  };
+  const restored = new FlashcardSessions().create(
+    "staff",
+    pool,
+    progress,
+    settings,
+    checkpoint,
+  );
+  assert.deepEqual(restored.snapshot(), original.snapshot());
+  let rejected: unknown;
+  const damaged = {
+    ...checkpoint,
+    session: { ...checkpoint.session, current: "missing" },
+  };
+  const fresh = rounds.create(
+    "staff",
+    pool,
+    progress,
+    settings,
+    damaged,
+    (value) => (rejected = value),
+  );
+  assert.equal(rejected, damaged);
+  assert.equal(fresh.current, null);
+  assert.equal(damaged.session.current, "missing");
+});

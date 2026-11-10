@@ -233,6 +233,10 @@ try {
       document.querySelector("#offline-status")?.textContent ===
       "Available offline",
   );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   await context.setOffline(true);
   await page.reload();
   await ready();
@@ -265,7 +269,9 @@ try {
   );
   assert.ok(await fallback.locator('[data-piano="60"]').isVisible());
   await unsupported.close();
-  // The full range stays available through MIDI without enlarging the on-screen piano.
+  // A phone still grades the full range through MIDI outside its visible keys.
+  await page.setViewportSize({ width: 390, height: 844 });
+
   await page.bringToFront();
   await off(60);
   await page.getByText("Practice options", { exact: true }).click();

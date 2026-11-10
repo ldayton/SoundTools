@@ -77,7 +77,7 @@ try {
   const choose = async (title: string) => {
     const options = page.locator("#sight-reading .practice-options");
     if (!(await options.evaluate((e: HTMLDetailsElement) => e.open)))
-      await options.locator("summary").click();
+      await options.locator(":scope > summary").click();
     await input.click();
     await input.fill(title);
     await page.locator("#hymn-results [role=option]").first().waitFor();
@@ -113,7 +113,7 @@ try {
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
   assert.match(
     (await page.locator(".sequence-feedback").textContent())!,
-    /Try again/,
+    /D♭4.*D4/,
   );
   await off(61);
   await send([0x90, 62, 100], true);
@@ -132,9 +132,13 @@ try {
   await on(71);
   assert.equal(await page.locator(".hymn-count").textContent(), "4 / 35");
   for (const n of [62, 67, 71]) await off(n);
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   await page.reload();
   await page.locator(".hymn-count").filter({ hasText: "4 / 35" }).waitFor();
-  await page.locator(".hymn-screen summary").click();
+  await page.locator(".hymn-keyboard-toggle").click();
   await page.locator('.hymn-piano [data-piano="67"]').click();
   assert.equal(await page.locator(".hymn-count").textContent(), "5 / 35");
   await practiceOption(page, "#hymn-arrangement", "original");
@@ -146,6 +150,8 @@ try {
     .waitFor({ state: "attached" });
   for (const n of [43, 55, 59]) await on(n);
   assert.equal(await page.locator(".hymn-count").textContent(), initial);
+  await page.setViewportSize({ width: 1200, height: 1000 });
+  await page.waitForTimeout(200);
   await on(62);
   assert.match((await page.locator(".hymn-count").textContent())!, /^2 \/ /);
   for (const n of [43, 55, 59, 62]) await off(n);
@@ -158,7 +164,7 @@ try {
   assert.match((await page.locator(".hymn-count").textContent())!, /^2 \/ /);
   assert.equal(await page.locator(".sight-key-selected").count(), 0);
   // All songs in both arrangements must render with lyrics, at desktop and phone widths.
-  for (const width of [1100, 390, 320]) {
+  for (const width of [2048, 1100, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const chords of [false, true]) {
       await page
@@ -166,6 +172,7 @@ try {
         .selectOption(chords ? "original" : "melody");
       for (const hymn of hymns) {
         await choose(hymn.title);
+        await page.locator(".hymn-restart").click();
         assert.match(
           (await page.locator(".hymn-count").textContent())!,
           /^1 \/ [1-9]\d*$/,
@@ -214,7 +221,13 @@ try {
                   Math.abs(previous.box.y - current.box.y) < 2 &&
                   current.box.x - previous.box.right < 4
                 )
-                  collisions.push(previous.text + " / " + current.text);
+                  collisions.push(
+                    previous.text +
+                      " / " +
+                      current.text +
+                      ": " +
+                      (current.box.x - previous.box.right),
+                  );
               }
               return collisions;
             });
@@ -241,7 +254,7 @@ try {
   );
   await choose("Amazing Grace");
   await practiceOption(page, "#hymn-arrangement", "melody");
-  await page.locator(".hymn-screen summary").click(); // close to keep the review screenshot focused on the score
+  await page.locator(".hymn-keyboard-toggle").click(); // close to keep the review screenshot focused on the score
   await mkdir("work", { recursive: true });
   await page.screenshot({
     path: `work/sight-reading-${engine}-mobile.png`,
@@ -293,6 +306,12 @@ try {
       .filter({ hasText: "Jesus Loves Me" })
       .waitFor();
     await choose("Amazing Grace");
+    assert.equal(
+      await page.locator(".hymn-count").textContent(),
+      "Complete",
+      "completed bookmark survives offline reload",
+    );
+    await page.locator(".hymn-restart").click();
     assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
     await context.setOffline(false);
     // A fresh tab can enter hymns for the first time offline: not merely reuse an in-memory module.

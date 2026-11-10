@@ -115,6 +115,7 @@ try {
     (await page.locator(".sequence-feedback:visible").textContent())!,
     /Count-in/,
   );
+  await page.setViewportSize({ width: 900, height: 1000 });
   await page.clock.runFor(4000);
   for (let i = 0; i < 16; i++) {
     await on(60);

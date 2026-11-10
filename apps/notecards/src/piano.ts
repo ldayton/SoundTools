@@ -1,13 +1,24 @@
+import { visiblePianoLayout } from "./piano-layout";
 import { isBlack, keyLabel } from "./piano-model";
 /** Native buttons preserve precise hit testing, focus, and screen-reader access. */
 export class Piano {
   private locked = false;
   private signature = "";
   private focusMidi = 60;
+  private request?: [number, number, boolean];
+  private marked?: [number, number];
+  visibleBounds: [number, number] = [60, 83];
+  contains(midi: number) {
+    return this.buttons().some((b) => Number(b.dataset.piano) === midi);
+  }
   constructor(
     private element: HTMLElement,
     private answer: (midi: number) => void,
+    private rangeChanged: () => void = () => {},
   ) {
+    new ResizeObserver(() => requestAnimationFrame(() => this.draw())).observe(
+      element,
+    );
     element.addEventListener("click", (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>(
         "[data-piano]",
@@ -49,27 +60,49 @@ export class Piano {
   }
   show(low: number, high: number, named: boolean) {
     const hadFocus = this.element.contains(document.activeElement);
-    const signature = `${low}:${high}:${named}`;
-    if (this.signature !== signature) {
-      this.signature = signature;
+    this.request = [low, high, named];
+    this.locked = false;
+    this.marked = undefined;
+    this.draw();
+    this.focusMidi = this.visibleBounds[0];
+    for (const b of this.buttons()) {
+      b.classList.remove("is-right", "is-wrong", "answer-hover");
+      b.setAttribute("aria-disabled", "false");
+      b.tabIndex = Number(b.dataset.piano) === this.focusMidi ? 0 : -1;
+    }
+    this.rangeChanged();
+    if (hadFocus)
+      this.buttons()
+        .find((b) => Number(b.dataset.piano) === this.focusMidi)
+        ?.focus({ preventScroll: true });
+  }
+  private draw() {
+    if (!this.request) return;
+    const style = getComputedStyle(this.element);
+    const width =
+      this.element.clientWidth -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight);
+    if (width <= 0) return;
+    const [requestedLow, requestedHigh, named] = this.request;
+    const layout = visiblePianoLayout(
+      width,
+      requestedLow,
+      requestedHigh,
+      named,
+      matchMedia("(max-width: 600px)").matches,
+    );
+    const { low, high, rows: ranges, whiteWidth } = layout;
+    const signature = JSON.stringify(layout) + named;
+    if (signature === this.signature) return;
+    const hadFocus = this.element.contains(document.activeElement);
+    const selected = this.buttons()
+      .filter((b) => b.classList.contains("sight-key-selected"))
+      .map((b) => b.dataset.piano);
+    this.signature = signature;
+    this.visibleBounds = [low, high];
+    {
       const rows: string[] = [];
-      const allWhites = Array.from(
-        { length: high - low + 1 },
-        (_, i) => low + i,
-      ).filter((n) => !isBlack(n));
-      const ranges: [number, number][] = [[low, high]];
-      if (allWhites.length > 8) {
-        // Split at a natural gap (E/F or B/C), never through a black key.
-        const splits = allWhites
-          .slice(1)
-          .filter((n) => n % 12 === 0 || n % 12 === 5);
-        const split = splits.sort(
-          (a, b) =>
-            Math.abs(allWhites.indexOf(a) - allWhites.length / 2) -
-            Math.abs(allWhites.indexOf(b) - allWhites.length / 2),
-        )[0];
-        ranges.splice(0, 1, [low, split - 1], [split, high]);
-      }
       for (const [start, end] of ranges) {
         const whites = Array.from(
           { length: end - start + 1 },
@@ -85,25 +118,30 @@ export class Piano {
             const position = black
               ? `left:calc(${index} * var(--white) - var(--black) / 2)`
               : `left:calc(${index} * var(--white))`;
-            return `<button type="button" class="piano-key ${black ? "black-key" : "white-key"}" data-piano="${midi}" aria-label="${keyLabel(midi, !named)}" tabindex="-1" style="${position}"></button>`;
+            return `<button type="button" class="piano-key ${black ? "black-key" : "white-key"}" data-piano="${midi}" aria-label="${keyLabel(midi, !named)}" tabindex="-1" style="${position}">${midi % 12 === 0 ? `<span class="piano-landmark">C${Math.floor(midi / 12) - 1}</span>` : ""}</button>`;
           })
           .join("");
         rows.push(
-          `<div class="piano-octave" style="--whites:${whites.length}"><div class="piano-keys">${keys}</div></div>`,
+          `<div class="piano-octave" style="--whites:${whites.length};--white:${whiteWidth}px;width:${whites.length * whiteWidth}px"><div class="piano-keys">${keys}</div></div>`,
         );
       }
       this.element.innerHTML = `<div class="piano-layout ${named ? "piano-named" : "piano-staff"}" role="group" aria-label="Piano answer keys">${rows.join("")}</div>`;
     }
-    this.locked = false;
-    this.focusMidi = low;
-    for (const button of this.buttons()) {
-      button.classList.remove("is-right", "is-wrong", "answer-hover");
-      button.setAttribute("aria-disabled", "false");
-      button.tabIndex =
-        Number(button.dataset.piano) === this.focusMidi ? 0 : -1;
-    }
-    // Do not leave keyboard focus identifying the previous answer on the next card.
-    if (hadFocus) this.buttons()[0]?.focus({ preventScroll: true });
+    if (!this.contains(this.focusMidi)) this.focusMidi = low;
+    this.setUnavailable(this.locked);
+    for (const b of this.buttons())
+      b.tabIndex = Number(b.dataset.piano) === this.focusMidi ? 0 : -1;
+    for (const b of this.buttons())
+      b.classList.toggle(
+        "sight-key-selected",
+        selected.includes(b.dataset.piano),
+      );
+    if (this.marked) this.feedback(...this.marked);
+    if (hadFocus)
+      this.buttons()
+        .find((b) => Number(b.dataset.piano) === this.focusMidi)
+        ?.focus({ preventScroll: true });
+    this.rangeChanged();
   }
   setUnavailable(unavailable: boolean) {
     this.locked = unavailable;
@@ -112,6 +150,7 @@ export class Piano {
   }
   feedback(selected: number, correct: number) {
     this.locked = true;
+    this.marked = [selected, correct];
     for (const button of this.buttons()) {
       const midi = Number(button.dataset.piano);
       button.setAttribute("aria-disabled", "true");

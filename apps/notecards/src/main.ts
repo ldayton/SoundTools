@@ -28,7 +28,8 @@ import {
   locationLabel,
   type GuitarCard,
 } from "./guitar";
-import { loadProgress, STORAGE_KEY } from "./progress";
+import { defaultProgress } from "./progress";
+import { persistence } from "./persistence";
 import { PracticeSession } from "./session";
 import {
   signatureDeck,
@@ -50,6 +51,7 @@ import {
 } from "./piano-model";
 import { Fretboard } from "./fretboard";
 import "./style.css";
+import "./workspace.css";
 import "./styles/controls.css";
 import { setupOffline } from "./offline";
 import {
@@ -71,11 +73,7 @@ const activePractice = () => activities.active;
 const sessions = new FlashcardSessions();
 let fontsReady = false;
 let returnBoardFocus = false;
-let raw: string | null = null;
-try {
-  raw = localStorage.getItem(STORAGE_KEY);
-} catch {}
-const progress = loadProgress(raw);
+let progress = defaultProgress();
 let route = readRoute(new URL(location.href), progress.mode);
 if (route.kind === "exercise") progress.mode = route.mode;
 function routePreferences(value: PracticeRoute) {
@@ -120,6 +118,7 @@ const shell = mountAppShell($("#app"), {
 });
 mountFlashcardView($("#flashcards"), progress.roundLength);
 mountDiagnostics($(".privacy-settings"));
+document.querySelector("main")!.inert = true;
 const board = new Fretboard($("#fretboard"), answerLocation);
 const rangePickers = [
   ...(["low", "high"] as const).map((field) => ({
@@ -148,7 +147,7 @@ const rangePickers = [
     positions,
   ),
 }));
-const piano = new Piano($("#piano"), answerPiano);
+const piano = new Piano($("#piano"), answerPiano, refreshPianoRange);
 const midi = mountMidiPanel(
   $("#midi-panel"),
   (note) => {
@@ -166,7 +165,8 @@ midi.setPerformanceListener((note, held, timestamp) => {
 });
 function refreshMidiAcceptance() {
   midi.setAccepting(
-    route.kind === "exercise" &&
+    persistence.writable &&
+      route.kind === "exercise" &&
       !shell.inputBlocked &&
       ((progress.mode === "piano" && phase === "question") ||
         (isLiveMode(progress.mode) &&
@@ -176,13 +176,32 @@ function refreshMidiAcceptance() {
       document.hasFocus(),
   );
 }
+function refreshPianoRange() {
+  if (progress.mode !== "piano") return;
+  const named = profile().pianoPrompt === "name";
+  const [low, high] = piano.visibleBounds;
+  const outside =
+    !named && pianoDeck(profile()).some((card) => !piano.contains(pitch(card)));
+  $("#piano-range-notice").hidden = !outside;
+  $("#piano-range-notice").textContent =
+    `On-screen keys: ${keyLabel(low)}–${keyLabel(high)}. Notes outside these keys require MIDI keyboard input.`;
+  const required =
+    !named && !!session?.current && !piano.contains(pitch(session.current));
+  piano.setUnavailable(phase !== "question" || required);
+  $("#piano-midi-required").hidden = !required;
+  $("#piano-midi-required").textContent =
+    "MIDI keyboard required — this note is outside the on-screen keys. Play it on your connected keyboard, or change the practice range.";
+  $(".piano-hint").hidden = required;
+}
 function save() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  } catch {
-    diagnostics.offline("storage", "failed", { cacheReason: "storage" });
-    $("#saved").textContent = "Progress can’t be saved in this browser.";
-  }
+  if (!persistence.writable) return Promise.resolve(false);
+  if (!isLiveMode(progress.mode) && session)
+    persistence.state.activities[progress.mode] = {
+      version: 1,
+      settings: JSON.stringify(profile()),
+      session: session.snapshot(),
+    };
+  return persistence.save();
 }
 function setModifier(value: Modifier) {
   modifier = value;
@@ -246,16 +265,6 @@ function syncOptions() {
     "aria-label",
     isPiano ? "Piano pitch range" : "Sounding guitar pitch range",
   );
-  const [screenLow, screenHigh] = isPiano ? pianoBounds(p) : [60, 83];
-  const midiOnlyRange =
-    isPiano &&
-    p.pianoPrompt !== "name" &&
-    pianoDeck(p).some(
-      (card) => pitch(card) < screenLow || pitch(card) > screenHigh,
-    );
-  $("#piano-range-notice").hidden = !midiOnlyRange;
-  $("#piano-range-notice").textContent =
-    `On-screen keys: ${keyLabel(screenLow)}–${keyLabel(screenHigh)}. Notes outside these keys require MIDI keyboard input. Connect your keyboard or choose a smaller range to answer on screen.`;
   $("#guitar-options").hidden =
     progress.mode === "staff" || isPiano || isSignature;
   $("#key-setting").hidden = progress.mode === "name" || isSignature;
@@ -322,7 +331,10 @@ function renderQuestion(card: Card | GuitarCard) {
     );
     drawKeySignature($<HTMLDivElement>("#notation"), signature.signature);
   } else if (isPiano && notation) {
-    const representation = pianoNotation(card, profile());
+    const representation = (session.representation ||= pianoNotation(
+      card,
+      profile(),
+    ));
     const label =
       representation.layout === "grand"
         ? "Grand staff"
@@ -364,12 +376,7 @@ function renderQuestion(card: Card | GuitarCard) {
     const named = profile().pianoPrompt === "name";
     const [low, high] = pianoBounds(profile());
     piano.show(low, high, named);
-    const midiRequired = !named && (pitch(card) < low || pitch(card) > high);
-    piano.setUnavailable(midiRequired);
-    $("#piano-midi-required").hidden = !midiRequired;
-    $("#piano-midi-required").textContent =
-      "MIDI keyboard required — this note is outside the on-screen keys. Play it on your connected keyboard, or change the practice range.";
-    $(".piano-hint").hidden = midiRequired;
+    refreshPianoRange();
     $("#target-name").textContent = name(card);
     $("#target-string").textContent = "";
   } else if (mode !== "staff" && !isSignature) {
@@ -393,10 +400,16 @@ function renderQuestion(card: Card | GuitarCard) {
   diagnostics.metric("practice.render_ms", performance.now() - renderStarted);
 }
 function next() {
+  clearTimeout(timer);
+  if (!persistence.writable) return;
+  $("#feedback-next").hidden = true;
   pendingNext = false;
   const card = session.next();
   if (!card) {
-    if (session.complete) finish();
+    if (session.complete) {
+      finish();
+      save();
+    }
     return;
   }
   phase = "question";
@@ -404,6 +417,7 @@ function next() {
   setModifier(0);
   clearAnswerHover();
   renderQuestion(card);
+  save();
   if (
     returnBoardFocus &&
     isLocationMode(progress.mode) &&
@@ -427,24 +441,44 @@ function finish(announce = true) {
   $("#continue").focus({ preventScroll: true });
 }
 function feedback(correct: boolean, text: string) {
-  if (!session.submit(correct)) return;
+  if (!persistence.writable || !session.submit(correct)) return;
+  session.feedback = { correct, text };
   phase = "feedback";
   syncDiagnosticsContext();
   diagnostics.event(correct ? "answer.correct" : "answer.incorrect");
-  save();
+  const committed = save();
   enableAnswers(false);
   $("#feedback").textContent = text;
   $("#feedback").className = correct ? "correct" : "incorrect";
   $<HTMLProgressElement>("#progress").value = session.answered;
-  timer = setTimeout(
-    () => {
-      if (document.hidden) pendingNext = true;
-      else next();
-    },
-    correct ? 450 : 1600,
-  );
+  $("#feedback-next").hidden = false;
+  const answeredSession = session,
+    answerNumber = session.answered;
+  void committed.then((saved) => {
+    if (
+      !saved ||
+      session !== answeredSession ||
+      session.answered !== answerNumber ||
+      phase !== "feedback"
+    )
+      return;
+    timer = setTimeout(
+      () => {
+        if (
+          !document.hidden &&
+          document.hasFocus() &&
+          session === answeredSession &&
+          session.answered === answerNumber &&
+          phase === "feedback"
+        )
+          next();
+      },
+      correct ? 450 : 1600,
+    );
+  });
 }
 function answerName(letter: Letter) {
+  if (!persistence.writable) return;
   if (
     route.kind !== "exercise" ||
     shell.inputBlocked ||
@@ -471,6 +505,7 @@ function answerName(letter: Letter) {
   );
 }
 function answerLocation(string: number, fret: number, keyboard: boolean) {
+  if (!persistence.writable) return;
   if (
     route.kind !== "exercise" ||
     shell.inputBlocked ||
@@ -505,6 +540,7 @@ function answerLocation(string: number, fret: number, keyboard: boolean) {
   );
 }
 function answerPiano(midi: number) {
+  if (!persistence.writable) return;
   if (phase !== "question" || progress.mode !== "piano" || !session.current)
     return;
   const card = session.current;
@@ -520,8 +556,9 @@ function answerPiano(midi: number) {
       : `That’s ${target}. You chose ${keyLabel(midi, !named)}.`,
   );
 }
-function start(continuing = false, restoring = false) {
+function start(continuing = false, restoring = false, restart = false) {
   clearTimeout(timer);
+  $("#feedback-next").hidden = true;
   pendingNext = false;
   syncOptions();
   void activities.activate(route);
@@ -550,8 +587,31 @@ function start(continuing = false, restoring = false) {
         : progress.mode === "signature"
           ? signatureDeck(profile().signaturePractice)
           : guitarQuestions(progress.mode, profile());
-  if (!restoring && (!continuing || !session?.continueRound()))
-    session = sessions.create(progress.mode, pool, progress, profile());
+  if (!restoring && (!continuing || !session?.continueRound())) {
+    const cached = !restart
+      ? sessions.restore(progress.mode, profile(), progress.roundLength)
+      : undefined;
+    session =
+      cached?.session ||
+      sessions.create(
+        progress.mode,
+        pool,
+        progress,
+        profile(),
+        !restart ? persistence.read(progress.mode) : undefined,
+        (checkpoint) => {
+          persistence.state.legacy["recovery:" + progress.mode] =
+            structuredClone(checkpoint);
+          $("#persistence-notice").hidden = false;
+          $("#persistence-notice").textContent =
+            "This activity checkpoint could not be restored. Its original data is preserved; this round starts again.";
+        },
+      );
+    restoring = !!session.current || session.complete;
+    phase = session.current ? session.status : "question";
+  }
+  $<HTMLSelectElement>("#roundLength").value = String(session.length);
+  $<HTMLProgressElement>("#progress").max = session.length;
   if (!pool.length) {
     phase = "empty";
     syncDiagnosticsContext();
@@ -571,29 +631,32 @@ function start(continuing = false, restoring = false) {
     $("#counter").textContent = "";
     return;
   }
-  if (restoring && session.complete) {
-    finish(false);
-  } else if (
-    restoring &&
-    session.current &&
-    phase !== "feedback" &&
-    phase !== "complete"
-  ) {
-    phase = "question";
-    $("#counter").textContent = `${session.answered + 1} / ${session.length}`;
+  if (restoring && session.complete) finish(false);
+  else if (restoring && session.current) {
+    phase = session.status === "feedback" ? "feedback" : "question";
+    $("#counter").textContent =
+      `${Math.min(session.answered + (phase === "question" ? 1 : 0), session.length)} / ${session.length}`;
     $<HTMLProgressElement>("#progress").value = session.answered;
     setModifier(0);
     clearAnswerHover();
     renderQuestion(session.current);
-    enableAnswers(true);
+    enableAnswers(phase === "question");
+    $("#feedback-next").hidden = phase !== "feedback";
+    if (phase === "feedback" && session.feedback) {
+      $("#feedback").textContent = session.feedback.text;
+      $("#feedback").className = session.feedback.correct
+        ? "correct"
+        : "incorrect";
+      piano.setUnavailable(true);
+    }
     syncDiagnosticsContext();
   } else {
-    if (!restoring)
-      diagnostics.event("practice.started", {
-        roundLength: progress.roundLength,
-      });
+    diagnostics.event("practice.started", {
+      roundLength: progress.roundLength,
+    });
     next();
   }
+  void save();
 }
 function changed(scope: "exercise" | "all" = "exercise") {
   if (scope === "all") sessions.invalidateAll();
@@ -601,8 +664,10 @@ function changed(scope: "exercise" | "all" = "exercise") {
   writePreferences();
   diagnostics.event("practice.settings_changed");
   syncOptions();
-  save();
-  if (phase !== "loading") start();
+  if (phase !== "loading") {
+    session = undefined!;
+    start(false, false, true);
+  }
 }
 $<HTMLSelectElement>("#roundLength").onchange = (e) => {
   progress.roundLength = Number(
@@ -667,6 +732,12 @@ for (const b of document.querySelectorAll<HTMLButtonElement>("[data-mod]"))
     if (phase === "question") setModifier(Number(b.dataset.mod) as Modifier);
   };
 $("#continue").onclick = () => start(true);
+$("#feedback-next").onclick = () => next();
+$("#restart-round").onclick = () => {
+  if (isFlashcardMode(progress.mode)) sessions.invalidate(progress.mode);
+  session = undefined!;
+  start(false, false, true);
+};
 window.addEventListener("keydown", (event) => {
   // Native button activation also repeats on held Enter: suppress it before mode guards.
   if (
@@ -723,11 +794,14 @@ window.addEventListener("blur", () => {
 });
 window.addEventListener("focus", refreshMidiAcceptance);
 window.addEventListener("pagehide", () => midi.disconnect());
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
 document.addEventListener("visibilitychange", () => {
   activities.interrupt("visibility");
   setModifier(0);
   refreshMidiAcceptance();
-  if (!document.hidden && pendingNext) next();
+  // Feedback never advances while away; Continue is an explicit transition.
 });
 function writePreferences() {
   if (route.kind !== "exercise" || !isFlashcardMode(progress.mode)) return;
@@ -755,6 +829,7 @@ function showMissing() {
   refreshMidiAcceptance();
 }
 function visit(url: URL, push: boolean) {
+  void save();
   if (route.kind === "exercise" && isFlashcardMode(progress.mode) && session)
     sessions.remember(progress.mode, session, profile());
   clearTimeout(timer);
@@ -772,11 +847,8 @@ function visit(url: URL, push: boolean) {
     const cached = isFlashcardMode(route.mode)
       ? sessions.restore(route.mode, profile(), progress.roundLength)
       : undefined;
-    if (cached) {
-      session = cached.session;
-      phase = cached.phase;
-    }
-    save();
+    session = cached?.session!;
+    if (cached) phase = cached.phase;
     if (fontsReady) start(false, !!cached);
     else syncOptions();
     if (progress.mode !== "sight") writePreferences();
@@ -802,7 +874,15 @@ $("#sight-reading").addEventListener("hymn-route", (e) => {
 syncOptions();
 enableAnswers(false);
 document.fonts.ready
-  .then(() => {
+  .then(async () => {
+    await persistence.initialize();
+    progress = persistence.state.progress;
+    document.querySelector("main")!.inert = !persistence.writable;
+    route = readRoute(new URL(location.href), progress.mode);
+    if (route.kind === "exercise") {
+      progress.mode = route.mode;
+      routePreferences(route);
+    }
     VexFlow.setFonts("Bravura", "Academico");
     fontsReady = true;
     if (route.kind === "not-found") showMissing();

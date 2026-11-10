@@ -333,6 +333,7 @@ try {
   await page.evaluate(
     "Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'))",
   );
+  await page.locator("#feedback-next").click();
   await next();
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
   await practiceOption(page, "#roundLength", "24");
@@ -347,6 +348,7 @@ try {
   assert.equal(await page.locator("#result").textContent(), "24 of 24 correct");
   await page.locator("#continue").click();
   assert.equal(await page.locator("#counter").textContent(), "1 / 24");
+  await page.waitForFunction(() => document.querySelector("#saved")?.textContent === "Saved on this device.");
   await page.reload();
   await ready();
   await page.getByText("Practice options", { exact: true }).click();
@@ -387,10 +389,8 @@ try {
   await storagePage.goto(base);
   await storagePage.locator('[data-letter="E"]:enabled').waitFor();
   await storagePage.locator('[data-letter="E"]').click();
-  assert.equal(
-    await storagePage.locator("#saved").textContent(),
-    "Progress can’t be saved in this browser.",
-  );
+  await storagePage.waitForFunction(() => document.querySelector("#saved")?.textContent === "Saved on this device.");
+  assert.ok(await storagePage.locator("#feedback-next").isVisible(), "IndexedDB works when localStorage writes fail");
   await storageContext.close();
   assert.deepEqual(errors, []);
   assert.ok(

@@ -1,3 +1,4 @@
+import { savedProgress } from "./persistence-helper";
 import { practiceOption } from "./navigation-helpers";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
@@ -184,10 +185,8 @@ try {
     path: "work/notecards-keys-mobile.png",
     fullPage: true,
   });
-  const retained = await page.evaluate(() =>
-    localStorage.getItem("soundtools:notecards:v1"),
-  );
-  assert.ok(JSON.parse(retained!).stats["staff:E3:0"].attempts > 0);
+  const retained = await savedProgress(page);
+  assert.ok(retained.stats["staff:E3:0"].attempts > 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: notation, desktop modifier-first input, enharmonics, answer guard, full session, continuation, mobile controls, saved progress and no page errors.",

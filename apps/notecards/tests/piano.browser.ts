@@ -1,3 +1,4 @@
+import { savedProgress } from "./persistence-helper";
 import { practiceOption, selectPractice } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -52,9 +53,12 @@ try {
           ?.getAttribute("aria-disabled") === "false",
     );
   assert.equal(await page.locator("#context").textContent(), "Piano · C major");
-  assert.equal(await page.locator(".piano-key").count(), 24);
-  assert.equal(await page.locator(".white-key").count(), 14);
-  assert.equal(await page.locator(".black-key").count(), 10);
+  assert.ok((await page.locator(".piano-key").count()) > 24);
+  assert.equal(
+    (await page.locator(".white-key").first().boundingBox())!.width,
+    32,
+  );
+  assert.ok((await page.locator(".black-key").count()) > 10);
   assert.ok(await page.locator("#fretboard").isHidden());
   assert.ok(await page.locator(".keyboard").isHidden());
   const rowBoxes = await page.locator(".piano-octave").evaluateAll((els) =>
@@ -63,8 +67,7 @@ try {
       return { x: b.x, y: b.y, w: b.width };
     }),
   );
-  assert.equal(rowBoxes[0].y, rowBoxes[1].y);
-  assert.ok(Math.abs(rowBoxes[0].x + rowBoxes[0].w - rowBoxes[1].x) < 1);
+  assert.equal(rowBoxes.length, 1);
   await key(72).click(); // C5 is not C4 in staff mode.
   assert.match((await page.locator("#feedback").textContent())!, /That’s C4/);
   assert.ok(await key(60).evaluate((e) => e.classList.contains("is-right")));
@@ -92,9 +95,7 @@ try {
     0,
   );
   await page.evaluate(() => (Math.random = () => 0));
-  const saved = await page.evaluate(() =>
-    JSON.parse(localStorage.getItem("soundtools:notecards:v1")!),
-  );
+  const saved = await savedProgress(page);
   assert.equal(saved.profiles.piano.pianoPrompt, "name");
   await page.reload();
   await ready();
@@ -117,14 +118,7 @@ try {
   assert.match((await page.locator("#feedback").textContent())!, /Yes — B♭5/);
   await ready();
   // Staff and name profiles do not share review history.
-  assert.ok(
-    await page.evaluate(
-      () =>
-        !!JSON.parse(localStorage.getItem("soundtools:notecards:v1")!).stats[
-          "piano-staff:B5:-1"
-        ],
-    ),
-  );
+  assert.ok((await savedProgress(page)).stats["piano-staff:B5:-1"]);
   await page.locator("#low-spin").click();
   await page
     .locator("#low-spin-picker")
@@ -137,9 +131,18 @@ try {
     path: `../../work/piano-desktop-${engine}.png`,
     fullPage: true,
   });
-  assert.equal(await page.locator(".white-key").first().evaluate(e => e.getBoundingClientRect().width), 32);
+  assert.equal(
+    await page
+      .locator(".white-key")
+      .first()
+      .evaluate((e) => e.getBoundingClientRect().width),
+    32,
+  );
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
+    await page.waitForFunction(
+      () => document.querySelectorAll(".piano-octave").length === 2,
+    );
     const dimensions = await page.evaluate(() => ({
       page: document.documentElement.scrollWidth,
       viewport: innerWidth,
@@ -147,7 +150,8 @@ try {
         const b = e.getBoundingClientRect();
         return { x: b.x, y: b.y, bottom: b.bottom };
       }),
-      whiteWidth: document.querySelector(".white-key")!.getBoundingClientRect().width,
+      whiteWidth: document.querySelector(".white-key")!.getBoundingClientRect()
+        .width,
       blackWidth: document.querySelector(".black-key")!.getBoundingClientRect()
         .width,
     }));
@@ -187,6 +191,7 @@ try {
       document.querySelector("#offline-status")?.textContent ===
       "Available offline",
   );
+  const beforeOffline = await page.locator("#counter").textContent();
   await context.setOffline(true);
   await page.reload();
   await ready();
@@ -194,6 +199,8 @@ try {
     await page.locator("nav a[aria-current]").getAttribute("data-mode"),
     "piano",
   );
+  assert.equal(await page.locator("#counter").textContent(), beforeOffline);
+  await page.locator("#restart-round").click();
   await key(60).click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — C4/);
   await context.setOffline(false);

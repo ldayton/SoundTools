@@ -27,7 +27,13 @@ export function setupOffline() {
     document.querySelector<HTMLMetaElement>('meta[name="dorego-inventory"]')?.content ||
     `${base}offline-pack.json`;
   const session = createWorkerSession({ resources });
-  const freshness = createUpdatePolicy({ app: 'dorego', current: expectedShell || 'unversioned' });
+  const freshness = createUpdatePolicy({
+    app: 'dorego',
+    current: expectedShell || 'unversioned',
+    apply: (version) => {
+      void applyQuiescentUpdate(version);
+    },
+  });
   let pack: SoundPack | undefined,
     downloading: AbortController | null = null;
   let active = true,
@@ -69,18 +75,42 @@ export function setupOffline() {
     return;
   }
   const readCache = <T>(action: () => Promise<T>) => resources.deadline(2000, action);
-  async function check() {
+  const checks = new Set<Promise<void>>();
+  function check() {
+    const work = verifyCache();
+    checks.add(work);
+    void work.then(
+      () => checks.delete(work),
+      () => checks.delete(work)
+    );
+    return work;
+  }
+  async function applyQuiescentUpdate(version: string) {
+    active = false;
+    checkGeneration++;
+    session.abort();
+    clearTimeout(retryTimer);
+    downloading?.abort();
+    // Finish native cache callbacks before replacing their document. WebKit can
+    // otherwise report a stopped context even when the read promise is caught.
+    try {
+      await resources.deadline(2000, () => Promise.allSettled([...checks]));
+    } catch {}
+    applyUpdate(version);
+  }
+  async function verifyCache() {
     if (!active || !pack || downloading) return;
     const current = pack,
       generation = ++checkGeneration;
     try {
       const cache = await readCache(() => caches.open(current.cache));
+      if (!active || generation !== checkGeneration) return;
       const present: boolean[] = [];
       // Bound simultaneous reads and hashing so large cached banks do not spike memory.
       const remaining = current.files.map((file, index) => ({ file, index }));
       await Promise.all(
         Array.from({ length: 2 }, async () => {
-          while (remaining.length) {
+          while (remaining.length && active && generation === checkGeneration) {
             const { file, index } = remaining.shift()!;
             present[index] = await readCache(async () => {
               const response = await cache.match(file.url);
@@ -100,12 +130,13 @@ export function setupOffline() {
           }
         })
       );
+      if (!active || generation !== checkGeneration) return;
       const shell = await readCache(() => caches.open(current.shellCache));
       const interfacePresent: boolean[] = [];
       const shellFiles = current.shell.map((url, index) => ({ url, index }));
       await Promise.all(
         Array.from({ length: 2 }, async () => {
-          while (shellFiles.length) {
+          while (shellFiles.length && active && generation === checkGeneration) {
             const { url, index } = shellFiles.shift()!;
             interfacePresent[index] = await readCache(async () => {
               const response = await shell.match(url);
@@ -320,7 +351,7 @@ export function setupOffline() {
     void download();
   };
   update.onclick = () =>
-    update.dataset.release ? applyUpdate(update.dataset.release) : location.reload();
+    update.dataset.release ? void applyQuiescentUpdate(update.dataset.release) : location.reload();
   const rpc = () =>
     session.call<{ ready: boolean; shellCache?: string; reason?: string }>(
       'prepare-update',

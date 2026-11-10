@@ -256,8 +256,13 @@ try {
       "Available offline",
   );
   await selectPractice(fresh, "staff");
-  await fresh.locator("#feedback-next").waitFor();
-  await fresh.locator("#feedback-next").click();
+  // Verification can finish before or after feedback advances; both checkpoints are valid.
+  await fresh
+    .locator('#feedback-next:visible, [data-letter="E"]:enabled')
+    .first()
+    .waitFor();
+  if (await fresh.locator("#feedback-next").isVisible())
+    await fresh.locator("#feedback-next").click();
   await fresh.locator('[data-letter="E"]:enabled').waitFor();
   console.log("repair ready");
   // Storage eviction leaves a useful offline explanation, not a blank app.

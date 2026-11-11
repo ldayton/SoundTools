@@ -7,7 +7,7 @@ export const ARRANGEMENTS = [
   {
     id: "bass",
     label: "2 · Add bass notes",
-    help: "Add one held bass note per bar.",
+    help: "Use single left-hand bass notes from the hymn, holding repeated notes.",
   },
   {
     id: "chords",
@@ -25,6 +25,7 @@ export const ARRANGEMENTS = [
     help: "Play the original hymn’s full harmony.",
   },
 ] as const;
+export type HymnHands = "right" | "left" | "both";
 export type Arrangement = (typeof ARRANGEMENTS)[number]["id"];
 type Note = Extract<VoiceItem, { el_type: "note" }> & {
   midiPitches?: { pitch: number }[];
@@ -194,6 +195,69 @@ function serialize(bars: Bar[], melody = false) {
   }
   return { music: music.join(" "), lyrics: lyrics.join(" ") };
 }
+/** One source bass pitch at a time. Repeated pitches become held notes, not extra attacks. */
+function singleBass(source: Voice[], from: number, to: number, key: string) {
+  const candidates = source.filter((v) => v.clef === "bass");
+  const average = (v: Voice) => {
+    const notes = v.bars
+      .flatMap((b) => b.notes)
+      .filter((n) => n.resolvedPitches?.length);
+    const duration = notes.reduce((sum, n) => sum + n.duration, 0);
+    return duration
+      ? notes.reduce(
+          (sum, n) => sum + Math.min(...n.resolvedPitches!) * n.duration,
+          0,
+        ) / duration
+      : Infinity;
+  };
+  const bass = [...(candidates.length ? candidates : source)].sort(
+    (a, b) => average(a) - average(b),
+  )[0];
+  const bars = bass.bars.slice(from, to).map((bar) => {
+    const notes: { pitch?: number; duration: number }[] = [];
+    for (const note of bar.notes) {
+      const pitch = note.resolvedPitches?.length
+        ? Math.min(...note.resolvedPitches)
+        : undefined;
+      const previous = notes.at(-1);
+      if (previous && previous.pitch === pitch)
+        previous.duration += note.duration;
+      else notes.push({ pitch, duration: note.duration });
+    }
+    return notes;
+  });
+  return (
+    bars
+      .map((bar, bi) => {
+        const accidentals = new Map<string, number>();
+        return bar
+          .map((note, ni) => {
+            const next = bar[ni + 1] || bars[bi + 1]?.[0];
+            const tie = note.pitch !== undefined && next?.pitch === note.pitch;
+            let remaining = Math.round(note.duration * 64);
+            const pieces: string[] = [];
+            while (remaining > 0) {
+              const length = [64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1].find(
+                (n) => n <= remaining,
+              )!;
+              remaining -= length;
+              pieces.push(
+                (note.pitch === undefined
+                  ? "z"
+                  : token(note.pitch, key, accidentals)) +
+                  length +
+                  (note.pitch !== undefined && (remaining > 0 || tie)
+                    ? "-"
+                    : ""),
+              );
+            }
+            return pieces.join(" ");
+          })
+          .join(" ");
+      })
+      .join(" | ") + " |]"
+  );
+}
 /** Simplified accompaniment samples the source harmony at each bar's opening.
  * Melody rhythm and syllables stay intact; these are practice arrangements, not new source editions. */
 export function arrangeHymn(
@@ -201,7 +265,10 @@ export function arrangeHymn(
   arrangement: Arrangement,
   sectionBars = 4,
   section = 0,
+  hands: HymnHands = "both",
 ) {
+  if (hands === "right" && arrangement !== "original")
+    return arrangeHymn(hymn, "melody", sectionBars, section);
   const source = voices(hymn);
   const count = source[0].bars.length;
   const size = sectionBars === 0 ? count : sectionBars;
@@ -214,32 +281,46 @@ export function arrangeHymn(
   let abc: string;
   if (arrangement === "original") {
     // Keep the original whole-score edition intact, including its repeat signs.
-    if (sectionBars === 0) abc = hymn.harmony;
+    if (sectionBars === 0 && hands === "both") abc = hymn.harmony;
     else {
-      const score = source.map((_, i) => `v${i}`);
-      const treble = source
+      const selectedSource = source.filter(
+        (v) =>
+          hands === "both" || v.clef === (hands === "left" ? "bass" : "treble"),
+      );
+      const score = selectedSource.map((_, i) => `v${i}`);
+      const treble = selectedSource
         .map((v, i) => (v.clef === "treble" ? `v${i}` : ""))
         .filter(Boolean);
-      const bass = source
+      const bass = selectedSource
         .map((v, i) => (v.clef === "bass" ? `v${i}` : ""))
         .filter(Boolean);
       abc =
         header +
-        `%%score (${treble.join(" ")})${bass.length ? " | (" + bass.join(" ") + ")" : ""}\n` +
-        source.map((v, i) => `V:v${i} clef=${v.clef}`).join("\n") +
+        `%%score ${[treble, bass]
+          .filter((group) => group.length)
+          .map((group) => "(" + group.join(" ") + ")")
+          .join(" | ")}\n` +
+        selectedSource.map((v, i) => `V:v${i} clef=${v.clef}`).join("\n") +
         `\nK:${hymn.key}\n`;
-      source.forEach((v, i) => {
+      selectedSource.forEach((v, i) => {
         const out = serialize(v.bars.slice(from, to));
         abc +=
           `[V:${score[i]}] ${out.music}\n` +
-          (i === 0 ? `w:${out.lyrics}\n` : "");
+          (v === source[0] ? `w:${out.lyrics}\n` : "");
       });
     }
   } else {
     const out = serialize(melody, true);
     if (arrangement === "melody")
       abc = header + `K:${hymn.key}\n${out.music}\nw:${out.lyrics}\n`;
-    else {
+    else if (arrangement === "bass") {
+      const bass = singleBass(source, from, to, hymn.key);
+      abc =
+        hands === "left"
+          ? header + `V:B clef=bass\nK:${hymn.key}\n[V:B] ${bass}\n`
+          : header +
+            `%%score M | B\nV:M clef=treble\nV:B clef=bass\nK:${hymn.key}\n[V:M] ${out.music}\nw:${out.lyrics}\n[V:B] ${bass}\n`;
+    } else {
       let cursor = source[0].bars
         .slice(0, from)
         .reduce((s, b) => s + b.duration, 0);
@@ -264,8 +345,6 @@ export function arrangeHymn(
         const bass = sorted[0];
         const length = Math.round(bar.duration * 64);
         if (bass === undefined) accompaniment.push(`z${length}`);
-        else if (arrangement === "bass")
-          accompaniment.push(token(bass, hymn.key, accidentals) + length);
         else {
           // Keep source pitch classes, close-positioned over its bass; never invent a new harmony.
           const pcs = [...new Set(sorted.map((n) => n % 12))]
@@ -307,8 +386,11 @@ export function arrangeHymn(
         cursor += bar.duration;
       }
       abc =
-        header +
-        `%%score M | B\nV:M clef=treble\nV:B clef=bass\nK:${hymn.key}\n[V:M] ${out.music}\nw:${out.lyrics}\n[V:B] ${accompaniment.join(" | ")} |]\n`;
+        hands === "left"
+          ? header +
+            `V:B clef=bass\nK:${hymn.key}\n[V:B] ${accompaniment.join(" | ")} |]\n`
+          : header +
+            `%%score M | B\nV:M clef=treble\nV:B clef=bass\nK:${hymn.key}\n[V:M] ${out.music}\nw:${out.lyrics}\n[V:B] ${accompaniment.join(" | ")} |]\n`;
     }
   }
   return { abc, sections, section: selected, from, to, totalBars: count };

@@ -546,10 +546,16 @@ select {
   grid-column: auto;
 }
 .practice-options .hymn-grades .hymn-arrangement-field,
-.practice-options .hymn-grades:has(.hymn-tempo-field[hidden]) > label:first-child {
+.practice-options
+  .hymn-grades:has(.hymn-tempo-field[hidden])
+  > label:first-child {
   grid-column: 1 / -1;
 }
 
 .hymn-pause {
   min-inline-size: 88px;
+}
+
+.practice-options .hymn-grades .hymn-hands-field {
+  grid-column: 1 / -1;
 }

@@ -25,6 +25,7 @@ import {
   ARRANGEMENTS,
   arrangeHymn,
   type Arrangement,
+  type HymnHands,
 } from "./hymn-arrangements";
 import hymns from "./hymns.json";
 import { WaitForMe, searchHymns } from "./sight-reading-model";
@@ -41,6 +42,7 @@ type HymnState = {
   zoom?: number;
   hymn: string;
   arrangement: Arrangement;
+  hands?: HymnHands;
   sectionBars: number;
   section: number;
   bookmarks: Record<string, Bookmark>;
@@ -58,6 +60,7 @@ export class SightReading {
   private hymn = hymns[0];
   private key: HymnKey = "original";
   private arrangement: Arrangement = "melody";
+  private hands: HymnHands = "both";
   private sectionBars: 0 | 2 | 4 = 4;
   private section = 0;
   private sections = 1;
@@ -66,8 +69,13 @@ export class SightReading {
   private content = "";
   private legacyBookmark?: { key: string; position: number };
   private savedSections: Record<string, number> = {};
+  private handSuffix() {
+    return this.arrangement === "melody" || this.hands === "both"
+      ? ""
+      : `:hands=${this.hands}`;
+  }
   private selectionKey() {
-    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}${hymnKeySuffix(this.hymn.key, this.key)}`;
+    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}${hymnKeySuffix(this.hymn.key, this.key)}${this.handSuffix()}`;
   }
   private restoreSection() {
     const n = this.savedSections[this.selectionKey()];
@@ -75,7 +83,7 @@ export class SightReading {
   }
   private restorePending = true;
   private bookmarkKey() {
-    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}:${this.section}${hymnKeySuffix(this.hymn.key, this.key)}`;
+    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}:${this.section}${hymnKeySuffix(this.hymn.key, this.key)}${this.handSuffix()}`;
   }
 
   private mode: "wait" | "playback" = "wait";
@@ -115,6 +123,8 @@ export class SightReading {
         typeof saved.sections === "object"
       )
         this.savedSections = structuredClone(saved.sections);
+      if (saved?.hands === "left" || saved?.hands === "right")
+        this.hands = saved.hands;
       if (saved?.mode === "playback") this.mode = "playback";
       if (
         Number.isInteger(saved?.bpm) &&
@@ -160,7 +170,7 @@ export class SightReading {
       /* Private browsing or an older saved preference. */
     }
     element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns" hidden></ul></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label></div>
-    <div class="practice-controls hymn-grades"><label class="hymn-arrangement-field">Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars</option><option value="2">2 bars</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
+    <div class="practice-controls hymn-grades"><label class="hymn-arrangement-field">Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label class="hymn-hands-field">Hands<select id="hymn-hands"><option value="right">Right hand</option><option value="left">Left hand</option><option value="both">Both hands</option></select></label><label>Practise<select id="hymn-length"><option value="4">4 bars</option><option value="2">2 bars</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
     <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" aria-label="Previous section" hidden>← Previous</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
     this.playback = new HymnPlayback(
       () => {
@@ -304,12 +314,14 @@ export class SightReading {
       this.restorePending = true;
       this.render();
     };
+    this.$<HTMLSelectElement>("#hymn-hands").value = this.hands;
     this.$<HTMLSelectElement>("#hymn-arrangement").value = this.arrangement;
     this.$<HTMLSelectElement>("#hymn-length").value = String(this.sectionBars);
-    for (const field of ["arrangement", "length", "section"])
+    for (const field of ["arrangement", "hands", "length", "section"])
       this.$<HTMLSelectElement>("#hymn-" + field).onchange = (e) => {
         const value = (e.target as HTMLSelectElement).value;
         if (field === "arrangement") this.arrangement = value as Arrangement;
+        if (field === "hands") this.hands = value as HymnHands;
         if (field === "length") {
           this.sectionBars = Number(value) as 0 | 2 | 4;
           this.section = 0;
@@ -429,6 +441,7 @@ export class SightReading {
       old.hymn !== next.hymn ||
       old.key !== next.key ||
       old.arrangement !== next.arrangement ||
+      old.hands !== next.hands ||
       old.sectionBars !== next.sectionBars;
     if (old.mode !== next.mode || old.bpm !== next.bpm)
       this.interrupt("controls");
@@ -439,6 +452,7 @@ export class SightReading {
     this.hymn = hymn;
     this.key = next.key || "original";
     this.arrangement = next.arrangement;
+    this.hands = next.hands || "both";
     this.sectionBars = next.sectionBars;
     if (changed) this.restoreSection();
     if (route.query.has("section")) this.section = next.section;
@@ -449,6 +463,7 @@ export class SightReading {
     }
     this.$<HTMLInputElement>("#hymn-search").value = this.hymn.title;
     this.$<HTMLSelectElement>("#hymn-key").value = this.key;
+    this.$<HTMLSelectElement>("#hymn-hands").value = this.hands;
     this.$<HTMLSelectElement>("#hymn-arrangement").value = this.arrangement;
     this.$<HTMLSelectElement>("#hymn-length").value = String(this.sectionBars);
     return true;
@@ -460,6 +475,7 @@ export class SightReading {
       bpm: this.bpm,
       key: this.key,
       arrangement: this.arrangement,
+      hands: this.hands,
       sectionBars: this.sectionBars,
       section: this.section,
       position: this.position,
@@ -469,6 +485,7 @@ export class SightReading {
     if (!this.active) return;
     const q = new URLSearchParams({
       arrangement: this.arrangement,
+      hands: this.hands,
       bars: String(this.sectionBars),
       section: String(this.section + 1),
     });
@@ -501,6 +518,7 @@ export class SightReading {
       zoom: this.zoom,
       hymn: this.hymn.id,
       arrangement: this.arrangement,
+      hands: this.hands,
       sectionBars: this.sectionBars,
       section: this.section,
       bookmarks: this.bookmarks,
@@ -574,6 +592,12 @@ export class SightReading {
       this.acceptanceChanged();
     }
     this.$(".sequence-title").textContent = this.hymn.title;
+    this.$(".sequence-score").setAttribute(
+      "aria-label",
+      this.arrangement !== "melody" && this.hands === "left"
+        ? "Left-hand hymn score"
+        : "Hymn score with aligned lyrics",
+    );
     this.$(".sequence-practice").dataset.arrangement = this.arrangement;
     this.$(".hymn-credits").textContent = this.hymn.credits.join(" ");
     const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
@@ -597,6 +621,7 @@ export class SightReading {
         this.arrangement,
         this.sectionBars,
         this.section,
+        this.hands,
       );
       const transposition = hymnTransposition(this.hymn.key, this.key);
       this.$<HTMLOptionElement>(
@@ -644,6 +669,7 @@ export class SightReading {
                         this.arrangement,
                         this.sectionBars,
                         i,
+                        this.hands,
                       ).abc,
                     );
               elapsed += part.totalDuration * 4;
@@ -655,8 +681,13 @@ export class SightReading {
               this.sections === 1
                 ? audio
                 : readAudio(
-                    arrangeHymn(this.hymn, this.arrangement, score.totalBars, 0)
-                      .abc,
+                    arrangeHymn(
+                      this.hymn,
+                      this.arrangement,
+                      score.totalBars,
+                      0,
+                      this.hands,
+                    ).abc,
                   );
             this.playback.load(fullAudio, starts, this.section);
           }
@@ -787,6 +818,7 @@ export class SightReading {
     if (!session) return;
     this.$(".sequence-top > span").textContent =
       this.mode === "playback" ? "Playback" : "Wait for me";
+    this.$(".hymn-hands-field").hidden = this.arrangement === "melody";
     this.$(".hymn-tempo-field").hidden = this.mode !== "playback";
     this.pianoPanel.setAvailable(this.mode === "wait");
     if (this.mode === "playback") {
@@ -821,9 +853,13 @@ export class SightReading {
       ? "Lovely. Sing it again, or choose another hymn."
       : this.paused
         ? "Paused. Continue when you’re ready."
-        : this.arrangement !== "melody"
-          ? "Play the highlighted notes together."
-          : "Play the highlighted note.";
+        : this.arrangement !== "melody" && this.hands === "left"
+          ? session.current.pitches.length > 1
+            ? "Play the highlighted notes with your left hand."
+            : "Play the highlighted note with your left hand."
+          : session.current.pitches.length > 1
+            ? "Play the highlighted notes together."
+            : "Play the highlighted note.";
     this.$<HTMLButtonElement>(".hymn-pause").disabled = complete;
     this.$(".hymn-pause").textContent = this.paused ? "Resume" : "Pause";
     this.$(".hymn-prev").hidden = this.section === 0;

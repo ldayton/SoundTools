@@ -112,6 +112,7 @@ test("live preferences reject damaged values without borrowing unrelated flashca
   const hymn: HymnSettings = {
     hymn: "amazing-grace",
     mode: "wait",
+    hands: "both",
     bpm: 80,
     arrangement: "bass",
     sectionBars: 2,
@@ -131,6 +132,14 @@ test("live preferences reject damaged values without borrowing unrelated flashca
   );
   assert.deepEqual(
     hymnSettingsFromQuery(hymn, new URLSearchParams("mode=bad&tempo=151")),
+    hymn,
+  );
+  assert.deepEqual(
+    hymnSettingsFromQuery(hymn, new URLSearchParams("hands=left")),
+    { ...hymn, hands: "left" },
+  );
+  assert.deepEqual(
+    hymnSettingsFromQuery(hymn, new URLSearchParams("hands=bad")),
     hymn,
   );
   assert.equal(

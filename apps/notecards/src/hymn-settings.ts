@@ -1,6 +1,10 @@
 import { isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
-import { ARRANGEMENTS, type Arrangement } from "./hymn-arrangements";
+import {
+  ARRANGEMENTS,
+  type Arrangement,
+  type HymnHands,
+} from "./hymn-arrangements";
 import { object, choice } from "./exercise-settings";
 export type HymnSettings = {
   hymn: string;
@@ -8,6 +12,7 @@ export type HymnSettings = {
   bpm?: number;
   key?: HymnKey;
   arrangement: Arrangement;
+  hands?: HymnHands;
   sectionBars: 0 | 2 | 4;
   section: number;
   position: number;
@@ -19,6 +24,11 @@ export function mergeHymnSettings(
   const s = object(input);
   const legacy = !("arrangement" in s) && ("hymn" in s || "chords" in s);
   return {
+    hands: choice(
+      s.hands,
+      ["right", "left", "both"] as const,
+      base.hands || "both",
+    ),
     mode: choice(s.mode, ["wait", "playback"] as const, base.mode || "wait"),
     bpm:
       Number.isInteger(s.bpm) &&
@@ -54,6 +64,7 @@ export function hymnSettingsFromQuery(
   query: URLSearchParams,
 ) {
   const overrides: Record<string, unknown> = {};
+  if (query.has("hands")) overrides.hands = query.get("hands");
   if (query.has("mode")) overrides.mode = query.get("mode");
   if (query.has("tempo")) overrides.bpm = Number(query.get("tempo"));
   if (query.has("key")) overrides.key = query.get("key");

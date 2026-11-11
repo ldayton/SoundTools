@@ -197,6 +197,80 @@ try {
     "Object.defineProperty(document, 'hidden', {configurable:true,get:function(){return false;}}); document.dispatchEvent(new Event('visibilitychange'));",
   );
   await page.getByRole("button", { name: "Resume", exact: true }).waitFor();
+  // The learner can work on either hand independently, then combine them.
+  await page.goto(
+    base +
+      "/piano/hymns/amazing-grace?arrangement=bass&hands=left&mode=wait&bars=2&section=1",
+  );
+  await page.locator(".hymn-paper .abcjs-note").first().waitFor();
+  await midiAction(page, "Connect MIDI keyboard");
+  const send = async (note: number) => {
+    await page.evaluate((note) => {
+      (window as any).midiTest.send([0x90, note, 100]);
+      (window as any).midiTest.send([0x80, note, 0]);
+    }, note);
+  };
+  const number = async () =>
+    (await page.locator(".hymn-count").textContent())!.split(" / ")[0];
+  assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
+  assert.equal(await number(), "1");
+  await send(62);
+  assert.equal(
+    await number(),
+    "1",
+    "right-hand melody cannot answer left-hand practice",
+  );
+  await send(43);
+  assert.equal(await number(), "2");
+  await page
+    .getByRole("combobox", { name: "Hands", exact: true })
+    .selectOption("both");
+  assert.equal(await number(), "1");
+  await page.evaluate(() => (window as any).midiTest.send([0x90, 43, 100]));
+  assert.equal(await number(), "1", "both hands wait for the complete onset");
+  await send(62);
+  await page.evaluate(() => (window as any).midiTest.send([0x80, 43, 0]));
+  assert.equal(await number(), "2");
+  await page
+    .getByRole("combobox", { name: "Hands", exact: true })
+    .selectOption("right");
+  assert.equal(await number(), "1");
+  await send(62);
+  assert.equal(await number(), "2");
+  await page
+    .getByRole("combobox", { name: "Hands", exact: true })
+    .selectOption("left");
+  assert.equal(
+    await number(),
+    "2",
+    "each hand selection restores its own position",
+  );
+  await page.reload();
+  await page.locator(".hymn-paper .abcjs-note").first().waitFor();
+  assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
+  assert.equal(await number(), "2", "left-hand bookmark survives reload");
+  await page
+    .getByRole("combobox", { name: "Mode", exact: true })
+    .selectOption("playback");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
+  await page
+    .getByRole("combobox", { name: "Hands", exact: true })
+    .selectOption("both");
+  await page.getByRole("button", { name: "Play", exact: true }).waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("button", { name: "Expand practice options", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Hands", exact: true })
+    .selectOption("left");
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    true,
+  );
   await page.screenshot({
     path: `/tmp/hymn-playback-${engine}.png`,
     fullPage: true,

@@ -44,7 +44,23 @@ export async function practiceOption(
   } else await page.locator(selector).selectOption(value);
 }
 
+async function optionsLayoutReady(page: Page) {
+  // matchMedia change listeners run after setViewportSize resolves. A desktop
+  // expanded state must not be mistaken for the pending mobile collapsed state.
+  await page.waitForFunction(() => {
+    const visible = [
+      ...document.querySelectorAll<HTMLElement>(
+        "#exercise-content .practice-options",
+      ),
+    ].find((p) => p.getBoundingClientRect().width > 0);
+    return (
+      visible?.dataset.layout ===
+      (matchMedia("(max-width:760px)").matches ? "mobile" : "desktop")
+    );
+  });
+}
 export async function openPracticeOptions(page: Page) {
+  await optionsLayoutReady(page);
   const button = page.locator(
     "#exercise-content .practice-options:visible .options-toggle",
   );
@@ -52,6 +68,7 @@ export async function openPracticeOptions(page: Page) {
     await button.click();
 }
 export async function closePracticeOptions(page: Page) {
+  await optionsLayoutReady(page);
   const button = page.locator(
     "#exercise-content .practice-options:visible .options-toggle",
   );

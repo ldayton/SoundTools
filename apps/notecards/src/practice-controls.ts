@@ -7,6 +7,7 @@ const panelIcon = `<svg class="options-panel-icon" viewBox="0 0 24 24" width="20
 function render() {
   const collapsed = mobile.matches ? mobileCollapsed : desktopCollapsed;
   for (const item of panels) {
+    item.dataset.layout = mobile.matches ? "mobile" : "desktop";
     item.classList.toggle("is-collapsed", collapsed);
     const button = item.querySelector<HTMLButtonElement>(".options-toggle")!;
     button.setAttribute("aria-expanded", String(!collapsed));

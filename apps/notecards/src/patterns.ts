@@ -12,6 +12,7 @@ import {
 } from "./practice-score";
 import {
   makePattern,
+  restorePattern,
   PATTERN_KEYS,
   type PatternSettings,
 } from "./patterns-model";
@@ -23,6 +24,7 @@ export class IntervalPatterns {
   readonly midiSlot: HTMLElement;
   private active = false;
   private paused = false;
+  private advanceTimer = 0;
   private position = 0;
   private settings: PatternSettings = {
     key: "C",
@@ -41,27 +43,15 @@ export class IntervalPatterns {
     try {
       const s = (persistence.read<any>("patterns") ||
         persistence.state.legacy.patterns) as any;
-      if (
-        s?.version === 1 &&
-        Array.isArray(s.notes) &&
-        s.notes.length === 4 &&
-        s.notes.every(
-          (n: unknown) =>
-            Number.isInteger(n) && Number(n) >= 21 && Number(n) <= 108,
-        )
-      ) {
-        this.notes = [...s.notes];
-        if (
-          Number.isSafeInteger(s.position) &&
-          s.position >= 0 &&
-          s.position <= 4
-        )
-          this.position = s.position;
-        this.paused = s.paused === true;
-      }
       this.settings = mergePatternSettings(this.settings, s);
+      const restored = restorePattern(s, this.settings);
+      if (restored) {
+        this.notes = restored.notes;
+        this.position = restored.position;
+        this.paused = restored.paused;
+      }
     } catch {}
-    element.innerHTML = `<div class="practice-controls"><label>Patterns<select id="pattern-level"><option value="steps">Steps & repeated notes</option><option value="skips">Add skips · thirds</option><option value="leaps">Add fourths & fifths</option></select></label><label class="key-field">Key<select id="pattern-key">${PATTERN_KEYS.map((k) => `<option>${k.id}</option>`).join("")}</select></label><label class="hand-field">Hand<select id="pattern-hand"><option value="right">Right hand</option><option value="left">Left hand</option></select></label></div><section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Four-note interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
+    element.innerHTML = `<div class="practice-controls"><label>Patterns<select id="pattern-level"><option value="steps">Steps & repeated notes</option><option value="skips">Add skips · thirds</option><option value="leaps">Add fourths & fifths</option></select></label><label class="key-field">Key<select id="pattern-key">${PATTERN_KEYS.map((k) => `<option>${k.id}</option>`).join("")}</select></label><label class="hand-field">Hand<select id="pattern-hand"><option value="right">Right hand</option><option value="left">Left hand</option></select></label></div><section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
     mountPracticeOptions(element, [this.$(".practice-controls")]);
     mountPracticePiano(this.$(".pattern-piano"), this.$(".sequence-transport"));
     this.midiSlot = this.$(".pattern-midi-slot");
@@ -79,6 +69,7 @@ export class IntervalPatterns {
     }
     this.$(".pattern-next").onclick = () => this.next();
     this.$(".pattern-again").onclick = () => {
+      this.cancelAdvance();
       this.position = 0;
       this.paused = false;
       this.render();
@@ -87,6 +78,7 @@ export class IntervalPatterns {
       this.paused = !this.paused;
       this.interrupt("controls");
       this.update();
+      if (!this.paused && this.session?.complete) this.scheduleAdvance();
     };
     new ResizeObserver(() =>
       requestAnimationFrame(() => {
@@ -110,6 +102,7 @@ export class IntervalPatterns {
     this.active = true;
     if (!this.notes.length) this.notes = makePattern(this.settings);
     this.render();
+    if (this.session?.complete && !this.paused) this.scheduleAdvance();
     this.changed();
   }
   leave() {
@@ -118,18 +111,53 @@ export class IntervalPatterns {
     this.changed();
   }
   interrupt(_reason: Interruption) {
+    this.cancelAdvance();
     this.session?.resetGesture();
   }
   private save() {
     persistence.write("patterns", {
-      version: 1,
+      version: 2,
       ...this.settings,
       notes: this.notes,
       position: this.position,
       paused: this.paused,
     });
   }
+  private cancelAdvance() {
+    window.clearTimeout(this.advanceTimer);
+    this.advanceTimer = 0;
+    if (this.session?.complete)
+      this.$(".sequence-feedback").textContent = "Well done.";
+  }
+  private scheduleAdvance() {
+    this.cancelAdvance();
+    const session = this.session;
+    if (
+      !session?.complete ||
+      this.paused ||
+      !this.active ||
+      document.hidden ||
+      !document.hasFocus() ||
+      !persistence.writable
+    )
+      return;
+    this.$(".sequence-feedback").textContent = "Well done. Next pattern…";
+    this.advanceTimer = window.setTimeout(() => {
+      this.advanceTimer = 0;
+      if (
+        this.active &&
+        !this.paused &&
+        !document.hidden &&
+        document.hasFocus() &&
+        persistence.writable &&
+        this.session === session &&
+        session.complete
+      )
+        this.next();
+    }, 600);
+  }
   private next() {
+    this.cancelAdvance();
     this.notes = makePattern(this.settings, Math.random, this.notes);
     this.position = 0;
     this.paused = false;
@@ -144,9 +172,10 @@ export class IntervalPatterns {
       this.changed();
     }
     const music = this.notes
-      .map((m) => {
+      .map((m, i) => {
         const n = spellPitch(m, this.settings.key)!;
         return (
+          (i === 4 ? "| " : "") +
           n.letter +
           (n.octave < 4 ? ",".repeat(4 - n.octave) : "'".repeat(n.octave - 4)) +
           "16"
@@ -182,9 +211,13 @@ export class IntervalPatterns {
         "Try again — follow the highlighted note.";
       return;
     }
-    if (result === "restarted") this.paused = false;
+    if (result === "restarted") {
+      this.cancelAdvance();
+      this.paused = false;
+    }
     this.position = this.session!.index;
     this.update(true);
+    if (result === "complete") this.scheduleAdvance();
   }
   private update(scroll = false) {
     const s = this.session;
@@ -202,12 +235,14 @@ export class IntervalPatterns {
     p.max = s.steps.length;
     p.value = s.index;
     this.$(".sequence-feedback").textContent = s.complete
-      ? "Well done. Try a fresh pattern."
+      ? this.paused
+        ? "Paused. Resume for a new pattern."
+        : "Well done."
       : this.paused
         ? "Paused. Continue when you’re ready."
         : "Play the highlighted note.";
     this.$(".pattern-pause").textContent = this.paused ? "Resume" : "Pause";
-    this.$<HTMLButtonElement>(".pattern-pause").disabled = s.complete;
+    this.$<HTMLButtonElement>(".pattern-pause").disabled = false;
     this.piano.setUnavailable(!this.accepting);
     this.changed();
     this.save();

@@ -51,7 +51,7 @@ try {
   await page.goto(base);
   await page.locator('[data-letter="E"]:enabled').waitFor();
   await selectPractice(page, "patterns");
-  await page.locator(".pattern-count").filter({ hasText: "1 / 4" }).waitFor();
+  await page.locator(".pattern-count").filter({ hasText: "1 / 8" }).waitFor();
   assert.equal(
     await page
       .locator(".pattern-paper .sight-current")
@@ -74,17 +74,20 @@ try {
       note,
     );
   await on(61);
-  assert.equal(await page.locator(".pattern-count").textContent(), "1 / 4");
+  assert.equal(await page.locator(".pattern-count").textContent(), "1 / 8");
   await off(61);
-  for (const note of [60, 62, 64, 65]) await on(note);
+  for (const note of [60, 62, 64, 65, 67, 65, 64, 62]) {
+    await on(note);
+    await off(note);
+  }
   assert.equal(await page.locator(".pattern-count").textContent(), "Complete");
   for (const note of [60, 62, 64, 65]) await off(note);
-  await page.locator(".pattern-next").click();
+  await page.locator(".pattern-count").filter({ hasText: "1 / 8" }).waitFor();
   await on(62);
-  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 4");
+  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 8");
   await off(62);
   await practiceOption(page, "#pattern-hand", "left");
-  assert.equal(await page.locator(".pattern-count").textContent(), "1 / 4");
+  assert.equal(await page.locator(".pattern-count").textContent(), "1 / 8");
   await selectPractice(page, "sight");
   await page.locator("#hymn-arrangement").waitFor({ state: "attached" });
   await practiceOption(page, "#hymn-length", "2");

@@ -1085,13 +1085,15 @@ input:focus-visible {
   display: none;
 }
 .midi-indicator {
-  width: 6px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: #c4becd;
 }
 .midi-indicator.is-connected {
-  background: #578366;
+  background: #16803c;
+  box-shadow: 0 0 0 3px #16803c1f;
 }
 .keyboard-popover {
   position: absolute;

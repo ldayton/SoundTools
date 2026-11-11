@@ -9,6 +9,7 @@ import {
 } from "../src/hymn-arrangements";
 import {
   makePattern,
+  restorePattern,
   PATTERN_KEYS,
   type PatternLevel,
 } from "../src/patterns-model";
@@ -29,7 +30,7 @@ test("interval patterns stay in the five-finger position, follow the chosen inte
             () => 0,
             previous,
           );
-          assert.equal(notes.length, 4);
+          assert.equal(notes.length, 8);
           assert.notEqual(notes.join(), previous.join());
           assert.ok(
             notes.every(
@@ -124,4 +125,29 @@ test("all hymn practice stages and sections parse, preserve melody/lyrics, and p
       }
   }
   assert.ok(scores > 1000);
+});
+
+test("older interval patterns extend to two bars while preserving position and interval restrictions", () => {
+  const settings = { key: "C", hand: "right", level: "steps" } as const;
+  const old = {
+    version: 1,
+    notes: [60, 62, 64, 65],
+    position: 3,
+    paused: true,
+  };
+  const result = restorePattern(old, settings, () => 0)!;
+  assert.deepEqual(result.notes.slice(0, 4), old.notes);
+  assert.equal(result.notes.length, 8);
+  assert.equal(result.position, 3);
+  assert.equal(result.paused, true);
+  assert.equal(
+    restorePattern({ ...old, position: 4 }, settings, () => 0)!.position,
+    4,
+  );
+  assert.equal(
+    restorePattern({ ...old, notes: [60, 99, 64, 65] }, settings),
+    undefined,
+  );
+  assert.deepEqual(restorePattern({ version: 2, ...result }, settings), result);
+  assert.equal(restorePattern({ ...old, version: 99 }, settings), undefined);
 });

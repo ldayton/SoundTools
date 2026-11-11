@@ -4,7 +4,11 @@ import {
   scaleKeyPitch,
   type ScaleSelection,
 } from "./guitar-scales";
-export type GuitarScaleSettings = ScaleSelection;
+import { CAGED_SHAPES, type ScalePattern } from "./guitar-scale-patterns";
+export type GuitarScaleSettings = ScaleSelection & {
+  pattern?: ScalePattern;
+  shift?: number;
+};
 export function mergeGuitarScaleSettings(
   input: unknown,
   base: GuitarScaleSettings = { tonic: 4, quality: "major" },
@@ -20,6 +24,16 @@ export function mergeGuitarScaleSettings(
         : base.tonic,
     quality: choice(source.quality, ["major", "minor"], base.quality),
   };
+  const patterns = ["map", ...CAGED_SHAPES] as const;
+  const pattern = choice(source.pattern, patterns, base.pattern || "map");
+  if (source.pattern !== undefined || base.pattern !== undefined)
+    settings.pattern = pattern;
+  const validShift = (shift: unknown): shift is number =>
+    typeof shift === "number" &&
+    Number.isInteger(shift) &&
+    Math.abs(shift) <= 24;
+  const shift = validShift(source.shift) ? source.shift : base.shift;
+  if (validShift(shift)) settings.shift = shift;
   const spelling =
     typeof source.spelling === "string" ? source.spelling : base.spelling;
   if (
@@ -36,9 +50,19 @@ export function guitarScaleFromQuery(
 ) {
   const quality = choice(query.get("scale"), ["major", "minor"], base.quality);
   const name = query.get("key");
+  const pattern = query.get("pattern");
+  const shift = query.has("position")
+    ? Number(query.get("position"))
+    : undefined;
   const tonic = name ? scaleKeyPitch(name, quality) : -1;
   return mergeGuitarScaleSettings(
-    { tonic, quality, ...(tonic >= 0 ? { spelling: name } : {}) },
+    {
+      tonic,
+      quality,
+      ...(tonic >= 0 ? { spelling: name } : {}),
+      ...(pattern ? { pattern } : {}),
+      ...(shift !== undefined ? { shift } : {}),
+    },
     base,
   );
 }

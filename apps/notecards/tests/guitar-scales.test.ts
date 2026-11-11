@@ -1,4 +1,10 @@
 import {
+  CAGED_SHAPES,
+  patternPositions,
+  patternShift,
+  patternBounds,
+} from "../src/guitar-scale-patterns";
+import {
   mergeGuitarScaleSettings,
   guitarScaleFromQuery,
 } from "../src/guitar-scale-settings";
@@ -315,4 +321,57 @@ test("relative spelling, saved selections and links retain the actual key signat
     { tonic: 0, quality: "major" },
   );
   assert.throws(() => scaleNotes(3, "minor", "Gb"));
+});
+
+test("CAGED shapes are complete movable fingerings in every major and minor key", () => {
+  for (const shape of CAGED_SHAPES)
+    for (const quality of ["major", "minor"] as const)
+      for (let tonic = 0; tonic < 12; tonic++) {
+        const shift = patternShift(tonic, quality, shape);
+        const positions = patternPositions(tonic, quality, shape, shift);
+        assert.equal(new Set(positions.map((n) => n.pitchClass)).size, 7);
+        assert.equal(new Set(positions.map((n) => n.string)).size, 6);
+        assert.ok(
+          positions.every(
+            (n) =>
+              n.fret >= 1 && n.fret <= 22 && n.finger >= 1 && n.finger <= 4,
+          ),
+        );
+        assert.ok(positions.filter((n) => n.root).length >= 2);
+        const [low, high] = patternBounds(shape);
+        for (const direction of [-1, 1]) {
+          if (low + shift + direction < 1 || high + shift + direction > 22)
+            continue;
+          const next = patternPositions(
+            (tonic + direction + 12) % 12,
+            quality,
+            shape,
+            shift + direction,
+          );
+          assert.deepEqual(
+            next.map((n) => [n.string, n.fret - direction, n.finger]),
+            positions.map((n) => [n.string, n.fret, n.finger]),
+          );
+        }
+        const relative = relativeScale(tonic, quality);
+        assert.deepEqual(
+          patternPositions(
+            relative.tonic,
+            relative.quality,
+            shape,
+            patternShift(relative.tonic, relative.quality, shape, shift),
+          ).map((n) => n.midi),
+          positions.map((n) => n.midi),
+        );
+      }
+  assert.deepEqual(
+    patternPositions(7, "major", "E", 0)
+      .filter((n) => n.string === 6)
+      .map((n) => [n.fret, n.name, n.finger]),
+    [
+      [2, "F#", 1],
+      [3, "G", 2],
+      [5, "A", 4],
+    ],
+  );
 });

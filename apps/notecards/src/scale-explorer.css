@@ -191,7 +191,8 @@
   gap: 6px;
   margin-top: 12px;
 }
-.scale-relative button {
+.scale-relative button,
+.scale-key-navigation button {
   min-height: 40px;
   padding: 7px 12px;
   border: 1px solid #d8d1c5;
@@ -203,14 +204,47 @@
   font-weight: 600;
   cursor: pointer;
 }
-.scale-relative button:hover {
+.scale-relative button:hover,
+.scale-key-navigation button:hover:not(:disabled) {
   background: #f0edf5;
 }
-.scale-relative button:focus-visible {
+.scale-relative button:focus-visible,
+.scale-key-navigation button:focus-visible {
   outline: 3px solid #a89bc2;
   outline-offset: 3px;
 }
 .scale-relative span {
   color: #625d70;
   font-size: 12px;
+}
+
+.scale-key-navigation {
+  display: grid;
+  grid-template-columns: 76px 1fr 76px;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+.scale-key-navigation[hidden] {
+  display: none;
+}
+.scale-key-navigation button {
+  min-height: 44px;
+  padding: 8px;
+  font-size: 14px;
+}
+.scale-pattern-caption {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #625d70;
+}
+.scale-pattern-caption {
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.scale-key-navigation button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }

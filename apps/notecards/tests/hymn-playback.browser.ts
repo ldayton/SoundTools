@@ -214,6 +214,8 @@ try {
     (await page.locator(".hymn-count").textContent())!.split(" / ")[0];
   assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
   assert.equal(await number(), "1");
+  assert.equal(await page.locator("#hymn-view").inputValue(), "both");
+  assert.ok(await page.locator(".hymn-paper .abcjs-clef").count() >= 2, "both staves remain visible during left-hand practice");
   await send(62);
   assert.equal(
     await number(),
@@ -223,7 +225,7 @@ try {
   await send(43);
   assert.equal(await number(), "2");
   await page
-    .getByRole("combobox", { name: "Hands", exact: true })
+    .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("both");
   assert.equal(await number(), "1");
   await page.evaluate(() => (window as any).midiTest.send([0x90, 43, 100]));
@@ -232,13 +234,13 @@ try {
   await page.evaluate(() => (window as any).midiTest.send([0x80, 43, 0]));
   assert.equal(await number(), "2");
   await page
-    .getByRole("combobox", { name: "Hands", exact: true })
+    .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("right");
   assert.equal(await number(), "1");
   await send(62);
   assert.equal(await number(), "2");
   await page
-    .getByRole("combobox", { name: "Hands", exact: true })
+    .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("left");
   assert.equal(
     await number(),
@@ -249,13 +251,22 @@ try {
   await page.locator(".hymn-paper .abcjs-note").first().waitFor();
   assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
   assert.equal(await number(), "2", "left-hand bookmark survives reload");
+  await page.getByRole("combobox", { name: "Show", exact: true }).selectOption("right");
+  assert.equal(await page.locator("#hymn-hands").inputValue(), "right");
+  assert.equal(await page.locator('#hymn-hands option[value="left"]').evaluate(e => (e as HTMLOptionElement).disabled), true);
+  assert.equal(await page.locator('#hymn-hands option[value="both"]').evaluate(e => (e as HTMLOptionElement).disabled), true);
+  await page.getByRole("combobox", { name: "Show", exact: true }).selectOption("left");
+  assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
+  assert.equal(await page.locator('#hymn-hands option[value="right"]').evaluate(e => (e as HTMLOptionElement).disabled), true);
+  await page.getByRole("combobox", { name: "Show", exact: true }).selectOption("both");
+  assert.equal(await page.locator('#hymn-hands option[value="both"]').evaluate(e => (e as HTMLOptionElement).disabled), false);
   await page
     .getByRole("combobox", { name: "Mode", exact: true })
     .selectOption("playback");
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   await page
-    .getByRole("combobox", { name: "Hands", exact: true })
+    .getByRole("combobox", { name: "Show", exact: true })
     .selectOption("both");
   await page.getByRole("button", { name: "Play", exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -263,7 +274,7 @@ try {
     .getByRole("button", { name: "Expand practice options", exact: true })
     .click();
   await page
-    .getByRole("combobox", { name: "Hands", exact: true })
+    .getByRole("combobox", { name: "Show", exact: true })
     .selectOption("left");
   assert.equal(
     await page.evaluate(

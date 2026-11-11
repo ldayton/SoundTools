@@ -113,6 +113,7 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     hymn: "amazing-grace",
     mode: "wait",
     hands: "both",
+    viewHands: "both",
     bpm: 80,
     arrangement: "bass",
     sectionBars: 2,

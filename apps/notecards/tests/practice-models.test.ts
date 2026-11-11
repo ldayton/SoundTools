@@ -1,3 +1,4 @@
+import { mergeHymnSettings, hymnSettingsFromQuery } from "../src/hymn-settings";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
@@ -150,4 +151,15 @@ test("older interval patterns extend to two bars while preserving position and i
   );
   assert.deepEqual(restorePattern({ version: 2, ...result }, settings), result);
   assert.equal(restorePattern({ ...old, version: 99 }, settings), undefined);
+});
+
+test("hymn practice hands must be visible, while both-hand views allow either hand", () => {
+  const base = { hymn: hymns[0].id, arrangement: "bass" as const, sectionBars: 2 as const, section: 0, position: 0 };
+  for (const viewHands of ["left", "right", "both"] as const)
+    for (const hands of ["left", "right", "both"] as const) {
+      const settings = mergeHymnSettings(base, { viewHands, hands });
+      assert.equal(settings.viewHands, viewHands);
+      assert.equal(settings.hands, viewHands === "both" ? hands : viewHands);
+    }
+  assert.equal(hymnSettingsFromQuery(base, new URLSearchParams("view=right&hands=left")).hands, "right");
 });

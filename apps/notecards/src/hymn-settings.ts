@@ -13,6 +13,7 @@ export type HymnSettings = {
   key?: HymnKey;
   arrangement: Arrangement;
   hands?: HymnHands;
+  viewHands?: HymnHands;
   sectionBars: 0 | 2 | 4;
   section: number;
   position: number;
@@ -23,12 +24,13 @@ export function mergeHymnSettings(
 ): HymnSettings {
   const s = object(input);
   const legacy = !("arrangement" in s) && ("hymn" in s || "chords" in s);
+  const viewHands = choice(s.viewHands, ["right", "left", "both"] as const, base.viewHands || "both");
+  const hands = viewHands === "both"
+    ? choice(s.hands, ["right", "left", "both"] as const, base.hands || "both")
+    : viewHands;
   return {
-    hands: choice(
-      s.hands,
-      ["right", "left", "both"] as const,
-      base.hands || "both",
-    ),
+    viewHands,
+    hands,
     mode: choice(s.mode, ["wait", "playback"] as const, base.mode || "wait"),
     bpm:
       Number.isInteger(s.bpm) &&
@@ -64,6 +66,7 @@ export function hymnSettingsFromQuery(
   query: URLSearchParams,
 ) {
   const overrides: Record<string, unknown> = {};
+  if (query.has("view")) overrides.viewHands = query.get("view");
   if (query.has("hands")) overrides.hands = query.get("hands");
   if (query.has("mode")) overrides.mode = query.get("mode");
   if (query.has("tempo")) overrides.bpm = Number(query.get("tempo"));

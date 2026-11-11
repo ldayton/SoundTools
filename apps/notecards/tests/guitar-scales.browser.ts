@@ -85,6 +85,7 @@ try {
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
+  await practiceOption(page, "#scale-pattern", "map");
   const before = await saved();
   await practiceOption(page, "#scale-key", "0");
   const locations = async () =>
@@ -200,7 +201,7 @@ try {
       assert.deepEqual(after.activities[id], checkpoint);
   assert.deepEqual(after.activities["guitar-scales"], {
     version: 1,
-    settings: { tonic: 3, quality: "minor" },
+    settings: { tonic: 3, quality: "minor", pattern: "map", shift: 0 },
   });
   assert.deepEqual(after.progress.stats, before.progress.stats);
   for (const [mode, profile] of Object.entries(before.progress.profiles))
@@ -278,6 +279,71 @@ try {
     await page.locator('.scale-optional[data-string="1"]').count(),
     0,
   );
+  await practiceOption(page, "#scale-quality", "major");
+  await practiceOption(page, "#scale-key", "7");
+  await practiceOption(page, "#scale-pattern", "E");
+  const patternSnapshot = () =>
+    page.locator(".scale-tone").evaluateAll((nodes) =>
+      nodes.map((n) => ({
+        string: n.getAttribute("data-string"),
+        fret: Number(n.getAttribute("data-fret")),
+        finger: n.querySelector("text")?.textContent,
+        y: n.querySelector("circle")?.getAttribute("cy"),
+      })),
+    );
+  const gPattern = await patternSnapshot();
+  await page.getByRole("button", { name: "Next key", exact: true }).click();
+  await page.getByRole("heading", { name: "A♭ major", exact: true }).waitFor();
+  assert.deepEqual(
+    (await patternSnapshot()).map((n) => ({ ...n, fret: n.fret - 1 })),
+    gPattern,
+  );
+  await page.getByRole("button", { name: "Previous key", exact: true }).click();
+  assert.deepEqual(await patternSnapshot(), gPattern);
+  await page
+    .getByRole("button", {
+      name: "Show E minor, the relative minor",
+      exact: true,
+    })
+    .click();
+  assert.deepEqual(await patternSnapshot(), gPattern);
+  await page.reload();
+  await page
+    .getByRole("heading", { name: "E natural minor", exact: true })
+    .waitFor();
+  assert.deepEqual(await patternSnapshot(), gPattern);
+  for (const shape of ["E", "D", "C", "A", "G"]) {
+    await practiceOption(page, "#scale-pattern", shape);
+    assert.ok((await page.locator(".scale-root").count()) >= 2);
+    assert.equal(await page.locator('.scale-tone[data-fret="0"]').count(), 0);
+  }
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await closePracticeOptions(page);
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    assert.ok(
+      (await page
+        .getByRole("button", { name: "Next key", exact: true })
+        .boundingBox())!.width >= 44,
+    );
+  }
+  for (const buttonName of ["Previous key", "Next key"]) {
+    const control = page.getByRole("button", { name: buttonName, exact: true });
+    let moves = 0;
+    while (await control.isEnabled()) {
+      assert.ok(moves++ < 22, "movement stops at the neck boundary");
+      await control.click();
+    }
+    assert.equal(await control.isEnabled(), false);
+  }
+  await page.screenshot({
+    path: "/tmp/guitar-caged-pattern.png",
+    fullPage: true,
+  });
   // Exercise the actual IndexedDB upgrade from yesterday's local preview.
   await page.waitForFunction(
     () =>

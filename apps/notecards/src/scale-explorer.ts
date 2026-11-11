@@ -1,3 +1,10 @@
+import {
+  CAGED_SHAPES,
+  patternBounds,
+  patternShift,
+  patternPositions,
+  type ScalePattern,
+} from "./guitar-scale-patterns";
 import { mountPracticeOptions } from "./practice-controls";
 import {
   SCALE_TONICS,
@@ -33,20 +40,30 @@ export class ScaleExplorer implements LivePractice {
     const settings = guitarScaleFromQuery(route.query, {
       tonic: this.tonic,
       quality: this.quality,
+      pattern: this.pattern,
+      shift: this.shift,
       ...(this.spelling ? { spelling: this.spelling } : {}),
     });
     if (
       settings.tonic !== this.tonic ||
       settings.quality !== this.quality ||
-      settings.spelling !== this.spelling
+      settings.spelling !== this.spelling ||
+      settings.pattern !== this.pattern ||
+      settings.shift !== this.shift
     ) {
+      this.movement = "";
       this.tonic = settings.tonic;
       this.quality = settings.quality;
       this.spelling = settings.spelling;
+      this.pattern = settings.pattern || "map";
+      this.shift = settings.shift || 0;
       this.update();
     }
     return true;
   }
+  private pattern: ScalePattern = "E";
+  private shift = 0;
+  private movement = "";
   private tonic = 4;
   private spelling?: string;
   private quality: ScaleQuality = "major";
@@ -63,8 +80,11 @@ export class ScaleExplorer implements LivePractice {
     this.tonic = settings.tonic;
     this.quality = settings.quality;
     this.spelling = settings.spelling;
-    element.innerHTML = `<div class="scale-controls options-row"><label>Key<select id="scale-key" aria-label="Scale key"></select></label><label>Scale<select id="scale-quality" aria-label="Scale type"><option value="major">Major</option><option value="minor">Natural minor</option></select></label></div>
+    this.pattern = settings.pattern || (saved ? "map" : "E");
+    this.shift = settings.shift || 0;
+    element.innerHTML = `<div class="scale-controls options-row"><label>Key<select id="scale-key" aria-label="Scale key"></select></label><label>Scale<select id="scale-quality" aria-label="Scale type"><option value="major">Major</option><option value="minor">Natural minor</option></select></label><label>Pattern<select id="scale-pattern"><option value="map">Open-position map</option>${CAGED_SHAPES.map((shape) => `<option value="${shape}">${shape} shape · CAGED</option>`).join("")}</select></label></div>
       <section class="scale-card sequence-practice" aria-labelledby="scale-title"><div class="scale-heading"><h2 id="scale-title"></h2><p class="scale-notes" aria-live="polite"></p><div class="scale-relative"><button type="button" class="scale-relative-switch"></button><span>Same notes · different home note</span></div></div>
+      <div class="scale-key-navigation"><button type="button" class="scale-prev" aria-label="Previous key"></button><p class="scale-pattern-caption" role="status"></p><button type="button" class="scale-next" aria-label="Next key"></button></div>
       <p class="scale-orientation">Standard tuning · low E left → high E right</p>
       <div class="scale-diagram"></div><p class="scale-legend"><span class="scale-root-swatch" aria-hidden="true">R</span> Root <span class="scale-note-swatch" aria-hidden="true"></span> Other scale notes</p>
       <p class="scale-optional-legend"><span class="scale-optional-swatch" aria-hidden="true"></span> Gray = optional: same pitch on the next open string.</p>
@@ -73,12 +93,36 @@ export class ScaleExplorer implements LivePractice {
     mountPracticeOptions(element, [
       element.querySelector<HTMLElement>(".scale-controls")!,
     ]);
+    this.element.querySelector<HTMLSelectElement>("#scale-pattern")!.onchange =
+      (event) => {
+        this.pattern = (event.target as HTMLSelectElement)
+          .value as ScalePattern;
+        this.movement = "";
+        this.update();
+      };
+    for (const direction of [-1, 1]) {
+      this.element.querySelector<HTMLButtonElement>(
+        direction < 0 ? ".scale-prev" : ".scale-next",
+      )!.onclick = () => {
+        if (this.pattern === "map") return;
+        const [low, high] = patternBounds(this.pattern);
+        const shift = this.shift + direction;
+        if (low + shift < 1 || high + shift > 22) return;
+        this.shift = shift;
+        this.tonic = (this.tonic + direction + 12) % 12;
+        this.spelling = undefined;
+        this.movement = direction > 0 ? "Up one fret" : "Down one fret";
+        this.update();
+      };
+    }
     this.key.onchange = () => {
+      this.movement = "";
       this.tonic = Number(this.key.value);
       this.spelling = undefined;
       this.update();
     };
     this.type.onchange = () => {
+      this.movement = "";
       this.quality = this.type.value as ScaleQuality;
       this.spelling = undefined;
       this.update();
@@ -86,6 +130,7 @@ export class ScaleExplorer implements LivePractice {
     this.element.querySelector<HTMLButtonElement>(
       ".scale-relative-switch",
     )!.onclick = () => {
+      this.movement = "";
       const relative = relativeScale(this.tonic, this.quality, this.spelling);
       this.tonic = relative.tonic;
       this.quality = relative.quality;
@@ -101,6 +146,10 @@ export class ScaleExplorer implements LivePractice {
       this.spelling || SCALE_TONICS[this.quality][this.tonic],
     );
     url.searchParams.set("scale", this.quality);
+    url.searchParams.set("pattern", this.pattern);
+    if (this.pattern !== "map")
+      url.searchParams.set("position", String(this.shift));
+    else url.searchParams.delete("position");
     history.replaceState(history.state, "", url);
   }
   private get key() {
@@ -110,18 +159,34 @@ export class ScaleExplorer implements LivePractice {
     return this.element.querySelector<HTMLSelectElement>("#scale-quality")!;
   }
   private update() {
+    this.normalizePosition();
     persistence.write("guitar-scales", {
       version: 1,
       settings: {
         tonic: this.tonic,
         quality: this.quality,
+        pattern: this.pattern,
+        shift: this.shift,
         ...(this.spelling ? { spelling: this.spelling } : {}),
       },
     });
     this.render();
     this.publishRoute();
   }
+  private normalizePosition() {
+    if (this.pattern !== "map")
+      this.shift = patternShift(
+        this.tonic,
+        this.quality,
+        this.pattern,
+        this.shift,
+      );
+    else this.shift = 0;
+  }
   private render() {
+    this.normalizePosition();
+    this.element.querySelector<HTMLSelectElement>("#scale-pattern")!.value =
+      this.pattern;
     this.key.innerHTML = SCALE_TONICS[this.quality]
       .map(
         (name, i) =>
@@ -151,21 +216,79 @@ export class ScaleExplorer implements LivePractice {
       "aria-label",
       `Show ${relativeName} ${relative.quality}, the relative ${relative.quality}`,
     );
-    const positions = scalePositions(this.tonic, this.quality, this.spelling);
+    const movable = this.pattern !== "map";
+    const positions =
+      this.pattern === "map"
+        ? scalePositions(this.tonic, this.quality, this.spelling)
+        : patternPositions(
+            this.tonic,
+            this.quality,
+            this.pattern,
+            this.shift,
+            this.spelling,
+          );
+    const firstFret = movable ? Math.min(...positions.map((n) => n.fret)) : 1;
+    const rows = movable
+      ? Math.max(...positions.map((n) => n.fret)) - firstFret + 1
+      : 5;
+    const step = 60;
+    const top = movable ? 40 : 84;
+    const bottom = top + rows * step;
+    this.element.querySelector<HTMLElement>(".scale-key-navigation")!.hidden =
+      !movable;
+    this.element.querySelector<HTMLElement>(".scale-optional-legend")!.hidden =
+      movable;
+    const anchor = positions.find((n) => n.root)!;
+    this.element.querySelector<HTMLElement>(
+      ".scale-pattern-caption",
+    )!.textContent =
+      `${this.pattern} shape${this.quality === "minor" ? " · relative major" : " · CAGED"}\n${this.movement || `Root: string ${anchor.string}, fret ${anchor.fret}`}`;
+    this.element.querySelector<HTMLElement>(".scale-footnote")!.textContent =
+      movable
+        ? "Finger numbers: 1 index · 2 middle · 3 ring · 4 little"
+        : "Open strings above the nut · frets 1–5 below";
+    for (const direction of [-1, 1]) {
+      const control = this.element.querySelector<HTMLButtonElement>(
+        direction < 0 ? ".scale-prev" : ".scale-next",
+      )!;
+      const target = scaleLabel(
+        SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],
+      );
+      control.textContent = direction < 0 ? `← ${target}` : `${target} →`;
+      control.title = `${direction < 0 ? "Down" : "Up"} one fret · ${target}`;
+      if (this.pattern !== "map") {
+        const [low, high] = patternBounds(this.pattern);
+        control.disabled =
+          low + this.shift + direction < 1 ||
+          high + this.shift + direction > 22;
+      }
+    }
     const x = (string: number) => 64 + (6 - string) * 48;
-    const y = (fret: number) => (fret === 0 ? 55 : 84 + (fret - 0.5) * 60);
+    const y = (fret: number) =>
+      fret === 0 ? 55 : top + (fret - firstFret + 0.5) * step;
     const notes = positions
       .map(
         (n) =>
-          `<g class="scale-tone${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><circle cx="${x(n.string)}" cy="${y(n.fret)}" r="18"/><text x="${x(n.string)}" y="${y(n.fret) + 5}">${scaleLabel(n.name)}</text>${n.root ? `<text class="scale-root-mark" x="${x(n.string) + 19}" y="${y(n.fret) - 16}">R</text>` : ""}</g>`,
+          `<g class="scale-tone${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><circle cx="${x(n.string)}" cy="${y(n.fret)}" r="18"/><text x="${x(n.string)}" y="${y(n.fret) + 5}">${"finger" in n ? n.finger : scaleLabel(n.name)}</text>${n.root ? `<text class="scale-root-mark" x="${x(n.string) + 19}" y="${y(n.fret) - 16}">R</text>` : ""}</g>`,
       )
       .join("");
     this.element.querySelector(".scale-diagram")!.innerHTML =
-      `<svg viewBox="0 0 352 400" role="img" aria-labelledby="scale-svg-title scale-svg-desc"><title id="scale-svg-title">${title} guitar scale, open strings through fret 5</title><desc id="scale-svg-desc">Six upright strings, low E on the left, high E on the right. Root notes are marked R. Gray fifth-fret notes are optional: play the adjacent higher string open for the same pitch and octave. Other roots are yellow. Full note positions are listed below the diagram.</desc>
-      ${[3, 5].map((f) => `<circle class="scale-fret-marker" cx="184" cy="${y(f)}" r="11"/>`).join("")}
-      ${[1, 2, 3, 4, 5].map((f) => `<line class="scale-fret" x1="64" x2="304" y1="${84 + f * 60}" y2="${84 + f * 60}"/><text class="scale-fret-number" x="25" y="${y(f) + 5}">${f}</text>`).join("")}
-      ${[6, 5, 4, 3, 2, 1].map((s, i) => `<line class="scale-string" x1="${x(s)}" x2="${x(s)}" y1="84" y2="384" style="stroke-width:${2.6 - i * 0.3}"/><text class="scale-tuning" x="${x(s)}" y="20">${["E₂", "A₂", "D₃", "G₃", "B₃", "E₄"][i]}</text>`).join("")}
-      <path class="scale-nut" d="M64 84H304"/>${notes}</svg>`;
+      `<svg viewBox="0 0 352 ${bottom + 16}" role="img" aria-labelledby="scale-svg-title scale-svg-desc"><title id="scale-svg-title">${title} guitar scale, ${movable ? `${this.pattern} shape, frets ${firstFret}–${firstFret + rows - 1}` : "open strings through fret 5"}</title><desc id="scale-svg-desc">Six upright strings, low E on the left, high E on the right. Root notes are marked R. ${movable ? "Numbers show suggested fingers, 1 index through 4 little finger. The same shape moves to each key." : "Gray fifth-fret notes are optional: play the adjacent higher string open for the same pitch and octave."} Other roots are yellow. Full note positions are listed below the diagram.</desc>
+      ${Array.from({ length: rows }, (_, i) => firstFret + i)
+        .filter((f) => [3, 5, 7, 9, 12, 15, 17, 19, 21].includes(f))
+        .map(
+          (f) =>
+            `<circle class="scale-fret-marker" cx="184" cy="${y(f)}" r="11"/>`,
+        )
+        .join("")}
+      ${Array.from({ length: rows }, (_, i) => firstFret + i)
+        .map(
+          (f, i) =>
+            `<line class="scale-fret" x1="64" x2="304" y1="${top + (i + 1) * step}" y2="${top + (i + 1) * step}"/><text class="scale-fret-number" x="25" y="${y(f) + 5}">${f}</text>`,
+        )
+        .join("")}
+      ${[6, 5, 4, 3, 2, 1].map((s, i) => `<line class="scale-string" x1="${x(s)}" x2="${x(s)}" y1="${top}" y2="${bottom}" style="stroke-width:${2.6 - i * 0.3}"/><text class="scale-tuning" x="${x(s)}" y="20">${["E₂", "A₂", "D₃", "G₃", "B₃", "E₄"][i]}</text>`).join("")}
+      <path class="${movable ? "scale-fret" : "scale-nut"}" d="M64 ${top}H304"/>${notes}</svg>`;
     this.element.querySelector(".scale-note-list div")!.innerHTML =
       `<table><caption>${title} · sounding pitches</caption><thead><tr><th scope="col">String</th><th scope="col">Fret: note</th></tr></thead><tbody>${[
         6, 5, 4, 3, 2, 1,

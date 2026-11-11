@@ -184,6 +184,9 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await other.evaluate(async()=>{await(await navigator.serviceWorker.getRegistration()).update()});
  for(let i=0;i<100;i++){state=await rpc(other);if(state.workerVersion===releases[3].pack.version)break;await other.waitForTimeout(100)}
  assert.equal(state.workerVersion,releases[3].pack.version,'Wait for the intended worker generation, not an earlier pending controllerchange');
+ // Force the late write an older worker can make after the new worker installs.
+ await other.evaluate(async version=>{const cache=await caches.open('soundglow-clients-v1');await cache.put(new URL('/Soundglow/__cache__/latest',location.origin),new Response(JSON.stringify({version})))},releases[1].pack.version);
+
  await context.setOffline(true);await other.reload();
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[3].pack.version,'Newly installed release must supersede a stale discovery pointer while offline');
  console.log('PASS: newly installed release opens offline without update discovery');

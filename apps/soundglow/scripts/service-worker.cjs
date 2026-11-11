@@ -11,6 +11,11 @@ function valid(pack){
  }catch{return false}
 }
 const metadata=offline.jsonStore(META,key),read=key=>metadata.read(key).catch(()=>null),write=metadata.write;
+// Older worker generations may finish discovery after a new worker installs.
+// Each generation owns its startup pointer; the legacy pointer remains for old workers.
+async function latestPointer(){return await read('latest/'+CONFIG.version)||await read('latest')}
+async function rememberLatest(pack){await write('latest/'+CONFIG.version,{version:pack.version});await write('latest',{version:pack.version})}
+
 async function record(id,version){if(id&&/^[a-f0-9]{32}$/.test(version))await write('client/'+id,{version,savedAt:Date.now()})}
 async function inventory(version){const r=await(await caches.open(PREFIX+version)).match(key('manifest'));const pack=r?await r.json().catch(()=>null):null;return valid(pack)?pack:null}
 async function complete(pack){return valid(pack)&&await offline.complete(ASSETS,pack.files.map(f=>f.url))&&offline.verified(ASSETS,pack.files)}
@@ -30,11 +35,11 @@ function latest(){
  latestTask=offline.withDeadline(200000,async signal=>{
   const bytes=await offlineResources.fetchBytes(ROOT+'release.json?check='+Date.now(),{signal,timeoutMs:8000,idleMs:5000,attempts:2});
   const pack=await stage(JSON.parse(new TextDecoder().decode(bytes)),180000,signal);signal.throwIfAborted();
-  await write('latest',{version:pack.version});return pack;
+  await rememberLatest(pack);return pack;
  }).finally(()=>latestTask=null);return latestTask;
 }
 async function cleanup(){return offline.cleanup(async()=>{
- const protectedState=await offline.protectedClients([CONFIG.version,(await read('latest'))?.version],async id=>{const meta=await read('client/'+id);return meta?[meta.version]:null});if(!protectedState)return;
+ const protectedState=await offline.protectedClients([CONFIG.version,(await latestPointer())?.version],async id=>{const meta=await read('client/'+id);return meta?[meta.version]:null});if(!protectedState)return;
  const {live:clients,keep}=protectedState,assetURLs=new Set();
  let backups=0;for(const name of(await caches.keys()).filter(n=>n.startsWith(PREFIX)).reverse()){const version=name.slice(PREFIX.length);if(keep.has(version))continue;const pack=await inventory(version);if(pack&&await complete(pack)){keep.add(version);if(++backups>=1)break;}}
  for(const name of(await caches.keys()).filter(n=>n.startsWith(PREFIX))){
@@ -44,9 +49,11 @@ async function cleanup(){return offline.cleanup(async()=>{
  }
  const assets=await caches.open(ASSETS);for(const request of await assets.keys())if(!assetURLs.has(new URL(request.url).pathname))await assets.delete(request);
  const meta=await caches.open(META),live=new Set(clients.map(c=>key('client/'+c.id)));
+ const retained=new Set((await caches.keys()).filter(n=>n.startsWith(PREFIX)).map(n=>n.slice(PREFIX.length)));
+ for(const request of await meta.keys())if(request.url.startsWith(key('latest/'))&&!retained.has(request.url.slice(key('latest/').length)))await meta.delete(request);
  for(const request of await meta.keys())if(request.url.includes('/__cache__/client/')&&!live.has(request.url)){const data=await(await meta.match(request)).json().catch(()=>null);if(!data||!offline.recent(data.savedAt))await meta.delete(request)}
 })}
-offline.lifecycle(async()=>{const pack=await stage(CONFIG,180000);await offline.withDeadline(2000,()=>write('latest',{version:pack.version}));});
+offline.lifecycle(async()=>{const pack=await stage(CONFIG,180000);await offline.withDeadline(2000,()=>rememberLatest(pack));});
 const downloads=new Map();
 self.addEventListener('message',event=>{
  if(event.data?.type==='using-release'&&event.source?.id)event.waitUntil((async()=>{await record(event.source.id,event.data.version);await cleanup()})().catch(error=>offline.report(event.source,'storage','failed',{cacheReason:offline.reason(error)})));
@@ -73,7 +80,7 @@ self.addEventListener('message',event=>{
 });
 function navigate(event){return offline.navigate(event,{
  latest,
- candidates:async()=>{const known=await read('client/'+event.clientId),last=await read('latest');return [...new Set([last?.version,...(await caches.keys()).filter(n=>n.startsWith(PREFIX)).reverse().map(n=>n.slice(PREFIX.length)),known?.version])].filter(Boolean)},
+ candidates:async()=>{const known=await read('client/'+event.clientId),last=await latestPointer();return [...new Set([last?.version,...(await caches.keys()).filter(n=>n.startsWith(PREFIX)).reverse().map(n=>n.slice(PREFIX.length)),known?.version])].filter(Boolean)},
  load:inventory,document:async pack=>await complete(pack)?(await caches.open(ASSETS)).match(pack.html):null,remember:(id,pack)=>record(id,pack.version)
 })}
 self.addEventListener('fetch',event=>{

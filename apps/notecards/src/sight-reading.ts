@@ -1,3 +1,6 @@
+import abcjs from "abcjs";
+import { preparePianoPlayback } from "./piano-audio";
+import { HymnPlayback } from "./hymn-playback";
 import { mountPracticePiano, isPianoVisible } from "./practice-piano";
 import { hymnSettingsFromQuery, type HymnSettings } from "./hymn-settings";
 import type { InputPolicy, Interruption } from "./live-practice";
@@ -32,6 +35,8 @@ import { persistence } from "./persistence";
 import { bookmark, restoreBookmark, type Bookmark } from "./bookmarks";
 type HymnState = {
   version: 1;
+  mode?: "wait" | "playback";
+  bpm?: number;
   key?: HymnKey;
   zoom?: number;
   hymn: string;
@@ -73,11 +78,17 @@ export class SightReading {
     return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}:${this.section}${hymnKeySuffix(this.hymn.key, this.key)}`;
   }
 
+  private mode: "wait" | "playback" = "wait";
+  private bpm = 80;
+  private playback: HymnPlayback;
+  private playbackView = "";
+  private playbackFromSection = 0;
   private active = false;
   private paused = false;
   private events: PracticeEvent[] = [];
   private session?: WaitForMe;
   private piano: Piano;
+  private pianoPanel: ReturnType<typeof mountPracticePiano>;
   private observer: ResizeObserver;
   private lastWidth = 0;
   private zoom = 1;
@@ -104,6 +115,14 @@ export class SightReading {
         typeof saved.sections === "object"
       )
         this.savedSections = structuredClone(saved.sections);
+      if (saved?.mode === "playback") this.mode = "playback";
+      if (
+        Number.isInteger(saved?.bpm) &&
+        saved!.bpm! >= 40 &&
+        saved!.bpm! <= 200 &&
+        saved!.bpm! % 5 === 0
+      )
+        this.bpm = saved!.bpm!;
       if ([0.85, 1, 1.2].includes(saved?.zoom)) this.zoom = saved.zoom;
       if (isHymnKey(saved?.key)) this.key = saved.key;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
@@ -141,8 +160,43 @@ export class SightReading {
       /* Private browsing or an older saved preference. */
     }
     element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns" hidden></ul></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label></div>
-    <div class="practice-controls hymn-grades"><label>Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars</option><option value="2">2 bars</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
+    <div class="practice-controls hymn-grades"><label class="hymn-arrangement-field">Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label>Practise<select id="hymn-length"><option value="4">4 bars</option><option value="2">2 bars</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
     <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" aria-label="Previous section" hidden>← Previous</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
+    this.playback = new HymnPlayback(
+      () => {
+        if (this.mode === "playback" && this.active) this.updatePlayback();
+      },
+      (error) => {
+        diagnostics.capture(error, "hymn_playback.play_failed");
+        this.$(".sequence-feedback").textContent =
+          "Piano audio couldn’t load. Press Play to retry.";
+      },
+      preparePianoPlayback,
+    );
+    this.$(".hymn-grades").insertAdjacentHTML(
+      "afterbegin",
+      `<label>Mode<select id="hymn-mode"><option value="wait">Wait for me</option><option value="playback">Playback</option></select></label><label class="hymn-tempo-field">Tempo<select id="hymn-tempo">${Array.from(
+        { length: 33 },
+        (_, i) => 40 + i * 5,
+      )
+        .map((n) => `<option value="${n}">${n} BPM</option>`)
+        .join("")}</select></label>`,
+    );
+    this.$<HTMLSelectElement>("#hymn-mode").value = this.mode;
+    this.$<HTMLSelectElement>("#hymn-tempo").value = String(this.bpm);
+    this.$<HTMLSelectElement>("#hymn-mode").onchange = (e) => {
+      this.interrupt("controls");
+      this.mode = (e.target as HTMLSelectElement).value as "wait" | "playback";
+      this.playback.restart();
+      this.playbackView = "";
+      this.render();
+      this.save();
+    };
+    this.$<HTMLSelectElement>("#hymn-tempo").onchange = (e) => {
+      this.bpm = Number((e.target as HTMLSelectElement).value);
+      this.playback.setTempo(this.bpm);
+      this.save();
+    };
     const context = document.createElement("div");
     context.className = "hymn-context";
     context.append(this.$(".hymn-controls"), this.$(".hymn-grades"));
@@ -156,10 +210,14 @@ export class SightReading {
     tools.append(this.$(".hymn-source"));
     context.append(tools);
     mountPracticeOptions(element, [context]);
-    mountPracticePiano(this.$(".hymn-piano"), this.$(".sequence-transport"), {
-      buttonClass: "hymn-keyboard-toggle",
-      changed: () => this.updateRangeHint(),
-    });
+    this.pianoPanel = mountPracticePiano(
+      this.$(".hymn-piano"),
+      this.$(".sequence-transport"),
+      {
+        buttonClass: "hymn-keyboard-toggle",
+        changed: () => this.updateRangeHint(),
+      },
+    );
     this.$(".hymn-source").append(this.$(".sequence-help"));
     this.$(".hymn-source").insertAdjacentHTML(
       "beforeend",
@@ -264,12 +322,28 @@ export class SightReading {
       };
     this.$(".hymn-prev").onclick = () => this.changeSection(this.section - 1);
     this.$(".hymn-pause").onclick = () => {
+      if (this.mode === "playback") {
+        if (["playing", "loading"].includes(this.playback.state))
+          this.playback.pause();
+        else void this.playback.play(this.bpm);
+        this.playbackView = "";
+        this.update();
+        return;
+      }
       this.paused = !this.paused;
       this.session?.resetGesture();
       this.update();
       this.save();
     };
     this.$(".hymn-restart").onclick = () => {
+      if (this.mode === "playback") {
+        this.render();
+        this.playback.restart();
+        this.playbackView = "";
+        void this.playback.play(this.bpm);
+        this.update();
+        return;
+      }
       this.position = 0;
       this.paused = false;
       this.restorePending = false;
@@ -279,6 +353,7 @@ export class SightReading {
     this.$(".hymn-restore-legacy").onclick = () => {
       const old = this.legacyBookmark;
       if (
+        this.mode === "playback" ||
         !persistence.writable ||
         !old ||
         old.key !== this.bookmarkKey() ||
@@ -313,6 +388,7 @@ export class SightReading {
   }
   get inputPolicy(): InputPolicy {
     if (
+      this.mode === "playback" ||
       !persistence.writable ||
       !this.active ||
       !this.$("#hymn-results").hidden ||
@@ -336,6 +412,9 @@ export class SightReading {
     this.acceptanceChanged();
   }
   interrupt(_reason: Interruption) {
+    this.playback.pause();
+    this.playbackView = "";
+    if (this.mode === "playback" && this.active) this.updatePlayback();
     this.session?.resetGesture();
     this.clearPianoSelection();
   }
@@ -351,6 +430,12 @@ export class SightReading {
       old.key !== next.key ||
       old.arrangement !== next.arrangement ||
       old.sectionBars !== next.sectionBars;
+    if (old.mode !== next.mode || old.bpm !== next.bpm)
+      this.interrupt("controls");
+    this.mode = next.mode || "wait";
+    this.bpm = next.bpm || 80;
+    this.$<HTMLSelectElement>("#hymn-mode").value = this.mode;
+    this.$<HTMLSelectElement>("#hymn-tempo").value = String(this.bpm);
     this.hymn = hymn;
     this.key = next.key || "original";
     this.arrangement = next.arrangement;
@@ -371,6 +456,8 @@ export class SightReading {
   private settings(): HymnSettings {
     return {
       hymn: this.hymn.id,
+      mode: this.mode,
+      bpm: this.bpm,
       key: this.key,
       arrangement: this.arrangement,
       sectionBars: this.sectionBars,
@@ -386,6 +473,10 @@ export class SightReading {
       section: String(this.section + 1),
     });
     if (this.key !== "original") q.set("key", this.key);
+    if (this.mode === "playback") {
+      q.set("mode", "playback");
+      q.set("tempo", String(this.bpm));
+    }
     this.element.dispatchEvent(
       new CustomEvent("hymn-route", {
         detail: `/piano/hymns/${this.hymn.id}?${q}`,
@@ -404,6 +495,8 @@ export class SightReading {
     this.savedSections[this.selectionKey()] = this.section;
     persistence.write("sight", {
       version: 1,
+      mode: this.mode,
+      bpm: this.bpm,
       key: this.key,
       zoom: this.zoom,
       hymn: this.hymn.id,
@@ -460,13 +553,13 @@ export class SightReading {
     this.render();
     this.save();
   }
-  private changeSection(section: number) {
+  private changeSection(section: number, continuingPlayback = false) {
     this.section = section;
     this.restorePending = true;
-    this.render();
+    this.render(false, continuingPlayback);
     this.save();
   }
-  private render(layoutOnly = false) {
+  private render(layoutOnly = false, continuingPlayback = false) {
     const paper = this.$(".hymn-paper");
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
     if (!this.lastWidth) return;
@@ -475,6 +568,8 @@ export class SightReading {
     const previousText = feedback.textContent;
     const previousKind = feedback.dataset.kind;
     if (!layoutOnly) {
+      if (!continuingPlayback) this.playback.pause();
+      this.playbackView = "";
       this.session = undefined;
       this.acceptanceChanged();
     }
@@ -528,6 +623,44 @@ export class SightReading {
       this.events = drawPracticeScore(paper, score.abc, this.lastWidth, {
         scale: this.zoom,
         transpose: transposition.semitones,
+        playback: (audio) => {
+          if (!layoutOnly && !continuingPlayback) {
+            this.playbackFromSection = this.section;
+            const readAudio = (abc: string) =>
+              abcjs.parseOnly(abc)[0].setUpAudio({
+                qpm: 60,
+                chordsOff: true,
+                midiTranspose: transposition.semitones,
+              });
+            let elapsed = 0;
+            const starts = Array.from({ length: this.sections }, (_, i) => {
+              const start = elapsed;
+              const part =
+                i === this.section
+                  ? audio
+                  : readAudio(
+                      arrangeHymn(
+                        this.hymn,
+                        this.arrangement,
+                        this.sectionBars,
+                        i,
+                      ).abc,
+                    );
+              elapsed += part.totalDuration * 4;
+              return start;
+            });
+            // A single full-score audio stream preserves ties across section boundaries.
+            // For sectioned original harmony, use the same unfolded bar edition as the display.
+            const fullAudio =
+              this.sections === 1
+                ? audio
+                : readAudio(
+                    arrangeHymn(this.hymn, this.arrangement, score.totalBars, 0)
+                      .abc,
+                  );
+            this.playback.load(fullAudio, starts, this.section);
+          }
+        },
       });
       const steps = eventSteps(this.events);
       const content = JSON.stringify({
@@ -590,6 +723,7 @@ export class SightReading {
             ?.classList.add("sight-key-selected");
       } else this.save();
     } catch (error) {
+      this.playback.pause();
       this.session = undefined;
       this.events = [];
       this.$(".sequence-feedback").textContent =
@@ -605,7 +739,7 @@ export class SightReading {
   }
   private updateRangeHint() {
     if (!this.piano) return;
-    if (!isPianoVisible()) {
+    if (this.mode === "playback" || !isPianoVisible()) {
       this.$<HTMLElement>(".hymn-range-hint").hidden = true;
       return;
     }
@@ -651,6 +785,16 @@ export class SightReading {
   private update(scroll = false, preserveAcceptance = false) {
     const session = this.session;
     if (!session) return;
+    this.$(".sequence-top > span").textContent =
+      this.mode === "playback" ? "Playback" : "Wait for me";
+    this.$(".hymn-tempo-field").hidden = this.mode !== "playback";
+    this.pianoPanel.setAvailable(this.mode === "wait");
+    if (this.mode === "playback") {
+      this.playbackView = "";
+      this.updatePlayback();
+      this.acceptanceChanged();
+      return;
+    }
     highlightScore(
       this.$(".hymn-paper"),
       this.events[session.index],
@@ -690,5 +834,72 @@ export class SightReading {
     this.updateRangeHint();
     this.piano.setUnavailable(!this.accepting);
     if (!preserveAcceptance) this.acceptanceChanged();
+  }
+  private updatePlayback() {
+    if (!this.session) return;
+    const targetSection = this.playbackFromSection + this.playback.section;
+    if (
+      targetSection !== this.section &&
+      this.mode === "playback" &&
+      this.active
+    ) {
+      this.changeSection(targetSection, true);
+      return;
+    }
+    const state = this.playback.state;
+    const complete = state === "complete";
+    let index = this.events.length - 1;
+    while (
+      index >= 0 &&
+      this.events[index].milliseconds > this.playback.sectionPosition * 1000 + 1
+    )
+      index--;
+    if (index < 0) index = 0;
+    const sounding = this.playback.sounding;
+    const view = `${state}:${this.section}:${index}:${sounding}`;
+    if (view === this.playbackView) return;
+    this.playbackView = view;
+    highlightScore(
+      this.$(".hymn-paper"),
+      complete || (state === "playing" && !sounding)
+        ? undefined
+        : this.events[index],
+      this.$(".sequence-score"),
+      true,
+    );
+    this.$(".hymn-count").textContent = complete
+      ? "Complete"
+      : `${index + 1} / ${this.events.length}`;
+    const progress = this.$<HTMLProgressElement>(".hymn-progress");
+    progress.max = this.events.length;
+    progress.value = complete ? this.events.length : index;
+    this.$(".sequence-feedback").textContent =
+      state === "loading"
+        ? "Loading…"
+        : state === "playing"
+          ? "Sing or play along."
+          : complete
+            ? "Complete. Play it again, or choose another section."
+            : state === "paused"
+              ? "Paused."
+              : "Press Play to listen.";
+    const button = this.$<HTMLButtonElement>(".hymn-pause");
+    button.disabled = false;
+    button.textContent =
+      state === "loading"
+        ? "Cancel"
+        : state === "playing"
+          ? "Pause"
+          : state === "paused"
+            ? "Resume"
+            : "Play";
+    this.$(".hymn-restore-legacy").hidden = true;
+    this.$(".hymn-prev").hidden = this.section === 0;
+    this.$(".hymn-next").hidden =
+      !complete && this.section + 1 === this.sections;
+    this.$(".hymn-next").textContent =
+      this.section + 1 < this.sections ? "Next section →" : "Next hymn →";
+    this.$(".hymn-range-hint").hidden = true;
+    this.piano.setUnavailable(true);
   }
 }

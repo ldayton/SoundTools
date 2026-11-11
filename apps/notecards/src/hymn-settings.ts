@@ -4,6 +4,8 @@ import { ARRANGEMENTS, type Arrangement } from "./hymn-arrangements";
 import { object, choice } from "./exercise-settings";
 export type HymnSettings = {
   hymn: string;
+  mode?: "wait" | "playback";
+  bpm?: number;
   key?: HymnKey;
   arrangement: Arrangement;
   sectionBars: 0 | 2 | 4;
@@ -17,6 +19,14 @@ export function mergeHymnSettings(
   const s = object(input);
   const legacy = !("arrangement" in s) && ("hymn" in s || "chords" in s);
   return {
+    mode: choice(s.mode, ["wait", "playback"] as const, base.mode || "wait"),
+    bpm:
+      Number.isInteger(s.bpm) &&
+      Number(s.bpm) >= 40 &&
+      Number(s.bpm) <= 200 &&
+      Number(s.bpm) % 5 === 0
+        ? Number(s.bpm)
+        : base.bpm || 80,
     ...(isHymnKey(s.key) ? { key: s.key } : base.key ? { key: base.key } : {}),
     hymn: hymns.some((h) => h.id === s.hymn) ? (s.hymn as string) : base.hymn,
     arrangement: choice(
@@ -44,6 +54,8 @@ export function hymnSettingsFromQuery(
   query: URLSearchParams,
 ) {
   const overrides: Record<string, unknown> = {};
+  if (query.has("mode")) overrides.mode = query.get("mode");
+  if (query.has("tempo")) overrides.bpm = Number(query.get("tempo"));
   if (query.has("key")) overrides.key = query.get("key");
   if (query.has("arrangement"))
     overrides.arrangement = query.get("arrangement");

@@ -144,6 +144,80 @@ export async function playPianoNote(midi: number) {
     reportedFailure = true;
   }
 }
+/** A prepared, cancellable audio-clock output for score playback. */
+export async function preparePianoPlayback(pitches: number[]) {
+  const ctx = audio();
+  const resume = ctx.state === "running" ? Promise.resolve() : ctx.resume();
+  const rootFor = (midi: number) =>
+    [...urls.keys()].reduce((a, b) =>
+      Math.abs(b - midi) < Math.abs(a - midi) ? b : a,
+    );
+  const samples = new Map<number, AudioBuffer>();
+  await Promise.all(
+    [...new Set(pitches.map(rootFor))]
+      .map(async (root) => {
+        let pending = decoded.get(root);
+        if (!pending) {
+          pending = load(root)
+            .then((data) => ctx.decodeAudioData(data.slice(0)))
+            .catch((error) => {
+              decoded.delete(root);
+              throw error;
+            });
+          decoded.set(root, pending);
+        }
+        samples.set(root, await pending);
+      })
+      .concat([resume]),
+  );
+  const owned = new Set<() => void>();
+  return {
+    get now() {
+      return ctx.currentTime;
+    },
+    get running() {
+      return ctx.state === "running" && !document.hidden;
+    },
+    schedule(midi: number, when: number, duration: number, volume = 1) {
+      const root = rootFor(midi),
+        source = ctx.createBufferSource(),
+        gain = ctx.createGain();
+      source.buffer = samples.get(root)!;
+      source.playbackRate.value = 2 ** ((midi - root) / 12);
+      const level = 0.22 * Math.max(0, Math.min(1, volume));
+      // Preserve the recorded decay; release early when the written note ends.
+      const end = when + Math.max(0.02, duration);
+      gain.gain.setValueAtTime(0, when);
+      gain.gain.linearRampToValueAtTime(level, when + 0.005);
+      gain.gain.setValueAtTime(level, Math.max(when + 0.005, end - 0.04));
+      gain.gain.linearRampToValueAtTime(0, end);
+      source.connect(gain).connect(output!);
+      let stopped = false;
+      const stop = () => {
+        if (stopped) return;
+        stopped = true;
+        gain.gain.cancelScheduledValues(ctx.currentTime);
+        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.006);
+        source.stop(ctx.currentTime + 0.03);
+        voices.delete(stop);
+        owned.delete(stop);
+      };
+      owned.add(stop);
+      voices.add(stop);
+      source.onended = () => {
+        owned.delete(stop);
+        voices.delete(stop);
+        source.disconnect();
+        gain.disconnect();
+      };
+      source.start(when);
+      source.stop(end + 0.01);
+    },
+    stop() {
+      for (const stop of [...owned]) stop();
+    },
+  };
+}
 function stopPiano() {
   epoch++;
   for (const stop of [...voices]) stop();

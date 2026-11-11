@@ -533,3 +533,23 @@ select {
     transform: rotate(180deg);
   }
 }
+
+/* Hymn mode and tempo form one pair; section controls form another. */
+.practice-options .hymn-grades {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.practice-options .hymn-grades label {
+  width: 100%;
+}
+.practice-options .hymn-grades label:first-child {
+  grid-column: auto;
+}
+.practice-options .hymn-grades .hymn-arrangement-field,
+.practice-options .hymn-grades:has(.hymn-tempo-field[hidden]) > label:first-child {
+  grid-column: 1 / -1;
+}
+
+.hymn-pause {
+  min-inline-size: 88px;
+}

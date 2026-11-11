@@ -1,5 +1,9 @@
 import { STAFF_LINE_GAP, ABC_STAFF_LINE_GAP } from "./notation-metrics";
-import abcjs, { type NoteTimingEvent, type TuneObject } from "abcjs";
+import abcjs, {
+  type NoteTimingEvent,
+  type TuneObject,
+  type AudioTracks,
+} from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
 export type PracticeEvent = NoteTimingEvent & { spellings?: PitchSpellings };
 export function drawPracticeScore(
@@ -11,6 +15,7 @@ export function drawPracticeScore(
     transpose?: number;
     compact?: boolean;
     rhythmGrid?: boolean;
+    playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
   const scale = (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1);
@@ -58,8 +63,13 @@ export function drawPracticeScore(
   });
   // abcjs keeps audio at source pitch unless both transpositions are specified.
   // Use the same shift so notation, spellings and MIDI grading agree.
-  tune.setUpAudio({ midiTranspose: transpose });
-  tune.setTiming(60, 0);
+  const audio = tune.setUpAudio({
+    midiTranspose: transpose,
+    ...(options.playback ? { qpm: 60, chordsOff: true } : {}),
+  });
+  options.playback?.(audio);
+  // Playback uses quarter-note BPM, including compound meters.
+  tune.setTiming(options.playback ? (60 * 0.25) / tune.getBeatLength() : 60, 0);
   paper
     .querySelectorAll(".abcjs-title,.abcjs-subtitle")
     .forEach((e) => e.remove());

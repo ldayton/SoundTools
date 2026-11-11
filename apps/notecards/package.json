@@ -25,7 +25,8 @@
     "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts",
     "test:piano-audio": "tsx tests/piano-audio.browser.ts",
     "test:theory": "tsx tests/theory.browser.ts",
-    "test:guitar-scales": "tsx tests/guitar-scales.browser.ts"
+    "test:guitar-scales": "tsx tests/guitar-scales.browser.ts",
+    "test:hymn-playback": "tsx tests/hymn-playback.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",

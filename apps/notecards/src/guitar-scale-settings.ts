@@ -1,12 +1,16 @@
 import { choice, object } from "./exercise-settings";
-import { SCALE_TONICS, type ScaleQuality } from "./guitar-scales";
-export type GuitarScaleSettings = { tonic: number; quality: ScaleQuality };
+import {
+  SCALE_TONICS,
+  scaleKeyPitch,
+  type ScaleSelection,
+} from "./guitar-scales";
+export type GuitarScaleSettings = ScaleSelection;
 export function mergeGuitarScaleSettings(
   input: unknown,
   base: GuitarScaleSettings = { tonic: 4, quality: "major" },
 ): GuitarScaleSettings {
   const source = object(input);
-  return {
+  const settings: GuitarScaleSettings = {
     tonic:
       typeof source.tonic === "number" &&
       Number.isInteger(source.tonic) &&
@@ -16,14 +20,27 @@ export function mergeGuitarScaleSettings(
         : base.tonic,
     quality: choice(source.quality, ["major", "minor"], base.quality),
   };
+  const spelling =
+    typeof source.spelling === "string" ? source.spelling : base.spelling;
+  if (
+    spelling &&
+    scaleKeyPitch(spelling, settings.quality) === settings.tonic &&
+    spelling !== SCALE_TONICS[settings.quality][settings.tonic]
+  )
+    settings.spelling = spelling;
+  return settings;
 }
 export function guitarScaleFromQuery(
   query: URLSearchParams,
   base: GuitarScaleSettings,
 ) {
   const quality = choice(query.get("scale"), ["major", "minor"], base.quality);
-  const tonic = SCALE_TONICS[quality].findIndex((n) => n === query.get("key"));
-  return mergeGuitarScaleSettings({ tonic, quality }, base);
+  const name = query.get("key");
+  const tonic = name ? scaleKeyPitch(name, quality) : -1;
+  return mergeGuitarScaleSettings(
+    { tonic, quality, ...(tonic >= 0 ? { spelling: name } : {}) },
+    base,
+  );
 }
 /** The unpublished preview used profiles.scales; upstream now reserves scales for theory. */
 export function legacyGuitarScaleProfile(progress: unknown) {

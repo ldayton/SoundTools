@@ -86,6 +86,69 @@ try {
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   const before = await saved();
+  await practiceOption(page, "#scale-key", "0");
+  const locations = async () =>
+    page
+      .locator(".scale-tone")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => [
+          n.getAttribute("data-string"),
+          n.getAttribute("data-fret"),
+        ]),
+      );
+  const originalLocations = await locations();
+  await page
+    .getByRole("button", {
+      name: "Show A minor, the relative minor",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("heading", { name: "A natural minor", exact: true })
+    .waitFor();
+  assert.deepEqual(
+    await locations(),
+    originalLocations,
+    "same fret locations in relative scales",
+  );
+  assert.equal(
+    await page.locator(".scale-root").first().getAttribute("data-midi"),
+    "45",
+  );
+  assert.match(page.url(), /key=A&scale=minor/);
+  await page.reload();
+  await page
+    .getByRole("heading", { name: "A natural minor", exact: true })
+    .waitFor();
+  await page
+    .getByRole("button", {
+      name: "Show C major, the relative major",
+      exact: true,
+    })
+    .click();
+  await practiceOption(page, "#scale-key", "6");
+  await page
+    .getByRole("button", {
+      name: "Show D♯ minor, the relative minor",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("heading", { name: "D♯ natural minor", exact: true })
+    .waitFor();
+  assert.match((await page.locator(".scale-notes").textContent()) || "", /E♯/);
+  await page.reload();
+  await page
+    .getByRole("heading", { name: "D♯ natural minor", exact: true })
+    .waitFor();
+  await page
+    .getByRole("button", {
+      name: "Show F♯ major, the relative major",
+      exact: true,
+    })
+    .click();
+
+  await practiceOption(page, "#scale-key", "4");
   assert.equal(await page.locator("#midi-panel").isVisible(), false);
   assert.equal(await page.locator("#flashcards").isVisible(), false);
   assert.equal(await page.locator('.scale-tone[data-fret="0"]').count(), 4);

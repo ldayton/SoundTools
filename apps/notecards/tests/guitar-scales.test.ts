@@ -7,6 +7,8 @@ import assert from "node:assert/strict";
 import {
   scaleNotes,
   scalePositions,
+  relativeScale,
+  SCALE_TONICS,
   type ScaleQuality,
 } from "../src/guitar-scales";
 import { defaultProgress, loadProgress } from "../src/progress";
@@ -236,4 +238,81 @@ test("only exact adjacent open-string equivalents at fret five are optional in e
   )!;
   assert.equal(eRoot.root, true);
   assert.equal(eRoot.openAlternative, 1);
+});
+
+test("relative scales share exact spellings and fret positions, but change the tonic", () => {
+  for (const quality of ["major", "minor"] as const)
+    for (let tonic = 0; tonic < 12; tonic++) {
+      const relative = relativeScale(tonic, quality);
+      const original = scaleNotes(tonic, quality);
+      const paired = scaleNotes(
+        relative.tonic,
+        relative.quality,
+        relative.spelling,
+      );
+      assert.deepEqual(
+        original.map((n) => n.name).sort(),
+        paired.map((n) => n.name).sort(),
+      );
+      const locations = (notes: ReturnType<typeof scalePositions>) =>
+        notes.map((n) => [n.string, n.fret, n.midi]);
+      assert.deepEqual(
+        locations(scalePositions(tonic, quality)),
+        locations(
+          scalePositions(relative.tonic, relative.quality, relative.spelling),
+        ),
+      );
+      const back = relativeScale(
+        relative.tonic,
+        relative.quality,
+        relative.spelling,
+      );
+      assert.equal(back.tonic, tonic);
+      assert.equal(back.quality, quality);
+      assert.equal(
+        back.spelling || SCALE_TONICS[quality][tonic],
+        SCALE_TONICS[quality][tonic],
+      );
+    }
+});
+test("relative spelling, saved selections and links retain the actual key signature", () => {
+  assert.deepEqual(relativeScale(6, "major"), {
+    tonic: 3,
+    quality: "minor",
+    spelling: "D#",
+  });
+  assert.deepEqual(relativeScale(3, "minor"), {
+    tonic: 6,
+    quality: "major",
+    spelling: "Gb",
+  });
+  assert.equal(
+    scaleNotes(3, "minor", "D#")
+      .map((n) => n.name)
+      .join(" "),
+    "D# E# F# G# A# B C#",
+  );
+  assert.equal(
+    scaleNotes(6, "major", "Gb")
+      .map((n) => n.name)
+      .join(" "),
+    "Gb Ab Bb Cb Db Eb F",
+  );
+  const relative = relativeScale(6, "major");
+  assert.deepEqual(
+    mergeGuitarScaleSettings(JSON.parse(JSON.stringify(relative))),
+    relative,
+  );
+  assert.deepEqual(
+    guitarScaleFromQuery(new URLSearchParams("key=D%23&scale=minor"), {
+      tonic: 0,
+      quality: "major",
+    }),
+    relative,
+  );
+  assert.deepEqual(
+    mergeGuitarScaleSettings({ tonic: 0, quality: "major", spelling: "Gb" }),
+    { tonic: 0, quality: "major" },
+  );
+  assert.throws(() => scaleNotes(3, "minor", "Gb"));
 });

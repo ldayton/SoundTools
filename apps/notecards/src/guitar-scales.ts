@@ -6,19 +6,40 @@ export const SCALE_TONICS = {
   major: ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
   minor: ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
 } as const;
+export type ScaleSelection = {
+  tonic: number;
+  quality: ScaleQuality;
+  spelling?: string;
+};
+const aliases = { major: ["C#", "Gb", "Cb"], minor: ["D#", "Ab", "A#"] };
+export function scaleKeyPitch(name: string, quality: ScaleQuality) {
+  if (![...SCALE_TONICS[quality], ...aliases[quality]].includes(name))
+    return -1;
+  return (
+    (natural[letters.indexOf(name[0])] +
+      (name.endsWith("#") ? 1 : name.endsWith("b") ? -1 : 0) +
+      12) %
+    12
+  );
+}
 export const scaleLabel = (name: string) =>
   name.replace(/#/g, "♯").replace(/b/g, "♭");
 const letters = "CDEFGAB";
 const natural = [0, 2, 4, 5, 7, 9, 11];
-export function scaleNotes(tonic: number, quality: ScaleQuality) {
+export function scaleNotes(
+  tonic: number,
+  quality: ScaleQuality,
+  spelling?: string,
+) {
   if (
     !Number.isInteger(tonic) ||
     tonic < 0 ||
     tonic > 11 ||
-    !SCALE_TONICS[quality]
+    !SCALE_TONICS[quality] ||
+    (spelling !== undefined && scaleKeyPitch(spelling, quality) !== tonic)
   )
     throw Error("Invalid scale");
-  const first = letters.indexOf(SCALE_TONICS[quality][tonic][0]);
+  const first = letters.indexOf((spelling || SCALE_TONICS[quality][tonic])[0]);
   const intervals =
     quality === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
   return intervals.map((interval, degree) => {
@@ -37,8 +58,29 @@ export function scaleNotes(tonic: number, quality: ScaleQuality) {
     };
   });
 }
-export function scalePositions(tonic: number, quality: ScaleQuality) {
-  const notes = scaleNotes(tonic, quality);
+export function relativeScale(
+  tonic: number,
+  quality: ScaleQuality,
+  spelling?: string,
+): ScaleSelection {
+  const note = scaleNotes(tonic, quality, spelling)[
+    quality === "major" ? 5 : 2
+  ];
+  const target: ScaleQuality = quality === "major" ? "minor" : "major";
+  return {
+    tonic: note.pitchClass,
+    quality: target,
+    ...(note.name !== SCALE_TONICS[target][note.pitchClass]
+      ? { spelling: note.name }
+      : {}),
+  };
+}
+export function scalePositions(
+  tonic: number,
+  quality: ScaleQuality,
+  spelling?: string,
+) {
+  const notes = scaleNotes(tonic, quality, spelling);
   return [...STRINGS].reverse().flatMap((string) =>
     Array.from({ length: 6 }, (_, fret) => {
       const midi = string.midi + fret;

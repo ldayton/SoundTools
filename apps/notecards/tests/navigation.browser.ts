@@ -74,11 +74,11 @@ try {
   );
   await page.evaluate(() => (window as any).midiTest.send([0x90, 60, 100]));
   await page.evaluate(() => (window as any).midiTest.send([0x80, 60, 0]));
-  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 4");
+  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 8");
   await selectPractice(page, "piano");
   await page.goBack();
   await page.locator(".pattern-count").waitFor();
-  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 4");
+  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 8");
   await selectPractice(page, "sight");
   await practiceOption(page, "#hymn-length", "2");
   await practiceOption(page, "#hymn-arrangement", "bass");

@@ -220,3 +220,22 @@ test("a newer legacy schema cannot be downgraded to empty defaults", () => {
     /version/,
   );
 });
+
+test("two-bar pattern checkpoints survive shared storage validation without allowing unknown versions", () => {
+  const state = migrateLegacy({});
+  state.activities.patterns = {
+    version: 2,
+    notes: [60, 62, 64, 65, 67, 65, 64, 62],
+    position: 3,
+    paused: false,
+  };
+  assert.deepEqual(
+    decodeState(state).activities.patterns,
+    state.activities.patterns,
+  );
+  state.activities.rhythm = { version: 2 };
+  assert.throws(() => decodeState(state), /Unsupported activity version/);
+  delete state.activities.rhythm;
+  state.activities.patterns = { version: 3 };
+  assert.throws(() => decodeState(state), /Unsupported activity version/);
+});

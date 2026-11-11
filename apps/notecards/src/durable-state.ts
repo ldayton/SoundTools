@@ -35,12 +35,15 @@ export function decodeState(raw: unknown): DurableState {
     typeof s.legacy !== "object"
   )
     throw Error("Invalid saved state; existing data has been preserved.");
-  for (const activity of Object.values(s.activities)) {
+  for (const [id, activity] of Object.entries(s.activities)) {
     if (!activity || typeof activity !== "object" || !("version" in activity))
       throw Error(
         "Invalid activity checkpoint; saved data has been preserved.",
       );
-    if (activity.version !== 1)
+    if (
+      activity.version !== 1 &&
+      !(id === "patterns" && activity.version === 2)
+    )
       throw Error(
         "Unsupported activity version; update this app before continuing.",
       );

@@ -88,6 +88,13 @@ try {
   await off(62);
   await practiceOption(page, "#pattern-hand", "left");
   assert.equal(await page.locator(".pattern-count").textContent(), "1 / 8");
+  await page.reload();
+  await page.locator(".pattern-count").filter({ hasText: "1 / 8" }).waitFor();
+  assert.equal(
+    await page.locator("main").evaluate(e => (e as HTMLElement).inert),
+    false,
+  );
+  assert.equal(await page.locator("#pattern-hand").inputValue(), "left");
   await selectPractice(page, "sight");
   await page.locator("#hymn-arrangement").waitFor({ state: "attached" });
   await practiceOption(page, "#hymn-length", "2");

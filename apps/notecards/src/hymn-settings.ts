@@ -6,11 +6,26 @@ import {
   type HymnHands,
 } from "./hymn-arrangements";
 import { object, choice } from "./exercise-settings";
+export function optionalHymnNote(
+  value: unknown,
+  fallback: number | null = null,
+): number | null {
+  return value === null
+    ? null
+    : typeof value === "number" &&
+        Number.isInteger(value) &&
+        value >= 21 &&
+        value <= 108
+      ? value
+      : fallback;
+}
 export type HymnSettings = {
   hymn: string;
   mode?: "wait" | "playback";
   bpm?: number;
   key?: HymnKey;
+  low?: number | null;
+  high?: number | null;
   arrangement: Arrangement;
   hands?: HymnHands;
   viewHands?: HymnHands;
@@ -24,11 +39,26 @@ export function mergeHymnSettings(
 ): HymnSettings {
   const s = object(input);
   const legacy = !("arrangement" in s) && ("hymn" in s || "chords" in s);
-  const viewHands = choice(s.viewHands, ["right", "left", "both"] as const, base.viewHands || "both");
-  const hands = viewHands === "both"
-    ? choice(s.hands, ["right", "left", "both"] as const, base.hands || "both")
-    : viewHands;
+  const viewHands = choice(
+    s.viewHands,
+    ["right", "left", "both"] as const,
+    base.viewHands || "both",
+  );
+  const hands =
+    viewHands === "both"
+      ? choice(
+          s.hands,
+          ["right", "left", "both"] as const,
+          base.hands || "both",
+        )
+      : viewHands;
   return {
+    ...("low" in s || "low" in base
+      ? { low: optionalHymnNote(s.low, base.low ?? null) }
+      : {}),
+    ...("high" in s || "high" in base
+      ? { high: optionalHymnNote(s.high, base.high ?? null) }
+      : {}),
     viewHands,
     hands,
     mode: choice(s.mode, ["wait", "playback"] as const, base.mode || "wait"),
@@ -66,6 +96,10 @@ export function hymnSettingsFromQuery(
   query: URLSearchParams,
 ) {
   const overrides: Record<string, unknown> = {};
+  for (const bound of ["low", "high"] as const)
+    if (query.has(bound))
+      overrides[bound] =
+        query.get(bound) === "none" ? null : Number(query.get(bound));
   if (query.has("view")) overrides.viewHands = query.get("view");
   if (query.has("hands")) overrides.hands = query.get("hands");
   if (query.has("mode")) overrides.mode = query.get("mode");

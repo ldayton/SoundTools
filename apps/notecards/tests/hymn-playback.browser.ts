@@ -2,7 +2,11 @@ import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
-import { midiAction } from "./navigation-helpers";
+import {
+  practiceOption,
+  closePracticeOptions,
+  midiAction,
+} from "./navigation-helpers";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -215,7 +219,10 @@ try {
   assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
   assert.equal(await number(), "1");
   assert.equal(await page.locator("#hymn-view").inputValue(), "both");
-  assert.ok(await page.locator(".hymn-paper .abcjs-clef").count() >= 2, "both staves remain visible during left-hand practice");
+  assert.ok(
+    (await page.locator(".hymn-paper .abcjs-clef").count()) >= 2,
+    "both staves remain visible during left-hand practice",
+  );
   await send(62);
   assert.equal(
     await number(),
@@ -251,15 +258,41 @@ try {
   await page.locator(".hymn-paper .abcjs-note").first().waitFor();
   assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
   assert.equal(await number(), "2", "left-hand bookmark survives reload");
-  await page.getByRole("combobox", { name: "Show", exact: true }).selectOption("right");
+  await page
+    .getByRole("combobox", { name: "Show", exact: true })
+    .selectOption("right");
   assert.equal(await page.locator("#hymn-hands").inputValue(), "right");
-  assert.equal(await page.locator('#hymn-hands option[value="left"]').evaluate(e => (e as HTMLOptionElement).disabled), true);
-  assert.equal(await page.locator('#hymn-hands option[value="both"]').evaluate(e => (e as HTMLOptionElement).disabled), true);
-  await page.getByRole("combobox", { name: "Show", exact: true }).selectOption("left");
+  assert.equal(
+    await page
+      .locator('#hymn-hands option[value="left"]')
+      .evaluate((e) => (e as HTMLOptionElement).disabled),
+    true,
+  );
+  assert.equal(
+    await page
+      .locator('#hymn-hands option[value="both"]')
+      .evaluate((e) => (e as HTMLOptionElement).disabled),
+    true,
+  );
+  await page
+    .getByRole("combobox", { name: "Show", exact: true })
+    .selectOption("left");
   assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
-  assert.equal(await page.locator('#hymn-hands option[value="right"]').evaluate(e => (e as HTMLOptionElement).disabled), true);
-  await page.getByRole("combobox", { name: "Show", exact: true }).selectOption("both");
-  assert.equal(await page.locator('#hymn-hands option[value="both"]').evaluate(e => (e as HTMLOptionElement).disabled), false);
+  assert.equal(
+    await page
+      .locator('#hymn-hands option[value="right"]')
+      .evaluate((e) => (e as HTMLOptionElement).disabled),
+    true,
+  );
+  await page
+    .getByRole("combobox", { name: "Show", exact: true })
+    .selectOption("both");
+  assert.equal(
+    await page
+      .locator('#hymn-hands option[value="both"]')
+      .evaluate((e) => (e as HTMLOptionElement).disabled),
+    false,
+  );
   await page
     .getByRole("combobox", { name: "Mode", exact: true })
     .selectOption("playback");
@@ -284,6 +317,77 @@ try {
   );
   await page.screenshot({
     path: `/tmp/hymn-playback-${engine}.png`,
+    fullPage: true,
+  });
+  // Optional whole-hymn limits constrain keys independently of the visible section.
+  await page.goto(
+    base +
+      "/piano/hymns/amazing-grace?arrangement=melody&mode=wait&bars=2&section=1",
+  );
+  await page.locator(".hymn-paper svg").first().waitFor();
+  await practiceOption(page, "#hymn-high", "73");
+  assert.equal(await page.locator("#hymn-key").inputValue(), "D");
+  assert.equal(
+    await page
+      .locator('#hymn-key option[value="original"]')
+      .evaluate((e) => (e as HTMLOptionElement).disabled),
+    true,
+  );
+  await practiceOption(page, "#hymn-low", "60");
+  await practiceOption(page, "#hymn-high", "72");
+  assert.equal(await page.locator("#hymn-key").inputValue(), "F");
+  assert.deepEqual(
+    await page
+      .locator("#hymn-key option")
+      .evaluateAll((es) =>
+        es
+          .filter((e) => !(e as HTMLOptionElement).disabled)
+          .map((e) => (e as HTMLOptionElement).value),
+      ),
+    ["F"],
+  );
+  await page.reload();
+  await page.locator(".hymn-paper svg").first().waitFor();
+  assert.equal(await page.locator("#hymn-low").inputValue(), "60");
+  assert.equal(await page.locator("#hymn-high").inputValue(), "72");
+  assert.equal(await page.locator("#hymn-key").inputValue(), "F");
+  await practiceOption(page, "#hymn-high", "60");
+  await page.locator(".hymn-no-key").waitFor();
+  assert.equal(await page.locator(".hymn-paper svg").count(), 0);
+  assert.ok(
+    await page
+      .locator("#hymn-key option")
+      .evaluateAll((es) => es.every((e) => (e as HTMLOptionElement).disabled)),
+  );
+  assert.equal(await page.locator(".hymn-pause").isDisabled(), true);
+  await practiceOption(page, "#hymn-mode", "playback");
+  assert.equal(await page.locator(".hymn-pause").isDisabled(), true);
+  await page.screenshot({
+    path: `/tmp/hymn-range-empty-${engine}.png`,
+    fullPage: true,
+  });
+  await practiceOption(page, "#hymn-mode", "wait");
+  await practiceOption(page, "#hymn-high", "74");
+  await page.locator(".hymn-paper svg").first().waitFor();
+  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(await page.locator(".hymn-no-key").count(), 0);
+  await practiceOption(page, "#hymn-low", "");
+  await practiceOption(page, "#hymn-high", "");
+  assert.ok(
+    await page
+      .locator("#hymn-key option")
+      .evaluateAll((es) => es.every((e) => !(e as HTMLOptionElement).disabled)),
+  );
+  await practiceOption(page, "#hymn-low", "64");
+  assert.equal(await page.locator("#hymn-key").inputValue(), "A");
+  await closePracticeOptions(page);
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await page.screenshot({
+    path: `/tmp/hymn-range-${engine}.png`,
     fullPage: true,
   });
   assert.deepEqual(errors, []);

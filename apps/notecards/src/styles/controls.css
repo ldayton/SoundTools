@@ -559,3 +559,21 @@ select {
 .practice-options .hymn-grades .hymn-hands-field {
   grid-column: 1 / -1;
 }
+
+.practice-options .hymn-range-fields {
+  grid-column: 1 / -1;
+  flex: 0 0 100%;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.hymn-range-fields small {
+  grid-column: 1 / -1;
+  color: #837b94;
+  line-height: 1.5;
+}
+
+.practice-options .hymn-range-fields label {
+  width: 100%;
+}

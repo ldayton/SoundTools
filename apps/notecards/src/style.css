@@ -1361,3 +1361,10 @@ input:focus-visible {
   margin: 0;
   flex: 0 1 auto;
 }
+.hymn-no-key {
+  margin: 0;
+  padding: 48px 24px;
+  text-align: center;
+  color: #837b94;
+  line-height: 1.6;
+}

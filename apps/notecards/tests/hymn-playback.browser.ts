@@ -47,6 +47,7 @@ try {
     const probe = ((window as any).playbackProbe = {
       starts: [] as number[],
       stops: 0,
+      clicks: [] as number[],
     });
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (
@@ -54,6 +55,13 @@ try {
     ) {
       probe.starts.push(args[0] || 0);
       return start.apply(this, args);
+    };
+    const click = OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start = function (
+      ...args: Parameters<typeof click>
+    ) {
+      probe.clicks.push(args[0] || 0);
+      return click.apply(this, args);
     };
     const stop = AudioBufferSourceNode.prototype.stop;
     AudioBufferSourceNode.prototype.stop = function (
@@ -412,6 +420,69 @@ try {
     path: `/tmp/hymn-range-${engine}.png`,
     fullPage: true,
   });
+  // Count-ins never auto-start on load or grade incoming MIDI early.
+  await practiceOption(page, "#hymn-count-in", "2");
+  await practiceOption(page, "#hymn-tempo", "200");
+  await midiAction(page, "Connect MIDI keyboard");
+  const audioBefore = await page.evaluate(
+    () => (window as any).playbackProbe.starts.length,
+  );
+  await page.getByRole("button", { name: "Start again", exact: true }).click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector(".sequence-feedback")
+      ?.textContent?.startsWith("Count-in"),
+  );
+  const counting = await number();
+  await send(62);
+  assert.equal(await number(), counting, "MIDI is ignored during the count-in");
+  await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
+  assert.equal(
+    await page.evaluate(() => (window as any).playbackProbe.starts.length),
+    audioBefore,
+    "wait-mode count-in plays no melody",
+  );
+  await send(62);
+  assert.equal(await number(), "2", "MIDI grading resumes after count-in");
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.getByRole("button", { name: "Start", exact: true }).click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector(".sequence-feedback")
+      ?.textContent?.startsWith("Count-in"),
+  );
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.waitForTimeout(1900);
+  await page.getByRole("button", { name: "Start", exact: true }).waitFor();
+  assert.equal(await number(), "2", "cancelled counts never resume grading");
+  await page.reload();
+  await page.locator(".hymn-paper svg").first().waitFor();
+  assert.equal(await page.locator("#hymn-count-in").inputValue(), "2");
+  await page.getByRole("button", { name: "Start", exact: true }).waitFor();
+  await practiceOption(page, "#hymn-count-in", "0.5");
+  await practiceOption(page, "#hymn-mode", "playback");
+  await practiceOption(page, "#hymn-length", "2");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.waitForFunction(() =>
+    document
+      .querySelector(".sequence-feedback")
+      ?.textContent?.startsWith("Count-in"),
+  );
+  await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
+  const clicks = await page.evaluate(
+    () => (window as any).playbackProbe.clicks.length,
+  );
+  await page.waitForFunction(
+    () =>
+      document.querySelector<HTMLSelectElement>("#hymn-section")?.value === "1",
+  );
+  assert.equal(
+    await page.evaluate(() => (window as any).playbackProbe.clicks.length),
+    clicks,
+    "continuous playback doesn't count in between sections",
+  );
+  await practiceOption(page, "#hymn-mode", "wait");
+  await practiceOption(page, "#hymn-count-in", "0");
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: hymn playback, audio, pause/resume, live tempo, completion, mode isolation, section cancellation and mobile layout passed`,

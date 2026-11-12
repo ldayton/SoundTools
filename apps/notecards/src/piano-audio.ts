@@ -213,6 +213,35 @@ export async function preparePianoPlayback(pitches: number[]) {
       source.start(when);
       source.stop(end + 0.01);
     },
+    click(when: number, accent: boolean) {
+      const source = ctx.createOscillator(),
+        gain = ctx.createGain();
+      source.frequency.value = accent ? 1200 : 850;
+      gain.gain.setValueAtTime(0, when);
+      gain.gain.linearRampToValueAtTime(accent ? 0.22 : 0.15, when + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.055);
+      source.connect(gain).connect(output!);
+      let stopped = false;
+      const stop = () => {
+        if (stopped) return;
+        stopped = true;
+        gain.gain.cancelScheduledValues(ctx.currentTime);
+        gain.gain.setTargetAtTime(0, ctx.currentTime, 0.003);
+        source.stop(ctx.currentTime + 0.02);
+        owned.delete(stop);
+        voices.delete(stop);
+      };
+      owned.add(stop);
+      voices.add(stop);
+      source.onended = () => {
+        owned.delete(stop);
+        voices.delete(stop);
+        source.disconnect();
+        gain.disconnect();
+      };
+      source.start(when);
+      source.stop(when + 0.06);
+    },
     stop() {
       for (const stop of [...owned]) stop();
     },

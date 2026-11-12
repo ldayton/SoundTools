@@ -1,3 +1,4 @@
+import type { CountInBars } from "./hymn-count-in";
 import { isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
 import {
@@ -23,6 +24,7 @@ export type HymnSettings = {
   hymn: string;
   mode?: "wait" | "playback";
   bpm?: number;
+  countIn?: CountInBars;
   key?: HymnKey;
   low?: number | null;
   high?: number | null;
@@ -58,6 +60,13 @@ export function mergeHymnSettings(
       : {}),
     ...("high" in s || "high" in base
       ? { high: optionalHymnNote(s.high, base.high ?? null) }
+      : {}),
+    ...("countIn" in s || "countIn" in base
+      ? {
+          countIn: [0, 0.5, 1, 2].includes(s.countIn as number)
+            ? (s.countIn as CountInBars)
+            : base.countIn || 0,
+        }
       : {}),
     viewHands,
     hands,
@@ -102,6 +111,7 @@ export function hymnSettingsFromQuery(
         query.get(bound) === "none" ? null : Number(query.get(bound));
   if (query.has("view")) overrides.viewHands = query.get("view");
   if (query.has("hands")) overrides.hands = query.get("hands");
+  if (query.has("countIn")) overrides.countIn = Number(query.get("countIn"));
   if (query.has("mode")) overrides.mode = query.get("mode");
   if (query.has("tempo")) overrides.bpm = Number(query.get("tempo"));
   if (query.has("key")) overrides.key = query.get("key");

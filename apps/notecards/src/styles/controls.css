@@ -407,7 +407,7 @@ select {
   --control-width: 112px;
 }
 .practice-options .hymn-controls {
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -461,7 +461,7 @@ select {
   }
   .practice-options .hymn-controls {
     flex-direction: row;
-    align-items: flex-end;
+    align-items: flex-start;
   }
   .practice-options .hymn-picker {
     flex-basis: 100%;

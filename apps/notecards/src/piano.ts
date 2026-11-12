@@ -1,3 +1,4 @@
+import { pitchLabel, type PitchSpellings } from "./sight-feedback";
 import { playPianoNote, preparePianoSound } from "./piano-audio";
 import { visiblePianoLayout } from "./piano-layout";
 import { isBlack, keyLabel } from "./piano-model";
@@ -8,6 +9,11 @@ export class Piano {
   private focusMidi = 60;
   private request?: [number, number, boolean];
   private marked?: [number, number];
+  private hints?: {
+    played: number;
+    expected: readonly number[];
+    spellings: PitchSpellings;
+  };
   visibleBounds: [number, number] = [60, 83];
   contains(midi: number) {
     return this.buttons().some((b) => Number(b.dataset.piano) === midi);
@@ -64,7 +70,14 @@ export class Piano {
       ...this.element.querySelectorAll<HTMLButtonElement>("[data-piano]"),
     ];
   }
-  show(low: number, high: number, named: boolean, preserveFocus = false) {
+  show(
+    low: number,
+    high: number,
+    named: boolean,
+    preserveFocus = false,
+    preserveHint = false,
+  ) {
+    if (!preserveHint) this.clearHint();
     const hadFocus = this.element.contains(document.activeElement);
     this.request = [low, high, named];
     this.locked = false;
@@ -77,6 +90,7 @@ export class Piano {
       b.setAttribute("aria-disabled", "false");
       b.tabIndex = Number(b.dataset.piano) === this.focusMidi ? 0 : -1;
     }
+    this.paintHint();
     this.rangeChanged();
     if (hadFocus)
       this.buttons()
@@ -144,6 +158,7 @@ export class Piano {
         "sight-key-selected",
         selected.includes(b.dataset.piano),
       );
+    this.paintHint();
     if (this.marked) {
       const locked = this.locked;
       this.feedback(...this.marked);
@@ -159,6 +174,43 @@ export class Piano {
     this.locked = unavailable;
     for (const button of this.buttons())
       button.setAttribute("aria-disabled", String(unavailable));
+  }
+  /** Non-blocking coaching: the learner can retry the same onset immediately. */
+  hint(
+    played: number,
+    expected: readonly number[],
+    spellings: PitchSpellings = {},
+  ) {
+    this.clearHint();
+    this.hints = { played, expected, spellings };
+    this.paintHint();
+  }
+  clearHint() {
+    if (!this.hints) return;
+    this.hints = undefined;
+    for (const b of this.buttons()) {
+      b.classList.remove("is-right", "is-wrong", "piano-hint");
+      b.querySelector(".piano-hint-label")?.remove();
+    }
+  }
+  private paintHint() {
+    if (!this.hints) return;
+    const { played, expected, spellings } = this.hints;
+    for (const b of this.buttons()) {
+      const midi = Number(b.dataset.piano);
+      const right = expected.includes(midi),
+        wrong = midi === played && !right;
+      b.classList.toggle("is-right", right);
+      b.classList.toggle("is-wrong", wrong);
+      b.classList.toggle("piano-hint", right || wrong);
+      b.querySelector(".piano-hint-label")?.remove();
+      if (right || wrong) {
+        const label = document.createElement("span");
+        label.className = "piano-hint-label";
+        label.textContent = pitchLabel(midi, spellings).split(" / ")[0];
+        b.append(label);
+      }
+    }
   }
   feedback(selected: number, correct: number) {
     this.locked = true;

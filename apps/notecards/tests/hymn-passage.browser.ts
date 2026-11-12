@@ -142,7 +142,7 @@ try {
   await page.waitForFunction(
     () => (window as any).playbackProbe.starts.length >= 6,
   );
-  assert.equal(await page.locator("#hymn-section").inputValue(), "0");
+  assert.equal(await page.locator("#hymn-section").count(), 0);
   assert.match(
     (await page.locator(".hymn-passage-status").textContent())!,
     /Notes 2–4 selected/,
@@ -177,13 +177,12 @@ try {
     true,
   );
   await page.screenshot({ path: `/tmp/hymn-passage-${engine}.png` });
-  await practiceOption(page, "#hymn-length", "2");
+  await practiceOption(page, "#hymn-key", "F");
   assert.equal(
     await page.locator(".hymn-clear-passage").isVisible(),
     false,
     "changing the score clears stale ranges",
   );
-  await practiceOption(page, "#hymn-section", "0");
   const last = await page
     .locator("[data-passage-note]")
     .evaluateAll((nodes) =>
@@ -191,7 +190,11 @@ try {
         ...nodes.map((n) => Number(n.getAttribute("data-passage-note"))),
       ),
     );
-  await select(last, last);
+  await page
+    .getByRole("button", { name: "Select passage", exact: true })
+    .click();
+  await note(last).press("Enter");
+  await note(last).press("Enter");
   await page.getByRole("checkbox", { name: "Loop", exact: true }).check();
   const before = await page.evaluate(
     () => (window as any).playbackProbe.starts.length,
@@ -202,9 +205,9 @@ try {
     before,
   );
   assert.equal(
-    await page.locator("#hymn-section").inputValue(),
-    "0",
-    "a loop ending at the section boundary never escapes to the next section",
+    await page.locator("#hymn-section").count(),
+    0,
+    "a loop ending at the hymn boundary never changes the hymn",
   );
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   const stoppedAt = await page.evaluate(

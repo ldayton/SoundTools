@@ -1421,3 +1421,31 @@ input:focus-visible {
     touch-action: pan-y;
   }
 }
+
+.hymn-key-range {
+  display: block;
+  margin-top: 6px;
+  color: #837b94;
+  font-size: 12px;
+}
+.piano-key.piano-hint.is-wrong {
+  background: #df9b9b;
+  border-color: #a44040;
+  color: #642525;
+}
+.piano-hint-label {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.piano-key.piano-hint .piano-landmark {
+  visibility: hidden;
+}
+.piano-key.piano-hint::after {
+  font-size: 15px;
+}

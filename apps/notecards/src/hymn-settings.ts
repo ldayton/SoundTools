@@ -85,15 +85,8 @@ export function mergeHymnSettings(
       ARRANGEMENTS.map((a) => a.id),
       legacy ? (s.chords === true ? "original" : "melody") : base.arrangement,
     ),
-    sectionBars: [0, 2, 4].includes(s.sectionBars as number)
-      ? (s.sectionBars as 0 | 2 | 4)
-      : legacy
-        ? 0
-        : base.sectionBars,
-    section:
-      Number.isSafeInteger(s.section) && (s.section as number) >= 0
-        ? (s.section as number)
-        : base.section,
+    sectionBars: 0,
+    section: 0,
     position:
       Number.isSafeInteger(s.position) && (s.position as number) >= 0
         ? (s.position as number)
@@ -117,9 +110,5 @@ export function hymnSettingsFromQuery(
   if (query.has("key")) overrides.key = query.get("key");
   if (query.has("arrangement"))
     overrides.arrangement = query.get("arrangement");
-  if (["0", "2", "4"].includes(query.get("bars") || ""))
-    overrides.sectionBars = Number(query.get("bars"));
-  if (/^[1-9]\d{0,3}$/.test(query.get("section") || ""))
-    overrides.section = Number(query.get("section")) - 1;
   return mergeHymnSettings(base, overrides);
 }

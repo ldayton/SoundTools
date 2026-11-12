@@ -80,14 +80,12 @@ try {
   await page.locator(".pattern-count").waitFor();
   assert.equal(await page.locator(".pattern-count").textContent(), "2 / 8");
   await selectPractice(page, "sight");
-  await practiceOption(page, "#hymn-length", "2");
   await practiceOption(page, "#hymn-arrangement", "bass");
-  await page.locator(".hymn-next").click();
   assert.match(page.url(), /\/piano\/hymns\/amazing-grace\?/);
-  assert.equal(new URL(page.url()).searchParams.get("section"), "2");
+  assert.equal(new URL(page.url()).searchParams.get("section"), null);
   await page.reload();
-  await page.locator("#hymn-section").waitFor({ state: "attached" });
-  assert.equal(await page.locator("#hymn-section").inputValue(), "1");
+  await page.locator(".hymn-paper svg").first().waitFor();
+  assert.equal(await page.locator("#hymn-section").count(), 0);
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "bass");
   // The initial canonical hymn URL replaces the category URL: Back must actually leave hymns.
   await selectPractice(page, "piano");

@@ -135,3 +135,23 @@ test("count-in choices persist and malformed values retain the previous choice",
     2,
   );
 });
+
+test("old section preferences and shared links always open the whole hymn", () => {
+  const base = {
+    hymn: "amazing-grace",
+    arrangement: "melody" as const,
+    sectionBars: 4 as const,
+    section: 3,
+    position: 0,
+  };
+  assert.equal(
+    mergeHymnSettings(base, { sectionBars: 2, section: 5 }).sectionBars,
+    0,
+  );
+  const settings = hymnSettingsFromQuery(
+    base,
+    new URLSearchParams("bars=2&section=3"),
+  );
+  assert.equal(settings.sectionBars, 0);
+  assert.equal(settings.section, 0);
+});

@@ -58,8 +58,8 @@ try {
     .waitFor({ state: "attached" });
   await selectPractice(page, "sight");
   await page.locator("#hymn-key").waitFor({ state: "attached" });
-  await practiceOption(page, "#hymn-length", "0");
   assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(await page.locator(".hymn-key-range").textContent(), "D4–D5");
   await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
@@ -91,7 +91,42 @@ try {
     /play E4/,
   );
   assert.equal(await count(), "1 / 35");
+  assert.equal(
+    await page
+      .locator('.piano-key.is-wrong[data-piano="62"] .piano-hint-label')
+      .textContent(),
+    "D4",
+  );
+  assert.equal(
+    await page
+      .locator('.piano-key.is-right[data-piano="64"] .piano-hint-label')
+      .textContent(),
+    "E4",
+  );
+  assert.equal(
+    await page
+      .locator('.piano-key[data-piano="64"]')
+      .getAttribute("aria-disabled"),
+    "false",
+    "hints allow an immediate retry",
+  );
+  assert.equal(await page.locator(".hymn-key-range").textContent(), "E4–E5");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(150);
+  assert.equal(
+    await page
+      .locator('.piano-key.is-right[data-piano="64"] .piano-hint-label')
+      .textContent(),
+    "E4",
+    "coaching survives mobile reflow",
+  );
+  await page.setViewportSize({ width: 1680, height: 1000 });
   await note(64);
+  assert.equal(
+    await page.locator(".piano-hint-label").count(),
+    0,
+    "new notes clear previous guesses",
+  );
   await note(69);
   assert.equal(await count(), "3 / 35");
   await saved();
@@ -176,15 +211,16 @@ try {
     /C♯4/,
     "feedback uses the transposed sharp spelling",
   );
+  await practiceOption(page, "#hymn-key", "Db");
+  assert.equal(await page.locator(".hymn-key-range").textContent(), "D♭3–A♭5");
+  await practiceOption(page, "#hymn-key", "B");
+  assert.equal(await page.locator(".hymn-key-range").textContent(), "B2–F♯5");
   await practiceOption(page, "#hymn-key", "F");
-  await practiceOption(page, "#hymn-length", "2");
-  await practiceOption(page, "#hymn-section", "1");
   await saved();
   await page.reload();
   await page.locator("#hymn-key").waitFor({ state: "attached" });
   assert.equal(await page.locator("#hymn-key").inputValue(), "F");
-  assert.equal(await page.locator("#hymn-section").inputValue(), "1");
-  await practiceOption(page, "#hymn-length", "0");
+  assert.equal(await page.locator("#hymn-section").count(), 0);
   await closePracticeOptions(page);
   await setPianoVisible(page, true);
   await page.setViewportSize({ width: 390, height: 844 });

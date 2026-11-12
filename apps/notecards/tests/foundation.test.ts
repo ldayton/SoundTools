@@ -116,8 +116,8 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     viewHands: "both",
     bpm: 80,
     arrangement: "bass",
-    sectionBars: 2,
-    section: 3,
+    sectionBars: 0,
+    section: 0,
     position: 4,
   };
   assert.deepEqual(

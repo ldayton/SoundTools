@@ -73,7 +73,6 @@ try {
   await page.locator('[data-letter="E"]:enabled').waitFor();
   await selectPractice(page, "sight");
   await page.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
-  await practiceOption(page, "#hymn-length", "0");
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
   const input = page.getByRole("combobox", { name: "Hymn", exact: true });
@@ -350,7 +349,6 @@ try {
     await cold.setOffline(true);
     await selectPractice(firstUse, "sight");
     await firstUse.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
-    await practiceOption(firstUse, "#hymn-length", "0");
     await firstUse
       .locator(".hymn-count")
       .filter({ hasText: "1 / 35" })

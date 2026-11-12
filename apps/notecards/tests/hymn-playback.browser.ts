@@ -455,6 +455,16 @@ try {
   await page.waitForTimeout(1900);
   await page.getByRole("button", { name: "Start", exact: true }).waitFor();
   assert.equal(await number(), "2", "cancelled counts never resume grading");
+  await send(60);
+  await send(60);
+  await send(60);
+  await page.waitForFunction(() =>
+    document
+      .querySelector(".sequence-feedback")
+      ?.textContent?.startsWith("Count-in"),
+  );
+  assert.equal(await number(), "1", "hands-free restart also counts in");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.reload();
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await page.locator("#hymn-count-in").inputValue(), "2");

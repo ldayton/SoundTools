@@ -1054,7 +1054,10 @@ export class SightReading {
     if (this.inputPolicy === "none") return;
     const result = this.session!.answer(note, held, !this.paused);
     if (result === "ignored") return;
-    if (result === "restarted") this.paused = false;
+    if (result === "restarted") {
+      this.paused = false;
+      if (this.countInBars) this.startWaitCountIn();
+    }
     if (result === "wrong" || result === "partial") {
       this.$(".sequence-feedback").dataset.kind = result;
       this.$(".sequence-feedback").textContent = feedbackForNotes(

@@ -1,0 +1,9 @@
+{
+  "name": "@ldayton/browser-controls",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./note-wheel": "./note-wheel.ts"
+  }
+}

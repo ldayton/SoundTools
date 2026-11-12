@@ -319,6 +319,7 @@ try {
     path: `/tmp/hymn-playback-${engine}.png`,
     fullPage: true,
   });
+  await page.setViewportSize({ width: 1280, height: 1000 });
   // Optional whole-hymn limits constrain keys independently of the visible section.
   await page.goto(
     base +
@@ -348,8 +349,8 @@ try {
   );
   await page.reload();
   await page.locator(".hymn-paper svg").first().waitFor();
-  assert.equal(await page.locator("#hymn-low").inputValue(), "60");
-  assert.equal(await page.locator("#hymn-high").inputValue(), "72");
+  assert.equal(await page.locator("#hymn-low").inputValue(), "C4");
+  assert.equal(await page.locator("#hymn-high").inputValue(), "C5");
   assert.equal(await page.locator("#hymn-key").inputValue(), "F");
   await practiceOption(page, "#hymn-high", "60");
   await page.locator(".hymn-no-key").waitFor();
@@ -380,6 +381,27 @@ try {
   );
   await practiceOption(page, "#hymn-low", "64");
   assert.equal(await page.locator("#hymn-key").inputValue(), "A");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await practiceOption(page, "#hymn-low", "65");
+  assert.equal(
+    await page.locator("#hymn-low-wheel").getAttribute("aria-valuetext"),
+    "F4",
+  );
+  await page.locator("#hymn-low-wheel").press("ArrowDown");
+  assert.equal(
+    await page.locator("#hymn-low-wheel").getAttribute("aria-valuetext"),
+    "E4",
+  );
+  await page.locator("#hymn-low-wheel").press("Home");
+  assert.equal(await page.locator("#hymn-low").inputValue(), "None");
+  await page.locator("#hymn-low-wheel").press("End");
+  await page.locator(".hymn-no-key").waitFor();
+  await page
+    .getByRole("button", { name: "Clear lowest note", exact: true })
+    .click();
+  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(await page.locator(".hymn-no-key").count(), 0);
+
   await closePracticeOptions(page);
   assert.ok(
     await page.evaluate(

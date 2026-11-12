@@ -32,7 +32,8 @@
     "@ldayton/browser-diagnostics": "^0.2.0",
     "@ldayton/browser-offline": "^0.1.0",
     "abcjs": "6.5.2",
-    "vexflow": "5.0.0"
+    "vexflow": "5.0.0",
+    "@ldayton/browser-controls": "*"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

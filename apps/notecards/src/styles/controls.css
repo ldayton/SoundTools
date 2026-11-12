@@ -97,7 +97,8 @@ select {
   text-align: center;
 }
 
-.note-picker-grid button {
+.note-picker-grid button,
+.note-picker-none {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -110,17 +111,20 @@ select {
   border: 1px solid #e5e7dd;
 }
 
-.note-picker-grid button:hover {
+.note-picker-grid button:hover,
+.note-picker-none:hover {
   background: #edf2df;
 }
 
-.note-picker-grid button[aria-pressed="true"] {
+.note-picker-grid button[aria-pressed="true"],
+.note-picker-none[aria-pressed="true"] {
   background: #dcd2ed;
   border-color: #a4b87a;
   font-weight: 600;
 }
 
-.note-picker-grid button:focus-visible {
+.note-picker-grid button:focus-visible,
+.note-picker-none:focus-visible {
   outline: 3px solid #988cc5;
   outline-offset: 1px;
 }
@@ -576,4 +580,56 @@ select {
 
 .practice-options .hymn-range-fields label {
   width: 100%;
+}
+
+.note-picker.is-chromatic {
+  width: min(720px, calc(100vw - 24px));
+}
+.note-picker.is-chromatic .note-picker-grid {
+  grid-template-columns: 24px repeat(12, minmax(0, 1fr));
+}
+.note-picker-none {
+  min-width: 72px;
+  margin: 0 0 12px;
+  padding: 0 12px;
+}
+.optional-note-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 20px;
+  margin-bottom: 6px;
+}
+.practice-options .optional-note-label label {
+  width: auto;
+}
+.optional-note-clear {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #837b94;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.optional-note-mobile {
+  display: none;
+}
+.optional-note-control .note-spinner {
+  --ink: #302d55;
+  --muted: #837b94;
+}
+.optional-note-control .note-wheel-selection {
+  background: #eee8f5;
+}
+.optional-note-control .note-spinner:focus-within {
+  outline-color: #988cc5;
+}
+@media (max-width: 760px) {
+  .optional-note-desktop {
+    display: none;
+  }
+  .optional-note-mobile {
+    display: block;
+  }
 }

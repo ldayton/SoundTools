@@ -1,0 +1,58 @@
+.note-spinner {
+  position: relative;
+  border: 1px solid #dddfd4;
+  border-radius: 10px;
+  background: #fffefa;
+  overflow: hidden;
+}
+.note-wheel-selection {
+  position: absolute;
+  inset: 32px 6px auto;
+  height: 32px;
+  border-radius: 6px;
+  background: #edf2df;
+  pointer-events: none;
+}
+.note-wheel {
+  position: relative;
+  height: 96px;
+  padding: 32px 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
+  mask-image: linear-gradient(transparent, black 30%, black 70%, transparent);
+}
+.note-wheel::-webkit-scrollbar {
+  display: none;
+}
+.note-wheel.is-dragging {
+  cursor: grabbing;
+}
+.note-wheel-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  scroll-snap-align: center;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  transform: scale(0.85);
+  transition:
+    transform 0.12s,
+    color 0.12s;
+}
+.note-wheel-item.is-selected {
+  color: var(--ink);
+  font-weight: 600;
+  transform: scale(1.15);
+}
+.note-spinner:focus-within {
+  outline: 2px solid #95ad62;
+  outline-offset: 2px;
+}

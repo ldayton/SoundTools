@@ -1,3 +1,4 @@
+import { OptionalNotePicker, optionalNoteHTML } from "./optional-note-picker";
 import { hymnPitchRange, hymnRangeKeys, type HymnRange } from "./hymn-range";
 import abcjs from "abcjs";
 import { preparePianoPlayback } from "./piano-audio";
@@ -67,6 +68,7 @@ const escape = (text: string) =>
 export class SightReading {
   private hymn = hymns[0];
   private key: HymnKey = "original";
+  private notePickers = new Map<"low" | "high", OptionalNotePicker>();
   private low: number | null = null;
   private high: number | null = null;
   private preferRangeDefault = false;
@@ -188,7 +190,7 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns" hidden></ul></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label><div class="hymn-range-fields"><label>Lowest note<select id="hymn-low"><option value="">None</option></select></label><label>Highest note<select id="hymn-high"><option value="">None</option></select></label><small>Range of the practised part, across the whole hymn.</small></div></div>
+    element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns" hidden></ul></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select></label><div class="hymn-range-fields">${optionalNoteHTML("hymn-low", "Lowest note")}${optionalNoteHTML("hymn-high", "Highest note")}<small>Range of the practised part, across the whole hymn.</small></div></div>
     <div class="practice-controls hymn-grades"><label class="hymn-arrangement-field">Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label class="hymn-view-field">Show<select id="hymn-view"><option value="both">Both hands</option><option value="right">Right hand</option><option value="left">Left hand</option></select></label><label class="hymn-hands-field">Practise hands<select id="hymn-hands"><option value="right">Right hand</option><option value="left">Left hand</option><option value="both">Both hands</option></select></label><label>Practise<select id="hymn-length"><option value="4">4 bars</option><option value="2">2 bars</option><option value="0">Whole hymn</option></select></label><label class="hymn-section-field">Section<select id="hymn-section"></select></label></div>
     <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" aria-label="Previous section" hidden>← Previous</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
     this.playback = new HymnPlayback(
@@ -327,29 +329,22 @@ export class SightReading {
     };
     input.onblur = () => this.closeResults();
     for (const bound of ["low", "high"] as const) {
-      const select = this.$<HTMLSelectElement>("#hymn-" + bound);
-      if (select.options.length === 1)
-        select.append(
-          ...Array.from(
-            { length: 88 },
-            (_, i) =>
-              new Option(
-                keyLabel(i + 21, false).split(" / ")[0] +
-                  (Math.floor((i + 21) / 12) - 1),
-                String(i + 21),
-              ),
-          ),
-        );
-      select.value = this[bound] === null ? "" : String(this[bound]);
-      select.onchange = () => {
-        this.save();
-        this.interrupt("controls");
-        this[bound] = select.value === "" ? null : Number(select.value);
-        this.preferRangeDefault = true;
-        this.restorePending = true;
-        this.render();
-        this.save();
-      };
+      const id = "hymn-" + bound;
+      const picker = new OptionalNotePicker(
+        this.$("#" + id).closest<HTMLElement>(".optional-note-control")!,
+        id,
+        (value) => {
+          this.save();
+          this.interrupt("controls");
+          this[bound] = value;
+          this.preferRangeDefault = true;
+          this.restorePending = true;
+          this.render();
+          this.save();
+        },
+      );
+      this.notePickers.set(bound, picker);
+      picker.setValue(this[bound]);
     }
     this.$<HTMLSelectElement>("#hymn-key").value = this.key;
     this.$<HTMLSelectElement>("#hymn-key").onchange = (e) => {
@@ -477,7 +472,9 @@ export class SightReading {
     this.interrupt("navigation");
     this.acceptanceChanged();
   }
-  interrupt(_reason: Interruption) {
+  interrupt(reason: Interruption) {
+    if (reason === "navigation")
+      for (const picker of this.notePickers.values()) picker.close();
     this.playback.pause();
     this.playbackView = "";
     if (this.mode === "playback" && this.active) this.updatePlayback();
@@ -924,8 +921,7 @@ export class SightReading {
     this.preferRangeDefault = false;
     select.value = this.noMatchingKey ? "" : this.key;
     for (const bound of ["low", "high"] as const)
-      this.$<HTMLSelectElement>("#hymn-" + bound).value =
-        this[bound] === null ? "" : String(this[bound]);
+      this.notePickers.get(bound)!.setValue(this[bound]);
   }
   private showNoMatchingKey() {
     this.playback.pause();

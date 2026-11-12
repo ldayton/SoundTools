@@ -8,22 +8,27 @@ export class RangePicker {
     private button: HTMLButtonElement,
     private commit: (note: string) => void,
     private positions: readonly string[] = PIANO_POSITIONS,
+    private options: { chromatic?: boolean; optional?: boolean } = {},
   ) {
     const title = input.getAttribute("aria-label")!;
     input.readOnly = true;
     this.popover = document.createElement("div");
     this.popover.id = `${input.id}-picker`;
-    this.popover.className = "note-picker";
+    this.popover.className =
+      "note-picker" + (options.chromatic ? " is-chromatic" : "");
     this.popover.setAttribute("popover", "auto");
     this.popover.setAttribute("role", "dialog");
     this.popover.setAttribute("aria-label", `Choose ${title.toLowerCase()}`);
-    const octaves = [...new Set(positions.map((n) => Number(n.slice(1))))];
-    this.popover.innerHTML = `<div class="note-picker-title">${title}</div><div class="note-picker-grid" role="group" aria-label="Notes by octave">${octaves
+    const octaves = [
+      ...new Set(positions.map((n) => Number(n.match(/-?\d+$/)![0]))),
+    ];
+    const letters = options.chromatic
+      ? ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"]
+      : [..."CDEFGAB"];
+    this.popover.innerHTML = `<div class="note-picker-title">${title}</div>${options.optional ? `<button type="button" class="note-picker-none" data-position="-1">None</button>` : ""}<div class="note-picker-grid" role="group" aria-label="Notes by octave">${octaves
       .map(
         (octave) =>
-          `<span class="note-picker-octave" aria-hidden="true">${octave}</span>${[
-            ..."CDEFGAB",
-          ]
+          `<span class="note-picker-octave" aria-hidden="true">${octave}</span>${letters
             .map((letter) => {
               const note = letter + octave;
               const index = positions.indexOf(note);
@@ -69,13 +74,13 @@ export class RangePicker {
       const steps: Record<string, number> = {
         ArrowRight: 1,
         ArrowLeft: -1,
-        ArrowUp: -7,
-        ArrowDown: 7,
+        ArrowUp: -letters.length,
+        ArrowDown: letters.length,
       };
       if (!(event.key in steps)) return;
       event.preventDefault();
       const index = Math.max(
-        0,
+        this.options.optional ? -1 : 0,
         Math.min(
           this.positions.length - 1,
           Number(selected.dataset.position) + steps[event.key],
@@ -101,7 +106,7 @@ export class RangePicker {
       }
       if (event.key === "Escape") {
         event.preventDefault();
-        input.value = this.noteLabel(this.value);
+        input.value = this.noteLabel(this.value) || "None";
         input.setCustomValidity("");
         input.removeAttribute("aria-invalid");
         return;
@@ -109,15 +114,15 @@ export class RangePicker {
       const steps: Record<string, number> = {
         ArrowUp: 1,
         ArrowDown: -1,
-        PageUp: 7,
-        PageDown: -7,
+        PageUp: letters.length,
+        PageDown: -letters.length,
       };
       if (event.key in steps) {
         event.preventDefault();
         this.commit(
           this.noteLabel(
             Math.max(
-              0,
+              this.options.optional ? -1 : 0,
               Math.min(
                 this.positions.length - 1,
                 this.value + steps[event.key],
@@ -130,7 +135,7 @@ export class RangePicker {
     window.addEventListener("resize", () => this.close());
   }
   private noteLabel(index: number) {
-    return this.positions[index];
+    return this.positions[index] || "";
   }
   private toggle() {
     if (this.popover.matches(":popover-open")) {
@@ -152,8 +157,8 @@ export class RangePicker {
   setValue(note: string) {
     const index = this.positions.indexOf(note);
     this.value = index;
-    this.input.value = this.noteLabel(index);
-    this.input.title = this.noteLabel(index);
+    this.input.value = this.noteLabel(index) || "None";
+    this.input.title = this.noteLabel(index) || "None";
     this.input.setCustomValidity("");
     this.input.removeAttribute("aria-invalid");
     for (const button of this.popover.querySelectorAll<HTMLButtonElement>(

@@ -41,6 +41,30 @@ export async function practiceOption(
       .locator(`#staff-${selector.slice(1)}-spin-picker`)
       .getByRole("button", { name: value, exact: true })
       .click();
+  } else if (selector === "#hymn-low" || selector === "#hymn-high") {
+    const wheel = page.locator(selector + "-wheel");
+    if (await wheel.isVisible()) {
+      // Exercise the wheel's real scroll snapping/commit path.
+      await wheel.evaluate(
+        (element, target) => {
+          element.scrollTop = (target - 20) * 32;
+          element.dispatchEvent(new Event("scrollend"));
+        },
+        value ? Number(value) : 20,
+      );
+    } else {
+      await page.locator(selector).click();
+      const label = value
+        ? ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"][
+            Number(value) % 12
+          ] +
+          (Math.floor(Number(value) / 12) - 1)
+        : "None";
+      await page
+        .locator(selector + "-picker")
+        .getByRole("button", { name: label, exact: true })
+        .click();
+    }
   } else await page.locator(selector).selectOption(value);
 }
 

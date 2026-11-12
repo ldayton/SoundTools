@@ -1,8 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import hymns from "../src/hymns.json";
-import { arrangeHymn } from "../src/hymn-arrangements";
-import { hymnPitchRange, hymnRangeKeys } from "../src/hymn-range";
+import abcjs from "abcjs";
+import { HYMN_KEYS, hymnTransposition } from "../src/hymn-transpose";
+import { ARRANGEMENTS, arrangeHymn } from "../src/hymn-arrangements";
+import {
+  hymnPitchRange,
+  hymnRangeKeys,
+  hymnRangeLabel,
+} from "../src/hymn-range";
 import { mergeHymnSettings, hymnSettingsFromQuery } from "../src/hymn-settings";
 const hymn = hymns.find((h) => h.id === "amazing-grace")!;
 const range = { low: 62, high: 74 };
@@ -58,4 +64,51 @@ test("range settings remember optional notes, reject damaged limits and can clea
   );
   assert.equal(query.low, null);
   assert.equal(query.high, 72);
+});
+
+test("range labels preserve the key spelling and correct octave", () => {
+  assert.equal(hymnRangeLabel({ low: 62, high: 74 }, "G", "Eb"), "B♭3–B♭4");
+  assert.equal(hymnRangeLabel({ low: 65, high: 77 }, "F#"), "E♯4–E♯5");
+  assert.equal(hymnRangeLabel({ low: 60, high: 72 }, "C#"), "B♯3–B♯4");
+  assert.equal(hymnRangeLabel({ low: 59, high: 71 }, "Cb"), "C♭4–C♭5");
+});
+test("all hymn ranges match the actual transposed staff and playback in every hand and key", () => {
+  for (const hymn of hymns)
+    for (const { id } of ARRANGEMENTS)
+      for (const hands of ["right", "left", "both"] as const) {
+        const abc = arrangeHymn(hymn, id, 0, 0, hands).abc;
+        const source = hymnPitchRange(abc);
+        for (const key of ["original", ...HYMN_KEYS] as const) {
+          const { semitones } = hymnTransposition(hymn.key, key);
+          const tune = abcjs.parseOnly(abc, { visualTranspose: semitones })[0];
+          const audio = tune.setUpAudio({
+            midiTranspose: semitones,
+            chordsOff: true,
+          });
+          const pitches = audio.tracks.flatMap((track) =>
+            track.flatMap((n) => (n.cmd === "note" ? [n.pitch] : [])),
+          );
+          const written = tune.lines
+            .flatMap((l) => l.staff || [])
+            .flatMap((s) => s.voices)
+            .flat()
+            .flatMap((n) =>
+              n?.el_type === "note"
+                ? (n.midiPitches || []).map((p: { pitch: number }) => p.pitch)
+                : [],
+            );
+          const expected = [source.low + semitones, source.high + semitones];
+          const context = `${hymn.id} ${id} ${hands} ${key}`;
+          assert.deepEqual(
+            [Math.min(...pitches), Math.max(...pitches)],
+            expected,
+            context + " audio",
+          );
+          assert.deepEqual(
+            [Math.min(...written), Math.max(...written)],
+            expected,
+            context + " staff",
+          );
+        }
+      }
 });

@@ -1,7 +1,12 @@
 import { ScorePassage } from "./score-passage";
 import type { CountInBars } from "./hymn-count-in";
 import { OptionalNotePicker, optionalNoteHTML } from "./optional-note-picker";
-import { hymnPitchRange, hymnRangeKeys, type HymnRange } from "./hymn-range";
+import {
+  hymnPitchRange,
+  hymnRangeKeys,
+  hymnRangeLabel,
+  type HymnRange,
+} from "./hymn-range";
 import abcjs from "abcjs";
 import { preparePianoPlayback } from "./piano-audio";
 import { HymnPlayback } from "./hymn-playback";
@@ -201,7 +206,8 @@ export class SightReading {
     }
     element.innerHTML = `<div class="hymn-controls"><div class="hymn-picker"><label for="hymn-search">Hymn</label><div class="hymn-search-field"><input id="hymn-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hymn-results" autocomplete="off" spellcheck="false" /><span aria-hidden="true">⌄</span></div><ul id="hymn-results" role="listbox" aria-label="Hymns" hidden></ul></div><label class="hymn-key-field">Key<select id="hymn-key" aria-label="Hymn key"><option value="original">Original</option>${HYMN_KEYS.map((key) => `<option value="${key}">${hymnKeyLabel(key)}</option>`).join("")}</select><small class="hymn-key-range" aria-live="polite"></small></label><div class="hymn-range-fields">${optionalNoteHTML("hymn-low", "Lowest note")}${optionalNoteHTML("hymn-high", "Highest note")}<small>Range of the practised part, across the whole hymn.</small></div></div>
     <div class="practice-controls hymn-grades"><label class="hymn-arrangement-field">Arrangement<select id="hymn-arrangement">${ARRANGEMENTS.map((a) => `<option value="${a.id}">${a.label}</option>`).join("")}</select></label><label class="hymn-view-field">Show<select id="hymn-view"><option value="both">Both hands</option><option value="right">Right hand</option><option value="left">Left hand</option></select></label><label class="hymn-hands-field">Practise hands<select id="hymn-hands"><option value="right">Right hand</option><option value="left">Left hand</option><option value="both">Both hands</option></select></label></div>
-    <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="hymn-passage-controls"><button type="button" class="hymn-select-passage" aria-pressed="false">Select passage</button><button type="button" class="hymn-clear-passage" hidden>Clear selection</button><label class="hymn-loop" hidden><input type="checkbox" /> Loop</label><span class="hymn-passage-status" role="status"></span></div><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" aria-label="Previous section" hidden>← Previous</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
+    <section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="hymn-passage-controls"><button type="button" class="hymn-cancel-passage" hidden>Cancel selection</button><button type="button" class="hymn-clear-passage" hidden>Clear selection</button><label class="hymn-loop" hidden><input type="checkbox" /> Loop</label><span class="hymn-passage-status" role="status"></span></div><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" aria-label="Previous section" hidden>← Previous</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
+    this.$(".hymn-pause").after(this.$(".hymn-passage-controls"));
     this.passage = new ScorePassage(
       this.$(".hymn-paper"),
       () => this.syncPassageControls(),
@@ -213,14 +219,13 @@ export class SightReading {
         this.render();
       },
       () => this.update(),
-    );
-    this.$(".hymn-select-passage").onclick = () => {
-      if (this.passage.selecting) this.passage.cancel();
-      else {
+      () => {
         this.interrupt("controls");
         this.paused = true;
-        this.passage.begin();
-      }
+      },
+    );
+    this.$(".hymn-cancel-passage").onclick = () => {
+      this.passage.cancel();
       this.update();
     };
     this.$(".hymn-clear-passage").onclick = () => {
@@ -697,19 +702,23 @@ export class SightReading {
   private syncPassageControls() {
     const selecting = this.passage.selecting;
     const range = this.passage.range;
-    const button = this.$(".hymn-select-passage");
-    button.textContent = selecting ? "Cancel selection" : "Select passage";
-    button.setAttribute("aria-pressed", String(selecting));
+    this.$(".hymn-passage-controls").hidden =
+      this.noMatchingKey || (!range && !selecting);
+    this.$(".hymn-cancel-passage").hidden = !selecting;
+    if (selecting) {
+      this.piano?.setUnavailable(true);
+      this.$(".sequence-feedback").textContent = "Practice paused.";
+    }
     this.$(".hymn-clear-passage").hidden = !range || selecting;
     this.$(".hymn-loop").hidden = !range || selecting;
     this.$<HTMLInputElement>(".hymn-loop input").checked = this.loopPassage;
     this.$(".hymn-passage-status").textContent = selecting
-      ? "Drag across notes, or tap the first and last note."
+      ? "Choose the last note, or drag to it."
       : range
         ? `Notes ${range.start + 1}–${range.end + 1} selected`
         : "";
     for (const control of this.element.querySelectorAll<HTMLButtonElement>(
-      ".sequence-transport button",
+      ".sequence-transport > button",
     ))
       control.disabled = selecting || this.noMatchingKey;
     this.acceptanceChanged();
@@ -1040,16 +1049,11 @@ export class SightReading {
     if (!this.noMatchingKey) {
       const displayed =
         this.viewHands === hands ? range : this.cachedHymnRange(this.viewHands);
-      const transposition = hymnTransposition(this.hymn.key, this.key);
-      const label = (pitch: number) => {
-        const names = keyLabel(pitch).split(" / ");
-        return names.length === 1
-          ? names[0]
-          : ["F", "Bb", "Eb", "Ab", "Db", "Gb"].includes(transposition.key)
-            ? names[1]
-            : names[0] + (Math.floor(pitch / 12) - 1);
-      };
-      rangeText.textContent = `${label(displayed!.low + transposition.semitones)}–${label(displayed!.high + transposition.semitones)}`;
+      rangeText.textContent = hymnRangeLabel(
+        displayed,
+        this.hymn.key,
+        this.key,
+      );
     }
     for (const bound of ["low", "high"] as const)
       this.notePickers.get(bound)!.setValue(this[bound]);

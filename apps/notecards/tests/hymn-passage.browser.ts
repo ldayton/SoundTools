@@ -85,9 +85,6 @@ try {
     return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
   };
   const select = async (a: number, b: number) => {
-    await page
-      .getByRole("button", { name: "Select passage", exact: true })
-      .click();
     const from = await center(a);
     await page.mouse.click(from.x, from.y);
     const to = await center(b);
@@ -106,7 +103,44 @@ try {
       (window as any).midiTest.send([0x90, pitch, 100]);
       (window as any).midiTest.send([0x80, pitch, 0]);
     }, n);
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Select passage", exact: true })
+      .count(),
+    0,
+    "selection needs no mode button",
+  );
+  assert.ok(await page.locator(".passage-shade").count());
+  assert.equal(
+    await page
+      .locator(".hymn-paper .sight-current")
+      .first()
+      .getAttribute("data-passage-note"),
+    "1",
+  );
+  assert.equal(
+    await page
+      .locator(".hymn-paper .sight-current")
+      .first()
+      .evaluate((n) => getComputedStyle(n).opacity),
+    "1",
+    "current note is not faded by the selection",
+  );
+  assert.equal(
+    await page
+      .locator(".hymn-paper .sight-current")
+      .first()
+      .evaluate((n) => getComputedStyle(n).fill),
+    "rgb(176, 101, 62)",
+  );
   await send(67);
+  assert.equal(
+    await page
+      .locator(".hymn-paper .sight-current")
+      .first()
+      .getAttribute("data-passage-note"),
+    "2",
+  );
   assert.match((await page.locator(".hymn-count").textContent())!, /2 \/ 2/);
   await send(71);
   assert.match(
@@ -122,21 +156,95 @@ try {
   );
   await page.getByRole("button", { name: "Clear selection" }).click();
   assert.equal(await page.locator(".hymn-loop").isVisible(), false);
-  await page
-    .getByRole("button", { name: "Select passage", exact: true })
-    .click();
   const a = await center(1),
     b = await center(3);
+  const scoreTop = await page
+    .locator(".sequence-score")
+    .evaluate((n) => n.getBoundingClientRect().top);
   await page.mouse.move(a.x, a.y);
   await page.mouse.down();
+  await page.mouse.move(a.x + 8, a.y);
+  const firstEdge = await page
+    .locator(".passage-shade")
+    .first()
+    .evaluate((n) => n.getBoundingClientRect().right);
+  await page.mouse.move(a.x + 11, a.y);
+  const nextEdge = await page
+    .locator(".passage-shade")
+    .first()
+    .evaluate((n) => n.getBoundingClientRect().right);
+  assert.ok(
+    Math.abs(nextEdge - firstEdge - 3) < 1,
+    "the preview follows small pointer movements without snapping to another note",
+  );
+
+  const bandHeight = await page
+    .locator(".passage-shade")
+    .first()
+    .evaluate((n) => [n.getAttribute("y"), n.getAttribute("height")]);
   await page.mouse.move(b.x, b.y, { steps: 10 });
+  assert.deepEqual(
+    await page
+      .locator(".passage-shade")
+      .first()
+      .evaluate((n) => [n.getAttribute("y"), n.getAttribute("height")]),
+    bandHeight,
+    "line shading keeps a fixed vertical span as selection expands",
+  );
+  assert.ok(
+    await page.locator(".passage-shade").count(),
+    "default dragging paints a live preview",
+  );
+  assert.equal(
+    await page
+      .locator(".sequence-score")
+      .evaluate((n) => n.getBoundingClientRect().top),
+    scoreTop,
+    "selection controls never move the score under the pointer",
+  );
+  const movingEdge = await page
+    .locator(".passage-shade")
+    .last()
+    .evaluate((n) => n.getBoundingClientRect().right);
   await page.mouse.up();
+  const snappedEdge = await page
+    .locator(".passage-shade")
+    .last()
+    .evaluate((n) => n.getBoundingClientRect().right);
+  assert.ok(
+    Math.abs(snappedEdge - movingEdge) > 1,
+    "release snaps the free edge to the note boundary",
+  );
   assert.match(
     (await page.locator(".hymn-passage-status").textContent())!,
     /Notes 2–4 selected/,
   );
   await practiceOption(page, "#hymn-mode", "playback");
   await practiceOption(page, "#hymn-count-in", "0");
+  const playButton = page.getByRole("button", { name: "Play", exact: true });
+  assert.equal(
+    await playButton.isEnabled(),
+    true,
+    "committed passage can be played immediately",
+  );
+  assert.equal(
+    await page.locator(".sequence-transport > button").first().textContent(),
+    "Play",
+    "primary playback stays first alongside passage controls",
+  );
+  const controlRows = await page.evaluate(() => {
+    const play = document.querySelector(".hymn-pause")!.getBoundingClientRect();
+    const clear = document
+      .querySelector(".hymn-clear-passage")!
+      .getBoundingClientRect();
+    return { playTop: play.top, clearTop: clear.top };
+  });
+  assert.equal(
+    controlRows.playTop,
+    controlRows.clearTop,
+    "selection does not introduce a separate row above Play",
+  );
+
   await page.getByRole("checkbox", { name: "Loop", exact: true }).check();
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.waitForFunction(
@@ -151,9 +259,6 @@ try {
   await page.waitForFunction(
     () => document.querySelector(".hymn-count")?.textContent === "Complete",
   );
-  await page
-    .getByRole("button", { name: "Select passage", exact: true })
-    .click();
   const first = await center(0);
   await page.mouse.click(first.x, first.y);
   await page.getByRole("button", { name: "Cancel selection" }).click();
@@ -164,6 +269,7 @@ try {
   );
   await page.getByRole("button", { name: "Clear selection" }).click();
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(150);
   await select(2, 1);
   assert.match(
     (await page.locator(".hymn-passage-status").textContent())!,
@@ -190,9 +296,6 @@ try {
         ...nodes.map((n) => Number(n.getAttribute("data-passage-note"))),
       ),
     );
-  await page
-    .getByRole("button", { name: "Select passage", exact: true })
-    .click();
   await note(last).press("Enter");
   await note(last).press("Enter");
   await page.getByRole("checkbox", { name: "Loop", exact: true }).check();
@@ -219,6 +322,57 @@ try {
     stoppedAt,
     "pausing cancels loop restarts",
   );
+  await page.getByRole("button", { name: "Clear selection" }).click();
+  await practiceOption(page, "#hymn-arrangement", "bass");
+  await note(0).press("Enter");
+  await note(2).press("Enter");
+  const shadeGeometry = await page
+    .locator(".passage-shade")
+    .evaluateAll((nodes) =>
+      nodes.map((n) => {
+        const rect = n.getBoundingClientRect();
+        const staves = [
+          ...n.closest("svg")!.querySelectorAll(".abcjs-staff"),
+        ].map((s) => s.getBoundingClientRect());
+        return {
+          fullHeight:
+            rect.top <= Math.min(...staves.map((s) => s.top)) &&
+            rect.bottom >= Math.max(...staves.map((s) => s.bottom)),
+          staves: staves.length,
+        };
+      }),
+    );
+  assert.ok(
+    shadeGeometry.some((s) => s.staves > 1),
+    "both staves receive a continuous musical-span band",
+  );
+  assert.ok(
+    shadeGeometry.every((s) => s.fullHeight),
+    "shading covers the complete staff height",
+  );
+  await page.getByRole("button", { name: "Clear selection" }).click();
+  await practiceOption(page, "#hymn-arrangement", "melody");
+  const secondLine = await page
+    .locator(".hymn-paper svg")
+    .nth(1)
+    .locator("[data-passage-note]")
+    .last()
+    .getAttribute("data-passage-note");
+  await note(0).press("Enter");
+  await note(Number(secondLine)).press("Enter");
+  assert.ok(
+    (await page.locator(".passage-shade").count()) >= 2,
+    "selection follows the music across line breaks",
+  );
+  assert.equal(
+    await page
+      .locator('[data-passage-note="34"]')
+      .first()
+      .evaluate((n) => getComputedStyle(n).opacity),
+    "1",
+    "unselected notes remain readable",
+  );
+  await page.screenshot({ path: `/tmp/hymn-selection-bands-${engine}.png` });
   const touch = await browser.newPage({
     viewport: { width: 390, height: 844 },
     hasTouch: true,
@@ -228,9 +382,6 @@ try {
     base +
       "/piano/hymns/amazing-grace?bars=0&mode=wait&countIn=0&arrangement=melody",
   );
-  await touch
-    .getByRole("button", { name: "Select passage", exact: true })
-    .click();
   for (const i of [1, 2]) {
     const target = touch.locator(`[data-passage-note="${i}"]`).first();
     await target.scrollIntoViewIfNeeded();

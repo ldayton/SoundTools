@@ -1370,11 +1370,7 @@ input:focus-visible {
 }
 
 .hymn-passage-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin-block: 8px;
+  display: contents;
 }
 .hymn-passage-controls button {
   padding: 8px 12px;
@@ -1391,35 +1387,29 @@ input:focus-visible {
 .hymn-passage-controls input {
   accent-color: #8979b3;
 }
-.hymn-passage-controls button[aria-pressed="true"] {
-  background: #e5def0;
-  border-color: #a99ac1;
-}
 .hymn-passage-status {
   font-size: 0.8rem;
   color: #706981;
 }
-.hymn-paper.passage-selecting {
-  touch-action: none;
-  cursor: crosshair;
+.hymn-paper {
+  touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
 }
-.hymn-paper .passage-selected {
-  fill: #67528e;
-  stroke: #67528e;
+.sequence-score[data-pointer-selection]:focus {
+  outline: none;
 }
-.hymn-paper.has-passage [data-passage-note]:not(.passage-selected) {
-  opacity: 0.35;
+.hymn-paper [data-passage-note] {
+  cursor: text;
 }
-.hymn-paper .passage-selected.sight-current {
-  fill: #b0653e;
-  stroke: #b0653e;
+.hymn-paper.passage-selecting {
+  cursor: text;
 }
-@media (pointer: coarse) {
-  .hymn-paper.passage-selecting {
-    touch-action: pan-y;
-  }
+.passage-shade {
+  fill: #8472cf;
+  opacity: 0.28;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
 .hymn-key-range {

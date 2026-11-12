@@ -353,6 +353,7 @@ select {
   margin: 0 0 8px;
 }
 .sequence-transport button,
+.hymn-passage-controls button,
 .midi-actions button {
   min-height: 44px;
   padding: 10px 16px;

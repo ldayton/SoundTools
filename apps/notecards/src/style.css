@@ -1368,3 +1368,56 @@ input:focus-visible {
   color: #837b94;
   line-height: 1.6;
 }
+
+.hymn-passage-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-block: 8px;
+}
+.hymn-passage-controls button {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+}
+.hymn-passage-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.hymn-passage-controls input {
+  accent-color: #8979b3;
+}
+.hymn-passage-controls button[aria-pressed="true"] {
+  background: #e5def0;
+  border-color: #a99ac1;
+}
+.hymn-passage-status {
+  font-size: 0.8rem;
+  color: #706981;
+}
+.hymn-paper.passage-selecting {
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.hymn-paper .passage-selected {
+  fill: #67528e;
+  stroke: #67528e;
+}
+.hymn-paper.has-passage [data-passage-note]:not(.passage-selected) {
+  opacity: 0.35;
+}
+.hymn-paper .passage-selected.sight-current {
+  fill: #b0653e;
+  stroke: #b0653e;
+}
+@media (pointer: coarse) {
+  .hymn-paper.passage-selecting {
+    touch-action: pan-y;
+  }
+}

@@ -26,7 +26,7 @@
     "test:piano-audio": "tsx tests/piano-audio.browser.ts",
     "test:theory": "tsx tests/theory.browser.ts",
     "test:guitar-scales": "tsx tests/guitar-scales.browser.ts",
-    "test:hymn-playback": "tsx tests/hymn-playback.browser.ts"
+    "test:hymn-playback": "tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",

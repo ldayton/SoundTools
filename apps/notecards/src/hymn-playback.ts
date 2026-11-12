@@ -46,6 +46,21 @@ export class HymnPlayback {
   private bpm = 80;
   private notes: ReturnType<typeof playbackNotes> = [];
   private end = 0;
+  private rangeStart = 0;
+  private rangeEnd?: number;
+  private get finish() {
+    return this.rangeEnd ?? this.end;
+  }
+  setRange(start = 0, end?: number) {
+    this.pause();
+    this.rangeStart = Math.max(0, Math.min(start, this.end));
+    this.rangeEnd =
+      end === undefined
+        ? undefined
+        : Math.max(this.rangeStart, Math.min(end, this.end));
+    this.position = this.rangeStart;
+    this.state = "ready";
+  }
   private boundaries: number[] = [0];
   get section() {
     let index = this.boundaries.length - 1;
@@ -110,6 +125,8 @@ export class HymnPlayback {
       audio.totalDuration * 4 - offset,
       ...this.notes.map((n) => n.start + n.duration),
     );
+    this.rangeStart = 0;
+    this.rangeEnd = undefined;
     this.position = 0;
     this.state = "ready";
   }
@@ -121,7 +138,7 @@ export class HymnPlayback {
       !this.notes.length
     )
       return;
-    if (this.state === "complete") this.position = 0;
+    if (this.state === "complete") this.position = this.rangeStart;
     const request = ++this.generation;
     this.bpm = bpm;
     this.countBars = bars;
@@ -164,7 +181,7 @@ export class HymnPlayback {
         this.position = this.countOnly
           ? this.offset
           : Math.min(
-              this.end,
+              this.finish,
               this.offset +
                 (Math.max(0, output.now - this.origin) * this.bpm) / 60,
             );
@@ -177,7 +194,8 @@ export class HymnPlayback {
         ) {
           const n = this.notes[this.cursor++];
           // A delayed timer must not burst through notes that have already passed.
-          if (n.start + n.duration <= this.position) continue;
+          if (n.start + n.duration <= this.position || n.start >= this.finish)
+            continue;
           const start = Math.max(n.start, this.offset, this.position);
           output.schedule(
             n.pitch,
@@ -185,11 +203,12 @@ export class HymnPlayback {
               output.now,
               this.origin + ((start - this.offset) * 60) / this.bpm,
             ),
-            ((n.start + n.duration - start) * 60) / this.bpm,
+            ((Math.min(n.start + n.duration, this.finish) - start) * 60) /
+              this.bpm,
             n.volume,
           );
         }
-        if (this.state === "complete" || this.position >= this.end) {
+        if (this.state === "complete" || this.position >= this.finish) {
           clearInterval(this.timer);
           this.timer = 0;
           this.state = "complete";
@@ -209,7 +228,7 @@ export class HymnPlayback {
   pause() {
     if (this.state === "playing" && this.output && !this.countOnly)
       this.position = Math.min(
-        this.end,
+        this.finish,
         this.offset +
           (Math.max(0, this.output.now - this.origin) * this.bpm) / 60,
       );
@@ -227,7 +246,7 @@ export class HymnPlayback {
   }
   restart() {
     this.pause();
-    this.position = 0;
+    this.position = this.rangeStart;
     this.state = "ready";
   }
   setTempo(bpm: number) {

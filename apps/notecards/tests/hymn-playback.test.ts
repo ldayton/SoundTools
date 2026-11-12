@@ -292,3 +292,68 @@ test("every section boundary matches the continuous score duration in each hymn 
       );
     }
 });
+
+test("passage playback clips sustained notes at both ends and restarts inside the range", async () => {
+  const oldWindow = (globalThis as any).window;
+  const oldClear = globalThis.clearInterval;
+  let tick = () => {},
+    now = 0;
+  const played: number[][] = [];
+  (globalThis as any).window = {
+    setInterval: (fn: () => void) => {
+      tick = fn;
+      return 1;
+    },
+  };
+  globalThis.clearInterval = (() => {}) as any;
+  const player = new HymnPlayback(
+    () => {},
+    (e) => {
+      throw e;
+    },
+    async () => ({
+      get now() {
+        return now;
+      },
+      running: true,
+      schedule: (p, t, d) => {
+        played.push([p, t, d]);
+      },
+      stop: () => {},
+    }),
+  );
+  try {
+    player.load(score);
+    player.setRange(1, 3.5);
+    await player.play(60);
+    assert.deepEqual(
+      played[0],
+      [60, 0.06, 1],
+      "held note begins at the passage start",
+    );
+    now = 2.06;
+    tick();
+    assert.deepEqual(
+      played.at(-1),
+      [62, 2.06, 0.5],
+      "last note ends at the passage boundary",
+    );
+    now = 2.56;
+    tick();
+    assert.equal(player.state, "complete");
+    assert.equal(player.position, 3.5);
+    assert.equal(
+      played.some(([p]) => p === 64),
+      false,
+      "never schedules beyond the passage",
+    );
+    player.restart();
+    assert.equal(player.position, 1);
+    player.setRange();
+    assert.equal(player.position, 0, "clearing restores the full score");
+  } finally {
+    player.pause();
+    (globalThis as any).window = oldWindow;
+    globalThis.clearInterval = oldClear;
+  }
+});

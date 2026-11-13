@@ -120,3 +120,33 @@ test("web sound banks survive deployments and cannot change at immutable URLs", 
     assert.throws(()=>safePath('/samples/bitklavier-web-v1/nested/file.flac'));
   } finally {fs.rmSync(dir,{recursive:true,force:true})}
 });
+
+test("Soundglow retains legacy releases without requiring stripped source maps", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "soundglow-legacy-maps-"));
+  const script = Buffer.from("old executable"), requests = [];
+  let mapURL = "/releases/older/file-audio/file-audio.js.map";
+  const server = http.createServer((req, res) => {
+    const url = new URL(req.url, "http://test").pathname; requests.push(url);
+    res.setHeader("Content-Type", "application/json");
+    if (url === "/asset-history.json") return res.end(JSON.stringify([{version:"older",publishedAt:Date.now(),files:[{url:"/releases/older/app.js",sha256:sha(script)}]}]));
+    if (url === "/release-history.json") return res.end(JSON.stringify([{publishedAt:Date.now(),manifest:{version:"older",base:"/",files:[{url:"/releases/older/app.js",sha256:sha(script)},{url:mapURL,sha256:sha(Buffer.from("private source map"))}],optional:[{url:"/releases/older/private.map",sha256:sha(Buffer.from("private"))}]}}]));
+    if (url === "/releases/older/app.js") return res.end(script);
+    res.writeHead(404).end();
+  });
+  await new Promise(resolve => server.listen(0,"127.0.0.1",resolve));
+  try {
+    const origin = "http://127.0.0.1:" + server.address().port;
+    const history = await restorePrevious(origin,dir,{soundglow:true});
+    assert.equal(history.length,1);
+    assert.equal(fs.readFileSync(path.join(dir,"releases/older/app.js"),"utf8"),"old executable");
+    const restored = JSON.parse(fs.readFileSync(path.join(dir,"release-history.json")));
+    assert.deepEqual(restored[0].manifest.files.map(f=>f.url),["/releases/older/app.js"]);
+    assert.deepEqual(restored[0].manifest.optional,[]);
+    assert(!requests.some(url=>url.endsWith(".map")),"Maps are never requested");
+    assert.throws(()=>safePath("/releases/older/private.map"),/Invalid/);
+    mapURL = "/releases/older/../private.map";
+    await assert.rejects(restorePrevious(origin,dir,{soundglow:true}),/Invalid/);
+    mapURL = "/private.map";
+    await assert.rejects(restorePrevious(origin,dir,{soundglow:true}),/outside immutable/);
+  } finally {await new Promise(resolve=>server.close(resolve));fs.rmSync(dir,{recursive:true,force:true});}
+});

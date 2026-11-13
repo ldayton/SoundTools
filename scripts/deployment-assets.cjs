@@ -14,14 +14,14 @@ function immutablePath(relative) {
   return prefixes.some(prefix => relative.startsWith(prefix)) ||
     /^samples\/(?:bitklavier-web-v[0-9]+|vsco-cello(?:-v[0-9]+)?)\/[^/]+[.]flac$/.test(relative);
 }
-function safePath(url) {
+function safePath(url, { allowSourceMap = false } = {}) {
   if (
     typeof url !== "string" ||
     !url.startsWith("/") ||
     url.includes("..") ||
     url.includes("\\") ||
     /[?#%]/.test(url) ||
-    url.endsWith(".map")
+    (!allowSourceMap && url.endsWith(".map"))
   )
     throw Error("Invalid retained asset path");
   const relative = url.slice(1);
@@ -105,8 +105,23 @@ async function restorePrevious(origin, directory, { soundglow = false } = {}) {
     const releases = await r.json();
     if (!Array.isArray(releases))
       throw Error("Invalid Soundglow release history");
-    for (const entry of releases)
-      for (const file of entry.manifest?.files || []) safePath(file.url);
+    for (const entry of releases) {
+      // Early file-audio releases advertised source maps even though production
+      // strips them. Validate those legacy references, then omit them from the
+      // public offline inventory; they must never be downloaded or retained.
+      const manifest = entry.manifest;
+      if (!manifest || !Array.isArray(manifest.files))
+        throw Error("Invalid Soundglow release manifest");
+      for (const group of ["files", "optional"]) {
+        if (manifest[group] === undefined && group === "optional") continue;
+        if (!Array.isArray(manifest[group]))
+          throw Error("Invalid Soundglow release inventory");
+        manifest[group] = manifest[group].filter(file => {
+          safePath(file.url, { allowSourceMap: true });
+          return !file.url.endsWith(".map");
+        });
+      }
+    }
     fs.writeFileSync(
       path.join(directory, "release-history.json"),
       JSON.stringify(releases),

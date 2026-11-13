@@ -6,5 +6,8 @@ try{
  const html=fs.readFileSync(path.join(out,'index.html'),'utf8');assert(html.includes('name="soundglow-sentry-dsn" content="https://public@telemetry.invalid/1"'));
  const reporter=html.match(/data-reporter="([^"]+)"/)[1];assert(second.files.some(f=>f.url===reporter),'Reporter belongs to immutable manifest');
  for(const name of ['diagnostics/core.js','diagnostics/sentry.js','diagnostics/LICENSE','diagnostics/SENTRY-LICENSE'])assert(second.files.some(f=>f.url.endsWith('/'+name)),name);
+ assert(![...second.files,...second.optional].some(f=>f.url.endsWith('.map')),'Public offline manifests must not require source maps');
+ function checkPublic(directory){for(const entry of fs.readdirSync(directory,{withFileTypes:true})){assert(!entry.name.endsWith('.map'),'Public output must not contain source maps');if(entry.isDirectory())checkPublic(path.join(directory,entry.name));}}
+ checkPublic(out);
  console.log('Diagnostics build config/manifest/license regressions passed');
 }finally{fs.rmSync(out,{recursive:true,force:true})}

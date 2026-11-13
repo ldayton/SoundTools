@@ -6,7 +6,8 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base=proces
  if(!['production','preview','development','test'].includes(diagnosticsEnvironment))throw Error('Invalid diagnostics environment');
  if(!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(base))throw Error('Invalid deployment base');
  require('./prepare-diagnostics.cjs');
- const sourceFiles=files(source),read=f=>fs.readFileSync(path.join(source,f));
+ const publicFile=f=>!f.endsWith('.map');
+ const sourceFiles=files(source).filter(publicFile),read=f=>fs.readFileSync(path.join(source,f));
  const hashGroup=list=>digest(Buffer.concat(list.flatMap(f=>[Buffer.from(f+'\0'),read(f)]))).slice(0,32);
  const engineFiles=sourceFiles.filter(f=>f.startsWith('vendor/praat/')&&!f.endsWith('source.tar.gz'));
  const mediaFiles=sourceFiles.filter(f=>f.startsWith('audio/'));
@@ -35,7 +36,7 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base=proces
  output.set(release+'index.html',Buffer.from(html));
  const optional=sourceFiles.filter(f=>f.startsWith('vendor/neural/')).map(file=>({url:base+file,sha256:digest(read(file)),bytes:read(file).length}));
  const manifest={schema:1,version,base,optional,html:release+'index.html',files:[...output].map(([url,bytes])=>({url,sha256:digest(bytes),bytes:bytes.length}))};
- fs.rmSync(out,{recursive:true,force:true});fs.cpSync(source,out,{recursive:true});
+ fs.rmSync(out,{recursive:true,force:true});fs.cpSync(source,out,{recursive:true,filter:file=>publicFile(file)});
  for(const [url,bytes] of output){const target=path.join(out,url.slice(base.length));fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes)}
  const history=[{manifest,publishedAt:Date.now()}];
  const oldHistory=path.join(previous,'release-history.json');

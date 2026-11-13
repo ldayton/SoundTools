@@ -169,6 +169,8 @@ try {
   await page.locator('#tempo-down').click();
   assert.equal(await page.locator('#bpm').inputValue(), '150');
   await page.locator('.more-settings summary').click();
+  await page.locator('#countIn-trigger').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(100);
   await page.locator('#countIn-trigger').click();
   const countField = (await page.locator('#countIn-trigger').boundingBox())!;
   const countMenu = (await page.locator('#countIn-menu').boundingBox())!;
@@ -231,10 +233,38 @@ try {
     await page.locator('#exercise-title').textContent(),
     'Arpeggio & Scale (Rising first)'
   );
+  if ((await page.locator('.more-settings').getAttribute('open')) === null)
+    await page.locator('.more-settings > summary').click();
+  assert.ok(
+    await page.locator('#note-repeats').isVisible(),
+    'Arpeggio & Scale exposes note repeats'
+  );
+  await page.getByRole('switch', { name: 'Highest note', exact: true }).check();
+  await page.getByRole('switch', { name: 'Home note on return', exact: true }).check();
+  await page.getByRole('switch', { name: 'Repeat each round twice', exact: true }).check();
+  await page.waitForFunction(
+    () => JSON.parse(localStorage.getItem('dorego.current') || '{}').repeatTwice === true
+  );
+  await page.reload();
+  await page.locator('#pattern').waitFor();
+  if ((await page.locator('.more-settings').getAttribute('open')) === null)
+    await page.locator('.more-settings > summary').click();
+  assert.ok(await page.locator('#repeatTwice').isChecked(), 'breath practice survives reload');
+  assert.ok(await page.locator('#repeatTurn').isChecked());
+  assert.ok(await page.locator('#repeatHome').isChecked());
+  await page.locator('#repeatTwice').uncheck();
+  await page.locator('#repeatTurn').uncheck();
+  await page.locator('#repeatHome').uncheck();
   await page.locator('#pattern').selectOption('pentatonic12');
-  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Threes (12 notes) (Rising first)');
-  assert.deepEqual(await page.locator('#direction label span').allTextContents(), ['Rising first', 'Falling first']);
-  if (await page.locator('.more-settings').getAttribute('open') === null)
+  assert.equal(
+    await page.locator('#exercise-title').textContent(),
+    'Pentatonic Threes (12 notes) (Rising first)'
+  );
+  assert.deepEqual(await page.locator('#direction label span').allTextContents(), [
+    'Rising first',
+    'Falling first',
+  ]);
+  if ((await page.locator('.more-settings').getAttribute('open')) === null)
     await page.locator('.more-settings > summary').click();
   assert.ok(await page.locator('#note-repeats').isVisible());
   assert.equal(await page.locator('#repeat-home-label').textContent(), 'Home note on return');
@@ -249,7 +279,10 @@ try {
   await page.locator('.more-settings > summary').click();
 
   await page.locator('input[name="direction"][value="down"]').check();
-  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Threes (12 notes) (Falling first)');
+  assert.equal(
+    await page.locator('#exercise-title').textContent(),
+    'Pentatonic Threes (12 notes) (Falling first)'
+  );
   await page.locator('input[name="direction"][value="up"]').check();
   for (const [pattern, label] of [
     ['fiveNote', 'Five-Note Scale'],

@@ -93,6 +93,8 @@ All runtime dependency versions are pinned by `package-lock.json`. The app does 
 
 ### Generated exercises
 
+**Repeat each round twice**, under More options, runs each note-based phrase twice in the same key without a rest or a second chord introduction. Existing Repeats and Rest settings still apply between complete rounds. Arpeggio & Scale also supports repeating each highest/lowest turning note and each home-note return four times.
+
 **Within each round** controls the phrase, with a small preview of its actual contour. Arpeggio & Scale, Octave Arpeggio, Five-Note Scale and both Pentatonic Threes sequences offer **Rising first** and **Falling first**; these phrases already return to their starting note. Glides offer **Up**, **Down** (eight beats each, no return), or **Up & back** (fourteen beats). Rossini has a fixed contour, so this control is hidden.
 
 **Between rounds** independently chooses **Rising**, **Falling**, or **Rising then falling**, with diagonal contour icons, one semitone at a time. The starting-note preview reflects the actual practice targets, including phrases that start high. The same phrase, rhythm and starting chords are retained throughout the sweep. The turnaround key is played once; a one-key range plays one round per repeat and hides the between-round controls while remembering the selection. Rossini supports all three progressions while keeping its fixed melody.

@@ -55,7 +55,14 @@ export function isGlidePattern(pattern: Pattern) {
   return pattern === 'fifthGlide' || pattern === 'octaveGlide';
 }
 export function supportsNoteRepeats(pattern: Pattern) {
-  return ['octaveArpeggio', 'rossini', 'fiveNote', 'pentatonic9', 'pentatonic12'].includes(pattern);
+  return [
+    'arpeggio',
+    'octaveArpeggio',
+    'rossini',
+    'fiveNote',
+    'pentatonic9',
+    'pentatonic12',
+  ].includes(pattern);
 }
 export function isVocalPattern(pattern: Pattern) {
   return pattern !== 'major';
@@ -82,6 +89,7 @@ export interface ExerciseSpec {
   startingChords?: boolean;
   repeatTurn?: boolean;
   repeatHome?: boolean;
+  repeatTwice?: boolean;
   pattern: Pattern;
   key: number;
   low: number;
@@ -160,6 +168,7 @@ export const DEFAULT_SPEC: ExerciseSpec = {
   pattern: 'arpeggio',
   repeatTurn: false,
   repeatHome: false,
+  repeatTwice: false,
   key: 4,
   low: 52,
   high: 76,
@@ -242,7 +251,7 @@ export function validateSpec(input: unknown): ExerciseSpec {
     solfege: s.solfege as boolean,
     transition: s.transition === null ? null : num('transition', 24, 96, true),
   };
-  for (const key of ['repeatTurn', 'repeatHome'] as const) {
+  for (const key of ['repeatTurn', 'repeatHome', 'repeatTwice'] as const) {
     if (s[key] !== undefined && typeof s[key] !== 'boolean')
       throw new Error(`Invalid ${key} setting.`);
     result[key] = s[key] === true;
@@ -271,6 +280,7 @@ export function generateExercise(input: unknown, maxDuration = 600): Exercise {
   let phrase = [...pitches];
   if (spec.direction === 'down') phrase.reverse();
   else if (spec.direction === 'both') phrase.push(...pitches.slice(0, -1).reverse());
+  if (spec.repeatTwice) phrase.push(...phrase);
   const phraseBeats = phrase.length * spec.noteBeats;
   const notes: NoteEvent[] = [];
   const rounds: PracticeRound[] = [];
@@ -636,12 +646,13 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
           : offsets.map((_, index) => (index === offsets.length - 1 ? 2 : 1));
   // Add three distinct attacks, retaining the original duration on the fourth.
   if (supportsNoteRepeats(spec.pattern)) {
-    const turn = offsets.indexOf((descending ? Math.min : Math.max)(...offsets));
-    const home = offsets.length - 1;
+    const turn = (descending ? Math.min : Math.max)(...offsets);
     const expanded: number[] = [],
       durations: number[] = [];
     offsets.forEach((offset, index) => {
-      const repeat = (index === turn && spec.repeatTurn) || (index === home && spec.repeatHome);
+      const repeat =
+        (offset === turn && spec.repeatTurn) ||
+        (offset === 0 && index > 0 && offsets[index - 1] !== 0 && spec.repeatHome);
       for (let strike = 0; strike < (repeat ? 4 : 1); strike++) {
         expanded.push(offset);
         durations.push(repeat && strike < 3 ? 1 : lengths[index]);
@@ -649,6 +660,11 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
     });
     offsets.splice(0, offsets.length, ...expanded);
     lengths.splice(0, lengths.length, ...durations);
+  }
+  // Join complete sung passes before adding the single introduction and between-round rests.
+  if (spec.repeatTwice) {
+    offsets.push(...offsets);
+    lengths.push(...lengths);
   }
   const roots: number[] = [];
   if (descending) for (let root = spec.high; root >= spec.low + span; root--) roots.push(root);

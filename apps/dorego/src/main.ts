@@ -169,6 +169,7 @@ $('#app').innerHTML = `
               ''
             )}</div><p class="progression-preview" id="progression-preview" aria-live="polite"></p></fieldset>
           <details class="more-settings"><summary>More options <i data-lucide="chevron-down"></i></summary><div class="advanced"><label id="starting-chords-field" class="toggle-row" hidden><span>Starting-note chords</span><input name="startingChords" id="startingChords" type="checkbox" role="switch" checked /></label>
+          <label id="repeat-twice-field" class="toggle-row"><span>Repeat each round twice</span><input name="repeatTwice" id="repeatTwice" type="checkbox" role="switch" /></label>
           <fieldset id="note-repeats" class="note-repeats" hidden><legend>Repeat notes</legend>
             <label class="toggle-row"><span id="repeat-turn-label">Highest note</span><input name="repeatTurn" id="repeatTurn" type="checkbox" role="switch" aria-labelledby="repeat-turn-label" /></label>
             <label class="toggle-row"><span id="repeat-home-label">Home note on return</span><input name="repeatHome" id="repeatHome" type="checkbox" role="switch" aria-labelledby="repeat-home-label" /></label>
@@ -207,7 +208,10 @@ $('#app').innerHTML = `
   <div id="toast" class="toast" role="status" hidden></div>
 `;
 
-$('.builder-column').insertAdjacentHTML('beforeend', `<section class="offline-section" aria-label="Offline use"><div><h2>Take it with you</h2><p id="offline-status" role="status">Preparing offline support…</p></div><button type="button" id="offline-download" class="quiet-button" disabled>Download for offline use</button><button type="button" id="offline-update" class="quiet-button" hidden>Update available</button><progress id="offline-progress" aria-label="Offline download progress" hidden></progress></section>`);
+$('.builder-column').insertAdjacentHTML(
+  'beforeend',
+  `<section class="offline-section" aria-label="Offline use"><div><h2>Take it with you</h2><p id="offline-status" role="status">Preparing offline support…</p></div><button type="button" id="offline-download" class="quiet-button" disabled>Download for offline use</button><button type="button" id="offline-update" class="quiet-button" hidden>Update available</button><progress id="offline-progress" aria-label="Offline download progress" hidden></progress></section>`
+);
 setupOffline();
 mountDiagnostics($('.builder-column'));
 
@@ -324,9 +328,11 @@ function populate() {
       const contour = phraseContour(spec.pattern, value);
       const max = Math.max(...contour, 1);
       // Show the phrase's turning points, rather than every uneven note interval.
-      const outline = contour.filter((note, index) =>
-        index === 0 || index === contour.length - 1 ||
-        Math.sign(note - contour[index - 1]) !== Math.sign(contour[index + 1] - note)
+      const outline = contour.filter(
+        (note, index) =>
+          index === 0 ||
+          index === contour.length - 1 ||
+          Math.sign(note - contour[index - 1]) !== Math.sign(contour[index + 1] - note)
       );
       const points = outline
         .map(
@@ -387,6 +393,7 @@ function populate() {
   $('#note-range').hidden = !vocal;
   if (vocal) syncSpinners();
   $('#note-repeats').hidden = !supportsNoteRepeats(spec.pattern);
+  $('#repeat-twice-field').hidden = isGlidePattern(spec.pattern);
   $('#repeat-home-label').textContent = 'Home note on return';
   $('#repeat-turn-label').textContent = spec.direction === 'down' ? 'Lowest note' : 'Highest note';
   $('#starting-chords-field').hidden = !vocal;
@@ -430,6 +437,7 @@ function readForm(): ExerciseSpec {
   result.startingChords = $<HTMLInputElement>('#startingChords').checked;
   result.repeatTurn = $<HTMLInputElement>('#repeatTurn').checked;
   result.repeatHome = $<HTMLInputElement>('#repeatHome').checked;
+  result.repeatTwice = $<HTMLInputElement>('#repeatTwice').checked;
   return generateExercise(result).spec;
 }
 let toastTimeout: ReturnType<typeof setTimeout>;

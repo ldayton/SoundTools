@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DEFAULT_SPEC, generateExercise, PATTERNS, vocalSpan } from '../src/music';
 
 test('turn and returning home repeats add exactly three attacks, in either phrase direction and any progression', () => {
-  for (const pattern of ['octaveArpeggio', 'rossini', 'fiveNote'] as const)
+  for (const pattern of ['arpeggio', 'octaveArpeggio', 'rossini', 'fiveNote'] as const)
     for (const direction of ['up', 'down'] as const)
       for (const progression of ['up', 'down', 'both'] as const)
         for (const repeatTurn of [false, true])
@@ -23,7 +23,8 @@ test('turn and returning home repeats add exactly three attacks, in either phras
             const baseline = generateExercise(input, Infinity);
             const exercise = generateExercise({ ...input, repeatTurn, repeatHome }, Infinity);
             assert.equal(exercise.rounds.length, baseline.rounds.length);
-            const extra = 3 * (Number(repeatTurn) + Number(repeatHome));
+            const extra =
+              3 * (Number(repeatTurn) + Number(repeatHome)) * (pattern === 'arpeggio' ? 2 : 1);
             assert.equal(exercise.totalBeats, baseline.totalBeats + extra * exercise.rounds.length);
             for (let i = 0; i < exercise.rounds.length; i++) {
               const round = exercise.rounds[i],
@@ -41,7 +42,7 @@ test('turn and returning home repeats add exactly three attacks, in either phras
                   : Math.max(...pitches);
               const expected = pitches.flatMap((p, index) =>
                 Array(
-                  (repeatTurn && p === turnPitch) || (repeatHome && index === pitches.length - 1)
+                  (repeatTurn && p === turnPitch) || (repeatHome && index > 0 && p === pitches[0])
                     ? 4
                     : 1
                 ).fill(p)
@@ -71,7 +72,7 @@ test('turn and returning home repeats add exactly three attacks, in either phras
 });
 
 test('repeated-note options default off, reject malformed values, and do not alter other exercises', () => {
-  for (const pattern of ['arpeggio', 'major', 'fifthGlide', 'octaveGlide'] as const) {
+  for (const pattern of ['major', 'fifthGlide', 'octaveGlide'] as const) {
     const spec = { ...DEFAULT_SPEC, pattern, progression: 'up' as const };
     assert.deepEqual(
       generateExercise(spec).notes,

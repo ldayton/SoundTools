@@ -6,14 +6,18 @@ in WebAssembly inside a persistent Web Worker; audio is never uploaded.
 ## Run locally
 
 ```sh
-python3 -m http.server 8765 --directory dist
+npm run dev --workspace=soundglow
 ```
 
-Open http://localhost:8765 and allow microphone access, or choose **Example** to
+Open http://127.0.0.1:8780/dist/index.html and allow microphone access, or choose **Example** to
 hear the bundled 38-second Alice Waters interview and watch its spectrogram. HTTPS
 or localhost and an AudioWorklet-capable browser are required. Settings control
 frequency ceiling/scale, history, dynamic range, brightness and analysis window.
 The repository also works at a URL prefix such as `/Soundglow/` or `/dist/`.
+The local preview disables caching for HTML, scripts, styles, workers and WASM.
+Each page load also gets fresh asset URLs, bypassing entries cached by older
+preview servers. A normal reload fetches the current code; no hard refresh is needed. Use
+`npm run dev --workspace=soundglow -- --port 8765` to choose another port.
 
 ## Audio pipeline
 

@@ -1,3 +1,5 @@
+import { createElement } from "react";
+import { RhythmOptions } from "./rhythm-options";
 import type { InputPolicy, Interruption } from "./live-practice";
 import { mountPracticeOptions } from "./practice-controls";
 import type { NoteTimingEvent } from "abcjs";
@@ -72,28 +74,23 @@ export class RhythmPractice {
       this.bpm = settings.bpm;
       this.level = settings.level;
     } catch {}
-    element.innerHTML = `<div class="practice-controls"><label>Rhythm<select id="rhythm-level"><option value="pulse">Steady quarter notes</option><option value="long-short">Long & short notes</option><option value="eighths">Eighth notes & rests</option></select></label><label class="tempo-field">Tempo<select id="rhythm-tempo">${Array.from(
-      { length: 25 },
-      (_, i) => 40 + i * 5,
-    )
-      .map((n) => `<option value="${n}">${n} BPM</option>`)
-      .join(
-        "",
-      )}</select></label></div><section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><button class="rhythm-tap" type="button" aria-label="Tap rhythm"><span>Tap</span><small class="rhythm-tap-response" aria-live="polite"></small></button><div class="sequence-transport"><button class="rhythm-start">Start</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
+    element.innerHTML = `<section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><button class="rhythm-tap" type="button" aria-label="Tap rhythm"><span>Tap</span><small class="rhythm-tap-response" aria-live="polite"></small></button><div class="sequence-transport"><button class="rhythm-start">Start</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
     this.midiSlot = this.$(".rhythm-midi-slot");
-    mountPracticeOptions(element, [this.$(".practice-controls")]);
-    for (const field of ["level", "tempo"]) {
-      const select = this.$<HTMLSelectElement>("#rhythm-" + field);
-      select.value = String(field === "level" ? this.level : this.bpm);
-      select.onchange = () => {
-        this.stop();
-        if (field === "level") this.level = select.value as RhythmLevel;
-        else this.bpm = Number(select.value);
-        this.bars = makeRhythm(this.level);
-        this.render();
-        this.save();
-      };
-    }
+    mountPracticeOptions(
+      element,
+      [],
+      createElement(RhythmOptions, {
+        initialSettings: { bpm: this.bpm, level: this.level },
+        onChange: (settings) => {
+          this.stop();
+          this.level = settings.level;
+          this.bpm = settings.bpm;
+          this.bars = makeRhythm(this.level);
+          this.render();
+          this.save();
+        },
+      }),
+    );
     this.$(".rhythm-start").onclick = () => {
       if (this.state === "playing" || this.state === "countin")
         this.interrupt("controls");

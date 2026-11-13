@@ -100,8 +100,10 @@ try {
   await page.goto(base + "/settings");
   const volume = page.getByRole("slider", { name: "Piano volume" });
   await volume.waitFor();
-  assert.equal(await volume.inputValue(), "100");
-  await volume.fill("35");
+  assert.equal(await volume.getAttribute("aria-valuenow"), "100");
+  await volume.focus();
+  await page.keyboard.press("Home");
+  for (let i = 0; i < 35; i++) await page.keyboard.press("ArrowRight");
   assert.equal(await page.locator("#piano-volume-value").textContent(), "35");
   await page.waitForFunction(
     () =>
@@ -109,8 +111,34 @@ try {
   );
   await page.reload();
   await volume.waitFor();
-  assert.equal(await volume.inputValue(), "35", "volume survives reload");
-  await volume.fill("0");
+  assert.equal(
+    await volume.getAttribute("aria-valuenow"),
+    "35",
+    "volume survives reload",
+  );
+  for (const width of [320, 390, 768, 1680]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `${width}px Settings does not overflow`,
+    );
+    assert.equal(
+      await page
+        .getByRole("checkbox", { name: "Share diagnostic information" })
+        .count(),
+      1,
+    );
+    const slider = await volume.boundingBox();
+    assert.ok(slider && slider.width > 0, "standard slider remains visible");
+  }
+  await page.screenshot({
+    path: "/tmp/notecards-settings-desktop.png",
+    fullPage: true,
+  });
+  await volume.focus();
+  await page.keyboard.press("Home");
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
@@ -128,7 +156,7 @@ try {
     0,
     "saved zero volume mutes playback",
   );
-  // The four mobile controls form a regular grid, including the short piano toggle.
+  // Whole-hymn practice has three mobile controls; completed practice adds Next hymn.
   await page.goto(
     base + "/piano/hymns/amazing-grace?arrangement=melody&bars=4&section=1",
   );
@@ -147,7 +175,7 @@ try {
           };
         }),
       );
-    assert.equal(controls.length, 4);
+    assert.equal(controls.length, 3);
     assert.ok(
       controls.every(
         (b) =>

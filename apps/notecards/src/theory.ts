@@ -325,7 +325,9 @@ class TheoryPractice implements LivePractice {
         e.metaKey ||
         e.altKey ||
         document.hidden ||
-        document.querySelector(".app-sidebar.is-open,.keyboard-menu[open]") ||
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"],.keyboard-menu[aria-expanded="true"]',
+        ) ||
         (e.target as Element).closest(
           "input,select,textarea,button,summary,[contenteditable]",
         )
@@ -437,7 +439,9 @@ class TheoryPractice implements LivePractice {
       (this.identifying && !this.session.feedback?.correct) ||
       document.hidden ||
       !document.hasFocus() ||
-      document.querySelector(".app-sidebar.is-open,.keyboard-menu[open]")
+      document.querySelector(
+        '[role="dialog"][aria-modal="true"],.keyboard-menu[aria-expanded="true"]',
+      )
     )
       return;
     const session = this.session,
@@ -452,7 +456,9 @@ class TheoryPractice implements LivePractice {
           !document.hidden &&
           document.hasFocus() &&
           persistence.writable &&
-          !document.querySelector(".app-sidebar.is-open,.keyboard-menu[open]")
+          !document.querySelector(
+            '[role="dialog"][aria-modal="true"],.keyboard-menu[aria-expanded="true"]',
+          )
         )
           this.nextQuestion();
         else {

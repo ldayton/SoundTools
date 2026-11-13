@@ -137,7 +137,7 @@ try {
   await page.evaluate(() =>
     (window as any).midiTest.add("Second keyboard", "second"),
   );
-  await page.locator(".keyboard-menu summary").click();
+  await page.locator(".keyboard-menu").click();
   await page.getByLabel("MIDI input", { exact: true }).selectOption("second");
   await page
     .getByText("Second keyboard connected. Play one note at a time.", {
@@ -145,11 +145,10 @@ try {
     })
     .waitFor({ state: "attached" });
   if (
-    await page
-      .locator(".keyboard-menu")
-      .evaluate((e: HTMLDetailsElement) => e.open)
+    (await page.locator(".keyboard-menu").getAttribute("aria-expanded")) ===
+    "true"
   )
-    await page.locator(".keyboard-menu summary").click();
+    await page.locator(".keyboard-menu").click();
   await on(62, "replugged");
   assert.equal(await page.locator("#progress").getAttribute("value"), "1");
   await on(62, "second");

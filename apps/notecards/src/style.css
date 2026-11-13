@@ -16,28 +16,19 @@
 body {
   margin: 0;
 }
-button,
-input {
+button:not(:where(.soundtools-ui *)),
+input:not(:where(.soundtools-ui *)) {
   font: inherit;
 }
-button {
+button:not(:where(.soundtools-ui *)) {
   cursor: pointer;
   touch-action: manipulation;
 }
-button:focus-visible,
+button:not(:where(.soundtools-ui *)):focus-visible,
 summary:focus-visible,
-a:focus-visible {
+a:not(:where(.soundtools-ui *)):focus-visible {
   outline: 3px solid #988cc5;
   outline-offset: 4px;
-}
-header {
-  max-width: 1040px;
-  margin: auto;
-  padding: 30px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #ded9cc;
 }
 .brand {
   display: inline-flex;
@@ -58,11 +49,6 @@ header {
   font-weight: 650;
   letter-spacing: 2px;
   color: #8b8794;
-}
-main {
-  max-width: 760px;
-  margin: 42px auto 0;
-  padding: 0 28px;
 }
 .intro {
   text-align: center;
@@ -161,7 +147,7 @@ progress::-moz-progress-bar {
 .letters button:active {
   transform: translateY(1px);
 }
-button:disabled {
+button:not(:where(.soundtools-ui *)):disabled {
   cursor: default;
   opacity: 0.6;
 }
@@ -284,7 +270,7 @@ details > label:has(#key) {
   gap: 6px;
 }
 select:focus-visible,
-input:focus-visible {
+input:not(:where(.soundtools-ui *)):focus-visible {
   outline: 3px solid #988cc5;
   outline-offset: 3px;
 }
@@ -493,64 +479,6 @@ input:focus-visible {
   width: 32px;
   height: 32px;
   flex: 0 0 32px;
-}
-
-.offline-section {
-  margin: 28px auto 0;
-  max-width: 720px;
-  padding: 20px 24px;
-  border: 1px solid #ded9cc;
-  border-radius: 16px;
-  background: #fcfaf5;
-}
-.offline-section h2 {
-  font-size: 16px;
-  margin: 0 0 8px;
-  letter-spacing: 0;
-}
-.offline-section p {
-  font-size: 13px;
-  line-height: 1.5;
-  margin: 0;
-  color: #81768e;
-}
-.offline-section p.is-ready {
-  color: #537758;
-}
-.offline-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.offline-actions:has(button:not([hidden])) {
-  margin-top: 12px;
-}
-.offline-actions button {
-  padding: 10px 14px;
-  border: 1px solid #d8d1c5;
-  border-radius: 9px;
-  background: #fffdf8;
-  color: #302d55;
-  font-size: 13px;
-}
-
-.diagnostics-panel {
-  margin: 16px auto 0;
-  max-width: 720px;
-  padding: 0 24px;
-  color: #81768e;
-  font-size: 12px;
-}
-.diagnostics-panel label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  line-height: 1.5;
-}
-.diagnostics-panel input {
-  margin: 0;
-  accent-color: #8979b3;
 }
 
 /* A continuous desktop keyboard becomes octave rows on narrow screens. */
@@ -950,361 +878,44 @@ input:focus-visible {
   stroke: #b0653e;
 }
 
-/* Application navigation. Exercise controls stay inside the main workspace. */
+/* Mantine owns the shell and overlays; these rules only size the legacy content. */
 .skip-link {
   position: fixed;
   top: -80px;
   left: 16px;
-  z-index: 100;
+  z-index: 1000;
   padding: 12px;
-  background: #fcfaf5;
+  background: white;
 }
 .skip-link:focus {
   top: 12px;
 }
-.app-sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
-  width: 244px;
-  padding: 28px 18px 18px;
-  background: #f0ece2;
-  border-right: 1px solid #ded9cc;
-  overflow-y: auto;
-  z-index: 30;
-}
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.sidebar-brand .brand {
-  font-size: 20px;
-  letter-spacing: -0.8px;
-  white-space: nowrap;
-}
-.sidebar-brand .brand-icon {
-  width: 28px;
-  height: 28px;
-  margin-right: 7px;
-}
-.sidebar-caption {
-  margin: 16px 12px 30px;
-  color: #837b94;
-  font-size: 11px;
-}
-.nav-group {
-  margin-bottom: 25px;
-}
-.nav-group h2 {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 12px 8px;
-  font-size: 11px;
-  font-weight: 650;
-  color: #777180;
-}
-.nav-group h2 svg {
-  width: 17px;
-  height: 17px;
-}
-.nav-group a {
-  display: block;
-  padding: 10px 12px;
-  margin: 2px 0;
-  border-radius: 8px;
-  color: #625d70;
-  font-size: 13px;
-  text-decoration: none;
-  line-height: 1.4;
-}
-.nav-group a:hover {
-  background: #e9e3d9;
-}
-.nav-group a[aria-current] {
-  color: #302d55;
-  background: #e3ddee;
-  box-shadow: inset 3px 0 #9582ba;
-  font-weight: 650;
-}
-.sidebar-family {
-  margin: 28px 12px 8px;
-  letter-spacing: 2px;
-  font-size: 9px;
-  color: #8b8794;
-}
-.app-body {
-  margin-left: 244px;
-}
-.app-topbar {
-  max-width: none;
-  margin: 0;
-  padding: 23px 36px;
-  min-height: 93px;
-  background: #f5f1e7;
-  gap: 16px;
-}
-.page-heading {
-  flex: 1;
-  min-width: 0;
-}
-.page-heading p {
-  margin: 0 0 5px;
-  font-size: 11px;
-  color: #837b94;
-}
-.page-heading h1 {
-  margin: 0;
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: -0.7px;
-  outline: none;
-}
-.app-body main {
+.workspace-content {
   max-width: 920px;
-  margin: 28px auto 0;
-  padding: 0 36px 32px;
-}
-.keyboard-menu {
-  position: relative;
-  flex-shrink: 0;
-}
-.keyboard-menu summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid #ded9cc;
-  border-radius: 9px;
-  font-size: 12px;
-  cursor: pointer;
-  list-style: none;
-  background: #fcfaf5;
-}
-.keyboard-menu summary::-webkit-details-marker {
-  display: none;
-}
-.midi-indicator {
-  width: 9px;
-  height: 9px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #c4becd;
-}
-.midi-indicator.is-connected {
-  background: #16803c;
-  box-shadow: 0 0 0 3px #16803c1f;
-}
-.keyboard-popover {
-  position: absolute;
-  z-index: 25;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 310px;
-  padding: 18px;
-  border: 1px solid #ded9cc;
-  border-radius: 12px;
-  box-shadow: 0 12px 36px #302d5520;
-  background: #fcfaf5;
-}
-.keyboard-popover #midi-panel {
-  padding: 0;
-  margin: 0;
-  border: none;
-  background: transparent;
-}
-.keyboard-popover .midi-status {
-  margin: 0 0 14px;
-}
-.keyboard-popover .midi-actions {
-  align-items: stretch;
+  margin-inline: auto;
 }
 .settings-page {
   max-width: 680px;
 }
-.settings-page > section {
-  border: 1px solid #ded9cc;
-  border-radius: 16px;
-  background: #fcfaf5;
-  padding: 24px;
-  margin: 0 0 20px;
-}
-.settings-page h2 {
-  font-size: 17px;
-  margin: 0 0 12px;
-  letter-spacing: -0.3px;
-}
-.settings-page .offline-section {
-  width: 100%;
-  max-width: none;
-}
-.settings-page .offline-section p {
-  font-size: 14px;
-  margin: 0;
-  line-height: 1.5;
-}
-.settings-page .diagnostics-panel {
-  margin: 0;
-  padding: 0;
-}
-.settings-page .privacy-settings label {
-  justify-content: flex-start;
-  margin: 0;
-  padding: 0;
-  font-size: 14px;
-}
-.nav-utilities {
-  border-top: 1px solid #ded9cc;
-  padding-top: 15px;
-}
-.nav-utilities .settings-link {
-  display: flex;
-  gap: 9px;
-  align-items: center;
-}
-.settings-update {
-  margin-left: auto;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #b0653e;
-}
-.nav-toggle {
-  display: none;
-}
-.nav-close {
-  display: inline-grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border: 1px solid #ded9cc;
-  border-radius: 8px;
-  background: #fcfaf5;
-  color: #625d70;
-  font-size: 22px;
-}
-@media (min-width: 761px) {
-  body.navigation-collapsed .app-sidebar {
-    transform: translateX(-100%);
-    visibility: hidden;
-    pointer-events: none;
-  }
-  body.navigation-collapsed .app-body {
-    margin-left: 0;
-  }
-  body.navigation-collapsed .nav-toggle {
-    display: inline-grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-    border: 1px solid #ded9cc;
-    border-radius: 8px;
-    background: #fcfaf5;
-    color: #625d70;
-  }
-}
 .route-missing {
-  padding: 36px 0;
+  padding-block: 36px;
 }
-@media (max-width: 900px) {
-  .app-sidebar {
-    width: 224px;
-  }
-  .app-body {
-    margin-left: 224px;
-  }
-  .app-topbar {
-    padding: 22px 24px;
-  }
-  .app-body main {
-    padding: 0 24px 28px;
-  }
+#page-title {
+  outline: none;
 }
-@media (max-width: 760px) {
-  .app-sidebar {
-    width: min(300px, calc(100vw - 48px));
-    pointer-events: none;
-    transform: translateX(-100%);
-    visibility: hidden;
-    transition:
-      transform 0.2s ease,
-      visibility 0.2s;
-    padding-top: 22px;
-  }
-  .app-sidebar.is-open {
-    pointer-events: auto;
-    transform: none;
-    visibility: visible;
-  }
-  .app-body {
-    margin-left: 0;
-  }
-  .app-topbar {
-    padding: 16px;
-    min-height: 76px;
-    gap: 12px;
-  }
-  .page-heading h1 {
-    font-size: 19px;
-    letter-spacing: -0.5px;
-  }
-  .page-heading p {
-    font-size: 10px;
-  }
-  .app-body main {
-    padding: 0 16px 24px;
-    margin-top: 20px;
-  }
-  .nav-toggle,
-  .nav-close {
-    display: inline-grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-    border: 1px solid #ded9cc;
-    border-radius: 8px;
-    background: #fcfaf5;
-    color: #625d70;
-  }
-  .nav-close {
-    width: 32px;
-    height: 32px;
-    font-size: 22px;
-  }
-  .keyboard-menu summary {
-    padding: 10px;
-  }
-  .keyboard-menu summary > span {
-    display: none;
-  }
-  .keyboard-popover {
-    width: min(310px, calc(100vw - 32px));
-  }
-  .nav-shade {
-    position: fixed;
-    inset: 0;
-    border: none;
-    border-radius: 0;
-    background: #302d5545;
-    z-index: 29;
-  }
-  body.navigation-open {
-    overflow: hidden;
-  }
+#midi-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
-@media (prefers-reduced-motion: reduce) {
-  .app-sidebar {
-    transition: none;
-  }
+#midi-panel .midi-status {
+  margin: 0 0 14px;
 }
-
 /* Give the score room; the engraver wraps at a smaller logical width so notes
    and words enlarge together instead of merely extending staff lines. */
-.app-body main.hymn-layout,
-.app-body main.piano-layout-wide {
+.hymn-layout .workspace-content,
+.piano-layout-wide .workspace-content {
   max-width: 1480px;
 }
 #persistence-notice {

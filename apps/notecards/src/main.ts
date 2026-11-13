@@ -60,11 +60,8 @@ import "./workspace.css";
 import "./styles/controls.css";
 import "./styles/practice.css";
 import { setupOffline } from "./offline";
-import {
-  diagnostics,
-  diagnosticsContext,
-  mountDiagnostics,
-} from "./diagnostics";
+import { offlineState } from "./offline-state";
+import { diagnostics, diagnosticsContext } from "./diagnostics";
 import { exercise, readRoute, type PracticeRoute } from "./navigation";
 import { isLiveMode } from "./live-practice";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
@@ -123,7 +120,6 @@ const shell = mountAppShell($("#app"), {
   inputChanged: refreshMidiAcceptance,
 });
 mountFlashcardView($("#flashcards"), progress.roundLength);
-mountDiagnostics($(".privacy-settings"));
 document.querySelector("main")!.inert = true;
 const board = new Fretboard($("#fretboard"), answerLocation);
 const rangePickers = [
@@ -929,8 +925,10 @@ document.fonts.ready
     try {
       setupOffline();
     } catch (error) {
-      $("#offline-status").textContent =
-        "Offline setup isn’t available in this browser. Practice still works while connected.";
+      offlineState.set({
+        status:
+          "Offline setup isn’t available in this browser. Practice still works while connected.",
+      });
       diagnostics.offline("setup", "failed", {}, error);
     }
   })

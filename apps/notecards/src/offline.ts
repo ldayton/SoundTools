@@ -6,17 +6,17 @@ import {
 } from "@ldayton/browser-offline";
 import { diagnostics } from "./diagnostics";
 import { persistence } from "./persistence";
+import { offlineState, offlineActions } from "./offline-state";
 
 export function setupOffline() {
-  const status = document.querySelector<HTMLElement>("#offline-status")!;
-  const retry = document.querySelector<HTMLButtonElement>("#offline-retry")!;
-  const update = document.querySelector<HTMLButtonElement>("#offline-update")!;
   if (!import.meta.env.PROD) {
-    status.textContent = "Offline use is available in the built app.";
+    offlineState.set({ status: "Offline use is available in the built app." });
     return;
   }
   if (!("serviceWorker" in navigator) || !("caches" in window)) {
-    status.textContent = "Offline use isn’t supported in this browser.";
+    offlineState.set({
+      status: "Offline use isn’t supported in this browser.",
+    });
     diagnostics.offline("setup", "unsupported");
     return;
   }
@@ -53,9 +53,8 @@ export function setupOffline() {
   };
   const offer = (version: string) => {
     if (version === current) return;
-    update.hidden = false;
-    document.querySelector<HTMLElement>(".settings-update")!.hidden = false;
-    update.onclick = () => void applySavedUpdate(version);
+    offlineState.set({ updateAvailable: true });
+    offlineActions.update = () => void applySavedUpdate(version);
     policy.offer(version);
   };
   async function check(force = false) {
@@ -74,7 +73,7 @@ export function setupOffline() {
     lastCheck = Date.now();
     const epoch = session.generation(),
       signal = session.signal();
-    retry.disabled = true;
+    offlineState.set({ busy: true });
     const started = performance.now();
     diagnostics.offline("setup", "started");
     try {
@@ -135,7 +134,7 @@ export function setupOffline() {
       }
       if (!active || epoch !== session.generation()) return;
       announce();
-      retry.textContent = "Retry offline setup";
+
       const saved = await session.call<{ ready: boolean; reason?: string }>(
         "offline-status",
         { shellCache: current },
@@ -148,11 +147,13 @@ export function setupOffline() {
       diagnostics.offline("setup", "ready", {
         durationMs: performance.now() - started,
       });
-      status.textContent = saved.ready
-        ? "Available offline"
-        : "Offline copy needs repair. Retry when connected.";
-      retry.hidden = saved.ready;
-      status.classList.toggle("is-ready", saved.ready);
+      offlineState.set({
+        status: saved.ready
+          ? "Available offline"
+          : "Offline copy needs repair. Retry when connected.",
+        retryVisible: !saved.ready,
+        ready: saved.ready,
+      });
       // Offline startup and practice never wait for a network check.
       try {
         const updateStarted = performance.now();
@@ -169,9 +170,11 @@ export function setupOffline() {
         });
         if (result.ready && result.shellCache) {
           if (result.shellCache === current && !saved.ready) {
-            status.textContent = "Available offline";
-            status.classList.add("is-ready");
-            retry.hidden = true;
+            offlineState.set({
+              status: "Available offline",
+              ready: true,
+              retryVisible: false,
+            });
           }
           offer(result.shellCache);
         } else later();
@@ -190,28 +193,29 @@ export function setupOffline() {
         { durationMs: performance.now() - started },
         error,
       );
-      status.textContent =
-        "Couldn’t save an offline copy. Retry when your connection or storage improves.";
-      retry.textContent = "Retry offline setup";
-      status.classList.remove("is-ready");
-      retry.hidden = false;
+      offlineState.set({
+        status:
+          "Couldn’t save an offline copy. Retry when your connection or storage improves.",
+        ready: false,
+        retryVisible: true,
+      });
       later();
     } finally {
       if (epoch === session.generation()) {
         busy = false;
-        retry.disabled = false;
+        offlineState.set({ busy: false });
         if (checkRequested) queueMicrotask(() => void check(true));
       }
     }
   }
-  retry.onclick = () => {
+  offlineActions.retry = () => {
     void resources
       .deadline(2000, () => navigator.storage?.persist?.())
       .then((persistent) =>
         diagnostics.offline("storage", "ready", { persistent }),
       )
       .catch((error) => diagnostics.offline("storage", "failed", {}, error));
-    status.textContent = "Saving for offline use…";
+    offlineState.set({ status: "Saving for offline use…" });
     void check(true);
   };
   navigator.serviceWorker.addEventListener("controllerchange", () => {

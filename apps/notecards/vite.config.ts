@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
@@ -24,6 +25,7 @@ const hash = createHash("sha256");
 for (const file of [
   ...sources("src"),
   ...sources("scripts"),
+  ...sources("../../packages/ui"),
   ...sources("../../packages/browser-offline"),
   ...sources("../../packages/browser-diagnostics").filter(
     (f) => !f.includes("/node_modules/") && !f.includes("/test"),
@@ -41,7 +43,7 @@ export default defineConfig({
       process.env.VERCEL_ENV || "development",
     ),
   },
-  plugins: [offlineBuild(release)],
+  plugins: [react(), offlineBuild(release)],
   optimizeDeps: {
     include: ["@ldayton/browser-offline", "@ldayton/browser-diagnostics"],
   },

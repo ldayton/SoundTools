@@ -77,7 +77,7 @@
 /* Open options use the space beside the score rather than displacing it.
    Narrow windows retain a single column and content-sized score. */
 @media (min-width: 1120px) {
-  .app-body main:has(.practice-options) {
+  .workspace-content:has(.practice-options) {
     max-width: none;
   }
   #flashcards:has(.practice-options),
@@ -113,7 +113,7 @@
     min-height: 0;
     max-height: calc(100dvh - 150px);
     position: sticky;
-    top: 20px;
+    top: calc(var(--app-shell-header-offset, 0px) + var(--mantine-spacing-md));
   }
   #flashcards .practice-options.is-collapsed,
   .live-workspace > .practice-options.is-collapsed {

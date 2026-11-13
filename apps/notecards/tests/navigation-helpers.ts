@@ -1,14 +1,11 @@
 import type { Page } from "playwright";
 export async function selectPractice(page: Page, mode: string) {
-  // matchMedia handlers finish after the viewport CSS changes. Wait for the
-  // mobile drawer's focus state before deciding whether it needs opening.
-  await page.waitForFunction(() => {
-    const nav = document.querySelector<HTMLElement>(".app-sidebar")!;
-    return (
-      !matchMedia("(max-width: 760px)").matches ||
-      nav.inert === !nav.classList.contains("is-open")
-    );
-  });
+  // Wait for React's responsive layout commit after a viewport change.
+  await page.waitForFunction(
+    () =>
+      matchMedia("(min-width: 48em)").matches ===
+      !!document.querySelector(".mantine-AppShell-navbar"),
+  );
   const link = page.locator(`nav a[data-mode="${mode}"]`);
   if (
     (await page.locator(".nav-toggle").isVisible()) &&
@@ -18,15 +15,21 @@ export async function selectPractice(page: Page, mode: string) {
       .getByRole("button", { name: "Open navigation", exact: true })
       .click();
   await link.click();
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
 }
-export async function midiAction(page: Page, label: string) {
+export async function midiAction(
+  page: Page,
+  label: string,
+  advanceClock?: () => Promise<void>,
+) {
   if (
-    !(await page
-      .locator(".keyboard-menu")
-      .evaluate((e: HTMLDetailsElement) => e.open))
+    (await page.locator(".keyboard-menu").getAttribute("aria-expanded")) !==
+    "true"
   )
-    await page.locator(".keyboard-menu summary").click();
+    await page.locator(".keyboard-menu").click();
+  await advanceClock?.();
   await page.getByRole("button", { name: label, exact: true }).click();
+  await advanceClock?.();
 }
 export async function practiceOption(
   page: Page,

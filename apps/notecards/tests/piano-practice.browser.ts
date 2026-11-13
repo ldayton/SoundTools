@@ -59,7 +59,7 @@ try {
       .evaluate((e) => getComputedStyle(e).fill),
     "rgb(176, 101, 62)",
   );
-  await midiAction(page, "Connect MIDI keyboard");
+  await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
     .waitFor({ state: "attached" });
@@ -91,27 +91,53 @@ try {
   await page.reload();
   await page.locator(".pattern-count").filter({ hasText: "1 / 8" }).waitFor();
   assert.equal(
-    await page.locator("main").evaluate(e => (e as HTMLElement).inert),
+    await page.locator("main").evaluate((e) => (e as HTMLElement).inert),
     false,
   );
   assert.equal(await page.locator("#pattern-hand").inputValue(), "left");
+  // The React form applies all settings to notation and MIDI matching, retaining a partial attempt.
+  await practiceOption(page, "#pattern-level", "leaps");
+  await practiceOption(page, "#pattern-key", "D");
+  await midiAction(page, "Connect MIDI keyboard");
+  await on(50); // D3: the left-hand tonic in the newly selected key.
+  await off(50);
+  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 8");
+  await selectPractice(page, "piano");
+  await selectPractice(page, "patterns");
+  assert.equal(await page.locator(".pattern-count").textContent(), "2 / 8");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  await page.reload();
+  await page.locator(".pattern-count").filter({ hasText: "2 / 8" }).waitFor();
+  for (const [field, value] of [
+    ["hand", "left"],
+    ["key", "D"],
+    ["level", "leaps"],
+  ]) {
+    assert.equal(await page.locator(`#pattern-${field}`).inputValue(), value);
+  }
   await selectPractice(page, "sight");
   await page.locator("#hymn-arrangement").waitFor({ state: "attached" });
-  await practiceOption(page, "#hymn-length", "2");
   for (const stage of ["melody", "bass", "chords", "broken", "original"]) {
     await practiceOption(page, "#hymn-arrangement", stage);
     assert.ok((await page.locator(".hymn-paper .sight-current").count()) > 0);
-    await page.locator(".hymn-next").click();
-    assert.equal(await page.locator("#hymn-section").inputValue(), "1");
-    await page.locator(".hymn-prev").click();
-    assert.equal(await page.locator("#hymn-section").inputValue(), "0");
+    assert.equal(await page.locator("#hymn-section").count(), 0);
+    assert.ok(
+      (await page.locator(".hymn-paper svg").count()) > 1,
+      "the whole hymn is rendered for every arrangement",
+    );
   }
   await practiceOption(page, "#hymn-arrangement", "bass");
-  await practiceOption(page, "#hymn-section", "2");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   await page.reload();
   await page.locator("#hymn-arrangement").waitFor({ state: "attached" });
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "bass");
-  assert.equal(await page.locator("#hymn-section").inputValue(), "2");
+  assert.equal(await page.locator("#hymn-section").count(), 0);
   await selectPractice(page, "rhythm");
   await page.locator(".rhythm-start").waitFor();
   const tap = page.locator(".rhythm-tap");
@@ -151,7 +177,7 @@ try {
   await page.clock.install();
   await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
   await practiceOption(page, "#rhythm-tempo", "120");
-  await midiAction(page, "Connect MIDI keyboard");
+  await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
     .waitFor({ state: "attached" });
@@ -186,6 +212,8 @@ try {
     /Stopped/,
   );
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  // Timing assertions are complete; allow normal drawer animations during navigation.
+  await page.clock.resume();
   for (const mode of ["patterns", "rhythm", "sight"]) {
     await selectPractice(page, mode);
     await page.setViewportSize({ width: 320, height: 844 });
@@ -202,7 +230,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: interval MIDI, hymn stages/sections/persistence, rhythm timing/count-in/interruption and mobile layouts passed.`,
+    `${engine}: interval MIDI, hymn arrangements/persistence, rhythm timing/count-in/interruption and mobile layouts passed.`,
   );
 } finally {
   await browser?.close();

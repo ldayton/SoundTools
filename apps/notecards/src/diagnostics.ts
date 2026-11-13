@@ -1,4 +1,4 @@
-import { create, attachPanel, type Client } from "@ldayton/browser-diagnostics";
+import { create, type Client } from "@ldayton/browser-diagnostics";
 import reporterUrl from "@ldayton/browser-diagnostics/sentry.js?url";
 let context: Record<string, unknown> = { view: "practice" };
 export const diagnostics = create({
@@ -43,9 +43,6 @@ export const diagnostics = create({
 });
 export function diagnosticsContext(value: Record<string, unknown>) {
   context = { view: "practice", ...value };
-}
-export function mountDiagnostics(parent: HTMLElement) {
-  return attachPanel(diagnostics, parent);
 }
 if (typeof window !== "undefined") window.notecardsDiagnostics = diagnostics;
 declare global {

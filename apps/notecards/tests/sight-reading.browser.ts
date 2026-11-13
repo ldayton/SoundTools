@@ -364,7 +364,7 @@ try {
   );
   await setPianoVisible(page, true);
   await page.locator("#piano [data-piano]").first().waitFor();
-  assert.ok(await page.locator(".keyboard-menu summary").isVisible());
+  assert.ok(await page.locator(".keyboard-menu").isVisible());
   assert.ok(await page.locator("#sight-reading").isHidden());
   assert.deepEqual(errors, []);
   console.log(

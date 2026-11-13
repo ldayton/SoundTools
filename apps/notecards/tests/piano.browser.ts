@@ -219,10 +219,19 @@ try {
   await context.setOffline(true);
   await page.reload();
   await ready();
+  const navTrigger = page.getByRole("button", {
+    name: "Open navigation",
+    exact: true,
+  });
+  if (await navTrigger.isVisible()) await navTrigger.click();
   assert.equal(
     await page.locator("nav a[aria-current]").getAttribute("data-mode"),
     "piano",
   );
+  if (await page.getByRole("dialog").isVisible()) {
+    await page.keyboard.press("Escape");
+    await page.getByRole("dialog").waitFor({ state: "hidden" });
+  }
   assert.equal(await page.locator("#counter").textContent(), beforeOffline);
   await page.locator("#restart-round").click();
   await key(60).click();

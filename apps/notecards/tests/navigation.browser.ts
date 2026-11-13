@@ -60,9 +60,8 @@ try {
   await midiAction(page, "Connect MIDI keyboard");
   await page.locator(".keyboard-menu[data-state=connected]").waitFor();
   assert.equal(
-    await page
-      .locator(".keyboard-menu")
-      .evaluate((e: HTMLDetailsElement) => e.open),
+    (await page.locator(".keyboard-menu").getAttribute("aria-expanded")) ===
+      "true",
     false,
   );
   // Same connection object and port survive route changes.
@@ -101,6 +100,13 @@ try {
     () => document.querySelector("#counter")?.textContent === "2 / 12",
   );
   const notation = await page.locator("#notation").getAttribute("aria-label");
+  await page.evaluate(() => {
+    (window as any).shellElements = {
+      workspace: document.getElementById("exercise-content"),
+      midi: document.getElementById("midi-panel"),
+    };
+  });
+
   await selectPractice(page, "signature");
   await selectPractice(page, "staff");
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
@@ -124,10 +130,19 @@ try {
   assert.equal(new URL(page.url()).pathname, "/settings");
   assert.equal(await page.locator("#page-title").textContent(), "Settings");
   assert.ok(await page.locator("#exercise-content").isHidden());
+  await page
+    .getByRole("checkbox", { name: "Share diagnostic information" })
+    .waitFor();
   assert.ok(
-    await page
-      .getByRole("checkbox", { name: "Share diagnostic information" })
-      .isVisible(),
+    await page.evaluate(
+      () =>
+        (window as any).shellElements.workspace ===
+          document.getElementById("exercise-content") &&
+        (window as any).shellElements.midi ===
+          document.getElementById("midi-panel") &&
+        document.querySelectorAll("#midi-panel").length === 1,
+    ),
+    "navigation and React updates retain one workspace and one MIDI connection form",
   );
   await page.goBack();
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
@@ -136,16 +151,47 @@ try {
   await page.locator(".settings-page").waitFor();
   assert.equal(new URL(page.url()).pathname, "/settings");
   await selectPractice(page, "staff");
-  // Mobile navigation closes, traps focus, and leaves the workspace usable.
+  // Keyboard-opened mobile navigation traps and restores focus with Mantine's defaults.
   await page.setViewportSize({ width: 390, height: 844 });
+  const navTrigger = page.getByRole("button", {
+    name: "Open navigation",
+    exact: true,
+  });
+  await navTrigger.focus();
+  await navTrigger.press("Enter");
+  const drawer = page.getByRole("dialog");
+  await drawer.waitFor();
+  await page.screenshot({ path: `/tmp/notecards-shell-drawer-${engine}.png` });
+  await page.keyboard.press("Tab");
+  assert.ok(
+    await drawer.evaluate((e) => e.contains(document.activeElement)),
+    "drawer traps focus",
+  );
+  await page.keyboard.press("Escape");
+  await drawer.waitFor({ state: "hidden" });
+  assert.ok(
+    await page
+      .getByRole("button", { name: "Open navigation", exact: true })
+      .evaluate((e) => e === document.activeElement),
+    "Escape returns focus to the navigation trigger",
+  );
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
-  assert.equal(
-    await page.locator(".app-body").evaluate((e: HTMLElement) => e.inert),
-    true,
+  await drawer.waitFor();
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await drawer.waitFor({ state: "hidden" });
+  await page
+    .getByRole("button", { name: "Collapse navigation", exact: true })
+    .waitFor();
+  assert.ok(
+    await page.evaluate(
+      () => !document.body.hasAttribute("data-scroll-locked"),
+    ),
+    "resizing dismisses the drawer and releases scroll locking",
   );
-  await page.locator(".nav-close").press("Escape");
+  await page.setViewportSize({ width: 390, height: 844 });
+
   assert.equal(
     await page
       .getByRole("button", { name: "Open navigation", exact: true })
@@ -166,6 +212,52 @@ try {
       ),
     );
   }
+  // Options preserve their controls across collapse, resize and React header updates.
+  await selectPractice(page, "piano");
+  await openPracticeOptions(page);
+  const optionsContent = page.locator(
+    ".practice-options:visible .practice-options-content",
+  );
+  await page.evaluate(() => {
+    (window as any).optionsField = document.getElementById("key");
+  });
+  await page
+    .getByRole("button", { name: "Collapse practice options", exact: true })
+    .click();
+  const reopenOptions = page.getByRole("button", {
+    name: "Expand practice options",
+    exact: true,
+  });
+  await reopenOptions.waitFor();
+  await page.waitForFunction(
+    () => document.activeElement?.id === "practice-options-reopen",
+  );
+  await reopenOptions.press("Enter");
+  await optionsContent.waitFor();
+  await page.waitForFunction(() =>
+    document.activeElement?.classList.contains("options-toggle"),
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("button", { name: "Expand practice options", exact: true })
+    .waitFor();
+  await openPracticeOptions(page);
+  await page
+    .getByRole("button", { name: "Collapse practice options", exact: true })
+    .press("Enter");
+  await page
+    .locator(".practice-options:visible .practice-options-content")
+    .waitFor({ state: "hidden" });
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page
+    .getByRole("button", { name: "Collapse practice options", exact: true })
+    .waitFor();
+  assert.ok(
+    await page.evaluate(
+      () => (window as any).optionsField === document.getElementById("key"),
+    ),
+    "options headers never replace the exercise's controls",
+  );
   // Wide-screen options sit beside every exercise, with shared field dimensions and actions.
   for (const mode of ["piano", "staff", "patterns", "sight", "rhythm"]) {
     await selectPractice(page, mode);
@@ -192,10 +284,17 @@ try {
         })),
       );
     assert.ok(fields.length > 0);
-    assert.ok(
-      fields.every((e) => e.height === 44 && e.radius === "9px"),
-      JSON.stringify({ mode, fields }),
-    );
+    if (mode === "rhythm" || mode === "patterns") {
+      assert.equal(
+        await options.locator("select.mantine-NativeSelect-input").count(),
+        mode === "rhythm" ? 2 : 3,
+      );
+    } else {
+      assert.ok(
+        fields.every((e) => e.height === 44 && e.radius === "9px"),
+        JSON.stringify({ mode, fields }),
+      );
+    }
     if (mode === "patterns" || mode === "sight") {
       await page.getByRole("button", { name: "Pause", exact: true }).click();
       await page.getByRole("button", { name: "Resume", exact: true }).click();
@@ -231,6 +330,56 @@ try {
       );
     }
   }
+  // A complete React form controls the engine and restores its saved configuration.
+  await practiceOption(page, "#rhythm-level", "eighths");
+  await practiceOption(page, "#rhythm-tempo", "115");
+  await page.getByRole("button", { name: "Start", exact: true }).click();
+  await practiceOption(page, "#rhythm-tempo", "125");
+  assert.ok(
+    await page.getByRole("button", { name: "Start", exact: true }).isVisible(),
+    "changing settings stops the active attempt",
+  );
+  await selectPractice(page, "piano");
+  await selectPractice(page, "rhythm");
+  await openPracticeOptions(page);
+  assert.equal(await page.locator("#rhythm-level").inputValue(), "eighths");
+  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  await page.reload();
+  await openPracticeOptions(page);
+  assert.equal(await page.locator("#rhythm-level").inputValue(), "eighths");
+  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openPracticeOptions(page);
+  const rhythmSelect = page.getByRole("combobox", {
+    name: "Rhythm",
+    exact: true,
+  });
+  await rhythmSelect.focus();
+  await rhythmSelect.press("Tab");
+  assert.ok(
+    await page
+      .locator("#rhythm-tempo")
+      .evaluate((element) => element === document.activeElement),
+    "standard tab navigation moves from rhythm to tempo",
+  );
+  await rhythmSelect.selectOption("pulse");
+  assert.equal(await rhythmSelect.inputValue(), "pulse");
+  assert.equal(
+    await page
+      .getByRole("combobox", { name: "Tempo", exact: true })
+      .inputValue(),
+    "125",
+  );
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await page.setViewportSize({ width: 1280, height: 844 });
   await page.goto(base + "piano/not-a-real-page");
   await page.locator(".route-missing").waitFor();
   await page.locator(".route-missing a").click();

@@ -12,7 +12,7 @@
   margin-left: 25px;
 }
 
-select {
+select:not(:where(.soundtools-ui *)) {
   font: inherit;
   color: #302d55;
   background: #fffdf8;
@@ -227,42 +227,6 @@ select {
   margin-bottom: 0;
   background: #eee8f4;
 }
-.options-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 44px;
-}
-.options-header h2 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-.options-toggle {
-  display: inline-grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  padding: 0;
-  border: 1px solid #d8d1c5;
-  border-radius: 9px;
-  background: #fcfaf5;
-  color: #625d70;
-}
-.options-toggle:hover {
-  background: #eee8f4;
-}
-.practice-options.is-collapsed .options-header h2 {
-  display: none;
-}
-.practice-options.is-collapsed .options-header {
-  justify-content: flex-end;
-}
-.options-toggle[aria-expanded="false"] .options-panel-icon {
-  transform: rotate(180deg);
-}
 .practice-options-content {
   padding: 16px 0 0;
 }
@@ -274,7 +238,7 @@ select {
   gap: 16px 12px;
   margin: 0 0 16px;
 }
-.practice-options label,
+.practice-options label:not(:where(.soundtools-ui *)),
 .practice-options .options-row > label,
 .practice-options .practice-controls label {
   display: flex;
@@ -291,7 +255,7 @@ select {
   color: #625d70;
   line-height: 1.4;
 }
-.practice-options select,
+.practice-options select:not(:where(.soundtools-ui *)),
 .practice-options .options-row select,
 .practice-options .practice-controls select,
 .practice-options #key {
@@ -422,7 +386,7 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px 12px;
   }
-  .practice-options label,
+  .practice-options label:not(:where(.soundtools-ui *)),
   .practice-options .options-row > label,
   .practice-options .practice-controls label {
     width: 100%;
@@ -467,7 +431,7 @@ select {
   .practice-options .hymn-size-field {
     width: calc((100% - 12px) / 2);
   }
-  .practice-options select,
+  .practice-options select:not(:where(.soundtools-ui *)),
   .practice-options .options-row select,
   .practice-options .practice-controls select,
   .practice-options #key,
@@ -477,7 +441,7 @@ select {
   }
 }
 /* Keep the field chrome consistent while retaining native select menus. */
-.practice-options select,
+.practice-options select:not(:where(.soundtools-ui *)),
 .practice-options .options-row select,
 .practice-options .practice-controls select,
 .practice-options #key,
@@ -502,37 +466,6 @@ select {
   .practice-options #guitar-options .range,
   .strings {
     max-width: none;
-  }
-}
-
-.options-toggle-label,
-.options-chevron {
-  display: none;
-}
-@media (max-width: 1119px) {
-  .practice-options .options-header h2,
-  .options-toggle .options-panel-icon {
-    display: none;
-  }
-  .options-toggle {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    width: 100%;
-    padding: 10px 14px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: left;
-  }
-  .options-toggle-label,
-  .options-chevron {
-    display: block;
-  }
-  .options-chevron {
-    flex-shrink: 0;
-  }
-  .options-toggle[aria-expanded="true"] .options-chevron {
-    transform: rotate(180deg);
   }
 }
 

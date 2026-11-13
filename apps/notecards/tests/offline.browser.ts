@@ -139,7 +139,9 @@ try {
   // Verified update is staged while a session is active, never replacing the question.
   root = rootB;
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
-  await page.locator(".settings-update:visible").waitFor({ timeout: 20000 });
+  await page
+    .getByRole("img", { name: "Update available", exact: true })
+    .waitFor({ timeout: 20000 });
   assert.equal(
     await page.locator('meta[name="notecards-shell"]').getAttribute("content"),
     packA.shellCache,
@@ -222,8 +224,13 @@ try {
   await fresh.goto(
     base + "piano/hymns/amazing-grace?arrangement=bass&bars=2&section=2",
   );
-  await fresh.locator("#hymn-section").waitFor({ state: "attached" });
-  assert.equal(await fresh.locator("#hymn-section").inputValue(), "1");
+  await fresh.locator(".hymn-paper svg").first().waitFor({ state: "attached" });
+  assert.equal(await fresh.locator("#hymn-arrangement").inputValue(), "bass");
+  assert.equal(
+    await fresh.locator("#hymn-section").count(),
+    0,
+    "legacy section links open the complete hymn without the retired section selector",
+  );
   await selectPractice(fresh, "staff");
   await fresh.goto(base + "settings");
   await fresh.locator(".settings-page").waitFor();
@@ -284,7 +291,9 @@ try {
   networkDown = false;
   await context.setOffline(false);
   await fresh.evaluate(() => window.dispatchEvent(new Event("online")));
-  await fresh.locator(".settings-update:visible").waitFor({ timeout: 20000 });
+  await fresh
+    .getByRole("img", { name: "Update available", exact: true })
+    .waitFor({ timeout: 20000 });
   await fresh.locator("a[data-settings]").click();
   await fresh.locator("#offline-update").click();
   await fresh.waitForFunction(

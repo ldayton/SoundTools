@@ -150,7 +150,7 @@ try {
     "0",
   );
   await field("task", "play-degree");
-  await midiAction(page, "Connect MIDI keyboard");
+  await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
   await send(48); // Same pitch class, a different octave.
   assert.match(
     (await root().locator(".sequence-feedback").textContent())!,
@@ -205,7 +205,7 @@ try {
     3,
     "partial scale restored",
   );
-  await midiAction(page, "Connect MIDI keyboard");
+  await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
   for (const n of [65, 67, 69, 71, 72]) await send(n);
   assert.equal(
     await root().locator(".theory-progress").getAttribute("value"),

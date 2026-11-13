@@ -1,3 +1,5 @@
+import { createElement } from "react";
+import { PatternOptions } from "./pattern-options";
 import { mountPracticePiano } from "./practice-piano";
 import type { InputPolicy, Interruption } from "./live-practice";
 import { mountPracticeOptions } from "./practice-controls";
@@ -13,7 +15,6 @@ import {
 import {
   makePattern,
   restorePattern,
-  PATTERN_KEYS,
   type PatternSettings,
 } from "./patterns-model";
 import { spellPitch } from "./guitar";
@@ -51,22 +52,24 @@ export class IntervalPatterns {
         this.paused = restored.paused;
       }
     } catch {}
-    element.innerHTML = `<div class="practice-controls"><label>Patterns<select id="pattern-level"><option value="steps">Steps & repeated notes</option><option value="skips">Add skips · thirds</option><option value="leaps">Add fourths & fifths</option></select></label><label class="key-field">Key<select id="pattern-key">${PATTERN_KEYS.map((k) => `<option>${k.id}</option>`).join("")}</select></label><label class="hand-field">Hand<select id="pattern-hand"><option value="right">Right hand</option><option value="left">Left hand</option></select></label></div><section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
-    mountPracticeOptions(element, [this.$(".practice-controls")]);
+    element.innerHTML = `<section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
+    mountPracticeOptions(
+      element,
+      [],
+      createElement(PatternOptions, {
+        initialSettings: this.settings,
+        onChange: (settings) => {
+          this.settings = settings;
+          this.next();
+          this.save();
+        },
+      }),
+    );
     mountPracticePiano(this.$(".pattern-piano"), this.$(".sequence-transport"));
     this.midiSlot = this.$(".pattern-midi-slot");
     this.piano = new Piano(this.$(".pattern-piano"), (n) => {
       if (this.accepting) this.answer(n);
     });
-    for (const field of ["key", "hand", "level"] as const) {
-      const select = this.$<HTMLSelectElement>("#pattern-" + field);
-      select.value = this.settings[field];
-      select.onchange = () => {
-        Object.assign(this.settings, { [field]: select.value });
-        this.next();
-        this.save();
-      };
-    }
     this.$(".pattern-next").onclick = () => this.next();
     this.$(".pattern-again").onclick = () => {
       this.cancelAdvance();

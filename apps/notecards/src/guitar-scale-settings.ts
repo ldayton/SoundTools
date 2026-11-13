@@ -7,12 +7,14 @@ import {
 import {
   SCALE_SHAPES,
   migratePattern,
+  patternShift,
   type ScalePattern,
 } from "./guitar-scale-patterns";
 export type GuitarScaleSettings = ScaleSelection & {
   pattern?: ScalePattern;
   shift?: number;
   labels?: "fingers" | "notes";
+  returnPosition?: { pattern: ScalePattern; shift: number };
 };
 export function mergeGuitarScaleSettings(
   input: unknown,
@@ -56,6 +58,27 @@ export function mergeGuitarScaleSettings(
       ? source.shift
       : base.shift;
   if (validShift(shift)) settings.shift = shift;
+  const previous = object(source.returnPosition);
+  if (
+    patterns.includes(previous.pattern as ScalePattern) &&
+    validShift(previous.shift)
+  ) {
+    const previousPattern = previous.pattern as ScalePattern;
+    if (
+      previousPattern === "map"
+        ? previous.shift === 0
+        : patternShift(
+            settings.tonic,
+            settings.quality,
+            previousPattern,
+            previous.shift,
+          ) === previous.shift
+    )
+      settings.returnPosition = {
+        pattern: previousPattern,
+        shift: previous.shift,
+      };
+  }
   const spelling =
     typeof source.spelling === "string" ? source.spelling : base.spelling;
   if (

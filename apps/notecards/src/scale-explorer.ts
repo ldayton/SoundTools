@@ -1,6 +1,5 @@
 import {
   SCALE_SHAPES,
-  relativePattern,
   patternBounds,
   patternShift,
   patternPositions,
@@ -21,6 +20,7 @@ import type { PracticeRoute } from "./navigation";
 import {
   mergeGuitarScaleSettings,
   guitarScaleFromQuery,
+  type GuitarScaleSettings,
 } from "./guitar-scale-settings";
 import "./scale-explorer.css";
 
@@ -76,6 +76,7 @@ export class ScaleExplorer implements LivePractice {
       settings.shift !== this.shift
     ) {
       this.movement = "";
+      this.returnPosition = undefined;
       this.tonic = settings.tonic;
       this.quality = settings.quality;
       this.spelling = settings.spelling;
@@ -87,6 +88,7 @@ export class ScaleExplorer implements LivePractice {
   }
   private pattern: ScalePattern = "1";
   private shift = 0;
+  private returnPosition?: GuitarScaleSettings["returnPosition"];
   private labels: "fingers" | "notes" = "fingers";
   private movement = "";
   private tonic = 4;
@@ -108,6 +110,7 @@ export class ScaleExplorer implements LivePractice {
     this.pattern = settings.pattern || (saved ? "map" : "1");
     this.shift = settings.shift || 0;
     this.labels = settings.labels || "fingers";
+    this.returnPosition = settings.returnPosition;
     element.innerHTML = `<div class="scale-controls options-row"><label>Key<select id="scale-key" aria-label="Scale key"></select></label><label>Scale<select id="scale-quality" aria-label="Scale type"><option value="major">Major</option><option value="minor">Natural minor</option></select></label><label>Pattern<select id="scale-pattern"><option value="map">Open-position map</option>${SCALE_SHAPES.map((shape) => `<option value="${shape}">Shape ${shape}</option>`).join("")}</select></label><label>Dots<select id="scale-dot-labels"><option value="fingers">Finger numbers</option><option value="notes">Note names</option></select></label></div>
       <section class="scale-card sequence-practice" aria-labelledby="scale-title"><div class="scale-heading"><h2 id="scale-title"></h2><p class="scale-notes" aria-live="polite"></p><div class="scale-relative"><button type="button" class="scale-relative-switch"></button><span>Same notes · different home note</span></div></div>
       <div class="scale-key-navigation"><button type="button" class="scale-prev" aria-label="Previous key"></button><p class="scale-pattern-caption" role="status"></p><button type="button" class="scale-next" aria-label="Next key"></button></div>
@@ -124,6 +127,7 @@ export class ScaleExplorer implements LivePractice {
         this.pattern = (event.target as HTMLSelectElement)
           .value as ScalePattern;
         this.movement = "";
+        this.returnPosition = undefined;
         this.shift = NaN;
         this.update();
       };
@@ -135,6 +139,7 @@ export class ScaleExplorer implements LivePractice {
         const [low, high] = patternBounds(this.pattern, this.quality);
         const shift = this.shift + direction;
         if (low + shift < 1 || high + shift > 22) return;
+        this.returnPosition = undefined;
         this.shift = shift;
         this.tonic = (this.tonic + direction + 12) % 12;
         this.spelling = undefined;
@@ -150,6 +155,7 @@ export class ScaleExplorer implements LivePractice {
       this.update();
     };
     this.key.onchange = () => {
+      this.returnPosition = undefined;
       this.movement = "";
       this.tonic = Number(this.key.value);
       this.shift = NaN;
@@ -157,6 +163,7 @@ export class ScaleExplorer implements LivePractice {
       this.update();
     };
     this.type.onchange = () => {
+      this.returnPosition = undefined;
       this.movement = "";
       this.quality = this.type.value as ScaleQuality;
       this.shift = NaN;
@@ -167,12 +174,15 @@ export class ScaleExplorer implements LivePractice {
       ".scale-relative-switch",
     )!.onclick = () => {
       this.movement = "";
-      const relative = relativeScale(this.tonic, this.quality, this.spelling);
-      if (this.pattern !== "map")
-        this.pattern = relativePattern(this.pattern, this.quality);
-      this.tonic = relative.tonic;
-      this.quality = relative.quality;
-      this.spelling = relative.spelling;
+      if (this.returnPosition) {
+        this.pattern = this.returnPosition.pattern;
+        this.shift = this.returnPosition.shift;
+        this.returnPosition = undefined;
+      } else {
+        this.returnPosition = { pattern: this.pattern, shift: this.shift };
+        this.pattern = this.quality === "major" ? "5" : "2";
+        this.shift = patternShift(this.tonic, this.quality, this.pattern);
+      }
       this.update();
     };
   }
@@ -205,6 +215,7 @@ export class ScaleExplorer implements LivePractice {
         quality: this.quality,
         pattern: this.pattern,
         shift: this.shift,
+        ...(this.returnPosition ? { returnPosition: this.returnPosition } : {}),
         ...(this.labels === "notes" ? { labels: this.labels } : {}),
         ...(this.spelling ? { spelling: this.spelling } : {}),
       },
@@ -250,11 +261,17 @@ export class ScaleExplorer implements LivePractice {
     const button = this.element.querySelector<HTMLButtonElement>(
       ".scale-relative-switch",
     )!;
-    button.textContent = `Relative ${relative.quality}: ${relativeName} ↔`;
-    button.setAttribute(
-      "aria-label",
-      `Show ${relativeName} ${relative.quality}, the relative ${relative.quality}`,
-    );
+    const relativeTarget = this.quality === "major" ? "5" : "2";
+    const label = this.returnPosition
+      ? "Return to previous shape"
+      : `Show ${relativeName} ${relative.quality} starting position`;
+    button.textContent = label;
+    button.setAttribute("aria-label", label);
+    button.setAttribute("aria-pressed", String(!!this.returnPosition));
+    this.element.querySelector<HTMLElement>(
+      ".scale-relative span",
+    )!.textContent =
+      `${relativeName} ${relative.quality} Shape 1 · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality} Shape ${relativeTarget}`;
     const movable = this.pattern !== "map";
     const positions =
       this.pattern === "map"

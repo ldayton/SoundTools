@@ -446,3 +446,31 @@ test("A minor Shape 4 includes F on the D string, not B on the G string", () => 
     ],
   );
 });
+
+test("relative-position return checkpoints validate against the current key and preserve map origins", () => {
+  const settings = {
+    tonic: 0,
+    quality: "major",
+    pattern: "5",
+    shift: 0,
+    returnPosition: { pattern: "1", shift: 0 },
+  };
+  assert.deepEqual(mergeGuitarScaleSettings(settings), settings);
+  assert.deepEqual(
+    mergeGuitarScaleSettings({
+      ...settings,
+      returnPosition: { pattern: "map", shift: 0 },
+    }).returnPosition,
+    { pattern: "map", shift: 0 },
+  );
+  for (const returnPosition of [
+    { pattern: "bad", shift: 0 },
+    { pattern: "1", shift: 1 },
+    { pattern: "1", shift: NaN },
+    { pattern: "map", shift: 2 },
+  ])
+    assert.equal(
+      mergeGuitarScaleSettings({ ...settings, returnPosition }).returnPosition,
+      undefined,
+    );
+});

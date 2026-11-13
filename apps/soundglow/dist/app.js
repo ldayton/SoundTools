@@ -289,7 +289,7 @@ function toggleSidebarSection(button,body){const open=$(body).hidden;$(body).hid
 $('openFiles').onclick=()=>openFilesPanel();
 function openFilesPanel(){panel(true);$('filesBody').hidden=false;$('toggleFiles').setAttribute('aria-expanded','true');}
 document.addEventListener('keydown',e=>{
-  if($('presetDialog').open||$('pitchPresetDialog')?.open)return;
+  if(document.querySelector('dialog[open],#libraryItemMenu:popover-open'))return;
   if(e.key==='Escape')panel(false);
   if(e.code!=='Space'&&e.key!==' ')return;
   if(e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey||!running)return;

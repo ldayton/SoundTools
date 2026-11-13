@@ -58,7 +58,7 @@ test('changing loop mode and switching files stops retired audio nodes',async({p
  await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};document.getElementById('fileLoop').checked=true;});await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
  await page.locator('#fileLoop').uncheck();await page.waitForFunction(()=>fileLibrary.isPaused&&!fileLibrary.playTask);expect(await page.evaluate(()=>fileLibrary.position)).toBeCloseTo(.6,3);
  await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
- await page.evaluate(()=>{window.retiredNodes=[...fileLibrary.playback.nodes];});await page.locator('#audioFileInput').setInputFiles(wave());await expect(page.locator('#audioFileList button')).toHaveCount(2);
+ await page.evaluate(()=>{window.retiredNodes=[...fileLibrary.playback.nodes];});await page.locator('#audioFileInput').setInputFiles(wave());await expect(page.locator('#audioFileList [data-file]')).toHaveCount(2);
  await page.evaluate(()=>fileLibrary.select(fileLibrary.files[1].id));expect(await page.evaluate(()=>fileLibrary.playback.nodes.size)).toBe(0);expect(await page.evaluate(()=>fileLibrary.isPaused)).toBe(true);
  await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused);await page.locator('#filePlay').click();
 });

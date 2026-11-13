@@ -27,7 +27,21 @@
       return result instanceof IDBRequest ? result.result : result;
     }
     list() { return this.transaction(['files'], tx => tx.objectStore('files').getAll(), 'readonly'); }
-    update(meta) { return this.transaction(['files'], tx => tx.objectStore('files').put(meta)); }
+    // Merge playback snapshots into the live record: queued saves must not undo a
+    // rename or recreate a file that was deleted while audio was still playing.
+    update(meta) {
+      return this.transaction(['files'], tx => {
+        const files = tx.objectStore('files'), saved = files.get(meta.id);
+        saved.onsuccess = () => { if (saved.result) files.put({...saved.result, position: meta.position, ...(meta.peaks ? {peaks: meta.peaks} : {})}); };
+      });
+    }
+    rename(kind, id, name) {
+      const store = kind === 'file' ? 'files' : 'bookmarks';
+      return this.transaction([store], tx => {
+        const entries = tx.objectStore(store), saved = entries.get(id);
+        saved.onsuccess = () => { if (saved.result) entries.put({...saved.result, name}); else tx.abort(); };
+      });
+    }
     async get(id) {
       const saved=await this.transaction(['blobs'],tx=>tx.objectStore('blobs').get(id),'readonly');
       if(!saved||saved instanceof Blob)return saved; // Legacy local libraries.
@@ -78,18 +92,17 @@
       $('audioFileInput').onchange = e => { void this.importFiles([...e.target.files]); e.target.value = ''; };
       $('openAudio').onclick = () => { host.openFiles(); $('audioFileInput').click(); };
       $('importAudio').onclick = () => $('audioFileInput').click();
-      $('audioFileList').onclick = e => { const button = e.target.closest('button[data-file]'); if (button) void this.select(button.dataset.file); };
+      this.actions = new SoundglowLibraryActions($('filesBody'), {
+        find: (kind,id) => this.libraryItem(kind,id),
+        open: (kind,id) => { if (kind === 'file') void this.select(id); else void this.openBookmark(id); },
+        rename: (kind,id,name) => this.renameItem(kind,id,name),
+        remove: (kind,id) => kind === 'file' ? this.remove(id) : this.removeBookmark(id),
+      });
       $('bookmarkSelection').onclick = () => this.beginBookmark();
       $('bookmarkForm').onsubmit = e => { e.preventDefault(); void this.saveBookmark(); };
       $('cancelBookmark').onclick = () => this.cancelBookmark();
       $('bookmarkName').oninput = () => $('bookmarkName').setCustomValidity('');
       $('bookmarkForm').onkeydown = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelBookmark(); } };
-      $('audioBookmarkList').onclick = e => {
-        const open = e.target.closest('button[data-bookmark]'), remove = e.target.closest('button[data-remove-bookmark]');
-        if (open) void this.openBookmark(open.dataset.bookmark);
-        if (remove) void this.removeBookmark(remove.dataset.removeBookmark);
-      };
-      $('removeAudio').onclick = () => void this.remove();
       $('filePlay').onclick = () => void this.toggle();
       $('fileRestart').onclick = () => this.seek(this.loop?.start || 0);
       $('fileBack').onclick = () => this.seek(this.position - 5);
@@ -159,14 +172,31 @@
       this.importing = false; this.$('importAudio').disabled = false; this.renderList();
       if (saved) { this.message(`${saved} ${saved === 1 ? 'file saved' : 'files saved'} on this device${failed ? ` · ${failed} could not be added` : ''}.`); void navigator.storage?.persist?.().catch(() => {}); if (!this.current) await this.select(first); }
     }
+    libraryItem(kind,id) {
+      const item = (kind === 'file' ? this.files : this.bookmarks).find(item => item.id === id);
+      if (!item) return null;
+      const count = this.bookmarks.filter(b => b.fileId === id).length;
+      return {...item, maxNameLength: kind === 'file' ? 255 : 80,
+        deleteDescription: kind === 'file'
+          ? `Delete “${item.name}” from this browser?${count ? ` Its ${count} bookmark${count === 1 ? '' : 's'} will also be deleted.` : ''} The original file on your computer is kept.`
+          : `Delete “${item.name}”? Its audio file is kept.`};
+    }
+    async renameItem(kind,id,name) {
+      const item = (kind === 'file' ? this.files : this.bookmarks).find(item => item.id === id);
+      if (!item) throw Error('Item no longer exists');
+      await this.store.rename(kind,id,name); item.name = name;
+      if (this.current?.id === id && kind === 'file') this.$('fileTitle').textContent = name;
+      this.renderList();
+    }
     renderList() {
+      this.actions.closeMenu();
       const list = this.$('audioFileList'); list.replaceChildren();
       for (const file of this.files) {
-        const button = document.createElement('button'); button.type = 'button'; button.dataset.file = file.id; button.setAttribute('aria-pressed', String(this.current?.id === file.id));
-        const name = document.createElement('span'); name.textContent = file.name; const time = document.createElement('small'); time.textContent = formatTime(file.duration); button.append(name, time); list.append(button);
+        const title = `${file.name}\n${formatPreciseTime(file.duration)}${file.bytes ? ` · ${(file.bytes/1048576).toFixed(1)} MB` : ''}`;
+        list.append(this.actions.row({kind: 'file', id: file.id, name: file.name, detail: formatTime(file.duration), title, selected: this.current?.id === file.id}));
       }
       this.renderBookmarks();
-      this.$('audioEmpty').hidden = !!this.files.length; this.$('removeAudio').disabled = !this.current;
+      this.$('audioEmpty').hidden = !!this.files.length;
     }
     validBookmark(bookmark) {
       const file = this.files.find(f => f.id === bookmark?.fileId), selection = bookmark?.selection;
@@ -176,18 +206,13 @@
         && bookmark.viewStart >= 0 && bookmark.viewSpan > 0 && bookmark.viewStart + bookmark.viewSpan <= file.duration + 1e-6);
     }
     renderBookmarks() {
+      this.actions.closeMenu();
       const list = this.$('audioBookmarkList'); list.replaceChildren();
       this.$('audioBookmarks').hidden = !this.bookmarks.length;
       for (const bookmark of this.bookmarks) {
         const file = this.files.find(f => f.id === bookmark.fileId); if (!file) continue;
-        const row = document.createElement('div'); row.className = 'audio-bookmark';
-        const open = document.createElement('button'); open.type = 'button'; open.dataset.bookmark = bookmark.id;
-        const name = document.createElement('span'); name.textContent = bookmark.name;
-        const detail = document.createElement('small'); detail.textContent = `${file.name} · ${formatPreciseTime(bookmark.selection.start)}–${formatPreciseTime(bookmark.selection.end)}`;
-        open.append(name, detail);
-        const remove = document.createElement('button'); remove.type = 'button'; remove.dataset.removeBookmark = bookmark.id;
-        remove.textContent = '×'; remove.setAttribute('aria-label', `Remove bookmark ${bookmark.name}`);
-        row.append(open, remove); list.append(row);
+        const range = `${formatPreciseTime(bookmark.selection.start)}–${formatPreciseTime(bookmark.selection.end)}`;
+        list.append(this.actions.row({kind: 'bookmark', id: bookmark.id, name: bookmark.name, detail: range, title: `${bookmark.name}\n${file.name}\n${range}`}));
       }
     }
     beginBookmark() {
@@ -220,8 +245,8 @@
       await this.select(bookmark.fileId, bookmark);
     }
     async removeBookmark(id) {
-      try { await this.store.removeBookmark(id); this.bookmarks = this.bookmarks.filter(b => b.id !== id); this.renderBookmarks(); }
-      catch { this.message('Could not remove the bookmark. Please retry.'); }
+      try { await this.store.removeBookmark(id); this.bookmarks = this.bookmarks.filter(b => b.id !== id); this.renderBookmarks(); return true; }
+      catch { this.message('Could not remove the bookmark. Please retry.'); return false; }
     }
     async select(id, bookmark = null) {
       if (!this.desktop.matches || !this.store) return;
@@ -302,12 +327,19 @@
       this.lastSaved = position; this.current.position = position;
       const snapshot = { ...this.current }; this.pendingSave = this.pendingSave.then(() => this.store.update(snapshot)).catch(() => this.message('Could not save the last playback position.'));
     }
-    async remove() {
-      if (!this.current) return; const id = this.current.id; const next = this.files.find(f => f.id !== id);
-      ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
-      await this.pendingSave;
-      try { await this.store.remove(id); } catch { this.loading = false; this.message('Could not remove the recording. Please retry.'); return; }
-      this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url); this.url = null; this.current = null; this.files = this.files.filter(f => f.id !== id); this.bookmarks = this.bookmarks.filter(b => b.fileId !== id); this.$('fileTransport').hidden = true; this.loading = false; this.renderList(); if (next) await this.select(next.id); else await this.store.preference('');
+    async remove(id = this.current?.id) {
+      if (!this.files.some(f => f.id === id)) return false;
+      try { await this.store.remove(id); } catch { this.message('Could not remove the recording. Please retry.'); return false; }
+      const active = this.current?.id === id;
+      if (active) {
+        ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.host.release();
+        this.playback.clear(); this.reader.clear(); this.connected = false;
+        this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);
+        this.url = null; this.current = null; this.$('fileTransport').hidden = true; this.loading = false;
+      }
+      this.files = this.files.filter(f => f.id !== id); this.bookmarks = this.bookmarks.filter(b => b.fileId !== id); this.renderList();
+      if (active) { if (this.files[0]) await this.select(this.files[0].id); else await this.store.preference(''); }
+      return true;
     }
     release() { const position=this.position;this.revision++;this.resumeAfterRestart=false;this.wantPlay = false;this.playback.stop();this.media.pause();if(this.current&&!this.loading)this.position=position; this.savePosition(true); this.connected = false; this.$('fileTransport').hidden = true; }
     zoom(factor) {

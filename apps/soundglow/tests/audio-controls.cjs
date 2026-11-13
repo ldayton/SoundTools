@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const scope={window:{}};vm.runInNewContext(fs.readFileSync('dist/audio-library.js','utf8'),scope);const P=scope.window.SoundglowAudioLibrary.AudioLibrary.prototype;
+function model(duration=30,span=10){const controls={};return Object.assign(Object.create(P),{current:{duration},loading:false,viewStart:5,viewSpan:span,loop:{start:7,end:10},media:{currentTime:0,paused:true},playback:{active:false},canvas:{getBoundingClientRect:()=>({left:0,width:1000}),setPointerCapture(){},releasePointerCapture(){}},overview:{getBoundingClientRect:()=>({left:0,width:1000}),setPointerCapture(){},releasePointerCapture(){}},$:id=>controls[id]||={},draw(){},seek(time){this.media.currentTime=time;}});}
+const event=(x,extra={})=>({button:0,pointerId:1,clientX:x,...extra});
+let m=model();m.pointerDown(event(200));m.pointerMove(event(300));assert.equal(m.loop.start,7,'A draft must not change the playing passage');m.pointerUp(event(400));assert.equal(m.loop.start,9,'Release coordinates must be applied');
+m=model();m.pointerDown(event(200));m.pointerMove(event(300));m.cancelGesture();assert.equal(m.loop.start,7);assert.equal(m.drag,null);
+m=model(30,.5);m.loop=null;m.pointerDown(event(200));m.pointerMove(event(300));m.pointerUp(event(300));assert(Math.abs(m.loop.end-m.loop.start-.05)<1/48000);
+m.setView(m.loop.start,m.loop.end-m.loop.start);assert(Math.abs(m.viewSpan-.05)<1/48000);
+m=model(38.155896,.5);m.viewStart=10;m.overviewDown(event(10.25/m.current.duration*1000));assert.equal(m.navigation.mode,'move');m.overviewMove(event(11.25/m.current.duration*1000));assert(Math.abs(m.viewStart-11)<1e-9);m.cancelGesture();assert.equal(m.viewStart,10);assert.equal(m.viewSpan,.5);
+for(const x of [0,1,999,1000]){m=model(30,.001);m.viewStart=x/1000*29.999;const g=m.overviewGeometry(1000);assert(g.right-g.left>=35.999);const center=(g.left+g.right)/2;assert.equal(m.overviewMode(event(center)),'move');assert.equal(m.overviewMode(event(g.left)),'left');assert.equal(m.overviewMode(event(g.right)),'right');}
+m=model();m.loop=null;m.pointerDown(event(700));m.pointerUp(event(300));assert.equal(m.loop.start,8);assert.equal(m.loop.end,12);
+m=model();m.overviewDown(event(700));m.overviewMove(event(900));m.cancelGesture();assert.equal(m.viewStart,5);assert.equal(m.viewSpan,10);
+let seed=12345;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+for(let i=0;i<1000;i++){const duration=.002+random()*7200;m=model(duration,Math.max(.001,random()*duration));m.setView((random()-.2)*duration*2,(random()-.1)*duration*2);assert(m.viewStart>=0);assert(m.viewSpan>0&&m.viewSpan<=duration);assert(m.viewStart+m.viewSpan<=duration+1e-9);const time=m.at(event(0)),end=m.at(event(1000));assert(Math.abs(time-m.viewStart)<1e-9);assert(Math.abs(end-m.viewStart-m.viewSpan)<1e-9);}
+console.log('PASS: release coordinates, draft rollback, fine selections, exact fit, disjoint navigator handles, reverse drags, cancelled navigation and 1000 timeline round trips');

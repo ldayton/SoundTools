@@ -12,3 +12,5 @@ fs.copyFileSync(path.join(offline,'resources.cjs'),path.join(offlineOutput,'reso
 fs.copyFileSync(path.join(offline,'LICENSE'),path.join(offlineOutput,'LICENSE'));
 
 fs.copyFileSync(path.join(offline,'client.cjs'),path.join(offlineOutput,'client.js'));
+
+require('./prepare-file-audio.cjs');

@@ -673,3 +673,41 @@ synchronization or separate checkout is needed.
 For migration testing, `LEGACY_WORKER_SOURCE=/absolute/path/to/previous-worker.cjs
 npm run test:updates` uses the old generator for the first fixture, then exercises
 the new worker during real microphone processing and offline example playback.
+
+### Saved audio files
+
+On desktop, open **Files** to import one or more browser-supported recordings.
+Files and Settings expand independently in the sidebar. Audio is saved in
+IndexedDB in this browser on this device; it is never uploaded. File bytes are
+written in 1 MiB chunks, with the library entry committed only after all chunks
+are saved. Failed imports clean up their chunks; expired unfinished imports are
+pruned on startup. Legacy Blob-based libraries remain readable. Clearing site
+data removes saved copies. Soundglow requests persistent browser storage when
+importing, subject to browser limits. File import and browsing are hidden on
+mobile; microphone capture and the bundled example remain available.
+
+The full-file overview controls the visible range in the main chart and detailed
+waveform. Drag its outlined window to pan, drag either edge to resize it, or drag
+an empty area to choose a new window. Arrow keys move the focused overview.
+Zoom buttons, Fit selection, and Show all share that same range. Browsing does
+not move the playhead. Both chart views show file times, including unplayed audio.
+
+Click the detailed waveform to seek. Drag to select a passage, then adjust either
+boundary by dragging its edge or entering seconds in Playback options. Draft
+boundaries commit on release; Escape, lost capture, focus loss and cancellation
+discard them. Overview handles keep separate hit targets at every zoom level. Play runs
+the selected passage once; enable Loop to repeat it. Passage playback is scheduled
+on the Web Audio clock and retains pitch when slowed. Short passages loop from a
+cached buffer; longer ones use a bounded audio queue. If a stalled UI exhausts
+that queue, audio falls silent rather than running beyond the passage. Selection alone never enables
+Loop. Speed and volume controls are also in Playback options. Files reopen paused
+at their saved position.
+
+File inspection decodes requested audio ranges locally and analyses only the
+visible window in a separate worker, with bounded chart data. The overview scans
+decoded packets without retaining the entire recording. Browsers lacking a codec
+for range decoding may use a native decoder only within a 32 MiB decoded budget;
+otherwise inspection reports an unavailable format while ordinary native file
+playback remains available. Wider views use coarser spectral
+sampling; zooming requests fresh analysis. A loading/error message appears if
+analysis is delayed or unavailable, while native file playback remains usable.

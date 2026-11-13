@@ -148,3 +148,52 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 .diagnostics-panel{margin:16px 0;font-size:13px}.diagnostics-panel label{display:flex;gap:8px;align-items:center;cursor:pointer}.diagnostics-panel input{width:16px;height:16px;margin:0}
 
 #offlineSettings{margin-top:20px;border-top:1px solid #283345;padding-top:14px}#offlineSettings h3{margin:0 0 8px}#offlineSettings p{font-size:12px;color:var(--muted,#9ba8b8);line-height:1.5}#offlineSettings progress{display:block;width:100%;margin:12px 0;accent-color:#f5ad72}#offlineSettings progress[hidden]{display:none}
+
+/* Files and Settings are independent disclosures inside the persistent sidebar. */
+.sidebar-section { border-bottom: 1px solid #283345; }
+.sidebar-section h2 { margin: 0; }
+.sidebar-section-toggle, #panel .panelhead { width: 100%; min-height: 56px; }
+.sidebar-section-toggle { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; font-size: 18px; font-weight: 600; border: 0; border-radius: 0; background: transparent; text-align: left; }
+.sidebar-section-toggle[aria-expanded="false"] span { transform: rotate(-90deg); }
+#filesBody { padding: 0 20px 20px; }
+#filesBody p { color: #a8b5c5; font-size: 12px; line-height: 1.5; }
+#audioFileList { display: grid; gap: 6px; max-height: 32dvh; overflow: auto; margin: 12px 0; }
+#audioFileList button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 8px 10px; text-align: left; }
+#audioFileList button span { min-width: 0; overflow-wrap: anywhere; }
+#audioFileList button small { flex-shrink: 0; color: #a8b5c5; }
+#audioFileList button[aria-pressed="true"] { border-color: #f2ac77; background: #f2ac7715; }
+#removeAudio { font-size: 12px; background: transparent; color: #c0cad7; }
+#panel .panelhead h2 { flex: 1; margin: 0; }
+#settingsSectionToggle { display:flex; align-items:center; justify-content:space-between; width:100%; border:0; background:transparent; padding:0; font-size:18px; font-weight:600; text-align:left; min-height:44px; }
+#settingsSectionToggle[aria-expanded="false"] span { transform:rotate(-90deg); }
+#fileTransport { flex: 0 0 auto; padding: 12px 20px; border-top: 1px solid #283345; background: #0d1118; }
+.file-heading { display: flex; justify-content: space-between; gap: 12px; align-items:center; font-size:13px; margin-bottom:8px; }
+#fileTitle { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#fileTime { flex-shrink:0; font-variant-numeric:tabular-nums; color:#a8b5c5; }
+#fileWaveform { position:static; display:block; width:100%; height:64px; border-radius:6px; touch-action:pan-y; cursor:crosshair; }
+.file-buttons { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; }
+.file-buttons button { min-height:44px; min-width:44px; padding:8px 12px; }
+#filePlay { min-width:80px; }
+.file-loop { display:flex; align-items:center; gap:6px; min-height:44px; font-size:13px; }
+.file-more { margin-top:4px; font-size:12px; }
+.file-more summary { cursor:pointer; width:fit-content; min-height:32px; display:flex; align-items:center; color:#a8b5c5; }
+.file-more > div { display:flex; flex-wrap:wrap; gap:12px 20px; padding-top:8px; }
+.file-more label { display:flex; align-items:center; gap:8px; }
+.file-more input[type="number"] { width:80px; min-height:36px; font:inherit; color:inherit; background:#171e28; border:1px solid #303b4a; padding:6px; border-radius:6px; }
+#fileTransport[hidden],#filesBody[hidden],#settingsBody[hidden] { display:none!important; }
+@media(max-width:760px) { #fileTransport { padding:10px 12px; } .file-buttons { gap:6px; } .file-heading { font-size:12px; } #fileWaveform { height:56px; } }
+
+#filesSection h2 { font-size:18px; letter-spacing:-.4px; }
+#audioFileInput[hidden] { display:none!important; }
+.file-loop input { display:inline-block; width:auto; margin:0; }
+#fileTime { float:none; }
+#openFiles { min-height:44px; }
+#filesSection { flex:none; }
+#panel .panelhead { padding:6px 20px; min-height:56px; }
+.file-detail { margin-left:53px; margin-right:13px; }
+.pitch-active .file-detail { margin-left:49px; margin-right:16px; }
+.waveform-ruler { display:flex; justify-content:space-between; color:#8796aa; font-size:10px; font-variant-numeric:tabular-nums; margin:4px 0 6px; }
+#fileOverview { position:static; display:block; width:100%; height:36px; margin:4px 0 8px; border-radius:4px; cursor:ew-resize; touch-action:none; }
+#fileAnalysisStatus { display:block; float:none; min-height:18px; font-size:12px; color:#a8b5c5; }
+@media(max-width:760px),(pointer:coarse) { #openFiles,#openAudio,#filesSection,#fileTransport { display:none!important; } }
+.file-inspection #freeze { display:none; }

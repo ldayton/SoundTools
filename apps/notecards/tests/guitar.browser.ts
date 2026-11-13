@@ -66,10 +66,7 @@ try {
     "staff",
   );
   await selectPractice(page, "name");
-  assert.equal(
-    await page.locator('[data-string-toggle][aria-pressed="true"]').count(),
-    6,
-  );
+  assert.equal(await page.locator("[data-string-toggle]:checked").count(), 6);
   assert.equal(await page.locator("#nameNotes").inputValue(), "all");
   assert.ok(await page.locator("#key").isHidden());
   await openPracticeOptions(page);
@@ -216,6 +213,10 @@ try {
     ...Array.from({ length: 12 }, (_, i) => String(i + 1)),
   ]);
   await page.setViewportSize({ width: 390, height: 1000 });
+  await page.waitForFunction(() => {
+    const scroller = document.querySelector(".board-scroll")!;
+    return scroller.scrollWidth > scroller.clientWidth;
+  });
   await page.locator('[data-fret="0"]').focus();
   await page.keyboard.press("End");
   assert.equal(
@@ -227,10 +228,8 @@ try {
   assert.ok(
     await page.locator(".board-scroll").evaluate((el) => el.scrollLeft > 0),
   );
-  assert.ok(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
+  await page.waitForFunction(
+    () => document.documentElement.scrollWidth <= innerWidth,
   );
   await page.screenshot({
     path: `work/guitar-${name}-extended-axis-mobile.png`,
@@ -261,21 +260,21 @@ try {
   await practiceOption(page, "#maxFret", "12");
   assert.ok(await page.locator('[data-string-toggle="6"]').isDisabled());
   assert.equal(
-    await page.locator('[data-string-toggle="6"]').getAttribute("aria-pressed"),
-    "true",
+    await page.locator('[data-string-toggle="6"]').isChecked(),
+    true,
   );
   await page.locator('[data-string-toggle="5"]').click();
   assert.equal(
-    await page.locator('[data-string-toggle="5"]').getAttribute("aria-pressed"),
-    "true",
+    await page.locator('[data-string-toggle="5"]').isChecked(),
+    true,
   );
   await selectPractice(page, "find");
   assert.equal(await page.locator("#maxFret").inputValue(), "12");
   await page.reload();
   await page.locator("[data-fret]").first().waitFor();
   assert.equal(
-    await page.locator("nav a[aria-current]").getAttribute("data-mode"),
-    "find",
+    await page.locator("#page-title").textContent(),
+    "Find fretboard notes",
   );
   await mkdir("work", { recursive: true });
   for (const mode of ["name", "find", "tab", "staff-find", "staff"]) {
@@ -366,11 +365,7 @@ try {
     fullPage: true,
   });
   await selectPractice(page, "find");
-  if (
-    (await page
-      .locator('[data-string-toggle="5"]')
-      .getAttribute("aria-pressed")) === "true"
-  )
+  if (await page.locator('[data-string-toggle="5"]').isChecked())
     await page.locator('[data-string-toggle="5"]').click();
   await practiceOption(page, "#key", "G");
   await practiceOption(page, "#minFret", "2");

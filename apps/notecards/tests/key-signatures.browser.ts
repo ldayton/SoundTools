@@ -91,8 +91,8 @@ try {
     await page.locator("#restart-round").click();
     await page.locator('[data-letter="C"]:enabled').waitFor();
     assert.equal(
-      await page.locator("nav a[aria-current]").getAttribute("data-mode"),
-      "signature",
+      await page.locator("#page-title").textContent(),
+      "Key signatures",
     );
     assert.equal(
       await page.locator("#context").textContent(),

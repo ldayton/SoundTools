@@ -22,47 +22,6 @@ select:not(:where(.soundtools-ui *)) {
   padding: 8px 32px 8px 12px;
 }
 
-.strings {
-  border: 0;
-  padding: 0;
-  margin: 20px 0 0;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 6px;
-  width: 100%;
-  max-width: 360px;
-}
-
-.strings legend {
-  font-size: 13px;
-  font-weight: 600;
-  color: #625d70;
-  margin-bottom: 9px;
-  padding: 0;
-}
-
-.strings button {
-  min-width: 0;
-  min-height: 52px;
-  background: #fffdf8;
-  border: 1px solid #d8d1c5;
-  border-radius: 8px;
-  color: #655c75;
-}
-
-.strings button small {
-  display: block;
-  font-size: 9px;
-  font-weight: 400;
-  margin-top: 3px;
-}
-
-.strings button[aria-pressed="true"] {
-  background: #e5def0;
-  border-color: #a99ac1;
-  color: #302d55;
-}
-
 .note-picker {
   position: fixed;
   inset: auto;
@@ -230,8 +189,7 @@ select:not(:where(.soundtools-ui *)) {
 .practice-options-content {
   padding: 16px 0 0;
 }
-.practice-options .options-row,
-.practice-options .practice-controls {
+.practice-options .options-row {
   display: flex;
   align-items: flex-end;
   flex-wrap: wrap;
@@ -239,8 +197,7 @@ select:not(:where(.soundtools-ui *)) {
   margin: 0 0 16px;
 }
 .practice-options label:not(:where(.soundtools-ui *)),
-.practice-options .options-row > label,
-.practice-options .practice-controls label {
+.practice-options .options-row > label {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -257,8 +214,7 @@ select:not(:where(.soundtools-ui *)) {
 }
 .practice-options select:not(:where(.soundtools-ui *)),
 .practice-options .options-row select,
-.practice-options .practice-controls select,
-.practice-options #key {
+.practice-options #key:not(:where(.soundtools-ui *)) {
   width: 100%;
   max-width: none;
   min-width: 0;
@@ -341,41 +297,21 @@ select:not(:where(.soundtools-ui *)) {
 .practice-options #name-notes-setting {
   --control-width: 172px;
 }
-.practice-options .practice-controls label:first-child {
-  --control-width: 232px;
-}
 
 @media (max-width: 1119px) {
-  .practice-options .options-row,
-  .practice-options .practice-controls {
+  .practice-options .options-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px 12px;
   }
   .practice-options label:not(:where(.soundtools-ui *)),
-  .practice-options .options-row > label,
-  .practice-options .practice-controls label {
+  .practice-options .options-row > label {
     width: 100%;
-  }
-  .practice-options .practice-controls label:first-child {
-    width: 100%;
-    grid-column: 1 / -1;
   }
   .practice-options #pitch-range,
   .practice-options #piano-range {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
-  }
-  .practice-options .flashcard-options {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 12px;
-  }
-  .practice-options .flashcard-options .options-row,
-  .practice-options #piano-notation-options,
-  .practice-options #pitch-range,
-  .practice-options #piano-range {
-    display: contents;
   }
   .practice-options #guitar-options,
   .practice-options .notation-help,
@@ -388,8 +324,7 @@ select:not(:where(.soundtools-ui *)) {
   }
   .practice-options select:not(:where(.soundtools-ui *)),
   .practice-options .options-row select,
-  .practice-options .practice-controls select,
-  .practice-options #key,
+  .practice-options #key:not(:where(.soundtools-ui *)),
   .practice-options .note-field input {
     font-size: 16px;
   }
@@ -397,8 +332,7 @@ select:not(:where(.soundtools-ui *)) {
 /* Keep the field chrome consistent while retaining native select menus. */
 .practice-options select:not(:where(.soundtools-ui *)),
 .practice-options .options-row select,
-.practice-options .practice-controls select,
-.practice-options #key,
+.practice-options #key:not(:where(.soundtools-ui *)),
 .midi-actions select {
   appearance: none;
   -webkit-appearance: none;
@@ -409,19 +343,6 @@ select:not(:where(.soundtools-ui *)) {
 }
 
 /* Fret ranges share the same columns as the options above them. */
-.practice-options #guitar-options .range {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: 360px;
-}
-.practice-options #guitar-options .range label {
-  width: 100%;
-}
-@media (max-width: 640px) {
-  .practice-options #guitar-options .range,
-  .strings {
-    max-width: none;
-  }
-}
 
 /* Hymn mode and tempo form one pair; section controls form another. */
 

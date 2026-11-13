@@ -277,24 +277,22 @@ try {
     );
     const fields = await options
       .locator("select:visible,.note-field:visible")
-      .evaluateAll((els) =>
-        els.map((e) => ({
-          height: e.getBoundingClientRect().height,
-          radius: getComputedStyle(e).borderRadius,
-        })),
+      .evaluateAll((elements) =>
+        elements.map((element) => {
+          const box = element.getBoundingClientRect();
+          return { x: box.x, right: box.right, height: box.height };
+        }),
       );
     assert.ok(fields.length > 0);
-    if (["rhythm", "patterns", "sight"].includes(mode)) {
-      assert.equal(
-        await options.locator("select.mantine-NativeSelect-input").count(),
-        mode === "rhythm" ? 2 : mode === "patterns" ? 3 : 6,
-      );
-    } else {
-      assert.ok(
-        fields.every((e) => e.height === 44 && e.radius === "9px"),
-        JSON.stringify({ mode, fields }),
-      );
-    }
+    assert.ok(
+      fields.every(
+        (field) =>
+          field.height > 0 &&
+          field.x >= optionBox.x &&
+          field.right <= optionBox.x + optionBox.width + 1,
+      ),
+      `${mode}: controls fit the options panel`,
+    );
     if (mode === "patterns" || mode === "sight") {
       await page.getByRole("button", { name: "Pause", exact: true }).click();
       await page.getByRole("button", { name: "Resume", exact: true }).click();

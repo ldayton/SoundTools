@@ -113,39 +113,11 @@
   .live-workspace > .practice-options .options-row > label {
     width: 100%;
   }
-  .live-workspace:has(> .practice-options) > .sequence-practice,
-  #flashcards:has(.practice-options) > :is(.below, .practice) {
+  .live-workspace:has(> .practice-options) > .sequence-practice {
     min-width: 0;
-  }
-  #flashcards .flashcard-options {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 10px;
-  }
-  #flashcards
-    .practice-options
-    :is(.options-row, #piano-notation-options, #pitch-range, #piano-range) {
-    display: contents;
   }
   #flashcards .practice-options label {
     width: 100%;
-  }
-  #flashcards :is(#guitar-options, .notation-help, .piano-range-notice) {
-    grid-column: 1 / -1;
-  }
-  #flashcards .strings {
-    gap: 4px;
-  }
-  .live-workspace .practice-controls {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 10px;
-  }
-  .live-workspace .practice-controls label {
-    width: 100%;
-  }
-  .live-workspace .practice-controls label:first-child {
-    grid-column: 1 / -1;
   }
 }
 

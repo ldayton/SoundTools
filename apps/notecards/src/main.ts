@@ -1,4 +1,8 @@
 import {
+  flashcardOptionsState,
+  type FlashcardOptionsSnapshot,
+} from "./flashcard-options";
+import {
   mountPracticePiano,
   restorePianoVisibility,
   isPianoVisible,
@@ -7,7 +11,7 @@ import { mountAppShell } from "./app-shell";
 import { mountFlashcardView } from "./flashcard-view";
 import { ActivityHost } from "./activity-host";
 import { FlashcardSessions } from "./flashcard-sessions";
-import { profileFromQuery } from "./exercise-settings";
+import { mergeProfile, profileFromQuery } from "./exercise-settings";
 import { isFlashcardMode, type Mode } from "./exercises";
 import { pianoNotation } from "./piano-notation";
 import { drawPianoNotation, pianoPracticeFrame } from "./notation";
@@ -16,9 +20,9 @@ import {
   deck,
   POSITIONS,
   KEYS,
+  ROUND_LENGTHS,
   matches,
   name,
-  type RoundLength,
   symbol,
   type Card,
   type Letter,
@@ -41,7 +45,6 @@ import {
   matchesSignature,
   signatureAnswer,
   type SignatureCard,
-  type SignaturePractice,
 } from "./key-signatures";
 import { drawKeySignature, drawNotation, VexFlow } from "./notation";
 import { mountMidiPanel } from "./midi-panel";
@@ -119,7 +122,37 @@ const shell = mountAppShell($("#app"), {
   interrupt: (reason) => activities.interrupt(reason),
   inputChanged: refreshMidiAcceptance,
 });
-mountFlashcardView($("#flashcards"), progress.roundLength);
+function optionsSnapshot(): FlashcardOptionsSnapshot {
+  const mode = isFlashcardMode(progress.mode) ? progress.mode : null;
+  return {
+    mode,
+    profile: structuredClone(progress.profiles[mode || "staff"]),
+    roundLength: progress.roundLength,
+  };
+}
+const flashcardOptions = flashcardOptionsState(optionsSnapshot());
+mountFlashcardView($("#flashcards"), progress.roundLength, {
+  model: flashcardOptions,
+  change: (patch) => {
+    if (!isFlashcardMode(progress.mode) || !persistence.writable) return;
+    const previous = profile();
+    progress.profiles[progress.mode] = mergeProfile(progress.mode, previous, {
+      ...previous,
+      ...patch,
+    });
+    changed();
+  },
+  roundLengthChanged: (length) => {
+    if (
+      !isFlashcardMode(progress.mode) ||
+      !persistence.writable ||
+      !ROUND_LENGTHS.includes(length)
+    )
+      return;
+    progress.roundLength = length;
+    changed("all");
+  },
+});
 document.querySelector("main")!.inert = true;
 const board = new Fretboard($("#fretboard"), answerLocation);
 const rangePickers = [
@@ -245,34 +278,13 @@ function enableAnswers(enabled: boolean) {
 }
 function syncOptions() {
   const isLive = isLiveMode(progress.mode);
-  $<HTMLSelectElement>("#roundLength").value = String(progress.roundLength);
+  flashcardOptions.set(optionsSnapshot());
   shell.render(route, progress.mode);
   midi.setPerformanceMode(isLive);
   if (isLive) return;
   const p = profile();
-  $<HTMLSelectElement>("#key").value = p.key;
   const isPiano = progress.mode === "piano";
   const isSignature = progress.mode === "signature";
-  for (const id of [
-    "signature-practice-setting",
-    "signature-limit-setting",
-    "signature-accidentals-setting",
-  ])
-    $("#" + id).hidden = !isSignature;
-  $<HTMLSelectElement>("#signatureMaxAccidentals").value = String(
-    p.signatureMaxAccidentals ?? 1,
-  );
-  $<HTMLSelectElement>("#signatureAccidentals").value =
-    p.signatureAccidentals || "both";
-  $<HTMLSelectElement>("#signaturePractice").value =
-    p.signaturePractice || "major";
-  $("#piano-notation-options").hidden = !isPiano;
-  $<HTMLSelectElement>("#staffLayout").value = p.staffLayout || "grand";
-  $<HTMLSelectElement>("#overlapPractice").value =
-    p.overlapPractice || "standard";
-  $<HTMLSelectElement>("#octavePractice").value = p.octavePractice || "off";
-  $("#overlap-setting").hidden = p.staffLayout !== "grand";
-  $(".notation-help").hidden = p.octavePractice !== "practice";
   $("#pitch-range").hidden = progress.mode !== "staff";
   $("#piano-range").hidden = !isPiano;
   rangePickers.forEach(({ picker, prefix, field }) => {
@@ -283,29 +295,6 @@ function syncOptions() {
     "aria-label",
     isPiano ? "Piano pitch range" : "Sounding guitar pitch range",
   );
-  $("#guitar-options").hidden =
-    progress.mode === "staff" || isPiano || isSignature;
-  $("#key-setting").hidden = progress.mode === "name" || isSignature;
-  $("#name-notes-setting").hidden = progress.mode !== "name";
-  $<HTMLSelectElement>("#nameNotes").value = p.naturalsOnly
-    ? "naturals"
-    : "all";
-  for (const field of ["minFret", "maxFret"] as const) {
-    const select = $<HTMLSelectElement>("#" + field);
-    select.value = String(p[field]);
-    for (const option of select.options)
-      option.disabled =
-        field === "minFret"
-          ? Number(option.value) > p.maxFret
-          : Number(option.value) < p.minFret;
-  }
-  for (const b of document.querySelectorAll<HTMLButtonElement>(
-    "[data-string-toggle]",
-  )) {
-    const active = p.strings.includes(Number(b.dataset.stringToggle));
-    b.setAttribute("aria-pressed", String(active));
-    b.setAttribute("aria-disabled", String(active && p.strings.length === 1));
-  }
   $("#context").textContent = isSignature
     ? "Key signatures"
     : (isPiano ? "Piano · " : "Guitar · ") +
@@ -628,7 +617,7 @@ function start(continuing = false, restoring = false, restart = false) {
     restoring = !!session.current || session.complete;
     phase = session.current ? session.status : "question";
   }
-  $<HTMLSelectElement>("#roundLength").value = String(session.length);
+  flashcardOptions.set({ ...optionsSnapshot(), roundLength: session.length });
   $<HTMLProgressElement>("#progress").max = session.length;
   if (!pool.length) {
     phase = "empty";
@@ -686,68 +675,6 @@ function changed(scope: "exercise" | "all" = "exercise") {
     start(false, false, true);
   }
 }
-$<HTMLSelectElement>("#roundLength").onchange = (e) => {
-  progress.roundLength = Number(
-    (e.target as HTMLSelectElement).value,
-  ) as RoundLength;
-  changed("all");
-};
-$<HTMLSelectElement>("#signaturePractice").onchange = (e) => {
-  profile().signaturePractice = (e.target as HTMLSelectElement)
-    .value as SignaturePractice;
-  changed();
-};
-$<HTMLSelectElement>("#signatureMaxAccidentals").onchange = (e) => {
-  profile().signatureMaxAccidentals = Number(
-    (e.target as HTMLSelectElement).value,
-  );
-  changed();
-};
-$<HTMLSelectElement>("#signatureAccidentals").onchange = (e) => {
-  profile().signatureAccidentals = (e.target as HTMLSelectElement).value as
-    "both" | "sharps" | "flats";
-  changed();
-};
-for (const field of [
-  "staffLayout",
-  "overlapPractice",
-  "octavePractice",
-] as const)
-  $<HTMLSelectElement>("#" + field).onchange = (e) => {
-    const value = (e.target as HTMLSelectElement).value;
-    if (field === "staffLayout")
-      profile().staffLayout = value as "treble" | "bass" | "grand";
-    if (field === "overlapPractice")
-      profile().overlapPractice = value as "standard" | "both";
-    if (field === "octavePractice")
-      profile().octavePractice = value as "off" | "practice";
-    changed();
-  };
-$<HTMLSelectElement>("#nameNotes").onchange = (e) => {
-  profile().naturalsOnly = (e.target as HTMLSelectElement).value === "naturals";
-  changed();
-};
-$<HTMLSelectElement>("#key").onchange = (e) => {
-  profile().key = (e.target as HTMLSelectElement).value;
-  changed();
-};
-for (const field of ["minFret", "maxFret"] as const)
-  $<HTMLSelectElement>("#" + field).onchange = (e) => {
-    profile()[field] = Number((e.target as HTMLSelectElement).value);
-    changed();
-  };
-for (const b of document.querySelectorAll<HTMLButtonElement>(
-  "[data-string-toggle]",
-))
-  b.onclick = () => {
-    const strings = profile().strings,
-      n = Number(b.dataset.stringToggle);
-    if (strings.includes(n)) {
-      if (strings.length === 1) return;
-      profile().strings = strings.filter((s) => s !== n);
-    } else strings.push(n);
-    changed();
-  };
 for (const b of document.querySelectorAll<HTMLButtonElement>("[data-letter]"))
   b.onclick = () => answerName(b.dataset.letter as Letter);
 for (const b of document.querySelectorAll<HTMLButtonElement>("[data-mod]"))

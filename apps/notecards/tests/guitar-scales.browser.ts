@@ -311,11 +311,8 @@ try {
     0,
     "collapsed sidebar reserves no rail",
   );
-  assert.equal(
-    await page
-      .locator("#practice-options-reopen")
-      .evaluate((e) => e === document.activeElement),
-    true,
+  await page.waitForFunction(
+    () => document.activeElement?.id === "practice-options-reopen",
   );
   assert.equal(
     await page

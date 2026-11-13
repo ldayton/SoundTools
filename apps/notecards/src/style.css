@@ -264,11 +264,6 @@ footer {
     scroll-behavior: auto !important;
   }
 }
-details > label:has(#key) {
-  align-items: stretch;
-  flex-direction: column;
-  gap: 6px;
-}
 select:focus-visible,
 input:not(:where(.soundtools-ui *)):focus-visible {
   outline: 3px solid #988cc5;

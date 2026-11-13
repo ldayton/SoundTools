@@ -1,0 +1,235 @@
+import { useSyncExternalStore } from "react";
+import {
+  Checkbox,
+  NativeSelect,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+} from "@mantine/core";
+import {
+  ARRANGEMENTS,
+  type Arrangement,
+  type HymnHands,
+} from "./hymn-arrangements";
+import { HYMN_KEYS, hymnKeyLabel, type HymnKey } from "./hymn-transpose";
+import type { CountInBars } from "./hymn-count-in";
+import { searchHymns } from "./sight-reading-model";
+import hymns from "./hymns.json";
+import { RetainedContent } from "./retained-content";
+import type { HymnOptionsChange, HymnOptionsState } from "./hymn-options-state";
+const hymnChoices = hymns.map((h) => ({ value: h.id, label: h.title }));
+const hands = [
+  { value: "both", label: "Both hands" },
+  { value: "right", label: "Right hand" },
+  { value: "left", label: "Left hand" },
+];
+const tempos = Array.from({ length: 33 }, (_, i) => ({
+  value: String(40 + i * 5),
+  label: `${40 + i * 5} BPM`,
+}));
+const countIns = [
+  { value: "0", label: "None" },
+  { value: "0.5", label: "½ bar" },
+  { value: "1", label: "1 bar" },
+  { value: "2", label: "2 bars" },
+];
+
+export function HymnOptions({
+  model,
+  change,
+  searchOpened,
+  rangeControls,
+  source,
+}: {
+  model: HymnOptionsState;
+  change(patch: HymnOptionsChange): void;
+  searchOpened(open: boolean): void;
+  rangeControls: HTMLElement;
+  source: HTMLElement;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const selectedTitle = hymns.find((h) => h.id === state.hymn)!.title;
+  const keys = [
+    {
+      value: "original",
+      label: `Original (${state.originalKey.replace(/b/g, "♭").replace(/#/g, "♯")})`,
+    },
+    ...HYMN_KEYS.map((key) => ({ value: key, label: hymnKeyLabel(key) })),
+  ].map((key) => ({
+    ...key,
+    disabled: !state.availableKeys.includes(key.value as HymnKey),
+  }));
+  return (
+    <Stack className="soundtools-ui">
+      <Select
+        id="hymn-search"
+        label="Hymn"
+        searchable
+        selectFirstOptionOnChange
+        allowDeselect={false}
+        value={state.hymn}
+        data={hymnChoices}
+        dropdownOpened={state.searchOpen}
+        onDropdownOpen={() => searchOpened(true)}
+        onDropdownClose={() => searchOpened(false)}
+        onChange={(value) => {
+          if (typeof value === "string") change({ hymn: value });
+        }}
+        onFocus={(event) => event.currentTarget.select()}
+        onClick={(event) => {
+          if (event.currentTarget.value === selectedTitle)
+            event.currentTarget.select();
+        }}
+        nothingFoundMessage="No hymns found. Try another title."
+        filter={({ search }) =>
+          searchHymns(hymns, search === selectedTitle ? "" : search).map(
+            (h) => ({ value: h.id, label: h.title }),
+          )
+        }
+        classNames={{ dropdown: "soundtools-ui" }}
+      />
+      <SimpleGrid cols={2}>
+        <NativeSelect
+          id="hymn-key"
+          label="Key"
+          aria-label="Hymn key"
+          value={state.noMatchingKey ? "" : state.key}
+          onChange={(event) =>
+            change({ key: event.currentTarget.value as HymnKey })
+          }
+        >
+          {state.noMatchingKey && (
+            <option value="" disabled hidden>
+              No matching key
+            </option>
+          )}
+          {keys.map((key) => (
+            <option key={key.value} value={key.value} disabled={key.disabled}>
+              {key.label}
+            </option>
+          ))}
+        </NativeSelect>
+        <NativeSelect
+          id="hymn-size"
+          label="Score size"
+          aria-label="Score size"
+          value={String(state.zoom)}
+          onChange={(event) =>
+            change({ zoom: Number(event.currentTarget.value) })
+          }
+          data={[
+            { value: "0.85", label: "Small" },
+            { value: "1", label: "Medium" },
+            { value: "1.2", label: "Large" },
+          ]}
+        />
+      </SimpleGrid>
+      <Text
+        className="hymn-key-range"
+        size="sm"
+        c="dimmed"
+        aria-live="polite"
+        hidden={state.noMatchingKey}
+      >
+        {state.range}
+      </Text>
+      <RetainedContent element={rangeControls} />
+      <NativeSelect
+        id="hymn-mode"
+        label="Mode"
+        value={state.mode}
+        onChange={(event) =>
+          change({ mode: event.currentTarget.value as "wait" | "playback" })
+        }
+        data={[
+          { value: "wait", label: "Wait for me" },
+          { value: "playback", label: "Playback" },
+        ]}
+      />
+      {state.mode === "playback" && (
+        <SimpleGrid cols={2}>
+          <NativeSelect
+            id="hymn-tempo"
+            label="Tempo"
+            data={tempos}
+            value={String(state.bpm)}
+            onChange={(event) =>
+              change({ bpm: Number(event.currentTarget.value) })
+            }
+          />
+          <NativeSelect
+            id="hymn-count-in"
+            className="hymn-count-in-field"
+            label="Count-in"
+            value={String(state.unmetered ? 0 : state.countIn)}
+            description={
+              state.unmetered
+                ? "This hymn has no meter, so a bar count-in is unavailable."
+                : undefined
+            }
+            data={countIns.map((option) => ({
+              ...option,
+              disabled: state.unmetered && option.value !== "0",
+            }))}
+            onChange={(event) =>
+              change({
+                countIn: Number(event.currentTarget.value) as CountInBars,
+              })
+            }
+          />
+        </SimpleGrid>
+      )}
+      <NativeSelect
+        id="hymn-arrangement"
+        label="Arrangement"
+        value={state.arrangement}
+        data={ARRANGEMENTS.map((a) => ({ value: a.id, label: a.label }))}
+        onChange={(event) =>
+          change({ arrangement: event.currentTarget.value as Arrangement })
+        }
+      />
+      {state.arrangement !== "melody" && (
+        <SimpleGrid cols={state.mode === "wait" ? 2 : 1}>
+          <NativeSelect
+            id="hymn-view"
+            className="hymn-view-field"
+            label="Show"
+            data={hands}
+            value={state.viewHands}
+            onChange={(event) =>
+              change({ viewHands: event.currentTarget.value as HymnHands })
+            }
+          />
+          {state.mode === "wait" && (
+            <NativeSelect
+              id="hymn-hands"
+              className="hymn-hands-field"
+              label="Practise hands"
+              value={state.hands}
+              data={hands.map((hand) => ({
+                ...hand,
+                disabled:
+                  state.viewHands !== "both" && state.viewHands !== hand.value,
+              }))}
+              onChange={(event) =>
+                change({ hands: event.currentTarget.value as HymnHands })
+              }
+            />
+          )}
+        </SimpleGrid>
+      )}
+      {state.mode === "wait" && (
+        <Checkbox
+          id="hymn-reattack-ties"
+          label="Re-strike tied notes"
+          checked={state.reattackTies}
+          onChange={(event) =>
+            change({ reattackTies: event.currentTarget.checked })
+          }
+        />
+      )}
+      <RetainedContent element={source} />
+    </Stack>
+  );
+}

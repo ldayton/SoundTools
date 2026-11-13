@@ -284,10 +284,10 @@ try {
         })),
       );
     assert.ok(fields.length > 0);
-    if (mode === "rhythm" || mode === "patterns") {
+    if (["rhythm", "patterns", "sight"].includes(mode)) {
       assert.equal(
         await options.locator("select.mantine-NativeSelect-input").count(),
-        mode === "rhythm" ? 2 : 3,
+        mode === "rhythm" ? 2 : mode === "patterns" ? 3 : 6,
       );
     } else {
       assert.ok(

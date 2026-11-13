@@ -1,6 +1,6 @@
+import { RetainedContent } from "./retained-content";
 import {
   StrictMode,
-  useCallback,
   useEffect,
   useSyncExternalStore,
   type MouseEvent,
@@ -51,22 +51,6 @@ function ShellIcon({ name }: { name: string }) {
   return (
     <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(name) }} />
   );
-}
-/** Mount an imperative renderer's existing element, without replacing it on React updates. */
-function RetainedContent({
-  element,
-  className,
-}: {
-  element: HTMLElement;
-  className?: string;
-}) {
-  const attach = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (node) node.append(element);
-    },
-    [element],
-  );
-  return <div ref={attach} className={className} />;
 }
 
 export function mountAppShell(

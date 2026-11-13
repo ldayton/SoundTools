@@ -686,55 +686,6 @@ input:not(:where(.soundtools-ui *)):focus-visible {
 }
 
 /* Hymns keep their score and live controls together, without horizontal scrolling. */
-.hymn-controls {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  margin: 24px 0;
-}
-.hymn-picker {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-}
-.hymn-search-field {
-  position: relative;
-}
-.hymn-search-field span {
-  position: absolute;
-  right: 15px;
-  top: 12px;
-  pointer-events: none;
-}
-#hymn-results {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 73px;
-  z-index: 10;
-  margin: 0;
-  padding: 6px;
-  max-height: 290px;
-  overflow: auto;
-  list-style: none;
-  border: 1px solid #d7d1e0;
-  border-radius: 12px;
-  box-shadow: 0 12px 32px #302d551c;
-  background: #fcfaf5;
-}
-#hymn-results li {
-  padding: 12px;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 14px;
-}
-#hymn-results [role="option"]:hover,
-#hymn-results [aria-selected="true"] {
-  background: #e7e0f3;
-}
-.hymn-no-results {
-  color: #837b94;
-}
 .sequence-practice {
   border: 1px solid #ded9cc;
   background: #fcfaf5;
@@ -802,11 +753,6 @@ input:not(:where(.soundtools-ui *)):focus-visible {
   background: #b7a7d3;
 }
 @media (max-width: 600px) {
-  .hymn-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
   .sequence-practice {
     padding: 18px 14px;
   }
@@ -1021,13 +967,6 @@ input:not(:where(.soundtools-ui *)):focus-visible {
   opacity: 0.28;
   mix-blend-mode: multiply;
   pointer-events: none;
-}
-
-.hymn-key-range {
-  display: block;
-  margin-top: 6px;
-  color: #837b94;
-  font-size: 12px;
 }
 .piano-key.piano-hint.is-wrong {
   background: #df9b9b;

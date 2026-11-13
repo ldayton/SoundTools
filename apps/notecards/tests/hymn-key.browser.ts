@@ -169,6 +169,13 @@ try {
   assert.equal(await count(), "1 / 35");
   await send(62, false);
   await send(64);
+  assert.equal(
+    await count(),
+    "1 / 35",
+    "a wrong note clears the partial chord",
+  );
+  for (const n of [45, 57, 61, 64]) await send(n, false);
+  for (const n of [45, 57, 61, 64]) await send(n);
   assert.equal(await count(), "2 / 35");
   for (const n of [45, 57, 61, 64]) await send(n, false);
   // Every arrangement renders in flat and sharp keys, with the same responsive controls.

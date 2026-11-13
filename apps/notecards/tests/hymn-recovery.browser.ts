@@ -148,20 +148,22 @@ try {
     assert.equal(await page.locator("#hymn-hands").inputValue(), "right");
     await page.setViewportSize({ width: 390, height: 844 });
     await openPracticeOptions(page);
-    const alignment = await page.locator(".hymn-ties-field").evaluate((el) => {
-      const box = el.getBoundingClientRect(),
-        input = el.querySelector("input")!.getBoundingClientRect();
+    const alignment = await ties.evaluate((el) => {
+      const input = el.getBoundingClientRect();
+      const label = document
+        .querySelector(`label[for="${el.id}"]`)!
+        .getBoundingClientRect();
       return {
-        direction: getComputedStyle(el).flexDirection,
-        left: input.left >= box.left,
-        right: input.right < box.right,
+        labelToRight: label.left >= input.right,
+        verticallyAligned:
+          Math.abs((label.top + label.bottom - input.top - input.bottom) / 2) <
+          2,
         overflow: document.documentElement.scrollWidth > innerWidth,
       };
     });
     assert.deepEqual(alignment, {
-      direction: "row",
-      left: true,
-      right: true,
+      labelToRight: true,
+      verticallyAligned: true,
       overflow: false,
     });
     await page.screenshot({ path: "/tmp/hymn-recovery-mobile.png" });

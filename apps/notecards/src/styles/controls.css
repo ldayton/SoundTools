@@ -300,22 +300,6 @@ select:not(:where(.soundtools-ui *)) {
   width: auto;
   margin: 0 0 8px;
 }
-.practice-options .hymn-controls {
-  margin: 0 0 16px;
-}
-.practice-options .hymn-search-field input {
-  width: 100%;
-  min-height: 44px;
-  height: 44px;
-  padding: 8px 32px 8px 12px;
-  border: 1px solid #d8d1c5;
-  border-radius: 9px;
-  background: #fffdf8;
-  font-size: 14px;
-}
-.practice-options .hymn-picker > label {
-  margin: 0 0 8px;
-}
 .sequence-transport button,
 .hymn-passage-controls button,
 .midi-actions button {
@@ -351,8 +335,7 @@ select:not(:where(.soundtools-ui *)) {
 .practice-options .key-field,
 .practice-options .hand-field,
 .practice-options #key-setting,
-.practice-options #signature-practice-setting,
-.practice-options .hymn-key-field {
+.practice-options #signature-practice-setting {
   --control-width: 148px;
 }
 .practice-options #name-notes-setting {
@@ -360,23 +343,6 @@ select:not(:where(.soundtools-ui *)) {
 }
 .practice-options .practice-controls label:first-child {
   --control-width: 232px;
-}
-.practice-options .hymn-section-field {
-  --control-width: 112px;
-}
-.practice-options .hymn-size-field {
-  --control-width: 112px;
-}
-.practice-options .hymn-controls {
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.practice-options .hymn-picker {
-  flex: 0 1 360px;
-}
-.practice-options #hymn-results {
-  top: calc(100% + 6px);
 }
 
 @media (max-width: 1119px) {
@@ -420,23 +386,11 @@ select:not(:where(.soundtools-ui *)) {
   .practice-options #piano-range label {
     margin-bottom: 6px;
   }
-  .practice-options .hymn-controls {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-  .practice-options .hymn-picker {
-    flex-basis: 100%;
-  }
-  .practice-options .hymn-key-field,
-  .practice-options .hymn-size-field {
-    width: calc((100% - 12px) / 2);
-  }
   .practice-options select:not(:where(.soundtools-ui *)),
   .practice-options .options-row select,
   .practice-options .practice-controls select,
   .practice-options #key,
-  .practice-options .note-field input,
-  .practice-options .hymn-search-field input {
+  .practice-options .note-field input {
     font-size: 16px;
   }
 }
@@ -470,39 +424,9 @@ select:not(:where(.soundtools-ui *)) {
 }
 
 /* Hymn mode and tempo form one pair; section controls form another. */
-.practice-options .hymn-grades {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.practice-options .hymn-grades label {
-  width: 100%;
-}
-.practice-options .hymn-grades label:first-child {
-  grid-column: auto;
-}
-.practice-options .hymn-grades .hymn-arrangement-field,
-.practice-options
-  .hymn-grades:has(.hymn-tempo-field[hidden])
-  > label:first-child {
-  grid-column: 1 / -1;
-}
 
 .hymn-pause {
   min-inline-size: 88px;
-}
-
-.practice-options .hymn-grades .hymn-ties-field {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 44px;
-  gap: 8px;
-}
-.hymn-ties-field input {
-  flex: 0 0 auto;
-  width: auto;
-  margin: 0;
 }
 
 .practice-options .hymn-range-fields {

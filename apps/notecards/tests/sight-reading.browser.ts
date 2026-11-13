@@ -81,9 +81,7 @@ try {
     await openPracticeOptions(page);
     await input.click();
     await input.fill(title);
-    await page.locator("#hymn-results [role=option]").first().waitFor();
-    await input.press("ArrowDown");
-    await input.press("Enter");
+    await page.getByRole("option", { name: title, exact: true }).click();
     assert.equal(await page.locator(".sequence-title").textContent(), title);
   };
   // A second search must replace the selected title, even while the input still has focus.

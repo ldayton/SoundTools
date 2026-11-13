@@ -80,7 +80,10 @@ try {
   const note = (i: number) =>
     page.locator(`[data-passage-note="${i}"]`).first();
   const center = async (i: number) => {
-    await note(i).scrollIntoViewIfNeeded();
+    // Scrolling can trigger a responsive score redraw. Resolve the note afresh afterward.
+    await note(i).evaluate((element) =>
+      element.scrollIntoView({ block: "nearest", inline: "nearest" }),
+    );
     const b = (await note(i).boundingBox())!;
     return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
   };

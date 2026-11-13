@@ -727,23 +727,6 @@ input:not(:where(.soundtools-ui *)):focus-visible {
   fill: #b0653e;
   stroke: #b0653e;
 }
-
-.hymn-source {
-  border-top: 1px solid #e5dfd3;
-  padding: 16px 0 0;
-  margin-top: 16px;
-}
-.hymn-source {
-  color: #837b94;
-  font-size: 12px;
-  line-height: 1.7;
-}
-.hymn-source p {
-  margin: 10px 0;
-}
-.hymn-source a {
-  color: #766899;
-}
 .hymn-piano .sight-key-selected {
   background: #b7a7d3;
 }

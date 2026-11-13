@@ -6,7 +6,7 @@ import {
 } from "./pattern-options";
 import { mountPracticePiano } from "./practice-piano";
 import type { InputPolicy, Interruption } from "./live-practice";
-import { mountPracticeOptions } from "./practice-controls";
+import { registerPracticeOptions } from "./practice-options";
 import type { NoteTimingEvent } from "abcjs";
 import { Piano } from "./piano";
 import { WaitForMe } from "./sight-reading-model";
@@ -59,9 +59,8 @@ export class IntervalPatterns {
     } catch {}
     element.innerHTML = `<section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
     this.options = patternOptionsState(structuredClone(this.settings));
-    mountPracticeOptions(
-      element,
-      [],
+    registerPracticeOptions(
+      element.id,
       createElement(PatternOptions, {
         model: this.options,
         onChange: (settings) => {

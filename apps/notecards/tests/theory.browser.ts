@@ -52,9 +52,11 @@ try {
   await page.goto(base + "/theory/scales");
   const root = () =>
     page.locator("#scales-practice:visible,#intervals-practice:visible");
+  const options = () =>
+    page.locator(".practice-options-content > section:not([hidden])");
   const field = async (id: string, value: string) => {
     await openPracticeOptions(page);
-    await root().locator(`[data-field="${id}"]`).selectOption(value);
+    await options().locator(`[data-field="${id}"]`).selectOption(value);
   };
   const next = async () => {
     const button = root().locator(".theory-next");
@@ -247,7 +249,7 @@ try {
     /C–D–E/,
   );
   assert.equal(
-    await root()
+    await options()
       .getByRole("group", { name: "Intervals", exact: true })
       .getByRole("checkbox", { name: "1st", exact: true })
       .count(),
@@ -306,12 +308,12 @@ try {
     /C–D/,
   );
   await openPracticeOptions(page);
-  await root().locator("#intervals-low").click();
+  await page.locator("#intervals-low").click();
   await page
     .locator("#intervals-low-picker")
     .getByRole("button", { name: "C4", exact: true })
     .click();
-  await root().locator("#intervals-high").click();
+  await page.locator("#intervals-high").click();
   await page
     .locator("#intervals-high-picker")
     .getByRole("button", { name: "C4", exact: true })
@@ -320,7 +322,7 @@ try {
     (await root().locator(".sequence-feedback").textContent())!,
     /No questions/,
   );
-  await root().locator("#intervals-high").click();
+  await page.locator("#intervals-high").click();
   await page
     .locator("#intervals-high-picker")
     .getByRole("button", { name: "B5", exact: true })
@@ -343,7 +345,7 @@ try {
       `no overflow at ${width}`,
     );
     const task = (await root().locator(".sequence-practice").boundingBox())!,
-      options = (await root().locator(".practice-options").boundingBox())!;
+      options = (await page.locator(".practice-options").boundingBox())!;
     if (width >= 1120)
       assert.ok(options.x >= task.x + task.width, "right sidebar");
   }
@@ -364,10 +366,10 @@ try {
   );
   // Standard controls preserve nonempty sets, relative-key labels and each task's settings.
   await page.clock.resume();
-  await root()
+  await options()
     .getByRole("button", { name: /^Keys ·/ })
     .click();
-  const keys = root().getByRole("group", { name: "Keys", exact: true });
+  const keys = options().getByRole("group", { name: "Keys", exact: true });
   await keys.getByRole("checkbox", { name: "G major", exact: true }).check();
   await keys.getByRole("checkbox", { name: "C major", exact: true }).uncheck();
   assert.ok(
@@ -381,7 +383,10 @@ try {
       .getByRole("checkbox", { name: "E minor", exact: true })
       .isChecked(),
   );
-  const degrees = root().getByRole("group", { name: "Degrees", exact: true });
+  const degrees = options().getByRole("group", {
+    name: "Degrees",
+    exact: true,
+  });
   await degrees.getByRole("checkbox", { name: "2", exact: true }).check();
   for (const degree of ["1", "3", "5"])
     await degrees
@@ -398,12 +403,12 @@ try {
   );
   await field("task", "play-degree");
   assert.equal(
-    await root().locator('[data-field="mode"]').inputValue(),
+    await options().locator('[data-field="mode"]').inputValue(),
     "major",
   );
   await field("task", "name-degree");
   assert.equal(
-    await root().locator('[data-field="mode"]').inputValue(),
+    await options().locator('[data-field="mode"]').inputValue(),
     "minor",
   );
   await page.waitForFunction(
@@ -413,33 +418,33 @@ try {
   await page.reload();
   await openPracticeOptions(page);
   assert.equal(
-    await root().locator('[data-field="mode"]').inputValue(),
+    await options().locator('[data-field="mode"]').inputValue(),
     "minor",
   );
-  await root()
+  await options()
     .getByRole("button", { name: /^Keys ·/ })
     .click();
   assert.ok(
-    await root()
+    await options()
       .getByRole("checkbox", { name: "E minor", exact: true })
       .isChecked(),
   );
   assert.ok(
-    await root()
+    await options()
       .getByRole("group", { name: "Degrees", exact: true })
       .getByRole("checkbox", { name: "2", exact: true })
       .isDisabled(),
   );
   await selectPractice(page, "intervals");
   await field("task", "name-quality");
-  const intervalChoices = root().getByRole("group", {
+  const intervalChoices = options().getByRole("group", {
     name: "Intervals",
     exact: true,
   });
   await intervalChoices
     .getByRole("checkbox", { name: "4th", exact: true })
     .check();
-  const qualities = root().getByRole("group", {
+  const qualities = options().getByRole("group", {
     name: "Qualities",
     exact: true,
   });
@@ -455,7 +460,7 @@ try {
       .getByRole("checkbox", { name: "Perfect", exact: true })
       .isDisabled(),
   );
-  await root()
+  await options()
     .getByRole("button", { name: "Advanced qualities", exact: true })
     .click();
   await qualities
@@ -468,13 +473,15 @@ try {
   );
   await field("task", "build-interval");
   assert.ok(
-    await root()
+    await options()
       .getByRole("combobox", { name: "Key", exact: true })
       .isVisible(),
   );
   await field("quality", "basic");
   assert.ok(
-    await root().getByRole("combobox", { name: "Key", exact: true }).isHidden(),
+    await options()
+      .getByRole("combobox", { name: "Key", exact: true })
+      .isHidden(),
   );
   await field("task", "name-quality");
   assert.ok(
@@ -482,13 +489,13 @@ try {
       .getByRole("checkbox", { name: "Perfect", exact: true })
       .isChecked(),
   );
-  const advanced = root().getByRole("button", {
+  const advanced = options().getByRole("button", {
     name: "Advanced qualities",
     exact: true,
   });
   if ((await advanced.getAttribute("aria-expanded")) !== "true")
     await advanced.click();
-  await root()
+  await options()
     .getByRole("checkbox", { name: "Augmented", exact: true })
     .waitFor({ state: "visible" });
   assert.ok(

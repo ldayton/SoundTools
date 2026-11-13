@@ -23,6 +23,14 @@ export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   noMatchingKey: boolean;
   availableKeys: HymnKey[];
   range: string;
+  source: {
+    credits: string;
+    url: string;
+    label: string;
+    description: string;
+    help: string;
+    transposition: string;
+  };
 };
 /** The controller owns settings, including URL and range-driven changes. */
 export const hymnOptionsState = createViewState<HymnOptionsSnapshot>;

@@ -27,11 +27,10 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { SoundToolsProvider } from "@ldayton/ui";
 import {
-  refreshPracticeOptions,
-  practiceOptionsState,
-  reopenPracticeOptions,
-} from "./practice-controls";
-import { PracticeOptionsHeaders } from "./practice-options-headers";
+  PracticeOptionsProvider,
+  PracticeOptionsReopen,
+  PracticeWorkspace,
+} from "./practice-options";
 import { SettingsPage } from "./settings-page";
 import { offlineState } from "./offline-state";
 import { diagnostics } from "./diagnostics";
@@ -40,6 +39,7 @@ import {
   LIVE_EXERCISES,
   exercise,
   isLiveMode,
+  isFlashcardMode,
   type Mode,
   type LiveMode,
 } from "./exercises";
@@ -180,10 +180,6 @@ export function mountAppShell(
   }
   function Shell() {
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
-    const options = useSyncExternalStore(
-      practiceOptionsState.subscribe,
-      practiceOptionsState.getSnapshot,
-    );
     const theme = useMantineTheme();
     const desktop = useMediaQuery(
       `(min-width: ${theme.breakpoints.sm})`,
@@ -207,8 +203,15 @@ export function mountAppShell(
         </Group>
       </Anchor>
     );
+    const activeOptionsId =
+      LIVE_EXERCISES.find((definition) => definition.mode === snapshot.selected)
+        ?.rootId ||
+      (isFlashcardMode(snapshot.selected) ? "flashcards" : undefined);
     return (
-      <>
+      <PracticeOptionsProvider
+        activeId={activeOptionsId}
+        activityKey={snapshot.selected}
+      >
         <Anchor href="#practice-content" className="skip-link">
           Skip to practice
         </Anchor>
@@ -257,17 +260,7 @@ export function mountAppShell(
                   {snapshot.title}
                 </Title>
               </Box>
-              <Button
-                id="practice-options-reopen"
-                variant="default"
-                hidden={!options.visible}
-                aria-label="Expand practice options"
-                aria-controls={options.controls}
-                aria-expanded="false"
-                onClick={reopenPracticeOptions}
-              >
-                Options
-              </Button>
+              <PracticeOptionsReopen />
               <Popover
                 id="midi-connection"
                 opened={snapshot.keyboardOpen}
@@ -342,7 +335,9 @@ export function mountAppShell(
           )}
           <AppShell.Main id="practice-content" tabIndex={-1}>
             <div className="workspace-content">
-              <RetainedContent element={workspace} />
+              <PracticeWorkspace>
+                <RetainedContent element={workspace} />
+              </PracticeWorkspace>
               <section
                 id="settings-ui"
                 className="settings-page soundtools-ui"
@@ -354,7 +349,6 @@ export function mountAppShell(
             </div>
           </AppShell.Main>
         </AppShell>
-        <PracticeOptionsHeaders />
         <Drawer
           id="navigation-drawer"
           opened={!desktop && snapshot.navigationOpen}
@@ -378,7 +372,7 @@ export function mountAppShell(
             <Navigation />
           </Box>
         </Drawer>
-      </>
+      </PracticeOptionsProvider>
     );
   }
   const root = createRoot(element, {
@@ -477,7 +471,6 @@ export function mountAppShell(
       document.title = `${title} · Note by Note`;
       $(".route-missing").hidden = route.kind !== "not-found";
       $("#exercise-content").hidden = route.kind !== "exercise";
-      refreshPracticeOptions();
     },
   };
 }

@@ -1,6 +1,6 @@
 import { createElement, type ComponentProps } from "react";
 import { FlashcardOptions } from "./flashcard-options";
-import { mountPracticeOptions } from "./practice-controls";
+import { registerPracticeOptions } from "./practice-options";
 /** The shell owns navigation; the session owner retains suspended rounds. */
 export function mountFlashcardView(
   element: HTMLElement,
@@ -22,9 +22,8 @@ export function mountFlashcardView(
 <p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
 <div class="sequence-transport flashcard-transport"><button id="feedback-next" hidden>Next question →</button><button id="restart-round" type="button">Start again</button></div><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
 `;
-  mountPracticeOptions(
-    element.querySelector<HTMLElement>(".below")!,
-    [],
+  registerPracticeOptions(
+    element.id,
     createElement(FlashcardOptions, {
       ...options,
       ranges: element.querySelector<HTMLElement>(".flashcard-range-controls")!,

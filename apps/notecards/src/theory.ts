@@ -6,7 +6,7 @@ import {
 } from "./theory-options";
 import { Piano } from "./piano";
 import { mountPracticePiano, isPianoVisible } from "./practice-piano";
-import { mountPracticeOptions } from "./practice-controls";
+import { registerPracticeOptions } from "./practice-options";
 import { drawPracticeScore } from "./practice-score";
 import { RangePicker } from "./range-picker";
 import { persistence } from "./persistence";
@@ -114,9 +114,8 @@ class TheoryPractice implements LivePractice {
       task: this.task,
       settings: structuredClone(this.settings),
     });
-    mountPracticeOptions(
-      element,
-      [],
+    registerPracticeOptions(
+      element.id,
       createElement(TheoryOptions, {
         model: this.options,
         ranges,

@@ -93,7 +93,7 @@ try {
     );
   });
   const options = await page
-    .locator("#sight-reading .practice-options")
+    .locator(".practice-options")
     .boundingBox();
   const practice = await page
     .locator("#sight-reading .sequence-practice")
@@ -152,7 +152,7 @@ try {
   );
   const mobileToggle = (await sidebarToggle.boundingBox())!;
   const mobilePanel = (await page
-    .locator("#sight-reading .practice-options")
+    .locator(".practice-options")
     .boundingBox())!;
   assert.ok(
     Math.abs(mobileToggle.width - mobilePanel.width) < 1,
@@ -162,7 +162,7 @@ try {
   await sidebarToggle.click();
   assert.equal(await sidebarToggle.getAttribute("aria-expanded"), "true");
   assert.ok(
-    await page.locator("#sight-reading .practice-options-content").isVisible(),
+    await page.locator(".practice-options-content").isVisible(),
   );
   await sidebarToggle.click();
   assert.equal(await sidebarToggle.getAttribute("aria-expanded"), "false");

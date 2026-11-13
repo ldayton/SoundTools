@@ -246,7 +246,7 @@ try {
     feedback = await page.locator(".sequence-feedback").boundingBox(),
     score = await page.locator(".sequence-score").boundingBox();
   assert.ok(
-    (await page.locator("#sight-reading .practice-options").boundingBox())!.y <
+    (await page.locator(".practice-options").boundingBox())!.y <
       score!.y,
   );
   assert.ok(score!.y < 400, "phone controls remain compact");

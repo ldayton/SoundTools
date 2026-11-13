@@ -5,7 +5,7 @@ import {
   type RhythmOptionsState,
 } from "./rhythm-options";
 import type { InputPolicy, Interruption } from "./live-practice";
-import { mountPracticeOptions } from "./practice-controls";
+import { registerPracticeOptions } from "./practice-options";
 import type { NoteTimingEvent } from "abcjs";
 import {
   makeRhythm,
@@ -82,9 +82,8 @@ export class RhythmPractice {
     element.innerHTML = `<section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><button class="rhythm-tap" type="button" aria-label="Tap rhythm"><span>Tap</span><small class="rhythm-tap-response" aria-live="polite"></small></button><div class="sequence-transport"><button class="rhythm-start">Start</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
     this.midiSlot = this.$(".rhythm-midi-slot");
     this.options = rhythmOptionsState({ bpm: this.bpm, level: this.level });
-    mountPracticeOptions(
-      element,
-      [],
+    registerPracticeOptions(
+      element.id,
       createElement(RhythmOptions, {
         model: this.options,
         onChange: (settings) => {

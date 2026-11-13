@@ -77,7 +77,7 @@ try {
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
   const input = page.getByRole("combobox", { name: "Hymn", exact: true });
   const choose = async (title: string) => {
-    const options = page.locator("#sight-reading .practice-options");
+    const options = page.locator(".practice-options");
     await openPracticeOptions(page);
     await input.click();
     await input.fill(title);

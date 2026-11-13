@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from "react";
 import {
+  Accordion,
+  Anchor,
   Checkbox,
   NativeSelect,
   Select,
@@ -40,13 +42,11 @@ export function HymnOptions({
   change,
   searchOpened,
   rangeControls,
-  source,
 }: {
   model: HymnOptionsState;
   change(patch: HymnOptionsChange): void;
   searchOpened(open: boolean): void;
   rangeControls: HTMLElement;
-  source: HTMLElement;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const selectedTitle = hymns.find((h) => h.id === state.hymn)!.title;
@@ -229,7 +229,29 @@ export function HymnOptions({
           }
         />
       )}
-      <RetainedContent element={source} />
+      <Accordion id="hymn-source" order={3}>
+        <Accordion.Item value="source">
+          <Accordion.Control>About this hymn</Accordion.Control>
+          <Accordion.Panel>
+            <Stack gap="sm">
+              <Text size="sm" className="hymn-credits">
+                {state.source.credits}
+              </Text>
+              <Anchor
+                className="hymn-source-link"
+                href={state.source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {state.source.label}
+              </Anchor>
+              <Text size="sm">{state.source.description}</Text>
+              <Text size="sm">{state.source.help}</Text>
+              <Text size="sm">{state.source.transposition}</Text>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
     </Stack>
   );
 }

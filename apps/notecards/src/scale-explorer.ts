@@ -10,7 +10,7 @@ import {
   patternPositions,
   type ScalePattern,
 } from "./guitar-scale-patterns";
-import { mountPracticeOptions } from "./practice-controls";
+import { registerPracticeOptions } from "./practice-options";
 import {
   SCALE_TONICS,
   scaleLabel,
@@ -97,9 +97,8 @@ export class ScaleExplorer implements LivePractice {
       <div class="scale-diagram"></div><p class="scale-legend"><span class="scale-root-swatch" aria-hidden="true"></span> Root</p>
       <details class="scale-note-list"><summary>Details</summary><p class="scale-notes"></p><p class="scale-help">Standard tuning · high E at the top, low E at the bottom.</p><p class="scale-footnote">1 index · 2 middle · 3 ring · 4 little finger</p><p class="scale-optional-legend">Gray notes can also be played on the next open string.</p><p class="scale-relative-explanation"></p><div></div><p class="scale-source">Shapes and fingerings: <a href="https://guitarscale.org/c-major.html" target="_blank" rel="noopener noreferrer">GuitarScale.org</a></p></details></section>`;
     this.options = scaleOptionsState(this.optionsSnapshot());
-    mountPracticeOptions(
-      element,
-      [],
+    registerPracticeOptions(
+      element.id,
       createElement(ScaleOptions, {
         model: this.options,
         change: (patch) => {

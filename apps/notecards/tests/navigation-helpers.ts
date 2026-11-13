@@ -75,11 +75,7 @@ async function optionsLayoutReady(page: Page) {
   // matchMedia change listeners run after setViewportSize resolves. A desktop
   // expanded state must not be mistaken for the pending mobile collapsed state.
   await page.waitForFunction(() => {
-    const visible = [
-      ...document.querySelectorAll<HTMLElement>(
-        "#exercise-content .practice-options",
-      ),
-    ].find((p) => !p.closest("[hidden]"));
+    const visible = document.querySelector<HTMLElement>(".practice-options");
     return (
       visible?.dataset.layout ===
       (matchMedia("(max-width:1119px)").matches ? "mobile" : "desktop")

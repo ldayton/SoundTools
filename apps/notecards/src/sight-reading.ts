@@ -26,7 +26,7 @@ import {
   type HymnSettings,
 } from "./hymn-settings";
 import type { InputPolicy, Interruption } from "./live-practice";
-import { mountPracticeOptions } from "./practice-controls";
+import { registerPracticeOptions } from "./practice-options";
 import {
   HYMN_KEYS,
   type HymnKey,
@@ -210,7 +210,7 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    element.innerHTML = `<section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><p class="sequence-help">Play at your pace. Sing along with the words.</p><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="hymn-passage-controls"><button type="button" class="hymn-cancel-passage" hidden>Cancel selection</button><button type="button" class="hymn-clear-passage" hidden>Clear selection</button><label class="hymn-loop" hidden><input type="checkbox" /> Loop</label><span class="hymn-passage-status" role="status"></span></div><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" aria-label="Previous section" hidden>← Previous</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div><details class="hymn-source"><summary>About this hymn</summary><p class="hymn-credits"></p><a class="hymn-source-link" target="_blank" rel="noopener noreferrer">Open Hymnal source</a><p class="hymn-source-description"></p></details></section>`;
+    element.innerHTML = `<section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="hymn-passage-controls"><button type="button" class="hymn-cancel-passage" hidden>Cancel selection</button><button type="button" class="hymn-clear-passage" hidden>Clear selection</button><label class="hymn-loop" hidden><input type="checkbox" /> Loop</label><span class="hymn-passage-status" role="status"></span></div><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"><button type="button" class="hymn-pause">Pause</button><button type="button" class="hymn-restart">Start again</button><button type="button" class="hymn-restore-legacy" hidden></button><button type="button" class="hymn-prev" aria-label="Previous section" hidden>← Previous</button><button type="button" class="hymn-next" hidden>Next hymn →</button></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div></section>`;
     this.$(".hymn-pause").after(this.$(".hymn-passage-controls"));
     this.passage = new ScorePassage(
       this.$(".hymn-paper"),
@@ -258,16 +258,14 @@ export class SightReading {
     const rangeControls = document.createElement("div");
     rangeControls.className = "hymn-range-fields";
     rangeControls.innerHTML = `${optionalNoteHTML("hymn-low", "Lowest note")}${optionalNoteHTML("hymn-high", "Highest note")}<small>Range of the practised part, across the whole hymn.</small>`;
-    const source = this.$(".hymn-source");
     // Keep the bespoke note pickers available during controller setup, until React adopts them.
     const parking = document.createElement("div");
     parking.hidden = true;
-    parking.append(rangeControls, source);
+    parking.append(rangeControls);
     element.append(parking);
     this.options = hymnOptionsState(this.optionsSnapshot());
-    mountPracticeOptions(
-      element,
-      [],
+    registerPracticeOptions(
+      element.id,
       createElement(HymnOptions, {
         model: this.options,
         change: (patch) => this.changeOptions(patch),
@@ -278,7 +276,6 @@ export class SightReading {
           this.acceptanceChanged();
         },
         rangeControls,
-        source,
       }),
     );
     this.pianoPanel = mountPracticePiano(
@@ -288,11 +285,6 @@ export class SightReading {
         buttonClass: "hymn-keyboard-toggle",
         changed: () => this.updateRangeHint(),
       },
-    );
-    this.$(".hymn-source").append(this.$(".sequence-help"));
-    this.$(".hymn-source").insertAdjacentHTML(
-      "beforeend",
-      '<p class="hymn-transpose-help"></p>',
     );
     this.$(".sequence-top").append(this.$(".hymn-scroll-hint"));
     this.$(".sequence-top").insertAdjacentHTML(
@@ -611,22 +603,6 @@ export class SightReading {
         : "Hymn score with aligned lyrics",
     );
     this.$(".sequence-practice").dataset.arrangement = this.arrangement;
-    this.$(".hymn-credits").textContent = this.hymn.credits.join(" ");
-    const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
-    this.$(".hymn-source-link").textContent = tabMusic
-      ? "Tab music source"
-      : "Open Hymnal source";
-    this.$(".hymn-source-description").textContent = tabMusic
-      ? "Keyboard melody with simplified harmony from your tab-music edition."
-      : "Public-domain words, melody and setting. First verse and refrain.";
-    // Open Hymnal uses a verified mirror; imported practice editions retain their source.
-    this.$<HTMLAnchorElement>(".hymn-source-link").href =
-      "source" in this.hymn && this.hymn.source === "tab-music"
-        ? this.hymn.sourceUrl
-        : "https://github.com/mzealey/openhymnal/blob/d35811b2d5c9b0bbc5887d60a2936454815416e8/Complete/" +
-          encodeURIComponent(this.hymn.folder) +
-          "/" +
-          encodeURIComponent(this.hymn.file);
     try {
       this.syncRangeKeys();
       const passageIdentity = `${this.hymn.id}:${this.key}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}`;
@@ -652,14 +628,8 @@ export class SightReading {
         this.viewHands,
       );
       const transposition = hymnTransposition(this.hymn.key, this.key);
-      this.$(".hymn-transpose-help").textContent = transposition.semitones
-        ? `${hymnKeyLabel(transposition.key)}, ${transposition.semitones > 0 ? "up" : "down"} ${Math.abs(transposition.semitones)} semitones from ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress. The nearest register is used; no notes are folded into another octave.`
-        : `Original ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress.`;
       this.section = score.section;
       this.sections = score.sections;
-      this.$(".sequence-help").textContent =
-        ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
-        " Sing along with the words.";
       this.events = drawPracticeScore(paper, score.abc, this.lastWidth, {
         scale: this.zoom,
         reattackTies: this.mode === "wait" && this.reattackTies,
@@ -844,6 +814,8 @@ export class SightReading {
     this.options.set(this.optionsSnapshot());
   }
   private optionsSnapshot(): HymnOptionsSnapshot {
+    const transposition = hymnTransposition(this.hymn.key, this.key);
+    const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
     return {
       hymn: this.hymn.id,
       key: this.key,
@@ -861,6 +833,25 @@ export class SightReading {
       noMatchingKey: this.noMatchingKey,
       availableKeys: this.availableKeys,
       range: this.melodyRangeLabel,
+      source: {
+        credits: this.hymn.credits.join(" "),
+        url: tabMusic
+          ? this.hymn.sourceUrl!
+          : "https://github.com/mzealey/openhymnal/blob/d35811b2d5c9b0bbc5887d60a2936454815416e8/Complete/" +
+            encodeURIComponent(this.hymn.folder) +
+            "/" +
+            encodeURIComponent(this.hymn.file),
+        label: tabMusic ? "Tab music source" : "Open Hymnal source",
+        description: tabMusic
+          ? "Keyboard melody with simplified harmony from your tab-music edition."
+          : "Public-domain words, melody and setting. First verse and refrain.",
+        help:
+          ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
+          " Sing along with the words.",
+        transposition: transposition.semitones
+          ? `${hymnKeyLabel(transposition.key)}, ${transposition.semitones > 0 ? "up" : "down"} ${Math.abs(transposition.semitones)} semitones from ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress. The nearest register is used; no notes are folded into another octave.`
+          : `Original ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress.`,
+      },
     };
   }
   private changeOptions(patch: HymnOptionsChange) {

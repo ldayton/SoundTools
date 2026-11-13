@@ -261,7 +261,7 @@ try {
   // Wide-screen options sit beside every exercise, with shared field dimensions and actions.
   for (const mode of ["piano", "staff", "patterns", "sight", "rhythm"]) {
     await selectPractice(page, mode);
-    const options = page.locator("#exercise-content .practice-options:visible");
+    const options = page.locator(".practice-options:visible");
     await options.waitFor();
     await openPracticeOptions(page);
     const task = page.locator(".practice:visible,.sequence-practice:visible");

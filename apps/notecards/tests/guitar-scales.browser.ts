@@ -227,7 +227,9 @@ try {
       "no horizontal overflow",
     );
     assert.ok(
-      (await page.locator(".scale-note-list summary").boundingBox())!.y < 844,
+      (await page
+        .locator(".scale-note-list button[aria-expanded]")
+        .boundingBox())!.y < 844,
       "full neck and legend fit",
     );
   }

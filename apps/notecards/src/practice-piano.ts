@@ -1,60 +1,51 @@
 import { persistence } from "./persistence";
-let visible = true;
-const panels = new Set<() => void>();
-
-/** One keyboard visibility preference and control across piano exercises. */
+import {
+  pianoPresentation,
+  onPianoPresentationChange,
+  setPianoPresentation,
+} from "./piano-presentation";
+/** One keyboard visibility preference across every piano exercise. */
 export function restorePianoVisibility() {
   const saved = persistence.read<{ version: 1; pianoVisible?: boolean }>(
     "presentation",
   );
-  visible = saved?.pianoVisible !== false;
-  for (const render of panels) render();
+  setPianoPresentation(saved?.pianoVisible !== false);
 }
 export function isPianoVisible() {
-  return visible;
+  return pianoPresentation.getSnapshot().visible;
 }
-
 export function mountPracticePiano(
   keyboard: HTMLElement,
   transport: HTMLElement,
-  options: { buttonClass?: string; changed?: () => void } = {},
+  options: {
+    changed?: () => void;
+  } = {},
 ) {
   const panel = document.createElement("div");
   panel.className = "practice-piano";
-  panel.id = `${keyboard.className.split(" ")[0] || keyboard.id}-panel`;
+  panel.id = `${keyboard.closest<HTMLElement>(".live-workspace,#flashcards")!.id}-piano-panel`;
   panel.append(keyboard);
   transport.after(panel);
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = `piano-toggle ${options.buttonClass || ""}`.trim();
-  button.setAttribute("aria-label", "On-screen piano");
-  button.innerHTML =
-    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v8m8-8v8M8 13v6m8-6v6"/></svg><span>Piano</span>';
-  button.setAttribute("aria-controls", panel.id);
-  transport.append(button);
   let available = true;
   function render() {
-    panel.hidden = !available || !visible;
-    button.hidden = !available;
-    button.setAttribute("aria-expanded", String(visible));
-    button.title = `${visible ? "Hide" : "Show"} on-screen piano`;
+    panel.hidden = !available || !isPianoVisible();
     options.changed?.();
   }
-  panels.add(render);
-  button.onclick = () => {
-    visible = !visible;
-    for (const update of panels) update();
-    persistence.write("presentation", {
-      ...persistence.read<object>("presentation"),
-      version: 1,
-      pianoVisible: visible,
+  onPianoPresentationChange(render);
+  function publish() {
+    const state = pianoPresentation.getSnapshot();
+    pianoPresentation.set({
+      ...state,
+      available: { ...state.available, [panel.id]: available },
     });
-  };
-  render();
+    render();
+  }
+  publish();
   return {
+    id: panel.id,
     setAvailable(value: boolean) {
       available = value;
-      render();
+      publish();
     },
   };
 }

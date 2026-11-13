@@ -1,3 +1,11 @@
+import { createElement } from "react";
+import { mountPracticeControls } from "./practice-surfaces";
+import {
+  FlashcardAnswers,
+  FlashcardControls,
+  FlashcardContinue,
+  flashcardControlsState,
+} from "./flashcard-controls";
 import {
   flashcardOptionsState,
   type FlashcardOptionsSnapshot,
@@ -182,6 +190,11 @@ const rangePickers = [
     positions,
   ),
 }));
+const flashcardControls = flashcardControlsState({
+  enabled: false,
+  modifier: 0,
+  next: false,
+});
 const pianoPanel = mountPracticePiano($("#piano"), $(".flashcard-transport"), {
   changed: () => {
     if (fontsReady) refreshPianoRange();
@@ -247,8 +260,10 @@ function save() {
 }
 function setModifier(value: Modifier) {
   modifier = value;
-  for (const b of document.querySelectorAll<HTMLButtonElement>("[data-mod]"))
-    b.setAttribute("aria-pressed", String(Number(b.dataset.mod) === value));
+  flashcardControls.set({
+    ...flashcardControls.getSnapshot(),
+    modifier: value,
+  });
 }
 // Hover belongs to pointer movement on this question, never to the previous guess.
 const answerSelector = "[data-letter],[data-fret],[data-piano]";
@@ -271,10 +286,7 @@ $("#question").addEventListener("pointermove", (event) => {
 });
 $("#question").addEventListener("pointerleave", clearAnswerHover);
 function enableAnswers(enabled: boolean) {
-  for (const b of document.querySelectorAll<HTMLButtonElement>(
-    "[data-mod],[data-letter]",
-  ))
-    b.disabled = !enabled;
+  flashcardControls.set({ ...flashcardControls.getSnapshot(), enabled });
 }
 function syncOptions() {
   const isLive = isLiveMode(progress.mode);
@@ -407,7 +419,7 @@ function renderQuestion(card: Card | GuitarCard) {
 function next() {
   clearTimeout(timer);
   if (!persistence.writable) return;
-  $("#feedback-next").hidden = true;
+  flashcardControls.set({ ...flashcardControls.getSnapshot(), next: false });
   pendingNext = false;
   const card = session.next();
   if (!card) {
@@ -456,7 +468,7 @@ function feedback(correct: boolean, text: string) {
   $("#feedback").textContent = text;
   $("#feedback").className = correct ? "correct" : "incorrect";
   $<HTMLProgressElement>("#progress").value = session.answered;
-  $("#feedback-next").hidden = false;
+  flashcardControls.set({ ...flashcardControls.getSnapshot(), next: true });
   const answeredSession = session,
     answerNumber = session.answered;
   void committed.then((saved) => {
@@ -561,7 +573,7 @@ function answerPiano(midi: number) {
 }
 function start(continuing = false, restoring = false, restart = false) {
   clearTimeout(timer);
-  $("#feedback-next").hidden = true;
+  flashcardControls.set({ ...flashcardControls.getSnapshot(), next: false });
   pendingNext = false;
   syncOptions();
   void activities.activate(route);
@@ -647,7 +659,10 @@ function start(continuing = false, restoring = false, restart = false) {
     clearAnswerHover();
     renderQuestion(session.current);
     enableAnswers(phase === "question");
-    $("#feedback-next").hidden = phase !== "feedback";
+    flashcardControls.set({
+      ...flashcardControls.getSnapshot(),
+      next: phase === "feedback",
+    });
     if (phase === "feedback" && session.feedback) {
       $("#feedback").textContent = session.feedback.text;
       $("#feedback").className = session.feedback.correct
@@ -675,19 +690,33 @@ function changed(scope: "exercise" | "all" = "exercise") {
     start(false, false, true);
   }
 }
-for (const b of document.querySelectorAll<HTMLButtonElement>("[data-letter]"))
-  b.onclick = () => answerName(b.dataset.letter as Letter);
-for (const b of document.querySelectorAll<HTMLButtonElement>("[data-mod]"))
-  b.onclick = () => {
-    if (phase === "question") setModifier(Number(b.dataset.mod) as Modifier);
-  };
-$("#continue").onclick = () => start(true);
-$("#feedback-next").onclick = () => next();
-$("#restart-round").onclick = () => {
-  if (isFlashcardMode(progress.mode)) sessions.invalidate(progress.mode);
-  session = undefined!;
-  start(false, false, true);
-};
+mountPracticeControls(
+  $(".keyboard"),
+  createElement(FlashcardAnswers, {
+    model: flashcardControls,
+    answer: answerName,
+    modify: (value) => {
+      if (phase === "question") setModifier(value);
+    },
+  }),
+);
+mountPracticeControls(
+  $("#continue-slot"),
+  createElement(FlashcardContinue, { next: () => start(true) }),
+);
+mountPracticeControls(
+  $(".flashcard-transport"),
+  createElement(FlashcardControls, {
+    model: flashcardControls,
+    panelId: pianoPanel.id,
+    next: () => next(),
+    restart: () => {
+      if (isFlashcardMode(progress.mode)) sessions.invalidate(progress.mode);
+      session = undefined!;
+      start(false, false, true);
+    },
+  }),
+);
 window.addEventListener("keydown", (event) => {
   // Native button activation also repeats on held Enter: suppress it before mode guards.
   if (

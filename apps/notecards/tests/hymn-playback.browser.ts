@@ -118,6 +118,9 @@ try {
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   assert.match(page.url(), /tempo=100/);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(
+    () => document.documentElement.scrollWidth <= innerWidth,
+  );
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   assert.equal(
     await page.evaluate(
@@ -291,6 +294,9 @@ try {
     .selectOption("both");
   await page.getByRole("button", { name: "Play", exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(
+    () => document.documentElement.scrollWidth <= innerWidth,
+  );
   await page
     .getByRole("button", { name: "Expand practice options", exact: true })
     .click();
@@ -314,7 +320,13 @@ try {
       "/piano/hymns/amazing-grace?arrangement=melody&mode=wait&bars=2&section=1",
   );
   await page.locator(".hymn-paper svg").first().waitFor();
-  for (const arrangement of ["melody", "bass", "chords", "broken", "original"]) {
+  for (const arrangement of [
+    "melody",
+    "bass",
+    "chords",
+    "broken",
+    "original",
+  ]) {
     await practiceOption(page, "#hymn-arrangement", arrangement);
     for (const [key, expected] of [
       ["original", "D4–D5"],
@@ -359,10 +371,13 @@ try {
     await practiceOption(page, "#hymn-mode", mode);
     assert.equal(await page.locator(".hymn-key-range").textContent(), "C4–C5");
     assert.deepEqual(
-      await page.locator("#hymn-key option").evaluateAll((es) =>
-        es.filter((e) => !(e as HTMLOptionElement).disabled)
-          .map((e) => (e as HTMLOptionElement).value),
-      ),
+      await page
+        .locator("#hymn-key option")
+        .evaluateAll((es) =>
+          es
+            .filter((e) => !(e as HTMLOptionElement).disabled)
+            .map((e) => (e as HTMLOptionElement).value),
+        ),
       ["F"],
     );
   }
@@ -403,6 +418,9 @@ try {
   await practiceOption(page, "#hymn-low", "64");
   assert.equal(await page.locator("#hymn-key").inputValue(), "A");
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(
+    () => document.documentElement.scrollWidth <= innerWidth,
+  );
   await practiceOption(page, "#hymn-low", "65");
   assert.equal(
     await page.locator("#hymn-low-wheel").getAttribute("aria-valuetext"),

@@ -1,3 +1,9 @@
+import { mountPracticeControls } from "./practice-surfaces";
+import {
+  RhythmControls,
+  RhythmTap,
+  rhythmControlsState,
+} from "./rhythm-controls";
 import { createElement } from "react";
 import {
   RhythmOptions,
@@ -21,6 +27,7 @@ import { persistence } from "./persistence";
 export class RhythmPractice {
   readonly midiSlot: HTMLElement;
   private active = false;
+  private controls = rhythmControlsState({ phase: "ready", response: "" });
   private result:
     | { hits: number[]; total: number; missed: number; extras: number }
     | undefined;
@@ -79,7 +86,7 @@ export class RhythmPractice {
       this.bpm = settings.bpm;
       this.level = settings.level;
     } catch {}
-    element.innerHTML = `<section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><button class="rhythm-tap" type="button" aria-label="Tap rhythm"><span>Tap</span><small class="rhythm-tap-response" aria-live="polite"></small></button><div class="sequence-transport"><button class="rhythm-start">Start</button><button class="rhythm-new">New rhythm</button></div><div class="rhythm-midi-slot"></div></section>`;
+    element.innerHTML = `<section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><div class="rhythm-tap-slot practice-control-slot"></div><div class="sequence-transport"></div><div class="rhythm-midi-slot"></div></section>`;
     this.midiSlot = this.$(".rhythm-midi-slot");
     this.options = rhythmOptionsState({ bpm: this.bpm, level: this.level });
     registerPracticeOptions(
@@ -101,32 +108,29 @@ export class RhythmPractice {
         },
       }),
     );
-    this.$(".rhythm-start").onclick = () => {
-      if (this.state === "playing" || this.state === "countin")
-        this.interrupt("controls");
-      else this.start();
-    };
-    this.$(".rhythm-new").onclick = () => {
-      this.stop();
-      this.bars = makeRhythm(this.level);
-      this.render();
-    };
-    const tap = this.$<HTMLButtonElement>(".rhythm-tap");
-    tap.onpointerdown = (e) => {
-      if (e.button === 0) {
-        e.preventDefault();
-        this.tapButton();
-      }
-    };
-    tap.onclick = (e) => {
-      if (e.detail === 0) this.tapButton();
-    };
-    tap.onkeydown = (e) => {
-      if ([" ", "Enter"].includes(e.key)) {
-        e.preventDefault();
-        if (!e.repeat) this.tapButton();
-      }
-    };
+    mountPracticeControls(
+      this.$(".sequence-transport"),
+      createElement(RhythmControls, {
+        model: this.controls,
+        start: () => {
+          if (this.state === "playing" || this.state === "countin")
+            this.interrupt("controls");
+          else this.start();
+        },
+        next: () => {
+          this.stop();
+          this.bars = makeRhythm(this.level);
+          this.render();
+        },
+      }),
+    );
+    mountPracticeControls(
+      this.$(".rhythm-tap-slot"),
+      createElement(RhythmTap, {
+        model: this.controls,
+        tap: () => this.tapButton(),
+      }),
+    );
     window.addEventListener("keydown", (e) => {
       if (
         this.active &&
@@ -196,7 +200,7 @@ export class RhythmPractice {
     this.result = undefined;
     this.attempt = undefined;
     this.clearTapFeedback();
-    this.$(".rhythm-start").textContent = "Start";
+    this.controls.set({ ...this.controls.getSnapshot(), phase: this.state });
     this.beat = this.step = -1;
     highlightScore(
       this.$(".rhythm-paper"),
@@ -248,7 +252,7 @@ export class RhythmPractice {
     const pattern = rhythmOnsets(this.bars);
     this.end = start + pattern.beats * beatMs;
     this.attempt = new RhythmAttempt(pattern.starts, this.bpm, start);
-    this.$(".rhythm-start").textContent = "Stop";
+    this.controls.set({ ...this.controls.getSnapshot(), phase: this.state });
     this.element
       .querySelectorAll(".rhythm-hit,.rhythm-missed")
       .forEach((e) => e.classList.remove("rhythm-hit", "rhythm-missed"));
@@ -344,13 +348,19 @@ export class RhythmPractice {
   }
   private clearTapFeedback() {
     clearTimeout(this.tapFeedbackTimer);
-    this.$(".rhythm-tap-response").textContent = "";
-    delete this.$(".rhythm-tap").dataset.feedback;
+    this.controls.set({
+      ...this.controls.getSnapshot(),
+      response: "",
+      feedback: undefined,
+    });
   }
   private reactToTap(text: string, kind: string) {
     this.clearTapFeedback();
-    this.$(".rhythm-tap").dataset.feedback = kind;
-    this.$(".rhythm-tap-response").textContent = text;
+    this.controls.set({
+      ...this.controls.getSnapshot(),
+      response: text,
+      feedback: kind,
+    });
     this.tapFeedbackTimer = window.setTimeout(
       () => this.clearTapFeedback(),
       400,
@@ -389,7 +399,7 @@ export class RhythmPractice {
     );
     this.$(".sequence-feedback").textContent =
       `${this.result.hits.length} of ${this.result.total} on the beat · ${this.result.missed} missed · ${this.result.extras} extra`;
-    this.$(".rhythm-start").textContent = "Start again";
+    this.controls.set({ ...this.controls.getSnapshot(), phase: this.state });
     this.changed();
   }
 }

@@ -80,12 +80,17 @@ try {
   const note = (i: number) =>
     page.locator(`[data-passage-note="${i}"]`).first();
   const center = async (i: number) => {
-    // Scrolling can trigger a responsive score redraw. Resolve the note afresh afterward.
-    await note(i).evaluate((element) =>
-      element.scrollIntoView({ block: "nearest", inline: "nearest" }),
-    );
-    const b = (await note(i).boundingBox())!;
-    return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    // A responsive score redraw can replace the note during scrolling.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await note(i).scrollIntoViewIfNeeded();
+      const bounds = await note(i).boundingBox();
+      if (bounds)
+        return {
+          x: bounds.x + bounds.width / 2,
+          y: bounds.y + bounds.height / 2,
+        };
+    }
+    throw new Error(`Note ${i} did not settle after the responsive redraw`);
   };
   const select = async (a: number, b: number) => {
     const from = await center(a);
@@ -231,7 +236,7 @@ try {
     "committed passage can be played immediately",
   );
   assert.equal(
-    await page.locator(".sequence-transport > button").first().textContent(),
+    await page.locator(".sequence-transport .hymn-pause").first().textContent(),
     "Play",
     "primary playback stays first alongside passage controls",
   );
@@ -240,12 +245,11 @@ try {
     const clear = document
       .querySelector(".hymn-clear-passage")!
       .getBoundingClientRect();
-    return { playTop: play.top, clearTop: clear.top };
+    return { playBottom: play.bottom, clearTop: clear.top };
   });
-  assert.equal(
-    controlRows.playTop,
-    controlRows.clearTop,
-    "selection does not introduce a separate row above Play",
+  assert.ok(
+    controlRows.clearTop >= controlRows.playBottom,
+    "selection controls have their own row below Play",
   );
 
   await page.getByRole("checkbox", { name: "Loop", exact: true }).check();

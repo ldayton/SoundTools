@@ -1,3 +1,4 @@
+import { closePitchPickers } from "./range-picker";
 import {
   createContext,
   useContext,
@@ -37,6 +38,7 @@ function useOptionsState(activeId?: string, activityKey?: string) {
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
+    closePitchPickers();
     contentRef.current?.scrollTo(0, 0);
   }, [activityKey]);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -61,6 +63,7 @@ function useOptionsState(activeId?: string, activityKey?: string) {
     toggleRef,
     reopenRef,
     toggle() {
+      closePitchPickers();
       if (desktop) {
         focus.current = "reopen";
         setDesktopCollapsed(true);

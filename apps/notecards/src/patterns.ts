@@ -1,3 +1,5 @@
+import { mountPracticeControls } from "./practice-surfaces";
+import { PatternControls, patternControlsState } from "./pattern-controls";
 import { createElement } from "react";
 import {
   PatternOptions,
@@ -32,6 +34,7 @@ export class IntervalPatterns {
   private advanceTimer = 0;
   private position = 0;
   private options!: PatternOptionsState;
+  private controls = patternControlsState({ paused: false });
   private settings: PatternSettings = {
     key: "C",
     hand: "right",
@@ -57,7 +60,7 @@ export class IntervalPatterns {
         this.paused = restored.paused;
       }
     } catch {}
-    element.innerHTML = `<section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"><button class="pattern-pause">Pause</button><button class="pattern-again">Start again</button><button class="pattern-next">New pattern →</button></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
+    element.innerHTML = `<section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
     this.options = patternOptionsState(structuredClone(this.settings));
     registerPracticeOptions(
       element.id,
@@ -71,24 +74,35 @@ export class IntervalPatterns {
         },
       }),
     );
-    mountPracticePiano(this.$(".pattern-piano"), this.$(".sequence-transport"));
+    const pianoPanel = mountPracticePiano(
+      this.$(".pattern-piano"),
+      this.$(".sequence-transport"),
+      {},
+    );
     this.midiSlot = this.$(".pattern-midi-slot");
     this.piano = new Piano(this.$(".pattern-piano"), (n) => {
       if (this.accepting) this.answer(n);
     });
-    this.$(".pattern-next").onclick = () => this.next();
-    this.$(".pattern-again").onclick = () => {
-      this.cancelAdvance();
-      this.position = 0;
-      this.paused = false;
-      this.render();
-    };
-    this.$(".pattern-pause").onclick = () => {
-      this.paused = !this.paused;
-      this.interrupt("controls");
-      this.update();
-      if (!this.paused && this.session?.complete) this.scheduleAdvance();
-    };
+    mountPracticeControls(
+      this.$(".sequence-transport"),
+      createElement(PatternControls, {
+        model: this.controls,
+        panelId: pianoPanel.id,
+        next: () => this.next(),
+        restart: () => {
+          this.cancelAdvance();
+          this.position = 0;
+          this.paused = false;
+          this.render();
+        },
+        pause: () => {
+          this.paused = !this.paused;
+          this.interrupt("controls");
+          this.update();
+          if (!this.paused && this.session?.complete) this.scheduleAdvance();
+        },
+      }),
+    );
     new ResizeObserver(() =>
       requestAnimationFrame(() => {
         const w = this.$(".sequence-score").clientWidth;
@@ -250,8 +264,7 @@ export class IntervalPatterns {
       : this.paused
         ? "Paused. Continue when you’re ready."
         : "Play the highlighted note.";
-    this.$(".pattern-pause").textContent = this.paused ? "Resume" : "Pause";
-    this.$<HTMLButtonElement>(".pattern-pause").disabled = false;
+    this.controls.set({ paused: this.paused });
     this.piano.setUnavailable(!this.accepting);
     this.changed();
     this.save();

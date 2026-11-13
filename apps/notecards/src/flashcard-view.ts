@@ -14,13 +14,9 @@ export function mountFlashcardView(
 <div id="question"><div class="answer-line"><span id="feedback" role="status" aria-live="polite">Loading notation…</span></div><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
 
-<div class="keyboard" aria-label="Answer keyboard"><div class="modifiers" role="group" aria-label="Accidental"><button data-mod="-1" aria-label="Flat" aria-pressed="false">♭</button><button data-mod="0" aria-label="Natural" aria-pressed="true">♮</button><button data-mod="1" aria-label="Sharp" aria-pressed="false">♯</button></div><div class="letters" role="group" aria-label="Note letter">${"CDEFGAB"
-    .split("")
-    .map((l) => `<button data-letter="${l}">${l}</button>`)
-    .join("")}</div></div>
-
+<div class="keyboard" aria-label="Answer keyboard"></div>
 <p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
-<div class="sequence-transport flashcard-transport"><button id="feedback-next" hidden>Next question →</button><button id="restart-round" type="button">Start again</button></div><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><button id="continue" class="primary">Keep going <span aria-hidden="true">→</span></button><p class="summary-note" id="suggestion"></p></div></section>
+<div class="sequence-transport flashcard-transport"></div><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><div id="continue-slot"></div><p class="summary-note" id="suggestion"></p></div></section>
 `;
   registerPracticeOptions(
     element.id,

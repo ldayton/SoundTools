@@ -14,8 +14,8 @@ DoReGo and Soundglow are outside this milestone.
 
 - [x] Finish guitar-scale viewer controls and standardize rhythm/pattern settings ownership.
 - [x] Make React own the shared options/sidebar structure; remove duplicate collapse state and per-header DOM portals.
-- [ ] Migrate exercise answer and playback controls to standard components while keeping timing/grading in controllers.
-- [ ] Finish specialized picker integration and replace temporary CSS imports/reset boundaries.
+- [x] Migrate exercise answer and playback controls to standard components while keeping timing/grading in controllers.
+- [x] Finish specialized picker integration and replace temporary CSS imports/reset boundaries.
 - [ ] Review accessibility, bundle/startup cost, saved-state compatibility and offline behavior.
 - [ ] Run the relevant desktop/mobile and Chromium/Firefox/WebKit suites; complete final local interactive verification.
 
@@ -30,3 +30,5 @@ adapters are appropriate for these specialized renderers, not a second UI framew
 Scale options and single-owner settings verified with the guitar-scale, practice and navigation browser suites.
 
 Unified React sidebar verified with navigation, all-hymn/offline, recovery, theory and scale-viewer checks, plus local desktop/mobile interaction.
+
+Exercise controls now share the application React root and Mantine provider. Letter/modifier answers, theory choices, transports, passage actions, scale navigation/details and MIDI connection controls use Mantine components. The pitch grid uses Mantine placement/dismissal/focus trapping with explicit Escape focus return for its retained composite field. Removed general legacy button/select styling and switched to Mantine's standard stylesheet. Unit tests (150), targeted browser checks and local desktop interaction passed; final browser/recovery review remains below.

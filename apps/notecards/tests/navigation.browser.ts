@@ -3,6 +3,7 @@ import {
   selectPractice,
   midiAction,
   openPracticeOptions,
+  closePracticeOptions,
 } from "./navigation-helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -313,6 +314,27 @@ try {
         .locator("#staff-high-spin-picker")
         .getByRole("button", { name: "A4", exact: true })
         .click();
+      await page.locator("#staff-high-spin").click();
+      await page.keyboard.press("Escape");
+      await page
+        .locator("#staff-high-spin-picker")
+        .waitFor({ state: "hidden" });
+      assert.equal(
+        await page.evaluate(() => document.activeElement?.id),
+        "staff-high-spin",
+        "Escape returns focus to the pitch field",
+      );
+      await page.locator("#staff-high-spin").click();
+      await closePracticeOptions(page);
+      await page
+        .locator("#staff-high-spin-picker")
+        .waitFor({ state: "hidden" });
+      await openPracticeOptions(page);
+      assert.equal(
+        await page.locator("#staff-high-spin").getAttribute("aria-expanded"),
+        "false",
+        "collapsing options closes their overlay",
+      );
     }
     if (mode === "rhythm") {
       await page.locator(".rhythm-start").click();

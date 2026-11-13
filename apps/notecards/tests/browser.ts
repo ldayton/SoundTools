@@ -4,13 +4,18 @@ import {
   openPracticeOptions,
   closePracticeOptions,
 } from "./navigation-helpers";
-import { chromium } from "playwright";
+import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
-import { mkdir } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { KEYS } from "../src/model";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
-const base = process.env.TEST_BASE_URL || "http://127.0.0.1:4321/";
+const engine = process.env.TEST_BROWSER || "chromium";
+const type = { chromium, firefox, webkit }[engine]!;
+const port = process.env.TEST_PORT || "4321";
+const base = process.env.TEST_BASE_URL || `http://127.0.0.1:${port}/`;
 const vite = createRequire(import.meta.url)
   .resolve("vite/package.json")
   .replace(/package\.json$/, "bin/vite.js");
@@ -24,7 +29,7 @@ const server = process.env.TEST_BASE_URL
         "--host",
         "127.0.0.1",
         "--port",
-        "4321",
+        port,
         "--strictPort",
       ],
       { stdio: "ignore" },
@@ -38,8 +43,10 @@ if (server) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
-const browser = await chromium.launch();
+const fixed = await mkdtemp(join(tmpdir(), "notecards-cards-"));
+let browser: Awaited<ReturnType<typeof type.launch>> | undefined;
 try {
+  browser = await type.launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
   const context = await browser.newContext();
   await context.addInitScript(() => {
     Math.random = () => 0;
@@ -196,6 +203,10 @@ try {
     "PASS: notation, desktop modifier-first input, enharmonics, answer guard, full session, continuation, mobile controls, saved progress and no page errors.",
   );
 } finally {
-  await browser.close();
+  await browser?.close();
+  await rm(fixed, { recursive: true, force: true }).catch((error: NodeJS.ErrnoException) => {
+    // macOS may protect Firefox-created folders in the temporary home.
+    if (!["EACCES", "EPERM"].includes(error.code || "")) throw error;
+  });
   server?.kill();
 }

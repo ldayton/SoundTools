@@ -1,3 +1,4 @@
+import { PracticeSurfaceViews } from "./practice-surfaces";
 import { RetainedContent } from "./retained-content";
 import {
   StrictMode,
@@ -349,6 +350,7 @@ export function mountAppShell(
             </div>
           </AppShell.Main>
         </AppShell>
+        <PracticeSurfaceViews />
         <Drawer
           id="navigation-drawer"
           opened={!desktop && snapshot.navigationOpen}

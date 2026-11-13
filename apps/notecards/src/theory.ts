@@ -1,4 +1,12 @@
 import { createElement } from "react";
+import { mountPracticeControls } from "./practice-surfaces";
+import {
+  TheoryAnswers,
+  TheoryControls,
+  TheoryContinue,
+  theoryControlsState,
+  type TheoryChoice,
+} from "./theory-controls";
 import {
   TheoryOptions,
   theoryOptionsState,
@@ -54,6 +62,11 @@ function abcNote(n: TheoryNote, includeAccidental = true) {
 }
 /** Shared theory round/input owner. Only the question model varies between the two pages. */
 class TheoryPractice implements LivePractice {
+  private controls = theoryControlsState({
+    next: false,
+    accepting: false,
+    choices: [],
+  });
   private active = false;
   private task: TheoryTask;
   private profiles: Partial<Record<TheoryTask, TheorySettings>> = {};
@@ -100,7 +113,7 @@ class TheoryPractice implements LivePractice {
         this.rounds = saved.rounds;
       this.progress = loadProgress(JSON.stringify(saved.progress));
     }
-    element.innerHTML = `<section class="sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="sequence-top"><span class="theory-context"></span><span class="theory-count"></span></div><progress class="theory-progress" aria-label="Session progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"><button type="button" class="theory-next" hidden>Next question →</button><button type="button" class="theory-restart">Start again</button></div><div class="theory-piano"></div><div class="theory-summary" hidden><h2>Round complete</h2><p></p><button type="button" class="primary theory-continue">Keep going →</button><p class="theory-suggestion"></p></div></section>`;
+    element.innerHTML = `<section class="sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="sequence-top"><span class="theory-context"></span><span class="theory-count"></span></div><progress class="theory-progress" aria-label="Session progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"></div><div class="theory-piano"></div><div class="theory-summary" hidden><h2>Round complete</h2><p></p><div class="theory-continue-slot"></div><p class="theory-suggestion"></p></div></section>`;
     const ranges = document.createElement("div");
     ranges.className = "range theory-range";
     if (kind === "intervals")
@@ -177,27 +190,42 @@ class TheoryPractice implements LivePractice {
             POSITIONS,
           ),
         );
-    this.$(".theory-next").onclick = () => this.nextQuestion();
-    this.$(".theory-restart").onclick = () => this.reset();
-    this.$(".theory-continue").onclick = () => {
-      this.resetPianoFocus = true;
-      this.lastKeys = undefined;
-      this.session.continueRound();
-      this.session.next();
-      this.step = 0;
-      this.firstTry = true;
-      this.save();
-      this.render();
-    };
-    this.$(".theory-answers").onclick = (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLButtonElement>(
-        "[data-answer]",
-      );
-      if (b?.dataset.answer === "back") {
-        this.selectedInterval = undefined;
-        this.render();
-      } else if (b) this.identify(b.dataset.answer!);
-    };
+    mountPracticeControls(
+      this.$(".sequence-transport"),
+      createElement(TheoryControls, {
+        model: this.controls,
+        panelId: this.panel.id,
+        next: () => this.nextQuestion(),
+        restart: () => this.reset(),
+      }),
+    );
+    mountPracticeControls(
+      this.$(".theory-continue-slot"),
+      createElement(TheoryContinue, {
+        next: () => {
+          this.resetPianoFocus = true;
+          this.lastKeys = undefined;
+          this.session.continueRound();
+          this.session.next();
+          this.step = 0;
+          this.firstTry = true;
+          this.save();
+          this.render();
+        },
+      }),
+    );
+    mountPracticeControls(
+      this.$(".theory-answers"),
+      createElement(TheoryAnswers, {
+        model: this.controls,
+        answer: (value) => {
+          if (value === "back") {
+            this.selectedInterval = undefined;
+            this.render();
+          } else this.identify(value);
+        },
+      }),
+    );
     window.addEventListener("keydown", (e) => {
       if (
         !this.active ||
@@ -529,8 +557,11 @@ class TheoryPractice implements LivePractice {
               ? "Next, try sixths, sevenths and octaves."
               : "Try naming the full interval when these distances feel familiar."
           : "Expand your set when these intervals feel familiar.";
-    this.$(".theory-next").hidden =
-      !q || this.session.accepting || this.pendingAdvance;
+    this.controls.set({
+      ...this.controls.getSnapshot(),
+      next: !!q && !this.session.accepting && !this.pendingAdvance,
+      accepting: this.session.accepting,
+    });
     this.$(".theory-notation").hidden = !q;
     this.$(".theory-answers").hidden = !q || !this.identifying;
     this.$(".theory-steps").hidden = !q || this.task !== "build-scale";
@@ -577,7 +608,7 @@ class TheoryPractice implements LivePractice {
         : this.identifying
           ? "Not quite."
           : "Correct — after correction.";
-    this.$(".theory-answers").replaceChildren();
+
     const size =
       s.intervals.length === 1 ? s.intervals[0] : this.selectedInterval;
     const fullAnswers = intervalAnswers(s);
@@ -612,12 +643,8 @@ class TheoryPractice implements LivePractice {
       s.intervals.length > 1
     )
       answers.push(["back", "", "Change interval"]);
-    for (const [value, number, label] of answers) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.dataset.answer = value;
-      b.dataset.number = number;
-      b.textContent = label;
+    const choices: TheoryChoice[] = answers.map(([value, number, label]) => {
+      let shortcut: string | undefined;
       if (
         this.task === "name-quality" &&
         (directFull || size !== undefined) &&
@@ -627,18 +654,12 @@ class TheoryPractice implements LivePractice {
             .length === 1)
       ) {
         const quality = value.split(" ")[0];
-        const shortcut =
+        shortcut =
           quality === "major" ? "M" : quality === "minor" ? "m" : quality[0];
-        b.dataset.key = shortcut;
-        b.title = `Press ${shortcut === "M" ? "Shift + M" : shortcut}`;
-        const key = document.createElement("kbd");
-        key.textContent = shortcut;
-        key.setAttribute("aria-hidden", "true");
-        b.append(" ", key);
       }
-      b.disabled = !this.session.accepting;
-      this.$(".theory-answers").append(b);
-    }
+      return { value, number, label, shortcut };
+    });
+    this.controls.set({ ...this.controls.getSnapshot(), choices });
     this.$(".theory-steps").innerHTML = q.notes
       .map(
         (_, i) =>

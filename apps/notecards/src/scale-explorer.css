@@ -21,59 +21,11 @@
   margin-top: 4px;
   text-align: center;
 }
-.scale-relative button,
-.scale-key-navigation button {
-  min-height: 44px;
-  border: 1px solid #d8d1c5;
-  border-radius: 9px;
-  background: #fffdf8;
-  color: #302d55;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.scale-relative button {
-  padding: 4px 8px;
-  border-color: transparent;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 500;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.scale-relative button:hover,
-.scale-key-navigation button:hover:not(:disabled) {
-  background: #f0edf5;
-}
-.scale-relative button:focus-visible,
-.scale-key-navigation button:focus-visible {
-  outline: 3px solid #a89bc2;
-  outline-offset: 3px;
-}
 .scale-key-navigation {
-  display: grid;
-  grid-template-columns: 60px 1fr 60px;
-  align-items: center;
-  gap: 8px;
   margin: 4px 0 12px;
 }
-.scale-key-navigation[hidden] {
-  display: none;
-}
-.scale-key-navigation button {
-  padding: 6px;
-}
-.scale-key-navigation button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
 .scale-pattern-caption {
-  margin: 0;
-  text-align: center;
-  font-size: 12px;
-  color: #625d70;
-  line-height: 1.5;
+  flex: 1;
 }
 .scale-diagram {
   margin: auto;
@@ -145,15 +97,6 @@
   margin-top: 8px;
   padding-top: 4px;
   font-size: 12px;
-}
-.scale-card .scale-note-list > summary {
-  min-height: 44px;
-  padding: 8px 0;
-  border: 0;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
 }
 .scale-note-list
   :is(

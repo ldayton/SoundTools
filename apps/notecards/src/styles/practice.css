@@ -56,24 +56,13 @@
   border-color: #8b829e;
 }
 .sequence-transport {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
   margin: 12px 0 0;
-}
-.sequence-transport button:first-child:not(.piano-toggle) {
-  background: #ece6f3;
-  color: #504365;
 }
 .flashcard-transport {
   margin: 12px 16px 16px;
 }
 .flashcard-transport :is(#feedback-next, #restart-round) {
   margin: 0;
-}
-.piano-toggle[aria-expanded="true"] {
-  background: #e5def0;
-  border-color: #a99ac1;
 }
 .practice-piano {
   margin-top: 16px;
@@ -113,29 +102,6 @@
   max-height: clamp(220px, calc(100dvh - 500px), 560px);
 }
 
-@media (max-width: 360px) {
-  .sequence-transport button {
-    padding: 10px 8px;
-  }
-}
-
-.piano-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-@media (max-width: 600px) {
-  .sequence-transport {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .sequence-transport button {
-    width: 100%;
-    min-width: 0;
-    white-space: nowrap;
-  }
-}
 .sound-credits {
   display: inline-block;
   margin-top: 16px;
@@ -206,7 +172,7 @@
   background: #ded5eb;
   border-color: #9885b6;
 }
-.rhythm-tap + .sequence-transport {
+.rhythm-tap-slot + .sequence-transport {
   margin-top: 0;
 }
 
@@ -225,19 +191,6 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-}
-.theory-answers button {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 12px;
-  border: 1px solid #d8d1c5;
-  border-radius: 9px;
-  color: #302d55;
-  background: #fffdf8;
-  font-size: 14px;
-}
-.theory-answers button {
-  text-transform: capitalize;
 }
 .theory-explanation,
 .theory-midi-notice {
@@ -289,20 +242,6 @@
   fill: #504365;
   stroke: #504365;
 }
-.theory-answers kbd {
-  text-transform: none;
-  margin-left: 6px;
-  font:
-    11px ui-monospace,
-    monospace;
-  color: #837b94;
-}
-@media (max-width: 760px) {
-  .theory-answers kbd {
-    display: none;
-  }
-}
-
 /* The retained music range picker shares the form's two columns. */
 .practice-options .theory-range {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -311,4 +250,8 @@
 .theory-range label {
   display: block;
   margin-bottom: 6px;
+}
+
+.practice-control-slot {
+  display: contents;
 }

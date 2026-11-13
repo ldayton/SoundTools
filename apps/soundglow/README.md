@@ -703,6 +703,13 @@ that queue, audio falls silent rather than running beyond the passage. Selection
 Loop. Speed and volume controls are also in Playback options. Files reopen paused
 at their saved position.
 
+With a passage selected, **Bookmark selection** opens a name field. Named
+bookmarks appear below the saved files inside **Files** and stay on this device.
+Opening one restores its file, viewing window, selected passage, chart tab and
+playback speed, paused at the passage start with Loop enabled. Removing a
+bookmark keeps its recording; removing a recording also removes its bookmarks.
+Existing local libraries are upgraded without losing recordings or positions.
+
 File inspection decodes requested audio ranges locally and analyses only the
 visible window in a separate worker, with bounded chart data. The overview scans
 decoded packets without retaining the entire recording. Browsers lacking a codec

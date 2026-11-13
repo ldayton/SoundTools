@@ -84,3 +84,11 @@ test('chunked storage rolls back failed imports, preserves duplicates, and prune
  });
  expect(result).toEqual({error:'QuotaExceededError',clean:true,preserved:'original',expired:false,fresh:true});
 });
+test('Play restarts a completed non-looping selection and still resumes an intentional pause',async({page})=>{
+ await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.41325,end:.653271};fileLibrary.seek(fileLibrary.loop.start);document.getElementById('fileLoop').checked=false;});
+ await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.isPaused&&!fileLibrary.wantPlay&&!fileLibrary.playTask);
+ // A media element may quantize currentTime just below the requested endpoint.
+ await page.evaluate(()=>{fileLibrary.media.currentTime=fileLibrary.loop.end-.00001;});
+ await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);expect(await page.evaluate(()=>fileLibrary.playback.initial)).toBe(0);
+ await page.locator('#filePlay').click();await page.evaluate(()=>fileLibrary.seek(fileLibrary.loop.start+.1));await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);expect(await page.evaluate(()=>fileLibrary.playback.initial)).toBeCloseTo(.1,4);await page.locator('#filePlay').click();
+});

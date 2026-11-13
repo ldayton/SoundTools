@@ -5,8 +5,14 @@
   const request = r => new Promise((resolve, reject) => { r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
   class AudioLibraryStore {
     static async open() {
-      const r = indexedDB.open(DB_NAME, 1);
-      r.onupgradeneeded = () => { r.result.createObjectStore('files', { keyPath: 'id' }); r.result.createObjectStore('blobs'); r.result.createObjectStore('preferences'); };
+      const r = indexedDB.open(DB_NAME, 2);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('blobs')) db.createObjectStore('blobs');
+        if (!db.objectStoreNames.contains('preferences')) db.createObjectStore('preferences');
+        if (!db.objectStoreNames.contains('bookmarks')) db.createObjectStore('bookmarks', { keyPath: 'id' }).createIndex('fileId', 'fileId');
+      };
       const db = await request(r);
       db.onversionchange = () => db.close();
       return new AudioLibraryStore(db);
@@ -37,7 +43,23 @@
         await this.transaction(['files','blobs'],tx=>{tx.objectStore('files').add(meta);tx.objectStore('blobs').put({...manifest,complete:true},meta.id);});
       }catch(error){if(staged)await this.remove(meta.id).catch(()=>{});throw error;}
     }
-    remove(id) { return this.transaction(['files','blobs'],tx=>{tx.objectStore('files').delete(id);const blobs=tx.objectStore('blobs');blobs.delete(id);blobs.delete(IDBKeyRange.bound([id,0],[id,Number.MAX_SAFE_INTEGER]));}); }
+    bookmarks() { return this.transaction(['bookmarks'], tx => tx.objectStore('bookmarks').getAll(), 'readonly'); }
+    addBookmark(bookmark) {
+      return this.transaction(['files', 'bookmarks'], tx => {
+        // Check within the same transaction so another tab cannot orphan a bookmark.
+        const file = tx.objectStore('files').get(bookmark.fileId);
+        file.onsuccess = () => { if (file.result) tx.objectStore('bookmarks').add(bookmark); else tx.abort(); };
+      });
+    }
+    removeBookmark(id) { return this.transaction(['bookmarks'], tx => tx.objectStore('bookmarks').delete(id)); }
+    remove(id) {
+      return this.transaction(['files', 'blobs', 'bookmarks'], tx => {
+        tx.objectStore('files').delete(id);
+        const blobs = tx.objectStore('blobs'); blobs.delete(id); blobs.delete(IDBKeyRange.bound([id,0],[id,Number.MAX_SAFE_INTEGER]));
+        const bookmarks = tx.objectStore('bookmarks'), cursor = bookmarks.index('fileId').openKeyCursor(IDBKeyRange.only(id));
+        cursor.onsuccess = () => { if (cursor.result) { bookmarks.delete(cursor.result.primaryKey); cursor.result.continue(); } };
+      });
+    }
     async pruneStaged(){
       const keys=await this.transaction(['blobs'],tx=>tx.objectStore('blobs').getAllKeys(),'readonly');
       for(const key of keys){if(typeof key!=='string')continue;const record=await this.transaction(['blobs'],tx=>tx.objectStore('blobs').get(key),'readonly');if(record?.kind==='chunks'&&!record.complete&&record.createdAt<Date.now()-86400000)await this.remove(key);}
@@ -49,14 +71,24 @@
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   class AudioLibrary {
     constructor(host) {
-      this.desktop = matchMedia('(min-width:761px) and (pointer:fine)'); this.host = host; this.files = []; this.current = null; this.epoch = 0; this.importing = false; this.loop = null; this.viewStart = 0; this.viewSpan = 0; this.drag = null; this.lastSaved = -1; this.pendingSave = Promise.resolve(); this.url = null; this.connected = false; this.loading = false; this.wantPlay = false; this.playTask = null; this.loadAbort = null;
+      this.desktop = matchMedia('(min-width:761px) and (pointer:fine)'); this.host = host; this.files = []; this.bookmarks = []; this.current = null; this.epoch = 0; this.importing = false; this.loop = null; this.viewStart = 0; this.viewSpan = 0; this.drag = null; this.lastSaved = -1; this.pendingSave = Promise.resolve(); this.url = null; this.connected = false; this.loading = false; this.wantPlay = false; this.playTask = null; this.loadAbort = null;
       this.media = document.createElement('audio'); this.media.preload = 'metadata'; this.media.preservesPitch = true; this.reader=new SoundglowFileAudio.FileAudioReader();this.revision=0;
-      this.playback=new SoundglowFileAudio.PassagePlayer(()=>host.context(),this.reader,(position,error)=>{this.wantPlay=false;this.position=position;host.paused(true);if(error)this.message('This passage could not be decoded. Try a different format.');this.draw();this.savePosition(true);});
+      this.playback=new SoundglowFileAudio.PassagePlayer(()=>host.context(),this.reader,(position,error)=>{this.wantPlay=false;this.finishedRange=error?null:{fileId:this.current?.id,start:this.playback.start,end:this.playback.end};this.position=position;host.paused(true);if(error)this.message('This passage could not be decoded. Try a different format.');this.draw();this.savePosition(true);});
       const $ = id => document.getElementById(id); this.$ = $;
       $('audioFileInput').onchange = e => { void this.importFiles([...e.target.files]); e.target.value = ''; };
       $('openAudio').onclick = () => { host.openFiles(); $('audioFileInput').click(); };
       $('importAudio').onclick = () => $('audioFileInput').click();
       $('audioFileList').onclick = e => { const button = e.target.closest('button[data-file]'); if (button) void this.select(button.dataset.file); };
+      $('bookmarkSelection').onclick = () => this.beginBookmark();
+      $('bookmarkForm').onsubmit = e => { e.preventDefault(); void this.saveBookmark(); };
+      $('cancelBookmark').onclick = () => this.cancelBookmark();
+      $('bookmarkName').oninput = () => $('bookmarkName').setCustomValidity('');
+      $('bookmarkForm').onkeydown = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelBookmark(); } };
+      $('audioBookmarkList').onclick = e => {
+        const open = e.target.closest('button[data-bookmark]'), remove = e.target.closest('button[data-remove-bookmark]');
+        if (open) void this.openBookmark(open.dataset.bookmark);
+        if (remove) void this.removeBookmark(remove.dataset.removeBookmark);
+      };
       $('removeAudio').onclick = () => void this.remove();
       $('filePlay').onclick = () => void this.toggle();
       $('fileRestart').onclick = () => this.seek(this.loop?.start || 0);
@@ -98,7 +130,7 @@
     get isPaused(){return !this.playback.active&&this.media.paused;}
     message(text) { this.$('audioLibraryStatus').textContent = text; }
     async initialize() {
-      try { this.store = await AudioLibraryStore.open();await this.store.pruneStaged(); this.files = (await this.store.list()).sort((a, b) => a.addedAt - b.addedAt); this.renderList(); const selected = await this.store.preference(); if (this.files.some(f => f.id === selected) && this.desktop.matches && this.host.canRestore()) await this.select(selected); }
+      try { this.store = await AudioLibraryStore.open();await this.store.pruneStaged(); this.files = (await this.store.list()).sort((a, b) => a.addedAt - b.addedAt); this.bookmarks = (await this.store.bookmarks()).filter(b => this.validBookmark(b)).sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0)); this.renderList(); const selected = await this.store.preference(); if (this.files.some(f => f.id === selected) && this.desktop.matches && this.host.canRestore()) await this.select(selected); }
       catch { window.SoundglowDiagnostics?.event('files.storage_failed'); this.message('Device storage is unavailable. Audio files could not be saved.'); this.$('importAudio').disabled = true; this.$('openAudio').disabled = true; }
     }
     metadata(blob) {
@@ -133,11 +165,68 @@
         const button = document.createElement('button'); button.type = 'button'; button.dataset.file = file.id; button.setAttribute('aria-pressed', String(this.current?.id === file.id));
         const name = document.createElement('span'); name.textContent = file.name; const time = document.createElement('small'); time.textContent = formatTime(file.duration); button.append(name, time); list.append(button);
       }
+      this.renderBookmarks();
       this.$('audioEmpty').hidden = !!this.files.length; this.$('removeAudio').disabled = !this.current;
     }
-    async select(id) {
+    validBookmark(bookmark) {
+      const file = this.files.find(f => f.id === bookmark?.fileId), selection = bookmark?.selection;
+      return !!(file && typeof bookmark.id === 'string' && typeof bookmark.name === 'string' && bookmark.name.trim()
+        && selection && [selection.start, selection.end, bookmark.viewStart, bookmark.viewSpan].every(Number.isFinite)
+        && selection.start >= 0 && selection.end > selection.start && selection.end <= file.duration
+        && bookmark.viewStart >= 0 && bookmark.viewSpan > 0 && bookmark.viewStart + bookmark.viewSpan <= file.duration + 1e-6);
+    }
+    renderBookmarks() {
+      const list = this.$('audioBookmarkList'); list.replaceChildren();
+      this.$('audioBookmarks').hidden = !this.bookmarks.length;
+      for (const bookmark of this.bookmarks) {
+        const file = this.files.find(f => f.id === bookmark.fileId); if (!file) continue;
+        const row = document.createElement('div'); row.className = 'audio-bookmark';
+        const open = document.createElement('button'); open.type = 'button'; open.dataset.bookmark = bookmark.id;
+        const name = document.createElement('span'); name.textContent = bookmark.name;
+        const detail = document.createElement('small'); detail.textContent = `${file.name} · ${formatPreciseTime(bookmark.selection.start)}–${formatPreciseTime(bookmark.selection.end)}`;
+        open.append(name, detail);
+        const remove = document.createElement('button'); remove.type = 'button'; remove.dataset.removeBookmark = bookmark.id;
+        remove.textContent = '×'; remove.setAttribute('aria-label', `Remove bookmark ${bookmark.name}`);
+        row.append(open, remove); list.append(row);
+      }
+    }
+    beginBookmark() {
+      if (!this.current || !this.loop || this.loading) return;
+      this.$('bookmarkName').value = ''; this.$('bookmarkName').setCustomValidity('');
+      this.$('bookmarkForm').hidden = false; this.$('bookmarkSelection').hidden = true; this.$('bookmarkName').focus();
+    }
+    cancelBookmark() {
+      this.$('bookmarkForm').hidden = true; this.$('bookmarkSelection').hidden = !this.loop;
+      if (this.loop) this.$('bookmarkSelection').focus();
+    }
+    async saveBookmark() {
+      if (!this.current || !this.loop || this.loading || this.savingBookmark) return;
+      const name = this.$('bookmarkName').value.trim();
+      if (!name) { this.$('bookmarkName').setCustomValidity('Enter a bookmark name.'); this.$('bookmarkName').reportValidity(); return; }
+      const bookmark = { id: crypto.randomUUID(), fileId: this.current.id, name, selection: {...this.loop},
+        viewStart: this.viewStart, viewSpan: this.viewSpan, feature: this.$('pitchTab').getAttribute('aria-selected') === 'true' ? 'pitch' : 'spectrogram',
+        speed: this.media.playbackRate, addedAt: Date.now() };
+      this.savingBookmark = true; this.$('saveBookmark').disabled = true;
+      try {
+        await this.store.addBookmark(bookmark);
+        if (this.files.some(f => f.id === bookmark.fileId)) { this.bookmarks.push(bookmark); this.renderBookmarks(); }
+        this.cancelBookmark(); this.message('Bookmark saved.');
+      } catch { this.message('Could not save the bookmark. Please retry.'); }
+      finally { this.savingBookmark = false; this.$('saveBookmark').disabled = false; }
+    }
+    async openBookmark(id) {
+      const bookmark = this.bookmarks.find(b => b.id === id);
+      if (!this.desktop.matches || !this.validBookmark(bookmark)) return;
+      await this.select(bookmark.fileId, bookmark);
+    }
+    async removeBookmark(id) {
+      try { await this.store.removeBookmark(id); this.bookmarks = this.bookmarks.filter(b => b.id !== id); this.renderBookmarks(); }
+      catch { this.message('Could not remove the bookmark. Please retry.'); }
+    }
+    async select(id, bookmark = null) {
       if (!this.desktop.matches || !this.store) return;
       const file = this.files.find(f => f.id === id); if (!file) return;
+      this.$('bookmarkForm').hidden = true; this.finishedRange = null;
       const epoch = ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
       this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);
       this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.$('fileTitle').textContent = file.name; this.$('fileLoop').checked = false; this.$('fileLoopEnd').max = this.$('fileLoopStart').max = file.duration;
@@ -152,7 +241,16 @@
           this.media.addEventListener('loadedmetadata', loaded); this.media.addEventListener('error', failed); controller.signal.addEventListener('abort', aborted); this.media.load();
         });
         if (epoch !== this.epoch) return;
-        this.position = clamp(file.position || 0, 0, Math.max(0, file.duration - .01)); this.viewStart=clamp(this.position-this.viewSpan/2,0,file.duration-this.viewSpan); this.loading = false; await this.store.preference(id); this.draw();
+        await this.store.preference(id); if (epoch !== this.epoch) return;
+        this.position = bookmark ? bookmark.selection.start : clamp(file.position || 0, 0, Math.max(0, file.duration - .01));
+        this.viewStart = bookmark ? bookmark.viewStart : clamp(this.position-this.viewSpan/2,0,file.duration-this.viewSpan);
+        if (bookmark) {
+          this.viewSpan = bookmark.viewSpan; this.loop = {...bookmark.selection}; this.$('fileLoop').checked = true;
+          const speed = [0.5,0.75,1,1.25,1.5].includes(bookmark.speed) ? bookmark.speed : 1;
+          this.media.playbackRate = speed; this.$('fileSpeed').value = String(speed);
+          this.$(bookmark.feature === 'pitch' ? 'pitchTab' : 'spectrogramTab').click();
+        }
+        this.loading = false; this.draw();
         if (!this.peaks || this.peaks.length < this.waveformResolution()) void this.waveform(blob, epoch);
       } catch (e) { if (epoch === this.epoch) { this.loading = false; this.message(e.message || 'Could not open the saved recording.'); } }
     }
@@ -181,7 +279,11 @@
         if(!this.connected){await this.host.connect(this.media);if(epoch!==this.epoch)return;this.connected=true;if(!current()){this.host.paused(true);return;}this.$('fileTransport').hidden=false;}
         await this.host.resume();if(!current())return;
         const range=this.loop || {start:0,end:this.current.duration};
-        if(this.position>=range.end||this.position<range.start)this.position=range.start;
+        // Completion is explicit: media.currentTime can round just below the endpoint.
+        const finished = this.finishedRange;
+        if ((finished?.fileId === this.current.id && finished.start === range.start && finished.end === range.end)
+          || this.position >= range.end || this.position < range.start) this.position = range.start;
+        this.finishedRange = null;
         if(this.loop||this.$('fileLoop').checked){
           this.media.pause();await this.playback.play(this.blob,range,this.position,{loop:this.$('fileLoop').checked,rate:this.media.playbackRate,volume:this.media.volume,isCurrent:current});
           if(current())this.host.paused(false);
@@ -193,7 +295,7 @@
     pause(preserveIntent=false){this.revision++;if(!preserveIntent)this.resumeAfterRestart=false;this.wantPlay=false;const position=this.position;this.playback.stop();this.media.pause();if(this.current&&!this.loading)this.position=position;this.host.paused(true);this.draw();}
     async restartPlayback(position=this.position){const resume=this.wantPlay||this.resumeAfterRestart;this.pause(true);this.resumeAfterRestart=resume;const revision=this.revision,epoch=this.epoch;this.position=position;this.host.discontinuity(position);this.draw();if(resume){await this.playTask;if(!this.wantPlay&&this.resumeAfterRestart&&revision===this.revision&&epoch===this.epoch)return this.play();}}
     passageChanged(){if(this.wantPlay||this.resumeAfterRestart)void this.restartPlayback();}
-    seek(time){if(!this.current||this.loading)return;const position=clamp(time,0,this.current.duration);if(this.playback.active||this.playTask){void this.restartPlayback(position);return;}this.position=position;this.host.discontinuity(position);this.draw();this.savePosition(true);}
+    seek(time){if(!this.current||this.loading)return;const position=clamp(time,0,this.current.duration);this.finishedRange=this.loop&&position>=this.loop.end?{fileId:this.current.id,...this.loop}:null;if(this.playback.active||this.playTask){void this.restartPlayback(position);return;}this.position=position;this.host.discontinuity(position);this.draw();this.savePosition(true);}
     savePosition(force = false) {
       if (!this.current || this.loading || !Number.isFinite(this.position)) return;
       const position = this.position; if (!force && Math.abs(position - this.lastSaved) < 2) return;
@@ -205,7 +307,7 @@
       ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
       await this.pendingSave;
       try { await this.store.remove(id); } catch { this.loading = false; this.message('Could not remove the recording. Please retry.'); return; }
-      this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url); this.url = null; this.current = null; this.files = this.files.filter(f => f.id !== id); this.$('fileTransport').hidden = true; this.loading = false; this.renderList(); if (next) await this.select(next.id); else await this.store.preference('');
+      this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url); this.url = null; this.current = null; this.files = this.files.filter(f => f.id !== id); this.bookmarks = this.bookmarks.filter(b => b.fileId !== id); this.$('fileTransport').hidden = true; this.loading = false; this.renderList(); if (next) await this.select(next.id); else await this.store.preference('');
     }
     release() { const position=this.position;this.revision++;this.resumeAfterRestart=false;this.wantPlay = false;this.playback.stop();this.media.pause();if(this.current&&!this.loading)this.position=position; this.savePosition(true); this.connected = false; this.$('fileTransport').hidden = true; }
     zoom(factor) {
@@ -297,6 +399,11 @@
       $('waveformZoomOut').disabled = $('waveformShowAll').disabled = !zoomed;
       $('waveformZoomIn').disabled = span <= Math.min(.001, duration) + 1e-9;
       $('waveformFitSelection').disabled = !this.loop;
+      const hasSelection = !!this.loop && !this.loading;
+      $('fileSelectionControls').classList.toggle('has-selection', hasSelection);
+      $('fileSelectionControls').inert = !hasSelection;
+      if (!this.loop || this.loading) $('bookmarkForm').hidden = true;
+      $('bookmarkSelection').hidden = !this.loop || this.loading || !$('bookmarkForm').hidden;
       const xAt = seconds => (seconds - start) / span * width;
       $('filePlay').textContent = this.wantPlay||this.resumeAfterRestart ? 'Pause' : 'Play'; $('filePlay').setAttribute('aria-label', this.wantPlay||this.resumeAfterRestart ? 'Pause recording' : 'Play recording'); $('filePlay').disabled = this.loading; $('fileTime').textContent = `${formatTime(time)} / ${formatTime(duration)}`;
       $('fileLoopStart').value = (this.loop?.start || 0).toFixed(4); $('fileLoopEnd').value = (this.loop?.end || duration).toFixed(4); $('clearAudioSelection').hidden = !this.loop;

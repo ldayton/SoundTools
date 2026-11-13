@@ -26,9 +26,11 @@ export function setPianoPresentation(visible: boolean, persist = false) {
 export function PracticePianoToggle({
   panelId,
   className = "",
+  disabled = false,
 }: {
   panelId: string;
   className?: string;
+  disabled?: boolean;
 }) {
   const state = useSyncExternalStore(
     pianoPresentation.subscribe,
@@ -37,6 +39,7 @@ export function PracticePianoToggle({
   return (
     <Button
       className={`piano-toggle soundtools-ui ${className}`}
+      disabled={disabled}
       variant={state.visible ? "light" : "default"}
       hidden={!state.available[panelId]}
       aria-label="On-screen piano"

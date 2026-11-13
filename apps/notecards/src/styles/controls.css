@@ -85,11 +85,6 @@
 .note-picker.is-chromatic .note-picker-grid {
   grid-template-columns: 24px repeat(12, minmax(0, 1fr));
 }
-.note-picker-none {
-  min-width: 72px;
-  margin: 0 0 12px;
-  padding: 0 12px;
-}
 .optional-note-label {
   display: flex;
   align-items: center;
@@ -128,5 +123,11 @@
   }
   .optional-note-mobile {
     display: block;
+  }
+}
+
+@media (max-width: 760px) {
+  .practice-options .note-field input {
+    font-size: 16px;
   }
 }

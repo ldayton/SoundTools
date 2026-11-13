@@ -90,6 +90,7 @@ export function HymnControls({
         <PracticePianoToggle
           panelId={panelId}
           className="hymn-keyboard-toggle"
+          disabled={state.disabled}
         />
       </Group>
       <Group

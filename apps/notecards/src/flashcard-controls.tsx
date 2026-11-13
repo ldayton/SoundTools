@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { Button, Group, Stack } from "@mantine/core";
+import { Button, Group, Stack, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
 import { PracticePianoToggle } from "./piano-presentation";
 import type { Letter, Modifier } from "./model";
@@ -43,7 +43,9 @@ export function FlashcardAnswers({
             data-mod={value}
             onClick={() => modify(value)}
           >
-            {value === -1 ? "♭" : value === 1 ? "♯" : "♮"}
+            <Text component="span" fz={24} ff="Georgia, serif">
+              {value === -1 ? "♭" : value === 1 ? "♯" : "♮"}
+            </Text>
           </Button>
         ))}
       </Group>

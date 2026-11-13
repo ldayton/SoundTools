@@ -102,21 +102,21 @@ try {
   console.log("flashcard and hymn reload passed");
   const pausedHymn = await stored();
   const hymnSelected = await page.locator("#hymn-search").inputValue();
-  await practiceOption(
-    page,
-    "#hymn-length",
-    await page.locator("#hymn-length").inputValue(),
-  );
+  await openPracticeOptions(page);
   await page.locator("#hymn-search").fill("Doxology");
-  await page.locator("#hymn-search").press("Enter");
-  assert.equal(await page.locator(".hymn-pause").textContent(), "Pause");
-  await practiceOption(
-    page,
-    "#hymn-length",
-    await page.locator("#hymn-length").inputValue(),
+  await page
+    .getByRole("option", {
+      name: "Praise God From Whom All Blessings Flow",
+      exact: true,
+    })
+    .click();
+  await page.waitForFunction(
+    () => document.querySelector(".hymn-pause")?.textContent === "Pause",
   );
+  assert.equal(await page.locator(".hymn-pause").textContent(), "Pause");
+  await openPracticeOptions(page);
   await page.locator("#hymn-search").fill(hymnSelected);
-  await page.locator("#hymn-search").press("Enter");
+  await page.getByRole("option", { name: hymnSelected, exact: true }).click();
   assert.equal(
     await page.locator(".hymn-pause").textContent(),
     "Resume",
@@ -207,6 +207,8 @@ try {
   const inspect = await context.newPage();
   await inspect.goto(origin);
   await inspect.locator("main:not([inert])").waitFor();
+  // Corrupt the fixture only after unloading the writer; pending saves must not repair it.
+  await inspect.goto(origin + "/icon.svg");
   await inspect.evaluate(
     () =>
       new Promise<void>((resolve, reject) => {
@@ -228,7 +230,7 @@ try {
         };
       }),
   );
-  await inspect.reload();
+  await inspect.goto(origin);
   await inspect.locator("#persistence-notice").waitFor();
   assert.match(
     await inspect.locator("#persistence-notice").innerText(),

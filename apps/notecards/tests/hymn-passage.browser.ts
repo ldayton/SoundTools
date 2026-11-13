@@ -80,9 +80,17 @@ try {
   const note = (i: number) =>
     page.locator(`[data-passage-note="${i}"]`).first();
   const center = async (i: number) => {
-    // A responsive score redraw can replace the note during scrolling.
+    // Resolve after redraw; center in the window so the fixed header cannot cover the target.
     for (let attempt = 0; attempt < 5; attempt++) {
-      await note(i).scrollIntoViewIfNeeded();
+      await note(i).evaluate((element) =>
+        element.scrollIntoView({ block: "center", inline: "nearest" }),
+      );
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          ),
+      );
       const bounds = await note(i).boundingBox();
       if (bounds)
         return {
@@ -95,8 +103,19 @@ try {
   const select = async (a: number, b: number) => {
     const from = await center(a);
     await page.mouse.click(from.x, from.y);
+    await page
+      .getByRole("button", { name: "Cancel selection", exact: true })
+      .waitFor();
+    assert.ok(
+      (await page.locator(".hymn-keyboard-toggle").isHidden()) ||
+        (await page.locator(".hymn-keyboard-toggle").isDisabled()),
+      "selection cannot change piano presentation",
+    );
     const to = await center(b);
     await page.mouse.click(to.x, to.y);
+    await page
+      .getByRole("button", { name: "Clear selection", exact: true })
+      .waitFor();
   };
   await select(1, 2);
   assert.match(

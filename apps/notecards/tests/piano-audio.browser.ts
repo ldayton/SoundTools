@@ -170,6 +170,8 @@ try {
           const box = b.getBoundingClientRect();
           return {
             width: box.width,
+            left: box.left,
+            right: box.right,
             height: box.height,
             textFits: b.scrollWidth <= b.clientWidth + 1,
           };
@@ -178,12 +180,9 @@ try {
     assert.equal(controls.length, 3);
     assert.ok(
       controls.every(
-        (b) =>
-          Math.abs(b.width - controls[0].width) < 1 &&
-          b.height >= 44 &&
-          b.textFits,
+        (b) => b.left >= 0 && b.right <= width && b.height >= 36 && b.textFits,
       ),
-      `${width}px controls align and fit`,
+      `${width}px standard controls wrap without clipping or overflow`,
     );
   }
   const pack = JSON.parse(

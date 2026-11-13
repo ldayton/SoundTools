@@ -102,10 +102,6 @@ progress::-moz-progress-bar {
 .mobile-hint {
   display: none;
 }
-summary {
-  cursor: pointer;
-  color: #655c75;
-}
 /* Save confirmations remain announced without occupying a row on every exercise.
    Save failures are displayed separately in the persistent alert above the page. */
 .saved {
@@ -196,7 +192,6 @@ footer {
     scroll-behavior: auto !important;
   }
 }
-select:focus-visible,
 .note-field input:focus-visible {
   outline: 3px solid #988cc5;
   outline-offset: 3px;

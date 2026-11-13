@@ -47,29 +47,31 @@ try {
   await page.locator('[data-letter="E"]:enabled').waitFor();
   await selectPractice(page, "sight");
   await page.locator(".hymn-paper svg").first().waitFor();
-  const sidebarToggle = page.locator("#sight-reading .options-toggle");
+  const sidebarToggle = page.locator(
+    ".practice-options button[aria-controls=practice-options-content]",
+  );
   assert.equal(
     await sidebarToggle.getAttribute("aria-expanded"),
     "true",
     "options default open",
   );
   const initialTask = (await page.locator(".sequence-practice").boundingBox())!;
-  const initialToggle = (await sidebarToggle.boundingBox())!;
   await closePracticeOptions(page);
   const collapsedTask = (await page
     .locator(".sequence-practice")
     .boundingBox())!;
-  const collapsedToggle = (await sidebarToggle.boundingBox())!;
+  const collapsedToggle = (await page
+    .getByRole("button", { name: "Expand practice options", exact: true })
+    .boundingBox())!;
   assert.equal(
     collapsedTask.y,
     initialTask.y,
     "collapse does not move exercise down",
   );
   assert.ok(
-    Math.abs(collapsedToggle.x - initialToggle.x) < 2,
-    "right toggle stays docked",
+    collapsedToggle.y < collapsedTask.y,
+    "reopen control is in the application header",
   );
-  assert.equal(collapsedToggle.y, initialToggle.y);
   await page
     .getByRole("button", { name: "Collapse navigation", exact: true })
     .click();
@@ -84,7 +86,11 @@ try {
   );
   await openPracticeOptions(page);
 
-  await practiceOption(page, "#hymn-length", "2");
+  assert.equal(
+    await page.locator("#hymn-length").count(),
+    0,
+    "hymns always practise the whole score",
+  );
   await page.waitForFunction(() => {
     const score = document.querySelector<HTMLElement>(".sequence-score")!;
     const paper = document.querySelector<HTMLElement>(".hymn-paper")!;
@@ -92,9 +98,7 @@ try {
       paper.clientHeight > 0 && score.clientHeight <= paper.clientHeight + 2
     );
   });
-  const options = await page
-    .locator(".practice-options")
-    .boundingBox();
+  const options = await page.locator(".practice-options").boundingBox();
   const practice = await page
     .locator("#sight-reading .sequence-practice")
     .boundingBox();
@@ -111,9 +115,8 @@ try {
     .boundingBox();
   assert.ok(
     transport!.y + transport!.height < 1000,
-    "short scores keep transport on screen",
+    "the score viewport keeps transport on screen",
   );
-  await practiceOption(page, "#hymn-length", "0");
   await closePracticeOptions(page);
   assert.ok(
     (await page.locator(".sequence-score").boundingBox())!.y < 340,
@@ -151,19 +154,15 @@ try {
     "mobile options start closed independently of desktop",
   );
   const mobileToggle = (await sidebarToggle.boundingBox())!;
-  const mobilePanel = (await page
-    .locator(".practice-options")
-    .boundingBox())!;
+  const mobilePanel = (await page.locator(".practice-options").boundingBox())!;
   assert.ok(
     Math.abs(mobileToggle.width - mobilePanel.width) < 1,
     "mobile label uses the full row",
   );
-  assert.ok(await sidebarToggle.locator(".options-toggle-label").isVisible());
+  assert.match((await sidebarToggle.textContent())!, /options/i);
   await sidebarToggle.click();
   assert.equal(await sidebarToggle.getAttribute("aria-expanded"), "true");
-  assert.ok(
-    await page.locator(".practice-options-content").isVisible(),
-  );
+  assert.ok(await page.locator(".practice-options-content").isVisible());
   await sidebarToggle.click();
   assert.equal(await sidebarToggle.getAttribute("aria-expanded"), "false");
   assert.equal(
@@ -232,6 +231,7 @@ try {
     keyWidth,
   );
   await selectPractice(page, "piano");
+  await openPracticeOptions(page);
   for (const [field, note] of [
     ["low", "C2"],
     ["high", "B6"],

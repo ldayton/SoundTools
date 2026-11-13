@@ -37,6 +37,6 @@ test("visible membership and musical grading are independent", () => {
     wide = visiblePianoLayout(1440, 60, 83, false, false);
   assert.ok(36 < small.low);
   assert.ok(36 >= wide.low && 36 <= wide.high);
-  assert.ok(acceptsPiano(card, 36, "staff"));
-  assert.ok(!acceptsPiano(card, 60, "staff"));
+  assert.ok(acceptsPiano(card, 36));
+  assert.ok(!acceptsPiano(card, 60));
 });

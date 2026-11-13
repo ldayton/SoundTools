@@ -391,9 +391,6 @@ select {
 .practice-options .hymn-key-field {
   --control-width: 148px;
 }
-.practice-options #piano-prompt-setting {
-  --control-width: 148px;
-}
 .practice-options #name-notes-setting {
   --control-width: 172px;
 }
@@ -512,7 +509,7 @@ select {
 .options-chevron {
   display: none;
 }
-@media (max-width: 760px) {
+@media (max-width: 1119px) {
   .practice-options .options-header h2,
   .options-toggle .options-panel-icon {
     display: none;
@@ -633,4 +630,23 @@ select {
   .optional-note-mobile {
     display: block;
   }
+}
+
+.options-reopen {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #ded9cc;
+  border-radius: 9px;
+  background: #fcfaf5;
+  color: #625d70;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.options-reopen:hover {
+  background: #eee8f4;
 }

@@ -69,7 +69,7 @@
   margin: 0;
   height: 3px;
 }
-.live-workspace:not(#sight-reading) {
+.live-workspace:where(:not(#sight-reading)) {
   max-width: 1000px;
   margin: auto;
 }
@@ -90,7 +90,7 @@
   }
   #flashcards:has(.practice-options.is-collapsed),
   .live-workspace:has(> .practice-options.is-collapsed) {
-    grid-template-columns: minmax(0, 1fr) 52px;
+    grid-template-columns: minmax(0, 1fr);
   }
   #flashcards:has(.practice-options) > .below,
   .live-workspace > .practice-options {
@@ -108,13 +108,33 @@
     margin: 0;
     padding-left: 18px;
     border-left: 1px solid #ded9cc;
-    min-height: calc(100dvh - 160px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: calc(100dvh - 150px);
     position: sticky;
     top: 20px;
   }
   #flashcards .practice-options.is-collapsed,
   .live-workspace > .practice-options.is-collapsed {
-    padding-left: 7px;
+    display: none;
+  }
+  #flashcards:has(.practice-options.is-collapsed) > .below {
+    display: contents;
+  }
+  .practice-options .options-header {
+    flex: 0 0 auto;
+  }
+  .practice-options-content {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    padding-right: 8px;
+  }
+  .live-workspace > .practice-options .options-row > label {
+    width: 100%;
   }
   .live-workspace:has(> .practice-options) > .sequence-practice,
   #flashcards:has(.practice-options) > :is(.below, .practice) {

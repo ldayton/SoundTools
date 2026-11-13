@@ -222,11 +222,11 @@ try {
       "no horizontal overflow",
     );
     assert.ok(
-      (await page.locator(".scale-footnote").boundingBox())!.y < 844,
+      (await page.locator(".scale-note-list summary").boundingBox())!.y < 844,
       "full neck and legend fit",
     );
   }
-  await page.getByText("Notes by string and fret", { exact: true }).click();
+  await page.getByText("Details", { exact: true }).click();
   assert.match(
     await page.locator(".scale-note-list table").innerText(),
     /Open: C♭4/,
@@ -279,7 +279,84 @@ try {
         y: n.querySelector("circle")?.getAttribute("cy"),
       })),
     );
+  await page.setViewportSize({ width: 1680, height: 1050 });
+  await openPracticeOptions(page);
+  const sidebarBounds = (await page
+    .locator(".practice-options:visible")
+    .boundingBox())!;
+  const largeDiagram = (await page
+    .locator(".scale-diagram svg")
+    .boundingBox())!;
+  assert.ok(
+    sidebarBounds.x > 1300 && sidebarBounds.x + sidebarBounds.width >= 1640,
+    "sidebar docks at the right edge",
+  );
+  assert.ok(
+    largeDiagram.height >= 600,
+    "diagram uses the laptop screen height",
+  );
+  assert.ok(
+    (await page.locator(".scale-card").boundingBox())!.y +
+      (await page.locator(".scale-card").boundingBox())!.height <=
+      1050,
+    "diagram and controls fit the laptop screen",
+  );
+  await closePracticeOptions(page);
+  assert.equal(
+    await page.locator("#practice-options-reopen").isVisible(),
+    true,
+  );
+  assert.equal(
+    await page.locator(".practice-options:visible").count(),
+    0,
+    "collapsed sidebar reserves no rail",
+  );
+  assert.equal(
+    await page
+      .locator("#practice-options-reopen")
+      .evaluate((e) => e === document.activeElement),
+    true,
+  );
+  assert.equal(
+    await page
+      .locator(".scale-card")
+      .evaluate(
+        (e) =>
+          getComputedStyle(e.parentElement!).gridTemplateColumns.split(" ")
+            .length,
+      ),
+    1,
+    "practice receives the full grid width",
+  );
+  await openPracticeOptions(page);
+  for (const width of [1000, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await closePracticeOptions(page);
+    assert.equal(
+      await page.locator("#practice-options-reopen").isVisible(),
+      false,
+    );
+    await openPracticeOptions(page);
+    assert.ok(await page.locator("#scale-key").isVisible());
+  }
+  await page.setViewportSize({ width: 1680, height: 1050 });
+  await openPracticeOptions(page);
   const gPattern = await patternSnapshot();
+  assert.equal(await page.locator(".scale-notes").isVisible(), false);
+  assert.equal(await page.locator(".scale-source").isVisible(), false);
+  assert.equal(await page.locator(".scale-footnote").isVisible(), false);
+  assert.equal(await page.locator(".scale-tuning").count(), 6);
+  assert.deepEqual(await page.locator(".scale-fret-number").allTextContents(), [
+    "2",
+    "3",
+    "4",
+    "5",
+  ]);
+  assert.equal(
+    (await page.locator(".scale-legend").textContent())!.trim(),
+    "Root",
+  );
+
   assert.equal(
     await page
       .locator(".scale-root circle")

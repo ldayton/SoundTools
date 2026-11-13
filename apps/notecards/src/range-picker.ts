@@ -133,6 +133,17 @@ export class RangePicker {
       }
     });
     window.addEventListener("resize", () => this.close());
+    window.addEventListener(
+      "scroll",
+      (event) => {
+        if (
+          this.popover.matches(":popover-open") &&
+          !(event.target instanceof Node && this.popover.contains(event.target))
+        )
+          this.position();
+      },
+      true,
+    );
   }
   private noteLabel(index: number) {
     return this.positions[index] || "";
@@ -143,13 +154,39 @@ export class RangePicker {
       return;
     }
     this.popover.showPopover();
+    this.position();
+    const selected = this.popover.querySelector<HTMLButtonElement>(
+      `[data-position="${this.value}"]`,
+    )!;
+    selected.scrollIntoView({ block: "nearest", inline: "nearest" });
+    selected.focus({ preventScroll: true });
+  }
+  private position() {
     const anchor = this.input.parentElement!.getBoundingClientRect();
+    const scrollPanel = this.input.closest(".practice-options-content");
+    const panelBounds = scrollPanel?.getBoundingClientRect();
+    if (
+      anchor.bottom <= 0 ||
+      anchor.top >= innerHeight ||
+      (panelBounds &&
+        (anchor.bottom <= panelBounds.top || anchor.top >= panelBounds.bottom))
+    ) {
+      this.close();
+      return;
+    }
+    const padding = 12,
+      gap = 8;
+    const below = innerHeight - anchor.bottom - gap - padding;
+    const above = anchor.top - gap - padding;
+    const openBelow = below >= 160 || below >= above;
+    this.popover.style.maxHeight = `${Math.max(0, openBelow ? below : above)}px`;
     const box = this.popover.getBoundingClientRect();
-    this.popover.style.left = `${Math.max(12, Math.min(anchor.left, innerWidth - box.width - 12))}px`;
-    this.popover.style.top = `${Math.max(12, Math.min(anchor.bottom + 8, innerHeight - box.height - 12))}px`;
-    this.popover
-      .querySelector<HTMLButtonElement>(`[data-position="${this.value}"]`)!
-      .focus({ preventScroll: true });
+    const left =
+      anchor.left + box.width <= innerWidth - padding
+        ? anchor.left
+        : anchor.right - box.width;
+    this.popover.style.left = `${Math.max(padding, Math.min(left, innerWidth - box.width - padding))}px`;
+    this.popover.style.top = `${openBelow ? anchor.bottom + gap : Math.max(padding, anchor.top - gap - box.height)}px`;
   }
   close() {
     if (this.popover.matches(":popover-open")) this.popover.hidePopover();

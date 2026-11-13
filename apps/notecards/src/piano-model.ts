@@ -8,15 +8,9 @@ export const pitch = (card: Card) =>
   12 * (card.octave + 1) + naturals[card.letter] + card.modifier;
 export const isBlack = (midi: number) => [1, 3, 6, 8, 10].includes(midi % 12);
 export function pianoDeck(profile: Profile): Card[] {
-  return deck(
-    profile.pianoPrompt === "name"
-      ? { ...profile, low: "C4", high: "B4" }
-      : profile,
-    PIANO_POSITIONS,
-  );
+  return deck(profile, PIANO_POSITIONS);
 }
 export function pianoBounds(profile: Profile): [number, number] {
-  if (profile.pianoPrompt === "name") return [60, 71];
   const notes = pianoDeck(profile).map(pitch);
   // Always retain octave landmarks and plausible alternatives, even for a one-note deck.
   const writtenLow = Number(profile.low.slice(1)),
@@ -33,14 +27,8 @@ export function pianoBounds(profile: Profile): [number, number] {
   if (high - low > 24 || low < 48 || high > 84) return [60, 83];
   return [low, high];
 }
-export function acceptsPiano(
-  card: Card,
-  midi: number,
-  prompt: Profile["pianoPrompt"],
-) {
-  return prompt === "name"
-    ? pitch(card) % 12 === midi % 12
-    : pitch(card) === midi;
+export function acceptsPiano(card: Card, midi: number) {
+  return pitch(card) === midi;
 }
 export function keyLabel(midi: number, octave = true) {
   return (

@@ -9,33 +9,31 @@ import {
   pitch,
   isBlack,
 } from "../src/piano-model";
-test("staff defaults span two octaves; names always use one octave", () => {
+test("staff defaults span two octaves and ignore retired name prompts", () => {
   const p = defaultProgress().profiles.piano;
   assert.deepEqual(pianoBounds(p), [60, 83]);
   assert.equal(pianoDeck(p).length, 14);
-  assert.equal(acceptsPiano(pianoDeck(p)[0], 72, "staff"), false);
+  assert.equal(acceptsPiano(pianoDeck(p)[0], 72), false);
   p.pianoPrompt = "name";
-  assert.deepEqual(pianoBounds(p), [60, 71]);
-  assert.equal(pianoDeck(p).length, 7);
-  assert.equal(acceptsPiano(pianoDeck(p)[0], 72, "name"), true);
+  assert.deepEqual(pianoBounds(p), [60, 83]);
+  assert.equal(pianoDeck(p).length, 14);
+  assert.equal(acceptsPiano(pianoDeck(p)[0], 72), false);
 });
 test("every key signature has reachable answers including enharmonic boundary spellings", () => {
-  for (const key of KEYS)
-    for (const prompt of ["staff", "name"] as const) {
-      const p = {
-        ...defaultProgress().profiles.piano,
-        key: key.id,
-        pianoPrompt: prompt,
-      };
-      const [low, high] = pianoBounds(p);
-      assert.ok(!isBlack(low) && !isBlack(high));
-      for (const card of pianoDeck(p)) {
-        const midi = prompt === "name" ? 60 + (pitch(card) % 12) : pitch(card);
-        assert.ok(midi >= low && midi <= high);
-        assert.ok(acceptsPiano(card, midi, prompt));
-        assert.ok(!acceptsPiano(card, midi + 1, prompt));
-      }
+  for (const key of KEYS) {
+    const p = {
+      ...defaultProgress().profiles.piano,
+      key: key.id,
+    };
+    const [low, high] = pianoBounds(p);
+    assert.ok(!isBlack(low) && !isBlack(high));
+    for (const card of pianoDeck(p)) {
+      const midi = pitch(card);
+      assert.ok(midi >= low && midi <= high);
+      assert.ok(acceptsPiano(card, midi));
+      assert.ok(!acceptsPiano(card, midi + 1));
     }
+  }
 });
 test("piano preferences and review statistics survive reload independently of guitar", () => {
   const progress = defaultProgress();
@@ -53,7 +51,9 @@ test("piano preferences and review statistics survive reload independently of gu
     lastSeen: 1,
     due: 0,
   };
-  assert.deepEqual(loadProgress(JSON.stringify(progress)), progress);
+  const expected = structuredClone(progress);
+  delete expected.profiles.piano.pianoPrompt;
+  assert.deepEqual(loadProgress(JSON.stringify(progress)), expected);
   const bad = structuredClone(progress);
   bad.profiles.piano.low = "C1";
   assert.equal(loadProgress(JSON.stringify(bad)).profiles.piano.low, "C4");
@@ -77,7 +77,6 @@ test("C2–B6 practice persists and grades exact MIDI pitches with a compact key
   Object.assign(progress.profiles.piano, {
     low: "C2",
     high: "B6",
-    pianoPrompt: "staff",
   });
   const p = progress.profiles.piano;
   const cards = pianoDeck(p);
@@ -86,8 +85,8 @@ test("C2–B6 practice persists and grades exact MIDI pitches with a compact key
   assert.equal(pitch(cards.at(-1)!), 95);
   assert.deepEqual(pianoBounds(p), [60, 83]);
   for (const card of cards) {
-    assert.ok(acceptsPiano(card, pitch(card), "staff"));
-    assert.ok(!acceptsPiano(card, pitch(card) + 12, "staff"));
+    assert.ok(acceptsPiano(card, pitch(card)));
+    assert.ok(!acceptsPiano(card, pitch(card) + 12));
   }
   for (const card of [cards[0], cards.at(-1)!])
     progress.stats["piano-staff:" + card.id] = {

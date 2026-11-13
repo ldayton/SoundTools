@@ -53,9 +53,9 @@ test("octave signs change the written note, never grading or sounding identity",
         assert.equal(pitch(marked.written) + marked.octaveShift, pitch(c));
         assert.equal(ordinary.octaveShift, 0);
         assert.deepEqual(ordinary.written, c);
-        assert.ok(acceptsPiano(c, pitch(c), "staff"));
+        assert.ok(acceptsPiano(c, pitch(c)));
         if (marked.octaveShift)
-          assert.ok(!acceptsPiano(c, pitch(marked.written), "staff"));
+          assert.ok(!acceptsPiano(c, pitch(marked.written)));
         assert.equal(
           pianoNotation(c, { ...p, octavePractice: "off" }, () => 0)
             .octaveShift,

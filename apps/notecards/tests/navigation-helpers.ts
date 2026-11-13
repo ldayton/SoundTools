@@ -76,26 +76,26 @@ async function optionsLayoutReady(page: Page) {
       ...document.querySelectorAll<HTMLElement>(
         "#exercise-content .practice-options",
       ),
-    ].find((p) => p.getBoundingClientRect().width > 0);
+    ].find((p) => !p.closest("[hidden]"));
     return (
       visible?.dataset.layout ===
-      (matchMedia("(max-width:760px)").matches ? "mobile" : "desktop")
+      (matchMedia("(max-width:1119px)").matches ? "mobile" : "desktop")
     );
   });
 }
 export async function openPracticeOptions(page: Page) {
   await optionsLayoutReady(page);
-  const button = page.locator(
-    "#exercise-content .practice-options:visible .options-toggle",
-  );
+  const button = page.getByRole("button", {
+    name: /^(Expand|Collapse) practice options$/,
+  });
   if ((await button.getAttribute("aria-expanded")) !== "true")
     await button.click();
 }
 export async function closePracticeOptions(page: Page) {
   await optionsLayoutReady(page);
-  const button = page.locator(
-    "#exercise-content .practice-options:visible .options-toggle",
-  );
+  const button = page.getByRole("button", {
+    name: /^(Expand|Collapse) practice options$/,
+  });
   if ((await button.getAttribute("aria-expanded")) === "true")
     await button.click();
 }

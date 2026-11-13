@@ -19,9 +19,7 @@ export class FlashcardSessions {
     checkpoint?: unknown,
     rejected?: (checkpoint: unknown) => void,
   ) {
-    const prefix =
-      (mode === "piano" ? "piano-" + (profile.pianoPrompt || "staff") : mode) +
-      ":";
+    const prefix = (mode === "piano" ? "piano-staff" : mode) + ":";
     const saved = checkpoint as
       { version?: number; settings?: string; session?: unknown } | undefined;
     const restored =

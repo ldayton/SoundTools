@@ -34,7 +34,7 @@ test("invalid URL fields retain remembered settings; valid overrides do not touc
   assert.equal(merged.key, "G");
   assert.equal(merged.low, "D4");
   assert.equal(merged.staffLayout, "grand");
-  assert.equal(merged.pianoPrompt, "name");
+  assert.equal(merged.pianoPrompt, undefined);
   assert.equal(base.pianoPrompt, undefined);
   assert.equal(
     profileFromQuery("piano", base, new URLSearchParams("low=B6&high=C2")).low,

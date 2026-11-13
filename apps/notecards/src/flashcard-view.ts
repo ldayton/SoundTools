@@ -7,7 +7,6 @@ export function mountFlashcardView(element: HTMLElement, roundLength: number) {
 <label id="signature-practice-setting" hidden>Keys<select id="signaturePractice"><option value="major">Major only</option><option value="minor">Minor only</option><option value="both">Major & minor</option></select></label>
 <label id="signature-limit-setting" hidden>Maximum sharps / flats<select id="signatureMaxAccidentals">${Array.from({ length: 8 }, (_, n) => `<option value="${n}">${n === 0 ? "None" : `Up to ${n}`}</option>`).join("")}</select></label>
 <label id="signature-accidentals-setting" hidden>Include<select id="signatureAccidentals"><option value="both">Sharps & flats</option><option value="sharps">Sharps only</option><option value="flats">Flats only</option></select></label>
-<label id="piano-prompt-setting" hidden>Show<select id="pianoPrompt"><option value="staff">Staff</option><option value="name">Note name</option></select></label>
 <label id="name-notes-setting" hidden>Notes<select id="nameNotes"><option value="all">All notes</option><option value="naturals">Naturals</option></select></label>
 </div>
 <div id="piano-notation-options" hidden><div class="options-row">

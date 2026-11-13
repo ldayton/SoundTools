@@ -232,7 +232,6 @@ try {
     keyWidth,
   );
   await selectPractice(page, "piano");
-  await practiceOption(page, "#pianoPrompt", "staff");
   for (const [field, note] of [
     ["low", "C2"],
     ["high", "B6"],

@@ -1,9 +1,29 @@
-const mobile = window.matchMedia("(max-width: 760px)");
+const mobile = window.matchMedia("(max-width: 1119px)");
 let mobileCollapsed = true;
 let desktopCollapsed = false;
 const panels = new Set<HTMLElement>();
 const panelIcon = `<svg class="options-panel-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16m-6-11 3 3-3 3"/></svg>`;
 
+export function refreshPracticeOptions() {
+  const toolbar = document.querySelector<HTMLButtonElement>(
+    "#practice-options-reopen",
+  );
+  if (!toolbar) return;
+  const current = [...panels].find((panel) => !panel.closest("[hidden]"));
+  toolbar.hidden = mobile.matches || !current || !desktopCollapsed;
+  if (current)
+    toolbar.setAttribute(
+      "aria-controls",
+      current.querySelector(".practice-options-content")!.id,
+    );
+  toolbar.onclick = () => {
+    desktopCollapsed = false;
+    render();
+    current
+      ?.querySelector<HTMLButtonElement>(".options-toggle")!
+      .focus({ preventScroll: true });
+  };
+}
 function render() {
   const collapsed = mobile.matches ? mobileCollapsed : desktopCollapsed;
   for (const item of panels) {
@@ -19,6 +39,7 @@ function render() {
     item.querySelector<HTMLElement>(".practice-options-content")!.hidden =
       collapsed;
   }
+  refreshPracticeOptions();
 }
 
 mobile.addEventListener("change", render);
@@ -42,9 +63,13 @@ export function mountPracticeOptions(
     if (mobile.matches) mobileCollapsed = !mobileCollapsed;
     else desktopCollapsed = !desktopCollapsed;
     render();
+    if (!mobile.matches && desktopCollapsed)
+      document
+        .querySelector<HTMLButtonElement>("#practice-options-reopen")!
+        .focus({ preventScroll: true });
   };
-  render();
   element.prepend(panel);
+  render();
   element
     .querySelectorAll("details")
     .forEach((e) => e.classList.add("disclosure"));

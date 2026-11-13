@@ -58,12 +58,8 @@ export function mergeProfile(
   if (typeof source.key === "string" && KEYS.some((k) => k.id === source.key))
     result.key = source.key;
   if (mode === "piano") {
-    if (source.pianoPrompt !== undefined)
-      result.pianoPrompt = choice(
-        source.pianoPrompt,
-        ["staff", "name"],
-        base.pianoPrompt || "staff",
-      );
+    // Retired name prompts in saved profiles and old links now use staff practice.
+    delete result.pianoPrompt;
     result.staffLayout = choice(
       source.staffLayout,
       ["treble", "bass", "grand"],
@@ -149,7 +145,6 @@ export function profileFromQuery(
     key: "key",
     low: "low",
     high: "high",
-    show: "pianoPrompt",
     clef: "staffLayout",
   };
   const overrides: Record<string, unknown> = {};

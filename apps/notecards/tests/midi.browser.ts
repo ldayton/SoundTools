@@ -113,9 +113,9 @@ try {
   await off(60);
   await ready();
   await openPracticeOptions(page);
-  await practiceOption(page, "#pianoPrompt", "name");
-  await on(48); // C in any octave answers a letter prompt.
-  assert.equal(await page.locator("#feedback").textContent(), "Yes — C");
+  await practiceOption(page, "#roundLength", "12");
+  await on(48); // Wrong octaves are rejected in staff-only practice.
+  assert.match((await page.locator("#feedback").textContent())!, /That’s C4/);
   assert.ok(
     await page
       .locator('[data-piano="60"]')
@@ -153,7 +153,7 @@ try {
   await on(62, "replugged");
   assert.equal(await page.locator("#progress").getAttribute("value"), "1");
   await on(62, "second");
-  assert.equal(await page.locator("#feedback").textContent(), "Yes — D");
+  assert.equal(await page.locator("#feedback").textContent(), "Yes — D4");
   await off(62, "second");
   await ready();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -175,10 +175,7 @@ try {
   assert.ok(await page.locator("#midi-panel").isHidden());
   await selectPractice(page, "piano");
   // Navigation now resumes the saved round; deliberately start a fresh one for the following checks.
-  if (!(await page.locator("#pianoPrompt").isVisible()))
-    await openPracticeOptions(page);
-  await practiceOption(page, "#pianoPrompt", "staff");
-  await practiceOption(page, "#pianoPrompt", "name");
+  await practiceOption(page, "#roundLength", "12");
   await midiAction(page, "Disconnect");
   await on(60, "second");
   assert.equal(await page.locator("#progress").getAttribute("value"), "0");
@@ -206,13 +203,16 @@ try {
   // Complete a whole round using only physical-note messages.
   for (let i = 0; i < 12; i++) {
     await ready();
-    const letter = (await page.locator("#target-name").textContent())!;
-    const note = (
-      { C: 60, D: 62, E: 64, F: 65, G: 67, A: 69, B: 71 } as Record<
-        string,
-        number
-      >
-    )[letter];
+    const staff = page.locator("#notation svg[data-written]").first();
+    const written = (await staff.getAttribute("data-written"))!;
+    const octave =
+      Number(written.slice(1)) +
+      Number(await staff.getAttribute("data-octave-shift"));
+    const note =
+      (octave + 1) * 12 +
+      ({ C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 } as Record<string, number>)[
+        written[0]
+      ];
     await on(note, "replugged");
     await off(note, "replugged");
   }
@@ -248,7 +248,7 @@ try {
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
     .waitFor({ state: "attached" });
   await on(60);
-  assert.equal(await page.locator("#feedback").textContent(), "Yes — C");
+  assert.equal(await page.locator("#feedback").textContent(), "Yes — C4");
   await context.setOffline(false);
   const unsupported = await browser.newContext();
   await unsupported.addInitScript(() =>
@@ -277,7 +277,6 @@ try {
   await page.bringToFront();
   await off(60);
   await openPracticeOptions(page);
-  await practiceOption(page, "#pianoPrompt", "staff");
   const chooseRange = async (field: string, note: string) => {
     await page.locator(`#${field}-spin`).click();
     await page

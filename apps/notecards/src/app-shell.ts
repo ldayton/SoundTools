@@ -1,3 +1,4 @@
+import { refreshPracticeOptions } from "./practice-controls";
 import { getPianoVolume, setPianoVolume, pianoCreditsUrl } from "./piano-audio";
 import {
   LIVE_EXERCISES,
@@ -21,7 +22,7 @@ export function mountAppShell(
     element.querySelector<T>(selector)!;
   element.innerHTML =
     navigationHTML() +
-    `<div class="app-body"><header class="app-topbar"><button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="practice-navigation">${icon("menu")}</button><div class="page-heading"><p id="page-area"></p><h1 id="page-title" tabindex="-1"></h1></div><details class="keyboard-menu"><summary>${icon("keyboard")}<span>Keyboard</span><i class="midi-indicator" aria-hidden="true"></i></summary><div class="keyboard-popover"><div id="midi-panel"></div></div></details></header>
+    `<div class="app-body"><header class="app-topbar"><button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="practice-navigation">${icon("menu")}</button><div class="page-heading"><p id="page-area"></p><h1 id="page-title" tabindex="-1"></h1></div><button id="practice-options-reopen" class="options-reopen" type="button" aria-label="Expand practice options" aria-expanded="false" hidden>Options</button><details class="keyboard-menu"><summary>${icon("keyboard")}<span>Keyboard</span><i class="midi-indicator" aria-hidden="true"></i></summary><div class="keyboard-popover"><div id="midi-panel"></div></div></details></header>
 <p id="persistence-notice" role="alert" hidden></p><main id="practice-content" tabindex="-1"><section class="route-missing" hidden><h2>Page not found</h2><p>Choose an exercise from the navigation to keep practising.</p><a href="/piano/keys" data-mode="piano">Find piano keys →</a></section><p id="saved" class="saved" role="status">Opening saved practice…</p><div id="exercise-content">
 ${LIVE_EXERCISES.map((e) => `<div id="${e.rootId}" class="live-workspace" hidden></div>`).join("")}<div id="flashcards"></div></div><section class="settings-page" hidden aria-label="App settings"><section class="offline-section" aria-label="Offline use"><h2>Take it with you</h2><p id="offline-status" role="status">Saving for offline use…</p><div class="offline-actions"><button id="offline-retry" type="button" hidden>Retry offline setup</button><button id="offline-update" type="button" hidden>Update available</button></div></section><section class="sound-settings"><h2>Sound</h2><label for="piano-volume">Piano volume <output id="piano-volume-value" for="piano-volume">100</output></label><input id="piano-volume" type="range" min="0" max="100" step="1" value="100"></section><section class="privacy-settings"><h2>Privacy</h2></section><a class="sound-credits" href="${pianoCreditsUrl}" target="_blank" rel="noopener noreferrer">Piano recording credits</a></section></main></div>`;
   const volume = $<HTMLInputElement>("#piano-volume");
@@ -216,6 +217,7 @@ ${LIVE_EXERCISES.map((e) => `<div id="${e.rootId}" class="live-workspace" hidden
       $("#exercise-content").hidden =
         route.kind === "not-found" || !!(route.kind === "settings");
       $(".settings-page").hidden = !(route.kind === "settings");
+      refreshPracticeOptions();
       if (route.kind === "settings") {
         volume.value = String(getPianoVolume());
         volumeValue.textContent = volume.value;

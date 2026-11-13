@@ -190,18 +190,15 @@ function refreshMidiAcceptance() {
 }
 function refreshPianoRange() {
   if (progress.mode !== "piano") return;
-  const named = profile().pianoPrompt === "name";
   const [low, high] = piano.visibleBounds;
   const outside =
     isPianoVisible() &&
-    !named &&
     pianoDeck(profile()).some((card) => !piano.contains(pitch(card)));
   $("#piano-range-notice").hidden = !outside;
   $("#piano-range-notice").textContent =
     `On-screen keys: ${keyLabel(low)}–${keyLabel(high)}. Notes outside these keys require MIDI keyboard input.`;
   const required =
     isPianoVisible() &&
-    !named &&
     !!session?.current &&
     !piano.contains(pitch(session.current));
   piano.setUnavailable(phase !== "question" || required);
@@ -273,9 +270,7 @@ function syncOptions() {
     p.signatureAccidentals || "both";
   $<HTMLSelectElement>("#signaturePractice").value =
     p.signaturePractice || "major";
-  $("#piano-prompt-setting").hidden = !isPiano;
-  $<HTMLSelectElement>("#pianoPrompt").value = p.pianoPrompt || "staff";
-  $("#piano-notation-options").hidden = !isPiano || p.pianoPrompt === "name";
+  $("#piano-notation-options").hidden = !isPiano;
   $<HTMLSelectElement>("#staffLayout").value = p.staffLayout || "grand";
   $<HTMLSelectElement>("#overlapPractice").value =
     p.overlapPractice || "standard";
@@ -283,7 +278,7 @@ function syncOptions() {
   $("#overlap-setting").hidden = p.staffLayout !== "grand";
   $(".notation-help").hidden = p.octavePractice !== "practice";
   $("#pitch-range").hidden = progress.mode !== "staff";
-  $("#piano-range").hidden = !isPiano || p.pianoPrompt === "name";
+  $("#piano-range").hidden = !isPiano;
   rangePickers.forEach(({ picker, prefix, field }) => {
     picker.close();
     if (prefix ? progress.mode === "staff" : isPiano) picker.setValue(p[field]);
@@ -333,10 +328,9 @@ function renderQuestion(card: Card | GuitarCard) {
     isSignature = mode === "signature",
     location = isLocationMode(mode),
     notation =
-      ["staff", "staff-find", "tab", "signature"].includes(mode) ||
-      (isPiano && profile().pianoPrompt !== "name");
+      ["staff", "staff-find", "tab", "signature"].includes(mode) || isPiano;
   $("#notation").hidden = !notation;
-  $("#named-note").hidden = mode !== "find" && !(isPiano && !notation);
+  $("#named-note").hidden = mode !== "find";
   $("#string-prompt").hidden = mode !== "staff-find";
   $("#fretboard").hidden =
     mode === "staff" || mode === "tab" || isPiano || isSignature;
@@ -400,9 +394,8 @@ function renderQuestion(card: Card | GuitarCard) {
     );
   }
   if (isPiano) {
-    const named = profile().pianoPrompt === "name";
     const [low, high] = pianoBounds(profile());
-    piano.show(low, high, named);
+    piano.show(low, high, false);
     refreshPianoRange();
     $("#target-name").textContent = name(card);
     $("#target-string").textContent = "";
@@ -571,16 +564,14 @@ function answerPiano(midi: number) {
   if (phase !== "question" || progress.mode !== "piano" || !session.current)
     return;
   const card = session.current;
-  const named = profile().pianoPrompt === "name";
-  const correct = acceptsPiano(card, midi, profile().pianoPrompt);
-  const correctMidi = named ? 60 + (pitch(card) % 12) : pitch(card);
-  piano.feedback(named ? 60 + (midi % 12) : midi, correctMidi);
-  const target = name(card) + (named ? "" : card.octave);
+  const correct = acceptsPiano(card, midi);
+  piano.feedback(midi, pitch(card));
+  const target = name(card) + card.octave;
   feedback(
     correct,
     correct
       ? `Yes — ${target}`
-      : `That’s ${target}. You chose ${keyLabel(midi, !named)}.`,
+      : `That’s ${target}. You chose ${keyLabel(midi)}.`,
   );
 }
 function start(continuing = false, restoring = false, restart = false) {
@@ -721,11 +712,6 @@ $<HTMLSelectElement>("#signatureAccidentals").onchange = (e) => {
     "both" | "sharps" | "flats";
   changed();
 };
-$<HTMLSelectElement>("#pianoPrompt").onchange = (e) => {
-  profile().pianoPrompt = (e.target as HTMLSelectElement).value as
-    "staff" | "name";
-  changed();
-};
 for (const field of [
   "staffLayout",
   "overlapPractice",
@@ -853,7 +839,6 @@ function writePreferences() {
       key: p.key,
       low: p.low,
       high: p.high,
-      show: p.pianoPrompt || "staff",
       clef: p.staffLayout || "grand",
     }))
       url.searchParams.set(param, value);

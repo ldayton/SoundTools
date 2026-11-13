@@ -84,15 +84,13 @@ try {
   );
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
   await openPracticeOptions(page);
-  await practiceOption(page, "#pianoPrompt", "name");
-  assert.equal(await page.locator(".piano-key").count(), 12);
-  assert.equal(await page.locator("#target-name").textContent(), "C");
-  assert.ok(await page.locator("#notation").isHidden());
-  assert.ok(await page.locator("#pitch-range").isHidden());
+  assert.equal(await page.locator("#pianoPrompt").count(), 0);
+  assert.ok(await page.locator("#notation").isVisible());
+  assert.ok(await page.locator("#named-note").isHidden());
   await page.evaluate(() => (Math.random = () => 0.999999));
   await practiceOption(page, "#key", "Bb");
   assert.equal(await page.locator("#target-name").textContent(), "B♭");
-  await key(70).click(); // The same physical key answers A-sharp and B-flat.
+  await key(82).click(); // The same physical key answers A-sharp and B-flat.
   assert.match((await page.locator("#feedback").textContent())!, /Yes — B♭/);
   await ready();
   assert.equal(
@@ -101,14 +99,35 @@ try {
   );
   await page.evaluate(() => (Math.random = () => 0));
   const saved = await savedProgress(page);
-  assert.equal(saved.profiles.piano.pianoPrompt, "name");
+  assert.equal(saved.profiles.piano.pianoPrompt, undefined);
   await page.reload();
   await ready();
-  assert.equal(await page.locator("#pianoPrompt").inputValue(), "name");
+  assert.equal(await page.locator("#pianoPrompt").count(), 0);
+  assert.ok(await page.locator("#notation").isVisible());
   assert.equal(await page.locator("#key").inputValue(), "Bb");
   await openPracticeOptions(page);
-  await practiceOption(page, "#pianoPrompt", "staff");
   await page.locator("#low-spin").click();
+  const placement = await page.locator("#low-spin-picker").evaluate((e) => ({
+    picker: e.getBoundingClientRect().toJSON(),
+    anchor: document
+      .querySelector("#low-spin")!
+      .parentElement!.getBoundingClientRect()
+      .toJSON(),
+    viewport: innerHeight,
+  }));
+  assert.ok(
+    Math.abs(placement.picker.y - placement.anchor.bottom - 8) < 1,
+    "note picker anchors below the field",
+  );
+  assert.ok(
+    placement.picker.bottom <= placement.viewport - 11,
+    "picker scrolls to fit the viewport",
+  );
+  assert.ok(
+    Math.abs(placement.picker.right - placement.anchor.right) < 1,
+    "right-edge picker aligns to its field",
+  );
+
   await page
     .locator("#low-spin-picker")
     .getByRole("button", { name: "B5", exact: true })
@@ -122,7 +141,7 @@ try {
   await key(82).click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — B♭5/);
   await ready();
-  // Staff and name profiles do not share review history.
+  // Staff grading retains exact-octave review history.
   assert.ok((await savedProgress(page)).stats["piano-staff:B5:-1"]);
   await page.locator("#low-spin").click();
   await page
@@ -136,12 +155,12 @@ try {
     path: `../../work/piano-desktop-${engine}.png`,
     fullPage: true,
   });
-  assert.equal(
-    await page
-      .locator(".white-key")
-      .first()
-      .evaluate((e) => e.getBoundingClientRect().width),
-    32,
+  // Collapsing the sidebar schedules a keyboard reflow; inspect the current
+  // DOM after that resize rather than a key detached during replacement.
+  await page.waitForFunction(
+    () =>
+      document.querySelector(".white-key")?.getBoundingClientRect().width ===
+      32,
   );
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });

@@ -42,12 +42,11 @@ try {
   await practiceOption(page, "#staffLayout", "bass");
   assert.ok(await page.locator("#overlap-setting").isHidden());
   await practiceOption(page, "#octavePractice", "practice");
-  await practiceOption(page, "#pianoPrompt", "name");
-  assert.ok(await page.locator("#piano-notation-options").isHidden());
+  assert.equal(await page.locator("#pianoPrompt").count(), 0);
+  assert.ok(await page.locator("#piano-notation-options").isVisible());
   await page.reload();
   await openPracticeOptions(page);
-  assert.equal(await page.locator("#pianoPrompt").inputValue(), "name");
-  await practiceOption(page, "#pianoPrompt", "staff");
+  assert.equal(await page.locator("#pianoPrompt").count(), 0);
   assert.equal(await page.locator("#staffLayout").inputValue(), "bass");
   assert.equal(await page.locator("#octavePractice").inputValue(), "practice");
   await closePracticeOptions(page);

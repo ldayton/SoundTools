@@ -331,6 +331,10 @@ try {
     assert.equal(await page.locator('.scale-tone[data-fret="0"]').count(), 0);
   }
   await practiceOption(page, "#scale-dot-labels", "notes");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
   await page.reload();
   await page.locator(".scale-tone").first().waitFor();
   assert.equal(await page.locator("#scale-dot-labels").inputValue(), "notes");

@@ -1,5 +1,10 @@
+import { createElement } from "react";
 import {
-  SCALE_SHAPES,
+  ScaleOptions,
+  scaleOptionsState,
+  type ScaleOptionsState,
+} from "./scale-options";
+import {
   patternBounds,
   patternShift,
   patternPositions,
@@ -62,6 +67,7 @@ export class ScaleExplorer implements LivePractice {
     }
     return true;
   }
+  private options!: ScaleOptionsState;
   private pattern: ScalePattern = "1";
   private shift = 0;
   private returnPosition?: GuitarScaleSettings["returnPosition"];
@@ -86,22 +92,31 @@ export class ScaleExplorer implements LivePractice {
     this.shift = settings.shift || 0;
     this.labels = settings.labels || "fingers";
     this.returnPosition = settings.returnPosition;
-    element.innerHTML = `<div class="scale-controls options-row"><label>Key<select id="scale-key" aria-label="Scale key"></select></label><label>Scale<select id="scale-quality" aria-label="Scale type"><option value="major">Major</option><option value="minor">Natural minor</option></select></label><label>Pattern<select id="scale-pattern"><option value="map">Open-position map</option>${SCALE_SHAPES.map((shape) => `<option value="${shape}">Shape ${shape}</option>`).join("")}</select></label><label>Dots<select id="scale-dot-labels"><option value="fingers">Finger numbers</option><option value="notes">Note names</option></select></label></div>
-      <section class="scale-card sequence-practice" aria-labelledby="scale-title"><div class="scale-heading"><h2 id="scale-title"></h2><div class="scale-relative"><button type="button" class="scale-relative-switch"></button></div></div>
+    element.innerHTML = `<section class="scale-card sequence-practice" aria-labelledby="scale-title"><div class="scale-heading"><h2 id="scale-title"></h2><div class="scale-relative"><button type="button" class="scale-relative-switch"></button></div></div>
       <div class="scale-key-navigation"><button type="button" class="scale-prev" aria-label="Previous key"></button><p class="scale-pattern-caption" role="status"></p><button type="button" class="scale-next" aria-label="Next key"></button></div>
       <div class="scale-diagram"></div><p class="scale-legend"><span class="scale-root-swatch" aria-hidden="true"></span> Root</p>
       <details class="scale-note-list"><summary>Details</summary><p class="scale-notes"></p><p class="scale-help">Standard tuning · high E at the top, low E at the bottom.</p><p class="scale-footnote">1 index · 2 middle · 3 ring · 4 little finger</p><p class="scale-optional-legend">Gray notes can also be played on the next open string.</p><p class="scale-relative-explanation"></p><div></div><p class="scale-source">Shapes and fingerings: <a href="https://guitarscale.org/c-major.html" target="_blank" rel="noopener noreferrer">GuitarScale.org</a></p></details></section>`;
-    mountPracticeOptions(element, [
-      element.querySelector<HTMLElement>(".scale-controls")!,
-    ]);
-    this.element.querySelector<HTMLSelectElement>("#scale-pattern")!.onchange =
-      (event) => {
-        this.pattern = (event.target as HTMLSelectElement)
-          .value as ScalePattern;
-        this.returnPosition = undefined;
-        this.shift = NaN;
-        this.update();
-      };
+    this.options = scaleOptionsState(this.optionsSnapshot());
+    mountPracticeOptions(
+      element,
+      [],
+      createElement(ScaleOptions, {
+        model: this.options,
+        change: (patch) => {
+          const next = mergeGuitarScaleSettings(patch, this.optionsSnapshot());
+          this.tonic = next.tonic;
+          this.quality = next.quality;
+          this.pattern = next.pattern!;
+          this.labels = next.labels!;
+          if (patch.labels === undefined) {
+            this.returnPosition = undefined;
+            this.shift = NaN;
+            this.spelling = undefined;
+          }
+          this.update();
+        },
+      }),
+    );
     for (const direction of [-1, 1]) {
       this.element.querySelector<HTMLButtonElement>(
         direction < 0 ? ".scale-prev" : ".scale-next",
@@ -117,27 +132,6 @@ export class ScaleExplorer implements LivePractice {
         this.update();
       };
     }
-    this.element.querySelector<HTMLSelectElement>(
-      "#scale-dot-labels",
-    )!.onchange = (event) => {
-      this.labels = (event.target as HTMLSelectElement).value as
-        "fingers" | "notes";
-      this.update();
-    };
-    this.key.onchange = () => {
-      this.returnPosition = undefined;
-      this.tonic = Number(this.key.value);
-      this.shift = NaN;
-      this.spelling = undefined;
-      this.update();
-    };
-    this.type.onchange = () => {
-      this.returnPosition = undefined;
-      this.quality = this.type.value as ScaleQuality;
-      this.shift = NaN;
-      this.spelling = undefined;
-      this.update();
-    };
     this.element.querySelector<HTMLButtonElement>(
       ".scale-relative-switch",
     )!.onclick = () => {
@@ -167,11 +161,14 @@ export class ScaleExplorer implements LivePractice {
     else url.searchParams.delete("position");
     history.replaceState(history.state, "", url);
   }
-  private get key() {
-    return this.element.querySelector<HTMLSelectElement>("#scale-key")!;
-  }
-  private get type() {
-    return this.element.querySelector<HTMLSelectElement>("#scale-quality")!;
+  private optionsSnapshot() {
+    return {
+      tonic: this.tonic,
+      quality: this.quality,
+      spelling: this.spelling,
+      pattern: this.pattern,
+      labels: this.labels,
+    };
   }
   private update() {
     this.normalizePosition();
@@ -202,16 +199,7 @@ export class ScaleExplorer implements LivePractice {
   }
   private render() {
     this.normalizePosition();
-    this.element.querySelector<HTMLSelectElement>("#scale-pattern")!.value =
-      this.pattern;
-    this.key.innerHTML = SCALE_TONICS[this.quality]
-      .map(
-        (name, i) =>
-          `<option value="${i}">${scaleLabel(i === this.tonic && this.spelling ? this.spelling : name)}</option>`,
-      )
-      .join("");
-    this.key.value = String(this.tonic);
-    this.type.value = this.quality;
+    this.options.set(this.optionsSnapshot());
     const title = `${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality === "major" ? "major" : "natural minor"}`;
     this.element.querySelector("#scale-title")!.textContent = title;
     this.element.querySelector(".scale-notes")!.textContent = scaleNotes(
@@ -269,8 +257,6 @@ export class ScaleExplorer implements LivePractice {
       ? `Shape ${this.pattern} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
       : "Open-position map";
     const labels = this.labels;
-    this.element.querySelector<HTMLSelectElement>("#scale-dot-labels")!.value =
-      labels;
     this.element.querySelector<HTMLElement>(".scale-footnote")!.textContent =
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger"

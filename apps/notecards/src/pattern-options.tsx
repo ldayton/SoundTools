@@ -1,10 +1,7 @@
-import { useState } from "react";
+import { createViewState } from "./view-state";
+import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack } from "@mantine/core";
-import {
-  mergePatternSettings,
-  PATTERN_KEYS,
-  type PatternSettings,
-} from "./patterns-model";
+import { PATTERN_KEYS, type PatternSettings } from "./patterns-model";
 
 const levels = [
   { value: "steps", label: "Steps & repeated notes" },
@@ -17,18 +14,18 @@ const hands = [
   { value: "left", label: "Left hand" },
 ];
 
+export const patternOptionsState = createViewState<PatternSettings>;
+export type PatternOptionsState = ReturnType<typeof patternOptionsState>;
 export function PatternOptions({
-  initialSettings,
+  model,
   onChange,
 }: {
-  initialSettings: PatternSettings;
+  model: PatternOptionsState;
   onChange(settings: PatternSettings): void;
 }) {
-  const [settings, setSettings] = useState(initialSettings);
+  const settings = useSyncExternalStore(model.subscribe, model.getSnapshot);
   function change(input: Partial<PatternSettings>) {
-    const next = mergePatternSettings(settings, input);
-    setSettings(next);
-    onChange(next);
+    onChange({ ...settings, ...input });
   }
   return (
     <Stack className="soundtools-ui">

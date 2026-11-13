@@ -1,10 +1,7 @@
-import { useState } from "react";
+import { createViewState } from "./view-state";
+import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack } from "@mantine/core";
-import {
-  mergeRhythmSettings,
-  RHYTHM_TEMPOS,
-  type RhythmSettings,
-} from "./rhythm-model";
+import { RHYTHM_TEMPOS, type RhythmSettings } from "./rhythm-model";
 
 const levels = [
   { value: "pulse", label: "Steady quarter notes" },
@@ -16,18 +13,18 @@ const tempos = RHYTHM_TEMPOS.map((bpm) => ({
   label: `${bpm} BPM`,
 }));
 
+export const rhythmOptionsState = createViewState<RhythmSettings>;
+export type RhythmOptionsState = ReturnType<typeof rhythmOptionsState>;
 export function RhythmOptions({
-  initialSettings,
+  model,
   onChange,
 }: {
-  initialSettings: RhythmSettings;
+  model: RhythmOptionsState;
   onChange(settings: RhythmSettings): void;
 }) {
-  const [settings, setSettings] = useState(initialSettings);
+  const settings = useSyncExternalStore(model.subscribe, model.getSnapshot);
   function change(input: Partial<RhythmSettings>) {
-    const next = mergeRhythmSettings(settings, input);
-    setSettings(next);
-    onChange(next);
+    onChange({ ...settings, ...input });
   }
   return (
     <Stack className="soundtools-ui">

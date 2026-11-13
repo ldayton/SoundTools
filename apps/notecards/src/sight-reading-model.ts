@@ -1,9 +1,10 @@
-export type SightStep = { pitches: number[] };
+export type SightStep = { pitches: number[]; retryPitches?: number[] };
 /** Untimed matching: fresh attacks for repeated notes; chords may be rolled, but held together. */
 export class WaitForMe {
   index: number;
   private pressed = new Set<number>();
   private middleCs = 0;
+  private retrying = true;
   constructor(
     readonly steps: readonly SightStep[],
     position = 0,
@@ -28,7 +29,10 @@ export class WaitForMe {
     return this.index === this.steps.length;
   }
   get current() {
-    return this.steps[this.index];
+    const step = this.steps[this.index];
+    return this.retrying && step?.retryPitches?.length
+      ? { ...step, pitches: step.retryPitches }
+      : step;
   }
   get selected() {
     return [...this.pressed];
@@ -36,6 +40,7 @@ export class WaitForMe {
   resetGesture() {
     this.pressed.clear();
     this.middleCs = 0;
+    this.retrying = true;
   }
   answer(note: number, held?: readonly number[], allowAdvance = true) {
     // Expected Cs always belong to the music, including partial chords. Only
@@ -49,7 +54,13 @@ export class WaitForMe {
     } else this.middleCs = 0;
     // Keep the hands-free restart available while paused or after finishing.
     if (!allowAdvance || this.complete) return "ignored";
-    if (!this.current.pitches.includes(note)) return "wrong";
+    if (!this.current.pitches.includes(note)) {
+      if (this.current.retryPitches) {
+        this.pressed.clear();
+        this.retrying = true;
+      }
+      return "wrong";
+    }
     this.pressed.add(note);
     if (
       !this.current.pitches.every(
@@ -59,6 +70,7 @@ export class WaitForMe {
       return "partial";
     this.index++;
     this.resetGesture();
+    this.retrying = false;
     return this.complete ? "complete" : "advanced";
   }
 }

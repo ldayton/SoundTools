@@ -19,14 +19,15 @@
     "test:diagnostics": "tsx tests/diagnostics.browser.ts",
     "test:notation": "tsx tests/notation.browser.ts",
     "import:hymns": "tsx scripts/import-hymns.ts",
-    "test:sight": "tsx tests/sight-reading.browser.ts",
+    "test:sight": "tsx tests/sight-reading.browser.ts && tsx tests/hymn-recovery.browser.ts",
     "test:practice": "tsx tests/piano-practice.browser.ts",
     "test:navigation": "tsx tests/navigation.browser.ts",
     "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts",
     "test:piano-audio": "tsx tests/piano-audio.browser.ts",
     "test:theory": "tsx tests/theory.browser.ts",
     "test:guitar-scales": "tsx tests/guitar-scales.browser.ts",
-    "test:hymn-playback": "tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts"
+    "test:hymn-playback": "tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts",
+    "test:hymn-recovery": "tsx tests/hymn-recovery.browser.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "^0.2.0",

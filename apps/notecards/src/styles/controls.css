@@ -558,8 +558,18 @@ select {
   min-inline-size: 88px;
 }
 
-.practice-options .hymn-grades .hymn-hands-field {
+.practice-options .hymn-grades .hymn-ties-field {
   grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 44px;
+  gap: 8px;
+}
+.hymn-ties-field input {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
 }
 
 .practice-options .hymn-range-fields {

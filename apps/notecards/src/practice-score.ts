@@ -3,9 +3,41 @@ import abcjs, {
   type NoteTimingEvent,
   type TuneObject,
   type AudioTracks,
+  type MidiPitch,
 } from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
-export type PracticeEvent = NoteTimingEvent & { spellings?: PitchSpellings };
+export type PracticeEvent = NoteTimingEvent & {
+  spellings?: PitchSpellings;
+  sustainedPitches?: number[];
+};
+/** Recover tied continuations from each voice's original MIDI spelling, without changing engraving or playback. */
+export function tiedContinuations(tune: TuneObject): Map<number, MidiPitch[]> {
+  const result = new Map<number, MidiPitch[]>(),
+    voices = new Map<string, Map<number, MidiPitch>>();
+  for (const line of tune.lines)
+    for (const [si, staff] of (line.staff || []).entries())
+      for (const [vi, voice] of (staff.voices || []).entries()) {
+        const key = `${si}:${vi}`,
+          previous = voices.get(key) || new Map<number, MidiPitch>();
+        voices.set(key, previous);
+        for (const note of voice) {
+          if (note.el_type !== "note") continue;
+          const attacks = [...(note.midiPitches || [])],
+            continuations: MidiPitch[] = [];
+          for (const pitch of note.pitches || []) {
+            const midi = pitch.endTie
+              ? previous.get(pitch.pitch)
+              : attacks.shift();
+            if (!midi) continue;
+            previous.set(pitch.pitch, midi);
+            if (pitch.endTie) continuations.push(midi);
+          }
+          if (continuations.length && note.startChar !== undefined)
+            result.set(note.startChar, continuations);
+        }
+      }
+  return result;
+}
 export function drawPracticeScore(
   paper: HTMLElement,
   abc: string,
@@ -15,6 +47,7 @@ export function drawPracticeScore(
     transpose?: number;
     compact?: boolean;
     rhythmGrid?: boolean;
+    reattackTies?: boolean;
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
@@ -106,17 +139,43 @@ export function drawPracticeScore(
     svg.style.maxWidth = "100%";
   });
   const spellings = scoreSpellings(tune);
+  const continuations = options.reattackTies
+    ? tiedContinuations(tune)
+    : new Map<number, MidiPitch[]>();
+  const sounding = audio.tracks.flat().filter((n) => n.cmd === "note");
   return tune.noteTimings
-    .filter((e) => e.type === "event" && e.midiPitches?.length)
+    .filter((e) => e.type === "event")
     .map((e) => ({
       ...e,
+      midiPitches: [
+        ...(e.midiPitches || []),
+        ...(e.startCharArray || [e.startChar!]).flatMap(
+          (start) => continuations.get(start) || [],
+        ),
+      ],
+      // Hymn timings use quarter-note seconds (qpm 60). Only notes still sounding
+      // before this onset are recovery notes; releases exactly on it are excluded.
+      sustainedPitches: options.playback
+        ? [
+            ...new Set(
+              sounding
+                .filter(
+                  (n) =>
+                    n.start * 4000 < e.milliseconds - 1 &&
+                    (n.start + n.duration) * 4000 > e.milliseconds + 1,
+                )
+                .map((n) => n.pitch),
+            ),
+          ]
+        : [],
       spellings: Object.assign(
         {},
         ...(e.startCharArray || [e.startChar!]).map(
           (start) => spellings.get(start) || {},
         ),
       ),
-    }));
+    }))
+    .filter((e) => e.midiPitches.length);
 }
 export function highlightScore(
   paper: HTMLElement,
@@ -138,9 +197,19 @@ export function highlightScore(
       viewport.scrollTop += note.top - box.top - 12;
   }
 }
-export function eventSteps(events: NoteTimingEvent[]) {
+export function eventSteps(events: PracticeEvent[], recoverSustains = false) {
   return events.map((e) => ({
     pitches: [...new Set(e.midiPitches!.map((p) => p.pitch))],
+    ...(recoverSustains
+      ? {
+          retryPitches: [
+            ...new Set([
+              ...e.midiPitches!.map((p) => p.pitch),
+              ...(e.sustainedPitches || []),
+            ]),
+          ],
+        }
+      : {}),
   }));
 }
 export function keyboardRange(events: NoteTimingEvent[]): [number, number] {

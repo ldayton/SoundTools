@@ -31,6 +31,7 @@ export type HymnSettings = {
   arrangement: Arrangement;
   hands?: HymnHands;
   viewHands?: HymnHands;
+  reattackTies?: boolean;
   sectionBars: 0 | 2 | 4;
   section: number;
   position: number;
@@ -70,6 +71,14 @@ export function mergeHymnSettings(
       : {}),
     viewHands,
     hands,
+    ...("reattackTies" in s || "reattackTies" in base
+      ? {
+          reattackTies:
+            typeof s.reattackTies === "boolean"
+              ? s.reattackTies
+              : base.reattackTies || false,
+        }
+      : {}),
     mode: choice(s.mode, ["wait", "playback"] as const, base.mode || "wait"),
     bpm:
       Number.isInteger(s.bpm) &&
@@ -102,6 +111,8 @@ export function hymnSettingsFromQuery(
     if (query.has(bound))
       overrides[bound] =
         query.get(bound) === "none" ? null : Number(query.get(bound));
+  if (query.has("ties"))
+    overrides.reattackTies = query.get("ties") === "repeat";
   if (query.has("view")) overrides.viewHands = query.get("view");
   if (query.has("hands")) overrides.hands = query.get("hands");
   if (query.has("countIn")) overrides.countIn = Number(query.get("countIn"));

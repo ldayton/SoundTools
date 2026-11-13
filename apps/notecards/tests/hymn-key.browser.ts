@@ -188,6 +188,11 @@ try {
       .replace(/\s/g, "");
     for (const key of ["Bb", "F#"]) {
       await practiceOption(page, "#hymn-key", key);
+      assert.equal(
+        await page.locator(".hymn-key-range").textContent(),
+        key === "Bb" ? "F4–F5" : "C♯4–C♯5",
+        `${arrangement} reports melody only, even with harmony visible`,
+      );
       assert.ok((await page.locator(".hymn-paper .sight-current").count()) > 0);
       assert.equal(
         await page.locator(".hymn-paper .abcjs-note").count(),
@@ -212,9 +217,9 @@ try {
     "feedback uses the transposed sharp spelling",
   );
   await practiceOption(page, "#hymn-key", "Db");
-  assert.equal(await page.locator(".hymn-key-range").textContent(), "D♭3–A♭5");
+  assert.equal(await page.locator(".hymn-key-range").textContent(), "A♭4–A♭5");
   await practiceOption(page, "#hymn-key", "B");
-  assert.equal(await page.locator(".hymn-key-range").textContent(), "B2–F♯5");
+  assert.equal(await page.locator(".hymn-key-range").textContent(), "F♯4–F♯5");
   await practiceOption(page, "#hymn-key", "F");
   await saved();
   await page.reload();

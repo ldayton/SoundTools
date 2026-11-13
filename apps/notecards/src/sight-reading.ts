@@ -1025,12 +1025,12 @@ export class SightReading {
         this.viewHands !== "both" && option.value !== this.viewHands;
     hands.value = this.hands;
   }
-  private cachedHymnRange(hands: HymnHands) {
-    const identity = `${this.hymn.id}:${this.arrangement}:${hands}`;
+  private cachedMelodyRange() {
+    const identity = this.hymn.id;
     let range = this.rangeCache.get(identity);
     if (!range) {
       range = hymnPitchRange(
-        arrangeHymn(this.hymn, this.arrangement, 0, 0, hands).abc,
+        arrangeHymn(this.hymn, "melody", 0, 0).abc,
       );
       this.rangeCache.set(identity, range);
     }
@@ -1038,8 +1038,8 @@ export class SightReading {
   }
   private syncRangeKeys() {
     this.syncHandControls();
-    const hands = this.mode === "wait" ? this.hands : this.viewHands;
-    const range = this.cachedHymnRange(hands);
+    // Key limits describe the sung melody, independent of accompaniment or hands.
+    const range = this.cachedMelodyRange();
     const { choices, preferred } = hymnRangeKeys(
       this.hymn.key,
       range,
@@ -1067,10 +1067,8 @@ export class SightReading {
     const rangeText = this.$(".hymn-key-range");
     rangeText.hidden = this.noMatchingKey;
     if (!this.noMatchingKey) {
-      const displayed =
-        this.viewHands === hands ? range : this.cachedHymnRange(this.viewHands);
       rangeText.textContent = hymnRangeLabel(
-        displayed,
+        range,
         this.hymn.key,
         this.key,
       );

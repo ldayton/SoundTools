@@ -314,6 +314,22 @@ try {
       "/piano/hymns/amazing-grace?arrangement=melody&mode=wait&bars=2&section=1",
   );
   await page.locator(".hymn-paper svg").first().waitFor();
+  for (const arrangement of ["melody", "bass", "chords", "broken", "original"]) {
+    await practiceOption(page, "#hymn-arrangement", arrangement);
+    for (const [key, expected] of [
+      ["original", "D4–D5"],
+      ["Bb", "F4–F5"],
+      ["F#", "C♯4–C♯5"],
+    ]) {
+      await practiceOption(page, "#hymn-key", key);
+      assert.equal(
+        await page.locator(".hymn-key-range").textContent(),
+        expected,
+        `${arrangement} uses only the melody range in ${key}`,
+      );
+    }
+  }
+  await practiceOption(page, "#hymn-arrangement", "melody");
   await practiceOption(page, "#hymn-high", "73");
   assert.equal(await page.locator("#hymn-key").inputValue(), "D");
   assert.equal(
@@ -335,6 +351,23 @@ try {
       ),
     ["F"],
   );
+  // Singing limits and the caption stay on the melody even when testing bass only.
+  await practiceOption(page, "#hymn-arrangement", "bass");
+  await practiceOption(page, "#hymn-view", "both");
+  await practiceOption(page, "#hymn-hands", "left");
+  for (const mode of ["wait", "playback"]) {
+    await practiceOption(page, "#hymn-mode", mode);
+    assert.equal(await page.locator(".hymn-key-range").textContent(), "C4–C5");
+    assert.deepEqual(
+      await page.locator("#hymn-key option").evaluateAll((es) =>
+        es.filter((e) => !(e as HTMLOptionElement).disabled)
+          .map((e) => (e as HTMLOptionElement).value),
+      ),
+      ["F"],
+    );
+  }
+  await practiceOption(page, "#hymn-mode", "wait");
+  await practiceOption(page, "#hymn-arrangement", "melody");
   await page.reload();
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await page.locator("#hymn-low").inputValue(), "C4");

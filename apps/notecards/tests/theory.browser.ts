@@ -247,7 +247,10 @@ try {
     /C–D–E/,
   );
   assert.equal(
-    await root().locator('[data-choice="1"]').count(),
+    await root()
+      .getByRole("group", { name: "Intervals", exact: true })
+      .getByRole("checkbox", { name: "1st", exact: true })
+      .count(),
     0,
     "no unison practice option",
   );
@@ -359,9 +362,143 @@ try {
     pack.files.some((f: { url: string }) => /\/theory-[^/]+\.js$/.test(f.url)),
     "theory module included offline",
   );
+  // Standard controls preserve nonempty sets, relative-key labels and each task's settings.
+  await page.clock.resume();
+  await root()
+    .getByRole("button", { name: /^Keys ·/ })
+    .click();
+  const keys = root().getByRole("group", { name: "Keys", exact: true });
+  await keys.getByRole("checkbox", { name: "G major", exact: true }).check();
+  await keys.getByRole("checkbox", { name: "C major", exact: true }).uncheck();
+  assert.ok(
+    await keys
+      .getByRole("checkbox", { name: "G major", exact: true })
+      .isDisabled(),
+  );
+  await field("mode", "minor");
+  assert.ok(
+    await keys
+      .getByRole("checkbox", { name: "E minor", exact: true })
+      .isChecked(),
+  );
+  const degrees = root().getByRole("group", { name: "Degrees", exact: true });
+  await degrees.getByRole("checkbox", { name: "2", exact: true }).check();
+  for (const degree of ["1", "3", "5"])
+    await degrees
+      .getByRole("checkbox", { name: degree, exact: true })
+      .uncheck();
+  assert.ok(
+    await degrees
+      .getByRole("checkbox", { name: "2", exact: true })
+      .isDisabled(),
+  );
+  assert.deepEqual(
+    await root().locator(".theory-answers button").allTextContents(),
+    ["2"],
+  );
+  await field("task", "play-degree");
+  assert.equal(
+    await root().locator('[data-field="mode"]').inputValue(),
+    "major",
+  );
+  await field("task", "name-degree");
+  assert.equal(
+    await root().locator('[data-field="mode"]').inputValue(),
+    "minor",
+  );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  await page.reload();
+  await openPracticeOptions(page);
+  assert.equal(
+    await root().locator('[data-field="mode"]').inputValue(),
+    "minor",
+  );
+  await root()
+    .getByRole("button", { name: /^Keys ·/ })
+    .click();
+  assert.ok(
+    await root()
+      .getByRole("checkbox", { name: "E minor", exact: true })
+      .isChecked(),
+  );
+  assert.ok(
+    await root()
+      .getByRole("group", { name: "Degrees", exact: true })
+      .getByRole("checkbox", { name: "2", exact: true })
+      .isDisabled(),
+  );
+  await selectPractice(page, "intervals");
+  await field("task", "name-quality");
+  const intervalChoices = root().getByRole("group", {
+    name: "Intervals",
+    exact: true,
+  });
+  await intervalChoices
+    .getByRole("checkbox", { name: "4th", exact: true })
+    .check();
+  const qualities = root().getByRole("group", {
+    name: "Qualities",
+    exact: true,
+  });
+  await qualities
+    .getByRole("checkbox", { name: "Perfect", exact: true })
+    .check();
+  for (const quality of ["Major", "Minor"])
+    await qualities
+      .getByRole("checkbox", { name: quality, exact: true })
+      .uncheck();
+  assert.ok(
+    await qualities
+      .getByRole("checkbox", { name: "Perfect", exact: true })
+      .isDisabled(),
+  );
+  await root()
+    .getByRole("button", { name: "Advanced qualities", exact: true })
+    .click();
+  await qualities
+    .getByRole("checkbox", { name: "Augmented", exact: true })
+    .check();
+  assert.ok(
+    await qualities
+      .getByRole("checkbox", { name: "Perfect", exact: true })
+      .isEnabled(),
+  );
+  await field("task", "build-interval");
+  assert.ok(
+    await root()
+      .getByRole("combobox", { name: "Key", exact: true })
+      .isVisible(),
+  );
+  await field("quality", "basic");
+  assert.ok(
+    await root().getByRole("combobox", { name: "Key", exact: true }).isHidden(),
+  );
+  await field("task", "name-quality");
+  assert.ok(
+    await qualities
+      .getByRole("checkbox", { name: "Perfect", exact: true })
+      .isChecked(),
+  );
+  const advanced = root().getByRole("button", {
+    name: "Advanced qualities",
+    exact: true,
+  });
+  if ((await advanced.getAttribute("aria-expanded")) !== "true")
+    await advanced.click();
+  await root()
+    .getByRole("checkbox", { name: "Augmented", exact: true })
+    .waitFor({ state: "visible" });
+  assert.ok(
+    await qualities
+      .getByRole("checkbox", { name: "Augmented", exact: true })
+      .isChecked(),
+  );
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: theory restrictions, all five tasks, MIDI, keyboard, correction, complete/continue, saved steps, notation and responsive layouts passed`,
+    `${engine}: theory restrictions, all six tasks, MIDI, keyboard, correction, complete/continue, saved steps, notation and responsive layouts passed`,
   );
 } finally {
   await browser?.close();

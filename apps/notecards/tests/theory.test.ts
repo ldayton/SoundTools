@@ -150,3 +150,18 @@ test("key-based interval construction spells diatonic targets and gives counted 
   assert.equal(q.keyName, "G major");
   assert.deepEqual(intervalWalk(q).map(name), ["D", "E", "F♯"]);
 });
+
+test("legacy all-quality construction uses the named-interval control without losing its question pool", () => {
+  const legacy = {
+    ...defaultTheorySettings(),
+    quality: "all" as const,
+    qualities: ["minor", "augmented"] as ("minor" | "augmented")[],
+  };
+  const restored = taskSettings("build-interval", legacy);
+  assert.equal(restored.quality, "basic");
+  assert.deepEqual(restored.qualities, [...legacy.qualities]);
+  assert.deepEqual(
+    theoryPool("build-interval", restored),
+    theoryPool("build-interval", legacy),
+  );
+});

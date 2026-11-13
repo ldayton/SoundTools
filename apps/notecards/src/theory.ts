@@ -1,3 +1,9 @@
+import { createElement } from "react";
+import {
+  TheoryOptions,
+  theoryOptionsState,
+  type TheoryOptionsState,
+} from "./theory-options";
 import { Piano } from "./piano";
 import { mountPracticePiano, isPianoVisible } from "./practice-piano";
 import { mountPracticeOptions } from "./practice-controls";
@@ -6,7 +12,7 @@ import { RangePicker } from "./range-picker";
 import { persistence } from "./persistence";
 import { PracticeSession, type SessionSnapshot } from "./session";
 import { defaultProgress, loadProgress, type Progress } from "./progress";
-import { KEYS, ROUND_LENGTHS, name } from "./model";
+import { name } from "./model";
 import { diagnostics } from "./diagnostics";
 import type { LivePractice, InputPolicy, Interruption } from "./live-practice";
 import type { PracticeRoute } from "./navigation";
@@ -60,6 +66,7 @@ class TheoryPractice implements LivePractice {
   private panel: ReturnType<typeof mountPracticePiano>;
   private width = 0;
   private range: RangePicker[] = [];
+  private options!: TheoryOptionsState;
   private lastFeedback = "";
   private selectedInterval: number | undefined;
   private resetPianoFocus = true;
@@ -93,132 +100,58 @@ class TheoryPractice implements LivePractice {
         this.rounds = saved.rounds;
       this.progress = loadProgress(JSON.stringify(saved.progress));
     }
-    const label = (text: string, control: string, cls = "") =>
-      `<label class="${cls}">${text}${control}</label>`;
-    const select = (
-      id: string,
-      values: readonly (readonly [string, string])[],
-    ) =>
-      `<select data-field="${id}">${values.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select>`;
-    const fields =
-      label("Task", select("task", TASKS[kind]), "theory-task-field") +
-      label(
-        "Cards per round",
-        select(
-          "roundLength",
-          ROUND_LENGTHS.map((n) => [String(n), String(n)]),
-        ),
-        "round-length",
-      ) +
-      label(
-        "Staff",
-        select("clef", [
-          ["treble", "Treble"],
-          ["bass", "Bass"],
-        ]),
-      ) +
-      (kind === "scales"
-        ? label(
-            "Scale",
-            select("mode", [
-              ["major", "Major"],
-              ["minor", "Natural minor"],
-            ]),
+    element.innerHTML = `<section class="sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="sequence-top"><span class="theory-context"></span><span class="theory-count"></span></div><progress class="theory-progress" aria-label="Session progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"><button type="button" class="theory-next" hidden>Next question →</button><button type="button" class="theory-restart">Start again</button></div><div class="theory-piano"></div><div class="theory-summary" hidden><h2>Round complete</h2><p></p><button type="button" class="primary theory-continue">Keep going →</button><p class="theory-suggestion"></p></div></section>`;
+    const ranges = document.createElement("div");
+    ranges.className = "range theory-range";
+    if (kind === "intervals")
+      ranges.innerHTML = `${["low", "high"].map((field, i) => `<div><label for="${kind}-${field}">${i ? "Highest" : "Lowest"}</label><div class="note-field"><input id="${kind}-${field}" aria-label="${i ? "Highest" : "Lowest"} note" readonly><button type="button" id="${kind}-${field}-choose" aria-label="Choose ${i ? "highest" : "lowest"} note">⌄</button></div></div>`).join("")}`;
+    const parking = document.createElement("div");
+    parking.hidden = true;
+    parking.append(ranges);
+    element.append(parking);
+    this.options = theoryOptionsState({
+      kind,
+      task: this.task,
+      settings: structuredClone(this.settings),
+    });
+    mountPracticeOptions(
+      element,
+      [],
+      createElement(TheoryOptions, {
+        model: this.options,
+        ranges,
+        taskChanged: (task) => {
+          if (
+            !TASKS[this.kind].some(([value]) => value === task) ||
+            task === this.task
           )
-        : label(
-            "Build",
-            select("quality", [
-              ["number", "Within a key"],
-              ["basic", "Named interval"],
-            ]),
-            "theory-quality-field",
-          ) +
-          label(
-            "Key",
-            select(
-              "intervalKey",
-              KEYS.map((k) => [k.id, k.label.split(" ·")[0]]),
-            ),
-            "theory-interval-key",
-          )) +
-      label(
-        "Direction",
-        select("direction", [
-          ["up", "Rising"],
-          ["down", "Falling"],
-          ["both", "Both"],
-        ]),
-        "theory-direction",
-      ) +
-      (kind === "intervals"
-        ? label(
-            "Show notes",
-            select("presentation", [
-              ["successive", "In sequence"],
-              ["together", "Together"],
-            ]),
-            "theory-presentation",
-          ) +
-          label(
-            "Accidentals",
-            select("accidentals", [
-              ["naturals", "Natural notes"],
-              ["simple", "Sharps & flats"],
-            ]),
-            "theory-accidentals",
-          )
-        : "");
-    const choices = (
-      id: string,
-      title: string,
-      values: readonly (readonly [string, string])[],
-    ) =>
-      `<fieldset class="theory-choices" data-choices="${id}"><legend>${title}</legend><div>${values.map(([v, l]) => `<button type="button" data-choice="${v}" aria-pressed="false">${l}</button>`).join("")}</div></fieldset>`;
-    element.innerHTML = `<div class="theory-options"><div class="options-row">${fields}</div>${
-      kind === "scales"
-        ? choices(
-            "degrees",
-            "Degrees",
-            [1, 2, 3, 4, 5, 6, 7].map((n) => [String(n), String(n)]),
-          ) +
-          choices(
+            return;
+          this.save();
+          this.task = task;
+          const url = new URL(location.href);
+          url.searchParams.set("task", task);
+          history.replaceState({}, "", url);
+          this.loadRound();
+          this.render();
+        },
+        change: (patch) => {
+          for (const key of [
             "keys",
-            "Keys",
-            KEYS.map((k) => [k.id, k.label.split(" ·")[0]]),
-          )
-        : choices(
+            "degrees",
             "intervals",
-            "Intervals",
-            [2, 3, 4, 5, 6, 7, 8].map((n) => [String(n), ordinal(n)]),
-          ) +
-          `<div class="theory-quality-choices">${choices(
             "qualities",
-            "Qualities",
-            [
-              ["major", "Major"],
-              ["minor", "Minor"],
-              ["perfect", "Perfect"],
-            ],
-          )}<details class="disclosure theory-advanced"><summary>Advanced qualities</summary>${choices(
-            "advancedQualities",
-            "Include",
-            [
-              ["augmented", "Augmented"],
-              ["diminished", "Diminished"],
-            ],
-          )}</details></div>` +
-          `<div class="range theory-range">${["low", "high"].map((f, i) => `<div><label for="${kind}-${f}">${i ? "Highest" : "Lowest"}</label><div class="note-field"><input id="${kind}-${f}" aria-label="${i ? "Highest" : "Lowest"} note" readonly><button type="button" id="${kind}-${f}-choose" aria-label="Choose ${i ? "highest" : "lowest"} note">⌄</button></div></div>`).join("")}</div>`
-    }<details class="theory-example disclosure"><summary>Example</summary><p>${kind === "scales" ? "In C major, C is degree 1. Count C–D–E to find degree 3. Every major scale uses whole–whole–half–whole–whole–whole–half steps." : "Count both notes: C–D is a second; C–D–E is a third. Interval numbers count letter names. A unison repeats the same note; practice starts with seconds. Major, minor and perfect describe their semitone distances. Full interval naming starts with major versus minor thirds."}</p></details></div><section class="sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="sequence-top"><span class="theory-context"></span><span class="theory-count"></span></div><progress class="theory-progress" aria-label="Session progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"><button type="button" class="theory-next" hidden>Next question →</button><button type="button" class="theory-restart">Start again</button></div><div class="theory-piano"></div><div class="theory-summary" hidden><h2>Round complete</h2><p></p><button type="button" class="primary theory-continue">Keep going →</button><p class="theory-suggestion"></p></div></section>`;
-    if (kind === "scales") {
-      const group = this.$('[data-choices="keys"]');
-      const disclosure = document.createElement("details");
-      disclosure.className = "disclosure theory-key-options";
-      const summary = document.createElement("summary");
-      disclosure.append(summary);
-      group.before(disclosure);
-      disclosure.append(group);
-    }
-    mountPracticeOptions(element, [this.$(".theory-options")]);
+          ] as const)
+            if (patch[key]?.length === 0) return;
+          const settings = { ...this.settings, ...patch };
+          if (patch.clef !== undefined) {
+            settings.low = patch.clef === "bass" ? "C3" : "C4";
+            settings.high = patch.clef === "bass" ? "C4" : "C5";
+          }
+          this.profiles[this.task] = taskSettings(this.task, settings);
+          this.reset();
+        },
+      }),
+    );
     this.panel = mountPracticePiano(
       this.$(".theory-piano"),
       this.$(".sequence-transport"),
@@ -245,55 +178,6 @@ class TheoryPractice implements LivePractice {
             POSITIONS,
           ),
         );
-    for (const field of this.element.querySelectorAll<HTMLSelectElement>(
-      "[data-field]",
-    ))
-      field.onchange = () => {
-        if (field.dataset.field === "task") {
-          this.save();
-          this.task = field.value as TheoryTask;
-          const url = new URL(location.href);
-          url.searchParams.set("task", this.task);
-          history.replaceState({}, "", url);
-          this.loadRound();
-        } else {
-          const id = field.dataset.field as keyof TheorySettings;
-          Object.assign(this.settings, {
-            [id]: id === "roundLength" ? Number(field.value) : field.value,
-          });
-          if (id === "clef") {
-            this.settings.low = field.value === "bass" ? "C3" : "C4";
-            this.settings.high = field.value === "bass" ? "C4" : "C5";
-          }
-          this.reset();
-        }
-        this.render();
-      };
-    for (const group of this.element.querySelectorAll<HTMLElement>(
-      "[data-choices]",
-    ))
-      group.onclick = (event) => {
-        const b = (event.target as HTMLElement).closest<HTMLButtonElement>(
-          "[data-choice]",
-        );
-        if (!b) return;
-        const id =
-          group.dataset.choices === "advancedQualities"
-            ? "qualities"
-            : (group.dataset.choices as
-                "keys" | "degrees" | "intervals" | "qualities");
-        const value =
-          id === "keys" || id === "qualities"
-            ? b.dataset.choice!
-            : Number(b.dataset.choice);
-        const values = [...this.settings[id]] as (string | number)[];
-        if (values.includes(value)) {
-          if (values.length === 1) return;
-          values.splice(values.indexOf(value), 1);
-        } else values.push(value);
-        Object.assign(this.settings, { [id]: values });
-        this.reset();
-      };
     this.$(".theory-next").onclick = () => this.nextQuestion();
     this.$(".theory-restart").onclick = () => this.reset();
     this.$(".theory-continue").onclick = () => {
@@ -618,67 +502,12 @@ class TheoryPractice implements LivePractice {
     if (!this.session) return;
     const s = this.settings,
       q = this.session.current;
-    for (const field of this.element.querySelectorAll<HTMLSelectElement>(
-      "[data-field]",
-    ))
-      field.value = String(
-        field.dataset.field === "task"
-          ? this.task
-          : s[field.dataset.field as keyof TheorySettings],
-      );
-    for (const group of this.element.querySelectorAll<HTMLElement>(
-      "[data-choices]",
-    )) {
-      const id =
-        group.dataset.choices === "advancedQualities"
-          ? "qualities"
-          : (group.dataset.choices as
-              "keys" | "degrees" | "intervals" | "qualities");
-      group.hidden = id === "degrees" && this.task === "build-scale";
-      for (const b of group.querySelectorAll<HTMLButtonElement>(
-        "[data-choice]",
-      )) {
-        const value =
-          id === "keys" || id === "qualities"
-            ? b.dataset.choice!
-            : Number(b.dataset.choice);
-        b.hidden =
-          id === "qualities" &&
-          (b.dataset.choice === "perfect"
-            ? !s.intervals.some((n) => [4, 5, 8].includes(n))
-            : ["major", "minor"].includes(b.dataset.choice!) &&
-              s.intervals.every((n) => [4, 5, 8].includes(n)));
-        b.setAttribute(
-          "aria-pressed",
-          String((s[id] as (string | number)[]).includes(value)),
-        );
-        if (id === "keys")
-          b.textContent = `${name(scaleNotes(b.dataset.choice!, s.mode, 4)[0])} ${s.mode === "minor" ? "minor" : "major"}`;
-      }
-    }
-    if (this.kind === "scales") {
-      const selected = s.keys.map(
-        (k) =>
-          `${name(scaleNotes(k, s.mode, 4)[0])} ${s.mode === "minor" ? "minor" : "major"}`,
-      );
-      this.$(".theory-key-options summary").textContent =
-        `Keys · ${selected.length <= 3 ? selected.join(", ") : selected.length + " selected"}`;
-    }
-    this.$(".theory-direction").hidden =
-      this.kind === "scales"
-        ? this.task !== "build-scale"
-        : this.identifying && s.presentation === "together";
+    this.options.set({
+      kind: this.kind,
+      task: this.task,
+      settings: structuredClone(s),
+    });
     if (this.kind === "intervals") {
-      const namingQuality =
-        this.task === "name-quality" ||
-        (this.task === "build-interval" && s.quality !== "number");
-      this.$(".theory-quality-field").hidden = this.task !== "build-interval";
-      this.$(".theory-interval-key").hidden =
-        this.task !== "build-interval" || s.quality !== "number";
-      this.$(".theory-quality-choices").hidden = !namingQuality;
-      this.$(".theory-accidentals").hidden =
-        this.task === "build-interval" && s.quality === "number";
-      this.$(".theory-presentation").hidden = !this.identifying;
       this.range[0].setValue(s.low);
       this.range[1].setValue(s.high);
     }

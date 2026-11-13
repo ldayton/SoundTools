@@ -368,7 +368,11 @@ export function taskSettings(task: TheoryTask, raw?: unknown): TheorySettings {
       : defaultTheorySettings();
   const settings = mergeTheorySettings(raw === undefined ? defaults : raw);
   if (task === "name-interval") settings.quality = "number";
-  if (task === "name-quality") settings.quality = "basic";
+  if (
+    task === "name-quality" ||
+    (task === "build-interval" && settings.quality === "all")
+  )
+    settings.quality = "basic";
   return settings;
 }
 export function intervalWalk(q: TheoryQuestion): TheoryNote[] {

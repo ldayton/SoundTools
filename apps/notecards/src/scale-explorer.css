@@ -1,5 +1,7 @@
 .scale-card {
-  max-width: 540px;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 880px;
   margin: 0 auto;
   border: 1px solid #e1e2e4;
   border-radius: 16px;
@@ -27,7 +29,7 @@
   margin: 12px 0 6px;
 }
 .scale-diagram {
-  max-width: 352px;
+  max-width: 782px;
   margin: auto;
 }
 .scale-diagram svg {
@@ -38,47 +40,43 @@
 }
 .scale-diagram text {
   text-anchor: middle;
-  font-family: inherit;
+  font-family: Arial, sans-serif;
 }
 .scale-fret {
-  stroke: #d5d7da;
-  stroke-width: 1.3;
+  stroke: #666;
+  stroke-width: 1;
 }
 .scale-string {
-  stroke: #92969b;
+  stroke: #666;
+  stroke-width: 1;
 }
 .scale-nut {
   stroke: #202327;
   stroke-width: 8;
 }
 .scale-fret-marker {
-  fill: #e6e7e9;
+  fill: #555;
 }
 .scale-fret-number,
 .scale-tuning {
   fill: #5c6168;
-  font-size: 13px;
+  font-size: 20px;
 }
 .scale-tone circle {
-  fill: #202327;
+  fill: #8f9bb6;
 }
 .scale-tone text {
   fill: #fff;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 400;
 }
 .scale-root circle {
-  fill: #ffca45;
-  stroke: #765800;
-  stroke-width: 1;
+  fill: #40527b;
 }
 .scale-root text {
-  fill: #202327;
+  fill: #fff;
 }
-.scale-root .scale-root-mark {
-  font-size: 9px;
-  fill: #5e4700;
-}
+
 .scale-legend {
   display: flex;
   justify-content: center;
@@ -100,12 +98,11 @@
   font-weight: 700;
 }
 .scale-root-swatch {
-  background: #ffca45;
-  border: 1px solid #765800;
+  background: #40527b;
   color: #202327;
 }
 .scale-note-swatch {
-  background: #202327;
+  background: #8f9bb6;
   margin-left: 10px;
 }
 .scale-footnote {
@@ -247,4 +244,18 @@
 .scale-key-navigation button:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+.scale-source {
+  text-align: center;
+  font-size: 11px;
+  color: #626771;
+  margin: 12px 0;
+}
+.scale-source a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.scale-optional-legend[hidden] {
+  display: none;
 }

@@ -69,7 +69,6 @@ try {
     });
   await selectPractice(page, "sight");
   await page.locator(".hymn-paper svg").first().waitFor();
-  await practiceOption(page, "#hymn-length", "0");
   await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
@@ -163,7 +162,7 @@ try {
         .selectOption(String(tonic));
       assert.ok((await page.locator(".scale-root").count()) > 0);
       assert.equal(
-        await page.locator(".scale-root-mark").count(),
+        await page.locator(".scale-root circle").count(),
         await page.locator(".scale-root").count(),
       );
       assert.equal(
@@ -266,10 +265,6 @@ try {
     '.scale-root.scale-optional[data-string="2"][data-fret="5"]',
   );
   assert.equal(
-    await optionalRoot.locator(".scale-root-mark").textContent(),
-    "R",
-  );
-  assert.equal(
     await optionalRoot
       .locator("circle")
       .evaluate((e) => getComputedStyle(e).fill),
@@ -281,7 +276,7 @@ try {
   );
   await practiceOption(page, "#scale-quality", "major");
   await practiceOption(page, "#scale-key", "7");
-  await practiceOption(page, "#scale-pattern", "E");
+  await practiceOption(page, "#scale-pattern", "1");
   const patternSnapshot = () =>
     page.locator(".scale-tone").evaluateAll((nodes) =>
       nodes.map((n) => ({
@@ -292,6 +287,24 @@ try {
       })),
     );
   const gPattern = await patternSnapshot();
+  assert.equal(
+    await page
+      .locator(".scale-root circle")
+      .first()
+      .evaluate((e) => getComputedStyle(e).fill),
+    "rgb(64, 82, 123)",
+  );
+  assert.equal(
+    await page
+      .locator(".scale-tone:not(.scale-root) circle")
+      .first()
+      .evaluate((e) => getComputedStyle(e).fill),
+    "rgb(143, 155, 182)",
+  );
+  assert.ok(
+    Number(gPattern.find((n) => n.string === "6")!.y) >
+      Number(gPattern.find((n) => n.string === "1")!.y),
+  );
   await page.getByRole("button", { name: "Next key", exact: true }).click();
   await page.getByRole("heading", { name: "A♭ major", exact: true }).waitFor();
   assert.deepEqual(
@@ -312,11 +325,20 @@ try {
     .getByRole("heading", { name: "E natural minor", exact: true })
     .waitFor();
   assert.deepEqual(await patternSnapshot(), gPattern);
-  for (const shape of ["E", "D", "C", "A", "G"]) {
+  for (const shape of ["1", "2", "3", "4", "5"]) {
     await practiceOption(page, "#scale-pattern", shape);
     assert.ok((await page.locator(".scale-root").count()) >= 2);
     assert.equal(await page.locator('.scale-tone[data-fret="0"]').count(), 0);
   }
+  await practiceOption(page, "#scale-dot-labels", "notes");
+  await page.reload();
+  await page.locator(".scale-tone").first().waitFor();
+  assert.equal(await page.locator("#scale-dot-labels").inputValue(), "notes");
+  assert.match(
+    (await page.locator(".scale-tone text").first().textContent())!,
+    /[A-G]/,
+  );
+  await practiceOption(page, "#scale-dot-labels", "fingers");
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await closePracticeOptions(page);
@@ -341,7 +363,7 @@ try {
     assert.equal(await control.isEnabled(), false);
   }
   await page.screenshot({
-    path: "/tmp/guitar-caged-pattern.png",
+    path: "/tmp/guitar-numbered-pattern.png",
     fullPage: true,
   });
   // Exercise the actual IndexedDB upgrade from yesterday's local preview.

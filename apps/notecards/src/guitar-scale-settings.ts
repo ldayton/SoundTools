@@ -4,10 +4,15 @@ import {
   scaleKeyPitch,
   type ScaleSelection,
 } from "./guitar-scales";
-import { CAGED_SHAPES, type ScalePattern } from "./guitar-scale-patterns";
+import {
+  SCALE_SHAPES,
+  migratePattern,
+  type ScalePattern,
+} from "./guitar-scale-patterns";
 export type GuitarScaleSettings = ScaleSelection & {
   pattern?: ScalePattern;
   shift?: number;
+  labels?: "fingers" | "notes";
 };
 export function mergeGuitarScaleSettings(
   input: unknown,
@@ -24,15 +29,32 @@ export function mergeGuitarScaleSettings(
         : base.tonic,
     quality: choice(source.quality, ["major", "minor"], base.quality),
   };
-  const patterns = ["map", ...CAGED_SHAPES] as const;
-  const pattern = choice(source.pattern, patterns, base.pattern || "map");
+  if (source.labels !== undefined || base.labels !== undefined)
+    settings.labels = choice(
+      source.labels,
+      ["fingers", "notes"],
+      base.labels || "fingers",
+    );
+  const patterns = ["map", ...SCALE_SHAPES] as const;
+  const pattern = choice(
+    migratePattern(source.pattern, settings.quality),
+    patterns,
+    base.pattern || "map",
+  );
   if (source.pattern !== undefined || base.pattern !== undefined)
     settings.pattern = pattern;
   const validShift = (shift: unknown): shift is number =>
     typeof shift === "number" &&
     Number.isInteger(shift) &&
     Math.abs(shift) <= 24;
-  const shift = validShift(source.shift) ? source.shift : base.shift;
+  const legacy =
+    source.pattern !== undefined &&
+    migratePattern(source.pattern, settings.quality) !== source.pattern;
+  const shift = legacy
+    ? undefined
+    : validShift(source.shift)
+      ? source.shift
+      : base.shift;
   if (validShift(shift)) settings.shift = shift;
   const spelling =
     typeof source.spelling === "string" ? source.spelling : base.spelling;

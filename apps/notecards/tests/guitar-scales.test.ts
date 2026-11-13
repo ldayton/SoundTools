@@ -1,8 +1,10 @@
 import {
-  CAGED_SHAPES,
+  SCALE_SHAPES,
   patternPositions,
   patternShift,
   patternBounds,
+  relativePattern,
+  migratePattern,
 } from "../src/guitar-scale-patterns";
 import {
   mergeGuitarScaleSettings,
@@ -323,8 +325,8 @@ test("relative spelling, saved selections and links retain the actual key signat
   assert.throws(() => scaleNotes(3, "minor", "Gb"));
 });
 
-test("CAGED shapes are complete movable fingerings in every major and minor key", () => {
-  for (const shape of CAGED_SHAPES)
+test("Numbered shapes are complete movable fingerings in every major and minor key", () => {
+  for (const shape of SCALE_SHAPES)
     for (const quality of ["major", "minor"] as const)
       for (let tonic = 0; tonic < 12; tonic++) {
         const shift = patternShift(tonic, quality, shape);
@@ -338,7 +340,7 @@ test("CAGED shapes are complete movable fingerings in every major and minor key"
           ),
         );
         assert.ok(positions.filter((n) => n.root).length >= 2);
-        const [low, high] = patternBounds(shape);
+        const [low, high] = patternBounds(shape, quality);
         for (const direction of [-1, 1]) {
           if (low + shift + direction < 1 || high + shift + direction > 22)
             continue;
@@ -354,24 +356,93 @@ test("CAGED shapes are complete movable fingerings in every major and minor key"
           );
         }
         const relative = relativeScale(tonic, quality);
+        const relativeShape = relativePattern(shape, quality);
+        assert.equal(relativePattern(relativeShape, relative.quality), shape);
+        const relativePositions = patternPositions(
+          relative.tonic,
+          relative.quality,
+          relativeShape,
+          patternShift(relative.tonic, relative.quality, relativeShape, shift),
+        );
         assert.deepEqual(
-          patternPositions(
-            relative.tonic,
-            relative.quality,
-            shape,
-            patternShift(relative.tonic, relative.quality, shape, shift),
-          ).map((n) => n.midi),
-          positions.map((n) => n.midi),
+          new Set(relativePositions.map((n) => n.pitchClass)),
+          new Set(positions.map((n) => n.pitchClass)),
         );
       }
   assert.deepEqual(
-    patternPositions(7, "major", "E", 0)
+    patternPositions(7, "major", "1", -5)
       .filter((n) => n.string === 6)
       .map((n) => [n.fret, n.name, n.finger]),
     [
       [2, "F#", 1],
       [3, "G", 2],
       [5, "A", 4],
+    ],
+  );
+});
+
+// Explicit reference fixtures protect fingerings, not just membership in a scale.
+test("GuitarScale.org reference positions and minor-specific fingerings", () => {
+  assert.deepEqual(
+    SCALE_SHAPES.map((s) => patternBounds(s)[0]),
+    [7, 10, 12, 2, 4],
+  );
+  assert.deepEqual(
+    SCALE_SHAPES.map((s) => patternBounds(s, "minor")[0]),
+    [4, 7, 9, 12, 2],
+  );
+  assert.deepEqual(
+    patternPositions(9, "minor", "3", 0)
+      .filter((n) => n.string === 4)
+      .map((n) => [n.fret, n.finger]),
+    [
+      [9, 1],
+      [10, 2],
+      [12, 4],
+    ],
+  );
+  assert.deepEqual(
+    patternPositions(0, "major", "2", 0)
+      .filter((n) => n.string === 4)
+      .map((n) => [n.fret, n.finger]),
+    [
+      [10, 1],
+      [12, 2],
+      [14, 4],
+    ],
+  );
+  assert.deepEqual(
+    SCALE_SHAPES.map((s) => patternBounds(s)[0] + patternShift(4, "major", s)),
+    [11, 2, 4, 6, 8],
+  );
+  assert.equal(migratePattern("E", "major"), "1");
+  assert.equal(migratePattern("E", "minor"), "2");
+  assert.deepEqual(
+    mergeGuitarScaleSettings({
+      tonic: 0,
+      quality: "major",
+      pattern: "E",
+      shift: 5,
+    }),
+    { tonic: 0, quality: "major", pattern: "1" },
+  );
+});
+
+test("A minor Shape 4 includes F on the D string, not B on the G string", () => {
+  const notes = patternPositions(9, "minor", "4", 0);
+  assert.deepEqual(
+    notes.filter((n) => n.string === 4).map((n) => [n.fret, n.finger]),
+    [
+      [12, 1],
+      [14, 3],
+      [15, 4],
+    ],
+  );
+  assert.deepEqual(
+    notes.filter((n) => n.string === 3).map((n) => [n.fret, n.finger]),
+    [
+      [12, 1],
+      [14, 3],
     ],
   );
 });

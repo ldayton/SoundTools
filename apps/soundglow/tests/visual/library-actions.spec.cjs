@@ -34,3 +34,46 @@ test('deleting an inactive file does not interrupt playback and late saves canno
  await page.evaluate(()=>fileLibrary.store.update(deletedSnapshot));expect(await page.evaluate(async()=>!!await fileLibrary.store.get(deletedSnapshot.id))).toBe(false);
  await page.getByRole('button',{name:'Pause recording',exact:true}).click();
 });
+
+test('dark Mantine menus follow the cursor, re-anchor to the action button and preserve sidebar focus',async({page})=>{
+ await load(page,'Menu positioning.m4a');await page.getByRole('button',{name:'Open files library',exact:true}).click();
+ await expect(page.locator('html')).toHaveAttribute('data-mantine-color-scheme','dark');
+ const row=page.locator('[data-file]'),box=await row.boundingBox();
+ await row.click({button:'right',position:{x:12,y:12}});
+ const menu=page.locator('#libraryItemMenu');await expect(menu).toBeVisible();
+ const atCursor=await menu.boundingBox();expect(Math.abs(atCursor.x-(box.x+12))).toBeLessThan(3);expect(atCursor.y).toBeGreaterThanOrEqual(box.y+12);
+ await page.keyboard.press('Escape');await expect(menu).not.toBeVisible();
+ await expect(page.locator('#filesBody')).toBeVisible();await expect(page.locator('.library-more')).toBeFocused();
+ await page.locator('.library-more').click();await expect(menu).toBeVisible();
+ const target=await page.locator('.library-more').boundingBox(),atButton=await menu.boundingBox();
+ expect(Math.abs(atButton.x-target.x)).toBeLessThan(3);expect(atButton.y).toBeGreaterThanOrEqual(target.y+target.height);
+ await page.setViewportSize({width:1200,height:850});await expect(menu).not.toBeVisible();
+ await menuAction();
+ async function menuAction(){
+  await row.click({button:'right'});await expect(page.getByRole('menuitem',{name:'Rename…'})).toHaveCount(1);await page.getByRole('menuitem',{name:'Rename…'}).click();
+  await expect(page.getByRole('dialog',{name:'Rename file'})).toBeVisible();await expect(page.locator('#libraryItemName')).toBeFocused();await expect(page.getByRole('button',{name:'Close dialog',exact:true})).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).not.toBeVisible();await expect(page.locator('.library-more')).toBeFocused();
+ }
+});
+
+test('pending storage blocks dismissal and duplicate submission; deleting the last row returns focus safely',async({page})=>{
+ await load(page,'Pending save.m4a');await page.getByRole('button',{name:'Open files library',exact:true}).click();
+ await menu(page,page.locator('[data-file]'),'Rename');await page.locator('#libraryItemName').fill('Saved once.m4a');
+ await page.evaluate(()=>{const original=fileLibrary.store.rename.bind(fileLibrary.store);window.renameCalls=0;fileLibrary.store.rename=(...args)=>{renameCalls++;return new Promise((resolve,reject)=>{window.finishRename=()=>original(...args).then(resolve,reject);});};});
+ await page.getByRole('button',{name:'Save name',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Save name',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeDisabled();
+ await page.keyboard.press('Escape');await expect(page.getByRole('dialog',{name:'Rename file'})).toBeVisible();
+ await expect(page.locator('#filesBody')).toBeVisible();expect(await page.evaluate(()=>renameCalls)).toBe(1);
+ await page.evaluate(()=>finishRename());await expect(page.getByRole('dialog')).not.toBeVisible();await expect(page.locator('[data-file] span')).toHaveText('Saved once.m4a');
+ await deleteItem(page,page.locator('[data-file]'),'file');await expect(page.getByRole('dialog')).not.toBeVisible();
+ await expect(page.locator('[data-file]')).toHaveCount(0);await expect(page.locator('#importAudio')).toBeFocused();
+});
+
+test('a back-forward cached page retains its React owner and menu actions',async({page})=>{
+ await load(page,'History restoration.m4a');await page.getByRole('button',{name:'Open files library',exact:true}).click();
+ await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));
+ await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
+ await menu(page,page.locator('[data-file]'),'Rename');await page.locator('#libraryItemName').fill('Still interactive.m4a');
+ await page.getByRole('button',{name:'Save name',exact:true}).click();await expect(page.locator('[data-file] span')).toHaveText('Still interactive.m4a');
+ await expect(page.locator('#soundglow-ui-root')).toHaveCount(1);
+});

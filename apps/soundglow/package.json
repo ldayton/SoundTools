@@ -18,24 +18,36 @@
     "test:diagnostics": "npm run test --workspace=@ldayton/browser-diagnostics && node ../../packages/browser-diagnostics/test-browser.cjs && node tests/diagnostics-build.cjs",
     "test:offline-package": "npm run test --workspace=@ldayton/browser-offline",
     "build:vercel": "node ../../scripts/build-vercel.cjs soundglow",
-    "prepare:shared": "node scripts/prepare-diagnostics.cjs",
+    "prepare:shared": "node scripts/prepare-diagnostics.cjs && npm run build:ui",
     "pretest:diagnostics": "npm run prepare:shared",
     "pretest:visual": "npm run prepare:shared",
     "pretest:updates": "npm run prepare:shared",
     "dev": "node scripts/dev-server.cjs",
     "predev": "npm run prepare:shared",
-    "test:dev-server": "node --test tests/dev-server.test.cjs"
+    "test:dev-server": "node --test tests/dev-server.test.cjs",
+    "build:ui": "tsc --noEmit && vite build"
   },
   "devDependencies": {
     "@ozymandiasthegreat/vad": "2.0.7",
     "@playwright/test": "1.64.1",
     "esbuild": "0.28.2",
-    "onnxruntime-web": "1.23.2"
+    "onnxruntime-web": "1.23.2",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "*",
     "@ldayton/browser-offline": "*",
     "@soundtouchjs/core": "2.1.1",
-    "mediabunny": "1.65.2"
+    "mediabunny": "1.65.2",
+    "@ldayton/ui": "0.1.0",
+    "@mantine/core": "9.8.0",
+    "@mantine/hooks": "9.8.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   }
 }

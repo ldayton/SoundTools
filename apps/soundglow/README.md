@@ -722,3 +722,9 @@ otherwise inspection reports an unavailable format while ordinary native file
 playback remains available. Wider views use coarser spectral
 sampling; zooming requests fresh analysis. A loading/error message appears if
 analysis is delayed or unavailable, while native file playback remains usable.
+
+The file/bookmark action UI is built from React/Mantine source in `src/ui/`.
+`npm run dev` prepares that bundle before starting the cache-free source preview;
+run `npm run build:ui` and reload after UI-source edits during a running preview.
+See [the first UI migration milestone](../../docs/soundglow-ui-migration.md) for
+its ownership boundary, release packaging and local checks.

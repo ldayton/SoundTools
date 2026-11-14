@@ -7,12 +7,17 @@ export function SoundToolsProvider({
   children,
   primaryColor = "violet",
   pageColor = "#f8f9fa",
-}: PropsWithChildren<{ primaryColor?: string; pageColor?: string }>) {
+  colorScheme = "light",
+}: PropsWithChildren<{
+  primaryColor?: string;
+  pageColor?: string;
+  colorScheme?: "light" | "dark";
+}>) {
   const theme = useMemo(() => createTheme({ primaryColor }), [primaryColor]);
   return (
     <MantineProvider
       theme={theme}
-      forceColorScheme="light"
+      forceColorScheme={colorScheme}
       cssVariablesResolver={() => ({
         variables: { "--soundtools-page": pageColor },
         light: {},

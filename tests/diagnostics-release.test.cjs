@@ -62,3 +62,35 @@ for (const app of ["dorego", "notewise", "songalong"])
       }
     },
   );
+
+test("soundglow uploads bundled UI maps against its immutable release URLs", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "soundglow-ui-maps-"));
+  const output = path.join(root, "site");
+  fs.mkdirSync(output);
+  fs.writeFileSync(
+    path.join(output, "release.json"),
+    JSON.stringify({ version: "abc123", base: "/Soundglow/" }),
+  );
+  try {
+    const commands = [];
+    publishDiagnostics({
+      app: "soundglow",
+      output,
+      env: {
+        VERCEL_ENV: "production",
+        SOUNDGLOW_SENTRY_DSN: "public",
+        SENTRY_ORG: "org",
+        SENTRY_PROJECT: "soundglow",
+        SENTRY_AUTH_TOKEN: "test",
+      },
+      run: (args) => commands.push(args),
+    });
+    assert.equal(commands[0][2], "soundglow@abc123");
+    assert(commands[1].includes("~/Soundglow/releases/abc123/ui"));
+    assert.equal(commands[1].at(-1), path.join(root, "dist/ui"));
+    assert(commands[1].includes("--strict"));
+    assert(commands[1].includes("--wait"));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

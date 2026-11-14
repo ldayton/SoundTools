@@ -190,11 +190,12 @@
     }
     renderList() {
       this.actions.closeMenu();
-      const list = this.$('audioFileList'); list.replaceChildren();
+      const rows = [];
       for (const file of this.files) {
         const title = `${file.name}\n${formatPreciseTime(file.duration)}${file.bytes ? ` · ${(file.bytes/1048576).toFixed(1)} MB` : ''}`;
-        list.append(this.actions.row({kind: 'file', id: file.id, name: file.name, detail: formatTime(file.duration), title, selected: this.current?.id === file.id}));
+        rows.push({kind: 'file', id: file.id, name: file.name, detail: formatTime(file.duration), title, selected: this.current?.id === file.id});
       }
+      this.actions.renderList('file', rows);
       this.renderBookmarks();
       this.$('audioEmpty').hidden = !!this.files.length;
     }
@@ -207,14 +208,16 @@
     }
     renderBookmarks() {
       this.actions.closeMenu();
-      const list = this.$('audioBookmarkList'); list.replaceChildren();
+      const rows = [];
       this.$('audioBookmarks').hidden = !this.bookmarks.length;
       for (const bookmark of this.bookmarks) {
         const file = this.files.find(f => f.id === bookmark.fileId); if (!file) continue;
         const range = `${formatPreciseTime(bookmark.selection.start)}–${formatPreciseTime(bookmark.selection.end)}`;
-        list.append(this.actions.row({kind: 'bookmark', id: bookmark.id, name: bookmark.name, detail: range, title: `${bookmark.name}\n${file.name}\n${range}`}));
+        rows.push({kind: 'bookmark', id: bookmark.id, name: bookmark.name, detail: range, title: `${bookmark.name}\n${file.name}\n${range}`});
       }
+      this.actions.renderList('bookmark', rows);
     }
+
     beginBookmark() {
       if (!this.current || !this.loop || this.loading) return;
       this.$('bookmarkName').value = ''; this.$('bookmarkName').setCustomValidity('');

@@ -1,0 +1,14 @@
+/* Music canvases keep their own styles; these ordinary UI rows use the dark theme. */
+.library-row.soundtools-ui .library-item {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-default);
+  background: var(--mantine-color-default);
+  color: var(--mantine-color-text);
+}
+.library-row.soundtools-ui .library-item:hover {
+  background: var(--mantine-color-default-hover);
+}
+.library-row.soundtools-ui .library-more {
+  align-self: stretch;
+  height: auto;
+}

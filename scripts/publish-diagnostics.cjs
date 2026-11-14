@@ -47,7 +47,26 @@ function publishDiagnostics({
       "--wait",
       path.join(output, "assets"),
     ]);
-  // Soundglow's authored JS is unminified and retains its deployed line numbers.
+  if (app === "soundglow") {
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(output, "release.json")),
+    );
+    const ui = path.resolve(output, "../dist/ui");
+    // Upload the exact compiled UI before static-output cleanup. Never rewrite its bytes.
+    run([
+      "sourcemaps",
+      "upload",
+      "--release",
+      release,
+      "--url-prefix",
+      "~" + manifest.base + "releases/" + version + "/ui",
+      "--validate",
+      "--strict",
+      "--wait",
+      ui,
+    ]);
+  }
+  // The remaining Soundglow scripts retain their deployed source line numbers.
   run(["releases", "finalize", release]);
   return true;
 }

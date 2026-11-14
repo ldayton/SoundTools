@@ -104,7 +104,7 @@ try {
   await volume.focus();
   await page.keyboard.press("Home");
   for (let i = 0; i < 35; i++) await page.keyboard.press("ArrowRight");
-  assert.equal(await page.locator("#piano-volume-value").textContent(), "35");
+  assert.equal(await page.locator("#piano-volume-value").textContent(), "35%");
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",

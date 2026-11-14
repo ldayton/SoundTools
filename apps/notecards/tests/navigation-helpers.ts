@@ -68,6 +68,9 @@ export async function practiceOption(
         .getByRole("button", { name: label, exact: true })
         .click();
     }
+  } else if (selector === "#hymn-tempo" || selector === "#rhythm-tempo") {
+    await page.locator(selector).fill(value);
+    await page.locator(selector).press("Enter");
   } else await page.locator(selector).selectOption(value);
 }
 

@@ -9,8 +9,18 @@ const choices = Array.from({ length: 73 }, (_, index) => {
     column: value % 12,
   };
 });
-export function PitchPicker(
-  props: Omit<Parameters<typeof PitchField>[0], 'choices' | 'columns' | 'optional'>
-) {
-  return <PitchField {...props} choices={choices} />;
+export function PitchPicker({
+  min = 24,
+  max = 96,
+  ...props
+}: Omit<Parameters<typeof PitchField>[0], 'choices' | 'columns' | 'optional'> & {
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <PitchField
+      {...props}
+      choices={choices.map((note) => ({ ...note, disabled: note.value < min || note.value > max }))}
+    />
+  );
 }

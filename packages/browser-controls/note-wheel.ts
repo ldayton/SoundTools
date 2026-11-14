@@ -4,6 +4,9 @@ const ROW = 32;
 
 export class NoteWheel {
   private value: number;
+  private minimum: number;
+  private maximum: number;
+  private observer: ResizeObserver;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private drag: { y: number; top: number; selected: number | null } | null =
     null;
@@ -18,6 +21,8 @@ export class NoteWheel {
     },
   ) {
     this.value = options.low;
+    this.minimum = options.low;
+    this.maximum = options.high;
     element.innerHTML = Array.from(
       { length: this.options.high - this.options.low + 1 },
       (_, i) =>
@@ -46,9 +51,10 @@ export class NoteWheel {
         this.setValue(value);
         this.commit(value);
       });
-    new ResizeObserver(() => {
+    this.observer = new ResizeObserver(() => {
       if (element.getClientRects().length) this.setValue(this.value);
-    }).observe(element);
+    });
+    this.observer.observe(element);
     element.addEventListener("scroll", () => {
       this.highlight(this.nearest());
       clearTimeout(this.timer);
@@ -87,7 +93,10 @@ export class NoteWheel {
       element.style.scrollSnapType = "";
       if (element.hasPointerCapture(event.pointerId))
         element.releasePointerCapture(event.pointerId);
-      const midi = selected ?? this.nearest();
+      const midi = Math.max(
+        this.minimum,
+        Math.min(this.maximum, selected ?? this.nearest()),
+      );
       element.scrollTo({
         top: (midi - this.options.low) * ROW,
         behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -101,9 +110,9 @@ export class NoteWheel {
   }
   private nearest() {
     return Math.max(
-      this.options.low,
+      this.minimum,
       Math.min(
-        this.options.high,
+        this.maximum,
         this.options.low + Math.round(this.element.scrollTop / ROW),
       ),
     );
@@ -121,9 +130,28 @@ export class NoteWheel {
     clearTimeout(this.timer);
     if (!this.element.getClientRects().length) return;
     const midi = this.nearest();
-    if (midi === this.value) return;
+    if (midi === this.value) {
+      const raw = this.options.low + Math.round(this.element.scrollTop / ROW);
+      if (raw < this.minimum || raw > this.maximum) this.setValue(midi);
+      return;
+    }
     this.value = midi;
     this.commit(midi);
+  }
+  setLimits(minimum: number, maximum: number) {
+    this.minimum = Math.max(this.options.low, minimum);
+    this.maximum = Math.min(this.options.high, maximum);
+    for (const child of this.element.children) {
+      const value = Number((child as HTMLElement).dataset.midi);
+      child.classList.toggle(
+        "is-unavailable",
+        value < this.minimum || value > this.maximum,
+      );
+    }
+  }
+  destroy() {
+    clearTimeout(this.timer);
+    this.observer.disconnect();
   }
   setValue(midi: number) {
     clearTimeout(this.timer);

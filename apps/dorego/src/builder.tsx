@@ -5,11 +5,10 @@ import {
   Alert,
   Group,
   NativeSelect,
-  NumberInput,
   Radio,
   SimpleGrid,
   Stack,
-  Switch,
+  Checkbox,
   Text,
 } from '@mantine/core';
 import {
@@ -26,6 +25,7 @@ import {
   type Direction,
   type ExerciseSpec,
 } from './music';
+import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { NoteWheel } from './note-wheel';
 import { PitchPicker } from './pitch-picker';
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
@@ -34,76 +34,15 @@ export interface BuilderModel {
   getSnapshot(): BuilderSnapshot;
   subscribe(listener: () => void): () => void;
 }
-/** An editing buffer is not a second settings owner: only committed values reach the controller. */
-export function CommittedNumber({
-  value,
-  change,
-  ...props
-}: {
-  value: number;
-  change(value: number): void;
-  id: string;
-  label: string;
-  min: number;
-  max: number;
-  step?: number;
-  hideControls?: boolean;
-  'aria-label'?: string;
-}) {
-  const [draft, setDraft] = useState<string | number>(value);
-  const current = useRef<string | number>(value);
-  useLayoutEffect(() => {
-    current.current = value;
-    setDraft(value);
-  }, [value]);
-  function commit() {
-    const next =
-      typeof current.current === 'number' && Number.isFinite(current.current)
-        ? Math.max(props.min, Math.min(props.max, current.current))
-        : value;
-    current.current = next;
-    setDraft(next);
-    if (next !== value) change(next);
-  }
-  return (
-    <NumberInput
-      {...props}
-      allowDecimal={false}
-      role="spinbutton"
-      aria-valuemin={props.min}
-      aria-valuemax={props.max}
-      aria-valuenow={typeof draft === 'number' ? draft : undefined}
-      onValueChange={(values, info) => {
-        if (
-          ['increment', 'decrement'].includes(info.source as string) &&
-          values.floatValue !== undefined
-        ) {
-          current.current = values.floatValue;
-          setDraft(values.floatValue);
-          if (values.floatValue !== value) change(values.floatValue);
-        }
-      }}
-      value={draft}
-      onChange={(value) => {
-        current.current = value;
-        setDraft(value);
-      }}
-      onBlur={commit}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          commit();
-          event.currentTarget.blur();
-        }
-      }}
-    />
-  );
-}
 function PitchField({
   bound,
   value,
   change,
+  min,
+  max,
 }: {
+  min: number;
+  max: number;
   bound: 'low' | 'high';
   value: number;
   change(value: number): void;
@@ -149,10 +88,12 @@ function PitchField({
       }
     });
     controls.current = wheel;
+    return () => wheel.destroy();
   }, [bound]);
   useLayoutEffect(() => {
+    controls.current?.setLimits(min, max);
     controls.current?.setValue(value);
-  }, [value]);
+  }, [value, min, max]);
   return (
     <div>
       <Text size="sm" fw={500} mb={4}>
@@ -166,6 +107,8 @@ function PitchField({
           opened={opened}
           onOpenedChange={setOpened}
           onChange={change}
+          min={min}
+          max={max}
         />
       </div>
       <div ref={host} />
@@ -362,8 +305,24 @@ export function Builder({
             </Group>
           </Group>
           <SimpleGrid cols={2}>
-            <PitchField bound="low" value={spec.low} change={(low) => change({ low })} />
-            <PitchField bound="high" value={spec.high} change={(high) => change({ high })} />
+            <PitchField
+              bound="low"
+              value={spec.low}
+              change={(low) =>
+                change({ low: Math.min(spec.high - vocalSpan(spec.pattern), Math.max(24, low)) })
+              }
+              min={24}
+              max={spec.high - vocalSpan(spec.pattern)}
+            />
+            <PitchField
+              bound="high"
+              value={spec.high}
+              change={(high) =>
+                change({ high: Math.max(spec.low + vocalSpan(spec.pattern), Math.min(96, high)) })
+              }
+              min={spec.low + vocalSpan(spec.pattern)}
+              max={96}
+            />
           </SimpleGrid>
         </Stack>
         <div hidden={spec.pattern === 'major' || roots.length <= 1}>
@@ -387,14 +346,14 @@ export function Builder({
             <Accordion.Control>More options</Accordion.Control>
             <Accordion.Panel>
               <Stack>
-                <Switch
+                <Checkbox
                   id="startingChords"
                   label="Starting-note chords"
                   checked={spec.startingChords ?? true}
                   hidden={!vocal}
                   onChange={(event) => change({ startingChords: event.currentTarget.checked })}
                 />
-                <Switch
+                <Checkbox
                   id="repeatTwice"
                   label="Repeat each round twice"
                   checked={!!spec.repeatTwice}
@@ -405,13 +364,13 @@ export function Builder({
                   <Text size="sm" fw={500}>
                     Repeat notes
                   </Text>
-                  <Switch
+                  <Checkbox
                     id="repeatTurn"
                     label={spec.direction === 'down' ? 'Lowest note' : 'Highest note'}
                     checked={!!spec.repeatTurn}
                     onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
                   />
-                  <Switch
+                  <Checkbox
                     id="repeatHome"
                     label="Home note on return"
                     checked={!!spec.repeatHome}

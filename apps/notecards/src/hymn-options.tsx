@@ -1,3 +1,4 @@
+import { TempoControl } from "@ldayton/ui/tempo-control";
 import { useSyncExternalStore } from "react";
 import {
   Accordion,
@@ -26,10 +27,7 @@ const hands = [
   { value: "right", label: "Right hand" },
   { value: "left", label: "Left hand" },
 ];
-const tempos = Array.from({ length: 33 }, (_, i) => ({
-  value: String(40 + i * 5),
-  label: `${40 + i * 5} BPM`,
-}));
+
 const countIns = [
   { value: "0", label: "None" },
   { value: "0.5", label: "½ bar" },
@@ -149,14 +147,12 @@ export function HymnOptions({
       />
       {state.mode === "playback" && (
         <SimpleGrid cols={2}>
-          <NativeSelect
+          <TempoControl
             id="hymn-tempo"
-            label="Tempo"
-            data={tempos}
-            value={String(state.bpm)}
-            onChange={(event) =>
-              change({ bpm: Number(event.currentTarget.value) })
-            }
+            value={state.bpm}
+            min={40}
+            max={200}
+            onChange={(bpm) => change({ bpm })}
           />
           <NativeSelect
             id="hymn-count-in"

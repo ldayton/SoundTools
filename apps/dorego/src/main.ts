@@ -209,7 +209,7 @@ function changeTempo(bpm: number) {
   update(true);
 }
 function changeVolume(volume: number) {
-  if (!Number.isFinite(volume) || volume < -36 || volume > 0 || volume === spec.volume) return;
+  if (!Number.isFinite(volume) || volume < -60 || volume > 0 || volume === spec.volume) return;
   player.setVolume(volume);
   spec = { ...spec, volume };
   exercise = { ...exercise, spec: { ...exercise.spec, volume } };

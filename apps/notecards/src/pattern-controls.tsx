@@ -19,7 +19,7 @@ export function PatternControls({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <Group gap="xs" className="soundtools-ui">
-      <Button className="pattern-pause" variant="light" onClick={pause}>
+      <Button className="pattern-pause" variant="filled" onClick={pause}>
         {state.paused ? "Resume" : "Pause"}
       </Button>
       <Button className="pattern-again" variant="default" onClick={restart}>

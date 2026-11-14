@@ -45,7 +45,7 @@ export function HymnControls({
       <Group gap="xs">
         <Button
           className="hymn-pause"
-          variant="light"
+          variant="filled"
           disabled={state.disabled || state.pauseDisabled}
           onClick={pause}
         >

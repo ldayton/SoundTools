@@ -7,7 +7,11 @@
     ".": "./provider.tsx",
     "./view-state": "./view-state.ts",
     "./pitch-field": "./pitch-field.tsx",
-    "./retained-content": "./retained-content.tsx"
+    "./retained-content": "./retained-content.tsx",
+    "./committed-number": "./committed-number.tsx",
+    "./tempo-control": "./tempo-control.tsx",
+    "./volume-control": "./volume-control.tsx",
+    "./volume": "./volume.ts"
   },
   "peerDependencies": {
     "react": "^19.2.0",

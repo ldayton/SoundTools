@@ -105,7 +105,7 @@ test("live preferences reject damaged values without borrowing unrelated flashca
   assert.deepEqual(
     mergeRhythmSettings(
       { bpm: 95, level: "long-short" },
-      { bpm: 151, level: "bad" },
+      { bpm: 151.5, level: "bad" },
     ),
     { bpm: 95, level: "long-short" },
   );
@@ -132,7 +132,7 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     { ...hymn, mode: "playback", bpm: 125 },
   );
   assert.deepEqual(
-    hymnSettingsFromQuery(hymn, new URLSearchParams("mode=bad&tempo=151")),
+    hymnSettingsFromQuery(hymn, new URLSearchParams("mode=bad&tempo=151.5")),
     hymn,
   );
   assert.deepEqual(
@@ -221,4 +221,11 @@ test("durable flashcard checkpoints restore exact feedback and retain rejected p
   assert.equal(rejected, damaged);
   assert.equal(fresh.current, null);
   assert.equal(damaged.session.current, "missing");
+});
+
+test("typed tempo accepts integer BPM values between preset steps", () => {
+  assert.equal(
+    mergeRhythmSettings({ bpm: 95, level: "pulse" }, { bpm: 151 }).bpm,
+    151,
+  );
 });

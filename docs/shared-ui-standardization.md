@@ -24,3 +24,19 @@ wheels retain their existing shared implementation. Root builds pass for Note by
 Note and Pages for DoReGo; Note by Note browser/theory/hymn-key/navigation checks
 and DoReGo Pages checks pass. Next: constraints, rhythm tempo and consistent
 volume/actions.
+
+Milestone 2: shared tempo entry/stepping and percent-volume controls. All tempo
+fields accept integer BPM values within their existing limits, with five-BPM
+step buttons; numeric drafts commit on blur/Enter. Rhythm tempo changes stop
+safely but preserve the exact saved bars. Range choices cannot cross the other
+endpoint; DoReGo additionally applies its musical span. Home/End and mobile
+wheels respect those constraints. Optional hymn limits remain filters that can
+produce no matching key. Native wheel observers/timers now have cleanup for
+React lifecycles. DoReGo repeat options use checkboxes, primary practice actions
+use filled buttons and restart wording is consistently Start again.
+
+Passing checks: 151 Note by Note logic tests, 62 DoReGo logic tests (including
+volume conversion/mute), both builds, Note by Note navigation and piano-audio,
+DoReGo Pages and desktop PCM/lifecycle checks. Browser regression verifies tempo
+preserves the committed rhythm and range keyboard edits never move the other
+bound. Saved DoReGo volumes retain their dB schema. No push/deploy.

@@ -99,10 +99,11 @@ export class RhythmPractice {
             { bpm: this.bpm, level: this.level },
             settings,
           );
+          const materialChanged = this.level !== next.level;
           this.level = next.level;
           this.bpm = next.bpm;
           this.options.set(next);
-          this.bars = makeRhythm(this.level);
+          if (materialChanged) this.bars = makeRhythm(this.level);
           this.render();
           this.save();
         },

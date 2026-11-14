@@ -1,3 +1,4 @@
+import { VolumeControl } from "@ldayton/ui/volume-control";
 import { useState, useSyncExternalStore } from "react";
 import {
   Anchor,
@@ -75,17 +76,9 @@ export function SettingsPage() {
           <Title order={2} size="h4" id="sound-title">
             Sound
           </Title>
-          <Text component="label" htmlFor="piano-volume">
-            Piano volume{" "}
-            <output id="piano-volume-value" htmlFor="piano-volume">
-              {volume}
-            </output>
-          </Text>
-          <Slider
-            thumbProps={{ id: "piano-volume" }}
-            thumbLabel="Piano volume"
-            min={0}
-            max={100}
+          <VolumeControl
+            id="piano-volume"
+            label="Piano volume"
             value={volume}
             onChange={(value) => {
               setVolume(value);

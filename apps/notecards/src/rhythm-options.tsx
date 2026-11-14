@@ -1,3 +1,4 @@
+import { TempoControl } from "@ldayton/ui/tempo-control";
 import { createViewState } from "./view-state";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack } from "@mantine/core";
@@ -8,10 +9,6 @@ const levels = [
   { value: "long-short", label: "Long & short notes" },
   { value: "eighths", label: "Eighth notes & rests" },
 ];
-const tempos = RHYTHM_TEMPOS.map((bpm) => ({
-  value: String(bpm),
-  label: `${bpm} BPM`,
-}));
 
 export const rhythmOptionsState = createViewState<RhythmSettings>;
 export type RhythmOptionsState = ReturnType<typeof rhythmOptionsState>;
@@ -39,12 +36,12 @@ export function RhythmOptions({
           })
         }
       />
-      <NativeSelect
+      <TempoControl
         id="rhythm-tempo"
-        label="Tempo"
-        data={tempos}
-        value={String(settings.bpm)}
-        onChange={(event) => change({ bpm: Number(event.currentTarget.value) })}
+        value={settings.bpm}
+        min={40}
+        max={160}
+        onChange={(bpm) => change({ bpm })}
       />
     </Stack>
   );

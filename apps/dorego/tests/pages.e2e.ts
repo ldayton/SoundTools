@@ -1,3 +1,4 @@
+import { volumePercent } from '@ldayton/ui/volume';
 import { readSpecValue, openMoreOptions, sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -245,9 +246,9 @@ try {
     await page.locator('#note-repeats').isVisible(),
     'Arpeggio & Scale exposes note repeats'
   );
-  await page.getByRole('switch', { name: 'Highest note', exact: true }).check();
-  await page.getByRole('switch', { name: 'Home note on return', exact: true }).check();
-  await page.getByRole('switch', { name: 'Repeat each round twice', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Home note on return', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Repeat each round twice', exact: true }).check();
   await page.waitForFunction(
     () => JSON.parse(localStorage.getItem('dorego.current') || '{}').repeatTwice === true
   );
@@ -273,11 +274,11 @@ try {
   assert.ok(await page.locator('#note-repeats').isVisible());
   assert.equal(await page.locator('label[for=repeatHome]').textContent(), 'Home note on return');
   assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Highest note');
-  await page.getByRole('switch', { name: 'Home note on return', exact: true }).check();
-  await page.getByRole('switch', { name: 'Highest note', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Home note on return', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
   await page.locator('#direction-down').click();
   assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Lowest note');
-  assert.ok(await page.getByRole('switch', { name: 'Lowest note', exact: true }).isChecked());
+  assert.ok(await page.getByRole('checkbox', { name: 'Lowest note', exact: true }).isChecked());
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();
   await page.getByRole('button', { name: 'More options', exact: true }).click();
@@ -396,21 +397,21 @@ try {
     const canvas = document.querySelector('#stage') as HTMLCanvasElement;
     return canvas.width === 1600 && canvas.height === 900;
   });
-  // Temporary invalid range edits must never replace the last valid saved exercise.
+  // Impossible range choices are disabled; the other endpoint and saved exercise stay put.
   await page.locator('#pattern').selectOption('fiveNote');
   const validSaved = await page.evaluate(() => localStorage.getItem('dorego.current'));
+  const highBefore = await readSpecValue(page, 'high');
   await page.locator('#low-spin').click();
-  await page
+  const unavailable = page
     .getByRole('dialog', { name: 'Choose lowest note' })
-    .getByRole('button', { name: 'C7', exact: true })
-    .click();
-  assert.ok(await page.locator('#play').isDisabled());
-  await page.locator('#tempo-up').click();
-  await setSlider(page, 'volume', -18);
-  assert.equal(await page.evaluate(() => localStorage.getItem('dorego.current')), validSaved);
+    .getByRole('button', { name: 'C7', exact: true });
+  assert.ok(await unavailable.isDisabled());
+  await page.keyboard.press('Escape');
+  await page.locator('#low-spin').press('End');
+  assert.equal(Number(await readSpecValue(page, 'low')), Number(highBefore) - 7);
+  assert.equal(await readSpecValue(page, 'high'), highBefore);
   await page.reload();
   await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('#play')?.disabled);
-  assert.equal(await page.evaluate(() => localStorage.getItem('dorego.current')), validSaved);
 
   const preferencesPage = await browser.newPage();
   const remembered = {
@@ -439,7 +440,7 @@ try {
         ['volume', 'position', 'tempo-slider'].includes(id)
           ? String(await sliderValue(preferencesPage, id))
           : await field.inputValue(),
-        String(value),
+        String(id === 'volume' ? volumePercent(Number(value)) : value),
         `Stored ${id} was overwritten`
       );
   }

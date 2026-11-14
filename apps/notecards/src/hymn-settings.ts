@@ -81,10 +81,7 @@ export function mergeHymnSettings(
       : {}),
     mode: choice(s.mode, ["wait", "playback"] as const, base.mode || "wait"),
     bpm:
-      Number.isInteger(s.bpm) &&
-      Number(s.bpm) >= 40 &&
-      Number(s.bpm) <= 200 &&
-      Number(s.bpm) % 5 === 0
+      Number.isInteger(s.bpm) && Number(s.bpm) >= 40 && Number(s.bpm) <= 200
         ? Number(s.bpm)
         : base.bpm || 80,
     ...(isHymnKey(s.key) ? { key: s.key } : base.key ? { key: base.key } : {}),

@@ -183,8 +183,6 @@ class TheoryPractice implements LivePractice {
             (note) => {
               const s = this.settings;
               s[f] = note;
-              if (POSITIONS.indexOf(s.low) > POSITIONS.indexOf(s.high))
-                s[f === "low" ? "high" : "low"] = note;
               this.reset();
             },
             POSITIONS,
@@ -535,6 +533,8 @@ class TheoryPractice implements LivePractice {
       settings: structuredClone(s),
     });
     if (this.kind === "intervals") {
+      this.range[0].setLimits(undefined, s.high);
+      this.range[1].setLimits(s.low, undefined);
       this.range[0].setValue(s.low);
       this.range[1].setValue(s.high);
     }

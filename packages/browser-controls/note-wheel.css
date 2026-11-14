@@ -56,3 +56,7 @@
   outline: 2px solid #95ad62;
   outline-offset: 2px;
 }
+
+.note-wheel-item.is-unavailable {
+  opacity: 0.3;
+}

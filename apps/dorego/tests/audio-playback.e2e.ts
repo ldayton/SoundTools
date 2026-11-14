@@ -129,7 +129,7 @@ try {
   assert.ok(result.audio.peak > 0.01);
   assert.equal(result.audio.clipped, 0);
   const loudRms = Math.sqrt(result.audio.energy / result.audio.count);
-  await setSlider(page, 'volume', -24);
+  await setSlider(page, 'volume', 6);
   assert.equal(await page.locator('#play').innerText(), 'Pause');
   await page.waitForTimeout(50);
   await page.evaluate(() => {
@@ -146,6 +146,23 @@ try {
     quietRms > 0 && quietRms < loudRms * 0.3,
     `Live volume did not attenuate audio: ${loudRms} -> ${quietRms}`
   );
+  await setSlider(page, 'volume', 0);
+  assert.equal(await page.locator('#play').innerText(), 'Pause');
+  await page.waitForTimeout(80);
+  await page.evaluate(() => {
+    const a = (window as any).audioProbe.audio;
+    a.energy = 0;
+    a.count = 0;
+  });
+  await page.waitForTimeout(200);
+  assert.ok(
+    await page.evaluate(() => {
+      const a = (window as any).audioProbe.audio;
+      return Math.sqrt(a.energy / Math.max(1, a.count)) < 0.00001;
+    }),
+    'Zero volume is silent while playback continues'
+  );
+  await setSlider(page, 'volume', 100);
   assert.equal(await page.locator('#metronome').count(), 0);
   await page.locator('#play').click();
   await page.waitForTimeout(300);

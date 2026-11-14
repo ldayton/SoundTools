@@ -19,7 +19,7 @@ export function RhythmControls({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <Group gap="xs" className="soundtools-ui">
-      <Button className="rhythm-start" variant="light" onClick={start}>
+      <Button className="rhythm-start" variant="filled" onClick={start}>
         {["countin", "playing"].includes(state.phase)
           ? "Stop"
           : state.phase === "complete"
@@ -45,7 +45,7 @@ export function RhythmTap({
       className="rhythm-tap soundtools-ui"
       size="xl"
       fullWidth
-      variant="light"
+      variant="filled"
       aria-label="Tap rhythm"
       data-feedback={state.feedback}
       onPointerDown={(event) => {

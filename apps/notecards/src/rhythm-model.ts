@@ -87,7 +87,10 @@ export function mergeRhythmSettings(
   const s = object(input);
   return {
     bpm:
-      typeof s.bpm === "number" && RHYTHM_TEMPOS.includes(s.bpm)
+      typeof s.bpm === "number" &&
+      Number.isInteger(s.bpm) &&
+      s.bpm >= 40 &&
+      s.bpm <= 160
         ? s.bpm
         : base.bpm,
     level: choice(s.level, ["pulse", "long-short", "eighths"], base.level),

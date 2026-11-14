@@ -61,8 +61,8 @@ export function PitchField({
     const direction = candidate >= value ? 1 : -1;
     const next =
       direction > 0
-        ? enabled.find((n) => n >= candidate)
-        : [...enabled].reverse().find((n) => n <= candidate);
+        ? (enabled.find((n) => n >= candidate) ?? enabled[enabled.length - 1])
+        : ([...enabled].reverse().find((n) => n <= candidate) ?? enabled[0]);
     if (next !== undefined) onChange(next);
   }
   function choose(next: number) {

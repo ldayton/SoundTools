@@ -9,7 +9,12 @@ export function closePitchPickers() {
 }
 /** Translate app-specific written pitches into the shared controlled field. */
 export class RangePicker {
-  private model = createViewState({ value: 0, open: false });
+  private model = createViewState({
+    value: 0,
+    open: false,
+    min: -1,
+    max: Number.MAX_SAFE_INTEGER,
+  });
   constructor(
     input: HTMLInputElement,
     _button: HTMLButtonElement,
@@ -48,7 +53,10 @@ export class RangePicker {
         label,
         value: state.value,
         opened: state.open,
-        choices,
+        choices: choices.map((note) => ({
+          ...note,
+          disabled: note.value < state.min || note.value > state.max,
+        })),
         columns: options.chromatic ? 12 : 7,
         optional: options.optional,
         onOpenedChange: (open) => model.set({ ...model.getSnapshot(), open }),
@@ -56,6 +64,13 @@ export class RangePicker {
       });
     }
     mountPracticeControls(slot, createElement(Field));
+  }
+  setLimits(low?: string, high?: string) {
+    this.model.set({
+      ...this.model.getSnapshot(),
+      min: low ? this.positions.indexOf(low) : -1,
+      max: high ? this.positions.indexOf(high) : this.positions.length - 1,
+    });
   }
   close() {
     this.model.set({ ...this.model.getSnapshot(), open: false });

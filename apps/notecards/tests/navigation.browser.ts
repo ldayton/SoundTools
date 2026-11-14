@@ -304,6 +304,21 @@ try {
     if (mode === "staff") {
       await practiceOption(page, "#low", "E2");
       await practiceOption(page, "#high", "E2");
+      assert.equal(
+        await page.locator("#staff-low-spin").getAttribute("role"),
+        "combobox",
+      );
+      await page.locator("#staff-low-spin").press("End");
+      assert.equal(
+        await page.locator("#staff-low-spin").inputValue(),
+        "E2",
+        "End clamps to the permitted bound",
+      );
+      assert.equal(
+        await page.locator("#staff-high-spin").inputValue(),
+        "E2",
+        "The other bound never moves",
+      );
       assert.equal(await page.locator("#staff-low-spin").inputValue(), "E2");
       await page.locator("#staff-high-spin").click();
       assert.equal(
@@ -354,7 +369,41 @@ try {
   await practiceOption(page, "#rhythm-level", "eighths");
   await practiceOption(page, "#rhythm-tempo", "115");
   await page.getByRole("button", { name: "Start", exact: true }).click();
+  const storedRhythm = () =>
+    page.evaluate(
+      () =>
+        new Promise<any>((resolve, reject) => {
+          const request = indexedDB.open("soundtools-notecards");
+          request.onsuccess = () => {
+            const db = request.result;
+            const read = db
+              .transaction("state")
+              .objectStore("state")
+              .get("root");
+            read.onsuccess = () => {
+              resolve(read.result.state.activities.rhythm.bars);
+              db.close();
+            };
+            read.onerror = () => reject(read.error);
+          };
+          request.onerror = () => reject(request.error);
+        }),
+    );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  const rhythmBeforeTempo = await storedRhythm();
   await practiceOption(page, "#rhythm-tempo", "125");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  assert.deepEqual(
+    await storedRhythm(),
+    rhythmBeforeTempo,
+    "Tempo edits retain the exact rhythm",
+  );
   assert.ok(
     await page.getByRole("button", { name: "Start", exact: true }).isVisible(),
     "changing settings stops the active attempt",
@@ -380,6 +429,7 @@ try {
   });
   await rhythmSelect.focus();
   await rhythmSelect.press("Tab");
+  await page.locator("#rhythm-tempo-down").press("Tab");
   assert.ok(
     await page
       .locator("#rhythm-tempo")
@@ -390,7 +440,10 @@ try {
   assert.equal(await rhythmSelect.inputValue(), "pulse");
   assert.equal(
     await page
-      .getByRole("combobox", { name: "Tempo", exact: true })
+      .getByRole("spinbutton", {
+        name: "Tempo in beats per minute",
+        exact: true,
+      })
       .inputValue(),
     "125",
   );

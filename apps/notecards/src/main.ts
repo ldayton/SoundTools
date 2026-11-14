@@ -182,9 +182,6 @@ const rangePickers = [
     $<HTMLButtonElement>(`#${prefix}${field}-choose`),
     (value) => {
       profile()[field] = value;
-      const other = field === "low" ? "high" : "low";
-      if (positions.indexOf(profile().low) > positions.indexOf(profile().high))
-        profile()[other] = value;
       changed();
     },
     positions,
@@ -301,7 +298,13 @@ function syncOptions() {
   $("#piano-range").hidden = !isPiano;
   rangePickers.forEach(({ picker, prefix, field }) => {
     picker.close();
-    if (prefix ? progress.mode === "staff" : isPiano) picker.setValue(p[field]);
+    if (prefix ? progress.mode === "staff" : isPiano) {
+      picker.setLimits(
+        field === "high" ? p.low : undefined,
+        field === "low" ? p.high : undefined,
+      );
+      picker.setValue(p[field]);
+    }
   });
   $("#pitch-range").setAttribute(
     "aria-label",

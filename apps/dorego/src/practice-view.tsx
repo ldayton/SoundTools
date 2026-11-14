@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from 'react';
-import { ActionIcon, Alert, Button, Group, Slider, Stack, Text, Title } from '@mantine/core';
+import { Alert, Button, Group, Slider, Stack, Text, Title } from '@mantine/core';
 import { RetainedContent } from './app-shell';
-import { CommittedNumber } from './builder';
+import { TempoControl } from '@ldayton/ui/tempo-control';
+import { VolumeControl } from '@ldayton/ui/volume-control';
+import { volumePercent, volumeDecibels } from '@ldayton/ui/volume';
 import { formatTime } from './music';
 export type PracticeSnapshot = {
   mode: 'ready' | 'starting' | 'playing' | 'paused' | 'complete';
@@ -50,16 +52,6 @@ export function PracticeView({
           : state.mode === 'complete'
             ? 'Replay'
             : 'Play';
-  const stepTempo = (direction: number) =>
-    tempo(
-      Math.max(
-        60,
-        Math.min(
-          240,
-          direction > 0 ? (Math.floor(state.bpm / 5) + 1) * 5 : (Math.ceil(state.bpm / 5) - 1) * 5
-        )
-      )
-    );
   return (
     <>
       <section className="workspace" aria-label="Practice studio">
@@ -80,16 +72,9 @@ export function PracticeView({
             aria-label="Exercise playback controls"
           >
             <Group gap="sm" wrap="nowrap">
-              <ActionIcon
-                id="restart"
-                variant="default"
-                size="lg"
-                title="Restart exercise"
-                aria-label="Restart exercise"
-                onClick={restart}
-              >
-                ↺
-              </ActionIcon>
+              <Button id="restart" variant="default" onClick={restart}>
+                Start again
+              </Button>
               <Button
                 id="play"
                 autoContrast
@@ -123,67 +108,21 @@ export function PracticeView({
                 </Group>
               </div>
             </Group>
-            <div className="dorego-tempo">
-              <Group gap="xs" align="end" wrap="nowrap">
-                <ActionIcon
-                  id="tempo-down"
-                  variant="default"
-                  size="lg"
-                  aria-label="Decrease tempo by 5 BPM"
-                  disabled={state.bpm <= 60}
-                  onClick={() => stepTempo(-1)}
-                >
-                  −
-                </ActionIcon>
-                <CommittedNumber
-                  id="bpm"
-                  label="Tempo"
-                  aria-label="Tempo in beats per minute"
-                  value={state.bpm}
-                  min={60}
-                  max={240}
-                  step={5}
-                  hideControls
-                  change={tempo}
-                />
-                <ActionIcon
-                  id="tempo-up"
-                  variant="default"
-                  size="lg"
-                  aria-label="Increase tempo by 5 BPM"
-                  disabled={state.bpm >= 240}
-                  onClick={() => stepTempo(1)}
-                >
-                  +
-                </ActionIcon>
-              </Group>
-              <Slider
-                thumbProps={{ id: 'tempo-slider' }}
-                thumbLabel="Tempo slider"
-                thumbValueText={(value) => `${value} beats per minute`}
-                min={60}
-                max={240}
-                step={5}
-                value={state.bpm}
-                onChange={tempo}
-              />
-            </div>
-            <div>
-              <Text component="label" size="sm" htmlFor="volume" mb={8}>
-                Volume
-              </Text>
-              <Slider
-                thumbProps={{ id: 'volume' }}
-                thumbLabel="Volume"
-                thumbValueText={(value) => `${value} decibels`}
-                min={-36}
-                max={0}
-                step={1}
-                value={state.volume}
-                label={(value) => `${value} dB`}
-                onChange={volume}
-              />
-            </div>
+            <TempoControl
+              id="bpm"
+              value={state.bpm}
+              min={60}
+              max={240}
+              onChange={tempo}
+              decreaseId="tempo-down"
+              increaseId="tempo-up"
+              sliderId="tempo-slider"
+            />
+            <VolumeControl
+              id="volume"
+              value={volumePercent(state.volume)}
+              onChange={(value) => volume(volumeDecibels(value))}
+            />
             <Text id="exercise-summary" size="xs" c="dimmed">
               {state.summary}
             </Text>

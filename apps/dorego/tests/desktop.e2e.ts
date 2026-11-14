@@ -204,13 +204,13 @@ try {
   );
   await page.locator('#tempo-up').click();
   assert.equal(await page.locator('#bpm').inputValue(), '65');
-  await setSlider(page, 'volume', -30);
+  await setSlider(page, 'volume', 3);
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await progress();
   await setSlider(page, 'tempo-slider', 240);
   await page.locator('#tempo-slider').press('Tab');
   assert.equal(await page.locator('#bpm').inputValue(), '240');
-  await setSlider(page, 'volume', 0);
+  await setSlider(page, 'volume', 100);
   await progress();
 
   // Real pointer seeking pauses at the chosen position and never leaves old voices running.
@@ -281,7 +281,7 @@ try {
   await ready();
   assert.equal(await page.locator('#pattern').inputValue(), 'fifthGlide');
   assert.equal(await page.locator('#bpm').inputValue(), '240');
-  assert.equal(await sliderValue(page, 'volume'), '0');
+  assert.equal(await sliderValue(page, 'volume'), '100');
   assert.equal(await readSpecValue(page, 'low'), '53');
   let release!: () => void;
   const gate = new Promise<void>((resolve) => (release = resolve));

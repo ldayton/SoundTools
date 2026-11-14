@@ -106,5 +106,15 @@
       "value": "off",
       "label": "Off"
     }
+  ],
+  "pitchBandMode": [
+    {
+      "value": "target",
+      "label": "Target band"
+    },
+    {
+      "value": "ranges",
+      "label": "Reference ranges"
+    }
   ]
 }

@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 (function(scope){
- const inputLimits=Object.freeze({minimum:Object.freeze({"min": 50, "max": 1000, "step": 5}),maximum:Object.freeze({"min": 100, "max": 1200, "step": 5}),history:Object.freeze({"min": 3, "max": 30, "step": 1}),voicingCeiling:Object.freeze({"min": 100, "max": 1200, "step": 1}),confidence:Object.freeze({"min": 0, "max": 1, "step": 0.05}),outlineWidth:Object.freeze({"min": 0, "max": 6, "step": 0.1}),lineWidth:Object.freeze({"min": 1, "max": 6, "step": 0.1}),markerRadius:Object.freeze({"min": 1, "max": 6, "step": 0.1}),samplingMs:Object.freeze({"min": 0, "max": 500, "step": 50}),gapMs:Object.freeze({"min": 0, "max": 2000, "step": 1}),jumpCents:Object.freeze({"min": 0, "max": 2400, "step": 600}),cornerRadius:Object.freeze({"min": 0, "max": 40, "step": 1})});
+ const inputLimits=Object.freeze({minimum:Object.freeze({"min": 50, "max": 1000, "step": 5}),maximum:Object.freeze({"min": 100, "max": 1200, "step": 5}),history:Object.freeze({"min": 3, "max": 30, "step": 1}),targetLow:Object.freeze({min:50,max:1200,step:5}),targetHigh:Object.freeze({min:50,max:1200,step:5}),voicingCeiling:Object.freeze({"min": 100, "max": 1200, "step": 1}),confidence:Object.freeze({"min": 0, "max": 1, "step": 0.05}),outlineWidth:Object.freeze({"min": 0, "max": 6, "step": 0.1}),lineWidth:Object.freeze({"min": 1, "max": 6, "step": 0.1}),markerRadius:Object.freeze({"min": 1, "max": 6, "step": 0.1}),samplingMs:Object.freeze({"min": 0, "max": 500, "step": 50}),gapMs:Object.freeze({"min": 0, "max": 2000, "step": 1}),jumpCents:Object.freeze({"min": 0, "max": 2400, "step": 600}),cornerRadius:Object.freeze({"min": 0, "max": 40, "step": 1})});
+ const rangeLimits=Object.freeze({min:50,max:1200,step:1});
  const defaults={breakUnconfirmedJumps:false,bandMode:'ranges',targetLow:175,targetHigh:275,method:'raw',speechGate:false,confirmationMs:0,voicingCeiling:1200,axis:'linear',drawing:'curve',edgeExtension:'none',confidence:.45,bridgeUnvoiced:false,outlineWidth:0,lineWidth:2.8,markerRadius:2,samplingMs:0,aggregation:'mean',gapMs:35,jumpCents:600,cornerRadius:0,markers:'spaced',minimum:50,maximum:450,history:10,smoothing:'light',bands:true,
   ranges:[{name:'Male',low:85,high:145,colour:'#70cbe1'},{name:'Androgynous',low:145,high:175,colour:'#b2b8c3'},{name:'Female',low:175,high:275,colour:'#f58caa'}]};
  function pitch(input={}){
   const p={...defaults,...input,ranges:(input.ranges||defaults.ranges).map(r=>({...r}))};
   for(const [key,{min,max}] of Object.entries(inputLimits))if(!Number.isFinite(p[key])||p[key]<min||p[key]>max)throw Error('Invalid pitch '+key);
-  if(!['ranges','target'].includes(p.bandMode)||typeof p.breakUnconfirmedJumps!=='boolean'||!Number.isFinite(p.targetLow)||!Number.isFinite(p.targetHigh)||p.targetLow<50||p.targetHigh>1200||p.targetLow>=p.targetHigh)throw Error('Invalid pitch target or jump settings');
+  if(!['ranges','target'].includes(p.bandMode)||typeof p.breakUnconfirmedJumps!=='boolean'||p.targetLow>=p.targetHigh)throw Error('Invalid pitch target or jump settings');
   if(p.maximum-p.minimum<50||!['off','light'].includes(p.smoothing)||typeof p.bands!=='boolean'||p.ranges.length!==3)throw Error('Invalid pitch settings');
-  for(const r of p.ranges)if(typeof r.name!=='string'||!r.name.trim()||r.name.length>40||!Number.isFinite(r.low)||!Number.isFinite(r.high)||r.low<50||r.high>1200||r.low>=r.high||!/^#[a-f0-9]{6}$/i.test(r.colour))throw Error('Invalid pitch band');
+  for(const r of p.ranges)if(typeof r.name!=='string'||!r.name.trim()||r.name.length>40||!Number.isFinite(r.low)||!Number.isFinite(r.high)||r.low<rangeLimits.min||r.high>rangeLimits.max||r.low>=r.high||!/^#[a-f0-9]{6}$/i.test(r.colour))throw Error('Invalid pitch band');
   if(!['raw','filtered','corroborated'].includes(p.method))throw Error('Invalid pitch method');
   if(typeof p.speechGate!=='boolean'||![0,30,50].includes(p.confirmationMs)||!['linear','log'].includes(p.axis)||!['curve','dots','auto'].includes(p.drawing)||!['none','half-frame'].includes(p.edgeExtension)||typeof p.bridgeUnvoiced!=='boolean'||![0,50,100,200].includes(p.samplingMs)||![0,600,1200].includes(p.jumpCents)||!['mean','continuity'].includes(p.aggregation)||!['spaced','all','off'].includes(p.markers))throw Error('Invalid pitch trace');
   return p;
@@ -79,5 +80,5 @@
    return {time:row.time,hz:filtered,connected,marker:p.markers==='all'||p.markers==='spaced'&&Math.round(row.time*100)%4===0};
   });
  }
- const api={inputLimits,legacyVoice:voiceDefaults,defaults,pitch,restore,points,path,presets,presetName,choose,changed,save,remove,validName,group,groupSeed,completedPoints,drawingPolicy,position,edges};if(typeof module==='object'&&module.exports)module.exports=api;else scope.FeatureState=api;
+ const api={inputLimits,rangeLimits,legacyVoice:voiceDefaults,defaults,pitch,restore,points,path,presets,presetName,choose,changed,save,remove,validName,group,groupSeed,completedPoints,drawingPolicy,position,edges};if(typeof module==='object'&&module.exports)module.exports=api;else scope.FeatureState=api;
 })(typeof self==='object'?self:globalThis);

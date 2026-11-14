@@ -43,7 +43,10 @@ export function mountApplicationShell() {
   const pitch = createPitchControls(
     window.FeatureState.pitch(window.FeatureState.presets.soundglow),
     window.FeatureState.inputLimits,
+    window.FeatureState.rangeLimits,
   );
+  const PitchTargets = pitch.TargetControls,
+    pitchTargetsHost = take("pitchTargets");
   const PitchTrace = pitch.TraceControls,
     pitchTraceHost = take("pitchTrace");
   const PitchBasic = pitch.BasicControls,
@@ -133,6 +136,7 @@ export function mountApplicationShell() {
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<PitchBasic />, pitchBasicHost)}
         {createPortal(<PitchTrace />, pitchTraceHost)}
+        {createPortal(<PitchTargets />, pitchTargetsHost)}
         {createPortal(<ColourControls />, colourHost)}
         {createPortal(<FormantControls />, formantHost)}
         {createPortal(<AnalysisControls />, analysisHost)}

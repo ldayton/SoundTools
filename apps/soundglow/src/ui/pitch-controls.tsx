@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from "react";
 import {
+  Button,
+  Box,
+  Group,
   Accordion,
   Text,
   Checkbox,
@@ -12,7 +15,9 @@ import { createViewState } from "@ldayton/ui/view-state";
 import pitchOptions from "./pitch-options.json";
 import { CommittedSettingNumber } from "./committed-setting-number";
 
+type Band = { name: string; low: number; high: number; colour: string };
 type PitchValues = {
+  ranges: Band[];
   minimum: number;
   maximum: number;
   history: number;
@@ -45,9 +50,22 @@ const basicFields = {
   pitchJumps: "jumpCents",
   pitchCorners: "cornerRadius",
   pitchMarkers: "markers",
+  pitchBands: "bands",
+  pitchBandMode: "bandMode",
+  pitchTargetLow: "targetLow",
+  pitchTargetHigh: "targetHigh",
 } as const;
-export function createPitchControls(initial: PitchValues, limits: Limits) {
-  const model = createViewState({ values: initial, reset: 0 });
+export function createPitchControls(
+  initial: PitchValues,
+  limits: Limits,
+  rangeLimits: { min: number; max: number; step: number },
+) {
+  const model = createViewState({
+    values: initial,
+    reset: 0,
+    error: null as string | null,
+  });
+  let resetPitch: (() => void) | undefined;
   let edit: ((field: string, value: unknown) => boolean) | undefined;
   function Numeric({
     id,
@@ -220,20 +238,110 @@ export function createPitchControls(initial: PitchValues, limits: Limits) {
       </Accordion>
     );
   }
+  function TargetControls() {
+    const { values, reset, error } = useSyncExternalStore(
+      model.subscribe,
+      model.getSnapshot,
+    );
+    return (
+      <Stack gap="md">
+        <Title order={4} size="h5">
+          Practice target
+        </Title>
+        <Checkbox
+          id="pitchBands"
+          label="Show shaded bands"
+          checked={!!values.bands}
+          onChange={(event) => edit?.("bands", event.currentTarget.checked)}
+        />
+        <Choice id="pitchBandMode" label="Shading" />
+        <Box id="pitchTarget" hidden={values.bandMode !== "target"}>
+          <Stack gap="md">
+            <Numeric id="pitchTargetLow" label="Target minimum (Hz)" />
+            <Numeric id="pitchTargetHigh" label="Target maximum (Hz)" />
+          </Stack>
+        </Box>
+        <Box id="pitchReference" hidden={values.bandMode !== "ranges"}>
+          <Text size="xs" c="dimmed" mb="md">
+            Edit the frequency limits to suit your practice.
+          </Text>
+          <Stack id="pitchRanges" gap="md">
+            {values.ranges.map((band, index) => (
+              <Stack key={index} gap="xs">
+                <Title order={5} size="sm">
+                  Band {index + 1}
+                </Title>
+                <Group grow wrap="nowrap">
+                  <CommittedSettingNumber
+                    id={`pitchBand${index}Low`}
+                    label="From (Hz)"
+                    ariaLabel={`Band ${index + 1} low Hz`}
+                    value={band.low}
+                    {...rangeLimits}
+                    reset={reset}
+                    change={(value) =>
+                      edit?.(
+                        "ranges",
+                        values.ranges.map((r, i) =>
+                          i === index ? { ...r, low: value } : r,
+                        ),
+                      ) ?? false
+                    }
+                  />
+                  <CommittedSettingNumber
+                    id={`pitchBand${index}High`}
+                    label="To (Hz)"
+                    ariaLabel={`Band ${index + 1} high Hz`}
+                    value={band.high}
+                    {...rangeLimits}
+                    reset={reset}
+                    change={(value) =>
+                      edit?.(
+                        "ranges",
+                        values.ranges.map((r, i) =>
+                          i === index ? { ...r, high: value } : r,
+                        ),
+                      ) ?? false
+                    }
+                  />
+                </Group>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+        <Text id="pitchError" role="status" hidden={!error} c="red" size="sm">
+          {error}
+        </Text>
+        <Button
+          id="resetPitch"
+          variant="default"
+          onClick={() => resetPitch?.()}
+        >
+          Reset pitch settings
+        </Button>
+      </Stack>
+    );
+  }
   return {
     BasicControls,
     DetectionControls,
     TraceControls,
+    TargetControls,
+    setError(error: string | null) {
+      const view = model.getSnapshot();
+      if (error !== view.error) model.set({ ...view, error });
+    },
     owns(id: string) {
       return Object.hasOwn(basicFields, id);
     },
-    connect(change: NonNullable<typeof edit>) {
+    connect(change: NonNullable<typeof edit>, onReset: () => void) {
       edit = change;
+      resetPitch = onReset;
     },
     publish(values: PitchValues, reset = false) {
       const old = model.getSnapshot();
       if (reset || JSON.stringify(old.values) !== JSON.stringify(values))
-        model.set({ values, reset: old.reset + (reset ? 1 : 0) });
+        model.set({ ...old, values, reset: old.reset + (reset ? 1 : 0) });
     },
   };
 }
@@ -243,6 +351,7 @@ declare global {
       pitch(input?: unknown): PitchValues;
       presets: { soundglow: unknown };
       inputLimits: Limits;
+      rangeLimits: { min: number; max: number; step: number };
     };
   }
 }

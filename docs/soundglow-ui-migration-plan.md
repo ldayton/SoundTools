@@ -54,7 +54,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 5 ✓ | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
 | 6 ✓ | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
 | 7 ✓ | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
-| 8 | Pitch targets and reference bands | Band visibility, target/reference mode, target bounds and editable reference ranges. Preserve validation and stable field identity while editing. Keep stored presets compatible. |
+| 8 ✓ | Pitch targets and reference bands | Band visibility, target/reference mode, target bounds and editable reference ranges. Preserve validation and stable field identity while editing. Keep stored presets compatible. |
 | 9 | Spectrogram preset selector and dialog | Move selection and create/rename/delete UI to React. Preserve built-in immutability, named edits, validation, storage-error retry, focus return and toast behavior. Leave storage policy in the controller. |
 | 10 | Pitch preset selector and dialog | Migrate against the existing feature-state model. Share the ordinary form/dialog presentation from step 9 only where semantics match; keep each preset model's policy intact. |
 | 11 | Microphone and example controls | Device selection/refresh, permission and disconnected-device states, start/stop/pause/resume, example seek/loop/listen/restart and credits. Preserve pending-operation guards, privacy and mobile return-to-chart behavior. |
@@ -248,3 +248,17 @@ existing labels and option values. Build/typecheck and pitch feature/preset mode
 oracles passed; 24 features/pitch-presets/numeric desktop/mobile cases passed.
 Native Chrome verified speckles disables marker choices without losing the value.
 Next: step 8 and the pitch-family checkpoint.
+
+### Step 8 completed — pitch checkpoint
+
+Previous milestone: `d6c4025`. Targets, reference ranges, validation feedback and
+reset now use React; range field identities stay stable across mode switches.
+Bounds come from FeatureState metadata. Removed the remaining imperative pitch
+field tree creation, value/checked writes and listeners. Controllers still own
+preset persistence, measurement, grouping and drawing.
+
+Complete core suite passed. Browser checkpoint: 28 features/presets/numeric/fake
+microphone desktop/mobile passes; production pitch replay and long-history
+pruning both passed (four intended unsupported/corpus skips). Both numeric/range
+cases passed Firefox/WebKit. Native Chrome edited Band 1 low from 85 to 90.
+Next: step 9, spectrogram preset selector and modal.

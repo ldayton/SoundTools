@@ -1,6 +1,6 @@
 # DoReGo React/Mantine migration: unattended work plan
 
-Status: interface migration complete; final acceptance checks running locally.
+Status: complete and verified locally. Not pushed or deployed.
 
 ## Objective and finish line
 
@@ -136,19 +136,19 @@ invisible overlays retaining focus.
 
 ### 5. Verify release behavior and complete the milestone
 
-- [ ] Review accessibility, tab order, labels, touch targets, text clipping,
+- [x] Review accessibility, tab order, labels, touch targets, text clipping,
       responsive wrapping and keyboard shortcuts at desktop and narrow widths.
-- [ ] Compare build/startup cost with baseline. Investigate repeatable playback,
+- [x] Compare build/startup cost with baseline. Investigate repeatable playback,
       render or allocation regressions using the existing performance evidence;
       do not route hot audio/display paths through React to simplify the UI.
-- [ ] Verify local root and `/DoReGo/` builds, direct loading, asset URLs, export
+- [x] Verify local root and `/DoReGo/` builds, direct loading, asset URLs, export
       rendering and the offline pack. Shared UI assets must affect release hashes.
-- [ ] Verify latest-code updates, cached startup, interrupted downloads, missing
+- [x] Verify latest-code updates, cached startup, interrupted downloads, missing
       assets, recovery/retry, and preservation of active practice during updates.
-- [ ] Run the final relevant Chromium/Firefox/WebKit matrix and local Chrome
+- [x] Run the final relevant Chromium/Firefox/WebKit matrix and local Chrome
       interaction checks on the frozen final build. Inspect intentional visual
       changes before accepting updated snapshots.
-- [ ] Commit the final review and verification record; leave a clean working tree
+- [x] Commit the final review and verification record; leave a clean working tree
       except for explicitly identified unrelated user changes. Do not push.
 
 Final acceptance: every ordinary DoReGo control has a clear React owner; obsolete
@@ -250,3 +250,31 @@ about 161.4 kB with React/Mantine and the pitch overlay; CSS from 6.48 kB to
 500 kB; the warning has not been hidden. Did not introduce cosmetic chunk
 splitting merely to silence it. Audio stress and cached startup checks pass;
 a slower physical phone has not been benchmarked.
+
+
+Final acceptance: implementation commit `a732518` completes milestones 3 and 4.
+Rebuilt root and `/DoReGo/` outputs from that commit and rechecked the final
+layout/persistence and diagnostic/privacy surfaces. Note by Note's navigation
+regression passed again: deep links/history, MIDI continuity, retained questions,
+mobile navigation, paused rhythm and unknown routes. DoReGo's 61 logic tests and
+shared diagnostic/offline package tests pass. All 15 cross-browser combinations
+and dedicated tempo, glides, audio, diagnostics, resilience and export checks pass.
+The export check verified audible MP4 audio (RMS 0.0534), guide-pitch timing,
+frame order independence, exported-frame SSIM 0.9993, 720p/1080p output,
+cancellation and origin protection. No sound/music scheduling engine was rewritten.
+
+Local preview: `http://localhost:4343/`, running the built app with the local
+rendering server. The separate development server remains at port 4317 for
+export/testing. Switched the user preview to the production build so simultaneous
+development servers cannot leave it with a failed Vite hot-reload socket. The
+built preview includes the actual offline controls rather than the development
+placeholder. Source/build metadata and shared UI assets participate in existing
+release hashes.
+
+Final review: one root/provider, controlled ordinary controls, no form reads or
+hidden spec mirrors, domain canvas/wheels retained at stable boundaries, no audio
+buffers in React snapshots, no new routes/sidebar/Settings page, no Soundglow
+changes. Desktop/mobile Chrome interactions verified on this Mac; automated
+browser lifecycle and audio probes do not substitute for physical phone/device
+interruption tests. All migration work stays in local commits. Nothing pushed
+or deployed. Checklist complete; no further migration work remains in this plan.

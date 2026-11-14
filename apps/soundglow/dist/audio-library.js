@@ -98,24 +98,16 @@
         rename: (kind,id,name) => this.renameItem(kind,id,name),
         remove: (kind,id) => kind === 'file' ? this.remove(id) : this.removeBookmark(id),
       });
-      $('bookmarkSelection').onclick = () => this.beginBookmark();
-      $('bookmarkForm').onsubmit = e => { e.preventDefault(); void this.saveBookmark(); };
-      $('cancelBookmark').onclick = () => this.cancelBookmark();
-      $('bookmarkName').oninput = () => $('bookmarkName').setCustomValidity('');
-      $('bookmarkForm').onkeydown = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelBookmark(); } };
-      $('waveformFitSelection').onclick = () => { if (this.loop) this.setView(this.loop.start, this.loop.end-this.loop.start); };
+      this.selectionUI=window.SoundglowShell.selectionControls;this.bookmarkEditEpoch=0;
+      this.selectionUI.connect({fit:()=>{if(this.loop)this.setView(this.loop.start,this.loop.end-this.loop.start)},clear:()=>{this.loop=null;this.loopEnabled=false;this.cancelBookmark();this.draw();void this.restartPlayback()},begin:()=>this.beginBookmark(),cancel:()=>this.cancelBookmark(),save:name=>this.saveBookmark(name),
+       bounds:(start,end)=>{if(start>=0&&end>start&&end<=this.current?.duration){this.loop={start,end};this.draw();void this.restartPlayback();return true}this.message('Choose an end time after the start, within the recording.');return false}
+      });
       this.controls=window.SoundglowShell.fileControls;
       this.controls.connect({play:()=>void this.toggle(),restart:()=>this.seek(this.loop?.start||0),back:()=>this.seek(this.position-5),forward:()=>this.seek(this.position+5),zoom:factor=>this.zoom(factor),showAll:()=>{if(this.current)this.setView(0,this.current.duration)},
        rate:value=>{const position=this.position;this.media.playbackRate=value;if(this.playback.active)void this.restartPlayback(position);else host.discontinuity(position);this.draw()},
        volume:value=>{this.media.volume=value;this.playback.volume(value);this.draw()},
        loop:enabled=>{this.loopEnabled=enabled;this.draw();void this.restartPlayback()}
       });
-      $('clearAudioSelection').onclick = () => { this.loop = null; this.loopEnabled = false; this.draw();void this.restartPlayback(); };
-      for (const id of ['fileLoopStart', 'fileLoopEnd']) $(id).onchange = () => {
-        const start = Number($('fileLoopStart').value), end = Number($('fileLoopEnd').value);
-        if (start >= 0 && end > start && end <= this.media.duration) { this.loop = { start, end }; this.draw();void this.restartPlayback(); }
-        else { this.message('Choose an end time after the start, within the recording.'); this.draw(); }
-      };
       this.media.addEventListener('timeupdate', () => { this.draw(); this.savePosition(); });
       this.media.addEventListener('ended', () => { if(this.playback.active)return;this.wantPlay=false;host.paused(true);this.draw();this.savePosition(true); });
       this.media.addEventListener('pause', () => { if(this.wantPlay)return;host.paused(true); this.draw(); this.savePosition(true); });
@@ -215,28 +207,20 @@
     }
 
     beginBookmark() {
-      if (!this.current || !this.loop || this.loading) return;
-      this.$('bookmarkName').value = ''; this.$('bookmarkName').setCustomValidity('');
-      this.$('bookmarkForm').hidden = false; this.$('bookmarkSelection').hidden = true; this.$('bookmarkName').focus();
+      if(!this.current||!this.loop||this.loading)return;
+      this.bookmarkEditEpoch++;this.selectionUI.open();
     }
-    cancelBookmark() {
-      this.$('bookmarkForm').hidden = true; this.$('bookmarkSelection').hidden = !this.loop;
-      if (this.loop) this.$('bookmarkSelection').focus();
-    }
-    async saveBookmark() {
-      if (!this.current || !this.loop || this.loading || this.savingBookmark) return;
-      const name = this.$('bookmarkName').value.trim();
-      if (!name) { this.$('bookmarkName').setCustomValidity('Enter a bookmark name.'); this.$('bookmarkName').reportValidity(); return; }
-      const bookmark = { id: crypto.randomUUID(), fileId: this.current.id, name, selection: {...this.loop},
-        viewStart: this.viewStart, viewSpan: this.viewSpan, feature: this.$('pitchTab').getAttribute('aria-selected') === 'true' ? 'pitch' : 'spectrogram',
-        speed: this.media.playbackRate, addedAt: Date.now() };
-      this.savingBookmark = true; this.$('saveBookmark').disabled = true;
-      try {
-        await this.store.addBookmark(bookmark);
-        if (this.files.some(f => f.id === bookmark.fileId)) { this.bookmarks.push(bookmark); this.renderBookmarks(); }
-        this.cancelBookmark(); this.message('Bookmark saved.');
-      } catch { this.message('Could not save the bookmark. Please retry.'); }
-      finally { this.savingBookmark = false; this.$('saveBookmark').disabled = false; }
+    cancelBookmark() {this.bookmarkEditEpoch++;this.selectionUI.close();}
+    async saveBookmark(inputName) {
+      if(!this.current||!this.loop||this.loading||this.savingBookmark)return;
+      const name=inputName.trim();if(!name||name.length>80){this.message('Enter a bookmark name of at most 80 characters.');return;}
+      const editEpoch=this.bookmarkEditEpoch;
+      const bookmark={id:crypto.randomUUID(),fileId:this.current.id,name,selection:{...this.loop},viewStart:this.viewStart,viewSpan:this.viewSpan,feature:this.$('pitchTab').getAttribute('aria-selected')==='true'?'pitch':'spectrogram',speed:this.media.playbackRate,addedAt:Date.now()};
+      this.savingBookmark=true;this.selectionUI.publish({busy:true});
+      try{await this.store.addBookmark(bookmark);if(this.files.some(f=>f.id===bookmark.fileId)){this.bookmarks.push(bookmark);this.renderBookmarks()}
+        if(editEpoch===this.bookmarkEditEpoch&&this.current?.id===bookmark.fileId)this.cancelBookmark();this.message('Bookmark saved.');
+      }catch{this.message('Could not save the bookmark. Please retry.')}
+      finally{this.savingBookmark=false;this.selectionUI.publish({busy:false})}
     }
     async openBookmark(id) {
       const bookmark = this.bookmarks.find(b => b.id === id);
@@ -250,10 +234,10 @@
     async select(id, bookmark = null) {
       if (!this.desktop.matches || !this.store) return;
       const file = this.files.find(f => f.id === id); if (!file) return;
-      this.$('bookmarkForm').hidden = true; this.finishedRange = null;
+      this.cancelBookmark(); this.finishedRange = null;
       const epoch = ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
       this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);
-      this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.$('fileTitle').textContent = file.name; this.loopEnabled = false; this.$('fileLoopEnd').max = this.$('fileLoopStart').max = file.duration;this.draw();
+      this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.$('fileTitle').textContent = file.name; this.loopEnabled = false; this.draw();
       try {
         const blob = await this.store.get(id); if (epoch !== this.epoch) return; if (!blob) throw Error('This saved recording is missing. Please open it again.');
         this.blob = blob; this.url = URL.createObjectURL(blob); this.media.src = this.url;
@@ -427,15 +411,10 @@
       this.viewStart = clamp(this.viewStart, 0, duration - this.viewSpan);
       const span = this.viewSpan, start = this.viewStart, zoomed = span < duration - .001;
       const precise = value=>formatPreciseTime(value,span<.1?4:span<1?3:2);
-      $('waveformFitSelection').disabled = !this.loop;
-      const hasSelection = !!this.loop && !this.loading;
-      $('fileSelectionControls').classList.toggle('has-selection', hasSelection);
-      $('fileSelectionControls').inert = !hasSelection;
-      if (!this.loop || this.loading) $('bookmarkForm').hidden = true;
-      $('bookmarkSelection').hidden = !this.loop || this.loading || !$('bookmarkForm').hidden;
+      const hasSelection=!!this.loop&&!this.loading;
+      this.selectionUI.publish({active:hasSelection,start:this.loop?.start||0,end:this.loop?.end||duration,duration,revision:this.epoch,...(!hasSelection?{editing:false}:{})});
       const xAt = seconds => (seconds - start) / span * width;
       this.controls.publish({playing:!!(this.wantPlay||this.resumeAfterRestart),loading:this.loading,loop:this.loopEnabled,zoomed,canZoomIn:span>Math.min(.001,duration)+1e-9,rate:this.media.playbackRate,volume:this.media.volume},`${formatTime(time)} / ${formatTime(duration)}`);
-      $('fileLoopStart').value = (this.loop?.start || 0).toFixed(4); $('fileLoopEnd').value = (this.loop?.end || duration).toFixed(4); $('clearAudioSelection').hidden = !this.loop;
       const canvas = this.canvas, box = canvas.getBoundingClientRect(), ratio = devicePixelRatio || 1;
       canvas.width = Math.max(1, Math.round(box.width * ratio)); canvas.height = Math.round(64 * ratio); const g = canvas.getContext('2d'); g.scale(ratio, ratio); const width = box.width;
       g.fillStyle = '#171f2b'; g.fillRect(0, 0, width, 64);

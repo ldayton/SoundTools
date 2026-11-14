@@ -218,7 +218,8 @@
   }
 }
 
-#spectrogramPresets, #pitchPresets {
+#spectrogramPresets,
+#pitchPresets {
   margin: 12px 0 20px;
 }
 .soundglow-toast {
@@ -229,4 +230,31 @@
   max-width: calc(100% - 32px);
   width: max-content;
   z-index: 1000;
+}
+
+.soundglow-selection {
+  display: grid;
+  margin-top: 8px;
+}
+.soundglow-selection > * {
+  grid-area: 1 / 1;
+  align-self: center;
+}
+.soundglow-bookmark-editor {
+  display: flex;
+  justify-self: center;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 520px);
+}
+.soundglow-bookmark-editor[hidden] {
+  display: flex !important;
+  visibility: hidden;
+}
+.soundglow-selection [hidden] {
+  visibility: hidden;
+}
+.soundglow-selection .selection-actions [hidden] {
+  display: inline-flex !important;
+  visibility: hidden;
 }

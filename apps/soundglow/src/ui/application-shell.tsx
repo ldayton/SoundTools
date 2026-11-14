@@ -20,6 +20,7 @@ import {
   createSpectrogramPresets,
   createPitchPresets,
 } from "./preset-controls";
+import { createSelectionControls } from "./selection-controls";
 import { createFileControls } from "./file-controls";
 import { createTransportControls } from "./transport-controls";
 import { createPitchControls } from "./pitch-controls";
@@ -45,6 +46,10 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  const selectionControls = createSelectionControls();
+  const Selection = selectionControls.Selection,
+    PlaybackOptions = selectionControls.Options;
+  const selectionHost = take("fileSelectionHost");
   const fileControls = createFileControls();
   const FilePlayback = fileControls.Playback,
     FileOptions = fileControls.Options,
@@ -156,7 +161,13 @@ export function mountApplicationShell() {
         {createPortal(<MicrophoneControls />, microphoneHost)}
         {createPortal(<ExampleControls />, exampleHost)}
         {createPortal(<FilePlayback />, filePlaybackHost)}
-        {createPortal(<FileOptions />, fileOptionsHost)}
+        {createPortal(
+          <PlaybackOptions>
+            <FileOptions />
+          </PlaybackOptions>,
+          fileOptionsHost,
+        )}
+        {createPortal(<Selection />, selectionHost)}
         {createPortal(<FileTime />, fileTimeHost)}
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<Presets />, presetsHost)}
@@ -365,6 +376,7 @@ export function mountApplicationShell() {
     pitchPresets,
     transport,
     fileControls,
+    selectionControls,
     pitch,
     panel,
     openFiles,

@@ -121,11 +121,6 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 .file-buttons button { min-height:44px; min-width:44px; padding:8px 12px; }
 #filePlay { min-width:80px; }
 .file-loop { display:flex; align-items:center; gap:6px; min-height:44px; font-size:13px; }
-.file-more { margin-top:4px; font-size:12px; }
-.file-more summary { cursor:pointer; width:fit-content; min-height:32px; display:flex; align-items:center; color:#a8b5c5; }
-.file-more > div { display:flex; flex-wrap:wrap; gap:12px 20px; padding-top:8px; }
-.file-more label:not(:where(.soundtools-ui, .soundtools-ui *)) { display:flex; align-items:center; gap:8px; }
-.file-more input[type="number"]:not(:where(.soundtools-ui, .soundtools-ui *)) { width:80px; min-height:36px; font:inherit; color:inherit; background:#171e28; border:1px solid #303b4a; padding:6px; border-radius:6px; }
 #fileTransport[hidden],#filesBody[hidden],#settingsBody[hidden] { display:none!important; }
 @media(max-width:760px) { #fileTransport { padding:10px 12px; } .file-buttons { gap:6px; } .file-heading { font-size:12px; } #fileWaveform { height:56px; } }
 
@@ -150,20 +145,7 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 #audioBookmarkList { display: grid; gap: 6px; }
 #audioBookmarkList .library-item { display:grid; gap:4px; }
 #audioBookmarkList small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.bookmark-form { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; padding-top: 10px; font-size: 13px; }
-.bookmark-form input { width: 220px; max-width: 100%; min-height: 40px; padding: 8px; color: inherit; background: #171e28; border: 1px solid #303b4a; border-radius: 6px; font: inherit; }
-.bookmark-form button { min-height: 40px; }
-#bookmarkForm[hidden],#bookmarkSelection[hidden],#audioBookmarks[hidden] { display: none !important; }
+#audioBookmarks[hidden] { display: none !important; }
 
 /* Keep selection actions on a separate, reserved row so the chart stays still. */
-.file-selection { display: grid; margin-top: 8px; }
-.file-selection > .selection-actions,.file-selection > .bookmark-form { grid-area: 1 / 1; align-self: center; }
-.file-selection:has(.bookmark-form:not([hidden])) > .selection-actions { visibility: hidden; }
-#fileSelectionControls > .bookmark-form { display: grid; grid-template-columns: max-content minmax(100px, 220px) max-content max-content; padding-top: 0; }
-#fileSelectionControls > .bookmark-form input { width: 100%; min-width: 0; box-sizing: border-box; }
-#fileSelectionControls > .bookmark-form[hidden] { display: grid !important; visibility: hidden; }
-.file-selection:not(.has-selection) { visibility: hidden; }
-#fileSelectionControls #bookmarkSelection[hidden],#fileSelectionControls #clearAudioSelection[hidden] {
-  display: inline-flex !important; visibility: hidden;
-}
 body{font-size:14px;line-height:normal;color:#e9edf3;background:#080b10}

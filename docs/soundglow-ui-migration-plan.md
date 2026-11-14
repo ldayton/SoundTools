@@ -59,7 +59,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 10 ✓ | Pitch preset selector and dialog | Migrate against the existing feature-state model. Share the ordinary form/dialog presentation from step 9 only where semantics match; keep each preset model's policy intact. |
 | 11 ✓ | Microphone and example controls | Device selection/refresh, permission and disconnected-device states, start/stop/pause/resume, example seek/loop/listen/restart and credits. Preserve pending-operation guards, privacy and mobile return-to-chart behavior. |
 | 12 ✓ | File playback controls | Play/pause/restart, skip, loop, speed, volume and playback options. Preserve playback intent through loading/seeking, end-of-selection restart and desktop-only saved-file support. |
-| 13 | Selection actions and bookmark creation | Fit/clear selection, bookmark naming/save/cancel and passage bounds. Keep the reserved row geometry; preserve exact selection/view restoration, loop defaults, validation and failed-save retry. Retain the existing waveform gesture engine. |
+| 13 ✓ | Selection actions and bookmark creation | Fit/clear selection, bookmark naming/save/cancel and passage bounds. Keep the reserved row geometry; preserve exact selection/view restoration, loop defaults, validation and failed-save retry. Retain the existing waveform gesture engine. |
 | 14 | Offline, update and diagnostic UI | Render current offline/download/update states through React and appropriate shared panels. Keep cache/update/worker logic in its existing controllers. Preserve cancellation/resume/quota/error states, safe update activation, opt-in diagnostics and data scrubbing. Include performance enable/reset/export. |
 | 15 | Remaining status and welcome UI | Welcome actions, status/readouts, notices and progress. Make asynchronous statuses accessible and React-owned without publishing per-frame canvas data to React. Use the established Mantine feedback idioms. |
 | 16 | Migration cleanup and final acceptance | Remove obsolete selectors, handlers, adapters and temporary bootstrap assumptions. Consolidate shell/library UI into one provider/root if their ownership can now be combined safely; preserve portal focus and cached-page behavior. Keep custom canvas/audio/gesture code outside React. Complete the final checks below. |
@@ -322,3 +322,19 @@ Build/typecheck and timeline/controller oracle passed. Library/bookmark/menu
 browser suites: 20 desktop passes and 20 expected mobile exclusions; focused file
 playback/rapid-toggle checks passed Firefox/WebKit. Native Chrome verified actual
 play/pause, and speed/volume presentation. Next: selection/bookmark creation.
+
+### Step 13 completed — transport checkpoint
+
+Previous milestone: `300952b`. Selection fit/clear, bookmark creation/cancel/save
+and passage boundaries now use React/Mantine. Playback options are an Accordion;
+passage fields reuse committed numeric drafts. Both action/form layouts occupy a
+reserved grid row even when hidden, preserving chart geometry. Removed all native
+selection/form writes/listeners. Fixed stale bookmark completion closing a newer
+editor by checking its edit epoch and original file. Failed storage retains draft
+and selection; duplicate save commands remain guarded by the controller.
+
+Complete core suite passed. Library/bookmark browser coverage: 14 passes, 14
+expected mobile exclusions; the new retired-save regression passed separately
+(after fixing its setup to open Files before selecting another row). Reserved-row,
+restore and retry checks passed Firefox/WebKit. Native Chrome confirmed pointer
+selection, input focus and Escape returning to Bookmark selection. Next: step 14.

@@ -34,7 +34,7 @@ desktopTest('saved audio restores paused, plays and seeks, survives switching, a
  await page.evaluate(()=>fileLibrary.pendingSave);await page.reload();await page.evaluate(()=>fileLibrary.ready);expect(await page.evaluate(()=>fileLibrary.position)).toBeCloseTo(position,1);expect(await page.evaluate(()=>fileLibrary.isPaused)).toBe(true);await expect(page.locator('#audioLibraryStatus')).not.toHaveText(/Could not save/);
  await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused);await page.locator('#filePlay').click();
  await page.locator('#fileRestart').click();expect(await page.evaluate(()=>fileLibrary.position)).toBe(0);
- await page.locator('.file-more summary').click();await page.locator('#fileSpeed').selectOption('0.75');await setSetting(page,'fileVolume','.4');expect(await page.evaluate(()=>fileLibrary.media.volume)).toBeCloseTo(.4,2);
+ await page.getByRole('button',{name:'Playback options',exact:true}).click();await page.locator('#fileSpeed').selectOption('0.75');await setSetting(page,'fileVolume','.4');expect(await page.evaluate(()=>fileLibrary.media.volume)).toBeCloseTo(.4,2);
  expect(await page.evaluate(()=>fileLibrary.media.playbackRate)).toBe(.75);
  await page.locator('#audioFileInput').setInputFiles(fixture);await expect(page.locator('#audioFileList [data-file]')).toHaveCount(2);
  await page.locator('#openFiles').click();await page.locator('#audioFileList [data-file]').nth(1).click();await page.waitForFunction(()=>!fileLibrary.loading);await showPlayer(page);
@@ -56,7 +56,7 @@ desktopTest('rapid play, pause, and file changes do not leave playback stuck',as
 desktopTest('invalid files leave no library entries and passage loops keep their bounds',async({page})=>{
  await open(page);await page.locator('#audioFileInput').setInputFiles({name:'broken.wav',mimeType:'audio/wav',buffer:Buffer.from('not audio')});
  await expect(page.locator('#audioLibraryStatus')).toHaveText(/cannot read|no readable/);await expect(page.locator('#audioFileList [data-file]')).toHaveCount(0);
- await importAudio(page);await page.locator('.file-more summary').click();await page.locator('#fileLoopEnd').fill('1');await page.locator('#fileLoopEnd').press('Tab');
+ await importAudio(page);await page.getByRole('button',{name:'Playback options',exact:true}).click();await setSetting(page,'fileLoopEnd','1');
  await expect(page.locator('#fileLoop')).not.toBeChecked();await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused&&fileLibrary.position>.3);
  await page.waitForTimeout(1600);expect(await page.evaluate(()=>fileLibrary.position)).toBeLessThan(1.3);expect(await page.evaluate(()=>fileLibrary.isPaused)).toBe(false);
  await page.locator('#filePlay').click();await page.locator('#clearAudioSelection').click();await expect(page.locator('#fileLoop')).not.toBeChecked();

@@ -51,7 +51,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 2 ✓ | Formant controls | Visibility, smoothing, filtering and ceiling. Preserve overlay-only changes versus analysis rebuilds, and clear old overlays when disabled or when applying a preset. |
 | 3 ✓ | Advanced spectrogram analysis | Window, shape, analysis rate, frame step, FFT padding, DC removal, units, resampling and quality. Preserve dependent controls, pending/committed analysis separation and failure recovery without restarting the source. |
 | 4 ✓ | Advanced spectrogram colour | Normalization clock, frequency/frame interpolation, peak history and decay. Preserve decimal precision, frozen redraw and retained-history performance. |
-| 5 | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
+| 5 ✓ | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
 | 6 | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
 | 7 | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
 | 8 | Pitch targets and reference bands | Band visibility, target/reference mode, target bounds and editable reference ranges. Preserve validation and stable field identity while editing. Keep stored presets compatible. |
@@ -208,3 +208,20 @@ continuity, settings-state, replay, voice-speech and display-controls, 30 passes
 including desktop/mobile, Retina and both 4x-slowed cases. Existing canvas/DSP
 goldens were used unchanged. Native Chrome verified peak-decay selection at 0.999.
 Next: step 5, pitch display and committed numeric editing.
+
+### Step 5 completed
+
+Previous milestone: `9ba326f`. Pitch minimum, maximum, history, axis and smoothing
+now use the shell's React projection. Numeric bounds are exported by FeatureState
+and used by both validation and the view. Added decimal-capable local numeric
+drafts with Enter/blur commit, Escape cancel, spinner changes and external reset.
+No changes to pitch measurement or drawing algorithms.
+
+Build/typecheck and feature/preset/transport model tests passed. The first browser
+run passed 22 cases and exposed two repeated-validation failures. Diagnosis found
+NumberInput internal formatting retained a rejected edit; rejected fields now
+reset their own widget state, and preset resets are separate from validation.
+Removed forced React renders from pitch publication to avoid event reentrancy.
+All four recovery cases passed (including spinner editing); the numeric test
+passed Firefox/WebKit again. Native Chrome committed a minimum of 75 via the real
+input. Temporary debug instrumentation was removed. Next: step 6.

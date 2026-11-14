@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Feature controller: transport is shared; feature state and rendering are scoped.
 (function(){
+ const pitchUI=window.SoundglowShell.pitch;
  const $=id=>document.getElementById(id),host=window.soundglowSession,key='soundglow-workspace-v1';
  let saved;try{saved=localStorage.getItem(key)}catch{}
  let state=FeatureState.restore(saved),pitchStream=null,cursor=null,pumping=false,epoch=0,rows=[],rawRows=[],contour=null,contourKey='',speechFrames=[],neuralEvidence=new NeuralEvidence(),speechSession=crypto.randomUUID(),lastPaint='',lastLayout='',paintQueued=false;
@@ -83,8 +84,8 @@
   chart.dataset.fileStart=file?file.start:'';chart.dataset.fileEnd=file?file.end:'';
   chart.dataset.pitchMethod=pitchStream?.activeSettings.pitchMethod||state.pitch.method;chart.dataset.plottedUntil=String(end);chart.dataset.voiced=String(points.filter(r=>r.hz>0&&r.time>=begin&&r.time<=end).length);
  }
- function controls(force=false){
-  const p=state.pitch;for(const [id,value]of [['pitchBandMode',p.bandMode],['pitchTargetLow',p.targetLow],['pitchTargetHigh',p.targetHigh],['pitchMethod',p.method],['pitchConfirmation',p.confirmationMs],['pitchMinimum',p.minimum],['pitchMaximum',p.maximum],['pitchHistory',p.history],['pitchSmoothing',p.smoothing],['pitchSampling',p.samplingMs],['pitchAggregation',p.aggregation],['pitchGap',p.gapMs],['pitchJumps',p.jumpCents],['pitchCorners',p.cornerRadius],['pitchMarkers',p.markers],['pitchLineWidth',p.lineWidth],['pitchMarkerRadius',p.markerRadius],['pitchAxis',p.axis],['pitchDrawing',p.drawing],['pitchEdges',p.edgeExtension],['pitchConfidence',p.confidence],['pitchOutline',p.outlineWidth],['pitchVoicingCeiling',p.voicingCeiling]])if(force||document.activeElement!==$(id))$(id).value=value;
+ function controls(force=false,resetDrafts=force){
+  const p=state.pitch;for(const [id,value]of [['pitchBandMode',p.bandMode],['pitchTargetLow',p.targetLow],['pitchTargetHigh',p.targetHigh],['pitchMethod',p.method],['pitchConfirmation',p.confirmationMs],['pitchMinimum',p.minimum],['pitchMaximum',p.maximum],['pitchHistory',p.history],['pitchSmoothing',p.smoothing],['pitchSampling',p.samplingMs],['pitchAggregation',p.aggregation],['pitchGap',p.gapMs],['pitchJumps',p.jumpCents],['pitchCorners',p.cornerRadius],['pitchMarkers',p.markers],['pitchLineWidth',p.lineWidth],['pitchMarkerRadius',p.markerRadius],['pitchAxis',p.axis],['pitchDrawing',p.drawing],['pitchEdges',p.edgeExtension],['pitchConfidence',p.confidence],['pitchOutline',p.outlineWidth],['pitchVoicingCeiling',p.voicingCeiling]])if(!pitchUI.owns(id)&&(force||document.activeElement!==$(id)))$(id).value=value;
   $('pitchUncertainJumps').checked=p.breakUnconfirmedJumps;$('pitchTarget').hidden=p.bandMode!=='target';$('pitchReference').hidden=p.bandMode!=='ranges';$('pitchSpeechGate').checked=p.speechGate;$('pitchMarkers').disabled=p.drawing!=='curve';$('pitchBridge').checked=p.bridgeUnvoiced;presetControls();$('pitchBands').checked=p.bands;
   if(!$('pitchRanges').children.length)p.ranges.forEach((band,i)=>{
    const group=document.createElement('div');group.className='pitchRange';
@@ -93,9 +94,10 @@
    for(const field of ['low','high']){const label=document.createElement('label');label.textContent=field==='low'?'From (Hz)':'To (Hz)';const input=document.createElement('input');input.type='number';input.dataset.band=i;input.dataset.field=field;input.min=50;input.max=1200;input.value=band[field];input.setAttribute('aria-label','Band '+(i+1)+' '+field+' Hz');input.onchange=()=>edit(p=>{p.ranges[i][field]=Number(input.value)});label.append(input);limits.append(label)}
    group.append(limits);$('pitchRanges').append(group);
   });
+  pitchUI.publish(state.pitch,resetDrafts);
   for(const input of $('pitchRanges').querySelectorAll('input[data-band]'))if(force||document.activeElement!==input)input.value=p.ranges[Number(input.dataset.band)][input.dataset.field];
  }
- function edit(change){const oldMethod=state.pitch.method;const next=FeatureState.pitch(state.pitch);change(next);let invalid=false;try{state=FeatureState.changed(state,next);if(state.pitch.method!==oldMethod)host.refreshFileView?.();$('pitchError').hidden=true;persist();lastPaint='';paint()}catch(error){invalid=true;$('pitchError').textContent=error.message;$('pitchError').hidden=false;}controls(invalid)}
+ function edit(change){const oldMethod=state.pitch.method;const next=FeatureState.pitch(state.pitch);change(next);let invalid=false;try{state=FeatureState.changed(state,next);if(state.pitch.method!==oldMethod)host.refreshFileView?.();$('pitchError').hidden=true;persist();lastPaint='';paint()}catch(error){invalid=true;$('pitchError').textContent=error.message;$('pitchError').hidden=false;}controls(invalid,false);return !invalid}
  host.viewLabel=()=>state.active==='pitch'?FeatureState.presetName(state):null;host.featureState=()=>({active:state.active,pitch:FeatureState.pitch(state.pitch)});
  function layout(){
   const signature=[state.active,$('settings').getAttribute('aria-expanded'),window.matchMedia('(min-width: 761px)').matches].join(':');if(signature===lastLayout)return;lastLayout=signature;
@@ -109,15 +111,14 @@
  const scrollPositions={spectrogram:0,pitch:0};
  function select(feature){if(feature===state.active)return;scrollPositions[state.active]=$('settingsBody').scrollTop;state.active=feature;persist();lastPaint='';layout();$('settingsBody').scrollTop=scrollPositions[feature];if(feature==='spectrogram')updateResolution();syncPitch();paint()}
  window.SoundglowShell.configure({layout:syncSettings,select});
- for(const [id,field]of [['pitchMinimum','minimum'],['pitchMaximum','maximum'],['pitchHistory','history']])$(id).onchange=()=>edit(p=>{p[field]=Number($(id).value)});
- $('pitchSmoothing').onchange=()=>edit(p=>{p.smoothing=$('pitchSmoothing').value});$('pitchBands').onchange=()=>edit(p=>{p.bands=$('pitchBands').checked});$('resetPitch').onclick=()=>{state=FeatureState.choose(state,'soundglow');host.refreshFileView?.();$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint()};
+ $('pitchBands').onchange=()=>edit(p=>{p.bands=$('pitchBands').checked});$('resetPitch').onclick=()=>{state=FeatureState.choose(state,'soundglow');host.refreshFileView?.();$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint()};
  function presetControls(){
   const select=$('pitchPreset'),entries=[['soundglow','Soundglow'],['praat','Praat'],...state.presets.map(p=>[p.id,p.name])];if(state.selected==='custom')entries.push(['custom','Unnamed Preset*']);
   const signature=JSON.stringify(entries);if(select.dataset.entries!==signature){select.replaceChildren(...entries.map(([id,name])=>new Option(name,id)));select.dataset.entries=signature}select.value=state.selected;updateResolution();
  }
  function applyPitch(id){const oldMethod=state.pitch.method;state=FeatureState.choose(state,id);if(oldMethod!==state.pitch.method)host.refreshFileView?.();$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint();}
  $('pitchPreset').onchange=()=>{if($('pitchPreset').value!=='custom')applyPitch($('pitchPreset').value)};
- for(const [id,key,numeric] of [['pitchBandMode','bandMode'],['pitchTargetLow','targetLow',true],['pitchTargetHigh','targetHigh',true],['pitchMethod','method'],['pitchConfirmation','confirmationMs',true],['pitchSampling','samplingMs',true],['pitchAggregation','aggregation'],['pitchGap','gapMs',true],['pitchJumps','jumpCents',true],['pitchCorners','cornerRadius',true],['pitchMarkers','markers'],['pitchLineWidth','lineWidth',true],['pitchMarkerRadius','markerRadius',true],['pitchAxis','axis'],['pitchDrawing','drawing'],['pitchEdges','edgeExtension'],['pitchConfidence','confidence',true],['pitchOutline','outlineWidth',true],['pitchVoicingCeiling','voicingCeiling',true]])$(id).onchange=()=>edit(p=>{p[key]=numeric?Number($(id).value):$(id).value});
+ for(const [id,key,numeric] of [['pitchBandMode','bandMode'],['pitchTargetLow','targetLow',true],['pitchTargetHigh','targetHigh',true],['pitchMethod','method'],['pitchConfirmation','confirmationMs',true],['pitchSampling','samplingMs',true],['pitchAggregation','aggregation'],['pitchGap','gapMs',true],['pitchJumps','jumpCents',true],['pitchCorners','cornerRadius',true],['pitchMarkers','markers'],['pitchLineWidth','lineWidth',true],['pitchMarkerRadius','markerRadius',true],['pitchAxis','axis'],['pitchDrawing','drawing'],['pitchEdges','edgeExtension'],['pitchConfidence','confidence',true],['pitchOutline','outlineWidth',true],['pitchVoicingCeiling','voicingCeiling',true]])if(!pitchUI.owns(id))$(id).onchange=()=>edit(p=>{p[key]=numeric?Number($(id).value):$(id).value});
  $('pitchUncertainJumps').onchange=()=>edit(p=>{p.breakUnconfirmedJumps=$('pitchUncertainJumps').checked});
  $('pitchSpeechGate').onchange=()=>edit(p=>{p.speechGate=$('pitchSpeechGate').checked});
  $('pitchBridge').onchange=()=>edit(p=>{p.bridgeUnvoiced=$('pitchBridge').checked});
@@ -126,6 +127,7 @@
  $('pitchPresetForm').onsubmit=event=>{event.preventDefault();try{state=FeatureState.save(state,$('pitchPresetName').value,'saved-'+crypto.randomUUID());persist();presetControls();$('pitchPresetDialog').close()}catch(error){$('pitchPresetStatus').textContent=error.message}};
  $('deletePitchPreset').onclick=()=>{state=FeatureState.remove(state);$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint();$('pitchPresetDialog').close()};
  host.subscribe(type=>{if(type==='fileview'){reset();pumping=false;const file=host.fileView?.();if(file){rawRows=file.features;updateContour();lastPaint='';paint();}else{lastPaint='';paint();}return;}if(type==='stop'||type==='seek'){reset();pumping=false;}if(type==='capture'||type==='seek')syncPitch();if(type==='render'||type==='layout'){layout();paint()}});
+ pitchUI.connect((field,value)=>edit(p=>{p[field]=value}));
  controls();layout();
 })();
 

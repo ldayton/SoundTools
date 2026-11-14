@@ -16,6 +16,7 @@ import { SoundToolsProvider } from "@ldayton/ui";
 import { RetainedContent } from "@ldayton/ui/retained-content";
 import { createViewState } from "@ldayton/ui/view-state";
 import "./shell.css";
+import { createPitchControls } from "./pitch-controls";
 import { createPortal } from "react-dom";
 import { createDisplayControls } from "./spectrogram-display";
 
@@ -39,6 +40,12 @@ export function mountApplicationShell() {
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
   const display = createDisplayControls(window.SettingsState.registry);
+  const pitch = createPitchControls(
+    window.FeatureState.pitch(window.FeatureState.presets.soundglow),
+    window.FeatureState.inputLimits,
+  );
+  const PitchBasic = pitch.BasicControls,
+    pitchBasicHost = take("pitchBasic");
   const displayHost = take("spectrogramDisplay");
   const DisplayControls = display.Controls;
   const ColourControls = display.ColourControls;
@@ -122,6 +129,7 @@ export function mountApplicationShell() {
     return (
       <>
         {createPortal(<DisplayControls />, displayHost)}
+        {createPortal(<PitchBasic />, pitchBasicHost)}
         {createPortal(<ColourControls />, colourHost)}
         {createPortal(<FormantControls />, formantHost)}
         {createPortal(<AnalysisControls />, analysisHost)}
@@ -319,6 +327,7 @@ export function mountApplicationShell() {
   return {
     media,
     display,
+    pitch,
     panel,
     openFiles,
     showView() {

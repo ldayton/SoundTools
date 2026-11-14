@@ -2,7 +2,7 @@
 async function setSetting(page,id,value){
  const control=page.locator('#'+id);
  if(await control.getAttribute('type')!=='hidden'){
-  if(await control.evaluate(el=>el.tagName==='SELECT'))await control.selectOption(String(value));else await control.fill(String(value));
+  if(await control.evaluate(el=>el.tagName==='SELECT'))await control.selectOption(String(value));else {await control.fill(String(value));if(await control.getAttribute('data-commit-on-blur')==='true')await control.press('Tab');}
   return;
  }
  const slider=page.locator('#'+id+'-slider'),min=Number(await slider.getAttribute('aria-valuemin')),max=Number(await slider.getAttribute('aria-valuemax')),step=Number(await slider.getAttribute('data-step')||1),target=Number(value);

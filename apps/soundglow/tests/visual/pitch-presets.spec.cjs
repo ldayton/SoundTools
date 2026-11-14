@@ -1,3 +1,4 @@
+const {setSetting}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 const settings=async page=>{const b=page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings');if(await b.getAttribute('aria-expanded')!=='true')await b.click()};
 test('pitch presets use editable trace settings, preserve audio, and save independently',async({page},info)=>{
@@ -10,7 +11,7 @@ test('pitch presets use editable trace settings, preserve audio, and save indepe
  await page.locator('#pitchCorners').fill('15');await page.locator('#pitchCorners').dispatchEvent('change');await expect(page.locator('#pitchPreset option:checked')).toHaveText('Unnamed Preset*');
  await page.locator('#editPitchPreset').click();await page.locator('#pitchPresetName').fill('Praat');await page.locator('#pitchPresetForm button[type=submit]').click();await expect(page.locator('#pitchPresetStatus')).toContainText('unique');
  await page.locator('#pitchPresetName').fill('My pitch');await page.locator('#pitchPresetForm button[type=submit]').click();await expect(page.locator('#pitchPresetDialog')).not.toHaveAttribute('open','');
- const id=await page.locator('#pitchPreset').inputValue();await page.locator('#pitchHistory').fill('8');await page.locator('#pitchHistory').dispatchEvent('change');await expect(page.locator('#pitchPreset')).toHaveValue(id);
+ const id=await page.locator('#pitchPreset').inputValue();await setSetting(page,'pitchHistory','8');await expect(page.locator('#pitchPreset')).toHaveValue(id);
  await page.reload();await settings(page);await expect(page.locator('#pitchPreset')).toHaveValue(id);await expect(page.locator('#pitchHistory')).toHaveValue('8');
  await page.locator('#editPitchPreset').click();await page.locator('#pitchPresetName').fill('Renamed');await page.locator('#pitchPresetForm button[type=submit]').click();await expect(page.locator('#pitchPreset option:checked')).toHaveText('Renamed');
  await page.locator('#editPitchPreset').click();await page.locator('#deletePitchPreset').click();await expect(page.locator('#pitchPreset')).toHaveValue('soundglow');await expect(page.locator('#pitchHistory')).toHaveValue('10');
@@ -29,7 +30,7 @@ test('applying a pitch preset clears stale validation errors',async({page},info)
  if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});
  await page.goto('/dist/index.html#settings');await page.getByRole('tab',{name:'Pitch',exact:true}).click();
  for(const [minimum,preset] of [['500','soundglow'],['600','praat']]){
-  await page.locator('#pitchMinimum').fill(minimum);await page.locator('#pitchMinimum').dispatchEvent('change');await expect(page.locator('#pitchError')).toBeVisible();
+  await setSetting(page,'pitchMinimum',minimum);await expect(page.locator('#pitchError')).toBeVisible();
   await page.locator('#pitchPreset').selectOption(preset);await expect(page.locator('#pitchError')).toBeHidden();await expect(page.locator('#pitchMinimum')).toHaveValue('50');
  }
 });

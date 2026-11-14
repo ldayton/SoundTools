@@ -14,7 +14,10 @@ const legacyWorker = process.env.LEGACY_WORKER_PATH
   ? await readFile(process.env.LEGACY_WORKER_PATH, 'utf8')
   : null;
 const initialPack = JSON.parse(await readFile(resolve(root, 'offline-pack.json'), 'utf8'));
-const originalMain = await readFile(resolve(root, initialHTML.match(/src="([^"]+\.js)"/)![1].slice('/DoReGo/'.length)), 'utf8');
+const originalMain = await readFile(
+  resolve(root, initialHTML.match(/src="([^"]+\.js)"/)![1].slice('/DoReGo/'.length)),
+  'utf8'
+);
 const mainAsset = initialHTML.match(/src="([^"]+\.js)"/)![1];
 let failInterface = false;
 let failSounds = false;
@@ -40,7 +43,9 @@ const server = createServer(async (request, response) => {
     return;
   }
   const alias = path.match(/\/main-r(\d+)\.js$/);
-  const actualPath = alias ? mainAsset : path.replace(/(dorego-shell-[a-f0-9]+)-r[0-9]+(\/offline-pack[.]json)$/, '$1$2');
+  const actualPath = alias
+    ? mainAsset
+    : path.replace(/(dorego-shell-[a-f0-9]+)-r[0-9]+(\/offline-pack[.]json)$/, '$1$2');
   const file = resolve(root, actualPath.slice('/DoReGo/'.length) || 'index.html');
   if (!file.startsWith(root + '/')) {
     response.writeHead(403).end();
@@ -65,10 +70,28 @@ const server = createServer(async (request, response) => {
       const main = revision > 1 ? `/DoReGo/assets/main-r${revision}.js` : mainAsset;
       const hashes = { ...initialPack.hashes };
       delete hashes[mainAsset];
-      hashes['/DoReGo/'] = createHash('sha256').update(revision > 1 ? initialHTML.replaceAll(mainAsset, main).replace(/dorego-shell-([a-f0-9]+)/g, `dorego-shell-$1-r${revision}`) : initialHTML).digest('hex');
-      hashes[main] = createHash('sha256').update(`window.__testBuild = ${revision};\n` + originalMain).digest('hex');
-      if (path.endsWith('offline-pack.json')) {const pack=JSON.parse(body.toString());pack.hashes=hashes;body=JSON.stringify(pack);}
-      else body=body.toString().replace(/^const CONFIG = (.*);$/m, (_line, raw) => {const config=JSON.parse(raw);config.hashes=hashes;return 'const CONFIG = '+JSON.stringify(config)+';';});
+      hashes['/DoReGo/'] = createHash('sha256')
+        .update(
+          revision > 1
+            ? initialHTML
+                .replaceAll(mainAsset, main)
+                .replace(/dorego-shell-([a-f0-9]+)/g, `dorego-shell-$1-r${revision}`)
+            : initialHTML
+        )
+        .digest('hex');
+      hashes[main] = createHash('sha256')
+        .update(`window.__testBuild = ${revision};\n` + originalMain)
+        .digest('hex');
+      if (path.endsWith('offline-pack.json')) {
+        const pack = JSON.parse(body.toString());
+        pack.hashes = hashes;
+        body = JSON.stringify(pack);
+      } else
+        body = body.toString().replace(/^const CONFIG = (.*);$/m, (_line, raw) => {
+          const config = JSON.parse(raw);
+          config.hashes = hashes;
+          return 'const CONFIG = ' + JSON.stringify(config) + ';';
+        });
     }
     const type: Record<string, string> = {
       '.js': 'text/javascript',
@@ -93,10 +116,19 @@ await new Promise<void>((resolve) => server.listen(4325, '127.0.0.1', resolve));
 const base = 'http://127.0.0.1:4325/DoReGo/';
 const browser = await launchTestBrowser();
 const context = await browser.newContext();
-await context.addInitScript(() => { try { localStorage.setItem('dorego:diagnostics:sharing', 'yes'); } catch {} });
+await context.addInitScript(() => {
+  try {
+    localStorage.setItem('dorego:diagnostics:sharing', 'yes');
+  } catch {}
+});
 const errors: string[] = [];
 let page = await context.newPage();
-context.on('page', (p) => p.on('pageerror', (error) => {errors.push(error.message);console.error('Page error stack:',error.stack)}));
+context.on('page', (p) =>
+  p.on('pageerror', (error) => {
+    errors.push(error.message);
+    console.error('Page error stack:', error.stack);
+  })
+);
 page.on('pageerror', (error) => errors.push(error.message));
 const ready = async (p: Page) =>
   p.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
@@ -114,12 +146,18 @@ try {
   slowSounds = true;
   await page.locator('#offline-download').click();
   await page.waitForFunction(
-    () => Number(document.querySelector<HTMLProgressElement>('#offline-progress')?.value) > 0
+    () => Number(document.querySelector('#offline-progress')?.getAttribute('aria-valuenow')) > 0
   );
   await page.getByRole('button', { name: 'Cancel download' }).click();
   await page.getByRole('button', { name: 'Resume download' }).waitFor();
   assert.match(await status().innerText(), /paused/);
-  assert.ok(await page.evaluate(() => (window.doregoDiagnostics!.snapshot().events as any[]).some(e => e.code === 'cache.download.paused' && e.details.cacheReason === 'cancelled')));
+  assert.ok(
+    await page.evaluate(() =>
+      (window.doregoDiagnostics!.snapshot().events as any[]).some(
+        (e) => e.code === 'cache.download.paused' && e.details.cacheReason === 'cancelled'
+      )
+    )
+  );
 
   // A failed download can resume without starting again from an empty cache.
   slowSounds = false;
@@ -134,7 +172,13 @@ try {
     () => document.querySelector('#offline-status')?.textContent?.endsWith('Available offline'),
     { timeout: 30000 }
   );
-  assert.ok(await page.evaluate(() => (window.doregoDiagnostics!.snapshot().events as any[]).some(e => e.code === 'cache.download.ready')));
+  assert.ok(
+    await page.evaluate(() =>
+      (window.doregoDiagnostics!.snapshot().events as any[]).some(
+        (e) => e.code === 'cache.download.ready'
+      )
+    )
+  );
   const count = await page.evaluate(async () => {
     const pack = await (await fetch('/DoReGo/offline-pack.json')).json();
     return (await (await caches.open(pack.cache)).keys()).length;
@@ -143,31 +187,60 @@ try {
   // An interrupted cache read can produce an empty body during page teardown.
   // It must not let the obsolete readiness check delete a previously verified file.
   await page.evaluate(async () => {
-    const pack=await(await fetch('/DoReGo/offline-pack.json')).json(),file=pack.files[0];
-    const original=Cache.prototype.match;
-    let enter!:()=>void,release!:()=>void;
-    const entered=new Promise<void>(resolve=>enter=resolve),gate=new Promise<void>(resolve=>release=resolve);
-    Cache.prototype.match=async function(request,options){
-      const response=await original.call(this,request,options);
-      const url=new URL(typeof request==='string'?request:request instanceof URL?request.href:request.url,location.href);
-      if(response&&url.pathname===file.url)response.arrayBuffer=async()=>{enter();await gate;return new ArrayBuffer(0)};
+    const pack = await (await fetch('/DoReGo/offline-pack.json')).json(),
+      file = pack.files[0];
+    const original = Cache.prototype.match;
+    let enter!: () => void, release!: () => void;
+    const entered = new Promise<void>((resolve) => (enter = resolve)),
+      gate = new Promise<void>((resolve) => (release = resolve));
+    Cache.prototype.match = async function (request, options) {
+      const response = await original.call(this, request, options);
+      const url = new URL(
+        typeof request === 'string' ? request : request instanceof URL ? request.href : request.url,
+        location.href
+      );
+      if (response && url.pathname === file.url)
+        response.arrayBuffer = async () => {
+          enter();
+          await gate;
+          return new ArrayBuffer(0);
+        };
       return response;
     };
-    try{
-      window.dispatchEvent(new Event('focus'));await entered;
-      window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));
-    }finally{Cache.prototype.match=original;release()}
+    try {
+      window.dispatchEvent(new Event('focus'));
+      await entered;
+      window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
+    } finally {
+      Cache.prototype.match = original;
+      release();
+    }
     // Let the obsolete read finish while this document is still suspended.
-    await new Promise(resolve=>setTimeout(resolve,100));
-    window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
   });
-  await page.waitForFunction(()=>document.querySelector('#offline-status')?.textContent?.endsWith('Available offline'));
-  assert.equal(await page.evaluate(async()=>{const pack=await(await fetch('/DoReGo/offline-pack.json')).json();return(await(await caches.open(pack.cache)).keys()).length}),133,'An obsolete cache check preserves every recording');
+  await page.waitForFunction(() =>
+    document.querySelector('#offline-status')?.textContent?.endsWith('Available offline')
+  );
+  assert.equal(
+    await page.evaluate(async () => {
+      const pack = await (await fetch('/DoReGo/offline-pack.json')).json();
+      return (await (await caches.open(pack.cache)).keys()).length;
+    }),
+    133,
+    'An obsolete cache check preserves every recording'
+  );
   assert.equal(await page.locator('#offline-download').isVisible(), false);
-  assert.equal(await page.locator('.builder-column > .offline-section').count(), 1);
-  assert.equal(await page.locator('#how-dialog .offline-section').count(), 0);
+  assert.equal(
+    await page.locator('.builder-column').getByRole('region', { name: 'Offline use' }).count(),
+    1
+  );
+  assert.equal(
+    await page.getByRole('dialog').getByRole('region', { name: 'Offline use' }).count(),
+    0
+  );
   const builder = (await page.locator('.settings').boundingBox())!;
-  const offline = (await page.locator('.offline-section').boundingBox())!;
+  const offline = (await page.getByRole('region', { name: 'Offline use' }).boundingBox())!;
   assert.equal(offline.x, builder.x);
   assert.equal(offline.width, builder.width);
   assert.ok(offline.y >= builder.y + builder.height);
@@ -195,21 +268,37 @@ try {
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await other.reload();
   await ready(other);
-  assert.equal(await other.evaluate(() => (window as any).__testBuild), 1, 'Cached startup opens immediately before checking for an update');
-  await other.getByRole('button',{name:'Help',exact:true}).click();
-  await other.getByRole('button',{name:'Close how it works',exact:true}).click();
-  const untouched=await context.newPage();let automaticNavigations=0;
-  untouched.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===untouched.mainFrame())automaticNavigations++});
-  await untouched.goto(base);await ready(untouched);
-  revision=2;
-  for(const tab of [other,untouched])await tab.evaluate(()=>window.dispatchEvent(new Event('online')));
-  await untouched.waitForFunction(()=>(window as any).__testBuild===2);
-  assert.equal(automaticNavigations,2,'An untouched page automatically adopts the verified release once');
+  assert.equal(
+    await other.evaluate(() => (window as any).__testBuild),
+    1,
+    'Cached startup opens immediately before checking for an update'
+  );
+  await other.getByRole('button', { name: 'Help', exact: true }).click();
+  await other.getByRole('button', { name: 'Close how it works', exact: true }).click();
+  const untouched = await context.newPage();
+  let automaticNavigations = 0;
+  untouched.on('request', (request) => {
+    if (request.isNavigationRequest() && request.frame() === untouched.mainFrame())
+      automaticNavigations++;
+  });
+  await untouched.goto(base);
+  await ready(untouched);
+  revision = 2;
+  for (const tab of [other, untouched])
+    await tab.evaluate(() => window.dispatchEvent(new Event('online')));
+  await untouched.waitForFunction(() => (window as any).__testBuild === 2);
+  assert.equal(
+    automaticNavigations,
+    2,
+    'An untouched page automatically adopts the verified release once'
+  );
   await untouched.close();
   await other.bringToFront();
 
-  await other.getByRole('button', {name:'Update available',exact:true}).waitFor();
-  await other.getByRole('button', {name:'Update available',exact:true}).click({noWaitAfter:true});
+  await other.getByRole('button', { name: 'Update available', exact: true }).waitFor();
+  await other
+    .getByRole('button', { name: 'Update available', exact: true })
+    .click({ noWaitAfter: true });
   // WebKit may finish the click while the old document's Play button is still enabled.
   await other.waitForFunction(() => (window as any).__testBuild === 2);
   await ready(other);
@@ -273,7 +362,11 @@ try {
       cache: pack.cache,
     });
   });
-  assert.equal(await page.evaluate(async (name) => (await caches.keys()).includes(name), packs[0]), true, 'Keep one committed recovery copy');
+  assert.equal(
+    await page.evaluate(async (name) => (await caches.keys()).includes(name), packs[0]),
+    true,
+    'Keep one committed recovery copy'
+  );
   assert.equal(
     await page.evaluate(async (name) => (await caches.keys()).includes(name), packs[1]),
     true
@@ -313,12 +406,16 @@ try {
         }
       );
       await page.reload();
-      await page.waitForFunction(() => (window.doregoDiagnostics?.snapshot().events as any[] | undefined)?.some(e => e.code === 'cache.navigation.ready' && e.details.cacheSource === 'cache'));
+      await page.waitForFunction(() =>
+        (window.doregoDiagnostics?.snapshot().events as any[] | undefined)?.some(
+          (e) => e.code === 'cache.navigation.ready' && e.details.cacheSource === 'cache'
+        )
+      );
       await ready(page);
       await page.locator('#play').click();
       await page.getByRole('button', { name: 'Pause', exact: true }).waitFor();
       await page.waitForFunction(
-        () => Number(document.querySelector<HTMLInputElement>('#position')?.value) > 0
+        () => Number(document.querySelector('#position')?.getAttribute('aria-valuenow')) > 0
       );
       await page.locator('#play').click();
     }
@@ -328,7 +425,9 @@ try {
     document.querySelector('#offline-status')?.textContent?.endsWith('Available offline')
   );
   await page.screenshot({ path: 'work/offline-ready.png' });
-  console.log(`All ${Object.keys(PATTERNS).length} exercises reopened and played offline at low/high extremes and 60 BPM.`);
+  console.log(
+    `All ${Object.keys(PATTERNS).length} exercises reopened and played offline at low/high extremes and 60 BPM.`
+  );
 
   // A missing recording must invalidate readiness, and repair must restore it.
   await page.evaluate(async () => {
@@ -336,27 +435,47 @@ try {
     await (await caches.open(pack.cache)).delete(pack.files[0].url);
   });
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await page.waitForFunction(
-    () => document.querySelector('#offline-status')?.textContent?.startsWith('Save all exercises')
+  await page.waitForFunction(() =>
+    document.querySelector('#offline-status')?.textContent?.startsWith('Save all exercises')
   );
   assert.equal(await page.locator('#offline-download').isDisabled(), false);
   await context.setOffline(false);
   // Firefox's emulated reconnect can omit `online` for a page opened offline.
   // Deliver the lifecycle signal explicitly; requests still use the real browser network.
   await page.evaluate(() => window.dispatchEvent(new Event('online')));
-  await page.evaluate("Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false})");
+  await page.evaluate(
+    "Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false})"
+  );
   await page.locator('#offline-download').click();
-  await page.waitForFunction(() => document.querySelector('#offline-status')?.textContent?.endsWith('Available offline'));
+  await page.waitForFunction(() =>
+    document.querySelector('#offline-status')?.textContent?.endsWith('Available offline')
+  );
   assert.deepEqual(errors, []);
   console.log('Missing-file detection and repair passed; no uncaught page errors.');
 } catch (error) {
-  console.error('Offline failure state:', JSON.stringify(await page.evaluate(async () => {
-    const pack=await(await fetch('/DoReGo/offline-pack.json')).json();
-    const shell=await caches.open(pack.shellCache), sounds=await caches.open(pack.cache);
-    return {status:document.querySelector('#offline-status')?.textContent, pack:pack.shellCache,
-      missingShell:await Promise.all(pack.shell.map(async(url:string)=>(await shell.match(url))?null:url)),
-      soundCount:(await sounds.keys()).length,diagnostics:window.doregoDiagnostics?.snapshot()};
-  }).catch(()=>null),null,2));
+  console.error(
+    'Offline failure state:',
+    JSON.stringify(
+      await page
+        .evaluate(async () => {
+          const pack = await (await fetch('/DoReGo/offline-pack.json')).json();
+          const shell = await caches.open(pack.shellCache),
+            sounds = await caches.open(pack.cache);
+          return {
+            status: document.querySelector('#offline-status')?.textContent,
+            pack: pack.shellCache,
+            missingShell: await Promise.all(
+              pack.shell.map(async (url: string) => ((await shell.match(url)) ? null : url))
+            ),
+            soundCount: (await sounds.keys()).length,
+            diagnostics: window.doregoDiagnostics?.snapshot(),
+          };
+        })
+        .catch(() => null),
+      null,
+      2
+    )
+  );
   throw error;
 } finally {
   await browser.close();

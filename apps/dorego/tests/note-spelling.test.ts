@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_SPEC, generateExercise, noteName, roundNoteName } from '../src/music';
 import { noteAlternative, noteChoiceLabel } from '../src/note-spelling';
-import { parseNote } from '../src/note-picker';
+import { parseNote } from '../src/note-spelling';
 
 const base = { ...DEFAULT_SPEC, startingChords: false, countIn: 0, repetitions: 1, restBeats: 0 };
 

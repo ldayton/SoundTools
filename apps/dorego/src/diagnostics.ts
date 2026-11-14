@@ -1,4 +1,4 @@
-import { create, attachPanel, type Client } from '@ldayton/browser-diagnostics';
+import { create, type Client } from '@ldayton/browser-diagnostics';
 import reporterUrl from '@ldayton/browser-diagnostics/sentry.js?url';
 import { PATTERNS, type ExerciseSpec } from './music';
 
@@ -14,18 +14,37 @@ export const diagnostics = create({
     mode: ['ready', 'starting', 'playing', 'paused', 'complete'],
     reason: ['audio-interrupted', 'clock-stalled', 'scheduling-gap', 'page-hidden'],
     pattern: Object.keys(PATTERNS),
-    bpm: 'number', low: 'number', high: 'number', repetitions: 'number',
-    warming: 'boolean', soundFailed: 'boolean',
+    bpm: 'number',
+    low: 'number',
+    high: 'number',
+    repetitions: 'number',
+    warming: 'boolean',
+    soundFailed: 'boolean',
   },
   snapshot: () => context,
 });
-export function diagnosticsContext(spec: ExerciseSpec, mode: string, warming: boolean, soundFailed: boolean) {
-  context = { view: 'practice', pattern: spec.pattern, bpm: spec.bpm, low: spec.low,
-    high: spec.high, repetitions: spec.repetitions, mode, warming, soundFailed };
+export function diagnosticsContext(
+  spec: ExerciseSpec,
+  mode: string,
+  warming: boolean,
+  soundFailed: boolean
+) {
+  context = {
+    view: 'practice',
+    pattern: spec.pattern,
+    bpm: spec.bpm,
+    low: spec.low,
+    high: spec.high,
+    repetitions: spec.repetitions,
+    mode,
+    warming,
+    soundFailed,
+  };
 }
-export function mountDiagnostics(parent: HTMLElement) { return attachPanel(diagnostics, parent); }
 if (typeof window !== 'undefined') window.doregoDiagnostics = diagnostics;
 declare global {
   const __DOREGO_BUILD__: string;
-  interface Window { doregoDiagnostics?: Client }
+  interface Window {
+    doregoDiagnostics?: Client;
+  }
 }

@@ -1,6 +1,6 @@
 # DoReGo React/Mantine migration: unattended work plan
 
-Status: in progress; shell milestone verified locally.
+Status: interface migration complete; final acceptance checks running locally.
 
 ## Objective and finish line
 
@@ -103,13 +103,13 @@ interactive desktop/mobile builder use and saved-preference reloads.
 
 ### 3. Migrate transport and supporting UI
 
-- [ ] Migrate play/pause/resume/restart, seeking, volume, warmup/error/retry states
+- [x] Migrate play/pause/resume/restart, seeking, volume, warmup/error/retry states
       and the current/next note and iteration-range presentation around the canvas.
-- [ ] Preserve play-request cancellation, rapid repeated input guards, startup
+- [x] Preserve play-request cancellation, rapid repeated input guards, startup
       failure recovery, tempo continuity and completion/restart behavior.
-- [ ] Migrate help dialogs, notices, offline status/actions and diagnostic consent
+- [x] Migrate help dialogs, notices, offline status/actions and diagnostic consent
       using standard components, preserving their placement and privacy behavior.
-- [ ] Keep the canvas drawing and the export page independent of component
+- [x] Keep the canvas drawing and the export page independent of component
       lifecycles. Re-rendering controls must not recreate the audio player/context.
 
 Gate: audio playback, tempo, lifecycle and diagnostics UI suites; local repeated
@@ -117,17 +117,17 @@ play/pause/restart/seek use, including changes while audio is loading.
 
 ### 4. Finish pitch controls and remove migration bridges
 
-- [ ] Put desktop pitch selection under Mantine's popover/focus behavior while
+- [x] Put desktop pitch selection under Mantine's popover/focus behavior while
       retaining the musical grid and click-anywhere-to-choose behavior.
-- [ ] Preserve shared mobile wheel scrolling, snapping, keyboard operation,
+- [x] Preserve shared mobile wheel scrolling, snapping, keyboard operation,
       lowest/highest constraints and displayed spelling.
-- [ ] Reuse a shared pitch component only if comparison with Note by Note proves
+- [x] Reuse a shared pitch component only if comparison with Note by Note proves
       the same contract is useful; do not copy its implementation or build an
       artificial cross-app framework. Keep app-specific music rules in DoReGo.
-- [ ] Remove obsolete dropdown/dialog code, event handlers, CSS overrides and
+- [x] Remove obsolete dropdown/dialog code, event handlers, CSS overrides and
       hidden mirrored controls. Use Mantine's normal stylesheet once ordinary
       controls are migrated; remove temporary reset/import boundaries.
-- [ ] If shared provider/picker code changes, run focused Note by Note regressions
+- [x] If shared provider/picker code changes, run focused Note by Note regressions
       to verify the completed app remains unchanged.
 
 Gate: mouse, keyboard, touch/wheel, Escape, outside-click and focus return checks;
@@ -198,3 +198,55 @@ checks; unresolved concerns; next action. Update this file so a later context ca
 resume from evidence without reconstructing the whole conversation.
 
 Builder checkpoint: controlled Mantine exercise/contour/progression/More options/count controls now call validated spec actions. Removed form reads and hidden value mirrors. Retained pitch adapters await milestone 4. DoReGo logic tests (61), pages controls/persistence/credits and desktop PCM/lifecycle checks passed; Note by Note logic tests passed after sharing the small view-state helper. Shell commit: `c34f894`. Next: React-owned playback and offline/privacy surfaces.
+
+
+Transport/pitch checkpoint: one React root now owns the complete page, builder,
+transport, Help, offline controls and diagnostic consent. The retained DOM is
+limited to the native canvas/announcement and shared mobile wheels. Ordinary
+controls consume serializable snapshots at no more than 20 updates/second;
+audio scheduling and canvas animation retain their original cadence. Removed
+the custom desktop pitch popup, anchored-select class, form mirrors, ordinary
+control event handlers and legacy control stylesheet. The stylesheet is now
+page/brand geometry only. Numeric edits commit on blur or Enter; slider and
+step actions commit immediately. Invalid range drafts cannot be persisted by
+tempo/volume changes, with an actual browser reload regression.
+
+Compared the Note by Note pitch adapter before deciding reuse: it retains a
+composite native field and indexes optional diatonic/chromatic written pitches;
+DoReGo now owns a React field with a fixed chromatic MIDI grid. Kept the musical
+adapters local and reused Mantine overlay behavior, the provider, snapshot helper
+and mobile wheel. Did not broaden this assignment into another Note by Note
+refactor. Its focused provider/navigation and 150 logic tests already passed at
+the earlier shared checkpoints.
+
+Verified in local Mac Chrome at desktop and emulated iPhone width: pitch popup,
+selection and focus return, play/pause, Help dismissal, mobile wheel keyboard
+selection and More options. Automated pages checks cover saved settings,
+endpoint repeats/doubled rounds, temporary invalid drafts, popup Escape/outside
+click/resize and named sliders. The final frozen-build matrix and the dedicated
+music/export/resilience checks are recorded below when complete.
+
+
+Verification checkpoint: all 15 desktop/pages/lifecycle/offline/spelling combinations
+passed in Chromium, Firefox and WebKit. Dedicated tempo, glides, audio and
+diagnostic/privacy checks passed. The tempo regression now excludes Tone's
+one-sample silent startup buffer and observes a real piano recording; its
+continuity assertion is unchanged. A WebKit service-worker access-control error
+appeared once during a disconnected transition; the focused rerun and full final
+matrix passed without suppressing any errors or adding retries.
+
+The audio stress probe observed 11 peak sources, zero late starts, zero clipped
+samples and silent cleanup after a deliberate 400 ms UI stall. Resilience checks
+passed startup-script retry, disconnected browser restart, partial media requests,
+corrupt advisory metadata and stalled cache/update recovery. Observed locally:
+63 ms cached startup with a hanging update, 252 ms after an offline browser
+restart and 2801 ms network fallback with stalled storage. These are local test
+measurements, not device or network guarantees.
+
+Build cost is an explicit tradeoff: the UI entry grew from 19.61 kB gzip to
+about 161.4 kB with React/Mantine and the pitch overlay; CSS from 6.48 kB to
+38.74 kB. The independent render/audio chunk remains about 82.9 kB gzip
+(previously 82.6 kB). Vite warns about the uncompressed UI chunk exceeding
+500 kB; the warning has not been hidden. Did not introduce cosmetic chunk
+splitting merely to silence it. Audio stress and cached startup checks pass;
+a slower physical phone has not been benchmarked.

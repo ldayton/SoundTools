@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseNote } from '../src/note-picker';
+import { parseNote } from '../src/note-spelling';
 
 test('typed note entry handles sharps, flats, case, whitespace and enharmonic bounds', () => {
   for (const [text, midi] of [

@@ -1,3 +1,4 @@
+import { setSlider } from './ui-helpers';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { DEFAULT_SPEC } from '../src/music';
@@ -128,7 +129,7 @@ try {
   assert.ok(result.audio.peak > 0.01);
   assert.equal(result.audio.clipped, 0);
   const loudRms = Math.sqrt(result.audio.energy / result.audio.count);
-  await page.locator('#volume').fill('-24');
+  await setSlider(page, 'volume', -24);
   assert.equal(await page.locator('#play').innerText(), 'Pause');
   await page.waitForTimeout(50);
   await page.evaluate(() => {

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Accordion,
   ActionIcon,
@@ -27,7 +27,7 @@ import {
   type ExerciseSpec,
 } from './music';
 import { NoteWheel } from './note-wheel';
-import { NotePicker } from './note-picker';
+import { PitchPicker } from './pitch-picker';
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
 export type SpecPatch = Partial<ExerciseSpec> & { startingNote?: number };
 export interface BuilderModel {
@@ -48,11 +48,11 @@ export function CommittedNumber({
   max: number;
   step?: number;
   hideControls?: boolean;
-  "aria-label"?: string;
+  'aria-label'?: string;
 }) {
   const [draft, setDraft] = useState<string | number>(value);
   const current = useRef<string | number>(value);
-  useEffect(() => {
+  useLayoutEffect(() => {
     current.current = value;
     setDraft(value);
   }, [value]);
@@ -109,18 +109,14 @@ function PitchField({
   change(value: number): void;
 }) {
   const host = useRef<HTMLDivElement>(null);
-  const controls = useRef<{ picker: NotePicker; wheel: NoteWheel }>(null);
+  const controls = useRef<NoteWheel>(null);
+  const [opened, setOpened] = useState(false);
   const changed = useRef(change);
   changed.current = change;
   useLayoutEffect(() => {
     const node = host.current!;
     const label = bound === 'low' ? 'Lowest' : 'Highest';
-    node.innerHTML = `<div class="desktop-note"><input id="${bound}-spin" type="text" role="combobox" aria-label="${label} note" readonly/><button type="button" id="${bound}-choose" aria-label="Choose ${label.toLowerCase()} note">⌄</button></div><div class="note-spinner mobile-note"><div class="note-wheel-selection" aria-hidden="true"></div><div id="${bound}-wheel" class="note-wheel" role="spinbutton" tabindex="0" aria-label="${label} note" aria-valuemin="24" aria-valuemax="96"></div></div>`;
-    const picker = new NotePicker(
-      node.querySelector('input')!,
-      node.querySelector('button')!,
-      (midi) => changed.current(midi)
-    );
+    node.innerHTML = `<div class="note-spinner mobile-note"><div class="note-wheel-selection" aria-hidden="true"></div><div id="${bound}-wheel" class="note-wheel" role="spinbutton" tabindex="0" aria-label="${label} note" aria-valuemin="24" aria-valuemax="96"></div></div>`;
     const wheel = new NoteWheel(node.querySelector('.note-wheel')!, (midi) =>
       changed.current(midi)
     );
@@ -152,17 +148,26 @@ function PitchField({
         );
       }
     });
-    controls.current = { picker, wheel };
+    controls.current = wheel;
   }, [bound]);
   useLayoutEffect(() => {
-    controls.current?.picker.setValue(value);
-    controls.current?.wheel.setValue(value);
+    controls.current?.setValue(value);
   }, [value]);
   return (
     <div>
       <Text size="sm" fw={500} mb={4}>
         {bound === 'low' ? 'Lowest' : 'Highest'}
       </Text>
+      <div className="desktop-note">
+        <PitchPicker
+          id={`${bound}-spin`}
+          label={`${bound === 'low' ? 'Lowest' : 'Highest'} note`}
+          value={value}
+          opened={opened}
+          onOpenedChange={setOpened}
+          onChange={change}
+        />
+      </div>
       <div ref={host} />
     </div>
   );

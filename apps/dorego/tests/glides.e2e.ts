@@ -1,4 +1,4 @@
-import { readSpecValue, openMoreOptions } from './ui-helpers';
+import { openMoreOptions } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
   .resolve('vite/package.json')

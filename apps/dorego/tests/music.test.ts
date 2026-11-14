@@ -30,7 +30,7 @@ test('exercise choices include Rossini Scale, with Arpeggio & Scale E3-E5 at 150
       'Rossini Scale',
       'Five-Note Scale',
       'Pentatonic Threes (9 notes)',
-    'Pentatonic Threes (12 notes)',
+      'Pentatonic Threes (12 notes)',
       'Major Scale',
       'Fifth Glide',
       'Octave Glide',

@@ -50,3 +50,13 @@ export function noteAlternative(midi: number): string | null {
 export function noteChoiceLabel(midi: number): string {
   return withOctave(midi, SHARPS[pitchClass(midi)]);
 }
+
+export function parseNote(value: string): number | null {
+  const match = /^\s*([a-g])([#♯b♭]?)([1-7])\s*$/i.exec(value);
+  if (!match) return null;
+  const pitches: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const pitch = pitches[match[1].toUpperCase()];
+  const accidental = ['#', '♯'].includes(match[2]) ? 1 : ['b', '♭'].includes(match[2]) ? -1 : 0;
+  const midi = (Number(match[3]) + 1) * 12 + pitch + accidental;
+  return midi >= 24 && midi <= 96 ? midi : null;
+}

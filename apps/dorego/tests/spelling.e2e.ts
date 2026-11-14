@@ -1,4 +1,4 @@
-import { readSpecValue, openMoreOptions } from './ui-helpers';
+import { readSpecValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
@@ -93,12 +93,7 @@ try {
       () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
     );
   };
-  const seek = async (time: number) => {
-    await page.locator('#position').evaluate((element, time) => {
-      (element as HTMLInputElement).value = String(time);
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-    }, time);
-  };
+  const seek = (time: number) => setSlider(page, 'position', time);
   const labels = () => page.evaluate(() => (window as any).spellingLabels as string[]);
   const checkNoteGeometry = async (centerY: number) => {
     const all = await page.evaluate(

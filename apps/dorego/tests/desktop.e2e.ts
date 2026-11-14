@@ -1,4 +1,4 @@
-import { readSpecValue, openMoreOptions } from './ui-helpers';
+import { readSpecValue, sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
   .resolve('vite/package.json')
@@ -106,7 +106,7 @@ try {
       () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
     );
   const playing = () => page.getByRole('button', { name: 'Pause', exact: true }).waitFor();
-  const position = () => page.locator('#position').inputValue().then(Number);
+  const position = () => sliderValue(page, 'position').then(Number);
   const paused = async () => {
     await page.getByRole('button', { name: 'Resume', exact: true }).waitFor();
     const at = await position();
@@ -123,7 +123,8 @@ try {
     const at = await position();
     await page.waitForFunction(
       (previous) =>
-        Number(document.querySelector<HTMLInputElement>('#position')!.value) > previous + 0.08,
+        Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) >
+        previous + 0.08,
       at
     );
   };
@@ -195,7 +196,7 @@ try {
   const beatBefore = ((await position()) * 150) / 60;
   await page.locator('#bpm').fill('60');
   await page.locator('#bpm').press('Tab');
-  assert.equal(await page.locator('#tempo-slider').inputValue(), '60');
+  assert.equal(await sliderValue(page, 'tempo-slider'), '60');
   const beatAfter = ((await position()) * 60) / 60;
   assert.ok(
     beatAfter >= beatBefore - 0.15 && beatAfter < beatBefore + 3,
@@ -203,17 +204,17 @@ try {
   );
   await page.locator('#tempo-up').click();
   assert.equal(await page.locator('#bpm').inputValue(), '65');
-  await page.locator('#volume').fill('-30');
+  await setSlider(page, 'volume', -30);
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await progress();
-  await page.locator('#tempo-slider').fill('240');
+  await setSlider(page, 'tempo-slider', 240);
   await page.locator('#tempo-slider').press('Tab');
   assert.equal(await page.locator('#bpm').inputValue(), '240');
-  await page.locator('#volume').fill('0');
+  await setSlider(page, 'volume', 0);
   await progress();
 
   // Real pointer seeking pauses at the chosen position and never leaves old voices running.
-  const seek = await page.locator('#position').boundingBox();
+  const seek = await page.locator('.dorego-seek .mantine-Slider-trackContainer').boundingBox();
   assert.ok(seek);
   await page.mouse.click(seek.x + seek.width * 0.45, seek.y + seek.height / 2);
   const sought = await paused();
@@ -280,7 +281,7 @@ try {
   await ready();
   assert.equal(await page.locator('#pattern').inputValue(), 'fifthGlide');
   assert.equal(await page.locator('#bpm').inputValue(), '240');
-  assert.equal(await page.locator('#volume').inputValue(), '0');
+  assert.equal(await sliderValue(page, 'volume'), '0');
   assert.equal(await readSpecValue(page, 'low'), '53');
   let release!: () => void;
   const gate = new Promise<void>((resolve) => (release = resolve));

@@ -1,4 +1,4 @@
-import { readSpecValue, openMoreOptions } from './ui-helpers';
+import { readSpecValue, openMoreOptions, sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
   .resolve('vite/package.json')
@@ -72,7 +72,7 @@ try {
   await page.getByRole('button', { name: 'Loading...' }).waitFor();
   assert.ok(await page.locator('#play').isDisabled());
   assert.equal(await page.locator('#play').getAttribute('aria-busy'), 'true');
-  assert.equal(await page.locator('.piano-warmup i').count(), 3);
+  assert.equal(await page.locator('#play .mantine-Loader-root').count(), 1);
   releaseSamples();
   await page.waitForFunction(
     () => !(document.querySelector('#play') as HTMLButtonElement).disabled
@@ -103,6 +103,8 @@ try {
   assert.equal(await readSpecValue(page, 'low'), '52');
   assert.equal(await readSpecValue(page, 'high'), '76');
   assert.equal(await page.locator('#bpm').inputValue(), '150');
+  for (const name of ['Playback position', 'Tempo slider', 'Volume'])
+    assert.equal(await page.getByRole('slider', { name, exact: true }).count(), 1);
   await page.locator('#low-spin').press('ArrowUp');
   assert.equal(await readSpecValue(page, 'low'), '53');
   await page.locator('#low-spin').press('ArrowDown');
@@ -115,12 +117,29 @@ try {
     .getByRole('button', { name: 'F♯3', exact: true })
     .click();
   assert.equal(await readSpecValue(page, 'low'), '54');
-  await page.locator('#low-choose').click();
+  await page.locator('#low-spin').click();
   await page
     .getByRole('dialog', { name: 'Choose lowest note' })
     .getByRole('button', { name: 'E3', exact: true })
     .click();
   assert.equal(await readSpecValue(page, 'low'), '52');
+  await page.locator('#low-spin').press('Enter');
+  const picker = page.getByRole('dialog', { name: 'Choose lowest note' });
+  await picker.getByRole('button', { name: 'E3', exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'E3');
+  await picker.getByRole('button', { name: 'E3', exact: true }).press('ArrowRight');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'F3');
+  await picker.getByRole('button', { name: 'F3', exact: true }).press('Escape');
+  assert.ok(await picker.isHidden());
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'low-spin');
+  assert.equal(await readSpecValue(page, 'low'), '52', 'Focus movement does not commit a pitch');
+  await page.locator('#low-spin').click();
+  await page.locator('#exercise-title').click();
+  assert.ok(await picker.isHidden(), 'Outside click dismisses pitch grid');
+  await page.locator('#low-spin').click();
+  await page.setViewportSize({ width: 1000, height: 850 });
+  await picker.waitFor({ state: 'hidden' });
+  assert.ok(await picker.isHidden(), 'Resize dismisses the desktop grid');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(
     () =>
@@ -146,7 +165,7 @@ try {
   assert.equal(await page.locator('#play').innerText(), 'Pause');
   assert.equal(await page.locator('#play').getAttribute('aria-busy'), 'false');
   await page.waitForFunction(
-    () => Number((document.querySelector('#position') as HTMLInputElement).value) > 0.15
+    () => Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > 0.15
   );
   assert.equal(samples.length, preparedSamples, 'Play must use the preloaded samples');
   await page.locator('#play').click();
@@ -377,6 +396,22 @@ try {
     const canvas = document.querySelector('#stage') as HTMLCanvasElement;
     return canvas.width === 1600 && canvas.height === 900;
   });
+  // Temporary invalid range edits must never replace the last valid saved exercise.
+  await page.locator('#pattern').selectOption('fiveNote');
+  const validSaved = await page.evaluate(() => localStorage.getItem('dorego.current'));
+  await page.locator('#low-spin').click();
+  await page
+    .getByRole('dialog', { name: 'Choose lowest note' })
+    .getByRole('button', { name: 'C7', exact: true })
+    .click();
+  assert.ok(await page.locator('#play').isDisabled());
+  await page.locator('#tempo-up').click();
+  await setSlider(page, 'volume', -18);
+  assert.equal(await page.evaluate(() => localStorage.getItem('dorego.current')), validSaved);
+  await page.reload();
+  await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('#play')?.disabled);
+  assert.equal(await page.evaluate(() => localStorage.getItem('dorego.current')), validSaved);
+
   const preferencesPage = await browser.newPage();
   const remembered = {
     ...DEFAULT_SPEC,
@@ -400,7 +435,13 @@ try {
   for (const [id, value] of Object.entries(remembered)) {
     const field = preferencesPage.locator(`#${id}`);
     if ((await field.count()) && typeof value !== 'boolean' && !['key', 'direction'].includes(id))
-      assert.equal(await field.inputValue(), String(value), `Stored ${id} was overwritten`);
+      assert.equal(
+        ['volume', 'position', 'tempo-slider'].includes(id)
+          ? String(await sliderValue(preferencesPage, id))
+          : await field.inputValue(),
+        String(value),
+        `Stored ${id} was overwritten`
+      );
   }
   assert.ok(await preferencesPage.locator('#direction-down').isChecked());
   assert.equal(await preferencesPage.locator('#metronome').count(), 0);

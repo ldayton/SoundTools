@@ -1,5 +1,8 @@
+import { sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
-const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
+const viteCli = createRequire(import.meta.url)
+  .resolve('vite/package.json')
+  .replace(/package\.json$/, 'bin/vite.js');
 import { launchTestBrowser } from './browser-harness';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -61,10 +64,10 @@ try {
   );
   const play = page.locator('#play');
   const label = () => play.innerText();
-  const position = () => page.locator('#position').inputValue().then(Number);
+  const position = () => sliderValue(page, 'position').then(Number);
   await play.click();
   await page.waitForFunction(
-    () => Number(document.querySelector<HTMLInputElement>('#position')!.value) > 0.05
+    () => Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > 0.05
   );
   await page.evaluate(() => (window as any).lifecycleProbe.context.suspend());
   await page.waitForFunction(() => document.querySelector('#play')?.textContent === 'Resume');
@@ -79,7 +82,7 @@ try {
   assert.equal(await label(), 'Pause');
   await page.waitForFunction(
     (previous) =>
-      Number(document.querySelector<HTMLInputElement>('#position')!.value) > previous + 0.03,
+      Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > previous + 0.03,
     paused,
     { timeout: 5000 }
   );
@@ -165,9 +168,10 @@ try {
   );
   assert.equal(await label(), 'Play');
   await page.locator('#bpm').fill('240');
+  await page.locator('#bpm').press('Enter');
   // Move near completion, then prevent all future animation callbacks.
-  const end = await page.locator('#position').getAttribute('max');
-  await page.locator('#position').fill(String(Number(end) - 0.5));
+  const end = await page.locator('#position').getAttribute('aria-valuemax');
+  await setSlider(page, 'position', Number(end) - 0.5);
   await page.evaluate(() => {
     (window as any).lifecycleProbe.blockFrames = true;
   });

@@ -1,3 +1,4 @@
+import { offlineState, setOffline, offlineActions } from './offline-state';
 import { diagnostics } from './diagnostics';
 import {
   createResources,
@@ -15,10 +16,6 @@ type SoundPack = {
 };
 const resources = createResources();
 export function setupOffline() {
-  const button = document.querySelector<HTMLButtonElement>('#offline-download')!;
-  const update = document.querySelector<HTMLButtonElement>('#offline-update')!;
-  const status = document.querySelector<HTMLElement>('#offline-status')!;
-  const progress = document.querySelector<HTMLProgressElement>('#offline-progress')!;
   const base = import.meta.env.BASE_URL;
   const expectedShell = document.querySelector<HTMLMetaElement>(
     'meta[name="dorego-shell"]'
@@ -67,10 +64,12 @@ export function setupOffline() {
     retryDelay = Math.min(300000, retryDelay * 2);
   };
   if (!import.meta.env.PROD || !('serviceWorker' in navigator) || !('caches' in window)) {
-    status.textContent = import.meta.env.DEV
-      ? 'Offline downloads are available in the built app.'
-      : 'Offline downloads aren’t supported in this browser.';
-    button.hidden = true;
+    setOffline({
+      status: import.meta.env.DEV
+        ? 'Offline downloads are available in the built app.'
+        : 'Offline downloads aren’t supported in this browser.',
+    });
+    setOffline({ downloadHidden: true });
     if (!import.meta.env.DEV) diagnostics.offline('setup', 'unsupported');
     return;
   }
@@ -166,25 +165,31 @@ export function setupOffline() {
         lastComplete = complete;
       }
       interfaceNeedsRepair = !interfacePresent.every(Boolean);
-      status.textContent = interfaceNeedsRepair
-        ? 'Offline app needs repair. Reload when connected.'
-        : complete
-          ? '✓ Available offline'
-          : `Save all exercises and sounds · ${Math.ceil(current.files.reduce((sum, f) => sum + f.bytes, 0) / 1e6)} MB`;
-      status.classList.toggle('is-ready', complete);
-      button.hidden = complete;
-      button.disabled = false;
-      button.textContent = interfaceNeedsRepair ? 'Repair offline app' : 'Download for offline use';
+      setOffline({
+        status: interfaceNeedsRepair
+          ? 'Offline app needs repair. Reload when connected.'
+          : complete
+            ? '✓ Available offline'
+            : `Save all exercises and sounds · ${Math.ceil(current.files.reduce((sum, f) => sum + f.bytes, 0) / 1e6)} MB`,
+      });
+      setOffline({ ready: complete });
+      setOffline({ downloadHidden: complete });
+      setOffline({ downloadDisabled: false });
+      setOffline({
+        downloadLabel: interfaceNeedsRepair ? 'Repair offline app' : 'Download for offline use',
+      });
       if (complete) rememberIntent(false);
       else if (resumeWanted && !document.hidden) void download();
     } catch (error) {
       diagnostics.offline('storage', 'failed', {}, error);
       if (generation !== checkGeneration || downloading) return;
-      status.textContent =
-        'Offline storage unavailable. Free some space or check browser settings, then retry.';
-      button.hidden = false;
-      button.disabled = false;
-      button.textContent = 'Retry offline setup';
+      setOffline({
+        status:
+          'Offline storage unavailable. Free some space or check browser settings, then retry.',
+      });
+      setOffline({ downloadHidden: false });
+      setOffline({ downloadDisabled: false });
+      setOffline({ downloadLabel: 'Retry offline setup' });
     }
   }
   async function download() {
@@ -198,12 +203,12 @@ export function setupOffline() {
     downloading = controller;
     checkGeneration++;
     diagnostics.offline('download', 'started');
-    button.hidden = false;
-    button.disabled = false;
-    button.textContent = 'Cancel download';
-    progress.hidden = false;
-    progress.max = current.files.reduce((sum, f) => sum + f.bytes, 0);
-    progress.value = 0;
+    setOffline({ downloadHidden: false });
+    setOffline({ downloadDisabled: false });
+    setOffline({ downloadLabel: 'Cancel download' });
+    setOffline({ progressHidden: false });
+    setOffline({ progressMax: current.files.reduce((sum, f) => sum + f.bytes, 0) });
+    setOffline({ progressValue: 0 });
     let completed = 0;
     try {
       const cache = await readCache(() => caches.open(current.cache));
@@ -239,8 +244,10 @@ export function setupOffline() {
           name: 'QuotaExceededError',
         });
       const report = () => {
-        progress.value = completed;
-        status.textContent = `Downloading sounds… ${Math.floor((completed / progress.max) * 100)}%`;
+        setOffline({ progressValue: completed });
+        setOffline({
+          status: `Downloading sounds… ${Math.floor((completed / offlineState.getSnapshot().progressMax) * 100)}%`,
+        });
       };
       report();
       await Promise.allSettled(
@@ -306,12 +313,14 @@ export function setupOffline() {
       );
       if (cancelled) {
         rememberIntent(false);
-        status.textContent = 'Download paused. Download again to continue.';
+        setOffline({ status: 'Download paused. Download again to continue.' });
       } else if (reason.name === 'QuotaExceededError') {
-        status.textContent = 'Not enough storage. Free some space, then resume.';
+        setOffline({ status: 'Not enough storage. Free some space, then resume.' });
       } else {
-        status.textContent =
-          'Download incomplete. Saved files are kept; retrying when the connection improves.';
+        setOffline({
+          status:
+            'Download incomplete. Saved files are kept; retrying when the connection improves.',
+        });
         if (
           reason.offlineReason === 'network' ||
           reason.offlineReason === 'timeout' ||
@@ -319,16 +328,16 @@ export function setupOffline() {
         )
           schedule();
       }
-      button.textContent = 'Resume download';
-      button.disabled = false;
+      setOffline({ downloadLabel: 'Resume download' });
+      setOffline({ downloadDisabled: false });
     } finally {
       if (epoch === session.generation()) {
         downloading = null;
-        progress.hidden = true;
+        setOffline({ progressHidden: true });
       }
     }
   }
-  button.onclick = () => {
+  offlineActions.download = () => {
     if (downloading) {
       rememberIntent(false);
       clearTimeout(retryTimer);
@@ -350,8 +359,10 @@ export function setupOffline() {
       .catch((error) => diagnostics.offline('storage', 'failed', {}, error));
     void download();
   };
-  update.onclick = () =>
-    update.dataset.release ? void applyQuiescentUpdate(update.dataset.release) : location.reload();
+  offlineActions.update = () => {
+    const release = offlineState.getSnapshot().release;
+    release ? void applyQuiescentUpdate(release) : location.reload();
+  };
   const rpc = () =>
     session.call<{ ready: boolean; shellCache?: string; reason?: string }>(
       'prepare-update',
@@ -386,9 +397,9 @@ export function setupOffline() {
         ...(reply.reason ? { cacheReason: reply.reason } : {}),
       });
       if (reply.ready) {
-        update.hidden = reply.shellCache === pack.shellCache;
-        if (!update.hidden && reply.shellCache) {
-          update.dataset.release = reply.shellCache;
+        setOffline({ updateHidden: reply.shellCache === pack.shellCache });
+        if (!offlineState.getSnapshot().updateHidden && reply.shellCache) {
+          setOffline({ release: reply.shellCache });
           freshness.offer(reply.shellCache);
         }
       }
@@ -497,11 +508,12 @@ export function setupOffline() {
       } catch (error) {
         if (!active || epoch !== session.generation()) return;
         diagnostics.offline('setup', 'failed', { durationMs: performance.now() - started }, error);
-        status.textContent =
-          'Offline setup unavailable. Retry when your connection or storage improves.';
-        button.hidden = false;
-        button.disabled = false;
-        button.textContent = 'Retry offline setup';
+        setOffline({
+          status: 'Offline setup unavailable. Retry when your connection or storage improves.',
+        });
+        setOffline({ downloadHidden: false });
+        setOffline({ downloadDisabled: false });
+        setOffline({ downloadLabel: 'Retry offline setup' });
         schedule();
       }
     })().finally(() => {
@@ -536,7 +548,7 @@ export function setupOffline() {
     // Preserve download intent for reopen, while stopping work owned by this document.
     downloading?.abort(Object.assign(new Error('Page suspended'), { offlineReason: 'timeout' }));
     downloading = null;
-    progress.hidden = true;
+    setOffline({ progressHidden: true });
   });
   window.addEventListener('pageshow', () => {
     if (!active) session.reset();
@@ -555,7 +567,7 @@ export function setupOffline() {
     checkGeneration++;
     downloading?.abort(Object.assign(new Error('Worker replaced'), { offlineReason: 'timeout' }));
     downloading = null;
-    progress.hidden = true;
+    setOffline({ progressHidden: true });
     if (pack)
       navigator.serviceWorker.controller?.postMessage({
         type: 'using-cache',

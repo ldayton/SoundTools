@@ -1,4 +1,4 @@
-import { readSpecValue, openMoreOptions } from './ui-helpers';
+import { readSpecValue, openMoreOptions, sliderValue, setSlider } from './ui-helpers';
 import { chromium } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
@@ -25,10 +25,10 @@ const page = await browser.newPage({
 });
 async function setNote(id: string, target: number) {
   const spin = page.locator(`#${id}-spin`);
-  let value = Number(await page.locator(`#${id}`).inputValue());
+  let value = Number(await readSpecValue(page, id));
   while (value !== target) {
     await spin.press(value < target ? 'ArrowUp' : 'ArrowDown');
-    value = Number(await page.locator(`#${id}`).inputValue());
+    value = Number(await readSpecValue(page, id));
   }
 }
 const errors: string[] = [];
@@ -75,23 +75,23 @@ try {
   await page.screenshot({ path: new URL('desktop.png', work).pathname, fullPage: true });
   await page.locator('#play').click();
   await page.waitForFunction(
-    () => Number((document.querySelector('#position') as HTMLInputElement).value) > 0.15
+    () => Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > 0.15
   );
   assert.equal(await page.locator('#play').innerText(), 'Pause');
   await page.locator('#play').click();
-  const paused = Number(await page.locator('#position').inputValue());
+  const paused = Number(await sliderValue(page, 'position'));
   assert.ok(paused > 0.1);
   await page.waitForTimeout(200);
-  assert.equal(Number(await page.locator('#position').inputValue()), paused);
+  assert.equal(Number(await sliderValue(page, 'position')), paused);
   await page.locator('#play').click();
   await page.waitForTimeout(250);
   await page.locator('#play').click();
-  assert.ok(Number(await page.locator('#position').inputValue()) > paused);
+  assert.ok(Number(await sliderValue(page, 'position')) > paused);
   await page.locator('#restart').click();
-  assert.equal(Number(await page.locator('#position').inputValue()), 0);
+  assert.equal(Number(await sliderValue(page, 'position')), 0);
   await page.locator('#position').focus();
   await page.keyboard.press('ArrowRight');
-  assert.ok(Number(await page.locator('#position').inputValue()) > 0);
+  assert.ok(Number(await sliderValue(page, 'position')) > 0);
   await page.locator('#exercise-title').click();
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#play').innerText(), 'Pause');

@@ -1,3 +1,4 @@
+import { setSlider } from './ui-helpers';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { DEFAULT_SPEC } from '../src/music';
@@ -53,7 +54,7 @@ try {
   async function beat() {
     return page.evaluate(
       () =>
-        (Number((document.querySelector('#position') as HTMLInputElement).value) *
+        (Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) *
           Number((document.querySelector('#bpm') as HTMLInputElement).value)) /
         60
     );
@@ -86,14 +87,21 @@ try {
   await page.waitForFunction(() =>
     (window as any).tempoProbe.sources.some(
       (e: any) =>
-        !e.ended && !e.source.loop && e.source.buffer && e.start < e.source.context.currentTime
+        !e.ended &&
+        !e.source.loop &&
+        e.source.buffer?.duration >= 1 &&
+        e.start < e.source.context.currentTime
     )
   );
+  // Exclude Tone's one-sample silent startup buffer; observe a real recording.
   const piano = await page.evaluate(() => {
     const p = (window as any).tempoProbe;
     const index = p.sources.findIndex(
       (e: any) =>
-        !e.ended && !e.source.loop && e.start < e.source.context.currentTime && e.source.buffer
+        !e.ended &&
+        !e.source.loop &&
+        e.start < e.source.context.currentTime &&
+        e.source.buffer?.duration >= 1
     );
     return index;
   });
@@ -157,7 +165,7 @@ try {
   );
   assert.equal(retimed, 5);
   const beforeSlider = await beat();
-  await page.locator('#tempo-slider').fill('60');
+  await setSlider(page, 'tempo-slider', 60);
   assert.ok(Math.abs((await beat()) - beforeSlider) < 0.35);
   assert.equal(await page.locator('#play').textContent(), 'Pause');
   await page.locator('#play').click();

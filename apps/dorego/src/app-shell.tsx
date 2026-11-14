@@ -1,6 +1,6 @@
 import { useCallback, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { flushSync, createPortal } from 'react-dom';
+import { flushSync } from 'react-dom';
 import { Anchor, Button, Modal, Stack, Text } from '@mantine/core';
 import { SoundToolsProvider } from '@ldayton/ui';
 export function RetainedContent({ element }: { element: HTMLElement }) {
@@ -12,7 +12,8 @@ export function RetainedContent({ element }: { element: HTMLElement }) {
   );
   return <div ref={attach} />;
 }
-function AppShell({ workspace, builder }: { workspace: HTMLElement; builder: ReactNode }) {
+export type AppViews = { builder: ReactNode; practice: ReactNode; footer: ReactNode };
+function AppShell({ builder, practice, footer }: AppViews) {
   const [help, setHelp] = useState(false);
   const base = import.meta.env.BASE_URL;
   return (
@@ -27,11 +28,25 @@ function AppShell({ workspace, builder }: { workspace: HTMLElement; builder: Rea
           DoReGo<span className="brand-dot">.</span>
         </a>
         <Button id="how-button" variant="subtle" onClick={() => setHelp(true)}>
-          Help ↗
+          Help
         </Button>
       </header>
-      <RetainedContent element={workspace} />
-      {createPortal(builder, workspace.querySelector('#builder-slot')!)}
+      <main>
+        <h1 className="sr-only">Practice</h1>
+        <div className="studio">
+          <div className="builder-column">
+            <aside className="settings" aria-label="Exercise builder">
+              <div className="panel-heading">
+                <h2>Exercise builder</h2>
+                <span aria-hidden="true">♪</span>
+              </div>
+              {builder}
+            </aside>
+            {footer}
+          </div>
+          {practice}
+        </div>
+      </main>
       <Modal
         id="dorego-help"
         opened={help}
@@ -68,12 +83,12 @@ function AppShell({ workspace, builder }: { workspace: HTMLElement; builder: Rea
     </>
   );
 }
-export function mountAppShell(element: HTMLElement, workspace: HTMLElement, builder: ReactNode) {
+export function mountAppShell(element: HTMLElement, views: AppViews) {
   const root = createRoot(element);
   flushSync(() =>
     root.render(
       <SoundToolsProvider primaryColor="lime">
-        <AppShell workspace={workspace} builder={builder} />
+        <AppShell {...views} />
       </SoundToolsProvider>
     )
   );

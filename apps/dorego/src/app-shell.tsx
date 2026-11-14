@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { flushSync } from 'react-dom';
+import { flushSync, createPortal } from 'react-dom';
 import { Anchor, Button, Modal, Stack, Text } from '@mantine/core';
 import { SoundToolsProvider } from '@ldayton/ui';
 export function RetainedContent({ element }: { element: HTMLElement }) {
@@ -12,7 +12,7 @@ export function RetainedContent({ element }: { element: HTMLElement }) {
   );
   return <div ref={attach} />;
 }
-function AppShell({ workspace }: { workspace: HTMLElement }) {
+function AppShell({ workspace, builder }: { workspace: HTMLElement; builder: ReactNode }) {
   const [help, setHelp] = useState(false);
   const base = import.meta.env.BASE_URL;
   return (
@@ -31,6 +31,7 @@ function AppShell({ workspace }: { workspace: HTMLElement }) {
         </Button>
       </header>
       <RetainedContent element={workspace} />
+      {createPortal(builder, workspace.querySelector('#builder-slot')!)}
       <Modal
         id="dorego-help"
         opened={help}
@@ -67,12 +68,12 @@ function AppShell({ workspace }: { workspace: HTMLElement }) {
     </>
   );
 }
-export function mountAppShell(element: HTMLElement, workspace: HTMLElement) {
+export function mountAppShell(element: HTMLElement, workspace: HTMLElement, builder: ReactNode) {
   const root = createRoot(element);
   flushSync(() =>
     root.render(
       <SoundToolsProvider primaryColor="lime">
-        <AppShell workspace={workspace} />
+        <AppShell workspace={workspace} builder={builder} />
       </SoundToolsProvider>
     )
   );

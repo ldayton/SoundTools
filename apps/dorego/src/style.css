@@ -1779,3 +1779,10 @@ main {
   margin: 0;
   padding: 7px 0;
 }
+
+/* Builder controls use Mantine; retained music controls keep their own geometry. */
+.dorego-mobile-count { display: none; }
+@media (max-width: 760px) {
+  .dorego-desktop-count { display: none; }
+  .dorego-mobile-count { display: block; }
+}

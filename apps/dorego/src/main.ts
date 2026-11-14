@@ -1,3 +1,7 @@
+import { createElement } from 'react';
+import { createViewState } from '@ldayton/ui/view-state';
+import { Builder, type BuilderSnapshot, type SpecPatch } from './builder';
+import { restoreSpec, editSpec } from './exercise-settings';
 import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext, mountDiagnostics } from './diagnostics';
 import { practiceRange } from './keyboard-layout';
@@ -40,9 +44,6 @@ import {
   type ExerciseSpec,
 } from './music';
 import { Player } from './audio';
-import { NoteWheel } from './note-wheel';
-import { NotePicker } from './note-picker';
-import { AnchoredSelect } from './anchored-select';
 import { drawExercise, WIDTH, HEIGHT, MOBILE_HEIGHT } from './render';
 import './style.css';
 import { setupOffline } from './offline';
@@ -69,7 +70,10 @@ function iconify() {
 }
 function savedSpec(): ExerciseSpec {
   try {
-    return restoreSpec(JSON.parse(localStorage.getItem('dorego.current') || 'null'));
+    return restoreSpec(
+      JSON.parse(localStorage.getItem('dorego.current') || 'null'),
+      localStorage.getItem('dorego.glideShapeVersion')
+    );
   } catch {
     return { ...DEFAULT_SPEC, progression: 'up' };
   }
@@ -83,49 +87,6 @@ let playRequest = 0;
 let position = 0;
 let raf = 0;
 const player = new Player();
-function restoreSpec(input: unknown): ExerciseSpec {
-  if (!input || typeof input !== 'object') throw new Error('Invalid saved exercise.');
-  const saved = {
-    ...input,
-    voice: 'bitklavier',
-    metronome: false,
-    gate: DEFAULT_SPEC.gate,
-    noteBeats: DEFAULT_SPEC.noteBeats,
-    solfege: false,
-    transition: null,
-  } as Record<string, unknown>;
-  if (typeof saved.bpm === 'number' && Number.isFinite(saved.bpm) && saved.bpm < 60) saved.bpm = 60;
-  if (saved.pattern === 'strawDescending') {
-    saved.pattern = 'arpeggio';
-    saved.direction = 'down';
-  } else if (saved.pattern === 'vocalArpeggios' || saved.pattern === 'minorArpeggio')
-    saved.pattern = 'arpeggio';
-  else if (['minor', 'pentatonic', 'fiveTone', 'chromatic'].includes(String(saved.pattern)))
-    saved.pattern = 'major';
-  if (saved.direction === 'updown') saved.direction = 'up';
-  if (saved.pattern === 'major') {
-    const down = saved.direction === 'down';
-    const start = Math.max(
-      down ? 36 : 24,
-      Math.min(down ? 96 : 84, Number(down ? saved.high : saved.low))
-    );
-    saved.key = start % 12;
-    saved.low = down ? start - 12 : start;
-    saved.high = down ? start : start + 12;
-  }
-  if (saved.progression === undefined) {
-    saved.progression =
-      saved.pattern === 'rossini' || saved.pattern === 'major' ? 'up' : saved.direction;
-    if (saved.direction === 'both' && saved.pattern !== 'major') saved.direction = 'up';
-  }
-  if (
-    isGlidePattern(saved.pattern as ExerciseSpec['pattern']) &&
-    saved.direction === 'up' &&
-    localStorage.getItem('dorego.glideShapeVersion') !== '1'
-  )
-    saved.direction = 'both';
-  return generateExercise(saved).spec;
-}
 
 const workspace = document.createElement('div');
 workspace.innerHTML = `
@@ -135,55 +96,7 @@ workspace.innerHTML = `
       <div class="builder-column">
       <aside class="settings" aria-label="Exercise builder">
         <div class="panel-heading"><h2>Exercise builder</h2><i data-lucide="music-2"></i></div>
-        <form id="exercise-form">
-          <label class="field">Exercise<select name="pattern" id="pattern">${Object.entries(
-            PATTERNS
-          )
-            .map(([id, p]) => `<option value="${id}">${p.name}</option>`)
-            .join('')}</select></label>
-          <p id="form-error" class="error-message" role="alert" hidden></p>
-
-          <label class="field">Key<select name="startingNote" id="key">${Array.from(
-            { length: 73 },
-            (_, i) => i + 24
-          )
-            .map((midi) => `<option value="${midi}">${noteChoiceLabel(midi)}</option>`)
-            .join('')}</select></label>
-          <fieldset id="direction" class="direction-field"><legend>Within each round</legend><div class="direction-toggle" id="phrase-options"></div></fieldset>
-          <div id="range-heading" class="range-label"><span>Range</span><span class="range-actions"><button type="button" id="transpose-down" title="Move range and key down one semitone" aria-label="Transpose down one semitone"><i data-lucide="minus"></i></button><button type="button" id="transpose-up" title="Move range and key up one semitone" aria-label="Transpose up one semitone"><i data-lucide="plus"></i></button></span></div>
-          <div id="note-range" class="field-row">${(['low', 'high'] as const).map((id) => `<div class="field small-label"><span>${id === 'low' ? 'Lowest' : 'Highest'}</span><div class="desktop-note"><input id="${id}-spin" type="text" role="combobox" aria-label="${id === 'low' ? 'Lowest' : 'Highest'} note" autocomplete="off" spellcheck="false" maxlength="5" /><button type="button" id="${id}-choose" aria-label="Choose ${id === 'low' ? 'lowest' : 'highest'} note"><i data-lucide="chevron-down"></i></button></div><div class="note-spinner mobile-note"><div class="note-wheel-selection" aria-hidden="true"></div><div id="${id}-wheel" class="note-wheel" role="spinbutton" tabindex="0" aria-label="${id === 'low' ? 'Lowest' : 'Highest'} note" aria-valuemin="24" aria-valuemax="96" aria-description="Swipe or scroll to choose a note."></div></div><input type="hidden" name="${id}" id="${id}" /></div>`).join('')}</div>
-          <fieldset id="progression" class="direction-field progression-field"><legend>Between rounds</legend><div class="direction-toggle progression-toggle">${(
-            [
-              ['up', 'Rising', 'M4 21L60 3'],
-              ['down', 'Falling', 'M4 3L60 21'],
-              ['both', 'Rising then falling', 'M4 21L32 3L60 21'],
-            ] as const
-          )
-            .map(
-              ([value, label, path]) =>
-                `<label><input type="radio" name="progression" value="${value}" /><svg class="progression-contour" viewBox="0 0 64 24" aria-hidden="true"><path d="${path}" /></svg><span>${label}</span></label>`
-            )
-            .join(
-              ''
-            )}</div><p class="progression-preview" id="progression-preview" aria-live="polite"></p></fieldset>
-          <details class="more-settings"><summary>More options <i data-lucide="chevron-down"></i></summary><div class="advanced"><label id="starting-chords-field" class="toggle-row" hidden><span>Starting-note chords</span><input name="startingChords" id="startingChords" type="checkbox" role="switch" checked /></label>
-          <label id="repeat-twice-field" class="toggle-row"><span>Repeat each round twice</span><input name="repeatTwice" id="repeatTwice" type="checkbox" role="switch" /></label>
-          <fieldset id="note-repeats" class="note-repeats" hidden><legend>Repeat notes</legend>
-            <label class="toggle-row"><span id="repeat-turn-label">Highest note</span><input name="repeatTurn" id="repeatTurn" type="checkbox" role="switch" aria-labelledby="repeat-turn-label" /></label>
-            <label class="toggle-row"><span id="repeat-home-label">Home note on return</span><input name="repeatHome" id="repeatHome" type="checkbox" role="switch" aria-labelledby="repeat-home-label" /></label>
-          </fieldset>
-            <div class="field-row">${[
-              { id: 'repeat', key: 'repetitions', label: 'Repeats', max: 15 },
-              { id: 'rest', key: 'restBeats', label: 'Rest (beats)', max: 16 },
-            ]
-              .map(
-                ({ id, key, label, max }) =>
-                  `<div class="field"><span>${label}</span><div class="desktop-count"><input id="${id}-count" class="count-input" type="number" min="0" max="${max}" step="1" aria-label="${label}" /><div class="count-arrows"><button type="button" data-count="${id}" data-step="1" aria-label="Increase ${id === 'repeat' ? 'repeats' : 'rest'}"><i data-lucide="chevron-up"></i></button><button type="button" data-count="${id}" data-step="-1" aria-label="Decrease ${id === 'repeat' ? 'repeats' : 'rest'}"><i data-lucide="chevron-down"></i></button></div></div><select id="${id}-select" class="mobile-count" aria-label="${label}">${Array.from({ length: 9 }, (_, value) => `<option value="${value}">${value === 0 ? 'None' : value}</option>`).join('')}</select><input name="${key}" id="${key}" type="hidden" /></div>`
-              )
-              .join('')}</div>
-            <div class="field"><span>Count-in</span><button type="button" id="countIn-trigger" class="anchored-trigger" role="combobox" aria-label="Count-in"><span></span><i data-lucide="chevron-down"></i></button><select name="countIn" id="countIn" class="count-in-native" aria-label="Count-in"><option value="0">0 bars</option><option value="2">½ bar</option><option value="4">1 bar</option><option value="8">2 bars</option></select></div>
-          </div></details>
-        </form>
+        <div id="builder-slot"></div>
       </aside>
       </div>
       <section class="workspace" aria-label="Practice studio">
@@ -205,7 +118,13 @@ workspace.innerHTML = `
   <div id="toast" class="toast" role="status" hidden></div>
 `;
 
-mountAppShell($('#app'), workspace);
+const builderModel = createViewState<BuilderSnapshot>({ spec: { ...spec }, error: null });
+let formError: string | null = null;
+mountAppShell(
+  $('#app'),
+  workspace,
+  createElement(Builder, { model: builderModel, change: (patch) => refresh(patch), transpose })
+);
 
 $('.builder-column').insertAdjacentHTML(
   'beforeend',
@@ -236,208 +155,18 @@ function resizeStage() {
 }
 window.addEventListener('resize', resizeStage);
 document.addEventListener('fullscreenchange', resizeStage);
-const form = $<HTMLFormElement>('#exercise-form');
-const countInSelect = new AnchoredSelect(
-  $<HTMLSelectElement>('#countIn'),
-  $<HTMLButtonElement>('#countIn-trigger')
-);
-const numeric = [
-  'key',
-  'low',
-  'high',
-  'bpm',
-  'noteBeats',
-  'repetitions',
-  'restBeats',
-  'countIn',
-  'gate',
-  'volume',
-] as const;
-const noteWheels = new Map(
-  ['low', 'high'].map((id) => [
-    id,
-    new NoteWheel($(`#${id}-wheel`), (midi) => stepNote(id, 0, midi)),
-  ])
-);
-const notePickers = new Map(
-  ['low', 'high'].map((id) => [
-    id,
-    new NotePicker(
-      $<HTMLInputElement>(`#${id}-spin`),
-      $<HTMLButtonElement>(`#${id}-choose`),
-      (midi) => stepNote(id, 0, midi)
-    ),
-  ])
-);
-function syncSpinners() {
-  for (const id of ['low', 'high']) {
-    const value = Number($<HTMLInputElement>(`#${id}`).value);
-    noteWheels.get(id)!.setValue(value);
-    notePickers.get(id)!.setValue(value);
-  }
-}
-mobileQuery.addEventListener('change', () => {
-  syncSpinners();
-  // WebKit can update media queries after its window resize callback.
-  resizeStage();
-});
-function stepNote(id: string, step: number, absolute?: number) {
-  const input = $<HTMLInputElement>(`#${id}`);
-  input.value = String(Math.max(24, Math.min(96, absolute ?? Number(input.value) + step)));
-  syncSpinners();
-  input.dispatchEvent(new Event('change', { bubbles: true }));
-}
-for (const id of ['low', 'high']) {
-  $(`#${id}-wheel`).addEventListener('keydown', (event) => {
-    const steps: Record<string, number> = {
-      ArrowUp: 1,
-      ArrowRight: 1,
-      ArrowDown: -1,
-      ArrowLeft: -1,
-      PageUp: 12,
-      PageDown: -12,
-    };
-    if (event.key in steps || event.key === 'Home' || event.key === 'End') {
-      event.preventDefault();
-      event.stopPropagation();
-      stepNote(
-        id,
-        steps[event.key] ?? 0,
-        event.key === 'Home' ? 24 : event.key === 'End' ? 96 : undefined
-      );
-    }
-  });
-}
+mobileQuery.addEventListener('change', resizeStage);
 function populate() {
-  for (const [key, value] of Object.entries(spec)) {
-    if (key === 'direction' || key === 'progression') continue;
-    const element = form.elements.namedItem(key) as HTMLInputElement | HTMLSelectElement | null;
-    if (!element) continue;
-    if (element instanceof HTMLInputElement && element.type === 'checkbox')
-      element.checked = !!value;
-    else element.value = value === null ? '' : String(value);
-  }
-  const options = (
-    spec.pattern === 'major' || isGlidePattern(spec.pattern)
-      ? ['up', 'down', 'both']
-      : ['up', 'down']
-  ) as Direction[];
-  const markup = options
-    .map((value) => {
-      const contour = phraseContour(spec.pattern, value);
-      const max = Math.max(...contour, 1);
-      // Show the phrase's turning points, rather than every uneven note interval.
-      const outline = contour.filter(
-        (note, index) =>
-          index === 0 ||
-          index === contour.length - 1 ||
-          Math.sign(note - contour[index - 1]) !== Math.sign(contour[index + 1] - note)
-      );
-      const points = outline
-        .map(
-          (note, index) => `${4 + (index * 56) / (outline.length - 1)},${21 - (note * 18) / max}`
-        )
-        .join(' ');
-      return `<label><input type="radio" name="direction" value="${value}" /><svg class="phrase-contour" viewBox="0 0 64 24" aria-hidden="true"><polyline points="${points}" /></svg><span>${phraseLabel(spec.pattern, value)}</span></label>`;
-    })
-    .join('');
-  const phraseOptions = $('#phrase-options');
-  if (phraseOptions.dataset.pattern !== spec.pattern) {
-    phraseOptions.innerHTML = markup;
-    phraseOptions.dataset.pattern = spec.pattern;
-  }
-  phraseOptions.classList.toggle('three-options', options.length === 3);
-  document.querySelectorAll<HTMLInputElement>('input[name="direction"]').forEach((input) => {
-    input.checked = input.value === spec.direction;
-  });
-  document.querySelectorAll<HTMLInputElement>('input[name="progression"]').forEach((input) => {
-    input.checked = input.value === (spec.progression ?? 'up');
-  });
-  const roots = progressionRoots(
-    spec.low,
-    spec.high - vocalSpan(spec.pattern),
-    spec.progression ?? 'up'
-  );
-  const offset = spec.direction === 'down' ? vocalSpan(spec.pattern) : 0;
-  const targets = roots.map((root) => noteName(root + offset, root));
-  const preview =
-    targets.length <= 5
-      ? targets.join(' → ')
-      : spec.progression === 'both'
-        ? `${targets[0]} → … → ${targets[Math.floor(targets.length / 2)]} → … → ${targets[targets.length - 1]}`
-        : `${targets.slice(0, 3).join(' → ')} → … → ${targets[targets.length - 1]}`;
-  $('#progression-preview').textContent =
-    targets.length === 1 ? `${targets[0]} · one key` : preview;
-  $('#progression').hidden = spec.pattern === 'major' || roots.length <= 1;
-  syncSpinners();
-  syncCounts();
-  countInSelect.sync();
-  syncTempoSteps();
+  builderModel.set({ spec: { ...spec }, error: formError });
+  $<HTMLInputElement>('#bpm').value = String(spec.bpm);
+  $<HTMLInputElement>('#volume').value = String(spec.volume);
   $<HTMLInputElement>('#tempo-slider').value = String(spec.bpm);
-  const vocal = isVocalPattern(spec.pattern);
-  const direction = $<HTMLFieldSetElement>('#direction');
-  direction.hidden = spec.pattern === 'rossini';
-  direction.disabled = spec.pattern === 'rossini';
-  for (const id of ['key']) {
-    const element = $<HTMLSelectElement>(`#${id}`);
-    element.disabled = vocal;
-    element.closest('.field')!.classList.toggle('vocal-hidden', vocal);
-  }
-  const keySelect = $<HTMLSelectElement>('#key');
-  keySelect.value = String(spec.direction === 'down' ? spec.high : spec.low);
-  for (const option of keySelect.options)
-    option.disabled =
-      spec.direction === 'down' ? Number(option.value) < 36 : Number(option.value) > 84;
-  $('#range-heading').hidden = !vocal;
-  $('#note-range').hidden = !vocal;
-  if (vocal) syncSpinners();
-  $('#note-repeats').hidden = !supportsNoteRepeats(spec.pattern);
-  $('#repeat-twice-field').hidden = isGlidePattern(spec.pattern);
-  $('#repeat-home-label').textContent = 'Home note on return';
-  $('#repeat-turn-label').textContent = spec.direction === 'down' ? 'Lowest note' : 'Highest note';
-  $('#starting-chords-field').hidden = !vocal;
-  $<HTMLInputElement>('#startingChords').checked = spec.startingChords ?? true;
+  syncTempoSteps();
 }
-function readForm(): ExerciseSpec {
-  const result = { ...spec, ...Object.fromEntries(new FormData(form)) } as Record<string, unknown>;
-  for (const key of numeric) result[key] = Number(result[key]);
-  if (
-    result.pattern !== spec.pattern &&
-    result.pattern !== 'major' &&
-    !isGlidePattern(result.pattern as ExerciseSpec['pattern']) &&
-    result.direction === 'both'
-  )
-    result.direction = 'up';
-  result.progression = result.progression ?? 'up';
-  if (
-    isVocalPattern(result.pattern as ExerciseSpec['pattern']) &&
-    result.pattern !== spec.pattern &&
-    Number(result.high) - Number(result.low) < vocalSpan(result.pattern as ExerciseSpec['pattern'])
-  ) {
-    const span = vocalSpan(result.pattern as ExerciseSpec['pattern']);
-    result.high = Math.min(96, Number(result.low) + span);
-    result.low = Math.min(Number(result.low), Number(result.high) - span);
-  }
-  if (result.pattern === 'major') {
-    const down = result.direction === 'down';
-    const startingNote = Math.max(
-      down ? 36 : 24,
-      Math.min(down ? 96 : 84, Number(result.startingNote ?? (down ? result.high : result.low)))
-    );
-    result.key = startingNote % 12;
-    result.low = down ? startingNote - 12 : startingNote;
-    result.high = down ? startingNote : startingNote + 12;
-  }
-  result.gate = DEFAULT_SPEC.gate;
-  result.noteBeats = DEFAULT_SPEC.noteBeats;
-  result.transition = null;
-  result.metronome = false;
-  result.solfege = false;
-  result.startingChords = $<HTMLInputElement>('#startingChords').checked;
-  result.repeatTurn = $<HTMLInputElement>('#repeatTurn').checked;
-  result.repeatHome = $<HTMLInputElement>('#repeatHome').checked;
-  result.repeatTwice = $<HTMLInputElement>('#repeatTwice').checked;
-  return generateExercise(result).spec;
+function transpose(step: number) {
+  if (spec.low + step < 24 || spec.high + step > 96)
+    return toast('That is the edge of the supported range.');
+  refresh({ key: (spec.key + step + 12) % 12, low: spec.low + step, high: spec.high + step });
 }
 let toastTimeout: ReturnType<typeof setTimeout>;
 function toast(message: string) {
@@ -484,9 +213,8 @@ function syncTempoSteps() {
 }
 function setError(message: string | null) {
   syncTempoSteps();
-  const el = $('#form-error');
-  el.textContent = message;
-  el.hidden = !message;
+  formError = message;
+  builderModel.set({ spec: { ...spec }, error: message });
   $<HTMLButtonElement>('#play').disabled = !!message || pianoWarming;
 }
 function stop(reset = true) {
@@ -494,12 +222,13 @@ function stop(reset = true) {
   if (reset) player.reset();
   else player.pause();
 }
-function refresh() {
+function refresh(patch: SpecPatch = {}) {
   diagnostics.event('exercise.changed');
   stop();
   try {
-    spec = readForm();
+    spec = editSpec(spec, patch);
     exercise = generateExercise(spec);
+    spec = exercise.spec;
     setError(null);
     persist();
     populate();
@@ -509,7 +238,6 @@ function refresh() {
     setError(error instanceof Error ? error.message : 'Check the exercise settings.');
   }
 }
-form.addEventListener('submit', (e) => e.preventDefault());
 function changeTempo() {
   diagnostics.event('exercise.tempo_changed');
   const bpm = Number($<HTMLInputElement>('#bpm').value);
@@ -536,7 +264,6 @@ function changeVolume() {
 }
 $<HTMLInputElement>('#volume').addEventListener('input', changeVolume);
 $<HTMLInputElement>('#volume').addEventListener('change', changeVolume);
-form.addEventListener('change', refresh);
 $('#tempo-control').addEventListener('change', () => {
   changeTempo();
   $<HTMLInputElement>('#bpm').value = String(spec.bpm);
@@ -557,52 +284,6 @@ for (const [id, direction] of [
     const next = direction > 0 ? (Math.floor(bpm / 5) + 1) * 5 : (Math.ceil(bpm / 5) - 1) * 5;
     $<HTMLInputElement>('#bpm').value = String(Math.max(60, Math.min(240, next)));
     changeTempo();
-  });
-const countControls = [
-  { id: 'repeat', key: 'repetitions', offset: 1, max: 15 },
-  { id: 'rest', key: 'restBeats', offset: 0, max: 16 },
-] as const;
-function syncCounts() {
-  for (const { id, key, offset, max } of countControls) {
-    const value = spec[key] - offset;
-    $<HTMLInputElement>(`#${id}-count`).value = String(value);
-    const select = $<HTMLSelectElement>(`#${id}-select`);
-    for (const option of [...select.options]) if (Number(option.value) > 8) option.remove();
-    if (value > 8) select.add(new Option(String(value), String(value)));
-    select.value = String(value);
-    $<HTMLButtonElement>(`[data-count="${id}"][data-step="1"]`).disabled = value >= max;
-    $<HTMLButtonElement>(`[data-count="${id}"][data-step="-1"]`).disabled = value <= 0;
-  }
-}
-for (const { id, key, offset, max } of countControls) {
-  for (const suffix of ['count', 'select']) {
-    const element = $<HTMLInputElement | HTMLSelectElement>(`#${id}-${suffix}`);
-    element.addEventListener('change', () => {
-      $<HTMLInputElement>(`#${key}`).value = String(Number(element.value) + offset);
-    });
-  }
-  for (const step of [-1, 1])
-    $(`[data-count="${id}"][data-step="${step}"]`).addEventListener('click', () => {
-      const input = $<HTMLInputElement>(`#${id}-count`);
-      input.value = String(Math.max(0, Math.min(max, Number(input.value) + step)));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-}
-for (const [id, change] of [
-  ['transpose-down', -1],
-  ['transpose-up', 1],
-] as const)
-  $(`#${id}`).addEventListener('click', () => {
-    if (spec.low + change < 24 || spec.high + change > 96)
-      return toast('That is the edge of the supported range.');
-    spec = {
-      ...spec,
-      key: (spec.key + change + 12) % 12,
-      low: spec.low + change,
-      high: spec.high + change,
-    };
-    populate();
-    refresh();
   });
 let announced = '';
 function update() {
@@ -655,7 +336,7 @@ function update() {
             ? 'Replay'
             : 'Play';
   const buttonMode = pianoWarming ? 'warming' : pianoFailed ? 'failed' : mode;
-  $<HTMLButtonElement>('#play').disabled = pianoWarming || !$('#form-error').hidden;
+  $<HTMLButtonElement>('#play').disabled = pianoWarming || !!formError;
   button.setAttribute('aria-busy', String(pianoWarming));
   if (button.dataset.mode !== buttonMode) {
     button.innerHTML = `${pianoWarming ? '<span class="piano-warmup" aria-hidden="true"><i></i><i></i><i></i></span>' : `<i data-lucide="${mode === 'playing' || mode === 'starting' ? 'pause' : 'play'}"></i>`}<span>${label}</span>`;

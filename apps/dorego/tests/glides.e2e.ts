@@ -1,5 +1,8 @@
+import { readSpecValue, openMoreOptions } from './ui-helpers';
 import { createRequire } from 'node:module';
-const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
+const viteCli = createRequire(import.meta.url)
+  .resolve('vite/package.json')
+  .replace(/package\.json$/, 'bin/vite.js');
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -43,9 +46,10 @@ try {
     ['octaveGlide', 12, 'both'],
   ] as const) {
     await page.locator('#pattern').selectOption(pattern);
-    await page.locator(`input[name="direction"][value="${direction}"]`).check();
+    await page.locator(`#direction-${direction}`).click();
     assert.ok(await page.locator('#direction').isVisible());
-    assert.equal(await page.locator('#starting-chords-field').getAttribute('hidden'), null);
+    await openMoreOptions(page);
+    assert.ok(await page.locator('#startingChords').isVisible());
     await page.waitForFunction(() =>
       document.querySelector('#play')?.textContent?.includes('Play')
     );

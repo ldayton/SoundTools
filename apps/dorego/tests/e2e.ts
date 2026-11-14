@@ -1,3 +1,4 @@
+import { readSpecValue, openMoreOptions } from './ui-helpers';
 import { chromium } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
@@ -41,8 +42,8 @@ try {
     'Arpeggio & Scale (Rising first)'
   );
   assert.equal(await page.locator('#bpm').inputValue(), '150');
-  assert.equal(await page.locator('#low').inputValue(), '52');
-  assert.equal(await page.locator('#high').inputValue(), '76');
+  assert.equal(await readSpecValue(page, 'low'), '52');
+  assert.equal(await readSpecValue(page, 'high'), '76');
   assert.equal(
     await page.locator('#midi-download, #video-button, #export-dialog, .export-card').count(),
     0
@@ -66,7 +67,7 @@ try {
     'Fifth Glide',
     'Octave Glide',
   ]);
-  assert.deepEqual(await page.locator('#direction label span').allTextContents(), [
+  assert.deepEqual(await page.locator('#direction [role=radio]').allTextContents(), [
     'Rising first',
     'Falling first',
   ]);
@@ -101,8 +102,8 @@ try {
   await page.keyboard.press('f');
   await page.waitForFunction(() => !document.fullscreenElement);
   await page.locator('#transpose-up').click();
-  assert.equal(await page.locator('#low').inputValue(), '61');
-  assert.equal(await page.locator('#low').inputValue(), '61');
+  assert.equal(await readSpecValue(page, 'low'), '61');
+  assert.equal(await readSpecValue(page, 'low'), '61');
   await page.locator('#pattern').selectOption('major');
   assert.equal(await page.locator('#pattern').inputValue(), 'major');
   assert.equal(
@@ -208,12 +209,12 @@ try {
     await page.locator('#exercise-title').textContent(),
     'Arpeggio & Scale (Rising first)'
   );
-  assert.ok(await page.locator('#low').isEnabled());
-  assert.ok(await page.locator('#high').isEnabled());
+  assert.ok(await page.locator('#low-spin').isEnabled());
+  assert.ok(await page.locator('#high-spin').isEnabled());
   const narrowSummary = await page.locator('#exercise-summary').textContent();
   await setNote('high', 68);
   assert.notEqual(await page.locator('#exercise-summary').textContent(), narrowSummary);
-  await page.locator('.more-settings summary').click();
+  await openMoreOptions(page);
   const withChords = await page.locator('#exercise-summary').textContent();
   await page.locator('#startingChords').uncheck();
   assert.notEqual(await page.locator('#exercise-summary').textContent(), withChords);

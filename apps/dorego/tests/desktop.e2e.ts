@@ -1,5 +1,8 @@
+import { readSpecValue, openMoreOptions } from './ui-helpers';
 import { createRequire } from 'node:module';
-const viteCli = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
+const viteCli = createRequire(import.meta.url)
+  .resolve('vite/package.json')
+  .replace(/package\.json$/, 'bin/vite.js');
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
@@ -278,7 +281,7 @@ try {
   assert.equal(await page.locator('#pattern').inputValue(), 'fifthGlide');
   assert.equal(await page.locator('#bpm').inputValue(), '240');
   assert.equal(await page.locator('#volume').inputValue(), '0');
-  assert.equal(await page.locator('#low').inputValue(), '53');
+  assert.equal(await readSpecValue(page, 'low'), '53');
   let release!: () => void;
   const gate = new Promise<void>((resolve) => (release = resolve));
   await page.route('**/samples/**/*.flac', async (route) => {

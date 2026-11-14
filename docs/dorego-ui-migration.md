@@ -84,18 +84,18 @@ no competing settings owner or second React root is introduced.
 
 ### 2. Migrate the exercise builder
 
-- [ ] Replace ordinary exercise/instrument selectors with standard Mantine
+- [x] Replace ordinary exercise/instrument selectors with standard Mantine
       selectors. Remove the corresponding `AnchoredSelect` usage rather than
       keeping hidden native controls synchronized with a second visible widget.
-- [ ] Migrate contour/progression choices with correct semantics: single-choice
+- [x] Migrate contour/progression choices with correct semantics: single-choice
       controls for exclusive choices; checkbox groups only where multiple choices
       are valid. Preserve diagrams, availability and explanatory disabled states.
-- [ ] Migrate More options, repeat switches, counts and range controls. Keep exact
+- [x] Migrate More options, repeat switches, counts and range controls. Keep exact
       existing bounds, defaults, conditional visibility and repeat behavior.
-- [ ] Use one source of truth for paired tempo controls. Permit temporary editing
+- [x] Use one source of truth for paired tempo controls. Permit temporary editing
       states without persisting invalid numbers or regenerating exercises on
       every keystroke. Preserve live tempo changes and playback position.
-- [ ] Keep desktop controls compact and mobile controls usable without making
+- [x] Keep desktop controls compact and mobile controls usable without making
       every option expand to the available screen width.
 
 Gate: unit tests plus desktop, direction/repeat, tempo and spelling checks;
@@ -196,3 +196,5 @@ Shell checkpoint: baseline unit/build/pages/desktop checks passed. Added one Rea
 For each completed milestone record: commit; meaningful changes; exact passing
 checks; unresolved concerns; next action. Update this file so a later context can
 resume from evidence without reconstructing the whole conversation.
+
+Builder checkpoint: controlled Mantine exercise/contour/progression/More options/count controls now call validated spec actions. Removed form reads and hidden value mirrors. Retained pitch adapters await milestone 4. DoReGo logic tests (61), pages controls/persistence/credits and desktop PCM/lifecycle checks passed; Note by Note logic tests passed after sharing the small view-state helper. Shell commit: `c34f894`. Next: React-owned playback and offline/privacy surfaces.

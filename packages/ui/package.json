@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./provider.tsx"
+    ".": "./provider.tsx",
+    "./view-state": "./view-state.ts"
   },
   "peerDependencies": {
     "react": "^19.2.0",

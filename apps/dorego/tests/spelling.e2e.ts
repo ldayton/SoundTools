@@ -1,3 +1,4 @@
+import { readSpecValue, openMoreOptions } from './ui-helpers';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
@@ -181,7 +182,7 @@ try {
   assert.match((await flat.textContent())!, /C♯4/);
   assert.equal(await flat.getAttribute('aria-description'), null);
   await flat.click();
-  assert.equal(await page.locator('#low').inputValue(), '61');
+  assert.equal(await readSpecValue(page, 'low'), '61');
   assert.equal(await page.locator('#low-spin').inputValue(), 'C♯4');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.locator('#low-wheel').getAttribute('aria-valuetext'), 'C♯4');

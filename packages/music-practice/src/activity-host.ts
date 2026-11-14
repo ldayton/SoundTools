@@ -1,18 +1,30 @@
-import { LIVE_EXERCISES, isLiveMode, type LiveMode } from "./exercises";
+import type { Mode } from "./exercise-catalog";
 import type { AppRoute } from "./navigation";
-import type { LivePractice, Interruption } from "./live-practice";
-/** Owns lazy activity instances and activation; a slow import cannot revive an activity after navigation. */
+import type {
+  PracticeActivity,
+  Interruption,
+  InputPolicy,
+} from "./live-practice";
+
+export type InputEnvironment = {
+  writable: boolean;
+  blocked: boolean;
+  visible: boolean;
+  focused: boolean;
+};
+
+/** Owns every activity's lifecycle, including flashcards, and rejects stale lazy loads. */
 export class ActivityHost {
-  private instances = new Map<LiveMode, LivePractice>();
-  private pending = new Map<LiveMode, Promise<LivePractice>>();
+  private instances = new Map<Mode, PracticeActivity>();
+  private pending = new Map<Mode, Promise<PracticeActivity>>();
   private generation = 0;
-  active: LivePractice | undefined;
+  active: PracticeActivity | undefined;
   constructor(
     private options: {
-      element(mode: LiveMode): HTMLElement;
+      load(mode: Mode): PracticeActivity | Promise<PracticeActivity>;
       changed(): void;
       missing(): void;
-      failed(error: unknown): void;
+      failed(error: unknown, mode: Mode, current: boolean): void;
     },
   ) {}
   async activate(route: AppRoute) {
@@ -20,25 +32,28 @@ export class ActivityHost {
     this.active?.leave();
     this.active = undefined;
     this.options.changed();
-    if (route.kind !== "exercise" || !isLiveMode(route.mode)) return;
+    if (route.kind !== "exercise") return;
     const mode = route.mode;
-    const element = this.options.element(mode);
     try {
       let instance = this.instances.get(mode);
       if (!instance) {
-        element.textContent = "Loading practice…";
-        let pending = this.pending.get(mode);
-        if (!pending) {
-          const definition = LIVE_EXERCISES.find((e) => e.mode === mode)!;
-          pending = definition.load().then((Controller) => {
-            const controller = new Controller(element, this.options.changed);
+        const loaded = this.pending.get(mode) || this.options.load(mode);
+        if (loaded instanceof Promise) {
+          const pending = loaded.then((controller) => {
             this.instances.set(mode, controller);
             return controller;
           });
           this.pending.set(mode, pending);
-          void pending.finally(() => this.pending.delete(mode)).catch(() => {});
+          void pending
+            .finally(() => {
+              if (this.pending.get(mode) === pending) this.pending.delete(mode);
+            })
+            .catch(() => {});
+          instance = await pending;
+        } else {
+          instance = loaded;
+          this.instances.set(mode, instance);
         }
-        instance = await pending;
       }
       if (generation !== this.generation) return;
       if (instance.applyRoute?.(route) === false) {
@@ -49,11 +64,25 @@ export class ActivityHost {
       instance.enter();
       this.options.changed();
     } catch (error) {
-      if (generation === this.generation)
-        element.textContent =
-          "Practice couldn’t load. Choose another mode, then try again.";
-      this.options.failed(error);
+      if (generation === this.generation) {
+        this.active?.leave();
+        this.active = undefined;
+        this.options.changed();
+      }
+      this.options.failed(error, mode, generation === this.generation);
     }
+  }
+  canInteract(environment: InputEnvironment) {
+    return (
+      !!this.active &&
+      environment.writable &&
+      !environment.blocked &&
+      environment.visible &&
+      environment.focused
+    );
+  }
+  inputPolicy(environment: InputEnvironment): InputPolicy {
+    return this.canInteract(environment) ? this.active!.inputPolicy : "none";
   }
   interrupt(reason: Interruption) {
     this.active?.interrupt(reason);

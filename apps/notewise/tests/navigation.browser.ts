@@ -43,7 +43,10 @@ try {
   });
   await context.addInitScript({
     content: await readFile(
-      new URL("../../../packages/music-practice/test-fixtures/midi.js", import.meta.url),
+      new URL(
+        "../../../packages/music-practice/test-fixtures/midi.js",
+        import.meta.url,
+      ),
       "utf8",
     ),
   });
@@ -445,6 +448,26 @@ try {
   await page.locator("#notation svg").waitFor();
   await page.goto(base + "piano/hymns/not-a-hymn");
   await page.locator(".route-missing").waitFor();
+  // Interrupting feedback cancels its automatic transition, even after focus returns.
+  await page.goto(base + "guitar/staff");
+  await page.locator('[data-letter="E"]:enabled').waitFor();
+  await page.locator('[data-letter="E"]').click();
+  await page.locator("#feedback-next").waitFor();
+  const interruptedCounter = await page.locator("#counter").textContent();
+  await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+  // Longer than both correct and incorrect feedback delays: there must be no late advance.
+  await page.waitForTimeout(1800);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  assert.equal(
+    await page.locator("#counter").textContent(),
+    interruptedCounter,
+  );
+  assert.ok(await page.locator("#feedback-next").isVisible());
+  await page.locator("#feedback-next").click();
+  assert.notEqual(
+    await page.locator("#counter").textContent(),
+    interruptedCounter,
+  );
   // A cold, delayed module import must not take over a different active exercise.
   const lateContext = await browser.newContext({ serviceWorkers: "block" });
   const late = await lateContext.newPage();

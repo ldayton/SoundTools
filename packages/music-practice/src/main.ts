@@ -25,7 +25,7 @@ import { mountFlashcardView } from "./flashcard-view";
 import { ActivityHost } from "./activity-host";
 import { FlashcardSessions } from "./flashcard-sessions";
 import { mergeProfile, profileFromQuery } from "./exercise-settings";
-import { isFlashcardMode, type Mode } from "./exercises";
+import { LIVE_EXERCISES, isFlashcardMode, type Mode } from "./exercises";
 import { pianoNotation } from "./piano-notation";
 import { drawPianoNotation, pianoPracticeFrame } from "./notation";
 import {
@@ -75,16 +75,64 @@ import { setupOffline } from "./offline";
 import { offlineState } from "./offline-state";
 import { diagnostics, diagnosticsContext } from "./diagnostics";
 import { exercise, readRoute, type PracticeRoute } from "./navigation";
-import { isLiveMode } from "./live-practice";
+import {
+  isLiveMode,
+  type PracticeActivity,
+  type LivePractice,
+} from "./live-practice";
+import { FeedbackAdvance } from "./feedback-advance";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
   document.querySelector<T>(s)!;
+const feedbackAdvance = new FeedbackAdvance();
+let enterFlashcards = () => {};
+const flashcardActivity: PracticeActivity = {
+  get inputPolicy() {
+    return phase === "question" ? "answer" : "none";
+  },
+  enter: () => enterFlashcards(),
+  leave: () => interruptFlashcards(),
+  interrupt: () => interruptFlashcards(),
+};
+function interruptFlashcards() {
+  feedbackAdvance.cancel();
+  setModifier(0);
+  clearAnswerHover();
+}
 const activities = new ActivityHost({
-  element: (mode) => shell.activityElement(mode),
+  load: (mode) => {
+    if (!isLiveMode(mode)) return flashcardActivity;
+    const element = shell.activityElement(mode);
+    element.textContent = "Loading practice…";
+    const definition = LIVE_EXERCISES.find((entry) => entry.mode === mode)!;
+    return definition
+      .load()
+      .then((Controller) => new Controller(element, refreshMidiAcceptance));
+  },
   changed: refreshMidiAcceptance,
   missing: showMissing,
-  failed: (error) => diagnostics.capture(error, "practice.load_failed"),
+  failed: (error, mode, current) => {
+    if (current && isLiveMode(mode))
+      shell.activityElement(mode).textContent =
+        "Practice couldn’t load. Choose another mode, then try again.";
+    diagnostics.capture(error, "practice.load_failed");
+  },
 });
-const activePractice = () => activities.active;
+const activePractice = () =>
+  isLiveMode(progress.mode)
+    ? (activities.active as LivePractice | undefined)
+    : undefined;
+function inputEnvironment() {
+  return {
+    writable: persistence.writable,
+    blocked: shell.inputBlocked,
+    visible: !document.hidden,
+    focused: document.hasFocus(),
+  };
+}
+function inputPolicy() {
+  return activities.inputPolicy(inputEnvironment());
+}
+const canAnswer = () => inputPolicy() === "answer";
 const sessions = new FlashcardSessions();
 let fontsReady = false;
 let returnBoardFocus = false;
@@ -105,9 +153,7 @@ if (route.kind === "exercise") routePreferences(route);
 let phase: "loading" | "question" | "feedback" | "complete" | "empty" =
   "loading";
 let session: PracticeSession<Card | GuitarCard>;
-let modifier: Modifier = 0,
-  timer: ReturnType<typeof setTimeout> | undefined,
-  pendingNext = false;
+let modifier: Modifier = 0;
 const profile = () => {
   if (!isFlashcardMode(progress.mode))
     throw Error("This activity owns its own settings");
@@ -187,7 +233,7 @@ const piano = new Piano($("#piano"), answerPiano, refreshPianoRange);
 const midi = mountMidiPanel(
   $("#midi-panel"),
   (note) => {
-    if (!document.hidden && document.hasFocus()) answerPiano(note);
+    if (canAnswer()) answerPiano(note);
   },
   (state) => {
     if (state !== "connected") activities.interrupt("connection");
@@ -196,20 +242,13 @@ const midi = mountMidiPanel(
   },
 );
 midi.setPerformanceListener((note, held, timestamp) => {
-  if (isLiveMode(progress.mode) && !document.hidden && document.hasFocus())
+  if (isLiveMode(progress.mode) && inputPolicy() !== "none")
     activePractice()?.answer(note, held, timestamp);
 });
 function refreshMidiAcceptance() {
   midi.setAccepting(
-    persistence.writable &&
-      route.kind === "exercise" &&
-      !shell.inputBlocked &&
-      ((progress.mode === "piano" && phase === "question") ||
-        (isLiveMode(progress.mode) &&
-          activePractice()?.inputPolicy !== undefined &&
-          activePractice()?.inputPolicy !== "none")) &&
-      !document.hidden &&
-      document.hasFocus(),
+    inputPolicy() !== "none" &&
+      (progress.mode === "piano" || isLiveMode(progress.mode)),
   );
 }
 function refreshPianoRange() {
@@ -394,10 +433,9 @@ function renderQuestion(card: Card | GuitarCard) {
   diagnostics.metric("practice.render_ms", performance.now() - renderStarted);
 }
 function next() {
-  clearTimeout(timer);
+  feedbackAdvance.cancel();
   if (!persistence.writable) return;
   flashcardControls.set({ ...flashcardControls.getSnapshot(), next: false });
-  pendingNext = false;
   const card = session.next();
   if (!card) {
     if (session.complete) {
@@ -450,34 +488,21 @@ function feedback(correct: boolean, text: string) {
   flashcardControls.set({ ...flashcardControls.getSnapshot(), next: true });
   const answeredSession = session,
     answerNumber = session.answered;
-  void committed.then((saved) => {
-    if (
-      !saved ||
-      session !== answeredSession ||
-      session.answered !== answerNumber ||
-      phase !== "feedback"
-    )
-      return;
-    timer = setTimeout(
-      () => {
-        if (
-          !document.hidden &&
-          document.hasFocus() &&
-          session === answeredSession &&
-          session.answered === answerNumber &&
-          phase === "feedback"
-        )
-          next();
-      },
-      correct ? 450 : 1600,
-    );
-  });
+  feedbackAdvance.schedule(
+    committed,
+    correct ? 450 : 1600,
+    () =>
+      activities.active === flashcardActivity &&
+      activities.canInteract(inputEnvironment()) &&
+      session === answeredSession &&
+      session.answered === answerNumber &&
+      phase === "feedback",
+    next,
+  );
 }
 function answerName(letter: Letter) {
-  if (!persistence.writable) return;
+  if (!canAnswer()) return;
   if (
-    route.kind !== "exercise" ||
-    shell.inputBlocked ||
     phase !== "question" ||
     progress.mode === "piano" ||
     isLiveMode(progress.mode) ||
@@ -501,10 +526,8 @@ function answerName(letter: Letter) {
   );
 }
 function answerLocation(string: number, fret: number, keyboard: boolean) {
-  if (!persistence.writable) return;
+  if (!canAnswer()) return;
   if (
-    route.kind !== "exercise" ||
-    shell.inputBlocked ||
     phase !== "question" ||
     !isLocationMode(progress.mode) ||
     !session.current
@@ -536,7 +559,7 @@ function answerLocation(string: number, fret: number, keyboard: boolean) {
   );
 }
 function answerPiano(midi: number) {
-  if (!persistence.writable) return;
+  if (!canAnswer()) return;
   if (phase !== "question" || progress.mode !== "piano" || !session.current)
     return;
   const card = session.current;
@@ -551,23 +574,23 @@ function answerPiano(midi: number) {
   );
 }
 function start(continuing = false, restoring = false, restart = false) {
-  clearTimeout(timer);
+  feedbackAdvance.cancel();
   flashcardControls.set({ ...flashcardControls.getSnapshot(), next: false });
-  pendingNext = false;
   syncOptions();
-  void activities.activate(route);
-  if (route.kind !== "exercise") {
-    refreshMidiAcceptance();
-    return;
-  }
-  if (isLiveMode(progress.mode)) {
+  enterFlashcards = () => startFlashcards(continuing, restoring, restart);
+  if (route.kind === "exercise" && isLiveMode(progress.mode)) {
     phase = "question";
-    syncOptions();
     syncDiagnosticsContext();
-    return;
   }
+  void activities.activate(route);
+}
+function startFlashcards(
+  continuing: boolean,
+  restoring: boolean,
+  restart: boolean,
+) {
+  if (!isFlashcardMode(progress.mode)) return;
   returnBoardFocus = false;
-  pendingNext = false;
   syncOptions();
   $("#question").hidden = false;
   presentation.set({ summary: false });
@@ -679,7 +702,7 @@ mountPracticeControls(
     model: flashcardControls,
     answer: answerName,
     modify: (value) => {
-      if (phase === "question") setModifier(value);
+      if (canAnswer()) setModifier(value);
     },
   }),
 );
@@ -705,8 +728,7 @@ window.addEventListener("keydown", (event) => {
     event.ctrlKey ||
     event.metaKey ||
     event.altKey ||
-    route.kind !== "exercise" ||
-    shell.inputBlocked ||
+    !canAnswer() ||
     phase !== "question" ||
     isLocationMode(progress.mode) ||
     progress.mode === "piano" ||
@@ -772,8 +794,7 @@ function writePreferences() {
 }
 function showMissing() {
   route = { kind: "not-found" };
-  clearTimeout(timer);
-  pendingNext = false;
+  feedbackAdvance.cancel();
   void activities.activate(route);
   syncOptions();
   refreshMidiAcceptance();
@@ -782,8 +803,7 @@ function visit(url: URL, push: boolean) {
   void save();
   if (route.kind === "exercise" && isFlashcardMode(progress.mode) && session)
     sessions.remember(progress.mode, session, profile());
-  clearTimeout(timer);
-  pendingNext = false;
+  feedbackAdvance.cancel();
   activities.interrupt("navigation");
   midi.setAccepting(false);
   route = readRoute(url, progress.mode);

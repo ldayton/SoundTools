@@ -28,3 +28,14 @@ in the left navigation. The right options panel contains settings scoped to the
 current exercise or hymn. Each remembers its own choices; volume and the keyboard
 connection remain app-wide. On mobile the same global controls live in the
 navigation drawer, with keyboard details expanding inline.
+
+NoteWise's `ActivityHost` owns entry, exit, interruptions and input eligibility for
+both flashcard and live activities. The flashcard adapter retains its session
+owner and letter/fret grading; live controllers retain their performance grading.
+`FeedbackAdvance` cancels work both before and after a pending save resolves, so
+leaving an activity or losing focus cannot advance a suspended question.
+
+SongAlong's screen coordinates existing score, passage and matching engines.
+`HymnProgress` owns per-hymn preferences and content-checked checkpoints;
+`hymnPlaybackScore` prepares continuous audio independently of engraving. Keep
+layout, transport and persistence changes within those respective boundaries.

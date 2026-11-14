@@ -217,3 +217,16 @@
     transition: none;
   }
 }
+
+#spectrogramPresets {
+  margin: 12px 0 20px;
+}
+.soundglow-toast {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  width: max-content;
+  z-index: 1000;
+}

@@ -16,6 +16,7 @@ import { SoundToolsProvider } from "@ldayton/ui";
 import { RetainedContent } from "@ldayton/ui/retained-content";
 import { createViewState } from "@ldayton/ui/view-state";
 import "./shell.css";
+import { createSpectrogramPresets } from "./preset-controls";
 import { createPitchControls } from "./pitch-controls";
 import { createPortal } from "react-dom";
 import { createDisplayControls } from "./spectrogram-display";
@@ -39,6 +40,9 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  const presets = createSpectrogramPresets();
+  const Presets = presets.Controls,
+    presetsHost = take("spectrogramPresets");
   const display = createDisplayControls(window.SettingsState.registry);
   const pitch = createPitchControls(
     window.FeatureState.pitch(window.FeatureState.presets.soundglow),
@@ -134,6 +138,7 @@ export function mountApplicationShell() {
     return (
       <>
         {createPortal(<DisplayControls />, displayHost)}
+        {createPortal(<Presets />, presetsHost)}
         {createPortal(<PitchBasic />, pitchBasicHost)}
         {createPortal(<PitchTrace />, pitchTraceHost)}
         {createPortal(<PitchTargets />, pitchTargetsHost)}
@@ -334,6 +339,7 @@ export function mountApplicationShell() {
   return {
     media,
     display,
+    presets,
     pitch,
     panel,
     openFiles,

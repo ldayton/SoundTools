@@ -2,6 +2,7 @@
 'use strict';
 let settingsState=SettingsState.create(),settingsReady=false;
 const displayControls=window.SoundglowShell.display;
+const presetUI=window.SoundglowShell.presets;
 const setting=id=>settingsState.values[id];
 let viewSettings=settingsState.values;
 const viewSetting=id=>viewSettings[id],viewValue=id=>Number(viewSetting(id));
@@ -254,7 +255,7 @@ function setBusy(busy){
 const desktopSettings=window.SoundglowShell.media;
 function syncSettings(){
   const open=location.hash==='#settings';
-  if(!open&&$('presetDialog').open)closePresetEditor();
+  if(!open)closePresetEditor();
   if(!open&&$('pitchPresetDialog')?.open)$('pitchPresetDialog').close();
   $('microphoneScope').hidden=inputMode!=='speech';
   if(open)microphones();notifyFeatures('layout');
@@ -263,7 +264,10 @@ function panel(open){window.SoundglowShell.panel(open)}
 function openFilesPanel(){window.SoundglowShell.openFiles()}
 window.SoundglowShell.configure({layout:syncSettings,select:()=>{}});
 document.addEventListener('keydown',e=>{
-  if(e.defaultPrevented||e.target?.closest?.('[role="menu"],[role="dialog"]')||document.querySelector('dialog[open],#libraryItemDialog,#libraryItemMenu'))return;
+  // A newly opened portal may not have transferred focus before the next key.
+  // Route Escape by dialog state rather than only by the event target.
+  if(e.key==='Escape'&&presetUI.isOpen()){e.preventDefault();e.stopPropagation();cancelPresetEditor();return;}
+  if(e.defaultPrevented||e.target?.closest?.('[role="menu"],[role="dialog"]')||document.querySelector('#libraryItemMenu')||[...document.querySelectorAll('dialog[open],[role=dialog]')].some(node=>node.getClientRects().length))return;
   if(e.key==='Escape')panel(false);
   if(e.code!=='Space'&&e.key!==' ')return;
   if(e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey||!running)return;
@@ -453,23 +457,18 @@ try{
 let presetToastTimer,presetWriteFailed=false;
 function savedPresetStatus(text,storageFailed=false){
  presetWriteFailed=storageFailed;
- $('presetStatus').textContent=text;$('presetToast').hidden=true;clearTimeout(presetToastTimer);
- if(text&&!$('presetDialog').open){$('presetToast').textContent=text;$('presetToast').hidden=false;presetToastTimer=setTimeout(()=>$('presetToast').hidden=true,6000)}
+ presetUI.status(text);clearTimeout(presetToastTimer);
+ if(text&&!presetUI.isOpen())presetToastTimer=setTimeout(()=>presetUI.hideToast(),6000);
 }
 function persistPresets(presets=savedPresets,selected=settingsState.selected){
  try{localStorage.setItem(presetStorageKey,JSON.stringify({version:1,presets,selected}));return true}
  catch{savedPresetStatus('Could not save presets in this browser. Allow local storage and try again.',true);return false}
 }
-function renderSavedPresets(){
- for(const option of [...$('preset').options])if(option.value.startsWith('saved-'))option.remove();
- for(const preset of savedPresets)$('preset').add(new Option(preset.name,preset.id));
-}
+function renderSavedPresets(){syncPreset()}
 function currentPresetSettings(){return {...settingsState.values}}
 function settingsForPreset(id){return (Object.hasOwn(displayPresets,id)?displayPresets[id]:null)||savedPresets.find(p=>p.id===id)?.settings}
-function syncPreset(edited=false){
- $('preset').value=settingsState.selected;
- $('unnamedPreset').hidden=$('preset').value!=='custom';
- updateResolution();
+function syncPreset(){
+ presetUI.publish(settingsState.selected,[{value:'soundglow',label:'Soundglow'},{value:'praat',label:'Praat'},{value:'voice',label:'Voice Tools'},...savedPresets.map(p=>({value:p.id,label:p.name}))]);updateResolution();
 }
 function renderSettingsControls(){
  displayControls.publish(settingsState.values);
@@ -520,17 +519,11 @@ function assertSettingsConsistent(){
  if($('resolution').textContent!==selectedPresetLabel()||$('preset').selectedOptions?.[0]?.textContent&&$('preset').selectedOptions[0].textContent!==selectedPresetLabel())throw Error('Preset footer differs from selection');
  return true;
 }
-$('preset').addEventListener('change',()=>{applyPreset($('preset').value);closePresetEditor();savedPresetStatus('');persistPresets()});
 let editingPresetId=null;
-function closePresetEditor(){
- $('savePresetForm').hidden=true;$('editPresets').setAttribute('aria-expanded','false');
- if($('presetDialog').open)$('presetDialog').close();
-}
-$('cancelPresetEdit').onclick=()=>{savedPresetStatus('');closePresetEditor()};
-$('presetDialog').addEventListener('close',()=>{$('savePresetForm').hidden=true;$('editPresets').setAttribute('aria-expanded','false')});
-
-function commitPresetName(closeEditor=true){
- const name=$('presetName').value.trim();if(!name)return false;
+function closePresetEditor(){presetUI.close()}
+function cancelPresetEditor(){savedPresetStatus('');closePresetEditor()}
+function commitPresetName(inputName,closeEditor=true){
+ const name=inputName.trim();if(!name)return false;
  if(name.length>60||name.includes('*')){savedPresetStatus('Preset names cannot include * and must be at most 60 characters.');return false}
  const existing=savedPresets.find(p=>p.id===editingPresetId);
  if(['soundglow','praat','voice tools',...savedPresets.filter(p=>p.id!==existing?.id).map(p=>p.name.toLowerCase())].includes(name.toLowerCase())){savedPresetStatus('That preset name is already in use. Choose another name.');return false}
@@ -540,21 +533,17 @@ function commitPresetName(closeEditor=true){
  if(!persistPresets(next,preset.id))return false;
  savedPresets=next;renderSavedPresets();updateSettings({type:'apply',selected:preset.id,values:preset.settings});if(closeEditor)closePresetEditor();savedPresetStatus('');return true;
 }
-$('savePresetForm').onsubmit=event=>{event.preventDefault();commitPresetName()};
-$('editPresets').onclick=()=>{
- if(!$('savePresetForm').hidden){closePresetEditor();return}
+function openPresetEditor(){
+ if(presetUI.isOpen()){closePresetEditor();return}
  editingPresetId=savedPresets.find(p=>p.id===settingsState.selected)?.id||null;
- $('deletePreset').hidden=!editingPresetId;
- $('confirmPresetName').textContent=editingPresetId?'Rename':'Create';
- $('presetName').value=savedPresets.find(p=>p.id===editingPresetId)?.name||'';
- $('presetDialogTitle').textContent=editingPresetId?'Edit preset':'Name preset';savedPresetStatus('');
- $('savePresetForm').hidden=false;$('editPresets').setAttribute('aria-expanded','true');$('presetDialog').showModal();$('presetName').focus();
-};
-$('deletePreset').onclick=()=>{
+ savedPresetStatus('');presetUI.open({name:savedPresets.find(p=>p.id===editingPresetId)?.name||'',title:editingPresetId?'Edit preset':'Name preset',canDelete:!!editingPresetId});
+}
+function deleteSavedPreset(){
  const preset=savedPresets.find(p=>p.id===settingsState.selected);if(!preset)return;
  const next=savedPresets.filter(p=>p.id!==preset.id);if(!persistPresets(next,'soundglow'))return;
  savedPresets=next;renderSavedPresets();applyPreset('soundglow');closePresetEditor();savedPresetStatus('Deleted “'+preset.name+'”.');
 };
+presetUI.connect({choose(id){applyPreset(id);closePresetEditor();savedPresetStatus('');persistPresets()},open:openPresetEditor,save:commitPresetName,remove:deleteSavedPreset,cancel:cancelPresetEditor,dismiss(){savedPresetStatus('')}});
 displayControls.connect((id,value)=>updateSettings({type:'edit',id,value}));
 renderSavedPresets();
 if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');

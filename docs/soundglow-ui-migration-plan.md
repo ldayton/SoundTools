@@ -55,7 +55,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 6 ✓ | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
 | 7 ✓ | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
 | 8 ✓ | Pitch targets and reference bands | Band visibility, target/reference mode, target bounds and editable reference ranges. Preserve validation and stable field identity while editing. Keep stored presets compatible. |
-| 9 | Spectrogram preset selector and dialog | Move selection and create/rename/delete UI to React. Preserve built-in immutability, named edits, validation, storage-error retry, focus return and toast behavior. Leave storage policy in the controller. |
+| 9 ✓ | Spectrogram preset selector and dialog | Move selection and create/rename/delete UI to React. Preserve built-in immutability, named edits, validation, storage-error retry, focus return and toast behavior. Leave storage policy in the controller. |
 | 10 | Pitch preset selector and dialog | Migrate against the existing feature-state model. Share the ordinary form/dialog presentation from step 9 only where semantics match; keep each preset model's policy intact. |
 | 11 | Microphone and example controls | Device selection/refresh, permission and disconnected-device states, start/stop/pause/resume, example seek/loop/listen/restart and credits. Preserve pending-operation guards, privacy and mobile return-to-chart behavior. |
 | 12 | File playback controls | Play/pause/restart, skip, loop, speed, volume and playback options. Preserve playback intent through loading/seeking, end-of-selection restart and desktop-only saved-file support. |
@@ -262,3 +262,18 @@ microphone desktop/mobile passes; production pitch replay and long-history
 pruning both passed (four intended unsupported/corpus skips). Both numeric/range
 cases passed Firefox/WebKit. Native Chrome edited Band 1 low from 85 to 90.
 Next: step 9, spectrogram preset selector and modal.
+
+### Step 9 completed
+
+Previous milestone: `4ef4844`. Spectrogram preset selection and create/rename/delete
+now use Mantine controls and a React modal. Persistence stays transactional in the
+controller; failed writes keep the editor and draft available for retry. Removed
+the old dialog/listeners and selector writes. Escape routing also handles a key
+pressed before portal focus transfer, and focus restoration avoids inspector
+scrolling. Modal transition tests now await actual closure before measuring final
+layout; all existing layout assertions remain. The dialog is unmounted when closed.
+
+Build/typecheck and pure settings, spectrum and release diagnostics checks passed.
+Preset browser coverage passed desktop/mobile, with save/retry and Back/focus checks
+in Firefox and WebKit. Native Chrome confirmed Escape returns to the editor opener
+without closing Settings. Next: step 10, reuse the editor for pitch presets.

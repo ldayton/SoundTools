@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from "react";
-import { NativeSelect, Stack, Title } from "@mantine/core";
+import { Checkbox, NativeSelect, Stack, Title } from "@mantine/core";
 import { createViewState } from "@ldayton/ui/view-state";
+import pitchOptions from "./pitch-options.json";
 import { CommittedSettingNumber } from "./committed-setting-number";
 
 type PitchValues = {
@@ -19,6 +20,10 @@ const basicFields = {
   pitchHistory: "history",
   pitchAxis: "axis",
   pitchSmoothing: "smoothing",
+  pitchMethod: "method",
+  pitchSpeechGate: "speechGate",
+  pitchConfirmation: "confirmationMs",
+  pitchUncertainJumps: "breakUnconfirmedJumps",
 } as const;
 export function createPitchControls(initial: PitchValues, limits: Limits) {
   const model = createViewState({ values: initial, reset: 0 });
@@ -80,8 +85,48 @@ export function createPitchControls(initial: PitchValues, limits: Limits) {
       </Stack>
     );
   }
+  function DetectionControls() {
+    const { values } = useSyncExternalStore(model.subscribe, model.getSnapshot);
+    return (
+      <Stack gap="md">
+        <NativeSelect
+          id="pitchMethod"
+          label="Pitch detector"
+          data={pitchOptions.pitchMethod}
+          value={String(values.method)}
+          onChange={(event) => edit?.("method", event.currentTarget.value)}
+        />
+        <Checkbox
+          id="pitchSpeechGate"
+          label="Filter non-speech"
+          checked={!!values.speechGate}
+          onChange={(event) =>
+            edit?.("speechGate", event.currentTarget.checked)
+          }
+        />
+        <NativeSelect
+          id="pitchConfirmation"
+          label="Confirmation delay"
+          data={pitchOptions.pitchConfirmation}
+          value={String(values.confirmationMs)}
+          onChange={(event) =>
+            edit?.("confirmationMs", Number(event.currentTarget.value))
+          }
+        />
+        <Checkbox
+          id="pitchUncertainJumps"
+          label="Break uncertain octave jumps"
+          checked={!!values.breakUnconfirmedJumps}
+          onChange={(event) =>
+            edit?.("breakUnconfirmedJumps", event.currentTarget.checked)
+          }
+        />
+      </Stack>
+    );
+  }
   return {
     BasicControls,
+    DetectionControls,
     owns(id: string) {
       return Object.hasOwn(basicFields, id);
     },

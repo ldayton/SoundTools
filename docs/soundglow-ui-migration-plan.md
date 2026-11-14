@@ -52,7 +52,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 3 ✓ | Advanced spectrogram analysis | Window, shape, analysis rate, frame step, FFT padding, DC removal, units, resampling and quality. Preserve dependent controls, pending/committed analysis separation and failure recovery without restarting the source. |
 | 4 ✓ | Advanced spectrogram colour | Normalization clock, frequency/frame interpolation, peak history and decay. Preserve decimal precision, frozen redraw and retained-history performance. |
 | 5 ✓ | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
-| 6 | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
+| 6 ✓ | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
 | 7 | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
 | 8 | Pitch targets and reference bands | Band visibility, target/reference mode, target bounds and editable reference ranges. Preserve validation and stable field identity while editing. Keep stored presets compatible. |
 | 9 | Spectrogram preset selector and dialog | Move selection and create/rename/delete UI to React. Preserve built-in immutability, named edits, validation, storage-error retry, focus return and toast behavior. Leave storage policy in the controller. |
@@ -225,3 +225,14 @@ Removed forced React renders from pitch publication to avoid event reentrancy.
 All four recovery cases passed (including spinner editing); the numeric test
 passed Firefox/WebKit again. Native Chrome committed a minimum of 75 via the real
 input. Temporary debug instrumentation was removed. Next: step 6.
+
+### Step 6 completed
+
+Previous milestone: `c333173`. Detector method, speech gate, confirmation and
+uncertain-jump controls now use React NativeSelect/Checkbox inputs. Controller
+edit/persistence/rebuild logic stays in workspace.js. Legacy writes/listeners for
+these fields were removed. Build/typecheck and feature/preset model tests passed;
+features, pitch-presets and neural-gate browser specs passed all 32 desktop/mobile
+cases. The speech/confirmation case also passed Firefox and WebKit. Native Chrome
+verified the speech checkbox and preset identity. Tests expand the real disclosure
+instead of setting its DOM `open` property. Next: step 7.

@@ -1,4 +1,4 @@
-const {setSetting}=require('./settings-input.cjs');
+const {setSetting,expandSection}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 const settings=async page=>page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings').click();
 test('pitch shares transport while feature settings and presets remain isolated',async({page},testInfo)=>{
@@ -52,13 +52,13 @@ test('Soundglow target and uncertain-jump settings remain coherent during playba
  if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#demo').click();await page.waitForFunction(()=>Number(document.getElementById('pitchCanvas').dataset.voiced)>10);await settings(page);
  await expect(page.locator('#pitchBandMode')).toHaveValue('target');await expect(page.locator('#pitchTargetLow')).toHaveValue('175');await expect(page.locator('#pitchTargetHigh')).toHaveValue('275');await expect(page.locator('#pitchReference')).toBeHidden();
- await page.locator('#advancedPitchTrace').evaluate(e=>e.open=true);await expect(page.locator('#pitchUncertainJumps')).toBeChecked();
+ await expandSection(page,'advancedPitchTrace');await expect(page.locator('#pitchUncertainJumps')).toBeChecked();
  const before=await page.evaluate(()=>{window.targetTransport={engine,audio,source,pcmNode};return soundglowSession.state().displayedUntil});
  await page.locator('#pitchTargetLow').fill('280');await page.locator('#pitchTargetLow').dispatchEvent('change');await expect(page.locator('#pitchError')).toBeVisible();await expect(page.locator('#pitchTargetLow')).toHaveValue('175');
  await page.locator('#pitchTargetLow').fill('190');await page.locator('#pitchTargetLow').dispatchEvent('change');await expect(page.locator('#pitchError')).toBeHidden();await page.locator('#pitchUncertainJumps').uncheck();
  await page.locator('#pitchBands').uncheck();await page.locator('#pitchBands').check();await page.locator('#pitchBandMode').selectOption('ranges');await expect(page.getByLabel('Band 3 low Hz',{exact:true})).toBeVisible();await page.locator('#pitchBandMode').selectOption('target');await expect(page.locator('#pitchTargetLow')).toHaveValue('190');
  expect(await page.evaluate(()=>Object.entries(targetTransport).every(([k,v])=>({engine,audio,source,pcmNode})[k]===v))).toBe(true);
  await page.waitForFunction(t=>soundglowSession.state().displayedUntil>t+.2,before);
- await page.reload();if(!await page.locator('#pitchSettings').isVisible())await settings(page);await expect(page.locator('#pitchBandMode')).toHaveValue('target');await expect(page.locator('#pitchTargetLow')).toHaveValue('190');await page.locator('#advancedPitchTrace').evaluate(e=>e.open=true);await expect(page.locator('#pitchUncertainJumps')).not.toBeChecked();
+ await page.reload();if(!await page.locator('#pitchSettings').isVisible())await settings(page);await expect(page.locator('#pitchBandMode')).toHaveValue('target');await expect(page.locator('#pitchTargetLow')).toHaveValue('190');await expandSection(page,'advancedPitchTrace');await expect(page.locator('#pitchUncertainJumps')).not.toBeChecked();
  await page.locator('#pitchPreset').selectOption('praat');await expect(page.locator('#pitchTarget')).toBeHidden();await expect(page.locator('#pitchBands')).not.toBeChecked();await page.locator('#pitchPreset').selectOption('soundglow');await expect(page.locator('#pitchTargetLow')).toHaveValue('175');await expect(page.locator('#pitchBands')).toBeChecked();await expect(page.locator('#pitchUncertainJumps')).toBeChecked();expect(errors).toEqual([]);
 });

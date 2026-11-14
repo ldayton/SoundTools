@@ -1,0 +1,30 @@
+{
+  "pitchMethod": [
+    {
+      "value": "corroborated",
+      "label": "Raw with high-pitch corroboration (trial)"
+    },
+    {
+      "value": "filtered",
+      "label": "Filtered autocorrelation"
+    },
+    {
+      "value": "raw",
+      "label": "Raw autocorrelation"
+    }
+  ],
+  "pitchConfirmation": [
+    {
+      "value": "0",
+      "label": "Off"
+    },
+    {
+      "value": "30",
+      "label": "30 ms"
+    },
+    {
+      "value": "50",
+      "label": "50 ms"
+    }
+  ]
+}

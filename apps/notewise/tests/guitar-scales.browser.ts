@@ -291,6 +291,23 @@ try {
     );
   await page.setViewportSize({ width: 1680, height: 1050 });
   await openPracticeOptions(page);
+  // Mantine animates the navigation offset, and engraving responds on resize.
+  // Wait for the actual laptop layout rather than measuring its transition.
+  await page.waitForFunction(() => {
+    const sidebar = document
+      .querySelector(".practice-options")
+      ?.getBoundingClientRect();
+    const diagram = document
+      .querySelector(".scale-diagram svg")
+      ?.getBoundingClientRect();
+    return (
+      sidebar &&
+      diagram &&
+      sidebar.x > 1300 &&
+      sidebar.right >= 1640 &&
+      diagram.height >= 600
+    );
+  });
   const sidebarBounds = (await page
     .locator(".practice-options:visible")
     .boundingBox())!;

@@ -18,11 +18,17 @@ try {
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  const navigate = async (url: string) => {
+    // Drain the piano's background sample warm-up before replacing the document.
+    // WebKit reports canceled old-document fetches as access-control page errors.
+    await page.waitForLoadState("networkidle");
+    await page.goto(url);
+  };
   for (const [name, server] of [
     ["NoteWise", notes],
     ["SongAlong", songs],
   ] as const) {
-    await page.goto(server.base);
+    await navigate(server.base);
     await page
       .getByRole("link", { name: name + " home", exact: true })
       .waitFor();
@@ -35,7 +41,14 @@ try {
       await page.getByRole("button", { name: "Play", exact: true }).focus();
       await page.keyboard.down("Enter");
       await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
-      await page.waitForFunction(() => Number(document.querySelector('[aria-label="Hymn progress"]')?.getAttribute("aria-valuenow")) > 0);
+      await page.waitForFunction(
+        () =>
+          Number(
+            document
+              .querySelector('[aria-label="Hymn progress"]')
+              ?.getAttribute("aria-valuenow"),
+          ) > 0,
+      );
       await page.keyboard.down("Enter");
       assert.ok(
         await page
@@ -46,11 +59,11 @@ try {
       await page.keyboard.up("Enter");
       await page.getByRole("button", { name: "Pause", exact: true }).click();
 
-      await page.goto(server.base + "/theory/scales");
+      await navigate(server.base + "/theory/scales");
     } else {
       await page.locator('[data-letter="E"]:enabled').waitFor();
       assert.equal(await page.locator('nav a[data-mode="sight"]').count(), 0);
-      await page.goto(server.base + "/piano/hymns/amazing-grace");
+      await navigate(server.base + "/piano/hymns/amazing-grace");
     }
     await page
       .getByRole("heading", { name: "Page not found", exact: true, level: 1 })
@@ -60,7 +73,7 @@ try {
       page.url(),
       name === "SongAlong" ? /piano\/hymns/ : /guitar\/staff/,
     );
-    await page.goto(server.base + "/settings");
+    await navigate(server.base + "/settings");
     await page
       .getByLabel("Share diagnostic information", { exact: true })
       .waitFor();

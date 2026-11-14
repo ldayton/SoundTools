@@ -21,3 +21,9 @@ Checkpoint: starting from clean 9e36fee. No new changes pushed yet.
 Milestone 1 complete: both DoReGo layouts expose repeats 0–15 and rest 0–16.
 Pages build and browser checks pass, including choosing the maximum mobile values.
 Next: consolidate responsive pitch fields and lifecycle ownership.
+
+Milestone 2 complete: shared responsive pitch component owns labels, popup state,
+mobile wheel and teardown. DoReGo uses it directly. Wheel keyboard input respects
+constraints; all listeners and observers are cleaned up. Pages build/browser pass,
+including mobile label focus and keyboard stepping. Next: render Note by Note
+pitch fields directly from its existing option snapshots.

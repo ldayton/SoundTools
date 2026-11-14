@@ -227,6 +227,14 @@ try {
   await page.locator('#repeat-count').press('ArrowDown');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.locator('#repeat-count').isHidden());
+  await page.locator('#low-spin-label').click();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'low-wheel', 'Mobile label focuses visible wheel');
+  const mobileLow = Number(await readSpecValue(page, 'low'));
+  await page.locator('#low-wheel').press('ArrowUp');
+  assert.equal(Number(await readSpecValue(page, 'low')), mobileLow + 1);
+  await page.locator('#low-wheel').press('ArrowDown');
+  assert.equal(Number(await readSpecValue(page, 'low')), mobileLow);
+
   for (const [id, max] of [
     ['repeat', 15],
     ['rest', 16],

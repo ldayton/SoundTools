@@ -1,10 +1,9 @@
-import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import {
   Accordion,
   ActionIcon,
   Alert,
   Group,
-  Input,
   NativeSelect,
   Radio,
   SimpleGrid,
@@ -27,8 +26,7 @@ import {
   type ExerciseSpec,
 } from './music';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
-import { NoteWheel } from './note-wheel';
-import { PitchPicker } from './pitch-picker';
+import { ResponsivePitchField } from '@ldayton/ui/responsive-pitch-field';
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
 export type SpecPatch = Partial<ExerciseSpec> & { startingNote?: number };
 export interface BuilderModel {
@@ -48,72 +46,28 @@ function PitchField({
   value: number;
   change(value: number): void;
 }) {
-  const host = useRef<HTMLDivElement>(null);
-  const controls = useRef<NoteWheel>(null);
-  const [opened, setOpened] = useState(false);
-  const changed = useRef(change);
-  changed.current = change;
-  useLayoutEffect(() => {
-    const node = host.current!;
-    const label = bound === 'low' ? 'Lowest' : 'Highest';
-    node.innerHTML = `<div class="note-spinner mobile-note"><div class="note-wheel-selection" aria-hidden="true"></div><div id="${bound}-wheel" class="note-wheel" role="spinbutton" tabindex="0" aria-label="${label} note" aria-valuemin="24" aria-valuemax="96"></div></div>`;
-    const wheel = new NoteWheel(node.querySelector('.note-wheel')!, (midi) =>
-      changed.current(midi)
-    );
-    const target = node.querySelector<HTMLElement>('.note-wheel')!;
-    target.addEventListener('keydown', (event) => {
-      const steps: Record<string, number> = {
-        ArrowUp: 1,
-        ArrowRight: 1,
-        ArrowDown: -1,
-        ArrowLeft: -1,
-        PageUp: 12,
-        PageDown: -12,
-      };
-      if (event.key in steps || ['Home', 'End'].includes(event.key)) {
-        event.preventDefault();
-        event.stopPropagation();
-        changed.current(
-          event.key === 'Home'
-            ? 24
-            : event.key === 'End'
-              ? 96
-              : Math.max(
-                  24,
-                  Math.min(
-                    96,
-                    Number(target.getAttribute('aria-valuenow')) + (steps[event.key] || 0)
-                  )
-                )
-        );
-      }
-    });
-    controls.current = wheel;
-    return () => wheel.destroy();
-  }, [bound]);
-  useLayoutEffect(() => {
-    controls.current?.setLimits(min, max);
-    controls.current?.setValue(value);
-  }, [value, min, max]);
   return (
-    <div>
-      <Input.Label htmlFor={`${bound}-spin`}>{bound === 'low' ? 'Lowest' : 'Highest'}</Input.Label>
-      <div className="desktop-note">
-        <PitchPicker
-          id={`${bound}-spin`}
-          label={`${bound === 'low' ? 'Lowest' : 'Highest'} note`}
-          value={value}
-          opened={opened}
-          onOpenedChange={setOpened}
-          onChange={change}
-          min={min}
-          max={max}
-        />
-      </div>
-      <div ref={host} />
-    </div>
+    <ResponsivePitchField
+      id={`${bound}-spin`}
+      wheelId={`${bound}-wheel`}
+      label={`${bound === 'low' ? 'Lowest' : 'Highest'} note`}
+      value={value}
+      onChange={change}
+      mobileWheel
+      choices={Array.from({ length: 73 }, (_, index) => {
+        const midi = index + 24;
+        return {
+          value: midi,
+          label: noteChoiceLabel(midi),
+          octave: Math.floor(midi / 12) - 1,
+          column: midi % 12,
+          disabled: midi < min || midi > max,
+        };
+      })}
+    />
   );
 }
+
 function Contour({ values }: { values: readonly number[] }) {
   const max = Math.max(...values, 1);
   const outline = values.filter(

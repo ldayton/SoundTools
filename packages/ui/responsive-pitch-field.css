@@ -1,0 +1,21 @@
+.responsive-pitch-mobile {
+  display: none;
+}
+.responsive-pitch-field {
+  --ink: var(--mantine-color-text);
+  --muted: var(--mantine-color-dimmed);
+}
+.responsive-pitch-field .note-wheel-selection {
+  background: var(--mantine-primary-color-light);
+}
+.responsive-pitch-field .note-spinner:focus-within {
+  outline-color: var(--mantine-primary-color-filled);
+}
+@media (max-width: 760px) {
+  .responsive-pitch-desktop {
+    display: none;
+  }
+  .responsive-pitch-mobile {
+    display: block;
+  }
+}

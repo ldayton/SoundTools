@@ -7,6 +7,7 @@ export class NoteWheel {
   private minimum: number;
   private maximum: number;
   private observer: ResizeObserver;
+  private events = new AbortController();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private drag: { y: number; top: number; selected: number | null } | null =
     null;
@@ -28,10 +29,17 @@ export class NoteWheel {
       (_, i) =>
         `<span class="note-wheel-item" data-midi="${i + this.options.low}" aria-hidden="true"><span class="note-wheel-primary">${this.options.label(i + this.options.low)}</span></span>`,
     ).join("");
+    const listen = <K extends keyof HTMLElementEventMap>(
+      name: K,
+      handler: (event: HTMLElementEventMap[K]) => void,
+    ) =>
+      element.addEventListener(name, handler, { signal: this.events.signal });
     if (options.keyboard)
-      element.addEventListener("keydown", (event) => {
+      listen("keydown", (event) => {
         const steps: Record<string, number> = {
           ArrowUp: 1,
+          ArrowRight: 1,
+          ArrowLeft: -1,
           ArrowDown: -1,
           PageUp: 12,
           PageDown: -12,
@@ -41,12 +49,12 @@ export class NoteWheel {
         event.preventDefault();
         const value =
           event.key === "Home"
-            ? options.low
+            ? this.minimum
             : event.key === "End"
-              ? options.high
+              ? this.maximum
               : Math.max(
-                  options.low,
-                  Math.min(options.high, this.value + steps[event.key]),
+                  this.minimum,
+                  Math.min(this.maximum, this.value + steps[event.key]),
                 );
         this.setValue(value);
         this.commit(value);
@@ -55,15 +63,15 @@ export class NoteWheel {
       if (element.getClientRects().length) this.setValue(this.value);
     });
     this.observer.observe(element);
-    element.addEventListener("scroll", () => {
+    listen("scroll", () => {
       this.highlight(this.nearest());
       clearTimeout(this.timer);
       if (!this.drag) this.timer = setTimeout(() => this.settle(), 140);
     });
-    element.addEventListener("scrollend", () => {
+    listen("scrollend", () => {
       if (!this.drag) this.settle();
     });
-    element.addEventListener("pointerdown", (event) => {
+    listen("pointerdown", (event) => {
       if (event.pointerType !== "mouse" || event.button !== 0) return;
       event.preventDefault();
       element.focus({ preventScroll: true });
@@ -80,7 +88,7 @@ export class NoteWheel {
       element.setPointerCapture(event.pointerId);
       element.classList.add("is-dragging");
     });
-    element.addEventListener("pointermove", (event) => {
+    listen("pointermove", (event) => {
       if (this.drag)
         element.scrollTop = this.drag.top + this.drag.y - event.clientY;
     });
@@ -105,8 +113,8 @@ export class NoteWheel {
       });
       this.timer = setTimeout(() => this.settle(), 160);
     };
-    element.addEventListener("pointerup", release);
-    element.addEventListener("pointercancel", release);
+    listen("pointerup", release);
+    listen("pointercancel", release);
   }
   private nearest() {
     return Math.max(
@@ -154,6 +162,7 @@ export class NoteWheel {
   destroy() {
     clearTimeout(this.timer);
     this.observer.disconnect();
+    this.events.abort();
   }
   setValue(midi: number) {
     clearTimeout(this.timer);

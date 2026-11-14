@@ -14,12 +14,16 @@
     "./volume": "./volume.ts",
     "./diagnostic-consent": "./diagnostic-consent.tsx",
     "./offline-status-panel": "./offline-status-panel.tsx",
-    "./round-actions": "./round-actions.tsx"
+    "./round-actions": "./round-actions.tsx",
+    "./responsive-pitch-field": "./responsive-pitch-field.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "@mantine/core": "9.8.0",
     "@mantine/hooks": "9.8.0"
+  },
+  "dependencies": {
+    "@ldayton/browser-controls": "*"
   }
 }

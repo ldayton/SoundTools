@@ -50,7 +50,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 1 ✓ | Spectrogram colour and contrast | Palette, brightness, dynamic range, normalization mode, fixed maximum, suppression, pre-emphasis and compression. Preserve conditional visibility/disabled states, units, preset identity and live repaint without capture reset. |
 | 2 ✓ | Formant controls | Visibility, smoothing, filtering and ceiling. Preserve overlay-only changes versus analysis rebuilds, and clear old overlays when disabled or when applying a preset. |
 | 3 ✓ | Advanced spectrogram analysis | Window, shape, analysis rate, frame step, FFT padding, DC removal, units, resampling and quality. Preserve dependent controls, pending/committed analysis separation and failure recovery without restarting the source. |
-| 4 | Advanced spectrogram colour | Normalization clock, frequency/frame interpolation, peak history and decay. Preserve decimal precision, frozen redraw and retained-history performance. |
+| 4 ✓ | Advanced spectrogram colour | Normalization clock, frequency/frame interpolation, peak history and decay. Preserve decimal precision, frozen redraw and retained-history performance. |
 | 5 | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
 | 6 | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
 | 7 | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
@@ -195,3 +195,16 @@ passes; the new keyboard/closed-panel case also passed Firefox and WebKit.
 Native Chrome verified opening the disclosure and enabling quality via polyphase.
 Tests now inspect actual disclosure state, rather than a native `open` attribute.
 Next: step 4 and the spectrogram-family checkpoint.
+
+### Step 4 completed — spectrogram checkpoint
+
+Previous milestone: `6af8820`. Advanced colour now uses a second ordinary Mantine
+Accordion with explicit choices and unchanged decimal option values. Removed the
+last legacy spectrogram setting value writes and listeners; controllers publish
+canonical snapshots to all spectrogram controls.
+
+`npm run test:core --workspace=soundglow` passed completely. Browser checkpoint:
+continuity, settings-state, replay, voice-speech and display-controls, 30 passes
+including desktop/mobile, Retina and both 4x-slowed cases. Existing canvas/DSP
+goldens were used unchanged. Native Chrome verified peak-decay selection at 0.999.
+Next: step 5, pitch display and committed numeric editing.

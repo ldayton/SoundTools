@@ -472,7 +472,6 @@ function syncPreset(edited=false){
  updateResolution();
 }
 function renderSettingsControls(){
- for(const id of savedSettingIds)if(!displayControls.owns(id))$(id).value=setting(id);
  displayControls.publish(settingsState.values);
  syncPreset();
 }
@@ -557,7 +556,6 @@ $('deletePreset').onclick=()=>{
  savedPresets=next;renderSavedPresets();applyPreset('soundglow');closePresetEditor();savedPresetStatus('Deleted “'+preset.name+'”.');
 };
 displayControls.connect((id,value)=>updateSettings({type:'edit',id,value}));
-for(const id of savedSettingIds)if(!displayControls.owns(id))$(id).addEventListener('input',()=>updateSettings({type:'edit',id,value:$(id).value}));
 renderSavedPresets();
 if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
 

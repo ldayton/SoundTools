@@ -1,7 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import { Accordion, NativeSelect, Stack, Title, Box, Text } from "@mantine/core";
+import {
+  Accordion,
+  NativeSelect,
+  Stack,
+  Title,
+  Box,
+  Text,
+} from "@mantine/core";
+import colourOptions from "./advancedColour-options.json";
 import analysisOptions from "./advancedAnalysis-options.json";
 import { SettingsSlider } from "./settings-slider";
 import { createViewState } from "@ldayton/ui/view-state";
@@ -34,11 +42,19 @@ const analysisControlIds = [
   "resampling",
   "resampleQuality",
 ] as const;
+const advancedColourIds = [
+  "normalizationClock",
+  "interpolation",
+  "frameInterpolation",
+  "peakSeconds",
+  "peakDecay",
+] as const;
 const migratedIds = [
   ...displayControlIds,
   ...colourControlIds,
   ...formantControlIds,
   ...analysisControlIds,
+  ...advancedColourIds,
 ];
 type DisplayId = (typeof migratedIds)[number];
 type Values = Record<DisplayId, string>;
@@ -356,11 +372,61 @@ export function createDisplayControls(registry: Registry) {
       </Accordion>
     );
   }
+  const colourData = (id: keyof typeof colourOptions) =>
+    options(
+      id,
+      Object.fromEntries(
+        colourOptions[id].map((item) => [item.value, item.label]),
+      ),
+    );
+  function AdvancedColourControls() {
+    return (
+      <Accordion keepMounted keepMountedMode="display-none">
+        <Accordion.Item value="colour" id="advancedColour">
+          <Accordion.Control>Advanced colour</Accordion.Control>
+          <Accordion.Panel>
+            <Stack gap="md">
+              <Choice
+                id="normalizationClock"
+                label="Normalization timing"
+                data={colourData("normalizationClock")}
+              />
+              <Choice
+                id="interpolation"
+                label="Frequency interpolation"
+                data={colourData("interpolation")}
+              />
+              <Choice
+                id="frameInterpolation"
+                label="Frame interpolation"
+                data={colourData("frameInterpolation")}
+              />
+              <Choice
+                id="peakSeconds"
+                label="Peak memory"
+                data={colourData("peakSeconds")}
+              />
+              <Choice
+                id="peakDecay"
+                label="Peak decay per frame"
+                data={colourData("peakDecay")}
+              />
+              <Text size="xs" c="dimmed">
+                Peak memory, peak decay and normalization timing apply to
+                relative held-peak colour levels.
+              </Text>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
+    );
+  }
   return {
     Controls,
     ColourControls,
     FormantControls,
     AnalysisControls,
+    AdvancedColourControls,
     owns(id: string) {
       return (migratedIds as readonly string[]).includes(id);
     },

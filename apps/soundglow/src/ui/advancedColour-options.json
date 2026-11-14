@@ -1,0 +1,60 @@
+{
+  "normalizationClock": [
+    {
+      "value": "audio",
+      "label": "Audio time"
+    },
+    {
+      "value": "wall",
+      "label": "Wall clock"
+    }
+  ],
+  "interpolation": [
+    {
+      "value": "linear",
+      "label": "Smooth"
+    },
+    {
+      "value": "bucket",
+      "label": "Frequency buckets"
+    }
+  ],
+  "frameInterpolation": [
+    {
+      "value": "linear",
+      "label": "Smooth"
+    },
+    {
+      "value": "hold",
+      "label": "Hold each frame"
+    }
+  ],
+  "peakSeconds": [
+    {
+      "value": "3",
+      "label": "Short"
+    },
+    {
+      "value": "5",
+      "label": "Medium"
+    },
+    {
+      "value": "10",
+      "label": "Long"
+    }
+  ],
+  "peakDecay": [
+    {
+      "value": "0.98",
+      "label": "0.98 \u00b7 faster"
+    },
+    {
+      "value": "0.995",
+      "label": "0.995"
+    },
+    {
+      "value": "0.999",
+      "label": "0.999 \u00b7 slower"
+    }
+  ]
+}

@@ -16,7 +16,11 @@ import { SoundToolsProvider } from "@ldayton/ui";
 import { RetainedContent } from "@ldayton/ui/retained-content";
 import { createViewState } from "@ldayton/ui/view-state";
 import "./shell.css";
-import { createSpectrogramPresets, createPitchPresets } from "./preset-controls";
+import {
+  createSpectrogramPresets,
+  createPitchPresets,
+} from "./preset-controls";
+import { createTransportControls } from "./transport-controls";
 import { createPitchControls } from "./pitch-controls";
 import { createPortal } from "react-dom";
 import { createDisplayControls } from "./spectrogram-display";
@@ -40,9 +44,16 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  const transport = createTransportControls();
+  const TransportButtons = transport.Buttons,
+    MicrophoneControls = transport.Microphone,
+    ExampleControls = transport.Example;
+  const microphoneHost = take("audioInputSettings"),
+    exampleHost = take("exampleControls");
   const presets = createSpectrogramPresets();
   const pitchPresets = createPitchPresets();
-  const PitchPresets = pitchPresets.Controls, pitchPresetsHost = take("pitchPresets");
+  const PitchPresets = pitchPresets.Controls,
+    pitchPresetsHost = take("pitchPresets");
   const Presets = presets.Controls,
     presetsHost = take("spectrogramPresets");
   const display = createDisplayControls(window.SettingsState.registry);
@@ -123,15 +134,6 @@ export function mountApplicationShell() {
     useLayoutEffect(() => {
       retained.visual.inert = view.open && !view.desktop;
     }, [view.open, view.desktop]);
-    useLayoutEffect(() => {
-      const target = view.desktop ? retained.transport : retained.actions;
-      const start = take("start"),
-        freeze = take("freeze");
-      if (start.parentElement !== target) {
-        if (view.desktop) target.append(start, freeze);
-        else target.prepend(start, freeze);
-      }
-    }, [view.desktop]);
     const settingsLabel = view.open
       ? view.desktop
         ? "Close settings"
@@ -139,6 +141,12 @@ export function mountApplicationShell() {
       : "Settings";
     return (
       <>
+        {createPortal(
+          <TransportButtons />,
+          view.desktop ? retained.transport : retained.actions,
+        )}
+        {createPortal(<MicrophoneControls />, microphoneHost)}
+        {createPortal(<ExampleControls />, exampleHost)}
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<Presets />, presetsHost)}
         {createPortal(<PitchPresets />, pitchPresetsHost)}
@@ -344,6 +352,7 @@ export function mountApplicationShell() {
     display,
     presets,
     pitchPresets,
+    transport,
     pitch,
     panel,
     openFiles,

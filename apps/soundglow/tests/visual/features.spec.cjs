@@ -26,7 +26,7 @@ test('pitch pause, seek, reset and invalid bands preserve coherent state',async(
  const frozen=await page.locator('#pitchCanvas').getAttribute('data-plotted-until');
  await settings(page);await setSetting(page,'pitchMinimum','500');await expect(page.locator('#pitchError')).toBeVisible();await expect(page.locator('#pitchMinimum')).toHaveValue('50');
  await page.locator('#pitchSmoothing').selectOption('off');expect(await page.locator('#pitchCanvas').getAttribute('data-plotted-until')).toBe(frozen);
- await page.locator('#seek').fill('12');await page.locator('#seek').dispatchEvent('input');await page.locator('#freeze').click();await page.waitForFunction(()=>Number(document.getElementById('pitchCanvas').dataset.voiced)>0);await expect(page.locator('#notice')).toBeHidden();
+ await setSetting(page,'seek','12');await page.locator('#freeze').click();await page.waitForFunction(()=>Number(document.getElementById('pitchCanvas').dataset.voiced)>0);await expect(page.locator('#notice')).toBeHidden();
 });
 test('pitch reset clears validation errors and chart text stays uncluttered',async({page},testInfo)=>{
  if(testInfo.project.name==='desktop')await page.setViewportSize({width:1280,height:900});

@@ -82,13 +82,17 @@ export function PresetDialog({
       }}
     >
       <Modal.Overlay />
-      <Modal.Content id={ids.dialog} className="soundtools-ui" onKeyDownCapture={(event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          event.stopPropagation();
-          close();
-        }
-      }}>
+      <Modal.Content
+        id={ids.dialog}
+        className="soundtools-ui"
+        onKeyDownCapture={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            close();
+          }
+        }}
+      >
         <Modal.Header>
           <Modal.Title id={ids.title}>{editor.title}</Modal.Title>
           <Modal.CloseButton aria-label="Close preset editor" />
@@ -161,9 +165,15 @@ const spectrogramIds: PresetIds = {
   invoker: "editPresets",
 };
 const pitchIds: PresetIds = {
-  dialog: "pitchPresetDialog", title: "pitchPresetTitle", form: "pitchPresetForm",
-  name: "pitchPresetName", status: "pitchPresetStatus", cancel: "cancelPitchPreset",
-  confirm: "confirmPitchPresetName", remove: "deletePitchPreset", invoker: "editPitchPreset",
+  dialog: "pitchPresetDialog",
+  title: "pitchPresetTitle",
+  form: "pitchPresetForm",
+  name: "pitchPresetName",
+  status: "pitchPresetStatus",
+  cancel: "cancelPitchPreset",
+  confirm: "confirmPitchPresetName",
+  remove: "deletePitchPreset",
+  invoker: "editPitchPreset",
 };
 export const createSpectrogramPresets = () => createPresetControls(false);
 export const createPitchPresets = () => createPresetControls(true);
@@ -246,7 +256,9 @@ function createPresetControls(pitch: boolean) {
           hidden={!view.toastVisible || view.editor.opened || !view.status}
         >
           <Notification onClose={() => handlers?.dismiss()}>
-            <span id={!view.editor.opened ? ids.status : undefined}>{view.status}</span>
+            <span id={!view.editor.opened ? ids.status : undefined}>
+              {view.status}
+            </span>
           </Notification>
         </Box>
       </>

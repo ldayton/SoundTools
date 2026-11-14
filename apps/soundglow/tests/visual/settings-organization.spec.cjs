@@ -19,7 +19,7 @@ test('navigation, shared controls, playback and feature settings have distinct s
  expect(await sectionExpanded(page,'advancedAnalysis')).toBe(true);
  await settings(page);await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>1);
  await settings(page);await expect(page.locator('#testControls')).toBeVisible();await expect(page.locator('#microphoneScope')).toBeVisible();
- expect(await page.locator('#settingsBody').evaluate(el=>{const children=[...el.children].map(c=>c.id);return children.indexOf('testControls')<children.indexOf('spectrogramSettings')})).toBe(true);
+ expect(await page.locator('#settingsBody').evaluate(el=>{const children=[...el.children].map(c=>c.id);return children.indexOf('exampleControls')<children.indexOf('spectrogramSettings')})).toBe(true);
  const engineBefore=await page.evaluate(()=>{window.beforeOrganizationSwitch={engine,audio,source};return Number(canvas.dataset.plottedUntil)});
  await page.getByRole('tab',{name:'Pitch',exact:true}).click();await expect(page.locator('#testControls')).toBeVisible();
  await page.waitForFunction(end=>Number(canvas.dataset.plottedUntil)>end+.2,engineBefore);

@@ -12,6 +12,10 @@ const fixtureSettings=Object.fromEntries(Object.entries(elements).map(([id,e])=>
 // geometry, routing, keyboard and focus behavior are covered by browser tests.
 env.window.SoundglowShell={media:{matches:false},configure({layout}){this.layout=layout},panel(open){history.replaceState(null,'',open?'#settings':'/');location.hash=open?'#settings':'';this.layout?.()},showView(){history.replaceState(null,'','/');this.layout?.()},openFiles(){this.panel(true)}};
 env.window.SoundglowShell.display={owns:()=>false,connect(){},publish(){}};
+env.window.SoundglowShell.transport={
+ connect(actions){for(const [id,action] of Object.entries({start:'start',freeze:'pause',demo:'example',refreshMic:'refresh',restart:'restart'}))elements[id].onclick=actions[action];elements.seek.oninput=()=>actions.seek(Number(elements.seek.value));elements.loop.onchange=()=>actions.loop(elements.loop.checked);elements.listen.onchange=()=>actions.listen(elements.listen.checked)},
+ publish(view){if('busy' in view)elements.start.disabled=view.busy;if('example'in view)elements.testControls.hidden=!view.example;if('listen'in view)elements.listen.checked=view.listen;if('loop'in view)elements.loop.checked=view.loop}
+};
 env.window.SoundglowShell.pitchPresets={close(){},isOpen:()=>false};
 env.window.SoundglowShell.presets={publish(selected){elements.preset.value=selected},status(){},isOpen:()=>false,open(){},close(){},connect(){},hideToast(){}};
 vm.createContext(env);vm.runInContext(fs.readFileSync('dist/app.js','utf8'),env);
@@ -37,7 +41,7 @@ assert(Math.max(...sampled)>sampled.at(-1)+15,'Intermediate analysis peak should
 const count=images.length;await elements.freeze.onclick();vm.runInContext('audio.currentTime=300/1000;render(300)',env);assert.equal(images.length,count);await elements.freeze.onclick();vm.runInContext('stop()',env);assert(stopped);assert.equal(elements.state.textContent,'STOPPED');env.navigator.mediaDevices.getUserMedia=async()=>{throw Object.assign(new Error('denied'),{name:'NotAllowedError'})};await vm.runInContext('start()',env);assert.match(elements.notice.textContent,/denied/);let attempts=[];
 env.navigator.mediaDevices.getUserMedia=async args=>{attempts.push(args);if(attempts.length===1)throw Object.assign(new Error('driver'),{name:'NotReadableError'});return {getTracks:()=>[track],getAudioTracks:()=>[track]}};
 await vm.runInContext('start()',env);assert.equal(attempts.length,2);assert.equal(attempts[1].audio,true);assert.equal(elements.state.textContent,'LIVE');vm.runInContext('stop()',env);
-elements.microphone.value='chosen';attempts=[];
+vm.runInContext("microphoneId='chosen'",env);attempts=[];
 env.navigator.mediaDevices.getUserMedia=async args=>{attempts.push(args);throw Object.assign(new Error('driver'),{name:'NotReadableError'})};
 await vm.runInContext('start()',env);assert.equal(attempts.length,2);assert.equal(attempts[1].audio.deviceId.exact,'chosen');assert.match(elements.notice.textContent,/physical microphone/);assert.equal(location.hash,'#settings');
 env.navigator.mediaDevices.getUserMedia=()=>{throw new Error('Fake mic must not request hardware')};

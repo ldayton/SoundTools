@@ -10,7 +10,7 @@ import {
 } from "./hymn-options-state";
 import { ScorePassage } from "./score-passage";
 import type { CountInBars } from "./hymn-count-in";
-import { OptionalNotePicker, optionalNoteHTML } from "./optional-note-picker";
+import { closePitchFields } from "@ldayton/ui/responsive-pitch-field";
 import {
   hymnPitchRange,
   hymnRangeKeys,
@@ -98,7 +98,6 @@ export class SightReading {
   }
   private hymn = hymns[0];
   private key: HymnKey = "original";
-  private notePickers = new Map<"low" | "high", OptionalNotePicker>();
   private low: number | null = null;
   private high: number | null = null;
   private preferRangeDefault = false;
@@ -220,12 +219,9 @@ export class SightReading {
       // Legacy positions had no content identity: preserve preferences and original payload,
       // but start the selected section safely instead of applying an unverifiable index.
       if (saved && saved.version !== 1 && saved.position > 0) {
-        const notice = document.querySelector<HTMLElement>(
-          "#persistence-notice",
-        )!;
+        const notice = document.querySelector<HTMLElement>("#persistence-notice")!;
         notice.hidden = false;
-        notice.textContent =
-          "Your hymn preferences were imported; its older unversioned bookmark starts at the section beginning. You can restore its older position if this is the same score.";
+        notice.textContent = "Your hymn preferences were imported; its older unversioned bookmark starts at the section beginning. You can restore its older position if this is the same score.";
       }
     } catch {
       /* Private browsing or an older saved preference. */
@@ -261,14 +257,6 @@ export class SightReading {
       },
       preparePianoPlayback,
     );
-    const rangeControls = document.createElement("div");
-    rangeControls.className = "hymn-range-fields";
-    rangeControls.innerHTML = `${optionalNoteHTML("hymn-low", "Lowest note")}${optionalNoteHTML("hymn-high", "Highest note")}<small>Range of the practised part, across the whole hymn.</small>`;
-    // Keep the bespoke note pickers available during controller setup, until React adopts them.
-    const parking = document.createElement("div");
-    parking.hidden = true;
-    parking.append(rangeControls);
-    element.append(parking);
     this.options = hymnOptionsState(this.optionsSnapshot());
     registerPracticeOptions(
       element.id,
@@ -281,7 +269,6 @@ export class SightReading {
           this.publishOptions();
           this.acceptanceChanged();
         },
-        rangeControls,
       }),
     );
     this.pianoPanel = mountPracticePiano(
@@ -304,24 +291,6 @@ export class SightReading {
       },
       () => this.updateRangeHint(),
     );
-    for (const bound of ["low", "high"] as const) {
-      const id = "hymn-" + bound;
-      const picker = new OptionalNotePicker(
-        this.$("#" + id).closest<HTMLElement>(".optional-note-control")!,
-        id,
-        (value) => {
-          this.save();
-          this.interrupt("controls");
-          this[bound] = value;
-          this.preferRangeDefault = true;
-          this.restorePending = true;
-          this.render();
-          this.save();
-        },
-      );
-      this.notePickers.set(bound, picker);
-      picker.setValue(this[bound]);
-    }
     mountPracticeControls(
       this.$(".sequence-transport"),
       createElement(HymnControls, {
@@ -376,8 +345,7 @@ export class SightReading {
           this.restorePending = false;
           this.render();
           this.save();
-          document.querySelector<HTMLElement>("#persistence-notice")!.hidden =
-            true;
+          document.querySelector<HTMLElement>("#persistence-notice")!.hidden = true;
         },
         next: () => {
           if (this.section + 1 < this.sections)
@@ -442,8 +410,7 @@ export class SightReading {
   }
   interrupt(reason: Interruption) {
     if (this.passage.selecting) this.passage.cancel();
-    if (reason === "navigation")
-      for (const picker of this.notePickers.values()) picker.close();
+    if (reason === "navigation") closePitchFields();
     this.playback.pause();
     this.playbackView = "";
     if (this.mode === "playback" && this.active) this.updatePlayback();
@@ -850,6 +817,8 @@ export class SightReading {
       viewHands: this.viewHands,
       reattackTies: this.reattackTies,
       zoom: this.zoom,
+      low: this.low,
+      high: this.high,
       searchOpen: this.searchOpen,
       unmetered: !/^\d+\/\d+$/.test(this.hymn.meter),
       originalKey: this.hymn.key,
@@ -879,6 +848,17 @@ export class SightReading {
   }
   private changeOptions(patch: HymnOptionsChange) {
     const next = mergeHymnSettings(this.settings(), patch);
+    if (patch.low !== undefined || patch.high !== undefined) {
+      this.save();
+      this.interrupt("controls");
+      this.low = next.low ?? null;
+      this.high = next.high ?? null;
+      this.preferRangeDefault = true;
+      this.restorePending = true;
+      this.render();
+      this.save();
+      return;
+    }
     if (patch.hymn !== undefined) {
       const hymn = hymns.find((h) => h.id === next.hymn);
       if (hymn) this.choose(hymn);
@@ -964,8 +944,6 @@ export class SightReading {
     this.melodyRangeLabel = this.noMatchingKey
       ? ""
       : hymnRangeLabel(range, this.hymn.key, this.key);
-    for (const bound of ["low", "high"] as const)
-      this.notePickers.get(bound)!.setValue(this[bound]);
     this.publishOptions();
   }
   private showNoMatchingKey() {

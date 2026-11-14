@@ -1,4 +1,4 @@
-import { closePitchPickers } from "./range-picker";
+import { closePitchFields } from "@ldayton/ui/responsive-pitch-field";
 import {
   createContext,
   useContext,
@@ -38,7 +38,7 @@ function useOptionsState(activeId?: string, activityKey?: string) {
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    closePitchPickers();
+    closePitchFields();
     contentRef.current?.scrollTo(0, 0);
   }, [activityKey]);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -63,7 +63,7 @@ function useOptionsState(activeId?: string, activityKey?: string) {
     toggleRef,
     reopenRef,
     toggle() {
-      closePitchPickers();
+      closePitchFields();
       if (desktop) {
         focus.current = "reopen";
         setDesktopCollapsed(true);

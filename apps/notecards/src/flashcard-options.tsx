@@ -11,12 +11,15 @@ import type { FlashcardMode } from "./exercises";
 import type { Profile } from "./exercise-settings";
 import { KEYS, ROUND_LENGTHS, type RoundLength } from "./model";
 import { STRINGS } from "./guitar";
-import { RetainedContent } from "./retained-content";
+import { WrittenPitchRange } from "./pitch-fields";
+import { PIANO_POSITIONS } from "./piano-model";
+import { POSITIONS } from "./model";
 import { createViewState } from "./view-state";
 export type FlashcardOptionsSnapshot = {
   mode: FlashcardMode | null;
   profile: Profile;
   roundLength: RoundLength;
+  rangeNotice: string;
 };
 export const flashcardOptionsState = createViewState<FlashcardOptionsSnapshot>;
 export type FlashcardOptionsState = ReturnType<typeof flashcardOptionsState>;
@@ -30,12 +33,10 @@ const frets = Array.from({ length: 13 }, (_, n) => ({
 }));
 export function FlashcardOptions({
   model,
-  ranges,
   change,
   roundLengthChanged,
 }: {
   model: FlashcardOptionsState;
-  ranges: HTMLElement;
   change(patch: Partial<Profile>): void;
   roundLengthChanged(length: RoundLength): void;
 }) {
@@ -43,6 +44,7 @@ export function FlashcardOptions({
     mode,
     profile: p,
     roundLength,
+    rangeNotice,
   } = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const piano = mode === "piano",
     signature = mode === "signature";
@@ -187,7 +189,32 @@ export function FlashcardOptions({
           8va: play an octave higher. 8vb: play an octave lower.
         </Text>
       </Stack>
-      <RetainedContent element={ranges} />
+      <WrittenPitchRange
+        id="pitch-range"
+        ids={["staff-low-spin", "staff-high-spin"]}
+        positions={POSITIONS}
+        low={p.low}
+        high={p.high}
+        hidden={mode !== "staff"}
+        onChange={(bound, value) => change({ [bound]: value })}
+      />
+      <WrittenPitchRange
+        id="piano-range"
+        ids={["low-spin", "high-spin"]}
+        positions={PIANO_POSITIONS}
+        low={p.low}
+        high={p.high}
+        hidden={!piano}
+        onChange={(bound, value) => change({ [bound]: value })}
+      />
+      <Text
+        id="piano-range-notice"
+        size="sm"
+        c="dimmed"
+        hidden={!piano || !rangeNotice}
+      >
+        {rangeNotice}
+      </Text>
       <Stack id="guitar-options" hidden={!guitar}>
         <Checkbox.Group
           id="guitar-strings"

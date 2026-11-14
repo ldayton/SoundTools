@@ -23,7 +23,6 @@ import { mergeProfile, profileFromQuery } from "./exercise-settings";
 import { isFlashcardMode, type Mode } from "./exercises";
 import { pianoNotation } from "./piano-notation";
 import { drawPianoNotation, pianoPracticeFrame } from "./notation";
-import { RangePicker } from "./range-picker";
 import {
   deck,
   POSITIONS,
@@ -130,12 +129,14 @@ const shell = mountAppShell($("#app"), {
   interrupt: (reason) => activities.interrupt(reason),
   inputChanged: refreshMidiAcceptance,
 });
+let pianoRangeNotice = "";
 function optionsSnapshot(): FlashcardOptionsSnapshot {
   const mode = isFlashcardMode(progress.mode) ? progress.mode : null;
   return {
     mode,
     profile: structuredClone(progress.profiles[mode || "staff"]),
     roundLength: progress.roundLength,
+    rangeNotice: pianoRangeNotice,
   };
 }
 const flashcardOptions = flashcardOptionsState(optionsSnapshot());
@@ -163,30 +164,6 @@ mountFlashcardView($("#flashcards"), progress.roundLength, {
 });
 document.querySelector("main")!.inert = true;
 const board = new Fretboard($("#fretboard"), answerLocation);
-const rangePickers = [
-  ...(["low", "high"] as const).map((field) => ({
-    field,
-    prefix: "",
-    positions: PIANO_POSITIONS,
-  })),
-  ...(["low", "high"] as const).map((field) => ({
-    field,
-    prefix: "staff-",
-    positions: POSITIONS,
-  })),
-].map(({ field, prefix, positions }) => ({
-  field,
-  prefix,
-  picker: new RangePicker(
-    $<HTMLInputElement>(`#${prefix}${field}-spin`),
-    $<HTMLButtonElement>(`#${prefix}${field}-choose`),
-    (value) => {
-      profile()[field] = value;
-      changed();
-    },
-    positions,
-  ),
-}));
 const flashcardControls = flashcardControlsState({
   enabled: false,
   modifier: 0,
@@ -233,9 +210,10 @@ function refreshPianoRange() {
   const outside =
     isPianoVisible() &&
     pianoDeck(profile()).some((card) => !piano.contains(pitch(card)));
-  $("#piano-range-notice").hidden = !outside;
-  $("#piano-range-notice").textContent =
-    `On-screen keys: ${keyLabel(low)}–${keyLabel(high)}. Notes outside these keys require MIDI keyboard input.`;
+  pianoRangeNotice = outside
+    ? `On-screen keys: ${keyLabel(low)}–${keyLabel(high)}. Notes outside these keys require MIDI keyboard input.`
+    : "";
+  flashcardOptions.set(optionsSnapshot());
   const required =
     isPianoVisible() &&
     !!session?.current &&
@@ -294,22 +272,6 @@ function syncOptions() {
   const p = profile();
   const isPiano = progress.mode === "piano";
   const isSignature = progress.mode === "signature";
-  $("#pitch-range").hidden = progress.mode !== "staff";
-  $("#piano-range").hidden = !isPiano;
-  rangePickers.forEach(({ picker, prefix, field }) => {
-    picker.close();
-    if (prefix ? progress.mode === "staff" : isPiano) {
-      picker.setLimits(
-        field === "high" ? p.low : undefined,
-        field === "low" ? p.high : undefined,
-      );
-      picker.setValue(p[field]);
-    }
-  });
-  $("#pitch-range").setAttribute(
-    "aria-label",
-    isPiano ? "Piano pitch range" : "Sounding guitar pitch range",
-  );
   $("#context").textContent = isSignature
     ? "Key signatures"
     : (isPiano ? "Piano · " : "Guitar · ") +

@@ -5,6 +5,8 @@ import type { HymnKey } from "./hymn-transpose";
 export type HymnOptionsChange = Partial<
   Pick<
     HymnSettings,
+    | "low"
+    | "high"
     | "hymn"
     | "key"
     | "mode"

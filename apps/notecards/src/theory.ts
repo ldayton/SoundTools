@@ -16,7 +16,6 @@ import { Piano } from "./piano";
 import { mountPracticePiano, isPianoVisible } from "./practice-piano";
 import { registerPracticeOptions } from "./practice-options";
 import { drawPracticeScore } from "./practice-score";
-import { RangePicker } from "./range-picker";
 import { persistence } from "./persistence";
 import { PracticeSession, type SessionSnapshot } from "./session";
 import { defaultProgress, loadProgress, type Progress } from "./progress";
@@ -78,7 +77,6 @@ class TheoryPractice implements LivePractice {
   private piano: Piano;
   private panel: ReturnType<typeof mountPracticePiano>;
   private width = 0;
-  private range: RangePicker[] = [];
   private options!: TheoryOptionsState;
   private lastFeedback = "";
   private selectedInterval: number | undefined;
@@ -114,14 +112,6 @@ class TheoryPractice implements LivePractice {
       this.progress = loadProgress(JSON.stringify(saved.progress));
     }
     element.innerHTML = `<section class="sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="sequence-top"><span class="theory-context"></span><span class="theory-count"></span></div><progress class="theory-progress" aria-label="Session progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"></div><div class="theory-piano"></div><div class="theory-summary" hidden><h2>Round complete</h2><p></p><div class="theory-continue-slot"></div><p class="theory-suggestion"></p></div></section>`;
-    const ranges = document.createElement("div");
-    ranges.className = "range theory-range";
-    if (kind === "intervals")
-      ranges.innerHTML = `${["low", "high"].map((field, i) => `<div><label for="${kind}-${field}">${i ? "Highest" : "Lowest"}</label><div class="note-field"><input id="${kind}-${field}" aria-label="${i ? "Highest" : "Lowest"} note" readonly><button type="button" id="${kind}-${field}-choose" aria-label="Choose ${i ? "highest" : "lowest"} note">⌄</button></div></div>`).join("")}`;
-    const parking = document.createElement("div");
-    parking.hidden = true;
-    parking.append(ranges);
-    element.append(parking);
     this.options = theoryOptionsState({
       kind,
       task: this.task,
@@ -131,7 +121,6 @@ class TheoryPractice implements LivePractice {
       element.id,
       createElement(TheoryOptions, {
         model: this.options,
-        ranges,
         taskChanged: (task) => {
           if (
             !TASKS[this.kind].some(([value]) => value === task) ||
@@ -174,20 +163,6 @@ class TheoryPractice implements LivePractice {
       (n) => this.answer(n),
       () => this.rangeNotice(),
     );
-    if (kind === "intervals")
-      for (const f of ["low", "high"] as const)
-        this.range.push(
-          new RangePicker(
-            this.$(`#${kind}-${f}`),
-            this.$(`#${kind}-${f}-choose`),
-            (note) => {
-              const s = this.settings;
-              s[f] = note;
-              this.reset();
-            },
-            POSITIONS,
-          ),
-        );
     mountPracticeControls(
       this.$(".sequence-transport"),
       createElement(TheoryControls, {
@@ -532,12 +507,6 @@ class TheoryPractice implements LivePractice {
       task: this.task,
       settings: structuredClone(s),
     });
-    if (this.kind === "intervals") {
-      this.range[0].setLimits(undefined, s.high);
-      this.range[1].setLimits(s.low, undefined);
-      this.range[0].setValue(s.low);
-      this.range[1].setValue(s.high);
-    }
     this.$(".theory-count").textContent =
       `${Math.min(this.session.answered + (this.session.accepting ? 1 : 0), this.session.length)} / ${this.session.length}`;
     const progress = this.$<HTMLProgressElement>(".theory-progress");

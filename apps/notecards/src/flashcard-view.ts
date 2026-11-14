@@ -5,12 +5,9 @@ import { registerPracticeOptions } from "./practice-options";
 export function mountFlashcardView(
   element: HTMLElement,
   roundLength: number,
-  options: Omit<ComponentProps<typeof FlashcardOptions>, "ranges">,
+  options: ComponentProps<typeof FlashcardOptions>,
 ) {
-  element.innerHTML = `<div class="below"><div hidden><div class="flashcard-range-controls"><div class="range" id="pitch-range" role="group" aria-label="Sounding guitar pitch range">${(["low", "high"] as const).map((f) => `<div><label for="staff-${f}-spin">${f === "low" ? "Lowest" : "Highest"}</label><div class="note-field"><input id="staff-${f}-spin" aria-label="${f === "low" ? "Lowest" : "Highest"} note" readonly /><button id="staff-${f}-choose" type="button" aria-label="Choose ${f === "low" ? "lowest" : "highest"} note">⌄</button></div></div>`).join("")}</div>
-<div class="range" id="piano-range" role="group" aria-label="Piano pitch range" hidden>${(["low", "high"] as const).map((f) => `<div><label for="${f}-spin">${f === "low" ? "Lowest" : "Highest"}</label><div class="note-field"><input id="${f}-spin" aria-label="${f === "low" ? "Lowest" : "Highest"} note" readonly /><button id="${f}-choose" type="button" aria-label="Choose ${f === "low" ? "lowest" : "highest"} note">⌄</button></div></div>`).join("")}</div>
-<p id="piano-range-notice" class="piano-range-notice" hidden></p>
-</div></div></div><section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${roundLength}" value="0" aria-label="Session progress"></progress>
+  element.innerHTML = `<section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${roundLength}" value="0" aria-label="Session progress"></progress>
 <div id="question"><div class="answer-line"><span id="feedback" role="status" aria-live="polite">Loading notation…</span></div><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
 
@@ -22,7 +19,6 @@ export function mountFlashcardView(
     element.id,
     createElement(FlashcardOptions, {
       ...options,
-      ranges: element.querySelector<HTMLElement>(".flashcard-range-controls")!,
     }),
   );
 }

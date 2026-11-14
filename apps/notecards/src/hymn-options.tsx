@@ -19,7 +19,7 @@ import { HYMN_KEYS, hymnKeyLabel, type HymnKey } from "./hymn-transpose";
 import type { CountInBars } from "./hymn-count-in";
 import { searchHymns } from "./sight-reading-model";
 import hymns from "./hymns.json";
-import { RetainedContent } from "./retained-content";
+import { HymnPitchField } from "./pitch-fields";
 import type { HymnOptionsChange, HymnOptionsState } from "./hymn-options-state";
 const hymnChoices = hymns.map((h) => ({ value: h.id, label: h.title }));
 const hands = [
@@ -39,12 +39,10 @@ export function HymnOptions({
   model,
   change,
   searchOpened,
-  rangeControls,
 }: {
   model: HymnOptionsState;
   change(patch: HymnOptionsChange): void;
   searchOpened(open: boolean): void;
-  rangeControls: HTMLElement;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const selectedTitle = hymns.find((h) => h.id === state.hymn)!.title;
@@ -132,7 +130,19 @@ export function HymnOptions({
       >
         {state.range}
       </Text>
-      <RetainedContent element={rangeControls} />
+      <SimpleGrid cols={2}>
+        {(["low", "high"] as const).map((bound) => (
+          <HymnPitchField
+            key={bound}
+            bound={bound}
+            value={state[bound]}
+            onChange={(value) => change({ [bound]: value })}
+          />
+        ))}
+      </SimpleGrid>
+      <Text size="sm" c="dimmed">
+        Range of the practised part, across the whole hymn.
+      </Text>
       <NativeSelect
         id="hymn-mode"
         label="Mode"

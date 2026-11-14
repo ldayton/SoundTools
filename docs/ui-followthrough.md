@@ -27,3 +27,9 @@ mobile wheel and teardown. DoReGo uses it directly. Wheel keyboard input respect
 constraints; all listeners and observers are cleaned up. Pages build/browser pass,
 including mobile label focus and keyboard stepping. Next: render Note by Note
 pitch fields directly from its existing option snapshots.
+
+Milestone 3 complete: flashcard, theory and hymn options render their pitch fields
+straight from controller snapshots. Removed native placeholder/replacement adapters
+and their parked DOM. Build, navigation, theory, hymn keys, hymn playback and
+passage-selection browser checks pass. Optional filters preserve no-matching-key
+behavior and keyboard/mobile wheel input. Next: React-owned shell/status rendering.

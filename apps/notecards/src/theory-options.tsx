@@ -18,7 +18,8 @@ import {
   type Quality,
 } from "./theory-model";
 import { createViewState } from "./view-state";
-import { RetainedContent } from "./retained-content";
+import { WrittenPitchRange } from "./pitch-fields";
+import { POSITIONS } from "./theory-model";
 export type TheoryOptionsSnapshot = {
   kind: TheoryKind;
   task: TheoryTask;
@@ -32,12 +33,10 @@ const basicQualities = ["major", "minor", "perfect"] as const;
 const advancedQualities = ["augmented", "diminished"] as const;
 export function TheoryOptions({
   model,
-  ranges,
   change,
   taskChanged,
 }: {
   model: TheoryOptionsState;
-  ranges: HTMLElement;
   change(patch: Partial<TheorySettings>): void;
   taskChanged(task: TheoryTask): void;
 }) {
@@ -316,7 +315,13 @@ export function TheoryOptions({
               </Stack>
             </Checkbox.Group>
           )}
-          <RetainedContent element={ranges} />
+          <WrittenPitchRange
+            ids={[`${kind}-low`, `${kind}-high`]}
+            positions={POSITIONS}
+            low={s.low}
+            high={s.high}
+            onChange={(bound, value) => change({ [bound]: value })}
+          />
         </>
       )}
       <Accordion id={id("example-disclosure")} order={3}>

@@ -2,7 +2,7 @@
 
 .testLink{margin-top:12px;background:transparent;border:0;color:#b9c4d2;font-size:12px}#testControls h3{font-size:15px}#testControls a{color:#f2ac77}.check{display:flex;align-items:center;gap:8px}.check input{width:auto;margin:0}#position{float:none;display:block;font-size:11px}#testControls hr{border:0;border-top:1px solid #344152;margin-top:20px}header .actions{flex-wrap:wrap}#notice{max-height:45%;overflow:auto}
 
-#panel label{font-size:14px;margin:24px 0}#panel select{min-height:44px}#panel input[type=range]{min-height:32px}#panel p{font-size:12px}
+#panel label:not(:where(.soundtools-ui, .soundtools-ui *)){font-size:14px;margin:24px 0}#panel select:not(:where(.soundtools-ui, .soundtools-ui *)){min-height:44px}#panel input[type=range]{min-height:32px}#panel p{font-size:12px}
 
 
 #settings{font-size:23px;line-height:1;min-width:44px;min-height:44px;padding:8px}#settings[aria-expanded=true]{color:#f2ac77;border-color:#f2ac77}
@@ -82,7 +82,7 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 
 #settingsBody>.settingsGroup,#testControls{border-bottom:1px solid #283345;padding-bottom:18px;margin-bottom:20px}
 #settingsBody h3{margin:0 0 14px;font-size:16px}
-#settingsBody h4{font-size:14px;margin:22px 0 12px;color:#e9edf3}
+#settingsBody h4:not(:where(.soundtools-ui, .soundtools-ui *)){font-size:14px;margin:22px 0 12px;color:#e9edf3}
 #settingsBody h5{font-size:13px;margin:6px 0;color:#b9c4d2}
 #settingsBody details:not(#developerSettings){border-top:1px solid #283345;margin-top:20px;padding-top:14px}
 #settingsBody summary{cursor:pointer;font-weight:600;padding:6px 0}

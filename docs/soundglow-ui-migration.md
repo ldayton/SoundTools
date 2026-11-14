@@ -107,3 +107,33 @@ playback and sidebar dismissal with the computer muted.
 
 The combined shell/library bundle is approximately 135 kB gzip JavaScript and
 38 kB gzip CSS. No audio, pitch or drawing engines have moved into React state.
+
+## Third milestone: spectrogram Display controls
+
+The first settings slice is frequency ceiling, frequency scale and history.
+`spectrogram-display.tsx` supplies Mantine `NativeSelect` and `Slider` controls
+through a portal owned by the existing shell root. Available values, defaults
+and slider bounds come from the authoritative `SettingsState` registry; only
+human-readable option labels belong to the view.
+
+The audio controller connects the edit command once and publishes the canonical
+three-field projection after settings transitions, including preset loads and
+validation recovery. It no longer writes values or attaches input listeners to
+these React-owned controls. The slider's standard hidden form input preserves
+form/value inspection; pointer and keyboard events go through the accessible
+slider. Space while focused on a slider is excluded from global audio shortcuts,
+matching the retained native input behavior. Seconds are announced using Mantine's
+`thumbValueText` API.
+
+Registry/UI completeness is now checked against rendered browser controls rather
+than static HTML. Legacy preset tests use actual selection and slider keyboard
+input for the migrated fields. Core validation, preset storage and DSP ownership
+remain in their existing controllers.
+
+Local acceptance: the complete core suite passed. The broader targeted run passed
+56 settings/preset/continuity cases, including mobile and slowed-device checks;
+its two new accessibility failures identified the missing seconds announcement.
+After switching to the supported API, all 14 final desktop/mobile display and
+navigation cases passed, as did three focused cases each in Firefox and WebKit.
+Native Chrome verified native select behavior, slider edits, reset on reload and
+visual layout. Existing visual goldens were not changed.

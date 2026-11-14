@@ -1,4 +1,5 @@
 const {test,expect}=require('@playwright/test');
+const {setHistory}=require('./settings-input.cjs');
 test('Voice Tools and Praat presets switch during English playback',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html#settings');
  await expect(page.locator('#unnamedPreset')).toHaveAttribute('hidden','');await expect(page.locator('#savePresetForm')).toBeHidden();expect(await page.evaluate(()=>!document.getElementById('presetSettings').contains(document.getElementById('microphone'))&&!!(document.getElementById('microphone').compareDocumentPosition(document.getElementById('preset'))&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
@@ -80,7 +81,7 @@ test('manual settings reproduce the Voice Tools preset and survive as a named pr
  await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption('voice');
  const expected=await page.evaluate(()=>currentPresetSettings());
  await page.locator('#preset').selectOption('praat');
- for(const [id,v] of Object.entries(expected))await page.locator('#'+id).evaluate((el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}))},v);
+ for(const [id,v] of Object.entries(expected)){if(id==='history')await setHistory(page,v);else if(['maximum','scale'].includes(id))await page.locator('#'+id).selectOption(v);else await page.locator('#'+id).evaluate((el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}))},v);}
  expect(await page.evaluate(()=>currentPresetSettings())).toEqual(expected);
  await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('My harmonic settings');await page.getByRole('button',{name:'Create',exact:true}).click();
  await page.reload();expect(await page.evaluate(()=>currentPresetSettings())).toEqual(expected);

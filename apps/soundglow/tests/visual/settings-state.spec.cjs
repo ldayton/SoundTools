@@ -1,15 +1,17 @@
 const {test,expect}=require('@playwright/test');
+const {setHistory}=require('./settings-input.cjs');
 const consistent=async page=>expect(await page.evaluate(()=>assertSettingsConsistent())).toBe(true);
 test('all registered controls agree with authoritative state across deterministic edit/apply sequences',async({page})=>{
  await page.goto('/dist/index.html#settings');
+ expect(await page.locator('#presetSettings select,#presetSettings input').evaluateAll(nodes=>nodes.map(node=>node.id).sort())).toEqual(await page.evaluate(()=>[...SettingsState.ids].sort()));
  for(const builtin of ['soundglow','praat','voice']){
   await page.locator('#preset').selectOption(builtin);await consistent(page);
   for(const id of ['advancedAnalysis','advancedColour'])if(await page.locator('#'+id).getAttribute('open')===null)await page.locator('#'+id+' > summary').click();
   // Every control is independently exercised through its real input event.
-  const edits=await page.evaluate(()=>Array.from(document.querySelectorAll('#presetSettings select,#presetSettings input')).filter(el=>!el.disabled&&el.getClientRects().length).map(el=>({id:el.id,value:el.tagName==='SELECT'?Array.from(el.options).find(o=>o.value!==el.value)?.value:String(Number(el.value)===Number(el.min)?el.max:el.min),type:el.type})));
+  const edits=await page.evaluate(()=>Array.from(document.querySelectorAll('#presetSettings select,#presetSettings input')).filter(el=>!el.disabled&&el.getClientRects().length).map(el=>({id:el.id,value:el.tagName==='SELECT'?Array.from(el.options).find(o=>o.value!==el.value)?.value:String(Number(el.value)===Number(el.min)?el.max:el.min),type:el.type})).concat(Array.from(document.querySelectorAll('#spectrogramDisplay [role=slider]')).map(el=>({id:'history',value:el.getAttribute('aria-valuenow')===el.getAttribute('aria-valuemin')?el.getAttribute('aria-valuemax'):el.getAttribute('aria-valuemin'),type:'slider'}))));
   for(const edit of edits){
    await page.locator('#preset').selectOption(builtin);
-   if(edit.type==='select-one')await page.locator('#'+edit.id).selectOption(edit.value);else await page.locator('#'+edit.id).fill(edit.value);
+   if(edit.type==='slider')await setHistory(page,edit.value);else if(edit.type==='select-one')await page.locator('#'+edit.id).selectOption(edit.value);else await page.locator('#'+edit.id).fill(edit.value);
    await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await consistent(page);
    expect(await page.evaluate(id=>settingsState.values[id],edit.id)).toBe(edit.value);
    await page.locator('#preset').selectOption(builtin);await consistent(page);

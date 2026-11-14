@@ -187,7 +187,7 @@
     visibility: visible;
     pointer-events: auto;
   }
-  #panel label {
+  #panel label:not(:where(.soundtools-ui, .soundtools-ui *)) {
     font-size: 12px;
     margin: 18px 0;
   }

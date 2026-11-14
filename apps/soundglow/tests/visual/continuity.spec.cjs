@@ -1,5 +1,6 @@
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs');
+const {setHistory}=require('./settings-input.cjs');
 test('sidebar and display changes preserve frozen source history and live playback',async({page},testInfo)=>{
  const slowdown=Number(process.env.SOUNDGLOW_CPU_SLOWDOWN||testInfo.project.metadata.cpuSlowdown||1);
  if(slowdown>1){const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:slowdown});}
@@ -17,7 +18,7 @@ test('sidebar and display changes preserve frozen source history and live playba
  await page.locator('#openSettings').click();await page.waitForTimeout(350);
  await page.locator('#advancedColour > summary').click();
  for(const [id,value] of [['scale','linear'],['preemphasis','6'],['history','3'],['colourLevels','auto'],['peakDecay','0.98'],['colourLevels','fixed'],['scale','voice'],['preemphasis','3'],['history','6'],['peakDecay','0.995']]){
-  const control=page.locator('#'+id);if(await control.evaluate(el=>el.tagName==='SELECT'))await control.selectOption(value);else await control.fill(value);
+  const control=page.locator('#'+id);if(id==='history')await setHistory(page,value);else if(await control.evaluate(el=>el.tagName==='SELECT'))await control.selectOption(value);else await control.fill(value);
   const now=await snapshot();expect(now.end).toBe(before.end);expect(now.generation).toBe(before.generation);expect(now.frames).toBe(before.frames);
  }
  await page.locator('#openSettings').click();await page.waitForTimeout(350);expect(await snapshot()).toEqual(before);

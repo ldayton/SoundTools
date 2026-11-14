@@ -16,6 +16,8 @@ import { SoundToolsProvider } from "@ldayton/ui";
 import { RetainedContent } from "@ldayton/ui/retained-content";
 import { createViewState } from "@ldayton/ui/view-state";
 import "./shell.css";
+import { createPortal } from "react-dom";
+import { createDisplayControls } from "./spectrogram-display";
 
 type Feature = "spectrogram" | "pitch";
 type Handlers = { layout(): void; select(feature: Feature): void };
@@ -36,6 +38,9 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  const display = createDisplayControls(window.SettingsState.registry);
+  const displayHost = take("spectrogramDisplay");
+  const DisplayControls = display.Controls;
   const media = window.matchMedia("(min-width: 761px)");
   const model = createViewState({
     desktop: media.matches,
@@ -108,6 +113,7 @@ export function mountApplicationShell() {
       : "Settings";
     return (
       <>
+        {createPortal(<DisplayControls />, displayHost)}
         <Box component="header" className="soundglow-header soundtools-ui">
           <Group className="brand" gap="xs" wrap="nowrap">
             <Anchor
@@ -300,6 +306,7 @@ export function mountApplicationShell() {
   // can still refer to controls, and a cached document may be restored intact.
   return {
     media,
+    display,
     panel,
     openFiles,
     showView() {

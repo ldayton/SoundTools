@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 'use strict';
 let settingsState=SettingsState.create(),settingsReady=false;
+const displayControls=window.SoundglowShell.display;
 const setting=id=>settingsState.values[id];
 let viewSettings=settingsState.values;
 const viewSetting=id=>viewSettings[id],viewValue=id=>Number(viewSetting(id));
@@ -266,7 +267,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape')panel(false);
   if(e.code!=='Space'&&e.key!==' ')return;
   if(e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey||!running)return;
-  if(e.target?.isContentEditable||e.target?.closest?.('input,select,textarea,[role="textbox"]'))return;
+  if(e.target?.isContentEditable||e.target?.closest?.('input,select,textarea,[role="textbox"],[role="slider"]'))return;
   // Prevent focused-button activation so Space after playback starts pauses it.
   e.preventDefault();
   if(!e.repeat)void togglePause();
@@ -473,8 +474,9 @@ function syncPreset(edited=false){
  $('fixedMaximumOut').textContent=value('fixedMaximum')+' dB';$('suppressionOut').textContent=value('suppression')+' dB';updateResolution();
 }
 function renderSettingsControls(){
- for(const id of savedSettingIds)$(id).value=setting(id);
- for(const [id,text] of [['maxOut',value('maximum')/1000+' kHz'],['historyOut',value('history')+' s'],['floorOut',value('floor')+' dB'],['gainOut',value('gain')+' dB'],['preemphasisOut',value('preemphasis')+' dB/octave'],['compressionOut',Math.round(value('compression')*100)+'%']])$(id).textContent=text;
+ for(const id of savedSettingIds)if(!displayControls.owns(id))$(id).value=setting(id);
+ displayControls.publish(settingsState.values);
+ for(const [id,text] of [['floorOut',value('floor')+' dB'],['gainOut',value('gain')+' dB'],['preemphasisOut',value('preemphasis')+' dB/octave'],['compressionOut',Math.round(value('compression')*100)+'%']])$(id).textContent=text;
  syncPreset();
 }
 function applySettingsEffects({changed,effects}){
@@ -557,7 +559,8 @@ $('deletePreset').onclick=()=>{
  const next=savedPresets.filter(p=>p.id!==preset.id);if(!persistPresets(next,'soundglow'))return;
  savedPresets=next;renderSavedPresets();applyPreset('soundglow');closePresetEditor();savedPresetStatus('Deleted “'+preset.name+'”.');
 };
-for(const id of savedSettingIds)$(id).addEventListener('input',()=>updateSettings({type:'edit',id,value:$(id).value}));
+displayControls.connect((id,value)=>updateSettings({type:'edit',id,value}));
+for(const id of savedSettingIds)if(!displayControls.owns(id))$(id).addEventListener('input',()=>updateSettings({type:'edit',id,value:$(id).value}));
 renderSavedPresets();
 if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
 

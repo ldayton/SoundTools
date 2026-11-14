@@ -112,9 +112,7 @@ try {
     (n) => (window as any).playbackProbe.starts.length > n,
     starts,
   );
-  await page
-    .getByRole("combobox", { name: "Tempo", exact: true })
-    .selectOption("100");
+  await practiceOption(page, "#hymn-tempo", "100");
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   assert.match(page.url(), /tempo=100/);
   await page.setViewportSize({ width: 390, height: 844 });
@@ -132,9 +130,7 @@ try {
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await page.getByRole("button", { name: "Resume", exact: true }).waitFor();
   await page.setViewportSize({ width: 1400, height: 1000 });
-  await page
-    .getByRole("combobox", { name: "Tempo", exact: true })
-    .selectOption("200");
+  await practiceOption(page, "#hymn-tempo", "200");
   await page.getByRole("button", { name: "Start again", exact: true }).click();
   assert.equal(await page.locator("#hymn-length").count(), 0);
   assert.equal(await page.locator("#hymn-section").count(), 0);
@@ -154,7 +150,10 @@ try {
   );
   assert.equal(
     await page
-      .getByRole("combobox", { name: "Tempo", exact: true })
+      .getByRole("spinbutton", {
+        name: "Tempo in beats per minute",
+        exact: true,
+      })
       .isVisible(),
     false,
   );
@@ -456,6 +455,10 @@ try {
   await practiceOption(page, "#hymn-mode", "playback");
   await practiceOption(page, "#hymn-count-in", "2");
   await practiceOption(page, "#hymn-tempo", "200");
+  assert.ok(
+    (await page.locator("#hymn-tempo").boundingBox())!.width >= 70,
+    "Tempo entry has room for three digits beside the step controls",
+  );
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.waitForFunction(() =>
     document

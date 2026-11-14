@@ -146,7 +146,7 @@ export function HymnOptions({
         ]}
       />
       {state.mode === "playback" && (
-        <SimpleGrid cols={2}>
+        <Stack gap="sm">
           <TempoControl
             id="hymn-tempo"
             value={state.bpm}
@@ -174,7 +174,7 @@ export function HymnOptions({
               })
             }
           />
-        </SimpleGrid>
+        </Stack>
       )}
       <NativeSelect
         id="hymn-arrangement"

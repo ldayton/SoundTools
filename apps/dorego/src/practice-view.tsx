@@ -72,9 +72,6 @@ export function PracticeView({
             aria-label="Exercise playback controls"
           >
             <Group gap="sm" wrap="nowrap">
-              <Button id="restart" variant="default" onClick={restart}>
-                Start again
-              </Button>
               <Button
                 id="play"
                 autoContrast
@@ -85,6 +82,9 @@ export function PracticeView({
                 onClick={play}
               >
                 {label}
+              </Button>
+              <Button id="restart" variant="default" onClick={restart}>
+                Start again
               </Button>
               <div className="dorego-seek">
                 <Slider

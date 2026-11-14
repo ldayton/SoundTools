@@ -79,7 +79,7 @@ export class RhythmAttempt {
 }
 
 export type RhythmSettings = { bpm: number; level: RhythmLevel };
-export const RHYTHM_TEMPOS = Array.from({ length: 25 }, (_, i) => 40 + i * 5);
+export const RHYTHM_TEMPO_LIMITS = { min: 40, max: 160 };
 export function mergeRhythmSettings(
   base: RhythmSettings,
   input: unknown,
@@ -89,8 +89,8 @@ export function mergeRhythmSettings(
     bpm:
       typeof s.bpm === "number" &&
       Number.isInteger(s.bpm) &&
-      s.bpm >= 40 &&
-      s.bpm <= 160
+      s.bpm >= RHYTHM_TEMPO_LIMITS.min &&
+      s.bpm <= RHYTHM_TEMPO_LIMITS.max
         ? s.bpm
         : base.bpm,
     level: choice(s.level, ["pulse", "long-short", "eighths"], base.level),

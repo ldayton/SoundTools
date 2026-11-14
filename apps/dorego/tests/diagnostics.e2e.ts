@@ -50,6 +50,29 @@ try {
     await page.evaluate(() => (window.doregoDiagnostics!.snapshot().errors as any[]).length),
     0
   );
+  await page.evaluate(() => {
+    const client = window.doregoDiagnostics!;
+    (window as any).originalSharing = client.setSharing;
+    client.setSharing = async () => {
+      throw Error('simulated unavailable consent storage');
+    };
+  });
+  await sharing.click();
+  await page
+    .getByText('Couldn’t change diagnostic sharing. Please retry.', { exact: true })
+    .waitFor();
+  assert.equal(
+    await sharing.isChecked(),
+    false,
+    'Failed consent changes do not show sharing as enabled'
+  );
+  assert.ok(
+    await sharing.getAttribute('aria-describedby'),
+    'Consent failure is associated with its checkbox'
+  );
+  await page.evaluate(() => {
+    window.doregoDiagnostics!.setSharing = (window as any).originalSharing;
+  });
   await sharing.check();
   await page.evaluate(() => {
     window.doregoDiagnostics!.capture(new Error('PRIVATE exercise title'), 'samples.test_failed');

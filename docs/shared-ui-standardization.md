@@ -53,3 +53,40 @@ focus to the visible pitch control. Ordinary pitch labels use Mantine styling.
 Both builds, both diagnostic/privacy suites, Note by Note navigation and DoReGo
 Pages pass. Next: freeze final builds, broaden browser/audio/offline regression
 coverage and inspect local desktop/mobile previews. No push/deploy.
+
+Milestone 4: completed local verification and final control refinements. Tempo
+entry stays compact on wide layouts; +/-5 preserves an integer offset (151 ->
+156), with the existing limits applied. Escape closes pitch grids even when
+focus remains on the trigger. Playback puts Play before Start again. Legacy
+audible dB values cannot incorrectly display Muted. Consent failure leaves the
+checkbox unchecked and associates the error with the field.
+
+Verification:
+
+- Both production builds and DoReGo Pages build pass; 151 Note by Note and 62
+  DoReGo logic tests pass.
+- Note by Note browser, navigation, theory, hymn keys, piano/rhythm practice,
+  hymn playback and passage selection pass in Chromium, Firefox and WebKit.
+- DoReGo desktop, Pages, lifecycle, offline and spelling matrix passes in all
+  three engines. Final Pages checks cover action order, compact numeric entry,
+  exact tempo steps, range bounds and Escape dismissal.
+- Both privacy suites pass. Note by Note offline install/update/recovery,
+  real IndexedDB storage failure/migration and piano audio checks pass.
+- DoReGo tempo continuity, PCM audio/mute, resilience and MIDI/video export
+  checks pass. Audio tests run with the computer muted.
+- Native Chrome inspection confirms compact tempo layout, stepping, mute
+  feedback and common primary/secondary actions in both built previews.
+
+Test-environment notes: macOS Firefox requires an isolated test home, as already
+handled by DoReGo's browser harness; remaining Note by Note suites were run with
+the same CFFIXED_USER_HOME isolation. Recovery was verified against both the
+built preview and a fresh development server. The storage test now uses its
+configured origin throughout instead of silently returning to an older server.
+
+Intentional differences remain: note spelling and written-pitch/MIDI conversion,
+vocal-span versus single-note range rules, optional hymn filters, mobile wheels
+versus grids, app navigation and the two offline/audio lifecycles. Presentation
+and control policies are shared without merging those domain owners.
+
+Local previews: Note by Note http://127.0.0.1:4400/ and DoReGo
+http://127.0.0.1:4401/. Nothing pushed or deployed.

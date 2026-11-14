@@ -145,6 +145,14 @@ export function PitchField({
             onClick={() => onOpenedChange(!opened)}
             styles={{ input: { cursor: "pointer" } }}
             onKeyDown={(event) => {
+              if (event.key === "Escape" && opened) {
+                event.preventDefault();
+                event.stopPropagation();
+                onOpenedChange(false);
+                input.current?.focus({ preventScroll: true });
+                return;
+              }
+
               if (
                 (event.altKey && event.key === "ArrowDown") ||
                 ["F4", "Enter", " "].includes(event.key)

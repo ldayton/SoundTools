@@ -60,11 +60,39 @@ try {
     );
   }
   async function tempo(value: number) {
-    const before = await beat();
+    // Compare against elapsed musical time, not an assumption that editing is instantaneous.
+    await page.evaluate(() =>
+      document.querySelector('#bpm')!.addEventListener(
+        'blur',
+        () => {
+          (window as any).tempoProbe.commitAt = performance.now();
+        },
+        { once: true, capture: true }
+      )
+    );
+    const snapshot = () =>
+      page.evaluate(() => ({
+        beat:
+          (Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) *
+            Number((document.querySelector('#bpm') as HTMLInputElement).value)) /
+          60,
+        bpm: Number((document.querySelector('#bpm') as HTMLInputElement).value),
+        time: performance.now(),
+        playing: document.querySelector('#play')?.textContent === 'Pause',
+        commitAt: (window as any).tempoProbe.commitAt,
+      }));
+    const before = await snapshot();
     await page.locator('#bpm').fill(String(value));
     await page.locator('#bpm').blur();
-    const after = await beat();
-    assert.ok(Math.abs(after - before) < 0.35, `Beat jumped from ${before} to ${after}`);
+    const after = await snapshot();
+    const expectedAdvance = before.playing
+      ? ((after.commitAt - before.time) * before.bpm + (after.time - after.commitAt) * after.bpm) /
+        60000
+      : 0;
+    assert.ok(
+      Math.abs(after.beat - before.beat - expectedAdvance) < 0.35,
+      `Tempo changed beat position unexpectedly: ${JSON.stringify({ before, after, expectedAdvance })}`
+    );
   }
   await load({ pattern: 'arpeggio', countIn: 8, bpm: 120, repetitions: 1 });
   await page.locator('#play').click();

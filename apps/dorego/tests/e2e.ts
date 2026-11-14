@@ -28,7 +28,9 @@ async function setNote(id: string, target: number) {
   let value = Number(await readSpecValue(page, id));
   while (value !== target) {
     await spin.press(value < target ? 'ArrowUp' : 'ArrowDown');
-    value = Number(await readSpecValue(page, id));
+    const next = Number(await readSpecValue(page, id));
+    assert.notEqual(next, value, `Pitch constraint prevents selecting ${target}`);
+    value = next;
   }
 }
 const errors: string[] = [];
@@ -135,11 +137,20 @@ try {
   await page.screenshot({ path: new URL('mobile.png', work).pathname, fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.locator('#pattern').selectOption('arpeggio');
-  await setNote('low', 84);
-  assert.ok(await page.locator('#form-error').isVisible());
-  assert.ok(await page.locator('#play').isDisabled());
-  await setNote('low', 60);
+  const highBefore = await readSpecValue(page, 'high');
+  await page.locator('#low-spin').click();
+  assert.ok(
+    await page
+      .getByRole('dialog', { name: 'Choose lowest note' })
+      .getByRole('button', { name: 'C6', exact: true })
+      .isDisabled()
+  );
+  await page.keyboard.press('Escape');
+  await page.locator('#low-spin').press('End');
+  assert.equal(Number(await readSpecValue(page, 'low')), Number(highBefore) - 7);
+  assert.equal(await readSpecValue(page, 'high'), highBefore);
   assert.ok(await page.locator('#form-error').isHidden());
+  await setNote('low', 60);
   // Frame-order independence, including a personal transition marker.
   const render = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await render.goto(`${base}/render.html`);

@@ -5,13 +5,14 @@ import { join } from "node:path";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 const fixed = await mkdtemp(join(tmpdir(), "notecards-recovery-"));
+const origin = process.env.TEST_URL || "http://127.0.0.1:4320";
 const browser = await (
   { chromium, firefox, webkit }[process.env.BROWSER || "chromium"] || chromium
 ).launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
 try {
   const context = await browser.newContext();
   const page = await context.newPage();
-  await page.goto(process.env.TEST_URL || "http://127.0.0.1:4320");
+  await page.goto(origin);
   await page.locator("main:not([inert])").waitFor();
   const adapterResult = await page.evaluate(async () => {
     const path = "/src/durable-state.ts";
@@ -90,7 +91,7 @@ try {
     );
   });
   const legacy = await migration.newPage();
-  await legacy.goto("http://127.0.0.1:4320");
+  await legacy.goto(origin);
   await legacy.locator(".hymn-pause").waitFor();
   assert.match(
     await legacy.locator("#persistence-notice").innerText(),
@@ -130,7 +131,7 @@ try {
   assert.equal(await legacy.locator(".hymn-count").textContent(), "4 / 35");
   // An older build cannot overwrite the new root, and its writes visibly stop this writer.
   const old = await migration.newPage();
-  await old.goto("http://127.0.0.1:4320");
+  await old.goto(origin);
   await old.evaluate(() =>
     localStorage.setItem(
       "soundtools:notecards:v1",
@@ -150,7 +151,7 @@ try {
   // Exercise the actual UI failure path after initialization, not just adapter rejection.
   const failure = await browser.newContext();
   const f = await failure.newPage();
-  await f.goto("http://127.0.0.1:4320");
+  await f.goto(origin);
   await f.locator("main:not([inert])").waitFor();
   await f.waitForFunction(
     () =>

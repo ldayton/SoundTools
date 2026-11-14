@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Slider, Stack } from "@mantine/core";
+import { ActionIcon, Box, Group, Slider } from "@mantine/core";
 import { CommittedNumber } from "./committed-number";
 /** Shared entry/stepping policy; apps own tempo limits and audio behavior. */
 export function TempoControl({
@@ -21,20 +21,10 @@ export function TempoControl({
   increaseId?: string;
 }) {
   const step = (direction: number) =>
-    onChange(
-      Math.max(
-        min,
-        Math.min(
-          max,
-          direction > 0
-            ? (Math.floor(value / 5) + 1) * 5
-            : (Math.ceil(value / 5) - 1) * 5,
-        ),
-      ),
-    );
+    onChange(Math.max(min, Math.min(max, value + direction * 5)));
   return (
-    <Stack gap="sm">
-      <Group gap="xs" wrap="nowrap" align="end">
+    <Group gap="md" align="end">
+      <Group gap="xs" wrap="nowrap" align="end" w="100%" maw={280}>
         <ActionIcon
           id={decreaseId}
           variant="default"
@@ -70,17 +60,19 @@ export function TempoControl({
         </ActionIcon>
       </Group>
       {sliderId && (
-        <Slider
-          thumbProps={{ id: sliderId }}
-          thumbLabel="Tempo slider"
-          thumbValueText={(n) => `${n} beats per minute`}
-          min={min}
-          max={max}
-          step={5}
-          value={value}
-          onChange={onChange}
-        />
+        <Box flex="1 1 200px" miw={0} pb="md">
+          <Slider
+            thumbProps={{ id: sliderId }}
+            thumbLabel="Tempo slider"
+            thumbValueText={(n) => `${n} beats per minute`}
+            min={min}
+            max={max}
+            step={5}
+            value={value}
+            onChange={onChange}
+          />
+        </Box>
       )}
-    </Stack>
+    </Group>
   );
 }

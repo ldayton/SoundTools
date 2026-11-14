@@ -79,6 +79,11 @@ try {
     () => !(document.querySelector('#play') as HTMLButtonElement).disabled
   );
   assert.equal(await page.locator('#play').innerText(), 'Play');
+  assert.ok(
+    (await page.locator('#play').boundingBox())!.x <
+      (await page.locator('#restart').boundingBox())!.x,
+    'Primary playback action precedes restart'
+  );
   assert.ok(samples.length > 0, 'Piano samples should load before the first click');
   const preparedSamples = samples.length;
   assert.equal(
@@ -104,8 +109,25 @@ try {
   assert.equal(await readSpecValue(page, 'low'), '52');
   assert.equal(await readSpecValue(page, 'high'), '76');
   assert.equal(await page.locator('#bpm').inputValue(), '150');
+  const tempoField = (await page.locator('#bpm').boundingBox())!;
+  assert.ok(
+    tempoField.width >= 70 && tempoField.width <= 220,
+    'Tempo entry stays compact and readable'
+  );
   for (const name of ['Playback position', 'Tempo slider', 'Volume'])
     assert.equal(await page.getByRole('slider', { name, exact: true }).count(), 1);
+  await page.locator('#bpm').fill('151');
+  await page.locator('#bpm').press('Enter');
+  await page.locator('#tempo-up').click();
+  assert.equal(
+    await page.locator('#bpm').inputValue(),
+    '156',
+    'Tempo steps preserve integer offsets'
+  );
+  await page.locator('#tempo-down').click();
+  assert.equal(await page.locator('#bpm').inputValue(), '151');
+  await page.locator('#bpm').fill('150');
+  await page.locator('#bpm').press('Enter');
   await page.locator('#low-spin').press('ArrowUp');
   assert.equal(await readSpecValue(page, 'low'), '53');
   await page.locator('#low-spin').press('ArrowDown');
@@ -137,6 +159,10 @@ try {
   await page.locator('#low-spin').click();
   await page.locator('#exercise-title').click();
   assert.ok(await picker.isHidden(), 'Outside click dismisses pitch grid');
+  await page.locator('#low-spin').click();
+  await page.locator('#low-spin').press('Escape');
+  await picker.waitFor({ state: 'hidden' });
+  assert.ok(await picker.isHidden(), 'Escape also closes the grid when focus is on its trigger');
   await page.locator('#low-spin').click();
   await page.setViewportSize({ width: 1000, height: 850 });
   await picker.waitFor({ state: 'hidden' });

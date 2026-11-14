@@ -16,7 +16,17 @@ export const colourControlIds = [
   "preemphasis",
   "compression",
 ] as const;
-const migratedIds = [...displayControlIds, ...colourControlIds];
+const formantControlIds = [
+  "formants",
+  "formantSmoothing",
+  "formantFiltering",
+  "formantCeiling",
+] as const;
+const migratedIds = [
+  ...displayControlIds,
+  ...colourControlIds,
+  ...formantControlIds,
+];
 type DisplayId = (typeof migratedIds)[number];
 type Values = Record<DisplayId, string>;
 type Registry = Record<
@@ -213,9 +223,55 @@ export function createDisplayControls(registry: Registry) {
       </Stack>
     );
   }
+  function FormantControls() {
+    return (
+      <Stack gap="md">
+        <Title order={4} size="h5">
+          Formants
+        </Title>
+        <Choice
+          id="formants"
+          label="Formants"
+          data={options("formants", {
+            off: "Off",
+            dots: "Markers",
+            tracks: "Connected tracks",
+            both: "Markers and tracks",
+          })}
+        />
+        <Choice
+          id="formantSmoothing"
+          label="Formant smoothing"
+          data={options("formantSmoothing", {
+            off: "Off",
+            light: "Light",
+            strong: "Strong",
+          })}
+        />
+        <Choice
+          id="formantFiltering"
+          label="Hide uncertain formants"
+          data={options("formantFiltering", { on: "On", off: "Off" })}
+        />
+        <Choice
+          id="formantCeiling"
+          label="Formant ceiling"
+          data={options("formantCeiling", {
+            "5000": "5000 Hz",
+            "5500": "5500 Hz",
+            "6000": "6000 Hz",
+          })}
+        />
+        <Text size="xs" c="dimmed">
+          Tracks are estimates; gaps indicate missing or rejected measurements.
+        </Text>
+      </Stack>
+    );
+  }
   return {
     Controls,
     ColourControls,
+    FormantControls,
     owns(id: string) {
       return (migratedIds as readonly string[]).includes(id);
     },

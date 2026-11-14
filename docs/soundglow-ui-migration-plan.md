@@ -47,8 +47,8 @@ its behavior or test failures turn out to cross controller boundaries.
 
 | Step | Bounded scope | Required behavior to verify |
 | --- | --- | --- |
-| 1 | Spectrogram colour and contrast | Palette, brightness, dynamic range, normalization mode, fixed maximum, suppression, pre-emphasis and compression. Preserve conditional visibility/disabled states, units, preset identity and live repaint without capture reset. |
-| 2 | Formant controls | Visibility, smoothing, filtering and ceiling. Preserve overlay-only changes versus analysis rebuilds, and clear old overlays when disabled or when applying a preset. |
+| 1 ✓ | Spectrogram colour and contrast | Palette, brightness, dynamic range, normalization mode, fixed maximum, suppression, pre-emphasis and compression. Preserve conditional visibility/disabled states, units, preset identity and live repaint without capture reset. |
+| 2 ✓ | Formant controls | Visibility, smoothing, filtering and ceiling. Preserve overlay-only changes versus analysis rebuilds, and clear old overlays when disabled or when applying a preset. |
 | 3 | Advanced spectrogram analysis | Window, shape, analysis rate, frame step, FFT padding, DC removal, units, resampling and quality. Preserve dependent controls, pending/committed analysis separation and failure recovery without restarting the source. |
 | 4 | Advanced spectrogram colour | Normalization clock, frequency/frame interpolation, peak history and decay. Preserve decimal precision, frozen redraw and retained-history performance. |
 | 5 | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
@@ -170,3 +170,13 @@ subsequent drag events. Tests no longer write DOM values behind React's back.
 
 For each milestone append: scope; controller/view ownership; changed behavior;
 commands and results; manual browser verification; commit hash; and the next step.
+
+### Step 2 completed
+
+Previous milestone commit: `9054e8d`. Migrated formant display, smoothing,
+filtering and ceiling through the existing SettingsState projection. Removed
+legacy markup/listeners for these fields. Build/typecheck and pure settings,
+real-WASM overlay, and spectrum/transport tests passed. Focused formant-controls,
+overlays and settings-state browser specs passed all 16 desktop/mobile cases
+(`/tmp/sg-m2-tests.log`). Native Chrome verified the native formant selector and
+immediate preset identity update with the public saved fixture. Next: step 3.

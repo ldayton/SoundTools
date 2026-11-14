@@ -148,7 +148,13 @@ try {
   );
   assert.equal(await page.locator("#counter").textContent(), "2 / 12");
   console.log("active update staged");
-  await untouched.evaluate(() => window.dispatchEvent(new Event("online")));
+  // A verified update can reload this untouched tab before evaluate's reply arrives.
+  // Accept only that expected navigation race; the new generation is verified below.
+  await untouched
+    .evaluate(() => window.dispatchEvent(new Event("online")))
+    .catch((error: Error) => {
+      if (!error.message.includes("Execution context was destroyed")) throw error;
+    });
   await untouched.waitForFunction(
     (v) =>
       document

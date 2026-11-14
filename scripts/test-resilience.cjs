@@ -35,6 +35,7 @@ let context;
  let page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(url);await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
  if(app==='soundglow')await page.locator('#openSettings:visible, #settings:visible').click();
+ else await page.getByRole('link',{name:'Settings',exact:true}).click();
  const download=app==='dorego'?'#offline-download':'#offlineDownload',status=app==='dorego'?'#offline-status':'#offlineStatus';
  await page.locator(download).waitFor({state:'visible'});await page.locator(download).click();
  await page.waitForFunction(selector=>document.querySelector(selector).textContent.includes('Available offline'),status,{timeout:60000});

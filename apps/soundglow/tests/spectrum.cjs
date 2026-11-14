@@ -12,6 +12,7 @@ const fixtureSettings=Object.fromEntries(Object.entries(elements).map(([id,e])=>
 // geometry, routing, keyboard and focus behavior are covered by browser tests.
 env.window.SoundglowShell={media:{matches:false},configure({layout}){this.layout=layout},panel(open){history.replaceState(null,'',open?'#settings':'/');location.hash=open?'#settings':'';this.layout?.()},showView(){history.replaceState(null,'','/');this.layout?.()},openFiles(){this.panel(true)}};
 env.window.SoundglowShell.display={owns:()=>false,connect(){},publish(){}};
+env.window.SoundglowShell.pitchPresets={close(){},isOpen:()=>false};
 env.window.SoundglowShell.presets={publish(selected){elements.preset.value=selected},status(){},isOpen:()=>false,open(){},close(){},connect(){},hideToast(){}};
 vm.createContext(env);vm.runInContext(fs.readFileSync('dist/app.js','utf8'),env);
 for(const [id,v]of Object.entries(fixtureSettings))elements[id].value=v;vm.runInContext("updateSettings({type:'apply',selected:'praat',values:Object.fromEntries(SettingsState.ids.map(id=>[id,document.getElementById(id).value]))})",env);

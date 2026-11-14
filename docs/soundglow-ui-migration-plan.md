@@ -56,7 +56,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 7 ✓ | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
 | 8 ✓ | Pitch targets and reference bands | Band visibility, target/reference mode, target bounds and editable reference ranges. Preserve validation and stable field identity while editing. Keep stored presets compatible. |
 | 9 ✓ | Spectrogram preset selector and dialog | Move selection and create/rename/delete UI to React. Preserve built-in immutability, named edits, validation, storage-error retry, focus return and toast behavior. Leave storage policy in the controller. |
-| 10 | Pitch preset selector and dialog | Migrate against the existing feature-state model. Share the ordinary form/dialog presentation from step 9 only where semantics match; keep each preset model's policy intact. |
+| 10 ✓ | Pitch preset selector and dialog | Migrate against the existing feature-state model. Share the ordinary form/dialog presentation from step 9 only where semantics match; keep each preset model's policy intact. |
 | 11 | Microphone and example controls | Device selection/refresh, permission and disconnected-device states, start/stop/pause/resume, example seek/loop/listen/restart and credits. Preserve pending-operation guards, privacy and mobile return-to-chart behavior. |
 | 12 | File playback controls | Play/pause/restart, skip, loop, speed, volume and playback options. Preserve playback intent through loading/seeking, end-of-selection restart and desktop-only saved-file support. |
 | 13 | Selection actions and bookmark creation | Fit/clear selection, bookmark naming/save/cancel and passage bounds. Keep the reserved row geometry; preserve exact selection/view restoration, loop defaults, validation and failed-save retry. Retain the existing waveform gesture engine. |
@@ -277,3 +277,16 @@ Build/typecheck and pure settings, spectrum and release diagnostics checks passe
 Preset browser coverage passed desktop/mobile, with save/retry and Back/focus checks
 in Firefox and WebKit. Native Chrome confirmed Escape returns to the editor opener
 without closing Settings. Next: step 10, reuse the editor for pitch presets.
+
+### Step 10 completed — preset checkpoint
+
+Previous milestone: `78d2dc3`. Pitch presets now share the selector/editor
+presentation with spectrogram presets, with independent controller/state policies.
+Removed native selector/dialog listeners and writes. Fixed silent storage failure:
+create/delete are persisted before committing, and failed live named edits become
+unnamed while leaving the last saved preset intact. The error remains visible and
+retry remains possible. Native Chrome verified the editor and cancellation/focus.
+
+Complete core suite passed, plus 20 desktop/mobile pitch/preset cases, two extra
+failed-live-edit cases, and shared editor checks in Firefox/WebKit. No DSP goldens
+changed. Next: step 11, microphone/example transport controls.

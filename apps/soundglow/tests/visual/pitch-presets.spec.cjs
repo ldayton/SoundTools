@@ -10,7 +10,7 @@ test('pitch presets use editable trace settings, preserve audio, and save indepe
  expect(await page.evaluate(()=>Object.entries(pitchTransport).every(([key,value])=>({engine,audio,source})[key]===value)&&settingsState.selected===spectrogramPreset)).toBe(true);
  await setSetting(page,'pitchCorners','15');await expect(page.locator('#pitchPreset option:checked')).toHaveText('Unnamed Preset*');
  await page.locator('#editPitchPreset').click();await page.locator('#pitchPresetName').fill('Praat');await page.locator('#pitchPresetForm button[type=submit]').click();await expect(page.locator('#pitchPresetStatus')).toContainText('unique');
- await page.locator('#pitchPresetName').fill('My pitch');await page.locator('#pitchPresetForm button[type=submit]').click();await expect(page.locator('#pitchPresetDialog')).not.toHaveAttribute('open','');
+ await page.locator('#pitchPresetName').fill('My pitch');await page.locator('#pitchPresetForm button[type=submit]').click();await expect(page.locator('#pitchPresetDialog')).toBeHidden();
  const id=await page.locator('#pitchPreset').inputValue();await setSetting(page,'pitchHistory','8');await expect(page.locator('#pitchPreset')).toHaveValue(id);
  await page.reload();await settings(page);await expect(page.locator('#pitchPreset')).toHaveValue(id);await expect(page.locator('#pitchHistory')).toHaveValue('8');
  await page.locator('#editPitchPreset').click();await page.locator('#pitchPresetName').fill('Renamed');await page.locator('#pitchPresetForm button[type=submit]').click();await expect(page.locator('#pitchPreset option:checked')).toHaveText('Renamed');
@@ -53,7 +53,7 @@ test('Soundglow speech filtering and bounded confirmation remain editable withou
  await page.goto('/dist/index.html');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#demo').click();
  await page.waitForFunction(()=>Number(document.getElementById('pitchCanvas').dataset.voiced)>10);
  await settings(page);await expandSection(page,'advancedPitchTrace');
- expect(await page.locator('#pitchPreset option').evaluateAll(options=>options.map(o=>o.value))).toEqual(['soundglow','praat']);
+ expect(await page.locator('#pitchPreset option').evaluateAll(options=>options.filter(o=>!o.hidden).map(o=>o.value))).toEqual(['soundglow','praat']);
  await expect(page.locator('#pitchSpeechGate')).toBeChecked();await expect(page.locator('#pitchConfirmation')).toHaveValue('50');
  await page.evaluate(()=>{window.policyTransport={engine,audio,source,pcmNode}});
  await page.locator('#pitchSpeechGate').uncheck();await expect(page.locator('#pitchPreset')).toHaveValue('custom');await page.locator('#pitchConfirmation').selectOption('0');

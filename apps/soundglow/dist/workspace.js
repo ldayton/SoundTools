@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Feature controller: transport is shared; feature state and rendering are scoped.
 (function(){
- const pitchUI=window.SoundglowShell.pitch;
+ const pitchUI=window.SoundglowShell.pitch,presetUI=window.SoundglowShell.pitchPresets;
  const $=id=>document.getElementById(id),host=window.soundglowSession,key='soundglow-workspace-v1';
  let saved;try{saved=localStorage.getItem(key)}catch{}
  let state=FeatureState.restore(saved),pitchStream=null,cursor=null,pumping=false,epoch=0,rows=[],rawRows=[],contour=null,contourKey='',speechFrames=[],neuralEvidence=new NeuralEvidence(),speechSession=crypto.randomUUID(),lastPaint='',lastLayout='',paintQueued=false;
@@ -11,7 +11,7 @@
  // Keep it opt-in until a matched streaming trial passes.
  const experimentalSpeechGate=new URLSearchParams(location.search).get('experimentalSpeechGate')==='1';
  const chart=$('pitchCanvas'),g=chart.getContext('2d');
- function persist(){try{localStorage.setItem(key,JSON.stringify({version:1,...state}))}catch{}}
+ function persist(candidate=state){try{localStorage.setItem(key,JSON.stringify({version:1,...candidate}));return true}catch{presetUI.status('Could not save pitch settings in this browser. Allow local storage and try again.');return false}}
  function reset(){epoch++;pitchStream?.dispose();pitchStream=null;cursor=null;rows=[];rawRows=[];contour=null;contourKey='';speechFrames=[];neuralEvidence=new NeuralEvidence();speechSession=crypto.randomUUID();grouping={key:null,settings:null,seed:null};lastPaint=''}
  function trimPitch(){if(host.fileView?.())return;
   const latest=rawRows.at(-1)?.time||0;
@@ -85,7 +85,7 @@
   chart.dataset.pitchMethod=pitchStream?.activeSettings.pitchMethod||state.pitch.method;chart.dataset.plottedUntil=String(end);chart.dataset.voiced=String(points.filter(r=>r.hz>0&&r.time>=begin&&r.time<=end).length);
  }
  function controls(force=false,resetDrafts=force){presetControls();pitchUI.publish(state.pitch,resetDrafts)}
- function edit(change){const oldMethod=state.pitch.method;const next=FeatureState.pitch(state.pitch);change(next);let invalid=false;try{state=FeatureState.changed(state,next);if(state.pitch.method!==oldMethod)host.refreshFileView?.();pitchUI.setError(null);persist();lastPaint='';paint()}catch(error){invalid=true;pitchUI.setError(error.message);}controls(invalid,false);return !invalid}
+ function edit(change){const oldMethod=state.pitch.method;const next=FeatureState.pitch(state.pitch);change(next);let invalid=false;try{const previous=state;state=FeatureState.changed(state,next);if(state.pitch.method!==oldMethod)host.refreshFileView?.();pitchUI.setError(null);if(persist())presetUI.status('');else state={...state,selected:'custom',presets:previous.presets};lastPaint='';paint()}catch(error){invalid=true;pitchUI.setError(error.message);}controls(invalid,false);return !invalid}
  host.viewLabel=()=>state.active==='pitch'?FeatureState.presetName(state):null;host.featureState=()=>({active:state.active,pitch:FeatureState.pitch(state.pitch)});
  function layout(){
   const signature=[state.active,$('settings').getAttribute('aria-expanded'),window.matchMedia('(min-width: 761px)').matches].join(':');if(signature===lastLayout)return;lastLayout=signature;
@@ -100,16 +100,15 @@
  function select(feature){if(feature===state.active)return;scrollPositions[state.active]=$('settingsBody').scrollTop;state.active=feature;persist();lastPaint='';layout();$('settingsBody').scrollTop=scrollPositions[feature];if(feature==='spectrogram')updateResolution();syncPitch();paint()}
  window.SoundglowShell.configure({layout:syncSettings,select});
  function resetPitch(){state=FeatureState.choose(state,'soundglow');host.refreshFileView?.();pitchUI.setError(null);persist();controls(true);lastPaint='';paint()}
- function presetControls(){
-  const select=$('pitchPreset'),entries=[['soundglow','Soundglow'],['praat','Praat'],...state.presets.map(p=>[p.id,p.name])];if(state.selected==='custom')entries.push(['custom','Unnamed Preset*']);
-  const signature=JSON.stringify(entries);if(select.dataset.entries!==signature){select.replaceChildren(...entries.map(([id,name])=>new Option(name,id)));select.dataset.entries=signature}select.value=state.selected;updateResolution();
- }
+ function presetControls(){presetUI.publish(state.selected,[{value:'soundglow',label:'Soundglow'},{value:'praat',label:'Praat'},...state.presets.map(p=>({value:p.id,label:p.name}))]);updateResolution();}
  function applyPitch(id){const oldMethod=state.pitch.method;state=FeatureState.choose(state,id);if(oldMethod!==state.pitch.method)host.refreshFileView?.();pitchUI.setError(null);persist();controls(true);lastPaint='';paint();}
- $('pitchPreset').onchange=()=>{if($('pitchPreset').value!=='custom')applyPitch($('pitchPreset').value)};
- $('editPitchPreset').onclick=()=>{const saved=state.presets.find(p=>p.id===state.selected);$('pitchPresetName').value=saved?.name||'';$('deletePitchPreset').hidden=!saved;$('pitchPresetStatus').textContent='';$('pitchPresetDialog').showModal();$('pitchPresetName').focus()};
- $('cancelPitchPreset').onclick=()=>$('pitchPresetDialog').close();
- $('pitchPresetForm').onsubmit=event=>{event.preventDefault();try{state=FeatureState.save(state,$('pitchPresetName').value,'saved-'+crypto.randomUUID());persist();presetControls();$('pitchPresetDialog').close()}catch(error){$('pitchPresetStatus').textContent=error.message}};
- $('deletePitchPreset').onclick=()=>{state=FeatureState.remove(state);pitchUI.setError(null);persist();controls(true);lastPaint='';paint();$('pitchPresetDialog').close()};
+ presetUI.connect({
+  choose:applyPitch,
+  open(){const saved=state.presets.find(p=>p.id===state.selected);presetUI.status('');presetUI.open({name:saved?.name||'',title:saved?'Edit pitch preset':'Name pitch preset',canDelete:!!saved})},
+  save(name){try{const next=FeatureState.save(state,name,'saved-'+crypto.randomUUID());if(!persist(next))return false;state=next;presetControls();presetUI.status('');presetUI.close();return true}catch(error){presetUI.status(error.message);return false}},
+  remove(){try{const next=FeatureState.remove(state);if(!persist(next))return;state=next;pitchUI.setError(null);controls(true);lastPaint='';paint();presetUI.status('');presetUI.close()}catch(error){presetUI.status(error.message)}},
+  cancel(){presetUI.status('');presetUI.close()},dismiss(){presetUI.hideToast()}
+ });
  host.subscribe(type=>{if(type==='fileview'){reset();pumping=false;const file=host.fileView?.();if(file){rawRows=file.features;updateContour();lastPaint='';paint();}else{lastPaint='';paint();}return;}if(type==='stop'||type==='seek'){reset();pumping=false;}if(type==='capture'||type==='seek')syncPitch();if(type==='render'||type==='layout'){layout();paint()}});
  pitchUI.connect((field,value)=>edit(p=>{p[field]=value}),resetPitch);
  controls();layout();

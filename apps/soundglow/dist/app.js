@@ -256,7 +256,7 @@ const desktopSettings=window.SoundglowShell.media;
 function syncSettings(){
   const open=location.hash==='#settings';
   if(!open)closePresetEditor();
-  if(!open&&$('pitchPresetDialog')?.open)$('pitchPresetDialog').close();
+  if(!open)window.SoundglowShell.pitchPresets.close();
   $('microphoneScope').hidden=inputMode!=='speech';
   if(open)microphones();notifyFeatures('layout');
 }
@@ -266,6 +266,7 @@ window.SoundglowShell.configure({layout:syncSettings,select:()=>{}});
 document.addEventListener('keydown',e=>{
   // A newly opened portal may not have transferred focus before the next key.
   // Route Escape by dialog state rather than only by the event target.
+  if(e.key==='Escape'&&window.SoundglowShell.pitchPresets.isOpen()){e.preventDefault();e.stopPropagation();window.SoundglowShell.pitchPresets.close();return;}
   if(e.key==='Escape'&&presetUI.isOpen()){e.preventDefault();e.stopPropagation();cancelPresetEditor();return;}
   if(e.defaultPrevented||e.target?.closest?.('[role="menu"],[role="dialog"]')||document.querySelector('#libraryItemMenu')||[...document.querySelectorAll('dialog[open],[role=dialog]')].some(node=>node.getClientRects().length))return;
   if(e.key==='Escape')panel(false);

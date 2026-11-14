@@ -218,7 +218,7 @@
   }
 }
 
-#spectrogramPresets {
+#spectrogramPresets, #pitchPresets {
   margin: 12px 0 20px;
 }
 .soundglow-toast {

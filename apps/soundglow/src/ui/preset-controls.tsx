@@ -160,13 +160,23 @@ const spectrogramIds: PresetIds = {
   remove: "deletePreset",
   invoker: "editPresets",
 };
-export function createSpectrogramPresets() {
+const pitchIds: PresetIds = {
+  dialog: "pitchPresetDialog", title: "pitchPresetTitle", form: "pitchPresetForm",
+  name: "pitchPresetName", status: "pitchPresetStatus", cancel: "cancelPitchPreset",
+  confirm: "confirmPitchPresetName", remove: "deletePitchPreset", invoker: "editPitchPreset",
+};
+export const createSpectrogramPresets = () => createPresetControls(false);
+export const createPitchPresets = () => createPresetControls(true);
+function createPresetControls(pitch: boolean) {
+  const ids = pitch ? pitchIds : spectrogramIds;
+  const selectorId = pitch ? "pitchPreset" : "preset";
+  const editLabel = pitch ? "Edit pitch presets" : "Edit presets";
   const model = createViewState({
     selected: "soundglow",
     choices: [
       { value: "soundglow", label: "Soundglow" },
       { value: "praat", label: "Praat" },
-      { value: "voice", label: "Voice Tools" },
+      ...(!pitch ? [{ value: "voice", label: "Voice Tools" }] : []),
     ] as Choice[],
     editor: {
       opened: false,
@@ -187,8 +197,9 @@ export function createSpectrogramPresets() {
       <>
         <Group gap="xs" align="flex-end" wrap="nowrap">
           <NativeSelect
-            id="preset"
+            id={selectorId}
             label="Preset"
+            aria-label={pitch ? "Pitch preset" : "Preset"}
             value={view.selected}
             onChange={(event) => handlers?.choose(event.currentTarget.value)}
             style={{ flex: 1, minWidth: 0 }}
@@ -199,7 +210,7 @@ export function createSpectrogramPresets() {
               </option>
             ))}
             <option
-              id="unnamedPreset"
+              id={pitch ? "unnamedPitchPreset" : "unnamedPreset"}
               value="custom"
               disabled
               hidden={view.selected !== "custom"}
@@ -208,14 +219,14 @@ export function createSpectrogramPresets() {
             </option>
           </NativeSelect>
           <ActionIcon
-            id="editPresets"
+            id={ids.invoker}
             variant="default"
             size="input-sm"
-            aria-label="Edit presets"
-            title="Edit presets"
+            aria-label={editLabel}
+            title={editLabel}
             aria-haspopup="dialog"
             aria-expanded={view.editor.opened}
-            aria-controls="presetDialog"
+            aria-controls={ids.dialog}
             onClick={() => handlers?.open()}
           >
             ✎
@@ -224,18 +235,18 @@ export function createSpectrogramPresets() {
         <PresetDialog
           editor={view.editor}
           status={view.status}
-          ids={spectrogramIds}
+          ids={ids}
           save={(name) => handlers?.save(name) ?? false}
           remove={() => handlers?.remove()}
           close={() => handlers?.cancel()}
         />
         <Box
-          id="presetToast"
+          id={pitch ? "pitchPresetToast" : "presetToast"}
           className="soundtools-ui soundglow-toast"
           hidden={!view.toastVisible || view.editor.opened || !view.status}
         >
           <Notification onClose={() => handlers?.dismiss()}>
-            <span id={!view.editor.opened ? "presetStatus" : undefined}>{view.status}</span>
+            <span id={!view.editor.opened ? ids.status : undefined}>{view.status}</span>
           </Notification>
         </Box>
       </>

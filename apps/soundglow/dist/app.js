@@ -609,7 +609,7 @@ function requestFileView({start,end,blob}){
  const configKey=JSON.stringify([analysisValues(),window.soundglowSession.featureState?.().pitch.method]),previous=filePreview?.blob===blob&&filePreview.configKey===configKey?filePreview:null;
  filePreview={start,end,blob,configKey,features:previous?.features||[],history:previous?.history||new PraatDisplay.SpectrumHistory({seconds:Infinity,maxBytes:32*1024*1024}),timeStep:previous?.timeStep||.01,selection:fileLibrary.loop};
  canvas.dataset.fileStart=start;canvas.dataset.fileEnd=end;canvas.dataset.fileFrames=0;
- publishTransport();if(!running){state('FILE');feedbackUI.publish({device:'AUDIO FILE · ON THIS DEVICE'});}
+ feedbackUI.publish({welcome:false});publishTransport();if(!running){state('FILE');feedbackUI.publish({device:'AUDIO FILE · ON THIS DEVICE'});}
  feedbackUI.publish({analysisStatus:'Loading analysis…'});redraw();notifyFeatures('fileview');
  filePreviewTimer=setTimeout(async()=>{
   try{

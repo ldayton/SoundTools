@@ -21,7 +21,7 @@ desktopTest('entering mobile layout releases file playback without losing its sa
  await page.waitForFunction(()=>fileLibrary.position>1);await page.setViewportSize({width:390,height:844});
  await expect(page.locator('#state')).toHaveText('STOPPED');await expect(page.locator('#fileTransport')).toBeHidden();
  expect(await page.evaluate(()=>fileLibrary.isPaused&&!fileLibrary.connected&&fileLibrary.position>0)).toBe(true);
- await page.setViewportSize({width:1280,height:900});await expect(page.locator('#fileTransport')).toBeVisible();
+ await page.setViewportSize({width:1280,height:900});await expect(page.locator('#fileTransport')).toBeVisible();await expect(page.locator('#welcome')).toBeHidden();
  await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused&&inputMode==='file');
 });
 desktopTest('saved audio restores paused, plays and seeks, survives switching, and deletes',async({page})=>{
@@ -136,4 +136,8 @@ desktopTest('returning from mobile preserves the example instead of restoring an
  await open(page);await importAudio(page);await page.setViewportSize({width:390,height:844});await expect(page.locator('#welcome')).toBeVisible();await expect(page.locator('#state')).toHaveText('MIC OFF');await page.locator('#demo').click();await page.waitForFunction(()=>inputMode==='speech'&&running&&Number(canvas.dataset.plottedUntil)>1);await page.locator('#freeze').click();await page.evaluate(()=>window.mobileExampleAudio=audio);
  await page.setViewportSize({width:1280,height:900});await expect(page.locator('#fileTransport')).toBeHidden();expect(await page.evaluate(()=>inputMode==='speech'&&running&&paused&&audio===mobileExampleAudio&&filePreview===null)).toBe(true);await expect(page.locator('#freeze')).toBeVisible();await page.locator('#freeze').click();await page.waitForFunction(()=>inputMode==='speech'&&!paused);
  await page.locator('#openFiles').click();await page.locator('[data-file]').first().click();await page.waitForFunction(()=>!fileLibrary.loading&&filePreview!==null);await expect(page.locator('#fileTransport')).toBeVisible();await page.locator('#filePlay').click();await page.waitForFunction(()=>inputMode==='file'&&!fileLibrary.isPaused);
+});
+
+desktopTest('an idle file preview returns without the welcome overlay after mobile use',async({page})=>{
+ await open(page);await importAudio(page);await page.setViewportSize({width:390,height:844});await expect(page.locator('#welcome')).toBeVisible();await expect(page.locator('#state')).toHaveText('MIC OFF');await page.setViewportSize({width:1280,height:900});await expect(page.locator('#fileTransport')).toBeVisible();await expect(page.locator('#welcome')).toBeHidden();await expect(page.locator('#state')).toHaveText('FILE');expect(await page.evaluate(()=>filePreview!==null&&!running)).toBe(true);
 });

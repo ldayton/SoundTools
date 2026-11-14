@@ -425,3 +425,15 @@ Verification:
 
 All sixteen steps are implemented and committed locally. No push, deployment,
 production configuration or visual-reference update is part of this work.
+
+### Final screenshot follow-up
+
+After `387386f`, visual inspection of the restored native desktop view caught a
+welcome overlay remaining above a valid file preview. File-view projection now
+always dismisses that overlay. Added idle-preview restoration coverage and an
+explicit hidden-welcome assertion to the playing-file restoration case. The full
+file-library suite passed (9 desktop passes, one expected mobile-only exclusion),
+all three responsive cases passed in Firefox and WebKit, and the controller
+oracle passed. Native Chrome repeated the exact mobile/desktop transition; the
+saved final screenshot shows the uncovered pitch chart and paused file controls.
+Nothing has been pushed.

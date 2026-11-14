@@ -1,17 +1,10 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { Anchor, Button, Modal, Stack, Text } from '@mantine/core';
 import { SoundToolsProvider } from '@ldayton/ui';
-export function RetainedContent({ element }: { element: HTMLElement }) {
-  const attach = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (node) node.append(element);
-    },
-    [element]
-  );
-  return <div ref={attach} />;
-}
+import { RetainedContent } from '@ldayton/ui/retained-content';
+export { RetainedContent };
 export type AppViews = { builder: ReactNode; practice: ReactNode; footer: ReactNode };
 function AppShell({ builder, practice, footer }: AppViews) {
   const [help, setHelp] = useState(false);

@@ -1,57 +1,4 @@
 /* Specialized pitch grids/wheels and retained note fields. Mantine owns ordinary controls. */
-.note-picker {
-  overflow: auto;
-  max-height: min(65dvh, var(--popover-available-height, 65dvh));
-}
-.note-picker-grid {
-  display: grid;
-  grid-template-columns: 24px repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  align-items: center;
-}
-.note-picker-octave {
-  font-size: 11px;
-  text-align: center;
-  color: var(--mantine-color-dimmed);
-}
-.note-picker-grid button {
-  min-width: 0;
-}
-.note-field {
-  display: flex;
-  overflow: hidden;
-  min-height: 44px;
-  border: 1px solid #d8d1c5;
-  border-radius: 9px;
-}
-.note-field input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  background: #fffdf8;
-  cursor: pointer;
-}
-.note-field button {
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  padding: 10px 14px;
-}
-.practice-options .note-field {
-  min-height: 44px;
-  border-color: #d8d1c5;
-  border-radius: 9px;
-}
-.practice-options .note-field input {
-  padding: 10px 12px;
-  font-size: 14px;
-  font-weight: 400;
-  color: #302d55;
-}
-.practice-options .note-field button {
-  color: #837b94;
-  background: #fffdf8;
-}
 .practice-options #pitch-range,
 .practice-options #piano-range {
   display: grid;
@@ -82,9 +29,6 @@
   width: 100%;
 }
 
-.note-picker.is-chromatic .note-picker-grid {
-  grid-template-columns: 24px repeat(12, minmax(0, 1fr));
-}
 .optional-note-label {
   display: flex;
   align-items: center;
@@ -123,11 +67,5 @@
   }
   .optional-note-mobile {
     display: block;
-  }
-}
-
-@media (max-width: 760px) {
-  .practice-options .note-field input {
-    font-size: 16px;
   }
 }

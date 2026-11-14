@@ -277,7 +277,7 @@ try {
       `${mode}: top edges align`,
     );
     const fields = await options
-      .locator("select:visible,.note-field:visible")
+      .locator("select:visible,.pitch-picker-control:visible")
       .evaluateAll((elements) =>
         elements.map((element) => {
           const box = element.getBoundingClientRect();
@@ -307,7 +307,7 @@ try {
       assert.equal(await page.locator("#staff-low-spin").inputValue(), "E2");
       await page.locator("#staff-high-spin").click();
       assert.equal(
-        await page.locator("#staff-high-spin-picker [data-position]").count(),
+        await page.locator("#staff-high-spin-picker [data-value]").count(),
         18,
       );
       await page

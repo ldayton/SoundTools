@@ -161,7 +161,7 @@ try {
   assert.equal(await page.locator("#staff-low-spin").inputValue(), "E2");
   assert.equal(await page.locator("#staff-high-spin").inputValue(), "E2");
   assert.equal(
-    await page.locator("#staff-low-spin-picker [data-position]").count(),
+    await page.locator("#staff-low-spin-picker [data-value]").count(),
     18,
   );
   await page.setViewportSize({ width: 390, height: 844 });

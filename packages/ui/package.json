@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./provider.tsx",
-    "./view-state": "./view-state.ts"
+    "./view-state": "./view-state.ts",
+    "./pitch-field": "./pitch-field.tsx",
+    "./retained-content": "./retained-content.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

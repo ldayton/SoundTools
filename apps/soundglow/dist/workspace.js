@@ -99,20 +99,16 @@
  host.viewLabel=()=>state.active==='pitch'?FeatureState.presetName(state):null;host.featureState=()=>({active:state.active,pitch:FeatureState.pitch(state.pitch)});
  function layout(){
   const signature=[state.active,$('settings').getAttribute('aria-expanded'),window.matchMedia('(min-width: 761px)').matches].join(':');if(signature===lastLayout)return;lastLayout=signature;
-  const desktop=window.matchMedia('(min-width: 761px)').matches,nav=$('featureTabs'),toolbar=$('workspaceToolbar');
-  if(nav.parentElement!==$('app')||nav.previousElementSibling!==toolbar)$('app').insertBefore(nav,toolbar.nextSibling);
+  window.SoundglowShell.setFeature(state.active);
   const pitch=state.active==='pitch';document.getElementById('app').classList.toggle('pitch-active',pitch);chart.hidden=!pitch;$('spectrogramSettings').hidden=pitch;$('pitchSettings').hidden=!pitch;
-  $('spectrogramTab').setAttribute('aria-selected',String(!pitch));$('pitchTab').setAttribute('aria-selected',String(pitch));$('spectrogramTab').tabIndex=pitch?-1:0;$('pitchTab').tabIndex=pitch?0:-1;
   $('plot').setAttribute('aria-labelledby',pitch?'pitchTab':'spectrogramTab');
   $('plot').setAttribute('aria-label',pitch?'Live pitch: frequency vertically, time horizontally':'Live spectrogram: frequency vertically, time horizontally');
   $('workspaceToolbar').setAttribute('aria-label','Audio controls');
   if(pitch)$('resolution').textContent=FeatureState.presetName(state);
-  if($('settings').getAttribute('aria-expanded')==='true'){const label=desktop?'Close settings':'Return to '+state.active;$('settings').setAttribute('aria-label',label);$('settings').title=label;}
  }
  const scrollPositions={spectrogram:0,pitch:0};
  function select(feature){if(feature===state.active)return;scrollPositions[state.active]=$('settingsBody').scrollTop;state.active=feature;persist();lastPaint='';layout();$('settingsBody').scrollTop=scrollPositions[feature];if(feature==='spectrogram')updateResolution();syncPitch();paint()}
- $('featureTabs').addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const feature=event.key==='Home'?'spectrogram':event.key==='End'?'pitch':state.active==='pitch'?'spectrogram':'pitch';select(feature);$(feature+'Tab').focus()}});
- $('spectrogramTab').onclick=()=>select('spectrogram');$('pitchTab').onclick=()=>select('pitch');
+ window.SoundglowShell.configure({layout:syncSettings,select});
  for(const [id,field]of [['pitchMinimum','minimum'],['pitchMaximum','maximum'],['pitchHistory','history']])$(id).onchange=()=>edit(p=>{p[field]=Number($(id).value)});
  $('pitchSmoothing').onchange=()=>edit(p=>{p.smoothing=$('pitchSmoothing').value});$('pitchBands').onchange=()=>edit(p=>{p.bands=$('pitchBands').checked});$('resetPitch').onclick=()=>{state=FeatureState.choose(state,'soundglow');host.refreshFileView?.();$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint()};
  function presetControls(){

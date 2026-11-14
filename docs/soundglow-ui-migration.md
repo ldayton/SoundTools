@@ -66,3 +66,44 @@ The six focused library cases also passed in Chromium, Firefox and WebKit.
 Native Chrome interaction covered import, rename, right-click, keyboard dismissal,
 focus return and playback with the computer muted. The other three apps passed
 their TypeScript checks against the shared provider change.
+
+## Second milestone: application shell
+
+`src/ui/index.ts` now mounts the React shell before the legacy audio controller
+captures its elements. `application-shell.tsx` owns the header, Mantine view tabs,
+sidebar actions, Files/Settings disclosures, hash navigation and breakpoint state.
+Its viewport and inspector geometry live in `shell.css`; the old layered shell
+rules and imperative navigation handlers have been removed.
+
+This full-height audio workspace uses Mantine layout primitives with the shared
+provider and `RetainedContent`, rather than the practice apps' document-scrolling
+page layout. Existing chart canvases, settings bodies and audio transport nodes
+stay mounted across view changes and breakpoints. Settings remain a desktop
+inspector and a replacement view on mobile. The browser Back/Forward controls,
+Escape, focus return and per-view settings scroll positions remain supported.
+The old 3D page flip is replaced by ordinary visibility changes on mobile.
+
+The shell's React effects own its window listeners. The root has the document's
+lifetime: `pagehide` stops audio without destroying controls that pending cleanup
+may still reference, and a restored cached page retains a usable shell. Branding
+uses the icon URL from the release HTML, so it is served from the same verified
+offline cache as the rest of the app. Settings fields, preset dialogs and transport
+controls are deliberately retained for subsequent incremental milestones.
+
+New browser regressions cover audio/canvas identity across resizing and navigation,
+keyboard tabs, direct settings URLs, history, cached-page restoration and audio
+shutdown. The spectrum unit harness now supplies the shell command boundary;
+actual layout/focus/navigation assertions run against React in the browser.
+
+Local acceptance: build/typecheck, the core suite, 12 shared release tests and
+full offline/update tests passed. The complete Chromium run exercised 191 cases:
+156 passed, 34 intentionally skipped, and one mobile detector test tried to edit
+settings after Pause had returned to the chart. That test now reopens Settings
+and passed on rerun. The final spacing build passed all 10 desktop/mobile shell
+and layout cases; the shell/library/layout cases also passed in Firefox and
+WebKit, with an additional final shell run in each. Golden baselines were not
+regenerated. Native Chrome verified view switching, independent disclosures,
+playback and sidebar dismissal with the computer muted.
+
+The combined shell/library bundle is approximately 135 kB gzip JavaScript and
+38 kB gzip CSS. No audio, pitch or drawing engines have moved into React state.

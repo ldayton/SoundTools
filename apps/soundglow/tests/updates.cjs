@@ -129,6 +129,9 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await context.setOffline(true);await other.reload();
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version);
  await other.waitForFunction(()=>SoundglowDiagnostics.snapshot().events.some(e=>e.code==='cache.navigation.ready'&&e.details.cacheSource==='cache'));
+ await other.waitForFunction(()=>{const icon=document.querySelector('#home img');return icon?.complete&&icon.naturalWidth>0});
+ assert.equal(await other.locator('#home img').getAttribute('src'),await other.locator('link[rel="icon"][type="image/svg+xml"]').evaluate(el=>el.href),'Shell branding uses the cached immutable release asset');
+ await other.getByRole('tab',{name:'Pitch',exact:true}).click();await other.getByRole('tab',{name:'Spectrogram',exact:true}).click();
  await other.getByRole('button',{name:'Play an Example',exact:true}).click();await other.waitForFunction(()=>inputMode==='speech'&&processingStats.frames>200);
  await other.locator('#freeze').click();
  console.log('PASS: failed/inconsistent deployments rejected; offline reload and English speech use cached worklet, worker, WASM and audio');

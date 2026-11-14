@@ -244,50 +244,23 @@ $('freeze').setAttribute('aria-keyshortcuts','Space');
 // chart, so transport actions return to the active visualization there.
 function revealActiveView(){if(!desktopSettings.matches)showSpectrogram()}
 function showSpectrogram(){
-  if(location.hash==='#settings'){history.replaceState(null,'',location.pathname+location.search);syncSettings()}
+  window.SoundglowShell.showView();
 }
 function setBusy(busy){
   for(const id of ['start','begin','demo','microphone'])$(id).disabled=busy;
   $('freeze').disabled=busy||!running;
 }
-const desktopSettings=window.matchMedia('(min-width: 761px)');
-desktopSettings.addEventListener('change',syncSettings);
+const desktopSettings=window.SoundglowShell.media;
 function syncSettings(){
-  const open=location.hash==='#settings',sidebar=desktopSettings.matches;
-  const transport=$(sidebar?'workspaceTransport':'headerActions');
-  if($('start').parentElement!==transport){if(sidebar)transport.append($('start'),$('freeze'));else transport.prepend($('start'),$('freeze'));}
+  const open=location.hash==='#settings';
   if(!open&&$('presetDialog').open)closePresetEditor();
   if(!open&&$('pitchPresetDialog')?.open)$('pitchPresetDialog').close();
-  $('panel').hidden=false;$('panel').inert=!open;$('visual').inert=open&&!sidebar;
-  $('stage').classList.toggle('settings-open',open);
-  $('panel').setAttribute('aria-hidden',String(!open));
-  $('settings').setAttribute('aria-expanded',String(open));
-  $('openSettings').setAttribute('aria-expanded',String(open));
-  $('openSettings').setAttribute('aria-label',open?'Hide settings':'Show settings');
-  $('openSettings').title=open?'Hide settings':'Show settings';
-  if(!open&&$('panel').contains?.(document.activeElement))$(sidebar?'openSettings':'settings').focus();
-  $('settings').textContent='⚙';
-  const settingsLabel=open?(sidebar?'Close settings':`Return to ${window.soundglowSession?.featureState?.().active==='pitch'?'pitch':'spectrogram'}`):'Settings';
-  $('settings').setAttribute('aria-label',settingsLabel);
-  $('settings').title=settingsLabel;
   $('microphoneScope').hidden=inputMode!=='speech';
   if(open)microphones();notifyFeatures('layout');
 }
-function panel(open){
-  if(open===(location.hash==='#settings'))return;
-  if(open)history.pushState({soundglowSettings:true},'',location.pathname+location.search+'#settings');
-  else if(history.state?.soundglowSettings){history.back();return}
-  else history.replaceState(null,'',location.pathname+location.search);
-  syncSettings();
-}
-window.addEventListener('popstate',syncSettings);window.addEventListener('hashchange',syncSettings);
-$('settings').onclick=()=>panel(location.hash!=='#settings');
-$('openSettings').onclick=()=>panel(location.hash!=='#settings');
-$('toggleFiles').onclick=()=>toggleSidebarSection('toggleFiles','filesBody');
-$('settingsSectionToggle').onclick=()=>toggleSidebarSection('settingsSectionToggle','settingsBody');
-function toggleSidebarSection(button,body){const open=$(body).hidden;$(body).hidden=!open;$(button).setAttribute('aria-expanded',String(open));}
-$('openFiles').onclick=()=>openFilesPanel();
-function openFilesPanel(){panel(true);$('filesBody').hidden=false;$('toggleFiles').setAttribute('aria-expanded','true');}
+function panel(open){window.SoundglowShell.panel(open)}
+function openFilesPanel(){window.SoundglowShell.openFiles()}
+window.SoundglowShell.configure({layout:syncSettings,select:()=>{}});
 document.addEventListener('keydown',e=>{
   if(e.defaultPrevented||e.target?.closest?.('[role="menu"],[role="dialog"]')||document.querySelector('dialog[open],#libraryItemDialog,#libraryItemMenu'))return;
   if(e.key==='Escape')panel(false);

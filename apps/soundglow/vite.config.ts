@@ -12,7 +12,7 @@ export default defineConfig({
     target: "es2022",
     sourcemap: true,
     lib: {
-      entry: resolve(__dirname, "src/ui/library-actions.tsx"),
+      entry: resolve(__dirname, "src/ui/index.ts"),
       name: "SoundglowUI",
       formats: ["iife"],
       fileName: () => "library-ui.js",

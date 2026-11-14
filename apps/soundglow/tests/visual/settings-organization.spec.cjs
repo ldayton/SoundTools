@@ -3,7 +3,7 @@ const settings=async page=>page.locator(await page.locator('#openSettings').isVi
 test('navigation, shared controls, playback and feature settings have distinct scopes',async({page},info)=>{
  if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});
  await page.goto('/dist/index.html#settings');
- expect(await page.locator('#featureTabs').evaluate(el=>el.parentElement.id)).toBe('app');
+ await expect(page.getByRole('tablist',{name:'Views'})).toHaveCount(1);await expect(page.locator('#featureTabs')).toHaveAttribute('role','tablist');
  for(const id of ['advancedAnalysis','advancedColour','developerSettings'])await expect(page.locator('#'+id)).not.toHaveAttribute('open','');
  await expect(page.locator('#testControls')).toBeHidden();
  expect(await page.locator('#microphone').evaluate(el=>!!el.closest('#presetSettings'))).toBe(false);

@@ -22,6 +22,7 @@ import {
 import { SoundToolsProvider } from "@ldayton/ui";
 import { createViewState } from "@ldayton/ui/view-state";
 import "./library.css";
+import type { mountApplicationShell } from "./application-shell";
 
 type Kind = "file" | "bookmark";
 type Target = { kind: Kind; id: string };
@@ -49,7 +50,7 @@ type View = {
 const key = (target: Target) => `${target.kind}:${target.id}`;
 
 /** A bounded React UI. AudioLibrary keeps ownership of storage, selection and playback. */
-class LibraryActions {
+export class LibraryActions {
   readonly model = createViewState<View>({
     files: [],
     bookmarks: [],
@@ -455,7 +456,7 @@ function LibraryView({ controller }: { controller: LibraryActions }) {
 declare global {
   interface Window {
     SoundglowLibraryActions: typeof LibraryActions;
+    SoundglowShell: ReturnType<typeof mountApplicationShell>;
     SoundglowDiagnostics?: { capture(error: unknown, context: string): void };
   }
 }
-window.SoundglowLibraryActions = LibraryActions;

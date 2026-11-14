@@ -1,3 +1,4 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import { HymnFrame, hymnBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
 import { shellStatus } from "./shell-status";
@@ -62,6 +63,8 @@ import { persistence } from "./persistence";
 import { HymnProgress, hymnProgressKey, type HymnState } from "./hymn-progress";
 import { hymnPlaybackScore } from "./hymn-playback-score";
 export class SightReading {
+  private disposeView: () => void;
+  private lifetime = new RendererLifetime();
   private body = hymnBodyState();
   private presentation = practicePresentation({});
   private controls = hymnControlsState({
@@ -130,7 +133,6 @@ export class SightReading {
   private session?: WaitForMe;
   private piano: Piano;
   private pianoPanel: ReturnType<typeof mountPracticePiano>;
-  private observer: ResizeObserver;
   private lastWidth = 0;
   private zoom = 1;
   private options!: HymnOptionsState;
@@ -138,6 +140,17 @@ export class SightReading {
   private availableKeys: HymnKey[] = ["original", ...HYMN_KEYS];
   private melodyRangeLabel = "";
   readonly midiSlot: HTMLElement;
+  dispose() {
+    if (this.lifetime.disposed) return;
+    this.active = false;
+    this.closeResults();
+    this.playback.pause();
+    this.lifetime.dispose();
+    this.passage.dispose();
+    this.piano.dispose();
+    this.pianoPanel.dispose();
+    this.disposeView();
+  }
   constructor(
     private element: HTMLElement,
     private acceptanceChanged: () => void,
@@ -196,7 +209,7 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    mountPracticeSurface(
+    this.disposeView = mountPracticeSurface(
       element,
       createElement(HymnFrame, {
         presentation: this.presentation,
@@ -332,13 +345,9 @@ export class SightReading {
         },
       }),
     );
-    this.pianoPanel = mountPracticePiano(
-      this.$(".hymn-piano"),
-      this.$(".sequence-transport"),
-      {
-        changed: () => this.updateRangeHint(),
-      },
-    );
+    this.pianoPanel = mountPracticePiano(this.$(".hymn-piano"), {
+      changed: () => this.updateRangeHint(),
+    });
     this.midiSlot = this.$(".hymn-midi-slot");
     this.piano = new Piano(
       this.$(".hymn-piano"),
@@ -348,14 +357,11 @@ export class SightReading {
       () => this.updateRangeHint(),
     );
 
-    this.observer = new ResizeObserver(() =>
-      requestAnimationFrame(() => {
-        const width = Math.round(this.$(".sequence-score").clientWidth);
-        if (this.active && width > 0 && Math.abs(width - this.lastWidth) > 2)
-          this.render(true);
-      }),
-    );
-    this.observer.observe(this.$(".sequence-score"));
+    this.lifetime.observe(this.$(".sequence-score"), () => {
+      const width = Math.round(this.$(".sequence-score").clientWidth);
+      if (this.active && width > 0 && Math.abs(width - this.lastWidth) > 2)
+        this.render(true);
+    });
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;

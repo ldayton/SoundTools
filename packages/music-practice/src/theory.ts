@@ -1,3 +1,4 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import { TheoryFrame, theoryBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
 import { createElement } from "react";
@@ -61,6 +62,8 @@ function abcNote(n: TheoryNote, includeAccidental = true) {
 }
 /** Shared theory round/input owner. Only the question model varies between the two pages. */
 class TheoryPractice implements LivePractice {
+  private disposeView: () => void;
+  private lifetime = new RendererLifetime();
   private body = theoryBodyState();
   private presentation = practicePresentation({});
   private controls = theoryControlsState({
@@ -86,6 +89,15 @@ class TheoryPractice implements LivePractice {
   private lastKeys: [number, number] | undefined;
   private advanceTimer: number | undefined;
   private pendingAdvance = false;
+  dispose() {
+    if (this.lifetime.disposed) return;
+    this.active = false;
+    this.cancelAdvance();
+    this.lifetime.dispose();
+    this.piano.dispose();
+    this.panel.dispose();
+    this.disposeView();
+  }
   constructor(
     private element: HTMLElement,
     private changed: () => void,
@@ -113,7 +125,7 @@ class TheoryPractice implements LivePractice {
         this.rounds = saved.rounds;
       this.progress = loadProgress(JSON.stringify(saved.progress));
     }
-    mountPracticeSurface(
+    this.disposeView = mountPracticeSurface(
       element,
       createElement(TheoryFrame, {
         presentation: this.presentation,
@@ -188,18 +200,16 @@ class TheoryPractice implements LivePractice {
         },
       }),
     );
-    this.panel = mountPracticePiano(
-      this.$(".theory-piano"),
-      this.$(".sequence-transport"),
-      { changed: () => this.rangeNotice() },
-    );
+    this.panel = mountPracticePiano(this.$(".theory-piano"), {
+      changed: () => this.rangeNotice(),
+    });
     this.piano = new Piano(
       this.$(".theory-piano"),
       (n) => this.answer(n),
       () => this.rangeNotice(),
     );
 
-    window.addEventListener("keydown", (e) => {
+    this.lifetime.listen(window, "keydown", (e) => {
       if (
         !this.active ||
         !this.identifying ||
@@ -239,15 +249,10 @@ class TheoryPractice implements LivePractice {
         }
       }
     });
-    new ResizeObserver(() =>
-      requestAnimationFrame(() => {
-        if (
-          this.active &&
-          this.$(".theory-notation").clientWidth !== this.width
-        )
-          this.draw();
-      }),
-    ).observe(this.$(".theory-notation"));
+    this.lifetime.observe(this.$(".theory-notation"), () => {
+      if (this.active && this.$(".theory-notation").clientWidth !== this.width)
+        this.draw();
+    });
     this.loadRound();
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {

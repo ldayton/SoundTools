@@ -18,6 +18,7 @@ export class ActivityHost {
   private instances = new Map<Mode, PracticeActivity>();
   private pending = new Map<Mode, Promise<PracticeActivity>>();
   private generation = 0;
+  private disposed = false;
   active: PracticeActivity | undefined;
   constructor(
     private options: {
@@ -27,7 +28,19 @@ export class ActivityHost {
       failed(error: unknown, mode: Mode, current: boolean): void;
     },
   ) {}
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.generation++;
+    this.active?.leave();
+    this.active = undefined;
+    for (const instance of new Set(this.instances.values()))
+      instance.dispose?.();
+    this.instances.clear();
+    this.options.changed();
+  }
   async activate(route: AppRoute) {
+    if (this.disposed) return;
     const generation = ++this.generation;
     this.active?.leave();
     this.active = undefined;
@@ -37,22 +50,28 @@ export class ActivityHost {
     try {
       let instance = this.instances.get(mode);
       if (!instance) {
-        const loaded = this.pending.get(mode) || this.options.load(mode);
-        if (loaded instanceof Promise) {
-          const pending = loaded.then((controller) => {
-            this.instances.set(mode, controller);
-            return controller;
-          });
-          this.pending.set(mode, pending);
-          void pending
-            .finally(() => {
-              if (this.pending.get(mode) === pending) this.pending.delete(mode);
-            })
-            .catch(() => {});
-          instance = await pending;
-        } else {
-          instance = loaded;
-          this.instances.set(mode, instance);
+        const existing = this.pending.get(mode);
+        if (existing) instance = await existing;
+        else {
+          const loaded = this.options.load(mode);
+          if (loaded instanceof Promise) {
+            const pending = loaded.then((controller) => {
+              if (this.disposed) controller.dispose?.();
+              else this.instances.set(mode, controller);
+              return controller;
+            });
+            this.pending.set(mode, pending);
+            void pending
+              .finally(() => {
+                if (this.pending.get(mode) === pending)
+                  this.pending.delete(mode);
+              })
+              .catch(() => {});
+            instance = await pending;
+          } else {
+            instance = loaded;
+            this.instances.set(mode, instance);
+          }
         }
       }
       if (generation !== this.generation) return;
@@ -69,7 +88,8 @@ export class ActivityHost {
         this.active = undefined;
         this.options.changed();
       }
-      this.options.failed(error, mode, generation === this.generation);
+      if (!this.disposed)
+        this.options.failed(error, mode, generation === this.generation);
     }
   }
   canInteract(environment: InputEnvironment) {

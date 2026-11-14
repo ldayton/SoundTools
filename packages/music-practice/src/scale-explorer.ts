@@ -37,6 +37,7 @@ import {
 import "./scale-explorer.css";
 
 export class ScaleExplorer implements LivePractice {
+  private disposeView: () => void;
   private body = scaleBodyState();
   readonly inputPolicy = "none" as const;
   private active = false;
@@ -47,6 +48,10 @@ export class ScaleExplorer implements LivePractice {
   }
   leave() {
     this.active = false;
+  }
+  dispose() {
+    this.active = false;
+    this.disposeView();
   }
   interrupt() {}
   answer() {}
@@ -107,7 +112,7 @@ export class ScaleExplorer implements LivePractice {
     this.shift = settings.shift || 0;
     this.labels = settings.labels || "fingers";
     this.returnPosition = settings.returnPosition;
-    mountPracticeSurface(
+    this.disposeView = mountPracticeSurface(
       element,
       createElement(ScaleFrame, {
         body: this.body,

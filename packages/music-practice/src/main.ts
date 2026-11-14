@@ -245,7 +245,7 @@ mountFlashcardView(
 
 const board = new Fretboard($("#fretboard"), answerLocation);
 
-const pianoPanel = mountPracticePiano($("#piano"), $(".flashcard-transport"), {
+const pianoPanel = mountPracticePiano($("#piano"), {
   changed: () => {
     if (fontsReady) refreshPianoRange();
   },
@@ -741,7 +741,15 @@ window.addEventListener("blur", () => {
   midi.setAccepting(false);
 });
 window.addEventListener("focus", refreshMidiAcceptance);
-window.addEventListener("pagehide", () => midi.disconnect());
+window.addEventListener("pagehide", () => {
+  feedbackAdvance.cancel();
+  activities.dispose();
+  midi.dispose();
+  board.dispose();
+  piano.dispose();
+  pianoPanel.dispose();
+  shell.dispose();
+});
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) location.reload();
 });

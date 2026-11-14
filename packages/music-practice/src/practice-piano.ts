@@ -17,17 +17,17 @@ export function isPianoVisible() {
 }
 export function mountPracticePiano(
   keyboard: HTMLElement,
-  transport: HTMLElement,
   options: {
     changed?: () => void;
   } = {},
 ) {
   const panel = keyboard.closest<HTMLElement>(".practice-piano")!;
   let available = true;
+  let disposed = false;
   function render() {
     options.changed?.();
   }
-  onPianoPresentationChange(render);
+  const unsubscribe = onPianoPresentationChange(render);
   function publish() {
     const state = pianoPresentation.getSnapshot();
     flushSync(() =>
@@ -41,7 +41,17 @@ export function mountPracticePiano(
   publish();
   return {
     id: panel.id,
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      unsubscribe();
+      const state = pianoPresentation.getSnapshot();
+      const available = { ...state.available };
+      delete available[panel.id];
+      pianoPresentation.set({ ...state, available });
+    },
     setAvailable(value: boolean) {
+      if (disposed) return;
       available = value;
       publish();
     },

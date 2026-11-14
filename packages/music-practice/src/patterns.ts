@@ -1,3 +1,4 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import { PatternFrame } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
 import { mountPracticeSurface } from "./practice-surfaces";
@@ -30,6 +31,8 @@ import { diagnostics } from "./diagnostics";
 import { mergePatternSettings } from "./patterns-model";
 import { persistence } from "./persistence";
 export class IntervalPatterns {
+  private disposeView: () => void;
+  private lifetime = new RendererLifetime();
   private presentation = practicePresentation({
     context: "Wait for me",
     title: "Follow the pattern.",
@@ -50,7 +53,17 @@ export class IntervalPatterns {
   private events: NoteTimingEvent[] = [];
   private session?: WaitForMe;
   private piano: Piano;
+  private pianoPanel: ReturnType<typeof mountPracticePiano>;
   private width = 0;
+  dispose() {
+    if (this.lifetime.disposed) return;
+    this.active = false;
+    this.cancelAdvance();
+    this.lifetime.dispose();
+    this.piano.dispose();
+    this.pianoPanel.dispose();
+    this.disposeView();
+  }
   constructor(
     private element: HTMLElement,
     private changed: () => void,
@@ -66,7 +79,7 @@ export class IntervalPatterns {
         this.paused = restored.paused;
       }
     } catch {}
-    mountPracticeSurface(
+    this.disposeView = mountPracticeSurface(
       element,
       createElement(PatternFrame, {
         presentation: this.presentation,
@@ -104,23 +117,17 @@ export class IntervalPatterns {
         },
       }),
     );
-    const pianoPanel = mountPracticePiano(
-      this.$(".pattern-piano"),
-      this.$(".sequence-transport"),
-      {},
-    );
+    this.pianoPanel = mountPracticePiano(this.$(".pattern-piano"), {});
     this.midiSlot = this.$(".pattern-midi-slot");
     this.piano = new Piano(this.$(".pattern-piano"), (n) => {
       if (this.accepting) this.answer(n);
     });
 
-    new ResizeObserver(() =>
-      requestAnimationFrame(() => {
-        const w = this.$(".sequence-score").clientWidth;
-        if (this.active && w > 0 && Math.abs(w - this.width) > 2)
-          this.render(true);
-      }),
-    ).observe(this.$(".sequence-score"));
+    this.lifetime.observe(this.$(".sequence-score"), () => {
+      const w = this.$(".sequence-score").clientWidth;
+      if (this.active && w > 0 && Math.abs(w - this.width) > 2)
+        this.render(true);
+    });
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;

@@ -1,9 +1,11 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import { pitchLabel, type PitchSpellings } from "./sight-feedback";
 import { playPianoNote, preparePianoSound } from "./piano-audio";
 import { visiblePianoLayout } from "./piano-layout";
 import { isBlack, keyLabel } from "./piano-model";
 /** Native buttons preserve precise hit testing, focus, and screen-reader access. */
 export class Piano {
+  private lifetime = new RendererLifetime();
   private locked = false;
   private signature = "";
   private focusMidi = 60;
@@ -18,15 +20,18 @@ export class Piano {
   contains(midi: number) {
     return this.buttons().some((b) => Number(b.dataset.piano) === midi);
   }
+  dispose() {
+    if (this.lifetime.disposed) return;
+    this.locked = true;
+    this.lifetime.dispose();
+  }
   constructor(
     private element: HTMLElement,
     private answer: (midi: number) => void,
     private rangeChanged: () => void = () => {},
   ) {
-    new ResizeObserver(() => requestAnimationFrame(() => this.draw())).observe(
-      element,
-    );
-    element.addEventListener("click", (event) => {
+    this.lifetime.observe(element, () => this.draw());
+    this.lifetime.listen(element, "click", (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>(
         "[data-piano]",
       );
@@ -37,7 +42,7 @@ export class Piano {
         this.answer(note);
       }
     });
-    element.addEventListener("keydown", (event) => {
+    this.lifetime.listen(element, "keydown", (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>(
         "[data-piano]",
       );

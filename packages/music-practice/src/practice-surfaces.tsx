@@ -17,6 +17,8 @@ const owners = new WeakMap<
 export function createPracticeRegistry() {
   let snapshot: Snapshot = { views: [], options: [], selection: null };
   const listeners = new Set<() => void>();
+  const hosts = new Set<HTMLElement>();
+  let selectionOwner: HTMLElement | undefined;
   function update(patch: Partial<Snapshot>) {
     snapshot = { ...snapshot, ...patch };
     // Controllers measure renderer hosts immediately after mounting a view.
@@ -32,16 +34,21 @@ export function createPracticeRegistry() {
     },
     bind(element: HTMLElement) {
       owners.set(element, registry);
+      hosts.add(element);
     },
     view(target: HTMLElement, content: ReactNode) {
       if (!snapshot.views.some((view) => view.target === target))
         target.replaceChildren();
+      const view = { target, content };
       update({
         views: [
-          ...snapshot.views.filter((view) => view.target !== target),
-          { target, content },
+          ...snapshot.views.filter((entry) => entry.target !== target),
+          view,
         ],
       });
+      return () => {
+        if (snapshot.views.includes(view)) registry.release(target);
+      };
     },
     options(element: HTMLElement, form: ReactNode) {
       update({
@@ -51,7 +58,23 @@ export function createPracticeRegistry() {
         ],
       });
     },
-    selection(content: ReactNode) {
+    release(element: HTMLElement) {
+      update({
+        views: snapshot.views.filter((view) => view.target !== element),
+        options: snapshot.options.filter((entry) => entry.id !== element.id),
+        ...(selectionOwner === element ? { selection: null } : {}),
+      });
+      if (selectionOwner === element) selectionOwner = undefined;
+    },
+    dispose() {
+      update({ views: [], options: [], selection: null });
+      for (const element of hosts)
+        if (owners.get(element) === registry) owners.delete(element);
+      hosts.clear();
+      listeners.clear();
+    },
+    selection(element: HTMLElement, content: ReactNode) {
+      selectionOwner = element;
       update({ selection: content });
     },
   };
@@ -63,7 +86,7 @@ function owner(element: HTMLElement) {
   return registry;
 }
 export function mountPracticeSurface(element: HTMLElement, content: ReactNode) {
-  owner(element).view(element, content);
+  return owner(element).view(element, content);
 }
 export function registerPracticeOptions(
   element: HTMLElement,
@@ -72,7 +95,7 @@ export function registerPracticeOptions(
   owner(element).options(element, content);
 }
 export function setSidebarSelection(element: HTMLElement, content: ReactNode) {
-  owner(element).selection(content);
+  owner(element).selection(element, content);
 }
 export function PracticeSurfaceViews({
   registry,

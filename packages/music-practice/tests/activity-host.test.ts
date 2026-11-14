@@ -145,3 +145,37 @@ test("failed loads can be retried and invalid routes never become interactive", 
   assert.deepEqual(log, []);
   assert.equal(host.active, undefined);
 });
+
+test("teardown disposes cached activities once and rejects a late lazy controller", async () => {
+  const late = deferred<PracticeActivity>();
+  const log: string[] = [];
+  const cards = {
+    ...activity(log, "cards"),
+    dispose: () => log.push("cards:dispose"),
+  };
+  const delayed = {
+    ...activity(log, "late"),
+    dispose: () => log.push("late:dispose"),
+  };
+  const host = new ActivityHost({
+    load: (mode) => (mode === "staff" ? cards : late.promise),
+    changed() {},
+    missing() {},
+    failed: (error) => {
+      throw error;
+    },
+  });
+  await host.activate(route("/guitar/staff"));
+  const pending = host.activate(route("/piano/patterns"));
+  const repeated = host.activate(route("/piano/patterns"));
+  host.dispose();
+  host.dispose();
+  late.resolve(delayed);
+  await Promise.all([pending, repeated]);
+  await host.activate(route("/guitar/staff"));
+  assert.equal(host.active, undefined);
+  assert.equal(log.filter((value) => value === "cards:dispose").length, 1);
+  assert.equal(log.filter((value) => value === "late:dispose").length, 1);
+  assert.equal(log.includes("late:enter"), false);
+  assert.equal(log.filter((value) => value === "cards:enter").length, 1);
+});

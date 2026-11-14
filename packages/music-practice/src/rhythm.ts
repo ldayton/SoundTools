@@ -1,3 +1,4 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import { RhythmFrame, rhythmBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
 import { mountPracticeSurface } from "./practice-surfaces";
@@ -27,6 +28,8 @@ import { diagnostics } from "./diagnostics";
 import { mergeRhythmSettings } from "./rhythm-model";
 import { persistence } from "./persistence";
 export class RhythmPractice {
+  private disposeView: () => void;
+  private lifetime = new RendererLifetime();
   private body = rhythmBodyState();
   private presentation = practicePresentation({
     context: "Rhythm only",
@@ -54,6 +57,13 @@ export class RhythmPractice {
   private beat = -1;
   private step = -1;
   private tapFeedbackTimer = 0;
+  dispose() {
+    if (this.lifetime.disposed) return;
+    this.active = false;
+    this.stop();
+    this.lifetime.dispose();
+    this.disposeView();
+  }
   constructor(
     private element: HTMLElement,
     private changed: () => void,
@@ -95,7 +105,7 @@ export class RhythmPractice {
       this.bpm = settings.bpm;
       this.level = settings.level;
     } catch {}
-    mountPracticeSurface(
+    this.disposeView = mountPracticeSurface(
       element,
       createElement(RhythmFrame, {
         presentation: this.presentation,
@@ -143,7 +153,7 @@ export class RhythmPractice {
       }),
     );
 
-    window.addEventListener("keydown", (e) => {
+    this.lifetime.listen(window, "keydown", (e) => {
       if (
         this.active &&
         ["countin", "playing"].includes(this.state) &&
@@ -160,14 +170,12 @@ export class RhythmPractice {
         this.answer(60);
       }
     });
-    new ResizeObserver(() =>
-      requestAnimationFrame(() => {
-        const w = this.$(".sequence-score").clientWidth;
-        if (this.active && w > 0 && Math.abs(w - this.width) > 2) {
-          this.render(true);
-        }
-      }),
-    ).observe(this.$(".sequence-score"));
+    this.lifetime.observe(this.$(".sequence-score"), () => {
+      const w = this.$(".sequence-score").clientWidth;
+      if (this.active && w > 0 && Math.abs(w - this.width) > 2) {
+        this.render(true);
+      }
+    });
   }
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;

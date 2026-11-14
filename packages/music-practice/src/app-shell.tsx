@@ -1,3 +1,4 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import {
   ApplicationLayout,
   AppBrand,
@@ -76,6 +77,7 @@ export function mountAppShell(
     return node;
   });
   const registry = createPracticeRegistry();
+  const lifetime = new RendererLifetime();
   const midiPanel = document.createElement("div");
   midiPanel.id = "midi-panel";
   for (const node of [...activityElements, midiPanel]) registry.bind(node);
@@ -341,10 +343,16 @@ export function mountAppShell(
       </StrictMode>,
     ),
   );
-  window.addEventListener("popstate", () =>
+  lifetime.listen(window, "popstate", () =>
     events.navigate(new URL(location.href), false),
   );
   return {
+    dispose() {
+      if (lifetime.disposed) return;
+      lifetime.dispose();
+      registry.dispose();
+      root.unmount();
+    },
     activityElement(mode: LiveMode) {
       return $("#" + LIVE_EXERCISES.find((e) => e.mode === mode)!.rootId);
     },

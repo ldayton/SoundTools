@@ -109,7 +109,11 @@ window.addEventListener("blur", () => {
   midi?.setAccepting(false);
 });
 window.addEventListener("focus", refreshInput);
-window.addEventListener("pagehide", () => midi?.disconnect());
+window.addEventListener("pagehide", () => {
+  practice?.dispose();
+  midi?.dispose();
+  shell.dispose();
+});
 window.addEventListener("pageshow", (event) => {
   if (event.persisted) location.reload();
 });

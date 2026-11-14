@@ -1,3 +1,4 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import type { PracticeEvent } from "./practice-score";
 
 export type Passage = { start: number; end: number };
@@ -12,6 +13,7 @@ type ScoreLine = {
 
 /** A musical span, not a rectangular lasso. Each system gets its own full-height band. */
 export class ScorePassage {
+  private lifetime = new RendererLifetime();
   range?: Passage;
   selecting = false;
   private anchor?: number;
@@ -29,6 +31,13 @@ export class ScorePassage {
   private nodes = new Map<Element, number>();
   private lines: ScoreLine[] = [];
   private scrollFrame = 0;
+  dispose() {
+    if (this.lifetime.disposed) return;
+    this.lifetime.dispose();
+    this.stopPointer();
+    this.nodes.clear();
+    this.lines = [];
+  }
   constructor(
     private paper: HTMLElement,
     private changed: () => void,
@@ -36,7 +45,7 @@ export class ScorePassage {
     private cancelled: () => void,
     private started: () => void,
   ) {
-    paper.addEventListener("pointerdown", (e) => {
+    this.lifetime.listen(paper, "pointerdown", (e) => {
       if (e.button !== 0 || this.pointer) return;
       const index = this.hit(e.clientX, e.clientY, true);
       const origin = this.location(e.clientX, e.clientY);
@@ -56,7 +65,7 @@ export class ScorePassage {
         moved: false,
       };
     });
-    paper.addEventListener("pointermove", (e) => {
+    this.lifetime.listen(paper, "pointermove", (e) => {
       const p = this.pointer;
       // Vertical touch gestures remain native scrolling. Tap two ends, or drag horizontally.
       if (!p || p.id !== e.pointerId) return;
@@ -77,7 +86,7 @@ export class ScorePassage {
       }
       this.paint(starting);
     });
-    paper.addEventListener("pointerup", (e) => {
+    this.lifetime.listen(paper, "pointerup", (e) => {
       const p = this.pointer;
       if (!p || p.id !== e.pointerId) return;
       this.stopPointer();
@@ -86,8 +95,8 @@ export class ScorePassage {
         this.finish();
       } else this.choose(p.index);
     });
-    paper.addEventListener("lostpointercapture", () => this.stopPointer());
-    paper.addEventListener("pointercancel", () => {
+    this.lifetime.listen(paper, "lostpointercapture", () => this.stopPointer());
+    this.lifetime.listen(paper, "pointercancel", () => {
       const dragging = this.pointer?.moved;
       this.stopPointer();
       if (dragging) {
@@ -95,7 +104,7 @@ export class ScorePassage {
         this.cancelled();
       }
     });
-    paper.parentElement!.addEventListener("keydown", (e) => {
+    this.lifetime.listen(paper.parentElement!, "keydown", (e) => {
       delete paper.parentElement!.dataset.pointerSelection;
       if (e.key === "Escape" && this.selecting) {
         e.preventDefault();

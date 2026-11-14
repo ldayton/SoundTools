@@ -7,6 +7,7 @@ export interface PracticeActivity {
   applyRoute?(route: import("./navigation").PracticeRoute): boolean;
   /** Paused/completed note sequences can still accept the intentional hands-free restart gesture. */
   readonly inputPolicy: InputPolicy;
+  dispose?(): void;
   enter(): void;
   leave(): void;
   interrupt(reason: Interruption): void;

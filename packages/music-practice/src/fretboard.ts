@@ -1,10 +1,8 @@
+import { RendererLifetime } from "./renderer-lifetime";
 import type { Profile } from "./exercise-settings";
-import {
-  STRINGS,
-  locationLabel,
-  type GuitarCard,
-} from "./guitar";
+import { STRINGS, locationLabel, type GuitarCard } from "./guitar";
 export class Fretboard {
+  private lifetime = new RendererLifetime();
   private selected: number | null = null;
   private correct: number[] = [];
   private locked = false;
@@ -12,11 +10,16 @@ export class Fretboard {
   private profile!: Profile;
   private interactive = false;
   private focusFret = 0;
+  dispose() {
+    if (this.lifetime.disposed) return;
+    this.locked = true;
+    this.lifetime.dispose();
+  }
   constructor(
     private element: HTMLElement,
     private answer: (string: number, fret: number, keyboard: boolean) => void,
   ) {
-    element.addEventListener("click", (event) => {
+    this.lifetime.listen(element, "click", (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
         "button",
       );
@@ -28,7 +31,7 @@ export class Fretboard {
           event.detail === 0,
         );
     });
-    element.addEventListener("keydown", (event) => {
+    this.lifetime.listen(element, "keydown", (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
         "[data-fret]",
       );

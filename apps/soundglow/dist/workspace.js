@@ -86,7 +86,7 @@
  }
  function controls(force=false,resetDrafts=force){
   const p=state.pitch;for(const [id,value]of [['pitchBandMode',p.bandMode],['pitchTargetLow',p.targetLow],['pitchTargetHigh',p.targetHigh],['pitchMethod',p.method],['pitchConfirmation',p.confirmationMs],['pitchMinimum',p.minimum],['pitchMaximum',p.maximum],['pitchHistory',p.history],['pitchSmoothing',p.smoothing],['pitchSampling',p.samplingMs],['pitchAggregation',p.aggregation],['pitchGap',p.gapMs],['pitchJumps',p.jumpCents],['pitchCorners',p.cornerRadius],['pitchMarkers',p.markers],['pitchLineWidth',p.lineWidth],['pitchMarkerRadius',p.markerRadius],['pitchAxis',p.axis],['pitchDrawing',p.drawing],['pitchEdges',p.edgeExtension],['pitchConfidence',p.confidence],['pitchOutline',p.outlineWidth],['pitchVoicingCeiling',p.voicingCeiling]])if(!pitchUI.owns(id)&&(force||document.activeElement!==$(id)))$(id).value=value;
-  $('pitchTarget').hidden=p.bandMode!=='target';$('pitchReference').hidden=p.bandMode!=='ranges';$('pitchMarkers').disabled=p.drawing!=='curve';$('pitchBridge').checked=p.bridgeUnvoiced;presetControls();$('pitchBands').checked=p.bands;
+  $('pitchTarget').hidden=p.bandMode!=='target';$('pitchReference').hidden=p.bandMode!=='ranges';presetControls();$('pitchBands').checked=p.bands;
   if(!$('pitchRanges').children.length)p.ranges.forEach((band,i)=>{
    const group=document.createElement('div');group.className='pitchRange';
    const title=document.createElement('h5');title.textContent='Band '+(i+1);group.append(title);
@@ -119,7 +119,6 @@
  function applyPitch(id){const oldMethod=state.pitch.method;state=FeatureState.choose(state,id);if(oldMethod!==state.pitch.method)host.refreshFileView?.();$('pitchError').hidden=true;persist();controls(true);lastPaint='';paint();}
  $('pitchPreset').onchange=()=>{if($('pitchPreset').value!=='custom')applyPitch($('pitchPreset').value)};
  for(const [id,key,numeric] of [['pitchBandMode','bandMode'],['pitchTargetLow','targetLow',true],['pitchTargetHigh','targetHigh',true],['pitchMethod','method'],['pitchConfirmation','confirmationMs',true],['pitchSampling','samplingMs',true],['pitchAggregation','aggregation'],['pitchGap','gapMs',true],['pitchJumps','jumpCents',true],['pitchCorners','cornerRadius',true],['pitchMarkers','markers'],['pitchLineWidth','lineWidth',true],['pitchMarkerRadius','markerRadius',true],['pitchAxis','axis'],['pitchDrawing','drawing'],['pitchEdges','edgeExtension'],['pitchConfidence','confidence',true],['pitchOutline','outlineWidth',true],['pitchVoicingCeiling','voicingCeiling',true]])if(!pitchUI.owns(id))$(id).onchange=()=>edit(p=>{p[key]=numeric?Number($(id).value):$(id).value});
- $('pitchBridge').onchange=()=>edit(p=>{p.bridgeUnvoiced=$('pitchBridge').checked});
  $('editPitchPreset').onclick=()=>{const saved=state.presets.find(p=>p.id===state.selected);$('pitchPresetName').value=saved?.name||'';$('deletePitchPreset').hidden=!saved;$('pitchPresetStatus').textContent='';$('pitchPresetDialog').showModal();$('pitchPresetName').focus()};
  $('cancelPitchPreset').onclick=()=>$('pitchPresetDialog').close();
  $('pitchPresetForm').onsubmit=event=>{event.preventDefault();try{state=FeatureState.save(state,$('pitchPresetName').value,'saved-'+crypto.randomUUID());persist();presetControls();$('pitchPresetDialog').close()}catch(error){$('pitchPresetStatus').textContent=error.message}};

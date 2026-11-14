@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from "react";
-import { Checkbox, NativeSelect, Stack, Title } from "@mantine/core";
+import {
+  Accordion,
+  Text,
+  Checkbox,
+  NativeSelect,
+  Stack,
+  Title,
+} from "@mantine/core";
 import { createViewState } from "@ldayton/ui/view-state";
 import pitchOptions from "./pitch-options.json";
 import { CommittedSettingNumber } from "./committed-setting-number";
@@ -24,6 +31,20 @@ const basicFields = {
   pitchSpeechGate: "speechGate",
   pitchConfirmation: "confirmationMs",
   pitchUncertainJumps: "breakUnconfirmedJumps",
+  pitchDrawing: "drawing",
+  pitchEdges: "edgeExtension",
+  pitchVoicingCeiling: "voicingCeiling",
+  pitchConfidence: "confidence",
+  pitchOutline: "outlineWidth",
+  pitchBridge: "bridgeUnvoiced",
+  pitchLineWidth: "lineWidth",
+  pitchMarkerRadius: "markerRadius",
+  pitchSampling: "samplingMs",
+  pitchAggregation: "aggregation",
+  pitchGap: "gapMs",
+  pitchJumps: "jumpCents",
+  pitchCorners: "cornerRadius",
+  pitchMarkers: "markers",
 } as const;
 export function createPitchControls(initial: PitchValues, limits: Limits) {
   const model = createViewState({ values: initial, reset: 0 });
@@ -124,9 +145,85 @@ export function createPitchControls(initial: PitchValues, limits: Limits) {
       </Stack>
     );
   }
+  function Choice({
+    id,
+    label,
+    numeric = false,
+    disabled = false,
+  }: {
+    id: keyof typeof pitchOptions;
+    label: string;
+    numeric?: boolean;
+    disabled?: boolean;
+  }) {
+    const { values } = useSyncExternalStore(model.subscribe, model.getSnapshot),
+      field = basicFields[id];
+    return (
+      <NativeSelect
+        id={id}
+        label={label}
+        data={pitchOptions[id]}
+        value={String(values[field])}
+        onChange={(event) =>
+          edit?.(
+            field,
+            numeric
+              ? Number(event.currentTarget.value)
+              : event.currentTarget.value,
+          )
+        }
+        disabled={disabled}
+      />
+    );
+  }
+  function TraceControls() {
+    const { values } = useSyncExternalStore(model.subscribe, model.getSnapshot);
+    return (
+      <Accordion keepMounted keepMountedMode="display-none">
+        <Accordion.Item id="advancedPitchTrace" value="trace">
+          <Accordion.Control>Advanced trace</Accordion.Control>
+          <Accordion.Panel>
+            <Stack gap="md">
+              <DetectionControls />
+              <Choice id="pitchDrawing" label="Drawing method" />
+              <Choice id="pitchEdges" label="Voiced stretch edges" />
+              <Numeric id="pitchVoicingCeiling" label="Voicing ceiling (Hz)" />
+              <Numeric id="pitchConfidence" label="Minimum confidence" />
+              <Numeric id="pitchOutline" label="Outline width (pixels)" />
+              <Checkbox
+                id="pitchBridge"
+                label="Connect across unvoiced frames"
+                checked={!!values.bridgeUnvoiced}
+                onChange={(event) =>
+                  edit?.("bridgeUnvoiced", event.currentTarget.checked)
+                }
+              />
+              <Numeric id="pitchLineWidth" label="Line width (pixels)" />
+              <Numeric id="pitchMarkerRadius" label="Marker radius (pixels)" />
+              <Choice id="pitchSampling" label="Measurement grouping" numeric />
+              <Choice id="pitchAggregation" label="Grouping method" />
+              <Numeric id="pitchGap" label="Connect across gaps (ms)" />
+              <Choice id="pitchJumps" label="Break on pitch jumps" numeric />
+              <Numeric id="pitchCorners" label="Corner rounding (pixels)" />
+              <Choice
+                id="pitchMarkers"
+                label="Markers"
+                disabled={values.drawing !== "curve"}
+              />
+              <Text size="xs" c="dimmed">
+                Long gap connections bridge missing measurements; the line
+                between them is not a measurement.
+              </Text>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
+    );
+  }
   return {
     BasicControls,
     DetectionControls,
+    TraceControls,
     owns(id: string) {
       return Object.hasOwn(basicFields, id);
     },

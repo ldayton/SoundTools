@@ -1,3 +1,4 @@
+const {setSetting,expandSection}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test'),path=require('node:path');
 test('pitch speech filtering survives fake microphone capture and transport/settings changes',async({playwright},info)=>{
  test.setTimeout(45000);
@@ -7,7 +8,7 @@ test('pitch speech filtering survives fake microphone capture and transport/sett
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#begin').click();
   await page.waitForFunction(()=>Number(document.getElementById('pitchCanvas').dataset.voiced)>10,undefined,{timeout:20000});await expect(page.locator('#state')).toHaveText('LIVE');
   await page.evaluate(()=>{window.microphonePolicyTransport={engine,stream,pcmNode,audio}});
-  await page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings').click();await page.locator('#advancedPitchTrace > summary').click();await page.locator('#pitchSpeechGate').uncheck();await page.locator('#pitchSpeechGate').check();await page.locator('#pitchConfirmation').selectOption('30');await page.locator('#pitchPreset').selectOption('soundglow');
+  await page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings').click();await expandSection(page,'advancedPitchTrace');await page.locator('#pitchSpeechGate').uncheck();await page.locator('#pitchSpeechGate').check();await page.locator('#pitchConfirmation').selectOption('30');await page.locator('#pitchPreset').selectOption('soundglow');
   if(info.project.name!=='desktop')await page.locator('#settings').click();else await page.locator('#openSettings').click();
   await page.locator('#freeze').click();await expect(page.locator('#state')).toHaveText('PAUSED');const frozen=await page.locator('#pitchCanvas').getAttribute('data-plotted-until');await page.waitForTimeout(200);expect(await page.locator('#pitchCanvas').getAttribute('data-plotted-until')).toBe(frozen);await page.locator('#freeze').click();
   await page.waitForFunction(t=>Number(document.getElementById('pitchCanvas').dataset.plottedUntil)>Number(t)+.4,frozen);await expect(page.locator('#pitchError')).toBeHidden();

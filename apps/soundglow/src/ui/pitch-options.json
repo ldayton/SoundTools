@@ -26,5 +26,85 @@
       "value": "50",
       "label": "50 ms"
     }
+  ],
+  "pitchDrawing": [
+    {
+      "value": "curve",
+      "label": "Curve with chosen markers"
+    },
+    {
+      "value": "dots",
+      "label": "Speckles only"
+    },
+    {
+      "value": "auto",
+      "label": "Automatic"
+    }
+  ],
+  "pitchEdges": [
+    {
+      "value": "none",
+      "label": "At measurements"
+    },
+    {
+      "value": "half-frame",
+      "label": "Extend half a frame"
+    }
+  ],
+  "pitchSampling": [
+    {
+      "value": "0",
+      "label": "Every measurement"
+    },
+    {
+      "value": "50",
+      "label": "50 ms"
+    },
+    {
+      "value": "100",
+      "label": "100 ms"
+    },
+    {
+      "value": "200",
+      "label": "200 ms"
+    }
+  ],
+  "pitchAggregation": [
+    {
+      "value": "mean",
+      "label": "Average"
+    },
+    {
+      "value": "continuity",
+      "label": "Closest to preceding group"
+    }
+  ],
+  "pitchJumps": [
+    {
+      "value": "600",
+      "label": "Half an octave"
+    },
+    {
+      "value": "1200",
+      "label": "One octave"
+    },
+    {
+      "value": "0",
+      "label": "Off"
+    }
+  ],
+  "pitchMarkers": [
+    {
+      "value": "spaced",
+      "label": "Spaced"
+    },
+    {
+      "value": "all",
+      "label": "Every group"
+    },
+    {
+      "value": "off",
+      "label": "Off"
+    }
   ]
 }

@@ -44,8 +44,8 @@ export function mountApplicationShell() {
     window.FeatureState.pitch(window.FeatureState.presets.soundglow),
     window.FeatureState.inputLimits,
   );
-  const PitchDetection = pitch.DetectionControls,
-    pitchDetectionHost = take("pitchDetection");
+  const PitchTrace = pitch.TraceControls,
+    pitchTraceHost = take("pitchTrace");
   const PitchBasic = pitch.BasicControls,
     pitchBasicHost = take("pitchBasic");
   const displayHost = take("spectrogramDisplay");
@@ -132,7 +132,7 @@ export function mountApplicationShell() {
       <>
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<PitchBasic />, pitchBasicHost)}
-        {createPortal(<PitchDetection />, pitchDetectionHost)}
+        {createPortal(<PitchTrace />, pitchTraceHost)}
         {createPortal(<ColourControls />, colourHost)}
         {createPortal(<FormantControls />, formantHost)}
         {createPortal(<AnalysisControls />, analysisHost)}

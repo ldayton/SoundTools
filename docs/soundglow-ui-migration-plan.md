@@ -53,7 +53,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 4 ✓ | Advanced spectrogram colour | Normalization clock, frequency/frame interpolation, peak history and decay. Preserve decimal precision, frozen redraw and retained-history performance. |
 | 5 ✓ | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
 | 6 ✓ | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
-| 7 | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
+| 7 ✓ | Pitch trace controls | Drawing/edge modes, confidence, voicing ceiling, outline, gap bridging, widths, sampling, aggregation, jumps, corners and markers. Preserve conditional controls and original pitch data; rendering settings must not rewrite measurements. |
 | 8 | Pitch targets and reference bands | Band visibility, target/reference mode, target bounds and editable reference ranges. Preserve validation and stable field identity while editing. Keep stored presets compatible. |
 | 9 | Spectrogram preset selector and dialog | Move selection and create/rename/delete UI to React. Preserve built-in immutability, named edits, validation, storage-error retry, focus return and toast behavior. Leave storage policy in the controller. |
 | 10 | Pitch preset selector and dialog | Migrate against the existing feature-state model. Share the ordinary form/dialog presentation from step 9 only where semantics match; keep each preset model's policy intact. |
@@ -236,3 +236,15 @@ features, pitch-presets and neural-gate browser specs passed all 32 desktop/mobi
 cases. The speech/confirmation case also passed Firefox and WebKit. Native Chrome
 verified the speech checkbox and preset identity. Tests expand the real disclosure
 instead of setting its DOM `open` property. Next: step 7.
+
+### Step 7 completed
+
+Previous milestone: `3944ee9`. Trace drawing, edges, confidence/ceiling, widths,
+bridging, grouping, gaps, jumps, corners and markers now use React. The advanced
+trace panel is a Mantine Accordion retaining mounted canonical fields. Numeric
+limits moved into FeatureState's exported frozen metadata and replace duplicated
+validation bounds; measurement/grouping algorithms are untouched. Preserved the
+existing labels and option values. Build/typecheck and pitch feature/preset model
+oracles passed; 24 features/pitch-presets/numeric desktop/mobile cases passed.
+Native Chrome verified speckles disables marker choices without losing the value.
+Next: step 8 and the pitch-family checkpoint.

@@ -23,13 +23,11 @@ import {
   hymnRangeLabel,
   type HymnRange,
 } from "./hymn-range";
-import abcjs from "abcjs";
 import { preparePianoPlayback } from "./piano-audio";
 import { HymnPlayback } from "./hymn-playback";
 import { mountPracticePiano, isPianoVisible } from "./practice-piano";
 import {
   hymnSettingsFromQuery,
-  hymnPreferences,
   mergeHymnSettings,
   optionalHymnNote,
   type HymnSettings,
@@ -40,7 +38,6 @@ import {
   HYMN_KEYS,
   type HymnKey,
   hymnKeyLabel,
-  hymnKeySuffix,
   hymnTransposition,
   isHymnKey,
 } from "./hymn-transpose";
@@ -64,27 +61,8 @@ import { Piano } from "./piano";
 import { keyLabel } from "./piano-model";
 import { diagnostics } from "./diagnostics";
 import { persistence } from "./persistence";
-import { bookmark, restoreBookmark, type Bookmark } from "./bookmarks";
-type HymnState = {
-  version: 1;
-  mode?: "wait" | "playback";
-  bpm?: number;
-  countIn?: CountInBars;
-  key?: HymnKey;
-  low?: number | null;
-  high?: number | null;
-  zoom?: number;
-  hymn: string;
-  arrangement: Arrangement;
-  hands?: HymnHands;
-  viewHands?: HymnHands;
-  reattackTies?: boolean;
-  sectionBars: number;
-  section: number;
-  bookmarks: Record<string, Bookmark>;
-  sections: Record<string, number>;
-  preferences?: Record<string, ReturnType<typeof hymnPreferences>>;
-};
+import { HymnProgress, hymnProgressKey, type HymnState } from "./hymn-progress";
+import { hymnPlaybackScore } from "./hymn-playback-score";
 export class SightReading {
   private presentation = practicePresentation({});
   private controls = hymnControlsState({
@@ -120,25 +98,15 @@ export class SightReading {
   private section = 0;
   private sections = 1;
   private position = 0;
-  private bookmarks: Record<string, Bookmark> = {};
+  private progress = new HymnProgress(undefined, []);
   private content = "";
   private legacyBookmark?: { key: string; position: number };
-  private savedSections: Record<string, number> = {};
-  private preferences: Record<string, ReturnType<typeof hymnPreferences>> = {};
-  private handSuffix() {
-    return this.arrangement === "melody" || this.hands === "both"
-      ? ""
-      : `:hands=${this.hands}`;
-  }
-  private selectionKey() {
-    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}${hymnKeySuffix(this.hymn.key, this.key)}${this.handSuffix()}${this.reattackTies ? ":reattack-ties" : ""}`;
-  }
   private restoreSection() {
     this.section = 0;
   }
   private restorePending = true;
   private bookmarkKey() {
-    return `${this.hymn.id}:${this.arrangement}:${this.sectionBars}:${this.section}${hymnKeySuffix(this.hymn.key, this.key)}${this.handSuffix()}${this.reattackTies ? ":reattack-ties" : ""}`;
+    return hymnProgressKey(this.settings(), this.hymn.key);
   }
 
   private mode: "wait" | "playback" = "wait";
@@ -178,29 +146,10 @@ export class SightReading {
       const saved =
         persistence.read<HymnState>("sight") ||
         (persistence.state.legacy.sight as any);
-      if (
-        saved?.version === 1 &&
-        saved.bookmarks &&
-        typeof saved.bookmarks === "object"
-      )
-        this.bookmarks = structuredClone(saved.bookmarks);
-      if (
-        saved?.version === 1 &&
-        saved.sections &&
-        typeof saved.sections === "object"
-      )
-        this.savedSections = structuredClone(saved.sections);
-      if (
-        saved?.version === 1 &&
-        saved.preferences &&
-        typeof saved.preferences === "object"
-      )
-        for (const hymn of hymns)
-          if (saved.preferences[hymn.id])
-            this.preferences[hymn.id] = hymnPreferences(
-              hymn.id,
-              saved.preferences[hymn.id],
-            );
+      this.progress = new HymnProgress(
+        saved,
+        hymns.map((hymn) => hymn.id),
+      );
       if (saved?.hands === "left" || saved?.hands === "right")
         this.hands = saved.hands;
       if (["left", "right"].includes(saved?.viewHands || ""))
@@ -448,12 +397,9 @@ export class SightReading {
     if (!hymn) return false;
     const old = this.settings();
     const switching = hymn.id !== this.hymn.id;
-    if (switching) this.rememberPreferences();
-    const base = switching
-      ? hymnPreferences(hymn.id, this.preferences[hymn.id])
-      : old;
-    if (switching)
-      this.zoom = hymnPreferences(hymn.id, this.preferences[hymn.id]).zoom;
+    if (switching) this.progress.remember(this.settings(), this.zoom);
+    const base = switching ? this.progress.forHymn(hymn.id) : old;
+    if (switching) this.zoom = this.progress.forHymn(hymn.id).zoom;
     const next = hymnSettingsFromQuery(base, route.query);
     const changed =
       old.hymn !== next.hymn ||
@@ -531,40 +477,23 @@ export class SightReading {
       }),
     );
   }
-  private rememberPreferences() {
-    this.preferences[this.hymn.id] = { ...this.settings(), zoom: this.zoom };
-  }
   private save() {
-    this.rememberPreferences();
     this.publishRoute();
-    if (this.session && this.content && !this.passage.range)
-      this.bookmarks[this.bookmarkKey()] = bookmark(
-        this.content,
-        this.position,
-        this.paused,
-        this.session.steps.length,
-      );
-    this.savedSections[this.selectionKey()] = this.section;
-    persistence.write("sight", {
-      version: 1,
-      mode: this.mode,
-      bpm: this.bpm,
-      countIn: this.countIn,
-      key: this.key,
-      low: this.low,
-      high: this.high,
-      zoom: this.zoom,
-      hymn: this.hymn.id,
-      arrangement: this.arrangement,
-      hands: this.hands,
-      viewHands: this.viewHands,
-      reattackTies: this.reattackTies,
-      sectionBars: this.sectionBars,
-      section: this.section,
-      bookmarks: this.bookmarks,
-      sections: this.savedSections,
-      preferences: this.preferences,
-    } satisfies HymnState);
+    persistence.write(
+      "sight",
+      this.progress.snapshot(
+        this.settings(),
+        this.hymn.key,
+        this.zoom,
+        this.session && this.content && !this.passage.range
+          ? {
+              content: this.content,
+              paused: this.paused,
+              length: this.session.steps.length,
+            }
+          : undefined,
+      ),
+    );
   }
   private closeResults() {
     this.searchOpen = false;
@@ -573,7 +502,7 @@ export class SightReading {
   }
   private choose(hymn: (typeof hymns)[number]) {
     this.save();
-    const next = hymnPreferences(hymn.id, this.preferences[hymn.id]);
+    const next = this.progress.forHymn(hymn.id);
     this.hymn = hymn;
     this.key = next.key!;
     this.low = next.low!;
@@ -676,48 +605,24 @@ export class SightReading {
           this.sectionDuration = audio.totalDuration * 4;
           if (!layoutOnly && !continuingPlayback) {
             this.playbackFromSection = this.section;
-            const readAudio = (abc: string) =>
-              abcjs.parseOnly(abc)[0].setUpAudio({
-                qpm: 60,
-                chordsOff: true,
-                midiTranspose: transposition.semitones,
-              });
-            let elapsed = 0;
-            const starts = Array.from({ length: this.sections }, (_, i) => {
-              const start = elapsed;
-              const part =
-                i === this.section
-                  ? audio
-                  : readAudio(
-                      arrangeHymn(
-                        this.hymn,
-                        this.arrangement,
-                        this.sectionBars,
-                        i,
-                        this.viewHands,
-                      ).abc,
-                    );
-              elapsed += part.totalDuration * 4;
-              return start;
+            const prepared = hymnPlaybackScore({
+              hymn: this.hymn,
+              arrangement: this.arrangement,
+              sectionBars: this.sectionBars,
+              section: this.section,
+              hands: this.viewHands,
+              totalBars: score.totalBars,
+              sections: this.sections,
+              abc: score.abc,
+              audio,
+              transpose: transposition.semitones,
             });
-            // A single full-score audio stream preserves ties across section boundaries.
-            // For sectioned original harmony, use the same unfolded bar edition as the display.
-            const fullAudio =
-              this.sections === 1
-                ? audio
-                : readAudio(
-                    arrangeHymn(
-                      this.hymn,
-                      this.arrangement,
-                      score.totalBars,
-                      0,
-                      this.viewHands,
-                    ).abc,
-                  );
-            this.playback.load(fullAudio, starts, this.section, {
-              meter: this.hymn.meter,
-              pickup: abcjs.parseOnly(score.abc)[0].getPickupLength() * 4,
-            });
+            this.playback.load(
+              prepared.audio,
+              prepared.starts,
+              this.section,
+              prepared.timing,
+            );
           }
         },
       });
@@ -777,8 +682,9 @@ export class SightReading {
         !range &&
         (this.restorePending || (this.content && this.content !== content))
       ) {
-        const restored = restoreBookmark(
-          this.bookmarks[this.bookmarkKey()],
+        const restored = this.progress.restore(
+          this.settings(),
+          this.hymn.key,
           content,
           steps.length,
         );

@@ -457,6 +457,11 @@ declare global {
   interface Window {
     SoundglowLibraryActions: typeof LibraryActions;
     SoundglowShell: ReturnType<typeof mountApplicationShell>;
-    SoundglowDiagnostics?: { capture(error: unknown, context: string): void };
+    SoundglowDiagnostics?: {
+      capture(error: unknown, context: string): void;
+      subscribe(listener: () => void): () => void;
+      getState(): { sharing: boolean };
+      setSharing(value: boolean): Promise<unknown>;
+    };
   }
 }

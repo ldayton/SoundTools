@@ -1,7 +1,7 @@
 const {expandSection,sectionExpanded}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 for(const [preset,formants]of [['praat','off'],['voice','off'],['voice','both']])test(`performance report bounds live lag: ${preset}/${formants}`,async({page},testInfo)=>{
- await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption(preset);await page.locator('#formants').selectOption(formants);await expect(page.locator('#developerSettings')).not.toHaveAttribute('open','');await page.locator('#developerSettings > summary').click();await page.locator('#measurePerformance').check();
+ await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption(preset);await page.locator('#formants').selectOption(formants);expect(await sectionExpanded(page,'developerSettings')).toBe(false);await expandSection(page,'developerSettings');await page.locator('#measurePerformance').check();
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.getByRole('button',{name:'Play an Example',exact:true}).click();
  await page.waitForFunction(()=>window.soundglowPerformance.report().metrics.renderCallbackMs?.count>=240);
  const report=await page.evaluate(()=>window.soundglowPerformance.report());await testInfo.attach('performance-report',{body:JSON.stringify(report,null,2),contentType:'application/json'});
@@ -12,7 +12,7 @@ for(const [preset,formants]of [['praat','off'],['voice','off'],['voice','both']]
  await page.getByRole('button',{name:'Settings',exact:true}).click();const downloadPromise=page.waitForEvent('download');await page.locator('#exportPerformance').click();const download=await downloadPromise;expect(download.suggestedFilename()).toMatch(/^soundglow-performance-.*\.json$/);
  // Observe reset synchronously in the real click event: live collection is
  // intentionally allowed to add fresh samples before the next test command.
- await page.evaluate(()=>document.getElementById('resetPerformance').addEventListener('click',()=>{window.performanceResetSnapshot=window.soundglowPerformance.report()},{once:true}));
+ await page.evaluate(()=>document.addEventListener('click',event=>{if(event.target.closest?.('#resetPerformance'))window.performanceResetSnapshot=window.soundglowPerformance.report()},{once:true}));
  await page.locator('#resetPerformance').click();
  const reset=await page.evaluate(()=>window.performanceResetSnapshot);expect(reset.metrics).toEqual({});expect(reset.counts).toEqual({});expect(reset.events).toEqual([]);
  await page.waitForFunction(()=>window.soundglowPerformance.report().metrics.analysisMs?.count>0);
@@ -23,7 +23,7 @@ test('looping fake microphone exports bounded lag across the recording loop',asy
  const path=require('node:path');const browser=await playwright.chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.join(__dirname,'generated/capture.wav')]});
  try{
  const context=await browser.newContext({baseURL:testInfo.project.use.baseURL,viewport:testInfo.project.use.viewport,deviceScaleFactor:testInfo.project.use.deviceScaleFactor,permissions:['microphone']});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption('voice');await expect(page.locator('#developerSettings')).not.toHaveAttribute('open','');await page.locator('#developerSettings > summary').click();await page.locator('#measurePerformance').check();await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.locator('#begin').click();
+ await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption('voice');expect(await sectionExpanded(page,'developerSettings')).toBe(false);await expandSection(page,'developerSettings');await page.locator('#measurePerformance').check();await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.locator('#begin').click();
  await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>32,undefined,{timeout:50000});
  const transport=await page.evaluate(()=>{window.fakeMicrophoneTransport={engine,stream,pcmNode,source,audio};return Number(canvas.dataset.plottedUntil)});
  await page.getByRole('button',{name:'Settings',exact:true}).click();await expandSection(page,'advancedAnalysis');await page.locator('#window').selectOption('0.04');

@@ -5,7 +5,7 @@
     codePattern = /^[a-z][a-z0-9_.-]{0,79}$/;
   const baseFields = {
     view: ["pitch", "spectrogram", "practice"],
-    source: ["mic", "speech"],
+    source: ["mic", "speech", "file"],
     running: "boolean",
     paused: "boolean",
     sampleRate: "number",

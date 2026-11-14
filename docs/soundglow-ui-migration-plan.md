@@ -60,7 +60,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 11 ✓ | Microphone and example controls | Device selection/refresh, permission and disconnected-device states, start/stop/pause/resume, example seek/loop/listen/restart and credits. Preserve pending-operation guards, privacy and mobile return-to-chart behavior. |
 | 12 ✓ | File playback controls | Play/pause/restart, skip, loop, speed, volume and playback options. Preserve playback intent through loading/seeking, end-of-selection restart and desktop-only saved-file support. |
 | 13 ✓ | Selection actions and bookmark creation | Fit/clear selection, bookmark naming/save/cancel and passage bounds. Keep the reserved row geometry; preserve exact selection/view restoration, loop defaults, validation and failed-save retry. Retain the existing waveform gesture engine. |
-| 14 | Offline, update and diagnostic UI | Render current offline/download/update states through React and appropriate shared panels. Keep cache/update/worker logic in its existing controllers. Preserve cancellation/resume/quota/error states, safe update activation, opt-in diagnostics and data scrubbing. Include performance enable/reset/export. |
+| 14 ✓ | Offline, update and diagnostic UI | Render current offline/download/update states through React and appropriate shared panels. Keep cache/update/worker logic in its existing controllers. Preserve cancellation/resume/quota/error states, safe update activation, opt-in diagnostics and data scrubbing. Include performance enable/reset/export. |
 | 15 | Remaining status and welcome UI | Welcome actions, status/readouts, notices and progress. Make asynchronous statuses accessible and React-owned without publishing per-frame canvas data to React. Use the established Mantine feedback idioms. |
 | 16 | Migration cleanup and final acceptance | Remove obsolete selectors, handlers, adapters and temporary bootstrap assumptions. Consolidate shell/library UI into one provider/root if their ownership can now be combined safely; preserve portal focus and cached-page behavior. Keep custom canvas/audio/gesture code outside React. Complete the final checks below. |
 
@@ -338,3 +338,23 @@ expected mobile exclusions; the new retired-save regression passed separately
 (after fixing its setup to open Files before selecting another row). Reserved-row,
 restore and retry checks passed Firefox/WebKit. Native Chrome confirmed pointer
 selection, input focus and Escape returning to Bookmark selection. Next: step 14.
+
+### Step 14 completed — offline checkpoint
+
+Previous milestone: `10a9fa4`. Offline/update/download/progress, developer controls
+and diagnostic consent now render in React. Reused shared OfflineStatusPanel and
+DiagnosticConsent; service-worker/update/session/download policies are unchanged.
+Diagnostics use canonical controller projections, with delegated control tracking
+that works for React-rendered controls. Added allowlisted file-source classification
+(with a privacy regression proving filenames/audio/position remain excluded).
+Performance enable/reset/export retain the original measurement/report model.
+
+Build/typecheck, controller oracle and diagnostics package privacy suite passed.
+12 diagnostics/organization desktop/mobile checks, 8 performance/long fake-capture
+checks and focused consent checks in Firefox/WebKit passed. Real packaged updates
+passed: background staging/live mic continuity, terminated transfers/resume,
+rejected bad releases, offline reload/inference, cancellation, corrupt-cache repair,
+fresh-install offline and retained-release cleanup. Update tests now wait for the
+React button to mount after navigation; release/version assertions remain intact.
+Native Chrome follow-up was blocked when the Mac locked; no unlock was attempted.
+Next: remaining feedback/welcome UI, then cleanup and full acceptance.

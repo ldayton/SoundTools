@@ -669,3 +669,13 @@ test("blocked service-worker access never prevents diagnostics or app initializa
   assert.equal(d.snapshot().app, "notecards");
   await d.dispose();
 });
+test("saved-file source is allowed without accepting recording details", async () => {
+  const { env } = environment();
+  const client = create({ app: "soundglow", snapshot: () => ({ source: "file", filename: "private-name.wav", position: 7, audio: [1, 2] }) }, env);
+  const context = client.snapshot().context;
+  assert.equal(context.source, "file");
+  assert.equal(context.filename, undefined);
+  assert.equal(context.position, undefined);
+  assert.equal(context.audio, undefined);
+  await client.dispose();
+});

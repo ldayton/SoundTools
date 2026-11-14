@@ -1,8 +1,9 @@
+const {expandSection}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 test('diagnostic sharing is opt-in and usable during English playback',async({page})=>{
  const remote=[];page.on('request',r=>{if(/sentry\.io|telemetry\.invalid/.test(r.url()))remote.push(r.url())});
  await page.goto('/dist/index.html');await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>2);
- await page.locator('#openSettings:visible, #settings:visible').click();await page.locator('#developerSettings > summary').click();
+ await page.locator('#openSettings:visible, #settings:visible').click();await expandSection(page,'developerSettings');
  const sharing=page.getByRole('checkbox',{name:'Share diagnostic information',exact:true});
  await expect(sharing).not.toBeChecked();
  await expect(page.locator('.diagnostics-panel button, .diagnostics-panel summary')).toHaveCount(0);

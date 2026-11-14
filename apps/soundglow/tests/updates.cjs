@@ -68,7 +68,7 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  assert(await other.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow with mobile update button');
  await other.screenshot({path:path.join(work,'update-mobile.png')});
  await other.setViewportSize({width:1280,height:720});
- await other.locator('#update').click();await other.waitForFunction(()=>document.querySelector('meta[name="soundglow-release"]').content===document.getElementById('update').dataset.version||document.getElementById('update').hidden);
+ await other.locator('#update').click();await other.waitForFunction(()=>{const button=document.getElementById('update');return button&&(document.querySelector('meta[name="soundglow-release"]').content===button.dataset.version||button.hidden)});
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version);
  assert.equal(await page.evaluate(()=>running&&inputMode==='mic'),true,'Updating another tab must not interrupt the microphone');
  assert.equal(requests.filter(p=>p.split('?')[0].endsWith('.wasm')).length,wasmBefore,'UI update must reuse the WASM');

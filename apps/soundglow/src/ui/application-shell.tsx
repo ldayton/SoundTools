@@ -20,6 +20,7 @@ import {
   createSpectrogramPresets,
   createPitchPresets,
 } from "./preset-controls";
+import { createSystemControls } from "./system-controls";
 import { createSelectionControls } from "./selection-controls";
 import { createFileControls } from "./file-controls";
 import { createTransportControls } from "./transport-controls";
@@ -46,6 +47,12 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  const system = createSystemControls();
+  const Offline = system.Offline,
+    Developer = system.Developer,
+    Update = system.Update;
+  const offlineHost = take("offlineSettings"),
+    developerHost = take("developerControls");
   const selectionControls = createSelectionControls();
   const Selection = selectionControls.Selection,
     PlaybackOptions = selectionControls.Options;
@@ -169,6 +176,9 @@ export function mountApplicationShell() {
         )}
         {createPortal(<Selection />, selectionHost)}
         {createPortal(<FileTime />, fileTimeHost)}
+        {createPortal(<Offline />, offlineHost)}
+        {createPortal(<Developer />, developerHost)}
+        {createPortal(<Update />, retained.actions)}
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<Presets />, presetsHost)}
         {createPortal(<PitchPresets />, pitchPresetsHost)}
@@ -377,6 +387,8 @@ export function mountApplicationShell() {
     transport,
     fileControls,
     selectionControls,
+    offline: system.offline,
+    performance: system.performance,
     pitch,
     panel,
     openFiles,

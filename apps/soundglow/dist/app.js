@@ -27,6 +27,7 @@ window.soundglowSession={
  subscribe(listener){featureSubscribers.add(listener);return ()=>featureSubscribers.delete(listener)},
  measure:(name,ms)=>performanceSession?.add(name,ms),
  state:()=>({running,paused,time:audio?.currentTime||0,displayedUntil:Number(canvas.dataset.plottedUntil),sampleRate:audio?.sampleRate||0,audioState:audio?.state||'unavailable'}),
+ diagnosticState:()=>({source:inputMode==='speech'?'speech':inputMode==='file'?'file':'mic',state:$('state').textContent,analysisRate:Number(setting('analysisRate')),windowMs:Number(setting('window'))*1000,preset:['soundglow','praat','voice'].includes(settingsState.selected)?settingsState.selected:'custom'}),
  fileView:()=>filePreview,
  refreshFileView:()=>{if(filePreview)requestFileView(filePreview);},
  raw:()=>engine?.raw||[],
@@ -555,11 +556,11 @@ if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPrese
 
 function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,workspace:window.soundglowSession?.featureState?.(),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:currentPresetSettings(),preset:selectedPresetLabel(),visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',retention:{spectraBytes:spectrumHistory.bytes,pcmBytes:engine?.rawBytes||0},appliedAnalysis:committedAnalysisValues,updatingAnalysis:!!engine?.rebuild,health:{...processingStats}})}
 window.soundglowPerformance={report:performanceReport,reset:()=>performanceSession.reset()};
-if($('measurePerformance')){
- $('measurePerformance').onchange=()=>{performanceSession.enabled=$('measurePerformance').checked;performanceSession.reset();};
- $('resetPerformance').onclick=()=>performanceSession.reset();
- $('exportPerformance').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(performanceReport(),null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='soundglow-performance-'+Date.now()+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-}
+window.SoundglowShell.performance.connect({
+ enable(enabled){performanceSession.enabled=enabled;performanceSession.reset();window.SoundglowShell.performance.publish(enabled)},
+ reset(){performanceSession.reset()},
+ export(){const url=URL.createObjectURL(new Blob([JSON.stringify(performanceReport(),null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='soundglow-performance-'+Date.now()+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+});
 
 document.addEventListener('visibilitychange',()=>{performanceSession?.count('visibilityChanges');performanceSession?.break();});
 

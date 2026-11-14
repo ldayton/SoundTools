@@ -12,6 +12,7 @@ const fixtureSettings=Object.fromEntries(Object.entries(elements).map(([id,e])=>
 // geometry, routing, keyboard and focus behavior are covered by browser tests.
 env.window.SoundglowShell={media:{matches:false},configure({layout}){this.layout=layout},panel(open){history.replaceState(null,'',open?'#settings':'/');location.hash=open?'#settings':'';this.layout?.()},showView(){history.replaceState(null,'','/');this.layout?.()},openFiles(){this.panel(true)}};
 env.window.SoundglowShell.display={owns:()=>false,connect(){},publish(){}};
+env.window.SoundglowShell.performance={connect(){},publish(){}};
 env.window.SoundglowShell.transport={
  connect(actions){for(const [id,action] of Object.entries({start:'start',freeze:'pause',demo:'example',refreshMic:'refresh',restart:'restart'}))elements[id].onclick=actions[action];elements.seek.oninput=()=>actions.seek(Number(elements.seek.value));elements.loop.onchange=()=>actions.loop(elements.loop.checked);elements.listen.onchange=()=>actions.listen(elements.listen.checked)},
  publish(view){if('busy' in view)elements.start.disabled=view.busy;if('example'in view)elements.testControls.hidden=!view.example;if('listen'in view)elements.listen.checked=view.listen;if('loop'in view)elements.loop.checked=view.loop}

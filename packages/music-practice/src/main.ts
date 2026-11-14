@@ -69,7 +69,6 @@ import {
 } from "./piano-model";
 import { Fretboard } from "./fretboard";
 import "./style.css";
-import "./workspace.css";
 import "./styles/practice.css";
 import { setupOffline } from "./offline";
 import { offlineState } from "./offline-state";

@@ -4,15 +4,8 @@
   --muted: #7c8276;
   --line: #dedfd5;
   --orange: #ec8052;
-  font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-}
-body {
-  margin: 0;
-}
-[hidden] {
-  display: none !important;
 }
 .practice-card {
   position: relative;
@@ -74,12 +67,5 @@ body {
   }
   .dorego-mobile-count {
     display: block;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
   }
 }

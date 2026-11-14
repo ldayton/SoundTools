@@ -1,36 +1,24 @@
 /* Shared practice surfaces, independent of which notation engine draws the score. */
 .sequence-practice {
-  border-radius: 12px;
-}
-.sequence-practice {
   padding: var(--mantine-spacing-md);
 }
 
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 16px 12px;
-  font-size: 12px;
-}
-
 .sequence-transport {
-  margin: 12px 0 0;
+  margin: var(--mantine-spacing-sm) 0 0;
 }
 .flashcard-transport {
-  margin: 12px 16px 16px;
-}
-.flashcard-transport :is(#feedback-next, #restart-round) {
-  margin: 0;
+  margin: var(--mantine-spacing-sm) var(--mantine-spacing-md)
+    var(--mantine-spacing-md);
 }
 .practice-piano {
-  margin-top: 16px;
-  padding: 12px;
-  border-top: 1px solid #e5dfd3;
-  border-radius: 8px;
-  background: #f1eee6;
+  margin-top: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-sm);
+  border-top: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-default-hover);
 }
 .practice > .practice-piano {
-  margin: 16px;
+  margin: var(--mantine-spacing-md);
 }
 .practice-piano .piano-layout {
   margin: 0 auto;
@@ -60,11 +48,13 @@
   max-height: clamp(220px, calc(100dvh - 500px), 560px);
 }
 
-.sound-credits {
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 12px;
-  color: #766899;
+/* Fit complete systems on phones; engraving measures their height after drawing. */
+@media (max-width: 600px) {
+  #sight-reading .sequence-score,
+  #sight-reading:has(.practice-piano:not([hidden])) .sequence-score {
+    height: auto;
+    max-height: var(--phone-score-height, 260px);
+  }
 }
 
 /* Letter answers stay key-sized on a wide practice surface. */
@@ -188,5 +178,10 @@
 /* Standard controls own their appearance; these margins align them with retained scores. */
 .practice .presentation-feedback,
 .practice > .presentation-progress {
-  margin-inline: 16px;
+  margin-inline: var(--mantine-spacing-md);
+}
+
+.hymn-range-hint {
+  color: #71351f;
+  font-weight: 600;
 }

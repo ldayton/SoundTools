@@ -50,6 +50,8 @@ function Header({ model, kind }: { model: Model; kind: Kind }) {
       <Group
         justify="space-between"
         gap="xs"
+        p={kind === "flashcard" ? "md" : undefined}
+        pb={kind === "flashcard" ? "sm" : undefined}
         className={kind === "flashcard" ? "card-top" : "sequence-top"}
       >
         <Text

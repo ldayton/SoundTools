@@ -257,15 +257,6 @@ export function mountAppShell(
             }
           }}
           blocked={status.blocked}
-          mainClassName={
-            snapshot.routeKind !== "exercise"
-              ? undefined
-              : snapshot.selected === "sight"
-                ? "hymn-layout"
-                : snapshot.selected === "piano"
-                  ? "piano-layout-wide"
-                  : undefined
-          }
         >
           <Alert
             id="persistence-notice"

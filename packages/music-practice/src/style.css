@@ -1,44 +1,3 @@
-:root {
-  font-synthesis: none;
-  font-smoothing: antialiased;
-}
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-}
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  text-decoration: none;
-  color: inherit;
-  font-size: 23px;
-  font-weight: 650;
-  letter-spacing: -1px;
-}
-
-.dot {
-  color: #bd785b;
-}
-.family {
-  font-size: 10px;
-  font-weight: 650;
-  letter-spacing: 2px;
-  color: #8b8794;
-}
-.intro {
-  text-align: center;
-  margin-bottom: 32px;
-}
-.eyebrow {
-  font-size: 10px;
-  letter-spacing: 1.8px;
-  font-weight: 650;
-  color: #837b94;
-}
-
 .correct {
   color: #4b7655;
 }
@@ -62,27 +21,7 @@ body {
 .mobile-hint {
   display: none;
 }
-footer {
-  text-align: center;
-  color: #a29aa8;
-  font-size: 11px;
-  padding: 24px;
-}
-
-[hidden] {
-  display: none !important;
-}
 @media (max-width: 600px) {
-  .brand {
-    font-size: 20px;
-  }
-  .family {
-    font-size: 9px;
-  }
-  .intro {
-    margin-bottom: 25px;
-  }
-
   .keyboard {
     padding: 18px 16px;
   }
@@ -92,14 +31,6 @@ footer {
   .mobile-hint {
     display: inline;
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  * {
-    scroll-behavior: auto !important;
-  }
-}
-.tuning {
-  color: #8b8493;
 }
 #named-note {
   text-align: center;
@@ -258,19 +189,6 @@ footer {
   }
 }
 
-.round-length {
-  flex-direction: column;
-  align-items: stretch;
-  max-width: 280px;
-}
-
-#name-notes-setting {
-  align-items: stretch;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 280px;
-}
-
 .board-scroll {
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -298,26 +216,10 @@ footer {
   }
 }
 
-.brand-icon {
-  margin-right: 8px;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-}
-
 /* A continuous desktop keyboard becomes octave rows on narrow screens. */
 #question.piano-question {
   display: flex;
   flex-direction: column;
-}
-.piano-question #named-note {
-  height: 225px;
-  padding: 12px 24px 0;
-}
-.piano-question #named-note {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .piano-layout {
@@ -338,6 +240,16 @@ footer {
   position: relative;
   height: 144px;
 }
+.piano-landmark {
+  position: absolute;
+  bottom: 7px;
+  left: 0;
+  width: 100%;
+  font-size: 10px;
+  color: #8b8296;
+  pointer-events: none;
+}
+
 .piano-key {
   position: absolute;
   top: 0;
@@ -413,14 +325,10 @@ footer {
   margin: auto;
 }
 @media (max-width: 600px) {
-  .piano-question #named-note {
-    height: 150px;
-    padding: 4px 12px 0;
-  }
-
   .piano-layout {
     flex-direction: column;
-    gap: 16px;
+    align-items: center;
+    gap: 8px;
   }
 }
 
@@ -431,28 +339,6 @@ footer {
   font-weight: 650;
   letter-spacing: 1px;
   color: #81768e;
-}
-
-#midi-panel {
-  order: 3;
-  padding: 0 24px 18px;
-  background: #f1eee6;
-}
-
-.midi-status {
-  overflow-wrap: anywhere;
-  margin: 0;
-  font-size: 12px;
-  color: #81768e;
-  line-height: 1.5;
-}
-.midi-connected .midi-status {
-  color: #4b7655;
-}
-@media (max-width: 600px) {
-  #midi-panel {
-    padding: 0 16px 18px;
-  }
 }
 
 .piano-range-notice {
@@ -482,7 +368,6 @@ footer {
 }
 
 .sequence-score {
-  max-height: 380px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
@@ -504,15 +389,7 @@ footer {
 .hymn-piano .sight-key-selected {
   background: #b7a7d3;
 }
-@media (max-width: 600px) {
-  .sequence-score {
-    max-height: 300px;
-  }
-}
 
-.pattern-piano {
-  margin-top: 20px;
-}
 .rhythm-beats {
   display: flex;
   gap: 12px;
@@ -548,48 +425,6 @@ footer {
   stroke: #b0653e;
 }
 
-#midi-panel {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-#midi-panel .midi-status {
-  margin: 0 0 14px;
-}
-/* Reserve the scrollbar gutter without drawing a track for a short score. */
-.hymn-layout .sequence-score {
-  overflow-y: auto;
-  scrollbar-width: auto;
-  scrollbar-color: #8b829e #eae5da;
-}
-.hymn-layout .sequence-score::-webkit-scrollbar {
-  width: 12px;
-}
-.hymn-layout .sequence-score::-webkit-scrollbar-track {
-  background: #eae5da;
-  border-radius: 6px;
-}
-.hymn-layout .sequence-score::-webkit-scrollbar-thumb {
-  background: #8b829e;
-  border: 2px solid #eae5da;
-  border-radius: 6px;
-}
-
-#midi-panel {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 16px;
-}
-#midi-panel .midi-status {
-  flex: 0 1 auto;
-  margin: 0;
-}
-#midi-panel .midi-actions {
-  margin: 0;
-  flex: 0 1 auto;
-}
 .hymn-no-key {
   margin: 0;
   padding: 48px 24px;

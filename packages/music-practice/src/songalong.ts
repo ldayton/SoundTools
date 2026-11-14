@@ -11,7 +11,6 @@ import { offlineState } from "./offline-state";
 import { restorePianoVisibility } from "./practice-piano";
 import type { Interruption } from "./live-practice";
 import "./style.css";
-import "./workspace.css";
 import "./styles/practice.css";
 import "./styles/songalong.css";
 

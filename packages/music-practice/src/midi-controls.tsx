@@ -26,7 +26,14 @@ export function MidiControls({
       gap="sm"
       className={`soundtools-ui ${value.state === "connected" ? "midi-connected" : ""}`}
     >
-      <Text size="sm" className="midi-status" role="status" aria-live="polite">
+      <Text
+        size="sm"
+        c={value.state === "connected" ? "green" : "dimmed"}
+        style={{ overflowWrap: "anywhere" }}
+        className="midi-status"
+        role="status"
+        aria-live="polite"
+      >
         {value.text}
       </Text>
       <NativeSelect

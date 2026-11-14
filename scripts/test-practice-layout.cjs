@@ -221,6 +221,45 @@ const server = spawn(
         ),
       );
     }
+    if (app === "notewise") {
+      // Every activity uses the shell's full practice column and the same surface chrome.
+      const radius = await page
+        .locator(".practice-surface:visible")
+        .evaluate((element) => getComputedStyle(element).borderRadius);
+      for (const mode of [
+        "staff",
+        "patterns",
+        "rhythm",
+        "scales",
+        "intervals",
+        "guitar-scales",
+        "signature",
+        "piano",
+      ]) {
+        await nav.locator(`a[data-mode="${mode}"]`).click();
+        const activity = page.locator(".practice-surface:visible");
+        await activity.waitFor();
+        const column = await page
+          .locator(".practice-workspace-content")
+          .boundingBox();
+        const card = await activity.boundingBox();
+        assert(
+          Math.abs(column.width - card.width) < 2,
+          `${mode}: practice fills its column`,
+        );
+        assert(
+          Math.abs(column.x - card.x) < 2,
+          `${mode}: practice starts at the column edge`,
+        );
+        assert.equal(
+          await activity.evaluate(
+            (element) => getComputedStyle(element).borderRadius,
+          ),
+          radius,
+          `${mode}: shared surface corners`,
+        );
+      }
+    }
     const out = path.join(root, "work/layout-review");
     await mkdir(out, { recursive: true });
     await page.screenshot({ path: path.join(out, `${app}-${engine}.png`) });

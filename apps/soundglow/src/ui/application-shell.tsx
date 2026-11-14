@@ -20,6 +20,7 @@ import {
   createSpectrogramPresets,
   createPitchPresets,
 } from "./preset-controls";
+import { createWorkspaceFeedback } from "./workspace-feedback";
 import { createSystemControls } from "./system-controls";
 import { createSelectionControls } from "./selection-controls";
 import { createFileControls } from "./file-controls";
@@ -35,10 +36,8 @@ type Handlers = { layout(): void; select(feature: Feature): void };
 export function mountApplicationShell() {
   const take = (id: string) => document.getElementById(id)!;
   const retained = {
-    state: take("state"),
     actions: take("headerActions"),
     transport: take("workspaceTransport"),
-    notice: take("notice"),
     visual: take("visual"),
     files: take("filesBody"),
     settings: take("settingsBody"),
@@ -47,6 +46,21 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  const feedback = createWorkspaceFeedback();
+  const StateLabel = feedback.State,
+    Notice = feedback.Notice,
+    Footer = feedback.Footer,
+    Welcome = feedback.Welcome,
+    LibraryHeader = feedback.LibraryHeader,
+    Bookmarks = feedback.Bookmarks,
+    FileTitle = feedback.FileTitle,
+    AnalysisStatus = feedback.AnalysisStatus;
+  const welcomeHost = take("welcomeHost"),
+    footerHost = take("footerHost"),
+    libraryHeaderHost = take("libraryHeader"),
+    bookmarksHost = take("bookmarksHost"),
+    fileTitleHost = take("fileTitleHost"),
+    analysisStatusHost = take("analysisStatusHost");
   const system = createSystemControls();
   const Offline = system.Offline,
     Developer = system.Developer,
@@ -65,6 +79,7 @@ export function mountApplicationShell() {
     fileOptionsHost = take("filePlaybackOptions"),
     fileTimeHost = take("fileTimeHost");
   const transport = createTransportControls();
+  const WelcomeActions = transport.WelcomeActions;
   const TransportButtons = transport.Buttons,
     MicrophoneControls = transport.Microphone,
     ExampleControls = transport.Example;
@@ -179,6 +194,17 @@ export function mountApplicationShell() {
         {createPortal(<Offline />, offlineHost)}
         {createPortal(<Developer />, developerHost)}
         {createPortal(<Update />, retained.actions)}
+        {createPortal(
+          <Welcome>
+            <WelcomeActions />
+          </Welcome>,
+          welcomeHost,
+        )}
+        {createPortal(<Footer />, footerHost)}
+        {createPortal(<LibraryHeader />, libraryHeaderHost)}
+        {createPortal(<Bookmarks />, bookmarksHost)}
+        {createPortal(<FileTitle />, fileTitleHost)}
+        {createPortal(<AnalysisStatus />, analysisStatusHost)}
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<Presets />, presetsHost)}
         {createPortal(<PitchPresets />, pitchPresetsHost)}
@@ -205,10 +231,7 @@ export function mountApplicationShell() {
                 </Text>
               </Group>
             </Anchor>
-            <RetainedContent
-              element={retained.state}
-              className="shell-retained"
-            />
+            <StateLabel />
           </Group>
           <Group gap="xs" wrap="nowrap" className="soundglow-actions">
             <Button
@@ -299,10 +322,9 @@ export function mountApplicationShell() {
           id="stage"
           className={view.open ? "settings-open" : undefined}
         >
-          <RetainedContent
-            element={retained.notice}
-            className="shell-retained"
-          />
+          <Box className="soundtools-ui">
+            <Notice />
+          </Box>
           <RetainedContent
             element={retained.visual}
             className="shell-retained"
@@ -387,6 +409,7 @@ export function mountApplicationShell() {
     transport,
     fileControls,
     selectionControls,
+    feedback,
     offline: system.offline,
     performance: system.performance,
     pitch,

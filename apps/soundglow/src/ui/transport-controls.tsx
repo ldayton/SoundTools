@@ -12,11 +12,13 @@ import {
   Stack,
   Text,
   Title,
+  UnstyledButton,
 } from "@mantine/core";
 import { createViewState } from "@ldayton/ui/view-state";
 import { SettingsSlider } from "./settings-slider";
 
 type View = {
+  filesAvailable: boolean;
   busy: boolean;
   running: boolean;
   pauseEnabled: boolean;
@@ -33,6 +35,7 @@ type View = {
   listen: boolean;
 };
 type Actions = {
+  openAudio(): void;
   start(): void;
   pause(): void;
   example(): void;
@@ -47,6 +50,7 @@ const time = (n: number) =>
   `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
 export function createTransportControls() {
   const model = createViewState<View>({
+    filesAvailable: true,
     busy: false,
     running: false,
     pauseEnabled: false,
@@ -94,6 +98,73 @@ export function createTransportControls() {
           {view.pauseIcon}
         </ActionIcon>
       </Group>
+    );
+  }
+  function WelcomeActions() {
+    const view = useView();
+    return (
+      <>
+        <UnstyledButton
+          id="begin"
+          className="vintage-mic"
+          disabled={view.busy}
+          aria-label="Start microphone"
+          title="Start microphone"
+          onClick={() => actions?.start()}
+        >
+          <svg
+            viewBox="0 0 160 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect
+              x="45"
+              y="15"
+              width="70"
+              height="122"
+              rx="35"
+              stroke="currentColor"
+              strokeWidth="7"
+            />
+            <path
+              d="M48 48h64M46 65h68M46 82h68M48 99h64M55 116h50M80 19v112"
+              stroke="currentColor"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M28 88v23c0 30 23 52 52 52s52-22 52-52V88M80 163v48M51 218h58"
+              stroke="currentColor"
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+            <path
+              d="M38 229h84"
+              stroke="currentColor"
+              strokeWidth="9"
+              strokeLinecap="round"
+            />
+          </svg>
+        </UnstyledButton>
+        <Button
+          id="demo"
+          variant="default"
+          disabled={view.busy}
+          aria-pressed={view.example}
+          onClick={() => actions?.example()}
+        >
+          Play an Example
+        </Button>
+        <Button
+          id="openAudio"
+          variant="default"
+          disabled={view.busy || !view.filesAvailable}
+          onClick={() => actions?.openAudio()}
+        >
+          Open audio
+        </Button>
+      </>
     );
   }
   function Microphone() {
@@ -212,6 +283,7 @@ export function createTransportControls() {
     );
   }
   return {
+    WelcomeActions,
     Buttons,
     Microphone,
     Example,

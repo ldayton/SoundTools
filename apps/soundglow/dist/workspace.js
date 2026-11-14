@@ -94,7 +94,7 @@
   $('plot').setAttribute('aria-labelledby',pitch?'pitchTab':'spectrogramTab');
   $('plot').setAttribute('aria-label',pitch?'Live pitch: frequency vertically, time horizontally':'Live spectrogram: frequency vertically, time horizontally');
   $('workspaceToolbar').setAttribute('aria-label','Audio controls');
-  if(pitch)$('resolution').textContent=FeatureState.presetName(state);
+  if(pitch)window.SoundglowShell.feedback.publish({resolution:FeatureState.presetName(state)});
  }
  const scrollPositions={spectrogram:0,pitch:0};
  function select(feature){if(feature===state.active)return;scrollPositions[state.active]=$('settingsBody').scrollTop;state.active=feature;persist();lastPaint='';layout();$('settingsBody').scrollTop=scrollPositions[feature];if(feature==='spectrogram')updateResolution();syncPitch();paint()}

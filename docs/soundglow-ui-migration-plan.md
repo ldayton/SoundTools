@@ -61,7 +61,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 12 ✓ | File playback controls | Play/pause/restart, skip, loop, speed, volume and playback options. Preserve playback intent through loading/seeking, end-of-selection restart and desktop-only saved-file support. |
 | 13 ✓ | Selection actions and bookmark creation | Fit/clear selection, bookmark naming/save/cancel and passage bounds. Keep the reserved row geometry; preserve exact selection/view restoration, loop defaults, validation and failed-save retry. Retain the existing waveform gesture engine. |
 | 14 ✓ | Offline, update and diagnostic UI | Render current offline/download/update states through React and appropriate shared panels. Keep cache/update/worker logic in its existing controllers. Preserve cancellation/resume/quota/error states, safe update activation, opt-in diagnostics and data scrubbing. Include performance enable/reset/export. |
-| 15 | Remaining status and welcome UI | Welcome actions, status/readouts, notices and progress. Make asynchronous statuses accessible and React-owned without publishing per-frame canvas data to React. Use the established Mantine feedback idioms. |
+| 15 ✓ | Remaining status and welcome UI | Welcome actions, status/readouts, notices and progress. Make asynchronous statuses accessible and React-owned without publishing per-frame canvas data to React. Use the established Mantine feedback idioms. |
 | 16 | Migration cleanup and final acceptance | Remove obsolete selectors, handlers, adapters and temporary bootstrap assumptions. Consolidate shell/library UI into one provider/root if their ownership can now be combined safely; preserve portal focus and cached-page behavior. Keep custom canvas/audio/gesture code outside React. Complete the final checks below. |
 
 ## Autonomous execution loop
@@ -358,3 +358,20 @@ fresh-install offline and retained-release cleanup. Update tests now wait for th
 React button to mount after navigation; release/version assertions remain intact.
 Native Chrome follow-up was blocked when the Mac locked; no unlock was attempted.
 Next: remaining feedback/welcome UI, then cleanup and full acceptance.
+
+### Step 15 completed
+
+Previous milestone: `f70efb8`. Welcome actions/artwork, state badge, notices, footer,
+file titles, analysis feedback and library import/empty/status/bookmark-heading UI
+now render in React. Controller snapshots contain labels/booleans only; audio,
+measurement buffers and waveform frames remain outside React. File storage failure
+disables both entry points while leaving microphone practice available. Retained
+canvas/waveform hosts are unchanged. Removed ordinary native control/text writes.
+
+Build/typecheck and controller oracle passed. Shell/file/diagnostics/display/pitch
+browser coverage: 32 passes and 8 expected desktop/mobile exclusions. Failure/retry
+checks: 3 Chromium passes plus expected mobile exclusion; both cases passed
+Firefox/WebKit. WebKit required mocking IDBFactory.prototype rather than an
+indexedDB instance to reliably inject storage denial. Native follow-up remains
+blocked by the locked Mac. Next: consolidate roots, remove obsolete CSS/adapters,
+and full local acceptance.

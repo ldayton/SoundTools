@@ -27,7 +27,7 @@ window.soundglowSession={
  subscribe(listener){featureSubscribers.add(listener);return ()=>featureSubscribers.delete(listener)},
  measure:(name,ms)=>performanceSession?.add(name,ms),
  state:()=>({running,paused,time:audio?.currentTime||0,displayedUntil:Number(canvas.dataset.plottedUntil),sampleRate:audio?.sampleRate||0,audioState:audio?.state||'unavailable'}),
- diagnosticState:()=>({source:inputMode==='speech'?'speech':inputMode==='file'?'file':'mic',state:$('state').textContent,analysisRate:Number(setting('analysisRate')),windowMs:Number(setting('window'))*1000,preset:['soundglow','praat','voice'].includes(settingsState.selected)?settingsState.selected:'custom'}),
+ diagnosticState:()=>({source:inputMode==='speech'?'speech':inputMode==='file'?'file':'mic',state:transportLabel,analysisRate:Number(setting('analysisRate')),windowMs:Number(setting('window'))*1000,preset:['soundglow','praat','voice'].includes(settingsState.selected)?settingsState.selected:'custom'}),
  fileView:()=>filePreview,
  refreshFileView:()=>{if(filePreview)requestFileView(filePreview);},
  raw:()=>engine?.raw||[],
@@ -179,12 +179,13 @@ function paintSpectrum(slices,width,x,maximum=displayMaximum){
   PraatDisplay.colourPixels(slices,width,pxH,maximum,range,gain,packedColours,image.data,viewValue('compression'),viewValue('suppression'));
   ctx.putImageData(image,x,pxTop);
 }
-const transportUI=window.SoundglowShell.transport;
+const transportUI=window.SoundglowShell.transport,feedbackUI=window.SoundglowShell.feedback;
+let transportLabel='MIC OFF';
 let microphoneId='',microphoneRefresh=0,exampleLoop=true,exampleListen=false;
 function publishTransport(){transportUI.publish({busy:starting,running,pauseEnabled:running,example:inputMode==='speech',microphone:microphoneId,loop:exampleLoop,listen:exampleListen})}
-function notice(message){$('notice').textContent=message;$('notice').hidden=!message}
-function state(text,live=false){publishTransport();if(['CONNECTING','LOADING'].includes(text))window.SoundglowDiagnostics?.frame(performance.now(),false);window.SoundglowDiagnostics?.event('transport.state',{state:text});$('state').textContent=text;$('state').classList.toggle('live',live)}
-function stop(keepFileView=false){if(!keepFileView)clearFileView();if(inputMode==='file'){fileLibrary?.release();fileMediaSource?.disconnect();}window.SoundglowDiagnostics?.frame(performance.now(),false);notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed'){if(audio===fileAudioContext)audio.suspend().catch(()=>{});else audio.close().catch(()=>{});}stream=source=audio=null;paused=false;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');$('device').textContent=stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'}
+function notice(message){feedbackUI.publish({notice:message})}
+function state(text,live=false){publishTransport();if(['CONNECTING','LOADING'].includes(text))window.SoundglowDiagnostics?.frame(performance.now(),false);window.SoundglowDiagnostics?.event('transport.state',{state:text});transportLabel=text;feedbackUI.publish({state:text,live})}
+function stop(keepFileView=false){if(!keepFileView)clearFileView();if(inputMode==='file'){fileLibrary?.release();fileMediaSource?.disconnect();}window.SoundglowDiagnostics?.frame(performance.now(),false);notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed'){if(audio===fileAudioContext)audio.suspend().catch(()=>{});else audio.close().catch(()=>{});}stream=source=audio=null;paused=false;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');feedbackUI.publish({device:stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'});}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   const request=++microphoneRefresh;
@@ -227,10 +228,10 @@ function microphoneError(e){
 }
 
 async function chooseMicrophone(id){microphoneId=id;publishTransport();notice('');if(running&&inputMode==='mic'){stop();await start();}}
-async function start(){if(starting)return;revealActiveView();if(running){const wasSpeech=inputMode!=='mic';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;$('welcome').hidden=true;setIcon('start','■','Stop microphone');state('LIVE',true);microphones();$('device').textContent=stream.getAudioTracks()[0].label||'MICROPHONE';updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){if(!returningHome){if(e.name==='NotAllowedError')window.SoundglowDiagnostics?.event('microphone.permission_denied');else window.SoundglowDiagnostics?.capture(e,'microphone.start_failed');}stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
+async function start(){if(starting)return;revealActiveView();if(running){const wasSpeech=inputMode!=='mic';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;feedbackUI.publish({welcome:false});setIcon('start','■','Stop microphone');state('LIVE',true);microphones();feedbackUI.publish({device:stream.getAudioTracks()[0].label||'MICROPHONE'});updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){if(!returningHome){if(e.name==='NotAllowedError')window.SoundglowDiagnostics?.event('microphone.permission_denied');else window.SoundglowDiagnostics?.capture(e,'microphone.start_failed');}stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
 function selectedPresetLabel(){return ({soundglow:'Soundglow',praat:'Praat',voice:'Voice Tools',custom:'Unnamed Preset*'})[settingsState.selected]||savedPresets.find(p=>p.id===settingsState.selected)?.name||'Unnamed Preset*'}
-function updateResolution(){$('resolution').textContent=window.soundglowSession?.viewLabel?.()||selectedPresetLabel()}
-$('begin').onclick=start;
+function updateResolution(){feedbackUI.publish({resolution:window.soundglowSession?.viewLabel?.()||selectedPresetLabel()})}
+
 async function togglePause(){
   if(inputMode==='file'&&fileLibrary){await fileLibrary.toggle();return;}
   if(!running||starting)return;
@@ -253,7 +254,6 @@ function showSpectrogram(){
   window.SoundglowShell.showView();
 }
 function setBusy(busy){
-  for(const id of ['begin','demo'])$(id).disabled=busy;
   transportUI.publish({busy,running,pauseEnabled:running});
 }
 const desktopSettings=window.SoundglowShell.media;
@@ -391,13 +391,13 @@ async function startSpeech(){
     speechDestination=audio.createMediaStreamDestination();stream=speechDestination.stream;await connectInput(stream);
     monitor=audio.createGain();exampleListen=true;publishTransport();monitor.gain.value=1;monitor.connect(audio.destination);
     inputMode='speech';running=true;paused=false;transportUI.publish({duration:speechBuffer.duration});
-    $('welcome').hidden=true;setIcon('freeze','⏸','Pause');$('demo').textContent='Play an Example';$('demo').setAttribute('aria-pressed','true');setIcon('start','🎙︎','Use microphone');
-    $('device').textContent='TEST INPUT · RECORDED SPEECH';state('EXAMPLE',true);updateResolution();redraw();playFrom(0);raf=requestAnimationFrame(render);
+    feedbackUI.publish({welcome:false});setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Use microphone');
+    feedbackUI.publish({device:'TEST INPUT · RECORDED SPEECH'});state('EXAMPLE',true);updateResolution();redraw();playFrom(0);raf=requestAnimationFrame(render);
   }catch(e){if(!returningHome)window.SoundglowDiagnostics?.capture(e,'example.start_failed');stop();if(!returningHome)notice(e.message||'Could not start recorded speech.')}
   finally{starting=false;returningHome=false;setBusy(false)}
 }
-$('demo').onclick=startSpeech;
-transportUI.connect({start,pause:togglePause,example:startSpeech,refresh:microphones,microphone:chooseMicrophone,
+
+transportUI.connect({openAudio(){openFilesPanel();$('audioFileInput').click()},start,pause:togglePause,example:startSpeech,refresh:microphones,microphone:chooseMicrophone,
  seek(time){if(running&&inputMode==='speech')playFrom(time)},
  restart(){if(running&&inputMode==='speech'){playFrom(0);redraw()}},
  loop(enabled){exampleLoop=enabled;if(speechNode){const position=speechPosition();clipOffset=position;clipStarted=audio.currentTime;speechNode.loop=enabled}publishTransport()},
@@ -409,8 +409,8 @@ $('home').onclick=e=>{
   e.preventDefault();
   returningHome=starting;
   stop();showSpectrogram();redraw();notice('');
-  $('welcome').hidden=false;state('MIC OFF');
-  $('device').textContent='MICROPHONE';
+  feedbackUI.publish({welcome:true});state('MIC OFF');
+  feedbackUI.publish({device:'MICROPHONE'});
   updateResolution();
 };
 
@@ -580,14 +580,14 @@ fileLibrary=new SoundglowAudioLibrary.AudioLibrary({
    monitor=audio.createGain();monitor.gain.value=1;monitor.connect(audio.destination);fileMediaSource.connect(monitor);
    if(epoch!==fileConnectEpoch)throw new Error('File selection changed');inputMode='file';running=true;paused=true;
    clipOffset=media.currentTime;clipStarted=audio.currentTime;
-   $('welcome').hidden=true;setIcon('start','🎙︎','Use microphone');setIcon('freeze','▶','Resume');$('device').textContent='AUDIO FILE · ON THIS DEVICE';state('PAUSED');redraw();notifyFeatures('fileview');raf=requestAnimationFrame(render);
+   feedbackUI.publish({welcome:false});setIcon('start','🎙︎','Use microphone');setIcon('freeze','▶','Resume');feedbackUI.publish({device:'AUDIO FILE · ON THIS DEVICE'});state('PAUSED');redraw();notifyFeatures('fileview');raf=requestAnimationFrame(render);
   }catch(error){stop();throw error;}finally{starting=false;setBusy(false);}
  },
  async resume(){if(inputMode==='file'&&audio){await audio.resume();clipOffset=fileLibrary.position;clipStarted=audio.currentTime;}},
  paused(value){if(inputMode!=='file')return;paused=value;clipOffset=fileLibrary.position;clipStarted=audio.currentTime;setIcon('freeze',value?'▶':'⏸',value?'Resume':'Pause');state(value?'PAUSED':'FILE',!value);if(value)audio.suspend().catch(()=>{});notifyFeatures('render');},
  discontinuity(position){if(inputMode==='file'&&audio){clipOffset=position;clipStarted=audio.currentTime;}drawAnalysis();},
- selected(){clearFileView();$('welcome').hidden=true;},
- unavailable(){fileConnectEpoch++;if(inputMode==='file')stop();else if(filePreview)clearFileView();redraw();if(!running)$('welcome').hidden=false;},
+ selected(){clearFileView();feedbackUI.publish({welcome:false});},
+ unavailable(){fileConnectEpoch++;if(inputMode==='file')stop();else if(filePreview)clearFileView();redraw();if(!running)feedbackUI.publish({welcome:true});},
  viewChanged:requestFileView,
  selectionChanged(selection){if(filePreview){filePreview.selection=selection;drawAnalysis();}},
  canRestore(){return !running&&!starting;},
@@ -603,25 +603,25 @@ function drawFileMarkers(g,left,top,width,height){
 function clearFileView(){
  $('app')?.classList.toggle('file-inspection',false);filePreviewGeneration++;clearTimeout(filePreviewTimer);fileInspector?.clear();filePreview=null;
  delete canvas.dataset.fileStart;delete canvas.dataset.fileEnd;delete canvas.dataset.fileFrames;
- if($('fileAnalysisStatus'))$('fileAnalysisStatus').textContent='';notifyFeatures('fileview');
+ feedbackUI.publish({analysisStatus:''});notifyFeatures('fileview');
 }
 function requestFileView({start,end,blob}){
  if(!blob)return;$('app')?.classList.toggle('file-inspection',true);const generation=++filePreviewGeneration;clearTimeout(filePreviewTimer);fileInspector?.cancel();
  const configKey=JSON.stringify([analysisValues(),window.soundglowSession.featureState?.().pitch.method]),previous=filePreview?.blob===blob&&filePreview.configKey===configKey?filePreview:null;
  filePreview={start,end,blob,configKey,features:previous?.features||[],history:previous?.history||new PraatDisplay.SpectrumHistory({seconds:Infinity,maxBytes:32*1024*1024}),timeStep:previous?.timeStep||.01,selection:fileLibrary.loop};
  canvas.dataset.fileStart=start;canvas.dataset.fileEnd=end;canvas.dataset.fileFrames=0;
- if(!running){state('FILE');$('device').textContent='AUDIO FILE · ON THIS DEVICE';}
- $('fileAnalysisStatus').textContent='Loading analysis…';redraw();notifyFeatures('fileview');
+ if(!running){state('FILE');feedbackUI.publish({device:'AUDIO FILE · ON THIS DEVICE'});}
+ feedbackUI.publish({analysisStatus:'Loading analysis…'});redraw();notifyFeatures('fileview');
  filePreviewTimer=setTimeout(async()=>{
   try{
    fileInspector ||= new SoundglowFileAnalysis(praatWorkerURL,fileLibrary.reader);
-   const result=await fileInspector.analyse(blob,start,end,{...analysisSettings(),pitchMethod:window.soundglowSession.featureState?.().pitch.method||'raw'},progress=>{if(generation===filePreviewGeneration)$('fileAnalysisStatus').textContent='Loading analysis… '+Math.round(progress*100)+'%';});
+   const result=await fileInspector.analyse(blob,start,end,{...analysisSettings(),pitchMethod:window.soundglowSession.featureState?.().pitch.method||'raw'},progress=>{if(generation===filePreviewGeneration)feedbackUI.publish({analysisStatus:'Loading analysis… '+Math.round(progress*100)+'%'});});
    if(!result||generation!==filePreviewGeneration)return;
    filePreview.features=result.features;filePreview.timeStep=result.timeStep;
    filePreview.history=new PraatDisplay.SpectrumHistory({seconds:Infinity,maxBytes:32*1024*1024});filePreview.history.append(result.frames,{frequencyStep:result.geometry.frequencyStep,firstFrequency:result.geometry.firstFrequency,spectrumUnits:result.geometry.spectrumUnits});
    let peakState=newPeakState();for(const f of filePreview.history.frames)f.levelMaximum=AnalysisSettings.heldMaximum(peakState,levelCache.get(f,viewValue('preemphasis')).peak,f.time);
-   canvas.dataset.fileFrames=filePreview.history.frames.length;$('fileAnalysisStatus').textContent='';redraw();notifyFeatures('fileview');
-  }catch(error){if(generation===filePreviewGeneration){$('fileAnalysisStatus').textContent='Could not analyse this section. Playback is still available.';window.SoundglowDiagnostics?.event('files.analysis_failed');}}
+   canvas.dataset.fileFrames=filePreview.history.frames.length;feedbackUI.publish({analysisStatus:''});redraw();notifyFeatures('fileview');
+  }catch(error){if(generation===filePreviewGeneration){feedbackUI.publish({analysisStatus:'Could not analyse this section. Playback is still available.'});window.SoundglowDiagnostics?.event('files.analysis_failed');}}
  },120);
 }
 window.soundglowSession.drawFileMarkers=drawFileMarkers;

@@ -90,8 +90,7 @@
       this.playback=new SoundglowFileAudio.PassagePlayer(()=>host.context(),this.reader,(position,error)=>{this.wantPlay=false;this.finishedRange=error?null:{fileId:this.current?.id,start:this.playback.start,end:this.playback.end};this.position=position;host.paused(true);if(error)this.message('This passage could not be decoded. Try a different format.');this.draw();this.savePosition(true);});
       const $ = id => document.getElementById(id); this.$ = $;
       $('audioFileInput').onchange = e => { void this.importFiles([...e.target.files]); e.target.value = ''; };
-      $('openAudio').onclick = () => { host.openFiles(); $('audioFileInput').click(); };
-      $('importAudio').onclick = () => $('audioFileInput').click();
+      this.feedback=window.SoundglowShell.feedback;this.feedback.connectLibrary(()=>$('audioFileInput').click());
       this.actions = new SoundglowLibraryActions($('filesBody'), {
         find: (kind,id) => this.libraryItem(kind,id),
         open: (kind,id) => { if (kind === 'file') void this.select(id); else void this.openBookmark(id); },
@@ -129,10 +128,10 @@
     get position(){return this.playback.active?this.playback.position:this.media.currentTime;}
     set position(value){this.media.currentTime=value;}
     get isPaused(){return !this.playback.active&&this.media.paused;}
-    message(text) { this.$('audioLibraryStatus').textContent = text; }
+    message(text) {this.feedback.publish({libraryStatus:text})}
     async initialize() {
       try { this.store = await AudioLibraryStore.open();await this.store.pruneStaged(); this.files = (await this.store.list()).sort((a, b) => a.addedAt - b.addedAt); this.bookmarks = (await this.store.bookmarks()).filter(b => this.validBookmark(b)).sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0)); this.renderList(); const selected = await this.store.preference(); if (this.files.some(f => f.id === selected) && this.desktop.matches && this.host.canRestore()) await this.select(selected); }
-      catch { window.SoundglowDiagnostics?.event('files.storage_failed'); this.message('Device storage is unavailable. Audio files could not be saved.'); this.$('importAudio').disabled = true; this.$('openAudio').disabled = true; }
+      catch { window.SoundglowDiagnostics?.event('files.storage_failed'); this.message('Device storage is unavailable. Audio files could not be saved.'); this.feedback.publish({storageAvailable:false});window.SoundglowShell.transport.publish({filesAvailable:false}); }
     }
     metadata(blob) {
       return new Promise((resolve, reject) => {
@@ -146,7 +145,7 @@
     async importFiles(files) {
       await this.ready;
       if (!this.desktop.matches || !this.store || this.importing) return;
-      this.importing = true; this.$('importAudio').disabled = true;
+      this.importing = true; this.feedback.publish({importing:true});
       let first = null, saved = 0, failed = 0;
       for (const file of [...files]) {
         try {
@@ -157,7 +156,7 @@
           await this.store.add(meta, file.slice(0,file.size,file.type)); window.SoundglowDiagnostics?.event('files.saved'); this.files.push(meta); first ||= meta.id; saved++;
         } catch (e) { failed++; this.message(e?.name === 'QuotaExceededError' ? 'Device storage is full. Remove a recording to make room.' : e?.message || 'Could not save this audio file.'); }
       }
-      this.importing = false; this.$('importAudio').disabled = false; this.renderList();
+      this.importing = false; this.feedback.publish({importing:false}); this.renderList();
       if (saved) { this.message(`${saved} ${saved === 1 ? 'file saved' : 'files saved'} on this device${failed ? ` · ${failed} could not be added` : ''}.`); void navigator.storage?.persist?.().catch(() => {}); if (!this.current) await this.select(first); }
     }
     libraryItem(kind,id) {
@@ -173,7 +172,7 @@
       const item = (kind === 'file' ? this.files : this.bookmarks).find(item => item.id === id);
       if (!item) throw Error('Item no longer exists');
       await this.store.rename(kind,id,name); item.name = name;
-      if (this.current?.id === id && kind === 'file') this.$('fileTitle').textContent = name;
+      if (this.current?.id === id && kind === 'file') this.feedback.publish({fileTitle:name});
       this.renderList();
     }
     renderList() {
@@ -185,7 +184,7 @@
       }
       this.actions.renderList('file', rows);
       this.renderBookmarks();
-      this.$('audioEmpty').hidden = !!this.files.length;
+      this.feedback.publish({empty:!this.files.length});
     }
     validBookmark(bookmark) {
       const file = this.files.find(f => f.id === bookmark?.fileId), selection = bookmark?.selection;
@@ -197,7 +196,7 @@
     renderBookmarks() {
       this.actions.closeMenu();
       const rows = [];
-      this.$('audioBookmarks').hidden = !this.bookmarks.length;
+      this.feedback.publish({bookmarks:!!this.bookmarks.length});
       for (const bookmark of this.bookmarks) {
         const file = this.files.find(f => f.id === bookmark.fileId); if (!file) continue;
         const range = `${formatPreciseTime(bookmark.selection.start)}–${formatPreciseTime(bookmark.selection.end)}`;
@@ -237,7 +236,7 @@
       this.cancelBookmark(); this.finishedRange = null;
       const epoch = ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
       this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);
-      this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.$('fileTitle').textContent = file.name; this.loopEnabled = false; this.draw();
+      this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.feedback.publish({fileTitle:file.name}); this.loopEnabled = false; this.draw();
       try {
         const blob = await this.store.get(id); if (epoch !== this.epoch) return; if (!blob) throw Error('This saved recording is missing. Please open it again.');
         this.blob = blob; this.url = URL.createObjectURL(blob); this.media.src = this.url;

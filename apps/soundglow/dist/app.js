@@ -450,14 +450,15 @@ try{
   restoredPreset=stored.selected;
  }
 }catch{/* Corrupt or unavailable storage must not prevent audio use. */}
-let presetToastTimer;
-function savedPresetStatus(text){
+let presetToastTimer,presetWriteFailed=false;
+function savedPresetStatus(text,storageFailed=false){
+ presetWriteFailed=storageFailed;
  $('presetStatus').textContent=text;$('presetToast').hidden=true;clearTimeout(presetToastTimer);
  if(text&&!$('presetDialog').open){$('presetToast').textContent=text;$('presetToast').hidden=false;presetToastTimer=setTimeout(()=>$('presetToast').hidden=true,6000)}
 }
 function persistPresets(presets=savedPresets,selected=settingsState.selected){
  try{localStorage.setItem(presetStorageKey,JSON.stringify({version:1,presets,selected}));return true}
- catch{savedPresetStatus('Could not save presets in this browser. Allow local storage and try again.');return false}
+ catch{savedPresetStatus('Could not save presets in this browser. Allow local storage and try again.',true);return false}
 }
 function renderSavedPresets(){
  for(const option of [...$('preset').options])if(option.value.startsWith('saved-'))option.remove();
@@ -468,15 +469,12 @@ function settingsForPreset(id){return (Object.hasOwn(displayPresets,id)?displayP
 function syncPreset(edited=false){
  $('preset').value=settingsState.selected;
  $('unnamedPreset').hidden=$('preset').value!=='custom';
- $('floor').disabled=setting('colourLevels')==='held';
  $('resampleQuality').disabled=setting('resampling')!=='polyphase';
- $('fixedMaximumControl').hidden=setting('colourLevels')!=='fixed';
- $('fixedMaximumOut').textContent=value('fixedMaximum')+' dB';$('suppressionOut').textContent=value('suppression')+' dB';updateResolution();
+ updateResolution();
 }
 function renderSettingsControls(){
  for(const id of savedSettingIds)if(!displayControls.owns(id))$(id).value=setting(id);
  displayControls.publish(settingsState.values);
- for(const [id,text] of [['floorOut',value('floor')+' dB'],['gainOut',value('gain')+' dB'],['preemphasisOut',value('preemphasis')+' dB/octave'],['compressionOut',Math.round(value('compression')*100)+'%']])$(id).textContent=text;
  syncPreset();
 }
 function applySettingsEffects({changed,effects}){
@@ -501,7 +499,7 @@ function applySettingsEffects({changed,effects}){
 function updateSettings(event){
  let result;try{result=SettingsState.transition(settingsState,event)}catch(error){renderSettingsControls();notice(error.message);return false;}
  if(event.type==='edit'){
-  savedPresetStatus('');
+  if(!presetWriteFailed)savedPresetStatus('');
   const selected=savedPresets.find(p=>p.id===settingsState.selected);
   if(selected){
    const next=savedPresets.map(p=>p.id===selected.id?{...p,settings:{...result.state.values}}:p);

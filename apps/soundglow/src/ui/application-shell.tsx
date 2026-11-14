@@ -41,6 +41,8 @@ export function mountApplicationShell() {
   const display = createDisplayControls(window.SettingsState.registry);
   const displayHost = take("spectrogramDisplay");
   const DisplayControls = display.Controls;
+  const ColourControls = display.ColourControls;
+  const colourHost = take("spectrogramColour");
   const media = window.matchMedia("(min-width: 761px)");
   const model = createViewState({
     desktop: media.matches,
@@ -114,6 +116,7 @@ export function mountApplicationShell() {
     return (
       <>
         {createPortal(<DisplayControls />, displayHost)}
+        {createPortal(<ColourControls />, colourHost)}
         <Box component="header" className="soundglow-header soundtools-ui">
           <Group className="brand" gap="xs" wrap="nowrap">
             <Anchor

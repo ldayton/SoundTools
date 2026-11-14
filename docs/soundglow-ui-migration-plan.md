@@ -6,8 +6,8 @@
 - Application shell: `7d6a7d8`.
 - Spectrogram Display controls: `84ca66b`.
 - These milestones are committed locally. Publication is not part of this plan.
-- This document is a plan, not authorization to start the remaining implementation.
-  Once the user authorizes execution, work through the checklist autonomously,
+- Execution of the whole plan was authorized by the user on 2026-11-14.
+  Work through the checklist autonomously,
   test locally and commit each completed milestone. Do not push, deploy or alter
   production configuration without subsequent authorization.
 - Implementation notes and completed verification live in
@@ -148,8 +148,25 @@ failure justifies doing so.
 
 ## Execution log
 
-No remaining implementation milestone has started. Begin with step 1 after the
-user authorizes this plan.
+### Step 1 completed
+
+Colour/contrast controls retain SettingsState ownership; React owns values,
+units, conditional visibility and disabled states. Extracted the slider
+presentation used by history and contrast. Fixed a real regression exposed by
+continuous slider events: a failed named-preset write now remains visible during
+subsequent drag events. Tests no longer write DOM values behind React's back.
+
+- Build/typecheck: `npm run build:ui --workspace=soundglow` passed.
+- Pure validation/transport: `node tests/settings-state.cjs` and
+  `node tests/spectrum.cjs` passed from the app directory.
+- Browser: settings-state, presets and overlays specs across desktop/mobile:
+  44 initially passed; four failed (two tests per viewport). The manual-input
+  test was updated to use real controls; the failed-write test exposed the bug
+  fixed above. All four passed on rerun.
+- Native Chrome: held-peak mode disables dynamic range and hides fixed maximum;
+  sidebar and native select interaction verified with the saved public fixture.
+- Next: step 2, formant controls.
+
 
 For each milestone append: scope; controller/view ownership; changed behavior;
 commands and results; manual browser verification; commit hash; and the next step.

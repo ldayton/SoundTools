@@ -1,5 +1,5 @@
 const {test,expect}=require('@playwright/test');
-const {setHistory}=require('./settings-input.cjs');
+const {setSetting,setHistory}=require('./settings-input.cjs');
 test('Voice Tools and Praat presets switch during English playback',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html#settings');
  await expect(page.locator('#unnamedPreset')).toHaveAttribute('hidden','');await expect(page.locator('#savePresetForm')).toBeHidden();expect(await page.evaluate(()=>!document.getElementById('presetSettings').contains(document.getElementById('microphone'))&&!!(document.getElementById('microphone').compareDocumentPosition(document.getElementById('preset'))&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
@@ -16,7 +16,7 @@ test('Voice Tools and Praat presets switch during English playback',async({page}
  await page.getByRole('button',{name:'Settings',exact:true}).click();await page.locator('#preset').selectOption('praat');
  for(const [id,value] of Object.entries({maximum:'5000',scale:'linear',history:'10',floor:'70',gain:'0',window:'0.005',preemphasis:'6',compression:'0',colourLevels:'auto',suppression:'0'}))await expect(page.locator('#'+id)).toHaveValue(value);
  await expect(page.locator('#fixedMaximumControl')).toBeHidden();
- await page.locator('#suppression').fill('5');await expect(page.locator('#preset')).toHaveValue('custom');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await expect(page.locator('#unnamedPreset')).not.toHaveAttribute('hidden','');await page.locator('#preset').selectOption('praat');
+ await setSetting(page,'suppression','5');await expect(page.locator('#preset')).toHaveValue('custom');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await expect(page.locator('#unnamedPreset')).not.toHaveAttribute('hidden','');await page.locator('#preset').selectOption('praat');
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();
  await page.waitForFunction(before=>audio.currentTime>before.time&&processingStats.frames>before.frames+100,before);
  expect(await page.evaluate(()=>running&&!paused&&inputMode==='speech')).toBe(true);expect(errors).toEqual([]);
@@ -24,7 +24,7 @@ test('Voice Tools and Praat presets switch during English playback',async({page}
 
 test('naming, renaming and deleting presets persist without a saved grouping or save button',async({page})=>{
  await page.goto('/dist/index.html#settings');await expect(page.locator('#preset optgroup')).toHaveCount(0);await expect(page.locator('#confirmPresetName')).toBeHidden();
- await page.locator('#floor').fill('45');await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('Vowel focus*');await page.locator('#presetName').press('Enter');await expect(page.locator('#presetStatus')).toContainText('cannot include *');await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(0);
+ await setSetting(page,'floor','45');await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('Vowel focus*');await page.locator('#presetName').press('Enter');await expect(page.locator('#presetStatus')).toContainText('cannot include *');await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(0);
  await page.locator('#presetName').fill('Vowel focus');await page.getByRole('button',{name:'Create',exact:true}).click();const saved=await page.locator('#preset').inputValue();expect(saved).toMatch(/^saved-/);await expect(page.locator('#savePresetForm')).toBeHidden();
  await page.reload();await expect(page.locator('#preset')).toHaveValue(saved);await expect(page.locator('#floor')).toHaveValue('45');
  await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('Voice Tools');await page.locator('#presetName').press('Enter');await expect(page.locator('#presetStatus')).toContainText('already in use');
@@ -41,7 +41,7 @@ test('renaming cannot take a built-in or another custom preset name',async({page
  await page.goto('/dist/index.html#settings');
  for(const [floor,name] of [['45','First view'],['50','Second view']]){
   await page.locator('#preset').selectOption('praat');
-  await page.locator('#floor').fill(floor);await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill(name);await page.locator('#presetName').press('Enter');
+  await setSetting(page,'floor',floor);await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill(name);await page.locator('#presetName').press('Enter');
  }
  const id=await page.locator('#preset').inputValue(),before=await page.evaluate(()=>localStorage.getItem('soundglow-presets-v1'));
  await page.getByRole('button',{name:'Edit presets',exact:true}).click();
@@ -52,11 +52,11 @@ test('renaming cannot take a built-in or another custom preset name',async({page
 
 
 test('changing a named preset updates it in place, while built-ins remain immutable',async({page})=>{
- await page.goto('/dist/index.html#settings');await page.locator('#floor').fill('45');await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('My voice');await page.locator('#presetName').press('Enter');const id=await page.locator('#preset').inputValue();
- await page.locator('#floor').fill('60');await page.locator('#gain').fill('3');await page.locator('#formants').selectOption('both');await expect(page.locator('#preset')).toHaveValue(id);await expect(page.locator('#preset option:checked')).toHaveText('My voice');await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(1);
+ await page.goto('/dist/index.html#settings');await setSetting(page,'floor','45');await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('My voice');await page.locator('#presetName').press('Enter');const id=await page.locator('#preset').inputValue();
+ await setSetting(page,'floor','60');await setSetting(page,'gain','3');await page.locator('#formants').selectOption('both');await expect(page.locator('#preset')).toHaveValue(id);await expect(page.locator('#preset option:checked')).toHaveText('My voice');await expect(page.locator('#preset option[value^="saved-"]')).toHaveCount(1);
  await page.reload();await expect(page.locator('#preset')).toHaveValue(id);await expect(page.locator('#floor')).toHaveValue('60');await expect(page.locator('#gain')).toHaveValue('3');await expect(page.locator('#formants')).toHaveValue('both');
- await page.locator('#preset').selectOption('praat');await page.locator('#floor').fill('45');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await page.locator('#preset').selectOption('praat');await expect(page.locator('#floor')).toHaveValue('70');
- await page.locator('#preset').selectOption(id);await page.evaluate(()=>{Storage.prototype.setItem=()=>{throw new DOMException('Full','QuotaExceededError')}});await page.locator('#gain').fill('9');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await expect(page.locator('#presetStatus')).toContainText('Could not save');await page.reload();await expect(page.locator('#gain')).toHaveValue('3');
+ await page.locator('#preset').selectOption('praat');await setSetting(page,'floor','45');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await page.locator('#preset').selectOption('praat');await expect(page.locator('#floor')).toHaveValue('70');
+ await page.locator('#preset').selectOption(id);await page.evaluate(()=>{Storage.prototype.setItem=()=>{throw new DOMException('Full','QuotaExceededError')}});await setSetting(page,'gain','9');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await expect(page.locator('#presetStatus')).toContainText('Could not save');await page.reload();await expect(page.locator('#gain')).toHaveValue('3');
 });
 
 test('preset dialog keeps settings still and supports cancel, Escape and focus return',async({page})=>{
@@ -81,7 +81,8 @@ test('manual settings reproduce the Voice Tools preset and survive as a named pr
  await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption('voice');
  const expected=await page.evaluate(()=>currentPresetSettings());
  await page.locator('#preset').selectOption('praat');
- for(const [id,v] of Object.entries(expected)){if(id==='history')await setHistory(page,v);else if(['maximum','scale'].includes(id))await page.locator('#'+id).selectOption(v);else await page.locator('#'+id).evaluate((el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}))},v);}
+ for(const id of ['advancedAnalysis','advancedColour'])await page.locator('#'+id+' > summary').click();
+ for(const [id,v] of Object.entries(expected))await setSetting(page,id,v);
  expect(await page.evaluate(()=>currentPresetSettings())).toEqual(expected);
  await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('My harmonic settings');await page.getByRole('button',{name:'Create',exact:true}).click();
  await page.reload();expect(await page.evaluate(()=>currentPresetSettings())).toEqual(expected);

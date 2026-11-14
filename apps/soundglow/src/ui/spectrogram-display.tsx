@@ -1,18 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import {
-  Group,
-  Input,
-  NativeSelect,
-  Slider,
-  Stack,
-  Title,
-} from "@mantine/core";
+import { NativeSelect, Stack, Title, Box, Text } from "@mantine/core";
+import { SettingsSlider } from "./settings-slider";
 import { createViewState } from "@ldayton/ui/view-state";
 
 export const displayControlIds = ["maximum", "scale", "history"] as const;
-type DisplayId = (typeof displayControlIds)[number];
+export const colourControlIds = [
+  "palette",
+  "gain",
+  "floor",
+  "colourLevels",
+  "fixedMaximum",
+  "suppression",
+  "preemphasis",
+  "compression",
+] as const;
+const migratedIds = [...displayControlIds, ...colourControlIds];
+type DisplayId = (typeof migratedIds)[number];
 type Values = Record<DisplayId, string>;
 type Registry = Record<
   string,
@@ -44,14 +49,10 @@ const scaleLabels: Record<string, string> = {
 /** A projection of the controller's canonical settings, never a second settings owner. */
 export function createDisplayControls(registry: Registry) {
   const project = (values: Record<string, string>) =>
-    Object.fromEntries(
-      displayControlIds.map((id) => [id, values[id]]),
-    ) as Values;
+    Object.fromEntries(migratedIds.map((id) => [id, values[id]])) as Values;
   const model = createViewState(
     project(
-      Object.fromEntries(
-        displayControlIds.map((id) => [id, registry[id].default]),
-      ),
+      Object.fromEntries(migratedIds.map((id) => [id, registry[id].default])),
     ),
   );
   let edit: ((id: DisplayId, value: string) => void) | undefined;
@@ -83,38 +84,140 @@ export function createDisplayControls(registry: Registry) {
           value={values.scale}
           onChange={(event) => edit?.("scale", event.currentTarget.value)}
         />
-        <Input.Wrapper
-          label={
-            <Group justify="space-between" gap="xs">
-              <span>History</span>
-              <output id="historyOut">{values.history} s</output>
-            </Group>
-          }
-          labelElement="div"
-          styles={{ label: { display: "block" } }}
-        >
-          <Slider
-            name="history"
-            hiddenInputProps={{ id: "history" }}
-            min={registry.history.min}
-            max={registry.history.max}
-            step={registry.history.step}
-            value={Number(values.history)}
-            onChange={(value) => edit?.("history", String(value))}
-            label={(value) => `${value} s`}
-            thumbLabel="History"
-            thumbValueText={(value) => `${value} seconds`}
-            mt="sm"
-            mb="xs"
+        <Range
+          id="history"
+          label="History"
+          format={(value) => `${value} s`}
+          outputId="historyOut"
+          valueText={(value) => `${value} seconds`}
+        />
+      </Stack>
+    );
+  }
+  function Choice({
+    id,
+    label,
+    data,
+  }: {
+    id: DisplayId;
+    label: string;
+    data: { value: string; label: string }[];
+  }) {
+    const values = useSyncExternalStore(model.subscribe, model.getSnapshot);
+    return (
+      <NativeSelect
+        id={id}
+        label={label}
+        data={data}
+        value={values[id]}
+        onChange={(event) => edit?.(id, event.currentTarget.value)}
+      />
+    );
+  }
+  function Range({
+    id,
+    label,
+    format,
+    outputId,
+    valueText,
+    disabled = false,
+  }: {
+    id: DisplayId;
+    label: string;
+    format?: (value: number) => string;
+    outputId?: string;
+    valueText?(value: number): string;
+    disabled?: boolean;
+  }) {
+    const values = useSyncExternalStore(model.subscribe, model.getSnapshot),
+      entry = registry[id];
+    return (
+      <SettingsSlider
+        id={id}
+        label={label}
+        value={Number(values[id])}
+        min={entry.min!}
+        max={entry.max!}
+        step={entry.step}
+        change={(value) => edit?.(id, String(value))}
+        format={format}
+        outputId={outputId}
+        valueText={valueText}
+        disabled={disabled}
+      />
+    );
+  }
+  function ColourControls() {
+    const values = useSyncExternalStore(model.subscribe, model.getSnapshot);
+    const db = (value: number) => `${value} dB`;
+    return (
+      <Stack gap="md">
+        <Title order={4} size="h5">
+          Colour and contrast
+        </Title>
+        <Choice
+          id="palette"
+          label="Colour palette"
+          data={options("palette", {
+            reference: "Soundglow",
+            plasma: "Plasma",
+          })}
+        />
+        <Range id="gain" label="Brightness" format={db} outputId="gainOut" />
+        <Range
+          id="floor"
+          label="Dynamic range"
+          format={db}
+          outputId="floorOut"
+          disabled={values.colourLevels === "held"}
+        />
+        <Choice
+          id="colourLevels"
+          label="Colour levels"
+          data={options("colourLevels", {
+            auto: "Automatic · visible history",
+            fixed: "Fixed",
+            held: "Relative · held peak",
+          })}
+        />
+        <Box id="fixedMaximumControl" hidden={values.colourLevels !== "fixed"}>
+          <Range
+            id="fixedMaximum"
+            label="Colour maximum"
+            format={db}
+            outputId="fixedMaximumOut"
           />
-        </Input.Wrapper>
+        </Box>
+        <Range
+          id="suppression"
+          label="Background suppression"
+          format={db}
+          outputId="suppressionOut"
+        />
+        <Range
+          id="preemphasis"
+          label="Pre-emphasis"
+          format={(value) => `${value} dB/octave`}
+          outputId="preemphasisOut"
+        />
+        <Range
+          id="compression"
+          label="Quiet-frame boost"
+          format={(value) => `${Math.round(value * 100)}%`}
+          outputId="compressionOut"
+        />
+        <Text size="xs" c="dimmed">
+          These controls change the displayed brightness and contrast, not the
+          sound.
+        </Text>
       </Stack>
     );
   }
   return {
     Controls,
+    ColourControls,
     owns(id: string) {
-      return (displayControlIds as readonly string[]).includes(id);
+      return (migratedIds as readonly string[]).includes(id);
     },
     connect(change: NonNullable<typeof edit>) {
       edit = change;
@@ -122,7 +225,7 @@ export function createDisplayControls(registry: Registry) {
     publish(values: Record<string, string>) {
       const next = project(values),
         previous = model.getSnapshot();
-      if (displayControlIds.some((id) => next[id] !== previous[id]))
+      if (migratedIds.some((id) => next[id] !== previous[id]))
         flushSync(() => model.set(next));
     },
   };

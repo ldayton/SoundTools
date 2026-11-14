@@ -1,5 +1,5 @@
 const {test,expect}=require('@playwright/test');
-const {setHistory}=require('./settings-input.cjs');
+const {setSetting,setHistory}=require('./settings-input.cjs');
 const consistent=async page=>expect(await page.evaluate(()=>assertSettingsConsistent())).toBe(true);
 test('all registered controls agree with authoritative state across deterministic edit/apply sequences',async({page})=>{
  await page.goto('/dist/index.html#settings');
@@ -8,10 +8,10 @@ test('all registered controls agree with authoritative state across deterministi
   await page.locator('#preset').selectOption(builtin);await consistent(page);
   for(const id of ['advancedAnalysis','advancedColour'])if(await page.locator('#'+id).getAttribute('open')===null)await page.locator('#'+id+' > summary').click();
   // Every control is independently exercised through its real input event.
-  const edits=await page.evaluate(()=>Array.from(document.querySelectorAll('#presetSettings select,#presetSettings input')).filter(el=>!el.disabled&&el.getClientRects().length).map(el=>({id:el.id,value:el.tagName==='SELECT'?Array.from(el.options).find(o=>o.value!==el.value)?.value:String(Number(el.value)===Number(el.min)?el.max:el.min),type:el.type})).concat(Array.from(document.querySelectorAll('#spectrogramDisplay [role=slider]')).map(el=>({id:'history',value:el.getAttribute('aria-valuenow')===el.getAttribute('aria-valuemin')?el.getAttribute('aria-valuemax'):el.getAttribute('aria-valuemin'),type:'slider'}))));
+  const edits=await page.evaluate(()=>Array.from(document.querySelectorAll('#presetSettings select,#presetSettings input')).filter(el=>!el.disabled&&el.getClientRects().length).map(el=>({id:el.id,value:el.tagName==='SELECT'?Array.from(el.options).find(o=>o.value!==el.value)?.value:String(Number(el.value)===Number(el.min)?el.max:el.min)})).concat(Array.from(document.querySelectorAll('#presetSettings [role=slider]:not([aria-disabled=true])')).filter(el=>el.getClientRects().length).map(el=>({id:el.id.replace(/-slider$/,''),value:el.getAttribute('aria-valuenow')===el.getAttribute('aria-valuemin')?el.getAttribute('aria-valuemax'):el.getAttribute('aria-valuemin')}))));
   for(const edit of edits){
    await page.locator('#preset').selectOption(builtin);
-   if(edit.type==='slider')await setHistory(page,edit.value);else if(edit.type==='select-one')await page.locator('#'+edit.id).selectOption(edit.value);else await page.locator('#'+edit.id).fill(edit.value);
+   await setSetting(page,edit.id,edit.value);
    await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');await consistent(page);
    expect(await page.evaluate(id=>settingsState.values[id],edit.id)).toBe(edit.value);
    await page.locator('#preset').selectOption(builtin);await consistent(page);
@@ -52,7 +52,7 @@ test('stored numeric spellings normalize across state, controls, catalogue, edit
  await page.goto('/dist/index.html#settings');await page.reload();await consistent(page);
  await expect(page.locator('#gain')).toHaveValue('10');await expect(page.locator('#compression')).toHaveValue('0.3');
  expect(await page.evaluate(()=>savedPresets[0].settings)).toEqual(await page.evaluate(()=>currentPresetSettings()));
- await page.locator('#gain').fill('11');await consistent(page);
+ await setSetting(page,'gain','11');await consistent(page);
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('soundglow-presets-v1')).presets[0].settings)).toEqual(await page.evaluate(()=>currentPresetSettings()));
  await page.reload();await consistent(page);await expect(page.locator('#gain')).toHaveValue('11');
  // Apply/edit actions also normalize before rendering, not just storage loading.

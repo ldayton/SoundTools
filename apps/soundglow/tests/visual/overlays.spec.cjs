@@ -1,3 +1,4 @@
+const {setSetting}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 test('optional Praat overlays on the English recording, settings changes and off state',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -13,7 +14,7 @@ test('optional Praat overlays on the English recording, settings changes and off
  await page.locator('#formants').selectOption('off');
  expect(await page.evaluate(()=>analysisFlags())).toBe(0);
  expect(await page.evaluate(()=>{const bytes=analysisContext.getImageData(0,0,analysisCanvas.width,analysisCanvas.height).data;for(let i=3;i<bytes.length;i+=4)if(bytes[i])return false;return true})).toBe(true);
- await page.locator('#preemphasis').fill('0');await page.locator('#compression').fill('0.4');
+ await setSetting(page,'preemphasis','0');await setSetting(page,'compression','0.4');
  await expect(page.locator('#preemphasisOut')).toHaveText('0 dB/octave');await expect(page.locator('#compressionOut')).toHaveText('40%');
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.locator('#freeze').click();
  await page.waitForFunction(previous=>processingStats.frames>previous+100,measured.frames);

@@ -1,3 +1,4 @@
+import { flushSync } from "react-dom";
 import { persistence } from "./persistence";
 import {
   pianoPresentation,
@@ -21,23 +22,20 @@ export function mountPracticePiano(
     changed?: () => void;
   } = {},
 ) {
-  const panel = document.createElement("div");
-  panel.className = "practice-piano";
-  panel.id = `${keyboard.closest<HTMLElement>(".live-workspace,#flashcards")!.id}-piano-panel`;
-  panel.append(keyboard);
-  transport.after(panel);
+  const panel = keyboard.closest<HTMLElement>(".practice-piano")!;
   let available = true;
   function render() {
-    panel.hidden = !available || !isPianoVisible();
     options.changed?.();
   }
   onPianoPresentationChange(render);
   function publish() {
     const state = pianoPresentation.getSnapshot();
-    pianoPresentation.set({
-      ...state,
-      available: { ...state.available, [panel.id]: available },
-    });
+    flushSync(() =>
+      pianoPresentation.set({
+        ...state,
+        available: { ...state.available, [panel.id]: available },
+      }),
+    );
     render();
   }
   publish();

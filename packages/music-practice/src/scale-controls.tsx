@@ -1,7 +1,6 @@
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { Accordion, Button, Group, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
-import { RetainedContent } from "./retained-content";
 export const scaleControlsState = createViewState<{
   relative: string;
   returning: boolean;
@@ -80,7 +79,7 @@ export function ScaleNavigation({
     </Group>
   );
 }
-export function ScaleDetails({ content }: { content: HTMLElement }) {
+export function ScaleDetails({ children }: { children: ReactNode }) {
   return (
     <Accordion
       keepMounted
@@ -91,9 +90,7 @@ export function ScaleDetails({ content }: { content: HTMLElement }) {
     >
       <Accordion.Item value="details">
         <Accordion.Control>Details</Accordion.Control>
-        <Accordion.Panel>
-          <RetainedContent element={content} />
-        </Accordion.Panel>
+        <Accordion.Panel>{children}</Accordion.Panel>
       </Accordion.Item>
     </Accordion>
   );

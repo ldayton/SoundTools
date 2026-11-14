@@ -1,9 +1,7 @@
-import {
-  practicePresentation,
-  mountPracticePresentation,
-} from "./practice-presentation";
+import { TheoryFrame, theoryBodyState } from "./practice-frame";
+import { practicePresentation } from "./practice-presentation";
 import { createElement } from "react";
-import { mountPracticeControls } from "./practice-surfaces";
+import { mountPracticeSurface } from "./practice-surfaces";
 import {
   TheoryAnswers,
   TheoryControls,
@@ -63,6 +61,7 @@ function abcNote(n: TheoryNote, includeAccidental = true) {
 }
 /** Shared theory round/input owner. Only the question model varies between the two pages. */
 class TheoryPractice implements LivePractice {
+  private body = theoryBodyState();
   private presentation = practicePresentation({});
   private controls = theoryControlsState({
     next: false,
@@ -114,14 +113,47 @@ class TheoryPractice implements LivePractice {
         this.rounds = saved.rounds;
       this.progress = loadProgress(JSON.stringify(saved.progress));
     }
-    element.innerHTML = `<section class="practice-surface sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"></div><div class="theory-piano"></div><div class="presentation-summary"></div></section>`;
+    mountPracticeSurface(
+      element,
+      createElement(TheoryFrame, {
+        presentation: this.presentation,
+        panelId: `${element.id}-piano-panel`,
+        body: this.body,
+        kind,
+        transport: createElement(TheoryControls, {
+          model: this.controls,
+          panelId: `${element.id}-piano-panel`,
+          next: () => this.nextQuestion(),
+          restart: () => this.reset(),
+        }),
+        next: () => {
+          this.resetPianoFocus = true;
+          this.lastKeys = undefined;
+          this.session.continueRound();
+          this.session.next();
+          this.step = 0;
+          this.firstTry = true;
+          this.save();
+          this.render();
+        },
+        answers: createElement(TheoryAnswers, {
+          model: this.controls,
+          answer: (value) => {
+            if (value === "back") {
+              this.selectedInterval = undefined;
+              this.render();
+            } else this.identify(value);
+          },
+        }),
+      }),
+    );
     this.options = theoryOptionsState({
       kind,
       task: this.task,
       settings: structuredClone(this.settings),
     });
     registerPracticeOptions(
-      element.id,
+      element,
       createElement(TheoryOptions, {
         model: this.options,
         taskChanged: (task) => {
@@ -166,37 +198,7 @@ class TheoryPractice implements LivePractice {
       (n) => this.answer(n),
       () => this.rangeNotice(),
     );
-    mountPracticeControls(
-      this.$(".sequence-transport"),
-      createElement(TheoryControls, {
-        model: this.controls,
-        panelId: this.panel.id,
-        next: () => this.nextQuestion(),
-        restart: () => this.reset(),
-      }),
-    );
-    mountPracticePresentation(element, this.presentation, "theory", () => {
-      this.resetPianoFocus = true;
-      this.lastKeys = undefined;
-      this.session.continueRound();
-      this.session.next();
-      this.step = 0;
-      this.firstTry = true;
-      this.save();
-      this.render();
-    });
-    mountPracticeControls(
-      this.$(".theory-answers"),
-      createElement(TheoryAnswers, {
-        model: this.controls,
-        answer: (value) => {
-          if (value === "back") {
-            this.selectedInterval = undefined;
-            this.render();
-          } else this.identify(value);
-        },
-      }),
-    );
+
     window.addEventListener("keydown", (e) => {
       if (
         !this.active ||
@@ -492,9 +494,7 @@ class TheoryPractice implements LivePractice {
       this.task !== "play-degree" &&
       isPianoVisible() &&
       !this.piano.contains(target);
-    this.$(".theory-midi-notice").hidden = !unavailable;
-    this.$(".theory-midi-notice").textContent =
-      "This note needs a MIDI keyboard. You can also narrow the pitch range.";
+    this.body.patch({ midiNotice: unavailable });
   }
   private render() {
     if (!this.session) return;
@@ -533,18 +533,16 @@ class TheoryPractice implements LivePractice {
       next: !!q && !this.session.accepting && !this.pendingAdvance,
       accepting: this.session.accepting,
     });
-    this.$(".theory-notation").hidden = !q;
-    this.$(".theory-answers").hidden = !q || !this.identifying;
-    this.$(".theory-steps").hidden = !q || this.task !== "build-scale";
-    this.$(".theory-explanation").hidden =
-      !q || (this.session.accepting && this.firstTry);
-    this.$(".theory-walk").hidden =
-      !q?.interval || (this.session.accepting && this.firstTry);
-    this.$(".theory-explanation").textContent = q
-      ? theoryExplanation(q, this.task, s)
-      : "";
+    this.body.patch({
+      question: !!q,
+      answers: !!q && this.identifying,
+      stepsVisible: !!q && this.task === "build-scale",
+      explanationVisible: !!q && !(this.session.accepting && this.firstTry),
+      walk: !!q?.interval && !(this.session.accepting && this.firstTry),
+      explanation: q ? theoryExplanation(q, this.task, s) : "",
+      midiNotice: false,
+    });
     this.panel.setAvailable(!!q && !this.identifying);
-    this.$(".theory-midi-notice").hidden = true;
     this.presentation.set({
       context:
         q?.keyName ||
@@ -637,12 +635,12 @@ class TheoryPractice implements LivePractice {
       return { value, number, label, shortcut };
     });
     this.controls.set({ ...this.controls.getSnapshot(), choices });
-    this.$(".theory-steps").innerHTML = q.notes
-      .map(
-        (_, i) =>
-          `<span class="${i < this.step ? "is-done" : ""}">${q.direction === "up" ? i + 1 : 8 - i}</span>`,
-      )
-      .join("");
+    this.body.patch({
+      steps: q.notes.map((_, i) => ({
+        done: i < this.step,
+        label: q.direction === "up" ? i + 1 : 8 - i,
+      })),
+    });
     if (!this.identifying) {
       if (this.task === "play-degree")
         this.piano.show(60, 71, true, !this.resetPianoFocus);

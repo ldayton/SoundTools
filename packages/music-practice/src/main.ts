@@ -1,11 +1,8 @@
 import { preventRepeatedButtonActivation } from "./input-guards";
-import {
-  practicePresentation,
-  mountPracticePresentation,
-} from "./practice-presentation";
+import { practicePresentation } from "./practice-presentation";
 import { shellStatus } from "./shell-status";
 import { createElement } from "react";
-import { mountPracticeControls } from "./practice-surfaces";
+import { flashcardBodyState } from "./practice-frame";
 import {
   FlashcardAnswers,
   FlashcardControls,
@@ -190,38 +187,64 @@ function optionsSnapshot(): FlashcardOptionsSnapshot {
   };
 }
 const flashcardOptions = flashcardOptionsState(optionsSnapshot());
-mountFlashcardView($("#flashcards"), progress.roundLength, {
-  model: flashcardOptions,
-  change: (patch) => {
-    if (!isFlashcardMode(progress.mode) || !persistence.writable) return;
-    const previous = profile();
-    progress.profiles[progress.mode] = mergeProfile(progress.mode, previous, {
-      ...previous,
-      ...patch,
-    });
-    changed();
-  },
-  roundLengthChanged: (length) => {
-    if (
-      !isFlashcardMode(progress.mode) ||
-      !persistence.writable ||
-      !ROUND_LENGTHS.includes(length)
-    )
-      return;
-    progress.roundLength = length;
-    (progress.roundLengths ||= {})[progress.mode] = length;
-    changed();
-  },
-});
-mountPracticePresentation($("#flashcards"), presentation, "flashcard", () =>
-  start(true),
-);
-const board = new Fretboard($("#fretboard"), answerLocation);
 const flashcardControls = flashcardControlsState({
   enabled: false,
   modifier: 0,
   next: false,
 });
+const flashcardBody = flashcardBodyState();
+mountFlashcardView(
+  $("#flashcards"),
+  {
+    model: flashcardOptions,
+    change: (patch) => {
+      if (!isFlashcardMode(progress.mode) || !persistence.writable) return;
+      const previous = profile();
+      progress.profiles[progress.mode] = mergeProfile(progress.mode, previous, {
+        ...previous,
+        ...patch,
+      });
+      changed();
+    },
+    roundLengthChanged: (length) => {
+      if (
+        !isFlashcardMode(progress.mode) ||
+        !persistence.writable ||
+        !ROUND_LENGTHS.includes(length)
+      )
+        return;
+      progress.roundLength = length;
+      (progress.roundLengths ||= {})[progress.mode] = length;
+      changed();
+    },
+  },
+  {
+    presentation,
+    body: flashcardBody,
+    panelId: "flashcards-piano-panel",
+    next: () => start(true),
+    answers: createElement(FlashcardAnswers, {
+      model: flashcardControls,
+      answer: answerName,
+      modify: (value) => {
+        if (canAnswer()) setModifier(value);
+      },
+    }),
+    transport: createElement(FlashcardControls, {
+      model: flashcardControls,
+      panelId: "flashcards-piano-panel",
+      next: () => next(),
+      restart: () => {
+        if (isFlashcardMode(progress.mode)) sessions.invalidate(progress.mode);
+        session = undefined!;
+        start(false, false, true);
+      },
+    }),
+  },
+);
+
+const board = new Fretboard($("#fretboard"), answerLocation);
+
 const pianoPanel = mountPracticePiano($("#piano"), $(".flashcard-transport"), {
   changed: () => {
     if (fontsReady) refreshPianoRange();
@@ -265,9 +288,7 @@ function refreshPianoRange() {
     !!session?.current &&
     !piano.contains(pitch(session.current));
   piano.setUnavailable(phase !== "question" || required);
-  $("#piano-midi-required").hidden = !required;
-  $("#piano-midi-required").textContent =
-    "MIDI keyboard required — this note is outside the on-screen keys. Play it on your connected keyboard, or change the practice range.";
+  flashcardBody.patch({ midiRequired: required });
 }
 function save() {
   if (!persistence.writable) return Promise.resolve(false);
@@ -331,35 +352,22 @@ function syncOptions() {
 }
 function renderQuestion(card: Card | GuitarCard) {
   const renderStarted = performance.now();
-  $("#question").classList.toggle("piano-question", progress.mode === "piano");
-  $("#question").classList.toggle("paired", progress.mode === "staff-find");
   const mode = progress.mode,
     isPiano = mode === "piano",
     isSignature = mode === "signature",
     location = isLocationMode(mode),
     notation =
       ["staff", "staff-find", "tab", "signature"].includes(mode) || isPiano;
-  $("#notation").hidden = !notation;
-  $("#named-note").hidden = mode !== "find";
-  $("#string-prompt").hidden = mode !== "staff-find";
-  $("#fretboard").hidden =
-    mode === "staff" || mode === "tab" || isPiano || isSignature;
-  $("#piano").hidden = !isPiano;
+  flashcardBody.patch({ mode, empty: false, midiRequired: false });
   pianoPanel.setAvailable(isPiano);
-  $("#piano-midi-required").hidden = true;
-  $(".keyboard").hidden = location || isPiano;
-  $("#name-hint").hidden = location || isPiano;
-  $(".location-hint").hidden = !location;
-  $("#signature-prompt").hidden = !isSignature;
-  $("#question").classList.toggle("signature-question", isSignature);
   if (isSignature) {
     const signature = card as SignatureCard;
-    $("#signature-prompt").textContent =
-      signature.tonality === "major" ? "Major key" : "Minor key";
-    $("#notation").setAttribute(
-      "aria-label",
-      `Treble clef key signature; identify the ${signature.tonality} key`,
-    );
+    flashcardBody.patch({
+      signature: signature.tonality === "major" ? "Major key" : "Minor key",
+    });
+    flashcardBody.patch({
+      notationLabel: `Treble clef key signature; identify the ${signature.tonality} key`,
+    });
     drawKeySignature($<HTMLDivElement>("#notation"), signature.signature);
   } else if (isPiano && notation) {
     const representation = (session.representation ||= pianoNotation(
@@ -376,10 +384,9 @@ function renderQuestion(card: Card | GuitarCard) {
         : representation.octaveShift === -12
           ? "; 8vb, play one octave lower"
           : "";
-    $("#notation").setAttribute(
-      "aria-label",
-      `${label}${shift}; find the sounding note on the piano`,
-    );
+    flashcardBody.patch({
+      notationLabel: `${label}${shift}; find the sounding note on the piano`,
+    });
     drawPianoNotation(
       $<HTMLDivElement>("#notation"),
       representation,
@@ -387,14 +394,14 @@ function renderQuestion(card: Card | GuitarCard) {
       pianoPracticeFrame(profile()),
     );
   } else if (notation) {
-    $("#notation").setAttribute(
-      "aria-label",
-      mode === "tab"
-        ? "Single guitar tab note to identify"
-        : isPiano
-          ? "Treble clef; find the note on the piano"
-          : "Guitar treble clef with octave-down 8; identify the note",
-    );
+    flashcardBody.patch({
+      notationLabel:
+        mode === "tab"
+          ? "Single guitar tab note to identify"
+          : isPiano
+            ? "Treble clef; find the note on the piano"
+            : "Guitar treble clef with octave-down 8; identify the note",
+    });
     drawNotation(
       $<HTMLDivElement>("#notation"),
       card,
@@ -407,14 +414,11 @@ function renderQuestion(card: Card | GuitarCard) {
     const [low, high] = pianoBounds(profile());
     piano.show(low, high, false);
     refreshPianoRange();
-    $("#target-name").textContent = name(card);
-    $("#target-string").textContent = "";
+    flashcardBody.patch({ named: name(card), prompt: "" });
   } else if (mode !== "staff" && !isSignature) {
     const guitar = card as GuitarCard;
     const prompt = `On string ${guitar.string} · ${STRINGS.find((s) => s.number === guitar.string)!.name}`;
-    $("#target-name").textContent = name(card);
-    $("#target-string").textContent = prompt;
-    $("#string-prompt").textContent = prompt;
+    flashcardBody.patch({ named: name(card), prompt });
     if (mode !== "tab") board.show(guitar, profile(), location);
   }
   presentation.set({
@@ -464,7 +468,7 @@ function finish(announce = true) {
   syncDiagnosticsContext();
   if (announce)
     diagnostics.event("practice.completed", { roundLength: session.length });
-  $("#question").hidden = true;
+  flashcardBody.patch({ questionHidden: true });
   presentation.set({ summary: true });
   presentation.set({ count: `${session.length} / ${session.length}` });
   presentation.set({
@@ -591,7 +595,7 @@ function startFlashcards(
   if (!isFlashcardMode(progress.mode)) return;
   returnBoardFocus = false;
   syncOptions();
-  $("#question").hidden = false;
+  flashcardBody.patch({ questionHidden: false });
   presentation.set({ summary: false });
   presentation.set({ value: 0 });
   presentation.set({ max: progress.roundLength });
@@ -636,12 +640,7 @@ function startFlashcards(
   if (!pool.length) {
     phase = "empty";
     syncDiagnosticsContext();
-    $("#notation").hidden = true;
-    $("#named-note").hidden = true;
-    $("#string-prompt").hidden = true;
-    $("#fretboard").hidden = true;
-    $("#piano").hidden = true;
-    $("#signature-prompt").hidden = true;
+    flashcardBody.patch({ empty: true });
     enableAnswers(false);
     presentation.set({
       feedback:
@@ -695,30 +694,7 @@ function changed(scope: "exercise" | "all" = "exercise") {
     start(false, false, true);
   }
 }
-mountPracticeControls(
-  $(".keyboard"),
-  createElement(FlashcardAnswers, {
-    model: flashcardControls,
-    answer: answerName,
-    modify: (value) => {
-      if (canAnswer()) setModifier(value);
-    },
-  }),
-);
 
-mountPracticeControls(
-  $(".flashcard-transport"),
-  createElement(FlashcardControls, {
-    model: flashcardControls,
-    panelId: pianoPanel.id,
-    next: () => next(),
-    restart: () => {
-      if (isFlashcardMode(progress.mode)) sessions.invalidate(progress.mode);
-      session = undefined!;
-      start(false, false, true);
-    },
-  }),
-);
 window.addEventListener("keydown", (event) => {
   if (preventRepeatedButtonActivation(event)) return;
   if (

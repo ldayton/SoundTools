@@ -1,8 +1,6 @@
-import {
-  practicePresentation,
-  mountPracticePresentation,
-} from "./practice-presentation";
-import { mountPracticeControls } from "./practice-surfaces";
+import { PatternFrame } from "./practice-frame";
+import { practicePresentation } from "./practice-presentation";
+import { mountPracticeSurface } from "./practice-surfaces";
 import { PatternControls, patternControlsState } from "./pattern-controls";
 import { createElement } from "react";
 import {
@@ -68,11 +66,34 @@ export class IntervalPatterns {
         this.paused = restored.paused;
       }
     } catch {}
-    element.innerHTML = `<section class="practice-surface sequence-practice" aria-label="Interval pattern practice"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
-    mountPracticePresentation(element, this.presentation, "pattern");
+    mountPracticeSurface(
+      element,
+      createElement(PatternFrame, {
+        presentation: this.presentation,
+        panelId: `${element.id}-piano-panel`,
+        transport: createElement(PatternControls, {
+          model: this.controls,
+          panelId: `${element.id}-piano-panel`,
+          next: () => this.next(),
+          restart: () => {
+            this.cancelAdvance();
+            this.position = 0;
+            this.paused = false;
+            this.render();
+          },
+          pause: () => {
+            this.paused = !this.paused;
+            this.interrupt("controls");
+            this.update();
+            if (!this.paused && this.session?.complete) this.scheduleAdvance();
+          },
+        }),
+      }),
+    );
+
     this.options = patternOptionsState(structuredClone(this.settings));
     registerPracticeOptions(
-      element.id,
+      element,
       createElement(PatternOptions, {
         model: this.options,
         onChange: (settings) => {
@@ -92,26 +113,7 @@ export class IntervalPatterns {
     this.piano = new Piano(this.$(".pattern-piano"), (n) => {
       if (this.accepting) this.answer(n);
     });
-    mountPracticeControls(
-      this.$(".sequence-transport"),
-      createElement(PatternControls, {
-        model: this.controls,
-        panelId: pianoPanel.id,
-        next: () => this.next(),
-        restart: () => {
-          this.cancelAdvance();
-          this.position = 0;
-          this.paused = false;
-          this.render();
-        },
-        pause: () => {
-          this.paused = !this.paused;
-          this.interrupt("controls");
-          this.update();
-          if (!this.paused && this.session?.complete) this.scheduleAdvance();
-        },
-      }),
-    );
+
     new ResizeObserver(() =>
       requestAnimationFrame(() => {
         const w = this.$(".sequence-score").clientWidth;

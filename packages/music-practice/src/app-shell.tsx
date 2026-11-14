@@ -4,11 +4,14 @@ import {
   SettingsNavigationLink,
   isNavigationClick,
 } from "@ldayton/ui/application-layout";
-import { SidebarSelection, SidebarVolume } from "./sidebar-controls";
+import { SidebarVolume } from "./sidebar-controls";
 import { APP } from "./app-profile";
 import { shellStatus } from "./shell-status";
 import { createViewState } from "./view-state";
-import { PracticeSurfaceViews } from "./practice-surfaces";
+import {
+  PracticeSurfaceViews,
+  createPracticeRegistry,
+} from "./practice-surfaces";
 import { RetainedContent } from "./retained-content";
 import {
   StrictMode,
@@ -72,8 +75,10 @@ export function mountAppShell(
     if (id !== "flashcards") node.className = "live-workspace";
     return node;
   });
+  const registry = createPracticeRegistry();
   const midiPanel = document.createElement("div");
   midiPanel.id = "midi-panel";
+  for (const node of [...activityElements, midiPanel]) registry.bind(node);
   const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
     document.querySelector<T>(selector)!;
   const initialState = {
@@ -127,13 +132,17 @@ export function mountAppShell(
   }
   function Navigation() {
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
+    const views = useSyncExternalStore(
+      registry.subscribe,
+      registry.getSnapshot,
+    );
     const offline = useSyncExternalStore(
       offlineState.subscribe,
       offlineState.getSnapshot,
     );
     return (
       <Stack gap="md">
-        <SidebarSelection />
+        {views.selection}
         {AREAS.map((area) => (
           <Box key={area.label}>
             <Text size="xs" c="dimmed" fw={600} mb="xs">
@@ -215,6 +224,10 @@ export function mountAppShell(
     );
   }
   function Shell() {
+    const views = useSyncExternalStore(
+      registry.subscribe,
+      registry.getSnapshot,
+    );
     const status = useSyncExternalStore(
       shellStatus.subscribe,
       shellStatus.getSnapshot,
@@ -229,6 +242,7 @@ export function mountAppShell(
     );
     return (
       <PracticeOptionsProvider
+        entries={views.options}
         activeId={activeOptionsId}
         activityKey={snapshot.selected}
       >
@@ -307,7 +321,7 @@ export function mountAppShell(
             <SettingsPage key={snapshot.settingsVisit} />
           </section>
         </ApplicationLayout>
-        <PracticeSurfaceViews />
+        <PracticeSurfaceViews registry={registry} />
       </PracticeOptionsProvider>
     );
   }

@@ -1,5 +1,5 @@
 import { createElement } from "react";
-import { mountPracticeControls } from "./practice-surfaces";
+import { mountPracticeSurface } from "./practice-surfaces";
 import { MidiControls, midiControlsState } from "./midi-controls";
 import {
   browserMidiRequest,
@@ -68,7 +68,7 @@ export function mountMidiPanel(
       }
     }
   };
-  mountPracticeControls(
+  mountPracticeSurface(
     element,
     createElement(MidiControls, {
       model,

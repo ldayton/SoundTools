@@ -1,8 +1,7 @@
-import { createElement, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { Alert, Group, Progress, Stack, Text, Title } from "@mantine/core";
 import { ContinueRound } from "@ldayton/ui/round-actions";
 import { createViewState } from "./view-state";
-import { mountPracticeControls } from "./practice-surfaces";
 
 type Presentation = {
   context: string;
@@ -41,9 +40,16 @@ export function practicePresentation(initial: Partial<Presentation> = {}) {
     },
   };
 }
-type Model = ReturnType<typeof practicePresentation>;
-type Kind = "flashcard" | "theory" | "hymn" | "pattern" | "rhythm";
-function Header({ model, kind }: { model: Model; kind: Kind }) {
+export type PresentationModel = ReturnType<typeof practicePresentation>;
+export type PresentationKind =
+  "flashcard" | "theory" | "hymn" | "pattern" | "rhythm";
+export function PracticeHeader({
+  model,
+  kind,
+}: {
+  model: PresentationModel;
+  kind: PresentationKind;
+}) {
   const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <>
@@ -100,7 +106,13 @@ function Header({ model, kind }: { model: Model; kind: Kind }) {
     </>
   );
 }
-function PracticeProgress({ model, kind }: { model: Model; kind: Kind }) {
+export function PracticeProgress({
+  model,
+  kind,
+}: {
+  model: PresentationModel;
+  kind: PresentationKind;
+}) {
   const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <Progress.Root
@@ -127,7 +139,13 @@ function PracticeProgress({ model, kind }: { model: Model; kind: Kind }) {
     </Progress.Root>
   );
 }
-function Feedback({ model, kind }: { model: Model; kind: Kind }) {
+export function PracticeFeedback({
+  model,
+  kind,
+}: {
+  model: PresentationModel;
+  kind: PresentationKind;
+}) {
   const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <Alert
@@ -153,13 +171,13 @@ function Feedback({ model, kind }: { model: Model; kind: Kind }) {
     </Alert>
   );
 }
-function Summary({
+export function PracticeSummary({
   model,
   kind,
   next,
 }: {
-  model: Model;
-  kind: Kind;
+  model: PresentationModel;
+  kind: PresentationKind;
   next(): void;
 }) {
   const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
@@ -191,27 +209,4 @@ function Summary({
       </Text>
     </Stack>
   );
-}
-/** Ordinary practice UI shares one presentation contract; engines retain clocks, scores and grading. */
-export function mountPracticePresentation(
-  element: HTMLElement,
-  model: Model,
-  kind: Kind,
-  next?: () => void,
-) {
-  const props = { model, kind };
-  mountPracticeControls(
-    element.querySelector(".presentation-header")!,
-    createElement(Header, props),
-  );
-  const progress = element.querySelector<HTMLElement>(".presentation-progress");
-  if (progress)
-    mountPracticeControls(progress, createElement(PracticeProgress, props));
-  mountPracticeControls(
-    element.querySelector(".presentation-feedback")!,
-    createElement(Feedback, props),
-  );
-  const summary = element.querySelector<HTMLElement>(".presentation-summary");
-  if (summary && next)
-    mountPracticeControls(summary, createElement(Summary, { ...props, next }));
 }

@@ -1,8 +1,6 @@
-import {
-  practicePresentation,
-  mountPracticePresentation,
-} from "./practice-presentation";
-import { mountPracticeControls } from "./practice-surfaces";
+import { RhythmFrame, rhythmBodyState } from "./practice-frame";
+import { practicePresentation } from "./practice-presentation";
+import { mountPracticeSurface } from "./practice-surfaces";
 import {
   RhythmControls,
   RhythmTap,
@@ -29,6 +27,7 @@ import { diagnostics } from "./diagnostics";
 import { mergeRhythmSettings } from "./rhythm-model";
 import { persistence } from "./persistence";
 export class RhythmPractice {
+  private body = rhythmBodyState();
   private presentation = practicePresentation({
     context: "Rhythm only",
     count: "4 bars · 4/4",
@@ -96,12 +95,35 @@ export class RhythmPractice {
       this.bpm = settings.bpm;
       this.level = settings.level;
     } catch {}
-    element.innerHTML = `<section class="practice-surface sequence-practice" aria-label="Rhythm practice"><div class="presentation-header"></div><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="presentation-feedback"></div><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><div class="rhythm-tap-slot practice-control-slot"></div><div class="sequence-transport"></div><div class="rhythm-midi-slot"></div></section>`;
-    mountPracticePresentation(element, this.presentation, "rhythm");
+    mountPracticeSurface(
+      element,
+      createElement(RhythmFrame, {
+        presentation: this.presentation,
+        body: this.body,
+        transport: createElement(RhythmControls, {
+          model: this.controls,
+          start: () => {
+            if (this.state === "playing" || this.state === "countin")
+              this.interrupt("controls");
+            else this.start();
+          },
+          next: () => {
+            this.stop();
+            this.bars = makeRhythm(this.level);
+            this.render();
+          },
+        }),
+        tap: createElement(RhythmTap, {
+          model: this.controls,
+          tap: () => this.tapButton(),
+        }),
+      }),
+    );
+
     this.midiSlot = this.$(".rhythm-midi-slot");
     this.options = rhythmOptionsState({ bpm: this.bpm, level: this.level });
     registerPracticeOptions(
-      element.id,
+      element,
       createElement(RhythmOptions, {
         model: this.options,
         onChange: (settings) => {
@@ -120,29 +142,7 @@ export class RhythmPractice {
         },
       }),
     );
-    mountPracticeControls(
-      this.$(".sequence-transport"),
-      createElement(RhythmControls, {
-        model: this.controls,
-        start: () => {
-          if (this.state === "playing" || this.state === "countin")
-            this.interrupt("controls");
-          else this.start();
-        },
-        next: () => {
-          this.stop();
-          this.bars = makeRhythm(this.level);
-          this.render();
-        },
-      }),
-    );
-    mountPracticeControls(
-      this.$(".rhythm-tap-slot"),
-      createElement(RhythmTap, {
-        model: this.controls,
-        tap: () => this.tapButton(),
-      }),
-    );
+
     window.addEventListener("keydown", (e) => {
       if (
         this.active &&
@@ -220,9 +220,7 @@ export class RhythmPractice {
       undefined,
       this.$(".sequence-score"),
     );
-    this.element
-      .querySelectorAll(".is-beat")
-      .forEach((e) => e.classList.remove("is-beat"));
+    this.body.patch({ beat: -1 });
     this.changed();
   }
   private render(layoutOnly = false) {
@@ -295,14 +293,7 @@ export class RhythmPractice {
     );
     if (beat !== this.beat) {
       this.beat = beat;
-      this.element
-        .querySelectorAll<HTMLElement>("[data-beat]")
-        .forEach((e) =>
-          e.classList.toggle(
-            "is-beat",
-            Number(e.dataset.beat) === (beat % 4) + 1,
-          ),
-        );
+      this.body.patch({ beat: (beat % 4) + 1 });
       if (counting)
         this.presentation.set({
           feedback: `Count-in · bar ${Math.floor(beat / 4) + 1} of 2 · beat ${(beat % 4) + 1}`,

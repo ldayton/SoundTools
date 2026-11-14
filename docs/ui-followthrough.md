@@ -49,3 +49,35 @@ answer targets. Tests assert accessible progress values instead of native elemen
 implementation attributes. Build plus browser/theory/practice/hymn-playback,
 passage and navigation checks pass. Next: remove superseded CSS/docs and final
 frozen-build matrix, then release verification.
+
+Milestone 6 complete: removed superseded field/progress/feedback/completion CSS,
+unused continuation adapters and redundant direct wheel dependencies. Shared UI
+owns the browser-control dependency; Note by Note fingerprints that source for
+offline updates. Updated the UI package guidance to the completed Mantine setup.
+Hymn filter wording explicitly identifies the melody range.
+
+Final verification: 151 Note by Note and 62 DoReGo logic tests; shared package and
+history checks; both root builds and DoReGo Pages build/type checks. Note by Note's
+browser/navigation/theory/guitar/piano/hymn-key/practice/playback/sight/MIDI/
+signature/offline suites pass in Chromium, Firefox and WebKit. Recovery, real
+IndexedDB migration/failure/ownership, consent/privacy and recorded piano audio
+checks pass. DoReGo's 15 desktop/Pages/lifecycle/offline/spelling combinations
+pass, plus tempo continuity, PCM/mute/stalls, all glide directions, diagnostics
+and cache resilience. The Mac output was verified muted during testing.
+
+Verification refinements: browser-generated IDs require unique random values even
+when musical test draws are deterministic. The shared MIDI fixture now preserves
+that distinction. Hymn search uses Mantine's supported first-option selection
+policy. Tests wait for rendered titles and exercise valid range changes, including
+asserting that crossing a bound cannot silently move the other. Tempo/audio tests
+accept a frozen preview URL; the source-module glide renderer retains its own
+development server. Readiness requires an actual enabled Play button.
+
+Native local Chrome inspection covered answer/next behavior, range popup/clear/
+focus, common labels, and muted playback/pause. Final release work: push these
+milestone commits, verify the deployment commit at both production aliases, inspect
+CI, and interactively exercise the live apps. Production delivery results are
+reported in the task handoff rather than changing code solely to record a deploy.
+
+Production aliases: https://note-by-note-seven.vercel.app/ and
+https://do-re-go.vercel.app/. Vercel project scope: team-lily.

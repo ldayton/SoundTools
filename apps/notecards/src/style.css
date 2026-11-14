@@ -59,26 +59,6 @@ h1 {
   box-shadow: 0 7px 26px #302d5504;
 }
 
-progress {
-  display: block;
-  width: calc(100% - 56px);
-  height: 3px;
-  margin: 0 28px;
-  border: 0;
-  background: #e9e4da;
-  border-radius: 9px;
-  overflow: hidden;
-}
-progress::-webkit-progress-bar {
-  background: #e9e4da;
-}
-progress::-webkit-progress-value {
-  background: #9582ba;
-}
-progress::-moz-progress-bar {
-  background: #9582ba;
-}
-
 .correct {
   color: #4b7655;
 }
@@ -119,26 +99,7 @@ footer {
   font-size: 11px;
   padding: 24px;
 }
-#summary {
-  min-height: 430px;
-  text-align: center;
-  padding: 90px 20px 50px;
-}
-#summary h2 {
-  font-size: 35px;
-  font-weight: 500;
-  letter-spacing: -1px;
-  margin: 12px 0;
-}
-#result {
-  color: #81768e;
-  margin: 18px 0 28px;
-}
-.summary-note {
-  font-size: 12px;
-  color: #958c9e;
-  margin-top: 22px;
-}
+
 [hidden] {
   display: none !important;
 }
@@ -163,10 +124,6 @@ footer {
     font-size: 28px;
   }
 
-  progress {
-    width: calc(100% - 40px);
-    margin: 0 20px;
-  }
   .keyboard {
     padding: 18px 16px;
   }
@@ -181,10 +138,6 @@ footer {
   }
   .practice {
     border-radius: 17px;
-  }
-  #summary {
-    min-height: 410px;
-    padding-top: 80px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -573,27 +526,13 @@ footer {
   background: #fcfaf5;
   overflow: hidden;
 }
-.sequence-top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #837b94;
-}
-.sequence-title {
-  font-size: 25px;
-  font-weight: 550;
-  letter-spacing: -0.5px;
-  margin: 20px 0 7px;
-}
+
 .sequence-help {
   font-size: 13px;
   margin: 0 0 20px;
   color: #837b94;
 }
-.hymn-progress {
-  width: 100%;
-  margin: 0 0 18px;
-}
+
 .sequence-score {
   max-height: 380px;
   overflow-y: auto;
@@ -621,17 +560,12 @@ footer {
   .sequence-practice {
     padding: 18px 14px;
   }
-  .sequence-title {
-    font-size: 22px;
-  }
+
   .sequence-score {
     max-height: 300px;
   }
 }
-.pattern-progress {
-  width: 100%;
-  margin: 0 0 18px;
-}
+
 .pattern-piano {
   margin-top: 20px;
 }
@@ -710,20 +644,9 @@ footer {
 .piano-layout-wide .workspace-content {
   max-width: 1480px;
 }
-#persistence-notice {
-  margin: 24px auto;
-  max-width: 900px;
-  padding: 20px;
-  background: #fff0d5;
-  color: #543e20;
-  border-radius: 12px;
-}
+
 #saved {
   min-height: 20px;
-}
-#feedback-next,
-#restart-round {
-  margin: 12px 8px 0 0;
 }
 
 /* Reserve the scrollbar gutter without drawing a track for a short score. */
@@ -744,12 +667,7 @@ footer {
   border: 2px solid #eae5da;
   border-radius: 6px;
 }
-.hymn-scroll-hint {
-  margin: 8px 0;
-  color: #625773;
-  font-size: 13px;
-  text-align: right;
-}
+
 #midi-panel {
   display: flex;
   align-items: center;

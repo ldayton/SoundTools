@@ -144,7 +144,6 @@ main {
   white-space: nowrap;
   border: 0;
 }
-.mobile-note,
 .dorego-mobile-count {
   display: none;
 }
@@ -196,11 +195,9 @@ main {
   .exercise-heading h2 {
     font-size: 20px;
   }
-  .desktop-note,
   .dorego-desktop-count {
     display: none;
   }
-  .mobile-note,
   .dorego-mobile-count {
     display: block;
   }

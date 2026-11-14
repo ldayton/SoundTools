@@ -29,7 +29,6 @@ import { pianoNotation } from "./piano-notation";
 import { drawPianoNotation, pianoPracticeFrame } from "./notation";
 import {
   deck,
-  POSITIONS,
   KEYS,
   ROUND_LENGTHS,
   matches,
@@ -61,7 +60,6 @@ import { drawKeySignature, drawNotation, VexFlow } from "./notation";
 import { mountMidiPanel } from "./midi-panel";
 import { Piano } from "./piano";
 import {
-  PIANO_POSITIONS,
   pianoDeck,
   pianoBounds,
   pitch,
@@ -71,7 +69,6 @@ import {
 import { Fretboard } from "./fretboard";
 import "./style.css";
 import "./workspace.css";
-import "./styles/controls.css";
 import "./styles/practice.css";
 import { setupOffline } from "./offline";
 import { offlineState } from "./offline-state";
@@ -427,7 +424,7 @@ function finish(announce = true) {
   if (announce)
     diagnostics.event("practice.completed", { roundLength: session.length });
   $("#question").hidden = true;
-  presentation.set({ summary: !false });
+  presentation.set({ summary: true });
   presentation.set({ count: `${session.length} / ${session.length}` });
   presentation.set({
     result: `${session.correct} of ${session.length} correct`,
@@ -569,7 +566,7 @@ function start(continuing = false, restoring = false, restart = false) {
   pendingNext = false;
   syncOptions();
   $("#question").hidden = false;
-  presentation.set({ summary: !true });
+  presentation.set({ summary: false });
   presentation.set({ value: 0 });
   presentation.set({ max: progress.roundLength });
   const pool =

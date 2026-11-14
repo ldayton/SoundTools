@@ -28,7 +28,6 @@ import type { LivePractice, InputPolicy, Interruption } from "./live-practice";
 import type { PracticeRoute } from "./navigation";
 import {
   TASKS,
-  POSITIONS,
   theoryPool,
   questionAnswer,
   theoryExplanation,

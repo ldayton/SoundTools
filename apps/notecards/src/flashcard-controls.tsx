@@ -1,4 +1,4 @@
-import { RoundActions, ContinueRound } from "@ldayton/ui/round-actions";
+import { RoundActions } from "@ldayton/ui/round-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
@@ -97,10 +97,5 @@ export function FlashcardControls({
     >
       <PracticePianoToggle panelId={panelId} />
     </RoundActions>
-  );
-}
-export function FlashcardContinue({ next }: { next(): void }) {
-  return (
-    <ContinueRound id="continue" className="soundtools-ui" onClick={next} />
   );
 }

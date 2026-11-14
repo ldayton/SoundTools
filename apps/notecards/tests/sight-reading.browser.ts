@@ -82,6 +82,7 @@ try {
     await input.click();
     await input.fill(title);
     await page.getByRole("option", { name: title, exact: true }).click();
+    await page.locator(".sequence-title").filter({ hasText: title }).waitFor();
     assert.equal(await page.locator(".sequence-title").textContent(), title);
   };
   // A second search must replace the selected title, even while the input still has focus.
@@ -89,7 +90,16 @@ try {
   await input.click();
   await input.pressSequentially("silent");
   assert.equal(await input.inputValue(), "silent");
+  // Wait for the searchable Select to finish filtering and highlight its result.
+  await page
+    .getByRole("option", { name: "Silent Night", exact: true })
+    .and(page.locator("[data-combobox-selected]"))
+    .waitFor();
   await input.press("Enter");
+  await page
+    .locator(".sequence-title")
+    .filter({ hasText: "Silent Night" })
+    .waitFor();
   assert.equal(
     await page.locator(".sequence-title").textContent(),
     "Silent Night",

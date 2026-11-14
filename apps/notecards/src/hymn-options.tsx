@@ -63,6 +63,7 @@ export function HymnOptions({
         label="Hymn"
         searchable
         selectFirstOptionOnChange
+        selectFirstOptionOnDropdownOpen
         allowDeselect={false}
         value={state.hymn}
         data={hymnChoices}
@@ -141,7 +142,7 @@ export function HymnOptions({
         ))}
       </SimpleGrid>
       <Text size="sm" c="dimmed">
-        Range of the practised part, across the whole hymn.
+        Melody range, across the whole hymn.
       </Text>
       <NativeSelect
         id="hymn-mode"

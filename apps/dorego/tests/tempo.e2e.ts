@@ -42,14 +42,14 @@ try {
       }
     };
   });
-  await page.goto('http://127.0.0.1:4317/');
+  await page.goto(process.env.TEST_BASE_URL || 'http://127.0.0.1:4317/');
   async function load(patch: Record<string, unknown>) {
     await page.evaluate((spec) => localStorage.setItem('dorego.current', JSON.stringify(spec)), {
       ...DEFAULT_SPEC,
       ...patch,
     });
     await page.reload();
-    await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('#play')?.disabled);
+    await page.locator('#play:enabled').waitFor();
   }
   async function beat() {
     return page.evaluate(

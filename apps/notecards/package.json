@@ -30,7 +30,6 @@
     "test:hymn-recovery": "tsx tests/hymn-recovery.browser.ts"
   },
   "dependencies": {
-    "@ldayton/browser-controls": "*",
     "@ldayton/browser-diagnostics": "^0.2.0",
     "@ldayton/browser-offline": "^0.1.0",
     "@ldayton/ui": "0.1.0",

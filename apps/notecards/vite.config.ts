@@ -26,6 +26,7 @@ for (const file of [
   ...sources("src"),
   ...sources("scripts"),
   ...sources("../../packages/ui"),
+  ...sources("../../packages/browser-controls"),
   ...sources("../../packages/browser-offline"),
   ...sources("../../packages/browser-diagnostics").filter(
     (f) => !f.includes("/node_modules/") && !f.includes("/test"),

@@ -90,8 +90,8 @@ function Header({ model, kind }: { model: Model; kind: Kind }) {
           </>
         )}
       </Group>
-      {s.title && (
-        <Title order={2} size="h3" className="sequence-title">
+      {s.title && kind === "hymn" && (
+        <Title order={2} size="h3" mt="sm" mb="sm" className="sequence-title">
           {s.title}
         </Title>
       )}

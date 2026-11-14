@@ -40,7 +40,6 @@
     "tone": "15.1.22",
     "tsx": "4.23.15",
     "vite": "7.3.7",
-    "@ldayton/browser-controls": "*",
     "@ldayton/ui": "0.1.0",
     "@mantine/core": "9.8.0",
     "@mantine/hooks": "9.8.0",

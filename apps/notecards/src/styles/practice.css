@@ -6,55 +6,14 @@
 .sequence-practice {
   padding: 16px;
 }
-.sequence-top {
-  font-size: 12px;
-  margin-bottom: 12px;
-}
+
 .card-top {
   display: flex;
   justify-content: space-between;
   padding: 16px 16px 12px;
   font-size: 12px;
 }
-.practice > progress {
-  width: calc(100% - 32px);
-  margin: 0 16px;
-}
-.sequence-practice progress {
-  width: 100%;
-  margin: 0;
-  height: 3px;
-}
-.answer-line,
-.sequence-feedback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  height: auto;
-  max-height: 80px;
-  overflow: auto;
-  margin: 8px 0;
-  padding: 8px 12px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: #f0ece4;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.4;
-  text-align: center;
-}
-.answer-line {
-  margin: 8px 16px;
-}
-.sequence-feedback[data-kind="wrong"] {
-  color: #71351f;
-  background: #fff0df;
-  border-color: #aa633d;
-}
-.sequence-feedback[data-kind="partial"] {
-  border-color: #8b829e;
-}
+
 .sequence-transport {
   margin: 12px 0 0;
 }
@@ -208,10 +167,6 @@
   background: #dcebdd;
   border-color: #698a70;
 }
-.theory-summary {
-  text-align: center;
-  padding: 24px 0;
-}
 
 .theory-walk {
   margin: 12px 0;
@@ -226,15 +181,13 @@
   stroke: #504365;
 }
 /* The retained music range picker shares the form's two columns. */
-.practice-options .theory-range {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 0;
-}
-.theory-range label {
-  display: block;
-  margin-bottom: 6px;
-}
 
 .practice-control-slot {
   display: contents;
+}
+
+/* Standard controls own their appearance; these margins align them with retained scores. */
+.practice .presentation-feedback,
+.practice > .presentation-progress {
+  margin-inline: 16px;
 }

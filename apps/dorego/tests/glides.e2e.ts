@@ -29,6 +29,7 @@ try {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(base);
+  await page.locator('#play:enabled').waitFor();
   await page.evaluate((spec) => localStorage.setItem('dorego.current', JSON.stringify(spec)), {
     ...DEFAULT_SPEC,
     countIn: 0,

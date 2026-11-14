@@ -49,7 +49,7 @@ try {
       }
     };
   });
-  await page.goto('http://127.0.0.1:4317');
+  await page.goto(process.env.TEST_BASE_URL || 'http://127.0.0.1:4317');
   await page.evaluate(
     (spec) => {
       localStorage.setItem('dorego.current', JSON.stringify(spec));

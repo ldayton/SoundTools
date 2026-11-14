@@ -1,16 +1,28 @@
 # SoundTools UI
 
-Shared React/Mantine foundation. Apps import standard controls directly from
-`@mantine/core`. Share application/domain components only when there is actual
-reuse; do not wrap or rename every Mantine control.
+One React root and `SoundToolsProvider` per application. Import ordinary widgets
+straight from `@mantine/core`; the provider changes only the primary brand color
+and imports Mantine's complete default stylesheet. Keep its normal sizes,
+spacing, typography, focus and overlay behavior unless a musical control needs
+special treatment.
 
-The provider changes only the primary brand color. Keep Mantine's default sizes,
-spacing, typography, focus, and interaction behavior. Use a single provider at the application root.
+Share behavior with real consumers, not wrappers around every library component:
 
-Component CSS is imported without Mantine's document/body reset so the existing
-exercise pages retain their layout. The migrated root uses Mantine's typography.
-When the legacy exercise pages are migrated, replace these partial imports with Mantine's
-normal stylesheet and remove the transitional root/reset boundary.
+- `responsive-pitch-field`: owns labels, desktop popup, optional mobile wheel,
+  dismissal, focus and lifecycle. Callers supply musical choices/constraints.
+- `tempo-control`, `committed-number`, `volume-control`: common editing and mute
+  presentation; controllers retain musical timing and saved-unit conversions.
+- `diagnostic-consent`, `offline-status-panel`: consistent presentation while
+  service clients retain consent and caching lifecycles.
+- `round-actions`: repeated round navigation; no grading or playback logic.
+- `retained-content`: stable boundary for existing notation/instrument renderers.
+- `view-state`: stable serializable UI snapshots. Do not send audio frames or
+  buffers through React state.
 
-Note by Note includes this package's sources in its release fingerprint. Keep
-that property when adding consumers so shared UI changes invalidate offline builds.
+Shared styles are limited to the specialized pitch grid/wheel's geometry. Use
+Mantine theme variables for their colors. Apps retain their own navigation and
+musical rules; common components must not become another settings owner.
+
+Both applications include shared UI and browser-control sources in their release
+fingerprints. Preserve this whenever adding consumers so offline builds update
+when shared code changes.

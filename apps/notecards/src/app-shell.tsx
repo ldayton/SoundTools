@@ -71,7 +71,7 @@ export function mountAppShell(
   ].map((id) => {
     const node = document.createElement("div");
     node.id = id;
-    node.className = "live-workspace";
+    if (id !== "flashcards") node.className = "live-workspace";
     return node;
   });
   const midiPanel = document.createElement("div");
@@ -219,7 +219,9 @@ export function mountAppShell(
         <Anchor href="#practice-content" className="skip-link">
           Skip to practice
         </Anchor>
-        <div hidden><RetainedContent element={midiPanel} /></div>
+        <div hidden>
+          <RetainedContent element={midiPanel} />
+        </div>
         <AppShell
           header={{ height: 72 }}
           navbar={{

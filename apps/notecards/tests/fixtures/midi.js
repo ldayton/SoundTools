@@ -1,5 +1,8 @@
 // Browser-only MIDI substitute. No test hooks are included in the application.
-Math.random = () => 0;
+// Keep musical draws near zero without giving every library-generated ID the
+// same value. A constant zero breaks Mantine's popup/label associations.
+let randomDraw = 0;
+Math.random = () => ++randomDraw / 1e12;
 let calls = 0,
   denied = false;
 const options = [],

@@ -421,6 +421,12 @@ try {
     () => document.documentElement.scrollWidth <= innerWidth,
   );
   await practiceOption(page, "#hymn-low", "65");
+  await page.locator("#hymn-low-label").click();
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.id),
+    "hymn-low-wheel",
+    "Pitch label focuses the visible mobile control",
+  );
   assert.equal(
     await page.locator("#hymn-low-wheel").getAttribute("aria-valuetext"),
     "F4",

@@ -1,4 +1,4 @@
-import { RoundActions, ContinueRound } from "@ldayton/ui/round-actions";
+import { RoundActions } from "@ldayton/ui/round-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group, Kbd } from "@mantine/core";
 import { createViewState } from "./view-state";
@@ -75,10 +75,5 @@ export function TheoryControls({
     >
       <PracticePianoToggle panelId={panelId} />
     </RoundActions>
-  );
-}
-export function TheoryContinue({ next }: { next(): void }) {
-  return (
-    <ContinueRound className="theory-continue soundtools-ui" onClick={next} />
   );
 }

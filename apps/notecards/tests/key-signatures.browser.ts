@@ -158,7 +158,7 @@ try {
       await page.locator("#feedback").textContent(),
       `Yes — ${signatureAnswer(card)}`,
     );
-    assert.equal(await page.locator("#progress").getAttribute("value"), "1");
+    assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
   }
   // Incorrect and repeated inputs count only once, then the accidental resets.
   await page.evaluate(
@@ -185,7 +185,7 @@ try {
     /That’s A♭ minor/,
   );
   await page.keyboard.press("C");
-  assert.equal(await page.locator("#progress").getAttribute("value"), "1");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
   await page.waitForFunction(() =>
     document.querySelector("#feedback")?.textContent?.startsWith("Name the "),
   );

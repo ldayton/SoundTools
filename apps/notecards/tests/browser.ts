@@ -89,7 +89,7 @@ try {
   assert.match((await page.locator("#feedback").textContent())!, /That’s E/);
   await page.keyboard.press("E");
   assert.equal(
-    await page.locator("#progress").getAttribute("value"),
+    await page.locator("#progress").getAttribute("aria-valuenow"),
     "1",
     "One answer per card",
   );
@@ -124,7 +124,7 @@ try {
   await page.locator("#continue").waitFor();
   assert.equal(await page.locator("#result").textContent(), "12 of 12 correct");
   await page.getByRole("button", { name: "Keep going" }).click();
-  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "0");
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(
     await page.evaluate(

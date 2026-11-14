@@ -87,11 +87,11 @@ try {
   );
   await on(72);
   await on(76);
-  assert.equal(await page.locator("#progress").getAttribute("value"), "1");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
   await ready();
   await on(72);
   await on(79); // held chord never answers another card
-  assert.equal(await page.locator("#progress").getAttribute("value"), "1");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
   for (const n of [72, 76, 79]) await off(n);
   await on(62);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — D4");
@@ -100,14 +100,14 @@ try {
   // Focus loss ignores playing, and held notes stay ignored on return.
   await page.evaluate(() => window.dispatchEvent(new Event("blur")));
   await on(60);
-  assert.equal(await page.locator("#progress").getAttribute("value"), "2");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "2");
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await on(60);
-  assert.equal(await page.locator("#progress").getAttribute("value"), "2");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "2");
   await off(60);
   await send([0x90, 61, 90], "roland", true);
   await off(61);
-  assert.equal(await page.locator("#progress").getAttribute("value"), "2");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "2");
   await on(60);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C4");
   await off(60);
@@ -150,7 +150,7 @@ try {
   )
     await page.locator(".keyboard-menu").click();
   await on(62, "replugged");
-  assert.equal(await page.locator("#progress").getAttribute("value"), "1");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
   await on(62, "second");
   assert.equal(await page.locator("#feedback").textContent(), "Yes — D4");
   await off(62, "second");
@@ -170,14 +170,14 @@ try {
   await selectPractice(page, "signature");
   await on(60, "second");
   await off(60, "second");
-  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "0");
   assert.ok(await page.locator("#midi-panel").isHidden());
   await selectPractice(page, "piano");
   // Navigation now resumes the saved round; deliberately start a fresh one for the following checks.
   await practiceOption(page, "#roundLength", "12");
   await midiAction(page, "Disconnect");
   await on(60, "second");
-  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "0");
   await page.evaluate(() => (window as any).midiTest.deny(true));
   await midiAction(page, "Connect MIDI keyboard");
   await page
@@ -193,7 +193,7 @@ try {
     .getByText(/MIDI access wasn’t allowed/)
     .waitFor({ state: "attached" });
   await on(60, "replugged");
-  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "0");
   await page.evaluate(() => (window as any).midiTest.deny(false));
   await midiAction(page, "Retry MIDI");
   await page
@@ -293,7 +293,7 @@ try {
     "true",
   );
   await page.locator('[data-piano="60"]').click({ force: true });
-  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "0");
   await on(48); // C3 is wrong for C2 despite sharing its pitch class.
   assert.equal(
     await page.locator("#feedback").textContent(),

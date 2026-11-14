@@ -40,3 +40,12 @@ of writing shell DOM. Stable retained activity/MIDI elements preserve cached rou
 Build, navigation/history/MIDI and full recovery/storage tests pass on a fresh
 local server. Fixed initialization parking for the retained MIDI portal during
 verification. Next: ordinary practice presentation and answer sizing.
+
+Milestone 5 complete: ordinary headers/progress/feedback/completion now share React
+presentation components across flashcards, theory, rhythm, patterns and hymns.
+Controllers publish derived snapshots; score engraving, clocks, matching and
+saved data stay with their original owners. Theory answers match the 48px note
+answer targets. Tests assert accessible progress values instead of native element
+implementation attributes. Build plus browser/theory/practice/hymn-playback,
+passage and navigation checks pass. Next: remove superseded CSS/docs and final
+frozen-build matrix, then release verification.

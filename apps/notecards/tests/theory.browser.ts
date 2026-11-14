@@ -134,7 +134,7 @@ try {
   await page.reload();
   await root().locator(".theory-next").waitFor();
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("value"),
+    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
     "3",
   );
   for (let i = 3; i < 12; i++) {
@@ -148,7 +148,7 @@ try {
   assert.ok(await root().locator(".theory-summary").isVisible());
   await root().locator(".theory-continue").click();
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("value"),
+    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
     "0",
   );
   await field("task", "play-degree");
@@ -161,7 +161,7 @@ try {
   await field("task", "build-scale");
   await page.clock.runFor(1000);
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("value"),
+    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
     "0",
     "old task timer cannot advance a new task",
   );
@@ -210,7 +210,7 @@ try {
   await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
   for (const n of [65, 67, 69, 71, 72]) await send(n);
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("value"),
+    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
     "1",
   );
   assert.match(
@@ -330,7 +330,7 @@ try {
   await selectPractice(page, "scales");
   await field("task", "name-degree");
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("value"),
+    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
     "0",
     "independent task checkpoint",
   );

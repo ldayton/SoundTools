@@ -28,6 +28,8 @@ export function TheoryAnswers({
       {state.choices.map((choice) => (
         <Button
           key={choice.value}
+          size="md"
+          h={48}
           variant="default"
           disabled={!state.accepting}
           data-answer={choice.value}

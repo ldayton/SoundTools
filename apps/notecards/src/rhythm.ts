@@ -1,3 +1,7 @@
+import {
+  practicePresentation,
+  mountPracticePresentation,
+} from "./practice-presentation";
 import { mountPracticeControls } from "./practice-surfaces";
 import {
   RhythmControls,
@@ -25,6 +29,12 @@ import { diagnostics } from "./diagnostics";
 import { mergeRhythmSettings } from "./rhythm-model";
 import { persistence } from "./persistence";
 export class RhythmPractice {
+  private presentation = practicePresentation({
+    context: "Rhythm only",
+    count: "4 bars · 4/4",
+    title: "Find the pulse.",
+    feedback: "Two bars to count in, then your turn.",
+  });
   readonly midiSlot: HTMLElement;
   private active = false;
   private controls = rhythmControlsState({ phase: "ready", response: "" });
@@ -86,7 +96,8 @@ export class RhythmPractice {
       this.bpm = settings.bpm;
       this.level = settings.level;
     } catch {}
-    element.innerHTML = `<section class="sequence-practice" aria-label="Rhythm practice"><div class="sequence-top"><span>Rhythm only</span><span>4 bars · 4/4</span></div><h2 class="sequence-title">Find the pulse.</h2><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><p class="sequence-feedback" role="status" aria-live="polite">Two bars to count in, then your turn.</p><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><div class="rhythm-tap-slot practice-control-slot"></div><div class="sequence-transport"></div><div class="rhythm-midi-slot"></div></section>`;
+    element.innerHTML = `<section class="sequence-practice" aria-label="Rhythm practice"><div class="presentation-header"></div><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="presentation-feedback"></div><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><div class="rhythm-tap-slot practice-control-slot"></div><div class="sequence-transport"></div><div class="rhythm-midi-slot"></div></section>`;
+    mountPracticePresentation(element, this.presentation, "rhythm");
     this.midiSlot = this.$(".rhythm-midi-slot");
     this.options = rhythmOptionsState({ bpm: this.bpm, level: this.level });
     registerPracticeOptions(
@@ -182,8 +193,9 @@ export class RhythmPractice {
   interrupt(_reason: Interruption) {
     if (this.state === "countin" || this.state === "playing") {
       this.stop();
-      this.$(".sequence-feedback").textContent =
-        "Stopped. Start again when you’re ready.";
+      this.presentation.set({
+        feedback: "Stopped. Start again when you’re ready.",
+      });
     }
   }
   private save() {
@@ -234,13 +246,15 @@ export class RhythmPractice {
         );
       });
       if (!layoutOnly)
-        this.$(".sequence-feedback").textContent =
-          "Two bars to count in, then your turn.";
+        this.presentation.set({
+          feedback: "Two bars to count in, then your turn.",
+        });
       if (this.result) this.showResult();
       if (!layoutOnly) this.save();
     } catch (e) {
-      this.$(".sequence-feedback").textContent =
-        "The rhythm couldn’t load. Try a new rhythm.";
+      this.presentation.set({
+        feedback: "The rhythm couldn’t load. Try a new rhythm.",
+      });
       diagnostics.capture(e, "rhythm.render_failed");
     }
   }
@@ -273,8 +287,7 @@ export class RhythmPractice {
     const counting = now < this.attempt.start;
     if (!counting && this.state === "countin") {
       this.state = "playing";
-      this.$(".sequence-feedback").textContent =
-        "Your turn. Keep a steady pulse.";
+      this.presentation.set({ feedback: "Your turn. Keep a steady pulse." });
       this.changed();
     }
     const beat = Math.floor(
@@ -291,8 +304,9 @@ export class RhythmPractice {
           ),
         );
       if (counting)
-        this.$(".sequence-feedback").textContent =
-          `Count-in · bar ${Math.floor(beat / 4) + 1} of 2 · beat ${(beat % 4) + 1}`;
+        this.presentation.set({
+          feedback: `Count-in · bar ${Math.floor(beat / 4) + 1} of 2 · beat ${(beat % 4) + 1}`,
+        });
     }
     if (!counting) {
       const index = this.attempt.times.reduce(
@@ -398,8 +412,9 @@ export class RhythmPractice {
           ),
         ),
     );
-    this.$(".sequence-feedback").textContent =
-      `${this.result.hits.length} of ${this.result.total} on the beat · ${this.result.missed} missed · ${this.result.extras} extra`;
+    this.presentation.set({
+      feedback: `${this.result.hits.length} of ${this.result.total} on the beat · ${this.result.missed} missed · ${this.result.extras} extra`,
+    });
     this.controls.set({ ...this.controls.getSnapshot(), phase: this.state });
     this.changed();
   }

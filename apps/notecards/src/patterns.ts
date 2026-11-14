@@ -1,3 +1,7 @@
+import {
+  practicePresentation,
+  mountPracticePresentation,
+} from "./practice-presentation";
 import { mountPracticeControls } from "./practice-surfaces";
 import { PatternControls, patternControlsState } from "./pattern-controls";
 import { createElement } from "react";
@@ -28,6 +32,10 @@ import { diagnostics } from "./diagnostics";
 import { mergePatternSettings } from "./patterns-model";
 import { persistence } from "./persistence";
 export class IntervalPatterns {
+  private presentation = practicePresentation({
+    context: "Wait for me",
+    title: "Follow the pattern.",
+  });
   readonly midiSlot: HTMLElement;
   private active = false;
   private paused = false;
@@ -60,7 +68,8 @@ export class IntervalPatterns {
         this.paused = restored.paused;
       }
     } catch {}
-    element.innerHTML = `<section class="sequence-practice" aria-label="Interval pattern practice"><div class="sequence-top"><span>Wait for me</span><span class="pattern-count"></span></div><h2 class="sequence-title">Follow the pattern.</h2><progress class="pattern-progress" aria-label="Pattern progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
+    element.innerHTML = `<section class="sequence-practice" aria-label="Interval pattern practice"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
+    mountPracticePresentation(element, this.presentation, "pattern");
     this.options = patternOptionsState(structuredClone(this.settings));
     registerPracticeOptions(
       element.id,
@@ -150,7 +159,7 @@ export class IntervalPatterns {
     window.clearTimeout(this.advanceTimer);
     this.advanceTimer = 0;
     if (this.session?.complete)
-      this.$(".sequence-feedback").textContent = "Well done.";
+      this.presentation.set({ feedback: "Well done." });
   }
   private scheduleAdvance() {
     this.cancelAdvance();
@@ -164,7 +173,7 @@ export class IntervalPatterns {
       !persistence.writable
     )
       return;
-    this.$(".sequence-feedback").textContent = "Well done. Next pattern…";
+    this.presentation.set({ feedback: "Well done. Next pattern…" });
     this.advanceTimer = window.setTimeout(() => {
       this.advanceTimer = 0;
       if (
@@ -219,8 +228,9 @@ export class IntervalPatterns {
       this.piano.show(...keyboardRange(this.events), false);
       this.update(true);
     } catch (e) {
-      this.$(".sequence-feedback").textContent =
-        "The pattern couldn’t load. Try a new pattern.";
+      this.presentation.set({
+        feedback: "The pattern couldn’t load. Try a new pattern.",
+      });
       diagnostics.capture(e, "patterns.render_failed");
       this.changed();
     }
@@ -230,8 +240,9 @@ export class IntervalPatterns {
     const result = this.session!.answer(note, held, !this.paused);
     if (result === "ignored") return;
     if (result === "wrong") {
-      this.$(".sequence-feedback").textContent =
-        "Try again — follow the highlighted note.";
+      this.presentation.set({
+        feedback: "Try again — follow the highlighted note.",
+      });
       return;
     }
     if (result === "restarted") {
@@ -251,19 +262,21 @@ export class IntervalPatterns {
       this.$(".sequence-score"),
       scroll,
     );
-    this.$(".pattern-count").textContent = s.complete
-      ? "Complete"
-      : `${s.index + 1} / ${s.steps.length}`;
-    const p = this.$<HTMLProgressElement>(".pattern-progress");
-    p.max = s.steps.length;
-    p.value = s.index;
-    this.$(".sequence-feedback").textContent = s.complete
-      ? this.paused
-        ? "Paused. Resume for a new pattern."
-        : "Well done."
-      : this.paused
-        ? "Paused. Continue when you’re ready."
-        : "Play the highlighted note.";
+    this.presentation.set({
+      count: s.complete ? "Complete" : `${s.index + 1} / ${s.steps.length}`,
+    });
+
+    this.presentation.set({ max: s.steps.length });
+    this.presentation.set({ value: s.index });
+    this.presentation.set({
+      feedback: s.complete
+        ? this.paused
+          ? "Paused. Resume for a new pattern."
+          : "Well done."
+        : this.paused
+          ? "Paused. Continue when you’re ready."
+          : "Play the highlighted note.",
+    });
     this.controls.set({ paused: this.paused });
     this.piano.setUnavailable(!this.accepting);
     this.changed();

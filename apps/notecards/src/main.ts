@@ -1,10 +1,13 @@
+import {
+  practicePresentation,
+  mountPracticePresentation,
+} from "./practice-presentation";
 import { shellStatus } from "./shell-status";
 import { createElement } from "react";
 import { mountPracticeControls } from "./practice-surfaces";
 import {
   FlashcardAnswers,
   FlashcardControls,
-  FlashcardContinue,
   flashcardControlsState,
 } from "./flashcard-controls";
 import {
@@ -130,6 +133,7 @@ const shell = mountAppShell($("#app"), {
   interrupt: (reason) => activities.interrupt(reason),
   inputChanged: refreshMidiAcceptance,
 });
+const presentation = practicePresentation({ feedback: "Loading notation…" });
 let pianoRangeNotice = "";
 function optionsSnapshot(): FlashcardOptionsSnapshot {
   const mode = isFlashcardMode(progress.mode) ? progress.mode : null;
@@ -163,6 +167,9 @@ mountFlashcardView($("#flashcards"), progress.roundLength, {
     changed("all");
   },
 });
+mountPracticePresentation($("#flashcards"), presentation, "flashcard", () =>
+  start(true),
+);
 const board = new Fretboard($("#fretboard"), answerLocation);
 const flashcardControls = flashcardControlsState({
   enabled: false,
@@ -272,14 +279,16 @@ function syncOptions() {
   const p = profile();
   const isPiano = progress.mode === "piano";
   const isSignature = progress.mode === "signature";
-  $("#context").textContent = isSignature
-    ? "Key signatures"
-    : (isPiano ? "Piano · " : "Guitar · ") +
-      (progress.mode === "name"
-        ? p.naturalsOnly
-          ? "Naturals only"
-          : "All notes"
-        : KEYS.find((k) => k.id === p.key)!.label.split(" · ")[0]);
+  presentation.set({
+    context: isSignature
+      ? "Key signatures"
+      : (isPiano ? "Piano · " : "Guitar · ") +
+        (progress.mode === "name"
+          ? p.naturalsOnly
+            ? "Naturals only"
+            : "All notes"
+          : KEYS.find((k) => k.id === p.key)!.label.split(" · ")[0]),
+  });
 }
 function renderQuestion(card: Card | GuitarCard) {
   const renderStarted = performance.now();
@@ -369,16 +378,18 @@ function renderQuestion(card: Card | GuitarCard) {
     $("#string-prompt").textContent = prompt;
     if (mode !== "tab") board.show(guitar, profile(), location);
   }
-  $("#feedback").textContent = isSignature
-    ? `Name the ${(card as SignatureCard).tonality} key.`
-    : isPiano
-      ? "Find this note."
-      : location
+  presentation.set({
+    feedback: isSignature
+      ? `Name the ${(card as SignatureCard).tonality} key.`
+      : isPiano
         ? "Find this note."
-        : mode === "name"
-          ? "Name the highlighted note."
-          : "Name this note.";
-  $("#feedback").className = "";
+        : location
+          ? "Find this note."
+          : mode === "name"
+            ? "Name the highlighted note."
+            : "Name this note.",
+  });
+  presentation.set({ kind: "" });
   diagnostics.metric("practice.render_ms", performance.now() - renderStarted);
 }
 function next() {
@@ -408,7 +419,7 @@ function next() {
   )
     board.focusAnswer();
   enableAnswers(true);
-  $("#counter").textContent = `${session.answered + 1} / ${session.length}`;
+  presentation.set({ count: `${session.answered + 1} / ${session.length}` });
 }
 function finish(announce = true) {
   phase = "complete";
@@ -416,11 +427,13 @@ function finish(announce = true) {
   if (announce)
     diagnostics.event("practice.completed", { roundLength: session.length });
   $("#question").hidden = true;
-  $("#summary").hidden = false;
-  $("#counter").textContent = `${session.length} / ${session.length}`;
-  $("#result").textContent = `${session.correct} of ${session.length} correct`;
-  $("#suggestion").textContent = session.suggestion;
-  $("#continue").focus({ preventScroll: true });
+  presentation.set({ summary: !false });
+  presentation.set({ count: `${session.length} / ${session.length}` });
+  presentation.set({
+    result: `${session.correct} of ${session.length} correct`,
+  });
+  presentation.set({ suggestion: session.suggestion });
+  requestAnimationFrame(() => $("#continue").focus({ preventScroll: true }));
 }
 function feedback(correct: boolean, text: string) {
   if (!persistence.writable || !session.submit(correct)) return;
@@ -430,9 +443,9 @@ function feedback(correct: boolean, text: string) {
   diagnostics.event(correct ? "answer.correct" : "answer.incorrect");
   const committed = save();
   enableAnswers(false);
-  $("#feedback").textContent = text;
-  $("#feedback").className = correct ? "correct" : "incorrect";
-  $<HTMLProgressElement>("#progress").value = session.answered;
+  presentation.set({ feedback: text });
+  presentation.set({ kind: correct ? "correct" : "incorrect" });
+  presentation.set({ value: session.answered });
   flashcardControls.set({ ...flashcardControls.getSnapshot(), next: true });
   const answeredSession = session,
     answerNumber = session.answered;
@@ -556,9 +569,9 @@ function start(continuing = false, restoring = false, restart = false) {
   pendingNext = false;
   syncOptions();
   $("#question").hidden = false;
-  $("#summary").hidden = true;
-  $<HTMLProgressElement>("#progress").value = 0;
-  $<HTMLProgressElement>("#progress").max = progress.roundLength;
+  presentation.set({ summary: !true });
+  presentation.set({ value: 0 });
+  presentation.set({ max: progress.roundLength });
   const pool =
     progress.mode === "staff"
       ? deck(profile())
@@ -596,7 +609,7 @@ function start(continuing = false, restoring = false, restart = false) {
     phase = session.current ? session.status : "question";
   }
   flashcardOptions.set({ ...optionsSnapshot(), roundLength: session.length });
-  $<HTMLProgressElement>("#progress").max = session.length;
+  presentation.set({ max: session.length });
   if (!pool.length) {
     phase = "empty";
     syncDiagnosticsContext();
@@ -607,20 +620,23 @@ function start(continuing = false, restoring = false, restart = false) {
     $("#piano").hidden = true;
     $("#signature-prompt").hidden = true;
     enableAnswers(false);
-    $("#feedback").textContent =
-      progress.mode === "name"
-        ? "No natural notes in this fret range. Choose more frets or all notes."
-        : "No notes in this key and fret range. Choose more frets or another string.";
-    $("#feedback").className = "incorrect";
-    $("#counter").textContent = "";
+    presentation.set({
+      feedback:
+        progress.mode === "name"
+          ? "No natural notes in this fret range. Choose more frets or all notes."
+          : "No notes in this key and fret range. Choose more frets or another string.",
+    });
+    presentation.set({ kind: "incorrect" });
+    presentation.set({ count: "" });
     return;
   }
   if (restoring && session.complete) finish(false);
   else if (restoring && session.current) {
     phase = session.status === "feedback" ? "feedback" : "question";
-    $("#counter").textContent =
-      `${Math.min(session.answered + (phase === "question" ? 1 : 0), session.length)} / ${session.length}`;
-    $<HTMLProgressElement>("#progress").value = session.answered;
+    presentation.set({
+      count: `${Math.min(session.answered + (phase === "question" ? 1 : 0), session.length)} / ${session.length}`,
+    });
+    presentation.set({ value: session.answered });
     setModifier(0);
     clearAnswerHover();
     renderQuestion(session.current);
@@ -630,10 +646,10 @@ function start(continuing = false, restoring = false, restart = false) {
       next: phase === "feedback",
     });
     if (phase === "feedback" && session.feedback) {
-      $("#feedback").textContent = session.feedback.text;
-      $("#feedback").className = session.feedback.correct
-        ? "correct"
-        : "incorrect";
+      presentation.set({ feedback: session.feedback.text });
+      presentation.set({
+        kind: session.feedback.correct ? "correct" : "incorrect",
+      });
       piano.setUnavailable(true);
     }
     syncDiagnosticsContext();
@@ -666,10 +682,7 @@ mountPracticeControls(
     },
   }),
 );
-mountPracticeControls(
-  $("#continue-slot"),
-  createElement(FlashcardContinue, { next: () => start(true) }),
-);
+
 mountPracticeControls(
   $(".flashcard-transport"),
   createElement(FlashcardControls, {
@@ -856,6 +869,7 @@ document.fonts.ready
   })
   .catch((error) => {
     diagnostics.capture(error, "notation.startup_failed");
-    $("#feedback").textContent =
-      "Notation couldn’t load. Please reload to try again.";
+    presentation.set({
+      feedback: "Notation couldn’t load. Please reload to try again.",
+    });
   });

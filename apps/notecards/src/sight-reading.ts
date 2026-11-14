@@ -1,3 +1,7 @@
+import {
+  practicePresentation,
+  mountPracticePresentation,
+} from "./practice-presentation";
 import { shellStatus } from "./shell-status";
 import { mountPracticeControls } from "./practice-surfaces";
 import { HymnControls, hymnControlsState } from "./hymn-controls";
@@ -79,6 +83,7 @@ type HymnState = {
   sections: Record<string, number>;
 };
 export class SightReading {
+  private presentation = practicePresentation({});
   private controls = hymnControlsState({
     disabled: false,
     pauseDisabled: false,
@@ -228,7 +233,8 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    element.innerHTML = `<section class="sequence-practice" aria-label="Hymn sight reading"><div class="sequence-top"><span>Wait for me</span><span class="hymn-count"></span></div><h2 class="sequence-title"></h2><progress class="hymn-progress" aria-label="Hymn progress"></progress><p class="sequence-feedback" role="status" aria-live="polite" aria-atomic="true"></p><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><p id="hymn-scroll-hint" class="hymn-scroll-hint" hidden>Scroll for more ↕</p><div class="sequence-transport"></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div></section>`;
+    element.innerHTML = `<section class="sequence-practice" aria-label="Hymn sight reading"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><div class="sequence-transport"></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div></section>`;
+    mountPracticePresentation(element, this.presentation, "hymn");
     this.passage = new ScorePassage(
       this.$(".hymn-paper"),
       () => this.syncPassageControls(),
@@ -254,8 +260,9 @@ export class SightReading {
         diagnostics.capture(error, "hymn_playback.play_failed");
         this.paused = true;
         this.update();
-        this.$(".sequence-feedback").textContent =
-          "Audio couldn’t load. Try starting again.";
+        this.presentation.set({
+          feedback: "Audio couldn’t load. Try starting again.",
+        });
       },
       preparePianoPlayback,
     );
@@ -279,11 +286,6 @@ export class SightReading {
       {
         changed: () => this.updateRangeHint(),
       },
-    );
-    this.$(".sequence-top").append(this.$(".hymn-scroll-hint"));
-    this.$(".sequence-top").insertAdjacentHTML(
-      "beforeend",
-      '<span class="hymn-range-hint" hidden></span>',
     );
     this.midiSlot = this.$(".hymn-midi-slot");
     this.piano = new Piano(
@@ -553,7 +555,7 @@ export class SightReading {
     const range = this.passage.range;
     if (selecting) {
       this.piano?.setUnavailable(true);
-      this.$(".sequence-feedback").textContent = "Practice paused.";
+      this.presentation.set({ feedback: "Practice paused." });
     }
     this.setControls({
       disabled: selecting || this.noMatchingKey,
@@ -579,9 +581,8 @@ export class SightReading {
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
     if (!this.lastWidth) return;
     const previous = this.session;
-    const feedback = this.$(".sequence-feedback");
-    const previousText = feedback.textContent;
-    const previousKind = feedback.dataset.kind;
+    const { feedback: previousText, kind: previousKind } =
+      this.presentation.getSnapshot();
     if (!layoutOnly) {
       if (!continuingPlayback) {
         this.playback.pause();
@@ -590,7 +591,7 @@ export class SightReading {
       this.session = undefined;
       this.acceptanceChanged();
     }
-    this.$(".sequence-title").textContent = this.hymn.title;
+    this.presentation.set({ title: this.hymn.title });
     this.$(".sequence-score").setAttribute(
       "aria-label",
       this.arrangement !== "melody" && this.viewHands === "left"
@@ -742,9 +743,11 @@ export class SightReading {
       }
       if (!steps.length) {
         this.session = undefined;
-        this.$(".sequence-feedback").textContent =
-          "No notes for the practising hand in this passage. Select another passage or change hands.";
-        this.$(".hymn-count").textContent = "";
+        this.presentation.set({
+          feedback:
+            "No notes for the practising hand in this passage. Select another passage or change hands.",
+        });
+        this.presentation.set({ count: "" });
         this.setControls({ pauseDisabled: true });
         this.piano.setUnavailable(true);
         this.acceptanceChanged();
@@ -780,13 +783,13 @@ export class SightReading {
           `${Math.ceil(height + 8)}px`,
         );
       }
-      this.$(".hymn-scroll-hint").hidden =
-        viewport.scrollHeight <= viewport.clientHeight + 1;
+      this.presentation.set({
+        scrollHint: viewport.scrollHeight > viewport.clientHeight + 1,
+      });
       this.preparePiano(!!keepSession);
       this.update(true, !!keepSession);
       if (keepSession) {
-        feedback.textContent = previousText;
-        if (previousKind) feedback.dataset.kind = previousKind;
+        this.presentation.set({ feedback: previousText, kind: previousKind });
         for (const note of this.session.selected)
           this.element
             .querySelector(`[data-piano="${note}"]`)
@@ -796,8 +799,9 @@ export class SightReading {
       this.playback.pause();
       this.session = undefined;
       this.events = [];
-      this.$(".sequence-feedback").textContent =
-        "This hymn couldn’t load. Try another hymn or reload.";
+      this.presentation.set({
+        feedback: "This hymn couldn’t load. Try another hymn or reload.",
+      });
       diagnostics.capture(error, "sight_reading.render_failed");
       this.acceptanceChanged();
     }
@@ -950,20 +954,21 @@ export class SightReading {
   }
   private showNoMatchingKey() {
     this.playback.pause();
-    this.$(".sequence-top > span").textContent =
-      this.mode === "playback" ? "Playback" : "Wait for me";
+    this.presentation.set({
+      context: this.mode === "playback" ? "Playback" : "Wait for me",
+    });
     this.session = undefined;
     this.events = [];
     this.content = "";
     this.$(".hymn-paper").innerHTML =
       '<p class="hymn-no-key" role="status">No available key fits these note limits. Widen or clear the lowest or highest note.</p>';
-    this.$(".sequence-feedback").textContent = "";
-    this.$(".hymn-count").textContent = "";
-    this.$<HTMLProgressElement>(".hymn-progress").value = 0;
+    this.presentation.set({ feedback: "" });
+    this.presentation.set({ count: "" });
+    this.presentation.set({ value: 0 });
     this.setControls({ disabled: true });
     this.pianoPanel.setAvailable(false);
-    this.$(".hymn-range-hint").hidden = true;
-    this.$(".hymn-scroll-hint").hidden = true;
+    this.presentation.set({ rangeHint: "" });
+    this.presentation.set({ scrollHint: false });
     this.$(".sequence-score").style.removeProperty("--phone-score-height");
     this.acceptanceChanged();
     this.save();
@@ -976,15 +981,17 @@ export class SightReading {
   private updateRangeHint() {
     if (!this.piano) return;
     if (this.mode === "playback" || !isPianoVisible()) {
-      this.$<HTMLElement>(".hymn-range-hint").hidden = true;
+      this.presentation.set({ rangeHint: "" });
       return;
     }
     const missing = (this.session?.current?.pitches || []).filter(
       (note) => !this.piano.contains(note),
     );
-    const hint = this.$(".hymn-range-hint");
-    hint.hidden = !missing.length;
-    hint.textContent = `MIDI needed: ${missing.map((note) => keyLabel(note)).join(", ")}`;
+    this.presentation.set({
+      rangeHint: missing.length
+        ? `MIDI needed: ${missing.map((note) => keyLabel(note)).join(", ")}`
+        : "",
+    });
   }
   private clearPianoSelection(clearHint = true) {
     if (clearHint) this.piano?.clearHint();
@@ -1000,15 +1007,17 @@ export class SightReading {
       this.paused = false;
     }
     if (result === "wrong" || result === "partial") {
-      this.$(".sequence-feedback").dataset.kind = result;
-      this.$(".sequence-feedback").textContent = feedbackForNotes(
-        note,
-        this.session!.current.pitches,
-        this.session!.selected,
-        result,
-        this.events[this.session!.index]?.spellings,
-        held,
-      );
+      this.presentation.set({ kind: result });
+      this.presentation.set({
+        feedback: feedbackForNotes(
+          note,
+          this.session!.current.pitches,
+          this.session!.selected,
+          result,
+          this.events[this.session!.index]?.spellings,
+          held,
+        ),
+      });
       if (result === "wrong") {
         this.piano.hint(
           note,
@@ -1035,12 +1044,13 @@ export class SightReading {
     if (!session) return;
     if (this.passage.selecting) {
       this.piano.setUnavailable(true);
-      this.$(".sequence-feedback").textContent = "Practice paused.";
+      this.presentation.set({ feedback: "Practice paused." });
       this.acceptanceChanged();
       return;
     }
-    this.$(".sequence-top > span").textContent =
-      this.mode === "playback" ? "Playback" : "Wait for me";
+    this.presentation.set({
+      context: this.mode === "playback" ? "Playback" : "Wait for me",
+    });
     this.publishOptions();
     this.pianoPanel.setAvailable(this.mode === "wait");
     if (this.mode === "playback") {
@@ -1065,24 +1075,28 @@ export class SightReading {
           : "",
     });
     const complete = session.complete;
-    this.$(".hymn-count").textContent = complete
-      ? "Complete"
-      : `${Math.min(session.index + 1, session.steps.length)} / ${session.steps.length}`;
-    const progress = this.$<HTMLProgressElement>(".hymn-progress");
-    progress.max = session.steps.length;
-    progress.value = session.index;
-    delete this.$(".sequence-feedback").dataset.kind;
-    this.$(".sequence-feedback").textContent = complete
-      ? "Lovely. Sing it again, or choose another hymn."
-      : this.paused
-        ? "Paused. Continue when you’re ready."
-        : this.arrangement !== "melody" && this.hands === "left"
-          ? session.current.pitches.length > 1
-            ? "Play the highlighted notes with your left hand."
-            : "Play the highlighted note with your left hand."
-          : session.current.pitches.length > 1
-            ? "Play the highlighted notes together."
-            : "Play the highlighted note.";
+    this.presentation.set({
+      count: complete
+        ? "Complete"
+        : `${Math.min(session.index + 1, session.steps.length)} / ${session.steps.length}`,
+    });
+
+    this.presentation.set({ max: session.steps.length });
+    this.presentation.set({ value: session.index });
+    this.presentation.set({ kind: "" });
+    this.presentation.set({
+      feedback: complete
+        ? "Lovely. Sing it again, or choose another hymn."
+        : this.paused
+          ? "Paused. Continue when you’re ready."
+          : this.arrangement !== "melody" && this.hands === "left"
+            ? session.current.pitches.length > 1
+              ? "Play the highlighted notes with your left hand."
+              : "Play the highlighted note with your left hand."
+            : session.current.pitches.length > 1
+              ? "Play the highlighted notes together."
+              : "Play the highlighted note.",
+    });
     this.setControls({
       pauseDisabled: complete,
       pause: this.paused ? "Resume" : "Pause",
@@ -1105,8 +1119,9 @@ export class SightReading {
         : counting.bars === 1
           ? "1 bar"
           : `bar ${counting.bar} of ${counting.bars}`;
-    this.$(".sequence-feedback").textContent =
-      `Count-in · ${bars} · beat ${counting.beat}`;
+    this.presentation.set({
+      feedback: `Count-in · ${bars} · beat ${counting.beat}`,
+    });
   }
   private updatePlayback() {
     if (!this.session) return;
@@ -1152,22 +1167,24 @@ export class SightReading {
       this.$(".sequence-score"),
       true,
     );
-    this.$(".hymn-count").textContent = complete
-      ? "Complete"
-      : `${index + 1} / ${this.events.length}`;
-    const progress = this.$<HTMLProgressElement>(".hymn-progress");
-    progress.max = this.events.length;
-    progress.value = complete ? this.events.length : index;
-    this.$(".sequence-feedback").textContent =
-      state === "loading"
-        ? "Loading…"
-        : state === "playing"
-          ? "Sing or play along."
-          : complete
-            ? "Complete. Play it again, or choose another section."
-            : state === "paused"
-              ? "Paused."
-              : "Press Play to listen.";
+    this.presentation.set({
+      count: complete ? "Complete" : `${index + 1} / ${this.events.length}`,
+    });
+
+    this.presentation.set({ max: this.events.length });
+    this.presentation.set({ value: complete ? this.events.length : index });
+    this.presentation.set({
+      feedback:
+        state === "loading"
+          ? "Loading…"
+          : state === "playing"
+            ? "Sing or play along."
+            : complete
+              ? "Complete. Play it again, or choose another section."
+              : state === "paused"
+                ? "Paused."
+                : "Press Play to listen.",
+    });
     this.setControls({
       pauseDisabled: false,
       pause:
@@ -1184,7 +1201,7 @@ export class SightReading {
       nextLabel:
         this.section + 1 < this.sections ? "Next section →" : "Next hymn →",
     });
-    this.$(".hymn-range-hint").hidden = true;
+    this.presentation.set({ rangeHint: "" });
     this.piano.setUnavailable(true);
     this.showCountIn();
   }

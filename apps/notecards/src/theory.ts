@@ -1,9 +1,12 @@
+import {
+  practicePresentation,
+  mountPracticePresentation,
+} from "./practice-presentation";
 import { createElement } from "react";
 import { mountPracticeControls } from "./practice-surfaces";
 import {
   TheoryAnswers,
   TheoryControls,
-  TheoryContinue,
   theoryControlsState,
   type TheoryChoice,
 } from "./theory-controls";
@@ -61,6 +64,7 @@ function abcNote(n: TheoryNote, includeAccidental = true) {
 }
 /** Shared theory round/input owner. Only the question model varies between the two pages. */
 class TheoryPractice implements LivePractice {
+  private presentation = practicePresentation({});
   private controls = theoryControlsState({
     next: false,
     accepting: false,
@@ -111,7 +115,7 @@ class TheoryPractice implements LivePractice {
         this.rounds = saved.rounds;
       this.progress = loadProgress(JSON.stringify(saved.progress));
     }
-    element.innerHTML = `<section class="sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="sequence-top"><span class="theory-context"></span><span class="theory-count"></span></div><progress class="theory-progress" aria-label="Session progress"></progress><p class="sequence-feedback" role="status" aria-live="polite"></p><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"></div><div class="theory-piano"></div><div class="theory-summary" hidden><h2>Round complete</h2><p></p><div class="theory-continue-slot"></div><p class="theory-suggestion"></p></div></section>`;
+    element.innerHTML = `<section class="sequence-practice theory-surface" aria-label="${kind === "scales" ? "Scale and degree" : "Interval"} practice"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="theory-notation" role="img" aria-label="Theory question"></div><div class="theory-steps" aria-label="Scale progress"></div><div class="theory-answers" aria-label="Answer choices"></div><p class="theory-explanation" role="status" hidden></p><div class="theory-walk" role="img" aria-label="Counted staff positions" hidden></div><p class="theory-midi-notice" hidden></p><div class="sequence-transport"></div><div class="theory-piano"></div><div class="presentation-summary"></div></section>`;
     this.options = theoryOptionsState({
       kind,
       task: this.task,
@@ -172,21 +176,16 @@ class TheoryPractice implements LivePractice {
         restart: () => this.reset(),
       }),
     );
-    mountPracticeControls(
-      this.$(".theory-continue-slot"),
-      createElement(TheoryContinue, {
-        next: () => {
-          this.resetPianoFocus = true;
-          this.lastKeys = undefined;
-          this.session.continueRound();
-          this.session.next();
-          this.step = 0;
-          this.firstTry = true;
-          this.save();
-          this.render();
-        },
-      }),
-    );
+    mountPracticePresentation(element, this.presentation, "theory", () => {
+      this.resetPianoFocus = true;
+      this.lastKeys = undefined;
+      this.session.continueRound();
+      this.session.next();
+      this.step = 0;
+      this.firstTry = true;
+      this.save();
+      this.render();
+    });
     mountPracticeControls(
       this.$(".theory-answers"),
       createElement(TheoryAnswers, {
@@ -507,25 +506,29 @@ class TheoryPractice implements LivePractice {
       task: this.task,
       settings: structuredClone(s),
     });
-    this.$(".theory-count").textContent =
-      `${Math.min(this.session.answered + (this.session.accepting ? 1 : 0), this.session.length)} / ${this.session.length}`;
-    const progress = this.$<HTMLProgressElement>(".theory-progress");
-    progress.max = this.session.length;
-    progress.value = this.session.answered;
+    this.presentation.set({
+      count: `${Math.min(this.session.answered + (this.session.accepting ? 1 : 0), this.session.length)} / ${this.session.length}`,
+    });
+
+    this.presentation.set({ max: this.session.length });
+    this.presentation.set({ value: this.session.answered });
     const complete = !q && this.session.complete;
-    this.$(".theory-summary").hidden = !complete;
-    this.$(".theory-summary > p").textContent =
-      `${this.session.correct} of ${this.session.length} correct on the first try.`;
-    this.$(".theory-suggestion").textContent =
-      this.kind === "scales"
-        ? "When this feels comfortable, add another degree or key in Practice options."
-        : this.task === "name-interval"
-          ? Math.max(...s.intervals) <= 3
-            ? "Next, try adding fourths and fifths."
-            : Math.max(...s.intervals) <= 5
-              ? "Next, try sixths, sevenths and octaves."
-              : "Try naming the full interval when these distances feel familiar."
-          : "Expand your set when these intervals feel familiar.";
+    this.presentation.set({ summary: !!complete });
+    this.presentation.set({
+      result: `${this.session.correct} of ${this.session.length} correct on the first try.`,
+    });
+    this.presentation.set({
+      suggestion:
+        this.kind === "scales"
+          ? "When this feels comfortable, add another degree or key in Practice options."
+          : this.task === "name-interval"
+            ? Math.max(...s.intervals) <= 3
+              ? "Next, try adding fourths and fifths."
+              : Math.max(...s.intervals) <= 5
+                ? "Next, try sixths, sevenths and octaves."
+                : "Try naming the full interval when these distances feel familiar."
+            : "Expand your set when these intervals feel familiar.",
+    });
     this.controls.set({
       ...this.controls.getSnapshot(),
       next: !!q && !this.session.accepting && !this.pendingAdvance,
@@ -543,17 +546,21 @@ class TheoryPractice implements LivePractice {
       : "";
     this.panel.setAvailable(!!q && !this.identifying);
     this.$(".theory-midi-notice").hidden = true;
-    this.$(".theory-context").textContent =
-      q?.keyName ||
-      (this.task === "name-interval"
-        ? "Read the distance"
-        : "Name the full interval");
+    this.presentation.set({
+      context:
+        q?.keyName ||
+        (this.task === "name-interval"
+          ? "Read the distance"
+          : "Name the full interval"),
+    });
     if (!q) {
-      this.$(".sequence-feedback").textContent = this.session.pool.length
-        ? "Round complete."
-        : this.task === "name-quality" && intervalAnswers(s).length < 2
-          ? "Choose at least two interval answers to compare."
-          : "No questions fit these options. Choose matching interval sizes and qualities, or widen the range.";
+      this.presentation.set({
+        feedback: this.session.pool.length
+          ? "Round complete."
+          : this.task === "name-quality" && intervalAnswers(s).length < 2
+            ? "Choose at least two interval answers to compare."
+            : "No questions fit these options. Choose matching interval sizes and qualities, or widen the range.",
+      });
       this.changed();
       return;
     }
@@ -570,13 +577,15 @@ class TheoryPractice implements LivePractice {
               : this.task === "name-quality"
                 ? "Name the full interval."
                 : `${s.quality === "number" ? "In " + q.keyName + ", play" : "Play"} ${(q.quality === "augmented" && s.quality !== "number") || (q.interval === 8 && s.quality === "number") ? "an" : "a"} ${s.quality === "number" ? "" : q.quality + " "}${ordinal(q.interval!)} ${q.direction === "up" ? "above" : "below"} ${name(root)}${root.octave}.`;
-    this.$(".sequence-feedback").textContent = this.session.accepting
-      ? this.lastFeedback || prompt
-      : this.session.feedback?.correct
-        ? "Correct."
-        : this.identifying
-          ? "Not quite."
-          : "Correct — after correction.";
+    this.presentation.set({
+      feedback: this.session.accepting
+        ? this.lastFeedback || prompt
+        : this.session.feedback?.correct
+          ? "Correct."
+          : this.identifying
+            ? "Not quite."
+            : "Correct — after correction.",
+    });
 
     const size =
       s.intervals.length === 1 ? s.intervals[0] : this.selectedInterval;
@@ -715,8 +724,10 @@ class TheoryPractice implements LivePractice {
           );
       }
     } catch (error) {
-      this.$(".sequence-feedback").textContent =
-        "This question could not be drawn. Try different practice options.";
+      this.presentation.set({
+        feedback:
+          "This question could not be drawn. Try different practice options.",
+      });
       diagnostics.capture(error, "theory.render_failed");
     }
   }

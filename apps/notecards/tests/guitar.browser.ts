@@ -127,7 +127,7 @@ try {
   await page.keyboard.press("E");
   assert.match((await page.locator("#feedback").textContent())!, /That’s E/);
   await page.keyboard.press("F");
-  assert.equal(await page.locator("#progress").getAttribute("value"), "1");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
   await next();
   await page.keyboard.press("F");
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F/);
@@ -167,7 +167,7 @@ try {
     "0",
   );
   await page.keyboard.down("Enter"); // Repeat event after the next card is ready.
-  assert.equal(await page.locator("#progress").getAttribute("value"), "2");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "2");
   await page.keyboard.up("Enter");
   // Complete a fresh location session using the known C-major low-E positions.
   await openPracticeOptions(page);
@@ -182,7 +182,7 @@ try {
   await page.locator("#continue").waitFor();
   assert.equal(await page.locator("#result").textContent(), "12 of 12 correct");
   await page.locator("#continue").click();
-  assert.equal(await page.locator("#progress").getAttribute("value"), "0");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "0");
   await selectPractice(page, "tab");
   await ready();
   assert.equal(await page.locator(".vf-tabnote").count(), 1);
@@ -333,7 +333,7 @@ try {
   await page.locator('[data-letter="E"]').click();
   await page.waitForTimeout(1800);
   assert.equal(await page.locator("#counter").textContent(), "1 / 12");
-  assert.equal(await page.locator("#progress").getAttribute("value"), "1");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
   await page.evaluate(
     "Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'))",
   );
@@ -343,7 +343,7 @@ try {
   await practiceOption(page, "#roundLength", "24");
   await practiceOption(page, "#maxFret", "0");
   assert.equal(await page.locator("#counter").textContent(), "1 / 24");
-  assert.equal(await page.locator("#progress").getAttribute("max"), "24");
+  assert.equal(await page.locator("#progress").getAttribute("aria-valuemax"), "24");
   for (let i = 0; i < 24; i++) {
     await page.locator('[data-letter="E"]:enabled').click();
     if (i < 23) await next();

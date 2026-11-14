@@ -7,13 +7,13 @@ export function mountFlashcardView(
   roundLength: number,
   options: ComponentProps<typeof FlashcardOptions>,
 ) {
-  element.innerHTML = `<section class="practice" aria-label="Note recognition practice"><div class="card-top"><span id="context"></span><span id="counter"></span></div><progress id="progress" max="${roundLength}" value="0" aria-label="Session progress"></progress>
-<div id="question"><div class="answer-line"><span id="feedback" role="status" aria-live="polite">Loading notation…</span></div><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
+  element.innerHTML = `<section class="practice" aria-label="Note recognition practice"><div class="presentation-header"></div><div class="presentation-progress"></div>
+<div id="question"><div class="presentation-feedback"></div><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
 
 <div class="keyboard" aria-label="Answer keyboard"></div>
 <p class="hint" id="name-hint"><span class="desktop-hint">Press A–G to answer. First press + for sharp; − for flat; 0 to return to natural</span><span class="mobile-hint">Choose ♯ or ♭ first, then tap the letter.</span></p><p class="hint location-hint" hidden>Choose a fret on the highlighted string.<span class="desktop-hint"> Use ← / → to move, Enter to answer.</span></p></div>
-<div class="sequence-transport flashcard-transport"></div><div id="summary" hidden><p class="eyebrow">SESSION COMPLETE</p><h2>A little sharper.</h2><p id="result"></p><div id="continue-slot"></div><p class="summary-note" id="suggestion"></p></div></section>
+<div class="sequence-transport flashcard-transport"></div><div class="presentation-summary"></div></section>
 `;
   registerPracticeOptions(
     element.id,

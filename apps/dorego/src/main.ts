@@ -1,8 +1,13 @@
-import { PracticeView, type PracticeSnapshot } from './practice-view';
-import { PracticeFooter } from './footer';
+import {
+  PracticeView,
+  PracticeVolume,
+  PracticeTitle,
+  type PracticeSnapshot,
+} from './practice-view';
+import { SettingsPage } from './settings-page';
 import { createElement } from 'react';
 import { createViewState } from '@ldayton/ui/view-state';
-import { Builder, type BuilderSnapshot, type SpecPatch } from './builder';
+import { Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from './builder';
 import { restoreSpec, editSpec } from './exercise-settings';
 import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext } from './diagnostics';
@@ -79,6 +84,19 @@ const practiceModel = createViewState<PracticeSnapshot>({
   toast: '',
 });
 mountAppShell($('#app'), {
+  selection: (selected: () => void) =>
+    createElement(ExerciseSelection, {
+      model: builderModel,
+      change: (patch: SpecPatch) => {
+        refresh(patch);
+        selected();
+      },
+    }),
+  title: createElement(PracticeTitle, { model: practiceModel }),
+  volume: createElement(PracticeVolume, { model: practiceModel, volume: changeVolume }),
+  pause: () => {
+    if (mode === 'playing' || mode === 'starting') stop(false);
+  },
   builder: createElement(Builder, {
     model: builderModel,
     change: (patch) => refresh(patch),
@@ -96,9 +114,8 @@ mountAppShell($('#app'), {
       player.seek(exercise, value);
     },
     tempo: changeTempo,
-    volume: changeVolume,
   }),
-  footer: createElement(PracticeFooter),
+  settingsView: createElement(SettingsPage),
 });
 setupOffline();
 canvas.width = WIDTH;
@@ -314,8 +331,9 @@ async function toggleFullscreen() {
 }
 document.addEventListener('keydown', (event) => {
   if (
+    location.hash === '#settings' ||
     (event.target as HTMLElement).closest(
-      'input, select, textarea, button, summary, dialog, [role="dialog"], [role="spinbutton"], [role="slider"]'
+      'a[href], input, select, textarea, button, summary, dialog, [role="dialog"], [role="spinbutton"], [role="slider"]'
     ) ||
     document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]') ||
     event.ctrlKey ||

@@ -1,3 +1,9 @@
+import {
+  ApplicationLayout,
+  AppBrand,
+  SettingsNavigationLink,
+  isNavigationClick,
+} from "@ldayton/ui/application-layout";
 import { SidebarSelection, SidebarVolume } from "./sidebar-controls";
 import { APP } from "./app-profile";
 import { shellStatus } from "./shell-status";
@@ -6,7 +12,6 @@ import { PracticeSurfaceViews } from "./practice-surfaces";
 import { RetainedContent } from "./retained-content";
 import {
   StrictMode,
-  useEffect,
   useLayoutEffect,
   useSyncExternalStore,
   type MouseEvent,
@@ -15,29 +20,19 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import {
   Alert,
-  ActionIcon,
   Anchor,
-  AppShell,
   Box,
-  Burger,
   Button,
-  Drawer,
   Collapse,
-  Group,
   Indicator,
   NavLink,
   Stack,
   Text,
   Title,
-  useMantineTheme,
+  VisuallyHidden,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { SoundToolsProvider } from "@ldayton/ui";
-import {
-  PracticeOptionsProvider,
-  PracticeOptionsReopen,
-  PracticeWorkspace,
-} from "./practice-options";
+import { PracticeOptionsProvider, PracticeWorkspace } from "./practice-options";
 import { SettingsPage } from "./settings-page";
 import { offlineState } from "./offline-state";
 import { diagnostics } from "./diagnostics";
@@ -116,15 +111,7 @@ export function mountAppShell(
     events.inputChanged();
   }
   function follow(event: MouseEvent<HTMLAnchorElement>) {
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    )
-      return;
+    if (!isNavigationClick(event)) return;
     event.preventDefault();
     focusAfterNavigation = store.getSnapshot().navigationOpen;
     events.navigate(new URL(event.currentTarget.href), true);
@@ -215,22 +202,11 @@ export function mountAppShell(
           </Collapse>
         </Stack>
         <SidebarVolume />
-        <NavLink
-          component="a"
+        <SettingsNavigationLink
           href="/settings"
-          label="Settings"
-          data-settings
           onClick={follow}
-          leftSection={<ShellIcon name="settings" />}
           active={snapshot.selected === "settings"}
-          aria-current={snapshot.selected === "settings" ? "page" : undefined}
-          rightSection={
-            offline.updateAvailable ? (
-              <Indicator color="orange" position="middle-center">
-                <Box w={8} h={8} role="img" aria-label="Update available" />
-              </Indicator>
-            ) : undefined
-          }
+          updateAvailable={offline.updateAvailable}
         />
         <Text size="xs" c="dimmed">
           SOUNDTOOLS
@@ -244,209 +220,103 @@ export function mountAppShell(
       shellStatus.getSnapshot,
     );
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
-    const theme = useMantineTheme();
-    const desktop = useMediaQuery(
-      `(min-width: ${theme.breakpoints.sm})`,
-      undefined,
-      { getInitialValueInEffect: false },
-    );
-    useEffect(() => {
-      if (desktop) closeNavigation();
-    }, [desktop]);
-    const brand = (
-      <Anchor
-        href="/"
-        onClick={follow}
-        aria-label={`${APP.name} home`}
-        c="inherit"
-        underline="never"
-      >
-        <Group gap="xs" wrap="nowrap">
-          <img src="/icon.svg" alt="" width="28" height="28" />
-          <Text fw={600}>{APP.name}</Text>
-        </Group>
-      </Anchor>
-    );
     const activeOptionsId =
       LIVE_EXERCISES.find((definition) => definition.mode === snapshot.selected)
         ?.rootId ||
       (isFlashcardMode(snapshot.selected) ? "flashcards" : undefined);
+    const brand = (
+      <AppBrand name={APP.name} icon="/icon.svg" onClick={follow} />
+    );
     return (
       <PracticeOptionsProvider
         activeId={activeOptionsId}
         activityKey={snapshot.selected}
       >
-        <Anchor href="#practice-content" className="skip-link">
-          Skip to practice
-        </Anchor>
         <div hidden id="midi-parking">
           <RetainedContent element={midiPanel} />
         </div>
-        <AppShell
-          header={{ height: 72 }}
-          navbar={{
-            width: 244,
-            breakpoint: "sm",
-            collapsed: { desktop: snapshot.navigationCollapsed, mobile: true },
+        <ApplicationLayout
+          brand={brand}
+          title={snapshot.title}
+          area={snapshot.area}
+          navigation={<Navigation />}
+          navigationOpen={snapshot.navigationOpen}
+          navigationCollapsed={snapshot.navigationCollapsed}
+          onNavigationOpen={() => {
+            events.interrupt("controls");
+            store.set({ navigationOpen: true, keyboardOpen: false });
+            events.inputChanged();
           }}
-          padding="md"
-        >
-          <AppShell.Header className="soundtools-ui">
-            <Group h="100%" px="md" wrap="nowrap">
-              {(!desktop || snapshot.navigationCollapsed) && (
-                <Burger
-                  className="nav-toggle"
-                  size="sm"
-                  opened={!desktop && snapshot.navigationOpen}
-                  aria-label="Open navigation"
-                  aria-expanded={!desktop ? snapshot.navigationOpen : false}
-                  aria-controls="practice-navigation"
-                  onClick={() => {
-                    if (desktop) {
-                      store.set({ navigationCollapsed: false });
-                      requestAnimationFrame(() => $(".nav-close")?.focus());
-                    } else {
-                      events.interrupt("controls");
-                      store.set({ navigationOpen: true, keyboardOpen: false });
-                      events.inputChanged();
-                    }
-                  }}
-                />
-              )}
-              <Box style={{ flex: 1, minWidth: 0 }}>
-                <Text size="xs" c="dimmed">
-                  {snapshot.area}
-                </Text>
-                <Title
-                  id="page-title"
-                  order={1}
-                  size="h3"
-                  lineClamp={1}
-                  tabIndex={-1}
-                >
-                  {snapshot.title}
-                </Title>
-              </Box>
-              <PracticeOptionsReopen />
-            </Group>
-          </AppShell.Header>
-          {desktop && (
-            <AppShell.Navbar
-              id="practice-navigation"
-              aria-label="Exercises"
-              className="soundtools-ui app-sidebar"
-              p="md"
-              style={{ overflowY: "auto" }}
-              inert={snapshot.navigationCollapsed}
-            >
-              <Group justify="space-between" wrap="nowrap" mb="lg">
-                {brand}
-                <ActionIcon
-                  className="nav-close"
-                  variant="subtle"
-                  aria-label="Collapse navigation"
-                  onClick={() => {
-                    store.set({ navigationCollapsed: true });
-                    requestAnimationFrame(() => $(".nav-toggle").focus());
-                  }}
-                >
-                  <ShellIcon name="panelLeft" />
-                </ActionIcon>
-              </Group>
-              <Navigation />
-            </AppShell.Navbar>
-          )}
-          <AppShell.Main
-            id="practice-content"
-            tabIndex={-1}
-            inert={status.blocked}
-            className={
-              snapshot.routeKind !== "exercise"
-                ? undefined
-                : snapshot.selected === "sight"
-                  ? "hymn-layout"
-                  : snapshot.selected === "piano"
-                    ? "piano-layout-wide"
-                    : undefined
-            }
-          >
-            <div className="workspace-content">
-              <Alert
-                id="persistence-notice"
-                color={status.error ? "red" : "yellow"}
-                hidden={!status.error && !status.notice}
-              >
-                {status.error || status.notice}
-              </Alert>
-              <section
-                className="route-missing"
-                hidden={snapshot.routeKind !== "not-found"}
-              >
-                <Title order={2}>Page not found</Title>
-                <Text>
-                  Choose an exercise from the navigation to keep practising.
-                </Text>
-                <Anchor
-                  href={exercise(APP.defaultMode).path}
-                  data-mode={APP.defaultMode}
-                  onClick={follow}
-                >
-                  {exercise(APP.defaultMode).title} →
-                </Anchor>
-              </section>
-              <Text id="saved" size="xs" c="dimmed" role="status">
-                {status.saved}
-              </Text>
-              <div
-                id="exercise-content"
-                hidden={snapshot.routeKind !== "exercise"}
-              >
-                <PracticeWorkspace>
-                  {activityElements.map((node) => (
-                    <div
-                      key={node.id}
-                      hidden={node.id !== (activeOptionsId || "flashcards")}
-                    >
-                      <RetainedContent element={node} />
-                    </div>
-                  ))}
-                </PracticeWorkspace>
-              </div>
-              <section
-                id="settings-ui"
-                className="settings-page soundtools-ui"
-                aria-label="App settings"
-                hidden={snapshot.selected !== "settings"}
-              >
-                <SettingsPage key={snapshot.settingsVisit} />
-              </section>
-            </div>
-          </AppShell.Main>
-        </AppShell>
-        <PracticeSurfaceViews />
-        <Drawer
-          id="navigation-drawer"
-          opened={!desktop && snapshot.navigationOpen}
-          onClose={closeNavigation}
-          title={brand}
-          closeButtonProps={{ "aria-label": "Close navigation" }}
-          classNames={{ content: "soundtools-ui" }}
-          onExitTransitionEnd={() => {
+          onNavigationClose={closeNavigation}
+          onNavigationCollapse={() => store.set({ navigationCollapsed: true })}
+          onNavigationExpand={() => store.set({ navigationCollapsed: false })}
+          onNavigationExited={() => {
             if (focusAfterNavigation) {
               focusAfterNavigation = false;
               focusTitle();
             }
           }}
+          blocked={status.blocked}
+          mainClassName={
+            snapshot.routeKind !== "exercise"
+              ? undefined
+              : snapshot.selected === "sight"
+                ? "hymn-layout"
+                : snapshot.selected === "piano"
+                  ? "piano-layout-wide"
+                  : undefined
+          }
         >
-          <Box
-            component="nav"
-            aria-label="Exercises"
-            id="practice-navigation"
-            className="app-sidebar"
+          <Alert
+            id="persistence-notice"
+            color={status.error ? "red" : "yellow"}
+            hidden={!status.error && !status.notice}
           >
-            <Navigation />
-          </Box>
-        </Drawer>
+            {status.error || status.notice}
+          </Alert>
+          <section
+            className="route-missing"
+            hidden={snapshot.routeKind !== "not-found"}
+          >
+            <Title order={2}>Page not found</Title>
+            <Text>
+              Choose an exercise from the navigation to keep practising.
+            </Text>
+            <Anchor
+              href={exercise(APP.defaultMode).path}
+              data-mode={APP.defaultMode}
+              onClick={follow}
+            >
+              {exercise(APP.defaultMode).title} →
+            </Anchor>
+          </section>
+          <VisuallyHidden>
+            <Text id="saved" size="xs" c="dimmed" role="status">
+              {status.saved}
+            </Text>
+          </VisuallyHidden>
+          <div id="exercise-content" hidden={snapshot.routeKind !== "exercise"}>
+            <PracticeWorkspace>
+              {activityElements.map((node) => (
+                <div
+                  key={node.id}
+                  hidden={node.id !== (activeOptionsId || "flashcards")}
+                >
+                  <RetainedContent element={node} />
+                </div>
+              ))}
+            </PracticeWorkspace>
+          </div>
+          <section
+            id="settings-ui"
+            className="soundtools-ui"
+            aria-label="App settings"
+            hidden={snapshot.selected !== "settings"}
+          >
+            <SettingsPage key={snapshot.settingsVisit} />
+          </section>
+        </ApplicationLayout>
+        <PracticeSurfaceViews />
       </PracticeOptionsProvider>
     );
   }
@@ -457,7 +327,10 @@ export function mountAppShell(
   flushSync(() =>
     root.render(
       <StrictMode>
-        <SoundToolsProvider primaryColor={APP.color}>
+        <SoundToolsProvider
+          primaryColor={APP.color}
+          pageColor={APP.id === "songalong" ? "#f0f5f3" : "#f8f9fa"}
+        >
           <Shell />
         </SoundToolsProvider>
       </StrictMode>,

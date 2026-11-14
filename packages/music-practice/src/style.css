@@ -1,12 +1,4 @@
 :root {
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    sans-serif;
-  color: #302d55;
-  background: #f5f1e7;
   font-synthesis: none;
   font-smoothing: antialiased;
 }
@@ -46,18 +38,6 @@ body {
   font-weight: 650;
   color: #837b94;
 }
-h1 {
-  font-size: clamp(26px, 4vw, 36px);
-  font-weight: 550;
-  letter-spacing: -1.2px;
-  margin: 12px 0;
-}
-.practice {
-  border: 1px solid #ded9cc;
-  background: #fcfaf5;
-  overflow: hidden;
-  box-shadow: 0 7px 26px #302d5504;
-}
 
 .correct {
   color: #4b7655;
@@ -82,17 +62,6 @@ h1 {
 .mobile-hint {
   display: none;
 }
-/* Save confirmations remain announced without occupying a row on every exercise.
-   Save failures are displayed separately in the persistent alert above the page. */
-.saved {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 footer {
   text-align: center;
   color: #a29aa8;
@@ -104,24 +73,14 @@ footer {
   display: none !important;
 }
 @media (max-width: 600px) {
-  header {
-    padding: 18px 22px;
-  }
   .brand {
     font-size: 20px;
   }
   .family {
     font-size: 9px;
   }
-  main {
-    margin-top: 30px;
-    padding: 0 16px;
-  }
   .intro {
     margin-bottom: 25px;
-  }
-  h1 {
-    font-size: 28px;
   }
 
   .keyboard {
@@ -132,12 +91,6 @@ footer {
   }
   .mobile-hint {
     display: inline;
-  }
-  .saved {
-    text-align: left;
-  }
-  .practice {
-    border-radius: 17px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -336,7 +289,7 @@ footer {
 .string-labels {
   position: sticky;
   left: 0;
-  background: #fcfaf5;
+  background: var(--mantine-color-body);
   z-index: 1;
 }
 @media (max-width: 600px) {
@@ -521,11 +474,6 @@ footer {
 }
 
 /* Hymns keep their score and live controls together, without horizontal scrolling. */
-.sequence-practice {
-  border: 1px solid #ded9cc;
-  background: #fcfaf5;
-  overflow: hidden;
-}
 
 .sequence-help {
   font-size: 13px;
@@ -557,10 +505,6 @@ footer {
   background: #b7a7d3;
 }
 @media (max-width: 600px) {
-  .sequence-practice {
-    padding: 18px 14px;
-  }
-
   .sequence-score {
     max-height: 300px;
   }
@@ -604,31 +548,6 @@ footer {
   stroke: #b0653e;
 }
 
-/* Mantine owns the shell and overlays; these rules only size the legacy content. */
-.skip-link {
-  position: fixed;
-  top: -80px;
-  left: 16px;
-  z-index: 1000;
-  padding: 12px;
-  background: white;
-}
-.skip-link:focus {
-  top: 12px;
-}
-.workspace-content {
-  max-width: 920px;
-  margin-inline: auto;
-}
-.settings-page {
-  max-width: 680px;
-}
-.route-missing {
-  padding-block: 36px;
-}
-#page-title {
-  outline: none;
-}
 #midi-panel {
   margin: 0;
   padding: 0;
@@ -638,17 +557,6 @@ footer {
 #midi-panel .midi-status {
   margin: 0 0 14px;
 }
-/* Give the score room; the engraver wraps at a smaller logical width so notes
-   and words enlarge together instead of merely extending staff lines. */
-.hymn-layout .workspace-content,
-.piano-layout-wide .workspace-content {
-  max-width: 1480px;
-}
-
-#saved {
-  min-height: 20px;
-}
-
 /* Reserve the scrollbar gutter without drawing a track for a short score. */
 .hymn-layout .sequence-score {
   overflow-y: auto;

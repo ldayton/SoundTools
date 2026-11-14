@@ -186,18 +186,6 @@ export function Builder({
       onSubmit={(event) => event.preventDefault()}
     >
       <Stack>
-        <NativeSelect
-          id="pattern"
-          label="Exercise"
-          value={spec.pattern}
-          data={Object.entries(PATTERNS).map(([value, pattern]) => ({
-            value,
-            label: pattern.name,
-          }))}
-          onChange={(event) =>
-            change({ pattern: event.currentTarget.value as ExerciseSpec['pattern'] })
-          }
-        />
         <Alert id="form-error" color="red" hidden={!error} role="alert">
           {error}
         </Alert>
@@ -395,5 +383,29 @@ export function Builder({
         </Accordion>
       </Stack>
     </form>
+  );
+}
+
+export function ExerciseSelection({
+  model,
+  change,
+}: {
+  model: BuilderModel;
+  change(patch: SpecPatch): void;
+}) {
+  const { spec } = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <NativeSelect
+      id="pattern"
+      label="Exercise"
+      value={spec.pattern}
+      data={Object.entries(PATTERNS).map(([value, pattern]) => ({
+        value,
+        label: pattern.name,
+      }))}
+      onChange={(event) =>
+        change({ pattern: event.currentTarget.value as ExerciseSpec['pattern'] })
+      }
+    />
   );
 }

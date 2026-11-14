@@ -247,7 +247,7 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
-    element.innerHTML = `<section class="sequence-practice" aria-label="Hymn sight reading"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><div class="sequence-transport"></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div></section>`;
+    element.innerHTML = `<section class="practice-surface sequence-practice" aria-label="Hymn sight reading"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="sequence-score" tabindex="0" role="region" aria-label="Hymn score with aligned lyrics" aria-describedby="hymn-scroll-hint"><div class="hymn-paper"></div></div><div class="sequence-transport"></div><div class="hymn-midi-slot"></div><div class="hymn-piano"></div></section>`;
     mountPracticePresentation(element, this.presentation, "hymn");
     this.passage = new ScorePassage(
       this.$(".hymn-paper"),

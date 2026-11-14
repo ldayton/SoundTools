@@ -1,0 +1,87 @@
+/* The shell owns one options panel. Music renderers own only their practice surface. */
+.practice-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+}
+.practice-workspace-content {
+  order: 2;
+  min-width: 0;
+}
+.practice-workspace > .practice-options {
+  order: 1;
+  margin: 0;
+  max-width: none;
+}
+@media (min-width: 70em) {
+  .practice-workspace[data-has-options] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .practice-workspace[data-options-open] {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+  .practice-workspace-content {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .practice-workspace > .practice-options {
+    grid-column: 2;
+    grid-row: 1;
+    padding-left: var(--mantine-spacing-md);
+    border-left: 1px solid var(--mantine-color-default-border);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: calc(
+      100dvh - var(--app-shell-header-offset, 72px) - 2 *
+        var(--mantine-spacing-md)
+    );
+    position: sticky;
+    top: calc(var(--app-shell-header-offset, 0px) + var(--mantine-spacing-md));
+  }
+  .practice-options-content {
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    padding-right: 8px;
+  }
+}
+
+/* The shared shell owns all page and panel geometry. */
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  z-index: 1000;
+  padding: 12px;
+  background: var(--mantine-color-body);
+}
+.skip-link:focus {
+  top: 12px;
+}
+#page-title {
+  outline: none;
+}
+.workspace-content {
+  max-width: 1480px;
+  margin-inline: auto;
+}
+.settings-page {
+  max-width: 680px;
+}
+.route-missing {
+  padding-block: 36px;
+}
+.practice-actions > button {
+  flex: 0 0 auto;
+}
+.practice-surface {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  overflow: hidden;
+}

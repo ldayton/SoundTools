@@ -68,7 +68,7 @@ export class IntervalPatterns {
         this.paused = restored.paused;
       }
     } catch {}
-    element.innerHTML = `<section class="sequence-practice" aria-label="Interval pattern practice"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
+    element.innerHTML = `<section class="practice-surface sequence-practice" aria-label="Interval pattern practice"><div class="presentation-header"></div><div class="presentation-progress"></div><div class="presentation-feedback"></div><div class="sequence-score" role="region" tabindex="0" aria-label="Two-bar interval pattern"><div class="pattern-paper"></div></div><div class="sequence-transport"></div><div class="pattern-midi-slot"></div><div class="pattern-piano"></div></section>`;
     mountPracticePresentation(element, this.presentation, "pattern");
     this.options = patternOptionsState(structuredClone(this.settings));
     registerPracticeOptions(

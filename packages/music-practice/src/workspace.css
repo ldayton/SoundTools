@@ -3,59 +3,6 @@
   margin: auto;
 }
 
-/* The shell owns one options panel. Music renderers own only their practice surface. */
-.practice-workspace {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.practice-workspace-content {
-  order: 2;
-  min-width: 0;
-}
-.practice-workspace > .practice-options {
-  order: 1;
-  margin: 0;
-  max-width: none;
-}
-@media (min-width: 1120px) {
-  .workspace-content:has(.practice-workspace[data-has-options]) {
-    max-width: none;
-  }
-  .practice-workspace[data-has-options] {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-  .practice-workspace[data-options-open] {
-    grid-template-columns: minmax(0, 1fr) 300px;
-  }
-  .practice-workspace-content {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .practice-workspace > .practice-options {
-    grid-column: 2;
-    grid-row: 1;
-    padding-left: 18px;
-    border-left: 1px solid #ded9cc;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    max-height: calc(100dvh - 150px);
-    position: sticky;
-    top: calc(var(--app-shell-header-offset, 0px) + var(--mantine-spacing-md));
-  }
-  .practice-options-content {
-    min-height: 0;
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    scrollbar-gutter: stable;
-    padding-right: 8px;
-  }
-}
-
 @media (max-width: 600px) {
   .piano-layout {
     flex-direction: column;

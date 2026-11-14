@@ -1,3 +1,4 @@
+import { PracticeActions } from "@ldayton/ui/practice-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group, Stack } from "@mantine/core";
 import { createViewState } from "./view-state";
@@ -18,7 +19,7 @@ export function RhythmControls({
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <Group gap="xs" className="soundtools-ui">
+    <PracticeActions>
       <Button className="rhythm-start" variant="filled" onClick={start}>
         {["countin", "playing"].includes(state.phase)
           ? "Stop"
@@ -29,7 +30,7 @@ export function RhythmControls({
       <Button className="rhythm-new" variant="default" onClick={next}>
         New rhythm
       </Button>
-    </Group>
+    </PracticeActions>
   );
 }
 export function RhythmTap({

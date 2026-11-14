@@ -1,5 +1,6 @@
+import { PracticeActions } from "./practice-actions";
 import type { ReactNode } from "react";
-import { Button, Group } from "@mantine/core";
+import { Button } from "@mantine/core";
 /** Shared flashcard/theory round actions, not a playback state machine. */
 export function RoundActions({
   nextVisible,
@@ -21,7 +22,7 @@ export function RoundActions({
   children?: ReactNode;
 }) {
   return (
-    <Group gap="xs" className="soundtools-ui">
+    <PracticeActions>
       <Button
         id={nextId}
         className={nextClass}
@@ -39,7 +40,7 @@ export function RoundActions({
         Start again
       </Button>
       {children}
-    </Group>
+    </PracticeActions>
   );
 }
 export function ContinueRound({

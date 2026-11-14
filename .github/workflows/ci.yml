@@ -51,6 +51,9 @@ jobs:
       - run: npm test --workspace=dorego
         if: matrix.browser == 'chromium'
       - run: npm run build:pages --workspace=dorego
+      - run: npm run test:layout --workspace=dorego -- dist-pages
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:diagnostics-ui --workspace=dorego
         if: matrix.browser == 'chromium'
       - run: npm run test:browser --workspace=@ldayton/browser-diagnostics
@@ -128,6 +131,9 @@ jobs:
       - run: npm test --workspace=notewise
         if: matrix.browser == 'chromium'
       - run: npm run build --workspace=notewise
+      - run: npm run test:layout --workspace=notewise
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:browser --workspace=notewise
         if: matrix.browser == 'chromium'
       - run: npm run test:guitar --workspace=notewise
@@ -198,6 +204,7 @@ jobs:
         if: matrix.browser == 'chromium'
       - run: npm run build --workspace=songalong
       - run: npm run build --workspace=notewise
+      - run: npm run test:layout --workspace=songalong
       - run: npm run test:split --workspace=songalong
       - run: npm run test:sidebars --workspace=songalong
       - run: npm run test:hymn-keys --workspace=songalong

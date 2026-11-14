@@ -23,7 +23,8 @@
     "test:theory": "tsx tests/theory.browser.ts",
     "test:guitar-scales": "tsx tests/guitar-scales.browser.ts",
     "test:split": "tsx ../../packages/music-practice/browser-tests/app-split.browser.ts",
-    "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts"
+    "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts",
+    "test:layout": "node ../../scripts/test-practice-layout.cjs notewise"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"

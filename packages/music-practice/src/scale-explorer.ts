@@ -106,7 +106,7 @@ export class ScaleExplorer implements LivePractice {
     this.shift = settings.shift || 0;
     this.labels = settings.labels || "fingers";
     this.returnPosition = settings.returnPosition;
-    element.innerHTML = `<section class="scale-card sequence-practice" aria-labelledby="scale-title"><div class="scale-heading"><h2 id="scale-title"></h2><div class="scale-relative"></div></div>
+    element.innerHTML = `<section class="practice-surface scale-card sequence-practice" aria-labelledby="scale-title"><div class="scale-heading"><h2 id="scale-title"></h2><div class="scale-relative"></div></div>
       <div class="scale-key-navigation"></div>
       <div class="scale-diagram"></div><p class="scale-legend"><span class="scale-root-swatch" aria-hidden="true"></span> Root</p>
       <div class="scale-note-list"><div class="scale-detail-body"><p class="scale-notes"></p><p class="scale-help">Standard tuning · high E at the top, low E at the bottom.</p><p class="scale-footnote">1 index · 2 middle · 3 ring · 4 little finger</p><p class="scale-optional-legend">Gray notes can also be played on the next open string.</p><p class="scale-relative-explanation"></p><div class="scale-note-table"></div><p class="scale-source">Shapes and fingerings: <a href="https://guitarscale.org/c-major.html" target="_blank" rel="noopener noreferrer">GuitarScale.org</a></p></div></div></section>`;

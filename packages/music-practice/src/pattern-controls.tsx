@@ -1,3 +1,4 @@
+import { PracticeActions } from "@ldayton/ui/practice-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group } from "@mantine/core";
 import { createViewState } from "./view-state";
@@ -18,7 +19,7 @@ export function PatternControls({
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <Group gap="xs" className="soundtools-ui">
+    <PracticeActions>
       <Button className="pattern-pause" variant="filled" onClick={pause}>
         {state.paused ? "Resume" : "Pause"}
       </Button>
@@ -29,6 +30,6 @@ export function PatternControls({
         New pattern →
       </Button>
       <PracticePianoToggle panelId={panelId} />
-    </Group>
+    </PracticeActions>
   );
 }

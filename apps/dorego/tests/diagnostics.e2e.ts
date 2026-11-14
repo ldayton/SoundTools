@@ -1,3 +1,4 @@
+import { openSettings, openPractice } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
   .resolve('vite/package.json')
@@ -38,6 +39,7 @@ try {
     if (/sentry\.io/.test(r.url())) remote.push(r.url());
   });
   await page.goto(url);
+  await openSettings(page);
   await page.locator('#share-diagnostics').waitFor();
   const sharing = page.getByRole('checkbox', { name: 'Share diagnostic information', exact: true });
   assert.equal(await sharing.isChecked(), false);
@@ -94,6 +96,7 @@ try {
   await page.waitForFunction(
     () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
   );
+  await openPractice(page);
   await page.locator('#play').click();
   await page.waitForFunction(
     () =>

@@ -1,5 +1,6 @@
+import { PracticeActions } from '@ldayton/ui/practice-actions';
 import { useSyncExternalStore } from 'react';
-import { Alert, Button, Group, Slider, Stack, Text, Title } from '@mantine/core';
+import { Alert, Button, Group, Slider, Stack, Text } from '@mantine/core';
 import { RetainedContent } from '@ldayton/ui/retained-content';
 import { TempoControl } from '@ldayton/ui/tempo-control';
 import { VolumeControl } from '@ldayton/ui/volume-control';
@@ -29,7 +30,6 @@ export function PracticeView({
   restart,
   seek,
   tempo,
-  volume,
 }: {
   model: PracticeModel;
   stage: HTMLElement;
@@ -37,7 +37,6 @@ export function PracticeView({
   restart(): void;
   seek(value: number): void;
   tempo(value: number): void;
-  volume(value: number): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const playing = state.mode === 'playing' || state.mode === 'starting';
@@ -55,12 +54,7 @@ export function PracticeView({
   return (
     <>
       <section className="workspace" aria-label="Practice studio">
-        <div className="exercise-heading">
-          <Title order={2} id="exercise-title">
-            {state.title}
-          </Title>
-        </div>
-        <div className="practice-panel">
+        <div className="practice-surface practice-panel">
           <div className="practice-card" id="practice-card">
             <RetainedContent element={stage} />
           </div>
@@ -71,7 +65,7 @@ export function PracticeView({
             role="group"
             aria-label="Exercise playback controls"
           >
-            <Group gap="sm" wrap="nowrap">
+            <PracticeActions>
               <Button
                 id="play"
                 autoContrast
@@ -107,7 +101,7 @@ export function PracticeView({
                   </Text>
                 </Group>
               </div>
-            </Group>
+            </PracticeActions>
             <TempoControl
               id="bpm"
               value={state.bpm}
@@ -117,11 +111,6 @@ export function PracticeView({
               decreaseId="tempo-down"
               increaseId="tempo-up"
               sliderId="tempo-slider"
-            />
-            <VolumeControl
-              id="volume"
-              value={volumePercent(state.volume)}
-              onChange={(value) => volume(volumeDecibels(value))}
             />
             <Text id="exercise-summary" size="xs" c="dimmed">
               {state.summary}
@@ -134,4 +123,26 @@ export function PracticeView({
       </Alert>
     </>
   );
+}
+
+export function PracticeVolume({
+  model,
+  volume,
+}: {
+  model: PracticeModel;
+  volume(value: number): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <VolumeControl
+      id="volume"
+      value={volumePercent(state.volume)}
+      onChange={(value) => volume(volumeDecibels(value))}
+    />
+  );
+}
+
+export function PracticeTitle({ model }: { model: PracticeModel }) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return <span id="exercise-title">{state.title}</span>;
 }

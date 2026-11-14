@@ -1,3 +1,4 @@
+import { openSettings, openPractice } from './ui-helpers';
 import type { Page } from 'playwright';
 import { browserName, launchTestBrowser } from './browser-harness';
 import { isOfflineWorkerFetchError } from './offline-errors';
@@ -141,6 +142,7 @@ const status = () => page.locator('#offline-status');
 try {
   await page.goto(base);
   await ready(page);
+  await openSettings(page);
   await page.locator('#offline-download').waitFor({ state: 'visible' });
   await page.waitForFunction(
     () => !document.querySelector<HTMLButtonElement>('#offline-download')?.disabled
@@ -237,21 +239,16 @@ try {
   );
   assert.equal(await page.locator('#offline-download').isVisible(), false);
   assert.equal(
-    await page.locator('.builder-column').getByRole('region', { name: 'Offline use' }).count(),
+    await page
+      .getByRole('region', { name: 'App settings' })
+      .getByRole('region', { name: 'Offline use' })
+      .count(),
     1
   );
-  assert.equal(
-    await page.getByRole('dialog').getByRole('region', { name: 'Offline use' }).count(),
-    0
-  );
-  const builder = (await page.locator('.settings').boundingBox())!;
-  const offline = (await page.getByRole('region', { name: 'Offline use' }).boundingBox())!;
-  assert.equal(offline.x, builder.x);
-  assert.equal(offline.width, builder.width);
-  assert.ok(offline.y >= builder.y + builder.height);
-  console.log(
-    'Cancel, interruption, resume, aligned builder panel, and all 133 recordings verified.'
-  );
+  assert.equal(await page.locator('.practice-options').isVisible(), false);
+  await openPractice(page);
+  assert.equal(await page.getByRole('region', { name: 'Offline use' }).isVisible(), false);
+  console.log('Cancel, interruption, resume, Settings placement, and all 133 recordings verified.');
 
   // Activate while another tab is playing; refresh just one tab into a new JS generation.
   const other = await context.newPage();
@@ -299,6 +296,7 @@ try {
   );
   await untouched.close();
   await other.bringToFront();
+  await openSettings(other);
 
   await other.getByRole('button', { name: 'Update available', exact: true }).waitFor();
   await other
@@ -307,6 +305,7 @@ try {
   // WebKit may finish the click while the old document's Play button is still enabled.
   await other.waitForFunction(() => (window as any).__testBuild === 2);
   await ready(other);
+  await openPractice(other);
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 2);
   assert.equal(await page.evaluate(() => (window as any).__testBuild), 1);
   assert.match(await page.locator('#play').innerText(), /Pause/);
@@ -346,6 +345,7 @@ try {
   revision = 3;
   await other.reload();
   await ready(other);
+  await openPractice(other);
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 2);
   assert.match(await page.locator('#play').innerText(), /Pause/);
   failInterface = false;
@@ -453,6 +453,7 @@ try {
   await page.evaluate(
     "Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false})"
   );
+  await openSettings(page);
   await page.locator('#offline-download').click();
   await page.waitForFunction(() =>
     document.querySelector('#offline-status')?.textContent?.endsWith('Available offline')

@@ -10,104 +10,9 @@
 }
 body {
   margin: 0;
-  background: #f5f3ec;
-  color: var(--ink);
 }
 [hidden] {
   display: none !important;
-}
-.site-header {
-  height: 74px;
-  margin: 0 4.2%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-  gap: 20px;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 28px;
-  font-weight: 750;
-  letter-spacing: -1.4px;
-  color: var(--ink);
-  text-decoration: none;
-}
-.brand-dot {
-  color: var(--orange);
-  margin-left: -8px;
-}
-.brand-mark {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-right: 4px;
-  height: 28px;
-}
-.brand-mark i {
-  width: 6px;
-  border-radius: 8px;
-  background: var(--ink);
-  height: 15px;
-  transform: rotate(-12deg);
-}
-.brand-mark i:nth-child(2) {
-  height: 26px;
-  background: #95ad62;
-}
-.brand-mark i:nth-child(3) {
-  height: 21px;
-  background: var(--orange);
-}
-main {
-  max-width: 1510px;
-  margin: auto;
-  padding: 28px 4.2%;
-}
-.studio {
-  display: grid;
-  grid-template-columns: 305px minmax(0, 1fr);
-  gap: 30px;
-  align-items: start;
-}
-.builder-column,
-.workspace {
-  min-width: 0;
-  width: 100%;
-}
-.settings {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fbfaf6;
-  padding: 22px;
-}
-.panel-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-.panel-heading h2 {
-  margin: 0;
-  font-size: 17px;
-}
-.panel-heading > span {
-  color: var(--muted);
-  font-size: 24px;
-}
-.exercise-heading {
-  margin-bottom: 18px;
-}
-.exercise-heading h2 {
-  font-size: 22px;
-}
-.practice-panel {
-  border: 1px solid #dcdfd1;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #faf9f4;
 }
 .practice-card {
   position: relative;
@@ -151,8 +56,8 @@ main {
   border-top: 1px solid var(--line);
 }
 .dorego-seek {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 180px;
+  min-width: 120px;
   padding-inline: 6px;
 }
 .dorego-toast {
@@ -163,38 +68,7 @@ main {
   z-index: 300;
   max-width: min(90vw, 520px);
 }
-@media (max-width: 1100px) {
-  .studio {
-    gap: 22px;
-    grid-template-columns: 285px minmax(0, 1fr);
-  }
-  .settings {
-    padding: 18px;
-  }
-}
 @media (max-width: 760px) {
-  .site-header {
-    margin-inline: 5%;
-  }
-  .brand {
-    font-size: 26px;
-  }
-  main {
-    padding: 20px 5%;
-  }
-  .studio {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-  }
-  .workspace {
-    order: 0;
-  }
-  .builder-column {
-    order: 1;
-  }
-  .exercise-heading h2 {
-    font-size: 20px;
-  }
   .dorego-desktop-count {
     display: none;
   }
@@ -202,7 +76,6 @@ main {
     display: block;
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

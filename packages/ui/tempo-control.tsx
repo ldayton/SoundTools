@@ -24,7 +24,7 @@ export function TempoControl({
     onChange(Math.max(min, Math.min(max, value + direction * 5)));
   return (
     <Group gap="md" align="end">
-      <Group gap="xs" wrap="nowrap" align="end" w="100%" maw={280}>
+      <Group gap="xs" wrap="nowrap" align="end" w="100%" maw={184}>
         <ActionIcon
           id={decreaseId}
           variant="default"

@@ -1,3 +1,4 @@
+import { openPracticeOptions } from './ui-helpers';
 import { readSpecValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
@@ -180,6 +181,7 @@ try {
   assert.equal(await readSpecValue(page, 'low'), '61');
   assert.equal(await page.locator('#low-spin').inputValue(), 'C♯4');
   await page.setViewportSize({ width: 390, height: 844 });
+  await openPracticeOptions(page);
   assert.equal(await page.locator('#low-wheel').getAttribute('aria-valuetext'), 'C♯4');
   assert.equal(
     await page.locator('#low-wheel [data-midi="61"] .note-wheel-primary').textContent(),

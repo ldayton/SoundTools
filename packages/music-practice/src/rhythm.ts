@@ -96,7 +96,7 @@ export class RhythmPractice {
       this.bpm = settings.bpm;
       this.level = settings.level;
     } catch {}
-    element.innerHTML = `<section class="sequence-practice" aria-label="Rhythm practice"><div class="presentation-header"></div><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="presentation-feedback"></div><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><div class="rhythm-tap-slot practice-control-slot"></div><div class="sequence-transport"></div><div class="rhythm-midi-slot"></div></section>`;
+    element.innerHTML = `<section class="practice-surface sequence-practice" aria-label="Rhythm practice"><div class="presentation-header"></div><p class="sequence-help">Tap on any piano key, press Space, or use the button. Count through the rests.</p><div class="rhythm-beats" aria-label="Beat in the bar">${[1, 2, 3, 4].map((n) => `<span data-beat="${n}">${n}</span>`).join("")}</div><div class="presentation-feedback"></div><div class="sequence-score" tabindex="0" role="region" aria-label="Four-bar rhythm"><div class="rhythm-paper"></div></div><div class="rhythm-tap-slot practice-control-slot"></div><div class="sequence-transport"></div><div class="rhythm-midi-slot"></div></section>`;
     mountPracticePresentation(element, this.presentation, "rhythm");
     this.midiSlot = this.$(".rhythm-midi-slot");
     this.options = rhythmOptionsState({ bpm: this.bpm, level: this.level });

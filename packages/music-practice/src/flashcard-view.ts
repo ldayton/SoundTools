@@ -7,7 +7,7 @@ export function mountFlashcardView(
   roundLength: number,
   options: ComponentProps<typeof FlashcardOptions>,
 ) {
-  element.innerHTML = `<section class="practice" aria-label="Note recognition practice"><div class="presentation-header"></div><div class="presentation-progress"></div>
+  element.innerHTML = `<section class="practice-surface practice" aria-label="Note recognition practice"><div class="presentation-header"></div><div class="presentation-progress"></div>
 <div id="question"><div class="presentation-feedback"></div><p id="signature-prompt" hidden></p><div id="notation" role="img" aria-label="Guitar treble clef with octave-down 8; identify the note"></div><div id="named-note" hidden><span id="target-name"></span><p id="target-string"></p></div><p id="string-prompt" hidden></p><div id="fretboard" hidden></div>
 <p id="piano-midi-required" class="piano-midi-required" role="status" hidden></p><div id="piano" hidden></div>
 

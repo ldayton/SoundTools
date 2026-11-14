@@ -1,10 +1,9 @@
 /* Shared practice surfaces, independent of which notation engine draws the score. */
-.practice,
 .sequence-practice {
   border-radius: 12px;
 }
 .sequence-practice {
-  padding: 16px;
+  padding: var(--mantine-spacing-md);
 }
 
 .card-top {

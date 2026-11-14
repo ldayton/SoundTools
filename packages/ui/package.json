@@ -15,7 +15,11 @@
     "./diagnostic-consent": "./diagnostic-consent.tsx",
     "./offline-status-panel": "./offline-status-panel.tsx",
     "./round-actions": "./round-actions.tsx",
-    "./responsive-pitch-field": "./responsive-pitch-field.tsx"
+    "./responsive-pitch-field": "./responsive-pitch-field.tsx",
+    "./application-layout": "./application-layout.tsx",
+    "./practice-workspace": "./practice-workspace.tsx",
+    "./practice-actions": "./practice-actions.tsx",
+    "./settings-sections": "./settings-sections.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

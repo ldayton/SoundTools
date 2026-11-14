@@ -1,3 +1,4 @@
+import { PracticeActions } from "@ldayton/ui/practice-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Checkbox, Group, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
@@ -42,7 +43,7 @@ export function HymnControls({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <div className="soundtools-ui hymn-controls">
-      <Group gap="xs">
+      <PracticeActions>
         <Button
           className="hymn-pause"
           variant="filled"
@@ -92,7 +93,7 @@ export function HymnControls({
           className="hymn-keyboard-toggle"
           disabled={state.disabled}
         />
-      </Group>
+      </PracticeActions>
       <Group
         gap="xs"
         className="hymn-passage-controls"

@@ -1,5 +1,11 @@
 import { volumePercent } from '@ldayton/ui/volume';
-import { readSpecValue, openMoreOptions, sliderValue, setSlider } from './ui-helpers';
+import {
+  readSpecValue,
+  openMoreOptions,
+  openPracticeOptions,
+  sliderValue,
+  setSlider,
+} from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
   .resolve('vite/package.json')
@@ -100,7 +106,10 @@ try {
     '1 bar',
     '2 bars',
   ]);
-  assert.equal(await page.locator('.brand').getAttribute('href'), basePath);
+  assert.equal(
+    await page.getByRole('link', { name: 'DoReGo home', exact: true }).getAttribute('href'),
+    basePath
+  );
   assert.equal(
     await page.locator('#video-button, #midi-download, #export-dialog, .export-card').count(),
     0
@@ -157,7 +166,7 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'low-spin');
   assert.equal(await readSpecValue(page, 'low'), '52', 'Focus movement does not commit a pitch');
   await page.locator('#low-spin').click();
-  await page.locator('#exercise-title').click();
+  await page.locator('#page-title').click();
   assert.ok(await picker.isHidden(), 'Outside click dismisses pitch grid');
   await page.locator('#low-spin').click();
   await page.locator('#low-spin').press('Escape');
@@ -168,6 +177,7 @@ try {
   await picker.waitFor({ state: 'hidden' });
   assert.ok(await picker.isHidden(), 'Resize dismisses the desktop grid');
   await page.setViewportSize({ width: 390, height: 844 });
+  await openPracticeOptions(page);
   await page.waitForFunction(
     () =>
       document.querySelector('#high-wheel')!.getBoundingClientRect().height > 0 &&
@@ -226,9 +236,14 @@ try {
   assert.equal(await readSpecValue(page, 'repetitions'), '3');
   await page.locator('#repeat-count').press('ArrowDown');
   await page.setViewportSize({ width: 390, height: 844 });
+  await openPracticeOptions(page);
   assert.ok(await page.locator('#repeat-count').isHidden());
   await page.locator('#low-spin-label').click();
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'low-wheel', 'Mobile label focuses visible wheel');
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.id),
+    'low-wheel',
+    'Mobile label focuses visible wheel'
+  );
   const mobileLow = Number(await readSpecValue(page, 'low'));
   await page.locator('#low-wheel').press('ArrowUp');
   assert.equal(Number(await readSpecValue(page, 'low')), mobileLow + 1);
@@ -385,9 +400,11 @@ try {
   assert.ok(await page.locator('#progression').isVisible());
   assert.ok(await page.locator('#progression-down').isChecked());
   await page.setViewportSize({ width: 390, height: 844 });
+  await openPracticeOptions(page);
   await page.locator('#high-wheel').press('ArrowDown');
   assert.ok(await page.locator('#progression').isHidden());
   await page.locator('#high-wheel').press('ArrowUp');
+  await page.locator('#progression').waitFor({ state: 'visible' });
   assert.ok(await page.locator('#progression').isVisible());
   await page.setViewportSize({ width: 1280, height: 900 });
 

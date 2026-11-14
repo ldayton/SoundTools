@@ -3,8 +3,8 @@ test('pitch speech filtering survives fake microphone capture and transport/sett
  test.setTimeout(45000);
  const browser=await playwright.chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve(process.env.SOUNDGLOW_PITCH_AUDIO||path.join(__dirname,'generated/capture.wav'))]});
  try{
-  const context=await browser.newContext({viewport:info.project.name==='desktop'?{width:1280,height:900}:info.project.use.viewport,deviceScaleFactor:info.project.use.deviceScaleFactor,permissions:['microphone']});const page=await context.newPage();
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:8779/dist/index.html');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#begin').click();
+  const context=await browser.newContext({baseURL:info.project.use.baseURL,viewport:info.project.name==='desktop'?{width:1280,height:900}:info.project.use.viewport,deviceScaleFactor:info.project.use.deviceScaleFactor,permissions:['microphone']});const page=await context.newPage();
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#begin').click();
   await page.waitForFunction(()=>Number(document.getElementById('pitchCanvas').dataset.voiced)>10,undefined,{timeout:20000});await expect(page.locator('#state')).toHaveText('LIVE');
   await page.evaluate(()=>{window.microphonePolicyTransport={engine,stream,pcmNode,audio}});
   await page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings').click();await page.locator('#advancedPitchTrace > summary').click();await page.locator('#pitchSpeechGate').uncheck();await page.locator('#pitchSpeechGate').check();await page.locator('#pitchConfirmation').selectOption('30');await page.locator('#pitchPreset').selectOption('soundglow');

@@ -40,9 +40,18 @@ function createDevServer({ root = ROOT } = {}) {
       let bytes = await fs.readFile(file);
       if (path.extname(file) === '.html') {
         const directory = name.endsWith('/') ? name : path.posix.dirname(name).replace(/\/$/, '') + '/';
-        const base = `<base href="/__dev/${randomBytes(8).toString('hex')}${directory}">`;
         const html = bytes.toString();
-        bytes = Buffer.from(/<head\b[^>]*>/i.test(html)
+        // Test/replay pages can live outside dist while deliberately resolving
+        // the production assets against /dist/. Preserve that document base;
+        // inserting a second base before it silently changes every asset URL.
+        const existingBase = html.match(/<base\b[^>]*\bhref\s*=\s*(["'])(.*?)\1[^>]*>/i);
+        const documentURL = new URL(name, 'http://localhost');
+        const assetBase = new URL(existingBase?.[2] || directory, documentURL);
+        const href = assetBase.origin === documentURL.origin
+          ? `/__dev/${randomBytes(8).toString('hex')}${assetBase.pathname}${assetBase.search}${assetBase.hash}`
+          : assetBase.href;
+        const base = `<base href="${href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">`;
+        bytes = Buffer.from(existingBase ? html.replace(existingBase[0], base) : /<head\b[^>]*>/i.test(html)
           ? html.replace(/<head\b[^>]*>/i, match => match + base)
           : html.replace(/^(\s*<!doctype[^>]*>)?/i, match => match + base));
       }

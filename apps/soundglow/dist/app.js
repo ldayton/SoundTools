@@ -621,7 +621,7 @@ fileLibrary=new SoundglowAudioLibrary.AudioLibrary({
  paused(value){if(inputMode!=='file')return;paused=value;clipOffset=fileLibrary.position;clipStarted=audio.currentTime;setIcon('freeze',value?'▶':'⏸',value?'Resume':'Pause');state(value?'PAUSED':'FILE',!value);if(value)audio.suspend().catch(()=>{});notifyFeatures('render');},
  discontinuity(position){if(inputMode==='file'&&audio){clipOffset=position;clipStarted=audio.currentTime;}drawAnalysis();},
  selected(){clearFileView();$('welcome').hidden=true;},
- unavailable(){clearFileView();redraw();if(!running)$('welcome').hidden=false;},
+ unavailable(){fileConnectEpoch++;if(inputMode==='file')stop();else if(filePreview)clearFileView();redraw();if(!running)$('welcome').hidden=false;},
  viewChanged:requestFileView,
  selectionChanged(selection){if(filePreview){filePreview.selection=selection;drawAnalysis();}},
  canRestore(){return !running&&!starting;},

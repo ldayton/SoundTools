@@ -10,7 +10,7 @@ test('desktop sidebar starts collapsed, toggles left, and leaves the spectrogram
  expect(boxes.panel.x).toBe(0);expect(boxes.panel.width).toBe(300);expect(boxes.visual.x).toBe(300);expect(boxes.visual.width).toBe(980);expect(boxes.inert).toBe(false);
  await expect(page.locator('#begin')).toBeVisible();await page.locator('#preset').selectOption('voice');await expect(page.locator('#maximum')).toHaveValue('4000');
  const heading=await page.locator('.panelhead').boundingBox();await page.locator('#settingsBody').evaluate(el=>el.scrollTop=200);expect((await page.locator('.panelhead').boundingBox()).y).toBe(heading.y);
- await page.locator('#collapseSettings').click();await expect(page.locator('#panel')).toHaveAttribute('aria-hidden','true');
+ await page.getByRole('button',{name:'Hide settings',exact:true}).click();await expect(page.locator('#panel')).toHaveAttribute('aria-hidden','true');
  await expect(page.locator('#openSettings')).toBeFocused();expect(await page.locator('#panel').evaluate(el=>el.inert)).toBe(true);expect(await page.locator('#visual').evaluate(el=>el.getBoundingClientRect().width)).toBe(1280);
  await page.goForward();await expect(page.locator('#panel')).toHaveAttribute('aria-hidden','false');
  await page.keyboard.press('Escape');await expect(page.locator('#panel')).toHaveAttribute('aria-hidden','true');

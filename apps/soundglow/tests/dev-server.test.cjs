@@ -30,6 +30,8 @@ test('ordinary browser reload replaces legacy cached scripts, styles, workers an
    'workspace.js':`document.getElementById('script').textContent='${version}';const worker=new Worker('worker.js');worker.onmessage=e=>document.getElementById('worker').textContent=e.data;WebAssembly.instantiateStreaming(fetch('engine.wasm')).then(({instance})=>document.getElementById('wasm').textContent=instance.exports.value());`,
    'worker.js':`postMessage('${version}');`,'style.css':`body{color:rgb(${version},0,0)}`,'engine.wasm':module};
   for(const [name,bytes] of Object.entries(files)){const file=path.join(root,'dist',name);await fs.writeFile(file,bytes);await fs.utimes(file,new Date(0),new Date(0));}
+  await fs.mkdir(path.join(root,'tests/replay'),{recursive:true});
+  await fs.writeFile(path.join(root,'tests/replay/harness.html'),files['index.html'].replace('<title>', '<head><base href="/dist/"></head><title>'));
  };
  await write(1);
  // Seed the HTTP cache as the previous generic static preview did. No routing
@@ -42,6 +44,13 @@ test('ordinary browser reload replaces legacy cached scripts, styles, workers an
   for(const version of [2,3]){
    await write(version);await page.reload();await page.waitForFunction(n=>['script','worker','wasm'].every(id=>document.getElementById(id).textContent===String(n)),version,{timeout:5000});
    assert.equal(await page.title(),'v'+version);assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).color),`rgb(${version}, 0, 0)`);
+   const replay=await browser.newPage(),errors=[];replay.on('pageerror',e=>errors.push(e.message));
+   await replay.goto(origin+'/tests/replay/harness.html');
+   await replay.waitForFunction(n=>['script','worker','wasm'].every(id=>document.getElementById(id).textContent===String(n)),version,{timeout:5000});
+   assert.equal(await replay.locator('base').count(),1);
+   assert.match(await replay.locator('base').getAttribute('href'),/^\/__dev\/[a-f0-9]{16}\/dist\/$/);
+   assert.equal(await replay.locator('body').evaluate(el=>getComputedStyle(el).color),`rgb(${version}, 0, 0)`);
+   assert.deepEqual(errors,[]);await replay.close();
   }
  }finally{await browser?.close();await close(server);await fs.rm(root,{recursive:true,force:true});}
 });

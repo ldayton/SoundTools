@@ -21,13 +21,14 @@ test('formant controls apply actual tracking without clearing analysis or spectr
 test('paused speech and formant overlays survive desktop sidebar and mobile resizing',async({page})=>{
  await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html#settings');
  await page.locator('#formants').selectOption('both');await page.locator('#demo').click();await page.waitForFunction(()=>Number(document.querySelector('#spectrogram').dataset.processedFrames)>300);
- await page.locator('#freeze').click();if(await page.locator('#openSettings').getAttribute('aria-expanded')==='true')await page.locator('#collapseSettings').click();
+ await page.locator('#freeze').click();await page.evaluate(()=>window.beforeResponsiveResize={engine,speechNode,audio});if(await page.locator('#openSettings').getAttribute('aria-expanded')==='true')await page.getByRole('button',{name:'Hide settings',exact:true}).click();
  async function coverage(){await page.waitForFunction(()=>{const c=document.querySelector('#spectrogram'),r=c.getBoundingClientRect();return c.width===Math.round(Math.round(r.width)*devicePixelRatio)&&c.height===Math.round(Math.round(r.height)*devicePixelRatio)});return page.evaluate(()=>{const canvas=document.querySelector('#spectrogram'),data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let coloured=0;for(let i=0;i<data.length;i+=4)if(data[i]>30)coloured++;return coloured/(canvas.width*canvas.height);});}
  const before=await coverage();expect(before).toBeGreaterThan(.001);
  await page.locator('#openSettings').click();const open=await coverage();expect(open).toBeGreaterThan(before*.7);expect(open).toBeLessThan(before*1.3);
  await page.locator('#formantSmoothing').selectOption('strong');await page.locator('#formantFiltering').selectOption('off');expect(await coverage()).toBe(open);
- await page.locator('#collapseSettings').click();expect(await coverage()).toBeGreaterThan(before*.7);
+ await page.getByRole('button',{name:'Hide settings',exact:true}).click();expect(await coverage()).toBeGreaterThan(before*.7);
  await page.setViewportSize({width:390,height:844});expect(await coverage()).toBeGreaterThan(before*.7);
+ expect(await page.evaluate(()=>Object.entries(beforeResponsiveResize).every(([key,value])=>({engine,speechNode,audio})[key]===value))).toBe(true);
  await expect(page.locator('#state')).toHaveText('PAUSED');await page.locator('#freeze').click();await expect(page.locator('#state')).toHaveText('EXAMPLE');
 });
 test('selecting a built-in preset clears previously enabled formant markers and tracks',async({page})=>{

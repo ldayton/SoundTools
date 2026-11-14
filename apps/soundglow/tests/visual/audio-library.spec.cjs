@@ -15,6 +15,14 @@ desktopTest('Files and Settings disclose independently without closing the sideb
   await page.locator('#'+button).click();await expect(page.locator('#'+body)).toBeVisible();await expect(page.locator('#stage')).toHaveClass(/settings-open/);
  }
 });
+desktopTest('entering mobile layout releases file playback without losing its saved position',async({page})=>{
+ await open(page);await importAudio(page);await page.locator('#filePlay').click();
+ await page.waitForFunction(()=>fileLibrary.position>1);await page.setViewportSize({width:390,height:844});
+ await expect(page.locator('#state')).toHaveText('STOPPED');await expect(page.locator('#fileTransport')).toBeHidden();
+ expect(await page.evaluate(()=>fileLibrary.isPaused&&!fileLibrary.connected&&fileLibrary.position>0)).toBe(true);
+ await page.setViewportSize({width:1280,height:900});await expect(page.locator('#fileTransport')).toBeVisible();
+ await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused&&inputMode==='file');
+});
 desktopTest('saved audio restores paused, plays and seeks, survives switching, and deletes',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await open(page);await importAudio(page);
  await page.reload();await page.evaluate(()=>fileLibrary.ready);await expect(page.locator('#fileTransport')).toBeVisible();

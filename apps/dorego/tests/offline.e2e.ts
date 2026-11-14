@@ -1,5 +1,6 @@
 import type { Page } from 'playwright';
-import { launchTestBrowser } from './browser-harness';
+import { browserName, launchTestBrowser } from './browser-harness';
+import { isOfflineWorkerFetchError } from './offline-errors';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
@@ -122,14 +123,18 @@ await context.addInitScript(() => {
   } catch {}
 });
 const errors: string[] = [];
+let disconnected = false;
+const recordPageError = (error: Error) => {
+  if (isOfflineWorkerFetchError(error, browserName, disconnected, base + 'sw.js')) {
+    console.log('Expected offline worker transport diagnostic:', error.message);
+    return;
+  }
+  errors.push(error.message);
+  console.error('Page error stack:', error.stack);
+};
 let page = await context.newPage();
-context.on('page', (p) =>
-  p.on('pageerror', (error) => {
-    errors.push(error.message);
-    console.error('Page error stack:', error.stack);
-  })
-);
-page.on('pageerror', (error) => errors.push(error.message));
+context.on('page', (p) => p.on('pageerror', recordPageError));
+page.on('pageerror', recordPageError);
 const ready = async (p: Page) =>
   p.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
 const status = () => page.locator('#offline-status');
@@ -376,6 +381,7 @@ try {
   );
 
   // Real disconnected reload, then uncached exercise configurations at both range extremes.
+  disconnected = true;
   await context.setOffline(true);
   await page.close();
   page = await context.newPage();
@@ -439,6 +445,7 @@ try {
     document.querySelector('#offline-status')?.textContent?.startsWith('Save all exercises')
   );
   assert.equal(await page.locator('#offline-download').isDisabled(), false);
+  disconnected = false;
   await context.setOffline(false);
   // Firefox's emulated reconnect can omit `online` for a page opened offline.
   // Deliver the lifecycle signal explicitly; requests still use the real browser network.

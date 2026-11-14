@@ -61,8 +61,8 @@ test('microphone start and stop preserve desktop inspector visibility',async({pl
  const desktop=info.project.name==='desktop';
  const browser=await playwright.chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream']});
  try{
-  const context=await browser.newContext({permissions:['microphone'],viewport:desktop?{width:1280,height:900}:{width:390,height:844}});const page=await context.newPage();
-  await page.goto('http://127.0.0.1:8779/dist/index.html#settings');
+  const context=await browser.newContext({baseURL:info.project.use.baseURL,permissions:['microphone'],viewport:desktop?{width:1280,height:900}:{width:390,height:844}});const page=await context.newPage();
+  await page.goto('/dist/index.html#settings');
   await page.locator('#start').click();await expect(page.locator('#state')).toHaveText('LIVE');
   await expect(page.locator('#panel')).toHaveAttribute('aria-hidden',String(!desktop));
   if(!desktop)await settings(page);

@@ -134,7 +134,7 @@
       document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(this.drag||this.navigation)){e.preventDefault();e.stopImmediatePropagation();this.cancelGesture();}},true);
       window.addEventListener('blur',()=>this.cancelGesture());document.addEventListener('visibilitychange',()=>{if(document.hidden)this.cancelGesture();});
       this.overview.addEventListener('keydown', e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();this.setView(this.viewStart+(e.key==='ArrowLeft'?-1:1)*this.viewSpan*.1,this.viewSpan);}});
-      this.desktop.addEventListener('change',()=>{if(!this.desktop.matches){this.pause();this.host.release();this.host.unavailable?.();}else if(this.current){this.lastView='';this.$('fileTransport').hidden=false;this.draw();}});
+      this.desktop.addEventListener('change',()=>{if(!this.desktop.matches){this.pause();this.host.unavailable?.();}else if(this.current){this.lastView='';this.$('fileTransport').hidden=false;this.draw();}});
       setInterval(()=>{if(this.playback.active){this.draw();this.savePosition();}},100);
       this.ready = this.initialize();
     }

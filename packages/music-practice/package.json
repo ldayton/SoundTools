@@ -1,0 +1,24 @@
+{
+  "name": "@ldayton/music-practice",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./notewise": "./src/main.ts",
+    "./songalong": "./src/songalong.ts"
+  },
+  "dependencies": {
+    "@ldayton/browser-diagnostics": "^0.2.0",
+    "@ldayton/browser-offline": "^0.1.0",
+    "@ldayton/ui": "0.1.0",
+    "@mantine/core": "9.8.0",
+    "@mantine/hooks": "9.8.0",
+    "abcjs": "6.5.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "vexflow": "5.0.0"
+  },
+  "scripts": {
+    "test": "tsx --test tests/*.test.ts"
+  }
+}

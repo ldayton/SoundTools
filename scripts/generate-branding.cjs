@@ -10,8 +10,10 @@ const path = require('node:path');
   for (const [directory, svg, background] of [
    ['apps/dorego/public', 'icon.svg', '#f5f3ec'],
    ['apps/soundglow/dist', 'favicon.svg', '#080b10'],
-   ['apps/notecards/public', 'icon.svg', '#f5f1e7'],
+   ['apps/notewise/public', 'icon.svg', '#f5f1e7'],
+   ['apps/songalong/public', 'icon.svg', '#f0f5f3'],
   ]) {
+   if (process.argv[2] && !directory.includes('/' + process.argv[2] + '/')) continue;
    const folder = path.resolve(__dirname, '..', directory);
    const source = fs.readFileSync(path.join(folder, svg), 'utf8');
    async function render(size, maskable = false) {

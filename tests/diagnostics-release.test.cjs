@@ -4,7 +4,7 @@ const { test } = require("node:test"),
   os = require("node:os"),
   path = require("node:path");
 const { publishDiagnostics } = require("../scripts/publish-diagnostics.cjs");
-for (const app of ["dorego", "notecards"])
+for (const app of ["dorego", "notewise", "songalong"])
   test(
     app +
       ": reporting publishes the exact runtime release and uploads hidden maps before cleanup",

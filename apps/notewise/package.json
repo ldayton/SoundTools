@@ -1,0 +1,41 @@
+{
+  "name": "notewise",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4320 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "test": "npm test --workspace=@ldayton/music-practice",
+    "test:browser": "tsx tests/browser.ts",
+    "test:signatures": "tsx tests/key-signatures.browser.ts",
+    "test:midi": "tsx tests/midi.browser.ts",
+    "test:piano": "tsx tests/piano.browser.ts",
+    "test:guitar": "tsx tests/guitar.browser.ts && npm run test:guitar-scales",
+    "test:offline": "tsx tests/offline.browser.ts",
+    "build:vercel": "node ../../scripts/build-vercel.cjs notewise",
+    "test:diagnostics": "tsx ../../packages/music-practice/browser-tests/diagnostics.browser.ts",
+    "test:notation": "tsx tests/notation.browser.ts",
+    "test:practice": "tsx tests/piano-practice.browser.ts",
+    "test:navigation": "tsx tests/navigation.browser.ts",
+    "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts",
+    "test:piano-audio": "tsx tests/piano-audio.browser.ts",
+    "test:theory": "tsx tests/theory.browser.ts",
+    "test:guitar-scales": "tsx tests/guitar-scales.browser.ts",
+    "test:split": "tsx ../../packages/music-practice/browser-tests/app-split.browser.ts",
+    "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts"
+  },
+  "dependencies": {
+    "@ldayton/music-practice": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "playwright": "1.64.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}

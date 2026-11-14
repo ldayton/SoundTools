@@ -134,3 +134,17 @@ storage failures produce bounded error issues, only with sharing enabled.
 Note by Note uses the same unchecked consent control and self-hosted reporter. Only production builds with a configured DSN send data. Technical events cover practice/session controls, aggregate answer outcomes, render durations, storage failures, and the shared offline setup/update/navigation lifecycle; note answers and card contents are not sent. Context is limited to mode, phase, round length, fret bounds, and selected-string count. No student identity or practice history is uploaded.
 
 Its release is `notecards@<commit-prefix>-<source-fingerprint>`. The Vercel build uploads hidden source maps through the shared publisher before removing them from public output. Offline inventories exclude maps and include the self-hosted SDK. Opted-in failed uploads use the same bounded, expiring queue as the other apps, and can resume after reconnection. The app-specific real-SDK test intercepts all ingestion requests with a fake DSN and verifies opt-in/out, privacy, error/log/metric envelopes, offline error reporting, and failed-send retry.
+
+
+## Four-app split (local preparation)
+
+The former Note by Note source now lives in `packages/music-practice`, with
+separate NoteWise and SongAlong entry points and opt-in diagnostics identities.
+Runtime and source-map releases use `notewise@...` and `songalong@...`. The
+shared real-SDK privacy test runs against each built app with a fake DSN. Each
+uses separate consent and queue storage through the diagnostic client app ID.
+No production Sentry or Vercel accounts were changed during the local split.
+Before publishing, provision a separate SongAlong project and configure the
+NoteWise deployment with its own matching project/DSN, preserving organization
+privacy scrubbing. Production DSNs must not silently report a new app under the
+former `notecards` release identity.

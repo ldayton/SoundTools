@@ -1,17 +1,18 @@
 # App branding
 
-Keep the names **DoReGo**, **Soundglow**, and **Note by Note** consistent in page titles, visible headers,
+Keep the names **DoReGo**, **NoteWise**, **SongAlong**, and **Soundglow** consistent in page titles, visible headers,
 app manifests, and share metadata. Their existing SVG marks are the source artwork:
 
 - DoReGo: `apps/dorego/public/icon.svg`
 - Soundglow: `apps/soundglow/dist/favicon.svg`
-- Note by Note: `apps/notecards/public/icon.svg`
+- NoteWise: `apps/notewise/public/icon.svg`
+- SongAlong: `apps/songalong/public/icon.svg`
 
-Run `node scripts/generate-branding.cjs` from the repository root to regenerate all three
+Run `node scripts/generate-branding.cjs` from the repository root to regenerate all four
 sets of raster icons using the workspace's Playwright Chromium installation.
 DoReGo's older Python entry point delegates to the same generator.
 
-All three apps supply:
+All four apps supply:
 
 | Surface | Asset |
 | --- | --- |

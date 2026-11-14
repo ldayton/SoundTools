@@ -100,8 +100,8 @@ jobs:
             apps/soundglow/playwright-report/
             work/resilience-soundglow/
 
-  notecards:
-    name: notecards (${{ matrix.browser }})
+  notewise:
+    name: notewise (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
@@ -125,51 +125,84 @@ jobs:
           pactl load-module module-null-sink sink_name=ci_audio
           pactl set-default-sink ci_audio
           pactl info
-      - run: npm test --workspace=notecards
+      - run: npm test --workspace=notewise
         if: matrix.browser == 'chromium'
-      - run: npm run build --workspace=notecards
-      - run: npm run test:browser --workspace=notecards
+      - run: npm run build --workspace=notewise
+      - run: npm run test:browser --workspace=notewise
         if: matrix.browser == 'chromium'
-      - run: npm run test:guitar --workspace=notecards
+      - run: npm run test:guitar --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:piano --workspace=notecards
+      - run: npm run test:piano --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:piano-audio --workspace=notecards
+      - run: npm run test:piano-audio --workspace=notewise
         if: matrix.browser == 'chromium'
-      - run: npm run test:hymn-playback --workspace=notecards
+      - run: npm run test:practice --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:sight --workspace=notecards
+      - run: npm run test:theory --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:practice --workspace=notecards
+      - run: npm run test:navigation --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:theory --workspace=notecards
+      - run: npm run test:midi --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:navigation --workspace=notecards
+      - run: npm run test:signatures --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:midi --workspace=notecards
+      - run: npm run test:offline --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:signatures --workspace=notecards
-        env:
-          TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:offline --workspace=notecards
-        env:
-          TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:diagnostics --workspace=notecards
+      - run: npm run test:diagnostics --workspace=notewise
         if: matrix.browser == 'chromium'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: notecards-browser-results-${{ matrix.browser }}
+          name: notewise-browser-results-${{ matrix.browser }}
           path: |
-            apps/notecards/work/
+            apps/notewise/work/
             work/piano-*.png
             work/midi-*.png
             work/key-signatures-*.png
+
+  songalong:
+    name: songalong (${{ matrix.browser }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    env:
+      TEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start virtual audio output for Firefox
+        if: matrix.browser == 'firefox'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio
+          pactl set-default-sink ci_audio
+      - run: npm test --workspace=songalong
+        if: matrix.browser == 'chromium'
+      - run: npm run build --workspace=songalong
+      - run: npm run build --workspace=notewise
+      - run: npm run test:split --workspace=songalong
+      - run: npm run test:sidebars --workspace=songalong
+      - run: npm run test:hymn-keys --workspace=songalong
+      - run: npm run test:hymn-playback --workspace=songalong
+      - run: npm run test:sight --workspace=songalong
+      - run: npm run test:offline --workspace=songalong
+      - run: npm run test:diagnostics --workspace=songalong
+        if: matrix.browser == 'chromium'

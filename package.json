@@ -15,10 +15,14 @@
     "test:shared": "npm run test --workspace=@ldayton/browser-diagnostics && npm run test --workspace=@ldayton/browser-offline && node --test tests/*.test.cjs",
     "test:dorego": "npm test --workspace=dorego && npm run build:pages --workspace=dorego && npm run test:pages --workspace=dorego && npm run test:offline --workspace=dorego",
     "test:soundglow": "npm run build --workspace=soundglow",
-    "test": "npm run build:shared && npm run test:shared && npm run test:dorego && npm run test:soundglow",
+    "test": "npm run build:shared && npm run test:shared && npm run test:dorego && npm run test:soundglow && npm run test:notewise && npm run test:songalong",
     "build:dorego": "npm run build:vercel --workspace=dorego",
     "build:soundglow": "npm run build:vercel --workspace=soundglow",
-    "verify:history": "node scripts/verify-history.cjs"
+    "verify:history": "node scripts/verify-history.cjs",
+    "build:notewise": "npm run build:vercel --workspace=notewise",
+    "build:songalong": "npm run build:vercel --workspace=songalong",
+    "test:notewise": "npm test --workspace=notewise",
+    "test:songalong": "npm test --workspace=songalong"
   },
   "devDependencies": {
     "@sentry/cli": "3.8.2"

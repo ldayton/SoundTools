@@ -227,18 +227,18 @@ try {
   await page.locator('#repeat-count').press('ArrowDown');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.locator('#repeat-count').isHidden());
-  for (const id of ['repeat', 'rest'])
-    assert.deepEqual(await page.locator(`#${id}-select option`).allTextContents(), [
-      'None',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-    ]);
+  for (const [id, max] of [
+    ['repeat', 15],
+    ['rest', 16],
+  ] as const)
+    assert.deepEqual(
+      await page.locator(`#${id}-select option`).allTextContents(),
+      Array.from({ length: max + 1 }, (_, i) => (i ? String(i) : 'None'))
+    );
+  await page.locator('#repeat-select').selectOption('15');
+  assert.equal(await readSpecValue(page, 'repetitions'), '16');
+  await page.locator('#rest-select').selectOption('16');
+  assert.equal(await readSpecValue(page, 'restBeats'), '16');
   await page.locator('#repeat-select').selectOption('8');
   assert.equal(await readSpecValue(page, 'repetitions'), '9');
   await page.locator('#rest-select').selectOption('8');

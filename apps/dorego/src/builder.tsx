@@ -409,13 +409,12 @@ export function Builder({
                           id={`${field.id}-select`}
                           label={field.label}
                           value={String(field.value)}
-                          data={[
-                            ...Array.from({ length: 9 }, (_, i) => i),
-                            ...(field.value > 8 ? [field.value] : []),
-                          ].map((value) => ({
-                            value: String(value),
-                            label: value ? String(value) : 'None',
-                          }))}
+                          data={[...Array.from({ length: field.max + 1 }, (_, i) => i)].map(
+                            (value) => ({
+                              value: String(value),
+                              label: value ? String(value) : 'None',
+                            })
+                          )}
                           onChange={(event) =>
                             change(field.patch(Number(event.currentTarget.value)))
                           }

@@ -1,6 +1,6 @@
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs');
-const {setSetting,setHistory}=require('./settings-input.cjs');
+const {setSetting,setHistory,expandSection,sectionExpanded}=require('./settings-input.cjs');
 test('sidebar and display changes preserve frozen source history and live playback',async({page},testInfo)=>{
  const slowdown=Number(process.env.SOUNDGLOW_CPU_SLOWDOWN||testInfo.project.metadata.cpuSlowdown||1);
  if(slowdown>1){const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:slowdown});}
@@ -16,7 +16,7 @@ test('sidebar and display changes preserve frozen source history and live playba
  for(let i=0;i<4;i++){await page.locator('#openSettings').click();await page.waitForTimeout(350)}
  expect(await snapshot()).toEqual(before);
  await page.locator('#openSettings').click();await page.waitForTimeout(350);
- await page.locator('#advancedColour > summary').click();
+ await expandSection(page,'advancedColour');
  for(const [id,value] of [['scale','linear'],['preemphasis','6'],['history','3'],['colourLevels','auto'],['peakDecay','0.98'],['colourLevels','fixed'],['scale','voice'],['preemphasis','3'],['history','6'],['peakDecay','0.995']]){
   const control=page.locator('#'+id);await setSetting(page,id,value);
   const now=await snapshot();expect(now.end).toBe(before.end);expect(now.generation).toBe(before.generation);expect(now.frames).toBe(before.frames);

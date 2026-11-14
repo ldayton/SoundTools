@@ -1,0 +1,128 @@
+{
+  "window": [
+    {
+      "value": "0.005",
+      "label": "5 ms \u00b7 Praat default"
+    },
+    {
+      "value": "0.015",
+      "label": "15 ms \u00b7 finer frequencies"
+    },
+    {
+      "value": "0.025",
+      "label": "25 ms \u00b7 balanced"
+    },
+    {
+      "value": "0.064",
+      "label": "64 ms"
+    },
+    {
+      "value": "0.04",
+      "label": "40 ms \u00b7 finer frequencies"
+    }
+  ],
+  "windowShape": [
+    {
+      "value": "gaussian",
+      "label": "Gaussian"
+    },
+    {
+      "value": "hann",
+      "label": "Periodic Hann"
+    }
+  ],
+  "analysisRate": [
+    {
+      "value": "0",
+      "label": "Device rate"
+    },
+    {
+      "value": "8000",
+      "label": "8 kHz"
+    },
+    {
+      "value": "16000",
+      "label": "16 kHz"
+    }
+  ],
+  "frameStep": [
+    {
+      "value": "0.005",
+      "label": "5 ms"
+    },
+    {
+      "value": "0.01",
+      "label": "10 ms"
+    },
+    {
+      "value": "0.016",
+      "label": "16 ms"
+    },
+    {
+      "value": "0.02",
+      "label": "20 ms"
+    }
+  ],
+  "fftPadding": [
+    {
+      "value": "0",
+      "label": "Automatic"
+    },
+    {
+      "value": "2",
+      "label": "2\u00d7 window"
+    }
+  ],
+  "removeDC": [
+    {
+      "value": "off",
+      "label": "Off"
+    },
+    {
+      "value": "on",
+      "label": "On"
+    }
+  ],
+  "spectrumUnits": [
+    {
+      "value": "density",
+      "label": "Power density"
+    },
+    {
+      "value": "amplitude",
+      "label": "Amplitude"
+    }
+  ],
+  "resampling": [
+    {
+      "value": "praat",
+      "label": "Praat sinc"
+    },
+    {
+      "value": "polyphase",
+      "label": "Compatible Kaiser polyphase"
+    }
+  ],
+  "resampleQuality": [
+    {
+      "value": "0",
+      "label": "Low"
+    },
+    {
+      "value": "1",
+      "label": "Medium"
+    },
+    {
+      "value": "2",
+      "label": "Balanced (94% roll-off)"
+    },
+    {
+      "value": "3",
+      "label": "High"
+    },
+    {
+      "value": "4",
+      "label": "Highest"
+    }
+  ]
+}

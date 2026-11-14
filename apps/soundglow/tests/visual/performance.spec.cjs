@@ -1,3 +1,4 @@
+const {expandSection,sectionExpanded}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 for(const [preset,formants]of [['praat','off'],['voice','off'],['voice','both']])test(`performance report bounds live lag: ${preset}/${formants}`,async({page},testInfo)=>{
  await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption(preset);await page.locator('#formants').selectOption(formants);await expect(page.locator('#developerSettings')).not.toHaveAttribute('open','');await page.locator('#developerSettings > summary').click();await page.locator('#measurePerformance').check();
@@ -25,7 +26,7 @@ test('looping fake microphone exports bounded lag across the recording loop',asy
  await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption('voice');await expect(page.locator('#developerSettings')).not.toHaveAttribute('open','');await page.locator('#developerSettings > summary').click();await page.locator('#measurePerformance').check();await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.locator('#begin').click();
  await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>32,undefined,{timeout:50000});
  const transport=await page.evaluate(()=>{window.fakeMicrophoneTransport={engine,stream,pcmNode,source,audio};return Number(canvas.dataset.plottedUntil)});
- await page.getByRole('button',{name:'Settings',exact:true}).click();if(await page.locator('#advancedAnalysis').getAttribute('open')===null)await page.locator('#advancedAnalysis > summary').click();await page.locator('#window').selectOption('0.04');
+ await page.getByRole('button',{name:'Settings',exact:true}).click();await expandSection(page,'advancedAnalysis');await page.locator('#window').selectOption('0.04');
  await page.waitForFunction(()=>engine.activeSettings.windowSeconds===.04&&!engine.rebuild,undefined,{timeout:20000});
  expect(await page.evaluate(()=>Object.entries(fakeMicrophoneTransport).every(([key,object])=>({engine,stream,pcmNode,source,audio})[key]===object)&&stream.getAudioTracks()[0].readyState==='live')).toBe(true);
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();

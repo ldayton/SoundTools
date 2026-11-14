@@ -14,3 +14,13 @@ async function setSetting(page,id,value){
 }
 const setHistory=(page,value)=>setSetting(page,'history',value);
 module.exports={setSetting,setHistory};
+async function sectionExpanded(page,id){
+ const node=page.locator('#'+id);
+ return await node.evaluate(el=>el.tagName==='DETAILS')?await node.getAttribute('open')!==null:await node.getByRole('button').first().getAttribute('aria-expanded')==='true';
+}
+async function expandSection(page,id){
+ if(await sectionExpanded(page,id))return;
+ const node=page.locator('#'+id);
+ if(await node.evaluate(el=>el.tagName==='DETAILS'))await node.locator(':scope > summary').click();else await node.getByRole('button').first().click();
+}
+module.exports.expandSection=expandSection;module.exports.sectionExpanded=sectionExpanded;

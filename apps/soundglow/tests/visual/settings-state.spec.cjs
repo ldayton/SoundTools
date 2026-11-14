@@ -1,12 +1,12 @@
 const {test,expect}=require('@playwright/test');
-const {setSetting,setHistory}=require('./settings-input.cjs');
+const {setSetting,setHistory,expandSection,sectionExpanded}=require('./settings-input.cjs');
 const consistent=async page=>expect(await page.evaluate(()=>assertSettingsConsistent())).toBe(true);
 test('all registered controls agree with authoritative state across deterministic edit/apply sequences',async({page})=>{
  await page.goto('/dist/index.html#settings');
  expect(await page.locator('#presetSettings select,#presetSettings input').evaluateAll(nodes=>nodes.map(node=>node.id).sort())).toEqual(await page.evaluate(()=>[...SettingsState.ids].sort()));
  for(const builtin of ['soundglow','praat','voice']){
   await page.locator('#preset').selectOption(builtin);await consistent(page);
-  for(const id of ['advancedAnalysis','advancedColour'])if(await page.locator('#'+id).getAttribute('open')===null)await page.locator('#'+id+' > summary').click();
+  for(const id of ['advancedAnalysis','advancedColour'])await expandSection(page,id);
   // Every control is independently exercised through its real input event.
   const edits=await page.evaluate(()=>Array.from(document.querySelectorAll('#presetSettings select,#presetSettings input')).filter(el=>!el.disabled&&el.getClientRects().length).map(el=>({id:el.id,value:el.tagName==='SELECT'?Array.from(el.options).find(o=>o.value!==el.value)?.value:String(Number(el.value)===Number(el.min)?el.max:el.min)})).concat(Array.from(document.querySelectorAll('#presetSettings [role=slider]:not([aria-disabled=true])')).filter(el=>el.getClientRects().length).map(el=>({id:el.id.replace(/-slider$/,''),value:el.getAttribute('aria-valuenow')===el.getAttribute('aria-valuemin')?el.getAttribute('aria-valuemax'):el.getAttribute('aria-valuemin')}))));
   for(const edit of edits){
@@ -26,7 +26,7 @@ test('settings effects do not restart analysis for overlay and colour changes, a
  await page.locator('#formantSmoothing').selectOption('strong');await page.locator('#formantFiltering').selectOption('off');await page.locator('#palette').selectOption('plasma');
  await consistent(page);expect(await page.evaluate(()=>settingsResets)).toBe(0);
  const frames=await page.evaluate(()=>processingStats.frames);await page.waitForFunction(n=>processingStats.frames>n+50,frames);
- if(await page.locator('#advancedAnalysis').getAttribute('open')===null)await page.locator('#advancedAnalysis > summary').click();await page.locator('#window').selectOption('0.015');expect(await page.evaluate(()=>settingsResets)).toBe(0);await page.waitForFunction(()=>window.requestedSettings.some(request=>request.windowSeconds===.015));expect(await page.evaluate(()=>requestedSettings.find(request=>request.windowSeconds===.015))).toEqual({windowSeconds:.015,timeStep:.005,analysisFlags:7});await consistent(page);
+ await expandSection(page,'advancedAnalysis');await page.locator('#window').selectOption('0.015');expect(await page.evaluate(()=>settingsResets)).toBe(0);await page.waitForFunction(()=>window.requestedSettings.some(request=>request.windowSeconds===.015));expect(await page.evaluate(()=>requestedSettings.find(request=>request.windowSeconds===.015))).toEqual({windowSeconds:.015,timeStep:.005,analysisFlags:7});await consistent(page);
  await page.waitForFunction(()=>engine.activeSettings.windowSeconds===.015&&!engine.rebuild);
  await page.locator('#freeze').click();if(await page.locator('#openSettings').getAttribute('aria-expanded')!=='true')await page.locator('#openSettings').click();
  await page.locator('#preset').selectOption('soundglow');await consistent(page);await expect(page.locator('#formants')).toHaveValue('off');

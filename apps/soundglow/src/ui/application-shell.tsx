@@ -43,6 +43,8 @@ export function mountApplicationShell() {
   const DisplayControls = display.Controls;
   const ColourControls = display.ColourControls;
   const colourHost = take("spectrogramColour");
+  const AnalysisControls = display.AnalysisControls,
+    analysisHost = take("spectrogramAnalysis");
   const FormantControls = display.FormantControls,
     formantHost = take("spectrogramFormants");
   const media = window.matchMedia("(min-width: 761px)");
@@ -120,6 +122,7 @@ export function mountApplicationShell() {
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<ColourControls />, colourHost)}
         {createPortal(<FormantControls />, formantHost)}
+        {createPortal(<AnalysisControls />, analysisHost)}
         <Box component="header" className="soundglow-header soundtools-ui">
           <Group className="brand" gap="xs" wrap="nowrap">
             <Anchor

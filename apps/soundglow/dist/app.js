@@ -267,7 +267,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape')panel(false);
   if(e.code!=='Space'&&e.key!==' ')return;
   if(e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey||!running)return;
-  if(e.target?.isContentEditable||e.target?.closest?.('input,select,textarea,[role="textbox"],[role="slider"]'))return;
+  if(e.target?.isContentEditable||e.target?.closest?.('input,select,textarea,[role="textbox"],[role="slider"],[data-accordion-control]'))return;
   // Prevent focused-button activation so Space after playback starts pauses it.
   e.preventDefault();
   if(!e.repeat)void togglePause();
@@ -469,7 +469,6 @@ function settingsForPreset(id){return (Object.hasOwn(displayPresets,id)?displayP
 function syncPreset(edited=false){
  $('preset').value=settingsState.selected;
  $('unnamedPreset').hidden=$('preset').value!=='custom';
- $('resampleQuality').disabled=setting('resampling')!=='polyphase';
  updateResolution();
 }
 function renderSettingsControls(){

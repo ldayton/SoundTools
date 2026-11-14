@@ -1,3 +1,4 @@
+const {expandSection,sectionExpanded}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs');
 test('long retained history is prepared before the atomic settings commit',async({page},testInfo)=>{
@@ -15,7 +16,7 @@ test('long retained history is prepared before the atomic settings commit',async
  });
  await page.locator('#openSettings').click();await page.locator('#scale').selectOption('linear');
  for(const windowSeconds of ['0.04','0.015']){
-  if(await page.locator('#advancedAnalysis').getAttribute('open')===null)await page.locator('#advancedAnalysis > summary').click();await page.locator('#window').selectOption(windowSeconds);
+  await expandSection(page,'advancedAnalysis');await page.locator('#window').selectOption(windowSeconds);
   await page.waitForFunction(seconds=>!engine.rebuild&&engine.activeSettings.windowSeconds===Number(seconds),windowSeconds);
  }
  expect(await page.evaluate(()=>commitCount)).toBe(2);

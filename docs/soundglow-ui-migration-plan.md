@@ -49,7 +49,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | --- | --- | --- |
 | 1 ✓ | Spectrogram colour and contrast | Palette, brightness, dynamic range, normalization mode, fixed maximum, suppression, pre-emphasis and compression. Preserve conditional visibility/disabled states, units, preset identity and live repaint without capture reset. |
 | 2 ✓ | Formant controls | Visibility, smoothing, filtering and ceiling. Preserve overlay-only changes versus analysis rebuilds, and clear old overlays when disabled or when applying a preset. |
-| 3 | Advanced spectrogram analysis | Window, shape, analysis rate, frame step, FFT padding, DC removal, units, resampling and quality. Preserve dependent controls, pending/committed analysis separation and failure recovery without restarting the source. |
+| 3 ✓ | Advanced spectrogram analysis | Window, shape, analysis rate, frame step, FFT padding, DC removal, units, resampling and quality. Preserve dependent controls, pending/committed analysis separation and failure recovery without restarting the source. |
 | 4 | Advanced spectrogram colour | Normalization clock, frequency/frame interpolation, peak history and decay. Preserve decimal precision, frozen redraw and retained-history performance. |
 | 5 | Basic pitch display | Minimum/maximum, axis, history and smoothing. Keep editable numeric drafts usable and enforce the existing cross-field bounds on commit. Preserve plot and settings state across feature switches. |
 | 6 | Pitch detection controls | Method, speech gate, confirmation and uncertain-jump policy. Preserve supported methods, optional-model fallback, pending rebuild state, error recovery and paused playback. |
@@ -180,3 +180,18 @@ real-WASM overlay, and spectrum/transport tests passed. Focused formant-controls
 overlays and settings-state browser specs passed all 16 desktop/mobile cases
 (`/tmp/sg-m2-tests.log`). Native Chrome verified the native formant selector and
 immediate preset identity update with the public saved fixture. Next: step 3.
+
+### Step 3 completed
+
+Previous milestone: `688f324`. Advanced analysis uses explicit NativeSelect
+controls with registry-owned values, a Mantine Accordion, and reactive resampling
+quality enablement. The mounted hidden panel continues receiving canonical
+snapshots. Audio Space shortcuts yield to Accordion controls. Authored option
+labels are retained as data, with no generated form schema.
+
+Build/typecheck, pure settings, spectrum and real-WASM handover tests passed.
+Advanced-controls, settings-organization and settings-state: 18 desktop/mobile
+passes; the new keyboard/closed-panel case also passed Firefox and WebKit.
+Native Chrome verified opening the disclosure and enabling quality via polyphase.
+Tests now inspect actual disclosure state, rather than a native `open` attribute.
+Next: step 4 and the spectrogram-family checkpoint.

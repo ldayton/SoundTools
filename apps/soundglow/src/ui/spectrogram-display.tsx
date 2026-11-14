@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
-import { NativeSelect, Stack, Title, Box, Text } from "@mantine/core";
+import { Accordion, NativeSelect, Stack, Title, Box, Text } from "@mantine/core";
+import analysisOptions from "./advancedAnalysis-options.json";
 import { SettingsSlider } from "./settings-slider";
 import { createViewState } from "@ldayton/ui/view-state";
 
@@ -22,10 +23,22 @@ const formantControlIds = [
   "formantFiltering",
   "formantCeiling",
 ] as const;
+const analysisControlIds = [
+  "window",
+  "windowShape",
+  "analysisRate",
+  "frameStep",
+  "fftPadding",
+  "removeDC",
+  "spectrumUnits",
+  "resampling",
+  "resampleQuality",
+] as const;
 const migratedIds = [
   ...displayControlIds,
   ...colourControlIds,
   ...formantControlIds,
+  ...analysisControlIds,
 ];
 type DisplayId = (typeof migratedIds)[number];
 type Values = Record<DisplayId, string>;
@@ -108,10 +121,12 @@ export function createDisplayControls(registry: Registry) {
     id,
     label,
     data,
+    disabled = false,
   }: {
     id: DisplayId;
     label: string;
     data: { value: string; label: string }[];
+    disabled?: boolean;
   }) {
     const values = useSyncExternalStore(model.subscribe, model.getSnapshot);
     return (
@@ -119,6 +134,7 @@ export function createDisplayControls(registry: Registry) {
         id={id}
         label={label}
         data={data}
+        disabled={disabled}
         value={values[id]}
         onChange={(event) => edit?.(id, event.currentTarget.value)}
       />
@@ -268,10 +284,83 @@ export function createDisplayControls(registry: Registry) {
       </Stack>
     );
   }
+  const analysisData = (id: keyof typeof analysisOptions) =>
+    options(
+      id,
+      Object.fromEntries(
+        analysisOptions[id].map((item) => [item.value, item.label]),
+      ),
+    );
+  function AnalysisControls() {
+    const values = useSyncExternalStore(model.subscribe, model.getSnapshot);
+    return (
+      <Accordion keepMounted keepMountedMode="display-none">
+        <Accordion.Item value="analysis" id="advancedAnalysis">
+          <Accordion.Control>Advanced analysis</Accordion.Control>
+          <Accordion.Panel>
+            <Stack gap="md">
+              <Choice
+                id="window"
+                label="Analysis window"
+                data={analysisData("window")}
+              />
+              <Choice
+                id="windowShape"
+                label="Window shape"
+                data={analysisData("windowShape")}
+              />
+              <Choice
+                id="analysisRate"
+                label="Analysis sample rate"
+                data={analysisData("analysisRate")}
+              />
+              <Choice
+                id="frameStep"
+                label="Frame spacing"
+                data={analysisData("frameStep")}
+              />
+              <Choice
+                id="fftPadding"
+                label="FFT padding"
+                data={analysisData("fftPadding")}
+              />
+              <Choice
+                id="removeDC"
+                label="Remove DC offset"
+                data={analysisData("removeDC")}
+              />
+              <Choice
+                id="spectrumUnits"
+                label="Spectrum levels"
+                data={analysisData("spectrumUnits")}
+              />
+              <Choice
+                id="resampling"
+                label="Resampling filter"
+                data={analysisData("resampling")}
+              />
+              <Choice
+                id="resampleQuality"
+                label="Resampling quality"
+                data={analysisData("resampleQuality")}
+                disabled={values.resampling !== "polyphase"}
+              />
+              <Text size="xs" c="dimmed">
+                The frequency ceiling cannot exceed half the analysis sample
+                rate. Resampling applies only when the analysis and input rates
+                differ; quality applies to the Kaiser polyphase filter.
+              </Text>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
+    );
+  }
   return {
     Controls,
     ColourControls,
     FormantControls,
+    AnalysisControls,
     owns(id: string) {
       return (migratedIds as readonly string[]).includes(id);
     },

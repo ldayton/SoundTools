@@ -1,13 +1,14 @@
+const {expandSection,sectionExpanded}=require('./settings-input.cjs');
 const {test,expect}=require('@playwright/test');
 const settings=async page=>page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings').click();
 test('navigation, shared controls, playback and feature settings have distinct scopes',async({page},info)=>{
  if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});
  await page.goto('/dist/index.html#settings');
  await expect(page.getByRole('tablist',{name:'Views'})).toHaveCount(1);await expect(page.locator('#featureTabs')).toHaveAttribute('role','tablist');
- for(const id of ['advancedAnalysis','advancedColour','developerSettings'])await expect(page.locator('#'+id)).not.toHaveAttribute('open','');
+ for(const id of ['advancedAnalysis','advancedColour','developerSettings'])expect(await sectionExpanded(page,id)).toBe(false);
  await expect(page.locator('#testControls')).toBeHidden();
  expect(await page.locator('#microphone').evaluate(el=>!!el.closest('#presetSettings'))).toBe(false);
- await page.locator('#advancedAnalysis > summary').click();await expect(page.locator('#window')).toBeVisible();
+ await expandSection(page,'advancedAnalysis');await expect(page.locator('#window')).toBeVisible();
  const scroll=await page.locator('#settingsBody').evaluate(el=>{el.scrollTop=200;return el.scrollTop});
  await page.getByRole('tab',{name:'Pitch',exact:true}).click();
  expect(await page.locator('#settingsBody').evaluate(el=>el.scrollTop)).toBe(0);
@@ -15,7 +16,7 @@ test('navigation, shared controls, playback and feature settings have distinct s
  await expect(page.getByLabel('Band 3 name',{exact:true})).toHaveCount(0);
  await page.getByRole('tab',{name:'Spectrogram',exact:true}).click();
  expect(await page.locator('#settingsBody').evaluate(el=>el.scrollTop)).toBe(scroll);
- await expect(page.locator('#advancedAnalysis')).toHaveAttribute('open','');
+ expect(await sectionExpanded(page,'advancedAnalysis')).toBe(true);
  await settings(page);await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>1);
  await settings(page);await expect(page.locator('#testControls')).toBeVisible();await expect(page.locator('#microphoneScope')).toBeVisible();
  expect(await page.locator('#settingsBody').evaluate(el=>{const children=[...el.children].map(c=>c.id);return children.indexOf('testControls')<children.indexOf('spectrogramSettings')})).toBe(true);
@@ -27,7 +28,7 @@ test('navigation, shared controls, playback and feature settings have distinct s
 test('starting the example preserves desktop settings and returns mobile users to the chart',async({page},info)=>{
  const desktop=info.project.name==='desktop';if(desktop)await page.setViewportSize({width:1280,height:900});
  await page.goto('/dist/index.html#settings');
- await page.locator('#advancedAnalysis > summary').click();
+ await expandSection(page,'advancedAnalysis');
  await page.getByRole('tab',{name:'Pitch',exact:true}).click();
  // The homepage example button is available beside the desktop sidebar.
  if(!desktop){
@@ -38,7 +39,7 @@ test('starting the example preserves desktop settings and returns mobile users t
  if(desktop){
   await expect(page).toHaveURL(/#settings$/);await expect(page.locator('#panel')).toHaveAttribute('aria-hidden','false');
   await expect(page.locator('#pitchSettings')).toBeVisible();await expect(page.locator('#testControls')).toBeVisible();await expect(page.locator('#microphoneScope')).toBeVisible();
-  await page.getByRole('tab',{name:'Spectrogram',exact:true}).click();await expect(page.locator('#advancedAnalysis')).toHaveAttribute('open','');
+  await page.getByRole('tab',{name:'Spectrogram',exact:true}).click();expect(await sectionExpanded(page,'advancedAnalysis')).toBe(true);
  }else {await expect(page).not.toHaveURL(/#settings$/);await expect(page.locator('#panel')).toHaveAttribute('aria-hidden','true');}
 });
 test('pause and resume respect desktop inspector and mobile page navigation',async({page},info)=>{

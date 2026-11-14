@@ -1,5 +1,5 @@
 const {test,expect}=require('@playwright/test');
-const {setSetting,setHistory}=require('./settings-input.cjs');
+const {setSetting,setHistory,expandSection,sectionExpanded}=require('./settings-input.cjs');
 test('Voice Tools and Praat presets switch during English playback',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html#settings');
  await expect(page.locator('#unnamedPreset')).toHaveAttribute('hidden','');await expect(page.locator('#savePresetForm')).toBeHidden();expect(await page.evaluate(()=>!document.getElementById('presetSettings').contains(document.getElementById('microphone'))&&!!(document.getElementById('microphone').compareDocumentPosition(document.getElementById('preset'))&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
@@ -81,7 +81,7 @@ test('manual settings reproduce the Voice Tools preset and survive as a named pr
  await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption('voice');
  const expected=await page.evaluate(()=>currentPresetSettings());
  await page.locator('#preset').selectOption('praat');
- for(const id of ['advancedAnalysis','advancedColour'])await page.locator('#'+id+' > summary').click();
+ for(const id of ['advancedAnalysis','advancedColour'])await expandSection(page,id);
  for(const [id,v] of Object.entries(expected))await setSetting(page,id,v);
  expect(await page.evaluate(()=>currentPresetSettings())).toEqual(expected);
  await page.getByRole('button',{name:'Edit presets',exact:true}).click();await page.locator('#presetName').fill('My harmonic settings');await page.getByRole('button',{name:'Create',exact:true}).click();
@@ -119,7 +119,7 @@ test('normalization timing uses the selected clock in the production frame consu
 test('Soundglow defaults favor clarity, remain editable, and restore saved selections',async({page})=>{
  await page.goto('/dist/index.html#settings');await expect(page.locator('#preset')).toHaveValue('soundglow');
  for(const [id,v]of Object.entries({window:'0.025',maximum:'5000',scale:'voice',history:'6',floor:'50',suppression:'10',preemphasis:'3',colourLevels:'fixed',fixedMaximum:'100',compression:'0',formants:'off'}))await expect(page.locator('#'+id)).toHaveValue(v);
- if(await page.locator('#advancedAnalysis').getAttribute('open')===null)await page.locator('#advancedAnalysis > summary').click();await page.locator('#window').selectOption('0.015');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');
+ await expandSection(page,'advancedAnalysis');await page.locator('#window').selectOption('0.015');await expect(page.locator('#preset option:checked')).toHaveText('Unnamed Preset*');
  await page.locator('#preset').selectOption('praat');await page.reload();await expect(page.locator('#preset')).toHaveValue('praat');await expect(page.locator('#window')).toHaveValue('0.005');
 });
 

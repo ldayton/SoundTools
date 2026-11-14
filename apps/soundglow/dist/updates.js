@@ -163,7 +163,6 @@
     ui.publish({ downloadDisabled: false });
     ui.publish({ downloadLabel: "Cancel download" });
     ui.publish({ progressVisible: !false });
-    ui.publish({ progressValue: null });
     ui.publish({ status: "Downloading for offline use…", ready: false });
     diagnostics()?.offline("download", "started");
     let pulsing = false;

@@ -10,7 +10,7 @@ import {
   Stack,
 } from "@mantine/core";
 import { createViewState } from "@ldayton/ui/view-state";
-import { SettingsSlider } from "./settings-slider";
+import { VolumeControl } from "@ldayton/ui/volume-control";
 type View = {
   playing: boolean;
   loading: boolean;
@@ -139,15 +139,10 @@ export function createFileControls() {
             label: `${value}×`,
           }))}
         />
-        <SettingsSlider
+        <VolumeControl
           id="fileVolume"
-          label="Volume"
-          value={view.volume}
-          min={0}
-          max={1}
-          step={0.01}
-          format={(value) => `${Math.round(value * 100)}%`}
-          change={(value) => actions?.volume(value)}
+          value={Math.round(view.volume * 100)}
+          onChange={(value) => actions?.volume(value / 100)}
         />
       </Stack>
     );

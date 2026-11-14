@@ -89,8 +89,7 @@
       this.media = document.createElement('audio'); this.media.preload = 'metadata'; this.media.preservesPitch = true; this.reader=new SoundglowFileAudio.FileAudioReader();this.revision=0;
       this.playback=new SoundglowFileAudio.PassagePlayer(()=>host.context(),this.reader,(position,error)=>{this.wantPlay=false;this.finishedRange=error?null:{fileId:this.current?.id,start:this.playback.start,end:this.playback.end};this.position=position;host.paused(true);if(error)this.message('This passage could not be decoded. Try a different format.');this.draw();this.savePosition(true);});
       const $ = id => document.getElementById(id); this.$ = $;
-      $('audioFileInput').onchange = e => { void this.importFiles([...e.target.files]); e.target.value = ''; };
-      this.feedback=window.SoundglowShell.feedback;this.feedback.connectLibrary(()=>$('audioFileInput').click());
+      this.feedback=window.SoundglowShell.feedback;this.feedback.connectLibrary({open:()=>$('audioFileInput').click(),import:files=>void this.importFiles(files)});
       this.actions = new SoundglowLibraryActions($('filesBody'), {
         find: (kind,id) => this.libraryItem(kind,id),
         open: (kind,id) => { if (kind === 'file') void this.select(id); else void this.openBookmark(id); },
@@ -121,7 +120,7 @@
       document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(this.drag||this.navigation)){e.preventDefault();e.stopImmediatePropagation();this.cancelGesture();}},true);
       window.addEventListener('blur',()=>this.cancelGesture());document.addEventListener('visibilitychange',()=>{if(document.hidden)this.cancelGesture();});
       this.overview.addEventListener('keydown', e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();this.setView(this.viewStart+(e.key==='ArrowLeft'?-1:1)*this.viewSpan*.1,this.viewSpan);}});
-      this.desktop.addEventListener('change',()=>{if(!this.desktop.matches){this.pause();this.host.unavailable?.();}else if(this.current){this.lastView='';this.$('fileTransport').hidden=false;this.draw();}});
+      this.desktop.addEventListener('change',()=>{if(!this.desktop.matches){this.pause();this.host.unavailable?.();}else if(this.current&&this.host.canRestore()){this.lastView='';this.$('fileTransport').hidden=false;this.draw();}});
       setInterval(()=>{if(this.playback.active){this.draw();this.savePosition();}},100);
       this.ready = this.initialize();
     }
@@ -255,7 +254,7 @@
           this.viewSpan = bookmark.viewSpan; this.loop = {...bookmark.selection}; this.loopEnabled = true;
           const speed = [0.5,0.75,1,1.25,1.5].includes(bookmark.speed) ? bookmark.speed : 1;
           this.media.playbackRate = speed;
-          this.$(bookmark.feature === 'pitch' ? 'pitchTab' : 'spectrogramTab').click();
+          window.SoundglowShell.selectFeature(bookmark.feature==='pitch'?'pitch':'spectrogram');
         }
         this.loading = false; this.draw();
         if (!this.peaks || this.peaks.length < this.waveformResolution()) void this.waveform(blob, epoch);

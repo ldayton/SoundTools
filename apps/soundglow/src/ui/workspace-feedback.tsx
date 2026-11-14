@@ -5,7 +5,6 @@ import {
   Badge,
   Box,
   Button,
-  Group,
   Stack,
   Text,
   Title,
@@ -42,7 +41,7 @@ export function createWorkspaceFeedback() {
     fileTitle: "",
     analysisStatus: "",
   });
-  let openFiles: (() => void) | undefined;
+  let files: { open(): void; import(files: File[]): void } | undefined;
   const useView = () =>
     useSyncExternalStore(model.subscribe, model.getSnapshot);
   function State() {
@@ -91,11 +90,22 @@ export function createWorkspaceFeedback() {
     const view = useView();
     return (
       <Stack gap="sm">
+        <input
+          id="audioFileInput"
+          type="file"
+          accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac,.aiff,.webm"
+          multiple
+          hidden
+          onChange={(event) => {
+            files?.import([...(event.currentTarget.files || [])]);
+            event.currentTarget.value = "";
+          }}
+        />
         <Button
           id="importAudio"
           variant="default"
           disabled={view.importing || !view.storageAvailable}
-          onClick={() => openFiles?.()}
+          onClick={() => files?.open()}
         >
           Open audio files
         </Button>
@@ -149,8 +159,8 @@ export function createWorkspaceFeedback() {
     Bookmarks,
     FileTitle,
     AnalysisStatus,
-    connectLibrary(open: () => void) {
-      openFiles = open;
+    connectLibrary(actions: NonNullable<typeof files>) {
+      files = actions;
     },
     publish(next: Partial<View>) {
       const previous = model.getSnapshot();

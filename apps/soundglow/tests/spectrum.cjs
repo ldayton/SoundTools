@@ -10,8 +10,8 @@ const env={SoundglowAudioLibrary:{AudioLibrary:class{}},SoundglowPerformance:req
 const fixtureSettings=Object.fromEntries(Object.entries(elements).map(([id,e])=>[id,e.value]));
 // The spectrum unit harness supplies the shell command boundary. Real React
 // geometry, routing, keyboard and focus behavior are covered by browser tests.
-env.window.SoundglowShell={media:{matches:false},configure({layout}){this.layout=layout},panel(open){history.replaceState(null,'',open?'#settings':'/');location.hash=open?'#settings':'';this.layout?.()},showView(){history.replaceState(null,'','/');this.layout?.()},openFiles(){this.panel(true)}};
-env.window.SoundglowShell.display={owns:()=>false,connect(){},publish(){}};
+env.window.SoundglowShell={media:{matches:false},configure({layout}){this.layout=layout},connectHome(action){elements.home.onclick=e=>{e.preventDefault();action()}},panel(open){history.replaceState(null,'',open?'#settings':'/');location.hash=open?'#settings':'';this.layout?.()},showView(){history.replaceState(null,'','/');this.layout?.()},openFiles(){this.panel(true)}};
+env.window.SoundglowShell.spectrogram={connect(){},publish(){}};
 env.window.SoundglowShell.feedback={publish(view){if('state'in view)elements.state.textContent=view.state;if('notice'in view){elements.notice.textContent=view.notice;elements.notice.hidden=!view.notice}if('welcome'in view)elements.welcome.hidden=!view.welcome;if('device'in view)elements.device.textContent=view.device;if('resolution'in view)elements.resolution.textContent=view.resolution}};
 env.window.SoundglowShell.performance={connect(){},publish(){}};
 env.window.SoundglowShell.transport={

@@ -14,7 +14,7 @@
   const preview=await client.analyse({pcm:pcm.slice(0,9600),sampleRate:48000,...settings});
   audio={currentTime:analysisDelay,sampleRate:48000,state:'running',close:async()=>{}};nyquist=12000;spectrumStep=preview.frequencyStep;spectrumFirst=preview.firstFrequency;
   bins=new Float32Array(preview.bins);bins.fill(-160);running=true;paused=false;
-  state('COMPARISON');$('device').textContent='ENGLISH SPEECH · IDENTICAL PCM';updateResolution();$('welcome').hidden=true;
+  state('COMPARISON');feedbackUI.publish({device:'ENGLISH SPEECH · IDENTICAL PCM',welcome:false});updateResolution();
   await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);resize();
   window.requestAnimationFrame=()=>0;redraw();render(1);
   let failure;const frames=[];let clock=0,nativePending=false,waiting=null,sequence=0;

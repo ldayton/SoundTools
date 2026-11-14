@@ -1,12 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-import {
-  StrictMode,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal, flushSync } from "react-dom";
 import {
   ActionIcon,
@@ -19,7 +12,6 @@ import {
   TextInput,
   UnstyledButton,
 } from "@mantine/core";
-import { SoundToolsProvider } from "@ldayton/ui";
 import { createViewState } from "@ldayton/ui/view-state";
 import "./library.css";
 import type { mountApplicationShell } from "./application-shell";
@@ -58,33 +50,13 @@ export class LibraryActions {
     edit: null,
     dialogOpen: false,
   });
-  private root: Root;
-  private mount = document.createElement("div");
   private disposed = false;
   private events = new AbortController();
   constructor(
     readonly element: HTMLElement,
     readonly host: Host,
   ) {
-    this.mount.id = "soundglow-ui-root";
-    document.body.append(this.mount);
-    this.root = createRoot(this.mount, {
-      onUncaughtError: (error) =>
-        window.SoundglowDiagnostics?.capture(error, "library.ui_failed"),
-    });
-    flushSync(() =>
-      this.root.render(
-        <StrictMode>
-          <SoundToolsProvider
-            colorScheme="dark"
-            primaryColor="orange"
-            pageColor="#080b10"
-          >
-            <LibraryView controller={this} />
-          </SoundToolsProvider>
-        </StrictMode>,
-      ),
-    );
+    window.SoundglowShell.attachLibrary(this);
     window.addEventListener(
       "pagehide",
       (event) => {
@@ -144,8 +116,7 @@ export class LibraryActions {
     if (this.disposed) return;
     this.disposed = true;
     this.events.abort();
-    this.root.unmount();
-    this.mount.remove();
+    window.SoundglowShell.detachLibrary(this);
   }
 }
 function LibraryRow({
@@ -416,7 +387,7 @@ function LibraryDialog({
     </Modal.Root>
   );
 }
-function LibraryView({ controller }: { controller: LibraryActions }) {
+export function LibraryView({ controller }: { controller: LibraryActions }) {
   const view = useSyncExternalStore(
     controller.model.subscribe,
     controller.model.getSnapshot,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { Group, Input, Slider } from "@mantine/core";
 
-/** Shared presentation for the explicit spectrogram and pitch slider controls. */
+/** Shared presentation for explicitly authored range controls. */
 export function SettingsSlider({
   id,
   label,

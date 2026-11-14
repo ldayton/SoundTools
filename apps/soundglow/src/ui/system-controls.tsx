@@ -21,7 +21,6 @@ type OfflineView = {
   downloadDisabled: boolean;
   downloadLabel: string;
   progressVisible: boolean;
-  progressValue: number | null;
   updateVisible: boolean;
   updateVersion: string | null;
 };
@@ -33,7 +32,6 @@ export function createSystemControls() {
     downloadDisabled: false,
     downloadLabel: "Download for offline use",
     progressVisible: false,
-    progressValue: null,
     updateVisible: false,
     updateVersion: null,
   });
@@ -54,14 +52,15 @@ export function createSystemControls() {
           >
             {view.downloadLabel}
           </Button>
-          <Progress
+          <Progress.Root
             id="offlineProgress"
+            role="progressbar"
             aria-label="Offline download progress"
+            aria-busy={view.progressVisible}
             hidden={!view.progressVisible}
-            value={view.progressValue ?? 100}
-            animated={view.progressValue === null}
-            striped={view.progressValue === null}
-          />
+          >
+            <Progress.Section value={100} animated withAria={false} />
+          </Progress.Root>
         </OfflineStatusPanel>
       </Box>
     );
@@ -90,9 +89,7 @@ export function createSystemControls() {
     return (
       <Accordion mt="lg" variant="default">
         <Accordion.Item id="developerSettings" value="developer">
-          <Accordion.Control>
-            Developer settings
-          </Accordion.Control>
+          <Accordion.Control>Developer settings</Accordion.Control>
           <Accordion.Panel>
             <Stack gap="md">
               <Title order={3} size="sm">

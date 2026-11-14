@@ -10,26 +10,6 @@
   align-items: center;
   gap: var(--mantine-spacing-xs);
 }
-.soundglow-header .legacy-controls button,
-#workspaceToolbar .legacy-controls button {
-  font: inherit;
-  color: #e9edf3;
-  background: #171e28;
-  border: 1px solid #303b4a;
-  border-radius: 7px;
-  padding: 9px 12px;
-  cursor: pointer;
-}
-.soundglow-header .legacy-controls button:disabled,
-#workspaceToolbar .legacy-controls button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-.soundglow-header .legacy-controls button:focus-visible,
-#workspaceToolbar .legacy-controls button:focus-visible {
-  outline: 2px solid #ffb880;
-  outline-offset: 3px;
-}
 #panel .shell-disclosure {
   display: flex;
   align-items: center;

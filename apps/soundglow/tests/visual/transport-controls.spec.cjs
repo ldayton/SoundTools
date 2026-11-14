@@ -13,3 +13,7 @@ test('microphone enumeration preserves choice and ignores a retired refresh',asy
  await page.locator('#refreshMic').click();await page.waitForFunction(()=>refreshes.length===1);await page.locator('#refreshMic').click();await page.waitForFunction(()=>refreshes.length===2);
  await page.evaluate(()=>refreshes[1]([{kind:'audioinput',deviceId:'chosen',label:'Latest microphone'}]));await expect(page.locator('#microphone option:checked')).toHaveText('Latest microphone');await page.evaluate(()=>refreshes[0]([]));await expect(page.locator('#microphone')).toHaveValue('chosen');await expect(page.locator('#microphone option:checked')).toHaveText('Latest microphone');
 });
+test('seeking to the example end keeps the slider within its exact duration',async({page})=>{
+ await page.goto('/dist/index.html');await page.locator('#demo').click();await page.waitForFunction(()=>running&&inputMode==='speech');await page.locator('#freeze').click();await page.locator('#openSettings:visible, #settings:visible').click();
+ const slider=page.locator('#seek-slider'),maximum=Number(await slider.getAttribute('aria-valuemax'));await slider.press('End');await expect(slider).toHaveAttribute('aria-valuenow',String(maximum));expect(await page.evaluate(()=>clipOffset)).toBeLessThanOrEqual(maximum);await expect(page.locator('#state')).toHaveText('PAUSED');
+});

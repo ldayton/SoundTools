@@ -62,7 +62,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 13 ✓ | Selection actions and bookmark creation | Fit/clear selection, bookmark naming/save/cancel and passage bounds. Keep the reserved row geometry; preserve exact selection/view restoration, loop defaults, validation and failed-save retry. Retain the existing waveform gesture engine. |
 | 14 ✓ | Offline, update and diagnostic UI | Render current offline/download/update states through React and appropriate shared panels. Keep cache/update/worker logic in its existing controllers. Preserve cancellation/resume/quota/error states, safe update activation, opt-in diagnostics and data scrubbing. Include performance enable/reset/export. |
 | 15 ✓ | Remaining status and welcome UI | Welcome actions, status/readouts, notices and progress. Make asynchronous statuses accessible and React-owned without publishing per-frame canvas data to React. Use the established Mantine feedback idioms. |
-| 16 | Migration cleanup and final acceptance | Remove obsolete selectors, handlers, adapters and temporary bootstrap assumptions. Consolidate shell/library UI into one provider/root if their ownership can now be combined safely; preserve portal focus and cached-page behavior. Keep custom canvas/audio/gesture code outside React. Complete the final checks below. |
+| 16 ✓ | Migration cleanup and final acceptance | Remove obsolete selectors, handlers, adapters and temporary bootstrap assumptions. Consolidate shell/library UI into one provider/root if their ownership can now be combined safely; preserve portal focus and cached-page behavior. Keep custom canvas/audio/gesture code outside React. Complete the final checks below. |
 
 ## Autonomous execution loop
 
@@ -375,3 +375,53 @@ Firefox/WebKit. WebKit required mocking IDBFactory.prototype rather than an
 indexedDB instance to reliably inject storage denial. Native follow-up remains
 blocked by the locked Mac. Next: consolidate roots, remove obsolete CSS/adapters,
 and full local acceptance.
+
+### Step 16 completed — final local acceptance
+
+Previous milestone: `d12b070`. Consolidated library UI into the shell's single
+React root/provider. Library registration uses React state, not a serialized
+controller snapshot. Native file-input handling and home navigation are now React
+owned; bookmark view restoration calls the feature controller directly. Removed
+obsolete ownership adapters, legacy button/field CSS overrides and unused view
+fields; spectrogram controls now have a correctly scoped name. Used the shared
+VolumeControl. The remaining native hosts contain custom canvas/waveform/ruler
+rendering and geometry, not hidden ordinary control proxies.
+
+Final review also corrected generated modal labeling, live preset feedback,
+indeterminate progress semantics and end-of-example slider bounds. Native mobile
+verification caught a real source conflict: desktop return restored an inactive
+file over an example started on mobile. Restoration now respects active transport;
+clearing a preview-only file on mobile also restores the microphone-off badge.
+Both source transitions have regression coverage.
+
+Verification:
+
+- `npm test --workspace=soundglow` passed: complete core, 188 Chromium cases with
+  37 expected exclusions, and packaged offline/update recovery. Original DSP and
+  image goldens are unchanged. The initial broad run was stopped to replace old
+  tests' direct checkbox writes with real checkbox actions; their audio-clock,
+  stall, queue and cancellation assertions remain intact.
+- Final accessibility/transport/feedback run: 19 Chromium passes and one expected
+  mobile exclusion; focused audio/library/display run: 20 passes and one expected
+  exclusion. Extra mobile-entry/return regressions passed Chromium, Firefox and
+  WebKit, including shared volume adjustment in each alternate browser.
+- The nine-family focused set passed 32 cases in Firefox and 32 in WebKit. One
+  WebKit test initially read a slider value before its animation-frame update;
+  its trace showed the old value at the assertion and the correct 23 s in the
+  screenshot. The test now waits for the actual rendered value, preserving both
+  value limits. No sleeps or weakened assertions were introduced.
+- Final packaged worker tests passed after the accessibility changes: staged
+  updates/live microphone continuity, worker termination/resume, failed releases,
+  offline startup and inference, cancellation, corruption repair and cache cleanup.
+  Release diagnostics/config/manifest checks and 12 monorepo contracts passed.
+- Native same-Mac Chrome completed preset open/Escape/focus, actual file playback,
+  shared volume, history adjustment, performance controls and iPhone emulation.
+  Verified mobile example playback/pause and desktop return without source
+  replacement. A separate check confirmed the idle mobile badge. The earlier Mac
+  lock was cleared; no final manual verification remains blocked. Tests used
+  bundled public audio and simulated microphone capture; the computer stayed muted.
+- Screenshots were inspected at desktop and mobile sizes. Layout coverage spans
+  360–1680 px, including the fixed-height selection/bookmark row.
+
+All sixteen steps are implemented and committed locally. No push, deployment,
+production configuration or visual-reference update is part of this work.

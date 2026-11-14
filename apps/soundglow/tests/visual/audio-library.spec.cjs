@@ -34,7 +34,7 @@ desktopTest('saved audio restores paused, plays and seeks, survives switching, a
  await page.evaluate(()=>fileLibrary.pendingSave);await page.reload();await page.evaluate(()=>fileLibrary.ready);expect(await page.evaluate(()=>fileLibrary.position)).toBeCloseTo(position,1);expect(await page.evaluate(()=>fileLibrary.isPaused)).toBe(true);await expect(page.locator('#audioLibraryStatus')).not.toHaveText(/Could not save/);
  await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused);await page.locator('#filePlay').click();
  await page.locator('#fileRestart').click();expect(await page.evaluate(()=>fileLibrary.position)).toBe(0);
- await page.getByRole('button',{name:'Playback options',exact:true}).click();await page.locator('#fileSpeed').selectOption('0.75');await setSetting(page,'fileVolume','.4');expect(await page.evaluate(()=>fileLibrary.media.volume)).toBeCloseTo(.4,2);
+ await page.getByRole('button',{name:'Playback options',exact:true}).click();await page.locator('#fileSpeed').selectOption('0.75');await setSetting(page,'fileVolume','40');expect(await page.evaluate(()=>fileLibrary.media.volume)).toBeCloseTo(.4,2);
  expect(await page.evaluate(()=>fileLibrary.media.playbackRate)).toBe(.75);
  await page.locator('#audioFileInput').setInputFiles(fixture);await expect(page.locator('#audioFileList [data-file]')).toHaveCount(2);
  await page.locator('#openFiles').click();await page.locator('#audioFileList [data-file]').nth(1).click();await page.waitForFunction(()=>!fileLibrary.loading);await showPlayer(page);
@@ -130,4 +130,10 @@ test('mobile keeps microphone and example controls but offers no saved-file impo
  for(const id of ['openFiles','openAudio','filesSection','fileTransport'])await expect(page.locator('#'+id)).toBeHidden();
  await expect(page.locator('#demo')).toBeVisible();await expect(page.locator('#begin')).toBeVisible();
  await page.locator('#audioFileInput').setInputFiles(fixture);await expect(page.locator('#audioFileList [data-file]')).toHaveCount(0);
+});
+
+desktopTest('returning from mobile preserves the example instead of restoring an inactive file',async({page})=>{
+ await open(page);await importAudio(page);await page.setViewportSize({width:390,height:844});await expect(page.locator('#welcome')).toBeVisible();await expect(page.locator('#state')).toHaveText('MIC OFF');await page.locator('#demo').click();await page.waitForFunction(()=>inputMode==='speech'&&running&&Number(canvas.dataset.plottedUntil)>1);await page.locator('#freeze').click();await page.evaluate(()=>window.mobileExampleAudio=audio);
+ await page.setViewportSize({width:1280,height:900});await expect(page.locator('#fileTransport')).toBeHidden();expect(await page.evaluate(()=>inputMode==='speech'&&running&&paused&&audio===mobileExampleAudio&&filePreview===null)).toBe(true);await expect(page.locator('#freeze')).toBeVisible();await page.locator('#freeze').click();await page.waitForFunction(()=>inputMode==='speech'&&!paused);
+ await page.locator('#openFiles').click();await page.locator('[data-file]').first().click();await page.waitForFunction(()=>!fileLibrary.loading&&filePreview!==null);await expect(page.locator('#fileTransport')).toBeVisible();await page.locator('#filePlay').click();await page.waitForFunction(()=>inputMode==='file'&&!fileLibrary.isPaused);
 });

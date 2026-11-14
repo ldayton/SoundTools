@@ -1,5 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-import { useEffect, useLayoutEffect, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import {
@@ -20,6 +27,7 @@ import {
   createSpectrogramPresets,
   createPitchPresets,
 } from "./preset-controls";
+import { LibraryView, type LibraryActions } from "./library-actions";
 import { createWorkspaceFeedback } from "./workspace-feedback";
 import { createSystemControls } from "./system-controls";
 import { createSelectionControls } from "./selection-controls";
@@ -27,7 +35,7 @@ import { createFileControls } from "./file-controls";
 import { createTransportControls } from "./transport-controls";
 import { createPitchControls } from "./pitch-controls";
 import { createPortal } from "react-dom";
-import { createDisplayControls } from "./spectrogram-display";
+import { createSpectrogramControls } from "./spectrogram-display";
 
 type Feature = "spectrogram" | "pitch";
 type Handlers = { layout(): void; select(feature: Feature): void };
@@ -46,6 +54,18 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  let updateLibrary: Dispatch<SetStateAction<LibraryActions | null>> = () => {};
+  let home: (() => void) | undefined;
+  function LibraryOutlet() {
+    const [controller, setController] = useState<LibraryActions | null>(null);
+    useLayoutEffect(() => {
+      updateLibrary = setController;
+      return () => {
+        updateLibrary = () => {};
+      };
+    }, []);
+    return controller ? <LibraryView controller={controller} /> : null;
+  }
   const feedback = createWorkspaceFeedback();
   const StateLabel = feedback.State,
     Notice = feedback.Notice,
@@ -91,7 +111,7 @@ export function mountApplicationShell() {
     pitchPresetsHost = take("pitchPresets");
   const Presets = presets.Controls,
     presetsHost = take("spectrogramPresets");
-  const display = createDisplayControls(window.SettingsState.registry);
+  const spectrogram = createSpectrogramControls(window.SettingsState.registry);
   const pitch = createPitchControls(
     window.FeatureState.pitch(window.FeatureState.presets.soundglow),
     window.FeatureState.inputLimits,
@@ -104,14 +124,14 @@ export function mountApplicationShell() {
   const PitchBasic = pitch.BasicControls,
     pitchBasicHost = take("pitchBasic");
   const displayHost = take("spectrogramDisplay");
-  const DisplayControls = display.Controls;
-  const ColourControls = display.ColourControls;
+  const DisplayControls = spectrogram.DisplayControls;
+  const ColourControls = spectrogram.ColourControls;
   const colourHost = take("spectrogramColour");
-  const AdvancedColourControls = display.AdvancedColourControls,
+  const AdvancedColourControls = spectrogram.AdvancedColourControls,
     advancedColourHost = take("spectrogramAdvancedColour");
-  const AnalysisControls = display.AnalysisControls,
+  const AnalysisControls = spectrogram.AnalysisControls,
     analysisHost = take("spectrogramAnalysis");
-  const FormantControls = display.FormantControls,
+  const FormantControls = spectrogram.FormantControls,
     formantHost = take("spectrogramFormants");
   const media = window.matchMedia("(min-width: 761px)");
   const model = createViewState({
@@ -176,6 +196,7 @@ export function mountApplicationShell() {
       : "Settings";
     return (
       <>
+        <LibraryOutlet />
         {createPortal(
           <TransportButtons />,
           view.desktop ? retained.transport : retained.actions,
@@ -219,6 +240,10 @@ export function mountApplicationShell() {
           <Group className="brand" gap="xs" wrap="nowrap">
             <Anchor
               id="home"
+              onClick={(event) => {
+                event.preventDefault();
+                home?.();
+              }}
               href="#"
               aria-label="Soundglow home"
               c="inherit"
@@ -245,7 +270,7 @@ export function mountApplicationShell() {
             </Button>
             <RetainedContent
               element={retained.actions}
-              className="shell-retained legacy-controls"
+              className="shell-retained"
             />
             <ActionIcon
               id="settings"
@@ -293,7 +318,7 @@ export function mountApplicationShell() {
           <span className="toolbarDivider" aria-hidden="true" />
           <RetainedContent
             element={retained.transport}
-            className="shell-retained legacy-controls"
+            className="shell-retained"
           />
         </Box>
         <Tabs
@@ -403,7 +428,19 @@ export function mountApplicationShell() {
   // can still refer to controls, and a cached document may be restored intact.
   return {
     media,
-    display,
+    attachLibrary(controller: LibraryActions) {
+      flushSync(() => updateLibrary(controller));
+    },
+    detachLibrary(controller: LibraryActions) {
+      updateLibrary((current) => (current === controller ? null : current));
+    },
+    connectHome(action: () => void) {
+      home = action;
+    },
+    selectFeature(feature: Feature) {
+      handlers?.select(feature);
+    },
+    spectrogram,
     presets,
     pitchPresets,
     transport,

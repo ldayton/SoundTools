@@ -49,15 +49,15 @@ const advancedColourIds = [
   "peakSeconds",
   "peakDecay",
 ] as const;
-const migratedIds = [
+const settingIds = [
   ...displayControlIds,
   ...colourControlIds,
   ...formantControlIds,
   ...analysisControlIds,
   ...advancedColourIds,
 ];
-type DisplayId = (typeof migratedIds)[number];
-type Values = Record<DisplayId, string>;
+type SettingId = (typeof settingIds)[number];
+type Values = Record<SettingId, string>;
 type Registry = Record<
   string,
   {
@@ -86,23 +86,23 @@ const scaleLabels: Record<string, string> = {
 };
 
 /** A projection of the controller's canonical settings, never a second settings owner. */
-export function createDisplayControls(registry: Registry) {
+export function createSpectrogramControls(registry: Registry) {
   const project = (values: Record<string, string>) =>
-    Object.fromEntries(migratedIds.map((id) => [id, values[id]])) as Values;
+    Object.fromEntries(settingIds.map((id) => [id, values[id]])) as Values;
   const model = createViewState(
     project(
-      Object.fromEntries(migratedIds.map((id) => [id, registry[id].default])),
+      Object.fromEntries(settingIds.map((id) => [id, registry[id].default])),
     ),
   );
-  let edit: ((id: DisplayId, value: string) => void) | undefined;
-  const options = (id: DisplayId, labels: Record<string, string>) =>
+  let edit: ((id: SettingId, value: string) => void) | undefined;
+  const options = (id: SettingId, labels: Record<string, string>) =>
     registry[id].values!.map((value) => ({
       value,
       label: labels[value] || value,
     }));
   const ceilingOptions = options("maximum", ceilingLabels),
     scaleOptions = options("scale", scaleLabels);
-  function Controls() {
+  function DisplayControls() {
     const values = useSyncExternalStore(model.subscribe, model.getSnapshot);
     return (
       <Stack gap="md">
@@ -139,7 +139,7 @@ export function createDisplayControls(registry: Registry) {
     data,
     disabled = false,
   }: {
-    id: DisplayId;
+    id: SettingId;
     label: string;
     data: { value: string; label: string }[];
     disabled?: boolean;
@@ -164,7 +164,7 @@ export function createDisplayControls(registry: Registry) {
     valueText,
     disabled = false,
   }: {
-    id: DisplayId;
+    id: SettingId;
     label: string;
     format?: (value: number) => string;
     outputId?: string;
@@ -422,21 +422,18 @@ export function createDisplayControls(registry: Registry) {
     );
   }
   return {
-    Controls,
+    DisplayControls,
     ColourControls,
     FormantControls,
     AnalysisControls,
     AdvancedColourControls,
-    owns(id: string) {
-      return (migratedIds as readonly string[]).includes(id);
-    },
     connect(change: NonNullable<typeof edit>) {
       edit = change;
     },
     publish(values: Record<string, string>) {
       const next = project(values),
         previous = model.getSnapshot();
-      if (migratedIds.some((id) => next[id] !== previous[id]))
+      if (settingIds.some((id) => next[id] !== previous[id]))
         flushSync(() => model.set(next));
     },
   };

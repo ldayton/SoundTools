@@ -331,9 +331,6 @@ export function createPitchControls(
       const view = model.getSnapshot();
       if (error !== view.error) model.set({ ...view, error });
     },
-    owns(id: string) {
-      return Object.hasOwn(basicFields, id);
-    },
     connect(change: NonNullable<typeof edit>, onReset: () => void) {
       edit = change;
       resetPitch = onReset;

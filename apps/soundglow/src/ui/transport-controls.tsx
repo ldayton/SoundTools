@@ -20,8 +20,8 @@ import { SettingsSlider } from "./settings-slider";
 type View = {
   filesAvailable: boolean;
   busy: boolean;
-  running: boolean;
   pauseEnabled: boolean;
+  hidePause: boolean;
   startIcon: string;
   startLabel: string;
   pauseIcon: string;
@@ -30,7 +30,6 @@ type View = {
   microphone: string;
   example: boolean;
   duration: number;
-  position: number;
   loop: boolean;
   listen: boolean;
 };
@@ -52,8 +51,8 @@ export function createTransportControls() {
   const model = createViewState<View>({
     filesAvailable: true,
     busy: false,
-    running: false,
     pauseEnabled: false,
+    hidePause: false,
     startIcon: "●",
     startLabel: "Start microphone",
     pauseIcon: "⏸",
@@ -62,7 +61,6 @@ export function createTransportControls() {
     microphone: "",
     example: false,
     duration: 30,
-    position: 0,
     loop: true,
     listen: false,
   });
@@ -87,6 +85,7 @@ export function createTransportControls() {
         </ActionIcon>
         <ActionIcon
           id="freeze"
+          hidden={view.hidePause}
           variant="default"
           size="lg"
           disabled={view.busy || !view.pauseEnabled}
@@ -103,7 +102,7 @@ export function createTransportControls() {
   function WelcomeActions() {
     const view = useView();
     return (
-      <>
+      <Stack align="center" gap="lg">
         <UnstyledButton
           id="begin"
           className="vintage-mic"
@@ -164,7 +163,7 @@ export function createTransportControls() {
         >
           Open audio
         </Button>
-      </>
+      </Stack>
     );
   }
   function Microphone() {
@@ -290,7 +289,7 @@ export function createTransportControls() {
     connect(next: Actions) {
       actions = next;
     },
-    publish({ position, ...next }: Partial<View>) {
+    publish({ position, ...next }: Partial<View> & { position?: number }) {
       if (position !== undefined && position !== progress.getSnapshot())
         progress.set(position);
       const previous = model.getSnapshot();

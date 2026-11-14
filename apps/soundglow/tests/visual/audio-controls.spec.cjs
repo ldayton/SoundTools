@@ -20,7 +20,7 @@ test('release coordinates, 50ms selection and exact fit work through real contro
  const selected=await page.evaluate(()=>fileLibrary.loop.end-fileLibrary.loop.start);expect(Math.abs(selected-.05)).toBeLessThan(.5/box.width+1/48000);await page.locator('#waveformFitSelection').click();expect(await page.evaluate(()=>fileLibrary.viewSpan)).toBeCloseTo(selected,8);await page.waitForFunction(()=>Number(canvas.dataset.fileFrames)>0);await page.screenshot({path:'/tmp/soundglow-fixed-controls.png'});
 });
 test('audio-clock loop never leaks outside its passage while the UI thread stalls',async({page})=>{
- await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};document.getElementById('fileLoop').checked=true;fileLibrary.seek(.4);});await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
+ await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};fileLibrary.seek(.4);});await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
  await page.evaluate(async()=>{
   const context=fileLibrary.playback.context;window.probeRows=[];
   const url=URL.createObjectURL(new Blob([`class Probe extends AudioWorkletProcessor {constructor(){super();this.samples=[];}process(inputs){for(const value of inputs[0]?.[0]||[])this.samples.push(value);if(this.samples.length>=4096){let squares=0,cross=0;for(let i=1;i<this.samples.length;i++){squares+=this.samples[i]*this.samples[i];if(this.samples[i-1]<=0&&this.samples[i]>0)cross++;}this.port.postMessage({rms:Math.sqrt(squares/this.samples.length),hz:cross*sampleRate/this.samples.length});this.samples=[];}return true;}}registerProcessor('bounds-probe',Probe);`],{type:'text/javascript'}));
@@ -35,7 +35,7 @@ test('audio-clock loop never leaks outside its passage while the UI thread stall
  await page.locator('#filePlay').click();expect(await page.evaluate(()=>fileLibrary.isPaused)).toBe(true);
 });
 test('slower precise playback preserves pitch and cancels safely during preparation',async({page})=>{
- await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};fileLibrary.media.playbackRate=.5;document.getElementById('fileLoop').checked=true;});await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
+ await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};fileLibrary.media.playbackRate=.5;});await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
  const measured=await page.evaluate(()=>{const buffer=fileLibrary.playback.cache.buffer,samples=buffer.getChannelData(0);let count=0,energy=0;for(let i=1;i<samples.length;i++){if(samples[i-1]<=0&&samples[i]>0)count++;energy+=samples[i]*samples[i];}return {duration:buffer.duration,hz:count/buffer.duration,rms:Math.sqrt(energy/samples.length)};});
  expect(measured.duration).toBeCloseTo(.4,3);expect(measured.hz).toBeGreaterThan(400);expect(measured.hz).toBeLessThan(480);expect(measured.rms).toBeGreaterThan(.05);await page.locator('#filePlay').click();
  await page.evaluate(()=>{fileLibrary.playback.cache=null;const read=fileLibrary.reader.read.bind(fileLibrary.reader);let trapped=false;fileLibrary.reader.read=async(...args)=>{if(!trapped&&args[2]-args[1]<.3){trapped=true;await new Promise(resolve=>window.releaseDecode=resolve);}return read(...args);};});
@@ -50,12 +50,12 @@ test('long PCM files decode only requested ranges and long passages use a bounde
   const blob=new RangeOnlyBlob([header,new Uint8Array(bytes)],{type:'audio/wav'}),reader=new SoundglowFileAudio.FileAudioReader();const buffer=await reader.read(blob,500,500.5,16000);reader.clear();return {length:buffer.length,bytes:reader.largestWindowBytes};
  });
  expect(allocation.length).toBe(8000);expect(allocation.bytes).toBeLessThan(100000);
- await load(page,44);await page.evaluate(()=>{fileLibrary.loop={start:2,end:42};document.getElementById('fileLoop').checked=true;});await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active&&fileLibrary.playback.segments.length>=2);
+ await load(page,44);await page.evaluate(()=>{fileLibrary.loop={start:2,end:42};});await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active&&fileLibrary.playback.segments.length>=2);
  const queued=await page.evaluate(()=>({mode:fileLibrary.playback.mode,nodes:fileLibrary.playback.nodes.size,bytes:fileLibrary.reader.largestWindowBytes}));expect(queued.mode).toBe('queue');expect(queued.nodes).toBeLessThanOrEqual(5);expect(queued.bytes).toBeLessThanOrEqual(2*48000*4);await page.locator('#filePlay').click();
 });
 
 test('changing loop mode and switching files stops retired audio nodes',async({page})=>{
- await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};document.getElementById('fileLoop').checked=true;});await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
+ await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};});await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
  await page.locator('#fileLoop').uncheck();await page.waitForFunction(()=>fileLibrary.isPaused&&!fileLibrary.playTask);expect(await page.evaluate(()=>fileLibrary.position)).toBeCloseTo(.6,3);
  await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
  await page.evaluate(()=>{window.retiredNodes=[...fileLibrary.playback.nodes];});await page.locator('#audioFileInput').setInputFiles(wave());await expect(page.locator('#audioFileList [data-file]')).toHaveCount(2);
@@ -63,7 +63,7 @@ test('changing loop mode and switching files stops retired audio nodes',async({p
  await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused);await page.locator('#filePlay').click();
 });
 test('rapid seeks keep the latest playback intent and an explicit pause cancels queued restarts',async({page})=>{
- await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};document.getElementById('fileLoop').checked=true;});await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
+ await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.4,end:.6};});await page.locator('#fileLoop').check();await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.playback.active);
  const trap=()=>{fileLibrary.playback.cache=null;const read=fileLibrary.reader.read.bind(fileLibrary.reader);let trapped=false;fileLibrary.reader.read=async(...args)=>{if(!trapped&&args[2]-args[1]<.3){trapped=true;await new Promise(resolve=>window.releaseSeek=resolve);}return read(...args);};window.releaseSeek=null;fileLibrary.seek(.45);};
  await page.evaluate(trap);await page.waitForFunction(()=>typeof releaseSeek==='function');await page.evaluate(()=>{fileLibrary.seek(.5);fileLibrary.seek(.55);releaseSeek();});await page.waitForFunction(()=>fileLibrary.playback.active&&!fileLibrary.playTask);
  expect(await page.evaluate(()=>fileLibrary.playback.initial)).toBeCloseTo(.15,3);
@@ -85,7 +85,7 @@ test('chunked storage rolls back failed imports, preserves duplicates, and prune
  expect(result).toEqual({error:'QuotaExceededError',clean:true,preserved:'original',expired:false,fresh:true});
 });
 test('Play restarts a completed non-looping selection and still resumes an intentional pause',async({page})=>{
- await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.41325,end:.653271};fileLibrary.seek(fileLibrary.loop.start);document.getElementById('fileLoop').checked=false;});
+ await load(page);await page.evaluate(()=>{fileLibrary.loop={start:.41325,end:.653271};fileLibrary.seek(fileLibrary.loop.start);});await page.locator('#fileLoop').uncheck();
  await page.locator('#filePlay').click();await page.waitForFunction(()=>fileLibrary.isPaused&&!fileLibrary.wantPlay&&!fileLibrary.playTask);
  // A media element may quantize currentTime just below the requested endpoint.
  await page.evaluate(()=>{fileLibrary.media.currentTime=fileLibrary.loop.end-.00001;});

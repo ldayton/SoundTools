@@ -93,7 +93,6 @@
   const pitch=state.active==='pitch';document.getElementById('app').classList.toggle('pitch-active',pitch);chart.hidden=!pitch;$('spectrogramSettings').hidden=pitch;$('pitchSettings').hidden=!pitch;
   $('plot').setAttribute('aria-labelledby',pitch?'pitchTab':'spectrogramTab');
   $('plot').setAttribute('aria-label',pitch?'Live pitch: frequency vertically, time horizontally':'Live spectrogram: frequency vertically, time horizontally');
-  $('workspaceToolbar').setAttribute('aria-label','Audio controls');
   if(pitch)window.SoundglowShell.feedback.publish({resolution:FeatureState.presetName(state)});
  }
  const scrollPositions={spectrogram:0,pitch:0};

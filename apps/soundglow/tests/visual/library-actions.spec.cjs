@@ -75,5 +75,5 @@ test('a back-forward cached page retains its React owner and menu actions',async
  await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
  await menu(page,page.locator('[data-file]'),'Rename');await page.locator('#libraryItemName').fill('Still interactive.m4a');
  await page.getByRole('button',{name:'Save name',exact:true}).click();await expect(page.locator('[data-file] span')).toHaveText('Still interactive.m4a');
- await expect(page.locator('#soundglow-ui-root')).toHaveCount(1);
+ await expect(page.locator('#app')).toHaveCount(1);await expect(page.locator('#soundglow-ui-root')).toHaveCount(0);
 });

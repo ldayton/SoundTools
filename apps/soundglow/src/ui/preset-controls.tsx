@@ -32,7 +32,6 @@ type Handlers = {
 };
 export type PresetIds = {
   dialog: string;
-  title: string;
   form: string;
   name: string;
   status: string;
@@ -94,7 +93,7 @@ export function PresetDialog({
         }}
       >
         <Modal.Header>
-          <Modal.Title id={ids.title}>{editor.title}</Modal.Title>
+          <Modal.Title>{editor.title}</Modal.Title>
           <Modal.CloseButton aria-label="Close preset editor" />
         </Modal.Header>
         <Modal.Body>
@@ -155,7 +154,6 @@ export function PresetDialog({
 }
 const spectrogramIds: PresetIds = {
   dialog: "presetDialog",
-  title: "presetDialogTitle",
   form: "savePresetForm",
   name: "presetName",
   status: "presetStatus",
@@ -166,7 +164,6 @@ const spectrogramIds: PresetIds = {
 };
 const pitchIds: PresetIds = {
   dialog: "pitchPresetDialog",
-  title: "pitchPresetTitle",
   form: "pitchPresetForm",
   name: "pitchPresetName",
   status: "pitchPresetStatus",
@@ -255,7 +252,7 @@ function createPresetControls(pitch: boolean) {
           className="soundtools-ui soundglow-toast"
           hidden={!view.toastVisible || view.editor.opened || !view.status}
         >
-          <Notification onClose={() => handlers?.dismiss()}>
+          <Notification role="status" onClose={() => handlers?.dismiss()}>
             <span id={!view.editor.opened ? ids.status : undefined}>
               {view.status}
             </span>

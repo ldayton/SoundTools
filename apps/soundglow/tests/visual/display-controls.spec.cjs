@@ -24,9 +24,12 @@ test('slider pointer and single-step edits keep the controller authoritative',as
  const slider=page.getByRole('slider',{name:'History',exact:true});
  await page.evaluate(()=>{window.historyEdits=0;const update=updateSettings;updateSettings=event=>{if(event.type==='edit'&&event.id==='history')historyEdits++;return update(event)};});
  await slider.press('ArrowRight');expect(await page.evaluate(()=>historyEdits)).toBe(1);
+ await slider.scrollIntoViewIfNeeded();await slider.hover();await expect(slider).toBeInViewport({ratio:1});
  const root=await page.locator('#spectrogramDisplay .mantine-Slider-root').boundingBox(),thumb=await slider.boundingBox();
  await page.mouse.move(thumb.x+thumb.width/2,thumb.y+thumb.height/2);await page.mouse.down();await page.mouse.move(root.x+root.width*.75,thumb.y+thumb.height/2,{steps:6});await page.mouse.up();
- const value=Number(await slider.getAttribute('aria-valuenow'));expect(value).toBeGreaterThan(15);expect(value).toBeLessThan(30);
+ // Mantine coalesces pointer moves on animation frames; wait for the rendered edit.
+ await expect.poll(async()=>Number(await slider.getAttribute('aria-valuenow'))).toBeGreaterThan(15);
+ const value=Number(await slider.getAttribute('aria-valuenow'));expect(value).toBeLessThan(30);
  expect(await page.evaluate(()=>assertSettingsConsistent())).toBe(true);
  const before=await page.locator('#history').inputValue();await page.evaluate(()=>updateSettings({type:'edit',id:'history',value:'999'}));
  await expect(page.locator('#history')).toHaveValue(before);await expect(slider).toHaveAttribute('aria-valuenow',before);expect(await page.evaluate(()=>assertSettingsConsistent())).toBe(true);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 'use strict';
 let settingsState=SettingsState.create(),settingsReady=false;
-const displayControls=window.SoundglowShell.display;
+const spectrogramControls=window.SoundglowShell.spectrogram;
 const presetUI=window.SoundglowShell.presets;
 const setting=id=>settingsState.values[id];
 let viewSettings=settingsState.values;
@@ -44,7 +44,7 @@ let fileLibrary=null,fileAudioContext=null,fileMediaSource=null,fileConnectEpoch
 let inputMode='mic',speechBuffer=null,speechNode=null,speechDestination=null,monitor=null,clipOffset=0,clipStarted=0;
 let audio,stream,source,bins,running=false,paused=false,starting=false,last=0,carry=0,raf=0,nyquist=24000,w=0,h=0,plotW=0,plotH=0,map=[],lut=[],packedColours,dpr=1,pxLeft=0,pxTop=0,pxW=1,pxH=1,previousSlice=null;
 const left=52,padTop=20,bottom=27,right=12;
-const value=id=>Number(Object.hasOwn(SettingsState.registry,id)?setting(id):$(id).value),requestedMaxHz=()=>Math.min(value('maximum'),nyquist,value('analysisRate')?value('analysisRate')/2:nyquist),maxHz=()=>Math.min(viewValue('maximum'),nyquist,viewValue('analysisRate')?viewValue('analysisRate')/2:nyquist);
+const value=id=>Number(setting(id)),requestedMaxHz=()=>Math.min(value('maximum'),nyquist,value('analysisRate')?value('analysisRate')/2:nyquist),maxHz=()=>Math.min(viewValue('maximum'),nyquist,viewValue('analysisRate')?viewValue('analysisRate')/2:nyquist);
 function frequency(y){return AnalysisSettings.frequency(1-y/plotH,maxHz(),viewSetting('scale'))}
 function yFor(f){return padTop+plotH*(1-AnalysisSettings.position(f,maxHz(),viewSetting('scale')))}
 function colourMap(){const stops=[[17,8,133],[51,12,150],[157,22,167],[247,73,137],[255,237,65]];lut=Array.from({length:256},(_,i)=>{const n=i/255*4,j=Math.min(3,Math.floor(n)),t=n-j;return stops[j].map((a,k)=>Math.round(a+(stops[j+1][k]-a)*t))});if(viewSetting('palette')==='plasma')lut=AnalysisSettings.plasma;packedColours=PraatDisplay.palette(lut,viewSetting('interpolation')==='bucket');$('legend').querySelector('i').style.background=`linear-gradient(90deg,${(viewSetting('palette')==='plasma'?[lut[0],lut[64],lut[128],lut[192],lut[255]]:stops).map(c=>`rgb(${c.join(',')})`).join(',')})`}
@@ -182,7 +182,7 @@ function paintSpectrum(slices,width,x,maximum=displayMaximum){
 const transportUI=window.SoundglowShell.transport,feedbackUI=window.SoundglowShell.feedback;
 let transportLabel='MIC OFF';
 let microphoneId='',microphoneRefresh=0,exampleLoop=true,exampleListen=false;
-function publishTransport(){transportUI.publish({busy:starting,running,pauseEnabled:running,example:inputMode==='speech',microphone:microphoneId,loop:exampleLoop,listen:exampleListen})}
+function publishTransport(){transportUI.publish({busy:starting,pauseEnabled:running,hidePause:!!filePreview||inputMode==='file',example:inputMode==='speech',microphone:microphoneId,loop:exampleLoop,listen:exampleListen})}
 function notice(message){feedbackUI.publish({notice:message})}
 function state(text,live=false){publishTransport();if(['CONNECTING','LOADING'].includes(text))window.SoundglowDiagnostics?.frame(performance.now(),false);window.SoundglowDiagnostics?.event('transport.state',{state:text});transportLabel=text;feedbackUI.publish({state:text,live})}
 function stop(keepFileView=false){if(!keepFileView)clearFileView();if(inputMode==='file'){fileLibrary?.release();fileMediaSource?.disconnect();}window.SoundglowDiagnostics?.frame(performance.now(),false);notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed'){if(audio===fileAudioContext)audio.suspend().catch(()=>{});else audio.close().catch(()=>{});}stream=source=audio=null;paused=false;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');feedbackUI.publish({device:stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'});}
@@ -254,7 +254,7 @@ function showSpectrogram(){
   window.SoundglowShell.showView();
 }
 function setBusy(busy){
-  transportUI.publish({busy,running,pauseEnabled:running});
+  transportUI.publish({busy,pauseEnabled:running});
 }
 const desktopSettings=window.SoundglowShell.media;
 function syncSettings(){
@@ -362,7 +362,7 @@ async function connectInput(input){
   bins=new Float32Array(400);bins.fill(-160);
 }
 function speechPosition(){if(!speechBuffer)return 0;const t=clipOffset+Math.max(0,audio.currentTime-clipStarted);return speechNode?.loop?t%speechBuffer.duration:Math.min(t,speechBuffer.duration)}
-function updatePosition(){transportUI.publish({position:Math.round(speechPosition()*10)/10})}
+function updatePosition(){transportUI.publish({position:Math.min(speechBuffer.duration,Math.round(speechPosition()*10)/10)})}
 function playFrom(offset){
   spectrumHistory.clear();rowCache=new WeakMap();last=0;carry=0;delete canvas.dataset.plottedUntil;
   heldPeak=newPeakState();
@@ -405,14 +405,13 @@ transportUI.connect({openAudio(){openFilesPanel();$('audioFileInput').click()},s
 });
 function setIcon(id,icon,label){transportUI.publish(id==='start'?{startIcon:icon==='🎙︎'?'●':icon,startLabel:label}:{pauseIcon:icon,pauseLabel:label})}
 
-$('home').onclick=e=>{
-  e.preventDefault();
+window.SoundglowShell.connectHome(()=>{
   returningHome=starting;
   stop();showSpectrogram();redraw();notice('');
   feedbackUI.publish({welcome:true});state('MIC OFF');
   feedbackUI.publish({device:'MICROPHONE'});
   updateResolution();
-};
+});
 
 // Optional overlays live on a separate canvas; toggling them never recolours the plot.
 function drawAnalysis(){
@@ -477,7 +476,7 @@ function syncPreset(){
  presetUI.publish(settingsState.selected,[{value:'soundglow',label:'Soundglow'},{value:'praat',label:'Praat'},{value:'voice',label:'Voice Tools'},...savedPresets.map(p=>({value:p.id,label:p.name}))]);updateResolution();
 }
 function renderSettingsControls(){
- displayControls.publish(settingsState.values);
+ spectrogramControls.publish(settingsState.values);
  syncPreset();
 }
 function applySettingsEffects({changed,effects}){
@@ -550,7 +549,7 @@ function deleteSavedPreset(){
  savedPresets=next;renderSavedPresets();applyPreset('soundglow');closePresetEditor();savedPresetStatus('Deleted “'+preset.name+'”.');
 };
 presetUI.connect({choose(id){applyPreset(id);closePresetEditor();savedPresetStatus('');persistPresets()},open:openPresetEditor,save:commitPresetName,remove:deleteSavedPreset,cancel:cancelPresetEditor,dismiss(){savedPresetStatus('')}});
-displayControls.connect((id,value)=>updateSettings({type:'edit',id,value}));
+spectrogramControls.connect((id,value)=>updateSettings({type:'edit',id,value}));
 renderSavedPresets();
 if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
 
@@ -587,7 +586,7 @@ fileLibrary=new SoundglowAudioLibrary.AudioLibrary({
  paused(value){if(inputMode!=='file')return;paused=value;clipOffset=fileLibrary.position;clipStarted=audio.currentTime;setIcon('freeze',value?'▶':'⏸',value?'Resume':'Pause');state(value?'PAUSED':'FILE',!value);if(value)audio.suspend().catch(()=>{});notifyFeatures('render');},
  discontinuity(position){if(inputMode==='file'&&audio){clipOffset=position;clipStarted=audio.currentTime;}drawAnalysis();},
  selected(){clearFileView();feedbackUI.publish({welcome:false});},
- unavailable(){fileConnectEpoch++;if(inputMode==='file')stop();else if(filePreview)clearFileView();redraw();if(!running)feedbackUI.publish({welcome:true});},
+ unavailable(){const previewOnly=!!filePreview&&!running&&!starting;fileConnectEpoch++;if(inputMode==='file')stop();else if(filePreview)clearFileView();redraw();if(!running)feedbackUI.publish({welcome:true});if(previewOnly){state('MIC OFF');feedbackUI.publish({device:'MICROPHONE'});}},
  viewChanged:requestFileView,
  selectionChanged(selection){if(filePreview){filePreview.selection=selection;drawAnalysis();}},
  canRestore(){return !running&&!starting;},
@@ -601,16 +600,16 @@ function drawFileMarkers(g,left,top,width,height){
  const time=fileLibrary.position;if(time>=start&&time<=end){g.strokeStyle='#ffffffaa';g.beginPath();g.moveTo(x(time),top);g.lineTo(x(time),top+height);g.stroke();}
 }
 function clearFileView(){
- $('app')?.classList.toggle('file-inspection',false);filePreviewGeneration++;clearTimeout(filePreviewTimer);fileInspector?.clear();filePreview=null;
+ filePreviewGeneration++;clearTimeout(filePreviewTimer);fileInspector?.clear();filePreview=null;publishTransport();
  delete canvas.dataset.fileStart;delete canvas.dataset.fileEnd;delete canvas.dataset.fileFrames;
  feedbackUI.publish({analysisStatus:''});notifyFeatures('fileview');
 }
 function requestFileView({start,end,blob}){
- if(!blob)return;$('app')?.classList.toggle('file-inspection',true);const generation=++filePreviewGeneration;clearTimeout(filePreviewTimer);fileInspector?.cancel();
+ if(!blob)return;const generation=++filePreviewGeneration;clearTimeout(filePreviewTimer);fileInspector?.cancel();
  const configKey=JSON.stringify([analysisValues(),window.soundglowSession.featureState?.().pitch.method]),previous=filePreview?.blob===blob&&filePreview.configKey===configKey?filePreview:null;
  filePreview={start,end,blob,configKey,features:previous?.features||[],history:previous?.history||new PraatDisplay.SpectrumHistory({seconds:Infinity,maxBytes:32*1024*1024}),timeStep:previous?.timeStep||.01,selection:fileLibrary.loop};
  canvas.dataset.fileStart=start;canvas.dataset.fileEnd=end;canvas.dataset.fileFrames=0;
- if(!running){state('FILE');feedbackUI.publish({device:'AUDIO FILE · ON THIS DEVICE'});}
+ publishTransport();if(!running){state('FILE');feedbackUI.publish({device:'AUDIO FILE · ON THIS DEVICE'});}
  feedbackUI.publish({analysisStatus:'Loading analysis…'});redraw();notifyFeatures('fileview');
  filePreviewTimer=setTimeout(async()=>{
   try{

@@ -1,21 +1,21 @@
 .correct {
-  color: #4b7655;
+  color: var(--mantine-color-green-8);
 }
 .incorrect {
-  color: #a2553a;
+  color: var(--mantine-color-red-8);
 }
 .keyboard {
-  border-top: 1px solid #e8e2d7;
-  background: #f1eee6;
+  border-top: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-default-hover);
   padding: 20px 28px;
 }
 .hint {
   text-align: center;
   margin: 0;
-  background: #f1eee6;
+  background: var(--mantine-color-default-hover);
   padding: 0 20px 22px;
   font-size: 11px;
-  color: #8b8493;
+  color: var(--mantine-color-dimmed);
   line-height: 1.6;
 }
 .mobile-hint {
@@ -46,7 +46,7 @@
 #string-prompt {
   text-align: center;
   font-size: 13px;
-  color: #756b84;
+  color: var(--mantine-color-dimmed);
   margin: 10px 0 5px;
 }
 #string-prompt {
@@ -60,7 +60,7 @@
   min-height: 38px;
   align-items: center;
   justify-content: space-between;
-  color: #81768e;
+  color: var(--mantine-color-dimmed);
   font-size: 12px;
 }
 .fret-labels,
@@ -68,7 +68,7 @@
   display: grid;
   grid-template-columns: 30px repeat(var(--columns), minmax(0, 1fr));
   text-align: center;
-  color: #8b8493;
+  color: var(--mantine-color-dimmed);
   font-size: 11px;
   line-height: 28px;
 }
@@ -84,7 +84,7 @@
   grid-template-rows: repeat(6, 44px);
   align-items: center;
   font-size: 11px;
-  color: #8b8493;
+  color: var(--mantine-color-dimmed);
   text-align: center;
 }
 .board-cells {
@@ -161,7 +161,7 @@
   background: #e5def080;
 }
 .location-hint {
-  border-top: 1px solid #e8e2d7;
+  border-top: 1px solid var(--mantine-color-default-border);
   padding: 16px 15px;
 }
 @media (max-width: 600px) {
@@ -193,7 +193,7 @@
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
-  scrollbar-color: #a99ac1 #eee8df;
+  scrollbar-color: var(--mantine-color-gray-5) var(--mantine-color-gray-1);
   padding-bottom: 4px;
 }
 .board-track {
@@ -202,7 +202,7 @@
 }
 .pan-hint {
   font-size: 10px;
-  color: #8b8493;
+  color: var(--mantine-color-dimmed);
 }
 .string-labels {
   position: sticky;
@@ -246,7 +246,7 @@
   left: 0;
   width: 100%;
   font-size: 10px;
-  color: #8b8296;
+  color: var(--mantine-color-dimmed);
   pointer-events: none;
 }
 
@@ -256,7 +256,7 @@
   margin: 0;
   padding: 0;
   touch-action: manipulation;
-  color: #81768e;
+  color: var(--mantine-color-dimmed);
   transition:
     background-color 100ms,
     box-shadow 100ms;
@@ -338,16 +338,16 @@
   font-size: 12px;
   font-weight: 650;
   letter-spacing: 1px;
-  color: #81768e;
+  color: var(--mantine-color-dimmed);
 }
 
 .piano-range-notice {
   font-size: 14px;
-  color: #62566e;
+  color: var(--mantine-color-dimmed);
 }
 .piano-midi-required {
   padding: 10px 16px;
-  background: #eee8f4;
+  background: var(--mantine-primary-color-light);
   border-radius: 8px;
   font-weight: 600;
 }
@@ -356,7 +356,7 @@
   max-width: 400px;
   font-size: 13px;
   line-height: 1.5;
-  color: #62566e;
+  color: var(--mantine-color-dimmed);
 }
 
 /* Hymns keep their score and live controls together, without horizontal scrolling. */
@@ -364,14 +364,14 @@
 .sequence-help {
   font-size: 13px;
   margin: 0 0 20px;
-  color: #837b94;
+  color: var(--mantine-color-dimmed);
 }
 
 .sequence-score {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
-  border-bottom: 1px solid #e5dfd3;
+  border-bottom: 1px solid var(--mantine-color-default-border);
   overscroll-behavior: contain;
 }
 .hymn-paper {
@@ -401,18 +401,18 @@
   place-items: center;
   width: 38px;
   height: 38px;
-  border: 1px solid #d7d1e0;
+  border: 1px solid var(--mantine-color-default-border);
   border-radius: 50%;
-  color: #837b94;
+  color: var(--mantine-color-dimmed);
   font-variant-numeric: tabular-nums;
 }
 .rhythm-beats .is-beat {
-  background: #e7e0f3;
-  color: #302d55;
-  border-color: #988cc5;
+  background: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-light-color);
+  border-color: var(--mantine-primary-color-filled);
 }
 .rhythm-beats [data-beat="1"].is-beat {
-  background: #b7a7d3;
+  background: var(--mantine-primary-color-light-hover);
   border-width: 2px;
   font-weight: 750;
 }
@@ -429,7 +429,7 @@
   margin: 0;
   padding: 48px 24px;
   text-align: center;
-  color: #837b94;
+  color: var(--mantine-color-dimmed);
   line-height: 1.6;
 }
 

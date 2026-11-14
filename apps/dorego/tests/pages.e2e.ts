@@ -101,7 +101,7 @@ try {
   assert.equal(await page.locator('#solfege').count(), 0);
   assert.equal(await page.locator('#transition').count(), 0);
   assert.deepEqual(await page.locator('#countIn option').allTextContents(), [
-    '0 bars',
+    'None',
     '½ bar',
     '1 bar',
     '2 bars',

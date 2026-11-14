@@ -92,16 +92,16 @@
   font-weight: 500;
 }
 .rhythm-tap[data-feedback="hit"] {
-  background: #dcebdd;
-  border-color: #698a70;
+  background: var(--mantine-color-green-light);
+  border-color: var(--mantine-color-green-filled);
 }
 .rhythm-tap[data-feedback="extra"] {
-  background: #fae9d9;
-  border-color: #bc8661;
+  background: var(--mantine-color-orange-light);
+  border-color: var(--mantine-color-orange-filled);
 }
 .rhythm-tap[data-feedback="ignored"] {
-  background: #ded5eb;
-  border-color: #9885b6;
+  background: var(--mantine-primary-color-light);
+  border-color: var(--mantine-primary-color-filled);
 }
 .rhythm-tap-slot + .sequence-transport {
   margin-top: 0;
@@ -131,10 +131,10 @@
 .theory-explanation {
   padding: 12px;
   border-radius: 8px;
-  background: #f0ece4;
+  background: var(--mantine-color-default-hover);
 }
 .theory-midi-notice {
-  color: #71351f;
+  color: var(--mantine-color-orange-9);
 }
 .theory-steps {
   display: flex;
@@ -148,13 +148,13 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border: 1px solid #d8d1c5;
+  border: 1px solid var(--mantine-color-default-border);
   border-radius: 50%;
   font-size: 12px;
 }
 .theory-steps .is-done {
-  background: #dcebdd;
-  border-color: #698a70;
+  background: var(--mantine-color-green-light);
+  border-color: var(--mantine-color-green-filled);
 }
 
 .theory-walk {
@@ -182,6 +182,6 @@
 }
 
 .hymn-range-hint {
-  color: #71351f;
+  color: var(--mantine-color-orange-9);
   font-weight: 600;
 }

@@ -40,7 +40,10 @@ try {
   });
   await context.addInitScript({
     content: await readFile(
-      new URL("../../../packages/music-practice/test-fixtures/midi.js", import.meta.url),
+      new URL(
+        "../../../packages/music-practice/test-fixtures/midi.js",
+        import.meta.url,
+      ),
       "utf8",
     ),
   });
@@ -70,6 +73,11 @@ try {
     }, n);
   };
   await root().locator(".abcjs-note").first().waitFor();
+  assert.equal(
+    await root().locator(".sequence-feedback.mantine-Alert-root").count(),
+    0,
+    "ordinary instructions are quiet text",
+  );
   assert.deepEqual(
     await root().locator(".theory-answers button").allTextContents(),
     ["1", "3", "5"],
@@ -104,6 +112,13 @@ try {
   assert.match(
     (await root().locator(".sequence-feedback").textContent())!,
     /Correct/,
+  );
+  assert.equal(
+    await root()
+      .locator(".sequence-feedback[data-kind=correct].mantine-Alert-root")
+      .count(),
+    1,
+    "answer feedback keeps its emphasis",
   );
   await page.evaluate(() => window.dispatchEvent(new Event("blur")));
   await page.clock.runFor(1000);

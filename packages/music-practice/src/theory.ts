@@ -580,6 +580,15 @@ class TheoryPractice implements LivePractice {
                 ? "Name the full interval."
                 : `${s.quality === "number" ? "In " + q.keyName + ", play" : "Play"} ${(q.quality === "augmented" && s.quality !== "number") || (q.interval === 8 && s.quality === "number") ? "an" : "a"} ${s.quality === "number" ? "" : q.quality + " "}${ordinal(q.interval!)} ${q.direction === "up" ? "above" : "below"} ${name(root)}${root.octave}.`;
     this.presentation.set({
+      kind: this.session.accepting
+        ? this.lastFeedback
+          ? "wrong"
+          : ""
+        : this.session.feedback?.correct
+          ? "correct"
+          : this.identifying
+            ? "incorrect"
+            : "correct",
       feedback: this.session.accepting
         ? this.lastFeedback || prompt
         : this.session.feedback?.correct
@@ -727,6 +736,7 @@ class TheoryPractice implements LivePractice {
       }
     } catch (error) {
       this.presentation.set({
+        kind: "error",
         feedback:
           "This question could not be drawn. Try different practice options.",
       });

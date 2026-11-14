@@ -238,6 +238,7 @@ export class IntervalPatterns {
       this.update(true);
     } catch (e) {
       this.presentation.set({
+        kind: "error",
         feedback: "The pattern couldn’t load. Try a new pattern.",
       });
       diagnostics.capture(e, "patterns.render_failed");
@@ -250,6 +251,7 @@ export class IntervalPatterns {
     if (result === "ignored") return;
     if (result === "wrong") {
       this.presentation.set({
+        kind: "wrong",
         feedback: "Try again — follow the highlighted note.",
       });
       return;
@@ -278,6 +280,7 @@ export class IntervalPatterns {
     this.presentation.set({ max: s.steps.length });
     this.presentation.set({ value: s.index });
     this.presentation.set({
+      kind: "",
       feedback: s.complete
         ? this.paused
           ? "Paused. Resume for a new pattern."

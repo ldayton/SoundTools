@@ -147,13 +147,31 @@ export function PracticeFeedback({
   kind: PresentationKind;
 }) {
   const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  if (!["wrong", "incorrect", "correct", "error"].includes(s.kind)) {
+    return (
+      <Text
+        id={kind === "flashcard" ? "feedback" : undefined}
+        className={`${kind === "flashcard" ? "practice-feedback" : "sequence-feedback"} ${s.kind}`}
+        data-kind={s.kind || undefined}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        size="sm"
+        p="xs"
+        mb="sm"
+        ta="center"
+      >
+        {s.feedback}
+      </Text>
+    );
+  }
   return (
     <Alert
       id={kind === "flashcard" ? "feedback" : undefined}
       className={`${kind === "flashcard" ? "practice-feedback" : "sequence-feedback"} ${s.kind}`}
       data-kind={s.kind || undefined}
       color={
-        ["wrong", "incorrect"].includes(s.kind)
+        ["wrong", "incorrect", "error"].includes(s.kind)
           ? "red"
           : s.kind === "correct"
             ? "green"

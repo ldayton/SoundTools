@@ -232,6 +232,7 @@ export class RhythmPractice {
     this.changed();
   }
   private render(layoutOnly = false) {
+    this.presentation.set({ kind: "" });
     this.width = this.$(".sequence-score").clientWidth;
     if (!this.width) return;
     try {
@@ -259,6 +260,7 @@ export class RhythmPractice {
       if (!layoutOnly) this.save();
     } catch (e) {
       this.presentation.set({
+        kind: "error",
         feedback: "The rhythm couldn’t load. Try a new rhythm.",
       });
       diagnostics.capture(e, "rhythm.render_failed");

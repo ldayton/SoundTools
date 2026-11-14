@@ -848,6 +848,7 @@ document.fonts.ready
   .catch((error) => {
     diagnostics.capture(error, "notation.startup_failed");
     presentation.set({
+      kind: "error",
       feedback: "Notation couldn’t load. Please reload to try again.",
     });
   });

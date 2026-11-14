@@ -319,6 +319,7 @@ export class SightReading {
         this.paused = true;
         this.update();
         this.presentation.set({
+          kind: "error",
           feedback: "Audio couldn’t load. Try starting again.",
         });
       },
@@ -768,6 +769,7 @@ export class SightReading {
       this.session = undefined;
       this.events = [];
       this.presentation.set({
+        kind: "error",
         feedback: "This hymn couldn’t load. Try another hymn or reload.",
       });
       diagnostics.capture(error, "sight_reading.render_failed");
@@ -938,7 +940,7 @@ export class SightReading {
     this.content = "";
     this.$(".hymn-paper").replaceChildren();
     this.body.patch({ noKey: true });
-    this.presentation.set({ feedback: "" });
+    this.presentation.set({ feedback: "", kind: "" });
     this.presentation.set({ count: "" });
     this.presentation.set({ value: 0 });
     this.setControls({ disabled: true });
@@ -1096,6 +1098,7 @@ export class SightReading {
           ? "1 bar"
           : `bar ${counting.bar} of ${counting.bars}`;
     this.presentation.set({
+      kind: "",
       feedback: `Count-in · ${bars} · beat ${counting.beat}`,
     });
   }
@@ -1150,6 +1153,7 @@ export class SightReading {
     this.presentation.set({ max: this.events.length });
     this.presentation.set({ value: complete ? this.events.length : index });
     this.presentation.set({
+      kind: "",
       feedback:
         state === "loading"
           ? "Loading…"

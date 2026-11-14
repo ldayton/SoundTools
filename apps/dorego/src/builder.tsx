@@ -370,7 +370,7 @@ export function Builder({
                   label="Count-in"
                   value={String(spec.countIn)}
                   data={[
-                    { value: '0', label: '0 bars' },
+                    { value: '0', label: 'None' },
                     { value: '2', label: '½ bar' },
                     { value: '4', label: '1 bar' },
                     { value: '8', label: '2 bars' },

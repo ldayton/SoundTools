@@ -1,3 +1,4 @@
+import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext, mountDiagnostics } from './diagnostics';
 import { practiceRange } from './keyboard-layout';
 import {
@@ -126,11 +127,8 @@ function restoreSpec(input: unknown): ExerciseSpec {
   return generateExercise(saved).spec;
 }
 
-$('#app').innerHTML = `
-  <header class="site-header">
-    <a class="brand" href="${import.meta.env.BASE_URL}" aria-label="DoReGo home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>DoReGo<span class="brand-dot">.</span></a>
-    <button class="quiet-button" id="how-button">Help <i data-lucide="arrow-up-right"></i></button>
-  </header>
+const workspace = document.createElement('div');
+workspace.innerHTML = `
   <main>
     <h1 class="sr-only">Practice</h1>
     <div class="studio">
@@ -204,9 +202,10 @@ $('#app').innerHTML = `
     </div>
 
   </main>
-  <dialog id="how-dialog" class="dialog"><div class="dialog-top"><button class="icon-button close-dialog" aria-label="Close how it works"><i data-lucide="x"></i></button></div><h2>Help</h2><ol class="how-steps"><li>Choose an exercise, range, and tempo.</li><li>Press Play and follow the notes.</li><li>Adjust the exercise whenever you like.</li></ol><p class="field-hint">Shortcuts: Space to play or pause. R to restart. F for fullscreen.</p><p class="field-hint"><a href="${import.meta.env.BASE_URL}samples/bitklavier/NOTICE.txt" target="_blank" rel="noopener">bitKlavier Grand recordings &amp; credits · CC BY 4.0</a></p><p class="field-hint"><a href="${import.meta.env.BASE_URL}samples/vsco-cello/NOTICE.txt" target="_blank" rel="noopener">VSCO cello recordings &amp; credits · CC0</a></p></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
 `;
+
+mountAppShell($('#app'), workspace);
 
 $('.builder-column').insertAdjacentHTML(
   'beforeend',
@@ -729,9 +728,9 @@ async function toggleFullscreen() {
 document.addEventListener('keydown', (event) => {
   if (
     (event.target as HTMLElement).closest(
-      'input, select, textarea, button, summary, dialog, [role="spinbutton"]'
+      'input, select, textarea, button, summary, dialog, [role="dialog"], [role="spinbutton"]'
     ) ||
-    document.querySelector('dialog[open]') ||
+    document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]') ||
     event.ctrlKey ||
     event.metaKey ||
     event.altKey ||
@@ -745,23 +744,6 @@ document.addEventListener('keydown', (event) => {
   if (event.key.toLowerCase() === 'r') stop();
   if (event.key.toLowerCase() === 'f') void toggleFullscreen();
 });
-$('#how-button').addEventListener('click', () => $<HTMLDialogElement>('#how-dialog').showModal());
-document
-  .querySelectorAll<HTMLButtonElement>('.close-dialog')
-  .forEach((button) => button.addEventListener('click', () => button.closest('dialog')!.close()));
-document.querySelectorAll<HTMLDialogElement>('dialog').forEach((dialog) =>
-  dialog.addEventListener('click', (event) => {
-    if (event.target !== dialog) return;
-    const r = dialog.getBoundingClientRect();
-    if (
-      event.clientX < r.left ||
-      event.clientX > r.right ||
-      event.clientY < r.top ||
-      event.clientY > r.bottom
-    )
-      dialog.close();
-  })
-);
 populate();
 iconify();
 resizeStage();

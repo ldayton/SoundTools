@@ -152,18 +152,18 @@ try {
   assert.ok(samples.length > 0);
   assert.ok(samples.every((url) => url.includes(basePath + 'samples/bitklavier-web-v1/')));
   await page.locator('#how-button').click();
-  const credits = page.locator('#how-dialog a[href*="bitklavier"]');
+  const credits = page.getByRole('dialog').locator('a[href*="bitklavier"]');
   const creditsPath = await credits.getAttribute('href');
   const notice = await fetch(new URL(creditsPath!, base));
   assert.ok(notice.ok);
   assert.match(await notice.text(), /Creative Commons Attribution 4.0/);
   const celloNoticePath = await page
-    .locator('#how-dialog a[href*="vsco-cello"]')
+    .getByRole('dialog').locator('a[href*="vsco-cello"]')
     .getAttribute('href');
   const celloNotice = await fetch(new URL(celloNoticePath!, base));
   assert.ok(celloNotice.ok);
   assert.match(await celloNotice.text(), /CC0/);
-  await page.locator('#how-dialog .close-dialog').click();
+  await page.getByRole('button', { name: 'Close how it works', exact: true }).click();
   await page.locator('#tempo-up').click();
   assert.equal(await page.locator('#bpm').inputValue(), '155');
   await page.locator('#tempo-down').click();
@@ -271,19 +271,19 @@ try {
   assert.equal(await page.locator('#repeat-turn-label').textContent(), 'Highest note');
   await page.getByRole('switch', { name: 'Home note on return', exact: true }).check();
   await page.getByRole('switch', { name: 'Highest note', exact: true }).check();
-  await page.locator('input[name="direction"][value="down"]').check();
+  await page.locator('input[name="direction"][value="down"]').locator('..').click();
   assert.equal(await page.locator('#repeat-turn-label').textContent(), 'Lowest note');
   assert.ok(await page.getByRole('switch', { name: 'Lowest note', exact: true }).isChecked());
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();
   await page.locator('.more-settings > summary').click();
 
-  await page.locator('input[name="direction"][value="down"]').check();
+  await page.locator('input[name="direction"][value="down"]').locator('..').click();
   assert.equal(
     await page.locator('#exercise-title').textContent(),
     'Pentatonic Threes (12 notes) (Falling first)'
   );
-  await page.locator('input[name="direction"][value="up"]').check();
+  await page.locator('input[name="direction"][value="up"]').locator('..').click();
   for (const [pattern, label] of [
     ['fiveNote', 'Five-Note Scale'],
     ['octaveArpeggio', 'Octave Arpeggio'],
@@ -292,12 +292,12 @@ try {
     assert.equal(await page.locator('#exercise-title').textContent(), `${label} (Rising first)`);
     assert.ok(await page.locator('#direction').isVisible());
     assert.ok(await page.locator('#key').isDisabled());
-    await page.locator('input[name="direction"][value="down"]').check();
+    await page.locator('input[name="direction"][value="down"]').locator('..').click();
     assert.equal(await page.locator('#exercise-title').textContent(), `${label} (Falling first)`);
-    await page.locator('input[name="progression"][value="both"]').check();
+    await page.locator('input[name="progression"][value="both"]').locator('..').click();
     assert.equal(await page.locator('input[name="direction"]:checked').inputValue(), 'down');
-    await page.locator('input[name="direction"][value="up"]').check();
-    await page.locator('input[name="progression"][value="up"]').check();
+    await page.locator('input[name="direction"][value="up"]').locator('..').click();
+    await page.locator('input[name="progression"][value="up"]').locator('..').click();
   }
   await page.reload();
   assert.equal(await page.locator('#pattern').inputValue(), 'octaveArpeggio');
@@ -317,17 +317,17 @@ try {
     assert.ok(await page.locator('#direction').isVisible());
     assert.equal(await page.locator('#starting-chords-field').getAttribute('hidden'), null);
     await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('#play')?.disabled);
-    await page.locator('input[name="direction"][value="down"]').check();
+    await page.locator('input[name="direction"][value="down"]').locator('..').click();
     assert.match((await page.locator('#exercise-title').textContent()) ?? '', /\(Down\)/);
-    await page.locator('input[name="direction"][value="up"]').check();
+    await page.locator('input[name="direction"][value="up"]').locator('..').click();
     assert.match((await page.locator('#exercise-title').textContent()) ?? '', /\(Up\)/);
-    await page.locator('input[name="direction"][value="both"]').check();
+    await page.locator('input[name="direction"][value="both"]').locator('..').click();
     assert.match((await page.locator('#exercise-title').textContent()) ?? '', /Up & back/);
-    await page.locator('input[name="direction"][value="up"]').check();
+    await page.locator('input[name="direction"][value="up"]').locator('..').click();
     assert.ok(await page.locator('#form-error').isHidden());
   }
   assert.ok(samples.some((url) => url.includes(basePath + 'samples/vsco-cello/')));
-  await page.locator('input[name="progression"][value="down"]').check();
+  await page.locator('input[name="progression"][value="down"]').locator('..').click();
   await page.locator('#high-spin').press('Enter');
   await page
     .getByRole('dialog', { name: 'Choose highest note' })
@@ -366,8 +366,8 @@ try {
   assert.ok(await page.locator('#note-range').isHidden());
   await page.locator('#pattern').selectOption('arpeggio');
   assert.ok(await page.locator('#note-range').isVisible());
-  await page.locator('input[name="direction"][value="up"]').check();
-  await page.locator('input[name="progression"][value="both"]').check();
+  await page.locator('input[name="direction"][value="up"]').locator('..').click();
+  await page.locator('input[name="progression"][value="both"]').locator('..').click();
   await page.reload();
   assert.equal(await page.locator('input[name="direction"]:checked').count(), 1);
   assert.equal(await page.locator('input[name="progression"]:checked').inputValue(), 'both');

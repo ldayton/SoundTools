@@ -121,6 +121,7 @@ export class SightReading {
   private playbackView = "";
   private playbackFromSection = 0;
   private active = false;
+  private routeChanged = false;
   private paused = false;
   private events: PracticeEvent[] = [];
   private passage: ScorePassage;
@@ -372,7 +373,9 @@ export class SightReading {
   }
   enter() {
     this.active = true;
-    this.render();
+    // Returning from Settings redraws engraving without reloading the transport.
+    this.render(!this.routeChanged && !!this.session);
+    this.routeChanged = false;
     this.acceptanceChanged();
   }
   leave() {
@@ -411,10 +414,12 @@ export class SightReading {
       old.viewHands !== next.viewHands ||
       old.reattackTies !== next.reattackTies ||
       old.sectionBars !== next.sectionBars;
+    this.routeChanged = changed || old.mode !== next.mode;
     if (old.mode !== next.mode || old.bpm !== next.bpm)
       this.interrupt("controls");
     this.mode = next.mode || "wait";
     this.bpm = next.bpm || 80;
+    if (old.bpm !== this.bpm) this.playback.setTempo(this.bpm);
     if (this.countIn !== (next.countIn || 0)) this.interrupt("controls");
     this.countIn = next.countIn || 0;
     this.preferRangeDefault =

@@ -39,7 +39,10 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.addInitScript({
     content: await readFile(
-      new URL("../../../packages/music-practice/test-fixtures/midi.js", import.meta.url),
+      new URL(
+        "../../../packages/music-practice/test-fixtures/midi.js",
+        import.meta.url,
+      ),
       "utf8",
     ),
   });
@@ -107,11 +110,50 @@ try {
     "pause cancels scheduler",
   );
   assert.equal(await page.locator(".hymn-count").textContent(), paused);
+  // A Settings visit preserves the exact paused score position and requires Resume.
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await page
+    .getByRole("region", { name: "App settings", exact: true })
+    .waitFor();
+  await page.goBack();
+  await page.getByRole("button", { name: "Resume", exact: true }).waitFor();
+  assert.equal(await page.locator(".hymn-count").textContent(), paused);
+  assert.equal(
+    await page.evaluate(() => (window as any).playbackProbe.starts.length),
+    starts,
+  );
   await page.getByRole("button", { name: "Resume", exact: true }).click();
   await page.waitForFunction(
     (n) => (window as any).playbackProbe.starts.length > n,
     starts,
   );
+  // Leaving while playing pauses; returning never starts over or autoplays.
+  await page.waitForFunction(
+    () =>
+      Number(
+        document
+          .querySelector('[aria-label="Hymn progress"]')
+          ?.getAttribute("aria-valuenow"),
+      ) > 1,
+  );
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  const stoppedForSettings = await page.evaluate(
+    () => (window as any).playbackProbe.starts.length,
+  );
+  await page.goBack();
+  await page.getByRole("button", { name: "Resume", exact: true }).waitFor();
+  assert.ok(
+    Number(
+      await page
+        .locator('[aria-label="Hymn progress"]')
+        .getAttribute("aria-valuenow"),
+    ) > 0,
+  );
+  assert.equal(
+    await page.evaluate(() => (window as any).playbackProbe.starts.length),
+    stoppedForSettings,
+  );
+  await page.getByRole("button", { name: "Resume", exact: true }).click();
   await practiceOption(page, "#hymn-tempo", "100");
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   assert.match(page.url(), /tempo=100/);

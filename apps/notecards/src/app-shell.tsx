@@ -1,3 +1,4 @@
+import { shellStatus } from "./shell-status";
 import { createViewState } from "./view-state";
 import { PracticeSurfaceViews } from "./practice-surfaces";
 import { RetainedContent } from "./retained-content";
@@ -10,6 +11,7 @@ import {
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import {
+  Alert,
   ActionIcon,
   Anchor,
   AppShell,
@@ -63,19 +65,21 @@ export function mountAppShell(
     inputChanged(): void;
   },
 ) {
-  const workspace = document.createElement("div");
-  workspace.innerHTML = `<p id="persistence-notice" role="alert" hidden></p><section class="route-missing" hidden><h2>Page not found</h2><p>Choose an exercise from the navigation to keep practising.</p><a href="/piano/keys" data-mode="piano">Find piano keys →</a></section><p id="saved" class="saved" role="status">Opening saved practice…</p><div id="exercise-content">${LIVE_EXERCISES.map((e) => `<div id="${e.rootId}" class="live-workspace" hidden></div>`).join("")}<div id="flashcards"></div></div>`;
+  const activityElements = [
+    ...LIVE_EXERCISES.map((e) => e.rootId),
+    "flashcards",
+  ].map((id) => {
+    const node = document.createElement("div");
+    node.id = id;
+    node.className = "live-workspace";
+    return node;
+  });
   const midiPanel = document.createElement("div");
   midiPanel.id = "midi-panel";
-  // Portals mount after the shell's first commit. Keep the connection form in
-  // the document until the popover adopts this same element (and its listeners).
-  const midiParking = document.createElement("div");
-  midiParking.hidden = true;
-  midiParking.append(midiPanel);
-  workspace.append(midiParking);
   const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
     document.querySelector<T>(selector)!;
   const initialState = {
+    routeKind: "exercise" as AppRoute["kind"],
     title: "Note by Note",
     area: "",
     selected: "",
@@ -175,6 +179,10 @@ export function mountAppShell(
     );
   }
   function Shell() {
+    const status = useSyncExternalStore(
+      shellStatus.subscribe,
+      shellStatus.getSnapshot,
+    );
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
     const theme = useMantineTheme();
     const desktop = useMediaQuery(
@@ -211,6 +219,7 @@ export function mountAppShell(
         <Anchor href="#practice-content" className="skip-link">
           Skip to practice
         </Anchor>
+        <div hidden><RetainedContent element={midiPanel} /></div>
         <AppShell
           header={{ height: 72 }}
           navbar={{
@@ -329,11 +338,58 @@ export function mountAppShell(
               <Navigation />
             </AppShell.Navbar>
           )}
-          <AppShell.Main id="practice-content" tabIndex={-1}>
+          <AppShell.Main
+            id="practice-content"
+            tabIndex={-1}
+            inert={status.blocked}
+            className={
+              snapshot.routeKind !== "exercise"
+                ? undefined
+                : snapshot.selected === "sight"
+                  ? "hymn-layout"
+                  : snapshot.selected === "piano"
+                    ? "piano-layout-wide"
+                    : undefined
+            }
+          >
             <div className="workspace-content">
-              <PracticeWorkspace>
-                <RetainedContent element={workspace} />
-              </PracticeWorkspace>
+              <Alert
+                id="persistence-notice"
+                color={status.error ? "red" : "yellow"}
+                hidden={!status.error && !status.notice}
+              >
+                {status.error || status.notice}
+              </Alert>
+              <section
+                className="route-missing"
+                hidden={snapshot.routeKind !== "not-found"}
+              >
+                <Title order={2}>Page not found</Title>
+                <Text>
+                  Choose an exercise from the navigation to keep practising.
+                </Text>
+                <Anchor href="/piano/keys" data-mode="piano" onClick={follow}>
+                  Find piano keys →
+                </Anchor>
+              </section>
+              <Text id="saved" size="xs" c="dimmed" role="status">
+                {status.saved}
+              </Text>
+              <div
+                id="exercise-content"
+                hidden={snapshot.routeKind !== "exercise"}
+              >
+                <PracticeWorkspace>
+                  {activityElements.map((node) => (
+                    <div
+                      key={node.id}
+                      hidden={node.id !== (activeOptionsId || "flashcards")}
+                    >
+                      <RetainedContent element={node} />
+                    </div>
+                  ))}
+                </PracticeWorkspace>
+              </div>
               <section
                 id="settings-ui"
                 className="settings-page soundtools-ui"
@@ -385,23 +441,6 @@ export function mountAppShell(
       </StrictMode>,
     ),
   );
-  workspace.addEventListener("click", (event) => {
-    const link = (event.target as Element).closest<HTMLAnchorElement>(
-      "a[data-mode]",
-    );
-    if (
-      !link ||
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    )
-      return;
-    event.preventDefault();
-    events.navigate(new URL(link.href), true);
-  });
   window.addEventListener("popstate", () =>
     events.navigate(new URL(location.href), false),
   );
@@ -434,18 +473,6 @@ export function mountAppShell(
       }
     },
     render(route: AppRoute, mode: Mode) {
-      for (const definition of LIVE_EXERCISES)
-        $("#" + definition.rootId).hidden =
-          route.kind !== "exercise" || mode !== definition.mode;
-      $("#flashcards").hidden = route.kind !== "exercise" || isLiveMode(mode);
-      $("#practice-content").classList.toggle(
-        "hymn-layout",
-        route.kind === "exercise" && mode === "sight",
-      );
-      $("#practice-content").classList.toggle(
-        "piano-layout-wide",
-        route.kind === "exercise" && mode === "piano",
-      );
       const current = exercise(mode);
       const title =
         route.kind === "not-found"
@@ -456,6 +483,7 @@ export function mountAppShell(
       flushSync(() =>
         store.set({
           title,
+          routeKind: route.kind,
           settingsVisit:
             store.getSnapshot().settingsVisit +
             (route.kind === "settings" ? 1 : 0),
@@ -469,8 +497,6 @@ export function mountAppShell(
         }),
       );
       document.title = `${title} · Note by Note`;
-      $(".route-missing").hidden = route.kind !== "not-found";
-      $("#exercise-content").hidden = route.kind !== "exercise";
     },
   };
 }

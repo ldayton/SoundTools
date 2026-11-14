@@ -1,3 +1,4 @@
+import { shellStatus } from "./shell-status";
 import { createElement } from "react";
 import { mountPracticeControls } from "./practice-surfaces";
 import {
@@ -162,7 +163,6 @@ mountFlashcardView($("#flashcards"), progress.roundLength, {
     changed("all");
   },
 });
-document.querySelector("main")!.inert = true;
 const board = new Fretboard($("#fretboard"), answerLocation);
 const flashcardControls = flashcardControlsState({
   enabled: false,
@@ -586,9 +586,10 @@ function start(continuing = false, restoring = false, restart = false) {
         (checkpoint) => {
           persistence.state.legacy["recovery:" + progress.mode] =
             structuredClone(checkpoint);
-          $("#persistence-notice").hidden = false;
-          $("#persistence-notice").textContent =
-            "This activity checkpoint could not be restored. Its original data is preserved; this round starts again.";
+          shellStatus.set({
+            notice:
+              "This activity checkpoint could not be restored. Its original data is preserved; this round starts again.",
+          });
         },
       );
     restoring = !!session.current || session.complete;
@@ -823,7 +824,7 @@ document.fonts.ready
     await persistence.initialize();
     restorePianoVisibility();
     progress = persistence.state.progress;
-    document.querySelector("main")!.inert = !persistence.writable;
+    shellStatus.set({ blocked: !persistence.writable });
     route = readRoute(new URL(location.href), progress.mode);
     if (route.kind === "exercise") {
       progress.mode = route.mode;

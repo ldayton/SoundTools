@@ -1,3 +1,4 @@
+import { shellStatus } from "./shell-status";
 import { mountPracticeControls } from "./practice-surfaces";
 import { HymnControls, hymnControlsState } from "./hymn-controls";
 import { createElement } from "react";
@@ -219,9 +220,10 @@ export class SightReading {
       // Legacy positions had no content identity: preserve preferences and original payload,
       // but start the selected section safely instead of applying an unverifiable index.
       if (saved && saved.version !== 1 && saved.position > 0) {
-        const notice = document.querySelector<HTMLElement>("#persistence-notice")!;
-        notice.hidden = false;
-        notice.textContent = "Your hymn preferences were imported; its older unversioned bookmark starts at the section beginning. You can restore its older position if this is the same score.";
+        shellStatus.set({
+          notice:
+            "Your hymn preferences were imported; its older unversioned bookmark starts at the section beginning. You can restore its older position if this is the same score.",
+        });
       }
     } catch {
       /* Private browsing or an older saved preference. */
@@ -345,7 +347,7 @@ export class SightReading {
           this.restorePending = false;
           this.render();
           this.save();
-          document.querySelector<HTMLElement>("#persistence-notice")!.hidden = true;
+          shellStatus.set({ notice: "" });
         },
         next: () => {
           if (this.section + 1 < this.sections)

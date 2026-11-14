@@ -1,3 +1,4 @@
+import { shellStatus } from "./shell-status";
 import {
   DurableStore,
   IndexedDBAdapter,
@@ -19,16 +20,11 @@ export const persistence = {
   pending: 0,
   fail(message: string) {
     this.writable = false;
-    const main = document.querySelector("main");
-    if (main) main.inert = true;
-    document
-      .querySelectorAll<HTMLSelectElement>("#mode")
-      .forEach((e) => (e.disabled = true));
-    const notice = document.querySelector<HTMLElement>("#persistence-notice")!;
-    notice.hidden = false;
-    notice.textContent = message;
-    const status = document.querySelector("#saved");
-    if (status) status.textContent = "Changes are not saved. " + message;
+    shellStatus.set({
+      blocked: true,
+      error: message,
+      saved: "Changes are not saved. " + message,
+    });
   },
   async initialize() {
     const raw: Record<string, string | null> = {};
@@ -98,7 +94,7 @@ export const persistence = {
               "An older app window changed its saved data. Close older windows and reload; the current checkpoint is preserved.",
             );
         });
-        document.querySelector("#saved")!.textContent = "Saved on this device.";
+        shellStatus.set({ saved: "Saved on this device." });
       }
     } catch (e) {
       this.fail(
@@ -110,12 +106,11 @@ export const persistence = {
   save() {
     if (!this.writable || !this.store) return Promise.resolve(false);
     this.pending++;
-    document.querySelector("#saved")!.textContent = "Saving on this device…";
+    shellStatus.set({ saved: "Saving on this device…" });
     return this.store.save().then(
       () => {
         if (--this.pending === 0 && this.writable)
-          document.querySelector("#saved")!.textContent =
-            "Saved on this device.";
+          shellStatus.set({ saved: "Saved on this device." });
         return true;
       },
       (e) => {
@@ -132,7 +127,7 @@ export const persistence = {
     if (!this.store) return true;
     if (!this.writable) return false;
     this.writable = false;
-    document.querySelector("main")!.inert = true;
+    shellStatus.set({ blocked: true });
     try {
       await this.store.flush();
       return true;

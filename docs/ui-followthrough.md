@@ -33,3 +33,10 @@ straight from controller snapshots. Removed native placeholder/replacement adapt
 and their parked DOM. Build, navigation, theory, hymn keys, hymn playback and
 passage-selection browser checks pass. Optional filters preserve no-matching-key
 behavior and keyboard/mobile wheel input. Next: React-owned shell/status rendering.
+
+Milestone 4 complete: React owns shell route visibility/layout, storage status,
+legacy recovery notices and blocked interaction. Controllers publish status instead
+of writing shell DOM. Stable retained activity/MIDI elements preserve cached rounds.
+Build, navigation/history/MIDI and full recovery/storage tests pass on a fresh
+local server. Fixed initialization parking for the retained MIDI portal during
+verification. Next: ordinary practice presentation and answer sizing.

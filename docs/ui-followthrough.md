@@ -81,3 +81,12 @@ reported in the task handoff rather than changing code solely to record a deploy
 
 Production aliases: https://note-by-note-seven.vercel.app/ and
 https://do-re-go.vercel.app/. Vercel project scope: team-lily.
+
+Release verification follow-up: live alias release metadata matched the pushed
+commit, and native Chrome plus deployed navigation/piano/hymn-key/DoReGo checks
+passed. Linux CI exposed font-dependent sub-44px scale navigation buttons and a
+recovery test that launched Chromium in the Firefox job. Navigation now has an
+explicit minimum target width, and recovery honors the selected browser (with the
+same isolated browser home/cleanup used by the other tests). Passage coordinate
+tests wait for visible, stable notes after responsive re-engraving rather than
+using the first measured frame. Targeted local checks pass before republishing.

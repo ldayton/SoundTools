@@ -80,8 +80,11 @@ try {
   const note = (i: number) =>
     page.locator(`[data-passage-note="${i}"]`).first();
   const center = async (i: number) => {
-    // Resolve after redraw; center in the window so the fixed header cannot cover the target.
-    for (let attempt = 0; attempt < 5; attempt++) {
+    // ResizeObserver can replace the score after a viewport/options change.
+    // Wait for a stable, visible note rather than clicking stale coordinates.
+    let previous: { x: number; y: number } | undefined;
+    let stable = 0;
+    for (let attempt = 0; attempt < 120; attempt++) {
       await note(i).evaluate((element) =>
         element.scrollIntoView({ block: "center", inline: "nearest" }),
       );
@@ -92,11 +95,26 @@ try {
           ),
       );
       const bounds = await note(i).boundingBox();
-      if (bounds)
-        return {
-          x: bounds.x + bounds.width / 2,
-          y: bounds.y + bounds.height / 2,
-        };
+      const viewport = await page.locator(".sequence-score").boundingBox();
+      if (!bounds || !viewport) continue;
+      const point = {
+        x: bounds.x + bounds.width / 2,
+        y: bounds.y + bounds.height / 2,
+      };
+      const visible =
+        point.y > Math.max(viewport.y, 0) &&
+        point.y <
+          Math.min(viewport.y + viewport.height, page.viewportSize()!.height);
+      if (
+        visible &&
+        previous &&
+        Math.abs(previous.x - point.x) < 0.5 &&
+        Math.abs(previous.y - point.y) < 0.5
+      )
+        stable++;
+      else stable = 0;
+      if (stable >= 3) return point;
+      previous = point;
     }
     throw new Error(`Note ${i} did not settle after the responsive redraw`);
   };

@@ -48,6 +48,7 @@ export function ScaleNavigation({
       <Button
         variant="default"
         size="xs"
+        miw={44}
         className="scale-prev"
         aria-label="Previous key"
         title={state.keys[0]?.title}
@@ -67,6 +68,7 @@ export function ScaleNavigation({
       <Button
         variant="default"
         size="xs"
+        miw={44}
         className="scale-next"
         aria-label="Next key"
         title={state.keys[1]?.title}

@@ -1,8 +1,10 @@
-import { chromium, webkit } from "playwright";
+import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { midiAction, openPracticeOptions } from "./navigation-helpers";
 const vite = createRequire(import.meta.url)
   .resolve("vite/package.json")
@@ -23,6 +25,7 @@ const server = process.env.TEST_BASE_URL
       ],
       { stdio: "ignore" },
     );
+const fixed = await mkdtemp(join(tmpdir(), "hymn-recovery-"));
 try {
   for (let i = 0; i < 100; i++) {
     try {
@@ -30,9 +33,9 @@ try {
     } catch {}
     await new Promise((r) => setTimeout(r, 100));
   }
-  const browser = await (
-    process.env.TEST_BROWSER === "webkit" ? webkit : chromium
-  ).launch();
+  const browser = await { chromium, firefox, webkit }[
+    process.env.TEST_BROWSER || "chromium"
+  ]!.launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
   try {
     const context = await browser.newContext({
       viewport: { width: 1400, height: 1000 },
@@ -176,4 +179,10 @@ try {
   }
 } finally {
   server?.kill();
+  await rm(fixed, { recursive: true, force: true }).catch(
+    (error: NodeJS.ErrnoException) => {
+      // macOS can protect browser-created Downloads after the browser exits.
+      if (error.code !== "EACCES" && error.code !== "EPERM") throw error;
+    },
+  );
 }

@@ -4,6 +4,7 @@ import {
   ActionIcon,
   Alert,
   Group,
+  Input,
   NativeSelect,
   Radio,
   SimpleGrid,
@@ -96,9 +97,7 @@ function PitchField({
   }, [value, min, max]);
   return (
     <div>
-      <Text size="sm" fw={500} mb={4}>
-        {bound === 'low' ? 'Lowest' : 'Highest'}
-      </Text>
+      <Input.Label htmlFor={`${bound}-spin`}>{bound === 'low' ? 'Lowest' : 'Highest'}</Input.Label>
       <div className="desktop-note">
         <PitchPicker
           id={`${bound}-spin`}

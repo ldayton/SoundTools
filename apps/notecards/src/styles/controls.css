@@ -6,11 +6,6 @@
   gap: 12px;
   margin: 16px 0;
 }
-.practice-options #pitch-range label,
-.practice-options #piano-range label {
-  width: auto;
-  margin: 0 0 8px;
-}
 .practice-options .hymn-range-fields {
   grid-column: 1 / -1;
   flex: 0 0 100%;
@@ -38,15 +33,6 @@
 }
 .practice-options .optional-note-label label {
   width: auto;
-}
-.optional-note-clear {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  color: #837b94;
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
 }
 .optional-note-mobile {
   display: none;

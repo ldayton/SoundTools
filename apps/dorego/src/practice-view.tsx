@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { Alert, Button, Group, Slider, Stack, Text, Title } from '@mantine/core';
-import { RetainedContent } from './app-shell';
+import { RetainedContent } from '@ldayton/ui/retained-content';
 import { TempoControl } from '@ldayton/ui/tempo-control';
 import { VolumeControl } from '@ldayton/ui/volume-control';
 import { volumePercent, volumeDecibels } from '@ldayton/ui/volume';

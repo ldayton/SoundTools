@@ -1,10 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import { StrictMode, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { Anchor, Button, Modal, Stack, Text } from '@mantine/core';
 import { SoundToolsProvider } from '@ldayton/ui';
-import { RetainedContent } from '@ldayton/ui/retained-content';
-export { RetainedContent };
+import { diagnostics } from './diagnostics';
 export type AppViews = { builder: ReactNode; practice: ReactNode; footer: ReactNode };
 function AppShell({ builder, practice, footer }: AppViews) {
   const [help, setHelp] = useState(false);
@@ -77,12 +76,16 @@ function AppShell({ builder, practice, footer }: AppViews) {
   );
 }
 export function mountAppShell(element: HTMLElement, views: AppViews) {
-  const root = createRoot(element);
+  const root = createRoot(element, {
+    onUncaughtError: (error) => diagnostics.capture(error, 'shell.render_failed'),
+  });
   flushSync(() =>
     root.render(
-      <SoundToolsProvider primaryColor="lime">
-        <AppShell {...views} />
-      </SoundToolsProvider>
+      <StrictMode>
+        <SoundToolsProvider primaryColor="lime">
+          <AppShell {...views} />
+        </SoundToolsProvider>
+      </StrictMode>
     )
   );
 }

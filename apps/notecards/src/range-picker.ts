@@ -32,6 +32,13 @@ export class RangePicker {
       (field.classList.contains("optional-note-desktop")
         ? " optional-note-desktop"
         : "");
+    const externalLabel = field.parentElement?.querySelector<HTMLLabelElement>(
+      `label[for="${id}"]`,
+    );
+    const fieldLabel = options.optional
+      ? undefined
+      : externalLabel?.textContent || undefined;
+    if (!options.optional) externalLabel?.remove();
     field.replaceWith(slot);
     const letters = options.chromatic
       ? ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"]
@@ -51,6 +58,7 @@ export class RangePicker {
       return createElement(PitchField, {
         id,
         label,
+        fieldLabel,
         value: state.value,
         opened: state.open,
         choices: choices.map((note) => ({

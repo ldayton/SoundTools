@@ -1,3 +1,4 @@
+import { createViewState } from "./view-state";
 /** Offline UI snapshot. The service owns the state; views subscribe without owning its lifecycle. */
 export type OfflineState = {
   status: string;
@@ -6,25 +7,19 @@ export type OfflineState = {
   busy: boolean;
   updateAvailable: boolean;
 };
-let state: OfflineState = {
+const initial: OfflineState = {
   status: "Saving for offline use…",
   ready: false,
   retryVisible: false,
   busy: false,
   updateAvailable: false,
 };
-const listeners = new Set<() => void>();
+const model = createViewState(initial);
 export const offlineState = {
-  getSnapshot: () => state,
-  subscribe(listener: () => void) {
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
-  },
-  set(change: Partial<OfflineState>) {
-    state = { ...state, ...change };
-    listeners.forEach((listener) => listener());
+  getSnapshot: model.getSnapshot,
+  subscribe: model.subscribe,
+  set(patch: Partial<OfflineState>) {
+    model.set({ ...model.getSnapshot(), ...patch });
   },
 };
 export const offlineActions = { retry: () => {}, update: () => {} };

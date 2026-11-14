@@ -1,3 +1,4 @@
+import { RoundActions, ContinueRound } from "@ldayton/ui/round-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
@@ -87,21 +88,19 @@ export function FlashcardControls({
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <Group gap="xs" className="soundtools-ui">
-      <Button id="feedback-next" hidden={!state.next} onClick={next}>
-        Next question →
-      </Button>
-      <Button id="restart-round" variant="default" onClick={restart}>
-        Start again
-      </Button>
+    <RoundActions
+      nextVisible={state.next}
+      next={next}
+      restart={restart}
+      nextId="feedback-next"
+      restartId="restart-round"
+    >
       <PracticePianoToggle panelId={panelId} />
-    </Group>
+    </RoundActions>
   );
 }
 export function FlashcardContinue({ next }: { next(): void }) {
   return (
-    <Button id="continue" className="soundtools-ui" onClick={next}>
-      Keep going →
-    </Button>
+    <ContinueRound id="continue" className="soundtools-ui" onClick={next} />
   );
 }

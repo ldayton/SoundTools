@@ -141,6 +141,8 @@ export class NoteWheel {
   setLimits(minimum: number, maximum: number) {
     this.minimum = Math.max(this.options.low, minimum);
     this.maximum = Math.min(this.options.high, maximum);
+    this.element.setAttribute("aria-valuemin", String(this.minimum));
+    this.element.setAttribute("aria-valuemax", String(this.maximum));
     for (const child of this.element.children) {
       const value = Number((child as HTMLElement).dataset.midi);
       child.classList.toggle(

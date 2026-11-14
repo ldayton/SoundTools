@@ -156,16 +156,6 @@ main {
   min-width: 0;
   padding-inline: 6px;
 }
-.dorego-tempo {
-  display: grid;
-  grid-template-columns: minmax(0, 230px) minmax(0, 1fr);
-  gap: 24px;
-  align-items: end;
-}
-.dorego-tempo .mantine-NumberInput-root {
-  min-width: 0;
-  flex: 1;
-}
 .dorego-toast {
   position: fixed;
   bottom: 20px;
@@ -215,12 +205,7 @@ main {
     display: block;
   }
 }
-@media (max-width: 600px) {
-  .dorego-tempo {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -1,3 +1,4 @@
+import { RoundActions, ContinueRound } from "@ldayton/ui/round-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group, Kbd } from "@mantine/core";
 import { createViewState } from "./view-state";
@@ -63,21 +64,19 @@ export function TheoryControls({
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <Group gap="xs" className="soundtools-ui">
-      <Button className="theory-next" hidden={!state.next} onClick={next}>
-        Next question →
-      </Button>
-      <Button className="theory-restart" variant="default" onClick={restart}>
-        Start again
-      </Button>
+    <RoundActions
+      nextVisible={state.next}
+      next={next}
+      restart={restart}
+      nextClass="theory-next"
+      restartClass="theory-restart"
+    >
       <PracticePianoToggle panelId={panelId} />
-    </Group>
+    </RoundActions>
   );
 }
 export function TheoryContinue({ next }: { next(): void }) {
   return (
-    <Button className="theory-continue soundtools-ui" onClick={next}>
-      Keep going →
-    </Button>
+    <ContinueRound className="theory-continue soundtools-ui" onClick={next} />
   );
 }

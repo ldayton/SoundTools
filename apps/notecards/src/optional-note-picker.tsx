@@ -1,3 +1,7 @@
+import { createElement, useSyncExternalStore } from "react";
+import { Button } from "@mantine/core";
+import { createViewState } from "./view-state";
+import { mountPracticeControls } from "./practice-surfaces";
 import { NoteWheel } from "@ldayton/browser-controls/note-wheel";
 import { RangePicker } from "./range-picker";
 import { keyLabel } from "./piano-model";
@@ -13,7 +17,7 @@ export function optionalNoteHTML(id: string, label: string) {
 export class OptionalNotePicker {
   private picker: RangePicker;
   private wheel: NoteWheel;
-  private clear: HTMLButtonElement;
+  private clearState = createViewState(false);
   constructor(
     element: HTMLElement,
     id: string,
@@ -40,18 +44,42 @@ export class OptionalNotePicker {
         keyboard: true,
       },
     );
-    this.clear = element.querySelector<HTMLButtonElement>(
+    const clear = element.querySelector<HTMLButtonElement>(
       ".optional-note-clear",
     )!;
-    this.clear.onclick = () => {
+    const slot = document.createElement("div");
+    const label = clear.getAttribute("aria-label")!;
+    clear.replaceWith(slot);
+    const state = this.clearState;
+    const clearValue = () => {
       this.picker.close();
       commit(null);
+      const wheel = element.querySelector<HTMLElement>(`#${id}-wheel`)!;
+      (wheel.getClientRects().length
+        ? wheel
+        : element.querySelector<HTMLElement>(`#${id}`)
+      )?.focus({ preventScroll: true });
     };
+    function Clear() {
+      const visible = useSyncExternalStore(state.subscribe, state.getSnapshot);
+      return (
+        <Button
+          variant="subtle"
+          size="compact-xs"
+          aria-label={label}
+          style={{ visibility: visible ? "visible" : "hidden" }}
+          onClick={clearValue}
+        >
+          None
+        </Button>
+      );
+    }
+    mountPracticeControls(slot, createElement(Clear));
   }
   setValue(value: number | null) {
     this.picker.setValue(value === null ? "" : selectableNoteLabel(value));
     this.wheel.setValue(value ?? NONE);
-    this.clear.style.visibility = value === null ? "hidden" : "visible";
+    this.clearState.set(value !== null);
   }
   close() {
     this.picker.close();

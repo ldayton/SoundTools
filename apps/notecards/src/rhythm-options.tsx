@@ -2,7 +2,7 @@ import { TempoControl } from "@ldayton/ui/tempo-control";
 import { createViewState } from "./view-state";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack } from "@mantine/core";
-import { RHYTHM_TEMPOS, type RhythmSettings } from "./rhythm-model";
+import { type RhythmSettings } from "./rhythm-model";
 
 const levels = [
   { value: "pulse", label: "Steady quarter notes" },

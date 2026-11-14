@@ -1,3 +1,4 @@
+import { createViewState } from "./view-state";
 import { PracticeSurfaceViews } from "./practice-surfaces";
 import { RetainedContent } from "./retained-content";
 import {
@@ -74,7 +75,7 @@ export function mountAppShell(
   workspace.append(midiParking);
   const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
     document.querySelector<T>(selector)!;
-  let state = {
+  const initialState = {
     title: "Note by Note",
     area: "",
     selected: "",
@@ -84,18 +85,12 @@ export function mountAppShell(
     navigationOpen: false,
     keyboardOpen: false,
   };
-  const listeners = new Set<() => void>();
+  const model = createViewState(initialState);
   const store = {
-    getSnapshot: () => state,
-    subscribe(listener: () => void) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    set(change: Partial<typeof state>) {
-      state = { ...state, ...change };
-      listeners.forEach((listener) => listener());
+    getSnapshot: model.getSnapshot,
+    subscribe: model.subscribe,
+    set(patch: Partial<typeof initialState>) {
+      model.set({ ...model.getSnapshot(), ...patch });
     },
   };
   let focusAfterNavigation = false;
@@ -104,7 +99,7 @@ export function mountAppShell(
     window.scrollTo({ top: 0 });
   }
   function closeNavigation() {
-    if (!state.navigationOpen) return;
+    if (!store.getSnapshot().navigationOpen) return;
     store.set({ navigationOpen: false });
     events.inputChanged();
   }
@@ -124,7 +119,7 @@ export function mountAppShell(
     )
       return;
     event.preventDefault();
-    focusAfterNavigation = state.navigationOpen;
+    focusAfterNavigation = store.getSnapshot().navigationOpen;
     events.navigate(new URL(event.currentTarget.href), true);
   }
   function Navigation() {
@@ -415,7 +410,9 @@ export function mountAppShell(
       return $("#" + LIVE_EXERCISES.find((e) => e.mode === mode)!.rootId);
     },
     get inputBlocked() {
-      return state.navigationOpen || state.keyboardOpen;
+      return (
+        store.getSnapshot().navigationOpen || store.getSnapshot().keyboardOpen
+      );
     },
     closeMenus() {
       store.set({ navigationOpen: false, keyboardOpen: false });
@@ -460,7 +457,8 @@ export function mountAppShell(
         store.set({
           title,
           settingsVisit:
-            state.settingsVisit + (route.kind === "settings" ? 1 : 0),
+            store.getSnapshot().settingsVisit +
+            (route.kind === "settings" ? 1 : 0),
           area: route.kind !== "exercise" ? "Note by Note" : current.area,
           selected:
             route.kind === "not-found"

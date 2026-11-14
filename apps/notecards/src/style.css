@@ -192,10 +192,6 @@ footer {
     scroll-behavior: auto !important;
   }
 }
-.note-field input:focus-visible {
-  outline: 3px solid #988cc5;
-  outline-offset: 3px;
-}
 .tuning {
   color: #8b8493;
 }

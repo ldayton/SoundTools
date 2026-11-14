@@ -11,7 +11,10 @@
     "./committed-number": "./committed-number.tsx",
     "./tempo-control": "./tempo-control.tsx",
     "./volume-control": "./volume-control.tsx",
-    "./volume": "./volume.ts"
+    "./volume": "./volume.ts",
+    "./diagnostic-consent": "./diagnostic-consent.tsx",
+    "./offline-status-panel": "./offline-status-panel.tsx",
+    "./round-actions": "./round-actions.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

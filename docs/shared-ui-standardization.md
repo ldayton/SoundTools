@@ -40,3 +40,16 @@ volume conversion/mute), both builds, Note by Note navigation and piano-audio,
 DoReGo Pages and desktop PCM/lifecycle checks. Browser regression verifies tempo
 preserves the committed rhythm and range keyboard edits never move the other
 bound. Saved DoReGo volumes retain their dB schema. No push/deploy.
+
+Milestone 3: shared diagnostic-consent checkbox and offline-status panel, keeping
+both caching services independent. Shared consent owns subscription/error UI;
+app state remains in the diagnostics client. Shared round actions/continuation
+remove flashcard/theory duplication. Note by Note shell/offline snapshots now
+use the existing helper; React-node registries remain separate. Both roots use
+StrictMode and the same render-error reporting policy. Native retained widgets
+have a stable boundary; optional hymn clear action now uses Mantine and returns
+focus to the visible pitch control. Ordinary pitch labels use Mantine styling.
+
+Both builds, both diagnostic/privacy suites, Note by Note navigation and DoReGo
+Pages pass. Next: freeze final builds, broaden browser/audio/offline regression
+coverage and inspect local desktop/mobile previews. No push/deploy.

@@ -1,3 +1,4 @@
+const {setSetting}=require('./settings-input.cjs');
 const {deleteItem}=require('./library-actions.cjs');
 const {test,expect}=require('@playwright/test');
 const path=require('node:path');
@@ -33,7 +34,7 @@ desktopTest('saved audio restores paused, plays and seeks, survives switching, a
  await page.evaluate(()=>fileLibrary.pendingSave);await page.reload();await page.evaluate(()=>fileLibrary.ready);expect(await page.evaluate(()=>fileLibrary.position)).toBeCloseTo(position,1);expect(await page.evaluate(()=>fileLibrary.isPaused)).toBe(true);await expect(page.locator('#audioLibraryStatus')).not.toHaveText(/Could not save/);
  await page.locator('#filePlay').click();await page.waitForFunction(()=>!fileLibrary.isPaused);await page.locator('#filePlay').click();
  await page.locator('#fileRestart').click();expect(await page.evaluate(()=>fileLibrary.position)).toBe(0);
- await page.locator('.file-more summary').click();await page.locator('#fileSpeed').selectOption('0.75');await page.locator('#fileVolume').evaluate(el=>{el.value='.4';el.dispatchEvent(new Event('input',{bubbles:true}));});
+ await page.locator('.file-more summary').click();await page.locator('#fileSpeed').selectOption('0.75');await setSetting(page,'fileVolume','.4');expect(await page.evaluate(()=>fileLibrary.media.volume)).toBeCloseTo(.4,2);
  expect(await page.evaluate(()=>fileLibrary.media.playbackRate)).toBe(.75);
  await page.locator('#audioFileInput').setInputFiles(fixture);await expect(page.locator('#audioFileList [data-file]')).toHaveCount(2);
  await page.locator('#openFiles').click();await page.locator('#audioFileList [data-file]').nth(1).click();await page.waitForFunction(()=>!fileLibrary.loading);await showPlayer(page);

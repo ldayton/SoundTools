@@ -20,6 +20,7 @@ import {
   createSpectrogramPresets,
   createPitchPresets,
 } from "./preset-controls";
+import { createFileControls } from "./file-controls";
 import { createTransportControls } from "./transport-controls";
 import { createPitchControls } from "./pitch-controls";
 import { createPortal } from "react-dom";
@@ -44,6 +45,13 @@ export function mountApplicationShell() {
   const icon = document.querySelector<HTMLLinkElement>(
     'link[rel="icon"][type="image/svg+xml"]',
   )!.href;
+  const fileControls = createFileControls();
+  const FilePlayback = fileControls.Playback,
+    FileOptions = fileControls.Options,
+    FileTime = fileControls.Time;
+  const filePlaybackHost = take("filePlaybackControls"),
+    fileOptionsHost = take("filePlaybackOptions"),
+    fileTimeHost = take("fileTimeHost");
   const transport = createTransportControls();
   const TransportButtons = transport.Buttons,
     MicrophoneControls = transport.Microphone,
@@ -147,6 +155,9 @@ export function mountApplicationShell() {
         )}
         {createPortal(<MicrophoneControls />, microphoneHost)}
         {createPortal(<ExampleControls />, exampleHost)}
+        {createPortal(<FilePlayback />, filePlaybackHost)}
+        {createPortal(<FileOptions />, fileOptionsHost)}
+        {createPortal(<FileTime />, fileTimeHost)}
         {createPortal(<DisplayControls />, displayHost)}
         {createPortal(<Presets />, presetsHost)}
         {createPortal(<PitchPresets />, pitchPresetsHost)}
@@ -353,6 +364,7 @@ export function mountApplicationShell() {
     presets,
     pitchPresets,
     transport,
+    fileControls,
     pitch,
     panel,
     openFiles,

@@ -85,7 +85,7 @@
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   class AudioLibrary {
     constructor(host) {
-      this.desktop = matchMedia('(min-width:761px) and (pointer:fine)'); this.host = host; this.files = []; this.bookmarks = []; this.current = null; this.epoch = 0; this.importing = false; this.loop = null; this.viewStart = 0; this.viewSpan = 0; this.drag = null; this.lastSaved = -1; this.pendingSave = Promise.resolve(); this.url = null; this.connected = false; this.loading = false; this.wantPlay = false; this.playTask = null; this.loadAbort = null;
+      this.desktop = matchMedia('(min-width:761px) and (pointer:fine)'); this.host = host; this.files = []; this.bookmarks = []; this.current = null; this.epoch = 0; this.importing = false; this.loop = null; this.loopEnabled=false; this.viewStart = 0; this.viewSpan = 0; this.drag = null; this.lastSaved = -1; this.pendingSave = Promise.resolve(); this.url = null; this.connected = false; this.loading = false; this.wantPlay = false; this.playTask = null; this.loadAbort = null;
       this.media = document.createElement('audio'); this.media.preload = 'metadata'; this.media.preservesPitch = true; this.reader=new SoundglowFileAudio.FileAudioReader();this.revision=0;
       this.playback=new SoundglowFileAudio.PassagePlayer(()=>host.context(),this.reader,(position,error)=>{this.wantPlay=false;this.finishedRange=error?null:{fileId:this.current?.id,start:this.playback.start,end:this.playback.end};this.position=position;host.paused(true);if(error)this.message('This passage could not be decoded. Try a different format.');this.draw();this.savePosition(true);});
       const $ = id => document.getElementById(id); this.$ = $;
@@ -103,18 +103,14 @@
       $('cancelBookmark').onclick = () => this.cancelBookmark();
       $('bookmarkName').oninput = () => $('bookmarkName').setCustomValidity('');
       $('bookmarkForm').onkeydown = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelBookmark(); } };
-      $('filePlay').onclick = () => void this.toggle();
-      $('fileRestart').onclick = () => this.seek(this.loop?.start || 0);
-      $('fileBack').onclick = () => this.seek(this.position - 5);
-      $('fileForward').onclick = () => this.seek(this.position + 5);
       $('waveformFitSelection').onclick = () => { if (this.loop) this.setView(this.loop.start, this.loop.end-this.loop.start); };
-      $('fileSpeed').onchange = e => { const position=this.position;this.media.playbackRate=Number(e.target.value);if(this.playback.active)void this.restartPlayback(position);else host.discontinuity(position); };
-      $('fileVolume').oninput = e => {this.media.volume=Number(e.target.value);this.playback.volume(this.media.volume);};
-      $('waveformZoomIn').onclick = () => this.zoom(.5);
-      $('waveformZoomOut').onclick = () => this.zoom(2);
-      $('waveformShowAll').onclick = () => { if (this.current) { this.setView(0, this.current.duration); } };
-      $('fileLoop').onchange = () => {this.draw();void this.restartPlayback();};
-      $('clearAudioSelection').onclick = () => { this.loop = null; $('fileLoop').checked = false; this.draw();void this.restartPlayback(); };
+      this.controls=window.SoundglowShell.fileControls;
+      this.controls.connect({play:()=>void this.toggle(),restart:()=>this.seek(this.loop?.start||0),back:()=>this.seek(this.position-5),forward:()=>this.seek(this.position+5),zoom:factor=>this.zoom(factor),showAll:()=>{if(this.current)this.setView(0,this.current.duration)},
+       rate:value=>{const position=this.position;this.media.playbackRate=value;if(this.playback.active)void this.restartPlayback(position);else host.discontinuity(position);this.draw()},
+       volume:value=>{this.media.volume=value;this.playback.volume(value);this.draw()},
+       loop:enabled=>{this.loopEnabled=enabled;this.draw();void this.restartPlayback()}
+      });
+      $('clearAudioSelection').onclick = () => { this.loop = null; this.loopEnabled = false; this.draw();void this.restartPlayback(); };
       for (const id of ['fileLoopStart', 'fileLoopEnd']) $(id).onchange = () => {
         const start = Number($('fileLoopStart').value), end = Number($('fileLoopEnd').value);
         if (start >= 0 && end > start && end <= this.media.duration) { this.loop = { start, end }; this.draw();void this.restartPlayback(); }
@@ -257,7 +253,7 @@
       this.$('bookmarkForm').hidden = true; this.finishedRange = null;
       const epoch = ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
       this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);
-      this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.$('fileTitle').textContent = file.name; this.$('fileLoop').checked = false; this.$('fileLoopEnd').max = this.$('fileLoopStart').max = file.duration;
+      this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.$('fileTitle').textContent = file.name; this.loopEnabled = false; this.$('fileLoopEnd').max = this.$('fileLoopStart').max = file.duration;this.draw();
       try {
         const blob = await this.store.get(id); if (epoch !== this.epoch) return; if (!blob) throw Error('This saved recording is missing. Please open it again.');
         this.blob = blob; this.url = URL.createObjectURL(blob); this.media.src = this.url;
@@ -273,14 +269,14 @@
         this.position = bookmark ? bookmark.selection.start : clamp(file.position || 0, 0, Math.max(0, file.duration - .01));
         this.viewStart = bookmark ? bookmark.viewStart : clamp(this.position-this.viewSpan/2,0,file.duration-this.viewSpan);
         if (bookmark) {
-          this.viewSpan = bookmark.viewSpan; this.loop = {...bookmark.selection}; this.$('fileLoop').checked = true;
+          this.viewSpan = bookmark.viewSpan; this.loop = {...bookmark.selection}; this.loopEnabled = true;
           const speed = [0.5,0.75,1,1.25,1.5].includes(bookmark.speed) ? bookmark.speed : 1;
-          this.media.playbackRate = speed; this.$('fileSpeed').value = String(speed);
+          this.media.playbackRate = speed;
           this.$(bookmark.feature === 'pitch' ? 'pitchTab' : 'spectrogramTab').click();
         }
         this.loading = false; this.draw();
         if (!this.peaks || this.peaks.length < this.waveformResolution()) void this.waveform(blob, epoch);
-      } catch (e) { if (epoch === this.epoch) { this.loading = false; this.message(e.message || 'Could not open the saved recording.'); } }
+      } catch (e) { if (epoch === this.epoch) { this.loading = false; this.message(e.message || 'Could not open the saved recording.');this.draw(); } }
     }
     waveformResolution() { return Math.min(120000, Math.max(1200, Math.ceil(this.current.duration * 200))); }
     async waveform(blob, epoch) {
@@ -312,8 +308,8 @@
         if ((finished?.fileId === this.current.id && finished.start === range.start && finished.end === range.end)
           || this.position >= range.end || this.position < range.start) this.position = range.start;
         this.finishedRange = null;
-        if(this.loop||this.$('fileLoop').checked){
-          this.media.pause();await this.playback.play(this.blob,range,this.position,{loop:this.$('fileLoop').checked,rate:this.media.playbackRate,volume:this.media.volume,isCurrent:current});
+        if(this.loop||this.loopEnabled){
+          this.media.pause();await this.playback.play(this.blob,range,this.position,{loop:this.loopEnabled,rate:this.media.playbackRate,volume:this.media.volume,isCurrent:current});
           if(current())this.host.paused(false);
         }else await this.media.play();
       }catch{if(current()){this.wantPlay=false;this.playback.stop();this.host.paused(true);this.message('This passage could not be decoded. Try a different audio format.');}}
@@ -431,8 +427,6 @@
       this.viewStart = clamp(this.viewStart, 0, duration - this.viewSpan);
       const span = this.viewSpan, start = this.viewStart, zoomed = span < duration - .001;
       const precise = value=>formatPreciseTime(value,span<.1?4:span<1?3:2);
-      $('waveformZoomOut').disabled = $('waveformShowAll').disabled = !zoomed;
-      $('waveformZoomIn').disabled = span <= Math.min(.001, duration) + 1e-9;
       $('waveformFitSelection').disabled = !this.loop;
       const hasSelection = !!this.loop && !this.loading;
       $('fileSelectionControls').classList.toggle('has-selection', hasSelection);
@@ -440,7 +434,7 @@
       if (!this.loop || this.loading) $('bookmarkForm').hidden = true;
       $('bookmarkSelection').hidden = !this.loop || this.loading || !$('bookmarkForm').hidden;
       const xAt = seconds => (seconds - start) / span * width;
-      $('filePlay').textContent = this.wantPlay||this.resumeAfterRestart ? 'Pause' : 'Play'; $('filePlay').setAttribute('aria-label', this.wantPlay||this.resumeAfterRestart ? 'Pause recording' : 'Play recording'); $('filePlay').disabled = this.loading; $('fileTime').textContent = `${formatTime(time)} / ${formatTime(duration)}`;
+      this.controls.publish({playing:!!(this.wantPlay||this.resumeAfterRestart),loading:this.loading,loop:this.loopEnabled,zoomed,canZoomIn:span>Math.min(.001,duration)+1e-9,rate:this.media.playbackRate,volume:this.media.volume},`${formatTime(time)} / ${formatTime(duration)}`);
       $('fileLoopStart').value = (this.loop?.start || 0).toFixed(4); $('fileLoopEnd').value = (this.loop?.end || duration).toFixed(4); $('clearAudioSelection').hidden = !this.loop;
       const canvas = this.canvas, box = canvas.getBoundingClientRect(), ratio = devicePixelRatio || 1;
       canvas.width = Math.max(1, Math.round(box.width * ratio)); canvas.height = Math.round(64 * ratio); const g = canvas.getContext('2d'); g.scale(ratio, ratio); const width = box.width;

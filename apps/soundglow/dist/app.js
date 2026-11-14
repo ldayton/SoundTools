@@ -275,7 +275,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape')panel(false);
   if(e.code!=='Space'&&e.key!==' ')return;
   if(e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey||!running)return;
-  if(e.target?.isContentEditable||e.target?.closest?.('input,select,textarea,[role="textbox"],[role="slider"],[data-accordion-control],#settingsBody button'))return;
+  if(e.target?.isContentEditable||e.target?.closest?.('input,select,textarea,[role="textbox"],[role="slider"],[data-accordion-control],#settingsBody button,#fileTransport button'))return;
   // Prevent focused-button activation so Space after playback starts pauses it.
   e.preventDefault();
   if(!e.repeat)void togglePause();

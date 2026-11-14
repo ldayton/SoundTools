@@ -58,7 +58,7 @@ its behavior or test failures turn out to cross controller boundaries.
 | 9 ✓ | Spectrogram preset selector and dialog | Move selection and create/rename/delete UI to React. Preserve built-in immutability, named edits, validation, storage-error retry, focus return and toast behavior. Leave storage policy in the controller. |
 | 10 ✓ | Pitch preset selector and dialog | Migrate against the existing feature-state model. Share the ordinary form/dialog presentation from step 9 only where semantics match; keep each preset model's policy intact. |
 | 11 ✓ | Microphone and example controls | Device selection/refresh, permission and disconnected-device states, start/stop/pause/resume, example seek/loop/listen/restart and credits. Preserve pending-operation guards, privacy and mobile return-to-chart behavior. |
-| 12 | File playback controls | Play/pause/restart, skip, loop, speed, volume and playback options. Preserve playback intent through loading/seeking, end-of-selection restart and desktop-only saved-file support. |
+| 12 ✓ | File playback controls | Play/pause/restart, skip, loop, speed, volume and playback options. Preserve playback intent through loading/seeking, end-of-selection restart and desktop-only saved-file support. |
 | 13 | Selection actions and bookmark creation | Fit/clear selection, bookmark naming/save/cancel and passage bounds. Keep the reserved row geometry; preserve exact selection/view restoration, loop defaults, validation and failed-save retry. Retain the existing waveform gesture engine. |
 | 14 | Offline, update and diagnostic UI | Render current offline/download/update states through React and appropriate shared panels. Keep cache/update/worker logic in its existing controllers. Preserve cancellation/resume/quota/error states, safe update activation, opt-in diagnostics and data scrubbing. Include performance enable/reset/export. |
 | 15 | Remaining status and welcome UI | Welcome actions, status/readouts, notices and progress. Make asynchronous statuses accessible and React-owned without publishing per-frame canvas data to React. Use the established Mantine feedback idioms. |
@@ -307,3 +307,18 @@ After progress isolation and enumeration guarding, 18 shell/organization/new
 transport cases passed; focused Firefox/WebKit transport checks passed. Native
 Chrome verified pause, listen off and restart at zero while remaining paused.
 Next: step 12, saved-file playback controls.
+
+### Step 12 completed
+
+Previous milestone: `e29d8ca`. File playback/restart/skip/loop and waveform zoom
+controls now use Mantine, as do speed and volume. Media/PassagePlayer and the
+waveform engine remain the owners of playback and geometry. Loop intent is now
+explicit controller state rather than a checkbox used as storage. Formatted time
+has its own small subscription; canvas frames/peaks never enter React. Loading
+and failed-load transitions now immediately project disabled state. Space on file
+buttons retains ordinary button activation. Native passage fields remain for 13.
+
+Build/typecheck and timeline/controller oracle passed. Library/bookmark/menu
+browser suites: 20 desktop passes and 20 expected mobile exclusions; focused file
+playback/rapid-toggle checks passed Firefox/WebKit. Native Chrome verified actual
+play/pause, and speed/volume presentation. Next: selection/bookmark creation.

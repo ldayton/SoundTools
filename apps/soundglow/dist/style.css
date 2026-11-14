@@ -124,8 +124,8 @@ canvas[hidden],#spectrogramSettings[hidden],#pitchSettings[hidden]{display:none!
 .file-more { margin-top:4px; font-size:12px; }
 .file-more summary { cursor:pointer; width:fit-content; min-height:32px; display:flex; align-items:center; color:#a8b5c5; }
 .file-more > div { display:flex; flex-wrap:wrap; gap:12px 20px; padding-top:8px; }
-.file-more label { display:flex; align-items:center; gap:8px; }
-.file-more input[type="number"] { width:80px; min-height:36px; font:inherit; color:inherit; background:#171e28; border:1px solid #303b4a; padding:6px; border-radius:6px; }
+.file-more label:not(:where(.soundtools-ui, .soundtools-ui *)) { display:flex; align-items:center; gap:8px; }
+.file-more input[type="number"]:not(:where(.soundtools-ui, .soundtools-ui *)) { width:80px; min-height:36px; font:inherit; color:inherit; background:#171e28; border:1px solid #303b4a; padding:6px; border-radius:6px; }
 #fileTransport[hidden],#filesBody[hidden],#settingsBody[hidden] { display:none!important; }
 @media(max-width:760px) { #fileTransport { padding:10px 12px; } .file-buttons { gap:6px; } .file-heading { font-size:12px; } #fileWaveform { height:56px; } }
 

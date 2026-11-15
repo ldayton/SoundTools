@@ -84,6 +84,7 @@ export function mountApplicationShell() {
   const system = createSystemControls();
   const Offline = system.Offline,
     Developer = system.Developer,
+    Privacy = system.Privacy,
     Update = system.Update;
   const offlineHost = take("offlineSettings"),
     developerHost = take("developerControls");
@@ -213,7 +214,7 @@ export function mountApplicationShell() {
         {createPortal(<Selection />, selectionHost)}
         {createPortal(<FileTime />, fileTimeHost)}
         {createPortal(<Offline />, offlineHost)}
-        {createPortal(<Developer />, developerHost)}
+        {createPortal(<><Privacy /><Developer /></>, developerHost)}
         {createPortal(<Update />, retained.actions)}
         {createPortal(
           <Welcome>

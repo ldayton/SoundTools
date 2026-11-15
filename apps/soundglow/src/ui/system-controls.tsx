@@ -11,7 +11,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { DiagnosticConsent } from "@ldayton/ui/diagnostic-consent";
+import { PrivacySection } from "@ldayton/ui/privacy-section";
 import { OfflineStatusPanel } from "@ldayton/ui/offline-status-panel";
 import { createViewState } from "@ldayton/ui/view-state";
 type OfflineView = {
@@ -80,12 +80,15 @@ export function createSystemControls() {
       </Button>
     );
   }
+  function Privacy() {
+    const client = window.SoundglowDiagnostics;
+    return client ? <PrivacySection id="shareDiagnostics" client={client} /> : null;
+  }
   function Developer() {
     const enabled = useSyncExternalStore(
       performance.subscribe,
       performance.getSnapshot,
     );
-    const client = window.SoundglowDiagnostics;
     return (
       <Accordion mt="lg" variant="default">
         <Accordion.Item id="developerSettings" value="developer">
@@ -124,9 +127,6 @@ export function createSystemControls() {
                   Export report
                 </Button>
               </Group>
-              {client && (
-                <DiagnosticConsent id="shareDiagnostics" client={client} />
-              )}
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>
@@ -135,6 +135,7 @@ export function createSystemControls() {
   }
   return {
     Offline,
+    Privacy,
     Update,
     Developer,
     offline: {

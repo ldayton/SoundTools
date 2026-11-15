@@ -15,16 +15,18 @@ export type PracticeSnapshot = {
   summary: string;
   bpm: number;
   volume: number;
-  position: number;
-  duration: number;
   toast: string;
 };
-export interface PracticeModel {
-  getSnapshot(): PracticeSnapshot;
+interface SnapshotModel<T> {
+  getSnapshot(): T;
   subscribe(listener: () => void): () => void;
 }
+export type PracticeModel = SnapshotModel<PracticeSnapshot>;
+export type PlaybackSnapshot = { position: number; duration: number };
+export type PlaybackModel = SnapshotModel<PlaybackSnapshot>;
 export function PracticeView({
   model,
+  playback,
   stage,
   play,
   restart,
@@ -32,6 +34,7 @@ export function PracticeView({
   tempo,
 }: {
   model: PracticeModel;
+  playback: PlaybackModel;
   stage: HTMLElement;
   play(): void;
   restart(): void;
@@ -80,27 +83,7 @@ export function PracticeView({
               <Button id="restart" variant="default" onClick={restart}>
                 Start again
               </Button>
-              <div className="dorego-seek">
-                <Slider
-                  thumbProps={{ id: 'position' }}
-                  thumbLabel="Playback position"
-                  thumbValueText={formatTime}
-                  min={0}
-                  max={Math.max(0.01, state.duration)}
-                  step={0.01}
-                  value={Math.min(state.position, state.duration)}
-                  label={formatTime}
-                  onChange={seek}
-                />
-                <Group justify="space-between" mt={4}>
-                  <Text id="elapsed" size="xs" c="dimmed">
-                    {formatTime(Math.min(state.position, state.duration))}
-                  </Text>
-                  <Text id="duration" size="xs" c="dimmed">
-                    {formatTime(state.duration)}
-                  </Text>
-                </Group>
-              </div>
+              <PlaybackPosition model={playback} seek={seek} />
             </PracticeActions>
             <TempoControl
               id="bpm"
@@ -122,6 +105,34 @@ export function PracticeView({
         {state.toast}
       </Alert>
     </>
+  );
+}
+
+/** The playback clock does not invalidate the title, tempo or volume controls. */
+function PlaybackPosition({ model, seek }: { model: PlaybackModel; seek(value: number): void }) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <div className="dorego-seek">
+      <Slider
+        thumbProps={{ id: 'position' }}
+        thumbLabel="Playback position"
+        thumbValueText={formatTime}
+        min={0}
+        max={Math.max(0.01, state.duration)}
+        step={0.01}
+        value={Math.min(state.position, state.duration)}
+        label={formatTime}
+        onChange={seek}
+      />
+      <Group justify="space-between" mt={4}>
+        <Text id="elapsed" size="xs" c="dimmed">
+          {formatTime(Math.min(state.position, state.duration))}
+        </Text>
+        <Text id="duration" size="xs" c="dimmed">
+          {formatTime(state.duration)}
+        </Text>
+      </Group>
+    </div>
   );
 }
 

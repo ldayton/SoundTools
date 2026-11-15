@@ -10,7 +10,7 @@ The current ownership contract is in `ui-architecture.md` once this pass is comp
 | 3 | Permanent shared-control and Soundglow cross-browser CI coverage | Complete: CI YAML parsed; exact focused commands passed locally in Firefox and WebKit (31 each); shared-control contract runs in the existing three-browser matrix. |
 | 4 | Shared, discoverable Privacy section | Complete: all app type checks; Soundglow consent/organization browser checks (12 passed), including visible opt-in without expanding developer tools. |
 | 5 | Checked Soundglow controller/UI command and settings contracts | Complete: closed setting identifiers/value types, typed pitch command adapter using the existing model, compile-time misuse checks, five controller regressions and 34 settings/preset browser checks. |
-| 6 | Isolated DoReGo playback position subscriptions | Pending |
+| 6 | Isolated DoReGo playback position subscriptions | Complete: actual React component subscription contract passes in all three browsers; DoReGo pages build and desktop audio/seek/tempo/volume/navigation checks pass. |
 | 7 | Library CSS ownership, common icons, bundle naming and current documentation | Pending |
 
 Retain specialist audio, rendering and gesture owners. Use direct Mantine controls;

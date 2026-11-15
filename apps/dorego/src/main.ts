@@ -70,6 +70,10 @@ const builderModel = createViewState<BuilderSnapshot>({ spec: { ...spec }, error
 let formError: string | null = null;
 let toastMessage = '';
 let lastControlsUpdate = -Infinity;
+const playbackModel = createViewState({
+  position,
+  duration: secondsAt(exercise.totalBeats, spec.bpm),
+});
 const practiceModel = createViewState<PracticeSnapshot>({
   mode,
   warming: true,
@@ -79,8 +83,6 @@ const practiceModel = createViewState<PracticeSnapshot>({
   summary: '',
   bpm: spec.bpm,
   volume: spec.volume,
-  position,
-  duration: secondsAt(exercise.totalBeats, spec.bpm),
   toast: '',
 });
 mountAppShell($('#app'), {
@@ -104,6 +106,7 @@ mountAppShell($('#app'), {
   }),
   practice: createElement(PracticeView, {
     model: practiceModel,
+    playback: playbackModel,
     stage,
     play: () => {
       void togglePlay();
@@ -264,6 +267,7 @@ function update(force = false) {
   const now = performance.now();
   if (force || mode !== 'playing' || now - lastControlsUpdate >= 50) {
     lastControlsUpdate = now;
+    playbackModel.set({ position, duration });
     practiceModel.set({
       mode,
       warming: pianoWarming,
@@ -277,8 +281,6 @@ function update(force = false) {
         : `${exercise.notes.length} notes · ${spec.repetitions} ${spec.repetitions === 1 ? 'round' : 'rounds'} · ${spec.countIn ? (spec.countIn % 4 === 0 ? `${spec.countIn / 4}-bar count-in` : `${spec.countIn}-beat count-in`) : 'No count-in'}`,
       bpm: spec.bpm,
       volume: spec.volume,
-      position,
-      duration,
       toast: toastMessage,
     });
   }

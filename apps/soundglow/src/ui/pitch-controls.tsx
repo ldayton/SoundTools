@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { createViewState } from "@ldayton/ui/view-state";
 import pitchOptions from "./pitch-options.json";
-import { CommittedSettingNumber } from "./committed-setting-number";
+import { CommittedNumber } from "@ldayton/ui/committed-number";
 
 type Band = { name: string; low: number; high: number; colour: string };
 type PitchValues = {
@@ -78,7 +78,7 @@ export function createPitchControls(
       field = basicFields[id],
       bounds = limits[field];
     return (
-      <CommittedSettingNumber
+      <CommittedNumber allowDecimal
         id={id}
         label={label}
         value={Number(view.values[field])}
@@ -272,10 +272,10 @@ export function createPitchControls(
                   Band {index + 1}
                 </Title>
                 <Group grow wrap="nowrap">
-                  <CommittedSettingNumber
+                  <CommittedNumber allowDecimal
                     id={`pitchBand${index}Low`}
                     label="From (Hz)"
-                    ariaLabel={`Band ${index + 1} low Hz`}
+                    aria-label={`Band ${index + 1} low Hz`}
                     value={band.low}
                     {...rangeLimits}
                     reset={reset}
@@ -288,10 +288,10 @@ export function createPitchControls(
                       ) ?? false
                     }
                   />
-                  <CommittedSettingNumber
+                  <CommittedNumber allowDecimal
                     id={`pitchBand${index}High`}
                     label="To (Hz)"
-                    ariaLabel={`Band ${index + 1} high Hz`}
+                    aria-label={`Band ${index + 1} high Hz`}
                     value={band.high}
                     {...rangeLimits}
                     reset={reset}

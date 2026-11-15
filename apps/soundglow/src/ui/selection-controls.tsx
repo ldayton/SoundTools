@@ -15,7 +15,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { createViewState } from "@ldayton/ui/view-state";
-import { CommittedSettingNumber } from "./committed-setting-number";
+import { CommittedNumber } from "@ldayton/ui/committed-number";
 type View = {
   active: boolean;
   start: number;
@@ -166,7 +166,7 @@ export function createSelectionControls() {
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               {children}
               <Group align="flex-start" grow>
-                <CommittedSettingNumber
+                <CommittedNumber allowDecimal
                   id="fileLoopStart"
                   label="Passage start (seconds)"
                   value={view.start}
@@ -176,7 +176,7 @@ export function createSelectionControls() {
                   reset={view.revision}
                   change={(value) => actions?.bounds(value, view.end) ?? false}
                 />
-                <CommittedSettingNumber
+                <CommittedNumber allowDecimal
                   id="fileLoopEnd"
                   label="Passage end (seconds)"
                   value={view.end}

@@ -178,6 +178,10 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await untouched.goto(url,{waitUntil:'commit',timeout:15000});
  await untouched.waitForFunction(()=>!!document.querySelector('meta[name="soundglow-release"]'));
  assert.equal(await untouched.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[1].pack.version);
+ // Metadata is available before the larger UI and offline client finish booting.
+ // Keep the page untouched, but let its initial discovery finish before simulating reconnect.
+ await untouched.waitForFunction(()=>document.getElementById('offline-status')?.textContent.includes('Available offline'));
+ await untouched.waitForLoadState('networkidle');
  revision=2;
  for(const tab of [other,untouched])await tab.evaluate(()=>window.dispatchEvent(new Event('online')));
  await untouched.waitForFunction(version=>document.querySelector('meta[name="soundglow-release"]').content===version,releases[2].pack.version);

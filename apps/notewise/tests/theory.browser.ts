@@ -1,5 +1,6 @@
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
+import { expect } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -168,6 +169,8 @@ try {
   );
   await field("task", "play-degree");
   await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
+  await page.locator(".keyboard-menu[data-state=connected]").waitFor();
+  await page.clock.runFor(250);
   await send(48); // Same pitch class, a different octave.
   assert.match(
     (await root().locator(".sequence-feedback").textContent())!,
@@ -223,11 +226,10 @@ try {
     "partial scale restored",
   );
   await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
+  await page.locator(".keyboard-menu[data-state=connected]").waitFor();
+  await page.clock.runFor(250);
   for (const n of [65, 67, 69, 71, 72]) await send(n);
-  assert.equal(
-    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
-    "1",
-  );
+  await expect(root().locator(".theory-progress")).toHaveAttribute("aria-valuenow", "1");
   assert.match(
     (await root().locator(".theory-explanation").textContent())!,
     /C–D–E–F–G–A–B–C/,

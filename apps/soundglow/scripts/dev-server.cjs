@@ -13,7 +13,7 @@ const MIME = {
   '.m4a': 'audio/mp4', '.mp3': 'audio/mpeg', '.wav': 'audio/wav',
   '.flac': 'audio/flac', '.ogg': 'audio/ogg', '.webm': 'audio/webm',
 };
-function createDevServer({ root = ROOT } = {}) {
+function createDevServer({ root = ROOT, beforeRequest } = {}) {
   root = path.resolve(root);
   return http.createServer(async (request, response) => {
     // Deliberately omit validators and ignore conditional requests so even an
@@ -31,6 +31,7 @@ function createDevServer({ root = ROOT } = {}) {
       // workers, worklets and fetch(). This also escapes pre-existing HTTP cache
       // entries whose old server headers cannot be changed retroactively.
       const name = requested.replace(/^\/__dev\/[a-f0-9]{16}\//, '/');
+      if (beforeRequest && (name === '/' || name.endsWith('.html') || name.startsWith('/dist/ui/'))) await beforeRequest();
       if (name === '/') { response.writeHead(302, { Location: '/dist/index.html' }).end(); return; }
       let file = path.resolve(root, '.' + name);
       if (!file.startsWith(root + path.sep) || name.includes('\0') || name.split('/').some(part => part.startsWith('.'))) {
@@ -58,7 +59,7 @@ function createDevServer({ root = ROOT } = {}) {
       response.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Content-Length': bytes.length });
       response.end(request.method === 'HEAD' ? undefined : bytes);
     } catch (error) {
-      response.writeHead(error.code === 'ENOENT' || error.code === 'EISDIR' ? 404 : error instanceof URIError ? 400 : 500).end();
+      response.writeHead(error.code === 'UI_BUILD_FAILED' ? 503 : error.code === 'ENOENT' || error.code === 'EISDIR' ? 404 : error instanceof URIError ? 400 : 500).end(error.code === 'UI_BUILD_FAILED' ? error.message : undefined);
     }
   });
 }
@@ -66,8 +67,14 @@ if (require.main === module) {
   const at = process.argv.indexOf('--port');
   const port = at === -1 ? 8780 : Number(process.argv[at + 1]);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('Choose a port from 1 to 65535');
-  const server = createDevServer();
-  server.on('error', error => { console.error(error.message); process.exitCode = 1; });
-  server.listen(port, '127.0.0.1', () => console.log(`Soundglow: http://127.0.0.1:${port}/dist/index.html (cache disabled)`));
+  async function start() {
+  const ui = await require('./dev-ui.cjs').watchUi();
+  const server = createDevServer({ beforeRequest: ui.ready });
+  server.on('close', () => { void ui.close(); });
+  for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { server.close(); server.closeAllConnections(); });
+  server.on('error', error => { console.error(error.message); process.exitCode = 1; void ui.close(); });
+  server.listen(port, '127.0.0.1', () => console.log(`Soundglow: http://127.0.0.1:${port}/dist/index.html (UI watch enabled, cache disabled)`));
+  }
+  start().catch(error => { console.error(error); process.exitCode = 1; });
 }
 module.exports = { createDevServer };

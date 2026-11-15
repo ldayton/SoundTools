@@ -54,3 +54,29 @@ test('ordinary browser reload replaces legacy cached scripts, styles, workers an
   }
  }finally{await browser?.close();await close(server);await fs.rm(root,{recursive:true,force:true});}
 });
+
+test('UI import changes rebuild automatically; failed builds return 503 until repaired', async () => {
+ const {watchUi}=require('../scripts/dev-ui.cjs');
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'soundglow-ui-watch-'));
+ await fs.mkdir(path.join(root,'dist/ui'),{recursive:true});
+ await fs.writeFile(path.join(root,'dist/index.html'),'<head></head><script src="ui/app.js"></script>');
+ const shared=path.join(root,'shared.js'),entry=path.join(root,'entry.js'),config=path.join(root,'vite.config.mjs');
+ await fs.writeFile(shared,'export const value="first-value";');
+ await fs.writeFile(entry,'import {value} from "./shared.js";globalThis.result=value;');
+ await fs.writeFile(config,`export default {root:${JSON.stringify(root)},logLevel:'silent',build:{outDir:'dist/ui',lib:{entry:${JSON.stringify(entry)},formats:['iife'],name:'UiWatch',fileName:()=> 'app.js'}}};`);
+ const messages=[];const ui=await watchUi({configFile:config,log:message=>messages.push(message)});
+ const server=createDevServer({root,beforeRequest:ui.ready}),origin=await listen(server);
+ async function until(check) {const end=Date.now()+10000;while(Date.now()<end){if(await check())return;await new Promise(resolve=>setTimeout(resolve,50));}assert.fail('UI watcher did not reach the expected state');}
+ try {
+  await ui.ready();assert.match(await (await fetch(origin+'/dist/ui/app.js')).text(),/first-value/);
+  await fs.writeFile(shared,'export const value="second-value";');
+  await until(async()=>/second-value/.test(await (await fetch(origin+'/dist/ui/app.js')).text()));
+  await fs.writeFile(shared,'export const value=;');
+  await until(async()=> (await fetch(origin+'/dist/index.html')).status===503);
+  assert.equal((await fetch(origin+'/dist/ui/app.js')).status,503);
+  await fs.writeFile(shared,'export const value="recovered-value";');
+  await until(async()=>/recovered-value/.test(await (await fetch(origin+'/dist/ui/app.js')).text()));
+  assert.equal((await fetch(origin+'/dist/index.html')).status,200);
+  assert(messages.some(message=>message.includes('build failed')));
+ } finally {await close(server);await ui.close();await fs.rm(root,{recursive:true,force:true});}
+});

@@ -14,60 +14,13 @@ import analysisOptions from "./advancedAnalysis-options.json";
 import { SettingsSlider } from "./settings-slider";
 import { createViewState } from "@ldayton/ui/view-state";
 
-export const displayControlIds = ["maximum", "scale", "history"] as const;
-export const colourControlIds = [
-  "palette",
-  "gain",
-  "floor",
-  "colourLevels",
-  "fixedMaximum",
-  "suppression",
-  "preemphasis",
-  "compression",
-] as const;
-const formantControlIds = [
-  "formants",
-  "formantSmoothing",
-  "formantFiltering",
-  "formantCeiling",
-] as const;
-const analysisControlIds = [
-  "window",
-  "windowShape",
-  "analysisRate",
-  "frameStep",
-  "fftPadding",
-  "removeDC",
-  "spectrumUnits",
-  "resampling",
-  "resampleQuality",
-] as const;
-const advancedColourIds = [
-  "normalizationClock",
-  "interpolation",
-  "frameInterpolation",
-  "peakSeconds",
-  "peakDecay",
-] as const;
-const settingIds = [
-  ...displayControlIds,
-  ...colourControlIds,
-  ...formantControlIds,
-  ...analysisControlIds,
-  ...advancedColourIds,
-];
-type SettingId = (typeof settingIds)[number];
-type Values = Record<SettingId, string>;
-type Registry = Record<
-  string,
-  {
-    default: string;
-    values?: readonly string[];
-    min?: number;
-    max?: number;
-    step?: number;
-  }
->;
+import {
+  displayControlIds, colourControlIds, formantControlIds, analysisControlIds,
+  advancedColourIds, settingIds,
+  type SettingId, type SpectrogramValues as Values, type SettingRegistry as Registry,
+  type SpectrogramEdit,
+} from "../settings-contracts";
+export { displayControlIds, colourControlIds } from "../settings-contracts";
 const ceilingLabels: Record<string, string> = {
   "2000": "2 kHz · voice detail",
   "4000": "4 kHz",
@@ -87,14 +40,14 @@ const scaleLabels: Record<string, string> = {
 
 /** A projection of the controller's canonical settings, never a second settings owner. */
 export function createSpectrogramControls(registry: Registry) {
-  const project = (values: Record<string, string>) =>
+  const project = (values: Values) =>
     Object.fromEntries(settingIds.map((id) => [id, values[id]])) as Values;
   const model = createViewState(
     project(
-      Object.fromEntries(settingIds.map((id) => [id, registry[id].default])),
+      Object.fromEntries(settingIds.map((id) => [id, registry[id].default])) as Values,
     ),
   );
-  let edit: ((id: SettingId, value: string) => void) | undefined;
+  let edit: SpectrogramEdit | undefined;
   const options = (id: SettingId, labels: Record<string, string>) =>
     registry[id].values!.map((value) => ({
       value,
@@ -430,7 +383,7 @@ export function createSpectrogramControls(registry: Registry) {
     connect(change: NonNullable<typeof edit>) {
       edit = change;
     },
-    publish(values: Record<string, string>) {
+    publish(values: Values) {
       const next = project(values),
         previous = model.getSnapshot();
       if (settingIds.some((id) => next[id] !== previous[id]))

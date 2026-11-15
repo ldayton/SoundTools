@@ -84,8 +84,7 @@
   chart.dataset.fileStart=file?file.start:'';chart.dataset.fileEnd=file?file.end:'';
   chart.dataset.pitchMethod=pitchStream?.activeSettings.pitchMethod||state.pitch.method;chart.dataset.plottedUntil=String(end);chart.dataset.voiced=String(points.filter(r=>r.hz>0&&r.time>=begin&&r.time<=end).length);
  }
- function controls(force=false,resetDrafts=force){presetControls();pitchUI.publish(state.pitch,resetDrafts)}
- function edit(change){const oldMethod=state.pitch.method;const next=FeatureState.pitch(state.pitch);change(next);let invalid=false;try{const previous=state;state=FeatureState.changed(state,next);if(state.pitch.method!==oldMethod)host.refreshFileView?.();pitchUI.setError(null);if(persist())presetUI.status('');else state={...state,selected:'custom',presets:previous.presets};lastPaint='';paint()}catch(error){invalid=true;pitchUI.setError(error.message);}controls(invalid,false);return !invalid}
+ function controls(force=false,resetDrafts=force){settingsController.publish(resetDrafts)}
  host.viewLabel=()=>state.active==='pitch'?FeatureState.presetName(state):null;host.featureState=()=>({active:state.active,pitch:FeatureState.pitch(state.pitch)});
  function layout(){
   const signature=[state.active,$('settings').getAttribute('aria-expanded'),window.matchMedia('(min-width: 761px)').matches].join(':');if(signature===lastLayout)return;lastLayout=signature;
@@ -98,18 +97,11 @@
  const scrollPositions={spectrogram:0,pitch:0};
  function select(feature){if(feature===state.active)return;scrollPositions[state.active]=$('settingsBody').scrollTop;state.active=feature;persist();lastPaint='';layout();$('settingsBody').scrollTop=scrollPositions[feature];if(feature==='spectrogram')updateResolution();syncPitch();paint()}
  window.SoundglowShell.configure({layout:syncSettings,select});
- function resetPitch(){state=FeatureState.choose(state,'soundglow');host.refreshFileView?.();pitchUI.setError(null);persist();controls(true);lastPaint='';paint()}
- function presetControls(){presetUI.publish(state.selected,[{value:'soundglow',label:'Soundglow'},{value:'praat',label:'Praat'},...state.presets.map(p=>({value:p.id,label:p.name}))]);updateResolution();}
- function applyPitch(id){const oldMethod=state.pitch.method;state=FeatureState.choose(state,id);if(oldMethod!==state.pitch.method)host.refreshFileView?.();pitchUI.setError(null);persist();controls(true);lastPaint='';paint();}
- presetUI.connect({
-  choose:applyPitch,
-  open(){const saved=state.presets.find(p=>p.id===state.selected);presetUI.status('');presetUI.open({name:saved?.name||'',title:saved?'Edit pitch preset':'Name pitch preset',canDelete:!!saved})},
-  save(name){try{const next=FeatureState.save(state,name,'saved-'+crypto.randomUUID());if(!persist(next))return false;state=next;presetControls();presetUI.status('');presetUI.close();return true}catch(error){presetUI.status(error.message);return false}},
-  remove(){try{const next=FeatureState.remove(state);if(!persist(next))return;state=next;pitchUI.setError(null);controls(true);lastPaint='';paint();presetUI.status('');presetUI.close()}catch(error){presetUI.status(error.message)}},
-  cancel(){presetUI.status('');presetUI.close()},dismiss(){presetUI.hideToast()}
+ const settingsController=window.SoundglowControllers.connectPitchSettings({
+  ui:pitchUI,presets:presetUI,model:FeatureState,getState:()=>state,setState:next=>{state=next},persist,
+  refreshFile:()=>host.refreshFileView?.(),repaint:()=>{lastPaint='';paint()},resolution:updateResolution
  });
  host.subscribe(type=>{if(type==='fileview'){reset();pumping=false;const file=host.fileView?.();if(file){rawRows=file.features;updateContour();lastPaint='';paint();}else{lastPaint='';paint();}return;}if(type==='stop'||type==='seek'){reset();pumping=false;}if(type==='capture'||type==='seek')syncPitch();if(type==='render'||type==='layout'){layout();paint()}});
- pitchUI.connect((field,value)=>edit(p=>{p[field]=value}),resetPitch);
  controls();layout();
 })();
 

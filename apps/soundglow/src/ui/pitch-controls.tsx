@@ -15,17 +15,7 @@ import { createViewState } from "@ldayton/ui/view-state";
 import pitchOptions from "./pitch-options.json";
 import { CommittedNumber } from "@ldayton/ui/committed-number";
 
-type Band = { name: string; low: number; high: number; colour: string };
-type PitchValues = {
-  ranges: Band[];
-  minimum: number;
-  maximum: number;
-  history: number;
-  axis: string;
-  smoothing: string;
-  [key: string]: unknown;
-};
-type Limits = Record<string, { min: number; max: number; step: number }>;
+import type { PitchValues, PitchKey, PitchEdit, PitchLimits } from "../settings-contracts";
 const basicFields = {
   pitchMinimum: "minimum",
   pitchMaximum: "maximum",
@@ -54,10 +44,10 @@ const basicFields = {
   pitchBandMode: "bandMode",
   pitchTargetLow: "targetLow",
   pitchTargetHigh: "targetHigh",
-} as const;
+} as const satisfies Record<string, PitchKey>;
 export function createPitchControls(
   initial: PitchValues,
-  limits: Limits,
+  limits: PitchLimits,
   rangeLimits: { min: number; max: number; step: number },
 ) {
   const model = createViewState({
@@ -66,12 +56,12 @@ export function createPitchControls(
     error: null as string | null,
   });
   let resetPitch: (() => void) | undefined;
-  let edit: ((field: string, value: unknown) => boolean) | undefined;
+  let edit: PitchEdit | undefined;
   function Numeric({
     id,
     label,
   }: {
-    id: keyof typeof basicFields;
+    id: { [K in keyof typeof basicFields]: PitchValues[typeof basicFields[K]] extends number ? K : never }[keyof typeof basicFields];
     label: string;
   }) {
     const view = useSyncExternalStore(model.subscribe, model.getSnapshot),
@@ -345,9 +335,9 @@ export function createPitchControls(
 declare global {
   interface Window {
     FeatureState: {
-      pitch(input?: unknown): PitchValues;
-      presets: { soundglow: unknown };
-      inputLimits: Limits;
+      pitch(input?: Partial<PitchValues>): PitchValues;
+      presets: { soundglow: PitchValues };
+      inputLimits: PitchLimits;
       rangeLimits: { min: number; max: number; step: number };
     };
   }

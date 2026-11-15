@@ -63,12 +63,13 @@ test('UI import changes rebuild automatically; failed builds return 503 until re
  const shared=path.join(root,'shared.js'),entry=path.join(root,'entry.js'),config=path.join(root,'vite.config.mjs');
  await fs.writeFile(shared,'export const value="first-value";');
  await fs.writeFile(entry,'import {value} from "./shared.js";globalThis.result=value;');
- await fs.writeFile(config,`export default {root:${JSON.stringify(root)},logLevel:'silent',build:{outDir:'dist/ui',lib:{entry:${JSON.stringify(entry)},formats:['iife'],name:'UiWatch',fileName:()=> 'app.js'}}};`);
+ await fs.writeFile(config,`export default {root:${JSON.stringify(root)},logLevel:'silent',plugins:[{name:'slow-fixture-build',async buildStart(){await new Promise(resolve=>setTimeout(resolve,60))}}],build:{outDir:'dist/ui',lib:{entry:${JSON.stringify(entry)},formats:['iife'],name:'UiWatch',fileName:()=> 'app.js'}}};`);
  const messages=[];const ui=await watchUi({configFile:config,log:message=>messages.push(message)});
  const server=createDevServer({root,beforeRequest:ui.ready}),origin=await listen(server);
  async function until(check) {const end=Date.now()+10000;while(Date.now()<end){if(await check())return;await new Promise(resolve=>setTimeout(resolve,50));}assert.fail('UI watcher did not reach the expected state');}
  try {
-  await ui.ready();assert.match(await (await fetch(origin+'/dist/ui/app.js')).text(),/first-value/);
+  const [html,script]=await Promise.all([fetch(origin+'/dist/index.html'),fetch(origin+'/dist/ui/app.js')]);
+  assert.equal(html.status,200);assert.equal(script.status,200);assert.match(await script.text(),/first-value/);
   await fs.writeFile(shared,'export const value="second-value";');
   await until(async()=>/second-value/.test(await (await fetch(origin+'/dist/ui/app.js')).text()));
   await fs.writeFile(shared,'export const value=;');
@@ -79,4 +80,28 @@ test('UI import changes rebuild automatically; failed builds return 503 until re
   assert.equal((await fetch(origin+'/dist/index.html')).status,200);
   assert(messages.some(message=>message.includes('build failed')));
  } finally {await close(server);await ui.close();await fs.rm(root,{recursive:true,force:true});}
+});
+
+test('the development command works from the repository root and closes its UI watcher', {timeout:30000}, async () => {
+ const {spawn}=require('node:child_process');
+ const net=require('node:net');
+ const reserve=net.createServer();await new Promise(resolve=>reserve.listen(0,'127.0.0.1',resolve));
+ const port=reserve.address().port;await new Promise(resolve=>reserve.close(resolve));
+ const root=path.resolve(__dirname,'../../..'),command=path.resolve(__dirname,'../scripts/dev-server.cjs');
+ const child=spawn(process.execPath,[command,'--port',String(port)],{cwd:root,stdio:['ignore','pipe','pipe']});
+ let logs='';child.stdout.on('data',chunk=>{logs+=chunk});child.stderr.on('data',chunk=>{logs+=chunk});
+ const exited=new Promise(resolve=>child.once('exit',resolve));
+ try {
+  const deadline=Date.now()+20000;let response;
+  while(Date.now()<deadline){
+   assert.equal(child.exitCode,null,logs);
+   try {const candidate=await fetch(`http://127.0.0.1:${port}/dist/index.html`,{signal:AbortSignal.timeout(1000)});if(candidate.ok){response=candidate;break;}}catch{}
+   await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  assert(response,'Development server did not become ready: '+logs);
+  const html=await response.text();assert.match(html,/ui\/soundglow-ui\.js/);
+  const base=html.match(/<base href="([^"]+)"/)[1];
+  const script=await fetch(new URL('ui/soundglow-ui.js',`http://127.0.0.1:${port}${base}`));
+  assert.equal(script.status,200);assert((await script.text()).length>1000);
+ } finally {child.kill('SIGTERM');await exited;}
 });

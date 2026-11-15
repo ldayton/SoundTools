@@ -6,7 +6,7 @@ The current ownership contract is in `ui-architecture.md` once this pass is comp
 | Milestone | Scope | Status and validation |
 | --- | --- | --- |
 | 1 | Shared numeric draft/commit/cancel/reset behavior | Complete: shared control contract in Chromium/Firefox/WebKit; all app type checks; Soundglow numeric/bookmark browser tests (11 passed). |
-| 2 | Soundglow rebuilds UI changes during local development | Complete: dev-server regressions verify transitive imports, rebuild failure (503), recovery and uncached reloads. |
+| 2 | Soundglow rebuilds UI changes during local development | Complete: four dev-server regressions verify transitive imports, pending startup requests, failure (503), recovery, uncached reloads, repository-root launch and watcher shutdown. |
 | 3 | Permanent shared-control and Soundglow cross-browser CI coverage | Complete: CI YAML parsed; exact focused commands passed locally in Firefox and WebKit (31 each); shared-control contract runs in the existing three-browser matrix. |
 | 4 | Shared, discoverable Privacy section | Complete: all app type checks; Soundglow consent/organization browser checks (12 passed), including visible opt-in without expanding developer tools. |
 | 5 | Checked Soundglow controller/UI command and settings contracts | Complete: closed setting identifiers/value types, typed pitch command adapter using the existing model, compile-time misuse checks, five controller regressions and 34 settings/preset browser checks. |

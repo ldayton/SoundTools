@@ -239,10 +239,19 @@ const server = spawn(
         await nav.locator(`a[data-mode="${mode}"]`).click();
         const activity = page.locator(".practice-surface:visible");
         await activity.waitFor();
-        const column = await page
-          .locator(".practice-workspace-content")
-          .boundingBox();
-        const card = await activity.boundingBox();
+        // Route changes can commit between two separate browser measurements.
+        // Wait for the same geometry contract, then measure the pair atomically.
+        await page.waitForFunction((element) => {
+          const column = element.closest(".practice-workspace-content");
+          if (!column || !element.checkVisibility()) return false;
+          const a = column.getBoundingClientRect(), b = element.getBoundingClientRect();
+          return Math.abs(a.width - b.width) < 2 && Math.abs(a.x - b.x) < 2;
+        }, await activity.elementHandle());
+        const { column, card } = await activity.evaluate((element) => {
+          const a = element.closest(".practice-workspace-content").getBoundingClientRect();
+          const b = element.getBoundingClientRect();
+          return { column: { x: a.x, width: a.width }, card: { x: b.x, width: b.width } };
+        });
         assert(
           Math.abs(column.width - card.width) < 2,
           `${mode}: practice fills its column`,

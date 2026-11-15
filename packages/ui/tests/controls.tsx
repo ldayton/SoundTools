@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Button, Stack } from "@mantine/core";
 import { SoundToolsProvider } from "../provider";
+import { RenderErrorBoundary } from "../render-error-boundary";
 import { CommittedNumber } from "../committed-number";
 import { createViewState } from "../view-state";
 import {
@@ -112,4 +113,37 @@ function Controls() {
     </SoundToolsProvider>
   );
 }
-createRoot(document.getElementById("root")!).render(<Controls />);
+function Crashable() {
+  const [crashed, crash] = useState(false);
+  if (crashed) throw new Error("private technical detail");
+  return <Button onClick={() => crash(true)}>Trigger render failure</Button>;
+}
+const recovery = new URLSearchParams(location.search);
+createRoot(document.getElementById("root")!).render(
+  recovery.has("recovery") ? (
+    <RenderErrorBoundary
+      appName="Test app"
+      dark={recovery.has("dark")}
+      onStop={() => {
+        sessionStorage.setItem(
+          "shutdowns",
+          String(Number(sessionStorage.getItem("shutdowns")) + 1),
+        );
+        if (recovery.has("stopFails")) throw new Error("shutdown failed");
+      }}
+      onError={() => {
+        sessionStorage.setItem(
+          "reports",
+          String(Number(sessionStorage.getItem("reports")) + 1),
+        );
+        if (recovery.has("reportFails")) throw new Error("report failed");
+      }}
+    >
+      <SoundToolsProvider>
+        <Crashable />
+      </SoundToolsProvider>
+    </RenderErrorBoundary>
+  ) : (
+    <Controls />
+  ),
+);

@@ -78,8 +78,52 @@ const engines = require("playwright");
       "Clock updates must not invalidate practice, title or volume subscriptions",
     );
     assert.deepEqual(errors, []);
+    for (const options of ["", "&dark&stopFails&reportFails"]) {
+      await page.goto("http://127.0.0.1:4970/?recovery" + options);
+      await page.evaluate(() => {
+        sessionStorage.clear();
+        localStorage.setItem("saved-preference", "preserved");
+      });
+      await page
+        .getByRole("button", { name: "Trigger render failure" })
+        .click();
+      const recovery = page.getByRole("main", { name: "Test app recovery" });
+      await recovery.waitFor();
+      await page.waitForFunction(
+        () => sessionStorage.getItem("shutdowns") === "1",
+      );
+      assert.equal(
+        await recovery
+          .getByRole("heading")
+          .evaluate((el) => el === document.activeElement),
+        true,
+      );
+      assert.equal(
+        (await recovery.textContent()).includes("private technical detail"),
+        false,
+      );
+      assert.equal(
+        await page.locator("html").getAttribute("data-mantine-color-scheme"),
+        options ? "dark" : "light",
+      );
+      assert.equal(
+        await page.evaluate(() => sessionStorage.getItem("reports")),
+        options ? "2" : "1",
+      );
+      await page
+        .getByRole("button", { name: "Reload app", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Trigger render failure" })
+        .waitFor();
+      assert.equal(
+        await page.evaluate(() => localStorage.getItem("saved-preference")),
+        "preserved",
+      );
+    }
+    assert.deepEqual(errors, []);
     console.log(
-      `PASS shared UI/${engine}: drafts, Escape, Enter once, blur, bounds, decimals, rejection, reset, external changes, step controls and isolated playback subscriptions`,
+      `PASS shared UI/${engine}: drafts, Escape, Enter once, blur, bounds, decimals, rejection, reset, external changes, step controls isolated playback subscriptions, and render recovery (shutdown, reporting failures, focus, dark theme and reload)`,
     );
   } finally {
     await browser?.close();

@@ -23,6 +23,7 @@
     "build:songalong": "npm run build:vercel --workspace=songalong",
     "test:notewise": "npm test --workspace=notewise",
     "test:songalong": "npm test --workspace=songalong",
+    "test:render-recovery": "node scripts/test-render-recovery.cjs",
     "test:ui": "node scripts/test-ui-controls.cjs"
   },
   "devDependencies": {

@@ -51,3 +51,19 @@ test('page exit stops audio while preserving controls for pending cleanup',async
  await expect(page.locator('#settings:visible, #openSettings:visible')).toBeVisible();
  await page.getByRole('tab',{name:'Pitch',exact:true}).click();await expect(page.locator('#pitchTab')).toHaveAttribute('aria-selected','true');expect(errors).toEqual([]);
 });
+
+
+test('render failure stops audio and shows reload recovery',async({page})=>{
+ await page.goto('/dist/index.html');
+ await page.locator('#demo').click();
+ await page.waitForFunction(()=>running&&processingStats.frames>0);
+ // An invalid child tests the actual boundary without a production crash hook.
+ await page.evaluate(()=>window.SoundglowShell.feedback.publish({state:{invalid:true}}));
+ await expect(page.getByRole('main',{name:'Soundglow recovery'})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>({running,audio:audio===null,engine:engine===null}))).toEqual({running:false,audio:true,engine:true});
+ await page.evaluate(()=>startSpeech());
+ expect(await page.evaluate(()=>running)).toBe(false);
+ await page.getByRole('button',{name:'Reload app',exact:true}).click();
+ await expect(page.locator('#demo')).toBeVisible();
+ await expect(page.getByRole('main',{name:'Soundglow recovery'})).toHaveCount(0);
+});

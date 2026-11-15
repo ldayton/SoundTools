@@ -8,7 +8,7 @@ let viewSettings=settingsState.values;
 const viewSetting=id=>viewSettings[id],viewValue=id=>Number(viewSetting(id));
 function setViewSettings(values){const history=Number(viewSettings.history);viewSettings=values;carry*=history/Number(viewSettings.history);}
 const $=id=>document.getElementById(id),canvas=$('spectrogram'),ctx=canvas.getContext('2d',{alpha:false}),overlay=$('labels'),axis=overlay.getContext('2d');
-let returningHome=false;
+let returningHome=false,renderFailed=false;
 let featureHistory=[];
 const spectrumHistory=new PraatDisplay.SpectrumHistory();
 let rowCache=new WeakMap(),levelCache=new PraatDisplay.LevelCache(),positionCache=new Map(),rowGeometry=null;
@@ -185,7 +185,7 @@ let microphoneId='',microphoneRefresh=0,exampleLoop=true,exampleListen=false;
 function publishTransport(){transportUI.publish({busy:starting,pauseEnabled:running,hidePause:!!filePreview||inputMode==='file',example:inputMode==='speech',microphone:microphoneId,loop:exampleLoop,listen:exampleListen})}
 function notice(message){feedbackUI.publish({notice:message})}
 function state(text,live=false){publishTransport();if(['CONNECTING','LOADING'].includes(text))window.SoundglowDiagnostics?.frame(performance.now(),false);window.SoundglowDiagnostics?.event('transport.state',{state:text});transportLabel=text;feedbackUI.publish({state:text,live})}
-function stop(keepFileView=false){if(!keepFileView)clearFileView();if(inputMode==='file'){fileLibrary?.release();fileMediaSource?.disconnect();}window.SoundglowDiagnostics?.frame(performance.now(),false);notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed'){if(audio===fileAudioContext)audio.suspend().catch(()=>{});else audio.close().catch(()=>{});}stream=source=audio=null;paused=false;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');feedbackUI.publish({device:stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'});}
+function stop(keepFileView=false){if(renderFailed)return;if(!keepFileView)clearFileView();if(inputMode==='file'){fileLibrary?.release();fileMediaSource?.disconnect();}window.SoundglowDiagnostics?.frame(performance.now(),false);notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed'){if(audio===fileAudioContext)audio.suspend().catch(()=>{});else audio.close().catch(()=>{});}stream=source=audio=null;paused=false;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');feedbackUI.publish({device:stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'});}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
   const request=++microphoneRefresh;
@@ -228,7 +228,7 @@ function microphoneError(e){
 }
 
 async function chooseMicrophone(id){microphoneId=id;publishTransport();notice('');if(running&&inputMode==='mic'){stop();await start();}}
-async function start(){if(starting)return;revealActiveView();if(running){const wasSpeech=inputMode!=='mic';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;feedbackUI.publish({welcome:false});setIcon('start','■','Stop microphone');state('LIVE',true);microphones();feedbackUI.publish({device:stream.getAudioTracks()[0].label||'MICROPHONE'});updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){if(!returningHome){if(e.name==='NotAllowedError')window.SoundglowDiagnostics?.event('microphone.permission_denied');else window.SoundglowDiagnostics?.capture(e,'microphone.start_failed');}stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
+async function start(){if(renderFailed||starting)return;revealActiveView();if(running){const wasSpeech=inputMode!=='mic';stop();if(!wasSpeech)return;}starting=true;setBusy(true);notice('');state('CONNECTING');try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Microphone access requires HTTPS or localhost in a supported browser.');audio=new (window.AudioContext||window.webkitAudioContext)();stream=await capture();if(returningHome){stream.getTracks().forEach(t=>t.stop());stream=null;return}if(audio.state==='suspended')await audio.resume();await connectInput(stream);running=true;paused=false;feedbackUI.publish({welcome:false});setIcon('start','■','Stop microphone');state('LIVE',true);microphones();feedbackUI.publish({device:stream.getAudioTracks()[0].label||'MICROPHONE'});updateResolution();redraw();raf=requestAnimationFrame(render);const activeStream=stream;stream.getAudioTracks()[0].addEventListener('ended',()=>{if(running&&stream===activeStream){stop();notice('The microphone disconnected. Tap Start microphone to reconnect.')}});audio.addEventListener('statechange',()=>{if(running&&audio?.state==='suspended'){state('INTERRUPTED');notice('Audio was interrupted. Tap Resume audio to continue.');setIcon('start','▶','Resume audio')}})}catch(e){if(!returningHome){if(e.name==='NotAllowedError')window.SoundglowDiagnostics?.event('microphone.permission_denied');else window.SoundglowDiagnostics?.capture(e,'microphone.start_failed');}stop();if(!returningHome){notice(microphoneError(e));panel(true);microphones();}}finally{starting=false;returningHome=false;setBusy(false)}}
 function selectedPresetLabel(){return ({soundglow:'Soundglow',praat:'Praat',voice:'Voice Tools',custom:'Unnamed Preset*'})[settingsState.selected]||savedPresets.find(p=>p.id===settingsState.selected)?.name||'Unnamed Preset*'}
 function updateResolution(){feedbackUI.publish({resolution:window.soundglowSession?.viewLabel?.()||selectedPresetLabel()})}
 
@@ -376,6 +376,7 @@ function playFrom(offset){
   speechNode.start(0,clipOffset);last=0;previousSlice=null;updatePosition();
 }
 async function startSpeech(){
+  if(renderFailed)return;
   if(fileLibrary)$('fileTransport').hidden=true;
   if(starting)return;revealActiveView();
   if(running&&inputMode==='speech'){
@@ -405,6 +406,25 @@ transportUI.connect({openAudio(){openFilesPanel();$('audioFileInput').click()},s
 });
 function setIcon(id,icon,label){transportUI.publish(id==='start'?{startIcon:icon==='■'?'stop':icon==='▶'?'play':icon==='🎙︎'?'microphone':'record',startLabel:label}:{pauseIcon:icon==='▶'?'play':'pause',pauseLabel:label})}
 
+window.SoundglowShell.connectRecovery(()=>{
+  renderFailed=true;returningHome=true;fileConnectEpoch++;filePreviewGeneration++;
+  // The failed React tree has gone: shut down resources without repainting it.
+  running=false;paused=true;cancelAnimationFrame(raf);
+  const context=audio;audio=null;
+  const cleanup=[
+    ()=>stream?.getTracks().forEach(track=>track.stop()),
+    ()=>context?.close().catch(()=>{}),
+    ()=>fileLibrary?.pause(),
+    ()=>{if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}},
+    ()=>{engine?.dispose();engine=null;},
+    ()=>{pcmNode?.disconnect();pcmNode=null;},
+    ()=>{source?.disconnect();stream=source=null;monitor?.disconnect();monitor=null;},
+    ()=>notifyFeatures('stop'),
+  ];
+  let failure;
+  for(const release of cleanup)try{release()}catch(error){failure||=error;}
+  if(failure)throw failure;
+});
 window.SoundglowShell.connectHome(()=>{
   returningHome=starting;
   stop();showSpectrogram();redraw();notice('');
@@ -572,6 +592,7 @@ fileLibrary=new SoundglowAudioLibrary.AudioLibrary({
  context:()=>audio,
  release(){fileConnectEpoch++;if(running||starting)stop();else clearFileView();},
  async connect(media){
+  if(renderFailed)throw new Error('Audio stopped after a display error');
   stop(true);const epoch=++fileConnectEpoch;starting=true;setBusy(true);notice('');
   try{
    fileAudioContext ||= new (window.AudioContext||window.webkitAudioContext)();audio=fileAudioContext;

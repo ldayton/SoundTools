@@ -56,6 +56,7 @@ function savedSpec(): ExerciseSpec {
 const generateExercise = (input: unknown) => generateBoundedExercise(input, Infinity);
 let spec = savedSpec();
 let exercise = generateExercise(spec);
+let renderFailed = false;
 let mode: 'ready' | 'starting' | 'playing' | 'paused' | 'complete' = 'ready';
 let playRequest = 0;
 let position = 0;
@@ -86,6 +87,12 @@ const practiceModel = createViewState<PracticeSnapshot>({
   toast: '',
 });
 mountAppShell($('#app'), {
+  shutdown: () => {
+    renderFailed = true;
+    ++playRequest;
+    player.shutdown();
+    cancelAnimationFrame(raf);
+  },
   selection: (selected: () => void) =>
     createElement(ExerciseSelection, {
       model: builderModel,
@@ -304,7 +311,7 @@ player.onStateChange = (state, nextPosition, reason) => {
   if (reason === 'scheduling-gap') toast('Playback paused after a delay. Resume to continue.');
 };
 async function togglePlay() {
-  if (pianoWarming || formError) return;
+  if (renderFailed || pianoWarming || formError) return;
   if (pianoFailed) {
     void warmPiano();
     return;
@@ -333,7 +340,7 @@ async function toggleFullscreen() {
 }
 document.addEventListener('keydown', (event) => {
   if (
-    location.hash === '#settings' ||
+    renderFailed || location.hash === '#settings' ||
     (event.target as HTMLElement).closest(
       'a[href], input, select, textarea, button, summary, dialog, [role="dialog"], [role="spinbutton"], [role="slider"]'
     ) ||

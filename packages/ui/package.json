@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./provider.tsx",
+    "./render-error-boundary": "./render-error-boundary.tsx",
     "./view-state": "./view-state.ts",
     "./pitch-field": "./pitch-field.tsx",
     "./retained-content": "./retained-content.tsx",

@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState, useSyncExternalStore, type ReactNode }
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { Anchor, Button, Modal, NavLink, Stack, Text } from '@mantine/core';
+import { RenderErrorBoundary } from '@ldayton/ui/render-error-boundary';
 import { SoundToolsProvider } from '@ldayton/ui';
 import {
   ApplicationLayout,
@@ -20,6 +21,7 @@ export type AppViews = {
   practice: ReactNode;
   settingsView: ReactNode;
   pause(): void;
+  shutdown(): void;
 };
 function AppShell({ selection, title, volume, builder, practice, settingsView, pause }: AppViews) {
   const [help, setHelp] = useState(false);
@@ -168,9 +170,15 @@ export function mountAppShell(element: HTMLElement, views: AppViews) {
   flushSync(() =>
     root.render(
       <StrictMode>
-        <SoundToolsProvider primaryColor="lime" pageColor="#f5f6f1">
-          <AppShell {...views} />
-        </SoundToolsProvider>
+        <RenderErrorBoundary
+          appName="DoReGo"
+          onStop={views.shutdown}
+          onError={(error) => diagnostics.capture(error, 'shell.render_failed')}
+        >
+          <SoundToolsProvider primaryColor="lime" pageColor="#f5f6f1">
+            <AppShell {...views} />
+          </SoundToolsProvider>
+        </RenderErrorBoundary>
       </StrictMode>
     )
   );

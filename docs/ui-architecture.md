@@ -13,6 +13,11 @@ final pass is recorded in [ui-final-pass.md](ui-final-pass.md).
 | SongAlong | The same music-practice shell and components, selected by the SongAlong profile | Hymn interpretation, playback, matching and passage gestures |
 | Soundglow | `apps/soundglow/src/ui` | Existing capture, DSP, analysis workers, file storage, playback, waveform and canvas controllers |
 
+A shared RenderErrorBoundary surrounds each provider and shell. A fatal render
+error reports through the app diagnostics, shuts down audio and practice input,
+and replaces the failed tree with a focused Reload screen. Recovery preserves
+saved data and reloads the current URL; it does not retry a damaged session.
+
 Each app has one React root and one SoundToolsProvider. Ordinary controls use
 Mantine directly, including its normal layout, sizes, focus and overlay behavior.
 Specialist renderers retain stable hosts across React updates and responsive

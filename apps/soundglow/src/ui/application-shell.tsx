@@ -19,6 +19,7 @@ import {
   Text,
   UnstyledButton,
 } from "@mantine/core";
+import { RenderErrorBoundary } from "@ldayton/ui/render-error-boundary";
 import { SoundToolsProvider } from "@ldayton/ui";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { PanelIcon } from "@ldayton/ui/panel-icon";
@@ -58,6 +59,8 @@ export function mountApplicationShell() {
   )!.href;
   let updateLibrary: Dispatch<SetStateAction<LibraryActions | null>> = () => {};
   let home: (() => void) | undefined;
+  let recoveryStop: (() => void) | undefined;
+  let renderFailed = false;
   function LibraryOutlet() {
     const [controller, setController] = useState<LibraryActions | null>(null);
     useLayoutEffect(() => {
@@ -422,13 +425,25 @@ export function mountApplicationShell() {
   });
   flushSync(() =>
     root.render(
-      <SoundToolsProvider
-        colorScheme="dark"
-        primaryColor="orange"
-        pageColor="#080b10"
+      <RenderErrorBoundary
+        appName="Soundglow"
+        dark
+        onStop={() => {
+          renderFailed = true;
+          recoveryStop?.();
+        }}
+        onError={(error) =>
+          window.SoundglowDiagnostics?.capture(error, "shell.ui_failed")
+        }
       >
-        <Shell />
-      </SoundToolsProvider>,
+        <SoundToolsProvider
+          colorScheme="dark"
+          primaryColor="orange"
+          pageColor="#080b10"
+        >
+          <Shell />
+        </SoundToolsProvider>
+      </RenderErrorBoundary>,
     ),
   );
   // The root lives with its document. Do not unmount on pagehide: audio shutdown
@@ -440,6 +455,10 @@ export function mountApplicationShell() {
     },
     detachLibrary(controller: LibraryActions) {
       updateLibrary((current) => (current === controller ? null : current));
+    },
+    connectRecovery(stop: () => void) {
+      recoveryStop = stop;
+      if (renderFailed) stop();
     },
     connectHome(action: () => void) {
       home = action;

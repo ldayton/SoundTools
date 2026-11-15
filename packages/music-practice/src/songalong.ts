@@ -1,3 +1,4 @@
+import { shutdownPianoSound } from "./piano-audio";
 import { preventRepeatedButtonActivation } from "./input-guards";
 import { mountAppShell } from "./app-shell";
 import { SightReading } from "./sight-reading";
@@ -18,7 +19,15 @@ let route = readRoute(new URL(location.href), "sight");
 let practice: SightReading | undefined;
 let midi: ReturnType<typeof mountMidiPanel> | undefined;
 let ready = false;
+let renderFailed = false;
 const shell = mountAppShell(document.querySelector<HTMLElement>("#app")!, {
+  shutdown() {
+    renderFailed = true;
+    ready = false;
+    shutdownPianoSound();
+    midi?.setAccepting(false);
+    practice?.dispose();
+  },
   navigate: visit,
   interrupt,
   inputChanged: refreshInput,
@@ -38,6 +47,7 @@ midi.setPerformanceListener((note, held, timestamp) => {
 });
 function acceptsInput() {
   return (
+    !renderFailed &&
     ready &&
     persistence.writable &&
     route.kind === "exercise" &&
@@ -58,6 +68,7 @@ function interrupt(reason: Interruption) {
   refreshInput();
 }
 function render() {
+  if (renderFailed) return;
   diagnosticsContext({ mode: "sight", phase: ready ? "question" : "loading" });
   shell.render(route, "sight");
   practice?.leave();

@@ -1,3 +1,4 @@
+import { shutdownPianoSound } from "./piano-audio";
 import { preventRepeatedButtonActivation } from "./input-guards";
 import { practicePresentation } from "./practice-presentation";
 import { shellStatus } from "./shell-status";
@@ -171,6 +172,12 @@ function syncDiagnosticsContext() {
   });
 }
 const shell = mountAppShell($("#app"), {
+  shutdown() {
+    feedbackAdvance.cancel();
+    // Silence audio even if a controller fails while disposing.
+    shutdownPianoSound();
+    activities.dispose();
+  },
   navigate: visit,
   interrupt: (reason) => activities.interrupt(reason),
   inputChanged: refreshMidiAcceptance,

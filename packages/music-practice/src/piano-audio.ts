@@ -48,6 +48,7 @@ export function setPianoVolume(value: number) {
 let epoch = 0;
 let warming = false;
 let departing = false;
+let disabled = false;
 let reportedFailure = false;
 const voices = new Set<() => void>();
 function load(root: number) {
@@ -101,7 +102,13 @@ function audio() {
   return context;
 }
 export async function playPianoNote(midi: number) {
-  if (!Number.isInteger(midi) || midi < 36 || midi > 95 || document.hidden)
+  if (
+    disabled ||
+    !Number.isInteger(midi) ||
+    midi < 36 ||
+    midi > 95 ||
+    document.hidden
+  )
     return;
   const request = epoch;
   try {
@@ -156,6 +163,7 @@ export async function playPianoNote(midi: number) {
 }
 /** A prepared, cancellable audio-clock output for score playback. */
 export async function preparePianoPlayback(pitches: number[]) {
+  if (disabled) throw new Error("Audio stopped after a display error");
   const ctx = audio();
   const resume = ctx.state === "running" ? Promise.resolve() : ctx.resume();
   const rootFor = (midi: number) =>
@@ -186,9 +194,10 @@ export async function preparePianoPlayback(pitches: number[]) {
       return ctx.currentTime;
     },
     get running() {
-      return ctx.state === "running" && !document.hidden;
+      return !disabled && ctx.state === "running" && !document.hidden;
     },
     schedule(midi: number, when: number, duration: number, volume = 1) {
+      if (disabled) return;
       const root = rootFor(midi),
         source = ctx.createBufferSource(),
         gain = ctx.createGain();
@@ -224,6 +233,7 @@ export async function preparePianoPlayback(pitches: number[]) {
       source.stop(end + 0.01);
     },
     click(when: number, accent: boolean) {
+      if (disabled) return;
       const source = ctx.createOscillator(),
         gain = ctx.createGain();
       source.frequency.value = accent ? 1200 : 850;
@@ -256,6 +266,11 @@ export async function preparePianoPlayback(pitches: number[]) {
       for (const stop of [...owned]) stop();
     },
   };
+}
+export function shutdownPianoSound() {
+  disabled = true;
+  departing = true;
+  stopPiano();
 }
 function stopPiano() {
   epoch++;

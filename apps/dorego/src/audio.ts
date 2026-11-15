@@ -173,6 +173,11 @@ export class Player {
       throw error;
     }
   }
+  /** Terminal shutdown for a failed UI; also silence Tone's persistent nodes. */
+  shutdown() {
+    this.halt();
+    void playbackContext?.suspend().catch(() => {});
+  }
   pause() {
     this.halt();
     this.publish('paused');

@@ -1,3 +1,4 @@
+import { RenderErrorBoundary } from "@ldayton/ui/render-error-boundary";
 import { RendererLifetime } from "./renderer-lifetime";
 import {
   ApplicationLayout,
@@ -65,6 +66,7 @@ export function mountAppShell(
     navigate(url: URL, push: boolean): void;
     interrupt(reason: Interruption): void;
     inputChanged(): void;
+    shutdown(): void;
   },
 ) {
   const activityElements = [
@@ -102,6 +104,7 @@ export function mountAppShell(
       model.set({ ...model.getSnapshot(), ...patch });
     },
   };
+  let renderFailed = false;
   let focusAfterNavigation = false;
   function focusTitle() {
     $("#page-title").focus({ preventScroll: true });
@@ -334,12 +337,21 @@ export function mountAppShell(
   flushSync(() =>
     root.render(
       <StrictMode>
-        <SoundToolsProvider
-          primaryColor={APP.color}
-          pageColor={APP.id === "songalong" ? "#f0f5f3" : "#f8f9fa"}
+        <RenderErrorBoundary
+          appName={APP.name}
+          onStop={() => {
+            renderFailed = true;
+            events.shutdown();
+          }}
+          onError={(error) => diagnostics.capture(error, "shell.render_failed")}
         >
-          <Shell />
-        </SoundToolsProvider>
+          <SoundToolsProvider
+            primaryColor={APP.color}
+            pageColor={APP.id === "songalong" ? "#f0f5f3" : "#f8f9fa"}
+          >
+            <Shell />
+          </SoundToolsProvider>
+        </RenderErrorBoundary>
       </StrictMode>,
     ),
   );
@@ -358,7 +370,9 @@ export function mountAppShell(
     },
     get inputBlocked() {
       return (
-        store.getSnapshot().navigationOpen || store.getSnapshot().keyboardOpen
+        renderFailed ||
+        store.getSnapshot().navigationOpen ||
+        store.getSnapshot().keyboardOpen
       );
     },
     closeMenus() {

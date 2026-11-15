@@ -12,6 +12,7 @@ import { mkdir, mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import assert from "node:assert/strict";
+import { expect } from "@playwright/test";
 const engine = process.env.TEST_BROWSER || "chromium";
 const type = { chromium, firefox, webkit }[engine]!;
 const port = process.env.TEST_PORT || "4334";
@@ -385,11 +386,14 @@ try {
   }
   await page.locator("#low-spin").focus();
   await page.keyboard.press("PageUp");
-  assert.equal(await page.locator("#low-spin").inputValue(), "C3");
+  await expect(page.locator("#low-spin")).toHaveValue("C3");
   await page.keyboard.press("Enter");
+  const picker = page.locator("#low-spin-picker");
+  await expect(picker.getByRole("button", { name: "C3", exact: true })).toBeFocused();
   await page.keyboard.press("ArrowDown");
+  await expect(picker.getByRole("button", { name: "C4", exact: true })).toBeFocused();
   await page.keyboard.press("Enter");
-  assert.equal(await page.locator("#low-spin").inputValue(), "C4");
+  await expect(page.locator("#low-spin")).toHaveValue("C4");
 
   // Notation changes never change the sounding answer, including MIDI-only notes.
   await page.evaluate(() => (Math.random = () => 0));

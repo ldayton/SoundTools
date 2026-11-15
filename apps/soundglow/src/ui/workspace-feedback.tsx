@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore, type ReactNode } from "react";
-import {
-  Alert,
-  Badge,
-  Box,
-  Button,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Alert, Badge, Box, Button, Stack, Text, Title } from "@mantine/core";
 import { createViewState } from "@ldayton/ui/view-state";
 type View = {
   state: string;

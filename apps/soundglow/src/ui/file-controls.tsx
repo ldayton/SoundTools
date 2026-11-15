@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { ControlIcon } from "@ldayton/ui/control-icon";
 import { useSyncExternalStore } from "react";
 import {
   ActionIcon,
@@ -57,7 +58,7 @@ export function createFileControls() {
           disabled={view.loading}
           onClick={() => actions?.restart()}
         >
-          ↤
+          <ControlIcon name="restart" />
         </ActionIcon>
         <Button
           id="fileBack"
@@ -101,7 +102,7 @@ export function createFileControls() {
           disabled={!view.zoomed || view.loading}
           onClick={() => actions?.zoom(2)}
         >
-          −
+          <ControlIcon name="minus" />
         </ActionIcon>
         <ActionIcon
           id="waveformZoomIn"
@@ -111,7 +112,7 @@ export function createFileControls() {
           disabled={!view.canZoomIn || view.loading}
           onClick={() => actions?.zoom(0.5)}
         >
-          +
+          <ControlIcon name="plus" />
         </ActionIcon>
         <Button
           id="waveformShowAll"

@@ -1,5 +1,7 @@
 # SoundTools UI
 
+Current cross-app architecture: [docs/ui-architecture.md](../../docs/ui-architecture.md).
+
 One React root and `SoundToolsProvider` per application. Import ordinary widgets
 straight from `@mantine/core`; the provider changes only the primary brand color and page tone
 and imports Mantine's complete default stylesheet. Keep its normal sizes,
@@ -10,12 +12,13 @@ Share behavior with real consumers, not wrappers around every library component:
 
 - `responsive-pitch-field`: owns labels, desktop popup, optional mobile wheel,
   dismissal, focus and lifecycle. Callers supply musical choices/constraints.
-- `tempo-control`, `committed-number`, `volume-control`: common editing and mute
+- `tempo-control`, `committed-number`, `volume-control`: common editing (Enter/blur commit, Escape cancel, optional decimals/rejection/reset) and mute
   presentation; controllers retain musical timing and saved-unit conversions.
-- `diagnostic-consent`, `offline-status-panel`: consistent presentation while
+- `privacy-section`, `diagnostic-consent`, `offline-status-panel`: consistent presentation while
   service clients retain consent and caching lifecycles.
 - `round-actions`: repeated round navigation; no grading or playback logic.
 - `retained-content`: stable boundary for existing notation/instrument renderers.
+- `control-icon`, `panel-icon`: fixed shared SVG artwork for common actions.
 - `view-state`: stable serializable UI snapshots. Do not send audio frames or
   buffers through React state.
 

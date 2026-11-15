@@ -15,7 +15,12 @@ import { createViewState } from "@ldayton/ui/view-state";
 import pitchOptions from "./pitch-options.json";
 import { CommittedNumber } from "@ldayton/ui/committed-number";
 
-import type { PitchValues, PitchKey, PitchEdit, PitchLimits } from "../settings-contracts";
+import type {
+  PitchValues,
+  PitchKey,
+  PitchEdit,
+  PitchLimits,
+} from "../settings-contracts";
 const basicFields = {
   pitchMinimum: "minimum",
   pitchMaximum: "maximum",
@@ -61,14 +66,19 @@ export function createPitchControls(
     id,
     label,
   }: {
-    id: { [K in keyof typeof basicFields]: PitchValues[typeof basicFields[K]] extends number ? K : never }[keyof typeof basicFields];
+    id: {
+      [
+        K in keyof typeof basicFields
+      ]: (typeof basicFields)[K] extends keyof PitchLimits ? K : never;
+    }[keyof typeof basicFields];
     label: string;
   }) {
     const view = useSyncExternalStore(model.subscribe, model.getSnapshot),
       field = basicFields[id],
       bounds = limits[field];
     return (
-      <CommittedNumber allowDecimal
+      <CommittedNumber
+        allowDecimal
         id={id}
         label={label}
         value={Number(view.values[field])}
@@ -262,7 +272,8 @@ export function createPitchControls(
                   Band {index + 1}
                 </Title>
                 <Group grow wrap="nowrap">
-                  <CommittedNumber allowDecimal
+                  <CommittedNumber
+                    allowDecimal
                     id={`pitchBand${index}Low`}
                     label="From (Hz)"
                     aria-label={`Band ${index + 1} low Hz`}
@@ -278,7 +289,8 @@ export function createPitchControls(
                       ) ?? false
                     }
                   />
-                  <CommittedNumber allowDecimal
+                  <CommittedNumber
+                    allowDecimal
                     id={`pitchBand${index}High`}
                     label="To (Hz)"
                     aria-label={`Band ${index + 1} high Hz`}

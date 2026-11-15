@@ -79,7 +79,7 @@ const engines = require("playwright");
     );
     assert.deepEqual(errors, []);
     console.log(
-      `PASS shared UI/${engine}: drafts, Escape, Enter once, blur, bounds, decimals, rejection, reset, external changes step controls and isolated playback subscriptions`,
+      `PASS shared UI/${engine}: drafts, Escape, Enter once, blur, bounds, decimals, rejection, reset, external changes, step controls and isolated playback subscriptions`,
     );
   } finally {
     await browser?.close();

@@ -1,5 +1,7 @@
 # Note by Note UI migration
 
+Historical migration record. See [ui-architecture.md](ui-architecture.md) for current ownership, development and test instructions.
+
 Scope: finish the Note by Note React/Mantine migration locally. Preserve music,
 audio, MIDI, saved progress and offline behavior. Commit tested milestones; do not push.
 DoReGo and Soundglow are outside this milestone.

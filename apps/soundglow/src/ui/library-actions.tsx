@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { ControlIcon } from "@ldayton/ui/control-icon";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal, flushSync } from "react-dom";
 import {
@@ -206,7 +207,7 @@ function LibraryRow({
                 aria-label={`Actions for ${row.kind} ${row.name}`}
                 title="More actions"
               >
-                ⋯
+                <ControlIcon name="more" />
               </ActionIcon>
             </Menu.Target>
             <LibraryMenuItems

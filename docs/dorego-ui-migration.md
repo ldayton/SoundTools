@@ -1,5 +1,7 @@
 # DoReGo React/Mantine migration: unattended work plan
 
+Historical migration record. See [ui-architecture.md](ui-architecture.md) for current ownership, development and test instructions.
+
 Status: complete and verified locally. Not pushed or deployed.
 
 ## Objective and finish line

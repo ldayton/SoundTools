@@ -1,5 +1,7 @@
 # UI consistency follow-through
 
+Historical migration record. See [ui-architecture.md](ui-architecture.md) for current ownership, development and test instructions.
+
 Authorization: finish all six milestones autonomously, commit each tested local
 milestone, then push, verify CI/deployments and interactively test both live apps.
 Keep the computer muted. Do not rewrite musical, audio or persistence engines.

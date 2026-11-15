@@ -3,7 +3,11 @@ import { NumberInput } from "@mantine/core";
 
 /** Draft text is local. Only committed values reach the settings owner. */
 export function CommittedNumber({
-  value, change, reset = 0, allowDecimal = false, ...props
+  value,
+  change,
+  reset = 0,
+  allowDecimal = false,
+  ...props
 }: {
   value: number;
   change(value: number): boolean | void;
@@ -31,7 +35,10 @@ export function CommittedNumber({
     dirty.current = false;
     const number = current.current === "" ? NaN : Number(current.current);
     const next = Number.isFinite(number)
-      ? Math.max(props.min, Math.min(props.max, allowDecimal ? number : Math.trunc(number)))
+      ? Math.max(
+          props.min,
+          Math.min(props.max, allowDecimal ? number : Math.trunc(number)),
+        )
       : value;
     current.current = next;
     setDraft(next);
@@ -59,7 +66,10 @@ export function CommittedNumber({
         setDraft(next);
       }}
       onValueChange={(values, info) => {
-        if (["increment", "decrement"].includes(info.source as string) && values.floatValue !== undefined) {
+        if (
+          ["increment", "decrement"].includes(info.source as string) &&
+          values.floatValue !== undefined
+        ) {
           current.current = values.floatValue;
           dirty.current = true;
           commit();

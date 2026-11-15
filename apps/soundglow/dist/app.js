@@ -403,7 +403,7 @@ transportUI.connect({openAudio(){openFilesPanel();$('audioFileInput').click()},s
  loop(enabled){exampleLoop=enabled;if(speechNode){const position=speechPosition();clipOffset=position;clipStarted=audio.currentTime;speechNode.loop=enabled}publishTransport()},
  listen(enabled){exampleListen=enabled;if(monitor)monitor.gain.value=enabled?1:0;publishTransport()}
 });
-function setIcon(id,icon,label){transportUI.publish(id==='start'?{startIcon:icon==='🎙︎'?'●':icon,startLabel:label}:{pauseIcon:icon,pauseLabel:label})}
+function setIcon(id,icon,label){transportUI.publish(id==='start'?{startIcon:icon==='■'?'stop':icon==='▶'?'play':icon==='🎙︎'?'microphone':'record',startLabel:label}:{pauseIcon:icon==='▶'?'play':'pause',pauseLabel:label})}
 
 window.SoundglowShell.connectHome(()=>{
   returningHome=starting;

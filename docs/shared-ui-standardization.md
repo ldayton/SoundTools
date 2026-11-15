@@ -1,5 +1,7 @@
 # Two-app UI standardization
 
+Historical migration record. See [ui-architecture.md](ui-architecture.md) for current ownership, development and test instructions.
+
 Scope: DoReGo and Note by Note. Incremental local commits only; no push/deploy.
 
 1. Share the controlled pitch field and retained-renderer boundary. Remove Note by

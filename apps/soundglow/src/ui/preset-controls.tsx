@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { ControlIcon } from "@ldayton/ui/control-icon";
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ActionIcon,
@@ -236,7 +237,7 @@ function createPresetControls(pitch: boolean) {
             aria-controls={ids.dialog}
             onClick={() => handlers?.open()}
           >
-            ✎
+            <ControlIcon name="edit" />
           </ActionIcon>
         </Group>
         <PresetDialog

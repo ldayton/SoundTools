@@ -726,7 +726,9 @@ analysis is delayed or unavailable, while native file playback remains usable.
 The application shell and ordinary controls/dialogs are built from React/Mantine
 source in `src/ui/`; audio, analysis and custom canvas/gesture engines retain their
 existing owners.
-`npm run dev` prepares that bundle before starting the cache-free source preview;
-run `npm run build:ui` and reload after UI-source edits during a running preview.
-See [the UI ownership and migration notes](../../docs/soundglow-ui-migration.md) for
-its ownership boundary, release packaging and local checks.
+`npm run dev` builds and watches that bundle while running the cache-free preview.
+Reload after a successful UI rebuild; current audio is not interrupted automatically.
+Shared-package edits are watched too. Build failures block HTML/UI requests with
+503 until repaired, rather than quietly serving an older bundle.
+See [the current UI architecture](../../docs/ui-architecture.md) for ownership,
+release packaging and local/cross-browser checks.

@@ -437,62 +437,6 @@ canvas[hidden],
   overflow: auto;
   margin: 12px 0;
 }
-.library-row {
-  display: flex;
-  gap: 4px;
-  align-items: stretch;
-  min-width: 0;
-}
-.library-item {
-  flex: 1;
-  min-width: 0;
-  min-height: 44px;
-  padding: 8px 10px;
-  text-align: left;
-}
-#audioFileList .library-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.library-item-name {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  line-height: 18px;
-  max-height: 36px;
-}
-.library-item small {
-  margin: 0;
-  color: #a8b5c5;
-  font-size: 11px;
-}
-#audioFileList small {
-  flex-shrink: 0;
-}
-#audioFileList .library-item[aria-pressed="true"] {
-  border-color: #f2ac77;
-  background: #f2ac7715;
-}
-.library-more {
-  flex: 0 0 30px;
-  width: 30px;
-  min-height: 44px;
-  padding: 0;
-  background: transparent;
-  border-color: transparent;
-  font-size: 22px;
-  opacity: 0;
-}
-.library-row:hover .library-more,
-.library-row:focus-within .library-more,
-.library-more[aria-expanded="true"] {
-  opacity: 1;
-}
 #fileTransport {
   flex: 0 0 auto;
   padding: 12px 20px;

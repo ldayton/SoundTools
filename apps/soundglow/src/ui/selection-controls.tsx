@@ -166,7 +166,8 @@ export function createSelectionControls() {
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               {children}
               <Group align="flex-start" grow>
-                <CommittedNumber allowDecimal
+                <CommittedNumber
+                  allowDecimal
                   id="fileLoopStart"
                   label="Passage start (seconds)"
                   value={view.start}
@@ -176,7 +177,8 @@ export function createSelectionControls() {
                   reset={view.revision}
                   change={(value) => actions?.bounds(value, view.end) ?? false}
                 />
-                <CommittedNumber allowDecimal
+                <CommittedNumber
+                  allowDecimal
                   id="fileLoopEnd"
                   label="Passage end (seconds)"
                   value={view.end}

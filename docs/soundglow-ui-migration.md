@@ -1,25 +1,8 @@
 # Soundglow UI migration
 
-## Current ownership
-
-Soundglow uses one document-lifetime React root and the shared dark/orange
-SoundToolsProvider. `src/ui/application-shell.tsx` owns navigation and retained
-renderer hosts; library rows/menus/dialogs now join that same root. Explicit React
-components own spectrogram/pitch settings, preset editors, microphone/example/file
-transport, selection/bookmark creation, offline/update/consent/performance controls,
-and welcome/status feedback. The shared consent, offline and volume components are
-used directly. Native file input change handling is React-owned too.
-
-`dist/app.js`, `workspace.js`, `audio-library.js` and `updates.js` retain validated
-models, persistence, audio, analysis and cache policies. Their UI interfaces publish
-small projections and receive commands. Renderer arrays and audio buffers stay
-outside React; progress/time have isolated subscriptions. Retained canvas/waveform
-hosts, their geometry, pointer gestures and ruler remain engine-owned. Controllers
-never assign values/text/listeners inside React control trees.
-
-The ordered commits, tests and limitations are recorded in
-[soundglow-ui-migration-plan.md](soundglow-ui-migration-plan.md). The notes below
-preserve the earlier milestones and their historical measurements.
+This is a historical milestone record. The current ownership and development
+contract is [ui-architecture.md](ui-architecture.md); final follow-up work is
+recorded in [ui-final-pass.md](ui-final-pass.md).
 
 ## Initial foundation (historical)
 

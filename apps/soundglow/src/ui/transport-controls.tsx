@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { ControlIcon } from "@ldayton/ui/control-icon";
 import { useSyncExternalStore } from "react";
 import {
   Accordion,
@@ -22,9 +23,9 @@ type View = {
   busy: boolean;
   pauseEnabled: boolean;
   hidePause: boolean;
-  startIcon: string;
+  startIcon: "record" | "stop" | "microphone" | "play";
   startLabel: string;
-  pauseIcon: string;
+  pauseIcon: "play" | "pause";
   pauseLabel: string;
   devices: { value: string; label: string }[];
   microphone: string;
@@ -53,9 +54,9 @@ export function createTransportControls() {
     busy: false,
     pauseEnabled: false,
     hidePause: false,
-    startIcon: "●",
+    startIcon: "record",
     startLabel: "Start microphone",
-    pauseIcon: "⏸",
+    pauseIcon: "pause",
     pauseLabel: "Pause",
     devices: [],
     microphone: "",
@@ -81,7 +82,7 @@ export function createTransportControls() {
           title={view.startLabel}
           onClick={() => actions?.start()}
         >
-          {view.startIcon}
+          <ControlIcon name={view.startIcon} />
         </ActionIcon>
         <ActionIcon
           id="freeze"
@@ -94,7 +95,7 @@ export function createTransportControls() {
           aria-keyshortcuts="Space"
           onClick={() => actions?.pause()}
         >
-          {view.pauseIcon}
+          <ControlIcon name={view.pauseIcon} />
         </ActionIcon>
       </Group>
     );
@@ -192,7 +193,7 @@ export function createTransportControls() {
             title="Refresh microphones"
             onClick={() => actions?.refresh()}
           >
-            ↻
+            <ControlIcon name="refresh" />
           </ActionIcon>
         </Group>
         <Text id="microphoneScope" size="xs" c="dimmed" hidden={!view.example}>

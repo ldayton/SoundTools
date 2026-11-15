@@ -15,8 +15,8 @@ export default defineConfig({
       entry: resolve(__dirname, "src/ui/index.ts"),
       name: "SoundglowUI",
       formats: ["iife"],
-      fileName: () => "library-ui.js",
-      cssFileName: "library-ui",
+      fileName: () => "soundglow-ui.js",
+      cssFileName: "soundglow-ui",
     },
   },
 });

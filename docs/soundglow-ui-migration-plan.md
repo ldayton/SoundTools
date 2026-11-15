@@ -1,5 +1,7 @@
 # Soundglow: remaining React/Mantine migration
 
+Historical migration record. See [ui-architecture.md](ui-architecture.md) for current ownership, development and test instructions.
+
 ## Starting point and authorization
 
 - Library menus/dialogs and dark theme: `1b4df1f`.

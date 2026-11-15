@@ -15,9 +15,15 @@ import { SettingsSlider } from "./settings-slider";
 import { createViewState } from "@ldayton/ui/view-state";
 
 import {
-  displayControlIds, colourControlIds, formantControlIds, analysisControlIds,
-  advancedColourIds, settingIds,
-  type SettingId, type SpectrogramValues as Values, type SettingRegistry as Registry,
+  displayControlIds,
+  colourControlIds,
+  formantControlIds,
+  analysisControlIds,
+  advancedColourIds,
+  settingIds,
+  type SettingId,
+  type SpectrogramValues as Values,
+  type SettingRegistry as Registry,
   type SpectrogramEdit,
 } from "../settings-contracts";
 export { displayControlIds, colourControlIds } from "../settings-contracts";
@@ -44,7 +50,9 @@ export function createSpectrogramControls(registry: Registry) {
     Object.fromEntries(settingIds.map((id) => [id, values[id]])) as Values;
   const model = createViewState(
     project(
-      Object.fromEntries(settingIds.map((id) => [id, registry[id].default])) as Values,
+      Object.fromEntries(
+        settingIds.map((id) => [id, registry[id].default]),
+      ) as Values,
     ),
   );
   let edit: SpectrogramEdit | undefined;

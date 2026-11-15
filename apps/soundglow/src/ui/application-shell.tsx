@@ -20,6 +20,8 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { SoundToolsProvider } from "@ldayton/ui";
+import { ControlIcon } from "@ldayton/ui/control-icon";
+import { PanelIcon } from "@ldayton/ui/panel-icon";
 import { RetainedContent } from "@ldayton/ui/retained-content";
 import { createViewState } from "@ldayton/ui/view-state";
 import "./shell.css";
@@ -214,7 +216,13 @@ export function mountApplicationShell() {
         {createPortal(<Selection />, selectionHost)}
         {createPortal(<FileTime />, fileTimeHost)}
         {createPortal(<Offline />, offlineHost)}
-        {createPortal(<><Privacy /><Developer /></>, developerHost)}
+        {createPortal(
+          <>
+            <Privacy />
+            <Developer />
+          </>,
+          developerHost,
+        )}
         {createPortal(<Update />, retained.actions)}
         {createPortal(
           <Welcome>
@@ -283,7 +291,7 @@ export function mountApplicationShell() {
               aria-controls="panel"
               onClick={() => panel(!view.open)}
             >
-              ⚙
+              <ControlIcon name="settings" />
             </ActionIcon>
           </Group>
         </Box>
@@ -303,18 +311,7 @@ export function mountApplicationShell() {
             aria-controls="panel"
             onClick={() => panel(!view.open)}
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              aria-hidden="true"
-            >
-              <rect x="3" y="4" width="18" height="16" rx="2" />
-              <path d="M9 4v16" />
-            </svg>
+            <PanelIcon />
           </ActionIcon>
           <span className="toolbarDivider" aria-hidden="true" />
           <RetainedContent
@@ -375,7 +372,12 @@ export function mountApplicationShell() {
                   aria-controls="filesBody"
                   onClick={() => patch({ files: !view.files })}
                 >
-                  Files <span aria-hidden="true">{view.files ? "⌄" : "›"}</span>
+                  Files{" "}
+                  <span aria-hidden="true">
+                    <ControlIcon
+                      name={view.files ? "chevron-down" : "chevron-right"}
+                    />
+                  </span>
                 </UnstyledButton>
               </Box>
               <Box hidden={!view.files} className="shell-retained">
@@ -395,7 +397,11 @@ export function mountApplicationShell() {
                   onClick={() => patch({ settings: !view.settings })}
                 >
                   Settings{" "}
-                  <span aria-hidden="true">{view.settings ? "⌄" : "›"}</span>
+                  <span aria-hidden="true">
+                    <ControlIcon
+                      name={view.settings ? "chevron-down" : "chevron-right"}
+                    />
+                  </span>
                 </UnstyledButton>
               </Box>
             </Box>

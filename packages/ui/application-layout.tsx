@@ -1,3 +1,4 @@
+import { ControlIcon } from "./control-icon";
 import { PanelIcon } from "./panel-icon";
 import { useEffect, type ReactNode } from "react";
 import {
@@ -51,19 +52,7 @@ export function SettingsNavigationLink({
       active={active}
       aria-current={active ? "page" : undefined}
       onClick={onClick}
-      leftSection={
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          aria-hidden="true"
-        >
-          <path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-7 0v6" />
-        </svg>
-      }
+      leftSection={<ControlIcon name="settings" />}
       rightSection={
         updateAvailable ? (
           <Indicator color="orange" position="middle-center">

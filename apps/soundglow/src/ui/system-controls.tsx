@@ -82,7 +82,9 @@ export function createSystemControls() {
   }
   function Privacy() {
     const client = window.SoundglowDiagnostics;
-    return client ? <PrivacySection id="shareDiagnostics" client={client} /> : null;
+    return client ? (
+      <PrivacySection id="shareDiagnostics" client={client} />
+    ) : null;
   }
   function Developer() {
     const enabled = useSyncExternalStore(

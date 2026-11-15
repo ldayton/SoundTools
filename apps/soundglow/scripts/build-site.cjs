@@ -8,7 +8,7 @@ function build({source=path.resolve('dist'),out=path.resolve('site'),base=proces
  require('./prepare-diagnostics.cjs');
  const publicFile=f=>!f.endsWith('.map');
  const sourceFiles=files(source).filter(publicFile),read=f=>fs.readFileSync(path.join(source,f));
- for(const file of ['ui/library-ui.js','ui/library-ui.css'])if(!sourceFiles.includes(file))throw Error('Missing React UI build. Run npm run prepare:shared --workspace=soundglow first.');
+ for(const file of ['ui/soundglow-ui.js','ui/soundglow-ui.css'])if(!sourceFiles.includes(file))throw Error('Missing React UI build. Run npm run prepare:shared --workspace=soundglow first.');
  const hashGroup=list=>digest(Buffer.concat(list.flatMap(f=>[Buffer.from(f+'\0'),read(f)]))).slice(0,32);
  const engineFiles=sourceFiles.filter(f=>f.startsWith('vendor/praat/')&&!f.endsWith('source.tar.gz'));
  const mediaFiles=sourceFiles.filter(f=>f.startsWith('audio/'));

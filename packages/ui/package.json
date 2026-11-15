@@ -20,7 +20,9 @@
     "./practice-workspace": "./practice-workspace.tsx",
     "./practice-actions": "./practice-actions.tsx",
     "./settings-sections": "./settings-sections.tsx",
-    "./privacy-section": "./privacy-section.tsx"
+    "./privacy-section": "./privacy-section.tsx",
+    "./control-icon": "./control-icon.tsx",
+    "./panel-icon": "./panel-icon.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

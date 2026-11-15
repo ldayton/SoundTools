@@ -57,3 +57,6 @@ in the left navigation. The right options panel contains settings scoped to the
 current exercise or hymn. Each remembers its own choices; volume and the keyboard
 connection remain app-wide. On mobile the same global controls live in the
 navigation drawer, with keyboard details expanding inline.
+
+For the current React/Mantine ownership, shared controls and development/testing
+contracts, see [UI architecture](docs/ui-architecture.md).

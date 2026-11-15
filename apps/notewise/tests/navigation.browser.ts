@@ -39,6 +39,9 @@ try {
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
   const context = await browser.newContext({
+    // Route/input ownership is independent of worker installation and cache takeover.
+    // The dedicated offline suite retains real service-worker coverage.
+    serviceWorkers: "block",
     viewport: { width: 1100, height: 1000 },
   });
   await context.addInitScript({

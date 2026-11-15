@@ -1,3 +1,4 @@
+const {expect}=require('@playwright/test');
 // Use actual native inputs or the accessible Mantine slider, never hidden proxies.
 async function setSetting(page,id,value){
  const control=page.locator('#'+id);
@@ -7,11 +8,20 @@ async function setSetting(page,id,value){
   return;
  }
  const slider=isSlider?control:page.locator('#'+id+'-slider'),min=Number(await slider.getAttribute('aria-valuemin')),max=Number(await slider.getAttribute('aria-valuemax')),step=Number(await slider.getAttribute('data-step')||1),target=Number(value);
+ await slider.focus();
+ await page.evaluate(()=>new Promise(requestAnimationFrame));
  let current=Number(await slider.getAttribute('aria-valuenow'));
- if(Math.abs(target-min)<Math.abs(target-current)){await slider.press('Home');current=min;}
- if(Math.abs(max-target)<Math.abs(target-current)){await slider.press('End');current=max;}
+ if(Math.abs(target-min)<Math.abs(target-current)){await slider.press('Home');await expect.poll(async()=>Number(await slider.getAttribute('aria-valuenow'))).toBeCloseTo(min,5);current=min;}
+ if(Math.abs(max-target)<Math.abs(target-current)){await slider.press('End');await expect.poll(async()=>Number(await slider.getAttribute('aria-valuenow'))).toBeCloseTo(max,5);current=max;}
  const count=Math.round(Math.abs(target-current)/step);
- for(let i=0;i<count;i++)await slider.press(target>current?'ArrowRight':'ArrowLeft');
+ for(let i=0;i<count;i++){
+  const next=Math.max(min,Math.min(max,current+(target>current?step:-step)));
+  await slider.press(target>current?'ArrowRight':'ArrowLeft');
+  await page.evaluate(()=>new Promise(requestAnimationFrame));
+  // Wait for the controlled value, not just completion of the keyboard event.
+  await expect.poll(async()=>Number(await slider.getAttribute('aria-valuenow'))).toBeCloseTo(next,5);
+  current=next;
+ }
 }
 const setHistory=(page,value)=>setSetting(page,'history',value);
 module.exports={setSetting,setHistory};

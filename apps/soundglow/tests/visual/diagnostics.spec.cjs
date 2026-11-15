@@ -27,7 +27,12 @@ test('stopping and restarting playback excludes idle time from diagnostics',asyn
  await page.waitForFunction(()=>SoundglowDiagnostics.snapshot().metrics['render.interval_ms']?.count>5);
  await page.locator('#home').click();await expect(page.locator('#welcome')).toBeVisible();
  const count=await page.evaluate(()=>SoundglowDiagnostics.snapshot().metrics['render.interval_ms'].count);
- await page.waitForTimeout(300);await page.locator('#demo').click();await page.waitForFunction(()=>soundglowSession.state().running);await page.waitForTimeout(500);
+ const previousMax=await page.evaluate(()=>SoundglowDiagnostics.snapshot().metrics['render.interval_ms'].max);
+ // Startup/decoding may outlast the warm-up window. Test idle exclusion directly.
+ await page.waitForTimeout(2500);
  expect(await page.evaluate(()=>SoundglowDiagnostics.snapshot().metrics['render.interval_ms'].count)).toBe(count);
+ await page.locator('#demo').click();await page.waitForFunction(()=>soundglowSession.state().running);
  await page.waitForFunction(n=>SoundglowDiagnostics.snapshot().metrics['render.interval_ms'].count>n+5,count);
+ const metric=await page.evaluate(()=>SoundglowDiagnostics.snapshot().metrics['render.interval_ms']);
+ expect(metric.max).toBeLessThan(Math.max(previousMax+1,2000));
 });

@@ -103,6 +103,41 @@ jobs:
             apps/soundglow/playwright-report/
             work/resilience-soundglow/
 
+  soundglow-ui:
+    name: soundglow UI (${{ matrix.browser }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    env:
+      SOUNDGLOW_TEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start virtual audio output for Firefox
+        if: matrix.browser == 'firefox'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pulseaudio pulseaudio-utils
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio rate=48000 channels=2
+          pactl set-default-sink ci_audio
+      - run: npm run build:shared
+      - run: npm run test:ui-browsers --workspace=soundglow
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: soundglow-ui-results-${{ matrix.browser }}
+          path: |
+            apps/soundglow/test-results/
+
   notewise:
     name: notewise (${{ matrix.browser }})
     runs-on: ubuntu-24.04

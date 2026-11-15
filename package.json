@@ -22,7 +22,8 @@
     "build:notewise": "npm run build:vercel --workspace=notewise",
     "build:songalong": "npm run build:vercel --workspace=songalong",
     "test:notewise": "npm test --workspace=notewise",
-    "test:songalong": "npm test --workspace=songalong"
+    "test:songalong": "npm test --workspace=songalong",
+    "test:ui": "node scripts/test-ui-controls.cjs"
   },
   "devDependencies": {
     "@sentry/cli": "3.8.2"

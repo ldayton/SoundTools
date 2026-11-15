@@ -89,7 +89,8 @@ export function PitchField({
       title={note.label}
       aria-pressed={note.value === value}
       tabIndex={note.value === focusValue ? 0 : -1}
-      data-autofocus={note.value === value || undefined}
+      // Keep delayed focus-trap activation aligned with arrow-key navigation.
+      data-autofocus={note.value === focusValue || undefined}
       onClick={() => choose(note.value)}
       style={{ minWidth: 0 }}
     >

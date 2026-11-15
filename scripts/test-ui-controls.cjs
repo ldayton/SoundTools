@@ -78,6 +78,23 @@ const engines = require("playwright");
       "Clock updates must not invalidate practice, title or volume subscriptions",
     );
     assert.deepEqual(errors, []);
+    // Delay the focus trap's activation until after arrow navigation. Its
+    // deferred focus must follow the roving cell, not the originally selected one.
+    await page.clock.install({ time: 0 });
+    await page.clock.pauseAt(0);
+    await page.locator("#test-pitch").press("Enter");
+    await page.getByRole("button", { name: "C3", exact: true }).waitFor();
+    await page.keyboard.press("ArrowDown");
+    await page.clock.runFor(25);
+    assert.equal(
+      await page
+        .getByRole("button", { name: "C4", exact: true })
+        .evaluate((el) => el === document.activeElement),
+      true,
+    );
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator("#test-pitch").inputValue(), "C4");
+    await page.clock.resume();
     for (const options of ["", "&dark&stopFails&reportFails"]) {
       await page.goto("http://127.0.0.1:4970/?recovery" + options);
       await page.evaluate(() => {

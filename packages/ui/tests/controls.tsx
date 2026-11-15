@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Button, Stack } from "@mantine/core";
 import { SoundToolsProvider } from "../provider";
 import { RenderErrorBoundary } from "../render-error-boundary";
+import { PitchField } from "../pitch-field";
 import { CommittedNumber } from "../committed-number";
 import { createViewState } from "../view-state";
 import {
@@ -47,6 +48,8 @@ declare global {
 }
 
 function Controls() {
+  const [pitch, setPitch] = useState(0);
+  const [pitchOpen, setPitchOpen] = useState(false);
   const [integer, setInteger] = useState(120),
     [decimal, setDecimal] = useState(1.5);
   const [calls, setCalls] = useState(0),
@@ -54,6 +57,18 @@ function Controls() {
   return (
     <SoundToolsProvider>
       <Stack p="md">
+        <PitchField
+          id="test-pitch"
+          label="Test pitch"
+          value={pitch}
+          onChange={setPitch}
+          opened={pitchOpen}
+          onOpenedChange={setPitchOpen}
+          choices={[
+            { value: 0, label: "C3", octave: 3, column: 0 },
+            { value: 12, label: "C4", octave: 4, column: 0 },
+          ]}
+        />
         <CommittedNumber
           id="integer"
           label="Integer"

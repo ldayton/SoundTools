@@ -127,6 +127,7 @@ export class SightReading {
   private mode: "wait" | "playback" = "wait";
   private bpm = 80;
   private countIn: CountInBars = 0;
+  private loopCountIn = false;
   private get countInBars(): CountInBars {
     return this.mode === "playback" && /^\d+\/\d+$/.test(this.hymn.meter)
       ? this.countIn
@@ -139,6 +140,7 @@ export class SightReading {
   private routeChanged = false;
   private paused = false;
   private events: PracticeEvent[] = [];
+  private visibleEvents: PracticeEvent[] = [];
   private passage: ScorePassage;
   private passageIdentity = "";
   private loopPassage = false;
@@ -184,6 +186,7 @@ export class SightReading {
       if ([0, 0.5, 1, 2].includes(saved?.countIn as number))
         this.countIn = saved!.countIn!;
       this.reattackTies = saved?.reattackTies === true;
+      this.loopCountIn = saved?.loopCountIn === true;
       if (saved?.mode === "playback") this.mode = "playback";
       if (
         Number.isInteger(saved?.bpm) &&
@@ -307,12 +310,14 @@ export class SightReading {
           cancel: () => {
             this.passage.cancel();
             this.update();
+            this.$(".sequence-score").focus({ preventScroll: true });
           },
           clear: () => {
             this.passage.clear();
             this.loopPassage = false;
             this.restorePending = true;
             this.render();
+            this.$(".sequence-score").focus({ preventScroll: true });
           },
           loop: (value) => {
             this.loopPassage = value;
@@ -326,17 +331,21 @@ export class SightReading {
       this.$(".hymn-paper"),
       () => this.syncPassageControls(),
       () => {
+        const viewport = this.$(".sequence-score");
+        const scroll = viewport.scrollTop;
         this.position = 0;
         this.restorePending = false;
         this.content = "";
         this.paused = false;
         this.render();
+        viewport.scrollTop = scroll;
       },
       () => this.update(),
       () => {
         this.interrupt("controls");
         this.paused = true;
       },
+      (index) => this.seekScore(index),
     );
     this.playback = new HymnPlayback(
       () => {
@@ -475,6 +484,7 @@ export class SightReading {
     if (old.bpm !== this.bpm) this.playback.setTempo(this.bpm);
     if (this.countIn !== (next.countIn || 0)) this.interrupt("controls");
     this.countIn = next.countIn || 0;
+    this.loopCountIn = next.loopCountIn === true;
     this.preferRangeDefault =
       !route.query.has("key") &&
       (route.query.has("low") || route.query.has("high"));
@@ -501,6 +511,7 @@ export class SightReading {
       mode: this.mode,
       bpm: this.bpm,
       countIn: this.countIn,
+      loopCountIn: this.loopCountIn,
       key: this.key,
       low: this.low,
       high: this.high,
@@ -522,6 +533,7 @@ export class SightReading {
     });
     if (this.reattackTies) q.set("ties", "repeat");
     if (this.countIn) q.set("countIn", String(this.countIn));
+    if (this.loopCountIn) q.set("loopCountIn", "1");
     if (this.key !== "original") q.set("key", this.key);
     if (this.low !== null) q.set("low", String(this.low));
     if (this.high !== null) q.set("high", String(this.high));
@@ -568,6 +580,7 @@ export class SightReading {
     this.mode = next.mode!;
     this.bpm = next.bpm!;
     this.countIn = next.countIn!;
+    this.loopCountIn = next.loopCountIn === true;
     this.arrangement = next.arrangement;
     this.hands = next.hands!;
     this.viewHands = next.viewHands!;
@@ -581,6 +594,43 @@ export class SightReading {
     this.render();
     this.save();
   }
+  private seekScore(index: number) {
+    const event = this.visibleEvents[index];
+    if (!event || !this.active || this.noMatchingKey) return;
+    const time = event.milliseconds;
+    const transport = ["playing", "counting", "loading"].includes(
+      this.playback.state,
+    )
+      ? "playing"
+      : this.playback.state === "paused"
+        ? "paused"
+        : "ready";
+    const paused = this.paused;
+    const range = this.passage.range;
+    this.piano.resetInteraction();
+    this.clearPianoSelection();
+    if (range && (index < range.start || index > range.end)) {
+      this.passage.clear();
+      this.loopPassage = false;
+      this.restorePending = false;
+      this.content = "";
+      this.position = 0;
+      this.render();
+    }
+    if (this.mode === "playback") {
+      this.playbackView = "";
+      this.playback.seek(time / 1000, transport);
+      this.updatePlayback();
+    } else if (this.session) {
+      const next = this.events.findIndex((e) => e.milliseconds >= time - 1);
+      this.position = next < 0 ? this.events.length - 1 : next;
+      this.session = new WaitForMe(this.session.steps, this.position);
+      this.paused = paused;
+      this.update(true);
+      this.save();
+    }
+    this.passage.setPosition(index);
+  }
   private syncPassageControls() {
     const selecting = this.passage.selecting;
     const range = this.passage.range;
@@ -593,11 +643,7 @@ export class SightReading {
       selecting: !this.noMatchingKey && selecting,
       selected: !this.noMatchingKey && !!range,
       loop: this.loopPassage,
-      status: selecting
-        ? "Choose the last note, or drag to it."
-        : range
-          ? `Notes ${range.start + 1}–${range.end + 1} selected`
-          : "",
+      status: selecting ? "Adjust selection" : range ? this.passage.label : "",
     });
     this.acceptanceChanged();
   }
@@ -612,6 +658,9 @@ export class SightReading {
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
     if (!this.lastWidth) return;
     const previous = this.session;
+    const focusedHandle = layoutOnly
+      ? document.activeElement?.getAttribute("data-passage-handle")
+      : null;
     if (!layoutOnly) this.piano.resetInteraction();
     const { feedback: previousText, kind: previousKind } =
       this.presentation.getSnapshot();
@@ -645,7 +694,7 @@ export class SightReading {
       this.syncRangeKeys();
       const passageIdentity = `${this.hymn.id}:${this.key}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}`;
       if (passageIdentity !== this.passageIdentity || this.noMatchingKey) {
-        this.passage.clear();
+        this.passage.reset();
         this.loopPassage = false;
         this.passageIdentity = passageIdentity;
       }
@@ -695,6 +744,7 @@ export class SightReading {
         },
       });
       const visibleEvents = this.events;
+      this.visibleEvents = visibleEvents;
       this.passage.bind(visibleEvents);
       const practice =
         this.mode === "wait" &&
@@ -728,10 +778,18 @@ export class SightReading {
       }
       const range = this.passage.range;
       if (range) {
-        const from = visibleEvents[range.start].milliseconds / 1000;
-        const to =
-          visibleEvents[range.end + 1]?.milliseconds / 1000 ||
-          this.sectionDuration;
+        const from = range.wholeBars
+          ? (visibleEvents[range.start].scoreBarSpan?.start ??
+            visibleEvents[range.start].milliseconds / 1000)
+          : visibleEvents[range.start].milliseconds / 1000;
+        const to = range.wholeBars
+          ? Math.min(
+              this.sectionDuration,
+              visibleEvents[range.end].scoreBarSpan?.end ??
+                this.sectionDuration,
+            )
+          : visibleEvents[range.end + 1]?.milliseconds / 1000 ||
+            this.sectionDuration;
         this.events = this.events.filter(
           (e) => e.milliseconds / 1000 >= from && e.milliseconds / 1000 < to,
         );
@@ -763,6 +821,7 @@ export class SightReading {
       if (!steps.length) {
         this.session = undefined;
         this.presentation.set({
+          kind: "error",
           feedback:
             "No notes for the practising hand in this passage. Select another passage or change hands.",
         });
@@ -811,6 +870,7 @@ export class SightReading {
             .querySelector(`[data-piano="${note}"]`)
             ?.classList.add("sight-key-selected");
       } else this.save();
+      if (focusedHandle) this.passage.restoreHandleFocus(focusedHandle);
     } catch (error) {
       this.playback.pause();
       this.session = undefined;
@@ -839,6 +899,7 @@ export class SightReading {
       mode: this.mode,
       bpm: this.bpm,
       countIn: this.countIn,
+      loopCountIn: this.loopCountIn,
       arrangement: this.arrangement,
       hands: this.hands,
       viewHands: this.viewHands,
@@ -921,6 +982,8 @@ export class SightReading {
       this.playback.restart();
       this.playbackView = "";
       this.render();
+    } else if (patch.loopCountIn !== undefined) {
+      this.loopCountIn = next.loopCountIn === true;
     } else if (patch.countIn !== undefined) {
       this.interrupt("controls");
       this.countIn = next.countIn!;
@@ -990,6 +1053,8 @@ export class SightReading {
     this.events = [];
     this.content = "";
     this.$(".hymn-paper").replaceChildren();
+    this.visibleEvents = [];
+    this.passage.bind([]);
     this.body.patch({ noKey: true });
     this.presentation.set({ feedback: "", kind: "" });
     this.presentation.set({ count: "" });
@@ -1090,6 +1155,17 @@ export class SightReading {
       return;
     }
     this.piano.setPlayback([]);
+    const current =
+      this.events[Math.min(session.index, this.events.length - 1)];
+    if (current)
+      this.passage.setPosition(
+        Math.max(
+          0,
+          this.visibleEvents.findIndex(
+            (e) => e.milliseconds === current.milliseconds,
+          ),
+        ),
+      );
     highlightScore(
       this.$(".hymn-paper"),
       this.events[session.index],
@@ -1171,7 +1247,10 @@ export class SightReading {
       this.active
     ) {
       this.playback.restart();
-      void this.playback.play(this.bpm);
+      void this.playback.play(
+        this.bpm,
+        this.loopCountIn ? this.countInBars : 0,
+      );
       return;
     }
     const state = this.playback.state;
@@ -1183,6 +1262,10 @@ export class SightReading {
     )
       index--;
     if (index < 0) index = 0;
+    const visibleIndex = this.visibleEvents.findIndex(
+      (e) => e.milliseconds === this.events[index]?.milliseconds,
+    );
+    if (visibleIndex >= 0) this.passage.setPosition(visibleIndex);
     const sounding = this.playback.sounding;
     const counting = this.playback.counting;
     const playingNotes = this.playback.soundingNotes;

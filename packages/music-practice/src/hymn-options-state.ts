@@ -12,6 +12,7 @@ export type HymnOptionsChange = Partial<
     | "mode"
     | "bpm"
     | "countIn"
+    | "loopCountIn"
     | "arrangement"
     | "viewHands"
     | "hands"

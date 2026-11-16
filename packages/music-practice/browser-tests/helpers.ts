@@ -181,6 +181,14 @@ export async function openNavigation(page: Page) {
 }
 export async function closeNavigation(page: Page) {
   await navigationLayoutReady(page);
+  // Song selection closes the drawer on the next frame. Observe that commit
+  // before deciding whether a manual close is still needed.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
   const toggle = page.locator(".nav-toggle");
   const close = page.getByRole("button", {
     name: "Close navigation",

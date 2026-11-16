@@ -1,3 +1,8 @@
+import {
+  scorePosition,
+  scoreBarSpan,
+  type ScorePosition,
+} from "./passage-selection";
 import { STAFF_LINE_GAP, ABC_STAFF_LINE_GAP } from "./notation-metrics";
 import abcjs, {
   type NoteTimingEvent,
@@ -8,6 +13,8 @@ import abcjs, {
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
 export type PracticeEvent = NoteTimingEvent & {
   spellings?: PitchSpellings;
+  scorePosition?: ScorePosition;
+  scoreBarSpan?: { start: number; end: number };
   sustainedPitches?: number[];
 };
 /** Recover tied continuations from each voice's original MIDI spelling, without changing engraving or playback. */
@@ -143,10 +150,25 @@ export function drawPracticeScore(
     ? tiedContinuations(tune)
     : new Map<number, MidiPitch[]>();
   const sounding = audio.tracks.flat().filter((n) => n.cmd === "note");
+  const meter = tune.getMeterFraction();
+  const barLength = tune.getBarLength() * 4;
+  const pickup = tune.getPickupLength() * 4;
+  const pulse =
+    meter.den === 8 && meter.num > 3 && meter.num % 3 === 0
+      ? 1.5
+      : 4 / (meter.den || 4);
   return tune.noteTimings
     .filter((e) => e.type === "event")
     .map((e) => ({
       ...e,
+      scorePosition:
+        options.playback && barLength > 0 && Number.isFinite(barLength)
+          ? scorePosition(e.milliseconds / 1000, barLength, pickup, pulse)
+          : undefined,
+      scoreBarSpan:
+        options.playback && barLength > 0 && Number.isFinite(barLength)
+          ? scoreBarSpan(e.milliseconds / 1000, barLength, pickup)
+          : undefined,
       midiPitches: [
         ...(e.midiPitches || []),
         ...(e.startCharArray || [e.startChar!]).flatMap(

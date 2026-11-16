@@ -199,3 +199,60 @@
   outline: 3px solid #bf3333;
   outline-offset: -3px;
 }
+
+/* Selection geometry is musical; HTML handles provide large touch and keyboard targets. */
+.songalong-workspace .hymn-paper {
+  position: relative;
+}
+.passage-handle {
+  position: absolute;
+  z-index: 3;
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: ew-resize;
+  touch-action: none;
+  pointer-events: none;
+  color: #087d65;
+}
+.passage-handle::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 12px;
+  bottom: 12px;
+  width: 6px;
+  background: linear-gradient(
+    to right,
+    transparent 2px,
+    currentColor 2px 4px,
+    transparent 4px
+  );
+  pointer-events: auto;
+}
+.passage-handle::after {
+  content: "";
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle, currentColor 8px, transparent 8px);
+  pointer-events: auto;
+  left: 0;
+  top: -10px;
+}
+.passage-handle-end::after {
+  top: auto;
+  bottom: -10px;
+}
+.passage-handle:hover,
+.passage-handle:focus-visible {
+  color: #004d3e;
+}
+.passage-handle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+  border-radius: 6px;
+}

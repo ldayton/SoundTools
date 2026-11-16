@@ -29,7 +29,7 @@ retain their current presentation while shared components gain optional variants
 | Go to start and Play/Pause | Centered transport group with the mode and tempo; Go to start changes position while preserving playing/paused state |
 | Legacy restore and previous sections | Contextual actions only when applicable; no Next hymn button |
 | On-screen piano toggle | Right toolbar zone; icon remains in both modes; black/white keys light sounding notes during Playback, including sustained bass |
-| Passage selecting/selected status, cancel/clear, Loop | Separate row below the score so controls never move notes during a drag; click/drag score selection and smooth full-height shading retained |
+| Passage status in bars/beats, cancel/clear, Loop and adjustable endpoint handles | Separate row below the score so controls never move notes during a drag; click/tap to seek; drag score selection and smooth full-height shading retained |
 | Notation, lyrics, current/wrong notes, ties and both staves | Score fills central column; scrolling within score, stable renderer host |
 | Piano, expected/pressed colors and labels | Docked at the bottom; score scrolls above. Clicks always audition, including during Playback or paused practice, without changing the playhead |
 | Offline availability/download/retry/update/progress | Settings route; existing shared panel and service worker behavior |
@@ -71,3 +71,13 @@ Latest local regression checks also cover integrated numeric fields, full mode-l
 visibility, fixed toolbar geometry across mode switches, six responsive widths,
 sidebar drag/keyboard/minimum width, the piano dock, audible clicks without changing
 playback position, and the C2–B6 note selectors. These pass in Chromium and WebKit.
+
+
+Score interaction follow-up: clicks/taps seek without selecting or starting paused audio.
+Dragging previews a smooth, fixed-height musical band and commits on release.
+Visible endpoint sliders support pointer/touch and keyboard adjustment; double-click
+selects the written measure (including pickup handling). Left/Right seek, Shift+arrows
+extend the range, and Cmd/Ctrl+Z undo range edits while the score has focus. Escape,
+pointer cancellation and focus loss restore the committed passage. Layout changes
+recompute geometry without changing musical endpoints. Playback options can reuse
+the chosen count-in before each loop; Wait for me never counts in.

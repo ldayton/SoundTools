@@ -89,6 +89,15 @@ export function HymnOptions({
               })
             }
           />
+          <Checkbox
+            id="hymn-loop-count-in"
+            label="Count in before each loop"
+            disabled={state.unmetered || state.countIn === 0}
+            checked={state.loopCountIn}
+            onChange={(event) =>
+              change({ loopCountIn: event.currentTarget.checked })
+            }
+          />
         </OptionsSection>
       )}
       <OptionsSection title="Pitch">

@@ -1,7 +1,14 @@
 import { RendererLifetime } from "./renderer-lifetime";
 import type { PracticeEvent } from "./practice-score";
 
-export type Passage = { start: number; end: number };
+import {
+  PassageSelection,
+  barPassage,
+  passageLabel,
+  positionLabel,
+  type Passage,
+} from "./passage-selection";
+export type { Passage } from "./passage-selection";
 type Box = { left: number; right: number; top: number; bottom: number };
 type Location = { line: number; x: number };
 type ScoreLine = {
@@ -9,14 +16,23 @@ type ScoreLine = {
   staff: Box;
   band: Box;
   notes: { index: number; box: Box }[];
+  measures: Map<number, { left: number; right: number }>;
 };
 
 /** A musical span, not a rectangular lasso. Each system gets its own full-height band. */
 export class ScorePassage {
   private lifetime = new RendererLifetime();
-  range?: Passage;
+  private selection = new PassageSelection();
+  get range() {
+    return this.selection.range;
+  }
   selecting = false;
-  private anchor?: number;
+  private events: PracticeEvent[] = [];
+  private keyboardAnchor?: number;
+  private keyboardHead?: number;
+  private keyboardSelecting = false;
+  private paintedCursor = -1;
+  private handles = new Map<"start" | "end", HTMLButtonElement>();
   private draft?: Passage;
   private pointer?: {
     id: number;
@@ -27,10 +43,14 @@ export class ScorePassage {
     lastX: number;
     lastY: number;
     moved: boolean;
+    side?: "start" | "end";
   };
   private nodes = new Map<Element, number>();
   private lines: ScoreLine[] = [];
   private scrollFrame = 0;
+  private get viewport() {
+    return this.paper.closest<HTMLElement>(".sequence-score")!;
+  }
   dispose() {
     if (this.lifetime.disposed) return;
     this.lifetime.dispose();
@@ -44,15 +64,43 @@ export class ScorePassage {
     private committed: () => void,
     private cancelled: () => void,
     private started: () => void,
+    private seek: (index: number) => void,
   ) {
+    for (const side of ["start", "end"] as const) {
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = `passage-handle passage-handle-${side}`;
+      handle.dataset.passageHandle = side;
+      handle.setAttribute("aria-label", `Selection ${side}`);
+      handle.setAttribute("role", "slider");
+      handle.setAttribute("aria-orientation", "horizontal");
+      handle.title = `Drag selection ${side}; use arrow keys to adjust`;
+      handle.hidden = true;
+      this.handles.set(side, handle);
+    }
     this.lifetime.listen(paper, "pointerdown", (e) => {
       if (e.button !== 0 || this.pointer) return;
-      const index = this.hit(e.clientX, e.clientY, true);
-      const origin = this.location(e.clientX, e.clientY);
+      const side = (e.target as Element).closest<HTMLElement>(
+        "[data-passage-handle]",
+      )?.dataset.passageHandle as "start" | "end" | undefined;
+      const opposite =
+        side && this.range
+          ? side === "start"
+            ? this.range.end
+            : this.range.start
+          : undefined;
+      const index = opposite ?? this.hit(e.clientX, e.clientY, true);
+      const origin =
+        side && opposite !== undefined
+          ? this.boundary(opposite, side === "start" ? "end" : "start")
+          : this.location(e.clientX, e.clientY);
       if (index === undefined || !origin) return;
       e.preventDefault();
-      paper.parentElement!.dataset.pointerSelection = "";
-      paper.parentElement!.focus({ preventScroll: true });
+      this.keyboardAnchor = this.keyboardHead = undefined;
+      this.viewport.dataset.pointerSelection = "";
+      (side ? this.handles.get(side)! : this.viewport).focus({
+        preventScroll: true,
+      });
       paper.setPointerCapture(e.pointerId);
       this.pointer = {
         id: e.pointerId,
@@ -62,15 +110,21 @@ export class ScorePassage {
         y: e.clientY,
         lastX: e.clientX,
         lastY: e.clientY,
-        moved: false,
+        moved: !!side,
+        side,
       };
+      if (side) {
+        this.begin();
+        this.autoScroll();
+        this.paint();
+      }
     });
     this.lifetime.listen(paper, "pointermove", (e) => {
       const p = this.pointer;
-      // Vertical touch gestures remain native scrolling. Tap two ends, or drag horizontally.
       if (!p || p.id !== e.pointerId) return;
       p.lastX = e.clientX;
       p.lastY = e.clientY;
+      // Vertical touch gestures remain native scrolling; horizontal drags select.
       if (
         !p.moved &&
         e.pointerType === "touch" &&
@@ -91,38 +145,182 @@ export class ScorePassage {
       if (!p || p.id !== e.pointerId) return;
       this.stopPointer();
       if (p.moved) {
-        this.preview(p.index, this.hit(e.clientX, e.clientY, true) ?? p.index);
-        this.finish();
-      } else this.choose(p.index);
+        const endpoint = this.hit(e.clientX, e.clientY, true) ?? p.index;
+        this.draft = this.normalized(p.index, endpoint);
+        const side =
+          p.side &&
+          (p.side === "start"
+            ? endpoint > p.index
+              ? "end"
+              : "start"
+            : endpoint < p.index
+              ? "start"
+              : "end");
+        this.finish(side);
+      } else this.seekAt(p.index);
     });
-    this.lifetime.listen(paper, "lostpointercapture", () => this.stopPointer());
-    this.lifetime.listen(paper, "pointercancel", () => {
-      const dragging = this.pointer?.moved;
-      this.stopPointer();
-      if (dragging) {
+    this.lifetime.listen(paper, "pointercancel", (e) => {
+      if (this.pointer?.id === e.pointerId) this.cancelGesture();
+    });
+    this.lifetime.listen(paper, "lostpointercapture", (e) => {
+      if (this.pointer?.id === e.pointerId) this.cancelGesture();
+    });
+    this.lifetime.listen(window, "blur", () => this.cancelGesture());
+    this.lifetime.listen(document, "visibilitychange", () => {
+      if (document.hidden) this.cancelGesture();
+    });
+    this.lifetime.listen(paper, "dblclick", (e) => {
+      if ((e.target as Element).closest("[data-passage-handle]")) return;
+      const index = this.hit(e.clientX, e.clientY);
+      if (index === undefined) return;
+      e.preventDefault();
+      this.begin();
+      this.draft = barPassage(
+        this.events.map((e) => e.scorePosition),
+        index,
+      );
+      this.finish();
+    });
+    this.lifetime.listen(this.viewport, "keydown", (e) => this.keydown(e));
+  }
+  private seekAt(index: number) {
+    this.keyboardAnchor = this.keyboardHead = undefined;
+    this.selection.cursor = this.selection.clamp(index);
+    this.seek(this.selection.cursor);
+  }
+  setPosition(index: number) {
+    this.selection.cursor = this.selection.clamp(index);
+    if (!this.keyboardSelecting)
+      this.keyboardAnchor = this.keyboardHead = undefined;
+    this.paintPosition();
+  }
+  restoreHandleFocus(side: string) {
+    if (side !== "start" && side !== "end") return;
+    const handle = this.handles.get(side);
+    if (handle && !handle.hidden) handle.focus({ preventScroll: true });
+  }
+  private paintPosition() {
+    if (this.paintedCursor === this.selection.cursor) return;
+    this.paintedCursor = this.selection.cursor;
+    for (const [node, note] of this.nodes) {
+      if (note === this.selection.cursor)
+        node.setAttribute("aria-current", "true");
+      else node.removeAttribute("aria-current");
+    }
+  }
+  get label() {
+    return this.range
+      ? passageLabel(
+          this.events.map((e) => e.scorePosition),
+          this.range,
+        )
+      : "";
+  }
+  private keydown(e: KeyboardEvent) {
+    if (!this.events.length) return;
+    const viewport = this.viewport;
+    delete viewport.dataset.pointerSelection;
+    if (e.key === "Escape" && this.selecting) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.cancel();
+      this.cancelled();
+      return;
+    }
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      !e.shiftKey &&
+      !e.altKey &&
+      e.key.toLowerCase() === "z"
+    ) {
+      this.keyboardAnchor = this.keyboardHead = undefined;
+      if (this.selecting) {
         this.cancel();
         this.cancelled();
+      } else if (this.selection.undo()) {
+        this.paint();
+        this.committed();
+        viewport.focus({ preventScroll: true });
       }
-    });
-    this.lifetime.listen(paper.parentElement!, "keydown", (e) => {
-      delete paper.parentElement!.dataset.pointerSelection;
-      if (e.key === "Escape" && this.selecting) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.cancel();
-        this.cancelled();
-        return;
-      }
-      if (e.key !== "Enter" && e.key !== " ") return;
-      const index = this.nodes.get(e.target as Element);
-      if (index !== undefined) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.choose(index);
-      }
-    });
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const side = (e.target as Element).closest<HTMLElement>(
+      "[data-passage-handle]",
+    )?.dataset.passageHandle as "start" | "end" | undefined;
+    const delta = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
+    if (
+      (delta || e.key === "Home" || e.key === "End") &&
+      !e.altKey &&
+      !e.metaKey &&
+      !e.ctrlKey
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (side && this.range) {
+        const old = this.range[side];
+        const next =
+          e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? this.events.length - 1
+              : old + delta;
+        this.begin();
+        this.draft =
+          side === "start"
+            ? {
+                start: Math.min(this.selection.clamp(next), this.range.end),
+                end: this.range.end,
+              }
+            : {
+                start: this.range.start,
+                end: Math.max(this.selection.clamp(next), this.range.start),
+              };
+        this.finish(side);
+      } else if (e.shiftKey) {
+        this.keyboardAnchor ??= this.selection.cursor;
+        const next = this.selection.clamp(
+          e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? this.events.length - 1
+              : (this.keyboardHead ?? this.selection.cursor) + delta,
+        );
+        this.keyboardSelecting = true;
+        try {
+          this.begin();
+          this.draft = this.normalized(this.keyboardAnchor, next);
+          this.finish();
+        } finally {
+          this.keyboardSelecting = false;
+        }
+        this.keyboardHead = next;
+        this.selection.cursor = next;
+      } else
+        this.seekAt(
+          e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? this.events.length - 1
+              : this.selection.cursor + delta,
+        );
+      return;
+    }
+    const index = this.nodes.get(e.target as Element);
+    if (index !== undefined && ["Enter", " "].includes(e.key)) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.seekAt(index);
+    }
   }
   bind(events: PracticeEvent[]) {
+    if (this.pointer) this.cancelGesture();
+    this.events = events;
+    // abcjs clips its responsive host; handles extend into the score page's existing margins.
+    this.paper.style.overflow = "visible";
+    this.paintedCursor = -1;
+    this.selection.bind(events.length);
     this.nodes.clear();
     this.lines = [];
     const systems = new Map<SVGSVGElement, ScoreLine>();
@@ -132,9 +330,21 @@ export class ScorePassage {
         if (!node) continue;
         this.nodes.set(node, index);
         node.setAttribute("data-passage-note", String(index));
-        node.setAttribute("tabindex", "0");
+        node.setAttribute("tabindex", "-1");
         node.setAttribute("role", "button");
-        node.setAttribute("aria-label", `Select note ${index + 1}`);
+        node.setAttribute(
+          "aria-label",
+          event.scorePosition
+            ? `Go to ${positionLabel(event.scorePosition).toLowerCase()}`
+            : `Go to note ${index + 1}`,
+        );
+        if (event.scorePosition) {
+          node.setAttribute("data-score-bar", String(event.scorePosition.bar));
+          node.setAttribute(
+            "data-score-beat",
+            String(event.scorePosition.beat),
+          );
+        }
         const svg = node.closest("svg") as SVGSVGElement | null;
         if (!svg) continue;
         if (!systems.has(svg)) {
@@ -144,7 +354,13 @@ export class ScorePassage {
             ),
           );
           if (!staff) continue;
-          systems.set(svg, { svg, staff, band: staff, notes: [] });
+          systems.set(svg, {
+            svg,
+            staff,
+            band: staff,
+            notes: [],
+            measures: new Map(),
+          });
         }
         const boxes = ink.get(svg) || [];
         // Exclude lyric text, but include noteheads, stems, accidentals and ledger lines.
@@ -159,8 +375,24 @@ export class ScorePassage {
     });
     this.lines = [...systems.values()];
     // Measure the complete line once per engraving, never from the moving selection.
-    for (const line of this.lines)
+    for (const line of this.lines) {
       line.band = this.union([line.staff, ...line.notes.map((n) => n.box)])!;
+      const bars = new Map<number, number>();
+      for (const bar of line.svg.querySelectorAll<SVGGraphicsElement>(
+        ".abcjs-bar",
+      )) {
+        const measure = /(?:^|\s)abcjs-mm(\d+)(?:\s|$)/.exec(
+          bar.getAttribute("class") || "",
+        );
+        if (measure)
+          bars.set(Number(measure[1]), this.box(bar, line.svg).right);
+      }
+      let left = line.staff.left;
+      for (const [measure, right] of [...bars].sort((a, b) => a[0] - b[0])) {
+        line.measures.set(measure, { left, right });
+        left = right;
+      }
+    }
     this.paint();
   }
   private begin() {
@@ -171,49 +403,88 @@ export class ScorePassage {
   cancel() {
     this.draft = undefined;
     this.selecting = false;
-    this.anchor = undefined;
+    this.keyboardAnchor = this.keyboardHead = undefined;
     this.stopPointer();
     this.paint();
   }
   clear() {
     this.cancel();
-    this.range = undefined;
+    this.selection.clear();
     this.paint();
   }
-  private choose(index: number) {
-    if (this.anchor === undefined) {
-      this.begin();
-      this.anchor = index;
-      this.preview(index, index);
-    } else {
-      this.preview(this.anchor, index);
-      this.finish();
-    }
-  }
-  private preview(a: number, b: number) {
-    const start = Math.min(a, b),
-      end = Math.max(a, b);
-    if (this.draft?.start === start && this.draft.end === end) return;
-    this.draft = { start, end };
+  reset() {
+    this.cancel();
+    this.selection.reset();
     this.paint();
   }
-  private finish() {
-    this.range = this.draft;
+  private cancelGesture() {
+    if (!this.pointer) return;
+    const dragging = this.pointer.moved;
+    this.cancel();
+    if (dragging) this.cancelled();
+  }
+  private normalized(a: number, b: number): Passage {
+    return {
+      start: this.selection.clamp(Math.min(a, b)),
+      end: this.selection.clamp(Math.max(a, b)),
+    };
+  }
+  private finish(side?: "start" | "end") {
+    const range = this.draft;
+    if (
+      side &&
+      range &&
+      this.range?.wholeBars &&
+      range.start === this.range.start &&
+      range.end === this.range.end
+    )
+      range.wholeBars = true;
+    const changed =
+      !!range && this.selection.select(range.start, range.end, range.wholeBars);
     this.draft = undefined;
     this.selecting = false;
-    this.anchor = undefined;
     this.paint();
-    this.committed();
+    if (changed) this.committed();
+    else this.cancelled();
+    if (side) this.handles.get(side)?.focus({ preventScroll: true });
   }
   private stopPointer() {
+    const id = this.pointer?.id;
     this.pointer = undefined;
+    if (id !== undefined && this.paper.hasPointerCapture(id))
+      this.paper.releasePointerCapture(id);
     cancelAnimationFrame(this.scrollFrame);
     this.scrollFrame = 0;
+  }
+  private boundary(index: number, side: "start" | "end"): Location | undefined {
+    for (const [i, line] of this.lines.entries()) {
+      const note = line.notes.find((n) => n.index === index);
+      if (!note) continue;
+      const previous = [...line.notes].reverse().find((n) => n.index < index);
+      const next = line.notes.find((n) => n.index > index);
+      return {
+        line: i,
+        x:
+          side === "start"
+            ? previous
+              ? Math.min(
+                  note.box.left - 3,
+                  (previous.box.right + note.box.left) / 2,
+                )
+              : note.box.left - 6
+            : next
+              ? Math.max(
+                  note.box.right + 3,
+                  (note.box.right + next.box.left) / 2,
+                )
+              : line.staff.right,
+      };
+    }
   }
   private autoScroll() {
     const p = this.pointer;
     if (!p?.moved) return;
-    const viewport = this.paper.parentElement!,
+    const viewport = this.viewport,
       b = viewport.getBoundingClientRect();
     const delta = p.lastY < b.top + 32 ? -8 : p.lastY > b.bottom - 32 ? 8 : 0;
     if (delta) {
@@ -291,6 +562,15 @@ export class ScorePassage {
   private paint(notify = true) {
     this.paper.querySelectorAll(".passage-shade").forEach((n) => n.remove());
     this.paper.classList.toggle("passage-selecting", this.selecting);
+    for (const handle of this.handles.values())
+      if (!this.paper.contains(handle)) this.paper.append(handle);
+    const blocks: {
+      line: ScoreLine;
+      left: number;
+      right: number;
+      top: number;
+      bottom: number;
+    }[] = [];
     const range = this.draft || this.range;
     const pointer = this.pointer?.moved ? this.pointer : undefined;
     const moving = pointer && this.location(pointer.lastX, pointer.lastY);
@@ -329,6 +609,14 @@ export class ScorePassage {
           right = after
             ? Math.max(ink.right + 3, (ink.right + after.box.left) / 2)
             : line.staff.right;
+          if (range!.wholeBars) {
+            const firstMeasure = this.events[first.index].measureNumber;
+            const lastMeasure = this.events[last.index].measureNumber;
+            if (firstMeasure !== undefined)
+              left = line.measures.get(firstMeasure)?.left ?? left;
+            if (lastMeasure !== undefined)
+              right = line.measures.get(lastMeasure)?.right ?? right;
+          }
         }
         const top = line.band.top - 6,
           bottom = line.band.bottom + 6;
@@ -346,7 +634,40 @@ export class ScorePassage {
         }))
           rect.setAttribute(k, String(v));
         line.svg.append(rect);
+        blocks.push({ line, left, right, top, bottom });
       }
+    if (!blocks.length)
+      for (const handle of this.handles.values()) handle.hidden = true;
+    if (blocks.length) {
+      const paper = this.paper.getBoundingClientRect();
+      for (const side of ["start", "end"] as const) {
+        const block = side === "start" ? blocks[0] : blocks.at(-1)!;
+        const matrix = block.line.svg.getScreenCTM();
+        if (!matrix) continue;
+        const a = new DOMPoint(
+          side === "start" ? block.left : block.right,
+          block.top,
+        ).matrixTransform(matrix);
+        const b = new DOMPoint(0, block.bottom).matrixTransform(matrix);
+        const handle = this.handles.get(side)!;
+        handle.hidden = false;
+        handle.style.left = `${a.x - paper.left - 22}px`;
+        handle.style.top = `${a.y - paper.top - 12}px`;
+        handle.style.height = `${Math.max(44, b.y - a.y + 24)}px`;
+        const point = this.events[this.range?.[side] ?? 0]?.scorePosition;
+        handle.setAttribute("aria-valuemin", "1");
+        handle.setAttribute("aria-valuemax", String(this.events.length));
+        handle.setAttribute(
+          "aria-valuenow",
+          String((this.range?.[side] ?? 0) + 1),
+        );
+        handle.setAttribute(
+          "aria-valuetext",
+          point ? positionLabel(point) : "Selected note",
+        );
+      }
+    }
+    this.paintPosition();
     if (notify) this.changed();
   }
 }

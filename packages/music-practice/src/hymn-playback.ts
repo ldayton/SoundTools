@@ -281,6 +281,25 @@ export class HymnPlayback {
     )
       this.state = "paused";
   }
+  /** Seek preserves transport intent even when the caller just released a passage constraint. */
+  seek(
+    position: number,
+    intent: "playing" | "paused" | "ready" = [
+      "playing",
+      "counting",
+      "loading",
+    ].includes(this.state)
+      ? "playing"
+      : this.state === "paused"
+        ? "paused"
+        : "ready",
+  ) {
+    this.pause();
+    this.position = Math.max(this.rangeStart, Math.min(this.finish, position));
+    this.state = intent === "paused" ? "paused" : "ready";
+    this.changed();
+    if (intent === "playing") void this.play(this.bpm);
+  }
   restart() {
     this.pause();
     this.position = this.rangeStart;

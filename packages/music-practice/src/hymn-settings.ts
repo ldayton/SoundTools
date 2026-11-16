@@ -27,6 +27,7 @@ export type HymnSettings = {
   mode?: "wait" | "playback";
   bpm?: number;
   countIn?: CountInBars;
+  loopCountIn?: boolean;
   key?: HymnKey;
   low?: number | null;
   high?: number | null;
@@ -69,6 +70,14 @@ export function mergeHymnSettings(
           countIn: [0, 0.5, 1, 2].includes(s.countIn as number)
             ? (s.countIn as CountInBars)
             : base.countIn || 0,
+        }
+      : {}),
+    ...("loopCountIn" in s || "loopCountIn" in base
+      ? {
+          loopCountIn:
+            typeof s.loopCountIn === "boolean"
+              ? s.loopCountIn
+              : base.loopCountIn || false,
         }
       : {}),
     viewHands,
@@ -114,6 +123,8 @@ export function hymnSettingsFromQuery(
     overrides.reattackTies = query.get("ties") === "repeat";
   if (query.has("view")) overrides.viewHands = query.get("view");
   if (query.has("hands")) overrides.hands = query.get("hands");
+  if (query.has("loopCountIn"))
+    overrides.loopCountIn = query.get("loopCountIn") === "1";
   if (query.has("countIn")) overrides.countIn = Number(query.get("countIn"));
   if (query.has("mode")) overrides.mode = query.get("mode");
   if (query.has("tempo")) overrides.bpm = Number(query.get("tempo"));
@@ -130,6 +141,7 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
     mode: "wait",
     bpm: 80,
     countIn: 0,
+    loopCountIn: false,
     key: "original",
     low: null,
     high: null,

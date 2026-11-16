@@ -146,7 +146,7 @@ try {
     await page
       .locator('.piano-key.is-wrong[data-piano="61"] .piano-hint-label')
       .textContent(),
-    "D♭4",
+    "C♯4",
   );
   assert.equal(
     await page

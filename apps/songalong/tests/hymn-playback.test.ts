@@ -488,3 +488,67 @@ test("piano attacks follow audible notes: repeats re-strike, ties stay held, and
     globalThis.clearInterval = oldClear;
   }
 });
+
+test("seek preserves paused/running state and clips carried notes at the new position", async () => {
+  const oldWindow = (globalThis as any).window,
+    oldClear = globalThis.clearInterval;
+  let now = 0,
+    tick = () => {};
+  const played: number[][] = [];
+  (globalThis as any).window = {
+    setInterval: (fn: () => void) => {
+      tick = fn;
+      return 1;
+    },
+  };
+  globalThis.clearInterval = (() => {}) as any;
+  const player = new HymnPlayback(
+    () => {},
+    (error) => {
+      throw error;
+    },
+    async () => ({
+      get now() {
+        return now;
+      },
+      running: true,
+      schedule(p, t, d) {
+        played.push([p, t, d]);
+      },
+      stop() {},
+    }),
+  );
+  try {
+    player.load(score);
+    player.seek(3);
+    assert.equal(player.state, "ready");
+    assert.equal(played.length, 0);
+    await player.play(60);
+    now = 0.56;
+    tick();
+    player.pause();
+    const before = played.length;
+    player.seek(1);
+    assert.equal(player.state, "paused");
+    assert.equal(played.length, before);
+    await player.play(60);
+    assert.equal(played.at(-1)![0], 60);
+    assert.equal(played.at(-1)![2], 1);
+    player.seek(4);
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(player.state, "playing");
+    assert.equal(played.at(-1)![0], 64);
+    player.setRange(1, 3.5);
+    player.seek(7);
+    assert.equal(
+      player.position,
+      3.5,
+      "the transport itself respects an active range",
+    );
+  } finally {
+    player.pause();
+    (globalThis as any).window = oldWindow;
+    globalThis.clearInterval = oldClear;
+  }
+});

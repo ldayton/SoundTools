@@ -12,6 +12,7 @@ export type HymnState = {
   mode?: "wait" | "playback";
   bpm?: number;
   countIn?: CountInBars;
+  loopCountIn?: boolean;
   key?: HymnKey;
   low?: number | null;
   high?: number | null;

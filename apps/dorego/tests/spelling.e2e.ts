@@ -1,3 +1,4 @@
+import { playUntil } from './ui-helpers';
 import { openPracticeOptions } from './ui-helpers';
 import { readSpecValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
@@ -94,7 +95,7 @@ try {
       () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
     );
   };
-  const seek = (time: number) => setSlider(page, 'position', time);
+  const seek = (time: number) => playUntil(page, time);
   const labels = () => page.evaluate(() => (window as any).spellingLabels as string[]);
   const checkNoteGeometry = async (centerY: number) => {
     const all = await page.evaluate(
@@ -126,7 +127,7 @@ try {
       right = Math.max(...note.map((b) => b.right));
     const top = Math.min(...note.map((b) => b.top)),
       bottom = Math.max(...note.map((b) => b.bottom));
-    assert.ok(Math.abs((left + right) / 2 - 520) < 1, 'Combined ink stays horizontally centered');
+    assert.ok(Math.abs((left + right) / 2 - 480) < 1, 'Combined ink stays horizontally centered');
     assert.ok(Math.abs((top + bottom) / 2 - centerY) < 1, 'Combined ink stays vertically centered');
     assert.ok(
       all.find((b) => b.value === 'CURRENT')!.bottom < top,
@@ -168,7 +169,7 @@ try {
     [await page.locator('#low-spin').inputValue(), await page.locator('#high-spin').inputValue()],
     before
   );
-  await checkNoteGeometry(350);
+  await checkNoteGeometry(250);
 
   await page.locator('#low-spin').click();
   const grid = page.getByRole('dialog', { name: 'Choose lowest note' });
@@ -196,10 +197,10 @@ try {
     await configure({ ...spec, low: 54, high: 73 });
     await seek(secondsAt(8.2, spec.bpm)); // Rossini's major seventh, E♯, on the white F key.
     assert.ok(
-      (await labels()).join('').includes('E♯4'),
-      'The active piano key must use the round spelling'
+      (await page.locator('[data-piano="65"]').getAttribute('aria-label')) === 'E♯4',
+      'The reference piano must use the round spelling'
     );
-    await checkNoteGeometry(mobile ? 528 : 350);
+    await checkNoteGeometry(mobile ? 470 : 250);
     await mkdir('work', { recursive: true });
     await page.screenshot({
       path: `work/spelling-${browserName}-${mobile ? 'mobile' : 'desktop'}.png`,
@@ -208,12 +209,14 @@ try {
   }
   await configure({ ...spec, pattern: 'major', key: 6, low: 66, high: 78, direction: 'down' });
   await seek(secondsAt(1.2, spec.bpm));
-  assert.ok((await labels()).join('').includes('E♯5'));
+  assert.equal(await page.locator('[data-piano="77"]').getAttribute('aria-label'), 'E♯5');
   await page.setViewportSize({ width: 1280, height: 900 });
   await configure({ ...spec, pattern: 'pentatonic9', low: 60, high: 69, direction: 'up' });
-  assert.equal(await page.locator('#pattern').inputValue(), 'pentatonic9');
-  assert.equal(await page.locator('#pattern option[value="pentatonic12"]').count(), 1);
-  assert.ok((await page.locator('#pattern option:checked').textContent())!.includes('9 notes'));
+  assert.equal(await readSpecValue(page, 'pattern'), 'pentatonic9');
+  assert.equal(await page.locator('[data-pattern="pentatonic6"]').count(), 1);
+  assert.ok(
+    (await page.locator('[data-pattern][aria-current]').textContent())!.includes('9 notes')
+  );
   await seek(secondsAt(1.2, spec.bpm));
   await page.screenshot({ path: `work/pentatonic-nine-${browserName}.png`, fullPage: true });
   assert.deepEqual(errors, []);

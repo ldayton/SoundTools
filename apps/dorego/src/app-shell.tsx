@@ -1,7 +1,8 @@
 import { StrictMode, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { Anchor, Button, Modal, NavLink, Stack, Text } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { RenderErrorBoundary } from '@ldayton/ui/render-error-boundary';
 import { SoundToolsProvider } from '@ldayton/ui';
 import {
@@ -16,18 +17,18 @@ import { offlineState } from './offline-state';
 export type AppViews = {
   selection(onSelect: () => void): ReactNode;
   title: ReactNode;
-  volume: ReactNode;
+  toolbar: ReactNode;
   builder: ReactNode;
   practice: ReactNode;
   settingsView: ReactNode;
   pause(): void;
   shutdown(): void;
 };
-function AppShell({ selection, title, volume, builder, practice, settingsView, pause }: AppViews) {
-  const [help, setHelp] = useState(false);
+function AppShell({ selection, title, toolbar, builder, practice, settingsView, pause }: AppViews) {
   const [settings, setSettings] = useState(location.hash === '#settings');
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+  const small = useMediaQuery('(max-width:359px)', undefined, { getInitialValueInEffect: false });
   const base = import.meta.env.BASE_URL;
   const offline = useSyncExternalStore(offlineState.subscribe, offlineState.getSnapshot);
   useEffect(() => {
@@ -36,9 +37,11 @@ function AppShell({ selection, title, volume, builder, practice, settingsView, p
       if (settings) pause();
       setSettings(settings);
       setNavigationOpen(false);
-      document.title = `${settings ? 'Settings' : 'Practice'} · DoReGo`;
+      document.title = settings ? 'Settings · DoReGo' : 'DoReGo';
       requestAnimationFrame(() =>
-        document.getElementById('page-title')?.focus({ preventScroll: true })
+        document
+          .getElementById(settings ? 'page-title' : 'exercise-title')
+          ?.focus({ preventScroll: true })
       );
     };
     window.addEventListener('hashchange', change);
@@ -57,43 +60,35 @@ function AppShell({ selection, title, volume, builder, practice, settingsView, p
     }
   };
   const navigation = (
-    <Stack gap="md">
+    <Stack gap="md" className="dorego-navigation">
       {selection(() => navigate(false))}
-      <NavLink
-        component="a"
-        href={base}
-        label="Warm-up"
-        active={!settings}
-        aria-current={!settings ? 'page' : undefined}
-        onClick={(event) => {
-          if (!isNavigationClick(event)) return;
-          event.preventDefault();
-          navigate(false);
-        }}
-      />
-      {volume}
-      <SettingsNavigationLink
-        href={`${base}#settings`}
-        active={settings}
-        updateAvailable={!offline.updateHidden}
-        onClick={(event) => {
-          if (!isNavigationClick(event)) return;
-          event.preventDefault();
-          navigate(true);
-        }}
-      />
-      <Text size="xs" c="dimmed">
-        SOUNDTOOLS
-      </Text>
+      <div className="dorego-navigation-tools">
+        <SettingsNavigationLink
+          href={`${base}#settings`}
+          active={settings}
+          updateAvailable={!offline.updateHidden}
+          onClick={(event) => {
+            if (!isNavigationClick(event)) return;
+            event.preventDefault();
+            navigate(true);
+          }}
+        />
+      </div>
     </Stack>
   );
   return (
     <PracticeOptionsProvider
       entries={[{ id: 'builder', form: builder }]}
+      mobileDrawer
       activeId={settings ? undefined : 'builder'}
       activityKey={settings ? 'settings' : 'practice'}
     >
       <ApplicationLayout
+        compact
+        toolbarOnly={!settings}
+        mobileToolbarHeight={small ? 148 : 104}
+        headerClassName={settings ? undefined : 'dorego-header'}
+        mainClassName="dorego-workspace"
         brand={
           <AppBrand
             name="DoReGo"
@@ -115,11 +110,7 @@ function AppShell({ selection, title, volume, builder, practice, settingsView, p
         onNavigationClose={() => setNavigationOpen(false)}
         onNavigationCollapse={() => setNavigationCollapsed(true)}
         onNavigationExpand={() => setNavigationCollapsed(false)}
-        headerActions={
-          <Button id="how-button" variant="subtle" onClick={() => setHelp(true)}>
-            Help
-          </Button>
-        }
+        headerActions={settings ? undefined : toolbar}
       >
         <div hidden={settings}>
           <PracticeWorkspace>{practice}</PracticeWorkspace>
@@ -128,38 +119,6 @@ function AppShell({ selection, title, volume, builder, practice, settingsView, p
           {settingsView}
         </section>
       </ApplicationLayout>
-      <Modal
-        id="dorego-help"
-        opened={help}
-        onClose={() => setHelp(false)}
-        title="Help"
-        centered
-        closeButtonProps={{ 'aria-label': 'Close how it works' }}
-      >
-        <Stack gap="sm">
-          <Text>
-            Choose an exercise in the navigation. Adjust its range and repeats in Practice options,
-            then press Play.
-          </Text>
-          <Text size="sm">Shortcuts: Space to play or pause. R to restart. F for fullscreen.</Text>
-          <Anchor
-            size="sm"
-            href={`${base}samples/bitklavier/NOTICE.txt`}
-            target="_blank"
-            rel="noopener"
-          >
-            bitKlavier Grand recordings & credits · CC BY 4.0
-          </Anchor>
-          <Anchor
-            size="sm"
-            href={`${base}samples/vsco-cello/NOTICE.txt`}
-            target="_blank"
-            rel="noopener"
-          >
-            VSCO cello recordings & credits · CC0
-          </Anchor>
-        </Stack>
-      </Modal>
     </PracticeOptionsProvider>
   );
 }

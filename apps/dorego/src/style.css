@@ -45,14 +45,6 @@
 .dorego-mobile-count {
   display: none;
 }
-.dorego-playback {
-  border-top: 1px solid var(--line);
-}
-.dorego-seek {
-  flex: 1 1 180px;
-  min-width: 120px;
-  padding-inline: 6px;
-}
 .dorego-toast {
   position: fixed;
   bottom: 20px;
@@ -67,5 +59,151 @@
   }
   .dorego-mobile-count {
     display: block;
+  }
+}
+
+/* SongAlong's compact shell idioms, with DoReGo's own practice display. */
+.dorego-workspace .workspace-content {
+  max-width: none;
+}
+.dorego-workspace {
+  --practice-options-width: 280px;
+}
+.dorego-navigation {
+  min-height: calc(100dvh - 120px);
+}
+.dorego-navigation-tools {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: var(--mantine-spacing-md);
+  margin-top: var(--mantine-spacing-md);
+}
+.dorego-exercise {
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--mantine-font-size-sm);
+}
+.dorego-exercise:hover {
+  background: var(--mantine-color-default-hover);
+}
+.dorego-exercise[aria-current] {
+  background: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-light-color);
+  font-weight: 600;
+}
+.dorego-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.dorego-transport {
+  grid-column: 2;
+}
+.dorego-workspace .practice-panel {
+  background: #fff;
+  padding-block: 24px;
+}
+.dorego-workspace #exercise-title {
+  padding-inline: 16px;
+  outline: none;
+}
+.dorego-workspace .practice-card {
+  max-width: 1060px;
+  margin-inline: auto;
+}
+.dorego-workspace .dorego-piano {
+  margin-inline: 24px;
+}
+.dorego-workspace .practice-card:fullscreen {
+  background: white;
+}
+@media (max-width: 767px) {
+  .dorego-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'volume blank' 'transport transport';
+    gap: 8px;
+  }
+  .dorego-transport {
+    grid-area: transport;
+    justify-self: center;
+  }
+}
+@media (max-width: 760px) {
+  .dorego-workspace .practice-panel {
+    padding-block: 20px;
+  }
+  .dorego-workspace .dorego-piano {
+    margin-inline: 16px;
+  }
+}
+.dorego-time {
+  justify-self: end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.dorego-direction .mantine-Button-label {
+  white-space: normal;
+}
+.dorego-direction[aria-pressed='true'] {
+  outline: 1px solid var(--mantine-primary-color-filled);
+  outline-offset: -1px;
+}
+.dorego-workspace .dorego-piano {
+  padding-top: 8px;
+}
+@media (max-width: 767px) {
+  .dorego-toolbar {
+    grid-template-areas: 'volume time' 'transport transport';
+  }
+  .dorego-time {
+    grid-area: time;
+  }
+}
+.dorego-tempo {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-default);
+  overflow: hidden;
+  background: var(--mantine-color-body);
+}
+.dorego-tempo > button {
+  border-radius: 0;
+  border-right: 1px solid var(--mantine-color-default-border);
+  font-size: 22px;
+}
+@media (max-width: 767px) {
+  .dorego-header > .mantine-Group-root {
+    display: grid;
+    grid-template-columns: 24px 36px minmax(0, 1fr) 38px;
+    grid-template-rows: 36px auto;
+    gap: 8px;
+    align-content: start;
+    padding: 12px;
+  }
+  .dorego-header > .mantine-Group-root > :has(> .dorego-toolbar),
+  .dorego-toolbar {
+    display: contents;
+  }
+  .dorego-header .nav-toggle {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .dorego-toolbar > :first-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .dorego-header #practice-options-reopen {
+    grid-column: 4;
+    grid-row: 1;
+  }
+  .dorego-time {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .dorego-transport {
+    grid-column: 1/-1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    justify-content: center;
+    justify-self: center;
   }
 }

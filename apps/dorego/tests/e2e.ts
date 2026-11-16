@@ -1,3 +1,5 @@
+import { elapsedSeconds } from './ui-helpers';
+import { selectExercise } from './ui-helpers';
 import { readSpecValue, openMoreOptions, sliderValue, setSlider } from './ui-helpers';
 import { chromium } from 'playwright';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -43,14 +45,14 @@ try {
     await page.locator('#exercise-title').textContent(),
     'Arpeggio & Scale (Rising first)'
   );
-  assert.equal(await page.locator('#bpm').inputValue(), '150');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '150');
   assert.equal(await readSpecValue(page, 'low'), '52');
-  assert.equal(await readSpecValue(page, 'high'), '76');
+  assert.equal(await readSpecValue(page, 'high'), '77');
   assert.equal(
     await page.locator('#midi-download, #video-button, #export-dialog, .export-card').count(),
     0
   );
-  await page.locator('#pattern').selectOption('arpeggio');
+  await selectExercise(page, 'arpeggio');
   await setNote('low', 60);
   await setNote('high', 72);
 
@@ -58,18 +60,17 @@ try {
     await page.locator('#exercise-title').textContent(),
     'Arpeggio & Scale (Rising first)'
   );
-  assert.deepEqual(await page.locator('#pattern option').allTextContents(), [
+  assert.deepEqual(await page.locator('[data-pattern]').allTextContents(), [
     'Arpeggio & Scale',
     'Octave Arpeggio',
     'Rossini Scale',
     'Five-Note Scale',
-    'Pentatonic Threes (9 notes)',
-    'Pentatonic Threes (12 notes)',
+    'Pentatonic Threes',
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',
   ]);
-  assert.deepEqual(await page.locator('#direction [role=radio]').allTextContents(), [
+  assert.deepEqual(await page.locator('#direction button[aria-pressed]').allTextContents(), [
     'Rising first',
     'Falling first',
   ]);
@@ -77,23 +78,20 @@ try {
   await page.screenshot({ path: new URL('desktop.png', work).pathname, fullPage: true });
   await page.locator('#play').click();
   await page.waitForFunction(
-    () => Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > 0.15
+    () => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > 0.15
   );
   assert.equal(await page.locator('#play').innerText(), 'Pause');
   await page.locator('#play').click();
-  const paused = Number(await sliderValue(page, 'position'));
+  const paused = Number(await elapsedSeconds(page));
   assert.ok(paused > 0.1);
   await page.waitForTimeout(200);
-  assert.equal(Number(await sliderValue(page, 'position')), paused);
+  assert.equal(Number(await elapsedSeconds(page)), paused);
   await page.locator('#play').click();
   await page.waitForTimeout(250);
   await page.locator('#play').click();
-  assert.ok(Number(await sliderValue(page, 'position')) > paused);
+  assert.ok(Number(await elapsedSeconds(page)) > paused);
   await page.locator('#restart').click();
-  assert.equal(Number(await sliderValue(page, 'position')), 0);
-  await page.locator('#position').focus();
-  await page.keyboard.press('ArrowRight');
-  assert.ok(Number(await sliderValue(page, 'position')) > 0);
+  assert.equal(Number(await elapsedSeconds(page)), 0);
   await page.locator('#exercise-title').click();
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#play').innerText(), 'Pause');
@@ -106,14 +104,14 @@ try {
   await page.locator('#transpose-up').click();
   assert.equal(await readSpecValue(page, 'low'), '61');
   assert.equal(await readSpecValue(page, 'low'), '61');
-  await page.locator('#pattern').selectOption('major');
-  assert.equal(await page.locator('#pattern').inputValue(), 'major');
+  await selectExercise(page, 'major');
+  assert.equal(await readSpecValue(page, 'pattern'), 'major');
   assert.equal(
     await page.locator('#save-preset, #saved-presets, #delete-preset, #save-dialog').count(),
     0
   );
   await page.reload();
-  assert.equal(await page.locator('#pattern').inputValue(), 'major');
+  assert.equal(await readSpecValue(page, 'pattern'), 'major');
   const currentSpec = await page.evaluate(() => localStorage.getItem('dorego.current')!);
   const specFile = new URL('cli-exercise.json', work).pathname;
   await writeFile(specFile, currentSpec);
@@ -136,7 +134,7 @@ try {
   );
   await page.screenshot({ path: new URL('mobile.png', work).pathname, fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1100 });
-  await page.locator('#pattern').selectOption('arpeggio');
+  await selectExercise(page, 'arpeggio');
   const highBefore = await readSpecValue(page, 'high');
   await page.locator('#low-spin').click();
   assert.ok(
@@ -215,7 +213,7 @@ try {
   // Arpeggio has independent direction and range controls.
   await setNote('low', 60);
   await setNote('high', 67);
-  await page.locator('#pattern').selectOption('arpeggio');
+  await selectExercise(page, 'arpeggio');
   assert.equal(
     await page.locator('#exercise-title').textContent(),
     'Arpeggio & Scale (Rising first)'
@@ -229,7 +227,7 @@ try {
   const withChords = await page.locator('#exercise-summary').textContent();
   await page.locator('#startingChords').uncheck();
   assert.notEqual(await page.locator('#exercise-summary').textContent(), withChords);
-  await page.getByRole('radio', { name: 'Falling first', exact: true }).check();
+  await page.getByRole('button', { name: 'Falling first', exact: true }).click();
   assert.equal(
     await page.locator('#exercise-title').textContent(),
     'Arpeggio & Scale (Falling first)'

@@ -1,3 +1,5 @@
+import { readSpecValue } from './ui-helpers';
+import { selectExercise } from './ui-helpers';
 import { openMoreOptions } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -46,7 +48,7 @@ try {
     ['octaveGlide', 12, 'down'],
     ['octaveGlide', 12, 'both'],
   ] as const) {
-    await page.locator('#pattern').selectOption(pattern);
+    await selectExercise(page, pattern);
     await page.locator(`#direction-${direction}`).click();
     assert.ok(await page.locator('#direction').isVisible());
     await openMoreOptions(page);
@@ -136,7 +138,7 @@ try {
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  assert.equal(await page.locator('#pattern').inputValue(), 'octaveGlide');
+  assert.equal(await readSpecValue(page, 'pattern'), 'octaveGlide');
   assert.ok(await page.locator('#direction').isVisible());
   assert.ok(await page.locator('#note-range').isVisible());
   assert.ok(await page.locator('#form-error').isHidden());

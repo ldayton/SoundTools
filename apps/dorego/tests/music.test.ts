@@ -1,3 +1,4 @@
+import { EXERCISE_PATTERNS } from '../src/music';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -21,16 +22,15 @@ const DEFAULT_SPEC = {
   high: 72,
   bpm: 200,
 };
-test('exercise choices include Rossini Scale, with Arpeggio & Scale E3-E5 at 150 BPM as the default', () => {
+test('exercise choices include Rossini Scale, with Arpeggio & Scale E3-F5 at 150 BPM as the default', () => {
   assert.deepEqual(
-    Object.values(PATTERNS).map((p) => p.name),
+    EXERCISE_PATTERNS.map((pattern) => PATTERNS[pattern].name),
     [
       'Arpeggio & Scale',
       'Octave Arpeggio',
       'Rossini Scale',
       'Five-Note Scale',
-      'Pentatonic Threes (9 notes)',
-      'Pentatonic Threes (12 notes)',
+      'Pentatonic Threes',
       'Major Scale',
       'Fifth Glide',
       'Octave Glide',
@@ -38,7 +38,7 @@ test('exercise choices include Rossini Scale, with Arpeggio & Scale E3-E5 at 150
   );
   assert.equal(APP_DEFAULT_SPEC.pattern, 'arpeggio');
   assert.equal(APP_DEFAULT_SPEC.low, 52);
-  assert.equal(APP_DEFAULT_SPEC.high, 76);
+  assert.equal(APP_DEFAULT_SPEC.high, 77);
   assert.equal(APP_DEFAULT_SPEC.bpm, 150);
   assert.equal(DEFAULT_SPEC.direction, 'up');
   assert.equal(DEFAULT_SPEC.countIn, 8);

@@ -28,13 +28,13 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
 
 ## Practice
 
-- Nine exercises: **Arpeggio & Scale** (default: E3–E5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **Pentatonic Threes (9 notes)**, **Pentatonic Threes (12 notes)**, **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
-- Choose your lowest/highest vocal notes, phrase contour, and round progression. Major Scale instead uses a single Key selector for the starting note, including its octave; the other exercises move by semitone through your range.
+- Eight exercises: **Arpeggio & Scale** (default: E3–F5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **Pentatonic Threes** (6, 9, or 12 notes), **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
+- Choose your lowest/highest vocal notes in octaves 2–6, phrase contour, and round progression. Major Scale instead uses a single Key selector for the starting note, including its octave; the other exercises move by semitone through your range.
 - Click anywhere on a desktop note field to open a note grid organized by octave; typing is disabled. Enter or Space also opens the picker. Mobile uses snapping swipe wheels. Arrow keys move by semitone and Page Up/Down by octave.
 - Transpose the key and range together with the minus/plus buttons.
 - Adjust tempo (60–240 BPM), rounds, inter-round rests, count-in, and volume. Pitched phrases use the sampled bitKlavier Steinway Grand with fixed natural articulation. Glides use sustained VSCO cello recordings, with the usual piano chord introduction. All beats are quarter-note beats. The default count-in is two bars of 4/4 (eight beats), displayed as two labeled four-beat groups with the active beat highlighted and each downbeat accented.
 - Piano samples warm up automatically before playback. A “Loading...” indicator appears immediately while preparing; Play becomes available as soon as the selected exercise is ready; failed loads offer a retry.
-- Exercise, range, tempo, direction, and other preferences are saved automatically in browser local storage and restored on return. New users start with Arpeggio & Scale E3–E5 at 150 BPM.
+- Exercise, range, tempo, direction, and other preferences are saved automatically in browser local storage and restored on return. New users start with Arpeggio & Scale E3–F5 at 150 BPM.
 - Tempo −/+ buttons step by 5 BPM. Repeats count additional passes (None means one pass); repeats and rest use stacked arrows on desktop and None–4 dropdowns on mobile.
 - Volume is independent beneath tempo and can change during playback with a short gain ramp. Count-in clicks stop when the exercise begins.
 - Play/pause, scrub, restart, and fullscreen. Space toggles playback, R restarts, F toggles fullscreen when a form control is not focused. Tempo is independent: change it at any time with the slider, numeric field, or −/+ buttons. Playback keeps the current round and beat, including through count-ins, rests, and cello glides. Volume also changes live without restarting, in its own row below tempo. Other exercise edits reset playback.
@@ -55,7 +55,7 @@ npm run export -- video --output exercise.mp4
 npm run export -- video --spec exercise.json --height 1080 --output exercise.mp4
 ```
 
-Without a spec file, exports use Arpeggio & Scale E3–E5 at 150 BPM. Use `--url` for a different local server URL. Ctrl+C cancels a video export.
+Without a spec file, exports use Arpeggio & Scale E3–F5 at 150 BPM. Use `--url` for a different local server URL. Ctrl+C cancels a video export.
 
 **MIDI** exports directly to the requested file without a running server. It contains guide notes, tempo, and percussion-channel count-in/metronome clicks when enabled. A timed all-notes-off controller preserves the final slot. Guide volume/timbre and visual preferences are preview/video settings; MIDI uses a standard piano program and fixed guide-note velocity for downstream editing.
 

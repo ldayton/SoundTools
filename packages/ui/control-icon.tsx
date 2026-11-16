@@ -15,7 +15,8 @@ export type ControlIconName =
   | "edit"
   | "more"
   | "chevron-down"
-  | "chevron-right";
+  | "chevron-right"
+  | "chevron-left";
 
 const artwork = {
   tempo: (
@@ -70,6 +71,7 @@ const artwork = {
     </>
   ),
   "chevron-down": <path d="m6 9 6 6 6-6" />,
+  "chevron-left": <path d="m15 6-6 6 6 6" />,
   "chevron-right": <path d="m9 6 6 6-6 6" />,
 };
 

@@ -26,6 +26,36 @@ const CACHE_BYTES = 128 * 1024 * 1024;
 let preloadGeneration = 0;
 // Playback resolves the prepared variant by original region name.
 const prepared = new Map<string, string>();
+const referenceBuffers = new Map<string, AudioBuffer>();
+const referenceLoads = new Set<string>();
+/** Reference keys use a separate loading scope and cannot supersede an exercise warm-up. */
+export async function prepareReferenceNote(midi: number) {
+  const region = pianoRegion(midi, 0.7);
+  const path = pianoFile(region.midi, region.layer, region.file, 2);
+  let buffer = referenceBuffers.get(path) ?? buffers.get(path);
+  if (!buffer) {
+    referenceLoads.add(path);
+    sampleLoader.select('reference', referenceLoads);
+    try {
+      buffer = await sampleLoader.load(path, async (signal) => {
+        const encoded = await resources.fetchBytes(`${import.meta.env.BASE_URL}samples/${path}`, {
+          signal,
+          timeoutMs: 15000,
+          idleMs: 5000,
+          attempts: 2,
+        });
+        signal.throwIfAborted();
+        return Tone.getContext().decodeAudioData(encoded);
+      });
+      referenceBuffers.set(path, buffer);
+      if (referenceBuffers.size > 24)
+        referenceBuffers.delete(referenceBuffers.keys().next().value!);
+    } finally {
+      referenceLoads.delete(path);
+    }
+  }
+  return { buffer, midi: region.midi };
+}
 export async function preloadSteinway(exercise: Exercise) {
   const generation = ++preloadGeneration;
   const regions = new Map<string, { midi: number; layer: number; file: string; needed: number }>();
@@ -65,7 +95,12 @@ export async function preloadSteinway(exercise: Exercise) {
     [...files].map(async ([name, { path, cacheKey, needed }]) => {
       if (!buffers.has(cacheKey)) {
         const retained = await sampleLoader.load(cacheKey, async (signal) => {
-          const encoded = await resources.fetchBytes(`${import.meta.env.BASE_URL}samples/${path}`, { signal, timeoutMs:15000, idleMs:5000, attempts:2 });
+          const encoded = await resources.fetchBytes(`${import.meta.env.BASE_URL}samples/${path}`, {
+            signal,
+            timeoutMs: 15000,
+            idleMs: 5000,
+            attempts: 2,
+          });
           signal.throwIfAborted();
           const context = Tone.getContext();
           const decoded = await context.decodeAudioData(encoded);

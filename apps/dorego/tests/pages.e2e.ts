@@ -1,3 +1,4 @@
+import { selectExercise } from './ui-helpers';
 import { volumePercent } from '@ldayton/ui/volume';
 import {
   readSpecValue,
@@ -76,7 +77,7 @@ try {
   });
   await page.goto(base);
   await page.locator('#exercise-title').waitFor();
-  await page.getByRole('button', { name: 'Loading...' }).waitFor();
+  await page.getByRole('button', { name: 'Loading audio' }).waitFor();
   assert.ok(await page.locator('#play').isDisabled());
   assert.equal(await page.locator('#play').getAttribute('aria-busy'), 'true');
   assert.equal(await page.locator('#play .mantine-Loader-root').count(), 1);
@@ -86,9 +87,9 @@ try {
   );
   assert.equal(await page.locator('#play').innerText(), 'Play');
   assert.ok(
-    (await page.locator('#play').boundingBox())!.x <
-      (await page.locator('#restart').boundingBox())!.x,
-    'Primary playback action precedes restart'
+    (await page.locator('#restart').boundingBox())!.x <
+      (await page.locator('#play').boundingBox())!.x,
+    'Go to start precedes play, matching the shared transport'
   );
   assert.ok(samples.length > 0, 'Piano samples should load before the first click');
   const preparedSamples = samples.length;
@@ -114,27 +115,32 @@ try {
     await page.locator('#video-button, #midi-download, #export-dialog, .export-card').count(),
     0
   );
-  assert.equal(await page.locator('#pattern').inputValue(), 'arpeggio');
+  assert.equal(await readSpecValue(page, 'pattern'), 'arpeggio');
   assert.equal(await readSpecValue(page, 'low'), '52');
-  assert.equal(await readSpecValue(page, 'high'), '76');
-  assert.equal(await page.locator('#bpm').inputValue(), '150');
+  assert.equal(await readSpecValue(page, 'high'), '77');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '150');
   const tempoField = (await page.locator('#bpm').boundingBox())!;
   assert.ok(
     tempoField.width >= 70 && tempoField.width <= 220,
     'Tempo entry stays compact and readable'
   );
-  for (const name of ['Playback position', 'Tempo slider', 'Volume'])
-    assert.equal(await page.getByRole('slider', { name, exact: true }).count(), 1);
+  assert.equal(
+    await page.getByRole('slider', { name: 'Playback position', exact: true }).count(),
+    0
+  );
+  assert.equal(await page.getByRole('button', { name: 'Volume', exact: true }).count(), 1);
   await page.locator('#bpm').fill('151');
   await page.locator('#bpm').press('Enter');
-  await page.locator('#tempo-up').click();
+  await page.locator('#bpm').press('ArrowUp');
+  await page.locator('#bpm').press('Tab');
   assert.equal(
-    await page.locator('#bpm').inputValue(),
+    await page.locator('#bpm').getAttribute('aria-valuenow'),
     '156',
     'Tempo steps preserve integer offsets'
   );
-  await page.locator('#tempo-down').click();
-  assert.equal(await page.locator('#bpm').inputValue(), '151');
+  await page.locator('#bpm').press('ArrowDown');
+  await page.locator('#bpm').press('Tab');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '151');
   await page.locator('#bpm').fill('150');
   await page.locator('#bpm').press('Enter');
   await page.locator('#low-spin').press('ArrowUp');
@@ -166,7 +172,7 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'low-spin');
   assert.equal(await readSpecValue(page, 'low'), '52', 'Focus movement does not commit a pitch');
   await page.locator('#low-spin').click();
-  await page.locator('#page-title').click();
+  await page.locator('#exercise-title').click();
   assert.ok(await picker.isHidden(), 'Outside click dismisses pitch grid');
   await page.locator('#low-spin').click();
   await page.locator('#low-spin').press('Escape');
@@ -182,19 +188,19 @@ try {
     () =>
       document.querySelector('#high-wheel')!.getBoundingClientRect().height > 0 &&
       document.querySelector('#high-wheel')!.scrollTop ===
-        (Number(document.querySelector('#high-wheel')!.getAttribute('aria-valuenow')) - 24) * 32
+        (Number(document.querySelector('#high-wheel')!.getAttribute('aria-valuenow')) - 36) * 32
   );
   await page.locator('#high-wheel').evaluate((el) => {
     el.scrollTop -= 96;
   });
   await page.waitForFunction(
-    () => document.querySelector('#high-wheel')!.getAttribute('aria-valuenow') === '73'
+    () => document.querySelector('#high-wheel')!.getAttribute('aria-valuenow') === '74'
   );
   await page.locator('#high-wheel').evaluate((el) => {
     el.scrollTop += 96;
   });
   await page.waitForFunction(
-    () => document.querySelector('#high-wheel')!.getAttribute('aria-valuenow') === '76'
+    () => document.querySelector('#high-wheel')!.getAttribute('aria-valuenow') === '77'
   );
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.locator('#play').click();
@@ -202,30 +208,31 @@ try {
   assert.equal(await page.locator('#play').innerText(), 'Pause');
   assert.equal(await page.locator('#play').getAttribute('aria-busy'), 'false');
   await page.waitForFunction(
-    () => Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > 0.15
+    () => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > 0.15
   );
   assert.equal(samples.length, preparedSamples, 'Play must use the preloaded samples');
   await page.locator('#play').click();
   assert.ok(samples.length > 0);
   assert.ok(samples.every((url) => url.includes(basePath + 'samples/bitklavier-web-v1/')));
-  await page.locator('#how-button').click();
-  const credits = page.getByRole('dialog').locator('a[href*="bitklavier"]');
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  const credits = page.locator('#settings-ui a[href*="bitklavier"]');
   const creditsPath = await credits.getAttribute('href');
   const notice = await fetch(new URL(creditsPath!, base));
   assert.ok(notice.ok);
   assert.match(await notice.text(), /Creative Commons Attribution 4.0/);
   const celloNoticePath = await page
-    .getByRole('dialog')
-    .locator('a[href*="vsco-cello"]')
+    .locator('#settings-ui a[href*="vsco-cello"]')
     .getAttribute('href');
   const celloNotice = await fetch(new URL(celloNoticePath!, base));
   assert.ok(celloNotice.ok);
   assert.match(await celloNotice.text(), /CC0/);
-  await page.getByRole('button', { name: 'Close how it works', exact: true }).click();
-  await page.locator('#tempo-up').click();
-  assert.equal(await page.locator('#bpm').inputValue(), '155');
-  await page.locator('#tempo-down').click();
-  assert.equal(await page.locator('#bpm').inputValue(), '150');
+  await page.getByRole('link', { name: 'DoReGo home', exact: true }).click();
+  await page.locator('#bpm').press('ArrowUp');
+  await page.locator('#bpm').press('Tab');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '155');
+  await page.locator('#bpm').press('ArrowDown');
+  await page.locator('#bpm').press('Tab');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '150');
   await openMoreOptions(page);
   await page.locator('#countIn').selectOption('4');
   assert.equal(await page.locator('#countIn').inputValue(), '4');
@@ -272,19 +279,21 @@ try {
   await page.locator('#rest-select').selectOption('0');
   assert.equal(await readSpecValue(page, 'restBeats'), '0');
   await page.locator('#rest-select').selectOption('2');
-  await page.locator('#tempo-up').click();
-  assert.equal(await page.locator('#bpm').inputValue(), '155');
-  await page.locator('#tempo-down').click();
+  await page.locator('#bpm').press('ArrowUp');
+  await page.locator('#bpm').press('Tab');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '155');
+  await page.locator('#bpm').press('ArrowDown');
+  await page.locator('#bpm').press('Tab');
   await page.setViewportSize({ width: 1280, height: 900 });
 
-  await page.locator('#pattern').selectOption('rossini');
+  await selectExercise(page, 'rossini');
   assert.equal(await page.locator('#exercise-title').textContent(), 'Rossini Scale');
   assert.ok(await page.locator('#direction').isHidden());
   assert.ok(await page.locator('#form-error').isHidden());
   assert.ok(
     Number(await readSpecValue(page, 'high')) - Number(await readSpecValue(page, 'low')) >= 19
   );
-  await page.locator('#pattern').selectOption('arpeggio');
+  await selectExercise(page, 'arpeggio');
   assert.ok(await page.locator('#direction').isVisible());
   assert.equal(
     await page.locator('#exercise-title').textContent(),
@@ -302,7 +311,7 @@ try {
     () => JSON.parse(localStorage.getItem('dorego.current') || '{}').repeatTwice === true
   );
   await page.reload();
-  await page.locator('#pattern').waitFor();
+  await page.locator('[data-pattern][aria-current]').waitFor();
   await openMoreOptions(page);
   assert.ok(await page.locator('#repeatTwice').isChecked(), 'breath practice survives reload');
   assert.ok(await page.locator('#repeatTurn').isChecked());
@@ -310,12 +319,12 @@ try {
   await page.locator('#repeatTwice').uncheck();
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();
-  await page.locator('#pattern').selectOption('pentatonic12');
+  await selectExercise(page, 'pentatonic12');
   assert.equal(
     await page.locator('#exercise-title').textContent(),
-    'Pentatonic Threes (12 notes) (Rising first)'
+    'Pentatonic Threes (Rising first)'
   );
-  assert.deepEqual(await page.locator('#direction [role=radio]').allTextContents(), [
+  assert.deepEqual(await page.locator('#direction button[aria-pressed]').allTextContents(), [
     'Rising first',
     'Falling first',
   ]);
@@ -330,19 +339,18 @@ try {
   assert.ok(await page.getByRole('checkbox', { name: 'Lowest note', exact: true }).isChecked());
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();
-  await page.getByRole('button', { name: 'More options', exact: true }).click();
 
   await page.locator('#direction-down').click();
   assert.equal(
     await page.locator('#exercise-title').textContent(),
-    'Pentatonic Threes (12 notes) (Falling first)'
+    'Pentatonic Threes (Falling first)'
   );
   await page.locator('#direction-up').click();
   for (const [pattern, label] of [
     ['fiveNote', 'Five-Note Scale'],
     ['octaveArpeggio', 'Octave Arpeggio'],
   ]) {
-    await page.locator('#pattern').selectOption(pattern);
+    await selectExercise(page, pattern);
     assert.equal(await page.locator('#exercise-title').textContent(), `${label} (Rising first)`);
     assert.ok(await page.locator('#direction').isVisible());
     assert.ok(await page.locator('#key').isDisabled());
@@ -354,21 +362,20 @@ try {
     await page.locator('#progression-up').click();
   }
   await page.reload();
-  assert.equal(await page.locator('#pattern').inputValue(), 'octaveArpeggio');
-  assert.deepEqual(await page.locator('#pattern option').allTextContents(), [
+  assert.equal(await readSpecValue(page, 'pattern'), 'octaveArpeggio');
+  assert.deepEqual(await page.locator('[data-pattern]').allTextContents(), [
     'Arpeggio & Scale',
     'Octave Arpeggio',
     'Rossini Scale',
     'Five-Note Scale',
-    'Pentatonic Threes (9 notes)',
-    'Pentatonic Threes (12 notes)',
+    'Pentatonic Threes',
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',
   ]);
   await openMoreOptions(page);
   for (const pattern of ['fifthGlide', 'octaveGlide']) {
-    await page.locator('#pattern').selectOption(pattern);
+    await selectExercise(page, pattern);
     assert.ok(await page.locator('#direction').isVisible());
     assert.ok(await page.locator('#startingChords').isVisible());
     await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('#play')?.disabled);
@@ -398,7 +405,12 @@ try {
     .getByRole('button', { name: 'F4', exact: true })
     .click();
   assert.ok(await page.locator('#progression').isVisible());
-  assert.ok(await page.locator('#progression-down').isChecked());
+  assert.ok(
+    await page
+      .locator('#progression-down')
+      .getAttribute('aria-pressed')
+      .then((value) => value === 'true')
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await openPracticeOptions(page);
   await page.locator('#high-wheel').press('ArrowDown');
@@ -408,7 +420,7 @@ try {
   assert.ok(await page.locator('#progression').isVisible());
   await page.setViewportSize({ width: 1280, height: 900 });
 
-  await page.locator('#pattern').selectOption('major');
+  await selectExercise(page, 'major');
   assert.ok(await page.locator('#note-range').isHidden());
   assert.ok(await page.locator('#range-heading').isHidden());
   assert.ok(await page.locator('#key').isVisible());
@@ -421,41 +433,46 @@ try {
   await page.reload();
   assert.equal(await page.locator('#key').inputValue(), '62');
   assert.ok(await page.locator('#note-range').isHidden());
-  await page.locator('#pattern').selectOption('arpeggio');
+  await selectExercise(page, 'arpeggio');
   assert.ok(await page.locator('#note-range').isVisible());
   await page.locator('#direction-up').click();
   await page.locator('#progression-both').click();
   await page.reload();
-  assert.equal(await page.locator('#direction [role=radio][aria-checked=true]').count(), 1);
+  assert.equal(await page.locator('#direction button[aria-pressed=true]').count(), 1);
   assert.equal(await readSpecValue(page, 'progression'), 'both');
   assert.equal(
     await page.evaluate(() => JSON.parse(localStorage.getItem('dorego.current')!).progression),
     'both'
   );
   await page.locator('#direction-up').click();
-  assert.ok(await page.locator('#direction-up').isChecked());
+  assert.ok(
+    await page
+      .locator('#direction-up')
+      .getAttribute('aria-pressed')
+      .then((value) => value === 'true')
+  );
   // A phone gets a taller, fully fitted keyboard; desktop keeps the video layout.
   await page.setViewportSize({ width: 320, height: 720 });
   await page.waitForFunction(() => {
     const canvas = document.querySelector('#stage') as HTMLCanvasElement;
-    return canvas.width === canvas.height;
+    return Math.abs(canvas.height / canvas.width - 1180 / 1600) < 0.01;
   });
   const mobile = await page.locator('#stage').boundingBox();
-  assert.ok(mobile && Math.abs(mobile.width - mobile.height) < 2);
+  assert.ok(mobile && Math.abs(mobile.height / mobile.width - 1180 / 1600) < 0.01);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.waitForFunction(() => {
     const canvas = document.querySelector('#stage') as HTMLCanvasElement;
-    return canvas.width === 1600 && canvas.height === 900;
+    return canvas.width === 1600 && canvas.height === 520;
   });
   // Impossible range choices are disabled; the other endpoint and saved exercise stay put.
-  await page.locator('#pattern').selectOption('fiveNote');
+  await selectExercise(page, 'fiveNote');
   const validSaved = await page.evaluate(() => localStorage.getItem('dorego.current'));
   const highBefore = await readSpecValue(page, 'high');
   await page.locator('#low-spin').click();
   const unavailable = page
     .getByRole('dialog', { name: 'Choose lowest note' })
-    .getByRole('button', { name: 'C7', exact: true });
+    .getByRole('button', { name: 'B6', exact: true });
   assert.ok(await unavailable.isDisabled());
   await page.keyboard.press('Escape');
   await page.locator('#low-spin').press('End');
@@ -488,14 +505,21 @@ try {
     const field = preferencesPage.locator(`#${id}`);
     if ((await field.count()) && typeof value !== 'boolean' && !['key', 'direction'].includes(id))
       assert.equal(
-        ['volume', 'position', 'tempo-slider'].includes(id)
+        id === 'volume'
           ? String(await sliderValue(preferencesPage, id))
-          : await field.inputValue(),
+          : id === 'bpm'
+            ? await field.getAttribute('aria-valuenow')
+            : await field.inputValue(),
         String(id === 'volume' ? volumePercent(Number(value)) : value),
         `Stored ${id} was overwritten`
       );
   }
-  assert.ok(await preferencesPage.locator('#direction-down').isChecked());
+  assert.ok(
+    await preferencesPage
+      .locator('#direction-down')
+      .getAttribute('aria-pressed')
+      .then((value) => value === 'true')
+  );
   assert.equal(await preferencesPage.locator('#metronome').count(), 0);
   assert.ok(!(await preferencesPage.locator('#startingChords').isChecked()));
   await preferencesPage.locator('#bpm').fill('194');
@@ -508,8 +532,8 @@ try {
   );
 
   await preferencesPage.reload();
-  assert.equal(await preferencesPage.locator('#bpm').inputValue(), '194');
-  assert.equal(await preferencesPage.locator('#pattern').inputValue(), 'fiveNote');
+  assert.equal(await preferencesPage.locator('#bpm').getAttribute('aria-valuenow'), '194');
+  assert.equal(await readSpecValue(preferencesPage, 'pattern'), 'fiveNote');
   assert.equal(await readSpecValue(preferencesPage, 'low'), '48');
   assert.equal(await readSpecValue(preferencesPage, 'high'), '67');
   await preferencesPage.close();

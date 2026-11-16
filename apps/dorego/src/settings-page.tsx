@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { Anchor, Button, Group, Progress } from '@mantine/core';
+import { Anchor, Button, Group, Progress, Paper, Stack, Title } from '@mantine/core';
 import { SettingsSections } from '@ldayton/ui/settings-sections';
 import { OfflineStatusPanel } from '@ldayton/ui/offline-status-panel';
 import { offlineState, offlineActions } from './offline-state';
@@ -45,22 +45,29 @@ export function SettingsPage() {
         </>
       }
     >
-      <Anchor
-        size="sm"
-        href={`${import.meta.env.BASE_URL}samples/bitklavier/NOTICE.txt`}
-        target="_blank"
-        rel="noopener"
-      >
-        Piano recording credits
-      </Anchor>
-      <Anchor
-        size="sm"
-        href={`${import.meta.env.BASE_URL}samples/vsco-cello/NOTICE.txt`}
-        target="_blank"
-        rel="noopener"
-      >
-        Cello recording credits
-      </Anchor>
+      <Paper component="section" withBorder p="md" aria-labelledby="credits-title">
+        <Stack gap="sm">
+          <Title order={2} size="h4" id="credits-title">
+            Credits
+          </Title>
+          <Anchor
+            size="sm"
+            href={`${import.meta.env.BASE_URL}samples/bitklavier/NOTICE.txt`}
+            target="_blank"
+            rel="noopener"
+          >
+            bitKlavier Grand recordings · CC BY 4.0
+          </Anchor>
+          <Anchor
+            size="sm"
+            href={`${import.meta.env.BASE_URL}samples/vsco-cello/NOTICE.txt`}
+            target="_blank"
+            rel="noopener"
+          >
+            VSCO cello recordings · CC0
+          </Anchor>
+        </Stack>
+      </Paper>
     </SettingsSections>
   );
 }

@@ -7,8 +7,8 @@ test('switching to a wider vocal phrase expands its range within supported bound
   const next = validate(
     editSpec({ ...DEFAULT_SPEC, pattern: 'fiveNote', low: 90, high: 96 }, { pattern: 'rossini' })
   );
-  assert.equal(next.high, 96);
-  assert.equal(next.low, 77);
+  assert.equal(next.high, 95);
+  assert.equal(next.low, 76);
   assert.equal(next.pattern, 'rossini');
 });
 test('switching away from a bidirectional glide retains progression and selects a valid contour', () => {
@@ -52,4 +52,21 @@ test('legacy glide migration and repeat preferences survive restoration', () => 
   assert.equal(next.repeatTurn, true);
   assert.equal(next.repeatHome, true);
   assert.equal(next.repeatTwice, true);
+});
+
+test('saved ranges stay within the note selector octaves without losing a valid phrase', () => {
+  const restored = restoreSpec({ ...DEFAULT_SPEC, low: 24, high: 96 }, '1');
+  assert.equal(restored.low, 36);
+  assert.equal(restored.high, 95);
+  for (const direction of ['up', 'down'] as const) {
+    const next = validate(
+      editSpec(
+        { ...DEFAULT_SPEC, pattern: 'major', direction },
+        { startingNote: direction === 'up' ? 95 : 36 }
+      )
+    );
+    assert.ok(next.low >= 36);
+    assert.ok(next.high <= 95);
+    assert.equal(next.high - next.low, 12);
+  }
 });

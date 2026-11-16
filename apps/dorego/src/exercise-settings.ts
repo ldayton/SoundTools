@@ -6,6 +6,9 @@ import {
   generateExercise as generateBoundedExercise,
   type ExerciseSpec,
 } from './music';
+// UI pitch choices cover C2 through B6; audio/export can still use their wider range.
+export const MIN_NOTE = 36;
+export const MAX_NOTE = 95;
 const generateExercise = (input: unknown) => generateBoundedExercise(input, Infinity);
 export function restoreSpec(input: unknown, glideShapeVersion: string | null): ExerciseSpec {
   if (!input || typeof input !== 'object') throw new Error('Invalid saved exercise.');
@@ -30,8 +33,8 @@ export function restoreSpec(input: unknown, glideShapeVersion: string | null): E
   if (saved.pattern === 'major') {
     const down = saved.direction === 'down';
     const start = Math.max(
-      down ? 36 : 24,
-      Math.min(down ? 96 : 84, Number(down ? saved.high : saved.low))
+      down ? MIN_NOTE + 12 : MIN_NOTE,
+      Math.min(down ? MAX_NOTE : MAX_NOTE - 12, Number(down ? saved.high : saved.low))
     );
     saved.key = start % 12;
     saved.low = down ? start - 12 : start;
@@ -48,7 +51,10 @@ export function restoreSpec(input: unknown, glideShapeVersion: string | null): E
     glideShapeVersion !== '1'
   )
     saved.direction = 'both';
-  return generateExercise(saved).spec;
+  const spec = generateExercise(saved).spec;
+  const high = Math.min(MAX_NOTE, Math.max(MIN_NOTE + vocalSpan(spec.pattern), spec.high));
+  const low = Math.max(MIN_NOTE, Math.min(spec.low, high - vocalSpan(spec.pattern)));
+  return generateExercise({ ...spec, low, high }).spec;
 }
 
 export function editSpec(
@@ -74,14 +80,17 @@ export function editSpec(
     Number(result.high) - Number(result.low) < vocalSpan(result.pattern as ExerciseSpec['pattern'])
   ) {
     const span = vocalSpan(result.pattern as ExerciseSpec['pattern']);
-    result.high = Math.min(96, Number(result.low) + span);
+    result.high = Math.min(MAX_NOTE, Number(result.low) + span);
     result.low = Math.min(Number(result.low), Number(result.high) - span);
   }
   if (result.pattern === 'major') {
     const down = result.direction === 'down';
     const startingNote = Math.max(
-      down ? 36 : 24,
-      Math.min(down ? 96 : 84, Number(result.startingNote ?? (down ? result.high : result.low)))
+      down ? MIN_NOTE + 12 : MIN_NOTE,
+      Math.min(
+        down ? MAX_NOTE : MAX_NOTE - 12,
+        Number(result.startingNote ?? (down ? result.high : result.low))
+      )
     );
     result.key = startingNote % 12;
     result.low = down ? startingNote - 12 : startingNote;

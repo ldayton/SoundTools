@@ -1,3 +1,5 @@
+import { setTempo } from './ui-helpers';
+import { readSpecValue } from './ui-helpers';
 import { setSlider } from './ui-helpers';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
@@ -54,8 +56,8 @@ try {
   async function beat() {
     return page.evaluate(
       () =>
-        (Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) *
-          Number((document.querySelector('#bpm') as HTMLInputElement).value)) /
+        (Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) *
+          Number(document.querySelector('#bpm')!.getAttribute('aria-valuenow'))) /
         60
     );
   }
@@ -73,10 +75,10 @@ try {
     const snapshot = () =>
       page.evaluate(() => ({
         beat:
-          (Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) *
-            Number((document.querySelector('#bpm') as HTMLInputElement).value)) /
+          (Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) *
+            Number(document.querySelector('#bpm')!.getAttribute('aria-valuenow'))) /
           60,
-        bpm: Number((document.querySelector('#bpm') as HTMLInputElement).value),
+        bpm: Number(document.querySelector('#bpm')!.getAttribute('aria-valuenow')),
         time: performance.now(),
         playing: document.querySelector('#play')?.textContent === 'Pause',
         commitAt: (window as any).tempoProbe.commitAt,
@@ -101,8 +103,9 @@ try {
   await tempo(60);
   assert.equal(await page.locator('#play').textContent(), 'Pause');
   await page.waitForTimeout(250);
-  await page.locator('#tempo-up').click();
-  assert.equal(await page.locator('#bpm').inputValue(), '65');
+  await page.locator('#bpm').press('ArrowUp');
+  await page.locator('#bpm').press('Tab');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '65');
   assert.equal(await page.locator('#play').textContent(), 'Pause');
   await page.locator('#play').click();
   const paused = await beat();
@@ -193,14 +196,14 @@ try {
   );
   assert.equal(retimed, 5);
   const beforeSlider = await beat();
-  await setSlider(page, 'tempo-slider', 60);
+  await setTempo(page, 60);
   assert.ok(Math.abs((await beat()) - beforeSlider) < 0.35);
   assert.equal(await page.locator('#play').textContent(), 'Pause');
   await page.locator('#play').click();
   assert.deepEqual(errors, []);
   await page.reload();
-  assert.equal(await page.locator('#bpm').inputValue(), '60');
-  assert.equal(await page.locator('#pattern').inputValue(), 'octaveGlide');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '60');
+  assert.equal(await readSpecValue(page, 'pattern'), 'octaveGlide');
   console.log(
     'PASS: live tempo during count-in, rests, sounding piano and cello on desktop/mobile; preserved beats, continuous sources, paused tempo, slider/buttons/typing, and persistence.'
   );

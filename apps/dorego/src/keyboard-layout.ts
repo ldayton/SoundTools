@@ -1,6 +1,50 @@
 import { isVocalPattern, type Exercise, type PracticeRound } from './music';
 
 const isBlack = (midi: number) => [1, 3, 6, 8, 10].includes(midi % 12);
+/** Desktop uses every available fixed-width key slot, centered on the vocal range. */
+export function referenceWindow(low: number, high: number, width: number): [number, number] {
+  const whites = Array.from({ length: 88 }, (_, i) => 21 + i).filter((midi) => !isBlack(midi));
+  const count = Math.max(7, Math.min(whites.length, Math.floor(width / 32)));
+  const middle = whites.reduce(
+    (best, midi, i) =>
+      Math.abs(midi - (low + high) / 2) < Math.abs(whites[best] - (low + high) / 2) ? i : best,
+    0
+  );
+  const start = Math.max(0, Math.min(whites.length - count, middle - Math.floor((count - 1) / 2)));
+  return [whites[start], whites[start + count - 1]];
+}
+/** Phone rows are complete octaves, matching SongAlong instead of leaving a tiny last row. */
+export function referenceOctaves(low: number, high: number): [number, number][] {
+  const first = Math.floor(low / 12) * 12,
+    last = Math.floor(high / 12) * 12;
+  return Array.from({ length: (last - first) / 12 + 1 }, (_, index) => [
+    first + index * 12,
+    first + index * 12 + 11,
+  ]);
+}
+/** Split only between adjacent white notes, so no black key is clipped or duplicated at a seam. */
+export function referenceRows(low: number, high: number, width: number): [number, number][] {
+  while (isBlack(low)) low--;
+  while (isBlack(high)) high++;
+  const maxWhites = Math.max(7, Math.floor(width / 32));
+  const rows: [number, number][] = [];
+  while (low <= high) {
+    let end = high,
+      split = low,
+      count = 0;
+    for (let midi = low; midi <= high; midi++) {
+      if (!isBlack(midi)) count++;
+      if (count > maxWhites) {
+        end = split;
+        break;
+      }
+      if (!isBlack(midi) && !isBlack(midi + 1)) split = midi;
+    }
+    rows.push([low, end]);
+    low = end + 1;
+  }
+  return rows;
+}
 export function vocalPhraseNotes(exercise: Exercise, round: PracticeRound) {
   const introBeats =
     isVocalPattern(exercise.spec.pattern) && exercise.spec.startingChords

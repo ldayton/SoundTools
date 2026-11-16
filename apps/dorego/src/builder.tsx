@@ -1,18 +1,21 @@
 import { useSyncExternalStore } from 'react';
 import {
-  Accordion,
   ActionIcon,
   Alert,
   Group,
   NativeSelect,
-  Radio,
+  Button,
   SimpleGrid,
   Stack,
   Checkbox,
+  Divider,
+  UnstyledButton,
   Text,
 } from '@mantine/core';
 import {
   PATTERNS,
+  EXERCISE_PATTERNS,
+  isPentatonicPattern,
   isVocalPattern,
   isGlidePattern,
   supportsNoteRepeats,
@@ -25,6 +28,7 @@ import {
   type Direction,
   type ExerciseSpec,
 } from './music';
+import { MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { ResponsivePitchField } from '@ldayton/ui/responsive-pitch-field';
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
@@ -54,8 +58,8 @@ function PitchField({
       value={value}
       onChange={change}
       mobileWheel
-      choices={Array.from({ length: 73 }, (_, index) => {
-        const midi = index + 24;
+      choices={Array.from({ length: MAX_NOTE - MIN_NOTE + 1 }, (_, index) => {
+        const midi = index + MIN_NOTE;
         return {
           value: midi,
           label: noteChoiceLabel(midi),
@@ -117,36 +121,35 @@ function DirectionChoices({
   change(value: Direction): void;
 }) {
   return (
-    <Radio.Group
-      id={name}
-      name={name}
-      label={label}
-      value={value}
-      onChange={(value) => change(value as Direction)}
-    >
-      <SimpleGrid cols={choices.length} spacing="xs" mt="xs">
+    <Stack id={name} gap="xs" role="group" aria-label={label}>
+      <Text size="sm" fw={500}>
+        {label}
+      </Text>
+      <SimpleGrid cols={choices.length} spacing="xs">
         {choices.map((choice) => (
-          <Radio.Card
+          <Button
             key={choice.value}
             id={`${name}-${choice.value}`}
-            value={choice.value}
             aria-label={choice.label}
-            p="xs"
-            style={{ minWidth: 0 }}
+            aria-pressed={value === choice.value}
+            variant={value === choice.value ? 'light' : 'default'}
+            color={value === choice.value ? undefined : 'gray'}
+            h="auto"
+            py="md"
+            px="xs"
+            className="dorego-direction"
+            onClick={() => change(choice.value)}
           >
-            <Stack gap={4} align="center">
+            <Stack gap="xs" align="center">
               <Contour values={choice.notes} />
-              <Group gap={4} wrap="nowrap">
-                <Radio.Indicator size="xs" />
-                <Text size="xs" ta="center">
-                  {choice.label}
-                </Text>
-              </Group>
+              <Text size="sm" ta="center">
+                {choice.label}
+              </Text>
             </Stack>
-          </Radio.Card>
+          </Button>
         ))}
       </SimpleGrid>
-    </Radio.Group>
+    </Stack>
   );
 }
 export function Builder({
@@ -185,202 +188,222 @@ export function Builder({
       className="dorego-builder-ui"
       onSubmit={(event) => event.preventDefault()}
     >
-      <Stack>
+      <Stack gap="lg">
         <Alert id="form-error" color="red" hidden={!error} role="alert">
           {error}
         </Alert>
-        <div hidden={vocal}>
-          <NativeSelect
-            id="key"
-            disabled={vocal}
-            label="Key"
-            value={String(spec.direction === 'down' ? spec.high : spec.low)}
-            onChange={(event) => change({ startingNote: Number(event.currentTarget.value) })}
-          >
-            {Array.from({ length: 73 }, (_, i) => 24 + i).map((midi) => (
-              <option
-                key={midi}
-                value={midi}
-                disabled={spec.direction === 'down' ? midi < 36 : midi > 84}
-              >
-                {noteChoiceLabel(midi)}
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
-        <div hidden={spec.pattern === 'rossini'}>
-          <DirectionChoices
-            name="direction"
-            label="Within each round"
-            value={spec.direction}
-            choices={directions.map((value) => ({
-              value,
-              label: phraseLabel(spec.pattern, value),
-              notes: phraseContour(spec.pattern, value),
-            }))}
-            change={(direction) => change({ direction })}
-          />
-        </div>
-        <Stack id="note-range" gap="xs" hidden={!vocal}>
-          <Group id="range-heading" justify="space-between">
-            <Text size="sm" fw={500}>
-              Range
-            </Text>
-            <Group gap={4}>
-              <ActionIcon
-                id="transpose-down"
-                variant="default"
-                aria-label="Transpose down one semitone"
-                onClick={() => transpose(-1)}
-              >
-                −
-              </ActionIcon>
-              <ActionIcon
-                id="transpose-up"
-                variant="default"
-                aria-label="Transpose up one semitone"
-                onClick={() => transpose(1)}
-              >
-                +
-              </ActionIcon>
+        <Stack gap="xs">
+          <Divider label="Pitch" labelPosition="left" />
+          {isPentatonicPattern(spec.pattern) && (
+            <NativeSelect
+              id="pentatonic-notes"
+              label="Notes"
+              value={spec.pattern.replace('pentatonic', '')}
+              data={['6', '9', '12'].map((value) => ({ value, label: `${value} notes` }))}
+              onChange={(event) =>
+                change({
+                  pattern: `pentatonic${event.currentTarget.value}` as ExerciseSpec['pattern'],
+                })
+              }
+            />
+          )}
+
+          <div hidden={vocal}>
+            <NativeSelect
+              id="key"
+              disabled={vocal}
+              label="Key"
+              value={String(spec.direction === 'down' ? spec.high : spec.low)}
+              onChange={(event) => change({ startingNote: Number(event.currentTarget.value) })}
+            >
+              {Array.from({ length: MAX_NOTE - MIN_NOTE + 1 }, (_, i) => MIN_NOTE + i).map(
+                (midi) => (
+                  <option
+                    key={midi}
+                    value={midi}
+                    disabled={
+                      spec.direction === 'down' ? midi < MIN_NOTE + 12 : midi > MAX_NOTE - 12
+                    }
+                  >
+                    {noteChoiceLabel(midi)}
+                  </option>
+                )
+              )}
+            </NativeSelect>
+          </div>
+          <Stack id="note-range" gap="xs" hidden={!vocal}>
+            <Group id="range-heading" justify="space-between">
+              <Text size="sm" fw={500}>
+                Range
+              </Text>
+              <Group gap={4}>
+                <ActionIcon
+                  id="transpose-down"
+                  variant="default"
+                  aria-label="Transpose down one semitone"
+                  onClick={() => transpose(-1)}
+                >
+                  −
+                </ActionIcon>
+                <ActionIcon
+                  id="transpose-up"
+                  variant="default"
+                  aria-label="Transpose up one semitone"
+                  onClick={() => transpose(1)}
+                >
+                  +
+                </ActionIcon>
+              </Group>
             </Group>
-          </Group>
-          <SimpleGrid cols={2}>
-            <PitchField
-              bound="low"
-              value={spec.low}
-              change={(low) =>
-                change({ low: Math.min(spec.high - vocalSpan(spec.pattern), Math.max(24, low)) })
-              }
-              min={24}
-              max={spec.high - vocalSpan(spec.pattern)}
-            />
-            <PitchField
-              bound="high"
-              value={spec.high}
-              change={(high) =>
-                change({ high: Math.max(spec.low + vocalSpan(spec.pattern), Math.min(96, high)) })
-              }
-              min={spec.low + vocalSpan(spec.pattern)}
-              max={96}
-            />
-          </SimpleGrid>
+            <SimpleGrid cols={2}>
+              <PitchField
+                bound="low"
+                value={spec.low}
+                change={(low) =>
+                  change({
+                    low: Math.min(spec.high - vocalSpan(spec.pattern), Math.max(MIN_NOTE, low)),
+                  })
+                }
+                min={MIN_NOTE}
+                max={spec.high - vocalSpan(spec.pattern)}
+              />
+              <PitchField
+                bound="high"
+                value={spec.high}
+                change={(high) =>
+                  change({
+                    high: Math.max(spec.low + vocalSpan(spec.pattern), Math.min(MAX_NOTE, high)),
+                  })
+                }
+                min={spec.low + vocalSpan(spec.pattern)}
+                max={MAX_NOTE}
+              />
+            </SimpleGrid>
+          </Stack>
         </Stack>
-        <div hidden={spec.pattern === 'major' || roots.length <= 1}>
-          <DirectionChoices
-            name="progression"
-            label="Between rounds"
-            value={spec.progression ?? 'up'}
-            choices={[
-              { value: 'up', label: 'Rising', notes: [0, 1] },
-              { value: 'down', label: 'Falling', notes: [1, 0] },
-              { value: 'both', label: 'Rising then falling', notes: [0, 1, 0] },
+        <Stack gap="sm" hidden={spec.pattern === 'rossini' && roots.length <= 1}>
+          <Divider label="Direction" labelPosition="left" />
+          <div hidden={spec.pattern === 'rossini'}>
+            <DirectionChoices
+              name="direction"
+              label="Within each round"
+              value={spec.direction}
+              choices={directions.map((value) => ({
+                value,
+                label: phraseLabel(spec.pattern, value),
+                notes: phraseContour(spec.pattern, value),
+              }))}
+              change={(direction) => change({ direction })}
+            />
+          </div>
+          <div hidden={spec.pattern === 'major' || roots.length <= 1}>
+            <DirectionChoices
+              name="progression"
+              label="Between rounds"
+              value={spec.progression ?? 'up'}
+              choices={[
+                { value: 'up', label: 'Rising', notes: [0, 1] },
+                { value: 'down', label: 'Falling', notes: [1, 0] },
+                { value: 'both', label: 'Rising then falling', notes: [0, 1, 0] },
+              ]}
+              change={(progression) => change({ progression })}
+            />
+            <Text id="progression-preview" size="xs" c="dimmed" ta="center" mt="xs">
+              {targets.length === 1 ? `${targets[0]} · one key` : preview}
+            </Text>
+          </div>
+        </Stack>
+        <Stack gap="sm">
+          <Divider label="Repeats & timing" labelPosition="left" />
+          <div hidden={!vocal}>
+            <Checkbox
+              id="startingChords"
+              label="Starting-note chords"
+              checked={spec.startingChords ?? true}
+              onChange={(event) => change({ startingChords: event.currentTarget.checked })}
+            />
+          </div>
+          <div hidden={isGlidePattern(spec.pattern)}>
+            <Checkbox
+              id="repeatTwice"
+              label="Repeat each round twice"
+              checked={!!spec.repeatTwice}
+              onChange={(event) => change({ repeatTwice: event.currentTarget.checked })}
+            />
+          </div>
+          <Stack id="note-repeats" gap="xs" hidden={!supportsNoteRepeats(spec.pattern)}>
+            <Text size="sm" fw={500}>
+              Repeat notes
+            </Text>
+            <Checkbox
+              id="repeatTurn"
+              label={spec.direction === 'down' ? 'Lowest note' : 'Highest note'}
+              checked={!!spec.repeatTurn}
+              onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
+            />
+            <Checkbox
+              id="repeatHome"
+              label="Home note on return"
+              checked={!!spec.repeatHome}
+              onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
+            />
+          </Stack>
+          <SimpleGrid cols={2}>
+            {[
+              {
+                id: 'repeat',
+                label: 'Repeats',
+                value: spec.repetitions - 1,
+                max: 15,
+                patch: (value: number) => ({ repetitions: value + 1 }),
+              },
+              {
+                id: 'rest',
+                label: 'Rest (beats)',
+                value: spec.restBeats,
+                max: 16,
+                patch: (value: number) => ({ restBeats: value }),
+              },
+            ].map((field) => (
+              <div key={field.id}>
+                <div className="dorego-desktop-count">
+                  <CommittedNumber
+                    id={`${field.id}-count`}
+                    label={field.label}
+                    min={0}
+                    max={field.max}
+                    value={field.value}
+                    change={(value) => change(field.patch(value))}
+                  />
+                </div>
+                <div className="dorego-mobile-count">
+                  <NativeSelect
+                    id={`${field.id}-select`}
+                    label={field.label}
+                    value={String(field.value)}
+                    data={[...Array.from({ length: field.max + 1 }, (_, i) => i)].map((value) => ({
+                      value: String(value),
+                      label: value ? String(value) : 'None',
+                    }))}
+                    onChange={(event) => change(field.patch(Number(event.currentTarget.value)))}
+                  />
+                </div>
+              </div>
+            ))}
+          </SimpleGrid>
+          <NativeSelect
+            id="countIn"
+            label="Count-in"
+            value={String(spec.countIn)}
+            data={[
+              { value: '0', label: 'None' },
+              { value: '2', label: '½ bar' },
+              { value: '4', label: '1 bar' },
+              { value: '8', label: '2 bars' },
             ]}
-            change={(progression) => change({ progression })}
+            onChange={(event) => change({ countIn: Number(event.currentTarget.value) })}
           />
-          <Text id="progression-preview" size="xs" c="dimmed" ta="center" mt="xs">
-            {targets.length === 1 ? `${targets[0]} · one key` : preview}
-          </Text>
-        </div>
-        <Accordion id="dorego-more" keepMounted keepMountedMode="display-none">
-          <Accordion.Item value="more">
-            <Accordion.Control>More options</Accordion.Control>
-            <Accordion.Panel>
-              <Stack>
-                <Checkbox
-                  id="startingChords"
-                  label="Starting-note chords"
-                  checked={spec.startingChords ?? true}
-                  hidden={!vocal}
-                  onChange={(event) => change({ startingChords: event.currentTarget.checked })}
-                />
-                <Checkbox
-                  id="repeatTwice"
-                  label="Repeat each round twice"
-                  checked={!!spec.repeatTwice}
-                  hidden={isGlidePattern(spec.pattern)}
-                  onChange={(event) => change({ repeatTwice: event.currentTarget.checked })}
-                />
-                <Stack id="note-repeats" gap="xs" hidden={!supportsNoteRepeats(spec.pattern)}>
-                  <Text size="sm" fw={500}>
-                    Repeat notes
-                  </Text>
-                  <Checkbox
-                    id="repeatTurn"
-                    label={spec.direction === 'down' ? 'Lowest note' : 'Highest note'}
-                    checked={!!spec.repeatTurn}
-                    onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
-                  />
-                  <Checkbox
-                    id="repeatHome"
-                    label="Home note on return"
-                    checked={!!spec.repeatHome}
-                    onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
-                  />
-                </Stack>
-                <SimpleGrid cols={2}>
-                  {[
-                    {
-                      id: 'repeat',
-                      label: 'Repeats',
-                      value: spec.repetitions - 1,
-                      max: 15,
-                      patch: (value: number) => ({ repetitions: value + 1 }),
-                    },
-                    {
-                      id: 'rest',
-                      label: 'Rest (beats)',
-                      value: spec.restBeats,
-                      max: 16,
-                      patch: (value: number) => ({ restBeats: value }),
-                    },
-                  ].map((field) => (
-                    <div key={field.id}>
-                      <div className="dorego-desktop-count">
-                        <CommittedNumber
-                          id={`${field.id}-count`}
-                          label={field.label}
-                          min={0}
-                          max={field.max}
-                          value={field.value}
-                          change={(value) => change(field.patch(value))}
-                        />
-                      </div>
-                      <div className="dorego-mobile-count">
-                        <NativeSelect
-                          id={`${field.id}-select`}
-                          label={field.label}
-                          value={String(field.value)}
-                          data={[...Array.from({ length: field.max + 1 }, (_, i) => i)].map(
-                            (value) => ({
-                              value: String(value),
-                              label: value ? String(value) : 'None',
-                            })
-                          )}
-                          onChange={(event) =>
-                            change(field.patch(Number(event.currentTarget.value)))
-                          }
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </SimpleGrid>
-                <NativeSelect
-                  id="countIn"
-                  label="Count-in"
-                  value={String(spec.countIn)}
-                  data={[
-                    { value: '0', label: 'None' },
-                    { value: '2', label: '½ bar' },
-                    { value: '4', label: '1 bar' },
-                    { value: '8', label: '2 bars' },
-                  ]}
-                  onChange={(event) => change({ countIn: Number(event.currentTarget.value) })}
-                />
-              </Stack>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
+        </Stack>
       </Stack>
     </form>
   );
@@ -395,17 +418,27 @@ export function ExerciseSelection({
 }) {
   const { spec } = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <NativeSelect
-      id="pattern"
-      label="Exercise"
-      value={spec.pattern}
-      data={Object.entries(PATTERNS).map(([value, pattern]) => ({
-        value,
-        label: pattern.name,
-      }))}
-      onChange={(event) =>
-        change({ pattern: event.currentTarget.value as ExerciseSpec['pattern'] })
-      }
-    />
+    <Stack gap={2} role="group" aria-label="Exercise selection">
+      {EXERCISE_PATTERNS.map((value) => (
+        <UnstyledButton
+          key={value}
+          data-pattern={value}
+          aria-current={
+            spec.pattern === value || (value === 'pentatonic6' && isPentatonicPattern(spec.pattern))
+              ? 'true'
+              : undefined
+          }
+          className="dorego-exercise"
+          onClick={() =>
+            change({
+              pattern:
+                value === 'pentatonic6' && isPentatonicPattern(spec.pattern) ? spec.pattern : value,
+            })
+          }
+        >
+          {PATTERNS[value].name}
+        </UnstyledButton>
+      ))}
+    </Stack>
   );
 }

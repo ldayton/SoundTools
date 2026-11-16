@@ -29,7 +29,8 @@
     "test:offline-package": "npm run test --workspace=@ldayton/browser-offline",
     "build:vercel": "node ../../scripts/build-vercel.cjs dorego",
     "test:spelling": "tsx tests/spelling.e2e.ts",
-    "test:layout": "node ../../scripts/test-practice-layout.cjs dorego"
+    "test:layout": "node ../../scripts/test-practice-layout.cjs dorego",
+    "test:workspace": "tsx tests/workspace.e2e.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "*",

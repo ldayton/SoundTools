@@ -1,3 +1,5 @@
+import { playUntil } from './ui-helpers';
+import { elapsedSeconds } from './ui-helpers';
 import { sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -64,10 +66,10 @@ try {
   );
   const play = page.locator('#play');
   const label = () => play.innerText();
-  const position = () => sliderValue(page, 'position').then(Number);
+  const position = () => elapsedSeconds(page).then(Number);
   await play.click();
   await page.waitForFunction(
-    () => Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > 0.05
+    () => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > 0.05
   );
   await page.evaluate(() => (window as any).lifecycleProbe.context.suspend());
   await page.waitForFunction(() => document.querySelector('#play')?.textContent === 'Resume');
@@ -82,7 +84,7 @@ try {
   assert.equal(await label(), 'Pause');
   await page.waitForFunction(
     (previous) =>
-      Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) > previous + 0.03,
+      Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > previous + 0.03,
     paused,
     { timeout: 5000 }
   );
@@ -170,8 +172,8 @@ try {
   await page.locator('#bpm').fill('240');
   await page.locator('#bpm').press('Enter');
   // Move near completion, then prevent all future animation callbacks.
-  const end = await page.locator('#position').getAttribute('aria-valuemax');
-  await setSlider(page, 'position', Number(end) - 0.5);
+  const end = await page.locator('#elapsed').getAttribute('data-duration');
+  await playUntil(page, Number(end) - 0.5);
   await page.evaluate(() => {
     (window as any).lifecycleProbe.blockFrames = true;
   });

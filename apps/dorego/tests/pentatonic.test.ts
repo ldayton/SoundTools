@@ -17,6 +17,41 @@ const base = {
 const rising = [60, 62, 64, 62, 64, 67, 64, 67, 69, 67, 69, 72, 69, 67, 64, 62, 60];
 const falling = [72, 69, 67, 69, 67, 64, 67, 64, 62, 64, 62, 60, 62, 64, 67, 69, 72];
 
+test('six-note threes has two overlapping groups, a held turn and a complete return home', () => {
+  for (const direction of ['up', 'down'] as const)
+    for (const repeatTurn of [false, true])
+      for (const repeatHome of [false, true]) {
+        const exercise = generateExercise({
+          ...base,
+          pattern: 'pentatonic6',
+          high: 67,
+          direction,
+          repeatTurn,
+          repeatHome,
+        });
+        const pitches =
+          direction === 'up'
+            ? [60, 62, 64, 62, 64, 67, 64, 62, 60]
+            : [67, 64, 62, 64, 62, 60, 62, 64, 67];
+        const expected = pitches.flatMap((pitch, i) =>
+          Array((i === 5 && repeatTurn) || (i === 8 && repeatHome) ? 4 : 1).fill(pitch)
+        );
+        assert.deepEqual(
+          exercise.notes.map((note) => note.midi),
+          expected
+        );
+        assert.equal(exercise.totalBeats, 11 + 3 * (Number(repeatTurn) + Number(repeatHome)));
+        assert.equal(exercise.notes.at(-1)!.slotBeats, 2);
+        assert.equal(exercise.notes.at(-1)!.midi, exercise.notes[0].midi);
+        assert.deepEqual(
+          new Midi(exportMidi(exercise)).tracks.flatMap((track) =>
+            track.notes.map((note) => note.midi)
+          ),
+          expected
+        );
+      }
+});
+
 test('pentatonic return is long-short-long-short-short-long including the turn', () => {
   assert.equal(vocalSpan(base.pattern), 12);
   for (const direction of ['up', 'down'] as const) {

@@ -24,6 +24,8 @@ const C = {
 export const WIDTH = 1600;
 export const HEIGHT = 900;
 export const MOBILE_HEIGHT = 1600;
+export const PRACTICE_HEIGHT = 520;
+export const PRACTICE_MOBILE_HEIGHT = 1180;
 function rounded(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -150,6 +152,80 @@ function centeredGlyphs(
     ctx.fillText(run.value, left + run.left, baseline + run.baseline);
   }
   return { left, top: y - layout.height / 2, width: layout.width, height: layout.height };
+}
+/** Compact live pitch display. Video exports keep the complete standalone scene below. */
+export function drawPractice(
+  canvas: HTMLCanvasElement,
+  exercise: Exercise,
+  seconds: number,
+  mobile = false
+) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw Error('Canvas rendering is unavailable in this browser.');
+  const scene = stateAt(exercise, seconds),
+    practice = practiceAt(exercise, seconds);
+  ctx.save();
+  ctx.scale(
+    canvas.width / WIDTH,
+    canvas.height / (mobile ? PRACTICE_MOBILE_HEIGHT : PRACTICE_HEIGHT)
+  );
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, WIDTH, mobile ? PRACTICE_MOBILE_HEIGHT : PRACTICE_HEIGHT);
+  const counting = scene.phase === 'countin';
+  const status = counting
+    ? 'COUNT-IN'
+    : scene.phase === 'complete'
+      ? 'COMPLETE'
+      : scene.phase === 'rest'
+        ? `REST · NEXT ROUND IN ${scene.count}`
+        : scene.phase === 'ready'
+          ? 'READY'
+          : '';
+  if (status) text(ctx, status, 800, mobile ? 100 : 38, mobile ? 40 : 23, C.muted, 600);
+  if (counting) {
+    text(
+      ctx,
+      String(scene.count),
+      800,
+      mobile ? 350 : 170,
+      mobile ? 240 : 145,
+      scene.count === 1 ? C.accent : C.ink
+    );
+    text(
+      ctx,
+      `Bar ${Math.floor(scene.beat / 4) + 1} of ${Math.ceil(exercise.spec.countIn / 4)}`,
+      800,
+      mobile ? 510 : 270,
+      mobile ? 36 : 23,
+      C.muted
+    );
+  }
+  const y = counting ? (mobile ? 820 : 388) : mobile ? 470 : 250;
+  const size = counting ? (mobile ? 110 : 65) : mobile ? 260 : 190;
+  const current = roundNoteName(practice.current.midi, practice.current);
+  const next = practice.next ? roundNoteName(practice.next.midi, practice.next) : '—';
+  const top = y - glyphLayout(ctx, current, size).height / 2 - (mobile ? 85 : 48);
+  text(ctx, 'CURRENT', 480, top, mobile ? 40 : 23, C.muted, 600);
+  text(ctx, 'NEXT', 1120, top, mobile ? 40 : 23, C.muted, 600);
+  const ink = centeredGlyphs(ctx, current, 480, y, size, C.ink);
+  centeredGlyphs(ctx, next, 1120, y, counting ? size : size * 0.72, C.muted);
+  for (const [round, x] of [
+    [practice.current, 480],
+    [practice.next, 1120],
+  ] as const) {
+    if (!round) continue;
+    const range = practiceRange(exercise, round);
+    text(
+      ctx,
+      `${roundNoteName(range.low, round)} – ${roundNoteName(range.high, round)}`,
+      x,
+      ink.top + ink.height + (mobile ? 74 : 45),
+      mobile ? 42 : 27,
+      C.muted,
+      400
+    );
+  }
+  ctx.restore();
 }
 export function drawExercise(
   canvas: HTMLCanvasElement,

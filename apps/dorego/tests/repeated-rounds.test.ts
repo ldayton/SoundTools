@@ -40,17 +40,24 @@ test('double rounds repeat the sung notes contiguously in the same key, with one
             const notes = doubled.notes.filter(
               (n) => n.onsetBeat >= after.onsetBeat + cue && n.onsetBeat < after.endBeat
             );
+            const sharedHome = oldNotes.at(-1)!.midi === oldNotes[0].midi;
+            const removed = sharedHome ? oldNotes[0].slotBeats : 0;
             assert.equal(after.midi, before.midi);
-            assert.equal(after.endBeat - after.onsetBeat, cue + 2 * body);
-            assert.equal(notes.length, oldNotes.length * 2);
-            for (const pass of [0, 1]) {
-              assert.deepEqual(
-                notes
-                  .slice(pass * oldNotes.length, (pass + 1) * oldNotes.length)
-                  .map((n) => [n.midi, n.onsetBeat - after.onsetBeat - pass * body, n.slotBeats]),
-                oldNotes.map((n) => [n.midi, n.onsetBeat - before.onsetBeat, n.slotBeats])
-              );
-            }
+            assert.equal(after.endBeat - after.onsetBeat, cue + 2 * body - removed);
+            assert.equal(notes.length, oldNotes.length * 2 - Number(sharedHome));
+            assert.deepEqual(
+              notes.map((n) => [n.midi, n.onsetBeat - after.onsetBeat, n.slotBeats]),
+              [
+                ...oldNotes.map((n) => [n.midi, n.onsetBeat - before.onsetBeat, n.slotBeats]),
+                ...oldNotes
+                  .slice(Number(sharedHome))
+                  .map((n) => [
+                    n.midi,
+                    n.onsetBeat - before.onsetBeat + body - removed,
+                    n.slotBeats,
+                  ]),
+              ]
+            );
             const intro = (exercise: typeof baseline, round: typeof before) =>
               exercise.notes
                 .filter(
@@ -59,10 +66,29 @@ test('double rounds repeat the sung notes contiguously in the same key, with one
                 .map((n) => [n.midi, n.onsetBeat - round.onsetBeat, n.slotBeats]);
             assert.deepEqual(intro(doubled, after), intro(baseline, before));
             if (i) assert.equal(after.onsetBeat - doubled.rounds[i - 1].endBeat, input.restBeats);
-            extra += body;
+            extra += body - removed;
           }
           assert.equal(doubled.totalBeats, baseline.totalBeats + extra);
         }
+});
+
+test('joined five-note passes play 3-2-1-2-3 across the shared home note', () => {
+  const exercise = generateExercise({
+    ...DEFAULT_SPEC,
+    pattern: 'fiveNote',
+    low: 60,
+    high: 67,
+    startingChords: false,
+    countIn: 0,
+    repetitions: 1,
+    repeatTwice: true,
+  });
+  assert.deepEqual(
+    exercise.notes.slice(6, 11).map((n) => n.midi),
+    [64, 62, 60, 62, 64]
+  );
+  assert.equal(exercise.notes.length, 17);
+  assert.equal(exercise.notes[8].slotBeats, 2);
 });
 
 test('double-round setting defaults off, survives validation, and rejects malformed input', () => {

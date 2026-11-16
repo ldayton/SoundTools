@@ -25,7 +25,10 @@
     "./control-icon": "./control-icon.tsx",
     "./panel-icon": "./panel-icon.tsx",
     "./toolbar-slider": "./toolbar-slider.tsx",
-    "./toolbar-number": "./toolbar-number.tsx"
+    "./toolbar-number": "./toolbar-number.tsx",
+    "./piano-keyboard": "./piano-keyboard.tsx",
+    "./piano-keyboard.css": "./piano-keyboard.css",
+    "./piano-motion": "./piano-motion.ts"
   },
   "peerDependencies": {
     "react": "^19.2.0",

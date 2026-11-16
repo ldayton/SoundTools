@@ -1,42 +1,33 @@
 import {
   PracticeView,
-  PracticeVolume,
-  PracticeTitle,
+  PracticeToolbar,
+  type PianoSnapshot,
   type PracticeSnapshot,
 } from './practice-view';
 import { SettingsPage } from './settings-page';
 import { createElement } from 'react';
 import { createViewState } from '@ldayton/ui/view-state';
 import { Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from './builder';
-import { restoreSpec, editSpec } from './exercise-settings';
+import { restoreSpec, editSpec, MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext } from './diagnostics';
 import { practiceRange } from './keyboard-layout';
 
 import {
   DEFAULT_SPEC,
-  isVocalPattern,
-  supportsNoteRepeats,
-  isGlidePattern,
-  vocalSpan,
   directionName,
   PATTERNS,
   generateExercise as generateBoundedExercise,
-  noteName,
-  noteChoiceLabel,
+  notePitchAt,
   roundNoteName,
   secondsAt,
-  formatTime,
   stateAt,
   practiceAt,
-  phraseLabel,
-  phraseContour,
-  progressionRoots,
-  type Direction,
   type ExerciseSpec,
 } from './music';
 import { Player } from './audio';
-import { drawExercise, WIDTH, HEIGHT, MOBILE_HEIGHT } from './render';
+import { ReferencePiano } from './reference-piano';
+import { drawPractice, WIDTH, PRACTICE_HEIGHT, PRACTICE_MOBILE_HEIGHT } from './render';
 import './style.css';
 import { setupOffline } from './offline';
 
@@ -74,6 +65,8 @@ let lastControlsUpdate = -Infinity;
 const playbackModel = createViewState({
   position,
   duration: secondsAt(exercise.totalBeats, spec.bpm),
+  round: 1,
+  rounds: exercise.rounds.length,
 });
 const practiceModel = createViewState<PracticeSnapshot>({
   mode,
@@ -81,15 +74,25 @@ const practiceModel = createViewState<PracticeSnapshot>({
   failed: false,
   error: null,
   title: '',
-  summary: '',
   bpm: spec.bpm,
   volume: spec.volume,
   toast: '',
+});
+const pianoModel = createViewState<PianoSnapshot>({
+  low: spec.low,
+  root: spec.low,
+  high: spec.low + 12,
+  voices: [],
+});
+const reference = new ReferencePiano(spec.volume, (error) => {
+  diagnostics.capture(error, 'audio.reference_failed');
+  toast(error instanceof Error ? error.message : 'Could not play this note. Try again.');
 });
 mountAppShell($('#app'), {
   shutdown: () => {
     renderFailed = true;
     ++playRequest;
+    reference.shutdown();
     player.shutdown();
     cancelAnimationFrame(raf);
   },
@@ -101,9 +104,20 @@ mountAppShell($('#app'), {
         selected();
       },
     }),
-  title: createElement(PracticeTitle, { model: practiceModel }),
-  volume: createElement(PracticeVolume, { model: practiceModel, volume: changeVolume }),
+  title: 'Warm-up',
+  toolbar: createElement(PracticeToolbar, {
+    model: practiceModel,
+    playback: playbackModel,
+    play: () => {
+      void togglePlay();
+    },
+    restart: () => stop(),
+    tempo: changeTempo,
+    moveRound,
+    volume: changeVolume,
+  }),
   pause: () => {
+    reference.stopAll();
     if (mode === 'playing' || mode === 'starting') stop(false);
   },
   builder: createElement(Builder, {
@@ -115,24 +129,15 @@ mountAppShell($('#app'), {
     model: practiceModel,
     playback: playbackModel,
     stage,
-    play: () => {
-      void togglePlay();
-    },
-    restart: () => stop(),
-    seek: (value) => {
-      ++playRequest;
-      player.seek(exercise, value);
-    },
-    tempo: changeTempo,
+    piano: pianoModel,
+    audition: (midi) => reference.press(midi),
   }),
   settingsView: createElement(SettingsPage),
 });
 setupOffline();
 canvas.width = WIDTH;
-canvas.height = HEIGHT;
+canvas.height = PRACTICE_HEIGHT;
 const mobileQuery = window.matchMedia('(max-width: 760px)');
-const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-reducedMotionQuery.addEventListener('change', () => update());
 let mobileStage = false;
 function resizeStage() {
   mobileStage =
@@ -143,8 +148,10 @@ function resizeStage() {
         Math.max(320, Math.round(canvas.clientWidth * (window.devicePixelRatio || 1)))
       )
     : WIDTH;
-  canvas.height = mobileStage ? Math.round((canvas.width * MOBILE_HEIGHT) / WIDTH) : HEIGHT;
-  canvas.style.aspectRatio = mobileStage ? '1 / 1' : '16 / 9';
+  canvas.height = mobileStage
+    ? Math.round((canvas.width * PRACTICE_MOBILE_HEIGHT) / WIDTH)
+    : PRACTICE_HEIGHT;
+  canvas.style.aspectRatio = `${WIDTH} / ${mobileStage ? PRACTICE_MOBILE_HEIGHT : PRACTICE_HEIGHT}`;
   update(true);
 }
 window.addEventListener('resize', resizeStage);
@@ -154,7 +161,7 @@ function populate() {
   builderModel.set({ spec: { ...spec }, error: formError });
 }
 function transpose(step: number) {
-  if (spec.low + step < 24 || spec.high + step > 96)
+  if (spec.low + step < MIN_NOTE || spec.high + step > MAX_NOTE)
     return toast('That is the edge of the supported range.');
   refresh({ key: (spec.key + step + 12) % 12, low: spec.low + step, high: spec.high + step });
 }
@@ -205,6 +212,7 @@ function setError(message: string | null) {
 }
 function stop(reset = true) {
   ++playRequest;
+  reference.stopAll();
   if (reset) player.reset();
   else player.pause();
 }
@@ -237,6 +245,7 @@ function changeTempo(bpm: number) {
 }
 function changeVolume(volume: number) {
   if (!Number.isFinite(volume) || volume < -60 || volume > 0 || volume === spec.volume) return;
+  reference.setVolume(volume);
   player.setVolume(volume);
   spec = { ...spec, volume };
   exercise = { ...exercise, spec: { ...exercise.spec, volume } };
@@ -249,7 +258,7 @@ function update(force = false) {
   diagnosticsContext(spec, mode, pianoWarming, pianoFailed);
   const duration = secondsAt(exercise.totalBeats, spec.bpm);
   const time = mode === 'ready' ? -1 : position;
-  drawExercise(canvas, exercise, time, mobileStage, reducedMotionQuery.matches);
+  drawPractice(canvas, exercise, time, mobileStage);
   const scene = stateAt(exercise, time);
   const practice = practiceAt(exercise, time);
   const describeRound = (round: typeof practice.current) => {
@@ -274,18 +283,36 @@ function update(force = false) {
   const now = performance.now();
   if (force || mode !== 'playing' || now - lastControlsUpdate >= 50) {
     lastControlsUpdate = now;
-    playbackModel.set({ position, duration });
+    playbackModel.set({
+      position,
+      duration,
+      round: practice.current.id + 1,
+      rounds: exercise.rounds.length,
+    });
+    const range = practiceRange(exercise, practice.current);
+    pianoModel.set({
+      root: practice.current.midi - practice.current.degree,
+      low: Math.max(24, range.low - 1),
+      high: Math.min(96, range.high + 1),
+      voices:
+        mode === 'playing' && scene.phase !== 'countin'
+          ? exercise.notes
+              .filter(
+                (note) =>
+                  note.onsetBeat <= scene.beat && scene.beat < note.onsetBeat + note.durationBeats
+              )
+              .map((note) => ({
+                pitch: Math.round(notePitchAt(note, scene.beat)),
+                start: note.onsetBeat,
+              }))
+          : [],
+    });
     practiceModel.set({
       mode,
       warming: pianoWarming,
       failed: pianoFailed,
       error: formError,
       title: exercise.title ?? `${PATTERNS[spec.pattern].name} (${directionName(spec.direction)})`,
-      summary: exercise.title
-        ? isGlidePattern(spec.pattern)
-          ? `${exercise.rounds.length} ${exercise.rounds.length === 1 ? 'glide' : 'glides'}`
-          : `${exercise.notes.length} notes · ${exercise.rounds.length} rounds`
-        : `${exercise.notes.length} notes · ${spec.repetitions} ${spec.repetitions === 1 ? 'round' : 'rounds'} · ${spec.countIn ? (spec.countIn % 4 === 0 ? `${spec.countIn / 4}-bar count-in` : `${spec.countIn}-beat count-in`) : 'No count-in'}`,
       bpm: spec.bpm,
       volume: spec.volume,
       toast: toastMessage,
@@ -310,6 +337,28 @@ player.onStateChange = (state, nextPosition, reason) => {
   else update(true);
   if (reason === 'scheduling-gap') toast('Playback paused after a delay. Resume to continue.');
 };
+function moveRound(step: number) {
+  if (pianoWarming || formError || renderFailed) return;
+  const current = practiceAt(exercise, position).current.id;
+  const target = Math.max(0, Math.min(exercise.rounds.length - 1, current + step));
+  if (target === current) return;
+  const running = mode === 'playing' || mode === 'starting';
+  const at = secondsAt(exercise.rounds[target].onsetBeat, spec.bpm);
+  ++playRequest;
+  reference.stopAll();
+  player.seek(exercise, at);
+  if (running) void startAt(at);
+}
+async function startAt(offset: number) {
+  const request = ++playRequest;
+  try {
+    await player.play(exercise, offset);
+  } catch (error) {
+    if (request !== playRequest) return;
+    diagnostics.capture(error, 'playback.start_failed');
+    toast(error instanceof Error ? error.message : 'Could not start audio.');
+  }
+}
 async function togglePlay() {
   if (renderFailed || pianoWarming || formError) return;
   if (pianoFailed) {
@@ -321,14 +370,7 @@ async function togglePlay() {
     return;
   }
   if (position >= secondsAt(exercise.totalBeats, spec.bpm)) position = 0;
-  const request = ++playRequest;
-  try {
-    await player.play(exercise, position);
-  } catch (error) {
-    if (request !== playRequest) return;
-    diagnostics.capture(error, 'playback.start_failed');
-    toast(error instanceof Error ? error.message : 'Could not start audio.');
-  }
+  await startAt(position);
 }
 async function toggleFullscreen() {
   try {
@@ -340,7 +382,8 @@ async function toggleFullscreen() {
 }
 document.addEventListener('keydown', (event) => {
   if (
-    renderFailed || location.hash === '#settings' ||
+    renderFailed ||
+    location.hash === '#settings' ||
     (event.target as HTMLElement).closest(
       'a[href], input, select, textarea, button, summary, dialog, [role="dialog"], [role="spinbutton"], [role="slider"]'
     ) ||
@@ -363,7 +406,11 @@ resizeStage();
 void warmPiano();
 // Hiding alone does not pause healthy background audio. Freezing/navigation
 // does: preserve position and require an explicit Resume after restoration.
-window.addEventListener('pagehide', () => player.interrupt('page-hidden'));
+window.addEventListener('blur', () => reference.stopAll());
+window.addEventListener('pagehide', () => {
+  reference.stopAll();
+  player.interrupt('page-hidden');
+});
 document.addEventListener('freeze', () => player.interrupt('page-hidden'));
 window.addEventListener('pageshow', () => {
   player.reconcile();
@@ -374,6 +421,7 @@ document.addEventListener('resume', () => {
   update(true);
 });
 document.addEventListener('visibilitychange', () => {
+  if (document.hidden) reference.stopAll();
   if (!document.hidden) {
     player.reconcile();
     update(true);

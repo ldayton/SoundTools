@@ -84,8 +84,8 @@ const server = spawn(
     const n = await nav.boundingBox(),
       o = await options.boundingBox(),
       surface = await page.locator(".practice-surface").first().boundingBox();
-    assert.equal(Math.round(n.width), app === "songalong" ? 224 : 244);
-    assert.equal(Math.round(o.width), app === "songalong" ? 280 : 300);
+    assert.equal(Math.round(n.width), app !== "notewise" ? 224 : 244);
+    assert.equal(Math.round(o.width), app !== "notewise" ? 280 : 300);
     assert(o.x > surface.x + surface.width - 1);
     assert(
       Math.abs(o.y - surface.y) < 2,
@@ -93,7 +93,7 @@ const server = spawn(
     );
     assert.equal(
       await nav.getByRole("slider", { name: /volume/i }).count(),
-      app === "songalong" ? 0 : 1,
+      app !== "notewise" ? 0 : 1,
     );
     assert.equal(
       await page
@@ -127,7 +127,7 @@ const server = spawn(
     await page.waitForFunction(
       (app) =>
         document.activeElement?.matches(
-          app === "songalong" ? ".nav-toggle" : ".nav-close",
+          app !== "notewise" ? ".nav-toggle" : ".nav-close",
         ),
       app,
     );
@@ -183,21 +183,19 @@ const server = spawn(
     await page
       .getByRole("button", { name: "Open navigation", exact: true })
       .click();
-    if (app !== "songalong")
+    if (app === "notewise")
       await nav.getByRole("slider", { name: /volume/i }).waitFor();
     if (app === "dorego") {
-      await nav
-        .getByRole("combobox", { name: "Exercise", exact: true })
-        .selectOption("octaveGlide");
+      await nav.locator('[data-pattern="octaveGlide"]').click();
       await page.getByRole("dialog").waitFor({ state: "hidden" });
       await page
         .getByRole("button", { name: "Expand practice options", exact: true })
         .click();
       await page
-        .getByRole("radio", { name: "Up & back", exact: true })
+        .getByRole("button", { name: "Up & back", exact: true })
         .waitFor();
       await page
-        .getByRole("button", { name: "Collapse practice options", exact: true })
+        .getByRole("button", { name: "Close practice options", exact: true })
         .click();
     } else
       await page
@@ -215,7 +213,7 @@ const server = spawn(
     await page
       .getByRole("button", {
         name:
-          app === "songalong"
+          app !== "notewise"
             ? "Close practice options"
             : "Collapse practice options",
         exact: true,

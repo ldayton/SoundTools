@@ -280,3 +280,24 @@ changes. Desktop/mobile Chrome interactions verified on this Mac; automated
 browser lifecycle and audio probes do not substitute for physical phone/device
 interruption tests. All migration work stays in local commits. Nothing pushed
 or deployed. Checklist complete; no further migration work remains in this plan.
+
+## SongAlong-inspired workspace revision (local)
+
+The live app now puts transport, elapsed/total time, and one bordered − / + / BPM
+control in its top bar. Eight exercise choices stay in the left navigation;
+applicable options are always visible in the right sidebar, grouped by purpose.
+Both sidebars retain the shared focus/drawer behavior. Mobile starts with them
+closed. The practice title and round counter sit above the compact pitch display.
+The seek bar and duplicate tempo display are removed.
+
+The reference piano uses the available desktop width with constant 32px white
+keys. Phones show the vocal range in contiguous rows without clipped or repeated
+keys. Sampled reference notes do not alter exercise playback, and their pending
+loads/releases are canceled on interruption or exercise changes. Key styling and
+attack animation primitives are shared with SongAlong; video exports retain their
+standalone canvas layout.
+
+Previous/next round controls preserve playing versus paused intent. Pentatonic
+Threes is a single navigation choice with 6/9/12-note phrases. Doubling a phrase
+shares the joining home note instead of attacking it again; explicit note-repeat
+options still apply.

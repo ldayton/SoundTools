@@ -110,6 +110,8 @@ export function ApplicationLayout({
   compact = false,
   toolbarOnly = false,
   resizableNavigation = false,
+  mobileToolbarHeight,
+  headerClassName,
   children,
 }: {
   brand: ReactNode;
@@ -129,6 +131,8 @@ export function ApplicationLayout({
   compact?: boolean;
   toolbarOnly?: boolean;
   resizableNavigation?: boolean;
+  mobileToolbarHeight?: number;
+  headerClassName?: string;
   children: ReactNode;
 }) {
   const theme = useMantineTheme();
@@ -170,9 +174,7 @@ export function ApplicationLayout({
           height: toolbarOnly
             ? desktop
               ? 56
-              : smallToolbar
-                ? 148
-                : 104
+              : (mobileToolbarHeight ?? (smallToolbar ? 148 : 104))
             : compact
               ? 56
               : 72,
@@ -184,7 +186,7 @@ export function ApplicationLayout({
         }}
         padding="md"
       >
-        <AppShell.Header className="soundtools-ui">
+        <AppShell.Header className={`soundtools-ui ${headerClassName || ""}`}>
           <Group
             h="100%"
             px={compact ? "sm" : "md"}

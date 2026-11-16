@@ -1,3 +1,4 @@
+@import "@ldayton/ui/piano-keyboard.css";
 .correct {
   color: var(--mantine-color-green-8);
 }
@@ -222,64 +223,6 @@
   flex-direction: column;
 }
 
-.piano-layout {
-  --white: 32px;
-  --black: 24px;
-  display: flex;
-  flex-wrap: wrap;
-  width: fit-content;
-  max-width: 100%;
-  margin-inline: auto;
-}
-.piano-octave {
-  position: relative;
-  flex: 0 0 auto;
-  width: calc(var(--whites) * var(--white));
-}
-.piano-keys {
-  position: relative;
-  height: 144px;
-}
-.piano-landmark {
-  position: absolute;
-  bottom: 7px;
-  left: 0;
-  width: 100%;
-  font-size: 10px;
-  color: var(--mantine-color-dimmed);
-  pointer-events: none;
-}
-
-.piano-key {
-  position: absolute;
-  top: 0;
-  margin: 0;
-  padding: 0;
-  touch-action: manipulation;
-  color: var(--mantine-color-dimmed);
-  transition:
-    background-color 100ms,
-    box-shadow 100ms;
-}
-.white-key {
-  width: var(--white);
-  height: 100%;
-  border: 1px solid #d4cfc4;
-  border-bottom: 4px solid #d9d3c7;
-  border-radius: 0 0 5px 5px;
-  background: linear-gradient(#fffdf8 85%, #f4f0e7);
-  box-shadow: inset 0 0 0 1px #ffffffb0;
-}
-.black-key {
-  z-index: 1;
-  width: var(--black);
-  height: 61%;
-  background: linear-gradient(90deg, #34313b, #45414c 45%, #2c2934);
-  border: 1px solid #27242f;
-  border-bottom: 5px solid #201d28;
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 3px 3px #302d5530;
-}
 .piano-key.answer-hover {
   background: #dcd2ed;
 }

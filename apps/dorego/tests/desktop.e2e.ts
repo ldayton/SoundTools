@@ -1,3 +1,6 @@
+import { setTempo } from './ui-helpers';
+import { elapsedSeconds } from './ui-helpers';
+import { selectExercise } from './ui-helpers';
 import { readSpecValue, sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -106,7 +109,7 @@ try {
       () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
     );
   const playing = () => page.getByRole('button', { name: 'Pause', exact: true }).waitFor();
-  const position = () => sliderValue(page, 'position').then(Number);
+  const position = () => elapsedSeconds(page).then(Number);
   const paused = async () => {
     await page.getByRole('button', { name: 'Resume', exact: true }).waitFor();
     const at = await position();
@@ -123,8 +126,7 @@ try {
     const at = await position();
     await page.waitForFunction(
       (previous) =>
-        Number(document.querySelector('#position')!.getAttribute('aria-valuenow')) >
-        previous + 0.08,
+        Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > previous + 0.08,
       at
     );
   };
@@ -196,36 +198,30 @@ try {
   const beatBefore = ((await position()) * 150) / 60;
   await page.locator('#bpm').fill('60');
   await page.locator('#bpm').press('Tab');
-  assert.equal(await sliderValue(page, 'tempo-slider'), '60');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '60');
   const beatAfter = ((await position()) * 60) / 60;
   assert.ok(
     beatAfter >= beatBefore - 0.15 && beatAfter < beatBefore + 3,
     'Changing tempo must retain the musical position.'
   );
-  await page.locator('#tempo-up').click();
-  assert.equal(await page.locator('#bpm').inputValue(), '65');
+  await page.locator('#bpm').press('ArrowUp');
+  await page.locator('#bpm').press('Tab');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '65');
   await setSlider(page, 'volume', 3);
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await progress();
-  await setSlider(page, 'tempo-slider', 240);
-  await page.locator('#tempo-slider').press('Tab');
-  assert.equal(await page.locator('#bpm').inputValue(), '240');
+  await setTempo(page, 240);
+  await page.locator('#bpm').press('Tab');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '240');
   await setSlider(page, 'volume', 100);
   await progress();
 
-  // Real pointer seeking pauses at the chosen position and never leaves old voices running.
-  const seek = await page.locator('.dorego-seek .mantine-Slider-trackContainer').boundingBox();
-  assert.ok(seek);
-  await page.mouse.click(seek.x + seek.width * 0.45, seek.y + seek.height / 2);
-  const sought = await paused();
-  assert.ok(sought > 1);
-  await page.locator('#play').click();
-  await playing();
+  const checkpoint = await position();
   await progress();
   for (const width of [900, 760, 390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     assert.match(await page.locator('#play').innerText(), /Pause/);
-    assert.ok((await position()) >= sought);
+    assert.ok((await position()) >= checkpoint);
   }
   const other = await context.newPage();
   await other.goto('about:blank');
@@ -236,11 +232,11 @@ try {
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await progress();
   console.log(
-    `${browserName}: live tempo/volume, pointer seek, resize/breakpoints, and tab switching retain coherent playback.`
+    `${browserName}: live tempo/volume, elapsed display, resize/breakpoints, and tab switching retain coherent playback.`
   );
 
   // Changing the exercise is an intentional reset; old notes must end before new playback.
-  await page.locator('#pattern').selectOption('fifthGlide');
+  await selectExercise(page, 'fifthGlide');
   await ready();
   assert.equal(await position(), 0);
   assert.equal(await page.locator('#play').innerText(), 'Play');
@@ -279,8 +275,8 @@ try {
   // then release old failures. The final selection alone may determine readiness.
   await page.reload();
   await ready();
-  assert.equal(await page.locator('#pattern').inputValue(), 'fifthGlide');
-  assert.equal(await page.locator('#bpm').inputValue(), '240');
+  assert.equal(await readSpecValue(page, 'pattern'), 'fifthGlide');
+  assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '240');
   assert.equal(await sliderValue(page, 'volume'), '100');
   assert.equal(await readSpecValue(page, 'low'), '53');
   let release!: () => void;
@@ -289,14 +285,14 @@ try {
     await gate;
     await route.abort('failed');
   });
-  await page.locator('#pattern').selectOption('rossini');
+  await selectExercise(page, 'rossini');
   await page.locator('#high-spin').click();
   await page
     .getByRole('dialog', { name: 'Choose highest note' })
     .getByRole('button', { name: 'G5', exact: true })
     .click();
   assert.equal(await page.locator('#play').isDisabled(), true);
-  await page.locator('#pattern').selectOption('octaveArpeggio');
+  await selectExercise(page, 'octaveArpeggio');
   await page.locator('#high-spin').click();
   await page
     .getByRole('dialog', { name: 'Choose highest note' })
@@ -305,7 +301,7 @@ try {
   release();
   await page.unrouteAll({ behavior: 'wait' });
   await ready();
-  assert.equal(await page.locator('#pattern').inputValue(), 'octaveArpeggio');
+  assert.equal(await readSpecValue(page, 'pattern'), 'octaveArpeggio');
   // A final selection can share a request that was deliberately failed. Its retry
   // must use fresh requests and remain immune to older loading completions.
   if ((await page.locator('#play').innerText()) === 'Retry audio') {

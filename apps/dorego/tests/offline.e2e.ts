@@ -275,8 +275,8 @@ try {
     1,
     'Cached startup opens immediately before checking for an update'
   );
-  await other.getByRole('button', { name: 'Help', exact: true }).click();
-  await other.getByRole('button', { name: 'Close how it works', exact: true }).click();
+  await openSettings(other);
+  await openPractice(other);
   const untouched = await context.newPage();
   let automaticNavigations = 0;
   untouched.on('request', (request) => {
@@ -333,8 +333,8 @@ try {
     'Each live document retains its own complete asset generation.'
   );
   const audioBefore = soundRequests;
-  await other.getByRole('button', { name: 'Help', exact: true }).click();
-  await other.getByRole('button', { name: 'Close how it works' }).click();
+  await openSettings(other);
+  await openPractice(other);
   assert.equal(soundRequests, audioBefore, 'An interface update must reuse saved recordings.');
   console.log(
     'New worker activates without interruption; one-tab refresh loads new JS while another keeps playing.'
@@ -421,7 +421,7 @@ try {
       await page.locator('#play').click();
       await page.getByRole('button', { name: 'Pause', exact: true }).waitFor();
       await page.waitForFunction(
-        () => Number(document.querySelector('#position')?.getAttribute('aria-valuenow')) > 0
+        () => Number(document.querySelector('#elapsed')?.getAttribute('data-seconds')) > 0
       );
       await page.locator('#play').click();
     }

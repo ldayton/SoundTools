@@ -1,3 +1,4 @@
+import { strikePianoKey } from "@ldayton/ui/piano-motion";
 import { newPianoAttacks, type PianoVoice } from "./piano-attacks";
 import { RendererLifetime } from "./renderer-lifetime";
 import { pitchLabel, type PitchSpellings } from "./sight-feedback";
@@ -241,10 +242,8 @@ export class Piano {
     );
     if (!key) return;
     this.animations.get(midi)?.cancel();
-    const animation = key.animate(
-      [{ filter: "brightness(0.75)" }, { filter: "brightness(1)" }],
-      { duration: 120 },
-    );
+    const animation = strikePianoKey(key);
+    if (!animation) return;
     this.animations.set(midi, animation);
     animation.onfinish = () => {
       if (this.animations.get(midi) === animation) this.animations.delete(midi);

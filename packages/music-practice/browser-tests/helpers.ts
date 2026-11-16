@@ -22,6 +22,7 @@ export async function selectPractice(page: Page, mode: string) {
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });
+  await page.locator("#exercise-content .practice-surface:visible").waitFor();
 }
 export async function midiAction(
   page: Page,

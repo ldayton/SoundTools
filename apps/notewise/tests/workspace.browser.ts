@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
-import { mkdir, readFile, mkdtemp, rm } from "node:fs/promises";
+import { mkdir, readFile, writeFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, firefox, webkit } from "playwright";
@@ -28,6 +28,7 @@ const server = process.env.TEST_BASE_URL
     );
 const fixed = await mkdtemp(join(tmpdir(), "notewise-workspace-"));
 let browser;
+let diagnosticPage: import("playwright").Page | undefined;
 try {
   for (let i = 0; i < 100; i++) {
     if (server?.exitCode != null) throw Error("Preview exited");
@@ -53,6 +54,7 @@ try {
     ),
   });
   const page = await context.newPage();
+  diagnosticPage = page;
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base + "guitar/staff?low=E3&high=E3&key=C");
@@ -226,6 +228,7 @@ try {
     );
   }
   await selectPractice(page, "rhythm");
+  await page.locator("header #rhythm-tempo").waitFor();
   for (const width of [320, 390, 768, 1680]) {
     await page.setViewportSize({ width, height: 900 });
     await page.waitForFunction(
@@ -278,6 +281,21 @@ try {
   console.log(
     `${engine}: every module, toolbar ownership, counter, modal input gating, fixed keys, MIDI animation, tempo and mobile layout passed.`,
   );
+} catch (error) {
+  await mkdir("work", { recursive: true });
+  if (diagnosticPage) {
+    await diagnosticPage
+      .screenshot({
+        path: `work/workspace-${engine}-failure.png`,
+        fullPage: true,
+      })
+      .catch(() => {});
+    await writeFile(
+      `work/workspace-${engine}-failure.html`,
+      await diagnosticPage.content(),
+    ).catch(() => {});
+  }
+  throw error;
 } finally {
   await browser?.close();
   server?.kill();

@@ -1,6 +1,7 @@
 import {
   selectPractice,
   practiceOption,
+  openPracticeOptions,
   midiAction,
   closePracticeOptions,
   setPianoVisible,
@@ -305,6 +306,7 @@ try {
     .locator(".hymn-count")
     .filter({ hasText: "2 / 35" })
     .waitFor({ state: "attached" });
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#hymn-key").inputValue(), "original");
   assert.deepEqual(errors, []);
   console.log(

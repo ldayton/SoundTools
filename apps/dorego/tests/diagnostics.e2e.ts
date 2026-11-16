@@ -93,10 +93,10 @@ try {
   await sharing.waitFor();
   assert.equal(await sharing.isChecked(), false);
   await sharing.check();
+  await openPractice(page);
   await page.waitForFunction(
     () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
   );
-  await openPractice(page);
   await page.locator('#play').click();
   await page.waitForFunction(
     () =>

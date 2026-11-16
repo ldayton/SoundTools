@@ -116,7 +116,13 @@ export function PracticeOptionsReopen() {
   return (
     <Button
       id="practice-options-reopen"
-      ref={state.desktop && state.collapsed ? state.reopenRef : state.toggleRef}
+      ref={
+        state.desktop && state.collapsed
+          ? state.reopenRef
+          : state.mobileDrawer
+            ? state.toggleRef
+            : undefined
+      }
       variant="default"
       px={state.mobileDrawer ? 0 : undefined}
       w={state.mobileDrawer ? 38 : undefined}

@@ -35,7 +35,8 @@ try {
     if (name === "SongAlong") {
       await page.locator(".hymn-paper svg").first().waitFor();
       assert.equal(await page.locator('nav a[data-mode="staff"]').count(), 0);
-      assert.equal(await page.locator('nav a[data-mode="sight"]').count(), 1);
+      assert.equal(await page.locator("#hymn-search").count(), 1);
+      assert.equal(await page.locator("nav a[data-mode]").count(), 0);
       assert.match(await page.title(), /SongAlong/);
       await page.locator("#hymn-mode").click();
       await page.getByRole("button", { name: "Play", exact: true }).focus();
@@ -44,10 +45,8 @@ try {
       await page.waitForFunction(
         () =>
           Number(
-            document
-              .querySelector('[aria-label="Hymn progress"]')
-              ?.getAttribute("aria-valuenow"),
-          ) > 0,
+            document.querySelector(".hymn-count")?.textContent?.split("/")[0],
+          ) > 1,
       );
       await page.keyboard.down("Enter");
       assert.ok(

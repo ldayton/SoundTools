@@ -304,8 +304,8 @@ try {
     .click({ noWaitAfter: true });
   // WebKit may finish the click while the old document's Play button is still enabled.
   await other.waitForFunction(() => (window as any).__testBuild === 2);
-  await ready(other);
   await openPractice(other);
+  await ready(other);
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 2);
   assert.equal(await page.evaluate(() => (window as any).__testBuild), 1);
   assert.match(await page.locator('#play').innerText(), /Pause/);
@@ -344,8 +344,8 @@ try {
   failInterface = true;
   revision = 3;
   await other.reload();
-  await ready(other);
   await openPractice(other);
+  await ready(other);
   assert.equal(await other.evaluate(() => (window as any).__testBuild), 2);
   assert.match(await page.locator('#play').innerText(), /Pause/);
   failInterface = false;

@@ -1,6 +1,4 @@
-import { playUntil } from './ui-helpers';
-import { openPracticeOptions } from './ui-helpers';
-import { readSpecValue, setSlider } from './ui-helpers';
+import { playUntil, openPracticeOptions, readSpecValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
@@ -214,9 +212,12 @@ try {
   await configure({ ...spec, pattern: 'pentatonic9', low: 60, high: 69, direction: 'up' });
   assert.equal(await readSpecValue(page, 'pattern'), 'pentatonic9');
   assert.equal(await page.locator('[data-pattern="pentatonic6"]').count(), 1);
-  assert.ok(
-    (await page.locator('[data-pattern][aria-current]').textContent())!.includes('9 notes')
+  assert.equal(
+    await page.locator('[data-pattern][aria-current]').textContent(),
+    'Pentatonic Threes'
   );
+  await openPracticeOptions(page);
+  assert.equal(await page.locator('#pentatonic-notes').inputValue(), '9');
   await seek(secondsAt(1.2, spec.bpm));
   await page.screenshot({ path: `work/pentatonic-nine-${browserName}.png`, fullPage: true });
   assert.deepEqual(errors, []);

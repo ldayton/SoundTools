@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ActionIcon, Alert, Button, Group, Text, Title } from '@mantine/core';
-import { RetainedContent } from '@ldayton/ui/retained-content';
 import { ControlIcon } from '@ldayton/ui/control-icon';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { ToolbarSlider } from '@ldayton/ui/toolbar-slider';
@@ -19,6 +18,15 @@ export type PracticeSnapshot = {
   bpm: number;
   volume: number;
   toast: string;
+  readout: ReadoutSnapshot | null;
+};
+export type RoundReadout = { note: string; range: string };
+export type ReadoutSnapshot = {
+  status: string;
+  countIn: { beat: number; bar: number; bars: number } | null;
+  current: RoundReadout;
+  next: RoundReadout | null;
+  description: string;
 };
 interface SnapshotModel<T> {
   getSnapshot(): T;
@@ -230,13 +238,11 @@ export function PracticeView({
   model,
   playback,
   piano,
-  stage,
   audition,
 }: {
   model: PracticeModel;
   playback: PlaybackModel;
   piano: PianoModel;
-  stage: HTMLElement;
   audition(midi: number): () => void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
@@ -249,7 +255,7 @@ export function PracticeView({
           </Title>
           <RoundProgress model={playback} />
           <div className="practice-card" id="practice-card">
-            <RetainedContent element={stage} />
+            {state.readout && <PracticeReadout state={state.readout} />}
           </div>
           <ReferenceKeyboard model={piano} audition={audition} />
         </div>
@@ -258,6 +264,66 @@ export function PracticeView({
         {state.toast}
       </Alert>
     </>
+  );
+}
+
+function PitchName({ value }: { value: string }) {
+  const note = /^([A-G])([♯♭]?)(-?\d+)$/.exec(value);
+  return (
+    <span className="pitch-name">
+      {note ? (
+        <>
+          <span className="pitch-letter">{note[1]}</span>
+          {note[2] && <span className="pitch-accidental">{note[2]}</span>}
+          <span className="pitch-octave">{note[3]}</span>
+        </>
+      ) : (
+        value
+      )}
+    </span>
+  );
+}
+function PracticeReadout({ state }: { state: ReadoutSnapshot }) {
+  return (
+    <div
+      id="stage"
+      className="practice-readout"
+      role="group"
+      aria-label={state.description}
+      data-counting={!!state.countIn}
+    >
+      <Text component="div" className="practice-status">
+        {state.status || '\u00a0'}
+      </Text>
+      {state.countIn && (
+        <div className="practice-count-in">
+          <span className="practice-count-beat" data-downbeat={state.countIn.beat === 1}>
+            {state.countIn.beat}
+          </span>
+          <Text size="sm" c="dimmed">
+            Bar {state.countIn.bar} of {state.countIn.bars}
+          </Text>
+        </div>
+      )}
+      <div className="practice-note-pair">
+        {(['current', 'next'] as const).map((kind) => (
+          <div className={`practice-pitch ${kind}`} key={kind}>
+            <Text component="div" className="practice-pitch-label">
+              {kind === 'current' ? 'Current' : 'Next'}
+            </Text>
+            <div className="practice-pitch-value">
+              <PitchName value={state[kind]?.note ?? '—'} />
+            </div>
+            <Text component="div" className="practice-pitch-range">
+              {state[kind]?.range || '\u00a0'}
+            </Text>
+          </div>
+        ))}
+      </div>
+      <span id="note-announcement" className="sr-only" aria-live="polite">
+        {state.description}
+      </span>
+    </div>
   );
 }
 

@@ -74,7 +74,7 @@ try {
     'Rising first',
     'Falling first',
   ]);
-  await page.locator('canvas').screenshot({ path: new URL('practice-canvas.png', work).pathname });
+  await page.locator('#stage').screenshot({ path: new URL('practice-readout.png', work).pathname });
   await page.screenshot({ path: new URL('desktop.png', work).pathname, fullPage: true });
   await page.locator('#play').click();
   await page.waitForFunction(

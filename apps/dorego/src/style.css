@@ -11,25 +11,14 @@
   position: relative;
   overflow: hidden;
 }
-.practice-card canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16/9;
-}
 .practice-card:fullscreen {
-  background: #faf9f4;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .practice-card:fullscreen > div {
   width: 100%;
-}
-.practice-card:fullscreen canvas {
-  width: 100%;
-  max-height: 100vh;
-  object-fit: contain;
 }
 .sr-only {
   position: absolute;
@@ -110,6 +99,7 @@
 .dorego-workspace .practice-card {
   max-width: 1060px;
   margin-inline: auto;
+  container-type: inline-size;
 }
 .dorego-workspace .dorego-piano {
   margin-inline: 24px;
@@ -206,4 +196,90 @@
     justify-content: center;
     justify-self: center;
   }
+}
+
+/* Native text remains crisp at any pixel density and can be selected/copied. */
+.practice-readout {
+  --note-size: clamp(60px, 12cqw, 128px);
+  height: clamp(252px, 32.5cqw, 344px);
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+  text-align: center;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.practice-readout * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+.practice-status {
+  min-height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.practice-note-pair {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-content: center;
+  gap: 16px;
+}
+.practice-pitch-label {
+  font-size: clamp(12px, 1.5cqw, 15px);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.practice-pitch-value {
+  height: calc(var(--note-size) * 1.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font:
+    500 var(--note-size)/1 Arial,
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.pitch-name {
+  display: inline-block;
+  white-space: nowrap;
+}
+.pitch-accidental {
+  font-size: 0.55em;
+  margin-inline: 0.035em;
+  position: relative;
+  top: -0.28em;
+}
+.next .pitch-name {
+  font-size: 0.75em;
+  color: var(--muted);
+}
+.practice-pitch-range {
+  font-size: clamp(12px, 1.7cqw, 18px);
+  margin-top: 8px;
+  color: var(--muted);
+}
+.practice-count-in {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.practice-count-beat {
+  font-size: clamp(52px, 8cqw, 80px);
+  line-height: 1;
+}
+.practice-count-beat[data-downbeat='true'] {
+  color: var(--orange);
+}
+.practice-readout[data-counting='true'] {
+  --note-size: clamp(32px, 6cqw, 64px);
+}
+.practice-readout[data-counting='true'] .practice-note-pair {
+  flex: 0;
 }

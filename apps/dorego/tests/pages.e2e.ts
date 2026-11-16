@@ -451,20 +451,13 @@ try {
       .getAttribute('aria-pressed')
       .then((value) => value === 'true')
   );
-  // A phone gets a taller, fully fitted keyboard; desktop keeps the video layout.
-  await page.setViewportSize({ width: 320, height: 720 });
-  await page.waitForFunction(() => {
-    const canvas = document.querySelector('#stage') as HTMLCanvasElement;
-    return Math.abs(canvas.height / canvas.width - 1180 / 1600) < 0.01;
-  });
-  const mobile = await page.locator('#stage').boundingBox();
-  assert.ok(mobile && Math.abs(mobile.height / mobile.width - 1180 / 1600) < 0.01);
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.waitForFunction(() => {
-    const canvas = document.querySelector('#stage') as HTMLCanvasElement;
-    return canvas.width === 1600 && canvas.height === 520;
-  });
+  // Live pitches are selectable native text on both screen sizes; video keeps its canvas.
+  for (const width of [320, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator('#stage .current .pitch-name').waitFor();
+    assert.equal(await page.locator('#stage canvas').count(), 0);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
   // Impossible range choices are disabled; the other endpoint and saved exercise stay put.
   await selectExercise(page, 'fiveNote');
   const validSaved = await page.evaluate(() => localStorage.getItem('dorego.current'));

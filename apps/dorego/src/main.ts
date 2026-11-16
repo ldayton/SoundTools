@@ -27,7 +27,6 @@ import {
 } from './music';
 import { Player } from './audio';
 import { ReferencePiano } from './reference-piano';
-import { drawPractice, WIDTH, PRACTICE_HEIGHT, PRACTICE_MOBILE_HEIGHT } from './render';
 import './style.css';
 import { setupOffline } from './offline';
 
@@ -54,10 +53,6 @@ let position = 0;
 let raf = 0;
 const player = new Player();
 
-const stage = document.createElement('div');
-stage.innerHTML =
-  '<canvas id="stage" width="1600" height="900" aria-label="Exercise note and piano keyboard" role="img"></canvas><span class="sr-only" id="note-announcement" aria-live="polite"></span>';
-const canvas = stage.querySelector<HTMLCanvasElement>('canvas')!;
 const builderModel = createViewState<BuilderSnapshot>({ spec: { ...spec }, error: null });
 let formError: string | null = null;
 let toastMessage = '';
@@ -77,6 +72,7 @@ const practiceModel = createViewState<PracticeSnapshot>({
   bpm: spec.bpm,
   volume: spec.volume,
   toast: '',
+  readout: null,
 });
 const pianoModel = createViewState<PianoSnapshot>({
   low: spec.low,
@@ -128,35 +124,12 @@ mountAppShell($('#app'), {
   practice: createElement(PracticeView, {
     model: practiceModel,
     playback: playbackModel,
-    stage,
     piano: pianoModel,
     audition: (midi) => reference.press(midi),
   }),
   settingsView: createElement(SettingsPage),
 });
 setupOffline();
-canvas.width = WIDTH;
-canvas.height = PRACTICE_HEIGHT;
-const mobileQuery = window.matchMedia('(max-width: 760px)');
-let mobileStage = false;
-function resizeStage() {
-  mobileStage =
-    mobileQuery.matches && (!document.fullscreenElement || window.innerHeight >= window.innerWidth);
-  canvas.width = mobileStage
-    ? Math.min(
-        WIDTH,
-        Math.max(320, Math.round(canvas.clientWidth * (window.devicePixelRatio || 1)))
-      )
-    : WIDTH;
-  canvas.height = mobileStage
-    ? Math.round((canvas.width * PRACTICE_MOBILE_HEIGHT) / WIDTH)
-    : PRACTICE_HEIGHT;
-  canvas.style.aspectRatio = `${WIDTH} / ${mobileStage ? PRACTICE_MOBILE_HEIGHT : PRACTICE_HEIGHT}`;
-  update(true);
-}
-window.addEventListener('resize', resizeStage);
-document.addEventListener('fullscreenchange', resizeStage);
-mobileQuery.addEventListener('change', resizeStage);
 function populate() {
   builderModel.set({ spec: { ...spec }, error: formError });
 }
@@ -253,14 +226,19 @@ function changeVolume(volume: number) {
   populate();
   update(true);
 }
-let announced = '';
 function update(force = false) {
   diagnosticsContext(spec, mode, pianoWarming, pianoFailed);
   const duration = secondsAt(exercise.totalBeats, spec.bpm);
   const time = mode === 'ready' ? -1 : position;
-  drawPractice(canvas, exercise, time, mobileStage);
   const scene = stateAt(exercise, time);
   const practice = practiceAt(exercise, time);
+  const roundReadout = (round: typeof practice.current) => {
+    const range = practiceRange(exercise, round);
+    return {
+      note: roundNoteName(round.midi, round),
+      range: `${roundNoteName(range.low, round)} – ${roundNoteName(range.high, round)}`,
+    };
+  };
   const describeRound = (round: typeof practice.current) => {
     const range = practiceRange(exercise, round);
     return `${roundNoteName(round.midi, round)}, range ${roundNoteName(range.low, round)} to ${roundNoteName(range.high, round)}`;
@@ -271,15 +249,7 @@ function update(force = false) {
       : scene.phase === 'complete'
         ? 'Exercise complete'
         : `Current practice note ${describeRound(practice.current)}. Next ${practice.next ? describeRound(practice.next) : 'none'}`;
-  canvas.setAttribute(
-    'aria-label',
-    `${exercise.title ?? PATTERNS[spec.pattern].name}. ${description}`
-  );
-  if (description !== announced) {
-    $('#note-announcement').textContent = description;
-    announced = description;
-  }
-  // Canvas and audio stay at their native cadence; ordinary controls receive at most 20 updates/sec.
+  // Audio stays at its native cadence; React receives only changed view snapshots.
   const now = performance.now();
   if (force || mode !== 'playing' || now - lastControlsUpdate >= 50) {
     lastControlsUpdate = now;
@@ -316,6 +286,29 @@ function update(force = false) {
       bpm: spec.bpm,
       volume: spec.volume,
       toast: toastMessage,
+      readout: {
+        status:
+          scene.phase === 'countin'
+            ? 'Count-in'
+            : scene.phase === 'complete'
+              ? 'Complete'
+              : scene.phase === 'rest'
+                ? `Rest · next round in ${scene.count}`
+                : scene.phase === 'ready'
+                  ? 'Ready'
+                  : '',
+        countIn:
+          scene.phase === 'countin'
+            ? {
+                beat: scene.count,
+                bar: Math.floor(scene.beat / 4) + 1,
+                bars: Math.ceil(spec.countIn / 4),
+              }
+            : null,
+        current: roundReadout(practice.current),
+        next: practice.next ? roundReadout(practice.next) : null,
+        description,
+      },
     });
   }
 }
@@ -402,7 +395,7 @@ document.addEventListener('keydown', (event) => {
   if (event.key.toLowerCase() === 'f') void toggleFullscreen();
 });
 populate();
-resizeStage();
+update(true);
 void warmPiano();
 // Hiding alone does not pause healthy background audio. Freezing/navigation
 // does: preserve position and require an explicit Resume after restoration.

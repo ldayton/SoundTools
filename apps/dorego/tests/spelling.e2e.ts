@@ -46,36 +46,6 @@ try {
   const page = await context.newPage();
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  // Capture actual canvas text, covering the same renderer used by video export.
-  await page.addInitScript(() => {
-    const labels: string[] = [];
-    (window as any).spellingLabels = labels;
-    const bounds: any[] = [];
-    (window as any).spellingBounds = bounds;
-    const proto = CanvasRenderingContext2D.prototype;
-    const fill = proto.fillRect,
-      text = proto.fillText;
-    proto.fillRect = function (...args) {
-      if (args[0] === 0 && args[1] === 0) {
-        labels.length = 0;
-        bounds.length = 0;
-      }
-      return fill.apply(this, args);
-    };
-    proto.fillText = function (value, ...args) {
-      labels.push(value);
-      const m = this.measureText(value);
-      bounds.push({
-        value,
-        size: Number(/([\d.]+)px/.exec(this.font)?.[1]),
-        left: args[0] - m.actualBoundingBoxLeft,
-        right: args[0] + m.actualBoundingBoxRight,
-        top: args[1] - m.actualBoundingBoxAscent,
-        bottom: args[1] + m.actualBoundingBoxDescent,
-      });
-      return text.call(this, value, ...args);
-    };
-  });
   const configure = async (spec: typeof DEFAULT_SPEC) => {
     if (page.url() === 'about:blank') await page.goto(base);
     // This suite tests labels; let audio warm-up finish before navigating again.
@@ -94,43 +64,23 @@ try {
     );
   };
   const seek = (time: number) => playUntil(page, time);
-  const labels = () => page.evaluate(() => (window as any).spellingLabels as string[]);
-  const checkNoteGeometry = async (centerY: number) => {
-    const all = await page.evaluate(
-      () =>
-        (window as any).spellingBounds as {
-          value: string;
-          size: number;
-          left: number;
-          right: number;
-          top: number;
-          bottom: number;
-        }[]
-    );
-    const note = all.filter(
-      (b) =>
-        b.size >= 35 &&
-        b.left < 800 &&
-        b.top < 700 &&
-        b.bottom > 200 &&
-        /^(?:[A-G]|[♭♯]|\d+)$/.test(b.value)
-    );
-    const letter = note.find((b) => /^[A-G]$/.test(b.value))!;
-    const accidental = note.find((b) => /^[♭♯]$/.test(b.value))!;
-    assert.ok(letter && accidental, 'Accidentals are drawn as separate modifiers');
-    assert.ok(accidental.bottom - accidental.top <= (letter.bottom - letter.top) * 0.68);
-    assert.ok(accidental.left > letter.right, 'Accidental does not overlap the letter');
+  const labels = () => page.locator('#stage').innerText();
+  const checkNoteGeometry = async () => {
+    const geometry = await page.locator('.current .pitch-name').evaluate((el) => {
+      return {
+        letter: el.querySelector('.pitch-letter')!.getBoundingClientRect().toJSON(),
+        accidental: el.querySelector('.pitch-accidental')!.getBoundingClientRect().toJSON(),
+        note: el.getBoundingClientRect().toJSON(),
+        host: el.parentElement!.getBoundingClientRect().toJSON(),
+      };
+    });
+    const { letter, accidental, note, host } = geometry;
+    assert.ok(accidental.height < letter.height * 0.65, 'Accidental is a compact modifier');
+    assert.ok(accidental.left >= letter.right, 'Accidental does not overlap the letter');
     assert.ok(accidental.bottom < letter.bottom, 'Accidental is raised');
-    const left = Math.min(...note.map((b) => b.left)),
-      right = Math.max(...note.map((b) => b.right));
-    const top = Math.min(...note.map((b) => b.top)),
-      bottom = Math.max(...note.map((b) => b.bottom));
-    assert.ok(Math.abs((left + right) / 2 - 480) < 1, 'Combined ink stays horizontally centered');
-    assert.ok(Math.abs((top + bottom) / 2 - centerY) < 1, 'Combined ink stays vertically centered');
-    assert.ok(
-      all.find((b) => b.value === 'CURRENT')!.bottom < top,
-      'Current label stays above the note'
-    );
+    assert.ok(Math.abs(note.x + note.width / 2 - host.x - host.width / 2) < 1, 'Note is centered');
+    const label = (await page.locator('.current .practice-pitch-label').boundingBox())!;
+    assert.ok(label.y + label.height <= note.y, 'Current label stays above the note');
   };
 
   const spec = {
@@ -151,7 +101,7 @@ try {
     (await page.locator('#stage').getAttribute('aria-label'))!,
     /Next D♭4, range D♭4 to A♭5/
   );
-  assert.ok((await labels()).join('').includes('D♭4'));
+  assert.ok((await labels()).includes('D♭4'));
   assert.equal(await page.locator('#high-spin').inputValue(), 'G♯5');
   const before = [
     await page.locator('#low-spin').inputValue(),
@@ -167,7 +117,7 @@ try {
     [await page.locator('#low-spin').inputValue(), await page.locator('#high-spin').inputValue()],
     before
   );
-  await checkNoteGeometry(250);
+  await checkNoteGeometry();
 
   await page.locator('#low-spin').click();
   const grid = page.getByRole('dialog', { name: 'Choose lowest note' });
@@ -198,7 +148,7 @@ try {
       (await page.locator('[data-piano="65"]').getAttribute('aria-label')) === 'E♯4',
       'The reference piano must use the round spelling'
     );
-    await checkNoteGeometry(mobile ? 470 : 250);
+    await checkNoteGeometry();
     await mkdir('work', { recursive: true });
     await page.screenshot({
       path: `work/spelling-${browserName}-${mobile ? 'mobile' : 'desktop'}.png`,

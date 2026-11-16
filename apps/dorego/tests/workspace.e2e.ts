@@ -216,14 +216,62 @@ try {
   await openPracticeOptions(page);
   assert.equal(await page.locator('.dorego-builder-ui .mantine-Accordion-root').count(), 0);
   await page.getByLabel('Count-in', { exact: true }).waitFor();
-  await page.getByLabel('Count-in', { exact: true }).selectOption('2');
+  await page.getByLabel('Count-in', { exact: true }).selectOption('8');
   await page.getByRole('button', { name: 'Close practice options', exact: true }).click();
   await page.locator('#play:enabled').waitFor();
   await setSlider(page, 'volume', 0);
+  const readyHeight = (await page.locator('#stage').boundingBox())!.height;
+  await page.locator('#play').click();
+  await page.locator('.practice-count-in').waitFor();
+  assert.equal(await page.locator('.practice-status').textContent(), 'Count-in');
+  assert.match(await page.locator('.practice-count-in').innerText(), /Bar [12] of 2/);
+  assert.ok(
+    Math.abs((await page.locator('#stage').boundingBox())!.height - readyHeight) < 1,
+    'Count-in retains the readout height'
+  );
+  await page.locator('#play').click();
+  await page.locator('#restart').click();
+  assert.equal(await page.locator('.practice-status').textContent(), 'Ready');
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/workspace-${browserName}-mobile.png` });
   await page.setViewportSize({ width: 1680, height: 1050 });
   await page.screenshot({ path: `work/workspace-${browserName}-desktop.png` });
+  const retina = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+    serviceWorkers: 'block',
+  });
+  await retina.addInitScript(
+    (spec) => localStorage.setItem('dorego.current', JSON.stringify(spec)),
+    { ...DEFAULT_SPEC, countIn: 0, startingChords: false, repetitions: 1, volume: -60 }
+  );
+  const phone = await retina.newPage();
+  await phone.goto(base);
+  await phone.locator('#play:enabled').waitFor();
+  assert.equal(await phone.locator('#stage canvas').count(), 0);
+  assert.equal(await phone.locator('.current .pitch-name').textContent(), 'E3');
+  assert.equal(await phone.locator('.next .pitch-name').textContent(), 'F3');
+  await phone.locator('#play').click();
+  const selected = await phone.locator('.current .pitch-name').evaluate((el) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+    return { text: selection.toString(), selectable: getComputedStyle(el).userSelect };
+  });
+  assert.deepEqual(selected, { text: 'E3', selectable: 'text' });
+  await phone.waitForFunction(
+    () => Number(document.querySelector('#elapsed')?.getAttribute('data-seconds')) > 0.15
+  );
+  assert.equal(
+    await phone.evaluate(() => window.getSelection()?.toString()),
+    'E3',
+    'Playback updates retain selected note text'
+  );
+  await phone.locator('#play').click();
+  await phone.screenshot({ path: `work/readout-${browserName}-retina.png` });
+  await retina.close();
   assert.deepEqual(errors, []);
   console.log(
     `${browserName}: toolbar geometry, eight exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and six widths pass`

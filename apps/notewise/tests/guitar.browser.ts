@@ -128,7 +128,7 @@ try {
   assert.match((await page.locator("#feedback").textContent())!, /That’s E/);
   await page.keyboard.press("F");
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "1",
   );
   await next();
@@ -171,7 +171,7 @@ try {
   );
   await page.keyboard.down("Enter"); // Repeat event after the next card is ready.
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "2",
   );
   await page.keyboard.up("Enter");
@@ -189,7 +189,7 @@ try {
   assert.equal(await page.locator("#result").textContent(), "12 of 12 correct");
   await page.locator("#continue").click();
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "0",
   );
   await selectPractice(page, "tab");
@@ -272,6 +272,7 @@ try {
     await page.locator('[data-string-toggle="6"]').isChecked(),
     true,
   );
+  await openPracticeOptions(page);
   await page.locator('[data-string-toggle="5"]').click();
   assert.equal(
     await page.locator('[data-string-toggle="5"]').isChecked(),
@@ -341,7 +342,7 @@ try {
   );
   await page.locator('[data-letter="E"]').click();
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "0",
   );
   await page.evaluate(
@@ -354,7 +355,7 @@ try {
   await page.waitForTimeout(1800);
   assert.equal(await page.locator("#counter").textContent(), "1 / 12");
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "1",
   );
   await page.evaluate(
@@ -366,10 +367,7 @@ try {
   await practiceOption(page, "#roundLength", "24");
   await practiceOption(page, "#maxFret", "0");
   assert.equal(await page.locator("#counter").textContent(), "1 / 24");
-  assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuemax"),
-    "24",
-  );
+  assert.equal(await page.locator("#counter").getAttribute("data-total"), "24");
   for (let i = 0; i < 24; i++) {
     await page.locator('[data-letter="E"]:enabled').click();
     if (i < 23) await next();
@@ -392,7 +390,8 @@ try {
   });
   await selectPractice(page, "find");
   if (await page.locator('[data-string-toggle="5"]').isChecked())
-    await page.locator('[data-string-toggle="5"]').click();
+    await openPracticeOptions(page);
+  await page.locator('[data-string-toggle="5"]').click();
   await practiceOption(page, "#key", "G");
   await practiceOption(page, "#minFret", "2");
   await practiceOption(page, "#maxFret", "2");

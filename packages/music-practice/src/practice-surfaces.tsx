@@ -28,10 +28,19 @@ export function createPracticeRegistry() {
     // Controllers measure renderer hosts immediately after mounting a view.
     flushSync(() => listeners.forEach((listener) => listener()));
   }
-  const headerHost = document.createElement("div");
-  headerHost.className = "sequence-transport";
+  const headers = new Map<string, HTMLElement>();
+  function headerFor(id: string) {
+    let host = headers.get(id);
+    if (!host) {
+      host = document.createElement("div");
+      host.className = "sequence-transport";
+      host.dataset.activityToolbar = id;
+      headers.set(id, host);
+    }
+    return host;
+  }
   const registry = {
-    headerHost,
+    headerFor,
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) {
       listeners.add(listener);
@@ -88,6 +97,7 @@ export function createPracticeRegistry() {
         if (owners.get(element) === registry) owners.delete(element);
       hosts.clear();
       listeners.clear();
+      headers.clear();
     },
     selection(element: HTMLElement, content: ReactNode) {
       selectionOwner = element;
@@ -105,7 +115,7 @@ export function mountPracticeSurface(element: HTMLElement, content: ReactNode) {
   return owner(element).view(element, content);
 }
 export function practiceHeaderHost(element: HTMLElement) {
-  return owner(element).headerHost;
+  return owner(element).headerFor(element.id);
 }
 export function registerPracticeOptions(
   element: HTMLElement,

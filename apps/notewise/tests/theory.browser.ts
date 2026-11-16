@@ -59,11 +59,11 @@ try {
   const options = () =>
     page.locator(".practice-options-content > section:not([hidden])");
   const field = async (id: string, value: string) => {
-    await openPracticeOptions(page);
+    await openPracticeOptions(page, () => page.clock.runFor(250));
     await options().locator(`[data-field="${id}"]`).selectOption(value);
   };
   const next = async () => {
-    const button = root().locator(".theory-next");
+    const button = page.locator("header .theory-next");
     if (await button.isVisible()) await button.click();
     else await page.clock.runFor(1000);
   };
@@ -92,19 +92,22 @@ try {
     /C is degree 1/,
   );
   assert.equal(
-    await root().locator(".theory-count").textContent(),
+    await page.locator("header .theory-count").textContent(),
     "1 / 12",
     "feedback retains the answered question number",
   );
   assert.ok(
-    await root().locator(".theory-next").isHidden(),
+    await page.locator("header .theory-next").isHidden(),
     "correct answers need no Next click",
   );
   await page.clock.runFor(599);
-  assert.equal(await root().locator(".theory-count").textContent(), "1 / 12");
+  assert.equal(
+    await page.locator("header .theory-count").textContent(),
+    "1 / 12",
+  );
   await page.clock.runFor(1);
   assert.equal(
-    await root().locator(".theory-count").textContent(),
+    await page.locator("header .theory-count").textContent(),
     "2 / 12",
     "correct answer advances automatically",
   );
@@ -124,10 +127,13 @@ try {
   await page.evaluate(() => window.dispatchEvent(new Event("blur")));
   await page.clock.runFor(1000);
   assert.ok(
-    await root().locator(".theory-next").isVisible(),
+    await page.locator("header .theory-next").isVisible(),
     "interruption leaves feedback for manual continuation",
   );
-  assert.equal(await root().locator(".theory-count").textContent(), "2 / 12");
+  assert.equal(
+    await page.locator("header .theory-count").textContent(),
+    "2 / 12",
+  );
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await next();
   await root()
@@ -140,7 +146,7 @@ try {
   );
   await page.clock.runFor(1500);
   assert.ok(
-    await root().locator(".theory-next").isVisible(),
+    await page.locator("header .theory-next").isVisible(),
     "mistakes do not auto-advance",
   );
   await page.waitForFunction(
@@ -148,9 +154,9 @@ try {
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   await page.reload();
-  await root().locator(".theory-next").waitFor();
+  await page.locator("header .theory-next").waitFor();
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
+    await page.locator("header .theory-count").getAttribute("data-answered"),
     "3",
   );
   for (let i = 3; i < 12; i++) {
@@ -164,7 +170,7 @@ try {
   assert.ok(await root().locator(".theory-summary").isVisible());
   await root().locator(".theory-continue").click();
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
+    await page.locator("header .theory-count").getAttribute("data-answered"),
     "0",
   );
   await field("task", "play-degree");
@@ -179,7 +185,7 @@ try {
   await field("task", "build-scale");
   await page.clock.runFor(1000);
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
+    await page.locator("header .theory-count").getAttribute("data-answered"),
     "0",
     "old task timer cannot advance a new task",
   );
@@ -229,7 +235,10 @@ try {
   await page.locator(".keyboard-menu[data-state=connected]").waitFor();
   await page.clock.runFor(250);
   for (const n of [65, 67, 69, 71, 72]) await send(n);
-  await expect(root().locator(".theory-progress")).toHaveAttribute("aria-valuenow", "1");
+  await expect(page.locator("header .theory-count")).toHaveAttribute(
+    "data-answered",
+    "1",
+  );
   assert.match(
     (await root().locator(".theory-explanation").textContent())!,
     /C–D–E–F–G–A–B–C/,
@@ -324,7 +333,7 @@ try {
     (await root().locator(".theory-explanation").textContent())!,
     /C–D/,
   );
-  await openPracticeOptions(page);
+  await openPracticeOptions(page, () => page.clock.runFor(250));
   await page.locator("#intervals-low").click();
   await page
     .locator("#intervals-low-picker")
@@ -347,13 +356,13 @@ try {
   await selectPractice(page, "scales");
   await field("task", "name-degree");
   assert.equal(
-    await root().locator(".theory-progress").getAttribute("aria-valuenow"),
+    await page.locator("header .theory-count").getAttribute("data-answered"),
     "0",
     "independent task checkpoint",
   );
   for (const width of [320, 390, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
-    await openPracticeOptions(page);
+    await openPracticeOptions(page, () => page.clock.runFor(250));
     await page.clock.runFor(100);
     assert.ok(
       await page.evaluate(
@@ -383,9 +392,7 @@ try {
   );
   // Standard controls preserve nonempty sets, relative-key labels and each task's settings.
   await page.clock.resume();
-  await options()
-    .getByRole("button", { name: /^Keys ·/ })
-    .click();
+
   const keys = options().getByRole("group", { name: "Keys", exact: true });
   await keys.getByRole("checkbox", { name: "G major", exact: true }).check();
   await keys.getByRole("checkbox", { name: "C major", exact: true }).uncheck();
@@ -433,14 +440,12 @@ try {
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   await page.reload();
-  await openPracticeOptions(page);
+  await openPracticeOptions(page, () => page.clock.runFor(250));
   assert.equal(
     await options().locator('[data-field="mode"]').inputValue(),
     "minor",
   );
-  await options()
-    .getByRole("button", { name: /^Keys ·/ })
-    .click();
+
   assert.ok(
     await options()
       .getByRole("checkbox", { name: "E minor", exact: true })
@@ -477,9 +482,11 @@ try {
       .getByRole("checkbox", { name: "Perfect", exact: true })
       .isDisabled(),
   );
-  await options()
-    .getByRole("button", { name: "Advanced qualities", exact: true })
-    .click();
+  assert.ok(
+    await qualities
+      .getByRole("checkbox", { name: "Augmented", exact: true })
+      .isVisible(),
+  );
   await qualities
     .getByRole("checkbox", { name: "Augmented", exact: true })
     .check();
@@ -506,12 +513,6 @@ try {
       .getByRole("checkbox", { name: "Perfect", exact: true })
       .isChecked(),
   );
-  const advanced = options().getByRole("button", {
-    name: "Advanced qualities",
-    exact: true,
-  });
-  if ((await advanced.getAttribute("aria-expanded")) !== "true")
-    await advanced.click();
   await options()
     .getByRole("checkbox", { name: "Augmented", exact: true })
     .waitFor({ state: "visible" });

@@ -50,11 +50,6 @@ export function TheoryOptions({
   const namingQuality =
     task === "name-quality" ||
     (task === "build-interval" && s.quality !== "number");
-  const selectedKeys = s.keys.map(
-    (k) =>
-      `${name(scaleNotes(k, s.mode, 4)[0])} ${s.mode === "minor" ? "minor" : "major"}`,
-  );
-  const keySummary = `Keys · ${selectedKeys.length <= 3 ? selectedKeys.join(", ") : selectedKeys.length + " selected"}`;
   const id = (field: string) => `${kind}-option-${field}`;
   return (
     <Stack className="soundtools-ui">
@@ -220,31 +215,24 @@ export function TheoryOptions({
               </SimpleGrid>
             </Checkbox.Group>
           )}
-          <Accordion id={id("keys-disclosure")} order={3}>
-            <Accordion.Item value="keys">
-              <Accordion.Control>{keySummary}</Accordion.Control>
-              <Accordion.Panel>
-                <Checkbox.Group
-                  id={id("keys")}
-                  label="Keys"
-                  value={s.keys}
-                  onChange={(v) => change({ keys: v })}
-                >
-                  <SimpleGrid cols={2} mt="xs">
-                    {KEYS.map((k) => (
-                      <Checkbox
-                        key={k.id}
-                        id={id(`key-${k.id}`)}
-                        value={k.id}
-                        label={`${name(scaleNotes(k.id, s.mode, 4)[0])} ${s.mode === "minor" ? "minor" : "major"}`}
-                        disabled={s.keys.length === 1 && s.keys.includes(k.id)}
-                      />
-                    ))}
-                  </SimpleGrid>
-                </Checkbox.Group>
-              </Accordion.Panel>
-            </Accordion.Item>
-          </Accordion>
+          <Checkbox.Group
+            id={id("keys")}
+            label="Keys"
+            value={s.keys}
+            onChange={(v) => change({ keys: v })}
+          >
+            <SimpleGrid cols={2} mt="xs">
+              {KEYS.map((k) => (
+                <Checkbox
+                  key={k.id}
+                  id={id(`key-${k.id}`)}
+                  value={k.id}
+                  label={`${name(scaleNotes(k.id, s.mode, 4)[0])} ${s.mode === "minor" ? "minor" : "major"}`}
+                  disabled={s.keys.length === 1 && s.keys.includes(k.id)}
+                />
+              ))}
+            </SimpleGrid>
+          </Checkbox.Group>
         </>
       ) : (
         <>
@@ -291,27 +279,17 @@ export function TheoryOptions({
                       }
                     />
                   ))}
-                <Accordion id={id("advanced-disclosure")} order={3}>
-                  <Accordion.Item value="advanced">
-                    <Accordion.Control>Advanced qualities</Accordion.Control>
-                    <Accordion.Panel>
-                      <Stack gap="xs">
-                        {advancedQualities.map((q) => (
-                          <Checkbox
-                            key={q}
-                            id={id(`quality-${q}`)}
-                            value={q}
-                            label={q[0].toUpperCase() + q.slice(1)}
-                            disabled={
-                              s.qualities.length === 1 &&
-                              s.qualities.includes(q)
-                            }
-                          />
-                        ))}
-                      </Stack>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                </Accordion>
+                {advancedQualities.map((q) => (
+                  <Checkbox
+                    key={q}
+                    id={id(`quality-${q}`)}
+                    value={q}
+                    label={q[0].toUpperCase() + q.slice(1)}
+                    disabled={
+                      s.qualities.length === 1 && s.qualities.includes(q)
+                    }
+                  />
+                ))}
               </Stack>
             </Checkbox.Group>
           )}

@@ -1,3 +1,4 @@
+@import "./styles/notewise.css";
 @import "@ldayton/ui/piano-keyboard.css";
 .correct {
   color: var(--mantine-color-green-8);
@@ -233,12 +234,12 @@
   box-shadow: inset 0 3px 6px #302d5525;
   border-bottom-width: 2px;
 }
-.piano-key.is-right {
+.piano-keybed .piano-key.is-right {
   background: #a5c1a3;
   border-color: #698b6b;
   color: #253f29;
 }
-.piano-key.is-wrong {
+.piano-keybed .piano-key.is-wrong {
   background: #dfad99;
   border-color: #ac6146;
 }

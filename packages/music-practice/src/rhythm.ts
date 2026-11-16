@@ -1,3 +1,4 @@
+import { practiceHeaderHost } from "./practice-surfaces";
 import { RendererLifetime } from "./renderer-lifetime";
 import { RhythmFrame, rhythmBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
@@ -32,14 +33,17 @@ export class RhythmPractice {
   private lifetime = new RendererLifetime();
   private body = rhythmBodyState();
   private presentation = practicePresentation({
-    context: "Rhythm only",
-    count: "4 bars · 4/4",
+    count: "4 bars",
     title: "Find the pulse.",
     feedback: "Two bars to count in, then your turn.",
   });
   readonly midiSlot: HTMLElement;
   private active = false;
-  private controls = rhythmControlsState({ phase: "ready", response: "" });
+  private controls = rhythmControlsState({
+    phase: "ready",
+    response: "",
+    bpm: 80,
+  });
   private result:
     | { hits: number[]; total: number; missed: number; extras: number }
     | undefined;
@@ -108,10 +112,18 @@ export class RhythmPractice {
     this.disposeView = mountPracticeSurface(
       element,
       createElement(RhythmFrame, {
+        headerHost: practiceHeaderHost(element),
         presentation: this.presentation,
         body: this.body,
         transport: createElement(RhythmControls, {
           model: this.controls,
+          tempo: (bpm) => {
+            this.stop();
+            this.bpm = bpm;
+            this.options.set({ bpm, level: this.level });
+            this.render();
+            this.save();
+          },
           start: () => {
             if (this.state === "playing" || this.state === "countin")
               this.interrupt("controls");
@@ -221,7 +233,11 @@ export class RhythmPractice {
     this.result = undefined;
     this.attempt = undefined;
     this.clearTapFeedback();
-    this.controls.set({ ...this.controls.getSnapshot(), phase: this.state });
+    this.controls.set({
+      ...this.controls.getSnapshot(),
+      phase: this.state,
+      bpm: this.bpm,
+    });
     this.beat = this.step = -1;
     highlightScore(
       this.$(".rhythm-paper"),
@@ -232,6 +248,11 @@ export class RhythmPractice {
     this.changed();
   }
   private render(layoutOnly = false) {
+    this.controls.set({
+      ...this.controls.getSnapshot(),
+      phase: this.state,
+      bpm: this.bpm,
+    });
     this.presentation.set({ kind: "" });
     this.width = this.$(".sequence-score").clientWidth;
     if (!this.width) return;
@@ -275,7 +296,11 @@ export class RhythmPractice {
     const pattern = rhythmOnsets(this.bars);
     this.end = start + pattern.beats * beatMs;
     this.attempt = new RhythmAttempt(pattern.starts, this.bpm, start);
-    this.controls.set({ ...this.controls.getSnapshot(), phase: this.state });
+    this.controls.set({
+      ...this.controls.getSnapshot(),
+      phase: this.state,
+      bpm: this.bpm,
+    });
     this.element
       .querySelectorAll(".rhythm-hit,.rhythm-missed")
       .forEach((e) => e.classList.remove("rhythm-hit", "rhythm-missed"));
@@ -416,7 +441,11 @@ export class RhythmPractice {
     this.presentation.set({
       feedback: `${this.result.hits.length} of ${this.result.total} on the beat · ${this.result.missed} missed · ${this.result.extras} extra`,
     });
-    this.controls.set({ ...this.controls.getSnapshot(), phase: this.state });
+    this.controls.set({
+      ...this.controls.getSnapshot(),
+      phase: this.state,
+      bpm: this.bpm,
+    });
     this.changed();
   }
 }

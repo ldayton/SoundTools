@@ -23,15 +23,7 @@ const server = process.env.TEST_BASE_URL
   ? undefined
   : spawn(
       process.execPath,
-      [
-        vite,
-        "preview",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        port,
-        "--strictPort",
-      ],
+      [vite, "preview", "--host", "127.0.0.1", "--port", port, "--strictPort"],
       { stdio: "ignore" },
     );
 if (server) {
@@ -46,7 +38,9 @@ if (server) {
 const fixed = await mkdtemp(join(tmpdir(), "notecards-cards-"));
 let browser: Awaited<ReturnType<typeof type.launch>> | undefined;
 try {
-  browser = await type.launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+  browser = await type.launch({
+    env: { ...process.env, CFFIXED_USER_HOME: fixed },
+  });
   const context = await browser.newContext();
   await context.addInitScript(() => {
     Math.random = () => 0;
@@ -89,7 +83,7 @@ try {
   assert.match((await page.locator("#feedback").textContent())!, /That’s E/);
   await page.keyboard.press("E");
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "1",
     "One answer per card",
   );
@@ -124,7 +118,10 @@ try {
   await page.locator("#continue").waitFor();
   assert.equal(await page.locator("#result").textContent(), "12 of 12 correct");
   await page.getByRole("button", { name: "Keep going" }).click();
-  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "0");
+  assert.equal(
+    await page.locator("#counter").getAttribute("data-answered"),
+    "0",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(
     await page.evaluate(
@@ -204,9 +201,11 @@ try {
   );
 } finally {
   await browser?.close();
-  await rm(fixed, { recursive: true, force: true }).catch((error: NodeJS.ErrnoException) => {
-    // macOS may protect Firefox-created folders in the temporary home.
-    if (!["EACCES", "EPERM"].includes(error.code || "")) throw error;
-  });
+  await rm(fixed, { recursive: true, force: true }).catch(
+    (error: NodeJS.ErrnoException) => {
+      // macOS may protect Firefox-created folders in the temporary home.
+      if (!["EACCES", "EPERM"].includes(error.code || "")) throw error;
+    },
+  );
   server?.kill();
 }

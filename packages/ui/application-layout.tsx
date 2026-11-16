@@ -231,7 +231,7 @@ export function ApplicationLayout({
                 {area}
               </Text>
               <Title
-                id="page-title"
+                id={toolbarOnly ? undefined : "page-title"}
                 order={1}
                 size="h3"
                 lineClamp={1}
@@ -241,7 +241,9 @@ export function ApplicationLayout({
               </Title>
             </Box>
             {toolbarOnly ? (
-              <Box style={{ flex: 1, minWidth: 0 }}>{headerActions}</Box>
+              <Box inert={blocked} style={{ flex: 1, minWidth: 0 }}>
+                {headerActions}
+              </Box>
             ) : null}
             <PracticeOptionsReopen />
             {!toolbarOnly && headerActions}

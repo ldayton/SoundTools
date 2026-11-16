@@ -1,8 +1,7 @@
-import { TempoControl } from "@ldayton/ui/tempo-control";
 import { createViewState } from "./view-state";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack } from "@mantine/core";
-import { RHYTHM_TEMPO_LIMITS, type RhythmSettings } from "./rhythm-model";
+import { type RhythmSettings } from "./rhythm-model";
 
 const levels = [
   { value: "pulse", label: "Steady quarter notes" },
@@ -35,13 +34,6 @@ export function RhythmOptions({
             level: event.currentTarget.value as RhythmSettings["level"],
           })
         }
-      />
-      <TempoControl
-        id="rhythm-tempo"
-        value={settings.bpm}
-        min={RHYTHM_TEMPO_LIMITS.min}
-        max={RHYTHM_TEMPO_LIMITS.max}
-        onChange={(bpm) => change({ bpm })}
       />
     </Stack>
   );

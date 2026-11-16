@@ -4,7 +4,10 @@ import {
   openPracticeOptions,
   closePracticeOptions,
 } from "../../../packages/music-practice/browser-tests/helpers";
-import { signatureDeck, signatureAnswer } from "../../../packages/music-practice/src/key-signatures";
+import {
+  signatureDeck,
+  signatureAnswer,
+} from "../../../packages/music-practice/src/key-signatures";
 import { KEYS } from "../../../packages/music-practice/src/model";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -95,8 +98,9 @@ try {
       "Key signatures",
     );
     assert.equal(
-      await page.locator("#context").textContent(),
-      "Key signatures",
+      await page.locator("#context").isVisible(),
+      false,
+      "The page heading identifies the exercise once",
     );
     assert.equal(
       await page.locator("#signature-prompt").textContent(),
@@ -158,7 +162,10 @@ try {
       await page.locator("#feedback").textContent(),
       `Yes — ${signatureAnswer(card)}`,
     );
-    assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
+    assert.equal(
+      await page.locator("#counter").getAttribute("data-answered"),
+      "1",
+    );
   }
   // Incorrect and repeated inputs count only once, then the accidental resets.
   await page.evaluate(
@@ -185,7 +192,10 @@ try {
     /That’s A♭ minor/,
   );
   await page.keyboard.press("C");
-  assert.equal(await page.locator("#progress").getAttribute("aria-valuenow"), "1");
+  assert.equal(
+    await page.locator("#counter").getAttribute("data-answered"),
+    "1",
+  );
   await page.waitForFunction(() =>
     document.querySelector("#feedback")?.textContent?.startsWith("Name the "),
   );
@@ -217,6 +227,7 @@ try {
   );
   await page.reload();
   await page.locator("#notation svg").waitFor();
+  await openPracticeOptions(page);
   assert.equal(
     await page.locator("#signatureMaxAccidentals").inputValue(),
     "0",

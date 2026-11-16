@@ -1,35 +1,40 @@
-import { PracticeActions } from "@ldayton/ui/practice-actions";
+import { PracticeAction, PracticeActions } from "@ldayton/ui/practice-actions";
 import { useSyncExternalStore } from "react";
-import { Button, Group } from "@mantine/core";
 import { createViewState } from "./view-state";
-import { PracticePianoToggle } from "./piano-presentation";
 export const patternControlsState = createViewState<{ paused: boolean }>;
 export function PatternControls({
   model,
-  panelId,
   pause,
   restart,
   next,
 }: {
   model: ReturnType<typeof patternControlsState>;
-  panelId: string;
   pause(): void;
   restart(): void;
   next(): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <PracticeActions>
-      <Button className="pattern-pause" variant="filled" onClick={pause}>
-        {state.paused ? "Resume" : "Pause"}
-      </Button>
-      <Button className="pattern-again" variant="default" onClick={restart}>
-        Start again
-      </Button>
-      <Button className="pattern-next" variant="default" onClick={next}>
-        New pattern →
-      </Button>
-      <PracticePianoToggle panelId={panelId} />
+    <PracticeActions wrap="nowrap">
+      <PracticeAction
+        className="pattern-again"
+        label="Start again"
+        icon="restart"
+        onClick={restart}
+      />
+      <PracticeAction
+        className="pattern-pause"
+        label={state.paused ? "Resume" : "Pause"}
+        icon={state.paused ? "play" : "pause"}
+        variant="filled"
+        onClick={pause}
+      />
+      <PracticeAction
+        className="pattern-next"
+        label="New pattern"
+        icon="chevron-right"
+        onClick={next}
+      />
     </PracticeActions>
   );
 }

@@ -2,7 +2,6 @@ import { RoundActions } from "@ldayton/ui/round-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
-import { PracticePianoToggle } from "./piano-presentation";
 import type { Letter, Modifier } from "./model";
 export const flashcardControlsState = createViewState<{
   enabled: boolean;
@@ -77,12 +76,10 @@ export function FlashcardAnswers({
 }
 export function FlashcardControls({
   model,
-  panelId,
   next,
   restart,
 }: {
   model: FlashcardControlsState;
-  panelId: string;
   next(): void;
   restart(): void;
 }) {
@@ -94,8 +91,6 @@ export function FlashcardControls({
       restart={restart}
       nextId="feedback-next"
       restartId="restart-round"
-    >
-      <PracticePianoToggle panelId={panelId} />
-    </RoundActions>
+    />
   );
 }

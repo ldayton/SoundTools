@@ -1,0 +1,154 @@
+/* NoteWise uses the common workspace, with question/answer rather than player controls. */
+.notewise-workspace {
+  --practice-options-width: 280px;
+}
+.notewise-workspace .workspace-content {
+  max-width: none;
+}
+.practice-navigation-tools {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: var(--mantine-spacing-md);
+}
+.notewise-toolbar {
+  display: grid;
+  grid-template-columns: minmax(38px, 1fr) auto minmax(38px, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.notewise-toolbar > :first-child {
+  justify-self: start;
+}
+.notewise-toolbar-piano {
+  justify-self: end;
+  min-width: 38px;
+}
+.notewise-toolbar .sequence-transport {
+  margin: 0;
+}
+.notewise-session-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.session-count {
+  width: 8ch;
+  flex: 0 0 auto;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.notewise-workspace .practice-title {
+  margin-block: 8px 16px;
+}
+.notewise-workspace .practice-surface {
+  padding: clamp(16px, 2vw, 28px);
+  min-width: 0;
+}
+.notewise-workspace .presentation-header .card-top {
+  padding: 0 0 12px;
+}
+.notewise-workspace .presentation-feedback {
+  min-height: 48px;
+  margin: 8px 0;
+}
+.notewise-workspace .presentation-feedback > :first-child {
+  margin: 0;
+}
+.notewise-workspace .presentation-feedback:has(:empty) {
+  min-height: 0;
+}
+.notewise-workspace .keyboard {
+  padding: 12px 0 0;
+  border: 0;
+  background: transparent;
+}
+.notewise-workspace .hint {
+  background: transparent;
+  padding: 12px 0 0;
+}
+.notewise-workspace .sequence-score {
+  max-height: none;
+}
+.notewise-workspace #notation,
+.notewise-workspace .theory-notation {
+  min-height: 180px;
+  padding-block: 16px;
+}
+.notewise-workspace .practice-piano {
+  margin: 24px 0 0;
+  padding: 12px 0 0;
+  border-radius: 0;
+  background: #fff;
+}
+.notewise-workspace .reference-piano {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-bottom: 12px;
+}
+.notewise-workspace .piano-keybed .piano-layout {
+  gap: 8px;
+}
+.notewise-workspace .practice-options-content {
+  padding-block: 8px;
+}
+.notewise-workspace .rhythm-tap {
+  margin-block: 16px;
+  min-height: 76px;
+}
+.notewise-workspace .theory-answers {
+  margin-block: 12px;
+}
+
+.notewise-workspace .piano-key {
+  touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+  .notewise-header .nav-toggle,
+  .notewise-header #practice-options-reopen {
+    align-self: flex-start;
+    margin-top: 12px;
+  }
+}
+/* On phones the second row spans the whole bar, rather than the narrow space
+   between the sidebar buttons. This leaves room for rhythm's tempo field. */
+@media (max-width: 767px) {
+  .notewise-header:has(.notewise-toolbar) > .mantine-Group-root {
+    display: grid;
+    grid-template-columns: 26px 36px minmax(0, 1fr) 38px 38px;
+    grid-template-rows: 36px 36px;
+    gap: 8px;
+    padding-block: 12px;
+  }
+  .notewise-header:has(.notewise-toolbar) > .mantine-Group-root > div,
+  .notewise-toolbar {
+    display: contents;
+  }
+  .notewise-toolbar > :first-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .notewise-toolbar-session {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+  }
+  .notewise-toolbar-piano {
+    grid-column: 4;
+    grid-row: 1;
+  }
+  .notewise-header:has(.notewise-toolbar) .nav-toggle {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    align-self: center;
+  }
+  .notewise-header:has(.notewise-toolbar) #practice-options-reopen {
+    grid-column: 5;
+    grid-row: 1;
+    margin: 0;
+    align-self: center;
+  }
+}

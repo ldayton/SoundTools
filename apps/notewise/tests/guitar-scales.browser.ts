@@ -2,7 +2,6 @@ import {
   selectPractice,
   practiceOption,
   midiAction,
-  setPianoVisible,
   openPracticeOptions,
   closePracticeOptions,
 } from "../../../packages/music-practice/browser-tests/helpers";
@@ -250,7 +249,10 @@ try {
   await page.getByText("2 / 8", { exact: true }).waitFor();
   assert.equal(await page.locator("#pattern-key").inputValue(), "C");
   await selectPractice(page, "piano");
-  await setPianoVisible(page, true);
+  assert.ok(
+    await page.locator("#flashcards-piano-panel").isVisible(),
+    "Required piano answers stay visible",
+  );
   await page.locator("#piano [data-piano]").first().waitFor();
   await selectPractice(page, "guitar-scales");
   await page
@@ -358,7 +360,7 @@ try {
     await closePracticeOptions(page);
     assert.equal(
       await page.locator("#practice-options-reopen").isVisible(),
-      false,
+      true,
     );
     await openPracticeOptions(page);
     assert.ok(await page.locator("#scale-key").isVisible());

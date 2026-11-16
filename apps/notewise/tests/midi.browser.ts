@@ -45,7 +45,10 @@ try {
   });
   await context.addInitScript({
     content: await readFile(
-      new URL("../../../packages/music-practice/test-fixtures/midi.js", import.meta.url),
+      new URL(
+        "../../../packages/music-practice/test-fixtures/midi.js",
+        import.meta.url,
+      ),
       "utf8",
     ),
   });
@@ -89,14 +92,14 @@ try {
   await on(72);
   await on(76);
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "1",
   );
   await ready();
   await on(72);
   await on(79); // held chord never answers another card
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "1",
   );
   for (const n of [72, 76, 79]) await off(n);
@@ -108,20 +111,20 @@ try {
   await page.evaluate(() => window.dispatchEvent(new Event("blur")));
   await on(60);
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "2",
   );
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await on(60);
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "2",
   );
   await off(60);
   await send([0x90, 61, 90], "roland", true);
   await off(61);
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "2",
   );
   await on(60);
@@ -167,7 +170,7 @@ try {
     await page.locator(".keyboard-menu").click();
   await on(62, "replugged");
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "1",
   );
   await on(62, "second");
@@ -190,7 +193,7 @@ try {
   await on(60, "second");
   await off(60, "second");
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "0",
   );
   assert.ok(await page.locator("#midi-panel").isHidden());
@@ -200,7 +203,7 @@ try {
   await midiAction(page, "Disconnect");
   await on(60, "second");
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "0",
   );
   await page.evaluate(() => (window as any).midiTest.deny(true));
@@ -219,7 +222,7 @@ try {
     .waitFor({ state: "attached" });
   await on(60, "replugged");
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "0",
   );
   await page.evaluate(() => (window as any).midiTest.deny(false));
@@ -304,17 +307,20 @@ try {
   await page.bringToFront();
   await off(60);
   await openPracticeOptions(page);
-  const chooseRange = async (field: string, note: string) => {
+  const chooseRange = async (field: string, note: string, keepOpen = false) => {
+    await openPracticeOptions(page);
     await page.locator(`#${field}-spin`).click();
     await page
       .locator(`#${field}-spin-picker`)
       .getByRole("button", { name: note, exact: true })
       .click();
+    if (!keepOpen) await closePracticeOptions(page);
   };
-  await chooseRange("low", "C2");
-  await chooseRange("high", "B6");
+  await chooseRange("low", "C2", true);
+  await chooseRange("high", "B6", true);
   assert.equal(await page.locator(".piano-key").count(), 24);
   assert.ok(await page.locator("#piano-range-notice").isVisible());
+  await closePracticeOptions(page);
   assert.ok(await page.locator("#piano-midi-required").isVisible());
   assert.equal(
     await page.locator('[data-piano="60"]').getAttribute("aria-disabled"),
@@ -322,7 +328,7 @@ try {
   );
   await page.locator('[data-piano="60"]').click({ force: true });
   assert.equal(
-    await page.locator("#progress").getAttribute("aria-valuenow"),
+    await page.locator("#counter").getAttribute("data-answered"),
     "0",
   );
   await on(48); // C3 is wrong for C2 despite sharing its pitch class.
@@ -353,6 +359,7 @@ try {
   assert.ok(await page.locator("#piano-midi-required").isVisible());
   for (const width of [1280, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
+    await openPracticeOptions(page);
     await page.locator("#low-spin").click();
     const box = await page.locator("#low-spin-picker").boundingBox();
     assert.ok(box && box.x >= 0 && box.x + box.width <= width);
@@ -384,14 +391,19 @@ try {
       fullPage: true,
     });
   }
+  await openPracticeOptions(page);
   await page.locator("#low-spin").focus();
   await page.keyboard.press("PageUp");
   await expect(page.locator("#low-spin")).toHaveValue("C3");
   await page.keyboard.press("Enter");
   const picker = page.locator("#low-spin-picker");
-  await expect(picker.getByRole("button", { name: "C3", exact: true })).toBeFocused();
+  await expect(
+    picker.getByRole("button", { name: "C3", exact: true }),
+  ).toBeFocused();
   await page.keyboard.press("ArrowDown");
-  await expect(picker.getByRole("button", { name: "C4", exact: true })).toBeFocused();
+  await expect(
+    picker.getByRole("button", { name: "C4", exact: true }),
+  ).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#low-spin")).toHaveValue("C4");
 
@@ -452,6 +464,7 @@ try {
   await off(36);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C2");
   await practiceOption(page, "#staffLayout", "grand");
+  await openPracticeOptions(page);
   await page.locator("#low-spin").click();
   assert.ok(
     await page

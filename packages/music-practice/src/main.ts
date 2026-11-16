@@ -13,11 +13,7 @@ import {
   flashcardOptionsState,
   type FlashcardOptionsSnapshot,
 } from "./flashcard-options";
-import {
-  mountPracticePiano,
-  restorePianoVisibility,
-  isPianoVisible,
-} from "./practice-piano";
+import { mountPracticePiano, restorePianoVisibility } from "./practice-piano";
 import { mountAppShell } from "./app-shell";
 import { mountFlashcardView } from "./flashcard-view";
 import { ActivityHost } from "./activity-host";
@@ -81,6 +77,7 @@ import { FeedbackAdvance } from "./feedback-advance";
 const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
   document.querySelector<T>(s)!;
 const feedbackAdvance = new FeedbackAdvance();
+let resetFlashcardPiano = () => {};
 let enterFlashcards = () => {};
 const flashcardActivity: PracticeActivity = {
   get inputPolicy() {
@@ -91,6 +88,7 @@ const flashcardActivity: PracticeActivity = {
   interrupt: () => interruptFlashcards(),
 };
 function interruptFlashcards() {
+  resetFlashcardPiano();
   feedbackAdvance.cancel();
   setModifier(0);
   clearAnswerHover();
@@ -239,7 +237,6 @@ mountFlashcardView(
     }),
     transport: createElement(FlashcardControls, {
       model: flashcardControls,
-      panelId: "flashcards-piano-panel",
       next: () => next(),
       restart: () => {
         if (isFlashcardMode(progress.mode)) sessions.invalidate(progress.mode);
@@ -259,6 +256,7 @@ const pianoPanel = mountPracticePiano($("#piano"), {
 });
 pianoPanel.setAvailable(false);
 const piano = new Piano($("#piano"), answerPiano, refreshPianoRange);
+resetFlashcardPiano = () => piano.resetInteraction();
 const midi = mountMidiPanel(
   $("#midi-panel"),
   (note) => {
@@ -270,6 +268,11 @@ const midi = mountMidiPanel(
     diagnostics.event("midi.state", { midiState: state });
   },
 );
+midi.setKeysListener((keys) => {
+  if (shell.inputBlocked || route.kind !== "exercise") return;
+  if (progress.mode === "piano") piano.setMidiKeys(keys);
+  else if (isLiveMode(progress.mode)) activePractice()?.showMidiKeys?.(keys);
+});
 midi.setPerformanceListener((note, held, timestamp) => {
   if (isLiveMode(progress.mode) && inputPolicy() !== "none")
     activePractice()?.answer(note, held, timestamp);
@@ -283,17 +286,15 @@ function refreshMidiAcceptance() {
 function refreshPianoRange() {
   if (progress.mode !== "piano") return;
   const [low, high] = piano.visibleBounds;
-  const outside =
-    isPianoVisible() &&
-    pianoDeck(profile()).some((card) => !piano.contains(pitch(card)));
+  const outside = pianoDeck(profile()).some(
+    (card) => !piano.contains(pitch(card)),
+  );
   pianoRangeNotice = outside
     ? `On-screen keys: ${keyLabel(low)}–${keyLabel(high)}. Notes outside these keys require MIDI keyboard input.`
     : "";
   flashcardOptions.set(optionsSnapshot());
   const required =
-    isPianoVisible() &&
-    !!session?.current &&
-    !piano.contains(pitch(session.current));
+    !!session?.current && !piano.contains(pitch(session.current));
   piano.setUnavailable(phase !== "question" || required);
   flashcardBody.patch({ midiRequired: required });
 }
@@ -348,7 +349,7 @@ function syncOptions() {
   const isSignature = progress.mode === "signature";
   presentation.set({
     context: isSignature
-      ? "Key signatures"
+      ? ""
       : (isPiano ? "Piano · " : "Guitar · ") +
         (progress.mode === "name"
           ? p.naturalsOnly

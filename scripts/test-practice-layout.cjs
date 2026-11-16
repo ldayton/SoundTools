@@ -84,17 +84,14 @@ const server = spawn(
     const n = await nav.boundingBox(),
       o = await options.boundingBox(),
       surface = await page.locator(".practice-surface").first().boundingBox();
-    assert.equal(Math.round(n.width), app !== "notewise" ? 224 : 244);
-    assert.equal(Math.round(o.width), app !== "notewise" ? 280 : 300);
+    assert.equal(Math.round(n.width), 224);
+    assert.equal(Math.round(o.width), 280);
     assert(o.x > surface.x + surface.width - 1);
     assert(
       Math.abs(o.y - surface.y) < 2,
       "Options and practice start on the same line",
     );
-    assert.equal(
-      await nav.getByRole("slider", { name: /volume/i }).count(),
-      app !== "notewise" ? 0 : 1,
-    );
+    assert.equal(await nav.getByRole("slider", { name: /volume/i }).count(), 0);
     assert.equal(
       await page
         .getByRole("checkbox", {
@@ -125,10 +122,7 @@ const server = spawn(
       .getByRole("button", { name: "Open navigation", exact: true })
       .click();
     await page.waitForFunction(
-      (app) =>
-        document.activeElement?.matches(
-          app !== "notewise" ? ".nav-toggle" : ".nav-close",
-        ),
+      (app) => document.activeElement?.matches(".nav-toggle"),
       app,
     );
     assert(
@@ -183,8 +177,7 @@ const server = spawn(
     await page
       .getByRole("button", { name: "Open navigation", exact: true })
       .click();
-    if (app === "notewise")
-      await nav.getByRole("slider", { name: /volume/i }).waitFor();
+    assert.equal(await nav.getByRole("slider", { name: /volume/i }).count(), 0);
     if (app === "dorego") {
       await nav.locator('[data-pattern="octaveGlide"]').click();
       await page.getByRole("dialog").waitFor({ state: "hidden" });
@@ -212,10 +205,7 @@ const server = spawn(
       .waitFor();
     await page
       .getByRole("button", {
-        name:
-          app !== "notewise"
-            ? "Close practice options"
-            : "Collapse practice options",
+        name: "Close practice options",
         exact: true,
       })
       .click();

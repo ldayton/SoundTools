@@ -25,9 +25,13 @@ layout changes. Never write ordinary values, text or listeners inside a React
 control tree from an imperative controller.
 
 DoReGo, NoteWise and SongAlong use the shared ApplicationLayout and
-PracticeWorkspace: navigation/selection/volume on the left, exercise-specific
-options on the right on desktop, closed above the activity on mobile. Soundglow
-keeps its graphics-first dark inspector. The difference is intentional.
+PracticeWorkspace: navigation/selection, device connection and Settings on the
+left; universal volume and the active exercise's compact actions in the top bar;
+exercise-specific options on the right on desktop and in an initially closed
+mobile drawer. NoteWise keeps answer controls beside the question, while
+SongAlong and DoReGo use their musical transport toolbars. Responsive options
+forms and retained renderer hosts preserve their identity across layout changes.
+Soundglow keeps its graphics-first dark inspector.
 
 ## Shared components and contracts
 

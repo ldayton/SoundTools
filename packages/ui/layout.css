@@ -109,3 +109,9 @@
 .navigation-resizer[data-resizing]::after {
   background: var(--mantine-primary-color-filled);
 }
+
+/* The portal preserves form identity without adding boxes to the panel layout. */
+.practice-options-mount,
+.practice-options-host {
+  display: contents;
+}

@@ -68,7 +68,7 @@ const engines = require("playwright");
       await page.waitForFunction(
         (tick) =>
           document.getElementById("elapsed").textContent ===
-          `0:${String(tick).padStart(2, "0")}`,
+          `0:${String(tick).padStart(2, "0")} / 1:40`,
         tick,
       );
     }
@@ -83,11 +83,15 @@ const engines = require("playwright");
     await page.clock.install({ time: 0 });
     await page.clock.pauseAt(0);
     await page.locator("#test-pitch").press("Enter");
-    await page.getByRole("button", { name: "C3", exact: true }).waitFor();
+    await page
+      .locator("#test-pitch-picker")
+      .getByRole("button", { name: "C3", exact: true })
+      .waitFor();
     await page.keyboard.press("ArrowDown");
     await page.clock.runFor(25);
     assert.equal(
       await page
+        .locator("#test-pitch-picker")
         .getByRole("button", { name: "C4", exact: true })
         .evaluate((el) => el === document.activeElement),
       true,

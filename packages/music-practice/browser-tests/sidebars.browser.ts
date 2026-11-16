@@ -30,7 +30,7 @@ try {
   const nav = page.locator("#practice-navigation");
   assert.equal(
     await nav.getByRole("slider", { name: "Piano volume" }).count(),
-    1,
+    0,
   );
   assert.equal(await nav.locator(".keyboard-menu").count(), 1);
   assert.equal(await page.locator("header .keyboard-menu").count(), 0);

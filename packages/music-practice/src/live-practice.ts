@@ -13,5 +13,6 @@ export interface PracticeActivity {
   interrupt(reason: Interruption): void;
 }
 export interface LivePractice extends PracticeActivity {
+  showMidiKeys?(keys: import("./midi-input").MidiKeys): void;
   answer(note: number, held?: readonly number[], timestamp?: number): void;
 }

@@ -62,6 +62,7 @@ try {
     await page.locator("#page-title").textContent(),
     "Find piano keys",
   );
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#key").inputValue(), "G");
   assert.equal(await page.locator("#staffLayout").inputValue(), "grand");
   await midiAction(page, "Connect MIDI keyboard");
@@ -227,8 +228,8 @@ try {
   );
   await reopenOptions.press("Enter");
   await optionsContent.waitFor();
-  await page.waitForFunction(() =>
-    document.activeElement?.classList.contains("options-toggle"),
+  await page.waitForFunction(
+    () => document.activeElement?.id === "practice-options-reopen",
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page
@@ -404,7 +405,7 @@ try {
   await selectPractice(page, "rhythm");
   await openPracticeOptions(page);
   assert.equal(await page.locator("#rhythm-level").inputValue(), "eighths");
-  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125");
+  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125 BPM");
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
@@ -412,7 +413,7 @@ try {
   await page.reload();
   await openPracticeOptions(page);
   assert.equal(await page.locator("#rhythm-level").inputValue(), "eighths");
-  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125");
+  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125 BPM");
   await page.setViewportSize({ width: 390, height: 844 });
   await openPracticeOptions(page);
   const rhythmSelect = page.getByRole("combobox", {
@@ -421,24 +422,24 @@ try {
   });
   await rhythmSelect.focus();
   await rhythmSelect.press("Tab");
-  await page.locator("#rhythm-tempo-down").press("Tab");
   assert.ok(
-    await page
-      .locator("#rhythm-tempo")
-      .evaluate((element) => element === document.activeElement),
-    "standard tab navigation moves from rhythm to tempo",
+    await page.evaluate(
+      () => !!document.activeElement?.closest('[role="dialog"]'),
+    ),
+    "Tab remains inside the mobile options drawer",
   );
   await rhythmSelect.selectOption("pulse");
   assert.equal(await rhythmSelect.inputValue(), "pulse");
-  assert.equal(
-    await page
-      .getByRole("spinbutton", {
-        name: "Tempo in beats per minute",
-        exact: true,
-      })
-      .inputValue(),
-    "125",
-  );
+  await closePracticeOptions(page);
+  const tempo = page.getByRole("spinbutton", {
+    name: "Tempo in beats per minute",
+    exact: true,
+  });
+  await tempo.focus();
+  await tempo.press("ArrowUp");
+  assert.equal(await tempo.inputValue(), "130 BPM");
+  await tempo.press("ArrowDown");
+  assert.equal(await tempo.inputValue(), "125 BPM");
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

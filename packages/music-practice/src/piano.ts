@@ -67,6 +67,7 @@ export class Piano {
       if (button && (!this.locked || this.options.auditionWhenUnavailable)) {
         const note = Number(button.dataset.piano);
         this.focusMidi = note;
+        this.strike(note);
         void playPianoNote(note);
         if (!this.locked) this.answer(note);
       }
@@ -219,7 +220,6 @@ export class Piano {
     this.paintInteraction();
   }
   private paintInteraction() {
-    if (!this.options.interactive) return;
     const held = new Set(this.heldPitches);
     for (const key of this.buttons()) {
       const midi = Number(key.dataset.piano);

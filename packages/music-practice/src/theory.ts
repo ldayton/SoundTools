@@ -1,3 +1,4 @@
+import { practiceHeaderHost } from "./practice-surfaces";
 import { RendererLifetime } from "./renderer-lifetime";
 import { TheoryFrame, theoryBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
@@ -128,13 +129,13 @@ class TheoryPractice implements LivePractice {
     this.disposeView = mountPracticeSurface(
       element,
       createElement(TheoryFrame, {
+        headerHost: practiceHeaderHost(element),
         presentation: this.presentation,
         panelId: `${element.id}-piano-panel`,
         body: this.body,
         kind,
         transport: createElement(TheoryControls, {
           model: this.controls,
-          panelId: `${element.id}-piano-panel`,
           next: () => this.nextQuestion(),
           restart: () => this.reset(),
         }),
@@ -207,6 +208,7 @@ class TheoryPractice implements LivePractice {
       this.$(".theory-piano"),
       (n) => this.answer(n),
       () => this.rangeNotice(),
+      { auditionWhenUnavailable: true },
     );
 
     this.lifetime.listen(window, "keydown", (e) => {
@@ -296,7 +298,11 @@ class TheoryPractice implements LivePractice {
     this.save();
     this.changed();
   }
+  showMidiKeys(keys: import("./midi-input").MidiKeys) {
+    if (this.active) this.piano.setMidiKeys(keys);
+  }
   interrupt(_reason: Interruption) {
+    this.piano.resetInteraction();
     if (this.pendingAdvance) {
       this.cancelAdvance();
       this.render();
@@ -549,11 +555,7 @@ class TheoryPractice implements LivePractice {
     });
     this.panel.setAvailable(!!q && !this.identifying);
     this.presentation.set({
-      context:
-        q?.keyName ||
-        (this.task === "name-interval"
-          ? "Read the distance"
-          : "Name the full interval"),
+      context: q?.keyName || "",
     });
     if (!q) {
       this.presentation.set({

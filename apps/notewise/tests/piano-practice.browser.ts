@@ -1,5 +1,6 @@
 import {
   practiceOption,
+  openPracticeOptions,
   selectPractice,
   midiAction,
 } from "../../../packages/music-practice/browser-tests/helpers";
@@ -97,6 +98,7 @@ try {
     await page.locator("main").evaluate((e) => (e as HTMLElement).inert),
     false,
   );
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#pattern-hand").inputValue(), "left");
   // The React form applies all settings to notation and MIDI matching, retaining a partial attempt.
   await practiceOption(page, "#pattern-level", "leaps");
@@ -114,6 +116,7 @@ try {
   );
   await page.reload();
   await page.locator(".pattern-count").filter({ hasText: "2 / 8" }).waitFor();
+  await openPracticeOptions(page);
   for (const [field, value] of [
     ["hand", "left"],
     ["key", "D"],
@@ -151,9 +154,17 @@ try {
         (await page.locator("#rhythm-practice .sequence-score").boundingBox())!
           .height);
     const below =
+      (await page.locator("#rhythm-practice .practice-surface").boundingBox())!
+        .y +
+      (await page.locator("#rhythm-practice .practice-surface").boundingBox())!
+        .height -
       (await page
-        .locator("#rhythm-practice .sequence-transport")
-        .boundingBox())!.y -
+        .locator("#rhythm-practice .practice-surface")
+        .evaluate(
+          (e) =>
+            parseFloat(getComputedStyle(e).paddingBottom) +
+            parseFloat(getComputedStyle(e).borderBottomWidth),
+        )) -
       ((await tap.boundingBox())!.y + (await tap.boundingBox())!.height);
     assert.ok(Math.abs(above - below) < 1, "tap spacing is balanced");
   }
@@ -203,10 +214,8 @@ try {
     if (mode === "patterns") await page.locator(".pattern-count").waitFor();
     if (mode === "rhythm") await page.locator(".rhythm-start").waitFor();
     await page.clock.runFor(100);
-    assert.ok(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
+    await page.waitForFunction(
+      () => document.documentElement.scrollWidth <= innerWidth,
     );
   }
   assert.deepEqual(errors, []);

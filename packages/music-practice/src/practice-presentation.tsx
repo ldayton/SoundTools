@@ -1,5 +1,12 @@
 import { useSyncExternalStore } from "react";
-import { Alert, Group, Progress, Stack, Text, Title, VisuallyHidden } from "@mantine/core";
+import {
+  Alert,
+  Group,
+  Stack,
+  Text,
+  Title,
+  VisuallyHidden,
+} from "@mantine/core";
 import { ContinueRound } from "@ldayton/ui/round-actions";
 import { createViewState } from "./view-state";
 
@@ -56,6 +63,7 @@ export function PracticeHeader({
         gap="xs"
         p={kind === "flashcard" ? "md" : undefined}
         pb={kind === "flashcard" ? "sm" : undefined}
+        hidden={!s.context}
         className={kind === "flashcard" ? "card-top" : "sequence-top"}
       >
         <Text
@@ -66,16 +74,31 @@ export function PracticeHeader({
         >
           {s.context}
         </Text>
-        <Text
-          component="span"
-          size="xs"
-          id={kind === "flashcard" ? "counter" : undefined}
-          className={`${kind}-count`}
-        >
-          {s.count}
-        </Text>
       </Group>
     </>
+  );
+}
+export function PracticeCount({
+  model,
+  kind,
+}: {
+  model: PresentationModel;
+  kind: PresentationKind;
+}) {
+  const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <Text
+      component="span"
+      size="sm"
+      c="dimmed"
+      id={kind === "flashcard" ? "counter" : undefined}
+      className={`${kind}-count session-count`}
+      aria-label="Practice position"
+      data-answered={s.value}
+      data-total={s.max}
+    >
+      {s.count}
+    </Text>
   );
 }
 /** Keep position accessible without reserving a row above the score. */
@@ -90,39 +113,6 @@ export function HymnStatus({ model }: { model: PresentationModel }) {
         </Text>
       )}
     </>
-  );
-}
-export function PracticeProgress({
-  model,
-  kind,
-}: {
-  model: PresentationModel;
-  kind: PresentationKind;
-}) {
-  const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
-  return (
-    <Progress.Root
-      id={kind === "flashcard" ? "progress" : undefined}
-      className={`${kind}-progress`}
-      role="progressbar"
-      aria-label={
-        kind === "hymn"
-          ? "Hymn progress"
-          : kind === "pattern"
-            ? "Pattern progress"
-            : "Session progress"
-      }
-      aria-valuemin={0}
-      aria-valuemax={s.max}
-      aria-valuenow={s.value}
-      size="xs"
-      mb="sm"
-    >
-      <Progress.Section
-        value={s.max > 0 ? (100 * s.value) / s.max : 0}
-        withAria={false}
-      />
-    </Progress.Root>
   );
 }
 export function PracticeFeedback({

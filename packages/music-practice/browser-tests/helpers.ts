@@ -1,5 +1,6 @@
 import type { Page } from "playwright";
 export async function selectPractice(page: Page, mode: string) {
+  await dismissPracticeDrawer(page);
   // Wait for React's responsive layout commit after a viewport change.
   await page.waitForFunction(
     () =>
@@ -53,7 +54,7 @@ export async function practiceOption(
     );
     return;
   }
-  if (selector === "#hymn-size" || selector === "#hymn-tempo") {
+  if (["#hymn-size", "#hymn-tempo", "#rhythm-tempo"].includes(selector)) {
     await dismissPracticeDrawer(page);
     await page.locator(selector).fill(value);
     await page.locator(selector).press("Enter");
@@ -92,10 +93,8 @@ export async function practiceOption(
         .getByRole("button", { name: label, exact: true })
         .click();
     }
-  } else if (selector === "#hymn-tempo" || selector === "#rhythm-tempo") {
-    await page.locator(selector).fill(value);
-    await page.locator(selector).press("Enter");
   } else await page.locator(selector).selectOption(value);
+  await dismissPracticeDrawer(page);
 }
 
 async function optionsLayoutReady(page: Page) {
@@ -109,14 +108,44 @@ async function optionsLayoutReady(page: Page) {
     );
   });
 }
-export async function openPracticeOptions(page: Page) {
+export async function openPracticeOptions(
+  page: Page,
+  advanceClock?: () => Promise<void>,
+) {
+  await advanceClock?.();
   await optionsLayoutReady(page);
   const button = page.getByRole("button", {
     name: /^(Expand|Collapse) (practice|playback) options$/,
   });
+  // Lazy routes register their options after their header has appeared. Wait
+  // before reading expanded state, so a pending click cannot close a new panel.
+  await page.waitForFunction(
+    () =>
+      !document.querySelector<HTMLButtonElement>("#practice-options-reopen")
+        ?.disabled,
+  );
   if ((await button.getAttribute("aria-expanded")) !== "true")
     await button.click();
+  await advanceClock?.();
   await page.locator("#practice-options-content").waitFor({ state: "visible" });
+  // Keyboard events do not get pointer-click stability checks. Wait for the
+  // bottom drawer to reach its resting position before typing into it.
+  await page.waitForFunction(() => {
+    const dialog = document
+      .querySelector("#practice-options-content")
+      ?.closest('[role="dialog"]');
+    if (!dialog) return true;
+    const style = getComputedStyle(dialog);
+    const matrix =
+      style.transform === "none"
+        ? new DOMMatrixReadOnly()
+        : new DOMMatrixReadOnly(style.transform);
+    return (
+      style.opacity === "1" &&
+      Math.abs(matrix.m41) < 0.1 &&
+      Math.abs(matrix.m42) < 0.1
+    );
+  });
 }
 export async function closePracticeOptions(page: Page) {
   await optionsLayoutReady(page);

@@ -102,33 +102,35 @@ try {
     () => (window as any).soundProbe.starts.length === 3,
   );
   await page.goto(base + "/settings");
-  await openNavigation(page);
+  await page.getByRole("button", { name: "Volume", exact: true }).click();
   const volume = page.getByRole("slider", { name: "Piano volume" });
   await volume.waitFor();
   assert.equal(await volume.getAttribute("aria-valuenow"), "100");
   await volume.focus();
   await page.keyboard.press("Home");
   for (let i = 0; i < 35; i++) await page.keyboard.press("ArrowRight");
-  assert.equal(await page.locator("#piano-volume-value").textContent(), "35%");
+  assert.equal(
+    await page.locator('output[for="piano-volume"]').textContent(),
+    "35%",
+  );
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
+  await page.keyboard.press("Escape");
   await page.reload();
-  await openNavigation(page);
+  await page.getByRole("button", { name: "Volume", exact: true }).click();
   await volume.waitFor();
   assert.equal(
     await volume.getAttribute("aria-valuenow"),
     "35",
     "volume survives reload",
   );
+  await page.keyboard.press("Escape");
   for (const width of [320, 390, 768, 1680]) {
     await page.setViewportSize({ width, height: 900 });
-    assert.ok(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-      `${width}px Settings does not overflow`,
+    await page.waitForFunction(
+      () => document.documentElement.scrollWidth <= innerWidth,
     );
     assert.equal(
       await page
@@ -136,15 +138,16 @@ try {
         .count(),
       1,
     );
-    await openNavigation(page);
+    await page.getByRole("button", { name: "Volume", exact: true }).click();
     const slider = await volume.boundingBox();
     assert.ok(slider && slider.width > 0, "standard slider remains visible");
-    await closeNavigation(page);
+    await page.keyboard.press("Escape");
   }
   await page.screenshot({
     path: "/tmp/notecards-settings-desktop.png",
     fullPage: true,
   });
+  await page.getByRole("button", { name: "Volume", exact: true }).click();
   await volume.focus();
   await page.keyboard.press("Home");
   await page.waitForFunction(

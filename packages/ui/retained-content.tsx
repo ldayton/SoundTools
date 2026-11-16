@@ -10,7 +10,7 @@ export function RetainedContent({
 }) {
   const attach = useCallback(
     (node: HTMLDivElement | null) => {
-      if (node) node.append(element);
+      if (node) node.replaceChildren(element);
     },
     [element],
   );

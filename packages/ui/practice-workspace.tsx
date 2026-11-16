@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+import { RetainedContent } from "./retained-content";
 import { PanelIcon } from "./panel-icon";
 import { closePitchFields } from "@ldayton/ui/responsive-pitch-field";
 import {
@@ -144,6 +146,13 @@ export function PracticeOptionsReopen() {
 }
 export function PracticeWorkspace({ children }: PropsWithChildren) {
   const state = useOptions();
+  // Keep forms and pitch pickers mounted as the same React subtree when the
+  // responsive panel moves between its desktop aside and the mobile drawer.
+  const [optionsHost] = useState(() => {
+    const host = document.createElement("div");
+    host.className = "practice-options-host";
+    return host;
+  });
   const label = `${state.collapsed ? "Expand" : "Collapse"} ${state.title.toLowerCase()}`;
   const drawer = state.mobileDrawer && !state.desktop;
   const content = (
@@ -218,7 +227,12 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
             {state.title}
           </Button>
         ) : null}
-        {!drawer && content}
+        {!drawer && (
+          <RetainedContent
+            element={optionsHost}
+            className="practice-options-mount"
+          />
+        )}
       </aside>
       {drawer && (
         <Drawer
@@ -236,9 +250,13 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
             body: { overflowY: "auto", maxHeight: "calc(80dvh - 64px)" },
           }}
         >
-          {content}
+          <RetainedContent
+            element={optionsHost}
+            className="practice-options-mount"
+          />
         </Drawer>
       )}
+      {createPortal(content, optionsHost)}
     </div>
   );
 }

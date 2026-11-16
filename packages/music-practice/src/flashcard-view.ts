@@ -1,5 +1,5 @@
 import { FlashcardFrame } from "./practice-frame";
-import { mountPracticeSurface } from "./practice-surfaces";
+import { practiceHeaderHost, mountPracticeSurface } from "./practice-surfaces";
 import { createElement, type ComponentProps } from "react";
 import { FlashcardOptions } from "./flashcard-options";
 import { registerPracticeOptions } from "./practice-options";
@@ -7,9 +7,15 @@ import { registerPracticeOptions } from "./practice-options";
 export function mountFlashcardView(
   element: HTMLElement,
   options: ComponentProps<typeof FlashcardOptions>,
-  frame: ComponentProps<typeof FlashcardFrame>,
+  frame: Omit<ComponentProps<typeof FlashcardFrame>, "headerHost">,
 ) {
-  mountPracticeSurface(element, createElement(FlashcardFrame, frame));
+  mountPracticeSurface(
+    element,
+    createElement(FlashcardFrame, {
+      ...frame,
+      headerHost: practiceHeaderHost(element),
+    }),
+  );
   registerPracticeOptions(
     element,
     createElement(FlashcardOptions, {

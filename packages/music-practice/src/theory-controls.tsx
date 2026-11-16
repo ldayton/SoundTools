@@ -2,7 +2,6 @@ import { RoundActions } from "@ldayton/ui/round-actions";
 import { useSyncExternalStore } from "react";
 import { Button, Group, Kbd } from "@mantine/core";
 import { createViewState } from "./view-state";
-import { PracticePianoToggle } from "./piano-presentation";
 export type TheoryChoice = {
   value: string;
   number: string;
@@ -55,12 +54,10 @@ export function TheoryAnswers({
 }
 export function TheoryControls({
   model,
-  panelId,
   next,
   restart,
 }: {
   model: TheoryControlsState;
-  panelId: string;
   next(): void;
   restart(): void;
 }) {
@@ -72,8 +69,6 @@ export function TheoryControls({
       restart={restart}
       nextClass="theory-next"
       restartClass="theory-restart"
-    >
-      <PracticePianoToggle panelId={panelId} />
-    </RoundActions>
+    />
   );
 }

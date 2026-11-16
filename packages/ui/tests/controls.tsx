@@ -8,8 +8,7 @@ import { CommittedNumber } from "../committed-number";
 import { createViewState } from "../view-state";
 import {
   PracticeView,
-  PracticeTitle,
-  PracticeVolume,
+  PracticeToolbar,
 } from "../../../apps/dorego/src/practice-view";
 import type { PracticeSnapshot } from "../../../apps/dorego/src/practice-view";
 const practice = createViewState<PracticeSnapshot>({
@@ -18,12 +17,18 @@ const practice = createViewState<PracticeSnapshot>({
   failed: false,
   error: null,
   title: "Practice",
-  summary: "Test",
   bpm: 120,
   volume: -12,
   toast: "",
+  readout: null,
 });
-const playback = createViewState({ position: 0, duration: 100 });
+const playback = createViewState({
+  position: 0,
+  duration: 100,
+  round: 0,
+  rounds: 1,
+});
+const piano = createViewState({ low: 48, high: 83, root: 60, voices: [] });
 let reads = 0;
 const instrumented = {
   subscribe: practice.subscribe,
@@ -32,13 +37,14 @@ const instrumented = {
     return practice.getSnapshot();
   },
 };
-const stage = document.createElement("div");
 window.clockTest = {
   reads: () => reads,
   advance: () =>
     playback.set({
       position: playback.getSnapshot().position + 1,
       duration: 100,
+      round: 0,
+      rounds: 1,
     }),
 };
 declare global {
@@ -113,16 +119,20 @@ function Controls() {
           External change
         </Button>
         <Button id="outside">Outside</Button>
-        <PracticeTitle model={instrumented} />
-        <PracticeVolume model={instrumented} volume={() => {}} />
+        <PracticeToolbar
+          model={instrumented}
+          playback={playback}
+          play={() => {}}
+          restart={() => {}}
+          tempo={() => {}}
+          volume={() => {}}
+          moveRound={() => {}}
+        />
         <PracticeView
           model={instrumented}
           playback={playback}
-          stage={stage}
-          play={() => {}}
-          restart={() => {}}
-          seek={() => {}}
-          tempo={() => {}}
+          piano={piano}
+          audition={() => () => {}}
         />
       </Stack>
     </SoundToolsProvider>

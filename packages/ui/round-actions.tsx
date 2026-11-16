@@ -1,4 +1,4 @@
-import { PracticeActions } from "./practice-actions";
+import { PracticeAction, PracticeActions } from "./practice-actions";
 import type { ReactNode } from "react";
 import { Button } from "@mantine/core";
 /** Shared flashcard/theory round actions, not a playback state machine. */
@@ -22,27 +22,27 @@ export function RoundActions({
   children?: ReactNode;
 }) {
   return (
-    <PracticeActions>
-      <Button
-        id={nextId}
-        className={nextClass}
-        hidden={!nextVisible}
-        onClick={next}
-      >
-        Next question →
-      </Button>
-      <Button
+    <PracticeActions wrap="nowrap">
+      <PracticeAction
         id={restartId}
         className={restartClass}
-        variant="default"
+        label="Start again"
+        icon="restart"
         onClick={restart}
-      >
-        Start again
-      </Button>
+      />
+      <PracticeAction
+        id={nextId}
+        className={nextClass}
+        label="Next question"
+        icon="chevron-right"
+        style={{ visibility: nextVisible ? "visible" : "hidden" }}
+        onClick={next}
+      />
       {children}
     </PracticeActions>
   );
 }
+
 export function ContinueRound({
   onClick,
   id,

@@ -239,7 +239,9 @@ try {
   await context.setOffline(false);
   await selectPractice(page, "staff");
   assert.ok(await page.locator("#piano").isHidden());
+  await openPracticeOptions(page);
   assert.equal(await page.locator("#staff-low-spin").inputValue(), "E3");
+  await closePracticeOptions(page);
   await page.locator('[data-letter="E"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
   assert.deepEqual(errors, []);

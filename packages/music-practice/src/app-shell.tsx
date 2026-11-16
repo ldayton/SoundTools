@@ -6,7 +6,8 @@ import {
   SettingsNavigationLink,
   isNavigationClick,
 } from "@ldayton/ui/application-layout";
-import { SidebarVolume } from "./sidebar-controls";
+import { ToolbarVolume } from "./sidebar-controls";
+import { PracticePianoToggle } from "./piano-presentation";
 import { APP } from "./app-profile";
 import { shellStatus } from "./shell-status";
 import { createViewState } from "./view-state";
@@ -29,8 +30,6 @@ import {
   Alert,
   Anchor,
   Box,
-  Button,
-  Collapse,
   Indicator,
   NavLink,
   Stack,
@@ -52,15 +51,9 @@ import {
   type Mode,
   type LiveMode,
 } from "./exercise-catalog";
-import { icon, type AppRoute } from "./navigation";
+import { type AppRoute } from "./navigation";
 import type { Interruption } from "./live-practice";
 import type { MidiState } from "./midi-input";
-
-function ShellIcon({ name }: { name: string }) {
-  return (
-    <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(name) }} />
-  );
-}
 
 export function mountAppShell(
   element: HTMLElement,
@@ -158,10 +151,7 @@ export function mountAppShell(
       offlineState.getSnapshot,
     );
     return (
-      <Stack
-        gap="md"
-        style={APP.id === "songalong" ? { flex: 1, minHeight: 0 } : undefined}
-      >
+      <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
         {views.selection}
         {(APP.id === "songalong" ? [] : AREAS).map((area) => (
           <Box key={area.label}>
@@ -190,99 +180,38 @@ export function mountAppShell(
             ))}
           </Box>
         ))}
-        <Stack
-          gap="md"
-          mt={APP.id === "songalong" ? "auto" : undefined}
-          className={
-            APP.id === "songalong" ? "songalong-navigation-tools" : undefined
-          }
-        >
-          {APP.id === "songalong" ? (
-            <Accordion
-              keepMounted
-              keepMountedMode="display-none"
-              value={snapshot.keyboardOpen ? "keyboard" : null}
-              onChange={(value) => keyboardOpened(value === "keyboard")}
-            >
-              <Accordion.Item value="keyboard">
-                <Accordion.Control
-                  className="keyboard-menu"
-                  data-state={snapshot.midi}
-                  aria-label={
-                    snapshot.midi === "connected"
-                      ? "Keyboard connected"
-                      : "Keyboard connection"
-                  }
-                >
-                  <Group gap="sm">
-                    <Text size="sm">Keyboard</Text>
-                    <Indicator
-                      color={snapshot.midi === "connected" ? "green" : "gray"}
-                      position="middle-center"
-                    >
-                      <Box w={8} h={8} />
-                    </Indicator>
-                  </Group>
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <MidiContents />
-                </Accordion.Panel>
-              </Accordion.Item>
-            </Accordion>
-          ) : (
-            <>
-              <Stack gap="xs">
-                <Button
-                  className="keyboard-menu"
-                  data-state={snapshot.midi}
-                  variant="default"
-                  aria-label={
-                    snapshot.midi === "connected"
-                      ? "Keyboard connected"
-                      : "Keyboard connection"
-                  }
-                  aria-expanded={snapshot.keyboardOpen}
-                  aria-controls="midi-connection-details"
-                  leftSection={<ShellIcon name="keyboard" />}
-                  rightSection={
-                    <Indicator
-                      color={snapshot.midi === "connected" ? "green" : "gray"}
-                      processing={
-                        snapshot.midi === "requesting" ||
-                        snapshot.midi === "opening"
-                      }
-                      position="middle-center"
-                    >
-                      <Box w={8} h={8} />
-                    </Indicator>
-                  }
-                  onClick={() => keyboardOpened(!snapshot.keyboardOpen)}
-                >
-                  <Text component="span" size="sm">
-                    Keyboard
-                  </Text>
-                </Button>
-                <Collapse
-                  id="midi-connection-details"
-                  expanded={snapshot.keyboardOpen}
-                  keepMountedMode="display-none"
-                  onKeyDown={(event) => {
-                    if (event.key === "Escape") {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      keyboardOpened(false);
-                      document
-                        .querySelector<HTMLElement>(".keyboard-menu")
-                        ?.focus();
-                    }
-                  }}
-                >
-                  <MidiContents />
-                </Collapse>
-              </Stack>
-            </>
-          )}
-          {APP.id !== "songalong" && <SidebarVolume />}
+        <Stack gap="md" mt="auto" className="practice-navigation-tools">
+          <Accordion
+            keepMounted
+            keepMountedMode="display-none"
+            value={snapshot.keyboardOpen ? "keyboard" : null}
+            onChange={(value) => keyboardOpened(value === "keyboard")}
+          >
+            <Accordion.Item value="keyboard">
+              <Accordion.Control
+                className="keyboard-menu"
+                data-state={snapshot.midi}
+                aria-label={
+                  snapshot.midi === "connected"
+                    ? "Keyboard connected"
+                    : "Keyboard connection"
+                }
+              >
+                <Group gap="sm">
+                  <Text size="sm">Keyboard</Text>
+                  <Indicator
+                    color={snapshot.midi === "connected" ? "green" : "gray"}
+                    position="middle-center"
+                  >
+                    <Box w={8} h={8} />
+                  </Indicator>
+                </Group>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <MidiContents />
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
           <SettingsNavigationLink
             href="/settings"
             onClick={follow}
@@ -315,7 +244,7 @@ export function mountAppShell(
     );
     return (
       <PracticeOptionsProvider
-        mobileDrawer={APP.id === "songalong"}
+        mobileDrawer
         onMobileOpenChange={optionsOpened}
         entries={views.options}
         activeId={activeOptionsId}
@@ -325,22 +254,53 @@ export function mountAppShell(
           <RetainedContent element={midiPanel} />
         </div>
         <ApplicationLayout
-          compact={APP.id === "songalong"}
-          resizableNavigation={APP.id === "songalong"}
+          compact
+          resizableNavigation
           mainClassName={
-            APP.id === "songalong" ? "songalong-workspace" : undefined
+            APP.id === "songalong"
+              ? "songalong-workspace"
+              : "notewise-workspace"
           }
           brand={brand}
-          title={snapshot.title}
-          toolbarOnly={
-            APP.id === "songalong" && snapshot.routeKind === "exercise"
+          mobileToolbarHeight={APP.id === "notewise" ? 104 : undefined}
+          headerClassName={
+            APP.id === "notewise" ? "notewise-header" : undefined
           }
+          title={snapshot.title}
+          toolbarOnly={snapshot.routeKind === "exercise"}
           headerActions={
-            APP.id === "songalong" && snapshot.routeKind === "exercise" ? (
-              <RetainedContent
-                element={registry.headerHost}
-                className="songalong-header-transport"
-              />
+            snapshot.routeKind === "exercise" ? (
+              APP.id === "songalong" ? (
+                <RetainedContent
+                  element={registry.headerFor(activeOptionsId || "flashcards")}
+                  className="songalong-header-transport"
+                />
+              ) : (
+                <div className="notewise-toolbar">
+                  <ToolbarVolume />
+                  <RetainedContent
+                    element={registry.headerFor(
+                      activeOptionsId || "flashcards",
+                    )}
+                    className="notewise-toolbar-session"
+                  />
+                  <div
+                    className="notewise-toolbar-piano"
+                    style={{
+                      visibility:
+                        snapshot.selected === "piano" ? "hidden" : undefined,
+                    }}
+                  >
+                    <PracticePianoToggle
+                      iconOnly
+                      panelId={`${activeOptionsId || "flashcards"}-piano-panel`}
+                      disabled={snapshot.selected === "piano"}
+                    />
+                  </div>
+                </div>
+              )
+            ) : APP.id === "notewise" ? (
+              <ToolbarVolume />
             ) : undefined
           }
           area={snapshot.area}
@@ -392,6 +352,20 @@ export function mountAppShell(
             </Text>
           </VisuallyHidden>
           <div id="exercise-content" hidden={snapshot.routeKind !== "exercise"}>
+            {APP.id === "notewise" && (
+              <Title
+                id={
+                  snapshot.routeKind === "exercise" ? "page-title" : undefined
+                }
+                className="practice-title"
+                order={1}
+                size="h3"
+                tabIndex={-1}
+                mb="md"
+              >
+                {snapshot.title}
+              </Title>
+            )}
             <PracticeWorkspace>
               {activityElements.map((node) => (
                 <div

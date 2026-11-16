@@ -6,7 +6,7 @@ import { createViewState } from "./view-state";
 import {
   PracticeHeader,
   HymnStatus,
-  PracticeProgress,
+  PracticeCount,
   PracticeFeedback,
   PracticeSummary,
   type PresentationModel,
@@ -27,8 +27,10 @@ export function frameState<T extends object>(initial: T) {
 export function PianoPanel({
   id,
   children,
+  required = false,
 }: {
   id: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   const state = useSyncExternalStore(
@@ -38,8 +40,8 @@ export function PianoPanel({
   return (
     <div
       id={id}
-      className="practice-piano"
-      hidden={!state.visible || state.available[id] === false}
+      className={`practice-piano piano-keybed ${required ? "answer-piano" : "reference-piano"}`}
+      hidden={(!required && !state.visible) || state.available[id] === false}
     >
       {children}
     </div>
@@ -49,6 +51,7 @@ type FrameProps = {
   presentation: PresentationModel;
   transport: ReactNode;
   panelId?: string;
+  headerHost: HTMLElement;
   next?: () => void;
 };
 export function PracticeFrame({
@@ -57,7 +60,6 @@ export function PracticeFrame({
   label,
   className = "",
   children,
-  feedback = true,
   next,
   arrangement,
 }: {
@@ -66,7 +68,6 @@ export function PracticeFrame({
   label: string;
   className?: string;
   children: ReactNode;
-  feedback?: boolean;
   next?: () => void;
   arrangement?: string;
 }) {
@@ -81,16 +82,9 @@ export function PracticeFrame({
           <div className="presentation-header">
             <PracticeHeader model={presentation} kind={kind} />
           </div>
-          <div className="presentation-progress">
-            <PracticeProgress model={presentation} kind={kind} />
-          </div>
         </>
       )}
-      {feedback && (
-        <div className="presentation-feedback">
-          <PracticeFeedback model={presentation} kind={kind} />
-        </div>
-      )}
+
       {children}
       {next && (
         <div className="presentation-summary">
@@ -98,6 +92,20 @@ export function PracticeFrame({
         </div>
       )}
     </section>
+  );
+}
+function SessionTransport({
+  presentation,
+  kind,
+  transport,
+  headerHost,
+}: FrameProps & { kind: PresentationKind }) {
+  return createPortal(
+    <div className="notewise-session-controls">
+      {transport}
+      <PracticeCount model={presentation} kind={kind} />
+    </div>,
+    headerHost,
   );
 }
 export const flashcardBodyState = () =>
@@ -114,6 +122,7 @@ export const flashcardBodyState = () =>
 export function FlashcardFrame({
   presentation,
   transport,
+  headerHost,
   answers,
   body,
   panelId,
@@ -136,7 +145,6 @@ export function FlashcardFrame({
       kind="flashcard"
       label="Note recognition practice"
       className="practice"
-      feedback={false}
       next={next}
     >
       <div
@@ -150,9 +158,6 @@ export function FlashcardFrame({
           .filter(Boolean)
           .join(" ")}
       >
-        <div className="presentation-feedback">
-          <PracticeFeedback model={presentation} kind="flashcard" />
-        </div>
         <p id="signature-prompt" hidden={!signature || s.empty}>
           {s.signature}
         </p>
@@ -184,6 +189,9 @@ export function FlashcardFrame({
           MIDI keyboard required — this note is outside the on-screen keys. Play
           it on your connected keyboard, or change the practice range.
         </p>
+        <div className="presentation-feedback">
+          <PracticeFeedback model={presentation} kind="flashcard" />
+        </div>
         <div
           className="keyboard"
           aria-label="Answer keyboard"
@@ -208,8 +216,13 @@ export function FlashcardFrame({
           </span>
         </p>
       </div>
-      <div className="sequence-transport flashcard-transport">{transport}</div>
-      <PianoPanel id={panelId}>
+      <SessionTransport
+        presentation={presentation}
+        kind="flashcard"
+        transport={transport}
+        headerHost={headerHost}
+      />
+      <PianoPanel id={panelId} required={piano}>
         <div id="piano" hidden={!piano || s.empty} />
       </PianoPanel>
     </PracticeFrame>
@@ -218,6 +231,7 @@ export function FlashcardFrame({
 export function PatternFrame({
   presentation,
   transport,
+  headerHost,
   panelId,
 }: FrameProps & { panelId: string }) {
   return (
@@ -235,7 +249,15 @@ export function PatternFrame({
       >
         <div className="pattern-paper" />
       </div>
-      <div className="sequence-transport">{transport}</div>
+      <div className="presentation-feedback">
+        <PracticeFeedback model={presentation} kind="pattern" />
+      </div>
+      <SessionTransport
+        presentation={presentation}
+        kind="pattern"
+        transport={transport}
+        headerHost={headerHost}
+      />
       <div className="pattern-midi-slot" />
       <PianoPanel id={panelId}>
         <div className="pattern-piano" />
@@ -270,7 +292,6 @@ export function HymnFrame({
       presentation={presentation}
       kind="hymn"
       label="Hymn sight reading"
-      feedback={false}
       className="sequence-practice"
       arrangement={s.arrangement}
     >
@@ -317,6 +338,7 @@ export const rhythmBodyState = () => frameState({ beat: -1 });
 export function RhythmFrame({
   presentation,
   transport,
+  headerHost,
   tap,
   body,
 }: FrameProps & { tap: ReactNode; body: ReturnType<typeof rhythmBodyState> }) {
@@ -328,10 +350,6 @@ export function RhythmFrame({
       label="Rhythm practice"
       className="sequence-practice"
     >
-      <p className="sequence-help">
-        Tap on any piano key, press Space or use the button. Count through the
-        rests.
-      </p>
       <div className="rhythm-beats" aria-label="Beats">
         {[1, 2, 3, 4].map((beat) => (
           <span
@@ -343,6 +361,9 @@ export function RhythmFrame({
           </span>
         ))}
       </div>
+      <div className="presentation-feedback">
+        <PracticeFeedback model={presentation} kind="rhythm" />
+      </div>
       <div
         className="sequence-score"
         tabIndex={0}
@@ -352,7 +373,12 @@ export function RhythmFrame({
         <div className="rhythm-paper" />
       </div>
       <div className="rhythm-tap-slot practice-control-slot">{tap}</div>
-      <div className="sequence-transport">{transport}</div>
+      <SessionTransport
+        presentation={presentation}
+        kind="rhythm"
+        transport={transport}
+        headerHost={headerHost}
+      />
       <div className="rhythm-midi-slot" />
     </PracticeFrame>
   );
@@ -371,6 +397,7 @@ export const theoryBodyState = () =>
 export function TheoryFrame({
   presentation,
   transport,
+  headerHost,
   answers,
   panelId,
   body,
@@ -410,6 +437,9 @@ export function TheoryFrame({
           </span>
         ))}
       </div>
+      <div className="presentation-feedback">
+        <PracticeFeedback model={presentation} kind="theory" />
+      </div>
       <div
         className="theory-answers"
         aria-label="Answer choices"
@@ -433,7 +463,12 @@ export function TheoryFrame({
       <Text size="sm" className="theory-midi-notice" hidden={!s.midiNotice}>
         This note needs a MIDI keyboard. You can also narrow the pitch range.
       </Text>
-      <div className="sequence-transport">{transport}</div>
+      <SessionTransport
+        presentation={presentation}
+        kind="theory"
+        transport={transport}
+        headerHost={headerHost}
+      />
       <PianoPanel id={panelId}>
         <div className="theory-piano" />
       </PianoPanel>

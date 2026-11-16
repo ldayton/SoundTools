@@ -41,6 +41,8 @@ export function PitchField({
   ];
   const octaves = [...new Set(choices.map((note) => note.octave))];
   const [focusValue, setFocusValue] = useState(value);
+  const currentFocus = useRef(focusValue);
+  currentFocus.current = focusValue;
   const selected = choices.find((note) => note.value === value);
   useLayoutEffect(() => {
     if (!opened) return;
@@ -49,9 +51,15 @@ export function PitchField({
       `[data-value="${value}"]`,
     );
     selected?.focus({ preventScroll: true });
-    const frame = requestAnimationFrame(() =>
-      selected?.scrollIntoView({ block: "nearest", inline: "nearest" }),
-    );
+    const frame = requestAnimationFrame(() => {
+      // Kept-mounted dropdowns become focusable after their visibility commit.
+      // Follow the current roving cell if an arrow key arrived in the meantime.
+      const target = dropdown.current?.querySelector<HTMLButtonElement>(
+        `[data-value="${currentFocus.current}"]`,
+      );
+      target?.focus({ preventScroll: true });
+      target?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
     return () => cancelAnimationFrame(frame);
   }, [opened, value]);
   useEffect(() => {
@@ -80,6 +88,7 @@ export function PitchField({
     <Button
       key={note.value}
       data-value={note.value}
+      data-mantine-stop-propagation="true"
       disabled={note.disabled}
       variant={note.value === value ? "light" : "default"}
       size="xs"
@@ -102,6 +111,12 @@ export function PitchField({
       <Popover
         id={`${id}-popover`}
         opened={opened}
+        // Keep nested focus traps in the same modal subtree, above its scroll body.
+        portalProps={{
+          target:
+            input.current?.closest<HTMLElement>('[aria-modal="true"]') ||
+            undefined,
+        }}
         onChange={onOpenedChange}
         position="bottom-start"
         offset={8}
@@ -129,6 +144,7 @@ export function PitchField({
             aria-controls={`${id}-picker`}
             aria-expanded={opened}
             readOnly
+            data-mantine-stop-propagation={opened ? "true" : undefined}
             value={selected?.label || "None"}
             title={selected?.label || "None"}
             rightSection={

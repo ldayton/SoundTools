@@ -171,6 +171,9 @@ jobs:
       - run: npm run test:layout --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:workspace --workspace=notewise
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:browser --workspace=notewise
         if: matrix.browser == 'chromium'
       - run: npm run test:guitar --workspace=notewise

@@ -1,3 +1,4 @@
+import { practiceHeaderHost } from "./practice-surfaces";
 import { RendererLifetime } from "./renderer-lifetime";
 import { PatternFrame } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
@@ -34,7 +35,6 @@ export class IntervalPatterns {
   private disposeView: () => void;
   private lifetime = new RendererLifetime();
   private presentation = practicePresentation({
-    context: "Wait for me",
     title: "Follow the pattern.",
   });
   readonly midiSlot: HTMLElement;
@@ -82,11 +82,11 @@ export class IntervalPatterns {
     this.disposeView = mountPracticeSurface(
       element,
       createElement(PatternFrame, {
+        headerHost: practiceHeaderHost(element),
         presentation: this.presentation,
         panelId: `${element.id}-piano-panel`,
         transport: createElement(PatternControls, {
           model: this.controls,
-          panelId: `${element.id}-piano-panel`,
           next: () => this.next(),
           restart: () => {
             this.cancelAdvance();
@@ -119,9 +119,14 @@ export class IntervalPatterns {
     );
     this.pianoPanel = mountPracticePiano(this.$(".pattern-piano"), {});
     this.midiSlot = this.$(".pattern-midi-slot");
-    this.piano = new Piano(this.$(".pattern-piano"), (n) => {
-      if (this.accepting) this.answer(n);
-    });
+    this.piano = new Piano(
+      this.$(".pattern-piano"),
+      (n) => {
+        if (this.accepting) this.answer(n);
+      },
+      undefined,
+      { auditionWhenUnavailable: true },
+    );
 
     this.lifetime.observe(this.$(".sequence-score"), () => {
       const w = this.$(".sequence-score").clientWidth;
@@ -151,7 +156,11 @@ export class IntervalPatterns {
     this.interrupt("navigation");
     this.changed();
   }
+  showMidiKeys(keys: import("./midi-input").MidiKeys) {
+    if (this.active) this.piano.setMidiKeys(keys);
+  }
   interrupt(_reason: Interruption) {
+    this.piano.resetInteraction();
     this.cancelAdvance();
     this.session?.resetGesture();
   }

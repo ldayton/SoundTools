@@ -135,12 +135,12 @@ try {
   await key.waitFor();
   await page.waitForFunction(() => {
     const key = document.querySelector('[data-piano="60"]');
-    return key && Math.round(key.getBoundingClientRect().width) === 32;
+    return (
+      key &&
+      Math.round(key.getBoundingClientRect().width) === 32 &&
+      getComputedStyle(key).backgroundColor === 'rgb(255, 255, 255)'
+    );
   });
-  assert.equal(
-    await key.evaluate((e) => getComputedStyle(e).backgroundColor),
-    'rgb(255, 255, 255)'
-  );
   await key.click();
   await page.waitForFunction(() => (window as any).sources.length > 0);
   assert.equal(

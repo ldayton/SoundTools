@@ -386,7 +386,15 @@ try {
     await expect(end).toHaveAttribute("aria-valuenow", "2");
     await expect(page.locator(".hymn-cancel-passage")).toBeHidden();
     await cdp.detach();
-  } else await drag(0, 1);
+  } else {
+    // Native touch-drag injection is Chromium-only. Cover the same narrow-screen
+    // range and handle behavior through the supported keyboard path elsewhere;
+    // mouse drags are already exercised above on every engine.
+    await score.focus();
+    await page.keyboard.press("Home");
+    await page.keyboard.press("Shift+ArrowRight");
+    await expect(end).toHaveAttribute("aria-valuenow", "2");
+  }
   await end.focus();
   await page.keyboard.press("ArrowRight");
   await expect(end).toHaveAttribute("aria-valuenow", "3");

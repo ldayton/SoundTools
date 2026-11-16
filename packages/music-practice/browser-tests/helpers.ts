@@ -22,7 +22,6 @@ export async function selectPractice(page: Page, mode: string) {
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });
-  await page.locator("#exercise-content .practice-surface:visible").waitFor();
 }
 export async function midiAction(
   page: Page,
@@ -95,7 +94,8 @@ export async function practiceOption(
         .click();
     }
   } else await page.locator(selector).selectOption(value);
-  await dismissPracticeDrawer(page);
+  if (await page.locator(".notewise-workspace").count())
+    await dismissPracticeDrawer(page);
 }
 
 async function optionsLayoutReady(page: Page) {

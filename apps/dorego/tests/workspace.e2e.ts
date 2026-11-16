@@ -133,7 +133,10 @@ try {
   );
   const key = page.locator('[data-piano="60"]');
   await key.waitFor();
-  assert.equal(Math.round((await key.boundingBox())!.width), 32);
+  await page.waitForFunction(() => {
+    const key = document.querySelector('[data-piano="60"]');
+    return key && Math.round(key.getBoundingClientRect().width) === 32;
+  });
   assert.equal(
     await key.evaluate((e) => getComputedStyle(e).backgroundColor),
     'rgb(255, 255, 255)'

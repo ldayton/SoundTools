@@ -57,6 +57,13 @@ try {
   });
   await page.addInitScript(() => {
     const probe = ((window as any).passageProbe = { notes: 0, clicks: 0 });
+    window.addEventListener(
+      "pointerdown",
+      (event) => {
+        (window as any).passagePointerId = event.pointerId;
+      },
+      true,
+    );
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (
       ...args: Parameters<typeof start>
@@ -241,7 +248,10 @@ try {
   await page.mouse.down();
   await page.mouse.move(from.x + 20, from.y);
   await page.locator(".hymn-paper").evaluate((el) => {
-    if (el.hasPointerCapture(1)) el.releasePointerCapture(1);
+    const pointerId = (window as any).passagePointerId;
+    if (!el.hasPointerCapture(pointerId))
+      throw new Error("The active drag must own pointer capture");
+    el.releasePointerCapture(pointerId);
   });
   await page.mouse.move(from.x + 21, from.y);
   await page.mouse.up();

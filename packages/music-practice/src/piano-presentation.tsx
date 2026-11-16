@@ -27,14 +27,30 @@ export function PracticePianoToggle({
   panelId,
   className = "",
   disabled = false,
+  iconOnly = false,
 }: {
   panelId: string;
   className?: string;
   disabled?: boolean;
+  iconOnly?: boolean;
 }) {
   const state = useSyncExternalStore(
     pianoPresentation.subscribe,
     pianoPresentation.getSnapshot,
+  );
+  const icon = (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M8 5v8m8-8v8M8 13v6m8-6v6" />
+    </svg>
   );
   return (
     <Button
@@ -47,22 +63,10 @@ export function PracticePianoToggle({
       aria-expanded={state.visible}
       title={`${state.visible ? "Hide" : "Show"} on-screen piano`}
       onClick={() => setPianoPresentation(!state.visible, true)}
-      leftSection={
-        <svg
-          viewBox="0 0 24 24"
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          aria-hidden="true"
-        >
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="M8 5v8m8-8v8M8 13v6m8-6v6" />
-        </svg>
-      }
+      px={iconOnly ? "xs" : undefined}
+      leftSection={iconOnly ? undefined : icon}
     >
-      Piano
+      {iconOnly ? icon : "Piano"}
     </Button>
   );
 }

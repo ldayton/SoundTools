@@ -1,5 +1,6 @@
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
+import { practiceOption } from "./helpers";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -54,33 +55,46 @@ try {
   };
   await page.locator("#hymn-key").selectOption("F");
   await page.locator("#hymn-arrangement").selectOption("bass");
-  await page.locator("#hymn-mode").selectOption("playback");
+  await practiceOption(page, "#hymn-mode", "playback");
   await page.locator("#hymn-tempo").fill("110");
   await page.locator("#hymn-tempo").press("Enter");
-  await page.locator("#hymn-size").selectOption("1.2");
-  await nav.getByRole("slider", { name: "Piano volume" }).focus();
+  await practiceOption(page, "#hymn-size", "48");
+  await page.getByRole("button", { name: "Volume", exact: true }).click();
+  await page.getByRole("slider", { name: "Piano volume" }).focus();
   await page.keyboard.press("Home");
+  await page.keyboard.press("Escape");
   await choose("Silent Night");
   assert.equal(await page.locator("#hymn-key").inputValue(), "original");
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "melody");
-  assert.equal(await page.locator("#hymn-mode").inputValue(), "wait");
-  assert.equal(await page.locator("#hymn-size").inputValue(), "1");
+  assert.equal(
+    await page.locator("#hymn-mode").getAttribute("data-mode"),
+    "wait",
+  );
+  assert.equal(await page.locator("#hymn-size").inputValue(), "48 px");
   await choose("Amazing Grace");
   assert.equal(await page.locator("#hymn-key").inputValue(), "F");
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "bass");
-  assert.equal(await page.locator("#hymn-mode").inputValue(), "playback");
-  assert.equal(await page.locator("#hymn-tempo").inputValue(), "110");
-  assert.equal(await page.locator("#hymn-size").inputValue(), "1.2");
   assert.equal(
-    await nav
+    await page.locator("#hymn-mode").getAttribute("data-mode"),
+    "playback",
+  );
+  assert.equal(await page.locator("#hymn-tempo").inputValue(), "110 BPM");
+  assert.equal(await page.locator("#hymn-size").inputValue(), "48 px");
+  await page.getByRole("button", { name: "Volume", exact: true }).click();
+  assert.equal(
+    await page
       .getByRole("slider", { name: "Piano volume" })
       .getAttribute("aria-valuenow"),
     "0",
   );
+  await page.keyboard.press("Escape");
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   await choose("Silent Night");
   assert.match(page.url(), /piano\/hymns\/silent-night/);
-  assert.equal(await page.locator("#hymn-mode").inputValue(), "wait");
+  assert.equal(
+    await page.locator("#hymn-mode").getAttribute("data-mode"),
+    "wait",
+  );
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
@@ -91,9 +105,11 @@ try {
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
-  await nav.getByRole("slider", { name: "Piano volume" }).waitFor();
+  await nav.locator("#hymn-search").waitFor();
   await choose("Amazing Grace");
-  await page.locator(".mantine-Drawer-content").waitFor({ state: "hidden" });
+  await page
+    .locator(".mantine-Drawer-content:visible")
+    .waitFor({ state: "hidden" });
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
@@ -101,7 +117,9 @@ try {
   await page
     .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
     .click();
-  await page.locator(".mantine-Drawer-content").waitFor({ state: "hidden" });
+  await page
+    .locator(".mantine-Drawer-content:visible")
+    .waitFor({ state: "hidden" });
   assert.ok(await page.locator(".hymn-paper svg").first().isVisible());
   assert.ok(
     await page.evaluate(
@@ -116,7 +134,9 @@ try {
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
   await choose("Silent Night");
-  await page.locator(".mantine-Drawer-content").waitFor({ state: "hidden" });
+  await page
+    .locator(".mantine-Drawer-content:visible")
+    .waitFor({ state: "hidden" });
   assert.match(page.url(), /piano\/hymns\/silent-night/);
   assert.deepEqual(errors, []);
   console.log(

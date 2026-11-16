@@ -8,7 +8,17 @@ import {
 } from "../src/practice-surfaces";
 const element = (id: string) =>
   ({ id, replaceChildren() {} }) as unknown as HTMLElement;
-test("practice registrations belong to one app and stale cleanup cannot erase a replacement", () => {
+test("practice registrations belong to one app and stale cleanup cannot erase a replacement", (t) => {
+  // Registry construction now owns a transport host; this state-only test needs no DOM renderer.
+  const document = Object.getOwnPropertyDescriptor(globalThis, "document");
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: { createElement: () => element("transport") },
+  });
+  t.after(() => {
+    if (document) Object.defineProperty(globalThis, "document", document);
+    else Reflect.deleteProperty(globalThis, "document");
+  });
   const first = createPracticeRegistry(),
     second = createPracticeRegistry();
   const host = element("practice"),

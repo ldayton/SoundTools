@@ -90,10 +90,7 @@ try {
   await practiceOption(page, "#hymn-key", "A");
   assert.equal(await count(), "1 / 35");
   await note(62);
-  assert.match(
-    (await page.locator(".sequence-feedback").textContent())!,
-    /play E4/,
-  );
+  assert.equal(await page.locator(".sequence-feedback").count(), 0);
   assert.equal(await count(), "1 / 35");
   assert.equal(
     await page
@@ -162,8 +159,8 @@ try {
   await practiceOption(page, "#hymn-key", "A");
   assert.equal(await count(), "1 / 35");
   assert.equal(
-    await page.locator(".sequence-feedback").getAttribute("data-kind"),
-    null,
+    await page.locator(".hymn-piano .is-wrong").count(),
+    0,
     "old partial feedback is cleared",
   );
   for (const n of [43, 55]) await send(n, false);
@@ -215,15 +212,16 @@ try {
           .replace(/\s/g, ""),
         words,
       );
-      assert.doesNotMatch(
-        (await page.locator(".sequence-feedback").textContent())!,
-        /couldn’t/,
-      );
+      assert.equal(await page.locator(".sequence-feedback.error").count(), 0);
     }
   }
   await note(62);
   assert.match(
-    (await page.locator(".sequence-feedback").textContent())!,
+    (
+      await page
+        .locator(".piano-key.is-right .piano-hint-label")
+        .allTextContents()
+    ).join(" "),
     /C♯4/,
     "feedback uses the transposed sharp spelling",
   );
@@ -247,19 +245,31 @@ try {
   );
   assert.match((await page.locator(".hymn-range-hint").textContent())!, /F2/);
   const kb = await page.locator(".hymn-piano").boundingBox(),
-    feedback = await page.locator(".sequence-feedback").boundingBox(),
     score = await page.locator(".sequence-score").boundingBox();
   assert.ok(
-    (await page.locator(".practice-options").boundingBox())!.y < score!.y,
+    (await page
+      .getByRole("button", {
+        name: /^(Expand|Collapse) (practice|playback) options$/,
+      })
+      .boundingBox())!.y < score!.y,
   );
   assert.ok(score!.y < 400, "phone controls remain compact");
-  assert.ok(feedback!.height <= 64);
   const scoreBox = (await page.locator(".sequence-score").boundingBox())!;
-  assert.ok(feedback!.y + feedback!.height <= scoreBox.y);
+  assert.equal(
+    await page.locator("#sight-reading .presentation-feedback").count(),
+    0,
+  );
   const transport = (await page
     .locator(".sequence-transport:visible")
     .boundingBox())!;
-  assert.ok(kb!.y - transport.y - transport.height < 48);
+  assert.ok(
+    transport.y + transport.height <= scoreBox.y,
+    "Transport is above the score",
+  );
+  assert.ok(
+    kb!.y - scoreBox.y - scoreBox.height < 48,
+    "Piano stays close below the score",
+  );
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

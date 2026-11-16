@@ -261,3 +261,36 @@ test("sight reading accepts legato and polyphony without weakening flashcard gua
   f.send([0x90, 65, 100]);
   assert.deepEqual(f.notes, [65]);
 });
+
+test("physical MIDI state follows releases, channel ownership and pedal without grading", async () => {
+  const f = fixture();
+  let keys = {
+    held: [] as readonly number[],
+    sustained: [] as readonly number[],
+  };
+  f.keyboard.setKeysListener((state) => {
+    keys = state;
+  });
+  await f.keyboard.connect();
+  // Visual feedback remains live even in playback mode, where answers are disabled.
+  f.send([0x90, 60, 100]);
+  f.send([0x91, 60, 100]);
+  f.send([0x80, 60, 0]);
+  assert.deepEqual(keys.held, [60], "another channel still owns the same key");
+  f.send([0xb1, 64, 127]);
+  f.send([0x91, 60, 0]);
+  assert.deepEqual(keys, { held: [], sustained: [60] });
+  f.send([0x91, 60, 90]);
+  assert.deepEqual(keys, { held: [60], sustained: [] });
+  f.send([0x81, 60, 0]);
+  f.send([0xb1, 64, 0]);
+  assert.deepEqual(keys, { held: [], sustained: [] });
+  assert.deepEqual(f.notes, [], "visual state never answers a question");
+  f.send([0x90, 67, 100]);
+  f.keyboard.disconnect();
+  assert.deepEqual(
+    keys,
+    { held: [], sustained: [] },
+    "disconnect removes all highlights",
+  );
+});

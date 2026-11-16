@@ -7,6 +7,8 @@ import {
   type HymnHands,
 } from "./hymn-arrangements";
 import { object, choice } from "./exercise-settings";
+export const HYMN_NOTE_MIN = 36; // C2
+export const HYMN_NOTE_MAX = 95; // B6
 export function optionalHymnNote(
   value: unknown,
   fallback: number | null = null,
@@ -15,8 +17,8 @@ export function optionalHymnNote(
     ? null
     : typeof value === "number" &&
         Number.isInteger(value) &&
-        value >= 21 &&
-        value <= 108
+        value >= HYMN_NOTE_MIN &&
+        value <= HYMN_NOTE_MAX
       ? value
       : fallback;
 }
@@ -142,8 +144,15 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
   const raw = object(input);
   return {
     ...mergeHymnSettings(base, { ...raw, hymn }),
-    zoom: [0.85, 1, 1.2].includes(raw.zoom as number)
-      ? (raw.zoom as number)
-      : 1,
+    zoom: validHymnZoom(raw.zoom) ? (raw.zoom as number) : 1,
   };
+}
+
+export function validHymnZoom(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0.5 &&
+    value <= 2
+  );
 }

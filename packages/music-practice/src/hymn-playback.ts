@@ -27,8 +27,11 @@ export function playbackNotes(audio: AudioTracks) {
 }
 type PlaybackOutput = Omit<
   Awaited<ReturnType<typeof preparePianoPlayback>>,
-  "click"
-> & { click?(when: number, accent: boolean): void };
+  "click" | "audibleNow"
+> & {
+  click?(when: number, accent: boolean): void;
+  readonly audibleNow?: number;
+};
 export class HymnPlayback {
   position = 0; // Score seconds at 60 quarter notes/minute, independent of tempo.
   state: "ready" | "loading" | "counting" | "playing" | "paused" | "complete" =
@@ -62,20 +65,31 @@ export class HymnPlayback {
     this.state = "ready";
   }
   private boundaries: number[] = [0];
+  get displayPosition() {
+    if (!["playing", "counting"].includes(this.state) || !this.output)
+      return this.position;
+    const heard = this.output.audibleNow ?? this.output.now;
+    return Math.min(
+      this.position,
+      this.offset + (Math.max(0, heard - this.origin) * this.bpm) / 60,
+    );
+  }
   get section() {
     let index = this.boundaries.length - 1;
-    while (index > 0 && this.position < this.boundaries[index]) index--;
+    while (index > 0 && this.displayPosition < this.boundaries[index]) index--;
     return index;
   }
   get sectionPosition() {
-    return this.position - this.boundaries[this.section];
+    return this.displayPosition - this.boundaries[this.section];
   }
   get counting() {
     if (this.state !== "counting" || !this.output || !this.countPlan) return;
     const p = this.countPlan;
     const elapsed = Math.max(
       0,
-      ((this.output.now - this.origin) * this.bpm) / 60 + p.duration,
+      (((this.output.audibleNow ?? this.output.now) - this.origin) * this.bpm) /
+        60 +
+        p.duration,
     );
     return {
       bar: Math.min(Math.ceil(p.bars), Math.floor(elapsed / p.barLength) + 1),
@@ -87,11 +101,26 @@ export class HymnPlayback {
       beats: p.beats,
     };
   }
-  get sounding() {
-    if (this.state === "counting") return false;
-    return this.notes.some(
-      (n) => n.start <= this.position && n.start + n.duration > this.position,
+  get soundingNotes() {
+    if (this.state !== "playing") return [];
+    // No key lights during the scheduling lead-in, before sound reaches the speakers.
+    if (
+      this.output &&
+      (this.output.audibleNow ?? this.output.now) < this.origin
+    )
+      return [];
+    const position = this.displayPosition;
+    return this.notes.filter(
+      (note) => note.start <= position && note.start + note.duration > position,
     );
+  }
+  get soundingPitches() {
+    return [...new Set(this.soundingNotes.map((note) => note.pitch))].sort(
+      (a, b) => a - b,
+    );
+  }
+  get sounding() {
+    return this.soundingNotes.length > 0;
   }
   constructor(
     private changed: () => void,
@@ -176,7 +205,10 @@ export class HymnPlayback {
           this.changed();
           return;
         }
-        if (output.now >= this.origin && this.state === "counting")
+        if (
+          (output.audibleNow ?? output.now) >= this.origin &&
+          this.state === "counting"
+        )
           this.state = this.countOnly ? "complete" : "playing";
         this.position = this.countOnly
           ? this.offset
@@ -208,7 +240,7 @@ export class HymnPlayback {
             n.volume,
           );
         }
-        if (this.state === "complete" || this.position >= this.finish) {
+        if (this.state === "complete" || this.displayPosition >= this.finish) {
           clearInterval(this.timer);
           this.timer = 0;
           this.state = "complete";
@@ -230,7 +262,12 @@ export class HymnPlayback {
       this.position = Math.min(
         this.finish,
         this.offset +
-          (Math.max(0, this.output.now - this.origin) * this.bpm) / 60,
+          (Math.max(
+            0,
+            (this.output.audibleNow ?? this.output.now) - this.origin,
+          ) *
+            this.bpm) /
+            60,
       );
     ++this.generation;
     clearInterval(this.timer);

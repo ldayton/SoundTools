@@ -1,9 +1,11 @@
+import { createPortal } from "react-dom";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { Text } from "@mantine/core";
+import { Text, Title } from "@mantine/core";
 import { createViewState } from "./view-state";
 import {
   PracticeHeader,
+  HymnStatus,
   PracticeProgress,
   PracticeFeedback,
   PracticeSummary,
@@ -74,12 +76,16 @@ export function PracticeFrame({
       aria-label={label}
       data-arrangement={arrangement}
     >
-      <div className="presentation-header">
-        <PracticeHeader model={presentation} kind={kind} />
-      </div>
-      <div className="presentation-progress">
-        <PracticeProgress model={presentation} kind={kind} />
-      </div>
+      {kind !== "hymn" && (
+        <>
+          <div className="presentation-header">
+            <PracticeHeader model={presentation} kind={kind} />
+          </div>
+          <div className="presentation-progress">
+            <PracticeProgress model={presentation} kind={kind} />
+          </div>
+        </>
+      )}
       {feedback && (
         <div className="presentation-feedback">
           <PracticeFeedback model={presentation} kind={kind} />
@@ -242,38 +248,64 @@ export const hymnBodyState = () =>
     noKey: false,
     arrangement: "melody",
     scoreLabel: "Hymn score with aligned lyrics",
+    title: "",
+    credits: [] as string[],
   });
 export function HymnFrame({
+  headerHost,
   presentation,
   transport,
+  passage,
   panelId,
   body,
-}: FrameProps & { panelId: string; body: ReturnType<typeof hymnBodyState> }) {
+}: FrameProps & {
+  panelId: string;
+  body: ReturnType<typeof hymnBodyState>;
+  passage: ReactNode;
+  headerHost: HTMLElement;
+}) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   return (
     <PracticeFrame
       presentation={presentation}
       kind="hymn"
       label="Hymn sight reading"
+      feedback={false}
       className="sequence-practice"
       arrangement={s.arrangement}
     >
+      {createPortal(transport, headerHost)}
+      <HymnStatus model={presentation} />
       <div
         className="sequence-score"
         tabIndex={0}
         role="region"
         aria-label={s.scoreLabel}
-        aria-describedby="hymn-scroll-hint"
       >
+        <PracticeFeedback model={presentation} kind="hymn" errorsOnly />
         {s.noKey && (
           <p className="hymn-no-key" role="status">
             No available key fits these note limits. Widen or clear the lowest
             or highest note.
           </p>
         )}
-        <div className="hymn-paper" hidden={s.noKey} />
+        <div className="hymn-score-page" hidden={s.noKey}>
+          <header className="hymn-score-heading">
+            <Title order={2} className="sequence-title" tabIndex={-1}>
+              {s.title}
+            </Title>
+            <div className="hymn-score-credits">
+              {s.credits.map((credit) => (
+                <Text key={credit} size="sm">
+                  {credit}
+                </Text>
+              ))}
+            </div>
+          </header>
+          <div className="hymn-paper" />
+        </div>
       </div>
-      <div className="sequence-transport">{transport}</div>
+      {passage}
       <div className="hymn-midi-slot" />
       <PianoPanel id={panelId}>
         <div className="hymn-piano" />

@@ -37,7 +37,7 @@ try {
       assert.equal(await page.locator('nav a[data-mode="staff"]').count(), 0);
       assert.equal(await page.locator('nav a[data-mode="sight"]').count(), 1);
       assert.match(await page.title(), /SongAlong/);
-      await page.locator("#hymn-mode").selectOption("playback");
+      await page.locator("#hymn-mode").click();
       await page.getByRole("button", { name: "Play", exact: true }).focus();
       await page.keyboard.down("Enter");
       await page.getByRole("button", { name: "Pause", exact: true }).waitFor();

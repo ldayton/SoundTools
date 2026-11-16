@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { Alert, Group, Progress, Stack, Text, Title } from "@mantine/core";
+import { Alert, Group, Progress, Stack, Text, Title, VisuallyHidden } from "@mantine/core";
 import { ContinueRound } from "@ldayton/ui/round-actions";
 import { createViewState } from "./view-state";
 
@@ -14,7 +14,6 @@ type Presentation = {
   summary: boolean;
   result: string;
   suggestion: string;
-  scrollHint: boolean;
   rangeHint: string;
 };
 export function practicePresentation(initial: Partial<Presentation> = {}) {
@@ -29,7 +28,6 @@ export function practicePresentation(initial: Partial<Presentation> = {}) {
     summary: false,
     result: "",
     suggestion: "",
-    scrollHint: false,
     rangeHint: "",
     ...initial,
   });
@@ -76,32 +74,20 @@ export function PracticeHeader({
         >
           {s.count}
         </Text>
-        {kind === "hymn" && (
-          <>
-            <Text
-              component="span"
-              size="xs"
-              id="hymn-scroll-hint"
-              className="hymn-scroll-hint"
-              hidden={!s.scrollHint}
-            >
-              Scroll for more ↕
-            </Text>
-            <Text
-              component="span"
-              size="xs"
-              className="hymn-range-hint"
-              hidden={!s.rangeHint}
-            >
-              {s.rangeHint}
-            </Text>
-          </>
-        )}
       </Group>
-      {s.title && kind === "hymn" && (
-        <Title order={2} size="h3" mt="sm" mb="sm" className="sequence-title">
-          {s.title}
-        </Title>
+    </>
+  );
+}
+/** Keep position accessible without reserving a row above the score. */
+export function HymnStatus({ model }: { model: PresentationModel }) {
+  const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <>
+      <VisuallyHidden className="hymn-count">{s.count}</VisuallyHidden>
+      {s.rangeHint && (
+        <Text className="hymn-range-hint" size="xs" role="status">
+          {s.rangeHint}
+        </Text>
       )}
     </>
   );
@@ -142,11 +128,14 @@ export function PracticeProgress({
 export function PracticeFeedback({
   model,
   kind,
+  errorsOnly = false,
 }: {
   model: PresentationModel;
   kind: PresentationKind;
+  errorsOnly?: boolean;
 }) {
   const s = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  if (errorsOnly && s.kind !== "error") return null;
   if (!["wrong", "incorrect", "correct", "error"].includes(s.kind)) {
     return (
       <Text

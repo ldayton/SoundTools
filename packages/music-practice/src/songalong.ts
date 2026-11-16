@@ -42,6 +42,9 @@ midi = mountMidiPanel(
   },
 );
 midi.setPerformanceMode(true);
+midi.setKeysListener((keys) => {
+  if (acceptsInput()) practice?.showMidiKeys(keys);
+});
 midi.setPerformanceListener((note, held, timestamp) => {
   if (acceptsInput()) practice?.answer(note, held);
 });

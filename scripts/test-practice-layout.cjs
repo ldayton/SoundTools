@@ -84,14 +84,17 @@ const server = spawn(
     const n = await nav.boundingBox(),
       o = await options.boundingBox(),
       surface = await page.locator(".practice-surface").first().boundingBox();
-    assert.equal(Math.round(n.width), 244);
-    assert.equal(Math.round(o.width), 300);
+    assert.equal(Math.round(n.width), app === "songalong" ? 224 : 244);
+    assert.equal(Math.round(o.width), app === "songalong" ? 280 : 300);
     assert(o.x > surface.x + surface.width - 1);
     assert(
       Math.abs(o.y - surface.y) < 2,
       "Options and practice start on the same line",
     );
-    assert.equal(await nav.getByRole("slider", { name: /volume/i }).count(), 1);
+    assert.equal(
+      await nav.getByRole("slider", { name: /volume/i }).count(),
+      app === "songalong" ? 0 : 1,
+    );
     assert.equal(
       await page
         .getByRole("checkbox", {
@@ -121,8 +124,12 @@ const server = spawn(
     await page
       .getByRole("button", { name: "Open navigation", exact: true })
       .click();
-    await page.waitForFunction(() =>
-      document.activeElement?.matches(".nav-close"),
+    await page.waitForFunction(
+      (app) =>
+        document.activeElement?.matches(
+          app === "songalong" ? ".nav-toggle" : ".nav-close",
+        ),
+      app,
     );
     assert(
       await page.evaluate(
@@ -176,7 +183,8 @@ const server = spawn(
     await page
       .getByRole("button", { name: "Open navigation", exact: true })
       .click();
-    await nav.getByRole("slider", { name: /volume/i }).waitFor();
+    if (app !== "songalong")
+      await nav.getByRole("slider", { name: /volume/i }).waitFor();
     if (app === "dorego") {
       await nav
         .getByRole("combobox", { name: "Exercise", exact: true })
@@ -205,7 +213,13 @@ const server = spawn(
       .first()
       .waitFor();
     await page
-      .getByRole("button", { name: "Collapse practice options", exact: true })
+      .getByRole("button", {
+        name:
+          app === "songalong"
+            ? "Close practice options"
+            : "Collapse practice options",
+        exact: true,
+      })
       .click();
     for (const width of [320, 390, 900, 1120, 1680]) {
       await page.setViewportSize({ width, height: 900 });
@@ -241,16 +255,25 @@ const server = spawn(
         await activity.waitFor();
         // Route changes can commit between two separate browser measurements.
         // Wait for the same geometry contract, then measure the pair atomically.
-        await page.waitForFunction((element) => {
-          const column = element.closest(".practice-workspace-content");
-          if (!column || !element.checkVisibility()) return false;
-          const a = column.getBoundingClientRect(), b = element.getBoundingClientRect();
-          return Math.abs(a.width - b.width) < 2 && Math.abs(a.x - b.x) < 2;
-        }, await activity.elementHandle());
+        await page.waitForFunction(
+          (element) => {
+            const column = element.closest(".practice-workspace-content");
+            if (!column || !element.checkVisibility()) return false;
+            const a = column.getBoundingClientRect(),
+              b = element.getBoundingClientRect();
+            return Math.abs(a.width - b.width) < 2 && Math.abs(a.x - b.x) < 2;
+          },
+          await activity.elementHandle(),
+        );
         const { column, card } = await activity.evaluate((element) => {
-          const a = element.closest(".practice-workspace-content").getBoundingClientRect();
+          const a = element
+            .closest(".practice-workspace-content")
+            .getBoundingClientRect();
           const b = element.getBoundingClientRect();
-          return { column: { x: a.x, width: a.width }, card: { x: b.x, width: b.width } };
+          return {
+            column: { x: a.x, width: a.width },
+            card: { x: b.x, width: b.width },
+          };
         });
         assert(
           Math.abs(column.width - card.width) < 2,

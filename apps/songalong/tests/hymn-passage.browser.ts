@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import {
   practiceOption,
   closePracticeOptions,
+  dismissPracticeDrawer,
   midiAction,
 } from "../../../packages/music-practice/browser-tests/helpers";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
@@ -39,7 +40,10 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.addInitScript({
     content: await readFile(
-      new URL("../../../packages/music-practice/test-fixtures/midi.js", import.meta.url),
+      new URL(
+        "../../../packages/music-practice/test-fixtures/midi.js",
+        import.meta.url,
+      ),
       "utf8",
     ),
   });
@@ -266,6 +270,7 @@ try {
   );
   await practiceOption(page, "#hymn-mode", "playback");
   await practiceOption(page, "#hymn-count-in", "0");
+  await dismissPracticeDrawer(page);
   const playButton = page.getByRole("button", { name: "Play", exact: true });
   assert.equal(
     await playButton.isEnabled(),
@@ -273,7 +278,10 @@ try {
     "committed passage can be played immediately",
   );
   assert.equal(
-    await page.locator(".sequence-transport .hymn-pause").first().textContent(),
+    await page
+      .locator(".sequence-transport .hymn-pause")
+      .first()
+      .getAttribute("aria-label"),
     "Play",
     "primary playback stays first alongside passage controls",
   );
@@ -328,6 +336,7 @@ try {
   );
   await page.screenshot({ path: `/tmp/hymn-passage-${engine}.png` });
   await practiceOption(page, "#hymn-key", "F");
+  await dismissPracticeDrawer(page);
   assert.equal(
     await page.locator(".hymn-clear-passage").isVisible(),
     false,
@@ -368,6 +377,7 @@ try {
   );
   await page.getByRole("button", { name: "Clear selection" }).click();
   await practiceOption(page, "#hymn-arrangement", "bass");
+  await dismissPracticeDrawer(page);
   await note(0).press("Enter");
   await note(2).press("Enter");
   const shadeGeometry = await page
@@ -396,6 +406,7 @@ try {
   );
   await page.getByRole("button", { name: "Clear selection" }).click();
   await practiceOption(page, "#hymn-arrangement", "melody");
+  await dismissPracticeDrawer(page);
   const secondLine = await page
     .locator(".hymn-paper svg")
     .nth(1)

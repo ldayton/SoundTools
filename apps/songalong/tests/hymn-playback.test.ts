@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { AudioTracks } from "abcjs";
-import { HymnPlayback, playbackNotes } from "../../../packages/music-practice/src/hymn-playback";
+import {
+  HymnPlayback,
+  playbackNotes,
+} from "../../../packages/music-practice/src/hymn-playback";
 const score = {
   tempo: 60,
   instrument: 0,
@@ -274,7 +277,8 @@ test("every section boundary matches the continuous score duration in each hymn 
   const { default: abcjs } = await import("abcjs");
   const { arrangeHymn, ARRANGEMENTS } =
     await import("../../../packages/music-practice/src/hymn-arrangements");
-  const { default: hymns } = await import("../../../packages/music-practice/src/hymns.json");
+  const { default: hymns } =
+    await import("../../../packages/music-practice/src/hymns.json");
   for (const hymn of hymns)
     for (const { id } of ARRANGEMENTS) {
       const first = arrangeHymn(hymn, id, 2, 0);
@@ -351,6 +355,133 @@ test("passage playback clips sustained notes at both ends and restarts inside th
     assert.equal(player.position, 1);
     player.setRange();
     assert.equal(player.position, 0, "clearing restores the full score");
+  } finally {
+    player.pause();
+    (globalThis as any).window = oldWindow;
+    globalThis.clearInterval = oldClear;
+  }
+});
+
+test("piano visualizer follows sounding voices, sustained bass, rests and transport state", () => {
+  const player = new HymnPlayback(
+    () => {},
+    () => {},
+    async () => {
+      throw Error("not used");
+    },
+  );
+  player.load({
+    ...score,
+    tracks: [
+      ...score.tracks,
+      [{ cmd: "note", pitch: 48, start: 0, duration: 1, volume: 100 }],
+    ],
+  } as AudioTracks);
+  player.state = "playing";
+  player.position = 0;
+  assert.deepEqual(player.soundingPitches, [48, 60]);
+  player.position = 2.5;
+  assert.deepEqual(player.soundingPitches, [48]);
+  player.position = 3;
+  assert.deepEqual(player.soundingPitches, [48, 62]);
+  player.position = 4;
+  assert.deepEqual(player.soundingPitches, [64]);
+  player.state = "paused";
+  assert.deepEqual(player.soundingPitches, []);
+  player.state = "counting";
+  assert.deepEqual(player.soundingPitches, []);
+  player.state = "complete";
+  assert.deepEqual(player.soundingPitches, []);
+});
+
+test("piano attacks follow audible notes: repeats re-strike, ties stay held, and completion waits for audio", async () => {
+  const oldWindow = (globalThis as any).window;
+  const oldClear = globalThis.clearInterval;
+  let tick = () => {},
+    now = 0,
+    heard = 0;
+  (globalThis as any).window = {
+    setInterval: (fn: () => void) => {
+      tick = fn;
+      return 1;
+    },
+  };
+  globalThis.clearInterval = (() => {}) as any;
+  const player = new HymnPlayback(
+    () => {},
+    (error) => {
+      throw error;
+    },
+    async () => ({
+      get now() {
+        return now;
+      },
+      get audibleNow() {
+        return heard;
+      },
+      running: true,
+      schedule() {},
+      stop() {},
+    }),
+  );
+  try {
+    player.load({
+      ...score,
+      totalDuration: 0.5,
+      tracks: [
+        [
+          { cmd: "note", pitch: 60, start: 0, duration: 0.25, volume: 100 },
+          { cmd: "note", pitch: 60, start: 0.25, duration: 0.25, volume: 100 },
+        ],
+        [{ cmd: "note", pitch: 48, start: 0, duration: 0.5, volume: 100 }],
+      ],
+    } as AudioTracks);
+    await player.play(60);
+    assert.deepEqual(
+      player.soundingPitches,
+      [],
+      "no early highlights during scheduling lead-in",
+    );
+    now = 0.2;
+    heard = 0.1;
+    tick();
+    assert.deepEqual(
+      player.soundingNotes.map((n) => [n.pitch, n.start]),
+      [
+        [60, 0],
+        [48, 0],
+      ],
+    );
+    now = 1.2;
+    heard = 0.9;
+    tick();
+    assert.equal(
+      player.soundingNotes.find((n) => n.pitch === 60)!.start,
+      0,
+      "buffered second attack is not shown early",
+    );
+    heard = 1.15;
+    tick();
+    assert.equal(player.soundingNotes.find((n) => n.pitch === 60)!.start, 1);
+    assert.equal(
+      player.soundingNotes.find((n) => n.pitch === 48)!.start,
+      0,
+      "tied bass never re-strikes with the melody",
+    );
+    now = 2.3;
+    heard = 1.9;
+    tick();
+    assert.equal(
+      player.state,
+      "playing",
+      "last audio is still reaching the speakers",
+    );
+    heard = 2.3;
+    tick();
+    assert.equal(player.state, "complete");
+    assert.deepEqual(player.soundingNotes, []);
+    player.restart();
+    assert.deepEqual(player.soundingNotes, []);
   } finally {
     player.pause();
     (globalThis as any).window = oldWindow;

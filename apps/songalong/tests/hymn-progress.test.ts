@@ -46,11 +46,25 @@ test("hymn checkpoints survive reload but never leak across hands, keys, ties or
     hymnProgressKey({ ...settings, viewHands: "right" }, "G"),
   );
   assert.equal(reloaded.forHymn(settings.hymn).zoom, 1.2);
-  assert.equal(reloaded.forHymn("other-hymn").zoom, 1);
+  assert.equal(reloaded.forHymn("other-hymn").zoom, 1.2);
   assert.equal(reloaded.forHymn("other-hymn").arrangement, "melody");
   // A selected passage must not overwrite the full-hymn checkpoint.
   store.snapshot({ ...settings, position: 1 }, "G", 1);
   assert.equal(store.restore(settings, "G", "edition-1", 10).position, 3);
   reloaded.bookmarks[hymnProgressKey(settings, "G")].position = 8;
   assert.equal(saved.bookmarks[hymnProgressKey(settings, "G")].position, 3);
+});
+
+// Score size is continuous; every supported value must survive storage validation.
+test("continuous score sizes survive reload and reject corrupt preferences", () => {
+  for (const zoom of [0.5, 0.51, 0.95, 1, 1.37, 2]) {
+    const settings = hymnPreferences("amazing-grace");
+    const saved = new HymnProgress(undefined, []).snapshot(settings, "G", zoom);
+    assert.equal(
+      new HymnProgress(saved, [settings.hymn]).forHymn(settings.hymn).zoom,
+      zoom,
+    );
+  }
+  for (const zoom of [0, 0.49, 2.01, Infinity, NaN, "1.2", null])
+    assert.equal(hymnPreferences("amazing-grace", { zoom }).zoom, 1);
 });

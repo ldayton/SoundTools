@@ -1,3 +1,4 @@
+import { audiblePianoTime } from "./piano-clock";
 import { persistence } from "./persistence";
 import { diagnostics } from "./diagnostics";
 import creditsUrl from "../../../apps/dorego/public/samples/bitklavier-web-v1/NOTICE.txt?url";
@@ -51,6 +52,7 @@ let departing = false;
 let disabled = false;
 let reportedFailure = false;
 const voices = new Set<() => void>();
+const auditions = new Set<() => void>();
 function load(root: number) {
   let pending = bytes.get(root);
   if (!pending) {
@@ -101,7 +103,28 @@ function audio() {
   }
   return context;
 }
-export async function playPianoNote(midi: number) {
+export function playPianoNote(midi: number) {
+  return soundPianoNote(midi);
+}
+/** Release also cancels a press whose sample has not finished loading. */
+export function holdPianoNote(midi: number): () => void {
+  let released = false;
+  let stop: (() => void) | undefined;
+  void soundPianoNote(midi, {
+    released: () => released,
+    started: (release) => {
+      stop = release;
+    },
+  });
+  return () => {
+    released = true;
+    stop?.();
+  };
+}
+async function soundPianoNote(
+  midi: number,
+  hold?: { released(): boolean; started(stop: () => void): void },
+) {
   if (
     disabled ||
     !Number.isInteger(midi) ||
@@ -129,8 +152,14 @@ export async function playPianoNote(midi: number) {
       decoded.set(root, buffer);
     }
     const [sample] = await Promise.all([buffer, resume]);
-    if (request !== epoch || document.hidden || ctx.state !== "running") return;
-    if (voices.size >= 8) voices.values().next().value?.();
+    if (
+      request !== epoch ||
+      hold?.released() ||
+      document.hidden ||
+      ctx.state !== "running"
+    )
+      return;
+    if (auditions.size >= 16) auditions.values().next().value?.();
     const source = ctx.createBufferSource();
     const gain = ctx.createGain();
     const now = ctx.currentTime;
@@ -138,23 +167,32 @@ export async function playPianoNote(midi: number) {
     source.playbackRate.value = 2 ** ((midi - root) / 12);
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(0.22, now + 0.005);
-    gain.gain.setValueAtTime(0.22, now + 0.65);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+    if (!hold) {
+      gain.gain.setValueAtTime(0.22, now + 0.65);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+    }
     source.connect(gain).connect(output!);
+    let stopped = false;
     const stop = () => {
+      if (stopped) return;
+      stopped = true;
       gain.gain.cancelScheduledValues(ctx.currentTime);
       gain.gain.setTargetAtTime(0, ctx.currentTime, 0.006);
       source.stop(ctx.currentTime + 0.03);
       voices.delete(stop);
+      auditions.delete(stop);
     };
     voices.add(stop);
+    auditions.add(stop);
     source.onended = () => {
       voices.delete(stop);
+      auditions.delete(stop);
       source.disconnect();
       gain.disconnect();
     };
     source.start(now);
-    source.stop(now + 1.5);
+    if (!hold) source.stop(now + 1.5);
+    hold?.started(stop);
   } catch (error) {
     // A failed sound must never stop grading or create an unhandled rejection.
     if (!reportedFailure) diagnostics.capture(error, "piano_audio.play_failed");
@@ -192,6 +230,9 @@ export async function preparePianoPlayback(pitches: number[]) {
   return {
     get now() {
       return ctx.currentTime;
+    },
+    get audibleNow() {
+      return audiblePianoTime(ctx, performance.now());
     },
     get running() {
       return !disabled && ctx.state === "running" && !document.hidden;

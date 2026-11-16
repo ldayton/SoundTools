@@ -1,6 +1,6 @@
 import { ControlIcon } from "./control-icon";
 import { PanelIcon } from "./panel-icon";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   ActionIcon,
   Anchor,
@@ -15,7 +15,7 @@ import {
   Title,
   useMantineTheme,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery, useViewportSize } from "@mantine/hooks";
 import { PracticeOptionsReopen } from "./practice-workspace";
 import "./layout.css";
 
@@ -107,6 +107,9 @@ export function ApplicationLayout({
   headerActions,
   blocked,
   mainClassName,
+  compact = false,
+  toolbarOnly = false,
+  resizableNavigation = false,
   children,
 }: {
   brand: ReactNode;
@@ -123,55 +126,106 @@ export function ApplicationLayout({
   headerActions?: ReactNode;
   blocked?: boolean;
   mainClassName?: string;
+  compact?: boolean;
+  toolbarOnly?: boolean;
+  resizableNavigation?: boolean;
   children: ReactNode;
 }) {
   const theme = useMantineTheme();
+  const minimumWidth = compact ? 224 : 244;
+  const [navigationWidth, setNavigationWidth] = useState(minimumWidth);
+  const [resizing, setResizing] = useState(false);
+  const { width: viewportWidth } = useViewportSize();
+  const maximumWidth = Math.max(
+    minimumWidth,
+    Math.min(480, (viewportWidth || 880) - 400),
+  );
+  const resizeNavigation = (width: number) =>
+    setNavigationWidth(
+      Math.round(Math.max(minimumWidth, Math.min(maximumWidth, width))),
+    );
   const desktop = useMediaQuery(
     `(min-width: ${theme.breakpoints.sm})`,
     undefined,
     { getInitialValueInEffect: false },
   );
   useEffect(() => {
+    if (desktop && resizableNavigation)
+      setNavigationWidth((width) => Math.min(width, maximumWidth));
+  }, [desktop, resizableNavigation, maximumWidth]);
+  useEffect(() => {
     if (desktop && navigationOpen) onNavigationClose();
   }, [desktop, navigationOpen, onNavigationClose]);
+  const smallToolbar = useMediaQuery("(max-width: 479px)", undefined, {
+    getInitialValueInEffect: false,
+  });
   return (
     <>
       <Anchor href="#practice-content" className="skip-link">
         Skip to practice
       </Anchor>
       <AppShell
-        header={{ height: 72 }}
+        transitionDuration={resizing ? 0 : 200}
+        header={{
+          height: toolbarOnly
+            ? desktop
+              ? 56
+              : smallToolbar
+                ? 148
+                : 104
+            : compact
+              ? 56
+              : 72,
+        }}
         navbar={{
-          width: 244,
+          width: resizableNavigation ? navigationWidth : minimumWidth,
           breakpoint: "sm",
           collapsed: { desktop: navigationCollapsed, mobile: true },
         }}
         padding="md"
       >
         <AppShell.Header className="soundtools-ui">
-          <Group h="100%" px="md" wrap="nowrap">
-            {(!desktop || navigationCollapsed) && (
+          <Group
+            h="100%"
+            px={compact ? "sm" : "md"}
+            gap={toolbarOnly ? "xs" : "md"}
+            wrap="nowrap"
+          >
+            {(compact || !desktop || navigationCollapsed) && (
               <Burger
                 className="nav-toggle"
                 size="sm"
                 opened={!desktop && navigationOpen}
-                aria-label="Open navigation"
-                aria-expanded={!desktop ? navigationOpen : false}
+                aria-label={
+                  desktop && compact && !navigationCollapsed
+                    ? "Collapse navigation"
+                    : "Open navigation"
+                }
+                aria-expanded={
+                  !desktop ? navigationOpen : compact && !navigationCollapsed
+                }
                 aria-controls="practice-navigation"
-                onClick={() => {
+                onClick={(event) => {
+                  if (compact) event.currentTarget.focus();
+                  if (desktop && compact && !navigationCollapsed) {
+                    onNavigationCollapse();
+                    return;
+                  }
                   if (desktop) {
                     onNavigationExpand();
-                    requestAnimationFrame(() =>
-                      document
-                        .querySelector<HTMLElement>(".nav-close")
-                        ?.focus(),
+                    requestAnimationFrame(
+                      () =>
+                        !compact &&
+                        document
+                          .querySelector<HTMLElement>(".nav-close")
+                          ?.focus(),
                     );
                   } else onNavigationOpen();
                 }}
               />
             )}
-            <Box style={{ flex: 1, minWidth: 0 }}>
-              <Text size="xs" c="dimmed">
+            <Box hidden={toolbarOnly} style={{ flex: 1, minWidth: 0 }}>
+              <Text size="xs" c="dimmed" hidden={compact}>
                 {area}
               </Text>
               <Title
@@ -184,8 +238,11 @@ export function ApplicationLayout({
                 {title}
               </Title>
             </Box>
+            {toolbarOnly ? (
+              <Box style={{ flex: 1, minWidth: 0 }}>{headerActions}</Box>
+            ) : null}
             <PracticeOptionsReopen />
-            {headerActions}
+            {!toolbarOnly && headerActions}
           </Group>
         </AppShell.Header>
         {desktop && (
@@ -201,6 +258,7 @@ export function ApplicationLayout({
               {brand}
               <ActionIcon
                 className="nav-close"
+                hidden={compact}
                 variant="subtle"
                 aria-label="Collapse navigation"
                 onClick={() => {
@@ -214,6 +272,58 @@ export function ApplicationLayout({
               </ActionIcon>
             </Group>
             {navigation}
+            {resizableNavigation && !navigationCollapsed && (
+              <div
+                className="navigation-resizer"
+                role="separator"
+                aria-label="Resize navigation"
+                aria-orientation="vertical"
+                aria-valuemin={minimumWidth}
+                aria-valuemax={maximumWidth}
+                aria-valuenow={navigationWidth}
+                aria-valuetext={`${navigationWidth} pixels`}
+                tabIndex={0}
+                data-resizing={resizing || undefined}
+                title="Drag to resize. Double-click to reset."
+                onDoubleClick={() => resizeNavigation(minimumWidth)}
+                onPointerDown={(event) => {
+                  if (event.button !== 0) return;
+                  event.preventDefault();
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  setResizing(true);
+                }}
+                onPointerMove={(event) => {
+                  if (event.currentTarget.hasPointerCapture(event.pointerId))
+                    resizeNavigation(
+                      event.clientX -
+                        event.currentTarget.parentElement!.getBoundingClientRect()
+                          .left,
+                    );
+                }}
+                onPointerUp={(event) => {
+                  if (event.currentTarget.hasPointerCapture(event.pointerId))
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                }}
+                onLostPointerCapture={() => setResizing(false)}
+                onKeyDown={(event) => {
+                  if (
+                    !["ArrowLeft", "ArrowRight", "Home", "End"].includes(
+                      event.key,
+                    )
+                  )
+                    return;
+                  event.preventDefault();
+                  resizeNavigation(
+                    event.key === "Home"
+                      ? minimumWidth
+                      : event.key === "End"
+                        ? maximumWidth
+                        : navigationWidth +
+                          (event.key === "ArrowRight" ? 16 : -16),
+                  );
+                }}
+              />
+            )}
           </AppShell.Navbar>
         )}
         <AppShell.Main

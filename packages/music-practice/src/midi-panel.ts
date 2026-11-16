@@ -1,12 +1,11 @@
 import { createElement } from "react";
-import {
-  mountPracticeSurface,
-} from "./practice-surfaces";
+import { mountPracticeSurface } from "./practice-surfaces";
 import { MidiControls, midiControlsState } from "./midi-controls";
 import {
   browserMidiRequest,
   MidiKeyboard,
   type MidiState,
+  type MidiKeys,
   type MidiStatus,
 } from "./midi-input";
 /** Connection details stay in the page; only the categorical state reaches diagnostics. */
@@ -100,6 +99,8 @@ export function mountMidiPanel(
       disposeView();
     },
     setAccepting: (enabled: boolean) => keyboard.setAccepting(enabled),
+    setKeysListener: (listener: (keys: MidiKeys) => void) =>
+      keyboard.setKeysListener(listener),
     disconnect: () => keyboard.disconnect(),
     setPerformanceListener: (
       listener: (

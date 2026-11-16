@@ -36,25 +36,24 @@ export function MidiControls({
       >
         {value.text}
       </Text>
-      <NativeSelect
-        id="midi-input"
-        className="midi-device"
-        label="Input"
-        aria-label="MIDI input"
-        hidden={
-          value.inputs.length < 2 &&
-          !(value.inputs.length === 1 && !value.selected)
-        }
-        value={value.selected}
-        data={[
-          { value: "", label: "Choose input" },
-          ...value.inputs.map((input) => ({
-            value: input.id,
-            label: input.name,
-          })),
-        ]}
-        onChange={(event) => select(event.currentTarget.value)}
-      />
+      {(value.inputs.length > 1 ||
+        (value.inputs.length === 1 && !value.selected)) && (
+        <NativeSelect
+          id="midi-input"
+          className="midi-device"
+          label="Input"
+          aria-label="MIDI input"
+          value={value.selected}
+          data={[
+            { value: "", label: "Choose input" },
+            ...value.inputs.map((input) => ({
+              value: input.id,
+              label: input.name,
+            })),
+          ]}
+          onChange={(event) => select(event.currentTarget.value)}
+        />
+      )}
       <Group gap="xs" className="midi-actions">
         <Button
           className="midi-connect"

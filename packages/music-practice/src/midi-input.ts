@@ -13,6 +13,10 @@ export type MidiStatus = {
   selected: string;
   name: string;
 };
+export type MidiKeys = {
+  held: readonly number[];
+  sustained: readonly number[];
+};
 export type MidiRequest = () => Promise<MIDIAccess>;
 /** Only physical note gestures are accepted. No MIDI is sent or persisted. */
 export class MidiKeyboard {
@@ -24,6 +28,20 @@ export class MidiKeyboard {
   private requesting = false;
   private opening = false;
   private held = new Set<number>();
+  private sustained = new Set<number>();
+  private pedals = new Set<number>();
+  private keysListener?: (keys: MidiKeys) => void;
+  /** Physical state is independent of whether this exercise currently accepts answers. */
+  setKeysListener(listener: (keys: MidiKeys) => void) {
+    this.keysListener = listener;
+    this.publishKeys();
+  }
+  private publishKeys() {
+    this.keysListener?.({
+      held: [...new Set([...this.held].map((key) => key % 128))],
+      sustained: [...new Set([...this.sustained].map((key) => key % 128))],
+    });
+  }
   private accepting = false;
   private acceptAfter = Infinity;
   private state: MidiState;
@@ -159,6 +177,9 @@ export class MidiKeyboard {
     const old = this.input;
     this.input = undefined;
     this.held.clear();
+    this.sustained.clear();
+    this.pedals.clear();
+    this.publishKeys();
     this.opening = false;
     if (old) {
       old.onmidimessage = null;
@@ -203,15 +224,32 @@ export class MidiKeyboard {
     if (status < 0x80 || status > 0xef || note > 127 || velocity > 127) return;
     const kind = status & 0xf0,
       key = (status & 0x0f) * 128 + note;
-    if (kind === 0xb0 && (note === 120 || note === 123)) {
-      const channel = status & 0x0f;
-      for (const held of this.held)
-        if (Math.floor(held / 128) === channel) this.held.delete(held);
+    const channel = status & 0x0f;
+    if (kind === 0xb0 && [120, 121, 123].includes(note)) {
+      if (note !== 121)
+        for (const key of this.held)
+          if (Math.floor(key / 128) === channel) this.held.delete(key);
+      for (const key of this.sustained)
+        if (Math.floor(key / 128) === channel) this.sustained.delete(key);
+      this.pedals.delete(channel);
+      this.publishKeys();
+    } else if (kind === 0xb0 && note === 64) {
+      if (velocity >= 64) this.pedals.add(channel);
+      else {
+        this.pedals.delete(channel);
+        for (const key of this.sustained)
+          if (Math.floor(key / 128) === channel) this.sustained.delete(key);
+      }
+      this.publishKeys();
     } else if (kind === 0x80 || (kind === 0x90 && velocity === 0)) {
-      this.held.delete(key);
+      if (this.held.delete(key) && this.pedals.has(channel))
+        this.sustained.add(key);
+      this.publishKeys();
     } else if (kind === 0x90 && !this.held.has(key)) {
       const released = this.held.size === 0;
       this.held.add(key);
+      this.sustained.delete(key);
+      this.publishKeys();
       // Notes received during feedback/background still latch until released.
       if (this.accepting && event.timeStamp >= this.acceptAfter) {
         if (this.performanceMode)
@@ -224,6 +262,7 @@ export class MidiKeyboard {
       }
     }
   }
+
   disconnect() {
     this.stop(this.request ? "idle" : "unsupported");
   }

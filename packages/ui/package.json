@@ -23,7 +23,9 @@
     "./settings-sections": "./settings-sections.tsx",
     "./privacy-section": "./privacy-section.tsx",
     "./control-icon": "./control-icon.tsx",
-    "./panel-icon": "./panel-icon.tsx"
+    "./panel-icon": "./panel-icon.tsx",
+    "./toolbar-slider": "./toolbar-slider.tsx",
+    "./toolbar-number": "./toolbar-number.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

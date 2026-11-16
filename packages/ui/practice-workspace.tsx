@@ -4,19 +4,21 @@ import {
   createContext,
   useContext,
   useLayoutEffect,
+  useEffect,
   useRef,
   useState,
   type PropsWithChildren,
   type ReactNode,
 } from "react";
-import { ActionIcon, Button, Group, Text } from "@mantine/core";
+import { ActionIcon, Button, Drawer, Group, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 
-export type OptionsEntry = { id: string; form: ReactNode };
+export type OptionsEntry = { id: string; form: ReactNode; title?: string };
 function useOptionsState(
   views: readonly OptionsEntry[],
   activeId?: string,
   activityKey?: string,
+  mobileDrawer = false,
 ) {
   const desktop = useMediaQuery("(min-width: 70em)", undefined, {
     getInitialValueInEffect: false,
@@ -42,6 +44,13 @@ function useOptionsState(
   });
   return {
     views,
+    title:
+      views.find((view) => view.id === activeId)?.title || "Practice options",
+    mobileDrawer,
+    closeMobile() {
+      closePitchFields();
+      setMobileCollapsed(true);
+    },
     activeId,
     active,
     desktop,
@@ -54,7 +63,12 @@ function useOptionsState(
       if (desktop) {
         focus.current = "reopen";
         setDesktopCollapsed(true);
-      } else setMobileCollapsed((value) => !value);
+      } else {
+        // Safari does not focus buttons on pointer activation. Give the drawer
+        // a stable trigger for its standard return-focus behavior.
+        toggleRef.current?.focus({ preventScroll: true });
+        setMobileCollapsed((value) => !value);
+      }
     },
     reopen() {
       focus.current = "toggle";
@@ -75,12 +89,24 @@ export function PracticeOptionsProvider({
   activityKey,
   children,
   entries,
+  mobileDrawer = false,
+  onMobileOpenChange,
 }: PropsWithChildren<{
   entries: readonly OptionsEntry[];
   activeId?: string;
   activityKey?: string;
+  mobileDrawer?: boolean;
+  onMobileOpenChange?(opened: boolean): void;
 }>) {
-  const state = useOptionsState(entries, activeId, activityKey);
+  const state = useOptionsState(entries, activeId, activityKey, mobileDrawer);
+  const mobileOpen =
+    mobileDrawer && !state.desktop && state.active && !state.collapsed;
+  const reportedOpen = useRef(false);
+  useEffect(() => {
+    if (reportedOpen.current === mobileOpen) return;
+    reportedOpen.current = mobileOpen;
+    onMobileOpenChange?.(mobileOpen);
+  }, [mobileOpen, onMobileOpenChange]);
   return (
     <OptionsContext.Provider value={state}>{children}</OptionsContext.Provider>
   );
@@ -90,21 +116,44 @@ export function PracticeOptionsReopen() {
   return (
     <Button
       id="practice-options-reopen"
-      ref={state.reopenRef}
+      ref={state.desktop && state.collapsed ? state.reopenRef : state.toggleRef}
       variant="default"
-      hidden={!state.active || !state.desktop || !state.collapsed}
-      aria-label="Expand practice options"
+      px={state.mobileDrawer ? 0 : undefined}
+      w={state.mobileDrawer ? 38 : undefined}
+      miw={state.mobileDrawer ? 38 : undefined}
+      title={`${!state.collapsed ? "Collapse" : "Expand"} ${state.title.toLowerCase()}`}
+      hidden={
+        !state.mobileDrawer &&
+        (!state.active || !state.desktop || !state.collapsed)
+      }
+      disabled={!state.active}
+      aria-label={`${!state.collapsed ? "Collapse" : "Expand"} ${state.title.toLowerCase()}`}
       aria-controls="practice-options-content"
-      aria-expanded={false}
-      onClick={state.reopen}
+      aria-expanded={state.active && !state.collapsed}
+      onClick={state.desktop && state.collapsed ? state.reopen : state.toggle}
     >
-      Options
+      {state.mobileDrawer ? <PanelIcon right /> : "Options"}
     </Button>
   );
 }
 export function PracticeWorkspace({ children }: PropsWithChildren) {
   const state = useOptions();
-  const label = `${state.collapsed ? "Expand" : "Collapse"} practice options`;
+  const label = `${state.collapsed ? "Expand" : "Collapse"} ${state.title.toLowerCase()}`;
+  const drawer = state.mobileDrawer && !state.desktop;
+  const content = (
+    <div
+      id="practice-options-content"
+      ref={state.contentRef}
+      className="practice-options-content"
+      hidden={!drawer && state.collapsed}
+    >
+      {state.views.map((view) => (
+        <section key={view.id} hidden={view.id !== state.activeId}>
+          {view.form}
+        </section>
+      ))}
+    </div>
+  );
   return (
     <div
       className="practice-workspace"
@@ -114,16 +163,17 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
       <div className="practice-workspace-content">{children}</div>
       <aside
         className="practice-options soundtools-ui"
-        aria-label="Practice options"
+        aria-label={state.title}
         data-layout={state.desktop ? "desktop" : "mobile"}
-        hidden={!state.active || (state.desktop && state.collapsed)}
+        hidden={!state.active || (state.desktop && state.collapsed) || drawer}
       >
         {state.desktop ? (
           <Group justify="space-between" wrap="nowrap">
-            <Text fw={600}>Practice options</Text>
+            <Text fw={600}>{state.title}</Text>
             <ActionIcon
               className="options-toggle"
-              ref={state.toggleRef}
+              ref={state.mobileDrawer ? undefined : state.toggleRef}
+              hidden={state.mobileDrawer}
               variant="subtle"
               title={label}
               aria-label={label}
@@ -134,7 +184,7 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
               <PanelIcon right />
             </ActionIcon>
           </Group>
-        ) : (
+        ) : !drawer ? (
           <Button
             className="options-toggle"
             ref={state.toggleRef}
@@ -159,22 +209,30 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
               </svg>
             }
           >
-            Practice options
+            {state.title}
           </Button>
-        )}
-        <div
-          id="practice-options-content"
-          ref={state.contentRef}
-          className="practice-options-content"
-          hidden={state.collapsed}
-        >
-          {state.views.map((view) => (
-            <section key={view.id} hidden={view.id !== state.activeId}>
-              {view.form}
-            </section>
-          ))}
-        </div>
+        ) : null}
+        {!drawer && content}
       </aside>
+      {drawer && (
+        <Drawer
+          opened={state.active && !state.collapsed}
+          onClose={state.closeMobile}
+          position="bottom"
+          size="80dvh"
+          title={state.title}
+          keepMounted
+          closeButtonProps={{
+            "aria-label": `Close ${state.title.toLowerCase()}`,
+          }}
+          classNames={{ content: "soundtools-ui" }}
+          styles={{
+            body: { overflowY: "auto", maxHeight: "calc(80dvh - 64px)" },
+          }}
+        >
+          {content}
+        </Drawer>
+      )}
     </div>
   );
 }

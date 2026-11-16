@@ -1,5 +1,8 @@
 export type ControlIconName =
   | "settings"
+  | "text-size"
+  | "go-start"
+  | "tempo"
   | "play"
   | "pause"
   | "stop"
@@ -15,6 +18,20 @@ export type ControlIconName =
   | "chevron-right";
 
 const artwork = {
+  tempo: (
+    <>
+      <path d="M9 18V5l10-2v13M9 8l10-2" />
+      <ellipse cx="6" cy="18" rx="3" ry="2" />
+      <ellipse cx="16" cy="16" rx="3" ry="2" />
+    </>
+  ),
+  "go-start": (
+    <>
+      <path d="M5 5v14" />
+      <path d="m19 5-11 7 11 7Z" fill="currentColor" stroke="none" />
+    </>
+  ),
+  "text-size": <path d="m2 19 5-14 5 14M4 14h6m4 5 4-9 4 9m-6-3h4" />,
   settings: <path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-7 0v6" />,
   play: <path d="m8 5 11 7-11 7Z" fill="currentColor" stroke="none" />,
   pause: <path d="M8 5v14M16 5v14" strokeWidth="3" />,

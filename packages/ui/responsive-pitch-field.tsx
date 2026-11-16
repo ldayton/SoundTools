@@ -13,6 +13,7 @@ export function closePitchFields() {
 export function ResponsivePitchField({
   id,
   label,
+  displayLabel,
   value,
   choices,
   onChange,
@@ -23,6 +24,7 @@ export function ResponsivePitchField({
 }: {
   id: string;
   label: string;
+  displayLabel?: string;
   value: number;
   choices: readonly PitchChoice[];
   onChange(value: number): void;
@@ -86,7 +88,7 @@ export function ResponsivePitchField({
               host.current?.focus({ preventScroll: true });
           }}
         >
-          {label}
+          {displayLabel ?? label}
         </Input.Label>
         {optional && (
           <Button

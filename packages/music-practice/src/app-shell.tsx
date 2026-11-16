@@ -24,6 +24,8 @@ import {
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import {
+  Accordion,
+  Group,
   Alert,
   Anchor,
   Box,
@@ -105,9 +107,19 @@ export function mountAppShell(
     },
   };
   let renderFailed = false;
+  let optionsOpen = false;
+  function optionsOpened(opened: boolean) {
+    optionsOpen = opened;
+    if (opened) events.interrupt("controls");
+    events.inputChanged();
+  }
   let focusAfterNavigation = false;
   function focusTitle() {
-    $("#page-title").focus({ preventScroll: true });
+    const heading =
+      APP.id === "songalong" && store.getSnapshot().routeKind === "exercise"
+        ? $(".sequence-title")
+        : $("#page-title");
+    heading.focus({ preventScroll: true });
     window.scrollTo({ top: 0 });
   }
   function closeNavigation() {
@@ -146,11 +158,20 @@ export function mountAppShell(
       offlineState.getSnapshot,
     );
     return (
-      <Stack gap="md">
+      <Stack
+        gap="md"
+        style={APP.id === "songalong" ? { flex: 1, minHeight: 0 } : undefined}
+      >
         {views.selection}
-        {AREAS.map((area) => (
+        {(APP.id === "songalong" ? [] : AREAS).map((area) => (
           <Box key={area.label}>
-            <Text size="xs" c="dimmed" fw={600} mb="xs">
+            <Text
+              size="xs"
+              c="dimmed"
+              fw={600}
+              mb="xs"
+              hidden={APP.id === "songalong"}
+            >
               {area.label}
             </Text>
             {area.items.map((item) => (
@@ -169,62 +190,109 @@ export function mountAppShell(
             ))}
           </Box>
         ))}
-        <Stack gap="xs">
-          <Button
-            className="keyboard-menu"
-            data-state={snapshot.midi}
-            variant="default"
-            aria-label={
-              snapshot.midi === "connected"
-                ? "Keyboard connected"
-                : "Keyboard connection"
-            }
-            aria-expanded={snapshot.keyboardOpen}
-            aria-controls="midi-connection-details"
-            leftSection={<ShellIcon name="keyboard" />}
-            rightSection={
-              <Indicator
-                color={snapshot.midi === "connected" ? "green" : "gray"}
-                processing={
-                  snapshot.midi === "requesting" || snapshot.midi === "opening"
-                }
-                position="middle-center"
-              >
-                <Box w={8} h={8} />
-              </Indicator>
-            }
-            onClick={() => keyboardOpened(!snapshot.keyboardOpen)}
-          >
-            <Text component="span" size="sm">
-              Keyboard
-            </Text>
-          </Button>
-          <Collapse
-            id="midi-connection-details"
-            expanded={snapshot.keyboardOpen}
-            keepMountedMode="display-none"
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                event.preventDefault();
-                event.stopPropagation();
-                keyboardOpened(false);
-                document.querySelector<HTMLElement>(".keyboard-menu")?.focus();
-              }
-            }}
-          >
-            <MidiContents />
-          </Collapse>
+        <Stack
+          gap="md"
+          mt={APP.id === "songalong" ? "auto" : undefined}
+          className={
+            APP.id === "songalong" ? "songalong-navigation-tools" : undefined
+          }
+        >
+          {APP.id === "songalong" ? (
+            <Accordion
+              keepMounted
+              keepMountedMode="display-none"
+              value={snapshot.keyboardOpen ? "keyboard" : null}
+              onChange={(value) => keyboardOpened(value === "keyboard")}
+            >
+              <Accordion.Item value="keyboard">
+                <Accordion.Control
+                  className="keyboard-menu"
+                  data-state={snapshot.midi}
+                  aria-label={
+                    snapshot.midi === "connected"
+                      ? "Keyboard connected"
+                      : "Keyboard connection"
+                  }
+                >
+                  <Group gap="sm">
+                    <Text size="sm">Keyboard</Text>
+                    <Indicator
+                      color={snapshot.midi === "connected" ? "green" : "gray"}
+                      position="middle-center"
+                    >
+                      <Box w={8} h={8} />
+                    </Indicator>
+                  </Group>
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <MidiContents />
+                </Accordion.Panel>
+              </Accordion.Item>
+            </Accordion>
+          ) : (
+            <>
+              <Stack gap="xs">
+                <Button
+                  className="keyboard-menu"
+                  data-state={snapshot.midi}
+                  variant="default"
+                  aria-label={
+                    snapshot.midi === "connected"
+                      ? "Keyboard connected"
+                      : "Keyboard connection"
+                  }
+                  aria-expanded={snapshot.keyboardOpen}
+                  aria-controls="midi-connection-details"
+                  leftSection={<ShellIcon name="keyboard" />}
+                  rightSection={
+                    <Indicator
+                      color={snapshot.midi === "connected" ? "green" : "gray"}
+                      processing={
+                        snapshot.midi === "requesting" ||
+                        snapshot.midi === "opening"
+                      }
+                      position="middle-center"
+                    >
+                      <Box w={8} h={8} />
+                    </Indicator>
+                  }
+                  onClick={() => keyboardOpened(!snapshot.keyboardOpen)}
+                >
+                  <Text component="span" size="sm">
+                    Keyboard
+                  </Text>
+                </Button>
+                <Collapse
+                  id="midi-connection-details"
+                  expanded={snapshot.keyboardOpen}
+                  keepMountedMode="display-none"
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      keyboardOpened(false);
+                      document
+                        .querySelector<HTMLElement>(".keyboard-menu")
+                        ?.focus();
+                    }
+                  }}
+                >
+                  <MidiContents />
+                </Collapse>
+              </Stack>
+            </>
+          )}
+          {APP.id !== "songalong" && <SidebarVolume />}
+          <SettingsNavigationLink
+            href="/settings"
+            onClick={follow}
+            active={snapshot.selected === "settings"}
+            updateAvailable={offline.updateAvailable}
+          />
+          <Text size="xs" c="dimmed" hidden={APP.id === "songalong"}>
+            SOUNDTOOLS
+          </Text>
         </Stack>
-        <SidebarVolume />
-        <SettingsNavigationLink
-          href="/settings"
-          onClick={follow}
-          active={snapshot.selected === "settings"}
-          updateAvailable={offline.updateAvailable}
-        />
-        <Text size="xs" c="dimmed">
-          SOUNDTOOLS
-        </Text>
       </Stack>
     );
   }
@@ -247,6 +315,8 @@ export function mountAppShell(
     );
     return (
       <PracticeOptionsProvider
+        mobileDrawer={APP.id === "songalong"}
+        onMobileOpenChange={optionsOpened}
         entries={views.options}
         activeId={activeOptionsId}
         activityKey={snapshot.selected}
@@ -255,8 +325,24 @@ export function mountAppShell(
           <RetainedContent element={midiPanel} />
         </div>
         <ApplicationLayout
+          compact={APP.id === "songalong"}
+          resizableNavigation={APP.id === "songalong"}
+          mainClassName={
+            APP.id === "songalong" ? "songalong-workspace" : undefined
+          }
           brand={brand}
           title={snapshot.title}
+          toolbarOnly={
+            APP.id === "songalong" && snapshot.routeKind === "exercise"
+          }
+          headerActions={
+            APP.id === "songalong" && snapshot.routeKind === "exercise" ? (
+              <RetainedContent
+                element={registry.headerHost}
+                className="songalong-header-transport"
+              />
+            ) : undefined
+          }
           area={snapshot.area}
           navigation={<Navigation />}
           navigationOpen={snapshot.navigationOpen}
@@ -371,6 +457,7 @@ export function mountAppShell(
     get inputBlocked() {
       return (
         renderFailed ||
+        optionsOpen ||
         store.getSnapshot().navigationOpen ||
         store.getSnapshot().keyboardOpen
       );
@@ -422,7 +509,10 @@ export function mountAppShell(
                 : mode,
         }),
       );
-      document.title = `${title} · ${APP.name}`;
+      document.title =
+        APP.id === "songalong" && route.kind === "exercise"
+          ? APP.name
+          : `${title} · ${APP.name}`;
     },
   };
 }

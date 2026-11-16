@@ -2,7 +2,7 @@ import { useSyncExternalStore, type ReactNode } from "react";
 import { createPortal, flushSync } from "react-dom";
 
 type View = { target: HTMLElement; content: ReactNode };
-type Options = { id: string; form: ReactNode };
+type Options = { id: string; form: ReactNode; title?: string };
 type Snapshot = {
   views: readonly View[];
   options: readonly Options[];
@@ -15,7 +15,11 @@ const owners = new WeakMap<
 
 /** One application's React views; controllers address only their bound activity host. */
 export function createPracticeRegistry() {
-  let snapshot: Snapshot = { views: [], options: [], selection: null };
+  let snapshot: Snapshot = {
+    views: [],
+    options: [],
+    selection: null,
+  };
   const listeners = new Set<() => void>();
   const hosts = new Set<HTMLElement>();
   let selectionOwner: HTMLElement | undefined;
@@ -24,7 +28,10 @@ export function createPracticeRegistry() {
     // Controllers measure renderer hosts immediately after mounting a view.
     flushSync(() => listeners.forEach((listener) => listener()));
   }
+  const headerHost = document.createElement("div");
+  headerHost.className = "sequence-transport";
   const registry = {
+    headerHost,
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) {
       listeners.add(listener);
@@ -50,12 +57,21 @@ export function createPracticeRegistry() {
         if (snapshot.views.includes(view)) registry.release(target);
       };
     },
-    options(element: HTMLElement, form: ReactNode) {
+    options(element: HTMLElement, form: ReactNode, title?: string) {
       update({
         options: [
           ...snapshot.options.filter((entry) => entry.id !== element.id),
-          { id: element.id, form },
+          { id: element.id, form, title },
         ],
+      });
+    },
+    optionsTitle(element: HTMLElement, title: string) {
+      const entry = snapshot.options.find((entry) => entry.id === element.id);
+      if (!entry || entry.title === title) return;
+      update({
+        options: snapshot.options.map((entry) =>
+          entry.id === element.id ? { ...entry, title } : entry,
+        ),
       });
     },
     release(element: HTMLElement) {
@@ -88,11 +104,18 @@ function owner(element: HTMLElement) {
 export function mountPracticeSurface(element: HTMLElement, content: ReactNode) {
   return owner(element).view(element, content);
 }
+export function practiceHeaderHost(element: HTMLElement) {
+  return owner(element).headerHost;
+}
 export function registerPracticeOptions(
   element: HTMLElement,
   content: ReactNode,
+  title?: string,
 ) {
-  owner(element).options(element, content);
+  owner(element).options(element, content, title);
+}
+export function setPracticeOptionsTitle(element: HTMLElement, title: string) {
+  owner(element).optionsTitle(element, title);
 }
 export function setSidebarSelection(element: HTMLElement, content: ReactNode) {
   owner(element).selection(element, content);

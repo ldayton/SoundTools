@@ -1,7 +1,201 @@
 /* A quieter sea-glass variation of the same practice workspace. */
 .hymn-paper {
-  color: #21483f;
+  color: #111;
 }
 .passage-shade {
   fill: #36a18b;
+}
+
+/* SongAlong's opt-in compact shell; other practice apps retain their geometry. */
+.songalong-workspace {
+  --practice-options-width: 280px;
+}
+.songalong-workspace .workspace-content {
+  max-width: none;
+}
+.songalong-workspace .practice-surface {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.songalong-workspace .sequence-practice {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: max(
+    480px,
+    calc(
+      100dvh - var(--app-shell-header-offset, 56px) - 2 *
+        var(--app-shell-padding, 16px) - 16px
+    )
+  );
+}
+/* With no piano dock, add to the shell's bottom padding to retain a 32px gap. */
+.songalong-workspace
+  .sequence-practice:not(:has(.practice-piano:not([hidden]))) {
+  padding-bottom: 16px;
+}
+.songalong-workspace .sequence-title {
+  font-size: clamp(24px, 2.2vw, 32px);
+  text-align: center;
+  margin: 0 0 20px;
+}
+.songalong-workspace .workspace-content {
+  padding-block: 16px 0;
+}
+.hymn-score-page {
+  padding: clamp(20px, 3vw, 40px) clamp(12px, 2vw, 28px);
+}
+.hymn-score-heading {
+  margin-bottom: 28px;
+  color: #111;
+}
+.hymn-score-credits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+.hymn-score-credits > :last-child {
+  text-align: right;
+}
+@media (max-width: 600px) {
+  .hymn-score-credits {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .hymn-score-credits > :last-child {
+    text-align: left;
+  }
+}
+.songalong-workspace :where(.white-key) {
+  background: #fff;
+  border-color: #bcbcbc;
+  box-shadow: inset 0 -4px #e8e8e8;
+}
+.songalong-workspace :where(.black-key) {
+  background: #111;
+  border-color: #000;
+}
+.songalong-workspace .hymn-paper {
+  color: #111;
+}
+.songalong-workspace .sequence-transport {
+  margin: 0 0 var(--mantine-spacing-sm);
+}
+.songalong-workspace .sequence-score {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: #fff;
+  flex: 0 1 auto;
+  margin-bottom: auto;
+  min-height: 120px;
+  max-height: none;
+}
+.songalong-workspace .practice-piano {
+  flex: 0 0 auto;
+  /* Match the gap above the score: shell padding plus page padding. */
+  margin-top: calc(var(--app-shell-padding, 16px) + 16px);
+  padding: var(--mantine-spacing-xs);
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+.songalong-workspace .practice-options-content > section > .soundtools-ui {
+  padding-top: var(--mantine-spacing-sm);
+}
+/* Override shared sequence height caps: the score fills the space above the dock. */
+.songalong-workspace #sight-reading .sequence-score,
+.songalong-workspace
+  #sight-reading:has(.practice-piano:not([hidden]))
+  .sequence-score {
+  max-height: none;
+}
+
+.hymn-library {
+  flex: 1;
+  min-height: 0;
+}
+.hymn-library-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.songalong-header-transport .sequence-transport {
+  margin: 0;
+}
+
+.songalong-navigation-tools {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: var(--mantine-spacing-md);
+}
+.songalong-header-transport .hymn-controls {
+  white-space: normal;
+}
+
+/* Balanced outer columns keep transport centered independently of panel state. */
+.hymn-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.hymn-toolbar-appearance {
+  justify-self: start;
+}
+.hymn-toolbar-playback {
+  flex-wrap: nowrap;
+}
+.hymn-toolbar-piano {
+  justify-self: end;
+}
+@media (max-width: 767px) {
+  .hymn-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "appearance piano" "playback playback";
+    gap: 8px;
+  }
+  .hymn-toolbar-appearance {
+    grid-area: appearance;
+  }
+  .hymn-toolbar-piano {
+    grid-area: piano;
+  }
+  .hymn-toolbar-playback {
+    grid-area: playback;
+    flex-wrap: wrap;
+  }
+}
+
+/* Physical presses, pedal sustain, playback and coaching are separate signals. */
+.songalong-workspace .hymn-piano .piano-key {
+  touch-action: none;
+  transition: none;
+}
+.songalong-workspace .hymn-piano .piano-key.is-playing {
+  background: #72cdb7;
+  box-shadow: inset 0 3px 5px #143f3540;
+}
+.songalong-workspace .hymn-piano .piano-key.is-sustained {
+  background: #d5e9f5;
+}
+.songalong-workspace .hymn-piano .piano-key.is-held {
+  background: #8cbce2;
+  box-shadow: inset 0 4px 6px #163e6860;
+}
+.songalong-workspace .hymn-piano .black-key.is-held {
+  background: #326892;
+}
+.songalong-workspace .hymn-piano .black-key.is-sustained {
+  background: #526775;
+}
+.songalong-workspace .hymn-piano .piano-key.is-right {
+  background: #a5c1a3;
+  outline: 3px solid #258742;
+  outline-offset: -3px;
+}
+.songalong-workspace .hymn-piano .piano-key.is-wrong {
+  background: #dfad99;
+  outline: 3px solid #bf3333;
+  outline-offset: -3px;
 }

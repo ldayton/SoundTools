@@ -19,6 +19,11 @@ export class RendererLifetime {
     type: K,
     listener: (event: WindowEventMap[K]) => void,
   ): void;
+  listen<K extends keyof DocumentEventMap>(
+    target: Document,
+    type: K,
+    listener: (event: DocumentEventMap[K]) => void,
+  ): void;
   listen(target: EventTarget, type: string, listener: (event: any) => void) {
     if (!this.disposed)
       target.addEventListener(type, listener, { signal: this.events.signal });

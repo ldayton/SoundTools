@@ -3,10 +3,23 @@ import { HymnFrame, hymnBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
 import { shellStatus } from "./shell-status";
 import { mountPracticeSurface } from "./practice-surfaces";
-import { HymnControls, hymnControlsState } from "./hymn-controls";
+import {
+  HymnControls,
+  HymnPassageControls,
+  hymnControlsState,
+} from "./hymn-controls";
 import { createElement } from "react";
-import { setSidebarSelection } from "./practice-surfaces";
-import { HymnOptions, HymnSelector } from "./hymn-options";
+import {
+  practiceHeaderHost,
+  setSidebarSelection,
+  setPracticeOptionsTitle,
+} from "./practice-surfaces";
+import {
+  HymnOptions,
+  HymnSelector,
+  HymnModeAndTempo,
+  HymnStaffSize,
+} from "./hymn-options";
 import {
   hymnOptionsState,
   type HymnOptionsState,
@@ -26,6 +39,7 @@ import { preparePianoPlayback } from "./piano-audio";
 import { HymnPlayback } from "./hymn-playback";
 import { mountPracticePiano, isPianoVisible } from "./practice-piano";
 import {
+  validHymnZoom,
   hymnSettingsFromQuery,
   mergeHymnSettings,
   optionalHymnNote,
@@ -57,6 +71,7 @@ import {
 import hymns from "./hymns.json";
 import { WaitForMe } from "./sight-reading-model";
 import { Piano } from "./piano";
+import type { MidiKeys } from "./midi-input";
 import { keyLabel } from "./piano-model";
 import { diagnostics } from "./diagnostics";
 import { persistence } from "./persistence";
@@ -73,8 +88,6 @@ export class SightReading {
     pause: "Pause",
     restore: "",
     previous: false,
-    next: false,
-    nextLabel: "Next hymn →",
     selecting: false,
     selected: false,
     loop: false,
@@ -178,7 +191,7 @@ export class SightReading {
         saved!.bpm! <= 200
       )
         this.bpm = saved!.bpm!;
-      if ([0.85, 1, 1.2].includes(saved?.zoom)) this.zoom = saved.zoom;
+      if (validHymnZoom(saved?.zoom)) this.zoom = saved.zoom;
       this.low = optionalHymnNote(saved?.low);
       this.high = optionalHymnNote(saved?.high);
       if (isHymnKey(saved?.key)) this.key = saved.key;
@@ -209,17 +222,28 @@ export class SightReading {
     } catch {
       /* Private browsing or an older saved preference. */
     }
+    this.options = hymnOptionsState(this.optionsSnapshot());
     this.disposeView = mountPracticeSurface(
       element,
       createElement(HymnFrame, {
+        headerHost: practiceHeaderHost(element),
         presentation: this.presentation,
         panelId: `${element.id}-piano-panel`,
         body: this.body,
         transport: createElement(HymnControls, {
+          settings: createElement(HymnModeAndTempo, {
+            model: this.options,
+            change: (patch) => this.changeOptions(patch),
+          }),
+          staffSize: createElement(HymnStaffSize, {
+            model: this.options,
+            change: (patch) => this.changeOptions(patch),
+          }),
           model: this.controls,
           panelId: `${element.id}-piano-panel`,
           previous: () => this.changeSection(this.section - 1),
           pause: () => {
+            this.piano.resetInteraction();
             if (this.mode === "playback") {
               if (
                 ["playing", "counting", "loading"].includes(this.playback.state)
@@ -235,17 +259,25 @@ export class SightReading {
             this.update();
             this.save();
           },
-          restart: () => {
+          goToStart: () => {
+            this.piano.resetInteraction();
             if (this.mode === "playback") {
-              this.render();
+              const previous = this.playback.state;
+              const running = ["playing", "counting", "loading"].includes(
+                previous,
+              );
               this.playback.restart();
               this.playbackView = "";
-              void this.playback.play(this.bpm, this.countInBars);
+              if (running)
+                void this.playback.play(
+                  this.bpm,
+                  previous === "playing" ? 0 : this.countInBars,
+                );
               this.update();
+              this.save();
               return;
             }
             this.position = 0;
-            this.paused = false;
             this.restorePending = false;
             this.render();
             this.save();
@@ -269,12 +301,9 @@ export class SightReading {
             this.save();
             shellStatus.set({ notice: "" });
           },
-          next: () => {
-            if (this.section + 1 < this.sections)
-              this.changeSection(this.section + 1);
-            else
-              this.choose(hymns[(hymns.indexOf(this.hymn) + 1) % hymns.length]);
-          },
+        }),
+        passage: createElement(HymnPassageControls, {
+          model: this.controls,
           cancel: () => {
             this.passage.cancel();
             this.update();
@@ -325,13 +354,13 @@ export class SightReading {
       },
       preparePianoPlayback,
     );
-    this.options = hymnOptionsState(this.optionsSnapshot());
     registerPracticeOptions(
       element,
       createElement(HymnOptions, {
         model: this.options,
         change: (patch) => this.changeOptions(patch),
       }),
+      this.mode === "playback" ? "Playback options" : "Practice options",
     );
     setSidebarSelection(
       element,
@@ -347,15 +376,24 @@ export class SightReading {
       }),
     );
     this.pianoPanel = mountPracticePiano(this.$(".hymn-piano"), {
-      changed: () => this.updateRangeHint(),
+      changed: () => {
+        if (!isPianoVisible()) this.piano?.resetInteraction();
+        else if (this.piano && this.active && this.mode === "playback") {
+          this.playbackView = "";
+          this.updatePlayback();
+        }
+        this.updateRangeHint();
+      },
     });
     this.midiSlot = this.$(".hymn-midi-slot");
     this.piano = new Piano(
       this.$(".hymn-piano"),
       (note) => {
+        // Mouse/accessibility users may build a chord one key at a time.
         if (this.accepting) this.answer(note);
       },
       () => this.updateRangeHint(),
+      { auditionWhenUnavailable: true, interactive: true },
     );
 
     this.lifetime.observe(this.$(".sequence-score"), () => {
@@ -396,7 +434,11 @@ export class SightReading {
     this.interrupt("navigation");
     this.acceptanceChanged();
   }
+  showMidiKeys(keys: MidiKeys) {
+    if (this.active) this.piano.setMidiKeys(keys);
+  }
   interrupt(reason: Interruption) {
+    this.piano.resetInteraction();
     if (this.passage.selecting) this.passage.cancel();
     if (reason === "navigation") closePitchFields();
     this.playback.pause();
@@ -414,7 +456,6 @@ export class SightReading {
     const switching = hymn.id !== this.hymn.id;
     if (switching) this.progress.remember(this.settings(), this.zoom);
     const base = switching ? this.progress.forHymn(hymn.id) : old;
-    if (switching) this.zoom = this.progress.forHymn(hymn.id).zoom;
     const next = hymnSettingsFromQuery(base, route.query);
     const changed =
       old.hymn !== next.hymn ||
@@ -531,7 +572,6 @@ export class SightReading {
     this.hands = next.hands!;
     this.viewHands = next.viewHands!;
     this.reattackTies = next.reattackTies!;
-    this.zoom = next.zoom;
     this.position = 0;
     this.paused = false;
     this.preferRangeDefault = false;
@@ -572,6 +612,7 @@ export class SightReading {
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
     if (!this.lastWidth) return;
     const previous = this.session;
+    if (!layoutOnly) this.piano.resetInteraction();
     const { feedback: previousText, kind: previousKind } =
       this.presentation.getSnapshot();
     if (!layoutOnly) {
@@ -584,6 +625,15 @@ export class SightReading {
     }
     this.presentation.set({ title: this.hymn.title });
     this.body.patch({
+      title: this.hymn.title,
+      credits: this.hymn.credits
+        .filter((credit) => /^(Words|Music):/i.test(credit))
+        .map((credit) =>
+          credit
+            .split(/\s+Setting:/i)[0]
+            .replace(/\s+/g, " ")
+            .trim(),
+        ),
       arrangement: this.arrangement,
       noKey: false,
       scoreLabel:
@@ -615,7 +665,7 @@ export class SightReading {
       const transposition = hymnTransposition(this.hymn.key, this.key);
       this.section = score.section;
       this.sections = score.sections;
-      this.events = drawPracticeScore(paper, score.abc, this.lastWidth, {
+      this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
         scale: this.zoom,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
@@ -665,7 +715,7 @@ export class SightReading {
         this.events = drawPracticeScore(
           document.createElement("div"),
           practice.abc,
-          this.lastWidth,
+          paper.clientWidth,
           {
             transpose: transposition.semitones,
             reattackTies: this.reattackTies,
@@ -749,12 +799,9 @@ export class SightReading {
         );
         viewport.style.setProperty(
           "--phone-score-height",
-          `${Math.ceil(height + 8)}px`,
+          `${Math.ceil(height + this.$(".hymn-score-heading").offsetHeight + 64)}px`,
         );
       }
-      this.presentation.set({
-        scrollHint: viewport.scrollHeight > viewport.clientHeight + 1,
-      });
       this.preparePiano(!!keepSession);
       this.update(true, !!keepSession);
       if (keepSession) {
@@ -778,6 +825,10 @@ export class SightReading {
   }
   private publishOptions() {
     this.options.set(this.optionsSnapshot());
+    setPracticeOptionsTitle(
+      this.element,
+      this.mode === "playback" ? "Playback options" : "Practice options",
+    );
   }
   private optionsSnapshot(): HymnOptionsSnapshot {
     const transposition = hymnTransposition(this.hymn.key, this.key);
@@ -849,7 +900,7 @@ export class SightReading {
       return;
     }
     if (patch.zoom !== undefined) {
-      if (![0.85, 1, 1.2].includes(patch.zoom)) return;
+      if (!validHymnZoom(patch.zoom)) return;
       this.zoom = patch.zoom;
       this.render(true);
     } else if (patch.bpm !== undefined) {
@@ -946,13 +997,13 @@ export class SightReading {
     this.setControls({ disabled: true });
     this.pianoPanel.setAvailable(false);
     this.presentation.set({ rangeHint: "" });
-    this.presentation.set({ scrollHint: false });
     this.$(".sequence-score").style.removeProperty("--phone-score-height");
     this.acceptanceChanged();
     this.save();
   }
   private preparePiano(preserveHint = false) {
     if (!this.session) return;
+    this.playbackView = "";
     this.piano.show(...keyboardRange(this.events), false, false, preserveHint);
     this.clearPianoSelection(!preserveHint);
   }
@@ -979,6 +1030,7 @@ export class SightReading {
   }
   answer(note: number, held?: readonly number[]) {
     if (this.inputPolicy === "none") return;
+    if (held) held = [...new Set([...held, ...this.piano.heldPitches])];
     const result = this.session!.answer(note, held, !this.paused);
     if (result === "ignored") return;
     if (result === "restarted") {
@@ -1030,13 +1082,14 @@ export class SightReading {
       context: this.mode === "playback" ? "Playback" : "Wait for me",
     });
     this.publishOptions();
-    this.pianoPanel.setAvailable(this.mode === "wait");
+    this.pianoPanel.setAvailable(true);
     if (this.mode === "playback") {
       this.playbackView = "";
       this.updatePlayback();
       this.acceptanceChanged();
       return;
     }
+    this.piano.setPlayback([]);
     highlightScore(
       this.$(".hymn-paper"),
       this.events[session.index],
@@ -1079,9 +1132,6 @@ export class SightReading {
       pauseDisabled: complete,
       pause: this.paused ? "Resume" : "Pause",
       previous: this.section !== 0,
-      next: complete || this.section + 1 !== this.sections,
-      nextLabel:
-        this.section + 1 < this.sections ? "Next section →" : "Next hymn →",
     });
     this.updateRangeHint();
     this.piano.setUnavailable(!this.accepting);
@@ -1135,7 +1185,11 @@ export class SightReading {
     if (index < 0) index = 0;
     const sounding = this.playback.sounding;
     const counting = this.playback.counting;
-    const view = `${state}:${this.section}:${index}:${sounding}:${counting?.bar}:${counting?.beat}`;
+    const playingNotes = this.playback.soundingNotes;
+    const attacks = playingNotes
+      .map((note) => `${note.pitch}@${note.start}`)
+      .join(",");
+    const view = `${attacks}:${state}:${this.section}:${index}:${sounding}:${counting?.bar}:${counting?.beat}`;
     if (view === this.playbackView) return;
     this.playbackView = view;
     highlightScore(
@@ -1177,12 +1231,10 @@ export class SightReading {
               : "Play",
       restore: "",
       previous: this.section !== 0,
-      next: complete || this.section + 1 !== this.sections,
-      nextLabel:
-        this.section + 1 < this.sections ? "Next section →" : "Next hymn →",
     });
     this.presentation.set({ rangeHint: "" });
     this.piano.setUnavailable(true);
+    this.piano.setPlayback(playingNotes);
     this.showCountIn();
   }
 }

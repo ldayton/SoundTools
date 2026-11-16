@@ -1,4 +1,8 @@
-import { hymnPreferences, type HymnSettings } from "./hymn-settings";
+import {
+  hymnPreferences,
+  validHymnZoom,
+  type HymnSettings,
+} from "./hymn-settings";
 import { hymnKeySuffix, type HymnKey } from "./hymn-transpose";
 import type { CountInBars } from "./hymn-count-in";
 import type { Arrangement, HymnHands } from "./hymn-arrangements";
@@ -26,11 +30,13 @@ export type HymnState = {
 
 /** Saved preferences and content-checked checkpoints, independent of rendering and transport. */
 export class HymnProgress {
+  private zoom = 1;
   readonly bookmarks: Record<string, Bookmark> = {};
   readonly preferences: Record<string, ReturnType<typeof hymnPreferences>> = {};
   readonly sections: Record<string, number> = {};
   constructor(saved: HymnState | undefined, hymnIds: readonly string[]) {
     if (saved?.version !== 1) return;
+    if (validHymnZoom(saved.zoom)) this.zoom = saved.zoom;
     for (const field of ["bookmarks", "sections"] as const)
       if (saved[field] && typeof saved[field] === "object")
         Object.assign(this[field], structuredClone(saved[field]));
@@ -40,9 +46,10 @@ export class HymnProgress {
           this.preferences[id] = hymnPreferences(id, saved.preferences[id]);
   }
   forHymn(id: string) {
-    return hymnPreferences(id, this.preferences[id]);
+    return { ...hymnPreferences(id, this.preferences[id]), zoom: this.zoom };
   }
   remember(settings: HymnSettings, zoom: number) {
+    this.zoom = zoom;
     this.preferences[settings.hymn] = { ...settings, zoom };
   }
   restore(

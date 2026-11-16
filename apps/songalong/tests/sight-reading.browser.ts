@@ -1,5 +1,6 @@
 import {
   practiceOption,
+  dismissPracticeDrawer,
   openNavigation,
   closeNavigation,
   selectPractice,
@@ -141,9 +142,17 @@ try {
   });
   await on(61);
   assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
-  assert.match(
-    (await page.locator(".sequence-feedback").textContent())!,
-    /D♭4.*D4/,
+  assert.equal(
+    await page
+      .locator('.piano-key.is-wrong[data-piano="61"] .piano-hint-label')
+      .textContent(),
+    "D♭4",
+  );
+  assert.equal(
+    await page
+      .locator('.piano-key.is-right[data-piano="62"] .piano-hint-label')
+      .textContent(),
+    "D4",
   );
   await off(61);
   await send([0x90, 62, 100], true);
@@ -193,7 +202,7 @@ try {
   // Expand the keyboard viewport before entering this wide bass-to-treble chord.
   // Keys retain their fixed width when the options sidebar is open.
   await closePracticeOptions(page);
-  await page.locator(".hymn-restart").click();
+  await page.locator(".hymn-go-start").click();
   for (const n of [43, 55, 59, 62]) {
     const key = page.locator(`.hymn-piano [data-piano="${n}"]`);
     const box = await key.boundingBox();
@@ -213,7 +222,8 @@ try {
           "#hymn-arrangement",
           chords ? "original" : "melody",
         );
-        await page.locator(".hymn-restart").click();
+        await dismissPracticeDrawer(page);
+        await page.locator(".hymn-go-start").click();
         assert.match(
           (await page.locator(".hymn-count").textContent())!,
           /^1 \/ [1-9]\d*$/,
@@ -240,10 +250,7 @@ try {
           true,
           hymn.title,
         );
-        assert.doesNotMatch(
-          (await page.locator(".sequence-feedback").textContent())!,
-          /couldn’t/,
-        );
+        assert.equal(await page.locator(".sequence-feedback.error").count(), 0);
         if (hymn.id === "praise-god-from-whom-all-blessings-flow") {
           const crowded = await page
             .locator(".abcjs-lyric")
@@ -286,7 +293,7 @@ try {
   await input.fill("zzzzzz");
   await page.getByText("No hymns found. Try another title.").waitFor();
   await input.press("Escape");
-  assert.equal(await input.getAttribute("aria-expanded"), "false");
+  assert.equal(await input.inputValue(), "");
   await openNavigation(page);
   await input.click();
   await input.fill("doxology");
@@ -330,7 +337,8 @@ try {
     await off(n);
   }
   assert.equal(await page.locator(".hymn-count").textContent(), "Complete");
-  await page.locator(".hymn-next").click();
+  assert.equal(await page.locator(".hymn-next").count(), 0);
+  await choose("Jesus Loves Me");
   assert.equal(
     await page.locator(".sequence-title").textContent(),
     "Jesus Loves Me",
@@ -354,7 +362,7 @@ try {
       "Complete",
       "completed bookmark survives offline reload",
     );
-    await page.locator(".hymn-restart").click();
+    await page.locator(".hymn-go-start").click();
     assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
     await context.setOffline(false);
     // A fresh tab can enter hymns for the first time offline: not merely reuse an in-memory module.
@@ -381,7 +389,7 @@ try {
   await page
     .getByLabel("Share diagnostic information", { exact: true })
     .waitFor();
-  await page.getByRole("link", { name: "Hymns", exact: true }).click();
+  await page.getByRole("link", { name: "SongAlong home", exact: true }).click();
   assert.equal(
     await page.locator(".piano-toggle:visible").getAttribute("aria-expanded"),
     "false",

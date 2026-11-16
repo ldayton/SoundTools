@@ -1,5 +1,6 @@
 import { SimpleGrid } from "@mantine/core";
 import { ResponsivePitchField } from "@ldayton/ui/responsive-pitch-field";
+import { HYMN_NOTE_MIN, HYMN_NOTE_MAX } from "./hymn-settings";
 import { selectableNoteLabel } from "./pitch-labels";
 
 const choices = (positions: readonly string[], chromatic = false) =>
@@ -59,8 +60,9 @@ export function WrittenPitchRange({
     </SimpleGrid>
   );
 }
-const hymnPositions = Array.from({ length: 88 }, (_, index) =>
-  selectableNoteLabel(index + 21),
+const hymnPositions = Array.from(
+  { length: HYMN_NOTE_MAX - HYMN_NOTE_MIN + 1 },
+  (_, index) => selectableNoteLabel(index + HYMN_NOTE_MIN),
 );
 const hymnChoices = choices(hymnPositions, true);
 export function HymnPitchField({
@@ -76,11 +78,12 @@ export function HymnPitchField({
     <ResponsivePitchField
       id={`hymn-${bound}`}
       label={`${bound === "low" ? "Lowest" : "Highest"} note`}
+      displayLabel={bound === "low" ? "Lowest" : "Highest"}
       choices={hymnChoices}
-      value={value === null ? -1 : value - 21}
+      value={value === null ? -1 : value - HYMN_NOTE_MIN}
       optional
       mobileWheel
-      onChange={(index) => onChange(index < 0 ? null : index + 21)}
+      onChange={(index) => onChange(index < 0 ? null : index + HYMN_NOTE_MIN)}
     />
   );
 }

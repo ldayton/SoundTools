@@ -4,7 +4,9 @@ import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 import {
   practiceOption,
+  dismissPracticeDrawer,
   closePracticeOptions,
+  openPracticeOptions,
   midiAction,
 } from "../../../packages/music-practice/browser-tests/helpers";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
@@ -94,10 +96,12 @@ try {
     originalCount,
     "MIDI cannot advance or restart playback",
   );
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.waitForFunction(
     () => (window as any).playbackProbe.starts.length >= 2,
   );
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   const paused = await page.locator(".hymn-count").textContent();
   const starts = await page.evaluate(
@@ -122,6 +126,7 @@ try {
     await page.evaluate(() => (window as any).playbackProbe.starts.length),
     starts,
   );
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Resume", exact: true }).click();
   await page.waitForFunction(
     (n) => (window as any).playbackProbe.starts.length > n,
@@ -131,10 +136,8 @@ try {
   await page.waitForFunction(
     () =>
       Number(
-        document
-          .querySelector('[aria-label="Hymn progress"]')
-          ?.getAttribute("aria-valuenow"),
-      ) > 1,
+        document.querySelector(".hymn-count")?.textContent?.split(" / ")[0],
+      ) > 2,
   );
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   const stoppedForSettings = await page.evaluate(
@@ -143,16 +146,13 @@ try {
   await page.goBack();
   await page.getByRole("button", { name: "Resume", exact: true }).waitFor();
   assert.ok(
-    Number(
-      await page
-        .locator('[aria-label="Hymn progress"]')
-        .getAttribute("aria-valuenow"),
-    ) > 0,
+    parseInt((await page.locator(".hymn-count").textContent()) || "0", 10) > 0,
   );
   assert.equal(
     await page.evaluate(() => (window as any).playbackProbe.starts.length),
     stoppedForSettings,
   );
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Resume", exact: true }).click();
   await practiceOption(page, "#hymn-tempo", "100");
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
@@ -169,11 +169,14 @@ try {
     true,
     "mobile has no overflow",
   );
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await page.getByRole("button", { name: "Resume", exact: true }).waitFor();
   await page.setViewportSize({ width: 1400, height: 1000 });
   await practiceOption(page, "#hymn-tempo", "200");
-  await page.getByRole("button", { name: "Start again", exact: true }).click();
+  await dismissPracticeDrawer(page);
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   assert.equal(await page.locator("#hymn-length").count(), 0);
   assert.equal(await page.locator("#hymn-section").count(), 0);
   await page.waitForFunction(
@@ -183,20 +186,15 @@ try {
   );
   await page.waitForTimeout(300);
   assert.equal(await page.locator(".hymn-count").textContent(), "Complete");
-  await page
-    .getByRole("combobox", { name: "Mode", exact: true })
-    .selectOption("wait");
-  assert.match(
-    (await page.locator(".sequence-feedback").textContent()) || "",
-    /highlighted/,
-  );
+  await practiceOption(page, "#hymn-mode", "wait");
+  assert.equal(await page.locator(".sequence-feedback").count(), 0);
   assert.equal(
     await page
       .getByRole("spinbutton", {
         name: "Tempo in beats per minute",
         exact: true,
       })
-      .isVisible(),
+      .isEnabled(),
     false,
   );
   // Playback never overwrites the independent wait-for-me bookmark.
@@ -204,9 +202,8 @@ try {
     (await page.locator(".hymn-count").textContent()) || "",
     /^1 \//,
   );
-  await page
-    .getByRole("combobox", { name: "Mode", exact: true })
-    .selectOption("playback");
+  await practiceOption(page, "#hymn-mode", "playback");
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   await page
@@ -223,6 +220,7 @@ try {
     "changing arrangement stops audio",
   );
   // A hidden page pauses; returning never autoplays.
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   await page.evaluate(
@@ -325,9 +323,8 @@ try {
       .evaluate((e) => (e as HTMLOptionElement).disabled),
     false,
   );
-  await page
-    .getByRole("combobox", { name: "Mode", exact: true })
-    .selectOption("playback");
+  await practiceOption(page, "#hymn-mode", "playback");
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
   await page
@@ -339,7 +336,10 @@ try {
     () => document.documentElement.scrollWidth <= innerWidth,
   );
   await page
-    .getByRole("button", { name: "Expand practice options", exact: true })
+    .getByRole("button", {
+      name: /^Expand (practice|playback) options$/,
+      exact: true,
+    })
     .click();
   await page
     .getByRole("combobox", { name: "Show", exact: true })
@@ -504,15 +504,19 @@ try {
   await practiceOption(page, "#hymn-count-in", "2");
   await practiceOption(page, "#hymn-tempo", "200");
   assert.ok(
-    (await page.locator("#hymn-tempo").boundingBox())!.width >= 70,
+    (await page.locator("#hymn-tempo").boundingBox())!.width >= 56,
     "Tempo entry has room for three digits beside the step controls",
   );
-  await page.getByRole("button", { name: "Play", exact: true }).click();
-  await page.waitForFunction(() =>
-    document
-      .querySelector(".sequence-feedback")
-      ?.textContent?.startsWith("Count-in"),
+  await dismissPracticeDrawer(page);
+  const countClicks = await page.evaluate(
+    () => (window as any).playbackProbe.clicks.length,
   );
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.waitForFunction(
+    (before) => (window as any).playbackProbe.clicks.length > before,
+    countClicks,
+  );
+  await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await practiceOption(page, "#hymn-mode", "wait");
   assert.equal(await page.locator(".hymn-count-in-field").isVisible(), false);
@@ -520,7 +524,8 @@ try {
   const clicksBefore = await page.evaluate(
     () => (window as any).playbackProbe.clicks.length,
   );
-  await page.getByRole("button", { name: "Start again", exact: true }).click();
+  await dismissPracticeDrawer(page);
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
   await send(62);
   assert.equal(await number(), "2", "follow-me starts immediately");
   await send(60);
@@ -535,6 +540,7 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await page.locator(".hymn-count-in-field").isVisible(), false);
   await practiceOption(page, "#hymn-mode", "playback");
+  await openPracticeOptions(page);
   assert.equal(
     await page.locator("#hymn-count-in").inputValue(),
     "2",

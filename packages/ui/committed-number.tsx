@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { NumberInput } from "@mantine/core";
+import { NumberInput, type NumberInputProps } from "@mantine/core";
 
 /** Draft text is local. Only committed values reach the settings owner. */
 export function CommittedNumber({
@@ -7,20 +7,31 @@ export function CommittedNumber({
   change,
   reset = 0,
   allowDecimal = false,
+  hideLabel = false,
   ...props
 }: {
   value: number;
   change(value: number): boolean | void;
   reset?: number;
   allowDecimal?: boolean;
+  hideLabel?: boolean;
   id: string;
   label: string;
   min: number;
   max: number;
   step?: number;
   hideControls?: boolean;
+  disabled?: boolean;
   "aria-label"?: string;
-}) {
+} & Pick<
+  NumberInputProps,
+  | "leftSection"
+  | "leftSectionWidth"
+  | "rightSectionWidth"
+  | "leftSectionPointerEvents"
+  | "suffix"
+  | "styles"
+>) {
   const [draft, setDraft] = useState<string | number>(value);
   const current = useRef<string | number>(value);
   const dirty = useRef(false);
@@ -52,6 +63,8 @@ export function CommittedNumber({
   return (
     <NumberInput
       {...props}
+      label={hideLabel ? undefined : props.label}
+      aria-label={props["aria-label"] || props.label}
       key={`${reset}:${rejected}`}
       allowDecimal={allowDecimal}
       data-commit-on-blur="true"

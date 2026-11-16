@@ -1,11 +1,24 @@
+import { ToolbarNumber } from "@ldayton/ui/toolbar-number";
+import { STAFF_HEIGHT } from "./notation-metrics";
+import { ControlIcon } from "@ldayton/ui/control-icon";
 import { TempoControl } from "@ldayton/ui/tempo-control";
-import { useSyncExternalStore } from "react";
+import {
+  useSyncExternalStore,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 import {
   Accordion,
   Anchor,
   Checkbox,
   NativeSelect,
-  Select,
+  Group,
+  Button,
+  Divider,
+  Combobox,
+  useCombobox,
+  TextInput,
   SimpleGrid,
   Stack,
   Text,
@@ -21,7 +34,6 @@ import { searchHymns } from "./sight-reading-model";
 import hymns from "./hymns.json";
 import { HymnPitchField } from "./pitch-fields";
 import type { HymnOptionsChange, HymnOptionsState } from "./hymn-options-state";
-const hymnChoices = hymns.map((h) => ({ value: h.id, label: h.title }));
 const hands = [
   { value: "both", label: "Both hands" },
   { value: "right", label: "Right hand" },
@@ -54,86 +66,9 @@ export function HymnOptions({
     disabled: !state.availableKeys.includes(key.value as HymnKey),
   }));
   return (
-    <Stack className="soundtools-ui">
-      <SimpleGrid cols={2}>
-        <NativeSelect
-          id="hymn-key"
-          label="Key"
-          aria-label="Hymn key"
-          value={state.noMatchingKey ? "" : state.key}
-          onChange={(event) =>
-            change({ key: event.currentTarget.value as HymnKey })
-          }
-        >
-          {state.noMatchingKey && (
-            <option value="" disabled hidden>
-              No matching key
-            </option>
-          )}
-          {keys.map((key) => (
-            <option key={key.value} value={key.value} disabled={key.disabled}>
-              {key.label}
-            </option>
-          ))}
-        </NativeSelect>
-        <NativeSelect
-          id="hymn-size"
-          label="Score size"
-          aria-label="Score size"
-          value={String(state.zoom)}
-          onChange={(event) =>
-            change({ zoom: Number(event.currentTarget.value) })
-          }
-          data={[
-            { value: "0.85", label: "Small" },
-            { value: "1", label: "Medium" },
-            { value: "1.2", label: "Large" },
-          ]}
-        />
-      </SimpleGrid>
-      <Text
-        className="hymn-key-range"
-        size="sm"
-        c="dimmed"
-        aria-live="polite"
-        hidden={state.noMatchingKey}
-      >
-        {state.range}
-      </Text>
-      <SimpleGrid cols={2}>
-        {(["low", "high"] as const).map((bound) => (
-          <HymnPitchField
-            key={bound}
-            bound={bound}
-            value={state[bound]}
-            onChange={(value) => change({ [bound]: value })}
-          />
-        ))}
-      </SimpleGrid>
-      <Text size="sm" c="dimmed">
-        Melody range, across the whole hymn.
-      </Text>
-      <NativeSelect
-        id="hymn-mode"
-        label="Mode"
-        value={state.mode}
-        onChange={(event) =>
-          change({ mode: event.currentTarget.value as "wait" | "playback" })
-        }
-        data={[
-          { value: "wait", label: "Wait for me" },
-          { value: "playback", label: "Playback" },
-        ]}
-      />
+    <Stack className="soundtools-ui" gap="md">
       {state.mode === "playback" && (
-        <Stack gap="sm">
-          <TempoControl
-            id="hymn-tempo"
-            value={state.bpm}
-            min={40}
-            max={200}
-            onChange={(bpm) => change({ bpm })}
-          />
+        <OptionsSection title="Playback">
           <NativeSelect
             id="hymn-count-in"
             className="hymn-count-in-field"
@@ -154,57 +89,104 @@ export function HymnOptions({
               })
             }
           />
-        </Stack>
+        </OptionsSection>
       )}
-      <NativeSelect
-        id="hymn-arrangement"
-        label="Arrangement"
-        value={state.arrangement}
-        data={ARRANGEMENTS.map((a) => ({ value: a.id, label: a.label }))}
-        onChange={(event) =>
-          change({ arrangement: event.currentTarget.value as Arrangement })
-        }
-      />
-      {state.arrangement !== "melody" && (
-        <SimpleGrid cols={state.mode === "wait" ? 2 : 1}>
-          <NativeSelect
-            id="hymn-view"
-            className="hymn-view-field"
-            label="Show"
-            data={hands}
-            value={state.viewHands}
-            onChange={(event) =>
-              change({ viewHands: event.currentTarget.value as HymnHands })
-            }
-          />
-          {state.mode === "wait" && (
-            <NativeSelect
-              id="hymn-hands"
-              className="hymn-hands-field"
-              label="Practise hands"
-              value={state.hands}
-              data={hands.map((hand) => ({
-                ...hand,
-                disabled:
-                  state.viewHands !== "both" && state.viewHands !== hand.value,
-              }))}
-              onChange={(event) =>
-                change({ hands: event.currentTarget.value as HymnHands })
-              }
-            />
-          )}
-        </SimpleGrid>
-      )}
-      {state.mode === "wait" && (
-        <Checkbox
-          id="hymn-reattack-ties"
-          label="Re-strike tied notes"
-          checked={state.reattackTies}
+      <OptionsSection title="Pitch">
+        <NativeSelect
+          id="hymn-key"
+          label="Key"
+          aria-label="Hymn key"
+          value={state.noMatchingKey ? "" : state.key}
           onChange={(event) =>
-            change({ reattackTies: event.currentTarget.checked })
+            change({ key: event.currentTarget.value as HymnKey })
+          }
+        >
+          {state.noMatchingKey && (
+            <option value="" disabled hidden>
+              No matching key
+            </option>
+          )}
+          {keys.map((key) => (
+            <option key={key.value} value={key.value} disabled={key.disabled}>
+              {key.label}
+            </option>
+          ))}
+        </NativeSelect>
+        <Text
+          className="hymn-key-range"
+          size="xs"
+          c="dimmed"
+          aria-live="polite"
+          hidden={state.noMatchingKey}
+        >
+          {state.range}
+        </Text>
+        <SimpleGrid cols={2} spacing="xs">
+          {(["low", "high"] as const).map((bound) => (
+            <HymnPitchField
+              key={bound}
+              bound={bound}
+              value={state[bound]}
+              onChange={(value) => change({ [bound]: value })}
+            />
+          ))}
+        </SimpleGrid>
+        <Text size="xs" c="dimmed">
+          Optional melody limits
+        </Text>
+      </OptionsSection>
+      <OptionsSection title="Hands">
+        <NativeSelect
+          id="hymn-arrangement"
+          label="Arrangement"
+          value={state.arrangement}
+          data={ARRANGEMENTS.map((a) => ({ value: a.id, label: a.label }))}
+          onChange={(event) =>
+            change({ arrangement: event.currentTarget.value as Arrangement })
           }
         />
-      )}
+        {state.arrangement !== "melody" && (
+          <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">
+            <NativeSelect
+              id="hymn-view"
+              className="hymn-view-field"
+              label="Show"
+              data={hands}
+              value={state.viewHands}
+              onChange={(event) =>
+                change({ viewHands: event.currentTarget.value as HymnHands })
+              }
+            />
+            {state.mode === "wait" && (
+              <NativeSelect
+                id="hymn-hands"
+                className="hymn-hands-field"
+                label="Practise hands"
+                value={state.hands}
+                data={hands.map((hand) => ({
+                  ...hand,
+                  disabled:
+                    state.viewHands !== "both" &&
+                    state.viewHands !== hand.value,
+                }))}
+                onChange={(event) =>
+                  change({ hands: event.currentTarget.value as HymnHands })
+                }
+              />
+            )}
+          </SimpleGrid>
+        )}
+        {state.mode === "wait" && (
+          <Checkbox
+            id="hymn-reattack-ties"
+            label="Re-strike tied notes"
+            checked={state.reattackTies}
+            onChange={(event) =>
+              change({ reattackTies: event.currentTarget.checked })
+            }
+          />
+        )}
+      </OptionsSection>
       <Accordion id="hymn-source" order={3}>
         <Accordion.Item value="source">
           <Accordion.Control>About this hymn</Accordion.Control>
@@ -231,6 +213,20 @@ export function HymnOptions({
     </Stack>
   );
 }
+function OptionsSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <Stack component="section" aria-label={title} gap="xs">
+      <Divider label={title} labelPosition="left" />
+      {children}
+    </Stack>
+  );
+}
 
 export function HymnSelector({
   model,
@@ -242,40 +238,124 @@ export function HymnSelector({
   searchOpened(open: boolean): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
-  const selectedTitle = hymns.find((h) => h.id === state.hymn)!.title;
+  const [query, setQuery] = useState("");
+  const list = useCombobox({ opened: true });
+  const matches = searchHymns(hymns, query);
+  useEffect(() => {
+    if (query) list.selectFirstOption();
+    else list.selectOption(hymns.findIndex((hymn) => hymn.id === state.hymn));
+  }, [query, state.hymn]);
   return (
-    <Select
-      id="hymn-search"
-      comboboxProps={{ withinPortal: false, transitionProps: { duration: 0 } }}
-      // Native scrolling avoids ScrollArea resize feedback as the mobile drawer closes.
-      withScrollArea={false}
-      styles={{ dropdown: { maxHeight: 280, overflowY: "auto" } }}
-      label="Hymn"
-      searchable
-      selectFirstOptionOnChange
-      selectFirstOptionOnDropdownOpen
-      allowDeselect={false}
-      value={state.hymn}
-      data={hymnChoices}
-      dropdownOpened={state.searchOpen}
-      onDropdownOpen={() => searchOpened(true)}
-      onDropdownClose={() => searchOpened(false)}
-      onChange={(value) => {
-        if (typeof value === "string") change({ hymn: value });
-      }}
-      onFocus={(event) => event.currentTarget.select()}
-      onClick={(event) => {
-        if (event.currentTarget.value === selectedTitle)
-          event.currentTarget.select();
-      }}
-      nothingFoundMessage="No hymns found. Try another title."
-      filter={({ search }) =>
-        searchHymns(hymns, search === selectedTitle ? "" : search).map((h) => ({
-          value: h.id,
-          label: h.title,
-        }))
-      }
-      classNames={{ dropdown: "soundtools-ui" }}
+    <Stack className="hymn-library" gap="xs">
+      <Combobox
+        store={list}
+        onOptionSubmit={(hymn) => {
+          setQuery("");
+          searchOpened(false);
+          change({ hymn });
+        }}
+      >
+        <Combobox.EventsTarget>
+          <TextInput
+            id="hymn-search"
+            placeholder="Search songs"
+            aria-label="Hymn"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="hymn-library-list"
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                setQuery("");
+                event.stopPropagation();
+              }
+            }}
+            onFocus={() => searchOpened(true)}
+            onBlur={() => searchOpened(false)}
+          />
+        </Combobox.EventsTarget>
+        <div className="hymn-library-list">
+          <Combobox.Options id="hymn-library-list">
+            {matches.map((hymn) => (
+              <Combobox.Option
+                key={hymn.id}
+                value={hymn.id}
+                active={hymn.id === state.hymn}
+                aria-selected={hymn.id === state.hymn}
+              >
+                <Text size="sm">{hymn.title}</Text>
+              </Combobox.Option>
+            ))}
+            {!matches.length && (
+              <Combobox.Empty>
+                No hymns found. Try another title.
+              </Combobox.Empty>
+            )}
+          </Combobox.Options>
+        </div>
+      </Combobox>
+    </Stack>
+  );
+}
+
+export function HymnModeAndTempo({
+  model,
+  change,
+}: {
+  model: HymnOptionsState;
+  change(patch: HymnOptionsChange): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <>
+      <Button
+        id="hymn-mode"
+        variant={state.mode === "playback" ? "light" : "default"}
+        w={112}
+        miw={112}
+        px="xs"
+        aria-label="Playback mode"
+        aria-pressed={state.mode === "playback"}
+        data-mode={state.mode}
+        title={`Switch to ${state.mode === "wait" ? "Playback" : "Wait for me"}`}
+        onClick={() =>
+          change({ mode: state.mode === "wait" ? "playback" : "wait" })
+        }
+      >
+        {state.mode === "wait" ? "Wait for me" : "Playback"}
+      </Button>
+      <TempoControl
+        id="hymn-tempo"
+        compact
+        disabled={state.mode !== "playback"}
+        value={state.bpm}
+        min={40}
+        max={200}
+        onChange={(bpm) => change({ bpm })}
+      />
+    </>
+  );
+}
+
+export function HymnStaffSize({
+  model,
+  change,
+}: {
+  model: HymnOptionsState;
+  change(patch: HymnOptionsChange): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <ToolbarNumber
+      id="hymn-size"
+      label="Staff size in pixels"
+      icon={<ControlIcon name="text-size" />}
+      unit="px"
+      min={STAFF_HEIGHT / 2}
+      max={STAFF_HEIGHT * 2}
+      value={Math.round(state.zoom * STAFF_HEIGHT)}
+      onChange={(pixels) => change({ zoom: pixels / STAFF_HEIGHT })}
     />
   );
 }

@@ -56,6 +56,10 @@ try {
     } as typeof AudioNode.prototype.connect;
   });
   const visit = async (id: string, query = "") => {
+    // Let outgoing sample preloads settle before replacing the document. WebKit
+    // reports even caught, teardown-cancelled fetches as pageerror (Playwright #44015).
+    // This waits for network teardown safety, not for UI readiness.
+    await page.waitForLoadState("networkidle");
     await page.goto(`${base}/piano/hymns/${id}${query}`);
     await page.locator(".hymn-paper svg").first().waitFor();
     await expect(page.locator("#saved")).toHaveText("Saved on this device.");
@@ -95,6 +99,7 @@ try {
     3,
     "Chorus remains when stanza one is hidden",
   );
+  await page.waitForLoadState("networkidle");
   await page.reload();
   await checks.nth(2).waitFor();
   assert.deepEqual(
@@ -129,6 +134,7 @@ try {
   await checks.nth(1).uncheck();
   await checks.nth(2).uncheck();
   assert.equal(await page.locator(".abcjs-lyric").count(), 0);
+  await page.waitForLoadState("networkidle");
   await page.reload();
   await checks.nth(2).waitFor();
   assert.deepEqual(
@@ -154,6 +160,7 @@ try {
     "The Oh ending returns when an earlier stanza is shown",
   );
   await checks.nth(0).uncheck();
+  await page.waitForLoadState("networkidle");
   await page.reload();
   assert.match((await lyricWords()).filter((w) => w.trim()).at(-1)!, /stand/);
   const references: Record<string, string> = {

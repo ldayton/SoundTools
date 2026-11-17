@@ -15,12 +15,14 @@ export class BreathMetronome {
   private voices = new Set<() => void>();
   private mode: BreathSnapshot['mode'] = 'ready';
   private next = 0;
+  private origin = 0;
   private generation = 0;
   private resumeTimer?: ReturnType<typeof setTimeout>;
   private level?: number;
   private running = false;
   constructor(
     private volume: () => number,
+    private ready: (clock: () => number) => void,
     private failed: (error: unknown) => void,
     private createContext = () => new AudioContext({ latencyHint: 'interactive' })
   ) {}
@@ -58,6 +60,7 @@ export class BreathMetronome {
         clearTimeout(this.resumeTimer);
         if (context.state !== 'running') return this.fail(new Error('Breathing audio unavailable'));
         this.running = true;
+        this.ready(() => context.currentTime * 1000);
       },
       (error) => {
         if (this.generation === generation) this.fail(error);
@@ -67,6 +70,17 @@ export class BreathMetronome {
   sync(state: BreathSnapshot) {
     const previous = this.mode;
     this.mode = state.mode;
+    if (state.mode === 'starting') {
+      if (previous !== 'starting') {
+        try {
+          this.cancel();
+          this.start();
+        } catch (error) {
+          this.fail(error);
+        }
+      }
+      return;
+    }
     if (state.mode !== 'playing') {
       // Let the already-scheduled final tick finish; pause/reset cancel immediately.
       if (state.mode !== 'complete') this.cancel();
@@ -74,9 +88,8 @@ export class BreathMetronome {
     }
     try {
       if (previous !== 'playing') {
-        this.cancel();
         this.next = state.position === 0 ? 0 : Math.floor(state.position) + 1;
-        this.start();
+        this.origin = this.context!.currentTime - state.position;
       }
       const context = this.context!;
       const level = this.volume();
@@ -92,7 +105,7 @@ export class BreathMetronome {
       const upcoming = upcomingSeconds(state.position, breathAt(state).duration, this.next);
       this.next = upcoming.next;
       for (const second of upcoming.seconds)
-        this.click(context.currentTime + Math.max(0.01, second - state.position));
+        this.click(Math.max(context.currentTime + 0.01, this.origin + second));
     } catch (error) {
       this.fail(error);
     }

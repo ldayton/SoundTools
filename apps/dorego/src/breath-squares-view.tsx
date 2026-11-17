@@ -31,7 +31,7 @@ export function useBreathSession(enabled: boolean, getVolume: () => number) {
       session.pause();
       return;
     }
-    const metronome = new BreathMetronome(getVolume, (error) => {
+    const metronome = new BreathMetronome(getVolume, session.audioReady, (error) => {
       session.audioFailed();
       diagnostics.capture(error, 'breathing.audio_failed');
     });
@@ -106,7 +106,7 @@ export function BreathToolbar({
 }) {
   const state = useSyncExternalStore(session.subscribe, session.getSnapshot);
   const label =
-    state.mode === 'playing'
+    state.mode === 'playing' || state.mode === 'starting'
       ? 'Pause'
       : state.mode === 'paused'
         ? 'Resume'
@@ -131,6 +131,7 @@ export function BreathToolbar({
         </Button>
         <Button
           id="breath-play"
+          data-mode={state.mode}
           aria-label={label}
           title={label}
           w={36}
@@ -139,7 +140,9 @@ export function BreathToolbar({
           autoContrast
           onClick={session.toggle}
         >
-          <ControlIcon name={state.mode === 'playing' ? 'pause' : 'play'} />
+          <ControlIcon
+            name={state.mode === 'playing' || state.mode === 'starting' ? 'pause' : 'play'}
+          />
         </Button>
       </Group>
       <Text
@@ -177,9 +180,11 @@ export function BreathSquares({ session }: { session: BreathSession }) {
           ? 'Ready'
           : state.mode === 'complete'
             ? 'Complete'
-            : state.mode === 'paused'
-              ? 'Paused'
-              : '\u00a0'}
+            : state.mode === 'starting'
+              ? 'Starting'
+              : state.mode === 'paused'
+                ? 'Paused'
+                : '\u00a0'}
       </Text>
       <div className="breath-grid" role="list" aria-label="Clockwise breathing steps">
         {BREATH_STEPS.map((label, phase) => {

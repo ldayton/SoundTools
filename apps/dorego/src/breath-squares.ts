@@ -14,7 +14,7 @@ export function breathSettings(input: unknown): BreathSettings {
 }
 export type BreathSnapshot = {
   settings: BreathSettings;
-  mode: 'ready' | 'playing' | 'paused' | 'complete';
+  mode: 'ready' | 'starting' | 'playing' | 'paused' | 'complete';
   position: number;
   error: string | null;
 };
@@ -42,17 +42,19 @@ export function createBreathSession(settings: unknown, now = () => performance.n
   });
   let anchor = 0,
     offset = 0;
+  let clock = now;
   function tick() {
     const state = model.getSnapshot();
     if (state.mode !== 'playing') return;
     const duration = breathAt(state).duration;
-    const position = Math.min(duration, offset + Math.max(0, now() - anchor) / 1000);
+    const position = Math.min(duration, offset + Math.max(0, clock() - anchor) / 1000);
     model.set({ ...state, position, mode: position >= duration ? 'complete' : 'playing' });
   }
   function pause() {
     tick();
     const state = model.getSnapshot();
-    if (state.mode === 'playing') model.set({ ...state, mode: 'paused' });
+    if (state.mode === 'playing' || state.mode === 'starting')
+      model.set({ ...state, mode: 'paused' });
   }
   return {
     ...model,
@@ -60,10 +62,16 @@ export function createBreathSession(settings: unknown, now = () => performance.n
     pause,
     toggle() {
       const state = model.getSnapshot();
-      if (state.mode === 'playing') return pause();
-      anchor = now();
+      if (state.mode === 'playing' || state.mode === 'starting') return pause();
       offset = state.mode === 'complete' ? 0 : state.position;
-      model.set({ ...state, mode: 'playing', position: offset, error: null });
+      model.set({ ...state, mode: 'starting', position: offset, error: null });
+    },
+    audioReady(audioClock = now) {
+      const state = model.getSnapshot();
+      if (state.mode !== 'starting') return;
+      clock = audioClock;
+      anchor = clock();
+      model.set({ ...state, mode: 'playing' });
     },
     reset() {
       model.set({ ...model.getSnapshot(), mode: 'ready', position: 0, error: null });

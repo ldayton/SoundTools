@@ -7,6 +7,7 @@ test('four equal steps repeat clockwise and stop after exactly the requested rou
   const session = createBreathSession({ rounds: 2, seconds: 3 }, () => now);
   assert.equal(breathAt(session.getSnapshot()).active, false);
   session.toggle();
+  session.audioReady();
   for (let step = 0; step < 8; step++) {
     now = step * 3000;
     session.tick();
@@ -24,6 +25,7 @@ test('four equal steps repeat clockwise and stop after exactly the requested rou
   assert.equal(breathAt(session.getSnapshot()).active, false);
   assert.equal(session.getSnapshot().position, 24);
   session.toggle();
+  session.audioReady();
   assert.equal(session.getSnapshot().position, 0);
   assert.equal(breathAt(session.getSnapshot()).phase, 0);
 });
@@ -31,6 +33,7 @@ test('pause preserves partial seconds; delayed ticks use elapsed time without ex
   let now = 100;
   const session = createBreathSession({ rounds: 1, seconds: 4 }, () => now);
   session.toggle();
+  session.audioReady();
   now += 1750;
   session.pause();
   const paused = session.getSnapshot();
@@ -40,6 +43,7 @@ test('pause preserves partial seconds; delayed ticks use elapsed time without ex
   session.tick();
   assert.deepEqual(session.getSnapshot(), paused);
   session.toggle();
+  session.audioReady();
   now += 2250;
   session.tick();
   assert.equal(breathAt(session.getSnapshot()).phase, 1);
@@ -51,12 +55,40 @@ test('pause preserves partial seconds; delayed ticks use elapsed time without ex
 test('reset and settings edits clear progress, with invalid saved values falling back safely', () => {
   const session = createBreathSession({ rounds: 1, seconds: 1 });
   session.toggle();
+  session.audioReady();
   session.reset();
   assert.equal(session.getSnapshot().mode, 'ready');
   session.toggle();
+  session.audioReady();
   session.configure({ rounds: 3, seconds: 5 });
   assert.equal(session.getSnapshot().mode, 'ready');
   assert.equal(breathAt(session.getSnapshot()).duration, 60);
   for (const input of [null, [], 'bad', { rounds: 0, seconds: 999 }, { rounds: 1.5, seconds: NaN }])
     assert.deepEqual(breathSettings(input), { rounds: 4, seconds: 4 });
+});
+test('the timer waits for audio readiness and then follows the device clock', () => {
+  let wall = 0,
+    audio = 0;
+  const session = createBreathSession(null, () => wall);
+  session.toggle();
+  wall = 10000;
+  session.tick();
+  assert.equal(session.getSnapshot().mode, 'starting');
+  assert.equal(session.getSnapshot().position, 0);
+  session.audioReady(() => audio);
+  wall += 5000;
+  session.tick();
+  assert.equal(session.getSnapshot().position, 0, 'A delayed device clock cannot shorten a second');
+  audio += 1000;
+  session.tick();
+  assert.equal(session.getSnapshot().position, 1);
+  session.reset();
+  session.toggle();
+  session.pause();
+  session.audioReady();
+  assert.equal(
+    session.getSnapshot().mode,
+    'paused',
+    'Late readiness cannot restart a paused exercise'
+  );
 });

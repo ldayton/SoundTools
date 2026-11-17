@@ -46,6 +46,21 @@ try {
       localStorage.setItem('dorego.breathSquares', JSON.stringify({ rounds: 2, seconds: 2 }));
     }
   });
+  // This suite drives visual time. Real device-clock cadence and signal are
+  // exercised separately by breath-audio.e2e.ts without a virtual clock.
+  await page.addInitScript({
+    content: `(() => {
+    const descriptor = Object.getOwnPropertyDescriptor(AudioContext.prototype, 'currentTime');
+    window.restoreAudioClock = function () {
+      if (descriptor) Object.defineProperty(AudioContext.prototype, 'currentTime', descriptor);
+      else delete AudioContext.prototype.currentTime;
+    };
+    Object.defineProperty(AudioContext.prototype, 'currentTime', {
+      configurable: true,
+      get: function () { return performance.now() / 1000; }
+    });
+  })();`,
+  });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.clock.install();
@@ -62,32 +77,43 @@ try {
   );
   assert.equal(await page.locator('#bpm').count(), 0);
   await page.locator('#breath-play').click();
+  await page.locator('#breath-play[data-mode="playing"]').waitFor();
   const active = page.locator('.breath-cell[data-active]');
   assert.equal(await active.getAttribute('data-phase'), '0');
   assert.match((await active.textContent()) || '', /Inhale/);
   const small = await active.locator('.breath-orb').getAttribute('style');
   await page.clock.runFor(1100);
+  await page.waitForFunction(
+    () => document.querySelector('.breath-cell[data-active] output')?.textContent === '1'
+  );
   assert.equal(await active.locator('output').textContent(), '1');
   assert.notEqual(await active.locator('.breath-orb').getAttribute('style'), small);
   await page.locator('#breath-play').click();
   await page.clock.runFor(10000);
   assert.equal(await active.getAttribute('data-phase'), '0');
   await page.locator('#breath-play').click();
+  await page.locator('#breath-play[data-mode="playing"]').waitFor();
   await page.clock.runFor(1100);
+  await page.locator('.breath-cell[data-active][data-phase="1"]').waitFor();
   assert.equal(await active.getAttribute('data-phase'), '1');
   assert.equal(await active.locator('.breath-orb').count(), 0);
   await page.clock.runFor(2000);
+  await page.locator('.breath-cell[data-active][data-phase="2"]').waitFor();
   assert.equal(await active.getAttribute('data-phase'), '2');
   assert.equal(await active.locator('.breath-orb').count(), 1);
   await page.clock.runFor(2000);
+  await page.locator('.breath-cell[data-active][data-phase="3"]').waitFor();
   assert.equal(await active.getAttribute('data-phase'), '3');
   await page.clock.runFor(2000);
+  await page.locator('.breath-cell[data-active][data-phase="0"]').waitFor();
   assert.equal(await active.getAttribute('data-phase'), '0');
   assert.match((await page.locator('#breath-squares').textContent()) || '', /Round 2 of 2/);
   await page.clock.runFor(8000);
+  await active.waitFor({ state: 'hidden' });
   assert.equal(await active.count(), 0);
   assert.match((await page.locator('.breath-status').textContent()) || '', /Complete/);
   await page.getByRole('button', { name: 'Replay', exact: true }).click();
+  await page.locator('#breath-play[data-mode="playing"]').waitFor();
   await openSettings(page);
   await page.clock.runFor(5000);
   await openPractice(page);
@@ -95,6 +121,7 @@ try {
   await page.locator('#breath-restart').click();
   await page.locator('#exercise-title').focus();
   await page.keyboard.press('Space');
+  await page.locator('#breath-play[data-mode="playing"]').waitFor();
   await page.clock.runFor(1000);
   await page.evaluate(() => {
     Object.defineProperty(document, 'hidden', { configurable: true, value: true });
@@ -117,6 +144,7 @@ try {
   assert.equal(await page.locator('#breath-rounds').inputValue(), '3');
   assert.equal(await page.locator('#breath-seconds').inputValue(), '4');
   await page.locator('#breath-play').click();
+  await page.locator('#breath-play[data-mode="playing"]').waitFor();
   await page.clock.runFor(1000);
   await mkdir('work/breath-squares', { recursive: true });
   await page.screenshot({
@@ -143,6 +171,7 @@ try {
       animations: 'disabled',
     });
   }
+  await page.evaluate(() => (window as any).restoreAudioClock());
   await selectExercise(page, 'fiveNote');
   await page.locator('#play:enabled').waitFor();
   assert.equal(await page.locator('#breath-squares').count(), 0);

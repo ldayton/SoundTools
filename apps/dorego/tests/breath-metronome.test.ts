@@ -55,34 +55,40 @@ function fakeAudio() {
   };
   return { context, sources, levels };
 }
-test('pause cancels lookahead; resume preserves the next second and volume can mute pending clicks', () => {
+test('pause cancels lookahead; resume preserves the next second and volume can mute pending clicks', async () => {
   const { context, sources, levels } = fakeAudio();
-  let volume = -6;
+  let volume = -6,
+    position = 0;
   const metronome = new BreathMetronome(
     () => volume,
+    () => sync(position, 'playing'),
     () => assert.fail('Unexpected audio error'),
     () => context as unknown as AudioContext
   );
   const base = createBreathSession({ rounds: 1, seconds: 1 }).getSnapshot();
-  const sync = (position: number, mode: typeof base.mode = 'playing') => {
-    context.currentTime = position;
-    metronome.sync({ ...base, position, mode });
+  const sync = (at: number, mode: typeof base.mode = 'playing') => {
+    position = at;
+    context.currentTime = at;
+    metronome.sync({ ...base, position: at, mode });
   };
   try {
-    sync(0);
+    sync(0, 'starting');
+    await Promise.resolve();
     sync(0.9);
     assert.equal(sources.length, 2);
     assert.ok(Math.abs(sources[1].at - 1) < 1e-10);
     sync(0.95, 'paused');
     assert.ok(sources.every((source) => source.cancelled));
-    sync(0.95);
+    sync(0.95, 'starting');
+    await Promise.resolve();
     assert.equal(sources.length, 3);
     assert.equal(sources[2].at, 1);
     volume = -60;
     sync(0.96);
     assert.equal(levels.at(-1), 0);
     sync(1, 'paused');
-    sync(1);
+    sync(1, 'starting');
+    await Promise.resolve();
     assert.equal(sources.length, 3, 'No repeated tick on an exact-boundary resume');
     sync(3.9);
     assert.equal(sources.at(-1)!.at, 4);
@@ -102,6 +108,7 @@ test('a rejected audio start is reported once and cancels its scheduled sources'
   let failures = 0;
   const metronome = new BreathMetronome(
     () => -12,
+    () => assert.fail('Blocked audio cannot start the timer'),
     () => failures++,
     () => context as unknown as AudioContext
   );
@@ -113,4 +120,30 @@ test('a rejected audio start is reported once and cancels its scheduled sources'
   assert.equal(failures, 1);
   assert.ok(sources.every((source) => source.cancelled));
   metronome.dispose();
+});
+test('late audio readiness cannot restart a paused or replaced request', async () => {
+  const { context } = fakeAudio();
+  const pending: (() => void)[] = [];
+  context.resume = () => new Promise<void>((resolve) => pending.push(resolve));
+  let started = 0;
+  const metronome = new BreathMetronome(
+    () => -12,
+    () => started++,
+    () => assert.fail('Unexpected failure'),
+    () => context as unknown as AudioContext
+  );
+  const base = createBreathSession(null).getSnapshot();
+  try {
+    metronome.sync({ ...base, mode: 'starting' });
+    metronome.sync({ ...base, mode: 'paused' });
+    metronome.sync({ ...base, mode: 'starting' });
+    pending[0]();
+    await Promise.resolve();
+    assert.equal(started, 0);
+    pending[1]();
+    await Promise.resolve();
+    assert.equal(started, 1);
+  } finally {
+    metronome.dispose();
+  }
 });

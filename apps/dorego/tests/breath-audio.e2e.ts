@@ -92,7 +92,10 @@ try {
   const ticks: number[] = await page.evaluate(() => (window as any).breathAudio.ticks);
   assert.equal(ticks.length, 5, 'Start, three intermediate seconds, and the final boundary');
   for (let i = 1; i < ticks.length; i++)
-    assert.ok(Math.abs(ticks[i] - ticks[i - 1] - 1) < 0.08, `Second ${i} is evenly scheduled`);
+    assert.ok(
+      Math.abs(ticks[i] - ticks[i - 1] - 1) < 0.08,
+      `Second ${i} is evenly scheduled: ${JSON.stringify(ticks)}`
+    );
   assert.deepEqual(samples, [], 'Breathing ticks never need piano recordings');
   await page.locator('#breath-restart').click();
   await setSlider(page, 'volume', 0);
@@ -114,6 +117,7 @@ try {
     'Paused exercise schedules no ticks'
   );
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.locator('#breath-play[data-mode="playing"]').waitFor();
   await page.evaluate(async () => {
     await (window as any).breathAudio.contexts.at(-1).suspend();
   });

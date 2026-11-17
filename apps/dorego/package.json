@@ -30,7 +30,9 @@
     "build:vercel": "node ../../scripts/build-vercel.cjs dorego",
     "test:spelling": "tsx tests/spelling.e2e.ts",
     "test:layout": "node ../../scripts/test-practice-layout.cjs dorego",
-    "test:workspace": "tsx tests/workspace.e2e.ts"
+    "test:workspace": "tsx tests/workspace.e2e.ts",
+    "test:breathing": "tsx tests/breath-squares.e2e.ts",
+    "test:breath-audio": "tsx tests/breath-audio.e2e.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "*",

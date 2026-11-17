@@ -69,6 +69,7 @@ try {
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',
+    'Breath Squares',
   ]);
   assert.deepEqual(await page.locator('#direction button[aria-pressed]').allTextContents(), [
     'Rising first',

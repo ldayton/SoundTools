@@ -28,7 +28,17 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
 
 ## Practice
 
-- Eight exercises: **Arpeggio & Scale** (default: E3–F5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **Pentatonic Threes** (6, 9, or 12 notes), **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
+- **Breath Squares** runs timed rounds: inhale → hold → exhale → hold,
+  moving clockwise through four squares. Choose rounds and seconds per step in
+  Practice options. Only the active square shows its label and countdown; a circle
+  expands for the inhale and contracts for the exhale. A short tick marks each
+  second boundary, including the start and finish; the usual volume control also
+  mutes the ticks. Start/pause and restart live
+  in the toolbar (Space and R also work). Changing settings restarts the exercise.
+  Switching exercises, opening Settings, or hiding the tab pauses breathing; resume
+  explicitly when ready. Settings and the selected exercise are saved on this device.
+
+- Eight singing exercises: **Arpeggio & Scale** (default: E3–F5, 150 BPM), **Octave Arpeggio**, **Rossini Scale**, **Five-Note Scale**, **Pentatonic Threes** (6, 9, or 12 notes), **Major Scale**, **Fifth Glide**, and **Octave Glide**. Phrase shape and movement between rounds are separate controls. Rossini keeps its fixed phrase; Major Scale stays on its selected key.
 - Choose your lowest/highest vocal notes in octaves 2–6, phrase contour, and round progression. Major Scale instead uses a single Key selector for the starting note, including its octave; the other exercises move by semitone through your range.
 - Click anywhere on a desktop note field to open a note grid organized by octave; typing is disabled. Enter or Space also opens the picker. Mobile uses snapping swipe wheels. Arrow keys move by semitone and Page Up/Down by octave.
 - Transpose the key and range together with the minus/plus buttons.

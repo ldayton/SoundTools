@@ -1,6 +1,7 @@
 import {
   PracticeView,
   PracticeToolbar,
+  PracticeVolume,
   type PianoSnapshot,
   type PracticeSnapshot,
 } from './practice-view';
@@ -29,6 +30,7 @@ import { Player } from './audio';
 import { ReferencePiano } from './reference-piano';
 import './style.css';
 import { setupOffline } from './offline';
+import { breathSelected } from './breath-squares';
 
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
@@ -92,15 +94,18 @@ mountAppShell($('#app'), {
     player.shutdown();
     cancelAnimationFrame(raf);
   },
-  selection: (selected: () => void) =>
+  selection: (selected: () => void, active: boolean) =>
     createElement(ExerciseSelection, {
       model: builderModel,
+      active,
       change: (patch: SpecPatch) => {
         refresh(patch);
         selected();
       },
     }),
   title: 'Warm-up',
+  getVolume: () => spec.volume,
+  volumeControl: createElement(PracticeVolume, { model: practiceModel, volume: changeVolume }),
   toolbar: createElement(PracticeToolbar, {
     model: practiceModel,
     playback: playbackModel,
@@ -376,6 +381,7 @@ async function toggleFullscreen() {
 document.addEventListener('keydown', (event) => {
   if (
     renderFailed ||
+    document.getElementById('breath-squares') ||
     location.hash === '#settings' ||
     (event.target as HTMLElement).closest(
       'a[href], input, select, textarea, button, summary, dialog, [role="dialog"], [role="spinbutton"], [role="slider"]'
@@ -396,7 +402,7 @@ document.addEventListener('keydown', (event) => {
 });
 populate();
 update(true);
-void warmPiano();
+if (!breathSelected()) void warmPiano();
 // Hiding alone does not pause healthy background audio. Freezing/navigation
 // does: preserve position and require an explicit Resume after restoration.
 window.addEventListener('blur', () => reference.stopAll());

@@ -67,7 +67,7 @@ export async function openPractice(page: Page) {
   else if (!(await link.isVisible()))
     await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await link.click();
-  await page.locator('#play').waitFor();
+  await page.locator('#play:visible, #breath-play:visible').waitFor();
 }
 
 export async function selectExercise(page: Page, pattern: string) {
@@ -92,6 +92,8 @@ export async function selectExercise(page: Page, pattern: string) {
     if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
   }
   await option.click();
+  if (await page.evaluate(() => matchMedia('(max-width:47.999em)').matches))
+    await page.locator('.mantine-Drawer-content:visible').waitFor({ state: 'hidden' });
   if (pentatonic) {
     await openPracticeOptions(page);
     await page.locator('#pentatonic-notes').selectOption(pattern.replace('pentatonic', ''));

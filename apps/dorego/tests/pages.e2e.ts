@@ -372,6 +372,7 @@ try {
     'Major Scale',
     'Fifth Glide',
     'Octave Glide',
+    'Breath Squares',
   ]);
   await openMoreOptions(page);
   for (const pattern of ['fifthGlide', 'octaveGlide']) {

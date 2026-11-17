@@ -412,9 +412,11 @@ export function Builder({
 export function ExerciseSelection({
   model,
   change,
+  active = true,
 }: {
   model: BuilderModel;
   change(patch: SpecPatch): void;
+  active?: boolean;
 }) {
   const { spec } = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
@@ -424,7 +426,9 @@ export function ExerciseSelection({
           key={value}
           data-pattern={value}
           aria-current={
-            spec.pattern === value || (value === 'pentatonic6' && isPentatonicPattern(spec.pattern))
+            active &&
+            (spec.pattern === value ||
+              (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)))
               ? 'true'
               : undefined
           }

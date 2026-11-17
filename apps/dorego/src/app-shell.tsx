@@ -2,7 +2,14 @@ import { StrictMode, useEffect, useState, useSyncExternalStore, type ReactNode }
 import { useMediaQuery } from '@mantine/hooks';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { Stack } from '@mantine/core';
+import { Stack, UnstyledButton } from '@mantine/core';
+import {
+  BreathOptions,
+  BreathSquares,
+  BreathToolbar,
+  useBreathSession,
+} from './breath-squares-view';
+import { breathSelected } from './breath-squares';
 import { RenderErrorBoundary } from '@ldayton/ui/render-error-boundary';
 import { SoundToolsProvider } from '@ldayton/ui';
 import {
@@ -16,17 +23,36 @@ import { diagnostics } from './diagnostics';
 import { offlineState, offlineActions } from './offline-state';
 import { CompleteUpdateButton } from '@ldayton/ui/offline-status-panel';
 export type AppViews = {
-  selection(onSelect: () => void): ReactNode;
+  selection(onSelect: () => void, active: boolean): ReactNode;
   title: ReactNode;
   toolbar: ReactNode;
+  volumeControl: ReactNode;
+  getVolume(): number;
   builder: ReactNode;
   practice: ReactNode;
   settingsView: ReactNode;
   pause(): void;
   shutdown(): void;
 };
-function AppShell({ selection, title, toolbar, builder, practice, settingsView, pause }: AppViews) {
+function AppShell({
+  selection,
+  title,
+  toolbar,
+  volumeControl,
+  getVolume,
+  builder,
+  practice,
+  settingsView,
+  pause,
+}: AppViews) {
   const [settings, setSettings] = useState(location.hash === '#settings');
+  const [breathing, setBreathing] = useState(breathSelected);
+  const breath = useBreathSession(breathing && !settings, getVolume);
+  useEffect(() => {
+    try {
+      localStorage.setItem('dorego.exercise', breathing ? 'breathSquares' : 'warmup');
+    } catch {}
+  }, [breathing]);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const small = useMediaQuery('(max-width:359px)', undefined, { getInitialValueInEffect: false });
@@ -62,7 +88,22 @@ function AppShell({ selection, title, toolbar, builder, practice, settingsView, 
   };
   const navigation = (
     <Stack gap="md" className="dorego-navigation">
-      {selection(() => navigate(false))}
+      {selection(() => {
+        setBreathing(false);
+        navigate(false);
+      }, !breathing)}
+      <UnstyledButton
+        className="dorego-exercise"
+        data-pattern="breathSquares"
+        aria-current={breathing ? 'true' : undefined}
+        onClick={() => {
+          pause();
+          setBreathing(true);
+          navigate(false);
+        }}
+      >
+        Breath Squares
+      </UnstyledButton>
       <div className="dorego-navigation-tools">
         <SettingsNavigationLink
           href={`${base}#settings`}
@@ -79,10 +120,13 @@ function AppShell({ selection, title, toolbar, builder, practice, settingsView, 
   );
   return (
     <PracticeOptionsProvider
-      entries={[{ id: 'builder', form: builder }]}
+      entries={[
+        { id: 'builder', form: builder },
+        { id: 'breathing', form: <BreathOptions session={breath} /> },
+      ]}
       mobileDrawer
-      activeId={settings ? undefined : 'builder'}
-      activityKey={settings ? 'settings' : 'practice'}
+      activeId={settings ? undefined : breathing ? 'breathing' : 'builder'}
+      activityKey={settings ? 'settings' : breathing ? 'breathing' : 'practice'}
     >
       <ApplicationLayout
         compact
@@ -111,7 +155,13 @@ function AppShell({ selection, title, toolbar, builder, practice, settingsView, 
         onNavigationClose={() => setNavigationOpen(false)}
         onNavigationCollapse={() => setNavigationCollapsed(true)}
         onNavigationExpand={() => setNavigationCollapsed(false)}
-        headerActions={settings ? undefined : toolbar}
+        headerActions={
+          settings ? undefined : breathing ? (
+            <BreathToolbar session={breath} volumeControl={volumeControl} />
+          ) : (
+            toolbar
+          )
+        }
         updateAction={
           !offline.updateHidden ? (
             <CompleteUpdateButton onClick={() => offlineActions.update()} />
@@ -119,7 +169,9 @@ function AppShell({ selection, title, toolbar, builder, practice, settingsView, 
         }
       >
         <div hidden={settings}>
-          <PracticeWorkspace>{practice}</PracticeWorkspace>
+          <PracticeWorkspace>
+            {breathing ? <BreathSquares session={breath} /> : practice}
+          </PracticeWorkspace>
         </div>
         <section id="settings-ui" aria-label="App settings" hidden={!settings}>
           {settingsView}

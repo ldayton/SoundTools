@@ -87,7 +87,7 @@ try {
   await page.getByRole('heading', { name: 'Credits', exact: true }).waitFor();
   assert.equal(await page.locator('#settings-ui a[href*="NOTICE.txt"]').count(), 2);
   await page.getByRole('link', { name: 'DoReGo home', exact: true }).click();
-  assert.equal(await page.locator('[data-pattern]').count(), 8);
+  assert.equal(await page.locator('[data-pattern]').count(), 9);
   assert.equal(await page.getByRole('link', { name: 'Warm-up', exact: true }).count(), 0);
   const header = page.locator('.mantine-AppShell-header');
   const play = page.locator('#play');
@@ -274,7 +274,7 @@ try {
   await retina.close();
   assert.deepEqual(errors, []);
   console.log(
-    `${browserName}: toolbar geometry, eight exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and six widths pass`
+    `${browserName}: toolbar geometry, nine exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and six widths pass`
   );
 } finally {
   await browser?.close();

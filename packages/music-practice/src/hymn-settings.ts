@@ -38,6 +38,7 @@ export type HymnSettings = {
   viewHands?: HymnHands;
   reattackTies?: boolean;
   stanzas?: number[];
+  stanza?: number;
   sectionBars: 0 | 2 | 4;
   section: number;
   position: number;
@@ -65,8 +66,19 @@ export function mergeHymnSettings(
           base.hands || "both",
         )
       : viewHands;
+  const stanzas = validStanzas(
+    s.stanzas,
+    hymn.stanzas.length,
+    base.stanzas || [1],
+  );
+  const stanza = stanzas.includes(s.stanza as number)
+    ? Number(s.stanza)
+    : stanzas.includes(base.stanza!)
+      ? base.stanza!
+      : stanzas[0] || 0;
   return {
-    stanzas: validStanzas(s.stanzas, hymn.stanzas.length, base.stanzas || [1]),
+    stanzas,
+    ...("stanza" in s || "stanza" in base ? { stanza } : {}),
     ...("low" in s || "low" in base
       ? { low: optionalHymnNote(s.low, base.low ?? null) }
       : {}),

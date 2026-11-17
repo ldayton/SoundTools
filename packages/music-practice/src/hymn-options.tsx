@@ -266,6 +266,9 @@ export function HymnOptions({
                   rel="noopener noreferrer"
                 >
                   Reference recording
+                  {state.source.referenceDetails
+                    ? ` (${state.source.referenceDetails})`
+                    : ""}
                 </Anchor>
               )}
               <Text size="sm" className="hymn-credits">
@@ -279,9 +282,6 @@ export function HymnOptions({
               >
                 {state.source.label}
               </Anchor>
-              <Text size="sm">{state.source.description}</Text>
-              <Text size="sm">{state.source.help}</Text>
-              <Text size="sm">{state.source.transposition}</Text>
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>

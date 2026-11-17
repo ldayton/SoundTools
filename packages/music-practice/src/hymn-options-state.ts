@@ -32,12 +32,10 @@ export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   range: string;
   source: {
     referenceUrl: string | null;
+    referenceDetails: string | null;
     credits: string;
     url: string;
     label: string;
-    description: string;
-    help: string;
-    transposition: string;
   };
 };
 /** The controller owns settings, including URL and range-driven changes. */

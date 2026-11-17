@@ -52,7 +52,6 @@ import { registerPracticeOptions } from "./practice-options";
 import {
   HYMN_KEYS,
   type HymnKey,
-  hymnKeyLabel,
   hymnTransposition,
   isHymnKey,
 } from "./hymn-transpose";
@@ -95,6 +94,7 @@ export class SightReading {
     selected: false,
     loop: false,
     status: "",
+    stanza: "",
   });
   private setControls(
     patch: Partial<ReturnType<typeof this.controls.getSnapshot>>,
@@ -114,8 +114,24 @@ export class SightReading {
   private viewHands: HymnHands = "both";
   private reattackTies = false;
   private stanzas: number[] = [1];
+  private stanza = 1;
+  private playbackVerses: ReturnType<typeof hymnPlaybackScore>["verses"] = [];
+  private get stanzaOffset() {
+    return (
+      this.playbackVerses.find((verse) => verse.number === this.stanza)
+        ?.start || 0
+    );
+  }
+  private get stanzaLabel() {
+    return this.stanzas.length > 1
+      ? `Stanza ${this.stanzas.indexOf(this.stanza) + 1}/${this.stanzas.length}`
+      : "";
+  }
+  private stanzaCount(text: string) {
+    return this.stanzaLabel ? `${this.stanzaLabel} · ${text}` : text;
+  }
   private get endingBar() {
-    return hymnEndingBar(this.hymn, this.stanzas);
+    return this.stanza ? hymnEndingBar(this.hymn, [this.stanza]) : undefined;
   }
   private readonly sectionBars = 0;
   private section = 0;
@@ -219,6 +235,9 @@ export class SightReading {
         this.octave = saved!.octave;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
       this.stanzas = validStanzas(saved?.stanzas, this.hymn.stanzas.length);
+      this.stanza = this.stanzas.includes(saved?.stanza!)
+        ? saved!.stanza!
+        : this.stanzas[0] || 0;
       if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
         this.arrangement = saved.arrangement;
       else if (saved) {
@@ -300,8 +319,10 @@ export class SightReading {
               this.save();
               return;
             }
+            if (!this.passage.range) this.stanza = this.stanzas[0] || 0;
             this.position = 0;
             this.restorePending = false;
+            this.content = "";
             this.render();
             this.save();
           },
@@ -507,8 +528,8 @@ export class SightReading {
       old.hands !== next.hands ||
       old.viewHands !== next.viewHands ||
       old.reattackTies !== next.reattackTies ||
-      hymnEndingBar(this.hymn, old.stanzas) !==
-        hymnEndingBar(hymn, next.stanzas) ||
+      old.stanza !== next.stanza ||
+      old.stanzas?.join(",") !== next.stanzas?.join(",") ||
       old.sectionBars !== next.sectionBars;
     this.routeChanged = changed || old.mode !== next.mode;
     if (old.mode !== next.mode || old.bpm !== next.bpm)
@@ -539,6 +560,7 @@ export class SightReading {
     this.viewHands = next.viewHands || "both";
     this.reattackTies = next.reattackTies === true;
     this.stanzas = next.stanzas || [1];
+    this.stanza = next.stanza ?? this.stanzas[0] ?? 0;
     if (changed) this.restoreSection();
     if (changed || this.section !== old.section) {
       this.restorePending = true;
@@ -564,6 +586,7 @@ export class SightReading {
       viewHands: this.viewHands,
       reattackTies: this.reattackTies,
       stanzas: this.stanzas,
+      stanza: this.stanza,
       sectionBars: this.sectionBars,
       section: this.section,
       position: this.position,
@@ -603,7 +626,10 @@ export class SightReading {
         this.settings(),
         this.hymn.key,
         this.zoom,
-        this.session && this.content && !this.passage.range
+        this.mode === "wait" &&
+          this.session &&
+          this.content &&
+          !this.passage.range
           ? {
               content: this.content,
               paused: this.paused,
@@ -635,6 +661,7 @@ export class SightReading {
     this.viewHands = next.viewHands!;
     this.reattackTies = next.reattackTies!;
     this.stanzas = next.stanzas || [1];
+    this.stanza = next.stanza ?? this.stanzas[0] ?? 0;
     this.position = 0;
     this.paused = false;
     this.preferRangeDefault = false;
@@ -669,7 +696,7 @@ export class SightReading {
     }
     if (this.mode === "playback") {
       this.playbackView = "";
-      this.playback.seek(time / 1000, transport);
+      this.playback.seek(this.stanzaOffset + time / 1000, transport);
       this.updatePlayback();
     } else if (this.session) {
       const next = this.events.findIndex((e) => e.milliseconds >= time - 1);
@@ -745,7 +772,7 @@ export class SightReading {
     });
     try {
       this.syncRangeKeys();
-      const passageIdentity = `${this.hymn.id}:${this.key}:${this.octave}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}:${this.endingBar || ""}`;
+      const passageIdentity = `${this.hymn.id}:${this.key}:${this.octave}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}:${this.stanza}:${this.endingBar || ""}`;
       if (passageIdentity !== this.passageIdentity || this.noMatchingKey) {
         this.passage.reset();
         this.loopPassage = false;
@@ -801,13 +828,17 @@ export class SightReading {
               audio,
               transpose: transposition.semitones,
               endingBar: this.endingBar,
+              stanzas: this.stanzas,
             });
+            this.playbackVerses = prepared.verses;
             this.playback.load(
               prepared.audio,
               prepared.starts,
               this.section,
               prepared.timing,
             );
+            if (this.stanzaOffset)
+              this.playback.seek(this.stanzaOffset, "ready");
           }
         },
       });
@@ -863,11 +894,16 @@ export class SightReading {
         this.events = this.events.filter(
           (e) => e.milliseconds / 1000 >= from && e.milliseconds / 1000 < to,
         );
-        if (!layoutOnly) this.playback.setRange(from, to);
+        if (!layoutOnly)
+          this.playback.setRange(
+            this.stanzaOffset + from,
+            this.stanzaOffset + to,
+          );
       }
       const steps = eventSteps(this.events, true);
       const content = JSON.stringify({
         matcher: 1,
+        ...(this.stanza > 1 ? { stanza: this.stanza } : {}),
         abc: practice.abc,
         steps,
         ...(transposition.semitones
@@ -961,11 +997,6 @@ export class SightReading {
     );
   }
   private optionsSnapshot(): HymnOptionsSnapshot {
-    const transposition = hymnTransposition(
-      this.hymn.key,
-      this.key,
-      this.octave,
-    );
     const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
     return {
       hymn: this.hymn.id,
@@ -995,6 +1026,8 @@ export class SightReading {
       availableOctaves: this.availableOctaves,
       range: this.melodyRangeLabel,
       source: {
+        referenceDetails:
+          "referenceDetails" in this.hymn ? this.hymn.referenceDetails! : null,
         referenceUrl:
           "referenceUrl" in this.hymn ? this.hymn.referenceUrl! : null,
         credits: this.hymn.credits.join(" "),
@@ -1005,15 +1038,6 @@ export class SightReading {
             "/" +
             encodeURIComponent(this.hymn.file),
         label: tabMusic ? "Tab music source" : "Open Hymnal source",
-        description: tabMusic
-          ? "Keyboard melody with simplified harmony from your tab-music edition."
-          : "Public-domain words, melody and setting, with aligned stanzas and shared refrains.",
-        help:
-          ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
-          " Sing along with the words.",
-        transposition: transposition.semitones
-          ? `${hymnKeyLabel(transposition.key)}, ${transposition.semitones > 0 ? "up" : "down"} ${Math.abs(transposition.semitones)} semitones from ${hymnKeyLabel(this.hymn.key)}. Each key and octave keeps its own progress. The entire score moves together.`
-          : `Original ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress.`,
       },
     };
   }
@@ -1045,14 +1069,31 @@ export class SightReading {
       return;
     }
     if (patch.stanzas !== undefined) {
-      const previousEnding = this.endingBar;
+      const oldStanza = this.stanza;
+      const time = Math.max(
+        0,
+        this.playback.displayPosition - this.stanzaOffset,
+      );
+      const state = this.playback.state;
+      this.save();
+      this.interrupt("controls");
       this.stanzas = next.stanzas || [];
-      if (this.endingBar !== previousEnding) {
-        this.interrupt("controls");
-        this.position = 0;
-        this.restorePending = true;
-        this.render();
-      } else this.render(true);
+      this.stanza = next.stanza ?? this.stanzas[0] ?? 0;
+      if (this.stanza !== oldStanza) this.position = 0;
+      this.restorePending = false;
+      this.content = "";
+      this.render();
+      if (this.mode === "playback" && this.stanza === oldStanza) {
+        this.playback.seek(
+          this.stanzaOffset + time,
+          state === "paused" ? "paused" : "ready",
+        );
+        if (["playing", "loading", "counting"].includes(state))
+          void this.playback.play(
+            this.bpm,
+            state === "counting" ? this.countInBars : 0,
+          );
+      }
     } else if (patch.zoom !== undefined) {
       if (!validHymnZoom(patch.zoom)) return;
       this.zoom = patch.zoom;
@@ -1218,6 +1259,15 @@ export class SightReading {
     if (result === "ignored") return;
     if (result === "restarted") {
       this.paused = false;
+      if (!this.passage.range && this.stanza !== (this.stanzas[0] || 0)) {
+        this.stanza = this.stanzas[0] || 0;
+        this.position = 0;
+        this.content = "";
+        this.restorePending = false;
+        this.render();
+        this.save();
+        return;
+      }
     }
     if (result === "wrong" || result === "partial") {
       this.presentation.set({ kind: result });
@@ -1244,6 +1294,20 @@ export class SightReading {
           .querySelector(`[data-piano="${note}"]`)
           ?.classList.add("sight-key-selected");
       return;
+    }
+    if (result === "complete" && !this.passage.range) {
+      const next = this.stanzas[this.stanzas.indexOf(this.stanza) + 1];
+      if (next !== undefined) {
+        this.position = this.session!.index;
+        this.save();
+        this.stanza = next;
+        this.position = 0;
+        this.restorePending = false;
+        this.content = "";
+        this.render();
+        this.save();
+        return;
+      }
     }
     if (result === "complete" && this.passage.range && this.loopPassage)
       this.session = new WaitForMe(this.session!.steps);
@@ -1301,9 +1365,11 @@ export class SightReading {
     });
     const complete = session.complete;
     this.presentation.set({
-      count: complete
-        ? "Complete"
-        : `${Math.min(session.index + 1, session.steps.length)} / ${session.steps.length}`,
+      count: this.stanzaCount(
+        complete
+          ? "Complete"
+          : `${Math.min(session.index + 1, session.steps.length)} / ${session.steps.length}`,
+      ),
     });
 
     this.presentation.set({ max: session.steps.length });
@@ -1323,6 +1389,7 @@ export class SightReading {
               : "Play the highlighted note.",
     });
     this.setControls({
+      stanza: this.stanzaLabel,
       pauseDisabled: complete,
       pause: this.paused ? "Resume" : "Pause",
       previous: this.section !== 0,
@@ -1348,8 +1415,27 @@ export class SightReading {
   }
   private updatePlayback() {
     if (!this.session) return;
+    let verse: (typeof this.playbackVerses)[number] | undefined;
+    for (const candidate of this.playbackVerses) {
+      if (candidate.start > this.playback.displayPosition) break;
+      verse = candidate;
+    }
+    if (!this.passage.range && verse && verse.number !== this.stanza) {
+      const oldEnding = this.endingBar;
+      this.stanza = verse.number;
+      this.position = 0;
+      this.restorePending = false;
+      this.playbackView = "";
+      if (oldEnding !== this.endingBar) {
+        this.content = "";
+        this.render(true);
+        return;
+      }
+      this.save();
+    }
     const targetSection = this.playbackFromSection + this.playback.section;
     if (
+      !this.playbackVerses.length &&
       !this.passage.range &&
       targetSection !== this.section &&
       this.mode === "playback" &&
@@ -1376,7 +1462,12 @@ export class SightReading {
     let index = this.events.length - 1;
     while (
       index >= 0 &&
-      this.events[index].milliseconds > this.playback.sectionPosition * 1000 + 1
+      this.events[index].milliseconds >
+        (this.playbackVerses.length
+          ? this.playback.displayPosition - this.stanzaOffset
+          : this.playback.sectionPosition) *
+          1000 +
+          1
     )
       index--;
     if (index < 0) index = 0;
@@ -1390,7 +1481,7 @@ export class SightReading {
     const attacks = playingNotes
       .map((note) => `${note.pitch}@${note.start}`)
       .join(",");
-    const view = `${attacks}:${state}:${this.section}:${index}:${sounding}:${counting?.bar}:${counting?.beat}`;
+    const view = `${attacks}:${state}:${this.stanza}:${this.section}:${index}:${sounding}:${counting?.bar}:${counting?.beat}`;
     if (view === this.playbackView) return;
     this.playbackView = view;
     highlightScore(
@@ -1402,7 +1493,9 @@ export class SightReading {
       true,
     );
     this.presentation.set({
-      count: complete ? "Complete" : `${index + 1} / ${this.events.length}`,
+      count: this.stanzaCount(
+        complete ? "Complete" : `${index + 1} / ${this.events.length}`,
+      ),
     });
 
     this.presentation.set({ max: this.events.length });
@@ -1421,6 +1514,7 @@ export class SightReading {
                 : "Press Play to listen.",
     });
     this.setControls({
+      stanza: this.stanzaLabel,
       pauseDisabled: false,
       pause:
         state === "loading"

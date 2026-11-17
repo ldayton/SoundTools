@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
-import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { iphone14Pro, macBookAir13 } from "../../../scripts/test-devices.cjs";
+import abcjs from "abcjs";
+import { arrangeHymn } from "../../../packages/music-practice/src/hymn-arrangements";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
   openPracticeOptions,
   closePracticeOptions,
   practiceOption,
+  midiAction,
+  closeNavigation,
 } from "../../../packages/music-practice/browser-tests/helpers";
 
 const engine = process.env.TEST_BROWSER || "chromium";
@@ -43,7 +47,34 @@ try {
   });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  await page.addInitScript({
+    content: await readFile(
+      new URL(
+        "../../../packages/music-practice/test-fixtures/midi.js",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  });
   await page.addInitScript(() => {
+    const probe = ((window as any).stanzaPlayback = {
+      starts: [] as number[],
+      clicks: [] as number[],
+    });
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (
+      ...args: Parameters<typeof start>
+    ) {
+      probe.starts.push(args[0] || 0);
+      return start.apply(this, args);
+    };
+    const click = OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start = function (
+      ...args: Parameters<typeof click>
+    ) {
+      probe.clicks.push(args[0] || 0);
+      return click.apply(this, args);
+    };
     const connect: Function = AudioNode.prototype.connect;
     AudioNode.prototype.connect = function (this: AudioNode, ...args: any[]) {
       if (args[0] === this.context.destination) {
@@ -99,6 +130,7 @@ try {
     3,
     "Chorus remains when stanza one is hidden",
   );
+  await expect(page.locator("#saved")).toHaveText("Saved on this device.");
   await page.waitForLoadState("networkidle");
   await page.reload();
   await checks.nth(2).waitFor();
@@ -115,7 +147,9 @@ try {
   await page.keyboard.press("ArrowRight");
   const position = await page.locator(".hymn-count").textContent();
   await checks.nth(0).check();
-  await expect(page.locator(".hymn-count")).toHaveText(position!);
+  await expect(page.locator(".hymn-count")).toHaveText(
+    new RegExp(position!.split(" · ").at(-1)!.replace(/ /g, "\\s*")),
+  );
   await score.focus();
   await page.keyboard.press("Home");
   await page.keyboard.press("Shift+ArrowRight");
@@ -134,6 +168,7 @@ try {
   await checks.nth(1).uncheck();
   await checks.nth(2).uncheck();
   assert.equal(await page.locator(".abcjs-lyric").count(), 0);
+  await expect(page.locator("#saved")).toHaveText("Saved on this device.");
   await page.waitForLoadState("networkidle");
   await page.reload();
   await checks.nth(2).waitFor();
@@ -157,11 +192,13 @@ try {
     .toMatch(/stand/);
   const lastStanzaNotes = await page.locator(".hymn-paper .abcjs-note").count();
   await checks.nth(0).check();
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
   assert(
     (await page.locator(".hymn-paper .abcjs-note").count()) > lastStanzaNotes,
     "The Oh ending returns when an earlier stanza is shown",
   );
   await checks.nth(0).uncheck();
+  await expect(page.locator("#saved")).toHaveText("Saved on this device.");
   await page.waitForLoadState("networkidle");
   await page.reload();
   await expect
@@ -179,9 +216,19 @@ try {
     await page
       .getByRole("button", { name: "About this hymn", exact: true })
       .click();
-    await expect(
-      page.getByRole("link", { name: "Reference recording", exact: true }),
-    ).toHaveAttribute("href", `https://www.youtube.com/watch?v=${video}`);
+    const reference = page.getByRole("link", { name: /^Reference recording/ });
+    await expect(reference).toHaveAttribute(
+      "href",
+      `https://www.youtube.com/watch?v=${video}`,
+    );
+    const details: Record<string, string> = {
+      "amazing-grace": "B major, 72 BPM",
+      "in-christ-alone": "D major, 67 BPM",
+      "jesus-loves-me": "G major, 125 BPM",
+      "ill-fly-away": "B major, 102 BPM",
+      "o-come-all-ye-faithful": "E major, 91 BPM",
+    };
+    await expect(reference).toHaveText(`Reference recording (${details[id]})`);
   }
   for (const viewport of [macBookAir13.viewport, iphone14Pro.viewport]) {
     await page.setViewportSize(viewport);
@@ -248,9 +295,108 @@ try {
   await page.setViewportSize(macBookAir13.viewport);
   await openPracticeOptions(page);
   await page.screenshot({ path: `work/hymn-stanzas-${engine}-desktop.png` });
+  // Wait for me advances only after the final answer, skips unchecked stanzas,
+  // and restores the active stanza as well as its note after reload.
+  const attacks = (id: string) => {
+    const hymn = hymns.find((h) => h.id === id)!;
+    const audio = abcjs
+      .parseOnly(arrangeHymn(hymn, "melody", 0).abc)[0]
+      .setUpAudio({ qpm: 60, chordsOff: true });
+    return {
+      pitches: audio.tracks[0].flatMap((n) =>
+        n.cmd === "note" ? [n.pitch] : [],
+      ),
+      duration: audio.totalDuration * 4,
+    };
+  };
+  const send = async (notes: number[]) =>
+    page.evaluate((notes) => {
+      for (const pitch of notes) {
+        (window as any).midiTest.send([0x90, pitch, 100]);
+        (window as any).midiTest.send([0x80, pitch, 0]);
+      }
+    }, notes);
+  const connectMidi = async () => {
+    if (
+      (await page.locator(".keyboard-menu").getAttribute("data-state")) !==
+      "connected"
+    )
+      await midiAction(page, "Connect MIDI keyboard");
+    await closeNavigation(page);
+  };
+  const counter = page.locator(".hymn-count");
+  await visit("amazing-grace", "?stanzas=1,3&mode=wait&octave=0");
+  await connectMidi();
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
+  const grace = attacks("amazing-grace");
+  await send(grace.pitches);
+  await expect(counter).toHaveText(/Stanza 2\/2 · 1 \/ 35/);
+  await expect(page.locator("#saved")).toHaveText("Saved on this device.");
+  await page.waitForLoadState("networkidle");
+  await page.reload();
+  await expect(counter).toHaveText(/Stanza 2\/2 · 1 \/ 35/);
+  await connectMidi();
+  await send(grace.pitches);
+  await expect(counter).toHaveText(/Stanza 2\/2 · Complete/);
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
+  await expect(counter).toHaveText(/Stanza 1\/2 · 1 \/ 35/);
+
+  await visit("in-christ-alone", "?stanzas=2,3&mode=wait&octave=0");
+  await connectMidi();
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
+  const christ = attacks("in-christ-alone");
+  await send(christ.pitches);
+  await expect(counter).toHaveText(/Stanza 2\/2 · 1 \/ 64/);
+  await send(christ.pitches.slice(0, 64));
+  await expect(counter).toHaveText(/Complete/);
+
+  // Real (muted) audio scheduling: the next pickup is scheduled on the same
+  // clock, with no inserted silence or second automatic count-in.
+  await visit(
+    "amazing-grace",
+    "?stanzas=1,3&mode=playback&tempo=200&countIn=1&octave=0",
+  );
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.waitForFunction(
+    () => (window as any).stanzaPlayback.starts.length > 0,
+  );
+  const clickCount = await page.evaluate(
+    () => (window as any).stanzaPlayback.clicks.length,
+  );
+  await expect(counter).toHaveText(/Stanza 2\/2 ·/, {
+    timeout: ((grace.duration * 60) / 200) * 1000 + 15000,
+  });
+  await expect(page.locator(".hymn-stanza-indicator")).toHaveText("Stanza 2/2");
+  await page.screenshot({ path: `work/hymn-stanza-transition-${engine}.png` });
+  const probe = await page.evaluate(
+    () =>
+      (window as any).stanzaPlayback as { starts: number[]; clicks: number[] },
+  );
+  assert.equal(
+    probe.clicks.length,
+    clickCount,
+    "Only one count-in for the complete song",
+  );
+  const boundary = probe.starts[0] + (grace.duration * 60) / 200;
+  assert(
+    probe.starts.some((time) => Math.abs(time - boundary) < 0.02),
+    "No added delay between stanzas",
+  );
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  const pausedVerse = await counter.textContent();
+  await page.getByRole("button", { name: "Resume", exact: true }).click();
+  await expect(counter).toHaveText(/Stanza 2\/2 ·/);
+  await expect(counter).toHaveText(/Stanza 2\/2 · Complete/, {
+    timeout: ((grace.duration * 60) / 200) * 1000 + 15000,
+  });
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(counter).toHaveText(/Stanza 1\/2 ·/);
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  assert(pausedVerse?.startsWith("Stanza 2/2"));
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: stanza defaults, shared choruses, persistence, playback continuity, all hymn layouts, compact labels and reference links passed`,
+    `${engine}: stanza defaults, shared choruses, persistence, playback continuity, all hymn layouts, compact labels, reference links, gapless stanza playback, practice advancement and verse reload passed`,
   );
 } finally {
   await browser?.close();

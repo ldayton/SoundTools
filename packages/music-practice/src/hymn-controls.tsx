@@ -18,6 +18,7 @@ export const hymnControlsState = createViewState<{
   selected: boolean;
   loop: boolean;
   status: string;
+  stanza: string;
 }>;
 export type HymnControlsState = ReturnType<typeof hymnControlsState>;
 export function HymnControls({
@@ -86,6 +87,19 @@ export function HymnControls({
           }
         />
       </Button>
+      {state.stanza && (
+        <Text
+          component="span"
+          size="xs"
+          c="dimmed"
+          miw={64}
+          className="hymn-stanza-indicator"
+          role="status"
+          style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}
+        >
+          {state.stanza}
+        </Text>
+      )}
     </Group>
   );
   const legacy = (

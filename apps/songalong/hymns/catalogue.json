@@ -4,7 +4,8 @@
     "title": "Amazing Grace",
     "file": "Amazing_Grace-New_Britain.abc",
     "folder": "Amazing_Grace",
-    "referenceUrl": "https://www.youtube.com/watch?v=9ZXxIyjTY1s"
+    "referenceUrl": "https://www.youtube.com/watch?v=9ZXxIyjTY1s",
+    "referenceDetails": "B major, 72 BPM"
   },
   {
     "id": "in-christ-alone",
@@ -13,14 +14,16 @@
     "folder": "in-christ-alone",
     "source": "tab-music",
     "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/in-christ-alone-music.ily",
-    "referenceUrl": "https://www.youtube.com/watch?v=3ch6eXkQWU8"
+    "referenceUrl": "https://www.youtube.com/watch?v=3ch6eXkQWU8",
+    "referenceDetails": "D major, 67 BPM"
   },
   {
     "id": "jesus-loves-me",
     "title": "Jesus Loves Me",
     "file": "Jesus_Loves_Me-untitled.abc",
     "folder": "Jesus_Loves_Me",
-    "referenceUrl": "https://www.youtube.com/watch?v=-jABcYKhDrI"
+    "referenceUrl": "https://www.youtube.com/watch?v=-jABcYKhDrI",
+    "referenceDetails": "G major, 125 BPM"
   },
   {
     "id": "ill-fly-away",
@@ -29,7 +32,8 @@
     "folder": "ill-fly-away",
     "source": "tab-music",
     "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/ill-fly-away-music.ily",
-    "referenceUrl": "https://www.youtube.com/watch?v=192W0bhJNEg"
+    "referenceUrl": "https://www.youtube.com/watch?v=192W0bhJNEg",
+    "referenceDetails": "B major, 102 BPM"
   },
   {
     "id": "o-come-all-ye-faithful",
@@ -39,7 +43,8 @@
       "Adeste Fideles"
     ],
     "folder": "O_Come_All_Ye_Faithful",
-    "referenceUrl": "https://www.youtube.com/watch?v=AuwoGmsUWhU"
+    "referenceUrl": "https://www.youtube.com/watch?v=AuwoGmsUWhU",
+    "referenceDetails": "E major, 91 BPM"
   },
   {
     "id": "holy-holy-holy",

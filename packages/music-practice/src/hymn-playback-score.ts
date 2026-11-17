@@ -1,4 +1,5 @@
 import abcjs, { type AudioTracks } from "abcjs";
+import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
   type Arrangement,
@@ -18,6 +19,7 @@ export function hymnPlaybackScore(options: {
   audio: AudioTracks;
   transpose: number;
   endingBar?: number;
+  stanzas?: readonly number[];
 }) {
   const readAudio = (abc: string) =>
     abcjs.parseOnly(abc)[0].setUpAudio({
@@ -25,6 +27,52 @@ export function hymnPlaybackScore(options: {
       chordsOff: true,
       midiTranspose: options.transpose,
     });
+  // Schedule the entire song on one audio clock. Restarting the transport at
+  // stanza boundaries would add preparation/lead-in gaps and another count-in.
+  if (options.stanzas && options.sectionBars === 0) {
+    const selected = validStanzas(options.stanzas, options.hymn.stanzas.length);
+    let offset = 0;
+    const parts = (selected.length ? selected : [0]).map((number) => {
+      const abc = arrangeHymn(
+        options.hymn,
+        options.arrangement,
+        0,
+        0,
+        options.hands,
+        number ? hymnEndingBar(options.hymn, [number]) : undefined,
+      ).abc;
+      const audio = readAudio(abc);
+      const start = offset;
+      offset += audio.totalDuration;
+      return { audio, number, start: start * 4, end: offset * 4 };
+    });
+    const first = parts[0].audio;
+    return {
+      starts: [0],
+      verses: parts.map(({ number, start, end }) => ({ number, start, end })),
+      audio: {
+        ...first,
+        totalDuration: offset,
+        tracks: first.tracks.map((_, index) =>
+          parts.flatMap(({ audio, start }, pass) =>
+            (audio.tracks[index] || []).flatMap<
+              AudioTracks["tracks"][number][number]
+            >((item) =>
+              item.cmd === "note"
+                ? [{ ...item, start: item.start + start / 4 }]
+                : pass === 0
+                  ? [item]
+                  : [],
+            ),
+          ),
+        ),
+      } as AudioTracks,
+      timing: {
+        meter: options.hymn.meter,
+        pickup: abcjs.parseOnly(options.abc)[0].getPickupLength() * 4,
+      },
+    };
+  }
   const arrange = (bars: number, section: number) =>
     arrangeHymn(
       options.hymn,
@@ -45,6 +93,7 @@ export function hymnPlaybackScore(options: {
     return start;
   });
   return {
+    verses: [] as { number: number; start: number; end: number }[],
     starts,
     audio:
       options.sections === 1

@@ -16,6 +16,7 @@ const curated = JSON.parse(
   source?: "tab-music";
   sourceUrl?: string;
   referenceUrl?: string;
+  referenceDetails?: string;
 }[];
 type LyricOverride = {
   shared?: number[][];

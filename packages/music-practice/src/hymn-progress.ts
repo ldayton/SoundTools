@@ -26,6 +26,7 @@ export type HymnState = {
   viewHands?: HymnHands;
   reattackTies?: boolean;
   stanzas?: number[];
+  stanza?: number;
   sectionBars: number;
   section: number;
   bookmarks: Record<string, Bookmark>;
@@ -106,12 +107,21 @@ export function hymnProgressKey(
   section = true,
 ) {
   const hymn = hymns.find((h) => h.id === settings.hymn);
-  const endingBar = hymn ? hymnEndingBar(hymn, settings.stanzas) : undefined;
+  const endingBar = hymn
+    ? hymnEndingBar(
+        hymn,
+        settings.stanza === undefined
+          ? settings.stanzas
+          : settings.stanza
+            ? [settings.stanza]
+            : [],
+      )
+    : undefined;
   const hand =
     settings.arrangement === "melody" ||
     settings.hands === "both" ||
     !settings.hands
       ? ""
       : `:hands=${settings.hands}`;
-  return `${settings.hymn}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${endingBar ? `:ending=${endingBar}` : ""}${settings.reattackTies ? ":reattack-ties" : ""}`;
+  return `${settings.hymn}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${settings.stanza && settings.stanza > 1 ? `:stanza=${settings.stanza}` : ""}${endingBar ? `:ending=${endingBar}` : ""}${settings.reattackTies ? ":reattack-ties" : ""}`;
 }

@@ -148,7 +148,7 @@ try {
   await page
     .getByRole("button", { name: "Complete update", exact: true })
     .waitFor({ timeout: 20000 });
-  for (const width of [320, 390, 1680]) {
+  for (const width of [320, 390, 1680, 320, 1680]) {
     await page.setViewportSize({ width, height: 900 });
     // The shell's responsive layout commits after the viewport event.
     await page.waitForFunction(
@@ -169,27 +169,23 @@ try {
       1,
       "One update action, available outside Settings",
     );
-    if (width < 768)
-      assert.ok(
-        await update.evaluate((button) => {
-          const r = button.getBoundingClientRect();
-          return Math.abs(r.left + r.width / 2 - innerWidth / 2) <= 1;
-        }),
-        "Mobile update action is centered",
+    // Crossing breakpoints reparents the action. Measure the current button
+    // and header together after React commits the responsive layout.
+    await page.waitForFunction(() => {
+      const button = document.querySelector<HTMLElement>("#offline-update");
+      const header = button?.closest("header");
+      if (!button || !header) return false;
+      const r = button.getBoundingClientRect();
+      return (
+        r.width > 0 &&
+        r.height > 0 &&
+        r.left >= 0 &&
+        r.right <= innerWidth &&
+        r.top >= 0 &&
+        r.bottom <= header.getBoundingClientRect().bottom &&
+        (innerWidth >= 768 || Math.abs(r.left + r.width / 2 - innerWidth / 2) <= 1)
       );
-    assert.ok(
-      await update.evaluate((button) => {
-        const r = button.getBoundingClientRect();
-        const header = button.closest("header")!.getBoundingClientRect();
-        return (
-          r.left >= 0 &&
-          r.right <= innerWidth &&
-          r.top >= 0 &&
-          r.bottom <= header.bottom
-        );
-      }),
-      "Ready update stays in the header on desktop and mobile",
-    );
+    });
     assert.ok(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

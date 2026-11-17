@@ -679,8 +679,11 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
   // Join complete sung passes before adding the single introduction and between-round rests.
   if (spec.repeatTwice) {
     const sharedHome = offsets.at(-1) === offsets[0] ? 1 : 0;
+    const repeatedLengths = lengths.slice(sharedHome);
+    // Rossini launches straight into its second pass; only the final home is held.
+    if (rossini && sharedHome) lengths[lengths.length - 1] = 1;
     offsets.push(...offsets.slice(sharedHome));
-    lengths.push(...lengths.slice(sharedHome));
+    lengths.push(...repeatedLengths);
   }
   const roots: number[] = [];
   if (descending) for (let root = spec.high; root >= spec.low + span; root--) roots.push(root);

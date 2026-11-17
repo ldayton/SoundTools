@@ -152,7 +152,9 @@ try {
     "Another hymn starts with only its first stanza",
   );
   await visit("in-christ-alone", "?stanzas=3");
-  assert.match((await lyricWords()).filter((w) => w.trim()).at(-1)!, /stand/);
+  await expect
+    .poll(async () => (await lyricWords()).filter((w) => w.trim()).at(-1) || "")
+    .toMatch(/stand/);
   const lastStanzaNotes = await page.locator(".hymn-paper .abcjs-note").count();
   await checks.nth(0).check();
   assert(
@@ -162,7 +164,9 @@ try {
   await checks.nth(0).uncheck();
   await page.waitForLoadState("networkidle");
   await page.reload();
-  assert.match((await lyricWords()).filter((w) => w.trim()).at(-1)!, /stand/);
+  await expect
+    .poll(async () => (await lyricWords()).filter((w) => w.trim()).at(-1) || "")
+    .toMatch(/stand/);
   const references: Record<string, string> = {
     "in-christ-alone": "3ch6eXkQWU8",
     "jesus-loves-me": "-jABcYKhDrI",

@@ -500,7 +500,7 @@ try {
     fullPage: true,
   });
   // Count-in belongs only to playback; follow-me stays immediate even with a saved preference.
-  assert.equal(await page.locator(".hymn-count-in-field").isVisible(), false);
+  assert.equal(await page.locator(".hymn-count-in-field").count(), 1);
   await practiceOption(page, "#hymn-mode", "playback");
   await practiceOption(page, "#hymn-count-in", "2");
   await practiceOption(page, "#hymn-tempo", "200");
@@ -519,6 +519,7 @@ try {
   );
   await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.setViewportSize({ width: 1680, height: 1050 });
   await practiceOption(page, "#hymn-mode", "wait");
   assert.equal(await page.locator(".hymn-count-in-field").isVisible(), false);
   await midiAction(page, "Connect MIDI keyboard");

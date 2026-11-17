@@ -5,6 +5,7 @@ import { ActionIcon, Button, Checkbox, Group, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
 import { useMediaQuery } from "@mantine/hooks";
 import { hymnToolbarState } from "./hymn-toolbar-state";
+import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { PracticePianoToggle } from "./piano-presentation";
 export const hymnControlsState = createViewState<{
   disabled: boolean;
@@ -38,7 +39,7 @@ export function HymnControls({
   previous(): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
-  const mobile = useMediaQuery("(max-width: 767px)", undefined, {
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
   const toolbar = useSyncExternalStore(
@@ -142,9 +143,10 @@ export function HymnControls({
               hymnToolbarState.set({ expanded: !toolbar.expanded })
             }
           >
-            <ControlIcon name="settings" />
+            <ControlIcon
+              name={toolbar.expanded ? "chevron-up" : "chevron-down"}
+            />
           </ActionIcon>
-          <div className="hymn-toolbar-piano">{piano}</div>
           <div
             id="hymn-mobile-controls"
             className="hymn-mobile-controls"

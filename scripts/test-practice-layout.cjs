@@ -116,7 +116,10 @@ const server = spawn(
         "Expand practice options",
     );
     await page
-      .getByRole("button", { name: "Expand practice options", exact: true })
+      .getByRole("button", {
+        name: /^Expand (practice|playback) options$/,
+        exact: true,
+      })
       .click();
     await page
       .getByRole("button", { name: "Collapse navigation", exact: true })
@@ -174,7 +177,10 @@ const server = spawn(
     // Mobile starts with both sidebars closed, with one volume/selector instance in the drawer.
     await page.setViewportSize(iphone14Pro.viewport);
     await page
-      .getByRole("button", { name: "Expand practice options", exact: true })
+      .getByRole("button", {
+        name: /^Expand (practice|playback) options$/,
+        exact: true,
+      })
       .waitFor();
     assert.equal(
       await page.locator("#practice-options-content").isVisible(),
@@ -188,20 +194,29 @@ const server = spawn(
       await nav.locator('[data-pattern="octaveGlide"]').click();
       await page.getByRole("dialog").waitFor({ state: "hidden" });
       await page
-        .getByRole("button", { name: "Expand practice options", exact: true })
+        .getByRole("button", {
+          name: /^Expand (practice|playback) options$/,
+          exact: true,
+        })
         .click();
       await page
         .getByRole("button", { name: "Up & back", exact: true })
         .waitFor();
       await page
-        .getByRole("button", { name: "Close practice options", exact: true })
+        .getByRole("button", {
+          name: /^Close (practice|playback) options$/,
+          exact: true,
+        })
         .click();
     } else
       await page
         .getByRole("button", { name: "Close navigation", exact: true })
         .click();
     await page
-      .getByRole("button", { name: "Expand practice options", exact: true })
+      .getByRole("button", {
+        name: /^Expand (practice|playback) options$/,
+        exact: true,
+      })
       .click();
     await page
       .locator(
@@ -211,7 +226,7 @@ const server = spawn(
       .waitFor();
     await page
       .getByRole("button", {
-        name: "Close practice options",
+        name: /^Close (practice|playback) options$/,
         exact: true,
       })
       .click();
@@ -309,7 +324,7 @@ const server = spawn(
         const phone = await browser.newPage(device);
         try {
           phone.on("pageerror", (error) => errors.push(error.message));
-          await phone.goto(base);
+          await phone.goto(app === "songalong" ? base + "?mode=wait" : base);
           const openOptions = phone.getByRole("button", {
             name: /^Expand (practice|playback) options$/,
             exact: true,
@@ -347,39 +362,49 @@ const server = spawn(
             .tap();
           await phone.getByRole("dialog").waitFor({ state: "hidden" });
           if (app === "songalong") {
-            const pianoToggle = phone.getByRole("button", {
-              name: "On-screen piano",
-              exact: true,
-            });
             assert.equal(
-              await pianoToggle.getAttribute("aria-expanded"),
-              "false",
-              "Mobile piano defaults to collapsed",
-            );
-            assert.equal(
-              await phone.locator(".practice-piano").isVisible(),
-              false,
-            );
-            await pianoToggle.tap();
-            assert.equal(
-              await pianoToggle.getAttribute("aria-expanded"),
+              await phone
+                .locator("#sight-reading")
+                .getAttribute("data-playback-only"),
               "true",
             );
             assert.equal(
-              await phone.locator("#hymn-mode").getAttribute("data-mode"),
-              "playback",
-              "Fresh mobile practice defaults to Playback",
-            );
-            assert.equal(await phone.locator("#hymn-mode").isVisible(), false);
-            assert.equal(
               await phone
-                .locator(".mantine-AppShell-header")
-                .evaluate((el) => el.getBoundingClientRect().height),
-              56,
+                .getByRole("button", { name: "On-screen piano", exact: true })
+                .count(),
+              0,
+            );
+            assert.equal(
+              await phone.locator("#hymn-mode").count(),
+              0,
+              "Old wait-mode links cannot enable mobile practice",
+            );
+            assert.equal(await phone.locator(".keyboard-menu").count(), 0);
+            assert.equal(
+              await phone.locator(".hymn-piano [data-piano]").count(),
+              0,
+            );
+            const geometry = await phone
+              .locator(".sequence-score")
+              .evaluate((el) => ({
+                x: el.getBoundingClientRect().left,
+                width: el.getBoundingClientRect().width,
+                top: el.getBoundingClientRect().top,
+                header: document
+                  .querySelector(".mantine-AppShell-header")
+                  .getBoundingClientRect().bottom,
+              }));
+            assert.equal(geometry.x, 0);
+            assert.equal(geometry.width, device.viewport.width);
+            assert.equal(
+              geometry.top,
+              geometry.header,
+              "Score begins directly below the toolbar",
             );
             await phone
               .getByRole("button", { name: "Show controls", exact: true })
               .tap();
+            assert.equal(await phone.locator("#hymn-tempo").isEnabled(), true);
             const size = Number.parseInt(
               await phone.locator("#hymn-size").inputValue(),
             );
@@ -402,32 +427,6 @@ const server = spawn(
               tempo,
             );
             await phone.locator("#hymn-tempo-down").tap();
-            assert(
-              await phone.evaluate(() => {
-                const header = document
-                  .querySelector(".mantine-AppShell-header")
-                  .getBoundingClientRect();
-                return [
-                  ...document.querySelectorAll(
-                    ".toolbar-number-touch > button",
-                  ),
-                ].every((button) => {
-                  const box = button.getBoundingClientRect();
-                  return (
-                    box.width >= 36 &&
-                    box.height >= 42 &&
-                    box.top >= header.top &&
-                    box.bottom <= header.bottom
-                  );
-                });
-              }),
-              `${name}: full-height number buttons remain reachable`,
-            );
-          }
-          if (app === "songalong") {
-            await phone
-              .getByRole("button", { name: "Playback mode", exact: true })
-              .tap();
             await phone
               .getByRole("button", { name: "Hide controls", exact: true })
               .tap();
@@ -437,23 +436,16 @@ const server = spawn(
                 "Saved on this device.",
             );
             await phone.reload();
-            await phone.locator("#hymn-mode").waitFor({ state: "attached" });
-            assert.equal(
-              await phone.locator("#hymn-mode").getAttribute("data-mode"),
-              "wait",
-              "An explicit mode survives reload",
-            );
-            assert.equal(await phone.locator("#hymn-mode").isVisible(), false);
+            await phone
+              .locator('#sight-reading[data-playback-only="true"]')
+              .waitFor();
             assert.equal(
               await phone
-                .getByRole("button", { name: "On-screen piano", exact: true })
-                .getAttribute("aria-expanded"),
-              "true",
-              "An explicit piano choice survives reload",
+                .getByRole("button", { name: "Play", exact: true })
+                .isVisible(),
+              true,
             );
-            await phone
-              .getByRole("button", { name: "On-screen piano", exact: true })
-              .tap();
+            assert.equal(await phone.locator("#hymn-mode").count(), 0);
           }
           await phone.screenshot({
             path: path.join(out, `${app}-${engine}-${name}.png`),

@@ -140,7 +140,11 @@ export function PracticeOptionsReopen() {
       aria-expanded={state.active && !state.collapsed}
       onClick={state.desktop && state.collapsed ? state.reopen : state.toggle}
     >
-      {state.mobileDrawer ? <PanelIcon right /> : "Options"}
+      {state.mobileDrawer ? (
+        <PanelIcon side={state.desktop ? "right" : "bottom"} />
+      ) : (
+        "Options"
+      )}
     </Button>
   );
 }
@@ -196,7 +200,7 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
               aria-controls="practice-options-content"
               onClick={state.toggle}
             >
-              <PanelIcon right />
+              <PanelIcon side="right" />
             </ActionIcon>
           </Group>
         ) : !drawer ? (

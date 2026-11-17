@@ -278,7 +278,7 @@ try {
           .width,
       ),
     )
-    .toBe(iphone14Pro.viewport.width - 32);
+    .toBe(iphone14Pro.viewport.width);
   const scoreY = (await page.locator(".sequence-score").boundingBox())!.y;
   const count = await page.locator(".hymn-count").textContent();
   await openPracticeOptions(page);
@@ -291,7 +291,7 @@ try {
     "aria-valuemax",
     "59",
   );
-  await expect.poll(pianoBottom).toBe(iphone14Pro.viewport.height - 16);
+  await expect(page.locator(".practice-piano")).toBeHidden();
   assert.equal(
     (await page.locator(".sequence-score").boundingBox())!.y,
     scoreY,
@@ -314,14 +314,15 @@ try {
       exact: true,
     }),
   ).toBeFocused();
-  assert.equal(
-    await page
-      .locator(".white-key:visible")
-      .first()
-      .evaluate((el) => el.getBoundingClientRect().width),
-    whiteWidth,
-    "Piano key widths survive resizing",
-  );
+  await expect(
+    page.getByRole("button", { name: "On-screen piano", exact: true }),
+  ).toHaveCount(0);
+  const mobilePosition = await page.locator(".hymn-count").textContent();
+  await page.evaluate(() => {
+    (window as any).midiTest.send([0x90, 62, 100]);
+    (window as any).midiTest.send([0x80, 62, 0]);
+  });
+  await expect(page.locator(".hymn-count")).toHaveText(mobilePosition!);
   await practiceOption(page, "#hymn-mode", "playback");
   await openPracticeOptions(page);
   await expect(
@@ -337,6 +338,14 @@ try {
     "Resume",
   );
   await closePracticeOptions(page);
+  await page.setViewportSize(macBookAir13.viewport);
+  await expect(page.locator("#hymn-mode")).toHaveAttribute("data-mode", "wait");
+  await midiAction(page, "Connect MIDI keyboard");
+  await expect(page.locator(".keyboard-menu")).toHaveAttribute(
+    "data-state",
+    "connected",
+  );
+  await practiceOption(page, "#hymn-mode", "playback");
   const beforeAudition = await page.evaluate(() => (window as any).audioStarts);
   const pausedCount = await page.locator(".hymn-count").textContent();
   const audition = page.locator('.hymn-piano [data-piano="60"]');
@@ -372,6 +381,7 @@ try {
   await practiceOption(page, "#hymn-hands", "left");
   await closePracticeOptions(page);
   await page.setViewportSize(macBookAir13.viewport);
+  await openPracticeOptions(page);
   await expect(
     page.getByRole("complementary", { name: /^(Practice|Playback) options$/ }),
   ).toBeVisible();
@@ -435,68 +445,30 @@ try {
             .locator(".mantine-AppShell-header")
             .evaluate((el) => el.getBoundingClientRect().height),
         )
-        .toBe(220);
+        .toBe(168);
       await expect(page.locator("header [data-direction]")).toHaveCount(0);
-      for (const mode of ["playback", "wait"] as const) {
-        const before = await page
-          .locator("header button:visible, header input:visible")
-          .evaluateAll((elements) =>
-            elements.map((el) => el.getBoundingClientRect().toJSON()),
-          );
-        await practiceOption(page, "#hymn-mode", mode);
-        assert.deepEqual(
-          await page
-            .locator("header button:visible, header input:visible")
-            .evaluateAll((elements) =>
-              elements.map((el) => el.getBoundingClientRect().toJSON()),
-            ),
-          before,
-          `${width}px: mode changes never move controls`,
-        );
-        assert.ok(
-          await page.evaluate(() => {
-            const header = document
-              .querySelector(".mantine-AppShell-header")!
-              .getBoundingClientRect();
-            const controls = [
-              ...document.querySelectorAll("header button, header input"),
-            ]
-              .filter((el) => el.getClientRects().length)
-              .map((el) => el.getBoundingClientRect());
-            const fields = [
-              ...document.querySelectorAll(".toolbar-number-touch > button"),
-            ].map((el) => el.getBoundingClientRect());
-            return (
-              fields.length === 4 &&
-              fields.every((r) => r.height >= 42 && r.width >= 36) &&
-              controls.every(
-                (a, i) =>
-                  a.left >= 0 &&
-                  a.right <= innerWidth &&
-                  a.top >= header.top &&
-                  a.bottom <= header.bottom &&
-                  controls
-                    .slice(i + 1)
-                    .every(
-                      (b) =>
-                        a.right <= b.left + 1 ||
-                        b.right <= a.left + 1 ||
-                        a.bottom <= b.top + 1 ||
-                        b.bottom <= a.top + 1,
-                    ),
-              )
-            );
-          }),
-          `${width}px: all controls fit without overlaps`,
-        );
-        await expect
-          .poll(() =>
-            page
-              .locator("#hymn-mode .mantine-Button-label")
-              .evaluate((el) => el.scrollWidth <= el.clientWidth),
-          )
-          .toBe(true);
-      }
+      await expect(page.locator("#hymn-mode")).toHaveCount(0);
+      await expect(page.locator(".piano-toggle")).toHaveCount(0);
+      await expect(page.locator("#hymn-tempo")).toBeEnabled();
+      assert.ok(
+        await page.evaluate(() => {
+          const header = document
+            .querySelector(".mantine-AppShell-header")!
+            .getBoundingClientRect();
+          return [...document.querySelectorAll("header button, header input")]
+            .filter((el) => el.getClientRects().length)
+            .every((el) => {
+              const r = el.getBoundingClientRect();
+              return (
+                r.left >= 0 &&
+                r.right <= innerWidth &&
+                r.top >= header.top &&
+                r.bottom <= header.bottom
+              );
+            });
+        }),
+        "All mobile controls remain inside the header",
+      );
       await hideControls.click();
       assert.deepEqual(
         await page
@@ -528,10 +500,9 @@ try {
   await expect(page.locator("#hymn-size-up")).toBeDisabled();
   await page.locator("#hymn-size-down").click();
   await expect(page.locator("#hymn-size")).toHaveValue("79 px");
-  await practiceOption(page, "#hymn-mode", "wait");
-  await expect(page.locator("#hymn-tempo-up")).toBeDisabled();
-  await expect(page.locator("#hymn-tempo-down")).toBeDisabled();
   await page.setViewportSize(macBookAir13.viewport);
+  await practiceOption(page, "#hymn-mode", "wait");
+  await expect(page.locator("#hymn-tempo")).toBeDisabled();
   await expect(page.locator("#hymn-size")).toHaveValue("79 px");
   await expect(page.locator('header [data-direction="up"]')).toHaveCount(2);
   assert.deepEqual(errors, []);

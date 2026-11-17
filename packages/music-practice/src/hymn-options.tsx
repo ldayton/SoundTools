@@ -2,6 +2,8 @@ import { ToolbarNumber } from "@ldayton/ui/toolbar-number";
 import { STAFF_HEIGHT } from "./notation-metrics";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { TempoControl } from "@ldayton/ui/tempo-control";
+import { useMediaQuery } from "@mantine/hooks";
+import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import {
   useSyncExternalStore,
   useState,
@@ -340,27 +342,32 @@ export function HymnModeAndTempo({
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
+    getInitialValueInEffect: false,
+  });
   return (
     <>
-      <div className="hymn-toolbar-field">
-        <Text className="hymn-toolbar-field-label" size="sm">
-          Mode
-        </Text>
-        <Button
-          id="hymn-mode"
-          variant={state.mode === "playback" ? "light" : "default"}
-          className="hymn-mode-toggle"
-          aria-label="Playback mode"
-          aria-pressed={state.mode === "playback"}
-          data-mode={state.mode}
-          title={`Switch to ${state.mode === "wait" ? "Playback" : "Wait for me"}`}
-          onClick={() =>
-            change({ mode: state.mode === "wait" ? "playback" : "wait" })
-          }
-        >
-          {state.mode === "wait" ? "Wait for me" : "Playback"}
-        </Button>
-      </div>
+      {!mobile && (
+        <div className="hymn-toolbar-field">
+          <Text className="hymn-toolbar-field-label" size="sm">
+            Mode
+          </Text>
+          <Button
+            id="hymn-mode"
+            variant={state.mode === "playback" ? "light" : "default"}
+            className="hymn-mode-toggle"
+            aria-label="Playback mode"
+            aria-pressed={state.mode === "playback"}
+            data-mode={state.mode}
+            title={`Switch to ${state.mode === "wait" ? "Playback" : "Wait for me"}`}
+            onClick={() =>
+              change({ mode: state.mode === "wait" ? "playback" : "wait" })
+            }
+          >
+            {state.mode === "wait" ? "Wait for me" : "Playback"}
+          </Button>
+        </div>
+      )}
       <div className="hymn-toolbar-field">
         <Text className="hymn-toolbar-field-label" size="sm">
           Tempo

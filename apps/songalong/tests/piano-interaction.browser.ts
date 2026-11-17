@@ -229,12 +229,20 @@ try {
   await page.mouse.down();
   await expect(d).toHaveClass(/is-held/);
   await expect(page.locator(".hymn-count")).not.toHaveText(count!);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(d).toHaveClass(/is-held/);
-  await page.mouse.up();
+  await page.setViewportSize({ width: 393, height: 660 });
   await expect(d).not.toHaveClass(/is-held/);
+  await expect(page.locator(".practice-piano")).toBeHidden();
+  await expect(page.locator(".piano-toggle")).toHaveCount(0);
+  await page.mouse.up();
+  await page.screenshot({
+    path: `../../work/songalong-piano-${engine}-mobile.png`,
+  });
+  await page.setViewportSize({ width: 1680, height: 1050 });
+  await page.locator('#sight-reading[data-playback-only="false"]').waitFor();
+  await expect(d).toBeVisible();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await d.focus();
+  await expect(d).toBeFocused();
   await page.keyboard.down("Enter");
   await expect(d).toHaveClass(/is-held/);
   assert.equal(await d.evaluate((e) => e.getAnimations().length), 0);
@@ -247,7 +255,7 @@ try {
     false,
   );
   await page.screenshot({
-    path: `../../work/songalong-piano-${engine}-mobile.png`,
+    path: `../../work/songalong-piano-${engine}-desktop.png`,
   });
   assert.deepEqual(errors, []);
   await context.close();

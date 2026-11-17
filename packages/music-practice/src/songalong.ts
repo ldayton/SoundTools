@@ -1,3 +1,4 @@
+import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { shutdownPianoSound } from "./piano-audio";
 import { preventRepeatedButtonActivation } from "./input-guards";
 import { mountAppShell } from "./app-shell";
@@ -20,6 +21,7 @@ let practice: SightReading | undefined;
 let midi: ReturnType<typeof mountMidiPanel> | undefined;
 let ready = false;
 let renderFailed = false;
+const mobileLayout = matchMedia(MOBILE_SONGALONG_QUERY);
 const shell = mountAppShell(document.querySelector<HTMLElement>("#app")!, {
   shutdown() {
     renderFailed = true;
@@ -32,24 +34,38 @@ const shell = mountAppShell(document.querySelector<HTMLElement>("#app")!, {
   interrupt,
   inputChanged: refreshInput,
 });
-midi = mountMidiPanel(
-  document.querySelector<HTMLElement>("#midi-panel")!,
-  () => {},
-  (state) => {
-    if (state !== "connected") interrupt("connection");
-    shell.reportMidi(state);
-    diagnostics.event("midi.state", { midiState: state });
-  },
-);
-midi.setPerformanceMode(true);
-midi.setKeysListener((keys) => {
-  if (acceptsInput()) practice?.showMidiKeys(keys);
-});
-midi.setPerformanceListener((note, held, timestamp) => {
-  if (acceptsInput()) practice?.answer(note, held);
-});
+function syncMidi() {
+  if (mobileLayout.matches) {
+    midi?.dispose();
+    midi = undefined;
+    shell.reportMidi("idle");
+    return;
+  }
+  if (midi) return;
+  midi = mountMidiPanel(
+    document.querySelector<HTMLElement>("#midi-panel")!,
+    () => {},
+    (state) => {
+      if (state !== "connected") interrupt("connection");
+      shell.reportMidi(state);
+      diagnostics.event("midi.state", { midiState: state });
+    },
+  );
+  midi.setPerformanceMode(true);
+  midi.setKeysListener((keys) => {
+    if (acceptsInput()) practice?.showMidiKeys(keys);
+  });
+  midi.setPerformanceListener((note, held, timestamp) => {
+    if (acceptsInput()) practice?.answer(note, held);
+  });
+  refreshInput();
+}
+syncMidi();
+mobileLayout.addEventListener("change", syncMidi);
+
 function acceptsInput() {
   return (
+    !mobileLayout.matches &&
     !renderFailed &&
     ready &&
     persistence.writable &&
@@ -124,6 +140,7 @@ window.addEventListener("blur", () => {
 });
 window.addEventListener("focus", refreshInput);
 window.addEventListener("pagehide", () => {
+  mobileLayout.removeEventListener("change", syncMidi);
   practice?.dispose();
   midi?.dispose();
   shell.dispose();
@@ -136,7 +153,7 @@ render();
 void document.fonts.ready
   .then(async () => {
     await persistence.initialize();
-    restorePianoVisibility(!matchMedia("(max-width: 767px)").matches);
+    restorePianoVisibility();
     shellStatus.set({ blocked: !persistence.writable });
     ready = true;
     render();

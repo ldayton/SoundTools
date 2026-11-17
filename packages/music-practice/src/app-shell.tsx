@@ -8,6 +8,8 @@ import {
 } from "@ldayton/ui/application-layout";
 import { ToolbarVolume } from "./sidebar-controls";
 import { hymnToolbarState } from "./hymn-toolbar-state";
+import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
+import { useMediaQuery } from "@mantine/hooks";
 import { PracticePianoToggle } from "./piano-presentation";
 import { APP } from "./app-profile";
 import { shellStatus } from "./shell-status";
@@ -143,6 +145,9 @@ export function mountAppShell(
     return <RetainedContent element={midiPanel} />;
   }
   function Navigation() {
+    const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
+      getInitialValueInEffect: false,
+    });
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
     const views = useSyncExternalStore(
       registry.subscribe,
@@ -183,37 +188,39 @@ export function mountAppShell(
           </Box>
         ))}
         <Stack gap="md" mt="auto" className="practice-navigation-tools">
-          <Accordion
-            keepMounted
-            keepMountedMode="display-none"
-            value={snapshot.keyboardOpen ? "keyboard" : null}
-            onChange={(value) => keyboardOpened(value === "keyboard")}
-          >
-            <Accordion.Item value="keyboard">
-              <Accordion.Control
-                className="keyboard-menu"
-                data-state={snapshot.midi}
-                aria-label={
-                  snapshot.midi === "connected"
-                    ? "Keyboard connected"
-                    : "Keyboard connection"
-                }
-              >
-                <Group gap="sm">
-                  <Text size="sm">Keyboard</Text>
-                  <Indicator
-                    color={snapshot.midi === "connected" ? "green" : "gray"}
-                    position="middle-center"
-                  >
-                    <Box w={8} h={8} />
-                  </Indicator>
-                </Group>
-              </Accordion.Control>
-              <Accordion.Panel>
-                <MidiContents />
-              </Accordion.Panel>
-            </Accordion.Item>
-          </Accordion>
+          {!(APP.id === "songalong" && mobile) && (
+            <Accordion
+              keepMounted
+              keepMountedMode="display-none"
+              value={snapshot.keyboardOpen ? "keyboard" : null}
+              onChange={(value) => keyboardOpened(value === "keyboard")}
+            >
+              <Accordion.Item value="keyboard">
+                <Accordion.Control
+                  className="keyboard-menu"
+                  data-state={snapshot.midi}
+                  aria-label={
+                    snapshot.midi === "connected"
+                      ? "Keyboard connected"
+                      : "Keyboard connection"
+                  }
+                >
+                  <Group gap="sm">
+                    <Text size="sm">Keyboard</Text>
+                    <Indicator
+                      color={snapshot.midi === "connected" ? "green" : "gray"}
+                      position="middle-center"
+                    >
+                      <Box w={8} h={8} />
+                    </Indicator>
+                  </Group>
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <MidiContents />
+                </Accordion.Panel>
+              </Accordion.Item>
+            </Accordion>
+          )}
           <SettingsNavigationLink
             href="/settings"
             onClick={follow}
@@ -278,7 +285,7 @@ export function mountAppShell(
           }
           brand={brand}
           mobileToolbarHeight={
-            APP.id === "songalong" ? (toolbar.expanded ? 220 : 56) : 104
+            APP.id === "songalong" ? (toolbar.expanded ? 168 : 56) : 104
           }
           headerClassName={
             APP.id === "notewise" ? "notewise-header" : "songalong-header"

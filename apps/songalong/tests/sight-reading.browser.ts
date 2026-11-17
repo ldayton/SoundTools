@@ -320,18 +320,8 @@ try {
     62, 67, 71, 67, 71, 69, 67, 64, 62, 62, 67, 71, 67, 71, 69, 74, 71, 74, 71,
     74, 71, 67, 62, 64, 67, 67, 64, 62, 62, 67, 71, 67, 71, 69, 67,
   ];
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .count()
-    .then(async (n) => {
-      if (
-        n &&
-        (await page
-          .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-          .isVisible())
-      )
-        await midiAction(page, "Connect MIDI keyboard");
-    });
+  await midiAction(page, "Connect MIDI keyboard");
+  await closeNavigation(page);
   for (const n of sequence) {
     await on(n);
     await off(n);
@@ -384,6 +374,7 @@ try {
     await cold.close();
     await page.bringToFront();
   }
+  await setPianoVisible(page, false);
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   assert.ok(await page.locator("#sight-reading").isHidden());
   await page

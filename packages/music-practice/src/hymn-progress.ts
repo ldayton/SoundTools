@@ -47,9 +47,9 @@ export class HymnProgress {
         if (saved.preferences[id])
           this.preferences[id] = hymnPreferences(id, saved.preferences[id]);
   }
-  forHymn(id: string, defaultMode: "wait" | "playback" = "wait") {
+  forHymn(id: string) {
     return {
-      ...hymnPreferences(id, this.preferences[id], defaultMode),
+      ...hymnPreferences(id, this.preferences[id]),
       zoom: this.zoom,
     };
   }

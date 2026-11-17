@@ -45,6 +45,18 @@ export async function practiceOption(
 ) {
   if (selector === "#hymn-mode") {
     await dismissPracticeDrawer(page);
+    await page.waitForFunction(
+      () =>
+        document.querySelector<HTMLElement>("#sight-reading")?.dataset
+          .playbackOnly === String(matchMedia("(max-width: 767px)").matches),
+    );
+    if (
+      await page.locator('#sight-reading[data-playback-only="true"]').count()
+    ) {
+      if (value !== "playback")
+        throw Error("Wait for me is a desktop-only feature");
+      return;
+    }
     await openHymnControls(page);
     if ((await page.locator(selector).getAttribute("data-mode")) !== value)
       await page.locator(selector).click();
@@ -175,6 +187,10 @@ export async function closePracticeOptions(page: Page) {
 
 export async function setPianoVisible(page: Page, visible: boolean) {
   await dismissPracticeDrawer(page);
+  if (await page.locator('#sight-reading[data-playback-only="true"]').count()) {
+    if (visible) throw Error("The on-screen piano is a desktop-only feature");
+    return;
+  }
   const button = page.locator(".piano-toggle:visible");
   if ((await button.getAttribute("aria-expanded")) !== String(visible))
     await button.click();

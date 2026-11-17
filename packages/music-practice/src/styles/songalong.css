@@ -163,8 +163,8 @@
 @media (max-width: 767px) {
   .songalong-header:has(.hymn-toolbar) .application-toolbar {
     display: grid;
-    grid-template-columns: 28px 36px minmax(76px, 1fr) 38px 38px 38px;
-    grid-template-areas: "navigation volume playback controls piano options";
+    grid-template-columns: 28px 36px minmax(76px, 1fr) 38px 38px;
+    grid-template-areas: "navigation volume playback controls options";
     grid-template-rows: 44px;
     align-content: center;
     column-gap: 6px;
@@ -173,9 +173,9 @@
   .songalong-header:has(.hymn-mobile-controls:not([hidden]))
     .application-toolbar {
     grid-template-areas:
-      "navigation volume playback controls piano options"
-      "settings settings settings settings settings settings";
-    grid-template-rows: 44px 164px;
+      "navigation volume playback controls options"
+      "settings settings settings settings settings";
+    grid-template-rows: 44px 112px;
   }
   .songalong-header .application-toolbar-actions,
   .songalong-header-transport,
@@ -219,7 +219,7 @@
   .hymn-mobile-controls {
     grid-area: settings;
     box-sizing: border-box;
-    height: 164px;
+    height: 112px;
     overflow-y: auto;
     padding-block: 8px;
     display: flex;
@@ -236,10 +236,31 @@
   .hymn-mobile-controls .hymn-toolbar-field-label {
     display: block;
   }
-  .hymn-mobile-controls #hymn-mode {
-    height: 44px;
-    width: 152px;
-    min-width: 152px;
+  .songalong-workspace:has(#exercise-content:not([hidden])) {
+    padding-inline: 0;
+    padding-top: var(--app-shell-header-offset, 56px);
+    padding-bottom: 0;
+    background: #fff;
+  }
+  .songalong-workspace .workspace-content {
+    padding: 0;
+  }
+  .songalong-workspace .sequence-practice {
+    height: calc(100dvh - var(--app-shell-header-offset, 56px));
+    min-height: 0;
+  }
+  .songalong-workspace
+    .sequence-practice:not(:has(.practice-piano:not([hidden]))) {
+    padding-bottom: 0;
+  }
+  .songalong-workspace #sight-reading .sequence-score {
+    flex: 1 1 auto;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+  }
+  .hymn-score-page {
+    padding: 20px 12px;
   }
 }
 

@@ -5,7 +5,10 @@ import { createRequire } from "node:module";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { midiAction, openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
+import {
+  midiAction,
+  openPracticeOptions,
+} from "../../../packages/music-practice/browser-tests/helpers";
 const vite = createRequire(import.meta.url)
   .resolve("vite/package.json")
   .replace(/package\.json$/, "bin/vite.js");
@@ -42,7 +45,10 @@ try {
     });
     await context.addInitScript({
       content: await readFile(
-        new URL("../../../packages/music-practice/test-fixtures/midi.js", import.meta.url),
+        new URL(
+          "../../../packages/music-practice/test-fixtures/midi.js",
+          import.meta.url,
+        ),
         "utf8",
       ),
     });
@@ -149,7 +155,7 @@ try {
     await openPracticeOptions(page);
     assert.equal(await ties.isChecked(), true);
     assert.equal(await page.locator("#hymn-hands").inputValue(), "right");
-    await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize({ width: 900, height: 844 });
     await openPracticeOptions(page);
     const alignment = await ties.evaluate((el) => {
       const input = el.getBoundingClientRect();
@@ -169,10 +175,10 @@ try {
       verticallyAligned: true,
       overflow: false,
     });
-    await page.screenshot({ path: "/tmp/hymn-recovery-mobile.png" });
+    await page.screenshot({ path: "/tmp/hymn-recovery-narrow-desktop.png" });
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: hand controls share a row; MIDI retries recover sustained bass; optional tied attacks preserve engraving; single-hand scope, persistence and mobile checkbox alignment",
+      "PASS: hand controls share a row; MIDI retries recover sustained bass; optional tied attacks preserve engraving; single-hand scope, persistence and narrow desktop checkbox alignment",
     );
   } finally {
     await browser.close();

@@ -69,12 +69,3 @@ test("continuous score sizes survive reload and reject corrupt preferences", () 
   for (const zoom of [0, 0.49, 2.01, Infinity, NaN, "1.2", null])
     assert.equal(hymnPreferences("amazing-grace", { zoom }).zoom, 1);
 });
-
-test("mobile defaults to playback only for hymns without an explicit mode", () => {
-  const store = new HymnProgress(undefined, []);
-  assert.equal(store.forHymn("amazing-grace", "playback").mode, "playback");
-  assert.equal(store.forHymn("amazing-grace", "wait").mode, "wait");
-  store.remember(hymnPreferences("amazing-grace", { mode: "wait" }), 1);
-  assert.equal(store.forHymn("amazing-grace", "playback").mode, "wait");
-  assert.equal(store.forHymn("jesus-loves-me", "playback").mode, "playback");
-});

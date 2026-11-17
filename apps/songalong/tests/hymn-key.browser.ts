@@ -4,6 +4,7 @@ import {
   openPracticeOptions,
   midiAction,
   closePracticeOptions,
+  closeNavigation,
   setPianoVisible,
 } from "../../../packages/music-practice/browser-tests/helpers";
 import { chromium, firefox, webkit } from "playwright";
@@ -115,14 +116,12 @@ try {
   assert.equal(await page.locator(".hymn-key-range").textContent(), "E4–E5");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(150);
-  assert.equal(
-    await page
-      .locator('.piano-key.is-right[data-piano="64"] .piano-hint-label')
-      .textContent(),
-    "E4",
-    "coaching survives mobile reflow",
-  );
+  assert.equal(await page.locator(".practice-piano").isVisible(), false);
+  assert.equal(await page.locator(".piano-toggle").count(), 0);
   await page.setViewportSize({ width: 1680, height: 1000 });
+  await page.locator('#sight-reading[data-playback-only="false"]').waitFor();
+  await midiAction(page, "Connect MIDI keyboard");
+  await closeNavigation(page);
   await note(64);
   assert.equal(
     await page.locator(".piano-hint-label").count(),
@@ -238,7 +237,7 @@ try {
   assert.equal(await page.locator("#hymn-section").count(), 0);
   await closePracticeOptions(page);
   await setPianoVisible(page, true);
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 900, height: 844 });
   await page.waitForTimeout(250);
   assert.ok(
     await page.locator(".hymn-range-hint").isVisible(),
@@ -254,7 +253,7 @@ try {
       })
       .boundingBox())!.y < score!.y,
   );
-  assert.ok(score!.y < 400, "phone controls remain compact");
+  assert.ok(score!.y < 400, "narrow desktop controls remain compact");
   const scoreBox = (await page.locator(".sequence-score").boundingBox())!;
   assert.equal(
     await page.locator("#sight-reading .presentation-feedback").count(),

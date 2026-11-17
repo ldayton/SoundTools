@@ -1,4 +1,5 @@
 import { RendererLifetime } from "./renderer-lifetime";
+import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { HymnFrame, hymnBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
 import { shellStatus } from "./shell-status";
@@ -125,10 +126,14 @@ export class SightReading {
     return hymnProgressKey(this.settings(), this.hymn.key);
   }
 
-  private readonly defaultMode = matchMedia("(max-width: 767px)").matches
-    ? "playback"
-    : "wait";
-  private mode: "wait" | "playback" = this.defaultMode;
+  private readonly mobileLayout = matchMedia(MOBILE_SONGALONG_QUERY);
+  private preferredMode: "wait" | "playback" = "wait";
+  private get mode(): "wait" | "playback" {
+    return this.mobileLayout.matches ? "playback" : this.preferredMode;
+  }
+  private set mode(value: "wait" | "playback") {
+    this.preferredMode = value;
+  }
   private bpm = 80;
   private countIn: CountInBars = 0;
   private loopCountIn = false;
@@ -412,6 +417,17 @@ export class SightReading {
       () => this.updateRangeHint(),
       { auditionWhenUnavailable: true, interactive: true },
     );
+    const layoutChanged = () => {
+      const modeChanges = this.preferredMode === "wait";
+      if (modeChanges) this.interrupt("controls");
+      else this.piano.resetInteraction();
+      if (this.active) this.render(!modeChanges);
+      this.acceptanceChanged();
+    };
+    this.mobileLayout.addEventListener("change", layoutChanged);
+    this.lifetime.add(() =>
+      this.mobileLayout.removeEventListener("change", layoutChanged),
+    );
 
     this.lifetime.observe(this.$(".sequence-score"), () => {
       const width = Math.round(this.$(".sequence-score").clientWidth);
@@ -472,9 +488,7 @@ export class SightReading {
     const old = this.settings();
     const switching = hymn.id !== this.hymn.id;
     if (switching) this.progress.remember(this.settings(), this.zoom);
-    const base = switching
-      ? this.progress.forHymn(hymn.id, this.defaultMode)
-      : old;
+    const base = switching ? this.progress.forHymn(hymn.id) : old;
     const next = hymnSettingsFromQuery(base, route.query);
     const changed =
       old.hymn !== next.hymn ||
@@ -527,7 +541,7 @@ export class SightReading {
   private settings(): HymnSettings {
     return {
       hymn: this.hymn.id,
-      mode: this.mode,
+      mode: this.preferredMode,
       bpm: this.bpm,
       countIn: this.countIn,
       loopCountIn: this.loopCountIn,
@@ -558,8 +572,8 @@ export class SightReading {
     q.set("octave", String(this.octave ?? 0));
     if (this.low !== null) q.set("low", String(this.low));
     if (this.high !== null) q.set("high", String(this.high));
+    if (this.preferredMode === "playback") q.set("mode", "playback");
     if (this.mode === "playback") {
-      q.set("mode", "playback");
       q.set("tempo", String(this.bpm));
     }
     this.element.dispatchEvent(
@@ -593,7 +607,7 @@ export class SightReading {
   }
   private choose(hymn: (typeof hymns)[number]) {
     this.save();
-    const next = this.progress.forHymn(hymn.id, this.defaultMode);
+    const next = this.progress.forHymn(hymn.id);
     this.hymn = hymn;
     this.key = next.key!;
     this.octave = next.octave;
@@ -676,6 +690,7 @@ export class SightReading {
     this.save();
   }
   private render(layoutOnly = false, continuingPlayback = false) {
+    this.element.dataset.playbackOnly = String(this.mobileLayout.matches);
     const paper = this.$(".hymn-paper");
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
     if (!this.lastWidth) return;
@@ -1121,9 +1136,15 @@ export class SightReading {
     this.save();
   }
   private preparePiano(preserveHint = false) {
+    if (this.mobileLayout.matches) return;
     if (!this.session) return;
     this.playbackView = "";
-    this.piano.show(...keyboardRange(this.events), false, false, preserveHint);
+    this.piano.show(
+      ...keyboardRange(this.events),
+      false,
+      preserveHint,
+      preserveHint,
+    );
     this.clearPianoSelection(!preserveHint);
   }
   private updateRangeHint() {
@@ -1201,7 +1222,7 @@ export class SightReading {
       context: this.mode === "playback" ? "Playback" : "Wait for me",
     });
     this.publishOptions();
-    this.pianoPanel.setAvailable(true);
+    this.pianoPanel.setAvailable(!this.mobileLayout.matches);
     if (this.mode === "playback") {
       this.playbackView = "";
       this.updatePlayback();
@@ -1371,7 +1392,7 @@ export class SightReading {
     });
     this.presentation.set({ rangeHint: "" });
     this.piano.setUnavailable(true);
-    this.piano.setPlayback(playingNotes);
+    if (!this.mobileLayout.matches) this.piano.setPlayback(playingNotes);
     this.showCountIn();
   }
 }

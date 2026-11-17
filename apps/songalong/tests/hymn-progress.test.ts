@@ -26,6 +26,7 @@ test("hymn checkpoints survive reload but never leak across hands, keys, ties or
   });
   for (const patch of [
     { key: "D" as const },
+    { octave: -1 },
     { hands: "left" as const },
     { reattackTies: true },
   ])

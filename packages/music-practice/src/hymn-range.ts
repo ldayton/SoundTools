@@ -2,6 +2,7 @@ import abcjs from "abcjs";
 import { spellPitch, chromaticPitch } from "./guitar";
 import { name } from "./model";
 import { HYMN_KEYS, hymnTransposition, type HymnKey } from "./hymn-transpose";
+import { HYMN_NOTE_MIN, HYMN_NOTE_MAX } from "./hymn-settings";
 export type HymnRange = { low: number; high: number };
 /** Read actual sounding pitches: clefs, ties, accidentals and every voice count. */
 export function hymnPitchRange(abc: string): HymnRange {
@@ -20,8 +21,9 @@ export function hymnRangeLabel(
   range: HymnRange,
   source: string,
   target: HymnKey = "original",
+  octave = 0,
 ) {
-  const { key, semitones } = hymnTransposition(source, target);
+  const { key, semitones } = hymnTransposition(source, target, octave);
   const label = (pitch: number) => {
     const note =
       spellPitch(pitch + semitones, key) || chromaticPitch(pitch + semitones);
@@ -39,13 +41,34 @@ export function hymnRangeKeys(
   const choices = (["original", ...HYMN_KEYS] as HymnKey[]).map((key) => {
     try {
       const { semitones } = hymnTransposition(source, key);
-      const fits =
-        (low === null || high === null || low <= high) &&
-        (low === null || (!!range && range.low + semitones >= low)) &&
-        (high === null || (!!range && range.high + semitones <= high));
-      return { key, semitones, fits };
+      const minimum = low ?? HYMN_NOTE_MIN;
+      const maximum = high ?? HYMN_NOTE_MAX;
+      const octaves = range
+        ? Array.from({ length: 21 }, (_, i) => i - 10).filter(
+            (octave) =>
+              range.low + semitones + octave * 12 >= minimum &&
+              range.high + semitones + octave * 12 <= maximum,
+          )
+        : low === null && high === null
+          ? [0]
+          : [];
+      const octave =
+        low === null && high === null && octaves.includes(0) ? 0 : octaves[0];
+      return {
+        key,
+        semitones: semitones + (octave ?? 0) * 12,
+        octave,
+        octaves,
+        fits: octaves.length > 0,
+      };
     } catch {
-      return { key, semitones: 0, fits: false };
+      return {
+        key,
+        semitones: 0,
+        octave: undefined,
+        octaves: [] as number[],
+        fits: false,
+      };
     }
   });
   const matching = choices

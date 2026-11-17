@@ -25,6 +25,7 @@ const server = spawn(
 );
 const fixed = await mkdtemp(join(tmpdir(), "hymn-playback-"));
 const browser = await { chromium, firefox, webkit }[engine]!.launch({
+  args: engine === "chromium" ? ["--mute-audio"] : [],
   env: { ...process.env, CFFIXED_USER_HOME: fixed },
 });
 try {
@@ -384,12 +385,12 @@ try {
   }
   await practiceOption(page, "#hymn-arrangement", "melody");
   await practiceOption(page, "#hymn-high", "73");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "D");
+  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
   assert.equal(
     await page
       .locator('#hymn-key option[value="original"]')
       .evaluate((e) => (e as HTMLOptionElement).disabled),
-    true,
+    false,
   );
   await practiceOption(page, "#hymn-low", "60");
   await practiceOption(page, "#hymn-high", "72");
@@ -457,7 +458,7 @@ try {
       .evaluateAll((es) => es.every((e) => !(e as HTMLOptionElement).disabled)),
   );
   await practiceOption(page, "#hymn-low", "64");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "A");
+  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(
     () => document.documentElement.scrollWidth <= innerWidth,

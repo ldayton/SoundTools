@@ -121,6 +121,30 @@ export function HymnOptions({
             </option>
           ))}
         </NativeSelect>
+        <Group gap="xs" grow>
+          <Button
+            id="hymn-octave-down"
+            variant="default"
+            disabled={
+              state.noMatchingKey ||
+              !state.availableOctaves.includes(state.octave - 1)
+            }
+            onClick={() => change({ octave: state.octave - 1 })}
+          >
+            ↓ Octave
+          </Button>
+          <Button
+            id="hymn-octave-up"
+            variant="default"
+            disabled={
+              state.noMatchingKey ||
+              !state.availableOctaves.includes(state.octave + 1)
+            }
+            onClick={() => change({ octave: state.octave + 1 })}
+          >
+            ↑ Octave
+          </Button>
+        </Group>
         <Text
           className="hymn-key-range"
           size="xs"

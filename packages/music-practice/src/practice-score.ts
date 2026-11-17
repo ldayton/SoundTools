@@ -11,6 +11,7 @@ import abcjs, {
   type MidiPitch,
 } from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
+import { applyHymnOttava, drawHymnOttava } from "./hymn-ottava";
 export type PracticeEvent = NoteTimingEvent & {
   spellings?: PitchSpellings;
   scorePosition?: ScorePosition;
@@ -55,6 +56,7 @@ export function drawPracticeScore(
     compact?: boolean;
     rhythmGrid?: boolean;
     reattackTies?: boolean;
+    octaveNotation?: boolean;
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
@@ -66,6 +68,7 @@ export function drawPracticeScore(
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing(tune) {
+      if (options.octaveNotation) applyHymnOttava(tune);
       for (const line of tune.lines)
         for (const staff of line.staff || [])
           for (const voice of staff.voices || [])
@@ -93,6 +96,7 @@ export function drawPracticeScore(
   })[0] as TuneObject & { noteTimings: NoteTimingEvent[] };
   if (!tune || tune.warnings?.length)
     throw Error("Practice notation could not be read");
+  if (options.octaveNotation) drawHymnOttava(applyHymnOttava(tune));
   paper.querySelectorAll(".abcjs-lyric").forEach((lyric) => {
     const walker = document.createTreeWalker(lyric, NodeFilter.SHOW_TEXT);
     while (walker.nextNode())

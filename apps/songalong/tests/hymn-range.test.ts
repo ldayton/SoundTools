@@ -2,14 +2,23 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import abcjs from "abcjs";
-import { HYMN_KEYS, hymnTransposition } from "../../../packages/music-practice/src/hymn-transpose";
-import { ARRANGEMENTS, arrangeHymn } from "../../../packages/music-practice/src/hymn-arrangements";
+import {
+  HYMN_KEYS,
+  hymnTransposition,
+} from "../../../packages/music-practice/src/hymn-transpose";
+import {
+  ARRANGEMENTS,
+  arrangeHymn,
+} from "../../../packages/music-practice/src/hymn-arrangements";
 import {
   hymnPitchRange,
   hymnRangeKeys,
   hymnRangeLabel,
 } from "../../../packages/music-practice/src/hymn-range";
-import { mergeHymnSettings, hymnSettingsFromQuery } from "../../../packages/music-practice/src/hymn-settings";
+import {
+  mergeHymnSettings,
+  hymnSettingsFromQuery,
+} from "../../../packages/music-practice/src/hymn-settings";
 const hymn = hymns.find((h) => h.id === "amazing-grace")!;
 const range = { low: 62, high: 74 };
 test("hymn limits use actual pitches across the complete chosen part", () => {
@@ -26,8 +35,8 @@ test("hymn limits use actual pitches across the complete chosen part", () => {
 test("optional bounds are inclusive; Original wins, otherwise choose the lowest sounding key", () => {
   assert.equal(hymnRangeKeys("G", undefined, null, null).preferred, "original");
   assert.equal(hymnRangeKeys("G", range, 60, 74).preferred, "original");
-  assert.equal(hymnRangeKeys("G", range, null, 73).preferred, "D");
-  assert.equal(hymnRangeKeys("G", range, 64, null).preferred, "A");
+  assert.equal(hymnRangeKeys("G", range, null, 73).preferred, "original");
+  assert.equal(hymnRangeKeys("G", range, 64, null).preferred, "original");
   const one = hymnRangeKeys("G", range, 60, 72);
   assert.equal(one.preferred, "F");
   assert.deepEqual(
@@ -44,6 +53,23 @@ test("optional bounds are inclusive; Original wins, otherwise choose the lowest 
     assert.equal(result.preferred, undefined);
     assert.ok(result.choices.every((c) => !c.fits));
   }
+});
+test("each key offers every fitting octave and defaults to the lowest within melody limits", () => {
+  const options = hymnRangeKeys("G", range, 38, 91);
+  const b = options.choices.find((c) => c.key === "B")!;
+  assert.deepEqual(b.octaves, [-2, -1, 0, 1]);
+  assert.equal(b.octave, -2);
+  assert.equal(b.semitones, -20);
+  assert.equal(hymnRangeLabel(range, "G", "B", b.octave), "F♯2–F♯3");
+  const exact = hymnRangeKeys("G", range, 42, 54);
+  assert.equal(exact.preferred, "B");
+  assert.deepEqual(exact.choices.find((c) => c.key === "B")!.octaves, [-2]);
+  assert.equal(hymnRangeKeys("G", range, null, null).choices[0].octave, 0);
+  for (const choice of options.choices)
+    for (const octave of choice.octaves) {
+      const { semitones } = hymnTransposition("G", choice.key, octave);
+      assert.ok(range.low + semitones >= 38 && range.high + semitones <= 91);
+    }
 });
 test("range settings remember optional notes, reject damaged limits and can clear either side", () => {
   const base = {
@@ -64,6 +90,12 @@ test("range settings remember optional notes, reject damaged limits and can clea
   );
   assert.equal(query.low, null);
   assert.equal(query.high, 72);
+  assert.equal(
+    hymnSettingsFromQuery(base, new URLSearchParams("octave=-2")).octave,
+    -2,
+  );
+  assert.equal(mergeHymnSettings(base, { octave: 1.5 }).octave, undefined);
+  assert.equal(mergeHymnSettings(base, { octave: 100 }).octave, undefined);
 });
 
 test("range labels preserve the key spelling and correct octave", () => {

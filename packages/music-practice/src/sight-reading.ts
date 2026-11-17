@@ -100,6 +100,7 @@ export class SightReading {
   }
   private hymn = hymns[0];
   private key: HymnKey = "original";
+  private octave?: number;
   private low: number | null = null;
   private high: number | null = null;
   private preferRangeDefault = false;
@@ -153,6 +154,7 @@ export class SightReading {
   private options!: HymnOptionsState;
   private searchOpen = false;
   private availableKeys: HymnKey[] = ["original", ...HYMN_KEYS];
+  private availableOctaves: number[] = [];
   private melodyRangeLabel = "";
   readonly midiSlot: HTMLElement;
   dispose() {
@@ -198,6 +200,8 @@ export class SightReading {
       this.low = optionalHymnNote(saved?.low);
       this.high = optionalHymnNote(saved?.high);
       if (isHymnKey(saved?.key)) this.key = saved.key;
+      if (Number.isInteger(saved?.octave) && Math.abs(saved!.octave!) <= 10)
+        this.octave = saved!.octave;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
       if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
         this.arrangement = saved.arrangement;
@@ -469,6 +473,7 @@ export class SightReading {
     const changed =
       old.hymn !== next.hymn ||
       old.key !== next.key ||
+      old.octave !== next.octave ||
       old.low !== next.low ||
       old.high !== next.high ||
       old.arrangement !== next.arrangement ||
@@ -492,6 +497,14 @@ export class SightReading {
     this.high = next.high ?? null;
     this.hymn = hymn;
     this.key = next.key || "original";
+    this.octave =
+      !route.query.has("octave") &&
+      (switching ||
+        old.key !== next.key ||
+        old.low !== next.low ||
+        old.high !== next.high)
+        ? undefined
+        : next.octave;
     this.arrangement = next.arrangement;
     this.hands = next.hands || "both";
     this.viewHands = next.viewHands || "both";
@@ -513,6 +526,7 @@ export class SightReading {
       countIn: this.countIn,
       loopCountIn: this.loopCountIn,
       key: this.key,
+      octave: this.octave,
       low: this.low,
       high: this.high,
       arrangement: this.arrangement,
@@ -535,6 +549,7 @@ export class SightReading {
     if (this.countIn) q.set("countIn", String(this.countIn));
     if (this.loopCountIn) q.set("loopCountIn", "1");
     if (this.key !== "original") q.set("key", this.key);
+    q.set("octave", String(this.octave ?? 0));
     if (this.low !== null) q.set("low", String(this.low));
     if (this.high !== null) q.set("high", String(this.high));
     if (this.mode === "playback") {
@@ -575,6 +590,7 @@ export class SightReading {
     const next = this.progress.forHymn(hymn.id);
     this.hymn = hymn;
     this.key = next.key!;
+    this.octave = next.octave;
     this.low = next.low!;
     this.high = next.high!;
     this.mode = next.mode!;
@@ -692,7 +708,7 @@ export class SightReading {
     });
     try {
       this.syncRangeKeys();
-      const passageIdentity = `${this.hymn.id}:${this.key}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}`;
+      const passageIdentity = `${this.hymn.id}:${this.key}:${this.octave}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}`;
       if (passageIdentity !== this.passageIdentity || this.noMatchingKey) {
         this.passage.reset();
         this.loopPassage = false;
@@ -711,11 +727,16 @@ export class SightReading {
         this.section,
         this.viewHands,
       );
-      const transposition = hymnTransposition(this.hymn.key, this.key);
+      const transposition = hymnTransposition(
+        this.hymn.key,
+        this.key,
+        this.octave,
+      );
       this.section = score.section;
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
         scale: this.zoom,
+        octaveNotation: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
         playback: (audio) => {
@@ -768,6 +789,7 @@ export class SightReading {
           paper.clientWidth,
           {
             transpose: transposition.semitones,
+            octaveNotation: true,
             reattackTies: this.reattackTies,
             playback: () => {},
           },
@@ -891,11 +913,16 @@ export class SightReading {
     );
   }
   private optionsSnapshot(): HymnOptionsSnapshot {
-    const transposition = hymnTransposition(this.hymn.key, this.key);
+    const transposition = hymnTransposition(
+      this.hymn.key,
+      this.key,
+      this.octave,
+    );
     const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
     return {
       hymn: this.hymn.id,
       key: this.key,
+      octave: this.octave ?? 0,
       mode: this.mode,
       bpm: this.bpm,
       countIn: this.countIn,
@@ -912,6 +939,7 @@ export class SightReading {
       originalKey: this.hymn.key,
       noMatchingKey: this.noMatchingKey,
       availableKeys: this.availableKeys,
+      availableOctaves: this.availableOctaves,
       range: this.melodyRangeLabel,
       source: {
         credits: this.hymn.credits.join(" "),
@@ -929,7 +957,7 @@ export class SightReading {
           ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
           " Sing along with the words.",
         transposition: transposition.semitones
-          ? `${hymnKeyLabel(transposition.key)}, ${transposition.semitones > 0 ? "up" : "down"} ${Math.abs(transposition.semitones)} semitones from ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress. The nearest register is used; no notes are folded into another octave.`
+          ? `${hymnKeyLabel(transposition.key)}, ${transposition.semitones > 0 ? "up" : "down"} ${Math.abs(transposition.semitones)} semitones from ${hymnKeyLabel(this.hymn.key)}. Each key and octave keeps its own progress. The entire score moves together.`
           : `Original ${hymnKeyLabel(this.hymn.key)}. Each key keeps its own progress.`,
       },
     };
@@ -941,6 +969,7 @@ export class SightReading {
       this.interrupt("controls");
       this.low = next.low ?? null;
       this.high = next.high ?? null;
+      this.octave = undefined;
       this.preferRangeDefault = true;
       this.restorePending = true;
       this.render();
@@ -972,13 +1001,21 @@ export class SightReading {
       this.save();
       this.interrupt("controls");
       this.key = next.key!;
+      this.octave = undefined;
+      this.restoreSection();
+      this.restorePending = true;
+      this.render();
+    } else if (patch.octave !== undefined) {
+      if (!this.availableOctaves.includes(next.octave!)) return;
+      this.save();
+      this.interrupt("controls");
+      this.octave = next.octave;
       this.restoreSection();
       this.restorePending = true;
       this.render();
     } else if (patch.mode !== undefined) {
       this.interrupt("controls");
       this.mode = next.mode!;
-      this.preferRangeDefault = this.low !== null || this.high !== null;
       this.playback.restart();
       this.playbackView = "";
       this.render();
@@ -997,7 +1034,6 @@ export class SightReading {
       this.arrangement = next.arrangement;
       this.viewHands = next.viewHands!;
       this.hands = next.hands!;
-      this.preferRangeDefault = this.low !== null || this.high !== null;
       this.restoreSection();
       this.restorePending = true;
       this.render();
@@ -1034,14 +1070,26 @@ export class SightReading {
     ) {
       if (this.key !== preferred) {
         this.key = preferred!;
+        this.octave = undefined;
         this.restoreSection();
         this.restorePending = true;
       }
     }
     this.preferRangeDefault = false;
+    const selected = choices.find((choice) => choice.key === this.key);
+    this.availableOctaves = selected?.octaves ?? [];
+    const octave =
+      this.octave !== undefined && this.availableOctaves.includes(this.octave)
+        ? this.octave
+        : selected?.octave;
+    if (this.octave !== octave) {
+      this.octave = octave;
+      this.restoreSection();
+      this.restorePending = true;
+    }
     this.melodyRangeLabel = this.noMatchingKey
       ? ""
-      : hymnRangeLabel(range, this.hymn.key, this.key);
+      : hymnRangeLabel(range, this.hymn.key, this.key, this.octave);
     this.publishOptions();
   }
   private showNoMatchingKey() {

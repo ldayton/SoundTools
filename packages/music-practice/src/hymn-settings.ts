@@ -29,6 +29,7 @@ export type HymnSettings = {
   countIn?: CountInBars;
   loopCountIn?: boolean;
   key?: HymnKey;
+  octave?: number;
   low?: number | null;
   high?: number | null;
   arrangement: Arrangement;
@@ -96,6 +97,11 @@ export function mergeHymnSettings(
         ? Number(s.bpm)
         : base.bpm || 80,
     ...(isHymnKey(s.key) ? { key: s.key } : base.key ? { key: base.key } : {}),
+    ...(Number.isInteger(s.octave) && Math.abs(Number(s.octave)) <= 10
+      ? { octave: Number(s.octave) }
+      : base.octave !== undefined
+        ? { octave: base.octave }
+        : {}),
     hymn: hymns.some((h) => h.id === s.hymn) ? (s.hymn as string) : base.hymn,
     arrangement: choice(
       s.arrangement,
@@ -129,6 +135,7 @@ export function hymnSettingsFromQuery(
   if (query.has("mode")) overrides.mode = query.get("mode");
   if (query.has("tempo")) overrides.bpm = Number(query.get("tempo"));
   if (query.has("key")) overrides.key = query.get("key");
+  if (query.has("octave")) overrides.octave = Number(query.get("octave"));
   if (query.has("arrangement"))
     overrides.arrangement = query.get("arrangement");
   return mergeHymnSettings(base, overrides);

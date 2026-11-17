@@ -14,6 +14,7 @@ export type HymnState = {
   countIn?: CountInBars;
   loopCountIn?: boolean;
   key?: HymnKey;
+  octave?: number;
   low?: number | null;
   high?: number | null;
   zoom?: number;
@@ -104,5 +105,5 @@ export function hymnProgressKey(
     !settings.hands
       ? ""
       : `:hands=${settings.hands}`;
-  return `${settings.hymn}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${hand}${settings.reattackTies ? ":reattack-ties" : ""}`;
+  return `${settings.hymn}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${settings.reattackTies ? ":reattack-ties" : ""}`;
 }

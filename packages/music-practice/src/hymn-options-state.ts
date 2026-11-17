@@ -9,6 +9,7 @@ export type HymnOptionsChange = Partial<
     | "high"
     | "hymn"
     | "key"
+    | "octave"
     | "mode"
     | "bpm"
     | "countIn"
@@ -25,6 +26,7 @@ export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   originalKey: string;
   noMatchingKey: boolean;
   availableKeys: HymnKey[];
+  availableOctaves: number[];
   range: string;
   source: {
     credits: string;

@@ -2,7 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
 import hymns from "../../../packages/music-practice/src/hymns.json";
-import { ARRANGEMENTS, arrangeHymn } from "../../../packages/music-practice/src/hymn-arrangements";
+import {
+  ARRANGEMENTS,
+  arrangeHymn,
+} from "../../../packages/music-practice/src/hymn-arrangements";
 import {
   HYMN_KEYS,
   hymnTransposition,
@@ -111,4 +114,25 @@ test("derived arrangements retain source chord symbols before transposition", ()
       assert.ok(chords.includes("D/F♯"), a.id);
       assert.ok(chords.includes("A7/C♯"), a.id);
     }
+});
+
+test("octave shifts preserve key, harmony, lyrics, ties and durations in both directions", () => {
+  const hymn = hymns.find((h) => h.id === "amazing-grace")!;
+  for (const { id } of ARRANGEMENTS) {
+    const abc = arrangeHymn(hymn, id, 0).abc;
+    for (const octave of [-2, -1, 0, 1]) {
+      const transposition = hymnTransposition(hymn.key, "B", octave);
+      assert.equal(transposition.key, "B");
+      assert.equal(transposition.semitones, 4 + octave * 12);
+      assert.deepEqual(
+        notes(abc, transposition.semitones),
+        shifted(abc, transposition.semitones),
+      );
+      const signature = abcjs
+        .parseOnly(abc, { visualTranspose: transposition.semitones })[0]
+        .getKeySignature();
+      assert.equal(signature.root + signature.acc, "B");
+    }
+  }
+  assert.throws(() => hymnTransposition("G", "B", 0.5));
 });

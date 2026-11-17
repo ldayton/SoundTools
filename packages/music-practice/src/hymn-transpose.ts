@@ -28,18 +28,21 @@ export function hymnKeySuffix(source: string, target: HymnKey) {
 export function hymnTransposition(
   source: string,
   target: HymnKey = "original",
+  octave = 0,
 ) {
   if (!isHymnKey(target)) throw Error("Choose a supported major key.");
+  if (!Number.isInteger(octave) || Math.abs(octave) > 10)
+    throw Error("Choose a supported octave.");
   if (target === "original" || target === source)
-    return { key: source, semitones: 0 };
+    return { key: source, semitones: octave * 12 };
   const from = HYMN_KEYS.findIndex((key) => key === source);
   if (from < 0)
     throw Error(
       "This source key is not supported for transposition. Choose Original.",
     );
-  // Nearest register: at most five semitones down or six up. No octave folding.
+  // Key changes use the nearest register, then shift the entire score by octaves.
   return {
     key: target,
-    semitones: ((HYMN_KEYS.indexOf(target) - from + 17) % 12) - 5,
+    semitones: ((HYMN_KEYS.indexOf(target) - from + 17) % 12) - 5 + octave * 12,
   };
 }

@@ -88,6 +88,11 @@ try {
     "0",
   );
   await page.keyboard.press("Escape");
+  await nav.locator(".keyboard-menu").click();
+  await page
+    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
+    .click();
+  await nav.locator('.keyboard-menu[data-state="connected"]').waitFor();
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   await choose("Silent Night");
   assert.match(page.url(), /piano\/hymns\/silent-night/);
@@ -113,10 +118,9 @@ try {
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
-  await nav.locator(".keyboard-menu").click();
-  await page
-    .getByRole("button", { name: "Connect MIDI keyboard", exact: true })
-    .click();
+  // SongAlong is playback-only on mobile: keyboard input belongs to desktop.
+  assert.equal(await nav.locator(".keyboard-menu").count(), 0);
+  await page.getByRole("button", { name: "Close navigation", exact: true }).click();
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });

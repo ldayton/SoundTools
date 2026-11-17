@@ -431,14 +431,23 @@ try {
   await rhythmSelect.selectOption("pulse");
   assert.equal(await rhythmSelect.inputValue(), "pulse");
   await closePracticeOptions(page);
-  const tempo = page.getByRole("spinbutton", {
-    name: "Tempo in beats per minute",
-    exact: true,
-  });
-  await tempo.focus();
-  await tempo.press("ArrowUp");
+  await page
+    .getByRole("button", { name: "Show controls", exact: true })
+    .click();
+  const tempo = page.locator("#rhythm-tempo");
+  await page
+    .getByRole("button", {
+      name: "Increase tempo in beats per minute",
+      exact: true,
+    })
+    .click();
   assert.equal(await tempo.inputValue(), "130 BPM");
-  await tempo.press("ArrowDown");
+  await page
+    .getByRole("button", {
+      name: "Decrease tempo in beats per minute",
+      exact: true,
+    })
+    .click();
   assert.equal(await tempo.inputValue(), "125 BPM");
   assert.ok(
     await page.evaluate(

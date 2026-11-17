@@ -2,11 +2,13 @@
 
 The unmodified ABC files in `source/` are from the Open Hymnal Project, maintained by Brian J. Dumont, mirrored at https://github.com/mzealey/openhymnal (commit `d35811b2d5c9b0bbc5887d60a2936454815416e8`). Each selected source explicitly marks its words, music and setting public domain. Original credits and source references are retained in each file. These are historical editions, not modern commercial arrangements.
 
-`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The initial library contains 20 familiar hymns; one verse (and its refrain) is displayed to keep practice manageable.
+`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The library contains 22 hymns. The first stanza is selected initially; the Stanzas checkboxes add aligned lyric rows. Common choruses and refrains are shown once, even when the first stanza is hidden.
 
-Run `npm run import:hymns --workspace=songalong` to reproduce `src/hymns.json` entirely offline. The importer selects the first verse, normalizes older abcm2ps editorial decorations, and preserves the full harmony. Melody-only extracts the highest note of the first voice, retaining key, meter, duration, rests, ties, slurs, beaming and syllable alignment. Unsupported constructs or parser warnings fail the import instead of silently discarding music. Sources remain unchanged.
+Run `npm run import:hymns --workspace=songalong` to reproduce `packages/music-practice/src/hymns.json` entirely offline. The importer extracts all underlaid `w:` stanzas (not unaligned `W:` text), normalizes older abcm2ps editorial decorations, and preserves the full harmony. Melody-only extracts the highest note of the first voice, retaining key, meter, duration, rests, ties, slurs, beaming and syllable alignment. Unsupported constructs or parser warnings fail the import instead of silently discarding music. Sources remain unchanged.
 
-The app reads written durations but does not grade rhythm or play backing audio. With chords enabled it shows the source's harmonized score and waits for each new group of notes. MIDI recognizes exact sounding pitches; tied notes don't need to be re-struck. On-screen chords can be entered one key at a time.
+The app supports playback and Wait for me practice, including separate-hand practice and optional re-striking of tied notes. MIDI recognizes exact sounding pitches. Octave-displaced notation uses a small 8 or 15 below the treble or bass clef; it does not change the sounding pitch.
+
+`lyrics.json` contains user-supplied, manually aligned practice lyrics for Amazing Grace, Jesus Loves Me, In Christ Alone and O Come, All Ye Faithful. Repeated copies of the same stanza are omitted. In Christ Alone’s final stanza ends on “I’ll stand” without the four-bar Oh outro when selected alone. Source ABC files and their credits remain unchanged. Reference recording links are separate catalogue metadata.
 
 ## Tab-music practice editions
 

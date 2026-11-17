@@ -3,7 +3,8 @@
     "id": "amazing-grace",
     "title": "Amazing Grace",
     "file": "Amazing_Grace-New_Britain.abc",
-    "folder": "Amazing_Grace"
+    "folder": "Amazing_Grace",
+    "referenceUrl": "https://www.youtube.com/watch?v=9ZXxIyjTY1s"
   },
   {
     "id": "in-christ-alone",
@@ -11,13 +12,15 @@
     "file": "in-christ-alone-tab-music.abc",
     "folder": "in-christ-alone",
     "source": "tab-music",
-    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/in-christ-alone-music.ily"
+    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/in-christ-alone-music.ily",
+    "referenceUrl": "https://www.youtube.com/watch?v=3ch6eXkQWU8"
   },
   {
     "id": "jesus-loves-me",
     "title": "Jesus Loves Me",
     "file": "Jesus_Loves_Me-untitled.abc",
-    "folder": "Jesus_Loves_Me"
+    "folder": "Jesus_Loves_Me",
+    "referenceUrl": "https://www.youtube.com/watch?v=-jABcYKhDrI"
   },
   {
     "id": "ill-fly-away",
@@ -25,7 +28,8 @@
     "file": "ill-fly-away-tab-music.abc",
     "folder": "ill-fly-away",
     "source": "tab-music",
-    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/ill-fly-away-music.ily"
+    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/ill-fly-away-music.ily",
+    "referenceUrl": "https://www.youtube.com/watch?v=192W0bhJNEg"
   },
   {
     "id": "o-come-all-ye-faithful",
@@ -34,7 +38,8 @@
     "aliases": [
       "Adeste Fideles"
     ],
-    "folder": "O_Come_All_Ye_Faithful"
+    "folder": "O_Come_All_Ye_Faithful",
+    "referenceUrl": "https://www.youtube.com/watch?v=AuwoGmsUWhU"
   },
   {
     "id": "holy-holy-holy",

@@ -19,7 +19,7 @@ const notes = (tune: ReturnType<typeof abcjs.parseOnly>[0]) =>
 const geometry = (tune: ReturnType<typeof abcjs.parseOnly>[0]) =>
   notes(tune).map((note) => note.pitches?.map((pitch) => pitch.verticalPos));
 
-test("low hymn parts use stable octave brackets while keeping treble and bass clefs", () => {
+test("low hymn parts use stable octave clef marks while keeping treble and bass clefs", () => {
   const hymn = hymns.find((h) => h.id === "amazing-grace")!;
   const abc = arrangeHymn(hymn, "bass", 0, 0, "both").abc;
   const tune = abcjs.parseOnly(abc, { visualTranspose: -8 })[0];
@@ -29,7 +29,7 @@ test("low hymn parts use stable octave brackets while keeping treble and bass cl
     .map((staff) => staff.clef?.type);
   const marks = applyHymnOttava(tune);
   assert.ok(marks.length > 0);
-  assert.ok(marks.every((mark) => mark.label === "8vb" && mark.octaves === 1));
+  assert.ok(marks.every((mark) => mark.label === "8" && mark.octaves === 1));
   assert.deepEqual(
     tune.lines
       .flatMap((line) => line.staff || [])
@@ -49,7 +49,7 @@ test("low hymn parts use stable octave brackets while keeping treble and bass cl
   const low = abcjs.parseOnly(arrangeHymn(hymn, "melody", 0).abc, {
     visualTranspose: -20,
   })[0];
-  assert.ok(applyHymnOttava(low).every((mark) => mark.label === "15mb"));
+  assert.ok(applyHymnOttava(low).every((mark) => mark.label === "15"));
 });
 
 test("ottava engraving preserves every hymn's audio, spelling, ties and source-note identity", () => {

@@ -1,3 +1,4 @@
+import { validStanzas } from "./hymn-lyrics";
 import type { CountInBars } from "./hymn-count-in";
 import { isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
@@ -36,6 +37,7 @@ export type HymnSettings = {
   hands?: HymnHands;
   viewHands?: HymnHands;
   reattackTies?: boolean;
+  stanzas?: number[];
   sectionBars: 0 | 2 | 4;
   section: number;
   position: number;
@@ -45,6 +47,10 @@ export function mergeHymnSettings(
   input: unknown,
 ): HymnSettings {
   const s = object(input);
+  const hymn =
+    hymns.find((h) => h.id === s.hymn) ||
+    hymns.find((h) => h.id === base.hymn) ||
+    hymns[0];
   const legacy = !("arrangement" in s) && ("hymn" in s || "chords" in s);
   const viewHands = choice(
     s.viewHands,
@@ -60,6 +66,7 @@ export function mergeHymnSettings(
         )
       : viewHands;
   return {
+    stanzas: validStanzas(s.stanzas, hymn.stanzas.length, base.stanzas || [1]),
     ...("low" in s || "low" in base
       ? { low: optionalHymnNote(s.low, base.low ?? null) }
       : {}),
@@ -125,6 +132,11 @@ export function hymnSettingsFromQuery(
     if (query.has(bound))
       overrides[bound] =
         query.get(bound) === "none" ? null : Number(query.get(bound));
+  if (query.has("stanzas"))
+    overrides.stanzas =
+      query.get("stanzas") === "none"
+        ? []
+        : query.get("stanzas")!.split(",").map(Number);
   if (query.has("ties"))
     overrides.reattackTies = query.get("ties") === "repeat";
   if (query.has("view")) overrides.viewHands = query.get("view");
@@ -156,6 +168,7 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
     hands: "both",
     viewHands: "both",
     reattackTies: false,
+    stanzas: [1],
     sectionBars: 0,
     section: 0,
     position: 0,

@@ -1,3 +1,5 @@
+import hymns from "./hymns.json";
+import { hymnEndingBar } from "./hymn-lyrics";
 import {
   hymnPreferences,
   validHymnZoom,
@@ -23,6 +25,7 @@ export type HymnState = {
   hands?: HymnHands;
   viewHands?: HymnHands;
   reattackTies?: boolean;
+  stanzas?: number[];
   sectionBars: number;
   section: number;
   bookmarks: Record<string, Bookmark>;
@@ -102,11 +105,13 @@ export function hymnProgressKey(
   originalKey: string,
   section = true,
 ) {
+  const hymn = hymns.find((h) => h.id === settings.hymn);
+  const endingBar = hymn ? hymnEndingBar(hymn, settings.stanzas) : undefined;
   const hand =
     settings.arrangement === "melody" ||
     settings.hands === "both" ||
     !settings.hands
       ? ""
       : `:hands=${settings.hands}`;
-  return `${settings.hymn}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${settings.reattackTies ? ":reattack-ties" : ""}`;
+  return `${settings.hymn}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${endingBar ? `:ending=${endingBar}` : ""}${settings.reattackTies ? ":reattack-ties" : ""}`;
 }

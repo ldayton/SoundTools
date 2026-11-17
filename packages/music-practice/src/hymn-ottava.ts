@@ -1,14 +1,8 @@
-import type {
-  AbsoluteElement,
-  TuneObject,
-  VoiceItem,
-  VoiceItemNote,
-} from "abcjs";
+import type { AbsoluteElement, TuneObject } from "abcjs";
 
 type Staff = NonNullable<TuneObject["lines"][number]["staff"]>[number];
 type Mark = {
   staff: Staff;
-  first: VoiceItemNote;
   octaves: number;
   label: string;
 };
@@ -55,11 +49,14 @@ export function applyHymnOttava(tune: TuneObject): Mark[] {
     line.staff?.forEach((staff, index) => {
       const octaves = shifts.get(index) || 0;
       if (!octaves) return;
-      let first: VoiceItemNote | undefined;
+      // abcjs reuses a clef object across wrapped systems. Give each its own
+      // engraving reference so a later system cannot replace the first one's.
+      if (staff.clef) staff.clef = { ...staff.clef };
+      let hasNotes = false;
       for (const voice of staff.voices || [])
         for (const item of voice) {
           if (item.el_type !== "note") continue;
-          first ??= item;
+          hasNotes = true;
           for (const pitch of [
             ...(item.pitches || []),
             ...(item.gracenotes || []),
@@ -67,79 +64,46 @@ export function applyHymnOttava(tune: TuneObject): Mark[] {
             if (Number.isFinite(pitch.verticalPos))
               pitch.verticalPos += octaves * 7;
         }
-      if (first) {
-        const label = octaves === 1 ? "8vb" : "15mb";
-        // Let the engraver reserve space between the music and lyrics first.
-        first.chord = [
-          ...(first.chord || []),
-          { name: label, position: "below" },
-        ];
-        marks.push({ staff, first, octaves, label });
+      if (hasNotes) {
+        const label = octaves === 1 ? "8" : "15";
+        marks.push({ staff, octaves, label });
       }
     });
   applied.set(tune, marks);
   return marks;
 }
 
-const absolute = (item: VoiceItem) =>
-  (item as VoiceItem & { abselem?: AbsoluteElement }).abselem;
-
-/** Finish ottava brackets outside note groups, so selection hitboxes stay precise. */
+/** A small octave number belongs to the clef, never to a note or selection hitbox. */
 export function drawHymnOttava(marks: Mark[]) {
   const ns = "http://www.w3.org/2000/svg";
-  for (const { staff, first, label, octaves } of marks) {
-    const note = absolute(first);
-    const text = note?.elemset
-      .flatMap((element) =>
-        Array.from(
-          element.querySelectorAll<SVGTextElement>(".abcjs-annotation"),
-        ),
-      )
-      .find((element) => element.textContent === label);
-    if (!text) continue;
-    const parent = text.closest(".abcjs-note,.abcjs-rest")
-      ?.parentElement as SVGGraphicsElement | null;
-    if (!parent || !parent.getCTM() || !text.getCTM()) continue;
-    const transform = parent.getCTM()!.inverse().multiply(text.getCTM()!);
-    const box = text.getBBox();
-    const start = new DOMPoint(
-      box.x + box.width + 5,
-      box.y + box.height / 2,
-    ).matrixTransform(transform);
-    const end =
-      Math.max(
-        ...(staff.voices || []).flat().map((item) => {
-          const element = absolute(item);
-          return element ? element.x + element.w : 0;
-        }),
-      ) - 2;
+  for (const { staff, label, octaves } of marks) {
+    const absolute = (
+      staff.clef as typeof staff.clef & { abselem?: AbsoluteElement }
+    )?.abselem;
+    const clef = absolute?.elemset.find((element) =>
+      element.classList.contains("abcjs-clef"),
+    );
+    if (!clef || clef.querySelector(".hymn-ottava")) continue;
+    const box = (clef as SVGGraphicsElement).getBBox();
     const group = document.createElementNS(ns, "g");
     group.setAttribute("class", "hymn-ottava");
     group.setAttribute("data-octaves-below", String(octaves));
     group.setAttribute("pointer-events", "none");
+    group.setAttribute("role", "img");
     group.setAttribute(
       "aria-label",
       `Play ${octaves === 1 ? "one octave" : "two octaves"} below written notes`,
     );
-    text.setAttribute(
-      "transform",
-      `matrix(${transform.a} ${transform.b} ${transform.c} ${transform.d} ${transform.e} ${transform.f})`,
-    );
+    const text = document.createElementNS(ns, "text");
+    text.setAttribute("x", String(box.x + box.width / 2));
+    text.setAttribute("y", String(box.y + box.height + 11));
+    text.setAttribute("font-family", "Georgia, serif");
+    text.setAttribute("font-size", "12");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("fill", "currentColor");
+    text.textContent = label;
     group.append(text);
-    if (end > start.x) {
-      const line = document.createElementNS(ns, "path");
-      line.setAttribute("d", `M${start.x} ${start.y}H${end}`);
-      line.setAttribute("stroke-dasharray", "3 3");
-      const hook = document.createElementNS(ns, "path");
-      hook.setAttribute("d", `M${end} ${start.y}v-5`);
-      for (const path of [line, hook]) {
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke", "currentColor");
-        path.setAttribute("stroke-width", "0.7");
-        group.append(path);
-      }
-    }
-    parent.append(group);
+    clef.append(group);
   }
 }
 

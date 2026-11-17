@@ -14,7 +14,7 @@ import {
 } from "../../../packages/music-practice/browser-tests/helpers";
 
 const engine = process.env.TEST_BROWSER || "chromium";
-const port = "4385";
+const port = process.env.TEST_PORT || "4385";
 const base = process.env.TEST_BASE_URL || `http://127.0.0.1:${port}`;
 const vite = createRequire(import.meta.url)
   .resolve("vite/package.json")
@@ -73,7 +73,7 @@ try {
   assert.ok((await page.locator(".hymn-ottava").count()) > 0);
   assert.ok(
     (await page.locator(".hymn-ottava").allTextContents()).every(
-      (text) => text === "15mb",
+      (text) => text === "15",
     ),
   );
   assert.equal(await page.locator("#hymn-key").inputValue(), "B");
@@ -86,7 +86,7 @@ try {
   assert.equal(await range.textContent(), "F♯3–F♯4");
   assert.ok(
     (await page.locator(".hymn-ottava").allTextContents()).every(
-      (text) => text === "8vb",
+      (text) => text === "8",
     ),
   );
   assert.equal(await page.locator(".hymn-paper .abcjs-ledger").count(), 0);
@@ -161,14 +161,28 @@ try {
   assert.ok((await page.locator(".hymn-ottava").count()) >= 2);
   assert.ok(
     (await page.locator(".hymn-ottava").allTextContents()).every(
-      (text) => text === "8vb",
+      (text) => text === "8",
     ),
   );
   assert.equal((await page.locator(".abcjs-clef").count()) > 0, true);
   assert.equal(
+    await page.locator(".hymn-ottava path").count(),
+    0,
+    "No octave brackets",
+  );
+  assert.equal(
+    await page.locator(".abcjs-clef .hymn-ottava").count(),
+    await page.locator(".hymn-ottava").count(),
+  );
+  assert.equal(
+    await page.locator(".hymn-ottava").count(),
+    await page.locator(".abcjs-clef").count(),
+    "Every displaced treble and bass clef is marked, including the first system",
+  );
+  assert.equal(
     await page.locator(".abcjs-note .hymn-ottava").count(),
     0,
-    "brackets never inflate selection hitboxes",
+    "clef marks never inflate selection hitboxes",
   );
   await page.setViewportSize({ width: 1680, height: 1050 });
   await openPracticeOptions(page);

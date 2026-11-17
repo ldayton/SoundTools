@@ -1,0 +1,89 @@
+{
+  "amazing-grace": {
+    "source": "User-supplied lyrics",
+    "stanzas": [
+      {
+        "label": "Amazing Grace, how sweet the sound",
+        "syllables": "A- maz- ing * Grace How sweet the sound That saved a * wretch like me * I, once, * was * lost But, now, * I'm * found Was blind, but, * now, I see *"
+      },
+      {
+        "label": "’Twas grace that thought my heart to fear",
+        "syllables": "’Twas grace that * thought my heart to fear And grace my * fears re- lieved * How pre- * cious * did that grace * ap- * pear The hour I * first be- lieved *"
+      },
+      {
+        "label": "When we've been there ten thousand years",
+        "syllables": "When we've been * there ten thou- sand years Bright shin- ing * as the sun * We've no * less * days To sing * God’s * praise Than when we'd * first be- gun *"
+      }
+    ]
+  },
+  "jesus-loves-me": {
+    "source": "User-supplied lyrics",
+    "shared": [
+      [
+        28,
+        49
+      ]
+    ],
+    "stanzas": [
+      {
+        "label": "Jesus loves me this I know",
+        "syllables": "Je- sus loves me this I know For the Bi- ble tells me so Lit- tle ones to Him be- long They are weak but He is strong Yes, Je- sus loves me! Yes, Je- sus loves me! Yes Je- sus loves me For~the Bi- ble tells me so!"
+      },
+      {
+        "label": "Jesus loves me still today",
+        "syllables": "Je- sus loves me still to- day Walk- ing with me on my way Want- ing as a friend to give Light and love to all who live Yes, Je- sus loves me! Yes, Je- sus loves me! Yes Je- sus loves me For~the Bi- ble tells me so!"
+      },
+      {
+        "label": "Jesus loves me He will stay",
+        "syllables": "Je- sus loves me He will stay Close be- sides me all the way Thou has bled and died for me I will hence- forth live for Thee Yes, Je- sus loves me! Yes, Je- sus loves me! Yes Je- sus loves me For~the Bi- ble tells me so!"
+      }
+    ]
+  },
+  "in-christ-alone": {
+    "source": "User-supplied lyrics",
+    "shared": [
+      [
+        64,
+        68
+      ]
+    ],
+    "stanzas": [
+      {
+        "label": "In Christ alone my hope is found",
+        "syllables": "In Christ a- lone my hope is found He is my light, my strength, my song This cor- ner- stone, this sol- id ground Firm through the fierc- est drought and storm What heights of love, what depths of peace When fears are stilled, when striv- ings cease My com- fort- er, my all in all Here in the love of Christ I stand Oh- oh * *"
+      },
+      {
+        "label": "Here in the ground His body lay",
+        "syllables": "Here in the ground His bod- y lay Light of the world by dark- ness slain Then burst- ing forth in glo- rious day Oh,~up from the grave He rose a- gain And as He stands in vic- to- ry Sin's curse has lost its grip on me For I am His and He is mine Bought with the pre- cious blood of Christ Oh- oh * *"
+      },
+      {
+        "label": "No guilt in life, no fear in death",
+        "syllables": "No guilt in life, no fear in death This is the power of Christ in me From life's first cry to fi- nal breath Oh,~Je- sus com- mands my des- ti- ny No power of hell, no scheme of man Can ev- er pluck me from His hand 'Til He re- turns or calls me home Here in the power of Christ I'll stand * * * *",
+        "endingBar": 17
+      }
+    ]
+  },
+  "o-come-all-ye-faithful": {
+    "source": "User-supplied lyrics",
+    "shared": [
+      [
+        36,
+        62
+      ]
+    ],
+    "stanzas": [
+      {
+        "label": "O come, all ye faithful",
+        "syllables": "O come, all ye faith- ful, joy- ful and tri- um- phant! O come ye, O come * ye to Beth- * le- hem Come and be- hold Him Born the King of an- * gels O come, let us a- dore Him O come, let us a- dore Him O come, let us a- dore Him * Christ * the Lord!"
+      },
+      {
+        "label": "Sing, choirs of angels",
+        "syllables": "Sing, choirs of an- gels, sing in ex- ul- ta- tion Oh, * sing, all ye cit- i- zens of heav- en a- bove! Glo- ry to God * Glo- ry in the high- * est O come, let us a- dore Him O come, let us a- dore Him O come, let us a- dore Him * Christ * the Lord!"
+      },
+      {
+        "label": "Yes, Lord, we greet Thee",
+        "syllables": "Yes, Lord, we greet Thee, born this hap- py morn- * ing Oh, Je- sus to Thee be, * oh, glo- ry giv- en Word of the Fa- ther Now in flesh ap- pear- * ing O come, let us a- dore Him O come, let us a- dore Him O come, let us a- dore Him * Christ * the Lord!"
+      }
+    ]
+  }
+}

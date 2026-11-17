@@ -1,4 +1,9 @@
 import {
+  hymnLyricsAbc,
+  compactHymnLyrics,
+  type HymnLyricsSelection,
+} from "./hymn-lyrics";
+import {
   scorePosition,
   scoreBarSpan,
   type ScorePosition,
@@ -52,6 +57,7 @@ export function drawPracticeScore(
   width: number,
   options: {
     scale?: number;
+    lyrics?: HymnLyricsSelection;
     transpose?: number;
     compact?: boolean;
     rhythmGrid?: boolean;
@@ -60,6 +66,7 @@ export function drawPracticeScore(
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
+  if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const scale = (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1);
   const transpose = options.transpose ?? 0;
   const tune = abcjs.renderAbc(paper, "%%vocalfont sans-serif 12\n" + abc, {
@@ -69,6 +76,7 @@ export function drawPracticeScore(
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing(tune) {
       if (options.octaveNotation) applyHymnOttava(tune);
+      if (options.lyrics) compactHymnLyrics(tune);
       for (const line of tune.lines)
         for (const staff of line.staff || [])
           for (const voice of staff.voices || [])

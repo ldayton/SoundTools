@@ -18,9 +18,11 @@ export type HymnOptionsChange = Partial<
     | "viewHands"
     | "hands"
     | "reattackTies"
+    | "stanzas"
   >
 > & { zoom?: number };
 export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
+  stanzaChoices: { number: number; label: string }[];
   searchOpen: boolean;
   unmetered: boolean;
   originalKey: string;
@@ -29,6 +31,7 @@ export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   availableOctaves: number[];
   range: string;
   source: {
+    referenceUrl: string | null;
     credits: string;
     url: string;
     label: string;

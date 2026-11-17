@@ -87,6 +87,14 @@ function voices(hymn: Hymn): Voice[] {
 export function hymnBarCount(hymn: Hymn) {
   return voices(hymn)[0].bars.length;
 }
+export function hymnMelodyOffset(hymn: Hymn, bar: number) {
+  return voices(hymn)[0]
+    .bars.slice(0, bar)
+    .reduce(
+      (sum, b) => sum + b.notes.filter((note) => note.pitches?.length).length,
+      0,
+    );
+}
 function token(pitch: number, key: string, accidentals: Map<string, number>) {
   const n = spellPitch(pitch, key) || chromaticPitch(pitch);
   const signature = KEYS.find((k) => k.id === key)!;
@@ -266,11 +274,12 @@ export function arrangeHymn(
   sectionBars = 4,
   section = 0,
   hands: HymnHands = "both",
+  endingBar?: number,
 ) {
   if (hands === "right" && arrangement !== "original")
-    return arrangeHymn(hymn, "melody", sectionBars, section);
+    return arrangeHymn(hymn, "melody", sectionBars, section, "both", endingBar);
   const source = voices(hymn);
-  const count = source[0].bars.length;
+  const count = Math.min(source[0].bars.length, endingBar ?? Infinity);
   const size = sectionBars === 0 ? count : sectionBars;
   const sections = Math.ceil(count / size);
   const selected = Math.max(0, Math.min(sections - 1, section));
@@ -281,7 +290,12 @@ export function arrangeHymn(
   let abc: string;
   if (arrangement === "original") {
     // Keep the original whole-score edition intact, including its repeat signs.
-    if (sectionBars === 0 && hands === "both") abc = hymn.harmony;
+    if (
+      sectionBars === 0 &&
+      hands === "both" &&
+      count === source[0].bars.length
+    )
+      abc = hymn.harmony;
     else {
       const selectedSource = source.filter(
         (v) =>

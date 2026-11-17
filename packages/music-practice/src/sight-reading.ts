@@ -1,3 +1,4 @@
+import { validStanzas, hymnEndingBar } from "./hymn-lyrics";
 import { RendererLifetime } from "./renderer-lifetime";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { HymnFrame, hymnBodyState } from "./practice-frame";
@@ -66,6 +67,7 @@ import {
 import {
   ARRANGEMENTS,
   arrangeHymn,
+  hymnMelodyOffset,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -111,6 +113,10 @@ export class SightReading {
   private hands: HymnHands = "both";
   private viewHands: HymnHands = "both";
   private reattackTies = false;
+  private stanzas: number[] = [1];
+  private get endingBar() {
+    return hymnEndingBar(this.hymn, this.stanzas);
+  }
   private readonly sectionBars = 0;
   private section = 0;
   private sections = 1;
@@ -212,6 +218,7 @@ export class SightReading {
       if (Number.isInteger(saved?.octave) && Math.abs(saved!.octave!) <= 10)
         this.octave = saved!.octave;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
+      this.stanzas = validStanzas(saved?.stanzas, this.hymn.stanzas.length);
       if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
         this.arrangement = saved.arrangement;
       else if (saved) {
@@ -500,6 +507,8 @@ export class SightReading {
       old.hands !== next.hands ||
       old.viewHands !== next.viewHands ||
       old.reattackTies !== next.reattackTies ||
+      hymnEndingBar(this.hymn, old.stanzas) !==
+        hymnEndingBar(hymn, next.stanzas) ||
       old.sectionBars !== next.sectionBars;
     this.routeChanged = changed || old.mode !== next.mode;
     if (old.mode !== next.mode || old.bpm !== next.bpm)
@@ -529,6 +538,7 @@ export class SightReading {
     this.hands = next.hands || "both";
     this.viewHands = next.viewHands || "both";
     this.reattackTies = next.reattackTies === true;
+    this.stanzas = next.stanzas || [1];
     if (changed) this.restoreSection();
     if (changed || this.section !== old.section) {
       this.restorePending = true;
@@ -553,6 +563,7 @@ export class SightReading {
       hands: this.hands,
       viewHands: this.viewHands,
       reattackTies: this.reattackTies,
+      stanzas: this.stanzas,
       sectionBars: this.sectionBars,
       section: this.section,
       position: this.position,
@@ -565,6 +576,8 @@ export class SightReading {
       hands: this.hands,
       view: this.viewHands,
     });
+    if (this.stanzas.join(",") !== "1")
+      q.set("stanzas", this.stanzas.length ? this.stanzas.join(",") : "none");
     if (this.reattackTies) q.set("ties", "repeat");
     if (this.countIn) q.set("countIn", String(this.countIn));
     if (this.loopCountIn) q.set("loopCountIn", "1");
@@ -621,6 +634,7 @@ export class SightReading {
     this.hands = next.hands!;
     this.viewHands = next.viewHands!;
     this.reattackTies = next.reattackTies!;
+    this.stanzas = next.stanzas || [1];
     this.position = 0;
     this.paused = false;
     this.preferRangeDefault = false;
@@ -695,9 +709,11 @@ export class SightReading {
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
     if (!this.lastWidth) return;
     const previous = this.session;
-    const focusedHandle = layoutOnly
-      ? document.activeElement?.getAttribute("data-passage-handle")
-      : null;
+    // Crossing the mobile breakpoint also changes playback mode. Preserve an
+    // active passage handle through that rebuild, as well as ordinary reflow.
+    const focusedHandle = document.activeElement?.getAttribute(
+      "data-passage-handle",
+    );
     if (!layoutOnly) this.piano.resetInteraction();
     const { feedback: previousText, kind: previousKind } =
       this.presentation.getSnapshot();
@@ -729,7 +745,7 @@ export class SightReading {
     });
     try {
       this.syncRangeKeys();
-      const passageIdentity = `${this.hymn.id}:${this.key}:${this.octave}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}`;
+      const passageIdentity = `${this.hymn.id}:${this.key}:${this.octave}:${this.arrangement}:${this.viewHands}:${this.sectionBars}:${this.section}:${this.reattackTies}:${this.endingBar || ""}`;
       if (passageIdentity !== this.passageIdentity || this.noMatchingKey) {
         this.passage.reset();
         this.loopPassage = false;
@@ -747,6 +763,7 @@ export class SightReading {
         this.sectionBars,
         this.section,
         this.viewHands,
+        this.endingBar,
       );
       const transposition = hymnTransposition(
         this.hymn.key,
@@ -757,6 +774,14 @@ export class SightReading {
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
         scale: this.zoom,
+        lyrics:
+          this.arrangement === "melody" || this.viewHands !== "left"
+            ? {
+                hymn: this.hymn,
+                selected: this.stanzas,
+                offset: hymnMelodyOffset(this.hymn, score.from),
+              }
+            : undefined,
         octaveNotation: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
@@ -775,6 +800,7 @@ export class SightReading {
               abc: score.abc,
               audio,
               transpose: transposition.semitones,
+              endingBar: this.endingBar,
             });
             this.playback.load(
               prepared.audio,
@@ -798,6 +824,7 @@ export class SightReading {
               this.sectionBars,
               this.section,
               this.hands,
+              this.endingBar,
             )
           : score;
       if (practice !== score) {
@@ -952,9 +979,14 @@ export class SightReading {
       hands: this.hands,
       viewHands: this.viewHands,
       reattackTies: this.reattackTies,
+      stanzas: this.stanzas,
       zoom: this.zoom,
       low: this.low,
       high: this.high,
+      stanzaChoices: this.hymn.stanzas.map(({ number, label }) => ({
+        number,
+        label,
+      })),
       searchOpen: this.searchOpen,
       unmetered: !/^\d+\/\d+$/.test(this.hymn.meter),
       originalKey: this.hymn.key,
@@ -963,6 +995,8 @@ export class SightReading {
       availableOctaves: this.availableOctaves,
       range: this.melodyRangeLabel,
       source: {
+        referenceUrl:
+          "referenceUrl" in this.hymn ? this.hymn.referenceUrl! : null,
         credits: this.hymn.credits.join(" "),
         url: tabMusic
           ? this.hymn.sourceUrl!
@@ -973,7 +1007,7 @@ export class SightReading {
         label: tabMusic ? "Tab music source" : "Open Hymnal source",
         description: tabMusic
           ? "Keyboard melody with simplified harmony from your tab-music edition."
-          : "Public-domain words, melody and setting. First verse and refrain.",
+          : "Public-domain words, melody and setting, with aligned stanzas and shared refrains.",
         help:
           ARRANGEMENTS.find((a) => a.id === this.arrangement)!.help +
           " Sing along with the words.",
@@ -1010,7 +1044,16 @@ export class SightReading {
       }
       return;
     }
-    if (patch.zoom !== undefined) {
+    if (patch.stanzas !== undefined) {
+      const previousEnding = this.endingBar;
+      this.stanzas = next.stanzas || [];
+      if (this.endingBar !== previousEnding) {
+        this.interrupt("controls");
+        this.position = 0;
+        this.restorePending = true;
+        this.render();
+      } else this.render(true);
+    } else if (patch.zoom !== undefined) {
       if (!validHymnZoom(patch.zoom)) return;
       this.zoom = patch.zoom;
       this.render(true);

@@ -170,6 +170,38 @@ export function HymnOptions({
           Optional melody limits
         </Text>
       </OptionsSection>
+      {(state.arrangement === "melody" || state.viewHands !== "left") && (
+        <OptionsSection title="Stanzas">
+          <Stack id="hymn-stanzas" gap="xs" role="group" aria-label="Stanzas">
+            {state.stanzaChoices.map((stanza) => (
+              <Checkbox
+                key={stanza.number}
+                className="hymn-stanza-checkbox"
+                label={stanza.label}
+                title={stanza.label}
+                checked={state.stanzas.includes(stanza.number)}
+                onChange={(event) =>
+                  change({
+                    stanzas: event.currentTarget.checked
+                      ? [...state.stanzas, stanza.number]
+                      : state.stanzas.filter(
+                          (number) => number !== stanza.number,
+                        ),
+                  })
+                }
+                styles={{
+                  labelWrapper: { minWidth: 0, flex: 1 },
+                  label: {
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  },
+                }}
+              />
+            ))}
+          </Stack>
+        </OptionsSection>
+      )}
       <OptionsSection title="Hands">
         <NativeSelect
           id="hymn-arrangement"
@@ -227,6 +259,15 @@ export function HymnOptions({
           <Accordion.Control>About this hymn</Accordion.Control>
           <Accordion.Panel>
             <Stack gap="sm">
+              {state.source.referenceUrl && (
+                <Anchor
+                  href={state.source.referenceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Reference recording
+                </Anchor>
+              )}
               <Text size="sm" className="hymn-credits">
                 {state.source.credits}
               </Text>

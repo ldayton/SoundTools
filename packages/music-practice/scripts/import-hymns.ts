@@ -15,7 +15,123 @@ const curated = JSON.parse(
   aliases?: string[];
   source?: "tab-music";
   sourceUrl?: string;
+  referenceUrl?: string;
 }[];
+type LyricOverride = {
+  shared?: number[][];
+  stanzas: { label: string; syllables: string; endingBar?: number }[];
+};
+const lyricOverrides = JSON.parse(
+  readFileSync(root + "hymns/lyrics.json", "utf8"),
+) as Record<string, LyricOverride>;
+function cleanSource(source: string, allLyrics = false) {
+  let firstLyric = true;
+  return (
+    source
+      .split("\n")
+      .flatMap((line) => {
+        if (/^\[V:/.test(line)) {
+          firstLyric = true;
+          return [
+            line
+              .replace(/\[Q:[^\]]+\]/g, "")
+              .replace(/!(sintro|eintro)!/g, "")
+              .replace(/!ferm!/g, "!fermata!")
+              .replace(/!\(\)!/g, "")
+              .replace(/\('/g, "(")
+              .replace(/\.-/g, "-")
+              .replace(/\.\(/g, "("),
+          ];
+        }
+        if (/^w:/.test(line)) {
+          if (!firstLyric && !allLyrics) return [];
+          firstLyric = false;
+          return [line.replace(/^w:\s*\d+\.\s*~?/, "w: ")];
+        }
+        if (/^(X:|T:|M:|L:|K:|V:|%%staves)/.test(line))
+          return [line.replace(/\s+%.*$/, "")];
+        return [];
+      })
+      .join("\n") + "\n"
+  );
+}
+function stanzaData(source: string, id: string) {
+  const tune = abcjs.parseOnly(cleanSource(source, true))[0];
+  if (tune.warnings?.length) throw Error(id + ": " + tune.warnings.join("; "));
+  const parts = tune.lines.flatMap((line) => {
+    const notes = (line.staff?.[0]?.voices?.[0] || []).filter(
+      (n) => n.el_type === "note" && n.pitches?.length,
+    );
+    return notes.length ? [notes] : [];
+  });
+  const count = Math.max(
+    1,
+    ...parts
+      .flat()
+      .map((n) => (n.el_type === "note" ? n.lyric?.length || 0 : 0)),
+  );
+  const token = (lyric?: { syllable: string; divider: string }) =>
+    lyric?.syllable
+      ? lyric.syllable.replace(/ /g, "~") + (lyric.divider === "-" ? "-" : "")
+      : "*";
+  const rows = Array.from({ length: count }, (_, index) =>
+    parts.flatMap((notes) => {
+      const lines = Math.max(
+        0,
+        ...notes.map((n) => (n.el_type === "note" ? n.lyric?.length || 0 : 0)),
+      );
+      return notes.map((n) =>
+        n.el_type === "note" ? token(n.lyric?.[lines === 1 ? 0 : index]) : "*",
+      );
+    }),
+  );
+  let offset = 0;
+  const lyricSections = parts.map((notes) => {
+    const start = offset;
+    offset += notes.length;
+    return { start, end: offset };
+  });
+  const override = lyricOverrides[id];
+  const plain = (tokens: string[]) =>
+    tokens
+      .filter((t) => t !== "*")
+      .join(" ")
+      .replace(/-\s+/g, "")
+      .replace(/~/g, " ");
+  const stanzas = override
+    ? override.stanzas.map((stanza) => ({
+        label: stanza.label,
+        endingBar: stanza.endingBar ?? null,
+        syllables: stanza.syllables.split(/\s+/),
+      }))
+    : rows.map((syllables) => ({
+        endingBar: null,
+        label: plain(syllables).split(/\s+/).slice(0, 8).join(" "),
+        syllables,
+      }));
+  for (const stanza of stanzas)
+    if (stanza.syllables.length !== offset)
+      throw Error(
+        `${id}: stanza '${stanza.label}' has ${stanza.syllables.length} syllables/slots, expected ${offset}`,
+      );
+  const seen = new Set<string>();
+  return {
+    stanzas: stanzas
+      .filter((s) => {
+        const text = plain(s.syllables)
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, "");
+        if (seen.has(text)) return false;
+        seen.add(text);
+        return true;
+      })
+      .map((stanza, index) => ({ ...stanza, number: index + 1 })),
+    lyricSections: [
+      ...lyricSections,
+      ...(override?.shared || []).map(([start, end]) => ({ start, end })),
+    ],
+  };
+}
 const library = curated.map((entry) => {
   const bytes = readFileSync(root + "hymns/source/" + entry.file);
   let source: string;
@@ -35,34 +151,7 @@ const library = curated.map((entry) => {
       throw Error("Missing tab-music provenance: " + entry.id);
   } else if (!/^C: copyright: public domain\./im.test(source))
     throw Error("Uncleared score: " + entry.id);
-  let firstLyric = true;
-  const clean =
-    source
-      .split("\n")
-      .flatMap((line) => {
-        if (/^\[V:/.test(line)) {
-          firstLyric = true;
-          return [
-            line
-              .replace(/\[Q:[^\]]+\]/g, "")
-              .replace(/!(sintro|eintro)!/g, "")
-              .replace(/!ferm!/g, "!fermata!")
-              .replace(/!\(\)!/g, "")
-              .replace(/\('/g, "(")
-              .replace(/\.-/g, "-")
-              .replace(/\.\(/g, "("),
-          ];
-        }
-        if (/^w:/.test(line)) {
-          if (!firstLyric) return [];
-          firstLyric = false;
-          return [line.replace(/^w:\s*\d+\.~/, "w: ")];
-        }
-        if (/^(X:|T:|M:|L:|K:|V:|%%staves)/.test(line))
-          return [line.replace(/\s+%.*$/, "")];
-        return [];
-      })
-      .join("\n") + "\n";
+  const clean = cleanSource(source);
   const parsed = abcjs.parseOnly(clean)[0];
   if (parsed.warnings?.length)
     throw Error(entry.id + ": " + parsed.warnings.join("; "));
@@ -146,6 +235,7 @@ const library = curated.map((entry) => {
     throw Error(entry.id + ": " + check.warnings.join("; "));
   return {
     ...entry,
+    ...stanzaData(source, entry.id),
     key,
     meter,
     credits: source

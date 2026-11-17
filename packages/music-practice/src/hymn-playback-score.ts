@@ -17,6 +17,7 @@ export function hymnPlaybackScore(options: {
   abc: string;
   audio: AudioTracks;
   transpose: number;
+  endingBar?: number;
 }) {
   const readAudio = (abc: string) =>
     abcjs.parseOnly(abc)[0].setUpAudio({
@@ -25,8 +26,14 @@ export function hymnPlaybackScore(options: {
       midiTranspose: options.transpose,
     });
   const arrange = (bars: number, section: number) =>
-    arrangeHymn(options.hymn, options.arrangement, bars, section, options.hands)
-      .abc;
+    arrangeHymn(
+      options.hymn,
+      options.arrangement,
+      bars,
+      section,
+      options.hands,
+      options.endingBar,
+    ).abc;
   let elapsed = 0;
   const starts = Array.from({ length: options.sections }, (_, section) => {
     const start = elapsed;

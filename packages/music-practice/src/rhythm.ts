@@ -1,4 +1,7 @@
-import { practiceHeaderHost } from "./practice-surfaces";
+import {
+  practiceHeaderHost,
+  practiceToolbarPropertiesHost,
+} from "./practice-surfaces";
 import { RendererLifetime } from "./renderer-lifetime";
 import { RhythmFrame, rhythmBodyState } from "./practice-frame";
 import { practicePresentation } from "./practice-presentation";
@@ -116,6 +119,7 @@ export class RhythmPractice {
         presentation: this.presentation,
         body: this.body,
         transport: createElement(RhythmControls, {
+          propertiesHost: practiceToolbarPropertiesHost(element),
           model: this.controls,
           tempo: (bpm) => {
             this.stop();

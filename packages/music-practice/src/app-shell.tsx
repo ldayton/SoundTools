@@ -8,9 +8,9 @@ import {
 } from "@ldayton/ui/application-layout";
 import { ToolbarVolume } from "./sidebar-controls";
 import { hymnToolbarState } from "./hymn-toolbar-state";
+import { NotewiseToolbar, notewiseToolbarState } from "./notewise-toolbar";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { useMediaQuery } from "@mantine/hooks";
-import { PracticePianoToggle } from "./piano-presentation";
 import { APP } from "./app-profile";
 import { shellStatus } from "./shell-status";
 import { createViewState } from "./view-state";
@@ -235,6 +235,10 @@ export function mountAppShell(
     );
   }
   function Shell() {
+    const noteToolbar = useSyncExternalStore(
+      notewiseToolbarState.subscribe,
+      notewiseToolbarState.getSnapshot,
+    );
     const toolbar = useSyncExternalStore(
       hymnToolbarState.subscribe,
       hymnToolbarState.getSnapshot,
@@ -252,6 +256,12 @@ export function mountAppShell(
       shellStatus.getSnapshot,
     );
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
+    useLayoutEffect(() => {
+      notewiseToolbarState.set({ expanded: false });
+    }, [snapshot.selected, snapshot.routeKind]);
+    const narrowToolbar = useMediaQuery("(max-width: 374px)", undefined, {
+      getInitialValueInEffect: false,
+    });
     const activeOptionsId =
       LIVE_EXERCISES.find((definition) => definition.mode === snapshot.selected)
         ?.rootId ||
@@ -285,7 +295,14 @@ export function mountAppShell(
           }
           brand={brand}
           mobileToolbarHeight={
-            APP.id === "songalong" ? (toolbar.expanded ? 168 : 56) : 104
+            APP.id === "songalong"
+              ? toolbar.expanded
+                ? 168
+                : 56
+              : (narrowToolbar ? 104 : 56) +
+                (snapshot.selected === "rhythm" && noteToolbar.expanded
+                  ? 60
+                  : 0)
           }
           headerClassName={
             APP.id === "notewise" ? "notewise-header" : "songalong-header"
@@ -300,28 +317,15 @@ export function mountAppShell(
                   className="songalong-header-transport"
                 />
               ) : (
-                <div className="notewise-toolbar">
-                  <ToolbarVolume />
-                  <RetainedContent
-                    element={registry.headerFor(
-                      activeOptionsId || "flashcards",
-                    )}
-                    className="notewise-toolbar-session"
-                  />
-                  <div
-                    className="notewise-toolbar-piano"
-                    style={{
-                      visibility:
-                        snapshot.selected === "piano" ? "hidden" : undefined,
-                    }}
-                  >
-                    <PracticePianoToggle
-                      iconOnly
-                      panelId={`${activeOptionsId || "flashcards"}-piano-panel`}
-                      disabled={snapshot.selected === "piano"}
-                    />
-                  </div>
-                </div>
+                <NotewiseToolbar
+                  session={registry.headerFor(activeOptionsId || "flashcards")}
+                  properties={registry.propertiesFor(
+                    activeOptionsId || "flashcards",
+                  )}
+                  hasProperties={snapshot.selected === "rhythm"}
+                  pianoPanelId={`${activeOptionsId || "flashcards"}-piano-panel`}
+                  pianoRequired={snapshot.selected === "piano"}
+                />
               )
             ) : APP.id === "notewise" ? (
               <ToolbarVolume />

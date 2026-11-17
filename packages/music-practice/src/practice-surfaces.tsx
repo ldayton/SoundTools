@@ -29,6 +29,15 @@ export function createPracticeRegistry() {
     flushSync(() => listeners.forEach((listener) => listener()));
   }
   const headers = new Map<string, HTMLElement>();
+  const properties = new Map<string, HTMLElement>();
+  function propertiesFor(id: string) {
+    let host = properties.get(id);
+    if (!host) {
+      host = document.createElement("div");
+      properties.set(id, host);
+    }
+    return host;
+  }
   function headerFor(id: string) {
     let host = headers.get(id);
     if (!host) {
@@ -41,6 +50,7 @@ export function createPracticeRegistry() {
   }
   const registry = {
     headerFor,
+    propertiesFor,
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) {
       listeners.add(listener);
@@ -98,6 +108,7 @@ export function createPracticeRegistry() {
       hosts.clear();
       listeners.clear();
       headers.clear();
+      properties.clear();
     },
     selection(element: HTMLElement, content: ReactNode) {
       selectionOwner = element;
@@ -116,6 +127,9 @@ export function mountPracticeSurface(element: HTMLElement, content: ReactNode) {
 }
 export function practiceHeaderHost(element: HTMLElement) {
   return owner(element).headerFor(element.id);
+}
+export function practiceToolbarPropertiesHost(element: HTMLElement) {
+  return owner(element).propertiesFor(element.id);
 }
 export function registerPracticeOptions(
   element: HTMLElement,

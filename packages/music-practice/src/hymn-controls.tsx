@@ -1,7 +1,8 @@
 import { ToolbarVolume } from "./sidebar-controls";
+import { ToolbarDisclosure } from "@ldayton/ui/toolbar-disclosure";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
-import { ActionIcon, Button, Checkbox, Group, Text } from "@mantine/core";
+import { Button, Checkbox, Group, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
 import { useMediaQuery } from "@mantine/hooks";
 import { hymnToolbarState } from "./hymn-toolbar-state";
@@ -132,21 +133,12 @@ export function HymnControls({
           >
             {transport}
           </div>
-          <ActionIcon
+          <ToolbarDisclosure
             className="hymn-controls-toggle"
-            variant={toolbar.expanded ? "light" : "default"}
-            aria-label={toolbar.expanded ? "Hide controls" : "Show controls"}
-            aria-expanded={toolbar.expanded}
-            aria-controls="hymn-mobile-controls"
-            title={toolbar.expanded ? "Hide controls" : "Show controls"}
-            onClick={() =>
-              hymnToolbarState.set({ expanded: !toolbar.expanded })
-            }
-          >
-            <ControlIcon
-              name={toolbar.expanded ? "chevron-up" : "chevron-down"}
-            />
-          </ActionIcon>
+            opened={toolbar.expanded}
+            controls="hymn-mobile-controls"
+            onChange={(expanded) => hymnToolbarState.set({ expanded })}
+          />
           <div
             id="hymn-mobile-controls"
             className="hymn-mobile-controls"

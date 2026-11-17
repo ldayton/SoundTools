@@ -28,7 +28,8 @@
     "./toolbar-number": "./toolbar-number.tsx",
     "./piano-keyboard": "./piano-keyboard.tsx",
     "./piano-keyboard.css": "./piano-keyboard.css",
-    "./piano-motion": "./piano-motion.ts"
+    "./piano-motion": "./piano-motion.ts",
+    "./toolbar-disclosure": "./toolbar-disclosure.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

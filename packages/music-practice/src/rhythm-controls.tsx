@@ -2,6 +2,8 @@ import { TempoControl } from "@ldayton/ui/tempo-control";
 import { RHYTHM_TEMPO_LIMITS } from "./rhythm-model";
 import { PracticeAction, PracticeActions } from "@ldayton/ui/practice-actions";
 import { useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+import { useMediaQuery } from "@mantine/hooks";
 import { Button, Group, Stack } from "@mantine/core";
 import { createViewState } from "./view-state";
 export const rhythmControlsState = createViewState<{
@@ -16,23 +18,39 @@ export function RhythmControls({
   start,
   next,
   tempo,
+  propertiesHost,
 }: {
   model: RhythmControlsState;
   start(): void;
   next(): void;
   tempo(bpm: number): void;
+  propertiesHost: HTMLElement;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery("(max-width: 767px)", undefined, {
+    getInitialValueInEffect: false,
+  });
+  const tempoControl = (
+    <TempoControl
+      id="rhythm-tempo"
+      compact
+      value={state.bpm}
+      min={RHYTHM_TEMPO_LIMITS.min}
+      max={RHYTHM_TEMPO_LIMITS.max}
+      onChange={tempo}
+    />
+  );
   return (
     <PracticeActions>
-      <TempoControl
-        id="rhythm-tempo"
-        compact
-        value={state.bpm}
-        min={RHYTHM_TEMPO_LIMITS.min}
-        max={RHYTHM_TEMPO_LIMITS.max}
-        onChange={tempo}
-      />
+      {mobile
+        ? createPortal(
+            <Group justify="space-between">
+              <span>Tempo</span>
+              {tempoControl}
+            </Group>,
+            propertiesHost,
+          )
+        : tempoControl}
       <PracticeAction
         className="rhythm-start"
         variant="filled"

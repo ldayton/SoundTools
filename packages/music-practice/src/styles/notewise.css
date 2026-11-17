@@ -105,50 +105,116 @@
   touch-action: manipulation;
 }
 
-@media (max-width: 767px) {
-  .notewise-header .nav-toggle,
-  .notewise-header #practice-options-reopen {
-    align-self: flex-start;
-    margin-top: 12px;
-  }
+/* The primary mobile row keeps actions and drawer triggers in stable slots.
+   Secondary properties appear only when explicitly disclosed. */
+.notewise-mobile-controls {
+  display: none;
 }
-/* On phones the second row spans the whole bar, rather than the narrow space
-   between the sidebar buttons. This leaves room for rhythm's tempo field. */
 @media (max-width: 767px) {
   .notewise-header:has(.notewise-toolbar) > .application-toolbar {
     display: grid;
     grid-template-columns: 26px 36px minmax(0, 1fr) 38px 38px;
-    grid-template-rows: 36px 36px;
-    gap: 8px;
-    padding-block: 12px;
+    grid-template-areas: "navigation volume session piano options";
+    grid-template-rows: 44px;
+    align-content: start;
+    column-gap: 6px;
+    row-gap: 0;
+    padding: 6px 8px;
   }
-  .notewise-header:has(.notewise-toolbar) > .application-toolbar > div,
+  .notewise-header:has(.notewise-controls-toggle) > .application-toolbar {
+    grid-template-columns: 26px 36px minmax(0, 1fr) 38px 38px 38px;
+    grid-template-areas: "navigation volume session piano controls options";
+  }
+  .notewise-header:has(.notewise-mobile-controls:not([hidden]))
+    > .application-toolbar {
+    grid-template-areas:
+      "navigation volume session piano controls options"
+      "properties properties properties properties properties properties";
+    grid-template-rows: 44px 60px;
+  }
+  .notewise-header .application-toolbar-actions,
   .notewise-toolbar {
     display: contents;
   }
-  .notewise-toolbar > :first-child {
-    grid-column: 2;
-    grid-row: 1;
+  .notewise-toolbar-volume {
+    grid-area: volume;
   }
   .notewise-toolbar-session {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    grid-area: session;
+    min-width: 0;
     justify-self: center;
   }
   .notewise-toolbar-piano {
-    grid-column: 4;
-    grid-row: 1;
+    grid-area: piano;
+    min-width: 0;
   }
-  .notewise-header:has(.notewise-toolbar) .nav-toggle {
-    grid-column: 1;
-    grid-row: 1;
+  .notewise-controls-toggle {
+    grid-area: controls;
+  }
+  .notewise-header .nav-toggle {
+    grid-area: navigation;
     margin: 0;
     align-self: center;
   }
-  .notewise-header:has(.notewise-toolbar) #practice-options-reopen {
-    grid-column: 5;
-    grid-row: 1;
+  .notewise-header #practice-options-reopen {
+    grid-area: options;
     margin: 0;
     align-self: center;
+  }
+  .notewise-header .notewise-toolbar-volume > button,
+  .notewise-header .notewise-toolbar-piano > button,
+  .notewise-header .notewise-controls-toggle,
+  .notewise-header #practice-options-reopen {
+    height: 44px;
+    min-height: 44px;
+    width: 38px;
+    min-width: 0;
+  }
+  .notewise-header .notewise-toolbar-volume > button {
+    width: 36px;
+  }
+  .notewise-session-controls {
+    gap: 6px;
+  }
+  .notewise-session-controls .practice-actions {
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .notewise-session-controls .practice-actions > button {
+    width: 44px;
+    height: 44px;
+  }
+  .notewise-header .session-count {
+    width: 6ch;
+    font-size: 12px;
+    text-align: center;
+  }
+  .notewise-mobile-controls:not([hidden]) {
+    display: block;
+    grid-area: properties;
+    box-sizing: border-box;
+    height: 60px;
+    padding-block: 8px;
+  }
+}
+@media (max-width: 374px) {
+  .notewise-header:has(.notewise-toolbar) > .application-toolbar {
+    grid-template-areas:
+      "navigation volume . piano options"
+      "session session session session session";
+    grid-template-rows: 44px 48px;
+  }
+  .notewise-header:has(.notewise-controls-toggle) > .application-toolbar {
+    grid-template-areas:
+      "navigation volume . piano controls options"
+      "session session session session session session";
+  }
+  .notewise-header:has(.notewise-mobile-controls:not([hidden]))
+    > .application-toolbar {
+    grid-template-areas:
+      "navigation volume . piano controls options"
+      "session session session session session session"
+      "properties properties properties properties properties properties";
+    grid-template-rows: 44px 48px 60px;
   }
 }

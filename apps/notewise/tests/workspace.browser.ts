@@ -228,6 +228,10 @@ try {
     );
   }
   await selectPractice(page, "rhythm");
+  assert.equal(await page.locator("header #rhythm-tempo").isVisible(), false);
+  await page
+    .getByRole("button", { name: "Show controls", exact: true })
+    .click();
   await page.locator("header #rhythm-tempo").waitFor();
   for (const width of [320, 390, 768, 1680]) {
     await page.setViewportSize({ width, height: 900 });
@@ -248,12 +252,92 @@ try {
     );
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  const disclose = page.getByRole("button", {
+    name: "Show controls",
+    exact: true,
+  });
+  if (await disclose.isVisible()) await disclose.click();
   const tempo = page.locator("header #rhythm-tempo");
+  const mainRow = async () =>
+    page
+      .locator(
+        ".notewise-header .nav-toggle, .notewise-controls-toggle, #practice-options-reopen",
+      )
+      .evaluateAll((es) => es.map((el) => el.getBoundingClientRect().toJSON()));
+  const expandedGeometry = await mainRow();
+  for (const id of ["rhythm-tempo-down", "rhythm-tempo-up"]) {
+    const box = await page.locator(`#${id}`).boundingBox();
+    assert(
+      box && box.height >= 42 && box.width >= 44,
+      "Mobile tempo uses full-size side-by-side buttons",
+    );
+  }
   await tempo.fill("96");
   await tempo.press("Enter");
   await page.locator("header .rhythm-start").click();
   await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
   await page.getByRole("button", { name: "Stop", exact: true }).click();
+  await mkdir("work", { recursive: true });
+  await page.screenshot({ path: `work/mobile-rhythm-controls-${engine}.png` });
+  await page
+    .getByRole("button", { name: "Hide controls", exact: true })
+    .click();
+  assert.deepEqual(
+    await mainRow(),
+    expandedGeometry,
+    "Disclosure never moves the primary toolbar buttons",
+  );
+  for (const mode of modes) {
+    await selectPractice(page, mode);
+    await page.waitForFunction(
+      () =>
+        document.querySelector("#saved")?.textContent ===
+        "Saved on this device.",
+    );
+    assert.equal(
+      Math.round((await page.getByRole("banner").boundingBox())!.height),
+      56,
+      `${mode}: one compact primary row`,
+    );
+    const fields = await page
+      .locator("header :is(button,input,.session-count):visible")
+      .evaluateAll((elements) =>
+        elements.map((el) => ({
+          label: el.getAttribute("aria-label") || el.textContent,
+          x: el.getBoundingClientRect().left,
+          right: el.getBoundingClientRect().right,
+          y: el.getBoundingClientRect().top,
+          bottom: el.getBoundingClientRect().bottom,
+        })),
+      );
+    assert(
+      fields.every(
+        (f) => f.x >= 0 && f.right <= 390 && f.y >= 0 && f.bottom <= 56,
+      ),
+      `${mode}: controls fit within the primary bar`,
+    );
+    for (let i = 0; i < fields.length; i++)
+      for (let j = i + 1; j < fields.length; j++) {
+        const a = fields[i],
+          b = fields[j];
+        assert(
+          !(
+            a.x < b.right - 1 &&
+            a.right > b.x + 1 &&
+            a.y < b.bottom - 1 &&
+            a.bottom > b.y + 1
+          ),
+          `${mode}: ${a.label} overlaps ${b.label}`,
+        );
+      }
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Hide controls", exact: true })
+        .count(),
+      0,
+      "Extra controls do not carry over to another exercise",
+    );
+  }
   await selectPractice(page, "patterns");
   await setPianoVisible(page, true);
   await midiAction(page, "Connect MIDI keyboard");

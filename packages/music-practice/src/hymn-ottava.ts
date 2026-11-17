@@ -142,3 +142,28 @@ export function drawHymnOttava(marks: Mark[]) {
     parent.append(group);
   }
 }
+
+/** Font descent bounds vary by browser; keep the complete marking inside its system. */
+export function fitHymnOttava(svg: SVGSVGElement) {
+  const screen = svg.getScreenCTM();
+  if (!screen) return;
+  const inverse = screen.inverse();
+  const box = svg.viewBox.baseVal;
+  let bottom = box.y + box.height;
+  for (const mark of svg.querySelectorAll<SVGGraphicsElement>(".hymn-ottava")) {
+    const transform = mark.getScreenCTM();
+    if (!transform) continue;
+    const bounds = mark.getBBox();
+    const matrix = inverse.multiply(transform);
+    for (const x of [bounds.x, bounds.x + bounds.width])
+      bottom = Math.max(
+        bottom,
+        new DOMPoint(x, bounds.y + bounds.height).matrixTransform(matrix).y + 1,
+      );
+  }
+  if (bottom > box.y + box.height)
+    svg.setAttribute(
+      "viewBox",
+      `${box.x} ${box.y} ${box.width} ${bottom - box.y}`,
+    );
+}

@@ -11,7 +11,7 @@ import abcjs, {
   type MidiPitch,
 } from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
-import { applyHymnOttava, drawHymnOttava } from "./hymn-ottava";
+import { applyHymnOttava, drawHymnOttava, fitHymnOttava } from "./hymn-ottava";
 export type PracticeEvent = NoteTimingEvent & {
   spellings?: PitchSpellings;
   scorePosition?: ScorePosition;
@@ -128,6 +128,7 @@ export function drawPracticeScore(
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
   paper.querySelectorAll("svg").forEach((svg) => {
+    if (options.octaveNotation) fitHymnOttava(svg);
     if (options.compact) {
       const group = svg.querySelector<SVGGraphicsElement>(
         ".abcjs-staff-wrapper",

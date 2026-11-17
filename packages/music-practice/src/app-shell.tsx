@@ -40,7 +40,8 @@ import {
 import { SoundToolsProvider } from "@ldayton/ui";
 import { PracticeOptionsProvider, PracticeWorkspace } from "./practice-options";
 import { SettingsPage } from "./settings-page";
-import { offlineState } from "./offline-state";
+import { offlineState, offlineActions } from "./offline-state";
+import { CompleteUpdateButton } from "@ldayton/ui/offline-status-panel";
 import { diagnostics } from "./diagnostics";
 import {
   AREAS,
@@ -226,6 +227,10 @@ export function mountAppShell(
     );
   }
   function Shell() {
+    const offline = useSyncExternalStore(
+      offlineState.subscribe,
+      offlineState.getSnapshot,
+    );
     const views = useSyncExternalStore(
       registry.subscribe,
       registry.getSnapshot,
@@ -254,6 +259,11 @@ export function mountAppShell(
           <RetainedContent element={midiPanel} />
         </div>
         <ApplicationLayout
+          updateAction={
+            offline.updateAvailable ? (
+              <CompleteUpdateButton onClick={() => offlineActions.update()} />
+            ) : undefined
+          }
           compact
           resizableNavigation
           mainClassName={

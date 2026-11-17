@@ -12,7 +12,7 @@ export function SettingsPage() {
       offline={
         <>
           <OfflineStatusPanel status={offline.status} ready={offline.ready}>
-            <Group gap="xs" hidden={offline.downloadHidden && offline.updateHidden}>
+            <Group gap="xs" hidden={offline.downloadHidden}>
               <Button
                 id="offline-download"
                 variant="default"
@@ -21,14 +21,6 @@ export function SettingsPage() {
                 onClick={() => offlineActions.download()}
               >
                 {offline.downloadLabel}
-              </Button>
-              <Button
-                id="offline-update"
-                autoContrast
-                hidden={offline.updateHidden}
-                onClick={() => offlineActions.update()}
-              >
-                Update available
               </Button>
             </Group>
             <Progress

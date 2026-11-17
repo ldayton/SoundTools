@@ -115,14 +115,14 @@
 /* On phones the second row spans the whole bar, rather than the narrow space
    between the sidebar buttons. This leaves room for rhythm's tempo field. */
 @media (max-width: 767px) {
-  .notewise-header:has(.notewise-toolbar) > .mantine-Group-root {
+  .notewise-header:has(.notewise-toolbar) > .application-toolbar {
     display: grid;
     grid-template-columns: 26px 36px minmax(0, 1fr) 38px 38px;
     grid-template-rows: 36px 36px;
     gap: 8px;
     padding-block: 12px;
   }
-  .notewise-header:has(.notewise-toolbar) > .mantine-Group-root > div,
+  .notewise-header:has(.notewise-toolbar) > .application-toolbar > div,
   .notewise-toolbar {
     display: contents;
   }

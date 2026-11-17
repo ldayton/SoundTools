@@ -17,7 +17,7 @@ export function SettingsPage() {
       offline={
         <>
           <OfflineStatusPanel status={offline.status} ready={offline.ready}>
-            <Group hidden={!offline.retryVisible && !offline.updateAvailable}>
+            <Group hidden={!offline.retryVisible}>
               <Button
                 id="offline-retry"
                 hidden={!offline.retryVisible}
@@ -26,13 +26,6 @@ export function SettingsPage() {
                 onClick={() => offlineActions.retry()}
               >
                 Retry offline setup
-              </Button>
-              <Button
-                id="offline-update"
-                hidden={!offline.updateAvailable}
-                onClick={() => offlineActions.update()}
-              >
-                Update available
               </Button>
             </Group>
           </OfflineStatusPanel>

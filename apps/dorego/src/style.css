@@ -161,7 +161,7 @@
   font-size: 22px;
 }
 @media (max-width: 767px) {
-  .dorego-header > .mantine-Group-root {
+  .dorego-header > .application-toolbar {
     display: grid;
     grid-template-columns: 24px 36px minmax(0, 1fr) 38px;
     grid-template-rows: 36px auto;
@@ -169,7 +169,7 @@
     align-content: start;
     padding: 12px;
   }
-  .dorego-header > .mantine-Group-root > :has(> .dorego-toolbar),
+  .dorego-header > .application-toolbar > :has(> .dorego-toolbar),
   .dorego-toolbar {
     display: contents;
   }

@@ -185,7 +185,7 @@ cached, the English example and processing engine also work offline.
 
 Open tabs check for updates every minute while visible and on focus, reconnection
 or returning to the tab (checks are throttled to 15 seconds). A fully downloaded
-new release shows **Update available** in the toolbar. Clicking it reloads into
+new release shows **Complete update** in the toolbar. Clicking it reloads into
 the new release and ends the current audio session. Background downloads and
 service-worker activation never reload the app or interrupt capture. Other live
 tabs keep their own release; obsolete browser caches are removed after those

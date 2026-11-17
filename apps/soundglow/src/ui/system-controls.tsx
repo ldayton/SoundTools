@@ -12,7 +12,10 @@ import {
   Title,
 } from "@mantine/core";
 import { PrivacySection } from "@ldayton/ui/privacy-section";
-import { OfflineStatusPanel } from "@ldayton/ui/offline-status-panel";
+import {
+  CompleteUpdateButton,
+  OfflineStatusPanel,
+} from "@ldayton/ui/offline-status-panel";
 import { createViewState } from "@ldayton/ui/view-state";
 type OfflineView = {
   status: string;
@@ -68,16 +71,18 @@ export function createSystemControls() {
   function Update() {
     const view = useSyncExternalStore(offline.subscribe, offline.getSnapshot);
     return (
-      <Button
-        id="update"
-        size="compact-sm"
-        variant="default"
+      <Box
+        className="soundglow-update-ready"
         hidden={!view.updateVisible}
-        data-version={view.updateVersion ?? undefined}
-        onClick={() => offlineActions?.update()}
+        aria-live="polite"
       >
-        Update available
-      </Button>
+        <CompleteUpdateButton
+          id="update"
+          hidden={!view.updateVisible}
+          version={view.updateVersion ?? undefined}
+          onClick={() => offlineActions?.update()}
+        />
+      </Box>
     );
   }
   function Privacy() {

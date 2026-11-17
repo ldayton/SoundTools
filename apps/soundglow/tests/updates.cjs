@@ -59,11 +59,13 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  await page.waitForTimeout(15500);
  for(const p of [page,other])await p.evaluate(()=>window.dispatchEvent(new Event('focus')));
  await page.waitForFunction(()=>!document.getElementById('update').hidden,undefined,{timeout:20000});await other.waitForFunction(()=>!document.getElementById('update').hidden);
+ assert.equal(await page.getByRole('button',{name:'Complete update',exact:true}).count(),1);
  assert.equal(await page.locator('#update').getAttribute('data-version'),releases[1].pack.version);
  assert.equal(await page.evaluate(()=>running&&!paused&&inputMode==='mic'),true);assert((await page.evaluate(()=>processingStats.frames))>before);
  assert.equal(await page.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version,'No automatic reload during capture');
  await other.screenshot({path:path.join(work,'update-available.png')});
  await other.setViewportSize({width:390,height:844});
+ await other.waitForFunction(()=>{const r=document.getElementById('update').getBoundingClientRect();return Math.abs(r.left+r.width/2-innerWidth/2)<=1});
  assert(await other.locator('#update').evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight}),'Update button fits mobile toolbar');
  assert(await other.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow with mobile update button');
  await other.screenshot({path:path.join(work,'update-mobile.png')});

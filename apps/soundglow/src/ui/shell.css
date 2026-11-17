@@ -47,6 +47,9 @@
   z-index: 2;
   background: #0d1118;
 }
+.soundglow-actions {
+  margin-inline-start: auto;
+}
 #stage {
   position: relative;
   flex: 1;
@@ -176,6 +179,11 @@
   }
 }
 @media (max-width: 760px) {
+  .soundglow-update-ready:not([hidden]) {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+  }
   .soundglow-header {
     padding: 10px 12px;
     gap: 6px;

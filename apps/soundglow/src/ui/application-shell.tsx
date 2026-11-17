@@ -226,7 +226,6 @@ export function mountApplicationShell() {
           </>,
           developerHost,
         )}
-        {createPortal(<Update />, retained.actions)}
         {createPortal(
           <Welcome>
             <WelcomeActions />
@@ -297,6 +296,7 @@ export function mountApplicationShell() {
               <ControlIcon name="settings" />
             </ActionIcon>
           </Group>
+          <Update />
         </Box>
         <Box
           id="workspaceToolbar"

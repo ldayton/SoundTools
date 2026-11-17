@@ -13,7 +13,8 @@ import {
 } from '@ldayton/ui/application-layout';
 import { PracticeOptionsProvider, PracticeWorkspace } from '@ldayton/ui/practice-workspace';
 import { diagnostics } from './diagnostics';
-import { offlineState } from './offline-state';
+import { offlineState, offlineActions } from './offline-state';
+import { CompleteUpdateButton } from '@ldayton/ui/offline-status-panel';
 export type AppViews = {
   selection(onSelect: () => void): ReactNode;
   title: ReactNode;
@@ -111,6 +112,11 @@ function AppShell({ selection, title, toolbar, builder, practice, settingsView, 
         onNavigationCollapse={() => setNavigationCollapsed(true)}
         onNavigationExpand={() => setNavigationCollapsed(false)}
         headerActions={settings ? undefined : toolbar}
+        updateAction={
+          !offline.updateHidden ? (
+            <CompleteUpdateButton onClick={() => offlineActions.update()} />
+          ) : undefined
+        }
       >
         <div hidden={settings}>
           <PracticeWorkspace>{practice}</PracticeWorkspace>

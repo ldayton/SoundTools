@@ -9,7 +9,9 @@ builds never upload. No raw error messages, URLs, model output or audio is added
 
 - A complete cached release opens before update discovery begins. Updates stage in
   the background. A verified update automatically refreshes an untouched foreground
-  page once. After any interaction, **Update available** requires an explicit click;
+  page once. After any interaction, a prominent **Complete update** button in the
+  header requires an explicit click. It appears only after the complete update has
+  downloaded and passed verification, and is available without opening Settings;
   playing, recording and editing are never automatically interrupted. A per-tab
   guard prevents repeated automatic refreshes of the same stale document.
 - Navigation gives cached startup a 1.2-second fast path and bounds version-record

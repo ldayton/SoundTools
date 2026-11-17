@@ -137,11 +137,70 @@ try {
       "Available offline",
   );
   // Verified update is staged while a session is active, never replacing the question.
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Complete update", exact: true })
+      .count(),
+    0,
+  );
   root = rootB;
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
   await page
-    .getByRole("img", { name: "Update available", exact: true })
+    .getByRole("button", { name: "Complete update", exact: true })
     .waitFor({ timeout: 20000 });
+  for (const width of [320, 390, 1680]) {
+    await page.setViewportSize({ width, height: 900 });
+    // The shell's responsive layout commits after the viewport event.
+    await page.waitForFunction(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    );
+    if (width < 768)
+      await page.waitForFunction(
+        () =>
+          document.querySelector(".workspace-content")!.getBoundingClientRect()
+            .left <= 20,
+      );
+    const update = page.getByRole("button", {
+      name: "Complete update",
+      exact: true,
+    });
+    assert.equal(
+      await update.count(),
+      1,
+      "One update action, available outside Settings",
+    );
+    if (width < 768)
+      assert.ok(
+        await update.evaluate((button) => {
+          const r = button.getBoundingClientRect();
+          return Math.abs(r.left + r.width / 2 - innerWidth / 2) <= 1;
+        }),
+        "Mobile update action is centered",
+      );
+    assert.ok(
+      await update.evaluate((button) => {
+        const r = button.getBoundingClientRect();
+        const header = button.closest("header")!.getBoundingClientRect();
+        return (
+          r.left >= 0 &&
+          r.right <= innerWidth &&
+          r.top >= 0 &&
+          r.bottom <= header.bottom
+        );
+      }),
+      "Ready update stays in the header on desktop and mobile",
+    );
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
+    await page.screenshot({
+      path: `work/complete-update-${width}.png`,
+      animations: "disabled",
+    });
+  }
+  await page.screenshot({ path: "work/complete-update-desktop.png" });
   assert.equal(
     await page.locator('meta[name="practice-shell"]').getAttribute("content"),
     packA.shellCache,
@@ -153,7 +212,8 @@ try {
   await untouched
     .evaluate(() => window.dispatchEvent(new Event("online")))
     .catch((error: Error) => {
-      if (!error.message.includes("Execution context was destroyed")) throw error;
+      if (!error.message.includes("Execution context was destroyed"))
+        throw error;
     });
   await untouched.waitForFunction(
     (v) =>
@@ -288,9 +348,8 @@ try {
   await context.setOffline(false);
   await fresh.evaluate(() => window.dispatchEvent(new Event("online")));
   await fresh
-    .getByRole("img", { name: "Update available", exact: true })
+    .getByRole("button", { name: "Complete update", exact: true })
     .waitFor({ timeout: 20000 });
-  await fresh.locator("a[data-settings]").click();
   await fresh.locator("#offline-update").click();
   await fresh.waitForFunction(
     (v) =>

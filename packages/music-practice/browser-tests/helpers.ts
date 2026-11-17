@@ -107,6 +107,9 @@ export async function practiceOption(
         .getByRole("button", { name: label, exact: true })
         .click();
     }
+  } else if (selector === "#hymn-key") {
+    await page.locator(selector).click();
+    await page.locator(`[role="option"][value="${value}"]`).click();
   } else await page.locator(selector).selectOption(value);
   if (await page.locator(".notewise-workspace").count())
     await dismissPracticeDrawer(page);
@@ -259,4 +262,22 @@ export async function closeNavigation(page: Page) {
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });
+}
+
+/** Inspect the rendered menu, including excluded keys, then restore focus. */
+export async function hymnKeyOptions(page: Page) {
+  await openPracticeOptions(page);
+  const input = page.locator("#hymn-key");
+  await input.click();
+  const menu = page.getByRole("listbox", { name: "Key", exact: true });
+  await menu.waitFor();
+  const options = await menu.getByRole("option").evaluateAll((es) =>
+    es.map((e) => ({
+      value: e.getAttribute("value"),
+      disabled: e.getAttribute("aria-disabled") === "true",
+      range: e.querySelector(".hymn-key-option-range")?.textContent,
+    })),
+  );
+  await input.press("Escape");
+  return options;
 }

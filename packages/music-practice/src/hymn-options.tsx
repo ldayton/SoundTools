@@ -14,10 +14,13 @@ import {
   Accordion,
   Anchor,
   Checkbox,
+  CheckIcon,
   NativeSelect,
+  Select,
   Group,
   Button,
   Divider,
+  Fieldset,
   Combobox,
   useCombobox,
   TextInput,
@@ -102,74 +105,88 @@ export function HymnOptions({
           />
         </OptionsSection>
       )}
-      <OptionsSection title="Pitch">
-        <NativeSelect
-          id="hymn-key"
-          label="Key"
-          aria-label="Hymn key"
-          value={state.noMatchingKey ? "" : state.key}
-          onChange={(event) =>
-            change({ key: event.currentTarget.value as HymnKey })
-          }
-        >
-          {state.noMatchingKey && (
-            <option value="" disabled hidden>
-              No matching key
-            </option>
-          )}
-          {keys.map((key) => (
-            <option key={key.value} value={key.value} disabled={key.disabled}>
-              {key.label}
-            </option>
-          ))}
-        </NativeSelect>
-        <Group gap="xs" grow>
-          <Button
-            id="hymn-octave-down"
-            variant="default"
-            disabled={
-              state.noMatchingKey ||
-              !state.availableOctaves.includes(state.octave - 1)
-            }
-            onClick={() => change({ octave: state.octave - 1 })}
+      <Fieldset legend="Key & range" p="sm">
+        <Stack gap="xs">
+          <Text size="xs" c="dimmed">
+            Melody limits (optional)
+          </Text>
+          <SimpleGrid cols={2} spacing="xs">
+            {(["low", "high"] as const).map((bound) => (
+              <HymnPitchField
+                key={bound}
+                bound={bound}
+                value={state[bound]}
+                onChange={(value) => change({ [bound]: value })}
+              />
+            ))}
+          </SimpleGrid>
+          <Select
+            id="hymn-key"
+            name="hymn-key"
+            label="Key"
+            aria-label="Hymn key"
+            value={state.noMatchingKey ? null : state.key}
+            placeholder="No matching key"
+            data={keys}
+            allowDeselect={false}
+            comboboxProps={{ withinPortal: false, position: "bottom-start" }}
+            onOptionSubmit={(key) => change({ key: key as HymnKey })}
+            renderOption={({ option, checked }) => (
+              <Group gap="xs" wrap="nowrap" w="100%">
+                <span style={{ width: 12, flexShrink: 0 }} aria-hidden="true">
+                  {checked && <CheckIcon size={12} />}
+                </span>
+                <Text component="span" size="sm">
+                  {option.label}
+                </Text>
+                <Text
+                  component="span"
+                  className="hymn-key-option-range"
+                  size="xs"
+                  c="dimmed"
+                  ml="auto"
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  {state.keyRanges[option.value as HymnKey]}
+                </Text>
+              </Group>
+            )}
+          />
+          <Text
+            className="hymn-key-range"
+            size="xs"
+            c="dimmed"
+            aria-live="polite"
+            hidden={state.noMatchingKey}
           >
-            ↓ Octave
-          </Button>
-          <Button
-            id="hymn-octave-up"
-            variant="default"
-            disabled={
-              state.noMatchingKey ||
-              !state.availableOctaves.includes(state.octave + 1)
-            }
-            onClick={() => change({ octave: state.octave + 1 })}
-          >
-            ↑ Octave
-          </Button>
-        </Group>
-        <Text
-          className="hymn-key-range"
-          size="xs"
-          c="dimmed"
-          aria-live="polite"
-          hidden={state.noMatchingKey}
-        >
-          {state.range}
-        </Text>
-        <SimpleGrid cols={2} spacing="xs">
-          {(["low", "high"] as const).map((bound) => (
-            <HymnPitchField
-              key={bound}
-              bound={bound}
-              value={state[bound]}
-              onChange={(value) => change({ [bound]: value })}
-            />
-          ))}
-        </SimpleGrid>
-        <Text size="xs" c="dimmed">
-          Optional melody limits
-        </Text>
-      </OptionsSection>
+            {state.range}
+          </Text>
+          <Group gap="xs" grow>
+            <Button
+              id="hymn-octave-down"
+              variant="default"
+              disabled={
+                state.noMatchingKey ||
+                !state.availableOctaves.includes(state.octave - 1)
+              }
+              onClick={() => change({ octave: state.octave - 1 })}
+            >
+              ↓ Octave
+            </Button>
+            <Button
+              id="hymn-octave-up"
+              variant="default"
+              disabled={
+                state.noMatchingKey ||
+                !state.availableOctaves.includes(state.octave + 1)
+              }
+              onClick={() => change({ octave: state.octave + 1 })}
+            >
+              ↑ Octave
+            </Button>
+          </Group>
+        </Stack>
+      </Fieldset>
       {(state.arrangement === "melody" || state.viewHands !== "left") && (
         <OptionsSection title="Stanzas">
           <Stack id="hymn-stanzas" gap="xs" role="group" aria-label="Stanzas">

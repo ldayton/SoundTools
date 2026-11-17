@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 import {
   practiceOption,
+  hymnKeyOptions,
   dismissPracticeDrawer,
   closePracticeOptions,
   openPracticeOptions,
@@ -385,24 +386,22 @@ try {
   }
   await practiceOption(page, "#hymn-arrangement", "melody");
   await practiceOption(page, "#hymn-high", "73");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
   assert.equal(
-    await page
-      .locator('#hymn-key option[value="original"]')
-      .evaluate((e) => (e as HTMLOptionElement).disabled),
+    await page.locator('input[name="hymn-key"]').inputValue(),
+    "original",
+  );
+  assert.equal(
+    (await hymnKeyOptions(page)).find((option) => option.value === "original")!
+      .disabled,
     false,
   );
   await practiceOption(page, "#hymn-low", "60");
   await practiceOption(page, "#hymn-high", "72");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "F");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
   assert.deepEqual(
-    await page
-      .locator("#hymn-key option")
-      .evaluateAll((es) =>
-        es
-          .filter((e) => !(e as HTMLOptionElement).disabled)
-          .map((e) => (e as HTMLOptionElement).value),
-      ),
+    (await hymnKeyOptions(page))
+      .filter((option) => !option.disabled)
+      .map((option) => option.value),
     ["F"],
   );
   // Singing limits and the caption stay on the melody even when testing bass only.
@@ -413,13 +412,9 @@ try {
     await practiceOption(page, "#hymn-mode", mode);
     assert.equal(await page.locator(".hymn-key-range").textContent(), "C4–C5");
     assert.deepEqual(
-      await page
-        .locator("#hymn-key option")
-        .evaluateAll((es) =>
-          es
-            .filter((e) => !(e as HTMLOptionElement).disabled)
-            .map((e) => (e as HTMLOptionElement).value),
-        ),
+      (await hymnKeyOptions(page))
+        .filter((option) => !option.disabled)
+        .map((option) => option.value),
       ["F"],
     );
   }
@@ -429,15 +424,11 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await page.locator("#hymn-low").inputValue(), "C4");
   assert.equal(await page.locator("#hymn-high").inputValue(), "C5");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "F");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
   await practiceOption(page, "#hymn-high", "60");
   await page.locator(".hymn-no-key").waitFor();
   assert.equal(await page.locator(".hymn-paper svg").count(), 0);
-  assert.ok(
-    await page
-      .locator("#hymn-key option")
-      .evaluateAll((es) => es.every((e) => (e as HTMLOptionElement).disabled)),
-  );
+  assert.ok((await hymnKeyOptions(page)).every((option) => option.disabled));
   assert.equal(await page.locator(".hymn-pause").isDisabled(), true);
   await practiceOption(page, "#hymn-mode", "playback");
   assert.equal(await page.locator(".hymn-pause").isDisabled(), true);
@@ -448,17 +439,19 @@ try {
   await practiceOption(page, "#hymn-mode", "wait");
   await practiceOption(page, "#hymn-high", "74");
   await page.locator(".hymn-paper svg").first().waitFor();
-  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(
+    await page.locator('input[name="hymn-key"]').inputValue(),
+    "original",
+  );
   assert.equal(await page.locator(".hymn-no-key").count(), 0);
   await practiceOption(page, "#hymn-low", "");
   await practiceOption(page, "#hymn-high", "");
-  assert.ok(
-    await page
-      .locator("#hymn-key option")
-      .evaluateAll((es) => es.every((e) => !(e as HTMLOptionElement).disabled)),
-  );
+  assert.ok((await hymnKeyOptions(page)).every((option) => !option.disabled));
   await practiceOption(page, "#hymn-low", "64");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(
+    await page.locator('input[name="hymn-key"]').inputValue(),
+    "original",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(
     () => document.documentElement.scrollWidth <= innerWidth,
@@ -486,7 +479,10 @@ try {
   await page
     .getByRole("button", { name: "Clear lowest note", exact: true })
     .click();
-  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(
+    await page.locator('input[name="hymn-key"]').inputValue(),
+    "original",
+  );
   assert.equal(await page.locator(".hymn-no-key").count(), 0);
 
   await closePracticeOptions(page);

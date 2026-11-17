@@ -28,6 +28,7 @@ export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   originalKey: string;
   noMatchingKey: boolean;
   availableKeys: HymnKey[];
+  keyRanges: Partial<Record<HymnKey, string>>;
   availableOctaves: number[];
   range: string;
   source: {

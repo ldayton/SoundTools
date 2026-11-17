@@ -184,6 +184,7 @@ export class SightReading {
   private options!: HymnOptionsState;
   private searchOpen = false;
   private availableKeys: HymnKey[] = ["original", ...HYMN_KEYS];
+  private keyRanges: Partial<Record<HymnKey, string>> = {};
   private availableOctaves: number[] = [];
   private melodyRangeLabel = "";
   readonly midiSlot: HTMLElement;
@@ -1023,6 +1024,7 @@ export class SightReading {
       originalKey: this.hymn.key,
       noMatchingKey: this.noMatchingKey,
       availableKeys: this.availableKeys,
+      keyRanges: this.keyRanges,
       availableOctaves: this.availableOctaves,
       range: this.melodyRangeLabel,
       source: {
@@ -1167,6 +1169,9 @@ export class SightReading {
     this.availableKeys = choices
       .filter((choice) => choice.fits)
       .map((choice) => choice.key);
+    this.keyRanges = Object.fromEntries(
+      choices.map((choice) => [choice.key, choice.range]),
+    );
     this.noMatchingKey = preferred === undefined;
     if (
       !this.noMatchingKey &&

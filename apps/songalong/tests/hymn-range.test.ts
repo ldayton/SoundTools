@@ -60,6 +60,7 @@ test("each key offers every fitting octave and defaults to the lowest within mel
   assert.deepEqual(b.octaves, [-2, -1, 0, 1]);
   assert.equal(b.octave, -2);
   assert.equal(b.semitones, -20);
+  assert.equal(b.range, "F♯2–F♯3");
   assert.equal(hymnRangeLabel(range, "G", "B", b.octave), "F♯2–F♯3");
   const exact = hymnRangeKeys("G", range, 42, 54);
   assert.equal(exact.preferred, "B");
@@ -70,6 +71,34 @@ test("each key offers every fitting octave and defaults to the lowest within mel
       const { semitones } = hymnTransposition("G", choice.key, octave);
       assert.ok(range.low + semitones >= 38 && range.high + semitones <= 91);
     }
+});
+test("menu ranges preview the chosen octave, including excluded keys", () => {
+  for (const [low, high] of [
+    [null, null],
+    [38, 91],
+    [60, 72],
+    [60, 60],
+  ] as const) {
+    const { choices } = hymnRangeKeys("G", range, low, high);
+    assert.equal(choices.length, 13);
+    for (const choice of choices) {
+      assert.ok(choice.range, `${choice.key} always has a preview`);
+      if (choice.fits) {
+        assert.equal(
+          choice.range,
+          hymnRangeLabel(range, "G", choice.key, choice.octave),
+        );
+      }
+    }
+  }
+  const restricted = hymnRangeKeys("G", range, 60, 72).choices;
+  assert.equal(restricted.find((c) => c.key === "F")!.range, "C4–C5");
+  assert.equal(restricted.find((c) => c.key === "original")!.range, "D4–D5");
+  assert.equal(restricted.find((c) => c.key === "original")!.fits, false);
+  // Excluded low-register keys also respect the lower limit in their preview.
+  const low = hymnRangeKeys("G", range, 38, 42).choices[0];
+  assert.equal(low.range, "D2–D3");
+  assert.equal(low.fits, false);
 });
 test("range settings remember optional notes, reject damaged limits and can clear either side", () => {
   const base = {

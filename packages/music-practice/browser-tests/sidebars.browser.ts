@@ -53,7 +53,7 @@ try {
     await page.getByRole("option", { name: title, exact: true }).click();
     await page.locator(".sequence-title").filter({ hasText: title }).waitFor();
   };
-  await page.locator("#hymn-key").selectOption("F");
+  await practiceOption(page, "#hymn-key", "F");
   await page.locator("#hymn-arrangement").selectOption("bass");
   await practiceOption(page, "#hymn-mode", "playback");
   await page.locator("#hymn-tempo").fill("110");
@@ -64,7 +64,10 @@ try {
   await page.keyboard.press("Home");
   await page.keyboard.press("Escape");
   await choose("Silent Night");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(
+    await page.locator('input[name="hymn-key"]').inputValue(),
+    "original",
+  );
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "melody");
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
@@ -72,7 +75,7 @@ try {
   );
   assert.equal(await page.locator("#hymn-size").inputValue(), "48 px");
   await choose("Amazing Grace");
-  assert.equal(await page.locator("#hymn-key").inputValue(), "F");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "bass");
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
@@ -120,7 +123,9 @@ try {
     .click();
   // SongAlong is playback-only on mobile: keyboard input belongs to desktop.
   assert.equal(await nav.locator(".keyboard-menu").count(), 0);
-  await page.getByRole("button", { name: "Close navigation", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Close navigation", exact: true })
+    .click();
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });

@@ -76,7 +76,7 @@ try {
       (text) => text === "15",
     ),
   );
-  assert.equal(await page.locator("#hymn-key").inputValue(), "B");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "B");
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
   const shift = async (direction: "up" | "down") => {
     await openPracticeOptions(page);

@@ -54,12 +54,18 @@ export function hymnRangeKeys(
           : [];
       const octave =
         low === null && high === null && octaves.includes(0) ? 0 : octaves[0];
+      // Excluded keys still need a useful preview: place their lowest note at
+      // or above the lower limit (or C2), even when the upper note cannot fit.
+      const previewOctave =
+        octave ??
+        (range ? Math.ceil((minimum - range.low - semitones) / 12) : 0);
       return {
         key,
         semitones: semitones + (octave ?? 0) * 12,
         octave,
         octaves,
         fits: octaves.length > 0,
+        range: range ? hymnRangeLabel(range, source, key, previewOctave) : "",
       };
     } catch {
       return {
@@ -68,6 +74,7 @@ export function hymnRangeKeys(
         octave: undefined,
         octaves: [] as number[],
         fits: false,
+        range: "",
       };
     }
   });

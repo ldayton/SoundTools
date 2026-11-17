@@ -64,7 +64,10 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor({ state: "attached" });
   await selectPractice(page, "sight");
   await page.locator("#hymn-key").waitFor({ state: "attached" });
-  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(
+    await page.locator('input[name="hymn-key"]').inputValue(),
+    "original",
+  );
   assert.equal(await page.locator(".hymn-key-range").textContent(), "D4–D5");
   await midiAction(page, "Connect MIDI keyboard");
   await page
@@ -136,7 +139,7 @@ try {
     .locator(".hymn-count")
     .filter({ hasText: "3 / 35" })
     .waitFor({ state: "attached" });
-  assert.equal(await page.locator("#hymn-key").inputValue(), "A");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "A");
   await practiceOption(page, "#hymn-key", "original");
   assert.equal(await count(), "2 / 35");
   await practiceOption(page, "#hymn-key", "G");
@@ -233,7 +236,7 @@ try {
   await saved();
   await page.reload();
   await page.locator("#hymn-key").waitFor({ state: "attached" });
-  assert.equal(await page.locator("#hymn-key").inputValue(), "F");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
   assert.equal(await page.locator("#hymn-section").count(), 0);
   await closePracticeOptions(page);
   await setPianoVisible(page, true);
@@ -306,7 +309,10 @@ try {
     .filter({ hasText: "2 / 35" })
     .waitFor({ state: "attached" });
   await openPracticeOptions(page);
-  assert.equal(await page.locator("#hymn-key").inputValue(), "original");
+  assert.equal(
+    await page.locator('input[name="hymn-key"]').inputValue(),
+    "original",
+  );
   assert.deepEqual(errors, []);
   console.log(
     "Hymn keys: transposed grading/chords, independent bookmarks, reload, old state, sections, all arrangements and phone layout passed",

@@ -33,15 +33,23 @@ export function OfflineStatusPanel({
   status,
   ready,
   children,
+  compact = false,
 }: {
   status: string;
   ready: boolean;
   children?: ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <Paper component="section" withBorder p="md" aria-label="Offline use">
-      <Stack gap="sm">
-        <Title order={2} size="h4">
+    <Paper
+      component="section"
+      withBorder={!compact}
+      radius={compact ? 0 : undefined}
+      p={compact ? 0 : "md"}
+      aria-label="Offline use"
+    >
+      <Stack gap={compact ? "xs" : "sm"}>
+        <Title order={2} size={compact ? "h5" : "h4"}>
           Take it with you
         </Title>
         <Text

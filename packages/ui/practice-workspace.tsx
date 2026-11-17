@@ -131,8 +131,8 @@ export function PracticeOptionsReopen() {
       miw={state.mobileDrawer ? 38 : undefined}
       title={`${!state.collapsed ? "Collapse" : "Expand"} ${state.title.toLowerCase()}`}
       hidden={
-        !state.mobileDrawer &&
-        (!state.active || !state.desktop || !state.collapsed)
+        !state.active ||
+        (!state.mobileDrawer && (!state.desktop || !state.collapsed))
       }
       disabled={!state.active}
       aria-label={`${!state.collapsed ? "Collapse" : "Expand"} ${state.title.toLowerCase()}`}

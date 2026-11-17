@@ -122,7 +122,7 @@ export function drawPianoNotation(
       .setEndBarType(BarlineType.NONE)
       .setContext(context);
   const top = makeStaff(layout === "bass" ? "bass" : "treble", -2);
-  const bottom = layout === "grand" ? makeStaff("bass", 138) : undefined;
+  const bottom = layout === "grand" ? makeStaff("bass", 110) : undefined;
   if (bottom) {
     const start = Math.max(top.getNoteStartX(), bottom.getNoteStartX());
     top.setNoteStartX(start);

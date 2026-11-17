@@ -61,8 +61,6 @@ export function PracticeHeader({
       <Group
         justify="space-between"
         gap="xs"
-        p={kind === "flashcard" ? "md" : undefined}
-        pb={kind === "flashcard" ? "sm" : undefined}
         hidden={!s.context}
         className={kind === "flashcard" ? "card-top" : "sequence-top"}
       >
@@ -136,8 +134,8 @@ export function PracticeFeedback({
         aria-live="polite"
         aria-atomic="true"
         size="sm"
-        p="xs"
-        mb="sm"
+        p={kind === "hymn" ? "xs" : 0}
+        mb={kind === "hymn" ? "sm" : 0}
         ta="center"
       >
         {s.feedback}
@@ -161,7 +159,7 @@ export function PracticeFeedback({
       aria-live="polite"
       aria-atomic="true"
       p="xs"
-      mb="sm"
+      mb={kind === "hymn" ? "sm" : 0}
       ta="center"
     >
       {s.feedback}

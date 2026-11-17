@@ -116,12 +116,9 @@ export class Fretboard {
   private render() {
     const frets = this.visible(),
       columns = frets.length;
-    const eligible = this.interactive
-      ? `String ${this.card.string}`
-      : "Name the highlighted note";
     const previousScroll =
       this.element.querySelector(".board-scroll")?.scrollLeft || 0;
-    this.element.innerHTML = `<div class="board-toolbar"><span>${eligible}</span>${columns > 6 ? '<span class="pan-hint">Scroll for higher frets →</span>' : ""}</div>
+    this.element.innerHTML = `${columns > 6 ? '<div class="board-toolbar"><span class="pan-hint">Scroll for higher frets →</span></div>' : ""}
     <div class="board-scroll" tabindex="${columns > 6 ? "0" : "-1"}" aria-label="Fretboard, open through fret ${frets.at(-1)}"><div class="board-track" style="--columns:${columns}">
     <div class="fret-labels" style="--columns:${columns}"><span></span>${frets.map((f) => `<span>${f === 0 ? "Open" : f}</span>`).join("")}</div>
     <div class="board-frame"><div class="string-labels">${STRINGS.map((s) => `<span>${s.number}</span>`).join("")}</div>

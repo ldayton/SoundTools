@@ -39,45 +39,46 @@
   font-variant-numeric: tabular-nums;
 }
 .notewise-workspace .practice-title {
-  margin-block: 8px 16px;
+  margin-block: 0 8px;
 }
 .notewise-workspace .practice-surface {
-  padding: clamp(16px, 2vw, 28px);
+  padding: clamp(12px, 1.5vw, 20px);
   min-width: 0;
 }
 .notewise-workspace .presentation-header .card-top {
-  padding: 0 0 12px;
+  padding: 0 0 4px;
 }
 .notewise-workspace .presentation-feedback {
-  min-height: 48px;
-  margin: 8px 0;
+  min-height: 32px;
+  margin: 4px 0;
 }
 .notewise-workspace .presentation-feedback > :first-child {
   margin: 0;
 }
+.notewise-workspace .presentation-feedback:empty,
 .notewise-workspace .presentation-feedback:has(:empty) {
   min-height: 0;
 }
 .notewise-workspace .keyboard {
-  padding: 12px 0 0;
+  padding: 8px 0 0;
   border: 0;
   background: transparent;
 }
 .notewise-workspace .hint {
   background: transparent;
-  padding: 12px 0 0;
+  padding: 8px 0 0;
 }
 .notewise-workspace .sequence-score {
   max-height: none;
 }
 .notewise-workspace #notation,
 .notewise-workspace .theory-notation {
-  min-height: 180px;
-  padding-block: 16px;
+  min-height: 0;
+  padding-block: 8px;
 }
-.notewise-workspace .practice-piano {
-  margin: 24px 0 0;
-  padding: 12px 0 0;
+.notewise-workspace .practice-surface .practice-piano {
+  margin: 8px 0 0;
+  padding: 8px 0 0;
   border-radius: 0;
   background: #fff;
 }
@@ -85,7 +86,7 @@
   position: sticky;
   bottom: 0;
   z-index: 2;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
 }
 .notewise-workspace .piano-keybed .piano-layout {
   gap: 8px;
@@ -98,11 +99,86 @@
   min-height: 76px;
 }
 .notewise-workspace .theory-answers {
-  margin-block: 12px;
+  margin-block: 8px;
 }
 
 .notewise-workspace .piano-key {
   touch-action: manipulation;
+}
+
+.notewise-workspace #signature-prompt {
+  margin-top: 4px;
+}
+.notewise-workspace #named-note {
+  padding: 8px 0 0;
+}
+.notewise-workspace #fretboard {
+  padding-inline: 0;
+}
+.notewise-workspace .settings-page[data-compact] {
+  max-width: 560px;
+}
+.notewise-workspace .settings-page[data-compact] > section {
+  background: transparent;
+}
+.notewise-workspace .settings-page[data-compact] > section + section {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: 16px;
+}
+@media (max-width: 767px) {
+  .notewise-workspace {
+    padding-top: calc(var(--app-shell-header-offset, 56px) + 12px);
+    padding-inline: 8px;
+    padding-bottom: 12px;
+    /* Keep the bottom action anchored while the extra toolbar row opens. */
+    transition: none;
+  }
+  .notewise-workspace .practice-title {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .notewise-workspace .practice-surface {
+    padding: 12px;
+  }
+  .notewise-workspace .piano-keys {
+    height: 104px;
+  }
+  .notewise-workspace .location-hint {
+    display: none;
+  }
+  .notewise-workspace #rhythm-practice .practice-surface {
+    display: flex;
+    flex-direction: column;
+    height: max(
+      180px,
+      calc(100dvh - var(--app-shell-header-offset, 56px) - 68px)
+    );
+    min-height: 0;
+  }
+  .notewise-workspace #rhythm-practice .rhythm-beats {
+    flex: 0 0 auto;
+    margin: 0 0 4px;
+  }
+  .notewise-workspace #rhythm-practice .rhythm-beats span {
+    width: 32px;
+    height: 32px;
+  }
+  .notewise-workspace #rhythm-practice .presentation-feedback {
+    flex: 0 0 auto;
+  }
+  .notewise-workspace #rhythm-practice .sequence-score {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+  .notewise-workspace .rhythm-tap-slot {
+    flex: 0 0 auto;
+    padding-block: 8px;
+  }
+  .notewise-workspace .rhythm-tap-slot .rhythm-tap {
+    margin: 0;
+    min-height: 64px;
+  }
 }
 
 /* The primary mobile row keeps actions and drawer triggers in stable slots.

@@ -389,7 +389,6 @@ export function mountAppShell(
                 order={1}
                 size="h3"
                 tabIndex={-1}
-                mb="md"
               >
                 {snapshot.title}
               </Title>

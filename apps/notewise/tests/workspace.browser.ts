@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { mkdir, readFile, writeFile, mkdtemp, rm } from "node:fs/promises";
@@ -43,6 +44,18 @@ try {
   const context = await browser.newContext({
     viewport: { width: 1680, height: 1050 },
     serviceWorkers: "block",
+  });
+  await context.addInitScript(() => {
+    const connect: Function = AudioNode.prototype.connect;
+    AudioNode.prototype.connect = function (this: AudioNode, ...args: any[]) {
+      if (args[0] === this.context.destination) {
+        const silent = this.context.createGain();
+        silent.gain.value = 0;
+        connect.call(silent, this.context.destination);
+        return connect.call(this, silent);
+      }
+      return connect.apply(this, args as any);
+    } as typeof AudioNode.prototype.connect;
   });
   await context.addInitScript({
     content: await readFile(
@@ -252,6 +265,7 @@ try {
     );
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator(".notewise-controls-toggle").waitFor();
   const disclose = page.getByRole("button", {
     name: "Show controls",
     exact: true,
@@ -338,7 +352,60 @@ try {
       "Extra controls do not carry over to another exercise",
     );
   }
-  await selectPractice(page, "patterns");
+  await page.setViewportSize(iphone14Pro.viewport);
+  await page.goto(base + "piano/keys");
+  await page.locator("#piano .piano-octave").nth(1).waitFor();
+  const phoneKeys = await page.locator("#piano").boundingBox();
+  assert(
+    phoneKeys && phoneKeys.y + phoneKeys.height <= iphone14Pro.viewport.height,
+    "Both piano octaves fit on the iPhone's first screen",
+  );
+  assert.equal(await page.evaluate(() => scrollY), 0);
+  await page.screenshot({ path: `work/compact-piano-${engine}.png` });
+  await selectPractice(page, "rhythm");
+  const tap = page.getByRole("button", { name: "Tap rhythm", exact: true });
+  for (const expanded of [false, true]) {
+    if (expanded)
+      await page
+        .getByRole("button", { name: "Show controls", exact: true })
+        .click();
+    const box = await tap.boundingBox();
+    assert(
+      box &&
+        box.y >= 0 &&
+        box.y + box.height <= iphone14Pro.viewport.height &&
+        box.height >= 64,
+      "Tap remains visible with or without the extra control bar",
+    );
+    const score = page.locator("#rhythm-practice .sequence-score");
+    await score.hover();
+    await page.mouse.wheel(0, 1000);
+    assert.deepEqual(
+      await tap.boundingBox(),
+      box,
+      "Scrolling the score never moves Tap",
+    );
+    await tap.click();
+    assert.equal(
+      await page.locator(".rhythm-tap-response").textContent(),
+      "Press Start",
+    );
+    await page.screenshot({
+      path: `work/compact-rhythm-${expanded ? "expanded" : "closed"}-${engine}.png`,
+    });
+  }
+  await page.goto(base + "settings");
+  await page
+    .getByRole("checkbox", { name: "Share diagnostic information" })
+    .waitFor();
+  assert.equal(
+    await page.locator("#practice-options-reopen").isVisible(),
+    false,
+    "Settings has no inactive options button",
+  );
+  await page.screenshot({ path: `work/compact-settings-${engine}.png` });
+  await page.goto(base + "piano/patterns");
+  await page.setViewportSize({ width: 390, height: 844 });
   await setPianoVisible(page, true);
   await midiAction(page, "Connect MIDI keyboard");
   await page.locator(".keyboard-menu[data-state=connected]").waitFor();

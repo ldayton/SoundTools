@@ -6,15 +6,17 @@ export function SettingsSections({
   offline,
   consent,
   children,
+  compact = false,
 }: {
   offline: ReactNode;
   consent: ComponentProps<typeof PrivacySection>;
   children?: ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <Stack className="settings-page">
+    <Stack className="settings-page" data-compact={compact || undefined}>
       {offline}
-      <PrivacySection {...consent} />
+      <PrivacySection {...consent} compact={compact} />
       {children}
     </Stack>
   );

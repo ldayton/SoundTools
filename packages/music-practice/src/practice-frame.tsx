@@ -209,9 +209,7 @@ export function FlashcardFrame({
           </span>
         </p>
         <p className="hint location-hint" hidden={!location}>
-          Choose a fret on the highlighted string.
           <span className="desktop-hint">
-            {" "}
             Use ← / → to move, Enter to answer.
           </span>
         </p>

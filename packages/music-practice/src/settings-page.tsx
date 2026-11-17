@@ -5,6 +5,7 @@ import { Anchor, Button, Group } from "@mantine/core";
 import { diagnostics } from "./diagnostics";
 import { offlineState, offlineActions } from "./offline-state";
 import { pianoCreditsUrl } from "./piano-audio";
+import { APP } from "./app-profile";
 
 export function SettingsPage() {
   const offline = useSyncExternalStore(
@@ -13,10 +14,15 @@ export function SettingsPage() {
   );
   return (
     <SettingsSections
+      compact={APP.id === "notewise"}
       consent={{ id: "diagnostics-sharing", client: diagnostics }}
       offline={
         <>
-          <OfflineStatusPanel status={offline.status} ready={offline.ready}>
+          <OfflineStatusPanel
+            compact={APP.id === "notewise"}
+            status={offline.status}
+            ready={offline.ready}
+          >
             <Group hidden={!offline.retryVisible}>
               <Button
                 id="offline-retry"

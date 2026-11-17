@@ -249,7 +249,11 @@ export function ApplicationLayout({
               </Title>
             </Box>
             {toolbarOnly ? (
-              <Box inert={blocked} style={{ flex: 1, minWidth: 0 }}>
+              <Box
+                className="application-toolbar-actions"
+                inert={blocked}
+                style={{ flex: 1, minWidth: 0 }}
+              >
                 {headerActions}
               </Box>
             ) : null}

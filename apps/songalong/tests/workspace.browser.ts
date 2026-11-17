@@ -1,3 +1,4 @@
+import { macBookAir13, iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -33,10 +34,11 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   browser = await { chromium, firefox, webkit }[engine]!.launch({
+    args: engine === "chromium" ? ["--mute-audio"] : [],
     env: { ...process.env, CFFIXED_USER_HOME: home },
   });
   const page = await browser.newPage({
-    viewport: { width: 1680, height: 1050 },
+    ...macBookAir13,
     reducedMotion: "reduce",
   });
   const errors: string[] = [];
@@ -51,6 +53,16 @@ try {
     ),
   });
   await page.addInitScript(() => {
+    const connect: Function = AudioNode.prototype.connect;
+    AudioNode.prototype.connect = function (this: AudioNode, ...args: any[]) {
+      if (args[0] === this.context.destination) {
+        const mute = this.context.createGain();
+        mute.gain.value = 0;
+        connect.call(mute, this.context.destination);
+        return connect.call(this, mute);
+      }
+      return connect.apply(this, args);
+    } as typeof AudioNode.prototype.connect;
     (window as any).audioStarts = 0;
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (
@@ -244,7 +256,7 @@ try {
     "data-state",
     "connected",
   );
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize(iphone14Pro.viewport);
   await page
     .getByRole("button", {
       name: /^Expand (practice|playback) options$/,
@@ -266,7 +278,7 @@ try {
           .width,
       ),
     )
-    .toBe(358);
+    .toBe(iphone14Pro.viewport.width - 32);
   const scoreY = (await page.locator(".sequence-score").boundingBox())!.y;
   const count = await page.locator(".hymn-count").textContent();
   await openPracticeOptions(page);
@@ -279,7 +291,7 @@ try {
     "aria-valuemax",
     "59",
   );
-  await expect.poll(pianoBottom).toBe(828);
+  await expect.poll(pianoBottom).toBe(iphone14Pro.viewport.height - 16);
   assert.equal(
     (await page.locator(".sequence-score").boundingBox())!.y,
     scoreY,
@@ -359,7 +371,7 @@ try {
   await practiceOption(page, "#hymn-view", "both");
   await practiceOption(page, "#hymn-hands", "left");
   await closePracticeOptions(page);
-  await page.setViewportSize({ width: 1680, height: 1050 });
+  await page.setViewportSize(macBookAir13.viewport);
   await expect(
     page.getByRole("complementary", { name: /^(Practice|Playback) options$/ }),
   ).toBeVisible();
@@ -376,15 +388,28 @@ try {
   await page.screenshot({
     path: `../../work/songalong-workspace-${engine}-both-hands.png`,
   });
-  for (const width of [320, 390, 480, 768, 960, 1680]) {
-    await page.setViewportSize({ width, height: 844 });
+  for (const width of [
+    320, 360, 375, 390, 393, 430, 479, 480, 767, 768, 960, 1680,
+  ]) {
+    await page.setViewportSize({
+      width,
+      height:
+        width === macBookAir13.viewport.width
+          ? macBookAir13.viewport.height
+          : iphone14Pro.viewport.height,
+    });
+    const hideControls = page.getByRole("button", {
+      name: "Hide controls",
+      exact: true,
+    });
+    if (await hideControls.isVisible()) await hideControls.click();
     await expect
       .poll(() =>
         page
           .locator(".mantine-AppShell-header")
           .evaluate((el) => el.getBoundingClientRect().height),
       )
-      .toBe(width < 480 ? 148 : width < 768 ? 104 : 56);
+      .toBe(56);
     await expect
       .poll(() =>
         page.evaluate(
@@ -392,38 +417,123 @@ try {
         ),
       )
       .toBe(true);
-    await expect
-      .poll(() =>
-        page
-          .locator("#hymn-mode .mantine-Button-label")
-          .evaluate((el) => el.scrollWidth <= el.clientWidth),
-      )
-      .toBe(true);
-    await expect
-      .poll(() =>
-        page.evaluate(() => {
-          const header = document
-            .querySelector(".mantine-AppShell-header")!
-            .getBoundingClientRect();
-          return [
-            ...document.querySelectorAll(
-              ".hymn-toolbar button, .hymn-toolbar input",
+    if (width < 768) {
+      await expect(page.locator("#hymn-mode")).toBeHidden();
+      await expect(page.locator("#hymn-size")).toBeHidden();
+      await expect(page.locator("#hymn-tempo")).toBeHidden();
+      const compactGeometry = await page
+        .locator("header button:visible")
+        .evaluateAll((elements) =>
+          elements.map((el) => el.getBoundingClientRect().toJSON()),
+        );
+      await page
+        .getByRole("button", { name: "Show controls", exact: true })
+        .click();
+      await expect
+        .poll(() =>
+          page
+            .locator(".mantine-AppShell-header")
+            .evaluate((el) => el.getBoundingClientRect().height),
+        )
+        .toBe(220);
+      await expect(page.locator("header [data-direction]")).toHaveCount(0);
+      for (const mode of ["playback", "wait"] as const) {
+        const before = await page
+          .locator("header button:visible, header input:visible")
+          .evaluateAll((elements) =>
+            elements.map((el) => el.getBoundingClientRect().toJSON()),
+          );
+        await practiceOption(page, "#hymn-mode", mode);
+        assert.deepEqual(
+          await page
+            .locator("header button:visible, header input:visible")
+            .evaluateAll((elements) =>
+              elements.map((el) => el.getBoundingClientRect().toJSON()),
             ),
-          ]
-            .filter((el) => el.getClientRects().length)
-            .every((el) => {
-              const rect = el.getBoundingClientRect();
-              return (
-                rect.left >= 0 &&
-                rect.right <= innerWidth &&
-                rect.top >= header.top &&
-                rect.bottom <= header.bottom
-              );
-            });
-        }),
-      )
-      .toBe(true);
+          before,
+          `${width}px: mode changes never move controls`,
+        );
+        assert.ok(
+          await page.evaluate(() => {
+            const header = document
+              .querySelector(".mantine-AppShell-header")!
+              .getBoundingClientRect();
+            const controls = [
+              ...document.querySelectorAll("header button, header input"),
+            ]
+              .filter((el) => el.getClientRects().length)
+              .map((el) => el.getBoundingClientRect());
+            const fields = [
+              ...document.querySelectorAll(".toolbar-number-touch > button"),
+            ].map((el) => el.getBoundingClientRect());
+            return (
+              fields.length === 4 &&
+              fields.every((r) => r.height >= 42 && r.width >= 36) &&
+              controls.every(
+                (a, i) =>
+                  a.left >= 0 &&
+                  a.right <= innerWidth &&
+                  a.top >= header.top &&
+                  a.bottom <= header.bottom &&
+                  controls
+                    .slice(i + 1)
+                    .every(
+                      (b) =>
+                        a.right <= b.left + 1 ||
+                        b.right <= a.left + 1 ||
+                        a.bottom <= b.top + 1 ||
+                        b.bottom <= a.top + 1,
+                    ),
+              )
+            );
+          }),
+          `${width}px: all controls fit without overlaps`,
+        );
+        await expect
+          .poll(() =>
+            page
+              .locator("#hymn-mode .mantine-Button-label")
+              .evaluate((el) => el.scrollWidth <= el.clientWidth),
+          )
+          .toBe(true);
+      }
+      await hideControls.click();
+      assert.deepEqual(
+        await page
+          .locator("header button:visible")
+          .evaluateAll((elements) =>
+            elements.map((el) => el.getBoundingClientRect().toJSON()),
+          ),
+        compactGeometry,
+        "Collapsing restores the same compact row",
+      );
+    } else {
+      await expect(page.locator("#hymn-mode")).toBeVisible();
+      await expect(page.locator("#hymn-size")).toBeVisible();
+      await expect(page.locator("#hymn-tempo")).toBeVisible();
+    }
   }
+
+  await page.setViewportSize(iphone14Pro.viewport);
+  await practiceOption(page, "#hymn-mode", "playback");
+  await practiceOption(page, "#hymn-tempo", "195");
+  await page.locator("#hymn-tempo-up").click();
+  await expect(page.locator("#hymn-tempo")).toHaveValue("200 BPM");
+  await expect(page.locator("#hymn-tempo-up")).toBeDisabled();
+  await page.locator("#hymn-tempo-down").click();
+  await expect(page.locator("#hymn-tempo")).toHaveValue("195 BPM");
+  await practiceOption(page, "#hymn-size", "79");
+  await page.locator("#hymn-size-up").click();
+  await expect(page.locator("#hymn-size")).toHaveValue("80 px");
+  await expect(page.locator("#hymn-size-up")).toBeDisabled();
+  await page.locator("#hymn-size-down").click();
+  await expect(page.locator("#hymn-size")).toHaveValue("79 px");
+  await practiceOption(page, "#hymn-mode", "wait");
+  await expect(page.locator("#hymn-tempo-up")).toBeDisabled();
+  await expect(page.locator("#hymn-tempo-down")).toBeDisabled();
+  await page.setViewportSize(macBookAir13.viewport);
+  await expect(page.locator("#hymn-size")).toHaveValue("79 px");
+  await expect(page.locator('header [data-direction="up"]')).toHaveCount(2);
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: SongAlong drawer geometry/focus, MIDI blocking, playback pause, constant piano widths, hand constraints and desktop restoration pass`,

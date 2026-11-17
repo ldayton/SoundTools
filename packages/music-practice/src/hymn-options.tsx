@@ -342,31 +342,39 @@ export function HymnModeAndTempo({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <>
-      <Button
-        id="hymn-mode"
-        variant={state.mode === "playback" ? "light" : "default"}
-        w={112}
-        miw={112}
-        px="xs"
-        aria-label="Playback mode"
-        aria-pressed={state.mode === "playback"}
-        data-mode={state.mode}
-        title={`Switch to ${state.mode === "wait" ? "Playback" : "Wait for me"}`}
-        onClick={() =>
-          change({ mode: state.mode === "wait" ? "playback" : "wait" })
-        }
-      >
-        {state.mode === "wait" ? "Wait for me" : "Playback"}
-      </Button>
-      <TempoControl
-        id="hymn-tempo"
-        compact
-        disabled={state.mode !== "playback"}
-        value={state.bpm}
-        min={40}
-        max={200}
-        onChange={(bpm) => change({ bpm })}
-      />
+      <div className="hymn-toolbar-field">
+        <Text className="hymn-toolbar-field-label" size="sm">
+          Mode
+        </Text>
+        <Button
+          id="hymn-mode"
+          variant={state.mode === "playback" ? "light" : "default"}
+          className="hymn-mode-toggle"
+          aria-label="Playback mode"
+          aria-pressed={state.mode === "playback"}
+          data-mode={state.mode}
+          title={`Switch to ${state.mode === "wait" ? "Playback" : "Wait for me"}`}
+          onClick={() =>
+            change({ mode: state.mode === "wait" ? "playback" : "wait" })
+          }
+        >
+          {state.mode === "wait" ? "Wait for me" : "Playback"}
+        </Button>
+      </div>
+      <div className="hymn-toolbar-field">
+        <Text className="hymn-toolbar-field-label" size="sm">
+          Tempo
+        </Text>
+        <TempoControl
+          id="hymn-tempo"
+          compact
+          disabled={state.mode !== "playback"}
+          value={state.bpm}
+          min={40}
+          max={200}
+          onChange={(bpm) => change({ bpm })}
+        />
+      </div>
     </>
   );
 }

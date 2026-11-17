@@ -6,11 +6,15 @@ import {
   setPianoPresentation,
 } from "./piano-presentation";
 /** One keyboard visibility preference across every piano exercise. */
-export function restorePianoVisibility() {
+export function restorePianoVisibility(defaultVisible = true) {
   const saved = persistence.read<{ version: 1; pianoVisible?: boolean }>(
     "presentation",
   );
-  setPianoPresentation(saved?.pianoVisible !== false);
+  setPianoPresentation(
+    typeof saved?.pianoVisible === "boolean"
+      ? saved.pianoVisible
+      : defaultVisible,
+  );
 }
 export function isPianoVisible() {
   return pianoPresentation.getSnapshot().visible;

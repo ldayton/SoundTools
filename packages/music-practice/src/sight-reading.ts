@@ -125,7 +125,10 @@ export class SightReading {
     return hymnProgressKey(this.settings(), this.hymn.key);
   }
 
-  private mode: "wait" | "playback" = "wait";
+  private readonly defaultMode = matchMedia("(max-width: 767px)").matches
+    ? "playback"
+    : "wait";
+  private mode: "wait" | "playback" = this.defaultMode;
   private bpm = 80;
   private countIn: CountInBars = 0;
   private loopCountIn = false;
@@ -189,7 +192,8 @@ export class SightReading {
         this.countIn = saved!.countIn!;
       this.reattackTies = saved?.reattackTies === true;
       this.loopCountIn = saved?.loopCountIn === true;
-      if (saved?.mode === "playback") this.mode = "playback";
+      if (saved?.mode === "playback" || saved?.mode === "wait")
+        this.mode = saved.mode;
       if (
         Number.isInteger(saved?.bpm) &&
         saved!.bpm! >= 40 &&
@@ -468,7 +472,9 @@ export class SightReading {
     const old = this.settings();
     const switching = hymn.id !== this.hymn.id;
     if (switching) this.progress.remember(this.settings(), this.zoom);
-    const base = switching ? this.progress.forHymn(hymn.id) : old;
+    const base = switching
+      ? this.progress.forHymn(hymn.id, this.defaultMode)
+      : old;
     const next = hymnSettingsFromQuery(base, route.query);
     const changed =
       old.hymn !== next.hymn ||
@@ -587,7 +593,7 @@ export class SightReading {
   }
   private choose(hymn: (typeof hymns)[number]) {
     this.save();
-    const next = this.progress.forHymn(hymn.id);
+    const next = this.progress.forHymn(hymn.id, this.defaultMode);
     this.hymn = hymn;
     this.key = next.key!;
     this.octave = next.octave;

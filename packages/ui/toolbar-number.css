@@ -1,0 +1,32 @@
+.toolbar-number-touch {
+  --number-button-width: 44px;
+  width: 152px;
+  height: 44px;
+  display: grid;
+  grid-template-columns: repeat(2, var(--number-button-width)) minmax(0, 1fr);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-default);
+  overflow: hidden;
+}
+.toolbar-number-touch:focus-within {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+.toolbar-number-touch > button {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  color: var(--mantine-color-text);
+  border-right: 1px solid var(--mantine-color-default-border);
+}
+.toolbar-number-touch input {
+  height: 42px;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding-inline: 2px;
+  text-align: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}

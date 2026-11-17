@@ -7,6 +7,7 @@ import {
   isNavigationClick,
 } from "@ldayton/ui/application-layout";
 import { ToolbarVolume } from "./sidebar-controls";
+import { hymnToolbarState } from "./hymn-toolbar-state";
 import { PracticePianoToggle } from "./piano-presentation";
 import { APP } from "./app-profile";
 import { shellStatus } from "./shell-status";
@@ -227,6 +228,10 @@ export function mountAppShell(
     );
   }
   function Shell() {
+    const toolbar = useSyncExternalStore(
+      hymnToolbarState.subscribe,
+      hymnToolbarState.getSnapshot,
+    );
     const offline = useSyncExternalStore(
       offlineState.subscribe,
       offlineState.getSnapshot,
@@ -272,9 +277,11 @@ export function mountAppShell(
               : "notewise-workspace"
           }
           brand={brand}
-          mobileToolbarHeight={APP.id === "notewise" ? 104 : undefined}
+          mobileToolbarHeight={
+            APP.id === "songalong" ? (toolbar.expanded ? 220 : 56) : 104
+          }
           headerClassName={
-            APP.id === "notewise" ? "notewise-header" : undefined
+            APP.id === "notewise" ? "notewise-header" : "songalong-header"
           }
           title={snapshot.title}
           toolbarOnly={snapshot.routeKind === "exercise"}

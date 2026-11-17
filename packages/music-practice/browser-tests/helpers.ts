@@ -45,6 +45,7 @@ export async function practiceOption(
 ) {
   if (selector === "#hymn-mode") {
     await dismissPracticeDrawer(page);
+    await openHymnControls(page);
     if ((await page.locator(selector).getAttribute("data-mode")) !== value)
       await page.locator(selector).click();
     await page.waitForFunction(
@@ -56,6 +57,7 @@ export async function practiceOption(
   }
   if (["#hymn-size", "#hymn-tempo", "#rhythm-tempo"].includes(selector)) {
     await dismissPracticeDrawer(page);
+    if (selector.startsWith("#hymn-")) await openHymnControls(page);
     await page.locator(selector).fill(value);
     await page.locator(selector).press("Enter");
     return;
@@ -96,6 +98,14 @@ export async function practiceOption(
   } else await page.locator(selector).selectOption(value);
   if (await page.locator(".notewise-workspace").count())
     await dismissPracticeDrawer(page);
+}
+
+export async function openHymnControls(page: Page) {
+  const button = page.getByRole("button", {
+    name: "Show controls",
+    exact: true,
+  });
+  if (await button.isVisible()) await button.click();
 }
 
 async function optionsLayoutReady(page: Page) {

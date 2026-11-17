@@ -136,7 +136,7 @@ render();
 void document.fonts.ready
   .then(async () => {
     await persistence.initialize();
-    restorePianoVisibility();
+    restorePianoVisibility(!matchMedia("(max-width: 767px)").matches);
     shellStatus.set({ blocked: !persistence.writable });
     ready = true;
     render();

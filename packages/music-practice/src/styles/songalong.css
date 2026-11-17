@@ -149,21 +149,97 @@
 .hymn-toolbar-piano {
   justify-self: end;
 }
+.hymn-mode-toggle {
+  width: 112px;
+  min-width: 112px;
+  padding-inline: var(--mantine-spacing-xs);
+}
+.hymn-toolbar-field {
+  display: contents;
+}
+.hymn-toolbar-field-label {
+  display: none;
+}
 @media (max-width: 767px) {
-  .hymn-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "appearance piano" "playback playback";
-    gap: 8px;
+  .songalong-header:has(.hymn-toolbar) .application-toolbar {
+    display: grid;
+    grid-template-columns: 28px 36px minmax(76px, 1fr) 38px 38px 38px;
+    grid-template-areas: "navigation volume playback controls piano options";
+    grid-template-rows: 44px;
+    align-content: center;
+    column-gap: 6px;
+    row-gap: 0;
   }
-  .hymn-toolbar-appearance {
-    grid-area: appearance;
+  .songalong-header:has(.hymn-mobile-controls:not([hidden]))
+    .application-toolbar {
+    grid-template-areas:
+      "navigation volume playback controls piano options"
+      "settings settings settings settings settings settings";
+    grid-template-rows: 44px 164px;
+  }
+  .songalong-header .application-toolbar-actions,
+  .songalong-header-transport,
+  .songalong-header-transport .sequence-transport,
+  .songalong-header-transport .hymn-controls,
+  .hymn-toolbar-mobile {
+    display: contents;
+  }
+  .songalong-header .nav-toggle {
+    grid-area: navigation;
+    height: 44px;
+  }
+  .songalong-header #practice-options-reopen {
+    grid-area: options;
+    height: 44px;
+  }
+  .hymn-toolbar-volume {
+    grid-area: volume;
+  }
+  .hymn-toolbar-volume > button {
+    height: 44px;
+  }
+  .hymn-controls-toggle {
+    grid-area: controls;
+    width: 38px;
+    height: 44px;
   }
   .hymn-toolbar-piano {
     grid-area: piano;
   }
+  .hymn-toolbar-piano > button {
+    height: 44px;
+  }
   .hymn-toolbar-playback {
     grid-area: playback;
-    flex-wrap: wrap;
+    justify-self: center;
+  }
+  .hymn-toolbar-playback button {
+    height: 44px;
+  }
+  .hymn-mobile-controls {
+    grid-area: settings;
+    box-sizing: border-box;
+    height: 164px;
+    overflow-y: auto;
+    padding-block: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hymn-mobile-controls .hymn-toolbar-field {
+    display: flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .hymn-mobile-controls .hymn-toolbar-field-label {
+    display: block;
+  }
+  .hymn-mobile-controls #hymn-mode {
+    height: 44px;
+    width: 152px;
+    min-width: 152px;
   }
 }
 

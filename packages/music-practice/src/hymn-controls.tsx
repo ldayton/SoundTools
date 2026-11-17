@@ -1,8 +1,10 @@
 import { ToolbarVolume } from "./sidebar-controls";
 import { ControlIcon } from "@ldayton/ui/control-icon";
-import { useSyncExternalStore, type ReactNode } from "react";
-import { Button, Checkbox, Group, Text } from "@mantine/core";
+import { useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { ActionIcon, Button, Checkbox, Group, Text } from "@mantine/core";
 import { createViewState } from "./view-state";
+import { useMediaQuery } from "@mantine/hooks";
+import { hymnToolbarState } from "./hymn-toolbar-state";
 import { PracticePianoToggle } from "./piano-presentation";
 export const hymnControlsState = createViewState<{
   disabled: boolean;
@@ -36,6 +38,134 @@ export function HymnControls({
   previous(): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery("(max-width: 767px)", undefined, {
+    getInitialValueInEffect: false,
+  });
+  const toolbar = useSyncExternalStore(
+    hymnToolbarState.subscribe,
+    hymnToolbarState.getSnapshot,
+  );
+  useEffect(() => {
+    if (!mobile) hymnToolbarState.set({ expanded: false });
+  }, [mobile]);
+  const transport = (
+    <Group gap={4} wrap="nowrap" role="group" aria-label="Transport">
+      <Button
+        aria-label="Go to start"
+        title={state.selected ? "Go to selection start" : "Go to start"}
+        w={36}
+        miw={36}
+        px={0}
+        className="hymn-go-start"
+        variant="default"
+        disabled={state.disabled}
+        onClick={goToStart}
+      >
+        <ControlIcon name="go-start" />
+      </Button>
+      <Button
+        aria-label={state.pause}
+        title={state.pause}
+        w={36}
+        miw={36}
+        px={0}
+        className="hymn-pause"
+        variant="filled"
+        disabled={state.disabled || state.pauseDisabled}
+        onClick={pause}
+      >
+        <ControlIcon
+          name={
+            state.pause === "Pause"
+              ? "pause"
+              : state.pause === "Cancel"
+                ? "stop"
+                : "play"
+          }
+        />
+      </Button>
+    </Group>
+  );
+  const legacy = (
+    <>
+      <Button
+        className="hymn-restore-legacy"
+        variant="default"
+        hidden={!state.restore}
+        disabled={state.disabled}
+        onClick={restore}
+      >
+        {state.restore}
+      </Button>
+      <Button
+        className="hymn-prev"
+        variant="default"
+        aria-label="Previous section"
+        hidden={!state.previous}
+        disabled={state.disabled}
+        onClick={previous}
+      >
+        ← Previous
+      </Button>
+    </>
+  );
+  const piano = (
+    <PracticePianoToggle
+      panelId={panelId}
+      iconOnly
+      className="hymn-keyboard-toggle"
+      disabled={state.disabled}
+    />
+  );
+  if (mobile)
+    return (
+      <div className="soundtools-ui hymn-controls">
+        <div className="hymn-toolbar hymn-toolbar-mobile">
+          <div className="hymn-toolbar-volume">
+            <ToolbarVolume />
+          </div>
+          <div
+            className="hymn-toolbar-playback"
+            role="group"
+            aria-label="Playback controls"
+          >
+            {transport}
+          </div>
+          <ActionIcon
+            className="hymn-controls-toggle"
+            variant={toolbar.expanded ? "light" : "default"}
+            aria-label={toolbar.expanded ? "Hide controls" : "Show controls"}
+            aria-expanded={toolbar.expanded}
+            aria-controls="hymn-mobile-controls"
+            title={toolbar.expanded ? "Hide controls" : "Show controls"}
+            onClick={() =>
+              hymnToolbarState.set({ expanded: !toolbar.expanded })
+            }
+          >
+            <ControlIcon name="settings" />
+          </ActionIcon>
+          <div className="hymn-toolbar-piano">{piano}</div>
+          <div
+            id="hymn-mobile-controls"
+            className="hymn-mobile-controls"
+            role="region"
+            aria-label="Playback and display controls"
+            hidden={!toolbar.expanded}
+          >
+            {settings}
+            <Group
+              className="hymn-toolbar-field"
+              justify="space-between"
+              wrap="nowrap"
+            >
+              <Text size="sm">Staff size</Text>
+              {staffSize}
+            </Group>
+            {legacy}
+          </div>
+        </div>
+      </div>
+    );
   return (
     <div className="soundtools-ui hymn-controls">
       <div className="hymn-toolbar">
@@ -56,71 +186,11 @@ export function HymnControls({
           role="group"
           aria-label="Playback controls"
         >
-          <Group gap={4} wrap="nowrap" role="group" aria-label="Transport">
-            <Button
-              aria-label="Go to start"
-              title={state.selected ? "Go to selection start" : "Go to start"}
-              w={36}
-              miw={36}
-              px={0}
-              className="hymn-go-start"
-              variant="default"
-              disabled={state.disabled}
-              onClick={goToStart}
-            >
-              <ControlIcon name="go-start" />
-            </Button>
-            <Button
-              aria-label={state.pause}
-              title={state.pause}
-              w={36}
-              miw={36}
-              px={0}
-              className="hymn-pause"
-              variant="filled"
-              disabled={state.disabled || state.pauseDisabled}
-              onClick={pause}
-            >
-              <ControlIcon
-                name={
-                  state.pause === "Pause"
-                    ? "pause"
-                    : state.pause === "Cancel"
-                      ? "stop"
-                      : "play"
-                }
-              />
-            </Button>
-          </Group>
+          {transport}
           {settings}
-          <Button
-            className="hymn-restore-legacy"
-            variant="default"
-            hidden={!state.restore}
-            disabled={state.disabled}
-            onClick={restore}
-          >
-            {state.restore}
-          </Button>
-          <Button
-            className="hymn-prev"
-            variant="default"
-            aria-label="Previous section"
-            hidden={!state.previous}
-            disabled={state.disabled}
-            onClick={previous}
-          >
-            ← Previous
-          </Button>
+          {legacy}
         </Group>
-        <div className="hymn-toolbar-piano">
-          <PracticePianoToggle
-            panelId={panelId}
-            iconOnly
-            className="hymn-keyboard-toggle"
-            disabled={state.disabled}
-          />
-        </div>
+        <div className="hymn-toolbar-piano">{piano}</div>
       </div>
     </div>
   );

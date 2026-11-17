@@ -5,6 +5,12 @@ const { mkdir, mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
 const path = require("node:path");
 const { chromium, firefox, webkit } = require("playwright");
+const {
+  macBookAir13,
+  iphone14Pro,
+  iphone14ProLandscape,
+  iphone14ProFullHeight,
+} = require("./test-devices.cjs");
 const app = process.argv[2],
   directory = process.argv[3] || "dist";
 if (!["dorego", "notewise", "songalong"].includes(app))
@@ -51,7 +57,7 @@ const server = spawn(
       env: { ...process.env, CFFIXED_USER_HOME: state },
     });
     const page = await browser.newPage({
-        viewport: { width: 1680, height: 1050 },
+        ...macBookAir13,
       }),
       errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
@@ -166,7 +172,7 @@ const server = spawn(
         "Settings preserves an idle exercise as ready",
       );
     // Mobile starts with both sidebars closed, with one volume/selector instance in the drawer.
-    await page.setViewportSize({ width: 390, height: 844 });
+    await page.setViewportSize(iphone14Pro.viewport);
     await page
       .getByRole("button", { name: "Expand practice options", exact: true })
       .waitFor();
@@ -209,8 +215,17 @@ const server = spawn(
         exact: true,
       })
       .click();
-    for (const width of [320, 390, 900, 1120, 1680]) {
-      await page.setViewportSize({ width, height: 900 });
+    for (const width of [
+      320,
+      iphone14Pro.viewport.width,
+      900,
+      1120,
+      macBookAir13.viewport.width,
+    ]) {
+      await page.setViewportSize({
+        width,
+        height: macBookAir13.viewport.height,
+      });
       assert(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth + 1,
@@ -283,9 +298,174 @@ const server = spawn(
     const out = path.join(root, "work/layout-review");
     await mkdir(out, { recursive: true });
     await page.screenshot({ path: path.join(out, `${app}-${engine}.png`) });
+    // Fresh mobile contexts exercise touch, mobile viewport behavior and 3x
+    // rendering. Firefox's desktop engine does not implement mobile emulation.
+    if (engine !== "firefox") {
+      for (const [name, device] of [
+        ["iphone-14-pro", iphone14Pro],
+        ["iphone-14-pro-landscape", iphone14ProLandscape],
+        ["iphone-14-pro-full-height", iphone14ProFullHeight],
+      ]) {
+        const phone = await browser.newPage(device);
+        try {
+          phone.on("pageerror", (error) => errors.push(error.message));
+          await phone.goto(base);
+          const openOptions = phone.getByRole("button", {
+            name: /^Expand (practice|playback) options$/,
+            exact: true,
+          });
+          await openOptions.waitFor();
+          assert.equal(await phone.evaluate(() => devicePixelRatio), 3);
+          assert.equal(
+            await phone.evaluate(() => matchMedia("(pointer: coarse)").matches),
+            true,
+          );
+          assert(
+            await phone.evaluate(
+              () => document.documentElement.scrollWidth <= innerWidth + 1,
+            ),
+            `${name}: no page overflow`,
+          );
+          await phone
+            .getByRole("button", { name: "Open navigation", exact: true })
+            .tap();
+          await phone
+            .getByRole("button", { name: "Close navigation", exact: true })
+            .tap();
+          await openOptions.tap();
+          await phone
+            .getByRole("dialog", {
+              name: /^(Practice|Playback) options$/,
+              exact: true,
+            })
+            .waitFor();
+          await phone
+            .getByRole("button", {
+              name: /^Close (practice|playback) options$/,
+              exact: true,
+            })
+            .tap();
+          await phone.getByRole("dialog").waitFor({ state: "hidden" });
+          if (app === "songalong") {
+            const pianoToggle = phone.getByRole("button", {
+              name: "On-screen piano",
+              exact: true,
+            });
+            assert.equal(
+              await pianoToggle.getAttribute("aria-expanded"),
+              "false",
+              "Mobile piano defaults to collapsed",
+            );
+            assert.equal(
+              await phone.locator(".practice-piano").isVisible(),
+              false,
+            );
+            await pianoToggle.tap();
+            assert.equal(
+              await pianoToggle.getAttribute("aria-expanded"),
+              "true",
+            );
+            assert.equal(
+              await phone.locator("#hymn-mode").getAttribute("data-mode"),
+              "playback",
+              "Fresh mobile practice defaults to Playback",
+            );
+            assert.equal(await phone.locator("#hymn-mode").isVisible(), false);
+            assert.equal(
+              await phone
+                .locator(".mantine-AppShell-header")
+                .evaluate((el) => el.getBoundingClientRect().height),
+              56,
+            );
+            await phone
+              .getByRole("button", { name: "Show controls", exact: true })
+              .tap();
+            const size = Number.parseInt(
+              await phone.locator("#hymn-size").inputValue(),
+            );
+            await phone.locator("#hymn-size-up").tap();
+            await phone.waitForFunction(
+              (value) =>
+                document.querySelector("#hymn-size").value ===
+                `${value + 1} px`,
+              size,
+            );
+            await phone.locator("#hymn-size-down").tap();
+            const tempo = Number.parseInt(
+              await phone.locator("#hymn-tempo").inputValue(),
+            );
+            await phone.locator("#hymn-tempo-up").tap();
+            await phone.waitForFunction(
+              (value) =>
+                document.querySelector("#hymn-tempo").value ===
+                `${value + 5} BPM`,
+              tempo,
+            );
+            await phone.locator("#hymn-tempo-down").tap();
+            assert(
+              await phone.evaluate(() => {
+                const header = document
+                  .querySelector(".mantine-AppShell-header")
+                  .getBoundingClientRect();
+                return [
+                  ...document.querySelectorAll(
+                    ".toolbar-number-touch > button",
+                  ),
+                ].every((button) => {
+                  const box = button.getBoundingClientRect();
+                  return (
+                    box.width >= 36 &&
+                    box.height >= 42 &&
+                    box.top >= header.top &&
+                    box.bottom <= header.bottom
+                  );
+                });
+              }),
+              `${name}: full-height number buttons remain reachable`,
+            );
+          }
+          if (app === "songalong") {
+            await phone
+              .getByRole("button", { name: "Playback mode", exact: true })
+              .tap();
+            await phone
+              .getByRole("button", { name: "Hide controls", exact: true })
+              .tap();
+            await phone.waitForFunction(
+              () =>
+                document.querySelector("#saved").textContent ===
+                "Saved on this device.",
+            );
+            await phone.reload();
+            await phone.locator("#hymn-mode").waitFor({ state: "attached" });
+            assert.equal(
+              await phone.locator("#hymn-mode").getAttribute("data-mode"),
+              "wait",
+              "An explicit mode survives reload",
+            );
+            assert.equal(await phone.locator("#hymn-mode").isVisible(), false);
+            assert.equal(
+              await phone
+                .getByRole("button", { name: "On-screen piano", exact: true })
+                .getAttribute("aria-expanded"),
+              "true",
+              "An explicit piano choice survives reload",
+            );
+            await phone
+              .getByRole("button", { name: "On-screen piano", exact: true })
+              .tap();
+          }
+          await phone.screenshot({
+            path: path.join(out, `${app}-${engine}-${name}.png`),
+          });
+        } finally {
+          await phone.close();
+        }
+      }
+    }
     assert.deepEqual(errors, []);
     console.log(
-      `PASS ${app}/${engine}: common geometry, sidebar placement, Settings, focus controls, mobile disclosures, retained practice and five screen widths`,
+      `PASS ${app}/${engine}: MacBook Air 13 reference layout, sidebar placement, Settings, focus, retained practice, regression widths${engine === "firefox" ? "" : ", iPhone 14 Pro portrait/landscape/full-height touch layouts at 3x"}`,
     );
   } finally {
     await browser?.close();

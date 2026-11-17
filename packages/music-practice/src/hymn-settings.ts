@@ -142,10 +142,14 @@ export function hymnSettingsFromQuery(
 }
 
 /** Right-sidebar settings belong to one hymn, with independent defaults. */
-export function hymnPreferences(hymn: string, input: unknown = {}) {
+export function hymnPreferences(
+  hymn: string,
+  input: unknown = {},
+  defaultMode: "wait" | "playback" = "wait",
+) {
   const base: HymnSettings = {
     hymn,
-    mode: "wait",
+    mode: defaultMode,
     bpm: 80,
     countIn: 0,
     loopCountIn: false,

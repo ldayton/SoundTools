@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
-import { Box } from "@mantine/core";
+import { ActionIcon, Box } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { CommittedNumber } from "./committed-number";
+import { ControlIcon } from "./control-icon";
+import "./toolbar-number.css";
 
 /** One consistent property field for numeric settings in the toolbar. */
 export function ToolbarNumber({
@@ -26,6 +29,45 @@ export function ToolbarNumber({
   disabled?: boolean;
   onChange(value: number): void;
 }) {
+  const touchLayout = useMediaQuery("(max-width: 767px)", undefined, {
+    getInitialValueInEffect: false,
+  });
+  if (touchLayout)
+    return (
+      <Box className="toolbar-number-touch" role="group" aria-label={label}>
+        <ActionIcon
+          id={`${id}-down`}
+          variant="subtle"
+          aria-label={`Decrease ${label.toLowerCase()}`}
+          disabled={disabled || value <= min}
+          onClick={() => onChange(Math.max(min, value - step))}
+        >
+          <ControlIcon name="minus" />
+        </ActionIcon>
+        <ActionIcon
+          id={`${id}-up`}
+          variant="subtle"
+          aria-label={`Increase ${label.toLowerCase()}`}
+          disabled={disabled || value >= max}
+          onClick={() => onChange(Math.min(max, value + step))}
+        >
+          <ControlIcon name="plus" />
+        </ActionIcon>
+        <CommittedNumber
+          id={id}
+          label={label}
+          hideLabel
+          hideControls
+          value={value}
+          min={min}
+          max={max}
+          step={step}
+          disabled={disabled}
+          suffix={` ${unit}`}
+          change={onChange}
+        />
+      </Box>
+    );
   return (
     <Box w={unit.length > 2 ? 112 : 96} title={label}>
       <CommittedNumber

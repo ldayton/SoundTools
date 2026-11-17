@@ -16,6 +16,23 @@
     "harmony": "X: 1\nT: Amazing Grace\nM: 3/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]    D | G2 B/G/ | B2 A | G2 E | D2 D |\nw: A- maz- ing * grace! How sweet the sound That \n[V: S1V2]  B, | B,2 D | D2 C | B,2 C | B,2 B, |\n[V: S2V1]  G, | D,2 G, | G,2 F, | G,2 G, | G,2 G, |\n[V: S2V2]  G,, | G,,2 G,,/B,,/ | D,2 D, | E,2 C, | G,,2 G,, |\n[V: S1V1]  G2 B/G/ | B2 A | d3- | d2 B | (d3/2 B/) d/B/ | G2 D |\nw: saved a * wretch like me! * I once * was * lost, but\n[V: S1V2]  B,2 D | D2 D | D3- | D2 D | D2 D | D2 D |\n[V: S2V1]  D,2 G, | G,2 F, | G,3- | G,2 G, | (B,3/2 G,/) B,/G,/ | G,2 G, |\n[V: S2V2]  G,,2 G,,/B,,/ | D,2 C, | B,,3- | B,,2 G,, | G,2 G, | B,,2 B,, |\n[V: S1V1]  (E3/2 G/) G/E/ | D2 D | G2 B/G/ | B2 A | G3- | G2 |]\nw:   now * am * found; Was blind, but * now I see. * \n[V: S1V2]  C3/2 D/ C | B,2 D | B,2 D | G2 F | D3- | D2 |]\n[V: S2V1]  G,2 E,/G,/ | G,2 G, | G,2 G,/B,/ | D2 C | B,3- | B,2 |]\n[V: S2V2]  (C,3/2 B,,/) C, | G,,2 B,, | E,2 D, | D,2 D, | G,3- | G,2 |]\n"
   },
   {
+    "id": "in-christ-alone",
+    "title": "In Christ Alone",
+    "file": "in-christ-alone-tab-music.abc",
+    "folder": "in-christ-alone",
+    "source": "tab-music",
+    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/in-christ-alone-music.ily",
+    "key": "D",
+    "meter": "3/4",
+    "credits": [
+      "Words: Keith Getty and Stuart Townend.",
+      "Music: Keith Getty and Stuart Townend.",
+      "copyright: Rights remain with the respective song rights holders. User-supplied practice edition."
+    ],
+    "melody": "X:1\nT:In Christ Alone\nM:3/4\nL:1/64\nK:D\nA8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: In Christ a- lone my hope is found He is my light my strength my\nD'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: song This Cor- ner- stone this so- lid ground Firm through the fierc- est drought and\nD'24 D'8 F'8 A'8 | B'24 B'8 A'8 F'8 | E'24 D'8 D''8 C''8 | B'24 B'8 A'8 F'8 |\nw: storm What heights of love what depths of peace When fears are stilled when striv- ings\nE'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: cease My Com- for- ter my All in All Here in the love of Christ I\nD'48 | D'48 | D'48 | F'48 |\nw: stand Oh- oh- oh-\nD'48 |]\nw: oh\n",
+    "harmony": "X:1\nT:In Christ Alone\nM:3/4\nL:1/64\n%%staves S1 | S2\nV:S1 clef=treble\nV:S2 clef=bass\nK:D\n[V:S1] A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: In Christ a- lone my hope is found He is my light my strength my\n[V:S2] [G,B,D]24 | [D,F,A,]32 [G,B,D]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]16 [A,CE]32 |\n[V:S1] D'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: song This Cor- ner- stone this so- lid ground Firm through the fierc- est drought and\n[V:S2] [D,F,A,]32 [G,B,D]16 | [D,F,A,]32 [G,B,D]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]16 [A,CE]32 |\n[V:S1] D'24 D'8 F'8 A'8 | B'24 B'8 A'8 F'8 | E'24 D'8 D''8 C''8 | B'24 B'8 A'8 F'8 |\nw: storm What heights of love what depths of peace When fears are stilled when striv- ings\n[V:S2] [D,F,A,]32 [D,F,A,]16 | [G,B,D]32 [D,F,A,]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]32 [D,F,A,]16 |\n[V:S1] E'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: cease My Com- for- ter my All in All Here in the love of Christ I\n[V:S2] [A,CE]32 [G,B,D]16 | [D,F,A,]32 [G,B,D]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]16 [A,CE]32 |\n[V:S1] D'48 | D'48 | D'48 | F'48 |\nw: stand Oh- oh- oh-\n[V:S2] [D,F,A,]48 | [D,F,A,]48 | [G,B,D]48 | [B,DF]48 |\n[V:S1] D'48 |]\nw: oh\n[V:S2] [D,F,A,]48 |]\n"
+  },
+  {
     "id": "jesus-loves-me",
     "title": "Jesus Loves Me",
     "file": "Jesus_Loves_Me-untitled.abc",
@@ -30,6 +47,42 @@
     "sourceUrl": "https://openhymnal.org/Abc/Jesus_Loves_Me-untitled.abc",
     "melody": "X:1\nT:Jesus Loves Me\nM:4/4\nL:1/64\nK:Eb\nB16 G16 G16 F16 | G16 B16 B32 | c16 c16 e16 c16 | c16 B16 B32 |\nw: Je- sus loves me! This I know, For the Bi- ble tells me so.\nB16 G16 G16 F16 | G16 B16 B32 | c16 c16 B16 E16 | G16 F16 E32 |\nw: Lit- tle ones to Him be- long; They are weak, but He is strong.\nB32 G16 B16 | c16 e48 | B32 G16 E16 | G16 F48 |\nw: Yes, Je- sus loves me! Yes, Je- sus loves me!\nB32 G16 B16 | c16 e32 c16 | B16 E16 G24 F8 | E64 |]\nw: Yes, Je- sus loves me! The Bi- ble tells me so.\n",
     "harmony": "X: 1\nT: Jesus Loves Me\nM: 4/4\nL: 1/4\n%%staves S1 | S2 \nV: S1 clef=treble \nV: S2 clef=bass \nK: Eb\n[V: S1]   [GB] [EG] [EG] [DF] | [EG] [GB] [G2B2] | [Ac] [Ac] [ce] [Ac] | [Ac] [GB] [G2B2] |\nw: Je- sus loves me! This I know, For the Bi- ble tells me so. \n[V: S2]   [E,B,] [E,B,] [E,B,] [B,,B,] | [E,B,] [E,B,] [E,2B,2] | [A,,A,] [A,,A,] [A,,A,] [C,A,] | [E,A,] [E,B,] [E,2B,2] |\n[V: S1]  [GB] [EG] [EG] [DF] | [EG] [GB] [G2B2] | [Ac] [Ac] [GB] E | [EG] [DF] E2 |\nw: Lit- tle ones to Him be- long; They are weak, but He is strong. \n[V: S2]  [E,B,] [E,B,] [E,B,] [B,,B,] | [E,B,] [E,B,] [E,2B,2] | [A,,A,] [C,A,] [E,G,] [E,G,] | B, [B,,A,] [E,2G,2] |\n[V: S1]  [G2B2] [EG] [GB] | [Ac] [c3e3] | [G2B2] [EG] E | [EG] [D3F3] |\nw: Yes, Je- sus loves me! Yes, Je- sus loves me! \n[V: S2]  [E,2G,2] [E,B,] [E,E] | [A,,E] [A,,3E3] | [E,2E2] [E,B,] [G,B,] | [B,,B,] [B,,3B,3] |\n[V: S1]  [E2B2] [EG] [GB] | [Ac] [c2e2] [Ac] | [GB] E [E3/2G3/2] [D/F/] | E4 |]\nw: Yes, Je- sus loves me! The Bi- ble tells me so. \n[V: S2]  [G,2B,2] [E,B,] [E,E] | [A,,E] [A,,2E2] [C,E] | [E,E] [G,B,] B,3/2 [B,,/A,/] | [E,4G,4] |]\n"
+  },
+  {
+    "id": "ill-fly-away",
+    "title": "I'll Fly Away",
+    "file": "ill-fly-away-tab-music.abc",
+    "folder": "ill-fly-away",
+    "source": "tab-music",
+    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/ill-fly-away-music.ily",
+    "key": "C",
+    "meter": "4/4",
+    "credits": [
+      "Words: Albert E. Brumley.",
+      "Music: Albert E. Brumley.",
+      "copyright: Rights remain with the respective song rights holders. User-supplied practice edition."
+    ],
+    "melody": "X:1\nT:I'll Fly Away\nM:4/4\nL:1/64\nK:C\nE'16 C'16 G16 C'16 | E'8 D'8 E'8 F'8 (E'16 D'16) | C'48 A12 C'4 | G64 |\nw: Some glad morn- ing when this life is o'er, * I'll fly a- way.\nE'16 C'16 G16 C'16 | E'8 E'8 E'8 F'8 (E'16 D'16) | E'48 D'12 C'4 | C'48 z16 |\nw: To a home on God's ce- les- tial shore, * I'll fly a- way.\nG'48 E'12 G'4 | G'16 E'16 D'16 C'16 | C'48 A12 A4 | G48- G16 |\nw: I'll fly a- way, O glo- ry, I'll fly a- way. *\nG16 A16 C'16 C'12 C'4 | E'12 ^D'4 E'12 F'4 E'32 | E'48 D'12 D'4 | !fermata!C'64 |]\nw: When I die, hal- le- lu- jah, by and by, I'll fly a- way.\n",
+    "harmony": "X:1\nT:I'll Fly Away\nM:4/4\nL:1/64\n%%staves S1 | S2\nV:S1 clef=treble\nV:S2 clef=bass\nK:C\n[V:S1] E'16 C'16 G16 C'16 | E'8 D'8 E'8 F'8 (E'16 D'16) | C'48 A12 C'4 | G64 |\nw: Some glad morn- ing when this life is o'er, * I'll fly a- way.\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [F,A,C]64 | [C,E,G,]32 [G,,B,,D,F,]32 |\n[V:S1] E'16 C'16 G16 C'16 | E'8 E'8 E'8 F'8 (E'16 D'16) | E'48 D'12 C'4 | C'48 z16 |\nw: To a home on God's ce- les- tial shore, * I'll fly a- way.\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [C,E,G,]48 [G,,B,,D,F,]16 | [C,E,G,]32 [G,,B,,D,F,]32 |\n[V:S1] G'48 E'12 G'4 | G'16 E'16 D'16 C'16 | C'48 A12 A4 | G48- G16 |\nw: I'll fly a- way, O glo- ry, I'll fly a- way. *\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [F,A,C]64 | [C,E,G,]32 [G,,B,,D,F,]32 |\n[V:S1] G16 A16 C'16 C'12 C'4 | E'12 ^D'4 E'12 F'4 E'32 | E'48 D'12 D'4 | !fermata!C'64 |]\nw: When I die, hal- le- lu- jah, by and by, I'll fly a- way.\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [C,E,G,]48 [G,,B,,D,F,]16 | [C,E,G,]64 |]\n"
+  },
+  {
+    "id": "o-come-all-ye-faithful",
+    "title": "O Come, All Ye Faithful",
+    "file": "O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
+    "aliases": [
+      "Adeste Fideles"
+    ],
+    "folder": "O_Come_All_Ye_Faithful",
+    "key": "G",
+    "meter": "4/4",
+    "credits": [
+      "Words:  John F. Wade, circa 1743. v.1-3, 6 Translated by Frederick Oakeley, 1841;",
+      "Music: 'Adeste Fideles' or 'Portuguese Hymn' John F. Wade, 1743.  Setting: \"A Hymnal\" (Episcopal), 1916.",
+      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2007 Revision."
+    ],
+    "sourceUrl": "https://openhymnal.org/Abc/O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
+    "melody": "X:1\nT:O Come, All Ye Faithful\nM:4/4\nL:1/64\nK:G\nG16 | G32 D16 G16 | A32 D32 | B16 A16 B16 c16 | B32 A16 G16 |\nw: O come, all ye faith- ful, joy- ful and tri- um- phant, O\nG32 (F16 E16) | (F16 G16) (A16 B16) | (F32 E24) D8 | D48 z16 | d32 c16 B16 |\nw: come ye, O come * ye, to Beth- * le- hem. Come and be-\n(c32 B32) | A16 B16 G16 A16 | (F24 E8) D16 G16 | G16 F16 G16 A16 |\nw: hold Him, born the King of an- * gels; O come, let us a-\nG32 D16 B16 | B16 A16 B16 c16 | B32 A16 B16 | c16 B16 A16 G16 | F32 (G16 c16) | (B32 A24) G8 | G48 |]\nw: dore Him, O come, let us a- dore Him, O come, let us a- dore Him, * Christ * the Lord.\n",
+    "harmony": "X: 1\nT: O Come, All Ye Faithful\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  G | G2 D G | A2 D2 | B A B c | B2 A G |\nw: O come, all ye faith- ful, joy- ful and tri- um- phant, O \n[V: S1V2]  D | D2 D D | D2 D2 | D D D E | D2 D B, |\n[V: S2V1]  B, | B,2 B, B, | A,2 A,2 | G, A, G, G, | G,2 F, G, |\n[V: S2V2]  G, | G,2 B, G, | F,2 F,2 | G, F, G, C, | D,2 D, E, |\n[V: S1V1]  G2 (F E) | (F G) (A B) | (F2 E3/2) D/ | D3 z | d2 c B |\nw: come ye, O come * ye, to Beth- * le- hem. Come and be- \n[V: S1V2]  (B, ^C) (D ^C) | (D D) (D D) | (D2 ^C3/2) D/ | D3 x | D2 E/F/ G |\n[V: S2V1]  G,2 (A, A,) | (A, G,) (F, E,) | (A,2 G,3/2) F,/ | F,3 z | B,2 C D |\n[V: S2V2]  E,2 (D, A,,) | (D, B,,) (F,, G,,) | (A,,2 A,,3/2) D,/ | D,3 x | B,2 A, G, |\n[V: S1V1]  (c2 B2) | A B G A | (F3/2 E/) D G | G F G A |\nw: hold Him, born the King of an- * gels; O come, let us a- \n[V: S1V2]  ((G F) G2) | D D E E | D2 D D | D4 |\n[V: S2V1]  (C2 D2) | A, G, B, C | (A,3/2 G,/) F, B, | B, A, B, C |\n[V: S2V2]  (A,2 G,2) | F, G, E, C, | D,2 D, B, | B, A, B, C |\n[V: S1V1]  G2 D B | B A B c | B2 A B | c B A G | F2 (G c) | (B2 A3/2) G/ | G3 |]\nw: dore Him, O come, let us a- dore Him, O come, let us a- dore Him, * Christ * the Lord. \n[V: S1V2]  D3 D | D D D D | D2 D G | F G D D/^C/ | D2 (D E) | D2- D3/2 B,/ | B,3 |]\n[V: S2V1]  B,3 G, | G, F, G, A, | G,2 F, D | D D A, A, | A,2 G,2 | (G,2 F,3/2) G,/ | G,3 |]\n[V: S2V2]  B,3 G, | G, F, G, A, | G,2 F, G, | A, G, F, E, | D, C, (B,, C,) | (D,2 D,3/2) G,,/ | G,,3 |]\n"
   },
   {
     "id": "holy-holy-holy",
@@ -284,25 +337,6 @@
     "harmony": "X: 1\nT: Hark! The Herald Angels Sing\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: F\n[V: S1V1]  C F F3/2 E/ | F A (A G) | c c c3/2 B/ | A G A2 |\nw: Hark! The her- ald an- gels sing, * \"Glo- ry to the new- born King; \n[V: S1V2]  C C C3/2 C/ | C F (F E) | F E D G | F E F2 | C C C3/2 C/ |\n[V: S2V1]  A, A, A,3/2 G,/ | F, C C2 | C C D D | C C C2 | A, A, A,3/2 G,/ |\n[V: S2V2]  F, F, F, C, | A,, F,, C,2 | A,, A,, B,, B,, | C, C, F,2 | F, F, F, C, |\n[V: S1V1]  C F F3/2 E/ | F A (A G) | c G G3/2 E/ | E D C2 |\nw: Peace on earth, and mer- cy mild, * God and sin- ners re- con- ciled!\" \n[V: S1V2]  A, F F2 | E D E3/2 C/ | C =B, C2 |\n[V: S2V1]  F, C D2 | C D C3/2 G,/ | A, F, E,2 |\n[V: S2V2]  D, C, (=B,,3/2 G,,/) | A,, =B,, C, E, | F, G,, C,2 |\n[V: S1V1]  c c c F | B A (A G) | c c c F | B A (A G) |\nw: Joy- ful, all ye na- tions rise, * Join the tri- umph of the skies; * \n[V: S1V2]  C C C F | G F (F E) | C C C F | G F (F E) |\n[V: S2V1]  C C C C | C C C2 | C C C C | C C C2 |\n[V: S2V2]  C C C A, | E, F, C,2 | C C C A, | E, F, C,2 |\n[V: S1V1]  d d d c | B A B2 | G A/B/ c3/2 F/ | F G A2 |\nw: With th'an- gel- ic host pro- claim, \"Christ is * born in Beth- le- hem!\" \n[V: S1V2]  B B B A | G ^F G2 | E E F3/2 C/ | C E F2 |\n[V: S2V1]  D D D D | D D D2 | C C C3/2 A,/ | A, C C2 |\n[V: S2V2]  B,, B,, B,, B,, | B,, D, G,2 | B, B, A, F, | C, C, F,2 |\n[V: S1V1]  d3/2 d/ d c | B A B2 | G A/B/ c3/2 F/ | F G F2 |]\nw: Hark! the her- ald an- gels sing, \"Glo- ry * to the new- born King!\" \n[V: S1V2]  B B B A | G ^F G2 | C E F3/2 F/ | C C C2 |]\n[V: S2V1]  D D D C | B, A, B,2 | C C C3/2 A,/ | A, B, A,2 |]\n[V: S2V2]  B, B, B, A, | G, ^F, (G, =F,) | E, B, A, F, | C, C, F,2 |]\n"
   },
   {
-    "id": "o-come-all-ye-faithful",
-    "title": "O Come, All Ye Faithful",
-    "file": "O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
-    "aliases": [
-      "Adeste Fideles"
-    ],
-    "folder": "O_Come_All_Ye_Faithful",
-    "key": "G",
-    "meter": "4/4",
-    "credits": [
-      "Words:  John F. Wade, circa 1743. v.1-3, 6 Translated by Frederick Oakeley, 1841;",
-      "Music: 'Adeste Fideles' or 'Portuguese Hymn' John F. Wade, 1743.  Setting: \"A Hymnal\" (Episcopal), 1916.",
-      "copyright: public domain.  This score is a part of the Open Hymnal Project, 2007 Revision."
-    ],
-    "sourceUrl": "https://openhymnal.org/Abc/O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
-    "melody": "X:1\nT:O Come, All Ye Faithful\nM:4/4\nL:1/64\nK:G\nG16 | G32 D16 G16 | A32 D32 | B16 A16 B16 c16 | B32 A16 G16 |\nw: O come, all ye faith- ful, joy- ful and tri- um- phant, O\nG32 (F16 E16) | (F16 G16) (A16 B16) | (F32 E24) D8 | D48 z16 | d32 c16 B16 |\nw: come ye, O come * ye, to Beth- * le- hem. Come and be-\n(c32 B32) | A16 B16 G16 A16 | (F24 E8) D16 G16 | G16 F16 G16 A16 |\nw: hold Him, born the King of an- * gels; O come, let us a-\nG32 D16 B16 | B16 A16 B16 c16 | B32 A16 B16 | c16 B16 A16 G16 | F32 (G16 c16) | (B32 A24) G8 | G48 |]\nw: dore Him, O come, let us a- dore Him, O come, let us a- dore Him, * Christ * the Lord.\n",
-    "harmony": "X: 1\nT: O Come, All Ye Faithful\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  G | G2 D G | A2 D2 | B A B c | B2 A G |\nw: O come, all ye faith- ful, joy- ful and tri- um- phant, O \n[V: S1V2]  D | D2 D D | D2 D2 | D D D E | D2 D B, |\n[V: S2V1]  B, | B,2 B, B, | A,2 A,2 | G, A, G, G, | G,2 F, G, |\n[V: S2V2]  G, | G,2 B, G, | F,2 F,2 | G, F, G, C, | D,2 D, E, |\n[V: S1V1]  G2 (F E) | (F G) (A B) | (F2 E3/2) D/ | D3 z | d2 c B |\nw: come ye, O come * ye, to Beth- * le- hem. Come and be- \n[V: S1V2]  (B, ^C) (D ^C) | (D D) (D D) | (D2 ^C3/2) D/ | D3 x | D2 E/F/ G |\n[V: S2V1]  G,2 (A, A,) | (A, G,) (F, E,) | (A,2 G,3/2) F,/ | F,3 z | B,2 C D |\n[V: S2V2]  E,2 (D, A,,) | (D, B,,) (F,, G,,) | (A,,2 A,,3/2) D,/ | D,3 x | B,2 A, G, |\n[V: S1V1]  (c2 B2) | A B G A | (F3/2 E/) D G | G F G A |\nw: hold Him, born the King of an- * gels; O come, let us a- \n[V: S1V2]  ((G F) G2) | D D E E | D2 D D | D4 |\n[V: S2V1]  (C2 D2) | A, G, B, C | (A,3/2 G,/) F, B, | B, A, B, C |\n[V: S2V2]  (A,2 G,2) | F, G, E, C, | D,2 D, B, | B, A, B, C |\n[V: S1V1]  G2 D B | B A B c | B2 A B | c B A G | F2 (G c) | (B2 A3/2) G/ | G3 |]\nw: dore Him, O come, let us a- dore Him, O come, let us a- dore Him, * Christ * the Lord. \n[V: S1V2]  D3 D | D D D D | D2 D G | F G D D/^C/ | D2 (D E) | D2- D3/2 B,/ | B,3 |]\n[V: S2V1]  B,3 G, | G, F, G, A, | G,2 F, D | D D A, A, | A,2 G,2 | (G,2 F,3/2) G,/ | G,3 |]\n[V: S2V2]  B,3 G, | G, F, G, A, | G,2 F, G, | A, G, F, E, | D, C, (B,, C,) | (D,2 D,3/2) G,,/ | G,,3 |]\n"
-  },
-  {
     "id": "joyful-joyful-we-adore-thee",
     "title": "Joyful, Joyful, We Adore Thee",
     "file": "Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
@@ -317,39 +351,5 @@
     "sourceUrl": "https://openhymnal.org/Abc/Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
     "melody": "X:1\nT:Joyful, Joyful, We Adore Thee\nM:4/4\nL:1/64\nK:G\nB16 B16 c16 d16 | d16 c16 B16 A16 | G16 G16 A16 B16 | B24 A8 A32 |\nw: Joy- ful, joy- ful, we a- dore Thee, God of glor- y, Lord of love;\nB16 B16 c16 d16 | d16 c16 B16 A16 | G16 G16 A16 B16 | A24 G8 G32 |\nw: Hearts un- fold like flowers be- fore Thee, o- pening to the sun a- bove.\nA16 A16 B16 G16 | A16 B8c8 B16 G16 | A16 B8c8 B16 A16 | G16 A16 D32 |\nw: Melt the clouds of sin and * sad- ness; drive the * dark of doubt a- way;\nB16 B16 c16 d16 | d16 c16 B16 A16 | G16 G16 A16 B16 | A24 G8 G32 |]\nw: Giv- er of im- mor- tal glad- ness, fill us with the light of day!\n",
     "harmony": "X: 1\nT: Joyful, Joyful, We Adore Thee\nM: 4/4\nL: 1/4\n%%staves (S1V1 S1V2) | (S2V1 S2V2) \nV: S1V1 clef=treble \nV: S1V2 \nV: S2V1 clef=bass \nV: S2V2 \nK: G\n[V: S1V1]  B B c d | d c B A | G G A B | B3/2 A/ A2 |\nw: Joy- ful, joy- ful, we a- dore Thee, God of glor- y, Lord of love; \n[V: S1V2]  D D D D | D E/F/ G D | D D F G | G3/2 F/ F2 |\n[V: S2V1]  G, G, A, B, | B, A, G, F, | G, B, C D | D3/2 D/ D2 |\n[V: S2V2]  G, G, G, G, | D, D, D, C, | B,, B,, A,, G,, | D,3/2 D,/ D,2 |\n[V: S1V1]  B B c d | d c B A | G G A B | A3/2 G/ G2 |\nw: Hearts un- fold like flowers be- fore Thee, o- pening to the sun a- bove. \n[V: S1V2]  G D E =F | =F E D E | D D F G | F3/2 G/ G2 |\n[V: S2V1]  D D C B, | G, A, B, C | B, B, C D | C3/2 B,/ B,2 |\n[V: S2V2]  G, G, G, G, | C, C, C, C, | D, D, D, D, | D,3/2 G,/ G,2 |\n[V: S1V1]  A A B G | A B/c/ B G | A B/c/ B A | G A D2 |\nw: Melt the clouds of sin and * sad- ness; drive the * dark of doubt a- way; \n[V: S1V2]  F D D G | F G/F/ G G | F F F ^D | E/=D/ ^C D2 |\n[V: S2V1]  D F, G, B, | C B,/A,/ G, B, | C B,/A,/ B, B, | B, A,/G,/ F,2 |\n[V: S2V2]  D, D, D, D, | D, D, D, D, | D, D, ^D, B,, | E, A,, D,2 |\n[V: S1V1]  B B c d | d c B A | G G A B | A3/2 G/ G2 |]\nw: Giv- er of im- mor- tal glad- ness, fill us with the light of day! \n[V: S1V2]  D D E =F | =F E D E | D D F G | F3/2 G/ G2 |]\n[V: S2V1]  G, D C B, | G, A, B, C | B, B, C D | C3/2 B,/ B,2 |]\n[V: S2V2]  G, G, G, G, | C, C, C, C, | D, D, D, D, | D,3/2 G,/ G,2 |]\n"
-  },
-  {
-    "id": "in-christ-alone",
-    "title": "In Christ Alone",
-    "file": "in-christ-alone-tab-music.abc",
-    "folder": "in-christ-alone",
-    "source": "tab-music",
-    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/in-christ-alone-music.ily",
-    "key": "D",
-    "meter": "3/4",
-    "credits": [
-      "Words: Keith Getty and Stuart Townend.",
-      "Music: Keith Getty and Stuart Townend.",
-      "copyright: Rights remain with the respective song rights holders. User-supplied practice edition."
-    ],
-    "melody": "X:1\nT:In Christ Alone\nM:3/4\nL:1/64\nK:D\nA8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: In Christ a- lone my hope is found He is my light my strength my\nD'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: song This Cor- ner- stone this so- lid ground Firm through the fierc- est drought and\nD'24 D'8 F'8 A'8 | B'24 B'8 A'8 F'8 | E'24 D'8 D''8 C''8 | B'24 B'8 A'8 F'8 |\nw: storm What heights of love what depths of peace When fears are stilled when striv- ings\nE'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: cease My Com- for- ter my All in All Here in the love of Christ I\nD'48 | D'48 | D'48 | F'48 |\nw: stand Oh- oh- oh-\nD'48 |]\nw: oh\n",
-    "harmony": "X:1\nT:In Christ Alone\nM:3/4\nL:1/64\n%%staves S1 | S2\nV:S1 clef=treble\nV:S2 clef=bass\nK:D\n[V:S1] A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: In Christ a- lone my hope is found He is my light my strength my\n[V:S2] [G,B,D]24 | [D,F,A,]32 [G,B,D]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]16 [A,CE]32 |\n[V:S1] D'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: song This Cor- ner- stone this so- lid ground Firm through the fierc- est drought and\n[V:S2] [D,F,A,]32 [G,B,D]16 | [D,F,A,]32 [G,B,D]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]16 [A,CE]32 |\n[V:S1] D'24 D'8 F'8 A'8 | B'24 B'8 A'8 F'8 | E'24 D'8 D''8 C''8 | B'24 B'8 A'8 F'8 |\nw: storm What heights of love what depths of peace When fears are stilled when striv- ings\n[V:S2] [D,F,A,]32 [D,F,A,]16 | [G,B,D]32 [D,F,A,]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]32 [D,F,A,]16 |\n[V:S1] E'24 A8 B12 D'4 | D'24 A8 B8 D'8 | E'32 F'8 E'4 D'4 | B8 F'8 E'24 D'8 |\nw: cease My Com- for- ter my All in All Here in the love of Christ I\n[V:S2] [A,CE]32 [G,B,D]16 | [D,F,A,]32 [G,B,D]16 | [A,CE]32 [D,F,A,]16 | [G,B,D]16 [A,CE]32 |\n[V:S1] D'48 | D'48 | D'48 | F'48 |\nw: stand Oh- oh- oh-\n[V:S2] [D,F,A,]48 | [D,F,A,]48 | [G,B,D]48 | [B,DF]48 |\n[V:S1] D'48 |]\nw: oh\n[V:S2] [D,F,A,]48 |]\n"
-  },
-  {
-    "id": "ill-fly-away",
-    "title": "I'll Fly Away",
-    "file": "ill-fly-away-tab-music.abc",
-    "folder": "ill-fly-away",
-    "source": "tab-music",
-    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/ill-fly-away-music.ily",
-    "key": "C",
-    "meter": "4/4",
-    "credits": [
-      "Words: Albert E. Brumley.",
-      "Music: Albert E. Brumley.",
-      "copyright: Rights remain with the respective song rights holders. User-supplied practice edition."
-    ],
-    "melody": "X:1\nT:I'll Fly Away\nM:4/4\nL:1/64\nK:C\nE'16 C'16 G16 C'16 | E'8 D'8 E'8 F'8 (E'16 D'16) | C'48 A12 C'4 | G64 |\nw: Some glad morn- ing when this life is o'er, * I'll fly a- way.\nE'16 C'16 G16 C'16 | E'8 E'8 E'8 F'8 (E'16 D'16) | E'48 D'12 C'4 | C'48 z16 |\nw: To a home on God's ce- les- tial shore, * I'll fly a- way.\nG'48 E'12 G'4 | G'16 E'16 D'16 C'16 | C'48 A12 A4 | G48- G16 |\nw: I'll fly a- way, O glo- ry, I'll fly a- way. *\nG16 A16 C'16 C'12 C'4 | E'12 ^D'4 E'12 F'4 E'32 | E'48 D'12 D'4 | !fermata!C'64 |]\nw: When I die, hal- le- lu- jah, by and by, I'll fly a- way.\n",
-    "harmony": "X:1\nT:I'll Fly Away\nM:4/4\nL:1/64\n%%staves S1 | S2\nV:S1 clef=treble\nV:S2 clef=bass\nK:C\n[V:S1] E'16 C'16 G16 C'16 | E'8 D'8 E'8 F'8 (E'16 D'16) | C'48 A12 C'4 | G64 |\nw: Some glad morn- ing when this life is o'er, * I'll fly a- way.\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [F,A,C]64 | [C,E,G,]32 [G,,B,,D,F,]32 |\n[V:S1] E'16 C'16 G16 C'16 | E'8 E'8 E'8 F'8 (E'16 D'16) | E'48 D'12 C'4 | C'48 z16 |\nw: To a home on God's ce- les- tial shore, * I'll fly a- way.\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [C,E,G,]48 [G,,B,,D,F,]16 | [C,E,G,]32 [G,,B,,D,F,]32 |\n[V:S1] G'48 E'12 G'4 | G'16 E'16 D'16 C'16 | C'48 A12 A4 | G48- G16 |\nw: I'll fly a- way, O glo- ry, I'll fly a- way. *\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [F,A,C]64 | [C,E,G,]32 [G,,B,,D,F,]32 |\n[V:S1] G16 A16 C'16 C'12 C'4 | E'12 ^D'4 E'12 F'4 E'32 | E'48 D'12 D'4 | !fermata!C'64 |]\nw: When I die, hal- le- lu- jah, by and by, I'll fly a- way.\n[V:S2] [C,E,G,]64 | [C,E,G,]64 | [C,E,G,]48 [G,,B,,D,F,]16 | [C,E,G,]64 |]\n"
   }
 ]

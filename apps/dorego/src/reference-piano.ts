@@ -1,8 +1,14 @@
 import * as Tone from 'tone';
 import { prepareReferenceNote } from './steinway';
+import { configureChannelMix, type AudioChannels } from './audio-channels';
 
 /** Auditioning is independent of the exercise transport and its pending loads. */
 export class ReferencePiano {
+  private channels: AudioChannels = 'stereo';
+  setAudioChannels(channels: AudioChannels) {
+    this.channels = channels;
+    if (this.bus) configureChannelMix(this.bus.gain, channels);
+  }
   private stops = new Set<() => void>();
   private bus?: { context: AudioContext; gain: GainNode; limiter: DynamicsCompressorNode };
   constructor(
@@ -33,6 +39,7 @@ export class ReferencePiano {
       const gain = context.createGain(),
         limiter = context.createDynamicsCompressor();
       gain.gain.value = this.level();
+      configureChannelMix(gain, this.channels);
       limiter.threshold.value = -1;
       limiter.knee.value = 0;
       limiter.ratio.value = 20;

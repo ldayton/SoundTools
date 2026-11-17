@@ -32,7 +32,11 @@
     "test:layout": "node ../../scripts/test-practice-layout.cjs dorego",
     "test:workspace": "tsx tests/workspace.e2e.ts",
     "test:breathing": "tsx tests/breath-squares.e2e.ts",
-    "test:breath-audio": "tsx tests/breath-audio.e2e.ts"
+    "test:breath-audio": "tsx tests/breath-audio.e2e.ts",
+    "test:channels": "tsx tests/audio-channels.e2e.ts",
+    "prepare:piano-trial": "python3 trials/piano/prepare.py",
+    "trial:piano": "npm run prepare:piano-trial && vite --config trials/piano/vite.config.ts",
+    "test:piano-trial": "tsc -p trials/piano/tsconfig.json && python3 trials/piano/verify.py && TEST_BROWSER=chromium tsx trials/piano/test.ts && TEST_BROWSER=firefox tsx trials/piano/test.ts && TEST_BROWSER=webkit tsx trials/piano/test.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "*",

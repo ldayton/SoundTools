@@ -5,6 +5,7 @@ import * as Tone from 'tone';
 import { secondsAt, type Exercise } from './music';
 import { preloadSteinway, SteinwayGrand } from './steinway';
 import { audioEvents, type AudioEvent } from './audio-timeline';
+import { configureChannelMix, type AudioChannels } from './audio-channels';
 
 export const RELEASE_TAIL = 0.8;
 let playbackContext: AudioContext | undefined;
@@ -18,10 +19,14 @@ function initPlayback() {
     Tone.setContext(context, true);
   }
 }
-function makeGraph(volume: number) {
+function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
   // Catch unusually loud chord sums without changing ordinary piano dynamics.
   const limiter = new Tone.Limiter(-1).toDestination();
-  const output = new Tone.Volume(volume <= -60 ? -Infinity : volume).connect(limiter);
+  const output = new Tone.Volume(volume <= -60 ? -Infinity : volume);
+  const mix = output.context.createGain();
+  configureChannelMix(mix, channels);
+  Tone.connect(output, mix);
+  Tone.connect(mix, limiter);
   const synth = new SteinwayGrand(output);
   const cello = new CelloGlides(output);
   const clicks = new Set<() => void>();
@@ -61,12 +66,14 @@ function makeGraph(volume: number) {
     cello,
     click,
     output,
+    mix,
     dispose() {
       synth.dispose();
       cello.dispose();
       for (const cancel of clicks) cancel();
       clicks.clear();
       output.dispose();
+      mix.disconnect();
       limiter.dispose();
     },
   };
@@ -104,6 +111,11 @@ function prepareLive(exercise: Exercise) {
 }
 export type PlaybackState = 'ready' | 'starting' | 'playing' | 'paused' | 'complete';
 export class Player {
+  private channels: AudioChannels = 'stereo';
+  setAudioChannels(channels: AudioChannels) {
+    this.channels = channels;
+    if (this.graph) configureChannelMix(this.graph.mix, channels);
+  }
   state: PlaybackState = 'ready';
   onStateChange?: (state: PlaybackState, position: number, reason?: PlaybackInterruption) => void;
   private health: PlaybackHealth | null = null;
@@ -113,7 +125,10 @@ export class Player {
       this.interrupt('audio-interrupted');
   };
   private publish(state: PlaybackState, reason?: PlaybackInterruption) {
-    if (typeof window !== 'undefined') window.doregoDiagnostics?.event('audio.state', { audioState: playbackContext?.state || 'unavailable' });
+    if (typeof window !== 'undefined')
+      window.doregoDiagnostics?.event('audio.state', {
+        audioState: playbackContext?.state || 'unavailable',
+      });
     this.state = state;
     this.onStateChange?.(state, this.position, reason);
   }
@@ -150,12 +165,13 @@ export class Player {
       if (token !== this.pending) return false;
       const prepareStarted = performance.now();
       await prepareLive(exercise);
-      if (typeof window !== 'undefined') window.doregoDiagnostics?.metric('samples.prepare_ms', performance.now() - prepareStarted);
+      if (typeof window !== 'undefined')
+        window.doregoDiagnostics?.metric('samples.prepare_ms', performance.now() - prepareStarted);
       if (token !== this.pending) return false;
       if (playbackContext?.state !== 'running')
         throw new Error('Audio is unavailable. Try Resume when the interruption ends.');
       const current = this.exercise!;
-      this.graph = makeGraph(current.spec.volume);
+      this.graph = makeGraph(current.spec.volume, this.channels);
       this.clock = new TempoClock(Tone.now() + 0.05, this.seekBeat, current.spec.bpm);
       this.events = audioEvents(current, secondsAt(this.seekBeat, current.spec.bpm));
       this.cursor = 0;
@@ -223,7 +239,8 @@ export class Player {
       next ? clock.timeAt(Math.max(this.seekBeat, next.onsetBeat)) : Infinity
     );
     if (interruption) {
-      if (typeof window !== 'undefined') window.doregoDiagnostics?.event('audio.interruption', { reason: interruption.reason });
+      if (typeof window !== 'undefined')
+        window.doregoDiagnostics?.event('audio.interruption', { reason: interruption.reason });
       this.interrupt(interruption.reason, interruption.audioTime);
       return;
     }

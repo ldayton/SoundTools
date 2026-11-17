@@ -31,6 +31,7 @@ import { ReferencePiano } from './reference-piano';
 import './style.css';
 import { setupOffline } from './offline';
 import { breathSelected } from './breath-squares';
+import { readAudioChannels, type AudioChannels } from './audio-channels';
 
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
@@ -86,6 +87,11 @@ const reference = new ReferencePiano(spec.volume, (error) => {
   diagnostics.capture(error, 'audio.reference_failed');
   toast(error instanceof Error ? error.message : 'Could not play this note. Try again.');
 });
+function changeAudioChannels(channels: AudioChannels) {
+  player.setAudioChannels(channels);
+  reference.setAudioChannels(channels);
+}
+changeAudioChannels(readAudioChannels());
 mountAppShell($('#app'), {
   shutdown: () => {
     renderFailed = true;
@@ -132,7 +138,7 @@ mountAppShell($('#app'), {
     piano: pianoModel,
     audition: (midi) => reference.press(midi),
   }),
-  settingsView: createElement(SettingsPage),
+  settingsView: createElement(SettingsPage, { onAudioChannelsChange: changeAudioChannels }),
 });
 setupOffline();
 function populate() {

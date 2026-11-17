@@ -1,11 +1,17 @@
-import { useSyncExternalStore } from 'react';
-import { Anchor, Button, Group, Progress, Paper, Stack, Title } from '@mantine/core';
+import { useState, useSyncExternalStore } from 'react';
+import { Anchor, Button, Group, Progress, Paper, Select, Stack, Title } from '@mantine/core';
 import { SettingsSections } from '@ldayton/ui/settings-sections';
 import { OfflineStatusPanel } from '@ldayton/ui/offline-status-panel';
 import { offlineState, offlineActions } from './offline-state';
 import { diagnostics } from './diagnostics';
-export function SettingsPage() {
+import { readAudioChannels, saveAudioChannels, type AudioChannels } from './audio-channels';
+export function SettingsPage({
+  onAudioChannelsChange,
+}: {
+  onAudioChannelsChange(channels: AudioChannels): void;
+}) {
   const offline = useSyncExternalStore(offlineState.subscribe, offlineState.getSnapshot);
+  const [channels, setChannels] = useState(readAudioChannels);
   return (
     <SettingsSections
       consent={{ id: 'share-diagnostics', client: diagnostics }}
@@ -37,6 +43,28 @@ export function SettingsPage() {
         </>
       }
     >
+      <Paper component="section" withBorder p="md" aria-labelledby="audio-title">
+        <Stack gap="sm">
+          <Title order={2} size="h4" id="audio-title">
+            Audio
+          </Title>
+          <Select
+            label="Output"
+            value={channels}
+            allowDeselect={false}
+            data={[
+              { value: 'stereo', label: 'Stereo' },
+              { value: 'mono', label: 'Combined mono' },
+            ]}
+            onChange={(value) => {
+              if (value !== 'stereo' && value !== 'mono') return;
+              setChannels(value);
+              saveAudioChannels(value);
+              onAudioChannelsChange(value);
+            }}
+          />
+        </Stack>
+      </Paper>
       <Paper component="section" withBorder p="md" aria-labelledby="credits-title">
         <Stack gap="sm">
           <Title order={2} size="h4" id="credits-title">

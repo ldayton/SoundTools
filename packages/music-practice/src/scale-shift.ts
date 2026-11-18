@@ -2,7 +2,7 @@ import type { patternPositions } from './guitar-scale-patterns';
 export type ShiftNote = ReturnType<typeof patternPositions>[number];
 export type ShiftDirection = 'ascending' | 'descending';
 export const positionKey = (n: {string:number;fret:number}) => `${n.string}:${n.fret}`;
-export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDirection) {
+export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDirection, allowEndpoint = false) {
   const routes = new Map<string, {notes: ShiftNote[]; previous: ShiftNote; arrival: ShiftNote}>();
   if (!a.some(n => b.some(m => positionKey(n) === positionKey(m)))) return routes;
   const lowerFirst = Math.min(...a.map(n=>n.fret)) < Math.min(...b.map(n=>n.fret));
@@ -17,7 +17,7 @@ export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDire
     const before = unique(source.filter(n=>sign*(n.midi-arrival.midi)<0));
     const after = unique(destination.filter(n=>sign*(n.midi-arrival.midi)>0));
     const previous = before.at(-1);
-    if(!previous || !after.length) continue;
+    if(!previous || (!after.length && !allowEndpoint)) continue;
     const gap = sign*(arrival.midi-previous.midi);
     const stringChange = sign*(previous.string-arrival.string);
     if(gap<1 || gap>2 || stringChange<0 || stringChange>1) continue;
@@ -32,4 +32,31 @@ export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDire
     routes.set(positionKey(arrival), {notes,previous,arrival});
   }
   return routes;
+}
+
+export type ShiftRoute = ReturnType<typeof shiftRoutes> extends Map<string, infer R> ? R : never;
+export type ScaleLoop = { out: ShiftRoute; back: ShiftRoute; returns: Map<string, ShiftRoute> };
+/** Close the chosen run without changing position at either turnaround.
+ * Each leg has one shift. Endpoint shifts are valid because the next leg
+ * continues the scale, instead of requiring another note on the same leg.
+ */
+export function scaleLoopRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDirection, returnKey?: string) {
+  const forward = shiftRoutes(a, b, direction, true);
+  const reverse = shiftRoutes(a, b, direction === 'ascending' ? 'descending' : 'ascending', true);
+  const loops = new Map<string, ScaleLoop>();
+  for (const [key, out] of forward) {
+    const returns = new Map([...reverse].filter(([,back]) =>
+      positionKey(out.notes[0]) === positionKey(back.notes.at(-1)!) &&
+      positionKey(out.notes.at(-1)!) === positionKey(back.notes[0]),
+    ));
+    if (!returns.size) continue;
+    // Prefer the opposite outer string, but keep every valid return selectable.
+    const preferred = out.arrival.string <= 3 ? 6 : 1;
+    const rank = (r: ShiftRoute) => Math.abs(r.arrival.string-preferred)*1000 +
+      (r.notes.length-1-r.notes.indexOf(r.arrival))*10 +
+      Math.abs(r.arrival.fret-r.previous.fret);
+    const suggested = [...returns.values()].sort((x,y)=>rank(x)-rank(y))[0];
+    loops.set(key, { out, back: returns.get(returnKey || '') || suggested, returns });
+  }
+  return loops;
 }

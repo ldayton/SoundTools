@@ -23,13 +23,13 @@ try {
  await page.goto('http://127.0.0.1:4362/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
  await page.locator('.scale-shared').first().waitFor();
  assert.equal(await page.locator('.scale-finger-alternate').count(), 9);
- const pivot = page.locator('.scale-tone[data-string="4"][data-fret="7"]');
+ const pivot = page.locator('.scale-tone[data-string="4"][data-fret="7"]').first();
  await pivot.click();
  assert.equal(await page.locator('.scale-shift-marker').count(), 1);
  assert.equal(await page.locator('.scale-shared').count(), 0);
  assert.equal(await page.locator('.scale-finger-alternate').count(), 0);
  const pivotMidi = Number(await pivot.getAttribute('data-midi'));
- for (const note of await page.locator('.scale-route').all()) {
+ for (const note of await page.locator('.scale-loop-panel').first().locator('.scale-route').all()) {
    const midi = Number(await note.getAttribute('data-midi'));
    assert.ok((await note.getAttribute('class'))!.includes(midi < pivotMidi ? 'scale-secondary' : 'scale-primary'));
  }

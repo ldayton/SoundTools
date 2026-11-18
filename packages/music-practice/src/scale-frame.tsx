@@ -10,6 +10,8 @@ export const scaleBodyState = () =>
     shiftSelected: false,
     direction: "ascending",
     shiftMessage: "",
+    loopLeg: "out",
+    returnEditing: false,
     linkedLegend: "",
     linkHelp: "",
     notes: "",
@@ -25,12 +27,16 @@ export function ScaleFrame({
   navigation,
   changeDirection,
   clearShift,
+  showLeg,
+  editReturn,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
   navigation: ReactNode;
   changeDirection(): void;
   clearShift(): void;
+  showLeg(leg: "out" | "back"): void;
+  editReturn(): void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   return (
@@ -77,7 +83,9 @@ export function ScaleFrame({
       </div>
       {s.shiftMode && <div className="scale-shift-controls">
         <Button className="scale-direction-toggle" variant="default" size="xs" onClick={changeDirection}>{s.direction === "ascending" ? "Ascending ↑" : "Descending ↓"}</Button>
-        <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>
+        <div className="scale-shift-status scale-loop-controls">
+          {s.shiftSelected ? <Button size="xs" variant="subtle" aria-pressed={s.returnEditing} onClick={editReturn}>{s.returnEditing ? "Done choosing return" : "Change return shift"}</Button> : <Text size="sm" role="status">{s.shiftMessage}</Text>}
+        </div>
         <Button className="scale-clear-shift" variant="subtle" size="xs" onClick={clearShift} disabled={!s.shiftSelected}>Clear shift</Button>
       </div>}
       <div className="scale-diagram" />

@@ -1,0 +1,37 @@
+import {chromium,firefox,webkit} from 'playwright';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {preview} from '../../../packages/music-practice/browser-tests/server';
+const server=await preview('notewise',Number(process.env.TEST_PORT || 4484));
+const engine=process.env.TEST_BROWSER || 'chromium';
+const fixed=await mkdtemp(join(tmpdir(),'notewise-loop-'));
+const browser=await ({chromium,firefox,webkit}[engine as 'chromium'|'firefox'|'webkit']).launch({env:{...process.env,CFFIXED_USER_HOME:fixed}});
+try {
+ const page=await browser.newPage({viewport:{width:1440,height:1050},serviceWorkers:'block'});
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(server.base+'/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
+ await page.locator('.scale-shift-candidate').first().waitFor();
+ assert.equal(await page.locator('.scale-loop-panel').count(),0);
+ await page.locator('.scale-tone[data-string="1"][data-fret="10"]').click();
+ const out=page.getByRole('region',{name:'Outward leg',exact:true});
+ const back=page.getByRole('region',{name:'Return leg',exact:true});
+ assert.ok(await out.isVisible());assert.ok(await back.isVisible());
+ assert.equal(await page.locator('.scale-loop-turn').count(),2);
+ assert.equal(await out.locator('.scale-route.scale-secondary[data-string="2"]').count(),3);
+ assert.equal(await back.locator('.scale-route.scale-primary[data-string="2"]').count(),2);
+ assert.equal(await back.locator('.scale-tone[data-string="6"][data-fret="5"] text').textContent(),'1');
+ await page.getByRole('button',{name:'Change return shift',exact:true}).click();
+ await back.locator('.scale-tone[data-string="6"][data-fret="8"]').click();
+ assert.ok((await back.locator('.scale-loop-turn title').textContent() || '').includes('fret 8'));
+ assert.ok((await out.locator('.scale-loop-turn title').textContent() || '').includes('fret 10'));
+ await page.setViewportSize({width:390,height:844});
+ assert.ok(await out.isVisible());assert.ok(await back.isVisible());
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.getByRole('button',{name:'Clear shift',exact:true}).click();
+ assert.equal(await page.locator('.scale-loop-panel').count(),0);
+ assert.equal(await page.locator('.scale-finger-alternate').count(),9);
+ assert.deepEqual(errors,[]);
+ console.log('PASS: both loop legs visible, independent fingerings and colors, editable return, clear, mobile width');
+} finally {await browser.close();server.stop();await rm(fixed,{recursive:true,force:true}).catch(()=>{});}

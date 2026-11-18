@@ -57,14 +57,14 @@ export function ScaleNavigation({
       >
         {state.keys[0]?.label}
       </Button>
-      <Text
+      {state.caption && <Text
         size="xs"
         className="scale-pattern-caption"
         role="status"
         ta="center"
       >
         {state.caption}
-      </Text>
+      </Text>}
       <Button
         variant="default"
         size="xs"

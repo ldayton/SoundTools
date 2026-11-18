@@ -396,7 +396,7 @@ export class ScaleExplorer implements LivePractice {
       relative: label,
       returning: !!this.returnPosition,
       movable,
-      caption: linked ? `Shapes ${this.pattern} + ${this.linked} · frets ${firstFret}–${lastFret}` : caption,
+      caption: linked ? "" : caption,
       keys,
     });
     const renderLeg = (leg: "out" | "back") => {

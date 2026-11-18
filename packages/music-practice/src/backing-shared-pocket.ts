@@ -1,3 +1,4 @@
+import { genreChord, BACKING_GENRES } from "./backing-genres";
 import type { BackingTake } from "./backing-plan-types";
 /** A deterministic ensemble pocket follows the approved drummer; no extra notes. */
 import type { BackingEvent } from "./backing-track-model";
@@ -11,7 +12,7 @@ const median = (a: number[]) => {
 };
 export function sharedBackingPocket(take: Take, tempo: number) {
   const spb = 60 / tempo,
-    grid = take.plan.style === "blues" ? 3 : 2;
+    grid = BACKING_GENRES[take.plan.style].rhythm.subdivision;
   const drums = take.events.filter((e) => e.part === "drums");
   // Recover placement around the existing subdivision grid, never quantize or
   // move the drummer. Exclude tom/fill strokes from the shared pulse estimate.
@@ -62,7 +63,9 @@ export function sharedBackingPocket(take: Take, tempo: number) {
       : nominal + 0.8 * phaseAt(nominal) + 0.006 / spb;
     shifts.set(e, clamp((desired - e.beat) * spb, -0.018, 0.018) / spb);
   }
-  const guitar = take.events.filter((e) => e.part === "guitar"),
+  const guitar = take.events.filter(
+      (e) => e.part === "guitar" || e.part === "keys",
+    ),
     groups: BackingEvent[][] = [];
   for (const e of guitar) {
     const prev = groups.at(-1);
@@ -96,28 +99,33 @@ export function sharedBackingPocket(take: Take, tempo: number) {
   // voices or extend a pitch through a foreign chord. Never lengthen a note.
   for (let i = 0; i < events.length; i++) {
     const e = events[i];
-    if (e.part !== "bass" && e.part !== "guitar") continue;
+    if (e.part !== "bass" && e.part !== "guitar" && e.part !== "keys") continue;
     const next = events
       .slice(i + 1)
       .find(
         (n) =>
-          n.part === e.part && (e.part === "bass" || n.string === e.string),
+          n.part === e.part &&
+          (e.part === "bass" || e.part === "keys"
+            ? n.note === e.note || e.part === "bass"
+            : n.string === e.string),
       );
     let end = Math.min(
       e.beat + e.duration,
       take.beats - 0.03 / spb,
       next ? next.beat - 0.012 / spb : Infinity,
     );
-    if (e.part === "guitar")
+    if (e.part === "guitar" || e.part === "keys")
       for (let bar = Math.floor(e.beat / 4) + 1; bar * 4 < end; bar++) {
         const c = take.plan.bars[bar];
-        if (
-          ![
-            c.root,
-            (c.root + (c.minor ? 3 : 4)) % 12,
-            (c.root + 7) % 12,
-          ].includes(e.note % 12)
-        ) {
+        const color = genreChord(take.plan.style, take.quality, bar).seventh;
+        const pitches = [
+          c.root,
+          (c.root + (c.minor ? 3 : 4)) % 12,
+          (c.root + 7) % 12,
+        ];
+        if (e.part === "keys" && color !== undefined)
+          pitches.push((c.root + color) % 12);
+        if (!pitches.includes(e.note % 12)) {
           end = bar * 4 - 0.04 / spb;
           break;
         }

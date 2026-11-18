@@ -78,7 +78,9 @@ try {
       .getAttribute("data-backing-quality"),
     "major",
   );
-  await backing.getByRole("button", { name: "Country", exact: true }).click();
+  await backing
+    .getByRole("combobox", { name: "Backing style", exact: true })
+    .selectOption("country");
   await backing
     .getByRole("button", { name: "Play backing track", exact: true })
     .click();

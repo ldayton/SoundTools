@@ -1,4 +1,5 @@
-import { backingGenres } from "./backing-genres";
+import { NativeSelect } from "@mantine/core";
+import { backingGenres, backingGenre } from "./backing-genres";
 import { useState, useSyncExternalStore } from "react";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import type { BackingTrackPlayer } from "./backing-track-audio";
@@ -40,21 +41,29 @@ export function BackingTrackSettings({
         </span>
       </header>
       <div className="backing-track-body">
-        <fieldset className="backing-track-style">
-          <legend>Style</legend>
-          <div role="group" aria-label="Backing style">
-            {backingGenres.map(({ id: style, label }) => (
-              <button
-                key={style}
-                type="button"
-                aria-pressed={state.style === style}
-                onClick={() => player.setStyle(style)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <NativeSelect
+          className="backing-track-genre"
+          label="Style"
+          aria-label="Backing style"
+          value={state.style}
+          data={backingGenres.map(({ id, label }) => ({ value: id, label }))}
+          onChange={(event) =>
+            player.setStyle(backingGenre(event.currentTarget.value).id)
+          }
+          styles={{
+            input: {
+              fontSize:
+                "var(--practice-control-font-size, var(--mantine-font-size-sm))",
+            },
+            label: {
+              fontSize:
+                "var(--practice-control-font-size, var(--mantine-font-size-sm))",
+              color: "var(--backing-muted)",
+              fontWeight: 500,
+              marginBottom: 7,
+            },
+          }}
+        />
         <fieldset className="backing-track-style">
           <legend>Feel</legend>
           <div role="group" aria-label="Backing feel">

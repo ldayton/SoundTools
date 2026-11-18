@@ -59,7 +59,9 @@ try {
     "key is inherited, never duplicated",
   );
   assert.equal(await group.locator("[data-backing-key]").textContent(), "A");
-  await group.getByRole("button", { name: "Rock", exact: true }).click();
+  await group
+    .getByRole("combobox", { name: "Backing style", exact: true })
+    .selectOption("rock");
   await group
     .getByRole("spinbutton", { name: "Backing tempo in beats per minute" })
     .fill("180");
@@ -121,8 +123,12 @@ try {
   await group
     .getByRole("spinbutton", { name: "Backing tempo in beats per minute" })
     .press("Enter");
-  await group.getByRole("button", { name: "Blues", exact: true }).click();
-  await group.getByRole("button", { name: "Rock", exact: true }).click();
+  await group
+    .getByRole("combobox", { name: "Backing style", exact: true })
+    .selectOption("blues");
+  await group
+    .getByRole("combobox", { name: "Backing style", exact: true })
+    .selectOption("rock");
   // At 180 BPM, the complete 64-bar groove lasts 85⅓ seconds. Verify real wraparound.
   const loopStart = await page.evaluate(() =>
     Math.max(...(window as any).backingStarts.map((s: any) => s.time)),
@@ -150,9 +156,9 @@ try {
   await openPracticeOptions(page);
   assert.equal(
     await group
-      .getByRole("button", { name: "Rock", exact: true })
-      .getAttribute("aria-pressed"),
-    "true",
+      .getByRole("combobox", { name: "Backing style", exact: true })
+      .inputValue(),
+    "rock",
   );
   assert.equal(
     await group

@@ -1,3 +1,5 @@
+import { warmBackingArrangement } from "./backing-warm-arrangement";
+import { grooveArrangement } from "./backing-groove-arrangement";
 /** One entry point: musical definition -> strategy -> approved ensemble playback. */
 import { BACKING_GENRES } from "./backing-genres";
 import { plannedBackingArrangement } from "./backing-musical-plan";
@@ -22,8 +24,20 @@ export function genreBackingArrangement(
     case "two-step":
       plan = countryArrangement(mode, quality, cycle, tempo, tonic);
       break;
+    case "one-drop":
+    case "syncopated-funk":
+      if (style !== "reggae" && style !== "funk")
+        throw Error("Unsupported generated genre");
+      plan = grooveArrangement(style, mode, quality, cycle, tempo, tonic);
+      break;
+    case "soul-pocket":
+    case "gentle-folk":
+      if (style !== "soul" && style !== "folk")
+        throw Error("Unsupported warm genre");
+      plan = warmBackingArrangement(style, mode, quality, cycle, tempo, tonic);
+      break;
     case "recorded-story":
-      if (style === "country")
+      if (style !== "blues" && style !== "rock")
         throw Error("Country requires a generated groove strategy");
       plan = plannedBackingArrangement(
         style,

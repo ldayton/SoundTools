@@ -28,6 +28,7 @@ export function backingChokes(
     return next >= 0 && previous > next;
   }
   if (event.part === "bass") return true;
+  if (event.part === "keys") return event.note === voice.note;
   if (event.part === "guitar")
     return event.string !== undefined
       ? event.string === voice.string
@@ -92,9 +93,15 @@ export function backingAudioGraph(
   lowpass.type = "lowpass";
   lowpass.frequency.value = 5500;
   room.connect(highpass).connect(lowpass).connect(output);
-  for (const part of ["drums", "percussion", "bass", "guitar"] as const) {
+  for (const part of [
+    "drums",
+    "percussion",
+    "bass",
+    "guitar",
+    "keys",
+  ] as const) {
     const bus = context.createGain();
-    bus.gain.value = levels[part];
+    bus.gain.value = levels[part] ?? levels.guitar;
     const comp = context.createDynamicsCompressor();
     comp.threshold.value = part === "bass" ? -26 : -22;
     comp.knee.value = 8;
@@ -108,6 +115,7 @@ export function backingAudioGraph(
       percussion: 0.08,
       bass: 0.012,
       guitar: 0.18,
+      keys: 0.14,
     }[part];
     comp.connect(send).connect(room);
     buses.set(part, bus);
@@ -121,7 +129,11 @@ export async function compactBackingBuffer(
   part: BackingPart,
 ) {
   const rate =
-    part === "bass" ? 16000 : part === "guitar" ? 24000 : buffer.sampleRate;
+    part === "bass"
+      ? 16000
+      : part === "guitar" || part === "keys"
+        ? 24000
+        : buffer.sampleRate;
   if (buffer.sampleRate <= rate) return buffer;
   const offline = new OfflineAudioContext(
     buffer.numberOfChannels,

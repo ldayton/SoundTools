@@ -3,14 +3,24 @@ import { chromium, firefox, webkit } from "playwright";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createServer, type AddressInfo } from "node:net";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 const vite = createRequire(import.meta.url)
   .resolve("vite/package.json")
   .replace(/package\.json$/, "bin/vite.js");
+const reservation = createServer();
+await new Promise<void>((resolve) =>
+  reservation.listen(0, "127.0.0.1", resolve),
+);
+const port = (reservation.address() as AddressInfo).port;
+await new Promise<void>((resolve, reject) =>
+  reservation.close((error) => (error ? reject(error) : resolve())),
+);
+const base = `http://127.0.0.1:${port}`;
 const server = spawn(
   process.execPath,
-  [vite, "--host", "127.0.0.1", "--port", "4390", "--strictPort"],
+  [vite, "--host", "127.0.0.1", "--port", String(port), "--strictPort"],
   { cwd: new URL("..", import.meta.url), stdio: "ignore" },
 );
 const engine = process.env.TEST_BROWSER || "chromium";
@@ -19,7 +29,7 @@ let browser;
 try {
   for (let i = 0; i < 100; i++) {
     try {
-      if ((await fetch("http://127.0.0.1:4390")).ok) break;
+      if ((await fetch(base)).ok) break;
     } catch {}
     await new Promise((r) => setTimeout(r, 100));
   }
@@ -49,7 +59,7 @@ try {
       return connect.apply(this, args);
     } as typeof AudioNode.prototype.connect;
   });
-  await page.goto("http://127.0.0.1:4390/guitar/scales?key=A&scale=minor");
+  await page.goto(base + "/guitar/scales?key=A&scale=minor");
   const backing = page.getByRole("region", {
     name: "Backing track",
     exact: true,

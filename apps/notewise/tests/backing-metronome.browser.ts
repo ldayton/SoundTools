@@ -279,10 +279,10 @@ try {
         "backing-track-model.ts",
       )
     );
-    const { backingArrangement } = await import(
+    const { practiceBackingArrangement } = await import(
       /* @vite-ignore */ moduleUrl.replace(
         "backing-track-audio.ts",
-        "backing-arrangement.ts",
+        "backing-phrasing.ts",
       )
     );
     const { backingAudioGraph } = await import(
@@ -295,7 +295,13 @@ try {
     const seams: number[] = [];
     for (const style of ["blues", "rock"])
       for (const mode of ["steady", "active"]) {
-        const pattern = backingArrangement(style, mode, "major"),
+        const pattern = practiceBackingArrangement(
+            style,
+            mode,
+            "major",
+            0,
+            style === "blues" ? 90 : 104,
+          ),
           tempo = pattern.nativeTempo;
         const offline = new OfflineAudioContext(
           2,

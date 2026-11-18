@@ -1,7 +1,7 @@
 // Exercise real browser redirects as well as ordinary external subresources.
 const assert = require('node:assert/strict');
 const http = require('node:http');
-const { launchBrowser, createContext, closeBrowser } = require('../../scripts/ci/browser-harness.cjs');
+const { launchBrowser, createContext, newPage, closeBrowser } = require('../../scripts/ci/browser-harness.cjs');
 const { authorizeStagedContext } = require('../../scripts/ci/smoke-browser.cjs');
 const { stagedRequest } = require('../../scripts/ci/release.cjs');
 let browser;
@@ -33,5 +33,9 @@ const listen = server => new Promise(resolve => server.listen(0, '127.0.0.1', re
   const before = observed.filter(r => r.external).length;
   await assert.rejects(stagedRequest(origin, bypass)(origin + '/redirect'));
   assert.equal(observed.filter(r => r.external).length, before);
+  const owned = await newPage(browser);
+  const released = owned.context().waitForEvent('close');
+  await owned.close(); await released;
+  assert(!browser.contexts().includes(owned.context()), 'Closing a helper-owned page releases its context and trace buffers');
   console.log('PASS: staging credentials stay on their exact origin, including across real browser and HTTP redirects');
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => { await closeBrowser(browser); stage.closeAllConnections(); external.closeAllConnections(); stage.close(); external.close(); });

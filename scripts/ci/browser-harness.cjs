@@ -43,8 +43,17 @@ async function createContext(browser, options = {}, { trace = process.env.CI_TRA
   return context;
 }
 const createOfflineContext = (browser, options = {}, capture) => createContext(browser, { serviceWorkers: 'allow', ...options }, capture);
-async function newPage(browser, options = {}) { return (await createContext(browser, options)).newPage(); }
-async function newOfflinePage(browser, options = {}) { return (await createOfflineContext(browser, options)).newPage(); }
+async function ownedPage(context) {
+  try {
+    const page = await context.newPage();
+    // Match browser.newPage(): callers closing the page also release its private
+    // context and trace buffers, including in large catalog/layout loops.
+    page.once('close', () => { void context.close().catch(() => {}); });
+    return page;
+  } catch (error) { await context.close(); throw error; }
+}
+async function newPage(browser, options = {}) { return ownedPage(await createContext(browser, options)); }
+async function newOfflinePage(browser, options = {}) { return ownedPage(await createOfflineContext(browser, options)); }
 async function captureFailure(browser, error, destination) {
   const name = path.basename(process.argv[1] || 'browser').replace(/[^a-zA-Z0-9_.-]/g, '-');
   const directory = destination || path.resolve(process.env.CI_ARTIFACTS || 'work/browser-results', `${name}-${browserName()}-${randomUUID().slice(0, 8)}`);

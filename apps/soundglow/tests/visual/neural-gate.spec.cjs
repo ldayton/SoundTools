@@ -7,6 +7,14 @@ async function setup(page){
  });
 }
 test('optional neural worker loads off the pitch worker and produces real speech evidence',async({page})=>{
+ // Test worker lifecycle independently of the real-time inference deadline.
+ // Re-enabling replays a second of history, which can exceed 80ms on shared CI.
+ // The dedicated deadline-fallback test below retains the production timeout.
+ await page.route('**/neural-client.js',async route=>{
+  const response=await route.fetch(),source=await response.text();
+  expect(source).toContain('timeoutMs=80');
+  await route.fulfill({response,body:source.replace('timeoutMs=80','timeoutMs=2000')});
+ });
  await setup(page);const first=await page.evaluate(()=>window.neuralRequest(true));expect(first.neuralStatus).toBe('loading');expect(first.decisions).toHaveLength(10);
  let ready;for(let i=0;i<150;i++){await page.waitForTimeout(100);const r=await page.evaluate(()=>window.neuralRequest(true));if(r.neuralStatus==='unavailable')throw Error('Neural engine unavailable: '+r.neuralError);if(r.neuralActive){ready=r;break;}}
  expect(ready).toBeTruthy();expect(ready.neuralDecisions.length).toBeGreaterThan(0);expect(ready.neuralDecisions.every(f=>Number.isFinite(f.probability)&&f.probability>=0&&f.probability<=1)).toBe(true);

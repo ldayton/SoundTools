@@ -63,7 +63,8 @@ try {
       .evaluate((e) => getComputedStyle(e).fill),
     "rgb(176, 101, 62)",
   );
-  await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
+  // This phase uses real time; runFor would install fake timers mid-connection.
+  await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
     .waitFor({ state: "attached" });

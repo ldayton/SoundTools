@@ -42,6 +42,7 @@ export class RhythmPractice {
   });
   readonly midiSlot: HTMLElement;
   private active = false;
+  get syncIdle() { return !["playing", "countin"].includes(this.state); }
   private controls = rhythmControlsState({
     phase: "ready",
     response: "",

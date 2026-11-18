@@ -431,6 +431,7 @@ declare global {
     SoundglowShell: ReturnType<typeof mountApplicationShell>;
     SoundglowDiagnostics?: {
       capture(error: unknown, context: string): void;
+      event?(code: string): void;
       subscribe(listener: () => void): () => void;
       getState(): { sharing: boolean };
       setSharing(value: boolean): Promise<unknown>;

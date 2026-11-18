@@ -57,6 +57,9 @@
         await this.transaction(['files','blobs'],tx=>{tx.objectStore('files').add(meta);tx.objectStore('blobs').put({...manifest,complete:true},meta.id);});
       }catch(error){if(staged)await this.remove(meta.id).catch(()=>{});throw error;}
     }
+    fingerprint(id, fingerprint) {
+      return this.transaction(['files'],tx=>{const store=tx.objectStore('files'),get=store.get(id);get.onsuccess=()=>{if(get.result)store.put({...get.result,fingerprint});else tx.abort();};});
+    }
     bookmarks() { return this.transaction(['bookmarks'], tx => tx.objectStore('bookmarks').getAll(), 'readonly'); }
     addBookmark(bookmark) {
       return this.transaction(['files', 'bookmarks'], tx => {
@@ -102,8 +105,8 @@
       });
       this.controls=window.SoundglowShell.fileControls;
       this.controls.connect({play:()=>void this.toggle(),restart:()=>this.seek(this.loop?.start||0),back:()=>this.seek(this.position-5),forward:()=>this.seek(this.position+5),zoom:factor=>this.zoom(factor),showAll:()=>{if(this.current)this.setView(0,this.current.duration)},
-       rate:value=>{const position=this.position;this.media.playbackRate=value;if(this.playback.active)void this.restartPlayback(position);else host.discontinuity(position);this.draw()},
-       volume:value=>{this.media.volume=value;this.playback.volume(value);this.draw()},
+       rate:value=>{const position=this.position;this.media.playbackRate=value;this.persistPlayback();if(this.playback.active)void this.restartPlayback(position);else host.discontinuity(position);this.draw()},
+       volume:value=>{this.media.volume=value;this.playback.volume(value);this.persistPlayback();this.draw()},
        loop:enabled=>{this.loopEnabled=enabled;this.draw();void this.restartPlayback()}
       });
       this.media.addEventListener('timeupdate', () => { this.draw(); this.savePosition(); });
@@ -122,6 +125,7 @@
       this.overview.addEventListener('keydown', e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();this.setView(this.viewStart+(e.key==='ArrowLeft'?-1:1)*this.viewSpan*.1,this.viewSpan);}});
       this.desktop.addEventListener('change',()=>{if(!this.desktop.matches){this.pause();this.host.unavailable?.();}else if(this.current&&this.host.canRestore()){this.lastView='';this.$('fileTransport').hidden=false;this.draw();}});
       setInterval(()=>{if(this.playback.active){this.draw();this.savePosition();}},100);
+      try{const saved=JSON.parse(localStorage.getItem('soundglow-playback-v1')||'null');if(saved&&Number.isFinite(saved.volume)&&saved.volume>=0&&saved.volume<=1&&[.5,.75,1,1.25,1.5].includes(saved.speed)){this.media.volume=saved.volume;this.media.playbackRate=saved.speed;this.playback.volume(saved.volume)}}catch{}
       this.ready = this.initialize();
     }
     get position(){return this.playback.active?this.playback.position:this.media.currentTime;}
@@ -131,6 +135,21 @@
     async initialize() {
       try { this.store = await AudioLibraryStore.open();await this.store.pruneStaged(); this.files = (await this.store.list()).sort((a, b) => a.addedAt - b.addedAt); this.bookmarks = (await this.store.bookmarks()).filter(b => this.validBookmark(b)).sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0)); this.renderList(); const selected = await this.store.preference(); if (this.files.some(f => f.id === selected) && this.desktop.matches && this.host.canRestore()) await this.select(selected); }
       catch { window.SoundglowDiagnostics?.event('files.storage_failed'); this.message('Device storage is unavailable. Audio files could not be saved.'); this.feedback.publish({storageAvailable:false});window.SoundglowShell.transport.publish({filesAvailable:false}); }
+    }
+    bookmarkFile(bookmark){return bookmark?.file?this.files.find(f=>f.fingerprint===bookmark.file.fingerprint):this.files.find(f=>f.id===bookmark?.fileId);}
+    fileReference(file){return {fingerprint:file.fingerprint,name:file.name,duration:file.duration,bytes:file.bytes};}
+    async ensureFingerprint(file){if(/^sha256-tree-v1:[a-f0-9]{64}$/.test(file.fingerprint))return;const blob=await this.store.get(file.id);const fingerprint=await window.SoundglowAccount.fingerprint(blob);await this.store.fingerprint(file.id,fingerprint);file.fingerprint=fingerprint;}
+    async prepareAccountBookmarks(){for(const b of this.bookmarks){const file=this.bookmarkFile(b);if(file)try{await this.ensureFingerprint(file)}catch{this.message('Some bookmarks could not be synced because their audio is unavailable on this device.');window.SoundglowDiagnostics?.event('files.fingerprint_failed');}}}
+    async matchAccountBookmarks(bookmarks){
+      const sizes=new Set(bookmarks.map(b=>b.file.bytes));
+      for(const file of this.files)if(!file.fingerprint&&sizes.has(file.bytes))try{await this.ensureFingerprint(file)}catch{window.SoundglowDiagnostics?.event('files.fingerprint_failed');}
+    }
+    accountBookmarks(){return this.bookmarks.flatMap(b=>{const file=this.bookmarkFile(b);if(!b.file&&!file?.fingerprint)return [];const {fileId,...rest}=b;return [{...rest,file:b.file||this.fileReference(file)}];});}
+    accountPlayback(){return {volume:this.media.volume,speed:this.media.playbackRate};}
+    persistPlayback(){if(window.SoundglowAccount?.save())return;try{localStorage.setItem('soundglow-playback-v1',JSON.stringify(this.accountPlayback()))}catch{this.message('Could not save playback settings.');}}
+    applyAccount(playback,bookmarks){this.accountEpoch=(this.accountEpoch||0)+1;this.cancelBookmark();this.actions.patch({menu:null,dialogOpen:false});this.media.volume=playback.volume;this.media.playbackRate=playback.speed;this.playback.volume(playback.volume);this.bookmarks=structuredClone(bookmarks).filter(b=>window.SoundglowAccount.active||this.bookmarkFile(b)).map(b=>({...b,fileId:this.bookmarkFile(b)?.id}));this.renderBookmarks();this.draw();
+      const epoch=this.accountEpoch;
+      this.accountMatching=this.matchAccountBookmarks(bookmarks).finally(()=>{if(epoch===this.accountEpoch){this.accountMatching=null;this.renderBookmarks();}});
     }
     metadata(blob) {
       return new Promise((resolve, reject) => {
@@ -151,7 +170,8 @@
           this.message(`Saving ${saved + failed + 1} of ${files.length}…`);
           if (!file.size || !(file.type.startsWith('audio/') || /\.(wav|mp3|m4a|aac|ogg|opus|flac|webm|aif|aiff)$/i.test(file.name))) throw Error('Choose an audio file.');
           const duration = await this.metadata(file);
-          const meta = { id: crypto.randomUUID(), name: file.name, type: file.type, bytes: file.size, duration, position: 0, addedAt: Date.now() };
+          const fingerprint=await window.SoundglowAccount.fingerprint(file);
+          const meta = { fingerprint, id: crypto.randomUUID(), name: file.name, type: file.type, bytes: file.size, duration, position: 0, addedAt: Date.now() };
           await this.store.add(meta, file.slice(0,file.size,file.type)); window.SoundglowDiagnostics?.event('files.saved'); this.files.push(meta); first ||= meta.id; saved++;
         } catch (e) { failed++; this.message(e?.name === 'QuotaExceededError' ? 'Device storage is full. Remove a recording to make room.' : e?.message || 'Could not save this audio file.'); }
       }
@@ -161,7 +181,7 @@
     libraryItem(kind,id) {
       const item = (kind === 'file' ? this.files : this.bookmarks).find(item => item.id === id);
       if (!item) return null;
-      const count = this.bookmarks.filter(b => b.fileId === id).length;
+      const count = window.SoundglowAccount?.active?0:this.bookmarks.filter(b => b.fileId === id).length;
       return {...item, maxNameLength: kind === 'file' ? 255 : 80,
         deleteDescription: kind === 'file'
           ? `Delete “${item.name}” from this browser?${count ? ` Its ${count} bookmark${count === 1 ? '' : 's'} will also be deleted.` : ''} The original file on your computer is kept.`
@@ -170,7 +190,8 @@
     async renameItem(kind,id,name) {
       const item = (kind === 'file' ? this.files : this.bookmarks).find(item => item.id === id);
       if (!item) throw Error('Item no longer exists');
-      await this.store.rename(kind,id,name); item.name = name;
+      if(kind==='bookmark'&&window.SoundglowAccount?.active){item.name=name;window.SoundglowAccount.save();}
+      else{await this.store.rename(kind,id,name);item.name=name;}
       if (this.current?.id === id && kind === 'file') this.feedback.publish({fileTitle:name});
       this.renderList();
     }
@@ -186,7 +207,7 @@
       this.feedback.publish({empty:!this.files.length});
     }
     validBookmark(bookmark) {
-      const file = this.files.find(f => f.id === bookmark?.fileId), selection = bookmark?.selection;
+      const file = this.bookmarkFile(bookmark), selection = bookmark?.selection;
       return !!(file && typeof bookmark.id === 'string' && typeof bookmark.name === 'string' && bookmark.name.trim()
         && selection && [selection.start, selection.end, bookmark.viewStart, bookmark.viewSpan].every(Number.isFinite)
         && selection.start >= 0 && selection.end > selection.start && selection.end <= file.duration
@@ -197,9 +218,9 @@
       const rows = [];
       this.feedback.publish({bookmarks:!!this.bookmarks.length});
       for (const bookmark of this.bookmarks) {
-        const file = this.files.find(f => f.id === bookmark.fileId); if (!file) continue;
+        const file = this.bookmarkFile(bookmark);
         const range = `${formatPreciseTime(bookmark.selection.start)}–${formatPreciseTime(bookmark.selection.end)}`;
-        rows.push({kind: 'bookmark', id: bookmark.id, name: bookmark.name, detail: range, title: `${bookmark.name}\n${file.name}\n${range}`});
+        rows.push({kind: 'bookmark', id: bookmark.id, name: bookmark.name, detail: file?range:"Import audio to open", title: `${bookmark.name}\n${file?.name||bookmark.file?.name||"Audio not on this device"}\n${range}`});
       }
       this.actions.renderList('bookmark', rows);
     }
@@ -212,21 +233,30 @@
     async saveBookmark(inputName) {
       if(!this.current||!this.loop||this.loading||this.savingBookmark)return;
       const name=inputName.trim();if(!name||name.length>80){this.message('Enter a bookmark name of at most 80 characters.');return;}
-      const editEpoch=this.bookmarkEditEpoch;
+      const editEpoch=this.bookmarkEditEpoch,accountEpoch=this.accountEpoch||0;
       const bookmark={id:crypto.randomUUID(),fileId:this.current.id,name,selection:{...this.loop},viewStart:this.viewStart,viewSpan:this.viewSpan,feature:this.$('pitchTab').getAttribute('aria-selected')==='true'?'pitch':'spectrogram',speed:this.media.playbackRate,addedAt:Date.now()};
       this.savingBookmark=true;this.selectionUI.publish({busy:true});
-      try{await this.store.addBookmark(bookmark);if(this.files.some(f=>f.id===bookmark.fileId)){this.bookmarks.push(bookmark);this.renderBookmarks()}
+      try{
+        const file=this.files.find(f=>f.id===bookmark.fileId);if(!file)throw Error('File removed');
+        if(window.SoundglowAccount?.active){await this.ensureFingerprint(file);if(accountEpoch!==(this.accountEpoch||0))return;bookmark.file=this.fileReference(file);this.bookmarks.push(bookmark);window.SoundglowAccount.save();}
+        else {await this.store.addBookmark(bookmark);if(this.files.some(f=>f.id===bookmark.fileId))this.bookmarks.push(bookmark);}
+        this.renderBookmarks();
         if(editEpoch===this.bookmarkEditEpoch&&this.current?.id===bookmark.fileId)this.cancelBookmark();this.message('Bookmark saved.');
       }catch{this.message('Could not save the bookmark. Please retry.')}
       finally{this.savingBookmark=false;this.selectionUI.publish({busy:false})}
     }
     async openBookmark(id) {
       const bookmark = this.bookmarks.find(b => b.id === id);
-      if (!this.desktop.matches || !this.validBookmark(bookmark)) return;
-      await this.select(bookmark.fileId, bookmark);
+      if (!this.desktop.matches || !bookmark) return;
+      const epoch=this.accountEpoch;
+      await this.accountMatching;
+      if(epoch!==this.accountEpoch)return;
+      const file=this.bookmarkFile(bookmark);
+      if(!file){this.message('Import “'+(bookmark.file?.name||'the audio file')+'” on this device to open this bookmark.');return;}
+      if(this.validBookmark(bookmark))await this.select(file.id,bookmark);
     }
     async removeBookmark(id) {
-      try { await this.store.removeBookmark(id); this.bookmarks = this.bookmarks.filter(b => b.id !== id); this.renderBookmarks(); return true; }
+      try { if(!window.SoundglowAccount?.active)await this.store.removeBookmark(id); this.bookmarks = this.bookmarks.filter(b => b.id !== id);window.SoundglowAccount?.save(); this.renderBookmarks(); return true; }
       catch { this.message('Could not remove the bookmark. Please retry.'); return false; }
     }
     async select(id, bookmark = null) {
@@ -318,7 +348,7 @@
         this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);
         this.url = null; this.current = null; this.$('fileTransport').hidden = true; this.loading = false;
       }
-      this.files = this.files.filter(f => f.id !== id); this.bookmarks = this.bookmarks.filter(b => b.fileId !== id); this.renderList();
+      this.files = this.files.filter(f => f.id !== id); if(!window.SoundglowAccount?.active)this.bookmarks = this.bookmarks.filter(b => b.fileId !== id); this.renderList();
       if (active) { if (this.files[0]) await this.select(this.files[0].id); else await this.store.preference(''); }
       return true;
     }

@@ -41,6 +41,9 @@ import { MetronomeSettings } from "./metronome-settings";
 import { BackingTrackSettings } from "./backing-track-settings";
 
 export class ScaleExplorer implements LivePractice {
+  get syncIdle() {
+    return !["playing", "loading"].includes(this.backing.model.getSnapshot().status);
+  }
   private disposeView: () => void;
   private body = scaleBodyState();
   private backing = new BackingTrackPlayer();

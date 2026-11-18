@@ -486,6 +486,7 @@ function savedPresetStatus(text,storageFailed=false){
  if(text&&!presetUI.isOpen())presetToastTimer=setTimeout(()=>presetUI.hideToast(),6000);
 }
 function persistPresets(presets=savedPresets,selected=settingsState.selected){
+ if(window.SoundglowAccount?.save())return true;
  try{localStorage.setItem(presetStorageKey,JSON.stringify({version:1,presets,selected}));return true}
  catch{savedPresetStatus('Could not save presets in this browser. Allow local storage and try again.',true);return false}
 }
@@ -530,7 +531,7 @@ function updateSettings(event){
   }
   closePresetEditor();
  }
- settingsState=result.state;renderSettingsControls();applySettingsEffects(result);if(filePreview&&result.effects.includes('analysis'))queueMicrotask(()=>{if(filePreview)requestFileView(filePreview);});
+ settingsState=result.state;renderSettingsControls();applySettingsEffects(result);persistCurrentSettings();if(filePreview&&result.effects.includes('analysis'))queueMicrotask(()=>{if(filePreview)requestFileView(filePreview);});
 }
 function applyPreset(id){
  const settings=settingsForPreset(id);if(settings)updateSettings({type:'apply',selected:id,values:settings});else renderSettingsControls();
@@ -571,7 +572,22 @@ function deleteSavedPreset(){
 presetUI.connect({choose(id){applyPreset(id);closePresetEditor();savedPresetStatus('');persistPresets()},open:openPresetEditor,save:commitPresetName,remove:deleteSavedPreset,cancel:cancelPresetEditor,dismiss(){savedPresetStatus('')}});
 spectrogramControls.connect((id,value)=>updateSettings({type:'edit',id,value}));
 renderSavedPresets();
-if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
+const currentSettingsKey='soundglow-settings-v1';
+function persistCurrentSettings(){
+ if(window.SoundglowAccount?.save())return;
+ try{localStorage.setItem(currentSettingsKey,JSON.stringify({version:1,...settingsState}))}catch{savedPresetStatus('Could not save display settings on this device.',true)}
+}
+let restoredSettings;try{const stored=JSON.parse(localStorage.getItem(currentSettingsKey)||'null');if(stored?.version===1)restoredSettings=SettingsState.create(stored.values,stored.selected)}catch{}
+if(restoredSettings){settingsState=restoredSettings;renderSettingsControls();applySettingsEffects({changed:SettingsState.ids,effects:['analysis']});}
+else if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
+window.soundglowSession.accountSpectrogram={
+ read:()=>({values:{...settingsState.values},selected:settingsState.selected,presets:structuredClone(savedPresets)}),
+ apply(snapshot){savedPresets=structuredClone(snapshot.presets);closePresetEditor();const result=SettingsState.transition(settingsState,{type:'apply',values:snapshot.values,selected:snapshot.selected});settingsState=result.state;renderSettingsControls();applySettingsEffects(result);},
+};
+window.soundglowSession.accountLibrary=()=>fileLibrary;
+window.soundglowSession.accountPause=()=>{fileLibrary?.pause();if(running&&!paused)void togglePause();};
+window.soundglowSession.accountIdle=()=>!starting&&(!running||paused)&&!fileLibrary?.importing&&!fileLibrary?.loading&&!fileLibrary?.savingBookmark&&!fileLibrary?.drag;
+
 
 function performanceReport(){return performanceSession.report({userAgent:navigator.userAgent,workspace:window.soundglowSession?.featureState?.(),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},canvas:{width:canvas.width,height:canvas.height},sampleRate:audio?.sampleRate,source:inputMode,analysisDelayMs:analysisDelay*1000,settings:currentPresetSettings(),preset:selectedPresetLabel(),visibility:document.visibilityState,build:document.querySelector('meta[name="soundglow-release"]')?.content||'local-source',retention:{spectraBytes:spectrumHistory.bytes,pcmBytes:engine?.rawBytes||0},appliedAnalysis:committedAnalysisValues,updatingAnalysis:!!engine?.rebuild,health:{...processingStats}})}
 window.soundglowPerformance={report:performanceReport,reset:()=>performanceSession.reset()};

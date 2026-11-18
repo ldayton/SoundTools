@@ -13,7 +13,7 @@ const MIME = {
   '.m4a': 'audio/mp4', '.mp3': 'audio/mpeg', '.wav': 'audio/wav',
   '.flac': 'audio/flac', '.ogg': 'audio/ogg', '.webm': 'audio/webm',
 };
-function createDevServer({ root = ROOT, beforeRequest } = {}) {
+function createDevServer({ root = ROOT, beforeRequest, login } = {}) {
   root = path.resolve(root);
   return http.createServer(async (request, response) => {
     // Deliberately omit validators and ignore conditional requests so even an
@@ -22,6 +22,9 @@ function createDevServer({ root = ROOT, beforeRequest } = {}) {
     response.setHeader('Pragma', 'no-cache');
     response.setHeader('Expires', '0');
     response.setHeader('X-Content-Type-Options', 'nosniff');
+    const pathname=new URL(request.url,'http://localhost').pathname;
+    if(pathname==='/api/account/login'&&login){await login(request,response);return;}
+    if(pathname==='/auth/confirm')response.setHeader('Referrer-Policy','no-referrer');
     if (!['GET', 'HEAD'].includes(request.method)) {
       response.setHeader('Allow', 'GET, HEAD'); response.writeHead(405).end(); return;
     }
@@ -30,7 +33,7 @@ function createDevServer({ root = ROOT, beforeRequest } = {}) {
       // Each HTML load gets a new asset namespace, including URLs resolved by
       // workers, worklets and fetch(). This also escapes pre-existing HTTP cache
       // entries whose old server headers cannot be changed retroactively.
-      const name = requested.replace(/^\/__dev\/[a-f0-9]{16}\//, '/');
+      const name = requested==='/auth/confirm'?'/dist/index.html':requested.replace(/^\/__dev\/[a-f0-9]{16}\//, '/');
       if (beforeRequest && (name === '/' || name.endsWith('.html') || name.startsWith('/dist/ui/'))) await beforeRequest();
       if (name === '/') { response.writeHead(302, { Location: '/dist/index.html' }).end(); return; }
       let file = path.resolve(root, '.' + name);
@@ -69,7 +72,10 @@ if (require.main === module) {
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('Choose a port from 1 to 65535');
   async function start() {
   const ui = await require('./dev-ui.cjs').watchUi();
-  const server = createDevServer({ beforeRequest: ui.ready });
+  const {tsImport}=await import('tsx/esm/api');
+  const {loginHandler}=await tsImport('@ldayton/account/server',__filename);
+  const {loadEnv}=await import('vite');
+  const server = createDevServer({ beforeRequest: ui.ready, login:loginHandler({...loadEnv('production',ROOT,''),...process.env}) });
   server.on('close', () => { void ui.close(); });
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { server.close(); server.closeAllConnections(); });
   server.on('error', error => { console.error(error.message); process.exitCode = 1; void ui.close(); });

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 const { env } = JSON.parse(
@@ -51,6 +52,10 @@ for (const client of [anon, unapproved]) {
   assert(result.error || result.data.length === 0);
 }
 const app = "notewise";
+// This local contract test owns a disposable app namespace. Browser tests now
+// exercise all four apps, so repeated suite runs must not depend on an empty DB.
+for (const table of ["public.account_apps", "private.account_operations"])
+  execFileSync("supabase", ["db", "query", `delete from ${table} where app = 'notewise';`], {stdio:"ignore"});
 const device = crypto.randomUUID();
 let result = await owner.rpc("account_initialize", {
   p_app: app,

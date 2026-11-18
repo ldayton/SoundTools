@@ -105,3 +105,13 @@ test('the development command works from the repository root and closes its UI w
   assert.equal(script.status,200);assert((await script.text()).length>1000);
  } finally {child.kill('SIGTERM');await exited;}
 });
+
+test('account POST reaches the shared handler and confirmation loads fresh app assets from the correct base', async()=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'soundglow-login-'));await fs.mkdir(path.join(root,'dist'));
+ await fs.writeFile(path.join(root,'dist/index.html'),'<head></head><script src="ui/soundglow-ui.js"></script>');
+ const server=createDevServer({root,login:async(req,res)=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify({method:req.method}));}}),origin=await listen(server);
+ try{
+  const posted=await fetch(origin+'/api/account/login',{method:'POST',body:'{}'});assert.deepEqual(await posted.json(),{method:'POST'});uncached(posted);
+  const callback=await fetch(origin+'/auth/confirm');assert.equal(callback.status,200);assert.equal(callback.headers.get('referrer-policy'),'no-referrer');uncached(callback);assert.match(await callback.text(),/<base href="\/__dev\/[a-f0-9]{16}\/dist\/">/);
+ }finally{await close(server);await fs.rm(root,{recursive:true,force:true});}
+});

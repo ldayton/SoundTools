@@ -179,3 +179,32 @@ test("teardown disposes cached activities once and rejects a late lazy controlle
   assert.equal(log.includes("late:enter"), false);
   assert.equal(log.filter((value) => value === "cards:enter").length, 1);
 });
+
+test("account snapshot reset disposes pending controllers and cannot cache a controller against the previous snapshot", async () => {
+  const old = deferred<PracticeActivity>();
+  const log: string[] = [];
+  let loads = 0;
+  const host = new ActivityHost({
+    load() {
+      return ++loads === 1 ? old.promise : activity(log, "new");
+    },
+    changed() {},
+    missing() {},
+    failed(error) {
+      throw error;
+    },
+  });
+  const stale = host.activate(route("/piano/patterns"));
+  host.reset();
+  await host.activate(route("/piano/patterns"));
+  old.resolve({
+    ...activity(log, "old"),
+    dispose: () => log.push("old:dispose"),
+  });
+  await stale;
+  await host.activate(route("/piano/patterns"));
+  assert.equal(loads, 2);
+  assert(log.includes("old:dispose"));
+  assert(!log.includes("old:enter"));
+  assert.equal(log.filter((s) => s === "new:enter").length, 2);
+});

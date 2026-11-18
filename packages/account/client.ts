@@ -1,3 +1,4 @@
+import { consumeAccountLink } from "./link";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { AccountStore } from "./store";
 import { SyncEngine, changes, type Cloud } from "./sync";
@@ -32,11 +33,7 @@ const env =
   (import.meta as ImportMeta & { env?: Record<string, string> }).env ?? {};
 // Fragments never reach Vercel logs. Strip before diagnostics or app routing can
 // observe them, and redeem only after a human presses the confirmation button.
-let linkToken: string | null = null;
-if (typeof location !== "undefined" && location.pathname === "/auth/confirm") {
-  linkToken = new URLSearchParams(location.hash.slice(1)).get("token_hash");
-  history.replaceState(null, "", "/");
-}
+let linkToken = consumeAccountLink();
 export class Account {
   private snapshot: AccountSnapshot = {
     status: "guest",
@@ -443,6 +440,10 @@ export class Account {
     await this.engine?.resolve(key, choice);
     await this.apply(true);
     await this.sync();
+  }
+  /** Opaque replica identity, for bounded per-device cumulative counters. */
+  get device() {
+    return this.engine?.state.device;
   }
   async signOut() {
     await this.writes;

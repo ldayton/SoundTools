@@ -1,9 +1,8 @@
 # Accounts and cloud data
 
-DoReGo and SongAlong use `@ldayton/account` for email login, IndexedDB caching,
+All four apps use `@ldayton/account` for email login, IndexedDB caching,
 revision-checked synchronization and account status. `@ldayton/ui/account-menu`
-provides their shared Mantine dialog and navigation item. NoteWise and Soundglow
-can adopt the same mechanism by supplying an app adapter; their data is not yet synced.
+provides their shared Mantine dialog and navigation item. App adapters select and validate only the data that belongs in the cloud.
 
 ## Ownership and privacy
 
@@ -49,7 +48,7 @@ For each Vercel project configure:
 
 Allowlist each exact `/auth/confirm` URL in Supabase Auth and serve that path as
 `index.html` with `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
-Production uses `https://dorego.lilydayton.me` and `https://songalong.lilydayton.me`.
+Production uses `https://<app>.lilydayton.me` for dorego, notewise, songalong and soundglow.
 The previous `*-soundtools.vercel.app` origins remain explicitly allowed. The
 callback stays on the origin that requested the email; no request body controls
 it. Supabase allows each exact callback on both domains. Configuring variables
@@ -87,6 +86,13 @@ Unavailable device storage is reported explicitly; keep the page open to recover
 an unsaved in-memory draft. Account schema versions prevent older clients
 rewriting data they do not understand.
 
+## App data
+
+- **NoteWise:** exercise settings, per-exercise checkpoints and lifetime practice totals. Attempts/correct answers use bounded, cumulative contributions per card and replica, so practising the same card offline on two devices adds both sets of attempts. The latest review supplies scheduling metadata. Divergent round checkpoints remain explicit conflicts; lifetime totals are independent of the choice.
+- **Soundglow:** spectrogram/pitch settings, custom presets, playback volume/speed and bookmarks. Related values within each feature stay atomic to retain valid ranges/preset identity. Microphone selection, permissions, diagnostic consent, raw audio, recordings, analysis buffers, waveform peaks and file-library playback positions stay local. File renames affect that device’s library only. A bookmark independently includes a file name, size, duration and a content fingerprint, plus its selection/view/feature/speed. Its **audio is never uploaded**. Importing identical bytes on another desktop reconnects the bookmark even if the filename changes. Missing audio is shown with an import notice. Deleting a local file leaves account bookmark references available on other devices; deleting the bookmark itself syncs its removal.
+
+Soundglow fingerprints fixed 1 MiB chunks locally and hashes their digests with the file size. The versioned content identity uses bounded memory and avoids reading a large recording into one buffer. Existing bookmarked files receive fingerprints locally before initial import. Guest bookmarks/settings remain separate from the signed-in replica.
+
 ## Local tests
 
 Install Supabase CLI 3.2.0. A native runtime works on macOS without Docker:
@@ -101,7 +107,7 @@ npm run test:accounts
 The setup creates only `owner@soundtools.test` in the local stack and captures
 emails in Mailpit. Generated keys/configuration go under ignored `work/`; never
 use the local bootstrap against a hosted project. Browser tests reset only the
-local DoReGo/SongAlong test records. They use the iPhone 14 Pro and 13-inch MacBook
+local records for all four apps. They use the iPhone 14 Pro and 13-inch MacBook
 Air profiles and mute browser audio. Run each browser sequentially because they
 share disposable local account data:
 

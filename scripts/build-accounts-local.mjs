@@ -9,12 +9,20 @@ const env = {
     ),
   ),
 };
-for (const app of ["dorego", "songalong"]) {
+for (const app of ["dorego", "songalong", "notewise", "soundglow"]) {
   await new Promise((resolve, reject) => {
-    const child = spawn("npm", ["run", "build", "--workspace=" + app], {
-      stdio: "inherit",
-      env,
-    });
+    const child = spawn(
+      "npm",
+      [
+        "run",
+        app === "soundglow" ? "prepare:shared" : "build",
+        "--workspace=" + app,
+      ],
+      {
+        stdio: "inherit",
+        env,
+      },
+    );
     child.on("exit", (code) =>
       code === 0 ? resolve() : reject(Error(app + " build failed")),
     );

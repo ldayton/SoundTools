@@ -39,6 +39,7 @@ export class IntervalPatterns {
   });
   readonly midiSlot: HTMLElement;
   private active = false;
+  get syncIdle() { return this.paused || this.position === 0 || !!this.session?.complete; }
   private paused = false;
   private advanceTimer = 0;
   private position = 0;

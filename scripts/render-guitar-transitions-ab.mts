@@ -116,6 +116,7 @@ try {
                 true,
                 true,
                 variant === "B",
+                false,
               );
               p.setKey(9, "A", quality);
               p.setStyle(style);

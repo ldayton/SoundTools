@@ -1,3 +1,4 @@
+import { sharedBackingPocket } from "./backing-shared-pocket";
 import { connectBackingGuitar } from "./backing-guitar-transitions";
 import drumPack from "./assets/backing-drum-v3/manifest.json";
 import {
@@ -134,6 +135,11 @@ export class BackingTrackPlayer {
           take as ReturnType<typeof plannedBackingArrangement>,
           state.tempo,
         );
+      if (this.sharedPocket)
+        take = sharedBackingPocket(
+          take as ReturnType<typeof plannedBackingArrangement>,
+          state.tempo,
+        );
       this.takeCache.set(this.cycle, take);
       // Retain the current and previous take only; long practice stays bounded.
       for (const cycle of this.takeCache.keys())
@@ -170,6 +176,7 @@ export class BackingTrackPlayer {
     private experimental = true,
     private drumArticulations = experimental,
     private guitarTransitions = experimental,
+    private sharedPocket = guitarTransitions,
   ) {
     document.addEventListener("visibilitychange", this.hidden);
     window.addEventListener("pagehide", this.departing);

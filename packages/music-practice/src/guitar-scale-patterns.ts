@@ -157,7 +157,42 @@ const minorPentatonic = pentatonic(minor);
 minorPentatonic["3"].fingers = [[1,3],[1,3],[1,3],[1,4],[1,4],[1,3]];
 const majorPentatonic = pentatonic(major);
 majorPentatonic["2"] = minorPentatonic["3"];
-const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic };
+// Add the shared E-flat blue note to each C-major/A-minor pentatonic box.
+// Retain existing fingers, including the position changes in the third minor box.
+function blues(source: Record<ScaleShape, Fingering>) {
+  return Object.fromEntries(SCALE_SHAPES.map(shape => {
+    const box = source[shape];
+    const low = Math.min(...box.frets.flat()), high = Math.max(...box.frets.flat());
+    const frets = box.frets.map((row,index) => [...new Set([...row,
+      ...Array.from({length: high-low+1},(_,i)=>low+i).filter(fret =>
+        (STRINGS.find(s=>s.number===6-index)!.midi+fret)%12===3)
+    ])].sort((a,b)=>a-b));
+    // Include every blue-note octave inside the run, even when it sits just
+    // outside the pentatonic box (for example B-string fret 16 in box 4).
+    const midi = box.frets.flatMap((row,index)=>row.map(fret=>STRINGS.find(s=>s.number===6-index)!.midi+fret));
+    for (let pitch=Math.min(...midi); pitch<=Math.max(...midi); pitch++) {
+      if (pitch%12!==3 || frets.some((row,index)=>row.some(fret=>STRINGS.find(s=>s.number===6-index)!.midi+fret===pitch))) continue;
+      const candidates = box.frets.map((row,index)=>{
+        const fret=pitch-STRINGS.find(s=>s.number===6-index)!.midi;
+        const distance=Math.max(row[0]-fret, fret-row.at(-1)!, 0);
+        return {index,fret,distance};
+      }).filter(c=>c.fret>=low-1 && c.fret<=high+1).sort((a,b)=>a.distance-b.distance);
+      const candidate=candidates[0];
+      if (!candidate) throw Error("Missing blue-note position");
+      frets[candidate.index].push(candidate.fret);
+      frets[candidate.index].sort((a,b)=>a-b);
+    }
+    const fingers = frets.map((row,index)=>row.map(fret=>{
+      if (row[0] < box.frets[index][0] || row.at(-1)! > box.frets[index].at(-1)!)
+        return Math.max(1, Math.min(4, fret-row[0]+1));
+      const original = box.frets[index].indexOf(fret);
+      return original >= 0 ? box.fingers[index][original] :
+        Math.max(1, Math.min(4, box.fingers[index][0]+fret-box.frets[index][0]));
+    }));
+    return [shape,{frets,fingers}];
+  })) as Record<ScaleShape,Fingering>;
+}
+const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic, "major-blues": blues(majorPentatonic), "minor-blues": blues(minorPentatonic) };
 export function patternBounds(
   shape: ScaleShape,
   quality: ScaleQuality = "major",

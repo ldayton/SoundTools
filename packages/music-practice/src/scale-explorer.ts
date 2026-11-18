@@ -372,7 +372,9 @@ export class ScaleExplorer implements LivePractice {
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger"
         : "Darker dots mark the root notes.";
-    const source = `https://guitarscale.org/${this.quality.endsWith("pentatonic") ? (isMajorScale(this.quality) ? "c-pentatonic-major" : "a-pentatonic-minor") : (isMajorScale(this.quality) ? "c-major" : "a-minor")}.html`;
+    const source = this.quality === "major-blues"
+      ? "https://pulse.berklee.edu/scales/c-major-blues-scale.html"
+      : `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : this.quality.endsWith("pentatonic") ? (isMajorScale(this.quality) ? "c-pentatonic-major" : "a-pentatonic-minor") : (isMajorScale(this.quality) ? "c-major" : "a-minor")}.html`;
     const keys = [-1, 1].map((direction) => {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],

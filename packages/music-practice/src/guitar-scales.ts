@@ -1,15 +1,15 @@
 import { STRINGS } from "./guitar";
 
-export const SCALE_QUALITIES = ["major", "minor", "major-pentatonic", "minor-pentatonic"] as const;
+export const SCALE_QUALITIES = ["major", "minor", "major-pentatonic", "minor-pentatonic", "major-blues", "minor-blues"] as const;
 export type ScaleQuality = typeof SCALE_QUALITIES[number];
 export const isMajorScale = (quality: ScaleQuality) => quality.startsWith("major");
-export const scaleQualityLabel = (quality: ScaleQuality) => ({ major: "major", minor: "natural minor", "major-pentatonic": "major pentatonic", "minor-pentatonic": "minor pentatonic" })[quality];
+export const scaleQualityLabel = (quality: ScaleQuality) => ({ major: "major", minor: "natural minor", "major-pentatonic": "major pentatonic", "minor-pentatonic": "minor pentatonic", "major-blues": "major blues", "minor-blues": "minor blues" })[quality];
 // Each pitch class uses its usual diatonic key spelling for that scale family.
 const diatonicTonics = {
   major: ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
   minor: ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
 } as const;
-export const SCALE_TONICS = { ...diatonicTonics, "major-pentatonic": diatonicTonics.major, "minor-pentatonic": diatonicTonics.minor };
+export const SCALE_TONICS = { ...diatonicTonics, "major-pentatonic": diatonicTonics.major, "minor-pentatonic": diatonicTonics.minor, "major-blues": diatonicTonics.major, "minor-blues": diatonicTonics.minor };
 export type ScaleSelection = {
   tonic: number;
   quality: ScaleQuality;
@@ -46,9 +46,10 @@ export function scaleNotes(
   const first = letters.indexOf((spelling || SCALE_TONICS[quality][tonic])[0]);
   const intervals =
     isMajorScale(quality) ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
-  const degrees = quality === "major-pentatonic" ? [0, 1, 2, 4, 5] : quality === "minor-pentatonic" ? [0, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6];
-  return degrees.map((degree) => {
-    const interval = intervals[degree];
+  const degrees = isMajorScale(quality) && quality !== "major" ? [0, 1, 2, 4, 5] : !isMajorScale(quality) && quality !== "minor" ? [0, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6];
+  const entries = degrees.map(degree => ({degree, interval: intervals[degree]}));
+  if (quality.endsWith("blues")) entries.push({ degree: isMajorScale(quality) ? 2 : 4, interval: isMajorScale(quality) ? 3 : 6 });
+  return entries.sort((a,b)=>a.interval-b.interval).map(({degree, interval}) => {
     const letter = (first + degree) % 7;
     const pitchClass = (tonic + interval) % 12;
     const accidental = ((pitchClass - natural[letter] + 18) % 12) - 6;
@@ -71,7 +72,7 @@ export function relativeScale(
 ): ScaleSelection {
   const major = isMajorScale(quality);
   const note = scaleNotes(tonic, quality, spelling).find(n => n.degree === (major ? 6 : 3))!;
-  const target: ScaleQuality = quality.endsWith("pentatonic") ? (major ? "minor-pentatonic" : "major-pentatonic") : (major ? "minor" : "major");
+  const target: ScaleQuality = quality.endsWith("blues") ? (major ? "minor-blues" : "major-blues") : quality.endsWith("pentatonic") ? (major ? "minor-pentatonic" : "major-pentatonic") : (major ? "minor" : "major");
   return {
     tonic: note.pitchClass,
     quality: target,

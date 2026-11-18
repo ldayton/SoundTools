@@ -3,9 +3,10 @@ export type ShiftNote = ReturnType<typeof patternPositions>[number];
 export type ShiftDirection = 'ascending' | 'descending';
 export const positionKey = (n: {string:number;fret:number}) => `${n.string}:${n.fret}`;
 export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDirection, allowEndpoint = false) {
-  const degrees = [...new Set([...a, ...b].map(n => n.degree))].sort((x,y)=>x-y);
-  const nextDegree = (degree: number) => degrees[(degrees.indexOf(degree)+1)%degrees.length];
-  const maxGap = degrees.length === 5 ? 3 : 2;
+  // Pitch classes distinguish both the blue note and its unaltered degree.
+  const pitches = [...new Set([...a,...b].map(n=>n.pitchClass))].sort((x,y)=>x-y);
+  const nextPitch = (pitch: number) => pitches[(pitches.indexOf(pitch)+1)%pitches.length];
+  const maxGap = Math.max(...pitches.map((pitch,i)=>(pitches[(i+1)%pitches.length]-pitch+12)%12));
   const routes = new Map<string, {notes: ShiftNote[]; previous: ShiftNote; arrival: ShiftNote}>();
   if (!a.some(n => b.some(m => positionKey(n) === positionKey(m)))) return routes;
   const lowerFirst = Math.min(...a.map(n=>n.fret)) < Math.min(...b.map(n=>n.fret));
@@ -24,13 +25,13 @@ export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDire
     const gap = sign*(arrival.midi-previous.midi);
     const stringChange = sign*(previous.string-arrival.string);
     if(gap<1 || gap>maxGap || stringChange<0 || stringChange>1) continue;
-    if(sign===1 ? nextDegree(previous.degree)!==arrival.degree : nextDegree(arrival.degree)!==previous.degree) continue;
+    if(sign===1 ? nextPitch(previous.pitchClass)!==arrival.pitchClass : nextPitch(arrival.pitchClass)!==previous.pitchClass) continue;
     const notes = [...before, arrival, ...after];
     if (notes.some((n,i) => {
       if (!i) return false;
       const previous = notes[i-1];
       const gap = sign*(n.midi-previous.midi);
-      return gap<1 || gap>maxGap || (sign===1 ? nextDegree(previous.degree)!==n.degree : nextDegree(n.degree)!==previous.degree);
+      return gap<1 || gap>maxGap || (sign===1 ? nextPitch(previous.pitchClass)!==n.pitchClass : nextPitch(n.pitchClass)!==previous.pitchClass);
     })) continue;
     routes.set(positionKey(arrival), {notes,previous,arrival});
   }

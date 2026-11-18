@@ -1,7 +1,7 @@
 import { APP_ROUTE_ROOTS } from "../src/exercise-catalog";
 import { workerSource } from "@ldayton/browser-offline";
-// Match the shared shell ceiling used by DoReGo; sample libraries can exceed 256 files.
-export const MAX_OFFLINE_FILES = 1024;
+// Bound manifest size while allowing multi-articulation backing sample libraries.
+export const MAX_OFFLINE_FILES = 4096;
 export function offlineWorker(config: {
   app?: "notewise" | "songalong";
   base: string;

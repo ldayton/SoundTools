@@ -31,6 +31,7 @@ function validate(count: number, patch?: (pack: Pack) => void) {
 
 test("generated worker accepts backing sample libraries above 256 files within the shared shell limit", () => {
   assert.equal(validate(321), true);
+  assert.equal(validate(1400), true);
   assert.equal(validate(MAX_OFFLINE_FILES), true);
   assert.equal(validate(MAX_OFFLINE_FILES + 1), false);
 });

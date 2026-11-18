@@ -88,7 +88,7 @@
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   class AudioLibrary {
     constructor(host) {
-      this.desktop = matchMedia('(min-width:761px) and (pointer:fine)'); this.host = host; this.files = []; this.bookmarks = []; this.current = null; this.epoch = 0; this.importing = false; this.loop = null; this.loopEnabled=false; this.viewStart = 0; this.viewSpan = 0; this.drag = null; this.lastSaved = -1; this.pendingSave = Promise.resolve(); this.url = null; this.connected = false; this.loading = false; this.wantPlay = false; this.playTask = null; this.loadAbort = null;
+      this.desktop = matchMedia('(min-width:761px) and (pointer:fine)'); this.host = host; this.files = []; this.bookmarks = []; this.current = null; this.epoch = 0; this.selectionIntent = 0; this.importing = false; this.loop = null; this.loopEnabled=false; this.viewStart = 0; this.viewSpan = 0; this.drag = null; this.lastSaved = -1; this.pendingSave = Promise.resolve(); this.url = null; this.connected = false; this.loading = false; this.wantPlay = false; this.playTask = null; this.loadAbort = null;
       this.media = document.createElement('audio'); this.media.preload = 'metadata'; this.media.preservesPitch = true; this.reader=new SoundglowFileAudio.FileAudioReader();this.revision=0;
       this.playback=new SoundglowFileAudio.PassagePlayer(()=>host.context(),this.reader,(position,error)=>{this.wantPlay=false;this.finishedRange=error?null:{fileId:this.current?.id,start:this.playback.start,end:this.playback.end};this.position=position;host.paused(true);if(error)this.message('This passage could not be decoded. Try a different format.');this.draw();this.savePosition(true);});
       const $ = id => document.getElementById(id); this.$ = $;
@@ -248,9 +248,10 @@
     async openBookmark(id) {
       const bookmark = this.bookmarks.find(b => b.id === id);
       if (!this.desktop.matches || !bookmark) return;
-      const epoch=this.accountEpoch;
+      // Invalidate delayed bookmark matching when a newer selection is requested.
+      const epoch=this.accountEpoch,intent=++this.selectionIntent;
       await this.accountMatching;
-      if(epoch!==this.accountEpoch)return;
+      if(epoch!==this.accountEpoch||intent!==this.selectionIntent)return;
       const file=this.bookmarkFile(bookmark);
       if(!file){this.message('Import “'+(bookmark.file?.name||'the audio file')+'” on this device to open this bookmark.');return;}
       if(this.validBookmark(bookmark))await this.select(file.id,bookmark);
@@ -262,6 +263,7 @@
     async select(id, bookmark = null) {
       if (!this.desktop.matches || !this.store) return;
       const file = this.files.find(f => f.id === id); if (!file) return;
+      this.selectionIntent++;
       this.cancelBookmark(); this.finishedRange = null;
       const epoch = ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
       this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);

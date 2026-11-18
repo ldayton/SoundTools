@@ -94,7 +94,8 @@ test('manual settings reproduce the Voice Tools preset and survive as a named pr
 
 test('legacy named presets retain their settings and acquire compatible analysis defaults',async({page})=>{
  await page.goto('/dist/index.html');
- await page.evaluate(()=>{const settings={...AnalysisSettings.presets.praat,formants:'off',formantCeiling:'5500'};for(const key of Object.keys(AnalysisSettings.defaults))delete settings[key];settings.maximum='3500';settings.window='0.04';localStorage.setItem('soundglow-presets-v1',JSON.stringify({version:1,selected:'saved-legacy',presets:[{id:'saved-legacy',name:'Old settings',settings}]}))});
+ // Simulate a device from before current-settings snapshots were introduced.
+ await page.evaluate(()=>{localStorage.removeItem('soundglow-settings-v1');const settings={...AnalysisSettings.presets.praat,formants:'off',formantCeiling:'5500'};for(const key of Object.keys(AnalysisSettings.defaults))delete settings[key];settings.maximum='3500';settings.window='0.04';localStorage.setItem('soundglow-presets-v1',JSON.stringify({version:1,selected:'saved-legacy',presets:[{id:'saved-legacy',name:'Old settings',settings}]}))});
  await page.reload();await expect(page.locator('#preset')).toHaveValue('saved-legacy');await expect(page.locator('#maximum')).toHaveValue('3500');await expect(page.locator('#window')).toHaveValue('0.04');await expect(page.locator('#windowShape')).toHaveValue('gaussian');await expect(page.locator('#analysisRate')).toHaveValue('0');
 });
 

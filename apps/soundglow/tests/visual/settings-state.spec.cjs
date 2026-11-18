@@ -46,6 +46,8 @@ test('editing a named custom preset keeps identity through save, rename, navigat
 test('stored numeric spellings normalize across state, controls, catalogue, edits and reload',async({page})=>{
  await page.goto('/dist/index.html');
  await page.evaluate(()=>{
+  // This fixture represents a legacy device without a current-settings snapshot.
+  localStorage.removeItem('soundglow-settings-v1');
   const settings={...SettingsState.defaults,gain:'1e1',history:' 6.0 ',compression:'0.30000000000000004',preemphasis:'0.0000005'};
   localStorage.setItem('soundglow-presets-v1',JSON.stringify({version:1,selected:'saved-numeric',presets:[{id:'saved-numeric',name:'Numeric test',settings}]}));
  });
@@ -58,4 +60,14 @@ test('stored numeric spellings normalize across state, controls, catalogue, edit
  // Apply/edit actions also normalize before rendering, not just storage loading.
  await page.evaluate(()=>updateSettings({type:'edit',id:'compression',value:'0.6000000000000001'}));
  await consistent(page);await expect(page.locator('#compression')).toHaveValue('0.6');
+});
+
+test('a saved current-settings snapshot takes precedence over the older preset selection',async({page})=>{
+ await page.goto('/dist/index.html#settings');
+ await setSetting(page,'gain','10');
+ await page.evaluate(()=>localStorage.setItem('soundglow-presets-v1',JSON.stringify({version:1,selected:'saved-old',presets:[{id:'saved-old',name:'Older selection',settings:{...SettingsState.defaults,gain:'3'}}]})));
+ await page.reload();await consistent(page);
+ await expect(page.locator('#gain')).toHaveValue('10');
+ await expect(page.locator('#preset')).not.toHaveValue('saved-old');
+ await expect(page.locator('#preset option[value="saved-old"]')).toHaveCount(1);
 });

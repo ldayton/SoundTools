@@ -45,6 +45,18 @@ test('bookmark restores do not overwrite a later file selection',async({page})=>
  await load(page);await passage(page);await save(page,'Earlier');await page.locator('#audioFileInput').setInputFiles(fixture);await page.waitForFunction(()=>fileLibrary.files.length===2);
  const result=await page.evaluate(async()=>{const later=fileLibrary.files[1].id,opening=fileLibrary.openBookmark(fileLibrary.bookmarks[0].id);await fileLibrary.select(later);await opening;return {file:fileLibrary.current.id,later,loop:fileLibrary.loop};});expect(result.file).toBe(result.later);expect(result.loop).toBeNull();await expect(page.getByRole('checkbox',{name:'Loop',exact:true})).not.toBeChecked();
 });
+test('the latest bookmark wins while matching local audio is still pending',async({page})=>{
+ await load(page);await passage(page);await save(page,'First');
+ await page.evaluate(()=>{fileLibrary.loop={start:2,end:3};fileLibrary.draw()});await save(page,'Second');
+ const result=await page.evaluate(async()=>{
+  let release;fileLibrary.accountMatching=new Promise(resolve=>release=resolve);
+  const first=fileLibrary.openBookmark(fileLibrary.bookmarks[0].id);
+  const second=fileLibrary.openBookmark(fileLibrary.bookmarks[1].id);
+  release();await Promise.all([first,second]);fileLibrary.accountMatching=null;
+  return {selection:fileLibrary.loop,enabled:fileLibrary.loopEnabled};
+ });
+ expect(result).toEqual({selection:{start:2,end:3},enabled:true});
+});
 test('failed bookmark writes retain the name and selection for retry without a phantom entry',async({page})=>{
  await load(page);await passage(page);const selection=await page.evaluate(()=>({...fileLibrary.loop}));await page.getByRole('button',{name:'Bookmark selection',exact:true}).click();await page.getByLabel('Bookmark name',{exact:true}).fill('Retry me');
  await page.evaluate(()=>{const add=fileLibrary.store.addBookmark.bind(fileLibrary.store);let failed=false;fileLibrary.store.addBookmark=bookmark=>{if(!failed){failed=true;return Promise.reject(Error('Storage full'));}return add(bookmark);};});

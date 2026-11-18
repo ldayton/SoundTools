@@ -42,10 +42,7 @@ test('double rounds repeat the sung notes contiguously in the same key, with one
             );
             const sharedHome = oldNotes.at(-1)!.midi === oldNotes[0].midi;
             const removed = sharedHome ? oldNotes[0].slotBeats : 0;
-            const shortened: number =
-              pattern === 'rossini' && sharedHome
-                ? oldNotes.at(-1)!.slotBeats - input.noteBeats
-                : 0;
+            const shortened = sharedHome ? oldNotes.at(-1)!.slotBeats - input.noteBeats : 0;
             assert.equal(after.midi, before.midi);
             assert.equal(after.endBeat - after.onsetBeat, cue + 2 * body - removed - shortened);
             assert.equal(notes.length, oldNotes.length * 2 - Number(sharedHome));
@@ -80,44 +77,60 @@ test('double rounds repeat the sung notes contiguously in the same key, with one
         }
 });
 
-test('Rossini uses a quarter at the join and a half only at the final home', () => {
-  for (const repeatHome of [false, true])
-    for (const noteBeats of [0.5, 1, 2]) {
-      const input = {
-        ...DEFAULT_SPEC,
-        pattern: 'rossini',
-        low: 52,
-        high: 72,
-        countIn: 0,
-        startingChords: false,
-        repetitions: 2,
-        progression: 'both',
-        repeatHome,
-        noteBeats,
-        gate: 0.9,
-      };
-      const single = generateExercise(input, Infinity);
-      const doubled = generateExercise({ ...input, repeatTwice: true }, Infinity);
-      for (const [i, round] of doubled.rounds.entries()) {
-        const notes = doubled.notes.filter(
-          (n) => n.onsetBeat >= round.onsetBeat && n.onsetBeat < round.endBeat
-        );
-        const singleRound = single.rounds[i];
-        const singleNotes = single.notes.filter(
-          (n) => n.onsetBeat >= singleRound.onsetBeat && n.onsetBeat < singleRound.endBeat
-        );
-        const join = notes[singleNotes.length - 1];
-        assert.equal(join.midi, round.midi);
-        assert.equal(join.slotBeats, noteBeats);
-        assert.equal(join.durationBeats, noteBeats * input.gate);
-        assert.equal(notes[singleNotes.length].onsetBeat, join.onsetBeat + noteBeats);
-        assert.equal(notes[singleNotes.length].midi, round.midi + 4);
-        assert.equal(notes.at(-1)!.midi, round.midi);
-        assert.equal(notes.at(-1)!.slotBeats, 2 * noteBeats);
-        assert.equal(singleNotes.at(-1)!.slotBeats, 2 * noteBeats);
-        assert.equal(round.endBeat, notes.at(-1)!.onsetBeat + 2 * noteBeats);
-      }
-    }
+test('returning scales use a quarter at the join and a half only at the final home', () => {
+  for (const pattern of [
+    'arpeggio',
+    'octaveArpeggio',
+    'rossini',
+    'fiveNote',
+    'pentatonic6',
+    'pentatonic9',
+    'pentatonic12',
+  ] as const)
+    for (const direction of ['up', 'down'] as const)
+      for (const repeatHome of [false, true])
+        for (const noteBeats of [0.5, 1, 2]) {
+          const input = {
+            ...DEFAULT_SPEC,
+            pattern,
+            direction,
+            low: 52,
+            high: 72,
+            countIn: 0,
+            startingChords: false,
+            repetitions: 2,
+            progression: 'both',
+            repeatHome,
+            noteBeats,
+            gate: 0.9,
+          };
+          const single = generateExercise(input, Infinity);
+          const doubled = generateExercise({ ...input, repeatTwice: true }, Infinity);
+          for (const [i, round] of doubled.rounds.entries()) {
+            const notes = doubled.notes.filter(
+              (n) => n.onsetBeat >= round.onsetBeat && n.onsetBeat < round.endBeat
+            );
+            const singleRound = single.rounds[i];
+            const singleNotes = single.notes.filter(
+              (n) => n.onsetBeat >= singleRound.onsetBeat && n.onsetBeat < singleRound.endBeat
+            );
+            const join = notes[singleNotes.length - 1];
+            assert.equal(join.midi, round.midi);
+            assert.equal(join.slotBeats, noteBeats);
+            assert.equal(join.durationBeats, noteBeats * input.gate);
+            assert.equal(notes[singleNotes.length].onsetBeat, join.onsetBeat + noteBeats);
+            assert.equal(notes[singleNotes.length].midi, singleNotes[1].midi);
+            assert.notEqual(
+              notes[singleNotes.length].midi,
+              join.midi,
+              'the next pass leaves home immediately'
+            );
+            assert.equal(notes.at(-1)!.midi, round.midi);
+            assert.equal(notes.at(-1)!.slotBeats, 2 * noteBeats);
+            assert.equal(singleNotes.at(-1)!.slotBeats, 2 * noteBeats);
+            assert.equal(round.endBeat, notes.at(-1)!.onsetBeat + 2 * noteBeats);
+          }
+        }
 });
 
 test('joined five-note passes play 3-2-1-2-3 across the shared home note', () => {
@@ -136,7 +149,7 @@ test('joined five-note passes play 3-2-1-2-3 across the shared home note', () =>
     [64, 62, 60, 62, 64]
   );
   assert.equal(exercise.notes.length, 17);
-  assert.equal(exercise.notes[8].slotBeats, 2);
+  assert.equal(exercise.notes[8].slotBeats, 1);
 });
 
 test('double-round setting defaults off, survives validation, and rejects malformed input', () => {

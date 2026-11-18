@@ -680,8 +680,8 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
   if (spec.repeatTwice) {
     const sharedHome = offsets.at(-1) === offsets[0] ? 1 : 0;
     const repeatedLengths = lengths.slice(sharedHome);
-    // Rossini launches straight into its second pass; only the final home is held.
-    if (rossini && sharedHome) lengths[lengths.length - 1] = 1;
+    // Launch straight into the second pass; only the final home keeps its hold.
+    if (sharedHome) lengths[lengths.length - 1] = 1;
     offsets.push(...offsets.slice(sharedHome));
     lengths.push(...repeatedLengths);
   }

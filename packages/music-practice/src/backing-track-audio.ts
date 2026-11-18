@@ -1,4 +1,5 @@
 import { createViewState } from "./view-state";
+import { metronomeSettings, metronomeFrequency } from "./metronome-model";
 import { persistence } from "./persistence";
 import {
   backingPack,
@@ -8,6 +9,7 @@ import {
   type BackingPart,
   type BackingSample,
   type BackingStyle,
+  type BackingMode,
 } from "./backing-track-model";
 
 const files = import.meta.glob<string>("./assets/backing-v1/*.flac", {
@@ -20,6 +22,7 @@ const urls = new Map(
 );
 type Snapshot = {
   style: BackingStyle;
+  mode: BackingMode;
   tempo: number;
   tonic: number;
   keyLabel: string;
@@ -39,6 +42,16 @@ export class BackingTrackPlayer {
     beat: -1,
     error: "",
   });
+  readonly metronome = createViewState({
+    ...metronomeSettings(persistence.read("metronome")),
+    enabled: false,
+    beat: -1,
+    error: "",
+  });
+  private metroAnchor = 0;
+  private metroIndex = 0;
+  private metroEpoch = 0;
+  private metroVoices = new Set<{ source: OscillatorNode; gain: GainNode }>();
   private context?: AudioContext;
   private output?: GainNode;
   private buses = new Map<BackingPart, GainNode>();
@@ -54,9 +67,9 @@ export class BackingTrackPlayer {
   private index = 0;
   private lastBeat = -1;
   private hidden = () => {
-    if (document.hidden) this.pause();
+    if (document.hidden) this.pauseAll();
   };
-  private departing = () => this.pause();
+  private departing = () => this.pauseAll();
 
   constructor() {
     document.addEventListener("visibilitychange", this.hidden);
@@ -66,8 +79,8 @@ export class BackingTrackPlayer {
     this.model.set({ ...this.model.getSnapshot(), ...patch });
   }
   private remember() {
-    const { style, tempo } = this.model.getSnapshot();
-    persistence.write("backing-track", { version: 1, style, tempo });
+    const { style, mode, tempo } = this.model.getSnapshot();
+    persistence.write("backing-track", { version: 1, style, mode, tempo });
   }
   setKey(tonic: number, keyLabel: string) {
     const previous = this.model.getSnapshot();
@@ -84,6 +97,199 @@ export class BackingTrackPlayer {
     this.remember();
     this.position = 0;
     if (playing) this.reschedule(0);
+  }
+  setMode(mode: BackingMode) {
+    if (mode !== "steady" && mode !== "active") return;
+    if (mode === this.model.getSnapshot().mode) return;
+    const beat = this.currentPosition();
+    this.patch({ mode });
+    this.remember();
+    if (this.model.getSnapshot().status === "playing") this.reschedule(beat);
+  }
+  setMetronomeTempo(tempo: number) {
+    if (
+      !Number.isFinite(tempo) ||
+      this.model.getSnapshot().status === "playing"
+    )
+      return;
+    const value = Math.max(50, Math.min(180, Math.round(tempo)));
+    const beat = this.metroPosition();
+    this.metronome.set({ ...this.metronome.getSnapshot(), tempo: value });
+    this.rememberMetronome();
+    if (this.metronome.getSnapshot().enabled && this.context) {
+      this.metroAnchor = this.context.currentTime - (beat * 60) / value;
+      this.resetClicks(beat);
+    }
+  }
+  private rememberMetronome() {
+    const { tempo, downbeat, numerator, denominator } =
+      this.metronome.getSnapshot();
+    persistence.write("metronome", {
+      version: 1,
+      tempo,
+      downbeat,
+      numerator,
+      denominator,
+    });
+  }
+  setMetronomeDownbeat(downbeat: boolean) {
+    this.metronome.set({ ...this.metronome.getSnapshot(), downbeat });
+    this.rememberMetronome();
+    if (this.metronome.getSnapshot().enabled)
+      this.resetClicks(this.metroPosition());
+  }
+  setMetronomeSignature(numerator: number, denominator: number) {
+    const state = this.metronome.getSnapshot();
+    if (!state.downbeat || this.model.getSnapshot().status === "playing")
+      return;
+    const next = metronomeSettings({ ...state, numerator, denominator });
+    this.metronome.set({ ...state, ...next });
+    this.rememberMetronome();
+    if (state.enabled) this.resetClicks(this.metroPosition());
+  }
+  async startMetronome() {
+    if (
+      this.disposed ||
+      document.hidden ||
+      this.metronome.getSnapshot().enabled
+    )
+      return;
+    const token = ++this.metroEpoch;
+    this.metronome.set({
+      ...this.metronome.getSnapshot(),
+      enabled: true,
+      error: "",
+    });
+    try {
+      const context = this.audio();
+      await context.resume();
+      if (token !== this.metroEpoch || this.disposed) return;
+      this.metroAnchor = context.currentTime + 0.06;
+      this.resetClicks(
+        this.model.getSnapshot().status === "playing"
+          ? this.currentPosition()
+          : 0,
+      );
+      this.startTimer();
+    } catch {
+      if (token !== this.metroEpoch || this.disposed) return;
+      this.stopMetronome();
+      this.metronome.set({
+        ...this.metronome.getSnapshot(),
+        error: "Couldn’t start the metronome. Try again.",
+      });
+    }
+  }
+  stopMetronome() {
+    ++this.metroEpoch;
+    this.metronome.set({
+      ...this.metronome.getSnapshot(),
+      enabled: false,
+      beat: -1,
+    });
+    this.stopClicks();
+    this.idle();
+  }
+  pauseAll() {
+    this.stopMetronome();
+    this.pause();
+  }
+  private startTimer() {
+    if (!this.timer)
+      this.timer = setInterval(() => {
+        this.schedule();
+        this.scheduleClicks();
+      }, 25);
+    this.scheduleClicks();
+  }
+  private idle() {
+    if (
+      this.model.getSnapshot().status === "playing" ||
+      this.metronome.getSnapshot().enabled
+    )
+      return;
+    if (this.timer) clearInterval(this.timer);
+    this.timer = undefined;
+    // Suspend only after click/note release, and recheck both transports.
+    setTimeout(() => {
+      if (
+        !this.disposed &&
+        this.model.getSnapshot().status !== "playing" &&
+        this.model.getSnapshot().status !== "loading" &&
+        !this.metronome.getSnapshot().enabled
+      )
+        void this.context?.suspend().catch(() => {});
+    }, 60);
+  }
+  private metroPosition() {
+    if (!this.context) return 0;
+    if (this.model.getSnapshot().status === "playing")
+      return this.currentPosition();
+    return Math.max(
+      0,
+      ((this.context.currentTime - this.metroAnchor) *
+        this.metronome.getSnapshot().tempo) /
+        60,
+    );
+  }
+  private stopClicks() {
+    const now = this.context?.currentTime ?? 0;
+    for (const voice of this.metroVoices) {
+      voice.gain.gain.cancelScheduledValues(now);
+      voice.gain.gain.setTargetAtTime(0, now, 0.003);
+      try {
+        voice.source.stop(now + 0.015);
+      } catch {
+        /* ended */
+      }
+    }
+    this.metroVoices.clear();
+  }
+  private resetClicks(position: number) {
+    this.stopClicks();
+    this.metroIndex = Math.ceil(position - 0.000001);
+    this.scheduleClicks();
+  }
+  private scheduleClicks() {
+    const context = this.context,
+      metro = this.metronome.getSnapshot(),
+      backing = this.model.getSnapshot();
+    if (!context || !metro.enabled) return;
+    const linked = backing.status === "playing";
+    const tempo = linked ? backing.tempo : metro.tempo;
+    const anchor = linked ? this.anchor : this.metroAnchor;
+    const now = context.currentTime;
+    if (anchor + (this.metroIndex * 60) / tempo < now - 0.1)
+      this.metroIndex = Math.ceil(((now - anchor) * tempo) / 60);
+    while (anchor + (this.metroIndex * 60) / tempo <= now + 0.15) {
+      const when = anchor + (this.metroIndex * 60) / tempo;
+      if (when >= now) {
+        const source = context.createOscillator(),
+          gain = context.createGain();
+        source.frequency.value = metronomeFrequency(
+          this.metroIndex,
+          metro.downbeat,
+          metro.numerator,
+          linked,
+        );
+        gain.gain.setValueAtTime(0, when);
+        gain.gain.linearRampToValueAtTime(0.13, when + 0.001);
+        gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.04);
+        source.connect(gain).connect(context.destination);
+        const voice = { source, gain };
+        this.metroVoices.add(voice);
+        source.onended = () => {
+          this.metroVoices.delete(voice);
+          source.disconnect();
+          gain.disconnect();
+        };
+        source.start(when);
+        source.stop(when + 0.05);
+      }
+      ++this.metroIndex;
+    }
+    const beat = now < anchor ? -1 : Math.floor(this.metroPosition());
+    if (metro.beat !== beat) this.metronome.set({ ...metro, beat });
   }
   setTempo(tempo: number) {
     if (!Number.isFinite(tempo)) return;
@@ -162,9 +368,21 @@ export class BackingTrackPlayer {
         }),
       );
       if (token !== this.epoch || this.disposed || document.hidden) return;
+      // Join the next independent click when one is already running, so starting
+      // the band does not produce two clicks a few milliseconds apart.
+      const metro = this.metronome.getSnapshot();
+      const joinAt = metro.enabled
+        ? this.metroAnchor +
+          (Math.ceil(
+            ((context.currentTime + 0.06 - this.metroAnchor) * metro.tempo) /
+              60,
+          ) *
+            60) /
+            metro.tempo
+        : context.currentTime + 0.06;
       this.patch({ status: "playing" });
-      this.reschedule(this.position);
-      this.timer = setInterval(() => this.schedule(), 25);
+      this.reschedule(this.position, joinAt);
+      this.startTimer();
     } catch {
       if (token !== this.epoch || this.disposed) return;
       this.pause();
@@ -178,19 +396,25 @@ export class BackingTrackPlayer {
   pause() {
     const state = this.model.getSnapshot();
     if (state.status === "playing") this.position = this.currentPosition();
-    const token = ++this.epoch;
-    if (this.timer) clearInterval(this.timer);
-    this.timer = undefined;
+    ++this.epoch;
     this.stopVoices();
     if (state.status === "loading" || state.status === "playing")
       this.patch({ status: "paused", beat: -1 });
-    setTimeout(() => {
-      if (token === this.epoch && !this.disposed)
-        void this.context?.suspend().catch(() => {});
-    }, 60);
+    if (
+      state.status === "playing" &&
+      this.context &&
+      this.metronome.getSnapshot().enabled
+    ) {
+      this.metroAnchor =
+        this.context.currentTime -
+        (this.position * 60) / this.metronome.getSnapshot().tempo;
+      this.resetClicks(this.position);
+    }
+    this.idle();
   }
+
   dispose() {
-    this.pause();
+    this.pauseAll();
     this.disposed = true;
     document.removeEventListener("visibilitychange", this.hidden);
     window.removeEventListener("pagehide", this.departing);
@@ -219,15 +443,15 @@ export class BackingTrackPlayer {
       }
     }
   }
-  private reschedule(position: number) {
+  private reschedule(position: number, startAt?: number) {
     const context = this.context;
     if (!context) return;
     this.stopVoices();
     const state = this.model.getSnapshot();
-    const pattern = backingPack.patterns[state.style];
+    const pattern = backingPack.patterns[state.style][state.mode];
     this.position = position % pattern.beats;
     this.anchor =
-      context.currentTime + 0.06 - (this.position * 60) / state.tempo;
+      (startAt ?? context.currentTime) - (this.position * 60) / state.tempo;
     this.cycle = 0;
     this.index = pattern.events.findIndex(
       (event) => event.beat >= this.position,
@@ -237,6 +461,18 @@ export class BackingTrackPlayer {
       this.cycle = 1;
     }
     this.lastBeat = -1;
+    this.resetClicks(this.position);
+    // Restore held strings after tempo/key edits or pause, rather than leaving
+    // a silent hole until the next widely spaced chord.
+    const when = startAt ?? context.currentTime;
+    for (const event of pattern.events) {
+      if (
+        (event.part === "bass" || event.part === "guitar") &&
+        event.beat < this.position &&
+        event.beat + event.duration > this.position
+      )
+        this.sound(event, when, false, this.position - event.beat);
+    }
     this.schedule();
   }
   private choose(
@@ -260,7 +496,12 @@ export class BackingTrackPlayer {
     this.counter.set(key, index + 1);
     return layer[index % layer.length];
   }
-  private sound(event: BackingEvent, when: number, release = false) {
+  private sound(
+    event: BackingEvent,
+    when: number,
+    release = false,
+    offsetBeats = 0,
+  ) {
     const context = this.context!;
     const [id, sample] = this.choose(event, release);
     const buffer = this.buffers.get(id);
@@ -277,12 +518,17 @@ export class BackingTrackPlayer {
       : Math.min(1.25, event.velocity / sample.velocity) ** 0.8;
     gain.gain.value = 0;
     source.connect(gain).connect(this.buses.get(event.part)!);
-    const available = buffer.duration / rate;
+    const offset = (offsetBeats * 60) / state.tempo;
+    const available = buffer.duration / rate - offset;
+    if (available <= 0.003) return;
     const duration =
       pitched && !release
-        ? Math.min(available, (event.duration * 60) / state.tempo)
+        ? Math.min(
+            available,
+            ((event.duration - offsetBeats) * 60) / state.tempo,
+          )
         : available;
-    const level = sample.gain * strength;
+    const level = sample.gain * strength * (event.level ?? 1);
     gain.gain.setValueAtTime(0, when);
     gain.gain.linearRampToValueAtTime(level, when + 0.002);
     gain.gain.setValueAtTime(level, when + Math.max(0.003, duration - 0.003));
@@ -297,7 +543,7 @@ export class BackingTrackPlayer {
       source.disconnect();
       gain.disconnect();
     };
-    source.start(when);
+    source.start(when, offset * rate);
     source.stop(when + duration + 0.1);
     if (pitched && !release) this.sound(event, when + duration, true);
   }
@@ -305,7 +551,7 @@ export class BackingTrackPlayer {
     const context = this.context;
     const state = this.model.getSnapshot();
     if (!context || state.status !== "playing") return;
-    const pattern = backingPack.patterns[state.style];
+    const pattern = backingPack.patterns[state.style][state.mode];
     const now = context.currentTime;
     // Background throttling must not enqueue an entire missed phrase on return.
     const earliest =
@@ -328,7 +574,8 @@ export class BackingTrackPlayer {
         ++this.cycle;
       }
     }
-    const beat = Math.floor(this.currentPosition()) % 4;
+    const beat =
+      now < this.anchor ? -1 : Math.floor(this.currentPosition()) % 4;
     if (beat !== this.lastBeat) {
       this.lastBeat = beat;
       this.patch({ beat });

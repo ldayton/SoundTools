@@ -54,6 +54,21 @@ export function BackingTrackSettings({
             ))}
           </div>
         </fieldset>
+        <fieldset className="backing-track-style">
+          <legend>Feel</legend>
+          <div role="group" aria-label="Backing feel">
+            {(["steady", "active"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={state.mode === mode}
+                onClick={() => player.setMode(mode)}
+              >
+                {mode === "steady" ? "Steady" : "Active"}
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <div className="backing-track-tempo-row">
           <label htmlFor="backing-tempo">
             Tempo <span>BPM</span>
@@ -65,7 +80,7 @@ export function BackingTrackSettings({
               disabled={state.tempo <= 50}
               onClick={() => {
                 setDraft(undefined);
-                player.setTempo(state.tempo - 1);
+                player.setTempo(state.tempo - 2);
               }}
             >
               <ControlIcon name="minus" size={13} />
@@ -76,7 +91,7 @@ export function BackingTrackSettings({
               aria-label="Backing tempo in beats per minute"
               min={50}
               max={180}
-              step={1}
+              step={2}
               value={draft ?? state.tempo}
               onChange={(event) => setDraft(event.currentTarget.value)}
               onBlur={commit}
@@ -94,25 +109,13 @@ export function BackingTrackSettings({
               disabled={state.tempo >= 180}
               onClick={() => {
                 setDraft(undefined);
-                player.setTempo(state.tempo + 1);
+                player.setTempo(state.tempo + 2);
               }}
             >
               <ControlIcon name="plus" size={13} />
             </button>
           </div>
         </div>
-        <input
-          className="backing-track-tempo-slider"
-          type="range"
-          aria-label="Backing tempo"
-          min={50}
-          max={180}
-          value={state.tempo}
-          onChange={(event) => {
-            setDraft(undefined);
-            player.setTempo(Number(event.currentTarget.value));
-          }}
-        />
         <div className="backing-track-bottom">
           <div className="backing-track-key">
             <span>Key</span>

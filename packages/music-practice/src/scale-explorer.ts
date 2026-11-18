@@ -37,6 +37,7 @@ import {
 } from "./guitar-scale-settings";
 import "./scale-explorer.css";
 import { BackingTrackPlayer } from "./backing-track-audio";
+import { MetronomeSettings } from "./metronome-settings";
 import { BackingTrackSettings } from "./backing-track-settings";
 
 export class ScaleExplorer implements LivePractice {
@@ -55,7 +56,7 @@ export class ScaleExplorer implements LivePractice {
     this.active = false;
     document.removeEventListener("keydown", this.onKeyDown);
     this.body.patch({ shortcutsOpen: false });
-    this.backing.pause();
+    this.backing.pauseAll();
   }
   dispose() {
     this.leave();
@@ -234,6 +235,7 @@ export class ScaleExplorer implements LivePractice {
         },
       }),
         createElement(BackingTrackSettings, { player: this.backing }),
+        createElement(MetronomeSettings, { player: this.backing }),
       ),
 
     );

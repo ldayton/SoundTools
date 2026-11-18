@@ -1,6 +1,7 @@
 import { choice, object } from "./exercise-settings";
 import {
   SCALE_TONICS,
+  SCALE_QUALITIES,
   scaleKeyPitch,
   type ScaleSelection,
 } from "./guitar-scales";
@@ -29,7 +30,7 @@ export function mergeGuitarScaleSettings(
       source.tonic < 12
         ? source.tonic
         : base.tonic,
-    quality: choice(source.quality, ["major", "minor"], base.quality),
+    quality: choice(source.quality, SCALE_QUALITIES, base.quality),
   };
   if (source.labels !== undefined || base.labels !== undefined)
     settings.labels = choice(
@@ -93,7 +94,7 @@ export function guitarScaleFromQuery(
   query: URLSearchParams,
   base: GuitarScaleSettings,
 ) {
-  const quality = choice(query.get("scale"), ["major", "minor"], base.quality);
+  const quality = choice(query.get("scale"), SCALE_QUALITIES, base.quality);
   const name = query.get("key");
   const pattern = query.get("pattern");
   const shift = query.has("position")

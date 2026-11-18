@@ -3,6 +3,9 @@ export type ShiftNote = ReturnType<typeof patternPositions>[number];
 export type ShiftDirection = 'ascending' | 'descending';
 export const positionKey = (n: {string:number;fret:number}) => `${n.string}:${n.fret}`;
 export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDirection, allowEndpoint = false) {
+  const degrees = [...new Set([...a, ...b].map(n => n.degree))].sort((x,y)=>x-y);
+  const nextDegree = (degree: number) => degrees[(degrees.indexOf(degree)+1)%degrees.length];
+  const maxGap = degrees.length === 5 ? 3 : 2;
   const routes = new Map<string, {notes: ShiftNote[]; previous: ShiftNote; arrival: ShiftNote}>();
   if (!a.some(n => b.some(m => positionKey(n) === positionKey(m)))) return routes;
   const lowerFirst = Math.min(...a.map(n=>n.fret)) < Math.min(...b.map(n=>n.fret));
@@ -20,14 +23,14 @@ export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDire
     if(!previous || (!after.length && !allowEndpoint)) continue;
     const gap = sign*(arrival.midi-previous.midi);
     const stringChange = sign*(previous.string-arrival.string);
-    if(gap<1 || gap>2 || stringChange<0 || stringChange>1) continue;
-    if(sign===1 ? (previous.degree%7)+1!==arrival.degree : (arrival.degree%7)+1!==previous.degree) continue;
+    if(gap<1 || gap>maxGap || stringChange<0 || stringChange>1) continue;
+    if(sign===1 ? nextDegree(previous.degree)!==arrival.degree : nextDegree(arrival.degree)!==previous.degree) continue;
     const notes = [...before, arrival, ...after];
     if (notes.some((n,i) => {
       if (!i) return false;
       const previous = notes[i-1];
       const gap = sign*(n.midi-previous.midi);
-      return gap<1 || gap>2 || (sign===1 ? (previous.degree%7)+1!==n.degree : (n.degree%7)+1!==previous.degree);
+      return gap<1 || gap>maxGap || (sign===1 ? nextDegree(previous.degree)!==n.degree : nextDegree(n.degree)!==previous.degree);
     })) continue;
     routes.set(positionKey(arrival), {notes,previous,arrival});
   }

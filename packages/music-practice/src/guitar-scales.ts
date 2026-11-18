@@ -1,11 +1,15 @@
 import { STRINGS } from "./guitar";
 
-export type ScaleQuality = "major" | "minor";
+export const SCALE_QUALITIES = ["major", "minor", "major-pentatonic", "minor-pentatonic"] as const;
+export type ScaleQuality = typeof SCALE_QUALITIES[number];
+export const isMajorScale = (quality: ScaleQuality) => quality.startsWith("major");
+export const scaleQualityLabel = (quality: ScaleQuality) => ({ major: "major", minor: "natural minor", "major-pentatonic": "major pentatonic", "minor-pentatonic": "minor pentatonic" })[quality];
 // Each pitch class uses its usual diatonic key spelling for that scale family.
-export const SCALE_TONICS = {
+const diatonicTonics = {
   major: ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"],
   minor: ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"],
 } as const;
+export const SCALE_TONICS = { ...diatonicTonics, "major-pentatonic": diatonicTonics.major, "minor-pentatonic": diatonicTonics.minor };
 export type ScaleSelection = {
   tonic: number;
   quality: ScaleQuality;
@@ -13,7 +17,7 @@ export type ScaleSelection = {
 };
 const aliases = { major: ["C#", "Gb", "Cb"], minor: ["D#", "Ab", "A#"] };
 export function scaleKeyPitch(name: string, quality: ScaleQuality) {
-  if (![...SCALE_TONICS[quality], ...aliases[quality]].includes(name))
+  if (![...SCALE_TONICS[quality], ...aliases[isMajorScale(quality) ? "major" : "minor"]].includes(name))
     return -1;
   return (
     (natural[letters.indexOf(name[0])] +
@@ -41,8 +45,10 @@ export function scaleNotes(
     throw Error("Invalid scale");
   const first = letters.indexOf((spelling || SCALE_TONICS[quality][tonic])[0]);
   const intervals =
-    quality === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
-  return intervals.map((interval, degree) => {
+    isMajorScale(quality) ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10];
+  const degrees = quality === "major-pentatonic" ? [0, 1, 2, 4, 5] : quality === "minor-pentatonic" ? [0, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6];
+  return degrees.map((degree) => {
+    const interval = intervals[degree];
     const letter = (first + degree) % 7;
     const pitchClass = (tonic + interval) % 12;
     const accidental = ((pitchClass - natural[letter] + 18) % 12) - 6;
@@ -63,10 +69,9 @@ export function relativeScale(
   quality: ScaleQuality,
   spelling?: string,
 ): ScaleSelection {
-  const note = scaleNotes(tonic, quality, spelling)[
-    quality === "major" ? 5 : 2
-  ];
-  const target: ScaleQuality = quality === "major" ? "minor" : "major";
+  const major = isMajorScale(quality);
+  const note = scaleNotes(tonic, quality, spelling).find(n => n.degree === (major ? 6 : 3))!;
+  const target: ScaleQuality = quality.endsWith("pentatonic") ? (major ? "minor-pentatonic" : "major-pentatonic") : (major ? "minor" : "major");
   return {
     tonic: note.pitchClass,
     quality: target,

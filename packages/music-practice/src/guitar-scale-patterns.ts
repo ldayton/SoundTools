@@ -1,5 +1,5 @@
 import { STRINGS } from "./guitar";
-import { scaleNotes, type ScaleQuality } from "./guitar-scales";
+import { isMajorScale, scaleNotes, type ScaleQuality } from "./guitar-scales";
 
 export const SCALE_SHAPES = ["1", "2", "3", "4", "5"] as const;
 export type ScaleShape = (typeof SCALE_SHAPES)[number];
@@ -141,7 +141,23 @@ const minor: Record<ScaleShape, Fingering> = {
   },
   "5": major["4"],
 };
-const templates = { major, minor };
+// Remove the two omitted degrees from the existing five positions. Use a
+// consistent four-fret hand position for each two-notes-per-string box.
+function pentatonic(source: Record<ScaleShape, Fingering>) {
+  const pitches = new Set([0, 2, 4, 7, 9]); // C major / A minor pentatonic
+  return Object.fromEntries(SCALE_SHAPES.map(shape => {
+    const frets = source[shape].frets.map((row, index) => row.filter(fret =>
+      pitches.has((STRINGS.find(s => s.number === 6 - index)!.midi + fret) % 12)));
+    const low = Math.min(...frets.flat());
+    return [shape, { frets, fingers: frets.map(row => row.map(fret => fret - low + 1)) }];
+  })) as Record<ScaleShape, Fingering>;
+}
+const minorPentatonic = pentatonic(minor);
+// This box changes hand position at the G string and again at B.
+minorPentatonic["3"].fingers = [[1,3],[1,3],[1,3],[1,4],[1,4],[1,3]];
+const majorPentatonic = pentatonic(major);
+majorPentatonic["2"] = minorPentatonic["3"];
+const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic };
 export function patternBounds(
   shape: ScaleShape,
   quality: ScaleQuality = "major",
@@ -156,7 +172,7 @@ export function patternShift(
   preferred?: number,
 ) {
   const [low, high] = patternBounds(shape, quality);
-  const delta = tonic - (quality === "major" ? 0 : 9);
+  const delta = tonic - (isMajorScale(quality) ? 0 : 9);
   const valid = (shift: number) => low + shift >= 1 && high + shift <= 22;
   if (
     preferred !== undefined &&
@@ -174,7 +190,7 @@ export function relativePattern(
   quality: ScaleQuality,
 ): ScaleShape {
   return String(
-    quality === "major"
+    isMajorScale(quality)
       ? (Number(shape) % 5) + 1
       : ((Number(shape) + 3) % 5) + 1,
   ) as ScaleShape;
@@ -184,7 +200,7 @@ export function migratePattern(value: unknown, quality: ScaleQuality): unknown {
   const old = { E: "1", D: "2", C: "3", A: "4", G: "5" } as const;
   const mapped = old[value as keyof typeof old];
   return mapped
-    ? quality === "major"
+    ? isMajorScale(quality)
       ? mapped
       : relativePattern(mapped, "major")
     : value;
@@ -228,7 +244,7 @@ export function linkedPatternPositions(
   const primary = patternPositions(tonic, quality, shape, shift, spelling);
   const keys = new Set(primary.map(n => `${n.string}:${n.fret}`));
   const [low, high] = patternBounds(linked, quality);
-  const delta = tonic - (quality === "major" ? 0 : 9);
+  const delta = tonic - (isMajorScale(quality) ? 0 : 9);
   const candidates = [delta - 24, delta - 12, delta, delta + 12, delta + 24]
     .filter(s => low + s >= 1 && high + s <= 22)
     .map(s => {

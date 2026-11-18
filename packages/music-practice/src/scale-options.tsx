@@ -44,6 +44,8 @@ export function ScaleOptions({
         data={[
           { value: "major", label: "Major" },
           { value: "minor", label: "Natural minor" },
+          { value: "major-pentatonic", label: "Major pentatonic" },
+          { value: "minor-pentatonic", label: "Minor pentatonic" },
         ]}
         onChange={(e) =>
           change({ quality: e.currentTarget.value as ScaleQuality })

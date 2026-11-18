@@ -5,6 +5,7 @@ export type AccountEnvironment = {
   SUPABASE_PUBLISHABLE_KEY?: string;
   ACCOUNT_APPROVED_EMAIL?: string;
   ACCOUNT_APP_URL?: string;
+  ACCOUNT_ADDITIONAL_ORIGINS?: string;
 };
 /** Shared by Vercel functions and local Vite middleware. No admin key is used. */
 export function loginHandler(env: AccountEnvironment) {
@@ -27,28 +28,42 @@ export function loginHandler(env: AccountEnvironment) {
     )
       return respond(503, "Cloud sign-in is not configured for this build.");
     let appURL: URL;
+    let approvedOrigins: Set<string>;
     try {
       appURL = new URL(env.ACCOUNT_APP_URL);
+      approvedOrigins = new Set(
+        (env.ACCOUNT_ADDITIONAL_ORIGINS || "")
+          .split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean)
+          .map((origin) => new URL(origin).origin),
+      );
     } catch {
       return respond(503, "Cloud sign-in is not configured for this build.");
     }
     if (req.headers.origin !== appURL.origin) {
-      // Dev servers are commonly opened as either localhost or 127.0.0.1.
-      // Production origins remain exact; request bodies never control redirects.
-      try {
-        const requested = new URL(req.headers.origin || "");
-        const local = ["localhost", "127.0.0.1"];
-        if (
-          appURL.protocol !== "http:" ||
-          requested.protocol !== "http:" ||
-          !local.includes(appURL.hostname) ||
-          !local.includes(requested.hostname) ||
-          appURL.port !== requested.port
-        )
+      if (req.headers.origin && approvedOrigins.has(req.headers.origin)) {
+        // Keep existing bookmarks working during a domain migration. Only
+        // explicitly configured origins can receive a sign-in callback.
+        appURL = new URL(req.headers.origin);
+      } else {
+        // Dev servers are commonly opened as either localhost or 127.0.0.1.
+        // Production origins remain exact; request bodies never control redirects.
+        try {
+          const requested = new URL(req.headers.origin || "");
+          const local = ["localhost", "127.0.0.1"];
+          if (
+            appURL.protocol !== "http:" ||
+            requested.protocol !== "http:" ||
+            !local.includes(appURL.hostname) ||
+            !local.includes(requested.hostname) ||
+            appURL.port !== requested.port
+          )
+            return respond(403, "Open the app to sign in.");
+          appURL = requested;
+        } catch {
           return respond(403, "Open the app to sign in.");
-        appURL = requested;
-      } catch {
-        return respond(403, "Open the app to sign in.");
+        }
       }
     }
     try {

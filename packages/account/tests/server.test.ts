@@ -81,3 +81,59 @@ test("login enforces approval and origin on the server and fixes the redirect fo
     upstream.close();
   }
 });
+
+test("domain aliases are exact and callbacks stay on an approved origin", async () => {
+  const redirects: string[] = [];
+  const upstream = createServer((req, res) => {
+    redirects.push(
+      new URL(req.url!, "http://upstream.test").searchParams.get(
+        "redirect_to",
+      )!,
+    );
+    res.setHeader("Content-Type", "application/json");
+    res.end("{}");
+  });
+  const upstreamUrl = await listen(upstream);
+  const canonical = "https://dorego.lilydayton.me";
+  const previous = "https://dorego-soundtools.vercel.app";
+  const server = createServer(
+    loginHandler({
+      SUPABASE_URL: upstreamUrl,
+      SUPABASE_PUBLISHABLE_KEY: "test-public-key",
+      ACCOUNT_APP_URL: canonical,
+      ACCOUNT_ADDITIONAL_ORIGINS: previous,
+      ACCOUNT_APPROVED_EMAIL: "owner@soundtools.test",
+    }),
+  );
+  const endpoint = await listen(server);
+  const send = (origin: string) =>
+    fetch(endpoint, {
+      method: "POST",
+      headers: { origin, "content-type": "application/json" },
+      body: JSON.stringify({
+        email: "owner@soundtools.test",
+        redirect: "https://attacker.example",
+      }),
+    });
+  try {
+    for (const origin of [canonical, previous]) {
+      assert.equal((await send(origin)).status, 200);
+      assert.equal(redirects.at(-1), origin + "/auth/confirm");
+    }
+    for (const origin of [
+      previous + ".attacker.example",
+      canonical + ":444",
+      "https://songalong.lilydayton.me",
+      "null",
+      "",
+    ]) {
+      assert.equal((await send(origin)).status, 403);
+    }
+    assert.equal(redirects.length, 2);
+  } finally {
+    server.closeAllConnections();
+    upstream.closeAllConnections();
+    server.close();
+    upstream.close();
+  }
+});

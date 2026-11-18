@@ -33,11 +33,16 @@ navigation drawer, with keyboard details expanding inline.
 
 | App | Address |
 | --- | --- |
-| DoReGo | https://dorego-soundtools.vercel.app |
-| NoteWise | https://notewise-soundtools.vercel.app |
-| SongAlong | https://songalong-soundtools.vercel.app |
-| Soundglow | https://soundglow-soundtools.vercel.app |
+| DoReGo | https://dorego.lilydayton.me |
+| NoteWise | https://notewise.lilydayton.me |
+| SongAlong | https://songalong.lilydayton.me |
+| Soundglow | https://soundglow.lilydayton.me |
 
 All four projects deploy from the repository's main branch. SongAlong uses Vite,
 Node 24 and workspace-source access. Existing production addresses remain
 available as well.
+
+The earlier `*-soundtools.vercel.app` addresses remain available. The four app
+subdomains use individual CNAME records in the existing Route 53 hosted zone,
+pointing to the project-specific targets recommended by Vercel. Vercel manages
+their HTTPS certificates; the domain registration and nameservers stay in AWS.

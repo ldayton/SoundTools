@@ -45,10 +45,14 @@ For each Vercel project configure:
 | `SUPABASE_PUBLISHABLE_KEY` | Login function; no admin key |
 | `ACCOUNT_APPROVED_EMAIL` | Sensitive server variable |
 | `ACCOUNT_APP_URL` | Exact origin for that app/environment |
+| `ACCOUNT_ADDITIONAL_ORIGINS` | Optional comma-separated exact origins for existing bookmarks |
 
 Allowlist each exact `/auth/confirm` URL in Supabase Auth and serve that path as
 `index.html` with `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
-Production values are prepared for DoReGo and SongAlong. Configuring variables
+Production uses `https://dorego.lilydayton.me` and `https://songalong.lilydayton.me`.
+The previous `*-soundtools.vercel.app` origins remain explicitly allowed. The
+callback stays on the origin that requested the email; no request body controls
+it. Supabase allows each exact callback on both domains. Configuring variables
 does not deploy the implementation. Preview deployments need their own deliberate
 configuration; never allow arbitrary preview origins for production auth.
 

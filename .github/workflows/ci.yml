@@ -1,12 +1,32 @@
 name: CI
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "20 3 * * *"
   push:
     branches: [main]
   pull_request:
 permissions:
   contents: read
+  actions: read
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      apps: ${{ steps.changes.outputs.apps }}
+      deploy: ${{ steps.changes.outputs.deploy }}
+      accounts: ${{ steps.changes.outputs.accounts }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+      - id: changes
+        run: node scripts/ci/affected.cjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
   shared:
     runs-on: ubuntu-24.04
     steps:
@@ -23,6 +43,8 @@ jobs:
       - run: npm run test:shared
       - run: node --test tests/ci/*.test.cjs
   dorego:
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.apps), 'dorego')
     name: dorego (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -83,6 +105,8 @@ jobs:
             apps/dorego/work/
             work/resilience-dorego/
   soundglow:
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -107,6 +131,8 @@ jobs:
             work/resilience-soundglow/
 
   soundglow-ui:
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
     name: soundglow UI (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -142,6 +168,8 @@ jobs:
             apps/soundglow/test-results/
 
   notewise:
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.apps), 'notewise')
     name: notewise (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -216,6 +244,8 @@ jobs:
             work/key-signatures-*.png
 
   songalong:
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.apps), 'songalong')
     name: songalong (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -257,6 +287,8 @@ jobs:
         if: matrix.browser == 'chromium'
 
   accounts:
+    needs: changes
+    if: needs.changes.outputs.accounts == 'true'
     name: accounts (${{ matrix.browser }})
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -289,16 +321,27 @@ jobs:
             work/account-*.png
             work/cloud-files-*.png
 
+  gate:
+    name: validation gate
+    if: always()
+    needs: [changes, shared, dorego, notewise, songalong, soundglow, soundglow-ui, accounts]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: node scripts/ci/gate.cjs
+        env:
+          CI_JOB_RESULTS: ${{ toJSON(needs) }}
+
   release:
     name: release (${{ matrix.app }})
-    needs: [shared, dorego, notewise, songalong, soundglow, soundglow-ui, accounts]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, gate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.deploy != '[]'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        app: [dorego, notewise, songalong, soundglow]
+        app: ${{ fromJSON(needs.changes.outputs.deploy) }}
     environment: production-${{ matrix.app }}
     concurrency:
       group: production-${{ matrix.app }}

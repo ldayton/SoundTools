@@ -1,3 +1,9 @@
+import drumPack from "./assets/backing-drum-v3/manifest.json";
+import {
+  articulateDrums,
+  drumRoundRobin,
+  snareAlternates,
+} from "./backing-drum-articulation";
 import experimentalPack from "./assets/backing-v2/manifest.json";
 import { plannedBackingArrangement } from "./backing-musical-plan";
 import { practiceBackingArrangement } from "./backing-phrasing";
@@ -24,7 +30,11 @@ import {
 } from "./backing-track-model";
 
 const files = import.meta.glob<string>(
-  ["./assets/backing-v1/*.flac", "./assets/backing-v2/*.flac"],
+  [
+    "./assets/backing-v1/*.flac",
+    "./assets/backing-v2/*.flac",
+    "./assets/backing-drum-v3/*.flac",
+  ],
   {
     eager: true,
     query: "?url",
@@ -55,6 +65,7 @@ type Voice = {
   note: number;
   string?: number;
   release: boolean;
+  articulation?: BackingEvent["articulation"];
 };
 
 /** One reusable player owned by an exercise, never by the responsive panel. */
@@ -113,6 +124,10 @@ export class BackingTrackPlayer {
         state.tempo,
         state.tonic,
       );
+      if (this.drumArticulations)
+        take = articulateDrums(
+          take as ReturnType<typeof plannedBackingArrangement>,
+        );
       this.takeCache.set(this.cycle, take);
       // Retain the current and previous take only; long practice stays bounded.
       for (const cycle of this.takeCache.keys())
@@ -125,13 +140,30 @@ export class BackingTrackPlayer {
   };
   private departing = () => this.pauseAll();
 
+  private drumPackCache?: typeof backingPack;
+  private lastDrumFile = new Map<string, string>();
   private get pack() {
+    if (this.drumArticulations) {
+      if (this.drumPackCache) return this.drumPackCache;
+      const samples = Object.fromEntries(
+        Object.entries(experimentalPack.samples).filter(
+          ([, s]) => !(s.part === "drums" && s.note === 38),
+        ),
+      );
+      return (this.drumPackCache = {
+        ...experimentalPack,
+        samples: { ...samples, ...drumPack.samples },
+      } as unknown as typeof backingPack);
+    }
     return this.experimental
       ? (experimentalPack as unknown as typeof backingPack)
       : backingPack;
   }
   /** Approved sparse plan/sampler; false retains the previous A/B reference. */
-  constructor(private experimental = true) {
+  constructor(
+    private experimental = true,
+    private drumArticulations = experimental,
+  ) {
     document.addEventListener("visibilitychange", this.hidden);
     window.addEventListener("pagehide", this.departing);
   }
@@ -612,6 +644,23 @@ export class BackingTrackPlayer {
     const key = `${event.part}-${event.note}-${event.articulation ?? "normal"}-${release}`;
     const index = this.counter.get(key) ?? 0;
     this.counter.set(key, index + 1);
+    if (this.drumArticulations && event.part === "drums") {
+      const alternates =
+        event.note === 38
+          ? snareAlternates(event, this.pack.samples).filter(([id]) =>
+              this.buffers.has(id),
+            )
+          : [];
+      const choices = alternates.length > 1 ? alternates : layer;
+      let chosen = drumRoundRobin(index, choices.length, event.note);
+      if (
+        choices.length > 1 &&
+        choices[chosen][1].file === this.lastDrumFile.get(key)
+      )
+        chosen = (chosen + 1) % choices.length;
+      this.lastDrumFile.set(key, choices[chosen][1].file);
+      return choices[chosen];
+    }
     return layer[index % layer.length];
   }
   private choke(event: BackingEvent, when: number) {
@@ -697,6 +746,7 @@ export class BackingTrackPlayer {
       part: event.part,
       note: event.note,
       string: event.string,
+      articulation: event.articulation,
       release,
     };
     this.voices.add(voice);

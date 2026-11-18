@@ -18,7 +18,8 @@
     const timer=setTimeout(()=>this.dispose(fail('Worker request timed out','TIMEOUT')),this.timeoutMs);
     this.pending={id,finish};signal?.addEventListener('abort',cancel,{once:true});
     worker.onmessage=({data:reply})=>{if(this.worker!==worker||reply?.id!==id)return;finish(reply.error?fail(reply.error,reply.code):null,reply)};
-    worker.onerror=e=>{if(this.worker!==worker)return;this.dispose(fail(e.message||'Worker failed','WORKER_ERROR'))};
+    // The request promise owns error reporting, including load failures during teardown.
+    worker.onerror=e=>{e.preventDefault?.();if(this.worker!==worker)return;this.dispose(fail(e.message||'Worker failed','WORKER_ERROR'))};
     try{worker.postMessage({...data,id},transfer&&data.pcm?[data.pcm.buffer]:[])}catch(e){finish(e)}
    });
   }

@@ -1,5 +1,7 @@
 import { soundglowAccount } from "../account";
 window.SoundglowAccount = soundglowAccount;
+import { soundglowFiles } from "../cloud-files";
+window.SoundglowFiles = soundglowFiles;
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { mountApplicationShell } from "./application-shell";
 import { LibraryActions } from "./library-actions";

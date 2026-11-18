@@ -17,7 +17,7 @@ provides their shared Mantine dialog and navigation item. App adapters select an
 - Apps receive only the publishable key. SMTP and admin credentials stay out of
   browser bundles, source control, diagnostics and Vercel frontend variables.
 - Diagnostics record coded outcomes, never email addresses, tokens or settings.
-  Diagnostic consent, MIDI permissions/identity and downloaded files remain local.
+  Diagnostic consent, MIDI permissions/identity and downloaded file caches remain local.
 
 ## Email and hosting
 
@@ -89,16 +89,28 @@ rewriting data they do not understand.
 ## App data
 
 - **NoteWise:** exercise settings, per-exercise checkpoints and lifetime practice totals. Attempts/correct answers use bounded, cumulative contributions per card and replica, so practising the same card offline on two devices adds both sets of attempts. The latest review supplies scheduling metadata. Divergent round checkpoints remain explicit conflicts; lifetime totals are independent of the choice.
-- **Soundglow:** spectrogram/pitch settings, custom presets, playback volume/speed and bookmarks. Related values within each feature stay atomic to retain valid ranges/preset identity. Microphone selection, permissions, diagnostic consent, raw audio, recordings, analysis buffers, waveform peaks and file-library playback positions stay local. File renames affect that device’s library only. A bookmark independently includes a file name, size, duration and a content fingerprint, plus its selection/view/feature/speed. Its **audio is never uploaded**. Importing identical bytes on another desktop reconnects the bookmark even if the filename changes. Missing audio is shown with an import notice. Deleting a local file leaves account bookmark references available on other devices; deleting the bookmark itself syncs its removal.
+- **Soundglow:** spectrogram/pitch settings, custom presets, playback volume/speed and bookmarks. Related values within each feature stay atomic to retain valid ranges/preset identity. Microphone selection, permissions, diagnostic consent, live microphone audio, analysis buffers, waveform peaks and file-library playback positions remain on the device. Imported audio files use the separate private file catalogue described below. Guest bookmarks/settings remain separate from the signed-in replica.
 
-Soundglow fingerprints fixed 1 MiB chunks locally and hashes their digests with the file size. The versioned content identity uses bounded memory and avoids reading a large recording into one buffer. Existing bookmarked files receive fingerprints locally before initial import. Guest bookmarks/settings remain separate from the signed-in replica.
+## Private file library
+
+Signed-in Soundglow desktops automatically upload imported audio originals to the private `soundtools-files` Supabase Storage bucket. Signed-out imports remain local until login. Other devices fetch the catalogue, not all audio; opening a file or bookmark downloads and verifies its bytes, then caches it for offline use. A bookmark stores the content fingerprint, selection, view and playback/analysis settings. Matching content reconnects it even when local identifiers or names differ. No microphone recording is automatically uploaded. Mobile does not expose the desktop file library.
+
+The shared `@ldayton/account/files` coordinator reuses the existing Supabase session and refreshes credentials for each native TUS request. Original bytes stay in Soundglow's chunked IndexedDB store; a separate shared IndexedDB database holds transfer intentions, TUS checkpoints and the catalogue. Uploads use the direct Storage endpoint and 6 MiB chunks. Interrupted uploads resume after reopening the app, including after a reload. Browser closure does not continue an upload in the background. Downloads retry on reopening, obtain a fresh short-lived URL, and verify size and fingerprint before being committed. Interrupted downloads restart; partial downloads are not retained. Signed URLs and tokens are not written into settings or diagnostics.
+
+The free-tier cap is 50 MiB per original. Larger recordings still import and play locally with a visible local-only status. Storage exhaustion and connection failures leave the original intact and offer retry. A device's cached downloads can be evicted by its browser; cloud originals can be downloaded again. Do not treat an unfinished upload as a backup.
+
+`public.media_files` records an immutable owner/app/id object path and pending/ready/deleted lifecycle. RLS and owner-checked RPCs limit access to the approved account. Clients cannot forge a ready state or overwrite audio. A snapshot repairs uploads that completed before their catalogue acknowledgement. Deletion first leaves a tombstone, fencing stale uploads, then removes bytes through the Storage API; snapshots retry outstanding physical deletions. Completed tombstones remain small metadata records so stale devices cannot restore a deleted original. Renaming changes metadata across devices. **Remove download** removes only that device's cached copy; **Delete everywhere** removes the cloud original and bound caches as devices reconnect. It never deletes the OS file originally imported. Shared bookmarks may retain their reference after a file is deleted and reconnect if the same recording is explicitly imported again.
+
+Soundglow fingerprints fixed 1 MiB chunks and hashes their digests with the file size. This versioned content identity uses bounded memory. Existing imports receive fingerprints before upload; downloads must match them exactly. Owned cached files are hidden and active playback is stopped immediately on logout, including when the separate sync queue is unavailable. Queue failures leave existing local originals playable and show sync as unavailable. An import keeps the identity that started it even if it completes after logout. Uploads recheck authorization after credential refresh, and cancellation prevents late callbacks from restarting them. Removing a downloaded copy fences pending cache commits across tabs. The last selected owned file restores paused after account recovery. Guest imports remain separate.
+
+The schema and policies live in `supabase/migrations/202611180003_native_files.sql`. Deploy this migration before shipping the new client. Keep the hosted bucket private and its 50 MiB limit; do not add update/upsert or public-read policies. No Vercel upload proxy or server secret is needed in the browser.
 
 ## Local tests
 
 Install Supabase CLI 3.2.0. A native runtime works on macOS without Docker:
 
 ```sh
-supabase start --runtime native --exclude storage,functions,studio,analytics,pooler,realtime --eager
+supabase start --runtime native --exclude functions,studio,analytics,pooler,realtime --eager
 supabase db push
 node scripts/setup-account-local.mjs
 npm run test:accounts
@@ -127,3 +139,5 @@ For a new app, provide `AccountBinding.read`, `apply`, `validate`, `pause` and
 `canApply`; route its persistence through `changed()` and flush it before updates.
 Keep versioned codecs separate from rendering. Use an app-specific account ID
 and the existing provider/menu, endpoint and database protocol.
+
+The account suite also exercises the native Storage policies and two isolated browser sessions, including cloud bookmark downloads, cached offline playback, cross-device rename/delete, guest isolation, size limits, and TUS resumption from a confirmed chunk after reload. `node scripts/dev-file-storage.mjs` starts a Soundglow-only local preview on port 4394 after local account setup. All fixture reset scripts reject hosted API URLs.

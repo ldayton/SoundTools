@@ -118,6 +118,7 @@
     controls(true);lastLayout='';layout();host.refreshFileView?.();paint();
    },
   });
+  window.SoundglowFiles.start(library);
  })().catch(error=>window.SoundglowDiagnostics?.capture(error,'account.start_failed'));
 })();
 

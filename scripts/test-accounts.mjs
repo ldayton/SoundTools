@@ -10,6 +10,7 @@ async function run(command, args) {
   });
 }
 await run("node", ["scripts/test-account-database.mjs"]);
+await run("node", ["scripts/test-file-storage-database.mjs"]);
 await run("node", ["scripts/build-accounts-local.mjs"]);
 const servers = spawn("node", ["scripts/dev-accounts.mjs", "--preview"], {
   stdio: "inherit",
@@ -32,6 +33,7 @@ try {
   if (!ready) throw Error("Local account previews did not start.");
   await run("npx", ["tsx", "tests/accounts.browser.mts"]);
   await run("npx", ["tsx", "tests/accounts-extra.browser.mts"]);
+  await run("npx", ["tsx", "tests/native-files.browser.mts"]);
 } finally {
   servers.kill("SIGTERM");
 }

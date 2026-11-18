@@ -28,6 +28,8 @@
   line-height: 18px;
   max-height: 36px;
 }
+.library-item-body { min-width: 0; }
+.library-cloud-status { display: block; line-height: 16px; white-space: nowrap; }
 .library-item small {
   margin: 0;
   color: var(--mantine-color-dimmed);

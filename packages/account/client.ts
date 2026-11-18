@@ -105,6 +105,12 @@ export class Account {
   get signedIn() {
     return !!this.snapshot.user;
   }
+  /** Native Supabase services share this account's session and refresh lock. */
+  get native() {
+    return this.client && this.snapshot.user
+      ? { client: this.client, url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_PUBLISHABLE_KEY }
+      : null;
+  }
   private set(patch: Partial<AccountSnapshot>) {
     this.snapshot = { ...this.snapshot, ...patch };
     for (const listener of this.listeners) listener();

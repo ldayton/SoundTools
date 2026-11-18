@@ -2,11 +2,31 @@ import type { BackingEvent, BackingPart } from "./backing-track-model";
 /** Rules concern physical voices, independently of the sample chosen for them. */
 export function backingChokes(
   event: BackingEvent,
-  voice: { part: BackingPart; note: number; string?: number },
+  voice: {
+    part: BackingPart;
+    note: number;
+    string?: number;
+    articulation?: BackingEvent["articulation"];
+  },
 ) {
   if (event.part !== voice.part) return false;
-  if (event.part === "drums")
-    return [42, 44].includes(event.note) && voice.note === 46;
+  if (event.part === "drums") {
+    const openness = (note: number, art?: BackingEvent["articulation"]) =>
+      note === 46
+        ? 1
+        : note === 44
+          ? 0
+          : note === 42
+            ? art === "hat-half"
+              ? 0.5
+              : art === "hat-loose"
+                ? 0.75
+                : 0
+            : -1;
+    const next = openness(event.note, event.articulation),
+      previous = openness(voice.note, voice.articulation);
+    return next >= 0 && previous > next;
+  }
   if (event.part === "bass") return true;
   if (event.part === "guitar")
     return event.string !== undefined

@@ -10,7 +10,14 @@ export type BackingEvent = {
   duration: number;
   velocity: number;
   level: number;
-  articulation?: "normal" | "muted" | "ghost";
+  articulation?:
+    | "normal"
+    | "muted"
+    | "ghost"
+    | "hat-half"
+    | "hat-loose"
+    | "rimshot"
+    | "offcenter";
   string?: number;
   /** Written at concert pitch, with guitar fingering validated in this key. */
   absolute?: boolean;
@@ -23,7 +30,16 @@ export type BackingSample = {
   rr: number;
   gain: number;
   release: boolean;
-  articulation?: "normal" | "muted" | "ghost";
+  velocityLow?: number;
+  velocityHigh?: number;
+  articulation?:
+    | "normal"
+    | "muted"
+    | "ghost"
+    | "hat-half"
+    | "hat-loose"
+    | "rimshot"
+    | "offcenter";
 };
 export const backingPack = manifest as unknown as {
   samples: Record<string, BackingSample>;
@@ -88,6 +104,14 @@ export function backingSampleChoices(
   const pitches = choices.filter(
     ([, s]) => Math.abs(s.note - target) === distance,
   );
+  const zoned = pitches.filter(
+    ([, s]) =>
+      s.velocityLow !== undefined &&
+      target === s.note &&
+      event.velocity >= s.velocityLow &&
+      event.velocity <= s.velocityHigh!,
+  );
+  if (zoned.length) return zoned;
   const velocity = pitches.reduce(
     (best, [, s]) =>
       Math.abs(s.velocity - event.velocity) < Math.abs(best - event.velocity)

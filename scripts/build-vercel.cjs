@@ -70,6 +70,8 @@ const previous = path.join(root, "work", "previous-" + app);
     sha(fs.readFileSync(path.join(output, "index.html"))).slice(0, 32),
     currentAssets,
   );
+  require('./ci/preflight.cjs').preflight(app, output);
+  require('./ci/preflight.cjs').buildInfo(app, output, process.env.VERCEL_ENV || 'development');
   console.log("Vercel static output ready:", output);
 })().catch((error) => {
   console.error(error);

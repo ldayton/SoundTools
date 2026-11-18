@@ -1,4 +1,4 @@
-import { workerSource } from '@ldayton/browser-offline';
+import { workerSource, manifestLimits } from '@ldayton/browser-offline';
 
 // DoReGo adapter: separate interface generations and lazily downloaded sound banks.
 export function offlineWorker(config: {
@@ -10,7 +10,7 @@ export function offlineWorker(config: {
   packURL?: string;
 }) {
   return (
-    `const CONFIG = ${JSON.stringify(config)};\n` +
+    `const CONFIG = ${JSON.stringify({ ...config, limits: manifestLimits.dorego })};\n` +
     workerSource() +
     String.raw`
 const ROOT = CONFIG.base;
@@ -21,7 +21,7 @@ const manifestURL = ROOT + 'offline-pack.json';
 function validPack(pack){
   try{
     const path=url=>typeof url==='string'&&url.startsWith(ROOT)&&new URL(url,self.location.origin).pathname===url;
-    return shellName(pack?.shellCache)&&soundName(pack.cache)&&Array.isArray(pack.shell)&&pack.shell.length>0&&pack.shell.length<=1024&&Array.isArray(pack.files)&&pack.files.length<=1024&&
+    return shellName(pack?.shellCache)&&soundName(pack.cache)&&Array.isArray(pack.shell)&&pack.shell.length>0&&pack.shell.length<=CONFIG.limits.shell&&Array.isArray(pack.files)&&pack.files.length<=CONFIG.limits.files&&
       new Set(pack.shell).size===pack.shell.length&&pack.shell.includes(ROOT)&&pack.shell.includes(manifestURL)&&pack.shell.every(path)&&
       new Set(pack.files.map(f=>f.url)).size===pack.files.length&&pack.files.every(f=>path(f.url)&&f.url.startsWith(ROOT+'samples/')&&Number.isSafeInteger(f.bytes)&&f.bytes>0&&f.bytes<=64*1024*1024&&(!f.sha256||/^[a-f0-9]{64}$/.test(f.sha256)))&&
       (!pack.hashes||typeof pack.hashes==='object'&&pack.shell.every(url=>url===manifestURL||/^[a-f0-9]{64}$/.test(pack.hashes[url])));

@@ -16,13 +16,19 @@ test('lockfiles, unknown packages and deleted workspaces cannot silently skip ap
 test('nightly and manual validation cover everything without publishing', () => assert.deepEqual(affected([], undefined, true), { apps: ['dorego', 'notewise', 'songalong', 'soundglow'], deploy: [], accounts: true }));
 test('uses the last successful push, retaining changes from cancelled pushes', async () => {
   const base = 'a'.repeat(40), head = 'b'.repeat(40); let diff;
-  const r = await changes({ env: { GITHUB_EVENT_NAME: 'push', GITHUB_SHA: head }, fetch: async () => Response.json({ workflow_runs: [{ head_sha: base }] }), git: args => { diff = args; return 'apps/dorego/client/src/main.ts\nREADME.md'; } });
+  const r = await changes({ env: { GITHUB_EVENT_NAME: 'push', GITHUB_SHA: head }, fetch: async url => url.includes('api.github.com') ? Response.json({ workflow_runs: [{ head_sha: base }] }) : Response.json({ app: new URL(url).hostname.split('.')[0], profile: 'production', sha: base }), git: args => { if (args[0] === 'diff') diff = args; return args[0] === 'diff' ? 'apps/dorego/client/src/main.ts\nREADME.md' : ''; } });
   assert.equal(r.base, base); assert(diff.includes(`${base}...${head}`)); assert.deepEqual(r.deploy, ['dorego']);
 });
 test('unknown baseline and unavailable history validate conservatively', async () => { const r = await changes({ env: { GITHUB_EVENT_NAME: 'push', GITHUB_SHA: 'b'.repeat(40) }, fetch: async () => { throw Error('offline'); } }); assert.equal(r.deploy.length, 4); });
 test('release gate rejects failures and cancellations, permits deliberately skipped apps', () => {
-  const good = { changes: { result: 'success' }, shared: { result: 'success' }, dorego: { result: 'success' }, soundglow: { result: 'skipped' } };
+  const good = { changes: { result: 'success', outputs: { apps: '["dorego"]', builds: '["dorego"]', accounts: 'false' } }, shared: { result: 'success' }, build: { result: 'success' }, dorego: { result: 'success' }, soundglow: { result: 'skipped' } };
   assert.doesNotThrow(() => gate(good));
   for (const result of ['failure', 'cancelled']) assert.throws(() => gate({ ...good, dorego: { result } }));
   assert.throws(() => gate({ ...good, changes: { result: 'skipped' } }));
+  assert.throws(() => gate({ ...good, dorego: { result: 'skipped' } }), /Required validation/);
+});
+test('an earlier green but unpromoted revision is still released after a docs-only push', async () => {
+  const base = 'a'.repeat(40), live = 'c'.repeat(40), head = 'b'.repeat(40);
+  const r = await changes({ env: { GITHUB_EVENT_NAME: 'push', GITHUB_SHA: head }, fetch: async url => url.includes('api.github.com') ? Response.json({ workflow_runs: [{ head_sha: base }] }) : Response.json({ app: new URL(url).hostname.split('.')[0], profile: 'production', sha: live }), git: args => args[0] === 'diff' ? (args.includes(`${live}...${head}`) ? 'apps/dorego/src/main.ts\nREADME.md' : 'README.md') : '' });
+  assert.deepEqual(r.deploy, ['dorego']); assert.deepEqual(r.apps, ['dorego']);
 });

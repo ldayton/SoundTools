@@ -30,7 +30,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
   shared:
     concurrency:
-      group: validation-${{ github.ref }}-shared
+      group: validation-${{ github.event_name }}-${{ github.ref }}-shared
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     steps:
@@ -51,7 +51,7 @@ jobs:
     needs: [changes, shared]
     if: needs.changes.outputs.builds != '[]'
     concurrency:
-      group: validation-${{ github.ref }}-build-${{ matrix.app }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-build-${{ matrix.app }}
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -85,7 +85,7 @@ jobs:
 
   dorego:
     concurrency:
-      group: validation-${{ github.ref }}-dorego-${{ matrix.browser }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-dorego-${{ matrix.browser }}
       cancel-in-progress: true
     needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'dorego')
@@ -141,7 +141,7 @@ jobs:
             work/resilience-dorego/
   soundglow:
     concurrency:
-      group: validation-${{ github.ref }}-soundglow
+      group: validation-${{ github.event_name }}-${{ github.ref }}-soundglow
       cancel-in-progress: true
     needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
@@ -179,7 +179,7 @@ jobs:
     needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
     concurrency:
-      group: validation-${{ github.ref }}-soundglow-visual-${{ matrix.shard }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-soundglow-visual-${{ matrix.shard }}
       cancel-in-progress: true
     env:
       CI_USE_BUILD: "1"
@@ -214,7 +214,7 @@ jobs:
 
   soundglow-ui:
     concurrency:
-      group: validation-${{ github.ref }}-soundglow-ui-${{ matrix.browser }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-soundglow-ui-${{ matrix.browser }}
       cancel-in-progress: true
     needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
@@ -251,7 +251,7 @@ jobs:
 
   notewise:
     concurrency:
-      group: validation-${{ github.ref }}-notewise-${{ matrix.browser }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-notewise-${{ matrix.browser }}
       cancel-in-progress: true
     needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'notewise')
@@ -325,7 +325,7 @@ jobs:
 
   songalong:
     concurrency:
-      group: validation-${{ github.ref }}-songalong-${{ matrix.browser }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-songalong-${{ matrix.browser }}
       cancel-in-progress: true
     needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'songalong')
@@ -379,7 +379,7 @@ jobs:
     needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'songalong')
     concurrency:
-      group: validation-${{ github.ref }}-songalong-catalog-${{ matrix.browser }}-${{ matrix.shard }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-songalong-catalog-${{ matrix.browser }}-${{ matrix.shard }}
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -415,7 +415,7 @@ jobs:
 
   accounts:
     concurrency:
-      group: validation-${{ github.ref }}-accounts-${{ matrix.browser }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-accounts-${{ matrix.browser }}
       cancel-in-progress: true
     needs: changes
     if: needs.changes.outputs.accounts == 'true'
@@ -475,7 +475,9 @@ jobs:
       fail-fast: false
       matrix:
         app: ${{ fromJSON(needs.changes.outputs.deploy) }}
-    environment: production-${{ matrix.app }}
+    environment:
+      name: production-${{ matrix.app }}
+      url: ${{ steps.release.outputs.origin }}
     concurrency:
       group: production-${{ matrix.app }}
       cancel-in-progress: false
@@ -484,7 +486,19 @@ jobs:
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: 24
-      - run: node scripts/ci/release.cjs ${{ matrix.app }}
+      - run: npm ci
+      - uses: ./.github/actions/browser
+        with:
+          browser: chromium
+      - id: release
+        run: node scripts/ci/release.cjs ${{ matrix.app }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          RELEASE_BROWSER_SMOKE: "1"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: production-check-${{ matrix.app }}
+          path: work/browser-results/
+          retention-days: 7

@@ -1,5 +1,6 @@
 /** Embed the shared runtime after defining CONFIG.base in a generated service worker. */
 export function workerSource(): string;
+export const manifestLimits: Readonly<Record<'dorego' | 'practice' | 'soundglow', { readonly files: number; readonly shell?: number; readonly optional: number }>>;
 
 export interface Resources {
   deadline<T>(

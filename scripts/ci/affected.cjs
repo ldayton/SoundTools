@@ -1,9 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-const { apps, repository } = require('./apps.cjs');
+const { apps: appConfig, repository } = require('./apps.cjs');
 const root = path.resolve(__dirname, '../..');
-const names = Object.keys(apps);
+const names = Object.keys(appConfig);
 function workspaces(directory = root) {
   return ['apps', 'packages'].flatMap(parent => fs.readdirSync(path.join(directory, parent)).flatMap(name => {
     const folder = `${parent}/${name}`, file = path.join(directory, folder, 'package.json');
@@ -61,7 +61,27 @@ async function changes({ env = process.env, fetch: request = fetch, git = args =
   let files;
   try { files = git(['diff', '--name-only', '--no-renames', `${base}...${head}`]).split('\n').filter(Boolean); }
   catch { return { apps: names, deploy: env.GITHUB_EVENT_NAME === 'pull_request' ? [] : names, accounts: true, base: null, head }; }
-  return { ...affected(files), base, head, files };
+  const result = affected(files);
+  if (env.GITHUB_EVENT_NAME === 'push') {
+    // Validation can finish while a newer commit prevents promotion. Compare
+    // publication separately against each app's actual live revision, so that
+    // an unpromoted code change is never lost behind a later docs-only push.
+    const pending = await Promise.all(names.map(async app => {
+      try {
+        const r = await request(appConfig[app].origin + '/build-info.json', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+        if (!r.ok) return app;
+        const info = await r.json();
+        if (info.app !== app || info.profile !== 'production' || !/^[a-f0-9]{40}$/.test(info.sha)) return app;
+        git(['merge-base', '--is-ancestor', info.sha, head]);
+        const changes = git(['diff', '--name-only', '--no-renames', `${info.sha}...${head}`]).split('\n').filter(Boolean);
+        return affected(changes).deploy.includes(app) ? app : null;
+      } catch { return app; }
+    }));
+    result.deploy = pending.filter(Boolean);
+    result.apps = names.filter(app => result.apps.includes(app) || result.deploy.includes(app));
+    if (result.deploy.length) result.accounts = true;
+  }
+  return { ...result, base, head, files };
 }
 module.exports = { workspaces, affected, changes };
 if (require.main === module) changes().then(result => {

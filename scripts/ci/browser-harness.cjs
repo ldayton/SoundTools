@@ -15,9 +15,11 @@ async function launchBrowser(options = {}) {
   const home = name === 'firefox' && process.platform === 'darwin' && !options.env?.CFFIXED_USER_HOME
     ? await mkdtemp(path.join(tmpdir(), 'soundtools-firefox-')) : undefined;
   try {
+    const env = { ...process.env, ...options.env, ...(home ? { CFFIXED_USER_HOME: home } : {}) };
+    for (const key of ['VERCEL_TOKEN', 'GITHUB_TOKEN', 'GH_TOKEN', 'SENTRY_AUTH_TOKEN', 'SUPABASE_SERVICE_ROLE_KEY']) delete env[key];
     const browser = await engines[name].launch({ headless: process.env.HEADED !== '1', ...options,
       args: [...(name === 'chromium' ? ['--mute-audio'] : []), ...(options.args || [])],
-      env: { ...process.env, ...options.env, ...(home ? { CFFIXED_USER_HOME: home } : {}) },
+      env,
     });
     if (home) browser.on('disconnected', () => void rm(home, { recursive: true, force: true }).catch(() => {}));
     return browser;

@@ -51,6 +51,12 @@ function build(app) {
     const originals = path.join(root, 'apps/dorego', out, 'samples/bitklavier');
     for (const f of fs.readdirSync(originals)) if (f !== 'NOTICE.txt') fs.rmSync(path.join(originals, f), { recursive: true });
   }
+  const { preflight, buildInfo } = require('./preflight.cjs');
+  for (const out of app === 'dorego' ? ['dist', 'dist-pages'] : [app === 'soundglow' ? 'site' : 'dist']) {
+    const output = path.join(root, 'apps', app, out);
+    preflight(app, output);
+    buildInfo(app, output, 'ci');
+  }
   fs.mkdirSync(path.dirname(manifestPath(app)), { recursive: true });
   const data = manifest(app);
   fs.writeFileSync(manifestPath(app), JSON.stringify(data));

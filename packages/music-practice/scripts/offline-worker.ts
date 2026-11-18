@@ -1,7 +1,7 @@
 import { APP_ROUTE_ROOTS } from "../src/exercise-catalog";
-import { workerSource } from "@ldayton/browser-offline";
+import { workerSource, manifestLimits } from "@ldayton/browser-offline";
 // Bound manifest size while allowing multi-articulation backing sample libraries.
-export const MAX_OFFLINE_FILES = 4096;
+export const MAX_OFFLINE_FILES = manifestLimits.practice.files;
 export function offlineWorker(config: {
   app?: "notewise" | "songalong";
   base: string;

@@ -48,10 +48,10 @@ try {
           const { BackingTrackPlayer } = await import(
             /* @vite-ignore */ moduleUrl
           );
-          const { backingArrangement } = await import(
+          const { practiceBackingArrangement } = await import(
             /* @vite-ignore */ moduleUrl.replace(
               "backing-track-audio.ts",
-              "backing-arrangement.ts",
+              "backing-phrasing.ts",
             )
           );
           const { backingAudioGraph } = await import(
@@ -76,7 +76,13 @@ try {
           const live = p.context;
           p.pauseAll();
           await new Promise((r) => setTimeout(r, 100));
-          const take = backingArrangement(style, "active", quality, 0),
+          const take = practiceBackingArrangement(
+              style,
+              "active",
+              quality,
+              0,
+              style === "blues" ? 90 : 104,
+            ),
             tempo = take.nativeTempo;
           const offline = new OfflineAudioContext(
             2,

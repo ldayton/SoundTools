@@ -1,8 +1,5 @@
-import {
-  backingArrangement,
-  scalePitchClasses,
-  type BackingQuality,
-} from "./backing-arrangement";
+import { practiceBackingArrangement } from "./backing-phrasing";
+import { scalePitchClasses, type BackingQuality } from "./backing-arrangement";
 import { createViewState } from "./view-state";
 import {
   backingChokes,
@@ -91,16 +88,20 @@ export class BackingTrackPlayer {
   private cycle = 0;
   private index = 0;
   private lastBeat = -1;
-  private takeCache = new Map<number, ReturnType<typeof backingArrangement>>();
+  private takeCache = new Map<
+    number,
+    ReturnType<typeof practiceBackingArrangement>
+  >();
   private take() {
     let take = this.takeCache.get(this.cycle);
     if (!take) {
       const state = this.model.getSnapshot();
-      take = backingArrangement(
+      take = practiceBackingArrangement(
         state.style,
         state.mode,
         state.quality,
         this.cycle,
+        state.tempo,
       );
       this.takeCache.set(this.cycle, take);
       // Retain the current and previous take only; long practice stays bounded.
@@ -354,6 +355,7 @@ export class BackingTrackPlayer {
     if (value === previous.tempo) return;
     const beat = this.currentPosition();
     this.patch({ tempo: value });
+    this.takeCache.clear();
     this.remember();
     if (previous.status === "playing") this.reschedule(beat);
     else if (previous.syncing && this.context) {

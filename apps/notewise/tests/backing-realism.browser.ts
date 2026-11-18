@@ -107,6 +107,7 @@ try {
     );
     const p: any = new BackingTrackPlayer();
     p.setMetronomeTempo(114);
+    p.setTempo(72);
     p.setStyle("rock");
     p.setMode("active");
     p.setKey(9, "A", "minor");
@@ -204,7 +205,8 @@ try {
     await new Promise((r) => setTimeout(r, 1000));
     const position = p.currentPosition(),
       take = p.take();
-    p.setTempo(p.model.getSnapshot().tempo + 2);
+    p.setTempo(120);
+    const changedTake = p.take();
     const stable = Math.abs(p.currentPosition() - position) < 0.08;
     const cycles = p.takeCache.size,
       takeNumber = take.cycle;
@@ -235,6 +237,8 @@ try {
       finalQuality: finalTake.quality,
       loading,
       clockContinued,
+      phrasing: changedTake.phrasing,
+      changedTempo: changedTake.tempo,
     };
   }, moduleUrl);
   assert.ok(
@@ -250,6 +254,8 @@ try {
     "same guitar string chokes, another string keeps ringing",
   );
   assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
+  assert.equal(result.phrasing, "open-conversation-tempo-v1");
+  assert.equal(result.changedTempo, 120);
   assert.ok(result.stable, "tempo edit retains phase after a long take wraps");
   assert.ok(result.takeNumber >= 1);
   assert.ok(result.cycles <= 2);

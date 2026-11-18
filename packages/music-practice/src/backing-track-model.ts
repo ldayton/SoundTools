@@ -21,6 +21,9 @@ export type BackingEvent = {
   string?: number;
   /** Written at concert pitch, with guitar fingering validated in this key. */
   absolute?: boolean;
+  guitarReleaseSeconds?: number;
+  guitarReleaseScale?: number;
+  guitarAttackSeconds?: number;
 };
 export type BackingSample = {
   file: string;

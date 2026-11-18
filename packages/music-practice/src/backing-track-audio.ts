@@ -1,3 +1,4 @@
+import { connectBackingGuitar } from "./backing-guitar-transitions";
 import drumPack from "./assets/backing-drum-v3/manifest.json";
 import {
   articulateDrums,
@@ -128,6 +129,11 @@ export class BackingTrackPlayer {
         take = articulateDrums(
           take as ReturnType<typeof plannedBackingArrangement>,
         );
+      if (this.guitarTransitions)
+        take = connectBackingGuitar(
+          take as ReturnType<typeof plannedBackingArrangement>,
+          state.tempo,
+        );
       this.takeCache.set(this.cycle, take);
       // Retain the current and previous take only; long practice stays bounded.
       for (const cycle of this.takeCache.keys())
@@ -163,6 +169,7 @@ export class BackingTrackPlayer {
   constructor(
     private experimental = true,
     private drumArticulations = experimental,
+    private guitarTransitions = experimental,
   ) {
     document.addEventListener("visibilitychange", this.hidden);
     window.addEventListener("pagehide", this.departing);
@@ -730,13 +737,31 @@ export class BackingTrackPlayer {
             ((event.duration - offsetBeats) * 60) / state.tempo,
           )
         : available;
-    const level = sample.gain * strength * (event.level ?? 1);
+    const level =
+      sample.gain *
+      strength *
+      (event.level ?? 1) *
+      (release && event.part === "guitar"
+        ? (event.guitarReleaseScale ?? 1)
+        : 1);
     gain.gain.setValueAtTime(0, when);
-    gain.gain.linearRampToValueAtTime(level, when + 0.002);
+    gain.gain.linearRampToValueAtTime(
+      level,
+      when +
+        (event.part === "guitar" && !release
+          ? (event.guitarAttackSeconds ?? 0.002)
+          : 0.002),
+    );
     gain.gain.setValueAtTime(level, when + Math.max(0.003, duration - 0.003));
     gain.gain.linearRampToValueAtTime(
       0,
-      when + duration + (pitched && !release ? 0.08 : 0.005),
+      when +
+        duration +
+        (pitched && !release
+          ? event.part === "guitar"
+            ? (event.guitarReleaseSeconds ?? 0.08)
+            : 0.08
+          : 0.005),
     );
     const voice: Voice = {
       source,
@@ -763,7 +788,13 @@ export class BackingTrackPlayer {
       event.articulation !== "muted" &&
       event.articulation !== "ghost"
     )
-      this.sound(event, when + duration, true);
+      this.sound(
+        event.part === "guitar" && event.guitarReleaseScale !== undefined
+          ? { ...event, duration: (duration * state.tempo) / 60 }
+          : event,
+        when + duration,
+        true,
+      );
   }
   private schedule() {
     const context = this.context;

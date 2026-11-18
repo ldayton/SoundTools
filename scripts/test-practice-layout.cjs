@@ -365,12 +365,19 @@ const server = spawn(
             .tap();
           await navigation.waitFor({ state: "hidden" });
           await openOptions.tap();
-          await phone
-            .getByRole("dialog", {
-              name: /^(Practice|Playback) options$/,
-              exact: true,
-            })
-            .waitFor();
+          const options = phone.getByRole("dialog", {
+            name: /^(Practice|Playback) options$/,
+            exact: true,
+          });
+          await options.waitFor();
+          // As with navigation, finish the entrance before issuing a touch.
+          await options.evaluate(async (element) => {
+            await Promise.all(
+              element.getAnimations({ subtree: true }).map((animation) =>
+                animation.finished.catch(() => {}),
+              ),
+            );
+          });
           await phone
             .getByRole("button", {
               name: /^Close (practice|playback) options$/,

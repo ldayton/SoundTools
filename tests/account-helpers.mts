@@ -26,6 +26,8 @@ async function openNavigation(page: Page) {
 }
 async function menuButton(page: Page, name: "Account" | "Log in") {
   await page.locator("#practice-content, .soundglow-header").first().waitFor();
+  if (await page.locator("#practice-content").count())
+    await page.waitForFunction(() => (window as any).__soundtoolsStartup?.ready);
   const nav = page.getByRole("button", { name, exact: true });
   // A transitioning off-canvas drawer can be visible to accessibility APIs
   // while its buttons are still outside the viewport.

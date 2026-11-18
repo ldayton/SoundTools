@@ -6,6 +6,21 @@ import { tmpdir } from "node:os";
 import { resolve, extname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
+async function showUpdate(page: import("playwright").Page) {
+  await page.waitForFunction(
+    () =>
+      innerWidth >= 768 ===
+      Boolean(document.querySelector(".mantine-AppShell-navbar")),
+  );
+  const toggle = page.locator(".nav-toggle");
+  if (await toggle.isVisible()) {
+    const expanded = await toggle.getAttribute("aria-expanded");
+    if (expanded !== "true") await toggle.click();
+  }
+  await page
+    .getByRole("button", { name: "Complete update", exact: true })
+    .waitFor({ timeout: 20000 });
+}
 const name = process.env.TEST_BROWSER || "chromium";
 const type = { chromium, firefox, webkit }[name];
 if (!type) throw Error("Unknown browser");
@@ -143,58 +158,28 @@ try {
       .count(),
     0,
   );
+  const toolbarBounds = () =>
+    page.locator(".application-toolbar").boundingBox();
+  const beforeUpdate = await toolbarBounds();
   root = rootB;
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
   await page
-    .getByRole("button", { name: "Complete update", exact: true })
-    .waitFor({ timeout: 20000 });
+    .locator("#offline-update")
+    .waitFor({ state: "attached", timeout: 20000 });
+  assert.deepEqual(
+    await toolbarBounds(),
+    beforeUpdate,
+    "Staging an update preserves toolbar geometry",
+  );
   for (const width of [320, 390, 1680, 320, 1680]) {
     await page.setViewportSize({ width, height: 900 });
-    // The shell's responsive layout commits after the viewport event.
-    await page.waitForFunction(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    );
-    if (width < 768)
-      await page.waitForFunction(
-        () =>
-          document.querySelector(".workspace-content")!.getBoundingClientRect()
-            .left <= 20,
-      );
-    const update = page.getByRole("button", {
-      name: "Complete update",
-      exact: true,
-    });
-    assert.equal(
-      await update.count(),
-      1,
-      "One update action, available outside Settings",
-    );
-    // Crossing breakpoints reparents the action. Measure the current button
-    // and header together after React commits the responsive layout.
-    await page.waitForFunction(() => {
-      const button = document.querySelector<HTMLElement>("#offline-update");
-      const header = button?.closest("header");
-      if (!button || !header) return false;
-      const r = button.getBoundingClientRect();
-      return (
-        r.width > 0 &&
-        r.height > 0 &&
-        r.left >= 0 &&
-        r.right <= innerWidth &&
-        r.top >= 0 &&
-        r.bottom <= header.getBoundingClientRect().bottom &&
-        (innerWidth >= 768 || Math.abs(r.left + r.width / 2 - innerWidth / 2) <= 1)
-      );
-    });
+    await showUpdate(page);
+    assert.equal(await page.locator("header #offline-update").count(), 0);
     assert.ok(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
+      await page
+        .getByRole("button", { name: "Complete update", exact: true })
+        .isVisible(),
     );
-    await page.screenshot({
-      path: `work/complete-update-${width}.png`,
-      animations: "disabled",
-    });
   }
   await page.screenshot({ path: "work/complete-update-desktop.png" });
   assert.equal(
@@ -343,9 +328,7 @@ try {
   networkDown = false;
   await context.setOffline(false);
   await fresh.evaluate(() => window.dispatchEvent(new Event("online")));
-  await fresh
-    .getByRole("button", { name: "Complete update", exact: true })
-    .waitFor({ timeout: 20000 });
+  await showUpdate(fresh);
   await fresh.locator("#offline-update").click();
   await fresh.waitForFunction(
     (v) =>

@@ -165,10 +165,6 @@ export function ApplicationLayout({
   const smallToolbar = useMediaQuery("(max-width: 479px)", undefined, {
     getInitialValueInEffect: false,
   });
-  const inlineUpdate = useMediaQuery("(min-width: 70em)", undefined, {
-    getInitialValueInEffect: false,
-  });
-  const updateRow = Boolean(updateAction && !inlineUpdate);
   return (
     <>
       <Anchor href="#practice-content" className="skip-link">
@@ -177,14 +173,13 @@ export function ApplicationLayout({
       <AppShell
         transitionDuration={resizing ? 0 : 200}
         header={{
-          height:
-            (toolbarOnly
-              ? desktop
-                ? 56
-                : (mobileToolbarHeight ?? (smallToolbar ? 148 : 104))
-              : compact
-                ? 56
-                : 72) + (updateRow ? 44 : 0),
+          height: toolbarOnly
+            ? desktop
+              ? 56
+              : (mobileToolbarHeight ?? (smallToolbar ? 148 : 104))
+            : compact
+              ? 56
+              : 72,
         }}
         navbar={{
           width: resizableNavigation ? navigationWidth : minimumWidth,
@@ -196,7 +191,7 @@ export function ApplicationLayout({
         <AppShell.Header className={`soundtools-ui ${headerClassName || ""}`}>
           <Group
             className="application-toolbar"
-            h={updateRow ? "calc(100% - 44px)" : "100%"}
+            h="100%"
             px={compact ? "sm" : "md"}
             gap={toolbarOnly ? "xs" : "md"}
             wrap="nowrap"
@@ -259,18 +254,7 @@ export function ApplicationLayout({
             ) : null}
             <PracticeOptionsReopen />
             {!toolbarOnly && headerActions}
-            {inlineUpdate && updateAction}
           </Group>
-          {updateRow && (
-            <Group
-              h={44}
-              px="md"
-              justify={desktop ? "flex-end" : "center"}
-              aria-live="polite"
-            >
-              {updateAction}
-            </Group>
-          )}
         </AppShell.Header>
         {desktop && (
           <AppShell.Navbar
@@ -298,6 +282,11 @@ export function ApplicationLayout({
                 <PanelIcon />
               </ActionIcon>
             </Group>
+            {updateAction && (
+              <Box mb="md" aria-live="polite">
+                {updateAction}
+              </Box>
+            )}
             {navigation}
             {resizableNavigation && !navigationCollapsed && (
               <div
@@ -377,6 +366,11 @@ export function ApplicationLayout({
           id="practice-navigation"
           className="app-sidebar"
         >
+          {!desktop && updateAction && (
+            <Box mb="md" aria-live="polite">
+              {updateAction}
+            </Box>
+          )}
           {navigation}
         </Box>
       </Drawer>

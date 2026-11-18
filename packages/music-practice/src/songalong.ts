@@ -1,5 +1,7 @@
+import { account } from './account';
+import { songalongRecords, restoreSongalongRecords } from './songalong-account-records';
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
-import { shutdownPianoSound } from "./piano-audio";
+import { shutdownPianoSound, refreshPianoVolume } from "./piano-audio";
 import { preventRepeatedButtonActivation } from "./input-guards";
 import { mountAppShell } from "./app-shell";
 import { SightReading } from "./sight-reading";
@@ -157,6 +159,35 @@ void document.fonts.ready
     shellStatus.set({ blocked: !persistence.writable });
     ready = true;
     render();
+    void account.start({
+      read: () => songalongRecords(persistence.state),
+      validate: records => { restoreSongalongRecords(records); },
+      pause: () => interrupt('controls'),
+      canApply: () => route.kind === 'settings' || !!practice?.syncIdle,
+      apply: async records => {
+        const next = records ? restoreSongalongRecords(records) : persistence.store!.state;
+        interrupt('controls');
+        practice?.dispose();
+        practice = undefined;
+        if (records) {
+          persistence.state = next;
+          persistence.accountSave = async () => { await account.changed(); return account.getSnapshot().status !== 'error'; };
+        } else {
+          persistence.accountSave = undefined;
+          persistence.state = next;
+        }
+        refreshPianoVolume();
+        restorePianoVisibility();
+        const saved = persistence.read<{hymn?: string}>('sight');
+        if (route.kind === 'exercise') {
+          const url = new URL('/piano/hymns' + (saved?.hymn ? '/' + saved.hymn : ''), location.origin);
+          history.replaceState(null, '', url.pathname);
+          route = readRoute(url, 'sight');
+        }
+        render();
+      },
+    }).catch(() => diagnostics.event('account.start_failed'));
+    persistence.accountFlush = () => account.flush();
     window.dispatchEvent(new Event("soundtools:ready"));
     try {
       setupOffline();

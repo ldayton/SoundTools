@@ -1,0 +1,19 @@
+{
+  "name": "@ldayton/account",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./client.ts",
+    "./sync": "./sync.ts",
+    "./model": "./model.ts",
+    "./server": "./server.ts",
+    "./vite": "./vite.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.119.0"
+  },
+  "scripts": {
+    "test": "tsx --test tests/*.test.ts"
+  }
+}

@@ -6,6 +6,19 @@
   "outputDirectory": "dist",
   "headers": [
     {
+      "source": "/auth/confirm",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
+    },
+    {
       "source": "/settings",
       "headers": [
         {
@@ -79,6 +92,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/auth/confirm",
+      "destination": "/index.html"
+    },
     {
       "source": "/piano/:path*",
       "destination": "/index.html"

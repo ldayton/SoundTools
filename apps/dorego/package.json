@@ -52,7 +52,8 @@
     "@mantine/core": "9.8.0",
     "@mantine/hooks": "9.8.0",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "@ldayton/account": "0.1.0"
   },
   "devDependencies": {
     "@types/express": "5.0.6",

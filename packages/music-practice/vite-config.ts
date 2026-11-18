@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { accountApi } from '@ldayton/account/vite';
 import { relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
@@ -30,6 +31,7 @@ for (const file of [
   ...sources(fileURLToPath(new URL("./src", import.meta.url))),
   ...sources(fileURLToPath(new URL("./scripts", import.meta.url))),
   ...sources("../../packages/ui"),
+  ...sources("../../packages/account"),
   ...sources("../../packages/browser-controls"),
   ...sources("../../packages/browser-offline"),
   ...sources("../../packages/browser-diagnostics").filter(
@@ -51,7 +53,7 @@ export function practiceConfig(app: "notewise" | "songalong") {
         process.env.VERCEL_ENV || "development",
       ),
     },
-    plugins: [react(), offlineBuild(release, app)],
+    plugins: [react(), accountApi(), offlineBuild(release, app)],
     optimizeDeps: {
       include: ["@ldayton/browser-offline", "@ldayton/browser-diagnostics"],
     },

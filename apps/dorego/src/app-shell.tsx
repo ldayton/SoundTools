@@ -1,3 +1,6 @@
+import { AccountMenu, AccountProvider } from '@ldayton/ui/account-menu';
+import { account } from './account';
+import { preferences } from './preferences';
 import { StrictMode, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useMediaQuery } from '@mantine/hooks';
 import { createRoot } from 'react-dom/client';
@@ -9,7 +12,6 @@ import {
   BreathToolbar,
   useBreathSession,
 } from './breath-squares-view';
-import { breathSelected } from './breath-squares';
 import { RenderErrorBoundary } from '@ldayton/ui/render-error-boundary';
 import { SoundToolsProvider } from '@ldayton/ui';
 import {
@@ -46,13 +48,10 @@ function AppShell({
   pause,
 }: AppViews) {
   const [settings, setSettings] = useState(location.hash === '#settings');
-  const [breathing, setBreathing] = useState(breathSelected);
+  const saved = useSyncExternalStore(listener => preferences.subscribe(listener), () => preferences.state);
+  const breathing = saved.selected === 'breathSquares';
+  const setBreathing = (value: boolean) => preferences.update({ selected: value ? 'breathSquares' : 'warmup' });
   const breath = useBreathSession(breathing && !settings, getVolume);
-  useEffect(() => {
-    try {
-      localStorage.setItem('dorego.exercise', breathing ? 'breathSquares' : 'warmup');
-    } catch {}
-  }, [breathing]);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const small = useMediaQuery('(max-width:359px)', undefined, { getInitialValueInEffect: false });
@@ -115,10 +114,12 @@ function AppShell({
             navigate(true);
           }}
         />
+        <AccountMenu />
       </div>
     </Stack>
   );
   return (
+    <AccountProvider account={account} opening={() => { pause(); breath.pause(); }}>
     <PracticeOptionsProvider
       entries={[
         { id: 'builder', form: builder },
@@ -178,6 +179,7 @@ function AppShell({
         </section>
       </ApplicationLayout>
     </PracticeOptionsProvider>
+    </AccountProvider>
   );
 }
 export function mountAppShell(element: HTMLElement, views: AppViews) {

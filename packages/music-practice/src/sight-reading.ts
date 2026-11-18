@@ -467,6 +467,10 @@ export class SightReading {
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;
   }
+  get syncIdle() {
+    return !this.passage.selecting && (this.mode === 'playback' ? !['playing','loading','counting'].includes(this.playback.state) : this.paused || !!this.session?.complete)
+      && !document.activeElement?.closest('input,select,textarea,[role="spinbutton"],[role="slider"]');
+  }
   get inputPolicy(): InputPolicy {
     if (
       this.mode === "playback" ||

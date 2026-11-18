@@ -1,17 +1,18 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
+import { preferences } from './preferences';
 import { Anchor, Button, Group, Progress, Paper, Select, Stack, Title } from '@mantine/core';
 import { SettingsSections } from '@ldayton/ui/settings-sections';
 import { OfflineStatusPanel } from '@ldayton/ui/offline-status-panel';
 import { offlineState, offlineActions } from './offline-state';
 import { diagnostics } from './diagnostics';
-import { readAudioChannels, saveAudioChannels, type AudioChannels } from './audio-channels';
+import { saveAudioChannels, type AudioChannels } from './audio-channels';
 export function SettingsPage({
   onAudioChannelsChange,
 }: {
   onAudioChannelsChange(channels: AudioChannels): void;
 }) {
   const offline = useSyncExternalStore(offlineState.subscribe, offlineState.getSnapshot);
-  const [channels, setChannels] = useState(readAudioChannels);
+  const channels = useSyncExternalStore(listener => preferences.subscribe(listener), () => preferences.state.channels);
   return (
     <SettingsSections
       consent={{ id: 'share-diagnostics', client: diagnostics }}
@@ -58,7 +59,6 @@ export function SettingsPage({
             ]}
             onChange={(value) => {
               if (value !== 'stereo' && value !== 'mono') return;
-              setChannels(value);
               saveAudioChannels(value);
               onAudioChannelsChange(value);
             }}

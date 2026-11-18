@@ -43,18 +43,18 @@ const errors: string[] = [];
 const protocolErrors: string[] = [];
 async function observe(page: Page) {
   await page.exposeFunction("__accountReportError", (message: string) =>
-    errors.push(message),
+    errors.push(page.url() + ": " + message),
   );
   await page.addInitScript(() => {
     window.addEventListener("error", (e) => {
       if (e.message)
-        void (window as any).__accountReportError(e.message).catch(() => {});
+        void (window as any).__accountReportError(e.error?.stack || e.message).catch(() => {});
     });
     window.addEventListener(
       "unhandledrejection",
       (e) =>
         void (window as any)
-          .__accountReportError(String(e.reason?.message || e.reason))
+          .__accountReportError(String(e.reason?.stack || e.reason?.message || e.reason))
           .catch(() => {}),
     );
   });

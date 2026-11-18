@@ -20,9 +20,27 @@ async function openNavigation(page: Page) {
   else if (await files.isVisible()) await files.click();
   else await page.locator("#settings").click();
 }
+async function menuButton(page: Page, name: "Account" | "Log in") {
+  const nav = page.getByRole("button", { name, exact: true });
+  // A transitioning off-canvas drawer can be visible to accessibility APIs
+  // while its buttons are still outside the viewport.
+  const onScreen = await nav.isVisible() && await nav.evaluate(element => {
+    const box = element.getBoundingClientRect();
+    return box.width > 0 && box.height > 0 && box.right > 0 && box.left < innerWidth;
+  }).catch(() => false);
+  if (!onScreen) await openNavigation(page);
+  const drawer = page.getByRole("dialog").filter({ has: nav });
+  if (await drawer.isVisible()) {
+    await drawer.evaluate(async element => {
+      await Promise.all(element.getAnimations({ subtree: true }).map(animation =>
+        animation.finished.catch(() => {}),
+      ));
+    });
+  }
+  return nav;
+}
 export async function account(page: Page) {
-  const nav = page.getByRole("button", { name: "Account", exact: true });
-  if (!(await nav.isVisible())) await openNavigation(page);
+  const nav = await menuButton(page, "Account");
   await nav.click();
   await page.getByRole("dialog", { name: "Account", exact: true }).waitFor();
 }
@@ -39,8 +57,7 @@ async function latestEmail() {
 }
 let checkedLinkRetry = false;
 export async function login(page: Page, link = false) {
-  const nav = page.getByRole("button", { name: "Log in", exact: true });
-  if (!(await nav.isVisible())) await openNavigation(page);
+  const nav = await menuButton(page, "Log in");
   await nav.click();
   await page
     .getByRole("textbox", { name: "Email address", exact: true })

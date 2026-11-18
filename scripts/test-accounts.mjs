@@ -33,6 +33,7 @@ try {
   if (!ready) throw Error("Local account previews did not start.");
   await run("npx", ["tsx", "tests/accounts.browser.mts"]);
   await run("npx", ["tsx", "tests/accounts-extra.browser.mts"]);
+  await run("npx", ["tsx", "tests/account-link-window.browser.mts"]);
   await run("npx", ["tsx", "tests/native-files.browser.mts"]);
 } finally {
   servers.kill("SIGTERM");

@@ -24,6 +24,11 @@ test("early classic bootstrap strips tokens before later scripts and preserves t
     globalThis: env,
   });
   assert.equal(location.hash, "");
+  assert.equal(
+    (env as typeof env & { __soundtoolsAccountConfirmation: boolean })
+      .__soundtoolsAccountConfirmation,
+    true,
+  );
   assert.equal(captureAccountLink(env), "example");
   assert.equal(
     captureAccountLink({

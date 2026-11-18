@@ -122,6 +122,9 @@ export async function login(page: Page, link = false) {
       await page.unroute(config.SUPABASE_URL + "/auth/v1/verify");
     }
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    if (app !== "Soundglow") {
+      await page.getByRole("link", { name: `Continue to ${app}`, exact: true }).click();
+    }
   } else {
     const wrong = String((Number(code) + 1) % 1000000).padStart(6, "0");
     await page

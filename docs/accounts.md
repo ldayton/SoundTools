@@ -25,6 +25,12 @@ Both alternatives appear in one email: a six-digit code and an app link.
 They redeem the same one-time credential, expiring after 30 minutes. The link
 carries the token hash in its fragment, which is stripped before routing and
 telemetry; a confirmation button prevents passive link scanners consuming it.
+DoReGo, NoteWise and SongAlong confirm email links on a standalone page before
+starting practice. That page only saves the authentication session; it does not
+open progress storage, acquire a practice writer lock or initialize cloud data.
+An already-open same-origin app receives Supabase's authentication event. The
+confirmation page tells the user to return to it; without an active practice
+window it offers Continue. Normal duplicate-window protection remains intact.
 
 Hosted email uses Amazon SES, `SoundTools <no-reply@lilydayton.me>` in us-east-1.
 The domain has DKIM and a dedicated mail-return subdomain. Its default

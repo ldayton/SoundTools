@@ -30,7 +30,8 @@
     "./piano-keyboard.css": "./piano-keyboard.css",
     "./piano-motion": "./piano-motion.ts",
     "./toolbar-disclosure": "./toolbar-disclosure.tsx",
-    "./account-menu": "./account-menu.tsx"
+    "./account-menu": "./account-menu.tsx",
+    "./account-entry": "./account-entry.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

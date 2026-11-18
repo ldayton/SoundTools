@@ -249,6 +249,7 @@ try {
       clockContinued,
       phrasing: changedTake.phrasing,
       drumInterpretation: changedTake.drumInterpretation,
+      guitarTransitions: changedTake.guitarTransitions,
       changedTempo: changedTake.tempo,
     };
   }, moduleUrl);
@@ -267,6 +268,7 @@ try {
   assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
   assert.equal(result.phrasing, "planned-conversation-v2");
   assert.equal(result.changedTempo, 120);
+  assert.equal(result.guitarTransitions, "connected-strings-v1");
   assert.equal(result.drumInterpretation, "recorded-articulations-v1");
   assert.ok(result.stable, "tempo edit retains phase after a long take wraps");
   assert.ok(result.takeNumber >= 1);

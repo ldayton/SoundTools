@@ -105,7 +105,7 @@ try {
               ["A", a],
               ["B", b],
             ] as const) {
-              const p: any = new BackingTrackPlayer(true, variant === "B");
+              const p: any = new BackingTrackPlayer(true, variant === "B", false);
               p.setKey(9, "A", quality);
               p.setStyle(style);
               p.setMode(mode);

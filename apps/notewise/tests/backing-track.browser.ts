@@ -126,16 +126,16 @@ try {
     .press("Enter");
   await group.getByRole("button", { name: "Blues", exact: true }).click();
   await group.getByRole("button", { name: "Rock", exact: true }).click();
-  // At 180 BPM, the complete 24-bar groove lasts 32 seconds. Verify real wraparound.
+  // At 180 BPM, the complete 64-bar groove lasts 85⅓ seconds. Verify real wraparound.
   const loopStart = await page.evaluate(() =>
     Math.max(...(window as any).backingStarts.map((s: any) => s.time)),
   );
-  await page.waitForTimeout(33000);
+  await page.waitForTimeout(87000);
   const latest = await page.evaluate(() =>
     Math.max(...(window as any).backingStarts.map((s: any) => s.time)),
   );
   assert.ok(
-    latest - loopStart > 32,
+    latest - loopStart > 85,
     "schedules into the next loop without another click",
   );
   assert.equal(await group.getAttribute("data-status"), "playing");

@@ -5,6 +5,7 @@ import { Anchor, Button, Group } from "@mantine/core";
 import { diagnostics } from "./diagnostics";
 import { offlineState, offlineActions } from "./offline-state";
 import { pianoCreditsUrl } from "./piano-audio";
+import backingCreditsUrl from "./assets/backing-v1/NOTICE.txt?url&no-inline";
 import { APP } from "./app-profile";
 
 export function SettingsPage() {
@@ -46,6 +47,16 @@ export function SettingsPage() {
       >
         Piano recording credits
       </Anchor>
+      {APP.id === "notewise" && (
+        <Anchor
+          href={backingCreditsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          size="sm"
+        >
+          Backing track sound and performance credits
+        </Anchor>
+      )}
     </SettingsSections>
   );
 }

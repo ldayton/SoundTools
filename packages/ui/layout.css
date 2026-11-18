@@ -1,3 +1,9 @@
+/* Shared typography for native and custom practice-option controls. */
+.practice-options-content {
+  --practice-control-font-size: var(--mantine-font-size-sm);
+  --practice-control-caption-size: var(--mantine-font-size-xs);
+}
+
 /* The shell owns one options panel. Music renderers own only their practice surface. */
 .practice-workspace {
   display: flex;

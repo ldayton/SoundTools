@@ -1,0 +1,68 @@
+import { chromium } from 'playwright';
+import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+const vite = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
+const server = spawn(process.execPath, [vite, 'preview', '--host', '127.0.0.1', '--port', '4362', '--strictPort'], { cwd: new URL('..', import.meta.url), stdio: 'ignore' });
+for (let i = 0; i < 100; i++) {
+  try { if ((await fetch('http://127.0.0.1:4362')).ok) break; } catch {}
+  await new Promise(resolve => setTimeout(resolve, 100));
+}
+import assert from 'node:assert/strict';
+const browser=await chromium.launch();
+try {
+ const page=await browser.newPage();
+ const errors: string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:4362/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
+ await page.locator('.scale-shared').first().waitFor();
+ await page.keyboard.press('Shift+?');
+ const help = page.getByRole('dialog', { name: 'Scale keyboard shortcuts' });
+ await help.waitFor();
+ assert.ok((await help.innerText()).includes('12 frets'));
+ const helpUrl=page.url();
+ await page.keyboard.press('ArrowRight');assert.equal(page.url(),helpUrl,'help pauses navigation');
+ await page.keyboard.press('Escape');await help.waitFor({state:'hidden'});
+ await page.keyboard.press('?');await help.waitFor();
+ await page.keyboard.press('?');await help.waitFor({state:'hidden'});
+ await page.keyboard.press(']');
+ await page.waitForFunction(() => new URL(location.href).searchParams.get('position') === '12');
+ assert.equal(new URL(page.url()).searchParams.get('key'),'C');
+ assert.equal(new URL(page.url()).searchParams.get('pattern'),'1');
+ assert.equal(new URL(page.url()).searchParams.get('link'),'5');
+ const sharedFrets = await page.locator('.scale-shared').evaluateAll(nodes => nodes.map(n => Number(n.getAttribute('data-fret'))));
+ assert.ok(sharedFrets.every(f => f >= 19));
+ await page.keyboard.press(']');
+ assert.equal(new URL(page.url()).searchParams.get('position'),'12','upper octave limit');
+ await page.keyboard.press('[');
+ await page.waitForFunction(() => new URL(location.href).searchParams.get('position') === '0');
+ await page.keyboard.press('[');
+ assert.equal(new URL(page.url()).searchParams.get('position'),'0','lower octave limit');
+ await page.keyboard.press('ArrowUp');
+ await page.waitForFunction(() => new URL(location.href).searchParams.get('pattern') === '2');
+ assert.equal(new URL(page.url()).searchParams.get('key'),'C');
+ assert.equal(new URL(page.url()).searchParams.get('link'),'1');
+ await page.keyboard.press('ArrowDown');
+ await page.waitForFunction(() => new URL(location.href).searchParams.get('pattern') === '1');
+ assert.equal(new URL(page.url()).searchParams.get('position'),'0');
+ assert.equal(new URL(page.url()).searchParams.get('link'),'5');
+ await page.keyboard.press('ArrowRight');
+ await page.getByRole('heading',{name:'D♭ major',exact:true}).waitFor();
+ assert.equal(new URL(page.url()).searchParams.get('position'),'1');
+ assert.ok(await page.locator('.scale-shared').count()>0);
+ await page.keyboard.press('ArrowLeft');
+ await page.getByRole('heading',{name:'C major',exact:true}).waitFor();
+ await page.keyboard.press('Alt+ArrowRight');
+ assert.equal(await page.locator('#scale-title').textContent(),'C major');
+ await page.locator('#scale-key').focus();
+ await page.keyboard.press('ArrowRight');
+ assert.equal(new URL(page.url()).searchParams.get('position'),'0','dropdown arrows must not transpose the diagram');
+ await page.locator('#scale-title').click();
+ await page.goto('http://127.0.0.1:4362/guitar/scales?key=F%23&scale=major&pattern=1&position=-6');
+ await page.getByRole('heading',{name:'F♯ major',exact:true}).waitFor();
+ await page.keyboard.press('ArrowLeft');
+ assert.equal(await page.locator('#scale-title').textContent(),'F♯ major','respect first-fret boundary');
+ await page.getByRole('link',{name:'Scales & degrees',exact:true}).click();
+ await page.locator('.scale-card').waitFor({state:'hidden'});
+ const url=page.url();await page.keyboard.press('ArrowRight');assert.equal(page.url(),url,'inactive scale controller ignores keys');
+ assert.deepEqual(errors,[]);
+ console.log('PASS: linked scales, all keyboard shortcuts, help modal, input focus, fret boundaries, and activity exit');
+}finally{await browser.close(); server.kill()}

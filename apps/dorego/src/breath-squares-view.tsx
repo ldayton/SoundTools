@@ -1,3 +1,4 @@
+import { preferences } from './preferences';
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Alert, Button, Group, Stack, Text, Title } from '@mantine/core';
 import { BreathMetronome } from './breath-metronome';
@@ -9,21 +10,20 @@ import { BREATH_STEPS, breathAt, createBreathSession, type BreathSession } from 
 
 export function useBreathSession(enabled: boolean, getVolume: () => number) {
   const [session] = useState(() => {
-    let settings: unknown;
-    try {
-      settings = JSON.parse(localStorage.getItem('dorego.breathSquares') || 'null');
-    } catch {}
-    return createBreathSession(settings);
+    return createBreathSession(preferences.state.breathing);
   });
+  const settings = useSyncExternalStore(listener => preferences.subscribe(listener), () => preferences.state.breathing);
+  useEffect(() => {
+    const current = session.getSnapshot().settings;
+    if (current.rounds !== settings.rounds || current.seconds !== settings.seconds) session.configure(settings);
+  }, [session, settings]);
   useEffect(() => {
     let previous = session.getSnapshot().settings;
     return session.subscribe(() => {
       const next = session.getSnapshot().settings;
       if (next === previous) return;
       previous = next;
-      try {
-        localStorage.setItem('dorego.breathSquares', JSON.stringify(next));
-      } catch {}
+      preferences.update({ breathing: next });
     });
   }, [session]);
   useEffect(() => {

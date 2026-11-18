@@ -1,0 +1,11 @@
+Backing track sample pack v1
+All recordings CC0 1.0.
+Drums/percussion: Virtuosity Drums, Versilian Studios and Karoryfer Samples, Austin McMahon.
+Bass: Black And Blue Basses, Karoryfer Samples.
+Guitar: Black And Green Guitars, Karoryfer Samples.
+https://github.com/sfzinstruments/virtuosity_drums
+https://github.com/sfzinstruments/karoryfer.black-and-blue-basses
+https://github.com/sfzinstruments/karoryfer.black-and-green-guitars
+Original practice sequences and packaging code: MIT, Copyright 2026 Lily Dayton.
+Trimmed 48kHz/16-bit FLAC samples include recorded dynamic layers and alternate hits.
+Bass/guitar use the approved -12dB balance. The player transposes only pitched instruments.

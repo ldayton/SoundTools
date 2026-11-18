@@ -19,6 +19,8 @@ export const persistence = {
   writable: false,
   store: undefined as DurableStore | undefined,
   pending: 0,
+  accountSave: undefined as (() => Promise<boolean>) | undefined,
+  accountFlush: undefined as (() => Promise<void>) | undefined,
   fail(message: string) {
     this.writable = false;
     shellStatus.set({
@@ -105,6 +107,7 @@ export const persistence = {
     }
   },
   save() {
+    if (this.accountSave) return this.accountSave();
     if (!this.writable || !this.store) return Promise.resolve(false);
     this.pending++;
     shellStatus.set({ saved: "Saving on this device…" });
@@ -130,6 +133,7 @@ export const persistence = {
     this.writable = false;
     shellStatus.set({ blocked: true });
     try {
+      await this.accountFlush?.();
       await this.store.flush();
       return true;
     } catch (e) {

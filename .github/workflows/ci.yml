@@ -254,3 +254,34 @@ jobs:
       - run: npm run test:offline --workspace=songalong
       - run: npm run test:diagnostics --workspace=songalong
         if: matrix.browser == 'chromium'
+
+  accounts:
+    name: accounts (${{ matrix.browser }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    env:
+      TEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.2.0
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: supabase start --runtime docker --exclude storage,functions,studio,analytics,pooler,realtime --eager
+      - run: supabase db push
+      - run: node scripts/setup-account-local.mjs
+      - run: npm run test:accounts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: accounts-results-${{ matrix.browser }}
+          path: work/account-*.png

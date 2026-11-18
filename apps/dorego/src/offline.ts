@@ -1,5 +1,6 @@
 import { offlineState, setOffline, offlineActions } from './offline-state';
 import { diagnostics } from './diagnostics';
+import { account } from './account';
 import {
   createResources,
   createUpdatePolicy,
@@ -85,6 +86,8 @@ export function setupOffline() {
     return work;
   }
   async function applyQuiescentUpdate(version: string) {
+    try { await account.flush(); }
+    catch { setOffline({ status: 'Update paused because account changes could not be saved. Keep this page open and retry.' }); return; }
     active = false;
     checkGeneration++;
     session.abort();

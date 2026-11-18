@@ -1,3 +1,5 @@
+import { account } from './account';
+import { preferences, encodePreferences, decodePreferences } from './preferences';
 import {
   PracticeView,
   PracticeToolbar,
@@ -9,13 +11,12 @@ import { SettingsPage } from './settings-page';
 import { createElement } from 'react';
 import { createViewState } from '@ldayton/ui/view-state';
 import { Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from './builder';
-import { restoreSpec, editSpec, MIN_NOTE, MAX_NOTE } from './exercise-settings';
+import { editSpec, MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext } from './diagnostics';
 import { practiceRange } from './keyboard-layout';
 
 import {
-  DEFAULT_SPEC,
   directionName,
   PATTERNS,
   generateExercise as generateBoundedExercise,
@@ -30,20 +31,12 @@ import { Player } from './audio';
 import { ReferencePiano } from './reference-piano';
 import './style.css';
 import { setupOffline } from './offline';
-import { breathSelected } from './breath-squares';
 import { readAudioChannels, type AudioChannels } from './audio-channels';
 
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
   document.querySelector<T>(selector)!;
 function savedSpec(): ExerciseSpec {
-  try {
-    return restoreSpec(
-      JSON.parse(localStorage.getItem('dorego.current') || 'null'),
-      localStorage.getItem('dorego.glideShapeVersion')
-    );
-  } catch {
-    return { ...DEFAULT_SPEC, progression: 'up' };
-  }
+  return preferences.state.spec;
 }
 // Practice can slow down freely; the CLI/video renderer keeps its duration cap.
 const generateExercise = (input: unknown) => generateBoundedExercise(input, Infinity);
@@ -161,12 +154,7 @@ function toast(message: string) {
 }
 function persist() {
   if (formError) return;
-  try {
-    localStorage.setItem('dorego.current', JSON.stringify(spec));
-    localStorage.setItem('dorego.glideShapeVersion', '1');
-  } catch {
-    /* Practice works without storage. */
-  }
+  preferences.update({ spec: { ...spec } });
 }
 let pianoWarming = true;
 let pianoFailed = false;
@@ -408,7 +396,7 @@ document.addEventListener('keydown', (event) => {
 });
 populate();
 update(true);
-if (!breathSelected()) void warmPiano();
+if (preferences.state.selected !== 'breathSquares') void warmPiano();
 // Hiding alone does not pause healthy background audio. Freezing/navigation
 // does: preserve position and require an explicit Resume after restoration.
 window.addEventListener('blur', () => reference.stopAll());
@@ -434,3 +422,28 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.dispatchEvent(new Event('soundtools:ready'));
+preferences.subscribe(source => {
+  if (source === 'local') { void account.changed(); return; }
+  const next = preferences.state.spec;
+  const changedPattern = Object.entries(next).some(([key, value]) => key !== 'volume' && key !== 'bpm' && value !== spec[key as keyof ExerciseSpec]);
+  if (changedPattern) stop();
+  else if (spec.bpm !== next.bpm) player.setTempo(next.bpm);
+  spec = next;
+  exercise = generateExercise(spec);
+  changeAudioChannels(preferences.state.channels);
+  reference.setVolume(spec.volume);
+  player.setVolume(spec.volume);
+  formError = null;
+  populate();
+  update(true);
+  if (preferences.state.selected === 'warmup') void warmPiano();
+});
+void account.start({
+  read: () => encodePreferences(preferences.state),
+  validate: records => { decodePreferences(records); },
+  apply: records => preferences.apply(records),
+  pause: () => stop(false),
+  canApply: () => mode !== 'playing' && mode !== 'starting' &&
+    !document.querySelector('#breath-play[data-mode="playing"], #breath-play[data-mode="starting"]') &&
+    !document.activeElement?.closest('input,select,textarea,[role="spinbutton"],[role="slider"]'),
+});

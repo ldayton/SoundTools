@@ -41,6 +41,11 @@ export function setPianoVolume(value: number) {
   if (!Number.isFinite(value)) return;
   const volume = Math.max(0, Math.min(100, value));
   persistence.write("audio", { version: 1, volume });
+  refreshPianoVolume();
+}
+/** Apply an account snapshot to both the controls and an already running audio graph. */
+export function refreshPianoVolume() {
+  const volume = getPianoVolume();
   volumeListeners.forEach((listener) => listener());
   if (context && master) {
     master.gain.setTargetAtTime(volume / 100, context.currentTime, 0.015);

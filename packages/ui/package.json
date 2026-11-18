@@ -29,7 +29,8 @@
     "./piano-keyboard": "./piano-keyboard.tsx",
     "./piano-keyboard.css": "./piano-keyboard.css",
     "./piano-motion": "./piano-motion.ts",
-    "./toolbar-disclosure": "./toolbar-disclosure.tsx"
+    "./toolbar-disclosure": "./toolbar-disclosure.tsx",
+    "./account-menu": "./account-menu.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",
@@ -38,6 +39,7 @@
     "@mantine/hooks": "9.8.0"
   },
   "dependencies": {
-    "@ldayton/browser-controls": "*"
+    "@ldayton/browser-controls": "*",
+    "@ldayton/account": "0.1.0"
   }
 }

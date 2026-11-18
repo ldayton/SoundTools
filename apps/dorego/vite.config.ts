@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { accountApi } from '@ldayton/account/vite';
 import react from '@vitejs/plugin-react';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -16,7 +17,7 @@ const fingerprint = sourceHash.digest('hex').slice(0,12);
 export default defineConfig(({ mode }) => ({
   define: { __DOREGO_BUILD__: JSON.stringify(revision + '-' + fingerprint), 'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(process.env.VERCEL_ENV || 'development') },
   base: mode === 'pages' ? '/DoReGo/' : '/',
-  plugins: [react(), offlineBuild(revision + '-' + fingerprint)],
+  plugins: [react(), accountApi(), offlineBuild(revision + '-' + fingerprint)],
   optimizeDeps: { include: ['@ldayton/browser-diagnostics', '@ldayton/browser-offline'] },
   build: {
     commonjsOptions: { include: [/node_modules/, /packages\/browser-(diagnostics|offline)/] },

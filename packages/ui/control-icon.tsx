@@ -1,5 +1,6 @@
 export type ControlIconName =
   | "settings"
+  | "account"
   | "text-size"
   | "go-start"
   | "tempo"
@@ -20,6 +21,12 @@ export type ControlIconName =
   | "chevron-left";
 
 const artwork = {
+  account: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+    </>
+  ),
   tempo: (
     <>
       <path d="M9 18V5l10-2v13M9 8l10-2" />

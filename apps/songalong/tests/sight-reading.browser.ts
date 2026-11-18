@@ -18,7 +18,6 @@ import { readFile, mkdtemp, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import assert from "node:assert/strict";
-import hymns from "../../../packages/music-practice/src/hymns.json";
 const engine = process.env.TEST_BROWSER || "chromium";
 const browserType = { chromium, firefox, webkit }[engine]!;
 const port = process.env.TEST_PORT || "4341";
@@ -206,84 +205,8 @@ try {
   }
   assert.match((await page.locator(".hymn-count").textContent())!, /^2 \/ /);
   assert.equal(await page.locator(".sight-key-selected").count(), 0);
-  // All songs in both arrangements must render with lyrics, at desktop and phone widths.
-  for (const width of [2048, 1100, 390, 320]) {
-    await page.setViewportSize({ width, height: 1000 });
-    await openPracticeOptions(page);
-    for (const chords of [false, true]) {
-      for (const hymn of hymns) {
-        await choose(hymn.title);
-        await practiceOption(
-          page,
-          "#hymn-arrangement",
-          chords ? "original" : "melody",
-        );
-        await dismissPracticeDrawer(page);
-        await page.locator(".hymn-go-start").click();
-        assert.match(
-          (await page.locator(".hymn-count").textContent())!,
-          /^1 \/ [1-9]\d*$/,
-        );
-        assert.ok(
-          (await page.locator(".hymn-paper .abcjs-lyric").count()) > 0,
-          hymn.title,
-        );
-        assert.ok(
-          (await page.locator(".sight-current").count()) > 0,
-          hymn.title,
-        );
-        assert.equal(
-          await page
-            .locator(".sequence-score")
-            .evaluate((e) => e.scrollWidth <= e.clientWidth + 1),
-          true,
-          hymn.title,
-        );
-        assert.equal(
-          await page.evaluate(
-            () => document.documentElement.scrollWidth <= innerWidth,
-          ),
-          true,
-          hymn.title,
-        );
-        assert.equal(await page.locator(".sequence-feedback.error").count(), 0);
-        if (hymn.id === "praise-god-from-whom-all-blessings-flow") {
-          const crowded = await page
-            .locator(".abcjs-lyric")
-            .evaluateAll((els) => {
-              const words = els
-                .filter((e) => e.textContent?.trim())
-                .map((e) => ({
-                  text: e.textContent!,
-                  box: e.getBoundingClientRect(),
-                }));
-              const collisions: string[] = [];
-              for (let i = 1; i < words.length; i++) {
-                const previous = words[i - 1],
-                  current = words[i];
-                if (
-                  Math.abs(previous.box.y - current.box.y) < 2 &&
-                  current.box.x - previous.box.right < 4
-                )
-                  collisions.push(
-                    previous.text +
-                      " / " +
-                      current.text +
-                      ": " +
-                      (current.box.x - previous.box.right),
-                  );
-              }
-              return collisions;
-            });
-          assert.deepEqual(
-            crowded,
-            [],
-            `Lyric spacing at ${width}px, chords=${chords}`,
-          );
-        }
-      }
-    }
-  }
+  // The exhaustive catalog matrix runs independently in hymn-catalog.browser.ts.
+  await page.setViewportSize({ width: 320, height: 1000 });
   await openNavigation(page);
   await input.click();
   await input.fill("zzzzzz");
@@ -389,7 +312,7 @@ try {
   await closeNavigation(page);
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: hymn search, all ${hymns.length * 2} scores at desktop/mobile widths, MIDI legato/chords, pause, reload, completion and offline passed.`,
+    `${engine}: hymn search, MIDI legato/chords, pause, reload, completion and offline passed.`,
   );
 } catch (error) {
   await captureFailure(browser, error);

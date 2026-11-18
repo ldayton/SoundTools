@@ -121,7 +121,8 @@ jobs:
         with:
           browser: chromium
       - run: npm run build:shared
-      - run: npm run test:soundglow
+      - run: npm run test:core --workspace=soundglow
+      - run: npm run test:updates --workspace=soundglow
       - run: npm run test:resilience --workspace=soundglow
       - run: npm run build:soundglow
       - uses: actions/upload-artifact@v4
@@ -132,6 +133,40 @@ jobs:
             apps/soundglow/test-results/
             apps/soundglow/playwright-report/
             work/resilience-soundglow/
+
+  soundglow-visual:
+    name: soundglow visual (${{ matrix.shard }}/3)
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
+    concurrency:
+      group: validation-${{ github.ref }}-soundglow-visual-${{ matrix.shard }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: ./.github/actions/browser
+        with:
+          browser: chromium
+      - run: npm run build:shared
+      - run: npm run test:visual --workspace=soundglow -- --shard=${{ matrix.shard }}/3
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: soundglow-visual-${{ matrix.shard }}
+          path: |
+            apps/soundglow/test-results/
+            apps/soundglow/playwright-report/
+          retention-days: 7
 
   soundglow-ui:
     concurrency:
@@ -287,6 +322,42 @@ jobs:
             work/browser-results/
           retention-days: 7
 
+  songalong-catalog:
+    name: songalong catalog (${{ matrix.browser }}, ${{ matrix.shard }}/3)
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.apps), 'songalong')
+    concurrency:
+      group: validation-${{ github.ref }}-songalong-catalog-${{ matrix.browser }}-${{ matrix.shard }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2, 3]
+    env:
+      TEST_BROWSER: ${{ matrix.browser }}
+      TEST_SHARD: ${{ matrix.shard }}/3
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: ./.github/actions/browser
+        with:
+          browser: ${{ matrix.browser }}
+      - run: npm run build --workspace=songalong
+      - run: npm run test:catalog --workspace=songalong
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: songalong-catalog-${{ matrix.browser }}-${{ matrix.shard }}
+          path: apps/songalong/work/
+          retention-days: 7
+
   accounts:
     concurrency:
       group: validation-${{ github.ref }}-accounts-${{ matrix.browser }}
@@ -331,7 +402,7 @@ jobs:
   gate:
     name: validation gate
     if: always()
-    needs: [changes, shared, dorego, notewise, songalong, soundglow, soundglow-ui, accounts]
+    needs: [changes, shared, dorego, notewise, songalong, songalong-catalog, soundglow, soundglow-visual, soundglow-ui, accounts]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1

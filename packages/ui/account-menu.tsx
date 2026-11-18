@@ -206,6 +206,7 @@ export function AccountProvider({
                 <TextInput
                   label="Email address"
                   type="email"
+                  styles={{ input: { fontSize: "max(1em, 16px)" } }}
                   autoComplete="email"
                   required
                   value={email}
@@ -221,6 +222,7 @@ export function AccountProvider({
                     <TextInput
                       label="Sign-in code"
                       inputMode="numeric"
+                      styles={{ input: { fontSize: "max(1em, 16px)" } }}
                       autoComplete="one-time-code"
                       required
                       value={code}

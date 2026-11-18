@@ -6,6 +6,10 @@ export const scaleBodyState = () =>
   frameState({
     title: "",
     shortcutsOpen: false,
+    shiftMode: false,
+    shiftSelected: false,
+    direction: "ascending",
+    shiftMessage: "",
     linkedLegend: "",
     linkHelp: "",
     notes: "",
@@ -19,10 +23,14 @@ export function ScaleFrame({
   body,
   relative,
   navigation,
+  changeDirection,
+  clearShift,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
   navigation: ReactNode;
+  changeDirection(): void;
+  clearShift(): void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   return (
@@ -58,16 +66,22 @@ export function ScaleFrame({
       <div className="scale-key-navigation" hidden={!s.movable}>
         {navigation}
       </div>
-      {s.linkedLegend && <div className="scale-link-legend">
+      <div className="scale-link-legend">
+        {s.linkedLegend && <>
         <span><i className="link-first" />{s.linkedLegend.split("|")[0]}</span>
         <span><i className="link-second" />{s.linkedLegend.split("|")[1]}</span>
-        <span><i className="link-shared" />Shared position</span>
+        {!s.shiftSelected && <span><i className="link-shared" />Shared note</span>}
+        <span><i className="link-shift" />Clickable shift</span>
+        </>}
+        <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
+      </div>
+      {s.shiftMode && <div className="scale-shift-controls">
+        <Button className="scale-direction-toggle" variant="default" size="xs" onClick={changeDirection}>{s.direction === "ascending" ? "Ascending ↑" : "Descending ↓"}</Button>
+        <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>
+        <Button className="scale-clear-shift" variant="subtle" size="xs" onClick={clearShift} disabled={!s.shiftSelected}>Clear shift</Button>
       </div>}
       <div className="scale-diagram" />
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
-      <p className="scale-legend">
-        <span className="scale-root-swatch" aria-hidden="true" /> Root
-      </p>
       <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>
       <div className="scale-note-list">
         <ScaleDetails>

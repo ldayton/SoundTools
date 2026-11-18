@@ -1,3 +1,4 @@
+import { shiftRoutes, positionKey, type ShiftDirection } from "./scale-shift";
 import { ScaleFrame, scaleBodyState } from "./scale-frame";
 import { mountPracticeSurface } from "./practice-surfaces";
 import {
@@ -46,6 +47,9 @@ export class ScaleExplorer implements LivePractice {
   private backing = new BackingTrackPlayer();
   readonly inputPolicy = "none" as const;
   private active = false;
+  private shiftDirection: ShiftDirection = "ascending";
+  private selectedShift?: string;
+  private shiftContext = "";
   enter() {
     this.active = true;
     document.addEventListener("keydown", this.onKeyDown);
@@ -187,6 +191,8 @@ export class ScaleExplorer implements LivePractice {
       element,
       createElement(ScaleFrame, {
         body: this.body,
+        changeDirection: () => { this.shiftDirection = this.shiftDirection === "ascending" ? "descending" : "ascending"; this.selectedShift = undefined; this.render(); },
+        clearShift: () => { this.selectedShift = undefined; this.render(); },
         relative: createElement(ScaleRelative, {
           model: this.controls,
           toggle: () => {
@@ -327,6 +333,11 @@ export class ScaleExplorer implements LivePractice {
           );
     const linked = movable && this.linked !== "none" && this.linked !== "map" && this.linked !== this.pattern;
     const secondary = linked ? linkedPatternPositions(this.tonic, this.quality, this.pattern as Exclude<ScalePattern, "map">, this.shift, this.linked as Exclude<ScalePattern, "map">, this.spelling) : [];
+    const context = `${this.tonic}:${this.quality}:${this.pattern}:${this.shift}:${this.linked}`;
+    if (context !== this.shiftContext) { this.selectedShift = undefined; this.shiftContext = context; }
+    const routes = shiftRoutes(linked ? basePositions as ReturnType<typeof patternPositions> : [], secondary, this.shiftDirection);
+    const route = this.selectedShift ? routes.get(this.selectedShift) : undefined;
+    const routeNotes = new Map((route?.notes || []).map((n: ReturnType<typeof patternPositions>[number]) => [positionKey(n), n]));
     const primaryKeys = new Set(basePositions.map(n => `${n.string}:${n.fret}`));
     const secondaryKeys = new Set(secondary.map(n => `${n.string}:${n.fret}`));
     const positions = [...basePositions, ...secondary.filter(n => !primaryKeys.has(`${n.string}:${n.fret}`))];
@@ -377,11 +388,21 @@ export class ScaleExplorer implements LivePractice {
       .map((n) => {
         // Use the selected shape's fingering at overlaps, and the linked
         // shape's fingering for the notes it adds.
-        const label = labels === "fingers" && "finger" in n ? n.finger : scaleLabel(n.name);
+        const routeNote = routeNotes.get(positionKey(n));
+        const fingerNote = routeNote || n;
+        const label = route && !routeNote ? "" : labels === "fingers" && "finger" in fingerNote ? fingerNote.finger : scaleLabel(n.name);
+        const available = routes.has(positionKey(n));
+        const chosen = this.selectedShift === positionKey(n);
+        const shiftClass = linked ? `${route && !routeNote ? " scale-unused" : ""}${available ? " scale-shift-candidate" : ""}${chosen ? " scale-shift-chosen" : ""}` : "";
         const inPrimary = primaryKeys.has(`${n.string}:${n.fret}`);
         const inSecondary = secondaryKeys.has(`${n.string}:${n.fret}`);
-        const membership = linked ? inPrimary && inSecondary ? " scale-shared" : inPrimary ? " scale-primary" : " scale-secondary" : "";
-        return `<g class="scale-tone${membership}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/><text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text></g>`;
+        const membership = routeNote ? ` scale-route ${basePositions.some(p => p === routeNote) ? "scale-primary" : "scale-secondary"}` : route ? "" : linked ? inPrimary && inSecondary ? " scale-shared" : inPrimary ? " scale-primary" : " scale-secondary" : "";
+        const alternate = !route && labels === "fingers" && inPrimary && inSecondary
+          ? secondary.find(p => positionKey(p) === positionKey(n)) : undefined;
+        const dotLabel = alternate
+          ? `<text class="scale-finger-main" x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text><rect class="scale-alternate-badge" x="${x(n.fret)+6}" y="${y(n.string)+5}" width="20" height="20" rx="7"/><text class="scale-finger-alternate" x="${x(n.fret)+16}" y="${y(n.string)+15}" dy=".35em">${alternate.finger}</text>`
+          : `<text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text>`;
+        return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${linked ? `role="button" tabindex="${available ? 0 : -1}" aria-disabled="${!available}" aria-pressed="${chosen}" aria-label="${available ? "Shift into other shape at" : "Shift unavailable at"} string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${available && (!route || chosen) ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string)-17.5} A 17.5 17.5 0 1 1 ${x(n.fret)-17.5} ${y(n.string)} C ${x(n.fret)-17.5} ${y(n.string)-7} ${x(n.fret)-18} ${y(n.string)-12} ${x(n.fret)-21} ${y(n.string)-21} C ${x(n.fret)-12} ${y(n.string)-18} ${x(n.fret)-7} ${y(n.string)-17.5} ${x(n.fret)} ${y(n.string)-17.5} Z M ${x(n.fret)} ${y(n.string)-14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string)+14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string)-14.5} Z"/>` : ""}${dotLabel}</g>`;
       })
       .join("");
     this.element.querySelector(".scale-diagram")!.innerHTML =
@@ -404,10 +425,19 @@ export class ScaleExplorer implements LivePractice {
         .join(
           "",
         )}${notes}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
+    this.element.querySelectorAll<SVGGElement>(".scale-shift-candidate").forEach(dot => {
+      const select = () => { const key = `${dot.dataset.string}:${dot.dataset.fret}`; this.selectedShift = this.selectedShift === key ? undefined : key; this.render(); };
+      dot.addEventListener("click", select);
+      dot.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); select(); } });
+    });
     this.body.patch({
       title,
+      shiftMode: linked,
+      shiftSelected: !!route,
+      direction: this.shiftDirection,
+      shiftMessage: route ? `Shift on string ${route.arrival.string}, fret ${route.previous.fret} → ${route.arrival.fret} · finger ${route.previous.finger} → ${route.arrival.finger}` : routes.size ? "" : "No single-shift scale run available for this pair here.",
       linkedLegend: linked ? `Shape ${this.pattern}|Shape ${this.linked}` : "",
-      linkHelp: linked ? "Finger numbers follow the selected shape where the shapes overlap." : "",
+      linkHelp: "",
       notes: noteList,
       relativeExplanation,
       movable,

@@ -156,3 +156,48 @@
 .link-second { background: #348575; }
 .link-shared { border: 2px solid #7663a7; }
 .scale-link-help { max-width: 620px; margin: 12px auto; text-align: center; color: #626771; font-size: 13px; line-height: 1.5; }
+
+.scale-shift-controls { display:grid; grid-template-columns:124px minmax(0,1fr) max-content; gap:12px; align-items:center; margin:0 0 16px; }
+.scale-direction-toggle { width:124px; }
+.scale-shift-controls .scale-shift-status { min-width:0; min-height:3lh; display:flex; align-items:center; }
+@media (max-width:600px) {
+  .scale-shift-controls { grid-template-columns:124px 1fr; }
+  .scale-clear-shift { grid-column:2; grid-row:1; justify-self:end; }
+  .scale-shift-controls .scale-shift-status { grid-column:1 / -1; grid-row:2; min-height:3lh; }
+}
+.scale-shift-candidate { cursor:pointer; }
+.scale-shift-candidate circle { stroke-dasharray:none; }
+.scale-shift-candidate:focus { outline:none; }
+.scale-shift-candidate:focus circle, .scale-shift-candidate:hover circle { stroke-width:4; stroke-dasharray:none; }
+.scale-shift-chosen circle { stroke:#c36a16; stroke-width:4; stroke-dasharray:none; }
+.scale-unused circle { fill:#e8e9ed; stroke:#ccc; stroke-width:1; }
+
+.scale-route.scale-primary circle { fill:#647caa; }
+.scale-route.scale-secondary circle { fill:#348575; }
+.scale-route.scale-primary.scale-root circle { fill:#40527b; }
+.scale-route.scale-secondary.scale-root circle { fill:#205b50; }
+.scale-route text { fill:#fff; }
+
+.scale-dual .scale-finger-main { fill:#647caa; font-size:20px; font-weight:600; }
+.scale-dual .scale-finger-alternate { fill:#246858; font-size:14px; font-weight:600; }
+.scale-dual.scale-root .scale-finger-main { fill:#fff; }
+.scale-dual.scale-root .scale-finger-alternate { fill:#246858; }
+
+.scale-alternate-badge { fill:#fff; stroke:#348575; stroke-width:1.25; }
+
+.scale-shift-marker { fill:#7663a7; stroke:none; pointer-events:none; }
+.scale-shift-chosen .scale-shift-marker { fill:#c36a16; }
+.scale-link-legend .link-shift { width:11px; height:11px; border-radius:0; background:#7663a7; clip-path:polygon(0 0,100% 0,0 100%); }
+
+/* Shared notes retain a full ring. Solid notes merge the same contour into
+   their own fill, rather than acquiring an unrelated purple outline. */
+.scale-shift-candidate circle { stroke:none; }
+.scale-primary .scale-shift-marker { fill:#647caa; }
+.scale-secondary .scale-shift-marker { fill:#348575; }
+.scale-primary.scale-root .scale-shift-marker { fill:#253753; }
+.scale-secondary.scale-root .scale-shift-marker { fill:#253753; }
+.scale-route.scale-primary.scale-root .scale-shift-marker { fill:#40527b; }
+.scale-route.scale-secondary.scale-root .scale-shift-marker { fill:#205b50; }
+.scale-shift-chosen .scale-shift-marker { fill:#c36a16; }
+
+.scale-clear-shift { min-width:104px; white-space:nowrap; }

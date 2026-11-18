@@ -153,46 +153,46 @@ function pentatonic(source: Record<ScaleShape, Fingering>) {
   })) as Record<ScaleShape, Fingering>;
 }
 const minorPentatonic = pentatonic(minor);
+// GuitarScale.org's suggested fingerings use small hand adjustments at B/high E.
+minorPentatonic["2"].fingers = [[2,4],[1,4],[1,4],[1,3],[1,3],[1,3]];
+minorPentatonic["5"].fingers = [[1,3],[1,3],[1,4],[1,4],[1,3],[1,3]];
 // This box changes hand position at the G string and again at B.
 minorPentatonic["3"].fingers = [[1,3],[1,3],[1,3],[1,4],[1,4],[1,3]];
-const majorPentatonic = pentatonic(major);
-majorPentatonic["2"] = minorPentatonic["3"];
-// Add the shared E-flat blue note to each C-major/A-minor pentatonic box.
-// Retain existing fingers, including the position changes in the third minor box.
-function blues(source: Record<ScaleShape, Fingering>) {
-  return Object.fromEntries(SCALE_SHAPES.map(shape => {
-    const box = source[shape];
-    const low = Math.min(...box.frets.flat()), high = Math.max(...box.frets.flat());
-    const frets = box.frets.map((row,index) => [...new Set([...row,
-      ...Array.from({length: high-low+1},(_,i)=>low+i).filter(fret =>
-        (STRINGS.find(s=>s.number===6-index)!.midi+fret)%12===3)
-    ])].sort((a,b)=>a-b));
-    // Include every blue-note octave inside the run, even when it sits just
-    // outside the pentatonic box (for example B-string fret 16 in box 4).
-    const midi = box.frets.flatMap((row,index)=>row.map(fret=>STRINGS.find(s=>s.number===6-index)!.midi+fret));
-    for (let pitch=Math.min(...midi); pitch<=Math.max(...midi); pitch++) {
-      if (pitch%12!==3 || frets.some((row,index)=>row.some(fret=>STRINGS.find(s=>s.number===6-index)!.midi+fret===pitch))) continue;
-      const candidates = box.frets.map((row,index)=>{
-        const fret=pitch-STRINGS.find(s=>s.number===6-index)!.midi;
-        const distance=Math.max(row[0]-fret, fret-row.at(-1)!, 0);
-        return {index,fret,distance};
-      }).filter(c=>c.fret>=low-1 && c.fret<=high+1).sort((a,b)=>a.distance-b.distance);
-      const candidate=candidates[0];
-      if (!candidate) throw Error("Missing blue-note position");
-      frets[candidate.index].push(candidate.fret);
-      frets[candidate.index].sort((a,b)=>a-b);
-    }
-    const fingers = frets.map((row,index)=>row.map(fret=>{
-      if (row[0] < box.frets[index][0] || row.at(-1)! > box.frets[index].at(-1)!)
-        return Math.max(1, Math.min(4, fret-row[0]+1));
-      const original = box.frets[index].indexOf(fret);
-      return original >= 0 ? box.fingers[index][original] :
-        Math.max(1, Math.min(4, box.fingers[index][0]+fret-box.frets[index][0]));
-    }));
-    return [shape,{frets,fingers}];
-  })) as Record<ScaleShape,Fingering>;
-}
-const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic, "major-blues": blues(majorPentatonic), "minor-blues": blues(minorPentatonic) };
+const majorPentatonic: Record<ScaleShape, Fingering> = {
+  "1": minorPentatonic["2"], "2": minorPentatonic["3"], "3": minorPentatonic["4"],
+  "4": minorPentatonic["5"], "5": minorPentatonic["1"],
+};
+// Audited against GuitarScale.org's five A blues diagrams. Keep explicit
+// boxes: merely adding notes inside pentatonic bounds misses high-E fret 11
+// in box 2. Fingers are suggestions; some boxes change hand position.
+// https://www.guitarscale.org/a-blues.html
+const minorBlues: Record<ScaleShape, Fingering> = {
+  "1": {
+    frets: [[5,8],[5,6,7],[5,7],[5,7,8],[5,8],[5,8]],
+    fingers: [[1,4],[1,2,3],[1,3],[1,3,4],[1,4],[1,4]],
+  },
+  "2": {
+    frets: [[8,10,11],[7,10],[7,10],[7,8,9],[8,10],[8,10,11]],
+    fingers: [[1,3,4],[1,4],[1,4],[1,2,3],[1,3],[1,3,4]],
+  },
+  "3": {
+    frets: [[10,11,12],[10,12],[10,12,13],[9,12],[10,13],[10,11,12]],
+    fingers: [[1,2,3],[1,3],[1,3,4],[1,4],[1,4],[1,2,3]],
+  },
+  "4": {
+    frets: [[12,15],[12,15],[12,13,14],[12,14],[13,15,16],[12,15]],
+    fingers: [[1,4],[1,4],[1,2,3],[1,3],[1,3,4],[1,4]],
+  },
+  "5": {
+    frets: [[3,5],[3,5,6],[2,5],[2,5],[3,4,5],[3,5]],
+    fingers: [[1,3],[1,3,4],[1,4],[1,4],[1,2,3],[1,3]],
+  },
+};
+const majorBlues: Record<ScaleShape, Fingering> = {
+  "1": minorBlues["2"], "2": minorBlues["3"], "3": minorBlues["4"],
+  "4": minorBlues["5"], "5": minorBlues["1"],
+};
+const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic, "major-blues": majorBlues, "minor-blues": minorBlues };
 export function patternBounds(
   shape: ScaleShape,
   quality: ScaleQuality = "major",

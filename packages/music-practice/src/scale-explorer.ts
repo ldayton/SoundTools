@@ -301,6 +301,7 @@ export class ScaleExplorer implements LivePractice {
     this.backing.setKey(
       this.tonic,
       scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic]),
+      this.quality,
     );
     this.options.set(this.optionsSnapshot());
     const title = `${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality === "major" ? "major" : "natural minor"}`;

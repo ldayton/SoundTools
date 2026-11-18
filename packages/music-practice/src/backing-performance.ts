@@ -1,0 +1,116 @@
+import type { BackingEvent, BackingPart } from "./backing-track-model";
+/** Rules concern physical voices, independently of the sample chosen for them. */
+export function backingChokes(
+  event: BackingEvent,
+  voice: { part: BackingPart; note: number; string?: number },
+) {
+  if (event.part !== voice.part) return false;
+  if (event.part === "drums")
+    return [42, 44].includes(event.note) && voice.note === 46;
+  if (event.part === "bass") return true;
+  if (event.part === "guitar")
+    return event.string !== undefined
+      ? event.string === voice.string
+      : event.note === voice.note;
+  return false;
+}
+/** Original, deterministic short stereo room; no external IR or sampler required. */
+export function backingRoom(sampleRate: number) {
+  const length = Math.ceil(sampleRate * 0.36);
+  return [0, 1].map((channel) => {
+    const ir = new Float32Array(length);
+    let seed = 7919 + channel * 97;
+    for (let i = Math.ceil(sampleRate * 0.018); i < length; i++) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      ir[i] =
+        ((seed / 4294967296) * 2 - 1) *
+        0.008 *
+        Math.exp((-i / sampleRate) * 20);
+    }
+    for (const [delay, gain] of [
+      [0.009, 0.32],
+      [0.017, 0.2],
+      [0.031, 0.12],
+      [0.049, 0.065],
+    ])
+      ir[Math.round((delay + channel * 0.0017) * sampleRate)] += gain;
+    return ir;
+  });
+}
+
+/** Live and offline renders share exactly the same room, buses and dynamics. */
+export function backingAudioGraph(
+  context: BaseAudioContext,
+  levels: Record<BackingPart, number>,
+) {
+  const buses = new Map<BackingPart, GainNode>();
+  const limiter = context.createDynamicsCompressor();
+  limiter.threshold.value = -6;
+  limiter.knee.value = 6;
+  limiter.ratio.value = 6;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.15;
+  const output = context.createGain();
+  output.gain.value = 3;
+  const headroom = context.createGain();
+  headroom.gain.value = 0.75;
+  output.connect(limiter).connect(headroom).connect(context.destination);
+  const room = context.createConvolver();
+  const response = backingRoom(context.sampleRate);
+  const impulse = context.createBuffer(
+    2,
+    response[0].length,
+    context.sampleRate,
+  );
+  response.forEach((channel, i) => impulse.copyToChannel(channel, i));
+  room.normalize = false;
+  room.buffer = impulse;
+  const highpass = context.createBiquadFilter();
+  highpass.type = "highpass";
+  highpass.frequency.value = 200;
+  const lowpass = context.createBiquadFilter();
+  lowpass.type = "lowpass";
+  lowpass.frequency.value = 5500;
+  room.connect(highpass).connect(lowpass).connect(output);
+  for (const part of ["drums", "percussion", "bass", "guitar"] as const) {
+    const bus = context.createGain();
+    bus.gain.value = levels[part];
+    const comp = context.createDynamicsCompressor();
+    comp.threshold.value = part === "bass" ? -26 : -22;
+    comp.knee.value = 8;
+    comp.ratio.value = part === "bass" ? 2 : 1.5;
+    comp.attack.value = 0.014;
+    comp.release.value = 0.12;
+    bus.connect(comp).connect(output);
+    const send = context.createGain();
+    send.gain.value = {
+      drums: 0.045,
+      percussion: 0.08,
+      bass: 0.012,
+      guitar: 0.18,
+    }[part];
+    comp.connect(send).connect(room);
+    buses.set(part, bus);
+  }
+  return { output, buses };
+}
+
+/** Native browser resampling bounds memory without changing pitch or note length. */
+export async function compactBackingBuffer(
+  buffer: AudioBuffer,
+  part: BackingPart,
+) {
+  const rate =
+    part === "bass" ? 16000 : part === "guitar" ? 24000 : buffer.sampleRate;
+  if (buffer.sampleRate <= rate) return buffer;
+  const offline = new OfflineAudioContext(
+    buffer.numberOfChannels,
+    Math.ceil(buffer.duration * rate),
+    rate,
+  );
+  const source = offline.createBufferSource();
+  source.buffer = buffer;
+  source.connect(offline.destination);
+  source.start();
+  return offline.startRendering();
+}

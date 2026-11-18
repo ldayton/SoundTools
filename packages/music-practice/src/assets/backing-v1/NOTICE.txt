@@ -17,3 +17,5 @@ Source performances: drummer5/session1/17_blues-shuffle_72_beat_4-4.mid and drum
 Modifications: curated/combined bars and fills, remapped notes, adjusted velocities, section textures and periodic dynamics.
 
 CC0 recording license: https://creativecommons.org/publicdomain/zero/1.0/
+
+Realism revision: additional native-pitch recordings and recorded staccato articulations from the same CC0 libraries; native dynamics, alternate takes, note-off noises. Original procedural room response and harmony/ensemble code: MIT.

@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { playUntil, openPracticeOptions, readSpecValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
@@ -29,17 +30,9 @@ const server = spawn(
 );
 let browser;
 try {
-  for (let i = 0; i < 70; i++) {
-    if (server.exitCode !== null) throw Error('Spelling preview failed to start');
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {
-      /* Starting. */
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
+  await waitForServer(base, { server });
   browser = await launchTestBrowser();
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1280, height: 900 },
     serviceWorkers: 'block',
   });
@@ -175,7 +168,10 @@ try {
     'PASS: context-aware current/next notes and piano, sharp-only selectors, nine-note pentatonic, mobile labels and descending key spelling.'
   );
   await context.close();
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill('SIGTERM');
 }

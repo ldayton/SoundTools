@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
   selectPractice,
   practiceOption,
@@ -40,12 +41,9 @@ for (let i = 0; i < 100; i++) {
   await new Promise((r) => setTimeout(r, 100));
 }
 const home = await mkdtemp(join(tmpdir(), "songalong-keys-"));
-const browser = await (
-  { chromium, firefox, webkit }[process.env.TEST_BROWSER || "chromium"] ||
-  chromium
-).launch({ env: { ...process.env, CFFIXED_USER_HOME: home } });
+const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: home } });
 try {
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1680, height: 1000 },
   });
   await context.addInitScript({
@@ -317,8 +315,11 @@ try {
   console.log(
     "Hymn keys: transposed grading/chords, independent bookmarks, reload, old state, sections, all arrangements and phone layout passed",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await rm(home, { recursive: true, force: true }).catch((e) => {
     if (!["EACCES", "EPERM"].includes(e.code)) throw e;
   });

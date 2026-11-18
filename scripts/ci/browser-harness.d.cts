@@ -1,0 +1,13 @@
+import type { Browser, BrowserContext, BrowserContextOptions, LaunchOptions, Page } from 'playwright';
+import type { ChildProcess } from 'node:child_process';
+export function browserName(env?: NodeJS.ProcessEnv): 'chromium' | 'firefox' | 'webkit';
+export function launchBrowser(options?: LaunchOptions): Promise<Browser>;
+export function createContext(browser: Browser, options?: BrowserContextOptions, capture?: { trace?: boolean }): Promise<BrowserContext>;
+export const createOfflineContext: typeof createContext;
+export function newPage(browser: Browser, options?: BrowserContextOptions): Promise<Page>;
+export const newOfflinePage: typeof newPage;
+export function captureFailure(browser: Browser | undefined, error: unknown, destination?: string): Promise<string>;
+export function closeBrowser(browser: Browser | undefined): Promise<void>;
+export function waitForApp(page: Page, selector?: string): Promise<void>;
+export function clean(value: unknown): string;
+export function waitForServer(url: string, options?: { server?: ChildProcess | null; timeout?: number }): Promise<void>;

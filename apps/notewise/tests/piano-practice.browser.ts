@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
   practiceOption,
   openPracticeOptions,
@@ -28,16 +29,11 @@ const server = process.env.TEST_BASE_URL
 const fixed = await mkdtemp(join(tmpdir(), "notecards-practice-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await type.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1100, height: 1000 },
   });
   await context.addInitScript({
@@ -223,8 +219,11 @@ try {
   console.log(
     `${engine}: interval MIDI/persistence, rhythm timing/count-in/interruption and mobile layouts passed.`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch(
     (e: NodeJS.ErrnoException) => {

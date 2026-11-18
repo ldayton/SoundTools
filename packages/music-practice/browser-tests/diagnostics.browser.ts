@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { readFileSync } from "node:fs";
 const app = JSON.parse(readFileSync("package.json", "utf8")).name;
 import { chromium } from "playwright";
@@ -59,9 +60,9 @@ const server = createServer(async (req, res) => {
   }
 });
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
-  const context = await browser.newContext();
+  const context = await createContext(browser);
   const page = await context.newPage(),
     uploads: string[] = [];
   let fail = false,
@@ -178,8 +179,11 @@ try {
   console.log(
     `PASS: ${app} real-SDK uploads, default opt-out, consent persistence, privacy, offline errors, failed-send retry, opt-out suppression.`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.closeAllConnections();
   await new Promise<void>((r) => server.close(() => r()));
 }

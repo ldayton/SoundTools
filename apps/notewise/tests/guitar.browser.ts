@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
   practiceOption,
   selectPractice,
@@ -29,17 +30,11 @@ const server = process.env.TEST_BASE_URL
 let browser;
 const fixed = await mkdtemp(join(tmpdir(), "notecards-browser-"));
 try {
-  for (let i = 0; i < 100; i++) {
-    if (server && server.exitCode !== null) throw Error("Preview exited");
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await type.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1280, height: 1000 },
   });
   await context.addInitScript(() => {
@@ -408,7 +403,7 @@ try {
   assert.ok(await page.locator('[data-fret="2"]').isEnabled());
   await page.locator('[data-fret="2"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — F♯/);
-  const storageContext = await browser.newContext();
+  const storageContext = await createContext(browser);
   await storageContext.addInitScript(
     "Storage.prototype.setItem = () => {throw Error('Storage unavailable');}",
   );
@@ -431,7 +426,7 @@ try {
     !requests.some((u) => /googleapis|gstatic|jsdelivr/.test(u)),
     "No external font dependency",
   );
-  const touch = await browser.newContext({
+  const touch = await createContext(browser, {
     viewport: { width: 390, height: 844 },
     hasTouch: true,
   });
@@ -456,8 +451,11 @@ try {
   console.log(
     `PASS ${name}: five modes, pitch/location grading, anchored fret axis, mobile scrolling, keyboard/touch, full session, profiles, persistence and empty ranges.`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch(
     (error: NodeJS.ErrnoException) => {

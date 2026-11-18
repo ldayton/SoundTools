@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { readSpecValue } from './ui-helpers';
 import { selectExercise } from './ui-helpers';
 import { openMoreOptions } from './ui-helpers';
@@ -17,17 +18,10 @@ const server = spawn(
   [viteCli, '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
   { stdio: 'pipe' }
 );
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
-  for (let i = 0; i < 60; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {
-      /* Wait for Vite. */
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  const page = await browser.newPage();
+  await waitForServer(base, { server });
+  const page = await newPage(browser);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(base);
@@ -154,7 +148,10 @@ try {
   console.log(
     'PASS: both glide controls, local persistence, mobile layout, pause/resume, slow continuous audio, pitch endpoints, headroom and fades.'
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.kill('SIGTERM');
 }

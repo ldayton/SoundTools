@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
   selectPractice,
   practiceOption,
@@ -9,11 +10,9 @@ import { join } from "node:path";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 const fixed = await mkdtemp(join(tmpdir(), "notecards-recovery-"));
-const browser = await (
-  { chromium, firefox, webkit }[process.env.BROWSER || "chromium"] || chromium
-).launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
 const origin = process.env.TEST_URL || "http://127.0.0.1:4320";
-const context = await browser.newContext();
+const context = await createContext(browser);
 const page = await context.newPage();
 page.setDefaultTimeout(10000);
 page.on("pageerror", (e) => console.error("pageerror", e.message));
@@ -194,7 +193,7 @@ try {
     /version/,
   );
   await inspect.close();
-  const failureContext = await browser.newContext();
+  const failureContext = await createContext(browser);
   await failureContext.addInitScript(() => {
     Object.defineProperty(window, "indexedDB", {
       get() {
@@ -217,7 +216,10 @@ try {
   console.log(
     "recovery browser passed: exact question, feedback once, activity, pause, ownership, reopen",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(() => {});
 }

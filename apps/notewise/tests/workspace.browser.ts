@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { spawn } from "node:child_process";
@@ -31,17 +32,11 @@ const fixed = await mkdtemp(join(tmpdir(), "notewise-workspace-"));
 let browser;
 let diagnosticPage: import("playwright").Page | undefined;
 try {
-  for (let i = 0; i < 100; i++) {
-    if (server?.exitCode != null) throw Error("Preview exited");
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await type.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1680, height: 1050 },
     serviceWorkers: "block",
   });
@@ -433,6 +428,7 @@ try {
     `${engine}: every module, toolbar ownership, counter, modal input gating, fixed keys, MIDI animation, tempo and mobile layout passed.`,
   );
 } catch (error) {
+  await captureFailure(browser, error);
   await mkdir("work", { recursive: true });
   if (diagnosticPage) {
     await diagnosticPage
@@ -448,7 +444,7 @@ try {
   }
   throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch((error) => {
     // macOS may protect Firefox's synthetic home Downloads directory.

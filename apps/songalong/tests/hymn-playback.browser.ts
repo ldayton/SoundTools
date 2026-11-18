@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -25,18 +26,13 @@ const server = spawn(
   { stdio: "ignore" },
 );
 const fixed = await mkdtemp(join(tmpdir(), "hymn-playback-"));
-const browser = await { chromium, firefox, webkit }[engine]!.launch({
+const browser = await launchBrowser({
   args: engine === "chromium" ? ["--mute-audio"] : [],
   env: { ...process.env, CFFIXED_USER_HOME: fixed },
 });
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  const page = await browser.newPage({
+  await waitForServer(base, { server });
+  const page = await newPage(browser, {
     viewport: { width: 1400, height: 1000 },
   });
   const errors: string[] = [];
@@ -549,8 +545,11 @@ try {
   console.log(
     `${engine}: hymn playback, audio, pause/resume, live tempo, completion, mode isolation, section cancellation and mobile layout passed`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.kill();
   await rm(fixed, { recursive: true, force: true }).catch(() => {});
 }

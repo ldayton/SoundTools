@@ -4,6 +4,14 @@ const fs = require("node:fs"),
   path = require("node:path"),
   { createRequire } = require("node:module");
 const root = path.resolve(__dirname, "..");
+const os = require("node:os");
+const { prepareBrowserAssets } = require("../apps/soundglow/scripts/prepare-diagnostics.cjs");
+function withPreparedAssets(t) {
+  const vendor = fs.mkdtempSync(path.join(os.tmpdir(), "soundglow-shared-"));
+  t.after(() => fs.rmSync(vendor, { recursive: true, force: true }));
+  prepareBrowserAssets(vendor);
+  return vendor;
+}
 test("both apps resolve the same shared workspace source, without vendored archives", () => {
   for (const library of ["browser-diagnostics", "browser-offline"]) {
     const expected = fs.realpathSync(path.join(root, "packages", library));
@@ -35,9 +43,9 @@ test("both apps resolve the same shared workspace source, without vendored archi
     }
   }
 });
-test("Soundglow copies shared browser assets only as generated build output", () => {
+test("Soundglow copies shared browser assets only as generated build output", (t) => {
   const source = path.join(root, "packages/browser-diagnostics"),
-    output = path.join(root, "apps/soundglow/dist/vendor/diagnostics");
+    output = path.join(withPreparedAssets(t), "diagnostics");
   for (const file of [
     "core.js",
     "sentry.js",
@@ -52,13 +60,14 @@ test("Soundglow copies shared browser assets only as generated build output", ()
     );
 });
 
-test("Soundglow's offline resource loader comes from the workspace source", () => {
+test("Soundglow's offline resource loader comes from the workspace source", (t) => {
+  const vendor = withPreparedAssets(t);
   assert(
     fs
       .readFileSync(path.join(root, "packages/browser-offline/resources.cjs"))
       .equals(
         fs.readFileSync(
-          path.join(root, "apps/soundglow/dist/vendor/offline/resources.js"),
+          path.join(vendor, "offline/resources.js"),
         ),
       ),
   );

@@ -22,4 +22,4 @@ if [[ "${RUNNER_OS:-}" == Linux ]]; then
   done
 fi
 
-npx playwright install --with-deps "$browser"
+node scripts/ci/infrastructure.cjs npx playwright install --with-deps "$browser"

@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import {chromium,firefox,webkit} from 'playwright';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -7,9 +8,9 @@ import {preview} from '../../../packages/music-practice/browser-tests/server';
 const server=await preview('notewise',Number(process.env.TEST_PORT || 4484));
 const engine=process.env.TEST_BROWSER || 'chromium';
 const fixed=await mkdtemp(join(tmpdir(),'notewise-loop-'));
-const browser=await ({chromium,firefox,webkit}[engine as 'chromium'|'firefox'|'webkit']).launch({env:{...process.env,CFFIXED_USER_HOME:fixed}});
+const browser=await launchBrowser({env:{...process.env,CFFIXED_USER_HOME:fixed}});
 try {
- const page=await browser.newPage({viewport:{width:1440,height:1050},serviceWorkers:'block'});
+ const page=await newPage(browser, {viewport:{width:1440,height:1050},serviceWorkers:'block'});
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(server.base+'/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
  await page.locator('.scale-shift-candidate').first().waitFor();
@@ -34,4 +35,7 @@ try {
  assert.equal(await page.locator('.scale-finger-alternate').count(),9);
  assert.deepEqual(errors,[]);
  console.log('PASS: both loop legs visible, independent fingerings and colors, editable return, clear, mobile width');
-} finally {await browser.close();server.stop();await rm(fixed,{recursive:true,force:true}).catch(()=>{});}
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
+} finally {await closeBrowser(browser);server.stop();await rm(fixed,{recursive:true,force:true}).catch(()=>{});}

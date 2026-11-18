@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -24,10 +25,10 @@ try {
     } catch {}
     await new Promise((r) => setTimeout(r, 100));
   }
-  browser = await { chromium, firefox, webkit }[engine as "chromium"].launch({
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const page = await browser.newPage();
+  const page = await newPage(browser);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.addInitScript(() => {
@@ -393,8 +394,11 @@ try {
     engine +
       " backing/metronome controls, shared clock, loop seam and independent restoration passed",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
   await rm(fixed, { recursive: true, force: true }).catch((error) => {
     // macOS browsers can leave sandbox-owned entries in their temporary home.

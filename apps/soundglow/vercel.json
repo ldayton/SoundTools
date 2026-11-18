@@ -6,6 +6,15 @@
   "outputDirectory": "site",
   "headers": [
     {
+      "source": "/build-info.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/auth/confirm",
       "headers": [
         {
@@ -78,5 +87,8 @@
       "source": "/auth/confirm",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": false
+  }
 }

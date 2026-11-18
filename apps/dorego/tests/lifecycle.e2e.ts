@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { playUntil } from './ui-helpers';
 import { elapsedSeconds } from './ui-helpers';
 import { sliderValue, setSlider } from './ui-helpers';
@@ -19,15 +20,8 @@ const server = spawn(
 );
 const browser = await launchTestBrowser();
 try {
-  for (let i = 0; i < 60; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {
-      /* Wait for dev server. */
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  const page = await browser.newPage();
+  await waitForServer(base, { server });
+  const page = await newPage(browser);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.addInitScript(
@@ -188,7 +182,10 @@ try {
   console.log(
     'PASS: interruption/resume, persisted page restoration, freeze/resume, stale startup rejection, closed-context recovery, frozen running clock, missed scheduling coverage, rapid toggles, and completion without animation frames.'
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.kill('SIGTERM');
 }

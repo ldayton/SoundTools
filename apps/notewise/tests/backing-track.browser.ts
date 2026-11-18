@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -15,10 +16,10 @@ const server = await preview("notewise", Number(process.env.TEST_PORT || 4476));
 const fixed = await mkdtemp(join(tmpdir(), "notewise-backing-"));
 let browser;
 try {
-  browser = await { chromium, firefox, webkit }[engine]!.launch({
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });
@@ -202,8 +203,11 @@ try {
   console.log(
     "Backing tracks: real sample decoding/playback, pause, key/tempo/style, loop wraparound, navigation, persistence and responsive layouts passed",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.stop();
   await rm(fixed, { recursive: true, force: true }).catch(
     (error: NodeJS.ErrnoException) => {

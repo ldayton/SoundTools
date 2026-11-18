@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-const {workerSource}=require('@ldayton/browser-offline');
-module.exports=function worker(config){return 'const CONFIG='+JSON.stringify(config)+';\n'+workerSource()+String.raw`
+const {workerSource,manifestLimits}=require('@ldayton/browser-offline');
+module.exports=function worker(config){return 'const CONFIG='+JSON.stringify({...config,limits:manifestLimits.soundglow})+';\n'+workerSource()+String.raw`
 const ROOT=CONFIG.base,ASSETS='soundglow-assets-v1',META='soundglow-clients-v1',PREFIX='soundglow-release-';
 const key=name=>new URL(ROOT+'__cache__/'+name,self.location.origin).href;
 function valid(pack){
  try{
-  if(!pack||!Array.isArray(pack.files)||!Array.isArray(pack.optional||[])||pack.files.length>1024||(pack.optional||[]).length>128)return false;
+  if(!pack||!Array.isArray(pack.files)||!Array.isArray(pack.optional||[])||pack.files.length>CONFIG.limits.files||(pack.optional||[]).length>CONFIG.limits.optional)return false;
   const file=f=>typeof f?.url==='string'&&new URL(f.url,self.location.origin).origin===self.location.origin&&new URL(f.url,self.location.origin).pathname===f.url&&!f.url.includes('..')&&[ROOT+'releases/',ROOT+'engines/',ROOT+'media/',ROOT+'vendor/neural/'].some(p=>f.url.startsWith(p))&&/^[a-f0-9]{64}$/.test(f.sha256)&&Number.isSafeInteger(f.bytes)&&f.bytes>=0&&f.bytes<=64*1024*1024;
   return pack.schema===1&&pack.base===ROOT&&/^[a-f0-9]{32}$/.test(pack.version)&&pack.html===ROOT+'releases/'+pack.version+'/index.html'&&pack.files.length>0&&pack.files.some(f=>f.url===pack.html)&&new Set([...pack.files,...(pack.optional||[])].map(f=>f.url)).size===pack.files.length+(pack.optional||[]).length&&pack.files.every(file)&&(pack.optional||[]).every(file);
  }catch{return false}

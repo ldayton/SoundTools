@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import {
   practiceOption,
   selectPractice,
@@ -22,15 +23,9 @@ const server = spawn(
 );
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    if (server.exitCode !== null) throw Error("Notation test server exited");
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  browser = await chromium.launch();
-  const page = await browser.newPage();
+  await waitForServer(base, { server });
+  browser = await launchBrowser();
+  const page = await newPage(browser);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(base);
@@ -291,7 +286,10 @@ try {
     );
   }
   assert.deepEqual(errors, []);
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
 }

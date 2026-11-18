@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -29,17 +30,12 @@ const server = process.env.TEST_BASE_URL
 const home = await mkdtemp(join(tmpdir(), "songalong-octaves-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  browser = await ({ chromium, firefox, webkit }[engine] || chromium).launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     args: engine === "chromium" ? ["--mute-audio"] : [],
     env: { ...process.env, CFFIXED_USER_HOME: home },
   });
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1680, height: 1050 },
     serviceWorkers: "block",
   });
@@ -241,8 +237,11 @@ try {
   console.log(
     `${engine}: octave limits/default, transpose, reload, MIDI grading, independent progress, playback animation and mobile controls passed`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(home, { recursive: true, force: true }).catch(() => {});
 }

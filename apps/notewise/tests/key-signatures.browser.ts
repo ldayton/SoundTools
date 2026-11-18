@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
   practiceOption,
   selectPractice,
@@ -33,17 +34,11 @@ const server = process.env.TEST_BASE_URL
 const fixed = await mkdtemp(join(tmpdir(), "notecards-signatures-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    if (server && server.exitCode !== null) throw Error("Preview exited");
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await type.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     // Rapid notation-fixture reloads are independent of the dedicated worker/update suite.
     serviceWorkers: "block",
     viewport: { width: 1280, height: 1000 },
@@ -255,8 +250,11 @@ try {
   console.log(
     `${engine}: all 30 major/minor signatures, engraved accidentals, answer spelling, keyboard/touch, mobile and mode switching passed`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch(
     (error: NodeJS.ErrnoException) => {

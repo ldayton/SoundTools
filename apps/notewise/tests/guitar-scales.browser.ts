@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import {
   selectPractice,
   practiceOption,
@@ -28,12 +29,9 @@ for (let i = 0; i < 100; i++) {
   await new Promise((r) => setTimeout(r, 100));
 }
 const fixed = await mkdtemp(join(tmpdir(), "notecards-guitar-scales-"));
-const browser = await (
-  { chromium, firefox, webkit }[process.env.TEST_BROWSER || "chromium"] ||
-  chromium
-).launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
 try {
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });
@@ -558,8 +556,11 @@ try {
   console.log(
     "Guitar scales: all 24 keys, enharmonics, responsive layouts, MIDI isolation, reload and preserved practice passed",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.kill();
   await rm(fixed, { recursive: true, force: true }).catch(
     (e: NodeJS.ErrnoException) => {

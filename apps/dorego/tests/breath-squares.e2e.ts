@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -28,14 +29,9 @@ const server = spawn(
 );
 let browser;
 try {
-  for (let i = 0; i < 60; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
+  await waitForServer(base, { server });
   browser = await launchTestBrowser({ args: browserName === 'chromium' ? ['--mute-audio'] : [] });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1680, height: 1050 },
     serviceWorkers: 'block',
   });
@@ -181,7 +177,10 @@ try {
   console.log(
     `PASS ${browserName}: countdown, clockwise phases, inhale/exhale animation, pause/resume, completion/replay, settings, persistence, mobile geometry and switching exercises`
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill('SIGTERM');
 }

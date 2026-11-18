@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 import { launchTestBrowser, browserName } from './browser-harness';
@@ -8,7 +9,7 @@ await server.listen();
 let browser;
 try {
   browser = await launchTestBrowser({ args: browserName === 'chromium' ? ['--mute-audio'] : [] });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     serviceWorkers: 'block',
     viewport: { width: 1440, height: 1000 },
   });
@@ -134,7 +135,10 @@ try {
   console.log(
     `${browserName}: persisted settings, stereo/mono exercise and reference audio, matrix at 44.1/48 kHz, mobile layout passed`
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   await server.close();
 }

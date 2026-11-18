@@ -1,10 +1,11 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { setSlider } from './ui-helpers';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { DEFAULT_SPEC } from '../src/music';
 
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage();
+const browser = await launchBrowser({ headless: true });
+const page = await newPage(browser);
 const errors: string[] = [];
 page.on('pageerror', (error) => errors.push(error.message));
 try {
@@ -185,6 +186,9 @@ try {
     'PASS: bounded live sources, playback buffering, 400ms UI stall, full-volume stereo output without clipping, live volume attenuation without restarting, and silent cleanup.'
   );
   console.log(JSON.stringify(result));
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
 }

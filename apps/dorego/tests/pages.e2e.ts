@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { selectExercise } from './ui-helpers';
 import { volumePercent } from '@ldayton/ui/volume';
 import {
@@ -39,17 +40,9 @@ const server = process.env.PAGES_TEST_URL
     );
 let browser;
 try {
-  for (let attempt = 0; attempt < 50; attempt++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {
-      /* Wait for preview startup. */
-    }
-    if (server?.exitCode !== null && server) throw new Error('Static preview could not start.');
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
+  await waitForServer(base, { server });
   browser = await launchTestBrowser({ headless: true });
-  const page = await browser.newPage({ acceptDownloads: true });
+  const page = await newPage(browser, { acceptDownloads: true });
   const samples: string[] = [];
   const errors: string[] = [];
   await page.exposeFunction('recordRuntimeError', (message: string) => errors.push(message));
@@ -480,7 +473,7 @@ try {
   await page.reload();
   await page.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
 
-  const preferencesPage = await browser.newPage();
+  const preferencesPage = await newPage(browser);
   const remembered = {
     ...DEFAULT_SPEC,
     pattern: 'fiveNote',
@@ -540,7 +533,10 @@ try {
   console.log(
     `PASS: ${base} loads with working piano samples, playback, credits, defaults, and no export UI.`
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill('SIGTERM');
 }

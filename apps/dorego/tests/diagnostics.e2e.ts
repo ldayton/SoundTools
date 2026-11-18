@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { openSettings, openPractice } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -32,8 +33,8 @@ try {
     } catch {}
     await new Promise((r) => setTimeout(r, 100));
   }
-  browser = await chromium.launch();
-  const page = await browser.newPage({ acceptDownloads: true }),
+  browser = await launchBrowser();
+  const page = await newPage(browser, { acceptDownloads: true }),
     remote: string[] = [];
   page.on('request', (r) => {
     if (/sentry\.io/.test(r.url())) remote.push(r.url());
@@ -123,7 +124,10 @@ try {
     count
   );
   console.log('DoReGo diagnostic opt-in/privacy and pause/resume timing passed');
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
 }

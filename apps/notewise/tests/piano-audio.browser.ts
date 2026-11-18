@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import {
   openNavigation,
   closeNavigation,
@@ -17,15 +18,10 @@ const server = spawn(
   [vite, "preview", "--host", "127.0.0.1", "--port", port, "--strictPort"],
   { stdio: "ignore" },
 );
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await waitForServer(base, { server });
+  const page = await newPage(browser, { viewport: { width: 390, height: 844 } });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.addInitScript(() => {
@@ -171,7 +167,10 @@ try {
   console.log(
     "Recorded piano output, pitch transposition, pointer/Enter playback, offline samples and aligned mobile controls passed.",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.kill();
 }

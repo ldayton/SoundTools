@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { openSettings, openPractice } from './ui-helpers';
 import type { Page } from 'playwright';
 import { browserName, launchTestBrowser } from './browser-harness';
@@ -144,7 +145,7 @@ const server = createServer(async (request, response) => {
 await new Promise<void>((resolve) => server.listen(4325, '127.0.0.1', resolve));
 const base = 'http://127.0.0.1:4325/DoReGo/';
 const browser = await launchTestBrowser();
-const context = await browser.newContext();
+const context = await createContext(browser);
 await context.addInitScript(() => {
   try {
     localStorage.setItem('dorego:diagnostics:sharing', 'yes');
@@ -491,6 +492,7 @@ try {
   assert.deepEqual(errors, []);
   console.log('Missing-file detection and repair passed; no uncaught page errors.');
 } catch (error) {
+  await captureFailure(browser, error);
   console.error(
     'Offline failure state:',
     JSON.stringify(
@@ -516,6 +518,6 @@ try {
   );
   throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await new Promise<void>((resolve) => server.close(() => resolve()));
 }

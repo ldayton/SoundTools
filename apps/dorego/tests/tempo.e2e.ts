@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { setTempo } from './ui-helpers';
 import { readSpecValue } from './ui-helpers';
 import { setSlider } from './ui-helpers';
@@ -5,9 +6,9 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { DEFAULT_SPEC } from '../src/music';
 
-const browser = await chromium.launch();
+const browser = await launchBrowser();
 try {
-  const page = await browser.newPage();
+  const page = await newPage(browser);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => {
@@ -207,6 +208,9 @@ try {
   console.log(
     'PASS: live tempo during count-in, rests, sounding piano and cello on desktop/mobile; preserved beats, continuous sources, paused tempo, slider/buttons/typing, and persistence.'
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
 }

@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -29,14 +30,9 @@ const server = spawn(
 );
 let browser;
 try {
-  for (let i = 0; i < 60; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
+  await waitForServer(base, { server });
   browser = await launchTestBrowser({ args: browserName === 'chromium' ? ['--mute-audio'] : [] });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1680, height: 1050 },
     serviceWorkers: 'block',
   });
@@ -236,7 +232,7 @@ try {
   await page.screenshot({ path: `work/workspace-${browserName}-mobile.png` });
   await page.setViewportSize({ width: 1680, height: 1050 });
   await page.screenshot({ path: `work/workspace-${browserName}-desktop.png` });
-  const retina = await browser.newContext({
+  const retina = await createContext(browser, {
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 3,
     serviceWorkers: 'block',
@@ -276,7 +272,10 @@ try {
   console.log(
     `${browserName}: toolbar geometry, nine exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and six widths pass`
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
 }

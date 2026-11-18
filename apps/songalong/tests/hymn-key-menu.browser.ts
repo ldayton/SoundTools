@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -33,20 +34,15 @@ const server = process.env.TEST_BASE_URL
 let browser;
 const home = await mkdtemp(join(tmpdir(), "songalong-key-menu-"));
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  browser = await ({ chromium, firefox, webkit }[engine] || chromium).launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: home },
   });
   for (const [device, profile] of Object.entries({
     macBookAir13,
     iphone14Pro,
   })) {
-    const context = await browser.newContext({
+    const context = await createContext(browser, {
       ...(profile as object),
       ...(engine === "firefox" ? { isMobile: false } : {}),
       serviceWorkers: "block",
@@ -157,8 +153,11 @@ try {
       `${engine} ${device}: menu ranges, disabled entries, lowest octaves, plain selected labels and grouped controls passed`,
     );
   }
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(home, { recursive: true, force: true }).catch(() => {});
 }

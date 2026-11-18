@@ -51,7 +51,7 @@ let context;
  await page.waitForFunction(selector=>document.querySelector(selector).textContent.includes('Available offline'),status);
  await context.close();context=await launch();await context.setOffline(true);page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
  const restarted=Date.now();await page.goto(url,{waitUntil:'domcontentloaded'});const restartMs=Date.now()-restarted;
- if(app==='dorego'){await page.waitForFunction(()=>!document.querySelector('#play').disabled);await page.locator('#play').click();await page.getByRole('button',{name:'Pause',exact:true}).waitFor();await page.locator('#play').click();}
+ if(app==='dorego'){await require('./ci/browser-harness.cjs').waitForApp(page, '#play');await page.getByRole('button',{name:'Play',exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('#play')?.disabled===false);await page.locator('#play').click();await page.getByRole('button',{name:'Pause',exact:true}).waitFor();await page.locator('#play').click();}
  else{await page.getByRole('button',{name:'Play an Example',exact:true}).click();await page.waitForFunction(()=>inputMode==='speech'&&processingStats.frames>200);await page.locator('#freeze').click();await page.locator('#openSettings:visible, #settings:visible').click();}
  await page.waitForFunction(selector=>document.querySelector(selector).textContent.includes('Available offline'),status,{timeout:15000});
  await page.screenshot({path:path.join(artifact,'offline-after-restart.png')});
@@ -72,9 +72,10 @@ let context;
 
  await context.setOffline(false);
  const fault=kind=>page.evaluate(kind=>new Promise(resolve=>{const channel=new MessageChannel();channel.port1.onmessage=()=>{channel.port1.close();resolve()};navigator.serviceWorker.controller.postMessage({type:'test-storage-fault',kind},[channel.port2])}),kind);
- await fault('stall');const blockedStart=Date.now();await page.reload({waitUntil:'domcontentloaded'});const blockedMs=Date.now()-blockedStart;
+ await fault('stall');const blockedStart=Date.now();await page.reload({waitUntil:'domcontentloaded'});await require('./ci/browser-harness.cjs').waitForApp(page,app==='dorego'?'#stage':'#plot');const blockedMs=Date.now()-blockedStart;
  assert(blockedMs<10000,'Stalled storage must fail open to a working network');
  await fault('deny');await page.reload({waitUntil:'domcontentloaded'});
+ await require('./ci/browser-harness.cjs').waitForApp(page,app==='dorego'?'#stage':'#plot');
  assert(await page.locator(app==='dorego'?'#stage':'#plot').isVisible(),'Storage denial must not break the online app');
  await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded'});
  await page.getByRole('heading',{name:'No offline copy available',exact:true}).waitFor();

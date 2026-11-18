@@ -10,8 +10,10 @@ export type BackingEvent = {
   duration: number;
   velocity: number;
   level: number;
-  articulation?: "normal" | "muted";
+  articulation?: "normal" | "muted" | "ghost";
   string?: number;
+  /** Written at concert pitch, with guitar fingering validated in this key. */
+  absolute?: boolean;
 };
 export type BackingSample = {
   file: string;
@@ -21,7 +23,7 @@ export type BackingSample = {
   rr: number;
   gain: number;
   release: boolean;
-  articulation?: "normal" | "muted";
+  articulation?: "normal" | "muted" | "ghost";
 };
 export const backingPack = manifest as unknown as {
   samples: Record<string, BackingSample>;
@@ -67,11 +69,13 @@ export function backingSampleChoices(
   tonic: number,
   release = false,
   available?: { has(id: string): boolean },
+  pack = backingPack,
 ): [string, BackingSample][] {
   const pitched = event.part === "bass" || event.part === "guitar";
-  const target = event.note + (pitched ? backingSemitones(tonic) : 0);
+  const target =
+    event.note + (pitched && !event.absolute ? backingSemitones(tonic) : 0);
   const articulation = release ? "normal" : (event.articulation ?? "normal");
-  const choices = Object.entries(backingPack.samples).filter(
+  const choices = Object.entries(pack.samples).filter(
     ([id, s]) =>
       (!available || available.has(id)) &&
       s.part === event.part &&

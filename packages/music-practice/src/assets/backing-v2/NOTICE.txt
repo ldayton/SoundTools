@@ -1,0 +1,23 @@
+Backing track sample pack v2
+All recordings CC0 1.0.
+Drums/percussion: Virtuosity Drums, Versilian Studios and Karoryfer Samples, Austin McMahon.
+Bass: Black And Blue Basses, Karoryfer Samples.
+Guitar: Black And Green Guitars, Karoryfer Samples.
+https://github.com/sfzinstruments/virtuosity_drums
+https://github.com/sfzinstruments/karoryfer.black-and-blue-basses
+https://github.com/sfzinstruments/karoryfer.black-and-green-guitars
+Original bass/guitar sequences and packaging code: MIT, Copyright 2026 Lily Dayton.
+Trimmed 16kHz bass / 24kHz guitar / source-rate drums, 16-bit FLAC samples include recorded dynamic layers and alternate hits.
+Bass/guitar use the approved -12dB balance. The player transposes only pitched instruments.
+
+Drum performance adaptation: Groove MIDI Dataset, Copyright Google LLC, CC BY 4.0.
+https://magenta.tensorflow.org/datasets/groove
+https://creativecommons.org/licenses/by/4.0/
+Source performances: drummer5/session1/17_blues-shuffle_72_beat_4-4.mid and drummer3/session1/1_rock_105_beat_4-4.mid.
+Modifications: curated/combined bars and fills, remapped notes, adjusted velocities, section textures and periodic dynamics.
+
+CC0 recording license: https://creativecommons.org/publicdomain/zero/1.0/
+
+Realism revision: additional native-pitch recordings and recorded staccato articulations from the same CC0 libraries; native dynamics, alternate takes, note-off noises. Original procedural room response and harmony/ensemble code: MIT.
+
+Experimental v2: pre-resampled native recordings, redundant p layer removed, recorded Black and Blue Bass ghost articulation. Existing CC0 provenance applies. No generated or proprietary audio.

@@ -1,3 +1,5 @@
+import experimentalPack from "./assets/backing-v2/manifest.json";
+import { plannedBackingArrangement } from "./backing-musical-plan";
 import { practiceBackingArrangement } from "./backing-phrasing";
 import { scalePitchClasses, type BackingQuality } from "./backing-arrangement";
 import { createViewState } from "./view-state";
@@ -21,11 +23,14 @@ import {
   type BackingMode,
 } from "./backing-track-model";
 
-const files = import.meta.glob<string>("./assets/backing-v1/*.flac", {
-  eager: true,
-  query: "?url",
-  import: "default",
-});
+const files = import.meta.glob<string>(
+  ["./assets/backing-v1/*.flac", "./assets/backing-v2/*.flac"],
+  {
+    eager: true,
+    query: "?url",
+    import: "default",
+  },
+);
 const urls = new Map(
   Object.entries(files).map(([file, url]) => [file.split("/").pop()!, url]),
 );
@@ -96,12 +101,17 @@ export class BackingTrackPlayer {
     let take = this.takeCache.get(this.cycle);
     if (!take) {
       const state = this.model.getSnapshot();
-      take = practiceBackingArrangement(
+      take = (
+        this.experimental
+          ? plannedBackingArrangement
+          : practiceBackingArrangement
+      )(
         state.style,
         state.mode,
         state.quality,
         this.cycle,
         state.tempo,
+        state.tonic,
       );
       this.takeCache.set(this.cycle, take);
       // Retain the current and previous take only; long practice stays bounded.
@@ -115,7 +125,13 @@ export class BackingTrackPlayer {
   };
   private departing = () => this.pauseAll();
 
-  constructor() {
+  private get pack() {
+    return this.experimental
+      ? (experimentalPack as unknown as typeof backingPack)
+      : backingPack;
+  }
+  /** Approved sparse plan/sampler; false retains the previous A/B reference. */
+  constructor(private experimental = true) {
     document.addEventListener("visibilitychange", this.hidden);
     window.addEventListener("pagehide", this.departing);
   }
@@ -368,7 +384,7 @@ export class BackingTrackPlayer {
       const context = (this.context = new AudioContext({
         latencyHint: "interactive",
       }));
-      const graph = backingAudioGraph(context, backingPack.levels);
+      const graph = backingAudioGraph(context, this.pack.levels);
       this.output = graph.output;
       this.buses = graph.buses;
     }
@@ -391,9 +407,9 @@ export class BackingTrackPlayer {
       await context.resume();
       const current = this.model.getSnapshot();
       const pcs = scalePitchClasses(current.tonic, current.quality);
-      const shift = backingSemitones(current.tonic);
+      const shift = this.experimental ? 0 : backingSemitones(current.tonic);
       const needed = new Set<string>(
-        Object.entries(backingPack.samples)
+        Object.entries(this.pack.samples)
           .filter(([, sample]) => {
             if (sample.part === "drums" || sample.part === "percussion")
               return true;
@@ -414,23 +430,46 @@ export class BackingTrackPlayer {
       // buffers before decoding replacements, avoiding two complete working sets.
       for (const id of this.buffers.keys())
         if (!needed.has(id)) this.buffers.delete(id);
+      const decodedFiles = new Map<string, Promise<AudioBuffer>>();
+      const nativeDecoders = this.experimental
+        ? {
+            bass: new OfflineAudioContext(2, 1, 16000),
+            guitar: new OfflineAudioContext(2, 1, 24000),
+          }
+        : undefined;
       const queue = [...needed].filter((id) => !this.buffers.has(id));
       await Promise.all(
         Array.from({ length: 4 }, async () => {
           while (queue.length && token === this.epoch && !this.disposed) {
             const id = queue.shift()!,
-              sample = backingPack.samples[id],
+              sample = this.pack.samples[id],
               url = urls.get(sample.file);
             if (!url) throw Error("Missing backing sample");
-            const response = await fetch(url, {
-              signal: AbortSignal.timeout(15000),
-            });
-            if (!response.ok)
-              throw Error(`Backing sample request failed (${response.status})`);
-            const decoded = await context.decodeAudioData(
-              await response.arrayBuffer(),
-            );
-            const buffer = await compactBackingBuffer(decoded, sample.part);
+            let pending = decodedFiles.get(sample.file);
+            if (!pending) {
+              pending = (async () => {
+                const response = await fetch(url, {
+                  signal: AbortSignal.timeout(15000),
+                });
+                if (!response.ok)
+                  throw Error(
+                    `Backing sample request failed (${response.status})`,
+                  );
+                const decoder =
+                  nativeDecoders &&
+                  (sample.part === "bass" || sample.part === "guitar")
+                    ? nativeDecoders[sample.part]
+                    : context;
+                const decoded = await decoder.decodeAudioData(
+                  await response.arrayBuffer(),
+                );
+                return this.experimental
+                  ? decoded
+                  : compactBackingBuffer(decoded, sample.part);
+              })();
+              decodedFiles.set(sample.file, pending);
+            }
+            const buffer = await pending;
             if (!this.disposed && token === this.epoch)
               this.buffers.set(id, buffer);
           }
@@ -530,7 +569,7 @@ export class BackingTrackPlayer {
     if (!context) return;
     this.stopVoices();
     const state = this.model.getSnapshot();
-    const beats = backingPack.patterns[state.style][state.mode].beats;
+    const beats = this.pack.patterns[state.style][state.mode].beats;
     this.cycle = Math.floor(position / beats);
     const pattern = this.take();
     this.position = position % pattern.beats;
@@ -568,6 +607,7 @@ export class BackingTrackPlayer {
       this.model.getSnapshot().tonic,
       release,
       this.buffers,
+      this.pack,
     );
     const key = `${event.part}-${event.note}-${event.articulation ?? "normal"}-${release}`;
     const index = this.counter.get(key) ?? 0;
@@ -611,12 +651,19 @@ export class BackingTrackPlayer {
     const source = context.createBufferSource();
     source.buffer = buffer;
     const rate = pitched
-      ? 2 ** ((event.note + backingSemitones(state.tonic) - sample.note) / 12)
+      ? 2 **
+        ((event.note +
+          (event.absolute ? 0 : backingSemitones(state.tonic)) -
+          sample.note) /
+          12)
       : 1;
     source.playbackRate.value = rate;
     const gain = context.createGain();
     const strength = release
-      ? 1
+      ? this.experimental
+        ? Math.min(1, event.velocity / 65) ** 0.8 *
+          Math.exp((-event.duration * 60) / state.tempo / 2.8)
+        : 1
       : Math.min(1.25, event.velocity / sample.velocity) ** 0.8;
     gain.gain.value = 0;
     source.connect(gain).connect(this.buses.get(event.part)!);
@@ -660,7 +707,12 @@ export class BackingTrackPlayer {
     };
     source.start(when, offset * rate);
     source.stop(when + duration + 0.1);
-    if (pitched && !release && event.articulation !== "muted")
+    if (
+      pitched &&
+      !release &&
+      event.articulation !== "muted" &&
+      event.articulation !== "ghost"
+    )
       this.sound(event, when + duration, true);
   }
   private schedule() {

@@ -264,7 +264,7 @@ try {
     "same guitar string chokes, another string keeps ringing",
   );
   assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
-  assert.equal(result.phrasing, "open-conversation-tempo-v1");
+  assert.equal(result.phrasing, "planned-conversation-v2");
   assert.equal(result.changedTempo, 120);
   assert.ok(result.stable, "tempo edit retains phase after a long take wraps");
   assert.ok(result.takeNumber >= 1);

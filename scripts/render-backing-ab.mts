@@ -84,7 +84,7 @@ try {
               "backing-track-model.ts",
             )
           );
-          const p: any = new BackingTrackPlayer();
+          const p: any = new BackingTrackPlayer(false);
           p.setKey(9, "A", quality);
           p.setStyle(style);
           p.setMode("active");

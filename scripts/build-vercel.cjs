@@ -20,7 +20,7 @@ const previous = path.join(root, "work", "previous-" + app);
     previous,
     { soundglow: app === "soundglow" },
   );
-  execFileSync("npm", ["run", "build:shared"], { cwd: root, stdio: "inherit" });
+  execFileSync("npm", ["run", "build:shared", "--", app], { cwd: root, stdio: "inherit" });
   execFileSync("npm", ["run", "test:shared"], { cwd: root, stdio: "inherit" });
   if (app === "dorego") {
     execFileSync("npm", ["run", "build", "--workspace=dorego"], {

@@ -11,7 +11,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "build:shared": "npm run build --workspace=@ldayton/browser-diagnostics && npm run prepare:shared --workspace=soundglow",
+    "build:shared": "node scripts/build-shared.cjs",
     "test:shared": "npm run test --workspace=@ldayton/account && npm run test --workspace=@ldayton/browser-diagnostics && npm run test --workspace=@ldayton/browser-offline && node --test tests/*.test.cjs",
     "test:dorego": "npm test --workspace=dorego && npm run build:pages --workspace=dorego && npm run test:pages --workspace=dorego && npm run test:offline --workspace=dorego",
     "test:soundglow": "npm run build --workspace=soundglow",
@@ -25,7 +25,9 @@
     "test:songalong": "npm test --workspace=songalong",
     "test:render-recovery": "node scripts/test-render-recovery.cjs",
     "test:ui": "node scripts/test-ui-controls.cjs",
-    "test:accounts": "node scripts/test-accounts.mjs"
+    "test:accounts": "node scripts/test-accounts.mjs",
+    "build:ci": "node scripts/ci/build.cjs",
+    "test:ci-unit": "node --test tests/ci/*.test.cjs"
   },
   "devDependencies": {
     "@sentry/cli": "3.8.2"

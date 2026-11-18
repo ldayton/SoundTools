@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       apps: ${{ steps.changes.outputs.apps }}
+      builds: ${{ steps.changes.outputs.builds }}
       deploy: ${{ steps.changes.outputs.deploy }}
       accounts: ${{ steps.changes.outputs.accounts }}
     steps:
@@ -42,16 +43,55 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify:history
-      - run: npm run build:shared
+      - run: npm run build:shared -- diagnostics
       - run: npm run test:shared
       - run: node --test tests/ci/*.test.cjs
+  build:
+    name: build (${{ matrix.app }})
+    needs: [changes, shared]
+    if: needs.changes.outputs.builds != '[]'
+    concurrency:
+      group: validation-${{ github.ref }}-build-${{ matrix.app }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.builds) }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Fast app unit tests
+        if: matrix.app != 'soundglow'
+        run: npm test --workspace=${{ matrix.app }}
+      - run: npm run build:ci -- ${{ matrix.app }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.app }}
+          path: work/ci-build/${{ matrix.app }}.tar.gz
+          compression-level: 0
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: build-failure-${{ matrix.app }}
+          path: work/ci-provenance/
+          retention-days: 7
+
   dorego:
     concurrency:
       group: validation-${{ github.ref }}-dorego-${{ matrix.browser }}
       cancel-in-progress: true
-    needs: changes
+    needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'dorego')
     name: dorego (${{ matrix.browser }})
+    env:
+      CI_USE_BUILD: "1"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
@@ -65,13 +105,12 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: dorego
       - uses: ./.github/actions/browser
         with:
           browser: ${{ matrix.browser }}
-      - run: npm run build:shared
-      - run: npm test --workspace=dorego
-        if: matrix.browser == 'chromium'
-      - run: npm run build:pages --workspace=dorego
       - run: npm run test:layout --workspace=dorego -- dist-pages
         env:
           TEST_BROWSER: ${{ matrix.browser }}
@@ -93,8 +132,6 @@ jobs:
           retention-days: 14
       - run: npm run test:resilience --workspace=dorego
         if: matrix.browser == 'chromium'
-      - run: npm run build:dorego
-        if: matrix.browser == 'chromium'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -106,8 +143,10 @@ jobs:
     concurrency:
       group: validation-${{ github.ref }}-soundglow
       cancel-in-progress: true
-    needs: changes
+    needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
+    env:
+      CI_USE_BUILD: "1"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -117,14 +156,15 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: soundglow
       - uses: ./.github/actions/browser
         with:
           browser: chromium
-      - run: npm run build:shared
       - run: npm run test:core --workspace=soundglow
       - run: npm run test:updates --workspace=soundglow
       - run: npm run test:resilience --workspace=soundglow
-      - run: npm run build:soundglow
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -136,11 +176,13 @@ jobs:
 
   soundglow-visual:
     name: soundglow visual (${{ matrix.shard }}/3)
-    needs: changes
+    needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
     concurrency:
       group: validation-${{ github.ref }}-soundglow-visual-${{ matrix.shard }}
       cancel-in-progress: true
+    env:
+      CI_USE_BUILD: "1"
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
@@ -154,10 +196,12 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: soundglow
       - uses: ./.github/actions/browser
         with:
           browser: chromium
-      - run: npm run build:shared
       - run: npm run test:visual --workspace=soundglow -- --shard=${{ matrix.shard }}/3
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -172,7 +216,7 @@ jobs:
     concurrency:
       group: validation-${{ github.ref }}-soundglow-ui-${{ matrix.browser }}
       cancel-in-progress: true
-    needs: changes
+    needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
     name: soundglow UI (${{ matrix.browser }})
     runs-on: ubuntu-24.04
@@ -182,6 +226,7 @@ jobs:
       matrix:
         browser: [firefox, webkit]
     env:
+      CI_USE_BUILD: "1"
       SOUNDGLOW_TEST_BROWSER: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v7.0.1
@@ -190,10 +235,12 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: soundglow
       - uses: ./.github/actions/browser
         with:
           browser: ${{ matrix.browser }}
-      - run: npm run build:shared
       - run: npm run test:ui-browsers --workspace=soundglow
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -206,9 +253,11 @@ jobs:
     concurrency:
       group: validation-${{ github.ref }}-notewise-${{ matrix.browser }}
       cancel-in-progress: true
-    needs: changes
+    needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'notewise')
     name: notewise (${{ matrix.browser }})
+    env:
+      CI_USE_BUILD: "1"
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
@@ -222,12 +271,12 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: notewise
       - uses: ./.github/actions/browser
         with:
           browser: ${{ matrix.browser }}
-      - run: npm test --workspace=notewise
-        if: matrix.browser == 'chromium'
-      - run: npm run build --workspace=notewise
       - run: npm run test:layout --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
@@ -278,7 +327,7 @@ jobs:
     concurrency:
       group: validation-${{ github.ref }}-songalong-${{ matrix.browser }}
       cancel-in-progress: true
-    needs: changes
+    needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'songalong')
     name: songalong (${{ matrix.browser }})
     runs-on: ubuntu-24.04
@@ -288,6 +337,7 @@ jobs:
       matrix:
         browser: [chromium, firefox, webkit]
     env:
+      CI_USE_BUILD: "1"
       TEST_BROWSER: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v7.0.1
@@ -296,13 +346,15 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: songalong
+      - uses: ./.github/actions/build
+        with:
+          app: notewise
       - uses: ./.github/actions/browser
         with:
           browser: ${{ matrix.browser }}
-      - run: npm test --workspace=songalong
-        if: matrix.browser == 'chromium'
-      - run: npm run build --workspace=songalong
-      - run: npm run build --workspace=notewise
       - run: npm run test:layout --workspace=songalong
       - run: npm run test:split --workspace=songalong
       - run: npm run test:sidebars --workspace=songalong
@@ -324,7 +376,7 @@ jobs:
 
   songalong-catalog:
     name: songalong catalog (${{ matrix.browser }}, ${{ matrix.shard }}/3)
-    needs: changes
+    needs: [changes, build]
     if: contains(fromJSON(needs.changes.outputs.apps), 'songalong')
     concurrency:
       group: validation-${{ github.ref }}-songalong-catalog-${{ matrix.browser }}-${{ matrix.shard }}
@@ -337,6 +389,7 @@ jobs:
         browser: [chromium, firefox, webkit]
         shard: [1, 2, 3]
     env:
+      CI_USE_BUILD: "1"
       TEST_BROWSER: ${{ matrix.browser }}
       TEST_SHARD: ${{ matrix.shard }}/3
     steps:
@@ -346,10 +399,12 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: songalong
       - uses: ./.github/actions/browser
         with:
           browser: ${{ matrix.browser }}
-      - run: npm run build --workspace=songalong
       - run: npm run test:catalog --workspace=songalong
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -402,7 +457,7 @@ jobs:
   gate:
     name: validation gate
     if: always()
-    needs: [changes, shared, dorego, notewise, songalong, songalong-catalog, soundglow, soundglow-visual, soundglow-ui, accounts]
+    needs: [changes, shared, build, dorego, notewise, songalong, songalong-catalog, soundglow, soundglow-visual, soundglow-ui, accounts]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1

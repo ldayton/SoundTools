@@ -66,5 +66,5 @@ async function changes({ env = process.env, fetch: request = fetch, git = args =
 module.exports = { workspaces, affected, changes };
 if (require.main === module) changes().then(result => {
   console.log(JSON.stringify(result, null, 2));
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${result.accounts}\n`);
+  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\nbuilds=${JSON.stringify([...new Set([...result.apps, ...(result.apps.includes("songalong") ? ["notewise"] : [])])])}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${result.accounts}\n`);
 }).catch(e => { console.error(e.message); process.exitCode = 1; });

@@ -21,7 +21,7 @@
     "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts",
     "test:piano-audio": "tsx tests/piano-audio.browser.ts",
     "test:theory": "tsx tests/theory.browser.ts",
-    "test:guitar-scales": "tsx tests/guitar-scales.browser.ts",
+    "test:guitar-scales": "tsx tests/guitar-scales.browser.ts && tsx tests/linked-scales.browser.ts",
     "test:split": "tsx ../../packages/music-practice/browser-tests/app-split.browser.ts",
     "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts",
     "test:layout": "node ../../scripts/test-practice-layout.cjs notewise",

@@ -21,6 +21,7 @@ jobs:
       - run: npm run verify:history
       - run: npm run build:shared
       - run: npm run test:shared
+      - run: node --test tests/ci/*.test.cjs
   dorego:
     name: dorego (${{ matrix.browser }})
     runs-on: ubuntu-24.04
@@ -287,3 +288,27 @@ jobs:
           path: |
             work/account-*.png
             work/cloud-files-*.png
+
+  release:
+    name: release (${{ matrix.app }})
+    needs: [shared, dorego, notewise, songalong, soundglow, soundglow-ui, accounts]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [dorego, notewise, songalong, soundglow]
+    environment: production-${{ matrix.app }}
+    concurrency:
+      group: production-${{ matrix.app }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+      - run: node scripts/ci/release.cjs ${{ matrix.app }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

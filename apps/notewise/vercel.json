@@ -116,5 +116,8 @@
       "source": "/settings",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": false
+  }
 }

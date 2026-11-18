@@ -78,5 +78,8 @@
       "source": "/auth/confirm",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": false
+  }
 }

@@ -62,9 +62,9 @@ let checkedLinkRetry = false;
 export async function login(page: Page, link = false) {
   const nav = await menuButton(page, "Log in");
   await nav.click();
-  await page
-    .getByRole("textbox", { name: "Email address", exact: true })
-    .fill("nobody@soundtools.test");
+  const emailInput = page.getByRole("textbox", { name: "Email address", exact: true });
+  assert(await emailInput.evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16), "email input avoids iOS focus zoom");
+  await emailInput.fill("nobody@soundtools.test");
   await page
     .getByRole("button", { name: "Send sign-in email", exact: true })
     .click();
@@ -88,9 +88,16 @@ export async function login(page: Page, link = false) {
   await page
     .getByRole("textbox", { name: "Sign-in code", exact: true })
     .waitFor();
+  assert(await page.getByRole("textbox", {name:"Sign-in code", exact:true}).evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16), "code input avoids iOS focus zoom");
   const email = await latestEmail();
   const html = email.HTML;
+  const app = ({ "4391": "DoReGo", "4392": "SongAlong", "4393": "NoteWise", "4394": "Soundglow" } as Record<string, string>)[new URL(page.url()).port];
+  assert(app, "known app preview");
+  assert(email.Subject.includes(`Sign in to ${app}`), "app-specific subject");
+  assert(!/sound\s*tools/i.test(email.Subject + html), "email contains only the individual app brand");
+  assert(html.includes(`alt="${app} logo"`), "email has the app logo");
   const code = (email.Text || html).match(/\b\d{6}\b/)![0];
+  assert(email.Subject.includes(code), "per-request code makes the subject different for Gmail");
   assert(
     html.includes("#token_hash="),
     "same email contains the alternate link",

@@ -1,9 +1,38 @@
+{{- $name := "your app" -}}
+{{- $origin := "" -}}
+{{- $accent := "#343a40" -}}
+{{- if or (eq .RedirectTo "https://dorego.lilydayton.me/auth/confirm") (eq .RedirectTo "https://dorego-soundtools.vercel.app/auth/confirm") (eq .RedirectTo "https://do-re-go.vercel.app/auth/confirm") (eq .RedirectTo "http://127.0.0.1:4391/auth/confirm") (eq .RedirectTo "http://localhost:4391/auth/confirm") (eq .RedirectTo "http://127.0.0.1:4317/auth/confirm") (eq .RedirectTo "http://localhost:4317/auth/confirm") -}}
+  {{- $name = "DoReGo" -}}
+  {{- $origin = "https://dorego.lilydayton.me" -}}
+  {{- $accent = "#293a2c" -}}
+{{- else if or (eq .RedirectTo "https://songalong.lilydayton.me/auth/confirm") (eq .RedirectTo "https://songalong-soundtools.vercel.app/auth/confirm") (eq .RedirectTo "http://127.0.0.1:4392/auth/confirm") (eq .RedirectTo "http://localhost:4392/auth/confirm") (eq .RedirectTo "http://127.0.0.1:4321/auth/confirm") (eq .RedirectTo "http://localhost:4321/auth/confirm") -}}
+  {{- $name = "SongAlong" -}}
+  {{- $origin = "https://songalong.lilydayton.me" -}}
+  {{- $accent = "#25695a" -}}
+{{- else if or (eq .RedirectTo "https://notewise.lilydayton.me/auth/confirm") (eq .RedirectTo "https://note-by-note-seven.vercel.app/auth/confirm") (eq .RedirectTo "https://notewise-soundtools.vercel.app/auth/confirm") (eq .RedirectTo "http://127.0.0.1:4393/auth/confirm") (eq .RedirectTo "http://localhost:4393/auth/confirm") (eq .RedirectTo "http://127.0.0.1:4320/auth/confirm") (eq .RedirectTo "http://localhost:4320/auth/confirm") -}}
+  {{- $name = "NoteWise" -}}
+  {{- $origin = "https://notewise.lilydayton.me" -}}
+  {{- $accent = "#302d55" -}}
+{{- else if or (eq .RedirectTo "https://soundglow.lilydayton.me/auth/confirm") (eq .RedirectTo "https://soundglow-soundtools.vercel.app/auth/confirm") (eq .RedirectTo "http://127.0.0.1:4394/auth/confirm") (eq .RedirectTo "http://localhost:4394/auth/confirm") (eq .RedirectTo "http://127.0.0.1:8780/auth/confirm") (eq .RedirectTo "http://localhost:8780/auth/confirm") -}}
+  {{- $name = "Soundglow" -}}
+  {{- $origin = "https://soundglow.lilydayton.me" -}}
+  {{- $accent = "#a85016" -}}
+{{- end -}}
 <!doctype html>
-<html lang="en"><body>
-  <h2>Sign in to SoundTools</h2>
-  <p>Copy this code into the app:</p>
-  <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px">{{ .Token }}</p>
-  <p>Or <a href="{{ .RedirectTo }}#token_hash={{ .TokenHash }}&amp;type=email">open the app to sign in</a>.</p>
-  <p>This link and code are alternatives. Use either one, once. They expire in 30 minutes.</p>
-  <p>If you did not request this email, you can ignore it.</p>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign in to {{ $name }}</title></head>
+<body style="margin:0;padding:24px 12px;background:#f4f5f7;color:#20242b;font-family:Arial,Helvetica,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+    <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:100%;max-width:480px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px"><tr><td style="padding:32px">
+      {{ if $origin }}<img src="{{ $origin }}/icon-192.png" width="56" height="56" alt="{{ $name }} logo" style="display:block;border:0;border-radius:13px;margin-bottom:20px">{{ end }}
+      <p style="margin:0 0 8px;font-size:16px;font-weight:bold;color:{{ $accent }}">{{ $name }}</p>
+      <h1 style="margin:0 0 20px;font-size:26px;line-height:1.25">Your sign-in link</h1>
+      <p style="margin:0 0 24px;font-size:16px;line-height:1.6">Continue to {{ $name }} on this device, or enter the code in the app where you started.</p>
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr><td bgcolor="{{ $accent }}" style="border-radius:8px"><a href="{{ .RedirectTo }}#token_hash={{ .TokenHash }}&amp;type=email" style="display:inline-block;padding:14px 22px;color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none">Sign in to {{ $name }}</a></td></tr></table>
+      <p style="margin:28px 0 10px;font-size:14px;color:#606873">Or use this one-time code:</p>
+      <p style="margin:0 0 28px;font-family:monospace;font-size:30px;font-weight:bold;letter-spacing:5px;color:#20242b">{{ .Token }}</p>
+      <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#606873">The link and code are alternatives. Use either one, once. They expire in 30 minutes.</p>
+      <p style="margin:0;font-size:13px;line-height:1.6;color:#606873">If you didn’t request this email, you can safely ignore it.</p>
+    </td></tr></table>
+  </td></tr></table>
 </body></html>

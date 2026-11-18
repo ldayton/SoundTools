@@ -343,7 +343,7 @@ export class ScaleExplorer implements LivePractice {
     const caption = movable
       ? `Shape ${this.pattern} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
       : "Open-position map";
-    const labels = linked ? "notes" : this.labels;
+    const labels = this.labels;
     const footnote =
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger"
@@ -375,8 +375,9 @@ export class ScaleExplorer implements LivePractice {
     });
     const notes = positions
       .map((n) => {
-        const label =
-          labels === "fingers" && "finger" in n ? n.finger : scaleLabel(n.name);
+        // Use the selected shape's fingering at overlaps, and the linked
+        // shape's fingering for the notes it adds.
+        const label = labels === "fingers" && "finger" in n ? n.finger : scaleLabel(n.name);
         const inPrimary = primaryKeys.has(`${n.string}:${n.fret}`);
         const inSecondary = secondaryKeys.has(`${n.string}:${n.fret}`);
         const membership = linked ? inPrimary && inSecondary ? " scale-shared" : inPrimary ? " scale-primary" : " scale-secondary" : "";
@@ -406,7 +407,7 @@ export class ScaleExplorer implements LivePractice {
     this.body.patch({
       title,
       linkedLegend: linked ? `Shape ${this.pattern}|Shape ${this.linked}` : "",
-      linkHelp: linked ? "Outlined dots belong to both shapes: use these shared notes to shift between positions. Note names stay the same; choose a comfortable fingering when you shift." : "",
+      linkHelp: linked ? "Finger numbers follow the selected shape where the shapes overlap." : "",
       notes: noteList,
       relativeExplanation,
       movable,

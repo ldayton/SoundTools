@@ -75,8 +75,7 @@ export function ScaleOptions({
       <NativeSelect
         id="scale-dot-labels"
         label="Dots"
-        disabled={state.linked !== "none" && state.pattern !== "map"}
-        value={state.linked !== "none" && state.pattern !== "map" ? "notes" : state.labels}
+        value={state.labels}
         data={[
           { value: "fingers", label: "Finger numbers" },
           { value: "notes", label: "Note names" },

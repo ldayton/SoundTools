@@ -311,6 +311,17 @@ jobs:
       - run: npm run test:offline --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:backing --workspace=notewise
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:backing-realism --workspace=notewise
+        if: matrix.browser == 'chromium'
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
+      - run: npm run test:backing-genres --workspace=notewise
+        if: matrix.browser == 'chromium'
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:diagnostics --workspace=notewise
         if: matrix.browser == 'chromium'
       - uses: actions/upload-artifact@v4

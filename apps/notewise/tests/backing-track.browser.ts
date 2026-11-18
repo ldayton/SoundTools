@@ -1,4 +1,9 @@
-import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  newPage,
+} from "../../../scripts/ci/browser-harness.cjs";
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -56,10 +61,17 @@ try {
   await group.waitFor();
   assert.equal(
     await group.locator("select").count(),
-    0,
-    "key is inherited, never duplicated",
+    1,
+    "only genre has a selector; the exercise key stays inherited",
   );
   assert.equal(await group.locator("[data-backing-key]").textContent(), "A");
+  assert.deepEqual(
+    await group
+      .getByRole("combobox", { name: "Backing style", exact: true })
+      .locator("option")
+      .allTextContents(),
+    ["Blues", "Rock", "Country", "Reggae", "Funk", "Soul", "Folk"],
+  );
   await group
     .getByRole("combobox", { name: "Backing style", exact: true })
     .selectOption("rock");

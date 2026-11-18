@@ -1,9 +1,12 @@
 # Soul and Folk exploration
 
-Branch `experiment/soul-folk`, based on Country commit `58d66b5` plus the preferred,
-still-uncommitted sustained Reggae/Funk changes copied from that worktree. The
-Reggae/Funk worktree and its local preview remain untouched. Main is unchanged;
-the separately committed acoustic-space experiment is not included.
+Soul and Folk are approved and integrated alongside Blues, Rock, Country,
+Reggae and Funk. The backing widget uses a single native genre dropdown sourced
+from the central registry, with the practice bar's standard text sizes. Feel,
+tempo, inherited key, play/pause and metronome interaction remain unchanged.
+
+The feature branch includes the approved Country framework and sustained
+Reggae/Funk versions. The separate acoustic-space experiment is not included.
 
 ## Music and instruments
 
@@ -87,3 +90,10 @@ Eight complete 64-bar WAVs: both styles, A major/minor, Steady/Active. Stereo
 48 kHz/24-bit, with two seconds of release after the story. App loops exclude that
 preview tail. Constant-gain loudness matching across the set preserves phrase
 dynamics, without limiting or rolling normalization.
+
+## Dropdown adoption
+
+Browser checks cover all seven dropdown options and saved selection, inherited
+exercise key, playback, metronome behaviour and sound-preset reloads. Backing
+controls run in the cross-browser CI lane; detailed instrument/palette checks
+run in its Chromium lane.

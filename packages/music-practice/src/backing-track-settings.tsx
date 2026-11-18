@@ -119,7 +119,12 @@ export function BackingTrackSettings({
         <div className="backing-track-bottom">
           <div className="backing-track-key">
             <span>Key</span>
-            <strong data-backing-key={state.tonic}>{state.keyLabel}</strong>
+            <strong
+              data-backing-key={state.tonic}
+              data-backing-quality={state.quality}
+            >
+              {state.keyLabel}
+            </strong>
             <small>From scale</small>
           </div>
           <button

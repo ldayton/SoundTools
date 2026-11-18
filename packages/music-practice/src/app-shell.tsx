@@ -1,6 +1,6 @@
 import { RenderErrorBoundary } from "@ldayton/ui/render-error-boundary";
-import { AccountMenu, AccountProvider } from '@ldayton/ui/account-menu';
-import { account } from './account';
+import { AccountMenu, AccountProvider } from "@ldayton/ui/account-menu";
+import { account } from "./account";
 import { RendererLifetime } from "./renderer-lifetime";
 import {
   ApplicationLayout,
@@ -86,6 +86,7 @@ export function mountAppShell(
   for (const node of [...activityElements, midiPanel]) registry.bind(node);
   const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
     document.querySelector<T>(selector)!;
+  let accountOpen = false;
   const initialState = {
     routeKind: "exercise" as AppRoute["kind"],
     title: APP.name,
@@ -229,7 +230,7 @@ export function mountAppShell(
             active={snapshot.selected === "settings"}
             updateAvailable={offline.updateAvailable}
           />
-          {APP.id === 'songalong' && <AccountMenu />}
+          <AccountMenu />
           <Text size="xs" c="dimmed" hidden={APP.id === "songalong"}>
             SOUNDTOOLS
           </Text>
@@ -439,7 +440,16 @@ export function mountAppShell(
             primaryColor={APP.color}
             pageColor={APP.id === "songalong" ? "#f0f5f3" : "#f8f9fa"}
           >
-            <AccountProvider account={account} opening={() => events.interrupt('controls')}><Shell /></AccountProvider>
+            <AccountProvider
+              account={account}
+              opening={() => events.interrupt("controls")}
+              onOpenedChange={(open) => {
+                accountOpen = open;
+                queueMicrotask(events.inputChanged);
+              }}
+            >
+              <Shell />
+            </AccountProvider>
           </SoundToolsProvider>
         </RenderErrorBoundary>
       </StrictMode>,
@@ -461,6 +471,7 @@ export function mountAppShell(
     get inputBlocked() {
       return (
         renderFailed ||
+        accountOpen ||
         optionsOpen ||
         store.getSnapshot().navigationOpen ||
         store.getSnapshot().keyboardOpen

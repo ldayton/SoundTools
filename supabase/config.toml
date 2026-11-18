@@ -29,7 +29,7 @@ port = 54324
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:4391"
-additional_redirect_urls = ["http://127.0.0.1:4317/auth/confirm", "http://127.0.0.1:4321/auth/confirm", "http://127.0.0.1:4391/auth/confirm", "http://127.0.0.1:4392/auth/confirm"]
+additional_redirect_urls = ["http://127.0.0.1:4317/auth/confirm", "http://127.0.0.1:4321/auth/confirm", "http://127.0.0.1:4391/auth/confirm", "http://127.0.0.1:4392/auth/confirm", "http://127.0.0.1:4393/auth/confirm", "http://127.0.0.1:4394/auth/confirm"]
 enable_signup = false
 enable_anonymous_sign_ins = false
 enable_refresh_token_rotation = true

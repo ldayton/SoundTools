@@ -1,7 +1,10 @@
-import { account } from './account';
-import { songalongRecords, restoreSongalongRecords } from './songalong-account-records';
+import { startPracticeAccount } from "./practice-account-binding";
+import {
+  songalongRecords,
+  restoreSongalongRecords,
+} from "./songalong-account-records";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
-import { shutdownPianoSound, refreshPianoVolume } from "./piano-audio";
+import { shutdownPianoSound } from "./piano-audio";
 import { preventRepeatedButtonActivation } from "./input-guards";
 import { mountAppShell } from "./app-shell";
 import { SightReading } from "./sight-reading";
@@ -159,36 +162,29 @@ void document.fonts.ready
     shellStatus.set({ blocked: !persistence.writable });
     ready = true;
     render();
-    void account.start({
-      read: () => songalongRecords(persistence.state),
-      validate: records => { restoreSongalongRecords(records); },
-      pause: () => interrupt('controls'),
-      canApply: () => route.kind === 'settings' || !!practice?.syncIdle,
-      apply: async records => {
-        const next = records ? restoreSongalongRecords(records) : persistence.store!.state;
-        interrupt('controls');
+    void startPracticeAccount({
+      records: songalongRecords,
+      restore: restoreSongalongRecords,
+      pause: () => interrupt("controls"),
+      canApply: () => route.kind === "settings" || !!practice?.syncIdle,
+      beforeApply: () => {
+        interrupt("controls");
         practice?.dispose();
         practice = undefined;
-        if (records) {
-          persistence.state = next;
-          persistence.accountSave = async () => { await account.changed(); return account.getSnapshot().status !== 'error'; };
-        } else {
-          persistence.accountSave = undefined;
-          persistence.state = next;
-        }
-        shellStatus.set({ saved: records ? "" : "Saved on this device." });
-        refreshPianoVolume();
-        restorePianoVisibility();
-        const saved = persistence.read<{hymn?: string}>('sight');
-        if (route.kind === 'exercise') {
-          const url = new URL('/piano/hymns' + (saved?.hymn ? '/' + saved.hymn : ''), location.origin);
-          history.replaceState(null, '', url.pathname);
-          route = readRoute(url, 'sight');
+      },
+      applied: () => {
+        const saved = persistence.read<{ hymn?: string }>("sight");
+        if (route.kind === "exercise") {
+          const url = new URL(
+            "/piano/hymns" + (saved?.hymn ? "/" + saved.hymn : ""),
+            location.origin,
+          );
+          history.replaceState(null, "", url.pathname);
+          route = readRoute(url, "sight");
         }
         render();
       },
-    }).catch(() => diagnostics.event('account.start_failed'));
-    persistence.accountFlush = () => account.flush();
+    }).catch(() => diagnostics.event("account.start_failed"));
     window.dispatchEvent(new Event("soundtools:ready"));
     try {
       setupOffline();

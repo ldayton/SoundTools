@@ -1,5 +1,7 @@
 import { APP_ROUTE_ROOTS } from "../src/exercise-catalog";
 import { workerSource } from "@ldayton/browser-offline";
+// Bound manifest size while allowing multi-articulation backing sample libraries.
+export const MAX_OFFLINE_FILES = 4096;
 export function offlineWorker(config: {
   app?: "notewise" | "songalong";
   base: string;
@@ -7,7 +9,7 @@ export function offlineWorker(config: {
   inventory: string;
 }) {
   return (
-    `const CONFIG=${JSON.stringify({ ...config, routeRoots: config.app === "songalong" ? ["piano", "settings"] : APP_ROUTE_ROOTS })};\n` +
+    `const CONFIG=${JSON.stringify({ ...config, maxFiles: MAX_OFFLINE_FILES, routeRoots: config.app === "songalong" ? ["piano", "settings"] : APP_ROUTE_ROOTS })};\n` +
     workerSource() +
     String.raw`
 const ROOT=CONFIG.base, MANIFEST=ROOT+'offline-pack.json', META=(CONFIG.app||'notewise')+'-clients-v1';
@@ -15,7 +17,7 @@ const shellName=name=>typeof name==='string'&&new RegExp('^'+(CONFIG.app||'notew
 const metadataURL=id=>new URL(ROOT+'__offline_client__/'+id,self.location.origin).href;
 const metadata=offline.jsonStore(META,metadataURL);
 function valid(pack){
-  try { return shellName(pack?.shellCache)&&Array.isArray(pack.files)&&pack.files.length>0&&pack.files.length<256&&
+  try { return shellName(pack?.shellCache)&&Array.isArray(pack.files)&&pack.files.length>0&&pack.files.length<=CONFIG.maxFiles&&
     pack.files.some(f=>f.url===ROOT)&&new Set(pack.files.map(f=>f.url)).size===pack.files.length&&pack.files.every(f=>{
       try {const u=new URL(f.url,self.location.origin);return u.origin===self.location.origin&&u.pathname===f.url&&f.url.startsWith(ROOT)&&/^[a-f0-9]{64}$/.test(f.sha256);}catch{return false}
     }); } catch {return false;}

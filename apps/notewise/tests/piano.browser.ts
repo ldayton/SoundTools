@@ -45,6 +45,16 @@ try {
   await context.addInitScript(() => (Math.random = () => 0));
   const page = await context.newPage();
   const errors: string[] = [];
+  const runtimeErrors: string[] = [];
+  await page.exposeFunction("__pianoRuntimeError", (message: string) => runtimeErrors.push(message));
+  await page.addInitScript(() => {
+    window.addEventListener("error", event => {
+      if (event.message) void (window as any).__pianoRuntimeError(event.message).catch(() => {});
+    });
+    window.addEventListener("unhandledrejection", event =>
+      void (window as any).__pianoRuntimeError(String(event.reason?.message || event.reason)).catch(() => {}),
+    );
+  });
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
   await page.locator('[data-letter="E"]:enabled').waitFor();
@@ -244,7 +254,14 @@ try {
   await closePracticeOptions(page);
   await page.locator('[data-letter="E"]').click();
   assert.match((await page.locator("#feedback").textContent())!, /Yes — E/);
-  assert.deepEqual(errors, []);
+  assert.deepEqual(runtimeErrors, []);
+  // Offline reload deliberately prevents worker update checks. WebKit can
+  // report that caught network failure through the protocol as a page error.
+  // The real-window assertions and the successful offline exercise stay strict.
+  const workerURL = new URL("sw.js", base).href;
+  const workerFailures = [workerURL, workerURL.replace(/^https?:\//, "")]
+    .map(url => url + " due to access control checks.");
+  assert.deepEqual(errors.filter(message => !(engine === "webkit" && workerFailures.includes(message))), []);
   console.log(
     `${engine}: piano exact octaves, accidentals, responsive geometry, keyboard input, persistence and guitar regression passed`,
   );

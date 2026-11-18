@@ -14,6 +14,9 @@ const songs = await preview("songalong", 4421);
 try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
+    // Route/shell coverage is separate from the real-worker offline suites.
+    // Prevent a retired document's worker installation from racing navigation.
+    serviceWorkers: "block",
   });
   const page = await context.newPage();
   const errors: string[] = [];

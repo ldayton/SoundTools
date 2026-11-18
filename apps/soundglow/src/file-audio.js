@@ -7,7 +7,7 @@ class FileAudioReader {
  clear(){this.generation++;for(const entry of this.inputs.values())entry.then(e=>e.input?.dispose()).catch(()=>{});this.inputs.clear();}
  async open(blob){
   if(!this.inputs.has(blob))this.inputs.set(blob,(async()=>{
-   const input=new Input({source:new BlobSource(blob,{maxCacheSize:2*1024*1024}),formats:ALL_FORMATS});
+   const input=new Input({source:new BlobSource(blob,{maxCacheSize:2*1024*1024,handleUnhandledError(){window.SoundglowDiagnostics?.event('files.prefetch_read_failed')}}),formats:ALL_FORMATS});
    try{
     const track=await input.getPrimaryAudioTrack();if(!track)throw Error('No audio track');
     const rate=await track.getSampleRate(),channels=await track.getNumberOfChannels();

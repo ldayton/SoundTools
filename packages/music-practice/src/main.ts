@@ -1,4 +1,10 @@
+import { account } from "./account";
 import { shutdownPianoSound } from "./piano-audio";
+import { startPracticeAccount } from "./practice-account-binding";
+import {
+  NotewiseAccountRecords,
+  restoreNotewiseRecords,
+} from "./notewise-account-records";
 import { preventRepeatedButtonActivation } from "./input-guards";
 import { practicePresentation } from "./practice-presentation";
 import { shellStatus } from "./shell-status";
@@ -94,14 +100,16 @@ function interruptFlashcards() {
   clearAnswerHover();
 }
 const activities = new ActivityHost({
-  load: (mode) => {
+  load: (mode, current) => {
     if (!isLiveMode(mode)) return flashcardActivity;
     const element = shell.activityElement(mode);
     element.textContent = "Loading practice…";
     const definition = LIVE_EXERCISES.find((entry) => entry.mode === mode)!;
-    return definition
-      .load()
-      .then((Controller) => new Controller(element, refreshMidiAcceptance));
+    return definition.load().then((Controller) => {
+      if (!current())
+        throw new DOMException("Activity reset while loading", "AbortError");
+      return new Controller(element, refreshMidiAcceptance);
+    });
   },
   changed: refreshMidiAcceptance,
   missing: showMissing,
@@ -842,6 +850,40 @@ document.fonts.ready
       start();
       save();
     }
+    const accountRecords = new NotewiseAccountRecords();
+    void startPracticeAccount({
+      records: (state) => accountRecords.read(state, account.device),
+      restore: restoreNotewiseRecords,
+      pause: () => {
+        feedbackAdvance.cancel();
+        activities.interrupt("controls");
+        midi.setAccepting(false);
+      },
+      canApply: () =>
+        !document.activeElement?.closest(
+          'input,select,textarea,[role="slider"],[role="spinbutton"]',
+        ) &&
+        (route.kind !== "exercise" ||
+          (isLiveMode(progress.mode)
+            ? !!activePractice()?.syncIdle
+            : !session || session.answered === 0 || phase === "complete")),
+      beforeApply: () => {
+        activities.reset();
+        sessions.invalidateAll();
+        session = undefined!;
+      },
+      applied: (records, state) => {
+        accountRecords.accept(records, state);
+        progress = state.progress;
+        if (route.kind === "exercise") {
+          const url = new URL(exercise(progress.mode).path, location.origin);
+          history.replaceState(null, "", url.pathname);
+          route = readRoute(url, progress.mode);
+        }
+        if (route.kind === "not-found") showMissing();
+        else start();
+      },
+    }).catch(() => diagnostics.event("account.start_failed"));
     window.dispatchEvent(new Event("soundtools:ready"));
     try {
       setupOffline();

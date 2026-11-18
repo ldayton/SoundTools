@@ -10,10 +10,10 @@ const vite = createRequire(import.meta.url)
   .replace(/package\.json$/, "bin/vite.js");
 const server = spawn(
   process.execPath,
-  [vite, "--host", "127.0.0.1", "--port", "4381", "--strictPort"],
+  [vite, "--host", "127.0.0.1", "--port", "4384", "--strictPort"],
   { cwd: new URL("..", import.meta.url), stdio: "ignore" },
 );
-const url = "http://127.0.0.1:4381";
+const url = "http://127.0.0.1:4384";
 const fixed = await mkdtemp(join(tmpdir(), "notewise-backing-"));
 const engine = process.env.TEST_BROWSER || "chromium";
 let browser;
@@ -279,11 +279,23 @@ try {
         "backing-track-model.ts",
       )
     );
+    const { backingArrangement } = await import(
+      /* @vite-ignore */ moduleUrl.replace(
+        "backing-track-audio.ts",
+        "backing-arrangement.ts",
+      )
+    );
+    const { backingAudioGraph } = await import(
+      /* @vite-ignore */ moduleUrl.replace(
+        "backing-track-audio.ts",
+        "backing-performance.ts",
+      )
+    );
     const realBuses = p.buses;
     const seams: number[] = [];
     for (const style of ["blues", "rock"])
       for (const mode of ["steady", "active"]) {
-        const pattern = backingPack.patterns[style][mode],
+        const pattern = backingArrangement(style, mode, "major"),
           tempo = pattern.nativeTempo;
         const offline = new OfflineAudioContext(
           2,
@@ -292,13 +304,14 @@ try {
         );
         p.context = offline;
         p.buses = new Map();
-        p.model.set({ ...p.model.getSnapshot(), style, mode, tempo });
-        for (const part of ["drums", "percussion", "bass", "guitar"]) {
-          const bus = offline.createGain();
-          bus.gain.value = backingPack.levels[part];
-          bus.connect(offline.destination);
-          p.buses.set(part, bus);
-        }
+        p.model.set({
+          ...p.model.getSnapshot(),
+          style,
+          mode,
+          tempo,
+          quality: "major",
+        });
+        p.buses = backingAudioGraph(offline, backingPack.levels).buses;
         const from = pattern.beats - 8;
         for (const event of pattern.events) {
           if (event.beat >= from)

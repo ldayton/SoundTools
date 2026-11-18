@@ -20,6 +20,8 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { RenderErrorBoundary } from "@ldayton/ui/render-error-boundary";
+import { account, soundglowAccount } from "../account";
+import { AccountProvider, AccountMenu } from "@ldayton/ui/account-menu";
 import { SoundToolsProvider } from "@ldayton/ui";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { PanelIcon } from "@ldayton/ui/panel-icon";
@@ -414,6 +416,7 @@ export function mountApplicationShell() {
                 className="shell-retained"
               />
             </Box>
+            <Box className="soundtools-ui" p="xs"><AccountMenu /></Box>
           </Box>
         </Box>
       </>
@@ -441,7 +444,7 @@ export function mountApplicationShell() {
           primaryColor="orange"
           pageColor="#080b10"
         >
-          <Shell />
+          <AccountProvider account={account} opening={() => soundglowAccount.pause()}><Shell /></AccountProvider>
         </SoundToolsProvider>
       </RenderErrorBoundary>,
     ),

@@ -11,7 +11,7 @@
  // Keep it opt-in until a matched streaming trial passes.
  const experimentalSpeechGate=new URLSearchParams(location.search).get('experimentalSpeechGate')==='1';
  const chart=$('pitchCanvas'),g=chart.getContext('2d');
- function persist(candidate=state){try{localStorage.setItem(key,JSON.stringify({version:1,...candidate}));return true}catch{presetUI.status('Could not save pitch settings in this browser. Allow local storage and try again.');return false}}
+ function persist(candidate=state){if(window.SoundglowAccount?.save())return true;try{localStorage.setItem(key,JSON.stringify({version:1,...candidate}));return true}catch{presetUI.status('Could not save pitch settings in this browser. Allow local storage and try again.');return false}}
  function reset(){epoch++;pitchStream?.dispose();pitchStream=null;cursor=null;rows=[];rawRows=[];contour=null;contourKey='';speechFrames=[];neuralEvidence=new NeuralEvidence();speechSession=crypto.randomUUID();grouping={key:null,settings:null,seed:null};lastPaint=''}
  function trimPitch(){if(host.fileView?.())return;
   const latest=rawRows.at(-1)?.time||0;
@@ -103,6 +103,22 @@
  });
  host.subscribe(type=>{if(type==='fileview'){reset();pumping=false;const file=host.fileView?.();if(file){rawRows=file.features;updateContour();lastPaint='';paint();}else{lastPaint='';paint();}return;}if(type==='stop'||type==='seek'){reset();pumping=false;}if(type==='capture'||type==='seek')syncPitch();if(type==='render'||type==='layout'){layout();paint()}});
  controls();layout();
+ const library=host.accountLibrary();
+ void (async()=>{
+  await library.ready;
+  await library.prepareAccountBookmarks();
+  const read=()=>({spectrogram:host.accountSpectrogram.read(),workspace:structuredClone(state),playback:library.accountPlayback(),bookmarks:library.accountBookmarks()});
+  await window.SoundglowAccount.start({
+   read,models:{spectrogram:(values,selected)=>SettingsState.create(values,selected),pitch:values=>FeatureState.pitch(values)},
+   pause:()=>host.accountPause(),idle:()=>host.accountIdle(),
+   apply(snapshot){
+    host.accountSpectrogram.apply(snapshot.spectrogram);
+    state=structuredClone(snapshot.workspace);reset();pumping=false;
+    library.applyAccount(snapshot.playback,snapshot.bookmarks);
+    controls(true);lastLayout='';layout();host.refreshFileView?.();paint();
+   },
+  });
+ })().catch(error=>window.SoundglowDiagnostics?.capture(error,'account.start_failed'));
 })();
 
 window.dispatchEvent(new Event('soundtools:ready'));

@@ -28,9 +28,15 @@
   }
   const resources = BrowserOffline.createResources(),
     session = BrowserOffline.createWorkerSession({ resources });
+  async function completeUpdate(version) {
+    try { await window.SoundglowAccount?.flush(); }
+    catch { ui.publish({status:'Update paused because account changes could not be saved. Keep this page open and retry.'});return; }
+    if(version)BrowserOffline.applyUpdate(version);else location.reload();
+  }
   const freshness = BrowserOffline.createUpdatePolicy({
     app: "soundglow",
     current: version,
+    apply: completeUpdate,
   });
   const base = document.querySelector('meta[name="soundglow-base"]').content;
   let registration,
@@ -457,10 +463,7 @@
   }, 60000);
   ui.connect({
     download: downloadClick,
-    update: () =>
-      updateVersion
-        ? BrowserOffline.applyUpdate(updateVersion)
-        : location.reload(),
+    update: () => completeUpdate(updateVersion),
   });
   void initialize();
 })();

@@ -26,7 +26,8 @@
     "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts",
     "test:layout": "node ../../scripts/test-practice-layout.cjs notewise",
     "test:workspace": "tsx tests/workspace.browser.ts",
-    "test:backing": "tsx tests/backing-track.browser.ts && tsx tests/backing-metronome.browser.ts"
+    "test:backing": "tsx tests/backing-track.browser.ts && tsx tests/backing-metronome.browser.ts",
+    "test:backing-realism": "tsx tests/backing-realism.browser.ts"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"

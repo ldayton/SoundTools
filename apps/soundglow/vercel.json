@@ -6,6 +6,19 @@
   "outputDirectory": "site",
   "headers": [
     {
+      "source": "/auth/confirm",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
@@ -58,6 +71,12 @@
           "value": "nosniff"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/auth/confirm",
+      "destination": "/index.html"
     }
   ]
 }

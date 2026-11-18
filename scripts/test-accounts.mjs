@@ -20,7 +20,9 @@ try {
     try {
       ready = (
         await Promise.all(
-          [4391, 4392].map((port) => fetch(`http://127.0.0.1:${port}/`)),
+          [4391, 4392, 4393, 4394].map((port) =>
+            fetch(`http://127.0.0.1:${port}/`),
+          ),
         )
       ).every((r) => r.ok);
     } catch {}
@@ -29,6 +31,7 @@ try {
   }
   if (!ready) throw Error("Local account previews did not start.");
   await run("npx", ["tsx", "tests/accounts.browser.mts"]);
+  await run("npx", ["tsx", "tests/accounts-extra.browser.mts"]);
 } finally {
   servers.kill("SIGTERM");
 }

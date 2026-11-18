@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useLayoutEffect,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -64,14 +65,17 @@ export function AccountMenu() {
 export function AccountProvider({
   account,
   opening,
+  onOpenedChange,
   children,
 }: {
   account: Account;
   opening?(): void;
+  onOpenedChange?(opened: boolean): void;
   children: ReactNode;
 }) {
   const state = useSyncExternalStore(account.subscribe, account.getSnapshot);
   const [opened, setOpened] = useState(state.link);
+  useLayoutEffect(() => onOpenedChange?.(opened), [opened, onOpenedChange]);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);

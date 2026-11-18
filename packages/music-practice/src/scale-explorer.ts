@@ -42,6 +42,9 @@ import { MetronomeSettings } from "./metronome-settings";
 import { BackingTrackSettings } from "./backing-track-settings";
 
 export class ScaleExplorer implements LivePractice {
+  get syncIdle() {
+    return !["playing", "loading"].includes(this.backing.model.getSnapshot().status);
+  }
   private disposeView: () => void;
   private body = scaleBodyState();
   private backing = new BackingTrackPlayer();
@@ -304,6 +307,7 @@ export class ScaleExplorer implements LivePractice {
     this.backing.setKey(
       this.tonic,
       scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic]),
+      this.quality,
     );
     this.options.set(this.optionsSnapshot());
     const title = `${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality === "major" ? "major" : "natural minor"}`;

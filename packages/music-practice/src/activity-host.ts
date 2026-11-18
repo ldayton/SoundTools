@@ -18,11 +18,15 @@ export class ActivityHost {
   private instances = new Map<Mode, PracticeActivity>();
   private pending = new Map<Mode, Promise<PracticeActivity>>();
   private generation = 0;
+  private lifetime = 0;
   private disposed = false;
   active: PracticeActivity | undefined;
   constructor(
     private options: {
-      load(mode: Mode): PracticeActivity | Promise<PracticeActivity>;
+      load(
+        mode: Mode,
+        current: () => boolean,
+      ): PracticeActivity | Promise<PracticeActivity>;
       changed(): void;
       missing(): void;
       failed(error: unknown, mode: Mode, current: boolean): void;
@@ -30,13 +34,19 @@ export class ActivityHost {
   ) {}
   dispose() {
     if (this.disposed) return;
+    this.reset();
     this.disposed = true;
+  }
+  /** Recreate controllers against a different account snapshot. */
+  reset() {
     this.generation++;
+    this.lifetime++;
     this.active?.leave();
     this.active = undefined;
     for (const instance of new Set(this.instances.values()))
       instance.dispose?.();
     this.instances.clear();
+    this.pending.clear();
     this.options.changed();
   }
   async activate(route: AppRoute) {
@@ -53,10 +63,15 @@ export class ActivityHost {
         const existing = this.pending.get(mode);
         if (existing) instance = await existing;
         else {
-          const loaded = this.options.load(mode);
+          const lifetime = this.lifetime;
+          const loaded = this.options.load(
+            mode,
+            () => !this.disposed && lifetime === this.lifetime,
+          );
           if (loaded instanceof Promise) {
             const pending = loaded.then((controller) => {
-              if (this.disposed) controller.dispose?.();
+              if (this.disposed || lifetime !== this.lifetime)
+                controller.dispose?.();
               else this.instances.set(mode, controller);
               return controller;
             });
@@ -83,6 +98,12 @@ export class ActivityHost {
       instance.enter();
       this.options.changed();
     } catch (error) {
+      if (
+        generation !== this.generation &&
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      )
+        return;
       if (generation === this.generation) {
         this.active?.leave();
         this.active = undefined;

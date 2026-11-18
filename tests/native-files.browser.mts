@@ -613,6 +613,20 @@ try {
   await openAccount(b);
   await b.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(b.locator("[data-file]")).toHaveCount(0);
+  // A failed worker import is returned to its caller, not also thrown globally.
+  await b.route("**/__test_worker_load.js", route => route.fulfill({
+    contentType: "text/javascript",
+    body: "importScripts('/__test_missing_processor.js')",
+  }));
+  await b.route("**/__test_missing_processor.js", route => route.fulfill({ status: 503, body: "Unavailable" }));
+  const workerFailure = await b.evaluate(async () => {
+    const client = new (window as any).PraatClient({ workerURL: "/__test_worker_load.js" });
+    try { await client.init(); return "unexpected success"; }
+    catch (error) { return (error as { code: string }).code; }
+    finally { client.dispose(); }
+  });
+  assert.equal(workerFailure, "WORKER_ERROR");
+  await b.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
   assert.deepEqual(errors, []);
   console.log(
     engine +

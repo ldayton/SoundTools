@@ -1,3 +1,5 @@
+import { genreBackingArrangement } from "./backing-genre-engine";
+import { BACKING_GENRES, backingGenre } from "./backing-genres";
 import { sharedBackingPocket } from "./backing-shared-pocket";
 import { connectBackingGuitar } from "./backing-guitar-transitions";
 import drumPack from "./assets/backing-drum-v3/manifest.json";
@@ -114,32 +116,49 @@ export class BackingTrackPlayer {
     let take = this.takeCache.get(this.cycle);
     if (!take) {
       const state = this.model.getSnapshot();
-      take = (
-        this.experimental
-          ? plannedBackingArrangement
-          : practiceBackingArrangement
-      )(
-        state.style,
-        state.mode,
-        state.quality,
-        this.cycle,
-        state.tempo,
-        state.tonic,
-      );
-      if (this.drumArticulations)
-        take = articulateDrums(
-          take as ReturnType<typeof plannedBackingArrangement>,
-        );
-      if (this.guitarTransitions)
-        take = connectBackingGuitar(
-          take as ReturnType<typeof plannedBackingArrangement>,
+      if (
+        state.style === "country" ||
+        (this.experimental &&
+          this.drumArticulations &&
+          this.guitarTransitions &&
+          this.sharedPocket)
+      ) {
+        take = genreBackingArrangement(
+          state.style,
+          state.mode,
+          state.quality,
+          this.cycle,
           state.tempo,
+          state.tonic,
         );
-      if (this.sharedPocket)
-        take = sharedBackingPocket(
-          take as ReturnType<typeof plannedBackingArrangement>,
+      } else {
+        take = (
+          this.experimental
+            ? plannedBackingArrangement
+            : practiceBackingArrangement
+        )(
+          state.style,
+          state.mode,
+          state.quality,
+          this.cycle,
           state.tempo,
+          state.tonic,
         );
+        if (this.drumArticulations)
+          take = articulateDrums(
+            take as ReturnType<typeof plannedBackingArrangement>,
+          );
+        if (this.guitarTransitions)
+          take = connectBackingGuitar(
+            take as ReturnType<typeof plannedBackingArrangement>,
+            state.tempo,
+          );
+        if (this.sharedPocket)
+          take = sharedBackingPocket(
+            take as ReturnType<typeof plannedBackingArrangement>,
+            state.tempo,
+          );
+      }
       this.takeCache.set(this.cycle, take);
       // Retain the current and previous take only; long practice stays bounded.
       for (const cycle of this.takeCache.keys())
@@ -211,7 +230,7 @@ export class BackingTrackPlayer {
     if (active) void this.play();
   }
   setStyle(style: BackingStyle) {
-    if (style !== "blues" && style !== "rock") return;
+    if (backingGenre(style).id !== style) return;
     if (style === this.model.getSnapshot().style) return;
     const playing = this.model.getSnapshot().status === "playing";
     this.patch({ style });
@@ -615,7 +634,8 @@ export class BackingTrackPlayer {
     if (!context) return;
     this.stopVoices();
     const state = this.model.getSnapshot();
-    const beats = this.pack.patterns[state.style][state.mode].beats;
+    const genre = BACKING_GENRES[state.style];
+    const beats = (genre.form.bars * genre.meter[0] * 4) / genre.meter[1];
     this.cycle = Math.floor(position / beats);
     const pattern = this.take();
     this.position = position % pattern.beats;

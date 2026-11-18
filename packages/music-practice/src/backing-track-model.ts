@@ -1,6 +1,8 @@
+import { backingGenre, type BackingGenreId } from "./backing-genres";
 import manifest from "./assets/backing-v1/manifest.json";
 
-export type BackingStyle = "blues" | "rock";
+export type BackingStyle = BackingGenreId;
+export type LegacyBackingStyle = "blues" | "rock";
 export type BackingMode = "steady" | "active";
 export type BackingPart = "drums" | "percussion" | "bass" | "guitar";
 export type BackingEvent = {
@@ -47,7 +49,7 @@ export type BackingSample = {
 export const backingPack = manifest as unknown as {
   samples: Record<string, BackingSample>;
   patterns: Record<
-    BackingStyle,
+    LegacyBackingStyle,
     Record<
       BackingMode,
       {
@@ -64,7 +66,7 @@ export function backingSettings(input: unknown) {
   const value = input as
     { style?: unknown; mode?: unknown; tempo?: unknown } | undefined;
   return {
-    style: (value?.style === "rock" ? "rock" : "blues") as BackingStyle,
+    style: backingGenre(value?.style).id,
     mode: (value?.mode === "active" ? "active" : "steady") as BackingMode,
     tempo:
       typeof value?.tempo === "number" && Number.isFinite(value.tempo)

@@ -1,0 +1,43 @@
+/** One entry point: musical definition -> strategy -> approved ensemble playback. */
+import { BACKING_GENRES } from "./backing-genres";
+import { plannedBackingArrangement } from "./backing-musical-plan";
+import { countryArrangement } from "./backing-country";
+import { articulateDrums } from "./backing-drum-articulation";
+import { connectBackingGuitar } from "./backing-guitar-transitions";
+import { sharedBackingPocket } from "./backing-shared-pocket";
+import type { BackingStyle, BackingMode } from "./backing-track-model";
+import type { BackingQuality } from "./backing-arrangement";
+import type { BackingTake } from "./backing-plan-types";
+export function genreBackingArrangement(
+  style: BackingStyle,
+  mode: BackingMode,
+  quality: BackingQuality,
+  cycle = 0,
+  tempo = 90,
+  tonic = 9,
+): BackingTake {
+  const definition = BACKING_GENRES[style];
+  let plan: BackingTake;
+  switch (definition.rhythm.strategy) {
+    case "two-step":
+      plan = countryArrangement(mode, quality, cycle, tempo, tonic);
+      break;
+    case "recorded-story":
+      if (style === "country")
+        throw Error("Country requires a generated groove strategy");
+      plan = plannedBackingArrangement(
+        style,
+        mode,
+        quality,
+        cycle,
+        tempo,
+        tonic,
+      );
+      break;
+  }
+
+  return sharedBackingPocket(
+    connectBackingGuitar(articulateDrums(plan), tempo),
+    tempo,
+  );
+}

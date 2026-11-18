@@ -1,3 +1,4 @@
+import { backingGenres } from "./backing-genres";
 import { useState, useSyncExternalStore } from "react";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import type { BackingTrackPlayer } from "./backing-track-audio";
@@ -42,14 +43,14 @@ export function BackingTrackSettings({
         <fieldset className="backing-track-style">
           <legend>Style</legend>
           <div role="group" aria-label="Backing style">
-            {(["blues", "rock"] as const).map((style) => (
+            {backingGenres.map(({ id: style, label }) => (
               <button
                 key={style}
                 type="button"
                 aria-pressed={state.style === style}
                 onClick={() => player.setStyle(style)}
               >
-                {style === "blues" ? "Blues" : "Rock"}
+                {label}
               </button>
             ))}
           </div>

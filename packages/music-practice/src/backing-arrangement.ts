@@ -1,31 +1,14 @@
+import { genreChord } from "./backing-genres";
 import {
   backingPack,
   type BackingEvent,
   type BackingMode,
-  type BackingStyle,
+  type LegacyBackingStyle as BackingStyle,
 } from "./backing-track-model";
 export type BackingQuality = "major" | "minor";
 export const ARRANGEMENT_VERSION = "ensemble-v1";
 const scale = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
 type Chord = { degree: number; minor: boolean };
-const majorRock: Chord[] = [
-  { degree: 0, minor: false },
-  { degree: 5, minor: false },
-  { degree: 9, minor: true },
-  { degree: 7, minor: false },
-];
-const minorRock: Chord[] = [
-  { degree: 0, minor: true },
-  { degree: 8, minor: false },
-  { degree: 3, minor: false },
-  { degree: 10, minor: false },
-];
-const majorBlues: Chord[] = [0, 5, 0, 0, 5, 5, 0, 2, 7, 5, 0, 7].map(
-  (degree) => ({ degree, minor: degree === 2 }),
-);
-const minorBlues: Chord[] = [0, 5, 0, 0, 5, 5, 0, 8, 7, 5, 0, 7].map(
-  (degree) => ({ degree, minor: degree !== 8 }),
-);
 export function scalePitchClasses(tonic: number, quality: BackingQuality) {
   return scale[quality].map((n) => (n + tonic + 12) % 12);
 }
@@ -34,9 +17,7 @@ export function backingChord(
   quality: BackingQuality,
   bar: number,
 ): Chord {
-  return style === "rock"
-    ? (quality === "major" ? majorRock : minorRock)[Math.floor((bar % 8) / 2)]
-    : (quality === "major" ? majorBlues : minorBlues)[bar % 12];
+  return genreChord(style, quality, bar);
 }
 function random(seed: number) {
   let state = seed >>> 0;

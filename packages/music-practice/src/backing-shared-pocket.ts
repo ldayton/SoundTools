@@ -1,7 +1,8 @@
+import type { BackingTake } from "./backing-plan-types";
 /** A deterministic ensemble pocket follows the approved drummer; no extra notes. */
 import type { BackingEvent } from "./backing-track-model";
 import type { plannedBackingArrangement } from "./backing-musical-plan";
-type Take = ReturnType<typeof plannedBackingArrangement>;
+type Take = BackingTake;
 const clamp = (n: number, lo: number, hi: number) =>
   Math.max(lo, Math.min(hi, n));
 const median = (a: number[]) => {

@@ -1,6 +1,6 @@
 /** Approved plan-first accompaniment with sparse bass and long phrase variation. */
 import { practiceBackingArrangement } from "./backing-phrasing";
-import catalog from "./backing-musical-catalog.json";
+import { BACKING_GENRES, recordedGenreStory } from "./backing-genres";
 import {
   backingArrangement,
   backingChord,
@@ -8,7 +8,7 @@ import {
 } from "./backing-arrangement";
 import type {
   BackingEvent,
-  BackingStyle,
+  LegacyBackingStyle as BackingStyle,
   BackingMode,
 } from "./backing-track-model";
 type Role = "foundation" | "bass" | "guitar" | "space" | "drums";
@@ -118,7 +118,7 @@ export function musicalBackingPlan(
   tempo = 90,
   tonic = 9,
 ) {
-  const source = catalog[`${style}-${mode}`];
+  const source = recordedGenreStory(style, mode);
   const bars = source.bars.map((b, i) => {
     const chord = backingChord(style, quality, i),
       root = (tonic + chord.degree + 12) % 12;

@@ -56,3 +56,11 @@ That renderer reads the existing pinned local library repositories, including or
 Compare at similar loudness. Listen for connected chord transitions, less repetitive guitar articulation, kick/bass agreement, the quiet middle section and the final return to the opening. These checks are hypotheses about musical usefulness; automated timing and harmony checks do not replace listening.
 
 Final local results: 148 unit tests passed; NoteWise production build passed; the live realism suite passed in Chromium, Firefox and WebKit. The existing backing/metronome browser suite passed its actual-audio loop seam and synchronization checks. The measured A-minor sample working set was 222,620,248 bytes (about 212 MiB), versus 1,278 recordings in the full pack. Four major/minor Active WAVs are matched to -20.00/-20.01 LUFS, with measured true peaks below 0 dBTP and loudness ranges of 5.8–10 LU.
+
+## Approved B phrasing
+
+The A/B listening experiment's B version is now the production player's phrasing layer (`backing-phrasing.ts`). Active reproduces the approved experiment at the requested tempo. Steady uses the same open voicings and sustain rules while retaining fewer answers and fills. The historical A/B renderer can still reproduce A from `backing-arrangement.ts`; its compatibility export points to the approved phrasing implementation.
+
+The live tempo is passed into each generated take, and tempo edits invalidate the take cache before rescheduling at the same absolute beat. Slow practice uses longer bass/guitar holds and fewer additional soft subdivisions; faster practice uses shorter holds and more spaced fill strokes. The existing long dynamic story, sample pack, mix, key ownership and metronome synchronization remain in place.
+
+Validation after promotion: NoteWise production build; 156 unit tests; live browser check of B playback and a 72→120 BPM change after loop wrap; actual-audio loop seam and backing/metronome synchronization checks.

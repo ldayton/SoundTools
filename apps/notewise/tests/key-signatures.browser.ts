@@ -66,6 +66,8 @@ try {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(base);
+  // Fixture edits require the application's IndexedDB schema to exist first.
+  await page.locator('[data-letter="C"]:enabled').waitFor();
   const cards = signatureDeck("both");
   for (const [index, card] of cards.entries()) {
     await page.evaluate(
@@ -75,16 +77,26 @@ try {
     // Each notation fixture starts with no review weighting; recovery has its own suite.
     await page.evaluate(
       () =>
-        new Promise<void>((resolve) => {
+        new Promise<void>((resolve, reject) => {
           const r = indexedDB.open("soundtools-notewise");
+          r.onerror = () => reject(r.error);
           r.onsuccess = () => {
             const db = r.result;
-            const tx = db.transaction("state", "readwrite");
-            tx.objectStore("state").delete("root");
-            tx.oncomplete = () => {
+            try {
+              const tx = db.transaction("state", "readwrite");
+              tx.objectStore("state").delete("root");
+              tx.oncomplete = () => {
+                db.close();
+                resolve();
+              };
+              tx.onabort = () => {
+                db.close();
+                reject(tx.error);
+              };
+            } catch (error) {
               db.close();
-              resolve();
-            };
+              reject(error);
+            }
           };
         }),
     );

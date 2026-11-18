@@ -365,6 +365,7 @@ try {
     await page.locator('#progression-up').click();
   }
   await page.reload();
+  await page.locator('[data-pattern="octaveArpeggio"]').waitFor();
   assert.equal(await readSpecValue(page, 'pattern'), 'octaveArpeggio');
   assert.deepEqual(await page.locator('[data-pattern]').allTextContents(), [
     'Arpeggio & Scale',
@@ -442,6 +443,7 @@ try {
   await page.locator('#direction-up').click();
   await page.locator('#progression-both').click();
   await page.reload();
+  await page.locator('#direction-up').waitFor();
   assert.equal(await page.locator('#direction button[aria-pressed=true]').count(), 1);
   assert.equal(await readSpecValue(page, 'progression'), 'both');
   assert.equal(
@@ -476,7 +478,7 @@ try {
   assert.equal(Number(await readSpecValue(page, 'low')), Number(highBefore) - 7);
   assert.equal(await readSpecValue(page, 'high'), highBefore);
   await page.reload();
-  await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('#play')?.disabled);
+  await page.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
 
   const preferencesPage = await browser.newPage();
   const remembered = {

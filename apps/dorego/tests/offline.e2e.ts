@@ -30,11 +30,23 @@ const legacyWorker = process.env.LEGACY_WORKER_PATH
   ? await readFile(process.env.LEGACY_WORKER_PATH, 'utf8')
   : null;
 const initialPack = JSON.parse(await readFile(resolve(root, 'offline-pack.json'), 'utf8'));
-const originalMain = await readFile(
-  resolve(root, initialHTML.match(/src="([^"]+\.js)"/)![1].slice('/DoReGo/'.length)),
-  'utf8'
-);
 const mainAsset = initialHTML.match(/src="([^"]+\.js)"/)![1];
+const scripts = new Map<string, string>();
+for (const url of initialPack.shell as string[])
+  if (url.includes('/assets/') && url.endsWith('.js'))
+    scripts.set(url, await readFile(resolve(root, url.slice('/DoReGo/'.length)), 'utf8'));
+const revisionAsset = (url: string, version: number) =>
+  version > 1 ? url.replace(/\.js$/, `-r${version}.js`) : url;
+// Changed imports change their containing chunk too. Version the entire module
+// graph, just as the real build does, and keep old asset URLs immutable.
+const rewriteImports = (body: string, version: number) => {
+  if (version === 1) return body;
+  for (const url of scripts.keys()) {
+    const name = url.slice(url.lastIndexOf('/') + 1);
+    body = body.replaceAll(name, revisionAsset(name, version));
+  }
+  return body;
+};
 let failInterface = false;
 let failSounds = false;
 let slowSounds = false;
@@ -58,9 +70,9 @@ const server = createServer(async (request, response) => {
     response.writeHead(503).end();
     return;
   }
-  const alias = path.match(/\/main-r(\d+)\.js$/);
+  const alias = path.match(/-r(\d+)\.js$/);
   const actualPath = alias
-    ? mainAsset
+    ? path.replace(/-r\d+\.js$/, '.js')
     : path.replace(/(dorego-shell-[a-f0-9]+)-r[0-9]+(\/offline-pack[.]json)$/, '$1$2');
   const file = resolve(root, actualPath.slice('/DoReGo/'.length) || 'index.html');
   if (!file.startsWith(root + '/')) {
@@ -76,28 +88,29 @@ const server = createServer(async (request, response) => {
       revision > 1 &&
       (path.endsWith('sw.js') || path.endsWith('offline-pack.json') || file.endsWith('index.html'))
     )
-      body = body
+      body = rewriteImports(body
         .toString()
-        .replace(/dorego-shell-([a-f0-9]+)/g, `dorego-shell-$1-r${revision}`)
-        .replaceAll(mainAsset, `/DoReGo/assets/main-r${revision}.js`);
+        .replace(/dorego-shell-([a-f0-9]+)/g, `dorego-shell-$1-r${revision}`), revision);
     if (actualPath === mainAsset)
       body = `window.__testBuild = ${alias ? alias[1] : 1};\n` + body.toString();
+    if (actualPath.endsWith('.js') && actualPath.includes('/assets/'))
+      body = rewriteImports(body.toString(), alias ? Number(alias[1]) : 1);
     if (path.endsWith('offline-pack.json') || path.endsWith('sw.js')) {
-      const main = revision > 1 ? `/DoReGo/assets/main-r${revision}.js` : mainAsset;
       const hashes = { ...initialPack.hashes };
-      delete hashes[mainAsset];
       hashes['/DoReGo/'] = createHash('sha256')
         .update(
           revision > 1
-            ? initialHTML
-                .replaceAll(mainAsset, main)
+            ? rewriteImports(initialHTML, revision)
                 .replace(/dorego-shell-([a-f0-9]+)/g, `dorego-shell-$1-r${revision}`)
             : initialHTML
         )
         .digest('hex');
-      hashes[main] = createHash('sha256')
-        .update(`window.__testBuild = ${revision};\n` + originalMain)
-        .digest('hex');
+      for (const [url, script] of scripts) {
+        delete hashes[url];
+        const marker = url === mainAsset ? `window.__testBuild = ${revision};\n` : '';
+        hashes[revisionAsset(url, revision)] = createHash('sha256')
+          .update(marker + rewriteImports(script, revision)).digest('hex');
+      }
       if (path.endsWith('offline-pack.json')) {
         const pack = JSON.parse(body.toString());
         pack.hashes = hashes;

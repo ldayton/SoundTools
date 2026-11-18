@@ -21,9 +21,11 @@ async function openNavigation(page: Page) {
       await navigation.click();
     await page.getByRole("button", { name: "Close navigation", exact: true }).waitFor();
   } else if (await files.isVisible()) await files.click();
-  else await page.locator("#settings").click();
+  else if (await page.locator("#settings").isVisible())
+    await page.locator("#settings").click();
 }
 async function menuButton(page: Page, name: "Account" | "Log in") {
+  await page.locator("#practice-content, .soundglow-header").first().waitFor();
   const nav = page.getByRole("button", { name, exact: true });
   // A transitioning off-canvas drawer can be visible to accessibility APIs
   // while its buttons are still outside the viewport.
@@ -124,6 +126,9 @@ export async function login(page: Page, link = false) {
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     if (app !== "Soundglow") {
       await page.getByRole("link", { name: `Continue to ${app}`, exact: true }).click();
+      // Continue loads the application from the standalone confirmation page.
+      // Wait for the new shell before deciding whether its menu needs opening.
+      await (await menuButton(page, "Account")).waitFor();
     }
   } else {
     const wrong = String((Number(code) + 1) % 1000000).padStart(6, "0");

@@ -22,6 +22,8 @@ import {
 import { registerPracticeOptions } from "./practice-options";
 import {
   SCALE_TONICS,
+  isMajorScale,
+  scaleQualityLabel,
   scaleLabel,
   scaleNotes,
   scalePositions,
@@ -106,7 +108,7 @@ export class ScaleExplorer implements LivePractice {
     const [currentLow] = patternBounds(this.pattern, this.quality);
     const [low, high] = patternBounds(next, this.quality);
     const current = currentLow + this.shift;
-    const delta = this.tonic - (this.quality === "major" ? 0 : 9);
+    const delta = this.tonic - (isMajorScale(this.quality) ? 0 : 9);
     const shift = [delta - 24, delta - 12, delta, delta + 12, delta + 24]
       .filter(s => low + s >= 1 && high + s <= 22 && (low + s - current) * direction > 0)
       .sort((a, b) => Math.abs(low + a - current) - Math.abs(low + b - current))[0];
@@ -213,7 +215,7 @@ export class ScaleExplorer implements LivePractice {
                 pattern: this.pattern,
                 shift: this.shift,
               };
-              this.pattern = this.quality === "major" ? "5" : "2";
+              this.pattern = isMajorScale(this.quality) ? "5" : "2";
               this.shift = patternShift(this.tonic, this.quality, this.pattern);
             }
             this.update();
@@ -312,10 +314,10 @@ export class ScaleExplorer implements LivePractice {
     this.backing.setKey(
       this.tonic,
       scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic]),
-      this.quality,
+      isMajorScale(this.quality) ? "major" : "minor",
     );
     this.options.set(this.optionsSnapshot());
-    const title = `${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality === "major" ? "major" : "natural minor"}`;
+    const title = `${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)}`;
 
     const noteList = scaleNotes(this.tonic, this.quality, this.spelling)
       .map((n) => scaleLabel(n.name))
@@ -324,11 +326,11 @@ export class ScaleExplorer implements LivePractice {
     const relativeName = scaleLabel(
       relative.spelling || SCALE_TONICS[relative.quality][relative.tonic],
     );
-    const relativeTarget = this.quality === "major" ? "5" : "2";
+    const relativeTarget = isMajorScale(this.quality) ? "5" : "2";
     const label = this.returnPosition
       ? "Return to previous shape"
-      : `Show ${relativeName} ${relative.quality} starting position`;
-    const relativeExplanation = `${relativeName} ${relative.quality} Shape 1 · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality} Shape ${relativeTarget}`;
+      : `Show ${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} starting position`;
+    const relativeExplanation = `${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} Shape 1 · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)} Shape ${relativeTarget}`;
     const movable = this.pattern !== "map";
     const basePositions =
       this.pattern === "map"
@@ -370,7 +372,7 @@ export class ScaleExplorer implements LivePractice {
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger"
         : "Darker dots mark the root notes.";
-    const source = `https://guitarscale.org/${this.quality === "major" ? "c-major" : "a-minor"}.html`;
+    const source = `https://guitarscale.org/${this.quality.endsWith("pentatonic") ? (isMajorScale(this.quality) ? "c-pentatonic-major" : "a-pentatonic-minor") : (isMajorScale(this.quality) ? "c-major" : "a-minor")}.html`;
     const keys = [-1, 1].map((direction) => {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],

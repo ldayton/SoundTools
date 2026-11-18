@@ -8,6 +8,7 @@ import { offlineWorker } from './offline-worker';
 // Only the web sound bank belongs in an offline download, never the 401 MB originals.
 export function offlineBuild(release?: string): Plugin {
   let base = '/';
+  let outputHashes: Record<string, string> = {};
   return {
     name: 'dorego-offline',
     apply: 'build',
@@ -15,7 +16,11 @@ export function offlineBuild(release?: string): Plugin {
     configResolved(config) {
       base = config.base;
     },
-    generateBundle(_options, bundle) {
+    generateBundle: {
+      // Vite finishes dynamic-import preload lists in its normal bundle hook.
+      // Match the practice apps: hash only the finalized JavaScript bytes.
+      order: 'post',
+      handler(_options, bundle) {
       const html = bundle['index.html'];
       if (html?.type === 'asset') html.source = String(html.source).replace('<head>', '<head>' + startupHTML());
       if (release) this.emitFile({ type: 'asset', fileName: 'diagnostics-release.json', source: JSON.stringify({ release }) });
@@ -91,6 +96,16 @@ export function offlineBuild(release?: string): Plugin {
       this.emitFile({ type: 'asset', fileName: packURL.slice(base.length), source: pack });
       this.emitFile({ type: 'asset', fileName: 'offline-pack.json', source: pack });
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: worker });
+      outputHashes = hashes;
+      },
+    },
+    writeBundle(options) {
+      const out = resolve(options.dir || 'dist');
+      for (const [url, expected] of Object.entries(outputHashes)) {
+        const file = resolve(out, url === base ? 'index.html' : url.slice(base.length));
+        const actual = createHash('sha256').update(readFileSync(file)).digest('hex');
+        if (actual !== expected) this.error(`Offline hash does not match the final file: ${url}`);
+      }
     },
   };
 }

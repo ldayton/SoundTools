@@ -4,7 +4,17 @@ const { spawn } = require("node:child_process");
 const { mkdir, mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
 const path = require("node:path");
-const { chromium, firefox, webkit } = require("playwright");
+const { launchBrowser, newPage, captureFailure, closeBrowser, waitForServer } = require('./ci/browser-harness.cjs');
+async function finishDrawerEntrance(drawer) {
+  await drawer.evaluate(async element => {
+    const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    // Mantine schedules its transition after mounting. Observe the first paint
+    // before collecting animations; an initially empty list is not readiness.
+    await paint();
+    await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {})));
+    await paint(); // Let the transition's focus and scrolling callbacks settle.
+  });
+}
 const {
   macBookAir13,
   iphone14Pro,
@@ -46,17 +56,11 @@ const server = spawn(
   const state = await mkdtemp(path.join(tmpdir(), "practice-layout-"));
   let browser;
   try {
-    for (let i = 0; i < 100; i++) {
-      if (server.exitCode !== null) throw Error("Preview exited");
-      try {
-        if ((await fetch(base)).ok) break;
-      } catch {}
-      await new Promise((r) => setTimeout(r, 100));
-    }
-    browser = await { chromium, firefox, webkit }[engine].launch({
+    await waitForServer(base, { server });
+    browser = await launchBrowser({
       env: { ...process.env, CFFIXED_USER_HOME: state },
     });
-    const page = await browser.newPage({
+    const page = await newPage(browser, {
         ...macBookAir13,
       }),
       errors = [];
@@ -321,8 +325,8 @@ const server = spawn(
         ["iphone-14-pro-landscape", iphone14ProLandscape],
         ["iphone-14-pro-full-height", iphone14ProFullHeight],
       ]) {
-        const phone = await browser.newPage(device);
-        try {
+        const phone = await newPage(browser, device);
+        {
           phone.on("pageerror", (error) => errors.push(error.message));
           await phone.goto(app === "songalong" ? base + "?mode=wait" : base);
           const openOptions = phone.getByRole("button", {
@@ -353,13 +357,7 @@ const server = spawn(
           await navigation.waitFor();
           // Finish the drawer's entrance before sending the next touch. On
           // WebKit a tap during the moving drawer can be cancelled by scrolling.
-          await navigation.evaluate(async (element) => {
-            await Promise.all(
-              element.getAnimations({ subtree: true }).map((animation) =>
-                animation.finished.catch(() => {}),
-              ),
-            );
-          });
+          await finishDrawerEntrance(navigation);
           await phone
             .getByRole("button", { name: "Close navigation", exact: true })
             .tap();
@@ -371,13 +369,7 @@ const server = spawn(
           });
           await options.waitFor();
           // As with navigation, finish the entrance before issuing a touch.
-          await options.evaluate(async (element) => {
-            await Promise.all(
-              element.getAnimations({ subtree: true }).map((animation) =>
-                animation.finished.catch(() => {}),
-              ),
-            );
-          });
+          await finishDrawerEntrance(options);
           await phone
             .getByRole("button", {
               name: /^Close (practice|playback) options$/,
@@ -474,7 +466,6 @@ const server = spawn(
           await phone.screenshot({
             path: path.join(out, `${app}-${engine}-${name}.png`),
           });
-        } finally {
           await phone.close();
         }
       }
@@ -483,8 +474,11 @@ const server = spawn(
     console.log(
       `PASS ${app}/${engine}: MacBook Air 13 reference layout, sidebar placement, Settings, focus, retained practice, regression widths${engine === "firefox" ? "" : ", iPhone 14 Pro portrait/landscape/full-height touch layouts at 3x"}`,
     );
+  } catch (error) {
+    await captureFailure(browser, error);
+    throw error;
   } finally {
-    await browser?.close();
+    await closeBrowser(browser);
     server.kill();
     await rm(state, { recursive: true, force: true }).catch((error) => {
       if (!["EACCES", "EPERM"].includes(error.code)) throw error;

@@ -322,6 +322,11 @@ try {
   await account(p);
   await p.screenshot({ path: "work/account-songalong-desktop.png" });
   await closeModal(p);
+  assert.equal(
+    await p.getByRole("status").filter({ hasText: "Saved on this device." }).count(),
+    0,
+    "signed-in practice must not claim guest-only storage",
+  );
   await q.goto("http://127.0.0.1:4392/");
   await login(q, true);
   const current = await q.locator(".sequence-title").textContent();

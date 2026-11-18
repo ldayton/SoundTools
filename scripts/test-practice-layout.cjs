@@ -344,9 +344,26 @@ const server = spawn(
           await phone
             .getByRole("button", { name: "Open navigation", exact: true })
             .tap();
+          const navigation = phone.getByRole("dialog").filter({
+            has: phone.getByRole("button", {
+              name: "Close navigation",
+              exact: true,
+            }),
+          });
+          await navigation.waitFor();
+          // Finish the drawer's entrance before sending the next touch. On
+          // WebKit a tap during the moving drawer can be cancelled by scrolling.
+          await navigation.evaluate(async (element) => {
+            await Promise.all(
+              element.getAnimations({ subtree: true }).map((animation) =>
+                animation.finished.catch(() => {}),
+              ),
+            );
+          });
           await phone
             .getByRole("button", { name: "Close navigation", exact: true })
             .tap();
+          await navigation.waitFor({ state: "hidden" });
           await openOptions.tap();
           await phone
             .getByRole("dialog", {

@@ -176,6 +176,7 @@ void document.fonts.ready
           persistence.accountSave = undefined;
           persistence.state = next;
         }
+        shellStatus.set({ saved: records ? "" : "Saved on this device." });
         refreshPianoVolume();
         restorePianoVisibility();
         const saved = persistence.read<{hymn?: string}>('sight');

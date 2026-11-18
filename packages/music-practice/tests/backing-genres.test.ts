@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { backingFingerprint } from "./backing-fingerprint";
 import baseline from "./fixtures/approved-backing-aff1d47.json";
 import { genreBackingArrangement } from "../src/backing-genre-engine";
 import {
@@ -25,8 +25,8 @@ test("central engine reproduces the approved Blues/Rock takes exactly across key
       row.tonic,
     );
     assert.equal(
-      createHash("sha256").update(JSON.stringify(take)).digest("hex"),
-      row.sha256,
+      backingFingerprint(take),
+      row.portableSha256,
       JSON.stringify(row),
     );
   }

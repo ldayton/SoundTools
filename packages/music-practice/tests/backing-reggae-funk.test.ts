@@ -1,7 +1,7 @@
 import frozenRhythm from "./fixtures/reggae-funk-pre-sustain-rhythm.json";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { backingFingerprint } from "./backing-fingerprint";
 import { genreBackingArrangement as arrange } from "../src/backing-genre-engine";
 import { BACKING_GENRES } from "../src/backing-genres";
 import baseline from "./fixtures/approved-country-58d66b5.json";
@@ -18,8 +18,8 @@ test("Country remains an exact match to its approved pre-Reggae/Funk baseline", 
       row.tonic,
     );
     assert.equal(
-      createHash("sha256").update(JSON.stringify(take)).digest("hex"),
-      row.sha256,
+      backingFingerprint(take),
+      row.portableSha256,
       JSON.stringify(row),
     );
   }
@@ -126,10 +126,8 @@ test("chord sustain revision preserves the original drums, percussion and sparse
       row.tonic,
     );
     assert.equal(
-      createHash("sha256")
-        .update(JSON.stringify(take.events.filter((e) => e.part !== "guitar")))
-        .digest("hex"),
-      row.sha256,
+      backingFingerprint(take.events.filter((e) => e.part !== "guitar")),
+      row.portableSha256,
     );
   }
   for (const style of ["reggae", "funk"] as const)

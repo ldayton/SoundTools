@@ -35,6 +35,15 @@ const originalMain = await readFile(
   'utf8'
 );
 const mainAsset = initialHTML.match(/src="([^"]+\.js)"/)![1];
+const entryName = mainAsset.slice(mainAsset.lastIndexOf('/') + 1);
+// Lazy app chunks import shared exports from the entry. Keep that graph pointing
+// at the fixture's renamed entry, so an update doesn't execute both generations.
+const rewriteEntryImports = (body: string, version: number) =>
+  version > 1 ? body.replaceAll(entryName, `main-r${version}.js`) : body;
+const scripts = new Map<string, string>();
+for (const url of initialPack.shell as string[])
+  if (url.endsWith('.js') && url !== mainAsset)
+    scripts.set(url, await readFile(resolve(root, url.slice('/DoReGo/'.length)), 'utf8'));
 let failInterface = false;
 let failSounds = false;
 let slowSounds = false;
@@ -82,6 +91,8 @@ const server = createServer(async (request, response) => {
         .replaceAll(mainAsset, `/DoReGo/assets/main-r${revision}.js`);
     if (actualPath === mainAsset)
       body = `window.__testBuild = ${alias ? alias[1] : 1};\n` + body.toString();
+    if (actualPath.endsWith('.js') && actualPath.includes('/assets/'))
+      body = rewriteEntryImports(body.toString(), revision);
     if (path.endsWith('offline-pack.json') || path.endsWith('sw.js')) {
       const main = revision > 1 ? `/DoReGo/assets/main-r${revision}.js` : mainAsset;
       const hashes = { ...initialPack.hashes };
@@ -96,8 +107,10 @@ const server = createServer(async (request, response) => {
         )
         .digest('hex');
       hashes[main] = createHash('sha256')
-        .update(`window.__testBuild = ${revision};\n` + originalMain)
+        .update(`window.__testBuild = ${revision};\n` + rewriteEntryImports(originalMain, revision))
         .digest('hex');
+      for (const [url, script] of scripts)
+        hashes[url] = createHash('sha256').update(rewriteEntryImports(script, revision)).digest('hex');
       if (path.endsWith('offline-pack.json')) {
         const pack = JSON.parse(body.toString());
         pack.hashes = hashes;

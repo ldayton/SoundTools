@@ -18,7 +18,10 @@ def save(id,x,part,n,v,rr,release=False,art='normal'):
     fade=min(len(x),round(.045*r.SR));x[-fade:]*=np.linspace(1,0,fade)[:,None]
     sf.write(out/(id+'.flac'),x,r.SR,format='FLAC',subtype='PCM_16')
     samples[id]=dict(file=id+'.flac',part=part,note=n,velocity=v,rr=rr,gain=restore,release=release,articulation=art)
-for part,lo,hi in [('bass',23,60),('guitar',40,82)]:
+for id,sample in list(samples.items()):
+ if sample['part']=='guitar' and not 44<=sample['note']<=81 and 'articulation' in sample:
+  (out/sample['file']).unlink(missing_ok=True);del samples[id]
+for part,lo,hi in [('bass',23,60),('guitar',44,81)]:
   for n in range(lo,hi+1):
     for art in ['normal','muted']:
       for v in ([48,66,80] if part=='bass' else [28,40,56]) if art=='normal' else [40]:

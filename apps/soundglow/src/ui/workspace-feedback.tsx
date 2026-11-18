@@ -11,6 +11,7 @@ type View = {
   welcome: boolean;
   libraryStatus: string;
   empty: boolean;
+  cloudFiles: boolean;
   importing: boolean;
   storageAvailable: boolean;
   bookmarks: boolean;
@@ -27,6 +28,7 @@ export function createWorkspaceFeedback() {
     welcome: true,
     libraryStatus: "",
     empty: true,
+    cloudFiles: false,
     importing: false,
     storageAvailable: true,
     bookmarks: false,
@@ -102,7 +104,10 @@ export function createWorkspaceFeedback() {
           Open audio files
         </Button>
         <Text id="audioEmpty" size="sm" c="dimmed" hidden={!view.empty}>
-          Open files or drop them here. Files stay on this device.
+          Open files or drop them here.{" "}
+          {view.cloudFiles
+            ? "Imported files sync privately."
+            : "Files stay on this device until you log in."}
         </Text>
         <Text id="audioLibraryStatus" size="sm" role="status">
           {view.libraryStatus}

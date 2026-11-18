@@ -32,6 +32,7 @@ for (const table of ["public.account_apps", "private.account_operations"])
     ],
     { stdio: "ignore" },
   );
+execFileSync("node", ["scripts/reset-file-storage-local.mjs"], { stdio: "ignore" });
 const fixed = await mkdtemp(join(tmpdir(), "soundtools-extra-"));
 const browser = await (
   { chromium, firefox, webkit }[engine] || chromium
@@ -297,24 +298,15 @@ try {
   assert(!encoded.includes("peaks"));
   assert(!encoded.includes("blob:"));
   assert(!encoded.includes("data:audio"));
+  await g.waitForFunction(() => (window as any).SoundglowFiles.rows.some((f:any)=>f.state==="ready"));
   await h.goto("http://127.0.0.1:4394/dist/index.html#settings");
   await login(h, true);
   await expect(
     h.getByLabel("Visible minimum (Hz)", { exact: true }),
   ).toHaveValue("80");
-  await expect(h.locator("[data-file]")).toHaveCount(0);
-  await expect(h.locator("[data-bookmark]")).toContainText(
-    "Import audio to open",
-  );
+  await expect(h.locator("[data-file]")).toHaveCount(1);
+  await expect(h.locator("[data-bookmark]")).toContainText("Download to open");
   await h.locator("[data-bookmark]").click();
-  await expect(
-    h.getByRole("status").filter({ hasText: "Import “Practice.m4a”" }),
-  ).toContainText("Import “Practice.m4a”");
-  await h.locator("#audioFileInput").setInputFiles({
-    name: "Different filename.m4a",
-    mimeType: "audio/mp4",
-    buffer: audio,
-  });
   await h.waitForFunction(() => {
     const l = (window as any).soundglowSession.accountLibrary();
     return l.current && !l.importing && !l.loading;
@@ -356,13 +348,13 @@ try {
     g.getByLabel("Visible maximum (Hz)", { exact: true }),
   ).toHaveValue("600");
   await h.screenshot({ path: "work/account-soundglow-desktop.png" });
-  // Removing a device-local file leaves its shared bookmark available elsewhere.
+  // Removing a downloaded copy leaves its cloud file and bookmark available.
   await h.evaluate(() => {
     const l = (window as any).soundglowSession.accountLibrary();
-    return l.remove(l.current.id);
+    return l.removeDownload(l.current.id);
   });
   await expect(h.locator("[data-bookmark]")).toContainText(
-    "Import audio to open",
+    "Download to open",
   );
   await expect(g.locator("[data-file]")).toHaveCount(1);
   await signedOut(g);
@@ -371,11 +363,11 @@ try {
     await g.evaluate(() => localStorage.getItem("soundglow-workspace-v1")),
     guestWorkspace,
   );
-  await expect(g.locator("[data-file]")).toHaveCount(1);
+  await expect(g.locator("[data-file]")).toHaveCount(0);
   await expect(g.locator("[data-bookmark]")).toHaveCount(0);
   console.log(
     engine +
-      ": Soundglow settings, offline reload, local-only files, content-matched bookmark restore and guest isolation passed",
+      ": Soundglow settings, offline reload, private cloud files, content-matched bookmark restore and guest isolation passed",
   );
   await c.close();
   await d.close();

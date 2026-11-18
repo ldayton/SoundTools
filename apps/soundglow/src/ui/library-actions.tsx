@@ -24,6 +24,10 @@ type Row = Target & {
   detail: string;
   title: string;
   selected?: boolean;
+  status?: string;
+  cloud?: boolean;
+  cached?: boolean;
+  failed?: boolean;
 };
 type Item = { name: string; deleteDescription: string; maxNameLength: number };
 type Host = {
@@ -31,6 +35,8 @@ type Host = {
   open(kind: Kind, id: string): void;
   rename(kind: Kind, id: string, name: string): Promise<void>;
   remove(kind: Kind, id: string): Promise<boolean>;
+  removeDownload?(id: string): Promise<void>;
+  retry?(): Promise<void> | undefined;
 };
 type Edit = Target & { action: "rename" | "delete"; item: Item };
 type View = {
@@ -71,11 +77,20 @@ export class LibraryActions {
     if (!this.disposed)
       this.model.set({ ...this.model.getSnapshot(), ...patch });
   }
-  renderList(kind: Kind, rows: Row[]) {
+  renderList(kind: Kind, rows: Row[], preserveMenu = false) {
     flushSync(() =>
       this.patch({
         [kind === "file" ? "files" : "bookmarks"]: rows,
-        menu: null,
+        menu:
+          preserveMenu &&
+          (this.model
+            .getSnapshot()
+            .menu?.startsWith((kind === "file" ? "bookmark" : "file") + ":") ||
+            rows.some((row) =>
+              this.model.getSnapshot().menu?.startsWith(key(row) + ":"),
+            ))
+            ? this.model.getSnapshot().menu
+            : null,
       }),
     );
   }
@@ -188,7 +203,16 @@ function LibraryRow({
             title={row.title}
             onClick={() => controller.host.open(row.kind, row.id)}
           >
-            <span className="library-item-name">{row.name}</span>
+            {row.kind === "file" && row.status ? (
+              <span className="library-item-body">
+                <span className="library-item-name">{row.name}</span>
+                {row.status && (
+                  <small className="library-cloud-status">{row.status}</small>
+                )}
+              </span>
+            ) : (
+              <span className="library-item-name">{row.name}</span>
+            )}
             <small>{row.detail}</small>
           </UnstyledButton>
           <Menu
@@ -245,8 +269,20 @@ function LibraryMenuItems({
       <Menu.Item onClick={() => controller.edit(row, "rename")}>
         Rename…
       </Menu.Item>
+      {row.kind === "file" && row.failed && (
+        <Menu.Item onClick={() => void controller.host.retry?.()}>
+          Retry sync
+        </Menu.Item>
+      )}
+      {row.kind === "file" && row.cloud && row.cached && (
+        <Menu.Item
+          onClick={() => void controller.host.removeDownload?.(row.id)}
+        >
+          Remove download
+        </Menu.Item>
+      )}
       <Menu.Item color="red" onClick={() => controller.edit(row, "delete")}>
-        Delete…
+        {row.cloud ? "Delete everywhere…" : "Delete…"}
       </Menu.Item>
     </Menu.Dropdown>
   );

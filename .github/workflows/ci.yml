@@ -276,7 +276,7 @@ jobs:
           version: 3.2.0
       - run: npm ci
       - run: bash scripts/install-ci-browser.sh ${{ matrix.browser }}
-      - run: supabase start --runtime docker --exclude storage,functions,studio,analytics,pooler,realtime --eager
+      - run: supabase start --runtime docker --exclude functions,studio,analytics,pooler,realtime --eager
       - run: supabase db push
       - run: node scripts/setup-account-local.mjs
       - run: npm run test:accounts
@@ -284,4 +284,6 @@ jobs:
         if: failure()
         with:
           name: accounts-results-${{ matrix.browser }}
-          path: work/account-*.png
+          path: |
+            work/account-*.png
+            work/cloud-files-*.png

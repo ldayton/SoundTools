@@ -60,6 +60,12 @@
     fingerprint(id, fingerprint) {
       return this.transaction(['files'],tx=>{const store=tx.objectStore('files'),get=store.get(id);get.onsuccess=()=>{if(get.result)store.put({...get.result,fingerprint});else tx.abort();};});
     }
+    patch(id, patch) {
+      return this.transaction(['files'], tx => {
+        const files=tx.objectStore('files'),read=files.get(id);
+        read.onsuccess=()=>{if(read.result)files.put({...read.result,...patch});};
+      });
+    }
     bookmarks() { return this.transaction(['bookmarks'], tx => tx.objectStore('bookmarks').getAll(), 'readonly'); }
     addBookmark(bookmark) {
       return this.transaction(['files', 'bookmarks'], tx => {
@@ -98,6 +104,8 @@
         open: (kind,id) => { if (kind === 'file') void this.select(id); else void this.openBookmark(id); },
         rename: (kind,id,name) => this.renameItem(kind,id,name),
         remove: (kind,id) => kind === 'file' ? this.remove(id) : this.removeBookmark(id),
+        removeDownload: id => this.removeDownload(id),
+        retry: () => window.SoundglowFiles?.retry(),
       });
       this.selectionUI=window.SoundglowShell.selectionControls;this.bookmarkEditEpoch=0;
       this.selectionUI.connect({fit:()=>{if(this.loop)this.setView(this.loop.start,this.loop.end-this.loop.start)},clear:()=>{this.loop=null;this.loopEnabled=false;this.cancelBookmark();this.draw();void this.restartPlayback()},begin:()=>this.beginBookmark(),cancel:()=>this.cancelBookmark(),save:name=>this.saveBookmark(name),
@@ -133,8 +141,48 @@
     get isPaused(){return !this.playback.active&&this.media.paused;}
     message(text) {this.feedback.publish({libraryStatus:text})}
     async initialize() {
-      try { this.store = await AudioLibraryStore.open();await this.store.pruneStaged(); this.files = (await this.store.list()).sort((a, b) => a.addedAt - b.addedAt); this.bookmarks = (await this.store.bookmarks()).filter(b => this.validBookmark(b)).sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0)); this.renderList(); const selected = await this.store.preference(); if (this.files.some(f => f.id === selected) && this.desktop.matches && this.host.canRestore()) await this.select(selected); }
+      try { this.store = await AudioLibraryStore.open();await this.store.pruneStaged(); this.files = (await this.store.list()).filter(f=>!f.owner||f.owner===window.SoundglowFiles?.user).sort((a, b) => a.addedAt - b.addedAt); this.bookmarks = (await this.store.bookmarks()).filter(b => this.validBookmark(b)).sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0)); this.renderList(); const selected = await this.store.preference(), saved = (await this.store.list()).find(f=>f.id===selected); if(saved?.owner&&saved.owner!==window.SoundglowFiles?.user)this.restoreAccountFile={id:selected,owner:saved.owner,fingerprint:saved.fingerprint,intent:this.selectionIntent}; if (this.files.some(f => f.id === selected) && this.desktop.matches && this.host.canRestore()) await this.select(selected); }
       catch { window.SoundglowDiagnostics?.event('files.storage_failed'); this.message('Device storage is unavailable. Audio files could not be saved.'); this.feedback.publish({storageAvailable:false});window.SoundglowShell.transport.publish({filesAvailable:false}); }
+    }
+    async refreshCloudFiles() {
+      const revision=this.cloudRefresh=(this.cloudRefresh||0)+1;
+      const user=window.SoundglowFiles?.user||'';
+      // Hide private rows and release their audio synchronously on account change,
+      // even if reading the device cache is blocked or delayed.
+      if(this.visibleFilesOwner!==user){this.visibleFilesOwner=user;this.files=this.files.filter(f=>!f.owner||f.owner===user);if(this.current?.owner&&this.current.owner!==user)this.clearSelectedFile();this.renderList(true);}
+      const locals=await this.store.list();
+      if(revision!==this.cloudRefresh||user!==(window.SoundglowFiles?.user||''))return;
+      const rows=window.SoundglowFiles?.rows||[],files=[],used=new Set();
+      if(user)for(const row of rows){
+        if(row.state==='deleted')continue;
+        const local=locals.find(f=>(!f.owner||f.owner===user)&&(f.cloudId===row.id||f.fingerprint===row.fingerprint));
+        if(local)used.add(local.id);
+        const duration=Number(row.details?.duration);if(!Number.isFinite(duration)||duration<=0)continue;
+        files.push({...local,id:local?.id||row.id,localId:local?.id,cloudId:row.id,cloudOwner:user,cached:!!local,name:row.name,type:row.mime,bytes:row.bytes,fingerprint:row.fingerprint,duration,position:local?.position||0,addedAt:Date.parse(row.created_at),cloudState:row.state});
+      }
+      for(const local of locals){
+        if((local.owner&&local.owner!==user)||used.has(local.id))continue;
+        if(user&&rows.some(r=>r.id===local.cloudId||(r.fingerprint===local.fingerprint&&r.state!=='deleted')))continue;
+        files.push({...local,cached:true});
+      }
+      this.feedback.publish({cloudFiles:!!user});
+      this.files=files.sort((a,b)=>a.addedAt-b.addedAt);
+      if(this.current&&!files.some(f=>f.id===this.current.id))this.clearSelectedFile();
+      if(this.current){const current=files.find(f=>f.id===this.current.id);if(current){this.current=current;this.feedback.publish({fileTitle:current.name});}}
+      this.renderList(true);
+      const restore=this.restoreAccountFile, target=restore?.owner===user&&files.find(f=>f.cached!==false&&(f.id===restore.id||f.fingerprint===restore.fingerprint));
+      if(target){this.restoreAccountFile=null;if(!this.current&&this.selectionIntent===restore.intent&&this.desktop.matches&&this.host.canRestore())await this.select(target.id);}
+    }
+    clearSelectedFile(){
+      ++this.epoch;++this.selectionIntent;this.wantPlay=false;this.loadAbort?.abort();this.media.pause();this.host.release();this.playback.clear();this.reader.clear();this.connected=false;
+      this.media.removeAttribute('src');this.media.load();if(this.url)URL.revokeObjectURL(this.url);this.url=null;this.blob=null;this.peaks=null;this.loop=null;this.loopEnabled=false;this.finishedRange=null;this.current=null;this.loading=false;this.feedback.publish({fileTitle:''});this.$('fileTransport').hidden=true;
+    }
+    async removeDownload(id){
+      const file=this.files.find(f=>f.id===id);if(!file?.cloudId||file.cloudState!=='ready')return;
+      if(this.current?.id===id)this.clearSelectedFile();
+      const user=window.SoundglowFiles.user;
+      try{await window.SoundglowFiles.cancelDownload(file.cloudId);if(user!==window.SoundglowFiles.user)return;for(const cached of await this.store.list())if(cached.fingerprint===file.fingerprint&&(!cached.owner||cached.owner===user))await this.store.remove(cached.id);await this.refreshCloudFiles();}
+      catch{this.message('Could not remove the downloaded copy. Please retry.');}
     }
     bookmarkFile(bookmark){return bookmark?.file?this.files.find(f=>f.fingerprint===bookmark.file.fingerprint):this.files.find(f=>f.id===bookmark?.fileId);}
     fileReference(file){return {fingerprint:file.fingerprint,name:file.name,duration:file.duration,bytes:file.bytes};}
@@ -161,6 +209,7 @@
       });
     }
     async importFiles(files) {
+      const importingUser=window.SoundglowFiles?.user||'';
       await this.ready;
       if (!this.desktop.matches || !this.store || this.importing) return;
       this.importing = true; this.feedback.publish({importing:true});
@@ -171,12 +220,13 @@
           if (!file.size || !(file.type.startsWith('audio/') || /\.(wav|mp3|m4a|aac|ogg|opus|flac|webm|aif|aiff)$/i.test(file.name))) throw Error('Choose an audio file.');
           const duration = await this.metadata(file);
           const fingerprint=await window.SoundglowAccount.fingerprint(file);
-          const meta = { fingerprint, id: crypto.randomUUID(), name: file.name, type: file.type, bytes: file.size, duration, position: 0, addedAt: Date.now() };
-          await this.store.add(meta, file.slice(0,file.size,file.type)); window.SoundglowDiagnostics?.event('files.saved'); this.files.push(meta); first ||= meta.id; saved++;
+          const meta = { owner:importingUser||undefined, fingerprint, id: crypto.randomUUID(), name: file.name, type: file.type, bytes: file.size, duration, position: 0, addedAt: Date.now() };
+          await this.store.add(meta, file.slice(0,file.size,file.type)); window.SoundglowDiagnostics?.event('files.saved'); first ||= meta.id; saved++;
+          void window.SoundglowFiles?.imported(meta.id).catch(()=>this.message('Saved locally. Cloud upload will retry.'));
         } catch (e) { failed++; this.message(e?.name === 'QuotaExceededError' ? 'Device storage is full. Remove a recording to make room.' : e?.message || 'Could not save this audio file.'); }
       }
-      this.importing = false; this.feedback.publish({importing:false}); this.renderList();
-      if (saved) { this.message(`${saved} ${saved === 1 ? 'file saved' : 'files saved'} on this device${failed ? ` · ${failed} could not be added` : ''}.`); void navigator.storage?.persist?.().catch(() => {}); if (!this.current) await this.select(first); }
+      this.importing = false; this.feedback.publish({importing:false}); await this.refreshCloudFiles();
+      if (saved) { this.message(`${saved} ${saved === 1 ? 'file saved' : 'files saved'} on this device${failed ? ` · ${failed} could not be added` : ''}.`); void navigator.storage?.persist?.().catch(() => {}); if (!this.current&&this.files.some(f=>f.id===first)&&(!importingUser||importingUser===window.SoundglowFiles?.user)) await this.select(first); }
     }
     libraryItem(kind,id) {
       const item = (kind === 'file' ? this.files : this.bookmarks).find(item => item.id === id);
@@ -184,26 +234,29 @@
       const count = window.SoundglowAccount?.active?0:this.bookmarks.filter(b => b.fileId === id).length;
       return {...item, maxNameLength: kind === 'file' ? 255 : 80,
         deleteDescription: kind === 'file'
-          ? `Delete “${item.name}” from this browser?${count ? ` Its ${count} bookmark${count === 1 ? '' : 's'} will also be deleted.` : ''} The original file on your computer is kept.`
+          ? item.cloudId&&window.SoundglowFiles?.user ? `Delete “${item.name}” from the cloud and all synced computers? The original file on your computer is kept.` : `Delete “${item.name}” from this browser?${count ? ` Its ${count} bookmark${count === 1 ? '' : 's'} will also be deleted.` : ''} The original file on your computer is kept.`
           : `Delete “${item.name}”? Its audio file is kept.`};
     }
     async renameItem(kind,id,name) {
       const item = (kind === 'file' ? this.files : this.bookmarks).find(item => item.id === id);
       if (!item) throw Error('Item no longer exists');
-      if(kind==='bookmark'&&window.SoundglowAccount?.active){item.name=name;window.SoundglowAccount.save();}
+      if(kind==='file'&&item.cloudId&&window.SoundglowFiles?.user){await window.SoundglowFiles.rename(item.cloudId,name);item.name=name;}
+      else if(kind==='bookmark'&&window.SoundglowAccount?.active){item.name=name;window.SoundglowAccount.save();}
       else{await this.store.rename(kind,id,name);item.name=name;}
       if (this.current?.id === id && kind === 'file') this.feedback.publish({fileTitle:name});
       this.renderList();
     }
-    renderList() {
-      this.actions.closeMenu();
+    renderList(preserveMenu=false) {
+      if(!preserveMenu)this.actions.closeMenu();
       const rows = [];
       for (const file of this.files) {
         const title = `${file.name}\n${formatPreciseTime(file.duration)}${file.bytes ? ` · ${(file.bytes/1048576).toFixed(1)} MB` : ''}`;
-        rows.push({kind: 'file', id: file.id, name: file.name, detail: formatTime(file.duration), title, selected: this.current?.id === file.id});
+        const cloud=window.SoundglowFiles,progress=cloud?.status.get(file.id)||cloud?.status.get(file.cloudId);
+        const status=cloud?.user?(!cloud.available?'Sync unavailable':progress||(file.cloudId?(file.cloudState==='pending'?'Upload pending':file.cached?'Synced · Downloaded':'In cloud'):'Waiting to upload')):'';
+        rows.push({kind: 'file', id: file.id, name: file.name, detail: formatTime(file.duration), title:title+(status?'\n'+status:''), selected: this.current?.id === file.id,status,cloud:!!file.cloudId&&!!cloud?.user,cached:file.cached!==false&&file.cloudState==='ready',failed:status.includes('Retry')});
       }
-      this.actions.renderList('file', rows);
-      this.renderBookmarks();
+      this.actions.renderList('file', rows,preserveMenu);
+      this.renderBookmarks(preserveMenu);
       this.feedback.publish({empty:!this.files.length});
     }
     validBookmark(bookmark) {
@@ -213,16 +266,16 @@
         && selection.start >= 0 && selection.end > selection.start && selection.end <= file.duration
         && bookmark.viewStart >= 0 && bookmark.viewSpan > 0 && bookmark.viewStart + bookmark.viewSpan <= file.duration + 1e-6);
     }
-    renderBookmarks() {
-      this.actions.closeMenu();
+    renderBookmarks(preserveMenu=false) {
+      if(!preserveMenu)this.actions.closeMenu();
       const rows = [];
       this.feedback.publish({bookmarks:!!this.bookmarks.length});
       for (const bookmark of this.bookmarks) {
         const file = this.bookmarkFile(bookmark);
         const range = `${formatPreciseTime(bookmark.selection.start)}–${formatPreciseTime(bookmark.selection.end)}`;
-        rows.push({kind: 'bookmark', id: bookmark.id, name: bookmark.name, detail: file?range:"Import audio to open", title: `${bookmark.name}\n${file?.name||bookmark.file?.name||"Audio not on this device"}\n${range}`});
+        rows.push({kind: 'bookmark', id: bookmark.id, name: bookmark.name, detail: file?(file.cached===false?"Download to open":range):"Import audio to open", title: `${bookmark.name}\n${file?.name||bookmark.file?.name||"Audio not on this device"}\n${range}`});
       }
-      this.actions.renderList('bookmark', rows);
+      this.actions.renderList('bookmark', rows,preserveMenu);
     }
 
     beginBookmark() {
@@ -262,14 +315,18 @@
     }
     async select(id, bookmark = null) {
       if (!this.desktop.matches || !this.store) return;
-      const file = this.files.find(f => f.id === id); if (!file) return;
-      this.selectionIntent++;
+      const file = this.files.find(f => f.id === id); if (!file||(file.owner&&file.owner!==window.SoundglowFiles?.user)) return;
+      const intent=++this.selectionIntent;
+      if(file.cached===false){
+        try{await window.SoundglowFiles.download(file.cloudId);if(intent!==this.selectionIntent)return;await this.refreshCloudFiles();const saved=this.files.find(f=>f.cloudId===file.cloudId);if(saved)return this.select(saved.id,bookmark);}
+        catch(error){if(intent===this.selectionIntent)this.message(error.message||'Could not download the recording.');}return;
+      }
       this.cancelBookmark(); this.finishedRange = null;
       const epoch = ++this.epoch; this.wantPlay = false; this.loadAbort?.abort(); this.media.pause(); this.savePosition(true); this.host.release();this.playback.clear();this.reader.clear(); this.connected = false; this.loading = true;
       this.media.removeAttribute('src'); this.media.load(); if (this.url) URL.revokeObjectURL(this.url);
       this.current = file; this.host.selected(file); this.loop = null; this.viewStart = 0; this.viewSpan = Math.min(file.duration,10); this.blob = null; this.lastView = ''; this.drag = this.navigation = null; this.peaks = file.peaks || null; this.lastSaved = -1; this.renderList(); this.$('fileTransport').hidden = false; this.feedback.publish({fileTitle:file.name}); this.loopEnabled = false; this.draw();
       try {
-        const blob = await this.store.get(id); if (epoch !== this.epoch) return; if (!blob) throw Error('This saved recording is missing. Please open it again.');
+        const blob = await this.store.get(file.localId||id); if (epoch !== this.epoch) return; if (!blob) throw Error('This saved recording is missing. Please open it again.');
         this.blob = blob; this.url = URL.createObjectURL(blob); this.media.src = this.url;
         await new Promise((resolve, reject) => {
           const controller = new AbortController(); this.loadAbort = controller;
@@ -338,10 +395,14 @@
       if (!this.current || this.loading || !Number.isFinite(this.position)) return;
       const position = this.position; if (!force && Math.abs(position - this.lastSaved) < 2) return;
       this.lastSaved = position; this.current.position = position;
-      const snapshot = { ...this.current }; this.pendingSave = this.pendingSave.then(() => this.store.update(snapshot)).catch(() => this.message('Could not save the last playback position.'));
+      const snapshot = { ...this.current,id:this.current.localId||this.current.id }; this.pendingSave = this.pendingSave.then(() => this.store.update(snapshot)).catch(() => this.message('Could not save the last playback position.'));
     }
     async remove(id = this.current?.id) {
-      if (!this.files.some(f => f.id === id)) return false;
+      const file=this.files.find(f=>f.id===id);if(!file)return false;
+      if(file.cloudId&&window.SoundglowFiles?.user){
+        try{await window.SoundglowFiles.remove(file.cloudId);if(this.current?.id===id)this.clearSelectedFile();await this.refreshCloudFiles();return true;}
+        catch{this.message('Could not queue deletion. Please retry.');return false;}
+      }
       try { await this.store.remove(id); } catch { this.message('Could not remove the recording. Please retry.'); return false; }
       const active = this.current?.id === id;
       if (active) {

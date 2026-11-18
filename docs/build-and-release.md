@@ -57,7 +57,7 @@ npm run build:ci -- dorego
 npm run build:ci -- notewise
 npm run build:ci -- songalong
 npm run build:ci -- soundglow
-TEST_BROWSER=firefox npm run test:browsers --workspace=dorego
+TEST_BROWSERS=firefox npm run test:browsers --workspace=dorego
 TEST_BROWSER=webkit TEST_SHARD=1/3 npm run test:catalog --workspace=songalong
 CI_USE_BUILD=1 npm run test:visual --workspace=soundglow -- --shard=1/3
 ```

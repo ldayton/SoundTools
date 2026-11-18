@@ -72,9 +72,10 @@ let context;
 
  await context.setOffline(false);
  const fault=kind=>page.evaluate(kind=>new Promise(resolve=>{const channel=new MessageChannel();channel.port1.onmessage=()=>{channel.port1.close();resolve()};navigator.serviceWorker.controller.postMessage({type:'test-storage-fault',kind},[channel.port2])}),kind);
- await fault('stall');const blockedStart=Date.now();await page.reload({waitUntil:'domcontentloaded'});const blockedMs=Date.now()-blockedStart;
+ await fault('stall');const blockedStart=Date.now();await page.reload({waitUntil:'domcontentloaded'});await require('./ci/browser-harness.cjs').waitForApp(page,app==='dorego'?'#stage':'#plot');const blockedMs=Date.now()-blockedStart;
  assert(blockedMs<10000,'Stalled storage must fail open to a working network');
  await fault('deny');await page.reload({waitUntil:'domcontentloaded'});
+ await require('./ci/browser-harness.cjs').waitForApp(page,app==='dorego'?'#stage':'#plot');
  assert(await page.locator(app==='dorego'?'#stage':'#plot').isVisible(),'Storage denial must not break the online app');
  await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded'});
  await page.getByRole('heading',{name:'No offline copy available',exact:true}).waitFor();

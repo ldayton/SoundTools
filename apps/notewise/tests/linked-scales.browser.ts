@@ -17,7 +17,8 @@ let browser;
 try {
  assert.ok(engine in {chromium, firefox, webkit}, 'known test browser');
  browser = await ({chromium, firefox, webkit}[engine as 'chromium' | 'firefox' | 'webkit']).launch({env: {...process.env, CFFIXED_USER_HOME: fixed}});
- const page=await browser.newPage();
+ // Offline installation has separate coverage; this suite exercises scale navigation.
+ const page=await browser.newPage({serviceWorkers:'block'});
  const errors: string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:4362/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
  await page.locator('.scale-shared').first().waitFor();

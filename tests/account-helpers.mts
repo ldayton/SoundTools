@@ -16,8 +16,11 @@ async function openNavigation(page: Page) {
     name: "Open files library",
     exact: true,
   });
-  if (await navigation.isVisible()) await navigation.click();
-  else if (await files.isVisible()) await files.click();
+  if (await navigation.isVisible()) {
+    if (await navigation.getAttribute("aria-expanded") !== "true")
+      await navigation.click();
+    await page.getByRole("button", { name: "Close navigation", exact: true }).waitFor();
+  } else if (await files.isVisible()) await files.click();
   else await page.locator("#settings").click();
 }
 async function menuButton(page: Page, name: "Account" | "Log in") {

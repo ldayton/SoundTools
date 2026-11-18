@@ -141,3 +141,18 @@
     max-height: none;
   }
 }
+
+.scale-primary circle { fill: #647caa; }
+.scale-secondary circle { fill: #348575; }
+.scale-shared circle { fill: #fff; stroke: #7663a7; stroke-width: 3; }
+.scale-shared text { fill: #55427b; font-weight: 600; }
+.scale-primary.scale-root circle, .scale-secondary.scale-root circle { fill: #253753; }
+.scale-shared.scale-root circle { fill: #253753; }
+.scale-shared.scale-root text { fill: white; }
+.scale-link-legend { display: flex; gap: 22px; justify-content: center; margin: 12px 0 20px; font-size: 13px; flex-wrap: wrap; }
+.scale-link-legend span { display: flex; align-items: center; gap: 7px; }
+.scale-link-legend i { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+.link-first { background: #647caa; }
+.link-second { background: #348575; }
+.link-shared { border: 2px solid #7663a7; }
+.scale-link-help { max-width: 620px; margin: 12px auto; text-align: center; color: #626771; font-size: 13px; line-height: 1.5; }

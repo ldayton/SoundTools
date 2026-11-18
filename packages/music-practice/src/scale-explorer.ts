@@ -12,6 +12,7 @@ import {
   type ScaleOptionsState,
 } from "./scale-options";
 import {
+  linkedPatternPositions,
   patternBounds,
   patternShift,
   patternPositions,
@@ -43,15 +44,75 @@ export class ScaleExplorer implements LivePractice {
   private active = false;
   enter() {
     this.active = true;
+    document.addEventListener("keydown", this.onKeyDown);
     this.render();
     this.publishRoute();
   }
   leave() {
     this.active = false;
+    document.removeEventListener("keydown", this.onKeyDown);
+    this.body.patch({ shortcutsOpen: false });
   }
   dispose() {
-    this.active = false;
+    this.leave();
     this.disposeView();
+  }
+  private onKeyDown = (event: KeyboardEvent) => {
+    if (!this.active || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest('input, select, textarea, [contenteditable]:not([contenteditable="false"]), [role="slider"], [role="combobox"], [role="listbox"], [role="menu"], [role="tablist"], [role="spinbutton"]')) return;
+    if (event.key === "?") {
+      event.preventDefault();
+      if (!event.repeat) this.body.patch({ shortcutsOpen: !this.body.getSnapshot().shortcutsOpen });
+      return;
+    }
+    if (event.shiftKey || this.body.getSnapshot().shortcutsOpen) return;
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "[", "]"].includes(event.key)) return;
+    event.preventDefault();
+    if (event.key === "[" || event.key === "]")
+      this.moveOctave(event.key === "[" ? -1 : 1);
+    else if (event.key === "ArrowUp" || event.key === "ArrowDown")
+      this.moveShape(event.key === "ArrowUp" ? 1 : -1);
+    else this.moveTonic(event.key === "ArrowLeft" ? -1 : 1);
+  };
+  private moveOctave(direction: number) {
+    if (this.pattern === "map") return;
+    const [low, high] = patternBounds(this.pattern, this.quality);
+    const shift = this.shift + direction * 12;
+    if (low + shift < 1 || high + shift > 22) return;
+    this.shift = shift;
+    this.returnPosition = undefined;
+    this.update();
+  }
+  private moveShape(direction: number) {
+    if (this.pattern === "map") return;
+    const next = String((Number(this.pattern) - 1 + direction + 5) % 5 + 1) as Exclude<ScalePattern, "map">;
+    const [currentLow] = patternBounds(this.pattern, this.quality);
+    const [low, high] = patternBounds(next, this.quality);
+    const current = currentLow + this.shift;
+    const delta = this.tonic - (this.quality === "major" ? 0 : 9);
+    const shift = [delta - 24, delta - 12, delta, delta + 12, delta + 24]
+      .filter(s => low + s >= 1 && high + s <= 22 && (low + s - current) * direction > 0)
+      .sort((a, b) => Math.abs(low + a - current) - Math.abs(low + b - current))[0];
+    if (shift === undefined) return;
+    this.pattern = next;
+    this.shift = shift;
+    if (this.linked !== "none" && this.linked !== "map")
+      this.linked = String((Number(this.linked) - 1 + direction + 5) % 5 + 1) as Exclude<ScalePattern, "map">;
+    this.returnPosition = undefined;
+    this.update();
+  }
+  private moveTonic(direction: number) {
+    if (this.pattern !== "map") {
+      const [low, high] = patternBounds(this.pattern, this.quality);
+      const shift = this.shift + direction;
+      if (low + shift < 1 || high + shift > 22) return;
+      this.shift = shift;
+    }
+    this.returnPosition = undefined;
+    this.tonic = (this.tonic + direction + 12) % 12;
+    this.spelling = undefined;
+    this.update();
   }
   interrupt() {}
   answer() {}
@@ -90,6 +151,10 @@ export class ScaleExplorer implements LivePractice {
   private options!: ScaleOptionsState;
   private pattern: ScalePattern = "1";
   private shift = 0;
+  private linked: ScalePattern | "none" = (() => {
+    const value = new URLSearchParams(location.search).get("link");
+    return ["1", "2", "3", "4", "5"].includes(value || "") ? value as ScalePattern : "none";
+  })();
   private returnPosition?: GuitarScaleSettings["returnPosition"];
   private labels: "fingers" | "notes" = "fingers";
   private tonic = 4;
@@ -136,17 +201,7 @@ export class ScaleExplorer implements LivePractice {
         }),
         navigation: createElement(ScaleNavigation, {
           model: this.controls,
-          move: (direction) => {
-            if (this.pattern === "map") return;
-            const [low, high] = patternBounds(this.pattern, this.quality);
-            const shift = this.shift + direction;
-            if (low + shift < 1 || high + shift > 22) return;
-            this.returnPosition = undefined;
-            this.shift = shift;
-            this.tonic = (this.tonic + direction + 12) % 12;
-            this.spelling = undefined;
-            this.update();
-          },
+          move: (direction) => this.moveTonic(direction),
         }),
       }),
     );
@@ -156,6 +211,8 @@ export class ScaleExplorer implements LivePractice {
       createElement(ScaleOptions, {
         model: this.options,
         change: (patch) => {
+          if (patch.linked !== undefined) this.linked = patch.linked;
+          if (patch.pattern === this.linked) this.linked = "none";
           const next = mergeGuitarScaleSettings(patch, this.optionsSnapshot());
           this.tonic = next.tonic;
           this.quality = next.quality;
@@ -183,6 +240,8 @@ export class ScaleExplorer implements LivePractice {
     if (this.pattern !== "map")
       url.searchParams.set("position", String(this.shift));
     else url.searchParams.delete("position");
+    if (this.linked !== "none") url.searchParams.set("link", this.linked);
+    else url.searchParams.delete("link");
     history.replaceState(history.state, "", url);
   }
   private optionsSnapshot() {
@@ -192,6 +251,7 @@ export class ScaleExplorer implements LivePractice {
       spelling: this.spelling,
       pattern: this.pattern,
       labels: this.labels,
+      linked: this.linked,
     };
   }
   private update() {
@@ -239,7 +299,7 @@ export class ScaleExplorer implements LivePractice {
       : `Show ${relativeName} ${relative.quality} starting position`;
     const relativeExplanation = `${relativeName} ${relative.quality} Shape 1 · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality} Shape ${relativeTarget}`;
     const movable = this.pattern !== "map";
-    const positions =
+    const basePositions =
       this.pattern === "map"
         ? scalePositions(this.tonic, this.quality, this.spelling)
         : patternPositions(
@@ -249,6 +309,11 @@ export class ScaleExplorer implements LivePractice {
             this.shift,
             this.spelling,
           );
+    const linked = movable && this.linked !== "none" && this.linked !== "map" && this.linked !== this.pattern;
+    const secondary = linked ? linkedPatternPositions(this.tonic, this.quality, this.pattern as Exclude<ScalePattern, "map">, this.shift, this.linked as Exclude<ScalePattern, "map">, this.spelling) : [];
+    const primaryKeys = new Set(basePositions.map(n => `${n.string}:${n.fret}`));
+    const secondaryKeys = new Set(secondary.map(n => `${n.string}:${n.fret}`));
+    const positions = [...basePositions, ...secondary.filter(n => !primaryKeys.has(`${n.string}:${n.fret}`))];
     const firstFret = movable ? Math.min(...positions.map((n) => n.fret)) : 0;
     const lastFret = movable ? Math.max(...positions.map((n) => n.fret)) : 5;
     const fullStart = Math.max(1, firstFret);
@@ -262,7 +327,7 @@ export class ScaleExplorer implements LivePractice {
     const caption = movable
       ? `Shape ${this.pattern} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
       : "Open-position map";
-    const labels = this.labels;
+    const labels = linked ? "notes" : this.labels;
     const footnote =
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger"
@@ -289,14 +354,17 @@ export class ScaleExplorer implements LivePractice {
       relative: label,
       returning: !!this.returnPosition,
       movable,
-      caption,
+      caption: linked ? `Shapes ${this.pattern} + ${this.linked} · frets ${firstFret}–${lastFret}` : caption,
       keys,
     });
     const notes = positions
       .map((n) => {
         const label =
           labels === "fingers" && "finger" in n ? n.finger : scaleLabel(n.name);
-        return `<g class="scale-tone${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/><text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text></g>`;
+        const inPrimary = primaryKeys.has(`${n.string}:${n.fret}`);
+        const inSecondary = secondaryKeys.has(`${n.string}:${n.fret}`);
+        const membership = linked ? inPrimary && inSecondary ? " scale-shared" : inPrimary ? " scale-primary" : " scale-secondary" : "";
+        return `<g class="scale-tone${membership}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/><text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text></g>`;
       })
       .join("");
     this.element.querySelector(".scale-diagram")!.innerHTML =
@@ -321,6 +389,8 @@ export class ScaleExplorer implements LivePractice {
         )}${notes}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
     this.body.patch({
       title,
+      linkedLegend: linked ? `Shape ${this.pattern}|Shape ${this.linked}` : "",
+      linkHelp: linked ? "Outlined dots belong to both shapes: use these shared notes to shift between positions. Note names stay the same; choose a comfortable fingering when you shift." : "",
       notes: noteList,
       relativeExplanation,
       movable,

@@ -1,4 +1,5 @@
 import {
+  linkedPatternPositions,
   SCALE_SHAPES,
   patternPositions,
   patternShift,
@@ -473,4 +474,24 @@ test("relative-position return checkpoints validate against the current key and 
       mergeGuitarScaleSettings({ ...settings, returnPosition }).returnPosition,
       undefined,
     );
+});
+
+test("linked C-major shapes 1 and 5 meet at nine exact string/fret positions", () => {
+  const first = patternPositions(0, "major", "1", 0);
+  const fifth = linkedPatternPositions(0, "major", "1", 0, "5");
+  assert.equal(Math.min(...fifth.map(n => n.fret)), 4);
+  const shared = fifth.filter(n => first.some(p => p.string === n.string && p.fret === n.fret));
+  assert.equal(shared.length, 9);
+  for (const n of shared) assert.equal(first.find(p => p.string === n.string && p.fret === n.fret)!.midi, n.midi);
+});
+test("linked shape placement stays in key and on the neck for every shape and key", () => {
+  for (const quality of ["major", "minor"] as const)
+    for (let tonic = 0; tonic < 12; tonic++)
+      for (const shape of SCALE_SHAPES)
+        for (const linked of SCALE_SHAPES) {
+          const shift = patternShift(tonic, quality, shape);
+          const notes = linkedPatternPositions(tonic, quality, shape, shift, linked);
+          const pitches = scaleNotes(tonic, quality).map(n => n.pitchClass);
+          assert.ok(notes.every(n => n.fret >= 1 && n.fret <= 22 && pitches.includes(n.midi % 12)));
+        }
 });

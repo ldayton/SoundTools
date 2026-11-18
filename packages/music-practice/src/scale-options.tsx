@@ -9,6 +9,7 @@ export type ScaleOptionsSnapshot = {
   spelling?: string;
   pattern: ScalePattern;
   labels: "fingers" | "notes";
+  linked: ScalePattern | "none";
 };
 export const scaleOptionsState = createViewState<ScaleOptionsSnapshot>;
 export type ScaleOptionsState = ReturnType<typeof scaleOptionsState>;
@@ -61,9 +62,21 @@ export function ScaleOptions({
         }
       />
       <NativeSelect
+        id="scale-linked-pattern"
+        label="Link with"
+        value={state.linked}
+        disabled={state.pattern === "map"}
+        data={[
+          { value: "none", label: "Single shape" },
+          ...SCALE_SHAPES.filter(value => value !== state.pattern).map(value => ({ value, label: `Shape ${value}` })),
+        ]}
+        onChange={e => change({ linked: e.currentTarget.value as ScaleOptionsSnapshot["linked"] })}
+      />
+      <NativeSelect
         id="scale-dot-labels"
         label="Dots"
-        value={state.labels}
+        disabled={state.linked !== "none" && state.pattern !== "map"}
+        value={state.linked !== "none" && state.pattern !== "map" ? "notes" : state.labels}
         data={[
           { value: "fingers", label: "Finger numbers" },
           { value: "notes", label: "Note names" },

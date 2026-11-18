@@ -50,6 +50,7 @@ export function ScaleNavigation({
         miw={44}
         className="scale-prev"
         aria-label="Previous key"
+        aria-keyshortcuts="ArrowLeft"
         title={state.keys[0]?.title}
         disabled={state.keys[0]?.disabled}
         onClick={() => move(-1)}
@@ -70,6 +71,7 @@ export function ScaleNavigation({
         miw={44}
         className="scale-next"
         aria-label="Next key"
+        aria-keyshortcuts="ArrowRight"
         title={state.keys[1]?.title}
         disabled={state.keys[1]?.disabled}
         onClick={() => move(1)}

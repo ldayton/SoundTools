@@ -6,7 +6,7 @@ import {
 } from "./backing-arrangement";
 import type {
   BackingEvent,
-  BackingStyle,
+  LegacyBackingStyle as BackingStyle,
   BackingMode,
 } from "./backing-track-model";
 type Take = ReturnType<typeof backingArrangement>;

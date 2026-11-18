@@ -1,0 +1,63 @@
+Backing track sample pack v2
+Base Virtuosity / Black and Blue / Black and Green recordings: CC0 1.0. Soul/Folk additions have their individual licenses below.
+Drums/percussion: Virtuosity Drums, Versilian Studios and Karoryfer Samples, Austin McMahon.
+Bass: Black And Blue Basses, Karoryfer Samples.
+Guitar: Black And Green Guitars, Karoryfer Samples.
+https://github.com/sfzinstruments/virtuosity_drums
+https://github.com/sfzinstruments/karoryfer.black-and-blue-basses
+https://github.com/sfzinstruments/karoryfer.black-and-green-guitars
+Original bass/guitar sequences and packaging code: MIT, Copyright 2026 Lily Dayton.
+Trimmed 16kHz bass / 24kHz guitar / source-rate drums, 16-bit FLAC samples include recorded dynamic layers and alternate hits.
+Bass/guitar use the approved -12dB balance. The player transposes only pitched instruments.
+
+Drum performance adaptation: Groove MIDI Dataset, Copyright Google LLC, CC BY 4.0.
+https://magenta.tensorflow.org/datasets/groove
+https://creativecommons.org/licenses/by/4.0/
+Source performances: drummer5/session1/17_blues-shuffle_72_beat_4-4.mid and drummer3/session1/1_rock_105_beat_4-4.mid.
+Modifications: curated/combined bars and fills, remapped notes, adjusted velocities, section textures and periodic dynamics.
+
+CC0 recording license: https://creativecommons.org/publicdomain/zero/1.0/
+
+Realism revision: additional native-pitch recordings and recorded staccato articulations from the same CC0 libraries; native dynamics, alternate takes, note-off noises. Original procedural room response and harmony/ensemble code: MIT.
+
+Experimental v2: pre-resampled native recordings, redundant p layer removed, recorded Black and Blue Bass ghost articulation. Existing CC0 provenance applies. No generated or proprietary audio.
+
+Drum articulation revision:
+Virtuosity Drums — Versilian Studios / Karoryfer Samples / Austin McMahon.
+CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+Source: https://github.com/sfzinstruments/virtuosity_drums
+Additional half-open/three-quarter-open hi-hat, rimshot, off-centre and centre snare recordings.
+Modified: phase-aligned microphone mixes, high-pass filter, tail fades, peak-safe packaging.
+Original source Git blobs are audited in source-sha256.json.
+
+Soul/Folk sound palette:
+Folk: Meta Steel Guitar, Meta Platforms Inc., CC0 1.0.
+https://github.com/facebookincubator/Meta-open-sound/tree/main/systems/instruments/meta-steel-guitar
+Soft picked recordings on actual D/G/B/High-E strings; trimmed/resampled to 24 kHz.
+Soul: FluidR3 GM electric piano 1, Frank Wen, MIT; full license follows.
+Rendered through the existing FluidSynth installation with chorus/reverb disabled, isolated notes, gentle HP/LP and tail fades.
+MIT License
+
+Copyright (c) 2000-2002, 2008 Frank Wen <getfrank@gmail.com>
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+

@@ -1,8 +1,9 @@
+import type { BackingTake } from "./backing-plan-types";
 import sustainSeconds from "./backing-guitar-sustain.json";
 /** Guitar-only transition experiment; all other ensemble events are preserved. */
 import type { BackingEvent } from "./backing-track-model";
 import type { plannedBackingArrangement } from "./backing-musical-plan";
-type Take = ReturnType<typeof plannedBackingArrangement>;
+type Take = BackingTake;
 export function connectBackingGuitar(take: Take, tempo: number) {
   const secondsToBeats = tempo / 60;
   const guitar = take.events

@@ -1,8 +1,10 @@
+import { backingGenre, type BackingGenreId } from "./backing-genres";
 import manifest from "./assets/backing-v1/manifest.json";
 
-export type BackingStyle = "blues" | "rock";
+export type BackingStyle = BackingGenreId;
+export type LegacyBackingStyle = "blues" | "rock";
 export type BackingMode = "steady" | "active";
-export type BackingPart = "drums" | "percussion" | "bass" | "guitar";
+export type BackingPart = "drums" | "percussion" | "bass" | "guitar" | "keys";
 export type BackingEvent = {
   part: BackingPart;
   beat: number;
@@ -24,6 +26,8 @@ export type BackingEvent = {
   guitarReleaseSeconds?: number;
   guitarReleaseScale?: number;
   guitarAttackSeconds?: number;
+  noteReleaseSeconds?: number;
+  naturalReleaseOnly?: boolean;
 };
 export type BackingSample = {
   file: string;
@@ -33,6 +37,7 @@ export type BackingSample = {
   rr: number;
   gain: number;
   release: boolean;
+  string?: number;
   velocityLow?: number;
   velocityHigh?: number;
   articulation?:
@@ -47,7 +52,7 @@ export type BackingSample = {
 export const backingPack = manifest as unknown as {
   samples: Record<string, BackingSample>;
   patterns: Record<
-    BackingStyle,
+    LegacyBackingStyle,
     Record<
       BackingMode,
       {
@@ -64,7 +69,7 @@ export function backingSettings(input: unknown) {
   const value = input as
     { style?: unknown; mode?: unknown; tempo?: unknown } | undefined;
   return {
-    style: (value?.style === "rock" ? "rock" : "blues") as BackingStyle,
+    style: backingGenre(value?.style).id,
     mode: (value?.mode === "active" ? "active" : "steady") as BackingMode,
     tempo:
       typeof value?.tempo === "number" && Number.isFinite(value.tempo)
@@ -77,7 +82,7 @@ export function backingSemitones(tonic: number) {
   return ((Math.round(tonic) - 9 + 18) % 12) - 6;
 }
 export function backingRate(part: BackingPart, tonic: number) {
-  return part === "bass" || part === "guitar"
+  return part === "bass" || part === "guitar" || part === "keys"
     ? 2 ** (backingSemitones(tonic) / 12)
     : 1;
 }
@@ -90,7 +95,8 @@ export function backingSampleChoices(
   available?: { has(id: string): boolean },
   pack = backingPack,
 ): [string, BackingSample][] {
-  const pitched = event.part === "bass" || event.part === "guitar";
+  const pitched =
+    event.part === "bass" || event.part === "guitar" || event.part === "keys";
   const target =
     event.note + (pitched && !event.absolute ? backingSemitones(tonic) : 0);
   const articulation = release ? "normal" : (event.articulation ?? "normal");
@@ -98,6 +104,9 @@ export function backingSampleChoices(
     ([id, s]) =>
       (!available || available.has(id)) &&
       s.part === event.part &&
+      (s.string === undefined ||
+        event.string === undefined ||
+        s.string === event.string) &&
       s.release === release &&
       (s.articulation ?? "normal") === articulation,
   );

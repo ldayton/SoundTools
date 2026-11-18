@@ -5,7 +5,7 @@ import { Anchor, Button, Group } from "@mantine/core";
 import { diagnostics } from "./diagnostics";
 import { offlineState, offlineActions } from "./offline-state";
 import { pianoCreditsUrl } from "./piano-audio";
-import backingCreditsUrl from "./assets/backing-drum-v3/NOTICE.txt?url&no-inline";
+import backingCreditsUrl from "./assets/backing-soul-folk/NOTICE.txt?url&no-inline";
 import { APP } from "./app-profile";
 
 export function SettingsPage() {

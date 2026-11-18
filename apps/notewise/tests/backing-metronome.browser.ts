@@ -143,7 +143,9 @@ try {
   assert.equal(await denominator.inputValue(), "4");
   assert.equal(await numerator.isDisabled(), true);
   await backing.getByRole("button", { name: "Steady", exact: true }).click();
-  await backing.getByRole("button", { name: "Rock", exact: true }).click();
+  await backing
+    .getByRole("combobox", { name: "Backing style", exact: true })
+    .selectOption("rock");
   await backing
     .getByRole("button", { name: "Pause backing track", exact: true })
     .click();
@@ -179,9 +181,9 @@ try {
   await backing.waitFor();
   assert.equal(
     await backing
-      .getByRole("button", { name: "Rock", exact: true })
-      .getAttribute("aria-pressed"),
-    "true",
+      .getByRole("combobox", { name: "Backing style", exact: true })
+      .inputValue(),
+    "rock",
   );
   assert.equal(
     await backing

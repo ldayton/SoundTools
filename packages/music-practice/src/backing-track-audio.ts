@@ -1,3 +1,6 @@
+import extraInstruments from "./assets/backing-soul-folk/manifest.json";
+import { genreBackingArrangement } from "./backing-genre-engine";
+import { BACKING_GENRES, backingGenre } from "./backing-genres";
 import { sharedBackingPocket } from "./backing-shared-pocket";
 import { connectBackingGuitar } from "./backing-guitar-transitions";
 import drumPack from "./assets/backing-drum-v3/manifest.json";
@@ -35,6 +38,7 @@ const files = import.meta.glob<string>(
   [
     "./assets/backing-v1/*.flac",
     "./assets/backing-v2/*.flac",
+    "./assets/backing-soul-folk/*.flac",
     "./assets/backing-drum-v3/*.flac",
   ],
   {
@@ -114,32 +118,49 @@ export class BackingTrackPlayer {
     let take = this.takeCache.get(this.cycle);
     if (!take) {
       const state = this.model.getSnapshot();
-      take = (
-        this.experimental
-          ? plannedBackingArrangement
-          : practiceBackingArrangement
-      )(
-        state.style,
-        state.mode,
-        state.quality,
-        this.cycle,
-        state.tempo,
-        state.tonic,
-      );
-      if (this.drumArticulations)
-        take = articulateDrums(
-          take as ReturnType<typeof plannedBackingArrangement>,
-        );
-      if (this.guitarTransitions)
-        take = connectBackingGuitar(
-          take as ReturnType<typeof plannedBackingArrangement>,
+      if (
+        (state.style !== "blues" && state.style !== "rock") ||
+        (this.experimental &&
+          this.drumArticulations &&
+          this.guitarTransitions &&
+          this.sharedPocket)
+      ) {
+        take = genreBackingArrangement(
+          state.style,
+          state.mode,
+          state.quality,
+          this.cycle,
           state.tempo,
+          state.tonic,
         );
-      if (this.sharedPocket)
-        take = sharedBackingPocket(
-          take as ReturnType<typeof plannedBackingArrangement>,
+      } else {
+        take = (
+          this.experimental
+            ? plannedBackingArrangement
+            : practiceBackingArrangement
+        )(
+          state.style,
+          state.mode,
+          state.quality,
+          this.cycle,
           state.tempo,
+          state.tonic,
         );
+        if (this.drumArticulations)
+          take = articulateDrums(
+            take as ReturnType<typeof plannedBackingArrangement>,
+          );
+        if (this.guitarTransitions)
+          take = connectBackingGuitar(
+            take as ReturnType<typeof plannedBackingArrangement>,
+            state.tempo,
+          );
+        if (this.sharedPocket)
+          take = sharedBackingPocket(
+            take as ReturnType<typeof plannedBackingArrangement>,
+            state.tempo,
+          );
+      }
       this.takeCache.set(this.cycle, take);
       // Retain the current and previous take only; long practice stays bounded.
       for (const cycle of this.takeCache.keys())
@@ -154,7 +175,8 @@ export class BackingTrackPlayer {
 
   private drumPackCache?: typeof backingPack;
   private lastDrumFile = new Map<string, string>();
-  private get pack() {
+  private paletteCache = new Map<string, typeof backingPack>();
+  private get basePack() {
     if (this.drumArticulations) {
       if (this.drumPackCache) return this.drumPackCache;
       const samples = Object.fromEntries(
@@ -170,6 +192,33 @@ export class BackingTrackPlayer {
     return this.experimental
       ? (experimentalPack as unknown as typeof backingPack)
       : backingPack;
+  }
+  private get pack() {
+    const base = this.basePack,
+      preset =
+        BACKING_GENRES[this.model.getSnapshot().style].instrumentation.preset;
+    if (preset === "approved-electric-band") return base;
+    const cached = this.paletteCache.get(preset);
+    if (cached) return cached;
+    const samples = Object.fromEntries(
+      Object.entries(base.samples).filter(
+        ([, sample]) => sample.part !== "guitar" && sample.part !== "keys",
+      ),
+    );
+    const extra = Object.fromEntries(
+      Object.entries(extraInstruments.samples).filter(([, sample]) =>
+        preset === "warm-electric-piano"
+          ? sample.part === "keys"
+          : sample.part === "guitar",
+      ),
+    );
+    const pack = {
+      ...base,
+      samples: { ...samples, ...extra },
+      levels: { ...base.levels, keys: base.levels.guitar },
+    } as typeof backingPack;
+    this.paletteCache.set(preset, pack);
+    return pack;
   }
   /** Approved sparse plan/sampler; false retains the previous A/B reference. */
   constructor(
@@ -211,15 +260,26 @@ export class BackingTrackPlayer {
     if (active) void this.play();
   }
   setStyle(style: BackingStyle) {
-    if (style !== "blues" && style !== "rock") return;
+    if (backingGenre(style).id !== style) return;
     if (style === this.model.getSnapshot().style) return;
-    const playing = this.model.getSnapshot().status === "playing";
+    const previous = this.model.getSnapshot();
+    const paletteChanged =
+      BACKING_GENRES[style].instrumentation.preset !==
+      BACKING_GENRES[previous.style].instrumentation.preset;
+    const playing = previous.status === "playing",
+      active = playing || previous.status === "loading";
+    if (active && paletteChanged)
+      this.pause(
+        backingClockActive(previous) && this.metronome.getSnapshot().enabled,
+      );
     this.patch({ style });
     this.takeCache.clear();
     this.remember();
     this.position = 0;
-    if (playing) this.reschedule(0);
+    if (active && paletteChanged) void this.play();
+    else if (playing) this.reschedule(0);
   }
+
   setMode(mode: BackingMode) {
     if (mode !== "steady" && mode !== "active") return;
     if (mode === this.model.getSnapshot().mode) return;
@@ -460,8 +520,8 @@ export class BackingTrackPlayer {
             if (sample.part === "drums" || sample.part === "percussion")
               return true;
             const bass = sample.part === "bass";
-            const low = (bass ? 28 : 50) + shift,
-              high = (bass ? 55 : 76) + shift;
+            const low = (bass ? 28 : sample.part === "keys" ? 48 : 50) + shift,
+              high = (bass ? 55 : sample.part === "keys" ? 79 : 76) + shift;
             const boundary = bass && low < 23 && sample.note === 23;
             return (
               boundary ||
@@ -481,6 +541,7 @@ export class BackingTrackPlayer {
         ? {
             bass: new OfflineAudioContext(2, 1, 16000),
             guitar: new OfflineAudioContext(2, 1, 24000),
+            keys: new OfflineAudioContext(2, 1, 24000),
           }
         : undefined;
       const queue = [...needed].filter((id) => !this.buffers.has(id));
@@ -503,7 +564,9 @@ export class BackingTrackPlayer {
                   );
                 const decoder =
                   nativeDecoders &&
-                  (sample.part === "bass" || sample.part === "guitar")
+                  (sample.part === "bass" ||
+                    sample.part === "guitar" ||
+                    sample.part === "keys")
                     ? nativeDecoders[sample.part]
                     : context;
                 const decoded = await decoder.decodeAudioData(
@@ -615,7 +678,8 @@ export class BackingTrackPlayer {
     if (!context) return;
     this.stopVoices();
     const state = this.model.getSnapshot();
-    const beats = this.pack.patterns[state.style][state.mode].beats;
+    const genre = BACKING_GENRES[state.style];
+    const beats = (genre.form.bars * genre.meter[0] * 4) / genre.meter[1];
     this.cycle = Math.floor(position / beats);
     const pattern = this.take();
     this.position = position % pattern.beats;
@@ -636,7 +700,9 @@ export class BackingTrackPlayer {
     const when = startAt ?? context.currentTime;
     for (const event of pattern.events) {
       if (
-        (event.part === "bass" || event.part === "guitar") &&
+        (event.part === "bass" ||
+          event.part === "guitar" ||
+          event.part === "keys") &&
         event.beat < this.position &&
         event.beat + event.duration > this.position
       )
@@ -710,7 +776,8 @@ export class BackingTrackPlayer {
     const buffer = this.buffers.get(id);
     if (!buffer) return;
     const state = this.model.getSnapshot();
-    const pitched = event.part === "bass" || event.part === "guitar";
+    const pitched =
+      event.part === "bass" || event.part === "guitar" || event.part === "keys";
     const source = context.createBufferSource();
     source.buffer = buffer;
     const rate = pitched
@@ -767,7 +834,9 @@ export class BackingTrackPlayer {
         (pitched && !release
           ? event.part === "guitar"
             ? (event.guitarReleaseSeconds ?? 0.08)
-            : 0.08
+            : event.part === "keys"
+              ? (event.noteReleaseSeconds ?? 0.18)
+              : 0.08
           : 0.005),
     );
     const voice: Voice = {
@@ -788,9 +857,17 @@ export class BackingTrackPlayer {
       gain.disconnect();
     };
     source.start(when, offset * rate);
-    source.stop(when + duration + 0.1);
+    source.stop(
+      when +
+        duration +
+        (event.part === "keys"
+          ? (event.noteReleaseSeconds ?? 0.18) + 0.015
+          : 0.1),
+    );
     if (
       pitched &&
+      event.part !== "keys" &&
+      !event.naturalReleaseOnly &&
       !release &&
       event.articulation !== "muted" &&
       event.articulation !== "ghost"

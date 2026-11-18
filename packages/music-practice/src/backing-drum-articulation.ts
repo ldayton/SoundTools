@@ -1,11 +1,10 @@
+import type { BackingTake } from "./backing-plan-types";
 /** Experimental timbral interpretation of the approved performance. No new hits. */
 import type { BackingEvent, BackingSample } from "./backing-track-model";
 import type { plannedBackingArrangement } from "./backing-musical-plan";
 export type DrumArticulation =
   "normal" | "hat-half" | "hat-loose" | "rimshot" | "offcenter";
-export function articulateDrums(
-  take: ReturnType<typeof plannedBackingArrangement>,
-) {
+export function articulateDrums(take: BackingTake) {
   const events = take.events.map((e) => {
     if (e.part !== "drums") return { ...e };
     const b = take.plan.bars[Math.floor(e.beat / 4)];

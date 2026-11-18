@@ -1,5 +1,6 @@
 import { useState, useSyncExternalStore } from "react";
 import { ControlIcon } from "@ldayton/ui/control-icon";
+import { backingClockActive } from "./backing-track-model";
 import type { BackingTrackPlayer } from "./backing-track-audio";
 import "./backing-track-settings.css";
 
@@ -13,7 +14,7 @@ export function MetronomeSettings({ player }: { player: BackingTrackPlayer }) {
     player.metronome.subscribe,
     player.metronome.getSnapshot,
   );
-  const linked = backing.status === "playing";
+  const linked = backingClockActive(backing);
   const tempo = linked ? backing.tempo : state.tempo;
   const numerator = linked ? 4 : state.numerator;
   const denominator = linked ? 4 : state.denominator;

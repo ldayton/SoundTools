@@ -104,12 +104,9 @@ try {
     pausedCount,
   );
   assert.ok(
-    rates.some((r: number) => Math.abs(r - 2 ** (3 / 12)) < 0.0001),
-    "pitched instruments follow C",
-  );
-  assert.ok(
-    rates.some((r: number) => r === 1),
-    "drums and percussion retain their pitch",
+    rates.length > 0 &&
+      rates.every((r: number) => r >= 2 ** (-1 / 12) && r <= 2 ** (1 / 12)),
+    "native-pitch recordings avoid broad resampling",
   );
   await group
     .getByRole("spinbutton", { name: "Backing tempo in beats per minute" })

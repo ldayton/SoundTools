@@ -112,7 +112,10 @@ try {
   await group
     .getByRole("button", { name: "Play backing track", exact: true })
     .click();
-  await page.waitForTimeout(600);
+  await page.waitForFunction(
+    offset => (window as any).backingStarts.length > offset,
+    pausedCount,
+  );
   const rates = await page.evaluate(
     (offset) =>
       (window as any).backingStarts.slice(offset).map((s: any) => s.rate),

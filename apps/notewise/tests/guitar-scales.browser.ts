@@ -379,7 +379,7 @@ try {
     "5",
   ]);
   assert.equal(
-    (await page.locator(".scale-legend").textContent())!.trim(),
+    (await page.locator(".scale-link-legend").textContent())!.trim(),
     "Root",
   );
 

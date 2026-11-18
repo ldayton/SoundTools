@@ -46,7 +46,26 @@ try {
     serviceWorkers: "block",
   });
   const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
+  const audioFailures: string[] = [];
+  // WebKit's protocol reports caught outgoing-document fetch cancellations as
+  // pageerror (microsoft/playwright#44015). Observe real uncaught JS errors and
+  // failed HTTP responses instead; the audio probes below still require actual
+  // scheduled playback, so failed sound loading cannot silently pass.
+  await page.exposeFunction("recordStanzaError", (message: string) =>
+    errors.push(message),
+  );
+  await page.addInitScript(() => {
+    window.addEventListener("error", (event) =>
+      (window as any).recordStanzaError(event.message),
+    );
+    window.addEventListener("unhandledrejection", (event) =>
+      (window as any).recordStanzaError(String(event.reason)),
+    );
+  });
+  page.on("response", (response) => {
+    if (response.url().endsWith(".flac") && response.status() >= 400)
+      audioFailures.push(`${response.status()} ${response.url()}`);
+  });
   await page.addInitScript({
     content: await readFile(
       new URL(
@@ -87,10 +106,6 @@ try {
     } as typeof AudioNode.prototype.connect;
   });
   const visit = async (id: string, query = "") => {
-    // Let outgoing sample preloads settle before replacing the document. WebKit
-    // reports even caught, teardown-cancelled fetches as pageerror (Playwright #44015).
-    // This waits for network teardown safety, not for UI readiness.
-    await page.waitForLoadState("networkidle");
     await page.goto(`${base}/piano/hymns/${id}${query}`);
     await page.locator(".hymn-paper svg").first().waitFor();
     await expect(page.locator("#saved")).toHaveText("Saved on this device.");
@@ -131,7 +146,6 @@ try {
     "Chorus remains when stanza one is hidden",
   );
   await expect(page.locator("#saved")).toHaveText("Saved on this device.");
-  await page.waitForLoadState("networkidle");
   await page.reload();
   await checks.nth(2).waitFor();
   assert.deepEqual(
@@ -169,7 +183,6 @@ try {
   await checks.nth(2).uncheck();
   assert.equal(await page.locator(".abcjs-lyric").count(), 0);
   await expect(page.locator("#saved")).toHaveText("Saved on this device.");
-  await page.waitForLoadState("networkidle");
   await page.reload();
   await checks.nth(2).waitFor();
   assert.deepEqual(
@@ -199,7 +212,6 @@ try {
   );
   await checks.nth(0).uncheck();
   await expect(page.locator("#saved")).toHaveText("Saved on this device.");
-  await page.waitForLoadState("networkidle");
   await page.reload();
   await expect
     .poll(async () => (await lyricWords()).filter((w) => w.trim()).at(-1) || "")
@@ -332,7 +344,6 @@ try {
   await send(grace.pitches);
   await expect(counter).toHaveText(/Stanza 2\/2 · 1 \/ 35/);
   await expect(page.locator("#saved")).toHaveText("Saved on this device.");
-  await page.waitForLoadState("networkidle");
   await page.reload();
   await expect(counter).toHaveText(/Stanza 2\/2 · 1 \/ 35/);
   await connectMidi();
@@ -394,6 +405,7 @@ try {
   await expect(counter).toHaveText(/Stanza 1\/2 ·/);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   assert(pausedVerse?.startsWith("Stanza 2/2"));
+  assert.deepEqual(audioFailures, []);
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: stanza defaults, shared choruses, persistence, playback continuity, all hymn layouts, compact labels, reference links, gapless stanza playback, practice advancement and verse reload passed`,

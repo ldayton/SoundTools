@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 import { startupHTML, workerSource } from "@ldayton/browser-offline";
-import { offlineWorker } from "./offline-worker";
+import { offlineWorker, MAX_OFFLINE_FILES } from "./offline-worker";
 export function offlineBuild(
   release: string,
   app: "notewise" | "songalong",
@@ -70,6 +70,11 @@ export function offlineBuild(
           url,
           sha256: createHash("sha256").update(bytes).digest("hex"),
         }));
+        if (files.length > MAX_OFFLINE_FILES) {
+          throw new Error(
+            `Offline inventory has ${files.length} files; maximum is ${MAX_OFFLINE_FILES}.`,
+          );
+        }
         const pack = { shellCache: version, files };
         const source = JSON.stringify(pack);
         this.emitFile({ type: "asset", fileName: "offline-pack.json", source });

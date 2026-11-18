@@ -32,7 +32,7 @@ The domain has DKIM and a dedicated mail-return subdomain. Its default
 links must not be rewritten. A dedicated SMTP IAM user/group permits
 `ses:SendRawEmail` only from that sender, to the approved recipient, through
 that domain and configuration set. No console password or other AWS access is granted.
-Supabase has a 60-second resend interval and a ten-email hourly limit.
+Supabase uses a one-second resend interval and a 30-email hourly limit. The resend interval is per email address across the project, so a one-minute interval would prevent sequential sign-ins to different apps. The endpoint still accepts only the approved owner.
 
 For each Vercel project configure:
 

@@ -396,11 +396,13 @@ try {
   );
   await phone.close();
   assert.deepEqual(errors, []);
-  // WebKit reports cancelled blob fetches as protocol pageerrors even when
-  // caught. Real window errors/rejections above must remain empty, and all
+  // WebKit reports cancelled blob fetches and retired worker loads through
+  // protocol pageerrors even when caught. Real window errors/rejections above must remain empty, and all
   // other protocol errors still fail the test.
   const blobAbort =
-    /^h?ttp:\/\/127\.0\.0\.1:4394\/[a-f0-9-]{36} due to access control checks\.$/;
+    /^(?:h?ttps?:\/)?\/127\.0\.0\.1:4394\/[a-f0-9-]{36} due to access control checks\.$/;
+  const workerAbort =
+    /^(?:h?ttps?:\/)?\/127\.0\.0\.1:4394\/__dev\/[a-f0-9]{16}\/dist\/vendor\/praat\/live-worker\.js\?profile=release&v=[a-z0-9-]+ due to access control checks\.$/;
   const cancelledBlob =
     engine === "webkit" &&
     protocolErrors.some((message) => blobAbort.test(message));
@@ -408,9 +410,10 @@ try {
     protocolErrors.filter(
       (message) =>
         !(
-          cancelledBlob &&
-          (blobAbort.test(message) ||
-            message === "NotReadableError: The I/O read operation failed.")
+          (engine === "webkit" && workerAbort.test(message)) ||
+          (cancelledBlob &&
+            (blobAbort.test(message) ||
+              message === "NotReadableError: The I/O read operation failed."))
         ),
     ),
     [],

@@ -35,10 +35,13 @@ import {
   type GuitarScaleSettings,
 } from "./guitar-scale-settings";
 import "./scale-explorer.css";
+import { BackingTrackPlayer } from "./backing-track-audio";
+import { BackingTrackSettings } from "./backing-track-settings";
 
 export class ScaleExplorer implements LivePractice {
   private disposeView: () => void;
   private body = scaleBodyState();
+  private backing = new BackingTrackPlayer();
   readonly inputPolicy = "none" as const;
   private active = false;
   enter() {
@@ -48,9 +51,11 @@ export class ScaleExplorer implements LivePractice {
   }
   leave() {
     this.active = false;
+    this.backing.pause();
   }
   dispose() {
     this.active = false;
+    this.backing.dispose();
     this.disposeView();
   }
   interrupt() {}
@@ -153,22 +158,30 @@ export class ScaleExplorer implements LivePractice {
     this.options = scaleOptionsState(this.optionsSnapshot());
     registerPracticeOptions(
       element,
-      createElement(ScaleOptions, {
-        model: this.options,
-        change: (patch) => {
-          const next = mergeGuitarScaleSettings(patch, this.optionsSnapshot());
-          this.tonic = next.tonic;
-          this.quality = next.quality;
-          this.pattern = next.pattern!;
-          this.labels = next.labels!;
-          if (patch.labels === undefined) {
-            this.returnPosition = undefined;
-            this.shift = NaN;
-            this.spelling = undefined;
-          }
-          this.update();
-        },
-      }),
+      createElement(
+        "div",
+        null,
+        createElement(ScaleOptions, {
+          model: this.options,
+          change: (patch) => {
+            const next = mergeGuitarScaleSettings(
+              patch,
+              this.optionsSnapshot(),
+            );
+            this.tonic = next.tonic;
+            this.quality = next.quality;
+            this.pattern = next.pattern!;
+            this.labels = next.labels!;
+            if (patch.labels === undefined) {
+              this.returnPosition = undefined;
+              this.shift = NaN;
+              this.spelling = undefined;
+            }
+            this.update();
+          },
+        }),
+        createElement(BackingTrackSettings, { player: this.backing }),
+      ),
     );
   }
   private publishRoute() {
@@ -223,6 +236,10 @@ export class ScaleExplorer implements LivePractice {
   }
   private render() {
     this.normalizePosition();
+    this.backing.setKey(
+      this.tonic,
+      scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic]),
+    );
     this.options.set(this.optionsSnapshot());
     const title = `${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${this.quality === "major" ? "major" : "natural minor"}`;
 

@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
@@ -6,12 +7,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 const engine = process.env.TEST_BROWSER || "chromium";
 const home = await mkdtemp(join(tmpdir(), "songalong-offline-"));
-const browser = await { chromium, firefox, webkit }[engine]!.launch({
+const browser = await launchBrowser({
   env: { ...process.env, CFFIXED_USER_HOME: home },
 });
 const server = await preview("songalong", 4422);
 try {
-  const context = await browser.newContext();
+  const context = await createContext(browser);
   const page = await context.newPage();
   await page.goto(
     server.base +
@@ -48,8 +49,11 @@ try {
   console.log(
     `${engine}: SongAlong verified cache, offline hymn deep link, reload, hand settings and settings page pass`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.stop();
   await rm(home, { recursive: true, force: true }).catch((e) => {
     if (!["EACCES", "EPERM"].includes(e.code)) throw e;

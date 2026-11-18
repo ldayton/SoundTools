@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from 'playwright';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -16,9 +17,9 @@ const engine = process.env.TEST_BROWSER || 'chromium';
 let browser;
 try {
  assert.ok(engine in {chromium, firefox, webkit}, 'known test browser');
- browser = await ({chromium, firefox, webkit}[engine as 'chromium' | 'firefox' | 'webkit']).launch({env: {...process.env, CFFIXED_USER_HOME: fixed}});
+ browser = await launchBrowser({env: {...process.env, CFFIXED_USER_HOME: fixed}});
  // Offline installation has separate coverage; this suite exercises scale navigation.
- const page=await browser.newPage({serviceWorkers:'block'});
+ const page=await newPage(browser, {serviceWorkers:'block'});
  const errors: string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:4362/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
  await page.locator('.scale-shared').first().waitFor();
@@ -96,4 +97,7 @@ try {
  const url=page.url();await page.keyboard.press('ArrowRight');assert.equal(page.url(),url,'inactive scale controller ignores keys');
  assert.deepEqual(errors,[]);
  console.log('PASS: linked scales, all keyboard shortcuts, help modal, input focus, fret boundaries, and activity exit');
-}finally{await browser?.close(); server.kill(); await rm(fixed, {recursive:true, force:true}).catch((error:NodeJS.ErrnoException) => { if (error.code !== 'EACCES' && error.code !== 'EPERM') throw error; });}
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
+}finally{await closeBrowser(browser); server.kill(); await rm(fixed, {recursive:true, force:true}).catch((error:NodeJS.ErrnoException) => { if (error.code !== 'EACCES' && error.code !== 'EPERM') throw error; });}

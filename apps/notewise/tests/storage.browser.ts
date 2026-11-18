@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { selectPractice, practiceOption } from "../../../packages/music-practice/browser-tests/helpers";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,11 +7,9 @@ import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 const fixed = await mkdtemp(join(tmpdir(), "notecards-recovery-"));
 const origin = process.env.TEST_URL || "http://127.0.0.1:4320";
-const browser = await (
-  { chromium, firefox, webkit }[process.env.BROWSER || "chromium"] || chromium
-).launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
 try {
-  const context = await browser.newContext();
+  const context = await createContext(browser);
   const page = await context.newPage();
   await page.goto(origin);
   await page.locator("main:not([inert])").waitFor();
@@ -63,7 +62,7 @@ try {
   assert.equal(adapterResult.failedValue, 2);
   assert.equal(adapterResult.revision, adapterResult.afterRevision);
   await context.close();
-  const migration = await browser.newContext();
+  const migration = await createContext(browser);
   await migration.addInitScript(() => {
     if (localStorage.getItem("seeded")) return;
     localStorage.setItem("seeded", "1");
@@ -126,7 +125,7 @@ try {
   );
   await migration.close();
   // Exercise the actual UI failure path after initialization, not just adapter rejection.
-  const failure = await browser.newContext();
+  const failure = await createContext(browser);
   const f = await failure.newPage();
   await f.goto(origin);
   await f.locator("main:not([inert])").waitFor();
@@ -153,7 +152,10 @@ try {
   console.log(
     "storage passed: real IDB atomicity, stale fencing, queued snapshots, quota failure UI, migration, old-tab writes",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(() => {});
 }

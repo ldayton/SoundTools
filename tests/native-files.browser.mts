@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import {
   account as openAccount,
@@ -28,9 +29,7 @@ for (const query of [
   });
 const engine = process.env.TEST_BROWSER || "chromium";
 const fixed = await mkdtemp(join(tmpdir(), "soundtools-files-"));
-const browser = await (
-  { chromium, firefox, webkit }[engine] || chromium
-).launch({
+const browser = await launchBrowser({
   args: engine === "chromium" ? ["--mute-audio"] : [],
   env: { ...process.env, CFFIXED_USER_HOME: fixed },
 });
@@ -38,12 +37,12 @@ const base = "http://127.0.0.1:4394/dist/index.html#settings";
 const audio = await readFile("apps/soundglow/dist/audio/alice-waters.m4a");
 const contexts = [];
 try {
-  const first = await browser.newContext({
+  const first = await createContext(browser, {
     viewport: { width: 1680, height: 1050 },
     serviceWorkers: "block",
   });
   contexts.push(first);
-  const second = await browser.newContext({
+  const second = await createContext(browser, {
     viewport: { width: 1680, height: 1050 },
     serviceWorkers: "block",
   });
@@ -633,6 +632,7 @@ try {
       ": deletion reaches both devices and private downloads do not appear in guest mode",
   );
 } catch (error) {
+  await captureFailure(browser, error);
   for (const c of contexts)
     for (const p of c.pages())
       await p
@@ -641,6 +641,6 @@ try {
   throw error;
 } finally {
   for (const c of contexts) await c.close();
-  await browser.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(() => {});
 }

@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit, expect, type Page } from "@playwright/test";
 import assert from "node:assert/strict";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
@@ -34,9 +35,7 @@ for (const table of ["public.account_apps", "private.account_operations"])
   );
 execFileSync("node", ["scripts/reset-file-storage-local.mjs"], { stdio: "ignore" });
 const fixed = await mkdtemp(join(tmpdir(), "soundtools-extra-"));
-const browser = await (
-  { chromium, firefox, webkit }[engine] || chromium
-).launch({
+const browser = await launchBrowser({
   args: engine === "chromium" ? ["--mute-audio"] : [],
   env: { ...process.env, CFFIXED_USER_HOME: fixed },
 });
@@ -138,11 +137,11 @@ async function total(page: Page) {
     .reduce((n, [, v]: any) => n + (v.value?.attempts || 0), 0);
 }
 try {
-  const a = await browser.newContext({
+  const a = await createContext(browser, {
       ...macBookAir13,
       serviceWorkers: "block",
     }),
-    b = await browser.newContext({ ...macBookAir13, serviceWorkers: "block" });
+    b = await createContext(browser, { ...macBookAir13, serviceWorkers: "block" });
   for (const context of [a, b])
     await context.addInitScript({
       content: await readFile(
@@ -244,11 +243,11 @@ try {
   );
   await a.close();
   await b.close();
-  const c = await browser.newContext({
+  const c = await createContext(browser, {
       ...macBookAir13,
       serviceWorkers: "block",
     }),
-    d = await browser.newContext({ ...macBookAir13, serviceWorkers: "block" });
+    d = await createContext(browser, { ...macBookAir13, serviceWorkers: "block" });
   const g = await c.newPage(),
     h = await d.newPage();
   for (const page of [g, h]) await observe(page);
@@ -371,7 +370,7 @@ try {
   );
   await c.close();
   await d.close();
-  const phone = await browser.newContext({
+  const phone = await createContext(browser, {
     ...iphone14Pro,
     serviceWorkers: "block",
   });
@@ -410,7 +409,10 @@ try {
     ),
     [],
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(() => {});
 }

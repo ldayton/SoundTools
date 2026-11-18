@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -29,18 +30,12 @@ const server = process.env.TEST_BASE_URL
       { stdio: "ignore" },
     );
 const fixed = await mkdtemp(join(tmpdir(), "hymn-recovery-"));
+let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  const browser = await { chromium, firefox, webkit }[
-    process.env.TEST_BROWSER || "chromium"
-  ]!.launch({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+  await waitForServer(base, { server });
+  browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
   try {
-    const context = await browser.newContext({
+    const context = await createContext(browser, {
       viewport: { width: 1400, height: 1000 },
     });
     await context.addInitScript({
@@ -181,8 +176,11 @@ try {
       "PASS: hand controls share a row; MIDI retries recover sustained bass; optional tied attacks preserve engraving; single-hand scope, persistence and narrow desktop checkbox alignment",
     );
   } finally {
-    await browser.close();
+    await closeBrowser(browser);
   }
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch(

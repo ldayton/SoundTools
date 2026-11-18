@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { selectPractice } from "../../../packages/music-practice/browser-tests/helpers";
 import { chromium, firefox, webkit } from "playwright";
 import { createServer } from "node:http";
@@ -96,11 +97,11 @@ const server = createServer(async (req, res) => {
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as { port: number }).port}/`;
 const fixed = await mkdtemp(join(tmpdir(), "notecards-offline-"));
-const browser = await type.launch({
+const browser = await launchBrowser({
   env: { ...process.env, CFFIXED_USER_HOME: fixed },
 });
 try {
-  const context = await browser.newContext();
+  const context = await createContext(browser);
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -372,7 +373,7 @@ try {
   networkDown = false;
   root = rootA;
   breakAssets = false;
-  const partialContext = await browser.newContext();
+  const partialContext = await createContext(browser);
   await partialContext.setOffline(false);
   const partial = await partialContext.newPage();
   failInstall = true;
@@ -428,7 +429,7 @@ try {
     fullPage: true,
   });
   await partialContext.close();
-  const blockedContext = await browser.newContext();
+  const blockedContext = await createContext(browser);
   await blockedContext.addInitScript(() =>
     Object.defineProperty(navigator, "serviceWorker", {
       get() {
@@ -447,8 +448,11 @@ try {
   console.log(
     `PASS ${name}: verified install, automatic latest startup, active-session update protection, old tabs, offline practice, fast cached startup, corruption fallback/repair, eviction, failed install/retry, blocked offline access.`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch((error) => {
     if (!["EACCES", "EPERM"].includes(error.code)) throw error;
   });

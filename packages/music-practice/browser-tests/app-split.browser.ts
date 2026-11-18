@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { chromium, firefox, webkit } from "playwright";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -6,13 +7,13 @@ import { join } from "node:path";
 import { preview } from "./server";
 const engine = process.env.TEST_BROWSER || "chromium";
 const home = await mkdtemp(join(tmpdir(), "soundtools-split-"));
-const browser = await { chromium, firefox, webkit }[engine]!.launch({
+const browser = await launchBrowser({
   env: { ...process.env, CFFIXED_USER_HOME: home },
 });
 const notes = await preview("notewise", 4420);
 const songs = await preview("songalong", 4421);
 try {
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1440, height: 1000 },
     // Route/shell coverage is separate from the real-worker offline suites.
     // Prevent a retired document's worker installation from racing navigation.
@@ -105,8 +106,11 @@ try {
   console.log(
     `${engine}: independent names, route boundaries, defaults, settings and mobile shells pass`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   notes.stop();
   songs.stop();
   await rm(home, { recursive: true, force: true }).catch((e) => {

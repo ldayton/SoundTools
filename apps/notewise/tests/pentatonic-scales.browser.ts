@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import {chromium,firefox,webkit} from 'playwright';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -8,9 +9,9 @@ const server=await preview('notewise',Number(process.env.TEST_PORT || 4498));
 const engine=process.env.TEST_BROWSER || 'chromium';
 assert.ok(engine in {chromium,firefox,webkit},'known test browser');
 const fixed=await mkdtemp(join(tmpdir(),'notewise-pentatonic-'));
-const browser=await ({chromium,firefox,webkit}[engine as 'chromium'|'firefox'|'webkit']).launch({env:{...process.env,CFFIXED_USER_HOME:fixed}});
+const browser=await launchBrowser({env:{...process.env,CFFIXED_USER_HOME:fixed}});
 try {
- const page=await browser.newPage({viewport:{width:1440,height:1000},serviceWorkers:'block'});
+ const page=await newPage(browser, {viewport:{width:1440,height:1000},serviceWorkers:'block'});
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  for(const [key,scale] of [['A','minor-pentatonic'],['C','major-pentatonic']]){
  await page.goto(`${server.base}/guitar/scales?key=${key}&scale=${scale}&pattern=1&link=2`);
@@ -24,4 +25,7 @@ try {
  await page.setViewportSize({width:1440,height:1000});
  }
  assert.deepEqual(errors,[]);console.log('PASS pentatonic charts, both loop legs, clear, mobile overflow, no runtime errors');
-} finally {await browser.close();server.stop();await rm(fixed,{recursive:true,force:true}).catch(()=>{});}
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
+} finally {await closeBrowser(browser);server.stop();await rm(fixed,{recursive:true,force:true}).catch(()=>{});}

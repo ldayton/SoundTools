@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { savedProgress } from "./persistence-helper";
 import {
   practiceOption,
@@ -29,17 +30,11 @@ const server = process.env.TEST_BASE_URL
 const fixed = await mkdtemp(join(tmpdir(), "notecards-piano-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    if (server && server.exitCode !== null) throw Error("Preview exited");
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await type.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1280, height: 1000 },
   });
   await context.addInitScript(() => (Math.random = () => 0));
@@ -265,8 +260,11 @@ try {
   console.log(
     `${engine}: piano exact octaves, accidentals, responsive geometry, keyboard input, persistence and guitar regression passed`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch(
     (error: NodeJS.ErrnoException) => {

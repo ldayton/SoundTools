@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { chromium, firefox, webkit } from "playwright";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -27,16 +28,11 @@ const engine = process.env.TEST_BROWSER || "chromium";
 const fixed = await mkdtemp(join(tmpdir(), "notewise-realism-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await { chromium, firefox, webkit }[engine as "chromium"].launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
   });
   const errors: string[] = [];
@@ -290,8 +286,11 @@ try {
       " realistic voices, scale harmony, bounded decoding, cycle variation, phase and key-load cancellation passed",
     JSON.stringify(result),
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
   await rm(fixed, { recursive: true, force: true }).catch((error) => {
     if (error.code !== "EACCES" && error.code !== "EPERM") throw error;

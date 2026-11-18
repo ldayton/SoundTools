@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -28,14 +29,14 @@ try {
     } catch {}
     await new Promise((r) => setTimeout(r, 100));
   }
-  browser = await { chromium, firefox, webkit }[engine]!.launch({
+  browser = await launchBrowser({
     args: engine === "chromium" ? ["--mute-audio"] : [],
     env:
       engine === "webkit"
         ? { ...process.env, CFFIXED_USER_HOME: home }
         : process.env,
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1680, height: 1050 },
   });
   const page = await context.newPage();
@@ -260,7 +261,7 @@ try {
   assert.deepEqual(errors, []);
   await context.close();
   // A quick release before a cold sample arrives must not produce a delayed ghost note.
-  const cold = await browser.newPage({
+  const cold = await newPage(browser, {
     viewport: { width: 1400, height: 1000 },
   });
   let allowSamples!: () => void;
@@ -303,8 +304,11 @@ try {
   console.log(
     `${engine}: held/drag/release, keyboard, MIDI/pedal, repeated playback, pause/seek/disconnect and cold-release cancellation pass`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
   await rm(home, { recursive: true, force: true });
 }

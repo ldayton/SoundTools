@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../scripts/ci/browser-harness.cjs';
 import { account, login, pull, closeModal } from "./account-helpers.mts";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
@@ -32,20 +33,18 @@ for (const table of ["public.account_apps", "private.account_operations"])
     { stdio: "ignore" },
   );
 const fixed = await mkdtemp(join(tmpdir(), "soundtools-accounts-"));
-const browser = await (
-  { chromium, firefox, webkit }[engine] || chromium
-).launch({
+const browser = await launchBrowser({
   args: engine === "chromium" ? ["--mute-audio"] : [],
   env: { ...process.env, CFFIXED_USER_HOME: fixed },
 });
 const errors: string[] = [];
 
 try {
-  const a = await browser.newContext({
+  const a = await createContext(browser, {
     ...macBookAir13,
     serviceWorkers: "block",
   });
-  const b = await browser.newContext({
+  const b = await createContext(browser, {
     ...macBookAir13,
     serviceWorkers: "block",
   });
@@ -230,7 +229,7 @@ try {
       ": SongAlong settings, hand-scoped MIDI checkpoint, cross-device restore, reload and cached startup passed",
   );
 
-  const mobile = await browser.newContext({
+  const mobile = await createContext(browser, {
     ...iphone14Pro,
     serviceWorkers: "block",
   });
@@ -251,7 +250,10 @@ try {
   assert.deepEqual(errors, []);
   await a.close();
   await b.close();
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(() => {});
 }

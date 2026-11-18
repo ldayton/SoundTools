@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { readFile, mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -29,9 +30,7 @@ const admin = createClient(env.API_URL, env.SECRET_KEY, {
 });
 const engine = process.env.TEST_BROWSER || "chromium";
 const fixed = await mkdtemp(join(tmpdir(), "soundtools-link-"));
-const browser = await (
-  { chromium, firefox, webkit }[engine] || chromium
-).launch({
+const browser = await launchBrowser({
   args: engine === "chromium" ? ["--mute-audio"] : [],
   env: { ...process.env, CFFIXED_USER_HOME: fixed },
 });
@@ -56,7 +55,7 @@ try {
     ["notewise", "NoteWise", 4393],
     ["dorego", "DoReGo", 4391],
   ] as const) {
-    const context = await browser.newContext({
+    const context = await createContext(browser, {
       ...macBookAir13,
       serviceWorkers: "block",
     });
@@ -157,7 +156,7 @@ try {
     await app.getByRole("button", { name: "Account", exact: true }).waitFor();
     await context.close();
     // A link with no running app still offers an explicit normal startup.
-    const cold = await browser.newContext({
+    const cold = await createContext(browser, {
       ...macBookAir13,
       serviceWorkers: "block",
     });
@@ -174,7 +173,10 @@ try {
     );
   }
   assert.deepEqual(errors, []);
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(() => {});
 }

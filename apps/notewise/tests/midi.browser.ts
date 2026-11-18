@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
   practiceOption,
   selectPractice,
@@ -30,17 +31,11 @@ const server = process.env.TEST_BASE_URL
 const fixed = await mkdtemp(join(tmpdir(), "notecards-midi-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    if (server && server.exitCode !== null) throw Error("Preview exited");
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await type.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1280, height: 1000 },
   });
   await context.addInitScript({
@@ -280,7 +275,7 @@ try {
   await on(60);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — C4");
   await context.setOffline(false);
-  const unsupported = await browser.newContext();
+  const unsupported = await createContext(browser);
   await unsupported.addInitScript(() =>
     Object.defineProperty(navigator, "requestMIDIAccess", { value: undefined }),
   );
@@ -488,8 +483,11 @@ try {
   console.log(
     `${engine}: simulated MIDI grading, held/chord guards, focus, hotplug, input switching, denied/retry, offline, unsupported fallback, C2–B6 grading, compact keyboard, MIDI-only notices and range picker passed`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch(
     (error: NodeJS.ErrnoException) => {

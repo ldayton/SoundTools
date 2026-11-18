@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { practiceOption } from "./helpers";
@@ -7,13 +8,13 @@ import { join } from "node:path";
 import { preview } from "./server";
 const engine = process.env.TEST_BROWSER || "chromium";
 const home = await mkdtemp(join(tmpdir(), "practice-sidebars-"));
-const browser = await { chromium, firefox, webkit }[engine]!.launch({
+const browser = await launchBrowser({
   env: { ...process.env, CFFIXED_USER_HOME: home },
 });
 const note = await preview("notewise", 4430),
   song = await preview("songalong", 4431);
 try {
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1440, height: 1000 },
   });
   await context.addInitScript({
@@ -151,8 +152,11 @@ try {
   console.log(
     `${engine}: left selection/volume/MIDI, independent right settings, settings navigation, reload and mobile drawers pass`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   note.stop();
   song.stop();
   await rm(home, { recursive: true, force: true }).catch((e) => {

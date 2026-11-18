@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { savedProgress } from "./persistence-helper";
 import {
   practiceOption,
@@ -38,10 +39,10 @@ if (server) {
 const fixed = await mkdtemp(join(tmpdir(), "notecards-cards-"));
 let browser: Awaited<ReturnType<typeof type.launch>> | undefined;
 try {
-  browser = await type.launch({
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext();
+  const context = await createContext(browser);
   await context.addInitScript(() => {
     Math.random = () => 0;
     // Existing staff users retain their original mode and range.
@@ -199,8 +200,11 @@ try {
   console.log(
     "PASS: notation, desktop modifier-first input, enharmonics, answer guard, full session, continuation, mobile controls, saved progress and no page errors.",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(
     (error: NodeJS.ErrnoException) => {
       // macOS may protect Firefox-created folders in the temporary home.

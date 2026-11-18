@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { macBookAir13, iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { spawn } from "node:child_process";
@@ -33,11 +34,11 @@ try {
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  browser = await { chromium, firefox, webkit }[engine]!.launch({
+  browser = await launchBrowser({
     args: engine === "chromium" ? ["--mute-audio"] : [],
     env: { ...process.env, CFFIXED_USER_HOME: home },
   });
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     ...macBookAir13,
     reducedMotion: "reduce",
   });
@@ -509,8 +510,11 @@ try {
   console.log(
     `${engine}: SongAlong drawer geometry/focus, MIDI blocking, playback pause, constant piano widths, hand constraints and desktop restoration pass`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
   await rm(home, { recursive: true, force: true }).catch((error) => {
     if (!["EACCES", "EPERM"].includes(error.code)) throw error;

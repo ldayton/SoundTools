@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { setTempo } from './ui-helpers';
 import { elapsedSeconds } from './ui-helpers';
 import { selectExercise } from './ui-helpers';
@@ -35,18 +36,10 @@ server.stdout.on('data', (data) => (logs += data));
 server.stderr.on('data', (data) => (logs += data));
 let browser;
 try {
-  for (let i = 0; i < 60; i++) {
-    if (server.exitCode !== null) throw new Error(logs);
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {
-      /* Starting preview. */
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
+  await waitForServer(base, { server });
   browser = await launchTestBrowser();
   // This suite controls network faults directly; offline/PWA is exercised separately.
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1280, height: 900 },
     serviceWorkers: 'block',
   });
@@ -321,6 +314,7 @@ try {
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
 } catch (error) {
+  await captureFailure(browser, error);
   await mkdir('work', { recursive: true });
   for (const context of browser?.contexts() || [])
     for (const page of context.pages()) {
@@ -355,6 +349,6 @@ try {
     }
   throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill('SIGTERM');
 }

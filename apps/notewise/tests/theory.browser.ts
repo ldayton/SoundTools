@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
@@ -26,16 +27,11 @@ const server = spawn(
 const fixed = await mkdtemp(join(tmpdir(), "notecards-theory-"));
 let browser;
 try {
-  browser = await type.launch({
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  const context = await browser.newContext({
+  await waitForServer(base, { server });
+  const context = await createContext(browser, {
     viewport: { width: 1280, height: 1000 },
     serviceWorkers: "block",
   });
@@ -525,8 +521,11 @@ try {
   console.log(
     `${engine}: theory restrictions, all six tasks, MIDI, keyboard, correction, complete/continue, saved steps, notation and responsive layouts passed`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   await rm(fixed, { recursive: true, force: true }).catch(
     (e: NodeJS.ErrnoException) => {
       if (e.code !== "EACCES" && e.code !== "EPERM") throw e;

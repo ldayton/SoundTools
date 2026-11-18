@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
   practiceOption,
   dismissPracticeDrawer,
@@ -51,16 +52,11 @@ if (!process.env.TEST_BASE_URL) {
 const fixed = await mkdtemp(join(tmpdir(), "notecards-sight-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await browserType.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: fixed },
   });
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1100, height: 1000 },
   });
   await context.addInitScript({
@@ -356,7 +352,7 @@ try {
     assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
     await context.setOffline(false);
     // A fresh tab can enter hymns for the first time offline: not merely reuse an in-memory module.
-    const cold = await browser.newContext();
+    const cold = await createContext(browser);
     const firstUse = await cold.newPage();
     await firstUse.goto(base);
     await firstUse.waitForFunction(
@@ -395,8 +391,11 @@ try {
   console.log(
     `${engine}: hymn search, all ${hymns.length * 2} scores at desktop/mobile widths, MIDI legato/chords, pause, reload, completion and offline passed.`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server?.kill();
   await rm(fixed, { recursive: true, force: true }).catch(
     (error: NodeJS.ErrnoException) => {

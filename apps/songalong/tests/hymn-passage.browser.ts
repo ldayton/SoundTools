@@ -1,3 +1,4 @@
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -26,20 +27,15 @@ const server = spawn(
 const home = await mkdtemp(join(tmpdir(), "songalong-passage-"));
 let browser;
 try {
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(base)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  browser = await { chromium, firefox, webkit }[engine]!.launch({
+  await waitForServer(base, { server });
+  browser = await launchBrowser({
     args: engine === "chromium" ? ["--mute-audio"] : [],
     env:
       engine === "webkit"
         ? { ...process.env, CFFIXED_USER_HOME: home }
         : process.env,
   });
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1680, height: 1050 },
     hasTouch: true,
     reducedMotion: "reduce",
@@ -481,8 +477,11 @@ try {
   console.log(
     `${engine}: click/tap seek, smooth ranges, mouse/touch/keyboard handles, measure selection, undo, cancellation, labels, loop count-ins and responsive persistence pass`,
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser?.close();
+  await closeBrowser(browser);
   server.kill();
   await rm(home, { recursive: true, force: true });
 }

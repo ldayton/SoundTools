@@ -1,3 +1,4 @@
+import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { elapsedSeconds } from './ui-helpers';
 import { selectExercise } from './ui-helpers';
 import { readSpecValue, openMoreOptions, sliderValue, setSlider } from './ui-helpers';
@@ -20,8 +21,8 @@ const DEFAULT_SPEC = {
 const base = process.env.TEST_URL || 'http://127.0.0.1:4317';
 const work = new URL('../work/', import.meta.url);
 await mkdir(work, { recursive: true });
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({
+const browser = await launchBrowser({ headless: true });
+const page = await newPage(browser, {
   viewport: { width: 1440, height: 1100 },
   acceptDownloads: true,
 });
@@ -151,7 +152,7 @@ try {
   assert.ok(await page.locator('#form-error').isHidden());
   await setNote('low', 60);
   // Frame-order independence, including a personal transition marker.
-  const render = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const render = await newPage(browser, { viewport: { width: 1280, height: 720 } });
   await render.goto(`${base}/render.html`);
   await render.waitForFunction(() => !!window.doregoRenderer);
   await render.evaluate((spec) => window.doregoRenderer.init(spec, 1280, 720), {
@@ -332,7 +333,7 @@ try {
       );
   }
   // Compare the encoded frame at t=1s with that exact state in the shared renderer.
-  const reference = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const reference = await newPage(browser, { viewport: { width: 1280, height: 720 } });
   await reference.goto(`${base}/render.html`);
   await reference.waitForFunction(() => !!window.doregoRenderer);
   await reference.evaluate(
@@ -438,6 +439,9 @@ try {
   console.log(
     `PASS: desktop/mobile UI, playback, pause/resume, saved exercise, transposition, validation, MIDI, frame-order independence, MP4 with audible audio (RMS ${rms.toFixed(4)}), guide pitch timing, exported frame timing (SSIM ${score.toFixed(4)}), cancellation, and origin protection.`
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
 }

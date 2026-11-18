@@ -51,7 +51,7 @@ let context;
  await page.waitForFunction(selector=>document.querySelector(selector).textContent.includes('Available offline'),status);
  await context.close();context=await launch();await context.setOffline(true);page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
  const restarted=Date.now();await page.goto(url,{waitUntil:'domcontentloaded'});const restartMs=Date.now()-restarted;
- if(app==='dorego'){await page.waitForFunction(()=>!document.querySelector('#play').disabled);await page.locator('#play').click();await page.getByRole('button',{name:'Pause',exact:true}).waitFor();await page.locator('#play').click();}
+ if(app==='dorego'){await require('./ci/browser-harness.cjs').waitForApp(page, '#play');await page.getByRole('button',{name:'Play',exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('#play')?.disabled===false);await page.locator('#play').click();await page.getByRole('button',{name:'Pause',exact:true}).waitFor();await page.locator('#play').click();}
  else{await page.getByRole('button',{name:'Play an Example',exact:true}).click();await page.waitForFunction(()=>inputMode==='speech'&&processingStats.frames>200);await page.locator('#freeze').click();await page.locator('#openSettings:visible, #settings:visible').click();}
  await page.waitForFunction(selector=>document.querySelector(selector).textContent.includes('Available offline'),status,{timeout:15000});
  await page.screenshot({path:path.join(artifact,'offline-after-restart.png')});

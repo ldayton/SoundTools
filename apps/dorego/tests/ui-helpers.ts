@@ -24,7 +24,10 @@ export async function sliderValue(page: Page, id: string) {
   const popup = id === 'volume' && !(await page.locator('#volume').isVisible());
   if (popup) await page.getByRole('button', { name: 'Volume', exact: true }).click();
   const value = (await page.locator(`#${id}`).getAttribute('aria-valuenow'))!;
-  if (popup) await page.keyboard.press('Escape');
+  if (popup) {
+    await page.keyboard.press('Escape');
+    await page.locator('#volume').waitFor({ state: 'hidden' });
+  }
   return value;
 }
 export async function setSlider(page: Page, id: string, target: number) {
@@ -40,7 +43,10 @@ export async function setSlider(page: Page, id: string, target: number) {
   await slider.press(fromEnd ? 'End' : 'Home');
   const count = Math.round((fromEnd ? max - target : target - min) / step);
   for (let i = 0; i < count; i++) await slider.press(fromEnd ? 'ArrowLeft' : 'ArrowRight');
-  if (id === 'volume') await page.keyboard.press('Escape');
+  if (id === 'volume') {
+    await page.keyboard.press('Escape');
+    await slider.waitFor({ state: 'hidden' });
+  }
 }
 
 export async function openPracticeOptions(page: Page) {

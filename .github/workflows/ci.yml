@@ -36,7 +36,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: bash scripts/install-ci-browser.sh ${{ matrix.browser }}
       - name: Provide a clocked audio output for Firefox
         if: matrix.browser == 'firefox'
         run: |
@@ -91,7 +91,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: bash scripts/install-ci-browser.sh chromium
       - run: npm run build:shared
       - run: npm run test:soundglow
       - run: npm run test:resilience --workspace=soundglow
@@ -122,7 +122,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: bash scripts/install-ci-browser.sh ${{ matrix.browser }}
       - name: Start virtual audio output for Firefox
         if: matrix.browser == 'firefox'
         run: |
@@ -155,7 +155,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: bash scripts/install-ci-browser.sh ${{ matrix.browser }}
       - name: Start virtual audio output for Firefox
         if: matrix.browser == 'firefox'
         run: |
@@ -231,7 +231,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: bash scripts/install-ci-browser.sh ${{ matrix.browser }}
       - name: Start virtual audio output for Firefox
         if: matrix.browser == 'firefox'
         run: |
@@ -275,7 +275,7 @@ jobs:
         with:
           version: 3.2.0
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: bash scripts/install-ci-browser.sh ${{ matrix.browser }}
       - run: supabase start --runtime docker --exclude storage,functions,studio,analytics,pooler,realtime --eager
       - run: supabase db push
       - run: node scripts/setup-account-local.mjs

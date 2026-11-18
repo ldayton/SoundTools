@@ -1,4 +1,7 @@
-import { chromium } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 const vite = createRequire(import.meta.url).resolve('vite/package.json').replace(/package\.json$/, 'bin/vite.js');
@@ -8,8 +11,12 @@ for (let i = 0; i < 100; i++) {
   await new Promise(resolve => setTimeout(resolve, 100));
 }
 import assert from 'node:assert/strict';
-const browser=await chromium.launch();
+const fixed = await mkdtemp(join(tmpdir(), 'notewise-linked-scales-'));
+const engine = process.env.TEST_BROWSER || 'chromium';
+let browser;
 try {
+ assert.ok(engine in {chromium, firefox, webkit}, 'known test browser');
+ browser = await ({chromium, firefox, webkit}[engine as 'chromium' | 'firefox' | 'webkit']).launch({env: {...process.env, CFFIXED_USER_HOME: fixed}});
  const page=await browser.newPage();
  const errors: string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:4362/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
@@ -53,8 +60,10 @@ try {
  await page.keyboard.press('Alt+ArrowRight');
  assert.equal(await page.locator('#scale-title').textContent(),'C major');
  await page.locator('#scale-key').focus();
- await page.keyboard.press('ArrowRight');
- assert.equal(new URL(page.url()).searchParams.get('position'),'0','dropdown arrows must not transpose the diagram');
+ // Native select arrow navigation differs by engine; ] has no native action
+ // and must not invoke the page's octave shortcut while a select has focus.
+ await page.keyboard.press(']');
+ assert.equal(new URL(page.url()).searchParams.get('position'),'0','focused dropdown must suppress page shortcuts');
  await page.locator('#scale-title').click();
  await page.goto('http://127.0.0.1:4362/guitar/scales?key=F%23&scale=major&pattern=1&position=-6');
  await page.getByRole('heading',{name:'F♯ major',exact:true}).waitFor();
@@ -65,4 +74,4 @@ try {
  const url=page.url();await page.keyboard.press('ArrowRight');assert.equal(page.url(),url,'inactive scale controller ignores keys');
  assert.deepEqual(errors,[]);
  console.log('PASS: linked scales, all keyboard shortcuts, help modal, input focus, fret boundaries, and activity exit');
-}finally{await browser.close(); server.kill()}
+}finally{await browser?.close(); server.kill(); await rm(fixed, {recursive:true, force:true}).catch((error:NodeJS.ErrnoException) => { if (error.code !== 'EACCES' && error.code !== 'EPERM') throw error; });}

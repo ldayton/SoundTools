@@ -227,6 +227,9 @@ try {
   assert.ok(celloNotice.ok);
   assert.match(await celloNotice.text(), /CC0/);
   await page.getByRole('link', { name: 'DoReGo home', exact: true }).click();
+  // Navigation focuses the title on the next frame. Wait for that handoff
+  // before focusing the tempo input, so it cannot steal the ArrowUp event.
+  await page.waitForFunction(() => document.activeElement?.id === 'exercise-title');
   await page.locator('#bpm').press('ArrowUp');
   await page.locator('#bpm').press('Tab');
   assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '155');

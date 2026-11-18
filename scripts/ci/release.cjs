@@ -4,7 +4,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // Release credentials are available only in the protected, per-app environment.
 // Never build from a moving branch or promote a deployment for an obsolete SHA.
-async function release({ app, sha, token, githubToken, fetch: request = fetch, sleep = delay, smoke = smokeHTTP, maxPolls = 120, log = console.log }) {
+async function release({ app, sha, token, githubToken, bypass, fetch: request = fetch, sleep = delay, smoke = smokeHTTP, maxPolls = 120, log = console.log }) {
   const config = apps[app];
   if (!config || !/^[a-f0-9]{40}$/.test(sha || '')) throw Error('Choose a known app and full commit SHA');
   if (!token || !githubToken) throw Error('Production release credentials are missing');
@@ -27,6 +27,7 @@ async function release({ app, sha, token, githubToken, fetch: request = fetch, s
   if (!await current()) return { skipped: 'A newer main revision exists' };
   const project = await vercel(`/v9/projects/${config.project}`);
   if (project.autoAssignCustomDomains !== false) throw Error('Automatic domain assignment must be disabled before staged releases');
+  if (project.ssoProtection && !bypass) throw Error('Protected staging requires its project automation credential');
   // A rerun reuses this SHA's staged deployment instead of consuming another build.
   const previous = await vercel(`/v6/deployments?projectId=${config.project}&limit=20`);
   const existing = previous.deployments?.find(d => d.meta?.soundtoolsReleaseSha === sha && d.meta?.soundtoolsReleaseApp === app && ['READY', 'BUILDING', 'QUEUED', 'INITIALIZING'].includes(d.readyState || d.state));
@@ -50,7 +51,7 @@ async function release({ app, sha, token, githubToken, fetch: request = fetch, s
   if (!/^[a-z0-9.-]+\.vercel\.app$/.test(deployed.url || '')) throw Error('Invalid staged deployment URL');
   const origin = `https://${deployed.url}`;
   log(`Checking staged ${app}: ${origin}`);
-  await smoke(origin, app, request, sha);
+  await smoke(origin, app, stagedRequest(origin, bypass, request), sha, { bypass });
   if (!await current()) return { id, skipped: 'A newer main revision exists; verified deployment was not promoted' };
   const currentAlias = await vercel(`/v13/deployments/${new URL(config.origin).hostname}`);
   if (currentAlias.id !== id) await vercel(`/v10/projects/${config.project}/promote/${id}`, { method: 'POST' });
@@ -66,7 +67,16 @@ async function release({ app, sha, token, githubToken, fetch: request = fetch, s
   return { id, origin: config.origin, sha };
 }
 
-async function smokeHTTP(origin, app, request = fetch, expectedSHA) {
+function stagedRequest(origin, bypass, request = fetch) {
+  return (url, options = {}) => {
+    if (new URL(url).origin !== origin) throw Error('Staging credential cannot be sent to another origin');
+    const headers = new Headers(options.headers);
+    if (bypass) headers.set('x-vercel-protection-bypass', bypass);
+    return request(url, { ...options, headers, redirect: 'error' });
+  };
+}
+
+async function smokeHTTP(origin, app, request = fetch, expectedSHA, { bypass } = {}) {
   for (const path of ['/', ...(app === 'soundglow' ? [] : ['/auth/confirm'])]) {
     const r = await request(origin + path, { signal: AbortSignal.timeout(30000), cache: 'no-store' });
     if (!r.ok || !r.headers.get('content-type')?.includes('text/html')) throw Error(`Invalid ${app} release document: ${path}`);
@@ -75,11 +85,11 @@ async function smokeHTTP(origin, app, request = fetch, expectedSHA) {
     if (path === '/auth/confirm' && (!r.headers.get('cache-control')?.includes('no-store') || r.headers.get('referrer-policy') !== 'no-referrer')) throw Error('Sign-in privacy headers are missing');
   }
   console.log(await require('./preflight.cjs').smokeResources(origin, app, request, expectedSHA));
-  if (process.env.RELEASE_BROWSER_SMOKE === '1') await require('./smoke-browser.cjs').smokeBrowser(origin, app);
+  if (process.env.RELEASE_BROWSER_SMOKE === '1') await require('./smoke-browser.cjs').smokeBrowser(origin, app, { bypass });
 }
 
-module.exports = { release, smokeHTTP };
-if (require.main === module) release({ app: process.argv[2], sha: process.env.GITHUB_SHA, token: process.env.VERCEL_TOKEN, githubToken: process.env.GITHUB_TOKEN }).then(result => {
+module.exports = { release, smokeHTTP, stagedRequest };
+if (require.main === module) release({ app: process.argv[2], sha: process.env.GITHUB_SHA, token: process.env.VERCEL_TOKEN, githubToken: process.env.GITHUB_TOKEN, bypass: process.env.VERCEL_AUTOMATION_BYPASS_SECRET || undefined }).then(result => {
   console.log(result);
   if (process.env.GITHUB_OUTPUT && result.origin) appendFileSync(process.env.GITHUB_OUTPUT, `origin=${result.origin}\ndeployment=${result.id}\n`);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### ${process.argv[2]} release\n${result.origin || result.skipped}\nCommit: \`${process.env.GITHUB_SHA}\`\n`);

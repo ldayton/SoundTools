@@ -16,7 +16,7 @@ async function launchBrowser(options = {}) {
     ? await mkdtemp(path.join(tmpdir(), 'soundtools-firefox-')) : undefined;
   try {
     const env = { ...process.env, ...options.env, ...(home ? { CFFIXED_USER_HOME: home } : {}) };
-    for (const key of ['VERCEL_TOKEN', 'GITHUB_TOKEN', 'GH_TOKEN', 'SENTRY_AUTH_TOKEN', 'SUPABASE_SERVICE_ROLE_KEY']) delete env[key];
+    for (const key of ['VERCEL_TOKEN', 'GITHUB_TOKEN', 'GH_TOKEN', 'SENTRY_AUTH_TOKEN', 'SUPABASE_SERVICE_ROLE_KEY', 'VERCEL_AUTOMATION_BYPASS_SECRET']) delete env[key];
     const browser = await engines[name].launch({ headless: process.env.HEADED !== '1', ...options,
       args: [...(name === 'chromium' ? ['--mute-audio'] : []), ...(options.args || [])],
       env,
@@ -26,7 +26,7 @@ async function launchBrowser(options = {}) {
   } catch (e) { if (home) await rm(home, { recursive: true, force: true }).catch(() => {}); throw e; }
 }
 function clean(value) { return String(value).replace(/([?&#](?:token_hash|access_token|refresh_token|code)=)[^&#\s]+/g, '$1[redacted]'); }
-async function createContext(browser, options = {}) {
+async function createContext(browser, options = {}, { trace = process.env.CI_TRACE !== '0' } = {}) {
   const context = await browser.newContext({ serviceWorkers: 'block', ...options });
   const state = { logs: [], tracing: false };
   contexts.set(context, state);
@@ -36,13 +36,13 @@ async function createContext(browser, options = {}) {
     page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') log(`${m.type()}: ${m.text()}`); });
     page.on('requestfailed', r => log(`request: ${r.method()} ${r.url()} ${r.failure()?.errorText}`));
   });
-  if (process.env.CI_TRACE !== '0') {
+  if (trace) {
     await context.tracing.start({ snapshots: true, sources: true, screenshots: false });
     state.tracing = true;
   }
   return context;
 }
-const createOfflineContext = (browser, options = {}) => createContext(browser, { serviceWorkers: 'allow', ...options });
+const createOfflineContext = (browser, options = {}, capture) => createContext(browser, { serviceWorkers: 'allow', ...options }, capture);
 async function newPage(browser, options = {}) { return (await createContext(browser, options)).newPage(); }
 async function newOfflinePage(browser, options = {}) { return (await createOfflineContext(browser, options)).newPage(); }
 async function captureFailure(browser, error, destination) {

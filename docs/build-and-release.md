@@ -92,7 +92,11 @@ required jobs. Failure artifacts are retained for diagnosis.
 Each `production-<app>` GitHub environment allows only `main` and holds one
 project-scoped `VERCEL_TOKEN`. Rotate it before expiry through Vercel account
 settings, verify that another project is inaccessible, and replace the matching
-environment secret. Do not store a CLI sign-in token in GitHub or the repository.
+environment secret. Protected projects also hold a project-only
+`VERCEL_AUTOMATION_BYPASS_SECRET`. Staged checks send it only to the exact staging
+origin, refuse redirects and disable request traces while it is in use. Live
+checks run without it, verifying public access. Deployment protection stays on.
+Do not store a CLI sign-in token in GitHub or the repository.
 
 The release job builds the exact validated SHA as a staged production deployment.
 A rerun reuses an existing viable stage for that SHA. It verifies source metadata,

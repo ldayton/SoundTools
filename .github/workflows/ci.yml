@@ -490,11 +490,13 @@ jobs:
       - uses: ./.github/actions/browser
         with:
           browser: chromium
+      - run: node tests/ci/protected-stage.browser.cjs
       - id: release
         run: node scripts/ci/release.cjs ${{ matrix.app }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           RELEASE_BROWSER_SMOKE: "1"
       - uses: actions/upload-artifact@v4
         if: failure()

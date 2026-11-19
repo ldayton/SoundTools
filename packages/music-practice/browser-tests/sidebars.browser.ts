@@ -72,7 +72,7 @@ try {
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "melody");
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
-    "wait",
+    "playback",
   );
   assert.equal(await page.locator("#hymn-size").inputValue(), "48 px");
   await choose("Amazing Grace");
@@ -102,7 +102,7 @@ try {
   assert.match(page.url(), /piano\/hymns\/silent-night/);
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
-    "wait",
+    "playback",
   );
   await page.waitForFunction(
     () =>

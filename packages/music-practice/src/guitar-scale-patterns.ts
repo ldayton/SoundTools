@@ -274,7 +274,7 @@ export function patternPositions(
 /** Choose the octave placement with the most shared string/fret positions. */
 export function linkedPatternPositions(
   tonic: number, quality: ScaleQuality, shape: ScaleShape, shift: number,
-  linked: ScaleShape, spelling?: string,
+  linked: ScaleShape, spelling?: string, preferredShift?: number,
 ) {
   const primary = patternPositions(tonic, quality, shape, shift, spelling);
   const keys = new Set(primary.map(n => `${n.string}:${n.fret}`));
@@ -286,8 +286,8 @@ export function linkedPatternPositions(
       const notes = patternPositions(tonic, quality, linked, s, spelling);
       const overlap = notes.filter(n => keys.has(`${n.string}:${n.fret}`)).length;
       const distance = Math.abs(Math.min(...notes.map(n => n.fret)) - Math.min(...primary.map(n => n.fret)));
-      return { notes, overlap, distance };
+      return { notes, overlap, distance, shift: s };
     })
-    .sort((a, b) => b.overlap - a.overlap || a.distance - b.distance);
+    .sort((a, b) => Number(b.shift === preferredShift) - Number(a.shift === preferredShift) || b.overlap - a.overlap || a.distance - b.distance);
   return candidates[0].notes;
 }

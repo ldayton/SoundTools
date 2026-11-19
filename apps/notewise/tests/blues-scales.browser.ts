@@ -17,14 +17,14 @@ try {
  await page.goto(`${server.base}/guitar/scales?key=${key}&scale=${scale}&pattern=1&link=2`);
  await page.locator('.scale-shift-candidate').first().waitFor();
  await page.locator('.scale-shift-candidate').first().click();
- await page.getByRole('region',{name:'Outward leg',exact:true}).waitFor();
- await page.getByRole('region',{name:'Return leg',exact:true}).waitFor();
+ await page.locator('.scale-link-transition').waitFor({state:'attached'});
+ assert.equal(await page.locator('.scale-diagram svg').count(),1);
  await page.setViewportSize({width:390,height:844});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.getByRole('button',{name:'Clear shift',exact:true}).click();
  await page.setViewportSize({width:1440,height:1000});
  }
- assert.deepEqual(errors,[]);console.log('PASS blues charts, both loop legs, clear, mobile overflow, no runtime errors');
+ assert.deepEqual(errors,[]);console.log('PASS blues charts, bidirectional link, clear, mobile overflow, no runtime errors');
 } catch (error) {
   await captureFailure(browser, error);
   throw error;

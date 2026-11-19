@@ -2,7 +2,7 @@ import type { patternPositions } from './guitar-scale-patterns';
 export type ShiftNote = ReturnType<typeof patternPositions>[number];
 export type ShiftDirection = 'ascending' | 'descending';
 export const positionKey = (n: {string:number;fret:number}) => `${n.string}:${n.fret}`;
-export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDirection, allowEndpoint = false) {
+export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDirection, allowEndpoint = false, primaryFirst = false) {
   // Pitch classes distinguish both the blue note and its unaltered degree.
   const pitches = [...new Set([...a,...b].map(n=>n.pitchClass))].sort((x,y)=>x-y);
   const nextPitch = (pitch: number) => pitches[(pitches.indexOf(pitch)+1)%pitches.length];
@@ -11,8 +11,8 @@ export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDire
   if (!a.some(n => b.some(m => positionKey(n) === positionKey(m)))) return routes;
   const lowerFirst = Math.min(...a.map(n=>n.fret)) < Math.min(...b.map(n=>n.fret));
   const lower = lowerFirst ? a : b, upper = lowerFirst ? b : a;
-  const source = direction === 'ascending' ? lower : upper;
-  const destination = direction === 'ascending' ? upper : lower;
+  const source = primaryFirst ? a : direction === 'ascending' ? lower : upper;
+  const destination = primaryFirst ? b : direction === 'ascending' ? upper : lower;
   const sign = direction === 'ascending' ? 1 : -1;
   const ordered = (notes: ShiftNote[]) => [...notes].sort((x,y)=>sign*(x.midi-y.midi) || sign*(y.string-x.string));
   // A scale run plays each sounding pitch once, even where a shape offers duplicates.
@@ -22,6 +22,7 @@ export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDire
     const after = unique(destination.filter(n=>sign*(n.midi-arrival.midi)>0));
     const previous = before.at(-1);
     if(!previous || (!after.length && !allowEndpoint)) continue;
+    if (primaryFirst && previous.string !== arrival.string) continue;
     const gap = sign*(arrival.midi-previous.midi);
     const stringChange = sign*(previous.string-arrival.string);
     if(gap<1 || gap>maxGap || stringChange<0 || stringChange>1) continue;

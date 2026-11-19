@@ -1,5 +1,5 @@
 import { useSyncExternalStore, type ReactNode } from "react";
-import { Button, Kbd, Modal, Table, Text, Title } from "@mantine/core";
+import { ActionIcon, Button, Kbd, Modal, Table, Text, Title, Tooltip } from "@mantine/core";
 import { frameState } from "./practice-frame";
 import { ScaleDetails } from "./scale-controls";
 export const scaleBodyState = () =>
@@ -8,11 +8,10 @@ export const scaleBodyState = () =>
     shortcutsOpen: false,
     shiftMode: false,
     shiftSelected: false,
-    direction: "ascending",
+    canReverse: false,
     shiftMessage: "",
-    loopLeg: "out",
-    returnEditing: false,
     linkedLegend: "",
+    reversedColors: false,
     linkHelp: "",
     notes: "",
     relativeExplanation: "",
@@ -25,18 +24,14 @@ export function ScaleFrame({
   body,
   relative,
   navigation,
-  changeDirection,
   clearShift,
-  showLeg,
-  editReturn,
+  reverseLink,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
   navigation: ReactNode;
-  changeDirection(): void;
   clearShift(): void;
-  showLeg(leg: "out" | "back"): void;
-  editReturn(): void;
+  reverseLink(): void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   return (
@@ -73,21 +68,29 @@ export function ScaleFrame({
         {navigation}
       </div>
       <div className="scale-link-legend">
+        <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
         {s.linkedLegend && <>
-        <span><i className="link-first" />{s.linkedLegend.split("|")[0]}</span>
-        <span><i className="link-second" />{s.linkedLegend.split("|")[1]}</span>
+        {s.linkedLegend.split("|")
+          .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
+          .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }))
+          .map(({ label, color }) => <span key={label}><i className={color} />{label}</span>)}
         {!s.shiftSelected && <span><i className="link-shared" />Shared note</span>}
         <span><i className="link-shift" />Clickable shift</span>
         </>}
-        <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
+        {s.shiftMode && <div className="scale-link-actions" role="group" aria-label="Linked shape controls">
+          <Tooltip label="Reverse shapes">
+            <ActionIcon variant="subtle" size="md" aria-label="Reverse shapes" disabled={!s.canReverse} onClick={reverseLink}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4" /></svg>
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Clear shift">
+            <ActionIcon className="scale-clear-shift" variant="subtle" size="md" aria-label="Clear shift" onClick={clearShift} disabled={!s.shiftSelected}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </ActionIcon>
+          </Tooltip>
+        </div>}
       </div>
-      {s.shiftMode && <div className="scale-shift-controls">
-        <Button className="scale-direction-toggle" variant="default" size="xs" onClick={changeDirection}>{s.direction === "ascending" ? "Ascending ↑" : "Descending ↓"}</Button>
-        <div className="scale-shift-status scale-loop-controls">
-          {s.shiftSelected ? <Button size="xs" variant="subtle" aria-pressed={s.returnEditing} onClick={editReturn}>{s.returnEditing ? "Done choosing return" : "Change return shift"}</Button> : <Text size="sm" role="status">{s.shiftMessage}</Text>}
-        </div>
-        <Button className="scale-clear-shift" variant="subtle" size="xs" onClick={clearShift} disabled={!s.shiftSelected}>Clear shift</Button>
-      </div>}
+      {s.shiftMode && s.shiftMessage && <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>}
       <div className="scale-diagram" />
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
       <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>

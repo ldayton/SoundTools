@@ -179,11 +179,6 @@
   }
 }
 @media (max-width: 760px) {
-  .soundglow-update-ready:not([hidden]) {
-    flex-basis: 100%;
-    display: flex;
-    justify-content: center;
-  }
   .soundglow-header {
     padding: 10px 12px;
     gap: 6px;
@@ -245,4 +240,9 @@
 .soundglow-selection .selection-actions [hidden] {
   display: inline-flex !important;
   visibility: hidden;
+}
+
+@media (max-width: 47.999em) {
+  .soundglow-header { flex-wrap: wrap; }
+  .soundglow-update-ready:not([hidden]) { margin-top: 4px; }
 }

@@ -15,7 +15,7 @@ async function showUpdate(page: import('playwright').Page) {
     () => innerWidth >= 768 === Boolean(document.querySelector('.mantine-AppShell-navbar'))
   );
   const toggle = page.locator('.nav-toggle');
-  if (await toggle.isVisible()) {
+  if (page.viewportSize()!.width >= 768 && await toggle.isVisible()) {
     const expanded = await toggle.getAttribute('aria-expanded');
     if (expanded !== 'true') await toggle.click();
   }
@@ -328,7 +328,7 @@ try {
   for (const width of [320, 390, 1680, 320, 1680]) {
     await other.setViewportSize({ width, height: 900 });
     await showUpdate(other);
-    assert.equal(await other.locator('header #offline-update').count(), 0);
+    assert.equal(await other.locator('header #offline-update').count(), width < 768 ? 1 : 0);
   }
   await other
     .getByRole('button', { name: 'Complete update', exact: true })

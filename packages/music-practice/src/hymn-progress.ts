@@ -2,6 +2,7 @@ import hymns from "./hymns.json";
 import { hymnEndingBar } from "./hymn-lyrics";
 import {
   hymnPreferences,
+  optionalHymnNote,
   validHymnZoom,
   type HymnSettings,
 } from "./hymn-settings";
@@ -20,6 +21,7 @@ export type HymnState = {
   low?: number | null;
   high?: number | null;
   zoom?: number;
+  zoomByLayout?: Partial<Record<"mobile" | "desktop", number>>;
   hymn: string;
   arrangement: Arrangement;
   hands?: HymnHands;
@@ -36,13 +38,26 @@ export type HymnState = {
 
 /** Saved preferences and content-checked checkpoints, independent of rendering and transport. */
 export class HymnProgress {
-  private zoom = 1;
+  private range: { low: number | null; high: number | null } = {
+    low: null,
+    high: null,
+  };
+  private zoomByLayout = { mobile: 1, desktop: 1 };
   readonly bookmarks: Record<string, Bookmark> = {};
   readonly preferences: Record<string, ReturnType<typeof hymnPreferences>> = {};
   readonly sections: Record<string, number> = {};
   constructor(saved: HymnState | undefined, hymnIds: readonly string[]) {
+    // The current song's last range becomes the global range for older saves.
+    this.range = {
+      low: optionalHymnNote(saved?.low),
+      high: optionalHymnNote(saved?.high),
+    };
+    const legacy = validHymnZoom(saved?.zoom) ? saved.zoom : 1;
+    for (const layout of ["mobile", "desktop"] as const) {
+      const value = saved?.zoomByLayout?.[layout];
+      this.zoomByLayout[layout] = validHymnZoom(value) ? value : legacy;
+    }
     if (saved?.version !== 1) return;
-    if (validHymnZoom(saved.zoom)) this.zoom = saved.zoom;
     for (const field of ["bookmarks", "sections"] as const)
       if (saved[field] && typeof saved[field] === "object")
         Object.assign(this[field], structuredClone(saved[field]));
@@ -51,14 +66,29 @@ export class HymnProgress {
         if (saved.preferences[id])
           this.preferences[id] = hymnPreferences(id, saved.preferences[id]);
   }
+  zoomFor(layout: "mobile" | "desktop") {
+    return this.zoomByLayout[layout];
+  }
+  setZoom(zoom: number, layout: "mobile" | "desktop") {
+    if (validHymnZoom(zoom)) this.zoomByLayout[layout] = zoom;
+  }
   forHymn(id: string) {
     return {
       ...hymnPreferences(id, this.preferences[id]),
-      zoom: this.zoom,
+      ...this.range,
+      zoom: this.zoomByLayout.desktop,
     };
   }
-  remember(settings: HymnSettings, zoom: number) {
-    this.zoom = zoom;
+  remember(
+    settings: HymnSettings,
+    zoom: number,
+    layout: "mobile" | "desktop" = "desktop",
+  ) {
+    this.setZoom(zoom, layout);
+    this.range = {
+      low: optionalHymnNote(settings.low),
+      high: optionalHymnNote(settings.high),
+    };
     this.preferences[settings.hymn] = { ...settings, zoom };
   }
   restore(
@@ -78,8 +108,9 @@ export class HymnProgress {
     originalKey: string,
     zoom: number,
     checkpoint?: { content: string; paused: boolean; length: number },
+    layout: "mobile" | "desktop" = "desktop",
   ): HymnState {
-    this.remember(settings, zoom);
+    this.remember(settings, zoom, layout);
     if (checkpoint)
       this.bookmarks[hymnProgressKey(settings, originalKey)] = bookmark(
         checkpoint.content,
@@ -93,6 +124,7 @@ export class HymnProgress {
       ...settings,
       version: 1,
       zoom,
+      zoomByLayout: { ...this.zoomByLayout },
       bookmarks: this.bookmarks,
       sections: this.sections,
       preferences: this.preferences,

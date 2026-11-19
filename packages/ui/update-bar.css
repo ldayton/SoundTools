@@ -1,0 +1,13 @@
+@media (max-width: 47.999em) {
+  .application-update-bar:not([hidden]) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 100%;
+    width: 100%;
+    height: 48px;
+    box-sizing: border-box;
+    border-top: 1px solid var(--mantine-color-default-border);
+    background: var(--mantine-color-body);
+  }
+}

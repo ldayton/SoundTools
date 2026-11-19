@@ -133,10 +133,19 @@ try {
     const key = document.querySelector('[data-piano="60"]');
     return (
       key &&
-      Math.round(key.getBoundingClientRect().width) === 32 &&
+      Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 20 : 24) &&
       getComputedStyle(key).backgroundColor === 'rgb(255, 255, 255)'
     );
   });
+  assert.equal(await key.locator('.piano-note-label').textContent().then(s => s?.trim()), 'C4');
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="60"] .piano-note-label')!).visibility === 'visible');
+  const dKey = page.locator('[data-piano="62"]');
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'hidden');
+  await dKey.focus();
+  await page.keyboard.down('Enter');
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'visible');
+  await page.keyboard.up('Enter');
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'hidden');
   await key.click();
   await page.waitForFunction(() => (window as any).sources.length > 0);
   assert.equal(
@@ -188,10 +197,16 @@ try {
     await page.waitForFunction(() => {
       const keys = [...document.querySelectorAll('.white-key')];
       return (
-        keys.length > 0 && keys.every((key) => Math.round(key.getBoundingClientRect().width) === 32)
+        keys.length > 0 && keys.every((key) => Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 20 : 24))
       );
     });
   }
+  assert.equal(await page.locator('.piano-key').first().evaluate(key => getComputedStyle(key).userSelect), 'none');
+  assert.equal(await page.locator('.piano-key').first().evaluate(key => {
+    const event = new MouseEvent('contextmenu', {bubbles:true, cancelable:true});
+    key.dispatchEvent(event);
+    return event.defaultPrevented;
+  }), true);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await selectExercise(page, 'pentatonic6');

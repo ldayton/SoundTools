@@ -69,3 +69,63 @@ test("continuous score sizes survive reload and reject corrupt preferences", () 
   for (const zoom of [0, 0.49, 2.01, Infinity, NaN, "1.2", null])
     assert.equal(hymnPreferences("amazing-grace", { zoom }).zoom, 1);
 });
+
+test("staff sizes migrate once and remain independent across layouts and reloads", () => {
+  const settings = hymnPreferences("amazing-grace");
+  const legacy = {
+    ...settings,
+    version: 1 as const,
+    zoom: 1.2,
+    bookmarks: {},
+    sections: {},
+  };
+  const progress = new HymnProgress(legacy, [settings.hymn]);
+  assert.equal(progress.zoomFor("desktop"), 1.2);
+  assert.equal(progress.zoomFor("mobile"), 1.2);
+  progress.setZoom(0.8, "mobile");
+  const saved = progress.snapshot(settings, "G", 0.8, undefined, "mobile");
+  assert.deepEqual(saved.zoomByLayout, { mobile: 0.8, desktop: 1.2 });
+  const restored = new HymnProgress(saved, [settings.hymn]);
+  restored.setZoom(1.5, "desktop");
+  restored.setZoom(NaN, "mobile");
+  const again = new HymnProgress(restored.snapshot(settings, "G", 1.5), [
+    settings.hymn,
+  ]);
+  assert.equal(again.zoomFor("mobile"), 0.8);
+  assert.equal(again.zoomFor("desktop"), 1.5);
+  const corrupt = new HymnProgress(
+    { ...saved, zoomByLayout: { mobile: Infinity, desktop: 1.4 } },
+    [],
+  );
+  assert.equal(corrupt.zoomFor("mobile"), 0.8);
+  assert.equal(corrupt.zoomFor("desktop"), 1.4);
+});
+
+test("note limits are global while each song remembers its own BPM", () => {
+  const first = {
+    ...hymnPreferences("amazing-grace"),
+    low: 48,
+    high: 79,
+    bpm: 96,
+  };
+  const progress = new HymnProgress(undefined, []);
+  progress.remember(first, 1);
+  const second = { ...progress.forHymn("silent-night"), bpm: 112 };
+  assert.equal(second.low, 48);
+  assert.equal(second.high, 79);
+  progress.remember({ ...second, low: 50, high: 81 }, 1);
+  assert.equal(progress.forHymn(first.hymn).bpm, 96);
+  assert.equal(progress.forHymn(first.hymn).low, 50);
+  const saved = progress.snapshot(
+    { ...progress.forHymn(first.hymn), high: null },
+    "G",
+    1,
+  );
+  const restored = new HymnProgress(saved, [first.hymn, second.hymn]);
+  for (const id of [first.hymn, second.hymn, "jesus-loves-me"]) {
+    assert.equal(restored.forHymn(id).low, 50);
+    assert.equal(restored.forHymn(id).high, null);
+  }
+  assert.equal(restored.forHymn(first.hymn).bpm, 96);
+  assert.equal(restored.forHymn(second.hymn).bpm, 112);
+});

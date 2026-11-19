@@ -1,16 +1,30 @@
 import { SettingsSections } from "@ldayton/ui/settings-sections";
 import { OfflineStatusPanel } from "@ldayton/ui/offline-status-panel";
 import { useSyncExternalStore } from "react";
-import { Anchor, Button, Group } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Group,
+  Paper,
+  Stack,
+  Title,
+  Select,
+} from "@mantine/core";
 import { diagnostics } from "./diagnostics";
 import { offlineState, offlineActions } from "./offline-state";
-import { pianoCreditsUrl } from "./piano-audio";
+import {
+  getPianoChannels,
+  setPianoChannels,
+  subscribePianoVolume,
+  pianoCreditsUrl,
+} from "./piano-audio";
 import backingCreditsUrl from "./assets/backing-soul-folk/NOTICE.txt?url&no-inline";
 import acousticCreditsUrl from "./assets/backing-folk-country/NOTICE.txt?url&no-inline";
 import gospelCreditsUrl from "./assets/backing-gospel/NOTICE.txt?url&no-inline";
 import { APP } from "./app-profile";
 
 export function SettingsPage() {
+  const channels = useSyncExternalStore(subscribePianoVolume, getPianoChannels);
   const offline = useSyncExternalStore(
     offlineState.subscribe,
     offlineState.getSnapshot,
@@ -41,6 +55,33 @@ export function SettingsPage() {
         </>
       }
     >
+      {APP.id === "songalong" && (
+        <Paper
+          component="section"
+          withBorder
+          p="md"
+          aria-labelledby="audio-title"
+        >
+          <Stack gap="sm">
+            <Title order={2} size="h4" id="audio-title">
+              Audio
+            </Title>
+            <Select
+              label="Output"
+              value={channels}
+              allowDeselect={false}
+              data={[
+                { value: "stereo", label: "Stereo" },
+                { value: "mono", label: "Combined mono" },
+              ]}
+              onChange={(value) => {
+                if (value === "stereo" || value === "mono")
+                  setPianoChannels(value);
+              }}
+            />
+          </Stack>
+        </Paper>
+      )}
       <Anchor
         href={pianoCreditsUrl}
         target="_blank"

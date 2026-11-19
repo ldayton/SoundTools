@@ -1,3 +1,7 @@
+import { PracticeOptionsProvider } from "../practice-workspace";
+import { ApplicationLayout } from "../application-layout";
+import { CompleteUpdateButton, UpdateBar } from "../offline-status-panel";
+import "../../../apps/soundglow/src/ui/shell.css";
 import { restoreFocus } from "../restore-focus";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -208,9 +212,18 @@ function Crashable() {
   if (crashed) throw new Error("private technical detail");
   return <Button onClick={() => crash(true)}>Trigger render failure</Button>;
 }
+function UpdateFixture() {
+  const [ready, setReady] = useState(true);
+  const mode = new URLSearchParams(location.search).get("updateBar");
+  const update = ready ? <CompleteUpdateButton onClick={() => setReady(false)} /> : undefined;
+  return <SoundToolsProvider><PracticeOptionsProvider entries={[]}>
+    {mode === "soundglow" ? <header className="soundglow-header soundtools-ui"><span>Soundglow</span><button>Settings</button>{update && <UpdateBar>{update}</UpdateBar>}</header> :
+      <ApplicationLayout brand="Test" title="Practice" area="Music" navigation={<span>Exercises</span>} navigationOpen={false} navigationCollapsed={false} onNavigationOpen={() => {}} onNavigationClose={() => {}} onNavigationCollapse={() => {}} onNavigationExpand={() => {}} compact={mode !== "dorego"} toolbarOnly={mode !== "dorego"} mobileToolbarHeight={mode === "songalong" ? 104 : 56} headerActions={<button>Practice controls</button>} updateAction={update}><p>Practice content</p></ApplicationLayout>}
+  </PracticeOptionsProvider></SoundToolsProvider>;
+}
 const recovery = new URLSearchParams(location.search);
 createRoot(document.getElementById("root")!).render(
-  recovery.has("recovery") ? (
+  recovery.has("updateBar") ? <UpdateFixture /> : recovery.has("recovery") ? (
     <RenderErrorBoundary
       appName="Test app"
       dark={recovery.has("dark")}

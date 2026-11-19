@@ -19,14 +19,20 @@
 }
 .scale-diagram {
   margin: auto;
+  min-width: 0;
+  max-width: 100%;
+  container-type: inline-size;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 .scale-diagram svg {
-  width: 100%;
+  /* A four-fret board defines the zoom; added frets expand width, not shrink dots. */
+  width: calc(var(--scale-board-units) * min(100cqw / 297, max(260px, 100dvh - 390px) / 290));
   height: auto;
-  max-height: max(260px, calc(100dvh - 390px));
+  max-width: none;
+  max-height: none;
   display: block;
   margin-inline: auto;
-  overflow: visible;
 }
 .scale-diagram text {
   text-anchor: middle;
@@ -138,7 +144,7 @@
 
 @media (max-width: 760px) {
   .scale-diagram svg {
-    max-height: none;
+    width: calc(var(--scale-board-units) * 100cqw / 297);
   }
 }
 
@@ -149,7 +155,8 @@
 .scale-primary.scale-root circle, .scale-secondary.scale-root circle { fill: #253753; }
 .scale-shared.scale-root circle { fill: #253753; }
 .scale-shared.scale-root text { fill: white; }
-.scale-link-legend { display: flex; gap: 22px; justify-content: center; margin: 12px 0 20px; font-size: 13px; flex-wrap: wrap; }
+.scale-link-legend { display: flex; gap: 22px; justify-content: center; align-items: center; margin: 8px 0 10px; font-size: 13px; flex-wrap: wrap; }
+.scale-link-actions { display:flex; align-items:center; gap:4px; padding-inline-start:16px; border-inline-start:1px solid var(--mantine-color-default-border); }
 .scale-link-legend span { display: flex; align-items: center; gap: 7px; }
 .scale-link-legend i { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
 .link-first { background: #647caa; }
@@ -157,14 +164,7 @@
 .link-shared { border: 2px solid #7663a7; }
 .scale-link-help { max-width: 620px; margin: 12px auto; text-align: center; color: #626771; font-size: 13px; line-height: 1.5; }
 
-.scale-shift-controls { display:grid; grid-template-columns:124px minmax(0,1fr) max-content; gap:12px; align-items:center; margin:0 0 16px; }
-.scale-direction-toggle { width:124px; }
-.scale-shift-controls .scale-shift-status { min-width:0; min-height:3lh; display:flex; align-items:center; }
-@media (max-width:600px) {
-  .scale-shift-controls { grid-template-columns:124px 1fr; }
-  .scale-clear-shift { grid-column:2; grid-row:1; justify-self:end; }
-  .scale-shift-controls .scale-shift-status { grid-column:1 / -1; grid-row:2; min-height:3lh; }
-}
+.scale-shift-status { margin:0 0 10px; }
 .scale-shift-candidate { cursor:pointer; }
 .scale-shift-candidate circle { stroke-dasharray:none; }
 .scale-shift-candidate:focus { outline:none; }
@@ -200,26 +200,7 @@
 .scale-route.scale-secondary.scale-root .scale-shift-marker { fill:#205b50; }
 .scale-shift-chosen .scale-shift-marker { fill:#c36a16; }
 
-.scale-clear-shift { min-width:104px; white-space:nowrap; }
+.scale-link-actions button { width:28px; min-width:28px; height:28px; flex:0 0 28px; }
 
-.scale-loop-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 16px; min-height:32px; }
-.scale-loop-controls button { white-space:nowrap; }
-.scale-loop-turn { cursor:pointer; }
-.scale-loop-turn > path { fill:none; stroke:#b78355; stroke-width:2; }
-.scale-loop-turn > circle { fill:#fff; stroke:#b78355; stroke-width:1.5; }
-.scale-loop-turn > text { fill:#9a5519; font-size:12px; font-weight:700; }
-.scale-loop-turn.is-active > path { stroke:#c36a16; stroke-width:3; }
-.scale-loop-turn.is-active > circle { fill:#c36a16; stroke:#c36a16; }
-.scale-loop-turn.is-active > text { fill:#fff; }
-.scale-loop-turn:focus { outline:none; }
-.scale-loop-turn:focus > circle { stroke:#302d55; stroke-width:3; }
-.scale-card:has(.scale-loop-controls) .scale-diagram svg { max-height:none; }
-
-.scale-loop-pair { display:grid; gap:18px; }
-.scale-loop-panel { min-width:0; }
-.scale-loop-panel + .scale-loop-panel { border-top:1px solid #e4e4e8; padding-top:14px; }
-.scale-loop-panel-heading { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin:0 0 6px; }
-.scale-loop-panel-heading strong { font-size:14px; white-space:nowrap; }
-.scale-loop-panel-heading span { font-size:12px; color:#626771; }
-
-.scale-shift-controls .scale-loop-controls { margin:0; min-height:32px; }
+.scale-link-transition { pointer-events:none; }
+.scale-link-transition > path { fill:none; stroke:#c36a16; stroke-width:2.5; }

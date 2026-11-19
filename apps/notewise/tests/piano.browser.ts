@@ -64,6 +64,15 @@ try {
     );
   assert.equal(await page.locator("#context").textContent(), "Piano · C major");
   assert.ok((await page.locator(".piano-key").count()) > 24);
+  assert.equal(await key(60).locator('.piano-note-label').textContent(), 'C4');
+  assert.equal(await key(60).locator('.piano-note-label').evaluate(e => getComputedStyle(e).visibility), 'visible');
+  assert.equal(await key(62).locator('.piano-note-label').evaluate(e => getComputedStyle(e).visibility), 'hidden');
+  for (const state of ['is-playing', 'is-held', 'is-sustained', 'sight-key-selected', 'is-right', 'is-wrong', 'answer-hover']) {
+    await key(62).evaluate((e, state) => e.classList.add(state), state);
+    assert.equal(await key(62).locator('.piano-note-label').evaluate(e => getComputedStyle(e).visibility), 'visible', state);
+    await key(62).evaluate((e, state) => e.classList.remove(state), state);
+  }
+
   assert.equal(
     (await page.locator(".white-key").first().boundingBox())!.width,
     32,

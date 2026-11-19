@@ -90,3 +90,23 @@
   gap: 8px;
   justify-content: center;
 }
+
+/* Persistent C landmarks and transient labels share one place on each key. */
+.piano-note-label {
+  position: absolute;
+  bottom: 7px;
+  inset-inline: 0;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.1;
+  font-weight: 600;
+  pointer-events: none;
+  user-select: none;
+  visibility: hidden;
+  color: #24313a;
+}
+.black-key .piano-note-label { color: white; font-size: 9px; }
+.piano-note-label.piano-landmark,
+.piano-key:is(.is-playing, .is-held, .is-sustained, .sight-key-selected, .is-right, .is-wrong, .answer-hover, :active) .piano-note-label {
+  visibility: visible;
+}

@@ -1,3 +1,4 @@
+import "./update-bar.css";
 import type { ReactNode } from "react";
 import { Button, Paper, Stack, Text, Title } from "@mantine/core";
 
@@ -65,4 +66,9 @@ export function OfflineStatusPanel({
       </Stack>
     </Paper>
   );
+}
+
+/** A dedicated, centered mobile row shared by every app. */
+export function UpdateBar({ children, hidden, className = "" }: { children: ReactNode; hidden?: boolean; className?: string }) {
+  return <div className={`application-update-bar ${className}`} hidden={hidden} aria-live="polite">{children}</div>;
 }

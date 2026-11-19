@@ -1,4 +1,4 @@
-import { scaleLoopRoutes, positionKey, type ShiftDirection } from "./scale-shift";
+import { shiftRoutes, positionKey } from "./scale-shift";
 import { ScaleFrame, scaleBodyState } from "./scale-frame";
 import { mountPracticeSurface } from "./practice-surfaces";
 import {
@@ -52,12 +52,10 @@ export class ScaleExplorer implements LivePractice {
   private backing = new BackingTrackPlayer();
   readonly inputPolicy = "none" as const;
   private active = false;
-  private shiftDirection: ShiftDirection = "ascending";
   private selectedShift?: string;
-  private selectedReturn?: string;
-  private loopLeg: "out" | "back" = "out";
-  private returnEditing = false;
   private shiftContext = "";
+  private linkedShift?: number;
+  private reversedColors = false;
   enter() {
     this.active = true;
     document.addEventListener("keydown", this.onKeyDown);
@@ -199,10 +197,24 @@ export class ScaleExplorer implements LivePractice {
       element,
       createElement(ScaleFrame, {
         body: this.body,
-        changeDirection: () => { this.shiftDirection = this.shiftDirection === "ascending" ? "descending" : "ascending"; this.selectedShift = undefined; this.selectedReturn = undefined; this.returnEditing = false; this.loopLeg = "out"; this.render(); },
-        clearShift: () => { this.selectedShift = undefined; this.selectedReturn = undefined; this.returnEditing = false; this.loopLeg = "out"; this.render(); },
-        showLeg: (leg) => { this.loopLeg = leg; this.returnEditing = false; this.render(); },
-        editReturn: () => { this.returnEditing = !this.returnEditing; this.loopLeg = "back"; this.render(); },
+        clearShift: () => { this.selectedShift = undefined; this.render(); },
+        reverseLink: () => {
+          if (this.pattern === "map" || this.linked === "none" || this.linked === "map" || this.pattern === this.linked) return;
+          const secondary = linkedPatternPositions(this.tonic, this.quality, this.pattern, this.shift, this.linked, this.spelling, this.linkedShift);
+          const primary = patternPositions(this.tonic, this.quality, this.pattern, this.shift, this.spelling);
+          const reverseRoutes = shiftRoutes(secondary, primary, "ascending", true, true);
+          if (this.selectedShift ? !reverseRoutes.has(this.selectedShift) : !reverseRoutes.size) return;
+          const previousPattern = this.pattern;
+          const previousShift = this.shift;
+          this.pattern = this.linked;
+          this.shift = Math.min(...secondary.map(n => n.fret)) - patternBounds(this.pattern, this.quality)[0];
+          this.linked = previousPattern;
+          this.linkedShift = previousShift;
+          this.reversedColors = !this.reversedColors;
+          this.returnPosition = undefined;
+          this.shiftContext = `${this.tonic}:${this.quality}:${this.pattern}:${this.shift}:${this.linked}`;
+          this.update();
+        },
         relative: createElement(ScaleRelative, {
           model: this.controls,
           toggle: () => {
@@ -343,14 +355,13 @@ export class ScaleExplorer implements LivePractice {
             this.spelling,
           );
     const linked = movable && this.linked !== "none" && this.linked !== "map" && this.linked !== this.pattern;
-    const secondary = linked ? linkedPatternPositions(this.tonic, this.quality, this.pattern as Exclude<ScalePattern, "map">, this.shift, this.linked as Exclude<ScalePattern, "map">, this.spelling) : [];
     const context = `${this.tonic}:${this.quality}:${this.pattern}:${this.shift}:${this.linked}`;
-    if (context !== this.shiftContext) { this.selectedShift = undefined; this.selectedReturn = undefined; this.returnEditing = false; this.loopLeg = "out"; this.shiftContext = context; }
-    const loops = scaleLoopRoutes(linked ? basePositions as ReturnType<typeof patternPositions> : [], secondary, this.shiftDirection, this.selectedReturn);
-    const loop = this.selectedShift ? loops.get(this.selectedShift) : undefined;
-    const route = loop?.[this.loopLeg];
-    const routes = this.returnEditing && loop ? loop.returns : loops;
-    const routeNotes = new Map((route?.notes || []).map((n: ReturnType<typeof patternPositions>[number]) => [positionKey(n), n]));
+    if (context !== this.shiftContext) { this.selectedShift = undefined; this.linkedShift = undefined; this.reversedColors = false; this.shiftContext = context; }
+    const secondary = linked ? linkedPatternPositions(this.tonic, this.quality, this.pattern as Exclude<ScalePattern, "map">, this.shift, this.linked as Exclude<ScalePattern, "map">, this.spelling, this.linkedShift) : [];
+    const routes = shiftRoutes(linked ? basePositions as ReturnType<typeof patternPositions> : [], secondary, "ascending", true, true);
+    const route = this.selectedShift ? routes.get(this.selectedShift) : undefined;
+    const reverseRoutes = shiftRoutes(secondary, basePositions as ReturnType<typeof patternPositions>, "ascending", true, true);
+    const canReverse = linked && (this.selectedShift ? reverseRoutes.has(this.selectedShift) : reverseRoutes.size > 0);
     const primaryKeys = new Set(basePositions.map(n => `${n.string}:${n.fret}`));
     const secondaryKeys = new Set(secondary.map(n => `${n.string}:${n.fret}`));
     const positions = [...basePositions, ...secondary.filter(n => !primaryKeys.has(`${n.string}:${n.fret}`))];
@@ -399,9 +410,7 @@ export class ScaleExplorer implements LivePractice {
       caption: linked ? "" : caption,
       keys,
     });
-    const renderLeg = (leg: "out" | "back") => {
-      const route = loop?.[leg];
-      const routes = leg === "back" && loop ? loop.returns : loops;
+    const renderBoard = () => {
       const routeNotes = new Map((route?.notes || []).map(n => [positionKey(n), n]));
     const notes = positions
       .map((n) => {
@@ -410,30 +419,35 @@ export class ScaleExplorer implements LivePractice {
         const routeNote = routeNotes.get(positionKey(n));
         const fingerNote = routeNote || n;
         const label = route && !routeNote ? "" : labels === "fingers" && "finger" in fingerNote ? fingerNote.finger : scaleLabel(n.name);
-        const available = routes.has(positionKey(n)) && (!loop || leg === "out" || this.returnEditing);
-        const chosen = !!loop && positionKey(loop[leg].arrival) === positionKey(n);
-        const shiftClass = linked ? `${route && !routeNote ? " scale-unused" : ""}${available ? " scale-shift-candidate" : ""}${chosen ? " scale-shift-chosen" : ""}` : "";
+        const available = routes.has(positionKey(n));
+        const chosen = !!route && positionKey(route.arrival) === positionKey(n);
+        const clickable = linked && available && (!route || chosen);
+        const shiftClass = linked ? `${route && !routeNote ? " scale-unused" : ""}${clickable ? " scale-shift-candidate" : ""}${chosen ? " scale-shift-chosen" : ""}` : "";
         const inPrimary = primaryKeys.has(`${n.string}:${n.fret}`);
         const inSecondary = secondaryKeys.has(`${n.string}:${n.fret}`);
-        const membership = routeNote ? ` scale-route ${basePositions.some(p => p === routeNote) ? "scale-primary" : "scale-secondary"}` : route ? "" : linked ? inPrimary && inSecondary ? " scale-shared" : inPrimary ? " scale-primary" : " scale-secondary" : "";
+        const primaryColor = this.reversedColors ? "scale-secondary" : "scale-primary";
+        const secondaryColor = this.reversedColors ? "scale-primary" : "scale-secondary";
+        const membership = routeNote ? ` scale-route ${basePositions.some(p => p === routeNote) ? primaryColor : secondaryColor}` : route ? "" : linked ? inPrimary && inSecondary ? " scale-shared" : inPrimary ? ` ${primaryColor}` : ` ${secondaryColor}` : "";
         const alternate = !route && labels === "fingers" && inPrimary && inSecondary
           ? secondary.find(p => positionKey(p) === positionKey(n)) : undefined;
         const dotLabel = alternate
           ? `<text class="scale-finger-main" x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text><rect class="scale-alternate-badge" x="${x(n.fret)+6}" y="${y(n.string)+5}" width="20" height="20" rx="7"/><text class="scale-finger-alternate" x="${x(n.fret)+16}" y="${y(n.string)+15}" dy=".35em">${alternate.finger}</text>`
           : `<text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text>`;
-        return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${linked ? `role="button" tabindex="${available ? 0 : -1}" aria-disabled="${!available}" aria-pressed="${chosen}" aria-label="${available ? "Shift into other shape at" : "Shift unavailable at"} string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-leg="${leg}" data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${available && (!route || chosen || this.returnEditing) ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string)-17.5} A 17.5 17.5 0 1 1 ${x(n.fret)-17.5} ${y(n.string)} C ${x(n.fret)-17.5} ${y(n.string)-7} ${x(n.fret)-18} ${y(n.string)-12} ${x(n.fret)-21} ${y(n.string)-21} C ${x(n.fret)-12} ${y(n.string)-18} ${x(n.fret)-7} ${y(n.string)-17.5} ${x(n.fret)} ${y(n.string)-17.5} Z M ${x(n.fret)} ${y(n.string)-14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string)+14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string)-14.5} Z"/>` : ""}${dotLabel}</g>`;
+        return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string)-17.5} A 17.5 17.5 0 1 1 ${x(n.fret)-17.5} ${y(n.string)} C ${x(n.fret)-17.5} ${y(n.string)-7} ${x(n.fret)-18} ${y(n.string)-12} ${x(n.fret)-21} ${y(n.string)-21} C ${x(n.fret)-12} ${y(n.string)-18} ${x(n.fret)-7} ${y(n.string)-17.5} ${x(n.fret)} ${y(n.string)-17.5} Z M ${x(n.fret)} ${y(n.string)-14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string)+14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string)-14.5} Z"/>` : ""}${dotLabel}</g>`;
       })
       .join("");
-    const turns = loop ? [loop.out, loop.back].map((turn, i) => {
-      if ((i === 0 ? "out" : "back") !== leg) return "";
+    const turn = route;
+    const transition = turn ? (() => {
       const from = x(turn.previous.fret), to = x(turn.arrival.fret);
       const sameString = turn.previous.string === turn.arrival.string;
       const yFrom = turn.previous.string === 1 ? -12 : turn.previous.string === 6 ? 310 : y(turn.previous.string)+21;
       const yTo = sameString ? yFrom : turn.arrival.string === 1 ? -12 : turn.arrival.string === 6 ? 310 : y(turn.arrival.string)+21;
-      const midX = (from+to)/2, midY = (yFrom+yTo)/2;
-      return `<g class="scale-loop-turn${leg === (i === 0 ? "out" : "back") ? " is-active" : ""}" data-loop-turn="${i === 0 ? "out" : "back"}" role="button" tabindex="0" aria-label="Show ${i === 0 ? "outward" : "return"} leg, shift ${i+1}"><title>Shift ${i+1}: string ${turn.previous.string}, fret ${turn.previous.fret}, finger ${turn.previous.finger} to string ${turn.arrival.string}, fret ${turn.arrival.fret}, finger ${turn.arrival.finger}</title><path d="M ${from} ${yFrom} L ${to} ${yTo}" marker-end="url(#scale-loop-arrow-${leg})"/><circle cx="${midX}" cy="${midY}" r="10"/><text x="${midX}" y="${midY}" dy=".35em">${i+1}</text></g>`;
-    }).join("") : "";
-    return `<svg viewBox="${fullLeft} ${linked ? -35 : 0} ${fullRight - fullLeft} ${linked ? 370 : 290}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-${leg} scale-svg-desc-${leg}"><title id="scale-svg-title-${leg}">${title} guitar scale, ${movable ? `Shape ${this.pattern}, frets ${firstFret}–${lastFret}` : "open strings through fret 5"}</title><desc id="scale-svg-desc-${leg}">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : "Dots show note names."} Full note positions are listed below.</desc>
+      const description = `Bidirectional shift between string ${turn.previous.string}, fret ${turn.previous.fret}, finger ${turn.previous.finger} and string ${turn.arrival.string}, fret ${turn.arrival.fret}, finger ${turn.arrival.finger}`;
+      return `<g class="scale-link-transition" role="img" aria-label="${description}"><title>${description}</title><path d="M ${from} ${yFrom} L ${to} ${yTo}" marker-start="url(#scale-link-arrow)" marker-end="url(#scale-link-arrow)"/></g>`;
+    })() : "";
+    const boardTop = route && (route.previous.string === 1 || route.arrival.string === 1) ? -35 : 0;
+    const boardBottom = route && (route.previous.string === 6 || route.arrival.string === 6) ? 335 : 290;
+    return `<svg style="--scale-board-units:${fullRight-fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `Shape ${this.pattern}, frets ${firstFret}–${lastFret}` : "open strings through fret 5"}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : "Dots show note names."} Full note positions are listed below.</desc>
       ${Array.from(
         { length: fullEnd - fullStart + 2 },
         (_, i) => fullStart - 1 + i,
@@ -451,37 +465,28 @@ export class ScaleExplorer implements LivePractice {
         )
         .join(
           "",
-        )}${notes}<defs><marker id="scale-loop-arrow-${leg}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${turns}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
+        )}${notes}<defs><marker id="scale-link-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${transition}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
     };
     const diagram = this.element.querySelector<HTMLElement>(".scale-diagram")!;
-    diagram.classList.toggle("scale-loop-pair", !!loop);
-    diagram.innerHTML = loop ? (["out", "back"] as const).map(leg =>
-      `<section class="scale-loop-panel" aria-label="${leg === "out" ? "Outward leg" : "Return leg"}"><div class="scale-loop-panel-heading"><strong>${leg === "out" ? "1 · Out" : "2 · Back"} ${(leg === "out") === (this.shiftDirection === "ascending") ? "↑" : "↓"}${leg === "back" ? " ↺" : ""}</strong></div>${renderLeg(leg)}</section>`,
-    ).join("") : renderLeg("out");
+    const scrollLeft = diagram.scrollLeft;
+    diagram.innerHTML = renderBoard();
+    diagram.scrollLeft = scrollLeft;
     this.element.querySelectorAll<SVGGElement>(".scale-shift-candidate").forEach(dot => {
       const select = () => {
         const key = `${dot.dataset.string}:${dot.dataset.fret}`;
-        if (dot.dataset.leg === "back") { this.selectedReturn = key; this.returnEditing = false; }
-        else { this.selectedShift = this.selectedShift === key ? undefined : key; this.selectedReturn = undefined; this.loopLeg = "out"; }
+        this.selectedShift = this.selectedShift === key ? undefined : key;
         this.render();
       };
       dot.addEventListener("click", select);
       dot.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); select(); } });
     });
-    this.element.querySelectorAll<SVGGElement>("[data-loop-turn]").forEach(turn => {
-      const show = () => { this.loopLeg = turn.dataset.loopTurn as "out" | "back"; this.returnEditing = false; this.render(); };
-      turn.addEventListener("click", show);
-      turn.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); show(); } });
-    });
-    const turnText = (turn: NonNullable<typeof route>) => `${turn.previous.string === turn.arrival.string ? `string ${turn.previous.string}` : `strings ${turn.previous.string} → ${turn.arrival.string}`}, ${turn.previous.fret} → ${turn.arrival.fret} · fingers ${turn.previous.finger} → ${turn.arrival.finger}`;
     this.body.patch({
       title,
-      loopLeg: this.loopLeg,
-      returnEditing: this.returnEditing,
       shiftMode: linked,
       shiftSelected: !!route,
-      direction: this.shiftDirection,
-      shiftMessage: loop ? (this.returnEditing ? "Choose the return shift on the lower chart." : "") : loops.size ? "" : "No complete loop available for this pair here.",
+      canReverse,
+      shiftMessage: route || routes.size ? "" : "No linked route available for this pair here.",
+      reversedColors: this.reversedColors,
       linkedLegend: linked ? `Shape ${this.pattern}|Shape ${this.linked}` : "",
       linkHelp: "",
       notes: noteList,

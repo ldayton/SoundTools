@@ -390,7 +390,7 @@ function ReferenceKeyboard({
     <div ref={host} className="dorego-piano" onContextMenu={(event) => event.preventDefault()} onDragStart={(event) => event.preventDefault()}>
       <PianoKeyboard
         rows={rows}
-        whiteKeyWidth={mobile ? 20 : 24}
+        whiteKeyWidth={mobile ? 20 : 32}
         voices={state.voices}
         label={(midi) => noteName(midi, state.root)}
         onPress={audition}

@@ -357,17 +357,15 @@
   flex: 0;
 }
 
-/* This compact reference instrument belongs to DoReGo, not the other piano apps. */
+/* Keep piano gestures consistent; compact sizing applies only on mobile. */
 .dorego-workspace .dorego-piano,
 .dorego-workspace .dorego-piano * {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
-.dorego-workspace .dorego-piano .piano-layout { --black: 17px; column-gap: 0; row-gap: 6px; }
-.dorego-workspace .dorego-piano .piano-keys { height: 96px; }
 @media (max-width: 760px) {
   .dorego-workspace .dorego-piano { margin-inline: 8px; }
-  .dorego-workspace .dorego-piano .piano-layout { --black: 14px; }
+  .dorego-workspace .dorego-piano .piano-layout { --black: 14px; column-gap: 0; row-gap: 6px; }
   .dorego-workspace .dorego-piano .piano-keys { height: 84px; }
 }

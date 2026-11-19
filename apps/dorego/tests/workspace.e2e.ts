@@ -133,7 +133,7 @@ try {
     const key = document.querySelector('[data-piano="60"]');
     return (
       key &&
-      Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 20 : 24) &&
+      Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 20 : 32) &&
       getComputedStyle(key).backgroundColor === 'rgb(255, 255, 255)'
     );
   });
@@ -186,8 +186,8 @@ try {
   assert.ok(Number(await page.locator('#elapsed').getAttribute('data-seconds')) >= Number(pos));
   await page.locator('#restart').click();
   assert.equal(await play.getAttribute('data-mode'), 'ready');
-  for (const width of [320, 390, 760, 900, 1120, 1680]) {
-    await page.setViewportSize({ width, height: 900 });
+  for (const width of [320, 393, 760, 761, 900, 1120, 1680]) {
+    await page.setViewportSize({ width, height: width <= 760 ? 852 : 1050 });
     await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth + 1);
     await page.waitForFunction(() =>
       [...document.querySelectorAll('.piano-octave')].every(
@@ -197,11 +197,20 @@ try {
     await page.waitForFunction(() => {
       const keys = [...document.querySelectorAll('.white-key')];
       return (
-        keys.length > 0 && keys.every((key) => Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 20 : 24))
+        keys.length > 0 && keys.every((key) => {
+          const bounds = key.getBoundingClientRect();
+          return Math.round(bounds.width) === (innerWidth <= 760 ? 20 : 32) &&
+            Math.round(bounds.height) === (innerWidth <= 760 ? 84 : 144);
+        }) && [...document.querySelectorAll('.black-key')].every(
+          (key) => Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 14 : 24)
+        )
       );
     });
   }
-  assert.equal(await page.locator('.piano-key').first().evaluate(key => getComputedStyle(key).userSelect), 'none');
+  await page.waitForFunction(() => {
+    const key = document.querySelector('.piano-key');
+    return key && getComputedStyle(key).userSelect === 'none';
+  });
   assert.equal(await page.locator('.piano-key').first().evaluate(key => {
     const event = new MouseEvent('contextmenu', {bubbles:true, cancelable:true});
     key.dispatchEvent(event);
@@ -285,7 +294,7 @@ try {
   await retina.close();
   assert.deepEqual(errors, []);
   console.log(
-    `${browserName}: toolbar geometry, nine exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and six widths pass`
+    `${browserName}: toolbar geometry, nine exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and responsive widths pass`
   );
 } catch (error) {
   await captureFailure(browser, error);

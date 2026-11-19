@@ -37,10 +37,35 @@ export function getPianoVolume() {
     : 100;
 }
 
+export type PianoChannels = "stereo" | "mono";
+export function getPianoChannels(): PianoChannels {
+  return persistence.read<{ channels?: string }>("audio")?.channels === "mono"
+    ? "mono"
+    : "stereo";
+}
+export function setPianoChannels(channels: PianoChannels) {
+  if (channels !== "stereo" && channels !== "mono") return;
+  persistence.write("audio", {
+    ...persistence.read<object>("audio"),
+    version: 1,
+    channels,
+  });
+  refreshPianoVolume();
+}
+function configureChannels(node: GainNode) {
+  // As in DoReGo: average L/R into one channel, played through both speakers.
+  node.channelInterpretation = "speakers";
+  node.channelCountMode = "explicit";
+  node.channelCount = getPianoChannels() === "mono" ? 1 : 2;
+}
 export function setPianoVolume(value: number) {
   if (!Number.isFinite(value)) return;
   const volume = Math.max(0, Math.min(100, value));
-  persistence.write("audio", { version: 1, volume });
+  persistence.write("audio", {
+    ...persistence.read<object>("audio"),
+    version: 1,
+    volume,
+  });
   refreshPianoVolume();
 }
 /** Apply an account snapshot to both the controls and an already running audio graph. */
@@ -48,6 +73,7 @@ export function refreshPianoVolume() {
   const volume = getPianoVolume();
   volumeListeners.forEach((listener) => listener());
   if (context && master) {
+    configureChannels(master);
     master.gain.setTargetAtTime(volume / 100, context.currentTime, 0.015);
   }
 }
@@ -103,6 +129,7 @@ function audio() {
     output.attack.value = 0.003;
     output.release.value = 0.2;
     master = context.createGain();
+    configureChannels(master);
     master.gain.value = getPianoVolume() / 100;
     output.connect(master).connect(context.destination);
   }

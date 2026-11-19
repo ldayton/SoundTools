@@ -127,6 +127,47 @@ const engines = require("playwright");
     await page.keyboard.press("Enter");
     assert.equal(await page.locator("#test-pitch").inputValue(), "C4");
     await page.clock.resume();
+    const fieldPolicy = async target => {
+      assert.deepEqual(await target.locator('#zoom-text,#zoom-textarea,#zoom-native-select,#zoom-select,#zoom-native,#zoom-editable,#zoom-tempo').evaluateAll(fields =>
+        fields.filter(field => parseFloat(getComputedStyle(field).fontSize) < 16).map(field => field.id)), [],
+        'All mobile fields must stay above the Safari focus-zoom threshold');
+      assert.equal(await target.locator('#zoom-large').evaluate(el => parseFloat(getComputedStyle(el).fontSize)), largeSize,
+        'The mobile floor must preserve larger text sizes');
+      const readout = await target.locator('#zoom-tempo').evaluate(el => {
+        const style = getComputedStyle(el), canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d'); context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        return { available: el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight), needed: context.measureText(el.value).width };
+      });
+      assert(readout.available >= readout.needed, 'The three-digit BPM readout must fit at the mobile font size');
+      await target.locator('#zoom-dialog-open').click();
+      const dialog = target.getByRole('dialog', { name: 'Mobile fields', exact: true });
+      await dialog.waitFor();
+      assert(await target.locator('#zoom-dialog-input').evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16),
+        'Portaled dialog fields follow the same mobile policy');
+      await dialog.press('Escape'); await dialog.waitFor({ state: 'hidden' });
+      assert.equal(await target.locator('#zoom-dialog-open').evaluate(el => getComputedStyle(el).touchAction), 'manipulation',
+        'Repeated button taps do not trigger double-tap zoom');
+      const viewport = await target.locator('meta[name="viewport"]').getAttribute('content');
+      assert(!/user-scalable\s*=\s*(no|0)|maximum-scale\s*=\s*1(?:[\s,]|$)/i.test(viewport), 'Manual pinch zoom stays available');
+    };
+    const largeSize = await page.locator('#zoom-large').evaluate(el => parseFloat(getComputedStyle(el).fontSize));
+    const desktopSize = await integer.evaluate(el => parseFloat(getComputedStyle(el).fontSize));
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.locator('#zoom-tempo-down').waitFor();
+    await fieldPolicy(page);
+    if (engine !== 'firefox') {
+      const { iphone14ProLandscape } = require('./test-devices.cjs');
+      const phone = await browser.newPage(iphone14ProLandscape);
+      try {
+        await phone.goto('http://127.0.0.1:4970');
+        await phone.locator('#zoom-tempo-down').waitFor();
+        await fieldPolicy(phone);
+      } finally { await phone.close(); }
+    }
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.locator('#zoom-tempo-down').waitFor({ state: 'hidden' });
+    assert.equal(await integer.evaluate(el => parseFloat(getComputedStyle(el).fontSize)), desktopSize,
+      'Desktop field sizes remain unchanged');
     for (const options of ["", "&dark&stopFails&reportFails"]) {
       await page.goto("http://127.0.0.1:4970/?recovery" + options);
       await page.evaluate(() => {

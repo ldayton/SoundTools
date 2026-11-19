@@ -1,7 +1,16 @@
 import { restoreFocus } from "../restore-focus";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Button, Stack } from "@mantine/core";
+import {
+  Button,
+  Modal,
+  NativeSelect,
+  Select,
+  Stack,
+  Textarea,
+  TextInput,
+} from "@mantine/core";
+import { ToolbarNumber } from "../toolbar-number";
 import { SoundToolsProvider } from "../provider";
 import { RenderErrorBoundary } from "../render-error-boundary";
 import { PitchField } from "../pitch-field";
@@ -57,6 +66,7 @@ declare global {
 }
 
 function Controls() {
+  const [mobileDialog, setMobileDialog] = useState(false);
   const [pitch, setPitch] = useState(0);
   const [pitchOpen, setPitchOpen] = useState(false);
   const [integer, setInteger] = useState(120),
@@ -122,6 +132,58 @@ function Controls() {
           External change
         </Button>
         <Button id="outside">Outside</Button>
+        <TextInput id="zoom-text" label="Small text field" size="xs" />
+        <Textarea id="zoom-textarea" label="Small text area" size="xs" />
+        <NativeSelect
+          id="zoom-native-select"
+          label="Native select"
+          size="xs"
+          data={["One", "Two"]}
+        />
+        <Select
+          id="zoom-select"
+          label="Select"
+          size="xs"
+          data={["One", "Two"]}
+        />
+        <TextInput id="zoom-large" label="Large text field" size="xl" />
+        <input
+          id="zoom-native"
+          aria-label="Native text field"
+          style={{ fontSize: 12 }}
+        />
+        <div
+          id="zoom-editable"
+          contentEditable
+          suppressContentEditableWarning
+          style={{ fontSize: 12 }}
+        >
+          Editable text
+        </div>
+        <ToolbarNumber
+          id="zoom-tempo"
+          label="Tempo"
+          unit="BPM"
+          icon={null}
+          value={100}
+          min={40}
+          max={240}
+          onChange={() => {}}
+        />
+        <Button id="zoom-dialog-open" onClick={() => setMobileDialog(true)}>
+          Open mobile fields
+        </Button>
+        <Modal
+          opened={mobileDialog}
+          onClose={() => setMobileDialog(false)}
+          title="Mobile fields"
+        >
+          <TextInput
+            id="zoom-dialog-input"
+            label="Dialog text field"
+            size="xs"
+          />
+        </Modal>
         <PracticeToolbar
           model={instrumented}
           playback={playback}

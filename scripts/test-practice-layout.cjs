@@ -402,6 +402,10 @@ const server = spawn(
           await options.waitFor();
           // As with navigation, finish the entrance before issuing a touch.
           await finishDrawerEntrance(options);
+          assert.deepEqual(await options.locator('input:not([type="hidden"]),select,textarea,.mantine-Input-input').evaluateAll(fields =>
+            fields.filter(el => el.getClientRects().length && parseFloat(getComputedStyle(el).fontSize) < 16)
+              .map(el => ({ id: el.id, font: getComputedStyle(el).fontSize }))), [],
+            `${app}: mobile options must not trigger Safari focus zoom`);
           await phone
             .getByRole("button", {
               name: /^Close (practice|playback) options$/,

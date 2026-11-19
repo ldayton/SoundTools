@@ -86,3 +86,19 @@ test('account close restores its opener but preserves a newer setting focus', as
  await expect(dialog).toBeHidden();
  await expect(slider).toBeFocused();
 });
+
+
+test('phone settings and account fields stay above the focus-zoom threshold', async({page}) => {
+ const { iphone14Pro } = require('../../../../scripts/test-devices.cjs');
+ await page.setViewportSize(iphone14Pro.viewport);
+ await page.goto('/dist/index.html#settings');
+ await expect(page.locator('#preset')).toBeVisible();
+ const undersized = async root => root.locator('input:not([type="hidden"]),select,textarea,.mantine-Input-input').evaluateAll(fields =>
+  fields.filter(el => el.getClientRects().length && parseFloat(getComputedStyle(el).fontSize) < 16)
+   .map(el => ({id:el.id, font:getComputedStyle(el).fontSize})));
+ expect(await undersized(page)).toEqual([]);
+ await page.getByRole('button', {name:'Log in', exact:true}).click();
+ const dialog = page.getByRole('dialog', {name:'Log in', exact:true});
+ await expect(dialog).toBeVisible();
+ expect(await undersized(dialog)).toEqual([]);
+});

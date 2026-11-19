@@ -253,7 +253,7 @@ try {
   await track.scrollIntoViewIfNeeded();
   const bounds = await track.boundingBox();
   assert.ok(bounds);
-  await phone.touchscreen.tap(bounds.x + 2, bounds.y + bounds.height / 2);
+  await track.tap({ position: { x: 2, y: bounds.height / 2 } });
   await phone.waitForFunction(() => {
     const slider = document.querySelector(
       '[role="slider"][aria-label="Bass balance"]',

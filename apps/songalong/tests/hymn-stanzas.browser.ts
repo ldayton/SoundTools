@@ -280,6 +280,13 @@ try {
             .map((w) => w.text);
         });
       assert.deepEqual(collisions, [], hymn.id + " lyric overlap");
+      const bottomGaps = await page.locator(".hymn-paper svg").evaluateAll(svgs =>
+        svgs.flatMap(svg => {
+          const lyrics = [...svg.querySelectorAll(".abcjs-lyric")];
+          if (!lyrics.length) return [];
+          return [svg.getBoundingClientRect().bottom - Math.max(...lyrics.map(lyric => lyric.getBoundingClientRect().bottom))];
+        }));
+      assert.ok(bottomGaps.every(gap => gap >= 8), hymn.id + " leaves space below the last lyric line");
     }
   }
   await visit("amazing-grace", "?stanzas=1,2,3");

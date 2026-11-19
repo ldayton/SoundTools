@@ -158,6 +158,33 @@ export function drawPracticeScore(
       }
       svg.style.marginInline = "auto";
     }
+    // abcjs's per-system SVG can end exactly at the last lyric's ink bounds.
+    // Reserve space inside the viewBox so lower stanzas don't touch its edge.
+    const screen = svg.getScreenCTM();
+    if (screen && options.lyrics) {
+      const inverse = screen.inverse();
+      const box = svg.viewBox.baseVal;
+      let bottom = box.y + box.height;
+      for (const lyric of svg.querySelectorAll<SVGGraphicsElement>(
+        ".abcjs-lyric",
+      )) {
+        const transform = lyric.getScreenCTM();
+        if (!transform) continue;
+        const bounds = lyric.getBBox();
+        const matrix = inverse.multiply(transform);
+        for (const x of [bounds.x, bounds.x + bounds.width])
+          bottom = Math.max(
+            bottom,
+            new DOMPoint(x, bounds.y + bounds.height).matrixTransform(matrix)
+              .y + 12,
+          );
+      }
+      if (bottom > box.y + box.height)
+        svg.setAttribute(
+          "viewBox",
+          `${box.x} ${box.y} ${box.width} ${bottom - box.y}`,
+        );
+    }
     const box = svg.viewBox.baseVal;
     const fittedScale = Math.min(scale, width / box.width);
     svg.style.display = "block";

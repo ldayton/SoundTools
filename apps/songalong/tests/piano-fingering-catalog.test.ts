@@ -22,7 +22,7 @@ test("catalogue melody and bass fingerings remain reachable through transpositio
             for (const [vi, voice] of (staff.voices || []).entries()) {
               const id = `${si}:${vi}`;
               const part = voices.get(id) || {
-                hand: staff.clef.type === "bass" ? "left" : "right",
+                hand: staff.clef?.type === "bass" ? "left" : "right",
                 notes: [],
                 rest: false,
               };

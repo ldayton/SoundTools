@@ -14,6 +14,7 @@ import {
 import { PrivacySection } from "@ldayton/ui/privacy-section";
 import {
   CompleteUpdateButton,
+  UpdateBar,
   OfflineStatusPanel,
 } from "@ldayton/ui/offline-status-panel";
 import { createViewState } from "@ldayton/ui/view-state";
@@ -71,10 +72,9 @@ export function createSystemControls() {
   function Update() {
     const view = useSyncExternalStore(offline.subscribe, offline.getSnapshot);
     return (
-      <Box
+      <UpdateBar
         className="soundglow-update-ready"
         hidden={!view.updateVisible}
-        aria-live="polite"
       >
         <CompleteUpdateButton
           id="update"
@@ -82,7 +82,7 @@ export function createSystemControls() {
           version={view.updateVersion ?? undefined}
           onClick={() => offlineActions?.update()}
         />
-      </Box>
+      </UpdateBar>
     );
   }
   function Privacy() {

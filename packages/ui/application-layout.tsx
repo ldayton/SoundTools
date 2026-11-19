@@ -1,3 +1,4 @@
+import { UpdateBar } from "./offline-status-panel";
 import { restoreFocus } from "./restore-focus";
 import { ControlIcon } from "./control-icon";
 import { PanelIcon } from "./panel-icon";
@@ -166,6 +167,10 @@ export function ApplicationLayout({
   const smallToolbar = useMediaQuery("(max-width: 479px)", undefined, {
     getInitialValueInEffect: false,
   });
+  const toolbarHeight = toolbarOnly
+    ? desktop ? 56 : (mobileToolbarHeight ?? (smallToolbar ? 148 : 104))
+    : compact ? 56 : 72;
+  const mobileUpdate = !desktop && !!updateAction;
   return (
     <>
       <Anchor href="#practice-content" className="skip-link">
@@ -174,13 +179,7 @@ export function ApplicationLayout({
       <AppShell
         transitionDuration={resizing ? 0 : 200}
         header={{
-          height: toolbarOnly
-            ? desktop
-              ? 56
-              : (mobileToolbarHeight ?? (smallToolbar ? 148 : 104))
-            : compact
-              ? 56
-              : 72,
+          height: toolbarHeight + (mobileUpdate ? 48 : 0),
         }}
         navbar={{
           width: resizableNavigation ? navigationWidth : minimumWidth,
@@ -192,7 +191,7 @@ export function ApplicationLayout({
         <AppShell.Header className={`soundtools-ui ${headerClassName || ""}`}>
           <Group
             className="application-toolbar"
-            h="100%"
+            h={toolbarHeight}
             px={compact ? "sm" : "md"}
             gap={toolbarOnly ? "xs" : "md"}
             wrap="nowrap"
@@ -255,6 +254,7 @@ export function ApplicationLayout({
             <PracticeOptionsReopen />
             {!toolbarOnly && headerActions}
           </Group>
+          {mobileUpdate && <UpdateBar>{updateAction}</UpdateBar>}
         </AppShell.Header>
         {desktop && (
           <AppShell.Navbar
@@ -367,11 +367,6 @@ export function ApplicationLayout({
           id="practice-navigation"
           className="app-sidebar"
         >
-          {!desktop && updateAction && (
-            <Box mb="md" aria-live="polite">
-              {updateAction}
-            </Box>
-          )}
           {navigation}
         </Box>
       </Drawer>

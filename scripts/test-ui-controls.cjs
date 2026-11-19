@@ -211,6 +211,27 @@ const engines = require("playwright");
         "preserved",
       );
     }
+    for (const app of ['notewise', 'songalong', 'dorego', 'soundglow']) {
+      for (const width of [320, 390, 767]) {
+        await page.setViewportSize({width, height:844});
+        await page.goto(`http://127.0.0.1:4970/?updateBar=${app}`);
+        const button = page.getByRole('button', {name:'Complete update', exact:true});
+        await button.waitFor().catch(async error => { console.error(app, width, await page.locator('body').innerText(), errors); throw error; });
+        const bar = page.locator('.application-update-bar');
+        const b = await button.boundingBox(), row = await bar.boundingBox();
+        assert.ok(Math.abs(b.x + b.width / 2 - width / 2) <= 1, `${app}/${width} centered`);
+        assert.equal(row.height,48);
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        if (app !== 'soundglow') {
+          const toolbar = await page.locator('.application-toolbar').boundingBox();
+          assert.ok(row.y >= toolbar.y + toolbar.height - 1, `${app} dedicated row`);
+          const main = await page.locator('#practice-content > .workspace-content').boundingBox();
+          assert.ok(main.y >= row.y + row.height - 1, `${app} content clears header`);
+        }
+        await button.click();
+        await bar.waitFor({state:'detached'});
+      }
+    }
     assert.deepEqual(errors, []);
     console.log(
       `PASS shared UI/${engine}: drafts, Escape, Enter once, blur, bounds, decimals, rejection, reset, external changes, step controls isolated playback subscriptions, and render recovery (shutdown, reporting failures, focus, dark theme and reload)`,

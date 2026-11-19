@@ -1,4 +1,9 @@
-import { captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createOfflineContext as createContext,
+} from "../scripts/ci/browser-harness.cjs";
 import { account, login, pull, closeModal } from "./account-helpers.mts";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
@@ -93,7 +98,7 @@ try {
   );
   await a.setOffline(false);
   await account(p);
-  await p.getByRole("button", { name: "Sync now", exact: true }).click();
+  await p.getByRole("status").filter({ hasText: "Synced" }).waitFor();
   await closeModal(p);
   await p.waitForFunction(() =>
     [...document.querySelectorAll("button")].some(
@@ -117,7 +122,7 @@ try {
   await q.getByRole("button", { name: "Sign out", exact: true }).click();
   await q
     .getByRole("alert")
-    .filter({ hasText: "changes waiting to sync" })
+    .filter({ hasText: "Changes are still saving" })
     .waitFor();
   await p.locator("#bpm").fill("160");
   await p.locator("#bpm").press("Tab");
@@ -127,13 +132,13 @@ try {
     ),
   );
   await b.setOffline(false);
-  await q.getByRole("button", { name: "Use cloud", exact: true }).waitFor();
-  await q.getByRole("button", { name: "Use cloud", exact: true }).click();
-  await q
-    .getByRole("button", { name: "Use cloud", exact: true })
-    .waitFor({ state: "hidden" });
+  await q.getByRole("status").filter({ hasText: "Synced" }).waitFor();
+  assert.equal(
+    await q.getByRole("button", { name: "Use cloud", exact: true }).count(),
+    0,
+  );
   await closeModal(q);
-  assert.equal(await q.locator("#bpm").inputValue(), "160 BPM");
+  assert.equal(await q.locator("#bpm").inputValue(), "150 BPM");
   await q.getByRole("button", { name: "Breath Squares", exact: true }).click();
   await q.locator("#breath-rounds").fill("6");
   await q.locator("#breath-rounds").press("Tab");
@@ -174,7 +179,10 @@ try {
   await p.screenshot({ path: "work/account-songalong-desktop.png" });
   await closeModal(p);
   assert.equal(
-    await p.getByRole("status").filter({ hasText: "Saved on this device." }).count(),
+    await p
+      .getByRole("status")
+      .filter({ hasText: "Saved on this device." })
+      .count(),
     0,
     "signed-in practice must not claim guest-only storage",
   );
@@ -244,7 +252,11 @@ try {
       .isVisible(),
   );
   await account(phone);
-  await phone.getByRole("button", { name: "Sync now", exact: true }).waitFor();
+  await phone.getByRole("button", { name: "Sign out", exact: true }).waitFor();
+  assert.equal(
+    await phone.getByRole("button", { name: "Sync now", exact: true }).count(),
+    0,
+  );
   await closeModal(phone);
   await mobile.close();
   assert.deepEqual(errors, []);

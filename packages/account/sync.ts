@@ -40,7 +40,11 @@ export class SyncEngine {
     return result;
   }
   async load() {
-    await this.update(() => {});
+    await this.update((state) => {
+      // Repair outboxes saved by the old manual-conflict policy on upgrade.
+      for (const pending of Object.values(state.pending))
+        delete pending.conflict;
+    });
   }
   get records() {
     return values(this.state);
@@ -95,28 +99,32 @@ export class SyncEngine {
       state.initialized = true;
       reconcile(state, rows);
     });
-    // Reload each operation from durable state: other tabs and edits can change
-    // the outbox while a request is in flight. A lost response is safe to retry.
+    // Independent records can travel concurrently. Each CAS is acknowledged
+    // against its own operation ID, so a later local edit is never erased.
     for (let count = 0; count < 100 && !this.closed; count++) {
-      const { result: next } = await this.update((state) =>
-        Object.entries(state.pending).find(([, p]) => !("conflict" in p)),
+      const { result: batch } = await this.update((state) =>
+        Object.entries(state.pending).slice(0, 8),
       );
-      if (!next) return;
-      const [key, pending] = next;
-      const result = await this.cloud.write(
-        key,
-        pending.value,
-        pending.revision,
-        pending.id,
-        this.state.device,
+      if (!batch.length) return;
+      const results = await Promise.allSettled(
+        batch.map(async ([key, pending]) => {
+          const result = await this.cloud.write(
+            key,
+            pending.value,
+            pending.revision,
+            pending.id,
+            this.state.device,
+          );
+          if (this.closed) return;
+          await this.update((state) => {
+            if (result.applied && state.pending[key]?.id === pending.id)
+              delete state.pending[key];
+            reconcile(state, [result.row]);
+          });
+        }),
       );
-      if (this.closed) return;
-      await this.update((state) => {
-        // Only acknowledge this operation; never erase a newer local edit.
-        if (result.applied && state.pending[key]?.id === pending.id)
-          delete state.pending[key];
-        reconcile(state, [result.row]);
-      });
+      const failed = results.find((result) => result.status === "rejected");
+      if (failed?.status === "rejected") throw failed.reason;
     }
   }
 }

@@ -17,9 +17,11 @@ async function openNavigation(page: Page) {
     exact: true,
   });
   if (await navigation.isVisible()) {
-    if (await navigation.getAttribute("aria-expanded") !== "true")
+    if ((await navigation.getAttribute("aria-expanded")) !== "true")
       await navigation.click();
-    await page.getByRole("button", { name: "Close navigation", exact: true }).waitFor();
+    await page
+      .getByRole("button", { name: "Close navigation", exact: true })
+      .waitFor();
   } else if (await files.isVisible()) await files.click();
   else if (await page.locator("#settings").isVisible())
     await page.locator("#settings").click();
@@ -27,21 +29,34 @@ async function openNavigation(page: Page) {
 async function menuButton(page: Page, name: "Account" | "Log in") {
   await page.locator("#practice-content, .soundglow-header").first().waitFor();
   if (await page.locator("#practice-content").count())
-    await page.waitForFunction(() => (window as any).__soundtoolsStartup?.ready);
+    await page.waitForFunction(
+      () => (window as any).__soundtoolsStartup?.ready,
+    );
   const nav = page.getByRole("button", { name, exact: true });
   // A transitioning off-canvas drawer can be visible to accessibility APIs
   // while its buttons are still outside the viewport.
-  const onScreen = await nav.isVisible() && await nav.evaluate(element => {
-    const box = element.getBoundingClientRect();
-    return box.width > 0 && box.height > 0 && box.right > 0 && box.left < innerWidth;
-  }).catch(() => false);
+  const onScreen =
+    (await nav.isVisible()) &&
+    (await nav
+      .evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        return (
+          box.width > 0 &&
+          box.height > 0 &&
+          box.right > 0 &&
+          box.left < innerWidth
+        );
+      })
+      .catch(() => false));
   if (!onScreen) await openNavigation(page);
   const drawer = page.getByRole("dialog").filter({ has: nav });
   if (await drawer.isVisible()) {
-    await drawer.evaluate(async element => {
-      await Promise.all(element.getAnimations({ subtree: true }).map(animation =>
-        animation.finished.catch(() => {}),
-      ));
+    await drawer.evaluate(async (element) => {
+      await Promise.all(
+        element
+          .getAnimations({ subtree: true })
+          .map((animation) => animation.finished.catch(() => {})),
+      );
     });
   }
   return nav;
@@ -66,8 +81,16 @@ let checkedLinkRetry = false;
 export async function login(page: Page, link = false) {
   const nav = await menuButton(page, "Log in");
   await nav.click();
-  const emailInput = page.getByRole("textbox", { name: "Email address", exact: true });
-  assert(await emailInput.evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16), "email input avoids iOS focus zoom");
+  const emailInput = page.getByRole("textbox", {
+    name: "Email address",
+    exact: true,
+  });
+  assert(
+    await emailInput.evaluate(
+      (el) => parseFloat(getComputedStyle(el).fontSize) >= 16,
+    ),
+    "email input avoids iOS focus zoom",
+  );
   await emailInput.fill("nobody@soundtools.test");
   await page
     .getByRole("button", { name: "Send sign-in email", exact: true })
@@ -92,16 +115,34 @@ export async function login(page: Page, link = false) {
   await page
     .getByRole("textbox", { name: "Sign-in code", exact: true })
     .waitFor();
-  assert(await page.getByRole("textbox", {name:"Sign-in code", exact:true}).evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16), "code input avoids iOS focus zoom");
+  assert(
+    await page
+      .getByRole("textbox", { name: "Sign-in code", exact: true })
+      .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 16),
+    "code input avoids iOS focus zoom",
+  );
   const email = await latestEmail();
   const html = email.HTML;
-  const app = ({ "4391": "DoReGo", "4392": "SongAlong", "4393": "NoteWise", "4394": "Soundglow" } as Record<string, string>)[new URL(page.url()).port];
+  const app = (
+    {
+      "4391": "DoReGo",
+      "4392": "SongAlong",
+      "4393": "NoteWise",
+      "4394": "Soundglow",
+    } as Record<string, string>
+  )[new URL(page.url()).port];
   assert(app, "known app preview");
   assert(email.Subject.includes(`Sign in to ${app}`), "app-specific subject");
-  assert(!/sound\s*tools/i.test(email.Subject + html), "email contains only the individual app brand");
+  assert(
+    !/sound\s*tools/i.test(email.Subject + html),
+    "email contains only the individual app brand",
+  );
   assert(html.includes(`alt="${app} logo"`), "email has the app logo");
   const code = (email.Text || html).match(/\b\d{6}\b/)![0];
-  assert(email.Subject.includes(code), "per-request code makes the subject different for Gmail");
+  assert(
+    email.Subject.includes(code),
+    "per-request code makes the subject different for Gmail",
+  );
   assert(
     html.includes("#token_hash="),
     "same email contains the alternate link",
@@ -127,7 +168,9 @@ export async function login(page: Page, link = false) {
     }
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     if (app !== "Soundglow") {
-      await page.getByRole("link", { name: `Continue to ${app}`, exact: true }).click();
+      await page
+        .getByRole("link", { name: `Continue to ${app}`, exact: true })
+        .click();
       // Continue loads the application from the standalone confirmation page.
       // Wait for the new shell before deciding whether its menu needs opening.
       await (await menuButton(page, "Account")).waitFor();
@@ -179,21 +222,15 @@ export async function login(page: Page, link = false) {
 }
 export async function pull(page: Page) {
   await account(page);
-  await page.getByRole("button", { name: "Sync now", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Sync now", exact: true })
-    .and(page.locator(":not([data-loading])"))
-    .waitFor();
   await page.getByRole("status").filter({ hasText: "Synced" }).waitFor();
-  const apply = page.getByRole("button", {
-    name: "Apply cloud changes",
-    exact: true,
-  });
-
-  if (await apply.isVisible()) {
-    await apply.click();
-    await apply.waitFor({ state: "hidden" });
-  }
+  for (const name of [
+    "Sync now",
+    "Apply cloud changes",
+    "Use this device",
+    "Use cloud",
+  ])
+    if (await page.getByRole("button", { name, exact: true }).count())
+      throw Error(`Manual sync control remains: ${name}`);
   await closeModal(page);
 }
 export async function closeModal(page: Page) {

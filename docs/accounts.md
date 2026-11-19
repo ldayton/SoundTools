@@ -78,15 +78,26 @@ semantics. Writes carry the expected revision and an operation UUID. The server
 serializes initialization/writes per owner and app, and retries are idempotent.
 JSON equality ignores object-key ordering because Postgres JSONB reorders keys.
 
-Independent edits merge. Conflicting edits to one record are preserved for the
-user to choose in Account. A reset can legitimately move progress backwards.
-Each local edit is saved immediately to the outbox; uploads are debounced. Active
-pages check every 15 seconds and on focus, visibility and reconnection. Tabs share
-an atomic IndexedDB queue and broadcast invalidations without network ping-pong.
+Independent records merge automatically. Competing pending writes to one record
+rebase onto the latest server revision and retry with compare-and-swap; the last
+successfully committed write wins. Related pitch fields remain atomic. This is
+server-ordered, not dependent on device clock accuracy. An offline edit can become
+the latest write when it reconnects. Previously blocked conflict outboxes repair
+on load. No conflict choices, Sync now, or Apply cloud changes controls remain.
+A reset can legitimately move progress backwards.
 
-Remote changes apply while idle. During practice they wait behind **Apply cloud
-changes**, avoiding interruption or silent checkpoint resets. Reloads use cached
-account data before a network check. App updates flush the outbox before reload.
+Each local edit is saved immediately to the outbox. Uploads start within a bounded
+200 ms coalescing window, even with continuous checkpoint saves. Up to eight
+independent records upload concurrently, with durable per-operation acknowledgements.
+Foreground pages check every five seconds and on focus, visibility and reconnection.
+Tabs share an atomic IndexedDB queue and broadcast invalidations. Concurrent sync
+requests coalesce with a follow-up pass, rather than overlapping apply cycles.
+
+Remote changes automatically apply at the next safe point, checked every 500 ms.
+Playback and active input remain protected. Wait-for-me treats three seconds without
+an answer and with no held keys as idle; focused inputs and passage selection still
+defer application. Reloads use cached account data before a network check. App updates
+flush the durable outbox before reload.
 Signing out restores guest data and refuses while unsynced edits remain.
 Unavailable device storage is reported explicitly; keep the page open to recover
 an unsaved in-memory draft. Account schema versions prevent older clients

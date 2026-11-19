@@ -54,6 +54,8 @@ export class Account {
   private bound = false;
   private generation = 0;
   private debounce?: ReturnType<typeof setTimeout>;
+  private syncing?: Promise<void>;
+  private syncAgain = false;
   private started = false;
   private channel?: BroadcastChannel;
   private writes = Promise.resolve();
@@ -108,7 +110,11 @@ export class Account {
   /** Native Supabase services share this account's session and refresh lock. */
   get native() {
     return this.client && this.snapshot.user
-      ? { client: this.client, url: env.VITE_SUPABASE_URL, key: env.VITE_SUPABASE_PUBLISHABLE_KEY }
+      ? {
+          client: this.client,
+          url: env.VITE_SUPABASE_URL,
+          key: env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        }
       : null;
   }
   private set(patch: Partial<AccountSnapshot>) {
@@ -161,7 +167,12 @@ export class Account {
     window.addEventListener("online", retry);
     window.addEventListener("focus", retry);
     document.addEventListener("visibilitychange", retry);
-    setInterval(retry, 15000);
+    setInterval(retry, 5000);
+    // Applying remote state waits only for a safe point, never a user button.
+    setInterval(() => {
+      if (!document.hidden && this.snapshot.updates)
+        void this.apply().catch(() => this.report("apply_failed"));
+    }, 500);
     if (typeof BroadcastChannel !== "undefined") {
       this.channel = new BroadcastChannel(`soundtools:${this.app}:account`);
       this.channel.onmessage = () => {
@@ -247,6 +258,7 @@ export class Account {
       if (engine.state.initialized) await this.apply(true);
       this.remembered({ user, email });
       if (cached) this.set({ status: "offline" });
+      else if (this.syncing) this.syncAgain = true;
       else await this.sync();
     } catch (error) {
       if (generation !== this.generation) return;
@@ -293,10 +305,13 @@ export class Account {
           if (this.volatile.get(change.key) === change)
             this.volatile.delete(change.key);
         this.channel?.postMessage("changed");
-        clearTimeout(this.debounce);
-        this.debounce = setTimeout(() => {
-          void this.sync();
-        }, 400);
+        // A bounded coalescing window: checkpoint saves must not keep pushing
+        // the upload deadline into the future.
+        if (!this.debounce)
+          this.debounce = setTimeout(() => {
+            this.debounce = undefined;
+            void this.sync();
+          }, 200);
       })
       .catch(() => {
         this.set({
@@ -341,7 +356,26 @@ export class Account {
       this.applying = false;
     }
   }
-  async sync() {
+  sync(): Promise<void> {
+    if (this.syncing) {
+      this.syncAgain = true;
+      return this.syncing;
+    }
+    this.syncing = (async () => {
+      do {
+        this.syncAgain = false;
+        await this.synchronize();
+      } while (
+        this.syncAgain &&
+        this.engine &&
+        !["offline", "reauth", "error"].includes(this.snapshot.status)
+      );
+    })().finally(() => {
+      this.syncing = undefined;
+    });
+    return this.syncing;
+  }
+  private async synchronize() {
     const engine = this.engine;
     if (!engine) {
       if (this.snapshot.user)
@@ -455,7 +489,7 @@ export class Account {
     await this.writes;
     if (this.engine?.pending || this.volatile.size)
       throw Error(
-        "There are changes waiting to sync. Reconnect and sync before signing out.",
+        "Changes are still saving. They will sync automatically when connected; try signing out again shortly.",
       );
     const result = await this.client?.auth.signOut({ scope: "local" });
     if (result?.error)

@@ -154,36 +154,36 @@ test("an edit during upload cannot be erased by the earlier acknowledgement or b
   assert.equal(a.conflicts.length, 0);
   assert.equal(cloud.rows.tempo.value, 110);
 });
-test("concurrent edits of the same setting retain both choices until explicitly resolved", async () => {
-  const cloud = new Backend();
-  const a = await device(cloud),
+test("concurrent settings automatically rebase with server-ordered last-write-wins, preserving atomic pitch tuples", async () => {
+  const cloud = new Backend(),
+    a = await device(cloud),
     b = await device(cloud);
-  await a.sync({ pitch: { low: 48, high: 72, key: "C" } });
+  await a.sync({ pitch: { low: 48, high: 72, key: "C" }, volume: 50 });
   await b.sync({});
-  await a.change(
-    changes(a.records, { pitch: { low: 48, high: 76, key: "C" } }),
-  );
-  await b.change(
-    changes(b.records, { pitch: { low: 60, high: 84, key: "G" } }),
-  );
+  await a.change([
+    {
+      key: "pitch",
+      previous: a.records.pitch,
+      value: { low: 48, high: 76, key: "C" },
+    },
+  ]);
+  await b.change([
+    {
+      key: "pitch",
+      previous: b.records.pitch,
+      value: { low: 60, high: 84, key: "G" },
+    },
+    { key: "volume", previous: 50, value: 65 },
+  ]);
   await b.sync({});
   await a.sync({});
-  assert.equal(a.conflicts.length, 1);
+  await b.sync({});
+  assert.equal(a.pending, 0);
+  assert.equal(b.pending, 0);
+  assert.equal(a.conflicts.length, 0);
+  assert.deepEqual(a.records, b.records);
   assert.deepEqual(a.records.pitch, { low: 48, high: 76, key: "C" });
-  await a.resolve("pitch", "cloud");
-  await a.sync({});
-  assert.deepEqual(a.records.pitch, { low: 60, high: 84, key: "G" });
-  await a.change(
-    changes(a.records, { pitch: { low: 60, high: 84, key: "F" } }),
-  );
-  await b.change(
-    changes(b.records, { pitch: { low: 60, high: 86, key: "G" } }),
-  );
-  await b.sync({});
-  await a.sync({});
-  await a.resolve("pitch", "device");
-  await a.sync({});
-  assert.deepEqual(cloud.rows.pitch.value, { low: 60, high: 84, key: "F" });
+  assert.equal(a.records.volume, 65);
 });
 test("reset checkpoints can move backwards; separate users have separate durable queues", async () => {
   const cloud = new Backend(),
@@ -227,41 +227,54 @@ test("closed engines ignore late responses and cannot publish another account in
   assert.equal(a.pending, 1);
 });
 
-test("a later remote revision cannot silently resolve an existing conflict", async () => {
-  const cloud = new Backend();
-  const a = await device(cloud),
+test("old blocked conflict queues repair themselves on reload without a user choice", async () => {
+  const cloud = new Backend(),
+    store = new Memory(),
+    a = await device(cloud, store),
     b = await device(cloud);
   await a.sync({ tempo: 80 });
   await b.sync({});
-  await a.change(changes(a.records, { tempo: 120 }));
-  await b.change(changes(b.records, { tempo: 100 }));
+  await a.change([{ key: "tempo", previous: 80, value: 120 }]);
+  await b.change([{ key: "tempo", previous: 80, value: 100 }]);
   await b.sync({});
-  await a.sync({});
-  assert.equal(a.conflicts.length, 1);
-  const remote = cloud.rows.tempo;
-  await cloud.write(
-    "tempo",
-    100,
-    remote.revision,
-    crypto.randomUUID(),
-    b.state.device,
-  );
-  await a.sync({});
-  assert.equal(
-    a.conflicts.length,
-    1,
-    "conflict survives a revision with the same remote value",
-  );
-  assert.equal(
-    cloud.rows.tempo.value,
-    100,
-    "the unresolved local choice is never uploaded",
-  );
-  await a.resolve("tempo", "device");
-  await a.sync({});
+  await store.transaction("owner", (state) => {
+    state.pending.tempo.conflict = 100;
+  });
+  const reloaded = await device(cloud, store);
+  await reloaded.sync({});
+  await b.sync({});
+  assert.equal(reloaded.pending, 0);
+  assert.equal(reloaded.conflicts.length, 0);
   assert.equal(cloud.rows.tempo.value, 120);
+  assert.equal(b.records.tempo, 120);
 });
-
+test("independent uploads run concurrently and all completed acknowledgements survive a partial failure", async () => {
+  const cloud = new Backend(),
+    a = await device(cloud);
+  await a.sync({ one: 0, two: 0 });
+  await a.change(changes(a.records, { one: 1, two: 2 }));
+  const write = cloud.write.bind(cloud);
+  let active = 0,
+    peak = 0;
+  cloud.write = async (...args) => {
+    active++;
+    peak = Math.max(peak, active);
+    await new Promise((r) => setTimeout(r, 5));
+    try {
+      if (args[0] === "one") throw Error("temporary");
+      return await write(...args);
+    } finally {
+      active--;
+    }
+  };
+  await assert.rejects(a.sync({}), /temporary/);
+  assert.equal(peak, 2);
+  assert.equal(a.state.pending.two, undefined);
+  assert.ok(a.state.pending.one);
+  cloud.write = write;
+  await a.sync({});
+  assert.equal(a.pending, 0);
+});
 test("concurrent first initialization validates the winning cloud schema before writing", async () => {
   const { checkSchema, AccountDataError } = await import("../model");
   let writes = 0;
@@ -292,4 +305,29 @@ test("concurrent first initialization validates the winning cloud schema before 
   await engine.change([{ key: "tempo", value: 120, previous: 80 }]);
   await assert.rejects(engine.sync({ schema: 1, tempo: 80 }), AccountDataError);
   assert.equal(writes, 0);
+});
+
+test("a stale baseline in one browser reconciles automatically without concurrent device use", async () => {
+  const cloud = new Backend(),
+    previousSession = await device(cloud);
+  await previousSession.sync({ tempo: 80 });
+  await previousSession.change([{ key: "tempo", previous: 80, value: 100 }]);
+  await previousSession.sync({});
+  previousSession.close();
+  const reopened = await device(cloud);
+  await reopened.sync({});
+  await reopened.change([{ key: "tempo", previous: 80, value: 120 }]);
+  await reopened.sync({});
+  assert.equal(reopened.pending, 0);
+  assert.equal(reopened.conflicts.length, 0);
+  assert.equal(cloud.rows.tempo.value, 120);
+});
+
+test("simultaneous compare-and-swap writers automatically converge after a rejected revision", async()=>{
+ const cloud=new Backend(),a=await device(cloud),b=await device(cloud);
+ await a.sync({tempo:80});await b.sync({});
+ await a.change([{key:"tempo",previous:80,value:100}]);await b.change([{key:"tempo",previous:80,value:120}]);
+ await Promise.all([a.sync({}),b.sync({})]);await a.sync({});await b.sync({});
+ assert.equal(a.pending,0);assert.equal(b.pending,0);assert.deepEqual(a.records,b.records);
+ assert.ok([100,120].includes(a.records.tempo as number));
 });

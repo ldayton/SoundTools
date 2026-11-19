@@ -137,6 +137,7 @@ export class SightReading {
   private section = 0;
   private sections = 1;
   private position = 0;
+  private lastAnswerAt = 0;
   private progress = new HymnProgress(undefined, []);
   private content = "";
   private legacyBookmark?: { key: string; position: number };
@@ -477,7 +478,10 @@ export class SightReading {
     return this.element.querySelector<T>(s)!;
   }
   get syncIdle() {
-    return !this.passage.selecting && (this.mode === 'playback' ? !['playing','loading','counting'].includes(this.playback.state) : this.paused || !!this.session?.complete)
+    const idle = this.mode === "playback"
+      ? !["playing", "loading", "counting"].includes(this.playback.state)
+      : this.paused || !!this.session?.complete || Date.now() - this.lastAnswerAt >= 3000;
+    return !this.passage.selecting && idle && !this.piano.heldPitches.length
       && !document.activeElement?.closest('input,select,textarea,[role="spinbutton"],[role="slider"]');
   }
   get inputPolicy(): InputPolicy {
@@ -1284,6 +1288,7 @@ export class SightReading {
   }
   answer(note: number, held?: readonly number[]) {
     if (this.inputPolicy === "none") return;
+    this.lastAnswerAt = Date.now();
     if (held) held = [...new Set([...held, ...this.piano.heldPitches])];
     const result = this.session!.answer(note, held, !this.paused);
     if (result === "ignored") return;

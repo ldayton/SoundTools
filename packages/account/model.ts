@@ -56,7 +56,8 @@ export function values(replica: Replica): Records {
   ]);
 }
 /** Adapters split independent settings into separate records. Checkpoints and
- * related pitch choices remain indivisible, so conflicts cannot make invalid combinations. */
+ * related pitch choices remain indivisible. Concurrent pending intent is
+ * automatically rebased; server revisions determine the final write order. */
 export function merge(
   base: Json,
   local: Json,
@@ -65,7 +66,7 @@ export function merge(
   if (same(local, remote) || same(base, remote))
     return { value: local, conflict: false };
   if (same(base, local)) return { value: remote, conflict: false };
-  return { value: local, conflict: true };
+  return { value: local, conflict: false };
 }
 export function freshReplica(): Replica {
   return {
@@ -88,12 +89,12 @@ export function reconcile(replica: Replica, rows: CloudRow[]) {
       continue;
     }
     if (pending.revision === row.revision) continue;
+    // Rebase pending intent onto the server revision, then CAS it back. The
+    // server orders concurrent writes; unrelated records merge independently.
     const result =
-      "conflict" in pending
-        ? { value: pending.value, conflict: true }
-        : row.device === replica.device
-          ? { value: pending.value, conflict: false }
-          : merge(pending.base, pending.value, row.value);
+      row.device === replica.device
+        ? { value: pending.value, conflict: false }
+        : merge(pending.base, pending.value, row.value);
     pending.base = row.value;
     pending.revision = row.revision;
     pending.id = crypto.randomUUID();

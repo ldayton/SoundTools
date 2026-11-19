@@ -127,11 +127,9 @@ export class BackingTrackPlayer {
    * connected through that release instead of cutting the signal mid-wave. */
   private retire(
     processor: TonewheelOrgan | BackingInstrumentRack | undefined,
-    fading: boolean,
   ) {
     if (!processor) return;
     if (
-      !fading ||
       processor.context !== this.context ||
       this.context?.state !== "running"
     ) {
@@ -362,9 +360,9 @@ export class BackingTrackPlayer {
         backingClockActive(previous) && this.metronome.getSnapshot().enabled,
       );
     if (paletteChanged) {
-      this.retire(this.instruments, active);
+      this.retire(this.instruments);
       this.instruments = undefined;
-      this.retire(this.organ, active);
+      this.retire(this.organ);
       this.organ = undefined;
     }
     this.patch({ style, pattern: backingPattern(style, undefined) });

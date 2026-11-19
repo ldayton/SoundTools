@@ -369,6 +369,7 @@ try {
   await page.evaluate(() => {
     const p = (window as any).rootsCheck;
     (window as any).oldRootsRack = p.instruments;
+    p.pauseAll();
     p.setStyle("blues");
     if (!(window as any).oldRootsRack.entries.size)
       throw Error("Effects cut before voice release");
@@ -376,6 +377,7 @@ try {
   await page.waitForFunction(
     () => (window as any).oldRootsRack.entries.size === 0,
   );
+  await page.locator("#roots-check-play").click();
   await page.waitForFunction(
     () => (window as any).rootsCheck.model.getSnapshot().status === "playing",
     undefined,

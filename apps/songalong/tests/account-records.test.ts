@@ -73,3 +73,51 @@ test("cloud records preserve all hymn preferences and content-checked checkpoint
     /Update this app/,
   );
 });
+
+test("cloud roundtrips a global range, independent song tempos, and layout staff sizes", () => {
+  const state = migrateLegacy({});
+  const progress = new HymnProgress(undefined, []);
+  const first = {
+    ...hymnPreferences("amazing-grace"),
+    low: 48,
+    high: 79,
+    bpm: 96,
+  };
+  progress.remember(first, 1.2, "desktop");
+  const second = { ...progress.forHymn("silent-night"), high: null, bpm: 112 };
+  state.activities.sight = progress.snapshot(
+    second,
+    "C",
+    0.8,
+    undefined,
+    "mobile",
+  );
+  const records = songalongRecords(state);
+  assert.equal(records["current:low"], 48);
+  assert.equal(records["current:high"], null);
+  assert.deepEqual(records["hymn:amazing-grace:pitch"], { key: "original" });
+  const restored = restoreSongalongRecords(records);
+  const loaded = new HymnProgress(restored.activities.sight as any, [
+    first.hymn,
+    second.hymn,
+  ]);
+  for (const id of [first.hymn, second.hymn]) {
+    assert.equal(loaded.forHymn(id).low, 48);
+    assert.equal(loaded.forHymn(id).high, null);
+  }
+  assert.equal(loaded.forHymn(first.hymn).bpm, 96);
+  assert.equal(loaded.forHymn(second.hymn).bpm, 112);
+  assert.equal(loaded.zoomFor("desktop"), 1.2);
+  assert.equal(loaded.zoomFor("mobile"), 0.8);
+  assert.deepEqual(songalongRecords(restored), records);
+  const legacy = restoreSongalongRecords({
+    schema: 1,
+    "current:hymn": first.hymn,
+    "hymn:amazing-grace:pitch": { key: "G", low: 50, high: 81 },
+  });
+  const migrated = new HymnProgress(legacy.activities.sight as any, [
+    first.hymn,
+  ]);
+  assert.equal(migrated.forHymn("silent-night").low, 50);
+  assert.equal(migrated.forHymn("silent-night").high, 81);
+});

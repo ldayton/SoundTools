@@ -2,6 +2,7 @@ import hymns from "./hymns.json";
 import { hymnEndingBar } from "./hymn-lyrics";
 import {
   hymnPreferences,
+  optionalHymnNote,
   validHymnZoom,
   type HymnSettings,
 } from "./hymn-settings";
@@ -37,11 +38,20 @@ export type HymnState = {
 
 /** Saved preferences and content-checked checkpoints, independent of rendering and transport. */
 export class HymnProgress {
+  private range: { low: number | null; high: number | null } = {
+    low: null,
+    high: null,
+  };
   private zoomByLayout = { mobile: 1, desktop: 1 };
   readonly bookmarks: Record<string, Bookmark> = {};
   readonly preferences: Record<string, ReturnType<typeof hymnPreferences>> = {};
   readonly sections: Record<string, number> = {};
   constructor(saved: HymnState | undefined, hymnIds: readonly string[]) {
+    // The current song's last range becomes the global range for older saves.
+    this.range = {
+      low: optionalHymnNote(saved?.low),
+      high: optionalHymnNote(saved?.high),
+    };
     const legacy = validHymnZoom(saved?.zoom) ? saved.zoom : 1;
     for (const layout of ["mobile", "desktop"] as const) {
       const value = saved?.zoomByLayout?.[layout];
@@ -65,6 +75,7 @@ export class HymnProgress {
   forHymn(id: string) {
     return {
       ...hymnPreferences(id, this.preferences[id]),
+      ...this.range,
       zoom: this.zoomByLayout.desktop,
     };
   }
@@ -74,6 +85,10 @@ export class HymnProgress {
     layout: "mobile" | "desktop" = "desktop",
   ) {
     this.setZoom(zoom, layout);
+    this.range = {
+      low: optionalHymnNote(settings.low),
+      high: optionalHymnNote(settings.high),
+    };
     this.preferences[settings.hymn] = { ...settings, zoom };
   }
   restore(

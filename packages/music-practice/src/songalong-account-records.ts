@@ -11,7 +11,7 @@ export function songalongRecords(state: DurableState): Records {
       if (["bookmarks", "preferences", "sections"].includes(key)) {
         for (const [id, setting] of Object.entries(value || {})) {
           if (key === "preferences") {
-            const pitch = ["key", "octave", "low", "high"];
+            const pitch = ["key", "octave"];
             const settings = setting as Record<string, Json>;
             records[`hymn:${id}:pitch`] = Object.fromEntries(
               pitch
@@ -19,10 +19,14 @@ export function songalongRecords(state: DurableState): Records {
                 .map((k) => [k, settings[k]]),
             );
             for (const [field, v] of Object.entries(settings))
-              if (!pitch.includes(field)) records[`hymn:${id}:${field}`] = v;
+              if (![...pitch, "low", "high"].includes(field))
+                records[`hymn:${id}:${field}`] = v;
           } else records[`${key}:${id}`] = setting as Json;
         }
-      } else if (["hymn", "mode", "zoom"].includes(key) && value !== undefined)
+      } else if (
+        ["hymn", "mode", "zoom", "zoomByLayout", "low", "high"].includes(key) &&
+        value !== undefined
+      )
         records[`current:${key}`] = value as Json;
     }
   }
@@ -42,7 +46,8 @@ export function restoreSongalongRecords(records: Records): DurableState {
     sections: {},
   };
   for (const [key, value] of Object.entries(records)) {
-    if (value === null) continue;
+    if (value === null && !["current:low", "current:high"].includes(key))
+      continue;
     if (key.startsWith("current:")) sight[key.slice(8)] = value;
     else if (key.startsWith("hymn:")) {
       const [, id, field] = key.split(":");
@@ -62,6 +67,15 @@ export function restoreSongalongRecords(records: Records): DurableState {
       hymn: sight.hymn,
       mode: sight.mode,
       zoom: sight.zoom,
+      // Older records stored the range inside each song's pitch record.
+      low:
+        sight.low !== undefined
+          ? sight.low
+          : sight.preferences[sight.hymn]?.low,
+      high:
+        sight.high !== undefined
+          ? sight.high
+          : sight.preferences[sight.hymn]?.high,
     };
   return decodeState(state);
 }

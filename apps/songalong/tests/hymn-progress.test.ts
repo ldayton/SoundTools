@@ -100,3 +100,32 @@ test("staff sizes migrate once and remain independent across layouts and reloads
   assert.equal(corrupt.zoomFor("mobile"), 0.8);
   assert.equal(corrupt.zoomFor("desktop"), 1.4);
 });
+
+test("note limits are global while each song remembers its own BPM", () => {
+  const first = {
+    ...hymnPreferences("amazing-grace"),
+    low: 48,
+    high: 79,
+    bpm: 96,
+  };
+  const progress = new HymnProgress(undefined, []);
+  progress.remember(first, 1);
+  const second = { ...progress.forHymn("silent-night"), bpm: 112 };
+  assert.equal(second.low, 48);
+  assert.equal(second.high, 79);
+  progress.remember({ ...second, low: 50, high: 81 }, 1);
+  assert.equal(progress.forHymn(first.hymn).bpm, 96);
+  assert.equal(progress.forHymn(first.hymn).low, 50);
+  const saved = progress.snapshot(
+    { ...progress.forHymn(first.hymn), high: null },
+    "G",
+    1,
+  );
+  const restored = new HymnProgress(saved, [first.hymn, second.hymn]);
+  for (const id of [first.hymn, second.hymn, "jesus-loves-me"]) {
+    assert.equal(restored.forHymn(id).low, 50);
+    assert.equal(restored.forHymn(id).high, null);
+  }
+  assert.equal(restored.forHymn(first.hymn).bpm, 96);
+  assert.equal(restored.forHymn(second.hymn).bpm, 112);
+});

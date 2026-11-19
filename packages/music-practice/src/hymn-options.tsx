@@ -219,6 +219,21 @@ export function HymnOptions({
           </Stack>
         </OptionsSection>
       )}
+      <Checkbox
+        label="Show fingerings"
+        description={
+          state.arrangement === "melody" || state.arrangement === "bass"
+            ? "Suggested fingers; circles mark hand shifts."
+            : "Available for melody and single-note bass."
+        }
+        checked={state.fingerings}
+        disabled={
+          state.arrangement !== "melody" && state.arrangement !== "bass"
+        }
+        onChange={(event) =>
+          change({ fingerings: event.currentTarget.checked })
+        }
+      />
       <OptionsSection title="Hands">
         <NativeSelect
           id="hymn-arrangement"

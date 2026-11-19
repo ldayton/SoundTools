@@ -190,6 +190,7 @@ export class SightReading {
     this.progress.setZoom(value, this.staffLayout);
   }
   private options!: HymnOptionsState;
+  private showFingerings = false;
   private searchOpen = false;
   private availableKeys: HymnKey[] = ["original", ...HYMN_KEYS];
   private keyRanges: Partial<Record<HymnKey, string>> = {};
@@ -212,6 +213,7 @@ export class SightReading {
     private acceptanceChanged: () => void,
   ) {
     try {
+      this.showFingerings = persistence.read<{ fingerings?: boolean }>("presentation")?.fingerings === true;
       const saved =
         persistence.read<HymnState>("sight") ||
         (persistence.state.legacy.sight as any);
@@ -814,6 +816,7 @@ export class SightReading {
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
         scale: this.zoom,
+        fingerings: this.showFingerings && ["melody", "bass"].includes(this.arrangement),
         lyrics:
           this.arrangement === "melody" || this.viewHands !== "left"
             ? {
@@ -1027,6 +1030,7 @@ export class SightReading {
       reattackTies: this.reattackTies,
       stanzas: this.stanzas,
       zoom: this.zoom,
+      fingerings: this.showFingerings,
       low: this.low,
       high: this.high,
       stanzaChoices: this.hymn.stanzas.map(({ number, label }) => ({
@@ -1058,6 +1062,13 @@ export class SightReading {
     };
   }
   private changeOptions(patch: HymnOptionsChange) {
+    if (patch.fingerings !== undefined) {
+      this.showFingerings = patch.fingerings;
+      persistence.write("presentation", { ...persistence.read<object>("presentation"), version: 1, fingerings: this.showFingerings });
+      this.render(true);
+      this.publishOptions();
+      return;
+    }
     const next = mergeHymnSettings(this.settings(), patch);
     if (patch.low !== undefined || patch.high !== undefined) {
       this.save();

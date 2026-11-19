@@ -1,3 +1,4 @@
+import { drawHymnFingerings } from "./hymn-fingering";
 import {
   hymnLyricsAbc,
   compactHymnLyrics,
@@ -58,6 +59,7 @@ export function drawPracticeScore(
   width: number,
   options: {
     scale?: number;
+    fingerings?: boolean;
     lyrics?: HymnLyricsSelection;
     transpose?: number;
     compact?: boolean;
@@ -192,6 +194,7 @@ export function drawPracticeScore(
     svg.style.height = `${box.height * fittedScale}px`;
     svg.style.maxWidth = "100%";
   });
+  if (options.fingerings) drawHymnFingerings(tune);
   const spellings = scoreSpellings(tune);
   const continuations = options.reattackTies
     ? tiedContinuations(tune)

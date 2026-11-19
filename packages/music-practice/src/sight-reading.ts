@@ -180,7 +180,15 @@ export class SightReading {
   private piano: Piano;
   private pianoPanel: ReturnType<typeof mountPracticePiano>;
   private lastWidth = 0;
-  private zoom = 1;
+  private get staffLayout(): "mobile" | "desktop" {
+    return this.mobileLayout.matches ? "mobile" : "desktop";
+  }
+  private get zoom() {
+    return this.progress.zoomFor(this.staffLayout);
+  }
+  private set zoom(value: number) {
+    this.progress.setZoom(value, this.staffLayout);
+  }
   private options!: HymnOptionsState;
   private searchOpen = false;
   private availableKeys: HymnKey[] = ["original", ...HYMN_KEYS];
@@ -228,7 +236,6 @@ export class SightReading {
         saved!.bpm! <= 200
       )
         this.bpm = saved!.bpm!;
-      if (validHymnZoom(saved?.zoom)) this.zoom = saved.zoom;
       this.low = optionalHymnNote(saved?.low);
       this.high = optionalHymnNote(saved?.high);
       if (isHymnKey(saved?.key)) this.key = saved.key;
@@ -520,7 +527,7 @@ export class SightReading {
     if (!hymn) return false;
     const old = this.settings();
     const switching = hymn.id !== this.hymn.id;
-    if (switching) this.progress.remember(this.settings(), this.zoom);
+    if (switching) this.progress.remember(this.settings(), this.zoom, this.staffLayout);
     const base = switching ? this.progress.forHymn(hymn.id) : old;
     const next = hymnSettingsFromQuery(base, route.query);
     const changed =
@@ -641,6 +648,7 @@ export class SightReading {
               length: this.session.steps.length,
             }
           : undefined,
+        this.staffLayout,
       ),
     );
   }

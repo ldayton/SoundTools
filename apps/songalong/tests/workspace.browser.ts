@@ -504,7 +504,7 @@ try {
   await page.setViewportSize(macBookAir13.viewport);
   await practiceOption(page, "#hymn-mode", "wait");
   await expect(page.locator("#hymn-tempo")).toBeDisabled();
-  await expect(page.locator("#hymn-size")).toHaveValue("79 px");
+  await expect(page.locator("#hymn-size")).toHaveValue(pixels);
   await expect(page.locator('header [data-direction="up"]')).toHaveCount(2);
   assert.deepEqual(errors, []);
   console.log(

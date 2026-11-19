@@ -69,3 +69,34 @@ test("continuous score sizes survive reload and reject corrupt preferences", () 
   for (const zoom of [0, 0.49, 2.01, Infinity, NaN, "1.2", null])
     assert.equal(hymnPreferences("amazing-grace", { zoom }).zoom, 1);
 });
+
+test("staff sizes migrate once and remain independent across layouts and reloads", () => {
+  const settings = hymnPreferences("amazing-grace");
+  const legacy = {
+    ...settings,
+    version: 1 as const,
+    zoom: 1.2,
+    bookmarks: {},
+    sections: {},
+  };
+  const progress = new HymnProgress(legacy, [settings.hymn]);
+  assert.equal(progress.zoomFor("desktop"), 1.2);
+  assert.equal(progress.zoomFor("mobile"), 1.2);
+  progress.setZoom(0.8, "mobile");
+  const saved = progress.snapshot(settings, "G", 0.8, undefined, "mobile");
+  assert.deepEqual(saved.zoomByLayout, { mobile: 0.8, desktop: 1.2 });
+  const restored = new HymnProgress(saved, [settings.hymn]);
+  restored.setZoom(1.5, "desktop");
+  restored.setZoom(NaN, "mobile");
+  const again = new HymnProgress(restored.snapshot(settings, "G", 1.5), [
+    settings.hymn,
+  ]);
+  assert.equal(again.zoomFor("mobile"), 0.8);
+  assert.equal(again.zoomFor("desktop"), 1.5);
+  const corrupt = new HymnProgress(
+    { ...saved, zoomByLayout: { mobile: Infinity, desktop: 1.4 } },
+    [],
+  );
+  assert.equal(corrupt.zoomFor("mobile"), 0.8);
+  assert.equal(corrupt.zoomFor("desktop"), 1.4);
+});

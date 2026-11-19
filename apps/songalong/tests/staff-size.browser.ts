@@ -36,6 +36,7 @@ try {
     await size.fill(String(value));
     await size.press("Enter");
     await expect(size).toHaveValue(`${value} px`);
+    await expect(page.getByText("Saved on this device.", { exact: true })).toBeVisible();
   }
   await page.goto(server.base + "/piano/hymns/amazing-grace");
   await expect(size).toHaveValue("40 px");

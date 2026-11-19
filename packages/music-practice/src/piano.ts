@@ -324,7 +324,7 @@ export class Piano {
             const position = black
               ? `left:calc(${index} * var(--white) - var(--black) / 2)`
               : `left:calc(${index} * var(--white))`;
-            return `<button type="button" class="piano-key ${black ? "black-key" : "white-key"}" data-piano="${midi}" aria-label="${keyLabel(midi, !named)}" tabindex="-1" style="${position}">${midi % 12 === 0 ? `<span class="piano-landmark">C${Math.floor(midi / 12) - 1}</span>` : ""}</button>`;
+            return `<button type="button" class="piano-key ${black ? "black-key" : "white-key"}" data-piano="${midi}" aria-label="${keyLabel(midi, !named)}" tabindex="-1" style="${position}"><span class="piano-note-label${midi % 12 === 0 ? " piano-landmark" : ""}" aria-hidden="true">${keyLabel(midi).split(" / ")[0]}</span></button>`;
           })
           .join("");
         rows.push(

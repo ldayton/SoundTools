@@ -412,7 +412,7 @@
   font-weight: 600;
   line-height: 1.2;
 }
-.piano-key.piano-hint .piano-landmark {
+.piano-key.piano-hint .piano-note-label {
   visibility: hidden;
 }
 .piano-key.piano-hint::after {

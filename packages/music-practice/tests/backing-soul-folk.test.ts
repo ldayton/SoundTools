@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { backingFingerprint } from "./backing-fingerprint";
 import { genreBackingArrangement as arrange } from "../src/backing-genre-engine";
 import { BACKING_GENRES } from "../src/backing-genres";
 import baseline from "./fixtures/approved-reggae-funk-sustained.json";
@@ -18,8 +18,8 @@ test("approved sustained Reggae/Funk takes remain exact when adding instrument p
       row.tonic,
     );
     assert.equal(
-      createHash("sha256").update(JSON.stringify(t)).digest("hex"),
-      row.sha256,
+      backingFingerprint(t),
+      row.portableSha256,
     );
   }
 });

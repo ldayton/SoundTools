@@ -823,6 +823,7 @@ export class SightReading {
               }
             : undefined,
         octaveNotation: true,
+        initialSignatures: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
         playback: (audio) => {
@@ -882,6 +883,7 @@ export class SightReading {
           {
             transpose: transposition.semitones,
             octaveNotation: true,
+            initialSignatures: true,
             reattackTies: this.reattackTies,
             playback: () => {},
           },

@@ -6,6 +6,7 @@
   "exports": {
     ".": "./provider.tsx",
     "./render-error-boundary": "./render-error-boundary.tsx",
+    "./restore-focus": "./restore-focus.ts",
     "./view-state": "./view-state.ts",
     "./pitch-field": "./pitch-field.tsx",
     "./retained-content": "./retained-content.tsx",

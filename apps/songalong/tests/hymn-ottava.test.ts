@@ -6,6 +6,7 @@ import {
   ARRANGEMENTS,
   arrangeHymn,
 } from "../../../packages/music-practice/src/hymn-arrangements";
+import { initialHymnSignatures } from "../../../packages/music-practice/src/hymn-signatures";
 import { applyHymnOttava } from "../../../packages/music-practice/src/hymn-ottava";
 import { scoreSpellings } from "../../../packages/music-practice/src/sight-feedback";
 import { tiedContinuations } from "../../../packages/music-practice/src/practice-score";
@@ -67,6 +68,8 @@ test("ottava engraving preserves every hymn's audio, spelling, ties and source-n
           midiTranspose: transpose,
         });
         applyHymnOttava(tune);
+        const restore = initialHymnSignatures(tune);
+        restore();
         const actual = tune.setUpAudio({
           qpm: 60,
           chordsOff: true,
@@ -94,4 +97,26 @@ test("ottava engraving preserves every hymn's audio, spelling, ties and source-n
           ]);
         assert.deepEqual(identity(tune), identity(baseline));
       }
+});
+
+test("repeated hymn keys are omitted for engraving without losing changed keys or audio accidentals", () => {
+  const abc =
+    "X:1\nM:4/4\nL:1/4\nK:B\nF G A B |\nF G A B |\nK:Bb\nB E A B |\nB E A B |]\n";
+  const tune = abcjs.parseOnly(abc)[0];
+  const staffs = tune.lines.flatMap((line) => line.staff || []);
+  assert.equal(staffs.length, 4);
+  const original = staffs.map((staff) => staff.key);
+  const expected = abcjs.parseOnly(abc)[0].setUpAudio({ qpm: 60 });
+  const restore = initialHymnSignatures(tune);
+  assert.equal(staffs[0].key?.accidentals?.length, 5);
+  assert.equal(staffs[1].key?.accidentals?.length, 0);
+  assert.equal(
+    staffs[2].key?.accidentals?.filter((acc) => acc.acc === "flat").length,
+    2,
+    "a genuine key change remains visible, including its cancellation naturals",
+  );
+  assert.equal(staffs[3].key?.accidentals?.length, 0);
+  restore();
+  staffs.forEach((staff, i) => assert.equal(staff.key, original[i]));
+  assert.deepEqual(tune.setUpAudio({ qpm: 60 }), expected);
 });

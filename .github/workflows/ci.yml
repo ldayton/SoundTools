@@ -311,17 +311,6 @@ jobs:
       - run: npm run test:offline --workspace=notewise
         env:
           TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:backing --workspace=notewise
-        env:
-          TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:backing-realism --workspace=notewise
-        if: matrix.browser == 'chromium'
-        env:
-          TEST_BROWSER: ${{ matrix.browser }}
-      - run: npm run test:backing-genres --workspace=notewise
-        if: matrix.browser == 'chromium'
-        env:
-          TEST_BROWSER: ${{ matrix.browser }}
       - run: npm run test:diagnostics --workspace=notewise
         if: matrix.browser == 'chromium'
       - uses: actions/upload-artifact@v4
@@ -333,6 +322,48 @@ jobs:
             work/piano-*.png
             work/midi-*.png
             work/key-signatures-*.png
+
+
+  notewise-backing:
+    name: notewise backing (${{ matrix.browser }})
+    needs: [changes, build]
+    if: contains(fromJSON(needs.changes.outputs.apps), 'notewise')
+    concurrency:
+      group: validation-${{ github.event_name }}-${{ github.ref }}-notewise-backing-${{ matrix.browser }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    env:
+      CI_USE_BUILD: "1"
+      TEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: ./.github/actions/build
+        with:
+          app: notewise
+      - uses: ./.github/actions/browser
+        with:
+          browser: ${{ matrix.browser }}
+      - run: npm run test:backing --workspace=notewise
+      - run: npm run test:backing-realism --workspace=notewise
+        if: matrix.browser == 'chromium'
+      - run: npm run test:backing-genres --workspace=notewise
+        if: matrix.browser == 'chromium'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: notewise-backing-${{ matrix.browser }}
+          path: apps/notewise/work/
+          retention-days: 7
 
   songalong:
     concurrency:
@@ -467,8 +498,8 @@ jobs:
 
   gate:
     name: validation gate
-    if: always()
-    needs: [changes, shared, build, dorego, notewise, songalong, songalong-catalog, soundglow, soundglow-visual, soundglow-ui, accounts]
+    if: always() && !contains(needs.*.result, 'cancelled')
+    needs: [changes, shared, build, dorego, notewise, notewise-backing, songalong, songalong-catalog, soundglow, soundglow-visual, soundglow-ui, accounts]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1

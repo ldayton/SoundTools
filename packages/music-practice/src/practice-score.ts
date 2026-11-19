@@ -17,6 +17,7 @@ import abcjs, {
 } from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
 import { applyHymnOttava, drawHymnOttava, fitHymnOttava } from "./hymn-ottava";
+import { initialHymnSignatures } from "./hymn-signatures";
 export type PracticeEvent = NoteTimingEvent & {
   spellings?: PitchSpellings;
   scorePosition?: ScorePosition;
@@ -63,19 +64,24 @@ export function drawPracticeScore(
     rhythmGrid?: boolean;
     reattackTies?: boolean;
     octaveNotation?: boolean;
+    initialSignatures?: boolean;
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const scale = (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1);
   const transpose = options.transpose ?? 0;
+  let restoreSignatures: (() => void) | undefined;
   const tune = abcjs.renderAbc(paper, "%%vocalfont sans-serif 12\n" + abc, {
     add_classes: true,
+    initialClef: options.initialSignatures,
     visualTranspose: transpose,
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing(tune) {
       if (options.octaveNotation) applyHymnOttava(tune);
+      if (options.initialSignatures)
+        restoreSignatures = initialHymnSignatures(tune);
       if (options.lyrics) compactHymnLyrics(tune);
       for (const line of tune.lines)
         for (const staff of line.staff || [])
@@ -102,6 +108,7 @@ export function drawPracticeScore(
     paddingleft: 12,
     paddingright: 12,
   })[0] as TuneObject & { noteTimings: NoteTimingEvent[] };
+  restoreSignatures?.();
   if (!tune || tune.warnings?.length)
     throw Error("Practice notation could not be read");
   if (options.octaveNotation) drawHymnOttava(applyHymnOttava(tune));

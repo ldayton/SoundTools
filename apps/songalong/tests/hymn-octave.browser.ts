@@ -124,7 +124,7 @@ try {
   await page.locator(".hymn-pause").click();
   await page.locator('.piano-key.is-playing[data-piano="54"]').waitFor();
   await page.locator(".hymn-pause").click();
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 393, height: 852 });
   await openPracticeOptions(page);
   await page.locator("#hymn-octave-down").click();
   assert.equal(await range.textContent(), "F♯2–F♯3");
@@ -160,7 +160,14 @@ try {
       (text) => text === "8",
     ),
   );
-  assert.equal((await page.locator(".abcjs-clef").count()) > 0, true);
+  const systems = page.locator(".hymn-paper svg").filter({ has: page.locator(".abcjs-staff") });
+  assert.ok(await systems.count() > 1, "the mobile hymn wraps across systems");
+  assert.equal(await systems.first().locator(".abcjs-clef").count(), 2);
+  assert.equal(await systems.first().locator(".abcjs-key-signature").count(), 2);
+  for (let i = 1; i < await systems.count(); i++) {
+    assert.equal(await systems.nth(i).locator(".abcjs-clef,.abcjs-key-signature,.abcjs-time-signature,.hymn-ottava").count(), 0,
+      "later systems devote their width to the music");
+  }
   assert.equal(
     await page.locator(".hymn-ottava path").count(),
     0,
@@ -213,7 +220,7 @@ try {
     "3",
   );
   await page.locator(".hymn-clear-passage").click();
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 393, height: 852 });
   await closePracticeOptions(page);
   await page.waitForFunction(() =>
     [...document.querySelectorAll<SVGGraphicsElement>(".hymn-ottava")].every(

@@ -32,3 +32,9 @@ test('an earlier green but unpromoted revision is still released after a docs-on
   const r = await changes({ env: { GITHUB_EVENT_NAME: 'push', GITHUB_SHA: head }, fetch: async url => url.includes('api.github.com') ? Response.json({ workflow_runs: [{ head_sha: base }] }) : Response.json({ app: new URL(url).hostname.split('.')[0], profile: 'production', sha: live }), git: args => args[0] === 'diff' ? (args.includes(`${live}...${head}`) ? 'apps/dorego/src/main.ts\nREADME.md' : 'README.md') : '' });
   assert.deepEqual(r.deploy, ['dorego']); assert.deepEqual(r.apps, ['dorego']);
 });
+
+test('NoteWise publication also requires the isolated backing-track browser matrix', () => {
+  const good = { changes: { result: 'success', outputs: { apps: '["notewise"]', builds: '["notewise"]', accounts: 'false' } }, shared: { result: 'success' }, build: { result: 'success' }, notewise: { result: 'success' }, 'notewise-backing': { result: 'success' } };
+  assert.doesNotThrow(() => gate(good));
+  assert.throws(() => gate({ ...good, 'notewise-backing': { result: 'skipped' } }), /notewise-backing/);
+});

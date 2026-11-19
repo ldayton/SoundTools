@@ -1,3 +1,4 @@
+import { restoreFocus } from "./restore-focus";
 import { ControlIcon } from "./control-icon";
 import { PanelIcon } from "./panel-icon";
 import { useEffect, useState, type ReactNode } from "react";
@@ -211,20 +212,19 @@ export function ApplicationLayout({
                 }
                 aria-controls="practice-navigation"
                 onClick={(event) => {
-                  if (compact) event.currentTarget.focus();
+                  event.currentTarget.focus({ preventScroll: true });
                   if (desktop && compact && !navigationCollapsed) {
                     onNavigationCollapse();
                     return;
                   }
                   if (desktop) {
                     onNavigationExpand();
-                    requestAnimationFrame(
-                      () =>
-                        !compact &&
-                        document
-                          .querySelector<HTMLElement>(".nav-close")
-                          ?.focus(),
-                    );
+                    const from = event.currentTarget;
+                    requestAnimationFrame(() => {
+                      if (!compact) restoreFocus(
+                        document.querySelector<HTMLElement>(".nav-close"), from,
+                      );
+                    });
                   } else onNavigationOpen();
                 }}
               />
@@ -272,11 +272,12 @@ export function ApplicationLayout({
                 hidden={compact}
                 variant="subtle"
                 aria-label="Collapse navigation"
-                onClick={() => {
+                onClick={(event) => {
+                  const from = event.currentTarget;
                   onNavigationCollapse();
-                  requestAnimationFrame(() =>
-                    document.querySelector<HTMLElement>(".nav-toggle")?.focus(),
-                  );
+                  requestAnimationFrame(() => restoreFocus(
+                    document.querySelector<HTMLElement>(".nav-toggle"), from,
+                  ));
                 }}
               >
                 <PanelIcon />

@@ -142,12 +142,20 @@ try {
     (await page.locator(".midi-status").textContent())!,
     /Connect your keyboard by USB/,
   );
+  // Reconnecting a keyboard must not steal focus from an unrelated dialog.
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
+  const accountDialog = page.getByRole("dialog", { name: "Log in", exact: true });
+  const email = accountDialog.getByRole("textbox", { name: "Email address", exact: true });
+  await email.focus();
   await page.evaluate(() =>
     (window as any).midiTest.add("GO:KEYS 5", "replugged"),
   );
   await page
     .getByText("GO:KEYS 5 connected. Play one note at a time.", { exact: true })
     .waitFor({ state: "attached" });
+  await expect(email).toBeFocused();
+  await accountDialog.press("Escape");
+  await accountDialog.waitFor({ state: "hidden" });
   await page.evaluate(() =>
     (window as any).midiTest.add("Second keyboard", "second"),
   );

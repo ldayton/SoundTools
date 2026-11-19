@@ -11,6 +11,36 @@ body {
 [hidden] {
   display: none !important;
 }
+
+@media (max-width: 767px), (any-pointer: coarse) {
+  /* Safari zooms focused fields below 16px. Cover native controls and Mantine
+   * fields, including portaled menus/dialogs and controls with compact styles.
+   * Keep larger input sizes and intentional pinch zoom available. */
+  :where(
+    input,
+    select,
+    textarea,
+    [contenteditable="true"],
+    .mantine-Input-input
+  ) {
+    font-size: max(16px, var(--input-fz, 1em)) !important;
+  }
+
+  /* Repeated taps on controls should activate them, without double-tap zoom.
+   * Gesture-specific widgets can still override this low-specificity default. */
+  :where(
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [role="button"],
+    [role="combobox"]
+  ) {
+    touch-action: manipulation;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

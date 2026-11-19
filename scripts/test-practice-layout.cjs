@@ -4,7 +4,17 @@ const { spawn } = require("node:child_process");
 const { mkdir, mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
 const path = require("node:path");
-const { chromium, firefox, webkit } = require("playwright");
+const { launchBrowser, newPage, captureFailure, closeBrowser, waitForServer } = require('./ci/browser-harness.cjs');
+async function finishDrawerEntrance(drawer) {
+  await drawer.evaluate(async element => {
+    const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    // Mantine schedules its transition after mounting. Observe the first paint
+    // before collecting animations; an initially empty list is not readiness.
+    await paint();
+    await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {})));
+    await paint(); // Let the transition's focus and scrolling callbacks settle.
+  });
+}
 const {
   macBookAir13,
   iphone14Pro,
@@ -46,17 +56,11 @@ const server = spawn(
   const state = await mkdtemp(path.join(tmpdir(), "practice-layout-"));
   let browser;
   try {
-    for (let i = 0; i < 100; i++) {
-      if (server.exitCode !== null) throw Error("Preview exited");
-      try {
-        if ((await fetch(base)).ok) break;
-      } catch {}
-      await new Promise((r) => setTimeout(r, 100));
-    }
-    browser = await { chromium, firefox, webkit }[engine].launch({
+    await waitForServer(base, { server });
+    browser = await launchBrowser({
       env: { ...process.env, CFFIXED_USER_HOME: state },
     });
-    const page = await browser.newPage({
+    const page = await newPage(browser, {
         ...macBookAir13,
       }),
       errors = [];
@@ -166,6 +170,22 @@ const server = spawn(
       false,
     );
     assert.equal(await page.locator(".practice-options").isVisible(), false);
+    const login = nav.getByRole("button", { name: "Log in", exact: true });
+    await login.click();
+    const accountDialog = page.getByRole("dialog", { name: "Log in", exact: true });
+    await accountDialog.getByRole("textbox", { name: "Email address", exact: true }).waitFor();
+    await accountDialog.press("Escape");
+    await accountDialog.waitFor({ state: "hidden" });
+    assert.equal(await login.evaluate(el => el === document.activeElement), true,
+      "Closing the account dialog restores its opener on every browser");
+    await login.click();
+    await accountDialog.waitFor();
+    await accountDialog.press("Escape");
+    const consent = page.getByRole("checkbox", { name: "Share diagnostic information", exact: true });
+    await consent.focus();
+    await accountDialog.waitFor({ state: "hidden" });
+    assert.equal(await consent.evaluate(el => el === document.activeElement), true,
+      "Closing the account dialog preserves a newer Settings focus choice");
     await page.goBack();
     await page.locator(".practice-surface").first().waitFor();
     if (app === "dorego")
@@ -190,6 +210,22 @@ const server = spawn(
       .getByRole("button", { name: "Open navigation", exact: true })
       .click();
     assert.equal(await nav.getByRole("slider", { name: /volume/i }).count(), 0);
+    // A route finishes after the navigation drawer closes. A newer focus
+    // choice in the toolbar must survive both the route and exit callbacks.
+    await nav.getByRole("link", { name: "Settings", exact: true }).evaluate((link, app) => {
+      const focusToolbar = () => document.querySelector(".nav-toggle").focus();
+      if (app === "dorego") window.addEventListener("hashchange", focusToolbar, { once: true });
+      link.click();
+      if (app !== "dorego") focusToolbar();
+    }, app);
+    await page.getByRole("region", { name: "App settings", exact: true }).waitFor();
+    await page.getByRole("dialog").waitFor({ state: "hidden" });
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await page.locator(".nav-toggle").evaluate(el => el === document.activeElement), true,
+      "Finishing navigation must preserve a newer toolbar focus choice");
+    await page.goBack();
+    await page.locator(".practice-surface").first().waitFor();
+    await page.getByRole("button", { name: "Open navigation", exact: true }).click();
     if (app === "dorego") {
       await nav.locator('[data-pattern="octaveGlide"]').click();
       await page.getByRole("dialog").waitFor({ state: "hidden" });
@@ -321,8 +357,8 @@ const server = spawn(
         ["iphone-14-pro-landscape", iphone14ProLandscape],
         ["iphone-14-pro-full-height", iphone14ProFullHeight],
       ]) {
-        const phone = await browser.newPage(device);
-        try {
+        const phone = await newPage(browser, device);
+        {
           phone.on("pageerror", (error) => errors.push(error.message));
           await phone.goto(app === "songalong" ? base + "?mode=wait" : base);
           const openOptions = phone.getByRole("button", {
@@ -353,13 +389,7 @@ const server = spawn(
           await navigation.waitFor();
           // Finish the drawer's entrance before sending the next touch. On
           // WebKit a tap during the moving drawer can be cancelled by scrolling.
-          await navigation.evaluate(async (element) => {
-            await Promise.all(
-              element.getAnimations({ subtree: true }).map((animation) =>
-                animation.finished.catch(() => {}),
-              ),
-            );
-          });
+          await finishDrawerEntrance(navigation);
           await phone
             .getByRole("button", { name: "Close navigation", exact: true })
             .tap();
@@ -371,13 +401,11 @@ const server = spawn(
           });
           await options.waitFor();
           // As with navigation, finish the entrance before issuing a touch.
-          await options.evaluate(async (element) => {
-            await Promise.all(
-              element.getAnimations({ subtree: true }).map((animation) =>
-                animation.finished.catch(() => {}),
-              ),
-            );
-          });
+          await finishDrawerEntrance(options);
+          assert.deepEqual(await options.locator('input:not([type="hidden"]),select,textarea,.mantine-Input-input').evaluateAll(fields =>
+            fields.filter(el => el.getClientRects().length && parseFloat(getComputedStyle(el).fontSize) < 16)
+              .map(el => ({ id: el.id, font: getComputedStyle(el).fontSize }))), [],
+            `${app}: mobile options must not trigger Safari focus zoom`);
           await phone
             .getByRole("button", {
               name: /^Close (practice|playback) options$/,
@@ -474,7 +502,6 @@ const server = spawn(
           await phone.screenshot({
             path: path.join(out, `${app}-${engine}-${name}.png`),
           });
-        } finally {
           await phone.close();
         }
       }
@@ -483,8 +510,11 @@ const server = spawn(
     console.log(
       `PASS ${app}/${engine}: MacBook Air 13 reference layout, sidebar placement, Settings, focus, retained practice, regression widths${engine === "firefox" ? "" : ", iPhone 14 Pro portrait/landscape/full-height touch layouts at 3x"}`,
     );
+  } catch (error) {
+    await captureFailure(browser, error);
+    throw error;
   } finally {
-    await browser?.close();
+    await closeBrowser(browser);
     server.kill();
     await rm(state, { recursive: true, force: true }).catch((error) => {
       if (!["EACCES", "EPERM"].includes(error.code)) throw error;

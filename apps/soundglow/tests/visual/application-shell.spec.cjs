@@ -67,3 +67,38 @@ test('render failure stops audio and shows reload recovery',async({page})=>{
  await expect(page.locator('#demo')).toBeVisible();
  await expect(page.getByRole('main',{name:'Soundglow recovery'})).toHaveCount(0);
 });
+
+
+test('account close restores its opener but preserves a newer setting focus', async({page}) => {
+ await page.goto('/dist/index.html#settings');
+ const login = page.getByRole('button', { name:'Log in', exact:true });
+ await login.click();
+ const dialog = page.getByRole('dialog', { name:'Log in', exact:true });
+ await dialog.getByRole('textbox', { name:'Email address', exact:true }).focus();
+ await dialog.press('Escape');
+ await expect(dialog).toBeHidden();
+ await expect(login).toBeFocused();
+ await login.click();
+ await expect(dialog).toBeVisible();
+ await dialog.press('Escape');
+ const slider = page.locator('#floor-slider');
+ await slider.focus();
+ await expect(dialog).toBeHidden();
+ await expect(slider).toBeFocused();
+});
+
+
+test('phone settings and account fields stay above the focus-zoom threshold', async({page}) => {
+ const { iphone14Pro } = require('../../../../scripts/test-devices.cjs');
+ await page.setViewportSize(iphone14Pro.viewport);
+ await page.goto('/dist/index.html#settings');
+ await expect(page.locator('#preset')).toBeVisible();
+ const undersized = async root => root.locator('input:not([type="hidden"]),select,textarea,.mantine-Input-input').evaluateAll(fields =>
+  fields.filter(el => el.getClientRects().length && parseFloat(getComputedStyle(el).fontSize) < 16)
+   .map(el => ({id:el.id, font:getComputedStyle(el).fontSize})));
+ expect(await undersized(page)).toEqual([]);
+ await page.getByRole('button', {name:'Log in', exact:true}).click();
+ const dialog = page.getByRole('dialog', {name:'Log in', exact:true});
+ await expect(dialog).toBeVisible();
+ expect(await undersized(dialog)).toEqual([]);
+});

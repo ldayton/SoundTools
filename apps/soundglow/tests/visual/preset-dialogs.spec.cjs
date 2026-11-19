@@ -22,3 +22,16 @@ test('a failed live pitch preset update stays usable without claiming to be save
  const {setSetting}=require('./settings-input.cjs');await page.goto('/dist/index.html#settings');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#editPitchPreset').click();await page.locator('#pitchPresetName').fill('Saved pitch');await page.locator('#confirmPitchPresetName').click();await expect(page.locator('#pitchPresetDialog')).toBeHidden();
  const id=await page.locator('#pitchPreset').inputValue();await page.evaluate(()=>Storage.prototype.setItem=()=>{throw Error('full')});await setSetting(page,'pitchHistory','8');await expect(page.locator('#pitchHistory')).toHaveValue('8');await expect(page.locator('#pitchPreset')).toHaveValue('custom');await expect(page.locator('#pitchPresetToast')).toContainText('Could not save');await page.reload();await expect(page.locator('#pitchPreset')).toHaveValue(id);await expect(page.locator('#pitchHistory')).toHaveValue('10');
 });
+
+test('finishing a closing preset dialog preserves focus moved to a setting', async({page}) => {
+ await page.goto('/dist/index.html#settings');
+ await page.getByRole('button',{name:'Edit presets',exact:true}).click();
+ const dialog=page.getByRole('dialog');
+ await expect(dialog).toBeVisible();
+ await dialog.press('Escape');
+ const slider=page.locator('#floor-slider');
+ await slider.focus();
+ await expect(slider).toBeFocused();
+ await expect(dialog).toBeHidden();
+ await expect(slider).toBeFocused();
+});

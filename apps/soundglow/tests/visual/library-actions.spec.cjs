@@ -77,3 +77,18 @@ test('a back-forward cached page retains its React owner and menu actions',async
  await page.getByRole('button',{name:'Save name',exact:true}).click();await expect(page.locator('[data-file] span')).toHaveText('Still interactive.m4a');
  await expect(page.locator('#app')).toHaveCount(1);await expect(page.locator('#soundglow-ui-root')).toHaveCount(0);
 });
+
+
+test('finishing a file dialog preserves a newer focus choice', async({page}) => {
+ await load(page, 'Focus.m4a');
+ await page.getByRole('button', {name:'Open files library', exact:true}).click();
+ await menu(page, page.locator('[data-file]'), 'Rename');
+ const dialog = page.getByRole('dialog', {name:'Rename file', exact:true});
+ await expect(page.locator('#libraryItemName')).toBeFocused();
+ await dialog.press('Escape');
+ const upload = page.locator('#importAudio');
+ await upload.focus();
+ await expect(upload).toBeFocused();
+ await expect(dialog).toBeHidden();
+ await expect(upload).toBeFocused();
+});

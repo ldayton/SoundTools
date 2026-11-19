@@ -29,12 +29,21 @@ export function ToolbarNumber({
   disabled?: boolean;
   onChange(value: number): void;
 }) {
-  const touchLayout = useMediaQuery("(max-width: 767px)", undefined, {
-    getInitialValueInEffect: false,
-  });
+  const touchLayout = useMediaQuery(
+    "(max-width: 767px), (any-pointer: coarse)",
+    undefined,
+    {
+      getInitialValueInEffect: false,
+    },
+  );
   if (touchLayout)
     return (
-      <Box className="toolbar-number-touch" role="group" aria-label={label}>
+      <Box
+        className="toolbar-number-touch"
+        w={unit.length > 2 ? 172 : undefined}
+        role="group"
+        aria-label={label}
+      >
         <ActionIcon
           id={`${id}-down`}
           variant="subtle"

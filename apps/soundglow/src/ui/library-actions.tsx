@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { restoreFocus } from "@ldayton/ui/restore-focus";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal, flushSync } from "react-dom";
@@ -123,10 +124,10 @@ export class LibraryActions {
         row.dataset.libraryKind === target.kind &&
         row.dataset.libraryId === target.id,
     );
-    (
-      row?.querySelector<HTMLElement>("[data-library-menu]") ||
-      document.getElementById("importAudio")
-    )?.focus();
+    restoreFocus([
+      row?.querySelector<HTMLElement>("[data-library-menu]") ?? null,
+      document.getElementById("importAudio"),
+    ], document.getElementById("libraryItemDialog"));
   }
   dispose() {
     if (this.disposed) return;

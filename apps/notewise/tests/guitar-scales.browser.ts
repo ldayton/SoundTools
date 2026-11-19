@@ -234,10 +234,9 @@ try {
     );
   }
   await page.getByText("Details", { exact: true }).click();
-  assert.match(
-    await page.locator(".scale-note-list table").innerText(),
-    /Open: C♭4/,
-  );
+  // The accordion keeps its table mounted while hidden. Wait for the expected
+  // cell to become visible instead of reading before React opens the panel.
+  await page.locator(".scale-note-list table").getByRole("cell").filter({ hasText: /Open: C♭4/ }).waitFor();
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

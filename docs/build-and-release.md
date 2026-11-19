@@ -19,7 +19,8 @@ revision is still published by a later push, even if that push only changes docs
 An unavailable or invalid baseline causes more validation, never less.
 
 Nightly and manual runs validate the complete matrix without publishing.
-Superseded validation jobs cancel per branch, browser and shard. Production jobs
+Superseded validation jobs cancel per branch, browser and shard; their gate
+is skipped so a cancelled validation does not become a new release failure. Production jobs
 are serialized per app and are never cancelled midway through promotion. The
 release checks main again immediately before promotion; an obsolete candidate
 stays staged.
@@ -42,7 +43,10 @@ Account tests deliberately build against their own isolated local Supabase
 configuration. These bundles must never be reused as production bundles. Vercel
 builds production candidates remotely with the project's existing production
 variables and Sentry upload credential; production secrets are not downloaded
-into the validation jobs.
+into the validation jobs. Backing-track UI and real-time loop checks use the
+restored bundle. Audio realism and genre probes deliberately use instrumented
+source servers to inspect internal PCM plans; those probe configurations never
+produce or publish release bundles.
 
 ## Local commands
 
@@ -78,7 +82,10 @@ status files, credentials or real account sessions as artifacts.
 Soundglow core/update tests and three visual shards run independently. Each audio
 runner retains one worker. SongAlong's complete hymn/arrangement/width catalog is
 partitioned into three shards for each browser, separate from interaction tests.
-Every catalog combination still runs. Test failures are not automatically retried.
+Every catalog combination still runs. NoteWise backing-track, realism and genre
+checks have their own browser jobs, so additional audio coverage cannot exhaust
+the main interaction suite's time budget. The publication gate requires both.
+Test failures are not automatically retried.
 Only browser installation and local backend startup get one bounded retry.
 
 Final packaging verifies all advertised resource sizes and SHA-256 hashes after

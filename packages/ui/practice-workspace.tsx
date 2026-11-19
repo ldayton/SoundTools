@@ -1,3 +1,4 @@
+import { restoreFocus } from "./restore-focus";
 import { createPortal } from "react-dom";
 import { RetainedContent } from "./retained-content";
 import { PanelIcon } from "./panel-icon";
@@ -38,10 +39,10 @@ function useOptionsState(
   const active = views.some((view) => view.id === activeId);
   const collapsed = desktop ? desktopCollapsed : mobileCollapsed;
   useLayoutEffect(() => {
-    if (focus.current)
-      (focus.current === "toggle" ? toggleRef : reopenRef).current?.focus({
-        preventScroll: true,
-      });
+    if (focus.current) restoreFocus(
+      (focus.current === "toggle" ? toggleRef : reopenRef).current,
+      (focus.current === "toggle" ? reopenRef : toggleRef).current,
+    );
     focus.current = undefined;
   });
   return {

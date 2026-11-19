@@ -16,7 +16,7 @@ enabled = false
 [studio]
 enabled = false
 [realtime]
-enabled = false
+enabled = true
 [storage]
 enabled = true
 file_size_limit = "50MiB"

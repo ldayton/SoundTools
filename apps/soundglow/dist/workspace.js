@@ -111,6 +111,11 @@
   await window.SoundglowAccount.start({
    read,models:{spectrogram:(values,selected)=>SettingsState.create(values,selected),pitch:values=>FeatureState.pitch(values)},
    pause:()=>host.accountPause(),idle:()=>host.accountIdle(),
+   applyPartial(snapshot,keys){
+    if(keys.some(key=>key.startsWith('pitch-preset:'))){state.presets=structuredClone(snapshot.workspace.presets);controls(true);}
+    if(keys.some(key=>key.startsWith('spectrogram-preset:')))host.accountSpectrogram.applyPresets(snapshot.spectrogram.presets);
+    if(keys.some(key=>key.startsWith('bookmark:')))library.applyAccountBookmarks(snapshot.bookmarks);
+   },
    apply(snapshot){
     host.accountSpectrogram.apply(snapshot.spectrogram);
     state=structuredClone(snapshot.workspace);reset();pumping=false;

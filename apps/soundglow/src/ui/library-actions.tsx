@@ -270,11 +270,6 @@ function LibraryMenuItems({
       <Menu.Item onClick={() => controller.edit(row, "rename")}>
         Rename…
       </Menu.Item>
-      {row.kind === "file" && row.failed && (
-        <Menu.Item onClick={() => void controller.host.retry?.()}>
-          Retry sync
-        </Menu.Item>
-      )}
       {row.kind === "file" && row.cloud && row.cached && (
         <Menu.Item
           onClick={() => void controller.host.removeDownload?.(row.id)}

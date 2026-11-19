@@ -28,9 +28,13 @@ const labels = {
   error: "Sync needs attention",
 };
 const status = (state: ReturnType<Account["getSnapshot"]>) =>
-  state.status === "offline" && state.pending
-    ? "Offline—changes pending"
-    : labels[state.status];
+  state.blocked
+    ? "Saved locally—some updates delayed"
+    : state.status === "synced" && state.updates
+      ? "Saved to cloud—practice update pending"
+      : state.status === "offline" && state.pending
+        ? "Offline—changes pending"
+        : labels[state.status];
 const AccountContext = createContext<{ account: Account; open(): void } | null>(
   null,
 );
@@ -49,11 +53,9 @@ export function AccountMenu() {
       aria-label={state.user ? "Account" : "Log in"}
       description={
         state.user
-          ? state.conflicts.length
-            ? "Changes need review"
-            : state.updates
-              ? "Cloud changes ready"
-              : status(state)
+          ? state.updates
+            ? "Updates will apply when practice pauses"
+            : status(state)
           : undefined
       }
       onClick={(event) => {
@@ -141,44 +143,7 @@ export function AccountProvider({
                 {status(state)}
                 {state.pending ? ` (${state.pending})` : ""}
               </Text>
-              {state.updates && (
-                <Button onClick={() => void run(() => account.apply(true))}>
-                  Apply cloud changes
-                </Button>
-              )}
-              {state.conflicts.map((key) => (
-                <Stack key={key} gap="xs">
-                  <Text size="sm">
-                    Changed on both devices: {key.replace(/[.:]/g, " ")}
-                  </Text>
-                  <Group grow>
-                    <Button
-                      variant="default"
-                      onClick={() =>
-                        void run(() => account.resolve(key, "device"))
-                      }
-                    >
-                      Use this device
-                    </Button>
-                    <Button
-                      variant="default"
-                      onClick={() =>
-                        void run(() => account.resolve(key, "cloud"))
-                      }
-                    >
-                      Use cloud
-                    </Button>
-                  </Group>
-                </Stack>
-              ))}
               <Group>
-                <Button
-                  variant="default"
-                  loading={busy}
-                  onClick={() => void run(() => account.sync())}
-                >
-                  Sync now
-                </Button>
                 <Button
                   variant="subtle"
                   disabled={busy}

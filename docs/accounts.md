@@ -78,23 +78,55 @@ semantics. Writes carry the expected revision and an operation UUID. The server
 serializes initialization/writes per owner and app, and retries are idempotent.
 JSON equality ignores object-key ordering because Postgres JSONB reorders keys.
 
-Independent edits merge. Conflicting edits to one record are preserved for the
-user to choose in Account. A reset can legitimately move progress backwards.
-Each local edit is saved immediately to the outbox; uploads are debounced. Active
-pages check every 15 seconds and on focus, visibility and reconnection. Tabs share
-an atomic IndexedDB queue and broadcast invalidations without network ping-pong.
+Independent records merge automatically. Competing edits to one record use a
+hybrid logical clock captured when the user makes the change, plus revision
+compare-and-swap and a stable device tie-breaker. Reconnecting an older offline
+edit does not replace a newer acknowledged edit. Related pitch fields remain
+atomic, and JSON null tombstones participate in the same ordering. Server time
+calibrates device clocks; implausible future stamps are repaired before upload.
+Disconnected devices with inaccurate clocks cannot provide perfect real-time
+ordering. Older clients retain server-arrival ordering until updated. Previously
+blocked conflict outboxes repair on load. There are no manual sync, conflict
+choice, or Apply cloud controls. A reset can legitimately move progress backwards.
 
-Remote changes apply while idle. During practice they wait behind **Apply cloud
-changes**, avoiding interruption or silent checkpoint resets. Reloads use cached
-account data before a network check. App updates flush the outbox before reload.
-Signing out restores guest data and refuses while unsynced edits remain.
-Unavailable device storage is reported explicitly; keep the page open to recover
-an unsaved in-memory draft. Account schema versions prevent older clients
-rewriting data they do not understand.
+Each local edit is saved immediately to the outbox. Uploads start within a bounded
+200 ms coalescing window, even with continuous checkpoint saves. Up to eight
+independent records upload concurrently, with durable per-operation acknowledgements.
+Transient failures use bounded exponential backoff with jitter and respect
+Retry-After. Invalid records remain local and are isolated from healthy writes;
+they are probed automatically after 24 hours, or immediately after a new edit.
+Operation IDs are checked against their original payload; non-current operation
+history is pruned opportunistically after 90 days.
+
+A Web Lock elects one visible tab per account/app to synchronize. Tabs share an
+atomic IndexedDB queue and BroadcastChannel notifications. Private, owner-scoped
+Realtime messages invalidate the cache without broadcasting settings. Incremental
+snapshots fetch changed records, with a full reconciliation after subscription or
+reconnection. Focus, visibility and network recovery trigger checks; a jittered
+25–35 second fallback repairs missed notifications. Browsers without Web Locks
+can run more than one coordinator; revision and operation checks preserve safety.
+
+Remote changes apply automatically at a safe point, checked every 500 ms.
+Inactive song data, statistics, saved collections and supported live controls can
+apply without restarting practice. Current checkpoints and exercise-defining
+settings wait for an actual safe pause or completion. A progressed Wait-for-me
+exercise is not considered idle just because the student takes time to answer.
+Focused inputs, held notes and passage selection defer disruptive changes.
+Reloads use cached account data before a network check. App updates flush the
+durable outbox before reload. Signing out refuses while unsynced edits remain.
+
+IndexedDB connections reopen after closure/version changes; a live tab retains
+its last committed replica and unsaved intent through temporary storage errors.
+Persistent storage is requested on a best-effort basis. Browser eviction after
+closing the page can still lose data that never reached the server; persistent
+storage is not a backup. Status distinguishes local saving, queued changes,
+cloud confirmation and deferred application. Diagnostics expose coded outcomes,
+retry counts and queue age, without recording content. Account schema versions
+prevent older clients rewriting data they do not understand.
 
 ## App data
 
-- **NoteWise:** exercise settings, per-exercise checkpoints and lifetime practice totals. Attempts/correct answers use bounded, cumulative contributions per card and replica, so practising the same card offline on two devices adds both sets of attempts. The latest review supplies scheduling metadata. Divergent round checkpoints remain explicit conflicts; lifetime totals are independent of the choice.
+- **NoteWise:** exercise settings, per-exercise checkpoints and lifetime practice totals. Attempts/correct answers use bounded, cumulative contributions per card and replica, so practising the same card offline on two devices adds both sets of attempts. The latest review supplies scheduling metadata. Divergent round checkpoints use the automatic edit-order rule; lifetime totals merge independently.
 - **Soundglow:** spectrogram/pitch settings, custom presets, playback volume/speed and bookmarks. Related values within each feature stay atomic to retain valid ranges/preset identity. Microphone selection, permissions, diagnostic consent, live microphone audio, analysis buffers, waveform peaks and file-library playback positions remain on the device. Imported audio files use the separate private file catalogue described below. Guest bookmarks/settings remain separate from the signed-in replica.
 
 ## Private file library
@@ -103,20 +135,20 @@ Signed-in Soundglow desktops automatically upload imported audio originals to th
 
 The shared `@ldayton/account/files` coordinator reuses the existing Supabase session and refreshes credentials for each native TUS request. Original bytes stay in Soundglow's chunked IndexedDB store; a separate shared IndexedDB database holds transfer intentions, TUS checkpoints and the catalogue. Uploads use the direct Storage endpoint and 6 MiB chunks. Interrupted uploads resume after reopening the app, including after a reload. Browser closure does not continue an upload in the background. Downloads retry on reopening, obtain a fresh short-lived URL, and verify size and fingerprint before being committed. Interrupted downloads restart; partial downloads are not retained. Signed URLs and tokens are not written into settings or diagnostics.
 
-The free-tier cap is 50 MiB per original. Larger recordings still import and play locally with a visible local-only status. Storage exhaustion and connection failures leave the original intact and offer retry. A device's cached downloads can be evicted by its browser; cloud originals can be downloaded again. Do not treat an unfinished upload as a backup.
+The free-tier cap is 50 MiB per original. Larger recordings still import and play locally with a visible local-only status. Storage exhaustion and connection failures leave the original intact and retry automatically with backoff. A device's cached downloads can be evicted by its browser; cloud originals can be downloaded again. Do not treat an unfinished upload as a backup.
 
-`public.media_files` records an immutable owner/app/id object path and pending/ready/deleted lifecycle. RLS and owner-checked RPCs limit access to the approved account. Clients cannot forge a ready state or overwrite audio. A snapshot repairs uploads that completed before their catalogue acknowledgement. Deletion first leaves a tombstone, fencing stale uploads, then removes bytes through the Storage API; snapshots retry outstanding physical deletions. Completed tombstones remain small metadata records so stale devices cannot restore a deleted original. Renaming changes metadata across devices. **Remove download** removes only that device's cached copy; **Delete everywhere** removes the cloud original and bound caches as devices reconnect. It never deletes the OS file originally imported. Shared bookmarks may retain their reference after a file is deleted and reconnect if the same recording is explicitly imported again.
+`public.media_files` records an immutable owner/app/id object path and pending/ready/deleted lifecycle. RLS and owner-checked RPCs limit access to the approved account. Clients cannot forge a ready state or overwrite audio. A snapshot repairs uploads that completed before their catalogue acknowledgement. Deletion first leaves a tombstone, fencing stale uploads, then removes bytes through the Storage API; snapshots retry outstanding physical deletions. Completed tombstones remain small metadata records so stale devices cannot restore a deleted original. Renaming uses the same logical edit ordering across devices; a stale offline rename cannot replace a newer name. **Remove download** removes only that device's cached copy; **Delete everywhere** removes the cloud original and bound caches as devices reconnect. It never deletes the OS file originally imported. Shared bookmarks may retain their reference after a file is deleted and reconnect if the same recording is explicitly imported again.
 
 Soundglow fingerprints fixed 1 MiB chunks and hashes their digests with the file size. This versioned content identity uses bounded memory. Existing imports receive fingerprints before upload; downloads must match them exactly. Owned cached files are hidden and active playback is stopped immediately on logout, including when the separate sync queue is unavailable. Queue failures leave existing local originals playable and show sync as unavailable. An import keeps the identity that started it even if it completes after logout. Uploads recheck authorization after credential refresh, and cancellation prevents late callbacks from restarting them. Removing a downloaded copy fences pending cache commits across tabs. The last selected owned file restores paused after account recovery. Guest imports remain separate.
 
-The schema and policies live in `supabase/migrations/202611180003_native_files.sql`. Deploy this migration before shipping the new client. Keep the hosted bucket private and its 50 MiB limit; do not add update/upsert or public-read policies. No Vercel upload proxy or server secret is needed in the browser.
+The schema and policies live in `supabase/migrations/202611180003_native_files.sql` and the additive `202611190001_sync_reliability.sql` upgrade. Deploy this migration before shipping the new client. Keep the hosted bucket private and its 50 MiB limit; do not add update/upsert or public-read policies. No Vercel upload proxy or server secret is needed in the browser.
 
 ## Local tests
 
 Install Supabase CLI 3.2.0. A native runtime works on macOS without Docker:
 
 ```sh
-supabase start --runtime native --exclude functions,studio,analytics,pooler,realtime --eager
+supabase start --runtime native --exclude functions,studio,analytics,pooler --eager
 supabase db push
 node scripts/setup-account-local.mjs
 npm run test:accounts
@@ -147,3 +179,13 @@ Keep versioned codecs separate from rendering. Use an app-specific account ID
 and the existing provider/menu, endpoint and database protocol.
 
 The account suite also exercises the native Storage policies and two isolated browser sessions, including cloud bookmark downloads, cached offline playback, cross-device rename/delete, guest isolation, size limits, and TUS resumption from a confirmed chunk after reload. `node scripts/dev-file-storage.mjs` starts a Soundglow-only local preview on port 4394 after local account setup. All fixture reset scripts reject hosted API URLs.
+
+The protocol and reliability suites additionally exercise private realtime access,
+incremental cursors, stale offline ordering, null tombstones, payload-bound
+idempotency, Retry-After, poison-record isolation, tab leader handoff, and injected
+storage failures. The design follows the offline-first outbox model, bounded
+retry/backoff, and authenticated realtime invalidations described in the
+[Android offline-first guidance](https://developer.android.com/topic/architecture/data-layer/offline-first),
+[AWS retry guidance](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/),
+[AWS idempotency guidance](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/),
+and [Supabase private broadcast documentation](https://supabase.com/docs/guides/realtime/broadcast).

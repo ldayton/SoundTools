@@ -13,6 +13,8 @@ export async function startPracticeAccount(options: {
   pause(): void;
   canApply(): boolean;
   beforeApply(): void;
+  liveKeys?(keys: string[]): string[];
+  liveApplied?(records: Records, state: DurableState): void;
   applied(records: Records | null, state: DurableState): void;
 }) {
   persistence.accountFlush = () => account.flush();
@@ -23,6 +25,20 @@ export async function startPracticeAccount(options: {
     },
     pause: options.pause,
     canApply: options.canApply,
+    applyPartial: async (records, keys) => {
+      const accepted = options.liveKeys?.(keys) || [];
+      if (!accepted.length) return [];
+      const merged = options.records(persistence.state);
+      for (const key of accepted) {
+        if (key in records) merged[key] = records[key];
+        else delete merged[key];
+      }
+      const next = options.restore(merged);
+      persistence.state = next;
+      refreshPianoVolume();
+      options.liveApplied?.(merged, next);
+      return accepted;
+    },
     apply: async (records) => {
       const next = records
         ? options.restore(records)

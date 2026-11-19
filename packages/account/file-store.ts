@@ -1,3 +1,4 @@
+import type { EditStamp } from "./clock";
 import type { PreviousUpload } from "tus-js-client";
 
 export type FileJob = {
@@ -10,6 +11,9 @@ export type FileJob = {
   name?: string;
   revision?: string;
   deletedId?: string | null;
+  stamp?: EditStamp;
+  attempts?: number;
+  retryAt?: number;
 };
 
 /** Original file bytes remain in the app's chunk store. This database contains
@@ -58,6 +62,18 @@ export class FileStore {
   }
   remove(store: string, id: string) {
     return this.transaction(store, "readwrite", (s) => s.delete(id));
+  }
+  async delay(job: FileJob) {
+    const tx = this.db.transaction("jobs", "readwrite"),
+      store = tx.objectStore("jobs");
+    const request = store.get(job.id);
+    request.onsuccess = () => {
+      if (request.result?.revision === job.revision) store.put(job);
+    };
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error);
+    });
   }
   async complete(job: FileJob) {
     const tx = this.db.transaction("jobs", "readwrite"),

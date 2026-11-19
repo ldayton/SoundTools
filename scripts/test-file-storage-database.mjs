@@ -180,6 +180,18 @@ try {
   });
   assert.ifError(renamed.error);
   assert.equal(renamed.data.name, "Renamed.wav");
+  const stamp = { time: Date.now() + 1000, counter: 1, node: crypto.randomUUID() };
+  const currentName = await owner.client.rpc("media_rename_v2", {
+    p_id: file.id, p_name: "Latest.wav", p_stamp: stamp,
+  });
+  assert.ifError(currentName.error);
+  assert.equal(currentName.data.name, "Latest.wav");
+  const staleName = await owner.client.rpc("media_rename_v2", {
+    p_id: file.id, p_name: "Stale.wav", p_stamp: { ...stamp, time: stamp.time - 1000 },
+  });
+  assert.ifError(staleName.error);
+  assert.equal(staleName.data.name, "Latest.wav", "stale offline rename cannot replace newer intent");
+
   assert.ifError(
     (await owner.client.rpc("media_delete", { p_id: file.id })).error,
   );

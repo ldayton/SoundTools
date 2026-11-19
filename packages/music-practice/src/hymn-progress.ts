@@ -68,6 +68,21 @@ export class HymnProgress {
         if (saved.preferences[id])
           this.preferences[id] = hymnPreferences(id, saved.preferences[id]);
   }
+  mergeInactive(saved: HymnState, current: string) {
+    for (const id of Object.keys(this.preferences))
+      if (id !== current) delete this.preferences[id];
+    for (const field of ["bookmarks", "sections"] as const)
+      for (const key of Object.keys(this[field]))
+        if (!key.startsWith(current + ":")) delete this[field][key];
+    for (const [id, preference] of Object.entries(saved.preferences || {}))
+      if (id !== current)
+        this.preferences[id] = hymnPreferences(id, preference);
+    for (const field of ["bookmarks", "sections"] as const)
+      for (const [key, value] of Object.entries(saved[field] || {}))
+        if (!key.startsWith(current + ":"))
+          (this[field] as Record<string, unknown>)[key] =
+            structuredClone(value);
+  }
   zoomFor(layout: "mobile" | "desktop") {
     return this.zoomByLayout[layout];
   }

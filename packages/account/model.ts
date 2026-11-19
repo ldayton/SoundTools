@@ -1,3 +1,4 @@
+import { nextStamp, compareStamp, type EditStamp } from "./clock";
 export type Json =
   null | boolean | number | string | Json[] | { [key: string]: Json };
 export type Records = Record<string, Json>;
@@ -14,6 +15,7 @@ export type CloudRow = {
   revision: number;
   device: string;
   operation: string;
+  stamp?: EditStamp;
 };
 export type Pending = {
   id: string;
@@ -21,11 +23,19 @@ export type Pending = {
   value: Json;
   revision: number;
   conflict?: Json;
+  stamp?: EditStamp;
+  queuedAt?: number;
+  attempts?: number;
+  retryAt?: number;
+  blocked?: boolean;
 };
 export type Replica = {
   version: 1;
   device: string;
   initialized: boolean;
+  cursor?: number;
+  clock?: EditStamp;
+  timeOffset?: number;
   remote: Record<string, CloudRow>;
   pending: Record<string, Pending>;
 };
@@ -56,7 +66,8 @@ export function values(replica: Replica): Records {
   ]);
 }
 /** Adapters split independent settings into separate records. Checkpoints and
- * related pitch choices remain indivisible, so conflicts cannot make invalid combinations. */
+ * related pitch choices remain indivisible. Concurrent pending intent is
+ * automatically rebased; server revisions determine the final write order. */
 export function merge(
   base: Json,
   local: Json,
@@ -65,7 +76,7 @@ export function merge(
   if (same(local, remote) || same(base, remote))
     return { value: local, conflict: false };
   if (same(base, local)) return { value: remote, conflict: false };
-  return { value: local, conflict: true };
+  return { value: local, conflict: false };
 }
 export function freshReplica(): Replica {
   return {
@@ -81,19 +92,32 @@ export function reconcile(replica: Replica, rows: CloudRow[]) {
     const previous = replica.remote[row.key];
     if (previous && previous.revision > row.revision) continue;
     replica.remote[row.key] = row;
+    if (
+      row.stamp &&
+      (!replica.clock || compareStamp(row.stamp, replica.clock) > 0)
+    )
+      replica.clock = row.stamp;
     const pending = replica.pending[row.key];
     if (!pending) continue;
     if (pending.id === row.operation || same(pending.value, row.value)) {
       delete replica.pending[row.key];
       continue;
     }
+    if (
+      pending.stamp &&
+      row.stamp &&
+      compareStamp(row.stamp, pending.stamp) >= 0
+    ) {
+      delete replica.pending[row.key];
+      continue;
+    }
     if (pending.revision === row.revision) continue;
+    // Rebase pending intent onto the server revision, then CAS it back. The
+    // server orders concurrent writes; unrelated records merge independently.
     const result =
-      "conflict" in pending
-        ? { value: pending.value, conflict: true }
-        : row.device === replica.device
-          ? { value: pending.value, conflict: false }
-          : merge(pending.base, pending.value, row.value);
+      row.device === replica.device
+        ? { value: pending.value, conflict: false }
+        : merge(pending.base, pending.value, row.value);
     pending.base = row.value;
     pending.revision = row.revision;
     pending.id = crypto.randomUUID();
@@ -109,11 +133,26 @@ export function edit(
   key: string,
   value: Json,
   previous: Json,
+  intentStamp?: EditStamp,
 ) {
+  const stamp =
+    intentStamp ??
+    nextStamp(
+      replica.device,
+      [replica.clock, replica.remote[key]?.stamp],
+      Date.now() + (replica.timeOffset || 0),
+    );
+  if (!replica.clock || compareStamp(stamp, replica.clock) > 0)
+    replica.clock = stamp;
   const pending = replica.pending[key];
   const remote = replica.remote[key];
   if (pending) {
     pending.value = structuredClone(value);
+    pending.stamp = stamp;
+    pending.queuedAt = Date.now();
+    delete pending.retryAt;
+    delete pending.attempts;
+    delete pending.blocked;
     pending.id = crypto.randomUUID();
     if (same(value, remote?.value)) delete replica.pending[key];
     return;
@@ -125,6 +164,8 @@ export function edit(
     base: remote?.value ?? null,
     value: structuredClone(result.value),
     revision: remote?.revision ?? 0,
+    stamp,
+    queuedAt: Date.now(),
     ...(result.conflict ? { conflict: remote?.value ?? null } : {}),
   };
 }

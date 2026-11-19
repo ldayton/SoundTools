@@ -167,6 +167,25 @@ void document.fonts.ready
       restore: restoreSongalongRecords,
       pause: () => interrupt("controls"),
       canApply: () => route.kind === "settings" || !!practice?.syncIdle,
+      liveKeys: (keys) => {
+        const current = persistence.read<{ hymn?: string }>("sight")?.hymn;
+        return keys.filter(
+          (key) =>
+            key === "activity:audio" ||
+            (["hymn:", "bookmarks:", "sections:"].some((prefix) =>
+              key.startsWith(prefix),
+            ) &&
+              !["hymn:", "bookmarks:", "sections:"].some((prefix) =>
+                key.startsWith(prefix + current + ":"),
+              )),
+        );
+      },
+      liveApplied: (_records, state) => {
+        if (state.activities.sight)
+          practice?.applyInactiveAccountState(
+            state.activities.sight as import("./hymn-progress").HymnState,
+          );
+      },
       beforeApply: () => {
         interrupt("controls");
         practice?.dispose();

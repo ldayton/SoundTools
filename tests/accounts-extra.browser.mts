@@ -1,4 +1,9 @@
-import { captureFailure, closeBrowser, launchBrowser, createContext } from '../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createContext,
+} from "../scripts/ci/browser-harness.cjs";
 import { chromium, firefox, webkit, expect, type Page } from "@playwright/test";
 import assert from "node:assert/strict";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
@@ -33,7 +38,9 @@ for (const table of ["public.account_apps", "private.account_operations"])
     ],
     { stdio: "ignore" },
   );
-execFileSync("node", ["scripts/reset-file-storage-local.mjs"], { stdio: "ignore" });
+execFileSync("node", ["scripts/reset-file-storage-local.mjs"], {
+  stdio: "ignore",
+});
 const fixed = await mkdtemp(join(tmpdir(), "soundtools-extra-"));
 const browser = await launchBrowser({
   args: engine === "chromium" ? ["--mute-audio"] : [],
@@ -48,13 +55,17 @@ async function observe(page: Page) {
   await page.addInitScript(() => {
     window.addEventListener("error", (e) => {
       if (e.message)
-        void (window as any).__accountReportError(e.error?.stack || e.message).catch(() => {});
+        void (window as any)
+          .__accountReportError(e.error?.stack || e.message)
+          .catch(() => {});
     });
     window.addEventListener(
       "unhandledrejection",
       (e) =>
         void (window as any)
-          .__accountReportError(String(e.reason?.stack || e.reason?.message || e.reason))
+          .__accountReportError(
+            String(e.reason?.stack || e.reason?.message || e.reason),
+          )
           .catch(() => {}),
     );
   });
@@ -141,7 +152,10 @@ try {
       ...macBookAir13,
       serviceWorkers: "block",
     }),
-    b = await createContext(browser, { ...macBookAir13, serviceWorkers: "block" });
+    b = await createContext(browser, {
+      ...macBookAir13,
+      serviceWorkers: "block",
+    });
   for (const context of [a, b])
     await context.addInitScript({
       content: await readFile(
@@ -180,19 +194,10 @@ try {
   await pull(p);
   await q.unroute(config.SUPABASE_URL + "/**");
   await account(q);
-  await q.getByRole("button", { name: "Sync now", exact: true }).click();
-  const choose = q.getByRole("button", {
-    name: "Use this device",
-    exact: true,
-  });
-  // Equal checkpoints merge automatically; any genuinely different checkpoint is
-  // retained for explicit choice. Per-replica practice totals never conflict.
+  await q.getByRole("status").filter({ hasText: "Synced" }).waitFor();
   await expect(
-    q.getByRole("button", { name: "Sync now", exact: true }),
-  ).not.toHaveAttribute("data-loading", "true");
-  if (await choose.first().isVisible()) {
-    while (await choose.count()) await choose.first().click();
-  }
+    q.getByRole("button", { name: "Use this device", exact: true }),
+  ).toHaveCount(0);
   await closeModal(q);
   await pull(q);
   await pull(p);
@@ -247,7 +252,10 @@ try {
       ...macBookAir13,
       serviceWorkers: "block",
     }),
-    d = await createContext(browser, { ...macBookAir13, serviceWorkers: "block" });
+    d = await createContext(browser, {
+      ...macBookAir13,
+      serviceWorkers: "block",
+    });
   const g = await c.newPage(),
     h = await d.newPage();
   for (const page of [g, h]) await observe(page);
@@ -297,7 +305,9 @@ try {
   assert(!encoded.includes("peaks"));
   assert(!encoded.includes("blob:"));
   assert(!encoded.includes("data:audio"));
-  await g.waitForFunction(() => (window as any).SoundglowFiles.rows.some((f:any)=>f.state==="ready"));
+  await g.waitForFunction(() =>
+    (window as any).SoundglowFiles.rows.some((f: any) => f.state === "ready"),
+  );
   await h.goto("http://127.0.0.1:4394/dist/index.html#settings");
   await login(h, true);
   await expect(
@@ -352,9 +362,7 @@ try {
     const l = (window as any).soundglowSession.accountLibrary();
     return l.removeDownload(l.current.id);
   });
-  await expect(h.locator("[data-bookmark]")).toContainText(
-    "Download to open",
-  );
+  await expect(h.locator("[data-bookmark]")).toContainText("Download to open");
   await expect(g.locator("[data-file]")).toHaveCount(1);
   await signedOut(g);
   await expect(minimum).toHaveValue("75");

@@ -11,7 +11,7 @@ import type {
   LegacyBackingStyle as BackingStyle,
   BackingMode,
 } from "./backing-track-model";
-type Role = "foundation" | "bass" | "guitar" | "space" | "drums";
+import type { BackingRole as Role } from "./backing-roles";
 type Grip = { note: number; string: number; fret: number }[];
 const tuning = [40, 45, 50, 55, 59, 64];
 const conversations: Role[][] = [

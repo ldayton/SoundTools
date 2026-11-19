@@ -12,3 +12,11 @@ Both representations produce the same portable fingerprint.
 each take matches its original approved hash byte-for-byte. It deliberately
 refuses to regenerate on a platform with different final floating-point bits,
 or after a musical change. It does not replace the approved musical baseline.
+
+`approved-soul-7345a6d.json` preserves Soul before the Folk/Country instrument
+and technique revision. It was generated from that commit's Soul arrangement
+and the unchanged shared drum/guitar/pocket adapters. The extraction of Soul
+from the old shared Soul/Folk generator was also compared against the original
+across 192 key, quality, mode, tempo and cycle combinations. The historical
+Country baseline is retained as evidence; Country now has deliberately revised
+acoustic playing patterns, covered by musical and actual-sampler tests instead.

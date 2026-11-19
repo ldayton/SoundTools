@@ -10,7 +10,7 @@ import type {
   BackingMode,
 } from "./backing-track-model";
 type Take = ReturnType<typeof backingArrangement>;
-type Role = "foundation" | "bass" | "guitar" | "drums" | "space";
+import type { BackingRole as Role } from "./backing-roles";
 const plans: Role[][] = [
   ["foundation", "bass", "guitar", "drums"],
   ["foundation", "space", "bass", "drums"],

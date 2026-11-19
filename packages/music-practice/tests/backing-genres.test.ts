@@ -47,7 +47,12 @@ test("Country stays sparse, playable and diatonic in all keys with bounded loop 
         assert.equal(take.beats, 256);
         assert.equal(take.plan.bars.length, 64);
         assert.equal(take.plan.bars[0].level, take.plan.bars.at(-1)!.level);
-        assert.equal(take.events.filter((e) => e.part === "bass").length, 128);
+        const bassCount = take.events.filter((e) => e.part === "bass").length;
+        assert.ok(
+          mode === "steady"
+            ? bassCount === 128
+            : bassCount > 128 && bassCount <= 136,
+        );
         const pcs = (
           quality === "major" ? [0, 2, 4, 5, 7, 9, 11] : [0, 2, 3, 5, 7, 8, 10]
         ).map((n) => (n + tonic) % 12);
@@ -65,11 +70,10 @@ test("Country stays sparse, playable and diatonic in all keys with bounded loop 
           }
         }
         for (let bar = 0; bar < 64; bar++)
-          assert.equal(
+          assert.ok(
             take.events.filter(
               (e) => e.part === "bass" && Math.floor(e.beat / 4) === bar,
-            ).length,
-            2,
+            ).length <= (mode === "steady" ? 2 : 3),
           );
         assert.ok(
           new Set(

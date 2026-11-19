@@ -70,7 +70,16 @@ try {
       .getByRole("combobox", { name: "Backing style", exact: true })
       .locator("option")
       .allTextContents(),
-    ["Blues", "Rock", "Country", "Reggae", "Funk", "Soul", "Folk"],
+    [
+      "Blues",
+      "Rock",
+      "Country",
+      "Reggae",
+      "Funk",
+      "Soul",
+      "Folk",
+      "Traditional Gospel",
+    ],
   );
   await group
     .getByRole("combobox", { name: "Backing style", exact: true })
@@ -113,7 +122,7 @@ try {
     .getByRole("button", { name: "Play backing track", exact: true })
     .click();
   await page.waitForFunction(
-    offset => (window as any).backingStarts.length > offset,
+    (offset) => (window as any).backingStarts.length > offset,
     pausedCount,
   );
   const rates = await page.evaluate(

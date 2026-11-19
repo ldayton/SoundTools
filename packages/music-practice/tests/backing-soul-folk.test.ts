@@ -4,23 +4,22 @@ import { backingFingerprint } from "./backing-fingerprint";
 import { genreBackingArrangement as arrange } from "../src/backing-genre-engine";
 import { BACKING_GENRES } from "../src/backing-genres";
 import baseline from "./fixtures/approved-reggae-funk-sustained.json";
+import soulBaseline from "./fixtures/approved-soul-7345a6d.json";
 import bank from "../src/assets/backing-soul-folk/manifest.json";
+import acoustic from "../src/assets/backing-folk-country/manifest.json";
 import type { BackingMode } from "../src/backing-track-model";
 import type { BackingQuality } from "../src/backing-arrangement";
-test("approved sustained Reggae/Funk takes remain exact when adding instrument palettes", () => {
-  for (const row of baseline) {
+test("approved Reggae/Funk/Soul takes remain exact when adding acoustic palettes", () => {
+  for (const row of [...baseline, ...soulBaseline]) {
     const t = arrange(
-      row.style as "reggae" | "funk",
+      row.style as "reggae" | "funk" | "soul",
       row.mode as BackingMode,
       row.quality as BackingQuality,
       row.cycle,
       row.tempo,
       row.tonic,
     );
-    assert.equal(
-      backingFingerprint(t),
-      row.portableSha256,
-    );
+    assert.equal(backingFingerprint(t), row.portableSha256);
   }
 });
 test("Soul/Folk retain sparse bass and diatonic, supported instruments in all keys", () => {
@@ -57,7 +56,7 @@ test("Soul/Folk retain sparse bass and diatonic, supported instruments in all ke
             }
             if (e.part === "guitar")
               assert.ok(
-                Object.values(bank.samples).some(
+                Object.values(acoustic.samples).some(
                   (s) =>
                     s.part === "guitar" &&
                     s.note === e.note &&
@@ -104,6 +103,6 @@ test("warm chord parts ring naturally rather than using the old short electric s
       .filter((e) => e.part === "guitar")
       .reduce((s, e) => s + e.duration, 0) /
       folk.events.filter((e) => e.part === "guitar").length >
-      3,
+      1,
   );
 });

@@ -1,15 +1,35 @@
-import type { BackingEvent, BackingPart } from "./backing-track-model";
+import type {
+  BackingEvent,
+  BackingPart,
+  BackingInstrument,
+} from "./backing-track-model";
+import type { GenreDefinition } from "./backing-genres";
+
+const roomSends = {
+  drums: 0.045,
+  percussion: 0.08,
+  bass: 0.012,
+  guitar: 0.18,
+  keys: 0.14,
+};
 /** Rules concern physical voices, independently of the sample chosen for them. */
 export function backingChokes(
   event: BackingEvent,
   voice: {
     part: BackingPart;
+    instrument?: BackingInstrument;
     note: number;
     string?: number;
     articulation?: BackingEvent["articulation"];
   },
 ) {
   if (event.part !== voice.part) return false;
+  if (
+    event.instrument &&
+    voice.instrument &&
+    event.instrument !== voice.instrument
+  )
+    return false;
   if (event.part === "drums") {
     const openness = (note: number, art?: BackingEvent["articulation"]) =>
       note === 46
@@ -63,8 +83,10 @@ export function backingRoom(sampleRate: number) {
 export function backingAudioGraph(
   context: BaseAudioContext,
   levels: Record<BackingPart, number>,
+  profile: GenreDefinition["instrumentation"]["mix"] = "approved-drum-forward",
 ) {
   const buses = new Map<BackingPart, GainNode>();
+  const sends = new Map<BackingPart, GainNode>();
   const limiter = context.createDynamicsCompressor();
   limiter.threshold.value = -6;
   limiter.knee.value = 6;
@@ -110,17 +132,34 @@ export function backingAudioGraph(
     comp.release.value = 0.12;
     bus.connect(comp).connect(output);
     const send = context.createGain();
-    send.gain.value = {
-      drums: 0.045,
-      percussion: 0.08,
-      bass: 0.012,
-      guitar: 0.18,
-      keys: 0.14,
-    }[part];
+    send.gain.value = roomSends[part];
     comp.connect(send).connect(room);
     buses.set(part, bus);
+    sends.set(part, send);
   }
-  return { output, buses };
+  function setMix(next: Record<BackingPart, number>, style: typeof profile) {
+    const wet =
+      style === "intimate-acoustic"
+        ? 0.4
+        : style === "dry-country"
+          ? 0.22
+          : style === "gospel-room"
+            ? 0.7
+            : 1;
+    for (const [part, bus] of buses) {
+      bus.gain.setTargetAtTime(
+        next[part] ?? next.guitar,
+        context.currentTime,
+        0.02,
+      );
+      sends
+        .get(part)!
+        .gain.setTargetAtTime(roomSends[part] * wet, context.currentTime, 0.02);
+    }
+  }
+  // Preserve the approved default graph exactly, including its initial values.
+  if (profile !== "approved-drum-forward") setMix(levels, profile);
+  return { output, buses, setMix };
 }
 
 /** Native browser resampling bounds memory without changing pitch or note length. */

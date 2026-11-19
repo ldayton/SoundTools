@@ -10,7 +10,15 @@ import { reggaePalette } from "./backing-reggae-palette";
 import { gospelPalette } from "./backing-gospel-palette";
 import { TonewheelOrgan } from "./backing-organ";
 import { gospelOrganScene } from "./backing-gospel";
+import { compressBackingSample } from "./backing-dynamics";
 import { backingPattern, type BackingPattern } from "./backing-patterns";
+import {
+  BackingMixer,
+  backingMixerChannels,
+  backingMixerKey,
+  backingMixerLevels,
+  type BackingMixerChannel,
+} from "./backing-mixer";
 import { genreBackingArrangement } from "./backing-genre-engine";
 import { BACKING_GENRES, backingGenre } from "./backing-genres";
 import { sharedBackingPocket } from "./backing-shared-pocket";
@@ -109,6 +117,12 @@ export class BackingTrackPlayer {
     beat: -1,
     error: "",
   });
+  readonly balance = createViewState(
+    backingMixerLevels(
+      persistence.read(backingMixerKey(this.model.getSnapshot().style)),
+    ),
+  );
+  private mixer?: BackingMixer;
   private metroAnchor = 0;
   private metroIndex = 0;
   private metroEpoch = 0;
@@ -303,7 +317,7 @@ export class BackingTrackPlayer {
   private applyVolume = () => {
     if (this.output)
       this.output.gain.setTargetAtTime(
-        (3 * getPianoVolume()) / 100,
+        getPianoVolume() / 100,
         this.output.context.currentTime,
         0.015,
       );
@@ -372,7 +386,16 @@ export class BackingTrackPlayer {
       this.organ = undefined;
     }
     this.patch({ style, pattern: backingPattern(style, undefined) });
-    this.setMix?.(this.pack.levels, this.mixProfile);
+    const balance = backingMixerLevels(
+      persistence.read(backingMixerKey(style)),
+    );
+    this.balance.set(balance);
+    this.mixer?.setLevels(balance);
+    this.setMix?.(
+      this.pack.levels,
+      this.mixProfile,
+      this.model.getSnapshot().mode,
+    );
     this.takeCache.clear();
     this.remember();
     this.position = 0;
@@ -386,10 +409,51 @@ export class BackingTrackPlayer {
     if (pattern === state.pattern) return;
     const beat = this.currentPosition();
     this.patch({ pattern });
-    this.setMix?.(this.pack.levels, this.mixProfile);
+    this.setMix?.(this.pack.levels, this.mixProfile, state.mode);
     this.takeCache.clear();
     this.remember();
     if (state.status === "playing") this.reschedule(beat);
+  }
+
+  setMixerLevel(channel: BackingMixerChannel, value: number) {
+    if (!backingMixerChannels.includes(channel) || !Number.isFinite(value))
+      return;
+    const levels = backingMixerLevels({
+      levels: { ...this.balance.getSnapshot(), [channel]: value },
+    });
+    this.balance.set(levels);
+    this.mixer?.setLevels(levels);
+    this.rememberMixer();
+  }
+
+  resetMixer() {
+    const levels = backingMixerLevels();
+    this.balance.set(levels);
+    this.mixer?.setLevels(levels);
+    this.rememberMixer();
+  }
+
+  private rememberMixer() {
+    persistence.write(backingMixerKey(this.model.getSnapshot().style), {
+      version: 1,
+      levels: this.balance.getSnapshot(),
+    });
+  }
+
+  private mixerInput(event: Pick<BackingEvent, "part" | "instrument">) {
+    if (
+      !this.mixer ||
+      this.mixer.context !== this.context ||
+      this.mixer.buses !== this.buses
+    ) {
+      this.mixer?.dispose();
+      this.mixer = new BackingMixer(
+        this.context!,
+        this.buses,
+        this.balance.getSnapshot(),
+      );
+    }
+    return this.mixer.input(event);
   }
 
   get mixProfile() {
@@ -404,6 +468,7 @@ export class BackingTrackPlayer {
     if (mode === this.model.getSnapshot().mode) return;
     const beat = this.currentPosition();
     this.patch({ mode });
+    this.setMix?.(this.pack.levels, this.mixProfile, mode);
     this.takeCache.clear();
     this.remember();
     if (this.model.getSnapshot().status === "playing") this.reschedule(beat);
@@ -613,6 +678,7 @@ export class BackingTrackPlayer {
         context,
         this.pack.levels,
         this.mixProfile,
+        this.model.getSnapshot().mode,
       );
       this.output = graph.output;
       this.clickOutput = context.createGain();
@@ -687,7 +753,8 @@ export class BackingTrackPlayer {
               sample = this.pack.samples[id],
               url = urls.get(sample.file);
             if (!url) throw Error("Missing backing sample");
-            let pending = decodedFiles.get(sample.file);
+            const cacheKey = `${sample.file}:${sample.instrument ?? sample.part}:${sample.gain}:${sample.release}`;
+            let pending = decodedFiles.get(cacheKey);
             if (!pending) {
               pending = (async () => {
                 const response = await fetch(url, {
@@ -723,13 +790,18 @@ export class BackingTrackPlayer {
                       decoded.getChannelData(ch).subarray(0, clipped.length),
                       ch,
                     );
-                  return clipped;
+                  return this.legacyReference(current.style)
+                    ? clipped
+                    : compressBackingSample(clipped, sample);
                 }
-                return this.experimental
+                const prepared = this.experimental
                   ? decoded
-                  : compactBackingBuffer(decoded, sample.part);
+                  : await compactBackingBuffer(decoded, sample.part);
+                return this.legacyReference(current.style)
+                  ? prepared
+                  : compressBackingSample(prepared, sample);
               })();
-              decodedFiles.set(sample.file, pending);
+              decodedFiles.set(cacheKey, pending);
             }
             const buffer = await pending;
             if (!this.disposed && token === this.epoch)
@@ -811,6 +883,8 @@ export class BackingTrackPlayer {
       processor.dispose();
     }
     this.retiring.clear();
+    this.mixer?.dispose();
+    this.mixer = undefined;
     this.unlistenVolume?.();
     this.unlistenVolume = undefined;
     void this.context?.close().catch(() => {});
@@ -941,13 +1015,14 @@ export class BackingTrackPlayer {
     if (!release && (style === "gospel" || style === "reggae")) {
       if (
         this.organ?.context !== context ||
-        this.organ.destination !== this.buses.get("keys") ||
+        this.organ.destination !==
+          this.mixerInput({ part: "keys", instrument: "tonewheel-organ" }) ||
         this.organ.profile !== style
       ) {
         this.organ?.dispose();
         this.organ = new TonewheelOrgan(
           context,
-          this.buses.get("keys")!,
+          this.mixerInput({ part: "keys", instrument: "tonewheel-organ" }),
           style,
         );
       }
@@ -1014,9 +1089,12 @@ export class BackingTrackPlayer {
         this.instruments = new BackingInstrumentRack(context);
       }
       gain.connect(
-        this.instruments.input(instrument!, this.buses.get(event.part)!),
+        this.instruments.input(
+          instrument!,
+          this.mixerInput({ part: event.part, instrument }),
+        ),
       );
-    } else gain.connect(this.buses.get(event.part)!);
+    } else gain.connect(this.mixerInput({ part: event.part, instrument }));
     const offset = (offsetBeats * 60) / state.tempo;
     const available = buffer.duration / rate - offset;
     if (available <= 0.003) {

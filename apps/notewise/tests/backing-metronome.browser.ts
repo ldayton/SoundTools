@@ -1,4 +1,9 @@
-import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  newPage,
+} from "../../../scripts/ci/browser-harness.cjs";
 import assert from "node:assert/strict";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -297,7 +302,8 @@ try {
         await p.play();
         if (p.model.getSnapshot().status !== "playing")
           throw Error(JSON.stringify(p.model.getSnapshot()));
-        const pattern = p.take(), tempo = p.model.getSnapshot().tempo;
+        const pattern = p.take(),
+          tempo = p.model.getSnapshot().tempo;
         p.pauseAll();
         await new Promise((r) => setTimeout(r, 100));
         p.voices.clear();
@@ -310,7 +316,12 @@ try {
         );
         p.context = offline;
         p.buses = new Map();
-        p.buses = backingAudioGraph(offline, p.pack.levels, p.mixProfile).buses;
+        p.buses = backingAudioGraph(
+          offline,
+          p.pack.levels,
+          p.mixProfile,
+          p.model.getSnapshot().mode,
+        ).buses;
         const from = pattern.beats - 8;
         for (const event of pattern.events) {
           if (event.beat >= from)

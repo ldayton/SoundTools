@@ -388,3 +388,24 @@
 .backing-track-genre {
   margin-bottom: 17px;
 }
+
+.backing-track-mixer {
+  margin-top: 16px;
+  border-top: 1px solid var(--backing-line);
+}
+.backing-track-mixer output {
+  font-variant-numeric: tabular-nums;
+}
+@media (pointer: coarse) {
+  .backing-track-mixer .mantine-Slider-root {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+  .backing-track-mixer .mantine-Slider-trackContainer {
+    width: 100%;
+  }
+  .backing-mixer-reset {
+    min-height: 44px;
+  }
+}

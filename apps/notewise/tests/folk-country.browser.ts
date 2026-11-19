@@ -173,7 +173,12 @@ try {
           24000,
         );
         p.context = offline;
-        p.buses = backingAudioGraph(offline, p.pack.levels, p.mixProfile).buses;
+        p.buses = backingAudioGraph(
+          offline,
+          p.pack.levels,
+          p.mixProfile,
+          p.model.getSnapshot().mode,
+        ).buses;
         for (const e of take.events.filter(
           (e: any) => e.beat >= 32 && e.beat < 48,
         ))

@@ -4,6 +4,7 @@ import { backingPatterns, type BackingPattern } from "./backing-patterns";
 import { useState, useSyncExternalStore } from "react";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import type { BackingTrackPlayer } from "./backing-track-audio";
+import { BackingMixerSettings } from "./backing-mixer-settings";
 import "./backing-track-settings.css";
 
 const selectStyles = {
@@ -166,6 +167,7 @@ export function BackingTrackSettings({
                 : "Play"}
           </button>
         </div>
+        <BackingMixerSettings player={player} style={state.style} />
       </div>
       <footer className="backing-track-footer">
         <span role="status">

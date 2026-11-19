@@ -206,6 +206,7 @@ try {
                 offline,
                 p.pack.levels,
                 p.mixProfile,
+                p.model.getSnapshot().mode,
               ).buses;
               for (const e of take.events) {
                 if (e.beat >= from && e.beat < to)

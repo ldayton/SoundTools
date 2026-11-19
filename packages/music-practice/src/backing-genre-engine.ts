@@ -14,10 +14,11 @@ import type { BackingPattern } from "./backing-patterns";
 import { articulateDrums } from "./backing-drum-articulation";
 import { connectBackingGuitar } from "./backing-guitar-transitions";
 import { sharedBackingPocket } from "./backing-shared-pocket";
+import { levelBackingSections } from "./backing-dynamics";
 import type { BackingStyle, BackingMode } from "./backing-track-model";
 import type { BackingQuality } from "./backing-arrangement";
 import type { BackingTake } from "./backing-plan-types";
-export function genreBackingArrangement(
+export function rawGenreBackingArrangement(
   style: BackingStyle,
   mode: BackingMode,
   quality: BackingQuality,
@@ -81,4 +82,12 @@ export function genreBackingArrangement(
   return scaleQuality
     ? scalePracticeHarmony(performed, scaleQuality)
     : performed;
+}
+
+/** Keep the musical performance independently testable; leveling changes gain
+ * alone, and the historical performance snapshots remain valid. */
+export function genreBackingArrangement(
+  ...args: Parameters<typeof rawGenreBackingArrangement>
+): BackingTake {
+  return levelBackingSections(rawGenreBackingArrangement(...args), args[6]);
 }

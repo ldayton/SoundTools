@@ -232,6 +232,7 @@ try {
                 offline,
                 p.pack.levels,
                 p.mixProfile,
+                p.model.getSnapshot().mode,
               ).buses;
               for (const e of take.events) {
                 if (e.beat >= from && e.beat < to)
@@ -354,7 +355,7 @@ try {
         );
       setPianoVolume(100);
       await new Promise((r) => setTimeout(r, 120));
-      if (p.output.gain.value < 2.98)
+      if (p.output.gain.value < 0.99)
         throw Error("App volume did not restore the backing mix");
       p.reschedule(7, p.context.currentTime + 0.02);
       if (!p.organ || !p.organ.voiceCount)

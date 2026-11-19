@@ -3,6 +3,7 @@ import type {
   BackingEvent,
   BackingPart,
   BackingInstrument,
+  BackingMode,
 } from "./backing-track-model";
 import type { GenreDefinition } from "./backing-genres";
 
@@ -85,6 +86,7 @@ export function backingAudioGraph(
   context: BaseAudioContext,
   levels: Record<BackingPart, number>,
   profile: GenreDefinition["instrumentation"]["mix"] = "approved-drum-forward",
+  mode: BackingMode = "steady",
 ) {
   const buses = new Map<BackingPart, GainNode>();
   const sends = new Map<BackingPart, GainNode>();
@@ -95,10 +97,26 @@ export function backingAudioGraph(
   limiter.attack.value = 0.003;
   limiter.release.value = 0.15;
   const output = context.createGain();
-  output.gain.value = 3;
+  output.gain.value = 1;
+  const sum = context.createGain();
+  sum.gain.value = 3;
   const headroom = context.createGain();
-  headroom.gain.value = 0.75 * backingMixGain(profile);
-  output.connect(limiter).connect(headroom).connect(context.destination);
+  headroom.gain.value = 0.75 * backingMixGain(profile, mode);
+  sum.connect(limiter).connect(headroom);
+  if (profile === "approved-drum-forward") headroom.connect(output);
+  else {
+    // A final oversampled soft ceiling catches exceptional mixer boosts. Its
+    // conservative sample ceiling leaves headroom for reconstruction peaks;
+    // actual true peaks are checked on rendered audio, never inferred from the
+    // compressor's threshold. Normalized ordinary passages stay linear.
+    const safety = context.createWaveShaper();
+    safety.curve = backingPeakCurve();
+    safety.oversample = "4x";
+    const ceilingHeadroom = context.createGain();
+    ceilingHeadroom.gain.value = 0.7;
+    headroom.connect(safety).connect(ceilingHeadroom).connect(output);
+  }
+  output.connect(context.destination);
   const room = context.createConvolver();
   const response = backingRoom(context.sampleRate);
   const impulse = context.createBuffer(
@@ -115,7 +133,7 @@ export function backingAudioGraph(
   const lowpass = context.createBiquadFilter();
   lowpass.type = "lowpass";
   lowpass.frequency.value = 5500;
-  room.connect(highpass).connect(lowpass).connect(output);
+  room.connect(highpass).connect(lowpass).connect(sum);
   for (const part of [
     "drums",
     "percussion",
@@ -131,16 +149,20 @@ export function backingAudioGraph(
     comp.ratio.value = part === "bass" ? 2 : 1.5;
     comp.attack.value = 0.014;
     comp.release.value = 0.12;
-    bus.connect(comp).connect(output);
+    bus.connect(comp).connect(sum);
     const send = context.createGain();
     send.gain.value = roomSends[part];
     comp.connect(send).connect(room);
     buses.set(part, bus);
     sends.set(part, send);
   }
-  function setMix(next: Record<BackingPart, number>, style: typeof profile) {
+  function setMix(
+    next: Record<BackingPart, number>,
+    style: typeof profile,
+    feel: BackingMode = "steady",
+  ) {
     headroom.gain.setTargetAtTime(
-      0.75 * backingMixGain(style),
+      0.75 * backingMixGain(style, feel),
       context.currentTime,
       0.02,
     );
@@ -174,8 +196,18 @@ export function backingAudioGraph(
     }
   }
   // Preserve the approved default graph exactly, including its initial values.
-  if (profile !== "approved-drum-forward") setMix(levels, profile);
+  if (profile !== "approved-drum-forward") setMix(levels, profile, mode);
   return { output, buses, setMix };
+}
+
+export function backingPeakCurve() {
+  return Float32Array.from({ length: 8193 }, (_, i) => {
+    const x = i / 4096 - 1,
+      magnitude = Math.abs(x);
+    return magnitude <= 0.65
+      ? x
+      : Math.sign(x) * (0.65 + 0.09 * Math.tanh((magnitude - 0.65) / 0.09));
+  });
 }
 
 /** Native browser resampling bounds memory without changing pitch or note length. */

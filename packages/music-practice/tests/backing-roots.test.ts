@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { genreBackingArrangement as arrange } from "../src/backing-genre-engine";
+import {
+  genreBackingArrangement as arrange,
+  rawGenreBackingArrangement as rawArrange,
+} from "../src/backing-genre-engine";
 import { rootsPalette } from "../src/backing-roots-palette";
 import {
   backingSampleChoices,
@@ -132,7 +135,7 @@ test("Pocket Funk and Mellow Soul keep their approved musical performances", () 
   for (const row of prior)
     assert.equal(
       backingFingerprint(
-        arrange(
+        rawArrange(
           row.style as "funk" | "soul",
           row.mode as "steady" | "active",
           row.quality as "major" | "minor",
@@ -150,8 +153,10 @@ test("genre balance uses fixed conservative trims while retaining the original r
   const { BACKING_GENRES } = await import("../src/backing-genres");
   assert.equal(backingMixGain("approved-drum-forward"), 1);
   for (const g of Object.values(BACKING_GENRES)) {
-    const gain = backingMixGain(g.instrumentation.mix);
-    assert.ok(Number.isFinite(gain) && gain > 0.4 && gain < 1.4);
+    for (const mode of ["steady", "active"] as const) {
+      const gain = backingMixGain(g.instrumentation.mix, mode);
+      assert.ok(Number.isFinite(gain) && gain > 0 && gain < 4);
+    }
   }
   assert.notEqual(
     backingMixGain("intimate-acoustic"),

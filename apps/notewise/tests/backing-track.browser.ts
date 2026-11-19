@@ -71,12 +71,12 @@ try {
       .locator("option")
       .allTextContents(),
     [
-      "Blues",
-      "Rock",
+      "Shuffle Blues",
+      "Roots Rock",
       "Country",
       "Reggae",
-      "Funk",
-      "Soul",
+      "Pocket Funk",
+      "Mellow Soul",
       "Folk",
       "Traditional Gospel",
     ],

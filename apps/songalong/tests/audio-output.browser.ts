@@ -32,6 +32,7 @@ try {
   await page
     .getByRole("option", { name: "Combined mono", exact: true })
     .click();
+  await expect(page.getByText("Saved on this device.", { exact: true })).toBeVisible();
   await page.reload();
   await expect(output).toHaveValue("Combined mono");
   await page.goto(server.base + "/piano/hymns/amazing-grace");

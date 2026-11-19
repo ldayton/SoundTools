@@ -21,10 +21,13 @@ async function smokeBrowser(origin, app, { bypass } = {}) {
   try {
     for (const [device, options] of Object.entries({ desktop: macBookAir13, phone: iphone14Pro })) {
       const context = await createContext(browser, { ...options, reducedMotion: 'reduce' }, { trace: !bypass });
+      context.setDefaultTimeout(30000);
+      context.setDefaultNavigationTimeout(45000);
       // Restrict the staging credential to this exact origin. Never expose it to
       // analytics, account services, redirected hosts, traces or the live check.
       await authorizeStagedContext(context, origin, bypass);
       const page = await context.newPage(), errors = [];
+      console.log(`Checking ${app} ${device}: application startup`);
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(origin, { waitUntil: 'domcontentloaded' });
       await waitForApp(page, app === 'soundglow' ? '.soundglow-header' : '#practice-content');
@@ -34,6 +37,7 @@ async function smokeBrowser(origin, app, { bypass } = {}) {
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${app} ${device} overflow`);
       assert.deepEqual(errors, [], `${app} ${device} runtime errors`);
       if (app !== 'soundglow') {
+        console.log(`Checking ${app} ${device}: isolated email confirmation`);
         await page.addInitScript(() => { window.__confirmationDatabaseOpens = 0; const open = indexedDB.open.bind(indexedDB); indexedDB.open = (...args) => { window.__confirmationDatabaseOpens++; return open(...args); }; });
         await page.goto(origin + '/auth/confirm#token_hash=deployment-check-never-submitted&type=email');
         await page.getByRole('heading', { name: 'Confirm sign-in', exact: true }).waitFor();
@@ -42,6 +46,7 @@ async function smokeBrowser(origin, app, { bypass } = {}) {
       }
       await context.unrouteAll({ behavior: 'wait' });
       await context.close();
+      console.log(`PASS ${app} ${device} browser smoke`);
     }
     console.log(`PASS ${app}: MacBook Air and iPhone 14 Pro${app === 'soundglow' ? '' : ', with isolated email confirmation'}`);
   } catch (error) { await captureFailure(browser, error); throw error; }

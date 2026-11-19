@@ -1,7 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { backingFingerprint } from "./backing-fingerprint";
-import { genreBackingArrangement as arrange } from "../src/backing-genre-engine";
+import {
+  genreBackingArrangement as arrange,
+  rawGenreBackingArrangement as rawArrange,
+} from "../src/backing-genre-engine";
 import { BACKING_GENRES } from "../src/backing-genres";
 import baseline from "./fixtures/approved-before-pocket-styles.json";
 import bank from "../src/assets/backing-soul-folk/manifest.json";
@@ -10,7 +13,7 @@ import type { BackingMode } from "../src/backing-track-model";
 import type { BackingQuality } from "../src/backing-arrangement";
 test("Folk, Country, Gospel and Reggae retain their approved musical arrangements", () => {
   for (const row of baseline) {
-    const t = arrange(
+    const t = rawArrange(
       row.style as "folk" | "country" | "gospel" | "reggae",
       row.mode as BackingMode,
       row.quality as BackingQuality,

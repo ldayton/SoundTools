@@ -21,6 +21,11 @@ test("NoteWise settings, active exercise and checkpoints round trip without loca
   state.progress.stats[card] = stats();
   state.activities.rhythm = { version: 1, level: "pulse" };
   state.activities.audio = { version: 1, volume: 0.3 };
+  state.activities["backing-mixer:folk"] = { version: 1, levels: { bass: 0 } };
+  state.activities["backing-mixer:gospel"] = {
+    version: 1,
+    levels: { organ: 140 },
+  };
   state.activities["diagnostic-consent"] = { version: 1, sharing: true };
   state.legacy.secret = "recovery";
   const records = new NotewiseAccountRecords().read(state);
@@ -30,6 +35,11 @@ test("NoteWise settings, active exercise and checkpoints round trip without loca
   assert.equal(restored.progress.profiles.piano.low, "D4");
   assert.deepEqual(restored.progress.stats[card], state.progress.stats[card]);
   assert.deepEqual(restored.activities.rhythm, state.activities.rhythm);
+  for (const genre of ["folk", "gospel"])
+    assert.deepEqual(
+      restored.activities[`backing-mixer:${genre}`],
+      state.activities[`backing-mixer:${genre}`],
+    );
   assert(!JSON.stringify(records).includes("recovery"));
   assert(!("activity:diagnostic-consent" in records));
 });
@@ -87,6 +97,12 @@ test("future schemas and corrupt practice contributions are rejected", () => {
     restoreNotewiseRecords({
       ...records,
       "activity:patterns": { version: 999 },
+    }),
+  );
+  assert.throws(() =>
+    restoreNotewiseRecords({
+      ...records,
+      "activity:backing-mixer:future-genre": { version: 1, levels: {} },
     }),
   );
 });

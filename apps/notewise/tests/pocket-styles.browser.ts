@@ -171,6 +171,7 @@ try {
                   offline,
                   p.pack.levels,
                   p.mixProfile,
+                  p.model.getSnapshot().mode,
                 ).buses;
                 for (const e of take.events) {
                   if (e.beat >= from && e.beat < to)
@@ -228,6 +229,7 @@ try {
                       c,
                       p.pack.levels,
                       p.mixProfile,
+                      p.model.getSnapshot().mode,
                     ).buses;
                     p.voices.clear();
                     p.counter.clear();
@@ -409,7 +411,7 @@ try {
       setPianoVolume(25);
       for (
         let i = 0;
-        i < 60 && Math.abs(p.output.gain.value - 0.75) > 0.01;
+        i < 60 && Math.abs(p.output.gain.value - 0.25) > 0.01;
         i++
       )
         await new Promise((r) => setTimeout(r, 30));
@@ -429,7 +431,7 @@ try {
       setPianoVolume(original);
     }
   }, source);
-  assert.ok(Math.abs(lifecycle.quarter - 0.75) < 0.01);
+  assert.ok(Math.abs(lifecycle.quarter - 0.25) < 0.01);
   assert.ok(lifecycle.phase < 0.1);
   assert.equal(lifecycle.voices, 0);
   await page.locator("#pocket-check-play").click();

@@ -7,6 +7,7 @@ import {
 import { decodeState, migrateLegacy, type DurableState } from "./durable-state";
 import { APP_EXERCISES, isFlashcardMode } from "./exercise-catalog";
 import type { RecordStats } from "./progress";
+import { isBackingMixerKey } from "./backing-mixer";
 
 function settingsRecords(state: DurableState): Records {
   const p = state.progress;
@@ -22,6 +23,7 @@ function settingsRecords(state: DurableState): Records {
   for (const [id, value] of Object.entries(state.activities))
     if (
       isFlashcardMode(id) ||
+      isBackingMixerKey(id) ||
       [
         "patterns",
         "rhythm",
@@ -71,7 +73,8 @@ export function restoreNotewiseRecords(records: Records): DurableState {
     else if (
       key.startsWith("activity:") &&
       (APP_EXERCISES.some((e) => e.mode === key.slice(9)) ||
-        ["audio", "presentation", "backing-track"].includes(key.slice(9)))
+        ["audio", "presentation", "backing-track"].includes(key.slice(9)) ||
+        isBackingMixerKey(key.slice(9)))
     )
       state.activities[key.slice(9)] = value;
     else if (key.startsWith("stat:")) {

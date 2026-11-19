@@ -35,23 +35,36 @@ try {
   await choose("Silent Night");
   await expect(low).toHaveValue("C3");
   await expect(high).toHaveValue("G5");
-  await practiceOption(page, "#hymn-mode", "playback");
+  await expect(
+    page.getByRole("button", { name: "Playback mode", exact: true }),
+  ).toHaveText("Playback");
   await practiceOption(page, "#hymn-tempo", "112");
+  await practiceOption(page, "#hymn-mode", "wait");
   await practiceOption(page, "#hymn-low", "50");
   await choose("Amazing Grace");
+  await expect(
+    page.getByRole("button", { name: "Playback mode", exact: true }),
+  ).toHaveText("Wait for me");
+  await practiceOption(page, "#hymn-mode", "playback");
   await expect(tempo).toHaveValue("96 BPM");
   await expect(low).toHaveValue("D3");
   await expect(high).toHaveValue("G5");
   await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Playback mode", exact: true }),
+  ).toHaveText("Playback");
   await expect(tempo).toHaveValue("96 BPM");
   await expect(low).toHaveValue("D3");
   await choose("Silent Night");
   await expect(tempo).toHaveValue("112 BPM");
   await expect(low).toHaveValue("D3");
   await expect(high).toHaveValue("G5");
+  await expect(
+    page.getByRole("button", { name: "Playback mode", exact: true }),
+  ).toHaveText("Playback");
   expect(errors).toEqual([]);
   console.log(
-    "PASS: global note limits and per-song tempos survive song changes and reload",
+    "PASS: global playback mode and note limits, plus per-song tempos, survive song changes and reload",
   );
 } finally {
   await browser.close();

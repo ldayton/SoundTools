@@ -19,7 +19,7 @@ export function songalongRecords(state: DurableState): Records {
                 .map((k) => [k, settings[k]]),
             );
             for (const [field, v] of Object.entries(settings))
-              if (![...pitch, "low", "high"].includes(field))
+              if (![...pitch, "low", "high", "mode"].includes(field))
                 records[`hymn:${id}:${field}`] = v;
           } else records[`${key}:${id}`] = setting as Json;
         }

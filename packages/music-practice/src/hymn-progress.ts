@@ -38,6 +38,7 @@ export type HymnState = {
 
 /** Saved preferences and content-checked checkpoints, independent of rendering and transport. */
 export class HymnProgress {
+  private mode: "wait" | "playback" = "wait";
   private range: { low: number | null; high: number | null } = {
     low: null,
     high: null,
@@ -47,6 +48,7 @@ export class HymnProgress {
   readonly preferences: Record<string, ReturnType<typeof hymnPreferences>> = {};
   readonly sections: Record<string, number> = {};
   constructor(saved: HymnState | undefined, hymnIds: readonly string[]) {
+    this.mode = saved?.mode === "playback" ? "playback" : "wait";
     // The current song's last range becomes the global range for older saves.
     this.range = {
       low: optionalHymnNote(saved?.low),
@@ -76,6 +78,7 @@ export class HymnProgress {
     return {
       ...hymnPreferences(id, this.preferences[id]),
       ...this.range,
+      mode: this.mode,
       zoom: this.zoomByLayout.desktop,
     };
   }
@@ -84,6 +87,7 @@ export class HymnProgress {
     zoom: number,
     layout: "mobile" | "desktop" = "desktop",
   ) {
+    this.mode = settings.mode === "playback" ? "playback" : "wait";
     this.setZoom(zoom, layout);
     this.range = {
       low: optionalHymnNote(settings.low),

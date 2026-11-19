@@ -78,6 +78,34 @@ const engines = require("playwright");
       "Clock updates must not invalidate practice, title or volume subscriptions",
     );
     assert.deepEqual(errors, []);
+    assert.deepEqual(await page.evaluate(() => {
+      const root = document.createElement('div');
+      root.innerHTML = '<div id="closing"><button id="old">Old</button></div><button id="trigger">Trigger</button><button id="new">New</button><button id="fallback">Fallback</button>';
+      document.body.append(root);
+      const get = id => root.querySelector('#' + id);
+      const close = get('closing'), trigger = get('trigger'), next = get('new'), fallback = get('fallback');
+      const restore = () => window.restoreFocusTest([trigger, fallback], close);
+      const focused = target => document.activeElement === target;
+      get('old').focus();
+      const normal = restore() && focused(trigger);
+      next.focus();
+      const preserve = !restore() && focused(next);
+      get('old').focus(); trigger.hidden = true;
+      const hidden = restore() && focused(fallback);
+      trigger.hidden = false; trigger.disabled = true; get('old').focus();
+      const disabled = restore() && focused(fallback);
+      trigger.disabled = false; trigger.inert = true; get('old').focus();
+      const inert = restore() && focused(fallback);
+      trigger.inert = false; trigger.style.visibility = 'hidden'; get('old').focus();
+      const invisible = restore() && focused(fallback);
+      trigger.style.visibility = ''; trigger.remove(); get('old').focus();
+      const removed = restore() && focused(fallback);
+      close.remove();
+      document.activeElement.blur();
+      const body = restore() && focused(fallback);
+      root.remove();
+      return { normal, preserve, hidden, disabled, inert, invisible, removed, body };
+    }), { normal:true, preserve:true, hidden:true, disabled:true, inert:true, invisible:true, removed:true, body:true });
     // Delay the focus trap's activation until after arrow navigation. Its
     // deferred focus must follow the roving cell, not the originally selected one.
     await page.clock.install({ time: 0 });

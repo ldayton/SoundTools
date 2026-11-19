@@ -1,3 +1,4 @@
+import { restoreFocus } from "@ldayton/ui/restore-focus";
 import { AccountMenu, AccountProvider } from '@ldayton/ui/account-menu';
 import { account } from './account';
 import { preferences } from './preferences';
@@ -64,11 +65,11 @@ function AppShell({
       setSettings(settings);
       setNavigationOpen(false);
       document.title = settings ? 'Settings · DoReGo' : 'DoReGo';
-      requestAnimationFrame(() =>
-        document
-          .getElementById(settings ? 'page-title' : 'exercise-title')
-          ?.focus({ preventScroll: true })
-      );
+      const from = document.activeElement;
+      requestAnimationFrame(() => restoreFocus(
+        document.getElementById(settings ? 'page-title' : 'exercise-title'),
+        from,
+      ));
     };
     window.addEventListener('hashchange', change);
     if (settings) pause();

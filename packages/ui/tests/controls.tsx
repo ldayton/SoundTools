@@ -1,3 +1,4 @@
+import { restoreFocus } from "../restore-focus";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Button, Stack } from "@mantine/core";
@@ -37,6 +38,7 @@ const instrumented = {
     return practice.getSnapshot();
   },
 };
+window.restoreFocusTest = restoreFocus;
 window.clockTest = {
   reads: () => reads,
   advance: () =>
@@ -49,6 +51,7 @@ window.clockTest = {
 };
 declare global {
   interface Window {
+    restoreFocusTest: typeof restoreFocus;
     clockTest: { reads(): number; advance(): void };
   }
 }

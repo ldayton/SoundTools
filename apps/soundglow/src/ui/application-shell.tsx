@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { restoreFocus as restoreClosingFocus } from "@ldayton/ui/restore-focus";
 import {
   useEffect,
   useLayoutEffect,
@@ -161,7 +162,9 @@ export function mountApplicationShell() {
       (returnToToggle || take("panel").contains(document.activeElement));
     if (!open) returnToToggle = false;
     patch({ open, desktop: media.matches });
-    if (returnFocus) take(media.matches ? "openSettings" : "settings").focus();
+    if (returnFocus) restoreClosingFocus(
+      take(media.matches ? "openSettings" : "settings"), take("panel"),
+    );
     handlers?.layout();
     // Canvas sizing observes actual geometry, including the end of the CSS transition.
   }

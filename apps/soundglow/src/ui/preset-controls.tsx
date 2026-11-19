@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { restoreFocus } from "@ldayton/ui/restore-focus";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
@@ -72,18 +73,11 @@ export function PresetDialog({
       closeOnEscape={false}
       onExitTransitionEnd={() => {
         if (opened.current) return;
-        const active = document.activeElement;
-        const closingDialog = document.getElementById(ids.dialog);
-        // Preserve a new focus choice made while the exit animation finishes.
-        if (active && active !== document.body && active !== document.documentElement &&
-            active.getClientRects().length && !closingDialog?.contains(active) && !active.closest("[inert]")) return;
-        const target = document.getElementById(ids.invoker);
-        if (target?.getClientRects().length && !target.closest("[inert]"))
-          target.focus({ preventScroll: true });
-        else
-          [...document.querySelectorAll<HTMLElement>("#openSettings,#settings")]
-            .find((node) => node.getClientRects().length)
-            ?.focus({ preventScroll: true });
+        restoreFocus([
+          document.getElementById(ids.invoker),
+          document.getElementById("openSettings"),
+          document.getElementById("settings"),
+        ], document.getElementById(ids.dialog));
       }}
     >
       <Modal.Overlay />

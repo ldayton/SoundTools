@@ -56,7 +56,12 @@ export function AccountMenu() {
               : status(state)
           : undefined
       }
-      onClick={context.open}
+      onClick={(event) => {
+        // Safari pointer activation does not focus buttons. Capture the actual
+        // opener before Mantine records where to return focus after the modal.
+        event.currentTarget.focus({ preventScroll: true });
+        context.open();
+      }}
     />
   );
 }

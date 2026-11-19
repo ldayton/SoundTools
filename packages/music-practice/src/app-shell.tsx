@@ -1,3 +1,4 @@
+import { restoreFocus } from "@ldayton/ui/restore-focus";
 import { RenderErrorBoundary } from "@ldayton/ui/render-error-boundary";
 import { AccountMenu, AccountProvider } from "@ldayton/ui/account-menu";
 import { account } from "./account";
@@ -114,12 +115,13 @@ export function mountAppShell(
     events.inputChanged();
   }
   let focusAfterNavigation = false;
-  function focusTitle() {
+  function focusTitle(restoring = false) {
     const heading =
       APP.id === "songalong" && store.getSnapshot().routeKind === "exercise"
         ? $(".sequence-title")
         : $("#page-title");
-    heading.focus({ preventScroll: true });
+    if (restoring && !restoreFocus(heading, document.getElementById("navigation-drawer"))) return;
+    if (!restoring) heading.focus({ preventScroll: true });
     window.scrollTo({ top: 0 });
   }
   function closeNavigation() {
@@ -350,7 +352,7 @@ export function mountAppShell(
           onNavigationExited={() => {
             if (focusAfterNavigation) {
               focusAfterNavigation = false;
-              focusTitle();
+              focusTitle(true);
             }
           }}
           blocked={status.blocked}
@@ -495,8 +497,7 @@ export function mountAppShell(
       );
       if (midi === "connected") {
         const trigger = document.querySelector<HTMLElement>(".keyboard-menu");
-        if (trigger?.checkVisibility()) trigger.focus({ preventScroll: true });
-        else focusTitle();
+        restoreFocus([trigger, $(".sequence-title"), $("#page-title")], midiPanel);
         queueMicrotask(events.inputChanged);
       }
     },

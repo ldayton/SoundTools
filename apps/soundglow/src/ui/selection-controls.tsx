@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { restoreFocus } from "@ldayton/ui/restore-focus";
 import {
   useLayoutEffect,
   useRef,
@@ -69,7 +70,7 @@ export function createSelectionControls() {
     }, [view.editing, view.editRevision]);
     useLayoutEffect(() => {
       if (previous.current && !view.editing && view.active)
-        invoker.current?.focus({ preventScroll: true });
+        restoreFocus(invoker.current, document.getElementById("bookmarkForm"));
       previous.current = view.editing;
     }, [view.editing, view.active]);
     return (

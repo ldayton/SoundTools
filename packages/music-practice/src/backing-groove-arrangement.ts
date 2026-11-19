@@ -1,10 +1,10 @@
-/** Distinct sparse one-drop and sixteenth-funk strategies; approved sample palette. */
+/** Shared drummer, section dynamics and playable grips for the two groove bands. */
 import { BACKING_GENRES, genreChord } from "./backing-genres";
 import { concertGrips, voiceCycle } from "./backing-musical-plan";
 import type { BackingTake } from "./backing-plan-types";
 import type { BackingEvent, BackingMode } from "./backing-track-model";
 import type { BackingQuality } from "./backing-arrangement";
-export function grooveArrangement(
+export function grooveFoundation(
   style: "reggae" | "funk",
   mode: BackingMode,
   quality: BackingQuality,
@@ -63,7 +63,6 @@ export function grooveArrangement(
     level: number,
     extra: Partial<BackingEvent> = {},
   ) => events.push({ part, beat, note, velocity, duration, level, ...extra });
-  let lastBass = 33;
   for (const b of bars) {
     const t = b.index * 4,
       quiet = b.texture === "crossstick",
@@ -122,67 +121,8 @@ export function grooveArrangement(
     }
     if (!quiet && b.index % 2 === 1)
       add("percussion", t + (reggae ? 3.5 : 1.5), 70, 26, 0.08, b.level * 0.6);
-    const roots = Array.from({ length: 20 }, (_, i) => i + 28).filter(
-      (n) => n % 12 === b.root,
-    );
-    const root = roots.reduce((a, n) =>
-      Math.abs(n - lastBass) < Math.abs(a - lastBass) ? n : a,
-    );
-    const third = b.minor ? 3 : 4,
-      interval = b.motif === 1 && b.index % 4 === 3 ? third : 7;
-    const answer = [root + interval, root + interval - 12]
-      .filter((n) => n >= 28 && n <= 55)
-      .reduce((a, n) => (Math.abs(n - root) < Math.abs(a - root) ? n : a));
-    const bassBeats = reggae
-      ? b.index % 2 === 1
-        ? [0.5, 2]
-        : genre.roles.bassBeats
-      : mode === "active" && b.index % 4 === 3
-        ? [0, 2.75]
-        : genre.roles.bassBeats;
-    const space = b.section === "Breathe" && b.index % 2 === 1;
-    bassBeats
-      .slice(0, space ? 1 : genre.interaction.maxBassAttacksPerBar)
-      .forEach((pos, j) =>
-        add(
-          "bass",
-          t +
-            pos +
-            micro(
-              pos === 0 ? Math.max(0, placement) + 0.004 : placement + 0.007,
-            ),
-          j === 0 ? root : answer,
-          quiet ? 42 : reggae ? (j === 0 ? 53 : 46) : j === 0 ? 58 : 49,
-          reggae ? (j === 0 ? 1.55 : 0.9) : quiet ? 0.85 : 0.48,
-          b.level,
-          { absolute: true, articulation: reggae ? "normal" : "muted" },
-        ),
-      );
-    lastBass = answer;
-    const grip = grips[b.index % grips.length];
-    const voices = grip.filter(
-      (n) => b.index % 8 === 0 || n.note % 12 !== b.root,
-    );
-    const compBeats: number[] = [...genre.roles.guitarBeats];
-    if (!reggae && mode === "active" && !quiet && b.index % 2 === 1)
-      compBeats.push(1.75);
-    compBeats.sort((a, b) => a - b);
-    for (const [stroke, pos] of compBeats.entries()) {
-      if (fill && pos >= 3.5) continue;
-      const brush = stroke % 2 ? [...voices].reverse() : voices;
-      brush.forEach((n, j) =>
-        add(
-          "guitar",
-          t + pos + micro(0.011 + placement + j * 0.013),
-          n.note,
-          quiet ? 25 : reggae ? 29 + (stroke % 2) : 31 + (stroke % 2),
-          genre.activity[mode].guitarDurationBeats,
-          b.level,
-          { absolute: true, string: n.string, articulation: "normal" },
-        ),
-      );
-    }
   }
+
   const beats = genre.form.bars * 4;
   for (const e of events)
     e.duration = Math.max(0.04, Math.min(e.duration, beats - 0.04 - e.beat));

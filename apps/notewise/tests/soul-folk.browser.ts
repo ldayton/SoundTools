@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { waitForServer, launchBrowser, newPage, captureFailure, closeBrowser } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  launchBrowser,
+  newPage,
+  captureFailure,
+  closeBrowser,
+} from "../../../scripts/ci/browser-harness.cjs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -130,9 +136,9 @@ try {
   }, moduleUrl);
   for (const row of result.rows) {
     assert.ok(row.bytes < 256 * 1024 * 1024);
-    assert.ok(row.bass <= 128);
+    assert.ok(row.bass <= (row.style === "soul" ? 192 : 128));
     assert.equal(row.keys > 0, row.style === "soul");
-    assert.equal(row.guitar > 0, row.style === "folk");
+    assert.ok(row.guitar > 0);
   }
   assert.equal(result.final.status, "playing");
   assert.equal(result.final.style, "soul");

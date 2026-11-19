@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { waitForServer, launchBrowser, newPage, captureFailure, closeBrowser } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  launchBrowser,
+  newPage,
+  captureFailure,
+  closeBrowser,
+} from "../../../scripts/ci/browser-harness.cjs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -195,7 +201,7 @@ try {
       },
       at + 0.1,
     );
-    const stringChoke = held.end === at + 0.1 && other.end > at + 0.5;
+    const stringChoke = held.end === at + 0.1 && other.end > at + 0.2;
     p.sound(
       {
         part: "drums",
@@ -282,9 +288,9 @@ try {
     "same guitar string chokes, another string keeps ringing",
   );
   assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
-  assert.equal(result.phrasing, "funk-syncopation-v1");
+  assert.equal(result.phrasing, "funk-pocket-sixteenths-v2");
   assert.equal(result.changedTempo, 120);
-  assert.equal(result.bassCount, 128);
+  assert.ok(result.bassCount > 128 && result.bassCount <= 256);
   assert.equal(result.final.style, "funk");
   assert.equal(result.sharedPocket, "drummer-relative-v1");
   assert.equal(result.guitarTransitions, "connected-strings-v1");

@@ -1,6 +1,6 @@
 /** Sparse Soul arrangement; acoustic styles have their own string technique. */
 import { BACKING_GENRES, genreChord } from "./backing-genres";
-import { voiceCycle } from "./backing-musical-plan";
+import { concertGrips, voiceCycle } from "./backing-musical-plan";
 import type { BackingTake } from "./backing-plan-types";
 import type { BackingEvent, BackingMode } from "./backing-track-model";
 import type { BackingQuality } from "./backing-arrangement";
@@ -80,6 +80,9 @@ export function warmBackingArrangement(
         ),
       ),
   );
+  const guitarGrips = voiceCycle(
+    bars.slice(0, length).map((b) => concertGrips(b.root, b.minor)),
+  );
   const events: BackingEvent[] = [],
     micro = (seconds: number) => (seconds * tempo) / 60;
   const add = (
@@ -146,36 +149,90 @@ export function warmBackingArrangement(
       .filter((n) => n >= 28 && n <= 55)
       .reduce((a, n) => (Math.abs(n - root) < Math.abs(a - root) ? n : a));
     const space = b.section === "Breathe" && b.index % 2 === 1;
-    genre.roles.bassBeats
-      .slice(0, space ? 1 : 2)
-      .forEach((pos, j) =>
-        add(
-          "bass",
-          t + pos + micro((pos === 0 ? Math.max(0, p) : p + 0.003) + 0.004),
-          j === 0 ? root : answer,
-          quiet ? 41 : j === 0 ? 54 : 46,
-          quiet ? 1.3 : 1.15,
-          b.level,
-          { absolute: true, articulation: "normal" },
-        ),
+    genre.roles.bassBeats.slice(0, space ? 1 : 2).forEach((pos, j) =>
+      add(
+        "bass",
+        t + pos + micro((pos === 0 ? Math.max(0, p) : p + 0.003) + 0.004),
+        j === 0 ? root : answer,
+        quiet ? 41 : j === 0 ? 54 : 46,
+        quiet ? 1.3 : 1.15,
+        b.level,
+        {
+          absolute: true,
+          instrument: "soul-bass",
+          articulation: "normal",
+          naturalReleaseOnly: true,
+        },
+      ),
+    );
+    if (mode === "active" && !quiet && !space)
+      add(
+        "bass",
+        t + 3.5 + micro(0.006),
+        root + (b.minor ? 3 : 4),
+        45,
+        0.27,
+        b.level,
+        { absolute: true, instrument: "soul-bass", naturalReleaseOnly: true },
       );
     previousBass = space ? root : answer;
     const grip = grips[b.index % grips.length];
-    if (b.index % genre.harmony.barsPerChord === 0) {
-      for (const [j, n] of grip.entries()) {
-        let duration = 7.68 - j * 0.004;
+    const voices = grip.filter((n) => n.note % 12 !== b.root);
+    const first = b.index % genre.harmony.barsPerChord === 0;
+    const active = mode === "active" && !quiet;
+    // Leave the root to the bass. Common-tone seventh voicings are the call;
+    // short upper-voice replies leave a clear gap instead of constant comping.
+    if (first || active)
+      for (const [j, n] of voices.entries()) {
+        const duration = active
+          ? first
+            ? 3.15
+            : 1.25
+          : Math.min(6.85, (5.4 * tempo) / 60);
         add(
           "keys",
-          t + micro(0.018 + j * 0.004),
+          t + micro(0.02 + j * 0.004),
           n.note,
-          quiet ? 35 : 43 + (j === 1 ? 2 : 0),
+          quiet ? 35 : 44 + (j === 1 ? 2 : 0),
           duration,
           b.level,
-          { absolute: true, noteReleaseSeconds: 0.16 },
+          { absolute: true, instrument: "soul-keys", noteReleaseSeconds: 0.16 },
         );
       }
-    }
+    if (active && !first)
+      for (const [j, n] of voices.slice(-2).entries())
+        add(
+          "keys",
+          t + 2.5 + micro(0.02 + j * 0.004),
+          n.note,
+          47,
+          0.65,
+          b.level * 0.82,
+          { absolute: true, instrument: "soul-keys", noteReleaseSeconds: 0.1 },
+        );
+    const guitarAnswer = active
+      ? b.index % 4 === 1
+      : !quiet && b.index % 8 === 3;
+    if (guitarAnswer)
+      guitarGrips[b.index % guitarGrips.length].slice(1).forEach((n, j) =>
+        add(
+          "guitar",
+          t + (active ? 1.5 : 3.25) + micro(0.022 + j * 0.009),
+          n.note,
+          39 + j * 2,
+          0.55,
+          b.level * 0.9,
+          {
+            absolute: true,
+            instrument: "soul-guitar",
+            string: n.string,
+            guitarReleaseSeconds: 0.045,
+            naturalReleaseOnly: true,
+          },
+        ),
+      );
   }
+
   const beats = genre.form.bars * 4;
   for (const e of events)
     e.duration = Math.max(
@@ -193,7 +250,7 @@ export function warmBackingArrangement(
     quality,
     cycle,
     seed: 8407 + cycle,
-    phrasing: "soul-warm-keys-v1",
+    phrasing: "soul-mellow-conversation-v2",
     tempo,
     roles: bars.map((b) => b.role),
     plan: { style, mode, quality, tonic, tempo, cycle, bars, grips },

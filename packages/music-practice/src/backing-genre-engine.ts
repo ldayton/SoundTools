@@ -1,9 +1,10 @@
 import { warmBackingArrangement } from "./backing-warm-arrangement";
-import { grooveArrangement } from "./backing-groove-arrangement";
+import { funkArrangement } from "./backing-funk";
 /** One entry point: musical definition -> strategy -> approved ensemble playback. */
 import { BACKING_GENRES } from "./backing-genres";
-import { plannedBackingArrangement } from "./backing-musical-plan";
+import { rootsArrangement } from "./backing-roots";
 import { acousticArrangement } from "./backing-acoustic";
+import { reggaeArrangement } from "./backing-reggae";
 import { gospelArrangement } from "./backing-gospel";
 import type { BackingPattern } from "./backing-patterns";
 import { articulateDrums } from "./backing-drum-articulation";
@@ -39,10 +40,10 @@ export function genreBackingArrangement(
       );
       break;
     case "one-drop":
+      plan = reggaeArrangement(mode, quality, cycle, tempo, tonic);
+      break;
     case "syncopated-funk":
-      if (style !== "reggae" && style !== "funk")
-        throw Error("Unsupported generated genre");
-      plan = grooveArrangement(style, mode, quality, cycle, tempo, tonic);
+      plan = funkArrangement(mode, quality, cycle, tempo, tonic);
       break;
     case "soul-pocket":
     case "gentle-folk":
@@ -61,17 +62,10 @@ export function genreBackingArrangement(
             )
           : warmBackingArrangement(mode, quality, cycle, tempo, tonic);
       break;
-    case "recorded-story":
+    case "roots-performance":
       if (style !== "blues" && style !== "rock")
-        throw Error("Country requires a generated groove strategy");
-      plan = plannedBackingArrangement(
-        style,
-        mode,
-        quality,
-        cycle,
-        tempo,
-        tonic,
-      );
+        throw Error("Unsupported roots genre");
+      plan = rootsArrangement(style, mode, quality, cycle, tempo, tonic);
       break;
   }
 

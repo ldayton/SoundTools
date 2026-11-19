@@ -1,3 +1,4 @@
+import { backingMixGain } from "./backing-mix-balance";
 import type {
   BackingEvent,
   BackingPart,
@@ -96,7 +97,7 @@ export function backingAudioGraph(
   const output = context.createGain();
   output.gain.value = 3;
   const headroom = context.createGain();
-  headroom.gain.value = 0.75;
+  headroom.gain.value = 0.75 * backingMixGain(profile);
   output.connect(limiter).connect(headroom).connect(context.destination);
   const room = context.createConvolver();
   const response = backingRoom(context.sampleRate);
@@ -138,14 +139,29 @@ export function backingAudioGraph(
     sends.set(part, send);
   }
   function setMix(next: Record<BackingPart, number>, style: typeof profile) {
+    headroom.gain.setTargetAtTime(
+      0.75 * backingMixGain(style),
+      context.currentTime,
+      0.02,
+    );
     const wet =
-      style === "intimate-acoustic"
+      style === "intimate-acoustic" || style === "strummed-acoustic"
         ? 0.4
-        : style === "dry-country"
-          ? 0.22
-          : style === "gospel-room"
-            ? 0.7
-            : 1;
+        : style === "roots-room"
+          ? 0.3
+          : style === "blues-room"
+            ? 0.5
+            : style === "dry-country"
+              ? 0.22
+              : style === "dry-funk"
+                ? 0.2
+                : style === "warm-soul"
+                  ? 0.45
+                  : style === "dry-reggae"
+                    ? 0.15
+                    : style === "gospel-room"
+                      ? 0.7
+                      : 1;
     for (const [part, bus] of buses) {
       bus.gain.setTargetAtTime(
         next[part] ?? next.guitar,

@@ -1,19 +1,28 @@
 /** Original tonewheel/rotary model. No sampled organ loop or external runtime. */
 export const ORGAN_DRAWBARS = [1, 3, 2, 4, 6, 8, 10, 12, 16] as const;
+export type OrganProfile = "gospel" | "reggae";
 const registrations = {
   warm: [8, 8, 8, 3, 1, 0, 0, 0, 0],
   full: [8, 8, 8, 8, 6, 5, 3, 3, 2],
+};
+
+const bubbleRegistrations = {
+  warm: [0, 0, 8, 0, 0, 0, 0, 0, 0],
+  full: [0, 0, 8, 2, 0, 0, 0, 0, 0],
 };
 
 /** The oscillator runs at half the key's fundamental (the 16-foot drawbar). */
 export function tonewheelPartials(
   note: number,
   registration: keyof typeof registrations,
+  profile: OrganProfile = "gospel",
 ) {
   const base = (440 * 2 ** ((note - 69) / 12)) / 2;
   const imaginary = new Float32Array(17),
     real = new Float32Array(17);
-  registrations[registration].forEach((drawbar, i) => {
+  (profile === "reggae" ? bubbleRegistrations : registrations)[
+    registration
+  ].forEach((drawbar, i) => {
     if (!drawbar) return;
     let harmonic: number = ORGAN_DRAWBARS[i];
     // Upper tonewheel foldback keeps the top drawbars inside the generator range.
@@ -63,6 +72,7 @@ export class TonewheelOrgan {
   constructor(
     readonly context: BaseAudioContext,
     readonly destination: AudioNode,
+    readonly profile: OrganProfile = "gospel",
   ) {
     const node = <T extends AudioNode>(n: T) => {
       this.nodes.push(n);
@@ -77,7 +87,9 @@ export class TonewheelOrgan {
     const drive = node(context.createWaveShaper());
     drive.curve = Float32Array.from(
       { length: 2049 },
-      (_, i) => Math.tanh((i / 1024 - 1) * 1.4) / Math.tanh(1.4),
+      (_, i) =>
+        Math.tanh((i / 1024 - 1) * (profile === "reggae" ? 1.05 : 1.4)) /
+        Math.tanh(profile === "reggae" ? 1.05 : 1.4),
     );
     drive.oversample = "2x";
     this.warm.connect(drive);
@@ -90,9 +102,9 @@ export class TonewheelOrgan {
     depth.gain.value = 0.00018;
     scanner.connect(depth).connect(chorus.delayTime);
     const wet = node(context.createGain());
-    wet.gain.value = 0.25;
+    wet.gain.value = profile === "reggae" ? 0.08 : 0.25;
     const dry = node(context.createGain());
-    dry.gain.value = 0.75;
+    dry.gain.value = profile === "reggae" ? 0.92 : 0.75;
     const tone = node(context.createBiquadFilter());
     tone.type = "lowpass";
     tone.frequency.value = 6200;
@@ -183,7 +195,7 @@ export class TonewheelOrgan {
     for (const registration of ["warm", "full"] as const) {
       const key = `${note}/${registration}`;
       let wave = this.waves.get(key);
-      const partials = tonewheelPartials(note, registration);
+      const partials = tonewheelPartials(note, registration, this.profile);
       if (!wave) {
         wave = this.context.createPeriodicWave(
           partials.real,

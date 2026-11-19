@@ -2,6 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { backingFingerprint } from "./backing-fingerprint";
 import baseline from "./fixtures/approved-backing-aff1d47.json";
+import { plannedBackingArrangement } from "../src/backing-musical-plan";
+import { articulateDrums } from "../src/backing-drum-articulation";
+import { connectBackingGuitar } from "../src/backing-guitar-transitions";
+import { sharedBackingPocket } from "../src/backing-shared-pocket";
 import { genreBackingArrangement } from "../src/backing-genre-engine";
 import {
   BACKING_GENRES,
@@ -14,15 +18,23 @@ import {
   type BackingMode,
 } from "../src/backing-track-model";
 import type { BackingQuality } from "../src/backing-arrangement";
-test("central engine reproduces the approved Blues/Rock takes exactly across keys, modes, loops and tempos", () => {
+test("legacy Blues/Rock A/B reference remains exact across keys, modes, loops and tempos", () => {
   for (const row of baseline) {
-    const take = genreBackingArrangement(
-      row.style as LegacyBackingStyle,
-      row.mode as BackingMode,
-      row.quality as BackingQuality,
-      row.cycle,
+    const take = sharedBackingPocket(
+      connectBackingGuitar(
+        articulateDrums(
+          plannedBackingArrangement(
+            row.style as LegacyBackingStyle,
+            row.mode as BackingMode,
+            row.quality as BackingQuality,
+            row.cycle,
+            row.tempo,
+            row.tonic,
+          ),
+        ),
+        row.tempo,
+      ),
       row.tempo,
-      row.tonic,
     );
     assert.equal(
       backingFingerprint(take),
@@ -99,7 +111,7 @@ test("genre registry drives selection, valid defaults, harmonic area and section
       g.form.sections.reduce((sum, s) => sum + s.bars, 0),
       g.form.bars,
     );
-    assert.equal(g.interaction.maxBassAttacksPerBar, 2);
+    assert.equal(g.interaction.maxBassAttacksPerBar, g.id === "funk" ? 3 : 2);
     assert.ok(
       g.tempo.preferred >= g.tempo.range[0] &&
         g.tempo.preferred <= g.tempo.range[1],

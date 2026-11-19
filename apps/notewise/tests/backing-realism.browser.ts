@@ -1,4 +1,10 @@
-import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  newPage,
+} from "../../../scripts/ci/browser-harness.cjs";
 import assert from "node:assert/strict";
 import { chromium, firefox, webkit } from "playwright";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -111,6 +117,14 @@ try {
         "backing-track-model.ts",
       )
     );
+    const reference: any = new BackingTrackPlayer(false);
+    reference.setStyle("rock");
+    if (
+      reference.mixProfile !== "approved-drum-forward" ||
+      Object.values(reference.pack.samples).some((s: any) => s.instrument)
+    )
+      throw Error("Legacy reference picked up genre processing");
+    reference.dispose();
     const p: any = new BackingTrackPlayer();
     p.setMetronomeTempo(114);
     p.setTempo(72);
@@ -263,7 +277,7 @@ try {
     "same guitar string chokes, another string keeps ringing",
   );
   assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
-  assert.equal(result.phrasing, "planned-conversation-v2");
+  assert.equal(result.phrasing, "roots-rock-dynamics-v3");
   assert.equal(result.changedTempo, 120);
   assert.equal(result.sharedPocket, "drummer-relative-v1");
   assert.equal(result.guitarTransitions, "connected-strings-v1");

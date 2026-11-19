@@ -1,5 +1,11 @@
-import extraInstruments from "./assets/backing-soul-folk/manifest.json";
 import { acousticPalette } from "./backing-acoustic-palette";
+import { rootsPalette } from "./backing-roots-palette";
+import { pocketPalette } from "./backing-pocket-palette";
+import {
+  BackingInstrumentRack,
+  backingInstrumentSound,
+} from "./backing-band-sounds";
+import { reggaePalette } from "./backing-reggae-palette";
 import { gospelPalette } from "./backing-gospel-palette";
 import { TonewheelOrgan } from "./backing-organ";
 import { gospelOrganScene } from "./backing-gospel";
@@ -112,6 +118,45 @@ export class BackingTrackPlayer {
   private buses = new Map<BackingPart, GainNode>();
   private setMix?: ReturnType<typeof backingAudioGraph>["setMix"];
   private organ?: TonewheelOrgan;
+  private instruments?: BackingInstrumentRack;
+  private retiring = new Map<
+    TonewheelOrgan | BackingInstrumentRack,
+    ReturnType<typeof setTimeout>
+  >();
+  /** Style changes stop voices with a short release. Keep their old processing
+   * connected through that release instead of cutting the signal mid-wave. */
+  private retire(
+    processor: TonewheelOrgan | BackingInstrumentRack | undefined,
+    fading: boolean,
+  ) {
+    if (!processor) return;
+    if (
+      !fading ||
+      processor.context !== this.context ||
+      this.context?.state !== "running"
+    ) {
+      processor.dispose();
+      return;
+    }
+    const timer = setTimeout(() => {
+      this.retiring.delete(processor);
+      processor.dispose();
+    }, 60);
+    this.retiring.set(processor, timer);
+  }
+  /** The historical flags apply only to the original Blues/Rock reference. */
+  private legacyReference(style: BackingStyle): "blues" | "rock" | undefined {
+    return (style === "blues" || style === "rock") &&
+      !(
+        this.experimental &&
+        this.drumArticulations &&
+        this.guitarTransitions &&
+        this.sharedPocket
+      )
+      ? style
+      : undefined;
+  }
+
   private unlistenVolume?: () => void;
   private buffers = new Map<string, AudioBuffer>();
   private voices = new Set<Voice>();
@@ -132,13 +177,8 @@ export class BackingTrackPlayer {
     let take = this.takeCache.get(this.cycle);
     if (!take) {
       const state = this.model.getSnapshot();
-      if (
-        (state.style !== "blues" && state.style !== "rock") ||
-        (this.experimental &&
-          this.drumArticulations &&
-          this.guitarTransitions &&
-          this.sharedPocket)
-      ) {
+      const reference = this.legacyReference(state.style);
+      if (!reference) {
         take = genreBackingArrangement(
           state.style,
           state.mode,
@@ -154,7 +194,7 @@ export class BackingTrackPlayer {
             ? plannedBackingArrangement
             : practiceBackingArrangement
         )(
-          state.style,
+          reference,
           state.mode,
           state.quality,
           this.cycle,
@@ -210,10 +250,35 @@ export class BackingTrackPlayer {
   }
   private get pack() {
     const style = this.model.getSnapshot().style;
-    if (style === "gospel") {
+    if (this.legacyReference(style)) return this.basePack;
+    if (style === "blues" || style === "rock") {
       let pack = this.paletteCache.get(style);
       if (!pack)
-        this.paletteCache.set(style, (pack = gospelPalette(this.basePack)));
+        this.paletteCache.set(
+          style,
+          (pack = rootsPalette(style, this.basePack)),
+        );
+      return pack;
+    }
+    if (style === "funk" || style === "soul") {
+      let pack = this.paletteCache.get(style);
+      if (!pack)
+        this.paletteCache.set(
+          style,
+          (pack = pocketPalette(style, this.basePack)),
+        );
+      return pack;
+    }
+    if (style === "gospel" || style === "reggae") {
+      let pack = this.paletteCache.get(style);
+      if (!pack)
+        this.paletteCache.set(
+          style,
+          (pack =
+            style === "reggae"
+              ? reggaePalette(this.basePack)
+              : gospelPalette(this.basePack)),
+        );
       return pack;
     }
     if (style === "folk" || style === "country") {
@@ -221,29 +286,7 @@ export class BackingTrackPlayer {
       if (!pack) this.paletteCache.set(style, (pack = acousticPalette(style)));
       return pack;
     }
-    const base = this.basePack,
-      preset =
-        BACKING_GENRES[this.model.getSnapshot().style].instrumentation.preset;
-    if (preset === "approved-electric-band") return base;
-    const cached = this.paletteCache.get(preset);
-    if (cached) return cached;
-    const samples = Object.fromEntries(
-      Object.entries(base.samples).filter(
-        ([, sample]) => sample.part !== "guitar" && sample.part !== "keys",
-      ),
-    );
-    const extra = Object.fromEntries(
-      Object.entries(extraInstruments.samples).filter(
-        ([, sample]) => sample.part === "keys",
-      ),
-    );
-    const pack = {
-      ...base,
-      samples: { ...samples, ...extra },
-      levels: { ...base.levels, keys: base.levels.guitar },
-    } as typeof backingPack;
-    this.paletteCache.set(preset, pack);
-    return pack;
+    return this.basePack;
   }
   /** Approved sparse plan/sampler; false retains the previous A/B reference. */
   constructor(
@@ -318,11 +361,13 @@ export class BackingTrackPlayer {
       this.pause(
         backingClockActive(previous) && this.metronome.getSnapshot().enabled,
       );
-    this.patch({ style, pattern: backingPattern(style, undefined) });
-    if (style !== "gospel") {
-      this.organ?.dispose();
+    if (paletteChanged) {
+      this.retire(this.instruments, active);
+      this.instruments = undefined;
+      this.retire(this.organ, active);
       this.organ = undefined;
     }
+    this.patch({ style, pattern: backingPattern(style, undefined) });
     this.setMix?.(this.pack.levels, this.mixProfile);
     this.takeCache.clear();
     this.remember();
@@ -337,13 +382,17 @@ export class BackingTrackPlayer {
     if (pattern === state.pattern) return;
     const beat = this.currentPosition();
     this.patch({ pattern });
+    this.setMix?.(this.pack.levels, this.mixProfile);
     this.takeCache.clear();
     this.remember();
     if (state.status === "playing") this.reschedule(beat);
   }
 
   get mixProfile() {
-    return BACKING_GENRES[this.model.getSnapshot().style].instrumentation.mix;
+    const { style, pattern } = this.model.getSnapshot();
+    if (this.legacyReference(style)) return "approved-drum-forward";
+    if (style === "folk" && pattern === "strummed") return "strummed-acoustic";
+    return BACKING_GENRES[style].instrumentation.mix;
   }
 
   setMode(mode: BackingMode) {
@@ -601,7 +650,8 @@ export class BackingTrackPlayer {
                     ? 48
                     : sample.instrument === "acoustic-steel"
                       ? 40
-                      : 50) + shift,
+                      : (backingInstrumentSound(sample.instrument)
+                          ?.lowestNote ?? 50)) + shift,
               high = (bass ? 55 : sample.part === "keys" ? 79 : 76) + shift;
             const boundary = bass && low < 23 && sample.note === 23;
             return (
@@ -653,6 +703,24 @@ export class BackingTrackPlayer {
                 const decoded = await decoder.decodeAudioData(
                   await response.arrayBuffer(),
                 );
+                // Each retained tail covers the instrument's longest supported
+                // gate and release at 50 BPM. Palette-specific IDs isolate it.
+                const limit = backingInstrumentSound(
+                  sample.instrument,
+                )?.maxSeconds;
+                if (limit && decoded.duration > limit) {
+                  const clipped = decoder.createBuffer(
+                    decoded.numberOfChannels,
+                    Math.ceil(limit * decoded.sampleRate),
+                    decoded.sampleRate,
+                  );
+                  for (let ch = 0; ch < decoded.numberOfChannels; ch++)
+                    clipped.copyToChannel(
+                      decoded.getChannelData(ch).subarray(0, clipped.length),
+                      ch,
+                    );
+                  return clipped;
+                }
                 return this.experimental
                   ? decoded
                   : compactBackingBuffer(decoded, sample.part);
@@ -732,6 +800,13 @@ export class BackingTrackPlayer {
     this.buffers.clear();
     this.organ?.dispose();
     this.organ = undefined;
+    this.instruments?.dispose();
+    this.instruments = undefined;
+    for (const [processor, timer] of this.retiring) {
+      clearTimeout(timer);
+      processor.dispose();
+    }
+    this.retiring.clear();
     this.unlistenVolume?.();
     this.unlistenVolume = undefined;
     void this.context?.close().catch(() => {});
@@ -858,20 +933,28 @@ export class BackingTrackPlayer {
     offsetBeats = 0,
   ) {
     const context = this.context!;
-    if (!release && this.model.getSnapshot().style === "gospel") {
+    const style = this.model.getSnapshot().style;
+    if (!release && (style === "gospel" || style === "reggae")) {
       if (
         this.organ?.context !== context ||
-        this.organ.destination !== this.buses.get("keys")
+        this.organ.destination !== this.buses.get("keys") ||
+        this.organ.profile !== style
       ) {
         this.organ?.dispose();
-        this.organ = new TonewheelOrgan(context, this.buses.get("keys")!);
+        this.organ = new TonewheelOrgan(
+          context,
+          this.buses.get("keys")!,
+          style,
+        );
       }
       const take = this.take();
       this.organ.setScene(
-        gospelOrganScene(
-          take as ReturnType<typeof genreBackingArrangement>,
-          event.beat + offsetBeats,
-        ),
+        style === "reggae"
+          ? { registration: 0, expression: 0.75, rotary: "slow" }
+          : gospelOrganScene(
+              take as ReturnType<typeof genreBackingArrangement>,
+              event.beat + offsetBeats,
+            ),
         when,
       );
     }
@@ -919,7 +1002,17 @@ export class BackingTrackPlayer {
         : 1
       : Math.min(1.25, event.velocity / sample.velocity) ** 0.8;
     gain.gain.value = 0;
-    source.connect(gain).connect(this.buses.get(event.part)!);
+    source.connect(gain);
+    const instrument = event.instrument ?? sample.instrument;
+    if (backingInstrumentSound(instrument)) {
+      if (this.instruments?.context !== context) {
+        this.instruments?.dispose();
+        this.instruments = new BackingInstrumentRack(context);
+      }
+      gain.connect(
+        this.instruments.input(instrument!, this.buses.get(event.part)!),
+      );
+    } else gain.connect(this.buses.get(event.part)!);
     const offset = (offsetBeats * 60) / state.tempo;
     const available = buffer.duration / rate - offset;
     if (available <= 0.003) {

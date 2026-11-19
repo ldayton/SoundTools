@@ -3,23 +3,26 @@ import assert from "node:assert/strict";
 import { backingFingerprint } from "./backing-fingerprint";
 import { genreBackingArrangement as arrange } from "../src/backing-genre-engine";
 import { BACKING_GENRES } from "../src/backing-genres";
-import baseline from "./fixtures/approved-reggae-funk-sustained.json";
-import soulBaseline from "./fixtures/approved-soul-7345a6d.json";
+import baseline from "./fixtures/approved-before-pocket-styles.json";
 import bank from "../src/assets/backing-soul-folk/manifest.json";
 import acoustic from "../src/assets/backing-folk-country/manifest.json";
 import type { BackingMode } from "../src/backing-track-model";
 import type { BackingQuality } from "../src/backing-arrangement";
-test("approved Reggae/Funk/Soul takes remain exact when adding acoustic palettes", () => {
-  for (const row of [...baseline, ...soulBaseline]) {
+test("Folk, Country, Gospel and Reggae retain their approved musical arrangements", () => {
+  for (const row of baseline) {
     const t = arrange(
-      row.style as "reggae" | "funk" | "soul",
+      row.style as "folk" | "country" | "gospel" | "reggae",
       row.mode as BackingMode,
       row.quality as BackingQuality,
       row.cycle,
       row.tempo,
       row.tonic,
     );
-    assert.equal(backingFingerprint(t), row.portableSha256);
+    assert.equal(
+      backingFingerprint(t),
+      row.sha256,
+      `${row.style}/${row.mode}/${row.quality}/${row.tonic}`,
+    );
   }
 });
 test("Soul/Folk retain sparse bass and diatonic, supported instruments in all keys", () => {
@@ -46,7 +49,7 @@ test("Soul/Folk retain sparse bass and diatonic, supported instruments in all ke
             assert.ok(
               t.events.filter(
                 (e) => e.part === "bass" && Math.floor(e.beat / 4) === bar,
-              ).length <= 2,
+              ).length <= (style === "soul" && mode === "active" ? 3 : 2),
             );
           for (const e of t.events) {
             assert.ok(e.beat >= 0 && e.beat < t.beats && e.duration > 0);
@@ -54,7 +57,7 @@ test("Soul/Folk retain sparse bass and diatonic, supported instruments in all ke
               assert.ok(pcs.includes(e.note % 12));
               assert.ok(e.beat + e.duration <= t.beats);
             }
-            if (e.part === "guitar")
+            if (e.part === "guitar" && style === "folk")
               assert.ok(
                 Object.values(acoustic.samples).some(
                   (s) =>
@@ -77,7 +80,7 @@ test("Soul/Folk retain sparse bass and diatonic, supported instruments in all ke
           );
           assert.equal(
             t.events.some((e) => e.part === "guitar"),
-            style === "folk",
+            true,
           );
           for (const part of ["bass", style === "soul" ? "keys" : "guitar"])
             assert.ok(

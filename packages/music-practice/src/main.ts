@@ -867,6 +867,23 @@ document.fonts.ready
           (isLiveMode(progress.mode)
             ? !!activePractice()?.syncIdle
             : !session || session.answered === 0 || phase === "complete")),
+      liveKeys: (keys) =>
+        keys.filter(
+          (key) =>
+            key.startsWith("stat:") ||
+            key === "activity:audio" ||
+            (key.startsWith("profile:") &&
+              key !== `profile:${progress.mode}`) ||
+            (key.startsWith("round:") && key !== `round:${progress.mode}`) ||
+            (key.startsWith("activity:") &&
+              key !== `activity:${progress.mode}` &&
+              !key.includes("backing") &&
+              key !== "activity:presentation"),
+        ),
+      liveApplied: (records, state) => {
+        accountRecords.accept(records, state);
+        progress = state.progress;
+      },
       beforeApply: () => {
         activities.reset();
         sessions.invalidateAll();

@@ -9,7 +9,7 @@ test("continuous persistence writes cannot starve the automatic upload window", 
   account.binding = { read: () => ({ tempo: value }) };
   account.captured = { tempo: 0 };
   account.applied = { tempo: 0 };
-  account.engine = { change: async () => {} };
+  account.engine = { state: { device: "test" }, change: async () => {} };
   account.sync = async () => {
     uploads++;
   };
@@ -44,4 +44,48 @@ test("a sync requested during an in-flight pass runs again without overlapping r
   await Promise.all([first, second]);
   assert.equal(calls, 2);
   assert.equal(peak, 1);
+});
+
+test("unrelated incoming settings apply without pausing or rebuilding an active session", async () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "document");
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: { activeElement: null },
+  });
+  try {
+    const account: any = new Account("test");
+    let local = { safe: 1, active: 1 },
+      paused = 0,
+      rebuilds = 0;
+    account.bound = true;
+    account.applied = { ...local };
+    account.captured = { ...local };
+    account.engine = {
+      state: { initialized: true },
+      records: { safe: 2, active: 2 },
+    };
+    account.binding = {
+      read: () => local,
+      canApply: () => false,
+      pause: () => paused++,
+      apply: () => rebuilds++,
+      applyPartial: async (records: any) => {
+        local.safe = records.safe;
+        return ["safe"];
+      },
+    };
+    await account.apply();
+    assert.equal(local.safe, 2);
+    assert.equal(local.active, 1);
+    assert.equal(paused, 0);
+    assert.equal(rebuilds, 0);
+    assert.equal(account.getSnapshot().updates, true);
+    account.binding.canApply = () => true;
+    await account.apply();
+    assert.equal(paused, 1);
+    assert.equal(rebuilds, 1);
+  } finally {
+    if (original) Object.defineProperty(globalThis, "document", original);
+    else delete (globalThis as any).document;
+  }
 });

@@ -126,7 +126,7 @@ test("a committed write whose response was lost is acknowledged on retry without
   cloud.afterWrite = async () => {
     throw Error("lost response");
   };
-  await assert.rejects(a.sync({}));
+  await a.sync({});
   assert.equal(a.pending, 1);
   cloud.afterWrite = undefined;
   await a.sync({});
@@ -267,11 +267,14 @@ test("independent uploads run concurrently and all completed acknowledgements su
       active--;
     }
   };
-  await assert.rejects(a.sync({}), /temporary/);
+  await a.sync({});
   assert.equal(peak, 2);
   assert.equal(a.state.pending.two, undefined);
   assert.ok(a.state.pending.one);
   cloud.write = write;
+  await (a as any).store.transaction("owner", (state: Replica) => {
+    state.pending.one.retryAt = 0;
+  });
   await a.sync({});
   assert.equal(a.pending, 0);
 });
@@ -323,11 +326,19 @@ test("a stale baseline in one browser reconciles automatically without concurren
   assert.equal(cloud.rows.tempo.value, 120);
 });
 
-test("simultaneous compare-and-swap writers automatically converge after a rejected revision", async()=>{
- const cloud=new Backend(),a=await device(cloud),b=await device(cloud);
- await a.sync({tempo:80});await b.sync({});
- await a.change([{key:"tempo",previous:80,value:100}]);await b.change([{key:"tempo",previous:80,value:120}]);
- await Promise.all([a.sync({}),b.sync({})]);await a.sync({});await b.sync({});
- assert.equal(a.pending,0);assert.equal(b.pending,0);assert.deepEqual(a.records,b.records);
- assert.ok([100,120].includes(a.records.tempo as number));
+test("simultaneous compare-and-swap writers automatically converge after a rejected revision", async () => {
+  const cloud = new Backend(),
+    a = await device(cloud),
+    b = await device(cloud);
+  await a.sync({ tempo: 80 });
+  await b.sync({});
+  await a.change([{ key: "tempo", previous: 80, value: 100 }]);
+  await b.change([{ key: "tempo", previous: 80, value: 120 }]);
+  await Promise.all([a.sync({}), b.sync({})]);
+  await a.sync({});
+  await b.sync({});
+  assert.equal(a.pending, 0);
+  assert.equal(b.pending, 0);
+  assert.deepEqual(a.records, b.records);
+  assert.ok([100, 120].includes(a.records.tempo as number));
 });

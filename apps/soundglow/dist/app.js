@@ -581,6 +581,7 @@ let restoredSettings;try{const stored=JSON.parse(localStorage.getItem(currentSet
 if(restoredSettings){settingsState=restoredSettings;renderSettingsControls();applySettingsEffects({changed:SettingsState.ids,effects:['analysis']});}
 else if(settingsForPreset(restoredPreset))applyPreset(restoredPreset);else applyPreset('soundglow');
 window.soundglowSession.accountSpectrogram={
+ applyPresets(presets){savedPresets=structuredClone(presets);renderSettingsControls();},
  read:()=>({values:{...settingsState.values},selected:settingsState.selected,presets:structuredClone(savedPresets)}),
  apply(snapshot){savedPresets=structuredClone(snapshot.presets);closePresetEditor();const result=SettingsState.transition(settingsState,{type:'apply',values:snapshot.values,selected:snapshot.selected});settingsState=result.state;renderSettingsControls();applySettingsEffects(result);},
 };

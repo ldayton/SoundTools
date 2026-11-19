@@ -214,7 +214,9 @@ export class SightReading {
     private acceptanceChanged: () => void,
   ) {
     try {
-      this.showFingerings = persistence.read<{ fingerings?: boolean }>("presentation")?.fingerings === true;
+      this.showFingerings =
+        persistence.read<{ fingerings?: boolean }>("presentation")
+          ?.fingerings === true;
       const saved =
         persistence.read<HymnState>("sight") ||
         (persistence.state.legacy.sight as any);
@@ -477,12 +479,24 @@ export class SightReading {
   private $<T extends HTMLElement = HTMLElement>(s: string) {
     return this.element.querySelector<T>(s)!;
   }
+  applyInactiveAccountState(saved: HymnState) {
+    this.progress.mergeInactive(saved, this.hymn.id);
+  }
   get syncIdle() {
-    const idle = this.mode === "playback"
-      ? !["playing", "loading", "counting"].includes(this.playback.state)
-      : this.paused || !!this.session?.complete || Date.now() - this.lastAnswerAt >= 3000;
-    return !this.passage.selecting && idle && !this.piano.heldPitches.length
-      && !document.activeElement?.closest('input,select,textarea,[role="spinbutton"],[role="slider"]');
+    const idle =
+      this.mode === "playback"
+        ? !["playing", "loading", "counting"].includes(this.playback.state)
+        : this.paused ||
+          !!this.session?.complete ||
+          (this.position === 0 && Date.now() - this.lastAnswerAt >= 3000);
+    return (
+      !this.passage.selecting &&
+      idle &&
+      !this.piano.heldPitches.length &&
+      !document.activeElement?.closest(
+        'input,select,textarea,[role="spinbutton"],[role="slider"]',
+      )
+    );
   }
   get inputPolicy(): InputPolicy {
     if (
@@ -533,7 +547,8 @@ export class SightReading {
     if (!hymn) return false;
     const old = this.settings();
     const switching = hymn.id !== this.hymn.id;
-    if (switching) this.progress.remember(this.settings(), this.zoom, this.staffLayout);
+    if (switching)
+      this.progress.remember(this.settings(), this.zoom, this.staffLayout);
     const base = switching ? this.progress.forHymn(hymn.id) : old;
     const next = hymnSettingsFromQuery(base, route.query);
     const changed =
@@ -820,7 +835,8 @@ export class SightReading {
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
         scale: this.zoom,
-        fingerings: this.showFingerings && ["melody", "bass"].includes(this.arrangement),
+        fingerings:
+          this.showFingerings && ["melody", "bass"].includes(this.arrangement),
         lyrics:
           this.arrangement === "melody" || this.viewHands !== "left"
             ? {
@@ -1068,7 +1084,11 @@ export class SightReading {
   private changeOptions(patch: HymnOptionsChange) {
     if (patch.fingerings !== undefined) {
       this.showFingerings = patch.fingerings;
-      persistence.write("presentation", { ...persistence.read<object>("presentation"), version: 1, fingerings: this.showFingerings });
+      persistence.write("presentation", {
+        ...persistence.read<object>("presentation"),
+        version: 1,
+        fingerings: this.showFingerings,
+      });
       this.render(true);
       this.publishOptions();
       return;

@@ -120,7 +120,7 @@ try {
   );
   await b.locator("[data-bookmark]").click();
   await expect(
-    b.getByRole("status").filter({ hasText: "did not match the original" }),
+    b.getByRole("status").filter({ hasText: "Download verification failed" }),
   ).toBeVisible();
   assert.equal(
     await b.evaluate(
@@ -246,7 +246,7 @@ try {
   const renameSeen = new Promise<void>((resolve) => (sawRename = resolve)),
     renameGate = new Promise<void>((resolve) => (releaseRename = resolve));
   let firstRename = true;
-  await b.route(env.API_URL + "/rest/v1/rpc/media_rename", async (route) => {
+  await b.route(env.API_URL + "/rest/v1/rpc/media_rename_v2", async (route) => {
     if (!firstRename) {
       await route.continue();
       return;
@@ -284,7 +284,7 @@ try {
       { timeout: 15000 },
     )
     .toBe("Newest queued name");
-  await b.unroute(env.API_URL + "/rest/v1/rpc/media_rename");
+  await b.unroute(env.API_URL + "/rest/v1/rpc/media_rename_v2");
   console.log(
     engine +
       ": cached offline playback, remove-download and cross-device rename passed",

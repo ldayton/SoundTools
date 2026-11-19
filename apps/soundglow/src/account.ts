@@ -13,6 +13,7 @@ type Bridge = {
   read(): SoundglowSettings;
   apply(settings: SoundglowSettings): void;
   pause(): void;
+  applyPartial?(settings: SoundglowSettings, keys: string[]): void;
   idle(): boolean;
   models: Models;
 };
@@ -64,6 +65,34 @@ export const soundglowAccount = {
         !document.activeElement?.matches(
           'input,select,textarea,[role="slider"],[role="spinbutton"]',
         ),
+      applyPartial: async (records, keys) => {
+        if (
+          !active ||
+          !host.applyPartial ||
+          document.querySelector('[role="dialog"]') ||
+          document.activeElement?.closest(
+            'input,select,textarea,[role="slider"],[role="spinbutton"]',
+          )
+        )
+          return [];
+        const accepted = keys.filter(
+          (key) =>
+            key.startsWith("bookmark:") ||
+            key.startsWith("pitch-preset:") ||
+            key.startsWith("spectrogram-preset:"),
+        );
+        if (!accepted.length) return [];
+        const merged = soundglowRecords(host.read());
+        for (const key of accepted) {
+          if (key in records) merged[key] = records[key];
+          else delete merged[key];
+        }
+        host.applyPartial(
+          restoreSoundglowRecords(merged, host.models),
+          accepted,
+        );
+        return accepted;
+      },
       apply: async (records) => {
         if (records && !active) guest = structuredClone(host.read());
         const next = records

@@ -1,3 +1,4 @@
+import { failureKind, retryDelay } from "./retry";
 import { Upload } from "tus-js-client";
 import type { Account } from "./client";
 import { FileStore, type FileJob } from "./file-store";
@@ -14,6 +15,9 @@ export type CloudFile = {
   bytes: number;
   details: Record<string, unknown>;
   state: "pending" | "ready" | "deleted";
+  rename_time?: number;
+  rename_counter?: number;
+  rename_device?: string;
   created_at: string;
   updated_at: string;
 };
@@ -87,6 +91,9 @@ export class CloudFiles {
   private current(user: string, epoch: number) {
     return this.user === user && this.epoch === epoch;
   }
+  private networkRetryAt = 0;
+  private networkAttempts = 0;
+  private nextCatalogueAt = 0;
   private online() {
     return (
       navigator.onLine &&
@@ -95,7 +102,13 @@ export class CloudFiles {
     );
   }
   private async initialize() {
+    let syncedAt = 0;
     this.account.subscribe(() => {
+      const next = this.account.getSnapshot().lastSyncedAt || 0;
+      if (next !== syncedAt) {
+        syncedAt = next;
+        this.nextCatalogueAt = 0;
+      }
       void this.refreshActor().catch(() =>
         this.adapter.report("files.queue_failed"),
       );
@@ -111,7 +124,7 @@ export class CloudFiles {
     });
     setInterval(() => {
       if (!document.hidden) void this.kick();
-    }, 15000);
+    }, 1000);
     await this.refreshActor(true);
   }
   private stopTransfers() {
@@ -149,8 +162,8 @@ export class CloudFiles {
   private async rpc<T>(name: string, args: object): Promise<T> {
     const connection = this.account.native;
     if (!connection) throw Error("Sign in to sync files.");
-    const { data, error } = await connection.client.rpc(name, args);
-    if (error) throw error;
+    const { data, error, status } = await connection.client.rpc(name, args);
+    if (error) throw Object.assign(error, { status });
     return data as T;
   }
   private async snapshot(user: string, epoch: number) {
@@ -240,7 +253,13 @@ export class CloudFiles {
     await this.kick();
   }
   private async kick() {
-    if (!this.store || !this.user || !this.online()) return;
+    if (
+      !this.store ||
+      !this.user ||
+      !this.online() ||
+      Date.now() < this.networkRetryAt
+    )
+      return;
     if (this.running) {
       this.pending = true;
       return;
@@ -256,7 +275,9 @@ export class CloudFiles {
           },
         );
       else await this.run();
-    } catch {
+    } catch (error) {
+      this.networkAttempts++;
+      this.networkRetryAt = Date.now() + retryDelay(this.networkAttempts);
       this.adapter.report("files.sync_failed");
     } finally {
       this.running = false;
@@ -269,7 +290,16 @@ export class CloudFiles {
   private async run() {
     const user = this.user,
       epoch = this.epoch;
+    const scheduled = await this.store!.jobs(user, this.app);
+    if (
+      Date.now() < this.nextCatalogueAt &&
+      !scheduled.some((job) => !job.retryAt || job.retryAt <= Date.now())
+    )
+      return;
     await this.snapshot(user, epoch);
+    this.networkAttempts = 0;
+    this.networkRetryAt = 0;
+    this.nextCatalogueAt = Date.now() + 25000 + Math.random() * 10000;
     if (!this.current(user, epoch)) return;
     // Adopt existing local imports once. A bound deleted file is never re-created.
     await this.importedWithoutKick();
@@ -278,7 +308,10 @@ export class CloudFiles {
     jobs.sort((a, b) => priority[a.kind] - priority[b.kind]);
     for (const job of jobs) {
       if (!this.current(user, epoch) || !this.online()) return;
-      if ((this.failures.get(job.id) || 0) > Date.now()) continue;
+      if (
+        Math.max(this.failures.get(job.id) || 0, job.retryAt || 0) > Date.now()
+      )
+        continue;
       try {
         const queued = await this.store!.get<FileJob>("jobs", job.id);
         if (!queued || queued.revision !== job.revision) continue;
@@ -296,12 +329,21 @@ export class CloudFiles {
         }
         if (job.kind === "upload") await this.upload(job, user, epoch);
         else if (job.kind === "download") await this.downloadOnce(job.fileId!);
-        else if (job.kind === "rename")
-          await this.rpc("media_rename", {
+        else if (job.kind === "rename") {
+          const renamed = await this.rpc<CloudFile>("media_rename_v2", {
             p_id: job.fileId,
             p_name: job.name,
+            p_stamp: job.stamp ?? null,
           });
-        else await this.rpc("media_delete", { p_id: job.fileId });
+          const currentJob = await this.store!.get<FileJob>("jobs", job.id);
+          if (
+            this.current(user, epoch) &&
+            currentJob?.revision === job.revision
+          )
+            this.rows = this.rows.map((file) =>
+              file.id === renamed.id ? renamed : file,
+            );
+        } else await this.rpc("media_delete", { p_id: job.fileId });
         if (!this.current(user, epoch)) return;
         await this.store!.complete(job);
         this.status.delete(job.localId || job.fileId!);
@@ -322,9 +364,20 @@ export class CloudFiles {
           error.code === "PT409";
         this.status.set(
           job.localId || job.fileId!,
-          retired ? "Deleted elsewhere · Import again" : "Sync paused · Retry",
+          retired
+            ? "Deleted elsewhere · Import again"
+            : "Saved locally · resumes automatically",
         );
-        this.failures.set(job.id, Date.now() + 60000);
+        job.attempts = (job.attempts || 0) + 1;
+        job.retryAt =
+          Date.now() +
+          (retired || failureKind(error) === "permanent"
+            ? 86400000
+            : retryDelay(job.attempts));
+        this.failures.set(job.id, job.retryAt);
+        const latest = await this.store!.get<FileJob>("jobs", job.id);
+        if (latest?.revision === job.revision) await this.store!.delay(job);
+
         this.adapter.report("files.transfer_failed");
       }
       this.publish();
@@ -443,14 +496,16 @@ export class CloudFiles {
         idle = setTimeout(() => {
           active = false;
           void upload?.abort(false).catch(() => {});
-          reject(Error("Upload stopped responding. Retry to resume."));
+          reject(Error("Upload paused; it will resume automatically."));
         }, 60000);
       };
       touch();
       upload = new Upload(blob, {
         endpoint,
         chunkSize: 6 * 1024 * 1024,
-        retryDelays: [0, 1000, 3000, 5000],
+        retryDelays: [0, 1000, 3000, 7000, 15000].map((delay) =>
+          delay ? Math.round(delay * (0.5 + Math.random() * 0.5)) : 0,
+        ),
         uploadDataDuringCreation: true,
         removeFingerprintOnSuccess: true,
         fingerprint: async () =>
@@ -607,7 +662,7 @@ export class CloudFiles {
         (await this.adapter.fingerprint(blob)) !== file.fingerprint
       )
         throw Error(
-          "The download did not match the original recording. Retry.",
+          "Download verification failed; it will retry automatically.",
         );
       if (
         !this.current(user, epoch) ||
@@ -644,7 +699,18 @@ export class CloudFiles {
     if (!this.store)
       throw Error("Device storage is unavailable. Please retry.");
     if (!this.user) throw Error("Sign in to rename this cloud file.");
+    const file = this.rows.find((file) => file.id === id);
+    const stamp = this.account.issueStamp(
+      file?.rename_device
+        ? {
+            time: file.rename_time || 0,
+            counter: file.rename_counter || 0,
+            node: file.rename_device,
+          }
+        : undefined,
+    );
     await this.store!.put("jobs", {
+      stamp,
       id: `${this.user}:${this.app}:rename:${id}`,
       user: this.user,
       app: this.app,

@@ -195,6 +195,7 @@
     accountBookmarks(){return this.bookmarks.flatMap(b=>{const file=this.bookmarkFile(b);if(!b.file&&!file?.fingerprint)return [];const {fileId,...rest}=b;return [{...rest,file:b.file||this.fileReference(file)}];});}
     accountPlayback(){return {volume:this.media.volume,speed:this.media.playbackRate};}
     persistPlayback(){if(window.SoundglowAccount?.save())return;try{localStorage.setItem('soundglow-playback-v1',JSON.stringify(this.accountPlayback()))}catch{this.message('Could not save playback settings.');}}
+    applyAccountBookmarks(bookmarks){this.bookmarks=structuredClone(bookmarks).map(b=>({...b,fileId:this.bookmarkFile(b)?.id}));this.renderBookmarks();this.draw();const epoch=this.accountEpoch;this.accountMatching=this.matchAccountBookmarks(bookmarks).finally(()=>{if(epoch===this.accountEpoch){this.accountMatching=null;this.renderBookmarks();}});}
     applyAccount(playback,bookmarks){this.accountEpoch=(this.accountEpoch||0)+1;this.cancelBookmark();this.actions.patch({menu:null,dialogOpen:false});this.media.volume=playback.volume;this.media.playbackRate=playback.speed;this.playback.volume(playback.volume);this.bookmarks=structuredClone(bookmarks).filter(b=>window.SoundglowAccount.active||this.bookmarkFile(b)).map(b=>({...b,fileId:this.bookmarkFile(b)?.id}));this.renderBookmarks();this.draw();
       const epoch=this.accountEpoch;
       this.accountMatching=this.matchAccountBookmarks(bookmarks).finally(()=>{if(epoch===this.accountEpoch){this.accountMatching=null;this.renderBookmarks();}});

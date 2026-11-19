@@ -138,7 +138,7 @@ try {
     0,
   );
   await closeModal(q);
-  assert.equal(await q.locator("#bpm").inputValue(), "150 BPM");
+  assert.equal(await q.locator("#bpm").inputValue(), "160 BPM");
   await q.getByRole("button", { name: "Breath Squares", exact: true }).click();
   await q.locator("#breath-rounds").fill("6");
   await q.locator("#breath-rounds").press("Tab");

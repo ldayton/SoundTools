@@ -28,9 +28,13 @@ const labels = {
   error: "Sync needs attention",
 };
 const status = (state: ReturnType<Account["getSnapshot"]>) =>
-  state.status === "offline" && state.pending
-    ? "Offline—changes pending"
-    : labels[state.status];
+  state.blocked
+    ? "Saved locally—some updates delayed"
+    : state.status === "synced" && state.updates
+      ? "Saved to cloud—practice update pending"
+      : state.status === "offline" && state.pending
+        ? "Offline—changes pending"
+        : labels[state.status];
 const AccountContext = createContext<{ account: Account; open(): void } | null>(
   null,
 );

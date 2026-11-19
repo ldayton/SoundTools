@@ -486,7 +486,7 @@ jobs:
       - uses: ./.github/actions/browser
         with:
           browser: ${{ matrix.browser }}
-      - run: node scripts/ci/infrastructure.cjs supabase start --runtime docker --exclude functions,studio,analytics,pooler,realtime --eager
+      - run: node scripts/ci/infrastructure.cjs supabase start --runtime docker --exclude functions,studio,analytics,pooler --eager
       - run: supabase db push
       - run: node scripts/setup-account-local.mjs
       - run: npm run test:accounts

@@ -422,10 +422,15 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.dispatchEvent(new Event('soundtools:ready'));
-preferences.subscribe(source => {
-  if (source === 'local') { void account.changed(); return; }
+preferences.subscribe((source) => {
+  if (source === 'local') {
+    void account.changed();
+    return;
+  }
   const next = preferences.state.spec;
-  const changedPattern = Object.entries(next).some(([key, value]) => key !== 'volume' && key !== 'bpm' && value !== spec[key as keyof ExerciseSpec]);
+  const changedPattern = Object.entries(next).some(
+    ([key, value]) => key !== 'volume' && key !== 'bpm' && value !== spec[key as keyof ExerciseSpec]
+  );
   if (changedPattern) stop();
   else if (spec.bpm !== next.bpm) player.setTempo(next.bpm);
   spec = next;
@@ -440,10 +445,28 @@ preferences.subscribe(source => {
 });
 void account.start({
   read: () => encodePreferences(preferences.state),
-  validate: records => { decodePreferences(records); },
-  apply: records => preferences.apply(records),
+  validate: (records) => {
+    decodePreferences(records);
+  },
+  applyPartial: async (records, keys) => {
+    const accepted = keys.filter(
+      (key) =>
+        ['exercise.volume', 'exercise.bpm', 'channels'].includes(key) ||
+        (key === 'breathing' && preferences.state.selected === 'warmup')
+    );
+    if (!accepted.length) return [];
+    const merged = encodePreferences(preferences.state);
+    for (const key of accepted) if (key in records) merged[key] = records[key];
+    preferences.apply(merged);
+    return accepted;
+  },
+  apply: (records) => preferences.apply(records),
   pause: () => stop(false),
-  canApply: () => mode !== 'playing' && mode !== 'starting' &&
-    !document.querySelector('#breath-play[data-mode="playing"], #breath-play[data-mode="starting"]') &&
+  canApply: () =>
+    mode !== 'playing' &&
+    mode !== 'starting' &&
+    !document.querySelector(
+      '#breath-play[data-mode="playing"], #breath-play[data-mode="starting"]'
+    ) &&
     !document.activeElement?.closest('input,select,textarea,[role="spinbutton"],[role="slider"]'),
 });

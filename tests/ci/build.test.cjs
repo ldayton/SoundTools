@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { verifyBuild } = require('../../scripts/ci/build.cjs');
-test('reused artifacts require the same app, revision, profile and exact bytes', () => {
+test('build provenance requires the same app, revision, profile and exact bytes', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-build-'));
   const file = 'apps/dorego/dist/index.html', revision = 'a'.repeat(40);
   fs.mkdirSync(path.dirname(path.join(directory, file)), { recursive: true });

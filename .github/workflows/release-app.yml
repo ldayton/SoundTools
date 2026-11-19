@@ -1,0 +1,43 @@
+name: Release app
+on:
+  workflow_call:
+    inputs:
+      app:
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: production-${{ inputs.app }}
+      url: ${{ steps.release.outputs.origin }}
+    concurrency:
+      group: production-${{ inputs.app }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: ./.github/actions/browser
+        with:
+          browser: chromium
+      - id: release
+        run: node scripts/ci/release.cjs ${{ inputs.app }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          RELEASE_BROWSER_SMOKE: "1"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: production-check-${{ inputs.app }}
+          path: work/browser-results/
+          retention-days: 7

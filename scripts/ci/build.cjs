@@ -61,9 +61,7 @@ function build(app) {
   const data = manifest(app);
   fs.writeFileSync(manifestPath(app), JSON.stringify(data));
   verifyBuild(data);
-  fs.mkdirSync(path.join(root, 'work/ci-build'), { recursive: true });
-  run('tar', ['-czf', `work/ci-build/${app}.tar.gz`, ...outputPaths(app), `work/ci-provenance/${app}.json`]);
-  console.log(`Verified ${app} CI artifact: ${Object.keys(data.files).length} files, commit ${data.sha}`);
+  console.log(`Verified ${app} CI build: ${Object.keys(data.files).length} files, commit ${data.sha}`);
 }
 module.exports = { manifest, verifyBuild, verify, build, outputPaths };
 if (require.main === module) { try { if (process.argv[2] === 'verify') verify(process.argv[3]); else build(process.argv[2]); } catch (e) { console.error(e.message); process.exitCode = 1; } }

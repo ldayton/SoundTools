@@ -1,98 +1,78 @@
 # Build, validation and production releases
 
-The single CI workflow owns publication. Git-triggered Vercel deployments are
-disabled in each app's `vercel.json`. Vercel projects keep automatic domain
-assignment disabled: only a verified release job can promote a staged build.
+## Normal pushes and pull requests
 
-## What runs
+CI runs shared unit tests once, then validates only affected apps. Each app builds
+and runs its focused tests in one job, followed by a short WebKit smoke check at
+MacBook Air and iPhone sizes. Firefox is no longer part of CI; local suites may
+still use it explicitly.
 
-`scripts/ci/affected.cjs` follows npm workspace dependencies, including transitive
-consumers. Shared music code reaches NoteWise and SongAlong; account/UI changes
-reach all consumers. Unknown and deleted workspaces are treated conservatively.
-Documentation does not deploy. Test-only changes validate their consumers without
-publishing them. Root build configuration and lockfile changes validate all apps.
+The focused checks retain transport/audio, instrument input, responsive workspace,
+and SongAlong fingering coverage. They omit exhaustive hymn/arrangement catalogs,
+visual snapshots, every backing genre, and full offline-update scenarios from the
+release path. Those checks run in the regression profile.
 
-Validation compares against the last successful main push, so cancelled pushes
-cannot lose untested changes. Publication separately compares against the
-`build-info.json` served by each production app. Thus a green-but-unpromoted
-revision is still published by a later push, even if that push only changes docs.
-An unavailable or invalid baseline causes more validation, never less.
+The maximum normal run is 12 jobs: changes, shared tests, four app validations,
+one account validation, a summary gate, and four independent releases. Most app
+changes select fewer jobs. There are no build-artifact upload/download jobs.
+Failure screenshots and traces are still uploaded.
 
-Nightly and manual runs validate the complete matrix without publishing.
-Superseded validation jobs cancel per branch, browser and shard; their gate
-is skipped so a cancelled validation does not become a new release failure. Production jobs
-are serialized per app and are never cancelled midway through promotion. The
-release checks main again immediately before promotion; an obsolete candidate
-stays staged.
+Account integration tests run in Chromium only, and only for account, auth,
+persistence, sync, database or infrastructure changes. Changing an ordinary app
+screen, scale algorithm or style does not start three backend environments.
 
-## Builds and profiles
+Each app release depends on its own validation and shared checks. A NoteWise test
+failure cannot block a validated SongAlong release. Required account checks still
+block releases when account-related code changed. The summary validation gate
+reports the combined result for pull requests; releases do not depend on that
+all-app gate.
 
-The build matrix runs fast app unit tests, builds each affected app once and
-uploads a compressed artifact. Browser jobs restore that artifact, verify its
-app, source revision, `ci` profile and file digests, and do not compile it again.
-SongAlong's split-boundary test also needs a NoteWise fixture build, without
-triggering unrelated NoteWise browser suites.
+## Nightly and manual regression checks
 
-DoReGo has two deliberate build profiles: root and `/DoReGo/`. Studio sample
-originals are omitted from test artifacts, as they are from production; the web
-sound banks remain. Soundglow's generated adapters and compiled UI accompany its
-artifact. Shared compilation is scoped to the app, so building DoReGo does not
-compile Soundglow's UI.
+Nightly runs validate all apps in Chromium and WebKit, without publishing. Select
+`full` when manually dispatching CI for the same exhaustive suites. A manual run
+without `full` runs the focused checks for all apps, also without publishing.
 
-Account tests deliberately build against their own isolated local Supabase
-configuration. These bundles must never be reused as production bundles. Vercel
-builds production candidates remotely with the project's existing production
-variables and Sentry upload credential; production secrets are not downloaded
-into the validation jobs. Backing-track UI and real-time loop checks use the
-restored bundle. Audio realism and genre probes deliberately use instrumented
-source servers to inspect internal PCM plans; those probe configurations never
-produce or publish release bundles.
+The regression profile retains complete hymn catalogs, visual snapshots, backing
+realism and genre checks, offline updates, MIDI and notation tests. Each app and
+browser owns one job rather than expanding catalogs and snapshots into many
+small runner jobs. These jobs have a 30-minute budget and never gate an unrelated
+normal-push run.
 
-## Local commands
+## Change selection and builds
 
-Use Node 24, matching CI. Existing per-app `npm run test:* --workspace=...`
-commands are the same commands run by the workflow.
+Workspace dependencies determine affected consumers. Unknown workspaces, lockfiles
+and root infrastructure changes are handled conservatively; docs alone do not
+start browsers or publish. A push is compared with its previous source revision,
+then each app's live `build-info.json` is checked separately. Thus cancelled or
+failed runs cannot hide unpublished source changes, and an unrelated failed
+workflow does not reset every app's validation baseline.
+
+Each app builds once in its validation job. The built files retain app, source SHA,
+profile and digest provenance, and tests use `CI_USE_BUILD=1` to reject stale
+bundles. Normal SongAlong checks do not build NoteWise; only regression cross-app
+boundary tests need that fixture. Account tests keep separate local Supabase
+configuration, and those bundles are never used for publication.
+
+Local commands:
 
 ```sh
 npm ci
 npm run test:ci-unit
-npm run test:shared
-npm run build:ci -- dorego
-npm run build:ci -- notewise
-npm run build:ci -- songalong
-npm run build:ci -- soundglow
-TEST_BROWSERS=firefox npm run test:browsers --workspace=dorego
-TEST_BROWSER=webkit TEST_SHARD=1/3 npm run test:catalog --workspace=songalong
-CI_USE_BUILD=1 npm run test:visual --workspace=soundglow -- --shard=1/3
+CI_USE_BUILD=1 TEST_BROWSER=chromium node scripts/ci/check-app.cjs songalong focused
+CI_USE_BUILD=1 TEST_BROWSER=webkit node scripts/ci/check-app.cjs songalong regression
 ```
 
-`CI_USE_BUILD=1` requires artifacts for the current commit; it fails instead of
-silently reusing a stale build. Omit it to use Soundglow's ordinary local build
-hooks. Commit changes and rebuild before checking artifact reuse at a new SHA.
+The focused command also needs Chromium and WebKit installed. Regression needs
+its selected browser. Browser checks mute Chromium, block service workers except
+in explicit offline tests, and retain bounded, credential-redacted diagnostics.
+No test assertion is automatically retried. Browser installation and local
+backend startup each permit one bounded infrastructure retry.
 
-The shared browser harness selects the requested engine, isolates Firefox's
-macOS profile, mutes Chromium, waits for actual server/application readiness and
-captures failure traces, screenshots and bounded console/network diagnostics.
-Ordinary UI contexts block service workers; offline tests explicitly allow them.
-Failure output redacts authentication parameters. Do not upload local backend
-status files, credentials or real account sessions as artifacts.
-
-## Long suites and failures
-
-Soundglow core/update tests and three visual shards run independently. Each audio
-runner retains one worker. SongAlong's complete hymn/arrangement/width catalog is
-partitioned into three shards for each browser, separate from interaction tests.
-Every catalog combination still runs. NoteWise backing-track, realism and genre
-checks have their own browser jobs, so additional audio coverage cannot exhaust
-the main interaction suite's time budget. The publication gate requires both.
-Test failures are not automatically retried.
-Only browser installation and local backend startup get one bounded retry.
-
-Final packaging verifies all advertised resource sizes and SHA-256 hashes after
-bundling, along with the same inventory limits embedded in the service workers.
-This runs before expensive browser tests and again on the final Vercel output.
-The validation gate rejects failed, cancelled, missing or unexpectedly skipped
-required jobs. Failure artifacts are retained for diagnosis.
+Packaging verifies all advertised resource sizes and SHA-256 hashes against the
+same limits used by service workers. This runs locally and on the final Vercel
+output. Production candidates still have to pass public-page, asset-integrity,
+responsive rendering and isolated-email-confirmation checks before promotion.
 
 ## Release and recovery
 

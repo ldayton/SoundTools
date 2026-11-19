@@ -31,7 +31,8 @@ Run `npm test --workspace=notewise` and `npm test --workspace=songalong` for log
 checks. Build both apps, then `npm run test:split --workspace=songalong` for the
 cross-app shell and route contract. Browser suites accept `TEST_BROWSER=chromium`,
 `firefox`, or `webkit`. Hymn tests live with SongAlong; theory/reading/guitar tests
-live with NoteWise. GitHub CI has a separate three-browser job for each.
+live with NoteWise. Push CI uses focused Chromium checks and a short WebKit smoke check. Exhaustive
+Chromium/WebKit suites run nightly or manually; see [release checks](docs/build-and-release.md).
 
 `npm run build:dorego`, `build:notewise`, `build:songalong`, and `build:soundglow`
 prepare Vercel outputs. Each project's root must match its directory under `apps`

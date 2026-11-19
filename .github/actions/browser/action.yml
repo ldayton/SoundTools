@@ -1,8 +1,8 @@
 name: Browser test environment
-description: Install the selected browser and provide Firefox with a clocked audio device.
+description: Install a CI browser with bounded infrastructure retries.
 inputs:
   browser:
-    description: chromium, firefox or webkit
+    description: chromium or webkit
     required: true
 runs:
   using: composite
@@ -11,11 +11,3 @@ runs:
       env:
         TEST_ENGINE: ${{ inputs.browser }}
       run: bash scripts/install-ci-browser.sh "$TEST_ENGINE"
-    - if: inputs.browser == 'firefox'
-      shell: bash
-      run: |
-        sudo apt-get install -y pulseaudio pulseaudio-utils
-        pulseaudio --start --exit-idle-time=-1
-        pactl load-module module-null-sink sink_name=ci_audio rate=48000 channels=2
-        pactl set-default-sink ci_audio
-        pactl info

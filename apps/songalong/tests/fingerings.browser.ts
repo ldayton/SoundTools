@@ -94,5 +94,9 @@ try {
 } finally {
   await browser.close();
   server.stop();
-  await rm(home, { recursive: true, force: true });
+  await rm(home, { recursive: true, force: true }).catch((error) => {
+    // macOS can protect Firefox-created folders in its temporary home.
+    if (process.platform !== "darwin" || error.code !== "EACCES") throw error;
+    console.warn("Could not remove Firefox temporary home:", home);
+  });
 }

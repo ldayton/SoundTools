@@ -404,6 +404,7 @@ jobs:
       - run: npm run test:stanzas --workspace=songalong
       - run: npm run test:hymn-playback --workspace=songalong
       - run: npm run test:sight --workspace=songalong
+      - run: npm run test:fingerings --workspace=songalong
       - run: npm run test:offline --workspace=songalong
       - run: npm run test:diagnostics --workspace=songalong
         if: matrix.browser == 'chromium'

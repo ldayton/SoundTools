@@ -111,7 +111,11 @@ export async function elapsedSeconds(page: Page) {
 }
 export async function setTempo(page: Page, bpm: number) {
   await page.locator('#bpm').fill(String(bpm));
-  await page.locator('#bpm').press('Tab');
+  await page.locator('#bpm').press('Enter');
+  await page.waitForFunction(
+    value => document.querySelector('#bpm')?.getAttribute('aria-valuenow') === String(value),
+    bpm,
+  );
 }
 /** Reach an observation point through the real transport; the UI no longer has seeking. */
 export async function playUntil(page: Page, seconds: number) {

@@ -60,6 +60,8 @@ try {
     "follower must use shared queue/leader instead of polling the server",
   );
   assert.ok(reads[0] > 0);
+  // Do not cancel pending piano sample loads while testing account leadership.
+  await first.waitForLoadState("networkidle");
   await first.close();
   await second.locator("#bpm").fill("134");
   await second.locator("#bpm").press("Tab");
@@ -95,6 +97,7 @@ try {
       (e) => e.textContent === "AccountSynced",
     ),
   );
+  await second.waitForLoadState("networkidle");
   await second.reload();
   await expect(second.locator("#bpm")).toHaveValue("136 BPM");
   // Version changes close the connection; recovery restores the live replica
@@ -114,6 +117,7 @@ try {
       (e) => e.textContent === "AccountSynced",
     ),
   );
+  await second.waitForLoadState("networkidle");
   await second.reload();
   await expect(second.locator("#bpm")).toHaveValue("137 BPM");
   // Retry-After is a minimum even if broadcasts/focus request another sync.
@@ -146,6 +150,7 @@ try {
       (e) => e.textContent === "AccountSynced",
     ),
   );
+  await second.waitForLoadState("networkidle");
   await second.reload();
   await expect(second.locator("#bpm")).toHaveValue("138 BPM");
   assert.deepEqual(errors, []);

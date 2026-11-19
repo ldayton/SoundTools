@@ -204,7 +204,6 @@ try {
   assert.match(await page.locator('#play').innerText(), /Pause/);
   await progress();
   await setTempo(page, 240);
-  await page.locator('#bpm').press('Tab');
   assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '240');
   await setSlider(page, 'volume', 100);
   await progress();

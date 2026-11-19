@@ -141,6 +141,8 @@ try {
   await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="60"] .piano-note-label')!).visibility === 'visible');
   const dKey = page.locator('[data-piano="62"]');
   await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'hidden');
+  // Let the sidebar finish moving the keyboard before focusing a key.
+  await dKey.click({ trial: true });
   await dKey.focus();
   await page.keyboard.down('Enter');
   await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'visible');
@@ -207,6 +209,7 @@ try {
       );
     });
   }
+  await page.locator('.piano-key').first().click({ trial: true });
   await page.waitForFunction(() => {
     const key = document.querySelector('.piano-key');
     return key && getComputedStyle(key).userSelect === 'none';

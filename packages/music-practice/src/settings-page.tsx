@@ -19,6 +19,8 @@ import {
   pianoCreditsUrl,
 } from "./piano-audio";
 import backingCreditsUrl from "./assets/backing-soul-folk/NOTICE.txt?url&no-inline";
+import acousticCreditsUrl from "./assets/backing-folk-country/NOTICE.txt?url&no-inline";
+import gospelCreditsUrl from "./assets/backing-gospel/NOTICE.txt?url&no-inline";
 import { APP } from "./app-profile";
 
 export function SettingsPage() {
@@ -89,14 +91,32 @@ export function SettingsPage() {
         Piano recording credits
       </Anchor>
       {APP.id === "notewise" && (
-        <Anchor
-          href={backingCreditsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          size="sm"
-        >
-          Backing track sound and performance credits
-        </Anchor>
+        <>
+          <Anchor
+            href={backingCreditsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+          >
+            Backing track sound and performance credits
+          </Anchor>
+          <Anchor
+            href={acousticCreditsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+          >
+            Folk and Country recording credits
+          </Anchor>
+          <Anchor
+            href={gospelCreditsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            size="sm"
+          >
+            Gospel piano and organ credits
+          </Anchor>
+        </>
       )}
     </SettingsSections>
   );

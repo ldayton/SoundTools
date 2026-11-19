@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@mantine/hooks";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { ActionIcon, Button, Kbd, Modal, Table, Text, Title, Tooltip } from "@mantine/core";
 import { frameState } from "./practice-frame";
@@ -34,6 +35,7 @@ export function ScaleFrame({
   reverseLink(): void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
+  const hoverable = useMediaQuery("(min-width: 48em) and (hover: hover) and (pointer: fine)", undefined, { getInitialValueInEffect: false });
   return (
     <section
       className="practice-surface scale-card sequence-practice"
@@ -78,12 +80,12 @@ export function ScaleFrame({
         <span><i className="link-shift" />Clickable shift</span>
         </>}
         {s.shiftMode && <div className="scale-link-actions" role="group" aria-label="Linked shape controls">
-          <Tooltip label="Reverse shapes">
+          <Tooltip label="Reverse shapes" disabled={!hoverable} transitionProps={{ duration: 0 }}>
             <ActionIcon variant="subtle" size="md" aria-label="Reverse shapes" disabled={!s.canReverse} onClick={reverseLink}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4" /></svg>
             </ActionIcon>
           </Tooltip>
-          <Tooltip label="Clear shift">
+          <Tooltip label="Clear shift" disabled={!hoverable} transitionProps={{ duration: 0 }}>
             <ActionIcon className="scale-clear-shift" variant="subtle" size="md" aria-label="Clear shift" onClick={clearShift} disabled={!s.shiftSelected}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
             </ActionIcon>

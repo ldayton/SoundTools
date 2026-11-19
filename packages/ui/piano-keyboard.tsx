@@ -14,11 +14,13 @@ export function PianoKeyboard({
   voices,
   label,
   onPress,
+  whiteKeyWidth = 32,
 }: {
   rows: readonly (readonly [number, number])[];
   voices: readonly PianoVoice[];
   label(midi: number): string;
   onPress(midi: number): () => void;
+  whiteKeyWidth?: number;
 }) {
   const element = useRef<HTMLDivElement>(null);
   const gestures = useRef(new Map<string, { midi: number; stop(): void }>());
@@ -121,7 +123,7 @@ export function PianoKeyboard({
               style={
                 {
                   "--whites": whites.length,
-                  "--white": "32px",
+                  "--white": `${whiteKeyWidth}px`,
                 } as CSSProperties
               }
             >
@@ -200,7 +202,11 @@ export function PianoKeyboard({
                         }, 150);
                         timers.current.add(timer);
                       }}
-                    />
+                    >
+                      <span className={`piano-note-label${midi % 12 === 0 ? " piano-landmark" : ""}`} aria-hidden="true">
+                        {midi % 12 === 0 ? `C${Math.floor(midi / 12) - 1}` : label(midi).replace(/-?\d+$/, "")}
+                      </span>
+                    </button>
                   );
                 })}
               </div>

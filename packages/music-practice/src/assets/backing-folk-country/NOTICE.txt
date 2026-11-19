@@ -1,0 +1,15 @@
+Folk / Country recordings, CC0 1.0.
+Meta Steel Guitar: Meta Platforms Inc., https://github.com/facebookincubator/Meta-open-sound
+Swirly Drums (brushes), Meatbass (upright pizzicato), Black and Green Guitars (green twang):
+Karoryfer Samples, https://shop.karoryfer.com/pages/free-samples
+https://github.com/sfzinstruments/karoryfer.swirly-drums
+https://github.com/sfzinstruments/karoryfer.meatbass
+https://github.com/sfzinstruments/karoryfer.black-and-green-guitars
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Pinned revisions and original recording hashes: source-sha256.json.
+Acoustic soft D/G/B/high-E samples reuse backing-soul-folk files without duplication.
+Other recordings trimmed, faded, resampled to 16 kHz bass / 24 kHz guitar and drums,
+16-bit FLAC. Upright notes use the mapped native recording at most two semitones away.
+The steel source omits low-string B2; that one pitch uses A#2 raised one semitone.
+Recorded velocity layers and real alternate takes preserved; no invented alternates.
+Original arrangements and preparation code: MIT, Copyright 2026 Lily Dayton.

@@ -1,0 +1,74 @@
+[
+  {
+    "style": "soul",
+    "quality": "major",
+    "mode": "steady",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "portableSha256": "aeb86a93b7a8b429b451ccd0eecf3b1c2d262848e3821d8e05deeba89b4781ba"
+  },
+  {
+    "style": "soul",
+    "quality": "major",
+    "mode": "steady",
+    "tonic": 4,
+    "tempo": 112,
+    "cycle": 1,
+    "portableSha256": "9a916a0bf02f2b3f792a48b3a806ed07f4ec8eecbc8f5216e64103aac03a852d"
+  },
+  {
+    "style": "soul",
+    "quality": "major",
+    "mode": "active",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "portableSha256": "eeb496f1dca1bb000df25305dfa4c6c9bae4cc454b5885efbda2ec65cc125925"
+  },
+  {
+    "style": "soul",
+    "quality": "major",
+    "mode": "active",
+    "tonic": 4,
+    "tempo": 112,
+    "cycle": 1,
+    "portableSha256": "e3474ab77fa1e02c08dee9f70a3629bb590f3f893bbb0a99fa7961017f14e6f7"
+  },
+  {
+    "style": "soul",
+    "quality": "minor",
+    "mode": "steady",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "portableSha256": "4c28a4a1caa35018646bddbaafd448831c50bc6f6ca8e667ba0e55577e1716e2"
+  },
+  {
+    "style": "soul",
+    "quality": "minor",
+    "mode": "steady",
+    "tonic": 4,
+    "tempo": 112,
+    "cycle": 1,
+    "portableSha256": "5f1343bd55f68f3286a8e0c4af7ac5378f3be92288005c09b0e35069580d29dc"
+  },
+  {
+    "style": "soul",
+    "quality": "minor",
+    "mode": "active",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "portableSha256": "262bbb5485a4aeffd25ef808cb6ae8a9d68d82ea1e890b8ed70c09075322c949"
+  },
+  {
+    "style": "soul",
+    "quality": "minor",
+    "mode": "active",
+    "tonic": 4,
+    "tempo": 112,
+    "cycle": 1,
+    "portableSha256": "70af189bb0d6f54ec11b3bb676635bc54a835778b2d6da21e8bf42c7b41fee1a"
+  }
+]

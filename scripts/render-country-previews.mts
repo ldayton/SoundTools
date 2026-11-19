@@ -112,7 +112,11 @@ try {
                 48000,
               );
               p.context = offline;
-              p.buses = backingAudioGraph(offline, p.pack.levels).buses;
+              p.buses = backingAudioGraph(
+                offline,
+                p.pack.levels,
+                p.mixProfile,
+              ).buses;
               p.model.set({ ...p.model.getSnapshot(), style, quality, tempo });
               for (const e of take.events) {
                 if (e.beat >= start && e.beat < to)

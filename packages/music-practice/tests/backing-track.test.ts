@@ -11,13 +11,18 @@ import {
 } from "../src/backing-track-model";
 
 test("backing settings validate saved values and transposition leaves drums in tune", () => {
-  assert.deepEqual(backingSettings({ style: "unsupported-genre", tempo: NaN }), {
-    style: "blues",
-    mode: "steady",
-    tempo: 90,
-  });
+  assert.deepEqual(
+    backingSettings({ style: "unsupported-genre", tempo: NaN }),
+    {
+      style: "blues",
+      pattern: "standard",
+      mode: "steady",
+      tempo: 90,
+    },
+  );
   assert.deepEqual(backingSettings({ style: "rock", tempo: 300 }), {
     style: "rock",
+    pattern: "standard",
     mode: "steady",
     tempo: 180,
   });

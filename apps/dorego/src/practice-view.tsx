@@ -387,9 +387,10 @@ function ReferenceKeyboard({
     ? referenceOctaves(state.low, state.high)
     : referenceRows(range[0], range[1], width);
   return (
-    <div ref={host} className="dorego-piano">
+    <div ref={host} className="dorego-piano" onContextMenu={(event) => event.preventDefault()} onDragStart={(event) => event.preventDefault()}>
       <PianoKeyboard
         rows={rows}
+        whiteKeyWidth={mobile ? 20 : 24}
         voices={state.voices}
         label={(midi) => noteName(midi, state.root)}
         onPress={audition}

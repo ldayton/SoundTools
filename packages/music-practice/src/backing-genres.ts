@@ -1,7 +1,14 @@
 import catalog from "./backing-musical-catalog.json";
 /** Central musical definitions. Sounds/mix remain independently selected. */
 export type BackingGenreId = keyof typeof BACKING_GENRES;
-export type GenreChord = { degree: number; minor: boolean; seventh?: number };
+export type GenreChord = {
+  degree: number;
+  minor: boolean;
+  seventh?: number;
+  addedTone?: number;
+  fifth?: 6;
+  bass?: number;
+};
 export type GenreDefinition = {
   id: string;
   label: string;
@@ -16,11 +23,12 @@ export type GenreDefinition = {
     feel: "shuffle" | "straight";
     subdivision: 2 | 3 | 4;
     strategy:
-      | "recorded-story"
+      | "roots-performance"
       | "two-step"
       | "one-drop"
       | "syncopated-funk"
       | "soul-pocket"
+      | "traditional-gospel"
       | "gentle-folk";
     kick: readonly number[];
     backbeat: readonly number[];
@@ -28,7 +36,12 @@ export type GenreDefinition = {
   roles: {
     bass:
       "sparse-foundation" | "alternating-root-fifth" | "syncopated-foundation";
-    guitar: "sustained-support" | "offbeat-comping" | "muted-comping";
+    guitar:
+      | "sustained-support"
+      | "offbeat-comping"
+      | "muted-comping"
+      | "alternating-thumb"
+      | "boom-chick";
     percussion: "light";
     bassBeats: readonly number[];
     guitarBeats: readonly number[];
@@ -38,7 +51,8 @@ export type GenreDefinition = {
   interaction: {
     bassFollowsKick: boolean;
     guitar: "support";
-    maxBassAttacksPerBar: 2;
+    maxBassAttacksPerBar: 2 | 3;
+    activeMaxBassAttacksPerBar?: 3 | 4;
   };
   form: {
     bars: number;
@@ -56,12 +70,30 @@ export type GenreDefinition = {
   };
   instrumentation: {
     preset:
-      "approved-electric-band" | "warm-electric-piano" | "steel-acoustic-band";
-    bass: "electric-finger";
-    guitar: "clean-electric" | "steel-acoustic" | "none";
-    keys?: "electric-piano";
-    drums: "virtuosity";
-    mix: "approved-drum-forward";
+      | "approved-electric-band"
+      | "steel-acoustic-band"
+      | "acoustic-country-band"
+      | "gospel-organ-band"
+      | "reggae-organ-band"
+      | "funk-pocket-band"
+      | "soul-pocket-band"
+      | "roots-rock-band"
+      | "shuffle-blues-band";
+    bass: "electric-finger" | "upright-pizzicato";
+    guitar: "clean-electric" | "steel-acoustic" | "acoustic-and-twang" | "none";
+    keys?: "electric-piano" | "piano-and-organ" | "organ-bubble";
+    drums: "virtuosity" | "recorded-brushes";
+    mix:
+      | "approved-drum-forward"
+      | "intimate-acoustic"
+      | "strummed-acoustic"
+      | "dry-country"
+      | "gospel-room"
+      | "dry-reggae"
+      | "dry-funk"
+      | "warm-soul"
+      | "roots-room"
+      | "blues-room";
   };
 };
 const chord = (degree: number, minor = false): GenreChord => ({
@@ -113,7 +145,7 @@ function recordedSections(
 export const BACKING_GENRES = {
   blues: {
     id: "blues",
-    label: "Blues",
+    label: "Shuffle Blues",
     meter: [4, 4],
     tempo: { preferred: 90, range: [60, 125] },
     harmony: {
@@ -124,7 +156,7 @@ export const BACKING_GENRES = {
     rhythm: {
       feel: "shuffle",
       subdivision: 3,
-      strategy: "recorded-story",
+      strategy: "roots-performance",
       kick: [0, 2],
       backbeat: [1, 3],
     },
@@ -135,15 +167,24 @@ export const BACKING_GENRES = {
       bassBeats: [0, 2],
       guitarBeats: [0],
     },
-    articulations: ["cross-stick", "off-centre", "sustained-brush"],
+    articulations: [
+      "cross-stick",
+      "off-centre",
+      "muted-shuffle",
+      "guitar-answers",
+    ],
     interaction,
     form: { bars: 72, phraseBars: 12, sections: recordedSections("blues") },
     activity: { steady: { fillsEveryBars: 12 }, active: { fillsEveryBars: 4 } },
-    instrumentation: instruments,
+    instrumentation: {
+      ...instruments,
+      preset: "shuffle-blues-band",
+      mix: "blues-room",
+    },
   },
   rock: {
     id: "rock",
-    label: "Rock",
+    label: "Roots Rock",
     meter: [4, 4],
     tempo: { preferred: 100, range: [70, 150] },
     harmony: {
@@ -154,7 +195,7 @@ export const BACKING_GENRES = {
     rhythm: {
       feel: "straight",
       subdivision: 2,
-      strategy: "recorded-story",
+      strategy: "roots-performance",
       kick: [0, 2],
       backbeat: [1, 3],
     },
@@ -165,11 +206,20 @@ export const BACKING_GENRES = {
       bassBeats: [0, 2],
       guitarBeats: [0],
     },
-    articulations: ["cross-stick", "rimshot", "muted-brush"],
-    interaction,
+    articulations: [
+      "cross-stick",
+      "rimshot",
+      "palm-muted-verse",
+      "open-chorus",
+    ],
+    interaction: { ...interaction, activeMaxBassAttacksPerBar: 3 },
     form: { bars: 64, phraseBars: 8, sections: recordedSections("rock") },
     activity: { steady: { fillsEveryBars: 8 }, active: { fillsEveryBars: 4 } },
-    instrumentation: instruments,
+    instrumentation: {
+      ...instruments,
+      preset: "roots-rock-band",
+      mix: "roots-room",
+    },
   },
   country: {
     id: "country",
@@ -208,13 +258,17 @@ export const BACKING_GENRES = {
     },
     roles: {
       bass: "alternating-root-fifth",
-      guitar: "offbeat-comping",
+      guitar: "boom-chick",
       percussion: "light",
       bassBeats: [0, 2],
-      guitarBeats: [1, 3],
+      guitarBeats: [0, 1, 2, 3],
     },
-    articulations: ["cross-stick", "light-snare", "short-clean-brush"],
-    interaction,
+    articulations: [
+      "brush-strikes",
+      "acoustic-boom-chick",
+      "electric-double-stops",
+    ],
+    interaction: { ...interaction, activeMaxBassAttacksPerBar: 3 },
     form: {
       bars: 64,
       phraseBars: 8,
@@ -228,7 +282,13 @@ export const BACKING_GENRES = {
       ],
     },
     activity: { steady: { fillsEveryBars: 16 }, active: { fillsEveryBars: 8 } },
-    instrumentation: instruments,
+    instrumentation: {
+      preset: "acoustic-country-band",
+      bass: "upright-pizzicato",
+      guitar: "acoustic-and-twang",
+      drums: "recorded-brushes",
+      mix: "dry-country",
+    },
   },
   reggae: {
     id: "reggae",
@@ -252,10 +312,20 @@ export const BACKING_GENRES = {
       guitar: "offbeat-comping",
       percussion: "light",
       bassBeats: [0, 2.75],
-      guitarBeats: [0.5, 1.5, 2.5, 3.5],
+      guitarBeats: [1, 3],
+      keysBeats: [0.5, 1.5, 2.5, 3.5],
     },
-    articulations: ["cross-stick", "ringing-offbeat-chords", "held-bass"],
-    interaction,
+    articulations: [
+      "cross-stick",
+      "damped-skank",
+      "melodic-bass",
+      "organ-bubble",
+    ],
+    interaction: {
+      ...interaction,
+      bassFollowsKick: false,
+      activeMaxBassAttacksPerBar: 3,
+    },
     form: {
       bars: 64,
       phraseBars: 8,
@@ -269,14 +339,19 @@ export const BACKING_GENRES = {
       ],
     },
     activity: {
-      steady: { fillsEveryBars: 16, guitarDurationBeats: 0.78 },
-      active: { fillsEveryBars: 8, guitarDurationBeats: 0.66 },
+      steady: { fillsEveryBars: 16, guitarDurationBeats: 0.13 },
+      active: { fillsEveryBars: 8, guitarDurationBeats: 0.11 },
     },
-    instrumentation: instruments,
+    instrumentation: {
+      ...instruments,
+      preset: "reggae-organ-band",
+      keys: "organ-bubble",
+      mix: "dry-reggae",
+    },
   },
   funk: {
     id: "funk",
-    label: "Funk",
+    label: "Pocket Funk",
     meter: [4, 4],
     tempo: { preferred: 104, range: [84, 120] },
     harmony: {
@@ -299,12 +374,17 @@ export const BACKING_GENRES = {
       guitarBeats: [0.5, 2.5],
     },
     articulations: [
-      "damped-ringing-chords",
+      "damped-sixteenth-chords",
+      "muted-scratches",
       "staccato-bass",
       "off-centre-ghost-snare",
       "closed-hat",
     ],
-    interaction,
+    interaction: {
+      ...interaction,
+      maxBassAttacksPerBar: 3,
+      activeMaxBassAttacksPerBar: 4,
+    },
     form: {
       bars: 64,
       phraseBars: 8,
@@ -318,14 +398,18 @@ export const BACKING_GENRES = {
       ],
     },
     activity: {
-      steady: { fillsEveryBars: 16, guitarDurationBeats: 0.6 },
-      active: { fillsEveryBars: 8, guitarDurationBeats: 0.48 },
+      steady: { fillsEveryBars: 16, guitarDurationBeats: 0.18 },
+      active: { fillsEveryBars: 8, guitarDurationBeats: 0.14 },
     },
-    instrumentation: instruments,
+    instrumentation: {
+      ...instruments,
+      preset: "funk-pocket-band",
+      mix: "dry-funk",
+    },
   },
   soul: {
     id: "soul",
-    label: "Soul",
+    label: "Mellow Soul",
     meter: [4, 4],
     tempo: { preferred: 84, range: [68, 104] },
     harmony: {
@@ -362,8 +446,10 @@ export const BACKING_GENRES = {
       "warm-electric-piano",
       "sustained-seventh-voicings",
       "laid-back-snare",
+      "clean-guitar-answers",
+      "stereo-electric-piano",
     ],
-    interaction,
+    interaction: { ...interaction, activeMaxBassAttacksPerBar: 3 },
     form: {
       bars: 64,
       phraseBars: 8,
@@ -378,12 +464,12 @@ export const BACKING_GENRES = {
     },
     activity: { steady: { fillsEveryBars: 16 }, active: { fillsEveryBars: 8 } },
     instrumentation: {
-      preset: "warm-electric-piano",
+      preset: "soul-pocket-band",
       bass: "electric-finger",
-      guitar: "none",
+      guitar: "clean-electric",
       keys: "electric-piano",
       drums: "virtuosity",
-      mix: "approved-drum-forward",
+      mix: "warm-soul",
     },
   },
   folk: {
@@ -405,15 +491,16 @@ export const BACKING_GENRES = {
     },
     roles: {
       bass: "alternating-root-fifth",
-      guitar: "sustained-support",
+      guitar: "alternating-thumb",
       percussion: "light",
       bassBeats: [0, 2],
-      guitarBeats: [0],
+      guitarBeats: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5],
     },
     articulations: [
       "soft-steel-string",
-      "long-ringing-chords",
-      "soft-cross-stick",
+      "picked-upper-strings",
+      "light-strums",
+      "brush-strikes",
     ],
     interaction,
     form: {
@@ -431,10 +518,99 @@ export const BACKING_GENRES = {
     activity: { steady: { fillsEveryBars: 16 }, active: { fillsEveryBars: 8 } },
     instrumentation: {
       preset: "steel-acoustic-band",
-      bass: "electric-finger",
+      bass: "upright-pizzicato",
       guitar: "steel-acoustic",
+      drums: "recorded-brushes",
+      mix: "intimate-acoustic",
+    },
+  },
+  gospel: {
+    id: "gospel",
+    label: "Traditional Gospel",
+    meter: [4, 4],
+    tempo: { preferred: 76, range: [56, 104] },
+    harmony: {
+      barsPerChord: 1,
+      major: [
+        { degree: 0, minor: false, addedTone: 9 },
+        { degree: 0, minor: false, addedTone: 9, bass: 4 },
+        { degree: 5, minor: false, addedTone: 9 },
+        { degree: 0, minor: false, addedTone: 9, bass: 7 },
+        { degree: 2, minor: true, seventh: 10 },
+        { degree: 7, minor: false, seventh: 10 },
+        { degree: 0, minor: false, addedTone: 9 },
+        { degree: 0, minor: false, addedTone: 9 },
+        { degree: 5, minor: false, addedTone: 9 },
+        { degree: 5, minor: false, addedTone: 9 },
+        { degree: 0, minor: false, addedTone: 9, bass: 4 },
+        { degree: 9, minor: true, seventh: 10 },
+        { degree: 2, minor: true, seventh: 10 },
+        { degree: 7, minor: false, seventh: 10 },
+        { degree: 5, minor: false, addedTone: 9 },
+        { degree: 0, minor: false, addedTone: 9 },
+      ],
+      minor: [
+        { degree: 0, minor: true, seventh: 10 },
+        { degree: 3, minor: false, seventh: 11 },
+        { degree: 5, minor: true, seventh: 10 },
+        { degree: 0, minor: true, seventh: 10, bass: 7 },
+        { degree: 8, minor: false, seventh: 11 },
+        { degree: 7, minor: true, seventh: 10 },
+        { degree: 0, minor: true, seventh: 10 },
+        { degree: 0, minor: true, seventh: 10 },
+        { degree: 5, minor: true, seventh: 10 },
+        { degree: 8, minor: false, seventh: 11 },
+        { degree: 3, minor: false, seventh: 11, bass: 4 },
+        { degree: 0, minor: true, seventh: 10 },
+        { degree: 2, minor: true, fifth: 6, seventh: 10 },
+        { degree: 7, minor: true, seventh: 10 },
+        { degree: 5, minor: true, seventh: 10 },
+        { degree: 0, minor: true, seventh: 10 },
+      ],
+    },
+    rhythm: {
+      feel: "shuffle",
+      subdivision: 3,
+      strategy: "traditional-gospel",
+      kick: [0, 2],
+      backbeat: [1, 3],
+    },
+    roles: {
+      bass: "sparse-foundation",
+      guitar: "sustained-support",
+      percussion: "light",
+      bassBeats: [0, 2],
+      guitarBeats: [],
+      keysBeats: [0, 2],
+    },
+    articulations: [
+      "tonewheel-swells",
+      "rotary-speaker",
+      "acoustic-piano",
+      "triplet-pocket",
+      "tambourine",
+    ],
+    interaction: { ...interaction, activeMaxBassAttacksPerBar: 3 },
+    form: {
+      bars: 64,
+      phraseBars: 8,
+      sections: [
+        { name: "Opening", bars: 8, db: [-5, -4], texture: "crossstick" },
+        { name: "Settled", bars: 16, db: [-3, -2], texture: "hat" },
+        { name: "Lift", bars: 16, db: [-1, 0], texture: "ride" },
+        { name: "Breathe", bars: 8, db: [-7, -5], texture: "crossstick" },
+        { name: "Return", bars: 8, db: [-3, 0], texture: "hat" },
+        { name: "Home", bars: 8, db: [-2, -5], texture: "hat" },
+      ],
+    },
+    activity: { steady: { fillsEveryBars: 16 }, active: { fillsEveryBars: 8 } },
+    instrumentation: {
+      preset: "gospel-organ-band",
+      bass: "electric-finger",
+      guitar: "none",
+      keys: "piano-and-organ",
       drums: "virtuosity",
-      mix: "approved-drum-forward",
+      mix: "gospel-room",
     },
   },
 } as const satisfies Record<string, GenreDefinition>;

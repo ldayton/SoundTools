@@ -258,8 +258,12 @@ try {
       if (!release) sampleTimes.push({ beat: e.beat, when: t });
       sound(e, t, release, offset);
     };
+    p.pause();
     p.setStyle("rock");
     p.setMode("active");
+    await p.play();
+    if (p.model.getSnapshot().status !== "playing")
+      throw Error(JSON.stringify(p.model.getSnapshot()));
     const beats = 256;
     p.reschedule(beats - 0.8, c.currentTime + 0.06);
     await new Promise((r) => setTimeout(r, 900));
@@ -276,18 +280,6 @@ try {
     await new Promise((r) => setTimeout(r, 100));
     // Render actual sample tails through every boundary, rather than checking
     // event timestamps alone. No count-in, ending or silent gap may recur.
-    const { backingPack } = await import(
-      /* @vite-ignore */ moduleUrl.replace(
-        "backing-track-audio.ts",
-        "backing-track-model.ts",
-      )
-    );
-    const { practiceBackingArrangement } = await import(
-      /* @vite-ignore */ moduleUrl.replace(
-        "backing-track-audio.ts",
-        "backing-phrasing.ts",
-      )
-    );
     const { backingAudioGraph } = await import(
       /* @vite-ignore */ moduleUrl.replace(
         "backing-track-audio.ts",
@@ -298,14 +290,19 @@ try {
     const seams: number[] = [];
     for (const style of ["blues", "rock"])
       for (const mode of ["steady", "active"]) {
-        const pattern = practiceBackingArrangement(
-            style,
-            mode,
-            "major",
-            0,
-            style === "blues" ? 90 : 104,
-          ),
-          tempo = pattern.nativeTempo;
+        p.setStyle(style);
+        p.setMode(mode);
+        p.setKey(0, "C", "major");
+        p.setTempo(style === "blues" ? 90 : 104);
+        await p.play();
+        if (p.model.getSnapshot().status !== "playing")
+          throw Error(JSON.stringify(p.model.getSnapshot()));
+        const pattern = p.take(), tempo = p.model.getSnapshot().tempo;
+        p.pauseAll();
+        await new Promise((r) => setTimeout(r, 100));
+        p.voices.clear();
+        p.counter.clear();
+        p.lastDrumFile.clear();
         const offline = new OfflineAudioContext(
           2,
           Math.ceil(((16 * 60) / tempo + 4) * 48000),
@@ -313,14 +310,7 @@ try {
         );
         p.context = offline;
         p.buses = new Map();
-        p.model.set({
-          ...p.model.getSnapshot(),
-          style,
-          mode,
-          tempo,
-          quality: "major",
-        });
-        p.buses = backingAudioGraph(offline, backingPack.levels).buses;
+        p.buses = backingAudioGraph(offline, p.pack.levels, p.mixProfile).buses;
         const from = pattern.beats - 8;
         for (const event of pattern.events) {
           if (event.beat >= from)
@@ -342,6 +332,9 @@ try {
           min = Math.min(min, Math.sqrt(sum / 480));
         }
         seams.push(min);
+        p.context = c;
+        p.buses = realBuses;
+        p.voices.clear();
       }
     p.context = c;
     p.buses = realBuses;

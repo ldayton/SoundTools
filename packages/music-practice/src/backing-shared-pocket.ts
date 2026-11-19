@@ -105,6 +105,7 @@ export function sharedBackingPocket(take: Take, tempo: number) {
       .find(
         (n) =>
           n.part === e.part &&
+          n.instrument === e.instrument &&
           (e.part === "bass" || e.part === "keys"
             ? n.note === e.note || e.part === "bass"
             : n.string === e.string),
@@ -117,14 +118,17 @@ export function sharedBackingPocket(take: Take, tempo: number) {
     if (e.part === "guitar" || e.part === "keys")
       for (let bar = Math.floor(e.beat / 4) + 1; bar * 4 < end; bar++) {
         const c = take.plan.bars[bar];
-        const color = genreChord(take.plan.style, take.quality, bar).seventh;
+        const harmony = genreChord(take.plan.style, take.quality, bar),
+          color = harmony.seventh;
         const pitches = [
           c.root,
           (c.root + (c.minor ? 3 : 4)) % 12,
-          (c.root + 7) % 12,
+          (c.root + (harmony.fifth ?? 7)) % 12,
         ];
         if (e.part === "keys" && color !== undefined)
           pitches.push((c.root + color) % 12);
+        if (e.part === "keys" && harmony.addedTone !== undefined)
+          pitches.push((c.root + harmony.addedTone) % 12);
         if (!pitches.includes(e.note % 12)) {
           end = bar * 4 - 0.04 / spb;
           break;

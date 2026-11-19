@@ -23,9 +23,6 @@
 .practice-piano .piano-layout {
   margin: 0 auto;
 }
-.practice-piano .piano-landmark {
-  display: none;
-}
 #notation {
   display: flex;
   align-items: center;

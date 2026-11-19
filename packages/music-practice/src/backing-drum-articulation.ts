@@ -6,7 +6,7 @@ export type DrumArticulation =
   "normal" | "hat-half" | "hat-loose" | "rimshot" | "offcenter";
 export function articulateDrums(take: BackingTake) {
   const events = take.events.map((e) => {
-    if (e.part !== "drums") return { ...e };
+    if (e.part !== "drums" || e.instrument === "brush-drums") return { ...e };
     const b = take.plan.bars[Math.floor(e.beat / 4)];
     if (!b) return { ...e };
     const pos = e.beat % 4,

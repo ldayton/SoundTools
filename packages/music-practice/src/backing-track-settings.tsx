@@ -1,9 +1,22 @@
 import { NativeSelect } from "@mantine/core";
 import { backingGenres, backingGenre } from "./backing-genres";
+import { backingPatterns, type BackingPattern } from "./backing-patterns";
 import { useState, useSyncExternalStore } from "react";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import type { BackingTrackPlayer } from "./backing-track-audio";
 import "./backing-track-settings.css";
+
+const selectStyles = {
+  input: {
+    fontSize: "var(--practice-control-font-size, var(--mantine-font-size-sm))",
+  },
+  label: {
+    fontSize: "var(--practice-control-font-size, var(--mantine-font-size-sm))",
+    color: "var(--backing-muted)",
+    fontWeight: 500,
+    marginBottom: 7,
+  },
+};
 
 /** Exercise-owned key is read-only here. Other hosts can supply their own key UI. */
 export function BackingTrackSettings({
@@ -50,20 +63,21 @@ export function BackingTrackSettings({
           onChange={(event) =>
             player.setStyle(backingGenre(event.currentTarget.value).id)
           }
-          styles={{
-            input: {
-              fontSize:
-                "var(--practice-control-font-size, var(--mantine-font-size-sm))",
-            },
-            label: {
-              fontSize:
-                "var(--practice-control-font-size, var(--mantine-font-size-sm))",
-              color: "var(--backing-muted)",
-              fontWeight: 500,
-              marginBottom: 7,
-            },
-          }}
+          styles={selectStyles}
         />
+        {backingPatterns(state.style).length > 1 && (
+          <NativeSelect
+            className="backing-track-genre"
+            label="Pattern"
+            aria-label="Backing pattern"
+            value={state.pattern}
+            data={[...backingPatterns(state.style)]}
+            styles={selectStyles}
+            onChange={(event) =>
+              player.setPattern(event.currentTarget.value as BackingPattern)
+            }
+          />
+        )}
         <fieldset className="backing-track-style">
           <legend>Feel</legend>
           <div role="group" aria-label="Backing feel">

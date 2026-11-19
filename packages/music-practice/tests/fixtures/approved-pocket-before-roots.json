@@ -1,0 +1,218 @@
+[
+  {
+    "style": "funk",
+    "mode": "steady",
+    "quality": "major",
+    "tonic": 0,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "bf869dabd35864333be5fc273ac7447d35446d629647a2a0b267c70437b3e794"
+  },
+  {
+    "style": "funk",
+    "mode": "steady",
+    "quality": "major",
+    "tonic": 4,
+    "tempo": 104,
+    "cycle": 1,
+    "sha256": "33e5f97d2e9fab2996c7907f572d90f1f0cc7ee1ccae22031b48821dc8d66057"
+  },
+  {
+    "style": "funk",
+    "mode": "steady",
+    "quality": "major",
+    "tonic": 9,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "a8ce7431720e4e0989cce74e52db3476f7ff909d081588e007e0e8305a18731c"
+  },
+  {
+    "style": "funk",
+    "mode": "steady",
+    "quality": "minor",
+    "tonic": 0,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "6175526a60c93ba1dccfccba59cc5c14b28e98335a15777965feceb44d8960a5"
+  },
+  {
+    "style": "funk",
+    "mode": "steady",
+    "quality": "minor",
+    "tonic": 4,
+    "tempo": 104,
+    "cycle": 1,
+    "sha256": "baa8b110f17752bd834aa17c35f2a7af66d5b5780d6b3de1ca31e79cd3f90110"
+  },
+  {
+    "style": "funk",
+    "mode": "steady",
+    "quality": "minor",
+    "tonic": 9,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "bcaa1ee44b16a1823680e3f7a77b6afe365991e6dd6a2948792049ffd24e374f"
+  },
+  {
+    "style": "funk",
+    "mode": "active",
+    "quality": "major",
+    "tonic": 0,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "0216b473b3d32de379b507a1fc4a7240ebd62bb3212156ee2f91d8fa80cdf3dc"
+  },
+  {
+    "style": "funk",
+    "mode": "active",
+    "quality": "major",
+    "tonic": 4,
+    "tempo": 104,
+    "cycle": 1,
+    "sha256": "47e77702404bc51ad3602992e9be0798c73c7d4a343bba31892f14a3ecf7645a"
+  },
+  {
+    "style": "funk",
+    "mode": "active",
+    "quality": "major",
+    "tonic": 9,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "f806931c2f849add298c31a8b5e1455445084ab19aa3115544f478b18f874522"
+  },
+  {
+    "style": "funk",
+    "mode": "active",
+    "quality": "minor",
+    "tonic": 0,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "2802cca59bb1be3fccd46707c4b1a8310acbd22ad15b334797665f146289d447"
+  },
+  {
+    "style": "funk",
+    "mode": "active",
+    "quality": "minor",
+    "tonic": 4,
+    "tempo": 104,
+    "cycle": 1,
+    "sha256": "289951e69e5e6f79d24e5429242d6f1fcabd0e4202aa9b31b9e4706c98640d87"
+  },
+  {
+    "style": "funk",
+    "mode": "active",
+    "quality": "minor",
+    "tonic": 9,
+    "tempo": 104,
+    "cycle": 0,
+    "sha256": "dadce1758ff59682bb46d5b62bb156a492e0b19e018c221ba5cfa68a226a0f33"
+  },
+  {
+    "style": "soul",
+    "mode": "steady",
+    "quality": "major",
+    "tonic": 0,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "ef90dae923f0b6bca0a5bad2f575f134face5f95ad59345c5590ba7ffcdee4a1"
+  },
+  {
+    "style": "soul",
+    "mode": "steady",
+    "quality": "major",
+    "tonic": 4,
+    "tempo": 84,
+    "cycle": 1,
+    "sha256": "3cc4922fa8708df3e4214dc12d78852b52930a10b2aff035656da1c6ab1c6889"
+  },
+  {
+    "style": "soul",
+    "mode": "steady",
+    "quality": "major",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "9c21433cf67358d09c83a873a3912f0962cafb18d73e0f8b2513420699b20a74"
+  },
+  {
+    "style": "soul",
+    "mode": "steady",
+    "quality": "minor",
+    "tonic": 0,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "635fcde16f1716566cda120ceaaf389db7a245f820a04f6602c4b9fd49205ed3"
+  },
+  {
+    "style": "soul",
+    "mode": "steady",
+    "quality": "minor",
+    "tonic": 4,
+    "tempo": 84,
+    "cycle": 1,
+    "sha256": "699dfd3cb3b61de9d5155d1966a704f8a8996b85dc86172e82e3d727705fe636"
+  },
+  {
+    "style": "soul",
+    "mode": "steady",
+    "quality": "minor",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "78c2e66db623bf0b30c7cc1dab4755f52eeab91c9a75571563a543ac107fa0bd"
+  },
+  {
+    "style": "soul",
+    "mode": "active",
+    "quality": "major",
+    "tonic": 0,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "13690f0c1e4969f3618c3fb87e9e835c5c616206c9d6ba135585497a2817b315"
+  },
+  {
+    "style": "soul",
+    "mode": "active",
+    "quality": "major",
+    "tonic": 4,
+    "tempo": 84,
+    "cycle": 1,
+    "sha256": "d7a58b46525a2996a2aac336511b3cf91f41a0c3d3ef48d79d5768cc6ed5dad2"
+  },
+  {
+    "style": "soul",
+    "mode": "active",
+    "quality": "major",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "85bf02aea2c4fd1eb506e4c89347766a83b33dad417ad4e6cc46d0042ac3aebd"
+  },
+  {
+    "style": "soul",
+    "mode": "active",
+    "quality": "minor",
+    "tonic": 0,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "c83c71705aca86581dece45c81ec105f88831a97449b473dedc4a8f34e70e6f6"
+  },
+  {
+    "style": "soul",
+    "mode": "active",
+    "quality": "minor",
+    "tonic": 4,
+    "tempo": 84,
+    "cycle": 1,
+    "sha256": "fed5393cf655c86a25e054c6f74669a5d2c2ed06d348dd53c5c94308b19387bc"
+  },
+  {
+    "style": "soul",
+    "mode": "active",
+    "quality": "minor",
+    "tonic": 9,
+    "tempo": 84,
+    "cycle": 0,
+    "sha256": "5528aa44730c46b6a025aa7270d9c8eeade36080c5d77386e2e1d262b14bc961"
+  }
+]

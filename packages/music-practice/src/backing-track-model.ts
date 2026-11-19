@@ -1,12 +1,39 @@
 import { backingGenre, type BackingGenreId } from "./backing-genres";
 import manifest from "./assets/backing-v1/manifest.json";
+import { backingPattern } from "./backing-patterns";
 
 export type BackingStyle = BackingGenreId;
 export type LegacyBackingStyle = "blues" | "rock";
 export type BackingMode = "steady" | "active";
 export type BackingPart = "drums" | "percussion" | "bass" | "guitar" | "keys";
+export type BackingInstrument =
+  | "acoustic-steel"
+  | "electric-twang"
+  | "electric-clean"
+  | "reggae-guitar"
+  | "reggae-bass"
+  | "funk-guitar"
+  | "funk-scratch"
+  | "funk-bass"
+  | "soul-guitar"
+  | "soul-bass"
+  | "soul-keys"
+  | "rock-guitar"
+  | "rock-muted"
+  | "rock-bass"
+  | "blues-rhythm"
+  | "blues-lead"
+  | "blues-bass"
+  | "electric-finger-bass"
+  | "upright-bass"
+  | "brush-drums"
+  | "studio-drums"
+  | "electric-piano"
+  | "acoustic-piano"
+  | "tonewheel-organ";
 export type BackingEvent = {
   part: BackingPart;
+  instrument?: BackingInstrument;
   beat: number;
   note: number;
   duration: number;
@@ -32,6 +59,7 @@ export type BackingEvent = {
 export type BackingSample = {
   file: string;
   part: BackingPart;
+  instrument?: BackingInstrument;
   note: number;
   velocity: number;
   rr: number;
@@ -67,9 +95,12 @@ export const backingPack = manifest as unknown as {
 };
 export function backingSettings(input: unknown) {
   const value = input as
-    { style?: unknown; mode?: unknown; tempo?: unknown } | undefined;
+    | { style?: unknown; mode?: unknown; tempo?: unknown; pattern?: unknown }
+    | undefined;
+  const style = backingGenre(value?.style).id;
   return {
-    style: backingGenre(value?.style).id,
+    style,
+    pattern: backingPattern(style, value?.pattern),
     mode: (value?.mode === "active" ? "active" : "steady") as BackingMode,
     tempo:
       typeof value?.tempo === "number" && Number.isFinite(value.tempo)
@@ -104,12 +135,14 @@ export function backingSampleChoices(
     ([id, s]) =>
       (!available || available.has(id)) &&
       s.part === event.part &&
+      (!event.instrument || s.instrument === event.instrument) &&
       (s.string === undefined ||
         event.string === undefined ||
         s.string === event.string) &&
       s.release === release &&
       (s.articulation ?? "normal") === articulation,
   );
+  if (!choices.length) return [];
   const distance = Math.min(
     ...choices.map(([, s]) => Math.abs(s.note - target)),
   );

@@ -7,7 +7,7 @@ type Take = BackingTake;
 export function connectBackingGuitar(take: Take, tempo: number) {
   const secondsToBeats = tempo / 60;
   const guitar = take.events
-    .filter((e) => e.part === "guitar")
+    .filter((e) => e.part === "guitar" && !e.instrument)
     .map((e) => ({ ...e }));
   const groups: BackingEvent[][] = [];
   for (const e of guitar) {
@@ -107,7 +107,8 @@ export function connectBackingGuitar(take: Take, tempo: number) {
     }
   }
   const events = [
-    ...take.events.filter((e) => e.part !== "guitar"),
+    // Explicit instruments have their own picked/strummed phrasing and gates.
+    ...take.events.filter((e) => e.part !== "guitar" || e.instrument),
     ...kept,
   ].sort((a, b) => a.beat - b.beat);
   return {

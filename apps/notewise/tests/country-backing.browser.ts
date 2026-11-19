@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { waitForServer, launchBrowser, newPage, captureFailure, closeBrowser } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  launchBrowser,
+  newPage,
+  captureFailure,
+  closeBrowser,
+} from "../../../scripts/ci/browser-harness.cjs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -132,6 +138,8 @@ try {
     p.sound(
       {
         part: "guitar",
+        instrument: "acoustic-steel",
+        naturalReleaseOnly: true,
         note: 60,
         string: 3,
         beat: 0,
@@ -144,6 +152,8 @@ try {
     p.sound(
       {
         part: "guitar",
+        instrument: "acoustic-steel",
+        naturalReleaseOnly: true,
         note: 64,
         string: 4,
         beat: 0,
@@ -170,6 +180,8 @@ try {
     p.sound(
       {
         part: "guitar",
+        instrument: "acoustic-steel",
+        naturalReleaseOnly: true,
         note: 64,
         string: 3,
         beat: 0,
@@ -183,7 +195,8 @@ try {
     p.sound(
       {
         part: "drums",
-        note: 46,
+        instrument: "brush-drums",
+        note: 38,
         beat: 0,
         duration: 4,
         velocity: 56,
@@ -194,13 +207,14 @@ try {
     const hat = [...p.voices].find(
       (v: any) =>
         v.part === "drums" &&
-        v.note === 46 &&
+        v.note === 38 &&
         Math.abs(v.start - at - 0.2) < 0.00001,
     );
     p.sound(
       {
         part: "drums",
-        note: 42,
+        instrument: "brush-drums",
+        note: 37,
         beat: 0,
         duration: 4,
         velocity: 56,
@@ -208,7 +222,7 @@ try {
       },
       at + 0.3,
     );
-    const hatChoke = hat.end === at + 0.3;
+    const brushNotChoked = hat.end > at + 0.3;
     p.reschedule(255.2, c.currentTime + 0.06);
     await new Promise((r) => setTimeout(r, 1000));
     const position = p.currentPosition(),
@@ -238,7 +252,7 @@ try {
       total: Object.keys(backingPack.samples).length,
       bassCount: finalTake.events.filter((e: any) => e.part === "bass").length,
       stringChoke,
-      hatChoke,
+      brushNotChoked,
       stable,
       cycles,
       takeNumber,
@@ -265,10 +279,13 @@ try {
     result.stringChoke,
     "same guitar string chokes, another string keeps ringing",
   );
-  assert.ok(result.hatChoke, "closed hat chokes its open predecessor");
-  assert.equal(result.phrasing, "country-two-step-v1");
+  assert.ok(
+    result.brushNotChoked,
+    "independent recorded brush strokes retain their tails",
+  );
+  assert.equal(result.phrasing, "acoustic-two-step-v1");
   assert.equal(result.changedTempo, 120);
-  assert.equal(result.bassCount, 128);
+  assert.ok(result.bassCount > 128 && result.bassCount <= 136);
   assert.equal(result.final.style, "country");
   assert.equal(result.sharedPocket, "drummer-relative-v1");
   assert.equal(result.guitarTransitions, "connected-strings-v1");

@@ -1,3 +1,7 @@
+import {
+  scalePracticeHarmony,
+  type ScalePracticeQuality,
+} from "./backing-scale-harmony";
 import { warmBackingArrangement } from "./backing-warm-arrangement";
 import { funkArrangement } from "./backing-funk";
 /** One entry point: musical definition -> strategy -> approved ensemble playback. */
@@ -21,6 +25,7 @@ export function genreBackingArrangement(
   tempo = 90,
   tonic = 9,
   pattern?: BackingPattern,
+  scaleQuality?: ScalePracticeQuality,
 ): BackingTake {
   const definition = BACKING_GENRES[style];
   let plan: BackingTake;
@@ -69,8 +74,11 @@ export function genreBackingArrangement(
       break;
   }
 
-  return sharedBackingPocket(
+  const performed = sharedBackingPocket(
     connectBackingGuitar(articulateDrums(plan), tempo),
     tempo,
   );
+  return scaleQuality
+    ? scalePracticeHarmony(performed, scaleQuality)
+    : performed;
 }

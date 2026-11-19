@@ -1,3 +1,4 @@
+import type { ScalePracticeQuality } from "./backing-scale-harmony";
 import { acousticPalette } from "./backing-acoustic-palette";
 import { rootsPalette } from "./backing-roots-palette";
 import { pocketPalette } from "./backing-pocket-palette";
@@ -165,6 +166,7 @@ export class BackingTrackPlayer {
   private anchor = 0;
   private position = 0;
   private cycle = 0;
+  private harmonicScale?: ScalePracticeQuality;
   private index = 0;
   private lastBeat = -1;
   private takeCache = new Map<
@@ -185,6 +187,7 @@ export class BackingTrackPlayer {
           state.tempo,
           state.tonic,
           state.pattern,
+          this.harmonicScale,
         );
       } else {
         take = (
@@ -328,12 +331,14 @@ export class BackingTrackPlayer {
     tonic: number,
     keyLabel: string,
     quality: BackingQuality = this.model.getSnapshot().quality,
+    scaleQuality?: ScalePracticeQuality,
   ) {
     const previous = this.model.getSnapshot();
     if (
       previous.tonic === tonic &&
       previous.keyLabel === keyLabel &&
-      previous.quality === quality
+      previous.quality === quality &&
+      this.harmonicScale === scaleQuality
     )
       return;
     const active =
@@ -342,6 +347,7 @@ export class BackingTrackPlayer {
       this.pause(
         backingClockActive(previous) && this.metronome.getSnapshot().enabled,
       );
+    this.harmonicScale = scaleQuality;
     this.patch({ tonic, keyLabel, quality });
     this.takeCache.clear();
     if (active) void this.play();

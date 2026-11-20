@@ -171,6 +171,12 @@ export function showOnlyTab(paper: HTMLElement,tempoLabel="Swing",lyricPadding=5
       chord.setAttribute('transform',`translate(0 ${tabBox.y-48-ink.y})`);
       svg.append(chord);
     }
+    for(const position of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-annotation')) {
+      if(!/^(I|III|VII)$/.test(position.textContent?.trim()||''))continue;
+      const copy=position.cloneNode(true) as SVGGraphicsElement,ink=position.getBBox();
+      copy.classList.add('guitar-position');copy.style.visibility='visible';
+      copy.setAttribute('transform',`translate(0 ${tabBox.y-76-ink.y})`);svg.append(copy);
+    }
     const tempo = svg.querySelector<SVGGraphicsElement>(".abcjs-tempo");
     if (tempo && index === 0) {
       const label = document.createElementNS(ns, "text");

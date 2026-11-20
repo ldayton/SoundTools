@@ -1,5 +1,6 @@
+import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
-import { drawBeginnerFingerings, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
+import { drawBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
 import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
 import { attachChordDiagrams } from "./guitar-chord-diagram";
 import { drawGuitarFingerings } from "./guitar-fingering-view";
@@ -76,6 +77,7 @@ export function drawPracticeScore(
     fromBar?: number;
     tabOnly?: boolean;
     chordTab?: boolean;
+    chordsOnly?: boolean;
     lyrics?: HymnLyricsSelection;
     transpose?: number;
     compact?: boolean;
@@ -256,12 +258,15 @@ export function drawPracticeScore(
     }
   });
   if (options.beginnerEdition === "guitar" && !profile) normalizeGuitarRests(tune, options.fromBar || 0);
-  if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile);
+  if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile && tune.lines[0]?.staff?.[0]?.voices?.length === 1);
   if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, !!profile);
-  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly);
+  if (options.guitarTab && profile?.id === "in-christ-alone") alignSimultaneousTab(tune, options.fromBar || 0);
+  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly, profile?.id === "in-christ-alone");
   if (options.fingerings && options.beginnerEdition)
     drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
-  if (options.tabOnly) showOnlyTab(paper, profile ? `♩ = ${profile.tempo}` : undefined, profile ? 18 : undefined);
+  if (profile?.id === "in-christ-alone" && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
+  if (options.tabOnly) showOnlyTab(paper, profile ? `♩ = ${profile.tempo}` : undefined, profile ? profile.id === "in-christ-alone" ? 58 : 18 : undefined);
+  if (options.chordsOnly) showChordsOnly(paper);
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
   paper.querySelectorAll("svg").forEach((svg) => {
@@ -316,9 +321,9 @@ export function drawPracticeScore(
         let top = options.beginnerEdition ? Infinity : box.y,
           bottom = options.beginnerEdition ? -Infinity : box.y + box.height;
         for (const ink of svg.querySelectorAll<SVGGraphicsElement>(
-          options.tabOnly
-            ? ".abcjs-lyric,.abcjs-staff,.fingerstyle-tab-clef,.fingerstyle-tab-bars,.tab-rhythm-continuation,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-chord,.abcjs-tabNumber,.tab-rhythm,.tab-rhythm-stem,.tab-rhythm-rest,.tab-rhythm-flag,.tab-rhythm-tie,.beginner-fingering,.beginner-picking,.beginner-string"
-            : ".abcjs-staff,.abcjs-staff-extra,.abcjs-bar,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-clef,.abcjs-chord,.abcjs-tabNumber,.abcjs-note,.abcjs-beam,.abcjs-slur,.beginner-fingering,.beginner-picking,.beginner-string",
+          options.chordsOnly ? ".abcjs-lyric,.abcjs-chord,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.chord-chart-bars" : options.tabOnly
+            ? ".guitar-position,.abcjs-lyric,.abcjs-staff,.fingerstyle-tab-clef,.fingerstyle-tab-bars,.tab-rhythm-continuation,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-chord,.abcjs-tabNumber,.tab-rhythm,.tab-rhythm-stem,.tab-rhythm-rest,.tab-rhythm-flag,.tab-rhythm-tie,.beginner-fingering,.beginner-picking,.beginner-string"
+            : ".abcjs-annotation,.guitar-position,.abcjs-staff,.abcjs-staff-extra,.abcjs-bar,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-clef,.abcjs-chord,.abcjs-tabNumber,.abcjs-note,.abcjs-beam,.abcjs-slur,.beginner-fingering,.beginner-picking,.beginner-string",
         )) {
           if (getComputedStyle(ink).visibility === "hidden") continue;
           const matrix = ink.getScreenCTM();

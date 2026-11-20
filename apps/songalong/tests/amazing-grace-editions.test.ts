@@ -87,7 +87,7 @@ test("Amazing Grace exposes Piano and Guitar only and migrates saved arrangement
       scoreDisplay: "tab",
     });
     assert.equal(s.arrangement, "guitar-edition");
-    assert.equal(s.hands, "both");
+    assert.equal(s.hands, "left");
     assert.equal(s.scoreDisplay, "tab");
   }
   assert.equal(hymnPreferences(hymn.id).bpm, 72);
@@ -122,7 +122,7 @@ test("piano preserves every source melody attack, ornament, and tie with compact
     );
 });
 test("guitar preserves the reviewed harmonic rhythm, ringing ties, and four open shapes without a capo", () => {
-  const score = read(arrangeHymn(hymn, "guitar-edition", 0).abc);
+  const score = read(arrangeHymn(hymn, "guitar-edition", 0, 0, "left").abc);
   assert.equal(score.tune.lines[0].staff?.[0].clef?.type, "treble-8");
   assert.equal(score.audio.totalDuration * 4, 48);
   assert.deepEqual(
@@ -209,7 +209,48 @@ test("production playback keeps the original 48-beat verses and sounding guitar 
         plan.audio.tracks[0].flatMap((n) =>
           n.cmd === "note" && n.start === 0 ? [n.pitch] : [],
         ),
-        [43, 47, 50, 55, 59, 67],
+        [50],
       );
   }
+});
+
+test("fingerstyle preserves the complete melody one octave lower with first-position bass and harmony", () => {
+  const score = read(arrangeHymn(hymn, "guitar-edition", 0).abc),
+    piano = read(arrangeHymn(hymn, "piano", 0).abc);
+  assert.deepEqual(
+    score.tracks[0],
+    piano.tracks[0].map(([p, s, d]) => [p - 12, s, d]),
+  );
+  const voicings: Record<string, number[]> = {
+    G: [43, 47],
+    Em: [40, 47],
+    C: [48],
+    D7: [42, 48],
+  };
+  assert.deepEqual(
+    score.tracks[1],
+    progression.flatMap(([start, chord, duration]) =>
+      voicings[chord].map((p) => [p, start, duration]),
+    ),
+  );
+  const notes = score.tracks.flat();
+  for (const start of new Set(notes.map((n) => n[1]))) {
+    const sounding = notes.filter(
+      ([, s, d]) => s <= start && s + d > start + 1e-7,
+    );
+    const positions = sounding.map(([p]) => graceGuitarPosition(p, true)!);
+    assert(positions.every(Boolean));
+    assert.equal(
+      new Set(positions.map((p) => p.str)).size,
+      positions.length,
+      `String conflict at ${start}`,
+    );
+    assert(positions.every((p) => p.num >= 0 && p.num <= 3));
+    const frets = positions.filter((p) => p.num > 0).map((p) => p.num);
+    if (frets.length) assert(Math.max(...frets) - Math.min(...frets) <= 2);
+  }
+  assert.deepEqual(
+    read(arrangeHymn(hymn, "guitar-edition", 0, 0, "right").abc).tracks[0],
+    score.tracks[0],
+  );
 });

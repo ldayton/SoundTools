@@ -1,6 +1,41 @@
+import type { TuneObject, AbsoluteElement } from "abcjs";
 /** Keep the score's chord symbols, lyric alignment and bar numbers as a compact chart. */
-export function showChordsOnly(paper: HTMLElement) {
+export function showChordsOnly(paper: HTMLElement, tune?: TuneObject) {
   const ns = "http://www.w3.org/2000/svg";
+  // A dash makes tied continuations explicit even when the notation is hidden.
+  for (const line of tune?.lines || [])
+    for (const note of line.staff?.[0]?.voices?.[0] || []) {
+      if (
+        note.el_type !== "note" ||
+        !note.pitches?.length ||
+        !note.pitches.every((p) => p.endTie)
+      )
+        continue;
+      const absolute = note.abselem as AbsoluteElement | undefined,
+        node = absolute?.elemset?.[0] as SVGGraphicsElement | undefined;
+      const svg = node?.ownerSVGElement;
+      if (!svg || absolute?.x === undefined) continue;
+      const model =
+        svg.querySelector<SVGTextElement>("text.abcjs-chord") ||
+        paper.querySelector<SVGTextElement>("text.abcjs-chord");
+      const mark =
+        (model?.cloneNode(false) as SVGTextElement) ||
+        document.createElementNS(ns, "text");
+      mark.setAttribute("class", "abcjs-chord chord-hold");
+      mark.removeAttribute("transform");
+      mark.setAttribute("x", String(absolute.x + 5));
+      const local = svg.querySelector<SVGGraphicsElement>(".abcjs-chord");
+      const y = local
+        ? local.getBBox().y + local.getBBox().height - 3
+        : (svg.querySelector<SVGGraphicsElement>(".abcjs-staff")?.getBBox().y ||
+            0) - 20;
+      mark.setAttribute("y", String(y));
+      mark.setAttribute("font-size", "16");
+      mark.setAttribute("font-family", "sans-serif");
+      mark.setAttribute("aria-label", "Hold previous chord");
+      mark.textContent = "—";
+      svg.append(mark);
+    }
   for (const svg of paper.querySelectorAll("svg")) {
     svg.classList.add("chords-only-score");
     const keep =

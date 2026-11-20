@@ -86,7 +86,7 @@ export function mergeHymnSettings(
       ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
   return {
-    scoreDisplay: choice(s.scoreDisplay, (hymn.id === "in-christ-alone" ? ["notation", "tab", "both", "chords"] : ["notation", "tab", "both"]) as ("notation" | "tab" | "both" | "chords")[], base.scoreDisplay === "chords" && hymn.id !== "in-christ-alone" ? "both" : base.scoreDisplay || "both"),
+    scoreDisplay: choice(s.scoreDisplay, (chordEdition(hymn) ? ["notation", "tab", "both", "chords"] : ["notation", "tab", "both"]) as ("notation" | "tab" | "both" | "chords")[], base.scoreDisplay === "chords" && !chordEdition(hymn) ? "both" : base.scoreDisplay || "both"),
     stanzas,
     ...("stanza" in s || "stanza" in base ? { stanza } : {}),
     ...("low" in s || "low" in base
@@ -111,7 +111,7 @@ export function mergeHymnSettings(
         }
       : {}),
     viewHands: hasInstrumentEditions(hymn) ? "both" : viewHands,
-    hands: arrangement === "guitar-edition" && hymn.id !== "in-christ-alone" ? "both" : hasInstrumentEditions(hymn)
+    hands: hasInstrumentEditions(hymn)
       ? choice(s.hands, ["right", "left", "both"] as const, base.hands || "both")
       : hands,
     ...("reattackTies" in s || "reattackTies" in base

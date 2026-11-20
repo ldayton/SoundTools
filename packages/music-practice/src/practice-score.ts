@@ -1,6 +1,6 @@
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
-import { drawBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
+import { drawBeginnerFingerings, separateGuitarFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
 import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
 import { attachChordDiagrams } from "./guitar-chord-diagram";
 import { drawGuitarFingerings } from "./guitar-fingering-view";
@@ -260,13 +260,14 @@ export function drawPracticeScore(
   if (options.beginnerEdition === "guitar" && !profile) normalizeGuitarRests(tune, options.fromBar || 0);
   if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile && tune.lines[0]?.staff?.[0]?.voices?.length === 1);
   if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, !!profile);
-  if (options.guitarTab && profile?.id === "in-christ-alone") alignSimultaneousTab(tune, options.fromBar || 0);
-  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly, profile?.id === "in-christ-alone");
+  if (options.guitarTab && !!profile) alignSimultaneousTab(tune, options.fromBar || 0);
+  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly, !!profile);
   if (options.fingerings && options.beginnerEdition)
     drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
-  if (profile?.id === "in-christ-alone" && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
-  if (options.tabOnly) showOnlyTab(paper, profile ? `♩ = ${profile.tempo}` : undefined, profile ? profile.id === "in-christ-alone" ? 58 : 18 : undefined);
-  if (options.chordsOnly) showChordsOnly(paper);
+  if (profile && options.beginnerEdition === "guitar" && options.fingerings) separateGuitarFingerings(paper);
+  if (!!profile && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
+  if (options.tabOnly) showOnlyTab(paper, profile ? `♩ = ${profile.tempo}` : undefined, profile ? 58 : undefined);
+  if (options.chordsOnly) showChordsOnly(paper,tune);
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
   paper.querySelectorAll("svg").forEach((svg) => {

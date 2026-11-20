@@ -1,3 +1,4 @@
+import abcjs from "abcjs";
 import type { BeginnerInstrument } from "./beginner-score";
 import type { HymnLyricData } from "./hymn-lyrics";
 import { accompanimentLyrics } from "./accompaniment-lyrics";
@@ -114,6 +115,8 @@ export function graceGuitarPosition(
   transpose = 0,
 ) {
   const positions: Record<number, [number, number]> = {
+    42: [5, 2],
+    62: [1, 3],
     40: [5, 0],
     43: [5, 3],
     47: [4, 2],
@@ -141,14 +144,9 @@ export function graceFingers(
   force = false,
 ): (number | null)[] {
   if (instrument === "guitar") {
-    const shape: Record<number, number | undefined> = pitches.includes(40)
-      ? { 47: 2, 52: 3 }
-      : pitches.includes(48)
-        ? { 48: 3, 52: 2, 60: 1 }
-        : pitches.includes(66)
-          ? { 57: 2, 60: 1, 66: 3 }
-          : { 43: 3, 47: 2, 67: 4 };
-    return pitches.map((p) => shape[p] ?? null);
+    if (voice === 1)
+      return pitches.map((p) => ({ 42: 1, 43: 3, 47: 2, 48: 3 })[p] ?? null);
+    return pitches.map((p) => ({ 52: 2, 57: 2, 62: 4 })[p] ?? null);
   }
   if (voice === 1) return pitches.map((_, i) => [5, 3, 1][i] ?? null);
   const high = bar >= 7 && bar <= 9;
@@ -169,5 +167,72 @@ export function graceLandmarks(abc: string, from = 0, guitar = false) {
   return (
     "%%barnumbers 1\n%%barnumberfont serif 10\n%%partsfont serif 12\n%%partsbox 1\n" +
     abc
+  );
+}
+
+/** First-position fingerstyle: the source melody sounds one octave below Piano. */
+export function graceFingerstyleAbc(melodyAbc: string, melodyOnly = false) {
+  const tune = abcjs.parseOnly(melodyAbc)[0];
+  const insertions: { at: number; text: string }[] = [];
+  let bar = 0,
+    beat = 0,
+    hasNotes = false;
+  for (const line of tune.lines)
+    for (const note of line.staff?.[0]?.voices?.[0] || []) {
+      if (note.el_type === "bar") {
+        if (hasNotes) {
+          bar++;
+          beat = 0;
+          hasNotes = false;
+        }
+        continue;
+      }
+      if (note.el_type !== "note") continue;
+      let start = 0;
+      for (const [index, change] of graceChanges[bar].entries()) {
+        const continuation =
+          index === 0 && bar > 0 && graceChanges[bar - 1].at(-1)?.tie;
+        if (Math.abs(start - beat) < 1e-7 && !continuation)
+          insertions.push({ at: note.startChar!, text: `"${change.chord}"` });
+        start += change.beats / 4;
+      }
+      beat += note.duration;
+      hasNotes = true;
+    }
+  let decorated = melodyAbc;
+  for (const insertion of insertions.sort((a, b) => b.at - a.at))
+    decorated =
+      decorated.slice(0, insertion.at) +
+      insertion.text +
+      decorated.slice(insertion.at);
+  const body = decorated.slice(decorated.indexOf("K:G") + 3).trim();
+  // D7/F# omits the root: F# bass + C seventh support the melody's A.
+  const voicing: Record<Chord, string> = {
+    G: "[G,B,]",
+    Em: "[E,B,]",
+    C: "C",
+    D7: "[F,C]",
+  };
+  const bass = graceChanges.map(
+    (changes, index) =>
+      changes
+        .map(
+          (change) =>
+            voicing[change.chord] + change.beats * 16 + (change.tie ? "-" : ""),
+        )
+        .join(" ") + (index === 16 ? " |]" : " |"),
+  );
+  const melodyBars = [
+    ...body.replace(/^w:.*$/gm, "").matchAll(/([^|]*)(\|\]?)/g),
+  ].map((m) => m[1] + m[2]);
+  return (
+    `X:1\nT:Amazing Grace\nM:3/4\nL:1/64\nQ:1/4=72\n%%score ${melodyOnly ? "S1" : "(S1 S2)"}\nV:S1 clef=treble-8 stem=up\n${melodyOnly ? "" : "V:S2 clef=treble-8 stem=down\n"}K:G\n` +
+    groups
+      .map(
+        (group) =>
+          `[V:S1] ${group.map((i) => melodyBars[i]).join(" ")}\n` +
+          (melodyOnly ? "" : `[V:S2] ${group.map((i) => bass[i]).join(" ")}\n`),
+      )
+      .join("")
   );
 }

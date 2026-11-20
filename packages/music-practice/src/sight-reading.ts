@@ -70,6 +70,8 @@ import {
   arrangeHymn,
   hymnArrangements,
   isGuitarArrangement,
+  guitarMidiOffset,
+  hasInstrumentEditions,
   hymnMelodyOffset,
   type Arrangement,
   type HymnHands,
@@ -114,6 +116,7 @@ export class SightReading {
   private noMatchingKey = false;
   private rangeCache = new Map<string, HymnRange>();
   private arrangement: Arrangement = "melody";
+  private scoreDisplay: "notation" | "tab" | "both" = "both";
   private hands: HymnHands = "both";
   private viewHands: HymnHands = "both";
   private reattackTies = false;
@@ -245,6 +248,8 @@ export class SightReading {
         saved,
         hymns.map((hymn) => hymn.id),
       );
+      if (["notation", "tab", "both"].includes(saved?.scoreDisplay || ""))
+        this.scoreDisplay = saved!.scoreDisplay!;
       if (saved?.hands === "left" || saved?.hands === "right")
         this.hands = saved.hands;
       if (["left", "right"].includes(saved?.viewHands || ""))
@@ -598,6 +603,7 @@ export class SightReading {
       old.low !== next.low ||
       old.high !== next.high ||
       old.arrangement !== next.arrangement ||
+      old.scoreDisplay !== next.scoreDisplay ||
       old.hands !== next.hands ||
       old.viewHands !== next.viewHands ||
       old.reattackTies !== next.reattackTies ||
@@ -629,6 +635,7 @@ export class SightReading {
         ? undefined
         : next.octave;
     this.arrangement = next.arrangement;
+    this.scoreDisplay = next.scoreDisplay || "both";
     this.hands = next.hands || "both";
     this.viewHands = next.viewHands || "both";
     this.reattackTies = next.reattackTies === true;
@@ -655,6 +662,7 @@ export class SightReading {
       low: this.low,
       high: this.high,
       arrangement: this.arrangement,
+      scoreDisplay: this.scoreDisplay,
       hands: this.hands,
       viewHands: this.viewHands,
       reattackTies: this.reattackTies,
@@ -672,6 +680,7 @@ export class SightReading {
       hands: this.hands,
       view: this.viewHands,
     });
+    if (hasInstrumentEditions(this.hymn)) q.set("display", this.scoreDisplay);
     if (this.stanzas.join(",") !== "1")
       q.set("stanzas", this.stanzas.length ? this.stanzas.join(",") : "none");
     if (this.reattackTies) q.set("ties", "repeat");
@@ -731,6 +740,7 @@ export class SightReading {
     this.countIn = next.countIn!;
     this.loopCountIn = next.loopCountIn === true;
     this.arrangement = next.arrangement;
+    this.scoreDisplay = next.scoreDisplay || "both";
     this.hands = next.hands!;
     this.viewHands = next.viewHands!;
     this.reattackTies = next.reattackTies!;
@@ -839,8 +849,9 @@ export class SightReading {
         ),
       arrangement: this.arrangement,
       noKey: false,
-      scoreLabel:
-        this.arrangement !== "melody" && this.viewHands === "left"
+      scoreLabel: hasInstrumentEditions(this.hymn)
+        ? this.arrangement === "piano" ? "Piano score" : `Guitar score: ${this.scoreDisplay}`
+        : this.arrangement !== "melody" && this.viewHands === "left"
           ? "Left-hand hymn score"
           : "Hymn score with aligned lyrics",
     });
@@ -879,8 +890,13 @@ export class SightReading {
         staffScale: this.staffSpacing / 100,
         fingerings:
           this.showFingerings &&
-          (["melody", "bass"].includes(this.arrangement) ||
-            this.arrangement === "guitar"),
+          (hasInstrumentEditions(this.hymn)
+            ? (this.key === "original" || this.key === this.hymn.key) &&
+              (this.arrangement === "piano" || this.octave === 0)
+            : ["melody", "bass", "guitar"].includes(this.arrangement)),
+        beginnerEdition: hasInstrumentEditions(this.hymn)
+          ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
+        fromBar: score.from,
         lyrics:
           this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
@@ -889,13 +905,17 @@ export class SightReading {
                 hymn: this.hymn,
                 selected: this.stanzas,
                 offset: hymnMelodyOffset(this.hymn, score.from),
-                skipChordTies: isGuitarArrangement(this.arrangement),
+                skipChordTies: this.arrangement === "guitar" || this.arrangement === "guitar-chords",
               }
             : undefined,
-        guitarTab: isGuitarArrangement(this.arrangement),
+        guitarTab: isGuitarArrangement(this.arrangement) &&
+          (this.arrangement !== "guitar-fingerstyle" || this.scoreDisplay !== "notation"),
+        guitarMidiOffset: guitarMidiOffset(this.arrangement),
+        fingerstyleTab: this.arrangement === "guitar-fingerstyle",
+        tabOnly: this.arrangement === "guitar-fingerstyle" && this.scoreDisplay === "tab",
         chordTab: this.arrangement === "guitar-chords",
-        octaveNotation: !isGuitarArrangement(this.arrangement),
-        initialSignatures: true,
+        octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement),
+        initialSignatures: !hasInstrumentEditions(this.hymn),
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
         playback: (audio) => {
@@ -934,7 +954,7 @@ export class SightReading {
       const practice =
         this.mode === "wait" &&
         this.arrangement !== "melody" &&
-        !isGuitarArrangement(this.arrangement) &&
+        (!isGuitarArrangement(this.arrangement) || this.arrangement === "guitar-fingerstyle") &&
         this.hands !== this.viewHands
           ? arrangeHymn(
               this.hymn,
@@ -955,8 +975,8 @@ export class SightReading {
           paper.clientWidth,
           {
             transpose: transposition.semitones,
-            octaveNotation: true,
-            initialSignatures: true,
+            octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement),
+            initialSignatures: !hasInstrumentEditions(this.hymn),
             reattackTies: this.reattackTies,
             playback: () => {},
           },
@@ -1086,6 +1106,7 @@ export class SightReading {
   }
   private optionsSnapshot(): HymnOptionsSnapshot {
     const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
+    const supplied = this.hymn.source === "user-supplied";
     return {
       hymn: this.hymn.id,
       favorites: { ...this.progress.favorites },
@@ -1096,6 +1117,7 @@ export class SightReading {
       countIn: this.countIn,
       loopCountIn: this.loopCountIn,
       arrangement: this.arrangement,
+      scoreDisplay: this.scoreDisplay,
       hands: this.hands,
       viewHands: this.viewHands,
       reattackTies: this.reattackTies,
@@ -1123,13 +1145,13 @@ export class SightReading {
         referenceUrl:
           "referenceUrl" in this.hymn ? this.hymn.referenceUrl! : null,
         credits: this.hymn.credits.join(" "),
-        url: tabMusic
+        url: tabMusic || supplied
           ? this.hymn.sourceUrl!
           : "https://github.com/mzealey/openhymnal/blob/d35811b2d5c9b0bbc5887d60a2936454815416e8/Complete/" +
             encodeURIComponent(this.hymn.folder) +
             "/" +
             encodeURIComponent(this.hymn.file),
-        label: tabMusic ? "Tab music source" : "Open Hymnal source",
+        label: supplied ? "GuitarNick source" : tabMusic ? "Tab music source" : "Open Hymnal source",
       },
     };
   }
@@ -1257,6 +1279,7 @@ export class SightReading {
       this.render();
     } else {
       this.arrangement = next.arrangement;
+      this.scoreDisplay = next.scoreDisplay || "both";
       this.viewHands = next.viewHands!;
       this.hands = next.hands!;
       this.restoreSection();
@@ -1283,6 +1306,7 @@ export class SightReading {
       range,
       this.low,
       this.high,
+      this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
     );
     this.availableKeys = choices
       .filter((choice) => choice.fits)
@@ -1503,9 +1527,13 @@ export class SightReading {
     this.presentation.set({ kind: "" });
     this.presentation.set({
       feedback: complete
-        ? "Lovely. Sing it again, or choose another hymn."
+        ? hasInstrumentEditions(this.hymn)
+          ? "Complete. Play it again, or choose another song."
+          : "Lovely. Sing it again, or choose another hymn."
         : this.paused
           ? "Paused. Continue when you’re ready."
+          : this.arrangement === "guitar-fingerstyle" && this.hands !== "both"
+            ? `Play the highlighted ${this.hands === "left" ? "bass" : "melody"} ${session.current.pitches.length > 1 ? "notes" : "note"}.`
           : this.arrangement !== "melody" && this.hands === "left"
             ? session.current.pitches.length > 1
               ? "Play the highlighted notes with your left hand."

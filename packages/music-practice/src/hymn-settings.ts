@@ -3,9 +3,8 @@ import type { CountInBars } from "./hymn-count-in";
 import { isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
 import {
-  supportsGuitarTab,
+  hasInstrumentEditions,
   hymnArrangements,
-  isGuitarArrangement,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -36,6 +35,7 @@ export type HymnSettings = {
   low?: number | null;
   high?: number | null;
   arrangement: Arrangement;
+  scoreDisplay?: "notation" | "tab" | "both";
   hands?: HymnHands;
   viewHands?: HymnHands;
   reattackTies?: boolean;
@@ -78,7 +78,14 @@ export function mergeHymnSettings(
     : stanzas.includes(base.stanza!)
       ? base.stanza!
       : stanzas[0] || 0;
+  const available = hymnArrangements(hymn).map(a => a.id);
+  const requested = s.arrangement ?? base.arrangement;
+  const arrangement = hasInstrumentEditions(hymn)
+    ? requested === "guitar-fingerstyle" || requested === "guitar" || requested === "guitar-chords"
+      ? "guitar-fingerstyle" : "piano"
+    : undefined;
   return {
+    scoreDisplay: choice(s.scoreDisplay, ["notation", "tab", "both"] as const, base.scoreDisplay || "both"),
     stanzas,
     ...("stanza" in s || "stanza" in base ? { stanza } : {}),
     ...("low" in s || "low" in base
@@ -102,8 +109,10 @@ export function mergeHymnSettings(
               : base.loopCountIn || false,
         }
       : {}),
-    viewHands,
-    hands,
+    viewHands: hasInstrumentEditions(hymn) ? "both" : viewHands,
+    hands: hasInstrumentEditions(hymn)
+      ? choice(s.hands, ["right", "left", "both"] as const, base.hands || "both")
+      : hands,
     ...("reattackTies" in s || "reattackTies" in base
       ? {
           reattackTies:
@@ -124,16 +133,16 @@ export function mergeHymnSettings(
         ? { octave: base.octave }
         : {}),
     hymn: hymns.some((h) => h.id === s.hymn) ? (s.hymn as string) : base.hymn,
-    arrangement: choice(
+    arrangement: arrangement ?? choice(
       s.arrangement,
-      hymnArrangements(hymn).map((a) => a.id),
+      available,
       legacy
         ? s.chords === true
           ? "original"
           : "melody"
-        : isGuitarArrangement(base.arrangement) && !supportsGuitarTab(hymn)
-          ? "melody"
-          : base.arrangement,
+        : available.includes(base.arrangement)
+          ? base.arrangement
+          : available[0],
     ),
     sectionBars: 0,
     section: 0,
@@ -160,6 +169,7 @@ export function hymnSettingsFromQuery(
   if (query.has("ties"))
     overrides.reattackTies = query.get("ties") === "repeat";
   if (query.has("view")) overrides.viewHands = query.get("view");
+  if (query.has("display")) overrides.scoreDisplay = query.get("display");
   if (query.has("hands")) overrides.hands = query.get("hands");
   if (query.has("loopCountIn"))
     overrides.loopCountIn = query.get("loopCountIn") === "1";

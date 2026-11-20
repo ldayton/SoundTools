@@ -3,7 +3,7 @@ import abcjs, { type AudioTracks } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
-  isGuitarArrangement,
+  guitarMidiOffset,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -28,7 +28,7 @@ export function hymnPlaybackScore(options: {
       qpm: 60,
       chordsOff: true,
       midiTranspose:
-        options.transpose - (isGuitarArrangement(options.arrangement) ? 12 : 0),
+        options.transpose + guitarMidiOffset(options.arrangement),
     }), options.hymn.feel === "swing");
   const currentAudio = swingAudio(options.audio, options.hymn.feel === "swing");
   // Schedule the entire song on one audio clock. Restarting the transport at

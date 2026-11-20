@@ -34,6 +34,7 @@ import {
 import {
   hymnArrangements,
   supportsGuitarTab,
+  hasInstrumentEditions,
   isGuitarArrangement,
   type Arrangement,
   type HymnHands,
@@ -65,6 +66,7 @@ export function HymnOptions({
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const editions = hasInstrumentEditions({ id: state.hymn });
   const keys = [
     {
       value: "original",
@@ -192,7 +194,7 @@ export function HymnOptions({
           </Group>
         </Stack>
       </Fieldset>
-      {(state.arrangement === "melody" ||
+      {!editions && (state.arrangement === "melody" ||
         isGuitarArrangement(state.arrangement) ||
         state.viewHands !== "left") && (
         <OptionsSection title="Stanzas">
@@ -226,7 +228,66 @@ export function HymnOptions({
           </Stack>
         </OptionsSection>
       )}
-      <OptionsSection
+      {editions ? (
+        <>
+          <OptionsSection title="Arrangement">
+            <Select
+              id="hymn-arrangement"
+              label="Instrument"
+              aria-label="Arrangement"
+              value={state.arrangement}
+              data-arrangement={state.arrangement}
+              allowDeselect={false}
+              leftSection={<ControlIcon name={state.arrangement === "piano" ? "keyboard" : "guitar"} size={18} />}
+              data={hymnArrangements({id: state.hymn}).map(a => ({value: a.id, label: a.label}))}
+              comboboxProps={{withinPortal:false}}
+              onChange={value => { if (value) change({arrangement: value as Arrangement}); }}
+              renderOption={({option}) => (
+                <Group gap="xs" wrap="nowrap">
+                  <ControlIcon name={option.value === "piano" ? "keyboard" : "guitar"} size={18} />
+                  <span>{option.label}</span>
+                </Group>
+              )}
+            />
+          </OptionsSection>
+          <OptionsSection title="Display">
+            {state.arrangement === "guitar-fingerstyle" ? (
+              <NativeSelect
+                id="hymn-score-display"
+                label="Score"
+                value={state.scoreDisplay}
+                data={[
+                  {value:"notation",label:"Notation"},
+                  {value:"tab",label:"Tablature"},
+                  {value:"both",label:"Notation and tablature"},
+                ]}
+                onChange={event => change({scoreDisplay: event.currentTarget.value as "notation" | "tab" | "both"})}
+              />
+            ) : <Text size="sm">Grand staff</Text>}
+          </OptionsSection>
+          {state.mode === "wait" && (
+            <OptionsSection title="Practice">
+              <NativeSelect
+                id="hymn-hands"
+                label={state.arrangement === "piano" ? "Practise hands" : "Practise voices"}
+                value={state.hands}
+                data={state.arrangement === "piano" ? hands : [
+                  {value:"both",label:"Melody and bass"},
+                  {value:"right",label:"Melody"},
+                  {value:"left",label:"Bass"},
+                ]}
+                onChange={event => change({hands:event.currentTarget.value as HymnHands})}
+              />
+              <Checkbox
+                id="hymn-reattack-ties"
+                label="Re-strike tied notes"
+                checked={state.reattackTies}
+                onChange={event => change({reattackTies:event.currentTarget.checked})}
+              />
+            </OptionsSection>
+          )}
+        </>
+      ) : <OptionsSection
         title={isGuitarArrangement(state.arrangement) ? "Guitar" : "Hands"}
       >
         {supportsGuitarTab({ id: state.hymn }) ? (
@@ -314,10 +375,24 @@ export function HymnOptions({
             }
           />
         )}
-      </OptionsSection>
+      </OptionsSection>}
       <Accordion id="hymn-source" order={3}>
+        {editions && <Accordion.Item value="reading-guide">
+          <Accordion.Control>Reading guide</Accordion.Control>
+          <Accordion.Panel>
+            <Stack gap="xs">
+              <Text size="sm">A, B and C are four-bar phrases. Repeat these twelve bars, then play the Ending.</Text>
+              {state.arrangement === "piano" ? <Text size="sm">Small numbers suggest fingers: 1 is the thumb, 5 is the little finger. Fingerings mark starting patterns and hand changes. The final left-hand chord spans only a fifth.</Text> : <>
+                <Text size="sm">Numbers on tab lines are frets. Small 1–4 beside the notes are fretting fingers: index to little finger. Circled numbers identify strings. Open strings need no fretting finger.</Text>
+                <Text size="sm">Picking fingers: p = thumb, i = index, m = middle, a = ring. Use the thumb for the bass and alternate i and m for the melody.</Text>
+                <Text size="sm">In rhythmic tab, melody stems point up and bass stems point down. Half notes have double stems; whole notes have no stem. A tie means hold the note without plucking again.</Text>
+              </>}
+              <Text size="sm">Swing: play eighth-note pairs long–short. Keep the bass pulse steady while practising the melody.</Text>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>}
         <Accordion.Item value="source">
-          <Accordion.Control>About this hymn</Accordion.Control>
+          <Accordion.Control>{editions ? "About this song" : "About this hymn"}</Accordion.Control>
           <Accordion.Panel>
             <Stack gap="sm">
               {state.source.referenceUrl && (
@@ -556,6 +631,9 @@ export function HymnFingerings({
     getInitialValueInEffect: false,
   });
   if (state.arrangement === "guitar-chords") return null;
+  const editions = hasInstrumentEditions({id:state.hymn});
+  const reviewed = (state.key === "original" || state.key === state.originalKey) &&
+    (state.arrangement === "piano" || state.octave === 0);
   const checkbox = (
     <Checkbox
       id="hymn-fingerings"
@@ -563,7 +641,8 @@ export function HymnFingerings({
       label={mobile ? undefined : "Show fingerings"}
       size={mobile ? "sm" : "xs"}
       checked={state.fingerings}
-      disabled={
+      title={editions && !reviewed ? "Fingerings are provided for the original key and guitar position." : undefined}
+      disabled={editions ? !reviewed :
         state.arrangement !== "melody" &&
         state.arrangement !== "bass" &&
         !isGuitarArrangement(state.arrangement)

@@ -37,6 +37,7 @@ export function hymnRangeKeys(
   range: HymnRange | undefined,
   low: number | null,
   high: number | null,
+  instrumentTranspose?: { min: number; max: number },
 ) {
   const choices = (["original", ...HYMN_KEYS] as HymnKey[]).map((key) => {
     try {
@@ -47,7 +48,11 @@ export function hymnRangeKeys(
         ? Array.from({ length: 21 }, (_, i) => i - 10).filter(
             (octave) =>
               range.low + semitones + octave * 12 >= minimum &&
-              range.high + semitones + octave * 12 <= maximum,
+              range.high + semitones + octave * 12 <= maximum &&
+              (!instrumentTranspose || (
+                semitones + octave * 12 >= instrumentTranspose.min &&
+                semitones + octave * 12 <= instrumentTranspose.max
+              )),
           )
         : low === null && high === null
           ? [0]

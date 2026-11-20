@@ -15,6 +15,7 @@ export type HymnOptionsChange = Partial<
     | "countIn"
     | "loopCountIn"
     | "arrangement"
+    | "scoreDisplay"
     | "viewHands"
     | "hands"
     | "reattackTies"

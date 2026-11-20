@@ -1,3 +1,5 @@
+import { drawBeginnerFingerings, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
+import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
 import { attachChordDiagrams } from "./guitar-chord-diagram";
 import { drawGuitarFingerings } from "./guitar-fingering-view";
 import { hasSwing, swingAudio, swingBeat } from "./hymn-swing";
@@ -66,6 +68,11 @@ export function drawPracticeScore(
     staffScale?: number;
     fingerings?: boolean;
     guitarTab?: boolean;
+    guitarMidiOffset?: number;
+    fingerstyleTab?: boolean;
+    beginnerEdition?: BeginnerInstrument;
+    fromBar?: number;
+    tabOnly?: boolean;
     chordTab?: boolean;
     lyrics?: HymnLyricsSelection;
     transpose?: number;
@@ -87,9 +94,9 @@ export function drawPracticeScore(
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
   const source =
-    (options.guitarTab ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
+    ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
-    abc;
+    (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
   const tune = abcjs.renderAbc(paper, source, {
     add_classes: true,
     tablature: options.chordTab
@@ -117,6 +124,7 @@ export function drawPracticeScore(
           tabs[0] = { params: {}, instance: { render() {} } };
       }
 
+      if (options.fingerstyleTab) preserveFingerstyleTab(tune, transpose);
       if (options.octaveNotation) applyHymnOttava(tune);
       if (options.initialSignatures)
         restoreSignatures = initialHymnSignatures(tune);
@@ -134,10 +142,12 @@ export function drawPracticeScore(
     responsive: "resize",
     oneSvgPerLine: true,
     staffwidth: Math.max(140, width / scale - 24),
+    minPadding: options.beginnerEdition ? 4 : undefined,
     // abcjs wrapping reparses the tune and drops its tablature plugin. Guitar
-    // uses barsperstaff instead; other scores balance systems with wrapping.
+    // uses barsperstaff instead. Edited beginner systems retain their explicit
+    // phrase-aligned breaks; other scores balance systems with wrapping.
     wrap:
-      options.rhythmGrid || options.guitarTab
+      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || options.beginnerEdition
         ? undefined
         : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     timeBasedLayout: options.rhythmGrid
@@ -215,10 +225,10 @@ export function drawPracticeScore(
   const swinging = hasSwing(abc);
   const audio = swingAudio(tune.setUpAudio({
     // Guitar tab uses the conventional written octave, sounding one octave lower.
-    midiTranspose: transpose - (options.guitarTab ? 12 : 0),
+    midiTranspose: transpose + (options.guitarMidiOffset ?? (options.guitarTab ? -12 : 0)),
     ...(options.playback ? { qpm: 60, chordsOff: true } : {}),
   }), swinging);
-  options.playback?.(audio);
+  if (!(options.fingerstyleTab && options.guitarTab)) options.playback?.(audio);
   // Playback uses quarter-note BPM, including compound meters.
   tune.setTiming(options.playback ? (60 * 0.25) / tune.getBeatLength() : 60, 0);
   paper
@@ -232,6 +242,13 @@ export function drawPracticeScore(
         wrapper.remove();
     }
   });
+  if (options.beginnerEdition === "guitar") normalizeGuitarRests(tune, options.fromBar || 0);
+  if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper);
+  if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0);
+  if (options.tabOnly && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose);
+  if (options.fingerings && options.beginnerEdition)
+    drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly);
+  if (options.tabOnly) showOnlyTab(paper);
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
   paper.querySelectorAll("svg").forEach((svg) => {
@@ -277,21 +294,25 @@ export function drawPracticeScore(
           `${box.x} ${box.y} ${box.width} ${bottom - box.y}`,
         );
     }
-    if (options.guitarTab) {
+    if (options.guitarTab || options.fingerstyleTab || options.beginnerEdition) {
       // abcjs can place chord labels outside a per-system SVG's viewBox.
       const screen = svg.getScreenCTM();
       if (screen) {
         const inverse = screen.inverse(),
           box = svg.viewBox.baseVal;
-        let top = box.y,
-          bottom = box.y + box.height;
+        let top = options.beginnerEdition ? Infinity : box.y,
+          bottom = options.beginnerEdition ? -Infinity : box.y + box.height;
         for (const ink of svg.querySelectorAll<SVGGraphicsElement>(
-          ".abcjs-chord,.abcjs-tabNumber",
+          options.tabOnly
+            ? ".abcjs-staff,.fingerstyle-tab-clef,.fingerstyle-tab-bars,.tab-rhythm-continuation,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-chord,.abcjs-tabNumber,.tab-rhythm,.tab-rhythm-stem,.tab-rhythm-rest,.tab-rhythm-flag,.tab-rhythm-tie,.beginner-fingering,.beginner-picking,.beginner-string"
+            : ".abcjs-staff,.abcjs-staff-extra,.abcjs-bar,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-clef,.abcjs-chord,.abcjs-tabNumber,.abcjs-note,.abcjs-beam,.abcjs-slur,.beginner-fingering,.beginner-picking,.beginner-string",
         )) {
+          if (getComputedStyle(ink).visibility === "hidden") continue;
           const matrix = ink.getScreenCTM();
           if (!matrix) continue;
           const bounds = ink.getBBox(),
             transform = inverse.multiply(matrix);
+          if (!bounds.width && !bounds.height) continue;
           top = Math.min(
             top,
             new DOMPoint(bounds.x, bounds.y).matrixTransform(transform).y - 12,
@@ -318,7 +339,7 @@ export function drawPracticeScore(
     svg.style.maxWidth = "100%";
   });
   if (options.guitarTab) attachChordDiagrams(paper);
-  if (options.fingerings) {
+  if (options.fingerings && !options.beginnerEdition) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
     else drawHymnFingerings(tune);
   }
@@ -341,6 +362,33 @@ export function drawPracticeScore(
             const elements = absolute?.cloned?.elemset;
             if (elements?.length) tabElements.set(item.startChar, elements);
           }
+  if (options.fingerstyleTab && options.guitarTab) {
+    // abcjs's multi-voice tab layout mutates its timing data at system breaks.
+    // Build the musical timeline from the notation edition, then attach its
+    // events to the visible notation/tab glyphs by source position.
+    const elements = new Map<number, HTMLElement[]>();
+    for (const line of tune.lines)
+      for (const staff of line.staff || [])
+        for (const voice of staff.voices || [])
+          for (const note of voice) {
+            if (note.el_type !== "note" || note.startChar === undefined) continue;
+            const absolute = (note as typeof note & { abselem?: AbsoluteElement }).abselem;
+            elements.set(note.startChar, [
+              ...((options.tabOnly ? [] : absolute?.elemset || []) as unknown as HTMLElement[]),
+              ...(tabElements.get(note.startChar) || []),
+            ]);
+          }
+    const musical = drawPracticeScore(document.createElement("div"), abc, width, {
+      ...options,
+      lyrics: undefined, // Already applied above, retaining identical source positions.
+      guitarTab: false,
+      tabOnly: false,
+    });
+    return musical.map(event => ({
+      ...event,
+      elements: (event.startCharArray || [event.startChar!]).map(start => elements.get(start) || []),
+    }));
+  }
   const spellings = scoreSpellings(tune);
   const continuations = options.reattackTies
     ? tiedContinuations(tune)

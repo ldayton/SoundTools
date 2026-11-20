@@ -1,9 +1,12 @@
+import { beginnerLandmarks } from "./beginner-score";
 import abcjs, { type VoiceItem } from "abcjs";
 import { spellPitch, chromaticPitch } from "./guitar";
 import { KEYS } from "./model";
 import hymns from "./hymns.json";
+export const hasInstrumentEditions = (hymn: { id: string }) =>
+  hymn.id === "the-1st-fingerstyle-blues";
 export const supportsGuitarTab = (hymn: { id: string }) =>
-  hymn.id === "ill-fly-away";
+  hymn.id === "ill-fly-away" || hasInstrumentEditions(hymn);
 export const ARRANGEMENTS = [
   { id: "melody", label: "1 · Melody", help: "Read the melody on its own." },
   {
@@ -29,10 +32,17 @@ export const ARRANGEMENTS = [
 ] as const;
 export type HymnHands = "right" | "left" | "both";
 export type Arrangement =
-  (typeof ARRANGEMENTS)[number]["id"] | "guitar" | "guitar-chords";
+  (typeof ARRANGEMENTS)[number]["id"] | "guitar" | "guitar-chords" | "piano" | "guitar-fingerstyle";
 export const isGuitarArrangement = (value: Arrangement) =>
-  value === "guitar" || value === "guitar-chords";
+  value === "guitar" || value === "guitar-chords" || value === "guitar-fingerstyle";
+/** Older tab editions store written pitches; fingerstyle uses an octave clef. */
+export const guitarMidiOffset = (value: Arrangement) =>
+  value === "guitar" || value === "guitar-chords" ? -12 : 0;
 export function hymnArrangements(hymn: { id: string }) {
+  if (hasInstrumentEditions(hymn)) return [
+    { id: "piano" as const, label: "Piano", help: "Melody and bass arranged for two hands on a grand staff." },
+    { id: "guitar-fingerstyle" as const, label: "Guitar", help: "Original fingerstyle guitar arrangement." },
+  ];
   return supportsGuitarTab(hymn)
     ? [
         ...ARRANGEMENTS,
@@ -443,7 +453,41 @@ export function arrangeHymn(
   hands: HymnHands = "both",
   endingBar?: number,
   guitarTranspose = 0,
-) {
+): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
+  if (hasInstrumentEditions(hymn) && (arrangement === "piano" || arrangement === "guitar-fingerstyle")) {
+    const edition = arrangement === "piano" ? {
+      ...hymn,
+      id: hymn.id + ":piano",
+      // Put the turnaround chord under the left hand. The final E7 omits an
+      // inner doubled E so the left hand needs only a fifth, not an octave.
+      harmony: hymn.harmony
+        .replace("%%staves S1 | S2", "%%score {S1 | S2}")
+        .replace("zE G2 z2 [E,^G,^C]2", "zE G2 z4")
+        .replace("_B,,2 z2", "_B,,2 [E,^G,^C]2")
+        .replace("[E,^G,DE]8", "[^G,DE]8"),
+    } : hymn;
+    const whole = sectionBars === 0 && (!endingBar || endingBar >= hymnBarCount(hymn));
+    let score = arrangeHymn(edition, "original", sectionBars, section, whole ? "both" : hands, endingBar, guitarTranspose);
+    if (whole && hands !== "both") {
+      const names = [...score.abc.matchAll(/^V:\s*(\S+)/gm)].map(m => m[1]);
+      const selectedVoice = names[hands === "right" ? 0 : 1];
+      const abc = score.abc.split("\n").filter(line => {
+        const voice = line.match(/^(?:V:\s*|\[V:)([^\s\]]+)/)?.[1];
+        return !voice || voice === selectedVoice;
+      }).map(line => /^%%(?:staves|score)/.test(line) ? `%%score ${selectedVoice}` : line).join("\n");
+      score = { ...score, abc };
+    }
+    if (arrangement === "piano") return { ...score, abc: beginnerLandmarks(score.abc, score.from) };
+    // Guitar reads one octave above sounding pitch, with independently stemmed voices.
+    let abc = abcjs.strTranspose(score.abc, abcjs.parseOnly(score.abc), 12);
+    abc = abc.replace(/^%%(?:staves|score).*$/m, line => {
+      const voices = line.match(/(?:S\d|v\d)/g) || [];
+      return "%%score (" + voices.join(" ") + ")";
+    }).replace(/clef=(?:treble|bass)\b/g, "clef=treble-8");
+    let voiceIndex = 0;
+    abc = abc.replace(/^V:.*$/gm, line => line + ` stems=${hands === "left" || voiceIndex++ > 0 ? "down" : "up"}`);
+    return { ...score, abc: beginnerLandmarks(abc, score.from) };
+  }
   if (
     hands === "right" &&
     arrangement !== "original" &&

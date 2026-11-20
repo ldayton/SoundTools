@@ -43,3 +43,32 @@ rights holders. The two voices retain sounding guitar pitches, the twelve-bar
 repeat, bass turnaround and final E7 chord. Conventional eighth notes and a single Swing indication retain the source’s
 notation. Playback and score following apply the 2:1 swing timing separately;
 no lyrics are supplied.
+
+For this song, the arrangement menu contains only Piano and Guitar. Piano
+retains the melody in the right hand and bass in the left on a grand staff.
+Guitar retains both fingerstyle voices on one octave-transposing treble staff,
+with the supplied string/fret choices. Notation, tablature, and combined views
+are independent display settings; practising either hand or guitar voice does
+not remove the other voice from the displayed score. Legacy arrangement links
+and saved choices are mapped to the corresponding instrument edition.
+
+The beginner editions add printed bar numbers and boxed A/B/C four-bar phrase
+landmarks, followed by Ending. Fingerings are manually selected for the source
+key/position: piano hand patterns and changes; guitar fretting fingers, selected
+string numbers and the opening i–m melody / p bass pattern. They can be toggled
+without changing the notes. Tab-only view includes independent rhythmic voices,
+rests, ties and double-stemmed half notes. The Reading guide explains these
+standard conventions. All annotations are separate from playback and grading.
+
+The piano ending omits the guitar chord’s inner doubled E, keeping the final
+left-hand E–B within a fifth while retaining the E7 harmony and melodic E.
+
+The final engraving pass uses the same type size for attacked and tied fret
+numbers, with explicit ties in rhythmic tab. Single-note guitar fingerings sit
+opposite the voice stems; chord fingerings remain in aligned columns. Systems
+are trimmed to their visible musical content, and the final staff uses the
+same right margin as the preceding systems. Layout checks cover 320, 390,
+768 and 1440 pixels, including annotation clipping and note/accidental collisions.
+Piano sounding overlaps are checked for hand spans of at most a sixth; the
+source guitar voicings are checked for distinct strings within a three-fret
+position. These checks do not change the supplied notes or playback timing.

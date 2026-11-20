@@ -24,6 +24,7 @@ export type HymnState = {
   zoomByLayout?: Partial<Record<"mobile" | "desktop", number>>;
   hymn: string;
   arrangement: Arrangement;
+  scoreDisplay?: HymnSettings["scoreDisplay"];
   hands?: HymnHands;
   viewHands?: HymnHands;
   reattackTies?: boolean;

@@ -68,6 +68,7 @@ import {
 import {
   arrangeHymn,
   hymnArrangements,
+  isGuitarArrangement,
   hymnMelodyOffset,
   type Arrangement,
   type HymnHands,
@@ -845,6 +846,11 @@ export class SightReading {
         return;
       }
       this.setControls({ disabled: false });
+      const transposition = hymnTransposition(
+        this.hymn.key,
+        this.key,
+        this.octave,
+      );
       const score = arrangeHymn(
         this.hymn,
         this.arrangement,
@@ -852,11 +858,7 @@ export class SightReading {
         this.section,
         this.viewHands,
         this.endingBar,
-      );
-      const transposition = hymnTransposition(
-        this.hymn.key,
-        this.key,
-        this.octave,
+        transposition.semitones,
       );
       this.section = score.section;
       this.sections = score.sections;
@@ -866,18 +868,20 @@ export class SightReading {
         fingerings:
           this.showFingerings && ["melody", "bass"].includes(this.arrangement),
         lyrics:
-          this.arrangement === "melody" ||
-          this.arrangement === "guitar" ||
-          this.viewHands !== "left"
-            ? {
-                hymn: this.hymn,
-                selected: this.stanzas,
-                offset: hymnMelodyOffset(this.hymn, score.from),
-                skipChordTies: this.arrangement === "guitar",
-              }
-            : undefined,
-        guitarTab: this.arrangement === "guitar",
-        octaveNotation: this.arrangement !== "guitar",
+          this.arrangement === "guitar-chords"
+            ? undefined
+            : this.arrangement === "melody" ||
+                isGuitarArrangement(this.arrangement) ||
+                this.viewHands !== "left"
+              ? {
+                  hymn: this.hymn,
+                  selected: this.stanzas,
+                  offset: hymnMelodyOffset(this.hymn, score.from),
+                  skipChordTies: this.arrangement === "guitar",
+                }
+              : undefined,
+        guitarTab: isGuitarArrangement(this.arrangement),
+        octaveNotation: !isGuitarArrangement(this.arrangement),
         initialSignatures: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
@@ -917,7 +921,7 @@ export class SightReading {
       const practice =
         this.mode === "wait" &&
         this.arrangement !== "melody" &&
-        this.arrangement !== "guitar" &&
+        !isGuitarArrangement(this.arrangement) &&
         this.hands !== this.viewHands
           ? arrangeHymn(
               this.hymn,
@@ -1436,7 +1440,7 @@ export class SightReading {
     });
     this.publishOptions();
     this.pianoPanel.setAvailable(
-      !this.mobileLayout.matches && this.arrangement !== "guitar",
+      !this.mobileLayout.matches && !isGuitarArrangement(this.arrangement),
     );
     if (this.mode === "playback") {
       this.playbackView = "";

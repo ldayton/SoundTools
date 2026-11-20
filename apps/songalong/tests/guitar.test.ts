@@ -5,6 +5,7 @@ import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
   arrangeHymn,
   hymnArrangements,
+  guitarChordPitches,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import { hymnLyricsAbc } from "../../../packages/music-practice/src/hymn-lyrics";
 import { hymnPlaybackScore } from "../../../packages/music-practice/src/hymn-playback-score";
@@ -40,7 +41,9 @@ test("guitar arrangement retains melody attacks, duration, and words at held-not
     parse(abc)
       .tune.lines.flatMap((l) => l.staff?.[0]?.voices?.[0] || [])
       .flatMap((n) =>
-        n.el_type === "note" ? n.lyric?.map((x: { syllable: string }) => x.syllable) || [] : [],
+        n.el_type === "note"
+          ? n.lyric?.map((x: { syllable: string }) => x.syllable) || []
+          : [],
       )
       .filter((x) => x.trim());
   assert.deepEqual(
@@ -94,4 +97,41 @@ test("guitar is offered only for this song and unsupported saved settings fall b
     mergeHymnSettings(saved, { hymn: other.id }).arrangement,
     "melody",
   );
+});
+
+test("chord tab uses playable D, G and A7 voicings and transposes its audio once", () => {
+  assert.deepEqual(guitarChordPitches(2), [50, 57, 62, 66]);
+  assert.deepEqual(guitarChordPitches(7), [43, 47, 50, 55, 59, 67]);
+  assert.deepEqual(guitarChordPitches(9, true), [45, 52, 55, 61, 64]);
+  for (const key of HYMN_KEYS) {
+    const transpose = hymnTransposition(hymn.key, key).semitones;
+    const score = arrangeHymn(
+      hymn,
+      "guitar-chords",
+      0,
+      0,
+      "both",
+      undefined,
+      transpose,
+    );
+    const audio = parse(score.abc).audio;
+    const prepared = hymnPlaybackScore({
+      hymn,
+      arrangement: "guitar-chords",
+      sectionBars: 0,
+      section: 0,
+      hands: "both",
+      totalBars: score.totalBars,
+      sections: score.sections,
+      abc: score.abc,
+      audio,
+      transpose,
+      stanzas: [1],
+    });
+    const first = prepared.audio.tracks
+      .flat()
+      .flatMap((n) => (n.cmd === "note" && n.start === 0 ? [n.pitch] : []));
+    assert.deepEqual(first, guitarChordPitches(transpose));
+    assert.equal(prepared.audio.totalDuration, 16);
+  }
 });

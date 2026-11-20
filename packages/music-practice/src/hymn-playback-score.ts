@@ -2,6 +2,7 @@ import abcjs, { type AudioTracks } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
+  isGuitarArrangement,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -26,7 +27,7 @@ export function hymnPlaybackScore(options: {
       qpm: 60,
       chordsOff: true,
       midiTranspose:
-        options.transpose - (options.arrangement === "guitar" ? 12 : 0),
+        options.transpose - (isGuitarArrangement(options.arrangement) ? 12 : 0),
     });
   // Schedule the entire song on one audio clock. Restarting the transport at
   // stanza boundaries would add preparation/lead-in gaps and another count-in.
@@ -41,6 +42,7 @@ export function hymnPlaybackScore(options: {
         0,
         options.hands,
         number ? hymnEndingBar(options.hymn, [number]) : undefined,
+        options.transpose,
       ).abc;
       const audio = readAudio(abc);
       const start = offset;
@@ -82,6 +84,7 @@ export function hymnPlaybackScore(options: {
       section,
       options.hands,
       options.endingBar,
+      options.transpose,
     ).abc;
   let elapsed = 0;
   const starts = Array.from({ length: options.sections }, (_, section) => {

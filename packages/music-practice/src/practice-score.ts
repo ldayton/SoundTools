@@ -205,6 +205,39 @@ export function drawPracticeScore(
           `${box.x} ${box.y} ${box.width} ${bottom - box.y}`,
         );
     }
+    if (options.guitarTab) {
+      // abcjs can place chord labels outside a per-system SVG's viewBox.
+      const screen = svg.getScreenCTM();
+      if (screen) {
+        const inverse = screen.inverse(),
+          box = svg.viewBox.baseVal;
+        let top = box.y,
+          bottom = box.y + box.height;
+        for (const ink of svg.querySelectorAll<SVGGraphicsElement>(
+          ".abcjs-chord,.abcjs-tabNumber",
+        )) {
+          const matrix = ink.getScreenCTM();
+          if (!matrix) continue;
+          const bounds = ink.getBBox(),
+            transform = inverse.multiply(matrix);
+          top = Math.min(
+            top,
+            new DOMPoint(bounds.x, bounds.y).matrixTransform(transform).y - 12,
+          );
+          bottom = Math.max(
+            bottom,
+            new DOMPoint(
+              bounds.x + bounds.width,
+              bounds.y + bounds.height,
+            ).matrixTransform(transform).y + 12,
+          );
+        }
+        svg.setAttribute(
+          "viewBox",
+          `${box.x} ${top} ${box.width} ${bottom - top}`,
+        );
+      }
+    }
     const box = svg.viewBox.baseVal;
     const fittedScale = Math.min(scale, width / box.width);
     svg.style.display = "block";

@@ -32,6 +32,7 @@ import {
 } from "@mantine/core";
 import {
   hymnArrangements,
+  isGuitarArrangement,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -190,7 +191,7 @@ export function HymnOptions({
         </Stack>
       </Fieldset>
       {(state.arrangement === "melody" ||
-        state.arrangement === "guitar" ||
+        isGuitarArrangement(state.arrangement) ||
         state.viewHands !== "left") && (
         <OptionsSection title="Stanzas">
           <Stack id="hymn-stanzas" gap="xs" role="group" aria-label="Stanzas">
@@ -224,7 +225,7 @@ export function HymnOptions({
         </OptionsSection>
       )}
       <OptionsSection
-        title={state.arrangement === "guitar" ? "Guitar" : "Hands"}
+        title={isGuitarArrangement(state.arrangement) ? "Guitar" : "Hands"}
       >
         <NativeSelect
           id="hymn-arrangement"
@@ -238,37 +239,38 @@ export function HymnOptions({
             change({ arrangement: event.currentTarget.value as Arrangement })
           }
         />
-        {state.arrangement !== "melody" && state.arrangement !== "guitar" && (
-          <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">
-            <NativeSelect
-              id="hymn-view"
-              className="hymn-view-field"
-              label="Show"
-              data={hands}
-              value={state.viewHands}
-              onChange={(event) =>
-                change({ viewHands: event.currentTarget.value as HymnHands })
-              }
-            />
-            {state.mode === "wait" && (
+        {state.arrangement !== "melody" &&
+          !isGuitarArrangement(state.arrangement) && (
+            <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">
               <NativeSelect
-                id="hymn-hands"
-                className="hymn-hands-field"
-                label="Practise hands"
-                value={state.hands}
-                data={hands.map((hand) => ({
-                  ...hand,
-                  disabled:
-                    state.viewHands !== "both" &&
-                    state.viewHands !== hand.value,
-                }))}
+                id="hymn-view"
+                className="hymn-view-field"
+                label="Show"
+                data={hands}
+                value={state.viewHands}
                 onChange={(event) =>
-                  change({ hands: event.currentTarget.value as HymnHands })
+                  change({ viewHands: event.currentTarget.value as HymnHands })
                 }
               />
-            )}
-          </SimpleGrid>
-        )}
+              {state.mode === "wait" && (
+                <NativeSelect
+                  id="hymn-hands"
+                  className="hymn-hands-field"
+                  label="Practise hands"
+                  value={state.hands}
+                  data={hands.map((hand) => ({
+                    ...hand,
+                    disabled:
+                      state.viewHands !== "both" &&
+                      state.viewHands !== hand.value,
+                  }))}
+                  onChange={(event) =>
+                    change({ hands: event.currentTarget.value as HymnHands })
+                  }
+                />
+              )}
+            </SimpleGrid>
+          )}
         {state.mode === "wait" && (
           <Checkbox
             id="hymn-reattack-ties"
@@ -486,7 +488,7 @@ export function HymnFingerings({
   const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
-  if (state.arrangement === "guitar") return null;
+  if (isGuitarArrangement(state.arrangement)) return null;
   const checkbox = (
     <Checkbox
       id="hymn-fingerings"

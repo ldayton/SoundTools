@@ -28,7 +28,10 @@ export const ARRANGEMENTS = [
   },
 ] as const;
 export type HymnHands = "right" | "left" | "both";
-export type Arrangement = (typeof ARRANGEMENTS)[number]["id"] | "guitar";
+export type Arrangement =
+  (typeof ARRANGEMENTS)[number]["id"] | "guitar" | "guitar-chords";
+export const isGuitarArrangement = (value: Arrangement) =>
+  value === "guitar" || value === "guitar-chords";
 export function hymnArrangements(hymn: { id: string }) {
   return supportsGuitarTab(hymn)
     ? [
@@ -37,6 +40,11 @@ export function hymnArrangements(hymn: { id: string }) {
           id: "guitar" as const,
           label: "Guitar · Melody tab",
           help: "Guitar melody with chord symbols.",
+        },
+        {
+          id: "guitar-chords" as const,
+          label: "Guitar · Chord tab",
+          help: "Guitar chords shown as stacked fret numbers.",
         },
       ]
     : [...ARRANGEMENTS];
@@ -166,6 +174,72 @@ const flyGuitarChanges: [number, string][][] = [
   ],
   [[0, "C"]],
 ];
+// Low E to high E; null means omit that string. Prefer familiar open shapes.
+const majorShapes = [
+  [null, 3, 2, 0, 1, 0],
+  [null, 4, 6, 6, 6, 4],
+  [null, null, 0, 2, 3, 2],
+  [null, 6, 8, 8, 8, 6],
+  [0, 2, 2, 1, 0, 0],
+  [1, 3, 3, 2, 1, 1],
+  [2, 4, 4, 3, 2, 2],
+  [3, 2, 0, 0, 0, 3],
+  [4, 6, 6, 5, 4, 4],
+  [null, 0, 2, 2, 2, 0],
+  [null, 1, 3, 3, 3, 1],
+  [null, 2, 4, 4, 4, 2],
+];
+const seventhShapes = [
+  [null, 3, 2, 3, 1, 0],
+  [null, 4, 6, 4, 6, 4],
+  [null, null, 0, 2, 1, 2],
+  [null, 6, 8, 6, 8, 6],
+  [0, 2, 0, 1, 0, 0],
+  [1, 3, 1, 2, 1, 1],
+  [2, 4, 2, 3, 2, 2],
+  [3, 2, 0, 0, 0, 1],
+  [4, 6, 4, 5, 4, 4],
+  [null, 0, 2, 0, 2, 0],
+  [null, 1, 3, 1, 3, 1],
+  [null, 2, 1, 2, 0, 2],
+];
+export function guitarChordPitches(root: number, seventh = false) {
+  const shape = (seventh ? seventhShapes : majorShapes)[
+    ((root % 12) + 12) % 12
+  ];
+  return shape.flatMap((fret, string) =>
+    fret === null ? [] : [[40, 45, 50, 55, 59, 64][string] + fret],
+  );
+}
+function guitarChords(
+  from: number,
+  to: number,
+  transpose: number,
+  key: string,
+) {
+  return flyGuitarChanges
+    .slice(from, to)
+    .map((changes, bar) => {
+      const accidentals = new Map<string, number>();
+      const music = changes
+        .map(([at, chord], index) => {
+          const root = ({ C: 0, F: 5, G7: 7 } as Record<string, number>)[chord];
+          const pitches = guitarChordPitches(
+            root + transpose,
+            chord.endsWith("7"),
+          );
+          // Encode back in the source key so the shared renderer transposes once.
+          const notes = pitches
+            .map((pitch) => token(pitch + 12 - transpose, key, accidentals))
+            .join("");
+          const duration = (changes[index + 1]?.[0] ?? 64) - at;
+          return `"${chord}"[${notes}]${duration}`;
+        })
+        .join(" ");
+      return music + (bar === to - from - 1 ? " |]" : " |");
+    })
+    .join(" ");
+}
 function guitarMelody(bars: Bar[], from: number): Bar[] {
   return bars.map((bar, index) => {
     const changes = flyGuitarChanges[from + index];
@@ -367,11 +441,12 @@ export function arrangeHymn(
   section = 0,
   hands: HymnHands = "both",
   endingBar?: number,
+  guitarTranspose = 0,
 ) {
   if (
     hands === "right" &&
     arrangement !== "original" &&
-    arrangement !== "guitar"
+    !isGuitarArrangement(arrangement)
   )
     return arrangeHymn(hymn, "melody", sectionBars, section, "both", endingBar);
   const source = voices(hymn);
@@ -382,14 +457,20 @@ export function arrangeHymn(
   const from = selected * size,
     to = Math.min(count, from + size);
   let melody = source[0].bars.slice(from, to);
-  if (arrangement === "guitar") {
+  if (isGuitarArrangement(arrangement)) {
     if (!supportsGuitarTab(hymn))
       throw Error("Guitar tab is not available for this song.");
-    melody = guitarMelody(melody, from);
+    if (arrangement === "guitar") melody = guitarMelody(melody, from);
   }
   const header = `X:1\nT:${hymn.title}\nM:${hymn.meter}\nL:1/64\n`;
   let abc: string;
-  if (arrangement === "original") {
+  if (arrangement === "guitar-chords") {
+    abc =
+      header +
+      `K:${hymn.key}\n` +
+      guitarChords(from, to, guitarTranspose, hymn.key) +
+      "\n";
+  } else if (arrangement === "original") {
     // Keep the original whole-score edition intact, including its repeat signs.
     if (
       sectionBars === 0 &&

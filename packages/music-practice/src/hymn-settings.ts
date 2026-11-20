@@ -5,6 +5,7 @@ import hymns from "./hymns.json";
 import {
   supportsGuitarTab,
   hymnArrangements,
+  isGuitarArrangement,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -130,7 +131,7 @@ export function mergeHymnSettings(
         ? s.chords === true
           ? "original"
           : "melody"
-        : base.arrangement === "guitar" && !supportsGuitarTab(hymn)
+        : isGuitarArrangement(base.arrangement) && !supportsGuitarTab(hymn)
           ? "melody"
           : base.arrangement,
     ),

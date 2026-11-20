@@ -1,93 +1,168 @@
-import { chromium, webkit, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
+import {
+  launchBrowser,
+  newPage,
+  captureFailure,
+  closeBrowser,
+} from "../../../scripts/ci/browser-harness.cjs";
+import { macBookAir13, iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
-import { openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
-const server = await preview("songalong", 4593);
-const browser = await (
-  process.env.TEST_BROWSER === "webkit" ? webkit : chromium
-).launch();
+const server = await preview(
+  "songalong",
+  Number(process.env.TEST_PORT || 4696),
+);
+const browser = await launchBrowser();
 try {
-  const page = await browser.newPage({
-    viewport: { width: 1440, height: 1000 },
-    serviceWorkers: "block",
-    hasTouch: true,
-  });
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(
-    server.base +
-      "/piano/hymns/ill-fly-away?arrangement=guitar-chords&key=D&mode=playback",
-  );
-  const d = page
-    .getByRole("button", { name: "Show D chord diagram", exact: true })
-    .first();
-  await d.click();
-  const modal = page.getByRole("dialog", { name: "D chord", exact: true });
-  await expect(modal).toBeVisible();
-  await expect(
-    modal.getByRole("img", { name: /guitar chord/ }),
-  ).toHaveAttribute(
-    "aria-label",
-    /low E: muted; A: muted; D: open; G: fret 2; B: fret 3; high E: fret 2/,
-  );
-  await expect(modal).toHaveCSS("opacity", "1");
-  await page.screenshot({
-    path: "/tmp/songalong-chord-diagram.png",
-    fullPage: true,
-  });
-  await page.keyboard.press("Escape");
-  await expect(modal).toBeHidden();
-  await expect(d).toBeFocused();
-  const a7 = page
-    .getByRole("button", { name: "Show A7 chord diagram", exact: true })
-    .first();
-  await a7.focus();
-  await page.keyboard.press("Enter");
-  await expect(
-    page
-      .getByRole("dialog", { name: "A7 chord", exact: true })
-      .getByRole("img", { name: /guitar chord/ }),
-  ).toHaveAttribute(
-    "aria-label",
-    /A: open; D: fret 2; G: open; B: fret 2; high E: open/,
-  );
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toBeHidden();
-  await openPracticeOptions(page);
-  await page.locator("#hymn-key").click();
-  await page.getByRole("option", { name: /^G major/ }).click();
-  await page
-    .getByRole("button", { name: "Show C chord diagram", exact: true })
-    .first()
-    .click();
-  await expect(
-    page
-      .getByRole("dialog", { name: "C chord", exact: true })
-      .getByRole("img", { name: /guitar chord/ }),
-  ).toHaveAttribute(
-    "aria-label",
-    /A: fret 3; D: fret 2; G: open; B: fret 1; high E: open/,
-  );
-  await page.keyboard.press("Escape");
-  await page.setViewportSize({ width: 393, height: 852 });
-  await page.goto(
-    server.base +
-      "/piano/hymns/ill-fly-away?arrangement=guitar&key=D&mode=playback",
-  );
-  await page
-    .getByRole("button", { name: "Show D chord diagram", exact: true })
-    .first()
-    .tap();
-  await expect(modal).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  expect(errors).toEqual([]);
-  console.log(
-    "PASS clickable chord diagrams: exact D/G/A7 shapes, transposition, keyboard, focus return and mobile",
-  );
+  await mkdir("work/chord-popup", { recursive: true });
+  for (const [deviceName, device] of [
+    ["macbook-air", macBookAir13],
+    ["iphone-14-pro", iphone14Pro],
+  ] as const) {
+    const page = await newPage(browser, { ...device, reducedMotion: "reduce" });
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    async function visit(id: string, query: string) {
+      await page.goto(
+        `${server.base}/piano/hymns/${id}?mode=playback&low=none&high=none&octave=0&${query}`,
+      );
+      await expect(page.locator(".sequence-title")).toBeVisible();
+    }
+    async function shape(expected: (number | null)[]) {
+      await expect
+        .poll(() =>
+          page
+            .getByRole("dialog")
+            .locator("[data-string]")
+            .evaluateAll((nodes) =>
+              nodes.map((n) =>
+                n.getAttribute("data-fret") === "not-played"
+                  ? null
+                  : Number(n.getAttribute("data-fret")),
+              ),
+            ),
+        )
+        .toEqual(expected);
+    }
+    async function open(chord: string, index = 0) {
+      const trigger = page
+        .getByRole("button", {
+          name: `Show ${chord} chord diagram`,
+          exact: true,
+        })
+        .nth(index);
+      if (device.isMobile) await trigger.tap();
+      else await trigger.click();
+      await expect(
+        page.getByRole("dialog", { name: `${chord} chord`, exact: true }),
+      ).toBeVisible();
+      return trigger;
+    }
+    async function close() {
+      await page
+        .getByRole("button", { name: "Close chord diagram", exact: true })
+        .click();
+      await expect(page.getByRole("dialog")).toBeHidden();
+    }
+    // The chord-tab edition uses its actually engraved chord voicing.
+    await visit("ill-fly-away", "arrangement=guitar-chords&key=D");
+    const d = await open("D");
+    await shape([null, null, 0, 2, 3, 2]);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(d).toBeFocused();
+    const a7 = page
+      .getByRole("button", { name: "Show A7 chord diagram", exact: true })
+      .first();
+    await a7.focus();
+    await page.keyboard.press("Enter");
+    await shape([null, 0, 2, 0, 2, 0]);
+    await close();
+    await visit("ill-fly-away", "arrangement=guitar-chords&key=G");
+    await open("C");
+    await shape([null, 3, 2, 0, 1, 0]);
+    await close();
+    // A melody-only tab must not acquire five extra strings from a stock chord.
+    await visit("ill-fly-away", "arrangement=guitar&key=D");
+    await open("D");
+    expect(
+      await page
+        .getByRole("dialog")
+        .locator('[data-string]:not([data-fret="not-played"])')
+        .count(),
+    ).toBe(1);
+    await close();
+    for (const display of ["both", "tab", "notation", "chords"]) {
+      await visit(
+        "amazing-grace",
+        `arrangement=guitar-edition&key=original&display=${display}`,
+      );
+      await open("G");
+      await shape([3, 2, 0, null, null, null]);
+      await close();
+      // G bass and B remain held while the melody moves G–B–G.
+      const second = await open("G", 1);
+      await shape([3, 2, null, 0, null, null]);
+      const next = page.getByRole("button", {
+        name: "Next fingering",
+        exact: true,
+      });
+      await next.click();
+      await shape([3, 2, null, null, 0, null]);
+      await next.click();
+      await shape([3, 2, null, 0, null, null]);
+      await expect(next).toBeDisabled();
+      await page
+        .getByRole("button", { name: "Previous fingering", exact: true })
+        .click();
+      await shape([3, 2, null, null, 0, null]);
+      if (display === "both")
+        await page.screenshot({
+          path: `work/chord-popup/grace-${deviceName}-${process.env.TEST_BROWSER || "chromium"}.png`,
+        });
+      await close();
+      await expect(second).toBeFocused();
+      // Minor chord names are supported without relying on a chord-name parser.
+      await open("Em");
+      await shape([0, 2, null, 0, null, null]);
+      await close();
+      await visit(
+        "in-christ-alone",
+        `arrangement=guitar-edition&key=original&display=${display}`,
+      );
+      await open("F");
+      await shape([null, null, 3, 0, null, null]);
+      await expect(page.getByRole("dialog")).toContainText(
+        "Capo 2; frets are relative to the capo.",
+      );
+      await page
+        .getByRole("button", { name: "Next fingering", exact: true })
+        .click();
+      await shape([null, null, 3, 2, null, null]);
+      await page
+        .getByRole("button", { name: "Next fingering", exact: true })
+        .click();
+      await shape([null, null, 3, null, 1, null]);
+      await close();
+      await open("Am");
+      await shape([null, 0, 2, null, null, 0]);
+      await close();
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(errors).toEqual([]);
+    console.log(
+      `PASS ${deviceName}: actual chord/tab positions, held bass and melody steps, capo, minor chords, four display modes, transposition, keyboard and focus`,
+    );
+    await page.close();
+  }
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.stop();
 }

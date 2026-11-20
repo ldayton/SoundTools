@@ -1,29 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Modal } from "@mantine/core";
-import { guitarChordShape } from "./hymn-arrangements";
+import { ActionIcon, Group, Modal, Stack, Text } from "@mantine/core";
+import { ControlIcon } from "@ldayton/ui/control-icon";
+import { fingeringWindow, type ChordPassage } from "./chord-passage-fingering";
 const eventName = "songalong:guitar-chord";
-type Selection = {
-  name: string;
-  shape: readonly (number | null)[];
-  trigger: SVGElement;
-};
-export function chordDiagramShape(name: string) {
-  const match = /^([A-G])([#♯b♭]?)(7)?$/.exec(name.trim());
-  if (!match) return null;
-  const root =
-    ({ C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 } as Record<string, number>)[
-      match[1]
-    ] + (/[#♯]/.test(match[2]) ? 1 : /[b♭]/.test(match[2]) ? -1 : 0);
-  return guitarChordShape(root, !!match[3]);
-}
+type Selection = ChordPassage & { trigger: SVGElement };
 /** Enlarge chord hit targets without changing engraving or passage selection. */
-export function attachChordDiagrams(paper: HTMLElement) {
-  for (const text of paper.querySelectorAll<SVGGraphicsElement>(
-    ".abcjs-chord",
-  )) {
-    const name = text.textContent?.trim() || "",
-      shape = chordDiagramShape(name);
-    if (!shape) continue;
+export function attachChordDiagrams(
+  paper: HTMLElement,
+  passages: readonly ChordPassage[],
+) {
+  for (const passage of passages) {
+    const { name, element: text } = passage;
+    if (!paper.contains(text) || text.closest(".guitar-chord-trigger"))
+      continue;
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.classList.add("guitar-chord-trigger");
     group.setAttribute("role", "button");
@@ -38,12 +27,14 @@ export function attachChordDiagrams(paper: HTMLElement) {
     target.setAttribute("height", String(Math.max(32, bounds.height + 16)));
     target.setAttribute("fill", "transparent");
     target.setAttribute("stroke", "none");
+    if (text.hasAttribute("transform"))
+      target.setAttribute("transform", text.getAttribute("transform")!);
     text.parentNode!.insertBefore(group, text);
     group.append(target, text);
     const open = () => {
       window.dispatchEvent(
         new CustomEvent<Selection>(eventName, {
-          detail: { name, shape, trigger: group },
+          detail: { ...passage, trigger: group },
         }),
       );
     };
@@ -65,25 +56,24 @@ export function attachChordDiagrams(paper: HTMLElement) {
 export function GuitarChordDiagram() {
   const [selected, setSelected] = useState<Selection | null>(null);
   const trigger = useRef<SVGElement | null>(null);
+  const [frame, setFrame] = useState(0);
   useEffect(() => {
     const open = (event: Event) => {
       const next = (event as CustomEvent<Selection>).detail;
       trigger.current = next.trigger;
+      setFrame(0);
       setSelected(next);
     };
     window.addEventListener(eventName, open);
     return () => window.removeEventListener(eventName, open);
   }, []);
-  const frets =
-    selected?.shape.filter((f): f is number => f !== null && f > 0) || [];
-  const base =
-    selected?.shape.includes(0) || Math.min(...frets) <= 3
-      ? 1
-      : Math.min(...frets);
-  const description = selected?.shape
+  const shape = selected?.shapes[frame] || [];
+  const { base, rows } = fingeringWindow(selected?.shapes || [], frame);
+  const bottom = 55 + rows * 40;
+  const description = shape
     .map(
       (f, i) =>
-        `${["low E", "A", "D", "G", "B", "high E"][i]}: ${f === null ? "muted" : f === 0 ? "open" : `fret ${f}`}`,
+        `${["low E", "A", "D", "G", "B", "high E"][i]}: ${f === null ? "not played" : f === 0 ? "open" : `fret ${f}`}`,
     )
     .join("; ");
   return (
@@ -91,6 +81,7 @@ export function GuitarChordDiagram() {
       opened={!!selected}
       onClose={() => setSelected(null)}
       title={selected ? `${selected.name} chord` : ""}
+      closeButtonProps={{ "aria-label": "Close chord diagram" }}
       size={280}
       centered
       returnFocus={false}
@@ -100,82 +91,119 @@ export function GuitarChordDiagram() {
       }}
     >
       {selected && (
-        <svg
-          viewBox="0 0 240 270"
-          role="img"
-          aria-label={`${selected.name} guitar chord: ${description}`}
-          style={{
-            display: "block",
-            width: "100%",
-            color: "var(--mantine-color-text)",
-          }}
-        >
-          <title>{description}</title>
-          {Array.from({ length: 5 }, (_, i) => (
-            <line
-              key={`f${i}`}
-              x1="42"
-              x2="202"
-              y1={55 + i * 40}
-              y2={55 + i * 40}
-              stroke="currentColor"
-              strokeWidth={i === 0 && base === 1 ? 5 : 1.2}
-            />
-          ))}
-          {selected.shape.map((f, i) => (
-            <g key={i} data-string={6 - i} data-fret={f === null ? "muted" : f}>
+        <Stack gap="sm">
+          <Text size="sm" c="dimmed">
+            Written notes at this point in the passage.
+            {selected.capo
+              ? ` Capo ${selected.capo}; frets are relative to the capo.`
+              : ""}
+          </Text>
+          <svg
+            viewBox={`0 0 240 ${bottom + 55}`}
+            role="img"
+            aria-label={`${selected.name} guitar chord: ${description}`}
+            style={{
+              display: "block",
+              width: "100%",
+              color: "var(--mantine-color-text)",
+            }}
+          >
+            <title>{description}</title>
+            {Array.from({ length: rows + 1 }, (_, i) => (
               <line
-                x1={42 + i * 32}
-                x2={42 + i * 32}
-                y1="55"
-                y2="215"
+                key={`f${i}`}
+                x1="42"
+                x2="202"
+                y1={55 + i * 40}
+                y2={55 + i * 40}
                 stroke="currentColor"
-                strokeWidth="1.2"
+                strokeWidth={i === 0 && base === 1 ? 5 : 1.2}
               />
-              {f === null ? (
+            ))}
+            {shape.map((f, i) => (
+              <g
+                key={i}
+                data-string={6 - i}
+                data-fret={f === null ? "not-played" : f}
+              >
+                <line
+                  x1={42 + i * 32}
+                  x2={42 + i * 32}
+                  y1="55"
+                  y2={bottom}
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                />
+                {f === null ? (
+                  <text
+                    x={42 + i * 32}
+                    y="36"
+                    textAnchor="middle"
+                    fontSize="20"
+                    fill="currentColor"
+                  >
+                    ×
+                  </text>
+                ) : f === 0 ? (
+                  <circle
+                    cx={42 + i * 32}
+                    cy="28"
+                    r="6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                ) : (
+                  <circle
+                    cx={42 + i * 32}
+                    cy={55 + (f - base + 0.5) * 40}
+                    r="9"
+                    fill="currentColor"
+                  />
+                )}
                 <text
                   x={42 + i * 32}
-                  y="36"
+                  y={bottom + 30}
                   textAnchor="middle"
-                  fontSize="20"
+                  fontSize="14"
                   fill="currentColor"
                 >
-                  ×
+                  {["E", "A", "D", "G", "B", "e"][i]}
                 </text>
-              ) : f === 0 ? (
-                <circle
-                  cx={42 + i * 32}
-                  cy="28"
-                  r="6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-              ) : (
-                <circle
-                  cx={42 + i * 32}
-                  cy={55 + (f - base + 0.5) * 40}
-                  r="9"
-                  fill="currentColor"
-                />
-              )}
-              <text
-                x={42 + i * 32}
-                y="245"
-                textAnchor="middle"
-                fontSize="14"
-                fill="currentColor"
-              >
-                {["E", "A", "D", "G", "B", "e"][i]}
+              </g>
+            ))}
+            {base > 1 && (
+              <text x="8" y="80" fontSize="14" fill="currentColor">
+                {base}fr
               </text>
-            </g>
-          ))}
-          {base > 1 && (
-            <text x="8" y="80" fontSize="14" fill="currentColor">
-              {base}fr
-            </text>
+            )}
+          </svg>
+          {selected.shapes.length > 1 && (
+            <Group justify="space-between">
+              <ActionIcon
+                variant="default"
+                size={44}
+                aria-label="Previous fingering"
+                disabled={frame === 0}
+                onClick={() => setFrame((n) => n - 1)}
+              >
+                <ControlIcon name="chevron-left" />
+              </ActionIcon>
+              <Text size="sm" aria-live="polite">
+                {frame + 1} / {selected.shapes.length}
+              </Text>
+              <ActionIcon
+                variant="default"
+                size={44}
+                aria-label="Next fingering"
+                disabled={frame === selected.shapes.length - 1}
+                onClick={() => setFrame((n) => n + 1)}
+              >
+                <ControlIcon name="chevron-right" />
+              </ActionIcon>
+            </Group>
           )}
-        </svg>
+        </Stack>
       )}
     </Modal>
   );

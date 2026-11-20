@@ -3,6 +3,7 @@ import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
 import { drawBeginnerFingerings, separateGuitarFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
 import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
 import { attachChordDiagrams } from "./guitar-chord-diagram";
+import { scoreChordPassages } from "./chord-passage-fingering";
 import { drawGuitarFingerings } from "./guitar-fingering-view";
 import { hasSwing, swingAudio, swingBeat } from "./hymn-swing";
 import { drawHymnFingerings } from "./hymn-fingering";
@@ -246,6 +247,9 @@ export function drawPracticeScore(
   if (!(options.fingerstyleTab && options.guitarTab)) options.playback?.(audio);
   // Playback uses quarter-note BPM, including compound meters.
   tune.setTiming(options.playback ? (60 * 0.25) / tune.getBeatLength() : 60, 0);
+  const chordPassages = options.guitarTab || options.beginnerEdition === "guitar"
+    ? scoreChordPassages(tune, { positionFor: profile?.position, capo: profile?.capo, transpose })
+    : [];
   paper
     .querySelectorAll(".abcjs-title,.abcjs-subtitle")
     .forEach((e) => e.remove());
@@ -357,7 +361,7 @@ export function drawPracticeScore(
     svg.style.height = `${box.height * fittedScale}px`;
     svg.style.maxWidth = "100%";
   });
-  if (options.guitarTab && !profile) attachChordDiagrams(paper);
+  attachChordDiagrams(paper, chordPassages);
   if (options.fingerings && !options.beginnerEdition) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
     else drawHymnFingerings(tune);

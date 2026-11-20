@@ -38,6 +38,7 @@ export function instrumentHymnAbc(
       : source;
   melody = beamByBeat(melody);
   const edits: { at: number; text: string }[] = [];
+  const melodyOnsets = new Set<string>();
   let bar = 0,
     time = 0,
     seen = false;
@@ -52,6 +53,7 @@ export function instrumentHymnAbc(
         continue;
       }
       if (n.el_type !== "note") continue;
+      melodyOnsets.add(`${bar}:${time}`);
       const chord = config.changes[bar].find(
         ([at]) => Math.abs(at - time) < 1e-7,
       )?.[1];
@@ -85,7 +87,7 @@ export function instrumentHymnAbc(
             .map(([at, chord], i) => {
               const length =
                 (changes[i + 1]?.[0] ?? config.barLengths?.[bar] ?? 64) - at;
-              return `${strumming ? `"${chord}"` : ""}${(strumming ? config.strum : piano ? config.piano : config.guitar)[chord]}${length}`;
+              return `${!piano && (strumming || !melodyOnsets.has(`${bar}:${at}`)) ? `"${chord}"` : ""}${(strumming ? config.strum : piano ? config.piano : config.guitar)[chord]}${length}`;
             })
             .join(" ")) + (bar === config.changes.length - 1 ? " |]" : " |")
     );
@@ -112,5 +114,51 @@ export function instrumentHymnAbc(
             : ""),
       )
       .join("")
+  );
+}
+
+/** Keep an opening pickup and a short final bar attached to their phrases. */
+export function pickupHymnSystems(
+  abc: string,
+  measures: number,
+  from: number,
+  totalBars: number,
+) {
+  const lines = abc.split("\n"),
+    first = lines.findIndex((line) => /^\[V:/.test(line));
+  if (first < 0) return abc;
+  const voices = new Map<string, string[]>();
+  for (const line of lines.slice(first)) {
+    const match = line.match(/^(\[V:[^\]]+\])\s*(.*)$/);
+    if (!match) continue;
+    const bars = [...match[2].matchAll(/([^|]*)(\|\]?)/g)].map(
+      (m) => m[1] + m[2],
+    );
+    voices.set(match[1], [...(voices.get(match[1]) || []), ...bars]);
+  }
+  const count = [...voices.values()][0].length,
+    groups: number[][] = [];
+  for (let at = 0; at < count;) {
+    let size = Math.min(measures, count - at);
+    if (at === 0 && from === 0) size = Math.min(count, measures + 1);
+    if (measures === 1 && from + count === totalBars && count - at === 2)
+      size = 2;
+    groups.push(Array.from({ length: size }, (_, i) => at + i));
+    at += size;
+  }
+  return (
+    lines.slice(0, first).join("\n") +
+    "\n" +
+    groups
+      .map((group) =>
+        [...voices]
+          .map(
+            ([voice, bars]) =>
+              voice + " " + group.map((i) => bars[i]).join(" "),
+          )
+          .join("\n"),
+      )
+      .join("\n") +
+    "\n"
   );
 }

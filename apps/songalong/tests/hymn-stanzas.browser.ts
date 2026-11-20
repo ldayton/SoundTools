@@ -222,7 +222,7 @@ try {
   for (const [id, video] of Object.entries(references)) {
     await visit(id);
     await page
-      .getByRole("button", { name: ["in-christ-alone", "amazing-grace", "ill-fly-away", "jesus-loves-me"].includes(id) ? "About this song" : "About this hymn", exact: true })
+      .getByRole("button", { name: ["in-christ-alone", "amazing-grace", "ill-fly-away", "jesus-loves-me", "o-come-all-ye-faithful"].includes(id) ? "About this song" : "About this hymn", exact: true })
       .click();
     const reference = page.getByRole("link", { name: /^Reference recording/ });
     await expect(reference).toHaveAttribute(
@@ -317,7 +317,7 @@ try {
   const attacks = (id: string) => {
     const hymn = hymns.find((h) => h.id === id)!;
     const audio = abcjs
-      .parseOnly(arrangeHymn(hymn, ["in-christ-alone", "amazing-grace", "ill-fly-away", "jesus-loves-me"].includes(id) ? "piano" : "melody", 0, 0, "right").abc)[0]
+      .parseOnly(arrangeHymn(hymn, ["in-christ-alone", "amazing-grace", "ill-fly-away", "jesus-loves-me", "o-come-all-ye-faithful"].includes(id) ? "piano" : "melody", 0, 0, "right").abc)[0]
       .setUpAudio({ qpm: 60, chordsOff: true });
     return {
       pitches: audio.tracks[0].flatMap((n) =>

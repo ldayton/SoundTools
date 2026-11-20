@@ -78,3 +78,15 @@ Its rootless G7 shell leaves the melody clear. All 49 attacks, three verses and
 the shared refrain retain the 16-bar form. Verse and refrain landmarks, explicit
 capo instructions, independent display/practice options, full-shape chord
 accompaniment and a chords-only lyric chart use the same two editions.
+
+
+O Come, All Ye Faithful offers Piano in G and first-position Guitar without a
+capo. Piano preserves the D4–D5 soprano with compact left-hand chords; Guitar
+sounds the complete melody one octave lower. The reviewed accompaniment keeps
+the secondary A7 and uses light basses/shells under Guitar, with fuller chord
+shapes available for strumming practice (including a four-string Bm without a
+barre). All 62 attacks, slurs, the breathing rest, one-beat pickup and three-beat
+final bar remain intact. The refrain entrance is the last beat of bar 12.
+Responsive systems attach the opening pickup and closing short bar to their
+phrases; the chord chart retains changes beneath held melody notes. Display
+and practice remain independent, with all three verses and shared refrain.

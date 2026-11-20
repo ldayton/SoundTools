@@ -1,3 +1,4 @@
+import {faithfulEdition,faithfulFingers,faithfulPosition} from "./o-come-all-ye-faithful";
 import { editionGuides } from "./edition-guides";
 import { jesusEdition, jesusFingers, jesusPosition } from "./jesus-loves-me";
 import { accompanimentLyrics } from "./accompaniment-lyrics";
@@ -23,7 +24,7 @@ import {
   graceChordOffset,
 } from "./amazing-grace";
 export type ChordEditionId =
-  "in-christ-alone" | "amazing-grace" | "ill-fly-away" | "jesus-loves-me";
+  "in-christ-alone" | "amazing-grace" | "ill-fly-away" | "jesus-loves-me" | "o-come-all-ye-faithful";
 export function chordEdition(hymn: { id: string }) {
   if (isChristAlone(hymn))
     return {
@@ -87,6 +88,12 @@ export function chordEdition(hymn: { id: string }) {
       chordOffset: (bar: number) =>
         jesusEdition.changes.slice(0, bar).reduce((s, c) => s + c.length, 0),
     };
+  if(hymn.id==='o-come-all-ye-faithful')return {
+    id:'o-come-all-ye-faithful' as const,guide:editionGuides['o-come-all-ye-faithful'],fixedSystems:true,capo:0,pickup:true,tempo:72,
+    shapes:'G, C, D, D7, Em, Am, A7 and small Bm',fingers:faithfulFingers,position:faithfulPosition,
+    lyrics:(h:Parameters<typeof accompanimentLyrics>[0])=>accompanimentLyrics(h,faithfulEdition.changes.flatMap((c,i)=>c.map(([at])=>(faithfulEdition.barLengths!.slice(0,i).reduce((s,n)=>s+n,0)+at)/64))),
+    chordOffset:(bar:number)=>faithfulEdition.changes.slice(0,bar).reduce((s,c)=>s+c.length,0),
+  };
   return undefined;
 }
 export function capoAudio(

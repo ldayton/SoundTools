@@ -1,3 +1,4 @@
+import {pickupHymnSystems} from "./instrument-hymn";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
 import { drawBeginnerFingerings, separateGuitarFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
@@ -89,6 +90,8 @@ export function drawPracticeScore(
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
+  const pickupLayout = options.hymnEdition === "o-come-all-ye-faithful";
+  if(pickupLayout) abc=pickupHymnSystems(abc,width<600?1:width<1100?2:4,options.fromBar||0,21);
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const profile=options.hymnEdition?chordEdition({id:options.hymnEdition}):undefined;
   const staffScale = options.staffScale ?? 1;
@@ -100,7 +103,7 @@ export function drawPracticeScore(
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
   const source =
-    (profile && (options.fingerstyleTab || profile.fixedSystems) ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
+    (profile && !pickupLayout && (options.fingerstyleTab || profile.fixedSystems) ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
     ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
     (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);

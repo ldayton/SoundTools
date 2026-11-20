@@ -91,10 +91,15 @@ export function showChordsOnly(paper: HTMLElement, tune?: TuneObject) {
       ".abcjs-bar-number",
     )) {
       const box = mark.getBBox();
-      mark.setAttribute(
-        "transform",
-        `translate(0 ${top - 8 - box.y - box.height})`,
-      );
+      const bottom = top - 8;
+      let x = box.x;
+      for (const part of svg.querySelectorAll<SVGGraphicsElement>(".abcjs-part")) {
+        const label = part.getBBox();
+        if (x < label.x + label.width + 8 && x + box.width > label.x - 8
+          && bottom > label.y - 5 && bottom - box.height < label.y + label.height + 5)
+          x = label.x + label.width + 8;
+      }
+      mark.setAttribute("transform", `translate(${x - box.x} ${bottom - box.y - box.height})`);
     }
     const dividers = document.createElementNS(ns, "g");
     dividers.classList.add("chord-chart-bars");

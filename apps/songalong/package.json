@@ -23,7 +23,7 @@
     "test:piano": "tsx tests/piano-interaction.browser.ts",
     "test:stanzas": "tsx tests/hymn-stanzas.browser.ts",
     "test:catalog": "tsx tests/hymn-catalog.browser.ts",
-    "test:editions": "tsx tests/fingerstyle-editions.browser.ts && tsx tests/in-christ-alone-editions.browser.ts && tsx tests/amazing-grace-editions.browser.ts && tsx tests/ill-fly-away-editions.browser.ts && tsx tests/jesus-loves-me-editions.browser.ts",
+    "test:editions": "tsx tests/fingerstyle-editions.browser.ts && tsx tests/in-christ-alone-editions.browser.ts && tsx tests/amazing-grace-editions.browser.ts && tsx tests/ill-fly-away-editions.browser.ts && tsx tests/jesus-loves-me-editions.browser.ts && tsx tests/o-come-all-ye-faithful-editions.browser.ts",
     "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts"
   },
   "dependencies": {

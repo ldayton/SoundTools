@@ -1,3 +1,4 @@
+import {faithfulEdition} from "./o-come-all-ye-faithful";
 import {instrumentHymnAbc} from "./instrument-hymn";
 import {jesusEdition} from "./jesus-loves-me";
 import {flyChanges as flyGuitarChanges,flyEditionAbc,flyLandmarks} from "./ill-fly-away";
@@ -435,10 +436,11 @@ export function arrangeHymn(
   endingBar?: number,
   guitarTranspose = 0,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
-  if(hymn.id==='jesus-loves-me'&&(arrangement==='piano'||arrangement==='guitar-edition')){
+  if(['jesus-loves-me','o-come-all-ye-faithful'].includes(hymn.id)&&(arrangement==='piano'||arrangement==='guitar-edition')){
     const guitar=arrangement==='guitar-edition';
-    const harmony=instrumentHymnAbc(arrangeHymn(hymn,'melody',0).abc,jesusEdition,guitar?'guitar':'piano',guitar?hands:'both');
-    const edition={...hymn,id:hymn.id+':'+arrangement+(guitar?':'+hands:''),key:guitar?'C':hymn.key,harmony};
+    const config=hymn.id==='jesus-loves-me'?jesusEdition:faithfulEdition;
+    const harmony=instrumentHymnAbc(arrangeHymn(hymn,'melody',0).abc,config,guitar?'guitar':'piano',guitar?hands:'both');
+    const edition={...hymn,id:hymn.id+':'+arrangement+(guitar?':'+hands:''),key:guitar?config.guitarKey:hymn.key,harmony};
     let score=arrangeHymn(edition,'original',sectionBars,section,guitar?'both':hands,endingBar);
     if(guitar)score={...score,abc:score.abc.replace(/clef=treble(?!-8)\b/g,'clef=treble-8')};
     else score={...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,g:string)=>`%%score {${g.replace(/[(){}]/g,'')}}`)};

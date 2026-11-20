@@ -44,7 +44,16 @@ try {
   });
   await second.goto("http://127.0.0.1:4391/");
   await second.getByRole("button", { name: "Account", exact: true }).waitFor();
-  await expect(second.locator("#bpm")).toHaveValue(/BPM/);
+  // The control renders before account restoration finishes. Start the edit
+  // only after the follower has joined and applied the shared account state.
+  await second.waitForFunction(
+    () => !!document.querySelector(
+      '[data-account-status="synced"][data-account-pending="0"]',
+    ),
+  );
+  await expect(second.locator("#bpm")).toHaveValue(
+    await first.locator("#bpm").inputValue(),
+  );
   const propagationStarted = Date.now();
   reads = [0, 0];
   await second.locator("#bpm").fill("132");

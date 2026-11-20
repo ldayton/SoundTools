@@ -188,6 +188,10 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  for(const tab of [other,untouched])await tab.evaluate(()=>window.dispatchEvent(new Event('online')));
  await untouched.waitForFunction(version=>document.querySelector('meta[name="soundglow-release"]').content===version,releases[2].pack.version);
  assert.equal(automaticNavigations,2,'An untouched cached page automatically opens the verified update once');await untouched.close();await other.bringToFront();
+ // The other tab can begin its own automatic update when brought forward.
+ // Finish that navigation and bootstrap before installing the next generation.
+ await other.waitForFunction(()=>window.__soundtoolsStartup?.ready===true);
+ await other.waitForLoadState('networkidle');
  await other.evaluate(async version=>{const cache=await caches.open('soundglow-clients-v1');await cache.put(new URL('/Soundglow/__cache__/latest',location.origin),new Response(JSON.stringify({version})))},releases[1].pack.version);
  failDiscovery=true;revision=3;
  await other.evaluate(async()=>{await(await navigator.serviceWorker.getRegistration()).update()});

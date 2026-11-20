@@ -115,16 +115,6 @@
 .notewise-workspace #fretboard {
   padding-inline: 0;
 }
-.notewise-workspace .settings-page[data-compact] {
-  max-width: 560px;
-}
-.notewise-workspace .settings-page[data-compact] > section {
-  background: transparent;
-}
-.notewise-workspace .settings-page[data-compact] > section + section {
-  border-top: 1px solid var(--mantine-color-default-border);
-  padding-top: 16px;
-}
 @media (max-width: 767px) {
   .notewise-workspace {
     padding-top: calc(var(--app-shell-header-offset, 56px) + 12px);
@@ -292,5 +282,12 @@
       "session session session session session session"
       "properties properties properties properties properties properties";
     grid-template-rows: 44px 48px 60px;
+  }
+}
+
+@media (max-width: 767px) {
+  .notewise-workspace #settings-ui {
+    padding-inline: 8px;
+    padding-top: 4px;
   }
 }

@@ -508,6 +508,9 @@ export class Account {
         await this.connect(this.snapshot.user, this.snapshot.email);
       return;
     }
+    // Realtime subscription and foreground timers can wake while the initial
+    // durable replica is still loading. The connect path schedules sync after load.
+    if (!engine.state) return;
     await this.writes;
     if (this.volatile.size) {
       await this.changed();

@@ -89,3 +89,23 @@ test("unrelated incoming settings apply without pausing or rebuilding an active 
     else delete (globalThis as any).document;
   }
 });
+
+test("a foreground sync waits for the initial durable replica to load", async () => {
+  const account: any = new Account("test");
+  let requests = 0;
+  const engine: any = {
+    state: undefined,
+    sync: async () => requests++,
+    get pending() {
+      assert(engine.state, "must not inspect the queue before storage loads");
+      return 0;
+    },
+    diagnostics: {},
+  };
+  account.engine = engine;
+  await account.sync();
+  assert.equal(requests, 0);
+  engine.state = { initialized: true };
+  await account.sync();
+  assert.equal(requests, 1);
+});

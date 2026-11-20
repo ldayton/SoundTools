@@ -6,8 +6,10 @@ import {
   type Models,
   type SoundglowSettings,
 } from "./account-records";
-export const account = new Account("soundglow", (code) =>
-  window.SoundglowDiagnostics?.event?.("account." + code),
+export const account = new Account("soundglow", (code, error, details) =>
+  error
+    ? window.SoundglowDiagnostics?.capture?.(error, "account." + code, details)
+    : window.SoundglowDiagnostics?.event?.("account." + code, details),
 );
 type Bridge = {
   read(): SoundglowSettings;

@@ -12,7 +12,7 @@ import {
 export function mountMidiPanel(
   element: HTMLElement,
   answer: (midi: number) => void,
-  report: (state: MidiState) => void,
+  report: (state: MidiState, error?: unknown) => void,
 ) {
   const model = midiControlsState({
     text: "",
@@ -55,7 +55,13 @@ export function mountMidiPanel(
       report(state);
     }
   }
-  const keyboard = new MidiKeyboard(browserMidiRequest(), answer, render);
+  const keyboard = new MidiKeyboard(
+    browserMidiRequest(),
+    answer,
+    render,
+    () => performance.now(),
+    (error) => report("error", error),
+  );
   let permission: PermissionStatus | undefined;
   const connect = async () => {
     if (disposed) return;

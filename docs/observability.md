@@ -1,6 +1,6 @@
 # Central diagnostics
 
-SoundTools uses one shared browser diagnostics package with thin adapters in all three
+SoundTools uses one shared browser diagnostics package with thin adapters in all four
 apps. Configured **production** builds collect technical diagnostics only after
 explicit opt-in. Preview builds, development servers, and builds without a DSN do
 not transmit diagnostics.
@@ -14,8 +14,8 @@ reports, downloads, or clear buttons. Old saved reports are removed on startup.
 ## Data model
 
 - Errors are sanitized exception events: stable application code, allowlisted error
-  class, source locations, exact app release and bounded technical context. Raw
-  exception messages are discarded. Duplicate errors are suppressed for a minute;
+  class, source locations, exact app release and bounded technical context.
+  Arbitrary exception messages are discarded; recognized technical meanings, DOM/HTTP/database codes, bounded causes and aggregate errors are retained. Duplicate errors are suppressed for a minute;
   all error codes still contribute usage counters, subject to bounded name capacity.
 - Metrics are batched interval **deltas**. Every numeric series sends `.count`,
   `.total`, and `.max`; calculate weighted mean as sum(total)/sum(count). Max is a
@@ -148,3 +148,5 @@ Before publishing, provision a separate SongAlong project and configure the
 NoteWise deployment with its own matching project/DSN, preserving organization
 privacy scrubbing. Production DSNs must not silently report a new app under the
 former `notecards` release identity.
+
+See [the 2026-11-19 diagnostics audit](diagnostics-audit.md) for the full reporting survey, exception boundaries, source artifacts and known limitations.

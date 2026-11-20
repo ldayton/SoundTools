@@ -133,3 +133,40 @@ test("update navigation waits for the intended worker to finish activation", asy
   await pending;
   assert.equal(done, true);
 });
+
+test("worker RPC rejection preserves serialized exception and cause instead of a reason-only result", async () => {
+  const { createWorkerSession, createResources } = require("../index.cjs");
+  const env = {
+    MessageChannel,
+    navigator: {
+      serviceWorker: {
+        controller: {
+          postMessage(_data, ports) {
+            ports[0].postMessage({
+              ready: false,
+              reason: "quota",
+              failure: {
+                name: "QuotaExceededError",
+                code: 22,
+                stack: "https://example.org/sw.js:10:2",
+                cause: { name: "SecurityError" },
+              },
+            });
+            ports[0].close();
+          },
+        },
+      },
+    },
+  };
+  const session = createWorkerSession({ env, resources: createResources() });
+  await assert.rejects(
+    session.call("prepare-update"),
+    (error) =>
+      error.name === "QuotaExceededError" &&
+      error.code === 22 &&
+      error.offlineReason === "quota" &&
+      error.errorOrigin === "worker" &&
+      error.cause.name === "SecurityError" &&
+      error.stack === "https://example.org/sw.js:10:2",
+  );
+});

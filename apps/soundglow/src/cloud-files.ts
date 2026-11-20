@@ -55,8 +55,11 @@ export const soundglowFiles = {
           )
             try {
               await library.ensureFingerprint(file);
-            } catch {
-              window.SoundglowDiagnostics?.event?.("files.fingerprint_failed");
+            } catch (error) {
+              window.SoundglowDiagnostics?.capture?.(
+                error,
+                "files.fingerprint_failed",
+              );
             }
         return files.map((f) => ({
           ...f,
@@ -101,14 +104,18 @@ export const soundglowFiles = {
       remove: (id) => library.store.remove(id),
       fingerprint: soundglowAccount.fingerprint,
       changed: () => library.refreshCloudFiles(),
-      report: (code) => window.SoundglowDiagnostics?.event?.(code),
+      report: (code, error, details) =>
+        error
+          ? window.SoundglowDiagnostics?.capture?.(error, code, details)
+          : window.SoundglowDiagnostics?.event?.(code, details),
     });
     service.subscribe(
       () =>
         void library
           .refreshCloudFiles()
-          .catch(() =>
-            window.SoundglowDiagnostics?.event?.(
+          .catch((error) =>
+            window.SoundglowDiagnostics?.capture?.(
+              error,
               "files.library_refresh_failed",
             ),
           ),

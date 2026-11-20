@@ -69,6 +69,7 @@ export class MidiKeyboard {
     private answer: (midi: number) => void,
     private changed: (status: MidiStatus) => void,
     private now = () => performance.now(),
+    private report: (error: unknown) => void = () => {},
   ) {
     this.state = request ? "idle" : "unsupported";
     this.publish(this.state);
@@ -119,6 +120,8 @@ export class MidiKeyboard {
       this.requesting = false;
       const name =
         error && typeof error === "object" && "name" in error ? error.name : "";
+      if (!["NotAllowedError", "SecurityError"].includes(String(name)))
+        this.report(error);
       this.publish(
         name === "NotAllowedError" || name === "SecurityError"
           ? "denied"
@@ -211,8 +214,9 @@ export class MidiKeyboard {
           this.message(event);
       };
       this.publish("connected");
-    } catch {
+    } catch (error) {
       if (token !== this.generation) return;
+      this.report(error);
       this.closeInput();
       this.publish("error");
     }

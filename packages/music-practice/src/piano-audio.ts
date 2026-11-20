@@ -90,7 +90,9 @@ function load(root: number) {
     pending = fetch(urls.get(root)!, { signal: AbortSignal.timeout(10000) })
       .then((response) => {
         if (!response.ok)
-          throw Error(`Piano sample request failed (${response.status})`);
+          throw Object.assign(new Error("Piano sample request failed"), {
+            status: response.status,
+          });
         return response.arrayBuffer();
       })
       .catch((error) => {

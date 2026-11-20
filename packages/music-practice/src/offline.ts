@@ -156,6 +156,7 @@ export function setupOffline() {
         ready: saved.ready,
       });
       // Offline startup and practice never wait for a network check.
+      let cacheStage = "worker_call";
       try {
         const updateStarted = performance.now();
         diagnostics.offline("update", "started");
@@ -180,10 +181,11 @@ export function setupOffline() {
           offer(result.shellCache);
         } else later();
         // Replacing the worker does not replace the document or interrupt practice.
+        cacheStage = "registration_update";
         await resources.deadline(15000, () => registration?.update(), signal);
       } catch (error) {
         if (!active || epoch !== session.generation()) return;
-        diagnostics.offline("update", "failed", {}, error);
+        diagnostics.offline("update", "failed", { cacheStage }, error);
         later();
       }
     } catch (error) {

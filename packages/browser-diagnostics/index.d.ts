@@ -35,7 +35,7 @@ export interface Client {
   event(code: string, details?: Record<string, unknown>): void;
   frame(time: number, active: boolean): void;
   metric(name: string, value: number): void;
-  capture(error: unknown, code?: string): void;
+  capture(error: unknown, code?: string, details?: Record<string, unknown>): void;
   snapshot(): Report;
   report(): Promise<Report>;
   persist(): Promise<void>;

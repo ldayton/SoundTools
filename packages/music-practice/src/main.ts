@@ -270,10 +270,17 @@ const midi = mountMidiPanel(
   (note) => {
     if (canAnswer()) answerPiano(note);
   },
-  (state) => {
+  (state, error) => {
     if (state !== "connected") activities.interrupt("connection");
     shell.reportMidi(state);
     diagnostics.event("midi.state", { midiState: state });
+    if (
+      error &&
+      !["NotAllowedError", "SecurityError"].includes((error as Error).name)
+    )
+      diagnostics.capture(error, "midi.connection_failed", {
+        midiState: state,
+      });
   },
 );
 midi.setKeysListener((keys) => {
@@ -900,7 +907,7 @@ document.fonts.ready
         if (route.kind === "not-found") showMissing();
         else start();
       },
-    }).catch(() => diagnostics.event("account.start_failed"));
+    }).catch((error) => diagnostics.capture(error, "account.start_failed"));
     window.dispatchEvent(new Event("soundtools:ready"));
     try {
       setupOffline();

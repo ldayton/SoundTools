@@ -119,7 +119,14 @@
               signal.addEventListener("abort", stop, { once: true });
               channel.port1.onmessage = ({ data }) => {
                 close();
-                resolve(data);
+                if (data?.ready === false && data.failure) {
+                  const error = new Error("Worker operation failed");
+                  Object.assign(error, data.failure, {
+                    errorOrigin: "worker",
+                    offlineReason: data.reason || data.failure.offlineReason,
+                  });
+                  reject(error);
+                } else resolve(data);
               };
               try {
                 const worker = env.navigator.serviceWorker.controller;

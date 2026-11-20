@@ -124,10 +124,13 @@ export class LibraryActions {
         row.dataset.libraryKind === target.kind &&
         row.dataset.libraryId === target.id,
     );
-    restoreFocus([
-      row?.querySelector<HTMLElement>("[data-library-menu]") ?? null,
-      document.getElementById("importAudio"),
-    ], document.getElementById("libraryItemDialog"));
+    restoreFocus(
+      [
+        row?.querySelector<HTMLElement>("[data-library-menu]") ?? null,
+        document.getElementById("importAudio"),
+      ],
+      document.getElementById("libraryItemDialog"),
+    );
   }
   dispose() {
     if (this.disposed) return;
@@ -462,8 +465,12 @@ declare global {
     SoundglowLibraryActions: typeof LibraryActions;
     SoundglowShell: ReturnType<typeof mountApplicationShell>;
     SoundglowDiagnostics?: {
-      capture(error: unknown, context: string): void;
-      event?(code: string): void;
+      capture(
+        error: unknown,
+        context: string,
+        details?: Record<string, unknown>,
+      ): void;
+      event?(code: string, details?: Record<string, unknown>): void;
       subscribe(listener: () => void): () => void;
       getState(): { sharing: boolean };
       setSharing(value: boolean): Promise<unknown>;

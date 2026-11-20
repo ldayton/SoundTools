@@ -243,7 +243,7 @@ async function togglePause(){
     if(inputMode!=='speech'&&!next){processingStats.lastFrameTime=null;engine?.reset({keepHistory:true});frameQueue=[];currentSpectrumFrame=null;bins?.fill(-160);pcmNode?.port.postMessage('reset');canvas.dataset.plottedUntil=audio.currentTime-analysisDelay;lastPlotTime=Number(canvas.dataset.plottedUntil);carry=0;redraw();}
     paused=next;setIcon('freeze',paused?'▶':'⏸',paused?'Resume':'Pause');
     state(paused?'PAUSED':inputMode==='speech'?'EXAMPLE':'LIVE',!paused);last=0;previousSlice=null;
-  }catch(e){notice(e.message||'Could not resume audio. Please restart the input.')}
+  }catch(e){window.SoundglowDiagnostics?.capture(e,'audio.resume_failed');notice(e.message||'Could not resume audio. Please restart the input.')}
   finally{starting=false;setBusy(false)}
 }
 
@@ -488,7 +488,7 @@ function savedPresetStatus(text,storageFailed=false){
 function persistPresets(presets=savedPresets,selected=settingsState.selected){
  if(window.SoundglowAccount?.save())return true;
  try{localStorage.setItem(presetStorageKey,JSON.stringify({version:1,presets,selected}));return true}
- catch{savedPresetStatus('Could not save presets in this browser. Allow local storage and try again.',true);return false}
+ catch(error){window.SoundglowDiagnostics?.capture(error,'presets.save_failed');savedPresetStatus('Could not save presets in this browser. Allow local storage and try again.',true);return false}
 }
 function renderSavedPresets(){syncPreset()}
 function currentPresetSettings(){return {...settingsState.values}}

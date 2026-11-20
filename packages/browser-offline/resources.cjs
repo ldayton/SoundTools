@@ -135,6 +135,7 @@
                     ].includes(offlineReason)
                   )
                     error.offlineReason = offlineReason;
+                  error.status = response.status;
                   error.retryable =
                     retryable &&
                     !["quota", "storage", "unavailable"].includes(
@@ -231,5 +232,8 @@
   }
   if (typeof module === "object" && module.exports)
     module.exports = { createResources };
-  else Object.assign(root.BrowserOffline || (root.BrowserOffline = {}), { createResources });
+  else
+    Object.assign(root.BrowserOffline || (root.BrowserOffline = {}), {
+      createResources,
+    });
 })(typeof globalThis === "object" ? globalThis : this);

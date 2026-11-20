@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 (function (root) {
   "use strict";
-  const version = "0.2.0",
+  const version = "0.3.0",
     codePattern = /^[a-z][a-z0-9_.-]{0,79}$/;
   const baseFields = {
-    view: ["pitch", "spectrogram", "practice"],
+    view: ["pitch", "spectrogram", "practice", "settings", "home"],
     source: ["mic", "speech", "file"],
     running: "boolean",
     paused: "boolean",
@@ -22,6 +22,12 @@
     height: "number",
     dpr: "number",
     cacheSource: ["cache", "network"],
+    cacheStage: [
+      "worker_call",
+      "registration_update",
+      "worker_activation",
+      "registration",
+    ],
     cacheOperation: [
       "setup",
       "navigation",
@@ -58,6 +64,15 @@
     fileCount: "number",
     retryCount: "number",
     persistent: "boolean",
+    httpStatus: "number",
+    retryAfterMs: "number",
+    pendingCount: "number",
+    attempt: "number",
+    storageUsage: "number",
+    storageQuota: "number",
+    errorOrigin: ["page", "worker", "remote"],
+    failureKind: ["auth", "permanent", "transient", "storage"],
+    fileOperation: ["upload", "download", "rename", "delete"],
   };
   function fields(input, spec) {
     const out = {};
@@ -71,14 +86,14 @@
     }
     return out;
   }
-  function errorInfo(error, code) {
+  function errorInfo(error, code, depth = 0, visited = new Set()) {
     // Exception messages may contain filenames, exercise titles or device labels.
     // Keep a stable application code and source locations, never the raw message.
     let name = "Error",
       stack = "";
     try {
       if (
-        /^(?:Error|TypeError|RangeError|ReferenceError|SyntaxError|URIError|EvalError|DOMException|NotAllowedError|NotFoundError|NotReadableError|AbortError|QuotaExceededError|InvalidStateError|TimeoutError)$/.test(
+        /^(?:Error|AggregateError|TypeError|RangeError|ReferenceError|SyntaxError|URIError|EvalError|DOMException|NotAllowedError|NotFoundError|NotReadableError|AbortError|QuotaExceededError|InvalidStateError|TimeoutError|SecurityError|UnknownError|DataError|TransactionInactiveError|ConstraintError|NotSupportedError|OperationError|NetworkError|EncodingError|DataCloneError|VersionError|ReadOnlyError|InvalidAccessError|InvalidModificationError|TypeMismatchError|InternalError|OutOfMemoryError)$/.test(
           error?.name,
         )
       )
@@ -104,7 +119,84 @@
         ];
       })
       .slice(0, 20);
-    return { code, name, frames };
+    const technical = {};
+    try {
+      const status = Number(
+        error?.status ?? error?.statusCode ?? error?.response?.status,
+      );
+      if (Number.isInteger(status) && status >= 100 && status <= 599)
+        technical.httpStatus = status;
+      if (
+        typeof error?.code === "number" &&
+        Number.isInteger(error.code) &&
+        error.code >= 0 &&
+        error.code <= 100
+      )
+        technical.domCode = error.code;
+      if (
+        typeof error?.code === "string" &&
+        /^(?:[0-9A-Z]{5}|PGRST[0-9]{3}|PT[0-9]{3})$/.test(error.code)
+      )
+        technical.serverCode = error.code;
+      if (
+        [
+          "quota",
+          "storage",
+          "network",
+          "timeout",
+          "integrity",
+          "cancelled",
+          "unavailable",
+        ].includes(error?.offlineReason)
+      )
+        technical.offlineReason = error.offlineReason;
+      if (Number.isFinite(error?.retryAfterMs))
+        technical.retryAfterMs = Math.max(0, error.retryAfterMs);
+      // Native messages can contain private URLs, filenames or server values.
+      // Retain only recognized technical meaning, never arbitrary message text.
+      const message = typeof error?.message === "string" ? error.message : "";
+      const patterns = [
+        ["quota_exceeded", /quota|storage.*(?:full|exceed)/i],
+        ["operation_timed_out", /timed? ?out|timeout/i],
+        ["fetch_failed", /failed to fetch|load failed|networkerror/i],
+        ["access_denied", /not allowed|permission denied|access.*denied/i],
+        ["context_stopped", /stopped context|context.*(?:closed|destroyed)/i],
+        [
+          "storage_closed",
+          /database.*clos|transaction.*(?:inactive|finished)/i,
+        ],
+        ["integrity_mismatch", /integrity|fingerprint|incomplete resource/i],
+        ["invalid_state", /invalid state/i],
+      ];
+      const match = patterns.find(([, pattern]) => pattern.test(message));
+      if (match) technical.messageKind = match[0];
+    } catch {}
+    const result = { code, name, frames, technical };
+    if (
+      depth < 3 &&
+      error &&
+      typeof error === "object" &&
+      !visited.has(error)
+    ) {
+      visited.add(error);
+      try {
+        if (
+          error.cause &&
+          typeof error.cause === "object" &&
+          !visited.has(error.cause)
+        )
+          result.cause = errorInfo(error.cause, code, depth + 1, visited);
+        if (Array.isArray(error.errors))
+          result.errors = error.errors
+            .slice(0, 3)
+            .filter(
+              (child) =>
+                child && typeof child === "object" && !visited.has(child),
+            )
+            .map((child) => errorInfo(child, code, depth + 1, visited));
+      } catch {}
+    }
+    return result;
   }
   function create(options, env = root) {
     if (!/^[a-z][a-z0-9-]{0,39}$/.test(options.app))
@@ -151,6 +243,23 @@
       sendWindow = 60000;
     const sharingKey = app + ":diagnostics:sharing";
     let navigationDiagnosticsAllowed = sharing;
+    let storageInfo = {};
+    function estimateStorage() {
+      if (!sharing || !env.navigator?.storage?.estimate) return;
+      const token = epoch;
+      try {
+        void Promise.resolve(env.navigator.storage.estimate())
+          .then((estimate) => {
+            if (token === epoch && sharing && !disposed)
+              storageInfo = fields(
+                { storageUsage: estimate.usage, storageQuota: estimate.quota },
+                baseFields,
+              );
+          })
+          .catch(() => {});
+      } catch {}
+    }
+    estimateStorage();
     function readSharing() {
       try {
         return (
@@ -200,6 +309,7 @@
         discardDatabase(remoteDb);
         return;
       }
+      estimateStorage();
       event("session.started");
       await loadRemote();
     }
@@ -236,6 +346,9 @@
       if (operation === "storage" && reason === "network") reason = "storage";
       const safe = fields(
         {
+          httpStatus: error?.status,
+          retryAfterMs: error?.retryAfterMs,
+          errorOrigin: error?.errorOrigin || "page",
           ...details,
           cacheOperation: operation,
           cacheOutcome: outcome,
@@ -253,7 +366,7 @@
             ["quota", "integrity", "storage"].includes(reason))) &&
         !["network", "timeout", "cancelled"].includes(reason)
       )
-        capture(error, "cache." + operation + "_failed");
+        capture(error, "cache." + operation + "_failed", safe);
     }
     const watchedWorkers = new WeakSet();
     function observeOffline(registration) {
@@ -261,8 +374,24 @@
       const watch = (worker) => {
         if (!worker || watchedWorkers.has(worker)) return;
         watchedWorkers.add(worker);
-        on(worker, "error", () =>
-          offline("worker", "failed", { cacheReason: "unknown" }),
+        on(worker, "error", (event) =>
+          offline(
+            "worker",
+            "failed",
+            { cacheReason: "unknown", errorOrigin: "worker" },
+            event.error ||
+              (event.filename
+                ? {
+                    name: "Error",
+                    stack:
+                      event.filename +
+                      ":" +
+                      (event.lineno || 0) +
+                      ":" +
+                      (event.colno || 0),
+                  }
+                : undefined),
+          ),
         );
         let completed = worker.state !== "installing";
         on(worker, "statechange", () => {
@@ -279,7 +408,11 @@
     }
     // Only the current controlling worker may supply coded offline diagnostics.
     let serviceWorker;
-    try { serviceWorker = env.navigator?.serviceWorker; } catch { /* Browser policy must not block the app. */ }
+    try {
+      serviceWorker = env.navigator?.serviceWorker;
+    } catch {
+      /* Browser policy must not block the app. */
+    }
     const initialSharing = sharing;
     on(serviceWorker, "message", (e) => {
       if (
@@ -287,9 +420,14 @@
         e.data?.type !== "offline-diagnostic"
       )
         return;
-      const { operation, outcome, details } = e.data;
+      const { operation, outcome, details, failure } = e.data;
       if (operation === "navigation" && !navigationDiagnosticsAllowed) return;
-      offline(operation, outcome, details);
+      offline(
+        operation,
+        outcome,
+        { ...details, errorOrigin: "worker" },
+        failure,
+      );
     });
     function requestNavigationDiagnostic() {
       try {
@@ -358,11 +496,18 @@
         elapsedMs: Math.max(0, now() - started),
         context,
         environment: {
+          ...storageInfo,
           visible: env.document?.visibilityState !== "hidden",
           online: env.navigator?.onLine !== false,
           width: env.innerWidth || 0,
           height: env.innerHeight || 0,
           dpr: env.devicePixelRatio || 1,
+          screenWidth: env.screen?.width
+            ? Math.round(env.screen.width * (env.devicePixelRatio || 1))
+            : undefined,
+          screenHeight: env.screen?.height
+            ? Math.round(env.screen.height * (env.devicePixelRatio || 1))
+            : undefined,
           browser: browser(env.navigator?.userAgent || ""),
           worker: !!env.Worker,
           audioWorklet: !!env.AudioWorkletNode,
@@ -574,14 +719,24 @@
         notify();
       }
     }
-    function capture(error, code = "runtime.error") {
+    function capture(error, code = "runtime.error", details = {}) {
       if (disposed || !sharing || !codePattern.test(code)) return;
       if (error && typeof error === "object") {
         if (seen.has(error)) return;
         seen.add(error);
       }
-      const safe = errorInfo(error, code),
-        fingerprint = JSON.stringify(safe);
+      // When a platform supplies no stack, preserve the reporting location and
+      // label it explicitly rather than pretending it is the original throw site.
+      const safe = errorInfo(error, code);
+      safe.details = fields(
+        { errorOrigin: error?.errorOrigin || "page", ...details },
+        spec,
+      );
+      if (!safe.frames.length && !safe.cause?.frames.length) {
+        safe.frames = errorInfo(new Error(), code).frames;
+        safe.syntheticStack = true;
+      }
+      const fingerprint = JSON.stringify(safe);
       const existing = errors.find((e) => e.fingerprint === fingerprint);
       let entry;
       if (existing) {
@@ -648,6 +803,14 @@
       "error",
       (e) => {
         if (e.error) capture(e.error, "runtime.error");
+        else if (e.filename && Number.isFinite(e.lineno))
+          capture(
+            {
+              name: "Error",
+              stack: e.filename + ":" + e.lineno + ":" + (e.colno || 0),
+            },
+            "runtime.error",
+          );
         else if (
           e.target?.tagName === "SCRIPT" &&
           !String(e.target.src).includes("sentry")

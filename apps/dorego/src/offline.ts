@@ -86,8 +86,15 @@ export function setupOffline() {
     return work;
   }
   async function applyQuiescentUpdate(version: string) {
-    try { await account.flush(); }
-    catch { setOffline({ status: 'Update paused because account changes could not be saved. Keep this page open and retry.' }); return; }
+    try {
+      await account.flush();
+    } catch {
+      setOffline({
+        status:
+          'Update paused because account changes could not be saved. Keep this page open and retry.',
+      });
+      return;
+    }
     active = false;
     checkGeneration++;
     session.abort();
@@ -387,12 +394,15 @@ export function setupOffline() {
     lastUpdate = Date.now();
     const started = performance.now();
     diagnostics.offline('update', 'started');
+    let cacheStage = 'worker_call';
     try {
       const reply = await rpc();
       if (!active || epoch !== session.generation()) return;
       // Finish worker replacement before offering a navigation. Otherwise a
       // newly refreshed tab can close while its replacement is still activating.
+      cacheStage = 'registration_update';
       await resources.deadline(15000, () => registration?.update(), session.signal());
+      cacheStage = 'worker_activation';
       await session.settle(registration);
       if (!active || epoch !== session.generation()) return;
       diagnostics.offline('update', reply.ready ? 'ready' : 'failed', {
@@ -408,7 +418,7 @@ export function setupOffline() {
       }
     } catch (error) {
       if (active && epoch === session.generation())
-        diagnostics.offline('update', 'failed', {}, error);
+        diagnostics.offline('update', 'failed', { cacheStage }, error);
     } finally {
       if (epoch === session.generation()) updating = false;
     }

@@ -48,15 +48,61 @@ function createRuntime(env, base, resources) {
     // when posting to that stopped context; a lost receiver is not a job error.
     try { event.ports?.[0]?.postMessage(data); } catch {}
   }
-  function report(client, operation, outcome, details = {}) {
+  function report(client, operation, outcome, details = {}, error) {
     try {
       client?.postMessage({
         type: "offline-diagnostic",
         operation,
         outcome,
         details,
+        failure: failure(error),
       });
     } catch {}
+  }
+  // Structured-clone-safe exception data. Never relay raw messages, request
+  // bodies, cache keys, query strings or file names across the worker boundary.
+  function failure(error, depth = 0, seen = new Set()) {
+    if (!error || typeof error !== "object" || depth > 3 || seen.has(error))
+      return undefined;
+    seen.add(error);
+    const out = { offlineReason: reason(error) };
+    try {
+      if (/^(?:[A-Za-z]+Error|Error|DOMException)$/.test(error.name || ""))
+        out.name = error.name;
+      if (typeof error.stack === "string")
+        out.stack = error.stack
+          .split("\n")
+          .flatMap((line) => {
+            const location = line.match(
+              /https?:\/\/[^\s)]+:(\d+):(\d+)\)?\s*$/,
+            );
+            if (!location) return [];
+            try {
+              const url = new URL(location[0].replace(/\)?\s*$/, ""));
+              return [
+                url.origin +
+                  url.pathname.replace(/:\d+:\d+$/, "") +
+                  ":" +
+                  location[1] +
+                  ":" +
+                  location[2],
+              ];
+            } catch {
+              return [];
+            }
+          })
+          .slice(0, 20)
+          .join("\n");
+      if (
+        typeof error.code === "number" ||
+        /^(?:[0-9A-Z]{5}|PGRST[0-9]{3}|PT[0-9]{3})$/.test(error.code || "")
+      )
+        out.code = error.code;
+      if (Number.isInteger(error.status)) out.status = error.status;
+      if (error.cause) out.cause = failure(error.cause, depth + 1, seen);
+      if (Array.isArray(error.errors)) out.errors=error.errors.slice(0,3).map(child=>failure(child,depth+1,seen)).filter(Boolean);
+    } catch {}
+    return out;
   }
   function offlineFailure(reason, message) {
     return Object.assign(Error(message), { offlineReason: reason });
@@ -363,7 +409,7 @@ function createRuntime(env, base, resources) {
             .then((client) =>
               report(client, "update", "failed", {
                 cacheReason: reason(error),
-              }),
+              }, error),
             )
             .catch(() => {});
         });
@@ -480,7 +526,7 @@ function createRuntime(env, base, resources) {
       // worker activating forever with all new requests queued behind it.
       event.waitUntil(withDeadline(2000,()=>env.clients.claim()).catch(error=>{
         void env.clients.matchAll({type:'window'}).then(clients=>{
-          for(const client of clients)report(client,'worker','failed',{cacheReason:reason(error)});
+          for(const client of clients)report(client,'worker','failed',{cacheReason:reason(error)},error);
         }).catch(()=>{});
       })),
     );
@@ -491,6 +537,7 @@ function createRuntime(env, base, resources) {
     assetResponse,
     report,
     reply,
+    failure,
     verified,
     requestURL,
     jsonStore,

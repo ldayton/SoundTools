@@ -201,12 +201,10 @@ export function HymnControls({
         >
           {transport}
           {settings}
+          {fingerings}
           {legacy}
         </Group>
-        <Group className="hymn-toolbar-piano" gap="xs" wrap="nowrap">
-          {fingerings}
-          {piano}
-        </Group>
+        <div className="hymn-toolbar-piano">{piano}</div>
       </div>
     </div>
   );

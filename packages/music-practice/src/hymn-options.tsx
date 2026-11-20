@@ -474,13 +474,28 @@ export function HymnFingerings({
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
-  return (
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
+    getInitialValueInEffect: false,
+  });
+  const checkbox = (
     <Checkbox
-      label="Show fingerings"
-      size="xs"
+      id="hymn-fingerings"
+      aria-label="Show fingerings"
+      label={mobile ? undefined : "Show fingerings"}
+      size={mobile ? "sm" : "xs"}
       checked={state.fingerings}
       disabled={state.arrangement !== "melody" && state.arrangement !== "bass"}
       onChange={(event) => change({ fingerings: event.currentTarget.checked })}
     />
+  );
+  return mobile ? (
+    <Group justify="space-between" wrap="nowrap" w="100%">
+      <Text component="label" htmlFor="hymn-fingerings" size="sm">
+        Show fingerings
+      </Text>
+      {checkbox}
+    </Group>
+  ) : (
+    checkbox
   );
 }

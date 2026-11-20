@@ -327,7 +327,7 @@ export class ScorePassage {
     events.forEach((event, index) => {
       const ink = new Map<SVGSVGElement, Box[]>();
       for (const node of (event.elements || []).flat()) {
-        if (!node) continue;
+        if (!node || node.closest(".guitar-chord-trigger")) continue;
         this.nodes.set(node, index);
         node.setAttribute("data-passage-note", String(index));
         node.setAttribute("tabindex", "-1");

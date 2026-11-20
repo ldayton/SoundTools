@@ -41,7 +41,6 @@ export function attachChordDiagrams(paper: HTMLElement) {
     text.parentNode!.insertBefore(group, text);
     group.append(target, text);
     const open = () => {
-      group.focus();
       window.dispatchEvent(
         new CustomEvent<Selection>(eventName, {
           detail: { name, shape, trigger: group },

@@ -14,7 +14,9 @@ import {
 export type GuitarScaleSettings = ScaleSelection & {
   pattern?: ScalePattern;
   shift?: number;
-  labels?: "fingers" | "notes";
+  labels?: "fingers" | "notes" | "none";
+  firstFret?: number;
+  lastFret?: number;
   returnPosition?: { pattern: ScalePattern; shift: number };
 };
 export function mergeGuitarScaleSettings(
@@ -35,9 +37,29 @@ export function mergeGuitarScaleSettings(
   if (source.labels !== undefined || base.labels !== undefined)
     settings.labels = choice(
       source.labels,
-      ["fingers", "notes"],
+      ["fingers", "notes", "none"],
       base.labels || "fingers",
     );
+  const validFret = (value: unknown): value is number =>
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 24;
+  if (
+    source.firstFret !== undefined ||
+    source.lastFret !== undefined ||
+    base.firstFret !== undefined ||
+    base.lastFret !== undefined
+  ) {
+    settings.firstFret = validFret(source.firstFret)
+      ? source.firstFret
+      : (base.firstFret ?? 0);
+    settings.lastFret = Math.max(
+      1,
+      settings.firstFret,
+      validFret(source.lastFret) ? source.lastFret : (base.lastFret ?? 5),
+    );
+  }
   const patterns = ["map", ...SCALE_SHAPES] as const;
   const pattern = choice(
     migratePattern(source.pattern, settings.quality),
@@ -107,6 +129,9 @@ export function guitarScaleFromQuery(
       quality,
       ...(tonic >= 0 ? { spelling: name } : {}),
       ...(pattern ? { pattern } : {}),
+      ...(query.has("from") ? { firstFret: Number(query.get("from")) } : {}),
+      ...(query.has("to") ? { lastFret: Number(query.get("to")) } : {}),
+      ...(query.has("labels") ? { labels: query.get("labels") } : {}),
       ...(shift !== undefined ? { shift } : {}),
     },
     base,

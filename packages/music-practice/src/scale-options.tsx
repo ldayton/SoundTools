@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { NativeSelect, Stack } from "@mantine/core";
+import { NativeSelect, Stack, SimpleGrid } from "@mantine/core";
 import { SCALE_SHAPES, type ScalePattern } from "./guitar-scale-patterns";
 import { SCALE_TONICS, scaleLabel, type ScaleQuality } from "./guitar-scales";
 import { createViewState } from "./view-state";
@@ -8,7 +8,9 @@ export type ScaleOptionsSnapshot = {
   quality: ScaleQuality;
   spelling?: string;
   pattern: ScalePattern;
-  labels: "fingers" | "notes";
+  labels: "fingers" | "notes" | "none";
+  firstFret: number;
+  lastFret: number;
   linked: ScalePattern | "none";
 };
 export const scaleOptionsState = createViewState<ScaleOptionsSnapshot>;
@@ -58,13 +60,39 @@ export function ScaleOptions({
         label="Pattern"
         value={state.pattern}
         data={[
-          { value: "map", label: "Open-position map" },
+          { value: "map", label: "Fret range" },
           ...SCALE_SHAPES.map((value) => ({ value, label: `Shape ${value}` })),
         ]}
         onChange={(e) =>
           change({ pattern: e.currentTarget.value as ScalePattern })
         }
       />
+      {state.pattern === "map" && (
+        <SimpleGrid cols={2}>
+          <NativeSelect
+            label="First fret"
+            value={String(state.firstFret)}
+            data={Array.from({ length: state.lastFret + 1 }, (_, f) => ({
+              value: String(f),
+              label: f === 0 ? "0 (open)" : String(f),
+            }))}
+            onChange={(event) =>
+              change({ firstFret: Number(event.currentTarget.value) })
+            }
+          />
+          <NativeSelect
+            label="Last fret"
+            value={String(state.lastFret)}
+            data={Array.from(
+              { length: 25 - Math.max(1, state.firstFret) },
+              (_, i) => String(Math.max(1, state.firstFret) + i),
+            )}
+            onChange={(event) =>
+              change({ lastFret: Number(event.currentTarget.value) })
+            }
+          />
+        </SimpleGrid>
+      )}
       <NativeSelect
         id="scale-linked-pattern"
         label="Link with"
@@ -72,16 +100,29 @@ export function ScaleOptions({
         disabled={state.pattern === "map"}
         data={[
           { value: "none", label: "Single shape" },
-          ...SCALE_SHAPES.filter(value => value !== state.pattern).map(value => ({ value, label: `Shape ${value}` })),
+          ...SCALE_SHAPES.filter((value) => value !== state.pattern).map(
+            (value) => ({ value, label: `Shape ${value}` }),
+          ),
         ]}
-        onChange={e => change({ linked: e.currentTarget.value as ScaleOptionsSnapshot["linked"] })}
+        onChange={(e) =>
+          change({
+            linked: e.currentTarget.value as ScaleOptionsSnapshot["linked"],
+          })
+        }
       />
       <NativeSelect
         id="scale-dot-labels"
         label="Dots"
-        value={state.labels}
+        value={
+          state.pattern === "map" && state.labels === "fingers"
+            ? "notes"
+            : state.labels
+        }
         data={[
-          { value: "fingers", label: "Finger numbers" },
+          ...(state.pattern !== "map"
+            ? [{ value: "fingers", label: "Finger numbers" }]
+            : []),
+          { value: "none", label: "Unlabelled dots" },
           { value: "notes", label: "Note names" },
         ]}
         onChange={(e) =>

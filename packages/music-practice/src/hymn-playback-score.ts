@@ -25,7 +25,8 @@ export function hymnPlaybackScore(options: {
     abcjs.parseOnly(abc)[0].setUpAudio({
       qpm: 60,
       chordsOff: true,
-      midiTranspose: options.transpose,
+      midiTranspose:
+        options.transpose - (options.arrangement === "guitar" ? 12 : 0),
     });
   // Schedule the entire song on one audio clock. Restarting the transport at
   // stanza boundaries would add preparation/lead-in gaps and another count-in.

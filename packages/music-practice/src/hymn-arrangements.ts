@@ -2,6 +2,8 @@ import abcjs, { type VoiceItem } from "abcjs";
 import { spellPitch, chromaticPitch } from "./guitar";
 import { KEYS } from "./model";
 import hymns from "./hymns.json";
+export const supportsGuitarTab = (hymn: { id: string }) =>
+  hymn.id === "ill-fly-away";
 export const ARRANGEMENTS = [
   { id: "melody", label: "1 · Melody", help: "Read the melody on its own." },
   {
@@ -26,7 +28,19 @@ export const ARRANGEMENTS = [
   },
 ] as const;
 export type HymnHands = "right" | "left" | "both";
-export type Arrangement = (typeof ARRANGEMENTS)[number]["id"];
+export type Arrangement = (typeof ARRANGEMENTS)[number]["id"] | "guitar";
+export function hymnArrangements(hymn: { id: string }) {
+  return supportsGuitarTab(hymn)
+    ? [
+        ...ARRANGEMENTS,
+        {
+          id: "guitar" as const,
+          label: "Guitar · Melody tab",
+          help: "Guitar melody with chord symbols.",
+        },
+      ]
+    : [...ARRANGEMENTS];
+}
 type Note = Extract<VoiceItem, { el_type: "note" }> & {
   midiPitches?: { pitch: number }[];
   resolvedPitches?: number[];
@@ -117,6 +131,84 @@ function token(pitch: number, key: string, accidentals: Map<string, number>) {
     n.letter +
     (n.octave >= 4 ? "'".repeat(n.octave - 4) : ",".repeat(4 - n.octave))
   );
+}
+/** Chord changes in the source C edition; visual transposition moves their names too. */
+const flyGuitarChanges: [number, string][][] = [
+  [[0, "C"]],
+  [[0, "C"]],
+  [[0, "F"]],
+  [
+    [0, "C"],
+    [32, "G7"],
+  ],
+  [[0, "C"]],
+  [[0, "C"]],
+  [
+    [0, "C"],
+    [48, "G7"],
+  ],
+  [
+    [0, "C"],
+    [32, "G7"],
+  ],
+  [[0, "C"]],
+  [[0, "C"]],
+  [[0, "F"]],
+  [
+    [0, "C"],
+    [32, "G7"],
+  ],
+  [[0, "C"]],
+  [[0, "C"]],
+  [
+    [0, "C"],
+    [48, "G7"],
+  ],
+  [[0, "C"]],
+];
+function guitarMelody(bars: Bar[], from: number): Bar[] {
+  return bars.map((bar, index) => {
+    const changes = flyGuitarChanges[from + index];
+    let at = 0;
+    const notes = bar.notes.flatMap((note) => {
+      const start = at,
+        end = start + Math.round(note.duration * 64);
+      at = end;
+      const cuts = [
+        start,
+        ...changes
+          .map(([beat]) => beat)
+          .filter((beat) => beat > start && beat < end),
+        end,
+      ];
+      return cuts.slice(0, -1).map((beat, part) => {
+        const copy = structuredClone(note);
+        copy.duration = (cuts[part + 1] - beat) / 64;
+        const chord = changes.find(([offset]) => offset === beat)?.[1];
+        copy.chord = chord ? [{ name: chord, position: "default" }] : undefined;
+        if (part) {
+          copy.lyric = undefined;
+          copy.decoration = undefined;
+        }
+        if (cuts.length > 2) {
+          copy.startBeam = undefined;
+          copy.endBeam = undefined;
+          copy.pitches?.forEach((pitch) => {
+            if (part) {
+              pitch.endTie = true;
+              pitch.startSlur = undefined;
+            }
+            if (part < cuts.length - 2) {
+              pitch.startTie = {};
+              pitch.endSlur = undefined;
+            }
+          });
+        }
+        return copy;
+      });
+    });
+    return { ...bar, notes };
+  });
 }
 function serialize(bars: Bar[], melody = false) {
   const music: string[] = [];
@@ -276,7 +368,11 @@ export function arrangeHymn(
   hands: HymnHands = "both",
   endingBar?: number,
 ) {
-  if (hands === "right" && arrangement !== "original")
+  if (
+    hands === "right" &&
+    arrangement !== "original" &&
+    arrangement !== "guitar"
+  )
     return arrangeHymn(hymn, "melody", sectionBars, section, "both", endingBar);
   const source = voices(hymn);
   const count = Math.min(source[0].bars.length, endingBar ?? Infinity);
@@ -285,7 +381,12 @@ export function arrangeHymn(
   const selected = Math.max(0, Math.min(sections - 1, section));
   const from = selected * size,
     to = Math.min(count, from + size);
-  const melody = source[0].bars.slice(from, to);
+  let melody = source[0].bars.slice(from, to);
+  if (arrangement === "guitar") {
+    if (!supportsGuitarTab(hymn))
+      throw Error("Guitar tab is not available for this song.");
+    melody = guitarMelody(melody, from);
+  }
   const header = `X:1\nT:${hymn.title}\nM:${hymn.meter}\nL:1/64\n`;
   let abc: string;
   if (arrangement === "original") {
@@ -325,7 +426,7 @@ export function arrangeHymn(
     }
   } else {
     const out = serialize(melody, true);
-    if (arrangement === "melody")
+    if (arrangement === "melody" || arrangement === "guitar")
       abc = header + `K:${hymn.key}\n${out.music}\nw:${out.lyrics}\n`;
     else if (arrangement === "bass") {
       const bass = singleBass(source, from, to, hymn.key);

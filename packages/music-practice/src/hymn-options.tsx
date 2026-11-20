@@ -31,7 +31,7 @@ import {
   Text,
 } from "@mantine/core";
 import {
-  ARRANGEMENTS,
+  hymnArrangements,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -189,7 +189,9 @@ export function HymnOptions({
           </Group>
         </Stack>
       </Fieldset>
-      {(state.arrangement === "melody" || state.viewHands !== "left") && (
+      {(state.arrangement === "melody" ||
+        state.arrangement === "guitar" ||
+        state.viewHands !== "left") && (
         <OptionsSection title="Stanzas">
           <Stack id="hymn-stanzas" gap="xs" role="group" aria-label="Stanzas">
             {state.stanzaChoices.map((stanza) => (
@@ -221,17 +223,22 @@ export function HymnOptions({
           </Stack>
         </OptionsSection>
       )}
-      <OptionsSection title="Hands">
+      <OptionsSection
+        title={state.arrangement === "guitar" ? "Guitar" : "Hands"}
+      >
         <NativeSelect
           id="hymn-arrangement"
           label="Arrangement"
           value={state.arrangement}
-          data={ARRANGEMENTS.map((a) => ({ value: a.id, label: a.label }))}
+          data={hymnArrangements({ id: state.hymn }).map((a) => ({
+            value: a.id,
+            label: a.label,
+          }))}
           onChange={(event) =>
             change({ arrangement: event.currentTarget.value as Arrangement })
           }
         />
-        {state.arrangement !== "melody" && (
+        {state.arrangement !== "melody" && state.arrangement !== "guitar" && (
           <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">
             <NativeSelect
               id="hymn-view"
@@ -479,6 +486,7 @@ export function HymnFingerings({
   const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
+  if (state.arrangement === "guitar") return null;
   const checkbox = (
     <Checkbox
       id="hymn-fingerings"

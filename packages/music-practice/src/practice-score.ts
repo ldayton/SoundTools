@@ -61,6 +61,7 @@ export function drawPracticeScore(
     scale?: number;
     staffScale?: number;
     fingerings?: boolean;
+    guitarTab?: boolean;
     lyrics?: HymnLyricsSelection;
     transpose?: number;
     compact?: boolean;
@@ -80,9 +81,13 @@ export function drawPracticeScore(
   // abcjs rounds font sizes to whole SVG pixels. Reserve enough lyric space,
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
-  const source = `%%vocalfont sans-serif ${vocalFont}\n` + abc;
+  const source =
+    (options.guitarTab ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
+    `%%vocalfont sans-serif ${vocalFont}\n` +
+    abc;
   const tune = abcjs.renderAbc(paper, source, {
     add_classes: true,
+    tablature: options.guitarTab ? [{ instrument: "guitar" }] : undefined,
     initialClef: options.initialSignatures,
     visualTranspose: transpose,
     // Reserve breathing room around lyrics before abcjs computes note positions.
@@ -105,10 +110,12 @@ export function drawPracticeScore(
     responsive: "resize",
     oneSvgPerLine: true,
     staffwidth: Math.max(140, width / scale - 24),
-    // Balance all systems instead of stranding a final bar on its own line.
-    wrap: options.rhythmGrid
-      ? undefined
-      : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
+    // abcjs wrapping reparses the tune and drops its tablature plugin. Guitar
+    // uses barsperstaff instead; other scores balance systems with wrapping.
+    wrap:
+      options.rhythmGrid || options.guitarTab
+        ? undefined
+        : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     timeBasedLayout: options.rhythmGrid
       ? { minPadding: 8, minWidth: Math.max(100, width / scale - 24) }
       : undefined,
@@ -134,7 +141,8 @@ export function drawPracticeScore(
   // abcjs keeps audio at source pitch unless both transpositions are specified.
   // Use the same shift so notation, spellings and MIDI grading agree.
   const audio = tune.setUpAudio({
-    midiTranspose: transpose,
+    // Guitar tab uses the conventional written octave, sounding one octave lower.
+    midiTranspose: transpose - (options.guitarTab ? 12 : 0),
     ...(options.playback ? { qpm: 60, chordsOff: true } : {}),
   });
   options.playback?.(audio);

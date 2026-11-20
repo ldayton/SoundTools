@@ -66,8 +66,8 @@ import {
   keyboardRange,
 } from "./practice-score";
 import {
-  ARRANGEMENTS,
   arrangeHymn,
+  hymnArrangements,
   hymnMelodyOffset,
   type Arrangement,
   type HymnHands,
@@ -270,7 +270,7 @@ export class SightReading {
       this.stanza = this.stanzas.includes(saved?.stanza!)
         ? saved!.stanza!
         : this.stanzas[0] || 0;
-      if (ARRANGEMENTS.some((a) => a.id === saved?.arrangement))
+      if (hymnArrangements(this.hymn).some((a) => a.id === saved?.arrangement))
         this.arrangement = saved.arrangement;
       else if (saved) {
         this.arrangement = saved.chords === true ? "original" : "melody";
@@ -866,14 +866,18 @@ export class SightReading {
         fingerings:
           this.showFingerings && ["melody", "bass"].includes(this.arrangement),
         lyrics:
-          this.arrangement === "melody" || this.viewHands !== "left"
+          this.arrangement === "melody" ||
+          this.arrangement === "guitar" ||
+          this.viewHands !== "left"
             ? {
                 hymn: this.hymn,
                 selected: this.stanzas,
                 offset: hymnMelodyOffset(this.hymn, score.from),
+                skipChordTies: this.arrangement === "guitar",
               }
             : undefined,
-        octaveNotation: true,
+        guitarTab: this.arrangement === "guitar",
+        octaveNotation: this.arrangement !== "guitar",
         initialSignatures: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
@@ -913,6 +917,7 @@ export class SightReading {
       const practice =
         this.mode === "wait" &&
         this.arrangement !== "melody" &&
+        this.arrangement !== "guitar" &&
         this.hands !== this.viewHands
           ? arrangeHymn(
               this.hymn,
@@ -1430,7 +1435,9 @@ export class SightReading {
       context: this.mode === "playback" ? "Playback" : "Wait for me",
     });
     this.publishOptions();
-    this.pianoPanel.setAvailable(!this.mobileLayout.matches);
+    this.pianoPanel.setAvailable(
+      !this.mobileLayout.matches && this.arrangement !== "guitar",
+    );
     if (this.mode === "playback") {
       this.playbackView = "";
       this.updatePlayback();

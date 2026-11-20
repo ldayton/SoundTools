@@ -3,7 +3,8 @@ import type { CountInBars } from "./hymn-count-in";
 import { isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
 import {
-  ARRANGEMENTS,
+  supportsGuitarTab,
+  hymnArrangements,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -124,8 +125,14 @@ export function mergeHymnSettings(
     hymn: hymns.some((h) => h.id === s.hymn) ? (s.hymn as string) : base.hymn,
     arrangement: choice(
       s.arrangement,
-      ARRANGEMENTS.map((a) => a.id),
-      legacy ? (s.chords === true ? "original" : "melody") : base.arrangement,
+      hymnArrangements(hymn).map((a) => a.id),
+      legacy
+        ? s.chords === true
+          ? "original"
+          : "melody"
+        : base.arrangement === "guitar" && !supportsGuitarTab(hymn)
+          ? "melody"
+          : base.arrangement,
     ),
     sectionBars: 0,
     section: 0,

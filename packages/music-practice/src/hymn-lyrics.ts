@@ -13,6 +13,7 @@ export type HymnLyricsSelection = {
   hymn: HymnLyricData;
   selected: readonly number[];
   offset: number;
+  skipChordTies?: boolean;
 };
 
 export function validStanzas(
@@ -70,11 +71,16 @@ export function hymnLyricsAbc(
     return start;
   });
   let line = 0;
-  notes.forEach((note, index) => {
+  let sourceIndex = 0;
+  notes.forEach((note) => {
     while (line + 1 < starts.length && starts[line + 1] <= note.startChar!)
       line++;
     const indices = byLine.get(line) || [];
-    indices.push(selection.offset + index);
+    const insertedTie =
+      selection.skipChordTies &&
+      note.pitches?.[0]?.endTie &&
+      note.chord?.length;
+    indices.push(insertedTie ? -1 : selection.offset + sourceIndex++);
     byLine.set(line, indices);
   });
   return lines

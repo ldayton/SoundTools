@@ -71,7 +71,7 @@ export function beginnerSystems(abc: string, measures: number): string {
 }
 
 /** abcjs repeats active part labels on later systems and once per voice. */
-export function normalizeBeginnerLandmarks(paper:HTMLElement,tune:TuneObject,from:number) {
+export function normalizeBeginnerLandmarks(paper:HTMLElement,tune:TuneObject,from:number,pickup=false) {
   const seen=new Set<string>();
   for(const mark of paper.querySelectorAll('g.abcjs-part')) {
     const label=mark.textContent?.trim() || '';
@@ -91,7 +91,8 @@ export function normalizeBeginnerLandmarks(paper:HTMLElement,tune:TuneObject,fro
     for(const mark of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-bar-number')) {
       const position = bounds(mark, svg);
       const actual = position && starts.find(([, x]) => x >= position.x - 2);
-      const key = actual ? String(actual[0] + 1) : mark.textContent?.trim() || '';
+      if (pickup && actual?.[0] === 0) {mark.remove();continue;}
+      const key = actual ? String(actual[0] + (pickup ? 0 : 1)) : mark.textContent?.trim() || '';
       if(bars.has(key)) mark.remove();
       else {
         bars.add(key);
@@ -173,7 +174,7 @@ function line(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,cls:stri
 }
 
 /** Add only the starting patterns and changes; repeated finger numbers are omitted. */
-export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean) {
+export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false) {
   const seen=new Set<string>(),picking=new Map<string,number>();
   for(const {note,bar,voice,pitches} of entries(tune,from)) {
     if(!pitches.length || note.pitches?.every(p=>p.endTie)) continue;
@@ -186,7 +187,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
     if(!target) continue;
     const targetBox=bounds(target,svg);if(!targetBox) continue;
     const original=pitches.map(p=>p-transpose);
-    const fingers=beginnerFingers(instrument,bar,voice,original);
+    const fingers=fingersFor(instrument,bar,voice,original);
     const headBoxes=pitches.map((_,i)=>bounds(heads[i] || group,svg));
     const accidentals=[...group.querySelectorAll<SVGGraphicsElement>('.abcjs-accidental,[data-name^="accidentals."]')]
       .flatMap(e=>{const box=bounds(e,svg);return box?[box.x]:[];});
@@ -196,7 +197,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
     for(let i=fingerY.length-1;i>=0;i--) if(fingers[i]) {
       fingerY[i]=Math.max(fingerY[i],above+10);above=fingerY[i];
     }
-    const section=bar<8 ? 0 : bar;
+    const section=compactChordFingerings && (instrument === "guitar" || voice === 1) ? 0 : bar<8 ? 0 : bar;
     fingers.forEach((finger,index)=>{
       if (tabOnly) return;
       if(!finger) return;
@@ -226,7 +227,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
       mark.dataset.pitch=String(original[index]);mark.dataset.finger=String(finger);
       mark.setAttribute('aria-label',`${instrument==='piano' ? voice===0?'Right hand':'Left hand' : 'Fretting hand'}: finger ${finger}`);
     });
-    if(instrument==='guitar' && pitches.length === 1) {
+    if(pickingMarks && instrument==='guitar' && pitches.length === 1) {
       const key=String(voice);
       const count=picking.get(key)||0;picking.set(key,count+1);
       if(count < (voice===0 ? 2 : 1)) {
@@ -261,7 +262,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
 }
 
 /** Rhythmic tablature: independent melody/bass stems, eighth beams, rests and ties. */
-export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number) {
+export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor=fingerstylePosition) {
   const beam=new Map<number,{x:number;y:number;svg:SVGSVGElement}[]>();
   const ties=new Map<string,{x:number;y:number;svg:SVGSVGElement}>();
   for(const {note,voice,pitches} of entries(tune,from)) {
@@ -274,8 +275,8 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     const top=box.y,bottom=box.y+box.height,step=box.height/5;
     if(voice===0 && !svg.querySelector('.tab-rhythm-meter') && svg===paper.querySelector('svg')) {
       const meter=document.createElementNS(ns,'g');meter.classList.add('tab-rhythm-meter');
-      text(meter,box.x+38,top+23,'4','tab-rhythm-time',16);
-      text(meter,box.x+38,top+43,'4','tab-rhythm-time',16);svg.append(meter);
+      text(meter,box.x+38,top+23,String(tune.getMeterFraction().num),'tab-rhythm-time',16);
+      text(meter,box.x+38,top+43,String(tune.getMeterFraction().den),'tab-rhythm-time',16);svg.append(meter);
     }
     const up=voice===0,lane=up ? top-25 : bottom+25;
     const x=(absolute?.x ?? sourceBox.x)+5;
@@ -292,19 +293,27 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
       }
       continue;
     }
-    const positions=pitches.map(p=>fingerstylePosition(p,pitches.length>1,transpose));
+    const positions=pitches.map(p=>positionFor(p,pitches.length>1,transpose));
     if(positions.some(p=>!p)) continue;
     const ys=positions.map(p=>top+p!.str*step);
     const anchor=up?Math.min(...ys)-5:Math.max(...ys)+5;
     const duration=note.duration;
+    const dotted = [0.1875,0.375,0.75].includes(duration);
+    const base = dotted ? duration/1.5 : duration;
     const rhythm=document.createElementNS(ns,'g');rhythm.classList.add('tab-rhythm');
     rhythm.dataset.duration=String(duration);rhythm.dataset.voice=String(voice);
     svg.append(rhythm);
     if(duration < 1) {
       line(rhythm,x,anchor,x,lane,'tab-rhythm-stem');
-      if(duration===0.5) line(rhythm,x+3,anchor,x+3,lane,'tab-rhythm-half');
+      if(base===0.5) line(rhythm,x+3,anchor,x+3,lane,'tab-rhythm-half');
     }
-    if(duration===0.125) {
+    if (dotted) {
+      const dot=document.createElementNS(ns,'circle');
+      dot.setAttribute('cx',String(x+7));dot.setAttribute('cy',String(lane+(up?2:-2)));
+      dot.setAttribute('r','1.6');dot.setAttribute('fill','currentColor');dot.setAttribute('stroke','none');
+      dot.classList.add('tab-rhythm-dot');rhythm.append(dot);
+    }
+    if(base===0.125) {
       const points=beam.get(voice)||[];
       if(note.startBeam || points.length) {
         points.push({x,y:lane,svg});beam.set(voice,points);

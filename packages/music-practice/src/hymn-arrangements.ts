@@ -1,10 +1,12 @@
+import { hymnLyricsAbc } from "./hymn-lyrics";
+import { isChristAlone, christGuitarAbc, christLandmarks, christGuitarLyricData } from "./in-christ-alone";
 import { beginnerLandmarks } from "./beginner-score";
 import abcjs, { type VoiceItem } from "abcjs";
 import { spellPitch, chromaticPitch } from "./guitar";
 import { KEYS } from "./model";
 import hymns from "./hymns.json";
 export const hasInstrumentEditions = (hymn: { id: string }) =>
-  hymn.id === "the-1st-fingerstyle-blues";
+  hymn.id === "the-1st-fingerstyle-blues" || isChristAlone(hymn);
 export const supportsGuitarTab = (hymn: { id: string }) =>
   hymn.id === "ill-fly-away" || hasInstrumentEditions(hymn);
 export const ARRANGEMENTS = [
@@ -32,16 +34,17 @@ export const ARRANGEMENTS = [
 ] as const;
 export type HymnHands = "right" | "left" | "both";
 export type Arrangement =
-  (typeof ARRANGEMENTS)[number]["id"] | "guitar" | "guitar-chords" | "piano" | "guitar-fingerstyle";
+  (typeof ARRANGEMENTS)[number]["id"] | "guitar" | "guitar-chords" | "piano" | "guitar-fingerstyle" | "guitar-edition";
 export const isGuitarArrangement = (value: Arrangement) =>
-  value === "guitar" || value === "guitar-chords" || value === "guitar-fingerstyle";
+  value === "guitar" || value === "guitar-chords" || value === "guitar-fingerstyle" || value === "guitar-edition";
+export const isEditedGuitar = (value: Arrangement) => value === "guitar-fingerstyle" || value === "guitar-edition";
 /** Older tab editions store written pitches; fingerstyle uses an octave clef. */
 export const guitarMidiOffset = (value: Arrangement) =>
-  value === "guitar" || value === "guitar-chords" ? -12 : 0;
+  value === "guitar-edition" ? 0 : value === "guitar" || value === "guitar-chords" ? -12 : 0;
 export function hymnArrangements(hymn: { id: string }) {
   if (hasInstrumentEditions(hymn)) return [
     { id: "piano" as const, label: "Piano", help: "Melody and bass arranged for two hands on a grand staff." },
-    { id: "guitar-fingerstyle" as const, label: "Guitar", help: "Original fingerstyle guitar arrangement." },
+    { id: isChristAlone(hymn) ? "guitar-edition" as const : "guitar-fingerstyle" as const, label: "Guitar", help: isChristAlone(hymn) ? "Chord accompaniment for singing, with capo 2." : "Original fingerstyle guitar arrangement." },
   ];
   return supportsGuitarTab(hymn)
     ? [
@@ -454,7 +457,18 @@ export function arrangeHymn(
   endingBar?: number,
   guitarTranspose = 0,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
-  if (hasInstrumentEditions(hymn) && (arrangement === "piano" || arrangement === "guitar-fingerstyle")) {
+  if (isChristAlone(hymn) && (arrangement === "piano" || arrangement === "guitar-edition")) {
+    const guitar = arrangement === "guitar-edition";
+    const harmony = guitar ? hymnLyricsAbc(christGuitarAbc, {hymn:christGuitarLyricData(hymn),selected:[1],offset:0}) : abcjs.strTranspose(hymn.harmony, abcjs.parseOnly(hymn.harmony), -12)
+      .replace("%%staves S1 | S2", "%%score {S1 | S2}").replace('L:1/64', 'L:1/64\nQ:1/4=70');
+    const edition = {...hymn, id:hymn.id+":"+arrangement, key:guitar?"C":hymn.key, harmony};
+    let score = arrangeHymn(edition, "original", sectionBars, section, guitar?"both":hands, endingBar);
+    if (guitar && !/clef=treble-8/.test(score.abc))
+      score = {...score, abc:score.abc.replace(/clef=treble\b/g,"clef=treble-8")};
+    if (!guitar) score = {...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,group:string)=>`%%score {${group.replace(/[(){}]/g,"")}}`)};
+    return {...score,abc:christLandmarks(score.abc,score.from,guitar)};
+  }
+  if (hymn.id === "the-1st-fingerstyle-blues" && (arrangement === "piano" || arrangement === "guitar-fingerstyle")) {
     const edition = arrangement === "piano" ? {
       ...hymn,
       id: hymn.id + ":piano",

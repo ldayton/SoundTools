@@ -1,3 +1,4 @@
+import { isChristAlone, christGuitarLyricData, christGuitarChordOffset } from "./in-christ-alone";
 import { validStanzas, hymnEndingBar } from "./hymn-lyrics";
 import { RendererLifetime } from "./renderer-lifetime";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
@@ -70,6 +71,7 @@ import {
   arrangeHymn,
   hymnArrangements,
   isGuitarArrangement,
+  isEditedGuitar,
   guitarMidiOffset,
   hasInstrumentEditions,
   hymnMelodyOffset,
@@ -896,8 +898,9 @@ export class SightReading {
             : ["melody", "bass", "guitar"].includes(this.arrangement)),
         beginnerEdition: hasInstrumentEditions(this.hymn)
           ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
+        christEdition: isChristAlone(this.hymn),
         fromBar: score.from,
-        lyrics:
+        lyrics: this.arrangement === "guitar-edition" ? {hymn:christGuitarLyricData(this.hymn),selected:this.stanzas,offset:christGuitarChordOffset(score.from)} :
           this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
           this.viewHands !== "left"
@@ -909,10 +912,10 @@ export class SightReading {
               }
             : undefined,
         guitarTab: isGuitarArrangement(this.arrangement) &&
-          (this.arrangement !== "guitar-fingerstyle" || this.scoreDisplay !== "notation"),
+          (!isEditedGuitar(this.arrangement) || this.scoreDisplay !== "notation"),
         guitarMidiOffset: guitarMidiOffset(this.arrangement),
-        fingerstyleTab: this.arrangement === "guitar-fingerstyle",
-        tabOnly: this.arrangement === "guitar-fingerstyle" && this.scoreDisplay === "tab",
+        fingerstyleTab: isEditedGuitar(this.arrangement),
+        tabOnly: isEditedGuitar(this.arrangement) && this.scoreDisplay === "tab",
         chordTab: this.arrangement === "guitar-chords",
         octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement),
         initialSignatures: !hasInstrumentEditions(this.hymn),
@@ -1290,10 +1293,10 @@ export class SightReading {
     this.save();
   }
   private cachedMelodyRange() {
-    const identity = this.hymn.id;
+    const identity = `${this.hymn.id}:${this.arrangement}`;
     let range = this.rangeCache.get(identity);
     if (!range) {
-      range = hymnPitchRange(arrangeHymn(this.hymn, "melody", 0, 0).abc);
+      range = hymnPitchRange(arrangeHymn(this.hymn, isChristAlone(this.hymn) ? "piano" : "melody", 0, 0, "right").abc);
       this.rangeCache.set(identity, range);
     }
     return range;
@@ -1304,9 +1307,9 @@ export class SightReading {
     const { choices, preferred } = hymnRangeKeys(
       this.hymn.key,
       range,
-      this.low,
-      this.high,
-      this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
+      this.arrangement === "guitar-edition" ? null : this.low,
+      this.arrangement === "guitar-edition" ? null : this.high,
+      this.arrangement === "guitar-edition" ? {min:0,max:0} : this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
     );
     this.availableKeys = choices
       .filter((choice) => choice.fits)

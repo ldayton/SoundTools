@@ -1,3 +1,4 @@
+import { isChristAlone } from "./in-christ-alone";
 import { ToolbarNumber } from "@ldayton/ui/toolbar-number";
 import { STAFF_HEIGHT } from "./notation-metrics";
 import { ControlIcon } from "@ldayton/ui/control-icon";
@@ -36,6 +37,7 @@ import {
   supportsGuitarTab,
   hasInstrumentEditions,
   isGuitarArrangement,
+  isEditedGuitar,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -112,7 +114,13 @@ export function HymnOptions({
           />
         </OptionsSection>
       )}
-      <Fieldset legend="Key & range" p="sm">
+      {state.arrangement === "guitar-edition" ? <Fieldset legend="Guitar setup" p="sm">
+        <Stack gap="xs">
+          <Text size="sm">Standard tuning · Capo 2</Text>
+          <Text size="sm">Sounding key: D major</Text>
+          <Text size="sm">Chord shapes: C, small F, G and Am</Text>
+        </Stack>
+      </Fieldset> : <Fieldset legend="Key & range" p="sm">
         <Stack gap="xs">
           <Text size="xs" c="dimmed">
             Melody limits (optional)
@@ -193,8 +201,8 @@ export function HymnOptions({
             </Button>
           </Group>
         </Stack>
-      </Fieldset>
-      {!editions && (state.arrangement === "melody" ||
+      </Fieldset>}
+      {(!editions || state.stanzaChoices.length>1) && (state.arrangement === "melody" ||
         isGuitarArrangement(state.arrangement) ||
         state.viewHands !== "left") && (
         <OptionsSection title="Stanzas">
@@ -251,7 +259,7 @@ export function HymnOptions({
             />
           </OptionsSection>
           <OptionsSection title="Display">
-            {state.arrangement === "guitar-fingerstyle" ? (
+            {isEditedGuitar(state.arrangement) ? (
               <NativeSelect
                 id="hymn-score-display"
                 label="Score"
@@ -267,7 +275,7 @@ export function HymnOptions({
           </OptionsSection>
           {state.mode === "wait" && (
             <OptionsSection title="Practice">
-              <NativeSelect
+              {state.arrangement === "guitar-edition" ? <Text size="sm">Practise the chord accompaniment.</Text> : <NativeSelect
                 id="hymn-hands"
                 label={state.arrangement === "piano" ? "Practise hands" : "Practise voices"}
                 value={state.hands}
@@ -277,7 +285,7 @@ export function HymnOptions({
                   {value:"left",label:"Bass"},
                 ]}
                 onChange={event => change({hands:event.currentTarget.value as HymnHands})}
-              />
+              />}
               <Checkbox
                 id="hymn-reattack-ties"
                 label="Re-strike tied notes"
@@ -381,6 +389,14 @@ export function HymnOptions({
           <Accordion.Control>Reading guide</Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
+              {isChristAlone({id:state.hymn}) ? <>
+                <Text size="sm">D major, 3/4. The pickup lasts one and a half beats; count three beats in each complete bar. The earlier verses include the four-bar vocal ending; the final verse ends at bar 16.</Text>
+                {state.arrangement === "piano" ? <Text size="sm">Play the melody with your right hand and the held chords with your left. Small numbers suggest fingers; 1 is the thumb and 5 is the little finger. Lift and reposition for the octave leap in the melody.</Text> : <>
+                  <Text size="sm">Capo 2. Chord symbols and fret numbers are relative to the capo; the sounding key is D major. Strum once at each chord change and let it ring.</Text>
+                  <Text size="sm">Use C, small F, G and Am shapes. Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1. Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
+                  <Text size="sm">A dot adds half the written duration. Double stems in rhythmic tab indicate half notes; the dotted half notes last all three beats.</Text>
+                </>}
+              </> : <>
               <Text size="sm">A, B and C are four-bar phrases. Repeat these twelve bars, then play the Ending.</Text>
               {state.arrangement === "piano" ? <Text size="sm">Small numbers suggest fingers: 1 is the thumb, 5 is the little finger. Fingerings mark starting patterns and hand changes. The final left-hand chord spans only a fifth.</Text> : <>
                 <Text size="sm">Numbers on tab lines are frets. Small 1–4 beside the notes are fretting fingers: index to little finger. Circled numbers identify strings. Open strings need no fretting finger.</Text>
@@ -388,6 +404,7 @@ export function HymnOptions({
                 <Text size="sm">In rhythmic tab, melody stems point up and bass stems point down. Half notes have double stems; whole notes have no stem. A tie means hold the note without plucking again.</Text>
               </>}
               <Text size="sm">Swing: play eighth-note pairs long–short. Keep the bass pulse steady while practising the melody.</Text>
+              </>}
             </Stack>
           </Accordion.Panel>
         </Accordion.Item>}
@@ -630,7 +647,7 @@ export function HymnFingerings({
   const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
-  if (state.arrangement === "guitar-chords") return null;
+  if (state.arrangement === "guitar-chords" || state.arrangement === "guitar-edition" && state.scoreDisplay === "tab") return null;
   const editions = hasInstrumentEditions({id:state.hymn});
   const reviewed = (state.key === "original" || state.key === state.originalKey) &&
     (state.arrangement === "piano" || state.octave === 0);

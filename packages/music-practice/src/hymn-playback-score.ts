@@ -1,3 +1,4 @@
+import { christCapoAudio } from "./in-christ-alone";
 import { swingAudio } from "./hymn-swing";
 import abcjs, { type AudioTracks } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
@@ -23,13 +24,15 @@ export function hymnPlaybackScore(options: {
   endingBar?: number;
   stanzas?: readonly number[];
 }) {
-  const readAudio = (abc: string) =>
-    swingAudio(abcjs.parseOnly(abc)[0].setUpAudio({
+  const readAudio = (abc: string) => {
+    const audio = swingAudio(abcjs.parseOnly(abc)[0].setUpAudio({
       qpm: 60,
       chordsOff: true,
       midiTranspose:
         options.transpose + guitarMidiOffset(options.arrangement),
     }), options.hymn.feel === "swing");
+    return options.arrangement === "guitar-edition" ? christCapoAudio(audio) : audio;
+  };
   const currentAudio = swingAudio(options.audio, options.hymn.feel === "swing");
   // Schedule the entire song on one audio clock. Restarting the transport at
   // stanza boundaries would add preparation/lead-in gaps and another count-in.

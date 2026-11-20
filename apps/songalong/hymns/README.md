@@ -72,3 +72,22 @@ same right margin as the preceding systems. Layout checks cover 320, 390,
 Piano sounding overlaps are checked for hand spans of at most a sixth; the
 source guitar voicings are checked for distinct strings within a three-fret
 position. These checks do not change the supplied notes or playback timing.
+
+## In Christ Alone instrument editions
+
+In Christ Alone offers only Piano and Guitar. Piano preserves the imported
+melody, harmony, pickup, and durations one octave lower, with a grand staff,
+root-position left-hand triads, and selected editorial fingerings. Guitar is
+the separate singing accompaniment from `ldayton/tab-music`'s shared
+`in-christ-alone-music.ily`: C, small F, G, and Am shapes with capo 2, sounding
+in D major. It is chord accompaniment, not a solo fingerstyle transcription.
+Notation/tab display remains independent of instrument and practice settings.
+
+Guitar frets and chord symbols are relative to capo 2; its playback and MIDI
+grading include the capo explicitly because abcjs octave-clef voices override
+the global MIDI transpose. The guitar's key/octave choices retain that reviewed
+capo position. Rhythmic tab includes 3/4 and dotted durations. Chord-level lyric
+chunks are derived from the melody timing for all three existing verses; the
+last verse retains its shorter ending. Piano hands can be practised separately;
+the single guitar accompaniment has no fictitious melody/bass practice voices.
+The existing author credits are retained.

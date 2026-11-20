@@ -23,7 +23,7 @@ type Plugin = { init(...args: unknown[]): void; render(renderer: unknown, line: 
 type PluginEntry = { classz: new () => Plugin };
 
 /** Keep the original edition's string choices while abcjs lays out the tab. */
-export function preserveFingerstyleTab(tune: TuneObject, transpose: number) {
+export function preserveFingerstyleTab(tune: TuneObject, transpose: number,positionFor=fingerstylePosition) {
   const entries = (tune as TuneObject & { tablatures?: (PluginEntry | null)[] }).tablatures;
   for (const entry of entries || []) {
     if (!entry) continue;
@@ -48,7 +48,7 @@ export function preserveFingerstyleTab(tune: TuneObject, transpose: number) {
           try { result = automatic(notes, graces); }
           finally { this.semantics.clefTranspose = clefTranspose; }
           for (const number of result.notes || []) {
-            const position = fingerstylePosition(
+            const position = positionFor(
               number.note.pitch + number.note.pitchAltered,
               (notes?.length || 0) > 1,
               transpose,
@@ -63,7 +63,7 @@ export function preserveFingerstyleTab(tune: TuneObject, transpose: number) {
 }
 
 /** Use one modern TAB sign per staff; abcjs duplicates it for the bass voice. */
-export function normalizeFingerstyleTab(paper: HTMLElement) {
+export function normalizeFingerstyleTab(paper: HTMLElement,singleVoice=false) {
   const ns = "http://www.w3.org/2000/svg";
   for (const svg of paper.querySelectorAll("svg")) {
     const staff = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff")]
@@ -71,7 +71,7 @@ export function normalizeFingerstyleTab(paper: HTMLElement) {
     if (!staff) continue;
     svg.querySelectorAll('[data-name^="tab."]').forEach(node => node.remove());
     // The second voice duplicates bars, with its opening repeat at the clef.
-    svg.querySelectorAll('.abcjs-bar.abcjs-v2,.abcjs-bar.abcjs-v3').forEach(node => node.remove());
+    svg.querySelectorAll(singleVoice ? '.abcjs-bar.abcjs-v1' : '.abcjs-bar.abcjs-v2,.abcjs-bar.abcjs-v3').forEach(node => node.remove());
     const box = staff.getBBox();
     const bars = document.createElementNS(ns, "g");
     bars.classList.add("fingerstyle-tab-bars");
@@ -116,7 +116,7 @@ export function normalizeFingerstyleTab(paper: HTMLElement) {
 }
 
 /** Tab is a view of the same score; crop away its standard staff without changing timing. */
-export function showOnlyTab(paper: HTMLElement) {
+export function showOnlyTab(paper: HTMLElement,tempoLabel="Swing",lyricPadding=58) {
   for (const [index, svg] of [...paper.querySelectorAll("svg")].entries()) {
     const staves = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff")]
       .sort((a,b) => a.getBBox().y - b.getBBox().y);
@@ -160,10 +160,21 @@ export function showOnlyTab(paper: HTMLElement) {
       part.remove();
       svg.append(copy);
     }
+    const lyrics=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-lyric')];
+    const lyricTop=Math.min(...lyrics.map(lyric=>lyric.getBBox().y));
+    for (const lyric of lyrics) {
+      lyric.setAttribute('transform',`translate(0 ${tabBox.y+tabBox.height+lyricPadding-lyricTop})`);
+      svg.append(lyric);
+    }
+    for (const chord of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-chord')) {
+      const ink=chord.getBBox();
+      chord.setAttribute('transform',`translate(0 ${tabBox.y-48-ink.y})`);
+      svg.append(chord);
+    }
     const tempo = svg.querySelector<SVGGraphicsElement>(".abcjs-tempo");
     if (tempo && index === 0) {
       const label = document.createElementNS(ns, "text");
-      label.textContent = "Swing";
+      label.textContent = tempoLabel;
       label.setAttribute("x", String(tabBox.x + 40));
       label.setAttribute("y", String(tabBox.y - 86));
       label.setAttribute("font-size", "16");

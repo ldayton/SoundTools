@@ -1,3 +1,4 @@
+import { isChristAlone } from "./in-christ-alone";
 import { validStanzas } from "./hymn-lyrics";
 import type { CountInBars } from "./hymn-count-in";
 import { isHymnKey, type HymnKey } from "./hymn-transpose";
@@ -81,8 +82,8 @@ export function mergeHymnSettings(
   const available = hymnArrangements(hymn).map(a => a.id);
   const requested = s.arrangement ?? base.arrangement;
   const arrangement = hasInstrumentEditions(hymn)
-    ? requested === "guitar-fingerstyle" || requested === "guitar" || requested === "guitar-chords"
-      ? "guitar-fingerstyle" : "piano"
+    ? requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
+      ? isChristAlone(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
   return {
     scoreDisplay: choice(s.scoreDisplay, ["notation", "tab", "both"] as const, base.scoreDisplay || "both"),
@@ -110,7 +111,7 @@ export function mergeHymnSettings(
         }
       : {}),
     viewHands: hasInstrumentEditions(hymn) ? "both" : viewHands,
-    hands: hasInstrumentEditions(hymn)
+    hands: arrangement === "guitar-edition" ? "both" : hasInstrumentEditions(hymn)
       ? choice(s.hands, ["right", "left", "both"] as const, base.hands || "both")
       : hands,
     ...("reattackTies" in s || "reattackTies" in base
@@ -188,7 +189,7 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
   const base: HymnSettings = {
     hymn,
     mode: "wait",
-    bpm: 80,
+    bpm: isChristAlone({id:hymn}) ? 70 : 80,
     countIn: 0,
     loopCountIn: false,
     key: "original",

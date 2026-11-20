@@ -460,16 +460,28 @@ try {
             .filter((el) => el.getClientRects().length)
             .every((el) => {
               const r = el.getBoundingClientRect();
+              const scrolling = el.closest(".hymn-mobile-controls");
+              const bounds = scrolling?.getBoundingClientRect() || r;
               return (
                 r.left >= 0 &&
                 r.right <= innerWidth &&
-                r.top >= header.top &&
-                r.bottom <= header.bottom
+                bounds.top >= header.top &&
+                bounds.bottom <= header.bottom
               );
             });
         }),
-        "All mobile controls remain inside the header",
+        "Mobile controls stay within the header or its bounded scrolling region",
       );
+      // The extra staff-spacing row intentionally scrolls inside the fixed-height
+      // drawer. Verify every control can be fully revealed without growing it.
+      for (const control of await page.locator(".hymn-mobile-controls button:visible, .hymn-mobile-controls input:visible").all()) {
+        await control.scrollIntoViewIfNeeded();
+        assert.ok(await control.evaluate(el => {
+          const r=el.getBoundingClientRect();
+          const region=el.closest(".hymn-mobile-controls")!.getBoundingClientRect();
+          return r.top >= region.top - 1 && r.bottom <= region.bottom + 1;
+        }), "Every mobile control is reachable within the scrolling region");
+      }
       await hideControls.click();
       assert.deepEqual(
         await page

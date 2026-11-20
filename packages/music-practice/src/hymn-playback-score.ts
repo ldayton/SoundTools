@@ -1,3 +1,4 @@
+import { swingAudio } from "./hymn-swing";
 import abcjs, { type AudioTracks } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
 import {
@@ -23,12 +24,13 @@ export function hymnPlaybackScore(options: {
   stanzas?: readonly number[];
 }) {
   const readAudio = (abc: string) =>
-    abcjs.parseOnly(abc)[0].setUpAudio({
+    swingAudio(abcjs.parseOnly(abc)[0].setUpAudio({
       qpm: 60,
       chordsOff: true,
       midiTranspose:
         options.transpose - (isGuitarArrangement(options.arrangement) ? 12 : 0),
-    });
+    }), options.hymn.feel === "swing");
+  const currentAudio = swingAudio(options.audio, options.hymn.feel === "swing");
   // Schedule the entire song on one audio clock. Restarting the transport at
   // stanza boundaries would add preparation/lead-in gaps and another count-in.
   if (options.stanzas && options.sectionBars === 0) {
@@ -91,7 +93,7 @@ export function hymnPlaybackScore(options: {
     const start = elapsed;
     const audio =
       section === options.section
-        ? options.audio
+        ? currentAudio
         : readAudio(arrange(options.sectionBars, section));
     elapsed += audio.totalDuration * 4;
     return start;
@@ -101,7 +103,7 @@ export function hymnPlaybackScore(options: {
     starts,
     audio:
       options.sections === 1
-        ? options.audio
+        ? currentAudio
         : readAudio(arrange(options.totalBars, 0)),
     timing: {
       meter: options.hymn.meter,

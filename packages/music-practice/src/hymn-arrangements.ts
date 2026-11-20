@@ -462,7 +462,7 @@ export function arrangeHymn(
       throw Error("Guitar tab is not available for this song.");
     melody = guitarMelody(melody, from);
   }
-  const header = `X:1\nT:${hymn.title}\nM:${hymn.meter}\nL:1/64\n`;
+  const header = `X:1\nT:${hymn.title}\nM:${hymn.meter}\nL:1/64\n${hymn.feel === "swing" ? 'Q:"Swing"\n' : ""}`;
   let abc: string;
   if (arrangement === "guitar-chords") {
     abc =

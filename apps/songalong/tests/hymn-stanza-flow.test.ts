@@ -1,3 +1,4 @@
+import { swingAudio } from "../../../packages/music-practice/src/hymn-swing";
 import test from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
@@ -67,7 +68,7 @@ test("checked stanzas form an ordered, gapless timeline with unchanged verse and
           .setUpAudio({ qpm: 60, chordsOff: true });
         assert.equal(verse.start, duration);
         expected.push(
-          ...playbackNotes(audio).map((n) => ({
+          ...playbackNotes(swingAudio(audio, h.feel === "swing")).map((n) => ({
             ...n,
             start: n.start + duration,
           })),

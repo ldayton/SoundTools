@@ -16,7 +16,10 @@ try {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(`${server.base}/piano/hymns/${hymn.id}?arrangement=${arrangement}&mode=wait`);
     await page.locator('.sequence-title').filter({ hasText: hymn.title }).waitFor();
-    await page.locator('.hymn-paper .abcjs-lyric').first().waitFor();
+    if (hymn.stanzas.some(stanza => stanza.syllables.some(syllable => syllable !== '*')))
+      await page.locator('.hymn-paper .abcjs-lyric').first().waitFor();
+    else
+      await page.locator('.hymn-paper .abcjs-note').first().waitFor();
     assert.match((await page.locator('.hymn-count').textContent())!, /^1 \/ [1-9]\d*$/);
     assert.ok(await page.locator('.sight-current').count(), hymn.title);
     assert.equal(await page.locator('.sequence-score').evaluate(e => e.scrollWidth <= e.clientWidth + 1), true, hymn.title);

@@ -21,6 +21,7 @@ import {
   HymnSelector,
   HymnModeAndTempo,
   HymnStaffSize,
+  HymnFingerings,
 } from "./hymn-options";
 import {
   hymnOptionsState,
@@ -287,6 +288,10 @@ export class SightReading {
         body: this.body,
         transport: createElement(HymnControls, {
           settings: createElement(HymnModeAndTempo, {
+            model: this.options,
+            change: (patch) => this.changeOptions(patch),
+          }),
+          fingerings: createElement(HymnFingerings, {
             model: this.options,
             change: (patch) => this.changeOptions(patch),
           }),

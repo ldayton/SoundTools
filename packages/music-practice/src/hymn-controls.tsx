@@ -26,6 +26,7 @@ export function HymnControls({
   panelId,
   settings,
   staffSize,
+  fingerings,
   pause,
   goToStart,
   restore,
@@ -35,6 +36,7 @@ export function HymnControls({
   panelId: string;
   settings?: ReactNode;
   staffSize?: ReactNode;
+  fingerings?: ReactNode;
   pause(): void;
   goToStart(): void;
   restore(): void;
@@ -169,6 +171,9 @@ export function HymnControls({
               <Text size="sm">Staff size</Text>
               {staffSize}
             </Group>
+            <Group className="hymn-toolbar-field" mih={44}>
+              {fingerings}
+            </Group>
             {legacy}
           </div>
         </div>
@@ -198,7 +203,10 @@ export function HymnControls({
           {settings}
           {legacy}
         </Group>
-        <div className="hymn-toolbar-piano">{piano}</div>
+        <Group className="hymn-toolbar-piano" gap="xs" wrap="nowrap">
+          {fingerings}
+          {piano}
+        </Group>
       </div>
     </div>
   );

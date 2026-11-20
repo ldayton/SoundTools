@@ -260,16 +260,6 @@ export function HymnOptions({
             )}
           </SimpleGrid>
         )}
-        <Checkbox
-          label="Show fingerings"
-          checked={state.fingerings}
-          disabled={
-            state.arrangement !== "melody" && state.arrangement !== "bass"
-          }
-          onChange={(event) =>
-            change({ fingerings: event.currentTarget.checked })
-          }
-        />
         {state.mode === "wait" && (
           <Checkbox
             id="hymn-reattack-ties"
@@ -472,6 +462,25 @@ export function HymnStaffSize({
       max={STAFF_HEIGHT * 2}
       value={Math.round(state.zoom * STAFF_HEIGHT)}
       onChange={(pixels) => change({ zoom: pixels / STAFF_HEIGHT })}
+    />
+  );
+}
+
+export function HymnFingerings({
+  model,
+  change,
+}: {
+  model: HymnOptionsState;
+  change(patch: HymnOptionsChange): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <Checkbox
+      label="Show fingerings"
+      size="xs"
+      checked={state.fingerings}
+      disabled={state.arrangement !== "melody" && state.arrangement !== "bass"}
+      onChange={(event) => change({ fingerings: event.currentTarget.checked })}
     />
   );
 }

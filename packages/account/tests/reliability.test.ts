@@ -91,7 +91,15 @@ test("poison records cannot block healthy records and retry state survives reloa
       };
     },
   };
-  const engine = new SyncEngine(store, "u", cloud, () => {});
+  const reported: { error: unknown; details: Record<string, unknown> }[] = [];
+  const engine = new SyncEngine(
+    store,
+    "u",
+    cloud,
+    () => {},
+    undefined,
+    (error, details) => reported.push({ error, details }),
+  );
   await engine.load();
   await engine.change(
     Array.from({ length: 12 }, (_, i) => ({
@@ -104,6 +112,13 @@ test("poison records cannot block healthy records and retry state survives reloa
   assert.equal(engine.records.healthy, 2);
   assert.equal(engine.state.pending.healthy, undefined);
   assert.equal(engine.diagnostics.blocked, 12);
+  assert.equal(reported.length, 12);
+  assert.deepEqual(reported[0].error, { status: 422 });
+  assert.equal(reported[0].details.failureKind, "permanent");
+  assert(
+    !JSON.stringify(reported).includes("bad0"),
+    "settings record keys are not diagnostic context",
+  );
   const again = new SyncEngine(store, "u", cloud, () => {});
   await again.load();
   const count = calls.length;

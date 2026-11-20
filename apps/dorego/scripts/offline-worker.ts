@@ -126,9 +126,9 @@ offline.lifecycle(() => offline.withDeadline(60000, signal => offline.publish(CO
   signal.throwIfAborted();await metadata.write('latest',{shellCache:pack.shellCache,cache:pack.cache,savedAt:Date.now()});
 })));
 self.addEventListener('message', event => {
-  if(event.data?.type==='prepare-update'){event.waitUntil((async()=>{try{const pack=await latest();offline.reply(event,{ready:true,shellCache:pack.shellCache})}catch(error){offline.reply(event,{ready:false,reason:offline.reason(error)})}})());return;}
+  if(event.data?.type==='prepare-update'){event.waitUntil((async()=>{try{const pack=await latest();offline.reply(event,{ready:true,shellCache:pack.shellCache})}catch(error){offline.reply(event,{ready:false,failure:offline.failure(error),reason:offline.reason(error)})}})());return;}
   if (event.data?.type !== 'using-cache' || !event.source?.id) return;
-  event.waitUntil((async () => { await remember(event.source.id, event.data); await cleanup(); })().catch(error => offline.report(event.source, 'storage', 'failed', {cacheReason:offline.reason(error)})));
+  event.waitUntil((async () => { await remember(event.source.id, event.data); await cleanup(); })().catch(error => offline.report(event.source, 'storage', 'failed', {cacheReason:offline.reason(error)},error)));
 });
 async function savedDocument(pack) {
   if (!validPack(pack) || !await offline.complete(pack.shellCache, pack.shell) || pack.hashes && !await offline.verified(pack.shellCache,pack.shell.filter(url=>url!==manifestURL).map(url=>({url,sha256:pack.hashes[url]})))) {usableInventories.delete(pack.shellCache);return null;}
@@ -180,7 +180,7 @@ self.addEventListener('fetch', event => {
       if(url.pathname.startsWith(ROOT+'assets/'))for(const name of(await caches.keys()).filter(shellName)){
         const response=await(await caches.open(name)).match(request);if(response)return response;
       }
-    }).catch(error=>{void self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)})).catch(()=>{});return null});
+    }).catch(error=>{void self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)},error)).catch(()=>{});return null});
     if(cached)return offline.assetResponse(request,cached);
     if(!file||request.method==='HEAD')return offline.networkResponse(request);
     let bytes;
@@ -188,7 +188,7 @@ self.addEventListener('fetch', event => {
     catch(error){const reason=offline.reason(error);return new Response('',{status:reason==='unavailable'?404:503,headers:{'X-Offline-Reason':reason}});}
     const response=new Response(bytes,{headers:{'Content-Type':'audio/flac','Content-Length':String(bytes.byteLength)}});
     const saved=response.clone();
-    event.waitUntil(offline.withDeadline(1500,async()=>{await(await caches.open(soundCache)).put(url.pathname,saved)}).catch(error=>self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)})).catch(()=>{})));
+    event.waitUntil(offline.withDeadline(1500,async()=>{await(await caches.open(soundCache)).put(url.pathname,saved)}).catch(error=>self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)},error)).catch(()=>{})));
     return offline.assetResponse(request,response);
   })());
 });

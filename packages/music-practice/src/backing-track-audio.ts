@@ -309,6 +309,7 @@ export class BackingTrackPlayer {
     private drumArticulations = experimental,
     private guitarTransitions = experimental,
     private sharedPocket = guitarTransitions,
+    private report: (error: unknown, code: string) => void = () => {},
   ) {
     document.addEventListener("visibilitychange", this.hidden);
     window.addEventListener("pagehide", this.departing);
@@ -534,8 +535,9 @@ export class BackingTrackPlayer {
           : 0,
       );
       this.startTimer();
-    } catch {
+    } catch (error) {
       if (token !== this.metroEpoch || this.disposed) return;
+      this.report(error, "metronome.start_failed");
       this.stopMetronome();
       this.metronome.set({
         ...this.metronome.getSnapshot(),
@@ -834,7 +836,7 @@ export class BackingTrackPlayer {
       this.startTimer();
     } catch (error) {
       if (token !== this.epoch || this.disposed) return;
-      console.error("Backing track playback failed", error);
+      this.report(error, "backing_track.play_failed");
       this.pause();
       this.patch({
         status: "error",

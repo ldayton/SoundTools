@@ -74,6 +74,8 @@ const { chromium, firefox, webkit } = require("playwright");
     await page.evaluate(() => {
       SentryPeer.getIsolationScope().setUser({ email: "PRIVATE" });
       SentryPeer.getIsolationScope().setAttributes({ private_text: "PRIVATE" });
+      SentryPeer.getIsolationScope().setExtra("private_text","PRIVATE");
+      SentryPeer.getIsolationScope().addBreadcrumb({category:"navigation",message:"PRIVATE",data:{private_text:"PRIVATE"}});
     });
     await page.addScriptTag({ url: "/core.js" });
     await page.evaluate(async () => {
@@ -121,6 +123,23 @@ const { chromium, firefox, webkit } = require("playwright");
         }),
         "audio.failed",
       );
+      d.capture(
+        Object.assign(new Error("PRIVATE wrapper"), {
+          cause: Object.assign(new Error("PRIVATE quota exceeded"), {
+            name: "QuotaExceededError",
+            code: 22,
+            stack: "put@https://example.org/sw.js?token=SECRET:40:12",
+          }),
+          status: 503,
+        }),
+        "storage.test_failed",
+        {
+          cacheOperation: "update",
+          cacheReason: "quota",
+          fileCount: 3,
+          private_text: "PRIVATE",
+        },
+      );
       d.flush();
       await d.persist();
     });
@@ -155,6 +174,24 @@ const { chromium, firefox, webkit } = require("playwright");
       "https://example.org/app.js",
     );
     assert(!event.contexts.trace);
+    const rich = items().find(
+      (i) =>
+        i.type === "event" && i.payload.tags?.code === "storage.test_failed",
+    )?.payload;
+    assert(rich, "rich exception envelope was delivered");
+    assert.equal(rich.exception.values[0].type, "QuotaExceededError");
+    assert.equal(
+      rich.exception.values[0].stacktrace.frames[0].filename,
+      "https://example.org/sw.js",
+    );
+    assert.equal(rich.extra.failure.technical.httpStatus, 503);
+    assert.equal(rich.extra.failure.details.cacheReason, "quota");
+    assert(rich.breadcrumbs.some((b) => b.message === "transport.play"));
+    assert(
+      ["Chrome", "Safari", "Firefox"].includes(rich.contexts.browser.name),
+    );
+    assert(!/PRIVATE|SECRET/.test(JSON.stringify(rich)));
+
     const logs = items()
       .filter((i) => i.type === "log")
       .flatMap((i) => i.payload.items);

@@ -89,7 +89,7 @@ async function cleanup(){return offline.cleanup(async()=>{
 });}
 offline.lifecycle(()=>offline.withDeadline(60000,signal=>publish(CONFIG.pack,signal)).catch(async error=>{
   const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-  for(const client of clients)offline.report(client,'setup','failed',{cacheReason:offline.reason(error)});
+  for(const client of clients)offline.report(client,'setup','failed',{cacheReason:offline.reason(error)},error);
   throw error;
 }));
 self.addEventListener('message',event=>{
@@ -99,7 +99,7 @@ self.addEventListener('message',event=>{
   event.waitUntil((async()=>{try{
     if(type==='prepare-update'){const p=await latest();offline.reply(event,{ready:true,shellCache:p.shellCache});}
     else {const p=await inventory(event.data.shellCache);offline.reply(event,{ready:!!(p&&await savedDocument(p))});}
-  }catch(error){offline.reply(event,{ready:false,reason:offline.reason(error)});}})());
+  }catch(error){offline.reply(event,{ready:false,failure:offline.failure(error),reason:offline.reason(error)});}})());
 });
 self.addEventListener('fetch',event=>{
   const request=event.request,url=offline.requestURL(request);if(!url)return;

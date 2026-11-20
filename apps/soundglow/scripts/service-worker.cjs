@@ -56,8 +56,8 @@ async function cleanup(){return offline.cleanup(async()=>{
 offline.lifecycle(async()=>{const pack=await stage(CONFIG,180000);await offline.withDeadline(2000,()=>rememberLatest(pack));});
 const downloads=new Map();
 self.addEventListener('message',event=>{
- if(event.data?.type==='using-release'&&event.source?.id)event.waitUntil((async()=>{await record(event.source.id,event.data.version);await cleanup()})().catch(error=>offline.report(event.source,'storage','failed',{cacheReason:offline.reason(error)})));
- if(event.data?.type==='prepare-update')event.waitUntil((async()=>{try{const pack=await latest();offline.reply(event,{ready:true,version:pack.version,workerVersion:CONFIG.version})}catch(error){offline.reply(event,{ready:false,reason:offline.reason(error),workerVersion:CONFIG.version})}})());
+ if(event.data?.type==='using-release'&&event.source?.id)event.waitUntil((async()=>{await record(event.source.id,event.data.version);await cleanup()})().catch(error=>offline.report(event.source,'storage','failed',{cacheReason:offline.reason(error)},error)));
+ if(event.data?.type==='prepare-update')event.waitUntil((async()=>{try{const pack=await latest();offline.reply(event,{ready:true,version:pack.version,workerVersion:CONFIG.version})}catch(error){offline.reply(event,{ready:false,failure:offline.failure(error),reason:offline.reason(error),workerVersion:CONFIG.version})}})());
  if(event.data?.type==='download-state'&&event.source?.id){offline.reply(event,{active:downloads.has(event.source.id)});return;}
  if(event.data?.type==='cancel-offline'&&event.source?.id)downloads.get(event.source.id)?.abort(new DOMException('Download cancelled','AbortError'));
  if(['offline-status','download-offline'].includes(event.data?.type)&&event.source?.id)event.waitUntil((async()=>{
@@ -74,7 +74,7 @@ self.addEventListener('message',event=>{
    }
    const full=await offline.withDeadline(8000,()=>offline.verified(ASSETS,[...pack.files,...(pack.optional||[])],()=>offline.report(event.source,'storage','failed',{cacheReason:'integrity'})));
    offline.reply(event,{ready:full,bytes:[...pack.files,...(pack.optional||[])].reduce((sum,f)=>sum+f.bytes,0)});
-  }catch(error){offline.reply(event,{ready:false,reason:controller.signal.aborted?'cancelled':offline.reason(error)})}
+  }catch(error){offline.reply(event,{ready:false,failure:offline.failure(error),reason:controller.signal.aborted?'cancelled':offline.reason(error)})}
   finally{if(tracked&&downloads.get(event.source.id)===controller)downloads.delete(event.source.id)}
  })());
 });
@@ -92,7 +92,7 @@ self.addEventListener('fetch',event=>{
    const file=[...CONFIG.files,...(CONFIG.optional||[])].find(f=>f.url===url.pathname);
    if(file)try{await offlineResources.verify(await response.clone().arrayBuffer(),file)}catch(error){if(error.offlineReason!=='integrity'||event.request.signal.aborted)throw error;await cache.delete(url.pathname);void self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:'integrity'})).catch(()=>{});return null}
    return response;
-  }).catch(error=>{void self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)})).catch(()=>{});return null});
+  }).catch(error=>{void self.clients.get(event.clientId).then(client=>offline.report(client,'storage','failed',{cacheReason:offline.reason(error)},error)).catch(()=>{});return null});
   if(cached)return offline.assetResponse(event.request,new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers:cached.headers}));
   return offline.networkResponse(event.request);
  })());

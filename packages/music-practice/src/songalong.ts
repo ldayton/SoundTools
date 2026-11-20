@@ -50,10 +50,17 @@ function syncMidi() {
   midi = mountMidiPanel(
     document.querySelector<HTMLElement>("#midi-panel")!,
     () => {},
-    (state) => {
+    (state, error) => {
       if (state !== "connected") interrupt("connection");
       shell.reportMidi(state);
       diagnostics.event("midi.state", { midiState: state });
+      if (
+        error &&
+        !["NotAllowedError", "SecurityError"].includes((error as Error).name)
+      )
+        diagnostics.capture(error, "midi.connection_failed", {
+          midiState: state,
+        });
     },
   );
   midi.setPerformanceMode(true);
@@ -203,7 +210,7 @@ void document.fonts.ready
         }
         render();
       },
-    }).catch(() => diagnostics.event("account.start_failed"));
+    }).catch((error) => diagnostics.capture(error, "account.start_failed"));
     window.dispatchEvent(new Event("soundtools:ready"));
     try {
       setupOffline();

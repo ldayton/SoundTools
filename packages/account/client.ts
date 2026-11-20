@@ -85,7 +85,11 @@ export class Account {
   readonly configured: boolean;
   constructor(
     readonly app: string,
-    private report: (code: string) => void = () => {},
+    private report: (
+      code: string,
+      error?: unknown,
+      details?: Record<string, unknown>,
+    ) => void = () => {},
   ) {
     this.configured = !!(
       env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -206,7 +210,7 @@ export class Account {
     // Applying remote state waits only for a safe point, never a user button.
     setInterval(() => {
       if (!document.hidden && this.snapshot.updates)
-        void this.apply().catch(() => this.report("apply_failed"));
+        void this.apply().catch((error) => this.report("apply_failed", error));
     }, 500);
     if (typeof BroadcastChannel !== "undefined") {
       this.channel = new BroadcastChannel(`soundtools:${this.app}:account`);
@@ -233,14 +237,14 @@ export class Account {
           });
         await this.apply();
       }
-    } catch {
+    } catch (error) {
       if (this.engine === engine)
         this.set({
           status: "error",
           error:
             "Account data could not be read on this device. Keep this page open; recovery is automatic.",
         });
-      this.report("storage_failed");
+      this.report("storage_failed", error);
     }
   }
   private async connect(user: string, email: string, cached = false) {
@@ -318,6 +322,7 @@ export class Account {
           });
         },
         (records) => this.binding?.validate?.(records),
+        (error, details) => this.report("write_failed", error, details),
       );
       if (generation !== this.generation) return;
       this.engine = engine;
@@ -359,6 +364,7 @@ export class Account {
         error instanceof AccountDataError
           ? "data_version_failed"
           : "storage_failed",
+        error,
       );
     }
   }
@@ -404,13 +410,13 @@ export class Account {
             void this.sync();
           }, 200);
       })
-      .catch(() => {
+      .catch((error) => {
         this.set({
           status: "error",
           error:
             "Changes could not be saved on this device. Keep this page open; recovery is automatic.",
         });
-        this.report("save_failed");
+        this.report("save_failed", error);
         clearTimeout(this.retryTimer);
         this.retryTimer = setTimeout(() => void this.sync(), 1000);
       });
@@ -561,7 +567,7 @@ export class Account {
         this.set({ status: "error", error: error.message });
         this.nextNetworkAt = Date.now() + 86400000;
         this.networkFailures = 1;
-        this.report("data_version_failed");
+        this.report("data_version_failed", error);
         return;
       }
       const kind = failureKind(error);
@@ -590,9 +596,15 @@ export class Account {
             ? "Device storage is unavailable. Changes remain in memory and will save automatically when storage recovers."
             : "",
       });
+      if (!reauth)
+        this.report("sync_failed", error, {
+          failureKind: kind,
+          attempt: this.networkFailures,
+          pendingCount: engine.pending,
+        });
       if (reauth) {
         this.leader?.close();
-        this.report("authentication_required");
+        this.report("authentication_required", error, { failureKind: kind });
       }
     }
   }

@@ -1,3 +1,4 @@
+import { diagnostics } from "./diagnostics";
 import { shiftRoutes, positionKey } from "./scale-shift";
 import { ScaleFrame, scaleBodyState } from "./scale-frame";
 import { mountPracticeSurface } from "./practice-surfaces";
@@ -49,7 +50,7 @@ export class ScaleExplorer implements LivePractice {
   }
   private disposeView: () => void;
   private body = scaleBodyState();
-  private backing = new BackingTrackPlayer();
+  private backing = new BackingTrackPlayer(true, true, true, true, (error, code) => diagnostics.capture(error, code));
   readonly inputPolicy = "none" as const;
   private active = false;
   private selectedShift?: string;

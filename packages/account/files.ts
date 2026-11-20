@@ -40,7 +40,11 @@ export type FileAdapter = {
   remove(id: string): Promise<void>;
   fingerprint(blob: Blob): Promise<string>;
   changed(): Promise<void> | void;
-  report(code: string): void;
+  report(
+    code: string,
+    error?: unknown,
+    details?: Record<string, unknown>,
+  ): void;
 };
 const objectPath = (f: CloudFile) => `${f.user_id}/${f.app}/${f.id}`;
 const live = (f: CloudFile) => f.state !== "deleted";
@@ -68,10 +72,10 @@ export class CloudFiles {
     readonly app: string,
     private adapter: FileAdapter,
   ) {
-    this.initial = this.initialize().catch(async () => {
-      this.adapter.report("files.queue_unavailable");
-      await this.refreshActor(true).catch(() =>
-        this.adapter.report("files.library_refresh_failed"),
+    this.initial = this.initialize().catch(async (error) => {
+      this.adapter.report("files.queue_unavailable", error);
+      await this.refreshActor(true).catch((error) =>
+        this.adapter.report("files.library_refresh_failed", error),
       );
     });
   }
@@ -109,8 +113,8 @@ export class CloudFiles {
         syncedAt = next;
         this.nextCatalogueAt = 0;
       }
-      void this.refreshActor().catch(() =>
-        this.adapter.report("files.queue_failed"),
+      void this.refreshActor().catch((error) =>
+        this.adapter.report("files.queue_failed", error),
       );
     });
     this.store = await FileStore.open();
@@ -278,7 +282,9 @@ export class CloudFiles {
     } catch (error) {
       this.networkAttempts++;
       this.networkRetryAt = Date.now() + retryDelay(this.networkAttempts);
-      this.adapter.report("files.sync_failed");
+      this.adapter.report("files.sync_failed", error, {
+        attempt: this.networkAttempts,
+      });
     } finally {
       this.running = false;
       if (this.pending) {
@@ -378,7 +384,10 @@ export class CloudFiles {
         const latest = await this.store!.get<FileJob>("jobs", job.id);
         if (latest?.revision === job.revision) await this.store!.delay(job);
 
-        this.adapter.report("files.transfer_failed");
+        this.adapter.report("files.transfer_failed", error, {
+          fileOperation: job.kind,
+          attempt: job.attempts,
+        });
       }
       this.publish();
     }
@@ -392,7 +401,10 @@ export class CloudFiles {
       const { error } = await this.account
         .native!.client.storage.from(FILE_BUCKET)
         .remove([objectPath(file)]);
-      if (error) this.adapter.report("files.delete_pending");
+      if (error)
+        this.adapter.report("files.delete_pending", error, {
+          fileOperation: "delete",
+        });
     }
   }
   private async importedWithoutKick() {

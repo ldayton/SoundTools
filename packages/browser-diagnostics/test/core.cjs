@@ -671,11 +671,81 @@ test("blocked service-worker access never prevents diagnostics or app initializa
 });
 test("saved-file source is allowed without accepting recording details", async () => {
   const { env } = environment();
-  const client = create({ app: "soundglow", snapshot: () => ({ source: "file", filename: "private-name.wav", position: 7, audio: [1, 2] }) }, env);
+  const client = create(
+    {
+      app: "soundglow",
+      snapshot: () => ({
+        source: "file",
+        filename: "private-name.wav",
+        position: 7,
+        audio: [1, 2],
+      }),
+    },
+    env,
+  );
   const context = client.snapshot().context;
   assert.equal(context.source, "file");
   assert.equal(context.filename, undefined);
   assert.equal(context.position, undefined);
   assert.equal(context.audio, undefined);
   await client.dispose();
+});
+
+test("failure context retains DOM class, causes, status and safe details without private text", async () => {
+  const { env } = environment();
+  const d = create({ app: "soundglow", release: "test" }, env);
+  await d.ready;
+  const native = Object.assign(
+    new Error("quota exceeded PRIVATE user@example.com"),
+    {
+      name: "QuotaExceededError",
+      code: 22,
+      stack:
+        "QuotaExceededError: PRIVATE\ncache@https://example.org/sw.js?token=SECRET:90:12",
+    },
+  );
+  const error = Object.assign(new Error("PRIVATE wrapper"), {
+    cause: native,
+    status: 503,
+    code: "PGRST301",
+    retryAfterMs: 2500,
+  });
+  d.capture(error, "files.download_failed", {
+    fileOperation: "download",
+    attempt: 2,
+    filename: "PRIVATE",
+    url: "SECRET",
+  });
+  const entry = d.snapshot().errors[0];
+  assert.equal(entry.cause.name, "QuotaExceededError");
+  assert.equal(entry.cause.technical.domCode, 22);
+  assert.equal(entry.cause.technical.messageKind, "quota_exceeded");
+  assert.equal(entry.cause.frames[0].filename, "https://example.org/sw.js");
+  assert.equal(entry.technical.httpStatus, 503);
+  assert.equal(entry.technical.serverCode, "PGRST301");
+  assert.equal(entry.technical.retryAfterMs, 2500);
+  assert.deepEqual(entry.details, {
+    attempt: 2,
+    fileOperation: "download",
+    errorOrigin: "page",
+  });
+  assert(!/PRIVATE|SECRET|user@example/.test(JSON.stringify(d.snapshot())));
+  await d.dispose();
+});
+test("cyclic causes and aggregate members stay bounded", async () => {
+  const { env } = environment();
+  const d = create({ app: "soundglow" }, env);
+  await d.ready;
+  const error = new AggregateError(
+    [new DOMException("PRIVATE", "SecurityError")],
+    "PRIVATE",
+  );
+  error.cause = error;
+  d.capture(error, "storage.failed");
+  const entry = d.snapshot().errors[0];
+  assert.equal(entry.name, "AggregateError");
+  assert.equal(entry.cause, undefined);
+  assert.equal(entry.errors[0].name, "SecurityError");
+  assert(!JSON.stringify(entry).includes("PRIVATE"));
+  await d.dispose();
 });

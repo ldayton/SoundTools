@@ -150,7 +150,7 @@ export function create({
     integrations: [],
     stackParser: defaultStackParser,
     sendClientReports: false,
-    maxBreadcrumbs: 0,
+    maxBreadcrumbs: 50,
     normalizeDepth: 8,
     normalizeMaxBreadth: 200,
     dataCollection: {
@@ -178,8 +178,48 @@ export function create({
             level: "error",
             fingerprint: event.fingerprint,
             exception: event.exception,
-            tags: { app },
-            contexts: { diagnostics: event.contexts?.diagnostics },
+            breadcrumbs: event.breadcrumbs
+              ?.filter(
+                (entry) =>
+                  entry.category === "app" &&
+                  codePattern.test(entry.message || ""),
+              )
+              .slice(-50)
+              .map((entry) => ({
+                type: "default",
+                category: "app",
+                level: "info",
+                message: entry.message,
+                timestamp: entry.timestamp,
+                data: attributes(entry.data),
+              })),
+            extra: { failure: event.extra?.failure },
+            tags: {
+              app,
+              code: event.tags?.code,
+              error_name: event.tags?.error_name,
+              ...(event.tags?.cache_reason
+                ? { cache_reason: event.tags.cache_reason }
+                : {}),
+              ...(event.tags?.http_status
+                ? { http_status: event.tags.http_status }
+                : {}),
+            },
+            contexts: {
+              diagnostics: event.contexts?.diagnostics,
+              browser: {
+                name: event.contexts?.browser?.name,
+                version: event.contexts?.browser?.version,
+              },
+              os: { name: event.contexts?.os?.name },
+              device: {
+                screen_width_pixels:
+                  event.contexts?.device?.screen_width_pixels,
+                screen_height_pixels:
+                  event.contexts?.device?.screen_height_pixels,
+                pixel_ratio: event.contexts?.device?.pixel_ratio,
+              },
+            },
           }
         : null,
     beforeSendLog: (log) =>
@@ -207,27 +247,79 @@ export function create({
   return {
     capture(error, report) {
       if (!active()) return;
+      const values = [];
+      function exception(entry, depth = 0) {
+        if (!entry || depth > 3 || values.length >= 8) return;
+        if (entry.cause) exception(entry.cause, depth + 1);
+        for (const child of entry.errors || []) exception(child, depth + 1);
+        if (values.length >= 8) values.shift();
+        values.push({
+          type: entry.name,
+          value: entry.technical?.messageKind
+            ? entry.code + ": " + entry.technical.messageKind
+            : entry.code,
+          mechanism: {
+            type: entry.syntheticStack
+              ? "diagnostics.reporting_site"
+              : "generic",
+            handled: !["runtime.error", "runtime.rejection"].includes(
+              entry.code,
+            ),
+            synthetic: !!entry.syntheticStack,
+          },
+          ...(entry.frames?.length
+            ? {
+                stacktrace: {
+                  frames: entry.frames
+                    .slice()
+                    .reverse()
+                    .map((frame) => ({ ...frame, in_app: true })),
+                },
+              }
+            : {}),
+        });
+      }
+      exception(error);
+      const browser = report.environment?.browser;
       scope.captureEvent({
         level: "error",
-        exception: {
-          values: [
-            {
-              type: error.name,
-              value: error.code,
-              ...(error.frames.length
-                ? {
-                    stacktrace: {
-                      frames: error.frames
-                        .slice()
-                        .reverse()
-                        .map((frame) => ({ ...frame, in_app: true })),
-                    },
-                  }
-                : {}),
-            },
-          ],
+        exception: { values },
+        tags: {
+          code: error.code,
+          error_name: error.name,
+          cache_reason: error.details?.cacheReason,
+          http_status: error.technical?.httpStatus,
         },
-        contexts: { diagnostics: report },
+        extra: {
+          failure: {
+            technical: error.technical,
+            details: error.details,
+            syntheticStack: !!error.syntheticStack,
+          },
+        },
+        breadcrumbs: (report.events || []).slice(-50).map((entry) => ({
+          type: "default",
+          category: "app",
+          level: "info",
+          message: entry.code,
+          timestamp:
+            Date.parse(report.recordedAt) / 1000 -
+            (report.elapsedMs - entry.elapsedMs) / 1000,
+          data: entry.details,
+        })),
+        contexts: {
+          diagnostics: report,
+          browser: {
+            name: browser?.family,
+            version: String(browser?.major || ""),
+          },
+          os: { name: browser?.os },
+          device: {
+            screen_width_pixels: report.environment?.screenWidth,
+            screen_height_pixels: report.environment?.screenHeight,
+            pixel_ratio: report.environment?.dpr,
+          },
+        },
         fingerprint: [
           app,
           error.code,

@@ -2,6 +2,7 @@
 // offline manifests and retained asset inventory depend on those exact bytes.
 const fs = require("node:fs");
 const path = require("node:path");
+const os = require("node:os");
 const { execFileSync } = require("node:child_process");
 function publishDiagnostics({
   app,
@@ -65,6 +66,51 @@ function publishDiagnostics({
       "--wait",
       ui,
     ]);
+  }
+  // Generated workers are outside Vite's assets directory. Publish their exact
+  // readable source with an identity map; never modify deployed/cache-hashed bytes.
+  const workerPath = path.join(output, "sw.js");
+  if (!fs.existsSync(workerPath)) throw Error("Missing generated worker source for diagnostics publication");
+  {
+    const directory = fs.mkdtempSync(
+      path.join(os.tmpdir(), "soundtools-worker-map-"),
+    );
+    try {
+      const source = fs.readFileSync(workerPath, "utf8");
+      fs.writeFileSync(path.join(directory, "sw.js"), source);
+      fs.writeFileSync(
+        path.join(directory, "sw.js.map"),
+        JSON.stringify({
+          version: 3,
+          file: "sw.js",
+          sources: [app + "/generated-service-worker.js"],
+          sourcesContent: [source],
+          names: [],
+          mappings: source
+            .split("\n")
+            .map((_, line) => (line === 0 ? "AAAA" : "AACA"))
+            .join(";"),
+        }),
+      );
+      const base =
+        app === "soundglow"
+          ? JSON.parse(fs.readFileSync(path.join(output, "release.json"))).base
+          : "/";
+      run([
+        "sourcemaps",
+        "upload",
+        "--release",
+        release,
+        "--url-prefix",
+        "~" + base,
+        "--validate",
+        "--strict",
+        "--wait",
+        directory,
+      ]);
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
   }
   // The remaining Soundglow scripts retain their deployed source line numbers.
   run(["releases", "finalize", release]);

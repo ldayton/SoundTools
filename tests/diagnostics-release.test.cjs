@@ -17,6 +17,10 @@ for (const app of ["dorego", "notewise", "songalong"])
           path.join(output, "diagnostics-release.json"),
           JSON.stringify({ release: "abcdef123456-123456abcdef" }),
         );
+        fs.writeFileSync(
+          path.join(output, "sw.js"),
+          "// exact generated worker\nthrow new Error('test');\n",
+        );
         const commands = [],
           env = {
             VERCEL_ENV: "production",
@@ -30,13 +34,31 @@ for (const app of ["dorego", "notewise", "songalong"])
             app,
             output,
             env,
-            run: (args) => commands.push(args),
+            run: (args) => {
+              commands.push(args);
+              if (args.includes("~/")) {
+                const dir = args.at(-1),
+                  map = JSON.parse(
+                    fs.readFileSync(path.join(dir, "sw.js.map")),
+                  );
+                assert.equal(
+                  fs.readFileSync(path.join(dir, "sw.js"), "utf8"),
+                  fs.readFileSync(path.join(output, "sw.js"), "utf8"),
+                );
+                assert.equal(
+                  map.sourcesContent[0],
+                  fs.readFileSync(path.join(output, "sw.js"), "utf8"),
+                );
+                assert.equal(map.mappings, "AAAA;AACA;AACA");
+              }
+            },
           }),
         );
         assert.equal(commands[0][2], app + "@abcdef123456-123456abcdef");
         assert(commands[1].includes("~/assets"));
         assert(commands[1].includes("--strict"));
         assert(commands[1].includes("--wait"));
+        assert(commands[2].includes("~/"));
         assert(!JSON.stringify(commands).includes("not-a-real-token"));
         assert.equal(
           publishDiagnostics({
@@ -67,6 +89,7 @@ test("soundglow uploads bundled UI maps against its immutable release URLs", () 
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "soundglow-ui-maps-"));
   const output = path.join(root, "site");
   fs.mkdirSync(output);
+  fs.writeFileSync(path.join(output,"sw.js"),"// exact Soundglow worker\n");
   fs.writeFileSync(
     path.join(output, "release.json"),
     JSON.stringify({ version: "abc123", base: "/Soundglow/" }),

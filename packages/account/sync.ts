@@ -38,6 +38,10 @@ export class SyncEngine {
     private cloud: Cloud,
     private changed: () => void,
     private validate: (records: Records) => void = () => {},
+    private report: (
+      error: unknown,
+      details: Record<string, unknown>,
+    ) => void = () => {},
   ) {}
   private async update<T>(change: (state: Replica) => T) {
     const result = await this.store.transaction(this.user, change);
@@ -169,6 +173,11 @@ export class SyncEngine {
           } catch (error) {
             if (this.closed) return;
             const kind = failureKind(error);
+            this.report(error, {
+              failureKind: kind,
+              attempt: (pending.attempts || 0) + 1,
+              pendingCount: this.pending,
+            });
             if (kind === "auth") throw error;
             await this.update((state) => {
               const current = state.pending[key];

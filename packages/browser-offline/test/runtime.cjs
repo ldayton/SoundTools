@@ -395,3 +395,24 @@ test("a stalled claim cannot hold activation and future navigations indefinitely
 test("late worker replies to a closed document cannot reject completed jobs",()=>{
  const {runtime}=fixture();assert.doesNotThrow(()=>runtime.reply({ports:[{postMessage(){throw new DOMException('Context is stopped','InvalidStateError')}}]},{ready:true}));assert.doesNotThrow(()=>runtime.reply({ports:[]},{ready:false}));
 });
+
+test("worker failures retain safe exception identity, source frames and bounded causes", () => {
+  const { runtime } = fixture();
+  const native = Object.assign(new Error("PRIVATE file and token"), {
+    name: "QuotaExceededError",
+    code: 22,
+    stack: "Error: PRIVATE\nput@https://app.example/sw.js?token=SECRET:12:7",
+  });
+  const error = Object.assign(new Error("PRIVATE"), {
+    cause: native,
+    status: 503,
+  });
+  const result = runtime.failure(error);
+  assert.equal(result.status, 503);
+  assert.equal(result.cause.name, "QuotaExceededError");
+  assert.equal(result.cause.code, 22);
+  assert.equal(result.cause.stack, "https://app.example/sw.js:12:7");
+  assert(!/PRIVATE|SECRET/.test(JSON.stringify(result)));
+  native.cause = error;
+  assert.doesNotThrow(() => JSON.stringify(runtime.failure(error)));
+});

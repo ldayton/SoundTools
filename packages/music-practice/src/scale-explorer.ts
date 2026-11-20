@@ -1,3 +1,9 @@
+import {
+  hilaBounds,
+  hilaPositions,
+  hilaShift,
+  type HilaShape,
+} from "./hila-scale-shapes";
 import { diagnostics } from "./diagnostics";
 import { shiftRoutes, positionKey } from "./scale-shift";
 import { ScaleFrame, scaleBodyState } from "./scale-frame";
@@ -123,6 +129,14 @@ export class ScaleExplorer implements LivePractice {
     else this.moveTonic(event.key === "ArrowLeft" ? -1 : 1);
   };
   private moveOctave(direction: number) {
+    if (this.shapeSet === "hila") {
+      const next = this.shift + direction * 12;
+      if (hilaShift(this.tonic, this.hilaShape, next) === next) {
+        this.shift = next;
+        this.update();
+      }
+      return;
+    }
     if (this.pattern === "map") return;
     const [low, high] = patternBounds(this.pattern, this.quality);
     const shift = this.shift + direction * 12;
@@ -132,6 +146,13 @@ export class ScaleExplorer implements LivePractice {
     this.update();
   }
   private moveShape(direction: number) {
+    if (this.shapeSet === "hila") {
+      this.hilaShape = (((this.hilaShape - 1 + direction + 7) % 7) +
+        1) as HilaShape;
+      this.shift = NaN;
+      this.update();
+      return;
+    }
     if (this.pattern === "map") return;
     const next = String(
       ((Number(this.pattern) - 1 + direction + 5) % 5) + 1,
@@ -159,7 +180,12 @@ export class ScaleExplorer implements LivePractice {
     this.update();
   }
   private moveTonic(direction: number) {
-    if (this.pattern !== "map") {
+    if (this.shapeSet === "hila") {
+      const tonic = (this.tonic + direction + 12) % 12;
+      const next = this.shift + direction;
+      if (hilaShift(tonic, this.hilaShape, next) !== next) return;
+      this.shift = next;
+    } else if (this.pattern !== "map") {
       const [low, high] = patternBounds(this.pattern, this.quality);
       const shift = this.shift + direction;
       if (low + shift < 1 || high + shift > 22) return;
@@ -176,6 +202,8 @@ export class ScaleExplorer implements LivePractice {
     const settings = guitarScaleFromQuery(route.query, {
       tonic: this.tonic,
       quality: this.quality,
+      shapeSet: this.shapeSet,
+      hilaShape: this.hilaShape,
       pattern: this.pattern,
       shift: this.shift,
       firstFret: this.firstFret,
@@ -184,6 +212,8 @@ export class ScaleExplorer implements LivePractice {
       ...(this.spelling ? { spelling: this.spelling } : {}),
     });
     if (
+      settings.shapeSet !== this.shapeSet ||
+      settings.hilaShape !== this.hilaShape ||
       settings.tonic !== this.tonic ||
       settings.quality !== this.quality ||
       settings.spelling !== this.spelling ||
@@ -197,6 +227,8 @@ export class ScaleExplorer implements LivePractice {
       this.firstFret = settings.firstFret ?? 0;
       this.lastFret = settings.lastFret ?? 5;
       this.labels = settings.labels || this.labels;
+      this.shapeSet = settings.shapeSet || "standard";
+      this.hilaShape = settings.hilaShape || 1;
       this.tonic = settings.tonic;
       this.quality = settings.quality;
       this.spelling = settings.spelling;
@@ -214,6 +246,8 @@ export class ScaleExplorer implements LivePractice {
     keys: [],
   });
   private options!: ScaleOptionsState;
+  private shapeSet: "standard" | "hila" = "standard";
+  private hilaShape: HilaShape = 1;
   private pattern: ScalePattern = "1";
   private shift = 0;
   private linked: ScalePattern | "none" = (() => {
@@ -239,6 +273,8 @@ export class ScaleExplorer implements LivePractice {
     const settings = mergeGuitarScaleSettings(
       saved?.version === 1 ? saved.settings : undefined,
     );
+    this.shapeSet = settings.shapeSet || "standard";
+    this.hilaShape = settings.hilaShape || 1;
     this.tonic = settings.tonic;
     this.quality = settings.quality;
     this.spelling = settings.spelling;
@@ -345,6 +381,8 @@ export class ScaleExplorer implements LivePractice {
               patch,
               this.optionsSnapshot(),
             );
+            this.shapeSet = next.shapeSet || "standard";
+            this.hilaShape = next.hilaShape || 1;
             this.tonic = next.tonic;
             this.quality = next.quality;
             this.pattern = next.pattern!;
@@ -377,7 +415,14 @@ export class ScaleExplorer implements LivePractice {
     );
     url.searchParams.set("scale", this.quality);
     url.searchParams.set("pattern", this.pattern);
-    if (this.pattern !== "map")
+    if (this.shapeSet === "hila") {
+      url.searchParams.set("set", "hila");
+      url.searchParams.set("shape", String(this.hilaShape));
+    } else {
+      url.searchParams.delete("set");
+      url.searchParams.delete("shape");
+    }
+    if (this.shapeSet === "hila" || this.pattern !== "map")
       url.searchParams.set("position", String(this.shift));
     else url.searchParams.delete("position");
     if (this.linked !== "none") url.searchParams.set("link", this.linked);
@@ -398,6 +443,8 @@ export class ScaleExplorer implements LivePractice {
       tonic: this.tonic,
       quality: this.quality,
       spelling: this.spelling,
+      shapeSet: this.shapeSet,
+      hilaShape: this.hilaShape,
       pattern: this.pattern,
       labels: this.labels,
       firstFret: this.firstFret,
@@ -412,6 +459,8 @@ export class ScaleExplorer implements LivePractice {
       settings: {
         tonic: this.tonic,
         quality: this.quality,
+        shapeSet: this.shapeSet,
+        hilaShape: this.hilaShape,
         pattern: this.pattern,
         shift: this.shift,
         ...(this.returnPosition ? { returnPosition: this.returnPosition } : {}),
@@ -425,7 +474,9 @@ export class ScaleExplorer implements LivePractice {
     this.publishRoute();
   }
   private normalizePosition() {
-    if (this.pattern !== "map")
+    if (this.shapeSet === "hila")
+      this.shift = hilaShift(this.tonic, this.hilaShape, this.shift);
+    else if (this.pattern !== "map")
       this.shift = patternShift(
         this.tonic,
         this.quality,
@@ -457,9 +508,11 @@ export class ScaleExplorer implements LivePractice {
       ? "Return to previous shape"
       : `Show ${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} starting position`;
     const relativeExplanation = `${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} Shape 1 · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)} Shape ${relativeTarget}`;
-    const movable = this.pattern !== "map";
-    const basePositions =
-      this.pattern === "map"
+    const hila = this.shapeSet === "hila";
+    const movable = hila || this.pattern !== "map";
+    const basePositions = hila
+      ? hilaPositions(this.tonic, this.hilaShape, this.shift, this.spelling)
+      : this.pattern === "map"
         ? scalePositions(
             this.tonic,
             this.quality,
@@ -475,6 +528,7 @@ export class ScaleExplorer implements LivePractice {
             this.spelling,
           );
     const linked =
+      !hila &&
       movable &&
       this.linked !== "none" &&
       this.linked !== "map" &&
@@ -543,10 +597,12 @@ export class ScaleExplorer implements LivePractice {
     const fullLeft = firstFret === 0 ? -100 : (fullStart - 1) * step - 36;
     const fullRight = fullEnd * step + 1;
 
-    const caption = movable
-      ? `Shape ${this.pattern} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
-      : "Fret range";
-    const labels = this.labels;
+    const caption = hila
+      ? `Extended Set · Shape ${this.hilaShape}`
+      : movable
+        ? `Shape ${this.pattern} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
+        : "Fret range";
+    const labels = hila && this.labels === "fingers" ? "notes" : this.labels;
     const footnote =
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger"
@@ -559,21 +615,23 @@ export class ScaleExplorer implements LivePractice {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],
       );
-      const [low, high] = patternBounds(
-        this.pattern === "map" ? "1" : this.pattern,
-        this.quality,
-      );
+      const [low, high] = hila
+        ? hilaBounds(this.hilaShape)
+        : patternBounds(
+            this.pattern === "map" ? "1" : this.pattern,
+            this.quality,
+          );
       return {
         label: direction < 0 ? `← ${target}` : `${target} →`,
         title: `${direction < 0 ? "Down" : "Up"} one fret · ${target}`,
         disabled:
           movable &&
           (low + this.shift + direction < 1 ||
-            high + this.shift + direction > 22),
+            high + this.shift + direction > (hila ? 18 : 22)),
       };
     });
     this.controls.set({
-      relative: label,
+      relative: hila ? "" : label,
       returning: !!this.returnPosition,
       movable,
       caption: linked ? "" : caption,
@@ -662,7 +720,7 @@ export class ScaleExplorer implements LivePractice {
         route && (route.previous.string === 6 || route.arrival.string === 6)
           ? 335
           : 290;
-      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `Shape ${this.pattern}, frets ${firstFret}–${lastFret}` : "open strings through fret 5"}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : "Dots show note names."} Full note positions are listed below.</desc>
+      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${hila ? "Extended Set, Shape " + this.hilaShape : "Shape " + this.pattern}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
       ${Array.from(
         { length: fullEnd - fullStart + 2 },
         (_, i) => fullStart - 1 + i,
@@ -715,10 +773,12 @@ export class ScaleExplorer implements LivePractice {
       linkedLegend: linked ? `Shape ${this.pattern}|Shape ${this.linked}` : "",
       linkHelp: "",
       notes: noteList,
-      relativeExplanation,
+      relativeExplanation: hila
+        ? "17 consecutive scale notes across all six strings."
+        : relativeExplanation,
       movable,
       footnote,
-      source,
+      source: hila ? "" : source,
       rows: [6, 5, 4, 3, 2, 1].map((string) => ({
         string,
         notes: positions

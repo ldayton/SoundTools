@@ -1,3 +1,4 @@
+import { HILA_SHAPES, type HilaShape } from "./hila-scale-shapes";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack, SimpleGrid } from "@mantine/core";
 import { SCALE_SHAPES, type ScalePattern } from "./guitar-scale-patterns";
@@ -9,6 +10,8 @@ import {
 } from "./guitar-scales";
 import { createViewState } from "./view-state";
 export type ScaleOptionsSnapshot = {
+  shapeSet: "standard" | "hila";
+  hilaShape: HilaShape;
   tonic: number;
   quality: ScaleQuality;
   spelling?: string;
@@ -60,19 +63,49 @@ export function ScaleOptions({
           change({ quality: e.currentTarget.value as ScaleQuality })
         }
       />
-      <NativeSelect
-        id="scale-pattern"
-        label="Pattern"
-        value={state.pattern}
-        data={[
-          { value: "map", label: "Fret range" },
-          ...SCALE_SHAPES.map((value) => ({ value, label: `Shape ${value}` })),
-        ]}
-        onChange={(e) =>
-          change({ pattern: e.currentTarget.value as ScalePattern })
-        }
-      />
-      {state.pattern === "map" && (
+      {state.quality === "major" && (
+        <NativeSelect
+          label="Shape set"
+          value={state.shapeSet}
+          data={[
+            { value: "standard", label: "Standard · five shapes" },
+            { value: "hila", label: "Extended Set" },
+          ]}
+          onChange={(e) =>
+            change({ shapeSet: e.currentTarget.value as "standard" | "hila" })
+          }
+        />
+      )}
+      {state.shapeSet === "hila" ? (
+        <NativeSelect
+          label="Shape"
+          value={String(state.hilaShape)}
+          data={HILA_SHAPES.map((n) => ({
+            value: String(n),
+            label: `Shape ${n}`,
+          }))}
+          onChange={(e) =>
+            change({ hilaShape: Number(e.currentTarget.value) as HilaShape })
+          }
+        />
+      ) : (
+        <NativeSelect
+          id="scale-pattern"
+          label="Pattern"
+          value={state.pattern}
+          data={[
+            { value: "map", label: "Fret range" },
+            ...SCALE_SHAPES.map((value) => ({
+              value,
+              label: `Shape ${value}`,
+            })),
+          ]}
+          onChange={(e) =>
+            change({ pattern: e.currentTarget.value as ScalePattern })
+          }
+        />
+      )}
+      {state.shapeSet === "standard" && state.pattern === "map" && (
         <SimpleGrid cols={2}>
           <NativeSelect
             label="First fret"
@@ -98,33 +131,36 @@ export function ScaleOptions({
           />
         </SimpleGrid>
       )}
-      <NativeSelect
-        id="scale-linked-pattern"
-        label="Link with"
-        value={state.linked}
-        disabled={state.pattern === "map"}
-        data={[
-          { value: "none", label: "Single shape" },
-          ...SCALE_SHAPES.filter((value) => value !== state.pattern).map(
-            (value) => ({ value, label: `Shape ${value}` }),
-          ),
-        ]}
-        onChange={(e) =>
-          change({
-            linked: e.currentTarget.value as ScaleOptionsSnapshot["linked"],
-          })
-        }
-      />
+      {state.shapeSet === "standard" && (
+        <NativeSelect
+          id="scale-linked-pattern"
+          label="Link with"
+          value={state.linked}
+          disabled={state.pattern === "map"}
+          data={[
+            { value: "none", label: "Single shape" },
+            ...SCALE_SHAPES.filter((value) => value !== state.pattern).map(
+              (value) => ({ value, label: `Shape ${value}` }),
+            ),
+          ]}
+          onChange={(e) =>
+            change({
+              linked: e.currentTarget.value as ScaleOptionsSnapshot["linked"],
+            })
+          }
+        />
+      )}
       <NativeSelect
         id="scale-dot-labels"
         label="Dots"
         value={
-          state.pattern === "map" && state.labels === "fingers"
+          (state.shapeSet === "hila" || state.pattern === "map") &&
+          state.labels === "fingers"
             ? "notes"
             : state.labels
         }
         data={[
-          ...(state.pattern !== "map"
+          ...(state.shapeSet === "standard" && state.pattern !== "map"
             ? [{ value: "fingers", label: "Finger numbers" }]
             : []),
           { value: "none", label: "Unlabelled dots" },

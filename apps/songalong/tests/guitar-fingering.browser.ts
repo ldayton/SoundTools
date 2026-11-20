@@ -39,6 +39,7 @@ try {
     );
     assert(frets.join("").includes("4"), "The D sharp uses fret 4");
     await page.reload();
+    await page.locator(".abcjs-tabNumber").first().waitFor();
     await openHymnControls(page);
     await expect(checkbox).toBeChecked();
     await expect(page.locator(".beginner-fingering").first()).toBeVisible();

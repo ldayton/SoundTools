@@ -1,3 +1,4 @@
+import { attachChordDiagrams } from "./guitar-chord-diagram";
 import { drawGuitarFingerings } from "./guitar-fingering-view";
 import { drawHymnFingerings } from "./hymn-fingering";
 import {
@@ -314,6 +315,7 @@ export function drawPracticeScore(
     svg.style.height = `${box.height * fittedScale}px`;
     svg.style.maxWidth = "100%";
   });
+  if (options.guitarTab) attachChordDiagrams(paper);
   if (options.fingerings) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
     else drawHymnFingerings(tune);

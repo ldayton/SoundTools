@@ -363,3 +363,7 @@
   outline-offset: -4px;
   border-radius: 6px;
 }
+
+.guitar-chord-trigger { cursor: pointer; }
+.guitar-chord-trigger .abcjs-chord { text-decoration: underline dotted; text-underline-offset: 3px; }
+.guitar-chord-trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }

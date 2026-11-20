@@ -1,3 +1,4 @@
+import { GuitarChordDiagram } from "./guitar-chord-diagram";
 import { restoreFocus } from "@ldayton/ui/restore-focus";
 import { RenderErrorBoundary } from "@ldayton/ui/render-error-boundary";
 import { AccountMenu, AccountProvider } from "@ldayton/ui/account-menu";
@@ -419,6 +420,7 @@ export function mountAppShell(
             <SettingsPage key={snapshot.settingsVisit} />
           </section>
         </ApplicationLayout>
+        {APP.id === "songalong" && <GuitarChordDiagram />}
         <PracticeSurfaceViews registry={registry} />
       </PracticeOptionsProvider>
     );

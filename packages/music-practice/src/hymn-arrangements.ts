@@ -203,10 +203,11 @@ const seventhShapes = [
   [null, 1, 3, 1, 3, 1],
   [null, 2, 1, 2, 0, 2],
 ];
+export function guitarChordShape(root: number, seventh = false) {
+  return (seventh ? seventhShapes : majorShapes)[((root % 12) + 12) % 12];
+}
 export function guitarChordPitches(root: number, seventh = false) {
-  const shape = (seventh ? seventhShapes : majorShapes)[
-    ((root % 12) + 12) % 12
-  ];
+  const shape = guitarChordShape(root, seventh);
   return shape.flatMap((fret, string) =>
     fret === null ? [] : [[40, 45, 50, 55, 59, 64][string] + fret],
   );

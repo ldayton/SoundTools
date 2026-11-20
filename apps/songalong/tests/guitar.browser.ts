@@ -21,6 +21,15 @@ try {
     .first()
     .waitFor();
 
+  const activeTab = page.locator('[data-name="tabNumber"].sight-current');
+  await expect(activeTab).toHaveCount(1);
+  await expect(activeTab).toHaveText("2");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(activeTab).toHaveText("3", { timeout: 15000 });
+  await expect(
+    page.locator(".abcjs-note.sight-current .abcjs-lyric"),
+  ).toContainText("glad");
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
   await page.screenshot({
     path: "/Users/lily/Documents/Codex/2026-11-18/ex/outputs/songalong-guitar-laptop.png",
     fullPage: true,

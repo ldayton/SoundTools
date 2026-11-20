@@ -15,6 +15,7 @@ import abcjs, {
   type TuneObject,
   type AudioTracks,
   type MidiPitch,
+  type AbsoluteElement,
 } from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
 import { applyHymnOttava, drawHymnOttava, fitHymnOttava } from "./hymn-ottava";
@@ -212,6 +213,25 @@ export function drawPracticeScore(
     svg.style.maxWidth = "100%";
   });
   if (options.fingerings) drawHymnFingerings(tune);
+  // abcjs timings reference staff glyphs but omit their engraved tab clones.
+  const tabElements = new Map<number, HTMLElement[]>();
+  if (options.guitarTab)
+    for (const line of tune.lines)
+      for (const staff of line.staff || [])
+        for (const voice of staff.voices || [])
+          for (const item of voice) {
+            if (item.el_type !== "note" || item.startChar === undefined)
+              continue;
+            const absolute = (
+              item as typeof item & {
+                abselem?: AbsoluteElement & {
+                  cloned?: { elemset?: HTMLElement[] };
+                };
+              }
+            ).abselem;
+            const elements = absolute?.cloned?.elemset;
+            if (elements?.length) tabElements.set(item.startChar, elements);
+          }
   const spellings = scoreSpellings(tune);
   const continuations = options.reattackTies
     ? tiedContinuations(tune)
@@ -228,6 +248,14 @@ export function drawPracticeScore(
     .filter((e) => e.type === "event")
     .map((e) => ({
       ...e,
+      elements: options.guitarTab
+        ? [
+            ...(e.elements || []),
+            (e.startCharArray || [e.startChar!]).flatMap(
+              (start) => tabElements.get(start) || [],
+            ),
+          ]
+        : e.elements,
       scorePosition:
         options.playback && barLength > 0 && Number.isFinite(barLength)
           ? scorePosition(e.milliseconds / 1000, barLength, pickup, pulse)

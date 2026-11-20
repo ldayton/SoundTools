@@ -1,3 +1,4 @@
+import { drawGuitarFingerings } from "./guitar-fingering-view";
 import { drawHymnFingerings } from "./hymn-fingering";
 import {
   hymnLyricsAbc,
@@ -313,7 +314,10 @@ export function drawPracticeScore(
     svg.style.height = `${box.height * fittedScale}px`;
     svg.style.maxWidth = "100%";
   });
-  if (options.fingerings) drawHymnFingerings(tune);
+  if (options.fingerings) {
+    if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
+    else drawHymnFingerings(tune);
+  }
   // abcjs timings reference staff glyphs but omit their engraved tab clones.
   const tabElements = new Map<number, HTMLElement[]>();
   if (options.guitarTab)

@@ -80,7 +80,7 @@ try {
   await expect(activeTab).toHaveText("0");
   await expect(
     page.getByRole("checkbox", { name: "Show fingerings" }),
-  ).toHaveCount(0);
+  ).toBeVisible();
   await page.reload();
   await expect(page.locator('[data-name="tabNumber"]').first()).toBeVisible();
   await page.setViewportSize({ width: 393, height: 852 });

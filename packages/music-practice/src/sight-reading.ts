@@ -866,7 +866,9 @@ export class SightReading {
         scale: this.zoom,
         staffScale: this.staffSpacing / 100,
         fingerings:
-          this.showFingerings && ["melody", "bass"].includes(this.arrangement),
+          this.showFingerings &&
+          (["melody", "bass"].includes(this.arrangement) ||
+            isGuitarArrangement(this.arrangement)),
         lyrics:
           this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||

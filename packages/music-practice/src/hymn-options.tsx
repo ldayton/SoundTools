@@ -520,7 +520,6 @@ export function HymnFingerings({
   const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
-  if (isGuitarArrangement(state.arrangement)) return null;
   const checkbox = (
     <Checkbox
       id="hymn-fingerings"
@@ -528,7 +527,11 @@ export function HymnFingerings({
       label={mobile ? undefined : "Show fingerings"}
       size={mobile ? "sm" : "xs"}
       checked={state.fingerings}
-      disabled={state.arrangement !== "melody" && state.arrangement !== "bass"}
+      disabled={
+        state.arrangement !== "melody" &&
+        state.arrangement !== "bass" &&
+        !isGuitarArrangement(state.arrangement)
+      }
       onChange={(event) => change({ fingerings: event.currentTarget.checked })}
     />
   );

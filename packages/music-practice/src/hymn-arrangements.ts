@@ -203,6 +203,52 @@ const seventhShapes = [
   [null, 1, 3, 1, 3, 1],
   [null, 2, 1, 2, 0, 2],
 ];
+// Finger assignments follow the corresponding low-E-to-high-E chord shapes.
+const majorFingers = [
+  [null, 3, 2, 0, 1, 0],
+  [null, 1, 3, 3, 3, 1],
+  [null, null, 0, 1, 3, 2],
+  [null, 1, 3, 3, 3, 1],
+  [0, 2, 3, 1, 0, 0],
+  [1, 3, 4, 2, 1, 1],
+  [1, 3, 4, 2, 1, 1],
+  [2, 1, 0, 0, 0, 3],
+  [1, 3, 4, 2, 1, 1],
+  [null, 0, 1, 2, 3, 0],
+  [null, 1, 3, 3, 3, 1],
+  [null, 1, 3, 3, 3, 1],
+];
+const seventhFingers = [
+  [null, 3, 2, 4, 1, 0],
+  [null, 1, 3, 1, 4, 1],
+  [null, null, 0, 2, 1, 3],
+  [null, 1, 3, 1, 4, 1],
+  [0, 2, 0, 1, 0, 0],
+  [1, 3, 1, 2, 1, 1],
+  [1, 3, 1, 2, 1, 1],
+  [3, 2, 0, 0, 0, 1],
+  [1, 3, 1, 2, 1, 1],
+  [null, 0, 2, 0, 3, 0],
+  [null, 1, 3, 1, 4, 1],
+  [null, 2, 1, 3, 0, 4],
+];
+export function guitarShapeFingers(shape: readonly (number | null)[]) {
+  for (const [shapes, fingers] of [
+    [majorShapes, majorFingers],
+    [seventhShapes, seventhFingers],
+  ]) {
+    const index = shapes.findIndex(
+      (candidate) =>
+        candidate.every((fret, i) => fret === shape[i]) &&
+        candidate.length === shape.length,
+    );
+    if (index >= 0) return fingers[index];
+  }
+  return null; // Never guess finger assignments for an unrecognized chord.
+}
+export function guitarChordShape(root: number, seventh = false) {
+  return (seventh ? seventhShapes : majorShapes)[((root % 12) + 12) % 12];
+}
 export function guitarChordPitches(root: number, seventh = false) {
   const shape = (seventh ? seventhShapes : majorShapes)[
     ((root % 12) + 12) % 12

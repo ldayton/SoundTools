@@ -32,6 +32,7 @@ import {
 } from "@mantine/core";
 import {
   hymnArrangements,
+  supportsGuitarTab,
   isGuitarArrangement,
   type Arrangement,
   type HymnHands,
@@ -227,18 +228,49 @@ export function HymnOptions({
       <OptionsSection
         title={isGuitarArrangement(state.arrangement) ? "Guitar" : "Hands"}
       >
-        <NativeSelect
-          id="hymn-arrangement"
-          label="Arrangement"
-          value={state.arrangement}
-          data={hymnArrangements({ id: state.hymn }).map((a) => ({
-            value: a.id,
-            label: a.label,
-          }))}
-          onChange={(event) =>
-            change({ arrangement: event.currentTarget.value as Arrangement })
-          }
-        />
+        {supportsGuitarTab({ id: state.hymn }) ? (
+          <Select
+            id="hymn-arrangement"
+            label="Arrangement"
+            value={state.arrangement}
+            data-arrangement={state.arrangement}
+            allowDeselect={false}
+            leftSection={
+              isGuitarArrangement(state.arrangement) ? (
+                <ControlIcon name="guitar" size={18} />
+              ) : undefined
+            }
+            data={hymnArrangements({ id: state.hymn }).map((a) => ({
+              value: a.id,
+              label: a.label,
+            }))}
+            comboboxProps={{ withinPortal: false }}
+            onChange={(value) => {
+              if (value) change({ arrangement: value as Arrangement });
+            }}
+            renderOption={({ option }) => (
+              <Group gap="xs" wrap="nowrap">
+                {isGuitarArrangement(option.value as Arrangement) && (
+                  <ControlIcon name="guitar" size={18} />
+                )}
+                <span>{option.label}</span>
+              </Group>
+            )}
+          />
+        ) : (
+          <NativeSelect
+            id="hymn-arrangement"
+            label="Arrangement"
+            value={state.arrangement}
+            data={hymnArrangements({ id: state.hymn }).map((a) => ({
+              value: a.id,
+              label: a.label,
+            }))}
+            onChange={(event) =>
+              change({ arrangement: event.currentTarget.value as Arrangement })
+            }
+          />
+        )}
         {state.arrangement !== "melody" &&
           !isGuitarArrangement(state.arrangement) && (
             <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">

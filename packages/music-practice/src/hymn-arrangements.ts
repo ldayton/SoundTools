@@ -38,12 +38,12 @@ export function hymnArrangements(hymn: { id: string }) {
         ...ARRANGEMENTS,
         {
           id: "guitar" as const,
-          label: "Guitar · Melody tab",
+          label: "Melody tab",
           help: "Guitar melody with chord symbols.",
         },
         {
           id: "guitar-chords" as const,
-          label: "Guitar · Chord tab",
+          label: "Chord tab",
           help: "Guitar chords shown as stacked fret numbers.",
         },
       ]

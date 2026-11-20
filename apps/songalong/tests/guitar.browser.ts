@@ -69,12 +69,14 @@ try {
     .toEqual(expect.arrayContaining(["G", "C", "D7"]));
   // In G the opening B is the open B string, rather than D's F# at fret 2.
   await expect(activeTab).toHaveText("0");
-  await page.locator("#hymn-arrangement").selectOption("melody");
+  await page.locator("#hymn-arrangement").click();
+  await page.getByRole("option", { name: "1 · Melody", exact: true }).click();
   await expect(page.locator('[data-name="tabNumber"]')).toHaveCount(0);
   await expect(
     page.getByRole("checkbox", { name: "Show fingerings" }),
   ).toBeVisible();
-  await page.locator("#hymn-arrangement").selectOption("guitar");
+  await page.locator("#hymn-arrangement").click();
+  await page.getByRole("option", { name: "Melody tab", exact: true }).click();
   await expect(activeTab).toHaveText("0");
   await expect(
     page.getByRole("checkbox", { name: "Show fingerings" }),
@@ -136,7 +138,13 @@ try {
   await expect(activeTab).toHaveCount(1);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await openPracticeOptions(page);
-  await expect(page.locator("#hymn-arrangement")).toHaveValue("guitar-chords");
+  await expect(page.locator("#hymn-arrangement")).toHaveValue("Chord tab");
+  await page.locator("#hymn-arrangement").click();
+  for (const name of ["Melody tab", "Chord tab"])
+    await expect(
+      page.getByRole("option", { name, exact: true }).locator("svg"),
+    ).toHaveCount(1);
+  await page.keyboard.press("Escape");
   await page.locator("#hymn-key").click();
   await page.getByRole("option", { name: /^G major/ }).click();
   await expect(activeTab.locator("text")).toHaveCount(6);

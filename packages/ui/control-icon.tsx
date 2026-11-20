@@ -1,4 +1,5 @@
 export type ControlIconName =
+  | "guitar"
   | "settings"
   | "account"
   | "text-size"
@@ -22,6 +23,12 @@ export type ControlIconName =
   | "chevron-left";
 
 const artwork = {
+  guitar: (
+    <>
+      <path d="m13 9 6-6 2 2-6 6m-3-3c-2-1-4 0-4 2-4 0-6 4-3 7s7 1 7-3c2 0 3-2 2-4" />
+      <circle cx="9" cy="13" r="1.5" />
+    </>
+  ),
   account: (
     <>
       <circle cx="12" cy="8" r="4" />

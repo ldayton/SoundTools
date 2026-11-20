@@ -107,7 +107,13 @@ export async function practiceOption(
         .getByRole("button", { name: label, exact: true })
         .click();
     }
-  } else if (selector === "#hymn-key") {
+  } else if (
+    selector === "#hymn-key" ||
+    (selector === "#hymn-arrangement" &&
+      (await page
+        .locator(selector)
+        .evaluate((element) => element.tagName !== "SELECT")))
+  ) {
     await page.locator(selector).click();
     await page.locator(`[role="option"][value="${value}"]`).click();
   } else await page.locator(selector).selectOption(value);

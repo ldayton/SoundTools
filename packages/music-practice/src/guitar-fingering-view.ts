@@ -1,5 +1,4 @@
 import type { AbsoluteElement, TuneObject } from "abcjs";
-import { guitarShapeFingers } from "./hymn-arrangements";
 import { planGuitarFingering, type GuitarFingerNote } from "./guitar-fingering";
 const ns = "http://www.w3.org/2000/svg";
 type TabNote = {
@@ -7,9 +6,13 @@ type TabNote = {
   notes?: { num: number | string; str: number }[];
   abselem?: AbsoluteElement;
 };
-/** Annotate existing tab glyphs: no extra rows, altered pitches, or rewritten tab. */
+/** Standard guitar finger numbers beside melody noteheads; tab remains fret numbers. */
 export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
-  const sources = new Map<number, { duration: number; restBefore: boolean }>();
+  if (chords) return;
+  const sources = new Map<
+    number,
+    { duration: number; restBefore: boolean; absolute?: AbsoluteElement }
+  >();
   for (const line of tune.lines)
     for (const staff of line.staff || []) {
       if (String(staff.clef?.type) === "TAB") continue;
@@ -23,6 +26,8 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
           }
           sources.set(item.startChar, {
             duration: item.duration,
+            absolute: (item as typeof item & { abselem?: AbsoluteElement })
+              .abselem,
             restBefore: rest,
           });
           rest = false;
@@ -73,36 +78,29 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
         entries.flatMap((e) => (e.notes.length === 1 ? e.notes : [])),
       );
   let at = 0;
-  for (const { group, notes } of entries) {
-    const texts = [
-      ...group.querySelectorAll<SVGTextElement>(".abcjs-tab-number"),
-    ];
-    let fingers: (number | null)[];
-    let shift = false;
-    let position = 1;
-    if (chords) {
-      const shape: (number | null)[] = Array(6).fill(null);
-      for (const note of notes) shape[6 - note.string] = note.fret;
-      const reviewed = guitarShapeFingers(shape);
-      if (!reviewed) continue;
-      fingers = notes.map((n) => reviewed[6 - n.string]);
-    } else {
-      if (notes.length !== 1) continue;
-      const planned = melody[at++];
-      fingers = [planned.finger];
-      shift = planned.shift;
+  for (const { tab, notes } of entries) {
+    if (notes.length !== 1) continue;
+    const planned = melody[at++];
+    const source = sources.get(tab.startChar);
+    const staffGroup = source?.absolute?.elemset[0] as unknown as
+      SVGGraphicsElement | undefined;
+    const head =
+      staffGroup?.querySelector<SVGGraphicsElement>(".abcjs-notehead");
+    if (!staffGroup || !head) continue;
+    const texts = [head];
+    const fingers = [planned.finger];
+    const shift = planned.shift,
       position = planned.position;
-    }
     for (const [i, finger] of fingers.entries()) {
       if (!finger || !texts[i]) continue;
       const box = texts[i].getBBox();
       const mark = document.createElementNS(ns, "text");
-      mark.setAttribute("x", String(box.x + box.width + 2));
-      mark.setAttribute("y", String(box.y + 3));
-      mark.setAttribute("font-size", "7");
+      mark.setAttribute("x", String(box.x - 9));
+      mark.setAttribute("y", String(box.y + box.height / 2 + 4));
+      mark.setAttribute("font-size", "11");
       mark.setAttribute("font-family", "sans-serif");
-      mark.setAttribute("font-weight", "600");
-      mark.setAttribute("fill", "var(--mantine-color-teal-7, #087f8c)");
+      mark.setAttribute("font-weight", "400");
+      mark.setAttribute("fill", "currentColor");
       mark.setAttribute("paint-order", "stroke");
       mark.setAttribute("stroke", "var(--mantine-color-body, white)");
       mark.setAttribute("stroke-width", "2");
@@ -114,7 +112,7 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
       const title = document.createElementNS(ns, "title");
       title.textContent = `String ${notes[i].string}, fret ${notes[i].fret}: finger ${finger}`;
       mark.append(title);
-      group.append(mark);
+      staffGroup.append(mark);
     }
     if (shift && texts[0]) {
       const roman = [
@@ -135,13 +133,13 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
       const mark = document.createElementNS(ns, "text"),
         box = texts[0].getBBox();
       mark.setAttribute("x", String(box.x - 9));
-      mark.setAttribute("y", String(box.y + 3));
-      mark.setAttribute("font-size", "7");
+      mark.setAttribute("y", String(box.y - 12));
+      mark.setAttribute("font-size", "10");
       mark.setAttribute("fill", "currentColor");
       mark.classList.add("guitar-position");
       mark.textContent = roman[position] || String(position);
       mark.setAttribute("aria-label", `Shift to position ${position}`);
-      group.append(mark);
+      staffGroup.append(mark);
     }
   }
 }

@@ -15,7 +15,7 @@ try {
   });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  for (const arrangement of ["guitar", "guitar-chords"]) {
+  for (const arrangement of ["guitar"]) {
     await page.goto(
       server.base +
         `/piano/hymns/ill-fly-away?arrangement=${arrangement}&key=D&mode=playback`,
@@ -44,23 +44,6 @@ try {
     expect(await page.locator(".abcjs-tab-number").allTextContents()).toEqual(
       frets,
     );
-    if (arrangement === "guitar-chords") {
-      const first = page.locator("[data-name=tabNumber]").first();
-      expect(
-        await first
-          .locator(".guitar-fingering")
-          .evaluateAll((es) =>
-            es.map((e) => [
-              e.getAttribute("data-string"),
-              e.getAttribute("data-finger"),
-            ]),
-          ),
-      ).toEqual([
-        ["3", "1"],
-        ["2", "3"],
-        ["1", "2"],
-      ]);
-    }
     await page.screenshot({
       path: `/tmp/songalong-${arrangement}-fingers.png`,
       fullPage: true,
@@ -81,6 +64,19 @@ try {
     await expect(page.locator(".guitar-fingering").first()).toBeVisible();
     await page.setViewportSize({ width: 1440, height: 1000 });
   }
+  await page.screenshot({
+    path: "/tmp/songalong-melody-fingering-readable.png",
+    fullPage: true,
+  });
+  await page.goto(
+    server.base +
+      "/piano/hymns/ill-fly-away?arrangement=guitar-chords&key=D&mode=playback",
+  );
+  await page.locator("[data-name=tabNumber]").first().waitFor();
+  await expect(page.locator(".guitar-fingering")).toHaveCount(0);
+  await expect(
+    page.getByRole("checkbox", { name: "Show fingerings", exact: true }),
+  ).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log(
     "PASS guitar fingers: melody and reviewed chords, unchanged tab/geometry, persistence and mobile toggle",

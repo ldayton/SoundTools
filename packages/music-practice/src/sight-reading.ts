@@ -868,7 +868,7 @@ export class SightReading {
         fingerings:
           this.showFingerings &&
           (["melody", "bass"].includes(this.arrangement) ||
-            isGuitarArrangement(this.arrangement)),
+            this.arrangement === "guitar"),
         lyrics:
           this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||

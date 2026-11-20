@@ -520,6 +520,7 @@ export function HymnFingerings({
   const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
     getInitialValueInEffect: false,
   });
+  if (state.arrangement === "guitar-chords") return null;
   const checkbox = (
     <Checkbox
       id="hymn-fingerings"

@@ -1,5 +1,6 @@
 import { choice, object } from "./exercise-settings";
 import {
+  SCALE_FRET_LIMIT,
   SCALE_TONICS,
   SCALE_QUALITIES,
   scaleKeyPitch,
@@ -44,7 +45,7 @@ export function mergeGuitarScaleSettings(
     typeof value === "number" &&
     Number.isInteger(value) &&
     value >= 0 &&
-    value <= 24;
+    value <= SCALE_FRET_LIMIT;
   if (
     source.firstFret !== undefined ||
     source.lastFret !== undefined ||
@@ -53,11 +54,17 @@ export function mergeGuitarScaleSettings(
   ) {
     settings.firstFret = validFret(source.firstFret)
       ? source.firstFret
-      : (base.firstFret ?? 0);
+      : validFret(base.firstFret)
+        ? base.firstFret
+        : 0;
     settings.lastFret = Math.max(
       1,
       settings.firstFret,
-      validFret(source.lastFret) ? source.lastFret : (base.lastFret ?? 5),
+      validFret(source.lastFret)
+        ? source.lastFret
+        : validFret(base.lastFret)
+          ? base.lastFret
+          : 5,
     );
   }
   const patterns = ["map", ...SCALE_SHAPES] as const;

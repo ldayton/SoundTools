@@ -42,7 +42,7 @@ test("fret ranges are complete and exact for every key and scale family", () => 
         [1, 5],
         [7, 12],
         [12, 12],
-        [0, 24],
+        [0, 18],
       ]) {
         const notes = scaleNotes(tonic, quality);
         const expected = [];
@@ -62,6 +62,7 @@ test("fret ranges are complete and exact for every key and scale family", () => 
         );
       }
   assert.throws(() => scalePositions(0, "major", undefined, 6, 2));
+  assert.throws(() => scalePositions(0, "major", undefined, 0, 19));
 });
 test("range bookmarks and invalid bounds normalize safely", () => {
   const s = guitarScaleFromQuery(
@@ -71,6 +72,14 @@ test("range bookmarks and invalid bounds normalize safely", () => {
   assert.equal(s.firstFret, 1);
   assert.equal(s.lastFret, 5);
   assert.equal(s.labels, "none");
+  const stale = mergeGuitarScaleSettings(
+    {},
+    { ...s, firstFret: 20, lastFret: 24 },
+  );
+  assert.equal(stale.firstFret, 0);
+  assert.equal(stale.lastFret, 5);
+  assert.equal(mergeGuitarScaleSettings({ lastFret: 19 }, s).lastFret, 5);
+  assert.equal(mergeGuitarScaleSettings({ lastFret: 18 }, s).lastFret, 18);
   const next = mergeGuitarScaleSettings({ firstFret: 12, lastFret: 3 }, s);
   assert.equal(next.lastFret, 12);
   assert.equal(

@@ -1,7 +1,12 @@
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack, SimpleGrid } from "@mantine/core";
 import { SCALE_SHAPES, type ScalePattern } from "./guitar-scale-patterns";
-import { SCALE_TONICS, scaleLabel, type ScaleQuality } from "./guitar-scales";
+import {
+  SCALE_FRET_LIMIT,
+  SCALE_TONICS,
+  scaleLabel,
+  type ScaleQuality,
+} from "./guitar-scales";
 import { createViewState } from "./view-state";
 export type ScaleOptionsSnapshot = {
   tonic: number;
@@ -84,7 +89,7 @@ export function ScaleOptions({
             label="Last fret"
             value={String(state.lastFret)}
             data={Array.from(
-              { length: 25 - Math.max(1, state.firstFret) },
+              { length: SCALE_FRET_LIMIT + 1 - Math.max(1, state.firstFret) },
               (_, i) => String(Math.max(1, state.firstFret) + i),
             )}
             onChange={(event) =>

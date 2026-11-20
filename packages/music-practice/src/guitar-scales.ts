@@ -1,3 +1,5 @@
+// Alvarez AP66: 18 frets in total.
+export const SCALE_FRET_LIMIT = 18;
 import { STRINGS } from "./guitar";
 
 export const SCALE_QUALITIES = [
@@ -146,7 +148,7 @@ export function scalePositions(
     !Number.isInteger(firstFret) ||
     !Number.isInteger(lastFret) ||
     firstFret < 0 ||
-    lastFret > 24 ||
+    lastFret > SCALE_FRET_LIMIT ||
     lastFret < Math.max(1, firstFret)
   )
     throw Error("Invalid fret range");

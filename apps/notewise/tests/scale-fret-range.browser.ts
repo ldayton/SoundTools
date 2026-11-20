@@ -18,10 +18,15 @@ try {
   );
   const tones = page.locator(".scale-diagram .scale-tone");
   await expect(tones).toHaveCount(18);
-  await expect(page.locator(".scale-diagram .scale-tone.scale-root")).toHaveCount(3);
+  await expect(
+    page.locator(".scale-diagram .scale-tone.scale-root"),
+  ).toHaveCount(3);
   await openPracticeOptions(page);
   await expect(page.getByLabel("First fret", { exact: true })).toHaveValue("1");
   await expect(page.getByLabel("Last fret", { exact: true })).toHaveValue("5");
+  await expect(
+    page.getByLabel("Last fret", { exact: true }).locator("option").last(),
+  ).toHaveAttribute("value", "18");
   await page.getByLabel("Last fret", { exact: true }).selectOption("12");
   await page.getByLabel("First fret", { exact: true }).selectOption("7");
   await expect

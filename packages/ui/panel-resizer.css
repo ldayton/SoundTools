@@ -15,3 +15,20 @@
 .panel-resizer-handle {
   pointer-events: auto;
 }
+/* Hide tracks immediately at drawer breakpoints, before React's media-query
+   subscription updates; offscreen tracks must never widen the mobile page. */
+@media (max-width: 69.999em) {
+  .practice-options .panel-resizer {
+    display: none;
+  }
+}
+@media (max-width: 47.999em) {
+  .navigation-resizer {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  #panel .panel-resizer {
+    display: none;
+  }
+}

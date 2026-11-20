@@ -155,7 +155,7 @@ test("older interval patterns extend to two bars while preserving position and i
 
 test("hymn practice hands must be visible, while both-hand views allow either hand", () => {
   const base = {
-    hymn: hymns[0].id,
+    hymn: "silent-night",
     arrangement: "bass" as const,
     sectionBars: 2 as const,
     section: 0,

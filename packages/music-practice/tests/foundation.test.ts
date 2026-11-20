@@ -110,13 +110,14 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     { bpm: 95, level: "long-short" },
   );
   const hymn: HymnSettings = {
-    hymn: "amazing-grace",
+    hymn: "silent-night",
     stanzas: [1],
     mode: "wait",
     hands: "both",
     viewHands: "both",
     bpm: 80,
     arrangement: "bass",
+    scoreDisplay: "both",
     sectionBars: 0,
     section: 0,
     position: 4,
@@ -145,12 +146,12 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     hymn,
   );
   assert.equal(
-    mergeHymnSettings(hymn, { hymn: "amazing-grace", chords: true })
+    mergeHymnSettings(hymn, { hymn: hymn.hymn, chords: true })
       .arrangement,
     "original",
   );
   assert.equal(
-    mergeHymnSettings(hymn, { hymn: "amazing-grace", chords: true })
+    mergeHymnSettings(hymn, { hymn: hymn.hymn, chords: true })
       .sectionBars,
     0,
   );

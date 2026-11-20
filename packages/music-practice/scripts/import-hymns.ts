@@ -250,7 +250,7 @@ const library = curated.map((entry) => {
     meter,
     credits: source
       .split("\n")
-      .filter((l) => /^C: (Words:|Music:|copyright:)/.test(l))
+      .filter((l) => /^C: (Words:|Music:|Tabledited by |copyright:)/.test(l))
       .map((l) => l.slice(3)),
     sourceUrl: entry.sourceUrl || "https://openhymnal.org/Abc/" + entry.file,
     melody,

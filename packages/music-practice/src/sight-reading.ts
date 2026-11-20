@@ -818,7 +818,7 @@ export class SightReading {
     this.body.patch({
       title: this.hymn.title,
       credits: this.hymn.credits
-        .filter((credit) => /^(Words|Music):/i.test(credit))
+        .filter((credit) => /^(Words:|Music:|Tabledited by )/i.test(credit))
         .map((credit) =>
           credit
             .split(/\s+Setting:/i)[0]

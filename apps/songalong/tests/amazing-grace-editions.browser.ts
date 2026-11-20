@@ -21,7 +21,7 @@ async function checkScore(page: import("playwright").Page) {
         view = (svg as SVGSVGElement).viewBox.baseVal;
       return [
         ...svg.querySelectorAll<SVGGraphicsElement>(
-          ".abcjs-lyric,.abcjs-tabNumber,.beginner-fingering,.abcjs-part,.abcjs-bar-number,.tab-rhythm,.tab-rhythm-continuation",
+          ".abcjs-lyric,.abcjs-tabNumber,.beginner-fingering,.abcjs-part,.abcjs-bar-number,.tab-rhythm",
         ),
       ].flatMap((node) => {
         if (getComputedStyle(node).visibility === "hidden") return [];
@@ -40,20 +40,27 @@ async function checkScore(page: import("playwright").Page) {
     }),
   );
   assert.deepEqual(clipped, []);
-  const tiesClearSigns = await page
-    .locator(".hymn-paper svg")
-    .evaluateAll((svgs) =>
-      svgs.every((svg) => {
-        const sign = svg
-          .querySelector<SVGGraphicsElement>(".fingerstyle-tab-clef")
-          ?.getBBox();
-        if (!sign) return true;
-        return [
-          ...svg.querySelectorAll<SVGGraphicsElement>(".tab-rhythm-tie"),
-        ].every((tie) => tie.getBBox().x > sign.x + sign.width);
-      }),
-    );
-  assert(tiesClearSigns, "Ties clear the TAB sign at system breaks");
+  const crowded = await page.locator(".hymn-paper svg").evaluateAll((svgs) =>
+    svgs.flatMap((svg) => {
+      const melody = [...svg.querySelectorAll(".abcjs-v0 .beginner-fingering")]
+        .filter((n) => getComputedStyle(n).visibility !== "hidden")
+        .map((n) => n.getBoundingClientRect());
+      return [...svg.querySelectorAll(".abcjs-v1 .beginner-fingering")]
+        .filter((n) => getComputedStyle(n).visibility !== "hidden")
+        .filter((n) => {
+          const a = n.getBoundingClientRect();
+          return melody.some(
+            (b) =>
+              a.left < b.right &&
+              a.right > b.left &&
+              a.top < b.bottom &&
+              a.bottom > b.top,
+          );
+        })
+        .map((n) => n.textContent);
+    }),
+  );
+  assert.deepEqual(crowded, [], "Opposing voice fingerings remain distinct");
   assert(
     await page
       .locator(".hymn-paper svg")
@@ -110,32 +117,42 @@ try {
         .includes("3"),
     );
     await expect(page.locator("#hymn-hands")).toHaveCount(0);
-    for (const display of ["notation", "tab", "both"]) {
+    for (const display of ["notation", "tab", "both", "chords"]) {
       await page.locator("#hymn-score-display").selectOption(display);
-      if (display === "notation")
+      if (display === "notation" || display === "chords")
         await expect(page.locator("[data-name=tabNumber]")).toHaveCount(0);
       else
         await expect(
           page.locator("[data-name=tabNumber]").first(),
         ).toBeVisible();
+      if (display === "notation" || display === "both")
+        await expect(page.locator(".abcjs-time-signature")).toHaveCount(1);
       if (display === "tab") {
         await expect(page.locator(".tab-rhythm-dot").first()).toBeVisible();
         assert(await page.locator(".tab-rhythm-half").count());
         assert(await page.locator(".tab-rhythm-dot").count());
+        await expect(page.locator(".tab-rhythm-continuation")).toHaveCount(6);
+
         await expect(page.locator(".tab-rhythm-time")).toHaveText(["3", "4"]);
         assert(
           (await page.locator(".abcjs-lyric").allTextContents())
             .join(" ")
-            .toLowerCase()
-            .includes("grace"),
+            .includes("Grace"),
         );
       }
     }
     assert.equal(
-      await page.locator(".tab-rhythm-continuation").count(),
-      12,
-      "Both six-string tied chords retain their fret numbers",
+      await page.locator(".chords-only-score").count(),
+      await page.locator(".hymn-paper svg").count(),
     );
+    assert(
+      await page
+        .locator(".chords-only-score .abcjs-note path")
+        .evaluateAll((nodes) =>
+          nodes.every((n) => getComputedStyle(n).visibility === "hidden"),
+        ),
+    );
+    await expect(page.locator(".chord-hold")).toHaveCount(2);
     await checkScore(page);
     // All three verses share the same pickup and held ending.
     const stanzas = page.locator(".hymn-stanza-checkbox input");
@@ -187,7 +204,14 @@ try {
       await page.locator(".hymn-count").waitFor();
       await midiAction(page, "Connect MIDI keyboard");
       await dismissPracticeDrawer(page);
+      await openPracticeOptions(page);
+      await expect(page.locator("#hymn-hands")).toHaveValue("both");
+      await page.locator("#hymn-score-display").selectOption("chords");
+      await expect(page.locator("#hymn-hands")).toHaveValue("both");
       const before = await page.locator(".hymn-count").textContent();
+      await page.locator("#hymn-score-display").selectOption("both");
+      await expect(page.locator(".hymn-count")).toHaveText(before!);
+      await dismissPracticeDrawer(page);
       await page.evaluate(() => {
         for (const p of [53, 57, 60, 65]) {
           (window as any).midiTest.send([0x90, p, 90]);
@@ -196,14 +220,29 @@ try {
       });
       await expect(page.locator(".hymn-count")).toHaveText(before!);
       await page.evaluate(() => {
-        for (const p of [43, 47, 50, 55, 59, 67])
+        for (const p of [43, 47, 50])
           (window as any).midiTest.send([0x90, p, 90]);
       });
       await expect(page.locator(".hymn-count")).not.toHaveText(before!);
       await page.evaluate(() => {
-        for (const p of [43, 47, 50, 55, 59, 67])
+        for (const p of [43, 47, 50])
           (window as any).midiTest.send([0x80, p, 0]);
       });
+      await openPracticeOptions(page);
+      await page.locator("#hymn-hands").selectOption("left");
+      await page.locator("#hymn-score-display").selectOption("chords");
+      await page.reload();
+      await openPracticeOptions(page);
+      await expect(page.locator("#hymn-hands")).toHaveValue("left");
+      await expect(page.locator("#hymn-score-display")).toHaveValue("chords");
+      await dismissPracticeDrawer(page);
+      await midiAction(page, "Connect MIDI keyboard");
+      const chordBefore = await page.locator(".hymn-count").textContent();
+      await page.evaluate(() => {
+        for (const p of [43, 47, 50, 55, 59, 67])
+          (window as any).midiTest.send([0x90, p, 90]);
+      });
+      await expect(page.locator(".hymn-count")).not.toHaveText(chordBefore!);
     }
     assert.deepEqual(errors, []);
     assert(

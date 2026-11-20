@@ -17,14 +17,20 @@ build both NoteWise and SongAlong first.
 Amazing Grace offers Piano and Guitar editions. Piano retains the imported
 Excell melody, including its pickup, ornaments, slurs and five-beat ties, with
 held left-hand chords spanning no more than a fifth. The D7 shell uses F♯–A–C
-without the root to keep the hand compact. Guitar is a singing accompaniment
-in standard tuning, no capo, using G (320003), C (x32010), D7 (xx0212) and Em
-(022000); it is not a solo melody arrangement. Both editions reduce the source's
-inner passing voices and inversions while retaining its Em/C and dominant
+without the root to keep the hand compact. Guitar carries the complete melody
+one octave below Piano in first position, with no capo. G–B and E–B dyads,
+C basses and the F♯–C shell of D7 support the melody without string conflicts;
+all fretted notes lie within frets 1–3. Chord symbols retain the reviewed harmony.
+Full G (320003), C (x32010), D7 (xx0212) and Em (022000) shapes remain available
+for chord-accompaniment practice. Both editions reduce inner passing voices
+and inversions while retaining the source's Em/C and dominant
 changes. Each verse lasts 48 quarter-note beats, with a one-beat pickup and a
 two-beat final bar. All three source verses and credits are retained.
 
-Instrument selection is separate from notation/tab display and hand practice.
+Instrument selection is separate from notation/tab or chords-only display and
+practice-part selection. Guitar practice offers Full fingerstyle, Melody, and
+Chord accompaniment independently of the visible score. A hold dash in the
+chords-only chart represents a tied continuation.
 `test:editions` checks these controls and engraving in desktop and mobile sizes;
 `TEST_BROWSER=webkit npm run test:editions --workspace=songalong` exercises WebKit.
 The Amazing Grace unit tests independently verify melody, chord voicings,

@@ -902,8 +902,7 @@ export class SightReading {
           ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
         hymnEdition: chordEdition(this.hymn)?.id,
         fromBar: score.from,
-        lyrics: this.arrangement === "guitar-edition" && this.hymn.id !== "in-christ-alone" ? {hymn:chordEdition(this.hymn)!.lyrics(this.hymn),selected:this.stanzas,offset:chordEdition(this.hymn)!.chordOffset(score.from)} :
-          this.arrangement === "melody" ||
+        lyrics: this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
           this.viewHands !== "left"
             ? {
@@ -960,7 +959,7 @@ export class SightReading {
       const practice =
         this.mode === "wait" &&
         this.arrangement !== "melody" &&
-        (!isGuitarArrangement(this.arrangement) || this.arrangement === "guitar-fingerstyle" || this.arrangement === "guitar-edition" && this.hymn.id === "in-christ-alone") &&
+        (!isGuitarArrangement(this.arrangement) || this.arrangement === "guitar-fingerstyle" || this.arrangement === "guitar-edition" && !!chordEdition(this.hymn)) &&
         this.hands !== this.viewHands
           ? arrangeHymn(
               this.hymn,

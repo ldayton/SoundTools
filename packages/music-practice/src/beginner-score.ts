@@ -398,3 +398,14 @@ export function alignSimultaneousTab(tune:TuneObject,from:number) {
   else if(onsets.has(key))number.setAttribute('transform',`translate(${onsets.get(key)!-center} 0)`);
  }
 }
+
+/** Keep opposing voices' fingering numbers distinct beside nearby noteheads. */
+export function separateGuitarFingerings(paper:HTMLElement) {
+ for(const svg of paper.querySelectorAll('svg')) {
+  const melody=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-v0 .beginner-fingering')];
+  for(const bass of svg.querySelectorAll<SVGTextElement>('.abcjs-v1 .beginner-fingering')){
+   const a=bounds(bass,svg);if(!a)continue;
+   if(melody.some(mark=>{const b=bounds(mark,svg);return b&&a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;}))bass.setAttribute('x',String(Number(bass.getAttribute('x'))-7));
+  }
+ }
+}

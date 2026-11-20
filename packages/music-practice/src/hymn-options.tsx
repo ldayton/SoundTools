@@ -269,7 +269,7 @@ export function HymnOptions({
                   {value:"notation",label:"Notation"},
                   {value:"tab",label:"Tablature"},
                   {value:"both",label:"Notation and tablature"},
-                  ...(state.hymn === "in-christ-alone" ? [{value:"chords",label:"Chords only"}] : []),
+                  ...(profile ? [{value:"chords",label:"Chords only"}] : []),
                 ]}
                 onChange={event => change({scoreDisplay: event.currentTarget.value as "notation" | "tab" | "both" | "chords"})}
               />
@@ -277,11 +277,11 @@ export function HymnOptions({
           </OptionsSection>
           {state.mode === "wait" && (
             <OptionsSection title="Practice">
-              {state.arrangement === "guitar-edition" && state.hymn !== "in-christ-alone" ? <Text size="sm">Practise the chord accompaniment.</Text> : <NativeSelect
+              {state.arrangement === "guitar-edition" && !profile ? <Text size="sm">Practise the chord accompaniment.</Text> : <NativeSelect
                 id="hymn-hands"
                 label={state.arrangement === "piano" ? "Practise hands" : "Practise part"}
                 value={state.hands}
-                data={state.arrangement === "piano" ? hands : state.hymn === "in-christ-alone" ? [
+                data={state.arrangement === "piano" ? hands : profile ? [
                   {value:"both",label:"Full fingerstyle"},
                   {value:"right",label:"Melody"},
                   {value:"left",label:"Chord accompaniment"},
@@ -398,8 +398,8 @@ export function HymnOptions({
               {profile ? <>
                 <Text size="sm">{profile.id === 'amazing-grace' ? 'G major, 3/4. The pickup lasts one beat; the final bar has two beats. Each verse uses the same melody and ending.' : 'D major, 3/4. The pickup lasts one and a half beats; count three beats in each complete bar. The earlier verses include the four-bar vocal ending; the final verse ends at bar 16.'}</Text>
                 {state.arrangement === "piano" ? <Text size="sm">Play the melody with your right hand and the held chords with your left. Small numbers suggest fingers; 1 is the thumb and 5 is the little finger. {profile.id === 'amazing-grace' ? 'Shift your right hand for the high D, then return to the opening position. The compact D7 voicing omits the root; every left-hand chord fits within a fifth.' : 'Lift and reposition for the octave leap in the melody.'}</Text> : <>
-                  <Text size="sm">{profile.capo ? 'Capo 2. Chord symbols and fret numbers are relative to the capo; the sounding key is D major.' : 'Standard tuning, no capo. Chord symbols and fret numbers are at concert pitch in G major.'} {state.hymn === "in-christ-alone" ? "For chord accompaniment, strum at each chord symbol and let it ring." : "Strum each written attack and let it ring."} A tie means sustain without strumming again.</Text>
-                  <Text size="sm">{state.hymn === "in-christ-alone" && "The fingerstyle score has melody stems up and bass/harmony stems down. Use your thumb for bass, index for inner harmony, and middle or ring for melody. Roman numerals mark fretting-hand positions relative to the capo: I = 1st, III = 3rd, VII = 7th. Release the bass during the high C–B leap. Chords only hides the notes; choose Chord accompaniment separately under Practice to practise strumming. "}For chord accompaniment, use {profile.shapes} shapes. {profile.capo ? 'Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1.' : 'For C, strum strings 5–1; for D7, strum strings 4–1. G and Em use all six strings.'} Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
+                  <Text size="sm">{profile.capo ? 'Capo 2. Chord symbols and fret numbers are relative to the capo; the sounding key is D major.' : 'Standard tuning, no capo. Chord symbols and fret numbers are at concert pitch in G major.'} {profile ? "For chord accompaniment, strum at each chord symbol and let it ring." : "Strum each written attack and let it ring."} A tie means sustain without strumming again.</Text>
+                  <Text size="sm">{profile && "The fingerstyle score has melody stems up and bass/harmony stems down. Use your thumb for bass, index for inner harmony, and middle or ring for melody. Chords only hides the notes; choose Chord accompaniment separately under Practice to practise strumming. "}{state.hymn === 'in-christ-alone' ? "Roman numerals mark fretting-hand positions relative to the capo: I = 1st, III = 3rd, VII = 7th. Release the bass during the high C–B leap. " : "The melody sounds one octave below Piano and stays in first position. On D7, the F♯ bass and C support the melody’s A; the root is omitted. A dash in Chords only means hold the previous chord. "}For chord accompaniment, use {profile.shapes} shapes. {profile.capo ? 'Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1.' : 'For C, strum strings 5–1; for D7, strum strings 4–1. G and Em use all six strings.'} Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
                   <Text size="sm">A dot adds half the written duration. Double stems in rhythmic tab indicate half notes; the dotted half notes last all three beats.</Text>
                 </>}
               </> : <>

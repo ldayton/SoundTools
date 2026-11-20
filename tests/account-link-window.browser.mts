@@ -67,17 +67,7 @@ try {
     await app.goto(base);
     await app.getByRole("button", { name: "Log in", exact: true }).waitFor();
     if (id !== "dorego")
-      await expect
-        .poll(() =>
-          app.evaluate(
-            async (id) =>
-              (await navigator.locks.query()).held?.some(
-                (lock) => lock.name === `soundtools-${id}-writer`,
-              ),
-            id,
-          ),
-        )
-        .toBe(true);
+      await app.locator("main:not([inert])").waitFor();
     const callback = await context.newPage();
     await callback.addInitScript(() => {
       const open = indexedDB.open.bind(indexedDB);
@@ -129,22 +119,20 @@ try {
       [],
       "Confirmation never initializes or syncs practice data",
     );
+    await expect(callback.getByRole("status")).toContainText(
+      `You can now continue to ${name}`,
+    );
+    await expect(
+      callback.getByRole("link", { name: `Continue to ${name}` }),
+    ).toBeVisible();
     if (id !== "dorego") {
-      await expect(callback.getByRole("status")).toContainText(
-        `Return to your open ${name} window`,
-      );
-      assert.equal(
-        await callback
-          .getByRole("link", { name: `Continue to ${name}` })
-          .count(),
-        0,
-      );
+      // Concurrent practice windows are supported; email confirmation must not
+      // create a blocked duplicate or initialize practice storage itself.
       const duplicate = await context.newPage();
       await duplicate.goto(base);
-      await duplicate
-        .locator("#persistence-notice-body")
-        .filter({ hasText: "Practice is open in another window." })
-        .waitFor();
+      await duplicate.getByRole("button", { name: "Account", exact: true }).waitFor();
+      await duplicate.locator("main:not([inert])").waitFor();
+      await expect(duplicate.locator("#persistence-notice-body")).not.toBeVisible();
       await duplicate.close();
     }
     if (id === "songalong")

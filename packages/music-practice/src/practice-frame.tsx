@@ -1,3 +1,4 @@
+import { HymnStrumPattern } from "./hymn-strum-pattern";
 import { createPortal } from "react-dom";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { flushSync } from "react-dom";
@@ -268,6 +269,7 @@ export const hymnBodyState = () =>
     noKey: false,
     arrangement: "melody",
     scoreLabel: "Hymn score with aligned lyrics",
+    showStrumPattern: false,
     title: "",
     credits: [] as string[],
   });
@@ -324,6 +326,7 @@ export function HymnFrame({
               ))}
             </div>
           </header>
+          {s.showStrumPattern && <HymnStrumPattern />}
           <div className="hymn-paper" />
         </div>
       </div>

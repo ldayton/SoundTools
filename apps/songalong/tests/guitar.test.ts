@@ -57,7 +57,7 @@ test("guitar arrangement retains melody attacks, duration, and words at held-not
     ),
     lyrics(hymnLyricsAbc(melody.abc, { hymn, selected: [1], offset: 0 })),
   );
-  assert.equal((guitar.abc.match(/"G7"/g) || []).length, 5);
+  assert.equal((guitar.abc.match(/"G7"/g) || []).length, 2);
 });
 test("every key preserves melody timing and guitar playback sounds an octave below the written staff", () => {
   const guitar = arrangeHymn(hymn, "guitar", 0, 0);
@@ -135,4 +135,62 @@ test("chord tab uses playable D, G and A7 voicings and transposes its audio once
     assert.deepEqual(first, guitarChordPitches(transpose));
     assert.equal(prepared.audio.totalDuration, 16);
   }
+});
+
+test("I'll Fly Away lesson chords align with the sung syllables, without extra turnarounds", () => {
+  for (const arrangement of ["guitar", "guitar-chords"] as const) {
+    const score = arrangeHymn(hymn, arrangement, 0, 0);
+    const abc = hymnLyricsAbc(score.abc, {
+      hymn,
+      selected: [1],
+      offset: 0,
+      skipChordTies: true,
+    });
+    const changes = parse(abc)
+      .tune.lines.flatMap((l) => l.staff?.[0]?.voices?.[0] || [])
+      .flatMap((n) =>
+        n.el_type === "note" && n.chord?.length
+          ? [[n.chord[0].name, n.lyric?.[0]?.syllable]]
+          : [],
+      );
+    assert.deepEqual(changes, [
+      ["C", "Some"],
+      ["F", "I'll"],
+      ["C", "way."],
+      ["G7", "fly"],
+      ["C", "way."],
+      ["F", "I'll"],
+      ["C", "way."],
+      ["G7", "fly"],
+      ["C", "way."],
+    ]);
+    const d = abcjs.strTranspose(abc, abcjs.parseOnly(abc), 2);
+    const transposed = parse(d)
+      .tune.lines.flatMap((l) => l.staff?.[0]?.voices?.[0] || [])
+      .flatMap((n) =>
+        n.el_type === "note"
+          ? n.chord?.map((c: { name: string }) => c.name) || []
+          : [],
+      );
+    assert.deepEqual(transposed, [
+      "D",
+      "G",
+      "D",
+      "A7",
+      "D",
+      "G",
+      "D",
+      "A7",
+      "D",
+    ]);
+  }
+});
+
+test("cropped guitar sections name their opening chord even when it continues from the preceding bar", () => {
+  const score = arrangeHymn(hymn, "guitar", 4, 1);
+  const first = parse(score.abc)
+    .tune.lines.flatMap((l) => l.staff?.[0]?.voices?.[0] || [])
+    .find((n) => n.el_type === "note");
+  assert.ok(first?.el_type === "note");
+  assert.equal(first.chord?.[0].name, "C");
 });

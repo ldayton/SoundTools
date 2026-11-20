@@ -153,32 +153,25 @@ function token(pitch: number, key: string, accidentals: Map<string, number>) {
     (n.octave >= 4 ? "'".repeat(n.octave - 4) : ",".repeat(4 - n.octave))
   );
 }
-/** Chord changes in the source C edition; visual transposition moves their names too. */
+/** Barry Clevenger lesson (L2UNNrRAjzs, 2:04–4:01): hold I at the first
+ * endings; V7 arrives on “fly” in bars 7/15. Expressed in source C so the
+ * selected key transposes both chord names and playable guitar shapes. */
 const flyGuitarChanges: [number, string][][] = [
   [[0, "C"]],
   [[0, "C"]],
   [[0, "F"]],
-  [
-    [0, "C"],
-    [32, "G7"],
-  ],
+  [[0, "C"]],
   [[0, "C"]],
   [[0, "C"]],
   [
     [0, "C"],
     [48, "G7"],
   ],
-  [
-    [0, "C"],
-    [32, "G7"],
-  ],
+  [[0, "C"]],
   [[0, "C"]],
   [[0, "C"]],
   [[0, "F"]],
-  [
-    [0, "C"],
-    [32, "G7"],
-  ],
+  [[0, "C"]],
   [[0, "C"]],
   [[0, "C"]],
   [
@@ -273,7 +266,10 @@ function guitarMelody(bars: Bar[], from: number): Bar[] {
         const copy = structuredClone(note);
         copy.duration = (cuts[part + 1] - beat) / 64;
         const chord = changes.find(([offset]) => offset === beat)?.[1];
-        copy.chord = chord ? [{ name: chord, position: "default" }] : undefined;
+        const previous = changes.filter(([offset]) => offset < beat).at(-1)?.[1]
+          ?? flyGuitarChanges[from + index - 1]?.at(-1)?.[1];
+        copy.chord = chord && (chord !== previous || (index === 0 && beat === 0))
+          ? [{ name: chord, position: "default" }] : undefined;
         if (part) {
           copy.lyric = undefined;
           copy.decoration = undefined;

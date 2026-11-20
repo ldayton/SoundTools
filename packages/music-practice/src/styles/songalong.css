@@ -396,3 +396,20 @@
 .guitar-chord-trigger, .guitar-chord-trigger * { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
 .guitar-chord-trigger .abcjs-chord { text-decoration: underline dotted; text-underline-offset: 3px; }
 .guitar-chord-trigger:focus-visible { outline: 1px dotted currentColor; outline-offset: 3px; }
+
+.hymn-strum-pattern {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: -12px 0 20px;
+}
+.hymn-strum-pattern figcaption { font-size: 0.875rem; }
+.hymn-strum-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  width: min(100%, 240px);
+  min-width: 0;
+  text-align: center;
+}
+.hymn-strum-count { font-size: 0.875rem; }
+.hymn-strum-stroke { font-size: 1.25rem; line-height: 1.4; }

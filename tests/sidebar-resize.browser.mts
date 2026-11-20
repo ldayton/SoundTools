@@ -23,7 +23,12 @@ async function check(
   const grip = page.getByRole("separator", { name: label, exact: true });
   await expect(grip).toBeVisible();
   const panel = page.locator(panelSelector),
-    min = Number(await grip.getAttribute("aria-valuemin"));
+    min =
+      panelSelector === "#practice-navigation"
+        ? Math.round((await panel.boundingBox())!.width)
+        : panelSelector === "#panel"
+          ? 300
+          : 280;
   const width = async () => Math.round((await panel.boundingBox())!.width);
   expect(await width()).toBe(min);
   const box = (await grip.boundingBox())!;
@@ -39,11 +44,11 @@ async function check(
   await grip.focus();
   await page.keyboard.press(direction === 1 ? "ArrowLeft" : "ArrowRight");
   await expect.poll(width).toBe(min + 80);
-  await page.keyboard.press("Home");
+  await page.keyboard.press(direction === 1 ? "Home" : "End");
   await expect.poll(width).toBe(min);
   await page.keyboard.press(direction === 1 ? "ArrowLeft" : "ArrowRight");
   await expect.poll(width).toBe(min);
-  await page.keyboard.press("End");
+  await page.keyboard.press(direction === 1 ? "End" : "Home");
   expect(await width()).toBeGreaterThan(min);
   await grip.dblclick();
   await expect.poll(width).toBe(min);

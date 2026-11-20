@@ -1,55 +1,17 @@
+/* Mantine owns the separator, grip, pointer handling and keyboard behavior.
+   Only the track positioning adapts it to the existing fixed/sticky sidebars. */
 .panel-resizer {
   position: absolute;
   inset-block: 0;
-  width: 14px;
   z-index: 5;
-  cursor: col-resize;
-  touch-action: none;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  pointer-events: none;
 }
 .panel-resizer[data-side="left"] {
-  right: 0;
-}
-.panel-resizer[data-side="right"] {
   left: -7px;
 }
-.panel-resizer > span {
-  position: relative;
-  width: 12px;
-  height: 32px;
-  box-sizing: border-box;
-  border: 1px solid var(--mantine-color-default-border, #465063);
-  border-radius: 2px;
-  background: var(--mantine-color-default, #1d2735);
+.panel-resizer[data-side="right"] {
+  right: -7px;
 }
-.panel-resizer > span::after {
-  content: "";
-  position: absolute;
-  width: 7px;
-  height: 16px;
-  top: 7px;
-  left: 1px;
-  background: repeating-linear-gradient(
-    to right,
-    var(--panel-grip-color) 0 1px,
-    transparent 1px 3px
-  );
-  opacity: 0.65;
-}
-.panel-resizer:hover > span,
-.panel-resizer:focus-visible > span,
-.panel-resizer[data-resizing] > span {
-  border-color: var(--mantine-primary-color-filled, #9ba9c0);
-}
-.panel-resizer:hover > span::after,
-.panel-resizer:focus-visible > span::after,
-.panel-resizer[data-resizing] > span::after {
-  opacity: 1;
-}
-.panel-resizer:focus-visible {
-  outline: 2px solid var(--mantine-primary-color-filled, #9ba9c0);
-  outline-offset: -2px;
+.panel-resizer-handle {
+  pointer-events: auto;
 }

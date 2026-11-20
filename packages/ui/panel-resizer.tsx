@@ -1,4 +1,5 @@
-import { useRef, useState, type CSSProperties } from "react";
+import { useState } from "react";
+import { Splitter } from "@mantine/core";
 import { useViewportSize } from "@mantine/hooks";
 import "./panel-resizer.css";
 
@@ -39,69 +40,49 @@ export function PanelResizer({
   className?: string;
   onResizing?(active: boolean): void;
 }) {
-  const drag = useRef<{ x: number; width: number } | null>(null);
   const [active, setActive] = useState(false);
-  const direction = side === "left" ? 1 : -1;
-  const finish = () => {
-    drag.current = null;
-    setActive(false);
-    onResizing?.(false);
-  };
+  const fixed = side === "left" ? 0 : 1;
+  const pane = (
+    <Splitter.Pane
+      defaultSize={`${minimum}px`}
+      min={`${minimum}px`}
+      max={`${maximum}px`}
+    />
+  );
+  // The shell already positions and scrolls its content. A transparent splitter
+  // track controls those existing widths without moving or remounting the forms.
   return (
-    <div
+    <Splitter
       className={`panel-resizer ${className}`}
       data-side={side}
       data-resizing={active || undefined}
-      role="separator"
-      aria-label={label}
-      aria-orientation="vertical"
-      aria-valuemin={minimum}
-      aria-valuemax={maximum}
-      aria-valuenow={width}
-      aria-valuetext={`${width} pixels`}
-      tabIndex={0}
-      title="Drag to resize. Double-click to reset."
-      onDoubleClick={() => resize(minimum)}
-      onPointerDown={(event) => {
-        if (event.button !== 0) return;
-        event.preventDefault();
-        drag.current = { x: event.clientX, width };
-        event.currentTarget.setPointerCapture(event.pointerId);
+      sizes={side === "left" ? [`${width}px`, 100] : [100, `${width}px`]}
+      onSizeChange={(sizes) => resize(parseFloat(String(sizes[fixed])))}
+      onResizeStart={() => {
         setActive(true);
         onResizing?.(true);
       }}
-      onPointerMove={(event) => {
-        if (drag.current)
-          resize(
-            drag.current.width + direction * (event.clientX - drag.current.x),
-          );
+      onResizeEnd={() => {
+        setActive(false);
+        onResizing?.(false);
       }}
-      onPointerUp={(event) => {
-        if (event.currentTarget.hasPointerCapture(event.pointerId))
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        finish();
+      step="16px"
+      shiftStep="48px"
+      attributes={{
+        handle: {
+          "aria-label": label,
+          title: "Drag to resize. Double-click to reset.",
+        },
       }}
-      onPointerCancel={finish}
-      onLostPointerCapture={finish}
-      onKeyDown={(event) => {
-        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
-          return;
-        event.preventDefault();
-        resize(
-          event.key === "Home"
-            ? minimum
-            : event.key === "End"
-              ? maximum
-              : width + direction * (event.key === "ArrowRight" ? 16 : -16),
-        );
-      }}
-      style={
-        {
-          "--panel-grip-color": "var(--mantine-color-dimmed, #8994a5)",
-        } as CSSProperties
-      }
+      classNames={{ handle: "panel-resizer-handle" }}
+      style={{ width: maximum + 400 }}
     >
-      <span aria-hidden="true" />
-    </div>
+      {side === "left" ? pane : <Splitter.Pane defaultSize={100} min="400px" />}
+      {side === "right" ? (
+        pane
+      ) : (
+        <Splitter.Pane defaultSize={100} min="400px" />
+      )}
+    </Splitter>
   );
 }

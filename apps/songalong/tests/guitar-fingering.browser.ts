@@ -79,7 +79,7 @@ try {
   ).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log(
-    "PASS guitar fingers: melody and reviewed chords, unchanged tab/geometry, persistence and mobile toggle",
+    "PASS melody-only guitar fingers: unchanged tab/geometry, persistence, mobile toggle, and no chord fingerings",
   );
   await page.screenshot({
     path: "/tmp/songalong-guitar-fingers.png",

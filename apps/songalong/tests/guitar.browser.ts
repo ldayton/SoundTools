@@ -31,7 +31,7 @@ try {
   await expect(activeTab).toHaveText("3", { timeout: 15000 });
   await expect(
     page.locator(".abcjs-note.sight-current .abcjs-lyric"),
-  ).toContainText("glad");
+  ).toContainText("bright");
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   // Pause holds the exact highlighted note; resume advances it, restart clears it.
   const pausedCount = await page.locator(".hymn-count").textContent();
@@ -99,7 +99,7 @@ try {
   await expect(activeTab).toHaveText("3", { timeout: 15000 });
   await expect(
     page.locator(".abcjs-note.sight-current .abcjs-lyric"),
-  ).toContainText("glad");
+  ).toContainText("bright");
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await page.setViewportSize({ width: 852, height: 393 });
   await expect(activeTab).toHaveCount(1);
@@ -131,7 +131,7 @@ try {
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(
     page.locator(".abcjs-note.sight-current .abcjs-lyric"),
-  ).toContainText("glad", { timeout: 15000 });
+  ).toContainText("bright", { timeout: 15000 });
   await expect(activeTab.locator("text")).toHaveCount(4);
   await expect(activeTab).toHaveCount(1);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
@@ -147,6 +147,26 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await openPracticeOptions(page);
+  await page.getByRole("checkbox", { name: /When the shadows/ }).check();
+  await page.getByRole("checkbox", { name: /Just a few more/ }).check();
+  await expect
+    .poll(() => page.locator(".abcjs-lyric").allTextContents())
+    .toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("shad-"),
+        expect.stringContaining("wea-"),
+      ]),
+    );
+  await page.reload();
+  await openPracticeOptions(page);
+  await expect(
+    page.getByRole("checkbox", { name: /When the shadows/ }),
+  ).toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: /Just a few more/ }),
+  ).toBeChecked();
   expect(errors).toEqual([]);
   console.log(
     "PASS guitar tab: playback, pause/resume/restart, transposition, view switching, reload, mobile playback and orientation",

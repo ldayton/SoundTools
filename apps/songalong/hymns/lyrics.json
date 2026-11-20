@@ -85,5 +85,36 @@
         "syllables": "Yes, Lord, we greet Thee, born this hap- py morn- * ing Oh, Je- sus to Thee be, * oh, glo- ry giv- en Word of the Fa- ther Now in flesh ap- pear- * ing O come, let us a- dore Him O come, let us a- dore Him O come, let us a- dore Him * Christ * the Lord!"
       }
     ]
+  },
+  "ill-fly-away": {
+    "source": "User-supplied lyrics",
+    "shared": [
+      [
+        10,
+        14
+      ],
+      [
+        24,
+        28
+      ],
+      [
+        28,
+        54
+      ]
+    ],
+    "stanzas": [
+      {
+        "label": "Some bright morning when this life is over",
+        "syllables": "Some bright morn- ing when this life is o- ver I'll fly a- way. To that home on God's ce- les- tial shore, * I'll fly a- way. I'll fly a- way, O glo- ry, I'll fly a- way. * When I die, hal- le- lu- jah, by and by, I'll fly a- way."
+      },
+      {
+        "label": "When the shadows of this life have gone",
+        "syllables": "When the shad- ows of this life have gone, * I'll fly a- way. Like a bird from pris- on bars have flown, * I'll fly a- way. I'll fly a- way, O glo- ry, I'll fly a- way. * When I die, hal- le- lu- jah, by and by, I'll fly a- way."
+      },
+      {
+        "label": "Just a few more weary days and then",
+        "syllables": "Just a few more wea- ry days and then, * I'll fly a- way. To a land where joy will ne- ver end, * I'll fly a- way. I'll fly a- way, O glo- ry, I'll fly a- way. * When I die, hal- le- lu- jah, by and by, I'll fly a- way."
+      }
+    ]
   }
 }

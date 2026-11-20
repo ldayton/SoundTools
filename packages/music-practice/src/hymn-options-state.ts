@@ -20,7 +20,7 @@ export type HymnOptionsChange = Partial<
     | "reattackTies"
     | "stanzas"
   >
-> & { zoom?: number; fingerings?: boolean };
+> & { zoom?: number; fingerings?: boolean; staffSpacing?: number };
 export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   stanzaChoices: { number: number; label: string }[];
   searchOpen: boolean;

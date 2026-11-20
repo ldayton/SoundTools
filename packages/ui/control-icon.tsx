@@ -2,6 +2,7 @@ export type ControlIconName =
   | "settings"
   | "account"
   | "text-size"
+  | "staff-spacing"
   | "go-start"
   | "tempo"
   | "play"
@@ -39,6 +40,9 @@ const artwork = {
       <path d="M5 5v14" />
       <path d="m19 5-11 7 11 7Z" fill="currentColor" stroke="none" />
     </>
+  ),
+  "staff-spacing": (
+    <path d="M3 4h10M3 8h10M3 12h10M3 16h10M3 20h10M20 4v16m-3-13 3-3 3 3m-6 10 3 3 3-3" />
   ),
   "text-size": <path d="m2 19 5-14 5 14M4 14h6m4 5 4-9 4 9m-6-3h4" />,
   settings: <path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-7 0v6" />,

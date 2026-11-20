@@ -12,6 +12,8 @@ import {
 } from "react";
 import {
   Accordion,
+  Popover,
+  ActionIcon,
   Anchor,
   Checkbox,
   CheckIcon,
@@ -497,5 +499,52 @@ export function HymnFingerings({
     </Group>
   ) : (
     checkbox
+  );
+}
+
+export function HymnStaffSpacing({
+  model,
+  change,
+}: {
+  model: HymnOptionsState;
+  change(patch: HymnOptionsChange): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
+    getInitialValueInEffect: false,
+  });
+  const control = (
+    <ToolbarNumber
+      id="hymn-staff-spacing"
+      label="Staff spacing"
+      icon={<ControlIcon name="staff-spacing" />}
+      unit="%"
+      min={80}
+      max={120}
+      value={state.staffSpacing}
+      onChange={(staffSpacing) => change({ staffSpacing })}
+    />
+  );
+  return mobile ? (
+    control
+  ) : (
+    <Popover position="bottom-start" withArrow>
+      <Popover.Target>
+        <ActionIcon
+          variant="default"
+          size={36}
+          aria-label="Adjust staff spacing"
+          title={`Staff spacing: ${state.staffSpacing}%`}
+        >
+          <ControlIcon name="staff-spacing" />
+        </ActionIcon>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Group gap="md" wrap="nowrap">
+          <Text size="sm">Staff spacing</Text>
+          {control}
+        </Group>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

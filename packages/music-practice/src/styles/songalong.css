@@ -163,6 +163,11 @@
 @media (min-width: 768px) and (max-width: 900px) {
   .hymn-toolbar {
     grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 4px;
+  }
+  .hymn-toolbar-appearance,
+  .hymn-toolbar-playback {
+    gap: 4px;
   }
 }
 @media (max-width: 767px) {

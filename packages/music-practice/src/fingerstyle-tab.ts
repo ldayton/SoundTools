@@ -177,6 +177,11 @@ export function showOnlyTab(paper: HTMLElement,tempoLabel="Swing",lyricPadding=5
       copy.classList.add('guitar-position');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-76-ink.y})`);svg.append(copy);
     }
+    for(const source of svg.querySelectorAll<SVGGraphicsElement>('[data-name="scripts.ufermata"]')){
+      const copy=source.cloneNode(true) as SVGGraphicsElement,ink=source.getBBox();
+      copy.classList.add('guitar-fermata');copy.style.visibility='visible';
+      copy.setAttribute('transform',`translate(0 ${tabBox.y-14-ink.y-ink.height})`);svg.append(copy);
+    }
     const tempo = svg.querySelector<SVGGraphicsElement>(".abcjs-tempo");
     if (tempo && index === 0) {
       const label = document.createElementNS(ns, "text");

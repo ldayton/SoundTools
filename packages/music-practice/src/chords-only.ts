@@ -3,10 +3,18 @@ import type { TuneObject, AbsoluteElement } from "abcjs";
 export function showChordsOnly(paper: HTMLElement, tune?: TuneObject) {
   const ns = "http://www.w3.org/2000/svg";
   // A dash makes tied continuations explicit even when the notation is hidden.
-  for (const line of tune?.lines || [])
+  for (const line of tune?.lines || []) {
+    let barStart = true;
     for (const note of line.staff?.[0]?.voices?.[0] || []) {
+      if (note.el_type === "bar") {
+        barStart = true;
+        continue;
+      }
+      if (note.el_type !== "note") continue;
+      const opening = barStart;
+      barStart = false;
       if (
-        note.el_type !== "note" ||
+        !opening ||
         !note.pitches?.length ||
         !note.pitches.every((p) => p.endTie)
       )
@@ -36,6 +44,7 @@ export function showChordsOnly(paper: HTMLElement, tune?: TuneObject) {
       mark.textContent = "—";
       svg.append(mark);
     }
+  }
   for (const svg of paper.querySelectorAll("svg")) {
     svg.classList.add("chords-only-score");
     const keep =
@@ -62,6 +71,17 @@ export function showChordsOnly(paper: HTMLElement, tune?: TuneObject) {
     for (const lyric of lyrics)
       lyric.setAttribute("transform", `translate(0 ${shift})`);
     const top = Math.min(...chords.map((n) => n.getBBox().y)) - 4;
+    for (const fermata of svg.querySelectorAll<SVGGraphicsElement>(
+      '[data-name="scripts.ufermata"]',
+    )) {
+      const box = fermata.getBBox();
+      fermata.classList.add("chord-chart-fermata");
+      fermata.style.visibility = "visible";
+      fermata.setAttribute(
+        "transform",
+        `translate(0 ${top - 12 - box.y - box.height})`,
+      );
+    }
     const bottom = lyrics.length
       ? Math.max(...lyrics.map((n) => n.getBBox().y + n.getBBox().height)) +
         shift +

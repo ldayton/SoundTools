@@ -100,7 +100,7 @@ export function drawPracticeScore(
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
   const source =
-    (profile && options.fingerstyleTab ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
+    (profile && (options.fingerstyleTab || profile.id === "ill-fly-away") ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
     ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
     (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
@@ -154,7 +154,7 @@ export function drawPracticeScore(
     // uses barsperstaff instead. Edited beginner systems retain their explicit
     // phrase-aligned breaks; other scores balance systems with wrapping.
     wrap:
-      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || (options.beginnerEdition && !profile)
+      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || profile?.id === "ill-fly-away" || (options.beginnerEdition && !profile)
         ? undefined
         : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     timeBasedLayout: options.rhythmGrid
@@ -263,7 +263,7 @@ export function drawPracticeScore(
   });
   if (options.beginnerEdition === "guitar" && !profile) normalizeGuitarRests(tune, options.fromBar || 0);
   if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile && tune.lines[0]?.staff?.[0]?.voices?.length === 1);
-  if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, !!profile);
+  if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, profile?.pickup ?? false);
   if (options.guitarTab && !!profile) alignSimultaneousTab(tune, options.fromBar || 0);
   if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly, !!profile);
   if (options.fingerings && options.beginnerEdition)
@@ -326,8 +326,8 @@ export function drawPracticeScore(
         let top = options.beginnerEdition ? Infinity : box.y,
           bottom = options.beginnerEdition ? -Infinity : box.y + box.height;
         for (const ink of svg.querySelectorAll<SVGGraphicsElement>(
-          options.chordsOnly ? ".abcjs-lyric,.abcjs-chord,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.chord-chart-bars" : options.tabOnly
-            ? ".guitar-position,.abcjs-lyric,.abcjs-staff,.fingerstyle-tab-clef,.fingerstyle-tab-bars,.tab-rhythm-continuation,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-chord,.abcjs-tabNumber,.tab-rhythm,.tab-rhythm-stem,.tab-rhythm-rest,.tab-rhythm-flag,.tab-rhythm-tie,.beginner-fingering,.beginner-picking,.beginner-string"
+          options.chordsOnly ? ".abcjs-lyric,.abcjs-chord,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.chord-chart-bars,.chord-chart-fermata" : options.tabOnly
+            ? ".guitar-fermata,.guitar-position,.abcjs-lyric,.abcjs-staff,.fingerstyle-tab-clef,.fingerstyle-tab-bars,.tab-rhythm-continuation,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-chord,.abcjs-tabNumber,.tab-rhythm,.tab-rhythm-stem,.tab-rhythm-rest,.tab-rhythm-flag,.tab-rhythm-tie,.beginner-fingering,.beginner-picking,.beginner-string"
             : ".abcjs-annotation,.guitar-position,.abcjs-staff,.abcjs-staff-extra,.abcjs-bar,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-clef,.abcjs-chord,.abcjs-tabNumber,.abcjs-note,.abcjs-beam,.abcjs-slur,.beginner-fingering,.beginner-picking,.beginner-string",
         )) {
           if (getComputedStyle(ink).visibility === "hidden") continue;

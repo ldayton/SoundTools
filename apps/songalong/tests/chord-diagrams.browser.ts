@@ -64,33 +64,33 @@ try {
         .click();
       await expect(page.getByRole("dialog")).toBeHidden();
     }
-    // The chord-tab edition uses its actually engraved chord voicing.
+    // Legacy links migrate to the reviewed edition in C; diagrams follow its engraved voicing.
     await visit("ill-fly-away", "arrangement=guitar-chords&key=D");
-    const d = await open("D");
-    await shape([null, null, 0, 2, 3, 2]);
+    const d = await open("C");
+    await shape([null, 3, 2, null, null, 0]);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
     await expect(d).toBeFocused();
     const a7 = page
-      .getByRole("button", { name: "Show A7 chord diagram", exact: true })
+      .getByRole("button", { name: "Show G7 chord diagram", exact: true })
       .first();
     await a7.focus();
     await page.keyboard.press("Enter");
-    await shape([null, 0, 2, 0, 2, 0]);
+    await shape([null, 2, 3, null, 3, null]);
     await close();
     await visit("ill-fly-away", "arrangement=guitar-chords&key=G");
     await open("C");
-    await shape([null, 3, 2, 0, 1, 0]);
+    await shape([null, 3, 2, null, null, 0]);
     await close();
-    // A melody-only tab must not acquire five extra strings from a stock chord.
+    // The former melody-tab link now opens the same complete fingerstyle edition.
     await visit("ill-fly-away", "arrangement=guitar&key=D");
-    await open("D");
+    await open("C");
     expect(
       await page
         .getByRole("dialog")
         .locator('[data-string]:not([data-fret="not-played"])')
         .count(),
-    ).toBe(1);
+    ).toBe(3);
     await close();
     for (const display of ["both", "tab", "notation", "chords"]) {
       await visit(

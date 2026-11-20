@@ -1,4 +1,11 @@
 import {
+  isFlyAway,
+  flyFingers,
+  flyGuitarPosition,
+  flyLyricData,
+  flyChanges,
+} from "./ill-fly-away";
+import {
   isChristAlone,
   christFingers,
   christGuitarPosition,
@@ -12,12 +19,14 @@ import {
   graceLyricData,
   graceChordOffset,
 } from "./amazing-grace";
-export type ChordEditionId = "in-christ-alone" | "amazing-grace";
+export type ChordEditionId =
+  "in-christ-alone" | "amazing-grace" | "ill-fly-away";
 export function chordEdition(hymn: { id: string }) {
   if (isChristAlone(hymn))
     return {
       id: "in-christ-alone" as const,
       capo: 2,
+      pickup: true,
       tempo: 70,
       shapes: "C, small F, G and Am",
       fingers: christFingers,
@@ -29,12 +38,26 @@ export function chordEdition(hymn: { id: string }) {
     return {
       id: "amazing-grace" as const,
       capo: 0,
+      pickup: true,
       tempo: 72,
       shapes: "G, C, D7 and Em",
       fingers: graceFingers,
       position: graceGuitarPosition,
       lyrics: graceLyricData,
       chordOffset: graceChordOffset,
+    };
+  if (isFlyAway(hymn))
+    return {
+      id: "ill-fly-away" as const,
+      capo: 0,
+      pickup: false,
+      tempo: 80,
+      shapes: "C, small F and G7",
+      fingers: flyFingers,
+      position: flyGuitarPosition,
+      lyrics: flyLyricData,
+      chordOffset: (bar: number) =>
+        flyChanges.slice(0, bar).reduce((sum, b) => sum + b.length, 0),
     };
   return undefined;
 }

@@ -26,7 +26,7 @@ test("this song has exactly two instrument arrangements and migrates old choices
  const next=hymnSettingsFromQuery(base,new URLSearchParams('arrangement=piano&display=notation'));
  assert.equal(next.arrangement,'piano');assert.equal(next.hands,'left');assert.equal(next.scoreDisplay,'notation');
  assert.equal(hymnPreferences(hymn.id,{...base,arrangement:'piano'}).scoreDisplay,'tab');
- assert.equal(hymnPreferences('ill-fly-away').arrangement,'melody');
+ assert.equal(hymnPreferences('ill-fly-away').arrangement,'piano');
 });
 test("piano has a grand staff; guitar preserves the original voices; piano avoids an octave stretch in the final chord", () => {
  const original=read(hymn.harmony);

@@ -51,3 +51,21 @@ Full fingerstyle, Melody, or Chord accompaniment. The third verse retains its
 shorter ending. Tests compare the melody against Piano, check simultaneous
 string/fret feasibility, section pitches, capo playback, both endings, and
 independent display/practice persistence.
+
+I'll Fly Away now offers Piano and Guitar only, using the existing reviewed
+lesson progression: C/F/G7, with V7 on “fly” in bars 7 and 15 and tonic held at
+the first endings. Both melodies sound one octave below the imported source
+(G3–G4), preserving all 53 attacks, slurs, the chromatic D♯ neighbor, the written
+rest, internal tie, and final fermata. Short notes are beamed by quarter-note
+beat. The verse starts at bar 1 and the shared chorus at bar 9; all three verses
+use the same 16-bar, 64-beat form. Playback uses the written fermata duration.
+
+Piano uses C–E dyads, lower F triads and a rootless B–D–F G7 voicing. Omitting
+the C chord's fifth avoids a key shared by the two hands; all left-hand voicings
+fit within a fifth. Guitar stays in first position without a capo, reaching fret
+4 for D♯. C–E dyads, F basses and B–F G7 shells support the melody; bar 13 uses
+only C bass to free the middle finger for A. Full C, small F and G7 strums remain
+available as independent chord-accompaniment practice. The optional lesson strum
+pattern accompanies the chords-only display. Notation, tab, combined notation/tab
+and the chord chart all represent the same Guitar arrangement; changing display
+does not change the practice part. Fermatas remain visible in tab and chord view.

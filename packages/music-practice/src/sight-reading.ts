@@ -842,7 +842,7 @@ export class SightReading {
     this.body.patch({
       title: this.hymn.title,
       showStrumPattern: this.hymn.id === "ill-fly-away" &&
-        (this.arrangement === "guitar" || this.arrangement === "guitar-chords"),
+        (this.arrangement === "guitar" || this.arrangement === "guitar-chords" || this.arrangement === "guitar-edition" && this.scoreDisplay === "chords"),
       credits: this.hymn.credits
         .filter((credit) => /^(Words:|Music:|Tabledited by )/i.test(credit))
         .map((credit) =>

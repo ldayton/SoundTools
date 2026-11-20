@@ -1,3 +1,4 @@
+import {flyChanges as flyGuitarChanges,flyEditionAbc,flyLandmarks} from "./ill-fly-away";
 import {isAmazingGrace,graceFingerstyleAbc,graceGuitarAbc,gracePianoAbc,graceLandmarks,graceLyricData} from "./amazing-grace";
 import {chordEdition} from "./chord-editions";
 import { hymnLyricsAbc } from "./hymn-lyrics";
@@ -159,30 +160,6 @@ function token(pitch: number, key: string, accidentals: Map<string, number>) {
 /** Barry Clevenger lesson (L2UNNrRAjzs, 2:04–4:01): hold I at the first
  * endings; V7 arrives on “fly” in bars 7/15. Expressed in source C so the
  * selected key transposes both chord names and playable guitar shapes. */
-const flyGuitarChanges: [number, string][][] = [
-  [[0, "C"]],
-  [[0, "C"]],
-  [[0, "F"]],
-  [[0, "C"]],
-  [[0, "C"]],
-  [[0, "C"]],
-  [
-    [0, "C"],
-    [48, "G7"],
-  ],
-  [[0, "C"]],
-  [[0, "C"]],
-  [[0, "C"]],
-  [[0, "F"]],
-  [[0, "C"]],
-  [[0, "C"]],
-  [[0, "C"]],
-  [
-    [0, "C"],
-    [48, "G7"],
-  ],
-  [[0, "C"]],
-];
 // Low E to high E; null means omit that string. Prefer familiar open shapes.
 const majorShapes = [
   [null, 3, 2, 0, 1, 0],
@@ -456,6 +433,15 @@ export function arrangeHymn(
   endingBar?: number,
   guitarTranspose = 0,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
+  if(hymn.id==='ill-fly-away'&&(arrangement==='piano'||arrangement==='guitar-edition')){
+    const guitar=arrangement==='guitar-edition';
+    const harmony=flyEditionAbc(arrangeHymn(hymn,'melody',0).abc,guitar?'guitar':'piano',guitar?hands:'both');
+    const edition={...hymn,id:hymn.id+':'+arrangement+(guitar?':'+hands:''),harmony};
+    let score=arrangeHymn(edition,'original',sectionBars,section,guitar?'both':hands,endingBar);
+    if(guitar)score={...score,abc:score.abc.replace(/clef=treble(?!-8)\b/g,'clef=treble-8')};
+    else score={...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,group:string)=>`%%score {${group.replace(/[(){}]/g,'')}}`)};
+    return {...score,abc:flyLandmarks(score.abc,score.from)};
+  }
   if (isAmazingGrace(hymn) && (arrangement === "piano" || arrangement === "guitar-edition")) {
     const guitar=arrangement==='guitar-edition';
     const harmony=guitar?(hands==='left'?hymnLyricsAbc(graceGuitarAbc,{hymn:graceLyricData(hymn),selected:[1],offset:0}):graceFingerstyleAbc(arrangeHymn(hymn,'melody',0).abc,hands==='right'))

@@ -460,16 +460,16 @@ export function arrangeHymn(
   if (isGuitarArrangement(arrangement)) {
     if (!supportsGuitarTab(hymn))
       throw Error("Guitar tab is not available for this song.");
-    if (arrangement === "guitar") melody = guitarMelody(melody, from);
+    melody = guitarMelody(melody, from);
   }
   const header = `X:1\nT:${hymn.title}\nM:${hymn.meter}\nL:1/64\n`;
   let abc: string;
   if (arrangement === "guitar-chords") {
     abc =
       header +
-      `K:${hymn.key}\n` +
-      guitarChords(from, to, guitarTranspose, hymn.key) +
-      "\n";
+      `%%score M C\nV:M clef=treble\nV:C clef=none\nK:${hymn.key}\n` +
+      `[V:M] ${serialize(melody, true).music}\nw:${serialize(melody, true).lyrics}\n` +
+      `[V:C] ${guitarChords(from, to, guitarTranspose, hymn.key).replace(/"[^"]+"/g, "")}\n`;
   } else if (arrangement === "original") {
     // Keep the original whole-score edition intact, including its repeat signs.
     if (

@@ -63,6 +63,7 @@ export function drawPracticeScore(
     staffScale?: number;
     fingerings?: boolean;
     guitarTab?: boolean;
+    chordTab?: boolean;
     lyrics?: HymnLyricsSelection;
     transpose?: number;
     compact?: boolean;
@@ -88,12 +89,31 @@ export function drawPracticeScore(
     abc;
   const tune = abcjs.renderAbc(paper, source, {
     add_classes: true,
-    tablature: options.guitarTab ? [{ instrument: "guitar" }] : undefined,
+    tablature: options.chordTab
+      ? [{ instrument: "" }, { instrument: "guitar" }]
+      : options.guitarTab
+        ? [{ instrument: "guitar" }]
+        : undefined,
     initialClef: options.initialSignatures,
     visualTranspose: transpose,
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing(tune) {
+      // abcjs's multi-system tab layout dereferences empty-staff placeholders.
+      // Keep the melody staff's placeholder as an explicit no-op plugin.
+      if (options.chordTab) {
+        const tabs = (
+          tune as typeof tune & {
+            tablatures?: ({
+              params: object;
+              instance: { render(): void };
+            } | null)[];
+          }
+        ).tablatures;
+        if (tabs && !tabs[0])
+          tabs[0] = { params: {}, instance: { render() {} } };
+      }
+
       if (options.octaveNotation) applyHymnOttava(tune);
       if (options.initialSignatures)
         restoreSignatures = initialHymnSignatures(tune);
@@ -125,6 +145,54 @@ export function drawPracticeScore(
     paddingleft: 12,
     paddingright: 12,
   })[0] as TuneObject & { noteTimings: NoteTimingEvent[] };
+  if (options.chordTab)
+    for (const line of tune.lines)
+      for (const voice of line.staff?.[1]?.voices || [])
+        for (const item of voice) {
+          const absolute = (item as typeof item & { abselem?: AbsoluteElement })
+            .abselem;
+          for (const element of absolute?.elemset || []) element.remove();
+        }
+  if (options.chordTab)
+    for (const svg of paper.querySelectorAll("svg")) {
+      const staves = [
+        ...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff"),
+      ].sort((a, b) => a.getBBox().y - b.getBBox().y);
+      if (staves.length !== 3) continue;
+      const hidden = staves[1].getBBox(),
+        tab = staves[2].getBBox();
+      const gap = tab.y - hidden.y;
+      staves[1].remove();
+      svg
+        .querySelectorAll(".abcjs-staff-extra.abcjs-v1")
+        .forEach((element) => element.remove());
+      for (const bar of svg.querySelectorAll<SVGGraphicsElement>(
+        ".abcjs-bar.abcjs-v1",
+      )) {
+        const bounds = bar.getBBox();
+        const line = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line",
+        );
+        line.setAttribute("x1", String(bounds.x));
+        line.setAttribute("x2", String(bounds.x));
+        line.setAttribute("y1", String(tab.y - gap));
+        line.setAttribute("y2", String(tab.y + tab.height - gap));
+        line.setAttribute("stroke", "currentColor");
+        bar.parentElement?.appendChild(line);
+        bar.remove();
+      }
+      for (const element of svg.querySelectorAll(".abcjs-v2,.abcjs-tabNumber"))
+        element.setAttribute(
+          "transform",
+          `translate(0, ${-gap}) ${element.getAttribute("transform") || ""}`,
+        );
+      const box = svg.viewBox.baseVal;
+      svg.setAttribute(
+        "viewBox",
+        `${box.x} ${box.y} ${box.width} ${box.height - gap}`,
+      );
+    }
   restoreSignatures?.();
   if (!tune || tune.warnings?.length)
     throw Error("Practice notation could not be read");
@@ -277,54 +345,56 @@ export function drawPracticeScore(
     meter.den === 8 && meter.num > 3 && meter.num % 3 === 0
       ? 1.5
       : 4 / (meter.den || 4);
+  let heldTab: HTMLElement[] = [];
   return tune.noteTimings
     .filter((e) => e.type === "event")
-    .map((e) => ({
-      ...e,
-      elements: options.guitarTab
-        ? [
-            ...(e.elements || []),
-            (e.startCharArray || [e.startChar!]).flatMap(
-              (start) => tabElements.get(start) || [],
-            ),
-          ]
-        : e.elements,
-      scorePosition:
-        options.playback && barLength > 0 && Number.isFinite(barLength)
-          ? scorePosition(e.milliseconds / 1000, barLength, pickup, pulse)
-          : undefined,
-      scoreBarSpan:
-        options.playback && barLength > 0 && Number.isFinite(barLength)
-          ? scoreBarSpan(e.milliseconds / 1000, barLength, pickup)
-          : undefined,
-      midiPitches: [
-        ...(e.midiPitches || []),
-        ...(e.startCharArray || [e.startChar!]).flatMap(
-          (start) => continuations.get(start) || [],
+    .map((e) => {
+      const currentTab = (e.startCharArray || [e.startChar!]).flatMap(
+        (start) => tabElements.get(start) || [],
+      );
+      if (currentTab.length) heldTab = currentTab;
+      return {
+        ...e,
+        elements: options.guitarTab
+          ? [...(e.elements || []), options.chordTab ? heldTab : currentTab]
+          : e.elements,
+        scorePosition:
+          options.playback && barLength > 0 && Number.isFinite(barLength)
+            ? scorePosition(e.milliseconds / 1000, barLength, pickup, pulse)
+            : undefined,
+        scoreBarSpan:
+          options.playback && barLength > 0 && Number.isFinite(barLength)
+            ? scoreBarSpan(e.milliseconds / 1000, barLength, pickup)
+            : undefined,
+        midiPitches: [
+          ...(e.midiPitches || []),
+          ...(e.startCharArray || [e.startChar!]).flatMap(
+            (start) => continuations.get(start) || [],
+          ),
+        ],
+        // Hymn timings use quarter-note seconds (qpm 60). Only notes still sounding
+        // before this onset are recovery notes; releases exactly on it are excluded.
+        sustainedPitches: options.playback
+          ? [
+              ...new Set(
+                sounding
+                  .filter(
+                    (n) =>
+                      n.start * 4000 < e.milliseconds - 1 &&
+                      (n.start + n.duration) * 4000 > e.milliseconds + 1,
+                  )
+                  .map((n) => n.pitch),
+              ),
+            ]
+          : [],
+        spellings: Object.assign(
+          {},
+          ...(e.startCharArray || [e.startChar!]).map(
+            (start) => spellings.get(start) || {},
+          ),
         ),
-      ],
-      // Hymn timings use quarter-note seconds (qpm 60). Only notes still sounding
-      // before this onset are recovery notes; releases exactly on it are excluded.
-      sustainedPitches: options.playback
-        ? [
-            ...new Set(
-              sounding
-                .filter(
-                  (n) =>
-                    n.start * 4000 < e.milliseconds - 1 &&
-                    (n.start + n.duration) * 4000 > e.milliseconds + 1,
-                )
-                .map((n) => n.pitch),
-            ),
-          ]
-        : [],
-      spellings: Object.assign(
-        {},
-        ...(e.startCharArray || [e.startChar!]).map(
-          (start) => spellings.get(start) || {},
-        ),
-      ),
-    }))
+      };
+    })
     .filter((e) => e.midiPitches.length);
 }
 export function highlightScore(

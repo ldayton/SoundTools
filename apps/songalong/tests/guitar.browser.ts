@@ -13,6 +13,7 @@ try {
     serviceWorkers: "block",
   });
   const errors: string[] = [];
+
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(
     server.base +
@@ -112,19 +113,26 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(
     server.base +
-      "/piano/hymns/ill-fly-away?arrangement=guitar-chords&key=D&mode=playback&tempo=200",
+      "/piano/hymns/ill-fly-away?arrangement=guitar-chords&key=D&mode=playback&tempo=80",
   );
   await expect(activeTab).toHaveCount(1);
 
   await expect(activeTab.locator("text")).toHaveCount(4);
+  await expect(page.locator(".abcjs-note .abcjs-lyric").first()).toContainText(
+    "Some",
+  );
+  await expect(
+    page.locator(".abcjs-note.sight-current .abcjs-notehead"),
+  ).toHaveCount(1);
   await page.screenshot({
     path: join(tmpdir(), "songalong-chord-tab.png"),
     fullPage: true,
   });
   await page.getByRole("button", { name: "Play", exact: true }).click();
-  await expect
-    .poll(() => page.locator(".hymn-count").textContent(), { timeout: 15000 })
-    .not.toContain("1 /");
+  await expect(
+    page.locator(".abcjs-note.sight-current .abcjs-lyric"),
+  ).toContainText("glad", { timeout: 15000 });
+  await expect(activeTab.locator("text")).toHaveCount(4);
   await expect(activeTab).toHaveCount(1);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await openPracticeOptions(page);

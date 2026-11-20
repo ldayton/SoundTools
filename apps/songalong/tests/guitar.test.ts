@@ -129,6 +129,7 @@ test("chord tab uses playable D, G and A7 voicings and transposes its audio once
       stanzas: [1],
     });
     const first = prepared.audio.tracks
+      .slice(1)
       .flat()
       .flatMap((n) => (n.cmd === "note" && n.start === 0 ? [n.pitch] : []));
     assert.deepEqual(first, guitarChordPitches(transpose));

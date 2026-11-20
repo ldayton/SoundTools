@@ -868,19 +868,18 @@ export class SightReading {
         fingerings:
           this.showFingerings && ["melody", "bass"].includes(this.arrangement),
         lyrics:
-          this.arrangement === "guitar-chords"
-            ? undefined
-            : this.arrangement === "melody" ||
-                isGuitarArrangement(this.arrangement) ||
-                this.viewHands !== "left"
-              ? {
-                  hymn: this.hymn,
-                  selected: this.stanzas,
-                  offset: hymnMelodyOffset(this.hymn, score.from),
-                  skipChordTies: this.arrangement === "guitar",
-                }
-              : undefined,
+          this.arrangement === "melody" ||
+          isGuitarArrangement(this.arrangement) ||
+          this.viewHands !== "left"
+            ? {
+                hymn: this.hymn,
+                selected: this.stanzas,
+                offset: hymnMelodyOffset(this.hymn, score.from),
+                skipChordTies: isGuitarArrangement(this.arrangement),
+              }
+            : undefined,
         guitarTab: isGuitarArrangement(this.arrangement),
+        chordTab: this.arrangement === "guitar-chords",
         octaveNotation: !isGuitarArrangement(this.arrangement),
         initialSignatures: true,
         reattackTies: this.mode === "wait" && this.reattackTies,

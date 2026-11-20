@@ -6,12 +6,13 @@ electric bass, drums and occasional tambourine. It supports all twelve keys in
 major and natural minor. No chromatic passing tones or automatic modulations
 are introduced into scale practice.
 
-Major harmony includes sixth chords, inversions, ii–V–I movement and a closing
-IV–I cadence. Natural minor uses its own compatible sevenths, inversions and
-half-diminished ii chord. Organ voicings are chosen across the full progression;
-common notes remain held across chord changes. Piano supplies shorter attacks
-and phrase-end answers. Steady keeps two bass attacks per bar; Active adds
-selected diatonic approaches, piano answers and tambourine during the lift.
+Scale practice now uses tonic-centred triad, sixth, added-ninth and minor-seventh
+colours, with suspended answers that resolve to a tonic triad. Common tones stay
+held through consecutive sustained chords, while short comping and reply windows
+keep their releases. Piano leaves space for the organ's suspended colour. This
+preserves the selected practice tonic; the historical development reference can
+still reproduce the earlier ii–V–I and IV–I progression. Steady keeps sparse bass;
+Active adds selected answers and tambourine during the lift.
 
 The original tonewheel model has nine drawbar footages, two smoothly blended
 registrations, upper foldback, gentle saturation and scanner-style chorus. A
@@ -61,3 +62,6 @@ Design references:
 - [Berklee gospel keyboard curriculum](https://online.berklee.edu/courses/gospel-music-for-keyboard)
 - [Braxton D. Shelley, Hammond timbre in Black Pentecostal performance](https://journals.sagepub.com/doi/10.1177/20592043241302531)
 - [Hammond/Leslie rotor controls](https://hammondorganco.com/wp-content/uploads/2011/03/Leslie2101manual.pdf)
+
+The [composition review](backing-composition-review.md) records the current
+research, tonic-vamp constraint, harmonic revisions and validation approach.

@@ -1,0 +1,331 @@
+{
+  "version": 1,
+  "ticksPerBeat": 12,
+  "provenance": "AI-assisted score authoring: alternating-thumb Folk, stable melodic motifs, coordinated upright and brushed backbeat; offline audition prototype. Reviewed against alternating-bass teaching: neighbour figures resolve before the final tonic cadence.",
+  "guitarCells": {
+    "opening": [
+      [0, 22, "thumb-root", 44],
+      [6, 27, "middle", 38],
+      [12, 22, "thumb-fifth", 39],
+      [18, 25, "top", 41],
+      [24, 22, "thumb-root", 44],
+      [30, 24, "inner", 35],
+      [36, 22, "thumb-fifth", 39],
+      [42, 17, "middle", 37]
+    ],
+    "answer": [
+      [0, 22, "thumb-root", 44],
+      [6, 27, "top", 41],
+      [12, 22, "thumb-fifth", 39],
+      [18, 25, "middle", 37],
+      [24, 22, "thumb-root", 44],
+      [30, 24, "inner", 35],
+      [36, 22, "thumb-fifth", 39],
+      [42, 17, "middle", 37]
+    ],
+    "settle": [
+      [0, 22, "thumb-root", 44],
+      [6, 27, "middle", 36],
+      [12, 22, "thumb-fifth", 39],
+      [18, 25, "inner", 34],
+      [24, 22, "thumb-root", 44],
+      [30, 26, "top", 39],
+      [36, 22, "thumb-fifth", 39],
+      [42, 17, "middle", 35]
+    ],
+    "pinch": [
+      [0, 22, "thumb-root", 44],
+      [0, 20, "top", 43],
+      [6, 22, "middle", 35],
+      [12, 22, "thumb-fifth", 39],
+      [18, 25, "inner", 34],
+      [24, 22, "thumb-root", 44],
+      [30, 24, "middle", 37],
+      [36, 22, "thumb-fifth", 39],
+      [42, 17, "top", 40]
+    ],
+    "question": [
+      [0, 22, "thumb-root", 44],
+      [6, 24, "top", 40],
+      [12, 22, "thumb-fifth", 39],
+      [18, 22, "middle", 36],
+      [24, 22, "thumb-root", 44],
+      [30, 16, "lead-third", 42],
+      [36, 22, "thumb-fifth", 39],
+      [36, 8, "lead-step", 39],
+      [42, 10, "lead-third", 42]
+    ],
+    "reply": [
+      [0, 22, "thumb-root", 44],
+      [6, 24, "middle", 37],
+      [12, 22, "thumb-fifth", 39],
+      [18, 22, "inner", 34],
+      [24, 22, "thumb-root", 44],
+      [30, 16, "lead-root", 42],
+      [36, 22, "thumb-fifth", 39],
+      [36, 8, "lead-step", 38],
+      [42, 10, "lead-third", 42]
+    ],
+    "suspended": [
+      [0, 22, "thumb-root", 44],
+      [6, 27, "middle", 36],
+      [12, 22, "thumb-fifth", 39],
+      [18, 22, "top", 39],
+      [24, 22, "thumb-root", 44],
+      [30, 14, "lead-step", 39],
+      [36, 22, "thumb-fifth", 39],
+      [42, 10, "lead-third", 41]
+    ],
+    "cadence": [
+      [0, 22, "thumb-root", 44],
+      [0, 27, "lead-root", 43],
+      [6, 25, "inner", 33],
+      [12, 22, "thumb-fifth", 39],
+      [18, 25, "middle", 35],
+      [24, 22, "thumb-root", 44],
+      [30, 13, "lead-root", 40],
+      [36, 22, "thumb-fifth", 39]
+    ],
+    "pickup": [
+      [0, 22, "thumb-root", 44],
+      [0, 20, "top", 44],
+      [6, 22, "middle", 36],
+      [12, 22, "thumb-fifth", 39],
+      [18, 22, "inner", 33],
+      [24, 22, "thumb-root", 44],
+      [24, 17, "top", 42],
+      [30, 12, "middle", 37],
+      [36, 22, "thumb-fifth", 39],
+      [39, 5, "lead-step", 37],
+      [42, 9, "lead-third", 42]
+    ],
+    "breath": [
+      [0, 22, "thumb-root", 44],
+      [6, 27, "inner", 33],
+      [12, 22, "thumb-fifth", 39],
+      [18, 24, "middle", 34],
+      [24, 22, "thumb-root", 44],
+      [30, 13, "lead-root", 38],
+      [36, 22, "thumb-fifth", 39]
+    ]
+  },
+  "bassCells": {
+    "root": [[0, 20, 0, 49]],
+    "root-fifth": [
+      [0, 18, 0, 49],
+      [24, 15, 7, 42]
+    ]
+  },
+  "brushCells": {
+    "soft": [
+      [12, 2, 37, 24],
+      [36, 2, 37, 26]
+    ],
+    "time": [
+      [12, 2, 37, 28],
+      [36, 2, 37, 30]
+    ],
+    "space": [[12, 2, 37, 23]],
+    "breath": [[12, 2, 37, 22]]
+  },
+  "phrases": [
+    {
+      "id": "steady-question",
+      "mode": "steady",
+      "description": "A stable alternating thumb supports a repeated upper-voice question, then a small cadence.",
+      "bars": [
+        {
+          "guitar": "opening",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "answer",
+          "bass": "root-fifth",
+          "brush": "soft"
+        },
+        {
+          "guitar": "settle",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "question",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "pinch",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "answer",
+          "bass": "root-fifth",
+          "brush": "soft"
+        },
+        {
+          "guitar": "suspended",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "cadence",
+          "bass": "root",
+          "brush": "breath"
+        }
+      ]
+    },
+    {
+      "id": "steady-answer",
+      "mode": "steady",
+      "description": "The same upper-voice idea answers upward, then releases into the next phrase.",
+      "bars": [
+        {
+          "guitar": "opening",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "settle",
+          "bass": "root-fifth",
+          "brush": "soft"
+        },
+        {
+          "guitar": "answer",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "reply",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "pinch",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "settle",
+          "bass": "root-fifth",
+          "brush": "soft"
+        },
+        {
+          "guitar": "suspended",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "cadence",
+          "bass": "root",
+          "brush": "breath"
+        }
+      ]
+    },
+    {
+      "id": "active-question",
+      "mode": "active",
+      "description": "Selective pinches and one short pickup deepen the picking while the upright leaves the guitar reply clear.",
+      "bars": [
+        {
+          "guitar": "pinch",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "answer",
+          "bass": "root-fifth",
+          "brush": "time"
+        },
+        {
+          "guitar": "pickup",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "question",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "opening",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "pinch",
+          "bass": "root-fifth",
+          "brush": "time"
+        },
+        {
+          "guitar": "suspended",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "cadence",
+          "bass": "root",
+          "brush": "breath"
+        }
+      ]
+    },
+    {
+      "id": "active-answer",
+      "mode": "active",
+      "description": "An answering melodic contour varies the sentence without adding a competing bass fill.",
+      "bars": [
+        {
+          "guitar": "opening",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "pinch",
+          "bass": "root-fifth",
+          "brush": "time"
+        },
+        {
+          "guitar": "settle",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "reply",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "pinch",
+          "bass": "root",
+          "brush": "soft"
+        },
+        {
+          "guitar": "pickup",
+          "bass": "root-fifth",
+          "brush": "space"
+        },
+        {
+          "guitar": "question",
+          "bass": "root",
+          "brush": "space"
+        },
+        {
+          "guitar": "breath",
+          "bass": "root",
+          "brush": "breath"
+        }
+      ]
+    }
+  ],
+  "gainDb": {
+    "major": {
+      "steady": 0.1,
+      "active": 0.1
+    },
+    "minor": {
+      "steady": 1.1,
+      "active": 1
+    }
+  }
+}

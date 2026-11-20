@@ -17,7 +17,9 @@ outside the selected practice scale are introduced. Native open/barre/capo
 fingerings keep all strings in one playable position; a capo position is chosen
 once for the entire key, not changed between chords.
 
-`backing-acoustic.ts` owns the acoustic musical plan. The existing conductor,
+`backing-acoustic.ts` provides the acoustic form and fallback performance.
+Scale practice now uses the [authored sentence renderer](authored-backing-phrases.md),
+with separate fingerpicked, strummed and Country scores. The existing conductor,
 clock, metronome, pause/resume and loop lifecycle remain shared. Explicit sample
 instrument identities prevent acoustic/electric guitars sharing round-robin
 bags or choking one another. Native brush recordings bypass studio-kit

@@ -10,6 +10,13 @@ import { rootsArrangement } from "./backing-roots";
 import { acousticArrangement } from "./backing-acoustic";
 import { reggaeArrangement } from "./backing-reggae";
 import { gospelArrangement } from "./backing-gospel";
+import { gospelPhraseTake } from "./backing-gospel-phrases";
+import {
+  rawFolkFingerstyleTake,
+  folkFingerstyleScoreIssues,
+} from "./backing-folk-phrases";
+import { ensemblePhraseTake } from "./backing-ensemble-phrases";
+import { backingPattern } from "./backing-patterns";
 import type { BackingPattern } from "./backing-patterns";
 import { articulateDrums } from "./backing-drum-articulation";
 import { connectBackingGuitar } from "./backing-guitar-transitions";
@@ -27,9 +34,11 @@ export function rawGenreBackingArrangement(
   tonic = 9,
   pattern?: BackingPattern,
   scaleQuality?: ScalePracticeQuality,
+  authored = true,
 ): BackingTake {
   const definition = BACKING_GENRES[style];
   let plan: BackingTake;
+  let harmonyResolved = false;
   switch (definition.rhythm.strategy) {
     case "traditional-gospel":
       plan = gospelArrangement(mode, quality, cycle, tempo, tonic);
@@ -75,11 +84,27 @@ export function rawGenreBackingArrangement(
       break;
   }
 
+  if (scaleQuality && authored) {
+    const resolved = scalePracticeHarmony(plan, scaleQuality);
+    const selected = backingPattern(style, pattern);
+    const scored =
+      style === "gospel"
+        ? gospelPhraseTake(resolved)
+        : style === "folk" && selected === "fingerpicked"
+          ? folkFingerstyleScoreIssues().length
+            ? undefined
+            : rawFolkFingerstyleTake(resolved)
+          : ensemblePhraseTake(resolved, selected);
+    if (scored) {
+      plan = scored;
+      harmonyResolved = true;
+    }
+  }
   const performed = sharedBackingPocket(
     connectBackingGuitar(articulateDrums(plan), tempo),
     tempo,
   );
-  return scaleQuality
+  return scaleQuality && !harmonyResolved
     ? scalePracticeHarmony(performed, scaleQuality)
     : performed;
 }
@@ -90,4 +115,24 @@ export function genreBackingArrangement(
   ...args: Parameters<typeof rawGenreBackingArrangement>
 ): BackingTake {
   return levelBackingSections(rawGenreBackingArrangement(...args), args[6]);
+}
+
+/** Previous factory performance for reproducible A/B renders, never a UI mode. */
+export function referenceGenreBackingArrangement(
+  ...args: Parameters<typeof rawGenreBackingArrangement>
+): BackingTake {
+  return levelBackingSections(
+    rawGenreBackingArrangement(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+      args[4],
+      args[5],
+      args[6],
+      args[7],
+      false,
+    ),
+    args[6],
+  );
 }

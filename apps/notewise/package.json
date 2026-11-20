@@ -26,9 +26,9 @@
     "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts",
     "test:layout": "node ../../scripts/test-practice-layout.cjs notewise",
     "test:workspace": "tsx tests/workspace.browser.ts",
-    "test:backing": "tsx tests/backing-track.browser.ts && tsx tests/backing-metronome.browser.ts && tsx tests/backing-mixer.browser.ts && tsx tests/backing-loudness.browser.ts",
+    "test:backing": "tsx tests/backing-track.browser.ts && tsx tests/backing-metronome.browser.ts && tsx tests/backing-mixer.browser.ts && tsx tests/backing-loudness.browser.ts && tsx tests/authored-backing.browser.ts",
     "test:backing-realism": "tsx tests/backing-realism.browser.ts",
-    "test:backing-genres": "tsx tests/country-backing.browser.ts && tsx tests/reggae-funk.browser.ts && tsx tests/soul-folk.browser.ts && tsx tests/folk-country.browser.ts && tsx tests/gospel.browser.ts && tsx tests/reggae.browser.ts && tsx tests/pocket-styles.browser.ts && tsx tests/roots-styles.browser.ts"
+    "test:backing-genres": "tsx tests/country-backing.browser.ts && tsx tests/reggae-funk.browser.ts && tsx tests/soul-folk.browser.ts && tsx tests/folk-country.browser.ts && tsx tests/gospel.browser.ts && tsx tests/gospel-phrases.browser.ts && tsx tests/reggae.browser.ts && tsx tests/pocket-styles.browser.ts && tsx tests/roots-styles.browser.ts"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"

@@ -1,0 +1,2951 @@
+{
+  "version": 1,
+  "ticksPerBeat": 12,
+  "provenance": "AI-assisted ensemble score authoring; explicit genre briefs, rhythmic cells and coordinated sentences. No runtime model.",
+  "profiles": {
+    "blues": {
+      "bars": 12,
+      "brief": "Twelve-bar shuffle: a fifth/sixth (minor seventh in minor) riff, sparse walking links and short lead answers; drummer owns the last turnaround.",
+      "tracks": {
+        "bass": {
+          "part": "bass",
+          "instrument": "blues-bass",
+          "cells": {
+            "rest": [],
+            "home": [
+              [0, 14, "root", 53],
+              [24, 12, "fifth", 47]
+            ],
+            "walk": [
+              [0, 12, "root", 53],
+              [16, 9, "third", 46],
+              [32, 11, "fifth", 49]
+            ],
+            "close": [[0, 18, "root", 52]]
+          },
+          "level": 1,
+          "spreadMs": 0,
+          "release": 0.035,
+          "reply": false
+        },
+        "guitar": {
+          "part": "guitar",
+          "instrument": "blues-rhythm",
+          "cells": {
+            "rest": [],
+            "riff": [
+              [0, 5, "power", 48],
+              [8, 3, "power", 39],
+              [12, 5, "color", 46],
+              [20, 3, "color", 38],
+              [24, 5, "power", 48],
+              [32, 3, "power", 39],
+              [36, 5, "color", 46],
+              [44, 2, "power", 38]
+            ],
+            "half": [
+              [0, 5, "power", 48],
+              [8, 3, "power", 38],
+              [12, 5, "color", 45],
+              [20, 3, "power", 38]
+            ],
+            "settle": [
+              [0, 8, "power", 47],
+              [24, 8, "power", 45]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 4,
+          "release": 0.035,
+          "reply": false
+        },
+        "reply": {
+          "part": "guitar",
+          "instrument": "blues-lead",
+          "cells": {
+            "rest": [],
+            "down": [
+              [24, 5, "high", 53],
+              [32, 4, "middle", 51],
+              [44, 2, "root", 53]
+            ],
+            "up": [
+              [24, 5, "root", 51],
+              [32, 4, "middle", 53],
+              [44, 2, "high", 54]
+            ]
+          },
+          "level": 0.86,
+          "spreadMs": 0,
+          "release": 0.065,
+          "reply": true
+        }
+      },
+      "phrases": [
+        {
+          "id": "shuffle-call",
+          "mode": "steady",
+          "description": "A repeated low riff answers once and leaves the last bar to the drummer.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "down"
+              },
+              "answer": "guitar",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "bass",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "settle",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "shuffle-answer",
+          "mode": "steady",
+          "description": "The lead answer moves later in the next twelve-bar sentence.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "bass",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "up"
+              },
+              "answer": "guitar",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "settle",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "shuffle-conversation",
+          "mode": "active",
+          "description": "Bass links are separated from the two guitar answers.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "walk",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "down"
+              },
+              "answer": "guitar",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "walk",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "up"
+              },
+              "answer": "guitar",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "settle",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "walk",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "bass",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "shuffle-return",
+          "mode": "active",
+          "description": "A reversed answering contour comes home without a competing bass fill.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "walk",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "up"
+              },
+              "answer": "guitar",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "walk",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "down"
+              },
+              "answer": "guitar",
+              "window": 24
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "settle",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "walk",
+                "guitar": "riff",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        }
+      ],
+      "gainDb": {
+        "major": {
+          "steady": -0.9,
+          "active": -0.8
+        },
+        "minor": {
+          "steady": -1.2,
+          "active": -1.3
+        }
+      }
+    },
+    "rock": {
+      "bars": 8,
+      "brief": "Roots Rock: short low power-chord pulses open into ringing accents in the lift; bass pickups and open-guitar replies alternate.",
+      "tracks": {
+        "bass": {
+          "part": "bass",
+          "instrument": "rock-bass",
+          "cells": {
+            "rest": [],
+            "home": [
+              [0, 13, "root", 58],
+              [24, 11, "fifth", 50]
+            ],
+            "drive": [
+              [0, 10, "root", 59],
+              [18, 5, "root", 45],
+              [30, 8, "fifth", 51]
+            ],
+            "pickup": [
+              [0, 12, "root", 58],
+              [24, 7, "fifth", 50],
+              [42, 3, "third", 47]
+            ],
+            "close": [[0, 19, "root", 57]]
+          },
+          "level": 1,
+          "spreadMs": 0,
+          "release": 0.035,
+          "reply": false
+        },
+        "guitar": {
+          "part": "guitar",
+          "instrument": "rock-muted",
+          "cells": {
+            "rest": [],
+            "pulse": [
+              [0, 3, "power", 48],
+              [6, 2, "power", 42],
+              [24, 3, "power", 48],
+              [30, 2, "power", 42]
+            ],
+            "push": [
+              [0, 3, "power", 48],
+              [6, 2, "power", 41],
+              [24, 3, "power", 49],
+              [30, 2, "power", 42],
+              [42, 2, "upper", 41]
+            ],
+            "half": [
+              [0, 3, "power", 48],
+              [6, 2, "power", 41]
+            ],
+            "ring": [
+              [0, 17, "triad", 51],
+              [24, 16, "triad", 49]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 6,
+          "release": 0.035,
+          "reply": false
+        },
+        "reply": {
+          "part": "guitar",
+          "instrument": "rock-guitar",
+          "cells": {
+            "rest": [],
+            "rise": [
+              [36, 7, "upper", 50],
+              [42, 3, "high", 45]
+            ],
+            "fall": [
+              [36, 5, "high", 49],
+              [42, 3, "middle", 46]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 9,
+          "release": 0.035,
+          "reply": true
+        }
+      },
+      "phrases": [
+        {
+          "id": "rock-foundation",
+          "mode": "steady",
+          "description": "Muted support opens briefly, with one guitar response.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rise"
+              },
+              "answer": "guitar",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "ring",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "rock-open",
+          "mode": "steady",
+          "description": "Ringing accents shift within the second sentence.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "ring",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "half",
+                "reply": "fall"
+              },
+              "answer": "guitar",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "rock-push",
+          "mode": "active",
+          "description": "One bass pickup and one open-guitar answer get separate windows.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "drive",
+                "guitar": "push",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rise"
+              },
+              "answer": "guitar",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "ring",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "pickup",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "bass",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "push",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "rock-response",
+          "mode": "active",
+          "description": "The bass leads early and the guitar answers later.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "pickup",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "bass",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "ring",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "fall"
+              },
+              "answer": "guitar",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "drive",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "push",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "guitar": "pulse",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        }
+      ],
+      "gainDb": {
+        "major": {
+          "steady": 0.1,
+          "active": 0.3
+        },
+        "minor": {
+          "steady": 0.2,
+          "active": 0.4
+        }
+      }
+    },
+    "country": {
+      "bars": 8,
+      "brief": "Country two-step: short boom-chick strokes, root/fifth upright and clean electric double-stop answers, never a constant lead solo.",
+      "tracks": {
+        "bass": {
+          "part": "bass",
+          "instrument": "upright-bass",
+          "cells": {
+            "rest": [],
+            "step": [
+              [0, 13, "root", 55],
+              [24, 11, "fifth", 51]
+            ],
+            "link": [
+              [0, 12, "root", 55],
+              [24, 8, "fifth", 50],
+              [42, 4, "third", 46]
+            ],
+            "close": [[0, 17, "root", 54]]
+          },
+          "level": 1,
+          "spreadMs": 0,
+          "release": 0.035,
+          "reply": false
+        },
+        "guitar": {
+          "part": "guitar",
+          "instrument": "acoustic-steel",
+          "cells": {
+            "rest": [],
+            "chick": [
+              [0, 8, "root", 57],
+              [12, 5, "upper", 51],
+              [24, 8, "fifth", 55],
+              [36, 5, "upper", 49]
+            ],
+            "half": [
+              [0, 8, "root", 56],
+              [12, 5, "upper", 50],
+              [24, 7, "fifth", 53]
+            ],
+            "lift": [
+              [0, 8, "root", 57],
+              [12, 5, "upper", 51],
+              [24, 8, "fifth", 54],
+              [30, 3, "upper", 37],
+              [36, 5, "upper", 49]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 11,
+          "release": 0.035,
+          "reply": false
+        },
+        "reply": {
+          "part": "guitar",
+          "instrument": "electric-twang",
+          "cells": {
+            "rest": [],
+            "up": [
+              [36, 4, "upper", 55],
+              [42, 4, "high", 42]
+            ],
+            "down": [
+              [36, 4, "high", 53],
+              [42, 4, "upper", 43]
+            ]
+          },
+          "level": 0.8,
+          "spreadMs": 9,
+          "release": 0.035,
+          "reply": true
+        }
+      },
+      "phrases": [
+        {
+          "id": "country-home",
+          "mode": "steady",
+          "description": "The two-step stays uncluttered, with a small closing brush turn.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "country-lift",
+          "mode": "steady",
+          "description": "One understated upstroke varies the second sentence.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "lift",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "country-answer",
+          "mode": "active",
+          "description": "Electric double stops answer before a separate upright pickup.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "lift",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "up"
+              },
+              "answer": "guitar",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "link",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "bass",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "lift",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "country-return",
+          "mode": "active",
+          "description": "A falling electric answer leads back to the boom-chick.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "link",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "bass",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "lift",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "down"
+              },
+              "answer": "guitar",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "lift",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "step",
+                "guitar": "chick",
+                "reply": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "reply": "rest"
+              },
+              "answer": "drums",
+              "window": 36
+            }
+          ]
+        }
+      ],
+      "gainDb": {
+        "major": {
+          "steady": 0.4,
+          "active": 0.4
+        },
+        "minor": {
+          "steady": 0.6,
+          "active": 0.6
+        }
+      }
+    },
+    "strummed": {
+      "bars": 8,
+      "brief": "Strummed Folk: broad bass-and-brush gestures, selective upstrokes and ringing cadences, without Country twang or a clipped two-step.",
+      "tracks": {
+        "bass": {
+          "part": "bass",
+          "instrument": "upright-bass",
+          "cells": {
+            "rest": [],
+            "root": [[0, 21, "root", 49]],
+            "root-fifth": [
+              [0, 20, "root", 50],
+              [24, 17, "fifth", 43]
+            ]
+          },
+          "level": 0.65,
+          "spreadMs": 0,
+          "release": 0.035,
+          "reply": false
+        },
+        "guitar": {
+          "part": "guitar",
+          "instrument": "acoustic-steel",
+          "cells": {
+            "rest": [],
+            "brush": [
+              [0, 20, "root", 54],
+              [12, 20, "upper", 48],
+              [24, 19, "fifth", 50],
+              [36, 10, "upper", 45]
+            ],
+            "upstroke": [
+              [0, 19, "root", 54],
+              [12, 16, "upper", 48],
+              [18, 7, "upper", 35],
+              [24, 18, "fifth", 49],
+              [36, 10, "upper", 46],
+              [42, 4, "high", 33]
+            ],
+            "open": [
+              [0, 23, "triad", 49],
+              [24, 21, "upper", 45]
+            ],
+            "cadence": [
+              [0, 26, "triad", 48],
+              [24, 19, "upper", 42]
+            ],
+            "space": [
+              [0, 20, "root", 50],
+              [12, 16, "upper", 45]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 13,
+          "release": 0.06,
+          "reply": false
+        }
+      },
+      "phrases": [
+        {
+          "id": "folk-broad",
+          "mode": "steady",
+          "description": "Long brushes and a ringing close keep the accompaniment open.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "open"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "open"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "cadence"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "folk-ringing",
+          "mode": "steady",
+          "description": "A second broad sentence shifts the sustained accents.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "open"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "open"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "cadence"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "folk-upstroke",
+          "mode": "active",
+          "description": "Light upstrokes appear selectively and relax at the cadence.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "upstroke"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "open"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "upstroke"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "cadence"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "folk-answer",
+          "mode": "active",
+          "description": "Sustained and brushed bars alternate without dense fills.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "open"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "upstroke"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "brush"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root-fifth",
+                "guitar": "open"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "upstroke"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "root",
+                "guitar": "cadence"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        }
+      ],
+      "gainDb": {
+        "major": {
+          "steady": -1.7,
+          "active": -1.8
+        },
+        "minor": {
+          "steady": 0.1,
+          "active": 0.1
+        }
+      }
+    },
+    "reggae": {
+      "bars": 8,
+      "brief": "Reggae: a repeating two-bar bass hook, dry offbeat skanks and a restrained organ bubble; replies create space rather than adding a rock fill.",
+      "tracks": {
+        "bass": {
+          "part": "bass",
+          "instrument": "reggae-bass",
+          "cells": {
+            "rest": [],
+            "hook-a": [
+              [0, 14, "root", 59],
+              [30, 9, "fifth", 52]
+            ],
+            "hook-b": [
+              [6, 12, "root", 58],
+              [33, 8, "third", 51]
+            ],
+            "reply": [
+              [0, 14, "root", 59],
+              [30, 7, "fifth", 52],
+              [42, 4, "third", 46]
+            ],
+            "close": [[0, 19, "root", 58]]
+          },
+          "level": 1,
+          "spreadMs": 0,
+          "release": 0.035,
+          "reply": false
+        },
+        "guitar": {
+          "part": "guitar",
+          "instrument": "reggae-guitar",
+          "cells": {
+            "rest": [],
+            "skank": [
+              [6, 2, "triad", 48],
+              [18, 2, "upper", 45],
+              [30, 2, "triad", 47],
+              [42, 2, "upper", 44]
+            ],
+            "space": [
+              [6, 2, "triad", 47],
+              [18, 2, "upper", 44],
+              [30, 2, "triad", 46]
+            ],
+            "half": [
+              [6, 2, "triad", 47],
+              [18, 2, "upper", 44]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 4,
+          "release": 0.018,
+          "reply": false
+        },
+        "keys": {
+          "part": "keys",
+          "instrument": "tonewheel-organ",
+          "cells": {
+            "rest": [],
+            "bubble": [
+              [3, 2, "third", 48],
+              [9, 2, "fifth", 48],
+              [15, 2, "third", 48],
+              [21, 2, "fifth", 48],
+              [27, 2, "third", 48],
+              [33, 2, "fifth", 48],
+              [39, 2, "third", 48],
+              [45, 1, "fifth", 48]
+            ],
+            "sparse": [
+              [3, 2, "third", 48],
+              [15, 2, "fifth", 48],
+              [27, 2, "third", 48]
+            ],
+            "answer": [
+              [3, 2, "third", 48],
+              [15, 2, "fifth", 48],
+              [33, 2, "third", 50],
+              [39, 2, "fifth", 50],
+              [45, 1, "third", 48]
+            ]
+          },
+          "level": 0.6,
+          "spreadMs": 0,
+          "release": 0.03,
+          "reply": false
+        }
+      },
+      "phrases": [
+        {
+          "id": "reggae-hook",
+          "mode": "steady",
+          "description": "The two-bar bass idea repeats under a light bubble.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "space",
+                "keys": "sparse"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        },
+        {
+          "id": "reggae-space",
+          "mode": "steady",
+          "description": "Bubble and skank gaps vary while the hook remains recognizable.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "space",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "space",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "space",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "space",
+                "keys": "sparse"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        },
+        {
+          "id": "reggae-bass-answer",
+          "mode": "active",
+          "description": "The guitar and organ leave room for a single bass answer.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "space",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "reply",
+                "guitar": "half",
+                "keys": "sparse"
+              },
+              "answer": "bass",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "skank",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "space",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "space",
+                "keys": "sparse"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        },
+        {
+          "id": "reggae-organ-answer",
+          "mode": "active",
+          "description": "The organ answers in the window used by bass in the prior sentence.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "space",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "keys": "answer"
+              },
+              "answer": "keys",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-b",
+                "guitar": "space",
+                "keys": "sparse"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook-a",
+                "guitar": "skank",
+                "keys": "bubble"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "space",
+                "keys": "sparse"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        }
+      ],
+      "gainDb": {
+        "major": {
+          "steady": 0.1,
+          "active": 0.5
+        },
+        "minor": {
+          "steady": 0.2,
+          "active": 0.6
+        }
+      }
+    },
+    "funk": {
+      "bars": 8,
+      "brief": "Pocket Funk: a stable syncopated bass cell, clipped guitar accents and quiet scratches; bass and guitar answers do not compete.",
+      "tracks": {
+        "bass": {
+          "part": "bass",
+          "instrument": "funk-bass",
+          "cells": {
+            "rest": [],
+            "hook": [
+              [0, 6, "root", 61],
+              [9, 2, "root", 34, "muted"],
+              [30, 4, "fifth", 49]
+            ],
+            "ghost": [
+              [0, 6, "root", 61],
+              [9, 1, "root", 27, "ghost"],
+              [30, 4, "fifth", 49]
+            ],
+            "reply": [
+              [0, 6, "root", 61],
+              [9, 1, "root", 27, "ghost"],
+              [30, 3, "fifth", 49],
+              [39, 3, "third", 45, "muted"]
+            ],
+            "close": [
+              [0, 9, "root", 59],
+              [30, 4, "fifth", 48]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 0,
+          "release": 0.035,
+          "reply": false
+        },
+        "guitar": {
+          "part": "guitar",
+          "instrument": "funk-guitar",
+          "cells": {
+            "rest": [],
+            "chop": [
+              [6, 2, "triad", 51],
+              [21, 2, "upper", 44],
+              [30, 2, "triad", 49]
+            ],
+            "reply": [
+              [6, 2, "triad", 50],
+              [21, 2, "upper", 44],
+              [33, 2, "upper", 48],
+              [45, 1, "high", 44]
+            ],
+            "half": [
+              [6, 2, "triad", 50],
+              [21, 2, "upper", 43]
+            ]
+          },
+          "level": 1,
+          "spreadMs": 3,
+          "release": 0.018,
+          "reply": false
+        },
+        "scratch": {
+          "part": "guitar",
+          "instrument": "funk-scratch",
+          "cells": {
+            "rest": [],
+            "time": [
+              [3, 1, "middle", 30, "muted"],
+              [15, 1, "middle", 28, "muted"],
+              [39, 1, "high", 29, "muted"]
+            ],
+            "space": [
+              [3, 1, "middle", 28, "muted"],
+              [15, 1, "middle", 27, "muted"]
+            ]
+          },
+          "level": 0.4,
+          "spreadMs": 0,
+          "release": 0.008,
+          "reply": false
+        }
+      },
+      "phrases": [
+        {
+          "id": "funk-pocket",
+          "mode": "steady",
+          "description": "Repeating syncopation and quiet scratch strokes leave space.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "scratch": "space"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        },
+        {
+          "id": "funk-restraint",
+          "mode": "steady",
+          "description": "A few omitted guitar accents vary the answer without filling every gap.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "half",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "half",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "scratch": "time"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        },
+        {
+          "id": "funk-bass-answer",
+          "mode": "active",
+          "description": "A ghosted bass answer and clipped guitar reply have separate bars.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "reply",
+                "guitar": "half",
+                "scratch": "space"
+              },
+              "answer": "bass",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "reply",
+                "scratch": "space"
+              },
+              "answer": "guitar",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "scratch": "space"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        },
+        {
+          "id": "funk-guitar-answer",
+          "mode": "active",
+          "description": "The next sentence reverses which instrument answers first.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "hook",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "space"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "reply",
+                "scratch": "space"
+              },
+              "answer": "guitar",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "reply",
+                "guitar": "half",
+                "scratch": "space"
+              },
+              "answer": "bass",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "ghost",
+                "guitar": "chop",
+                "scratch": "time"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "guitar": "half",
+                "scratch": "space"
+              },
+              "answer": "drums",
+              "window": 42
+            }
+          ]
+        }
+      ],
+      "gainDb": {
+        "major": {
+          "steady": 0.3,
+          "active": 0.1
+        },
+        "minor": {
+          "steady": 0.3,
+          "active": 0.1
+        }
+      }
+    },
+    "soul": {
+      "bars": 8,
+      "brief": "Mellow Soul: warm rootless sixth/minor-seventh keyboard calls, quiet melodic guitar responses, laid-back bass and deliberate breathing space. Reviewed for open spacing: major 6/9 colour in fourths, open suspensions, and a consonant third-root-fifth close.",
+      "tracks": {
+        "bass": {
+          "part": "bass",
+          "instrument": "soul-bass",
+          "cells": {
+            "rest": [],
+            "home": [
+              [0, 17, "root", 52],
+              [30, 9, "fifth", 45]
+            ],
+            "sustain": [[0, 30, "root", 51]],
+            "reply": [
+              [0, 16, "root", 52],
+              [30, 6, "fifth", 46],
+              [42, 4, "third", 43]
+            ],
+            "close": [[0, 24, "root", 50]]
+          },
+          "level": 1,
+          "spreadMs": 0,
+          "release": 0.035,
+          "reply": false
+        },
+        "keys": {
+          "part": "keys",
+          "instrument": "soul-keys",
+          "cells": {
+            "rest": [],
+            "call": [[0, 38, "color-chord", 44]],
+            "answer": [
+              [0, 15, "color-chord", 43],
+              [30, 8, "upper-chord", 46]
+            ],
+            "space": [[0, 19, "color-chord", 42]],
+            "suspend": [[0, 35, "sus-chord", 43]],
+            "cadence": [[0, 40, "resolve-chord", 42]]
+          },
+          "level": 1,
+          "spreadMs": 4,
+          "release": 0.16,
+          "reply": false
+        },
+        "guitar": {
+          "part": "guitar",
+          "instrument": "soul-guitar",
+          "cells": {
+            "rest": [],
+            "rise": [
+              [30, 5, "middle", 40],
+              [39, 6, "upper", 42]
+            ],
+            "fall": [
+              [30, 5, "high", 41],
+              [39, 6, "middle", 39]
+            ],
+            "late": [[39, 6, "upper", 40]]
+          },
+          "level": 0.9,
+          "spreadMs": 9,
+          "release": 0.045,
+          "reply": true
+        }
+      },
+      "phrases": [
+        {
+          "id": "soul-call",
+          "mode": "steady",
+          "description": "A warm call and a late guitar reply leave the rest of the phrase open.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "sustain",
+                "keys": "space",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "space",
+                "guitar": "late"
+              },
+              "answer": "guitar",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "suspend",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "sustain",
+                "keys": "space",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "cadence",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "soul-response",
+          "mode": "steady",
+          "description": "The suspended colour and guitar response move later.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "sustain",
+                "keys": "space",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "suspend",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "space",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "sustain",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "space",
+                "guitar": "late"
+              },
+              "answer": "guitar",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "cadence",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "soul-conversation",
+          "mode": "active",
+          "description": "Keyboard answers, guitar response and bass pickup are deliberately separated.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "sustain",
+                "keys": "answer",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "space",
+                "guitar": "rise"
+              },
+              "answer": "guitar",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "suspend",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "reply",
+                "keys": "space",
+                "guitar": "rest"
+              },
+              "answer": "bass",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "answer",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "cadence",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        },
+        {
+          "id": "soul-return",
+          "mode": "active",
+          "description": "A falling guitar response leads back to a simple sustained cadence.",
+          "bars": [
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "reply",
+                "keys": "space",
+                "guitar": "rest"
+              },
+              "answer": "bass",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "suspend",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "space",
+                "guitar": "fall"
+              },
+              "answer": "guitar",
+              "window": 30
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "call",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "sustain",
+                "keys": "answer",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "home",
+                "keys": "space",
+                "guitar": "late"
+              },
+              "answer": "guitar",
+              "window": 36
+            },
+            {
+              "cells": {
+                "bass": "close",
+                "keys": "cadence",
+                "guitar": "rest"
+              },
+              "answer": null,
+              "window": 36
+            }
+          ]
+        }
+      ],
+      "gainDb": {
+        "major": {
+          "steady": -2.1,
+          "active": -0.7
+        },
+        "minor": {
+          "steady": -2.2,
+          "active": -0.8
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { PanelResizer, usePanelWidth } from "@ldayton/ui/panel-resizer";
+import { useMediaQuery } from "@mantine/hooks";
 import { restoreFocus as restoreClosingFocus } from "@ldayton/ui/restore-focus";
 import {
   useEffect,
@@ -7,6 +9,7 @@ import {
   useSyncExternalStore,
   type Dispatch,
   type SetStateAction,
+  type CSSProperties,
 } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
@@ -188,6 +191,8 @@ export function mountApplicationShell() {
     panel(true);
   }
   function Shell() {
+    const sidebar = usePanelWidth(300);
+    const desktopSidebar = useMediaQuery("(min-width: 761px)", undefined, { getInitialValueInEffect: false });
     const view = useSyncExternalStore(model.subscribe, model.getSnapshot);
     useEffect(() => {
       const events = new AbortController();
@@ -351,6 +356,7 @@ export function mountApplicationShell() {
         <Box
           component="main"
           id="stage"
+          style={{ "--soundglow-sidebar-width": `${sidebar.width}px` } as CSSProperties}
           className={view.open ? "settings-open" : undefined}
         >
           <Box className="soundtools-ui">
@@ -367,6 +373,7 @@ export function mountApplicationShell() {
             aria-hidden={!view.open}
             inert={!view.open}
           >
+            {view.open && desktopSidebar && <PanelResizer side="left" {...sidebar} label="Resize files and settings" />}
             <Box
               component="section"
               id="filesSection"

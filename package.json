@@ -27,7 +27,8 @@
     "test:ui": "node scripts/test-ui-controls.cjs",
     "test:accounts": "node scripts/test-accounts.mjs",
     "build:ci": "node scripts/ci/build.cjs",
-    "test:ci-unit": "node --test tests/ci/*.test.cjs"
+    "test:ci-unit": "node --test tests/ci/*.test.cjs",
+    "test:sidebar-resize": "tsx tests/sidebar-resize.browser.mts"
   },
   "devDependencies": {
     "@sentry/cli": "3.8.2"

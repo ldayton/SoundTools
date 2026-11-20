@@ -1,3 +1,4 @@
+import { PanelResizer, usePanelWidth } from "./panel-resizer";
 import { restoreFocus } from "./restore-focus";
 import { createPortal } from "react-dom";
 import { RetainedContent } from "./retained-content";
@@ -12,6 +13,7 @@ import {
   useState,
   type PropsWithChildren,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import { ActionIcon, Button, Drawer, Group, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
@@ -39,10 +41,11 @@ function useOptionsState(
   const active = views.some((view) => view.id === activeId);
   const collapsed = desktop ? desktopCollapsed : mobileCollapsed;
   useLayoutEffect(() => {
-    if (focus.current) restoreFocus(
-      (focus.current === "toggle" ? toggleRef : reopenRef).current,
-      (focus.current === "toggle" ? reopenRef : toggleRef).current,
-    );
+    if (focus.current)
+      restoreFocus(
+        (focus.current === "toggle" ? toggleRef : reopenRef).current,
+        (focus.current === "toggle" ? reopenRef : toggleRef).current,
+      );
     focus.current = undefined;
   });
   return {
@@ -151,6 +154,21 @@ export function PracticeOptionsReopen() {
 }
 export function PracticeWorkspace({ children }: PropsWithChildren) {
   const state = useOptions();
+  const workspace = useRef<HTMLDivElement>(null);
+  const [minimum, setMinimum] = useState(280);
+  const panel = usePanelWidth(minimum);
+  useLayoutEffect(() => {
+    const inherited = workspace.current?.parentElement;
+    if (inherited)
+      setMinimum(
+        parseFloat(
+          getComputedStyle(inherited).getPropertyValue(
+            "--practice-options-width",
+          ),
+        ) || 300,
+      );
+  }, []);
+
   // Keep forms and pitch pickers mounted as the same React subtree when the
   // responsive panel moves between its desktop aside and the mobile drawer.
   const [optionsHost] = useState(() => {
@@ -176,6 +194,10 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
   );
   return (
     <div
+      ref={workspace}
+      style={
+        { "--practice-options-width": `${panel.width}px` } as CSSProperties
+      }
       className="practice-workspace"
       data-has-options={state.active || undefined}
       data-options-open={(state.active && !state.collapsed) || undefined}
@@ -187,6 +209,9 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
         data-layout={state.desktop ? "desktop" : "mobile"}
         hidden={!state.active || (state.desktop && state.collapsed) || drawer}
       >
+        {state.desktop && !state.collapsed && (
+          <PanelResizer side="right" {...panel} label="Resize options" />
+        )}
         {state.desktop ? (
           <Group justify="space-between" wrap="nowrap">
             <Text fw={600}>{state.title}</Text>

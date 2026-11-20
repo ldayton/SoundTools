@@ -92,30 +92,6 @@
   overflow: hidden;
 }
 
-.navigation-resizer {
-  position: absolute;
-  inset-block: 0;
-  right: 0;
-  width: 6px;
-  cursor: col-resize;
-  touch-action: none;
-  user-select: none;
-  z-index: 2;
-}
-.navigation-resizer::after {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  right: 0;
-  width: 2px;
-  background: transparent;
-}
-.navigation-resizer:hover::after,
-.navigation-resizer:focus-visible::after,
-.navigation-resizer[data-resizing]::after {
-  background: var(--mantine-primary-color-filled);
-}
-
 /* The portal preserves form identity without adding boxes to the panel layout. */
 .practice-options-mount,
 .practice-options-host {

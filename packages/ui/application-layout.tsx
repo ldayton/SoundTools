@@ -1,3 +1,4 @@
+import { PanelResizer, usePanelWidth } from "./panel-resizer";
 import { UpdateBar } from "./offline-status-panel";
 import { restoreFocus } from "./restore-focus";
 import { ControlIcon } from "./control-icon";
@@ -17,7 +18,7 @@ import {
   Title,
   useMantineTheme,
 } from "@mantine/core";
-import { useMediaQuery, useViewportSize } from "@mantine/hooks";
+import { useMediaQuery } from "@mantine/hooks";
 import { PracticeOptionsReopen } from "./practice-workspace";
 import "./layout.css";
 
@@ -112,7 +113,7 @@ export function ApplicationLayout({
   mainClassName,
   compact = false,
   toolbarOnly = false,
-  resizableNavigation = false,
+  resizableNavigation = true,
   mobileToolbarHeight,
   headerClassName,
   children,
@@ -141,26 +142,17 @@ export function ApplicationLayout({
 }) {
   const theme = useMantineTheme();
   const minimumWidth = compact ? 224 : 244;
-  const [navigationWidth, setNavigationWidth] = useState(minimumWidth);
+  const {
+    width: navigationWidth,
+    maximum: maximumWidth,
+    resize: resizeNavigation,
+  } = usePanelWidth(minimumWidth);
   const [resizing, setResizing] = useState(false);
-  const { width: viewportWidth } = useViewportSize();
-  const maximumWidth = Math.max(
-    minimumWidth,
-    Math.min(480, (viewportWidth || 880) - 400),
-  );
-  const resizeNavigation = (width: number) =>
-    setNavigationWidth(
-      Math.round(Math.max(minimumWidth, Math.min(maximumWidth, width))),
-    );
   const desktop = useMediaQuery(
     `(min-width: ${theme.breakpoints.sm})`,
     undefined,
     { getInitialValueInEffect: false },
   );
-  useEffect(() => {
-    if (desktop && resizableNavigation)
-      setNavigationWidth((width) => Math.min(width, maximumWidth));
-  }, [desktop, resizableNavigation, maximumWidth]);
   useEffect(() => {
     if (desktop && navigationOpen) onNavigationClose();
   }, [desktop, navigationOpen, onNavigationClose]);
@@ -168,8 +160,12 @@ export function ApplicationLayout({
     getInitialValueInEffect: false,
   });
   const toolbarHeight = toolbarOnly
-    ? desktop ? 56 : (mobileToolbarHeight ?? (smallToolbar ? 148 : 104))
-    : compact ? 56 : 72;
+    ? desktop
+      ? 56
+      : (mobileToolbarHeight ?? (smallToolbar ? 148 : 104))
+    : compact
+      ? 56
+      : 72;
   const mobileUpdate = !desktop && !!updateAction;
   return (
     <>
@@ -220,9 +216,11 @@ export function ApplicationLayout({
                     onNavigationExpand();
                     const from = event.currentTarget;
                     requestAnimationFrame(() => {
-                      if (!compact) restoreFocus(
-                        document.querySelector<HTMLElement>(".nav-close"), from,
-                      );
+                      if (!compact)
+                        restoreFocus(
+                          document.querySelector<HTMLElement>(".nav-close"),
+                          from,
+                        );
                     });
                   } else onNavigationOpen();
                 }}
@@ -275,9 +273,12 @@ export function ApplicationLayout({
                 onClick={(event) => {
                   const from = event.currentTarget;
                   onNavigationCollapse();
-                  requestAnimationFrame(() => restoreFocus(
-                    document.querySelector<HTMLElement>(".nav-toggle"), from,
-                  ));
+                  requestAnimationFrame(() =>
+                    restoreFocus(
+                      document.querySelector<HTMLElement>(".nav-toggle"),
+                      from,
+                    ),
+                  );
                 }}
               >
                 <PanelIcon />
@@ -290,55 +291,15 @@ export function ApplicationLayout({
             )}
             {navigation}
             {resizableNavigation && !navigationCollapsed && (
-              <div
+              <PanelResizer
+                side="left"
+                width={navigationWidth}
+                minimum={minimumWidth}
+                maximum={maximumWidth}
+                resize={resizeNavigation}
+                label="Resize navigation"
                 className="navigation-resizer"
-                role="separator"
-                aria-label="Resize navigation"
-                aria-orientation="vertical"
-                aria-valuemin={minimumWidth}
-                aria-valuemax={maximumWidth}
-                aria-valuenow={navigationWidth}
-                aria-valuetext={`${navigationWidth} pixels`}
-                tabIndex={0}
-                data-resizing={resizing || undefined}
-                title="Drag to resize. Double-click to reset."
-                onDoubleClick={() => resizeNavigation(minimumWidth)}
-                onPointerDown={(event) => {
-                  if (event.button !== 0) return;
-                  event.preventDefault();
-                  event.currentTarget.setPointerCapture(event.pointerId);
-                  setResizing(true);
-                }}
-                onPointerMove={(event) => {
-                  if (event.currentTarget.hasPointerCapture(event.pointerId))
-                    resizeNavigation(
-                      event.clientX -
-                        event.currentTarget.parentElement!.getBoundingClientRect()
-                          .left,
-                    );
-                }}
-                onPointerUp={(event) => {
-                  if (event.currentTarget.hasPointerCapture(event.pointerId))
-                    event.currentTarget.releasePointerCapture(event.pointerId);
-                }}
-                onLostPointerCapture={() => setResizing(false)}
-                onKeyDown={(event) => {
-                  if (
-                    !["ArrowLeft", "ArrowRight", "Home", "End"].includes(
-                      event.key,
-                    )
-                  )
-                    return;
-                  event.preventDefault();
-                  resizeNavigation(
-                    event.key === "Home"
-                      ? minimumWidth
-                      : event.key === "End"
-                        ? maximumWidth
-                        : navigationWidth +
-                          (event.key === "ArrowRight" ? 16 : -16),
-                  );
-                }}
+                onResizing={setResizing}
               />
             )}
           </AppShell.Navbar>

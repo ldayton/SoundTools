@@ -32,7 +32,8 @@
     "./piano-motion": "./piano-motion.ts",
     "./toolbar-disclosure": "./toolbar-disclosure.tsx",
     "./account-menu": "./account-menu.tsx",
-    "./account-entry": "./account-entry.tsx"
+    "./account-entry": "./account-entry.tsx",
+    "./panel-resizer": "./panel-resizer.tsx"
   },
   "peerDependencies": {
     "react": "^19.2.0",

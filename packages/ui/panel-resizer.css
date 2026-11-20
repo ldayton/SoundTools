@@ -1,0 +1,35 @@
+.panel-resizer {
+  position: absolute;
+  inset-block: 0;
+  width: 10px;
+  z-index: 5;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.panel-resizer[data-side="left"] {
+  right: 0;
+}
+.panel-resizer[data-side="right"] {
+  left: -5px;
+}
+.panel-resizer > span {
+  width: 4px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--panel-grip-color);
+  opacity: 0.55;
+}
+.panel-resizer:hover > span,
+.panel-resizer:focus-visible > span,
+.panel-resizer[data-resizing] > span {
+  opacity: 1;
+  background: var(--mantine-primary-color-filled, #9ba9c0);
+}
+.panel-resizer:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled, #9ba9c0);
+  outline-offset: -2px;
+}

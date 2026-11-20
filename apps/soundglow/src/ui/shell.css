@@ -149,14 +149,14 @@
     transition: grid-template-columns 0.25s ease;
   }
   #stage.settings-open {
-    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-columns: var(--soundglow-sidebar-width, 300px) minmax(0, 1fr);
   }
   #stage #panel {
     position: relative;
     inset: auto;
     grid-column: 1;
     grid-row: 1;
-    width: 300px;
+    width: var(--soundglow-sidebar-width, 300px);
     min-height: 0;
     border-right: 1px solid #283345;
   }
@@ -246,3 +246,5 @@
   .soundglow-header { flex-wrap: wrap; }
   .soundglow-update-ready:not([hidden]) { margin-top: 4px; }
 }
+
+@media (min-width: 761px) { #stage:has(.panel-resizer[data-resizing]) { transition: none; } }

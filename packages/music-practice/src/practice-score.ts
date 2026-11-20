@@ -59,6 +59,7 @@ export function drawPracticeScore(
   width: number,
   options: {
     scale?: number;
+    staffScale?: number;
     fingerings?: boolean;
     lyrics?: HymnLyricsSelection;
     transpose?: number;
@@ -71,10 +72,16 @@ export function drawPracticeScore(
   } = {},
 ): PracticeEvent[] {
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
-  const scale = (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1);
+  const staffScale = options.staffScale ?? 1;
+  const scale =
+    (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1) * staffScale;
   const transpose = options.transpose ?? 0;
   let restoreSignatures: (() => void) | undefined;
-  const tune = abcjs.renderAbc(paper, "%%vocalfont sans-serif 12\n" + abc, {
+  // abcjs rounds font sizes to whole SVG pixels. Reserve enough lyric space,
+  // then restore the exact font size below so staff tuning never resizes words.
+  const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
+  const source = `%%vocalfont sans-serif ${vocalFont}\n` + abc;
+  const tune = abcjs.renderAbc(paper, source, {
     add_classes: true,
     initialClef: options.initialSignatures,
     visualTranspose: transpose,
@@ -115,6 +122,8 @@ export function drawPracticeScore(
     throw Error("Practice notation could not be read");
   if (options.octaveNotation) drawHymnOttava(applyHymnOttava(tune));
   paper.querySelectorAll(".abcjs-lyric").forEach((lyric) => {
+    if (staffScale !== 1)
+      lyric.setAttribute("font-size", String(16 / staffScale));
     const walker = document.createTreeWalker(lyric, NodeFilter.SHOW_TEXT);
     while (walker.nextNode())
       walker.currentNode.textContent = walker.currentNode.textContent!.replace(

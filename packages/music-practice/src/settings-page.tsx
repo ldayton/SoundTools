@@ -31,15 +31,10 @@ export function SettingsPage() {
   );
   return (
     <SettingsSections
-      compact={APP.id === "notewise"}
       consent={{ id: "diagnostics-sharing", client: diagnostics }}
       offline={
         <>
-          <OfflineStatusPanel
-            compact={APP.id === "notewise"}
-            status={offline.status}
-            ready={offline.ready}
-          >
+          <OfflineStatusPanel status={offline.status} ready={offline.ready}>
             <Group hidden={!offline.retryVisible}>
               <Button
                 id="offline-retry"
@@ -55,69 +50,79 @@ export function SettingsPage() {
         </>
       }
     >
-      {APP.id === "songalong" && (
-        <Paper
-          component="section"
-          withBorder
-          p="md"
-          aria-labelledby="audio-title"
-        >
-          <Stack gap="sm">
-            <Title order={2} size="h4" id="audio-title">
-              Audio
-            </Title>
-            <Select
-              label="Output"
-              value={channels}
-              allowDeselect={false}
-              data={[
-                { value: "stereo", label: "Stereo" },
-                { value: "mono", label: "Combined mono" },
-              ]}
-              onChange={(value) => {
-                if (value === "stereo" || value === "mono")
-                  setPianoChannels(value);
-              }}
-            />
-          </Stack>
-        </Paper>
-      )}
-      <Anchor
-        href={pianoCreditsUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        size="sm"
+      <Paper
+        component="section"
+        withBorder
+        p="md"
+        aria-labelledby="audio-title"
       >
-        Piano recording credits
-      </Anchor>
-      {APP.id === "notewise" && (
-        <>
+        <Stack gap="sm">
+          <Title order={2} size="h4" id="audio-title">
+            Audio
+          </Title>
+          <Select
+            label="Output"
+            value={channels}
+            allowDeselect={false}
+            data={[
+              { value: "stereo", label: "Stereo" },
+              { value: "mono", label: "Combined mono" },
+            ]}
+            onChange={(value) => {
+              if (value === "stereo" || value === "mono")
+                setPianoChannels(value);
+            }}
+          />
+        </Stack>
+      </Paper>
+      <Paper
+        component="section"
+        withBorder
+        p="md"
+        aria-labelledby="credits-title"
+      >
+        <Stack gap="sm">
+          <Title order={2} size="h4" id="credits-title">
+            Credits
+          </Title>
           <Anchor
-            href={backingCreditsUrl}
+            href={pianoCreditsUrl}
             target="_blank"
             rel="noopener noreferrer"
             size="sm"
           >
-            Backing track sound and performance credits
+            Piano recording credits
           </Anchor>
-          <Anchor
-            href={acousticCreditsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            size="sm"
-          >
-            Folk and Country recording credits
-          </Anchor>
-          <Anchor
-            href={gospelCreditsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            size="sm"
-          >
-            Gospel piano and organ credits
-          </Anchor>
-        </>
-      )}
+          {APP.id === "notewise" && (
+            <>
+              <Anchor
+                href={backingCreditsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+              >
+                Backing track sound and performance credits
+              </Anchor>
+              <Anchor
+                href={acousticCreditsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+              >
+                Folk and Country recording credits
+              </Anchor>
+              <Anchor
+                href={gospelCreditsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+              >
+                Gospel piano and organ credits
+              </Anchor>
+            </>
+          )}
+        </Stack>
+      </Paper>
     </SettingsSections>
   );
 }

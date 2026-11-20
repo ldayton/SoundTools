@@ -18,23 +18,6 @@ import {
 } from "@mantine/core";
 import type { Account } from "@ldayton/account";
 import { ControlIcon } from "./control-icon";
-const labels = {
-  guest: "",
-  loading: "Loading account…",
-  syncing: "Syncing…",
-  synced: "Synced",
-  offline: "Offline—using saved data",
-  reauth: "Sign in to sync",
-  error: "Sync needs attention",
-};
-const status = (state: ReturnType<Account["getSnapshot"]>) =>
-  state.blocked
-    ? "Saved locally—some updates delayed"
-    : state.status === "synced" && state.updates
-      ? "Saved to cloud—practice update pending"
-      : state.status === "offline" && state.pending
-        ? "Offline—changes pending"
-        : labels[state.status];
 const AccountContext = createContext<{ account: Account; open(): void } | null>(
   null,
 );
@@ -51,13 +34,8 @@ export function AccountMenu() {
       leftSection={<ControlIcon name="account" size={18} />}
       label={state.user ? "Account" : "Log in"}
       aria-label={state.user ? "Account" : "Log in"}
-      description={
-        state.user
-          ? state.updates
-            ? "Updates will apply when practice pauses"
-            : status(state)
-          : undefined
-      }
+      data-account-status={state.status}
+      data-account-pending={state.pending}
       onClick={(event) => {
         // Safari pointer activation does not focus buttons. Capture the actual
         // opener before Mantine records where to return focus after the modal.
@@ -139,10 +117,6 @@ export function AccountProvider({
           ) : signedIn ? (
             <>
               <Text size="sm">{state.email}</Text>
-              <Text size="sm" role="status">
-                {status(state)}
-                {state.pending ? ` (${state.pending})` : ""}
-              </Text>
               <Group>
                 <Button
                   variant="subtle"

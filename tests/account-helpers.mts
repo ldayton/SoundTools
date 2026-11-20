@@ -214,15 +214,30 @@ export async function login(page: Page, link = false) {
   )
     await openNavigation(page);
   await page.getByRole("button", { name: /^Account/ }).waitFor();
-  await page.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (el) => el.textContent === "AccountSynced",
-    ),
+  await page.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
+  );
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Account", exact: true })
+      .textContent(),
+    "Account",
+    "routine sync status stays invisible",
   );
 }
+
 export async function pull(page: Page) {
   await account(page);
-  await page.getByRole("status").filter({ hasText: "Synced" }).waitFor();
+  await page.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
+  );
+  assert.equal(await page.getByText("Synced", { exact: true }).count(), 0);
   for (const name of [
     "Sync now",
     "Apply cloud changes",

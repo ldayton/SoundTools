@@ -30,10 +30,11 @@ try {
   await login(first);
   await selectExercise(first, "fiveNote");
   await first.locator("#bpm").waitFor();
-  await first.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (e) => e.textContent === "AccountSynced",
-    ),
+  await first.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   const second = await context.newPage();
   second.on("pageerror", (e) => errors.push(e.message));
@@ -66,10 +67,11 @@ try {
   await second.locator("#bpm").fill("134");
   await second.locator("#bpm").press("Tab");
   await expect.poll(() => reads[1]).toBeGreaterThan(0);
-  await second.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (e) => e.textContent === "AccountSynced",
-    ),
+  await second.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   // A temporary quota failure keeps the newer intent in memory, then retries on its own.
   await second.evaluate(() => {
@@ -88,14 +90,15 @@ try {
   await second.locator("#bpm").press("Tab");
   await expect(
     second.getByRole("button", { name: "Account", exact: true }),
-  ).toContainText("Sync needs attention");
+  ).toHaveAttribute("data-account-status", "error");
   await second.evaluate(() => {
     (window as any).quota = false;
   });
-  await second.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (e) => e.textContent === "AccountSynced",
-    ),
+  await second.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await second.waitForLoadState("networkidle");
   await second.reload();
@@ -112,10 +115,11 @@ try {
   );
   await second.locator("#bpm").fill("137");
   await second.locator("#bpm").press("Tab");
-  await second.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (e) => e.textContent === "AccountSynced",
-    ),
+  await second.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await second.waitForLoadState("networkidle");
   await second.reload();
@@ -145,10 +149,11 @@ try {
   await second.locator("#bpm").press("Tab");
   await expect.poll(() => retriedAt, { timeout: 15000 }).toBeGreaterThan(0);
   assert.ok(retriedAt - failedAt >= 1900);
-  await second.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (e) => e.textContent === "AccountSynced",
-    ),
+  await second.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await second.waitForLoadState("networkidle");
   await second.reload();

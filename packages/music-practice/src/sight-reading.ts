@@ -21,6 +21,8 @@ import {
   HymnSelector,
   HymnModeAndTempo,
   HymnStaffSize,
+  HymnStaffSpacing,
+  HymnFingerings,
 } from "./hymn-options";
 import {
   hymnOptionsState,
@@ -192,6 +194,10 @@ export class SightReading {
   }
   private options!: HymnOptionsState;
   private showFingerings = false;
+  private staffSpacingByLayout = { mobile: 100, desktop: 100 };
+  private get staffSpacing() {
+    return this.staffSpacingByLayout[this.staffLayout];
+  }
   private searchOpen = false;
   private availableKeys: HymnKey[] = ["original", ...HYMN_KEYS];
   private keyRanges: Partial<Record<HymnKey, string>> = {};
@@ -217,6 +223,19 @@ export class SightReading {
       this.showFingerings =
         persistence.read<{ fingerings?: boolean }>("presentation")
           ?.fingerings === true;
+      const spacing = persistence.read<{
+        staffSpacingByLayout?: Partial<Record<"mobile" | "desktop", number>>;
+      }>("presentation")?.staffSpacingByLayout;
+      for (const layout of ["mobile", "desktop"] as const) {
+        const value = spacing?.[layout];
+        if (
+          typeof value === "number" &&
+          Number.isInteger(value) &&
+          value >= 80 &&
+          value <= 120
+        )
+          this.staffSpacingByLayout[layout] = value;
+      }
       const saved =
         persistence.read<HymnState>("sight") ||
         (persistence.state.legacy.sight as any);
@@ -287,6 +306,14 @@ export class SightReading {
         body: this.body,
         transport: createElement(HymnControls, {
           settings: createElement(HymnModeAndTempo, {
+            model: this.options,
+            change: (patch) => this.changeOptions(patch),
+          }),
+          fingerings: createElement(HymnFingerings, {
+            model: this.options,
+            change: (patch) => this.changeOptions(patch),
+          }),
+          staffSpacing: createElement(HymnStaffSpacing, {
             model: this.options,
             change: (patch) => this.changeOptions(patch),
           }),
@@ -835,6 +862,7 @@ export class SightReading {
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
         scale: this.zoom,
+        staffScale: this.staffSpacing / 100,
         fingerings:
           this.showFingerings && ["melody", "bass"].includes(this.arrangement),
         lyrics:
@@ -1051,6 +1079,7 @@ export class SightReading {
       stanzas: this.stanzas,
       zoom: this.zoom,
       fingerings: this.showFingerings,
+      staffSpacing: this.staffSpacing,
       low: this.low,
       high: this.high,
       stanzaChoices: this.hymn.stanzas.map(({ number, label }) => ({
@@ -1082,6 +1111,23 @@ export class SightReading {
     };
   }
   private changeOptions(patch: HymnOptionsChange) {
+    if (patch.staffSpacing !== undefined) {
+      if (
+        !Number.isInteger(patch.staffSpacing) ||
+        patch.staffSpacing < 80 ||
+        patch.staffSpacing > 120
+      )
+        return;
+      this.staffSpacingByLayout[this.staffLayout] = patch.staffSpacing;
+      persistence.write("presentation", {
+        ...persistence.read<object>("presentation"),
+        version: 1,
+        staffSpacingByLayout: { ...this.staffSpacingByLayout },
+      });
+      this.render(true);
+      this.publishOptions();
+      return;
+    }
     if (patch.fingerings !== undefined) {
       this.showFingerings = patch.fingerings;
       persistence.write("presentation", {

@@ -194,7 +194,12 @@ try {
   await pull(p);
   await q.unroute(config.SUPABASE_URL + "/**");
   await account(q);
-  await q.getByRole("status").filter({ hasText: "Synced" }).waitFor();
+  await q.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
+  );
   await expect(
     q.getByRole("button", { name: "Use this device", exact: true }),
   ).toHaveCount(0);

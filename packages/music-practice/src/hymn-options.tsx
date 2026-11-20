@@ -12,6 +12,8 @@ import {
 } from "react";
 import {
   Accordion,
+  Popover,
+  ActionIcon,
   Anchor,
   Checkbox,
   CheckIcon,
@@ -260,16 +262,6 @@ export function HymnOptions({
             )}
           </SimpleGrid>
         )}
-        <Checkbox
-          label="Show fingerings"
-          checked={state.fingerings}
-          disabled={
-            state.arrangement !== "melody" && state.arrangement !== "bass"
-          }
-          onChange={(event) =>
-            change({ fingerings: event.currentTarget.checked })
-          }
-        />
         {state.mode === "wait" && (
           <Checkbox
             id="hymn-reattack-ties"
@@ -473,5 +465,87 @@ export function HymnStaffSize({
       value={Math.round(state.zoom * STAFF_HEIGHT)}
       onChange={(pixels) => change({ zoom: pixels / STAFF_HEIGHT })}
     />
+  );
+}
+
+export function HymnFingerings({
+  model,
+  change,
+}: {
+  model: HymnOptionsState;
+  change(patch: HymnOptionsChange): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
+    getInitialValueInEffect: false,
+  });
+  const checkbox = (
+    <Checkbox
+      id="hymn-fingerings"
+      aria-label="Show fingerings"
+      label={mobile ? undefined : "Show fingerings"}
+      size={mobile ? "sm" : "xs"}
+      checked={state.fingerings}
+      disabled={state.arrangement !== "melody" && state.arrangement !== "bass"}
+      onChange={(event) => change({ fingerings: event.currentTarget.checked })}
+    />
+  );
+  return mobile ? (
+    <Group justify="space-between" wrap="nowrap" w="100%">
+      <Text component="label" htmlFor="hymn-fingerings" size="sm">
+        Show fingerings
+      </Text>
+      {checkbox}
+    </Group>
+  ) : (
+    checkbox
+  );
+}
+
+export function HymnStaffSpacing({
+  model,
+  change,
+}: {
+  model: HymnOptionsState;
+  change(patch: HymnOptionsChange): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
+    getInitialValueInEffect: false,
+  });
+  const control = (
+    <ToolbarNumber
+      id="hymn-staff-spacing"
+      label="Staff spacing"
+      icon={<ControlIcon name="staff-spacing" />}
+      unit="%"
+      min={80}
+      max={120}
+      step={2}
+      value={state.staffSpacing}
+      onChange={(staffSpacing) => change({ staffSpacing })}
+    />
+  );
+  return mobile ? (
+    control
+  ) : (
+    <Popover position="bottom-start" withArrow>
+      <Popover.Target>
+        <ActionIcon
+          variant="default"
+          size={36}
+          aria-label="Adjust staff spacing"
+          title={`Staff spacing: ${state.staffSpacing}%`}
+        >
+          <ControlIcon name="staff-spacing" />
+        </ActionIcon>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Group gap="md" wrap="nowrap">
+          <Text size="sm">Staff spacing</Text>
+          {control}
+        </Group>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

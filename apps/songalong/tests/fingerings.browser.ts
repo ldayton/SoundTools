@@ -2,8 +2,7 @@ import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
   practiceOption,
-  openPracticeOptions,
-  closePracticeOptions,
+  openHymnControls,
 } from "../../../packages/music-practice/browser-tests/helpers";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -30,11 +29,25 @@ try {
     exact: true,
   });
   await toggle.waitFor();
+  await expect(
+    page
+      .locator(".hymn-toolbar")
+      .getByRole("checkbox", { name: "Show fingerings", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator(".practice-options")
+      .getByRole("checkbox", { name: "Show fingerings", exact: true }),
+  ).toHaveCount(0);
   const geometry = () =>
     page.locator(".hymn-paper svg").evaluateAll((es) =>
       es.map((e) => ({
         height: e.getBoundingClientRect().height,
-        viewBox: e.getAttribute("viewBox"),
+        // Ignore floating-point noise far below a rendered pixel.
+        viewBox: e
+          .getAttribute("viewBox")
+          ?.split(/\s+/)
+          .map((value) => Math.round(Number(value) * 1e6) / 1e6),
       })),
     );
   const initial = await geometry();
@@ -72,6 +85,9 @@ try {
   ).toBeVisible();
   await page.reload();
   await expect(toggle).toBeChecked();
+  await page.goto(server.base + "/piano/hymns/silent-night");
+  await expect(toggle).toBeChecked();
+  await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   expect(
@@ -79,13 +95,14 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await openPracticeOptions(page);
+  await expect(
+    page.getByRole("button", { name: "Show controls", exact: true }),
+  ).toBeVisible();
+  await openHymnControls(page);
   await toggle.uncheck();
-  await closePracticeOptions(page);
   const mobile = await geometry();
-  await openPracticeOptions(page);
+  await openHymnControls(page);
   await toggle.check();
-  await closePracticeOptions(page);
   expect(await geometry()).toEqual(mobile);
   expect(errors).toEqual([]);
   console.log(

@@ -13,11 +13,14 @@ test('idle prefetch errors are reported, while requested read errors still rejec
    `:'export class Stretch {}',loader:'js'}));
   }
  }]});
- const events=[],window={SoundglowDiagnostics:{event:code=>events.push(code)}};
+ const reports=[],window={SoundglowDiagnostics:{capture:(error,code)=>reports.push({error,code})}};
  const context=vm.createContext({window,console});vm.runInContext(built.outputFiles[0].text,context);
  const reader=new window.SoundglowFileAudio.FileAudioReader(),blob={};await reader.open(blob);
- context.prefetch(new Error('Background read failed'));
- assert.deepEqual(events,['files.prefetch_read_failed']);
+ const failure=new Error('Background read failed');
+ context.prefetch(failure);
+ assert.equal(reports.length,1);
+ assert.equal(reports[0].code,'files.prefetch_read_failed');
+ assert.equal(reports[0].error,failure,'original exception reaches diagnostics with its stack intact');
  await assert.rejects(async()=>{for await(const buffer of reader.buffers(blob,0,1))assert.fail('failed read returned samples');},/Required read failed/);
  reader.clear();
 });

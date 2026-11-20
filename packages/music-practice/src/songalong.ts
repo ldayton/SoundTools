@@ -2,6 +2,7 @@ import { startPracticeAccount } from "./practice-account-binding";
 import {
   songalongRecords,
   restoreSongalongRecords,
+  songalongLiveKeys,
 } from "./songalong-account-records";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { shutdownPianoSound } from "./piano-audio";
@@ -176,16 +177,7 @@ void document.fonts.ready
       canApply: () => route.kind === "settings" || !!practice?.syncIdle,
       liveKeys: (keys) => {
         const current = persistence.read<{ hymn?: string }>("sight")?.hymn;
-        return keys.filter(
-          (key) =>
-            key === "activity:audio" ||
-            (["hymn:", "bookmarks:", "sections:"].some((prefix) =>
-              key.startsWith(prefix),
-            ) &&
-              !["hymn:", "bookmarks:", "sections:"].some((prefix) =>
-                key.startsWith(prefix + current + ":"),
-              )),
-        );
+        return songalongLiveKeys(keys, current);
       },
       liveApplied: (_records, state) => {
         if (state.activities.sight)

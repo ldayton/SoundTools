@@ -8,6 +8,7 @@ import {
   useSyncExternalStore,
   useState,
   useEffect,
+  useMemo,
   type ReactNode,
 } from "react";
 import {
@@ -39,7 +40,7 @@ import {
 } from "./hymn-arrangements";
 import { HYMN_KEYS, hymnKeyLabel, type HymnKey } from "./hymn-transpose";
 import type { CountInBars } from "./hymn-count-in";
-import { searchHymns } from "./sight-reading-model";
+import { hymnLibrary } from "./hymn-library";
 import hymns from "./hymns.json";
 import { HymnPitchField } from "./pitch-fields";
 import type { HymnOptionsChange, HymnOptionsState } from "./hymn-options-state";
@@ -376,11 +377,14 @@ export function HymnSelector({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const [query, setQuery] = useState("");
   const list = useCombobox({ opened: true });
-  const matches = searchHymns(hymns, query);
+  const matches = useMemo(
+    () => hymnLibrary(hymns, query, state.favorites),
+    [query, state.favorites],
+  );
   useEffect(() => {
     if (query) list.selectFirstOption();
-    else list.selectOption(hymns.findIndex((hymn) => hymn.id === state.hymn));
-  }, [query, state.hymn]);
+    else list.selectOption(matches.findIndex((hymn) => hymn.id === state.hymn));
+  }, [query, state.hymn, matches]);
   return (
     <Stack className="hymn-library" gap="xs">
       <Combobox
@@ -420,7 +424,12 @@ export function HymnSelector({
                 active={hymn.id === state.hymn}
                 aria-selected={hymn.id === state.hymn}
               >
-                <Text size="sm">{hymn.title}</Text>
+                <Group gap="xs" wrap="nowrap">
+                  {state.favorites[hymn.id] === true && (
+                    <ControlIcon name="star" filled size={14} />
+                  )}
+                  <Text size="sm">{hymn.title}</Text>
+                </Group>
               </Combobox.Option>
             ))}
             {!matches.length && (
@@ -432,6 +441,32 @@ export function HymnSelector({
         </div>
       </Combobox>
     </Stack>
+  );
+}
+
+export function HymnFavorite({
+  model,
+  toggle,
+}: {
+  model: HymnOptionsState;
+  toggle(): void;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const favorite = state.favorites[state.hymn] === true;
+  const label = favorite ? "Remove from favorites" : "Add to favorites";
+  return (
+    <ActionIcon
+      className="hymn-favorite"
+      variant="subtle"
+      color={favorite ? "yellow" : "gray"}
+      size={44}
+      aria-label={label}
+      aria-pressed={favorite}
+      title={label}
+      onClick={toggle}
+    >
+      <ControlIcon name="star" size={24} filled={favorite} />
+    </ActionIcon>
   );
 }
 

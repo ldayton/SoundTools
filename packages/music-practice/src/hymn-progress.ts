@@ -34,6 +34,7 @@ export type HymnState = {
   bookmarks: Record<string, Bookmark>;
   sections: Record<string, number>;
   preferences?: Record<string, ReturnType<typeof hymnPreferences>>;
+  favorites?: Record<string, boolean>;
 };
 
 /** Saved preferences and content-checked checkpoints, independent of rendering and transport. */
@@ -47,7 +48,10 @@ export class HymnProgress {
   readonly bookmarks: Record<string, Bookmark> = {};
   readonly preferences: Record<string, ReturnType<typeof hymnPreferences>> = {};
   readonly sections: Record<string, number> = {};
+  readonly favorites: Record<string, boolean> = {};
+  private readonly hymnIds: ReadonlySet<string>;
   constructor(saved: HymnState | undefined, hymnIds: readonly string[]) {
+    this.hymnIds = new Set(hymnIds);
     this.mode = saved?.mode === "playback" ? "playback" : "wait";
     // The current song's last range becomes the global range for older saves.
     this.range = {
@@ -60,6 +64,7 @@ export class HymnProgress {
       this.zoomByLayout[layout] = validHymnZoom(value) ? value : legacy;
     }
     if (saved?.version !== 1) return;
+    this.restoreFavorites(saved.favorites);
     for (const field of ["bookmarks", "sections"] as const)
       if (saved[field] && typeof saved[field] === "object")
         Object.assign(this[field], structuredClone(saved[field]));
@@ -69,6 +74,7 @@ export class HymnProgress {
           this.preferences[id] = hymnPreferences(id, saved.preferences[id]);
   }
   mergeInactive(saved: HymnState, current: string) {
+    this.restoreFavorites(saved.favorites);
     for (const id of Object.keys(this.preferences))
       if (id !== current) delete this.preferences[id];
     for (const field of ["bookmarks", "sections"] as const)
@@ -82,6 +88,13 @@ export class HymnProgress {
         if (!key.startsWith(current + ":"))
           (this[field] as Record<string, unknown>)[key] =
             structuredClone(value);
+  }
+  private restoreFavorites(saved: unknown) {
+    for (const id of Object.keys(this.favorites)) delete this.favorites[id];
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) return;
+    for (const [id, favorite] of Object.entries(saved))
+      if (this.hymnIds.has(id) && typeof favorite === "boolean")
+        this.favorites[id] = favorite;
   }
   zoomFor(layout: "mobile" | "desktop") {
     return this.zoomByLayout[layout];
@@ -147,6 +160,7 @@ export class HymnProgress {
       bookmarks: this.bookmarks,
       sections: this.sections,
       preferences: this.preferences,
+      favorites: { ...this.favorites },
     };
   }
 }

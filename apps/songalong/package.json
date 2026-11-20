@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1 --port 4321 --strictPort",
     "build": "tsc --noEmit && vite build",
     "test:fingerings": "tsx tests/fingerings.browser.ts",
-    "test:workspace": "tsx tests/workspace.browser.ts && tsx tests/staff-size.browser.ts && tsx tests/staff-spacing.browser.ts && tsx tests/song-memory.browser.ts && tsx tests/audio-output.browser.ts && npm run test:guitar",
+    "test:workspace": "tsx tests/workspace.browser.ts && tsx tests/hymn-library.browser.ts && tsx tests/staff-size.browser.ts && tsx tests/staff-spacing.browser.ts && tsx tests/song-memory.browser.ts && tsx tests/audio-output.browser.ts && npm run test:guitar",
     "test:hymn-keys": "tsx tests/hymn-key.browser.ts && tsx tests/hymn-key-menu.browser.ts",
     "test:offline": "tsx tests/offline.browser.ts",
     "build:vercel": "node ../../scripts/build-vercel.cjs songalong",

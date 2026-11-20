@@ -8,7 +8,7 @@ export function songalongRecords(state: DurableState): Records {
   const sight = state.activities.sight as HymnState | undefined;
   if (sight) {
     for (const [key, value] of Object.entries(sight)) {
-      if (["bookmarks", "preferences", "sections"].includes(key)) {
+      if (["bookmarks", "preferences", "sections", "favorites"].includes(key)) {
         for (const [id, setting] of Object.entries(value || {})) {
           if (key === "preferences") {
             const pitch = ["key", "octave"];
@@ -44,6 +44,7 @@ export function restoreSongalongRecords(records: Records): DurableState {
     bookmarks: {},
     preferences: {},
     sections: {},
+    favorites: {},
   };
   for (const [key, value] of Object.entries(records)) {
     if (value === null && !["current:low", "current:high"].includes(key))
@@ -57,6 +58,8 @@ export function restoreSongalongRecords(records: Records): DurableState {
     } else if (key.startsWith("bookmarks:"))
       sight.bookmarks[key.slice(10)] = value;
     else if (key.startsWith("sections:")) sight.sections[key.slice(9)] = value;
+    else if (key.startsWith("favorites:"))
+      sight.favorites[key.slice(10)] = value;
     else if (["activity:audio", "activity:presentation"].includes(key))
       state.activities[key.slice(9)] = value;
   }
@@ -78,4 +81,19 @@ export function restoreSongalongRecords(records: Records): DurableState {
           : sight.preferences[sight.hymn]?.high,
     };
   return decodeState(state);
+}
+
+/** Library favorites can update during playback without replacing the active score. */
+export function songalongLiveKeys(keys: string[], current: string | undefined) {
+  return keys.filter(
+    (key) =>
+      key === "activity:audio" ||
+      key.startsWith("favorites:") ||
+      (["hymn:", "bookmarks:", "sections:"].some((prefix) =>
+        key.startsWith(prefix),
+      ) &&
+        !["hymn:", "bookmarks:", "sections:"].some((prefix) =>
+          key.startsWith(prefix + current + ":"),
+        )),
+  );
 }

@@ -278,11 +278,13 @@ export function HymnFrame({
   passage,
   panelId,
   body,
+  favorite,
 }: FrameProps & {
   panelId: string;
   body: ReturnType<typeof hymnBodyState>;
   passage: ReactNode;
   headerHost: HTMLElement;
+  favorite: ReactNode;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   return (
@@ -310,6 +312,7 @@ export function HymnFrame({
         )}
         <div className="hymn-score-page" hidden={s.noKey}>
           <header className="hymn-score-heading">
+            {favorite}
             <Title order={2} className="sequence-title" tabIndex={-1}>
               {s.title}
             </Title>

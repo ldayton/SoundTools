@@ -37,7 +37,7 @@ every melody attack and tied duration against this reference.
 
 ## User-supplied guitar score
 
-“The 1st Fingerstyle Blues” is transcribed from Lily’s supplied GuitarNick score
+“1st Fingerstyle Blues” is transcribed from Lily’s supplied GuitarNick score
 and tab, credited to Nicola Mandorino (2015). Rights remain with the respective
 rights holders. The two voices retain sounding guitar pitches, the twelve-bar
 repeat, bass turnaround and final E7 chord. Conventional eighth notes and a single Swing indication retain the source’s

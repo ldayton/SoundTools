@@ -100,6 +100,7 @@ export function ApplicationLayout({
   title,
   area,
   navigation,
+  navigationScrollable = true,
   navigationOpen,
   navigationCollapsed,
   onNavigationOpen,
@@ -122,6 +123,8 @@ export function ApplicationLayout({
   title: ReactNode;
   area: string;
   navigation: ReactNode;
+  /** Disable when navigation supplies its own bounded scrolling region and footer. */
+  navigationScrollable?: boolean;
   navigationOpen: boolean;
   navigationCollapsed: boolean;
   onNavigationOpen(): void;
@@ -260,7 +263,7 @@ export function ApplicationLayout({
             aria-label="Exercises"
             className="soundtools-ui app-sidebar"
             p="md"
-            style={{ overflowY: "auto" }}
+            style={navigationScrollable ? { overflowY: "auto" } : { overflow: "clip" }}
             inert={navigationCollapsed}
           >
             <Group justify="space-between" wrap="nowrap" mb="lg">

@@ -136,7 +136,7 @@ try {
   await tempoControl.locator('[data-direction="down"]').click();
   await expect(tempo).toHaveValue("80 BPM");
   await practiceOption(page, "#hymn-mode", "wait");
-  const navigationToggle = page.locator("header .nav-toggle");
+  const navigationToggle = page.locator(".mantine-AppShell-header .nav-toggle");
   const optionsToggle = page.locator("#practice-options-reopen");
   const toolbarGeometry = () =>
     Promise.all([
@@ -436,7 +436,7 @@ try {
       await expect(page.locator("#hymn-size")).toBeHidden();
       await expect(page.locator("#hymn-tempo")).toBeHidden();
       const compactGeometry = await page
-        .locator("header button:visible")
+        .locator(".mantine-AppShell-header button:visible")
         .evaluateAll((elements) =>
           elements.map((el) => el.getBoundingClientRect().toJSON()),
         );
@@ -450,7 +450,7 @@ try {
             .evaluate((el) => el.getBoundingClientRect().height),
         )
         .toBe(168);
-      await expect(page.locator("header [data-direction]")).toHaveCount(0);
+      await expect(page.locator(".mantine-AppShell-header [data-direction]")).toHaveCount(0);
       await expect(page.locator("#hymn-mode")).toHaveCount(0);
       await expect(page.locator(".piano-toggle")).toHaveCount(0);
       await expect(page.locator("#hymn-tempo")).toBeEnabled();
@@ -459,7 +459,8 @@ try {
           const header = document
             .querySelector(".mantine-AppShell-header")!
             .getBoundingClientRect();
-          return [...document.querySelectorAll("header button, header input")]
+          // The score has its own header and favorite button below the toolbar.
+          return [...document.querySelectorAll(".mantine-AppShell-header button, .mantine-AppShell-header input")]
             .filter((el) => el.getClientRects().length)
             .every((el) => {
               const r = el.getBoundingClientRect();
@@ -488,7 +489,7 @@ try {
       await hideControls.click();
       assert.deepEqual(
         await page
-          .locator("header button:visible")
+          .locator(".mantine-AppShell-header button:visible")
           .evaluateAll((elements) =>
             elements.map((el) => el.getBoundingClientRect().toJSON()),
           ),
@@ -520,7 +521,7 @@ try {
   await practiceOption(page, "#hymn-mode", "wait");
   await expect(page.locator("#hymn-tempo")).toBeDisabled();
   await expect(page.locator("#hymn-size")).toHaveValue(pixels);
-  await expect(page.locator('header [data-direction="up"]')).toHaveCount(2);
+  await expect(page.locator('.mantine-AppShell-header [data-direction="up"]')).toHaveCount(2);
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: SongAlong drawer geometry/focus, MIDI blocking, playback pause, constant piano widths, hand constraints and desktop restoration pass`,

@@ -164,7 +164,11 @@ export function mountAppShell(
       offlineState.getSnapshot,
     );
     return (
-      <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
+      <Stack
+        gap="md"
+        className={APP.id === "songalong" ? "songalong-navigation" : undefined}
+        style={{ flex: 1, minHeight: 0 }}
+      >
         {views.selection}
         {(APP.id === "songalong" ? [] : AREAS).map((area) => (
           <Box key={area.label}>
@@ -193,7 +197,11 @@ export function mountAppShell(
             ))}
           </Box>
         ))}
-        <Stack gap="md" mt="auto" className="practice-navigation-tools">
+        <Stack
+          gap="md"
+          mt="auto"
+          className={`practice-navigation-tools${APP.id === "songalong" ? " songalong-navigation-tools" : ""}`}
+        >
           {!(APP.id === "songalong" && mobile) && (
             <Accordion
               keepMounted
@@ -340,6 +348,7 @@ export function mountAppShell(
           }
           area={snapshot.area}
           navigation={<Navigation />}
+          navigationScrollable={APP.id !== "songalong"}
           navigationOpen={snapshot.navigationOpen}
           navigationCollapsed={snapshot.navigationCollapsed}
           onNavigationOpen={() => {

@@ -22,6 +22,7 @@ export type HymnOptionsChange = Partial<
   >
 > & { zoom?: number; fingerings?: boolean; staffSpacing?: number };
 export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
+  favorites: Readonly<Record<string, boolean>>;
   stanzaChoices: { number: number; label: string }[];
   searchOpen: boolean;
   unmetered: boolean;

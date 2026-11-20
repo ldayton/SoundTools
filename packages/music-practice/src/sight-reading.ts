@@ -19,6 +19,7 @@ import {
 import {
   HymnOptions,
   HymnSelector,
+  HymnFavorite,
   HymnModeAndTempo,
   HymnStaffSize,
   HymnStaffSpacing,
@@ -305,6 +306,16 @@ export class SightReading {
         presentation: this.presentation,
         panelId: `${element.id}-piano-panel`,
         body: this.body,
+        favorite: createElement(HymnFavorite, {
+          model: this.options,
+          toggle: () => {
+            if (!persistence.writable) return;
+            const id = this.hymn.id;
+            this.progress.favorites[id] = this.progress.favorites[id] !== true;
+            this.publishOptions();
+            this.save();
+          },
+        }),
         transport: createElement(HymnControls, {
           settings: createElement(HymnModeAndTempo, {
             model: this.options,
@@ -509,6 +520,7 @@ export class SightReading {
   }
   applyInactiveAccountState(saved: HymnState) {
     this.progress.mergeInactive(saved, this.hymn.id);
+    this.publishOptions();
   }
   get syncIdle() {
     const idle =
@@ -1076,6 +1088,7 @@ export class SightReading {
     const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
     return {
       hymn: this.hymn.id,
+      favorites: { ...this.progress.favorites },
       key: this.key,
       octave: this.octave ?? 0,
       mode: this.mode,

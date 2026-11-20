@@ -47,8 +47,17 @@
   padding: clamp(20px, 3vw, 40px) clamp(12px, 2vw, 28px);
 }
 .hymn-score-heading {
+  position: relative;
   margin-bottom: 28px;
   color: #111;
+}
+.hymn-score-heading .sequence-title {
+  padding-inline: 44px;
+}
+.hymn-favorite {
+  position: absolute;
+  top: -6px;
+  left: 0;
 }
 .hymn-score-credits {
   display: grid;
@@ -114,6 +123,7 @@
 .hymn-library {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 .hymn-library-list {
   flex: 1;
@@ -126,8 +136,31 @@
 }
 
 .songalong-navigation-tools {
+  flex-shrink: 0;
   border-top: 1px solid var(--mantine-color-default-border);
   padding-top: var(--mantine-spacing-md);
+}
+.songalong-navigation {
+  overflow: clip;
+}
+/* Keep the library scroll independent of the drawer and its bottom controls. */
+#navigation-drawer:has(.songalong-navigation) .mantine-Drawer-content {
+  display: flex;
+  flex-direction: column;
+}
+#navigation-drawer:has(.songalong-navigation) .mantine-Drawer-header {
+  flex-shrink: 0;
+}
+#navigation-drawer:has(.songalong-navigation) .mantine-Drawer-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+#navigation-drawer .app-sidebar:has(.songalong-navigation) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 .songalong-header-transport .hymn-controls {
   white-space: normal;

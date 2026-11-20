@@ -151,9 +151,12 @@ try {
   });
   const navigation = page.locator(".mantine-AppShell-navbar");
   const handleBox = (await resizeHandle.boundingBox())!;
-  await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + 100);
+  const dragStart = handleBox.x + handleBox.width / 2;
+  const initialWidth = Number(await resizeHandle.getAttribute("aria-valuenow"));
+  await page.mouse.move(dragStart, handleBox.y + 100);
   await page.mouse.down();
-  await page.mouse.move(320, handleBox.y + 100, { steps: 5 });
+  // Splitter applies pointer deltas; the grip center is offset from the pane edge.
+  await page.mouse.move(dragStart + 320 - initialWidth, handleBox.y + 100, { steps: 5 });
   await expect(resizeHandle).toHaveAttribute("aria-valuenow", "320");
   await page.mouse.up();
   await expect

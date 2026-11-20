@@ -3,7 +3,9 @@ const origin='http://127.0.0.1:'+(process.env.SOUNDGLOW_TEST_PORT||8779);
 const browser=process.env.SOUNDGLOW_TEST_BROWSER||'chromium';
 if(!['chromium','firefox','webkit'].includes(browser))throw Error('Choose chromium, firefox or webkit');
 module.exports=defineConfig({
- testDir:'./tests/visual',testMatch:'*.spec.cjs',timeout:60000,globalTimeout:12*60*1000,workers:1,retries:0,
+ // The serial regression includes throttled retina projects. Leave room for
+ // those after the desktop/mobile suites, within CI's 20-minute command limit.
+ testDir:'./tests/visual',testMatch:'*.spec.cjs',timeout:60000,globalTimeout:18*60*1000,workers:1,retries:0,
  outputDir:browser==='chromium'?'test-results/browser':`test-results/browser-${browser}`,reporter:[['list'],['html',{outputFolder:browser==='chromium'?'playwright-report':`test-results/report-${browser}`,open:'never'}]],
  snapshotPathTemplate:'{testDir}/baselines/{projectName}/{arg}{ext}',updateSnapshots:'none',
  expect:{toMatchSnapshot:{threshold:.08,maxDiffPixelRatio:.001}},

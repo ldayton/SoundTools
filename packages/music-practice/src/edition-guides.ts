@@ -1,0 +1,47 @@
+export type EditionGuide = {
+  meter: string;
+  piano: string;
+  guitar: string;
+  strum: string;
+};
+export const editionGuides: Record<string, EditionGuide> = {
+  "in-christ-alone": {
+    meter:
+      "D major, 3/4. The pickup lasts one and a half beats. Earlier verses include the four-bar vocal ending; the final verse ends at bar 16.",
+    piano: "Lift and reposition for the octave leap in the melody.",
+    guitar:
+      "Roman numerals mark positions relative to the capo: I = 1st, III = 3rd, VII = 7th. Release the bass during the high C–B leap.",
+    strum:
+      "Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1.",
+  },
+  "amazing-grace": {
+    meter:
+      "G major, 3/4. The pickup lasts one beat; the final bar has two beats. Each verse uses the same melody and ending.",
+    piano:
+      "Shift your right hand for high D, then return to the opening position. The compact D7 voicing omits the root; every left-hand chord fits within a fifth.",
+    guitar:
+      "The melody sounds one octave below Piano and stays in first position. On D7, F♯ bass and C support the melody’s A; the root is omitted. A dash in Chords only means hold the previous chord.",
+    strum:
+      "For C, strum strings 5–1; for D7, strings 4–1. G and Em use all six strings.",
+  },
+  "ill-fly-away": {
+    meter:
+      "C major, 4/4, straight rhythm. There is no pickup. Verse: bars 1–8; chorus: 9–16. The final fermata invites a longer hold in performance; playback follows the written four beats.",
+    piano:
+      "The melody spans G3–G4. Reposition for the upper ornaments and chorus. C–E dyads and compact F and rootless G7 chords fit within a fifth.",
+    guitar:
+      "The melody stays in first position, reaching fret 4 for D♯. G7 uses a B–F shell. A dash means keep the chord. The optional strum pattern is for accompaniment; practice checks chord changes.",
+    strum:
+      "C uses strings 5–1; small F uses 4–1; G7 uses all six. Fingerstyle uses lighter voicings.",
+  },
+  "jesus-loves-me": {
+    meter:
+      "E♭ major, 4/4. There is no pickup. Verse: bars 1–8; refrain: 9–16. Each selected verse uses the same melody and refrain.",
+    piano:
+      "Keep the source E♭ melody in the right hand. Shift for the high E♭ in the refrain and upper phrases. Left-hand E♭, A♭ and rootless B♭7 chords fit within a fifth.",
+    guitar:
+      "Capo 3 with C-family shapes sounds in E♭. The complete melody sounds one octave below Piano, within frets 0–3. Use the low G bass when the melody occupies the C string position; this avoids playing two notes on one string. G7 uses the F–B shell.",
+    strum:
+      "C uses strings 5–1; small F uses 4–1; G7 uses all six. The strummed shapes are fuller than the fingerstyle voicings.",
+  },
+};

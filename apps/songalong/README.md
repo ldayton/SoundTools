@@ -69,3 +69,12 @@ available as independent chord-accompaniment practice. The optional lesson strum
 pattern accompanies the chords-only display. Notation, tab, combined notation/tab
 and the chord chart all represent the same Guitar arrangement; changing display
 does not change the practice part. Fermatas remain visible in tab and chord view.
+
+Jesus Loves Me offers Piano in E-flat and Guitar using C shapes with capo 3.
+Piano preserves the imported melody register, with left-hand triads spanning
+no more than a fifth. Guitar sounds the melody one octave below Piano and stays
+within frets 0–3, using G bass where a low C melody occupies the fifth string.
+Its rootless G7 shell leaves the melody clear. All 49 attacks, three verses and
+the shared refrain retain the 16-bar form. Verse and refrain landmarks, explicit
+capo instructions, independent display/practice options, full-shape chord
+accompaniment and a chords-only lyric chart use the same two editions.

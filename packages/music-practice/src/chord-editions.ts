@@ -1,3 +1,6 @@
+import { editionGuides } from "./edition-guides";
+import { jesusEdition, jesusFingers, jesusPosition } from "./jesus-loves-me";
+import { accompanimentLyrics } from "./accompaniment-lyrics";
 import {
   isFlyAway,
   flyFingers,
@@ -20,11 +23,13 @@ import {
   graceChordOffset,
 } from "./amazing-grace";
 export type ChordEditionId =
-  "in-christ-alone" | "amazing-grace" | "ill-fly-away";
+  "in-christ-alone" | "amazing-grace" | "ill-fly-away" | "jesus-loves-me";
 export function chordEdition(hymn: { id: string }) {
   if (isChristAlone(hymn))
     return {
       id: "in-christ-alone" as const,
+      guide: editionGuides["in-christ-alone"],
+      fixedSystems: false,
       capo: 2,
       pickup: true,
       tempo: 70,
@@ -37,6 +42,8 @@ export function chordEdition(hymn: { id: string }) {
   if (isAmazingGrace(hymn))
     return {
       id: "amazing-grace" as const,
+      guide: editionGuides["amazing-grace"],
+      fixedSystems: false,
       capo: 0,
       pickup: true,
       tempo: 72,
@@ -49,6 +56,8 @@ export function chordEdition(hymn: { id: string }) {
   if (isFlyAway(hymn))
     return {
       id: "ill-fly-away" as const,
+      guide: editionGuides["ill-fly-away"],
+      fixedSystems: true,
       capo: 0,
       pickup: false,
       tempo: 80,
@@ -58,6 +67,25 @@ export function chordEdition(hymn: { id: string }) {
       lyrics: flyLyricData,
       chordOffset: (bar: number) =>
         flyChanges.slice(0, bar).reduce((sum, b) => sum + b.length, 0),
+    };
+  if (hymn.id === "jesus-loves-me")
+    return {
+      id: "jesus-loves-me" as const,
+      guide: editionGuides["jesus-loves-me"],
+      fixedSystems: true,
+      capo: 3,
+      pickup: false,
+      tempo: 72,
+      shapes: "C, small F and G7",
+      fingers: jesusFingers,
+      position: jesusPosition,
+      lyrics: (hymn: Parameters<typeof accompanimentLyrics>[0]) =>
+        accompanimentLyrics(
+          hymn,
+          jesusEdition.changes.flatMap((c, i) => c.map(([at]) => i + at / 64)),
+        ),
+      chordOffset: (bar: number) =>
+        jesusEdition.changes.slice(0, bar).reduce((s, c) => s + c.length, 0),
     };
   return undefined;
 }

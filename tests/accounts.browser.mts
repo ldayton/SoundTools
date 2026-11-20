@@ -187,7 +187,7 @@ try {
   );
 
   await p.goto(
-    "http://127.0.0.1:4392/piano/hymns/amazing-grace?arrangement=bass&hands=right&view=both&mode=wait&key=original",
+    "http://127.0.0.1:4392/piano/hymns/holy-holy-holy?arrangement=bass&hands=right&view=both&mode=wait&key=original",
   );
   await p.locator(".hymn-count").filter({ hasText: "1 /" }).waitFor();
   await login(p);

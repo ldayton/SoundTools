@@ -8,7 +8,7 @@ import { scalePitchClasses, type BackingQuality } from "./backing-arrangement";
 import type { BackingEvent, BackingMode } from "./backing-track-model";
 const tuning = [40, 45, 50, 55, 59, 64];
 /** Low/middle string triads with bounded fretting stretches and native recordings. */
-function rootsGrips(root: number, minor: boolean) {
+export function rootsGrips(root: number, minor: boolean) {
   const pcs = [root, (root + (minor ? 3 : 4)) % 12, (root + 7) % 12],
     out: ReturnType<typeof concertGrips> = [];
   for (let start = 0; start < 4; start++) {

@@ -17,6 +17,7 @@ const { values } = parseArgs({
   options: {
     output: { type: "string", default: "work/backing-loudness" },
     styles: { type: "string", default: "*" },
+    patterns: { type: "string", default: "*" },
     keys: { type: "string", default: "0" },
     qualities: { type: "string", default: "major,minor" },
     modes: { type: "string", default: "steady,active" },
@@ -24,8 +25,27 @@ const { values } = parseArgs({
     excerpts: { type: "boolean", default: false },
     check: { type: "boolean", default: false },
     "scale-harmony": { type: "boolean", default: false },
+    "gospel-phrases": { type: "boolean", default: false },
+    "folk-fingerstyle-ab": { type: "boolean", default: false },
+    "save-excerpts": { type: "boolean", default: false },
+    "reference-arranger": { type: "boolean", default: false },
   },
 });
+if (values["gospel-phrases"]) {
+  values.styles = "gospel";
+  values["scale-harmony"] = true;
+  values.excerpts = true;
+}
+if (values["folk-fingerstyle-ab"]) {
+  assert.ok(!values["gospel-phrases"], "Choose one audition mode");
+  values.styles = "folk";
+  values["scale-harmony"] = true;
+  values.excerpts = true;
+}
+if (values["save-excerpts"]) {
+  values.excerpts = true;
+  values["scale-harmony"] = true;
+}
 const keys = values.keys.split(",").map(Number),
   qualities = values.qualities.split(","),
   modes = values.modes.split(",");
@@ -112,7 +132,7 @@ function meter(pcm: Buffer) {
     ...result.matchAll(/t:\s*([\d.]+).*?M:\s*([-\d.]+)\s+S:\s*([-\d.]+)/g),
   ].map((m) => ({ t: +m[1], m: +m[2], s: +m[3] }));
   const shorts = frames
-    .filter((f) => f.t >= 3 && f.s > -60)
+    .filter((f) => f.t >= 3 && f.s > -100)
     .map((f) => f.s)
     .sort((a, b) => a - b);
   const q = (p: number) => shorts[Math.floor((shorts.length - 1) * p)];
@@ -164,7 +184,10 @@ try {
     await page.locator("#loudness-start").click();
   });
   for (const [style, pattern, defaultTempo] of configurations.filter(
-    ([id]) => values.styles === "*" || values.styles.split(",").includes(id),
+    ([id, pattern]) =>
+      (values.styles === "*" || values.styles.split(",").includes(id)) &&
+      (!values["folk-fingerstyle-ab"] || pattern === "fingerpicked") &&
+      (values.patterns === "*" || values.patterns.split(",").includes(pattern)),
   ))
     for (const tempo of tempos ?? [defaultTempo])
       for (const quality of qualities)
@@ -230,17 +253,86 @@ try {
                 scaleHarmony: values["scale-harmony"],
               },
             );
-            const variants = [values.excerpts ? "excerpt100" : "full"];
+            const variants = values["folk-fingerstyle-ab"]
+              ? ["A", "B"]
+              : values["gospel-phrases"]
+                ? [32, 64].flatMap((from) =>
+                    [
+                      "mix",
+                      "organ",
+                      "piano",
+                      "bass",
+                      "drums",
+                      "percussion",
+                    ].map((stem) => `${from}:${stem}`),
+                  )
+                : [
+                    values["save-excerpts"]
+                      ? "preview"
+                      : values.excerpts
+                        ? "excerpt100"
+                        : "full",
+                  ];
             for (const variant of variants) {
               const r = await page.evaluate(
-                async ({ source, variant, tempo }) => {
+                async ({
+                  source,
+                  variant,
+                  tempo,
+                  folkAudition,
+                  referenceArranger,
+                }) => {
                   const { backingAudioGraph } = await import(
                     /* @vite-ignore */ source + "backing-performance.ts"
                   );
-                  const p = (window as any).__loudness.p,
-                    take = p.take();
-                  const from = variant === "full" ? 0 : 32,
-                    to = variant === "full" ? take.beats : 64,
+                  const p = (window as any).__loudness.p;
+                  let take = p.take();
+                  if (folkAudition || referenceArranger) {
+                    const { referenceGenreBackingArrangement } = await import(
+                      /* @vite-ignore */ source + "backing-genre-engine.ts"
+                    );
+                    const state = p.model.getSnapshot();
+                    take = referenceGenreBackingArrangement(
+                      state.style,
+                      state.mode,
+                      state.quality,
+                      0,
+                      state.tempo,
+                      state.tonic,
+                      state.pattern,
+                      state.quality,
+                    );
+                  }
+                  if (folkAudition && variant === "B") {
+                    const { folkFingerstyleTake } = await import(
+                      /* @vite-ignore */ source + "backing-folk-phrases.ts"
+                    );
+                    take = folkFingerstyleTake(take);
+                  }
+                  const phraseRender = variant.includes(":"),
+                    [start, stem] = variant.split(":"),
+                    from =
+                      variant === "preview" &&
+                      p.model.getSnapshot().style === "blues"
+                        ? 48
+                        : folkAudition
+                          ? 32
+                          : phraseRender
+                            ? Number(start)
+                            : variant === "full"
+                              ? 0
+                              : 32,
+                    to =
+                      variant === "preview"
+                        ? from +
+                          (p.model.getSnapshot().style === "blues" ? 48 : 32)
+                        : folkAudition
+                          ? 96
+                          : phraseRender
+                            ? from + 32
+                            : variant === "full"
+                              ? take.beats
+                              : 64,
                     seconds = ((to - from) * 60) / tempo + 0.5;
                   const c = new OfflineAudioContext(
                       2,
@@ -260,6 +352,16 @@ try {
                   p.counter.clear();
                   p.lastDrumFile.clear();
                   for (const e of take.events) {
+                    if (
+                      phraseRender &&
+                      stem !== "mix" &&
+                      (stem === "organ"
+                        ? e.instrument !== "tonewheel-organ"
+                        : stem === "piano"
+                          ? e.instrument !== "acoustic-piano"
+                          : e.part !== stem)
+                    )
+                      continue;
                     if (e.beat >= from && e.beat < to)
                       p.sound(e, ((e.beat - from) * 60) / tempo);
                     else if (
@@ -285,9 +387,24 @@ try {
                     encoded += String.fromCharCode(
                       ...pcm.subarray(i, i + 16384),
                     );
-                  return { pcm: btoa(encoded), seconds: audio.duration, peak };
+                  return {
+                    pcm: btoa(encoded),
+                    seconds: audio.duration,
+                    peak,
+                    phrasing: take.phrasing,
+                    phraseId: phraseRender
+                      ? take.phraseIds?.[Math.floor(from / 32)]
+                      : undefined,
+                    stem: phraseRender ? stem : undefined,
+                  };
                 },
-                { source, variant, tempo },
+                {
+                  source,
+                  variant,
+                  tempo,
+                  folkAudition: values["folk-fingerstyle-ab"],
+                  referenceArranger: values["reference-arranger"],
+                },
               );
               const { pcm, ...render } = r,
                 row = {
@@ -299,8 +416,58 @@ try {
                   variant,
                   tempo,
                   ...render,
-                  ...meter(Buffer.from(pcm, "base64")),
+                  silent: render.peak === 0,
+                  ...(render.peak === 0
+                    ? { lufs: -Infinity, truePeak: -Infinity, lra: 0 }
+                    : meter(Buffer.from(pcm, "base64"))),
                 };
+              assert.ok(
+                !row.silent ||
+                  (values["gospel-phrases"] &&
+                    row.stem === "percussion" &&
+                    mode === "steady"),
+                "Only the intentionally resting Steady tambourine may be silent",
+              );
+              if (
+                values["gospel-phrases"] ||
+                values["folk-fingerstyle-ab"] ||
+                values["save-excerpts"]
+              ) {
+                if (values["gospel-phrases"])
+                  assert.ok(
+                    row.phraseId,
+                    "production must select an authored phrase",
+                  );
+                const conversion = spawnSync(
+                  globalThis.process.env.FFMPEG_BIN || "ffmpeg",
+                  [
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-y",
+                    "-f",
+                    "f32le",
+                    "-ar",
+                    "48000",
+                    "-ac",
+                    "2",
+                    "-i",
+                    "pipe:0",
+                    "-c:a",
+                    "pcm_s16le",
+                    new URL(
+                      values["save-excerpts"]
+                        ? `${style}-${pattern}-${quality}-${mode}-${tonic}-${tempo}.wav`
+                        : values["folk-fingerstyle-ab"]
+                          ? `folk-fingerstyle-${quality}-${mode}-${tonic}-${tempo}-${variant}.wav`
+                          : `${row.phraseId}-${tonic}-${tempo}-${row.stem}.wav`,
+                      output,
+                    ).pathname,
+                  ],
+                  { input: Buffer.from(pcm, "base64"), encoding: "utf8" },
+                );
+                assert.equal(conversion.status, 0, conversion.stderr);
+              }
               rows.push(row);
               console.log(JSON.stringify(row));
               await writeFile(
@@ -309,6 +476,7 @@ try {
                   {
                     sampleRate: 48000,
                     scaleHarmony: values["scale-harmony"],
+                    referenceArranger: values["reference-arranger"],
                     keys,
                     qualities,
                     tempos: tempos ?? "genre defaults",

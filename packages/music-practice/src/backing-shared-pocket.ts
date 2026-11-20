@@ -118,16 +118,20 @@ export function sharedBackingPocket(take: Take, tempo: number) {
     if (e.part === "guitar" || e.part === "keys")
       for (let bar = Math.floor(e.beat / 4) + 1; bar * 4 < end; bar++) {
         const c = take.plan.bars[bar];
-        const harmony = genreChord(take.plan.style, take.quality, bar),
-          color = harmony.seventh;
+        // Authored tonic scores spell their harmony directly. A historical
+        // progression's half-diminished chord must not cut a held tonic fifth.
+        const harmony = take.phraseIds?.length
+            ? undefined
+            : genreChord(take.plan.style, take.quality, bar),
+          color = harmony?.seventh;
         const pitches = [
           c.root,
           (c.root + (c.minor ? 3 : 4)) % 12,
-          (c.root + (harmony.fifth ?? 7)) % 12,
+          (c.root + (harmony?.fifth ?? 7)) % 12,
         ];
         if (e.part === "keys" && color !== undefined)
           pitches.push((c.root + color) % 12);
-        if (e.part === "keys" && harmony.addedTone !== undefined)
+        if (e.part === "keys" && harmony?.addedTone !== undefined)
           pitches.push((c.root + harmony.addedTone) % 12);
         if (!pitches.includes(e.note % 12)) {
           end = bar * 4 - 0.04 / spb;

@@ -1,0 +1,765 @@
+{
+  "version": 1,
+  "ticksPerBeat": 12,
+  "barsPerPhrase": 8,
+  "provenance": {
+    "method": "AI-assisted score authoring",
+    "author": "Codex",
+    "brief": "Tonic-pedal traditional Gospel for scale practice; coordinated answers, restrained bass, Hammond lead, supporting piano and tambourine. Authored musical data, not a runtime model. Reviewed with Berklee voice-leading and Davell Crawford gospel guidance: open ninths, common-tone legato and resolved suspended answers."
+  },
+  "cells": {
+    "drums": {
+      "soft": [
+        [0, 2, [36], 48],
+        [0, 2, [42], 27],
+        [12, 2, [38], 51],
+        [12, 2, [42], 24],
+        [24, 2, [36], 42],
+        [24, 2, [42], 26],
+        [36, 2, [38], 54],
+        [36, 2, [42], 24]
+      ],
+      "pocket": [
+        [0, 2, [36], 61],
+        [0, 2, [42], 34],
+        [8, 2, [42], 22],
+        [12, 2, [38], 62],
+        [12, 2, [42], 31],
+        [20, 2, [42], 23],
+        [24, 2, [36], 53],
+        [24, 2, [42], 33],
+        [32, 2, [42], 22],
+        [36, 2, [38], 65],
+        [36, 2, [42], 30],
+        [44, 2, [42], 24]
+      ],
+      "lift": [
+        [0, 2, [36], 62],
+        [0, 2, [42], 34],
+        [8, 2, [42], 22],
+        [12, 2, [38], 64],
+        [12, 2, [42], 31],
+        [20, 2, [42], 23],
+        [24, 2, [36], 53],
+        [24, 2, [42], 33],
+        [32, 2, [36], 39],
+        [32, 2, [42], 22],
+        [36, 2, [38], 67],
+        [36, 2, [42], 30],
+        [44, 2, [42], 24]
+      ],
+      "lean": [
+        [0, 2, [36], 58],
+        [0, 2, [42], 31],
+        [8, 2, [42], 21],
+        [12, 2, [38], 58],
+        [12, 2, [42], 29],
+        [24, 2, [36], 48],
+        [24, 2, [42], 31],
+        [32, 2, [42], 21],
+        [36, 2, [38], 61],
+        [36, 2, [42], 29]
+      ],
+      "small-turn": [
+        [0, 2, [36], 59],
+        [0, 2, [42], 34],
+        [8, 2, [42], 22],
+        [12, 2, [38], 61],
+        [12, 2, [42], 31],
+        [20, 2, [42], 23],
+        [24, 2, [36], 51],
+        [24, 2, [42], 33],
+        [32, 2, [42], 22],
+        [36, 2, [38], 59],
+        [40, 2, [38], 34],
+        [44, 2, [45], 41]
+      ],
+      "rising-turn": [
+        [0, 2, [36], 61],
+        [0, 2, [42], 34],
+        [8, 2, [42], 22],
+        [12, 2, [38], 62],
+        [12, 2, [42], 31],
+        [20, 2, [42], 23],
+        [24, 2, [36], 52],
+        [24, 2, [42], 33],
+        [32, 2, [42], 22],
+        [36, 2, [38], 55],
+        [40, 2, [45], 39],
+        [44, 2, [38], 58]
+      ]
+    },
+    "percussion": {
+      "rest": [],
+      "backbeat": [
+        [12, 2, [54], 27],
+        [36, 2, [54], 30]
+      ]
+    },
+    "bass": {
+      "root-fifth": [
+        [0, 20, [0], 51],
+        [24, 16, [7], 46]
+      ],
+      "root-octave": [
+        [0, 20, [0], 51],
+        [24, 16, [12], 43]
+      ],
+      "long-root": [
+        [0, 32, [0], 48],
+        [36, 8, [7], 42]
+      ],
+      "grounded": [
+        [0, 22, [0], 52],
+        [24, 18, [0], 45]
+      ],
+      "major-return": [
+        [0, 20, [0], 51],
+        [24, 10, [7], 45],
+        [40, 6, [2], 40]
+      ],
+      "major-rise": [
+        [0, 18, [0], 51],
+        [24, 10, [4], 43],
+        [40, 6, [7], 42]
+      ],
+      "minor-return": [
+        [0, 20, [0], 50],
+        [24, 10, [7], 45],
+        [40, 6, [3], 39]
+      ],
+      "minor-fall": [
+        [0, 20, [0], 50],
+        [24, 10, [7], 45],
+        [40, 6, [5], 40]
+      ]
+    },
+    "organ": {
+      "maj-held": [[0, 46, [0, 4, 7, 12], 62]],
+      "maj-low": [[0, 46, [-5, 0, 4, 7], 63]],
+      "maj-six": [[0, 44, [0, 4, 7, 9], 61]],
+      "maj-nine": [[0, 44, [0, 4, 7, 14], 61]],
+      "maj-breathe": [[0, 30, [0, 4, 7, 12], 60]],
+      "maj-pulse": [
+        [0, 20, [-5, 0, 4, 7], 62],
+        [24, 21, [0, 4, 7, 12], 60]
+      ],
+      "maj-lilt": [
+        [0, 18, [0, 4, 7, 12], 62],
+        [20, 12, [0, 4, 7, 9], 58],
+        [36, 9, [0, 4, 7, 14], 59]
+      ],
+      "maj-answer": [
+        [0, 26, [0, 4, 7, 12], 60],
+        [36, 3, [2, 7, 12], 55],
+        [40, 6, [4, 7, 12], 57]
+      ],
+      "min-held": [[0, 46, [0, 3, 7, 12], 62]],
+      "min-low": [[0, 46, [-5, 0, 3, 7], 63]],
+      "min-seven": [[0, 44, [0, 3, 7, 10], 61]],
+      "min-sus": [[0, 44, [0, 5, 7, 12], 59]],
+      "min-breathe": [[0, 30, [0, 3, 7, 12], 60]],
+      "min-pulse": [
+        [0, 20, [-5, 0, 3, 7], 62],
+        [24, 21, [0, 3, 7, 12], 60]
+      ],
+      "min-lilt": [
+        [0, 18, [0, 3, 7, 12], 62],
+        [20, 12, [0, 3, 7, 10], 58],
+        [36, 9, [0, 5, 7, 12], 58]
+      ],
+      "min-answer": [
+        [0, 26, [0, 3, 7, 12], 60],
+        [36, 3, [5, 7, 12], 55],
+        [40, 6, [3, 7, 12], 56]
+      ]
+    },
+    "piano": {
+      "rest": [],
+      "maj-bed": [[0, 12, [-5, 0, 4], 35]],
+      "maj-soft": [[0, 12, [0, 4, 7], 33]],
+      "maj-reply": [[32, 7, [4, 7, 12], 36]],
+      "min-bed": [[0, 12, [-5, 0, 3], 35]],
+      "min-soft": [[0, 12, [0, 3, 7], 33]],
+      "min-reply": [[32, 7, [3, 7, 12], 35]]
+    }
+  },
+  "phrases": [
+    {
+      "id": "major-steady-open",
+      "quality": "major",
+      "mode": "steady",
+      "description": "Sustained low-to-high manual voicings with space for the singer; a small drum turn closes the sentence.",
+      "bars": [
+        {
+          "drums": "soft",
+          "bass": "root-fifth",
+          "organ": "maj-low",
+          "piano": "maj-soft",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "maj-held",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "maj-six",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-octave",
+          "organ": "maj-nine",
+          "piano": "maj-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "soft",
+          "bass": "root-fifth",
+          "organ": "maj-low",
+          "piano": "maj-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "maj-held",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "maj-six",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "small-turn",
+          "bass": "grounded",
+          "organ": "maj-breathe",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "drums"
+        }
+      ]
+    },
+    {
+      "id": "major-steady-answer",
+      "quality": "major",
+      "mode": "steady",
+      "description": "Shorter middle responses alternate with sustained harmony; the Hammond answers at the end.",
+      "bars": [
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "maj-held",
+          "piano": "maj-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "maj-six",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-octave",
+          "organ": "maj-low",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "soft",
+          "bass": "root-fifth",
+          "organ": "maj-nine",
+          "piano": "maj-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "maj-held",
+          "piano": "maj-soft",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "root-octave",
+          "organ": "maj-pulse",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "soft",
+          "bass": "long-root",
+          "organ": "maj-low",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "grounded",
+          "organ": "maj-answer",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "organ"
+        }
+      ]
+    },
+    {
+      "id": "major-active-lift",
+      "quality": "major",
+      "mode": "active",
+      "description": "Swung comping, a single bass pickup and selective tambourine; keys leave the final beat to drums.",
+      "bars": [
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "maj-pulse",
+          "piano": "maj-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lift",
+          "bass": "root-octave",
+          "organ": "maj-six",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "major-rise",
+          "organ": "maj-breathe",
+          "piano": "maj-soft",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "lean",
+          "bass": "root-fifth",
+          "organ": "maj-nine",
+          "piano": "maj-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lift",
+          "bass": "root-fifth",
+          "organ": "maj-lilt",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": "organ"
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-octave",
+          "organ": "maj-held",
+          "piano": "maj-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "major-return",
+          "organ": "maj-breathe",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "rising-turn",
+          "bass": "grounded",
+          "organ": "maj-breathe",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": "drums"
+        }
+      ]
+    },
+    {
+      "id": "major-active-conversation",
+      "quality": "major",
+      "mode": "active",
+      "description": "Bass and Hammond take separate answers; piano punctuation stays out of their reply windows.",
+      "bars": [
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "maj-held",
+          "piano": "maj-soft",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lift",
+          "bass": "root-octave",
+          "organ": "maj-pulse",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "major-return",
+          "organ": "maj-breathe",
+          "piano": "maj-bed",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "maj-answer",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "organ"
+        },
+        {
+          "drums": "lift",
+          "bass": "root-octave",
+          "organ": "maj-six",
+          "piano": "maj-bed",
+          "percussion": "backbeat",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "major-rise",
+          "organ": "maj-breathe",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "maj-nine",
+          "piano": "maj-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "grounded",
+          "organ": "maj-answer",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": "organ"
+        }
+      ]
+    },
+    {
+      "id": "minor-steady-warm",
+      "quality": "minor",
+      "mode": "steady",
+      "description": "Minor triads and gentle seventh colour stay grounded over roots and fifths; a quiet drum answer ends the phrase.",
+      "bars": [
+        {
+          "drums": "soft",
+          "bass": "root-fifth",
+          "organ": "min-low",
+          "piano": "min-soft",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "min-held",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "min-seven",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "root-octave",
+          "organ": "min-held",
+          "piano": "min-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "soft",
+          "bass": "root-fifth",
+          "organ": "min-low",
+          "piano": "min-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "min-seven",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "min-held",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "small-turn",
+          "bass": "grounded",
+          "organ": "min-breathe",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "drums"
+        }
+      ]
+    },
+    {
+      "id": "minor-steady-space",
+      "quality": "minor",
+      "mode": "steady",
+      "description": "Open sus colour resolves into the minor triad; longer bass notes support a restrained Hammond reply.",
+      "bars": [
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "min-held",
+          "piano": "min-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "soft",
+          "bass": "root-fifth",
+          "organ": "min-seven",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-octave",
+          "organ": "min-sus",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "root-fifth",
+          "organ": "min-low",
+          "piano": "min-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "min-held",
+          "piano": "min-soft",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "soft",
+          "bass": "long-root",
+          "organ": "min-seven",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "root-fifth",
+          "organ": "min-low",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "grounded",
+          "organ": "min-answer",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "organ"
+        }
+      ]
+    },
+    {
+      "id": "minor-active-sway",
+      "quality": "minor",
+      "mode": "active",
+      "description": "Minor-seven comping and swung responses; a falling bass pickup gets an uncluttered bar.",
+      "bars": [
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "min-pulse",
+          "piano": "min-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lift",
+          "bass": "root-octave",
+          "organ": "min-seven",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "minor-fall",
+          "organ": "min-breathe",
+          "piano": "min-soft",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "min-held",
+          "piano": "min-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lift",
+          "bass": "root-fifth",
+          "organ": "min-lilt",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": "organ"
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-octave",
+          "organ": "min-held",
+          "piano": "min-bed",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "minor-return",
+          "organ": "min-breathe",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "rising-turn",
+          "bass": "grounded",
+          "organ": "min-breathe",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": "drums"
+        }
+      ]
+    },
+    {
+      "id": "minor-active-response",
+      "quality": "minor",
+      "mode": "active",
+      "description": "Suspended colour, short organ lifts and bass replies alternate; the ending resolves back into the next tonic.",
+      "bars": [
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "min-held",
+          "piano": "min-soft",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lift",
+          "bass": "root-octave",
+          "organ": "min-pulse",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "minor-return",
+          "organ": "min-breathe",
+          "piano": "min-bed",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "pocket",
+          "bass": "root-fifth",
+          "organ": "min-answer",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "organ"
+        },
+        {
+          "drums": "lift",
+          "bass": "root-octave",
+          "organ": "min-sus",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": null
+        },
+        {
+          "drums": "pocket",
+          "bass": "minor-fall",
+          "organ": "min-breathe",
+          "piano": "rest",
+          "percussion": "rest",
+          "answer": "bass"
+        },
+        {
+          "drums": "lean",
+          "bass": "long-root",
+          "organ": "min-seven",
+          "piano": "min-reply",
+          "percussion": "rest",
+          "answer": null
+        },
+        {
+          "drums": "lean",
+          "bass": "grounded",
+          "organ": "min-answer",
+          "piano": "rest",
+          "percussion": "backbeat",
+          "answer": "organ"
+        }
+      ]
+    }
+  ]
+}

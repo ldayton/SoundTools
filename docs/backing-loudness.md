@@ -61,3 +61,12 @@ After integrating the tonic-pedal scale-practice harmony, another 36 major/minor
 - [iZotope dynamics guidance](https://downloads.izotope.com/docs/ozone8/dynamics/index.html): choose detector and time constants for the instrument and preserve transients.
 - [Web Audio specification](https://www.w3.org/TR/webaudio/#DynamicsCompressorNode): native compressor behavior and implementation latitude.
 - [FFmpeg filters](https://ffmpeg.org/ffmpeg-filters.html#ebur128): reproducible loudness and true-peak measurement.
+
+## Authored scores: 20 November 2026
+
+Scale practice now uses authored ensemble sentences in all nine presets. Their
+complete-program calibration and reproducible preview commands are recorded in
+[Authored backing-track sentences](authored-backing-phrases.md#calibration-snapshot-20-november-2026).
+The earlier table above describes the previous arrangements, still reproducible
+with the development reference arranger. Native recordings, mixer percentages
+and the shared mastering graph remain unchanged.

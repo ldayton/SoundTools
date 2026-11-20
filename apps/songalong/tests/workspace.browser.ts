@@ -240,9 +240,9 @@ try {
   await page.getByPlaceholder("Search songs").fill("silent");
   await page.getByRole("option", { name: "Silent Night", exact: true }).click();
   await expect(size).toHaveValue(pixels);
-  await page.getByPlaceholder("Search songs").fill("amazing");
+  await page.getByPlaceholder("Search songs").fill("holy");
   await page
-    .getByRole("option", { name: "Amazing Grace", exact: true })
+    .getByRole("option", { name: "Holy, Holy, Holy", exact: true })
     .click();
   await expect(size).toHaveValue(pixels);
   await page.getByRole("button", { name: "Volume", exact: true }).click();

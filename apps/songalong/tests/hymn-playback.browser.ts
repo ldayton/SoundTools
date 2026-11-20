@@ -74,7 +74,9 @@ try {
       return stop.apply(this, args);
     };
   });
-  await page.goto(base + "/piano/hymns?bars=2&mode=playback&tempo=200");
+  // O Come, All Ye Faithful retains the staged arrangements and has the same G-key octave
+  // range as the former Amazing Grace fixture, which now has dedicated editions.
+  await page.goto(base + "/piano/hymns/o-come-all-ye-faithful?bars=2&mode=playback&tempo=200");
   await page.getByRole("button", { name: "Play", exact: true }).waitFor();
   assert.equal(
     await page.evaluate(() => (window as any).playbackProbe.starts.length),
@@ -232,7 +234,7 @@ try {
   // The learner can work on either hand independently, then combine them.
   await page.goto(
     base +
-      "/piano/hymns/amazing-grace?arrangement=bass&hands=left&mode=wait&bars=2&section=1",
+      "/piano/hymns/o-come-all-ye-faithful?arrangement=bass&hands=left&mode=wait&bars=2&section=1",
   );
   await page.locator(".hymn-paper .abcjs-note").first().waitFor();
   await midiAction(page, "Connect MIDI keyboard");
@@ -251,28 +253,28 @@ try {
     (await page.locator(".hymn-paper .abcjs-clef").count()) >= 2,
     "both staves remain visible during left-hand practice",
   );
-  await send(62);
+  await send(67);
   assert.equal(
     await number(),
     "1",
     "right-hand melody cannot answer left-hand practice",
   );
-  await send(43);
+  await send(55);
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("both");
   assert.equal(await number(), "1");
-  await page.evaluate(() => (window as any).midiTest.send([0x90, 43, 100]));
+  await page.evaluate(() => (window as any).midiTest.send([0x90, 55, 100]));
   assert.equal(await number(), "1", "both hands wait for the complete onset");
-  await send(62);
-  await page.evaluate(() => (window as any).midiTest.send([0x80, 43, 0]));
+  await send(67);
+  await page.evaluate(() => (window as any).midiTest.send([0x80, 55, 0]));
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("right");
   assert.equal(await number(), "1");
-  await send(62);
+  await send(67);
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })
@@ -356,7 +358,7 @@ try {
   // Optional whole-hymn limits constrain keys independently of the visible section.
   await page.goto(
     base +
-      "/piano/hymns/amazing-grace?arrangement=melody&mode=wait&bars=2&section=1",
+      "/piano/hymns/o-come-all-ye-faithful?arrangement=melody&mode=wait&bars=2&section=1",
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   for (const arrangement of [
@@ -520,7 +522,7 @@ try {
   );
   await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Go to start", exact: true }).click();
-  await send(62);
+  await send(67);
   assert.equal(await number(), "2", "follow-me starts immediately");
   await send(60);
   await send(60);

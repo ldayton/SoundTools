@@ -1,4 +1,4 @@
-import { isChristAlone } from "./in-christ-alone";
+import {chordEdition} from "./chord-editions";
 import { ToolbarNumber } from "@ldayton/ui/toolbar-number";
 import { STAFF_HEIGHT } from "./notation-metrics";
 import { ControlIcon } from "@ldayton/ui/control-icon";
@@ -69,6 +69,7 @@ export function HymnOptions({
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const editions = hasInstrumentEditions({ id: state.hymn });
+  const profile=chordEdition({id:state.hymn});
   const keys = [
     {
       value: "original",
@@ -116,9 +117,9 @@ export function HymnOptions({
       )}
       {state.arrangement === "guitar-edition" ? <Fieldset legend="Guitar setup" p="sm">
         <Stack gap="xs">
-          <Text size="sm">Standard tuning · Capo 2</Text>
-          <Text size="sm">Sounding key: D major</Text>
-          <Text size="sm">Chord shapes: C, small F, G and Am</Text>
+          <Text size="sm">Standard tuning · {profile?.capo ? `Capo ${profile.capo}` : "No capo"}</Text>
+          <Text size="sm">Sounding key: {state.originalKey} major</Text>
+          <Text size="sm">Chord shapes: {profile?.shapes}</Text>
         </Stack>
       </Fieldset> : <Fieldset legend="Key & range" p="sm">
         <Stack gap="xs">
@@ -389,11 +390,11 @@ export function HymnOptions({
           <Accordion.Control>Reading guide</Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
-              {isChristAlone({id:state.hymn}) ? <>
-                <Text size="sm">D major, 3/4. The pickup lasts one and a half beats; count three beats in each complete bar. The earlier verses include the four-bar vocal ending; the final verse ends at bar 16.</Text>
-                {state.arrangement === "piano" ? <Text size="sm">Play the melody with your right hand and the held chords with your left. Small numbers suggest fingers; 1 is the thumb and 5 is the little finger. Lift and reposition for the octave leap in the melody.</Text> : <>
-                  <Text size="sm">Capo 2. Chord symbols and fret numbers are relative to the capo; the sounding key is D major. Strum once at each chord change and let it ring.</Text>
-                  <Text size="sm">Use C, small F, G and Am shapes. Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1. Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
+              {profile ? <>
+                <Text size="sm">{profile.id === 'amazing-grace' ? 'G major, 3/4. The pickup lasts one beat; the final bar has two beats. Each verse uses the same melody and ending.' : 'D major, 3/4. The pickup lasts one and a half beats; count three beats in each complete bar. The earlier verses include the four-bar vocal ending; the final verse ends at bar 16.'}</Text>
+                {state.arrangement === "piano" ? <Text size="sm">Play the melody with your right hand and the held chords with your left. Small numbers suggest fingers; 1 is the thumb and 5 is the little finger. {profile.id === 'amazing-grace' ? 'Shift your right hand for the high D, then return to the opening position. The compact D7 voicing omits the root; every left-hand chord fits within a fifth.' : 'Lift and reposition for the octave leap in the melody.'}</Text> : <>
+                  <Text size="sm">{profile.capo ? 'Capo 2. Chord symbols and fret numbers are relative to the capo; the sounding key is D major.' : 'Standard tuning, no capo. Chord symbols and fret numbers are at concert pitch in G major.'} Strum each written attack and let it ring. A tie means sustain without strumming again.</Text>
+                  <Text size="sm">Use {profile.shapes} shapes. {profile.capo ? 'Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1.' : 'For C, strum strings 5–1; for D7, strum strings 4–1. G and Em use all six strings.'} Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
                   <Text size="sm">A dot adds half the written duration. Double stems in rhythmic tab indicate half notes; the dotted half notes last all three beats.</Text>
                 </>}
               </> : <>

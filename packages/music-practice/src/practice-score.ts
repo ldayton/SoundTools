@@ -1,4 +1,4 @@
-import { christFingers, christGuitarPosition, christCapoAudio } from "./in-christ-alone";
+import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
 import { drawBeginnerFingerings, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
 import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
 import { attachChordDiagrams } from "./guitar-chord-diagram";
@@ -72,7 +72,7 @@ export function drawPracticeScore(
     guitarMidiOffset?: number;
     fingerstyleTab?: boolean;
     beginnerEdition?: BeginnerInstrument;
-    christEdition?: boolean;
+    hymnEdition?: ChordEditionId;
     fromBar?: number;
     tabOnly?: boolean;
     chordTab?: boolean;
@@ -87,6 +87,7 @@ export function drawPracticeScore(
   } = {},
 ): PracticeEvent[] {
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
+  const profile=options.hymnEdition?chordEdition({id:options.hymnEdition}):undefined;
   const staffScale = options.staffScale ?? 1;
   const scale =
     (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1) * staffScale;
@@ -96,10 +97,10 @@ export function drawPracticeScore(
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
   const source =
-    (options.christEdition && options.fingerstyleTab ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
-    ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !options.christEdition ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
+    (profile && options.fingerstyleTab ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
+    ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
-    (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition && !options.christEdition ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
+    (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
   const tune = abcjs.renderAbc(paper, source, {
     add_classes: true,
     tablature: options.chordTab
@@ -127,7 +128,7 @@ export function drawPracticeScore(
           tabs[0] = { params: {}, instance: { render() {} } };
       }
 
-      if (options.fingerstyleTab) preserveFingerstyleTab(tune, transpose, options.christEdition ? christGuitarPosition : undefined);
+      if (options.fingerstyleTab) preserveFingerstyleTab(tune, transpose, profile?.position);
       if (options.octaveNotation) applyHymnOttava(tune);
       if (options.initialSignatures)
         restoreSignatures = initialHymnSignatures(tune);
@@ -150,7 +151,7 @@ export function drawPracticeScore(
     // uses barsperstaff instead. Edited beginner systems retain their explicit
     // phrase-aligned breaks; other scores balance systems with wrapping.
     wrap:
-      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || (options.beginnerEdition && !options.christEdition)
+      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || (options.beginnerEdition && !profile)
         ? undefined
         : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     timeBasedLayout: options.rhythmGrid
@@ -234,11 +235,11 @@ export function drawPracticeScore(
     midiTranspose: transpose + (options.guitarMidiOffset ?? (options.guitarTab ? -12 : 0)),
     ...(options.playback ? { qpm: 60, chordsOff: true } : {}),
   }), swinging);
-  if (options.christEdition && options.beginnerEdition === "guitar") {
-    audio = christCapoAudio(audio);
+  if (profile && options.beginnerEdition === "guitar") {
+    audio = capoAudio(audio,profile.capo);
     for (const line of tune.lines) for (const staff of line.staff || [])
       for (const voice of staff.voices || []) for (const note of voice)
-        if (note.el_type === "note") for (const pitch of note.midiPitches || []) pitch.pitch += 2;
+        if (note.el_type === "note") for (const pitch of note.midiPitches || []) pitch.pitch += profile.capo;
   }
   if (!(options.fingerstyleTab && options.guitarTab)) options.playback?.(audio);
   // Playback uses quarter-note BPM, including compound meters.
@@ -254,13 +255,13 @@ export function drawPracticeScore(
         wrapper.remove();
     }
   });
-  if (options.beginnerEdition === "guitar" && !options.christEdition) normalizeGuitarRests(tune, options.fromBar || 0);
-  if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!options.christEdition);
-  if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, !!options.christEdition);
-  if (options.tabOnly && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, options.christEdition ? (pitch,chord,shift)=>christGuitarPosition(pitch-2,chord,shift) : undefined);
+  if (options.beginnerEdition === "guitar" && !profile) normalizeGuitarRests(tune, options.fromBar || 0);
+  if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile);
+  if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, !!profile);
+  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly);
   if (options.fingerings && options.beginnerEdition)
-    drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, options.christEdition ? (instrument,bar,voice,pitches)=>christFingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !options.christEdition, !!options.christEdition);
-  if (options.tabOnly) showOnlyTab(paper, options.christEdition ? "♩ = 70" : undefined, options.christEdition ? 18 : undefined);
+    drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
+  if (options.tabOnly) showOnlyTab(paper, profile ? `♩ = ${profile.tempo}` : undefined, profile ? 18 : undefined);
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
   paper.querySelectorAll("svg").forEach((svg) => {
@@ -350,7 +351,7 @@ export function drawPracticeScore(
     svg.style.height = `${box.height * fittedScale}px`;
     svg.style.maxWidth = "100%";
   });
-  if (options.guitarTab && !options.christEdition) attachChordDiagrams(paper);
+  if (options.guitarTab && !profile) attachChordDiagrams(paper);
   if (options.fingerings && !options.beginnerEdition) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
     else drawHymnFingerings(tune);

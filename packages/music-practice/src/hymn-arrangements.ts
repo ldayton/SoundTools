@@ -1,3 +1,5 @@
+import {isAmazingGrace,graceGuitarAbc,gracePianoAbc,graceLandmarks,graceLyricData} from "./amazing-grace";
+import {chordEdition} from "./chord-editions";
 import { hymnLyricsAbc } from "./hymn-lyrics";
 import { isChristAlone, christGuitarAbc, christLandmarks, christGuitarLyricData } from "./in-christ-alone";
 import { beginnerLandmarks } from "./beginner-score";
@@ -6,7 +8,7 @@ import { spellPitch, chromaticPitch } from "./guitar";
 import { KEYS } from "./model";
 import hymns from "./hymns.json";
 export const hasInstrumentEditions = (hymn: { id: string }) =>
-  hymn.id === "the-1st-fingerstyle-blues" || isChristAlone(hymn);
+  hymn.id === "the-1st-fingerstyle-blues" || !!chordEdition(hymn);
 export const supportsGuitarTab = (hymn: { id: string }) =>
   hymn.id === "ill-fly-away" || hasInstrumentEditions(hymn);
 export const ARRANGEMENTS = [
@@ -44,7 +46,7 @@ export const guitarMidiOffset = (value: Arrangement) =>
 export function hymnArrangements(hymn: { id: string }) {
   if (hasInstrumentEditions(hymn)) return [
     { id: "piano" as const, label: "Piano", help: "Melody and bass arranged for two hands on a grand staff." },
-    { id: isChristAlone(hymn) ? "guitar-edition" as const : "guitar-fingerstyle" as const, label: "Guitar", help: isChristAlone(hymn) ? "Chord accompaniment for singing, with capo 2." : "Original fingerstyle guitar arrangement." },
+    { id: chordEdition(hymn) ? "guitar-edition" as const : "guitar-fingerstyle" as const, label: "Guitar", help: chordEdition(hymn) ? `Chord accompaniment for singing, ${chordEdition(hymn)!.capo ? "with capo 2" : "without a capo"}.` : "Original fingerstyle guitar arrangement." },
   ];
   return supportsGuitarTab(hymn)
     ? [
@@ -65,6 +67,7 @@ export function hymnArrangements(hymn: { id: string }) {
 type Note = Extract<VoiceItem, { el_type: "note" }> & {
   midiPitches?: { pitch: number }[];
   resolvedPitches?: number[];
+  clefOctaveOffset?: number;
 };
 type Bar = { notes: Note[]; duration: number };
 type Voice = { clef: string; bars: Bar[] };
@@ -84,7 +87,7 @@ function voices(hymn: Hymn): Voice[] {
           clef: si ? "bass" : "treble",
           items: [],
         };
-        part.items.push(...voice);
+        part.items.push(...voice.map(item => item.el_type === "note" ? {...item, clefOctaveOffset: staff.clef?.type === "treble-8" ? -12 : 0} : item));
         parts.set(key, part);
       }),
     );
@@ -324,7 +327,7 @@ function serialize(bars: Bar[], melody = false) {
             60 +
             Math.floor(p.pitch / 7) * 12 +
             [0, 2, 4, 5, 7, 9, 11][((p.pitch % 7) + 7) % 7];
-          const accidental = midi - natural;
+          const accidental = midi - natural - (note.clefOctaveOffset || 0);
           return (
             (accidental > 0
               ? "^".repeat(accidental)
@@ -453,6 +456,16 @@ export function arrangeHymn(
   endingBar?: number,
   guitarTranspose = 0,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
+  if (isAmazingGrace(hymn) && (arrangement === "piano" || arrangement === "guitar-edition")) {
+    const guitar=arrangement==='guitar-edition';
+    const harmony=guitar?hymnLyricsAbc(graceGuitarAbc,{hymn:graceLyricData(hymn),selected:[1],offset:0})
+      :gracePianoAbc(arrangeHymn(hymn,'melody',0).abc);
+    const edition={...hymn,id:hymn.id+':'+arrangement,harmony};
+    let score=arrangeHymn(edition,'original',sectionBars,section,guitar?'both':hands,endingBar);
+    if(guitar)score={...score,abc:score.abc.replace(/clef=treble(?!-8)\b/g,'clef=treble-8')};
+    else score={...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,group:string)=>`%%score {${group.replace(/[(){}]/g,'')}}`)};
+    return {...score,abc:graceLandmarks(score.abc,score.from,guitar)};
+  }
   if (isChristAlone(hymn) && (arrangement === "piano" || arrangement === "guitar-edition")) {
     const guitar = arrangement === "guitar-edition";
     const harmony = guitar ? hymnLyricsAbc(christGuitarAbc, {hymn:christGuitarLyricData(hymn),selected:[1],offset:0}) : abcjs.strTranspose(hymn.harmony, abcjs.parseOnly(hymn.harmony), -12)

@@ -1,4 +1,4 @@
-import { christCapoAudio } from "./in-christ-alone";
+import {chordEdition,capoAudio} from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
 import abcjs, { type AudioTracks } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
@@ -31,7 +31,7 @@ export function hymnPlaybackScore(options: {
       midiTranspose:
         options.transpose + guitarMidiOffset(options.arrangement),
     }), options.hymn.feel === "swing");
-    return options.arrangement === "guitar-edition" ? christCapoAudio(audio) : audio;
+    return options.arrangement === "guitar-edition" ? capoAudio(audio,chordEdition(options.hymn)?.capo) : audio;
   };
   const currentAudio = swingAudio(options.audio, options.hymn.feel === "swing");
   // Schedule the entire song on one audio clock. Restarting the transport at

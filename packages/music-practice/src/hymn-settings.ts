@@ -1,4 +1,4 @@
-import { isChristAlone } from "./in-christ-alone";
+import {chordEdition} from "./chord-editions";
 import { validStanzas } from "./hymn-lyrics";
 import type { CountInBars } from "./hymn-count-in";
 import { isHymnKey, type HymnKey } from "./hymn-transpose";
@@ -83,7 +83,7 @@ export function mergeHymnSettings(
   const requested = s.arrangement ?? base.arrangement;
   const arrangement = hasInstrumentEditions(hymn)
     ? requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
-      ? isChristAlone(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
+      ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
   return {
     scoreDisplay: choice(s.scoreDisplay, ["notation", "tab", "both"] as const, base.scoreDisplay || "both"),
@@ -189,7 +189,7 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
   const base: HymnSettings = {
     hymn,
     mode: "wait",
-    bpm: isChristAlone({id:hymn}) ? 70 : 80,
+    bpm: chordEdition({id:hymn})?.tempo ?? 80,
     countIn: 0,
     loopCountIn: false,
     key: "original",

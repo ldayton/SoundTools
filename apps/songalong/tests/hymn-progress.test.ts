@@ -48,7 +48,7 @@ test("hymn checkpoints survive reload but never leak across hands, keys, ties or
   );
   assert.equal(reloaded.forHymn(settings.hymn).zoom, 1.2);
   assert.equal(reloaded.forHymn("other-hymn").zoom, 1.2);
-  assert.equal(reloaded.forHymn("other-hymn").arrangement, "melody");
+  assert.equal(reloaded.forHymn("other-hymn").arrangement, "piano");
   // A selected passage must not overwrite the full-hymn checkpoint.
   store.snapshot({ ...settings, position: 1 }, "G", 1);
   assert.equal(store.restore(settings, "G", "edition-1", 10).position, 3);

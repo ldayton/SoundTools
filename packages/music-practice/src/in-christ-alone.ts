@@ -1,3 +1,4 @@
+import { accompanimentLyrics } from "./accompaniment-lyrics";
 import abcjs from "abcjs";
 import type { HymnLyricData } from "./hymn-lyrics";
 import type { BeginnerInstrument } from './beginner-score';
@@ -66,26 +67,7 @@ export function christGuitarChordOffset(bar:number) {
 export function christGuitarLyricData(hymn:HymnLyricData & {harmony:string}):HymnLyricData {
  let elapsed=0;
  const changes=bars.flatMap(bar=>bar.map(([,duration])=>{const start=elapsed;elapsed+=duration/8;return start;}));
- let time=0;
- const melody=abcjs.parseOnly(hymn.harmony)[0].lines.flatMap(line=>line.staff?.[0]?.voices?.[0]||[])
-  .flatMap(note=>{
-   if(note.el_type!=="note")return [];
-   const start=time;time+=note.duration;
-   return note.pitches?.length ? [start] : [];
-  });
- const groupFor=(start:number)=>Math.max(0,changes.reduce((last,change,index)=>change<=start+1e-7?index:last,-1));
- return {
-  stanzas:hymn.stanzas.map(stanza=>{
-   const chunks=changes.map(()=>[] as string[]);
-   melody.forEach((start,index)=>{
-    const syllable=stanza.syllables[index];
-    if(syllable && syllable!=="*")chunks[groupFor(start)].push(syllable);
-   });
-   return {...stanza,syllables:chunks.map(tokens=>tokens.reduce((text,token)=>
-    text.endsWith('-') ? text.slice(0,-1)+token : text ? text+'~'+token : token,'')||'*')};
-  }),
-  lyricSections:[{start:christGuitarChordOffset(17),end:changes.length}],
- };
+ return accompanimentLyrics(hymn,changes,christGuitarChordOffset(17));
 }
 
 /** abcjs octave-clef voices override its global MIDI transpose; apply the capo explicitly. */

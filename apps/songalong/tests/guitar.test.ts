@@ -87,7 +87,7 @@ test("every key preserves melody timing and guitar playback sounds an octave bel
 });
 test("guitar is offered only for this song and unsupported saved settings fall back to melody", () => {
   assert.ok(hymnArrangements(hymn).some((a) => a.id === "guitar"));
-  const other = hymns.find((h) => h.id === "amazing-grace")!;
+  const other = hymns.find((h) => h.id === "holy-holy-holy")!;
   assert.ok(!hymnArrangements(other).some((a) => a.id === "guitar"));
   const saved = mergeHymnSettings(hymnPreferences(hymn.id), {
     arrangement: "guitar",

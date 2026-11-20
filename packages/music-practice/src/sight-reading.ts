@@ -1,4 +1,4 @@
-import { isChristAlone, christGuitarLyricData, christGuitarChordOffset } from "./in-christ-alone";
+import {chordEdition} from "./chord-editions";
 import { validStanzas, hymnEndingBar } from "./hymn-lyrics";
 import { RendererLifetime } from "./renderer-lifetime";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
@@ -900,9 +900,9 @@ export class SightReading {
             : ["melody", "bass", "guitar"].includes(this.arrangement)),
         beginnerEdition: hasInstrumentEditions(this.hymn)
           ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
-        christEdition: isChristAlone(this.hymn),
+        hymnEdition: chordEdition(this.hymn)?.id,
         fromBar: score.from,
-        lyrics: this.arrangement === "guitar-edition" ? {hymn:christGuitarLyricData(this.hymn),selected:this.stanzas,offset:christGuitarChordOffset(score.from)} :
+        lyrics: this.arrangement === "guitar-edition" ? {hymn:chordEdition(this.hymn)!.lyrics(this.hymn),selected:this.stanzas,offset:chordEdition(this.hymn)!.chordOffset(score.from)} :
           this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
           this.viewHands !== "left"
@@ -1298,7 +1298,7 @@ export class SightReading {
     const identity = `${this.hymn.id}:${this.arrangement}`;
     let range = this.rangeCache.get(identity);
     if (!range) {
-      range = hymnPitchRange(arrangeHymn(this.hymn, isChristAlone(this.hymn) ? "piano" : "melody", 0, 0, "right").abc);
+      range = hymnPitchRange(arrangeHymn(this.hymn, chordEdition(this.hymn) ? "piano" : "melody", 0, 0, "right").abc);
       this.rangeCache.set(identity, range);
     }
     return range;

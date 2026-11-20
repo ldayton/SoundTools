@@ -262,7 +262,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
 }
 
 /** Rhythmic tablature: independent melody/bass stems, eighth beams, rests and ties. */
-export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor=fingerstylePosition) {
+export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor=fingerstylePosition,rhythms=true) {
   const beam=new Map<number,{x:number;y:number;svg:SVGSVGElement}[]>();
   const ties=new Map<string,{x:number;y:number;svg:SVGSVGElement}>();
   for(const {note,voice,pitches} of entries(tune,from)) {
@@ -273,7 +273,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     if(!staff) continue;
     const box=bounds(staff,svg),sourceBox=bounds(source,svg);if(!box || !sourceBox) continue;
     const top=box.y,bottom=box.y+box.height,step=box.height/5;
-    if(voice===0 && !svg.querySelector('.tab-rhythm-meter') && svg===paper.querySelector('svg')) {
+    if(rhythms && voice===0 && !svg.querySelector('.tab-rhythm-meter') && svg===paper.querySelector('svg')) {
       const meter=document.createElementNS(ns,'g');meter.classList.add('tab-rhythm-meter');
       text(meter,box.x+38,top+23,String(tune.getMeterFraction().num),'tab-rhythm-time',16);
       text(meter,box.x+38,top+43,String(tune.getMeterFraction().den),'tab-rhythm-time',16);svg.append(meter);
@@ -281,7 +281,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     const up=voice===0,lane=up ? top-25 : bottom+25;
     const x=(absolute?.x ?? sourceBox.x)+5;
     if(!pitches.length) {
-      if (voice === 1) continue;
+      if (!rhythms || voice === 1) continue;
       const rest=source.cloneNode(true) as SVGGraphicsElement;
       rest.querySelectorAll('.beginner-fingering,.beginner-picking').forEach(e=>e.remove());
       const transform=source.getScreenCTM(),root=svg.getScreenCTM();
@@ -303,17 +303,17 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     const rhythm=document.createElementNS(ns,'g');rhythm.classList.add('tab-rhythm');
     rhythm.dataset.duration=String(duration);rhythm.dataset.voice=String(voice);
     svg.append(rhythm);
-    if(duration < 1) {
+    if(rhythms && duration < 1) {
       line(rhythm,x,anchor,x,lane,'tab-rhythm-stem');
       if(base===0.5) line(rhythm,x+3,anchor,x+3,lane,'tab-rhythm-half');
     }
-    if (dotted) {
+    if (rhythms && dotted) {
       const dot=document.createElementNS(ns,'circle');
       dot.setAttribute('cx',String(x+7));dot.setAttribute('cy',String(lane+(up?2:-2)));
       dot.setAttribute('r','1.6');dot.setAttribute('fill','currentColor');dot.setAttribute('stroke','none');
       dot.classList.add('tab-rhythm-dot');rhythm.append(dot);
     }
-    if(base===0.125) {
+    if(rhythms && base===0.125) {
       const points=beam.get(voice)||[];
       if(note.startBeam || points.length) {
         points.push({x,y:lane,svg});beam.set(voice,points);
@@ -334,12 +334,12 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
       if(pitch.endTie) {
         // Match attacked fret numbers exactly; a tie, rather than a smaller
         // font, tells the player to sustain this note without plucking again.
-        const model = svg.querySelector<SVGTextElement>('.abcjs-tabNumber text');
+        const model = svg.querySelector<SVGTextElement>('.abcjs-tabNumber text') || paper.querySelector<SVGTextElement>('.abcjs-tabNumber text');
         const continuation = model?.cloneNode(false) as SVGTextElement | undefined;
         if (continuation) {
           continuation.textContent = String(positions[index]!.num);
           continuation.setAttribute('x', String(x - 5));
-          const modelBox = bounds(model!, svg)!;
+          const modelBox = bounds(model!, model!.ownerSVGElement!)!;
           const baseline = Number(model!.getAttribute('y'));
           const baselineOffset = baseline - modelBox.y - modelBox.height / 2;
           continuation.setAttribute('y', String(y + baselineOffset));
@@ -351,7 +351,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
         }
         const previous=ties.get(key);
         const path=document.createElementNS(ns,'path');
-        const start=previous?.svg===svg ? previous.x+6 : box.x+4;
+        const start=previous?.svg===svg ? previous.x+6 : box.x+28;
         path.setAttribute('d',`M ${start} ${y+7} Q ${(start+x-5)/2} ${y+17} ${x-5} ${y+7}`);
         path.setAttribute('fill','none');path.setAttribute('stroke','currentColor');
         path.classList.add('tab-rhythm-tie');rhythm.append(path);

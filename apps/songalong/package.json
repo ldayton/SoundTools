@@ -23,7 +23,7 @@
     "test:piano": "tsx tests/piano-interaction.browser.ts",
     "test:stanzas": "tsx tests/hymn-stanzas.browser.ts",
     "test:catalog": "tsx tests/hymn-catalog.browser.ts",
-    "test:editions": "tsx tests/fingerstyle-editions.browser.ts && tsx tests/in-christ-alone-editions.browser.ts",
+    "test:editions": "tsx tests/fingerstyle-editions.browser.ts && tsx tests/in-christ-alone-editions.browser.ts && tsx tests/amazing-grace-editions.browser.ts",
     "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts"
   },
   "dependencies": {

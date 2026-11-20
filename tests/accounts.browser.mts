@@ -78,10 +78,11 @@ try {
   assert.equal(await q.locator("#bpm").inputValue(), "120 BPM");
   await p.locator("#bpm").fill("130");
   await p.locator("#bpm").press("Tab");
-  await p.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (el) => el.textContent === "AccountSynced",
-    ),
+  await p.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await pull(q);
   await q.locator("#bpm").filter({ visible: true }).waitFor();
@@ -91,19 +92,26 @@ try {
   await a.setOffline(true);
   await p.locator("#bpm").fill("140");
   await p.locator("#bpm").press("Tab");
-  await p.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some((el) =>
-      el.textContent?.includes("Offline—changes pending"),
-    ),
+  await p.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="offline"]:not([data-account-pending="0"])',
+      ),
   );
   await a.setOffline(false);
   await account(p);
-  await p.getByRole("status").filter({ hasText: "Synced" }).waitFor();
+  await p.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
+  );
   await closeModal(p);
-  await p.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (el) => el.textContent === "AccountSynced",
-    ),
+  await p.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await p.reload();
   await p.waitForFunction(
@@ -113,10 +121,11 @@ try {
   await b.setOffline(true);
   await q.locator("#bpm").fill("150");
   await q.locator("#bpm").press("Tab");
-  await q.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some((el) =>
-      el.textContent?.includes("Offline—changes pending"),
-    ),
+  await q.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="offline"]:not([data-account-pending="0"])',
+      ),
   );
   await account(q);
   await q.getByRole("button", { name: "Sign out", exact: true }).click();
@@ -126,13 +135,19 @@ try {
     .waitFor();
   await p.locator("#bpm").fill("160");
   await p.locator("#bpm").press("Tab");
-  await p.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (el) => el.textContent === "AccountSynced",
-    ),
+  await p.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await b.setOffline(false);
-  await q.getByRole("status").filter({ hasText: "Synced" }).waitFor();
+  await q.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
+  );
   assert.equal(
     await q.getByRole("button", { name: "Use cloud", exact: true }).count(),
     0,
@@ -142,10 +157,11 @@ try {
   await q.getByRole("button", { name: "Breath Squares", exact: true }).click();
   await q.locator("#breath-rounds").fill("6");
   await q.locator("#breath-rounds").press("Tab");
-  await q.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (el) => el.textContent === "AccountSynced",
-    ),
+  await q.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await pull(p);
   await p.locator("#breath-rounds").waitFor();
@@ -195,10 +211,11 @@ try {
   await practiceOption(p, "#hymn-size", "30");
   await openPracticeOptions(p);
   await p.locator("#hymn-stanzas input[type=checkbox]").nth(1).check();
-  await p.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (el) => el.textContent === "AccountSynced",
-    ),
+  await p.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await pull(q);
   await q.waitForFunction(
@@ -213,10 +230,11 @@ try {
     (window as any).midiTest.send([0x80, 62, 0]);
   });
   await p.locator(".hymn-count").filter({ hasText: "2 /" }).waitFor();
-  await p.waitForFunction(() =>
-    [...document.querySelectorAll("button")].some(
-      (el) => el.textContent === "AccountSynced",
-    ),
+  await p.waitForFunction(
+    () =>
+      !!document.querySelector(
+        '[data-account-status="synced"][data-account-pending="0"]',
+      ),
   );
   await pull(q);
   await q.locator(".hymn-count").filter({ hasText: "2 /" }).waitFor();

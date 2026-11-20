@@ -1,3 +1,4 @@
+import { swingAudio } from "../../../packages/music-practice/src/hymn-swing";
 import test from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
@@ -25,7 +26,7 @@ test("prepared hymn audio matches full editions, transposition and pickup timing
         audio,
         transpose: 2,
       });
-      assert.equal(prepared.audio, audio);
+      assert.deepEqual(prepared.audio, swingAudio(audio, hymn.feel === "swing"));
       assert.deepEqual(prepared.starts, [0]);
       assert.equal(
         prepared.timing.pickup,
@@ -55,7 +56,7 @@ test("prepared hymn audio matches full editions, transposition and pickup timing
       .setUpAudio({ qpm: 60, chordsOff: true, midiTranspose: -2 });
     assert.deepEqual(
       playbackNotes(prepared.audio),
-      playbackNotes(expected),
+      playbackNotes(swingAudio(expected, hymn.feel === "swing")),
       hymn.id,
     );
     assert.equal(prepared.starts.length, section.sections);

@@ -1,5 +1,6 @@
 import { attachChordDiagrams } from "./guitar-chord-diagram";
 import { drawGuitarFingerings } from "./guitar-fingering-view";
+import { hasSwing, swingAudio, swingBeat } from "./hymn-swing";
 import { drawHymnFingerings } from "./hymn-fingering";
 import {
   hymnLyricsAbc,
@@ -211,11 +212,12 @@ export function drawPracticeScore(
   });
   // abcjs keeps audio at source pitch unless both transpositions are specified.
   // Use the same shift so notation, spellings and MIDI grading agree.
-  const audio = tune.setUpAudio({
+  const swinging = hasSwing(abc);
+  const audio = swingAudio(tune.setUpAudio({
     // Guitar tab uses the conventional written octave, sounding one octave lower.
     midiTranspose: transpose - (options.guitarTab ? 12 : 0),
     ...(options.playback ? { qpm: 60, chordsOff: true } : {}),
-  });
+  }), swinging);
   options.playback?.(audio);
   // Playback uses quarter-note BPM, including compound meters.
   tune.setTiming(options.playback ? (60 * 0.25) / tune.getBeatLength() : 60, 0);
@@ -359,8 +361,10 @@ export function drawPracticeScore(
         (start) => tabElements.get(start) || [],
       );
       if (currentTab.length) heldTab = currentTab;
+      const milliseconds = swinging ? swingBeat(e.milliseconds / 1000) * 1000 : e.milliseconds;
       return {
         ...e,
+        milliseconds,
         elements: options.guitarTab
           ? [...(e.elements || []), options.chordTab ? heldTab : currentTab]
           : e.elements,
@@ -386,8 +390,8 @@ export function drawPracticeScore(
                 sounding
                   .filter(
                     (n) =>
-                      n.start * 4000 < e.milliseconds - 1 &&
-                      (n.start + n.duration) * 4000 > e.milliseconds + 1,
+                      n.start * 4000 < milliseconds - 1 &&
+                      (n.start + n.duration) * 4000 > milliseconds + 1,
                   )
                   .map((n) => n.pitch),
               ),

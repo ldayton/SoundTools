@@ -151,5 +151,18 @@
     "title": "Joyful, Joyful, We Adore Thee",
     "file": "Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
     "folder": "Joyful_Joyful_We_Adore_Thee"
+  },
+  {
+    "id": "the-1st-fingerstyle-blues",
+    "title": "The 1st Fingerstyle Blues",
+    "file": "the-1st-fingerstyle-blues.abc",
+    "folder": "the-1st-fingerstyle-blues",
+    "source": "user-supplied",
+    "sourceUrl": "https://www.guitarnick.com/",
+    "aliases": [
+      "First Fingerstyle Blues",
+      "Nicola Mandorino"
+    ],
+    "feel": "swing"
   }
 ]

@@ -13,7 +13,8 @@ const curated = JSON.parse(
   file: string;
   folder: string;
   aliases?: string[];
-  source?: "tab-music";
+  feel?: "swing";
+  source?: "tab-music" | "user-supplied";
   sourceUrl?: string;
   referenceUrl?: string;
   referenceDetails?: string;
@@ -49,7 +50,7 @@ function cleanSource(source: string, allLyrics = false) {
           firstLyric = false;
           return [line.replace(/^w:\s*\d+\.\s*~?/, "w: ")];
         }
-        if (/^(X:|T:|M:|L:|K:|V:|%%staves)/.test(line))
+        if (/^(X:|T:|M:|L:|K:|V:|Q:|%%staves)/.test(line))
           return [line.replace(/\s+%.*$/, "")];
         return [];
       })
@@ -107,7 +108,7 @@ function stanzaData(source: string, id: string) {
       }))
     : rows.map((syllables) => ({
         endingBar: null,
-        label: plain(syllables).split(/\s+/).slice(0, 8).join(" "),
+        label: plain(syllables).split(/\s+/).slice(0, 8).join(" ") || "Instrumental",
         syllables,
       }));
   for (const stanza of stanzas)
@@ -150,6 +151,12 @@ const library = curated.map((entry) => {
       !/^C: copyright: Rights remain with /m.test(source)
     )
       throw Error("Missing tab-music provenance: " + entry.id);
+  } else if (entry.source === "user-supplied") {
+    if (
+      !entry.sourceUrl?.startsWith("https://") ||
+      !/^% Transcribed from user-supplied score and tablature\.$/m.test(source) ||
+      !/^C: copyright: Rights remain with /m.test(source)
+    ) throw Error("Missing user-supplied provenance: " + entry.id);
   } else if (!/^C: copyright: public domain\./im.test(source))
     throw Error("Uncleared score: " + entry.id);
   const clean = cleanSource(source);
@@ -162,6 +169,7 @@ const library = curated.map((entry) => {
     `X:1`,
     `T:${entry.title}`,
     `M:${meter}`,
+    ...(entry.feel === "swing" ? ['Q:"Swing"'] : []),
     "L:1/64",
     `K:${key}`,
   ];
@@ -198,6 +206,7 @@ const library = curated.map((entry) => {
           decoration?: string[];
           lyric?: { syllable: string; divider: string }[];
         };
+
         if (note.startTriplet) throw Error("Unsupported tuplet in " + entry.id);
         const duration = note.duration * 64;
         if (!Number.isInteger(duration))

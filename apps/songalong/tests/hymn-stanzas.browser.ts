@@ -247,7 +247,9 @@ try {
       );
       assert.equal(
         (await page.locator(".hymn-paper .abcjs-lyric").count()) > 0,
-        true,
+        hymn.stanzas.some((stanza) =>
+          stanza.syllables.some((syllable) => /[\p{L}\p{N}]/u.test(syllable)),
+        ),
         hymn.id,
       );
       assert(

@@ -173,12 +173,22 @@ try {
       await tools
         .getByRole("button", { name: "Keyboard connection", exact: true })
         .click();
-      await expect(tools.locator(".mantine-Accordion-panel")).toBeVisible();
+      await expect(
+        tools.getByRole("button", {
+          name: "Connect MIDI keyboard",
+          exact: true,
+        }),
+      ).toBeVisible();
       await assertPinned();
       await tools
         .getByRole("button", { name: "Keyboard connection", exact: true })
         .click();
-      await expect(tools.locator(".mantine-Accordion-panel")).toBeHidden();
+      await expect(
+        tools.getByRole("button", {
+          name: "Connect MIDI keyboard",
+          exact: true,
+        }),
+      ).toBeHidden();
       await assertPinned();
     }
     await mkdir("work/songalong-library", { recursive: true });

@@ -134,11 +134,6 @@
 .dorego-navigation {
   min-height: calc(100dvh - 120px);
 }
-.dorego-navigation-tools {
-  border-top: 1px solid var(--mantine-color-default-border);
-  padding-top: var(--mantine-spacing-md);
-  margin-top: var(--mantine-spacing-md);
-}
 .dorego-exercise {
   padding: 8px 10px;
   border-radius: var(--mantine-radius-sm);

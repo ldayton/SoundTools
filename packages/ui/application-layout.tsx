@@ -14,6 +14,7 @@ import {
   Group,
   Indicator,
   NavLink,
+  Stack,
   Text,
   Title,
   useMantineTheme,
@@ -21,6 +22,21 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { PracticeOptionsReopen } from "./practice-workspace";
 import "./layout.css";
+
+/** Compact utility rows, separated from the app's main navigation once. */
+export function SidebarTools({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Stack gap={0} mt="auto" className={`sidebar-tools ${className}`}>
+      {children}
+    </Stack>
+  );
+}
 
 export function isNavigationClick(event: React.MouseEvent) {
   return (
@@ -263,7 +279,11 @@ export function ApplicationLayout({
             aria-label="Exercises"
             className="soundtools-ui app-sidebar"
             p="md"
-            style={navigationScrollable ? { overflowY: "auto" } : { overflow: "clip" }}
+            style={
+              navigationScrollable
+                ? { overflowY: "auto" }
+                : { overflow: "clip" }
+            }
             inert={navigationCollapsed}
           >
             <Group justify="space-between" wrap="nowrap" mb="lg">
@@ -294,16 +314,18 @@ export function ApplicationLayout({
             )}
             {navigation}
             {resizableNavigation && !navigationCollapsed && (
-              <PanelResizer
-                side="left"
-                width={navigationWidth}
-                minimum={minimumWidth}
-                maximum={maximumWidth}
-                resize={resizeNavigation}
-                label="Resize navigation"
-                className="navigation-resizer"
-                onResizing={setResizing}
-              />
+              <Box className="navigation-resizer-clip">
+                <PanelResizer
+                  side="left"
+                  width={navigationWidth}
+                  minimum={minimumWidth}
+                  maximum={maximumWidth}
+                  resize={resizeNavigation}
+                  label="Resize navigation"
+                  className="navigation-resizer"
+                  onResizing={setResizing}
+                />
+              </Box>
             )}
           </AppShell.Navbar>
         )}

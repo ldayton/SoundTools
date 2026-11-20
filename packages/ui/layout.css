@@ -1,4 +1,23 @@
 /* Shared typography for native and custom practice-option controls. */
+.sidebar-tools {
+  flex-shrink: 0;
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: var(--mantine-spacing-xs);
+}
+.sidebar-tools > .mantine-NavLink-root {
+  min-height: 44px;
+}
+.sidebar-tools .mantine-NavLink-section[data-position="left"] {
+  width: 20px;
+}
+/* The resize track extends beyond the sidebar, but must not make it scroll sideways. */
+.navigation-resizer-clip {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
 .practice-options-content {
   --practice-control-font-size: var(--mantine-font-size-sm);
   --practice-control-caption-size: var(--mantine-font-size-xs);

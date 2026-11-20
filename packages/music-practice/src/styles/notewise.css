@@ -5,10 +5,6 @@
 .notewise-workspace .workspace-content {
   max-width: none;
 }
-.practice-navigation-tools {
-  border-top: 1px solid var(--mantine-color-default-border);
-  padding-top: var(--mantine-spacing-md);
-}
 .notewise-toolbar {
   display: grid;
   grid-template-columns: minmax(38px, 1fr) auto minmax(38px, 1fr);

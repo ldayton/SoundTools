@@ -19,6 +19,7 @@ import {
   ApplicationLayout,
   AppBrand,
   SettingsNavigationLink,
+  SidebarTools,
   isNavigationClick,
 } from '@ldayton/ui/application-layout';
 import { PracticeOptionsProvider, PracticeWorkspace } from '@ldayton/ui/practice-workspace';
@@ -104,7 +105,7 @@ function AppShell({
       >
         Breath Squares
       </UnstyledButton>
-      <div className="dorego-navigation-tools">
+      <SidebarTools>
         <SettingsNavigationLink
           href={`${base}#settings`}
           active={settings}
@@ -116,7 +117,7 @@ function AppShell({
           }}
         />
         <AccountMenu />
-      </div>
+      </SidebarTools>
     </Stack>
   );
   return (

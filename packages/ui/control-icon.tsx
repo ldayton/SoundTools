@@ -1,6 +1,7 @@
 export type ControlIconName =
   | "star"
   | "guitar"
+  | "keyboard"
   | "settings"
   | "account"
   | "text-size"
@@ -24,6 +25,12 @@ export type ControlIconName =
   | "chevron-left";
 
 const artwork = {
+  keyboard: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M8 5v14M12 5v14M16 5v14M6 5v7M10 5v7M14 5v7M18 5v7" />
+    </>
+  ),
   star: (
     <path d="m12 3 2.8 5.7 6.3.9-4.6 4.4 1.1 6.3-5.6-3-5.6 3 1.1-6.3L2.9 9.6l6.3-.9Z" />
   ),

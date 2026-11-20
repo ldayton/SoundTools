@@ -8,8 +8,10 @@ import {
   ApplicationLayout,
   AppBrand,
   SettingsNavigationLink,
+  SidebarTools,
   isNavigationClick,
 } from "@ldayton/ui/application-layout";
+import { ControlIcon } from "@ldayton/ui/control-icon";
 import { ToolbarVolume } from "./sidebar-controls";
 import { hymnToolbarState } from "./hymn-toolbar-state";
 import { NotewiseToolbar, notewiseToolbarState } from "./notewise-toolbar";
@@ -25,6 +27,7 @@ import {
 import { RetainedContent } from "./retained-content";
 import {
   StrictMode,
+  useId,
   useLayoutEffect,
   useSyncExternalStore,
   type MouseEvent,
@@ -32,7 +35,7 @@ import {
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import {
-  Accordion,
+  Collapse,
   Group,
   Alert,
   Anchor,
@@ -121,7 +124,11 @@ export function mountAppShell(
       APP.id === "songalong" && store.getSnapshot().routeKind === "exercise"
         ? $(".sequence-title")
         : $("#page-title");
-    if (restoring && !restoreFocus(heading, document.getElementById("navigation-drawer"))) return;
+    if (
+      restoring &&
+      !restoreFocus(heading, document.getElementById("navigation-drawer"))
+    )
+      return;
     if (!restoring) heading.focus({ preventScroll: true });
     window.scrollTo({ top: 0 });
   }
@@ -151,6 +158,7 @@ export function mountAppShell(
     return <RetainedContent element={midiPanel} />;
   }
   function Navigation() {
+    const keyboardPanelId = useId();
     const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
       getInitialValueInEffect: false,
     });
@@ -197,29 +205,32 @@ export function mountAppShell(
             ))}
           </Box>
         ))}
-        <Stack
-          gap="md"
-          mt="auto"
+        <SidebarTools
           className={`practice-navigation-tools${APP.id === "songalong" ? " songalong-navigation-tools" : ""}`}
         >
           {!(APP.id === "songalong" && mobile) && (
-            <Accordion
-              keepMounted
-              keepMountedMode="display-none"
-              value={snapshot.keyboardOpen ? "keyboard" : null}
-              onChange={(value) => keyboardOpened(value === "keyboard")}
-            >
-              <Accordion.Item value="keyboard">
-                <Accordion.Control
-                  className="keyboard-menu"
-                  data-state={snapshot.midi}
-                  aria-label={
-                    snapshot.midi === "connected"
-                      ? "Keyboard connected"
-                      : "Keyboard connection"
-                  }
-                >
-                  <Group gap="sm">
+            <>
+              <NavLink
+                component="button"
+                onClick={() => keyboardOpened(!snapshot.keyboardOpen)}
+                aria-expanded={snapshot.keyboardOpen}
+                aria-controls={keyboardPanelId}
+                rightSection={
+                  <ControlIcon
+                    name={snapshot.keyboardOpen ? "chevron-up" : "chevron-down"}
+                    size={16}
+                  />
+                }
+                className="keyboard-menu"
+                data-state={snapshot.midi}
+                aria-label={
+                  snapshot.midi === "connected"
+                    ? "Keyboard connected"
+                    : "Keyboard connection"
+                }
+                leftSection={<ControlIcon name="keyboard" />}
+                label={
+                  <Group gap="sm" wrap="nowrap">
                     <Text size="sm">Keyboard</Text>
                     <Indicator
                       color={snapshot.midi === "connected" ? "green" : "gray"}
@@ -228,12 +239,20 @@ export function mountAppShell(
                       <Box w={8} h={8} />
                     </Indicator>
                   </Group>
-                </Accordion.Control>
-                <Accordion.Panel>
+                }
+              />
+              {/* Retained MIDI DOM needs its effects to stay mounted while hidden. */}
+              <Collapse
+                id={keyboardPanelId}
+                expanded={snapshot.keyboardOpen}
+                keepMounted
+                keepMountedMode="display-none"
+              >
+                <Box px="sm" py="xs">
                   <MidiContents />
-                </Accordion.Panel>
-              </Accordion.Item>
-            </Accordion>
+                </Box>
+              </Collapse>
+            </>
           )}
           <SettingsNavigationLink
             href="/settings"
@@ -242,10 +261,7 @@ export function mountAppShell(
             updateAvailable={offline.updateAvailable}
           />
           <AccountMenu />
-          <Text size="xs" c="dimmed" hidden={APP.id === "songalong"}>
-            SOUNDTOOLS
-          </Text>
-        </Stack>
+        </SidebarTools>
       </Stack>
     );
   }
@@ -508,7 +524,10 @@ export function mountAppShell(
       );
       if (midi === "connected") {
         const trigger = document.querySelector<HTMLElement>(".keyboard-menu");
-        restoreFocus([trigger, $(".sequence-title"), $("#page-title")], midiPanel);
+        restoreFocus(
+          [trigger, $(".sequence-title"), $("#page-title")],
+          midiPanel,
+        );
         queueMicrotask(events.inputChanged);
       }
     },

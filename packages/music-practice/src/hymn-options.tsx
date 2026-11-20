@@ -521,6 +521,7 @@ export function HymnStaffSpacing({
       unit="%"
       min={80}
       max={120}
+      step={2}
       value={state.staffSpacing}
       onChange={(staffSpacing) => change({ staffSpacing })}
     />

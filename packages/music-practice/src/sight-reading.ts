@@ -118,7 +118,7 @@ export class SightReading {
   private noMatchingKey = false;
   private rangeCache = new Map<string, HymnRange>();
   private arrangement: Arrangement = "melody";
-  private scoreDisplay: "notation" | "tab" | "both" = "both";
+  private scoreDisplay: "notation" | "tab" | "both" | "chords" = "both";
   private hands: HymnHands = "both";
   private viewHands: HymnHands = "both";
   private reattackTies = false;
@@ -250,7 +250,7 @@ export class SightReading {
         saved,
         hymns.map((hymn) => hymn.id),
       );
-      if (["notation", "tab", "both"].includes(saved?.scoreDisplay || ""))
+      if (["notation", "tab", "both", "chords"].includes(saved?.scoreDisplay || ""))
         this.scoreDisplay = saved!.scoreDisplay!;
       if (saved?.hands === "left" || saved?.hands === "right")
         this.hands = saved.hands;
@@ -902,7 +902,7 @@ export class SightReading {
           ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
         hymnEdition: chordEdition(this.hymn)?.id,
         fromBar: score.from,
-        lyrics: this.arrangement === "guitar-edition" ? {hymn:chordEdition(this.hymn)!.lyrics(this.hymn),selected:this.stanzas,offset:chordEdition(this.hymn)!.chordOffset(score.from)} :
+        lyrics: this.arrangement === "guitar-edition" && this.hymn.id !== "in-christ-alone" ? {hymn:chordEdition(this.hymn)!.lyrics(this.hymn),selected:this.stanzas,offset:chordEdition(this.hymn)!.chordOffset(score.from)} :
           this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
           this.viewHands !== "left"
@@ -914,11 +914,12 @@ export class SightReading {
               }
             : undefined,
         guitarTab: isGuitarArrangement(this.arrangement) &&
-          (!isEditedGuitar(this.arrangement) || this.scoreDisplay !== "notation"),
+          (!isEditedGuitar(this.arrangement) || this.scoreDisplay !== "notation" && this.scoreDisplay !== "chords"),
         guitarMidiOffset: guitarMidiOffset(this.arrangement),
         fingerstyleTab: isEditedGuitar(this.arrangement),
         tabOnly: isEditedGuitar(this.arrangement) && this.scoreDisplay === "tab",
         chordTab: this.arrangement === "guitar-chords",
+        chordsOnly: this.arrangement === "guitar-edition" && this.scoreDisplay === "chords",
         octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement),
         initialSignatures: !hasInstrumentEditions(this.hymn),
         reattackTies: this.mode === "wait" && this.reattackTies,
@@ -959,7 +960,7 @@ export class SightReading {
       const practice =
         this.mode === "wait" &&
         this.arrangement !== "melody" &&
-        (!isGuitarArrangement(this.arrangement) || this.arrangement === "guitar-fingerstyle") &&
+        (!isGuitarArrangement(this.arrangement) || this.arrangement === "guitar-fingerstyle" || this.arrangement === "guitar-edition" && this.hymn.id === "in-christ-alone") &&
         this.hands !== this.viewHands
           ? arrangeHymn(
               this.hymn,
@@ -980,6 +981,8 @@ export class SightReading {
           paper.clientWidth,
           {
             transpose: transposition.semitones,
+            beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
+            hymnEdition: chordEdition(this.hymn)?.id,
             octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement),
             initialSignatures: !hasInstrumentEditions(this.hymn),
             reattackTies: this.reattackTies,

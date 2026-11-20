@@ -183,7 +183,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
     const svg=group?.ownerSVGElement;
     if(!group || !svg) continue;
     const heads=[...group.querySelectorAll<SVGGraphicsElement>('.abcjs-notehead')];
-    const target=tabOnly ? absolute?.cloned?.elemset[0] as SVGGraphicsElement | undefined : group;
+    const target=tabOnly ? absolute?.cloned?.elemset?.[0] as SVGGraphicsElement | undefined : group;
     if(!target) continue;
     const targetBox=bounds(target,svg);if(!targetBox) continue;
     const original=pitches.map(p=>p-transpose);
@@ -262,8 +262,8 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
 }
 
 /** Rhythmic tablature: independent melody/bass stems, eighth beams, rests and ties. */
-export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor=fingerstylePosition,rhythms=true) {
-  const beam=new Map<number,{x:number;y:number;svg:SVGSVGElement}[]>();
+export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor=fingerstylePosition,rhythms=true,bassRests=false) {
+  const beam=new Map<number,{x:number;y:number;svg:SVGSVGElement;levels:number}[]>();
   const ties=new Map<string,{x:number;y:number;svg:SVGSVGElement}>();
   for(const {note,voice,pitches} of entries(tune,from)) {
     const absolute=note.abselem as (AbsoluteElement & {cloned?:AbsoluteElement}) | undefined;
@@ -279,9 +279,11 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
       text(meter,box.x+38,top+43,String(tune.getMeterFraction().den),'tab-rhythm-time',16);svg.append(meter);
     }
     const up=voice===0,lane=up ? top-25 : bottom+25;
-    const x=(absolute?.x ?? sourceBox.x)+5;
+    const tabSource=absolute?.cloned?.elemset?.[0] as SVGGraphicsElement|undefined;
+    const tabInk=tabSource?bounds(tabSource,svg):undefined;
+    const x=tabInk?tabInk.x+tabInk.width/2:(absolute?.x ?? sourceBox.x)+5;
     if(!pitches.length) {
-      if (!rhythms || voice === 1) continue;
+      if (!rhythms || voice === 1 && !bassRests) continue;
       const rest=source.cloneNode(true) as SVGGraphicsElement;
       rest.querySelectorAll('.beginner-fingering,.beginner-picking').forEach(e=>e.remove());
       const transform=source.getScreenCTM(),root=svg.getScreenCTM();
@@ -313,13 +315,18 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
       dot.setAttribute('r','1.6');dot.setAttribute('fill','currentColor');dot.setAttribute('stroke','none');
       dot.classList.add('tab-rhythm-dot');rhythm.append(dot);
     }
-    if(rhythms && base===0.125) {
+    if(rhythms && (base===0.125 || base===0.0625)) {
       const points=beam.get(voice)||[];
       if(note.startBeam || points.length) {
-        points.push({x,y:lane,svg});beam.set(voice,points);
+        points.push({x,y:lane,svg,levels:base===0.0625?2:1});beam.set(voice,points);
         if(note.endBeam) {
-          for(let i=1;i<points.length;i++) if(points[i].svg===points[i-1].svg)
-            line(svg,points[i-1].x,points[i-1].y,points[i].x,points[i].y,'tab-rhythm-beam',3);
+          for(let i=1;i<points.length;i++) if(points[i].svg===points[i-1].svg) {
+            const a=points[i-1],b=points[i],offset=up?5:-5;
+            line(svg,a.x,a.y,b.x,b.y,'tab-rhythm-beam',3);
+            if(a.levels===2&&b.levels===2)line(svg,a.x,a.y+offset,b.x,b.y+offset,'tab-rhythm-beam-secondary',3);
+            else if(a.levels===2)line(svg,a.x,a.y+offset,Math.min(a.x+9,b.x),a.y+offset,'tab-rhythm-beam-secondary',3);
+            else if(b.levels===2)line(svg,Math.max(a.x,b.x-9),b.y+offset,b.x,b.y+offset,'tab-rhythm-beam-secondary',3);
+          }
           beam.delete(voice);
         }
       } else {
@@ -327,6 +334,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
         flag.setAttribute('d',`M ${x} ${lane} q 10 ${up?8:-8} 5 ${up?16:-16}`);
         flag.setAttribute('fill','none');flag.setAttribute('stroke','currentColor');flag.setAttribute('stroke-width','2');
         flag.classList.add('tab-rhythm-flag');rhythm.append(flag);
+        if(base===0.0625){const second=flag.cloneNode(true) as SVGPathElement;second.setAttribute('transform',`translate(0 ${up?5:-5})`);second.classList.add('tab-rhythm-flag-secondary');rhythm.append(second);}
       }
     }
     (note.pitches || []).forEach((pitch,index)=>{
@@ -375,4 +383,18 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     const bottom=Math.max(v.y+v.height,tab.y+tab.height+42);
     svg.setAttribute('viewBox',`${v.x} ${v.y} ${v.width} ${bottom-v.y}`);
   }
+}
+
+/** Adjacent staff noteheads may stagger; simultaneous tab frets must stay aligned. */
+export function alignSimultaneousTab(tune:TuneObject,from:number) {
+ const onsets=new Map<string,number>();
+ for(const {note,bar,beat,voice} of entries(tune,from)) {
+  const absolute=note.abselem as (AbsoluteElement & {cloned?:AbsoluteElement})|undefined;
+  const number=absolute?.cloned?.elemset?.[0] as SVGGraphicsElement|undefined;
+  const svg=number?.ownerSVGElement;if(!number||!svg)continue;
+  const box=bounds(number,svg);if(!box)continue;
+  const key=`${bar}:${beat}`,center=box.x+box.width/2;
+  if(voice===0)onsets.set(key,center);
+  else if(onsets.has(key))number.setAttribute('transform',`translate(${onsets.get(key)!-center} 0)`);
+ }
 }

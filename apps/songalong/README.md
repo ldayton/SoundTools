@@ -29,3 +29,19 @@ Instrument selection is separate from notation/tab display and hand practice.
 `TEST_BROWSER=webkit npm run test:editions --workspace=songalong` exercises WebKit.
 The Amazing Grace unit tests independently verify melody, chord voicings,
 harmonic rhythm, verse duration, lyrics, and passages beginning or ending on ties.
+
+In Christ Alone's Guitar edition is a two-voice fingerstyle setting with the
+complete source melody in conventional octave-transposing notation, capo 2.
+C/E and G/D bass dyads, single F basses, and Am/E support the melody. The bass
+rests on the high C–B leap in bar 10 so the hand can shift to position VII;
+position III and I indications guide the return. Chord symbols retain the
+original C/F/G/Am harmonic rhythm. The full fingerstyle setting is distinct
+from the optional full-shape chord accompaniment used for strumming practice.
+
+Notation, rhythmic tablature, combined notation/tab, and a compact chords-only
+lyric chart are display choices of the same Guitar edition. They do not alter
+playback or practice selection. Wait-for-me practice independently selects
+Full fingerstyle, Melody, or Chord accompaniment. The third verse retains its
+shorter ending. Tests compare the melody against Piano, check simultaneous
+string/fret feasibility, section pitches, capo playback, both endings, and
+independent display/practice persistence.

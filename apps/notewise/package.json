@@ -21,7 +21,7 @@
     "test:recovery": "tsx tests/recovery.browser.ts && tsx tests/storage.browser.ts",
     "test:piano-audio": "tsx tests/piano-audio.browser.ts",
     "test:theory": "tsx tests/theory.browser.ts",
-    "test:guitar-scales": "tsx tests/guitar-scales.browser.ts && tsx tests/linked-scales.browser.ts && tsx tests/scale-loop.browser.ts && tsx tests/pentatonic-scales.browser.ts && tsx tests/blues-scales.browser.ts && npm run test:scale-fret-range",
+    "test:guitar-scales": "tsx tests/guitar-scales.browser.ts && tsx tests/linked-scales.browser.ts && tsx tests/scale-loop.browser.ts && tsx tests/pentatonic-scales.browser.ts && tsx tests/blues-scales.browser.ts && npm run test:scale-fret-range && npm run test:hila-shapes",
     "test:split": "tsx ../../packages/music-practice/browser-tests/app-split.browser.ts",
     "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts",
     "test:layout": "node ../../scripts/test-practice-layout.cjs notewise",
@@ -29,7 +29,8 @@
     "test:backing": "tsx tests/backing-track.browser.ts && tsx tests/backing-metronome.browser.ts && tsx tests/backing-mixer.browser.ts && tsx tests/backing-loudness.browser.ts && tsx tests/authored-backing.browser.ts",
     "test:backing-realism": "tsx tests/backing-realism.browser.ts",
     "test:backing-genres": "tsx tests/country-backing.browser.ts && tsx tests/reggae-funk.browser.ts && tsx tests/soul-folk.browser.ts && tsx tests/folk-country.browser.ts && tsx tests/gospel.browser.ts && tsx tests/gospel-phrases.browser.ts && tsx tests/reggae.browser.ts && tsx tests/pocket-styles.browser.ts && tsx tests/roots-styles.browser.ts",
-    "test:scale-fret-range": "tsx tests/scale-fret-range.browser.ts"
+    "test:scale-fret-range": "tsx tests/scale-fret-range.browser.ts",
+    "test:hila-shapes": "tsx tests/hila-scale-shapes.browser.ts"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"

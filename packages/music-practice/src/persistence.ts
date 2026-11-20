@@ -4,7 +4,6 @@ import {
   DurableStore,
   IndexedDBAdapter,
   migrateLegacy,
-  decodeState,
   type DurableState,
 } from "./durable-state";
 import { STORAGE_KEY } from "./progress";
@@ -40,54 +39,13 @@ export const persistence = {
     try {
       const initial = migrateLegacy(raw);
       const adapter = await IndexedDBAdapter.open();
-      if (!navigator.locks)
-        throw Error(
-          "This browser cannot safely coordinate practice windows. Use a current browser.",
-        );
-      await new Promise<void>((resolve, reject) => {
-        void navigator.locks
-          .request(
-            `soundtools-${APP.id}-writer`,
-            { ifAvailable: true },
-            async (lock) => {
-              if (!lock) {
-                const stored = await adapter.read();
-                if (stored) {
-                  this.state = decodeState(stored.state);
-                }
-                this.fail(
-                  "Practice is open in another window. Close that window, then reload this one to continue.",
-                );
-                resolve();
-                return;
-              }
-              try {
-                this.store = await DurableStore.open(
-                  adapter,
-                  initial,
-                  crypto.randomUUID(),
-                );
-                this.state = this.store.state;
-                this.writable = true;
-                resolve();
-                // Browser releases the lock on termination, including crash/reload. Never steal a live lock.
-                await new Promise<void>((release) =>
-                  window.addEventListener(
-                    "pagehide",
-                    () => {
-                      this.writable = false;
-                      release();
-                    },
-                    { once: true },
-                  ),
-                );
-              } catch (e) {
-                reject(e);
-              }
-            },
-          )
-          .catch(reject);
-      });
+      this.store = await DurableStore.open(
+        adapter,
+        initial,
+        crypto.randomUUID(),
+      );
+      this.state = this.store.state;
+      this.writable = true;
       if (this.writable) {
         // Retain legacy keys unchanged for rollback. New-schema data is authoritative after migration.
         // Old deployed tabs cannot participate in ownership; detect their writes and stop this writer.

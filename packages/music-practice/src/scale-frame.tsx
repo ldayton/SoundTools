@@ -136,12 +136,12 @@ export function ScaleFrame({
                 </Table.Tbody>
               </Table>
             </div>
-            <Text className="scale-source">
+            {s.source ? <Text className="scale-source">
               Shapes and fingerings:{" "}
               <a href={s.source} target="_blank" rel="noopener noreferrer">
                 GuitarScale.org
               </a>
-            </Text>
+            </Text> : <Text className="scale-source">Shapes supplied by Hila Bar.</Text>}
           </div>
         </ScaleDetails>
       </div>

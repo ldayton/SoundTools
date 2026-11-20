@@ -8,7 +8,9 @@ import {
   decodeState,
   migrateLegacy,
   DurableStore,
+  mergeWindowState,
   type PersistenceAdapter,
+  type DurableState,
   type StoredState,
 } from "../src/durable-state";
 import { restoreBookmark, bookmark } from "../src/bookmarks";
@@ -125,14 +127,16 @@ class MemoryAdapter implements PersistenceAdapter {
     this.value = { ...copy(this.value || initial), owner };
     return copy(this.value);
   }
-  async write(expected: number, owner: string, state: StoredState) {
+  async commit(owner: string, base: DurableState, snapshot: DurableState) {
     if (this.fail) throw Error("quota");
-    if (this.value?.revision !== expected || this.value.owner !== owner)
-      throw Error("stale writer");
-    this.value = copy(state);
+    this.value = {
+      revision: this.value!.revision + 1,
+      owner,
+      state: mergeWindowState(base, snapshot, this.value!.state),
+    };
   }
 }
-test("atomic answer/checkpoint, switching activity, failure and stale writers", async () => {
+test("atomic answer/checkpoint, switching activity, failure and concurrent windows", async () => {
   const adapter = new MemoryAdapter();
   const initial = migrateLegacy({});
   const a = await DurableStore.open(adapter, initial, "a");
@@ -152,8 +156,8 @@ test("atomic answer/checkpoint, switching activity, failure and stale writers", 
     position: 3,
     paused: true,
   });
-  await assert.rejects(a.save(), /stale/);
-  assert.equal(adapter.value!.owner, "b");
+  await a.save();
+  assert.equal(adapter.value!.owner, "a");
   adapter.fail = true;
   b.state.progress.stats = {};
   await assert.rejects(b.save(), /quota/);
@@ -238,4 +242,121 @@ test("two-bar pattern checkpoints survive shared storage validation without allo
   delete state.activities.rhythm;
   state.activities.patterns = { version: 3 };
   assert.throws(() => decodeState(state), /Unsupported activity version/);
+});
+
+test("stale windows preserve other activities, settings and both answers to the same card", async () => {
+  const adapter = new MemoryAdapter();
+  const initial = migrateLegacy({});
+  const a = await DurableStore.open(adapter, initial, "a");
+  const b = await DurableStore.open(adapter, initial, "b");
+  a.state.activities["guitar-scales"] = { version: 1, settings: { tonic: 2 } };
+  b.state.activities.rhythm = { version: 1, bars: [1, 2] };
+  a.state.progress.roundLengths!.piano = 24;
+  b.state.progress.roundLengths!.staff = 6;
+  const id = "staff:C4:0";
+  a.state.progress.stats[id] = {
+    attempts: 1,
+    correct: 1,
+    streak: 1,
+    lastSeen: 100,
+    due: 1000,
+  };
+  b.state.progress.stats[id] = {
+    attempts: 1,
+    correct: 0,
+    streak: 0,
+    lastSeen: 200,
+    due: 200,
+  };
+  await Promise.all([a.save(), b.save()]);
+  assert.deepEqual(adapter.value!.state.activities, {
+    ...a.state.activities,
+    ...b.state.activities,
+  });
+  assert.equal(adapter.value!.state.progress.roundLengths!.piano, 24);
+  assert.equal(adapter.value!.state.progress.roundLengths!.staff, 6);
+  assert.deepEqual(adapter.value!.state.progress.stats[id], {
+    attempts: 2,
+    correct: 1,
+    streak: 0,
+    lastSeen: 200,
+    due: 200,
+  });
+  // A stale, unrelated save must not roll back B's newer checkpoint.
+  b.state.activities.rhythm = { version: 1, bars: [3, 4] };
+  await b.save();
+  a.state.progress.mode = "piano";
+  await a.save();
+  assert.deepEqual(adapter.value!.state.activities.rhythm, {
+    version: 1,
+    bars: [3, 4],
+  });
+  a.state.progress.stats[id].attempts++;
+  a.state.progress.stats[id].correct++;
+  a.state.progress.stats[id].lastSeen = 300;
+  await a.save();
+  assert.equal(adapter.value!.state.progress.stats[id].attempts, 3);
+  assert.equal(adapter.value!.state.progress.stats[id].correct, 2);
+});
+
+test("queued edits preserve checkpoint boundaries and failed saves never resume silently", async () => {
+  const adapter = new MemoryAdapter();
+  const a = await DurableStore.open(adapter, migrateLegacy({}), "a");
+  a.state.activities.piano = {
+    version: 1,
+    session: { current: 1, answered: 0 },
+  };
+  const first = a.save();
+  a.state.activities.piano = {
+    version: 1,
+    session: { current: 2, answered: 1 },
+  };
+  const second = a.save();
+  await Promise.all([first, second]);
+  assert.deepEqual(
+    adapter.value!.state.activities.piano,
+    a.state.activities.piano,
+  );
+  adapter.fail = true;
+  a.state.activities.piano = {
+    version: 1,
+    session: { current: 3, answered: 2 },
+  };
+  await assert.rejects(a.save(), /quota/);
+  adapter.fail = false;
+  await assert.rejects(a.save(), /quota/);
+  assert.deepEqual(adapter.value!.state.activities.piano, {
+    version: 1,
+    session: { current: 2, answered: 1 },
+  });
+});
+
+test("concurrent song windows retain per-song preferences and whole bookmarks", async () => {
+  const adapter = new MemoryAdapter();
+  const initial = migrateLegacy({});
+  initial.activities.sight = {
+    version: 1,
+    hymn: "one",
+    low: 48,
+    preferences: { one: { bpm: 80 } },
+    bookmarks: { one: { position: 1, paused: false } },
+    zoomByLayout: { mobile: 1, desktop: 1 },
+  };
+  const a = await DurableStore.open(adapter, initial, "a");
+  const b = await DurableStore.open(adapter, initial, "b");
+  (a.state.activities.sight as any).low = 50;
+  (a.state.activities.sight as any).preferences.one = { bpm: 90 };
+  (a.state.activities.sight as any).bookmarks.one = {
+    position: 2,
+    paused: true,
+  };
+  (b.state.activities.sight as any).preferences.two = { bpm: 110 };
+  (b.state.activities.sight as any).hymn = "two";
+  (b.state.activities.sight as any).zoomByLayout.mobile = 1.2;
+  await Promise.all([a.save(), b.save()]);
+  const state = adapter.value!.state.activities.sight as any;
+  assert.deepEqual(state.preferences, { one: { bpm: 90 }, two: { bpm: 110 } });
+  assert.deepEqual(state.bookmarks.one, { position: 2, paused: true });
+  assert.equal(state.zoomByLayout.mobile, 1.2);
+  assert.equal(state.low, 50);
 });

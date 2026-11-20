@@ -1,66 +1,85 @@
-import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
-import { selectPractice, practiceOption } from "../../../packages/music-practice/browser-tests/helpers";
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
+import {
+  selectPractice,
+  practiceOption,
+} from "../../../packages/music-practice/browser-tests/helpers";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 const fixed = await mkdtemp(join(tmpdir(), "notecards-recovery-"));
 const origin = process.env.TEST_URL || "http://127.0.0.1:4320";
-const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+const browser = await launchBrowser({
+  env: { ...process.env, CFFIXED_USER_HOME: fixed },
+});
 try {
   const context = await createContext(browser);
   const page = await context.newPage();
   await page.goto(origin);
   await page.locator("main:not([inert])").waitFor();
-  const adapterResult = await page.evaluate(async () => {
-    const path = "/@fs" + '/Users/lily/source/SoundTools/packages/music-practice/src/durable-state.ts';
-    const { IndexedDBAdapter, DurableStore, migrateLegacy } = await import(
-      path
-    );
-    const adapter = await IndexedDBAdapter.open();
-    const initial = migrateLegacy({});
-    const a = await DurableStore.open(adapter, initial, "adapter-test-a");
-    a.state.activities.test = { version: 1, value: 1 };
-    const first = a.save();
-    a.state.activities.test.value = 2;
-    const second = a.save();
-    await Promise.all([first, second]);
-    const committed = await adapter.read();
-    const b = await DurableStore.open(adapter, initial, "adapter-test-b");
-    let stale = false;
-    try {
-      await a.save();
-    } catch {
-      stale = true;
-    }
-    const after = await adapter.read();
-    const put = IDBObjectStore.prototype.put;
-    IDBObjectStore.prototype.put = function () {
-      throw new DOMException("Quota test", "QuotaExceededError");
-    };
-    b.state.activities.test.value = 999;
-    let failed = false;
-    try {
-      await b.save();
-    } catch {
-      failed = true;
-    }
-    IDBObjectStore.prototype.put = put;
-    return {
-      stale,
-      failed,
-      value: after.state.activities.test.value,
-      revision: committed.revision,
-      afterRevision: after.revision,
-      failedValue: (await adapter.read()).state.activities.test.value,
-    };
-  });
-  assert.equal(adapterResult.stale, true);
+  const adapterResult = await page.evaluate(
+    async (path) => {
+      const { IndexedDBAdapter, DurableStore, migrateLegacy } = await import(
+        path
+      );
+      const adapter = await IndexedDBAdapter.open();
+      const initial = migrateLegacy({});
+      const a = await DurableStore.open(adapter, initial, "adapter-test-a");
+      a.state.activities.test = { version: 1, value: 1 };
+      const first = a.save();
+      a.state.activities.test.value = 2;
+      const second = a.save();
+      await Promise.all([first, second]);
+      const committed = await adapter.read();
+      const b = await DurableStore.open(adapter, initial, "adapter-test-b");
+      let stale = false;
+      try {
+        await a.save();
+      } catch {
+        stale = true;
+      }
+      const after = await adapter.read();
+      const put = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function () {
+        throw new DOMException("Quota test", "QuotaExceededError");
+      };
+      b.state.activities.test.value = 999;
+      let failed = false;
+      try {
+        await b.save();
+      } catch {
+        failed = true;
+      }
+      IDBObjectStore.prototype.put = put;
+      return {
+        stale,
+        failed,
+        value: after.state.activities.test.value,
+        revision: committed.revision,
+        afterRevision: after.revision,
+        failedValue: (await adapter.read()).state.activities.test.value,
+      };
+    },
+    "/@fs" +
+      fileURLToPath(
+        new URL(
+          "../../../packages/music-practice/src/durable-state.ts",
+          import.meta.url,
+        ),
+      ),
+  );
+  assert.equal(adapterResult.stale, false);
   assert.equal(adapterResult.failed, true);
   assert.equal(adapterResult.value, 2);
   assert.equal(adapterResult.failedValue, 2);
-  assert.equal(adapterResult.revision, adapterResult.afterRevision);
+  assert.equal(adapterResult.revision + 1, adapterResult.afterRevision);
   await context.close();
   const migration = await createContext(browser);
   await migration.addInitScript(() => {
@@ -150,7 +169,7 @@ try {
   );
   await failure.close();
   console.log(
-    "storage passed: real IDB atomicity, stale fencing, queued snapshots, quota failure UI, migration, old-tab writes",
+    "storage passed: real IDB atomicity, concurrent writers, queued snapshots, quota failure UI, migration, old-tab writes",
   );
 } catch (error) {
   await captureFailure(browser, error);

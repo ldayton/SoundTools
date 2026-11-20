@@ -16,6 +16,7 @@ export function ScaleRelative({
   toggle(): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  if (!state.relative) return null;
   return (
     <Button
       className="scale-relative-switch soundtools-ui"

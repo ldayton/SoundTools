@@ -18,7 +18,11 @@ export type StoredState = {
 export interface PersistenceAdapter {
   read(): Promise<StoredState | null>;
   claim(owner: string, initial: StoredState): Promise<StoredState>;
-  write(expected: number, owner: string, state: StoredState): Promise<void>;
+  commit(
+    owner: string,
+    base: DurableState,
+    snapshot: DurableState,
+  ): Promise<void>;
 }
 export function decodeState(raw: unknown): DurableState {
   const s = raw as DurableState;
@@ -106,18 +110,125 @@ function migrateGuitarScalePreview(
   if (state.progress.mode === "scales") state.progress.mode = "guitar-scales";
   return state;
 }
-/** Queue immutable snapshots; the adapter fences every write by ownership and revision. */
+/** Apply only this window's edits to the latest checkpoint. Arrays and activity
+ * checkpoints are atomic; merging session internals could create an invalid session.
+ */
+function edited(base: unknown, local: unknown, latest: unknown): any {
+  if (JSON.stringify(base) === JSON.stringify(local))
+    return structuredClone(latest);
+  const object = (v: unknown): v is Record<string, unknown> =>
+    !!v && typeof v === "object" && !Array.isArray(v);
+  if (object(base) && object(local) && object(latest)) {
+    const result = structuredClone(latest);
+    for (const key of new Set([...Object.keys(base), ...Object.keys(local)])) {
+      if (!(key in local)) {
+        if (key in base) delete result[key];
+      } else result[key] = edited(base[key], local[key], latest[key]);
+    }
+    return result;
+  }
+  return structuredClone(local);
+}
+export function mergeWindowState(
+  base: DurableState,
+  local: DurableState,
+  latest: DurableState,
+): DurableState {
+  const next = edited(base, local, latest) as DurableState;
+  next.activities = structuredClone(latest.activities);
+  for (const key of new Set([
+    ...Object.keys(base.activities),
+    ...Object.keys(local.activities),
+  ])) {
+    if (
+      JSON.stringify(base.activities[key]) ===
+      JSON.stringify(local.activities[key])
+    )
+      continue;
+    if (key in local.activities)
+      next.activities[key] = structuredClone(local.activities[key]);
+    else delete next.activities[key];
+  }
+  // Settings have independent fields. Musical checkpoints above remain whole.
+  for (const key of [
+    "audio",
+    "presentation",
+    "guitar-scales",
+    "backing-track",
+    "metronome",
+    ...Object.keys(local.activities).filter((k) =>
+      k.startsWith("backing-mixer"),
+    ),
+  ]) {
+    if (key in local.activities)
+      next.activities[key] = edited(
+        base.activities[key] || {},
+        local.activities[key],
+        latest.activities[key] || {},
+      );
+  }
+  // Song preferences and bookmarks are independent per song/arrangement. Preserve
+  // a bookmark as a whole rather than splicing two sessions into one checkpoint.
+  if (local.activities.sight && next.activities.sight) {
+    const before = (base.activities.sight || {}) as Record<string, any>;
+    const current = local.activities.sight as Record<string, any>;
+    const remote = (latest.activities.sight || {}) as Record<string, any>;
+    const result = next.activities.sight as Record<string, any>;
+    for (const field of ["bookmarks", "sections", "preferences", "favorites"]) {
+      const merged = structuredClone(remote[field] || {});
+      for (const key of new Set([
+        ...Object.keys(before[field] || {}),
+        ...Object.keys(current[field] || {}),
+      ])) {
+        if (
+          JSON.stringify(before[field]?.[key]) ===
+          JSON.stringify(current[field]?.[key])
+        )
+          continue;
+        if (key in (current[field] || {}))
+          merged[key] = structuredClone(current[field][key]);
+        else delete merged[key];
+      }
+      if (current[field] || remote[field]) result[field] = merged;
+    }
+    for (const field of ["low", "high", "mode"]) {
+      if (field in current || field in remote)
+        result[field] = edited(before[field], current[field], remote[field]);
+    }
+    if (current.zoomByLayout)
+      result.zoomByLayout = edited(
+        before.zoomByLayout || {},
+        current.zoomByLayout,
+        remote.zoomByLayout || {},
+      );
+  }
+  // Two windows answering the same card must both contribute their new attempts.
+  for (const [key, stat] of Object.entries(local.progress.stats)) {
+    const before = base.progress.stats[key];
+    const remote = latest.progress.stats[key];
+    const attempts = stat.attempts - (before?.attempts || 0);
+    if (attempts > 0 && remote) {
+      next.progress.stats[key] = {
+        ...(remote.lastSeen > stat.lastSeen ? remote : stat),
+        attempts: remote.attempts + attempts,
+        correct: remote.correct + stat.correct - (before?.correct || 0),
+      };
+    }
+  }
+  return next;
+}
+/** Each window queues immutable edits; IndexedDB merges and commits them atomically. */
 export class DurableStore {
   private tail: Promise<void> = Promise.resolve();
-  private revision: number;
+  private base: DurableState;
   readonly state: DurableState;
   private constructor(
     private adapter: PersistenceAdapter,
     private owner: string,
     stored: StoredState,
   ) {
-    this.revision = stored.revision;
     this.state = decodeState(stored.state);
+    this.base = structuredClone(this.state);
   }
   static async open(
     adapter: PersistenceAdapter,
@@ -137,16 +248,12 @@ export class DurableStore {
   }
   save() {
     const snapshot = structuredClone(this.state);
-    const operation = this.tail.then(async () => {
-      const next = {
-        revision: this.revision + 1,
-        owner: this.owner,
-        state: snapshot,
-      };
-      await this.adapter.write(this.revision, this.owner, next);
-      this.revision = next.revision;
-    });
-    // A failed queue stays failed: never overwrite newer or unconfirmed data on retry.
+    const base = this.base;
+    this.base = snapshot;
+    const operation = this.tail.then(() =>
+      this.adapter.commit(this.owner, base, snapshot),
+    );
+    // Failed queues stay failed: never silently continue after an unconfirmed save.
     this.tail = operation;
     return operation;
   }
@@ -186,9 +293,7 @@ export class IndexedDBAdapter implements PersistenceAdapter {
       tx.onerror = () =>
         reject(tx.error || Error("Storage transaction failed"));
       tx.onabort = () =>
-        reject(
-          tx.error || Error("Stale writer: another window owns practice."),
-        );
+        reject(tx.error || Error("Practice storage transaction was aborted."));
       try {
         run(tx.objectStore("state"), (v) => {
           value = v;
@@ -217,16 +322,22 @@ export class IndexedDBAdapter implements PersistenceAdapter {
       };
     });
   }
-  write(expected: number, owner: string, state: StoredState) {
+  commit(owner: string, base: DurableState, snapshot: DurableState) {
     return this.transaction<void>((store, done) => {
       const r = store.get("root");
       r.onsuccess = () => {
-        if (r.result?.revision !== expected || r.result?.owner !== owner) {
+        try {
+          const current = r.result as StoredState;
+          const latest = decodeState(current?.state);
+          if (!Number.isSafeInteger(current.revision) || current.revision < 0)
+            throw Error("Invalid revision");
+          const state = mergeWindowState(base, snapshot, latest);
+          decodeState(state);
+          store.put({ revision: current.revision + 1, owner, state }, "root");
+          done();
+        } catch {
           store.transaction.abort();
-          return;
         }
-        store.put(state, "root");
-        done();
       };
     });
   }

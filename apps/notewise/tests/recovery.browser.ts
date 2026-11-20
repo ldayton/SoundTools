@@ -1,4 +1,9 @@
-import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
 import {
   selectPractice,
   practiceOption,
@@ -10,7 +15,9 @@ import { join } from "node:path";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 const fixed = await mkdtemp(join(tmpdir(), "notecards-recovery-"));
-const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+const browser = await launchBrowser({
+  env: { ...process.env, CFFIXED_USER_HOME: fixed },
+});
 const origin = process.env.TEST_URL || "http://127.0.0.1:4320";
 const context = await createContext(browser);
 const page = await context.newPage();
@@ -119,30 +126,39 @@ try {
     "same rhythm, no resumed wall clock",
   );
   console.log("live activity recovery passed");
-  // A second window may view the checkpoint but cannot write over the owner.
+  // Both windows remain usable and save without an exclusive lifetime lock.
   const other = await context.newPage();
   await other.goto(origin);
-  await other.locator("#persistence-notice").waitFor();
-  assert.match(
-    await other.locator("#persistence-notice").innerText(),
-    /another window/i,
-  );
+  await other.locator("#page-title").waitFor();
+  assert.equal(await other.locator("#persistence-notice").isVisible(), false);
   assert.equal(
-    !(await other.locator("main").evaluate((e) => (e as HTMLElement).inert)),
+    await other.locator("main").evaluate((e) => (e as HTMLElement).inert),
     false,
   );
+  await selectPractice(other, "piano");
+  await other.locator('[data-piano="60"]').click();
+  await other.locator("#feedback-next").waitFor();
+  await other.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  // The original window can still save a different activity after the new one saves.
+  await practiceOption(page, "#rhythm-level", "pulse");
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#saved")?.textContent === "Saved on this device.",
+  );
+  const both = await stored();
+  assert.equal(both.state.activities.piano.session.answered, 2);
+  assert.ok(both.state.activities.rhythm);
   await page.close();
   await other.reload();
-  await other.locator("#page-title").waitFor();
-  assert.equal(
-    !(await other.locator("main").evaluate((e) => (e as HTMLElement).inert)),
-    true,
-    "lock released on close",
-  );
-  console.log("ownership passed");
+  await other.locator("#feedback-next").waitFor();
+  await other.locator("#feedback-next").click();
+  console.log("concurrent windows passed");
   // Restore completion and history through actual reload, using valid state prepared through normal answers.
   await selectPractice(other, "piano");
-  for (let i = 0; i < 11; i++) {
+  for (let i = 0; i < 10; i++) {
     await other.locator('[data-piano="60"]').click();
     await other.locator("#feedback-next").click();
   }
@@ -214,7 +230,7 @@ try {
   );
   await failureContext.close();
   console.log(
-    "recovery browser passed: exact question, feedback once, activity, pause, ownership, reopen",
+    "recovery browser passed: exact question, feedback once, activity, pause, concurrent windows, reopen",
   );
 } catch (error) {
   await captureFailure(browser, error);

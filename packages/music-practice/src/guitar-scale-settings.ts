@@ -1,3 +1,4 @@
+import { HILA_SHAPES, type HilaShape } from "./hila-scale-shapes";
 import { choice, object } from "./exercise-settings";
 import {
   SCALE_FRET_LIMIT,
@@ -13,6 +14,8 @@ import {
   type ScalePattern,
 } from "./guitar-scale-patterns";
 export type GuitarScaleSettings = ScaleSelection & {
+  shapeSet?: "standard" | "hila";
+  hilaShape?: HilaShape;
   pattern?: ScalePattern;
   shift?: number;
   labels?: "fingers" | "notes" | "none";
@@ -35,6 +38,19 @@ export function mergeGuitarScaleSettings(
         : base.tonic,
     quality: choice(source.quality, SCALE_QUALITIES, base.quality),
   };
+  if (source.shapeSet !== undefined || base.shapeSet !== undefined)
+    settings.shapeSet =
+      settings.quality === "major"
+        ? choice(
+            source.shapeSet,
+            ["standard", "hila"],
+            base.shapeSet || "standard",
+          )
+        : "standard";
+  if (source.hilaShape !== undefined || base.hilaShape !== undefined)
+    settings.hilaShape = HILA_SHAPES.includes(source.hilaShape as HilaShape)
+      ? (source.hilaShape as HilaShape)
+      : base.hilaShape || 1;
   if (source.labels !== undefined || base.labels !== undefined)
     settings.labels = choice(
       source.labels,
@@ -136,6 +152,8 @@ export function guitarScaleFromQuery(
       quality,
       ...(tonic >= 0 ? { spelling: name } : {}),
       ...(pattern ? { pattern } : {}),
+      ...(query.has("set") ? { shapeSet: query.get("set") } : {}),
+      ...(query.has("shape") ? { hilaShape: Number(query.get("shape")) } : {}),
       ...(query.has("from") ? { firstFret: Number(query.get("from")) } : {}),
       ...(query.has("to") ? { lastFret: Number(query.get("to")) } : {}),
       ...(query.has("labels") ? { labels: query.get("labels") } : {}),

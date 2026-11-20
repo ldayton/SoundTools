@@ -1,4 +1,6 @@
 import { chromium, webkit, expect } from "@playwright/test";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
 const server = await preview("songalong", 4574);
@@ -30,8 +32,28 @@ try {
     page.locator(".abcjs-note.sight-current .abcjs-lyric"),
   ).toContainText("glad");
   await page.getByRole("button", { name: "Pause", exact: true }).click();
+  // Pause holds the exact highlighted note; resume advances it, restart clears it.
+  const pausedCount = await page.locator(".hymn-count").textContent();
+  await page.waitForTimeout(350);
+  expect(await page.locator(".hymn-count").textContent()).toBe(pausedCount);
+  await page.getByRole("button", { name: "Resume", exact: true }).click();
+  await expect
+    .poll(() => page.locator(".hymn-count").textContent())
+    .not.toBe(pausedCount);
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
+  await expect(activeTab).toHaveText("2");
+  const thirdTab = page.locator(
+    '[data-name="tabNumber"][data-passage-note="2"]',
+  );
+  await thirdTab.click();
+  await expect(thirdTab).toHaveClass(/sight-current/);
+  await expect(
+    page.locator(".abcjs-note.sight-current .abcjs-lyric"),
+  ).toContainText("morn");
+  await page.getByRole("button", { name: "Go to start", exact: true }).click();
   await page.screenshot({
-    path: "/Users/lily/Documents/Codex/2026-11-18/ex/outputs/songalong-guitar-laptop.png",
+    path: join(tmpdir(), "songalong-guitar-laptop.png"),
     fullPage: true,
   });
   await openPracticeOptions(page);
@@ -44,6 +66,20 @@ try {
   await expect
     .poll(() => page.locator(".abcjs-chord").allTextContents())
     .toEqual(expect.arrayContaining(["G", "C", "D7"]));
+  // In G the opening B is the open B string, rather than D's F# at fret 2.
+  await expect(activeTab).toHaveText("0");
+  await page.locator("#hymn-arrangement").selectOption("melody");
+  await expect(page.locator('[data-name="tabNumber"]')).toHaveCount(0);
+  await expect(
+    page.getByRole("checkbox", { name: "Show fingerings" }),
+  ).toBeVisible();
+  await page.locator("#hymn-arrangement").selectOption("guitar");
+  await expect(activeTab).toHaveText("0");
+  await expect(
+    page.getByRole("checkbox", { name: "Show fingerings" }),
+  ).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator('[data-name="tabNumber"]').first()).toBeVisible();
   await page.setViewportSize({ width: 393, height: 852 });
   await page.goto(
     server.base +
@@ -54,9 +90,20 @@ try {
     .first()
     .waitFor();
   await page.screenshot({
-    path: "/Users/lily/Documents/Codex/2026-11-18/ex/outputs/songalong-guitar-mobile.png",
+    path: join(tmpdir(), "songalong-guitar-mobile.png"),
     fullPage: true,
   });
+  await expect(activeTab).toHaveText("2");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(activeTab).toHaveText("3", { timeout: 15000 });
+  await expect(
+    page.locator(".abcjs-note.sight-current .abcjs-lyric"),
+  ).toContainText("glad");
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.setViewportSize({ width: 852, height: 393 });
+  await expect(activeTab).toHaveCount(1);
+  await page.setViewportSize({ width: 393, height: 852 });
+  await expect(activeTab).toHaveCount(1);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -64,7 +111,7 @@ try {
   ).toBe(true);
   expect(errors).toEqual([]);
   console.log(
-    "PASS guitar melody tab and transposed chords on desktop and mobile",
+    "PASS guitar tab: playback, pause/resume/restart, transposition, view switching, reload, mobile playback and orientation",
   );
 } finally {
   await browser.close();

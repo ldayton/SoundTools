@@ -35,6 +35,7 @@ function withOctave(midi: number, spelling: string): string {
 
 /** Without a tonic: stable selector name. With a tonic: a major-key spelling. */
 export function noteName(midi: number, tonic?: number): string {
+  if (!Number.isInteger(midi)) return `${noteName(Math.ceil(midi))} −50¢`;
   const names = tonic === undefined ? PITCH_NAMES : SCALE_NAMES[pitchClass(tonic)];
   return withOctave(midi, names[pitchClass(midi)]);
 }

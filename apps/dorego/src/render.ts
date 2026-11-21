@@ -404,7 +404,12 @@ export function drawExercise(
     );
   }
   ctx.restore();
-  const glide = scene.phase === 'note' && scene.note?.glideSpan ? scene.note : null;
+  const glide =
+    scene.phase === 'note' &&
+    scene.note &&
+    (scene.note.glideSpan || !Number.isInteger(scene.note.midi))
+      ? scene.note
+      : null;
   if (glide) {
     const keyCenter = (midi: number) =>
       whiteKeyPosition(midi) + ([1, 3, 6, 8, 10].includes(midi % 12) ? 1 : 0.5);
@@ -418,9 +423,9 @@ export function drawExercise(
     const y = y0 - (mobile ? 36 : 24);
     rounded(
       ctx,
-      Math.min(xAt(glide.midi), xAt(glide.midi + glide.glideSpan!)),
+      Math.min(xAt(glide.midi), xAt(glide.midi + (glide.glideSpan ?? 0))),
       y - 2,
-      Math.abs(xAt(glide.midi + glide.glideSpan!) - xAt(glide.midi)),
+      Math.abs(xAt(glide.midi + (glide.glideSpan ?? 0)) - xAt(glide.midi)),
       4,
       2,
       C.line

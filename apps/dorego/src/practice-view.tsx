@@ -387,11 +387,25 @@ function ReferenceKeyboard({
     ? referenceOctaves(state.low, state.high)
     : referenceRows(range[0], range[1], width);
   return (
-    <div ref={host} className="dorego-piano" onContextMenu={(event) => event.preventDefault()} onDragStart={(event) => event.preventDefault()}>
+    <div
+      ref={host}
+      className="dorego-piano"
+      onContextMenu={(event) => event.preventDefault()}
+      onDragStart={(event) => event.preventDefault()}
+    >
+      {state.voices.some((voice) => !Number.isInteger(voice.pitch)) && (
+        <Text size="sm" ta="center">
+          Between piano keys:{' '}
+          {state.voices
+            .filter((voice) => !Number.isInteger(voice.pitch))
+            .map((voice) => noteName(voice.pitch))
+            .join(', ')}
+        </Text>
+      )}
       <PianoKeyboard
         rows={rows}
         whiteKeyWidth={mobile ? 20 : 32}
-        voices={state.voices}
+        voices={state.voices.filter((voice) => Number.isInteger(voice.pitch))}
         label={(midi) => noteName(midi, state.root)}
         onPress={audition}
       />

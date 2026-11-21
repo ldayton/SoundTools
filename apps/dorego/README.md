@@ -53,6 +53,28 @@ On phones, the practice canvas uses a taller layout with larger keys. The keyboa
 
 Note names stay visible for the full rhythmic slot. The highlighted key follows the sounding duration, so detached notes have a short unlit gap. Repeated notes get a fresh progress bar. No pitch detection or singing assessment is implemented.
 
+## Maqam scale prototype
+
+Five-Note Scale and Major Scale offer a **Scale tuning** choice: Major, Rast,
+Bayati, or Hijaz. Maqam choices use fixed 24-tone equal-tempered reference
+intervals (including 50-cent offsets), rather than regional or performer-specific
+intonation. They provide straight scale practice, not characteristic maqam phrases.
+The reference forms use Rast + Rast, Bayati + Nahawand, and Hijaz + Nahawand;
+see [Maqam World](https://www.maqamworld.com/en/maqam.php).
+
+**Tonic drone** is optional and off by default. It sounds a quiet sine tone one
+octave below each round's tonic, follows transposed rounds, and stops during rests.
+Maqam scales omit the major-key starting chords. Existing piano samples are
+transposed at fractional playback rates; no extra recordings are required.
+Quarter-tone notes display their pitch name with a `−50¢` offset and a marker in
+the canvas view. The reference piano labels sounding pitches between keys.
+Preferences persist locally and through account settings. Other exercises retain
+their ordinary tuning and do not play the drone.
+
+Audio/video rendering includes the drone and fractional pitches. Quarter-tone
+MIDI export currently reports an unsupported-tuning error rather than silently
+rounding pitches; MIDI does not include the drone.
+
 ## Exports
 
 Exports are CLI-only; the practice UI has no export controls.

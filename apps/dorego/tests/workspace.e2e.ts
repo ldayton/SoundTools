@@ -1,3 +1,4 @@
+import { verifyMaqamScales } from './maqam.e2e';
 import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -295,6 +296,7 @@ try {
   await phone.locator('#play').click();
   await phone.screenshot({ path: `work/readout-${browserName}-retina.png` });
   await retina.close();
+  await verifyMaqamScales(browser, base);
   assert.deepEqual(errors, []);
   console.log(
     `${browserName}: toolbar geometry, nine exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and responsive widths pass`

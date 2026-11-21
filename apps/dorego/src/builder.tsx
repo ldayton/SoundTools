@@ -1,3 +1,4 @@
+import { SCALE_TUNINGS, supportsScaleTuning, activeScaleTuning, type ScaleTuning } from './music';
 import { useSyncExternalStore } from 'react';
 import {
   ActionIcon,
@@ -194,6 +195,33 @@ export function Builder({
         </Alert>
         <Stack gap="xs">
           <Divider label="Pitch" labelPosition="left" />
+          {supportsScaleTuning(spec.pattern) && (
+            <>
+              <NativeSelect
+                id="scale-tuning"
+                label="Scale tuning"
+                value={spec.scaleTuning ?? 'major'}
+                data={Object.entries(SCALE_TUNINGS).map(([value, tuning]) => ({
+                  value,
+                  label: tuning.name,
+                }))}
+                onChange={(event) =>
+                  change({ scaleTuning: event.currentTarget.value as ScaleTuning })
+                }
+              />
+              {activeScaleTuning(spec) !== 'major' && (
+                <Text size="xs" c="dimmed">
+                  Maqam prototype · fixed quarter-tone tuning. Scale practice only.
+                </Text>
+              )}
+              <Checkbox
+                id="tonic-drone"
+                label="Tonic drone"
+                checked={!!spec.drone}
+                onChange={(event) => change({ drone: event.currentTarget.checked })}
+              />
+            </>
+          )}
           {isPentatonicPattern(spec.pattern) && (
             <NativeSelect
               id="pentatonic-notes"
@@ -315,7 +343,7 @@ export function Builder({
         </Stack>
         <Stack gap="sm">
           <Divider label="Repeats & timing" labelPosition="left" />
-          <div hidden={!vocal}>
+          <div hidden={!vocal || activeScaleTuning(spec) !== 'major'}>
             <Checkbox
               id="startingChords"
               label="Starting-note chords"

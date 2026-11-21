@@ -97,7 +97,24 @@ export function directionName(direction: Direction) {
       : 'Ascending';
 }
 export type Voice = 'bitklavier';
+// Prototype reference tunings in 24-tone equal temperament. These are scale
+// exercises, not a model of regional intonation or maqam melodic development.
+export const SCALE_TUNINGS = {
+  major: { name: 'Major', intervals: [0, 2, 4, 5, 7, 9, 11] },
+  rast: { name: 'Rast', intervals: [0, 2, 3.5, 5, 7, 9, 10.5] },
+  bayati: { name: 'Bayati', intervals: [0, 1.5, 3, 5, 7, 8, 10] },
+  hijaz: { name: 'Hijaz', intervals: [0, 1, 4, 5, 7, 8, 10] },
+} as const;
+export type ScaleTuning = keyof typeof SCALE_TUNINGS;
+export function supportsScaleTuning(pattern: Pattern) {
+  return pattern === 'fiveNote' || pattern === 'major';
+}
+export function activeScaleTuning(spec: ExerciseSpec): ScaleTuning {
+  return supportsScaleTuning(spec.pattern) ? (spec.scaleTuning ?? 'major') : 'major';
+}
 export interface ExerciseSpec {
+  scaleTuning?: ScaleTuning;
+  drone?: boolean;
   startingChords?: boolean;
   repeatTurn?: boolean;
   repeatHome?: boolean;
@@ -242,10 +259,16 @@ export function validateSpec(input: unknown): ExerciseSpec {
     !isGlidePattern(s.pattern as Pattern)
   )
     throw new Error('Choose rising first or falling first within each round.');
+  if (s.scaleTuning !== undefined && !Object.hasOwn(SCALE_TUNINGS, String(s.scaleTuning)))
+    throw new Error('Choose a supported scale tuning.');
+  if (s.drone !== undefined && typeof s.drone !== 'boolean')
+    throw new Error('Invalid drone setting.');
   if (s.voice !== 'bitklavier') throw new Error('Only bitKlavier is supported.');
   for (const key of ['metronome', 'solfege'])
     if (typeof s[key] !== 'boolean') throw new Error(`Invalid ${key}.`);
   const result: ExerciseSpec = {
+    scaleTuning: (s.scaleTuning as ScaleTuning) ?? 'major',
+    drone: s.drone === true,
     pattern: s.pattern as Pattern,
     direction: s.pattern === 'rossini' ? 'up' : (s.direction as Direction),
     voice: s.voice as Voice,
@@ -276,6 +299,28 @@ export function validateSpec(input: unknown): ExerciseSpec {
   return result;
 }
 export function generateExercise(input: unknown, maxDuration = 600): Exercise {
+  const spec = validateSpec(input);
+  const tuning = activeScaleTuning(spec);
+  const exercise = generateBaseExercise(
+    tuning === 'major' ? spec : { ...spec, startingChords: false },
+    maxDuration
+  );
+  if (tuning === 'major') return exercise;
+  const major = SCALE_TUNINGS.major.intervals as readonly number[];
+  const intervals = SCALE_TUNINGS[tuning].intervals;
+  for (const note of exercise.notes) {
+    const index = major.indexOf(note.degree);
+    if (index >= 0) {
+      const shift = intervals[index] - note.degree;
+      note.midi += shift;
+      note.degree += shift;
+    }
+  }
+  exercise.pitches = [...new Set(exercise.notes.map((n) => n.midi))].sort((a, b) => a - b);
+  exercise.title = `${SCALE_TUNINGS[tuning].name} · ${spec.pattern === 'fiveNote' ? 'Five-Note Scale' : 'Octave Scale'}`;
+  return exercise;
+}
+function generateBaseExercise(input: unknown, maxDuration = 600): Exercise {
   const spec = validateSpec(input);
   if (spec.progression !== undefined && isVocalPattern(spec.pattern))
     return generateProgressingExercise(spec, maxDuration);

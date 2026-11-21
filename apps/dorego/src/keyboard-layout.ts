@@ -84,9 +84,11 @@ export function keyboardRange(exercise: Exercise, round: PracticeRound, mobile: 
   // Desktop includes accompaniment; mobile stays focused on the vocal phrase.
   let low = Math.max(
     0,
-    mobile ? Math.min(...pitches) - 1 : Math.min(exercise.spec.low - 2, ...pitches)
+    mobile
+      ? Math.floor(Math.min(...pitches)) - 1
+      : Math.floor(Math.min(exercise.spec.low - 2, ...pitches))
   );
-  let high = Math.min(108, mobile ? Math.max(...pitches) + 1 : exercise.spec.high + 2);
+  let high = Math.min(108, mobile ? Math.ceil(Math.max(...pitches)) + 1 : exercise.spec.high + 2);
   while (isBlack(low)) low--;
   while (isBlack(high)) high++;
   return { low, high };

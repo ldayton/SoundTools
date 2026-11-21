@@ -271,7 +271,7 @@ function update(force = false) {
                   note.onsetBeat <= scene.beat && scene.beat < note.onsetBeat + note.durationBeats
               )
               .map((note) => ({
-                pitch: Math.round(notePitchAt(note, scene.beat)),
+                pitch: note.glideSpan ? Math.round(notePitchAt(note, scene.beat)) : note.midi,
                 start: note.onsetBeat,
               }))
           : [],

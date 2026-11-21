@@ -5,6 +5,10 @@ import { glideOffset, metronomeBeat, type Exercise } from './music';
 export const { Midi } = (Reflect.get(MidiModule, 'default') ?? MidiModule) as typeof MidiModule;
 
 export function exportMidi(exercise: Exercise): Uint8Array {
+  if (exercise.notes.some((note) => !Number.isInteger(note.midi)))
+    throw new Error(
+      'Quarter-tone MIDI export is not supported yet. Use video export for this tuning.'
+    );
   const midi = new Midi();
   midi.header.name = exercise.title ?? 'DoReGo vocal exercise';
   midi.header.setTempo(exercise.spec.bpm);

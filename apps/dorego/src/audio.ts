@@ -1,4 +1,4 @@
-import { TempoClock, type LiveVoice } from './tempo-clock';
+import { holdParam, TempoClock, type LiveVoice } from './tempo-clock';
 import { PlaybackHealth, type PlaybackInterruption } from './playback-health';
 import { CelloGlides, preloadCello } from './cello';
 import * as Tone from 'tone';
@@ -61,7 +61,44 @@ function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
     source.stop(time + duration + 0.025);
     return { cancel, retime() {} };
   };
+  const drone = (frequency: number, duration: number, time: number): LiveVoice => {
+    const source = output.context.createOscillator(),
+      gain = output.context.createGain();
+    source.type = 'sine';
+    source.frequency.value = frequency;
+    source.connect(gain);
+    Tone.connect(gain, output);
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(0.12, time + Math.min(0.08, duration / 2));
+    const release = (at: number, remaining: number) => {
+      gain.gain.setValueAtTime(0.12, at + remaining);
+      gain.gain.linearRampToValueAtTime(0, at + remaining + 0.05);
+      source.stop(at + remaining + 0.06);
+    };
+    const cleanup = () => {
+      source.onended = null;
+      source.disconnect();
+      gain.disconnect();
+      clicks.delete(cancel);
+    };
+    const cancel = () => {
+      source.stop();
+      cleanup();
+    };
+    clicks.add(cancel);
+    source.onended = cleanup;
+    source.start(time);
+    release(time, duration);
+    return {
+      cancel,
+      retime(at, remaining) {
+        holdParam(gain.gain, at);
+        release(at, remaining);
+      },
+    };
+  };
   return {
+    drone,
     synth,
     cello,
     click,
@@ -79,7 +116,9 @@ function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
   };
 }
 function playEvent(event: AudioEvent, graph: ReturnType<typeof makeGraph>, time: number, late = 0) {
-  if (event.kind === 'click') {
+  if (event.kind === 'drone') {
+    if (event.duration > late) return graph.drone(event.frequency, event.duration - late, time);
+  } else if (event.kind === 'click') {
     if (late < 0.04) return graph.click(event.frequency, event.duration, time, event.velocity);
   } else if (event.kind === 'glide' && event.glide) {
     return graph.cello.play(

@@ -148,7 +148,7 @@ export class SteinwayGrand {
     velocity: number,
     elapsed = 0
   ) {
-    const midi = Math.round(69 + 12 * Math.log2(frequency / 440));
+    const midi = Math.round((69 + 12 * Math.log2(frequency / 440)) * 1e6) / 1e6;
     const region = pianoRegion(midi, velocity);
     const buffer = buffers.get(prepared.get(`${region.folder}/${region.file}`) ?? '');
     if (!buffer) throw new Error('The piano samples are not ready.');

@@ -1,7 +1,7 @@
-import { secondsAt, metronomeBeat, type Exercise } from './music';
+import { supportsScaleTuning, secondsAt, metronomeBeat, type Exercise } from './music';
 
 export type AudioEvent = {
-  kind: 'note' | 'click' | 'glide';
+  kind: 'note' | 'click' | 'glide' | 'drone';
   id: string;
   onsetBeat: number;
   endBeat: number;
@@ -41,6 +41,32 @@ export function audioEvents(exercise: Exercise, offset: number): AudioEvent[] {
       frequency: 440 * 2 ** ((note.midi - 69) / 12),
       velocity: note.velocity ?? 0.7,
     });
+  }
+  if (exercise.spec.drone && supportsScaleTuning(exercise.spec.pattern)) {
+    for (const round of exercise.rounds) {
+      const start = secondsAt(round.onsetBeat, bpm),
+        end = secondsAt(round.endBeat, bpm);
+      if (end <= offset) continue;
+      events.push({
+        kind: 'drone',
+        id: `drone:${round.id}`,
+        onsetBeat: round.onsetBeat,
+        endBeat: round.endBeat,
+        time: Math.max(0, start - offset),
+        duration: end - Math.max(start, offset),
+        elapsed: Math.max(0, offset - start),
+        frequency:
+          440 *
+          2 **
+            (((exercise.spec.pattern === 'major'
+              ? exercise.spec.low - ((exercise.spec.low - exercise.spec.key + 120) % 12)
+              : round.midi - round.degree) -
+              12 -
+              69) /
+              12),
+        velocity: 0.12,
+      });
+    }
   }
   for (let beat = 0; beat < exercise.totalBeats; beat++) {
     const time = secondsAt(beat, bpm);

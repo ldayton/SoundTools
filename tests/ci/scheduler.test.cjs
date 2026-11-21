@@ -166,3 +166,16 @@ test('local pre-push selection uses CI pending-release recovery, not just change
   });
   assert.deepEqual(selected.apps, ['soundglow']); assert(selected.accounts); assert.equal(selected.scope, 'affected');
 });
+
+test('parallel Vite servers and catalog partitions own distinct writable dependency caches', () => {
+  const path = require('node:path');
+  const cwd = path.resolve(__dirname, '../..');
+  const tasks = ['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app =>
+    ['chromium', 'webkit'].flatMap(browser => commandTasks(app, 'nightly', browser, cwd)));
+  const caches = tasks.map(task => task.env.CI_VITE_CACHE_DIR);
+  assert.equal(new Set(caches).size, tasks.length);
+  assert(caches.every(directory => directory.startsWith(path.join(cwd, 'work/ci-vite-cache') + path.sep)));
+  const catalogs = tasks.filter(task => task.partition);
+  assert.equal(catalogs.length, 6);
+  assert.equal(new Set(catalogs.map(task => task.env.CI_VITE_CACHE_DIR)).size, 6);
+});

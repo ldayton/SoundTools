@@ -15,6 +15,7 @@ for (const file of [...sourceFiles('src'), ...sourceFiles('scripts'), ...sourceF
 const fingerprint = sourceHash.digest('hex').slice(0,12);
 
 export default defineConfig(({ mode }) => ({
+  cacheDir: process.env.CI_VITE_CACHE_DIR ? resolve(process.env.CI_VITE_CACHE_DIR, 'dorego') : undefined,
   define: { __DOREGO_BUILD__: JSON.stringify(revision + '-' + fingerprint), 'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(process.env.VERCEL_ENV || 'development') },
   base: mode === 'pages' ? '/DoReGo/' : '/',
   plugins: [react(), accountApi(), offlineBuild(revision + '-' + fingerprint)],

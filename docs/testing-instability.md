@@ -208,3 +208,18 @@ releasing the task. The regression starts a real detached listener that ignores
 SIGTERM, lets its parent exit, and requires cancellation to release the port.
 That lifecycle regression passes. The failed Nightly is retained as a failure,
 not described as a passing rerun or discarded as unexplained intermittency.
+
+## Parallel Vite dependency cache invalidation (21 November 2026)
+
+Nightly `1795296237166-ba62bc4a` failed DoReGo Chromium audio-channels before the
+Output control appeared. The retained context log reports HTTP 504
+`Outdated Optimize Dep` for Mantine hooks, react-dom, Tone and shared diagnostics/
+offline modules, followed by a failed dynamic import of `src/main.ts`. This was
+not an audio routing assertion failure. Concurrent development servers in one app
+snapshot shared Vite's writable default dependency cache.
+
+Command tasks now own distinct `CI_VITE_CACHE_DIR` paths, including separate
+catalog partitions. All app Vite configs honor that override while retaining
+normal cache defaults outside the runner. The required assertion is unchanged;
+no reload retry, extra sleep, relaxed audio check or blanket serialization was
+added. The first failure and cancelled remainder remain retained.

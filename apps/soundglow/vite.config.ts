@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 
 // The existing release packager still owns HTML, workers, media and offline hashes.
 export default defineConfig({
+  cacheDir: process.env.CI_VITE_CACHE_DIR ? resolve(process.env.CI_VITE_CACHE_DIR, 'soundglow') : undefined,
   plugins: [
     react(),
     accountApi(),

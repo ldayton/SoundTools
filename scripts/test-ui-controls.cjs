@@ -8,6 +8,7 @@ const { launchBrowser, newPage } = require("./ci/browser-harness.cjs");
     { default: react } = await import("@vitejs/plugin-react");
   const server = await createServer({
     configFile: false,
+    cacheDir: process.env.CI_VITE_CACHE_DIR ? path.join(process.env.CI_VITE_CACHE_DIR, "ui-controls") : undefined,
     root: path.resolve(__dirname, "../packages/ui/tests"),
     plugins: [react()],
     server: {

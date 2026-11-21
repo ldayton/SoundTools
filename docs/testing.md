@@ -296,6 +296,14 @@ developer alias; edition discovery remains automatic and a new edition requires
 its resource declaration. Scheduler tests exercise graph/coverage invariants,
 contention, capacity, deadlines, cancellation and immutable failure evidence.
 
+Browser commands also own separate writable Vite dependency caches through
+`CI_VITE_CACHE_DIR`. Every actual task identity, including catalog partitions,
+gets a different cache below its owned checkout's ignored `work/ci-vite-cache/`.
+App configs append their app name. This prevents concurrent optimizers from
+invalidating each other's versioned modules with 504 Outdated Optimize Dep errors.
+Do not fix those errors with browser reload retries or serialize all app tests.
+Ordinary developer/release cache defaults apply when the override is absent.
+
 A worktree does **not** isolate TCP ports. A host coordinator lock in the common
 Git directory prevents two local runners from racing; individual task locks
 protect declared ports within the run. If the coordinator lock exists, inspect

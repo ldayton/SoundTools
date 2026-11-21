@@ -45,7 +45,12 @@ function commandTasks(app, tier, browser, cwd = root, { group = 'core', shard = 
       });
     }
     return [base];
-  }).concat(tier === 'ci' && group === 'core' ? [{ id: `${prefix}:smoke`, command: process.execPath, args: ['scripts/ci/smoke-local.cjs', app], cwd, needs, locks: [], env: environment('webkit', tier), coverage: [{ command: 'node', args: ['scripts/ci/smoke-local.cjs', app], cwd: '' }] }] : []);
+  }).concat(tier === 'ci' && group === 'core' ? [{ id: `${prefix}:smoke`, command: process.execPath, args: ['scripts/ci/smoke-local.cjs', app], cwd, needs, locks: [], env: environment('webkit', tier), coverage: [{ command: 'node', args: ['scripts/ci/smoke-local.cjs', app], cwd: '' }] }] : []).map(task => ({
+    ...task,
+    // Vite optimizers write versioned dependency metadata. Separate servers,
+    // including catalog partitions, must never invalidate another task's cache.
+    env: { ...task.env, CI_VITE_CACHE_DIR: path.join(cwd, 'work/ci-vite-cache', task.id.replace(/[^\w.-]/g, '_')) },
+  }));
 }
 // The real development-command test rebuilds dist/ui. Finish it before any
 // browser or packager reads that output; Node's isolated pool can then overlap

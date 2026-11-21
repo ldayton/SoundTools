@@ -46,6 +46,7 @@ for (const file of [
 const release = revision + "-" + hash.digest("hex").slice(0, 12);
 export function practiceConfig(app: "notewise" | "songalong") {
   return defineConfig({
+    cacheDir: process.env.CI_VITE_CACHE_DIR ? resolve(process.env.CI_VITE_CACHE_DIR, app) : undefined,
     define: {
       __PRACTICE_APP__: JSON.stringify(app),
       __PRACTICE_BUILD__: JSON.stringify(release),

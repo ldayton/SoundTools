@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import {
   launchBrowser,
   newPage,
@@ -23,6 +23,17 @@ try {
     ["iphone-14-pro", iphone14Pro],
   ] as const) {
     const page = await newPage(browser, { ...device, reducedMotion: "reduce" });
+    // Library geometry checks require an available MIDI interface on every
+    // engine; native Web MIDI support is tested separately by the MIDI suites.
+    await page.addInitScript({
+      content: await readFile(
+        new URL(
+          "../../../packages/music-practice/test-fixtures/midi.js",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     const mobile = !!device.isMobile;

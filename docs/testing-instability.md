@@ -40,3 +40,10 @@ transposition, note feedback, bookmarks, gesture/bar boundaries, clef marks,
 completion and offline checks. Passage rhythm and sustained-bass requirements
 are explicit in the fixture selector and shared unit tests; CI policy guards
 these generic consumers against reintroducing literal song routes.
+
+The WebKit workspace group additionally found a deterministic environment gap:
+`hymn-library.browser.ts` asserted the MIDI connection menu without installing
+the shared MIDI fixture. Chromium happened to supply the native API; WebKit did
+not. Library geometry tests now install the same explicit MIDI fixture on both
+engines, and retain the open/close, visibility and pinned-footer assertions.
+The complete WebKit workspace group passed after the change.

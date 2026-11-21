@@ -64,7 +64,9 @@ the first entry.
 ## Browser synchronization
 
 Use `launchBrowser`, tracked contexts/pages, `captureFailure` and `closeBrowser`
-from `scripts/ci/browser-harness.cjs`. Service workers are blocked by default;
+from `scripts/ci/browser-harness.cjs`. Tests that assert MIDI connection controls
+must install `packages/music-practice/test-fixtures/midi.js` before navigation;
+do not rely on the host browser exposing native Web MIDI. Service workers are blocked by default;
 offline tests explicitly enable them. Keep credentials out of traces/logs.
 
 | Operation | Required boundary |

@@ -67,3 +67,18 @@ An isolated diagnostic seeded 128 BPM, committed 132 in the follower, observed
 266 ms and all takeover/recovery assertions passed. The reliability test now
 seeds a distinct baseline and focuses the transport before measuring propagation.
 No product synchronization guard, assertion deadline or retry policy changed.
+
+## Parallel runner validation: legacy downloaded audio eviction
+
+The first prioritized local run (`0249120`) retained a Soundglow bookmark as
+locally downloaded after `removeDownload`, failing the unchanged "Download to
+open" assertion. Evidence is in
+`work/ci-results/1795266332219-3b59d2d3/` (including retained browser traces).
+The compatibility scenario removes the cached fingerprint. Eviction matched
+only fingerprints, despite cloud-linked legacy records also having a durable
+cloud ID. A deterministic unit regression fails against the original method:
+it leaves the legacy cache behind while removing a fingerprint-matched copy.
+Eviction now matches owned cloud identity or fingerprint and still excludes
+another owner's files. The browser scenario explicitly holds the legacy
+fingerprint absent and uses the real enabled Remove download menu, retaining
+its bookmark/cloud-file and privacy assertions. No timeout or retry changed.

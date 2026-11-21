@@ -13,3 +13,24 @@ m=model();m.overviewDown(event(700));m.overviewMove(event(900));m.cancelGesture(
 let seed=12345;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
 for(let i=0;i<1000;i++){const duration=.002+random()*7200;m=model(duration,Math.max(.001,random()*duration));m.setView((random()-.2)*duration*2,(random()-.1)*duration*2);assert(m.viewStart>=0);assert(m.viewSpan>0&&m.viewSpan<=duration);assert(m.viewStart+m.viewSpan<=duration+1e-9);const time=m.at(event(0)),end=m.at(event(1000));assert(Math.abs(time-m.viewStart)<1e-9);assert(Math.abs(end-m.viewStart-m.viewSpan)<1e-9);}
 console.log('PASS: release coordinates, draft rollback, fine selections, exact fit, disjoint navigator handles, reverse drags, cancelled navigation and 1000 timeline round trips');
+(async()=>{
+ const owner='owner', fingerprint='sha256-tree-v1:'+ 'a'.repeat(64), rows=[
+  {id:'legacy',cloudId:'cloud',owner},
+  {id:'duplicate',fingerprint,owner},
+  {id:'other-owner',cloudId:'cloud',fingerprint,owner:'someone-else'},
+  {id:'unrelated',cloudId:'other',owner},
+ ];
+ const removed=[],cancelled=[];
+ scope.window.SoundglowFiles={user:owner,cancelDownload:async id=>cancelled.push(id)};
+ const library=Object.assign(Object.create(P),{
+  files:[{id:'legacy',cloudId:'cloud',cloudState:'ready',fingerprint}],current:{id:'legacy'},
+  clearSelectedFile(){this.current=null},
+  store:{list:async()=>rows,remove:async id=>removed.push(id)},
+  refreshCloudFiles:async()=>{},message(text){assert.fail(text)},
+ });
+ await library.removeDownload('legacy');
+ assert.deepEqual(cancelled,['cloud']);
+ assert.deepEqual(removed,['legacy','duplicate'],'Evict owned cloud identity even when legacy fingerprint persistence is incomplete');
+ assert.equal(library.current,null);
+ console.log('PASS: removing a download evicts legacy cloud-linked and fingerprint copies without deleting another owner or unrelated audio');
+})().catch(error=>{console.error(error);process.exitCode=1});

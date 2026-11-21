@@ -363,10 +363,18 @@ try {
   ).toHaveValue("600");
   await h.screenshot({ path: "work/account-soundglow-desktop.png" });
   // Removing a downloaded copy leaves its cloud file and bookmark available.
-  await h.evaluate(() => {
+  await expect(h.locator("[data-file]")).toContainText("Synced · Downloaded");
+  // Keep the legacy cache identity deterministic: eviction must work even when
+  // its fingerprint has not yet been persisted. Cloud identity is still owned.
+  await h.evaluate(async () => {
     const l = (window as any).soundglowSession.accountLibrary();
-    return l.removeDownload(l.current.id);
+    const legacy = (await l.store.list()).find((file: any) => file.id === l.current.id);
+    if (!legacy?.cloudId) throw Error("Expected an owned cloud-linked download");
+    delete legacy.fingerprint;
+    await l.store.transaction(["files"], (tx: IDBTransaction) => tx.objectStore("files").put(legacy));
   });
+  await h.getByRole("button", { name: "Actions for file Practice.m4a", exact: true }).click();
+  await h.getByRole("menuitem", { name: "Remove download", exact: true }).click();
   await expect(h.locator("[data-bookmark]")).toContainText("Download to open");
   await expect(g.locator("[data-file]")).toHaveCount(1);
   await signedOut(g);

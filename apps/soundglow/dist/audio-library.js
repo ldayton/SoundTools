@@ -181,7 +181,7 @@
       const file=this.files.find(f=>f.id===id);if(!file?.cloudId||file.cloudState!=='ready')return;
       if(this.current?.id===id)this.clearSelectedFile();
       const user=window.SoundglowFiles.user;
-      try{await window.SoundglowFiles.cancelDownload(file.cloudId);if(user!==window.SoundglowFiles.user)return;for(const cached of await this.store.list())if(cached.fingerprint===file.fingerprint&&(!cached.owner||cached.owner===user))await this.store.remove(cached.id);await this.refreshCloudFiles();}
+      try{await window.SoundglowFiles.cancelDownload(file.cloudId);if(user!==window.SoundglowFiles.user)return;for(const cached of await this.store.list())if((cached.cloudId===file.cloudId||(file.fingerprint&&cached.fingerprint===file.fingerprint))&&(!cached.owner||cached.owner===user))await this.store.remove(cached.id);await this.refreshCloudFiles();}
       catch{this.message('Could not remove the downloaded copy. Please retry.');}
     }
     bookmarkFile(bookmark){return bookmark?.file?this.files.find(f=>f.fingerprint===bookmark.file.fingerprint):this.files.find(f=>f.id===bookmark?.fileId);}

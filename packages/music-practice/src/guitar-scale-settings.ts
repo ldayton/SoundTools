@@ -1,3 +1,4 @@
+import {isMaqam} from "./maqamat";
 import { HILA_SHAPES, type HilaShape } from "./hila-scale-shapes";
 import { choice, object } from "./exercise-settings";
 import {
@@ -106,7 +107,7 @@ export function mergeGuitarScaleSettings(
   if (validShift(shift)) settings.shift = shift;
   const previous = object(source.returnPosition);
   if (
-    patterns.includes(previous.pattern as ScalePattern) &&
+    !isMaqam(settings.quality) && patterns.includes(previous.pattern as ScalePattern) &&
     validShift(previous.shift)
   ) {
     const previousPattern = previous.pattern as ScalePattern;
@@ -133,6 +134,13 @@ export function mergeGuitarScaleSettings(
     spelling !== SCALE_TONICS[settings.quality][settings.tonic]
   )
     settings.spelling = spelling;
+  if(isMaqam(settings.quality)){
+    settings.shapeSet='standard'; settings.pattern='map'; settings.shift=0;
+    settings.firstFret=Math.max(1,Math.min(14,settings.firstFret ?? 1));
+    settings.lastFret=settings.firstFret+4;
+    settings.labels=settings.labels ?? 'fingers';
+    delete settings.returnPosition;
+  }
   return settings;
 }
 export function guitarScaleFromQuery(

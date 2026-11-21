@@ -1,7 +1,8 @@
+import {MAQAMAT, MAQAM_QUALITIES, isMaqam} from "./maqamat";
 import { HILA_SHAPES, type HilaShape } from "./hila-scale-shapes";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack, SimpleGrid } from "@mantine/core";
-import { SCALE_SHAPES, type ScalePattern } from "./guitar-scale-patterns";
+import { CAGED_SHAPES, scaleShapeLabel, type ScalePattern } from "./guitar-scale-patterns";
 import {
   SCALE_FRET_LIMIT,
   SCALE_TONICS,
@@ -51,14 +52,14 @@ export function ScaleOptions({
         label="Scale"
         aria-label="Scale type"
         value={state.quality}
-        data={[
+        data={[{group:"Scales", items:[
           { value: "major", label: "Major" },
           { value: "minor", label: "Natural minor" },
           { value: "major-pentatonic", label: "Major pentatonic" },
           { value: "minor-pentatonic", label: "Minor pentatonic" },
           { value: "major-blues", label: "Major blues" },
           { value: "minor-blues", label: "Minor blues" },
-        ]}
+        ]}, {group:"Maqamat",items:MAQAM_QUALITIES.map(value=>({value,label:MAQAMAT[value].name}))}]}
         onChange={(e) =>
           change({ quality: e.currentTarget.value as ScaleQuality })
         }
@@ -68,15 +69,15 @@ export function ScaleOptions({
           label="Shape set"
           value={state.shapeSet}
           data={[
-            { value: "standard", label: "Standard · five shapes" },
-            { value: "hila", label: "Extended Set" },
+            { value: "standard", label: "CAGED · five shapes" },
+            { value: "hila", label: "Seven-position major" },
           ]}
           onChange={(e) =>
             change({ shapeSet: e.currentTarget.value as "standard" | "hila" })
           }
         />
       )}
-      {state.shapeSet === "hila" ? (
+      {isMaqam(state.quality) ? <NativeSelect label="Hand position" value={String(state.firstFret)} data={Array.from({length:14},(_,i)=>({value:String(i+1),label:`Frets ${i+1}–${i+5}`}))} onChange={e=>change({firstFret:Number(e.currentTarget.value)})} /> : state.shapeSet === "hila" ? (
         <NativeSelect
           label="Shape"
           value={String(state.hilaShape)}
@@ -95,9 +96,9 @@ export function ScaleOptions({
           value={state.pattern}
           data={[
             { value: "map", label: "Fret range" },
-            ...SCALE_SHAPES.map((value) => ({
+            ...CAGED_SHAPES.map((value) => ({
               value,
-              label: `Shape ${value}`,
+              label: scaleShapeLabel(value, state.quality),
             })),
           ]}
           onChange={(e) =>
@@ -105,7 +106,7 @@ export function ScaleOptions({
           }
         />
       )}
-      {state.shapeSet === "standard" && state.pattern === "map" && (
+      {!isMaqam(state.quality) && state.shapeSet === "standard" && state.pattern === "map" && (
         <SimpleGrid cols={2}>
           <NativeSelect
             label="First fret"
@@ -131,7 +132,7 @@ export function ScaleOptions({
           />
         </SimpleGrid>
       )}
-      {state.shapeSet === "standard" && (
+      {!isMaqam(state.quality) && state.shapeSet === "standard" && (
         <NativeSelect
           id="scale-linked-pattern"
           label="Link with"
@@ -139,8 +140,8 @@ export function ScaleOptions({
           disabled={state.pattern === "map"}
           data={[
             { value: "none", label: "Single shape" },
-            ...SCALE_SHAPES.filter((value) => value !== state.pattern).map(
-              (value) => ({ value, label: `Shape ${value}` }),
+            ...CAGED_SHAPES.filter((value) => value !== state.pattern).map(
+              (value) => ({ value, label: scaleShapeLabel(value, state.quality) }),
             ),
           ]}
           onChange={(e) =>
@@ -154,13 +155,13 @@ export function ScaleOptions({
         id="scale-dot-labels"
         label="Dots"
         value={
-          (state.shapeSet === "hila" || state.pattern === "map") &&
+          !isMaqam(state.quality) && (state.shapeSet === "hila" || state.pattern === "map") &&
           state.labels === "fingers"
             ? "notes"
             : state.labels
         }
         data={[
-          ...(state.shapeSet === "standard" && state.pattern !== "map"
+          ...(state.shapeSet === "standard" && (state.pattern !== "map" || isMaqam(state.quality))
             ? [{ value: "fingers", label: "Finger numbers" }]
             : []),
           { value: "none", label: "Unlabelled dots" },

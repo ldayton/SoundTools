@@ -1,3 +1,4 @@
+import { MAQAMAT, MAQAM_QUALITIES, isMaqam } from "./maqamat";
 // Alvarez AP66: 18 frets in total.
 export const SCALE_FRET_LIMIT = 18;
 import { STRINGS } from "./guitar";
@@ -9,6 +10,7 @@ export const SCALE_QUALITIES = [
   "minor-pentatonic",
   "major-blues",
   "minor-blues",
+  ...MAQAM_QUALITIES,
 ] as const;
 export type ScaleQuality = (typeof SCALE_QUALITIES)[number];
 export const isMajorScale = (quality: ScaleQuality) =>
@@ -21,6 +23,7 @@ export const scaleQualityLabel = (quality: ScaleQuality) =>
     "minor-pentatonic": "minor pentatonic",
     "major-blues": "major blues",
     "minor-blues": "minor blues",
+    ...Object.fromEntries(MAQAM_QUALITIES.map(q=>[q,MAQAMAT[q].name])) as Record<typeof MAQAM_QUALITIES[number],string>,
   })[quality];
 // Each pitch class uses its usual diatonic key spelling for that scale family.
 const diatonicTonics = {
@@ -33,6 +36,7 @@ export const SCALE_TONICS = {
   "minor-pentatonic": diatonicTonics.minor,
   "major-blues": diatonicTonics.major,
   "minor-blues": diatonicTonics.minor,
+  ...Object.fromEntries(MAQAM_QUALITIES.map(q=>[q,diatonicTonics.major])) as Record<typeof MAQAM_QUALITIES[number],typeof diatonicTonics.major>,
 };
 export type ScaleSelection = {
   tonic: number;
@@ -44,7 +48,7 @@ export function scaleKeyPitch(name: string, quality: ScaleQuality) {
   if (
     ![
       ...SCALE_TONICS[quality],
-      ...aliases[isMajorScale(quality) ? "major" : "minor"],
+      ...(isMaqam(quality) ? [...aliases.major,...aliases.minor] : aliases[isMajorScale(quality) ? "major" : "minor"]),
     ].includes(name)
   )
     return -1;
@@ -73,11 +77,11 @@ export function scaleNotes(
   )
     throw Error("Invalid scale");
   const first = letters.indexOf((spelling || SCALE_TONICS[quality][tonic])[0]);
-  const intervals = isMajorScale(quality)
+  const intervals = isMaqam(quality) ? MAQAMAT[quality].intervals : isMajorScale(quality)
     ? [0, 2, 4, 5, 7, 9, 11]
     : [0, 2, 3, 5, 7, 8, 10];
   const degrees =
-    isMajorScale(quality) && quality !== "major"
+    isMaqam(quality) ? [0,1,2,3,4,5,6] : isMajorScale(quality) && quality !== "major"
       ? [0, 1, 2, 4, 5]
       : !isMajorScale(quality) && quality !== "minor"
         ? [0, 2, 3, 4, 6]
@@ -114,6 +118,7 @@ export function relativeScale(
   quality: ScaleQuality,
   spelling?: string,
 ): ScaleSelection {
+  if(isMaqam(quality))throw Error("Maqamat do not use a Western relative-scale pairing");
   const major = isMajorScale(quality);
   const note = scaleNotes(tonic, quality, spelling).find(
     (n) => n.degree === (major ? 6 : 3),

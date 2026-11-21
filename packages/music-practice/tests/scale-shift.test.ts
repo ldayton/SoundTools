@@ -25,3 +25,19 @@ test('every offered route has one switch of shapes and consecutive scale pitches
  }
  assert.ok(count>100);
 });
+
+test('uneven pentatonic subsets never suggest a shift against the hand direction',()=>{
+ const a=patternPositions(0,'major-pentatonic','2',0);
+ const b=patternPositions(0,'major-pentatonic','3',0);
+ // G at string 3/fret 12 to E at string 4/fret 14 descends in pitch,
+ // but moves the hand up the neck: it is not a descending position shift.
+ assert.equal(shiftRoutes(a,b,'descending',true).has('4:14'),false);
+ for(const direction of ['ascending','descending'] as const){
+  const routes=shiftRoutes(a,b,direction,true);
+  assert.ok(routes.size>0);
+  for(const route of routes.values()){
+   const distance=(direction==='ascending'?1:-1)*(route.arrival.fret-route.previous.fret);
+   assert.ok(distance>=0&&distance<=4);
+  }
+ }
+});

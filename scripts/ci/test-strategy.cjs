@@ -33,7 +33,7 @@ function nightlyPlan(app, browser, group) {
   if (group === 'editions') return editionFiles().map(file => script(app, file));
   const tasks = {
     dorego: ['test:layout', 'test:browsers', ...(browser === 'chromium' ? ['test:diagnostics-ui', 'test:resilience'] : [])],
-    notewise: ['test:layout', 'test:workspace', 'test:guitar', 'test:piano', 'test:practice', 'test:theory', 'test:navigation', 'test:midi', 'test:signatures', 'test:offline', 'test:backing', ...(browser === 'chromium' ? ['test:browser', 'test:piano-audio', 'test:diagnostics', 'test:backing-realism', 'test:backing-genres'] : [])],
+    notewise: ['test:layout', 'test:workspace', 'test:guitar', 'test:maqamat', 'test:piano', 'test:practice', 'test:theory', 'test:navigation', 'test:midi', 'test:signatures', 'test:offline', 'test:backing', ...(browser === 'chromium' ? ['test:browser', 'test:piano-audio', 'test:diagnostics', 'test:backing-realism', 'test:backing-genres'] : [])],
     songalong: ['test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog', ...(browser === 'chromium' ? ['test:diagnostics'] : [])],
     soundglow: browser === 'webkit' ? ['test:browser-core', 'test:ui-browsers'] : ['test:unit', 'test:browser-core', 'test:updates', 'test:visual', 'test:resilience'],
   };

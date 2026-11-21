@@ -1,9 +1,43 @@
+import {isMaqam} from "./maqamat";
 import { STRINGS } from "./guitar";
 import { isMajorScale, scaleNotes, type ScaleQuality } from "./guitar-scales";
 
 export const SCALE_SHAPES = ["1", "2", "3", "4", "5"] as const;
 export type ScaleShape = (typeof SCALE_SHAPES)[number];
 export type ScalePattern = ScaleShape | "map";
+// IDs remain stable for saved practice state and existing numbered URLs.
+export const CAGED_SHAPES = ["3", "4", "5", "1", "2"] as const;
+export function scaleShapeLabel(shape: ScalePattern | "none", quality: ScaleQuality): string {
+  if (shape === "map") return "Fret range";
+  if (shape === "none") return "Single shape";
+  const chord = { "1": "E", "2": "D", "3": "C", "4": "A", "5": "G" }[shape];
+  return `${chord}${isMajorScale(quality) ? "" : "m"} shape`;
+}
+/** The chord voicing anchoring each position, low E through high E. */
+export function cagedChordPositions(shape: ScaleShape, quality: ScaleQuality, shift: number) {
+  const majorChords: Record<ScaleShape, (number | null)[]> = {
+    "1": [8,10,10,9,8,8], "2": [null,null,10,12,13,12],
+    "3": [null,15,14,12,13,12], "4": [null,3,5,5,5,3], "5": [8,7,5,5,5,8],
+  };
+  const minorChords: Record<ScaleShape, (number | null)[]> = {
+    "1": [5,7,7,5,5,5], "2": [null,null,7,9,10,8],
+    // The high-E chord tone lies outside this scale position; show the four-note voicing.
+    "3": [null,12,10,9,10,null], "4": [null,12,14,14,13,12], "5": [5,3,2,2,5,5],
+  };
+  return (isMajorScale(quality) ? majorChords : minorChords)[shape].flatMap((fret,row)=>
+    fret === null ? [] : [{string:6-row,fret:fret+shift}]);
+}
+/** Familiar reference position of the chord that names a CAGED framework. */
+export function cagedReferenceChord(shape: ScaleShape, quality: ScaleQuality) {
+  const shifts = isMajorScale(quality)
+    ? {"1":-8,"2":-10,"3":-12,"4":-3,"5":-5}
+    : {"1":-5,"2":-7,"3":-9,"4":-12,"5":-2};
+  const positions=cagedChordPositions(shape,quality,shifts[shape]);
+  return {
+    name:scaleShapeLabel(shape,quality).replace(" shape",""),
+    frets:Array.from({length:6},(_,i)=>positions.find(n=>n.string===6-i)?.fret ?? null),
+  };
+}
 type Fingering = { frets: number[][]; fingers: number[][] };
 // GuitarScale.org's C major and A natural minor shapes. Rows run from string 6
 // to string 1; each finger belongs to the fret in the same row and column.
@@ -141,63 +175,69 @@ const minor: Record<ScaleShape, Fingering> = {
   },
   "5": major["4"],
 };
-// Remove the two omitted degrees from the existing five positions. Use a
-// consistent four-fret hand position for each two-notes-per-string box.
+// Keep each pentatonic inside its own numbered full-scale position. Retain
+// the parent fingering so removing notes never introduces a new hand shift.
+// These are scale subsets, not necessarily two-notes-per-string boxes.
 function pentatonic(source: Record<ScaleShape, Fingering>) {
   const pitches = new Set([0, 2, 4, 7, 9]); // C major / A minor pentatonic
   return Object.fromEntries(SCALE_SHAPES.map(shape => {
-    const frets = source[shape].frets.map((row, index) => row.filter(fret =>
-      pitches.has((STRINGS.find(s => s.number === 6 - index)!.midi + fret) % 12)));
-    const low = Math.min(...frets.flat());
-    return [shape, { frets, fingers: frets.map(row => row.map(fret => fret - low + 1)) }];
+    const rows = source[shape].frets.map((row, index) => row.flatMap((fret, column) =>
+      pitches.has((STRINGS.find(s => s.number === 6 - index)!.midi + fret) % 12)
+        ? [{ fret, finger: source[shape].fingers[index][column] }]
+        : []));
+    return [shape, {
+      frets: rows.map(row => row.map(note => note.fret)),
+      fingers: rows.map(row => row.map(note => note.finger)),
+    }];
   })) as Record<ScaleShape, Fingering>;
 }
 const minorPentatonic = pentatonic(minor);
-// GuitarScale.org's suggested fingerings use small hand adjustments at B/high E.
-minorPentatonic["2"].fingers = [[2,4],[1,4],[1,4],[1,3],[1,3],[1,3]];
-minorPentatonic["5"].fingers = [[1,3],[1,3],[1,4],[1,4],[1,3],[1,3]];
-// This box changes hand position at the G string and again at B.
-minorPentatonic["3"].fingers = [[1,3],[1,3],[1,3],[1,4],[1,4],[1,3]];
-const majorPentatonic: Record<ScaleShape, Fingering> = {
-  "1": minorPentatonic["2"], "2": minorPentatonic["3"], "3": minorPentatonic["4"],
-  "4": minorPentatonic["5"], "5": minorPentatonic["1"],
+const majorPentatonic = pentatonic(major);
+// Blue-note placements from GuitarScale.org's A blues diagrams (low E to
+// high E). Keep edge blue notes as well as those inside the pentatonic bounds.
+const minorBlueFrets: Record<ScaleShape, number[][]> = {
+  "1": [[], [6], [], [8], [], []],
+  "2": [[11], [], [], [8], [], [11]],
+  "3": [[11], [], [13], [], [], [11]],
+  "4": [[], [], [13], [], [16], []],
+  "5": [[], [6], [], [], [4], []],
 };
-// Audited against GuitarScale.org's five A blues diagrams. Keep explicit
-// boxes: merely adding notes inside pentatonic bounds misses high-E fret 11
-// in box 2. Fingers are suggestions; some boxes change hand position.
-// https://www.guitarscale.org/a-blues.html
-const minorBlues: Record<ScaleShape, Fingering> = {
-  "1": {
-    frets: [[5,8],[5,6,7],[5,7],[5,7,8],[5,8],[5,8]],
-    fingers: [[1,4],[1,2,3],[1,3],[1,3,4],[1,4],[1,4]],
-  },
-  "2": {
-    frets: [[8,10,11],[7,10],[7,10],[7,8,9],[8,10],[8,10,11]],
-    fingers: [[1,3,4],[1,4],[1,4],[1,2,3],[1,3],[1,3,4]],
-  },
-  "3": {
-    frets: [[10,11,12],[10,12],[10,12,13],[9,12],[10,13],[10,11,12]],
-    fingers: [[1,2,3],[1,3],[1,3,4],[1,4],[1,4],[1,2,3]],
-  },
-  "4": {
-    frets: [[12,15],[12,15],[12,13,14],[12,14],[13,15,16],[12,15]],
-    fingers: [[1,4],[1,4],[1,2,3],[1,3],[1,3,4],[1,4]],
-  },
-  "5": {
-    frets: [[3,5],[3,5,6],[2,5],[2,5],[3,4,5],[3,5]],
-    fingers: [[1,3],[1,3,4],[1,4],[1,4],[1,2,3],[1,3]],
-  },
-};
-const majorBlues: Record<ScaleShape, Fingering> = {
-  "1": minorBlues["2"], "2": minorBlues["3"], "3": minorBlues["4"],
-  "4": minorBlues["5"], "5": minorBlues["1"],
-};
+function blues(source: Record<ScaleShape, Fingering>, blueFrets: Record<ScaleShape, number[][]>) {
+  return Object.fromEntries(SCALE_SHAPES.map(shape => {
+    const rows = source[shape].frets.map((frets, row) => {
+      const notes = frets.map((fret, column) => ({ fret, finger: source[shape].fingers[row][column] }));
+      for (const fret of blueFrets[shape][row]) {
+        const before = [...notes].reverse().find(note => note.fret < fret);
+        const after = notes.find(note => note.fret > fret);
+        // Use a spare finger between neighbours, or slide the adjacent finger
+        // one fret when the parent fingering leaves none free.
+        const finger = before && after && after.finger - before.finger > 1
+          ? before.finger + 1
+          : before && fret - before.fret === 1 ? before.finger
+          : after && after.fret - fret === 1 ? after.finger
+          : (() => { throw Error('Blue note needs an explicit playable fingering'); })();
+        notes.push({ fret, finger });
+        notes.sort((a, b) => a.fret - b.fret);
+      }
+      return notes;
+    });
+    return [shape, { frets: rows.map(row => row.map(n => n.fret)), fingers: rows.map(row => row.map(n => n.finger)) }];
+  })) as Record<ScaleShape, Fingering>;
+}
+const minorBlues = blues(minorPentatonic, minorBlueFrets);
+const majorBlueFrets = Object.fromEntries(SCALE_SHAPES.map(shape =>
+  [shape, minorBlueFrets[relativePattern(shape, "major")]])) as Record<ScaleShape, number[][]>;
+const majorBlues = blues(majorPentatonic, majorBlueFrets);
 const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic, "major-blues": majorBlues, "minor-blues": minorBlues };
+function templatesFor(quality:ScaleQuality){
+  if(isMaqam(quality))throw Error('Maqamat use their own hand positions');
+  return templates[quality];
+}
 export function patternBounds(
   shape: ScaleShape,
   quality: ScaleQuality = "major",
 ) {
-  const frets = templates[quality][shape].frets.flat();
+  const frets = templatesFor(quality)[shape].frets.flat();
   return [Math.min(...frets), Math.max(...frets)] as const;
 }
 export function patternShift(
@@ -248,7 +288,7 @@ export function patternPositions(
   spelling?: string,
 ) {
   const notes = scaleNotes(tonic, quality, spelling);
-  const template = templates[quality][shape];
+  const template = templatesFor(quality)[shape];
   return template.frets.flatMap((frets, index) => {
     const string = STRINGS.find((s) => s.number === 6 - index)!;
     return frets.map((fret, i) => {

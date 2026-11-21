@@ -1,4 +1,4 @@
-import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import { captureFailure, closeBrowser, launchBrowser, newPage, waitForApp } from '../../../scripts/ci/browser-harness.cjs';
 import {chromium,firefox,webkit} from 'playwright';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -13,13 +13,21 @@ try {
  const page=await newPage(browser, {viewport:{width:1440,height:1050},serviceWorkers:'block'});
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(server.base+'/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
+ await waitForApp(page,'.scale-diagram svg');
  await page.locator('.scale-shift-candidate').first().waitFor();
+ await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).click();
+ await page.getByRole('region',{name:'Chord shape diagram',exact:true}).waitFor({state:'visible'});
+ assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('E Chord'));
+ await page.getByRole('button',{name:'Next fingering',exact:true}).click();
+ assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('G Chord'));
+ await page.getByRole('button',{name:'Close chord diagram',exact:true}).click();
+ await page.getByRole('region',{name:'Chord shape diagram',exact:true}).waitFor({state:'hidden'});
  assert.equal(await page.locator('.scale-diagram svg').count(),1);
  const originalColors = await page.locator('.scale-tone').evaluateAll(notes => Object.fromEntries(notes.map(n => [`${n.getAttribute('data-string')}:${n.getAttribute('data-fret')}`, getComputedStyle(n.querySelector('circle')!).fill])));
  const originalNotes = await page.locator('.scale-tone').evaluateAll(notes => notes.map(n => `${n.getAttribute('data-string')}:${n.getAttribute('data-fret')}`).sort());
  await page.getByRole('button', {name:'Reverse shapes', exact:true}).click();
  await page.waitForURL(url => url.searchParams.get('pattern') === '5' && url.searchParams.get('link') === '1');
- assert.deepEqual(await page.locator('.scale-link-legend > span').allTextContents(), ['Root', 'Shape 1', 'Shape 5', 'Shared note', 'Clickable shift']);
+ assert.deepEqual(await page.locator('.scale-link-legend > span').allTextContents(), ['Root', 'E shape', 'G shape', 'Shared note', 'Clickable shift']);
  assert.deepEqual(await page.locator('.scale-tone').evaluateAll(notes => Object.fromEntries(notes.map(n => [`${n.getAttribute('data-string')}:${n.getAttribute('data-fret')}`, getComputedStyle(n.querySelector('circle')!).fill]))), originalColors);
  assert.deepEqual(await page.locator('.scale-tone').evaluateAll(notes => notes.map(n => `${n.getAttribute('data-string')}:${n.getAttribute('data-fret')}`).sort()), originalNotes);
  await page.getByRole('button', {name:'Reverse shapes', exact:true}).click();
@@ -57,6 +65,7 @@ try {
  assert.equal(await page.locator('.scale-shift-chosen').evaluate(n => `${n.getAttribute('data-string')}:${n.getAttribute('data-fret')}`), selectedKey);
  const selected=await page.locator('.scale-shift-chosen').boundingBox(),board=await page.locator('.scale-diagram').boundingBox();assert.ok(selected!.x+selected!.width<=board!.x+board!.width+1,'selected shift stays visible after re-render');
  await page.setViewportSize({width:390,height:844});
+ await page.waitForFunction(()=>matchMedia('(min-width: 48em)').matches===!!document.querySelector('.mantine-AppShell-navbar'));
  assert.equal(await page.locator('.scale-diagram svg').count(),1);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  const linkedSize=await page.locator('.scale-tone circle').first().evaluate((c:any)=>({width:c.r.baseVal.value * 2 * c.getScreenCTM().a}));

@@ -1,3 +1,5 @@
+import {isMaqam,MAQAMAT,maqamSource} from "./maqamat";
+import {maqamPositions} from "./maqam-guitar";
 import {
   hilaBounds,
   hilaPositions,
@@ -21,6 +23,9 @@ import {
 } from "./scale-options";
 import {
   linkedPatternPositions,
+  scaleShapeLabel,
+  cagedChordPositions,
+  cagedReferenceChord,
   patternBounds,
   patternShift,
   patternPositions,
@@ -129,6 +134,7 @@ export class ScaleExplorer implements LivePractice {
     else this.moveTonic(event.key === "ArrowLeft" ? -1 : 1);
   };
   private moveOctave(direction: number) {
+    if(isMaqam(this.quality)){this.moveMaqamPosition(direction*12);return;}
     if (this.shapeSet === "hila") {
       const next = this.shift + direction * 12;
       if (hilaShift(this.tonic, this.hilaShape, next) === next) {
@@ -145,7 +151,12 @@ export class ScaleExplorer implements LivePractice {
     this.returnPosition = undefined;
     this.update();
   }
+  private moveMaqamPosition(direction:number){
+    const next=this.firstFret+direction;if(next<1||next>14)return;
+    this.firstFret=next;this.lastFret=next+4;this.update();
+  }
   private moveShape(direction: number) {
+    if(isMaqam(this.quality)){this.moveMaqamPosition(direction);return;}
     if (this.shapeSet === "hila") {
       this.hilaShape = (((this.hilaShape - 1 + direction + 7) % 7) +
         1) as HilaShape;
@@ -180,7 +191,10 @@ export class ScaleExplorer implements LivePractice {
     this.update();
   }
   private moveTonic(direction: number) {
-    if (this.shapeSet === "hila") {
+    if(isMaqam(this.quality)){
+      const next=this.firstFret+direction;if(next<1||next>14)return;
+      this.firstFret=next;this.lastFret=next+4;
+    } else if (this.shapeSet === "hila") {
       const tonic = (this.tonic + direction + 12) % 12;
       const next = this.shift + direction;
       if (hilaShift(tonic, this.hilaShape, next) !== next) return;
@@ -474,6 +488,11 @@ export class ScaleExplorer implements LivePractice {
     this.publishRoute();
   }
   private normalizePosition() {
+    if(isMaqam(this.quality)){
+      this.pattern='map';this.shapeSet='standard';this.linked='none';this.returnPosition=undefined;this.shift=0;
+      this.firstFret=Math.max(1,Math.min(14,this.firstFret));this.lastFret=this.firstFret+4;
+      return;
+    }
     if (this.shapeSet === "hila")
       this.shift = hilaShift(this.tonic, this.hilaShape, this.shift);
     else if (this.pattern !== "map")
@@ -499,7 +518,8 @@ export class ScaleExplorer implements LivePractice {
     const noteList = scaleNotes(this.tonic, this.quality, this.spelling)
       .map((n) => scaleLabel(n.name))
       .join(" · ");
-    const relative = relativeScale(this.tonic, this.quality, this.spelling);
+    const maqam=isMaqam(this.quality);
+    const relative = maqam ? {tonic:this.tonic,quality:this.quality,spelling:this.spelling} : relativeScale(this.tonic, this.quality, this.spelling);
     const relativeName = scaleLabel(
       relative.spelling || SCALE_TONICS[relative.quality][relative.tonic],
     );
@@ -507,10 +527,10 @@ export class ScaleExplorer implements LivePractice {
     const label = this.returnPosition
       ? "Return to previous shape"
       : `Show ${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} starting position`;
-    const relativeExplanation = `${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} Shape 1 · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)} Shape ${relativeTarget}`;
+    const relativeExplanation = `${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} ${scaleShapeLabel("1", relative.quality)} · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)} ${scaleShapeLabel(relativeTarget, this.quality)}`;
     const hila = this.shapeSet === "hila";
-    const movable = hila || this.pattern !== "map";
-    const basePositions = hila
+    const movable = maqam || hila || this.pattern !== "map";
+    const basePositions = isMaqam(this.quality) ? maqamPositions(this.tonic,this.quality,this.firstFret,this.spelling) : hila
       ? hilaPositions(this.tonic, this.hilaShape, this.shift, this.spelling)
       : this.pattern === "map"
         ? scalePositions(
@@ -528,7 +548,7 @@ export class ScaleExplorer implements LivePractice {
             this.spelling,
           );
     const linked =
-      !hila &&
+      !maqam && !hila &&
       movable &&
       this.linked !== "none" &&
       this.linked !== "map" &&
@@ -583,10 +603,27 @@ export class ScaleExplorer implements LivePractice {
       ...basePositions,
       ...secondary.filter((n) => !primaryKeys.has(`${n.string}:${n.fret}`)),
     ];
-    const firstFret = movable
+    const chordKeys = new Set<string>();
+    const chordDiagrams: {name:string; frets:(number|null)[]}[] = [];
+    const addChord = (shape: Exclude<ScalePattern,"map">, shift: number) => {
+      const positions=cagedChordPositions(shape,this.quality,shift);
+      for(const n of positions)chordKeys.add(positionKey(n));
+      chordDiagrams.push({
+        ...cagedReferenceChord(shape,this.quality),
+      });
+    };
+    if (!hila && this.pattern !== "map") {
+      addChord(this.pattern,this.shift);
+      if (secondary.length && this.linked !== "none" && this.linked !== "map") {
+        const reference = patternPositions(isMajorScale(this.quality) ? 0 : 9, this.quality, this.linked, 0);
+        const linkedShift = secondary[0].fret - reference[0].fret;
+        addChord(this.linked,linkedShift);
+      }
+    }
+    const firstFret = maqam ? this.firstFret : movable
       ? Math.min(...positions.map((n) => n.fret))
       : this.firstFret;
-    const lastFret = movable
+    const lastFret = maqam ? this.lastFret : movable
       ? Math.max(...positions.map((n) => n.fret))
       : this.lastFret;
     const fullStart = Math.max(1, firstFret);
@@ -597,25 +634,25 @@ export class ScaleExplorer implements LivePractice {
     const fullLeft = firstFret === 0 ? -100 : (fullStart - 1) * step - 36;
     const fullRight = fullEnd * step + 1;
 
-    const caption = hila
-      ? `Extended Set · Shape ${this.hilaShape}`
+    const caption = maqam ? `Frets ${firstFret}–${lastFret}` : hila
+      ? `Seven-position major · Shape ${this.hilaShape}`
       : movable
-        ? `Shape ${this.pattern} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
+        ? `${scaleShapeLabel(this.pattern, this.quality)} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
         : "Fret range";
     const labels = hila && this.labels === "fingers" ? "notes" : this.labels;
     const footnote =
       movable && labels === "fingers"
-        ? "1 index · 2 middle · 3 ring · 4 little finger"
+        ? "1 index · 2 middle · 3 ring · 4 little finger" + (maqam ? ". Some rows use a one-fret extension." : "") + (this.quality.endsWith("blues") ? ". Same finger on adjacent frets: slide one fret." : "")
         : "Darker dots mark the root notes.";
-    const source =
+    const source = isMaqam(this.quality) ? maqamSource(this.quality) :
       this.quality === "major-blues"
         ? "https://pulse.berklee.edu/scales/c-major-blues-scale.html"
-        : `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : this.quality.endsWith("pentatonic") ? (isMajorScale(this.quality) ? "c-pentatonic-major" : "a-pentatonic-minor") : isMajorScale(this.quality) ? "c-major" : "a-minor"}.html`;
+        : `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : isMajorScale(this.quality) ? "c-major" : "a-minor"}.html`;
     const keys = [-1, 1].map((direction) => {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],
       );
-      const [low, high] = hila
+      const [low, high] = maqam ? [this.firstFret,this.lastFret] : hila
         ? hilaBounds(this.hilaShape)
         : patternBounds(
             this.pattern === "map" ? "1" : this.pattern,
@@ -627,11 +664,11 @@ export class ScaleExplorer implements LivePractice {
         disabled:
           movable &&
           (low + this.shift + direction < 1 ||
-            high + this.shift + direction > (hila ? 18 : 22)),
+            high + this.shift + direction > (hila || maqam ? 18 : 22)),
       };
     });
     this.controls.set({
-      relative: hila ? "" : label,
+      relative: hila || maqam ? "" : label,
       returning: !!this.returnPosition,
       movable,
       caption: linked ? "" : caption,
@@ -686,7 +723,7 @@ export class ScaleExplorer implements LivePractice {
           const dotLabel = alternate
             ? `<text class="scale-finger-main" x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text><rect class="scale-alternate-badge" x="${x(n.fret) + 6}" y="${y(n.string) + 5}" width="20" height="20" rx="7"/><text class="scale-finger-alternate" x="${x(n.fret) + 16}" y="${y(n.string) + 15}" dy=".35em">${alternate.finger}</text>`
             : `<text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text>`;
-          return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
+          return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${chordKeys.has(positionKey(n)) ? " scale-chord-tone" : ""}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}${chordKeys.has(positionKey(n)) ? ", CAGED chord note" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
         })
         .join("");
       const turn = route;
@@ -720,7 +757,7 @@ export class ScaleExplorer implements LivePractice {
         route && (route.previous.string === 6 || route.arrival.string === 6)
           ? 335
           : 290;
-      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${hila ? "Extended Set, Shape " + this.hilaShape : "Shape " + this.pattern}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
+      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${maqam ? "hand position" : hila ? "Seven-position major, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
       ${Array.from(
         { length: fullEnd - fullStart + 2 },
         (_, i) => fullStart - 1 + i,
@@ -770,10 +807,14 @@ export class ScaleExplorer implements LivePractice {
           ? ""
           : "No linked route available for this pair here.",
       reversedColors: this.reversedColors,
-      linkedLegend: linked ? `Shape ${this.pattern}|Shape ${this.linked}` : "",
+      chordOutline: chordKeys.size > 0,
+      chordDiagrams,
+      linkedLegend: linked ? `${scaleShapeLabel(this.pattern, this.quality)}|${scaleShapeLabel(this.linked, this.quality)}` : "",
       linkHelp: "",
       notes: noteList,
-      relativeExplanation: hila
+      maqamReference: isMaqam(this.quality) ? `${MAQAMAT[this.quality].form} Fretted reference; traditional intonation and melodic development vary.` : "",
+      sourceLabel: maqam ? "MaqamWorld" : "GuitarScale.org",
+      relativeExplanation: maqam ? "Backing uses tonic and fifth, without a Western major/minor progression." : hila
         ? "17 consecutive scale notes across all six strings."
         : relativeExplanation,
       movable,

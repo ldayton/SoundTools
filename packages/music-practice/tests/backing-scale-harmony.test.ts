@@ -1,3 +1,4 @@
+import {MAQAM_QUALITIES,isMaqam} from "../src/maqamat";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { genreBackingArrangement } from "../src/backing-genre-engine";
@@ -14,6 +15,7 @@ const qualities: ScalePracticeQuality[] = [
   "minor-pentatonic",
   "major-blues",
   "minor-blues",
+  ...MAQAM_QUALITIES,
 ];
 test("scale harmony preserves all attacks, sounds, levels and durations, keeps bass sparse and every pitched note in the selected scale", () => {
   for (const { id } of backingGenres)
@@ -43,7 +45,10 @@ test("scale harmony preserves all attacks, sounds, levels and durations, keeps b
             assert.deepEqual(performance, original);
             if (e.part === "drums" || e.part === "percussion")
               assert.deepEqual(e, a.events[i]);
-            else assert.ok(pcs.includes(note % 12), `${id} ${quality} ${note}`);
+            else {
+              assert.ok(pcs.includes(note % 12), `${id} ${quality} ${note}`);
+              if(isMaqam(quality))assert.ok([0,7].includes((note-tonic+120)%12));
+            }
           });
           assert.ok(b.plan.bars.every((bar) => bar.root === tonic));
           const bassBars = new Set<number>();

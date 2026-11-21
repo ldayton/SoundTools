@@ -3,7 +3,13 @@ import { ActionIcon, Group, Modal, Stack, Text } from "@mantine/core";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { fingeringWindow, type ChordPassage } from "./chord-passage-fingering";
 const eventName = "songalong:guitar-chord";
-type Selection = ChordPassage & { trigger: SVGElement };
+type Selection = Pick<ChordPassage, "name" | "shapes" | "capo"> & {
+  trigger: SVGElement | HTMLElement;
+  descriptions?: string[];
+};
+export function showGuitarChordDiagram(selection: Selection) {
+  window.dispatchEvent(new CustomEvent<Selection>(eventName, {detail: selection}));
+}
 /** Enlarge chord hit targets without changing engraving or passage selection. */
 export function attachChordDiagrams(
   paper: HTMLElement,
@@ -32,11 +38,7 @@ export function attachChordDiagrams(
     text.parentNode!.insertBefore(group, text);
     group.append(target, text);
     const open = () => {
-      window.dispatchEvent(
-        new CustomEvent<Selection>(eventName, {
-          detail: { ...passage, trigger: group },
-        }),
-      );
+      showGuitarChordDiagram({ ...passage, trigger: group });
     };
     for (const event of ["pointerdown", "mousedown", "touchstart", "dblclick"])
       group.addEventListener(event, (event) => event.stopPropagation());
@@ -55,7 +57,7 @@ export function attachChordDiagrams(
 }
 export function GuitarChordDiagram() {
   const [selected, setSelected] = useState<Selection | null>(null);
-  const trigger = useRef<SVGElement | null>(null);
+  const trigger = useRef<SVGElement | HTMLElement | null>(null);
   const [frame, setFrame] = useState(0);
   useEffect(() => {
     const open = (event: Event) => {
@@ -67,15 +69,6 @@ export function GuitarChordDiagram() {
     window.addEventListener(eventName, open);
     return () => window.removeEventListener(eventName, open);
   }, []);
-  const shape = selected?.shapes[frame] || [];
-  const { base, rows } = fingeringWindow(selected?.shapes || [], frame);
-  const bottom = 55 + rows * 40;
-  const description = shape
-    .map(
-      (f, i) =>
-        `${["low E", "A", "D", "G", "B", "high E"][i]}: ${f === null ? "not played" : f === 0 ? "open" : `fret ${f}`}`,
-    )
-    .join("; ");
   return (
     <Modal
       opened={!!selected}
@@ -93,15 +86,62 @@ export function GuitarChordDiagram() {
       {selected && (
         <Stack gap="sm">
           <Text size="sm" c="dimmed">
-            Written notes at this point in the passage.
+            {selected.descriptions?.[frame] || "Written notes at this point in the passage."}
             {selected.capo
               ? ` Capo ${selected.capo}; frets are relative to the capo.`
               : ""}
           </Text>
+          <GuitarChordGraphic name={selected.name} shapes={selected.shapes} frame={frame} />
+          {selected.shapes.length > 1 && (
+            <Group justify="space-between">
+              <ActionIcon
+                variant="default"
+                size={44}
+                aria-label="Previous fingering"
+                disabled={frame === 0}
+                onClick={() => setFrame((n) => n - 1)}
+              >
+                <ControlIcon name="chevron-left" />
+              </ActionIcon>
+              <Text size="sm" aria-live="polite">
+                {frame + 1} / {selected.shapes.length}
+              </Text>
+              <ActionIcon
+                variant="default"
+                size={44}
+                aria-label="Next fingering"
+                disabled={frame === selected.shapes.length - 1}
+                onClick={() => setFrame((n) => n + 1)}
+              >
+                <ControlIcon name="chevron-right" />
+              </ActionIcon>
+            </Group>
+          )}
+        </Stack>
+      )}
+    </Modal>
+  );
+}
+
+/** Shared chord artwork for SongAlong's dialog and the inline scale panel. */
+export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false}: {
+  name: string; shapes: (number|null)[][]; frame?: number; horizontal?: boolean;
+}) {
+  const shape = shapes[frame] || [];
+  const { base, rows } = fingeringWindow(shapes, frame);
+  const bottom = 55 + rows * 40;
+  const description = shape
+    .map(
+      (f, i) =>
+        `${["low E", "A", "D", "G", "B", "high E"][i]}: ${f === null ? "not played" : f === 0 ? "open" : `fret ${f}`}`,
+    )
+    .join("; ");
+  return (
           <svg
-            viewBox={`0 0 240 ${bottom + 55}`}
+            viewBox={horizontal ? `0 0 ${bottom + 55} 240` : `0 0 240 ${bottom + 55}`}
+            data-orientation={horizontal ? "horizontal" : "vertical"}
             role="img"
-            aria-label={`${selected.name} guitar chord: ${description}`}
+            aria-label={`${name} guitar chord: ${description}`}
             style={{
               display: "block",
               width: "100%",
@@ -109,6 +149,7 @@ export function GuitarChordDiagram() {
             }}
           >
             <title>{description}</title>
+            <g transform={horizontal ? "translate(0 240) rotate(-90)" : undefined}>
             {Array.from({ length: rows + 1 }, (_, i) => (
               <line
                 key={`f${i}`}
@@ -138,6 +179,7 @@ export function GuitarChordDiagram() {
                   <text
                     x={42 + i * 32}
                     y="36"
+                    transform={horizontal ? `rotate(90 ${42 + i * 32} 36)` : undefined}
                     textAnchor="middle"
                     fontSize="20"
                     fill="currentColor"
@@ -164,47 +206,21 @@ export function GuitarChordDiagram() {
                 <text
                   x={42 + i * 32}
                   y={bottom + 30}
+                  transform={horizontal ? `rotate(90 ${42 + i * 32} ${bottom + 30})` : undefined}
                   textAnchor="middle"
                   fontSize="14"
                   fill="currentColor"
                 >
-                  {["E", "A", "D", "G", "B", "e"][i]}
+                  {["E", "A", "D", "G", "B", "E"][i]}
                 </text>
               </g>
             ))}
             {base > 1 && (
-              <text x="8" y="80" fontSize="14" fill="currentColor">
+              <text transform={horizontal ? "rotate(90 8 80)" : undefined} x="8" y="80" fontSize="14" fill="currentColor">
                 {base}fr
               </text>
             )}
+            </g>
           </svg>
-          {selected.shapes.length > 1 && (
-            <Group justify="space-between">
-              <ActionIcon
-                variant="default"
-                size={44}
-                aria-label="Previous fingering"
-                disabled={frame === 0}
-                onClick={() => setFrame((n) => n - 1)}
-              >
-                <ControlIcon name="chevron-left" />
-              </ActionIcon>
-              <Text size="sm" aria-live="polite">
-                {frame + 1} / {selected.shapes.length}
-              </Text>
-              <ActionIcon
-                variant="default"
-                size={44}
-                aria-label="Next fingering"
-                disabled={frame === selected.shapes.length - 1}
-                onClick={() => setFrame((n) => n + 1)}
-              >
-                <ControlIcon name="chevron-right" />
-              </ActionIcon>
-            </Group>
-          )}
-        </Stack>
-      )}
-    </Modal>
   );
 }

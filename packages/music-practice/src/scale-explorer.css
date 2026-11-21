@@ -204,3 +204,22 @@
 
 .scale-link-transition { pointer-events:none; }
 .scale-link-transition > path { fill:none; stroke:#c36a16; stroke-width:2.5; }
+
+.scale-tone.scale-chord-tone circle {
+  stroke: #20283a;
+  stroke-width: 2.5;
+}
+.scale-link-legend .scale-chord-swatch { background: #8f9bb6; border: 2px solid #20283a; box-sizing: border-box; }
+
+.scale-chord-trigger {
+  display: inline-flex; align-items: center; gap: 7px; font: inherit;
+  color: #5f3dc4; background: transparent; border: 0; border-radius: 4px;
+  padding: 5px 6px; cursor: pointer; text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.scale-chord-trigger:hover { background: #f3f0ff; }
+.scale-chord-trigger:focus-visible { outline: 2px solid #5f3dc4; outline-offset: 2px; }
+
+.scale-chord-panel { border: 1px solid #d6d9e2; border-radius: 8px; padding: 10px; margin: 12px auto; max-width: 340px; }
+.scale-chord-panel > svg { max-height: 240px; }
+.scale-chord-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

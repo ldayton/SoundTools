@@ -1,3 +1,4 @@
+import {isMaqam,MAQAMAT,type MaqamQuality} from "./maqamat";
 import type { BackingTake } from "./backing-plan-types";
 import type { BackingEvent } from "./backing-track-model";
 export type ScalePracticeQuality =
@@ -6,14 +7,15 @@ export type ScalePracticeQuality =
   | "major-pentatonic"
   | "minor-pentatonic"
   | "major-blues"
-  | "minor-blues";
+  | "minor-blues"
+  | MaqamQuality;
 const pc = (n: number) => ((n % 12) + 12) % 12;
 export function practicePitchClasses(
   tonic: number,
   quality: ScalePracticeQuality,
 ) {
   const intervals =
-    quality === "major"
+    isMaqam(quality) ? MAQAMAT[quality].intervals : quality === "major"
       ? [0, 2, 4, 5, 7, 9, 11]
       : quality === "minor"
         ? [0, 2, 3, 5, 7, 8, 10]
@@ -43,7 +45,7 @@ export function scalePracticeHarmony(
     // Every eight-bar phrase opens and closes with an unambiguous tonic triad.
     const phase = bar % 8;
     const chord =
-      phase === 4
+      isMaqam(quality) ? [0,7] : phase === 4
         ? [0, major ? 4 : 3, 7, major ? 9 : 10]
         : phase === 6
           ? [0, major ? 2 : 5, 7]

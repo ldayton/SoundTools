@@ -605,7 +605,7 @@ export class ScaleExplorer implements LivePractice {
     const labels = hila && this.labels === "fingers" ? "notes" : this.labels;
     const footnote =
       movable && labels === "fingers"
-        ? "1 index · 2 middle · 3 ring · 4 little finger"
+        ? "1 index · 2 middle · 3 ring · 4 little finger" + (this.quality.endsWith("blues") ? ". Same finger on adjacent frets: slide one fret." : "")
         : "Darker dots mark the root notes.";
     const source =
       this.quality === "major-blues"

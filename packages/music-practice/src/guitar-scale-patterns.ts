@@ -159,36 +159,41 @@ function pentatonic(source: Record<ScaleShape, Fingering>) {
 }
 const minorPentatonic = pentatonic(minor);
 const majorPentatonic = pentatonic(major);
-// Audited against GuitarScale.org's five A blues diagrams. Keep explicit
-// boxes: merely adding notes inside pentatonic bounds misses high-E fret 11
-// in box 2. Fingers are suggestions; some boxes change hand position.
-// https://www.guitarscale.org/a-blues.html
-const minorBlues: Record<ScaleShape, Fingering> = {
-  "1": {
-    frets: [[5,8],[5,6,7],[5,7],[5,7,8],[5,8],[5,8]],
-    fingers: [[1,4],[1,2,3],[1,3],[1,3,4],[1,4],[1,4]],
-  },
-  "2": {
-    frets: [[8,10,11],[7,10],[7,10],[7,8,9],[8,10],[8,10,11]],
-    fingers: [[1,3,4],[1,4],[1,4],[1,2,3],[1,3],[1,3,4]],
-  },
-  "3": {
-    frets: [[10,11,12],[10,12],[10,12,13],[9,12],[10,13],[10,11,12]],
-    fingers: [[1,2,3],[1,3],[1,3,4],[1,4],[1,4],[1,2,3]],
-  },
-  "4": {
-    frets: [[12,15],[12,15],[12,13,14],[12,14],[13,15,16],[12,15]],
-    fingers: [[1,4],[1,4],[1,2,3],[1,3],[1,3,4],[1,4]],
-  },
-  "5": {
-    frets: [[3,5],[3,5,6],[2,5],[2,5],[3,4,5],[3,5]],
-    fingers: [[1,3],[1,3,4],[1,4],[1,4],[1,2,3],[1,3]],
-  },
+// Blue-note placements from GuitarScale.org's A blues diagrams (low E to
+// high E). Keep edge blue notes as well as those inside the pentatonic bounds.
+const minorBlueFrets: Record<ScaleShape, number[][]> = {
+  "1": [[], [6], [], [8], [], []],
+  "2": [[11], [], [], [8], [], [11]],
+  "3": [[11], [], [13], [], [], [11]],
+  "4": [[], [], [13], [], [16], []],
+  "5": [[], [6], [], [], [4], []],
 };
-const majorBlues: Record<ScaleShape, Fingering> = {
-  "1": minorBlues["2"], "2": minorBlues["3"], "3": minorBlues["4"],
-  "4": minorBlues["5"], "5": minorBlues["1"],
-};
+function blues(source: Record<ScaleShape, Fingering>, blueFrets: Record<ScaleShape, number[][]>) {
+  return Object.fromEntries(SCALE_SHAPES.map(shape => {
+    const rows = source[shape].frets.map((frets, row) => {
+      const notes = frets.map((fret, column) => ({ fret, finger: source[shape].fingers[row][column] }));
+      for (const fret of blueFrets[shape][row]) {
+        const before = [...notes].reverse().find(note => note.fret < fret);
+        const after = notes.find(note => note.fret > fret);
+        // Use a spare finger between neighbours, or slide the adjacent finger
+        // one fret when the parent fingering leaves none free.
+        const finger = before && after && after.finger - before.finger > 1
+          ? before.finger + 1
+          : before && fret - before.fret === 1 ? before.finger
+          : after && after.fret - fret === 1 ? after.finger
+          : (() => { throw Error('Blue note needs an explicit playable fingering'); })();
+        notes.push({ fret, finger });
+        notes.sort((a, b) => a.fret - b.fret);
+      }
+      return notes;
+    });
+    return [shape, { frets: rows.map(row => row.map(n => n.fret)), fingers: rows.map(row => row.map(n => n.finger)) }];
+  })) as Record<ScaleShape, Fingering>;
+}
+const minorBlues = blues(minorPentatonic, minorBlueFrets);
+const majorBlueFrets = Object.fromEntries(SCALE_SHAPES.map(shape =>
+  [shape, minorBlueFrets[relativePattern(shape, "major")]])) as Record<ScaleShape, number[][]>;
+const majorBlues = blues(majorPentatonic, majorBlueFrets);
 const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic, "major-blues": majorBlues, "minor-blues": minorBlues };
 export function patternBounds(
   shape: ScaleShape,

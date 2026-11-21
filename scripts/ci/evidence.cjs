@@ -2,6 +2,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { git } = require('./snapshot.cjs');
+function diagnosticArtifact(root, candidate) {
+  const relative = path.relative(root, candidate).split(path.sep).join('/');
+  const fixture = /(?:^|\/)apps\/soundglow\/test-results\/updates\/(source-\d+|site-\d+|retained-site)(?:\/(.*))?$/.exec(relative);
+  if (!fixture) return true;
+  // These are reproducible release inputs, not diagnostics. Keep the release
+  // identities/manifests needed to interpret failures without copying engines,
+  // models and audio into every success/failure report.
+  if (fixture[1].startsWith('source-')) return false;
+  return !fixture[2] || ['release.json', 'release-history.json'].includes(fixture[2]);
+}
 function retainEvidence(snapshot, destination) {
   const apps = ['dorego', 'notewise', 'songalong', 'soundglow'];
   const reports = apps.flatMap(app => {
@@ -11,7 +21,7 @@ function retainEvidence(snapshot, destination) {
   fs.mkdirSync(destination, { recursive: true, mode: 0o700 });
   for (const directory of ['work/ci-results', 'work/browser-results', ...['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app => [`apps/${app}/work/browser-results`, `apps/${app}/test-results`]), ...reports]) {
     const source = path.join(snapshot, directory);
-    if (fs.existsSync(source)) fs.cpSync(source, path.join(destination, directory), { recursive: true });
+    if (fs.existsSync(source)) fs.cpSync(source, path.join(destination, directory), { recursive: true, filter: candidate => diagnosticArtifact(snapshot, candidate) });
   }
   for (const directory of ['work', ...['dorego', 'notewise', 'songalong', 'soundglow'].map(app => `apps/${app}/work`)]) {
     const source = path.join(snapshot, directory);
@@ -28,4 +38,4 @@ function retainEvidence(snapshot, destination) {
     fs.mkdirSync(path.dirname(target), { recursive: true }); fs.cpSync(source, target, { recursive: true, verbatimSymlinks: true });
   }
 }
-module.exports = { retainEvidence };
+module.exports = { retainEvidence, diagnosticArtifact };

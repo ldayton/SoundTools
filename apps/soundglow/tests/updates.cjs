@@ -159,14 +159,17 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  assert.equal(await other.evaluate(()=>inputMode==='speech'&&running&&!paused),true,'Native analysis survives optional inference overload');
  await other.locator('#freeze').click();
  console.log('PASS: optional neural model, ONNX runtime and actual inference execute fully offline; live overload preserves native analysis');
- await context.setOffline(false);revision=1;fault=null;
+ // Keep this fault scenario offline. Reconnecting here starts background
+ // staging, which can repair the injected corruption before the navigation.
+ revision=1;fault=null;
  // Expire navigation grace while an old tab is still alive: its release stays.
  await other.evaluate(async()=>{for(const name of await caches.keys())if(name.startsWith('soundglow-release-')){const cache=await caches.open(name);const request=(await cache.keys()).find(r=>r.url.endsWith('/__cache__/savedAt'));await cache.put(request,new Response('0'))}});
  const announce=p=>p.evaluate(()=>navigator.serviceWorker.controller.postMessage({type:'using-release',version:document.querySelector('meta[name="soundglow-release"]').content}));
  await announce(other);await other.waitForTimeout(200);assert(await other.evaluate(version=>caches.has('soundglow-release-'+version),releases[0].pack.version));
  await page.close();await announce(other);assert(await other.evaluate(version=>caches.has('soundglow-release-'+version),releases[0].pack.version),'Keep one committed recovery release after old tabs close');
  // A present but corrupted cached document must fall back to a verified recovery release.
- await other.evaluate(async html=>{const cache=await caches.open('soundglow-assets-v1');await cache.put(html,new Response('corrupt cached document',{headers:{'Content-Type':'text/html'}}))},releases[1].pack.html);
+ const corrupted=await other.evaluate(async html=>{const cache=await caches.open('soundglow-assets-v1');await cache.put(html,new Response('corrupt cached document',{headers:{'Content-Type':'text/html'}}));return (await cache.match(html)).text()},releases[1].pack.html);
+ assert.equal(corrupted,'corrupt cached document','The fault must be present before offline navigation');
  await context.setOffline(true);await other.reload();
  assert.equal(await other.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version,'Corrupt cached HTML must never be used as the startup document');
  await other.locator('#openSettings:visible, #settings:visible').click();

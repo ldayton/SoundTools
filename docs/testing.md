@@ -340,7 +340,9 @@ stacks concurrently in `finally`, with a separate result for each engine even if
 one stop fails. Snapshots are removed after success **or failure** once logs, browser failure
 artifacts, unexpected source diffs and untracked source have been retained under
 the run's `evidence/` directory. Dependency trees, generated builds and backend
-credentials are not retained as failure artifacts. `CI_KEEP_SNAPSHOTS=1` is an
+credentials are not retained as failure artifacts. Soundglow update-fixture
+source/site copies are omitted; their release manifests/history and actual
+traces, screenshots and reports remain retained. `CI_KEEP_SNAPSHOTS=1` is an
 explicit debugging opt-in; clean those printed worktrees after investigation.
 A failed backend stop also retains its snapshot so its stack ownership metadata
 is not lost. Preserve deliberate source changes before manual cleanup.
@@ -350,33 +352,30 @@ songalong ci core` still builds and runs that explicit lane through the same
 scheduler. Convenience aliases are not a substitute for the complete local
 runner. Nightly never publishes.
 
-## Current 60-second CI measurement — 21 November 2026
+## Current CI and Nightly measurement — 22 November 2026
 
-Two complete `npm run ci -- --all` runs on the Mac Studio passed in **45.83s**
-and **46.28s**, including dependency installation, fresh builds and overhead.
-An additional externally timed invocation passed in **46.16s** from before
-launching npm until process exit. All used the same 20-task CI inventory, 16 outer worker slots and eight music
-unit-file workers, on 24 logical CPUs and 64 GiB RAM. Browsers were installed
-and npm/OS caches were warm; build outputs were recreated each time. This leaves
-about 14 seconds below the hard budget in these runs, not a p95 guarantee.
+Complete CI passed in **46.41 seconds** on the Mac Studio, including dependency
+installation, fresh builds and runner overhead. Its 21-task graph includes the
+previously canonical Soundglow Node/DSP checks in a bounded pool, server
+integration and a real silent-output/PCM regression on Chromium and WebKit.
+The hard 60-second limit is unchanged. A prior 20-task CI run took 46.48s;
+coverage increased, so this is not a claim of a material CI speedup.
 
-CI selects shared/account/offline/diagnostics/music units and contracts, DoReGo
-and SongAlong units, Soundglow state/DSP and development-server checks, all four app builds and
-type checks, DoReGo real PCM/playback checks, critical MIDI permission/grading/
-hotplug, SongAlong audio departure/recovery and guitar controls, and desktop/
-phone WebKit startup, rendering, overflow, runtime errors and isolated auth
-confirmation for all four apps. The new critical MIDI check uses the existing
-simulator; it does not pretend to test physical hardware.
+Complete Mac Nightly passed **121/121 tasks in 26m12s**, including private
+snapshots, fresh backends and successful cleanup, versus **143/143 in 32m31s**
+before the redesign: **6m19s saved (19.4%)**. Every distinct previously scheduled
+execution remains owned; repeated aliases, shared-package units and browser-
+independent Node checks no longer multiply across browser jobs. The loop-boundary
+regression replaces repeated full-loop waits with a stronger verified witness.
 
-The full real-backend Accounts suite previously took 117 seconds by itself.
-It now runs in Nightly, together with exhaustive MIDI, editions, catalog,
-visual/performance, offline recovery and longer browser scenarios. The policy
-tests require Nightly to retain current CI execution coverage.
-This is a deliberate coverage tradeoff, not a claim that parallelism alone made
-the previous suite fit in 60 seconds. Release provenance and live smoke checks
-remain mandatory and are timed separately from the local CI suite.
-
-See [the measurement record](testing-ci-budget.json) for SHAs and retained evidence.
+The measured full Mac code revision was `1fe8e264561f96402a21c10bfd1ee0e70642b1fa`.
+Later corruption-fixture and artifact-retention corrections passed their
+affected local checks. Exact-commit CI and full GitHub Nightly gate final publication; the whole
+Mac timing was not repeated after those corrections. See [the audit](testing-suite-audit.md) and
+[measurement record](testing-suite-audit.json) for exact SHAs, scope, conditions
+and retained evidence. These are individual observations, not p95 or flake-rate
+estimates. The earlier 60-second coverage decision remains documented in
+[its historical record](testing-ci-budget.json).
 
 ## Earlier exhaustive CI measurement — 21 November 2026
 

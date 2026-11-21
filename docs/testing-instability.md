@@ -252,3 +252,20 @@ failed and was not cached, that offline readiness is withheld, and that Retry
 completes installation after the fault is cleared. All other corruption,
 eviction, offline practice, update and storage-denial cases remain required.
 The original failure is retained; no assertion was retried or weakened.
+
+## Corruption fixture competed with online repair (22 November 2026)
+
+[Soundglow job 137000504052](https://github.com/ldayton/SoundTools/actions/runs/44954777777/job/137000504052)
+failed the expected recovery-version assertion after cached HTML corruption.
+The audio timing/UI groups and other workflow jobs passed. The fixture
+reconnected before mutating Cache Storage, allowing background release staging
+to compete with the intended corruption; it did not establish that the poisoned
+bytes remained present at navigation.
+
+This scenario now stays offline through retention and corruption, verifies the
+poisoned cached bytes, and preserves both the exact recovery-release assertion
+and subsequent explicit online repair. Its complete affected local check passed
+in `1795300462935-b70a2cbd`. The measured full Mac Nightly at the preceding code
+revision also passed all 121 tasks; complete GitHub Nightly remains the final
+cross-platform gate for the fixture correction. No fallback assertion was
+relaxed, error ignored, sleep added, timeout raised or assertion retried.

@@ -1,0 +1,87 @@
+{
+  "measuredOn": "2026-11-22",
+  "machine": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpus": 24,
+    "memoryBytes": 68719476736,
+    "node": "v24.22.3"
+  },
+  "scope": "Before/after suite redesign; changed execution inventory and broader CI, not a same-inventory worker benchmark.",
+  "nightly": {
+    "before": {
+      "sha": "d041e1c0e9677d5e034d14ff22213c5c692ceb2f",
+      "passed": true,
+      "elapsedMs": 1951001,
+      "taskCount": 143,
+      "evidence": "work/ci-results/1795276087961-20f48487"
+    },
+    "after": {
+      "sha": "1fe8e264561f96402a21c10bfd1ee0e70642b1fa",
+      "passed": true,
+      "elapsedMs": 1571857,
+      "taskCount": 121,
+      "cleanup": [
+        {
+          "name": "accounts-chromium",
+          "exitCode": 0,
+          "timedOut": false
+        },
+        {
+          "name": "accounts-webkit",
+          "exitCode": 0,
+          "timedOut": false
+        }
+      ],
+      "evidence": "work/ci-results/1795298649946-f9be22c8"
+    },
+    "savedMs": 379144,
+    "reductionPercent": 19.43
+  },
+  "ci": {
+    "before": {
+      "sha": "592ec0704890dc867beddae76215becab14b5f91",
+      "elapsedMs": 46480,
+      "taskCount": 20,
+      "evidence": "work/ci-results/1795281583590-5af21582"
+    },
+    "after": {
+      "sha": "1fe8e264561f96402a21c10bfd1ee0e70642b1fa",
+      "elapsedMs": 46410,
+      "taskCount": 21,
+      "evidence": "work/ci-results/1795298491197-da4c272d"
+    },
+    "budgetMs": 60000,
+    "note": "Runtime is comparable while coverage grows; no material CI speedup is claimed."
+  },
+  "coverage": {
+    "duplicateBrowserScriptExecutionsRemoved": 35,
+    "withinAppAndEngine": 34,
+    "crossAppSDK": 1,
+    "soundglowNodePoolFiles": 33,
+    "soundglowAdditionalServerIntegrationFile": 1,
+    "soundglowChromiumVisualCases": 247,
+    "existingChromiumSkips": 41,
+    "existingWebkitUISkips": 8,
+    "auditEvidence": "work/ci-results/test-model-audit/executions.json",
+    "note": "Script/file-pattern ownership is not an assertion count or proof of semantic disjointness."
+  },
+  "followup": {
+    "kind": "Test-fixture and evidence-retention corrections after the measured full Mac run",
+    "file": "apps/soundglow/tests/updates.cjs",
+    "change": "Keep corruption fixture offline until recovery; verify corrupt bytes before navigation; preserve explicit online repair",
+    "affectedCheckPassed": true,
+    "checkElapsedMs": 51800,
+    "withFreshBuildElapsedMs": 58500,
+    "evidence": "work/ci-results/1795300462935-b70a2cbd",
+    "note": "Whole Mac timing was not repeated after these corrections. The complete affected local check and filesystem regression passed; exact-commit CI and full GitHub Nightly are publication gates.",
+    "retention": "Retain manifests/history/traces/reports; omit reproducible source/site fixture copies. Covered by the filesystem evidence regression."
+  },
+  "conditions": [
+    "Installed Chromium and WebKit; warm npm/OS caches; fresh app builds",
+    "Nightly used six outer slots, four music-unit slots, fresh private snapshots, cold command-specific Vite caches and fresh backend stacks",
+    "CI used sixteen outer slots and eight music-unit slots; dependency caches can be reused between invocations",
+    "Installation, snapshots, test execution and cleanup are included in Nightly elapsedMs",
+    "One successful Nightly comparison and individual CI observations do not establish p95 or a flake rate"
+  ]
+}

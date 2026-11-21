@@ -78,7 +78,7 @@ test('snapshot copies keep workspace links and writes inside the private checkou
   fs.mkdirSync(source);
   const git = args => execFileSync('git', args, { cwd: source, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   try {
-    git(['init', '--quiet']); fs.writeFileSync(path.join(source, '.gitignore'), 'node_modules/\n');
+    git(['init', '--quiet']); fs.writeFileSync(path.join(source, '.gitignore'), 'node_modules/\nwork/\napps/*/test-results/\napps/*/playwright-report-*/\n');
     fs.mkdirSync(path.join(source, 'packages/example'), { recursive: true }); fs.writeFileSync(path.join(source, 'packages/example/value'), 'original');
     git(['add', '.']); git(['-c', 'user.name=CI test', '-c', 'user.email=ci@example.invalid', 'commit', '--quiet', '-m', 'fixture']);
     fs.mkdirSync(path.join(source, 'node_modules/@fixture'), { recursive: true }); fs.symlinkSync('../../packages/example', path.join(source, 'node_modules/@fixture/example'));
@@ -91,7 +91,17 @@ test('snapshot copies keep workspace links and writes inside the private checkou
     fs.mkdirSync(path.join(target, 'work/browser-results'), { recursive: true }); fs.writeFileSync(path.join(target, 'work/browser-results/failure.txt'), 'first failure');
     fs.mkdirSync(path.join(target, 'work/ci-private'), { recursive: true }); fs.writeFileSync(path.join(target, 'work/ci-private/secret'), 'private');
     fs.mkdirSync(path.join(target, 'apps/soundglow/playwright-report-ui'), { recursive: true }); fs.writeFileSync(path.join(target, 'apps/soundglow/playwright-report-ui/index.html'), 'group report');
+    const fixtures = path.join(target, 'apps/soundglow/test-results/updates');
+    for (const [name, content] of Object.entries({ 'source-0/app.js': 'input build', 'site-0/releases/version/engine.wasm': 'large engine', 'site-0/release.json': '{"version":"verified"}', 'retained-site/release-history.json': '["previous"]', 'trace.zip': 'first failure trace' })) {
+      fs.mkdirSync(path.dirname(path.join(fixtures, name)), { recursive: true }); fs.writeFileSync(path.join(fixtures, name), content);
+    }
     const evidence = path.join(directory, 'evidence'); require('../../scripts/ci/evidence.cjs').retainEvidence(target, evidence);
+    const retained = path.join(evidence, 'apps/soundglow/test-results/updates');
+    assert(!fs.existsSync(path.join(retained, 'source-0')));
+    assert(!fs.existsSync(path.join(retained, 'site-0/releases')));
+    assert.equal(fs.readFileSync(path.join(retained, 'site-0/release.json'), 'utf8'), '{"version":"verified"}');
+    assert.equal(fs.readFileSync(path.join(retained, 'retained-site/release-history.json'), 'utf8'), '["previous"]');
+    assert.equal(fs.readFileSync(path.join(retained, 'trace.zip'), 'utf8'), 'first failure trace');
     assert.match(fs.readFileSync(path.join(evidence, 'source-changes.patch'), 'utf8'), /changed/);
     assert.equal(fs.readFileSync(path.join(evidence, 'work/browser-results/failure.txt'), 'utf8'), 'first failure');
     assert(!fs.existsSync(path.join(evidence, 'work/ci-private'))); assert(!fs.existsSync(path.join(evidence, 'untracked-source/work/ci-private')));

@@ -75,3 +75,30 @@ test('Nightly is a command-level superset of current CI on both engines', () => 
     for (const command of plan(app, 'ci', browser)) assert(nightly.has(JSON.stringify(command)));
   }
 });
+
+test('every GitHub edition shard is required and their union covers each discovered file exactly once', () => {
+  const { matrix, editionFiles } = require('../../scripts/ci/test-strategy.cjs');
+  const { commandTasks } = require('../../scripts/ci/task-graph.cjs');
+  const { partition } = require('../../scripts/ci/shard.cjs');
+  for (const browser of tiers.nightly.browsers) {
+    const rows = matrix('songalong', 'nightly').include.filter(row => row.browser === browser && row.group === 'editions');
+    assert.equal(rows.length, 2);
+    assert(rows.every(row => row.timeout === 15 && row.shards === 2));
+    const tasks = rows.flatMap(row => commandTasks('songalong', 'nightly', browser, undefined, { group: 'editions', shard: `${row.shard}/${row.shards}` }));
+    assert.deepEqual(tasks.map(task => task.args.at(-1)).sort(), editionFiles());
+    assert.equal(new Set(tasks.map(task => task.id)).size, tasks.length);
+    assert(tasks.every(task => task.needs.includes('songalong:build')));
+  }
+  for (const count of [1, 3, 5, 7]) {
+    const files = Array.from({ length: count }, (_, index) => index);
+    const total = Math.min(2, count);
+    const union = Array.from({ length: total }, (_, index) => partition(files, `${index + 1}/${total}`)).flat();
+    assert.deepEqual(union.sort((a, b) => a - b), files);
+  }
+  assert.throws(() => commandTasks('songalong', 'nightly', 'webkit', undefined, { shard: '1/2' }), /Only edition/);
+  assert.throws(() => commandTasks('songalong', 'nightly', 'webkit', undefined, { group: 'editions', shard: '7/7' }), /empty/);
+  const workflow = fs.readFileSync('.github/workflows/validate-app.yml', 'utf8');
+  assert.match(workflow, /check-app\.cjs.*matrix\.shard.*matrix\.shards/);
+  assert.match(workflow, /group: .*matrix\.shard.*matrix\.shards/);
+  assert.match(workflow, /name: timings-.*matrix\.shard.*matrix\.shards/);
+});

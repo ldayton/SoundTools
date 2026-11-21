@@ -12,9 +12,9 @@ permissions:
   contents: read
 jobs:
   validate:
-    name: ${{ inputs.app }} (${{ matrix.tier }}, ${{ matrix.group }}, ${{ matrix.browser }})
+    name: ${{ inputs.app }} (${{ matrix.tier }}, ${{ matrix.group }}, ${{ matrix.browser }}, part ${{ matrix.shard }}/${{ matrix.shards }})
     concurrency:
-      group: validation-${{ github.event_name }}-${{ github.ref }}-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-${{ matrix.shard }}-of-${{ matrix.shards }}
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ matrix.timeout }}
@@ -41,17 +41,17 @@ jobs:
         if: ${{ matrix.tier == 'ci' && matrix.group == 'core' }}
         with:
           browser: webkit
-      - run: node scripts/ci/check-app.cjs ${{ inputs.app }} ${{ matrix.tier }} ${{ matrix.group }}
+      - run: node scripts/ci/check-app.cjs ${{ inputs.app }} ${{ matrix.tier }} ${{ matrix.group }} ${{ matrix.shard }}/${{ matrix.shards }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: timings-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-attempt${{ github.run_attempt }}
+          name: timings-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-${{ matrix.shard }}-of-${{ matrix.shards }}-attempt${{ github.run_attempt }}
           path: work/ci-results/
           retention-days: 7
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: failure-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-attempt${{ github.run_attempt }}
+          name: failure-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-${{ matrix.shard }}-of-${{ matrix.shards }}-attempt${{ github.run_attempt }}
           path: |
             apps/${{ inputs.app }}/work/
             apps/${{ inputs.app }}/test-results/

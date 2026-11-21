@@ -12,8 +12,11 @@ function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false 
   if (app === 'soundglow' && visual) tasks.push({ id: `${prefix}:visual-fixture`, command: process.execPath, args: ['scripts/ci/prepare-visual.cjs'], cwd, needs: [`${prefix}:build`], locks: [`files:${cwd}`], priority: 60 });
   return tasks;
 }
-function commandTasks(app, tier, browser, cwd = root, { group = 'core', prefix = `${app}:${tier}:${group}:${browser}`, needs = [`${app}:build`] } = {}) {
-  const commands = plan(app, tier, browser, group).flatMap(([command, args]) => app === 'dorego' && args.includes('test:browsers')
+function commandTasks(app, tier, browser, cwd = root, { group = 'core', shard = '1/1', prefix = `${app}:${tier}:${group}:${browser}${shard === '1/1' ? '' : ':shard-' + shard.replace('/', '-of-')}`, needs = [`${app}:build`] } = {}) {
+  if (group !== 'editions' && shard !== '1/1') throw Error('Only edition groups accept an outer shard');
+  const selected = require('./shard.cjs').partition(plan(app, tier, browser, group), shard);
+  if (!selected.length) throw Error('Edition shard is empty');
+  const commands = selected.flatMap(([command, args]) => app === 'dorego' && args.includes('test:browsers')
     ? browserSuites.map(suite => ['npm', ['exec', '--workspace=dorego', '--', 'tsx', `tests/${suite}.e2e.ts`]]) : [[command, args]]);
   return commands.flatMap(([command, args], index) => {
     const policy = declaration(app, command, args);

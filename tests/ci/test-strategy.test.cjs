@@ -36,7 +36,7 @@ test('core and exhaustive edition lanes cannot acquire each other through nested
 test('all edition files are required in Nightly matrices; lanes never share a concurrency identity', () => {
   for (const profile of ['ci', 'nightly']) {
     const rows = matrix('songalong', profile).include;
-    const keys = rows.map(row => `${row.browser}-${row.group}`);
+    const keys = rows.map(row => `${row.browser}-${row.group}-${row.shard}`);
     assert.equal(new Set(keys).size, rows.length);
     for (const browser of profile === 'ci' ? ['chromium'] : ['chromium', 'webkit']) {
       assert(rows.some(row => row.group === 'core' && row.browser === browser));

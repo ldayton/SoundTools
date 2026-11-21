@@ -25,7 +25,10 @@ that app releases. An unrelated app's failure does not block it. Every edition
 remains required in Nightly; its unit and registry contracts remain in CI. The complete local CI invocation has a hard 60-second budget, including selection,
 installation and cleanup. GitHub CI runs the same coverage on slower hosted
 runners, with a 10-minute per-group safety timeout; Nightly core
-groups have 30 minutes. Nightly edition groups have 15 minutes. These
+groups have 30 minutes. Nightly edition groups have 15 minutes. GitHub splits their discovered registry
+into two required shards per engine; every shard is part of the aggregate app
+gate. The local Nightly graph runs that same complete registry without changing
+its 143-task inventory. These
 are limits, not performance targets: split coverage when command timings show
 growth rather than hiding timeouts.
 Build once per app/configuration in a local run, with SHA/digest provenance; do not reuse stale local builds.

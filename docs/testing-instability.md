@@ -160,3 +160,15 @@ The unchanged reload/cache/worker/WASM assertions now run through the shared
 engine-aware browser harness, with failure capture. The Chromium Nightly group
 still exercises Chromium; the WebKit group now exercises its selected engine.
 No browser install or test assertion was skipped to make the matrix pass.
+
+The next full Linux run found an edition budget failure, not a passing result:
+[SongAlong WebKit editions](https://github.com/ldayton/SoundTools/actions/runs/44924271267/job/136906905374)
+was cancelled at the 15-minute job deadline while its sixth edition was still
+running. The earlier identical registry took 638 seconds; this run's first five
+commands took 68–321 seconds each and left insufficient time for the final one.
+The registry now partitions into two independent required jobs per engine, with
+the same 15-minute limit. Matrix identity, artifacts, command scheduling and
+aggregate validation retain each shard. Tests prove their exact, duplicate-free
+union equals every discovered edition, including uneven registry sizes. The
+local full Nightly still runs the same 143 tasks. No assertion, edition or
+timeout was removed or relaxed. A cancelled job is never counted as passed.

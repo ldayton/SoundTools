@@ -17,7 +17,13 @@ function matrix(app, tier) {
   validateTier(tier);
   if (!apps[app]) throw Error('Choose a known app');
   return { include: tiers[tier].browsers.flatMap(browser =>
-    (app === 'songalong' && tier === 'nightly' ? ['core', 'editions'] : ['core']).map(group => ({ tier, group, browser, timeout: budgets[tier][group] }))) };
+    (app === 'songalong' && tier === 'nightly' ? ['core', 'editions'] : ['core']).flatMap(group => {
+      // Two independent required edition jobs retain the 15-minute budget.
+      // Partition the discovered registry, never a second hand-maintained list.
+      const shards = group === 'editions' ? Math.min(2, editionFiles().length) : 1;
+      if (!shards) throw Error('Nightly requires edition browser coverage');
+      return Array.from({ length: shards }, (_, index) => ({ tier, group, browser, timeout: budgets[tier][group], shard: index + 1, shards }));
+    })) };
 }
 function legacyPlan(app, tier, browser = 'chromium', group = 'core') {
   validateTier(tier);

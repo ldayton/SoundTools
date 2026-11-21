@@ -253,28 +253,28 @@ try {
     (await page.locator(".hymn-paper .abcjs-clef").count()) >= 2,
     "both staves remain visible during left-hand practice",
   );
-  await send(67);
+  await send(71);
   assert.equal(
     await number(),
     "1",
     "right-hand melody cannot answer left-hand practice",
   );
-  await send(47);
+  await send(55);
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("both");
   assert.equal(await number(), "1");
-  await page.evaluate(() => (window as any).midiTest.send([0x90, 47, 100]));
+  await page.evaluate(() => (window as any).midiTest.send([0x90, 55, 100]));
   assert.equal(await number(), "1", "both hands wait for the complete onset");
-  await send(67);
-  await page.evaluate(() => (window as any).midiTest.send([0x80, 47, 0]));
+  await send(71);
+  await page.evaluate(() => (window as any).midiTest.send([0x80, 55, 0]));
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("right");
   assert.equal(await number(), "1");
-  await send(67);
+  await send(71);
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })

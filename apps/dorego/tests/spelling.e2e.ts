@@ -54,6 +54,9 @@ try {
     await page.evaluate((spec) => {
       localStorage.setItem('dorego.current', JSON.stringify(spec));
       localStorage.setItem('dorego.glideShapeVersion', '1');
+      // Exercise URLs intentionally override saved preferences. This label test
+      // seeds the guest preferences, so reload the bare app route.
+      history.replaceState(null, '', '/DoReGo/');
     }, spec);
     await page.reload();
     await page.locator('#exercise-title').waitFor();

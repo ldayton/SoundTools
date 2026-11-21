@@ -1,4 +1,4 @@
-import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { openSettings, openPractice } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -19,20 +19,15 @@ const server = spawn(
     '--host',
     '127.0.0.1',
     '--port',
-    '4329',
+    '4981',
     '--strictPort',
   ],
   { stdio: 'pipe' }
 );
 let browser;
 try {
-  const url = 'http://127.0.0.1:4329/DoReGo/';
-  for (let i = 0; i < 100; i++) {
-    try {
-      if ((await fetch(url)).ok) break;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 100));
-  }
+  const url = 'http://127.0.0.1:4981/DoReGo/';
+  await waitForServer(url, { server });
   browser = await launchBrowser();
   const page = await newPage(browser, { acceptDownloads: true }),
     remote: string[] = [];

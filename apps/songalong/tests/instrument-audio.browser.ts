@@ -7,7 +7,7 @@ import {
 } from "../../../scripts/ci/browser-harness.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 const server = await preview("songalong", 4566);
-const browser = await launchBrowser({ args: ["--mute-audio"] });
+const browser = await launchBrowser();
 try {
   const page = await newPage(browser, {
     viewport: { width: 1400, height: 1000 },

@@ -1,4 +1,4 @@
-import { captureFailure, closeBrowser, launchBrowser, createContext } from '../scripts/ci/browser-harness.cjs';
+import { captureFailure, closeBrowser, launchBrowser, createContext, waitForAccountIdle } from '../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { readFile, mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -140,6 +140,31 @@ try {
         path: `work/account-link-window/${engine}-return-to-app.png`,
       });
     await callback.close();
+    await app.bringToFront();
+    await waitForAccountIdle(app);
+    // Hold a real account snapshot across both departure boundaries. This fails
+    // without request cancellation, even when an ordinary reload happens to pass.
+    for (const boundary of ["beforeunload", "pagehide"]) {
+      const held: any[] = [];
+      const endpoint = "**/rest/v1/rpc/account_snapshot_v2";
+      await app.route(endpoint, route => { held.push(route); });
+      const requested = app.waitForRequest(request => request.url().includes('/rest/v1/rpc/account_snapshot_v2'));
+      await app.evaluate(() => window.dispatchEvent(new Event('focus')));
+      const request = await requested;
+      const cancelled = app.waitForEvent('requestfailed', { predicate: candidate => candidate === request, timeout: 2000 });
+      await app.evaluate(boundary => window.dispatchEvent(new Event(boundary)), boundary);
+      await cancelled;
+      assert(request.failure(), `${id}: ${boundary} cancels the held snapshot`);
+      await Promise.all(held.map(route => route.abort().catch(() => {})));
+      await app.unroute(endpoint);
+      const recovered = app.waitForResponse(response => response.url().includes('/rest/v1/rpc/account_snapshot_v2') && response.ok());
+      await app.evaluate(() => {
+        window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+        window.dispatchEvent(new Event('focus'));
+      });
+      await recovered;
+      await waitForAccountIdle(app);
+    }
     await app.reload();
     await app.getByRole("button", { name: "Account", exact: true }).waitFor();
     await context.close();

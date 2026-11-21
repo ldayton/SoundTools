@@ -85,7 +85,7 @@
   "dorego:npm:run test:diagnostics-ui --workspace=dorego": {
     "kind": "ui",
     "ports": [
-      4329
+      4981
     ],
     "locks": [],
     "coverage": [

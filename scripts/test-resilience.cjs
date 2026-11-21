@@ -19,8 +19,11 @@ const server=http.createServer((req,res)=>{
  if(!name.startsWith(base)){res.writeHead(404).end();return}
  if(stall&&(name.endsWith('offline-pack.json')||name.endsWith('release.json'))){held.add(res);res.on('close',()=>held.delete(res));return}
  if(!failed&&(name===retryPath||name.endsWith('/silero.onnx'))){failed=true;res.writeHead(503).end('temporary failure');return}
- const relative=name.slice(base.length)||'index.html',file=path.resolve(output,relative);
+ const relative=name.slice(base.length)||'index.html';let file=path.resolve(output,relative);
  if(!file.startsWith(output+path.sep)){res.writeHead(403).end();return}
+ // Match the deployed SPA rewrite: canonical exercise URLs serve the shell.
+ // Missing scripts/media must still return 404, so recovery tests remain real.
+ if(!fs.existsSync(file)&&req.headers.accept?.includes('text/html'))file=path.join(output,'index.html');
  fs.readFile(file,(error,body)=>{if(error){res.writeHead(404).end();return}if(name.endsWith('/sw.js'))body=Buffer.concat([Buffer.from(cacheFaultHook),body]);
   const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.wasm':'application/wasm','.svg':'image/svg+xml','.flac':'audio/flac','.m4a':'audio/mp4'};
   res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream','Cache-Control':'no-store'}).end(body);
@@ -30,7 +33,7 @@ let context;
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url='http://127.0.0.1:'+server.address().port+base;
  await require('./test-startup-recovery.cjs').testStartupRecovery(url,app);
- const launch=()=>chromium.launchPersistentContext(profile,{headless:true});
+ const launch=async()=>{const context=await chromium.launchPersistentContext(profile,{headless:true});await context.tracing.start({snapshots:true,sources:true});return context};
  context=await launch();await context.addInitScript(app=>{try{localStorage.setItem(app+':diagnostics:sharing','yes')}catch{}},app);
  let page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(url);await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
@@ -82,4 +85,4 @@ let context;
  assert.deepEqual(errors,[]);
  const report={app,passed:true,cachedStartupWithHangingUpdateMs:cachedMs,offlineBrowserRestartMs:restartMs,networkStartupWithStalledCacheMs:blockedMs};
  fs.writeFileSync(path.join(artifact,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
-})().catch(error=>{console.error(error);process.exitCode=1}).finally(async()=>{await context?.close();for(const response of held)response.destroy();for(const socket of sockets)socket.destroy();server.close();fs.rmSync(profile,{recursive:true,force:true});if(app==='soundglow'&&output)fs.rmSync(output,{recursive:true,force:true})});
+})().catch(async error=>{if(context){const page=context.pages()[0];await page?.screenshot({path:path.join(artifact,'failure.png'),fullPage:true}).catch(()=>{});if(page)fs.writeFileSync(path.join(artifact,'failure.html'),await page.content().catch(()=>''));await context.tracing.stop({path:path.join(artifact,'failure-trace.zip')}).catch(()=>{})}console.error(error);process.exitCode=1}).finally(async()=>{await context?.close();for(const response of held)response.destroy();for(const socket of sockets)socket.destroy();server.close();fs.rmSync(profile,{recursive:true,force:true});if(app==='soundglow'&&output)fs.rmSync(output,{recursive:true,force:true})});

@@ -100,3 +100,48 @@ A release before WebKit's first audio quantum is a suspected cause, based on
 the reference envelope's immediate key-up path, not a proven diagnosis. Very
 short reference-key tap timing remains a separate investigation; a passing
 held-note routing check is not evidence that the original tap issue is fixed.
+
+## Nightly repairs — 21 November 2026
+
+The diagnostic run on `a9ea606` retained its first failures in
+`work/ci-results/1795274850501-da54cda6/`. It was deliberately cancelled after
+isolating the failures; it is not a passing Nightly result. The complete
+143-task plan remains required on the repaired revision.
+
+- **DoReGo spelling, both engines:** the new canonical exercise URL correctly
+  overrode a test's separately seeded guest preferences. The label fixture now
+  clears that URL before reloading its seeded preferences. All note spelling,
+  geometry, picker, keyboard and responsive assertions remain unchanged.
+- **DoReGo diagnostics:** port 4329 was occupied by an unrelated, hours-old Vite
+  development server. The failed trace shows development dependency requests and
+  HTTP 504 responses, not the packaged test artifact. The test now owns reviewed
+  port 4981 and uses the shared server-readiness helper; the existing server was
+  left alone. Consent, privacy, report and recovery assertions remain required.
+- **DoReGo resilience:** its static test server did not implement the deployed
+  SPA rewrite for the new exercise URLs. Once the test deliberately stalled the
+  worker's cache, online navigation fell through to a 404. HTML navigations now
+  receive the app shell; missing scripts/media still fail. All hanging-cache,
+  storage-denial, offline, Range/HEAD and startup deadlines remain unchanged.
+  Failures now also retain a screenshot, HTML and trace.
+- **NoteWise guitar scales, both engines:** the exact persisted checkpoint
+  expectation predated shape-set, Hila-shape and fret-range settings. The strict
+  equality now includes their independent expected values; unrelated activity,
+  migration, MIDI and all-key assertions remain required.
+- **NoteWise offline, both engines:** the test still expected a second window to
+  be blocked. Concurrent windows are supported. The latest-generation window
+  must instead be writable with the same saved checkpoint, while the old active
+  window preserves its checkpoint and exact assets. All offline/update and
+  storage-failure scenarios remain required.
+
+The earlier [Nightly failure](https://github.com/ldayton/SoundTools/actions/runs/44898663958)
+also identifies two cross-platform/lifecycle issues. SongAlong's instrument audio
+test explicitly passed Chromium's `--mute-audio` to WebKit; the shared harness
+now supplies engine-specific launch arguments without that override. Accounts'
+WebKit confirmation-window test reported an in-flight snapshot fetch as an
+access-control error during navigation. Account HTTP requests now share a
+document lifetime: `beforeunload` and `pagehide` abort current requests and
+prevent new requests, while `pageshow` restores network access. Caller
+cancellation and genuine live failures remain visible. Unit tests cover both
+boundaries, and the existing real-backend confirmation-window test holds a
+snapshot across each boundary, requires cancellation, and verifies recovery on
+all three practice apps. Ordinary passing reloads are not the regression proof.

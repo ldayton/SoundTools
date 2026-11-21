@@ -1,4 +1,5 @@
 import { nextStamp, type EditStamp } from "./clock";
+import { RequestLifetime } from "./request-lifetime";
 import { SyncLeader } from "./leader";
 import { failureKind, retryDelay, retryAfter } from "./retry";
 import { consumeAccountLink } from "./link";
@@ -82,6 +83,7 @@ export class Account {
     { key: string; value: Json; previous: Json; stamp?: EditStamp }
   >();
   private client?: SupabaseClient;
+  private requests = new RequestLifetime();
   readonly configured: boolean;
   constructor(
     readonly app: string,
@@ -108,13 +110,7 @@ export class Account {
           },
           global: {
             fetch: async (input, init) => {
-              const response = await fetch(input, {
-                ...init,
-                signal: AbortSignal.any([
-                  AbortSignal.timeout(12000),
-                  ...(init?.signal ? [init.signal] : []),
-                ]),
-              });
+              const response = await this.requests.fetch(input, init);
               if (response.status === 429 || response.status === 503)
                 this.retryAfterMs = Math.max(
                   this.retryAfterMs,

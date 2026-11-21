@@ -209,7 +209,12 @@ try {
   // A new untouched page opens the latest verified generation.
   const fresh = await context.newPage();
   await fresh.goto(base);
-  await fresh.locator("#persistence-notice").waitFor();
+  // Concurrent practice windows are supported. The new generation must open
+  // writable with the saved checkpoint while the active old generation survives.
+  await fresh.locator('[data-letter="E"]:enabled').waitFor();
+  assert.equal(await fresh.locator("#persistence-notice").isVisible(), false);
+  assert.equal(await fresh.locator("#counter").textContent(), "2 / 12");
+  assert.equal(await page.locator("#counter").textContent(), "2 / 12");
   await fresh.waitForFunction(
     (v) =>
       document

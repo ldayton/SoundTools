@@ -193,7 +193,10 @@ try {
       assert.deepEqual(after.activities[id], checkpoint);
   assert.deepEqual(after.activities["guitar-scales"], {
     version: 1,
-    settings: { tonic: 3, quality: "minor", pattern: "map", shift: 0 },
+    settings: {
+      tonic: 3, quality: "minor", pattern: "map", shift: 0,
+      shapeSet: "standard", hilaShape: 1, firstFret: 0, lastFret: 5,
+    },
   });
   assert.deepEqual(after.progress.stats, before.progress.stats);
   for (const [mode, profile] of Object.entries(before.progress.profiles))

@@ -1,6 +1,6 @@
 const path = require('node:path');
 const { plan } = require('./test-strategy.cjs');
-const { setupTasks, commandTasks } = require('./task-graph.cjs');
+const { orderAppChecks, setupTasks, commandTasks } = require('./task-graph.cjs');
 const { runTasks } = require('./run.cjs');
 async function check(app, tier = 'ci', group = 'core', shard = '1/1') {
   const browser = process.env.TEST_BROWSER || 'chromium', cwd = path.resolve(__dirname, '../..');
@@ -12,7 +12,7 @@ async function check(app, tier = 'ci', group = 'core', shard = '1/1') {
   if (tier === 'nightly' && group === 'core' && app === 'songalong') tasks.push({ id: 'notewise:build', command: process.execPath, args: ['scripts/ci/build.cjs', 'notewise'], cwd, needs: [`${app}:build`], locks: [`files:${cwd}`], slots: 2, priority: 60 });
   tasks.push(...commandTasks(app, tier, browser, cwd, { group, shard, needs: tier === 'nightly' && group === 'core' && app === 'songalong' ? ['songalong:build', 'notewise:build'] : [`${app}:build`] }));
   for (const task of tasks) task.env = { ...task.env, CI_TIER: tier };
-  return runTasks(tasks, { identity: { app, tier, group, browser, shard } });
+  return runTasks(orderAppChecks(tasks), { identity: { app, tier, group, browser, shard } });
 }
 module.exports = { plan, check };
 if (require.main === module) check(process.argv[2], process.argv[3], process.argv[4], process.argv[5]).then(result => { if (!result.passed) process.exitCode = 1; }).catch(error => { console.error(error.stack); process.exitCode = 1; });

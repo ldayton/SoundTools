@@ -1,6 +1,5 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const { tiers, tier, fromEvent } = require('../../scripts/ci/tiers.cjs');
 const { options, selection, graph } = require('../../scripts/ci/local.cjs');
@@ -22,17 +21,6 @@ test('CI and Nightly are the only tiers, with explicit event and publication pol
   const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
   assert.doesNotMatch(workflow, /CI_FULL|inputs\.full/);
   assert.equal((workflow.match(/needs\.changes\.outputs\.tier == 'ci'/g) || []).length, 4);
-});
-
-test('Nightly retains every command displaced from the former CI and Nightly inventories', () => {
-  const baseline = require('./fixtures/tier-coverage.json');
-  assert.equal(Object.keys(baseline).length, 20);
-  for (const [key, expected] of Object.entries(baseline)) {
-    const [app, , group, browser] = key.split('/');
-    assert.equal(createHash('sha256').update(JSON.stringify(expected.plan)).digest('hex'), expected.sha256, key);
-    const commands = new Set(plan(app, 'nightly', browser, group).map(command => JSON.stringify(command)));
-    for (const command of expected.plan) assert(commands.has(JSON.stringify(command)), `${key}: lost ${JSON.stringify(command)}`);
-  }
 });
 
 test('local CI and Nightly graphs use the central browser policy and retain their tier', async () => {
@@ -68,11 +56,32 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
   assert.throws(() => plan('songalong', 'ci', 'chromium', 'editions'), /Nightly/);
 });
 
-// The fast tier may evolve, but Nightly must always include its commands too.
-test('Nightly is a command-level superset of current CI on both engines', () => {
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const browser of tiers.nightly.browsers) {
-    const nightly = new Set(plan(app, 'nightly', browser).map(command => JSON.stringify(command)));
-    for (const command of plan(app, 'ci', browser)) assert(nightly.has(JSON.stringify(command)));
+// Guard the current executable model, without freezing historical aliases.
+test('Nightly owns CI execution files and schedules each file once per engine', () => {
+  const { executions, duplicates } = require('../../scripts/ci/coverage.cjs');
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) {
+    const all = tiers.nightly.browsers.flatMap(browser => {
+      const files = executions(app, 'nightly', browser);
+      assert.deepEqual(duplicates(files), {}, `${app}/${browser}: repeated test execution`);
+      return files;
+    });
+    for (const file of executions(app, 'ci')) assert(all.includes(file), `${app}: CI execution missing from Nightly: ${file}`);
+  }
+});
+
+test('Soundglow output mutation finishes before browser readers in both runners', async () => {
+  const { fastGraph } = require('../../scripts/ci/fast-local.cjs');
+  const path = require('node:path');
+  const root = path.resolve(__dirname, '../..');
+  const nightly = options(['--tier', 'nightly', '--all']);
+  const selected = await selection(nightly);
+  const directories = Object.fromEntries(['shared', ...selected.apps, 'accounts-chromium', 'accounts-webkit'].map(name => [name, root]));
+  for (const tasks of [fastGraph({ apps: ['soundglow'] }, root), graph(selected, nightly, directories)]) {
+    const units = tasks.filter(task => task.args.includes('test:unit') && task.args.includes('--workspace=soundglow'));
+    assert.equal(units.length, 1, 'Node checks have one owner, independent of browser count');
+    for (const task of tasks.filter(task => /^soundglow:(?:ci|nightly):/.test(task.id) || task.id === 'soundglow:visual-fixture')) {
+      if (task !== units[0]) assert(task.needs.includes(units[0].id), `${task.id} reads mutable build output`);
+    }
   }
 });
 

@@ -25,55 +25,36 @@ function matrix(app, tier) {
       return Array.from({ length: shards }, (_, index) => ({ tier, group, browser, timeout: budgets[tier][group], shard: index + 1, shards }));
     })) };
 }
-function legacyPlan(app, tier, browser = 'chromium', group = 'core') {
+function validateSelection(app, tier, browser, group) {
   validateTier(tier);
   if (!apps[app] || !['core', 'editions'].includes(group) || !['chromium', 'webkit'].includes(browser) || group === 'editions' && app !== 'songalong') throw Error('Choose a known app, coverage group and Chromium/WebKit');
+}
+function nightlyPlan(app, browser, group) {
   if (group === 'editions') return editionFiles().map(file => script(app, file));
-  const nightly = tier === 'nightly';
   const tasks = {
-    dorego: nightly
-      ? ['test:layout', 'test:browsers', ...(browser === 'chromium' ? ['test:diagnostics-ui', 'test:resilience'] : [])]
-      : ['test:desktop', 'test:workspace', 'test:channels'],
-    notewise: nightly
-      ? ['test:layout', 'test:workspace', 'test:guitar', 'test:piano', 'test:practice', 'test:theory', 'test:navigation', 'test:midi', 'test:signatures', 'test:offline', 'test:backing', ...(browser === 'chromium' ? ['test:browser', 'test:piano-audio', 'test:diagnostics', 'test:backing-realism', 'test:backing-genres'] : [])]
-      : ['test:workspace', 'test:piano', 'test:midi'],
-    songalong: nightly
-      ? ['test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog']
-      : ['test:workspace:core', 'test:instrument-audio', 'test:guitar', 'test:fingerings'],
-    soundglow: nightly && browser === 'webkit' ? ['test:ui-browsers'] : ['test:core', ...(nightly ? ['test:updates', 'test:visual', 'test:resilience'] : [])],
+    dorego: ['test:layout', 'test:browsers', ...(browser === 'chromium' ? ['test:diagnostics-ui', 'test:resilience'] : [])],
+    notewise: ['test:layout', 'test:workspace', 'test:guitar', 'test:piano', 'test:practice', 'test:theory', 'test:navigation', 'test:midi', 'test:signatures', 'test:offline', 'test:backing', ...(browser === 'chromium' ? ['test:browser', 'test:piano-audio', 'test:diagnostics', 'test:backing-realism', 'test:backing-genres'] : [])],
+    songalong: ['test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog', ...(browser === 'chromium' ? ['test:diagnostics'] : [])],
+    soundglow: browser === 'webkit' ? ['test:browser-core', 'test:ui-browsers'] : ['test:unit', 'test:browser-core', 'test:updates', 'test:visual', 'test:resilience'],
   };
   const commands = tasks[app].map(task => npm(app, task));
-  if (!nightly && app === 'notewise') commands.push(script(app, 'tests/guitar.browser.ts'), script(app, 'tests/backing-mixer.browser.ts'));
-  if (!nightly && app === 'songalong') commands.push(script(app, 'tests/hymn-playback.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'));
-  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'));
-  if (nightly && app === 'songalong' && browser === 'chromium') commands.push(npm(app, 'test:diagnostics'));
-  if (nightly && app === 'dorego' && browser === 'chromium') commands.push(
+  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'));
+  if (app === 'notewise') commands.push(script(app, '../../tests/ci/critical-midi.browser.mts'));
+  if (app === 'dorego' && browser === 'chromium') commands.push(
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['packages/browser-diagnostics/test-browser.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);
   return commands;
 }
 // CI maximizes defect detection per second on the Mac Studio. Longer coverage
-// is explicitly retained in Nightly, including commands previously unique to CI.
+// is owned explicitly by Nightly. Convenience aliases do not define coverage.
 function plan(app, tier, browser = 'chromium', group = 'core') {
-  validateTier(tier);
-  if (tier === 'nightly') {
-    const exhaustive = legacyPlan(app, 'nightly', browser, group);
-    if (group === 'editions') return exhaustive;
-    const seen = new Set(exhaustive.map(command => JSON.stringify(command)));
-    return exhaustive.concat([...legacyPlan(app, 'ci', browser), ...plan(app, 'ci', browser)].filter(command => {
-      const key = JSON.stringify(command); if (seen.has(key)) return false; seen.add(key); return true;
-    }));
-  }
-  legacyPlan(app, tier, browser, group); // Validate app, engine and group.
+  validateSelection(app, tier, browser, group);
+  if (tier === 'nightly') return nightlyPlan(app, browser, group);
   if (group !== 'core') throw Error('Edition browser coverage belongs to Nightly');
   return {
     dorego: [npm(app, 'test:desktop')],
     notewise: [script(app, '../../tests/ci/critical-midi.browser.mts')],
     songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts')],
-    soundglow: [['node', ['--import', 'tsx', '--test',
-      'apps/soundglow/tests/ui-controller.test.ts', 'apps/soundglow/tests/account-records.test.ts',
-      'apps/soundglow/tests/file-audio-errors.test.cjs', 'apps/soundglow/tests/praat-client.test.cjs',
-      'apps/soundglow/tests/pitch-comparison/metrics.test.cjs', 'apps/soundglow/tests/pitch-comparison/practice-metrics.test.cjs',
-      'apps/soundglow/tests/pitch-benchmark/metrics.test.cjs']]],
+    soundglow: [npm(app, 'test:unit')],
   }[app];
 }
 module.exports = { budgets, matrix, plan, editionFiles };

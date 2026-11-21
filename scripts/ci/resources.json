@@ -1197,7 +1197,7 @@
     ]
   },
   "soundglow:npm:run test:core --workspace=soundglow": {
-    "kind": "audio",
+    "kind": "unit",
     "ports": [
       4000,
       4016,
@@ -1214,23 +1214,19 @@
       8000,
       8125,
       8192,
-      8779,
       8780,
       8820,
       8998
     ],
-    "locks": [
-      "realtime-audio",
-      "soundglow-generated-fixtures"
-    ],
+    "locks": [],
     "coverage": [
       {
         "command": "node",
         "args": [
-          "../../scripts/ci/prepare-tests.cjs",
-          "soundglow"
+          "--test",
+          "test/*.cjs"
         ],
-        "cwd": "apps/soundglow"
+        "cwd": "packages/browser-offline"
       },
       {
         "command": "node",
@@ -1243,35 +1239,8 @@
       {
         "command": "node",
         "args": [
-          "../../packages/browser-diagnostics/test-browser.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/diagnostics-build.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "--test",
-          "test/*.cjs"
-        ],
-        "cwd": "packages/browser-offline"
-      },
-      {
-        "command": "node",
-        "args": [
-          "--import",
-          "tsx",
-          "--test",
-          "tests/ui-controller.test.ts",
-          "tests/account-records.test.ts",
-          "tests/file-audio-errors.test.cjs",
-          "tests/praat-client.test.cjs"
+          "../../scripts/ci/prepare-tests.cjs",
+          "soundglow"
         ],
         "cwd": "apps/soundglow"
       },
@@ -1309,196 +1278,66 @@
       {
         "command": "node",
         "args": [
-          "tests/audio-controls.cjs"
+          "--import",
+          "tsx",
+          "--test",
+          "--test-concurrency=4",
+          "tests/ui-controller.test.ts",
+          "tests/account-records.test.ts",
+          "tests/file-audio-errors.test.cjs",
+          "tests/praat-client.test.cjs",
+          "tests/audio-controls.cjs",
+          "tests/features.cjs",
+          "tests/pitch-contour.cjs",
+          "tests/pitch-comparison/practice-metrics.test.cjs",
+          "tests/speech-detector.cjs",
+          "tests/neural-detector.cjs",
+          "tests/pitch-presets.cjs",
+          "tests/pitch-filtered.cjs",
+          "tests/pitch-corroborated.cjs",
+          "tests/pitch-comparison/metrics.test.cjs",
+          "tests/pitch-comparison/capture.test.cjs",
+          "tests/processor-archive.cjs",
+          "tests/performance.cjs",
+          "tests/display.cjs",
+          "tests/handover.cjs",
+          "tests/settings-state.cjs",
+          "tests/spectrum.cjs",
+          "tests/praat.cjs",
+          "tests/voice-settings.cjs",
+          "tests/overlays.cjs",
+          "tests/voice-feedback.cjs",
+          "tests/lpc-native.cjs",
+          "tests/visual/numeric.cjs",
+          "tests/pitch-benchmark/metrics.test.cjs",
+          "tests/pitch-benchmark/gate-trial.test.cjs",
+          "tests/pitch-benchmark/gate-cycle-policy.test.cjs",
+          "tests/pitch-benchmark/gate-reset-policy.test.cjs",
+          "tests/pitch-benchmark/gate-reset-stream.test.cjs",
+          "tests/diagnostics-build.cjs"
         ],
         "cwd": "apps/soundglow"
       },
       {
         "command": "node",
         "args": [
-          "tests/features.cjs"
+          "../../scripts/ci/prepare-tests.cjs",
+          "soundglow"
         ],
         "cwd": "apps/soundglow"
       },
       {
         "command": "node",
         "args": [
-          "tests/pitch-contour.cjs"
+          "../../packages/browser-diagnostics/test-browser.cjs"
         ],
         "cwd": "apps/soundglow"
       },
       {
         "command": "node",
         "args": [
-          "tests/pitch-comparison/practice-metrics.test.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/speech-detector.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/neural-detector.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-presets.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-filtered.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-corroborated.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-comparison/metrics.test.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-comparison/capture.test.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/processor-archive.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/performance.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/display.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/handover.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/settings-state.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/spectrum.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/praat.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/voice-settings.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/overlays.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/voice-feedback.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/lpc-native.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/visual/numeric.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-benchmark/metrics.test.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-benchmark/gate-trial.test.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-benchmark/gate-cycle-policy.test.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-benchmark/gate-reset-policy.test.cjs"
-        ],
-        "cwd": "apps/soundglow"
-      },
-      {
-        "command": "node",
-        "args": [
-          "tests/pitch-benchmark/gate-reset-stream.test.cjs"
+          "--test",
+          "tests/dev-server.browser.cjs"
         ],
         "cwd": "apps/soundglow"
       }
@@ -1615,7 +1454,8 @@
           "preset-dialogs.spec.cjs",
           "library-actions.spec.cjs",
           "pitch-controls.spec.cjs",
-          "diagnostics.spec.cjs"
+          "diagnostics.spec.cjs",
+          "settings-layout.spec.cjs"
         ],
         "cwd": "apps/soundglow"
       }
@@ -1876,6 +1716,146 @@
           "../../tests/ci/critical-midi.browser.mts"
         ],
         "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "soundglow:npm:run test:unit --workspace=soundglow": {
+    "kind": "unit",
+    "ports": [
+      4000,
+      4016,
+      4017,
+      4018,
+      4029,
+      4096,
+      4284,
+      4321,
+      4500,
+      4700,
+      4707,
+      4800,
+      8000,
+      8125,
+      8192,
+      8780,
+      8820,
+      8998
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/ci/prepare-tests.cjs",
+          "soundglow"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "scripts/verify-assets.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--check",
+          "dist/app.js"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--check",
+          "dist/pcm-worklet.js"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--test",
+          "tests/dev-server.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--import",
+          "tsx",
+          "--test",
+          "--test-concurrency=4",
+          "tests/ui-controller.test.ts",
+          "tests/account-records.test.ts",
+          "tests/file-audio-errors.test.cjs",
+          "tests/praat-client.test.cjs",
+          "tests/audio-controls.cjs",
+          "tests/features.cjs",
+          "tests/pitch-contour.cjs",
+          "tests/pitch-comparison/practice-metrics.test.cjs",
+          "tests/speech-detector.cjs",
+          "tests/neural-detector.cjs",
+          "tests/pitch-presets.cjs",
+          "tests/pitch-filtered.cjs",
+          "tests/pitch-corroborated.cjs",
+          "tests/pitch-comparison/metrics.test.cjs",
+          "tests/pitch-comparison/capture.test.cjs",
+          "tests/processor-archive.cjs",
+          "tests/performance.cjs",
+          "tests/display.cjs",
+          "tests/handover.cjs",
+          "tests/settings-state.cjs",
+          "tests/spectrum.cjs",
+          "tests/praat.cjs",
+          "tests/voice-settings.cjs",
+          "tests/overlays.cjs",
+          "tests/voice-feedback.cjs",
+          "tests/lpc-native.cjs",
+          "tests/visual/numeric.cjs",
+          "tests/pitch-benchmark/metrics.test.cjs",
+          "tests/pitch-benchmark/gate-trial.test.cjs",
+          "tests/pitch-benchmark/gate-cycle-policy.test.cjs",
+          "tests/pitch-benchmark/gate-reset-policy.test.cjs",
+          "tests/pitch-benchmark/gate-reset-stream.test.cjs",
+          "tests/diagnostics-build.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      }
+    ]
+  },
+  "soundglow:npm:run test:browser-core --workspace=soundglow": {
+    "kind": "ui",
+    "ports": [
+      8780
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/ci/prepare-tests.cjs",
+          "soundglow"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "../../packages/browser-diagnostics/test-browser.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--test",
+          "tests/dev-server.browser.cjs"
+        ],
+        "cwd": "apps/soundglow"
       }
     ]
   }

@@ -23,7 +23,8 @@ test('CI prioritizes playback, MIDI and lifecycle without exhaustive loops', () 
   assert.match(text('notewise'), /critical-midi/);
   assert.match(text('songalong'), /audio-lifecycle/);
   assert.match(text('songalong'), /guitar.browser/);
-  assert.match(text('soundglow'), /account-records|pitch-comparison/);
+  const { executions } = require('../../scripts/ci/coverage.cjs');
+  for (const file of ['apps/soundglow/tests/account-records.test.ts', 'apps/soundglow/tests/pitch-comparison/metrics.test.cjs']) assert(executions('soundglow', 'ci').includes(file));
   for (const app of Object.keys(apps)) assert.doesNotMatch(text(app), /test:catalog|test:visual|test:backing-genres|test:offline/);
 });
 test('exhaustive suites remain available in the regression profile and Firefox is not a CI engine', () => {

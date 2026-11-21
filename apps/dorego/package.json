@@ -8,7 +8,7 @@
     "dev": "tsx server/index.ts",
     "build": "tsc --noEmit && vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
-    "test": "npm run test:diagnostics && npm run test:offline-package && tsx --test tests/*.test.ts",
+    "test": "npm run test:diagnostics && npm run test:offline-package && npm run test:unit",
     "test:e2e": "tsx tests/e2e.ts",
     "format": "prettier --write .",
     "setup:browser": "playwright install chromium",
@@ -36,7 +36,8 @@
     "test:channels": "tsx tests/audio-channels.e2e.ts",
     "prepare:piano-trial": "python3 trials/piano/prepare.py",
     "trial:piano": "npm run prepare:piano-trial && vite --config trials/piano/vite.config.ts",
-    "test:piano-trial": "tsc -p trials/piano/tsconfig.json && python3 trials/piano/verify.py && TEST_BROWSER=chromium tsx trials/piano/test.ts && TEST_BROWSER=firefox tsx trials/piano/test.ts && TEST_BROWSER=webkit tsx trials/piano/test.ts"
+    "test:piano-trial": "tsc -p trials/piano/tsconfig.json && python3 trials/piano/verify.py && TEST_BROWSER=chromium tsx trials/piano/test.ts && TEST_BROWSER=firefox tsx trials/piano/test.ts && TEST_BROWSER=webkit tsx trials/piano/test.ts",
+    "test:unit": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@ldayton/browser-diagnostics": "*",

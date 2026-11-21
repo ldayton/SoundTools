@@ -8,7 +8,7 @@ const { affected, changes } = require('./affected.cjs');
 const { tiers, tier: validateTier } = require('./tiers.cjs');
 const { apps } = require('./apps.cjs');
 const { git, assertRevision, snapshot, cloneSupported } = require('./snapshot.cjs');
-const { sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
+const { orderAppChecks, sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
 const { workerCount, validate } = require('./scheduler.cjs');
 const { execFileSync } = require('node:child_process');
 const { runTasks } = require('./run.cjs');
@@ -70,7 +70,7 @@ function graph(selected, opts, directories, backends = {}) {
     tasks.at(-2).needs.push(`${name}:diagnostics`);
   }
   for (const task of tasks) task.env = { ...task.env, CI_TIER: opts.tier };
-  return tasks;
+  return orderAppChecks(tasks);
 }
 async function backendPorts(allocated = new Set(), random = Math.random) {
   // Keep the four reservations together until every requested port is available.

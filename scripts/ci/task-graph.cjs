@@ -7,7 +7,7 @@ const browserSuites = Object.freeze(['desktop', 'workspace', 'breath-squares', '
 function environment(browser, tier = 'ci') { return { CI_TIER: tier, TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' }; }
 function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false } = {}) {
   const tasks = [];
-  if (!['notewise', 'soundglow'].includes(app)) tasks.push({ id: `${prefix}:units`, command: 'npm', args: ['test', '--workspace=' + app], cwd, needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
+  if (!['notewise', 'soundglow'].includes(app)) tasks.push({ id: `${prefix}:units`, command: 'npm', args: app === 'dorego' ? ['run', 'test:unit', '--workspace=' + app] : ['test', '--workspace=' + app], cwd, needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
   tasks.push({ id: `${prefix}:build`, command: process.execPath, args: ['scripts/ci/build.cjs', app], cwd, needs: tasks.length ? [tasks[0].id] : needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
   if (app === 'soundglow' && visual) tasks.push({ id: `${prefix}:visual-fixture`, command: process.execPath, args: ['scripts/ci/prepare-visual.cjs'], cwd, needs: [`${prefix}:build`], locks: [`files:${cwd}`], priority: 60 });
   return tasks;
@@ -47,6 +47,16 @@ function commandTasks(app, tier, browser, cwd = root, { group = 'core', shard = 
     return [base];
   }).concat(tier === 'ci' && group === 'core' ? [{ id: `${prefix}:smoke`, command: process.execPath, args: ['scripts/ci/smoke-local.cjs', app], cwd, needs, locks: [], env: environment('webkit', tier), coverage: [{ command: 'node', args: ['scripts/ci/smoke-local.cjs', app], cwd: '' }] }] : []);
 }
+// The real development-command test rebuilds dist/ui. Finish it before any
+// browser or packager reads that output; Node's isolated pool can then overlap
+// read-only DSP/state checks. Hosted WebKit has no Node task or output mutation.
+function orderAppChecks(tasks) {
+  const unit = tasks.find(task => task.args.includes('test:unit') && task.args.includes('--workspace=soundglow'));
+  if (unit) for (const task of tasks) {
+    if (task !== unit && (/^soundglow:(?:ci|nightly):/.test(task.id) || task.id === 'soundglow:visual-fixture')) task.needs = [...new Set([...task.needs, unit.id])];
+  }
+  return tasks;
+}
 function sharedTasks(cwd = root, { needs = [], unitWorkers = Number(process.env.CI_UNIT_WORKERS || (process.env.CI ? 2 : 4)) } = {}) {
   if (!Number.isInteger(unitWorkers) || unitWorkers < 1 || unitWorkers > 8) throw Error('CI_UNIT_WORKERS must be 1..8');
   const base = [
@@ -60,4 +70,4 @@ function sharedTasks(cwd = root, { needs = [], unitWorkers = Number(process.env.
   ]) base.push({ id: `shared:${name}`, command, args, cwd: name === 'music' ? path.join(cwd, 'packages/music-practice') : cwd, needs: ['shared:diagnostics'], locks: [], slots, priority: name === 'policy' ? 80 : name === 'contracts' ? 40 : 20 });
   return base;
 }
-module.exports = { browserSuites, environment, setupTasks, commandTasks, sharedTasks };
+module.exports = { orderAppChecks, browserSuites, environment, setupTasks, commandTasks, sharedTasks };

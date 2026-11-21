@@ -6,7 +6,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { randomUUID } = require('node:crypto');
 const { git, assertRevision } = require('./snapshot.cjs');
-const { sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
+const { orderAppChecks, sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
 const { runTasks } = require('./run.cjs');
 const { tiers } = require('./tiers.cjs');
 const { execute } = require('./execute.cjs');
@@ -26,7 +26,7 @@ function fastGraph(selected, cwd) {
     tasks.push(...setup, ...commandTasks(app, 'ci', 'chromium', cwd));
   }
   for (const task of tasks) task.env = { ...task.env, CI_TIER: 'ci' };
-  return tasks;
+  return orderAppChecks(tasks);
 }
 async function fastLocal(opts, { root, started, selected, sha }) {
   const directory = path.join(root, 'work/ci-results', `${Date.now()}-${randomUUID().slice(0, 8)}`);

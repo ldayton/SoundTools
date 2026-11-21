@@ -10,14 +10,16 @@ workflow wiring, nested npm aliases, fixture use and failure recording.
 | Tier | When | Coverage |
 | --- | --- | --- |
 | **CI** | GitHub pushes/PRs and local pre-push validation (`npm run ci`) | Shared/music units and contracts, app unit checks and all builds; selected playback, MIDI, lifecycle, guitar and DSP checks; desktop/phone WebKit startup and auth-confirm isolation. Maximum 60 seconds locally on the Mac Studio. |
-| **Nightly** | Scheduled GitHub runs or explicit manual runs (`npm run nightly`) | Exhaustive coverage across Chromium and WebKit, including every former CI command, exhaustive editions, catalogs, layouts, offline recovery, visual/performance, audio and real Accounts integration; never publishes |
+| **Nightly** | Scheduled GitHub runs or explicit manual runs (`npm run nightly`) | Exhaustive coverage across Chromium and WebKit, including exhaustive editions, catalogs, layouts, offline recovery, visual/performance, audio and real Accounts integration; never publishes |
 
 These are the only test tiers. Apps, shared contracts, editions, Accounts and
 release smoke are coverage groups within a tier. `scripts/ci/tiers.cjs` defines
 the tier names and browser engines; `test-strategy.cjs` selects each group's
-commands. The frozen former command inventory in `tests/ci/fixtures/tier-coverage.json`
-ensures every displaced CI command remains required in Nightly. Do not rewrite
-that baseline to hide an omission. Pushes and PRs always select CI; schedules always select Nightly.
+commands. Current execution ownership is checked by `scripts/ci/coverage.cjs`:
+Nightly includes CI's test files, and a file cannot be scheduled twice in an
+app/engine plan through different aliases. This is an execution check, not proof
+that different files test distinct behaviors. Pushes and PRs always select CI;
+schedules always select Nightly.
 Manual GitHub runs choose `ci` or `nightly` explicitly.
 
 An app's aggregate reusable workflow must pass **all** its selected groups before
@@ -27,13 +29,59 @@ installation and cleanup. GitHub CI runs the same coverage on slower hosted
 runners, with a 10-minute per-group safety timeout; Nightly core
 groups have 30 minutes. Nightly edition groups have 15 minutes. GitHub splits their discovered registry
 into two required shards per engine; every shard is part of the aggregate app
-gate. The local Nightly graph runs that same complete registry without changing
-its 143-task inventory. These
+gate. The local Nightly graph runs that same complete registry using the same discovered files. These
 are limits, not performance targets: split coverage when command timings show
 growth rather than hiding timeouts.
 Build once per app/configuration in a local run, with SHA/digest provenance; do not reuse stale local builds.
 No test assertion has an automatic retry. Infrastructure's bounded provisioning
 retry is separate from application assertions.
+
+## Choose the cheapest convincing test
+
+Start with the regression a test would catch, then choose its owner. Test counts
+and historical commands are not guarantees. A useful test fails when the behavior
+breaks and remains valid when an unrelated implementation detail changes.
+
+| Behavior | Preferred owner | Escalate when |
+| --- | --- | --- |
+| Music rules, grading, DSP, state transitions, migrations | Deterministic Node test with explicit inputs and independent expected values | The browser or persistence boundary changes the result |
+| HTTP responses, file packaging, manifests, local server lifecycle | Small integration test with temporary files and ephemeral ports | Browser caching, workers or reload semantics are the contract |
+| Rendering, responsive layout, focus, keyboard navigation | Focused browser test using real layout | The workflow must cross another real boundary |
+| Playback, audio continuity, offline recovery, account replication | A small set of real browser/backend witnesses | Another configuration exercises a genuinely different mechanism |
+
+Keep broad input combinations at the inexpensive level. Use browser tests to
+prove wiring and browser-specific mechanisms, rather than repeat all the same
+math or state assertions in every engine/device combination. Real PCM, native
+reference comparisons and backend integration remain valuable where mocks
+cannot prove the guarantee. A test named “performance” may use a deterministic
+clock; inspect its assertions before assigning an exclusive realtime lock.
+
+When adding or changing a test, identify the failure it catches, check for an
+existing owner, and update affected consumers with the production contract.
+Use a shared capability fixture for generic workflows and independent goldens
+for exact music/DSP results. Expected values derived from a production helper
+need independent tests of that helper; otherwise the same bug can pass both sides.
+Avoid source-text assertions when an observable behavior test proves the same
+contract. Source checks are appropriate for repository policy and registrations.
+
+Retire a redundant test only after reviewing its assertions, fixtures, browser
+and configuration against the remaining owner. Record the reason in the change;
+do not maintain a second per-assertion registry or preserve old aliases merely
+to satisfy an inventory snapshot. File execution audits find literal duplication,
+not semantic redundancy. Different files and configurations still require review.
+
+Soundglow's Node/DSP checks run once in Nightly, using a four-process isolated
+Node pool. The dev-server integration checks run before that pool because one
+starts the real development command and rebuilds UI output; every Nightly browser
+reader and visual fixture waits for these checks locally. Chromium and WebKit
+both exercise the real SDK and cache/script/style/worker/WASM reload contract.
+Shared diagnostics/offline package units belong to shared validation, not each
+app's canonical lane. Developer convenience umbrellas may still compose them.
+
+Use `node scripts/ci/coverage.cjs` to audit current expanded execution files and
+alias duplication. Its output excludes setup hooks and syntax checks; the separate
+reviewed resource inventory still preserves those operations and their locks.
+Do not infer full behavior coverage from a clean duplicate report.
 
 ## Fixture rules
 
@@ -276,7 +324,7 @@ simulator; it does not pretend to test physical hardware.
 The full real-backend Accounts suite previously took 117 seconds by itself.
 It now runs in Nightly, together with exhaustive MIDI, editions, catalog,
 visual/performance, offline recovery and longer browser scenarios. The policy
-tests require Nightly to retain every former command and all current CI commands.
+tests require Nightly to retain current CI execution coverage.
 This is a deliberate coverage tradeoff, not a claim that parallelism alone made
 the previous suite fit in 60 seconds. Release provenance and live smoke checks
 remain mandatory and are timed separately from the local CI suite.

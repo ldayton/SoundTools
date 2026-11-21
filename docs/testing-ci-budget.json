@@ -30,5 +30,12 @@
       "tasks": 20,
       "evidence": "work/ci-results/1795274329674-bacc6806"
     }
-  ]
+  ],
+  "externalWallMeasurement": {
+    "sha": "dc1044e",
+    "command": "npm run ci -- --all",
+    "elapsedMs": 46158,
+    "exitCode": 0,
+    "timing": "External monotonic clock from before npm launch until process exit, including startup and cleanup."
+  }
 }

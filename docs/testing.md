@@ -256,7 +256,8 @@ runner. Nightly never publishes.
 
 Two complete `npm run ci -- --all` runs on the Mac Studio passed in **45.83s**
 and **46.28s**, including dependency installation, fresh builds and overhead.
-Both used the same 20-task CI inventory, 16 outer worker slots and eight music
+An additional externally timed invocation passed in **46.16s** from before
+launching npm until process exit. All used the same 20-task CI inventory, 16 outer worker slots and eight music
 unit-file workers, on 24 logical CPUs and 64 GiB RAM. Browsers were installed
 and npm/OS caches were warm; build outputs were recreated each time. This leaves
 about 14 seconds below the hard budget in these runs, not a p95 guarantee.

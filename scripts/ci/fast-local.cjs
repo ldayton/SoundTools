@@ -45,6 +45,7 @@ async function fastLocal(opts, { root, started, selected, sha }) {
   const timer = setTimeout(abort, Math.max(1, tiers.ci.localBudgetMs - (performance.now() - started)));
   let passed = false;
   try {
+    if (performance.now() - started >= tiers.ci.localBudgetMs) throw Error('CI exceeded the 60-second budget before dependency installation');
     // npm ci installs the committed lockfile; installation time counts, too.
     const install = await execute({ id: 'install', command: 'npm', args: ['ci'], cwd: root }, { directory: path.join(directory, 'bootstrap'), signal: controller.signal });
     if (install.exitCode !== 0 || install.timedOut || controller.signal.aborted) throw Error(`CI dependency installation failed or exceeded 60 seconds: ${install.log}`);

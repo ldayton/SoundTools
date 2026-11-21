@@ -19,7 +19,7 @@ test('expired end-to-end budget fails before test execution and releases the hos
     const sha = git(['rev-parse', 'HEAD']);
     await assert.rejects(fastLocal({ workers: 2, workersExplicit: true }, {
       root, sha, selected: { apps: [], accounts: false }, started: performance.now() - 60001,
-    }), /installation failed or exceeded 60 seconds/);
+    }), /60-second budget before dependency installation/);
     const runs = fs.readdirSync(path.join(root, 'work/ci-results'));
     assert.equal(runs.length, 1);
     const directory = path.join(root, 'work/ci-results', runs[0]);
@@ -27,6 +27,7 @@ test('expired end-to-end budget fails before test execution and releases the hos
     assert.equal(result.passed, false);
     assert.equal(result.budgetMs, 60000);
     assert(result.elapsedMs > 60000);
+    assert(!fs.existsSync(path.join(directory, 'bootstrap')), 'Expired runs must not start installation');
     assert(!fs.existsSync(path.join(directory, 'results.json')), 'No test graph should run after the budget is consumed');
     assert(!fs.existsSync(path.join(root, '.git/soundtools-ci.lock')));
     assert.equal(process.exitCode, 1);

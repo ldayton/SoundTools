@@ -4,6 +4,14 @@ import { isMajorScale, scaleNotes, type ScaleQuality } from "./guitar-scales";
 export const SCALE_SHAPES = ["1", "2", "3", "4", "5"] as const;
 export type ScaleShape = (typeof SCALE_SHAPES)[number];
 export type ScalePattern = ScaleShape | "map";
+// IDs remain stable for saved practice state and existing numbered URLs.
+export const CAGED_SHAPES = ["3", "4", "5", "1", "2"] as const;
+export function scaleShapeLabel(shape: ScalePattern | "none", quality: ScaleQuality): string {
+  if (shape === "map") return "Fret range";
+  if (shape === "none") return "Single shape";
+  const chord = { "1": "E", "2": "D", "3": "C", "4": "A", "5": "G" }[shape];
+  return `${chord}${isMajorScale(quality) ? "" : "m"} shape`;
+}
 type Fingering = { frets: number[][]; fingers: number[][] };
 // GuitarScale.org's C major and A natural minor shapes. Rows run from string 6
 // to string 1; each finger belongs to the fret in the same row and column.

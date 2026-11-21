@@ -1,7 +1,7 @@
 import { HILA_SHAPES, type HilaShape } from "./hila-scale-shapes";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack, SimpleGrid } from "@mantine/core";
-import { SCALE_SHAPES, type ScalePattern } from "./guitar-scale-patterns";
+import { CAGED_SHAPES, scaleShapeLabel, type ScalePattern } from "./guitar-scale-patterns";
 import {
   SCALE_FRET_LIMIT,
   SCALE_TONICS,
@@ -68,8 +68,8 @@ export function ScaleOptions({
           label="Shape set"
           value={state.shapeSet}
           data={[
-            { value: "standard", label: "Standard · five shapes" },
-            { value: "hila", label: "Extended Set" },
+            { value: "standard", label: "CAGED · five shapes" },
+            { value: "hila", label: "Seven-position major" },
           ]}
           onChange={(e) =>
             change({ shapeSet: e.currentTarget.value as "standard" | "hila" })
@@ -95,9 +95,9 @@ export function ScaleOptions({
           value={state.pattern}
           data={[
             { value: "map", label: "Fret range" },
-            ...SCALE_SHAPES.map((value) => ({
+            ...CAGED_SHAPES.map((value) => ({
               value,
-              label: `Shape ${value}`,
+              label: scaleShapeLabel(value, state.quality),
             })),
           ]}
           onChange={(e) =>
@@ -139,8 +139,8 @@ export function ScaleOptions({
           disabled={state.pattern === "map"}
           data={[
             { value: "none", label: "Single shape" },
-            ...SCALE_SHAPES.filter((value) => value !== state.pattern).map(
-              (value) => ({ value, label: `Shape ${value}` }),
+            ...CAGED_SHAPES.filter((value) => value !== state.pattern).map(
+              (value) => ({ value, label: scaleShapeLabel(value, state.quality) }),
             ),
           ]}
           onChange={(e) =>

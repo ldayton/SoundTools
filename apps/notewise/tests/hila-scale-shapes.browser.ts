@@ -1,12 +1,11 @@
-import { chromium, webkit, expect } from "@playwright/test";
+import { launchBrowser, newPage, closeBrowser, captureFailure, waitForApp } from "../../../scripts/ci/browser-harness.cjs";
+import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
 const server = await preview("notewise", 4597);
-const browser = await (
-  process.env.TEST_BROWSER === "webkit" ? webkit : chromium
-).launch();
+const browser = await launchBrowser();
 try {
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });
@@ -16,6 +15,9 @@ try {
     server.base +
       "/guitar/scales?key=C&scale=major&set=hila&shape=1&labels=none",
   );
+  await waitForApp(page, ".scale-diagram svg");
+  await expect(page.locator(".scale-pattern-caption")).toHaveText("Seven-position major · Shape 1");
+  await expect(page.getByText("Shapes supplied by Hila Bar.", {exact:true})).toHaveCount(1);
   const tones = page.locator(".scale-diagram .scale-tone");
   await expect(tones).toHaveCount(17);
   await openPracticeOptions(page);
@@ -50,7 +52,20 @@ try {
   await page.getByLabel("Shape set", { exact: true }).selectOption("standard");
   await expect(page.locator("#scale-pattern")).toBeVisible();
   await expect(page.locator("#scale-linked-pattern")).toBeVisible();
+  await expect(page.getByLabel("Shape set", {exact:true}).locator("option")).toHaveText(["CAGED · five shapes","Seven-position major"]);
   await page.locator("#scale-pattern").selectOption("4");
+  for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"]){
+    await page.locator("#scale-quality").selectOption(quality);
+    const names=(quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`);
+    await expect(page.locator("#scale-pattern option")).toHaveText(["Fret range",...names]);
+    await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
+    await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"A shape":"Am shape");
+  }
+  await page.reload();
+  await openPracticeOptions(page);
+  await expect(page.locator("#scale-pattern")).toHaveValue("4");
+  await expect(page.locator("#scale-quality")).toHaveValue("minor-blues");
+  await page.locator("#scale-quality").selectOption("major");
   await page.getByLabel("Shape set", { exact: true }).selectOption("hila");
   await page.locator("#scale-key").selectOption("0");
   await page.getByLabel("Shape", { exact: true }).selectOption("1");
@@ -85,7 +100,10 @@ try {
   console.log(
     "PASS Hila shapes: seven diagrams, settings, reload, transposition, standard set, keyboard and mobile",
   );
+} catch(error) {
+  await captureFailure(browser,error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.stop();
 }

@@ -188,3 +188,12 @@ The underlying hosted-runner/network cause is unproven; a successful rerun is
 not a code fix or evidence that an assertion flake was solved. No test or timeout
 was changed for this rerun. Keep this infrastructure evidence separate from the
 Nightly fixture, lifecycle and edition-partition repairs above.
+
+## NoteWise linked-scale mobile layout readiness (21 November 2026)
+
+First evidence: `apps/notewise/work/browser-results/scale-loop.browser.ts-chromium-2dc56d95/`.
+The page-width assertion ran immediately after `setViewportSize`, before React
+committed the mobile shell. The retained screenshot shows the settled mobile
+layout without page overflow. The test now waits for the navbar's presence to
+match the responsive media query before measuring containment and note sizes;
+the containment and size assertions remain unchanged.

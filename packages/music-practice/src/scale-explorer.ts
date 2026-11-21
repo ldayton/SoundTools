@@ -21,6 +21,7 @@ import {
 } from "./scale-options";
 import {
   linkedPatternPositions,
+  scaleShapeLabel,
   patternBounds,
   patternShift,
   patternPositions,
@@ -507,7 +508,7 @@ export class ScaleExplorer implements LivePractice {
     const label = this.returnPosition
       ? "Return to previous shape"
       : `Show ${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} starting position`;
-    const relativeExplanation = `${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} Shape 1 · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)} Shape ${relativeTarget}`;
+    const relativeExplanation = `${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} ${scaleShapeLabel("1", relative.quality)} · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)} ${scaleShapeLabel(relativeTarget, this.quality)}`;
     const hila = this.shapeSet === "hila";
     const movable = hila || this.pattern !== "map";
     const basePositions = hila
@@ -598,9 +599,9 @@ export class ScaleExplorer implements LivePractice {
     const fullRight = fullEnd * step + 1;
 
     const caption = hila
-      ? `Extended Set · Shape ${this.hilaShape}`
+      ? `Seven-position major · Shape ${this.hilaShape}`
       : movable
-        ? `Shape ${this.pattern} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
+        ? `${scaleShapeLabel(this.pattern, this.quality)} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
         : "Fret range";
     const labels = hila && this.labels === "fingers" ? "notes" : this.labels;
     const footnote =
@@ -720,7 +721,7 @@ export class ScaleExplorer implements LivePractice {
         route && (route.previous.string === 6 || route.arrival.string === 6)
           ? 335
           : 290;
-      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${hila ? "Extended Set, Shape " + this.hilaShape : "Shape " + this.pattern}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
+      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${hila ? "Seven-position major, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
       ${Array.from(
         { length: fullEnd - fullStart + 2 },
         (_, i) => fullStart - 1 + i,
@@ -770,7 +771,7 @@ export class ScaleExplorer implements LivePractice {
           ? ""
           : "No linked route available for this pair here.",
       reversedColors: this.reversedColors,
-      linkedLegend: linked ? `Shape ${this.pattern}|Shape ${this.linked}` : "",
+      linkedLegend: linked ? `${scaleShapeLabel(this.pattern, this.quality)}|${scaleShapeLabel(this.linked, this.quality)}` : "",
       linkHelp: "",
       notes: noteList,
       relativeExplanation: hila

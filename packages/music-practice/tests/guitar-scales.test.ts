@@ -1,6 +1,8 @@
 import {
   linkedPatternPositions,
   SCALE_SHAPES,
+  CAGED_SHAPES,
+  scaleShapeLabel,
   patternPositions,
   patternShift,
   patternBounds,
@@ -494,4 +496,12 @@ test("linked shape placement stays in key and on the neck for every shape and ke
           const pitches = scaleNotes(tonic, quality).map(n => n.pitchClass);
           assert.ok(notes.every(n => n.fret >= 1 && n.fret <= 22 && pitches.includes(n.midi % 12)));
         }
+});
+
+test("CAGED names and ordering preserve existing shape identities across all scale families",()=>{
+ assert.deepEqual(CAGED_SHAPES,["3","4","5","1","2"]);
+ for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"] as const){
+  assert.deepEqual(CAGED_SHAPES.map(s=>scaleShapeLabel(s,quality)),
+   (quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`));
+ }
 });

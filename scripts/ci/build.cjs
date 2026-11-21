@@ -36,10 +36,10 @@ function verifyBuild(data, { app = data.app, revision = sha(), directory = root 
 }
 const manifestPath = app => path.join(root, 'work/ci-provenance', `${app}.json`);
 function verify(app) { return verifyBuild(JSON.parse(fs.readFileSync(manifestPath(app))), { app }); }
-function build(app) {
+function build(app, { prepared = false } = {}) {
   if (!apps[app]) throw Error('Unknown build app');
   const run = (command, args, cwd = root) => execFileSync(command, args, { cwd, stdio: 'inherit' });
-  run('npm', ['run', 'build:shared', '--', app]);
+  if (!prepared) run('npm', ['run', 'build:shared', '--', app]);
   if (app === 'soundglow') {
     run(process.execPath, ['scripts/verify-assets.cjs'], path.join(root, 'apps/soundglow'));
     run(process.execPath, ['scripts/build-site.cjs'], path.join(root, 'apps/soundglow'));
@@ -64,4 +64,4 @@ function build(app) {
   console.log(`Verified ${app} CI build: ${Object.keys(data.files).length} files, commit ${data.sha}`);
 }
 module.exports = { manifest, verifyBuild, verify, build, outputPaths };
-if (require.main === module) { try { if (process.argv[2] === 'verify') verify(process.argv[3]); else build(process.argv[2]); } catch (e) { console.error(e.message); process.exitCode = 1; } }
+if (require.main === module) { try { if (process.argv[2] === 'verify') verify(process.argv[3]); else build(process.argv[2], { prepared: process.argv[3] === '--prepared' }); } catch (e) { console.error(e.message); process.exitCode = 1; } }

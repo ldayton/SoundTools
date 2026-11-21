@@ -25,6 +25,7 @@ function options(args) {
       result[arg.slice(2)] = args[++i];
     } else throw Error(`Unknown option: ${arg}`);
   }
+  result.workersExplicit = args.includes('--workers') || !!process.env.CI_WORKERS;
   result.workers = workerCount(result.workers);
   result.tier = validateTier(result.tier);
   if (result.apps && (result.tier === 'nightly' || result.all)) throw Error('--apps is a diagnostic scope; do not combine with Nightly/--all');
@@ -42,6 +43,7 @@ async function selection(opts, { readGit = args => git(root, args), detect = cha
   return { ...result, scope: 'affected' };
 }
 function graph(selected, opts, directories, backends = {}) {
+  if (opts.tier === 'ci') return require('./fast-local.cjs').fastGraph(selected, directories.shared);
   const shared = sharedTasks(root).map(task => ({ ...task, cwd: path.join(directories.shared, path.relative(root, task.cwd)) }));
   const tasks = [...shared];
   for (const task of tasks) task.env = { ...task.env, CI_TIER: opts.tier };
@@ -87,7 +89,9 @@ async function backendPorts(allocated = new Set(), random = Math.random) {
   throw Error('Unable to reserve local backend ports');
 }
 async function main(args) {
+  const startedAt = performance.now();
   const opts = options(args), selected = await selection(opts), sha = git(root, ['rev-parse', 'HEAD']);
+  if (opts.tier === 'ci') return require('./fast-local.cjs').fastLocal(opts, { root, started: startedAt, selected, sha });
   const id = `${Date.now()}-${randomUUID().slice(0, 8)}`, directory = path.join(root, 'work/ci-results', id);
   const names = ['shared', ...selected.apps, ...(selected.accounts ? tiers[opts.tier].browsers.map(browser => `accounts-${browser}`) : [])];
   const directories = Object.fromEntries(names.map(name => [name, path.join(root, 'work/ci-snapshots', id, name)]));

@@ -44,8 +44,7 @@ function commandTasks(app, tier, browser, cwd = root, { group = 'core', prefix =
     return [base];
   }).concat(tier === 'ci' && group === 'core' ? [{ id: `${prefix}:smoke`, command: process.execPath, args: ['scripts/ci/smoke-local.cjs', app], cwd, needs, locks: [], env: environment('webkit', tier), coverage: [{ command: 'node', args: ['scripts/ci/smoke-local.cjs', app], cwd: '' }] }] : []);
 }
-function sharedTasks(cwd = root, { needs = [] } = {}) {
-  const unitWorkers = Number(process.env.CI_UNIT_WORKERS || (process.env.CI ? 2 : 4));
+function sharedTasks(cwd = root, { needs = [], unitWorkers = Number(process.env.CI_UNIT_WORKERS || (process.env.CI ? 2 : 4)) } = {}) {
   if (!Number.isInteger(unitWorkers) || unitWorkers < 1 || unitWorkers > 8) throw Error('CI_UNIT_WORKERS must be 1..8');
   const base = [
     ['history', 'npm', ['run', 'verify:history']],

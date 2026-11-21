@@ -24,14 +24,14 @@ test('CI and Nightly are the only tiers, with explicit event and publication pol
   assert.equal((workflow.match(/needs\.changes\.outputs\.tier == 'ci'/g) || []).length, 4);
 });
 
-test('tier rename preserves every pre-migration command and its order', () => {
+test('Nightly retains every command displaced from the former CI and Nightly inventories', () => {
   const baseline = require('./fixtures/tier-coverage.json');
   assert.equal(Object.keys(baseline).length, 20);
   for (const [key, expected] of Object.entries(baseline)) {
-    const [app, tier, group, browser] = key.split('/');
-    const commands = plan(app, tier, browser, group);
-    assert.equal(commands.length, expected.commands, key);
-    assert.equal(createHash('sha256').update(JSON.stringify(commands)).digest('hex'), expected.sha256, key);
+    const [app, , group, browser] = key.split('/');
+    assert.equal(createHash('sha256').update(JSON.stringify(expected.plan)).digest('hex'), expected.sha256, key);
+    const commands = new Set(plan(app, 'nightly', browser, group).map(command => JSON.stringify(command)));
+    for (const command of expected.plan) assert(commands.has(JSON.stringify(command)), `${key}: lost ${JSON.stringify(command)}`);
   }
 });
 
@@ -39,11 +39,11 @@ test('local CI and Nightly graphs use the central browser policy and retain thei
   for (const tier of Object.keys(tiers)) {
     const opts = options(['--tier', tier, '--all']);
     const selected = await selection(opts);
-    const directories = Object.fromEntries(['shared', ...selected.apps, 'accounts-chromium', 'accounts-webkit'].map(name => [name, `/private/${name}`]));
+    const directories = Object.fromEntries(['shared', ...selected.apps, 'accounts-chromium', 'accounts-webkit'].map(name => [name, require('node:path').resolve(__dirname, '../..')]));
     const tasks = graph(selected, opts, directories);
     assert(tasks.every(task => task.env.CI_TIER === tier));
-    assert.equal(tasks.filter(task => /^accounts-.*:tests$/.test(task.id)).length, tiers[tier].browsers.length);
-    assert(tasks.some(task => task.id.includes(':editions:')));
+    assert.equal(tasks.filter(task => /^accounts-.*:tests$/.test(task.id)).length, tier === 'nightly' ? 2 : 0);
+    assert.equal(tasks.some(task => task.id.includes(':editions:')), tier === 'nightly');
   }
   assert.throws(() => compare({ inventory: { tier: 'ci' } }, { inventory: { tier: 'nightly' } }), /tiers differ/);
 });

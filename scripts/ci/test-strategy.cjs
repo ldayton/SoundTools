@@ -17,9 +17,9 @@ function matrix(app, tier) {
   validateTier(tier);
   if (!apps[app]) throw Error('Choose a known app');
   return { include: tiers[tier].browsers.flatMap(browser =>
-    (app === 'songalong' ? ['core', 'editions'] : ['core']).map(group => ({ tier, group, browser, timeout: budgets[tier][group] }))) };
+    (app === 'songalong' && tier === 'nightly' ? ['core', 'editions'] : ['core']).map(group => ({ tier, group, browser, timeout: budgets[tier][group] }))) };
 }
-function plan(app, tier, browser = 'chromium', group = 'core') {
+function legacyPlan(app, tier, browser = 'chromium', group = 'core') {
   validateTier(tier);
   if (!apps[app] || !['core', 'editions'].includes(group) || !['chromium', 'webkit'].includes(browser) || group === 'editions' && app !== 'songalong') throw Error('Choose a known app, coverage group and Chromium/WebKit');
   if (group === 'editions') return editionFiles().map(file => script(app, file));
@@ -45,6 +45,29 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['packages/browser-diagnostics/test-browser.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);
   return commands;
 }
+// CI maximizes defect detection per second on the Mac Studio. Longer coverage
+// is explicitly retained in Nightly, including commands previously unique to CI.
+function plan(app, tier, browser = 'chromium', group = 'core') {
+  validateTier(tier);
+  if (tier === 'nightly') {
+    const exhaustive = legacyPlan(app, 'nightly', browser, group);
+    if (group === 'editions') return exhaustive;
+    const seen = new Set(exhaustive.map(command => JSON.stringify(command)));
+    return exhaustive.concat(legacyPlan(app, 'ci', browser).filter(command => !seen.has(JSON.stringify(command))));
+  }
+  legacyPlan(app, tier, browser, group); // Validate app, engine and group.
+  if (group !== 'core') throw Error('Edition browser coverage belongs to Nightly');
+  return {
+    dorego: [npm(app, 'test:desktop')],
+    notewise: [npm(app, 'test:midi')],
+    songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts')],
+    soundglow: [['node', ['--import', 'tsx', '--test',
+      'apps/soundglow/tests/ui-controller.test.ts', 'apps/soundglow/tests/account-records.test.ts',
+      'apps/soundglow/tests/file-audio-errors.test.cjs', 'apps/soundglow/tests/praat-client.test.cjs',
+      'apps/soundglow/tests/pitch-comparison/metrics.test.cjs', 'apps/soundglow/tests/pitch-comparison/practice-metrics.test.cjs',
+      'apps/soundglow/tests/pitch-benchmark/metrics.test.cjs']]],
+  }[app];
+}
 module.exports = { budgets, matrix, plan, editionFiles };
 if (require.main === module) {
   if (process.argv[2] === 'matrix') {
@@ -53,6 +76,6 @@ if (require.main === module) {
     else console.log(value);
   } else if (process.argv[2] === 'editions') {
     const { commandTasks } = require('./task-graph.cjs');
-    require('./run.cjs').runTasks(commandTasks('songalong', process.env.CI_TIER || 'ci', process.env.TEST_BROWSER || 'chromium', root, { group: 'editions', needs: [] }), { identity: { app: 'songalong', tier: process.env.CI_TIER || 'ci', group: 'editions' } }).then(result => { if (!result.passed) process.exitCode = 1; }).catch(error => { console.error(error.stack); process.exitCode = 1; });
+    require('./run.cjs').runTasks(commandTasks('songalong', 'nightly', process.env.TEST_BROWSER || 'chromium', root, { group: 'editions', needs: [] }), { identity: { app: 'songalong', tier: 'nightly', group: 'editions' } }).then(result => { if (!result.passed) process.exitCode = 1; }).catch(error => { console.error(error.stack); process.exitCode = 1; });
   } else throw Error('Use matrix <app> <ci|nightly> or editions');
 }

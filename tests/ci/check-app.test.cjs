@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '../..');
 test('every scheduled command resolves to an existing workspace task or browser test', () => {
   for (const app of Object.keys(apps)) for (const profile of ['ci', 'nightly']) for (const browser of ['chromium', 'webkit']) {
     for (const [command, args] of plan(app, profile, browser)) {
-      if (command === 'node') { assert.ok(fs.existsSync(path.join(root, args[0]))); continue; }
+      if (command === 'node') { for (const file of args.filter(arg => /\.(?:[cm]?js|tsx?)$/.test(arg))) assert.ok(fs.existsSync(path.join(root, file)), file); continue; }
       assert.equal(command, 'npm');
       const workspace = args.find(a => a.startsWith('--workspace=')).split('=')[1];
       const directory = path.join(root, 'apps', workspace);
@@ -17,13 +17,13 @@ test('every scheduled command resolves to an existing workspace task or browser 
     }
   }
 });
-test('focused checks retain audio, instrument input and song fingerings without exhaustive catalogs', () => {
+test('CI prioritizes playback, MIDI and lifecycle without exhaustive loops', () => {
   const text = app => JSON.stringify(plan(app, 'ci'));
   assert.match(text('dorego'), /test:desktop/);
   assert.match(text('notewise'), /test:midi/);
-  assert.match(text('notewise'), /backing-mixer/);
-  assert.match(text('songalong'), /test:fingerings/);
-  assert.match(text('songalong'), /hymn-playback.browser/);
+  assert.match(text('songalong'), /audio-lifecycle/);
+  assert.match(text('songalong'), /guitar.browser/);
+  assert.match(text('soundglow'), /account-records|pitch-comparison/);
   for (const app of Object.keys(apps)) assert.doesNotMatch(text(app), /test:catalog|test:visual|test:backing-genres|test:offline/);
 });
 test('exhaustive suites remain available in the regression profile and Firefox is not a CI engine', () => {

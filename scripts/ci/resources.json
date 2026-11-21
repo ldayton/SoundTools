@@ -1815,5 +1815,48 @@
         "cwd": "apps/dorego"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/guitar.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4574
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/guitar.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "soundglow:node:--import tsx --test apps/soundglow/tests/ui-controller.test.ts apps/soundglow/tests/account-records.test.ts apps/soundglow/tests/file-audio-errors.test.cjs apps/soundglow/tests/praat-client.test.cjs apps/soundglow/tests/pitch-comparison/metrics.test.cjs apps/soundglow/tests/pitch-comparison/practice-metrics.test.cjs apps/soundglow/tests/pitch-benchmark/metrics.test.cjs": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "--import",
+          "tsx",
+          "--test",
+          "apps/soundglow/tests/ui-controller.test.ts",
+          "apps/soundglow/tests/account-records.test.ts",
+          "apps/soundglow/tests/file-audio-errors.test.cjs",
+          "apps/soundglow/tests/praat-client.test.cjs",
+          "apps/soundglow/tests/pitch-comparison/metrics.test.cjs",
+          "apps/soundglow/tests/pitch-comparison/practice-metrics.test.cjs",
+          "apps/soundglow/tests/pitch-benchmark/metrics.test.cjs"
+        ],
+        "cwd": ""
+      }
+    ]
   }
 }

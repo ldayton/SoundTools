@@ -35,7 +35,7 @@ test('cancellation marks pending tasks and stops scheduling new work', async () 
   assert(results.every(r => r.status === 'cancelled'));
 });
 test('all existing CI commands have reviewed coverage and resource declarations', () => {
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const lane of ['ci', 'nightly']) for (const group of app === 'songalong' ? ['core', 'editions'] : ['core']) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const lane of ['ci', 'nightly']) for (const group of app === 'songalong' && lane === 'nightly' ? ['core', 'editions'] : ['core']) {
     for (const [command, args] of plan(app, lane, 'chromium', group)) {
       const entry = declaration(app, command, args);
       assert(entry.coverage.length);
@@ -44,7 +44,7 @@ test('all existing CI commands have reviewed coverage and resource declarations'
     for (const browser of ['chromium', 'webkit']) assert(commandTasks(app, lane, browser, undefined, { group }).length >= plan(app, lane, browser, group).length);
   }
   assert.throws(() => declaration('songalong', 'node', ['new-unreviewed-test.cjs']), /Missing resource/);
-  assert.deepEqual(commandTasks('songalong', 'ci', 'chromium', undefined, { group: 'editions' }).map(t => t.args.at(-1)), editionFiles());
+  assert.deepEqual(commandTasks('songalong', 'nightly', 'chromium', undefined, { group: 'editions' }).map(t => t.args.at(-1)), editionFiles());
   assert.equal(browserSuites.length, 9);
   assert.equal(commandTasks('dorego', 'nightly', 'chromium').filter(t => t.args.some(arg => /tests\/.*\.e2e\.ts$/.test(arg))).length, 9);
   assert.equal(setupTasks('songalong').filter(t => t.id.endsWith(':build')).length, 1);

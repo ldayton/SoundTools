@@ -23,24 +23,24 @@ function expanded(app, profile) {
 test('core and exhaustive edition lanes cannot acquire each other through nested npm aliases', () => {
   for (const lane of ['ci', 'nightly']) {
     const commands = expanded('songalong', lane).join('\n');
-    assert.equal((commands.match(/instrument-audio\.browser/g) || []).length, 1, 'Instrument-specific audio remains required exactly once');
+    if (lane === 'nightly') assert.match(commands, /instrument-audio\.browser/, 'Full instrument-specific audio remains required in Nightly');
     assert.equal((commands.match(/audio-lifecycle\.browser/g) || []).length, 1, 'Audio departure and recovery remains required');
     assert.doesNotMatch(commands, /test:editions|test-strategy\.cjs editions|-editions\.browser\.ts/);
     if (lane === 'ci') assert.doesNotMatch(commands, /hymn-catalog|offline\.browser|hymn-stanzas/);
   }
   assert(editionFiles().length > 0);
-  assert.deepEqual(plan('songalong', 'ci', 'chromium', 'editions').map(([, args]) => args.at(-1)), editionFiles());
+  assert.deepEqual(plan('songalong', 'nightly', 'chromium', 'editions').map(([, args]) => args.at(-1)), editionFiles());
   const scripts = JSON.parse(fs.readFileSync(path.join(root, 'apps/songalong/package.json'))).scripts;
   assert.match(scripts['test:editions'], /^node .*test-strategy\.cjs editions$/, 'Local and CI edition commands must use the same registry');
 });
-test('all edition files are required in both push and full matrices; lanes never share a concurrency identity', () => {
+test('all edition files are required in Nightly matrices; lanes never share a concurrency identity', () => {
   for (const profile of ['ci', 'nightly']) {
     const rows = matrix('songalong', profile).include;
     const keys = rows.map(row => `${row.browser}-${row.group}`);
     assert.equal(new Set(keys).size, rows.length);
     for (const browser of profile === 'ci' ? ['chromium'] : ['chromium', 'webkit']) {
       assert(rows.some(row => row.group === 'core' && row.browser === browser));
-      assert(rows.some(row => row.group === 'editions' && row.browser === browser));
+      assert.equal(rows.some(row => row.group === 'editions' && row.browser === browser), profile === 'nightly');
     }
     assert(rows.every(row => row.timeout > 0 && row.timeout <= 30));
   }

@@ -84,5 +84,5 @@ if (require.main === module) changes().then(result => {
   const { fromEvent, tiers } = require('./tiers.cjs');
   const tier = fromEvent(process.env.GITHUB_EVENT_NAME, process.env.CI_TIER);
   const matrices = Object.fromEntries(names.map(app => [app, require('./test-strategy.cjs').matrix(app, tier)]));
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${result.accounts}\nmatrices=${JSON.stringify(matrices)}\ntier=${tier}\naccountBrowsers=${JSON.stringify(tiers[tier].browsers)}\n`);
+  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${tier === 'nightly' && result.accounts}\nmatrices=${JSON.stringify(matrices)}\ntier=${tier}\naccountBrowsers=${JSON.stringify(tiers[tier].browsers)}\n`);
 }).catch(e => { console.error(e.message); process.exitCode = 1; });

@@ -90,11 +90,13 @@ test('snapshot copies keep workspace links and writes inside the private checkou
     assert.throws(() => assertRevision(target, sha), /clean, committed/);
     fs.mkdirSync(path.join(target, 'work/browser-results'), { recursive: true }); fs.writeFileSync(path.join(target, 'work/browser-results/failure.txt'), 'first failure');
     fs.mkdirSync(path.join(target, 'work/ci-private'), { recursive: true }); fs.writeFileSync(path.join(target, 'work/ci-private/secret'), 'private');
+    fs.mkdirSync(path.join(target, 'apps/soundglow/playwright-report-ui'), { recursive: true }); fs.writeFileSync(path.join(target, 'apps/soundglow/playwright-report-ui/index.html'), 'group report');
     const evidence = path.join(directory, 'evidence'); require('../../scripts/ci/evidence.cjs').retainEvidence(target, evidence);
     assert.match(fs.readFileSync(path.join(evidence, 'source-changes.patch'), 'utf8'), /changed/);
     assert.equal(fs.readFileSync(path.join(evidence, 'work/browser-results/failure.txt'), 'utf8'), 'first failure');
     assert(!fs.existsSync(path.join(evidence, 'work/ci-private'))); assert(!fs.existsSync(path.join(evidence, 'untracked-source/work/ci-private')));
     assert(!fs.existsSync(path.join(evidence, 'node_modules')));
+    assert.equal(fs.readFileSync(path.join(evidence, 'apps/soundglow/playwright-report-ui/index.html'), 'utf8'), 'group report');
 
     git(['worktree', 'remove', '--force', target]);
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
@@ -144,4 +146,23 @@ test('an already cancelled task never starts a process or creates logs', async (
   const directory = path.join(os.tmpdir(), 'ci-preaborted-' + process.pid + '-' + Date.now());
   const result = await execute({ id: 'not-started', command: process.execPath, args: ['-e', 'process.exit(99)'] }, { directory, signal: controller.signal });
   assert(result.cancelled); assert(!fs.existsSync(directory));
+});
+
+test('backend allocations remain disjoint even when random candidates repeat', async () => {
+  const { backendPorts } = require('../../scripts/ci/local.cjs'), allocated = new Set();
+  const first = await backendPorts(allocated, () => 0), second = await backendPorts(allocated, () => 0);
+  assert.equal(allocated.size, 8);
+  assert(Object.values(first).every(port => !Object.values(second).includes(port)));
+});
+
+test('local pre-push selection uses CI pending-release recovery, not just changed files', async () => {
+  const { selection } = require('../../scripts/ci/local.cjs');
+  const selected = await selection({ base: 'origin/main' }, {
+    readGit: args => args[0] === 'merge-base' ? 'a'.repeat(40) : 'b'.repeat(40),
+    detect: async ({ env }) => {
+      assert.equal(env.GITHUB_EVENT_NAME, 'push'); assert.equal(env.CI_BASE_SHA, 'a'.repeat(40)); assert.equal(env.GITHUB_SHA, 'b'.repeat(40));
+      return { apps: ['soundglow'], accounts: true, deploy: ['soundglow'], files: ['docs/testing.md'] };
+    },
+  });
+  assert.deepEqual(selected.apps, ['soundglow']); assert(selected.accounts); assert.equal(selected.scope, 'affected');
 });

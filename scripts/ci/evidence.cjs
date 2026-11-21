@@ -3,8 +3,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { git } = require('./snapshot.cjs');
 function retainEvidence(snapshot, destination) {
+  const apps = ['dorego', 'notewise', 'songalong', 'soundglow'];
+  const reports = apps.flatMap(app => {
+    const directory = path.join(snapshot, 'apps', app);
+    return fs.existsSync(directory) ? fs.readdirSync(directory).filter(name => /^playwright-report(?:-|$)/.test(name)).map(name => `apps/${app}/${name}`) : [];
+  });
   fs.mkdirSync(destination, { recursive: true, mode: 0o700 });
-  for (const directory of ['work/ci-results', 'work/browser-results', ...['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app => [`apps/${app}/work/browser-results`, `apps/${app}/test-results`, `apps/${app}/playwright-report`])]) {
+  for (const directory of ['work/ci-results', 'work/browser-results', ...['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app => [`apps/${app}/work/browser-results`, `apps/${app}/test-results`]), ...reports]) {
     const source = path.join(snapshot, directory);
     if (fs.existsSync(source)) fs.cpSync(source, path.join(destination, directory), { recursive: true });
   }

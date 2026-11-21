@@ -131,6 +131,11 @@ npm run ci:local -- --all --plan
 npm run ci:local -- --apps songalong
 ```
 
+Affected selection uses the same pending-production-release recovery as GitHub,
+so a documentation-only follow-up cannot omit validation of unpromoted app code.
+Unavailable public provenance fails conservatively. `--all` avoids selection
+network requests and covers every push lane.
+
 The runner installs dependencies once, creates private detached snapshots of the
 same commit, and builds each selected app once per configuration. Focused and
 edition tasks share a completed SongAlong build; Chromium and WebKit share a
@@ -233,6 +238,39 @@ For targeted iteration, `TEST_BROWSER=chromium node scripts/ci/check-app.cjs
 songalong focused` still builds and runs that explicit lane through the same
 scheduler. Convenience aliases are not a substitute for the complete local
 runner. Nightly/manual full runs never publish.
+
+## Measured local performance — 21 November 2026
+
+The complete push-equivalent suite on the same committed code and identical
+40-task inventory measured:
+
+| Outer workers | End-to-end time | Outcome |
+| --- | --- | --- |
+| 1 | 12m29s | All required checks and cleanup passed |
+| 6 | 4m08s | All required checks and cleanup passed |
+
+That is **3.02× faster**, saving 8m21s (67%). End-to-end time includes dependency
+installation, private snapshots, execution and backend/snapshot cleanup. This was
+one controlled pair on macOS arm64, 24 logical CPUs and 64 GiB RAM, with warm
+runtime caches and a fresh backend per run. It is not a p95 or reliability claim.
+The measured commit, coverage digest, machine, exact seconds and retained run
+paths are in [the measurement record](testing-performance.json).
+
+Additional validation exercised both DoReGo regression engines and all three
+catalog shards per engine (184 cases each). Soundglow's original 247 collected
+cases equal 48 UI plus 199 timing cases, with no omissions or duplicates. The
+UI group passed on both engines (40 passed, eight existing desktop-only skips
+per engine); a Chromium 4× CPU throttled continuity case passed with one worker.
+Those are targeted checks of changed regression paths, not a declaration that
+all unrelated pre-existing nightly failures are fixed. Required profiles and
+budgets remain unchanged.
+
+Keep later performance reports scoped the same way: a faster subset or a failed
+run is not a suite speedup. The 4m46s initial parallel pilot also showed ready
+queue delays of 91s for Accounts and 132s for shared music; prerequisite priority
+and capacity reservation removed that starvation. Retain queue timings so future
+optimizations address the current critical path rather than increasing workers
+blindly.
 
 ## Investigating a red run
 

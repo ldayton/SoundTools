@@ -54,6 +54,6 @@ jobs:
           path: |
             apps/${{ inputs.app }}/work/
             apps/${{ inputs.app }}/test-results/
-            apps/${{ inputs.app }}/playwright-report/
+            apps/${{ inputs.app }}/playwright-report*/**
             work/browser-results/
           retention-days: 7

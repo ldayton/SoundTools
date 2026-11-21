@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-21",
+  "scope": "all push-equivalent shared, app, edition and Accounts checks",
+  "sha": "d76cfca609aa6e017b83e327b2ff982303153872",
+  "tasks": 40,
+  "beforeWorkers": 1,
+  "afterWorkers": 6,
+  "beforeSeconds": 749.488,
+  "afterSeconds": 248.132,
+  "speedup": 3.02,
+  "coverage": "identical",
+  "caseInventorySha256": "7370ef210bfb9056b793b2daa05bea6700402fb756ea6c0e073c2a906d073930",
+  "machine": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpus": 24,
+    "memoryBytes": 68719476736,
+    "node": "v24.22.3"
+  },
+  "conditions": "One serial-then-parallel pair; warm dependency/browser caches; fresh private snapshots and backend per run. Outer worker count changes; nested pools and test commands remain identical. Not a p95 or flake-rate estimate.",
+  "evidence": {
+    "serial": "work/ci-results/1795267645807-4b0e321b",
+    "parallel": "work/ci-results/1795268396906-94939979"
+  },
+  "regressionValidation": {
+    "dorego": [
+      "chromium",
+      "webkit"
+    ],
+    "catalogCasesPerBrowser": 184,
+    "catalogRequiredShardsPerBrowser": 3,
+    "visualCaseCollection": {
+      "original": 247,
+      "ui": 48,
+      "timing": 199,
+      "omitted": 0,
+      "duplicated": 0
+    },
+    "visualExecution": {
+      "chromium": {
+        "passed": 40,
+        "existingDesktopOnlySkips": 8
+      },
+      "webkit": {
+        "passed": 40,
+        "existingDesktopOnlySkips": 8
+      }
+    },
+    "timingProbe": "Chromium slow-retina continuity, 4x CPU throttling, one worker, passed",
+    "scope": "Changed regression execution paths; not a claim that unrelated pre-existing nightly failures are resolved",
+    "evidence": "work/ci-results/1795268699274-regression-paths"
+  }
+}

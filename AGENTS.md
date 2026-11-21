@@ -5,7 +5,8 @@ The executable suite policy is `scripts/ci/test-strategy.cjs`; its invariants
 run in `tests/ci/test-strategy.test.cjs` on every shared CI validation.
 
 Only **CI** and **Nightly** are test tiers (`scripts/ci/tiers.cjs`). Use
-`npm run ci` before pushing and `npm run nightly` for exhaustive scheduled/manual
+`npm run ci` before pushing (60 seconds maximum on the Mac Studio, including
+selection, dependency installation and runner overhead) and `npm run nightly` for exhaustive scheduled/manual
 coverage. App, edition and Accounts groups are subdivisions, not tiers. Nightly
 never publishes. Preserve this distinction in scripts and workflow matrices.
 
@@ -27,7 +28,7 @@ never publishes. Preserve this distinction in scripts and workflow matrices.
 4. Register coverage in the executable policy. Never append exhaustive checks
    to a convenience npm alias used by the core CI lane. SongAlong
    `*-editions.browser.ts` files are automatically required in the independent
-   edition lane; do not add them to the core lane too. Never silently omit new
+   Nightly edition group; do not add them to CI. Never silently omit new
    behavior from push validation to improve speed.
    Shared contract checks require unit and browser coverage for every ID in
    the production `instrumentEditionIds` registry.
@@ -58,9 +59,19 @@ When a change grows a lane, inspect the retained command timings. Split by
 owned behavior with every lane still required; do not keep increasing a serial
 job's timeout. Workflow matrix, concurrency key, artifact names, and aggregate
 app gate must retain each lane's identity.
-Use the standard local coordinator for concurrency; it owns private snapshots,
-immutable builds, TCP port/audio locks and disposable backend stacks. Worktrees
+Use the standard local coordinator for concurrency. CI owns a clean committed
+checkout under the common host lock, prepares shared files once and rebuilds all
+selected app outputs. Nightly owns private snapshots and disposable backend stacks.
+Both retain TCP port/audio locks. Worktrees
 alone do not isolate ports. Add or change commands through the reviewed coverage
 and resource inventory in `scripts/ci/resources.json`; never omit required cases
 or relax assertions to improve performance. See `docs/testing.md` for benchmarking,
 cleanup and failure evidence.
+
+CI coverage is deliberately bounded by `scripts/ci/test-strategy.cjs`. Keep all
+unit/contract checks, app builds and the selected critical browser checks. Real
+backend integration, exhaustive editions, catalogs and long browser scenarios
+belong to Nightly. Every command moved out of CI must remain covered in Nightly;
+the baseline inventory test prevents omissions. Do not extend the 60-second
+budget or call an aborted/partial run a pass. Measure `npm run ci -- --all`
+end to end on this computer after changing the plan or coordinator.

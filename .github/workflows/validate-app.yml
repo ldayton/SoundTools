@@ -37,6 +37,10 @@ jobs:
       - uses: ./.github/actions/browser
         with:
           browser: ${{ matrix.browser }}
+      - uses: ./.github/actions/browser
+        if: ${{ matrix.tier == 'ci' && matrix.group == 'core' }}
+        with:
+          browser: webkit
       - run: node scripts/ci/check-app.cjs ${{ inputs.app }} ${{ matrix.tier }} ${{ matrix.group }}
       - uses: actions/upload-artifact@v4
         if: always()

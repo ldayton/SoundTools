@@ -47,3 +47,23 @@ test('local CI and Nightly graphs use the central browser policy and retain thei
   }
   assert.throws(() => compare({ inventory: { tier: 'ci' } }, { inventory: { tier: 'nightly' } }), /tiers differ/);
 });
+
+test('bounded CI builds all apps with one shared preparation and retains isolation locks', () => {
+  const path = require('node:path');
+  const { fastGraph } = require('../../scripts/ci/fast-local.cjs');
+  const apps = ['dorego', 'notewise', 'songalong', 'soundglow'];
+  const tasks = fastGraph({ apps, accounts: true }, path.resolve(__dirname, '../..'));
+  assert.equal(tiers.ci.localBudgetMs, 60000);
+  assert.equal(tasks.filter(task => task.id === 'shared:diagnostics').length, 1);
+  assert(tasks.some(task => task.id === 'shared:music'));
+  assert(tasks.some(task => task.id === 'shared:contracts'));
+  for (const app of apps) {
+    const build = tasks.find(task => task.id === `${app}:build`);
+    assert(build.args.includes('--prepared'));
+    assert(build.needs.includes('shared:diagnostics'));
+    assert(tasks.some(task => task.id === `${app}:ci:core:chromium:smoke`));
+  }
+  assert(tasks.find(task => task.id === 'dorego:ci:core:chromium:0').locks.includes('realtime-audio'));
+  assert(!tasks.some(task => /accounts-.*:backend|:editions:/.test(task.id)));
+  assert.throws(() => plan('songalong', 'ci', 'chromium', 'editions'), /Nightly/);
+});

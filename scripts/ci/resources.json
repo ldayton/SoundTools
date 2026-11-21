@@ -1858,5 +1858,25 @@
         "cwd": ""
       }
     ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx ../../tests/ci/critical-midi.browser.mts": {
+    "kind": "ui",
+    "ports": [
+      4334
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "../../tests/ci/critical-midi.browser.mts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
   }
 }

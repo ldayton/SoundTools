@@ -20,7 +20,7 @@ test('every scheduled command resolves to an existing workspace task or browser 
 test('CI prioritizes playback, MIDI and lifecycle without exhaustive loops', () => {
   const text = app => JSON.stringify(plan(app, 'ci'));
   assert.match(text('dorego'), /test:desktop/);
-  assert.match(text('notewise'), /test:midi/);
+  assert.match(text('notewise'), /critical-midi/);
   assert.match(text('songalong'), /audio-lifecycle/);
   assert.match(text('songalong'), /guitar.browser/);
   assert.match(text('soundglow'), /account-records|pitch-comparison/);

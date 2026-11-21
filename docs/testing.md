@@ -9,20 +9,22 @@ workflow wiring, nested npm aliases, fixture use and failure recording.
 
 | Tier | When | Coverage |
 | --- | --- | --- |
-| **CI** | GitHub pushes/PRs and local pre-push validation (`npm run ci`) | Required shared contracts, affected app checks, every SongAlong edition, applicable Accounts integration, and release verification |
-| **Nightly** | Scheduled GitHub runs or explicit manual runs (`npm run nightly`) | Exhaustive coverage across Chromium and WebKit, including catalogs, layouts, offline recovery, visual/performance, audio and Accounts; never publishes |
+| **CI** | GitHub pushes/PRs and local pre-push validation (`npm run ci`) | All unit/contracts and builds; selected playback, MIDI, lifecycle, guitar and DSP checks; desktop/phone WebKit startup and auth-confirm isolation. Maximum 60 seconds locally on the Mac Studio. |
+| **Nightly** | Scheduled GitHub runs or explicit manual runs (`npm run nightly`) | Exhaustive coverage across Chromium and WebKit, including every former CI command, exhaustive editions, catalogs, layouts, offline recovery, visual/performance, audio and real Accounts integration; never publishes |
 
 These are the only test tiers. Apps, shared contracts, editions, Accounts and
 release smoke are coverage groups within a tier. `scripts/ci/tiers.cjs` defines
 the tier names and browser engines; `test-strategy.cjs` selects each group's
-commands. The command fingerprints in `tests/ci/fixtures/tier-coverage.json`
-protect the migration’s complete coverage; intentional command changes require
-reviewing and updating the corresponding fingerprints. Pushes and PRs always select CI; schedules always select Nightly.
+commands. The frozen former command inventory in `tests/ci/fixtures/tier-coverage.json`
+ensures every displaced CI command remains required in Nightly. Do not rewrite
+that baseline to hide an omission. Pushes and PRs always select CI; schedules always select Nightly.
 Manual GitHub runs choose `ci` or `nightly` explicitly.
 
 An app's aggregate reusable workflow must pass **all** its selected groups before
 that app releases. An unrelated app's failure does not block it. Every edition
-remains required in CI. CI core groups have a 10-minute budget; Nightly core
+remains required in Nightly; its unit and registry contracts remain in CI. The complete local CI invocation has a hard 60-second budget, including selection,
+installation and cleanup. GitHub CI runs the same coverage on slower hosted
+runners, with a 10-minute per-group safety timeout; Nightly core
 groups have 30 minutes. Edition groups have 15 minutes in either tier. These
 are limits, not performance targets: split coverage when command timings show
 growth rather than hiding timeouts.
@@ -113,15 +115,14 @@ tests. In the same change:
 
 ## Standard local CI runner
 
-Use **Node 24**, Docker Desktop, Supabase CLI **3.2.0**, and installed Chromium
-and WebKit. Start Docker through its desktop app if it is stopped. Commit the
-intended changes first: the runner validates tool versions and the complete
-resource graph before making snapshots, rejects a dirty checkout and validates the
-exact committed revision. Do not create an ad hoc serial shell/Python wrapper
+Use **Node 24** and installed Chromium and WebKit. Nightly additionally needs
+Docker Desktop and Supabase CLI **3.2.0**; start Docker through its desktop app
+if stopped. Commit intended changes first: the runner rejects a dirty checkout
+and validates the exact committed revision. Do not create an ad hoc serial shell/Python wrapper
 or run concurrent `check-app` processes in a shared checkout.
 
 ```sh
-# Before a push: all applicable shared, app/edition and account checks.
+# Before a push: all applicable CI checks (60 seconds maximum locally).
 npm run ci -- --base origin/main
 # All CI groups, independent of changed-file selection.
 npm run ci -- --all
@@ -138,20 +139,26 @@ so a documentation-only follow-up cannot omit validation of unpromoted app code.
 Unavailable public provenance fails conservatively. `--all` avoids selection
 network requests and covers every push lane.
 
-The runner installs dependencies once, creates private detached snapshots of the
-same commit, and builds each selected app once per configuration. Core and
-edition tasks share a completed SongAlong build; Chromium and WebKit share a
-completed app build in Nightly. SongAlong's cross-app regression fixture has
-its own prerequisite build. Account builds have different backend configuration
-and never replace ordinary artifacts. Copies use filesystem copy-on-write when
-available (native `cp -c` on macOS, rather than Node's fallback clone flag).
-A disk-space preflight requires at least 3 GiB for cloned snapshots and a larger
-budget when full copies are necessary. Private `node_modules` retains relative workspace links; do not replace
-it with a symlink into the source checkout.
+CI runs `npm ci`, prepares shared dependencies once, and runs its graph in the
+clean committed checkout under the common host lock. All selected apps rebuild;
+no old artifact is accepted to save time. App output directories are disjoint,
+and shared writes finish before parallel app builds. CI does not provision a
+backend or create snapshots. Source revision/cleanliness is checked again at
+completion. Do not edit that checkout during CI. The deadline aborts unfinished
+tasks and fails the entire invocation; it never passes a partial selection.
+Cancellation may need a short process-termination grace period after the deadline.
+Network installation failures and missing browsers are failures, not exclusions
+from the timing. Releases retain their separate staged/production verification;
+cloud deployment time is not part of the local test-suite budget.
 
-`CI_WORKERS` or `--workers` controls outer scheduling (default up to six locally,
-two on GitHub; range 1–32). `CI_UNIT_WORKERS` bounds the shared music unit-file
-pool (default four locally, two on GitHub; range 1–8). Worker slots are weighted
+Nightly installs dependencies once and creates private detached snapshots of
+the same commit. Each app/configuration builds once; Chromium and WebKit share
+an app build. Accounts engines use separate backend stacks and builds. Copies
+use filesystem copy-on-write where supported, with private workspace links.
+
+`CI_WORKERS` or `--workers` controls outer scheduling (CI: up to 16 locally; Nightly: up to six;
+GitHub: two; range 1–32). `CI_UNIT_WORKERS` bounds the shared music unit-file
+pool (default eight in local CI, four in Nightly, two on GitHub; range 1–8). Worker slots are weighted
 scheduling budgets, not a promise to pin every subprocess to a CPU. Use one outer
 worker for a serial baseline; test commands, case inventory and assertions stay
 the same. Do not raise concurrency just because a machine has many logical CPUs:
@@ -179,10 +186,11 @@ state separately; a single successful probe does not establish p95 or flake rate
 runs ready tasks within worker and exclusive-resource limits. Backend startup,
 builds and account integration have explicit critical-path priorities; eligible
 prerequisites reserve capacity rather than starving behind smaller UI commands. Both GitHub's
-`check-app.cjs` and the local coordinator use these modules. Shared checks use
+`check-app.cjs` and the local coordinator use these modules. `fast-local.cjs`
+assembles the bounded local CI graph; `local.cjs` retains Nightly isolation. Shared checks use
 `run-shared.cjs`. GitHub computes all matrices in the existing changes job and
 starts app setup alongside shared validation; every release still requires shared
-checks, its complete app matrix, and applicable Accounts checks.
+checks, its complete app matrix, and applicable Nightly Accounts checks (CI retains account unit/contracts).
 
 `scripts/ci/resources.json` is the reviewed command inventory. Each entry records:
 
@@ -231,7 +239,7 @@ never serialized into the inventory.
 
 Independent tasks finish after a failure; dependants are blocked. There are no
 assertion retries. Cancellation and deadlines terminate task process groups,
-including preview children. The local coordinator stops only its owned backend
+including preview children. The Nightly coordinator stops only its owned backend
 stacks in `finally`. Snapshots are removed after success **or failure** once logs, browser failure
 artifacts, unexpected source diffs and untracked source have been retained under
 the run's `evidence/` directory. Dependency trees, generated builds and backend
@@ -245,7 +253,10 @@ songalong ci core` still builds and runs that explicit lane through the same
 scheduler. Convenience aliases are not a substitute for the complete local
 runner. Nightly never publishes.
 
-## Measured local performance — 21 November 2026
+## Earlier exhaustive CI measurement — 21 November 2026
+
+This historical comparison predates the 60-second CI coverage decision. It is
+not the current CI budget or a coverage-equivalent comparison to today’s CI.
 
 The complete push-equivalent suite on the same committed code and identical
 40-task inventory measured:

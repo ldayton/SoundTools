@@ -1,3 +1,4 @@
+import { stagedHymn } from "../test-fixtures/hymns";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -110,7 +111,7 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     { bpm: 95, level: "long-short" },
   );
   const hymn: HymnSettings = {
-    hymn: "silent-night",
+    hymn: stagedHymn.id,
     stanzas: [1],
     mode: "wait",
     hands: "both",

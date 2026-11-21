@@ -1,3 +1,4 @@
+import { playbackHymn, playbackMelody } from "../packages/music-practice/test-fixtures/hymns";
 import {
   captureFailure,
   closeBrowser,
@@ -187,7 +188,7 @@ try {
   );
 
   await p.goto(
-    "http://127.0.0.1:4392/piano/hymns/holy-holy-holy?arrangement=bass&hands=right&view=both&mode=wait&key=original",
+    `http://127.0.0.1:4392/piano/hymns/${playbackHymn.id}?arrangement=bass&hands=right&view=both&mode=wait&key=original`,
   );
   await p.locator(".hymn-count").filter({ hasText: "1 /" }).waitFor();
   await login(p);
@@ -225,10 +226,10 @@ try {
   await midiAction(p, "Connect MIDI keyboard");
   const resume = p.getByRole("button", { name: "Resume", exact: true });
   if (await resume.isVisible()) await resume.click();
-  await p.evaluate(() => {
-    (window as any).midiTest.send([0x90, 62, 100]);
-    (window as any).midiTest.send([0x80, 62, 0]);
-  });
+  await p.evaluate((pitch) => {
+    (window as any).midiTest.send([0x90, pitch, 100]);
+    (window as any).midiTest.send([0x80, pitch, 0]);
+  }, playbackMelody);
   await p.locator(".hymn-count").filter({ hasText: "2 /" }).waitFor();
   await p.waitForFunction(
     () =>

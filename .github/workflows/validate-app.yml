@@ -11,17 +11,28 @@ on:
 permissions:
   contents: read
 jobs:
+  strategy:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.strategy.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+      - id: strategy
+        run: node scripts/ci/test-strategy.cjs matrix ${{ inputs.app }} ${{ inputs.full && 'regression' || 'focused' }}
   validate:
-    name: ${{ inputs.app }} (${{ matrix.browser }}, ${{ inputs.full && 'regression' || 'focused' }})
+    needs: strategy
+    name: ${{ inputs.app }} (${{ matrix.browser }}, ${{ matrix.profile }})
     concurrency:
-      group: validation-${{ github.event_name }}-${{ github.ref }}-${{ inputs.app }}-${{ matrix.browser }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-${{ inputs.app }}-${{ matrix.browser }}-${{ matrix.profile }}
       cancel-in-progress: true
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.full && 30 || 10 }}
+    timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
-      matrix:
-        browser: ${{ fromJSON(inputs.full && '["chromium","webkit"]' || '["chromium"]') }}
+      matrix: ${{ fromJSON(needs.strategy.outputs.matrix) }}
     env:
       TEST_BROWSER: ${{ matrix.browser }}
       TEST_BROWSERS: ${{ matrix.browser }}
@@ -38,14 +49,20 @@ jobs:
         with:
           browser: ${{ matrix.browser }}
       - uses: ./.github/actions/browser
-        if: ${{ !inputs.full }}
+        if: ${{ matrix.profile == 'focused' }}
         with:
           browser: webkit
-      - run: node scripts/ci/check-app.cjs ${{ inputs.app }} ${{ inputs.full && 'regression' || 'focused' }}
+      - run: node scripts/ci/check-app.cjs ${{ inputs.app }} ${{ matrix.profile }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: timings-${{ inputs.app }}-${{ matrix.browser }}-${{ matrix.profile }}
+          path: work/ci-results/
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: failure-${{ inputs.app }}-${{ matrix.browser }}
+          name: failure-${{ inputs.app }}-${{ matrix.browser }}-${{ matrix.profile }}
           path: |
             apps/${{ inputs.app }}/work/
             apps/${{ inputs.app }}/test-results/

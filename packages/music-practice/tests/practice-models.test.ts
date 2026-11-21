@@ -1,3 +1,4 @@
+import { stagedHymn } from "../test-fixtures/hymns";
 import { mergeHymnSettings, hymnSettingsFromQuery } from "../src/hymn-settings";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -155,7 +156,7 @@ test("older interval patterns extend to two bars while preserving position and i
 
 test("hymn practice hands must be visible, while both-hand views allow either hand", () => {
   const base = {
-    hymn: "silent-night",
+    hymn: stagedHymn.id,
     arrangement: "bass" as const,
     sectionBars: 2 as const,
     section: 0,

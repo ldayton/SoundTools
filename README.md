@@ -27,6 +27,10 @@ Its generated static site is `site`. Generated browser support assets come from
 
 ## Validation
 
+Start with the [testing strategy](docs/testing.md) and [agent rules](AGENTS.md).
+CI suite ownership and budgets are executable in `scripts/ci/test-strategy.cjs`;
+generic song tests use capability fixtures rather than named product songs.
+
 Run `npm test --workspace=notewise` and `npm test --workspace=songalong` for logic
 checks. Build both apps, then `npm run test:split --workspace=songalong` for the
 cross-app shell and route contract. Browser suites accept `TEST_BROWSER=chromium`,

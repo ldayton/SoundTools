@@ -82,6 +82,13 @@ async function waitForApp(page, selector) {
   await page.waitForFunction(() => !!window.__soundtoolsStartup?.ready);
   if (selector) await page.locator(selector).waitFor({ state: 'visible' });
 }
+// A rendered control is not evidence that its account state has been restored.
+async function waitForAccountIdle(page, { timeout = 15000 } = {}) {
+  await page.waitForFunction(() => !!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'), undefined, { timeout });
+}
+async function waitForDialogClosed(page, selector) {
+  await page.locator(selector).waitFor({ state: 'hidden' });
+}
 async function waitForServer(url, { server, timeout = 15000 } = {}) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {
@@ -91,4 +98,4 @@ async function waitForServer(url, { server, timeout = 15000 } = {}) {
   }
   throw Error(`Test preview did not become ready: ${url}`);
 }
-module.exports = { browserName, launchBrowser, createContext, createOfflineContext, newPage, newOfflinePage, captureFailure, closeBrowser, waitForApp, waitForServer, clean };
+module.exports = { browserName, launchBrowser, createContext, createOfflineContext, newPage, newOfflinePage, captureFailure, closeBrowser, waitForApp, waitForAccountIdle, waitForDialogClosed, waitForServer, clean };

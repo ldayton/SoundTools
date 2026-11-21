@@ -1,4 +1,6 @@
 import type { Page } from "playwright";
+import { waitForApp } from "../../../scripts/ci/browser-harness.cjs";
+import { MOBILE_SONGALONG_QUERY } from "../src/songalong-capabilities";
 export async function selectPractice(page: Page, mode: string) {
   await dismissPracticeDrawer(page);
   // Wait for React's responsive layout commit after a viewport change.
@@ -122,11 +124,20 @@ export async function practiceOption(
 }
 
 export async function openHymnControls(page: Page) {
+  // reload()/goto() can finish before the lazy route or responsive toolbar.
+  // Never let a premature isVisible() silently turn this helper into a no-op.
+  await waitForApp(page, ".hymn-controls");
+  await page.waitForFunction((query) =>
+    !!document.querySelector(".hymn-toolbar-mobile") === matchMedia(query).matches,
+    MOBILE_SONGALONG_QUERY,
+  );
   const button = page.getByRole("button", {
     name: "Show controls",
     exact: true,
   });
   if (await button.isVisible()) await button.click();
+  if (await page.locator("#hymn-mobile-controls").count())
+    await page.locator("#hymn-mobile-controls").waitFor({ state: "visible" });
 }
 
 async function optionsLayoutReady(page: Page) {

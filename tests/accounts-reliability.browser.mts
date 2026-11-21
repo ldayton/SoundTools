@@ -1,3 +1,4 @@
+import { waitForAccountIdle } from "../scripts/ci/browser-harness.cjs";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { login } from "./account-helpers.mts";
 import assert from "node:assert/strict";
@@ -30,12 +31,7 @@ try {
   await login(first);
   await selectExercise(first, "fiveNote");
   await first.locator("#bpm").waitFor();
-  await first.waitForFunction(
-    () =>
-      !!document.querySelector(
-        '[data-account-status="synced"][data-account-pending="0"]',
-      ),
-  );
+  await waitForAccountIdle(first);
   const second = await context.newPage();
   second.on("pageerror", (e) => errors.push(e.message));
   await second.route("**/rest/v1/rpc/account_snapshot_v2", (r) => {
@@ -46,11 +42,7 @@ try {
   await second.getByRole("button", { name: "Account", exact: true }).waitFor();
   // The control renders before account restoration finishes. Start the edit
   // only after the follower has joined and applied the shared account state.
-  await second.waitForFunction(
-    () => !!document.querySelector(
-      '[data-account-status="synced"][data-account-pending="0"]',
-    ),
-  );
+  await waitForAccountIdle(second);
   await expect(second.locator("#bpm")).toHaveValue(
     await first.locator("#bpm").inputValue(),
   );

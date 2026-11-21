@@ -1,3 +1,4 @@
+const {waitForDialogClosed}=require('../../../../scripts/ci/browser-harness.cjs');
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path');
 const {deleteItem}=require('./library-actions.cjs');
@@ -5,7 +6,7 @@ const buffer=fs.readFileSync(path.resolve(__dirname,'../../dist/audio/alice-wate
 const longName='A very long recording title with extra information and no reason to consume the entire sidebar '.repeat(2)+'.m4a';
 test.beforeEach(async({page},info)=>{test.skip(info.project.name!=='desktop');await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html');await page.evaluate(()=>fileLibrary.ready);});
 async function load(page,name=longName){await page.locator('#audioFileInput').setInputFiles({name,mimeType:'audio/mp4',buffer});await page.waitForFunction(name=>fileLibrary.files.some(f=>f.name===name)&&!fileLibrary.importing&&fileLibrary.current&&!fileLibrary.loading,name);}
-async function menu(page,item,action){await expect(page.locator('#libraryItemDialog')).not.toBeVisible();await item.click({button:'right'});await page.getByRole('menuitem',{name:action+'…',exact:true}).click();}
+async function menu(page,item,action){await waitForDialogClosed(page,'#libraryItemDialog');await item.click({button:'right'});await page.getByRole('menuitem',{name:action+'…',exact:true}).click();}
 async function bookmark(page){await page.evaluate(async()=>{const b={id:'test-bookmark',fileId:fileLibrary.current.id,name:'A bookmarked passage',selection:{start:1,end:2},viewStart:0,viewSpan:5,feature:'pitch',speed:1,addedAt:1};await fileLibrary.store.addBookmark(b);fileLibrary.bookmarks.push(b);fileLibrary.renderBookmarks();});}
 test('two-line names and shared rename preserve selection and survive stale saves and reload',async({page})=>{
  await load(page);await page.getByRole('button',{name:'Open files library',exact:true}).click();

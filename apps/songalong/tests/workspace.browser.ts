@@ -1,3 +1,4 @@
+import { stagedHymn, otherStagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { macBookAir13, iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
@@ -73,7 +74,7 @@ try {
       return start.apply(this, args);
     };
   });
-  await page.goto(`http://127.0.0.1:${port}/piano/hymns/amazing-grace`);
+  await page.goto(`http://127.0.0.1:${port}/piano/hymns/${stagedHymn.id}`);
   await page.locator(".hymn-paper svg").first().waitFor();
   // Header toggles stay mounted and anchored while either desktop panel changes.
   assert.equal(await page.title(), "SongAlong");
@@ -213,10 +214,10 @@ try {
     assert.deepEqual(await toolbarGeometry(), expandedGeometry);
   }
   await expect(page.locator(".sequence-score .sequence-title")).toHaveText(
-    "Amazing Grace",
+    stagedHymn.title,
   );
   await expect(page.locator(".hymn-score-credits")).toContainText(
-    "John Newton",
+    stagedHymn.credits[0],
   );
   await expect(page.getByText("Input", { exact: true })).toHaveCount(0);
   const size = page.getByRole("spinbutton", {
@@ -237,12 +238,12 @@ try {
   await expect(size).toHaveValue("41 px");
   await expect.poll(firstSystemHeight).not.toBe(originalHeight);
   const pixels = await size.inputValue();
-  await page.getByPlaceholder("Search songs").fill("silent");
-  await page.getByRole("option", { name: "Silent Night", exact: true }).click();
+  await page.getByPlaceholder("Search songs").fill(otherStagedHymn.title);
+  await page.getByRole("option", { name: otherStagedHymn.title, exact: true }).click();
   await expect(size).toHaveValue(pixels);
-  await page.getByPlaceholder("Search songs").fill("holy");
+  await page.getByPlaceholder("Search songs").fill(stagedHymn.title);
   await page
-    .getByRole("option", { name: "Holy, Holy, Holy", exact: true })
+    .getByRole("option", { name: stagedHymn.title, exact: true })
     .click();
   await expect(size).toHaveValue(pixels);
   await page.getByRole("button", { name: "Volume", exact: true }).click();

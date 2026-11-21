@@ -34,10 +34,11 @@ Nightly runs validate all apps in Chromium and WebKit, without publishing. Selec
 without `full` runs the focused checks for all apps, also without publishing.
 
 The regression profile retains complete hymn catalogs, visual snapshots, backing
-realism and genre checks, offline updates, MIDI and notation tests. Each app and
-browser owns one job rather than expanding catalogs and snapshots into many
-small runner jobs. These jobs have a 30-minute budget and never gate an unrelated
-normal-push run.
+realism and genre checks, offline updates, MIDI and notation tests. Each app/browser has a regression lane with a 30-minute budget. SongAlong
+adds an independent, required edition lane in both focused and full runs;
+its discovery and 15-minute budget are owned by `scripts/ci/test-strategy.cjs`.
+Core checks do not inherit exhaustive edition loops through npm aliases. Full
+runs never gate an unrelated normal-push run. See [testing strategy](testing.md).
 
 ## Change selection and builds
 
@@ -48,7 +49,7 @@ then each app's live `build-info.json` is checked separately. Thus cancelled or
 failed runs cannot hide unpublished source changes, and an unrelated failed
 workflow does not reset every app's validation baseline.
 
-Each app builds once in its validation job. The built files retain app, source SHA,
+Each validation lane builds once in its own job. The built files retain app, source SHA,
 profile and digest provenance, and tests use `CI_USE_BUILD=1` to reject stale
 bundles. Normal SongAlong checks do not build NoteWise; only regression cross-app
 boundary tests need that fixture. Account tests keep separate local Supabase

@@ -1,3 +1,4 @@
+import { stagedHymn, otherStagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
@@ -23,7 +24,7 @@ try {
   });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(server.base + "/piano/hymns/silent-night");
+  await page.goto(server.base + `/piano/hymns/${stagedHymn.id}`);
   const toggle = page.getByRole("checkbox", {
     name: "Show fingerings",
     exact: true,
@@ -86,7 +87,7 @@ try {
   await page.reload();
   await expect(toggle).toBeChecked();
   await page.waitForLoadState("networkidle");
-  await page.goto(server.base + "/piano/hymns/holy-holy-holy");
+  await page.goto(server.base + `/piano/hymns/${otherStagedHymn.id}`);
   await expect(toggle).toBeChecked();
   await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });

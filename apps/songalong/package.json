@@ -7,12 +7,12 @@
     "dev": "vite --host 127.0.0.1 --port 4321 --strictPort",
     "build": "tsc --noEmit && vite build",
     "test:fingerings": "tsx tests/fingerings.browser.ts",
-    "test:workspace": "tsx tests/workspace.browser.ts && tsx tests/hymn-library.browser.ts && tsx tests/staff-size.browser.ts && tsx tests/staff-spacing.browser.ts && tsx tests/song-memory.browser.ts && tsx tests/audio-output.browser.ts && npm run test:guitar && npm run test:editions",
+    "test:workspace": "npm run test:workspace:core && npm run test:guitar && npm run test:editions",
     "test:hymn-keys": "tsx tests/hymn-key.browser.ts && tsx tests/hymn-key-menu.browser.ts",
     "test:offline": "tsx tests/offline.browser.ts",
     "build:vercel": "node ../../scripts/build-vercel.cjs songalong",
     "test:diagnostics": "tsx ../../packages/music-practice/browser-tests/diagnostics.browser.ts",
-    "test:sight": "tsx tests/sight-reading.browser.ts && tsx tests/hymn-recovery.browser.ts && npm run test:workspace",
+    "test:sight": "tsx tests/sight-reading.browser.ts && tsx tests/hymn-recovery.browser.ts && npm run test:workspace:core && npm run test:guitar",
     "test:hymn-playback": "tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts && tsx tests/hymn-octave.browser.ts",
     "test:hymn-recovery": "tsx tests/hymn-recovery.browser.ts",
     "test": "tsx --test tests/*.test.ts",
@@ -23,8 +23,9 @@
     "test:piano": "tsx tests/piano-interaction.browser.ts",
     "test:stanzas": "tsx tests/hymn-stanzas.browser.ts",
     "test:catalog": "tsx tests/hymn-catalog.browser.ts",
-    "test:editions": "tsx tests/fingerstyle-editions.browser.ts && tsx tests/in-christ-alone-editions.browser.ts && tsx tests/amazing-grace-editions.browser.ts && tsx tests/ill-fly-away-editions.browser.ts && tsx tests/jesus-loves-me-editions.browser.ts && tsx tests/o-come-all-ye-faithful-editions.browser.ts",
-    "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts"
+    "test:editions": "node ../../scripts/ci/test-strategy.cjs editions",
+    "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts",
+    "test:workspace:core": "tsx tests/workspace.browser.ts && tsx tests/hymn-library.browser.ts && tsx tests/staff-size.browser.ts && tsx tests/staff-spacing.browser.ts && tsx tests/song-memory.browser.ts && tsx tests/audio-output.browser.ts"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"

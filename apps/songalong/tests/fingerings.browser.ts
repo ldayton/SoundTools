@@ -1,25 +1,19 @@
 import { playbackHymn, selectStagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
-import { chromium, firefox, webkit, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { launchBrowser, newPage, closeBrowser, captureFailure } from "../../../scripts/ci/browser-harness.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
   practiceOption,
   openHymnControls,
 } from "../../../packages/music-practice/browser-tests/helpers";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 const comparisonHymn = selectStagedHymn(undefined, { exclude: playbackHymn.id });
 const server = await preview(
   "songalong",
   Number(process.env.TEST_PORT || 4561),
 );
-const home = await mkdtemp(join(tmpdir(), "song-fingering-"));
-const browser = await (
-  { chromium, firefox, webkit }[process.env.TEST_BROWSER || "chromium"] ||
-  chromium
-).launch({ env: { ...process.env, CFFIXED_USER_HOME: home } });
+const browser = await launchBrowser();
 try {
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });
@@ -87,7 +81,6 @@ try {
   ).toBeVisible();
   await page.reload();
   await expect(toggle).toBeChecked();
-  await page.waitForLoadState("networkidle");
   await page.goto(server.base + `/piano/hymns/${comparisonHymn.id}`);
   await expect(toggle).toBeChecked();
   await expect(page.locator(".hymn-fingering").first()).toBeVisible();
@@ -111,12 +104,10 @@ try {
   console.log(
     "PASS: optional persistent fingerings, both hands, circled shifts, unsupported chords, no added score height on desktop or mobile",
   );
+} catch (error) {
+  await captureFailure(browser, error);
+  throw error;
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.stop();
-  await rm(home, { recursive: true, force: true }).catch((error) => {
-    // macOS can protect Firefox-created folders in its temporary home.
-    if (process.platform !== "darwin" || error.code !== "EACCES") throw error;
-    console.warn("Could not remove Firefox temporary home:", home);
-  });
 }

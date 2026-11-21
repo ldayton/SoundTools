@@ -37,6 +37,7 @@ function plan(app, profile, browser = 'chromium') {
   const commands = tasks[app].map(task => npm(app, task));
   if (!full && app === 'notewise') commands.push(script(app, 'tests/guitar.browser.ts'), script(app, 'tests/backing-mixer.browser.ts'));
   if (!full && app === 'songalong') commands.push(script(app, 'tests/hymn-playback.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'));
+  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'));
   if (full && app === 'songalong' && browser === 'chromium') commands.push(npm(app, 'test:diagnostics'));
   if (full && app === 'dorego' && browser === 'chromium') commands.push(
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['packages/browser-diagnostics/test-browser.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);

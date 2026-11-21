@@ -24,6 +24,7 @@ test('core and exhaustive edition lanes cannot acquire each other through nested
   for (const lane of ['focused', 'regression']) {
     const commands = expanded('songalong', lane).join('\n');
     assert.equal((commands.match(/instrument-audio\.browser/g) || []).length, 1, 'Instrument-specific audio remains required exactly once');
+    assert.equal((commands.match(/audio-lifecycle\.browser/g) || []).length, 1, 'Audio departure and recovery remains required');
     assert.doesNotMatch(commands, /test:editions|test-strategy\.cjs editions|-editions\.browser\.ts/);
     if (lane === 'focused') assert.doesNotMatch(commands, /hymn-catalog|offline\.browser|hymn-stanzas/);
   }

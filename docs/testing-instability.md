@@ -7,10 +7,24 @@ passes without an established explanation; include the first failed run.
 
 | Check | First evidence | Status and next investigation |
 | --- | --- | --- |
-| DoReGo Chromium desktop tempo commit | [Failed job](https://github.com/ldayton/SoundTools/actions/runs/44770435880/job/136407552528): `setTempo` timed out after entering 240 during playback | Open. The same required regression passed on diagnostic retry. Capture input value, committed `aria-valuenow`, transport state and any pending restoration/reset if it recurs; do not add input retries or a sleep. |
-| SongAlong WebKit fingerings navigation | [Failed job](https://github.com/ldayton/SoundTools/actions/runs/44770435880/job/136407553879): pending FLAC loads reported access-control errors during navigation | Open. The same required regression passed on diagnostic retry. Determine whether this is cancellation during navigation or an actual failed asset request. Preserve browser errors and request/trace evidence; do not blanket-filter access-control errors. |
+| DoReGo Chromium desktop tempo commit | [Failed job](https://github.com/ldayton/SoundTools/actions/runs/44770435880/job/136407552528): `setTempo` timed out after entering 240 during playback | Open: not reproduced in the desktop suite or 100 Chromium edits under 6× CPU throttling, including volume-popover dismissal (macOS and Linux probes). This is not evidence of a fix. `setTempo` now requires both the displayed draft and persisted owner value, and reports the bounded input/key/focus event history, input text, ARIA, committed BPM, focused element, transport mode and busy state on failure. No retries or sleeps were added. The original artifact contained only a timeout and console warning, so its final input/owner state cannot be recovered. |
+| SongAlong WebKit fingerings navigation | [Failed job](https://github.com/ldayton/SoundTools/actions/runs/44770435880/job/136407553879): pending FLAC loads reported access-control errors during navigation | Fixed: a completing prewarm worker could start another fetch after navigation began but before `pagehide`. Reproduced locally after removing the `networkidle` workaround; the retained trace reports the same access-control error at `sampleBytes`/`fetch`, 24 ms after `goto`, while the same asset successfully returned HTTP 200 in the surrounding documents. `beforeunload` now marks departure and aborts pending requests before that gap; `pagehide` also aborts for lifecycle paths without unload. Workers check a generation so old work cannot resume. The required `audio-lifecycle.browser.ts` holds real sample requests and verifies both boundaries, reload/playback recovery, and a visible error for a genuine live HTTP 503. It fails against the original build (0 of 4 requests aborted) and passes with the fix. Fingerings now captures trace/network evidence through the shared harness, retains all page-error assertions, and no longer waits for `networkidle`. |
 
 The separate guitar-fingering **mobile reload** race had a concrete fix: wait for
 the lazy score before opening controls. Shared `openHymnControls` now owns startup
 and responsive-layout readiness, with a delayed-startup browser regression.
 That does not establish the cause of the WebKit asset-error case above.
+
+## Reproduction evidence (21 November 2026)
+
+The local WebKit trace for the navigation reproduction is retained at
+`apps/songalong/work/browser-results/fingerings.browser.ts-webkit-5a13446e/trace-0.zip`
+in the investigation worktree. The original GitHub jobs above remain the durable
+first-failure references. The trace's `goto` starts at 3324.277 ms; its matching
+`pageError` occurs at 3348.678 ms. This established why cancellation only at
+`pagehide` was insufficient; the first pagehide-only fix was not accepted as a
+solution. No browser error is filtered in the resulting tests.
+
+The tempo case remains open until a failed edit supplies the new state evidence
+and a corresponding failing regression identifies its cause. Passing stress
+probes and a stronger assertion are not grounds for closing it.

@@ -110,12 +110,49 @@ export async function elapsedSeconds(page: Page) {
   return Number(await page.locator('#elapsed').getAttribute('data-seconds'));
 }
 export async function setTempo(page: Page, bpm: number) {
-  await page.locator('#bpm').fill(String(bpm));
-  await page.locator('#bpm').press('Enter');
-  await page.waitForFunction(
-    value => document.querySelector('#bpm')?.getAttribute('aria-valuenow') === String(value),
-    bpm,
-  );
+  await page.evaluate(`(() => {
+    const events = [];
+    const record = (event) => {
+      const input = event.target;
+      if (input.id !== 'bpm') return;
+      events.push({ type: event.type, value: input.value,
+        aria: input.getAttribute('aria-valuenow'), key: event.key,
+        time: performance.now() });
+      if (events.length > 30) events.shift();
+    };
+    const types = ['focus', 'input', 'change', 'keydown', 'blur'];
+    types.forEach(type => document.addEventListener(type, record, true));
+    window.__tempoCommitEvidence = {
+      events,
+      stop: () => types.forEach(type => document.removeEventListener(type, record, true)),
+    };
+  })()`);
+  try {
+    await page.locator('#bpm').fill(String(bpm));
+    await page.locator('#bpm').press('Enter');
+    // ARIA reflects the draft. Also require the settings owner's persisted
+    // value so an uncommitted edit cannot be mistaken for a successful commit.
+    await page.waitForFunction(value =>
+      document.querySelector('#bpm')?.getAttribute('aria-valuenow') === String(value) &&
+      JSON.parse(localStorage.getItem('dorego.current') || '{}').bpm === value,
+    bpm);
+  } catch (error) {
+    const evidence = await page.evaluate(() => ({
+      events: (window as any).__tempoCommitEvidence?.events,
+      input: document.querySelector<HTMLInputElement>('#bpm')?.value,
+      aria: document.querySelector('#bpm')?.getAttribute('aria-valuenow'),
+      committed: JSON.parse(localStorage.getItem('dorego.current') || '{}').bpm,
+      focus: document.activeElement?.id || document.activeElement?.tagName,
+      transport: document.querySelector('#play')?.getAttribute('data-mode'),
+      busy: document.querySelector('#play')?.getAttribute('aria-busy'),
+    })).catch(() => ({ documentUnavailable: true }));
+    throw new Error(`Tempo ${bpm} did not commit: ${JSON.stringify(evidence)}`, { cause: error });
+  } finally {
+    await page.evaluate(() => {
+      (window as any).__tempoCommitEvidence?.stop();
+      delete (window as any).__tempoCommitEvidence;
+    }).catch(() => {});
+  }
 }
 /** Reach an observation point through the real transport; the UI no longer has seeking. */
 export async function playUntil(page: Page, seconds: number) {

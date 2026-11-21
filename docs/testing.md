@@ -75,6 +75,11 @@ Rendering an input is not proof that hydration finished. A helper must not call
 `isVisible()` too early and silently do nothing. Do not use `networkidle` as a
 general readiness signal for apps with realtime traffic; use it only when a
 test deliberately needs in-flight finite asset loads to finish before navigation.
+Audio prewarming must stop at `beforeunload` as well as `pagehide`: WebKit can
+reject a newly started fetch in the interval before `pagehide`. Abort pending
+requests and invalidate stale workers; keep real live asset failures visible.
+The required SongAlong audio-lifecycle regression holds requests across both
+boundaries, verifies recovery, and checks a genuine HTTP failure.
 Fixed waits are appropriate only for intentional timing/transport observations,
 not as a cure for startup races. `tests/ci/readiness.browser.mts` exercises delayed
 startup and restoration in a real browser, in the core SongAlong lane.

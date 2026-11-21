@@ -87,35 +87,56 @@ let warming = false;
 let departing = false;
 let disabled = false;
 let reportedFailure = false;
+let sampleGeneration = 0;
+const sampleRequests = new Set<AbortController>();
 const voices = new Set<() => void>();
 const auditions = new Set<() => void>();
+function sampleBytes(url: string, invalidate: () => void) {
+  const controller = new AbortController();
+  sampleRequests.add(controller);
+  // Evict synchronously on departure: a restored document must not reuse an
+  // aborted promise while its rejection handler is still waiting to run.
+  controller.signal.addEventListener("abort", invalidate, { once: true });
+  return fetch(url, {
+    signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]),
+  })
+    .then((response) => {
+      if (!response.ok)
+        throw Object.assign(new Error("Instrument sample request failed"), {
+          status: response.status,
+        });
+      return response.arrayBuffer();
+    })
+    .catch((error) => {
+      invalidate();
+      throw error;
+    })
+    .finally(() => sampleRequests.delete(controller));
+}
+function cancelSampleRequests() {
+  sampleGeneration++;
+  warming = false;
+  for (const controller of sampleRequests) controller.abort();
+}
 function load(root: number) {
   let pending = bytes.get(root);
   if (!pending) {
-    pending = fetch(urls.get(root)!, { signal: AbortSignal.timeout(10000) })
-      .then((response) => {
-        if (!response.ok)
-          throw Object.assign(new Error("Piano sample request failed"), {
-            status: response.status,
-          });
-        return response.arrayBuffer();
-      })
-      .catch((error) => {
-        bytes.delete(root);
-        throw error;
-      });
+    pending = sampleBytes(urls.get(root)!, () => {
+      if (bytes.get(root) === pending) bytes.delete(root);
+    });
     bytes.set(root, pending);
   }
   return pending;
 }
 /** Warm compressed samples without starting an AudioContext before a user gesture. */
 export function preparePianoSound() {
-  if (warming) return;
+  if (warming || departing || disabled) return;
   warming = true;
+  const generation = sampleGeneration;
   const queue = [...urls.keys()];
   for (let worker = 0; worker < 4; worker++)
     void (async () => {
-      while (queue.length && !departing) {
+      while (queue.length && !departing && generation === sampleGeneration) {
         try {
           await load(queue.shift()!);
         } catch {
@@ -269,17 +290,14 @@ export async function preparePianoPlayback(
     ...needed.map(async (sample) => {
       let pending = performanceBuffers.get(sample.url);
       if (!pending) {
-        pending = fetch(sample.url, { signal: AbortSignal.timeout(10000) })
-          .then((response) => {
-            if (!response.ok)
-              throw new Error(
-                `Instrument sample request failed: ${response.status}`,
-              );
-            return response.arrayBuffer();
-          })
+        pending = sampleBytes(sample.url, () => {
+          if (performanceBuffers.get(sample.url) === pending)
+            performanceBuffers.delete(sample.url);
+        })
           .then((data) => ctx.decodeAudioData(data))
           .catch((error) => {
-            performanceBuffers.delete(sample.url);
+            if (performanceBuffers.get(sample.url) === pending)
+              performanceBuffers.delete(sample.url);
             throw error;
           });
         performanceBuffers.set(sample.url, pending);
@@ -393,6 +411,7 @@ export async function preparePianoPlayback(
 export function shutdownPianoSound() {
   disabled = true;
   departing = true;
+  cancelSampleRequests();
   stopPiano();
 }
 function stopPiano() {
@@ -400,10 +419,15 @@ function stopPiano() {
   for (const stop of [...voices]) stop();
   void context?.suspend().catch(() => {});
 }
-window.addEventListener("pagehide", () => {
+function depart() {
   departing = true;
+  cancelSampleRequests();
   stopPiano();
-});
+}
+// WebKit rejects a new fetch after navigation starts, before pagehide fires.
+// A finishing prewarm worker must not start its next sample in that interval.
+window.addEventListener("beforeunload", depart);
+window.addEventListener("pagehide", depart);
 window.addEventListener("pageshow", () => {
   departing = false;
 });

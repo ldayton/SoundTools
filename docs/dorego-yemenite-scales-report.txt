@@ -1,0 +1,369 @@
+JEWISH YEMENITE MUSIC AND MODAL SCALE PRACTICE
+Research findings and recommendations for DoReGo
+Prepared for Lily — 21 November 2026
+
+PURPOSE AND RECOMMENDATION
+
+DoReGo can usefully add short modal exercises informed by Jewish Yemenite
+music, alongside its existing Rast, Bayati and Hijaz octave exercises.
+
+The recommended first release is:
+
+  1. Rast pentachord: five notes spanning a perfect fifth.
+  2. Rast tetrachord: four notes spanning a perfect fourth.
+  3. Bayati tetrachord and pentachord.
+  4. Sikah trichord: three notes spanning a neutral third.
+
+The first two have especially clear support in documented Jewish Yemenite
+recordings. Bayati and Sikah are valuable additions to general modal practice;
+the research completed here does not establish them as named Jewish Yemenite
+teaching categories.
+
+Use musical names in the exercise selector and explain cultural connections
+in source notes. Do not introduce a single preset called "the Yemenite scale"
+or "the Jewish Yemenite scale."
+
+This report specifies proposed behavior. No product code has been changed for
+this report, and no implementation or performance-tuning validation is claimed.
+
+
+1. EVIDENCE: DOCUMENTED JEWISH YEMENITE PITCH COLLECTIONS
+
+Jean Lambert's 2023 study analyzes historical recordings made by Hans Helfritz
+in 1930–31. The Jewish examples below are women from Dhamar. Reference letters
+are conventional, not a statement of the recordings' absolute pitch. [1]
+
+ID   Example / context                  Published pitch inventory
+84   Ya zayn ya zayn                    A B-half-flat C D E F
+85   Ala ya ra'd ya hannan              G A Bdb C
+86   Nazalt as-sayla; bridal procession C D E-half-flat F G
+91   Funeral song                      C D E-half-flat F G
+92   Ala bi-llah amana; wedding         C D E-half-flat F G
+
+Recording 85 prints "Bdb"; verify its accidental against the audio before use.
+Recordings 91 and 92 use the same melody in different social contexts. [1]
+
+Our provisional quarter-tone normalization, measured from the lowest listed
+pitch, is:
+
+84: 0, 150, 300, 500, 700, 800 cents
+85: 0, 200, 350, 500 cents IF Bdb means B-half-flat
+86, 91, 92: 0, 200, 350, 500, 700 cents
+
+These are calculated reference values, not measurements. A pitch inventory
+alone does not establish a tonic. Lambert calls the analysis preliminary and
+warns against an unqualified application of maqam theory. [1]
+
+
+2. WHAT THE OTHER SOURCES ADD
+
+Marilyn Herman's 1996 study describes diwan melodies organized around single
+tetrachords, conjunct tetrachords sharing a note, and disjunct tetrachords.
+Examples include Tsur Menati and Sar Ha-Memuneh. Her discussion of women's
+repertoires includes pentatonic collections and melodies revolving around
+small nuclei. In some conjunct structures, the final note is the junction.
+This is evidence for examining internal melodic centers rather than assuming
+the lowest pitch is always home. [2]
+
+The exact staff examples in Herman's PDF were not visually verified during
+this investigation. No numeric presets have been extracted from those staff
+examples. Their transcription remains follow-up work.
+
+The Smithsonian's archival diwan release distinguishes synagogue chant,
+men's devotional poetry singing at social celebrations, and women's orally
+transmitted songs. Its documentation also describes the reuse of tunes for
+different poems and changes of melody within a poem. A text title therefore
+does not uniquely identify a scale or tune. [3]
+
+For the general Arabic teaching framework, MaqamWorld identifies Sikah as a
+three-note jins and Bayati as a four-note jins. Its Rast presentation uses
+five notes. A jins is a melodic building block; a full maqam includes further
+melodic behavior and cannot be reduced to an interval array. [4–6]
+
+
+3. PROPOSED EXERCISE DEFINITIONS
+
+All formulas below are proposed quarter-tone reference exercises. One semitone
+is 100 cents. A half-flat lowers a written natural by 50 cents in this model.
+These exact values are convenient reference tuning, not a claim that singers
+use fixed 50-cent increments.
+
+Name                  Semitone offsets        Adjacent steps, cents
+Rast tetrachord       0 2 3.5 5                200 150 150
+Rast pentachord       0 2 3.5 5 7              200 150 150 200
+Bayati tetrachord     0 1.5 3 5                150 150 200
+Bayati pentachord     0 1.5 3 5 7              150 150 200 200
+Sikah trichord        0 1.5 3.5                150 200
+
+Reference spellings:
+
+Rast:   C D E-half-flat F [G]
+Bayati: D E-half-flat F G [A]
+Sikah:  E-half-flat F G
+
+The bracketed final note distinguishes the pentachord from the tetrachord.
+The formulas are derived practice definitions using the reference convention;
+they are not transcriptions of five specific traditional performances.
+
+Educational purpose:
+
+Rast makes the neutral third above home audible. Bayati moves the neutral
+interval to the second degree. Sikah practices a neutral second followed by
+a whole tone, with a small range appropriate for focused intonation work.
+
+Terminology matters. Call the four-note Rast fragment "Rast tetrachord."
+Call the three-note exercise "Sikah trichord" or "Jins Sikah," not a complete
+performance of Maqam Sikah. The extended Bayati pentachord is an exercise
+extension; the core Bayati jins remains the four-note unit.
+
+Sikah's conventional E-half-flat spelling does not require an absolute
+quarter-tone starting pitch in every transposition. Starting on C and using
+offsets 0, 150, 350 cents preserves the proposed interval relationships.
+
+
+4. CANDIDATES TO HOLD FOR FURTHER RESEARCH
+
+A. Six-note collection from recording 84
+
+The normalized inventory 0, 150, 300, 500, 700, 800 is a promising compact
+exercise. Before making it a cultural preset, establish the melodic home,
+the actual note usage, and whether the inventory changes during the recording.
+Do not infer the tonic solely by sorting the pitches. Do not label it Bayati
+just because its first four normalized notes fit the Bayati formula.
+
+B. Full Sikah octave
+
+Useful in a broader maqam expansion, but it requires an explicitly selected
+upper structure and naming convention. The trichord does not uniquely specify
+the upper part of a maqam. Do not extend the three-note formula mechanically
+and imply that every Sikah-family melody follows that extension. [7]
+
+C. A broader Yemeni Bayati upper variant
+
+The earlier discussion proposed an upper half-flat sixth relative to D,
+yielding D E-half-flat F G A B-half-flat C. Treat this as a separately sourced
+broader Yemeni theoretical candidate. It has not been established here as a
+Jewish Yemenite preset. DoReGo's existing Bayati array is not thereby proven
+wrong and should not be silently replaced.
+
+D. Pentatonic Jewish Yemenite examples
+
+The literature supports investigating them, but "pentatonic" means five-note
+and does not supply a unique formula. Do not substitute a familiar major or
+minor pentatonic scale without verifying a particular example.
+
+
+5. RECOMMENDED FIRST-RELEASE EXPERIENCE
+
+Keep the main interaction simple:
+
+  Collection: Rast / Bayati / Sikah
+  Extent: the supported named fragment or existing octave form
+  Starting pitch: the user's comfortable pitch
+  Direction: ascending / descending / ascending and descending
+  Tonic drone: optional
+
+Show only extents with authored definitions. Rast can offer four notes, five
+notes and its existing octave form. Bayati can offer the same sizes. Sikah
+initially offers its three-note fragment. An arbitrary "3–6 notes" control
+would imply more validated combinations than this research currently supplies.
+
+Suggested explanatory copy:
+
+  "Practice a short modal pitch collection. Quarter-tone reference tuning."
+
+For the Rast pentachord, an expandable source note can say:
+
+  "This pitch collection is documented in Jewish women's songs from Dhamar,
+   Yemen. This exercise uses an approximate reference tuning."
+
+Put research detail behind the explanation, rather than in the required flow.
+Keep a source-specific example distinct from the general collection it uses.
+
+First-release ascending/descending practice may use the collection's first
+note as home. That is an authored exercise choice. Do not claim that this
+assigns a verified tonic to every historical recording sharing those pitches.
+
+Do not automatically add an octave above a short fragment. A three-note Sikah
+exercise should remain three notes unless the user selects a separately
+authored extension.
+
+For a return pattern, an explicit example is:
+
+  Rast pentachord: 1 2 3 4 5 4 3 2 1
+  Bayati tetrachord: 1 2 3 4 3 2 1
+  Sikah trichord: 1 2 3 2 1
+
+Repeated peaks, repeated home notes and durations should follow DoReGo's
+established controls. These paths are teaching proposals, not traditional
+Yemenite melodic formulas.
+
+
+6. DATA AND GENERATION MODEL
+
+The inspected working copy already contains Rast, Bayati and Hijaz reference
+tunings. Its maqamat generation constructs an octave and maps seven major
+degrees to a tuning array. This design assumes seven available degree entries.
+Adding a three- or four-element array alone would leave that assumption broken.
+
+Relevant files inspected:
+
+  apps/dorego/src/music.ts
+  apps/dorego/src/note-spelling.ts
+  apps/dorego/src/audio.ts
+  apps/dorego/src/builder.tsx
+  apps/dorego/tests/maqam.test.ts
+
+The working tree was already being edited during this investigation. These
+observations are a snapshot, not a claim about the committed or released app.
+
+Recommended collection model:
+
+  id: stable identifier, such as rast-pentachord
+  name: display name
+  offsetsCents: explicit ordered pitch values
+  degreeSpellings: letters and accidentals relative to a reference spelling
+  homeIndex: the authored exercise's reference center
+  extent: explicit description of the supported range
+  octaveEquivalent: explicit; never inferred from array length
+  tuningModel: quarter-tone-reference initially
+  sources: citations and evidence notes
+
+Keep the exercise path separate from the collection. Represent a path as
+indices into its pitches, then transpose the result. This supports three-,
+four-, five- and six-note material without pretending all collections are
+seven-degree octave scales.
+
+Frequency conversion:
+
+  frequency = referenceFrequency * 2^(offsetCents / 1200)
+
+Alternatively, preserve the existing fractional MIDI representation through
+playback. Do not round microtonal values to integer MIDI notes internally.
+
+Future recording-derived material may need a homeIndex inside its range,
+negative offsets below home, and no octave repetition. Prepare the model for
+those possibilities without exposing unnecessary controls in the first release.
+
+
+7. NOTATION, AUDIO AND COMPATIBILITY REQUIREMENTS
+
+Notation:
+
+  - Preserve intended degree letters through transposition.
+  - Spell the neutral third as the altered third degree, even where another
+    enharmonic label could represent the same reference frequency.
+  - Distinguish a half-flat from a flat clearly in screen and export views.
+  - Apply the same pitch and spelling rules to descending exercises.
+
+Audio:
+
+  - Preserve fractional pitches in live playback and supported audio exports.
+  - Point the drone at the exercise's actual home frequency after transposition.
+  - Keep Western starting chords suppressed for these exercises, consistent
+    with the inspected maqamat generation behavior.
+  - Keep reference tuning and performed regional intonation conceptually separate.
+
+Compatibility:
+
+  - Preserve existing saved Rast, Bayati and Hijaz settings.
+  - Use explicit collection IDs and define how old settings map to octave forms.
+  - Validate supported collection/extent combinations on restore and import.
+  - Recheck range, duration, repeat and progression behavior for short collections.
+  - Inspect any MIDI export path separately: conventional MIDI note numbers
+    alone cannot encode these fractional pitches accurately.
+
+
+8. VERIFICATION AND DELIVERY PLAN
+
+Before implementation, identify all consumers of the existing tuning and
+exercise contracts across app tests and root integration tests. Follow
+docs/testing.md and the executable policy in scripts/ci/test-strategy.cjs.
+
+Meaningful verification should cover:
+
+  - Independent expected formulas for every newly authored collection.
+  - Exact note counts and ranges, including no unwanted octave extension.
+  - Both directions and returning paths.
+  - Transposition preserving interval relationships and degree spelling.
+  - Drone frequency matching the selected exercise home.
+  - Persistence, import/export and migration of existing settings.
+  - Browser selection and notation, including quarter-tone accidental glyphs.
+  - Relevant offline/account consumers if their persisted contract changes.
+
+Register new behavior in the executable suite policy. Before pushing any code,
+read the current CI configuration, run every applicable local lane against the
+exact commit, and run git diff --check. This report itself does not implement
+behavior and has not triggered a code validation run.
+
+Suggested delivery sequence:
+
+Phase 1: Explicit short-collection generation, Rast pentachord and tetrachord.
+Phase 2: Bayati fragments and Sikah trichord using the same model.
+Phase 3: Source-specific six-note and pentatonic material after transcription.
+Phase 4: Adjustable intonation and richer melodic paths, if practice needs them.
+
+No phase should be marketed as a complete representation of Jewish Yemenite
+music. The achievable first product is a useful set of accurately named scale
+exercises with transparent evidence and tuning assumptions.
+
+
+9. RESEARCH STILL NEEDED FOR CULTURAL PRESETS
+
+  1. Listen to the historical examples and check printed accidentals.
+  2. Establish phrase endings, repeated focal notes and likely tonal centers.
+  3. Measure representative sustained pitches, separating ornament from targets
+     and accounting for recording-speed uncertainty.
+  4. Check complete performances for changing pitch inventories.
+  5. Visually inspect Herman's notation examples before extracting formulas.
+  6. Compare multiple performers of the same poem or tune.
+  7. Review transcriptions with a specialist in Jewish Yemenite performance.
+  8. Verify recording and transcription rights before distributing excerpts.
+
+The archival study, general modal references and historical descriptions do
+not replace those steps. No acoustic pitch measurements or specialist review
+were completed in this investigation.
+
+
+SOURCES
+
+[1] Jean Lambert, "A Historical Glimpse of Music in Yemen in the 1930s:
+    A First Approach to the Cylinders Recorded by Hans Helfritz,"
+    the world of music (new series), 12(2), 2023.
+    Especially "Corpus and methodology," "Jewish songs," and note 13.
+    Includes historical audio examples.
+    https://wom-journal.org/wom/article/download/1426/1432?inline=1
+    DOI: 10.59998/2023-12-2-1426
+
+[2] Marilyn Herman, "The Secular Music of the Yemenite Jews as an Expression
+    of Cultural Demarcation Between the Sexes," Journal of the Anthropological
+    Society of Oxford, 27(2), 1996, pp. 113–135; especially pp. 125–129.
+    Oxford record and indexed article text consulted; staff examples were
+    not visually verified.
+    https://ora.ox.ac.uk/objects/uuid%3Aa00438a1-985d-4053-93ab-091269a50dc6
+
+[3] The Yemenite Jews / Jewish-Yemenite Diwan, Smithsonian Folkways,
+    UNESCO Collection; archival recordings and original album documentation.
+    Read historical preservation and "purity" language as the compiler's
+    perspective, not as an assumption underlying these recommendations.
+    https://folkways.si.edu/the-yemenite-jews/world/music/album/smithsonian
+    https://folkways-media.si.edu/docs/folkways/artwork/UNES08024.pdf
+
+[4] Johnny Farraj, MaqamWorld, Jins Rast.
+    https://www.maqamworld.com/en/jins/rast.php
+
+[5] Johnny Farraj, MaqamWorld, Jins Bayati.
+    https://www.maqamworld.com/en/jins/bayati.php
+
+[6] Johnny Farraj, MaqamWorld, Jins Sikah.
+    https://www.maqamworld.com/en/jins/sikah.php
+
+[7] Johnny Farraj, MaqamWorld, Maqam Sikah.
+    https://www.maqamworld.com/en/maqam/sikah.php
+
+Additional listening route:
+National Library of Israel, Yemenite Jewry collection: synagogue, diwan,
+wedding and other community recordings.
+https://www.nli.org.il/en/discover/judaism/jewish-communities/jews-in-islamic-countries/yemenite-jews
+
+Research and source access: November 2026.

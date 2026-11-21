@@ -1,3 +1,11 @@
+import {
+  YEMENITE_COLLECTIONS,
+  DEFAULT_YEMENITE_COLLECTION,
+  selectedCollection,
+  collectionOffsets,
+  collectionNoteName,
+  type YemeniteCollection,
+} from './yemenite-collections';
 import { noteName } from './note-spelling';
 export { noteName, noteAlternative, noteChoiceLabel, SHARPS } from './note-spelling';
 
@@ -59,6 +67,11 @@ export const PATTERNS = {
     intervals: [0, 2, 4, 5, 7, 9, 11],
     description: 'A full octave scale in the selected maqam.',
   },
+  yemenite: {
+    name: 'Yemenite ✡︎',
+    intervals: [0, 1.5, 3, 5, 7, 8, 10, 12],
+    description: 'Named short modal collections and their authored octave forms.',
+  },
 } as const;
 export type Pattern = keyof typeof PATTERNS;
 export function isPentatonicPattern(pattern: Pattern) {
@@ -79,19 +92,20 @@ export function supportsNoteRepeats(pattern: Pattern) {
     'octaveArpeggio',
     'rossini',
     'fiveNote',
+    'yemenite',
     'pentatonic6',
     'pentatonic9',
     'pentatonic12',
   ].includes(pattern);
 }
 export function isScalePattern(pattern: Pattern) {
-  return pattern === 'major' || pattern === 'maqamat';
+  return pattern === 'major' || pattern === 'maqamat' || pattern === 'yemenite';
 }
 export function isVocalPattern(pattern: Pattern) {
   return pattern !== 'major';
 }
 export function vocalSpan(pattern: Pattern) {
-  return pattern === 'maqamat'
+  return pattern === 'maqamat' || pattern === 'yemenite'
     ? 12
     : pattern === 'pentatonic9'
       ? 9
@@ -100,6 +114,14 @@ export function vocalSpan(pattern: Pattern) {
         : pattern === 'octaveArpeggio' || pattern === 'octaveGlide' || pattern === 'pentatonic12'
           ? 12
           : 7;
+}
+export function exerciseSpan(spec: Pick<ExerciseSpec, 'pattern' | 'yemeniteCollection'>) {
+  if (spec.pattern !== 'yemenite') return vocalSpan(spec.pattern);
+  const offsets = collectionOffsets(spec);
+  return Math.max(...offsets) - Math.min(...offsets);
+}
+export function supportsDrone(pattern: Pattern) {
+  return pattern === 'maqamat' || pattern === 'yemenite';
 }
 export type Direction = 'up' | 'down' | 'both';
 export function directionName(direction: Direction) {
@@ -135,6 +157,7 @@ export function activeScaleTuning(spec: ExerciseSpec): ScaleTuning {
 }
 export interface ExerciseSpec {
   scaleTuning?: ScaleTuning;
+  yemeniteCollection?: YemeniteCollection;
   drone?: boolean;
   startingChords?: boolean;
   repeatTurn?: boolean;
@@ -182,6 +205,7 @@ export interface Exercise {
   rounds: PracticeRound[];
 }
 export interface PracticeRound {
+  collection?: YemeniteCollection;
   id: number;
   midi: number;
   degree: number;
@@ -238,7 +262,9 @@ export const DEFAULT_SPEC: ExerciseSpec = {
 // The target may be a fifth/octave above the tonic in falling-first phrases.
 // degree also preserves the key of legacy CLI scales whose range omits the tonic.
 export function roundNoteName(midi: number, round: PracticeRound): string {
-  return noteName(midi, round.midi - round.degree);
+  return round.collection
+    ? collectionNoteName(midi, round.midi - round.degree, round.collection)
+    : noteName(midi, round.midi - round.degree);
 }
 export function secondsAt(beat: number, bpm: number) {
   return (beat * 60) / bpm;
@@ -282,6 +308,12 @@ export function validateSpec(input: unknown): ExerciseSpec {
     throw new Error('Choose rising first or falling first within each round.');
   if (s.scaleTuning !== undefined && !Object.hasOwn(SCALE_TUNINGS, String(s.scaleTuning)))
     throw new Error('Choose a supported scale tuning.');
+  if (
+    s.yemeniteCollection !== undefined &&
+    (typeof s.yemeniteCollection !== 'string' ||
+      !Object.hasOwn(YEMENITE_COLLECTIONS, s.yemeniteCollection))
+  )
+    throw new Error('Choose a supported Yemenite collection.');
   if (s.drone !== undefined && typeof s.drone !== 'boolean')
     throw new Error('Invalid drone setting.');
   if (s.voice !== 'bitklavier') throw new Error('Only bitKlavier is supported.');
@@ -310,6 +342,9 @@ export function validateSpec(input: unknown): ExerciseSpec {
     solfege: s.solfege as boolean,
     transition: s.transition === null ? null : num('transition', 24, 96, true),
   };
+  if (s.yemeniteCollection !== undefined || s.pattern === 'yemenite')
+    result.yemeniteCollection =
+      (s.yemeniteCollection as YemeniteCollection) ?? DEFAULT_YEMENITE_COLLECTION;
   for (const key of ['repeatTurn', 'repeatHome', 'repeatTwice'] as const) {
     if (s[key] !== undefined && typeof s[key] !== 'boolean')
       throw new Error(`Invalid ${key} setting.`);
@@ -326,9 +361,10 @@ export function generateExercise(input: unknown, maxDuration = 600): Exercise {
   const spec = validateSpec(input);
   const tuning = activeScaleTuning(spec);
   const exercise = generateBaseExercise(
-    tuning === 'major' ? spec : { ...spec, startingChords: false },
+    tuning === 'major' && spec.pattern !== 'yemenite' ? spec : { ...spec, startingChords: false },
     maxDuration
   );
+  if (spec.pattern === 'yemenite') exercise.title = 'Yemenite ✡︎';
   if (isGlidePattern(spec.pattern)) exercise.title = 'Glides';
   if (isPentatonicPattern(spec.pattern)) exercise.title = 'Pentatonic Threes';
   if (spec.pattern === 'fiveNote' || spec.pattern === 'major') exercise.title = 'Major Scale';
@@ -351,7 +387,12 @@ function generateBaseExercise(input: unknown, maxDuration = 600): Exercise {
   const spec = validateSpec(input);
   if (spec.progression !== undefined && isVocalPattern(spec.pattern))
     return generateProgressingExercise(spec, maxDuration);
-  if (spec.direction === 'both' && spec.pattern !== 'maqamat' && isVocalPattern(spec.pattern))
+  if (
+    spec.direction === 'both' &&
+    spec.pattern !== 'maqamat' &&
+    spec.pattern !== 'yemenite' &&
+    isVocalPattern(spec.pattern)
+  )
     return generateBidirectionalExercise(spec, maxDuration);
   if (isGlidePattern(spec.pattern)) return generateGlideExercise(spec, maxDuration);
   if (isVocalPattern(spec.pattern)) return generateVocalExercise(spec, maxDuration);
@@ -409,7 +450,19 @@ export function phraseLabel(pattern: Pattern, direction: Direction) {
     return direction === 'both' ? 'Up & back' : direction === 'down' ? 'Down' : 'Up';
   return direction === 'down' ? 'Falling first' : 'Rising first';
 }
-export function phraseContour(pattern: Pattern, direction: Direction): readonly number[] {
+export function phraseContour(
+  pattern: Pattern,
+  direction: Direction,
+  collection?: Pick<ExerciseSpec, 'yemeniteCollection'>
+): readonly number[] {
+  if (pattern === 'yemenite') {
+    const up = collectionOffsets(collection ?? {});
+    return direction === 'down'
+      ? up.reverse()
+      : direction === 'both'
+        ? [...up, ...up.slice(0, -1).reverse()]
+        : up;
+  }
   if (isGlidePattern(pattern)) {
     const span = vocalSpan(pattern);
     return direction === 'down'
@@ -440,7 +493,7 @@ export function phraseContour(pattern: Pattern, direction: Direction): readonly 
   return PATTERNS[pattern].intervals;
 }
 function generateProgressingExercise(spec: ExerciseSpec, maxDuration: number): Exercise {
-  const span = vocalSpan(spec.pattern);
+  const span = exerciseSpan(spec);
   // Reuse a single complete phrase, including its original chord voicing,
   // articulation and timing; transpose it without changing its contour.
   const generate = isGlidePattern(spec.pattern) ? generateGlideExercise : generateVocalExercise;
@@ -546,7 +599,7 @@ export function notePitchAt(note: NoteEvent, beat: number) {
   );
 }
 function generateGlideExercise(spec: ExerciseSpec, maxDuration: number): Exercise {
-  const span = vocalSpan(spec.pattern);
+  const span = exerciseSpan(spec);
   if (spec.high - spec.low < span)
     throw new Error(
       `${PATTERNS[spec.pattern].name} needs a range of at least ${span === 12 ? 'an octave' : 'a perfect fifth'}.`
@@ -690,21 +743,23 @@ function generateBidirectionalExercise(spec: ExerciseSpec, maxDuration: number):
 }
 function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercise {
   const rossini = spec.pattern === 'rossini';
-  const span = vocalSpan(spec.pattern);
+  const span = exerciseSpan(spec);
   const descending = !rossini && spec.direction === 'down';
   if (spec.high - spec.low < span)
     throw new Error(
-      rossini
-        ? 'Rossini Scale needs a range of at least an octave and a fifth (19 semitones).'
-        : span === 12
-          ? `${PATTERNS[spec.pattern].name} needs a range of at least an octave (12 semitones).`
-          : span === 9
-            ? 'Pentatonic Threes (9 notes) needs a range of at least a major sixth (9 semitones).'
-            : 'These vocal phrases need a range of at least seven semitones (a perfect fifth).'
+      spec.pattern === 'yemenite'
+        ? `${selectedCollection(spec).name} needs a range of at least ${span} semitones.`
+        : rossini
+          ? 'Rossini Scale needs a range of at least an octave and a fifth (19 semitones).'
+          : span === 12
+            ? `${PATTERNS[spec.pattern].name} needs a range of at least an octave (12 semitones).`
+            : span === 9
+              ? 'Pentatonic Threes (9 notes) needs a range of at least a major sixth (9 semitones).'
+              : 'These vocal phrases need a range of at least seven semitones (a perfect fifth).'
     );
   const offsets: number[] = [
-    ...(spec.pattern === 'maqamat'
-      ? phraseContour(spec.pattern, spec.direction).map(
+    ...(spec.pattern === 'maqamat' || spec.pattern === 'yemenite'
+      ? phraseContour(spec.pattern, spec.direction, spec).map(
           (offset) => offset - (descending ? span : 0)
         )
       : isPentatonicPattern(spec.pattern)
@@ -806,9 +861,16 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
         rep * (phraseBeats + spec.restBeats) +
         index * (phraseLength + spec.restBeats);
       rounds.push({
+        ...(spec.pattern === 'yemenite'
+          ? { collection: spec.yemeniteCollection ?? DEFAULT_YEMENITE_COLLECTION }
+          : {}),
         id: rounds.length,
         midi: root,
-        degree: descending ? (spec.pattern === 'maqamat' ? span : span % 12) : 0,
+        degree: descending
+          ? spec.pattern === 'maqamat' || spec.pattern === 'yemenite'
+            ? span
+            : span % 12
+          : 0,
         onsetBeat: beat,
         endBeat: beat + phraseLength,
       });

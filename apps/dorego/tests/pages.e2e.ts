@@ -367,6 +367,7 @@ try {
     'Major Scale',
     'Glides',
     'Maqamat',
+    'Yemenite ✡︎',
     'Breath Squares',
   ]);
   await openMoreOptions(page);

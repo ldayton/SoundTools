@@ -3,7 +3,7 @@ import {
   isScalePattern,
   isVocalPattern,
   isGlidePattern,
-  vocalSpan,
+  exerciseSpan,
   generateExercise as generateBoundedExercise,
   type ExerciseSpec,
 } from './music';
@@ -56,8 +56,8 @@ export function restoreSpec(input: unknown, glideShapeVersion: string | null): E
   )
     saved.direction = 'both';
   const spec = generateExercise(saved).spec;
-  const high = Math.min(MAX_NOTE, Math.max(MIN_NOTE + vocalSpan(spec.pattern), spec.high));
-  const low = Math.max(MIN_NOTE, Math.min(spec.low, high - vocalSpan(spec.pattern)));
+  const high = Math.min(MAX_NOTE, Math.max(MIN_NOTE + exerciseSpan(spec), spec.high));
+  const low = Math.max(MIN_NOTE, Math.min(spec.low, high - exerciseSpan(spec)));
   return generateExercise({ ...spec, low, high }).spec;
 }
 
@@ -80,12 +80,12 @@ export function editSpec(
   result.progression = result.progression ?? 'up';
   if (
     isVocalPattern(result.pattern as ExerciseSpec['pattern']) &&
-    result.pattern !== spec.pattern &&
-    Number(result.high) - Number(result.low) < vocalSpan(result.pattern as ExerciseSpec['pattern'])
+    (result.pattern !== spec.pattern || result.yemeniteCollection !== spec.yemeniteCollection) &&
+    Number(result.high) - Number(result.low) < exerciseSpan(result as unknown as ExerciseSpec)
   ) {
-    const span = vocalSpan(result.pattern as ExerciseSpec['pattern']);
-    result.high = Math.min(MAX_NOTE, Number(result.low) + span);
-    result.low = Math.min(Number(result.low), Number(result.high) - span);
+    const span = exerciseSpan(result as unknown as ExerciseSpec);
+    result.high = Math.min(MAX_NOTE, Math.ceil(Number(result.low) + span));
+    result.low = Math.min(Number(result.low), Math.floor(Number(result.high) - span));
   }
   if (result.pattern === 'major') {
     const down = result.direction === 'down';

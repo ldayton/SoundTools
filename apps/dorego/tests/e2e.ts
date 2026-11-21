@@ -74,6 +74,7 @@ try {
     'Major Scale',
     'Glides',
     'Maqamat',
+    'Yemenite ✡︎',
     'Breath Squares',
   ]);
   assert.deepEqual(await page.locator('#direction button[aria-pressed]').allTextContents(), [

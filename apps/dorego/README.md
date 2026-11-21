@@ -85,6 +85,29 @@ Audio/video rendering includes the drone and fractional pitches. Quarter-tone
 MIDI export currently reports an unsupported-tuning error rather than silently
 rounding pitches; MIDI does not include the drone.
 
+## Yemenite modal collections
+
+**Yemenite ✡︎** offers authored Rast and Bayati fragments (4 or 5 notes), their
+explicit 8-note octave forms, and a 3-note Sikah trichord. The default is
+**Bayati, 8 notes**. Collection, note count, and optional tonic drone appear in
+the main pane. Range, phrase direction, round progression, and established repeat
+controls remain in Practice options. Short fragments never gain an implicit octave.
+
+These are quarter-tone reference exercises with an authored first-note home.
+Rast pentachord pitch collections are documented in Jewish women's songs from
+Dhamar; Bayati and Sikah here are general modal additions, not established named
+Jewish Yemenite teaching categories. Source notes are expandable in Settings.
+The report in `docs/dorego-yemenite-scales-report.txt` informed these definitions.
+
+Definitions live in `src/yemenite-collections.ts`: stable IDs, explicit cents,
+degree-letter steps, home index, octave status, and sources. Collection IDs and
+range settings sync atomically. Existing Maqamat settings are preserved. Audio
+and notation retain fractional pitches; conventional MIDI export rejects them.
+
+Coverage runs in the existing core workspace browser lane via
+`tests/yemenite.e2e.ts`, with formulas, transposition, repeats, notation, drone,
+and account round-trips in `tests/yemenite.test.ts`.
+
 ## Exports
 
 Exports are CLI-only; the practice UI has no export controls.

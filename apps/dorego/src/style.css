@@ -547,3 +547,28 @@
     margin-top: 10px;
   }
 }
+
+.practice-pitch-range {
+  font-family: DoReGoAccidentals, Arial, sans-serif;
+}
+.round-count {
+  display: inline-block;
+  width: 2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 768px) {
+  .dorego-note-pads {
+    max-width: calc(var(--pad-columns) * 120px + (var(--pad-columns) - 1) * 8px);
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .dorego-workspace .note-instrument {
+    width: calc(var(--pad-columns) * 120px + (var(--pad-columns) - 1) * 8px + 28px);
+    max-width: 100%;
+    margin-inline: auto;
+  }
+}

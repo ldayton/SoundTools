@@ -1,4 +1,4 @@
-import { supportsScaleTuning, secondsAt, metronomeBeat, type Exercise } from './music';
+import { supportsDrone, secondsAt, metronomeBeat, type Exercise } from './music';
 
 export type AudioEvent = {
   kind: 'note' | 'click' | 'glide' | 'drone';
@@ -42,7 +42,7 @@ export function audioEvents(exercise: Exercise, offset: number): AudioEvent[] {
       velocity: note.velocity ?? 0.7,
     });
   }
-  if (exercise.spec.drone && supportsScaleTuning(exercise.spec.pattern)) {
+  if (exercise.spec.drone && supportsDrone(exercise.spec.pattern)) {
     for (const round of exercise.rounds) {
       const start = secondsAt(round.onsetBeat, bpm),
         end = secondsAt(round.endBeat, bpm);

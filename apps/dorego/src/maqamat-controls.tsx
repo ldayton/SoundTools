@@ -1,3 +1,11 @@
+import {
+  DEFAULT_YEMENITE_COLLECTION,
+  YEMENITE_COLLECTIONS,
+  selectedCollection,
+  collectionChoice,
+  type CollectionFamily,
+  type YemeniteCollection,
+} from './yemenite-collections';
 import { useSyncExternalStore } from 'react';
 import { Group, Select, Checkbox } from '@mantine/core';
 import {
@@ -17,6 +25,63 @@ export function ExerciseControls({
   change(patch: SpecPatch): void;
 }) {
   const { spec } = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  if (spec.pattern === 'yemenite') {
+    const selected = selectedCollection(spec);
+    const extents = Object.entries(YEMENITE_COLLECTIONS).filter(
+      ([, item]) => item.family === selected.family
+    );
+    return (
+      <Group
+        className="maqamat-controls yemenite-controls"
+        justify="center"
+        align="flex-end"
+        gap={8}
+        my="md"
+        role="group"
+        aria-label="Yemenite controls"
+      >
+        <Select
+          id="yemenite-family"
+          label="Collection"
+          w={96}
+          allowDeselect={false}
+          value={selected.family}
+          data={[
+            { value: 'rast', label: 'Rast' },
+            { value: 'bayati', label: 'Bayati' },
+            { value: 'sikah', label: 'Sikah' },
+          ]}
+          comboboxProps={{ withinPortal: true, position: 'bottom-start' }}
+          onChange={(value) => {
+            if (value)
+              change({
+                yemeniteCollection: collectionChoice(value as CollectionFamily, selected.extent),
+              });
+          }}
+        />
+        <Select
+          id="yemenite-extent"
+          label="Notes"
+          w={60}
+          allowDeselect={false}
+          disabled={extents.length === 1}
+          value={spec.yemeniteCollection ?? DEFAULT_YEMENITE_COLLECTION}
+          data={extents.map(([value, item]) => ({ value, label: String(item.extent) }))}
+          comboboxProps={{ withinPortal: true, position: 'bottom-start' }}
+          onChange={(value) => {
+            if (value) change({ yemeniteCollection: value as YemeniteCollection });
+          }}
+        />
+        <Checkbox
+          id="tonic-drone"
+          label="Tonic drone"
+          mb={8}
+          checked={!!spec.drone}
+          onChange={(event) => change({ drone: event.currentTarget.checked })}
+        />
+      </Group>
+    );
+  }
   if (spec.pattern === 'fiveNote' || spec.pattern === 'major')
     return (
       <Group

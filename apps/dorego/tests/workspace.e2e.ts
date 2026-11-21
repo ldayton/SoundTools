@@ -1,3 +1,4 @@
+import { verifyYemenite } from './yemenite.e2e';
 import { verifyMaqamScales } from './maqam.e2e';
 import {
   waitForServer,
@@ -89,7 +90,7 @@ try {
   await page.getByRole('heading', { name: 'Credits', exact: true }).waitFor();
   assert.equal(await page.locator('#settings-ui a[href*="NOTICE.txt"]').count(), 2);
   await page.getByRole('link', { name: 'DoReGo home', exact: true }).click();
-  assert.equal(await page.locator('[data-pattern]').count(), 8);
+  assert.equal(await page.locator('[data-pattern]').count(), 9);
   assert.equal(await page.getByRole('link', { name: 'Warm-up', exact: true }).count(), 0);
   const header = page.locator('.mantine-AppShell-header');
   const play = page.locator('#play');
@@ -361,10 +362,14 @@ try {
           const b = pad.getBoundingClientRect();
           return {
             width: b.width,
+            top: b.top,
+            left: b.left,
+            right: b.right,
             height: b.height,
             visible: getComputedStyle(pad.querySelector('.piano-note-label')!).visibility,
           };
         }),
+        center: (host.getBoundingClientRect().left + host.getBoundingClientRect().right) / 2,
         readoutBottom: document.querySelector('#stage')!.getBoundingClientRect().bottom,
         rangeBottom: Math.max(
           ...[...document.querySelectorAll('.practice-pitch-range')].map(
@@ -379,6 +384,22 @@ try {
         bottom: host.getBoundingClientRect().bottom,
       }));
       assert.equal(geometry.border, '0px');
+      for (const top of new Set(geometry.pads.map((pad) => pad.top))) {
+        const row = geometry.pads.filter((pad) => pad.top === top);
+        const center =
+          (Math.min(...row.map((pad) => pad.left)) + Math.max(...row.map((pad) => pad.right))) / 2;
+        assert.ok(
+          Math.abs(center - geometry.center) < 1,
+          `${pattern}: partial rows must be centered`
+        );
+      }
+      if (width >= 768) {
+        assert.equal(
+          new Set(geometry.pads.map((pad) => pad.top)).size,
+          Math.ceil(geometry.pads.length / 6),
+          `${pattern}: desktop rows should fit up to six notes`
+        );
+      }
       assert.ok(
         geometry.rangeBottom <= geometry.readoutBottom + 1,
         `${pattern}: range text is clipped`
@@ -387,6 +408,8 @@ try {
       for (const pad of geometry.pads) {
         assert.ok(pad.width >= 44 && pad.height >= 44, `${pattern}: finger target`);
         assert.equal(pad.visible, 'visible');
+        if (width >= 768)
+          assert.ok(pad.width <= 120.5, `${pattern}: desktop pads exceed width cap`);
       }
       assert.ok(
         geometry.pageHeight <= geometry.viewport + 1,
@@ -401,9 +424,10 @@ try {
   }
   await layoutContext.close();
   await verifyMaqamScales(browser, base);
+  await verifyYemenite(browser, base);
   assert.deepEqual(errors, []);
   console.log(
-    `${browserName}: toolbar geometry, eight exercises, mobile drawers, readable touch note pads, reference audio, playback animation, tempo, elapsed time and responsive widths pass`
+    `${browserName}: toolbar geometry, nine exercises, mobile drawers, readable touch note pads, reference audio, playback animation, tempo, elapsed time and responsive widths pass`
   );
 } catch (error) {
   await captureFailure(browser, error);

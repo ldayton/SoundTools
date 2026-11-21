@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+  type CSSProperties,
+} from 'react';
 import { ActionIcon, Alert, Button, Group, Text, Title } from '@mantine/core';
 import { ControlIcon } from '@ldayton/ui/control-icon';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
@@ -20,6 +28,7 @@ export type PracticeSnapshot = {
 export type RoundReadout = { note: string; range: string };
 export type ReadoutSnapshot = {
   status: string;
+  restCount?: number | null;
   countIn: { beat: number; bar: number; bars: number } | null;
   current: RoundReadout;
   next: RoundReadout | null;
@@ -42,6 +51,7 @@ export type PianoSnapshot = {
   high: number;
   root: number;
   pitches: number[];
+  labels: Record<string, string>;
   voices: PianoVoice[];
 };
 export type PianoModel = SnapshotModel<PianoSnapshot>;
@@ -276,9 +286,7 @@ export function PracticeView({
           <div className="practice-card" id="practice-card">
             {state.readout && <PracticeReadout state={state.readout} />}
           </div>
-          <section className="note-instrument" aria-label="Exercise instrument">
-            <ReferenceKeyboard model={piano} audition={audition} />
-          </section>
+          <ReferenceKeyboard model={piano} audition={audition} />
         </div>
       </section>
       <Alert id="toast" className="dorego-toast" role="status" hidden={!state.toast}>
@@ -318,7 +326,13 @@ function PracticeReadout({ state }: { state: ReadoutSnapshot }) {
       data-counting={!!state.countIn}
     >
       <Text component="div" className="practice-status">
-        {state.status || '\u00a0'}
+        <span className="practice-status-label">{state.status || '\u00a0'}</span>
+        {state.restCount != null && (
+          <>
+            {' '}
+            <span className="round-count">{state.restCount}</span>
+          </>
+        )}
       </Text>
       {state.countIn && (
         <div className="practice-count-in">
@@ -391,7 +405,12 @@ function ReferenceKeyboard({
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const [held, setHeld] = useState<number[]>([]);
   const [focus, setFocus] = useState<number | null>(null);
-  const columns = state.pitches.length <= 5 ? Math.max(1, state.pitches.length) : 4;
+  const desktop = useMediaQuery('(min-width:768px)', undefined, { getInitialValueInEffect: false });
+  const columns = desktop
+    ? Math.max(1, Math.min(6, state.pitches.length))
+    : state.pitches.length <= 5
+      ? Math.max(1, state.pitches.length)
+      : 4;
   const signature = state.pitches.join(',');
   const refresh = () =>
     setHeld([...new Set([...gestures.current.values()].map((gesture) => gesture.midi))]);
@@ -431,84 +450,102 @@ function ReferenceKeyboard({
   };
   const focusPitch = focus !== null && state.pitches.includes(focus) ? focus : state.pitches[0];
   return (
-    <div
-      ref={host}
-      className="dorego-piano dorego-note-pads"
-      role="group"
-      aria-label="Exercise note pads"
-      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-      onContextMenu={(event) => event.preventDefault()}
-      onDragStart={(event) => event.preventDefault()}
+    <section
+      className="note-instrument"
+      aria-label="Exercise instrument"
+      style={{ '--pad-columns': columns } as CSSProperties}
     >
-      {state.pitches.map((midi, index) => {
-        const playing = state.voices.some((voice) => voice.pitch === midi);
-        return (
-          <button
-            key={midi}
-            type="button"
-            data-piano={midi}
-            data-quarter-tone={!Number.isInteger(midi) ? midi : undefined}
-            className={`note-pad piano-key${playing ? ' is-playing' : ''}${held.includes(midi) ? ' is-held' : ''}`}
-            aria-label={noteName(midi, state.root)}
-            aria-pressed={held.includes(midi)}
-            tabIndex={midi === focusPitch ? 0 : -1}
-            onPointerDown={(event) => {
-              if (event.button !== 0) return;
-              event.preventDefault();
-              event.currentTarget.setPointerCapture(event.pointerId);
-              press(`pointer:${event.pointerId}`, midi);
-            }}
-            onPointerUp={(event) => {
-              release(`pointer:${event.pointerId}`);
-              if (event.currentTarget.hasPointerCapture(event.pointerId))
-                event.currentTarget.releasePointerCapture(event.pointerId);
-            }}
-            onPointerCancel={(event) => release(`pointer:${event.pointerId}`)}
-            onLostPointerCapture={(event) => release(`pointer:${event.pointerId}`)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
+      <div
+        ref={host}
+        className="dorego-piano dorego-note-pads"
+        role="group"
+        aria-label="Exercise note pads"
+        style={
+          {
+            gridTemplateColumns: `repeat(${columns * 2}, minmax(0, 1fr))`,
+            '--pad-columns': columns,
+          } as CSSProperties
+        }
+        onContextMenu={(event) => event.preventDefault()}
+        onDragStart={(event) => event.preventDefault()}
+      >
+        {state.pitches.map((midi, index) => {
+          const playing = state.voices.some((voice) => voice.pitch === midi);
+          return (
+            <button
+              key={midi}
+              type="button"
+              style={{
+                gridRow: Math.floor(index / columns) + 1,
+                gridColumn: `${(index % columns) * 2 + 1 + (Math.floor(index / columns) === Math.floor((state.pitches.length - 1) / columns) && state.pitches.length % columns ? columns - (state.pitches.length % columns) : 0)} / span 2`,
+              }}
+              data-piano={midi}
+              data-quarter-tone={!Number.isInteger(midi) ? midi : undefined}
+              className={`note-pad piano-key${playing ? ' is-playing' : ''}${held.includes(midi) ? ' is-held' : ''}`}
+              aria-label={state.labels[midi] ?? noteName(midi, state.root)}
+              aria-pressed={held.includes(midi)}
+              tabIndex={midi === focusPitch ? 0 : -1}
+              onPointerDown={(event) => {
+                if (event.button !== 0) return;
                 event.preventDefault();
-                event.stopPropagation();
-                if (!event.repeat) press(`key:${event.key}`, midi);
-                return;
-              }
-              const next =
-                event.key === 'Home'
-                  ? 0
-                  : event.key === 'End'
-                    ? state.pitches.length - 1
-                    : event.key === 'ArrowRight'
-                      ? index + 1
-                      : event.key === 'ArrowLeft'
-                        ? index - 1
-                        : event.key === 'ArrowDown'
-                          ? index + columns
-                          : event.key === 'ArrowUp'
-                            ? index - columns
-                            : null;
-              if (next !== null) {
-                event.preventDefault();
-                const pitch = state.pitches[Math.max(0, Math.min(state.pitches.length - 1, next))];
-                setFocus(pitch);
-                host.current?.querySelector<HTMLButtonElement>(`[data-piano="${pitch}"]`)?.focus();
-              }
-            }}
-            onClick={(event) => {
-              if (event.detail !== 0) return;
-              press('activation', midi);
-              const timer = setTimeout(() => {
-                timers.current.delete(timer);
-                release('activation');
-              }, 150);
-              timers.current.add(timer);
-            }}
-          >
-            <span className="piano-note-label">
-              <PitchName value={noteName(midi, state.root)} />
-            </span>
-          </button>
-        );
-      })}
-    </div>
+                event.currentTarget.setPointerCapture(event.pointerId);
+                press(`pointer:${event.pointerId}`, midi);
+              }}
+              onPointerUp={(event) => {
+                release(`pointer:${event.pointerId}`);
+                if (event.currentTarget.hasPointerCapture(event.pointerId))
+                  event.currentTarget.releasePointerCapture(event.pointerId);
+              }}
+              onPointerCancel={(event) => release(`pointer:${event.pointerId}`)}
+              onLostPointerCapture={(event) => release(`pointer:${event.pointerId}`)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (!event.repeat) press(`key:${event.key}`, midi);
+                  return;
+                }
+                const next =
+                  event.key === 'Home'
+                    ? 0
+                    : event.key === 'End'
+                      ? state.pitches.length - 1
+                      : event.key === 'ArrowRight'
+                        ? index + 1
+                        : event.key === 'ArrowLeft'
+                          ? index - 1
+                          : event.key === 'ArrowDown'
+                            ? index + columns
+                            : event.key === 'ArrowUp'
+                              ? index - columns
+                              : null;
+                if (next !== null) {
+                  event.preventDefault();
+                  const pitch =
+                    state.pitches[Math.max(0, Math.min(state.pitches.length - 1, next))];
+                  setFocus(pitch);
+                  host.current
+                    ?.querySelector<HTMLButtonElement>(`[data-piano="${pitch}"]`)
+                    ?.focus();
+                }
+              }}
+              onClick={(event) => {
+                if (event.detail !== 0) return;
+                press('activation', midi);
+                const timer = setTimeout(() => {
+                  timers.current.delete(timer);
+                  release('activation');
+                }, 150);
+                timers.current.add(timer);
+              }}
+            >
+              <span className="piano-note-label">
+                <PitchName value={state.labels[midi] ?? noteName(midi, state.root)} />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }

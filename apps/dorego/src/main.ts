@@ -76,6 +76,7 @@ const pianoModel = createViewState<PianoSnapshot>({
   root: spec.low,
   high: spec.low + 12,
   pitches: [],
+  labels: {},
   voices: [],
 });
 const reference = new ReferencePiano(spec.volume, (error) => {
@@ -267,6 +268,12 @@ function update(force = false) {
     const range = practiceRange(exercise, practice.current);
     pianoModel.set({
       pitches: phrasePitches(exercise, practice.current),
+      labels: Object.fromEntries(
+        phrasePitches(exercise, practice.current).map((pitch) => [
+          pitch,
+          roundNoteName(pitch, practice.current),
+        ])
+      ),
       root: practice.current.midi - practice.current.degree,
       low: Math.max(24, range.low),
       high: Math.min(96, range.high),
@@ -299,10 +306,11 @@ function update(force = false) {
             : scene.phase === 'complete'
               ? 'Complete'
               : scene.phase === 'rest'
-                ? `Rest · next round in ${scene.count}`
+                ? 'Rest · next round in'
                 : scene.phase === 'ready'
                   ? 'Ready'
                   : '',
+        restCount: scene.phase === 'rest' ? scene.count : null,
         countIn:
           scene.phase === 'countin'
             ? {

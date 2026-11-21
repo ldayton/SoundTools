@@ -90,3 +90,43 @@ final bar remain intact. The refrain entrance is the last beat of bar 12.
 Responsive systems attach the opening pickup and closing short bar to their
 phrases; the chord chart retains changes beneath held melody notes. Display
 and practice remain independent, with all three verses and shared refrain.
+
+## Instrument playback
+
+Playback reuses the existing audio-clock transport, count-in, passage loop,
+seeking, tempo changes, score following, and offline verification. The selected
+arrangement determines the sound; changing notation, tab, or chord display does
+not change it. Interactive keyboard audition remains the existing piano voice.
+
+Piano playback uses the licensed bitKlavier Steinway recordings at three recorded
+strike strengths (layers 4, 8, 12), with roots every minor third from C2 to C7.
+The compact stereo bank preserves up to six seconds of recorded decay, with a
+120 ms key-release fade. Melody notes are brought forward over simultaneous
+accompaniment. No automatic sustain pedal is applied across written rests.
+Regenerate this bank with `python3 packages/music-practice/scripts/build-songalong-piano.py` (ffmpeg required).
+Source hashes and recording credits are included in Settings and the offline pack.
+
+Guitar playback reuses the existing CC0 Meta Steel Guitar bank: two recorded
+strengths on each of six strings. Edition string positions are reused where
+available, including capo and transposition; other notes get a deterministic
+string assignment favoring low frets and unoccupied strings. A new note on the
+same string damps the previous note. Fingerstyle attacks stay simultaneous as
+written. Chord-accompaniment playback spreads attacks from low to high strings
+by 9 ms per string, capped for short notes; selecting the chord display alone
+does not introduce a strum. Guitar release is 45 ms. Simultaneous guitar chord attacks receive a 2 dB
+boost relative to single-note plucks.
+
+The performance layer preserves score pitches, rests, ties, and the practice
+pulse. Samples are selected by instrument, pitch, dynamics and guitar string,
+then loaded for the song's pitches and cached for later playback. Recordings
+outside the bank's native range are pitch shifted; this is a compact sampler,
+without pedal resonance, release recordings, randomized alternate takes, or
+articulated guitar slides/hammer-ons. Long notes decay with the recording rather
+than looping. The guitar voice is steel-string, not nylon-string.
+
+Validation: `npm test --workspace=songalong`,
+`npm run test:instrument-audio --workspace=songalong`, and
+`npm run test:offline --workspace=songalong`. The instrument browser check renders
+actual scheduled sample buffers and envelopes, checks finite unclipped audio and
+instrument routing, and writes six-second WAV previews to
+`/tmp/songalong-instrument-audio/`. Use `TEST_BROWSER=webkit` for WebKit.

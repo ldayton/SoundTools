@@ -1,3 +1,8 @@
+import { playbackSample, playbackSamplesFor } from "./playback-samples";
+import type {
+  PlaybackInstrument,
+  PerformanceNote,
+} from "./playback-performance";
 import { audiblePianoTime } from "./piano-clock";
 import { persistence } from "./persistence";
 import { diagnostics } from "./diagnostics";
@@ -234,32 +239,54 @@ async function soundPianoNote(
   }
 }
 /** A prepared, cancellable audio-clock output for score playback. */
-export async function preparePianoPlayback(pitches: number[]) {
+const performanceBuffers = new Map<string, Promise<AudioBuffer>>();
+export async function preparePianoPlayback(
+  pitches: number[],
+  instrument: PlaybackInstrument = "piano",
+  notes?: readonly PerformanceNote[],
+) {
   if (disabled) throw new Error("Audio stopped after a display error");
   const ctx = audio();
   const resume = ctx.state === "running" ? Promise.resolve() : ctx.resume();
-  const rootFor = (midi: number) =>
-    [...urls.keys()].reduce((a, b) =>
-      Math.abs(b - midi) < Math.abs(a - midi) ? b : a,
-    );
-  const samples = new Map<number, AudioBuffer>();
-  await Promise.all(
-    [...new Set(pitches.map(rootFor))]
-      .map(async (root) => {
-        let pending = decoded.get(root);
-        if (!pending) {
-          pending = load(root)
-            .then((data) => ctx.decodeAudioData(data.slice(0)))
-            .catch((error) => {
-              decoded.delete(root);
-              throw error;
-            });
-          decoded.set(root, pending);
-        }
-        samples.set(root, await pending);
-      })
-      .concat([resume]),
-  );
+  const needed = notes
+    ? [
+        ...new Map(
+          notes.map((note) => {
+            const sample = playbackSample(
+              instrument,
+              note.pitch,
+              note.volume,
+              note.string,
+            );
+            return [sample.url, sample] as const;
+          }),
+        ).values(),
+      ]
+    : playbackSamplesFor(instrument, pitches);
+  const samples = new Map<string, AudioBuffer>();
+  await Promise.all([
+    resume,
+    ...needed.map(async (sample) => {
+      let pending = performanceBuffers.get(sample.url);
+      if (!pending) {
+        pending = fetch(sample.url, { signal: AbortSignal.timeout(10000) })
+          .then((response) => {
+            if (!response.ok)
+              throw new Error(
+                `Instrument sample request failed: ${response.status}`,
+              );
+            return response.arrayBuffer();
+          })
+          .then((data) => ctx.decodeAudioData(data))
+          .catch((error) => {
+            performanceBuffers.delete(sample.url);
+            throw error;
+          });
+        performanceBuffers.set(sample.url, pending);
+      }
+      samples.set(sample.url, await pending);
+    }),
+  ]);
   const owned = new Set<() => void>();
   return {
     get now() {
@@ -271,19 +298,40 @@ export async function preparePianoPlayback(pitches: number[]) {
     get running() {
       return !disabled && ctx.state === "running" && !document.hidden;
     },
-    schedule(midi: number, when: number, duration: number, volume = 1) {
+    schedule(
+      midi: number,
+      when: number,
+      duration: number,
+      volume = 1,
+      string = -1,
+      delay = 0,
+      attackGain = 1,
+    ) {
       if (disabled) return;
-      const root = rootFor(midi),
+      const sample = playbackSample(
+          instrument,
+          midi,
+          volume,
+          string < 0 ? undefined : string,
+        ),
         source = ctx.createBufferSource(),
         gain = ctx.createGain();
-      source.buffer = samples.get(root)!;
-      source.playbackRate.value = 2 ** ((midi - root) / 12);
-      const level = 0.22 * Math.max(0, Math.min(1, volume));
+      source.buffer = samples.get(sample.url)!;
+      source.playbackRate.value = 2 ** ((midi - sample.pitch) / 12);
+      // Recorded layers already carry their own dynamics; retain gentle level shaping.
+      const level =
+        (instrument === "guitar" ? 0.34 : 1.2) *
+        Math.sqrt(Math.max(0, Math.min(1, volume))) *
+        attackGain;
       // Preserve the recorded decay; release early when the written note ends.
-      const end = when + Math.max(0.02, duration);
+      const writtenEnd = when + Math.max(0.02, duration);
+      // A short physical release replaces the old hard gate; no automatic pedal over rests.
+      const release = instrument === "piano" ? 0.12 : 0.045;
+      when += Math.min(delay, Math.max(0, duration - 0.015));
+      const end = Math.max(when + 0.02, writtenEnd) + release;
       gain.gain.setValueAtTime(0, when);
       gain.gain.linearRampToValueAtTime(level, when + 0.005);
-      gain.gain.setValueAtTime(level, Math.max(when + 0.005, end - 0.04));
+      gain.gain.setValueAtTime(level, Math.max(when + 0.005, writtenEnd));
       gain.gain.linearRampToValueAtTime(0, end);
       source.connect(gain).connect(output!);
       let stopped = false;

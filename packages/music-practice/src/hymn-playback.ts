@@ -1,4 +1,9 @@
 import {
+  performNotes,
+  type PerformanceNote,
+  type PerformanceOptions,
+} from "./playback-performance";
+import {
   countInPlan,
   type CountInBars,
   type HymnTiming,
@@ -47,7 +52,7 @@ export class HymnPlayback {
   private offset = 0;
   private cursor = 0;
   private bpm = 80;
-  private notes: ReturnType<typeof playbackNotes> = [];
+  private notes: PerformanceNote[] = [];
   private end = 0;
   private rangeStart = 0;
   private rangeEnd?: number;
@@ -125,19 +130,27 @@ export class HymnPlayback {
   constructor(
     private changed: () => void,
     private failed: (error: unknown) => void,
-    private prepare: (pitches: number[]) => Promise<PlaybackOutput>,
+    private prepare: (
+      pitches: number[],
+      notes?: readonly PerformanceNote[],
+    ) => Promise<PlaybackOutput>,
   ) {}
   load(
     audio: AudioTracks,
     sectionStarts = [0],
     startSection = 0,
     timing: HymnTiming = { meter: "4/4", pickup: 0 },
+    performance?: PerformanceOptions,
   ) {
     this.timing = timing;
     this.pause();
     const offset = sectionStarts[startSection];
     // Keep cross-bar ties in one score: section changes must not re-attack them.
-    this.notes = playbackNotes(audio)
+    this.notes = (
+      performance
+        ? performNotes(playbackNotes(audio), performance)
+        : playbackNotes(audio)
+    )
       .filter((n) => n.start + n.duration > offset)
       .map((note) => {
         const start = Math.max(note.start, offset);
@@ -178,6 +191,7 @@ export class HymnPlayback {
     try {
       const output = await this.prepare(
         countOnly ? [] : this.notes.map((n) => n.pitch),
+        countOnly ? [] : this.notes,
       );
       if (request !== this.generation) {
         output.stop();
@@ -238,6 +252,9 @@ export class HymnPlayback {
             ((Math.min(n.start + n.duration, this.finish) - start) * 60) /
               this.bpm,
             n.volume,
+            n.string ?? -1,
+            n.delay ?? 0,
+            n.gain ?? 1,
           );
         }
         if (this.state === "complete" || this.displayPosition >= this.finish) {

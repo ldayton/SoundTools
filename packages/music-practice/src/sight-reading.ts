@@ -461,7 +461,12 @@ export class SightReading {
           feedback: "Audio couldn’t load. Try starting again.",
         });
       },
-      preparePianoPlayback,
+      (pitches, notes) =>
+        preparePianoPlayback(
+          pitches,
+          isGuitarArrangement(this.arrangement) ? "guitar" : "piano",
+          notes,
+        ),
     );
     registerPracticeOptions(
       element,
@@ -841,7 +846,7 @@ export class SightReading {
     this.presentation.set({ title: this.hymn.title });
     this.body.patch({
       title: this.hymn.title,
-      showStrumPattern: this.hymn.id === "ill-fly-away" &&
+      showStrumPattern: !!chordEdition(this.hymn)?.strumPattern &&
         (this.arrangement === "guitar" || this.arrangement === "guitar-chords" || this.arrangement === "guitar-edition" && this.scoreDisplay === "chords"),
       credits: this.hymn.credits
         .filter((credit) => /^(Words:|Music:|Tabledited by )/i.test(credit))
@@ -942,11 +947,23 @@ export class SightReading {
               stanzas: this.stanzas,
             });
             this.playbackVerses = prepared.verses;
+            const guitar = isGuitarArrangement(this.arrangement);
+            const edition = guitar ? chordEdition(this.hymn) : undefined;
             this.playback.load(
               prepared.audio,
               prepared.starts,
               this.section,
               prepared.timing,
+              {
+                instrument: guitar ? "guitar" : "piano",
+                strum: this.arrangement === "guitar-chords" ||
+                  (this.arrangement === "guitar-edition" && this.viewHands === "left"),
+                positionFor: edition
+                  ? (pitch, chord) => edition.position(
+                      pitch - (edition.capo || 0), chord, transposition.semitones,
+                    )
+                  : undefined,
+              },
             );
             if (this.stanzaOffset)
               this.playback.seek(this.stanzaOffset, "ready");

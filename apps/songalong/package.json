@@ -13,7 +13,7 @@
     "build:vercel": "node ../../scripts/build-vercel.cjs songalong",
     "test:diagnostics": "tsx ../../packages/music-practice/browser-tests/diagnostics.browser.ts",
     "test:sight": "tsx tests/sight-reading.browser.ts && tsx tests/hymn-recovery.browser.ts && npm run test:workspace",
-    "test:hymn-playback": "tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts && tsx tests/hymn-octave.browser.ts",
+    "test:hymn-playback": "tsx tests/instrument-audio.browser.ts && tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts && tsx tests/hymn-octave.browser.ts",
     "test:hymn-recovery": "tsx tests/hymn-recovery.browser.ts",
     "test": "tsx --test tests/*.test.ts",
     "import:hymns": "tsx ../../packages/music-practice/scripts/import-hymns.ts",
@@ -24,7 +24,8 @@
     "test:stanzas": "tsx tests/hymn-stanzas.browser.ts",
     "test:catalog": "tsx tests/hymn-catalog.browser.ts",
     "test:editions": "tsx tests/fingerstyle-editions.browser.ts && tsx tests/in-christ-alone-editions.browser.ts && tsx tests/amazing-grace-editions.browser.ts && tsx tests/ill-fly-away-editions.browser.ts && tsx tests/jesus-loves-me-editions.browser.ts && tsx tests/o-come-all-ye-faithful-editions.browser.ts",
-    "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts"
+    "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts",
+    "test:instrument-audio": "tsx tests/instrument-audio.browser.ts"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"

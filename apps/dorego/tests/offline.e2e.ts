@@ -164,8 +164,16 @@ const recordPageError = (error: Error) => {
 let page = await context.newPage();
 context.on('page', (p) => p.on('pageerror', recordPageError));
 page.on('pageerror', recordPageError);
-const ready = async (p: Page) =>
-  p.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
+const ready = async (p: Page) => {
+  await p.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
+  // A playable transport is not evidence that native cache reads have settled.
+  // Each offline fixture owns a complete setup before its next navigation.
+  await p.waitForFunction(() =>
+    (window.doregoDiagnostics?.snapshot().events as any[] | undefined)?.some(
+      (event) => event.code === 'cache.setup.ready'
+    )
+  );
+};
 const status = () => page.locator('#offline-status');
 try {
   await page.goto(base);

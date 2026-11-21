@@ -223,3 +223,17 @@ catalog partitions. All app Vite configs honor that override while retaining
 normal cache defaults outside the runner. The required assertion is unchanged;
 no reload retry, extra sleep, relaxed audio check or blanket serialization was
 added. The first failure and cancelled remainder remain retained.
+
+## Offline fixture navigation before cache setup completed (21 November 2026)
+
+[WebKit job 136989857300](https://github.com/ldayton/SoundTools/actions/runs/44951332514/job/136989857300)
+failed the final no-error assertion with `Context is stopped`. Its retained trace
+identifies the native error name as `Cache API operation failed`, with no script
+stack, during an exercise-fixture `goto`; it is not an AudioContext failure.
+The test waited for cached navigation and enabled Play, then could replace the
+document while initial native cache verification was still running.
+
+Its fixture readiness now also requires the existing `cache.setup.ready`
+diagnostic event. All 12 exercises, both range extremes, actual offline playback,
+worker/update/repair assertions and the no-error assertion remain required. No
+native-error filter, fixed sleep, assertion retry or timeout increase was added.

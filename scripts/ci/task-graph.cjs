@@ -4,7 +4,7 @@ const { plan } = require('./test-strategy.cjs');
 const { declaration } = require('./inventory.cjs');
 const root = path.resolve(__dirname, '../..');
 const browserSuites = Object.freeze(['desktop', 'workspace', 'breath-squares', 'breath-audio', 'audio-channels', 'pages', 'lifecycle', 'offline', 'spelling']);
-function environment(browser) { return { TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' }; }
+function environment(browser, tier = 'ci') { return { CI_TIER: tier, TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' }; }
 function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false } = {}) {
   const tasks = [];
   if (!['notewise', 'soundglow'].includes(app)) tasks.push({ id: `${prefix}:units`, command: 'npm', args: ['test', '--workspace=' + app], cwd, needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
@@ -12,12 +12,12 @@ function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false 
   if (app === 'soundglow' && visual) tasks.push({ id: `${prefix}:visual-fixture`, command: process.execPath, args: ['scripts/ci/prepare-visual.cjs'], cwd, needs: [`${prefix}:build`], locks: [`files:${cwd}`], priority: 60 });
   return tasks;
 }
-function commandTasks(app, profile, browser, cwd = root, { prefix = `${app}:${profile}:${browser}`, needs = [`${app}:build`] } = {}) {
-  const commands = plan(app, profile, browser).flatMap(([command, args]) => app === 'dorego' && args.includes('test:browsers')
+function commandTasks(app, tier, browser, cwd = root, { group = 'core', prefix = `${app}:${tier}:${group}:${browser}`, needs = [`${app}:build`] } = {}) {
+  const commands = plan(app, tier, browser, group).flatMap(([command, args]) => app === 'dorego' && args.includes('test:browsers')
     ? browserSuites.map(suite => ['npm', ['exec', '--workspace=dorego', '--', 'tsx', `tests/${suite}.e2e.ts`]]) : [[command, args]]);
   return commands.flatMap(([command, args], index) => {
     const policy = declaration(app, command, args);
-    const base = { id: `${prefix}:${index}`, command: command === 'node' ? process.execPath : command, args, cwd, needs, env: environment(browser), ...policy, timeoutMs: 20 * 60000 };
+    const base = { id: `${prefix}:${index}`, command: command === 'node' ? process.execPath : command, args, cwd, needs, env: environment(browser, tier), ...policy, timeoutMs: 20 * 60000 };
     if (policy.partition) {
       const { total, portBase, defaultPort } = policy.partition;
       return Array.from({ length: total }, (_, shard) => {
@@ -42,7 +42,7 @@ function commandTasks(app, profile, browser, cwd = root, { prefix = `${app}:${pr
       });
     }
     return [base];
-  }).concat(profile === 'focused' ? [{ id: `${prefix}:smoke`, command: process.execPath, args: ['scripts/ci/smoke-local.cjs', app], cwd, needs, locks: [], env: environment('webkit'), coverage: [{ command: 'node', args: ['scripts/ci/smoke-local.cjs', app], cwd: '' }] }] : []);
+  }).concat(tier === 'ci' && group === 'core' ? [{ id: `${prefix}:smoke`, command: process.execPath, args: ['scripts/ci/smoke-local.cjs', app], cwd, needs, locks: [], env: environment('webkit', tier), coverage: [{ command: 'node', args: ['scripts/ci/smoke-local.cjs', app], cwd: '' }] }] : []);
 }
 function sharedTasks(cwd = root, { needs = [] } = {}) {
   const unitWorkers = Number(process.env.CI_UNIT_WORKERS || (process.env.CI ? 2 : 4));

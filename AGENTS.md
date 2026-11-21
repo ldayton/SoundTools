@@ -4,6 +4,11 @@ Read [docs/testing.md](docs/testing.md) before changing behavior or tests.
 The executable suite policy is `scripts/ci/test-strategy.cjs`; its invariants
 run in `tests/ci/test-strategy.test.cjs` on every shared CI validation.
 
+Only **CI** and **Nightly** are test tiers (`scripts/ci/tiers.cjs`). Use
+`npm run ci` before pushing and `npm run nightly` for exhaustive scheduled/manual
+coverage. App, edition and Accounts groups are subdivisions, not tiers. Nightly
+never publishes. Preserve this distinction in scripts and workflow matrices.
+
 ## Required workflow
 
 1. Identify the behavior contract and its owning tests before editing. If a
@@ -27,7 +32,7 @@ run in `tests/ci/test-strategy.test.cjs` on every shared CI validation.
    Shared contract checks require unit and browser coverage for every ID in
    the production `instrumentEditionIds` registry.
 5. Before pushing code changes, read the current CI configuration and run the
-   repository's full applicable CI suite locally using `npm run ci:local --
+   repository's full applicable CI suite locally using `npm run ci --
    --base origin/main` (Node 24, clean committed HEAD). Do not invent a serial
    wrapper or bypass runner resource locks. Targeted tests are useful
    during development but do not substitute for that suite. Validate the exact

@@ -1,4 +1,5 @@
-name: CI
+name: CI / Nightly
+run-name: ${{ github.event_name == 'schedule' && 'Nightly' || inputs.tier == 'nightly' && 'Nightly' || 'CI' }}
 on:
   push:
     branches: [main]
@@ -7,10 +8,13 @@ on:
     - cron: "20 3 * * *"
   workflow_dispatch:
     inputs:
-      full:
-        description: Run exhaustive regression suites (never publishes)
-        type: boolean
-        default: false
+      tier:
+        description: Test tier (Nightly never publishes)
+        type: choice
+        options: [ci, nightly]
+        default: ci
+env:
+  CI_TIER: ${{ github.event_name == 'schedule' && 'nightly' || inputs.tier || 'ci' }}
 permissions:
   contents: read
   actions: read
@@ -22,6 +26,8 @@ jobs:
       deploy: ${{ steps.changes.outputs.deploy }}
       accounts: ${{ steps.changes.outputs.accounts }}
       matrices: ${{ steps.changes.outputs.matrices }}
+      tier: ${{ steps.changes.outputs.tier }}
+      accountBrowsers: ${{ steps.changes.outputs.accountBrowsers }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -31,11 +37,9 @@ jobs:
           node-version: 24
       - id: changes
         run: node scripts/ci/affected.cjs
-        env:
-          CI_FULL: ${{ inputs.full == true }}
   shared:
     concurrency:
-      group: validation-${{ github.event_name }}-${{ github.ref }}-shared
+      group: validation-${{ github.event_name }}-${{ github.ref }}-${{ github.event_name == 'schedule' && 'nightly' || inputs.tier || 'ci' }}-shared
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     steps:
@@ -91,16 +95,17 @@ jobs:
     needs: changes
     if: needs.changes.outputs.accounts == 'true'
     concurrency:
-      group: validation-${{ github.event_name }}-${{ github.ref }}-accounts-${{ matrix.browser }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-accounts-${{ needs.changes.outputs.tier }}-${{ matrix.browser }}
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        browser: ${{ fromJSON((github.event_name == 'schedule' || inputs.full == true) && '["chromium","webkit"]' || '["chromium"]') }}
+        browser: ${{ fromJSON(needs.changes.outputs.accountBrowsers) }}
     env:
       TEST_BROWSER: ${{ matrix.browser }}
+      CI_TIER: ${{ needs.changes.outputs.tier }}
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7.1.0
@@ -142,7 +147,7 @@ jobs:
   release-dorego:
     needs: [changes, shared, dorego, accounts]
     if: >-
-      always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      always() && needs.changes.outputs.tier == 'ci' && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       needs.changes.result == 'success' && needs.shared.result == 'success' && needs.dorego.result == 'success' &&
       (needs.accounts.result == 'success' ||
       (needs.changes.outputs.accounts != 'true' && needs.accounts.result == 'skipped')) &&
@@ -155,7 +160,7 @@ jobs:
   release-notewise:
     needs: [changes, shared, notewise, accounts]
     if: >-
-      always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      always() && needs.changes.outputs.tier == 'ci' && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       needs.changes.result == 'success' && needs.shared.result == 'success' && needs.notewise.result == 'success' &&
       (needs.accounts.result == 'success' ||
       (needs.changes.outputs.accounts != 'true' && needs.accounts.result == 'skipped')) &&
@@ -168,7 +173,7 @@ jobs:
   release-songalong:
     needs: [changes, shared, songalong, accounts]
     if: >-
-      always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      always() && needs.changes.outputs.tier == 'ci' && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       needs.changes.result == 'success' && needs.shared.result == 'success' && needs.songalong.result == 'success' &&
       (needs.accounts.result == 'success' ||
       (needs.changes.outputs.accounts != 'true' && needs.accounts.result == 'skipped')) &&
@@ -181,7 +186,7 @@ jobs:
   release-soundglow:
     needs: [changes, shared, soundglow, accounts]
     if: >-
-      always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      always() && needs.changes.outputs.tier == 'ci' && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       needs.changes.result == 'success' && needs.shared.result == 'success' && needs.soundglow.result == 'success' &&
       (needs.accounts.result == 'success' ||
       (needs.changes.outputs.accounts != 'true' && needs.accounts.result == 'skipped')) &&

@@ -12,9 +12,9 @@ function workspaces(directory = root) {
     return [{ folder, name: manifest.name, dependencies: Object.keys({ ...manifest.dependencies, ...manifest.devDependencies, ...manifest.peerDependencies }) }];
   }));
 }
-function affected(files, graph = workspaces(), full = false) {
-  const test = new Set(full ? names : []), deploy = new Set();
-  let accounts = full;
+function affected(files, graph = workspaces(), all = false) {
+  const test = new Set(all ? names : []), deploy = new Set();
+  let accounts = all;
   function consumers(folder) {
     const entry = graph.find(p => p.folder === folder);
     if (!entry) return names; // Deleted or unfamiliar workspace: fail conservatively.
@@ -40,7 +40,7 @@ function affected(files, graph = workspaces(), full = false) {
       accounts = true;
     }
   }
-  return { apps: names.filter(x => test.has(x)), deploy: full ? [] : names.filter(x => deploy.has(x)), accounts };
+  return { apps: names.filter(x => test.has(x)), deploy: all ? [] : names.filter(x => deploy.has(x)), accounts };
 }
 
 async function changes({ env = process.env, fetch: request = fetch, git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim() } = {}) {
@@ -81,7 +81,8 @@ async function changes({ env = process.env, fetch: request = fetch, git = args =
 module.exports = { workspaces, affected, changes };
 if (require.main === module) changes().then(result => {
   console.log(JSON.stringify(result, null, 2));
-  const full = process.env.GITHUB_EVENT_NAME === 'schedule' || process.env.CI_FULL === 'true';
-  const matrices = Object.fromEntries(result.apps.map(app => [app, require('./test-strategy.cjs').matrix(app, full ? 'regression' : 'focused')]));
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${result.accounts}\nmatrices=${JSON.stringify(matrices)}\n`);
+  const { fromEvent, tiers } = require('./tiers.cjs');
+  const tier = fromEvent(process.env.GITHUB_EVENT_NAME, process.env.CI_TIER);
+  const matrices = Object.fromEntries(names.map(app => [app, require('./test-strategy.cjs').matrix(app, tier)]));
+  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${result.accounts}\nmatrices=${JSON.stringify(matrices)}\ntier=${tier}\naccountBrowsers=${JSON.stringify(tiers[tier].browsers)}\n`);
 }).catch(e => { console.error(e.message); process.exitCode = 1; });

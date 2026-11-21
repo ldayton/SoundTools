@@ -21,34 +21,34 @@ function expanded(app, profile) {
   return plan(app, profile).flatMap(([command, args]) => command === 'npm' && args[0] === 'run' ? leaves(app, args[1]) : [`${command} ${args.join(' ')}`]);
 }
 test('core and exhaustive edition lanes cannot acquire each other through nested npm aliases', () => {
-  for (const lane of ['focused', 'regression']) {
+  for (const lane of ['ci', 'nightly']) {
     const commands = expanded('songalong', lane).join('\n');
     assert.equal((commands.match(/instrument-audio\.browser/g) || []).length, 1, 'Instrument-specific audio remains required exactly once');
     assert.equal((commands.match(/audio-lifecycle\.browser/g) || []).length, 1, 'Audio departure and recovery remains required');
     assert.doesNotMatch(commands, /test:editions|test-strategy\.cjs editions|-editions\.browser\.ts/);
-    if (lane === 'focused') assert.doesNotMatch(commands, /hymn-catalog|offline\.browser|hymn-stanzas/);
+    if (lane === 'ci') assert.doesNotMatch(commands, /hymn-catalog|offline\.browser|hymn-stanzas/);
   }
   assert(editionFiles().length > 0);
-  assert.deepEqual(plan('songalong', 'editions').map(([, args]) => args.at(-1)), editionFiles());
+  assert.deepEqual(plan('songalong', 'ci', 'chromium', 'editions').map(([, args]) => args.at(-1)), editionFiles());
   const scripts = JSON.parse(fs.readFileSync(path.join(root, 'apps/songalong/package.json'))).scripts;
   assert.match(scripts['test:editions'], /^node .*test-strategy\.cjs editions$/, 'Local and CI edition commands must use the same registry');
 });
 test('all edition files are required in both push and full matrices; lanes never share a concurrency identity', () => {
-  for (const profile of ['focused', 'regression']) {
+  for (const profile of ['ci', 'nightly']) {
     const rows = matrix('songalong', profile).include;
-    const keys = rows.map(row => `${row.browser}-${row.profile}`);
+    const keys = rows.map(row => `${row.browser}-${row.group}`);
     assert.equal(new Set(keys).size, rows.length);
-    for (const browser of profile === 'focused' ? ['chromium'] : ['chromium', 'webkit']) {
-      assert(rows.some(row => row.profile === profile && row.browser === browser));
-      assert(rows.some(row => row.profile === 'editions' && row.browser === browser));
+    for (const browser of profile === 'ci' ? ['chromium'] : ['chromium', 'webkit']) {
+      assert(rows.some(row => row.group === 'core' && row.browser === browser));
+      assert(rows.some(row => row.group === 'editions' && row.browser === browser));
     }
     assert(rows.every(row => row.timeout > 0 && row.timeout <= 30));
   }
   assert.throws(() => matrix('songalong', 'typo'));
-  assert.throws(() => plan('dorego', 'editions'));
+  assert.throws(() => plan('dorego', 'ci', 'chromium', 'editions'));
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/validate-app.yml'), 'utf8');
   assert.match(workflow, /matrix: \$\{\{ fromJSON\(inputs\.matrix\) \}\}/);
-  assert.match(workflow, /group: .*matrix\.browser.*matrix\.profile/);
+  assert.match(workflow, /group: .*matrix\.browser.*matrix\.group/);
   assert.match(workflow, /timeout-minutes: \$\{\{ matrix.timeout \}\}/);
 });
 test('generic control tests use capability fixtures, not literal production song routes', () => {
@@ -71,7 +71,7 @@ test('a diagnostic rerun cannot truncate an existing timing/evidence file', () =
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'test-evidence-'));
   const file = path.join(directory, 'attempt.jsonl');
   try {
-    recorder(file, { app: 'songalong', profile: 'focused', browser: 'chromium' })({ command: 'test', args: ['file'], elapsedMs: 1, status: 'failure', exitCode: 1, signal: null });
+    recorder(file, { app: 'songalong', tier: 'ci', group: 'core', browser: 'chromium' })({ command: 'test', args: ['file'], elapsedMs: 1, status: 'failure', exitCode: 1, signal: null });
     const firstFailure = fs.readFileSync(file, 'utf8');
     assert.throws(() => recorder(file, {}), /EEXIST/);
     assert.equal(fs.readFileSync(file, 'utf8'), firstFailure);

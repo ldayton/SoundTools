@@ -9,7 +9,8 @@ const root = path.resolve(__dirname, '../..');
 async function runTasks(tasks, { directory = path.join(root, 'work/ci-results', `${Date.now()}-${randomUUID().slice(0, 8)}`), workers = workerCount(), identity = {}, signal } = {}) {
   fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
   const sha = process.env.GITHUB_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-  const manifest = { sha, workers, platform: process.platform, arch: process.arch, cpus: os.availableParallelism(), memoryBytes: os.totalmem(), node: process.version, ...identity,
+  const tier = require('./tiers.cjs').tier(identity.tier || process.env.CI_TIER || 'ci');
+  const manifest = { sha, tier, workers, platform: process.platform, arch: process.arch, cpus: os.availableParallelism(), memoryBytes: os.totalmem(), node: process.version, ...identity,
     tasks: tasks.map(({ env, ...task }) => task) };
   fs.writeFileSync(path.join(directory, 'inventory.json'), JSON.stringify(manifest, null, 2), { flag: 'wx' });
   const events = path.join(directory, 'events.jsonl'); fs.writeFileSync(events, '', { flag: 'wx' });
@@ -24,9 +25,9 @@ async function runTasks(tasks, { directory = path.join(root, 'work/ci-results', 
       onEvent(event) { try { fs.appendFileSync(events, JSON.stringify(event) + '\n'); } catch (error) { recordingError ||= error; controller.abort(); } console.log(`[ci] ${event.status} ${event.id}${event.elapsedMs === undefined ? '' : ` ${(event.elapsedMs / 1000).toFixed(1)}s`}${event.status === 'failure' ? ` log=${event.log || event.error}` : ''}`); },
     });
     if (recordingError) throw recordingError;
-    const summary = { sha, workers, ...identity, elapsedMs: Math.round(performance.now() - start), passed: results.every(result => result.status === 'success'), results };
+    const summary = { sha, tier, workers, ...identity, elapsedMs: Math.round(performance.now() - start), passed: results.every(result => result.status === 'success'), results };
     fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(summary, null, 2), { flag: 'wx' });
-    console.log(`CI ${summary.passed ? 'passed' : 'failed'} in ${(summary.elapsedMs / 1000).toFixed(1)}s. Evidence: ${directory}`);
+    console.log(`${require('./tiers.cjs').tiers[tier].name} ${summary.passed ? 'passed' : 'failed'} in ${(summary.elapsedMs / 1000).toFixed(1)}s. Evidence: ${directory}`);
     return summary;
   } finally { controller.abort(); process.removeListener('SIGINT', abort); process.removeListener('SIGTERM', abort); signal?.removeEventListener('abort', abort); }
 }

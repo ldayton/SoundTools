@@ -6,7 +6,7 @@ const { plan } = require('../../scripts/ci/check-app.cjs');
 const { apps } = require('../../scripts/ci/apps.cjs');
 const root = path.resolve(__dirname, '../..');
 test('every scheduled command resolves to an existing workspace task or browser test', () => {
-  for (const app of Object.keys(apps)) for (const profile of ['focused', 'regression']) for (const browser of ['chromium', 'webkit']) {
+  for (const app of Object.keys(apps)) for (const profile of ['ci', 'nightly']) for (const browser of ['chromium', 'webkit']) {
     for (const [command, args] of plan(app, profile, browser)) {
       if (command === 'node') { assert.ok(fs.existsSync(path.join(root, args[0]))); continue; }
       assert.equal(command, 'npm');
@@ -18,7 +18,7 @@ test('every scheduled command resolves to an existing workspace task or browser 
   }
 });
 test('focused checks retain audio, instrument input and song fingerings without exhaustive catalogs', () => {
-  const text = app => JSON.stringify(plan(app, 'focused'));
+  const text = app => JSON.stringify(plan(app, 'ci'));
   assert.match(text('dorego'), /test:desktop/);
   assert.match(text('notewise'), /test:midi/);
   assert.match(text('notewise'), /backing-mixer/);
@@ -27,8 +27,8 @@ test('focused checks retain audio, instrument input and song fingerings without 
   for (const app of Object.keys(apps)) assert.doesNotMatch(text(app), /test:catalog|test:visual|test:backing-genres|test:offline/);
 });
 test('exhaustive suites remain available in the regression profile and Firefox is not a CI engine', () => {
-  assert.match(JSON.stringify(plan('songalong', 'regression')), /test:catalog/);
-  assert.match(JSON.stringify(plan('notewise', 'regression')), /test:backing-genres/);
-  assert.match(JSON.stringify(plan('soundglow', 'regression')), /test:visual/);
-  assert.throws(() => plan('songalong', 'focused', 'firefox'));
+  assert.match(JSON.stringify(plan('songalong', 'nightly')), /test:catalog/);
+  assert.match(JSON.stringify(plan('notewise', 'nightly')), /test:backing-genres/);
+  assert.match(JSON.stringify(plan('soundglow', 'nightly')), /test:visual/);
+  assert.throws(() => plan('songalong', 'ci', 'firefox'));
 });

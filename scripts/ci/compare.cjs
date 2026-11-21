@@ -5,6 +5,7 @@ function coverage(inventory) {
   return inventory.tasks.map(task => ({ id: task.id, coverage: task.coverage || [{ command: path.basename(task.command), args: task.args }], needs: task.needs, partition: task.partition })).sort((a, b) => a.id.localeCompare(b.id));
 }
 function compare(before, after) {
+  if (before.inventory.tier !== after.inventory.tier) throw Error('Benchmark tiers differ');
   if (before.inventory.sha !== after.inventory.sha) throw Error('Benchmark commits differ');
   if (!before.results.passed || !after.results.passed) throw Error('Failed/incomplete runs are not performance wins');
   if (JSON.stringify(coverage(before.inventory)) !== JSON.stringify(coverage(after.inventory))) throw Error('Coverage or dependency graph differs');

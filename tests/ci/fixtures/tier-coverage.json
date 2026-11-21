@@ -1,0 +1,82 @@
+{
+  "dorego/ci/core/chromium": {
+    "commands": 3,
+    "sha256": "5b17635a8d0074d4716b27b8635dbead1ef2080a959976642a4776c97e83fe10"
+  },
+  "dorego/ci/core/webkit": {
+    "commands": 3,
+    "sha256": "5b17635a8d0074d4716b27b8635dbead1ef2080a959976642a4776c97e83fe10"
+  },
+  "dorego/nightly/core/chromium": {
+    "commands": 7,
+    "sha256": "6f582d1c0da3db1d0710aa3d281d8039c7bea3a466147cbbdb2c18dfd0e88614"
+  },
+  "dorego/nightly/core/webkit": {
+    "commands": 2,
+    "sha256": "570cd5c6fd9dddb04e45ea407f359464077f3944ec3e3193c0563be84ecd9a0f"
+  },
+  "notewise/ci/core/chromium": {
+    "commands": 5,
+    "sha256": "4628c888dac77ad183d62250271b68aa1d98f9b53bcb88b089bb02bc05814cac"
+  },
+  "notewise/ci/core/webkit": {
+    "commands": 5,
+    "sha256": "4628c888dac77ad183d62250271b68aa1d98f9b53bcb88b089bb02bc05814cac"
+  },
+  "notewise/nightly/core/chromium": {
+    "commands": 16,
+    "sha256": "26e679d4f810a1087c2eb4507d5dece84755204036dba9e3d3ae7ddb0863cd9b"
+  },
+  "notewise/nightly/core/webkit": {
+    "commands": 11,
+    "sha256": "8d3181c1e644d56e1b3a3b5858e509364ccc007cb15503a96fc20dd150dbee61"
+  },
+  "songalong/ci/core/chromium": {
+    "commands": 7,
+    "sha256": "9aecfc8dddbef883b852d95aa92c836e4cb267609553a06edc9cc3ae2b04a70f"
+  },
+  "songalong/ci/editions/chromium": {
+    "commands": 6,
+    "sha256": "06abbc15001ee558bd67459cedd8a6f19616119979b28d879ca248651ff9bdbb"
+  },
+  "songalong/ci/core/webkit": {
+    "commands": 7,
+    "sha256": "9aecfc8dddbef883b852d95aa92c836e4cb267609553a06edc9cc3ae2b04a70f"
+  },
+  "songalong/ci/editions/webkit": {
+    "commands": 6,
+    "sha256": "06abbc15001ee558bd67459cedd8a6f19616119979b28d879ca248651ff9bdbb"
+  },
+  "songalong/nightly/core/chromium": {
+    "commands": 12,
+    "sha256": "3019bc5241c2c92dd80e466522bcf16c7ee12b0a1462f4092a2679148dbcb7a5"
+  },
+  "songalong/nightly/editions/chromium": {
+    "commands": 6,
+    "sha256": "06abbc15001ee558bd67459cedd8a6f19616119979b28d879ca248651ff9bdbb"
+  },
+  "songalong/nightly/core/webkit": {
+    "commands": 11,
+    "sha256": "cfee719dec7b3d901b98ce640f3ca298f2cc3285ad1df6ea43c06959fb1e6ab3"
+  },
+  "songalong/nightly/editions/webkit": {
+    "commands": 6,
+    "sha256": "06abbc15001ee558bd67459cedd8a6f19616119979b28d879ca248651ff9bdbb"
+  },
+  "soundglow/ci/core/chromium": {
+    "commands": 1,
+    "sha256": "f650535eef92521b8759c0a8777904e71c3c4ec44efb5733f8e605df1f62955a"
+  },
+  "soundglow/ci/core/webkit": {
+    "commands": 1,
+    "sha256": "f650535eef92521b8759c0a8777904e71c3c4ec44efb5733f8e605df1f62955a"
+  },
+  "soundglow/nightly/core/chromium": {
+    "commands": 4,
+    "sha256": "0f2705b38fb3115f8ed454f723b0b677e6e2abc41721faa6187a6bb0cee74284"
+  },
+  "soundglow/nightly/core/webkit": {
+    "commands": 1,
+    "sha256": "aa755eaaea679843d6095bacf4a6f9ca468b81a9f227da1efeaaaa9ec505ab74"
+  }
+}

@@ -12,9 +12,9 @@ permissions:
   contents: read
 jobs:
   validate:
-    name: ${{ inputs.app }} (${{ matrix.browser }}, ${{ matrix.profile }})
+    name: ${{ inputs.app }} (${{ matrix.tier }}, ${{ matrix.group }}, ${{ matrix.browser }})
     concurrency:
-      group: validation-${{ github.event_name }}-${{ github.ref }}-${{ inputs.app }}-${{ matrix.browser }}-${{ matrix.profile }}
+      group: validation-${{ github.event_name }}-${{ github.ref }}-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ matrix.timeout }}
@@ -26,6 +26,7 @@ jobs:
       TEST_BROWSERS: ${{ matrix.browser }}
       SOUNDGLOW_TEST_BROWSER: ${{ matrix.browser }}
       CI_USE_BUILD: "1"
+      CI_TIER: ${{ matrix.tier }}
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7.1.0
@@ -37,20 +38,20 @@ jobs:
         with:
           browser: ${{ matrix.browser }}
       - uses: ./.github/actions/browser
-        if: ${{ matrix.profile == 'focused' }}
+        if: ${{ matrix.tier == 'ci' && matrix.group == 'core' }}
         with:
           browser: webkit
-      - run: node scripts/ci/check-app.cjs ${{ inputs.app }} ${{ matrix.profile }}
+      - run: node scripts/ci/check-app.cjs ${{ inputs.app }} ${{ matrix.tier }} ${{ matrix.group }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: timings-${{ inputs.app }}-${{ matrix.browser }}-${{ matrix.profile }}-attempt${{ github.run_attempt }}
+          name: timings-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-attempt${{ github.run_attempt }}
           path: work/ci-results/
           retention-days: 7
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: failure-${{ inputs.app }}-${{ matrix.browser }}-${{ matrix.profile }}-attempt${{ github.run_attempt }}
+          name: failure-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-attempt${{ github.run_attempt }}
           path: |
             apps/${{ inputs.app }}/work/
             apps/${{ inputs.app }}/test-results/

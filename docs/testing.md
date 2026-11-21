@@ -7,23 +7,25 @@ workflow wiring, nested npm aliases, fixture use and failure recording.
 
 ## Tiers and ownership
 
-| Tier | Purpose | When and where |
+| Tier | When | Coverage |
 | --- | --- | --- |
-| Unit/contract | Music, state, migrations, fixture capabilities, CI policy | Shared checks on every selected run; app units before core validation |
-| Focused core | Representative navigation, controls, MIDI, audio, persistence and playback | Affected apps on pushes/PRs; Chromium plus WebKit release smoke |
-| Edition | Exact notation, tab, fingers, lyrics, display and mobile behavior of each edition | Independent required SongAlong lane on pushes/PRs; Chromium, both browsers in full runs |
-| Regression | Full catalogs, layouts, offline/update recovery, visual/performance and specialized audio coverage | Nightly or manual `full`; Chromium and WebKit |
-| Accounts | Real local Auth/Postgres/Realtime/storage integration | Account, persistence or relevant infrastructure changes, plus full runs |
-| Release smoke | Exact staged artifact provenance, public routes, assets, privacy and responsive startup | Before promotion and again on the production domain |
+| **CI** | GitHub pushes/PRs and local pre-push validation (`npm run ci`) | Required shared contracts, affected app checks, every SongAlong edition, applicable Accounts integration, and release verification |
+| **Nightly** | Scheduled GitHub runs or explicit manual runs (`npm run nightly`) | Exhaustive coverage across Chromium and WebKit, including catalogs, layouts, offline recovery, visual/performance, audio and Accounts; never publishes |
 
-An app's aggregate reusable workflow must pass **all** its selected lanes before
-that app releases. An unrelated app's failure does not block it. Editions are
-not optional and are not deferred to nightly runs. Separating them gives the
-core lane a stable scope and an independent failure result.
+These are the only test tiers. Apps, shared contracts, editions, Accounts and
+release smoke are coverage groups within a tier. `scripts/ci/tiers.cjs` defines
+the tier names and browser engines; `test-strategy.cjs` selects each group's
+commands. The command fingerprints in `tests/ci/fixtures/tier-coverage.json`
+protect the migration’s complete coverage; intentional command changes require
+reviewing and updating the corresponding fingerprints. Pushes and PRs always select CI; schedules always select Nightly.
+Manual GitHub runs choose `ci` or `nightly` explicitly.
 
-The focused/edition/regression budgets are 10/15/30 minutes in the executable
-policy. These are limits, not performance targets. If a suite approaches its
-limit, use command timings to split coverage rather than hiding timeouts.
+An app's aggregate reusable workflow must pass **all** its selected groups before
+that app releases. An unrelated app's failure does not block it. Every edition
+remains required in CI. CI core groups have a 10-minute budget; Nightly core
+groups have 30 minutes. Edition groups have 15 minutes in either tier. These
+are limits, not performance targets: split coverage when command timings show
+growth rather than hiding timeouts.
 Build once per app/configuration in a local run, with SHA/digest provenance; do not reuse stale local builds.
 No test assertion has an automatic retry. Infrastructure's bounded provisioning
 retry is separate from application assertions.
@@ -120,15 +122,15 @@ or run concurrent `check-app` processes in a shared checkout.
 
 ```sh
 # Before a push: all applicable shared, app/edition and account checks.
-npm run ci:local -- --base origin/main
-# All push lanes, independent of changed-file selection.
-npm run ci:local -- --all
-# Complete nightly/manual matrix, including both account browser engines.
-npm run ci:local -- --full
+npm run ci -- --base origin/main
+# All CI groups, independent of changed-file selection.
+npm run ci -- --all
+# Complete Nightly matrix, including both account browser engines.
+npm run nightly
 # Inspect selection, coverage, prerequisites and resource locks without running.
-npm run ci:local -- --all --plan
+npm run ci -- --all --plan
 # One-app diagnostic; this does NOT satisfy pre-push validation by itself.
-npm run ci:local -- --apps songalong
+npm run ci -- --apps songalong
 ```
 
 Affected selection uses the same pending-production-release recovery as GitHub,
@@ -137,9 +139,9 @@ Unavailable public provenance fails conservatively. `--all` avoids selection
 network requests and covers every push lane.
 
 The runner installs dependencies once, creates private detached snapshots of the
-same commit, and builds each selected app once per configuration. Focused and
+same commit, and builds each selected app once per configuration. Core and
 edition tasks share a completed SongAlong build; Chromium and WebKit share a
-completed app build in a full run. SongAlong's cross-app regression fixture has
+completed app build in Nightly. SongAlong's cross-app regression fixture has
 its own prerequisite build. Account builds have different backend configuration
 and never replace ordinary artifacts. Copies use filesystem copy-on-write when
 available (native `cp -c` on macOS, rather than Node's fallback clone flag).
@@ -156,17 +158,21 @@ the same. Do not raise concurrency just because a machine has many logical CPUs:
 compare throughput, per-command latency and failures first.
 
 ```sh
-npm run ci:local -- --all --workers 1
-npm run ci:local -- --all --workers 6
+npm run ci -- --all --workers 1
+npm run ci -- --all --workers 6
 npm run ci:compare -- /absolute/path/to/serial-run /absolute/path/to/parallel-run
 ```
 
-The comparison refuses different commits, task/coverage inventories, dependency
+The comparison refuses different tiers, commits, task/coverage inventories, dependency
 graphs, failed checks or failed local lifecycle cleanup. It includes installation,
 snapshot and cleanup time for local runs. Report warm/cold backend and browser
 state separately; a single successful probe does not establish p95 or flake rate.
 
 ## Scheduler and coverage contract
+
+`scripts/ci/tiers.cjs` permits only `ci` and `nightly`; the local runner accepts
+`--tier ci|nightly`, and every run records its tier in its evidence. The legacy
+`ci:local` alias defaults to CI; `--full` is rejected.
 
 `scripts/ci/test-strategy.cjs` remains the owner of selected lanes and budgets.
 `task-graph.cjs` creates their build prerequisites and task graph; `scheduler.cjs`
@@ -235,9 +241,9 @@ A failed backend stop also retains its snapshot so its stack ownership metadata
 is not lost. Preserve deliberate source changes before manual cleanup.
 
 For targeted iteration, `TEST_BROWSER=chromium node scripts/ci/check-app.cjs
-songalong focused` still builds and runs that explicit lane through the same
+songalong ci core` still builds and runs that explicit lane through the same
 scheduler. Convenience aliases are not a substitute for the complete local
-runner. Nightly/manual full runs never publish.
+runner. Nightly never publishes.
 
 ## Measured local performance — 21 November 2026
 
@@ -262,7 +268,7 @@ cases equal 48 UI plus 199 timing cases, with no omissions or duplicates. The
 UI group passed on both engines (40 passed, eight existing desktop-only skips
 per engine); a Chromium 4× CPU throttled continuity case passed with one worker.
 Those are targeted checks of changed regression paths, not a declaration that
-all unrelated pre-existing nightly failures are fixed. Required profiles and
+all unrelated pre-existing nightly failures are fixed. Required coverage and
 budgets remain unchanged.
 
 Keep later performance reports scoped the same way: a faster subset or a failed

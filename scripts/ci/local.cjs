@@ -5,6 +5,7 @@ const path = require('node:path');
 const net = require('node:net');
 const { randomUUID } = require('node:crypto');
 const { affected, changes } = require('./affected.cjs');
+const { tiers, tier: validateTier } = require('./tiers.cjs');
 const { apps } = require('./apps.cjs');
 const { git, assertRevision, snapshot, cloneSupported } = require('./snapshot.cjs');
 const { sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
@@ -15,17 +16,18 @@ const { execute } = require('./execute.cjs');
 const { retainEvidence } = require('./evidence.cjs');
 const root = path.resolve(__dirname, '../..');
 function options(args) {
-  const result = { base: 'origin/main', full: false, all: false, plan: false, workers: workerCount() };
+  const result = { base: 'origin/main', tier: 'ci', all: false, plan: false, workers: workerCount() };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (['--full', '--all', '--plan'].includes(arg)) result[arg.slice(2)] = true;
-    else if (['--base', '--workers', '--apps'].includes(arg)) {
+    if (['--all', '--plan'].includes(arg)) result[arg.slice(2)] = true;
+    else if (['--base', '--workers', '--apps', '--tier'].includes(arg)) {
       if (!args[i + 1] || args[i + 1].startsWith('--')) throw Error(`Missing value for ${arg}`);
       result[arg.slice(2)] = args[++i];
     } else throw Error(`Unknown option: ${arg}`);
   }
   result.workers = workerCount(result.workers);
-  if (result.apps && (result.full || result.all)) throw Error('--apps is a diagnostic scope; do not combine with --full/--all');
+  result.tier = validateTier(result.tier);
+  if (result.apps && (result.tier === 'nightly' || result.all)) throw Error('--apps is a diagnostic scope; do not combine with Nightly/--all');
   return result;
 }
 async function selection(opts, { readGit = args => git(root, args), detect = changes } = {}) {
@@ -34,29 +36,30 @@ async function selection(opts, { readGit = args => git(root, args), detect = cha
     if (!chosen.length || chosen.some(app => !apps[app]) || new Set(chosen).size !== chosen.length) throw Error('Unknown or duplicate app');
     return { apps: chosen, accounts: false, scope: 'diagnostic' };
   }
-  if (opts.full || opts.all) return { ...affected([], undefined, true), scope: opts.full ? 'full' : 'push-all' };
+  if (opts.tier === 'nightly' || opts.all) return { ...affected([], undefined, true), scope: opts.tier === 'nightly' ? 'nightly' : 'ci-all' };
   const base = readGit(['merge-base', opts.base, 'HEAD']);
-  const result = await detect({ env: { ...process.env, GITHUB_EVENT_NAME: 'push', GITHUB_EVENT_PATH: '', CI_BASE_SHA: base, GITHUB_SHA: readGit(['rev-parse', 'HEAD']) }, git: readGit });
+  const result = await detect({ env: { ...process.env, GITHUB_EVENT_NAME: 'push', GITHUB_EVENT_PATH: '', CI_TIER: 'ci', CI_BASE_SHA: base, GITHUB_SHA: readGit(['rev-parse', 'HEAD']) }, git: readGit });
   return { ...result, scope: 'affected' };
 }
 function graph(selected, opts, directories, backends = {}) {
   const shared = sharedTasks(root).map(task => ({ ...task, cwd: path.join(directories.shared, path.relative(root, task.cwd)) }));
   const tasks = [...shared];
+  for (const task of tasks) task.env = { ...task.env, CI_TIER: opts.tier };
   for (const app of selected.apps) {
     const cwd = directories[app];
-    tasks.push(...setupTasks(app, cwd, { visual: opts.full }));
+    tasks.push(...setupTasks(app, cwd, { visual: opts.tier === 'nightly' }));
     let needs = [`${app}:build`];
-    if (opts.full && app === 'songalong') {
+    if (opts.tier === 'nightly' && app === 'songalong') {
       tasks.push({ id: 'songalong:fixture:notewise', command: process.execPath, args: ['scripts/ci/build.cjs', 'notewise'], cwd, needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
       needs = ['songalong:fixture:notewise'];
     }
-    for (const browser of opts.full ? ['chromium', 'webkit'] : ['chromium']) {
-      tasks.push(...commandTasks(app, opts.full ? 'regression' : 'focused', browser, cwd, { needs }));
-      if (app === 'songalong') tasks.push(...commandTasks(app, 'editions', browser, cwd, { needs }));
+    for (const browser of tiers[opts.tier].browsers) {
+      tasks.push(...commandTasks(app, opts.tier, browser, cwd, { needs }));
+      if (app === 'songalong') tasks.push(...commandTasks(app, opts.tier, browser, cwd, { group: 'editions', needs }));
     }
   }
-  for (const browser of selected.accounts ? opts.full ? ['chromium', 'webkit'] : ['chromium'] : []) {
-    const name = `accounts-${browser}`, cwd = directories[name], env = { ...backends[name], TEST_BROWSER: browser };
+  for (const browser of selected.accounts ? tiers[opts.tier].browsers : []) {
+    const name = `accounts-${browser}`, cwd = directories[name], env = { ...backends[name], CI_TIER: opts.tier, TEST_BROWSER: browser };
     tasks.push({ id: `${name}:backend`, command: process.execPath, args: ['scripts/ci/account-backend.cjs', 'start'], cwd, env, needs: [], locks: Object.values(backends[name] || {}).map(port => `port:${port}`), priority: 100, privateLogDirectory: path.join(cwd, 'work/ci-private') });
     tasks.push({ id: `${name}:tests`, command: 'npm', args: ['run', 'test:accounts'], cwd, env,
       needs: [`${name}:backend`, 'shared:diagnostics'], locks: ['account-fixtures', ...[4391, 4392, 4393, 4394].map(port => `port:${port}`)], slots: 2, priority: 90, timeoutMs: 20 * 60000 });
@@ -64,6 +67,7 @@ function graph(selected, opts, directories, backends = {}) {
     tasks.push({ id: `${name}:diagnostics`, command: 'npm', args: ['run', 'build:shared', '--', 'diagnostics'], cwd, needs: [], locks: [`files:${cwd}`], priority: 100 });
     tasks.at(-2).needs.push(`${name}:diagnostics`);
   }
+  for (const task of tasks) task.env = { ...task.env, CI_TIER: opts.tier };
   return tasks;
 }
 async function backendPorts(allocated = new Set(), random = Math.random) {
@@ -85,10 +89,10 @@ async function backendPorts(allocated = new Set(), random = Math.random) {
 async function main(args) {
   const opts = options(args), selected = await selection(opts), sha = git(root, ['rev-parse', 'HEAD']);
   const id = `${Date.now()}-${randomUUID().slice(0, 8)}`, directory = path.join(root, 'work/ci-results', id);
-  const names = ['shared', ...selected.apps, ...(selected.accounts ? opts.full ? ['accounts-chromium', 'accounts-webkit'] : ['accounts-chromium'] : [])];
+  const names = ['shared', ...selected.apps, ...(selected.accounts ? tiers[opts.tier].browsers.map(browser => `accounts-${browser}`) : [])];
   const directories = Object.fromEntries(names.map(name => [name, path.join(root, 'work/ci-snapshots', id, name)]));
   const preview = graph(selected, opts, directories); validate(preview);
-  if (opts.plan) { console.log(JSON.stringify({ sha, selected, workers: opts.workers, tasks: preview }, null, 2)); return; }
+  if (opts.plan) { console.log(JSON.stringify({ sha, tier: opts.tier, selected, workers: opts.workers, tasks: preview }, null, 2)); return; }
   if (Number(process.versions.node.split('.')[0]) !== 24) throw Error('Local CI requires Node 24');
   assertRevision(root, sha);
   if (selected.accounts) {
@@ -118,7 +122,7 @@ async function main(args) {
     if (install.exitCode !== 0 || install.timedOut) throw Error(`npm ci failed; see ${install.log}`);
     for (const name of names) { if (controller.signal.aborted) throw Error('Cancelled'); console.log(`[ci] snapshot ${name}`); snapshot(root, directories[name], sha, { clone }); created.push(name); }
     for (const name of names.filter(name => name.startsWith('accounts-'))) backends[name] = await backendPorts(allocated);
-    const result = await runTasks(graph(selected, opts, directories, backends), { directory, workers: opts.workers, identity: { selected, bootstrap: install }, signal: controller.signal });
+    const result = await runTasks(graph(selected, opts, directories, backends), { directory, workers: opts.workers, identity: { tier: opts.tier, selected, bootstrap: install }, signal: controller.signal });
     for (const name of created) assertRevision(directories[name], sha);
     assertRevision(root, sha); passed = result.passed;
     if (!passed) process.exitCode = 1;

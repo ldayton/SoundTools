@@ -35,18 +35,18 @@ test('cancellation marks pending tasks and stops scheduling new work', async () 
   assert(results.every(r => r.status === 'cancelled'));
 });
 test('all existing CI commands have reviewed coverage and resource declarations', () => {
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const lane of ['focused', 'regression', ...(app === 'songalong' ? ['editions'] : [])]) {
-    for (const [command, args] of plan(app, lane)) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const lane of ['ci', 'nightly']) for (const group of app === 'songalong' ? ['core', 'editions'] : ['core']) {
+    for (const [command, args] of plan(app, lane, 'chromium', group)) {
       const entry = declaration(app, command, args);
       assert(entry.coverage.length);
       if (entry.kind === 'audio') assert(entry.locks.includes('realtime-audio'));
     }
-    for (const browser of ['chromium', 'webkit']) assert(commandTasks(app, lane, browser).length >= plan(app, lane, browser).length);
+    for (const browser of ['chromium', 'webkit']) assert(commandTasks(app, lane, browser, undefined, { group }).length >= plan(app, lane, browser, group).length);
   }
   assert.throws(() => declaration('songalong', 'node', ['new-unreviewed-test.cjs']), /Missing resource/);
-  assert.deepEqual(commandTasks('songalong', 'editions', 'chromium').map(t => t.args.at(-1)), editionFiles());
+  assert.deepEqual(commandTasks('songalong', 'ci', 'chromium', undefined, { group: 'editions' }).map(t => t.args.at(-1)), editionFiles());
   assert.equal(browserSuites.length, 9);
-  assert.equal(commandTasks('dorego', 'regression', 'chromium').filter(t => t.args.some(arg => /tests\/.*\.e2e\.ts$/.test(arg))).length, 9);
+  assert.equal(commandTasks('dorego', 'nightly', 'chromium').filter(t => t.args.some(arg => /tests\/.*\.e2e\.ts$/.test(arg))).length, 9);
   assert.equal(setupTasks('songalong').filter(t => t.id.endsWith(':build')).length, 1);
 });
 test('performance comparison refuses changed coverage, commits or failed runs', () => {
@@ -119,14 +119,14 @@ test('direct workspace browser commands declare their real server ports', () => 
   assert(declaration('songalong', 'npm', ['exec', '--workspace=songalong', '--', 'tsx', 'tests/amazing-grace-editions.browser.ts']).locks.includes('port:4601'));
 });
 test('catalog partitions and visual groups cover every original case without collisions', () => {
-  const catalog = commandTasks('songalong', 'regression', 'chromium').filter(task => task.partition);
+  const catalog = commandTasks('songalong', 'nightly', 'chromium').filter(task => task.partition);
   assert.deepEqual(catalog.map(task => task.env.TEST_SHARD), ['1/3', '2/3', '3/3']);
-  const both = [...catalog, ...commandTasks('songalong', 'regression', 'webkit').filter(task => task.partition)];
+  const both = [...catalog, ...commandTasks('songalong', 'nightly', 'webkit').filter(task => task.partition)];
   assert.equal(new Set(both.map(task => task.env.TEST_PORT)).size, both.length);
   const { groups } = require('../../scripts/ci/visual-groups.cjs'), split = groups();
   const all = fs.readdirSync(path.resolve(__dirname, '../../apps/soundglow/tests/visual')).filter(file => file.endsWith('.spec.cjs')).sort();
   assert.deepEqual([...split.ui, ...split.timing].sort(), all);
-  const jobs = commandTasks('soundglow', 'regression', 'chromium').filter(task => task.id.endsWith(':ui') || task.id.endsWith(':timing'));
+  const jobs = commandTasks('soundglow', 'nightly', 'chromium').filter(task => task.id.endsWith(':ui') || task.id.endsWith(':timing'));
   assert.equal(jobs.length, 2);
   assert(jobs.find(task => task.kind === 'timing').args.includes('--workers=1'));
   assert(jobs.find(task => task.kind === 'timing').locks.includes('realtime-audio'));

@@ -17,7 +17,7 @@ function recorder(file, identity) {
   fs.writeFileSync(file, '', { flag: 'wx' });
   return result => {
     fs.appendFileSync(file, JSON.stringify({ ...identity, ...result }) + '\n');
-    console.log(`[validation] ${identity.app}/${identity.profile}/${identity.browser}: ${result.status} in ${(result.elapsedMs / 1000).toFixed(1)}s: ${result.command} ${result.args.join(' ')}`);
+    console.log(`[validation] ${identity.app}/${identity.tier}/${identity.group}/${identity.browser}: ${result.status} in ${(result.elapsedMs / 1000).toFixed(1)}s: ${result.command} ${result.args.join(' ')}`);
   };
 }
 module.exports = { runCommand, recorder };

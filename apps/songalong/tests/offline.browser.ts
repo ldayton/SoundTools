@@ -1,4 +1,9 @@
-import { captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createOfflineContext as createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
@@ -46,8 +51,31 @@ try {
   await page
     .getByLabel("Share diagnostic information", { exact: true })
     .waitFor();
+  // Both instrument banks must decode and sound from the verified cache after a cold navigation.
+  await page.addInitScript(() => {
+    (window as any).offlineInstrumentStarts = 0;
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (
+      ...args: Parameters<typeof start>
+    ) {
+      if (this.buffer && this.buffer.duration > 2)
+        (window as any).offlineInstrumentStarts++;
+      return start.apply(this, args);
+    };
+  });
+  for (const arrangement of ["piano", "guitar-edition"]) {
+    await page.goto(
+      server.base +
+        `/piano/hymns/amazing-grace?mode=playback&arrangement=${arrangement}&tempo=100`,
+    );
+    await page.getByRole("button", { name: "Play", exact: true }).click();
+    await page.waitForFunction(
+      () => (window as any).offlineInstrumentStarts > 0,
+    );
+    await page.getByRole("button", { name: "Pause", exact: true }).click();
+  }
   console.log(
-    `${engine}: SongAlong verified cache, offline hymn deep link, reload, hand settings and settings page pass`,
+    `${engine}: SongAlong verified cache, offline hymn deep link, reload, hand settings, settings page and both instrument voices pass`,
   );
 } catch (error) {
   await captureFailure(browser, error);

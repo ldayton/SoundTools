@@ -22,6 +22,7 @@ function expanded(app, profile) {
 test('core and exhaustive edition lanes cannot acquire each other through nested npm aliases', () => {
   for (const lane of ['focused', 'regression']) {
     const commands = expanded('songalong', lane).join('\n');
+    assert.match(commands, /instrument-audio\.browser/, 'Instrument-specific audio remains required');
     assert.doesNotMatch(commands, /test-strategy\.cjs editions|-editions\.browser\.ts/);
     if (lane === 'focused') assert.doesNotMatch(commands, /hymn-catalog|offline\.browser|hymn-stanzas/);
   }

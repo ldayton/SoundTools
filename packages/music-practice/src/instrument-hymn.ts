@@ -6,6 +6,7 @@ export type InstrumentHymn = {
   key: string;
   guitarKey: string;
   guitarTranspose: number;
+  pianoTranspose?: number;
   tempo: number;
   meter: string;
   capo?: number;
@@ -28,14 +29,10 @@ export function instrumentHymnAbc(
   const piano = instrument === "piano",
     strumming = !piano && part === "left",
     key = piano ? config.key : config.guitarKey;
-  let melody =
-    !piano && config.guitarTranspose
-      ? abcjs.strTranspose(
-          source,
-          abcjs.parseOnly(source),
-          config.guitarTranspose,
-        )
-      : source;
+  const transpose = piano ? config.pianoTranspose || 0 : config.guitarTranspose;
+  let melody = transpose
+    ? abcjs.strTranspose(source, abcjs.parseOnly(source), transpose)
+    : source;
   melody = beamByBeat(melody);
   const edits: { at: number; text: string }[] = [];
   const melodyOnsets = new Set<string>();

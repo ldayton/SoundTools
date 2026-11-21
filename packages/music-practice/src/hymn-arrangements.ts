@@ -1,20 +1,14 @@
-import {faithfulEdition} from "./o-come-all-ye-faithful";
-import {instrumentHymnAbc} from "./instrument-hymn";
-import {jesusEdition} from "./jesus-loves-me";
-import {flyChanges as flyGuitarChanges,flyEditionAbc,flyLandmarks} from "./ill-fly-away";
-import {isAmazingGrace,graceFingerstyleAbc,graceGuitarAbc,gracePianoAbc,graceLandmarks,graceLyricData} from "./amazing-grace";
-import {chordEdition} from "./chord-editions";
-import { hymnLyricsAbc } from "./hymn-lyrics";
-import { isChristAlone, christFingerstyleAbc, christGuitarAbc, christLandmarks, christGuitarLyricData } from "./in-christ-alone";
-import { beginnerLandmarks } from "./beginner-score";
+import type {HymnChange} from "./instrument-hymn";
+import {chordEdition,instrumentEdition} from "./instrument-editions";
+import {engraveEdition,selectEditionVoice,isGuitarPositionMark} from "./edition-score";
 import abcjs, { type VoiceItem } from "abcjs";
 import { spellPitch, chromaticPitch } from "./guitar";
 import { KEYS } from "./model";
 import hymns from "./hymns.json";
 export const hasInstrumentEditions = (hymn: { id: string }) =>
-  hymn.id === "the-1st-fingerstyle-blues" || !!chordEdition(hymn);
+  !!instrumentEdition(hymn);
 export const supportsGuitarTab = (hymn: { id: string }) =>
-  hymn.id === "ill-fly-away" || hasInstrumentEditions(hymn);
+  hasInstrumentEditions(hymn);
 export const ARRANGEMENTS = [
   { id: "melody", label: "1 · Melody", help: "Read the melody on its own." },
   {
@@ -47,27 +41,18 @@ export const isEditedGuitar = (value: Arrangement) => value === "guitar-fingerst
 /** Older tab editions store written pitches; fingerstyle uses an octave clef. */
 export const guitarMidiOffset = (value: Arrangement) =>
   value === "guitar-edition" ? 0 : value === "guitar" || value === "guitar-chords" ? -12 : 0;
-export function hymnArrangements(hymn: { id: string }) {
-  if (hasInstrumentEditions(hymn)) return [
-    { id: "piano" as const, label: "Piano", help: "Melody and bass arranged for two hands on a grand staff." },
-    { id: chordEdition(hymn) ? "guitar-edition" as const : "guitar-fingerstyle" as const, label: "Guitar", help: chordEdition(hymn) ? `Fingerstyle melody with supporting bass and harmony, ${chordEdition(hymn)!.capo ? "with capo 2" : "without a capo"}.` : "Original fingerstyle guitar arrangement." },
+export function hymnArrangements(hymn: { id: string }): {id:Arrangement;label:string;help:string}[] {
+  const edition=instrumentEdition(hymn);
+  if(!edition)return [...ARRANGEMENTS];
+  const profile=chordEdition(hymn);
+  return [
+    {id:'piano' as const,label:'Piano',help:'Melody and bass arranged for two hands on a grand staff.'},
+    {id:edition.guitarArrangement,label:'Guitar',help:profile
+      ?`Fingerstyle melody with supporting bass and harmony, ${profile.capo?`with capo ${profile.capo}`:'without a capo'}.`
+      :'Original fingerstyle guitar arrangement.'},
   ];
-  return supportsGuitarTab(hymn)
-    ? [
-        ...ARRANGEMENTS,
-        {
-          id: "guitar" as const,
-          label: "Melody tab",
-          help: "Guitar melody with chord symbols.",
-        },
-        {
-          id: "guitar-chords" as const,
-          label: "Chord tab",
-          help: "Guitar chords shown as stacked fret numbers.",
-        },
-      ]
-    : [...ARRANGEMENTS];
 }
+
 type Note = Extract<VoiceItem, { el_type: "note" }> & {
   midiPitches?: { pitch: number }[];
   resolvedPitches?: number[];
@@ -160,9 +145,8 @@ function token(pitch: number, key: string, accidentals: Map<string, number>) {
     (n.octave >= 4 ? "'".repeat(n.octave - 4) : ",".repeat(4 - n.octave))
   );
 }
-/** Barry Clevenger lesson (L2UNNrRAjzs, 2:04–4:01): hold I at the first
- * endings; V7 arrives on “fly” in bars 7/15. Expressed in source C so the
- * selected key transposes both chord names and playable guitar shapes. */
+/** Stock major/seventh shapes for the legacy teaching-score format.
+ * Reviewed fingerstyle editions supply their own passage positions. */
 // Low E to high E; null means omit that string. Prefer familiar open shapes.
 const majorShapes = [
   [null, 3, 2, 0, 1, 0],
@@ -206,8 +190,9 @@ function guitarChords(
   to: number,
   transpose: number,
   key: string,
+  changesByBar: HymnChange[][],
 ) {
-  return flyGuitarChanges
+  return changesByBar
     .slice(from, to)
     .map((changes, bar) => {
       const accidentals = new Map<string, number>();
@@ -230,9 +215,9 @@ function guitarChords(
     })
     .join(" ");
 }
-function guitarMelody(bars: Bar[], from: number): Bar[] {
+function guitarMelody(bars: Bar[], from: number, changesByBar:HymnChange[][]): Bar[] {
   return bars.map((bar, index) => {
-    const changes = flyGuitarChanges[from + index];
+    const changes = changesByBar[from + index];
     let at = 0;
     const notes = bar.notes.flatMap((note) => {
       const start = at,
@@ -250,7 +235,7 @@ function guitarMelody(bars: Bar[], from: number): Bar[] {
         copy.duration = (cuts[part + 1] - beat) / 64;
         const chord = changes.find(([offset]) => offset === beat)?.[1];
         const previous = changes.filter(([offset]) => offset < beat).at(-1)?.[1]
-          ?? flyGuitarChanges[from + index - 1]?.at(-1)?.[1];
+          ?? changesByBar[from + index - 1]?.at(-1)?.[1];
         copy.chord = chord && (chord !== previous || (index === 0 && beat === 0))
           ? [{ name: chord, position: "default" }] : undefined;
         if (part) {
@@ -331,7 +316,7 @@ function serialize(bars: Bar[], melody = false) {
       const length = Math.round(note.duration * 64);
       let value =
         (note.chord || [])
-          .filter((c: {position:string;name:string}) => c.position === "default" || c.position === "above" && /^(I|III|VII)$/.test(c.name))
+          .filter((c: {position:string;name:string}) => c.position === "default" || c.position === "above" && isGuitarPositionMark(c.name))
           .map((c: {position:string;name:string}) => `"${c.position === "above" ? "^" : ""}${c.name}"`)
           .join("") +
         "(".repeat(opens) +
@@ -436,79 +421,26 @@ export function arrangeHymn(
   endingBar?: number,
   guitarTranspose = 0,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
-  if(['jesus-loves-me','o-come-all-ye-faithful'].includes(hymn.id)&&(arrangement==='piano'||arrangement==='guitar-edition')){
-    const guitar=arrangement==='guitar-edition';
-    const config=hymn.id==='jesus-loves-me'?jesusEdition:faithfulEdition;
-    const harmony=instrumentHymnAbc(arrangeHymn(hymn,'melody',0).abc,config,guitar?'guitar':'piano',guitar?hands:'both');
-    const edition={...hymn,id:hymn.id+':'+arrangement+(guitar?':'+hands:''),key:guitar?config.guitarKey:hymn.key,harmony};
-    let score=arrangeHymn(edition,'original',sectionBars,section,guitar?'both':hands,endingBar);
-    if(guitar)score={...score,abc:score.abc.replace(/clef=treble(?!-8)\b/g,'clef=treble-8')};
-    else score={...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,g:string)=>`%%score {${g.replace(/[(){}]/g,'')}}`)};
-    return score;
-  }
-  if(hymn.id==='ill-fly-away'&&(arrangement==='piano'||arrangement==='guitar-edition')){
-    const guitar=arrangement==='guitar-edition';
-    const harmony=flyEditionAbc(arrangeHymn(hymn,'melody',0).abc,guitar?'guitar':'piano',guitar?hands:'both');
-    const edition={...hymn,id:hymn.id+':'+arrangement+(guitar?':'+hands:''),harmony};
-    let score=arrangeHymn(edition,'original',sectionBars,section,guitar?'both':hands,endingBar);
-    if(guitar)score={...score,abc:score.abc.replace(/clef=treble(?!-8)\b/g,'clef=treble-8')};
-    else score={...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,group:string)=>`%%score {${group.replace(/[(){}]/g,'')}}`)};
-    return {...score,abc:flyLandmarks(score.abc,score.from)};
-  }
-  if (isAmazingGrace(hymn) && (arrangement === "piano" || arrangement === "guitar-edition")) {
-    const guitar=arrangement==='guitar-edition';
-    const harmony=guitar?(hands==='left'?hymnLyricsAbc(graceGuitarAbc,{hymn:graceLyricData(hymn),selected:[1],offset:0}):graceFingerstyleAbc(arrangeHymn(hymn,'melody',0).abc,hands==='right'))
-      :gracePianoAbc(arrangeHymn(hymn,'melody',0).abc);
-    const edition={...hymn,id:hymn.id+':'+arrangement+(guitar?':'+hands:''),harmony};
-    let score=arrangeHymn(edition,'original',sectionBars,section,guitar?'both':hands,endingBar);
-    if(guitar)score={...score,abc:score.abc.replace(/clef=treble(?!-8)\b/g,'clef=treble-8')};
-    else score={...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,group:string)=>`%%score {${group.replace(/[(){}]/g,'')}}`)};
-    return {...score,abc:graceLandmarks(score.abc,score.from,guitar)};
-  }
-  if (isChristAlone(hymn) && (arrangement === "piano" || arrangement === "guitar-edition")) {
-    const guitar = arrangement === "guitar-edition";
-    const harmony = guitar ? (hands === "left" ? hymnLyricsAbc(christGuitarAbc, {hymn:christGuitarLyricData(hymn),selected:[1],offset:0}) : christFingerstyleAbc(hymn, hands === "right")) : abcjs.strTranspose(hymn.harmony, abcjs.parseOnly(hymn.harmony), -12)
-      .replace("%%staves S1 | S2", "%%score {S1 | S2}").replace('L:1/64', 'L:1/64\nQ:1/4=70');
-    const edition = {...hymn, id:hymn.id+":"+arrangement+(guitar?":"+hands:""), key:guitar?"C":hymn.key, harmony};
-    let score = arrangeHymn(edition, "original", sectionBars, section, guitar?"both":hands, endingBar);
-    if (guitar && !/clef=treble-8/.test(score.abc))
-      score = {...score, abc:score.abc.replace(/clef=treble\b/g,"clef=treble-8")};
-    if (!guitar) score = {...score,abc:score.abc.replace(/^%%score (.*)$/m,(_,group:string)=>`%%score {${group.replace(/[(){}]/g,"")}}`)};
-    return {...score,abc:christLandmarks(score.abc,score.from,guitar)};
-  }
-  if (hymn.id === "the-1st-fingerstyle-blues" && (arrangement === "piano" || arrangement === "guitar-fingerstyle")) {
-    const edition = arrangement === "piano" ? {
-      ...hymn,
-      id: hymn.id + ":piano",
-      // Put the turnaround chord under the left hand. The final E7 omits an
-      // inner doubled E so the left hand needs only a fifth, not an octave.
-      harmony: hymn.harmony
-        .replace("%%staves S1 | S2", "%%score {S1 | S2}")
-        .replace("zE G2 z2 [E,^G,^C]2", "zE G2 z4")
-        .replace("_B,,2 z2", "_B,,2 [E,^G,^C]2")
-        .replace("[E,^G,DE]8", "[^G,DE]8"),
-    } : hymn;
+  const edition = instrumentEdition(hymn);
+  if (edition && (arrangement === "piano" || arrangement === edition.guitarArrangement)) {
+    const guitar = arrangement === edition.guitarArrangement;
     const whole = sectionBars === 0 && (!endingBar || endingBar >= hymnBarCount(hymn));
-    let score = arrangeHymn(edition, "original", sectionBars, section, whole ? "both" : hands, endingBar, guitarTranspose);
-    if (whole && hands !== "both") {
-      const names = [...score.abc.matchAll(/^V:\s*(\S+)/gm)].map(m => m[1]);
-      const selectedVoice = names[hands === "right" ? 0 : 1];
-      const abc = score.abc.split("\n").filter(line => {
-        const voice = line.match(/^(?:V:\s*|\[V:)([^\s\]]+)/)?.[1];
-        return !voice || voice === selectedVoice;
-      }).map(line => /^%%(?:staves|score)/.test(line) ? `%%score ${selectedVoice}` : line).join("\n");
-      score = { ...score, abc };
-    }
-    if (arrangement === "piano") return { ...score, abc: beginnerLandmarks(score.abc, score.from) };
-    // Guitar reads one octave above sounding pitch, with independently stemmed voices.
-    let abc = abcjs.strTranspose(score.abc, abcjs.parseOnly(score.abc), 12);
-    abc = abc.replace(/^%%(?:staves|score).*$/m, line => {
-      const voices = line.match(/(?:S\d|v\d)/g) || [];
-      return "%%score (" + voices.join(" ") + ")";
-    }).replace(/clef=(?:treble|bass)\b/g, "clef=treble-8");
-    let voiceIndex = 0;
-    abc = abc.replace(/^V:.*$/gm, line => line + ` stems=${hands === "left" || voiceIndex++ > 0 ? "down" : "up"}`);
-    return { ...score, abc: beginnerLandmarks(abc, score.from) };
+    const harmony = edition.build({
+      hymn, instrument: guitar ? "guitar" : "piano", hands,
+      melody: () => arrangeHymn(hymn, "melody", 0).abc,
+    });
+    const source = {
+      ...hymn, id: `${hymn.id}:${arrangement}:${hands}`,
+      key: guitar ? edition.guitarKey || hymn.key : hymn.key, harmony,
+    };
+    const preserveVoices = edition.selectWholeVoices && whole;
+    const sliceHands = preserveVoices || (guitar && edition.guitarNotation === "written")
+      ? "both" : hands;
+    const score = arrangeHymn(source, "original", sectionBars, section, sliceHands, endingBar, guitarTranspose);
+    let abc = preserveVoices ? selectEditionVoice(score.abc, hands) : score.abc;
+    abc = engraveEdition(abc, guitar, edition.guitarNotation, hands);
+    if (edition.landmarks) abc = edition.landmarks(abc, score.from, guitar);
+    return {...score, abc};
   }
   if (
     hands === "right" &&
@@ -524,10 +456,12 @@ export function arrangeHymn(
   const from = selected * size,
     to = Math.min(count, from + size);
   let melody = source[0].bars.slice(from, to);
+  const legacyChanges = edition?.legacyChanges;
   if (isGuitarArrangement(arrangement)) {
     if (!supportsGuitarTab(hymn))
       throw Error("Guitar tab is not available for this song.");
-    melody = guitarMelody(melody, from);
+    if(!legacyChanges) throw Error("Use this song’s reviewed Guitar edition.");
+    melody = guitarMelody(melody, from, legacyChanges);
   }
   const header = `X:1\nT:${hymn.title}\nM:${hymn.meter}\nL:1/64\n${hymn.feel === "swing" ? 'Q:"Swing"\n' : ""}`;
   let abc: string;
@@ -536,7 +470,7 @@ export function arrangeHymn(
       header +
       `%%score M C\nV:M clef=treble\nV:C clef=none\nK:${hymn.key}\n` +
       `[V:M] ${serialize(melody, true).music}\nw:${serialize(melody, true).lyrics}\n` +
-      `[V:C] ${guitarChords(from, to, guitarTranspose, hymn.key).replace(/"[^"]+"/g, "")}\n`;
+      `[V:C] ${guitarChords(from, to, guitarTranspose, hymn.key, legacyChanges!).replace(/"[^"]+"/g, "")}\n`;
   } else if (arrangement === "original") {
     // Keep the original whole-score edition intact, including its repeat signs.
     if (

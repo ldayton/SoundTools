@@ -30,8 +30,8 @@ function plan(app, profile, browser = 'chromium') {
       ? ['test:layout', 'test:workspace', 'test:guitar', 'test:piano', 'test:practice', 'test:theory', 'test:navigation', 'test:midi', 'test:signatures', 'test:offline', 'test:backing', ...(browser === 'chromium' ? ['test:browser', 'test:piano-audio', 'test:diagnostics', 'test:backing-realism', 'test:backing-genres'] : [])]
       : ['test:workspace', 'test:piano', 'test:midi'],
     songalong: full
-      ? ['test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog']
-      : ['test:workspace:core', 'test:guitar', 'test:fingerings'],
+      ? ['test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:instrument-audio', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog']
+      : ['test:workspace:core', 'test:instrument-audio', 'test:guitar', 'test:fingerings'],
     soundglow: full && browser === 'webkit' ? ['test:ui-browsers'] : ['test:core', ...(full ? ['test:updates', 'test:visual', 'test:resilience'] : [])],
   };
   const commands = tasks[app].map(task => npm(app, task));

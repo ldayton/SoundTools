@@ -1,3 +1,4 @@
+import {editionTempoLabel} from "./edition-score";
 import {pickupHymnSystems} from "./instrument-hymn";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
@@ -90,10 +91,10 @@ export function drawPracticeScore(
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
-  const pickupLayout = options.hymnEdition === "o-come-all-ye-faithful";
-  if(pickupLayout) abc=pickupHymnSystems(abc,width<600?1:width<1100?2:4,options.fromBar||0,21);
-  if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const profile=options.hymnEdition?chordEdition({id:options.hymnEdition}):undefined;
+  const pickupLayout = profile?.layout.mode === 'pickup-attached';
+  if(profile?.layout.mode === "pickup-attached") abc=pickupHymnSystems(abc,width<600?1:width<1100?2:4,options.fromBar||0,profile.layout.totalBars);
+  if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const staffScale = options.staffScale ?? 1;
   const scale =
     (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1) * staffScale;
@@ -103,7 +104,7 @@ export function drawPracticeScore(
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
   const source =
-    (profile && !pickupLayout && (options.fingerstyleTab || profile.fixedSystems) ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
+    (profile && !pickupLayout && (options.fingerstyleTab || profile.layout.mode !== 'balanced') ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
     ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
     (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
@@ -157,7 +158,7 @@ export function drawPracticeScore(
     // uses barsperstaff instead. Edited beginner systems retain their explicit
     // phrase-aligned breaks; other scores balance systems with wrapping.
     wrap:
-      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || profile?.fixedSystems || (options.beginnerEdition && !profile)
+      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || profile && profile.layout.mode !== 'balanced' || (options.beginnerEdition && !profile)
         ? undefined
         : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     timeBasedLayout: options.rhythmGrid
@@ -273,7 +274,7 @@ export function drawPracticeScore(
     drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
   if (profile && options.beginnerEdition === "guitar" && options.fingerings) separateGuitarFingerings(paper);
   if (!!profile && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
-  if (options.tabOnly) showOnlyTab(paper, profile ? `${profile.id === "jesus-loves-me" ? `Capo ${profile.capo} · ` : ""}♩ = ${profile.tempo}` : undefined, profile ? 58 : undefined);
+  if (options.tabOnly) showOnlyTab(paper, profile ? editionTempoLabel(profile,tune.lines.flatMap(line=>line.staff?.flatMap(staff=>staff.voices?.flatMap(voice=>voice.flatMap(note=>note.el_type==='part'?[note.title]:[]))||[])||[])) : undefined, profile ? 58 : undefined);
   if (options.chordsOnly) showChordsOnly(paper,tune);
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.

@@ -5,41 +5,10 @@ const ns = "http://www.w3.org/2000/svg";
 type Note = Extract<VoiceItem, {el_type:"note"}> & {abselem?: AbsoluteElement};
 type Entry = {note:Note; bar:number; voice:number; pitches:number[]; beat:number};
 
-/** Editorial choices for this edition, in sounding pitch and low-to-high chord order. */
-export function beginnerFingers(instrument: BeginnerInstrument, bar: number, voice: number, pitches: number[]): (number | null)[] {
-  return pitches.map(pitch => {
-    if (instrument === "guitar") {
-      if (bar === 12) return ({47:2,52:3,56:1,62:4} as Record<number,number>)[pitch] ?? null;
-      if (voice === 1) return pitch === 47 ? 1 : pitch === 46 ? 1 : null;
-      if (bar === 8) return pitch === 66 ? 2 : null;
-      if (bar === 9) return pitch === 61 ? 1 : pitch === 67 ? 2 : null;
-      if (pitches.length > 1) return ({52:2,56:1,61:3} as Record<number,number>)[pitch] ?? null;
-      return ({64:3,67:1,69:4} as Record<number,number>)[pitch] ?? null;
-    }
-    if (voice === 1) {
-      if (bar === 12) return ({40:5,47:1} as Record<number,number>)[pitch] ?? null;
-      if (pitches.length > 1) return ({52:5,56:3,61:1} as Record<number,number>)[pitch] ?? null;
-      return ({40:5,45:2,46:1,47:1} as Record<number,number>)[pitch] ?? null;
-    }
-    if (bar === 12) return ({56:1,62:4,64:5} as Record<number,number>)[pitch] ?? null;
-    if (bar === 8) return pitch === 59 ? 1 : pitch === 66 ? 5 : null;
-    if (bar === 9) return pitch === 61 ? 2 : pitch === 67 ? 5 : null;
-    return ({64:1,67:3,69:4} as Record<number,number>)[pitch] ?? null;
-  });
-}
+export {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
+import {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
 
-/** Standard part labels and printed bar numbers do not change the musical timeline. */
-export function beginnerLandmarks(abc: string, from = 0): string {
-  let row = 0;
-  const names = ["A", "B", "C"];
-  return "%%barnumbers 1\n%%barnumberfont serif 10\n%%partsfont serif 12\n%%partsbox 1\n" + abc.split("\n").map(line => {
-    if (!/^\[V:(?:S1|v0)\]/.test(line)) return line;
-    const bar = from + row++ * 4;
-    const part = bar % 4 === 0 && bar < 12 ? names[bar / 4] : undefined;
-    if (part) line = line.replace(/^(\[V:[^\]]+\])\s*/, `$1 [P:${part}] `);
-    return line.replace(/:\|\s*/, ':| [P:Ending] ');
-  }).join("\n");
-}
+export {bluesLandmarks as beginnerLandmarks} from "./fingerstyle-blues";
 
 /** Break on complete measures, ignoring the opening repeat as a measure. */
 export function beginnerSystems(abc: string, measures: number): string {

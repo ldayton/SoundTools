@@ -1,3 +1,4 @@
+import { playbackCredits } from "./playback-samples";
 import { SettingsSections } from "@ldayton/ui/settings-sections";
 import { OfflineStatusPanel } from "@ldayton/ui/offline-status-panel";
 import { useSyncExternalStore } from "react";
@@ -93,6 +94,25 @@ export function SettingsPage() {
           >
             Piano recording credits
           </Anchor>
+          {APP.id === "songalong" &&
+            playbackCredits.map((url, index) => (
+              <Anchor
+                key={url}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                size="sm"
+              >
+                {
+                  [
+                    "Playback piano credits",
+                    "Playback piano source hashes",
+                    "Acoustic guitar credits",
+                    "Acoustic guitar source hashes",
+                  ][index]
+                }
+              </Anchor>
+            ))}
           {APP.id === "notewise" && (
             <>
               <Anchor

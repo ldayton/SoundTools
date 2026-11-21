@@ -1,3 +1,4 @@
+import {isGuitarPositionMark} from "./edition-score";
 import type { TuneObject, AbsoluteElement } from "abcjs";
 /** Keep the score's chord symbols, lyric alignment and bar numbers as a compact chart. */
 export function showChordsOnly(paper: HTMLElement, tune?: TuneObject) {
@@ -148,7 +149,7 @@ export function spaceGuitarSymbols(paper: HTMLElement) {
     for (const position of svg.querySelectorAll<SVGGraphicsElement>(
       ".abcjs-annotation",
     )) {
-      if (!/^(I|III|VII)$/.test(position.textContent?.trim() || "")) continue;
+      if (!isGuitarPositionMark(position.textContent || "")) continue;
       const box = position.getBBox();
       position.setAttribute(
         "transform",

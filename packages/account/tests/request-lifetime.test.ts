@@ -52,3 +52,29 @@ test("caller cancellation and genuine live fetch failures are preserved", async 
   );
   assert.equal(calls, 1);
 });
+
+test("RequestInit cancellation overrides the Request signal using native fetch semantics", async () => {
+  const cancelled = new AbortController();
+  cancelled.abort();
+  const input = new Request("https://account.test/snapshot", {
+    signal: cancelled.signal,
+  });
+  let calls = 0;
+  const lifetime = new RequestLifetime(new EventTarget(), async () => {
+    calls++;
+    return new Response("ok");
+  });
+  await assert.rejects(lifetime.fetch(input), { name: "AbortError" });
+  assert.equal(calls, 0);
+  assert.equal(
+    await (
+      await lifetime.fetch(input, { signal: new AbortController().signal })
+    ).text(),
+    "ok",
+  );
+  assert.equal(
+    await (await lifetime.fetch(input, { signal: null })).text(),
+    "ok",
+  );
+  assert.equal(calls, 2);
+});

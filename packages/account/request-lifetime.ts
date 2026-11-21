@@ -7,7 +7,8 @@ export class RequestLifetime {
     target: EventTarget | undefined = typeof window === "undefined"
       ? undefined
       : window,
-    private request: typeof fetch = globalThis.fetch.bind(globalThis),
+    private request: typeof fetch = (input, init) =>
+      globalThis.fetch(input, init),
   ) {
     const depart = () =>
       this.controller.abort(
@@ -21,11 +22,17 @@ export class RequestLifetime {
     });
   }
   async fetch(input: RequestInfo | URL, init?: RequestInit) {
+    // RequestInit overrides a Request's signal, including explicit null.
+    const callerSignal =
+      init?.signal !== undefined
+        ? init.signal
+        : input instanceof Request
+          ? input.signal
+          : undefined;
     const signal = AbortSignal.any([
       this.controller.signal,
       AbortSignal.timeout(12000),
-      ...(init?.signal ? [init.signal] : []),
-      ...(input instanceof Request ? [input.signal] : []),
+      ...(callerSignal ? [callerSignal] : []),
     ]);
     signal.throwIfAborted();
     return this.request(input, { ...init, signal });

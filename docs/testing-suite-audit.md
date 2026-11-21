@@ -91,7 +91,10 @@ stacks. This cleanup-only change was not included in the measured Mac run.
 The NoteWise release-switch fixture also now waits for both old-release update
 checks to finish before replacing its server release; saved-copy readiness
 alone precedes network completion. That follow-up was not part of the timed
-full Mac run either. The measurement record keeps validation scopes separate.
+full Mac run either. A subsequent Chromium worker-termination fixture correction
+tracks incremental CDP version events by ID and waits for the active running
+worker, with an event-stream regression; it is outside that timing too.
+The measurement record keeps validation scopes separate.
 
 The remaining Mac critical path is the real audio timing group, which took
 9m28s. Its native microphone/worker/PCM, responsiveness and throttled-rendering

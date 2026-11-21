@@ -110,19 +110,20 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  assert(modelAborted,'Cancellation aborts the in-flight model transfer');
  // Kill the actual service worker while a model transfer is held. The page's
  // liveness probe must exit its busy state without waiting for the long RPC timeout.
- const cdp=await context.newCDPSession(other);let versions=[];
- cdp.on('ServiceWorker.workerVersionUpdated',event=>{versions=event.versions});
+ const cdp=await context.newCDPSession(other);
+ const workers=require('../../../scripts/ci/service-workers.cjs').trackServiceWorkers(cdp);
  await cdp.send('ServiceWorker.enable');
  const stoppedBefore=requests.filter(p=>p.endsWith('/silero.onnx')).length;
  await other.getByRole('button',{name:'Download for offline use',exact:true}).click();
  await other.waitForFunction(()=>!document.getElementById('offlineProgress').hidden);
  for(let i=0;i<100&&requests.filter(p=>p.endsWith('/silero.onnx')).length===stoppedBefore;i++)await other.waitForTimeout(50);
- const active=versions.find(v=>v.status==='activated'&&v.scriptURL===url+'sw.js');assert(active,'Find the active worker through Chromium');
+ assert(requests.filter(p=>p.endsWith('/silero.onnx')).length>stoppedBefore,'Hold an actual model transfer before terminating its worker');
+ const active=await workers.active(url+'sw.js');
  await cdp.send('ServiceWorker.stopWorker',{versionId:active.versionId});
  await other.getByRole('button',{name:'Resume download',exact:true}).waitFor({timeout:30000});
  assert.equal(await other.locator('#offlineProgress').isHidden(),true,'A stopped worker cannot leave the page permanently busy');
  assert.equal(await other.evaluate(()=>localStorage.getItem('soundglow.offlineDownloadWanted')),'yes');
- await cdp.detach();
+ workers.dispose();await cdp.detach();
  console.log('PASS: real worker termination during transfer recovers the UI and preserves resume intent');
  holdModel=false;modelFailures=1;
  await other.getByRole('button',{name:'Resume download',exact:true}).click();

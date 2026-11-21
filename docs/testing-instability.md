@@ -326,3 +326,20 @@ an atomic fixture transition, without changing the product's update policy,
 adding a delay/retry, raising its deadline, or relaxing the staged-release,
 geometry, session-preservation or automatic-update assertions. Failure output
 also records each tab's visibility, status and bounded cache events.
+
+## Soundglow worker lookup treated CDP updates as snapshots (22 November 2026)
+
+[Chromium job 137016751433](https://github.com/ldayton/SoundTools/actions/runs/44960057868/job/137016751433)
+failed `Find the active worker through Chromium` in `test:updates`; all audio,
+visual and other Nightly jobs passed. The test replaced its entire worker list
+on each `workerVersionUpdated` event, losing a known active version when a
+notification described a different version. Enabling CDP also does not guarantee
+that its asynchronous lifecycle notification has arrived before the lookup.
+
+The shared test helper retains versions by version ID, replaces lifecycle state
+for changed IDs, and waits for the intended script to be activated and running.
+A deterministic event-stream regression covers unrelated updates, a redundant
+old version, a stopped replacement, and the subsequent running notification.
+The browser scenario still stops the actual worker through CDP during a held
+model request, now explicitly asserts that request exists, and retains the
+resume-intent and UI-recovery assertions with their original deadlines.

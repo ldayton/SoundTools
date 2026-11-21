@@ -77,7 +77,8 @@
     "note": "Whole Mac timing was not repeated after these corrections. The complete affected local check and filesystem regression passed; exact-commit CI and full GitHub Nightly are publication gates.",
     "retention": "Retain manifests/history/traces/reports; omit reproducible source/site fixture copies. Covered by the filesystem evidence regression.",
     "backendCleanup": "Destroy only full stack IDs registered to the exact disposable account snapshot; stop alone retains data. Ownership isolation tested and destruction exercised against ten stopped stacks from this investigation. Not part of the measured full Mac run.",
-    "notewiseTransition": "After GitHub run 44958194222, wait for both tabs to finish release-A update checks before switching the fixture server to B; Available offline alone only proves the saved copy. Included in final targeted/CI/GitHub validation, not the measured full Mac timing."
+    "notewiseTransition": "After GitHub run 44958194222, wait for both tabs to finish release-A update checks before switching the fixture server to B; Available offline alone only proves the saved copy. Included in final targeted/CI/GitHub validation, not the measured full Mac timing.",
+    "workerTarget": "After GitHub run 44960057868, track incremental CDP worker-version notifications by ID and wait for activated/running state; retain real worker termination and verify the held transfer. Unit event-stream regression plus complete affected browser check; not part of the measured full Mac timing."
   },
   "conditions": [
     "Installed Chromium and WebKit; warm npm/OS caches; fresh app builds",

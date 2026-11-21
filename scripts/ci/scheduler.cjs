@@ -26,25 +26,30 @@ function validate(tasks) {
 async function schedule(tasks, { workers = workerCount(), execute, onEvent = () => {}, signal } = {}) {
   validate(tasks); workerCount(workers);
   const pending = new Map(tasks.map(task => [task.id, task])), results = new Map(), running = new Map(), held = new Set();
-  let used = 0;
+  let used = 0; const graphStarted = Date.now();
   while (pending.size || running.size) {
     let progressed = false;
-    for (const [id, task] of pending) {
+    for (const [id, task] of [...pending].sort((a, b) => (b[1].priority || 0) - (a[1].priority || 0))) {
       const dependencies = task.needs || [];
       if (signal?.aborted || dependencies.some(dep => results.has(dep) && results.get(dep).status !== 'success')) {
         const result = { id, status: signal?.aborted ? 'cancelled' : 'blocked' };
         pending.delete(id); progressed = true; results.set(id, result); onEvent(result); continue;
       }
       const slots = Math.min(workers, task.slots ?? 1);
-      if (dependencies.some(dep => !results.has(dep)) || used + slots > workers || task.locks.some(lock => held.has(lock))) continue;
+      if (dependencies.some(dep => !results.has(dep)) || task.locks.some(lock => held.has(lock))) continue;
+      // Reserve capacity for an eligible critical prerequisite rather than
+      // indefinitely filling its free slots with lower-priority leaf work.
+      if (used + slots > workers) { if ((task.priority || 0) > 0) break; continue; }
       pending.delete(id); used += slots; task.locks.forEach(lock => held.add(lock));
       const startedAt = new Date().toISOString(), started = performance.now();
-      onEvent({ id, status: 'running', startedAt });
+      const readyAt = Math.max(graphStarted, ...dependencies.map(dep => Date.parse(results.get(dep).finishedAt)));
+      const queuedMs = Math.max(0, Date.now() - readyAt);
+      onEvent({ id, status: 'running', startedAt, queuedMs });
       const promise = Promise.resolve().then(() => execute(task, signal)).then(
         data => ({ ...data, status: signal?.aborted ? 'cancelled' : data?.exitCode === 0 && !data?.timedOut ? 'success' : 'failure' }),
         error => ({ status: signal?.aborted ? 'cancelled' : 'failure', error: error.message, exitCode: null }),
       ).then(data => {
-        const result = { ...data, id, startedAt, finishedAt: new Date().toISOString(), elapsedMs: Math.round(performance.now() - started) };
+        const result = { ...data, id, startedAt, queuedMs, finishedAt: new Date().toISOString(), elapsedMs: Math.round(performance.now() - started) };
         results.set(id, result); running.delete(id); used -= slots; task.locks.forEach(lock => held.delete(lock)); onEvent(result);
       });
       running.set(id, promise);

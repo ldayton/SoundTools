@@ -164,7 +164,9 @@ state separately; a single successful probe does not establish p95 or flake rate
 
 `scripts/ci/test-strategy.cjs` remains the owner of selected lanes and budgets.
 `task-graph.cjs` creates their build prerequisites and task graph; `scheduler.cjs`
-runs ready tasks within worker and exclusive-resource limits. Both GitHub's
+runs ready tasks within worker and exclusive-resource limits. Backend startup,
+builds and account integration have explicit critical-path priorities; eligible
+prerequisites reserve capacity rather than starving behind smaller UI commands. Both GitHub's
 `check-app.cjs` and the local coordinator use these modules. Shared checks use
 `run-shared.cjs`. GitHub computes all matrices in the existing changes job and
 starts app setup alongside shared validation; every release still requires shared
@@ -207,7 +209,7 @@ specific mail lookup first. Soundglow's timing/throttled visual projects remain
 one-worker inside their exclusive group; do not apply a blanket worker increase.
 
 Every invocation writes a unique `work/ci-results/<run>/` with the SHA, machine,
-Node version, worker count, task inventory, start/end events, dependency/resource
+Node version, worker count, task inventory, start/end events, time queued after prerequisites become ready, dependency/resource
 locks, exit/signal/timeout evidence, stdout logs, CPU time and OS-reported maximum
 RSS. Maximum RSS is the OS time tool's process/child maximum, not the sum of all
 simultaneous browser processes. Nested account reports are retained too. Backend

@@ -44,7 +44,7 @@ function graph(selected, opts, directories, backends = {}) {
     tasks.push(...setupTasks(app, cwd, { visual: opts.full }));
     let needs = [`${app}:build`];
     if (opts.full && app === 'songalong') {
-      tasks.push({ id: 'songalong:fixture:notewise', command: process.execPath, args: ['scripts/ci/build.cjs', 'notewise'], cwd, needs, locks: [`files:${cwd}`], slots: 2 });
+      tasks.push({ id: 'songalong:fixture:notewise', command: process.execPath, args: ['scripts/ci/build.cjs', 'notewise'], cwd, needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
       needs = ['songalong:fixture:notewise'];
     }
     for (const browser of opts.full ? ['chromium', 'webkit'] : ['chromium']) {
@@ -54,11 +54,11 @@ function graph(selected, opts, directories, backends = {}) {
   }
   for (const browser of selected.accounts ? opts.full ? ['chromium', 'webkit'] : ['chromium'] : []) {
     const name = `accounts-${browser}`, cwd = directories[name], env = { ...backends[name], TEST_BROWSER: browser };
-    tasks.push({ id: `${name}:backend`, command: process.execPath, args: ['scripts/ci/account-backend.cjs', 'start'], cwd, env, needs: [], locks: [], privateLogDirectory: path.join(cwd, 'work/ci-private') });
+    tasks.push({ id: `${name}:backend`, command: process.execPath, args: ['scripts/ci/account-backend.cjs', 'start'], cwd, env, needs: [], locks: [], priority: 100, privateLogDirectory: path.join(cwd, 'work/ci-private') });
     tasks.push({ id: `${name}:tests`, command: 'npm', args: ['run', 'test:accounts'], cwd, env,
-      needs: [`${name}:backend`, 'shared:diagnostics'], locks: ['account-fixtures', ...[4391, 4392, 4393, 4394].map(port => `port:${port}`)], slots: 2, timeoutMs: 20 * 60000 });
+      needs: [`${name}:backend`, 'shared:diagnostics'], locks: ['account-fixtures', ...[4391, 4392, 4393, 4394].map(port => `port:${port}`)], slots: 2, priority: 90, timeoutMs: 20 * 60000 });
     // The account build reads the diagnostic bundle in its own snapshot.
-    tasks.push({ id: `${name}:diagnostics`, command: 'npm', args: ['run', 'build:shared', '--', 'diagnostics'], cwd, needs: [], locks: [`files:${cwd}`] });
+    tasks.push({ id: `${name}:diagnostics`, command: 'npm', args: ['run', 'build:shared', '--', 'diagnostics'], cwd, needs: [], locks: [`files:${cwd}`], priority: 100 });
     tasks.at(-2).needs.push(`${name}:diagnostics`);
   }
   return tasks;

@@ -7,9 +7,9 @@ const browserSuites = Object.freeze(['desktop', 'workspace', 'breath-squares', '
 function environment(browser) { return { TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' }; }
 function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false } = {}) {
   const tasks = [];
-  if (!['notewise', 'soundglow'].includes(app)) tasks.push({ id: `${prefix}:units`, command: 'npm', args: ['test', '--workspace=' + app], cwd, needs, locks: [`files:${cwd}`], slots: 2 });
-  tasks.push({ id: `${prefix}:build`, command: process.execPath, args: ['scripts/ci/build.cjs', app], cwd, needs: tasks.length ? [tasks[0].id] : needs, locks: [`files:${cwd}`], slots: 2 });
-  if (app === 'soundglow' && visual) tasks.push({ id: `${prefix}:visual-fixture`, command: process.execPath, args: ['scripts/ci/prepare-visual.cjs'], cwd, needs: [`${prefix}:build`], locks: [`files:${cwd}`] });
+  if (!['notewise', 'soundglow'].includes(app)) tasks.push({ id: `${prefix}:units`, command: 'npm', args: ['test', '--workspace=' + app], cwd, needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
+  tasks.push({ id: `${prefix}:build`, command: process.execPath, args: ['scripts/ci/build.cjs', app], cwd, needs: tasks.length ? [tasks[0].id] : needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
+  if (app === 'soundglow' && visual) tasks.push({ id: `${prefix}:visual-fixture`, command: process.execPath, args: ['scripts/ci/prepare-visual.cjs'], cwd, needs: [`${prefix}:build`], locks: [`files:${cwd}`], priority: 60 });
   return tasks;
 }
 function commandTasks(app, profile, browser, cwd = root, { prefix = `${app}:${profile}:${browser}`, needs = [`${app}:build`] } = {}) {
@@ -50,12 +50,12 @@ function sharedTasks(cwd = root, { needs = [] } = {}) {
   const base = [
     ['history', 'npm', ['run', 'verify:history']],
     ['diagnostics', 'npm', ['run', 'build:shared', '--', 'diagnostics']],
-  ].map(([name, command, args]) => ({ id: `shared:${name}`, command, args, cwd, needs, locks: [] }));
+  ].map(([name, command, args]) => ({ id: `shared:${name}`, command, args, cwd, needs, locks: [], priority: name === 'diagnostics' ? 100 : 80 }));
   for (const [name, command, args, slots] of [
     ['contracts', 'npm', ['run', 'test:shared'], 1],
     ['music', process.execPath, ['--import', 'tsx', '--test', `--test-concurrency=${unitWorkers}`, ...fs.readdirSync(path.join(cwd, 'packages/music-practice/tests')).filter(file => file.endsWith('.test.ts')).sort().map(file => `tests/${file}`)], unitWorkers],
     ['policy', process.execPath, ['--test', ...fs.readdirSync(path.join(cwd, 'tests/ci')).filter(file => file.endsWith('.test.cjs')).sort().map(file => `tests/ci/${file}`)], 1],
-  ]) base.push({ id: `shared:${name}`, command, args, cwd: name === 'music' ? path.join(cwd, 'packages/music-practice') : cwd, needs: ['shared:diagnostics'], locks: [], slots });
+  ]) base.push({ id: `shared:${name}`, command, args, cwd: name === 'music' ? path.join(cwd, 'packages/music-practice') : cwd, needs: ['shared:diagnostics'], locks: [], slots, priority: name === 'policy' ? 80 : name === 'contracts' ? 40 : 20 });
   return base;
 }
 module.exports = { browserSuites, environment, setupTasks, commandTasks, sharedTasks };

@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 function read(directory) { return { inventory: JSON.parse(fs.readFileSync(path.join(directory, 'inventory.json'))), results: JSON.parse(fs.readFileSync(path.join(directory, 'results.json'))), local: fs.existsSync(path.join(directory, 'local.json')) ? JSON.parse(fs.readFileSync(path.join(directory, 'local.json'))) : null }; }
 function coverage(inventory) {
-  return inventory.tasks.map(task => ({ id: task.id, coverage: task.coverage || [{ command: path.basename(task.command), args: task.args }], needs: task.needs })).sort((a, b) => a.id.localeCompare(b.id));
+  return inventory.tasks.map(task => ({ id: task.id, coverage: task.coverage || [{ command: path.basename(task.command), args: task.args }], needs: task.needs, partition: task.partition })).sort((a, b) => a.id.localeCompare(b.id));
 }
 function compare(before, after) {
   if (before.inventory.sha !== after.inventory.sha) throw Error('Benchmark commits differ');

@@ -122,3 +122,11 @@ test('catalog partitions and visual groups cover every original case without col
   assert(jobs.find(task => task.kind === 'timing').locks.includes('realtime-audio'));
   assert(jobs.every(task => task.needs.includes('soundglow:visual-fixture')));
 });
+
+test('ready critical prerequisites reserve capacity instead of starving behind small leaf tasks', async () => {
+  const order = [];
+  await schedule([{ ...task('running'), priority: 20 }, { ...task('wide', [], [], 2), priority: 10 }, task('leaf')], { workers: 2, async execute(t) {
+    order.push(t.id); await new Promise(resolve => setImmediate(resolve)); return { exitCode: 0 };
+  } });
+  assert.deepEqual(order, ['running', 'wide', 'leaf']);
+});

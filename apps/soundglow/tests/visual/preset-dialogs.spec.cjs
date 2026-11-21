@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('spectrogram preset modal retains failed input, retries once, and restores focus',async({page})=>{
  await page.goto('/dist/index.html#settings');await page.locator('#editPresets').click();await expect(page.getByRole('dialog',{name:'Name preset',exact:true})).toBeVisible();await expect(page.locator('#presetName')).toBeFocused();await page.locator('#presetName').fill('Retry preset');
  await page.evaluate(()=>{window.presetWrite=Storage.prototype.setItem;Storage.prototype.setItem=()=>{throw new DOMException('Full','QuotaExceededError')}});

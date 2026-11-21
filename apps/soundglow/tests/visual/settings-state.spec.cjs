@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const {setSetting,setHistory,expandSection,sectionExpanded}=require('./settings-input.cjs');
 const consistent=async page=>expect(await page.evaluate(()=>assertSettingsConsistent())).toBe(true);
 test('all registered controls agree with authoritative state across deterministic edit/apply sequences',async({page})=>{

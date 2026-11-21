@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 
 test('React shell retains audio and canvas owners through navigation, disclosures and resize',async({page})=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));

@@ -1,5 +1,5 @@
 const {waitForDialogClosed}=require('../../../../scripts/ci/browser-harness.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const fs=require('node:fs'),path=require('node:path');
 const {deleteItem}=require('./library-actions.cjs');
 const buffer=fs.readFileSync(path.resolve(__dirname,'../../dist/audio/alice-waters.m4a'));

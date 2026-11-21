@@ -1,8 +1,8 @@
 const {setSetting,expandSection}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test'),path=require('node:path');
+const {test,expect}=require('./fixtures.cjs'),path=require('node:path');
 test('pitch speech filtering survives fake microphone capture and transport/settings changes',async({playwright},info)=>{
  test.setTimeout(45000);
- const browser=await playwright.chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve(process.env.SOUNDGLOW_PITCH_AUDIO||path.join(__dirname,'generated/capture.wav'))]});
+ const browser=await playwright.chromium.launch({args:['--mute-audio','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.resolve(process.env.SOUNDGLOW_PITCH_AUDIO||path.join(__dirname,'generated/capture.wav'))]});
  try{
   const context=await browser.newContext({baseURL:info.project.use.baseURL,viewport:info.project.name==='desktop'?{width:1280,height:900}:info.project.use.viewport,deviceScaleFactor:info.project.use.deviceScaleFactor,permissions:['microphone']});const page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#begin').click();

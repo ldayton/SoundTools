@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('optional capabilities use real worker LPC without changing the view or preset',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html');
  const before=await page.locator('#preset').inputValue();

@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const {expandSection}=require('./settings-input.cjs');
 const path=require('node:path');
 test('migrated controls fit desktop and mobile without changing the audio owner',async({page},info)=>{

@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('pitch numeric drafts commit, cancel and recover without drifting from presets',async({page})=>{
  await page.goto('/dist/index.html#settings');await page.getByRole('tab',{name:'Pitch',exact:true}).click();
  const minimum=page.getByLabel('Visible minimum (Hz)',{exact:true});

@@ -119,6 +119,32 @@ Catalog-wide assertions must account explicitly for instrumental songs and
 rights/source categories; do not infer those properties from catalog length or
 the first entry.
 
+## Silent browser tests
+
+Browser tests must not play through the computer's speakers. Use the shared
+browser launcher and context/page helpers; Chromium also receives `--mute-audio`.
+The context init script in `scripts/ci/silent-audio.cjs` routes only live hardware
+output through a zero-gain sink, including WebKit. Upstream analysers, worklets,
+media-stream capture and OfflineAudioContext numerical renders stay active.
+Do not mute source samples, mock the AudioContext, disable the audio engine, or
+change product audio code to silence a test.
+
+Soundglow Playwright specs import `tests/visual/fixtures.cjs`, which applies the
+same context policy. Shared policy checks reject specs that bypass that fixture.
+Nested Chromium launches with fake microphone capture explicitly retain native
+output muting; input fixtures remain unchanged. CI runs a real PCM check on both
+engines proving silent output, a progressing live graph, nonzero upstream audio
+and unchanged offline rendering. System-wide volume settings are not the policy.
+
+The backing loop regression has one owner in
+`apps/notewise/tests/backing-metronome.browser.ts`: seek near the real boundary,
+require a newly scheduled cycle after that seek, and verify real PCM through the
+seam. The mounted backing-controls test keeps real playback, pause, key/tempo/style,
+navigation and persistence checks without another 87-second full-loop wait.
+Pre-seek events and restored held voices must not satisfy the boundary assertion.
+A temporary real scheduler mutation that refuses the next loop is rejected by
+this assertion; the unmodified scheduler passes.
+
 ## Browser synchronization
 
 Use `launchBrowser`, tracked contexts/pages, `captureFailure` and `closeBrowser`
@@ -292,7 +318,9 @@ never serialized into the inventory.
 
 Independent tasks finish after a failure; dependants are blocked. There are no
 assertion retries. Cancellation and deadlines terminate task process groups,
-including preview children. The Nightly coordinator stops only its owned backend
+including detached preview children captured before their parents exit. Cancellation
+waits for owned descendants to exit; PID start times guard against reuse during
+the termination grace period. The Nightly coordinator stops only its owned backend
 stacks concurrently in `finally`, with a separate result for each engine even if
 one stop fails. Snapshots are removed after success **or failure** once logs, browser failure
 artifacts, unexpected source diffs and untracked source have been retained under

@@ -3,6 +3,7 @@ const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises');
 const { tmpdir } = require('node:os');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
+const { silenceAudioOutput } = require('./silent-audio.cjs');
 const engines = { chromium, firefox, webkit };
 const contexts = new WeakMap();
 function browserName(env = process.env) {
@@ -28,6 +29,7 @@ async function launchBrowser(options = {}) {
 function clean(value) { return String(value).replace(/([?&#](?:token_hash|access_token|refresh_token|code)=)[^&#\s]+/g, '$1[redacted]'); }
 async function createContext(browser, options = {}, { trace = process.env.CI_TRACE !== '0' } = {}) {
   const context = await browser.newContext({ serviceWorkers: 'block', ...options });
+  await context.addInitScript(silenceAudioOutput);
   const state = { logs: [], tracing: false };
   contexts.set(context, state);
   function log(entry) { state.logs.push(clean(entry)); if (state.logs.length > 200) state.logs.shift(); }

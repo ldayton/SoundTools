@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const {setHistory}=require('./settings-input.cjs');
 
 test('React display controls follow presets, keyboard edits and saved values',async({page})=>{

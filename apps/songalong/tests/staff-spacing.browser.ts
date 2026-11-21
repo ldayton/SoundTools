@@ -1,15 +1,14 @@
-import { chromium, webkit, expect } from "@playwright/test";
+import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
+import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { openHymnControls } from "../../../packages/music-practice/browser-tests/helpers";
 const server = await preview(
   "songalong",
   Number(process.env.TEST_PORT || 4572),
 );
-const browser = await (
-  process.env.TEST_BROWSER === "webkit" ? webkit : chromium
-).launch();
+const browser = await launchBrowser();
 try {
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });

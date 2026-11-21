@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('formant controls apply actual tracking without clearing analysis or spectrogram pixels',async({page})=>{
  await page.goto('/dist/index.html#settings');
  await expect(page.locator('#formantSmoothing')).toHaveValue('light');await expect(page.locator('#formantFiltering')).toHaveValue('on');await expect(page.locator('#formants')).toHaveValue('off');

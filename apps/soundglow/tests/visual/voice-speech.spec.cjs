@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const {manifest}=require('./voice-fixture.cjs');
 async function compareSpeech(page,testInfo){
  const errors=[];page.on('pageerror',e=>errors.push(e.message));

@@ -1,5 +1,5 @@
 const {setSetting,expandSection}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const settings=async page=>page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings').click();
 test('pitch shares transport while feature settings and presets remain isolated',async({page},testInfo)=>{
  if(testInfo.project.name==='desktop')await page.setViewportSize({width:1280,height:900});

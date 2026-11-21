@@ -33,7 +33,7 @@ let context;
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url='http://127.0.0.1:'+server.address().port+base;
  await require('./test-startup-recovery.cjs').testStartupRecovery(url,app);
- const launch=async()=>{const context=await chromium.launchPersistentContext(profile,{headless:true});await context.tracing.start({snapshots:true,sources:true});return context};
+ const launch=async()=>{const context=await chromium.launchPersistentContext(profile,{headless:true,args:['--mute-audio']});await context.tracing.start({snapshots:true,sources:true});return context};
  context=await launch();await context.addInitScript(app=>{try{localStorage.setItem(app+':diagnostics:sharing','yes')}catch{}},app);
  let page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(url);await page.waitForFunction(()=>!!navigator.serviceWorker.controller);

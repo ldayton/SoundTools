@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test'),fs=require('node:fs'),path=require('node:path');
+const {test,expect}=require('./fixtures.cjs'),fs=require('node:fs'),path=require('node:path');
 const base=path.resolve(__dirname,'../..'),folder=path.join(base,'outputs/pitch-comparison');
 test('controlled pitch replay uses production drawing and preserves silence',async({page},info)=>{
  test.skip(info.project.name!=='desktop');await page.goto('/dist/index.html');await page.addScriptTag({url:'/tests/pitch-comparison/replay.js'});

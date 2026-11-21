@@ -260,7 +260,7 @@ try {
     const sampleTimes: { beat: number; when: number }[] = [];
     const sound = p.sound.bind(p);
     p.sound = (e: any, t: number, release = false, offset = 0) => {
-      if (!release) sampleTimes.push({ beat: e.beat, when: t });
+      if (!release && offset === 0) sampleTimes.push({ beat: e.beat, when: t });
       sound(e, t, release, offset);
     };
     p.pause();
@@ -270,14 +270,20 @@ try {
     if (p.model.getSnapshot().status !== "playing")
       throw Error(JSON.stringify(p.model.getSnapshot()));
     const beats = 256;
+    const seekStart = sampleTimes.length;
     p.reschedule(beats - 0.8, c.currentTime + 0.06);
     await new Promise((r) => setTimeout(r, 900));
-    const crossed =
-      sampleTimes.some((x) => x.beat > beats - 1) &&
-      sampleTimes.some((x) => x.beat < 1);
-    const maxGap = sampleTimes
+    // Count fresh scheduled notes, not held voices restored during catch-up.
+    // Ignore notes from the earlier play call. A pre-seek beat-zero event
+    // must not let a scheduler that stops at the seam pass this regression.
+    const seamEvents = sampleTimes.slice(seekStart);
+    const tail = seamEvents.find((x) => x.beat > beats - 1);
+    const crossed = !!tail && seamEvents.some(
+      (x) => x.beat < 1 && x.when > tail.when,
+    );
+    const maxGap = seamEvents
       .slice(1)
-      .reduce((n, x, i) => Math.max(n, x.when - sampleTimes[i].when), 0);
+      .reduce((n, x, i) => Math.max(n, x.when - seamEvents[i].when), 0);
     p.pause();
     const retained = p.metronome.getSnapshot();
     p.pauseAll();

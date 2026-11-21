@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const {setSetting}=require('./settings-input.cjs');
 test('example controls preserve pause, seek, loop and listening independently of inspector navigation',async({page},info)=>{
  await page.goto('/dist/index.html');await page.locator('#demo').click();await page.waitForFunction(()=>running&&inputMode==='speech'&&processingStats.frames>50);await page.locator('#freeze').click();await expect(page.locator('#state')).toHaveText('PAUSED');

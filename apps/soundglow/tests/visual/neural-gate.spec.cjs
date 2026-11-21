@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 async function setup(page){
  await page.goto('/dist/index.html');
  await page.evaluate(async()=>{

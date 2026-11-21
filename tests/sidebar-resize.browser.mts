@@ -1,10 +1,9 @@
-import { chromium, webkit, expect, type Page } from "@playwright/test";
+import { launchBrowser, newPage, createContext } from "../scripts/ci/browser-harness.cjs";
+import { expect, type Page } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { preview } from "../packages/music-practice/browser-tests/server";
 import { waitForServer } from "../scripts/ci/browser-harness.cjs";
-const browser = await (
-  process.env.TEST_BROWSER === "webkit" ? webkit : chromium
-).launch();
+const browser = await launchBrowser();
 const servers: Awaited<ReturnType<typeof preview>>[] = [];
 const glow = spawn(
   process.execPath,
@@ -57,7 +56,7 @@ try {
   for (const [i, app] of ["notewise", "songalong", "dorego"].entries()) {
     const server = await preview(app, 4580 + i);
     servers.push(server);
-    const page = await browser.newPage({
+    const page = await newPage(browser, {
       viewport: { width: 1440, height: 1000 },
       serviceWorkers: "block",
     });
@@ -95,7 +94,7 @@ try {
   await waitForServer("http://127.0.0.1:4583/dist/index.html", {
     server: glow,
   });
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });

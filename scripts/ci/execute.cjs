@@ -18,17 +18,37 @@ function execute(task, { directory, signal } = {}) {
     const command = timed ? '/usr/bin/time' : task.command;
     const args = timed ? [process.platform === 'darwin' ? '-l' : '-v', '-o', usage, task.command, ...task.args] : task.args;
     const child = spawn(command, args, { cwd: task.cwd, env: { ...process.env, ...task.env }, stdio: ['ignore', fd, fd], detached: process.platform !== 'win32' });
-    let timedOut = false, killTimer;
+    let timedOut = false, killTimer, stopping;
     const kill = sig => { try { process.platform === 'win32' ? child.kill(sig) : process.kill(-child.pid, sig); } catch {} };
-    const stop = () => { kill('SIGTERM'); killTimer = setTimeout(() => kill('SIGKILL'), 2000); killTimer.unref(); };
+    const stop = () => {
+      if (stopping) return;
+      // Playwright detaches its web server into another process group. Capture
+      // the owned descendants before their parents exit and reparent them.
+      const tree = process.platform === 'win32' ? [] : require('./process-tree.cjs').ownedTree(child.pid);
+      let complete;
+      stopping = new Promise(resolve => { complete = resolve; });
+      kill('SIGTERM');
+      if (tree.length) require('./process-tree.cjs').signalOwned(tree, 'SIGTERM');
+      killTimer = setTimeout(async () => {
+        let cleanupError;
+        try {
+          if (tree.length) require('./process-tree.cjs').signalOwned(tree, 'SIGKILL');
+          else kill('SIGKILL');
+          if (tree.length) await require('./process-tree.cjs').waitExited(tree);
+        } catch (error) { cleanupError = error.message; }
+        complete(cleanupError);
+      }, 2000);
+    };
     const timeout = setTimeout(() => { timedOut = true; stop(); }, task.timeoutMs || 20 * 60000); timeout.unref();
     signal?.addEventListener('abort', stop, { once: true });
     child.once('error', error => finish(null, null, error.message));
     child.once('close', (code, sig) => finish(code, sig));
     let finished = false;
-    function finish(exitCode, exitSignal, error) {
+    async function finish(exitCode, exitSignal, error) {
       if (finished) return; finished = true;
-      clearTimeout(timeout); clearTimeout(killTimer); signal?.removeEventListener('abort', stop); fs.closeSync(fd);
+      clearTimeout(timeout); signal?.removeEventListener('abort', stop); fs.closeSync(fd);
+      if (stopping) { const cleanupError = await stopping; if (cleanupError) { exitCode = 1; error = cleanupError; } }
+      clearTimeout(killTimer);
       // Also release descendants that outlive their parent's exit (preview servers).
       kill('SIGTERM');
       resolve({ exitCode, signal: exitSignal, timedOut, ...(error ? { error } : {}), log, usage: fs.existsSync(usage) ? parseUsage(fs.readFileSync(usage, 'utf8')) : {} });

@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('Soundglow preserves established pitch values after raw history pruning',async({page},info)=>{
  test.skip(info.project.name!=='desktop','One real-time pruning run is sufficient; numerical grouping cases are viewport independent');test.setTimeout(60000);
  await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html#settings');await page.getByRole('tab',{name:'Pitch',exact:true}).click();await page.locator('#pitchPreset').selectOption('soundglow');

@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test.beforeEach(async({page},info)=>{test.skip(info.project.name!=='desktop');await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html');await page.evaluate(()=>fileLibrary.ready);});
 function wave(seconds=2){const rate=48000,frames=Math.round(rate*seconds),data=Buffer.alloc(44+frames*2);data.write('RIFF',0);data.writeUInt32LE(36+frames*2,4);data.write('WAVEfmt ',8);data.writeUInt32LE(16,16);data.writeUInt16LE(1,20);data.writeUInt16LE(1,22);data.writeUInt32LE(rate,24);data.writeUInt32LE(rate*2,28);data.writeUInt16LE(2,32);data.writeUInt16LE(16,34);data.write('data',36);data.writeUInt32LE(frames*2,40);for(let i=0;i<frames;i++){const t=i/rate,hz=t>=.4&&t<.6?440:880;data.writeInt16LE(Math.round(Math.sin(i/rate*2*Math.PI*hz)*10000),44+2*i);}return {name:'bounds.wav',mimeType:'audio/wav',buffer:data};}
 async function load(page,seconds){await page.locator('#audioFileInput').setInputFiles(wave(seconds));await page.waitForFunction(()=>fileLibrary.current&&!fileLibrary.loading);}

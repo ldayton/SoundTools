@@ -45,7 +45,7 @@ const server=http.createServer(async(req,res)=>{
 const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new MessageChannel(),timer=setTimeout(()=>{c.port1.close();reject(Error('Update RPC timeout'))},20000);c.port1.onmessage=e=>{clearTimeout(timer);c.port1.close();resolve(e.data)};navigator.serviceWorker.controller.postMessage({type:'prepare-update'},[c.port2])}));
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port,url=origin+'/Soundglow/';
- const browser=await chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+microphone]});
+ const browser=await chromium.launch({args:['--mute-audio','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+microphone]});
  try{
  const context=await browser.newContext({permissions:['microphone']});await context.addInitScript(()=>{try{localStorage.setItem('soundglow:diagnostics:sharing','yes')}catch{}});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(url);
  await page.waitForFunction(()=>!!navigator.serviceWorker.controller);

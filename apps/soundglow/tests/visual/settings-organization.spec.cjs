@@ -1,5 +1,5 @@
 const {expandSection,sectionExpanded}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const settings=async page=>page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings').click();
 test('navigation, shared controls, playback and feature settings have distinct scopes',async({page},info)=>{
  if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});
@@ -60,7 +60,7 @@ test('pause and resume respect desktop inspector and mobile page navigation',asy
 });
 test('microphone start and stop preserve desktop inspector visibility',async({playwright},info)=>{
  const desktop=info.project.name==='desktop';
- const browser=await playwright.chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream']});
+ const browser=await playwright.chromium.launch({args:['--mute-audio','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream']});
  try{
   const context=await browser.newContext({baseURL:info.project.use.baseURL,permissions:['microphone'],viewport:desktop?{width:1280,height:900}:{width:390,height:844}});const page=await context.newPage();
   await page.goto('/dist/index.html#settings');

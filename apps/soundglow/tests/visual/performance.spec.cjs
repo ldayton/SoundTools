@@ -1,5 +1,5 @@
 const {expandSection,sectionExpanded}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 for(const [preset,formants]of [['praat','off'],['voice','off'],['voice','both']])test(`performance report bounds live lag: ${preset}/${formants}`,async({page},testInfo)=>{
  await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption(preset);await page.locator('#formants').selectOption(formants);expect(await sectionExpanded(page,'developerSettings')).toBe(false);await expandSection(page,'developerSettings');await page.locator('#measurePerformance').check();
  await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.getByRole('button',{name:'Play an Example',exact:true}).click();
@@ -20,7 +20,7 @@ for(const [preset,formants]of [['praat','off'],['voice','off'],['voice','both']]
 
 test('looping fake microphone exports bounded lag across the recording loop',async({playwright},testInfo)=>{
  test.setTimeout(90000);
- const path=require('node:path');const browser=await playwright.chromium.launch({args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.join(__dirname,'generated/capture.wav')]});
+ const path=require('node:path');const browser=await playwright.chromium.launch({args:['--mute-audio','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+path.join(__dirname,'generated/capture.wav')]});
  try{
  const context=await browser.newContext({baseURL:testInfo.project.use.baseURL,viewport:testInfo.project.use.viewport,deviceScaleFactor:testInfo.project.use.deviceScaleFactor,permissions:['microphone']});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/dist/index.html#settings');await page.locator('#preset').selectOption('voice');expect(await sectionExpanded(page,'developerSettings')).toBe(false);await expandSection(page,'developerSettings');await page.locator('#measurePerformance').check();await page.getByRole('button',{name:'Return to spectrogram',exact:true}).click();await page.locator('#begin').click();

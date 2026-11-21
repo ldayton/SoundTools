@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
-const engines = require("playwright");
+const { launchBrowser, newPage } = require("./ci/browser-harness.cjs");
 (async () => {
   const { createServer } = await import("vite"),
     { default: react } = await import("@vitejs/plugin-react");
@@ -23,10 +23,10 @@ const engines = require("playwright");
   try {
     await server.listen();
     const engine = process.env.TEST_BROWSER || "chromium";
-    browser = await engines[engine].launch({
+    browser = await launchBrowser({
       env: { ...process.env, CFFIXED_USER_HOME: home },
     });
-    const page = await browser.newPage();
+    const page = await newPage(browser);
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("http://127.0.0.1:4970");
@@ -157,7 +157,7 @@ const engines = require("playwright");
     await fieldPolicy(page);
     if (engine !== 'firefox') {
       const { iphone14ProLandscape } = require('./test-devices.cjs');
-      const phone = await browser.newPage(iphone14ProLandscape);
+      const phone = await newPage(browser, iphone14ProLandscape);
       try {
         await phone.goto('http://127.0.0.1:4970');
         await phone.locator('#zoom-tempo-down').waitFor();

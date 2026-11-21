@@ -54,7 +54,7 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
     dorego: [npm(app, 'test:desktop')],
     notewise: [script(app, '../../tests/ci/critical-midi.browser.mts')],
     songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts')],
-    soundglow: [npm(app, 'test:unit')],
+    soundglow: [npm(app, 'test:unit'), ['node', ['tests/ci/silent-audio.browser.cjs']]],
   }[app];
 }
 module.exports = { budgets, matrix, plan, editionFiles };

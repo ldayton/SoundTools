@@ -1,9 +1,9 @@
+const { launchBrowser, createContext } = require("./ci/browser-harness.cjs");
 const assert = require("node:assert/strict");
-const { chromium } = require("playwright");
 async function testStartupRecovery(url, app) {
-  const browser = await chromium.launch();
+  const browser = await launchBrowser();
   try {
-    const context = await browser.newContext({ serviceWorkers: "block" });
+    const context = await createContext(browser, { serviceWorkers: "block" });
     const page = await context.newPage();
     await page.clock.install();
     const missing =

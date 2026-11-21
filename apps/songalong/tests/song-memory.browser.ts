@@ -1,4 +1,5 @@
-import { chromium, firefox, webkit, expect } from "@playwright/test";
+import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
+import { expect } from "@playwright/test";
 import { practiceOption } from "../../../packages/music-practice/browser-tests/helpers";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -10,11 +11,9 @@ const server = await preview(
 );
 const home = await mkdtemp(join(tmpdir(), "staff-size-"));
 const engine = process.env.TEST_BROWSER || "chromium";
-const browser = await (
-  { chromium, firefox, webkit }[engine] || chromium
-).launch({ env: { ...process.env, CFFIXED_USER_HOME: home } });
+const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: home } });
 try {
-  const context = await browser.newContext({
+  const context = await createContext(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });

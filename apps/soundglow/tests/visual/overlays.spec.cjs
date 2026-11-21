@@ -1,5 +1,5 @@
 const {setSetting}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('optional Praat overlays on the English recording, settings changes and off state',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/dist/index.html#settings');

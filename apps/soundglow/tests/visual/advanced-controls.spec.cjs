@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('advanced analysis has ordinary keyboard disclosure behavior and stays synchronized while closed',async({page})=>{
  await page.goto('/dist/index.html');await page.locator('#demo').click();await page.waitForFunction(()=>running&&processingStats.frames>100);
  await page.locator('#openSettings:visible, #settings:visible').click();

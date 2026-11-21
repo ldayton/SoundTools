@@ -1,6 +1,6 @@
 const {setSetting}=require('./settings-input.cjs');
 const {deleteItem}=require('./library-actions.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const path=require('node:path');
 test.beforeEach(async({page},info)=>{if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});});
 const desktopTest=(name,fn)=>test(name,async({page},info)=>{test.skip(info.project.name!=='desktop','Saved-file browsing is desktop only');await fn({page},info);});

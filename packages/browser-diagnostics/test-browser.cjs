@@ -3,7 +3,7 @@ const assert = require("node:assert/strict"),
   http = require("node:http"),
   fs = require("node:fs"),
   path = require("node:path");
-const { chromium, firefox, webkit } = require("playwright");
+const { launchBrowser, createContext } = require("../../scripts/ci/browser-harness.cjs");
 (async () => {
   const root = path.dirname(
     require.resolve("@ldayton/browser-diagnostics/package.json"),
@@ -49,10 +49,8 @@ const { chromium, firefox, webkit } = require("playwright");
     });
   }
   try {
-    browser = await { chromium, firefox, webkit }[
-      process.env.TEST_BROWSER || "chromium"
-    ].launch();
-    const context = await browser.newContext(),
+    browser = await launchBrowser();
+    const context = await createContext(browser),
       page = await context.newPage();
     page.on("request", (r) => {
       if (r.url().endsWith("/sentry.js")) sdkLoads++;

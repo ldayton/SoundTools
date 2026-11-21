@@ -1,5 +1,5 @@
 const {deleteItem}=require('./library-actions.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const path=require('node:path'),fs=require('node:fs');
 const fixture=path.resolve(__dirname,'../../dist/audio/alice-waters.m4a');
 test.beforeEach(async({page},info)=>{test.skip(info.project.name!=='desktop','Saved-file browsing is desktop only');await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html');await page.evaluate(()=>fileLibrary.ready);});

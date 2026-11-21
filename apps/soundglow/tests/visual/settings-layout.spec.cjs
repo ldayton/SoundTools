@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('desktop sidebar starts collapsed, toggles left, and leaves the spectrogram usable',async({page})=>{
  await page.setViewportSize({width:1280,height:900});await page.goto('/dist/index.html');
  await expect(page.locator('#settings')).toBeHidden();await expect(page.locator('#openSettings')).toBeVisible();await expect(page.locator('#workspaceTransport #start')).toBeVisible();await expect(page.locator('#workspaceTransport #freeze')).toBeVisible();await expect(page.locator('#headerActions #start')).toHaveCount(0);await expect(page.locator('#openSettings')).toHaveAttribute('aria-expanded','false');

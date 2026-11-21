@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('English example runs through the real AudioWorklet and worker',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/dist/index.html');await page.getByRole('button',{name:'Play an Example',exact:true}).click();

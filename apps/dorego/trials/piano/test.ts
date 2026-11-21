@@ -1,3 +1,4 @@
+import { createContext } from "../../../../scripts/ci/browser-harness.cjs";
 import assert from 'node:assert/strict';
 import { readFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -33,7 +34,7 @@ try {
   for (const name of [browserName]) {
     const browser = await launchTestBrowser({ args: name === 'chromium' ? ['--mute-audio'] : [] });
     try {
-      const context = await browser.newContext({
+      const context = await createContext(browser, {
         viewport: { width: 1680, height: 1050 },
         serviceWorkers: 'block',
       });

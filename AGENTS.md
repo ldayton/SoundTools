@@ -22,7 +22,9 @@ never publishes. Preserve this distinction in scripts and workflow matrices.
    tests may and should name the edition they verify.
 3. Use `scripts/ci/browser-harness.cjs` and shared browser helpers. Wait for
    application readiness, responsive layout, restored account state, or dialog
-   closure before interacting. `goto()`/`reload()`, an existing input, and a
+   closure before interacting. Keep tests silent: use the shared context helpers
+   and Soundglow visual fixture. Silence hardware output, never measured PCM or
+   offline renders; see docs/testing.md. `goto()`/`reload()`, an existing input, and a
    fixed delay are not evidence of those conditions. Use observable outcomes
    for assertions; keep deliberate time/latency measurements explicit.
 4. Register coverage in the executable policy. Never append exhaustive checks

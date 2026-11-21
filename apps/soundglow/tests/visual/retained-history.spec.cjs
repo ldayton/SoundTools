@@ -1,5 +1,5 @@
 const {expandSection,sectionExpanded}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const fs=require('node:fs');
 test('long retained history is prepared before the atomic settings commit',async({page},testInfo)=>{
  test.skip(testInfo.project.name!=='desktop','One full-retention benchmark; other projects exercise continuity separately.');

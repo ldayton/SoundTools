@@ -1,12 +1,11 @@
-import { chromium, webkit, expect } from "@playwright/test";
+import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
+import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
 const server = await preview("notewise", 4595),
-  browser = await (
-    process.env.TEST_BROWSER === "webkit" ? webkit : chromium
-  ).launch();
+  browser = await launchBrowser();
 try {
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });

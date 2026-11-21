@@ -1,13 +1,11 @@
+import { launchBrowser, newPage, createContext } from "../scripts/ci/browser-harness.cjs";
 import { waitForAccountIdle } from "../scripts/ci/browser-harness.cjs";
-import { chromium, firefox, webkit, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { login } from "./account-helpers.mts";
 import assert from "node:assert/strict";
 import { selectExercise } from "../apps/dorego/tests/ui-helpers";
-const browser = await (
-  { chromium, firefox, webkit }[process.env.TEST_BROWSER || "chromium"] ||
-  chromium
-).launch();
-const context = await browser.newContext({
+const browser = await launchBrowser();
+const context = await createContext(browser, {
   viewport: { width: 1440, height: 1000 },
   serviceWorkers: "block",
 });

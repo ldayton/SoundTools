@@ -1,4 +1,5 @@
-import { chromium, firefox, webkit, expect } from "@playwright/test";
+import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
+import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -9,11 +10,9 @@ const server = await preview(
 );
 const home = await mkdtemp(join(tmpdir(), "song-output-"));
 const engine = process.env.TEST_BROWSER || "chromium";
-const browser = await (
-  { chromium, firefox, webkit }[engine] || chromium
-).launch({ env: { ...process.env, CFFIXED_USER_HOME: home } });
+const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: home } });
 try {
-  const page = await browser.newPage({
+  const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
     serviceWorkers: "block",
   });

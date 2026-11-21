@@ -4,7 +4,8 @@ process.env.TEST_BROWSER = "firefox";
   const { launchTestBrowser } = await import("../apps/dorego/tests/browser-harness.ts");
   const browser = await launchTestBrowser();
   try {
-    const page = await browser.newPage();
+    const { newPage } = require("./ci/browser-harness.cjs");
+    const page = await newPage(browser);
     await page.setContent(
       `<button onclick="window.audio = new AudioContext(); audio.resume()">Start</button>`,
     );

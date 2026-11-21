@@ -1,5 +1,5 @@
 const {sectionExpanded}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 test('diagnostic sharing is opt-in and usable during English playback',async({page})=>{
  const remote=[];page.on('request',r=>{if(/sentry\.io|telemetry\.invalid/.test(r.url()))remote.push(r.url())});
  await page.goto('/dist/index.html');await page.locator('#demo').click();await page.waitForFunction(()=>Number(canvas.dataset.plottedUntil)>2);

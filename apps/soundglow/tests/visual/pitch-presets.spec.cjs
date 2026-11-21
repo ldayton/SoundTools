@@ -1,5 +1,5 @@
 const {setSetting,expandSection}=require('./settings-input.cjs');
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const settings=async page=>{const b=page.locator(await page.locator('#openSettings').isVisible()?'#openSettings':'#settings');if(await b.getAttribute('aria-expanded')!=='true')await b.click()};
 test('pitch presets use editable trace settings, preserve audio, and save independently',async({page},info)=>{
  if(info.project.name==='desktop')await page.setViewportSize({width:1280,height:900});

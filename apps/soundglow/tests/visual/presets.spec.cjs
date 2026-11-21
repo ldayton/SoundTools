@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const {setSetting,setHistory,expandSection,sectionExpanded}=require('./settings-input.cjs');
 test('Voice Tools and Praat presets switch during English playback',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/dist/index.html#settings');

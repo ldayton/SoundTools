@@ -2,7 +2,8 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
-const { chromium, expect } = require("@playwright/test");
+const { expect } = require("@playwright/test");
+const { launchBrowser, createContext } = require("./ci/browser-harness.cjs");
 
 // Inject a real descendant render failure in the test server only. No production
 // crash switch or application internals are exposed to make this test possible.
@@ -36,7 +37,7 @@ function RecoveryProbe({children}: PropsWithChildren) {
   const root = path.resolve(__dirname, "..");
   const originalCwd = process.cwd();
   const home = await mkdtemp(path.join(tmpdir(), "soundtools-recovery-"));
-  const browser = await chromium.launch({
+  const browser = await launchBrowser({
     env: { ...process.env, CFFIXED_USER_HOME: home },
   });
   try {
@@ -52,7 +53,7 @@ function RecoveryProbe({children}: PropsWithChildren) {
       let context;
       try {
         await server.listen();
-        context = await browser.newContext({
+        context = await createContext(browser, {
           viewport: { width: 1280, height: 900 },
           serviceWorkers: "block",
         });

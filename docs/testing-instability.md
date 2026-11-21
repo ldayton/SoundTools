@@ -188,3 +188,23 @@ The underlying hosted-runner/network cause is unproven; a successful rerun is
 not a code fix or evidence that an assertion flake was solved. No test or timeout
 was changed for this rerun. Keep this infrastructure evidence separate from the
 Nightly fixture, lifecycle and edition-partition repairs above.
+
+## Detached visual server after cancellation (21 November 2026)
+
+Local Nightly `1795293719172-40fc0d50` failed before Soundglow timing assertions:
+Playwright found `http://127.0.0.1:4851/tests/visual/generated/harness.html`
+already in use. The failure log is retained under that run's `logs/` directory.
+`lsof` identified PID 21448, `node tests/visual/server.cjs`, with cwd in the owned
+`SoundTools-test-model/apps/soundglow` checkout, parent 1 and its own process group.
+It was left by the interrupted exploratory run `1795292814167-faee18ec`.
+Only that confirmed owned listener was terminated; another old visual server
+from an unrelated checkout was left alone.
+
+Cause: terminating the test command's process group did not reach Playwright's
+detached web-server group. Cleanup now captures the owned descendant tree before
+terminating parents, applies a bounded SIGTERM/SIGKILL grace period, verifies
+process start times before signaling a PID again, and waits for exit before
+releasing the task. The regression starts a real detached listener that ignores
+SIGTERM, lets its parent exit, and requires cancellation to release the port.
+That lifecycle regression passes. The failed Nightly is retained as a failure,
+not described as a passing rerun or discarded as unexplained intermittency.

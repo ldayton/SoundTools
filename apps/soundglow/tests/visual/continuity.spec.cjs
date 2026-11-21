@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 const fs=require('node:fs');
 const {setSetting,setHistory,expandSection,sectionExpanded}=require('./settings-input.cjs');
 test('sidebar and display changes preserve frozen source history and live playback',async({page},testInfo)=>{

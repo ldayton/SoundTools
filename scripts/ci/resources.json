@@ -1340,6 +1340,13 @@
           "tests/dev-server.browser.cjs"
         ],
         "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "../../tests/ci/silent-audio.browser.cjs"
+        ],
+        "cwd": "apps/soundglow"
       }
     ]
   },
@@ -1856,6 +1863,27 @@
           "tests/dev-server.browser.cjs"
         ],
         "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "../../tests/ci/silent-audio.browser.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      }
+    ]
+  },
+  "soundglow:node:tests/ci/silent-audio.browser.cjs": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "tests/ci/silent-audio.browser.cjs"
+        ],
+        "cwd": ""
       }
     ]
   }

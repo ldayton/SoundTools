@@ -101,7 +101,7 @@ try {
     undefined,
     { timeout: 30000 },
   );
-  await page.waitForTimeout(700);
+  await page.waitForFunction(() => (window as any).backingStarts.length > 8);
   assert.ok(
     await page.evaluate(() => (window as any).backingStarts.length > 8),
   );
@@ -154,19 +154,14 @@ try {
   await group
     .getByRole("combobox", { name: "Backing style", exact: true })
     .selectOption("rock");
-  // At 180 BPM, the complete 64-bar groove lasts 85⅓ seconds. Verify real wraparound.
-  const loopStart = await page.evaluate(() =>
-    Math.max(...(window as any).backingStarts.map((s: any) => s.time)),
+  // The loop-boundary regression lives in backing-metronome.browser.ts:
+  // it seeks near the real boundary, verifies the next scheduler cycle and
+  // renders PCM through the seam. Do not duplicate it with an 87-second wait.
+  await page.waitForFunction(
+    () => document.querySelector(".backing-track-settings")?.getAttribute("data-status") === "playing",
+    undefined,
+    { timeout: 30000 },
   );
-  await page.waitForTimeout(87000);
-  const latest = await page.evaluate(() =>
-    Math.max(...(window as any).backingStarts.map((s: any) => s.time)),
-  );
-  assert.ok(
-    latest - loopStart > 85,
-    "schedules into the next loop without another click",
-  );
-  assert.equal(await group.getAttribute("data-status"), "playing");
   await selectPractice(page, "staff");
   const leftCount = await page.evaluate(
     () => (window as any).backingStarts.length,
@@ -225,7 +220,7 @@ try {
   });
   assert.deepEqual(errors, []);
   console.log(
-    "Backing tracks: real sample decoding/playback, pause, key/tempo/style, loop wraparound, navigation, persistence and responsive layouts passed",
+    "Backing tracks: real sample decoding/playback, pause, key/tempo/style, navigation, persistence and responsive layouts passed",
   );
 } catch (error) {
   await captureFailure(browser, error);

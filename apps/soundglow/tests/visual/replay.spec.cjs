@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');
+const {test,expect}=require('./fixtures.cjs');
 for(const delivery of ['paced','jitter'])test(`English speech ${delivery} matches approved Soundglow canvas`,async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/tests/visual/generated/harness.html?delivery='+delivery);

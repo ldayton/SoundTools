@@ -68,8 +68,8 @@ and resource inventory in `scripts/ci/resources.json`; never omit required cases
 or relax assertions to improve performance. See `docs/testing.md` for benchmarking,
 cleanup and failure evidence.
 
-CI coverage is deliberately bounded by `scripts/ci/test-strategy.cjs`. Keep all
-unit/contract checks, app builds and the selected critical browser checks. Real
+CI coverage is deliberately bounded by `scripts/ci/test-strategy.cjs`. Keep shared/music units and contracts, app builds, app unit checks and the
+selected critical browser checks. Real
 backend integration, exhaustive editions, catalogs and long browser scenarios
 belong to Nightly. Every command moved out of CI must remain covered in Nightly;
 the baseline inventory test prevents omissions. Do not extend the 60-second

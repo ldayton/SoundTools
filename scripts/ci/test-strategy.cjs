@@ -5,7 +5,7 @@ const path = require('node:path');
 const { apps } = require('./apps.cjs');
 const { tiers, tier: validateTier } = require('./tiers.cjs');
 const root = path.resolve(__dirname, '../..');
-const budgets = Object.freeze({ ci: Object.freeze({ core: 10, editions: 15 }), nightly: Object.freeze({ core: 30, editions: 15 }) });
+const budgets = Object.freeze({ ci: Object.freeze({ core: 10 }), nightly: Object.freeze({ core: 30, editions: 15 }) });
 function editionFiles(directory = root) {
   return fs.readdirSync(path.join(directory, 'apps/songalong/tests'))
     .filter(file => file.endsWith('-editions.browser.ts')).sort()
@@ -53,7 +53,9 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
     const exhaustive = legacyPlan(app, 'nightly', browser, group);
     if (group === 'editions') return exhaustive;
     const seen = new Set(exhaustive.map(command => JSON.stringify(command)));
-    return exhaustive.concat(legacyPlan(app, 'ci', browser).filter(command => !seen.has(JSON.stringify(command))));
+    return exhaustive.concat([...legacyPlan(app, 'ci', browser), ...plan(app, 'ci', browser)].filter(command => {
+      const key = JSON.stringify(command); if (seen.has(key)) return false; seen.add(key); return true;
+    }));
   }
   legacyPlan(app, tier, browser, group); // Validate app, engine and group.
   if (group !== 'core') throw Error('Edition browser coverage belongs to Nightly');

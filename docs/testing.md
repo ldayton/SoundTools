@@ -9,7 +9,7 @@ workflow wiring, nested npm aliases, fixture use and failure recording.
 
 | Tier | When | Coverage |
 | --- | --- | --- |
-| **CI** | GitHub pushes/PRs and local pre-push validation (`npm run ci`) | All unit/contracts and builds; selected playback, MIDI, lifecycle, guitar and DSP checks; desktop/phone WebKit startup and auth-confirm isolation. Maximum 60 seconds locally on the Mac Studio. |
+| **CI** | GitHub pushes/PRs and local pre-push validation (`npm run ci`) | Shared/music units and contracts, app unit checks and all builds; selected playback, MIDI, lifecycle, guitar and DSP checks; desktop/phone WebKit startup and auth-confirm isolation. Maximum 60 seconds locally on the Mac Studio. |
 | **Nightly** | Scheduled GitHub runs or explicit manual runs (`npm run nightly`) | Exhaustive coverage across Chromium and WebKit, including every former CI command, exhaustive editions, catalogs, layouts, offline recovery, visual/performance, audio and real Accounts integration; never publishes |
 
 These are the only test tiers. Apps, shared contracts, editions, Accounts and
@@ -25,7 +25,7 @@ that app releases. An unrelated app's failure does not block it. Every edition
 remains required in Nightly; its unit and registry contracts remain in CI. The complete local CI invocation has a hard 60-second budget, including selection,
 installation and cleanup. GitHub CI runs the same coverage on slower hosted
 runners, with a 10-minute per-group safety timeout; Nightly core
-groups have 30 minutes. Edition groups have 15 minutes in either tier. These
+groups have 30 minutes. Nightly edition groups have 15 minutes. These
 are limits, not performance targets: split coverage when command timings show
 growth rather than hiding timeouts.
 Build once per app/configuration in a local run, with SHA/digest provenance; do not reuse stale local builds.
@@ -159,14 +159,13 @@ use filesystem copy-on-write where supported, with private workspace links.
 `CI_WORKERS` or `--workers` controls outer scheduling (CI: up to 16 locally; Nightly: up to six;
 GitHub: two; range 1–32). `CI_UNIT_WORKERS` bounds the shared music unit-file
 pool (default eight in local CI, four in Nightly, two on GitHub; range 1–8). Worker slots are weighted
-scheduling budgets, not a promise to pin every subprocess to a CPU. Use one outer
-worker for a serial baseline; test commands, case inventory and assertions stay
-the same. Do not raise concurrency just because a machine has many logical CPUs:
+scheduling budgets, not a promise to pin every subprocess to a CPU. Compare worker counts against the same CI inventory. A serial CI baseline
+may exceed the hard deadline and is then a failure, not a performance result. Do not raise concurrency just because a machine has many logical CPUs:
 compare throughput, per-command latency and failures first.
 
 ```sh
-npm run ci -- --all --workers 1
-npm run ci -- --all --workers 6
+npm run ci -- --all --workers 12
+npm run ci -- --all --workers 16
 npm run ci:compare -- /absolute/path/to/serial-run /absolute/path/to/parallel-run
 ```
 

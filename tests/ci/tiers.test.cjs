@@ -67,3 +67,11 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
   assert(!tasks.some(task => /accounts-.*:backend|:editions:/.test(task.id)));
   assert.throws(() => plan('songalong', 'ci', 'chromium', 'editions'), /Nightly/);
 });
+
+// The fast tier may evolve, but Nightly must always include its commands too.
+test('Nightly is a command-level superset of current CI on both engines', () => {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const browser of tiers.nightly.browsers) {
+    const nightly = new Set(plan(app, 'nightly', browser).map(command => JSON.stringify(command)));
+    for (const command of plan(app, 'ci', browser)) assert(nightly.has(JSON.stringify(command)));
+  }
+});

@@ -2,8 +2,6 @@ import abcjs from "abcjs";
 import type { BeginnerInstrument } from "./beginner-score";
 import type { HymnLyricData } from "./hymn-lyrics";
 import { accompanimentLyrics } from "./accompaniment-lyrics";
-export const isAmazingGrace = (hymn: { id: string }) =>
-  hymn.id === "amazing-grace";
 type Chord = "G" | "C" | "D7" | "Em";
 // A beginner reduction of the imported Excell setting. Preserve the changes
 // to Em/C and the dominant sevenths; omit its inner passing notes and inversions.

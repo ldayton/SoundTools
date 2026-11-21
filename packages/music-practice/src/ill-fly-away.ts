@@ -1,9 +1,7 @@
-import {beamByBeat} from "./score-melody";
-import abcjs from "abcjs";
+import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
 import type { BeginnerInstrument } from "./beginner-score";
 import type { HymnLyricData } from "./hymn-lyrics";
 import { accompanimentLyrics } from "./accompaniment-lyrics";
-export const isFlyAway = (hymn: { id: string }) => hymn.id === "ill-fly-away";
 // Existing lesson-aligned harmony: V7 arrives on “fly”, not at the first endings.
 export const flyChanges: [number, string][][] = [
   [[0, "C"]],
@@ -47,83 +45,28 @@ const groups = [
   [8, 9, 10, 11],
   [12, 13, 14, 15],
 ];
+export const flyEdition: InstrumentHymn = {
+  title: "I'll Fly Away",
+  key: "C",
+  guitarKey: "C",
+  guitarTranspose: 0,
+  pianoTranspose: -12,
+  tempo: 80,
+  meter: "4/4",
+  changes: flyChanges,
+  piano: pianoBass,
+  guitar: guitarBass,
+  strum,
+  groups,
+  guitarBars: { 12: [["C", 64]] },
+  marks: [],
+};
 export function flyEditionAbc(
   sourceMelody: string,
   instrument: BeginnerInstrument,
   part: "right" | "left" | "both" = "both",
 ) {
-  const piano = instrument === "piano",
-    chordsOnly = !piano && part === "left";
-  let melody = piano
-    ? abcjs.strTranspose(sourceMelody, abcjs.parseOnly(sourceMelody), -12)
-    : sourceMelody;
-  melody = beamByBeat(melody);
-  const tune = abcjs.parseOnly(melody)[0],
-    insertions: { at: number; text: string }[] = [];
-  let bar = 0,
-    elapsed = 0,
-    notes = false;
-  for (const line of tune.lines)
-    for (const note of line.staff?.[0]?.voices?.[0] || []) {
-      if (note.el_type === "bar") {
-        if (notes) {
-          bar++;
-          elapsed = 0;
-          notes = false;
-        }
-        continue;
-      }
-      if (note.el_type !== "note") continue;
-      const change = flyChanges[bar].find(
-        ([at]) => Math.abs(at - elapsed) < 1e-7,
-      );
-      if (change && !piano)
-        insertions.push({ at: note.startChar!, text: `"${change[1]}"` });
-      elapsed += note.duration * 64;
-      notes = true;
-    }
-  for (const { at, text } of insertions.sort((a, b) => b.at - a.at))
-    melody = melody.slice(0, at) + text + melody.slice(at);
-  const body = melody
-    .slice(melody.indexOf("K:C") + 3)
-    .replace(/^w:.*$/gm, "")
-    .trim();
-  const melodyBars = [...body.matchAll(/([^|]*)(\|\]?)/g)].map(
-    (m) => m[1] + m[2],
-  );
-  const accompaniment = flyChanges.map(
-    (changes, bar) =>
-      changes
-        .map(
-          ([start, chord], i) =>
-            `${chordsOnly ? `"${chord}"` : ""}${(chordsOnly ? strum : piano ? pianoBass : bar === 12 ? { ...guitarBass, C: "C" } : guitarBass)[chord]}${(changes[i + 1]?.[0] ?? 64) - start}`,
-        )
-        .join(" ") + (bar === 15 ? " |]" : " |"),
-  );
-  const voice = chordsOnly
-    ? "S2"
-    : part === "right"
-      ? "S1"
-      : part === "left"
-        ? "S2"
-        : piano
-          ? "{S1 | S2}"
-          : "(S1 S2)";
-  const header = `X:1\nT:I'll Fly Away\nM:4/4\nL:1/64\nQ:1/4=80\n%%score ${voice}\n${part !== "left" ? "V:S1 clef=" + (piano ? "treble" : "treble-8 stem=up") + "\n" : ""}${part !== "right" ? "V:S2 clef=" + (piano ? "bass" : "treble-8 stem=down") + "\n" : ""}K:C\n`;
-  return (
-    header +
-    groups
-      .map(
-        (group) =>
-          (part !== "left"
-            ? `[V:S1] ${group.map((i) => melodyBars[i]).join(" ")}\n`
-            : "") +
-          (part !== "right"
-            ? `[V:S2] ${group.map((i) => accompaniment[i]).join(" ")}\n`
-            : ""),
-      )
-      .join("")
-  );
+  return instrumentHymnAbc(sourceMelody, flyEdition, instrument, part);
 }
 export function flyChordOffset(bar: number) {
   return flyChanges.slice(0, bar).reduce((sum, c) => sum + c.length, 0);

@@ -1,10 +1,11 @@
+import type { ChordEditionId } from "./instrument-editions";
 export type EditionGuide = {
   meter: string;
   piano: string;
   guitar: string;
   strum: string;
 };
-export const editionGuides: Record<string, EditionGuide> = {
+export const editionGuides: Record<ChordEditionId, EditionGuide> = {
   "in-christ-alone": {
     meter:
       "D major, 3/4. The pickup lasts one and a half beats. Earlier verses include the four-bar vocal ending; the final verse ends at bar 16.",
@@ -45,9 +46,13 @@ export const editionGuides: Record<string, EditionGuide> = {
       "C uses strings 5–1; small F uses 4–1; G7 uses all six. The strummed shapes are fuller than the fingerstyle voicings.",
   },
   "o-come-all-ye-faithful": {
-    meter:"G major, 4/4. Begin with a one-beat pickup; the final bar has three beats. The refrain starts with ‘O’ on the last beat of bar 12. Count through the quarter rest in bar 8.",
-    piano:"The melody spans D4–D5. Reposition between the lower D–A and upper G–D ranges; finger numbers suggest starting points. Compact left-hand chords fit within a fifth. A7 retains the source’s C♯ leading into D.",
-    guitar:"The complete melody sounds one octave below Piano and stays in first position, reaching fret 4. Let the bass ring while the melody moves. D uses F♯ bass; D7 adds C, and A7 uses a G–C♯ shell. Use finger 4 for the high D and finger 1 for E or A so the held bass stays free.",
-    strum:"G and Em use all six strings; A7, C and Am use strings 5–1; D and D7 use 4–1. Small Bm is xx4432, a four-string shape without a barre. Fingerstyle uses lighter voicings.",
+    meter:
+      "G major, 4/4. Begin with a one-beat pickup; the final bar has three beats. The refrain starts with ‘O’ on the last beat of bar 12. Count through the quarter rest in bar 8.",
+    piano:
+      "The melody spans D4–D5. Reposition between the lower D–A and upper G–D ranges; finger numbers suggest starting points. Compact left-hand chords fit within a fifth. A7 retains the source’s C♯ leading into D.",
+    guitar:
+      "The complete melody sounds one octave below Piano and stays in first position, reaching fret 4. Let the bass ring while the melody moves. D uses F♯ bass; D7 adds C, and A7 uses a G–C♯ shell. Use finger 4 for the high D and finger 1 for E or A so the held bass stays free.",
+    strum:
+      "G and Em use all six strings; A7, C and Am use strings 5–1; D and D7 use 4–1. Small Bm is xx4432, a four-string shape without a barre. Fingerstyle uses lighter voicings.",
   },
 };

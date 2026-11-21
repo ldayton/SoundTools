@@ -1,9 +1,8 @@
+import {capoAudio} from "./edition-score";
 import { accompanimentLyrics } from "./accompaniment-lyrics";
 import abcjs from "abcjs";
 import type { HymnLyricData } from "./hymn-lyrics";
 import type { BeginnerInstrument } from "./beginner-score";
-export const isChristAlone = (hymn: { id: string }) =>
-  hymn.id === "in-christ-alone";
 
 // Capo-relative C/F/G/Am accompaniment from scores/in-christ-alone-music.ily
 // in ldayton/tab-music. Written pitches use the conventional guitar octave clef.
@@ -225,14 +224,7 @@ export function christGuitarLyricData(
 export function christCapoAudio(
   audio: import("abcjs").AudioTracks,
 ): import("abcjs").AudioTracks {
-  return {
-    ...audio,
-    tracks: audio.tracks.map((track) =>
-      track.map((event) =>
-        event.cmd === "note" ? { ...event, pitch: event.pitch + 2 } : event,
-      ),
-    ),
-  };
+  return capoAudio(audio,2);
 }
 
 /** A light two-voice fingerstyle setting; pitches and frets are capo-relative. */
@@ -327,3 +319,7 @@ export function christFingerstyleAbc(
       .join("")
   );
 }
+
+/** Preserve the reviewed lower piano register and source two-hand setting. */
+export function christPianoAbc(source:string){return abcjs.strTranspose(source,abcjs.parseOnly(source),-12)
+ .replace('%%staves S1 | S2','%%score {S1 | S2}').replace('L:1/64','L:1/64\nQ:1/4=70');}

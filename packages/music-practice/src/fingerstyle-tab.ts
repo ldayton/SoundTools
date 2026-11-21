@@ -1,19 +1,8 @@
+import {isGuitarPositionMark} from "./edition-score";
 import type { TuneObject } from "abcjs";
 
-// String indices run from high E (0) to low E (5), matching abcjs.
-const sourcePositions: Record<number, [number, number]> = {
-  40: [5, 0], 45: [4, 0], 46: [4, 1], 47: [4, 2],
-  52: [3, 2], 56: [2, 1], 59: [1, 0], 61: [1, 2],
-  62: [1, 3], 64: [1, 5], 66: [0, 2], 67: [0, 3], 69: [0, 5],
-};
-export function fingerstylePosition(pitch: number, chord: boolean, transpose = 0) {
-  const original = pitch - transpose;
-  const position = original === 64 && chord ? [0, 0] : sourcePositions[original];
-  if (!position) return undefined;
-  const [str, fret] = position;
-  const num = fret + transpose;
-  return num >= 0 && num <= 24 ? { str, num } : undefined;
-}
+import {bluesPosition as fingerstylePosition} from "./fingerstyle-blues";
+export {bluesPosition as fingerstylePosition} from "./fingerstyle-blues";
 
 type TabNumber = { num: number | string; str: number; note: { pitch: number; pitchAltered: number } };
 type TabResult = { notes?: TabNumber[]; graces?: TabNumber[] };
@@ -172,7 +161,7 @@ export function showOnlyTab(paper: HTMLElement,tempoLabel="Swing",lyricPadding=5
       svg.append(chord);
     }
     for(const position of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-annotation')) {
-      if(!/^(I|III|VII)$/.test(position.textContent?.trim()||''))continue;
+      if(!isGuitarPositionMark(position.textContent||''))continue;
       const copy=position.cloneNode(true) as SVGGraphicsElement,ink=position.getBBox();
       copy.classList.add('guitar-position');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-76-ink.y})`);svg.append(copy);

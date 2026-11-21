@@ -141,27 +141,24 @@ const minor: Record<ScaleShape, Fingering> = {
   },
   "5": major["4"],
 };
-// Remove the two omitted degrees from the existing five positions. Use a
-// consistent four-fret hand position for each two-notes-per-string box.
+// Keep each pentatonic inside its own numbered full-scale position. Retain
+// the parent fingering so removing notes never introduces a new hand shift.
+// These are scale subsets, not necessarily two-notes-per-string boxes.
 function pentatonic(source: Record<ScaleShape, Fingering>) {
   const pitches = new Set([0, 2, 4, 7, 9]); // C major / A minor pentatonic
   return Object.fromEntries(SCALE_SHAPES.map(shape => {
-    const frets = source[shape].frets.map((row, index) => row.filter(fret =>
-      pitches.has((STRINGS.find(s => s.number === 6 - index)!.midi + fret) % 12)));
-    const low = Math.min(...frets.flat());
-    return [shape, { frets, fingers: frets.map(row => row.map(fret => fret - low + 1)) }];
+    const rows = source[shape].frets.map((row, index) => row.flatMap((fret, column) =>
+      pitches.has((STRINGS.find(s => s.number === 6 - index)!.midi + fret) % 12)
+        ? [{ fret, finger: source[shape].fingers[index][column] }]
+        : []));
+    return [shape, {
+      frets: rows.map(row => row.map(note => note.fret)),
+      fingers: rows.map(row => row.map(note => note.finger)),
+    }];
   })) as Record<ScaleShape, Fingering>;
 }
 const minorPentatonic = pentatonic(minor);
-// GuitarScale.org's suggested fingerings use small hand adjustments at B/high E.
-minorPentatonic["2"].fingers = [[2,4],[1,4],[1,4],[1,3],[1,3],[1,3]];
-minorPentatonic["5"].fingers = [[1,3],[1,3],[1,4],[1,4],[1,3],[1,3]];
-// This box changes hand position at the G string and again at B.
-minorPentatonic["3"].fingers = [[1,3],[1,3],[1,3],[1,4],[1,4],[1,3]];
-const majorPentatonic: Record<ScaleShape, Fingering> = {
-  "1": minorPentatonic["2"], "2": minorPentatonic["3"], "3": minorPentatonic["4"],
-  "4": minorPentatonic["5"], "5": minorPentatonic["1"],
-};
+const majorPentatonic = pentatonic(major);
 // Audited against GuitarScale.org's five A blues diagrams. Keep explicit
 // boxes: merely adding notes inside pentatonic bounds misses high-E fret 11
 // in box 2. Fingers are suggestions; some boxes change hand position.

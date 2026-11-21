@@ -610,7 +610,7 @@ export class ScaleExplorer implements LivePractice {
     const source =
       this.quality === "major-blues"
         ? "https://pulse.berklee.edu/scales/c-major-blues-scale.html"
-        : `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : this.quality.endsWith("pentatonic") ? (isMajorScale(this.quality) ? "c-pentatonic-major" : "a-pentatonic-minor") : isMajorScale(this.quality) ? "c-major" : "a-minor"}.html`;
+        : `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : isMajorScale(this.quality) ? "c-major" : "a-minor"}.html`;
     const keys = [-1, 1].map((direction) => {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],

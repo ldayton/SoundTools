@@ -27,15 +27,23 @@ test('all pentatonic/blues placements and every offered return form mechanically
         assert.ok(formulas[quality].some(offset=>(tonic+offset)%12===n.pitchClass));
         assert.ok(Number.isInteger(n.finger)&&n.finger>=1&&n.finger<=4);
       }
-      // Within a string the fingers fit without stretching; across strings
-      // the published boxes need at most a one-fret hand adjustment.
+      // Across strings, allow at most a one-fret hand adjustment. Pentatonic
+      // subsets inherit the full-scale fingering, including its whole-tone
+      // extension; conventional blues boxes retain the no-stretch contract.
+      const parent=quality.endsWith('pentatonic')
+        ? patternPositions(quality.startsWith('major')?0:9,quality.startsWith('major')?'major':'minor',shape,0)
+        : undefined;
+      if(parent)for(const n of a)assert.equal(n.finger,parent.find(p=>p.string===n.string&&p.fret===n.fret-shift)?.finger);
       const handPositions=a.map(n=>n.fret-n.finger+1);
       assert.ok(Math.max(...handPositions)-Math.min(...handPositions)<=1);
       for(let string=1;string<=6;string++) {
         const row=a.filter(n=>n.string===string);
         row.forEach((n,i)=>{if(i){
           assert.ok(n.fret>row[i-1].fret&&n.finger>row[i-1].finger);
-          assert.equal(n.fret-row[i-1].fret,n.finger-row[i-1].finger);
+          const fretDistance=n.fret-row[i-1].fret;
+          const fingerDistance=n.finger-row[i-1].finger;
+          if(parent)assert.ok(fretDistance>=fingerDistance&&fretDistance<=fingerDistance+1);
+          else assert.equal(fretDistance,fingerDistance);
         }});
       }
       for(const linked of SCALE_SHAPES) {
@@ -70,7 +78,7 @@ test('all pentatonic/blues placements and every offered return form mechanically
                   if(previous.string===n.string&&i!==pivot)
                     assert.ok((n.fret-previous.fret)*(n.finger-previous.finger)>0);
                 });
-                assert.ok(s*(leg.arrival.fret-leg.previous.fret)>=0);
+                assert.ok(s*(leg.arrival.fret-leg.previous.fret)>=0, JSON.stringify({quality,tonic,shape,shift,linked,direction,previous:leg.previous,arrival:leg.arrival}));
                 assert.ok(Math.abs(leg.arrival.fret-leg.previous.fret)<=4);
               }
             }
@@ -80,6 +88,6 @@ test('all pentatonic/blues placements and every offered return form mechanically
     }
   }
   assert.equal(boxes,370);
-  assert.equal(outwardChoices,16216);
-  assert.equal(combinations,204728);
+  assert.equal(outwardChoices,16508);
+  assert.equal(combinations,204724);
 });

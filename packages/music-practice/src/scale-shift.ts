@@ -23,6 +23,10 @@ export function shiftRoutes(a: ShiftNote[], b: ShiftNote[], direction: ShiftDire
     const previous = before.at(-1);
     if(!previous || (!after.length && !allowEndpoint)) continue;
     if (primaryFirst && previous.string !== arrival.string) continue;
+    // A rising/falling position shift must move the hand in that direction,
+    // even when the next pitch crosses to another string in an uneven subset.
+    const fretChange = sign*(arrival.fret-previous.fret);
+    if (fretChange < 0 || fretChange > 4) continue;
     const gap = sign*(arrival.midi-previous.midi);
     const stringChange = sign*(previous.string-arrival.string);
     if(gap<1 || gap>maxGap || stringChange<0 || stringChange>1) continue;

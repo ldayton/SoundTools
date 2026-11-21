@@ -145,3 +145,10 @@ cancellation and genuine live failures remain visible. Unit tests cover both
 boundaries, and the existing real-backend confirmation-window test holds a
 snapshot across each boundary, requires cancellation, and verifies recovery on
 all three practice apps. Ordinary passing reloads are not the regression proof.
+
+The diagnostic cleanup also found an untracked generated
+`apps/soundglow/playwright-report-ui/index.html`. The UI/timing split introduced
+report-directory suffixes, but the app ignored only `playwright-report/`.
+Both suffixed report directories are now ignored as generated output. They
+remain retained by the runner's report/evidence collection; tracked-source
+revision checks remain strict. Both diagnostic backend stacks stopped cleanly.

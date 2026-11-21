@@ -82,7 +82,7 @@ function AppShell({
     if (location.hash !== (settings ? '#settings' : '')) {
       if (settings) location.hash = 'settings';
       else {
-        history.pushState(null, '', base);
+        history.replaceState(null, '', location.pathname + location.search);
         window.dispatchEvent(new HashChangeEvent('hashchange'));
       }
     }
@@ -107,7 +107,7 @@ function AppShell({
       </UnstyledButton>
       <SidebarTools>
         <SettingsNavigationLink
-          href={`${base}#settings`}
+          href={`${location.pathname}${location.search}#settings`}
           active={settings}
           updateAvailable={!offline.updateHidden}
           onClick={(event) => {

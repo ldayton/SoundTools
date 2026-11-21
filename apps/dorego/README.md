@@ -278,3 +278,20 @@ Major Scale combines the former Five-Note Scale and full Major Scale through an
 on-page 5/8-note selector. Pentatonic Threes has its 6/9/12-note selector in the
 main pane. Glides combines fifth and octave variants through an on-page interval
 selector. These selectors use anchored app-rendered menus on phones and desktops.
+
+### Exercise links
+
+The URL follows the selected exercise and its on-page choices:
+`/arpeggio-scale`, `/octave-arpeggio`, `/rossini`,
+`/major/5` or `/major/8`, `/pentatonic/6` (also 9 or 12),
+`/glide/fifth` or `/glide/octave`, `/maqamat/hijaz`,
+`/yemenite/bayati/8`, and `/breathing`.
+Maqamat and Yemenite links can end in `/drone` to enable the tonic drone.
+Omitting a collection selects Hijaz or Yemenite Bayati 8.
+
+Optional `low` and `high` query parameters accept note names or MIDI numbers,
+e.g. `/maqamat/bayati?low=C4&high=D5`. Encode sharps as `%23` (`F%233`).
+Without range parameters, explicit exercise links use the exercise's default
+range; opening the app root restores saved preferences. Other settings such as
+tempo remain personal preferences. Browser Back/Forward restores the exercise,
+choices and range. Settings retain the exercise URL with `#settings`.

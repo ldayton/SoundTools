@@ -136,7 +136,7 @@ export async function verifyYemenite(browser: Browser, base: string) {
         restBeats: 16,
         repetitions: 1,
       });
-      await page.reload();
+      await page.goto(base);
       await page.locator('#play:enabled').waitFor();
       await page.locator('#play').click();
       await page.waitForFunction(

@@ -89,11 +89,128 @@
           "value": "nosniff"
         }
       ]
+    },
+    {
+      "source": "/arpeggio-scale/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/octave-arpeggio/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/rossini/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/pentatonic/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/major/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/glide/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/maqamat/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/yemenite/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/breathing/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
       "source": "/auth/confirm",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/arpeggio-scale/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/octave-arpeggio/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/rossini/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/pentatonic/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/major/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/glide/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/maqamat/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/yemenite/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/breathing/:path*",
       "destination": "/index.html"
     }
   ],

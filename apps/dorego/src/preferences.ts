@@ -64,14 +64,14 @@ export function encodePreferences(state: State): Records {
 export const preferences = {
   state: guest(),
   cloud: false,
-  listeners: new Set<(source: 'local' | 'account') => void>(),
-  subscribe(listener: (source: 'local' | 'account') => void) {
+  listeners: new Set<(source: 'local' | 'account' | 'url') => void>(),
+  subscribe(listener: (source: 'local' | 'account' | 'url') => void) {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
     };
   },
-  update(patch: Partial<State>) {
+  update(patch: Partial<State>, source: 'local' | 'url' = 'local') {
     const next = { ...this.state, ...patch };
     if (JSON.stringify(next) === JSON.stringify(this.state)) return;
     this.state = next;
@@ -83,7 +83,7 @@ export const preferences = {
         localStorage.setItem('dorego.audioChannels', next.channels);
         localStorage.setItem('dorego.exercise', next.selected);
       } catch {}
-    for (const listener of this.listeners) listener('local');
+    for (const listener of this.listeners) listener(source);
   },
   apply(records: Records | null) {
     if (!records) this.state = guest();

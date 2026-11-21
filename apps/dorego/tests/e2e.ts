@@ -1,4 +1,9 @@
-import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  newPage,
+} from '../../../scripts/ci/browser-harness.cjs';
 import { elapsedSeconds } from './ui-helpers';
 import { selectExercise } from './ui-helpers';
 import { readSpecValue, openMoreOptions, sliderValue, setSlider } from './ui-helpers';
@@ -65,11 +70,11 @@ try {
     'Arpeggio & Scale',
     'Octave Arpeggio',
     'Rossini Scale',
-    'Five-Note Scale',
     'Pentatonic Threes',
     'Major Scale',
-    'Fifth Glide',
-    'Octave Glide',
+    'Glides',
+    'Maqamat',
+    'Yemenite ✡︎',
     'Breath Squares',
   ]);
   assert.deepEqual(await page.locator('#direction button[aria-pressed]').allTextContents(), [

@@ -29,7 +29,9 @@ test('legacy coupled CLI directions retain their ascending/descending passes', (
       [...targets, ...targets]
     );
     assert.equal(e.spec.direction, 'both');
-    assert.match(e.title!, /Ascending & Descending/);
+    if (pattern === 'fifthGlide' || pattern === 'octaveGlide') assert.equal(e.title, 'Glides');
+    else if (pattern === 'fiveNote') assert.equal(e.title, 'Major Scale');
+    else assert.match(e.title!, /Ascending & Descending/);
     for (let i = 1; i < e.rounds.length; i++)
       assert.equal(e.rounds[i].onsetBeat - e.rounds[i - 1].endBeat, 2);
     const down = generateExercise({ ...spec, direction: 'down', repetitions: 1, countIn: 0 });

@@ -1,8 +1,9 @@
 import {
   DEFAULT_SPEC,
+  isScalePattern,
   isVocalPattern,
   isGlidePattern,
-  vocalSpan,
+  exerciseSpan,
   generateExercise as generateBoundedExercise,
   type ExerciseSpec,
 } from './music';
@@ -42,8 +43,11 @@ export function restoreSpec(input: unknown, glideShapeVersion: string | null): E
   }
   if (saved.progression === undefined) {
     saved.progression =
-      saved.pattern === 'rossini' || saved.pattern === 'major' ? 'up' : saved.direction;
-    if (saved.direction === 'both' && saved.pattern !== 'major') saved.direction = 'up';
+      saved.pattern === 'rossini' || isScalePattern(saved.pattern as ExerciseSpec['pattern'])
+        ? 'up'
+        : saved.direction;
+    if (saved.direction === 'both' && !isScalePattern(saved.pattern as ExerciseSpec['pattern']))
+      saved.direction = 'up';
   }
   if (
     isGlidePattern(saved.pattern as ExerciseSpec['pattern']) &&
@@ -52,8 +56,8 @@ export function restoreSpec(input: unknown, glideShapeVersion: string | null): E
   )
     saved.direction = 'both';
   const spec = generateExercise(saved).spec;
-  const high = Math.min(MAX_NOTE, Math.max(MIN_NOTE + vocalSpan(spec.pattern), spec.high));
-  const low = Math.max(MIN_NOTE, Math.min(spec.low, high - vocalSpan(spec.pattern)));
+  const high = Math.min(MAX_NOTE, Math.max(MIN_NOTE + exerciseSpan(spec), spec.high));
+  const low = Math.max(MIN_NOTE, Math.min(spec.low, high - exerciseSpan(spec)));
   return generateExercise({ ...spec, low, high }).spec;
 }
 
@@ -68,7 +72,7 @@ export function editSpec(
   } as Record<string, unknown>;
   if (
     result.pattern !== spec.pattern &&
-    result.pattern !== 'major' &&
+    !isScalePattern(result.pattern as ExerciseSpec['pattern']) &&
     !isGlidePattern(result.pattern as ExerciseSpec['pattern']) &&
     result.direction === 'both'
   )
@@ -76,12 +80,12 @@ export function editSpec(
   result.progression = result.progression ?? 'up';
   if (
     isVocalPattern(result.pattern as ExerciseSpec['pattern']) &&
-    result.pattern !== spec.pattern &&
-    Number(result.high) - Number(result.low) < vocalSpan(result.pattern as ExerciseSpec['pattern'])
+    (result.pattern !== spec.pattern || result.yemeniteCollection !== spec.yemeniteCollection) &&
+    Number(result.high) - Number(result.low) < exerciseSpan(result as unknown as ExerciseSpec)
   ) {
-    const span = vocalSpan(result.pattern as ExerciseSpec['pattern']);
-    result.high = Math.min(MAX_NOTE, Number(result.low) + span);
-    result.low = Math.min(Number(result.low), Number(result.high) - span);
+    const span = exerciseSpan(result as unknown as ExerciseSpec);
+    result.high = Math.min(MAX_NOTE, Math.ceil(Number(result.low) + span));
+    result.low = Math.min(Number(result.low), Math.floor(Number(result.high) - span));
   }
   if (result.pattern === 'major') {
     const down = result.direction === 'down';

@@ -127,7 +127,7 @@ test('descending glides start high and finish low without returning up', () => {
     assert.ok(Math.abs(Math.min(...cello.pitchBends.map((p) => p.value)) + span / 12) < 0.001);
     assert.ok(cello.pitchBends.every((p) => p.value <= 0));
     assert.equal(cello.pitchBends.at(-1)!.value, 0);
-    assert.match(e.title!, /Descending/);
+    assert.equal(e.title, 'Glides');
   }
 });
 

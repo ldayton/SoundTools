@@ -54,7 +54,7 @@ function text(
   weight = 500,
   align: CanvasTextAlign = 'center'
 ) {
-  ctx.font = `${weight} ${size}px Arial, sans-serif`;
+  ctx.font = `${weight} ${size}px DoReGoAccidentals, Arial, sans-serif`;
   ctx.fillStyle = color;
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
@@ -78,10 +78,10 @@ function glyphLayout(ctx: CanvasRenderingContext2D, value: string, size: number)
   const key = `${size}:${value}`;
   const saved = cache.get(key);
   if (saved) return saved;
-  ctx.font = `500 ${size}px Arial, sans-serif`;
+  ctx.font = `500 ${size}px DoReGoAccidentals, Arial, sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  const note = /^([A-G])([♯♭])(-?\d+)$/.exec(value);
+  const note = /^([A-G])([♯♭𝄲𝄳])(-?\d+)$/u.exec(value);
   let layout: GlyphLayout;
   if (note) {
     const [, letter, accidental, octave] = note;
@@ -94,7 +94,7 @@ function glyphLayout(ctx: CanvasRenderingContext2D, value: string, size: number)
     // Size from actual ink bounds because the flat's font fallback has a tall stem.
     const accidentalSize =
       (size * ascent * 0.62) / (symbol.actualBoundingBoxAscent + symbol.actualBoundingBoxDescent);
-    ctx.font = `500 ${accidentalSize}px Arial, sans-serif`;
+    ctx.font = `500 ${accidentalSize}px DoReGoAccidentals, Arial, sans-serif`;
     const m = ctx.measureText(accidental);
     const gap = size * 0.035;
     const letterWidth = a.actualBoundingBoxLeft + a.actualBoundingBoxRight;
@@ -146,7 +146,7 @@ function centeredGlyphs(
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = color;
   for (const run of layout.runs) {
-    ctx.font = `500 ${run.size}px Arial, sans-serif`;
+    ctx.font = `500 ${run.size}px DoReGoAccidentals, Arial, sans-serif`;
     ctx.fillText(run.value, left + run.left, baseline + run.baseline);
   }
   return { left, top: y - layout.height / 2, width: layout.width, height: layout.height };
@@ -170,7 +170,7 @@ export function drawExercise(
   const sounding = new Set(
     keyboardNotes
       .filter((n) => n.onsetBeat <= scene.beat && scene.beat < n.onsetBeat + n.durationBeats)
-      .map((n) => Math.round(notePitchAt(n, scene.beat)))
+      .map((n) => (n.glideSpan ? Math.round(notePitchAt(n, scene.beat)) : n.midi))
   );
   if (scene.phase === 'ready') {
     sounding.clear();
@@ -434,6 +434,16 @@ export function drawExercise(
     ctx.arc(xAt(notePitchAt(glide, scene.beat)), y, mobile ? 14 : 8, 0, Math.PI * 2);
     ctx.fillStyle = C.accent;
     ctx.fill();
+    if (!Number.isInteger(glide.midi))
+      text(
+        ctx,
+        roundNoteName(glide.midi, practice.current),
+        xAt(glide.midi),
+        y - (mobile ? 24 : 16),
+        mobile ? 30 : 18,
+        C.ink,
+        600
+      );
   }
   if (spec.transition !== null && spec.transition >= low && spec.transition <= high) {
     const black = [1, 3, 6, 8, 10].includes(spec.transition % 12);

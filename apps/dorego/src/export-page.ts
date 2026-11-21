@@ -1,3 +1,4 @@
+import './accidentals.css';
 import { generateExercise, type Exercise, type ExerciseSpec } from './music';
 import { drawExercise } from './render';
 import { renderAudio } from './audio';
@@ -5,7 +6,8 @@ import { renderAudio } from './audio';
 let exercise: Exercise;
 const canvas = document.querySelector<HTMLCanvasElement>('#render')!;
 const renderer = {
-  init(spec: ExerciseSpec, width: number, height: number) {
+  async init(spec: ExerciseSpec, width: number, height: number) {
+    await document.fonts.load('16px DoReGoAccidentals', '𝄲𝄳');
     exercise = generateExercise(spec);
     canvas.width = width;
     canvas.height = height;

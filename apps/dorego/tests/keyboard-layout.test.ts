@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_SPEC, generateExercise, secondsAt } from '../src/music';
 import {
+  phrasePitches,
   keyboardRange,
   practiceRange,
   keyboardView,
@@ -167,4 +168,19 @@ test('iteration ranges exclude chords and include both endpoints of descending g
     direction: 'both',
   });
   assert.deepEqual(practiceRange(major, major.rounds[0]), { low: 60, high: 72 });
+});
+
+test('note pads contain each sung pitch once, exclude cues, and retain quarter tones and glide endpoints', () => {
+  const five = generateExercise({ ...DEFAULT_SPEC, pattern: 'fiveNote', low: 60, high: 67 });
+  assert.deepEqual(phrasePitches(five, five.rounds[0]), [60, 62, 64, 65, 67]);
+  const maqam = generateExercise({
+    ...DEFAULT_SPEC,
+    pattern: 'maqamat',
+    low: 60,
+    high: 72,
+    scaleTuning: 'rast',
+  });
+  assert.deepEqual(phrasePitches(maqam, maqam.rounds[0]), [60, 62, 63.5, 65, 67, 69, 70.5, 72]);
+  const glide = generateExercise({ ...DEFAULT_SPEC, pattern: 'octaveGlide', low: 60, high: 72 });
+  assert.deepEqual(phrasePitches(glide, glide.rounds[0]), [60, 72]);
 });

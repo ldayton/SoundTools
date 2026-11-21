@@ -1,4 +1,9 @@
-import { waitForServer, captureFailure, closeBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  newPage,
+} from '../../../scripts/ci/browser-harness.cjs';
 import { selectExercise } from './ui-helpers';
 import { volumePercent } from '@ldayton/ui/volume';
 import {
@@ -316,10 +321,7 @@ try {
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();
   await selectExercise(page, 'pentatonic12');
-  assert.equal(
-    await page.locator('#exercise-title').textContent(),
-    'Pentatonic Threes (Rising first)'
-  );
+  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Threes');
   assert.deepEqual(await page.locator('#direction button[aria-pressed]').allTextContents(), [
     'Rising first',
     'Falling first',
@@ -337,13 +339,10 @@ try {
   await page.locator('#repeatHome').uncheck();
 
   await page.locator('#direction-down').click();
-  assert.equal(
-    await page.locator('#exercise-title').textContent(),
-    'Pentatonic Threes (Falling first)'
-  );
+  assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Threes');
   await page.locator('#direction-up').click();
   for (const [pattern, label] of [
-    ['fiveNote', 'Five-Note Scale'],
+    ['fiveNote', 'Major Scale'],
     ['octaveArpeggio', 'Octave Arpeggio'],
   ]) {
     await selectExercise(page, pattern);
@@ -364,11 +363,11 @@ try {
     'Arpeggio & Scale',
     'Octave Arpeggio',
     'Rossini Scale',
-    'Five-Note Scale',
     'Pentatonic Threes',
     'Major Scale',
-    'Fifth Glide',
-    'Octave Glide',
+    'Glides',
+    'Maqamat',
+    'Yemenite ✡︎',
     'Breath Squares',
   ]);
   await openMoreOptions(page);
@@ -471,7 +470,9 @@ try {
   assert.equal(Number(await readSpecValue(page, 'low')), Number(highBefore) - 7);
   assert.equal(await readSpecValue(page, 'high'), highBefore);
   await page.reload();
-  await page.waitForFunction(() => document.querySelector<HTMLButtonElement>('#play')?.disabled === false);
+  await page.waitForFunction(
+    () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
+  );
 
   const preferencesPage = await newPage(browser);
   const remembered = {

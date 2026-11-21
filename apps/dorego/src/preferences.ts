@@ -36,7 +36,15 @@ function guest(): State {
     selected: selected === 'breathSquares' ? 'breathSquares' : 'warmup',
   };
 }
-const pitchFields = ['pattern', 'key', 'low', 'high', 'direction', 'progression'] as const;
+const pitchFields = [
+  'pattern',
+  'key',
+  'low',
+  'high',
+  'direction',
+  'progression',
+  'yemeniteCollection',
+] as const;
 export function encodePreferences(state: State): Records {
   return {
     schema: 1,

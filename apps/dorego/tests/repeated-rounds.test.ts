@@ -1,13 +1,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SPEC, PATTERNS, generateExercise, isGlidePattern, vocalSpan } from '../src/music';
+import {
+  DEFAULT_SPEC,
+  PATTERNS,
+  generateExercise,
+  isGlidePattern,
+  isScalePattern,
+  vocalSpan,
+} from '../src/music';
 
 test('double rounds repeat the sung notes contiguously in the same key, with one introduction', () => {
   for (const pattern of Object.keys(PATTERNS) as (keyof typeof PATTERNS)[])
     for (const direction of ['up', 'down', 'both'] as const)
       for (const progression of ['up', 'down', 'both'] as const)
         for (const startingChords of [false, true]) {
-          if (direction === 'both' && pattern !== 'major' && !isGlidePattern(pattern)) continue;
+          if (direction === 'both' && !isScalePattern(pattern) && !isGlidePattern(pattern))
+            continue;
           const input = {
             ...DEFAULT_SPEC,
             pattern,
@@ -32,7 +40,7 @@ test('double rounds repeat the sung notes contiguously in the same key, with one
           for (let i = 0; i < baseline.rounds.length; i++) {
             const before = baseline.rounds[i],
               after = doubled.rounds[i];
-            const cue: number = pattern !== 'major' && startingChords ? 6 : 0;
+            const cue: number = baseline.spec.startingChords && !isScalePattern(pattern) ? 6 : 0;
             const body = before.endBeat - before.onsetBeat - cue;
             const oldNotes = baseline.notes.filter(
               (n) => n.onsetBeat >= before.onsetBeat + cue && n.onsetBeat < before.endBeat

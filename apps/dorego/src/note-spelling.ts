@@ -35,7 +35,14 @@ function withOctave(midi: number, spelling: string): string {
 
 /** Without a tonic: stable selector name. With a tonic: a major-key spelling. */
 export function noteName(midi: number, tonic?: number): string {
-  if (!Number.isInteger(midi)) return `${noteName(Math.ceil(midi))} −50¢`;
+  if (!Number.isInteger(midi)) {
+    const upper = Math.ceil(midi),
+      lower = Math.floor(midi);
+    // Prefer a half-flat below a natural, otherwise a half-sharp above one.
+    const natural = Object.values(NATURALS).includes(pitchClass(upper)) ? upper : lower;
+    const symbol = natural === upper ? '𝄳' : '𝄲';
+    return noteName(natural).replace(/(-?\d+)$/, `${symbol}$1`);
+  }
   const names = tonic === undefined ? PITCH_NAMES : SCALE_NAMES[pitchClass(tonic)];
   return withOctave(midi, names[pitchClass(midi)]);
 }

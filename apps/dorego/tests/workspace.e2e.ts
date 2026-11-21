@@ -1,5 +1,11 @@
+import { verifyYemenite } from './yemenite.e2e';
 import { verifyMaqamScales } from './maqam.e2e';
-import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  createContext,
+} from '../../../scripts/ci/browser-harness.cjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -125,7 +131,7 @@ try {
     assert.ok(Math.abs(after!.x - before!.x) < 2, `${name} moves transport`);
   }
   assert.ok(
-    (await page.locator('.white-key').count()) >= 25,
+    (await page.locator('.note-pad').count()) === 5,
     'Desktop keyboard uses the available width'
   );
   const key = page.locator('[data-piano="60"]');
@@ -134,21 +140,43 @@ try {
     const key = document.querySelector('[data-piano="60"]');
     return (
       key &&
-      Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 20 : 32) &&
+      key.getBoundingClientRect().width > 0 &&
       getComputedStyle(key).backgroundColor === 'rgb(255, 255, 255)'
     );
   });
-  assert.equal(await key.locator('.piano-note-label').textContent().then(s => s?.trim()), 'C4');
-  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="60"] .piano-note-label')!).visibility === 'visible');
+  assert.equal(
+    await key
+      .locator('.piano-note-label')
+      .textContent()
+      .then((s) => s?.trim()),
+    'C4'
+  );
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.querySelector('[data-piano="60"] .piano-note-label')!)
+        .visibility === 'visible'
+  );
   const dKey = page.locator('[data-piano="62"]');
-  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'hidden');
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!)
+        .visibility === 'visible'
+  );
   // Let the sidebar finish moving the keyboard before focusing a key.
   await dKey.click({ trial: true });
   await dKey.focus();
   await page.keyboard.down('Enter');
-  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'visible');
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!)
+        .visibility === 'visible'
+  );
   await page.keyboard.up('Enter');
-  await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!).visibility === 'hidden');
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.querySelector('[data-piano="62"] .piano-note-label')!)
+        .visibility === 'visible'
+  );
   await key.click();
   await page.waitForFunction(() => (window as any).sources.length > 0);
   assert.equal(
@@ -193,41 +221,36 @@ try {
     await page.setViewportSize({ width, height: width <= 760 ? 852 : 1050 });
     await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth + 1);
     await page.waitForFunction(() =>
-      [...document.querySelectorAll('.piano-octave')].every(
-        (e) => e.getBoundingClientRect().width <= e.parentElement!.getBoundingClientRect().width + 1
-      )
+      [...document.querySelectorAll('.note-pad')].every((pad) => {
+        const bounds = pad.getBoundingClientRect();
+        return bounds.width >= 44 && bounds.height >= 44;
+      })
     );
-    await page.waitForFunction(() => {
-      const keys = [...document.querySelectorAll('.white-key')];
-      return (
-        keys.length > 0 && keys.every((key) => {
-          const bounds = key.getBoundingClientRect();
-          return Math.round(bounds.width) === (innerWidth <= 760 ? 20 : 32) &&
-            Math.round(bounds.height) === (innerWidth <= 760 ? 84 : 144);
-        }) && [...document.querySelectorAll('.black-key')].every(
-          (key) => Math.round(key.getBoundingClientRect().width) === (innerWidth <= 760 ? 14 : 24)
-        )
-      );
-    });
   }
   await page.locator('.piano-key').first().click({ trial: true });
   await page.waitForFunction(() => {
     const key = document.querySelector('.piano-key');
     return key && getComputedStyle(key).userSelect === 'none';
   });
-  assert.equal(await page.locator('.piano-key').first().evaluate(key => {
-    const event = new MouseEvent('contextmenu', {bubbles:true, cancelable:true});
-    key.dispatchEvent(event);
-    return event.defaultPrevented;
-  }), true);
+  assert.equal(
+    await page
+      .locator('.piano-key')
+      .first()
+      .evaluate((key) => {
+        const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+        key.dispatchEvent(event);
+        return event.defaultPrevented;
+      }),
+    true
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await selectExercise(page, 'pentatonic6');
   for (const count of ['6', '9', '12']) {
-    await page.locator('#pentatonic-notes').selectOption(count);
-    assert.match((await page.locator('#exercise-title').textContent())!, /^Pentatonic Threes \(/);
+    await page.locator('#pentatonic-notes').click();
+    await page.getByRole('option', { name: `${count} notes`, exact: true }).click();
+    assert.equal(await page.locator('#exercise-title').textContent(), 'Pentatonic Threes');
   }
-  await page.getByRole('button', { name: 'Close practice options', exact: true }).click();
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await selectExercise(page, 'rossini');
   await page.getByRole('dialog').waitFor({ state: 'hidden' });
@@ -296,10 +319,115 @@ try {
   await phone.locator('#play').click();
   await phone.screenshot({ path: `work/readout-${browserName}-retina.png` });
   await retina.close();
+  const layoutContext = await createContext(browser);
+  const layoutPage = await layoutContext.newPage();
+  layoutPage.on('pageerror', (error) => errors.push(error.message));
+  await layoutPage.goto(base);
+  await layoutPage.locator('#play:enabled').waitFor();
+  for (const [width, height] of [
+    [320, 568],
+    [390, 667],
+    [390, 844],
+    [1440, 1050],
+  ]) {
+    await layoutPage.setViewportSize({ width, height });
+    for (const [pattern, low, high] of [
+      ['fiveNote', 60, 67],
+      ['major', 60, 72],
+      ['pentatonic6', 60, 67],
+      ['pentatonic9', 60, 69],
+      ['pentatonic12', 60, 72],
+      ['octaveArpeggio', 52, 64],
+      ['fifthGlide', 60, 67],
+      ['octaveGlide', 60, 72],
+      ['rossini', 59, 78],
+      ['maqamat', 60, 72],
+    ] as const) {
+      await layoutPage.evaluate(
+        (spec) => localStorage.setItem('dorego.current', JSON.stringify(spec)),
+        {
+          ...DEFAULT_SPEC,
+          pattern,
+          low,
+          high,
+          repetitions: 1,
+          countIn: 0,
+        }
+      );
+      await layoutPage.reload();
+      await layoutPage.locator('#play:enabled').waitFor();
+      await layoutPage.locator('.note-pad').first().waitFor();
+      const geometry = await layoutPage.locator('.dorego-note-pads').evaluate((host) => ({
+        pads: [...host.querySelectorAll('.note-pad')].map((pad) => {
+          const b = pad.getBoundingClientRect();
+          return {
+            width: b.width,
+            top: b.top,
+            left: b.left,
+            right: b.right,
+            height: b.height,
+            visible: getComputedStyle(pad.querySelector('.piano-note-label')!).visibility,
+          };
+        }),
+        center: (host.getBoundingClientRect().left + host.getBoundingClientRect().right) / 2,
+        readoutBottom: document.querySelector('#stage')!.getBoundingClientRect().bottom,
+        rangeBottom: Math.max(
+          ...[...document.querySelectorAll('.practice-pitch-range')].map(
+            (el) => el.getBoundingClientRect().bottom
+          )
+        ),
+        instrumentBottom: document.querySelector('.note-instrument')!.getBoundingClientRect()
+          .bottom,
+        border: getComputedStyle(document.querySelector('.practice-panel')!).borderTopWidth,
+        pageHeight: document.documentElement.scrollHeight,
+        viewport: innerHeight,
+        bottom: host.getBoundingClientRect().bottom,
+      }));
+      assert.equal(geometry.border, '0px');
+      for (const top of new Set(geometry.pads.map((pad) => pad.top))) {
+        const row = geometry.pads.filter((pad) => pad.top === top);
+        const center =
+          (Math.min(...row.map((pad) => pad.left)) + Math.max(...row.map((pad) => pad.right))) / 2;
+        assert.ok(
+          Math.abs(center - geometry.center) < 1,
+          `${pattern}: partial rows must be centered`
+        );
+      }
+      if (width >= 768) {
+        assert.equal(
+          new Set(geometry.pads.map((pad) => pad.top)).size,
+          Math.ceil(geometry.pads.length / 6),
+          `${pattern}: desktop rows should fit up to six notes`
+        );
+      }
+      assert.ok(
+        geometry.rangeBottom <= geometry.readoutBottom + 1,
+        `${pattern}: range text is clipped`
+      );
+
+      for (const pad of geometry.pads) {
+        assert.ok(pad.width >= 44 && pad.height >= 44, `${pattern}: finger target`);
+        assert.equal(pad.visible, 'visible');
+        if (width >= 768)
+          assert.ok(pad.width <= 120.5, `${pattern}: desktop pads exceed width cap`);
+      }
+      assert.ok(
+        geometry.pageHeight <= geometry.viewport + 1,
+        `${pattern} ${width}x${height}: page requires scrolling (${geometry.pageHeight})`
+      );
+      assert.ok(geometry.bottom <= geometry.viewport, 'Every note pad is visible');
+      await layoutPage.screenshot({
+        path: `work/note-pads-${pattern}-${width}x${height}.png`,
+        fullPage: true,
+      });
+    }
+  }
+  await layoutContext.close();
   await verifyMaqamScales(browser, base);
+  await verifyYemenite(browser, base);
   assert.deepEqual(errors, []);
   console.log(
-    `${browserName}: toolbar geometry, nine exercises, mobile drawers, fixed keys, reference audio, playback animation, tempo, elapsed time and responsive widths pass`
+    `${browserName}: toolbar geometry, nine exercises, mobile drawers, readable touch note pads, reference audio, playback animation, tempo, elapsed time and responsive widths pass`
   );
 } catch (error) {
   await captureFailure(browser, error);

@@ -1,6 +1,7 @@
+import accidentalLicense from './fonts/OFL.txt?url';
 import { useSyncExternalStore } from 'react';
 import { preferences } from './preferences';
-import { Anchor, Button, Group, Progress, Paper, Select, Stack, Title } from '@mantine/core';
+import { Anchor, Button, Group, Progress, Paper, Select, Stack, Title, Text } from '@mantine/core';
 import { SettingsSections } from '@ldayton/ui/settings-sections';
 import { OfflineStatusPanel } from '@ldayton/ui/offline-status-panel';
 import { offlineState, offlineActions } from './offline-state';
@@ -12,7 +13,10 @@ export function SettingsPage({
   onAudioChannelsChange(channels: AudioChannels): void;
 }) {
   const offline = useSyncExternalStore(offlineState.subscribe, offlineState.getSnapshot);
-  const channels = useSyncExternalStore(listener => preferences.subscribe(listener), () => preferences.state.channels);
+  const channels = useSyncExternalStore(
+    (listener) => preferences.subscribe(listener),
+    () => preferences.state.channels
+  );
   return (
     <SettingsSections
       consent={{ id: 'share-diagnostics', client: diagnostics }}
@@ -86,7 +90,51 @@ export function SettingsPage({
           >
             VSCO cello recordings · CC0
           </Anchor>
+          <Anchor size="sm" href={accidentalLicense} target="_blank" rel="noopener">
+            Bravura accidental glyphs · SIL Open Font License
+          </Anchor>
         </Stack>
+      </Paper>
+      <Paper component="section" withBorder p="md">
+        <details>
+          <summary>Yemenite exercise sources</summary>
+          <Text size="sm" mt="sm">
+            These are named modal practice collections with approximate quarter-tone reference
+            tuning and an authored home note. Related Rast pitch collections are documented in
+            Jewish women’s songs from Dhamar. Bayati and Sikah are general modal additions, not
+            established here as named Jewish Yemenite teaching categories.
+          </Text>
+          <Stack gap="xs" mt="sm">
+            <Anchor
+              href="https://wom-journal.org/wom/article/download/1426/1432?inline=1"
+              target="_blank"
+              rel="noopener"
+            >
+              Jean Lambert: historical recordings from Yemen (2023)
+            </Anchor>
+            <Anchor
+              href="https://www.maqamworld.com/en/jins/rast.php"
+              target="_blank"
+              rel="noopener"
+            >
+              MaqamWorld: Jins Rast
+            </Anchor>
+            <Anchor
+              href="https://www.maqamworld.com/en/jins/bayati.php"
+              target="_blank"
+              rel="noopener"
+            >
+              MaqamWorld: Jins Bayati
+            </Anchor>
+            <Anchor
+              href="https://www.maqamworld.com/en/jins/sikah.php"
+              target="_blank"
+              rel="noopener"
+            >
+              MaqamWorld: Jins Sikah
+            </Anchor>
+          </Stack>
+        </details>
       </Paper>
     </SettingsSections>
   );

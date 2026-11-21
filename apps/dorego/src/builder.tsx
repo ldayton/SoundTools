@@ -1,4 +1,4 @@
-import { SCALE_TUNINGS, supportsScaleTuning, activeScaleTuning, type ScaleTuning } from './music';
+import { isScalePattern, activeScaleTuning } from './music';
 import { useSyncExternalStore } from 'react';
 import {
   ActionIcon,
@@ -20,7 +20,7 @@ import {
   isVocalPattern,
   isGlidePattern,
   supportsNoteRepeats,
-  vocalSpan,
+  exerciseSpan,
   phraseContour,
   phraseLabel,
   progressionRoots,
@@ -165,17 +165,17 @@ export function Builder({
   const { spec, error } = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const vocal = isVocalPattern(spec.pattern);
   const directions = (
-    spec.pattern === 'major' || isGlidePattern(spec.pattern)
+    isScalePattern(spec.pattern) || isGlidePattern(spec.pattern)
       ? ['up', 'down', 'both']
       : ['up', 'down']
   ) as Direction[];
   const roots = progressionRoots(
     spec.low,
-    spec.high - vocalSpan(spec.pattern),
+    spec.high - exerciseSpan(spec),
     spec.progression ?? 'up'
   );
   const targets = roots.map((root) =>
-    noteName(root + (spec.direction === 'down' ? vocalSpan(spec.pattern) : 0), root)
+    noteName(root + (spec.direction === 'down' ? exerciseSpan(spec) : 0), root)
   );
   const preview =
     targets.length <= 5
@@ -195,47 +195,6 @@ export function Builder({
         </Alert>
         <Stack gap="xs">
           <Divider label="Pitch" labelPosition="left" />
-          {supportsScaleTuning(spec.pattern) && (
-            <>
-              <NativeSelect
-                id="scale-tuning"
-                label="Scale tuning"
-                value={spec.scaleTuning ?? 'major'}
-                data={Object.entries(SCALE_TUNINGS).map(([value, tuning]) => ({
-                  value,
-                  label: tuning.name,
-                }))}
-                onChange={(event) =>
-                  change({ scaleTuning: event.currentTarget.value as ScaleTuning })
-                }
-              />
-              {activeScaleTuning(spec) !== 'major' && (
-                <Text size="xs" c="dimmed">
-                  Maqam prototype · fixed quarter-tone tuning. Scale practice only.
-                </Text>
-              )}
-              <Checkbox
-                id="tonic-drone"
-                label="Tonic drone"
-                checked={!!spec.drone}
-                onChange={(event) => change({ drone: event.currentTarget.checked })}
-              />
-            </>
-          )}
-          {isPentatonicPattern(spec.pattern) && (
-            <NativeSelect
-              id="pentatonic-notes"
-              label="Notes"
-              value={spec.pattern.replace('pentatonic', '')}
-              data={['6', '9', '12'].map((value) => ({ value, label: `${value} notes` }))}
-              onChange={(event) =>
-                change({
-                  pattern: `pentatonic${event.currentTarget.value}` as ExerciseSpec['pattern'],
-                })
-              }
-            />
-          )}
-
           <div hidden={vocal}>
             <NativeSelect
               id="key"
@@ -289,21 +248,27 @@ export function Builder({
                 value={spec.low}
                 change={(low) =>
                   change({
-                    low: Math.min(spec.high - vocalSpan(spec.pattern), Math.max(MIN_NOTE, low)),
+                    low: Math.min(
+                      Math.floor(spec.high - exerciseSpan(spec)),
+                      Math.max(MIN_NOTE, low)
+                    ),
                   })
                 }
                 min={MIN_NOTE}
-                max={spec.high - vocalSpan(spec.pattern)}
+                max={spec.high - exerciseSpan(spec)}
               />
               <PitchField
                 bound="high"
                 value={spec.high}
                 change={(high) =>
                   change({
-                    high: Math.max(spec.low + vocalSpan(spec.pattern), Math.min(MAX_NOTE, high)),
+                    high: Math.max(
+                      Math.ceil(spec.low + exerciseSpan(spec)),
+                      Math.min(MAX_NOTE, high)
+                    ),
                   })
                 }
-                min={spec.low + vocalSpan(spec.pattern)}
+                min={spec.low + exerciseSpan(spec)}
                 max={MAX_NOTE}
               />
             </SimpleGrid>
@@ -319,7 +284,7 @@ export function Builder({
               choices={directions.map((value) => ({
                 value,
                 label: phraseLabel(spec.pattern, value),
-                notes: phraseContour(spec.pattern, value),
+                notes: phraseContour(spec.pattern, value, spec),
               }))}
               change={(direction) => change({ direction })}
             />
@@ -343,7 +308,9 @@ export function Builder({
         </Stack>
         <Stack gap="sm">
           <Divider label="Repeats & timing" labelPosition="left" />
-          <div hidden={!vocal || activeScaleTuning(spec) !== 'major'}>
+          <div
+            hidden={!vocal || activeScaleTuning(spec) !== 'major' || spec.pattern === 'yemenite'}
+          >
             <Checkbox
               id="startingChords"
               label="Starting-note chords"
@@ -456,7 +423,9 @@ export function ExerciseSelection({
           aria-current={
             active &&
             (spec.pattern === value ||
-              (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)))
+              (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)) ||
+              (value === 'fifthGlide' && isGlidePattern(spec.pattern)) ||
+              (value === 'major' && spec.pattern === 'fiveNote'))
               ? 'true'
               : undefined
           }
@@ -464,7 +433,11 @@ export function ExerciseSelection({
           onClick={() =>
             change({
               pattern:
-                value === 'pentatonic6' && isPentatonicPattern(spec.pattern) ? spec.pattern : value,
+                (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)) ||
+                (value === 'fifthGlide' && isGlidePattern(spec.pattern)) ||
+                (value === 'major' && spec.pattern === 'fiveNote')
+                  ? spec.pattern
+                  : value,
             })
           }
         >

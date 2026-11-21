@@ -161,3 +161,14 @@ export function keyboardView(
     count,
   };
 }
+
+/** Only sung phrase pitches become audition pads, including glide endpoints. */
+export function phrasePitches(exercise: Exercise, round: PracticeRound) {
+  return [
+    ...new Set(
+      vocalPhraseNotes(exercise, round).flatMap((note) =>
+        note.glideSpan ? [note.midi, note.midi + note.glideSpan] : [note.midi]
+      )
+    ),
+  ].sort((a, b) => a - b);
+}

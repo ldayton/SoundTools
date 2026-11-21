@@ -1,5 +1,6 @@
+import { GuitarChordGraphic } from "./guitar-chord-diagram";
 import { useMediaQuery } from "@mantine/hooks";
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useSyncExternalStore, useState, useRef, type ReactNode } from "react";
 import { ActionIcon, Button, Kbd, Modal, Table, Text, Title, Tooltip } from "@mantine/core";
 import { frameState } from "./practice-frame";
 import { ScaleDetails } from "./scale-controls";
@@ -12,6 +13,8 @@ export const scaleBodyState = () =>
     canReverse: false,
     shiftMessage: "",
     linkedLegend: "",
+    chordOutline: false,
+    chordDiagrams: [] as {name: string; frets: (number | null)[]}[],
     reversedColors: false,
     linkHelp: "",
     notes: "",
@@ -35,6 +38,11 @@ export function ScaleFrame({
   reverseLink(): void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
+  const [chordOpen,setChordOpen]=useState(false);
+  const [horizontal,setHorizontal]=useState(false);
+  const [chordFrame,setChordFrame]=useState(0);
+  const chordTrigger=useRef<HTMLButtonElement>(null);
+  const activeChord=s.chordDiagrams[Math.min(chordFrame,s.chordDiagrams.length-1)];
   const hoverable = useMediaQuery("(min-width: 48em) and (hover: hover) and (pointer: fine)", undefined, { getInitialValueInEffect: false });
   return (
     <section
@@ -71,6 +79,7 @@ export function ScaleFrame({
       </div>
       <div className="scale-link-legend">
         <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
+        {s.chordOutline && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={chordOpen} aria-controls="scale-chord-panel" aria-label="Show chord shape diagram" onClick={()=>{setChordOpen(!chordOpen);setChordFrame(0);}}><i className="scale-chord-swatch" aria-hidden="true" />Chord shape</button>}
         {s.linkedLegend && <>
         {s.linkedLegend.split("|")
           .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
@@ -93,6 +102,18 @@ export function ScaleFrame({
         </div>}
       </div>
       {s.shiftMode && s.shiftMessage && <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>}
+      {s.chordOutline && chordOpen && activeChord && <section id="scale-chord-panel" className="scale-chord-panel" aria-label="Chord shape diagram">
+        <div className="scale-chord-panel-header">
+          <Text fw={600}>{activeChord.name} Chord</Text>
+          <Button variant="subtle" size="compact-sm" aria-label="Rotate chord diagram" aria-pressed={horizontal} onClick={()=>setHorizontal(!horizontal)}>↻ Rotate</Button>
+          <ActionIcon variant="subtle" aria-label="Close chord diagram" onClick={()=>{setChordOpen(false);chordTrigger.current?.focus();}}>×</ActionIcon>
+        </div>
+        <GuitarChordGraphic name={activeChord.name} shapes={[activeChord.frets]} horizontal={horizontal} />
+        {s.chordDiagrams.length>1 && <div className="scale-chord-panel-header">
+          <Button size="compact-sm" variant="subtle" disabled={chordFrame===0} onClick={()=>setChordFrame(0)}>Previous fingering</Button>
+          <Button size="compact-sm" variant="subtle" disabled={chordFrame===1} onClick={()=>setChordFrame(1)}>Next fingering</Button>
+        </div>}
+      </section>}
       <div className="scale-diagram" />
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
       <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>

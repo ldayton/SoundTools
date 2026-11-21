@@ -22,6 +22,8 @@ import {
 import {
   linkedPatternPositions,
   scaleShapeLabel,
+  cagedChordPositions,
+  cagedReferenceChord,
   patternBounds,
   patternShift,
   patternPositions,
@@ -584,6 +586,23 @@ export class ScaleExplorer implements LivePractice {
       ...basePositions,
       ...secondary.filter((n) => !primaryKeys.has(`${n.string}:${n.fret}`)),
     ];
+    const chordKeys = new Set<string>();
+    const chordDiagrams: {name:string; frets:(number|null)[]}[] = [];
+    const addChord = (shape: Exclude<ScalePattern,"map">, shift: number) => {
+      const positions=cagedChordPositions(shape,this.quality,shift);
+      for(const n of positions)chordKeys.add(positionKey(n));
+      chordDiagrams.push({
+        ...cagedReferenceChord(shape,this.quality),
+      });
+    };
+    if (!hila && this.pattern !== "map") {
+      addChord(this.pattern,this.shift);
+      if (secondary.length && this.linked !== "none" && this.linked !== "map") {
+        const reference = patternPositions(isMajorScale(this.quality) ? 0 : 9, this.quality, this.linked, 0);
+        const linkedShift = secondary[0].fret - reference[0].fret;
+        addChord(this.linked,linkedShift);
+      }
+    }
     const firstFret = movable
       ? Math.min(...positions.map((n) => n.fret))
       : this.firstFret;
@@ -687,7 +706,7 @@ export class ScaleExplorer implements LivePractice {
           const dotLabel = alternate
             ? `<text class="scale-finger-main" x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text><rect class="scale-alternate-badge" x="${x(n.fret) + 6}" y="${y(n.string) + 5}" width="20" height="20" rx="7"/><text class="scale-finger-alternate" x="${x(n.fret) + 16}" y="${y(n.string) + 15}" dy=".35em">${alternate.finger}</text>`
             : `<text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text>`;
-          return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
+          return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${chordKeys.has(positionKey(n)) ? " scale-chord-tone" : ""}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}${chordKeys.has(positionKey(n)) ? ", CAGED chord note" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
         })
         .join("");
       const turn = route;
@@ -771,6 +790,8 @@ export class ScaleExplorer implements LivePractice {
           ? ""
           : "No linked route available for this pair here.",
       reversedColors: this.reversedColors,
+      chordOutline: chordKeys.size > 0,
+      chordDiagrams,
       linkedLegend: linked ? `${scaleShapeLabel(this.pattern, this.quality)}|${scaleShapeLabel(this.linked, this.quality)}` : "",
       linkHelp: "",
       notes: noteList,

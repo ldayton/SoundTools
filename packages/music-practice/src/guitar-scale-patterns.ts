@@ -12,6 +12,31 @@ export function scaleShapeLabel(shape: ScalePattern | "none", quality: ScaleQual
   const chord = { "1": "E", "2": "D", "3": "C", "4": "A", "5": "G" }[shape];
   return `${chord}${isMajorScale(quality) ? "" : "m"} shape`;
 }
+/** The chord voicing anchoring each position, low E through high E. */
+export function cagedChordPositions(shape: ScaleShape, quality: ScaleQuality, shift: number) {
+  const majorChords: Record<ScaleShape, (number | null)[]> = {
+    "1": [8,10,10,9,8,8], "2": [null,null,10,12,13,12],
+    "3": [null,15,14,12,13,12], "4": [null,3,5,5,5,3], "5": [8,7,5,5,5,8],
+  };
+  const minorChords: Record<ScaleShape, (number | null)[]> = {
+    "1": [5,7,7,5,5,5], "2": [null,null,7,9,10,8],
+    // The high-E chord tone lies outside this scale position; show the four-note voicing.
+    "3": [null,12,10,9,10,null], "4": [null,12,14,14,13,12], "5": [5,3,2,2,5,5],
+  };
+  return (isMajorScale(quality) ? majorChords : minorChords)[shape].flatMap((fret,row)=>
+    fret === null ? [] : [{string:6-row,fret:fret+shift}]);
+}
+/** Familiar reference position of the chord that names a CAGED framework. */
+export function cagedReferenceChord(shape: ScaleShape, quality: ScaleQuality) {
+  const shifts = isMajorScale(quality)
+    ? {"1":-8,"2":-10,"3":-12,"4":-3,"5":-5}
+    : {"1":-5,"2":-7,"3":-9,"4":-12,"5":-2};
+  const positions=cagedChordPositions(shape,quality,shifts[shape]);
+  return {
+    name:scaleShapeLabel(shape,quality).replace(" shape",""),
+    frets:Array.from({length:6},(_,i)=>positions.find(n=>n.string===6-i)?.fret ?? null),
+  };
+}
 type Fingering = { frets: number[][]; fingers: number[][] };
 // GuitarScale.org's C major and A natural minor shapes. Rows run from string 6
 // to string 1; each finger belongs to the fret in the same row and column.

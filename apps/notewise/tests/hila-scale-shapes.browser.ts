@@ -2,7 +2,7 @@ import { launchBrowser, newPage, closeBrowser, captureFailure, waitForApp } from
 import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
-const server = await preview("notewise", 4597);
+const server = await preview("notewise", Number(process.env.TEST_PORT || 4597));
 const browser = await launchBrowser();
 try {
   const page = await newPage(browser, {
@@ -18,6 +18,7 @@ try {
   await waitForApp(page, ".scale-diagram svg");
   await expect(page.locator(".scale-pattern-caption")).toHaveText("Seven-position major · Shape 1");
   await expect(page.getByText("Shapes supplied by Hila Bar.", {exact:true})).toHaveCount(1);
+  await expect(page.locator(".scale-chord-tone")).toHaveCount(0);
   const tones = page.locator(".scale-diagram .scale-tone");
   await expect(tones).toHaveCount(17);
   await openPracticeOptions(page);
@@ -56,11 +57,83 @@ try {
   await page.locator("#scale-pattern").selectOption("4");
   for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"]){
     await page.locator("#scale-quality").selectOption(quality);
+    await expect(page.locator(".scale-chord-tone")).toHaveCount(5);
+    const trigger=page.getByRole('button',{name:'Show chord shape diagram',exact:true});
+    await expect(trigger).toHaveAttribute('aria-expanded','false');
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const dialog=page.getByRole('region',{name:'Chord shape diagram',exact:true});
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(dialog).toBeVisible();
+    expect(await dialog.locator('svg text').allTextContents()).not.toContain('e');
+    await expect(dialog).toContainText(quality.startsWith('major')?'A Chord':'Am Chord');
+    expect(await dialog.locator('svg g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual((quality.startsWith('major')?['5:0','4:2','3:2','2:2','1:0']:['5:0','4:2','3:2','2:1','1:0']).sort());
+    await dialog.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
+    await expect(dialog.locator('svg')).toHaveAttribute('data-orientation','horizontal');
+    const low=await dialog.locator('g[data-string="6"]').boundingBox();
+    const high=await dialog.locator('g[data-string="1"]').boundingBox();
+    expect(low!.y).toBeGreaterThan(high!.y);
+    if(quality==='major'){
+      await page.screenshot({path:'/tmp/notewise-inline-chord-horizontal-desktop.png',fullPage:true});
+      await page.setViewportSize({width:390,height:844});
+      await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      await expect(dialog.locator('svg')).toHaveAttribute('data-orientation','horizontal');
+      await expect(page.locator('.scale-diagram svg')).toBeVisible();
+      await page.screenshot({path:'/tmp/notewise-inline-chord-horizontal-mobile.png',fullPage:true});
+      await page.setViewportSize({width:1440,height:1000});
+    }
+    await dialog.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
+    await expect(dialog.locator('svg')).toHaveAttribute('data-orientation','vertical');
+    await page.getByRole('button',{name:'Close chord diagram',exact:true}).click();
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+    expect(await page.locator('.scale-chord-tone circle').first().evaluate(e=>getComputedStyle(e).strokeWidth)).toBe('2.5px');
     const names=(quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`);
     await expect(page.locator("#scale-pattern option")).toHaveText(["Fret range",...names]);
     await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
     await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"A shape":"Am shape");
   }
+  // Independently reviewed reference voicings, low E through high E.
+  const references = {
+    major: [[0,2,2,1,0,0],[null,null,0,2,3,2],[null,3,2,0,1,0],[null,0,2,2,2,0],[3,2,0,0,0,3]],
+    minor: [[0,2,2,0,0,0],[null,null,0,2,3,1],[null,3,1,0,1,null],[null,0,2,2,1,0],[3,1,0,0,3,3]],
+  };
+  for(const quality of ['major','minor'] as const){
+    await page.locator('#scale-quality').selectOption(quality);
+    for(const [index,name] of ['E','D','C','A','G'].entries()){
+      await page.locator('#scale-pattern').selectOption(String(index+1));
+      await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).click();
+      const panel=page.getByRole('region',{name:'Chord shape diagram',exact:true});
+      await expect(panel).toContainText(`${name}${quality==='minor'?'m':''} Chord`);
+      expect(await panel.locator('g[data-string]').evaluateAll(es=>es.map(e=>e.getAttribute('data-fret')==='not-played'?null:Number(e.getAttribute('data-fret'))))).toEqual(references[quality][index]);
+      const svg=panel.locator('svg');
+      await expect(svg).toHaveAttribute('data-orientation','vertical');
+      if(quality==='major'&&name==='C')await page.screenshot({path:'/tmp/caged-reference-vertical.png',fullPage:true});
+      await panel.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
+      await expect(svg).toHaveAttribute('data-orientation','horizontal');
+      const textMatrices=await svg.locator('text').evaluateAll(es=>es.map(e=>{const m=(e as SVGGraphicsElement).getScreenCTM()!;return {a:m.a,b:m.b,c:m.c,d:m.d};}));
+      expect(textMatrices.every(m=>m.a>0&&m.d>0&&Math.abs(m.b)<0.001&&Math.abs(m.c)<0.001)).toBe(true);
+      const dots=await svg.locator('g[data-string]').evaluateAll(es=>es.flatMap(e=>{
+        const circle=e.querySelector('circle');if(!circle)return [];
+        const b=circle.getBoundingClientRect();return [{string:Number(e.getAttribute('data-string')),fret:Number(e.getAttribute('data-fret')),x:b.x+b.width/2,y:b.y+b.height/2}];
+      }));
+      for(const a of dots)for(const b of dots){
+        if(a.string>b.string)expect(a.y).toBeGreaterThan(b.y);
+        if(a.fret>b.fret)expect(a.x).toBeGreaterThan(b.x);
+      }
+      await page.setViewportSize({width:390,height:844});
+      await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      const box=await panel.boundingBox();expect(box!.width).toBeLessThanOrEqual(390);
+      if(quality==='major'&&name==='C')await page.screenshot({path:'/tmp/caged-reference-horizontal-mobile.png',fullPage:true});
+      await page.setViewportSize({width:1440,height:1000});
+      await panel.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
+      await expect(svg).toHaveAttribute('data-orientation','vertical');
+      await panel.getByRole('button',{name:'Close chord diagram',exact:true}).click();
+      await expect(panel).toBeHidden();
+    }
+  }
+  await page.locator('#scale-pattern').selectOption('4');
+  await page.locator('#scale-quality').selectOption('minor-blues');
   await page.reload();
   await openPracticeOptions(page);
   await expect(page.locator("#scale-pattern")).toHaveValue("4");

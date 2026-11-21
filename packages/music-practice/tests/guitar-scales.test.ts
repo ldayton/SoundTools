@@ -3,6 +3,8 @@ import {
   SCALE_SHAPES,
   CAGED_SHAPES,
   scaleShapeLabel,
+  cagedChordPositions,
+  cagedReferenceChord,
   patternPositions,
   patternShift,
   patternBounds,
@@ -504,4 +506,28 @@ test("CAGED names and ordering preserve existing shape identities across all sca
   assert.deepEqual(CAGED_SHAPES.map(s=>scaleShapeLabel(s,quality)),
    (quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`));
  }
+});
+
+test("CAGED outlines mark the anchoring chord, contained in every matching scale family",()=>{
+ for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"] as const)
+ for(let tonic=0;tonic<12;tonic++)for(const shape of SCALE_SHAPES){
+  const shift=patternShift(tonic,quality,shape);
+  const notes=patternPositions(tonic,quality,shape,shift);
+  const chord=cagedChordPositions(shape,quality,shift).map(p=>notes.find(n=>n.string===p.string&&n.fret===p.fret));
+  assert.ok(chord.every(Boolean));
+  assert.deepEqual([...new Set(chord.map(n=>(n!.pitchClass-tonic+12)%12))].sort((a,b)=>a-b),quality.startsWith("major")?[0,4,7]:[0,3,7]);
+ }
+ assert.deepEqual(cagedChordPositions("3","major",-12),[{string:5,fret:3},{string:4,fret:2},{string:3,fret:0},{string:2,fret:1},{string:1,fret:0}]);
+});
+
+test("CAGED reference diagrams show their namesake chords in the familiar position",()=>{
+ const expected={
+  major:[[0,2,2,1,0,0],[null,null,0,2,3,2],[null,3,2,0,1,0],[null,0,2,2,2,0],[3,2,0,0,0,3]],
+  minor:[[0,2,2,0,0,0],[null,null,0,2,3,1],[null,3,1,0,1,null],[null,0,2,2,1,0],[3,1,0,0,3,3]],
+ };
+ for(const quality of ["major","minor"] as const)SCALE_SHAPES.forEach((shape,i)=>{
+  const chord=cagedReferenceChord(shape,quality);
+  assert.equal(chord.name,scaleShapeLabel(shape,quality).replace(" shape",""));
+  assert.deepEqual(chord.frets,expected[quality][i]);
+ });
 });

@@ -197,3 +197,14 @@ committed the mobile shell. The retained screenshot shows the settled mobile
 layout without page overflow. The test now waits for the navbar's presence to
 match the responsive media query before measuring containment and note sizes;
 the containment and size assertions remain unchanged.
+
+## NoteWise outline verification reached an older preview (21 November 2026)
+
+First evidence: `apps/notewise/work/browser-results/hila-scale-shapes.browser.ts-webkit-8bd9dc78/`.
+WebKit received `Extended Set` although the newly built assets contain
+`Seven-position major` and Chromium had just passed. A concurrent Nightly
+coordinator was running previews from the separate testing-model checkout.
+The fixed-port preview may have collided; the listener had gone by inspection,
+so that cause remains unconfirmed. The Hila browser test now accepts the runner's
+`TEST_PORT` override. Diagnostic validation uses separate unused ports; this
+passing rerun does not establish a fix to shared preview-server ownership.

@@ -20,7 +20,7 @@ test('every local asset and error is uncached, conditional requests receive curr
  }finally{await close(server);await fs.rm(root,{recursive:true,force:true});}
 });
 test('ordinary browser reload replaces legacy cached scripts, styles, workers and WASM at unchanged URLs and timestamps',async()=>{
- const {chromium}=require('playwright');
+ const {launchBrowser,newPage,captureFailure,closeBrowser}=require('../../../scripts/ci/browser-harness.cjs');
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'soundglow-browser-freshness-'));await fs.mkdir(path.join(root,'dist'));
  const wasm=Buffer.from('0061736d010000000105016000017f030201000709010576616c756500000a0601040041010b','hex');
  const write=async version=>{
@@ -39,12 +39,12 @@ test('ordinary browser reload replaces legacy cached scripts, styles, workers an
  let server=http.createServer(async(req,res)=>{const name=new URL(req.url,'http://localhost').pathname;try{const bytes=await fs.readFile(path.join(root,name));res.writeHead(200,{'Cache-Control':'public, max-age=31536000','Last-Modified':new Date(0).toUTCString(),'Content-Type':name.endsWith('.wasm')?'application/wasm':name.endsWith('.css')?'text/css':name.endsWith('.js')?'text/javascript':'text/html'});res.end(bytes);}catch{res.writeHead(404).end();}});
  const origin=await listen(server),port=server.address().port;let browser;
  try{
-  browser=await chromium.launch();const page=await browser.newPage();await page.goto(origin+'/dist/index.html');await page.waitForFunction(()=>['script','worker','wasm'].every(id=>document.getElementById(id).textContent==='1'));
+  browser=await launchBrowser();const page=await newPage(browser);await page.goto(origin+'/dist/index.html');await page.waitForFunction(()=>['script','worker','wasm'].every(id=>document.getElementById(id).textContent==='1'));
   await close(server);server=createDevServer({root});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
   for(const version of [2,3]){
    await write(version);await page.reload();await page.waitForFunction(n=>['script','worker','wasm'].every(id=>document.getElementById(id).textContent===String(n)),version,{timeout:5000});
    assert.equal(await page.title(),'v'+version);assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).color),`rgb(${version}, 0, 0)`);
-   const replay=await browser.newPage(),errors=[];replay.on('pageerror',e=>errors.push(e.message));
+   const replay=await newPage(browser),errors=[];replay.on('pageerror',e=>errors.push(e.message));
    await replay.goto(origin+'/tests/replay/harness.html');
    await replay.waitForFunction(n=>['script','worker','wasm'].every(id=>document.getElementById(id).textContent===String(n)),version,{timeout:5000});
    assert.equal(await replay.locator('base').count(),1);
@@ -52,7 +52,7 @@ test('ordinary browser reload replaces legacy cached scripts, styles, workers an
    assert.equal(await replay.locator('body').evaluate(el=>getComputedStyle(el).color),`rgb(${version}, 0, 0)`);
    assert.deepEqual(errors,[]);await replay.close();
   }
- }finally{await browser?.close();await close(server);await fs.rm(root,{recursive:true,force:true});}
+ }catch(error){await captureFailure(browser,error);throw error;}finally{await closeBrowser(browser);await close(server);await fs.rm(root,{recursive:true,force:true});}
 });
 
 test('UI import changes rebuild automatically; failed builds return 503 until repaired', async () => {

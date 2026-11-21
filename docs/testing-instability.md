@@ -152,3 +152,11 @@ report-directory suffixes, but the app ignored only `playwright-report/`.
 Both suffixed report directories are now ignored as generated output. They
 remain retained by the runner's report/evidence collection; tracked-source
 revision checks remain strict. Both diagnostic backend stacks stopped cleanly.
+
+The first Linux verification on `d041e1c` exposed a Soundglow environment bug:
+[WebKit core job](https://github.com/ldayton/SoundTools/actions/runs/44921100009/job/136897260317)
+failed because `dev-server.test.cjs` hard-coded Chromium in a WebKit-only job.
+The unchanged reload/cache/worker/WASM assertions now run through the shared
+engine-aware browser harness, with failure capture. The Chromium Nightly group
+still exercises Chromium; the WebKit group now exercises its selected engine.
+No browser install or test assertion was skipped to make the matrix pass.

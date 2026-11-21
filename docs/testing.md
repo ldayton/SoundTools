@@ -336,7 +336,10 @@ assertion retries. Cancellation and deadlines terminate task process groups,
 including detached preview children captured before their parents exit. Cancellation
 waits for owned descendants to exit; PID start times guard against reuse during
 the termination grace period. The Nightly coordinator stops only its owned backend
-stacks concurrently in `finally`, with a separate result for each engine even if
+stacks concurrently in `finally`, destroying their disposable data as well as
+containers (`stack stop` alone preserves data). Cleanup selects full stack IDs
+whose registered project root exactly matches its account snapshot; developer
+stacks are never selected. There is a separate result for each engine even if
 one stop fails. Snapshots are removed after success **or failure** once logs, browser failure
 artifacts, unexpected source diffs and untracked source have been retained under
 the run's `evidence/` directory. Dependency trees, generated builds and backend

@@ -83,8 +83,12 @@ correction; exact-commit CI and full GitHub Nightly gate publication of the fina
 revision. A filesystem regression also verifies that evidence retains release manifests,
 traces and reports while omitting reproducible update-fixture builds (379 MiB
 in the measured run). The complete Mac timing was not repeated for those
-fixture/retention follow-ups. The measurement record keeps validation scopes
-separate.
+fixture/retention follow-ups. A later cleanup correction destroys only each
+snapshot's exact registered backend stack: stopping it had preserved disposable
+data. Ownership isolation is tested, and the destruction path was exercised
+against ten stopped stacks from this investigation, without selecting developer
+stacks. This cleanup-only change was not included in the measured Mac run.
+The measurement record keeps validation scopes separate.
 
 The remaining Mac critical path is the real audio timing group, which took
 9m28s. Its native microphone/worker/PCM, responsiveness and throttled-rendering

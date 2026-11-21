@@ -52,7 +52,7 @@ test('all edition files are required in both push and full matrices; lanes never
   assert.match(workflow, /timeout-minutes: \$\{\{ matrix.timeout \}\}/);
 });
 test('generic control tests use capability fixtures, not literal production song routes', () => {
-  for (const file of ['apps/songalong/tests/workspace.browser.ts', 'apps/songalong/tests/fingerings.browser.ts', 'apps/songalong/tests/hymn-playback.browser.ts', 'tests/accounts.browser.mts']) {
+  for (const file of ['apps/songalong/tests/workspace.browser.ts', 'apps/songalong/tests/fingerings.browser.ts', 'apps/songalong/tests/hymn-key.browser.ts', 'apps/songalong/tests/hymn-key-menu.browser.ts', 'apps/songalong/tests/hymn-passage.browser.ts', 'apps/songalong/tests/hymn-octave.browser.ts', 'apps/songalong/tests/hymn-recovery.browser.ts', 'apps/songalong/tests/sight-reading.browser.ts', 'packages/music-practice/browser-tests/sidebars.browser.ts', 'apps/songalong/tests/hymn-playback.browser.ts', 'tests/accounts.browser.mts']) {
     const source = fs.readFileSync(path.join(root, file), 'utf8');
     assert.match(source, /test-fixtures\/hymns/, file);
     assert.doesNotMatch(source, /\/piano\/hymns\/[a-z][a-z-]+/, `${file}: use the capability fixture or move song-specific assertions into an edition test`);

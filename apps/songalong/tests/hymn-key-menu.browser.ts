@@ -1,4 +1,24 @@
-import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  playbackHymn,
+  playbackSourceKey,
+  playbackFittedKey,
+  playbackRangeLabel,
+} from "../../../packages/music-practice/test-fixtures/hymns";
+import { hymnRangeKeys } from "../../../packages/music-practice/src/hymn-range";
+import { hymnKeyLabel } from "../../../packages/music-practice/src/hymn-transpose";
+const lowRange = hymnRangeKeys(
+  playbackSourceKey,
+  { low: 62, high: 74 },
+  38,
+  91,
+).choices.find((choice) => choice.key === "B")!.range;
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -50,11 +70,13 @@ try {
     const page = await context.newPage();
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto(base + "/piano/hymns/amazing-grace?key=B&low=38&high=91");
+    await page.goto(
+      base + `/piano/hymns/${playbackHymn.id}?key=B&low=38&high=91`,
+    );
     await openPracticeOptions(page);
     const selectedRange = page.locator(".hymn-key-range");
     await selectedRange
-      .filter({ hasText: "F♯2–F♯3" })
+      .filter({ hasText: lowRange })
       .waitFor({ state: "attached" });
     const field = page.locator("#hymn-key");
     assert.equal(
@@ -67,7 +89,7 @@ try {
     assert(options.every((option) => option.range && !option.disabled));
     assert.equal(
       options.find((option) => option.value === "B")!.range,
-      "F♯2–F♯3",
+      lowRange,
     );
     for (const option of options) {
       await practiceOption(page, "#hymn-key", option.value!);
@@ -85,7 +107,7 @@ try {
     await practiceOption(page, "#hymn-key", "B");
     assert.equal(
       await selectedRange.textContent(),
-      "F♯2–F♯3",
+      lowRange,
       "Reselecting a key uses its previewed lowest octave",
     );
 
@@ -96,14 +118,14 @@ try {
       options
         .filter((option) => !option.disabled)
         .map((option) => option.value),
-      ["F"],
+      [playbackFittedKey],
     );
     assert.equal(
       options.find((option) => option.value === "original")!.range,
-      "D4–D5",
+      playbackRangeLabel("original"),
     );
     assert.equal(
-      options.find((option) => option.value === "F")!.range,
+      options.find((option) => option.value === playbackFittedKey)!.range,
       "C4–C5",
     );
     await field.click();
@@ -129,7 +151,7 @@ try {
     await field.press("Enter");
     assert.equal(
       await field.inputValue(),
-      "F major",
+      hymnKeyLabel(playbackFittedKey),
       "Keyboard skips excluded keys",
     );
 

@@ -1,4 +1,32 @@
-import { waitForServer, captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  recoveryHymn,
+  recoveryMelody,
+  playbackAttacks,
+  selectStagedHymn,
+} from "../../../packages/music-practice/test-fixtures/hymns";
+import {
+  spellPitch,
+  chromaticPitch,
+} from "../../../packages/music-practice/src/guitar";
+import { name } from "../../../packages/music-practice/src/model";
+const comparisonHymn = selectStagedHymn(undefined, {
+  exclude: recoveryHymn.id,
+});
+const [first, second, third, fourth] = recoveryMelody;
+const wrong = first - 1;
+const chord = playbackAttacks("original", recoveryHymn)[0];
+const sourceKey = recoveryHymn.melody.match(/^K:(\S+)/m)![1];
+const pitchLabel = (pitch: number) => {
+  const card = spellPitch(pitch, sourceKey) || chromaticPitch(pitch);
+  return name(card) + card.octave;
+};
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createOfflineContext as createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
 import {
   practiceOption,
   dismissPracticeDrawer,
@@ -70,11 +98,14 @@ try {
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(base);
+  await page.goto(base + `piano/hymns/${recoveryHymn.id}`);
   await page.locator(".hymn-paper svg").first().waitFor();
-  await selectPractice(page, "sight");
+
   await page.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
-  assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `1 / ${recoveryMelody.length}`,
+  );
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
   const input = page.getByRole("combobox", { name: "Hymn", exact: true });
   const choose = async (title: string) => {
@@ -89,26 +120,31 @@ try {
     assert.equal(await page.locator(".sequence-title").textContent(), title);
   };
   // A second search must replace the selected title, even while the input still has focus.
-  await choose("Amazing Grace");
+  await choose(recoveryHymn.title);
   await openNavigation(page);
   await input.click();
-  await input.pressSequentially("silent");
-  assert.equal(await input.inputValue(), "silent");
+  await input.pressSequentially(
+    comparisonHymn.title.split(" ")[0].toLowerCase(),
+  );
+  assert.equal(
+    await input.inputValue(),
+    comparisonHymn.title.split(" ")[0].toLowerCase(),
+  );
   // Wait for the searchable Select to finish filtering and highlight its result.
   await page
-    .getByRole("option", { name: "Silent Night", exact: true })
+    .getByRole("option", { name: comparisonHymn.title, exact: true })
     .and(page.locator("[data-combobox-selected]"))
     .waitFor();
   await input.press("Enter");
   await page
     .locator(".sequence-title")
-    .filter({ hasText: "Silent Night" })
+    .filter({ hasText: comparisonHymn.title })
     .waitFor();
   assert.equal(
     await page.locator(".sequence-title").textContent(),
-    "Silent Night",
+    comparisonHymn.title,
   );
-  await choose("Amazing Grace");
+  await choose(recoveryHymn.title);
   const send = async (data: number[], stale = false) =>
     page.evaluate(
       ({ data, stale }) =>
@@ -135,51 +171,75 @@ try {
       };
     }
   });
-  await on(61);
-  assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
+  await on(wrong);
   assert.equal(
-    await page
-      .locator('.piano-key.is-wrong[data-piano="61"] .piano-hint-label')
-      .textContent(),
-    "C♯4",
+    await page.locator(".hymn-count").textContent(),
+    `1 / ${recoveryMelody.length}`,
   );
   assert.equal(
     await page
-      .locator('.piano-key.is-right[data-piano="62"] .piano-hint-label')
+      .locator(`.piano-key.is-wrong[data-piano="${wrong}"] .piano-hint-label`)
       .textContent(),
-    "D4",
+    pitchLabel(wrong),
   );
-  await off(61);
-  await send([0x90, 62, 100], true);
-  assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
-  await off(62);
-  await on(62);
-  await on(67); // Legato: the D remains physically held.
-  assert.equal(await page.locator(".hymn-count").textContent(), "3 / 35");
+  assert.equal(
+    await page
+      .locator(`.piano-key.is-right[data-piano="${first}"] .piano-hint-label`)
+      .textContent(),
+    pitchLabel(first),
+  );
+  await off(wrong);
+  await send([0x90, first, 100], true);
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `1 / ${recoveryMelody.length}`,
+  );
+  await off(first);
+  await on(first);
+  await on(second); // Legato: the D remains physically held.
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `3 / ${recoveryMelody.length}`,
+  );
   await page.locator(".hymn-pause").click();
-  await on(71);
-  assert.equal(await page.locator(".hymn-count").textContent(), "3 / 35");
+  await on(third);
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `3 / ${recoveryMelody.length}`,
+  );
   await page.locator(".hymn-pause").click();
-  await on(71);
-  assert.equal(await page.locator(".hymn-count").textContent(), "3 / 35");
-  await off(71);
-  await on(71);
-  assert.equal(await page.locator(".hymn-count").textContent(), "4 / 35");
+  await on(third);
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `3 / ${recoveryMelody.length}`,
+  );
+  await off(third);
+  await on(third);
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `4 / ${recoveryMelody.length}`,
+  );
   assert.equal(
     await page.evaluate(() => (window as any).routeWrites),
     0,
     "answering, pausing and resuming must not rewrite an unchanged hymn URL",
   );
-  for (const n of [62, 67, 71]) await off(n);
+  for (const n of [first, second, third]) await off(n);
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   await page.reload();
-  await page.locator(".hymn-count").filter({ hasText: "4 / 35" }).waitFor();
+  await page
+    .locator(".hymn-count")
+    .filter({ hasText: `4 / ${recoveryMelody.length}` })
+    .waitFor();
   await setPianoVisible(page, true);
-  await page.locator('.hymn-piano [data-piano="67"]').click();
-  assert.equal(await page.locator(".hymn-count").textContent(), "5 / 35");
+  await page.locator(`.hymn-piano [data-piano="${fourth}"]`).click();
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `5 / ${recoveryMelody.length}`,
+  );
   await practiceOption(page, "#hymn-arrangement", "original");
   const initial = await page.locator(".hymn-count").textContent();
   assert.match(initial!, /^1 \/ /);
@@ -187,18 +247,18 @@ try {
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
     .waitFor({ state: "attached" });
-  for (const n of [43, 55, 59]) await on(n);
+  for (const n of chord.slice(0, -1)) await on(n);
   assert.equal(await page.locator(".hymn-count").textContent(), initial);
   await page.setViewportSize({ width: 1200, height: 1000 });
   await page.waitForTimeout(200);
-  await on(62);
+  await on(chord.at(-1)!);
   assert.match((await page.locator(".hymn-count").textContent())!, /^2 \/ /);
-  for (const n of [43, 55, 59, 62]) await off(n);
+  for (const n of chord) await off(n);
   // Expand the keyboard viewport before entering this wide bass-to-treble chord.
   // Keys retain their fixed width when the options sidebar is open.
   await closePracticeOptions(page);
   await page.locator(".hymn-go-start").click();
-  for (const n of [43, 55, 59, 62]) {
+  for (const n of chord) {
     const key = page.locator(`.hymn-piano [data-piano="${n}"]`);
     const box = await key.boundingBox();
     await key.click({ position: { x: box!.width / 2, y: box!.height * 0.85 } });
@@ -221,7 +281,7 @@ try {
     await page.locator(".sequence-title").textContent(),
     "Praise God From Whom All Blessings Flow",
   );
-  await choose("Amazing Grace");
+  await choose(recoveryHymn.title);
   await practiceOption(page, "#hymn-arrangement", "melody");
   await setPianoVisible(page, false); // keep the review screenshot focused on the score
   await mkdir("work", { recursive: true });
@@ -234,11 +294,9 @@ try {
     path: `work/sight-reading-${engine}-desktop.png`,
     fullPage: true,
   });
-  // Complete the melody, including ties: first D, then this known transcription.
-  const sequence = [
-    62, 67, 71, 67, 71, 69, 67, 64, 62, 62, 67, 71, 67, 71, 69, 74, 71, 74, 71,
-    74, 71, 67, 62, 64, 67, 67, 64, 62, 62, 67, 71, 67, 71, 69, 67,
-  ];
+  // Complete the selected melody, including tied notes.
+  const sequence = recoveryMelody;
+  await page.locator(".hymn-go-start").click();
   await midiAction(page, "Connect MIDI keyboard");
   await closeNavigation(page);
   for (const n of sequence) {
@@ -247,10 +305,10 @@ try {
   }
   assert.equal(await page.locator(".hymn-count").textContent(), "Complete");
   assert.equal(await page.locator(".hymn-next").count(), 0);
-  await choose("Jesus Loves Me");
+  await choose(comparisonHymn.title);
   assert.equal(
     await page.locator(".sequence-title").textContent(),
-    "Jesus Loves Me",
+    comparisonHymn.title,
   );
   // New feature and its entire library are available offline, including lazy-loaded code.
   if (!process.env.TEST_BASE_URL) {
@@ -263,16 +321,19 @@ try {
     await page.reload();
     await page
       .locator(".sequence-title")
-      .filter({ hasText: "Jesus Loves Me" })
+      .filter({ hasText: comparisonHymn.title })
       .waitFor();
-    await choose("Amazing Grace");
+    await choose(recoveryHymn.title);
     assert.equal(
       await page.locator(".hymn-count").textContent(),
       "Complete",
       "completed bookmark survives offline reload",
     );
     await page.locator(".hymn-go-start").click();
-    assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
+    assert.equal(
+      await page.locator(".hymn-count").textContent(),
+      `1 / ${recoveryMelody.length}`,
+    );
     await context.setOffline(false);
     // A fresh tab can enter hymns for the first time offline: not merely reuse an in-memory module.
     const cold = await createContext(browser);
@@ -284,11 +345,11 @@ try {
         "Available offline",
     );
     await cold.setOffline(true);
-    await selectPractice(firstUse, "sight");
+    await firstUse.goto(base + `piano/hymns/${recoveryHymn.id}`);
     await firstUse.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
     await firstUse
       .locator(".hymn-count")
-      .filter({ hasText: "1 / 35" })
+      .filter({ hasText: `1 / ${recoveryMelody.length}` })
       .waitFor();
     await cold.close();
     await page.bringToFront();

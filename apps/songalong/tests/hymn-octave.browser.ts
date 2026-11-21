@@ -1,4 +1,25 @@
-import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  playbackHymn,
+  playbackMelody,
+  playbackAttacks,
+  playbackSourceKey,
+} from "../../../packages/music-practice/test-fixtures/hymns";
+import {
+  HYMN_KEYS,
+  hymnTransposition,
+} from "../../../packages/music-practice/src/hymn-transpose";
+const key = HYMN_KEYS.find(
+  (key) => hymnTransposition(playbackSourceKey, key).semitones === 4,
+)!;
+const attacks = playbackAttacks();
+const soundingFirst = playbackMelody + 4 - 12;
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  newPage,
+} from "../../../scripts/ci/browser-harness.cjs";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -63,7 +84,10 @@ try {
       return connect.apply(this, args);
     } as typeof AudioNode.prototype.connect;
   });
-  await page.goto(base + "/piano/hymns/amazing-grace?key=B&low=38&high=91");
+  await page.goto(
+    base +
+      `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&low=38&high=91`,
+  );
   const range = page.locator(".hymn-key-range");
   await range.filter({ hasText: "F♯2–F♯3" }).waitFor();
   assert.ok((await page.locator(".hymn-ottava").count()) > 0);
@@ -72,7 +96,7 @@ try {
       (text) => text === "15",
     ),
   );
-  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "B");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), key);
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
   const shift = async (direction: "up" | "down") => {
     await openPracticeOptions(page);
@@ -105,14 +129,26 @@ try {
       (window as any).midiTest.send([0x90, n, 100]);
       (window as any).midiTest.send([0x80, n, 0]);
     }, n);
-  await note(66);
-  assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
-  await note(54);
-  assert.equal(await page.locator(".hymn-count").textContent(), "2 / 35");
+  await note(soundingFirst + 12);
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `1 / ${attacks.length}`,
+  );
+  await note(soundingFirst);
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `2 / ${attacks.length}`,
+  );
   await shift("down");
-  assert.equal(await page.locator(".hymn-count").textContent(), "1 / 35");
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `1 / ${attacks.length}`,
+  );
   await shift("up");
-  assert.equal(await page.locator(".hymn-count").textContent(), "2 / 35");
+  assert.equal(
+    await page.locator(".hymn-count").textContent(),
+    `2 / ${attacks.length}`,
+  );
   await practiceOption(page, "#hymn-mode", "playback");
   assert.equal(
     await range.textContent(),
@@ -122,7 +158,9 @@ try {
   await closePracticeOptions(page);
   await setPianoVisible(page, true);
   await page.locator(".hymn-pause").click();
-  await page.locator('.piano-key.is-playing[data-piano="54"]').waitFor();
+  await page
+    .locator(`.piano-key.is-playing[data-piano="${soundingFirst}"]`)
+    .waitFor();
   await page.locator(".hymn-pause").click();
   await page.setViewportSize({ width: 393, height: 852 });
   await openPracticeOptions(page);
@@ -139,34 +177,52 @@ try {
     fullPage: true,
   });
   // A key is still available when only a different octave fits the exact limits.
-  await page.goto(base + "/piano/hymns/amazing-grace?key=B&low=42&high=54");
+  await page.goto(
+    base +
+      `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&low=42&high=54`,
+  );
   await openPracticeOptions(page);
   await range.filter({ hasText: "F♯2–F♯3" }).waitFor();
   assert.ok(await page.locator("#hymn-octave-up").isDisabled());
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
-  await page.goto(base + "/piano/hymns/amazing-grace?low=60&high=60");
+  await page.goto(base + `/piano/hymns/${playbackHymn.id}?low=60&high=60`);
   await page.locator(".hymn-no-key").waitFor();
   await openPracticeOptions(page);
   assert.ok(await page.locator("#hymn-octave-up").isDisabled());
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
   await page.goto(
     base +
-      "/piano/hymns/amazing-grace?key=B&octave=-1&low=38&high=91&arrangement=bass&view=both",
+      `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&octave=-2&low=38&high=91&arrangement=bass&view=both`,
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.ok((await page.locator(".hymn-ottava").count()) >= 2);
-  assert.ok(
-    (await page.locator(".hymn-ottava").allTextContents()).every(
-      (text) => text === "8",
-    ),
+  assert.deepEqual(
+    (await page.locator(".hymn-ottava").allTextContents()).sort(),
+    ["15", "15"],
   );
-  const systems = page.locator(".hymn-paper svg").filter({ has: page.locator(".abcjs-staff") });
-  assert.ok(await systems.count() > 1, "the mobile hymn wraps across systems");
+  const systems = page
+    .locator(".hymn-paper svg")
+    .filter({ has: page.locator(".abcjs-staff") });
+  assert.ok(
+    (await systems.count()) > 1,
+    "the mobile hymn wraps across systems",
+  );
   assert.equal(await systems.first().locator(".abcjs-clef").count(), 2);
-  assert.equal(await systems.first().locator(".abcjs-key-signature").count(), 2);
-  for (let i = 1; i < await systems.count(); i++) {
-    assert.equal(await systems.nth(i).locator(".abcjs-clef,.abcjs-key-signature,.abcjs-time-signature,.hymn-ottava").count(), 0,
-      "later systems devote their width to the music");
+  assert.equal(
+    await systems.first().locator(".abcjs-key-signature").count(),
+    2,
+  );
+  for (let i = 1; i < (await systems.count()); i++) {
+    assert.equal(
+      await systems
+        .nth(i)
+        .locator(
+          ".abcjs-clef,.abcjs-key-signature,.abcjs-time-signature,.hymn-ottava",
+        )
+        .count(),
+      0,
+      "later systems devote their width to the music",
+    );
   }
   assert.equal(
     await page.locator(".hymn-ottava path").count(),

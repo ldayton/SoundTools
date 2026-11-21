@@ -39,6 +39,10 @@ There are two distinct owners:
   stay explicit; its opening MIDI pitches come from the fixture's two voices and key labels
   from the independently unit-tested range model. The source key need not stay
   the same when a compatible fixture changes.
+  Passage fixtures also require four attacks in bar 1 and two in bar 2;
+  recovery fixtures require three different opening melody notes above a
+  sustained bass with a written tied continuation. Attack pitches and counts come from the selected fixture,
+  so named-edition changes cannot silently invalidate grading tests.
   When a song gains a dedicated edition, selection moves to another compatible
   song automatically. Unit tests check this migration and fail early if the
   capability disappears from the product entirely.

@@ -1,4 +1,18 @@
-import { waitForServer, captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  recoveryHymn,
+  recoveryMelody,
+  recoveryBass,
+  recoveryTieIndex,
+} from "../../../packages/music-practice/test-fixtures/hymns";
+const [first, second, third] = recoveryMelody;
+const wrong = second + 1;
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -33,7 +47,9 @@ const fixed = await mkdtemp(join(tmpdir(), "hymn-recovery-"));
 let browser;
 try {
   await waitForServer(base, { server });
-  browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
+  browser = await launchBrowser({
+    env: { ...process.env, CFFIXED_USER_HOME: fixed },
+  });
   try {
     const context = await createContext(browser, {
       viewport: { width: 1400, height: 1000 },
@@ -52,7 +68,7 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(
       base +
-        "/piano/hymns/amazing-grace?arrangement=bass&hands=both&view=both&mode=wait&key=original",
+        `/piano/hymns/${recoveryHymn.id}?arrangement=bass&hands=both&view=both&mode=wait&key=original`,
     );
     await page.locator(".hymn-count").filter({ hasText: "1 /" }).waitFor();
     await openPracticeOptions(page);
@@ -86,31 +102,33 @@ try {
       Number(
         (await page.locator(".hymn-count").textContent())?.split(" / ")[0],
       );
-    await send(43);
-    await note(62);
+    await send(recoveryBass);
+    await note(first);
     assert.equal(await step(), 2);
-    await note(66);
+    await note(wrong);
     assert.equal(await step(), 2);
-    await send(43, false);
-    await send(67);
+    await send(recoveryBass, false);
+    await send(second);
     assert.equal(
       await step(),
       2,
       "the melody alone cannot finish a retry over carried bass",
     );
     assert.ok(
-      await page.locator('.hymn-piano [data-piano="43"].is-right').count(),
+      await page
+        .locator(`.hymn-piano [data-piano="${recoveryBass}"].is-right`)
+        .count(),
     );
-    await send(43);
+    await send(recoveryBass);
     assert.equal(await step(), 3);
-    await send(67, false);
-    await note(71);
+    await send(second, false);
+    await note(third);
     assert.equal(
       await step(),
       4,
       "normal progress does not need another bass strike",
     );
-    await send(43, false);
+    await send(recoveryBass, false);
     await openPracticeOptions(page);
     await ties.check();
     assert.match(page.url(), /ties=repeat/);
@@ -120,27 +138,29 @@ try {
       tieCount,
       "tie notation stays visible",
     );
-    await send(43);
-    await note(62);
-    assert.equal(await step(), 2);
-    await send(67);
+    await send(recoveryBass);
+    for (const pitch of recoveryMelody.slice(0, recoveryTieIndex))
+      await note(pitch);
+    assert.equal(await step(), recoveryTieIndex + 1);
+    const continuation = recoveryMelody[recoveryTieIndex];
+    await send(continuation);
     assert.equal(
       await step(),
-      2,
+      recoveryTieIndex + 1,
       "a written continuation requires another bass attack when enabled",
     );
-    await send(43, false);
-    await send(43);
-    assert.equal(await step(), 3);
-    await send(67, false);
-    await send(43, false);
+    await send(recoveryBass, false);
+    await send(recoveryBass);
+    assert.equal(await step(), recoveryTieIndex + 2);
+    await send(continuation, false);
+    await send(recoveryBass, false);
     await page
       .getByRole("combobox", { name: "Practise hands", exact: true })
       .selectOption("right");
-    await note(62);
+    await note(first);
     assert.equal(await step(), 2);
-    await note(66);
-    await note(67);
+    await note(wrong);
+    await note(second);
     assert.equal(
       await step(),
       3,

@@ -1,4 +1,31 @@
-import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  playbackHymn,
+  playbackAttacks,
+  playbackRangeLabel,
+  playbackSourceKey,
+} from "../../../packages/music-practice/test-fixtures/hymns";
+import { hymnTransposition } from "../../../packages/music-practice/src/hymn-transpose";
+import {
+  spellPitch,
+  chromaticPitch,
+} from "../../../packages/music-practice/src/guitar";
+import { name } from "../../../packages/music-practice/src/model";
+const melody = playbackAttacks();
+const harmony = playbackAttacks("original");
+const shift = hymnTransposition(playbackSourceKey, "A").semitones;
+const first = melody[0][0];
+const target = first + shift;
+const targetChord = harmony[0].map((pitch) => pitch + shift);
+const pitchLabel = (pitch: number, key: string) => {
+  const card = spellPitch(pitch, key) || chromaticPitch(pitch);
+  return name(card) + card.octave;
+};
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
 import {
   selectPractice,
   practiceOption,
@@ -32,7 +59,7 @@ const server = process.env.TEST_BASE_URL
         "4348",
         "--strictPort",
       ],
-      { stdio: "ignore" },
+      { stdio: "ignore", cwd: new URL("../", import.meta.url) },
     );
 for (let i = 0; i < 100; i++) {
   try {
@@ -41,7 +68,9 @@ for (let i = 0; i < 100; i++) {
   await new Promise((r) => setTimeout(r, 100));
 }
 const home = await mkdtemp(join(tmpdir(), "songalong-keys-"));
-const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: home } });
+const browser = await launchBrowser({
+  env: { ...process.env, CFFIXED_USER_HOME: home },
+});
 try {
   const context = await createContext(browser, {
     viewport: { width: 1680, height: 1000 },
@@ -58,15 +87,18 @@ try {
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(base);
+  await page.goto(base + `/piano/hymns/${playbackHymn.id}`);
   await page.locator(".hymn-paper svg").first().waitFor({ state: "attached" });
-  await selectPractice(page, "sight");
+
   await page.locator("#hymn-key").waitFor({ state: "attached" });
   assert.equal(
     await page.locator('input[name="hymn-key"]').inputValue(),
     "original",
   );
-  assert.equal(await page.locator(".hymn-key-range").textContent(), "D4–D5");
+  assert.equal(
+    await page.locator(".hymn-key-range").textContent(),
+    playbackRangeLabel("original"),
+  );
   await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
@@ -88,33 +120,36 @@ try {
         document.querySelector("#saved")?.textContent ===
         "Saved on this device.",
     );
-  await note(62);
-  assert.equal(await count(), "2 / 35");
+  await note(first);
+  assert.equal(await count(), `2 / ${melody.length}`);
   await practiceOption(page, "#hymn-key", "A");
-  assert.equal(await count(), "1 / 35");
-  await note(62);
+  assert.equal(await count(), `1 / ${melody.length}`);
+  await note(first);
   assert.equal(await page.locator(".sequence-feedback").count(), 0);
-  assert.equal(await count(), "1 / 35");
+  assert.equal(await count(), `1 / ${melody.length}`);
   assert.equal(
     await page
-      .locator('.piano-key.is-wrong[data-piano="62"] .piano-hint-label')
+      .locator(`.piano-key.is-wrong[data-piano="${first}"] .piano-hint-label`)
       .textContent(),
-    "D4",
+    pitchLabel(first, playbackSourceKey),
   );
   assert.equal(
     await page
-      .locator('.piano-key.is-right[data-piano="64"] .piano-hint-label')
+      .locator(`.piano-key.is-right[data-piano="${target}"] .piano-hint-label`)
       .textContent(),
-    "E4",
+    pitchLabel(target, "A"),
   );
   assert.equal(
     await page
-      .locator('.piano-key[data-piano="64"]')
+      .locator(`.piano-key[data-piano="${target}"]`)
       .getAttribute("aria-disabled"),
     "false",
     "hints allow an immediate retry",
   );
-  assert.equal(await page.locator(".hymn-key-range").textContent(), "E4–E5");
+  assert.equal(
+    await page.locator(".hymn-key-range").textContent(),
+    playbackRangeLabel("A"),
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(150);
   assert.equal(await page.locator(".practice-piano").isVisible(), false);
@@ -123,63 +158,68 @@ try {
   await page.locator('#sight-reading[data-playback-only="false"]').waitFor();
   await midiAction(page, "Connect MIDI keyboard");
   await closeNavigation(page);
-  await note(64);
+  await note(target);
   assert.equal(
     await page.locator(".piano-hint-label").count(),
     0,
     "new notes clear previous guesses",
   );
-  await note(69);
-  assert.equal(await count(), "3 / 35");
+  await note(melody[1][0] + shift);
+  assert.equal(await count(), `3 / ${melody.length}`);
   await saved();
   await page.reload();
   await page
     .locator(".hymn-count")
-    .filter({ hasText: "3 / 35" })
+    .filter({ hasText: `3 / ${melody.length}` })
     .waitFor({ state: "attached" });
   assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "A");
   await practiceOption(page, "#hymn-key", "original");
-  assert.equal(await count(), "2 / 35");
-  await practiceOption(page, "#hymn-key", "G");
+  assert.equal(await count(), `2 / ${melody.length}`);
+  await practiceOption(page, "#hymn-key", playbackSourceKey);
   assert.equal(
     await count(),
-    "2 / 35",
+    `2 / ${melody.length}`,
     "source tonic shares original progress",
   );
   await practiceOption(page, "#hymn-key", "A");
-  assert.equal(await count(), "3 / 35");
+  assert.equal(await count(), `3 / ${melody.length}`);
   await practiceOption(page, "#hymn-key", "original");
   await practiceOption(page, "#hymn-arrangement", "original");
   await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
-    .waitFor({ state: "attached" });
-  await send(43);
-  await send(55);
-  assert.equal(await count(), "1 / 35");
+    .waitFor();
+  assert.ok(
+    harmony[0].length >= 3,
+    "fixture exercises a genuinely partial chord",
+  );
+  for (const pitch of harmony[0].slice(0, 2)) await send(pitch);
+  assert.equal(await count(), `1 / ${harmony.length}`);
   await practiceOption(page, "#hymn-key", "A");
-  assert.equal(await count(), "1 / 35");
+  assert.equal(await count(), `1 / ${harmony.length}`);
   assert.equal(
     await page.locator(".hymn-piano .is-wrong").count(),
     0,
     "old partial feedback is cleared",
   );
-  for (const n of [43, 55]) await send(n, false);
-  for (const n of [45, 57, 61]) await send(n);
-  assert.equal(await count(), "1 / 35");
-  await send(62);
-  assert.equal(await count(), "1 / 35");
-  await send(62, false);
-  await send(64);
+  for (const pitch of harmony[0].slice(0, 2)) await send(pitch, false);
+  for (const pitch of targetChord.slice(0, -1)) await send(pitch);
+  assert.equal(await count(), `1 / ${harmony.length}`);
+  const wrong = targetChord.at(-1)! + 1;
+  assert.ok(!targetChord.includes(wrong));
+  await send(wrong);
+  assert.equal(await count(), `1 / ${harmony.length}`);
+  await send(wrong, false);
+  await send(targetChord.at(-1)!);
   assert.equal(
     await count(),
-    "1 / 35",
+    `1 / ${harmony.length}`,
     "a wrong note clears the partial chord",
   );
-  for (const n of [45, 57, 61, 64]) await send(n, false);
-  for (const n of [45, 57, 61, 64]) await send(n);
-  assert.equal(await count(), "2 / 35");
-  for (const n of [45, 57, 61, 64]) await send(n, false);
+  for (const pitch of targetChord) await send(pitch, false);
+  for (const pitch of targetChord) await send(pitch);
+  assert.equal(await count(), `2 / ${harmony.length}`);
+  for (const pitch of targetChord) await send(pitch, false);
   // Every arrangement renders in flat and sharp keys, with the same responsive controls.
   for (const arrangement of [
     "melody",
@@ -199,7 +239,7 @@ try {
       await practiceOption(page, "#hymn-key", key);
       assert.equal(
         await page.locator(".hymn-key-range").textContent(),
-        key === "Bb" ? "F4–F5" : "C♯4–C♯5",
+        playbackRangeLabel(key as "Bb" | "F#"),
         `${arrangement} reports melody only, even with harmony visible`,
       );
       assert.ok((await page.locator(".hymn-paper .sight-current").count()) > 0);
@@ -216,21 +256,36 @@ try {
       assert.equal(await page.locator(".sequence-feedback.error").count(), 0);
     }
   }
-  await note(62);
+  await practiceOption(page, "#hymn-arrangement", "melody");
+  await note(first);
   assert.match(
     (
       await page
         .locator(".piano-key.is-right .piano-hint-label")
         .allTextContents()
     ).join(" "),
-    /C♯4/,
+    new RegExp(
+      pitchLabel(
+        first + hymnTransposition(playbackSourceKey, "F#").semitones,
+        "F#",
+      ),
+    ),
     "feedback uses the transposed sharp spelling",
   );
   await practiceOption(page, "#hymn-key", "Db");
-  assert.equal(await page.locator(".hymn-key-range").textContent(), "A♭4–A♭5");
+  assert.equal(
+    await page.locator(".hymn-key-range").textContent(),
+    playbackRangeLabel("Db"),
+  );
   await practiceOption(page, "#hymn-key", "B");
-  assert.equal(await page.locator(".hymn-key-range").textContent(), "F♯4–F♯5");
+  assert.equal(
+    await page.locator(".hymn-key-range").textContent(),
+    playbackRangeLabel("B"),
+  );
   await practiceOption(page, "#hymn-key", "F");
+  await practiceOption(page, "#hymn-arrangement", "original");
+  await page.locator("#hymn-octave-down").click();
+  await page.locator("#hymn-octave-down").click();
   await saved();
   await page.reload();
   await page.locator("#hymn-key").waitFor({ state: "attached" });
@@ -244,7 +299,17 @@ try {
     await page.locator(".hymn-range-hint").isVisible(),
     "low transposed bass has honest MIDI-only guidance",
   );
-  assert.match((await page.locator(".hymn-range-hint").textContent())!, /F2/);
+  assert.match(
+    (await page.locator(".hymn-range-hint").textContent())!,
+    new RegExp(
+      pitchLabel(
+        harmony[0][0] +
+          hymnTransposition(playbackSourceKey, "F").semitones -
+          24,
+        "F",
+      ),
+    ),
+  );
   const kb = await page.locator(".hymn-piano").boundingBox(),
     score = await page.locator(".sequence-score").boundingBox();
   assert.ok(
@@ -276,6 +341,9 @@ try {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   );
+  await openPracticeOptions(page);
+  await page.locator("#hymn-octave-up").click();
+  await page.locator("#hymn-octave-up").click();
   // A pre-key version-1 activity defaults to Original and reuses its old bookmarks.
   await practiceOption(page, "#hymn-arrangement", "melody");
   await practiceOption(page, "#hymn-key", "original");
@@ -304,7 +372,7 @@ try {
   await page.reload();
   await page
     .locator(".hymn-count")
-    .filter({ hasText: "2 / 35" })
+    .filter({ hasText: `2 / ${melody.length}` })
     .waitFor({ state: "attached" });
   await openPracticeOptions(page);
   assert.equal(

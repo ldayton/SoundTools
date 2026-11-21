@@ -28,3 +28,15 @@ solution. No browser error is filtered in the resulting tests.
 The tempo case remains open until a failed edit supplies the new state evidence
 and a corresponding failing regression identifies its cause. Passing stress
 probes and a stronger assertion are not grounds for closing it.
+
+## Deterministic stale contracts found during full regression validation
+
+The wider SongAlong WebKit lane also exposed legacy named-song assumptions in
+sidebar, key, passage, octave, sight-reading and sustained-bass recovery tests.
+These were repeatable stale contracts, not flakes: the named song now has a
+dedicated instrument edition. The tests now use capability fixtures and the
+shared arrangement-control helper. They retain partial-chord retry, tied bass,
+transposition, note feedback, bookmarks, gesture/bar boundaries, clef marks,
+completion and offline checks. Passage rhythm and sustained-bass requirements
+are explicit in the fixture selector and shared unit tests; CI policy guards
+these generic consumers against reintroducing literal song routes.

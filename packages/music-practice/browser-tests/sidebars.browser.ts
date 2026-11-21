@@ -1,7 +1,13 @@
-import { captureFailure, closeBrowser, launchBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  createContext,
+} from "../../../scripts/ci/browser-harness.cjs";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { practiceOption } from "./helpers";
+import { stagedHymn, otherStagedHymn } from "../test-fixtures/hymns";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -43,7 +49,7 @@ try {
   assert.equal(await page.locator("#roundLength").inputValue(), "24");
   await page.locator('nav a[data-mode="piano"]').click();
   assert.equal(await page.locator("#roundLength").inputValue(), "48");
-  await page.goto(song.base);
+  await page.goto(song.base + `/piano/hymns/${stagedHymn.id}`);
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await nav.locator("#hymn-search").count(), 1);
   assert.equal(await page.locator(".practice-options #hymn-search").count(), 0);
@@ -55,7 +61,7 @@ try {
     await page.locator(".sequence-title").filter({ hasText: title }).waitFor();
   };
   await practiceOption(page, "#hymn-key", "F");
-  await page.locator("#hymn-arrangement").selectOption("bass");
+  await practiceOption(page, "#hymn-arrangement", "bass");
   await practiceOption(page, "#hymn-mode", "playback");
   await page.locator("#hymn-tempo").fill("110");
   await page.locator("#hymn-tempo").press("Enter");
@@ -64,7 +70,7 @@ try {
   await page.getByRole("slider", { name: "Piano volume" }).focus();
   await page.keyboard.press("Home");
   await page.keyboard.press("Escape");
-  await choose("Silent Night");
+  await choose(otherStagedHymn.title);
   assert.equal(
     await page.locator('input[name="hymn-key"]').inputValue(),
     "original",
@@ -75,7 +81,7 @@ try {
     "playback",
   );
   assert.equal(await page.locator("#hymn-size").inputValue(), "48 px");
-  await choose("Amazing Grace");
+  await choose(stagedHymn.title);
   assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
   assert.equal(await page.locator("#hymn-arrangement").inputValue(), "bass");
   assert.equal(
@@ -98,8 +104,11 @@ try {
     .click();
   await nav.locator('.keyboard-menu[data-state="connected"]').waitFor();
   await page.getByRole("link", { name: "Settings", exact: true }).click();
-  await choose("Silent Night");
-  assert.match(page.url(), /piano\/hymns\/silent-night/);
+  await choose(otherStagedHymn.title);
+  assert.equal(
+    new URL(page.url()).pathname,
+    `/piano/hymns/${otherStagedHymn.id}`,
+  );
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
     "playback",
@@ -115,7 +124,7 @@ try {
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
   await nav.locator("#hymn-search").waitFor();
-  await choose("Amazing Grace");
+  await choose(stagedHymn.title);
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });
@@ -143,11 +152,14 @@ try {
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
-  await choose("Silent Night");
+  await choose(otherStagedHymn.title);
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });
-  assert.match(page.url(), /piano\/hymns\/silent-night/);
+  assert.equal(
+    new URL(page.url()).pathname,
+    `/piano/hymns/${otherStagedHymn.id}`,
+  );
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: left selection/volume/MIDI, independent right settings, settings navigation, reload and mobile drawers pass`,

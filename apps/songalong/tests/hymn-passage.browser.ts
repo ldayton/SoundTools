@@ -1,4 +1,15 @@
-import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  passageHymn,
+  playbackAttacks,
+} from "../../../packages/music-practice/test-fixtures/hymns";
+const attacks = playbackAttacks("melody", passageHymn);
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  launchBrowser,
+  newPage,
+} from "../../../scripts/ci/browser-harness.cjs";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
@@ -138,13 +149,13 @@ try {
     );
   await page.goto(
     base +
-      "/piano/hymns/amazing-grace?mode=wait&countIn=0.5&loopCountIn=1&tempo=200&arrangement=melody",
+      `/piano/hymns/${passageHymn.id}?mode=wait&countIn=0.5&loopCountIn=1&tempo=200&arrangement=melody`,
   );
   await note(0).waitFor();
   await midiAction(page, "Connect MIDI keyboard");
   await closeNavigation(page);
   await click(4);
-  await expect(page.locator(".hymn-count")).toHaveText("5 / 35");
+  await expect(page.locator(".hymn-count")).toHaveText(`5 / ${attacks.length}`);
   await expect(page.locator(".hymn-clear-passage")).toBeHidden();
   assert.deepEqual(
     await probe(),
@@ -157,13 +168,13 @@ try {
     "aria-label",
     "Resume",
   );
-  await expect(page.locator(".hymn-count")).toHaveText("3 / 35");
+  await expect(page.locator(".hymn-count")).toHaveText(`3 / ${attacks.length}`);
   await page.locator(".hymn-pause").click();
   await score.focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator(".hymn-count")).toHaveText("4 / 35");
+  await expect(page.locator(".hymn-count")).toHaveText(`4 / ${attacks.length}`);
   await page.keyboard.press("Home");
-  await expect(page.locator(".hymn-count")).toHaveText("1 / 35");
+  await expect(page.locator(".hymn-count")).toHaveText(`1 / ${attacks.length}`);
   await page.keyboard.press("Shift+ArrowRight");
   await expect(start).toHaveAttribute("aria-valuenow", "1");
   await expect(end).toHaveAttribute("aria-valuenow", "2");
@@ -206,15 +217,15 @@ try {
     "drag controls do not move the score",
   );
   await page.mouse.up();
-  await expect(status).toHaveText("Bar 1");
-  await expect(start).toHaveAttribute("aria-valuetext", "Bar 1, beat 1");
-  await expect(end).toHaveAttribute("aria-valuetext", "Bar 1, beat 3½");
+  await expect(status).toHaveText("Bar 1, beats 2–4");
+  await expect(start).toHaveAttribute("aria-valuetext", "Bar 1, beat 2");
+  await expect(end).toHaveAttribute("aria-valuetext", "Bar 1, beat 4");
   await end.focus();
   await page.keyboard.press("ArrowRight");
   await expect(end).toHaveAttribute("aria-valuenow", "5");
   await expect(end).toBeFocused();
   await undo();
-  await expect(status).toHaveText("Bar 1");
+  await expect(status).toHaveText("Bar 1, beats 2–4");
   // Drag an endpoint; ordinary clicks within a passage retain it.
   let handle = (await end.boundingBox())!;
   const target = await center(4);
@@ -229,7 +240,7 @@ try {
   await click(2);
   await expect(end).toHaveAttribute("aria-valuenow", "5");
   await undo();
-  await expect(status).toHaveText("Bar 1");
+  await expect(status).toHaveText("Bar 1, beats 2–4");
   // Escape and lost pointer capture restore the prior range instead of leaving input blocked.
   let from = await center(5);
   await page.mouse.move(from.x, from.y);
@@ -237,7 +248,7 @@ try {
   await page.mouse.move(from.x + 20, from.y);
   await page.keyboard.press("Escape");
   await page.mouse.up();
-  await expect(status).toHaveText("Bar 1");
+  await expect(status).toHaveText("Bar 1, beats 2–4");
   await expect(page.locator(".hymn-cancel-passage")).toBeHidden();
   from = await center(5);
   await page.mouse.move(from.x, from.y);
@@ -251,7 +262,7 @@ try {
   });
   await page.mouse.move(from.x + 21, from.y);
   await page.mouse.up();
-  await expect(status).toHaveText("Bar 1");
+  await expect(status).toHaveText("Bar 1, beats 2–4");
   await expect(page.locator(".hymn-cancel-passage")).toBeHidden();
   const bar2 = await center(5);
   await page.mouse.dblclick(bar2.x, bar2.y);
@@ -274,9 +285,9 @@ try {
     }, n);
   await page.getByRole("checkbox", { name: "Loop", exact: true }).check();
   await expect(page.locator(".hymn-count")).toHaveText("1 / 2");
-  await send(67);
+  await send(attacks[1][0]);
   await expect(page.locator(".hymn-count")).toHaveText("2 / 2");
-  await send(71);
+  await send(attacks[2][0]);
   await expect(page.locator(".hymn-count")).toHaveText("1 / 2");
   assert.deepEqual(
     await probe(),
@@ -468,7 +479,7 @@ try {
   await expect
     .poll(async () => (await probe()).notes, { timeout: 15000 })
     .toBeGreaterThanOrEqual(lastBefore + 3);
-  await expect(page.locator(".sequence-title")).toHaveText("Amazing Grace");
+  await expect(page.locator(".sequence-title")).toHaveText(passageHymn.title);
   await page.locator(".hymn-pause").click();
   const stopped = (await probe()).notes;
   await page.waitForTimeout(400);

@@ -57,6 +57,7 @@ export function chordEdition(hymn: { id: string }) {
   if (isFlyAway(hymn))
     return {
       id: "ill-fly-away" as const,
+      strumPattern: true,
       guide: editionGuides["ill-fly-away"],
       fixedSystems: true,
       capo: 0,

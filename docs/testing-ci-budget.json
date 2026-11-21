@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-21",
+  "command": "npm run ci -- --all",
+  "budgetMs": 60000,
+  "machine": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "logicalCpus": 24,
+    "memoryBytes": 68719476736,
+    "node": "v24.22.3",
+    "workers": 16
+  },
+  "conditions": "Installed browsers and warm npm/OS caches. Every invocation runs npm ci and rebuilds all selected apps; no build artifact cache or snapshots. Timings include selection, install, tasks and cleanup. Deployment is separate. Two successful runs are not a p95 guarantee.",
+  "coverage": {
+    "ci": "Shared/account/offline/diagnostics/music units and contracts, DoReGo and SongAlong units, Soundglow selected unit/DSP checks, all four builds/type checks, Chromium playback/MIDI/audio-lifecycle/guitar checks, all four desktop/phone WebKit startup and auth-confirm isolation checks.",
+    "nightly": "Every former CI and Nightly command plus current CI commands; exhaustive editions and real Accounts integration on Chromium and WebKit."
+  },
+  "runs": [
+    {
+      "sha": "6a322a8014f77faac508fc64d557b7364f94f1d1",
+      "elapsedMs": 45831,
+      "passed": true,
+      "tasks": 20,
+      "evidence": "work/ci-results/1795274235970-17d4a1af"
+    },
+    {
+      "sha": "2bf52f98e45c53bf073f4f37162f933b95deafe1",
+      "elapsedMs": 46282,
+      "passed": true,
+      "tasks": 20,
+      "evidence": "work/ci-results/1795274329674-bacc6806"
+    }
+  ]
+}

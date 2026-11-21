@@ -252,6 +252,33 @@ songalong ci core` still builds and runs that explicit lane through the same
 scheduler. Convenience aliases are not a substitute for the complete local
 runner. Nightly never publishes.
 
+## Current 60-second CI measurement — 21 November 2026
+
+Two complete `npm run ci -- --all` runs on the Mac Studio passed in **45.83s**
+and **46.28s**, including dependency installation, fresh builds and overhead.
+Both used the same 20-task CI inventory, 16 outer worker slots and eight music
+unit-file workers, on 24 logical CPUs and 64 GiB RAM. Browsers were installed
+and npm/OS caches were warm; build outputs were recreated each time. This leaves
+about 14 seconds below the hard budget in these runs, not a p95 guarantee.
+
+CI selects shared/account/offline/diagnostics/music units and contracts, DoReGo
+and SongAlong units, selected Soundglow state/DSP units, all four app builds and
+type checks, DoReGo real PCM/playback checks, critical MIDI permission/grading/
+hotplug, SongAlong audio departure/recovery and guitar controls, and desktop/
+phone WebKit startup, rendering, overflow, runtime errors and isolated auth
+confirmation for all four apps. The new critical MIDI check uses the existing
+simulator; it does not pretend to test physical hardware.
+
+The full real-backend Accounts suite previously took 117 seconds by itself.
+It now runs in Nightly, together with exhaustive MIDI, editions, catalog,
+visual/performance, offline recovery and longer browser scenarios. The policy
+tests require Nightly to retain every former command and all current CI commands.
+This is a deliberate coverage tradeoff, not a claim that parallelism alone made
+the previous suite fit in 60 seconds. Release provenance and live smoke checks
+remain mandatory and are timed separately from the local CI suite.
+
+See [the measurement record](testing-ci-budget.json) for SHAs and retained evidence.
+
 ## Earlier exhaustive CI measurement — 21 November 2026
 
 This historical comparison predates the 60-second CI coverage decision. It is

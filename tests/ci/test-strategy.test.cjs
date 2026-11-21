@@ -47,7 +47,7 @@ test('all edition files are required in both push and full matrices; lanes never
   assert.throws(() => matrix('songalong', 'typo'));
   assert.throws(() => plan('dorego', 'editions'));
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/validate-app.yml'), 'utf8');
-  assert.match(workflow, /matrix: \$\{\{ fromJSON\(needs\.strategy\.outputs\.matrix\) \}\}/);
+  assert.match(workflow, /matrix: \$\{\{ fromJSON\(inputs\.matrix\) \}\}/);
   assert.match(workflow, /group: .*matrix\.browser.*matrix\.profile/);
   assert.match(workflow, /timeout-minutes: \$\{\{ matrix.timeout \}\}/);
 });

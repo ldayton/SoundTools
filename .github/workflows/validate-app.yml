@@ -5,25 +5,13 @@ on:
       app:
         required: true
         type: string
-      full:
-        default: false
-        type: boolean
+      matrix:
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
-  strategy:
-    runs-on: ubuntu-24.04
-    outputs:
-      matrix: ${{ steps.strategy.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-node@v7.1.0
-        with:
-          node-version: 24
-      - id: strategy
-        run: node scripts/ci/test-strategy.cjs matrix ${{ inputs.app }} ${{ inputs.full && 'regression' || 'focused' }}
   validate:
-    needs: strategy
     name: ${{ inputs.app }} (${{ matrix.browser }}, ${{ matrix.profile }})
     concurrency:
       group: validation-${{ github.event_name }}-${{ github.ref }}-${{ inputs.app }}-${{ matrix.browser }}-${{ matrix.profile }}
@@ -32,7 +20,7 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.strategy.outputs.matrix) }}
+      matrix: ${{ fromJSON(inputs.matrix) }}
     env:
       TEST_BROWSER: ${{ matrix.browser }}
       TEST_BROWSERS: ${{ matrix.browser }}

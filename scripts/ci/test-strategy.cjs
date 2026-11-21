@@ -2,7 +2,6 @@
 // CI calls explicit lanes, never a growing developer convenience umbrella.
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
 const { apps } = require('./apps.cjs');
 const root = path.resolve(__dirname, '../..');
 const budgets = Object.freeze({ focused: 10, editions: 15, regression: 30 });
@@ -50,6 +49,7 @@ if (require.main === module) {
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `matrix=${value}\n`);
     else console.log(value);
   } else if (process.argv[2] === 'editions') {
-    for (const [command, args] of plan('songalong', 'editions')) execFileSync(command, args, { cwd: root, env: process.env, stdio: 'inherit' });
+    const { commandTasks } = require('./task-graph.cjs');
+    require('./run.cjs').runTasks(commandTasks('songalong', 'editions', process.env.TEST_BROWSER || 'chromium', root, { needs: [] }), { identity: { app: 'songalong', profile: 'editions' } }).then(result => { if (!result.passed) process.exitCode = 1; }).catch(error => { console.error(error.stack); process.exitCode = 1; });
   } else throw Error('Use matrix <app> <focused|regression> or editions');
 }

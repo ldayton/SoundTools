@@ -29,7 +29,9 @@
     "build:ci": "node scripts/ci/build.cjs",
     "test:ci-unit": "node --test tests/ci/*.test.cjs",
     "test:sidebar-resize": "tsx tests/sidebar-resize.browser.mts",
-    "test:sidebar-tools": "tsx tests/sidebar-tools.browser.mts"
+    "test:sidebar-tools": "tsx tests/sidebar-tools.browser.mts",
+    "ci:local": "node scripts/ci/local.cjs",
+    "ci:compare": "node scripts/ci/compare.cjs"
   },
   "devDependencies": {
     "@sentry/cli": "3.8.2"

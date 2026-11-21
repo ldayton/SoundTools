@@ -1,24 +1,17 @@
 const path = require('node:path');
-const { apps } = require('./apps.cjs');
-const root = path.resolve(__dirname, '../..');
 const { plan } = require('./test-strategy.cjs');
-const { runCommand, recorder } = require('./test-command.cjs');
-function check(app, profile) {
-  const browser = process.env.TEST_BROWSER || 'chromium';
-  const commands = plan(app, profile, browser);
-  const environment = { ...process.env, TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' };
-  const record = recorder(path.join(root, 'work/ci-results', `${app}-${profile}-${browser}-${Date.now()}-${process.pid}.jsonl`), { app, profile, browser });
-  const run = (command, args, env = environment) => runCommand(command, args, { cwd: root, env, stdio: 'inherit', timeout: 20 * 60 * 1000, record });
-  // Shared music unit tests already ran once in the shared job.
-  if (profile !== 'editions' && app !== 'notewise' && app !== 'soundglow') run('npm', ['test', '--workspace=' + app]);
-  run(process.execPath, ['scripts/ci/build.cjs', app]);
-  // Only the exhaustive cross-app boundary tests need a sibling fixture build.
-  if (profile === 'regression' && app === 'songalong') run(process.execPath, ['scripts/ci/build.cjs', 'notewise']);
-  for (const [command, args] of commands) run(command, args);
-  if (profile === 'focused') run(process.execPath, ['scripts/ci/smoke-local.cjs', app], { ...environment, TEST_BROWSER: 'webkit' });
+const { setupTasks, commandTasks } = require('./task-graph.cjs');
+const { runTasks } = require('./run.cjs');
+async function check(app, profile = 'focused') {
+  const browser = process.env.TEST_BROWSER || 'chromium', cwd = path.resolve(__dirname, '../..');
+  // Validate the lane before creating outputs. Every command uses the same
+  // inventory and resource scheduler as the complete local run.
+  plan(app, profile, browser);
+  const tasks = setupTasks(app, cwd, { visual: profile === 'regression' });
+  if (profile === 'editions') tasks.splice(0, tasks.length, ...setupTasks(app, cwd).filter(task => task.id.endsWith(':build')).map(task => ({ ...task, needs: [] })));
+  if (profile === 'regression' && app === 'songalong') tasks.push({ id: 'notewise:build', command: process.execPath, args: ['scripts/ci/build.cjs', 'notewise'], cwd, needs: [`${app}:build`], locks: [`files:${cwd}`], slots: 2 });
+  tasks.push(...commandTasks(app, profile, browser, cwd, { needs: profile === 'regression' && app === 'songalong' ? ['songalong:build', 'notewise:build'] : [`${app}:build`] }));
+  return runTasks(tasks, { identity: { app, profile, browser } });
 }
 module.exports = { plan, check };
-if (require.main === module) {
-  try { check(process.argv[2], process.argv[3] || 'focused'); }
-  catch (error) { console.error(error.message); process.exitCode = 1; }
-}
+if (require.main === module) check(process.argv[2], process.argv[3]).then(result => { if (!result.passed) process.exitCode = 1; }).catch(error => { console.error(error.stack); process.exitCode = 1; });

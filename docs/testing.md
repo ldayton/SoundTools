@@ -24,7 +24,7 @@ core lane a stable scope and an independent failure result.
 The focused/edition/regression budgets are 10/15/30 minutes in the executable
 policy. These are limits, not performance targets. If a suite approaches its
 limit, use command timings to split coverage rather than hiding timeouts.
-Build once per lane, with SHA/digest provenance; do not reuse stale local builds.
+Build once per app/configuration in a local run, with SHA/digest provenance; do not reuse stale local builds.
 No test assertion has an automatic retry. Infrastructure's bounded provisioning
 retry is separate from application assertions.
 
@@ -109,34 +109,122 @@ tests. In the same change:
 5. Run affected tests, then the exact lane. A passing unit test does not replace
    a browser check for responsive focus, reload or storage lifecycle changes.
 
-## Commands
+## Standard local CI runner
 
-Use Node 24 and `npm ci` at the root. Install browsers with the repository's
-browser installation action/script as needed. `check-app.cjs` builds its own
-verified artifacts and records every command in `work/ci-results/*.jsonl`.
+Use **Node 24**, Docker Desktop, Supabase CLI **3.2.0**, and installed Chromium
+and WebKit. Start Docker through its desktop app if it is stopped. Commit the
+intended changes first: the runner rejects a dirty checkout and validates the
+exact committed revision. Do not create an ad hoc serial shell/Python wrapper
+or run concurrent `check-app` processes in a shared checkout.
 
 ```sh
-npm run test:ci-unit
-npm test --workspace=@ldayton/music-practice
-npm test --workspace=songalong
-TEST_BROWSER=chromium node scripts/ci/check-app.cjs songalong focused
-TEST_BROWSER=chromium node scripts/ci/check-app.cjs songalong editions
-TEST_BROWSER=webkit node scripts/ci/check-app.cjs songalong regression
-TEST_BROWSER=webkit node scripts/ci/check-app.cjs songalong editions
+# Before a push: all applicable shared, app/edition and account checks.
+npm run ci:local -- --base origin/main
+# All push lanes, independent of changed-file selection.
+npm run ci:local -- --all
+# Complete nightly/manual matrix, including both account browser engines.
+npm run ci:local -- --full
+# Inspect selection, coverage, prerequisites and resource locks without running.
+npm run ci:local -- --all --plan
+# One-app diagnostic; this does NOT satisfy pre-push validation by itself.
+npm run ci:local -- --apps songalong
 ```
 
-Before pushing code changes, read the current CI workflows and run every
-applicable shared, app-lane and account check locally. Targeted checks are for
-iteration, not a replacement for the required suite. Validate the exact commit
-being pushed; any subsequent code change invalidates that validation. Do not
-push with required checks failing or incomplete. Core includes the secondary
-browser smoke and needs both Chromium and WebKit.
-Run concurrent local lanes in separate worktrees; each lane rebuilds its app,
-so sharing a live preview's build directory can create false asset failures.
-`npm run test:workspace --workspace=songalong` remains a developer convenience
-umbrella; CI deliberately uses `test:workspace:core` and explicit owned tasks.
-`node scripts/ci/test-strategy.cjs matrix songalong focused` prints the exact
-matrix without starting a build. Nightly/manual full runs never publish.
+The runner installs dependencies once, creates private detached snapshots of the
+same commit, and builds each selected app once per configuration. Focused and
+edition tasks share a completed SongAlong build; Chromium and WebKit share a
+completed app build in a full run. SongAlong's cross-app regression fixture has
+its own prerequisite build. Account builds have different backend configuration
+and never replace ordinary artifacts. Copies use filesystem copy-on-write when
+available. Private `node_modules` retains relative workspace links; do not replace
+it with a symlink into the source checkout.
+
+`CI_WORKERS` or `--workers` controls outer scheduling (default up to six locally,
+two on GitHub; range 1–32). `CI_UNIT_WORKERS` bounds the shared music unit-file
+pool (default four locally, two on GitHub; range 1–8). Worker slots are weighted
+scheduling budgets, not a promise to pin every subprocess to a CPU. Use one outer
+worker for a serial baseline; test commands, case inventory and assertions stay
+the same. Do not raise concurrency just because a machine has many logical CPUs:
+compare throughput, per-command latency and failures first.
+
+```sh
+npm run ci:local -- --all --workers 1
+npm run ci:local -- --all --workers 6
+npm run ci:compare -- /absolute/path/to/serial-run /absolute/path/to/parallel-run
+```
+
+The comparison refuses different commits, task/coverage inventories, dependency
+graphs, failed checks or failed local lifecycle cleanup. It includes installation,
+snapshot and cleanup time for local runs. Report warm/cold backend and browser
+state separately; a single successful probe does not establish p95 or flake rate.
+
+## Scheduler and coverage contract
+
+`scripts/ci/test-strategy.cjs` remains the owner of selected lanes and budgets.
+`task-graph.cjs` creates their build prerequisites and task graph; `scheduler.cjs`
+runs ready tasks within worker and exclusive-resource limits. Both GitHub's
+`check-app.cjs` and the local coordinator use these modules. Shared checks use
+`run-shared.cjs`. GitHub computes all matrices in the existing changes job and
+starts app setup alongside shared validation; every release still requires shared
+checks, its complete app matrix, and applicable Accounts checks.
+
+`scripts/ci/resources.json` is the reviewed command inventory. Each entry records:
+
+- The original command's expanded npm aliases, including pre/post hooks and
+  ordered setup commands. Executing the original command preserves those hooks.
+- Fixed TCP ports and any exclusive resources. The source scan conservatively
+  checks literal ports in test/server helpers; it cannot infer computed ports.
+  Declare computed ports explicitly (for example, the layout server).
+- A UI or real-time-audio classification. Precision audio tasks acquire the
+  `realtime-audio` lock; independent UI/edition tasks can overlap with them.
+  Soundglow fixture generation is a prerequisite; its ordinary visual UI files
+  run with two workers on separate ports/reports, while timing files remain
+  exclusive and one-worker. New visual files default to the timing group.
+
+The SongAlong catalog uses three required partitions per browser, with distinct
+ports and a checked union of the original cases. No partition is optional.
+
+New commands, alias changes and newly observed literal ports fail shared policy
+validation until their inventory entry is reviewed. Inspect the complete alias,
+server helpers, file writes, browser state, audio measurements and backend use
+before updating it. Do not regenerate the catalog blindly or remove locks to get
+a green result. DoReGo's nine browser cases use one registry shared with the
+developer alias; edition discovery remains automatic and a new edition requires
+its resource declaration. Scheduler tests exercise graph/coverage invariants,
+contention, capacity, deadlines, cancellation and immutable failure evidence.
+
+A worktree does **not** isolate TCP ports. A host coordinator lock in the common
+Git directory prevents two local runners from racing; individual task locks
+protect declared ports within the run. If the coordinator lock exists, inspect
+its `owner.json` and verify whether its PID is alive before removing a stale lock.
+Do not kill another run or reuse its backend. Each account engine gets its own
+snapshot, stack and allocated backend ports. Its integration files retain their
+ordered shared-owner/inbox fixtures; database setup and disjoint app builds can
+overlap. Parallelizing account files requires isolated owners/data and recipient-
+specific mail lookup first. Soundglow's timing/throttled visual projects remain
+one-worker inside their exclusive group; do not apply a blanket worker increase.
+
+Every invocation writes a unique `work/ci-results/<run>/` with the SHA, machine,
+Node version, worker count, task inventory, start/end events, dependency/resource
+locks, exit/signal/timeout evidence, stdout logs, CPU time and OS-reported maximum
+RSS. Maximum RSS is the OS time tool's process/child maximum, not the sum of all
+simultaneous browser processes. Nested account reports are retained too. Backend
+provisioning logs may contain local credentials and stay in private snapshot
+`work/ci-private/`, outside uploaded timing artifacts. Environment values are
+never serialized into the inventory.
+
+Independent tasks finish after a failure; dependants are blocked. There are no
+assertion retries. Cancellation and deadlines terminate task process groups,
+including preview children. The local coordinator stops only its owned backend
+stacks in `finally`. Successful snapshots are removed; failed snapshots and first
+failure logs remain for inspection. After investigation, remove only the printed
+run's generated worktrees with `git worktree remove --force <snapshot>`; preserve
+any deliberate source edits and copy needed browser artifacts first.
+
+For targeted iteration, `TEST_BROWSER=chromium node scripts/ci/check-app.cjs
+songalong focused` still builds and runs that explicit lane through the same
+scheduler. Convenience aliases are not a substitute for the complete local
+runner. Nightly/manual full runs never publish.
 
 ## Investigating a red run
 

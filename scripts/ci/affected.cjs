@@ -81,5 +81,7 @@ async function changes({ env = process.env, fetch: request = fetch, git = args =
 module.exports = { workspaces, affected, changes };
 if (require.main === module) changes().then(result => {
   console.log(JSON.stringify(result, null, 2));
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${result.accounts}\n`);
+  const full = process.env.GITHUB_EVENT_NAME === 'schedule' || process.env.CI_FULL === 'true';
+  const matrices = Object.fromEntries(result.apps.map(app => [app, require('./test-strategy.cjs').matrix(app, full ? 'regression' : 'focused')]));
+  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `apps=${JSON.stringify(result.apps)}\ndeploy=${JSON.stringify(result.deploy)}\naccounts=${result.accounts}\nmatrices=${JSON.stringify(matrices)}\n`);
 }).catch(e => { console.error(e.message); process.exitCode = 1; });

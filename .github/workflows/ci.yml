@@ -21,6 +21,7 @@ jobs:
       apps: ${{ steps.changes.outputs.apps }}
       deploy: ${{ steps.changes.outputs.deploy }}
       accounts: ${{ steps.changes.outputs.accounts }}
+      matrices: ${{ steps.changes.outputs.matrices }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -30,6 +31,8 @@ jobs:
           node-version: 24
       - id: changes
         run: node scripts/ci/affected.cjs
+        env:
+          CI_FULL: ${{ inputs.full == true }}
   shared:
     concurrency:
       group: validation-${{ github.event_name }}-${{ github.ref }}-shared
@@ -44,43 +47,45 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run verify:history
-      - run: npm run build:shared -- diagnostics
-      - run: npm run test:shared
-      - run: npm test --workspace=@ldayton/music-practice
-      - run: node --test tests/ci/*.test.cjs
+      - run: node scripts/ci/run-shared.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: timings-shared-attempt${{ github.run_attempt }}
+          path: work/ci-results/
+          retention-days: 7
 
   dorego:
-    needs: [changes, shared]
+    needs: [changes]
     if: contains(fromJSON(needs.changes.outputs.apps), 'dorego')
     uses: ./.github/workflows/validate-app.yml
     with:
       app: dorego
-      full: ${{ github.event_name == 'schedule' || inputs.full == true }}
+      matrix: ${{ toJSON(fromJSON(needs.changes.outputs.matrices).dorego) }}
 
   notewise:
-    needs: [changes, shared]
+    needs: [changes]
     if: contains(fromJSON(needs.changes.outputs.apps), 'notewise')
     uses: ./.github/workflows/validate-app.yml
     with:
       app: notewise
-      full: ${{ github.event_name == 'schedule' || inputs.full == true }}
+      matrix: ${{ toJSON(fromJSON(needs.changes.outputs.matrices).notewise) }}
 
   songalong:
-    needs: [changes, shared]
+    needs: [changes]
     if: contains(fromJSON(needs.changes.outputs.apps), 'songalong')
     uses: ./.github/workflows/validate-app.yml
     with:
       app: songalong
-      full: ${{ github.event_name == 'schedule' || inputs.full == true }}
+      matrix: ${{ toJSON(fromJSON(needs.changes.outputs.matrices).songalong) }}
 
   soundglow:
-    needs: [changes, shared]
+    needs: [changes]
     if: contains(fromJSON(needs.changes.outputs.apps), 'soundglow')
     uses: ./.github/workflows/validate-app.yml
     with:
       app: soundglow
-      full: ${{ github.event_name == 'schedule' || inputs.full == true }}
+      matrix: ${{ toJSON(fromJSON(needs.changes.outputs.matrices).soundglow) }}
 
   accounts:
     needs: changes
@@ -114,10 +119,11 @@ jobs:
       - run: node scripts/setup-account-local.mjs
       - run: npm run test:accounts
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: accounts-results-${{ matrix.browser }}
           path: |
+            work/ci-results/
             work/account-*.png
             work/cloud-files-*.png
             work/browser-results/

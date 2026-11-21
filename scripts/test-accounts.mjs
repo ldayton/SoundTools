@@ -1,18 +1,13 @@
 import { spawn } from "node:child_process";
 import { setTimeout } from "node:timers/promises";
-async function run(command, args) {
-  const p = spawn(command, args, { stdio: "inherit" });
-  await new Promise((resolve, reject) => {
-    p.on("error", reject);
-    p.on("exit", (code) =>
-      code === 0 ? resolve() : reject(Error(command + " failed")),
-    );
-  });
-}
-await run("node", ["scripts/test-account-database.mjs"]);
-await run("node", ["scripts/test-file-storage-database.mjs"]);
-await run("npx", ["tsx", "tests/account-protocol.browser.mts"]);
-await run("node", ["scripts/build-accounts-local.mjs"]);
+const { runTasks } = await import("./ci/run.cjs");
+const bootstrap = await runTasks([
+  { id: 'account-database', command: 'node', args: ['scripts/test-account-database.mjs'], needs: [], locks: ['database'] },
+  { id: 'file-database', command: 'node', args: ['scripts/test-file-storage-database.mjs'], needs: ['account-database'], locks: ['database'] },
+  { id: 'account-protocol', command: 'npx', args: ['tsx', 'tests/account-protocol.browser.mts'], needs: ['file-database'], locks: ['database'] },
+  { id: 'account-build', command: 'node', args: ['scripts/build-accounts-local.mjs'], needs: [], locks: [] },
+], { workers: 2, identity: { group: 'account-bootstrap' } });
+if (!bootstrap.passed) throw Error('Account bootstrap failed; see retained task logs');
 const servers = spawn("node", ["scripts/dev-accounts.mjs", "--preview"], {
   stdio: "inherit",
 });
@@ -32,11 +27,14 @@ try {
     await setTimeout(100);
   }
   if (!ready) throw Error("Local account previews did not start.");
-  await run("npx", ["tsx", "tests/accounts.browser.mts"]);
-  await run("npx", ["tsx", "tests/accounts-extra.browser.mts"]);
-  await run("npx", ["tsx", "tests/accounts-reliability.browser.mts"]);
-  await run("npx", ["tsx", "tests/account-link-window.browser.mts"]);
-  await run("npx", ["tsx", "tests/native-files.browser.mts"]);
+  // These files deliberately share an owner, DB mutations and inbox. Keep their
+  // order until each fixture has an isolated namespace and recipient lookup.
+  const files = ['accounts.browser.mts', 'accounts-extra.browser.mts', 'accounts-reliability.browser.mts', 'account-link-window.browser.mts', 'native-files.browser.mts'];
+  const result = await runTasks(files.map((file, index) => ({
+    id: file, command: 'npx', args: ['tsx', 'tests/' + file],
+    needs: index ? [files[index - 1]] : [], locks: ['account-fixtures'],
+  })), { identity: { group: 'account-browser', browser: process.env.TEST_BROWSER || 'chromium' } });
+  if (!result.passed) throw Error('Account integration failed; see retained task logs');
 } finally {
   servers.kill("SIGTERM");
 }

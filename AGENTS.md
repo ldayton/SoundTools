@@ -27,7 +27,9 @@ run in `tests/ci/test-strategy.test.cjs` on every shared CI validation.
    Shared contract checks require unit and browser coverage for every ID in
    the production `instrumentEditionIds` registry.
 5. Before pushing code changes, read the current CI configuration and run the
-   repository's full applicable CI suite locally. Targeted tests are useful
+   repository's full applicable CI suite locally using `npm run ci:local --
+   --base origin/main` (Node 24, clean committed HEAD). Do not invent a serial
+   wrapper or bypass runner resource locks. Targeted tests are useful
    during development but do not substitute for that suite. Validate the exact
    commit being pushed; fix failures and rerun the necessary checks before
    pushing. Never push while required checks are failing or incomplete. Check
@@ -51,5 +53,9 @@ When a change grows a lane, inspect the retained command timings. Split by
 owned behavior with every lane still required; do not keep increasing a serial
 job's timeout. Workflow matrix, concurrency key, artifact names, and aggregate
 app gate must retain each lane's identity.
-Concurrent local lanes need separate worktrees/build directories, as CI runners
-provide. Do not rebuild an app underneath another test's live preview server.
+Use the standard local coordinator for concurrency; it owns private snapshots,
+immutable builds, TCP port/audio locks and disposable backend stacks. Worktrees
+alone do not isolate ports. Add or change commands through the reviewed coverage
+and resource inventory in `scripts/ci/resources.json`; never omit required cases
+or relax assertions to improve performance. See `docs/testing.md` for benchmarking,
+cleanup and failure evidence.

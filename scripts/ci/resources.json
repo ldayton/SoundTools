@@ -1,0 +1,1819 @@
+{
+  "dorego:npm:run test:desktop --workspace=dorego": {
+    "kind": "audio",
+    "ports": [
+      4327
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/desktop.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:run test:workspace --workspace=dorego": {
+    "kind": "ui",
+    "ports": [
+      4348
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/workspace.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:run test:channels --workspace=dorego": {
+    "kind": "audio",
+    "ports": [
+      4367
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/audio-channels.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:run test:layout --workspace=dorego": {
+    "kind": "ui",
+    "ports": [
+      4960
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/test-practice-layout.cjs",
+          "dorego"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:run test:browsers --workspace=dorego": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "scripts/test-browsers.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:run test:diagnostics-ui --workspace=dorego": {
+    "kind": "ui",
+    "ports": [
+      4329
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/diagnostics.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:run test:resilience --workspace=dorego": {
+    "kind": "ui",
+    "ports": [
+      8000
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/test-resilience.cjs",
+          "dorego"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:node:scripts/test-render-recovery.cjs": {
+    "kind": "ui",
+    "ports": [
+      4971
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "scripts/test-render-recovery.cjs"
+        ],
+        "cwd": ""
+      }
+    ]
+  },
+  "dorego:node:packages/browser-diagnostics/test-browser.cjs": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "packages/browser-diagnostics/test-browser.cjs"
+        ],
+        "cwd": ""
+      }
+    ]
+  },
+  "dorego:node:tests/ci/protected-stage.browser.cjs": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "tests/ci/protected-stage.browser.cjs"
+        ],
+        "cwd": ""
+      }
+    ]
+  },
+  "notewise:npm:run test:workspace --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4458
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/workspace.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:piano --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4327
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/piano.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:midi --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4334
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/midi.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/guitar.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4322
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/guitar.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/backing-mixer.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      8000
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/backing-mixer.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:layout --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4960,
+      4961
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/test-practice-layout.cjs",
+          "notewise"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:guitar --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4322,
+      4352,
+      4362,
+      4484,
+      4498,
+      4502,
+      4595,
+      4597
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/linked-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/scale-loop.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/pentatonic-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/blues-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/scale-fret-range.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hila-scale-shapes.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:practice --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4000,
+      4350
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/piano-practice.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:theory --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4365
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/theory.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:navigation --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4357
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/navigation.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:signatures --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4331
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/key-signatures.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:offline --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4500
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/offline.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:backing --workspace=notewise": {
+    "kind": "audio",
+    "ports": [
+      4000,
+      4384,
+      4476,
+      8000
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/backing-track.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/backing-metronome.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/backing-mixer.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/backing-loudness.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/authored-backing.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:browser --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4321
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:piano-audio --workspace=notewise": {
+    "kind": "audio",
+    "ports": [
+      4361
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/piano-audio.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:diagnostics --workspace=notewise": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "../../packages/music-practice/browser-tests/diagnostics.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:backing-realism --workspace=notewise": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/backing-realism.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:run test:backing-genres --workspace=notewise": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/country-backing.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/reggae-funk.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/soul-folk.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/folk-country.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/gospel.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/gospel-phrases.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/reggae.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/pocket-styles.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/roots-styles.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "songalong:npm:run test:workspace:core --workspace=songalong": {
+    "kind": "audio",
+    "ports": [
+      4387,
+      4535,
+      4550,
+      4554,
+      4565,
+      4572
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/workspace.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-library.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/staff-size.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/staff-spacing.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/song-memory.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/audio-output.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:instrument-audio --workspace=songalong": {
+    "kind": "audio",
+    "ports": [
+      4566,
+      4812
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/instrument-audio.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:guitar --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4574,
+      4591,
+      4696
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar-fingering.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/chord-diagrams.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:fingerings --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4561
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/fingerings.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/hymn-playback.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4374
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/hymn-playback.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx ../../tests/ci/readiness.browser.mts": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "../../tests/ci/readiness.browser.mts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/audio-lifecycle.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4578
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/audio-lifecycle.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:layout --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4960,
+      4962
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/test-practice-layout.cjs",
+          "songalong"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:split --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4420,
+      4421
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "../../packages/music-practice/browser-tests/app-split.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:sidebars --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4430,
+      4431
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "../../packages/music-practice/browser-tests/sidebars.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:hymn-keys --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4348,
+      4386,
+      4387,
+      4388
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-key.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-key-menu.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:stanzas --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4390
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-stanzas.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:hymn-playback --workspace=songalong": {
+    "kind": "audio",
+    "ports": [
+      4374,
+      4378,
+      4385,
+      4566,
+      4812
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/instrument-audio.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-playback.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-passage.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-octave.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:sight --workspace=songalong": {
+    "kind": "audio",
+    "ports": [
+      4341,
+      4358,
+      4387,
+      4535,
+      4550,
+      4554,
+      4565,
+      4572,
+      4574,
+      4591,
+      4696
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/sight-reading.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-recovery.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/workspace.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-library.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/staff-size.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/staff-spacing.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/song-memory.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/audio-output.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar-fingering.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/chord-diagrams.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:offline --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4422
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/offline.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:run test:catalog --workspace=songalong": {
+    "kind": "ui",
+    "ports": [
+      4492
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/hymn-catalog.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ],
+    "partition": {
+      "total": 3,
+      "defaultPort": 4492,
+      "portBase": 4720
+    }
+  },
+  "songalong:npm:run test:diagnostics --workspace=songalong": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "../../packages/music-practice/browser-tests/diagnostics.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/amazing-grace-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4601
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/amazing-grace-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/fingerstyle-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4597
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/fingerstyle-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/ill-fly-away-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4603
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/ill-fly-away-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4599
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/in-christ-alone-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/jesus-loves-me-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4605
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/jesus-loves-me-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/o-come-all-ye-faithful-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4607
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/o-come-all-ye-faithful-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "soundglow:npm:run test:core --workspace=soundglow": {
+    "kind": "audio",
+    "ports": [
+      4000,
+      4016,
+      4017,
+      4018,
+      4029,
+      4096,
+      4284,
+      4321,
+      4500,
+      4700,
+      4707,
+      4800,
+      8000,
+      8125,
+      8192,
+      8779,
+      8780,
+      8820,
+      8998
+    ],
+    "locks": [
+      "realtime-audio",
+      "soundglow-generated-fixtures"
+    ],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/ci/prepare-tests.cjs",
+          "soundglow"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--test",
+          "test/*.cjs"
+        ],
+        "cwd": "packages/browser-diagnostics"
+      },
+      {
+        "command": "node",
+        "args": [
+          "../../packages/browser-diagnostics/test-browser.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/diagnostics-build.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--test",
+          "test/*.cjs"
+        ],
+        "cwd": "packages/browser-offline"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--import",
+          "tsx",
+          "--test",
+          "tests/ui-controller.test.ts",
+          "tests/account-records.test.ts",
+          "tests/file-audio-errors.test.cjs",
+          "tests/praat-client.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "scripts/verify-assets.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--check",
+          "dist/app.js"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--check",
+          "dist/pcm-worklet.js"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "--test",
+          "tests/dev-server.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/audio-controls.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/features.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-contour.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-comparison/practice-metrics.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/speech-detector.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/neural-detector.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-presets.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-filtered.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-corroborated.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-comparison/metrics.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-comparison/capture.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/processor-archive.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/performance.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/display.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/handover.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/settings-state.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/spectrum.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/praat.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/voice-settings.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/overlays.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/voice-feedback.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/lpc-native.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/visual/numeric.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-benchmark/metrics.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-benchmark/gate-trial.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-benchmark/gate-cycle-policy.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-benchmark/gate-reset-policy.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/pitch-benchmark/gate-reset-stream.test.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      }
+    ]
+  },
+  "soundglow:npm:run test:updates --workspace=soundglow": {
+    "kind": "ui",
+    "ports": [
+      8000,
+      8779
+    ],
+    "locks": [
+      "soundglow-generated-fixtures"
+    ],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/ci/prepare-tests.cjs",
+          "soundglow"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/updates.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      }
+    ]
+  },
+  "soundglow:npm:run test:visual --workspace=soundglow": {
+    "kind": "ui",
+    "ports": [
+      8000,
+      8779
+    ],
+    "locks": [
+      "soundglow-generated-fixtures"
+    ],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/ci/prepare-tests.cjs",
+          "soundglow"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "node",
+        "args": [
+          "tests/visual/prepare-replay.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "playwright",
+        "args": [
+          "test"
+        ],
+        "cwd": "apps/soundglow"
+      }
+    ],
+    "visual": {
+      "portBase": 4850,
+      "uiWorkers": 2
+    }
+  },
+  "soundglow:npm:run test:resilience --workspace=soundglow": {
+    "kind": "ui",
+    "ports": [
+      8000,
+      8779
+    ],
+    "locks": [
+      "soundglow-generated-fixtures"
+    ],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "../../scripts/test-resilience.cjs",
+          "soundglow"
+        ],
+        "cwd": "apps/soundglow"
+      }
+    ]
+  },
+  "soundglow:npm:run test:ui-browsers --workspace=soundglow": {
+    "kind": "ui",
+    "ports": [
+      8000,
+      8779
+    ],
+    "locks": [
+      "soundglow-generated-fixtures"
+    ],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "tests/visual/prepare-replay.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      },
+      {
+        "command": "playwright",
+        "args": [
+          "test",
+          "application-shell.spec.cjs",
+          "migration-acceptance.spec.cjs",
+          "preset-dialogs.spec.cjs",
+          "library-actions.spec.cjs",
+          "pitch-controls.spec.cjs",
+          "diagnostics.spec.cjs"
+        ],
+        "cwd": "apps/soundglow"
+      }
+    ],
+    "visual": {
+      "portBase": 4850,
+      "uiWorkers": 2
+    }
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/desktop.e2e.ts": {
+    "kind": "audio",
+    "ports": [
+      4327
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/desktop.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/workspace.e2e.ts": {
+    "kind": "ui",
+    "ports": [
+      4348
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/workspace.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/breath-squares.e2e.ts": {
+    "kind": "audio",
+    "ports": [
+      4359,
+      8000
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/breath-squares.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/breath-audio.e2e.ts": {
+    "kind": "audio",
+    "ports": [
+      4361
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/breath-audio.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/audio-channels.e2e.ts": {
+    "kind": "audio",
+    "ports": [
+      4367
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/audio-channels.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/pages.e2e.ts": {
+    "kind": "ui",
+    "ports": [
+      4318
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/pages.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/lifecycle.e2e.ts": {
+    "kind": "audio",
+    "ports": [
+      4323
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/lifecycle.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/offline.e2e.ts": {
+    "kind": "ui",
+    "ports": [
+      4325
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/offline.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/spelling.e2e.ts": {
+    "kind": "ui",
+    "ports": [
+      4333
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/spelling.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@ import { StrictMode, useEffect, useState, useSyncExternalStore, type ReactNode }
 import { useMediaQuery } from '@mantine/hooks';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { Stack, UnstyledButton } from '@mantine/core';
+import { Divider, Stack, UnstyledButton } from '@mantine/core';
 import {
   BreathOptions,
   BreathSquares,
@@ -62,7 +62,6 @@ function AppShell({
   useEffect(() => {
     const change = () => {
       const settings = location.hash === '#settings';
-      if (settings) pause();
       setSettings(settings);
       setNavigationOpen(false);
       document.title = settings ? 'Settings · DoReGo' : 'DoReGo';
@@ -73,12 +72,10 @@ function AppShell({
       ));
     };
     window.addEventListener('hashchange', change);
-    if (settings) pause();
     return () => window.removeEventListener('hashchange', change);
-  }, [pause]);
+  }, []);
   const navigate = (settings: boolean) => {
     setNavigationOpen(false);
-    if (settings) pause();
     if (location.hash !== (settings ? '#settings' : '')) {
       if (settings) location.hash = 'settings';
       else {
@@ -93,6 +90,7 @@ function AppShell({
         setBreathing(false);
         navigate(false);
       }, !breathing)}
+      <Divider />
       <UnstyledButton
         className="dorego-exercise"
         data-pattern="breathSquares"
@@ -159,7 +157,7 @@ function AppShell({
         onNavigationCollapse={() => setNavigationCollapsed(true)}
         onNavigationExpand={() => setNavigationCollapsed(false)}
         headerActions={
-          settings ? undefined : breathing ? (
+          settings && breathing ? undefined : breathing ? (
             <BreathToolbar session={breath} volumeControl={volumeControl} />
           ) : (
             toolbar

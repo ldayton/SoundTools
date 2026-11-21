@@ -38,3 +38,16 @@ test('the audio timeline keeps simultaneous chords and both accented count-in ba
     4
   );
 });
+test('toggling drone preserves all scheduled piano and click events at the current beat', () => {
+  for (const pattern of ['maqamat', 'yemenite'] as const) {
+    const exercise = generateExercise({ ...DEFAULT_SPEC, pattern, low: 60, high: 72, countIn: 4, restBeats: 4, repetitions: 2, drone: false });
+    for (const beat of [0, 2, exercise.rounds[0].onsetBeat + 0.5, exercise.rounds[0].endBeat + 0.5]) {
+      const offset = (beat * 60) / exercise.spec.bpm;
+      const before = audioEvents(exercise, offset);
+      const after = audioEvents({ ...exercise, spec: { ...exercise.spec, drone: true } }, offset);
+      assert.deepEqual(after.filter(event => event.kind !== 'drone'), before);
+      const current = exercise.rounds.find(round => round.onsetBeat <= beat && round.endBeat > beat);
+      assert.equal(after.some(event => event.kind === 'drone' && event.time === 0), !!current);
+    }
+  }
+});

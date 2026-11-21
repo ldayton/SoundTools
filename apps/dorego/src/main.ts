@@ -201,11 +201,19 @@ function stop(reset = true) {
   else player.pause();
 }
 function refresh(patch: SpecPatch = {}) {
-  diagnostics.event('exercise.changed');
-  stop();
+  if (Object.keys(patch).length === 1 && typeof patch.drone === 'boolean') {
+    changeDrone(patch.drone);
+    return;
+  }
   try {
-    spec = editSpec(spec, patch);
-    exercise = generateExercise(spec);
+    const next = generateExercise(editSpec(spec, patch));
+    if (Object.entries(next.spec).every(([key, value]) => value === spec[key as keyof ExerciseSpec])) {
+      setError(null);
+      return;
+    }
+    diagnostics.event('exercise.changed');
+    stop();
+    exercise = next;
     spec = exercise.spec;
     setError(null);
     persist();
@@ -222,6 +230,17 @@ function changeTempo(bpm: number) {
   player.setTempo(bpm);
   spec = { ...spec, bpm };
   exercise = { ...exercise, spec: { ...exercise.spec, bpm } };
+  position = player.position;
+  persist();
+  populate();
+  update(true);
+}
+function changeDrone(drone: boolean) {
+  if (!!spec.drone === drone) return;
+  diagnostics.event('exercise.drone_changed');
+  player.setDrone(drone);
+  spec = { ...spec, drone };
+  exercise = { ...exercise, spec: { ...exercise.spec, drone } };
   position = player.position;
   persist();
   populate();
@@ -450,10 +469,13 @@ preferences.subscribe((source) => {
   }
   const next = preferences.state.spec;
   const changedPattern = Object.entries(next).some(
-    ([key, value]) => key !== 'volume' && key !== 'bpm' && value !== spec[key as keyof ExerciseSpec]
+    ([key, value]) => key !== 'volume' && key !== 'bpm' && key !== 'drone' && value !== spec[key as keyof ExerciseSpec]
   );
   if (changedPattern) stop();
-  else if (spec.bpm !== next.bpm) player.setTempo(next.bpm);
+  else {
+    player.setTempo(next.bpm);
+    player.setDrone(!!next.drone);
+  }
   spec = next;
   exercise = generateExercise(spec);
   changeAudioChannels(preferences.state.channels);

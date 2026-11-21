@@ -2,7 +2,7 @@ import { captureFailure, closeBrowser, createContext } from '../../../scripts/ci
 import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 import { launchTestBrowser, browserName } from './browser-harness';
-import { openPractice, openSettings } from './ui-helpers';
+import { openPractice, openSettings, elapsedSeconds } from './ui-helpers';
 
 const server = await createServer({ server: { host: '127.0.0.1', port: 4367, strictPort: true } });
 await server.listen();
@@ -111,20 +111,39 @@ try {
     if (mode === 'stereo')
       await page.waitForFunction(() => (window as any).channelProbe.difference > 0.001);
     else assert.ok((await page.evaluate(() => (window as any).channelProbe.difference)) < 1e-6);
+    const playingPosition = await elapsedSeconds(page);
     await openSettings(page);
-    await page.waitForTimeout(300);
+    await output.waitFor();
+    assert.equal(await page.locator('#play').textContent(), 'Pause', 'Settings does not pause warm-up playback');
+    // Output routing is a live mix change, not an exercise edit.
+    await output.click();
+    await page.getByRole('option', { name: mode === 'mono' ? 'Stereo' : 'Combined mono', exact: true }).click();
+    assert.equal(await page.locator('#play').textContent(), 'Pause');
+    await output.click();
+    await page.getByRole('option', { name: mode === 'mono' ? 'Combined mono' : 'Stereo', exact: true }).click();
     await openPractice(page);
+    assert.equal(await page.locator('#play').textContent(), 'Pause');
+    assert.ok((await elapsedSeconds(page)) >= playingPosition, 'Settings and output changes preserve the playhead');
+    await page.locator('#play').click();
+    await page.getByRole('button', { name: 'Resume', exact: true }).waitFor();
     await page.waitForTimeout(100);
     await page.evaluate(() => {
       (window as any).channelProbe.peak = 0;
       (window as any).channelProbe.difference = 0;
     });
     const key = page.locator('.piano-key').first();
-    await key.click();
-    await page.waitForFunction(() => (window as any).channelProbe.peak > 0.001);
-    if (mode === 'stereo')
-      await page.waitForFunction(() => (window as any).channelProbe.difference > 0.001);
-    else assert.ok((await page.evaluate(() => (window as any).channelProbe.difference)) < 1e-6);
+    // Measure routing while the reference note is held. A synthetic zero-length
+    // click can release before WebKit processes the first audio quantum.
+    await key.focus();
+    await page.keyboard.down('Enter');
+    try {
+      await page.waitForFunction(() => (window as any).channelProbe.peak > 0.001);
+      if (mode === 'stereo')
+        await page.waitForFunction(() => (window as any).channelProbe.difference > 0.001);
+      else assert.ok((await page.evaluate(() => (window as any).channelProbe.difference)) < 1e-6);
+    } finally {
+      await page.keyboard.up('Enter');
+    }
   }
   await openSettings(page);
   await page.setViewportSize({ width: 390, height: 844 });

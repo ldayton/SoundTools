@@ -1,3 +1,4 @@
+import { verifyLiveDrone } from './live-drone';
 import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
 import { setTempo } from './ui-helpers';
 import { elapsedSeconds } from './ui-helpers';
@@ -153,6 +154,11 @@ try {
   await playing();
   await progress();
   await audible();
+  const beforeSameExercise = await position();
+  await page.locator('[data-pattern][aria-current="true"]').click();
+  await playing();
+  assert.ok((await position()) >= beforeSameExercise, 'Reselecting the current exercise keeps its playhead');
+  await progress();
   if (process.env.NATIVE_WINDOW_TEST) {
     const beforeWindowChange = await position();
     console.log(
@@ -312,6 +318,7 @@ try {
   assert.deepEqual(errors, []);
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
+  await verifyLiveDrone(browser!, base);
 } catch (error) {
   await captureFailure(browser, error);
   await mkdir('work', { recursive: true });

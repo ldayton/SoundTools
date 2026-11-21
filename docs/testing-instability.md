@@ -237,3 +237,18 @@ Its fixture readiness now also requires the existing `cache.setup.ready`
 diagnostic event. All 12 exercises, both range extremes, actual offline playback,
 worker/update/repair assertions and the no-error assertion remain required. No
 native-error filter, fixed sleep, assertion retry or timeout increase was added.
+
+## Incomplete-install fixture failed foreground assets (21 November 2026)
+
+Nightly `1795297608652-a3578e9d` failed NoteWise WebKit offline testing at the
+fresh partial-install page, waiting for its E control. Its trace/network log
+shows foreground JavaScript and CSS receiving the fixture's HTTP 503s. The
+fixture switched every asset to failure when `sw.js` was requested, although
+worker registration can precede completion of foreground module loading.
+
+The failed-install scenario now targets the required offline manifest, leaving
+foreground JS/CSS available. It verifies that the intended resource really
+failed and was not cached, that offline readiness is withheld, and that Retry
+completes installation after the fault is cleared. All other corruption,
+eviction, offline practice, update and storage-denial cases remain required.
+The original failure is retained; no assertion was retried or weakened.

@@ -64,6 +64,12 @@ need independent tests of that helper; otherwise the same bug can pass both side
 Avoid source-text assertions when an observable behavior test proves the same
 contract. Source checks are appropriate for repository policy and registrations.
 
+Fault injection must target the boundary under test. To test an incomplete
+service-worker installation, fail a required cached resource that does not stop
+the foreground app from mounting; otherwise a bootstrap race replaces the
+intended failure/retry scenario. Assert that the injected fault occurred and
+that recovery restores the promised capability.
+
 Retire a redundant test only after reviewing its assertions, fixtures, browser
 and configuration against the remaining owner. Record the reason in the change;
 do not maintain a second per-assertion registry or preserve old aliases merely

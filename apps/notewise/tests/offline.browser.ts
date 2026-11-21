@@ -44,11 +44,18 @@ assert.equal(built.status, 0, built.stderr);
 const packA = JSON.parse(await readFile(rootA + "/offline-pack.json", "utf8"));
 const packB = JSON.parse(await readFile(rootB + "/offline-pack.json", "utf8"));
 assert.notEqual(packA.shellCache, packB.shellCache);
+// Fail a required offline resource without breaking the foreground JS/CSS.
+const failedInstallURL = packA.files.find((file: { url: string }) =>
+  file.url.endsWith('/manifest.webmanifest')
+)?.url;
+assert(failedInstallURL, 'The incomplete-install fixture requires the shell manifest');
 let root = rootA,
   networkDown = false,
   slowNavigation = false,
   breakAssets = false,
-  failInstall = false;
+  failInstall = false,
+  failInstallAsset = false,
+  failedInstallFetches = 0;
 const mime: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -68,14 +75,16 @@ const server = createServer(async (req, res) => {
         ? "index.html"
         : url.pathname.slice(1);
   if (path === "sw.js" && failInstall) {
-    breakAssets = true;
+    failInstallAsset = true;
     failInstall = false;
   }
   if (networkDown) {
     req.socket.destroy();
     return;
   }
-  if (breakAssets && path.startsWith("assets/")) {
+  const installFailure = failInstallAsset && url.pathname === failedInstallURL;
+  if (installFailure) failedInstallFetches++;
+  if (installFailure || (breakAssets && path.startsWith("assets/"))) {
     res.writeHead(503);
     res.end("Unavailable");
     return;
@@ -395,11 +404,17 @@ try {
     await partial.locator("#offline-status").textContent(),
     "Available offline",
   );
+  assert(failedInstallFetches > 0, 'The intended required resource must actually fail installation');
+  assert.equal(await partial.evaluate(async ({ cache, url }) => {
+    if (!(await caches.has(cache))) return false;
+    return !!(await (await caches.open(cache)).match(url));
+  }, { cache: packA.shellCache, url: failedInstallURL }), false, 'The failed resource must not be cached');
   console.log(
     "failed install detected",
     await partial.locator("#offline-status").textContent(),
   );
   breakAssets = false;
+  failInstallAsset = false;
   await partial.locator("a[data-settings]").click();
   await partial.locator("#offline-retry").click();
   try {
@@ -428,6 +443,10 @@ try {
     );
     throw error;
   }
+  assert.equal(await partial.evaluate(async ({ cache, url }) => {
+    if (!(await caches.has(cache))) return false;
+    return !!(await (await caches.open(cache)).match(url));
+  }, { cache: packA.shellCache, url: failedInstallURL }), true, 'Retry must cache the previously failed resource');
   await mkdir("work", { recursive: true });
   await partial.screenshot({
     path: `work/offline-${name}.png`,

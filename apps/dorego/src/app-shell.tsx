@@ -6,7 +6,7 @@ import { StrictMode, useEffect, useState, useSyncExternalStore, type ReactNode }
 import { useMediaQuery } from '@mantine/hooks';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { Stack, UnstyledButton } from '@mantine/core';
+import { Divider, Stack, UnstyledButton } from '@mantine/core';
 import {
   BreathOptions,
   BreathSquares,
@@ -93,6 +93,7 @@ function AppShell({
         setBreathing(false);
         navigate(false);
       }, !breathing)}
+      <Divider />
       <UnstyledButton
         className="dorego-exercise"
         data-pattern="breathSquares"

@@ -354,6 +354,23 @@ export class Player {
     this.cursor = 0;
     this.fill();
   }
+  setDrone(drone: boolean) {
+    this.reconcile();
+    if (!this.exercise || !!this.exercise.spec.drone === drone) return;
+    this.exercise = { ...this.exercise, spec: { ...this.exercise.spec, drone } };
+    if (!this.graph || !this.clock) return;
+    // Rebuild the event queue on the same clock. Existing note/click IDs stay
+    // in voices, so fill() neither cancels nor reattacks their scheduled audio.
+    for (const [id, entry] of this.voices) {
+      if (entry.event.kind !== 'drone') continue;
+      entry.voice.cancel();
+      this.voices.delete(id);
+    }
+    const beat = this.clock.beatAt(this.graph.output.context.immediate());
+    this.events = audioEvents(this.exercise, secondsAt(beat, this.exercise.spec.bpm));
+    this.cursor = 0;
+    this.fill();
+  }
   get position() {
     const bpm = this.exercise?.spec.bpm ?? 60;
     if (!this.graph || !playbackContext || !this.clock) return secondsAt(this.seekBeat, bpm);

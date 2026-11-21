@@ -136,7 +136,9 @@ edition tasks share a completed SongAlong build; Chromium and WebKit share a
 completed app build in a full run. SongAlong's cross-app regression fixture has
 its own prerequisite build. Account builds have different backend configuration
 and never replace ordinary artifacts. Copies use filesystem copy-on-write when
-available. Private `node_modules` retains relative workspace links; do not replace
+available (native `cp -c` on macOS, rather than Node's fallback clone flag).
+A disk-space preflight requires at least 3 GiB for cloned snapshots and a larger
+budget when full copies are necessary. Private `node_modules` retains relative workspace links; do not replace
 it with a symlink into the source checkout.
 
 `CI_WORKERS` or `--workers` controls outer scheduling (default up to six locally,

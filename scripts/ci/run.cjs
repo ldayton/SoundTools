@@ -17,16 +17,17 @@ async function runTasks(tasks, { directory = path.join(root, 'work/ci-results', 
   const abort = () => controller.abort();
   signal?.addEventListener('abort', abort, { once: true });
   process.once('SIGINT', abort); process.once('SIGTERM', abort);
-  const start = performance.now();
+  const start = performance.now(); let recordingError;
   try {
     const results = await schedule(tasks, { workers, signal: controller.signal,
       execute: task => execute(task, { directory: task.privateLogDirectory || path.join(directory, 'logs'), signal: controller.signal }),
-      onEvent(event) { fs.appendFileSync(events, JSON.stringify(event) + '\n'); console.log(`[ci] ${event.status} ${event.id}${event.elapsedMs === undefined ? '' : ` ${(event.elapsedMs / 1000).toFixed(1)}s`}${event.status === 'failure' ? ` log=${event.log || event.error}` : ''}`); },
+      onEvent(event) { try { fs.appendFileSync(events, JSON.stringify(event) + '\n'); } catch (error) { recordingError ||= error; controller.abort(); } console.log(`[ci] ${event.status} ${event.id}${event.elapsedMs === undefined ? '' : ` ${(event.elapsedMs / 1000).toFixed(1)}s`}${event.status === 'failure' ? ` log=${event.log || event.error}` : ''}`); },
     });
+    if (recordingError) throw recordingError;
     const summary = { sha, workers, ...identity, elapsedMs: Math.round(performance.now() - start), passed: results.every(result => result.status === 'success'), results };
     fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(summary, null, 2), { flag: 'wx' });
     console.log(`CI ${summary.passed ? 'passed' : 'failed'} in ${(summary.elapsedMs / 1000).toFixed(1)}s. Evidence: ${directory}`);
     return summary;
-  } finally { process.removeListener('SIGINT', abort); process.removeListener('SIGTERM', abort); signal?.removeEventListener('abort', abort); }
+  } finally { controller.abort(); process.removeListener('SIGINT', abort); process.removeListener('SIGTERM', abort); signal?.removeEventListener('abort', abort); }
 }
 module.exports = { runTasks };

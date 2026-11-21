@@ -6,7 +6,7 @@ const net = require('node:net');
 const { randomUUID } = require('node:crypto');
 const { affected } = require('./affected.cjs');
 const { apps } = require('./apps.cjs');
-const { git, assertRevision, snapshot } = require('./snapshot.cjs');
+const { git, assertRevision, snapshot, cloneSupported } = require('./snapshot.cjs');
 const { sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
 const { workerCount } = require('./scheduler.cjs');
 const { runTasks } = require('./run.cjs');
@@ -84,6 +84,10 @@ async function main(args) {
   if (opts.plan) { console.log(JSON.stringify({ sha, selected, workers: opts.workers, tasks: graph(selected, opts, directories) }, null, 2)); return; }
   if (Number(process.versions.node.split('.')[0]) !== 24) throw Error('Local CI requires Node 24');
   assertRevision(root, sha);
+  fs.mkdirSync(path.join(root, 'work'), { recursive: true });
+  const clone = cloneSupported(root), disk = fs.statfsSync(root);
+  const requiredBytes = clone ? 3 * 1024 ** 3 : names.length * 1.5 * 1024 ** 3;
+  if (disk.bavail * disk.bsize < requiredBytes) throw Error(`Insufficient disk space for ${names.length} snapshots (${clone ? 'copy-on-write' : 'full copies'}); need at least ${(requiredBytes / 1024 ** 3).toFixed(1)} GiB free`);
   // Worktrees do not isolate TCP ports. One host coordinator owns the resource
   // locks across all repository worktrees; concurrent invocations fail clearly.
   const common = path.resolve(root, git(root, ['rev-parse', '--git-common-dir'])), lock = path.join(common, 'soundtools-ci.lock');
@@ -93,9 +97,10 @@ async function main(args) {
   const abort = () => controller.abort(); process.once('SIGINT', abort); process.once('SIGTERM', abort);
   let passed = false; const started = performance.now(); const cleanup = [];
   try {
+    console.log(`[ci] installing dependencies; snapshots use ${clone ? 'copy-on-write' : 'full copies'}`);
     const install = await execute({ id: 'install', command: 'npm', args: ['ci'], cwd: root }, { directory: path.join(directory, 'bootstrap'), signal: controller.signal });
     if (install.exitCode !== 0 || install.timedOut) throw Error(`npm ci failed; see ${install.log}`);
-    for (const name of names) { if (controller.signal.aborted) throw Error('Cancelled'); snapshot(root, directories[name], sha); created.push(name); }
+    for (const name of names) { if (controller.signal.aborted) throw Error('Cancelled'); console.log(`[ci] snapshot ${name}`); snapshot(root, directories[name], sha, { clone }); created.push(name); }
     for (const name of names.filter(name => name.startsWith('accounts-'))) backends[name] = await backendPorts();
     const result = await runTasks(graph(selected, opts, directories, backends), { directory, workers: opts.workers, identity: { selected, bootstrap: install }, signal: controller.signal });
     for (const name of created) assertRevision(directories[name], sha);

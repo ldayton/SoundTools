@@ -205,11 +205,15 @@ function refresh(patch: SpecPatch = {}) {
     changeDrone(patch.drone);
     return;
   }
-  diagnostics.event('exercise.changed');
-  stop();
   try {
-    spec = editSpec(spec, patch);
-    exercise = generateExercise(spec);
+    const next = generateExercise(editSpec(spec, patch));
+    if (Object.entries(next.spec).every(([key, value]) => value === spec[key as keyof ExerciseSpec])) {
+      setError(null);
+      return;
+    }
+    diagnostics.event('exercise.changed');
+    stop();
+    exercise = next;
     spec = exercise.spec;
     setError(null);
     persist();

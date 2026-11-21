@@ -82,3 +82,21 @@ Eviction now matches owned cloud identity or fingerprint and still excludes
 another owner's files. The browser scenario explicitly holds the legacy
 fingerprint absent and uses the real enabled Remove download menu, retaining
 its bookmark/cloud-file and privacy assertions. No timeout or retry changed.
+
+## DoReGo output routing: instantaneous reference-key audition
+
+On 2026-11-21, the first WebKit output-channel check after preserving playback
+through Settings timed out waiting for reference-note PCM at
+`apps/dorego/tests/audio-channels.e2e.ts:136`. The earlier exercise-output and
+live-transport assertions had passed. Retained evidence:
+`apps/dorego/work/browser-results/audio-channels.e2e.ts-webkit-90798fd3/`
+and `/tmp/dorego-continuity-channels-webkit.log`.
+
+The routing scenario now explicitly holds the reference key until PCM and the
+expected stereo/mono signal are observed, then releases it. The same peak and
+channel-difference assertions pass with that gesture; no retry, delay or timeout
+was added. This separates routing from the duration of a synthetic click.
+A release before WebKit's first audio quantum is a suspected cause, based on
+the reference envelope's immediate key-up path, not a proven diagnosis. Very
+short reference-key tap timing remains a separate investigation; a passing
+held-note routing check is not evidence that the original tap issue is fixed.

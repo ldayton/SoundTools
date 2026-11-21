@@ -154,6 +154,11 @@ try {
   await playing();
   await progress();
   await audible();
+  const beforeSameExercise = await position();
+  await page.locator('[data-pattern][aria-current="true"]').click();
+  await playing();
+  assert.ok((await position()) >= beforeSameExercise, 'Reselecting the current exercise keeps its playhead');
+  await progress();
   if (process.env.NATIVE_WINDOW_TEST) {
     const beforeWindowChange = await position();
     console.log(

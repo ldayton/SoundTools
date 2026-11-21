@@ -62,7 +62,6 @@ function AppShell({
   useEffect(() => {
     const change = () => {
       const settings = location.hash === '#settings';
-      if (settings) pause();
       setSettings(settings);
       setNavigationOpen(false);
       document.title = settings ? 'Settings · DoReGo' : 'DoReGo';
@@ -73,12 +72,10 @@ function AppShell({
       ));
     };
     window.addEventListener('hashchange', change);
-    if (settings) pause();
     return () => window.removeEventListener('hashchange', change);
-  }, [pause]);
+  }, []);
   const navigate = (settings: boolean) => {
     setNavigationOpen(false);
-    if (settings) pause();
     if (location.hash !== (settings ? '#settings' : '')) {
       if (settings) location.hash = 'settings';
       else {
@@ -160,7 +157,7 @@ function AppShell({
         onNavigationCollapse={() => setNavigationCollapsed(true)}
         onNavigationExpand={() => setNavigationCollapsed(false)}
         headerActions={
-          settings ? undefined : breathing ? (
+          settings && breathing ? undefined : breathing ? (
             <BreathToolbar session={breath} volumeControl={volumeControl} />
           ) : (
             toolbar

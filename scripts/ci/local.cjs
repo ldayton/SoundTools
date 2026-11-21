@@ -8,7 +8,8 @@ const { affected } = require('./affected.cjs');
 const { apps } = require('./apps.cjs');
 const { git, assertRevision, snapshot, cloneSupported } = require('./snapshot.cjs');
 const { sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
-const { workerCount } = require('./scheduler.cjs');
+const { workerCount, validate } = require('./scheduler.cjs');
+const { execFileSync } = require('node:child_process');
 const { runTasks } = require('./run.cjs');
 const { execute } = require('./execute.cjs');
 const { retainEvidence } = require('./evidence.cjs');
@@ -82,9 +83,16 @@ async function main(args) {
   const id = `${Date.now()}-${randomUUID().slice(0, 8)}`, directory = path.join(root, 'work/ci-results', id);
   const names = ['shared', ...selected.apps, ...(selected.accounts ? opts.full ? ['accounts-chromium', 'accounts-webkit'] : ['accounts-chromium'] : [])];
   const directories = Object.fromEntries(names.map(name => [name, path.join(root, 'work/ci-snapshots', id, name)]));
-  if (opts.plan) { console.log(JSON.stringify({ sha, selected, workers: opts.workers, tasks: graph(selected, opts, directories) }, null, 2)); return; }
+  const preview = graph(selected, opts, directories); validate(preview);
+  if (opts.plan) { console.log(JSON.stringify({ sha, selected, workers: opts.workers, tasks: preview }, null, 2)); return; }
   if (Number(process.versions.node.split('.')[0]) !== 24) throw Error('Local CI requires Node 24');
   assertRevision(root, sha);
+  if (selected.accounts) {
+    const version = execFileSync('supabase', ['--version'], { encoding: 'utf8' }).trim();
+    if (version !== '3.2.0') throw Error('Local CI requires Supabase CLI 3.2.0, matching ci.yml');
+    try { execFileSync('docker', ['info', '--format', '{{.ServerVersion}}'], { stdio: 'ignore' }); }
+    catch { throw Error('Docker Desktop must be installed and running; start its GUI app before local CI'); }
+  }
   fs.mkdirSync(path.join(root, 'work'), { recursive: true });
   const clone = cloneSupported(root), disk = fs.statfsSync(root);
   const requiredBytes = clone ? 3 * 1024 ** 3 : names.length * 1.5 * 1024 ** 3;
@@ -108,9 +116,12 @@ async function main(args) {
     assertRevision(root, sha); passed = result.passed;
     if (!passed) process.exitCode = 1;
   } finally {
-    // Always stop only the stacks this invocation owns, including partial starts.
+    // A backend is owned only after its start task was scheduled. Graph or
+    // snapshot setup failures must not attempt to stop an unstarted stack.
+    const events = path.join(directory, 'events.jsonl');
+    const starts = new Set(fs.existsSync(events) ? fs.readFileSync(events, 'utf8').trim().split('\n').filter(Boolean).flatMap(line => { try { const event = JSON.parse(line); return event.status === 'running' ? [event.id] : []; } catch { return []; } }) : []);
     for (const name of created.filter(name => name.startsWith('accounts-'))) {
-      if (!backends[name]) continue;
+      if (!backends[name] || !starts.has(`${name}:backend`)) continue;
       const stopped = await execute({ id: `stop-${name}`, command: process.execPath, args: ['scripts/ci/account-backend.cjs', 'stop'], cwd: directories[name], env: backends[name] }, { directory: path.join(directories[name], 'work/ci-private') });
       cleanup.push({ name, exitCode: stopped.exitCode, timedOut: stopped.timedOut });
       if (stopped.exitCode !== 0 || stopped.timedOut) { passed = false; process.exitCode = 1; }

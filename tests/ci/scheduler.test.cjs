@@ -138,3 +138,10 @@ test('ready critical prerequisites reserve capacity instead of starving behind s
   } });
   assert.deepEqual(order, ['running', 'wide', 'leaf']);
 });
+
+test('an already cancelled task never starts a process or creates logs', async () => {
+  const controller = new AbortController(); controller.abort();
+  const directory = path.join(os.tmpdir(), 'ci-preaborted-' + process.pid + '-' + Date.now());
+  const result = await execute({ id: 'not-started', command: process.execPath, args: ['-e', 'process.exit(99)'] }, { directory, signal: controller.signal });
+  assert(result.cancelled); assert(!fs.existsSync(directory));
+});

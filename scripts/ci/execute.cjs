@@ -9,6 +9,7 @@ function parseUsage(text, platform = process.platform) {
   return { userSeconds: Number(/User time \(seconds\): ([\d.]+)/.exec(text)?.[1]) || null, systemSeconds: Number(/System time \(seconds\): ([\d.]+)/.exec(text)?.[1]) || null, maxRssBytes: Number(/Maximum resident set size \(kbytes\): (\d+)/.exec(text)?.[1]) * 1024 || null };
 }
 function execute(task, { directory, signal } = {}) {
+  if (signal?.aborted) return Promise.resolve({ exitCode: null, signal: 'SIGTERM', cancelled: true });
   const log = path.join(directory, `${task.id.replace(/[^\w.-]/g, '_')}.log`), usage = log + '.usage';
   fs.mkdirSync(directory, { recursive: true });
   const fd = fs.openSync(log, 'wx', 0o600);

@@ -113,7 +113,8 @@ tests. In the same change:
 
 Use **Node 24**, Docker Desktop, Supabase CLI **3.2.0**, and installed Chromium
 and WebKit. Start Docker through its desktop app if it is stopped. Commit the
-intended changes first: the runner rejects a dirty checkout and validates the
+intended changes first: the runner validates tool versions and the complete
+resource graph before making snapshots, rejects a dirty checkout and validates the
 exact committed revision. Do not create an ad hoc serial shell/Python wrapper
 or run concurrent `check-app` processes in a shared checkout.
 

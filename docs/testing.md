@@ -35,15 +35,19 @@ There are two distinct owners:
 - **Generic workflow tests** use capability fixtures from
   `packages/music-practice/test-fixtures/hymns.ts`. The selector requires staged
   arrangements and multiple stanzas. Playback additionally requires a metered
-  G-major octave so the existing transposition, range and count-in contracts
-  stay explicit; its opening MIDI pitches come from the fixture's two voices.
+  D4–D5 octave so the existing transposition, range and count-in contracts
+  stay explicit; its opening MIDI pitches come from the fixture's two voices and key labels
+  from the independently unit-tested range model. The source key need not stay
+  the same when a compatible fixture changes.
   When a song gains a dedicated edition, selection moves to another compatible
   song automatically. Unit tests check this migration and fail early if the
   capability disappears from the product entirely.
 - **Edition tests** name real songs and independently verify their musical
   content and behavior. Every `apps/songalong/tests/*-editions.browser.ts` is
   enrolled automatically by the policy. `test:editions` uses the same registry;
-  no second hand-maintained list exists.
+  no second hand-maintained list exists. Shared contracts check the production
+  `instrumentEditionIds` registry and reject an edition missing its unit or
+  browser file before any app browser jobs start.
 
 Do not substitute an arbitrary song name into a failing generic test. Preserve
 its required meter, ranges, stanzas, controls and hand distinction. If no fixture
@@ -111,6 +115,8 @@ TEST_BROWSER=webkit node scripts/ci/check-app.cjs songalong editions
 
 Run only the affected lanes locally; broaden when evidence warrants it. Core
 includes the secondary browser smoke and needs both Chromium and WebKit.
+Run concurrent local lanes in separate worktrees; each lane rebuilds its app,
+so sharing a live preview's build directory can create false asset failures.
 `npm run test:workspace --workspace=songalong` remains a developer convenience
 umbrella; CI deliberately uses `test:workspace:core` and explicit owned tasks.
 `node scripts/ci/test-strategy.cjs matrix songalong focused` prints the exact
@@ -129,7 +135,9 @@ Preserve the first failure and classify it before making changes:
 | Infrastructure | Verify provisioning/network/tool failure; use a bounded diagnostic rerun |
 
 Every lane uploads command timings on success and failure, and browser failure
-artifacts separately. Inspect the failed command, exit code/signal, screenshot,
+artifacts separately. Files are unique per invocation and artifact names include
+the run attempt, so a rerun cannot overwrite the first evidence. Inspect the
+failed command, exit code/signal, screenshot,
 DOM, trace and bounded logs. A passing retry is evidence of intermittency, not
 proof of its cause and not a permanent fix. Record the failed run and the reason
 for any diagnostic rerun; never loop retries or discard the first failure.
@@ -137,3 +145,6 @@ for any diagnostic rerun; never loop retries or discard the first failure.
 Once validation passes, follow the latest committed head and required releases.
 Check for newer commits and queued runs before claiming the queue is clear.
 Leave unrelated, uncommitted work alone.
+
+Keep unresolved intermittent cases in [the evidence log](testing-instability.md).
+They remain required tests; recording a case does not disable or retry it.

@@ -7,7 +7,7 @@ function check(app, profile) {
   const browser = process.env.TEST_BROWSER || 'chromium';
   const commands = plan(app, profile, browser);
   const environment = { ...process.env, TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' };
-  const record = recorder(path.join(root, 'work/ci-results', `${app}-${profile}-${browser}.jsonl`), { app, profile, browser });
+  const record = recorder(path.join(root, 'work/ci-results', `${app}-${profile}-${browser}-${Date.now()}-${process.pid}.jsonl`), { app, profile, browser });
   const run = (command, args, env = environment) => runCommand(command, args, { cwd: root, env, stdio: 'inherit', timeout: 20 * 60 * 1000, record });
   // Shared music unit tests already ran once in the shared job.
   if (profile !== 'editions' && app !== 'notewise' && app !== 'soundglow') run('npm', ['test', '--workspace=' + app]);

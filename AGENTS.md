@@ -24,6 +24,8 @@ run in `tests/ci/test-strategy.test.cjs` on every shared CI validation.
    `*-editions.browser.ts` files are automatically required in the independent
    edition lane; do not add them to the core lane too. Never silently omit new
    behavior from push validation to improve speed.
+   Shared contract checks require unit and browser coverage for every ID in
+   the production `instrumentEditionIds` registry.
 5. Run affected unit/contract tests and browser checks locally before pushing.
    Use the exact lane commands in the testing guide. Check `git diff --check`.
    Do not restore, commit, or otherwise absorb unrelated working-tree changes.
@@ -39,11 +41,15 @@ product regression, stale test contract, readiness race, suite budget, or
 infrastructure failure. A manual diagnostic rerun is not a fix or proof of a
 flake: retain/link the first failure and explain any remaining uncertainty.
 Do not repeatedly rerun a failing assertion without investigating it.
+Keep unexplained passing reruns in `docs/testing-instability.md`; an entry is
+evidence to investigate, never permission to skip a required check.
 
 When a change grows a lane, inspect the retained command timings. Split by
 owned behavior with every lane still required; do not keep increasing a serial
 job's timeout. Workflow matrix, concurrency key, artifact names, and aggregate
 app gate must retain each lane's identity.
+Concurrent local lanes need separate worktrees/build directories, as CI runners
+provide. Do not rebuild an app underneath another test's live preview server.
 
 ## Loom Linux runner
 

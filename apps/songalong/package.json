@@ -12,7 +12,7 @@
     "test:offline": "tsx tests/offline.browser.ts",
     "build:vercel": "node ../../scripts/build-vercel.cjs songalong",
     "test:diagnostics": "tsx ../../packages/music-practice/browser-tests/diagnostics.browser.ts",
-    "test:sight": "tsx tests/sight-reading.browser.ts && tsx tests/hymn-recovery.browser.ts && npm run test:workspace:core && npm run test:instrument-audio && npm run test:guitar",
+    "test:sight": "tsx tests/sight-reading.browser.ts && tsx tests/hymn-recovery.browser.ts && npm run test:workspace:core && npm run test:guitar",
     "test:hymn-playback": "tsx tests/instrument-audio.browser.ts && tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts && tsx tests/hymn-octave.browser.ts",
     "test:hymn-recovery": "tsx tests/hymn-recovery.browser.ts",
     "test": "tsx --test tests/*.test.ts",

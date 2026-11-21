@@ -1,4 +1,4 @@
-import { playbackHymn, playbackMelody, playbackBass } from "../../../packages/music-practice/test-fixtures/hymns";
+import { playbackHymn, playbackMelody, playbackBass, playbackRangeLabel, playbackFittedKey } from "../../../packages/music-practice/test-fixtures/hymns";
 import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -371,8 +371,8 @@ try {
     await practiceOption(page, "#hymn-arrangement", arrangement);
     for (const [key, expected] of [
       ["original", "D4–D5"],
-      ["Bb", "F4–F5"],
-      ["F#", "C♯4–C♯5"],
+      ["Bb", playbackRangeLabel("Bb")],
+      ["F#", playbackRangeLabel("F#")],
     ]) {
       await practiceOption(page, "#hymn-key", key);
       assert.equal(
@@ -395,12 +395,12 @@ try {
   );
   await practiceOption(page, "#hymn-low", "60");
   await practiceOption(page, "#hymn-high", "72");
-  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), playbackFittedKey);
   assert.deepEqual(
     (await hymnKeyOptions(page))
       .filter((option) => !option.disabled)
       .map((option) => option.value),
-    ["F"],
+    [playbackFittedKey],
   );
   // Singing limits and the caption stay on the melody even when testing bass only.
   await practiceOption(page, "#hymn-arrangement", "bass");
@@ -413,7 +413,7 @@ try {
       (await hymnKeyOptions(page))
         .filter((option) => !option.disabled)
         .map((option) => option.value),
-      ["F"],
+      [playbackFittedKey],
     );
   }
   await practiceOption(page, "#hymn-mode", "wait");
@@ -422,7 +422,7 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await page.locator("#hymn-low").inputValue(), "C4");
   assert.equal(await page.locator("#hymn-high").inputValue(), "C5");
-  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
+  assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), playbackFittedKey);
   await practiceOption(page, "#hymn-high", "60");
   await page.locator(".hymn-no-key").waitFor();
   assert.equal(await page.locator(".hymn-paper svg").count(), 0);

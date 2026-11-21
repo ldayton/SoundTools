@@ -2,8 +2,9 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { matrix, plan, editionFiles } = require('../../scripts/ci/test-strategy.cjs');
-const { runCommand } = require('../../scripts/ci/test-command.cjs');
+const { runCommand, recorder } = require('../../scripts/ci/test-command.cjs');
 const root = path.resolve(__dirname, '../..');
 // Expand npm aliases so a convenience-script edit cannot silently add an
 // exhaustive catalog to the release-critical core lane again.
@@ -12,7 +13,7 @@ function leaves(app, task, ancestors = []) {
   const scripts = JSON.parse(fs.readFileSync(path.join(root, 'apps', app, 'package.json'))).scripts;
   assert(scripts[task], `Missing ${app}:${task}`);
   return scripts[task].split(/\s*&&\s*/).flatMap(part => {
-    const nested = /^npm run ([\w:.-]+)$/.exec(part);
+    const nested = /^npm run ([\w:.-]+)(?:\s+.*)?$/.exec(part);
     return nested ? leaves(app, nested[1], [...ancestors, task]) : [part];
   });
 }
@@ -22,12 +23,14 @@ function expanded(app, profile) {
 test('core and exhaustive edition lanes cannot acquire each other through nested npm aliases', () => {
   for (const lane of ['focused', 'regression']) {
     const commands = expanded('songalong', lane).join('\n');
-    assert.match(commands, /instrument-audio\.browser/, 'Instrument-specific audio remains required');
-    assert.doesNotMatch(commands, /test-strategy\.cjs editions|-editions\.browser\.ts/);
+    assert.equal((commands.match(/instrument-audio\.browser/g) || []).length, 1, 'Instrument-specific audio remains required exactly once');
+    assert.doesNotMatch(commands, /test:editions|test-strategy\.cjs editions|-editions\.browser\.ts/);
     if (lane === 'focused') assert.doesNotMatch(commands, /hymn-catalog|offline\.browser|hymn-stanzas/);
   }
   assert(editionFiles().length > 0);
   assert.deepEqual(plan('songalong', 'editions').map(([, args]) => args.at(-1)), editionFiles());
+  const scripts = JSON.parse(fs.readFileSync(path.join(root, 'apps/songalong/package.json'))).scripts;
+  assert.match(scripts['test:editions'], /^node .*test-strategy\.cjs editions$/, 'Local and CI edition commands must use the same registry');
 });
 test('all edition files are required in both push and full matrices; lanes never share a concurrency identity', () => {
   for (const profile of ['focused', 'regression']) {
@@ -62,4 +65,14 @@ test('failed test commands run once, preserve exit/signal evidence and stop the 
   assert.equal(records[0].status, 'failure');
   assert.equal(records[0].exitCode, 1);
   assert(records[0].elapsedMs >= 0);
+});
+test('a diagnostic rerun cannot truncate an existing timing/evidence file', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'test-evidence-'));
+  const file = path.join(directory, 'attempt.jsonl');
+  try {
+    recorder(file, { app: 'songalong', profile: 'focused', browser: 'chromium' })({ command: 'test', args: ['file'], elapsedMs: 1, status: 'failure', exitCode: 1, signal: null });
+    const firstFailure = fs.readFileSync(file, 'utf8');
+    assert.throws(() => recorder(file, {}), /EEXIST/);
+    assert.equal(fs.readFileSync(file, 'utf8'), firstFailure);
+  } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 });

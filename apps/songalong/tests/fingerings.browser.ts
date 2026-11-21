@@ -1,4 +1,4 @@
-import { stagedHymn, otherStagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
+import { playbackHymn, selectStagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
@@ -8,6 +8,7 @@ import {
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+const comparisonHymn = selectStagedHymn(undefined, { exclude: playbackHymn.id });
 const server = await preview(
   "songalong",
   Number(process.env.TEST_PORT || 4561),
@@ -24,7 +25,7 @@ try {
   });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(server.base + `/piano/hymns/${stagedHymn.id}`);
+  await page.goto(server.base + `/piano/hymns/${playbackHymn.id}`);
   const toggle = page.getByRole("checkbox", {
     name: "Show fingerings",
     exact: true,
@@ -62,7 +63,7 @@ try {
     .locator(".hymn-fingering")
     .first()
     .getAttribute("data-midi");
-  await practiceOption(page, "#hymn-key", "D");
+  await practiceOption(page, "#hymn-key", /^K:D\s*$/m.test(playbackHymn.melody) ? "G" : "D");
   expect(
     await page.locator(".hymn-fingering").first().getAttribute("data-midi"),
   ).not.toEqual(firstPitch);
@@ -87,7 +88,7 @@ try {
   await page.reload();
   await expect(toggle).toBeChecked();
   await page.waitForLoadState("networkidle");
-  await page.goto(server.base + `/piano/hymns/${otherStagedHymn.id}`);
+  await page.goto(server.base + `/piano/hymns/${comparisonHymn.id}`);
   await expect(toggle).toBeChecked();
   await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });

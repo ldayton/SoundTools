@@ -86,8 +86,8 @@ async function waitForApp(page, selector) {
 async function waitForAccountIdle(page, { timeout = 15000 } = {}) {
   await page.waitForFunction(() => !!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'), undefined, { timeout });
 }
-async function waitForDialogClosed(page, selector) {
-  await page.locator(selector).waitFor({ state: 'hidden' });
+async function waitForDialogClosed(page, selector, { timeout = 5000 } = {}) {
+  await page.locator(selector).waitFor({ state: 'hidden', timeout });
 }
 async function waitForServer(url, { server, timeout = 15000 } = {}) {
   const end = Date.now() + timeout;

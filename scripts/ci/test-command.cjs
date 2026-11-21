@@ -14,7 +14,7 @@ function runCommand(command, args, { execute = execFileSync, now = Date.now, rec
 }
 function recorder(file, identity) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, '');
+  fs.writeFileSync(file, '', { flag: 'wx' });
   return result => {
     fs.appendFileSync(file, JSON.stringify({ ...identity, ...result }) + '\n');
     console.log(`[validation] ${identity.app}/${identity.profile}/${identity.browser}: ${result.status} in ${(result.elapsedMs / 1000).toFixed(1)}s: ${result.command} ${result.args.join(' ')}`);

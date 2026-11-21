@@ -23,7 +23,7 @@ export async function verifyYemenite(browser: Browser, base: string) {
           return start.apply(this, args);
         };
       },
-      { ...DEFAULT_SPEC, pattern: 'yemenite', low: 60, high: 72, repetitions: 1, countIn: 0 }
+      { ...DEFAULT_SPEC, pattern: 'yemenite' as const, low: 60, high: 72, repetitions: 1, countIn: 0 }
     );
     await page.goto(base);
     await page.locator('#play:enabled').waitFor();
@@ -126,8 +126,8 @@ export async function verifyYemenite(browser: Browser, base: string) {
     if (width === 390) {
       await page.evaluate((spec) => localStorage.setItem('dorego.current', JSON.stringify(spec)), {
         ...DEFAULT_SPEC,
-        pattern: 'yemenite',
-        yemeniteCollection: 'sikah-trichord',
+        pattern: 'yemenite' as const,
+        yemeniteCollection: 'sikah-trichord' as const,
         low: 60,
         high: 65,
         progression: 'up',
@@ -151,6 +151,41 @@ export async function verifyYemenite(browser: Browser, base: string) {
       assert.equal(countAfter!.width, countBefore!.width, 'Countdown reserves a fixed digit slot');
       assert.equal(countAfter!.x, countBefore!.x);
       await page.locator('#play').click();
+    }
+    if (width === 1440) {
+      await page.goto(new URL('render.html', base).href);
+      await page.waitForFunction(() => !!window.doregoRenderer);
+      const rendered = await page.evaluate(
+        async (spec) => {
+          await window.doregoRenderer.init(spec, 1600, 900);
+          window.doregoRenderer.frame(0.2);
+          const binary = atob(await window.doregoRenderer.audio());
+          let peak = 0;
+          for (let i = 44; i + 1 < binary.length; i += 2) {
+            const sample = binary.charCodeAt(i) | (binary.charCodeAt(i + 1) << 8);
+            peak = Math.max(peak, Math.abs(sample >= 32768 ? sample - 65536 : sample));
+          }
+          return { header: binary.slice(0, 4), bytes: binary.length, peak };
+        },
+        {
+          ...DEFAULT_SPEC,
+          pattern: 'yemenite' as const,
+          yemeniteCollection: 'sikah-trichord' as const,
+          low: 60,
+          high: 64,
+          direction: 'down' as const,
+          repetitions: 1,
+          countIn: 0,
+          restBeats: 0,
+          volume: -12,
+        }
+      );
+      assert.equal(rendered.header, 'RIFF');
+      assert.ok(rendered.bytes > 44100, 'Export contains a complete audio phrase');
+      assert.ok(
+        rendered.peak > 100 && rendered.peak < 32767,
+        'Export contains non-clipped audible PCM'
+      );
     }
     assert.deepEqual(errors, []);
     await page.close();

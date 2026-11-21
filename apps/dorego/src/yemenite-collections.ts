@@ -107,10 +107,11 @@ export function collectionChoice(
 /** Keep the authored degree letter, including neutral thirds after transposition. */
 export function collectionNoteName(midi: number, tonic: number, id: YemeniteCollection): string {
   const collection = YEMENITE_COLLECTIONS[id];
+  const fallback = () => noteName(midi, Number.isInteger(tonic) ? tonic : undefined);
   const offsets = collectionOffsets({ yemeniteCollection: id });
   const index = offsets.findIndex((offset) => Math.abs(midi - tonic - offset) < 1e-6);
   const home = /^([A-G])(?:[♯♭𝄲𝄳])?(-?\d+)$/u.exec(noteName(tonic));
-  if (index < 0 || !home) return noteName(midi, tonic);
+  if (index < 0 || !home) return fallback();
   const letters = 'CDEFGAB';
   const letterIndex =
     letters.indexOf(home[1]) +
@@ -121,5 +122,5 @@ export function collectionNoteName(midi: number, tonic: number, id: YemeniteColl
   const natural = (octave + 1) * 12 + [0, 2, 4, 5, 7, 9, 11][letters.indexOf(letter)];
   const symbols: Record<string, string> = { '-1': '♭', '-0.5': '𝄳', '0': '', '0.5': '𝄲', '1': '♯' };
   const accidental = symbols[String(midi - natural)];
-  return accidental === undefined ? noteName(midi, tonic) : `${letter}${accidental}${octave}`;
+  return accidental === undefined ? fallback() : `${letter}${accidental}${octave}`;
 }

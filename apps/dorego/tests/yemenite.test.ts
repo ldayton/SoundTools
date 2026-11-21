@@ -201,3 +201,18 @@ test('a fresh Yemenite exercise defaults to the authored Bayati octave', () => {
   assert.equal(e.spec.yemeniteCollection, 'bayati-octave');
   assert.equal(phrasePitches(e, e.rounds[0]).length, 8);
 });
+
+test('legacy descending fractional homes can label surrounding export keyboard keys', () => {
+  const e = generateExercise({
+    ...DEFAULT_SPEC,
+    pattern: 'yemenite',
+    yemeniteCollection: 'sikah-trichord',
+    low: 60,
+    high: 64,
+    direction: 'down',
+    repetitions: 1,
+  });
+  assert.equal(e.rounds[0].midi - e.rounds[0].degree, 60.5);
+  assert.doesNotThrow(() => roundNoteName(60, e.rounds[0]));
+  assert.equal(roundNoteName(60, e.rounds[0]), 'C4');
+});

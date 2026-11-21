@@ -24,7 +24,10 @@ import {
   PracticeView,
   PracticeToolbar,
 } from "../../../apps/dorego/src/practice-view";
-import type { PracticeSnapshot } from "../../../apps/dorego/src/practice-view";
+import type {
+  PracticeSnapshot,
+  PianoSnapshot,
+} from "../../../apps/dorego/src/practice-view";
 const practice = createViewState<PracticeSnapshot>({
   mode: "playing",
   warming: false,
@@ -42,7 +45,14 @@ const playback = createViewState({
   round: 0,
   rounds: 1,
 });
-const piano = createViewState({ low: 48, high: 83, root: 60, voices: [] });
+const piano = createViewState<PianoSnapshot>({
+  low: 60,
+  high: 67,
+  root: 60,
+  pitches: [60, 62, 64, 65, 67],
+  labels: { "60": "C4", "62": "D4", "64": "E4", "65": "F4", "67": "G4" },
+  voices: [],
+});
 let reads = 0;
 const instrumented = {
   subscribe: practice.subscribe,

@@ -172,3 +172,19 @@ aggregate validation retain each shard. Tests prove their exact, duplicate-free
 union equals every discovered edition, including uneven registry sizes. The
 local full Nightly still runs the same 143 tasks. No assertion, edition or
 timeout was removed or relaxed. A cancelled job is never counted as passed.
+
+## Hosted checkout stall — 21 November 2026
+
+The first main-branch CI attempt for `db82d1d` could not start SongAlong's tests:
+[checkout job](https://github.com/ldayton/SoundTools/actions/runs/44928154655/job/136918798969)
+remained inside `git fetch --depth=1` from 17:06:21 to 17:16:14 UTC, then reached
+the job's 10-minute limit. No build or test command executed. The complete first
+log is retained at
+`work/ci-results/github-checkout-44928154655-attempt1.log`.
+
+One targeted infrastructure rerun was requested for the same commit and its
+dependents. Checkout completed on the replacement runner and validation resumed.
+The underlying hosted-runner/network cause is unproven; a successful rerun is
+not a code fix or evidence that an assertion flake was solved. No test or timeout
+was changed for this rerun. Keep this infrastructure evidence separate from the
+Nightly fixture, lifecycle and edition-partition repairs above.

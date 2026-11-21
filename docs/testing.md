@@ -113,8 +113,12 @@ TEST_BROWSER=webkit node scripts/ci/check-app.cjs songalong regression
 TEST_BROWSER=webkit node scripts/ci/check-app.cjs songalong editions
 ```
 
-Run only the affected lanes locally; broaden when evidence warrants it. Core
-includes the secondary browser smoke and needs both Chromium and WebKit.
+Before pushing code changes, read the current CI workflows and run every
+applicable shared, app-lane and account check locally. Targeted checks are for
+iteration, not a replacement for the required suite. Validate the exact commit
+being pushed; any subsequent code change invalidates that validation. Do not
+push with required checks failing or incomplete. Core includes the secondary
+browser smoke and needs both Chromium and WebKit.
 Run concurrent local lanes in separate worktrees; each lane rebuilds its app,
 so sharing a live preview's build directory can create false asset failures.
 `npm run test:workspace --workspace=songalong` remains a developer convenience

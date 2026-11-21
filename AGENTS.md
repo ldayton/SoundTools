@@ -26,9 +26,12 @@ run in `tests/ci/test-strategy.test.cjs` on every shared CI validation.
    behavior from push validation to improve speed.
    Shared contract checks require unit and browser coverage for every ID in
    the production `instrumentEditionIds` registry.
-5. Run affected unit/contract tests and browser checks locally before pushing.
-   Use the exact lane commands in the testing guide. Check `git diff --check`.
-   Do not restore, commit, or otherwise absorb unrelated working-tree changes.
+5. Before pushing code changes, read the current CI configuration and run the
+   repository's full applicable CI suite locally. Targeted tests are useful
+   during development but do not substitute for that suite. Validate the exact
+   commit being pushed; fix failures and rerun the necessary checks before
+   pushing. Never push while required checks are failing or incomplete. Check
+   `git diff --check`. Do not absorb unrelated working-tree changes.
 6. Keep tests meaningful when requirements change. Do not change product music,
    weaken assertions, ignore browser errors, add sleeps, raise timeouts, or
    automatically retry assertions just to obtain green CI. A product contract
@@ -50,12 +53,3 @@ job's timeout. Workflow matrix, concurrency key, artifact names, and aggregate
 app gate must retain each lane's identity.
 Concurrent local lanes need separate worktrees/build directories, as CI runners
 provide. Do not rebuild an app underneath another test's live preview server.
-
-## Loom Linux runner
-
-For Lily's interactive or agent-assisted development, including SSM commands,
-use the `lily` account and its login environment. Verify the effective user and
-environment before diagnosing missing tools. Do not develop as root or Ubuntu,
-or add Lily's Linuxbrew environment to those accounts. Keep CI and system
-maintenance accounts separate; use service/root context only for actual CI or
-system administration.

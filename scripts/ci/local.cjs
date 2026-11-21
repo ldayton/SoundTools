@@ -11,6 +11,7 @@ const { sharedTasks, setupTasks, commandTasks } = require('./task-graph.cjs');
 const { workerCount } = require('./scheduler.cjs');
 const { runTasks } = require('./run.cjs');
 const { execute } = require('./execute.cjs');
+const { retainEvidence } = require('./evidence.cjs');
 const root = path.resolve(__dirname, '../..');
 function options(args) {
   const result = { base: 'origin/main', full: false, all: false, plan: false, workers: workerCount() };
@@ -114,13 +115,12 @@ async function main(args) {
       cleanup.push({ name, exitCode: stopped.exitCode, timedOut: stopped.timedOut });
       if (stopped.exitCode !== 0 || stopped.timedOut) { passed = false; process.exitCode = 1; }
     }
-    // Retain nested account per-command reports before successful snapshots go.
+    for (const name of created) retainEvidence(directories[name], path.join(directory, 'evidence', name));
     for (const name of created) {
-      const reports = path.join(directories[name], 'work/ci-results');
-      if (fs.existsSync(reports)) fs.cpSync(reports, path.join(directory, 'nested', name), { recursive: true });
+      const backendFailed = cleanup.some(result => result.name === name && (result.exitCode !== 0 || result.timedOut));
+      if (process.env.CI_KEEP_SNAPSHOTS === '1' || backendFailed) console.error(`Snapshot retained by explicit request or failed backend cleanup: ${directories[name]}`);
+      else git(root, ['worktree', 'remove', '--force', directories[name]]);
     }
-    if (passed) for (const name of created) git(root, ['worktree', 'remove', '--force', directories[name]]);
-    else console.error(`Failed snapshots retained: ${path.dirname(directories.shared)}`);
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(path.join(directory, 'local.json'), JSON.stringify({ sha, passed, elapsedMs: Math.round(performance.now() - started), cleanup }, null, 2), { flag: 'wx' });
     process.removeListener('SIGINT', abort); process.removeListener('SIGTERM', abort); fs.rmSync(lock, { recursive: true });

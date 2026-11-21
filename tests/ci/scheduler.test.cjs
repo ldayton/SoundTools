@@ -88,6 +88,14 @@ test('snapshot copies keep workspace links and writes inside the private checkou
     fs.writeFileSync(path.join(target, 'node_modules/dependency'), 'changed'); assert.equal(fs.readFileSync(path.join(source, 'node_modules/dependency'), 'utf8'), 'installed');
     fs.writeFileSync(path.join(target, 'packages/example/value'), 'changed'); assert.equal(fs.readFileSync(path.join(source, 'packages/example/value'), 'utf8'), 'original');
     assert.throws(() => assertRevision(target, sha), /clean, committed/);
+    fs.mkdirSync(path.join(target, 'work/browser-results'), { recursive: true }); fs.writeFileSync(path.join(target, 'work/browser-results/failure.txt'), 'first failure');
+    fs.mkdirSync(path.join(target, 'work/ci-private'), { recursive: true }); fs.writeFileSync(path.join(target, 'work/ci-private/secret'), 'private');
+    const evidence = path.join(directory, 'evidence'); require('../../scripts/ci/evidence.cjs').retainEvidence(target, evidence);
+    assert.match(fs.readFileSync(path.join(evidence, 'source-changes.patch'), 'utf8'), /changed/);
+    assert.equal(fs.readFileSync(path.join(evidence, 'work/browser-results/failure.txt'), 'utf8'), 'first failure');
+    assert(!fs.existsSync(path.join(evidence, 'work/ci-private'))); assert(!fs.existsSync(path.join(evidence, 'untracked-source/work/ci-private')));
+    assert(!fs.existsSync(path.join(evidence, 'node_modules')));
+
     git(['worktree', 'remove', '--force', target]);
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 });

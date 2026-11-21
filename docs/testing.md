@@ -212,7 +212,7 @@ Every invocation writes a unique `work/ci-results/<run>/` with the SHA, machine,
 Node version, worker count, task inventory, start/end events, time queued after prerequisites become ready, dependency/resource
 locks, exit/signal/timeout evidence, stdout logs, CPU time and OS-reported maximum
 RSS. Maximum RSS is the OS time tool's process/child maximum, not the sum of all
-simultaneous browser processes. Nested account reports are retained too. Backend
+simultaneous browser processes. Nested account reports and compact browser failure artifacts are retained too. Backend
 provisioning logs may contain local credentials and stay in private snapshot
 `work/ci-private/`, outside uploaded timing artifacts. Environment values are
 never serialized into the inventory.
@@ -220,10 +220,13 @@ never serialized into the inventory.
 Independent tasks finish after a failure; dependants are blocked. There are no
 assertion retries. Cancellation and deadlines terminate task process groups,
 including preview children. The local coordinator stops only its owned backend
-stacks in `finally`. Successful snapshots are removed; failed snapshots and first
-failure logs remain for inspection. After investigation, remove only the printed
-run's generated worktrees with `git worktree remove --force <snapshot>`; preserve
-any deliberate source edits and copy needed browser artifacts first.
+stacks in `finally`. Snapshots are removed after success **or failure** once logs, browser failure
+artifacts, unexpected source diffs and untracked source have been retained under
+the run's `evidence/` directory. Dependency trees, generated builds and backend
+credentials are not retained as failure artifacts. `CI_KEEP_SNAPSHOTS=1` is an
+explicit debugging opt-in; clean those printed worktrees after investigation.
+A failed backend stop also retains its snapshot so its stack ownership metadata
+is not lost. Preserve deliberate source changes before manual cleanup.
 
 For targeted iteration, `TEST_BROWSER=chromium node scripts/ci/check-app.cjs
 songalong focused` still builds and runs that explicit lane through the same

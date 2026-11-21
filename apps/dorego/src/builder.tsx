@@ -1,4 +1,4 @@
-import { SCALE_TUNINGS, supportsScaleTuning, activeScaleTuning, type ScaleTuning } from './music';
+import { isScalePattern, activeScaleTuning } from './music';
 import { useSyncExternalStore } from 'react';
 import {
   ActionIcon,
@@ -165,7 +165,7 @@ export function Builder({
   const { spec, error } = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const vocal = isVocalPattern(spec.pattern);
   const directions = (
-    spec.pattern === 'major' || isGlidePattern(spec.pattern)
+    isScalePattern(spec.pattern) || isGlidePattern(spec.pattern)
       ? ['up', 'down', 'both']
       : ['up', 'down']
   ) as Direction[];
@@ -195,47 +195,6 @@ export function Builder({
         </Alert>
         <Stack gap="xs">
           <Divider label="Pitch" labelPosition="left" />
-          {supportsScaleTuning(spec.pattern) && (
-            <>
-              <NativeSelect
-                id="scale-tuning"
-                label="Scale tuning"
-                value={spec.scaleTuning ?? 'major'}
-                data={Object.entries(SCALE_TUNINGS).map(([value, tuning]) => ({
-                  value,
-                  label: tuning.name,
-                }))}
-                onChange={(event) =>
-                  change({ scaleTuning: event.currentTarget.value as ScaleTuning })
-                }
-              />
-              {activeScaleTuning(spec) !== 'major' && (
-                <Text size="xs" c="dimmed">
-                  Maqam prototype · fixed quarter-tone tuning. Scale practice only.
-                </Text>
-              )}
-              <Checkbox
-                id="tonic-drone"
-                label="Tonic drone"
-                checked={!!spec.drone}
-                onChange={(event) => change({ drone: event.currentTarget.checked })}
-              />
-            </>
-          )}
-          {isPentatonicPattern(spec.pattern) && (
-            <NativeSelect
-              id="pentatonic-notes"
-              label="Notes"
-              value={spec.pattern.replace('pentatonic', '')}
-              data={['6', '9', '12'].map((value) => ({ value, label: `${value} notes` }))}
-              onChange={(event) =>
-                change({
-                  pattern: `pentatonic${event.currentTarget.value}` as ExerciseSpec['pattern'],
-                })
-              }
-            />
-          )}
-
           <div hidden={vocal}>
             <NativeSelect
               id="key"
@@ -456,7 +415,9 @@ export function ExerciseSelection({
           aria-current={
             active &&
             (spec.pattern === value ||
-              (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)))
+              (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)) ||
+              (value === 'fifthGlide' && isGlidePattern(spec.pattern)) ||
+              (value === 'major' && spec.pattern === 'fiveNote'))
               ? 'true'
               : undefined
           }
@@ -464,7 +425,11 @@ export function ExerciseSelection({
           onClick={() =>
             change({
               pattern:
-                value === 'pentatonic6' && isPentatonicPattern(spec.pattern) ? spec.pattern : value,
+                (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)) ||
+                (value === 'fifthGlide' && isGlidePattern(spec.pattern)) ||
+                (value === 'major' && spec.pattern === 'fiveNote')
+                  ? spec.pattern
+                  : value,
             })
           }
         >

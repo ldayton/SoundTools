@@ -90,8 +90,12 @@ export async function selectExercise(page: Page, pattern: string) {
       await close.click();
   }
   const pentatonic = /^pentatonic(6|9|12)$/.test(pattern);
+  const major = pattern === 'fiveNote' || pattern === 'major';
+  const glide = pattern === 'fifthGlide' || pattern === 'octaveGlide';
   const option = page
-    .locator(`[data-pattern="${pentatonic ? 'pentatonic6' : pattern}"]`)
+    .locator(
+      `[data-pattern="${pentatonic ? 'pentatonic6' : glide ? 'fifthGlide' : major ? 'major' : pattern}"]`
+    )
     .filter({ visible: true });
   if (!(await option.count())) {
     const toggle = page.getByRole('button', { name: 'Open navigation', exact: true });
@@ -100,9 +104,20 @@ export async function selectExercise(page: Page, pattern: string) {
   await option.click();
   if (await page.evaluate(() => matchMedia('(max-width:47.999em)').matches))
     await page.locator('.mantine-Drawer-content:visible').waitFor({ state: 'hidden' });
-  if (pentatonic) {
-    await openPracticeOptions(page);
-    await page.locator('#pentatonic-notes').selectOption(pattern.replace('pentatonic', ''));
+  if (glide) {
+    await page.locator('#glide-interval').click();
+    await page
+      .getByRole('option', { name: pattern === 'octaveGlide' ? 'Octave' : 'Fifth', exact: true })
+      .click();
+  }
+  if (pentatonic || major) {
+    await page.locator(pentatonic ? '#pentatonic-notes' : '#major-notes').click();
+    const count = pentatonic
+      ? pattern.replace('pentatonic', '')
+      : pattern === 'fiveNote'
+        ? '5'
+        : '8';
+    await page.getByRole('option', { name: `${count} notes`, exact: true }).click();
   }
 }
 
@@ -113,8 +128,8 @@ export async function setTempo(page: Page, bpm: number) {
   await page.locator('#bpm').fill(String(bpm));
   await page.locator('#bpm').press('Enter');
   await page.waitForFunction(
-    value => document.querySelector('#bpm')?.getAttribute('aria-valuenow') === String(value),
-    bpm,
+    (value) => document.querySelector('#bpm')?.getAttribute('aria-valuenow') === String(value),
+    bpm
   );
 }
 /** Reach an observation point through the real transport; the UI no longer has seeking. */

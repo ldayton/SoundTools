@@ -55,15 +55,7 @@ export function audioEvents(exercise: Exercise, offset: number): AudioEvent[] {
         time: Math.max(0, start - offset),
         duration: end - Math.max(start, offset),
         elapsed: Math.max(0, offset - start),
-        frequency:
-          440 *
-          2 **
-            (((exercise.spec.pattern === 'major'
-              ? exercise.spec.low - ((exercise.spec.low - exercise.spec.key + 120) % 12)
-              : round.midi - round.degree) -
-              12 -
-              69) /
-              12),
+        frequency: 440 * 2 ** ((round.midi - round.degree - 12 - 69) / 12),
         velocity: 0.12,
       });
     }

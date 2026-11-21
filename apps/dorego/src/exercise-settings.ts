@@ -1,5 +1,6 @@
 import {
   DEFAULT_SPEC,
+  isScalePattern,
   isVocalPattern,
   isGlidePattern,
   vocalSpan,
@@ -42,8 +43,11 @@ export function restoreSpec(input: unknown, glideShapeVersion: string | null): E
   }
   if (saved.progression === undefined) {
     saved.progression =
-      saved.pattern === 'rossini' || saved.pattern === 'major' ? 'up' : saved.direction;
-    if (saved.direction === 'both' && saved.pattern !== 'major') saved.direction = 'up';
+      saved.pattern === 'rossini' || isScalePattern(saved.pattern as ExerciseSpec['pattern'])
+        ? 'up'
+        : saved.direction;
+    if (saved.direction === 'both' && !isScalePattern(saved.pattern as ExerciseSpec['pattern']))
+      saved.direction = 'up';
   }
   if (
     isGlidePattern(saved.pattern as ExerciseSpec['pattern']) &&
@@ -68,7 +72,7 @@ export function editSpec(
   } as Record<string, unknown>;
   if (
     result.pattern !== spec.pattern &&
-    result.pattern !== 'major' &&
+    !isScalePattern(result.pattern as ExerciseSpec['pattern']) &&
     !isGlidePattern(result.pattern as ExerciseSpec['pattern']) &&
     result.direction === 'both'
   )

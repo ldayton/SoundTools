@@ -45,7 +45,7 @@ export const PATTERNS = {
     description: 'A major scale through your selected range.',
   },
   fifthGlide: {
-    name: 'Fifth Glide',
+    name: 'Glides',
     intervals: [0, 7, 0],
     description: 'A continuous cello glide through a fifth, moving one semitone per round.',
   },
@@ -54,13 +54,21 @@ export const PATTERNS = {
     intervals: [0, 12, 0],
     description: 'A continuous cello glide through an octave, moving one semitone per round.',
   },
+  maqamat: {
+    name: 'Maqamat',
+    intervals: [0, 2, 4, 5, 7, 9, 11],
+    description: 'A full octave scale in the selected maqam.',
+  },
 } as const;
 export type Pattern = keyof typeof PATTERNS;
 export function isPentatonicPattern(pattern: Pattern) {
   return pattern === 'pentatonic6' || pattern === 'pentatonic9' || pattern === 'pentatonic12';
 }
 export const EXERCISE_PATTERNS = (Object.keys(PATTERNS) as Pattern[]).filter(
-  (pattern) => !isPentatonicPattern(pattern) || pattern === 'pentatonic6'
+  (pattern) =>
+    pattern !== 'fiveNote' &&
+    pattern !== 'octaveGlide' &&
+    (!isPentatonicPattern(pattern) || pattern === 'pentatonic6')
 );
 export function isGlidePattern(pattern: Pattern) {
   return pattern === 'fifthGlide' || pattern === 'octaveGlide';
@@ -76,17 +84,22 @@ export function supportsNoteRepeats(pattern: Pattern) {
     'pentatonic12',
   ].includes(pattern);
 }
+export function isScalePattern(pattern: Pattern) {
+  return pattern === 'major' || pattern === 'maqamat';
+}
 export function isVocalPattern(pattern: Pattern) {
   return pattern !== 'major';
 }
 export function vocalSpan(pattern: Pattern) {
-  return pattern === 'pentatonic9'
-    ? 9
-    : pattern === 'rossini'
-      ? 19
-      : pattern === 'octaveArpeggio' || pattern === 'octaveGlide' || pattern === 'pentatonic12'
-        ? 12
-        : 7;
+  return pattern === 'maqamat'
+    ? 12
+    : pattern === 'pentatonic9'
+      ? 9
+      : pattern === 'rossini'
+        ? 19
+        : pattern === 'octaveArpeggio' || pattern === 'octaveGlide' || pattern === 'pentatonic12'
+          ? 12
+          : 7;
 }
 export type Direction = 'up' | 'down' | 'both';
 export function directionName(direction: Direction) {
@@ -101,16 +114,24 @@ export type Voice = 'bitklavier';
 // exercises, not a model of regional intonation or maqam melodic development.
 export const SCALE_TUNINGS = {
   major: { name: 'Major', intervals: [0, 2, 4, 5, 7, 9, 11] },
+  hijaz: { name: 'Hijaz', intervals: [0, 1, 4, 5, 7, 8, 10] },
   rast: { name: 'Rast', intervals: [0, 2, 3.5, 5, 7, 9, 10.5] },
   bayati: { name: 'Bayati', intervals: [0, 1.5, 3, 5, 7, 8, 10] },
-  hijaz: { name: 'Hijaz', intervals: [0, 1, 4, 5, 7, 8, 10] },
+  ajam: { name: 'Ajam', intervals: [0, 2, 4, 5, 7, 9, 11] },
+  nahawand: { name: 'Nahawand', intervals: [0, 2, 3, 5, 7, 8, 11] },
+  kurd: { name: 'Kurd', intervals: [0, 1, 3, 5, 7, 8, 10] },
+  nikriz: { name: 'Nikriz', intervals: [0, 2, 3, 6, 7, 9, 10] },
 } as const;
 export type ScaleTuning = keyof typeof SCALE_TUNINGS;
 export function supportsScaleTuning(pattern: Pattern) {
-  return pattern === 'fiveNote' || pattern === 'major';
+  return pattern === 'maqamat';
 }
 export function activeScaleTuning(spec: ExerciseSpec): ScaleTuning {
-  return supportsScaleTuning(spec.pattern) ? (spec.scaleTuning ?? 'major') : 'major';
+  return supportsScaleTuning(spec.pattern)
+    ? spec.scaleTuning && spec.scaleTuning !== 'major'
+      ? spec.scaleTuning
+      : 'hijaz'
+    : 'major';
 }
 export interface ExerciseSpec {
   scaleTuning?: ScaleTuning;
@@ -254,7 +275,7 @@ export function validateSpec(input: unknown): ExerciseSpec {
   if (
     s.progression !== undefined &&
     s.direction === 'both' &&
-    s.pattern !== 'major' &&
+    !isScalePattern(s.pattern as Pattern) &&
     s.pattern !== 'rossini' &&
     !isGlidePattern(s.pattern as Pattern)
   )
@@ -267,7 +288,10 @@ export function validateSpec(input: unknown): ExerciseSpec {
   for (const key of ['metronome', 'solfege'])
     if (typeof s[key] !== 'boolean') throw new Error(`Invalid ${key}.`);
   const result: ExerciseSpec = {
-    scaleTuning: (s.scaleTuning as ScaleTuning) ?? 'major',
+    scaleTuning:
+      s.pattern === 'maqamat' && (!s.scaleTuning || s.scaleTuning === 'major')
+        ? 'hijaz'
+        : ((s.scaleTuning as ScaleTuning) ?? 'major'),
     drone: s.drone === true,
     pattern: s.pattern as Pattern,
     direction: s.pattern === 'rossini' ? 'up' : (s.direction as Direction),
@@ -305,6 +329,9 @@ export function generateExercise(input: unknown, maxDuration = 600): Exercise {
     tuning === 'major' ? spec : { ...spec, startingChords: false },
     maxDuration
   );
+  if (isGlidePattern(spec.pattern)) exercise.title = 'Glides';
+  if (isPentatonicPattern(spec.pattern)) exercise.title = 'Pentatonic Threes';
+  if (spec.pattern === 'fiveNote' || spec.pattern === 'major') exercise.title = 'Major Scale';
   if (tuning === 'major') return exercise;
   const major = SCALE_TUNINGS.major.intervals as readonly number[];
   const intervals = SCALE_TUNINGS[tuning].intervals;
@@ -317,14 +344,14 @@ export function generateExercise(input: unknown, maxDuration = 600): Exercise {
     }
   }
   exercise.pitches = [...new Set(exercise.notes.map((n) => n.midi))].sort((a, b) => a - b);
-  exercise.title = `${SCALE_TUNINGS[tuning].name} · ${spec.pattern === 'fiveNote' ? 'Five-Note Scale' : 'Octave Scale'}`;
+  exercise.title = 'Maqamat';
   return exercise;
 }
 function generateBaseExercise(input: unknown, maxDuration = 600): Exercise {
   const spec = validateSpec(input);
   if (spec.progression !== undefined && isVocalPattern(spec.pattern))
     return generateProgressingExercise(spec, maxDuration);
-  if (spec.direction === 'both' && isVocalPattern(spec.pattern))
+  if (spec.direction === 'both' && spec.pattern !== 'maqamat' && isVocalPattern(spec.pattern))
     return generateBidirectionalExercise(spec, maxDuration);
   if (isGlidePattern(spec.pattern)) return generateGlideExercise(spec, maxDuration);
   if (isVocalPattern(spec.pattern)) return generateVocalExercise(spec, maxDuration);
@@ -376,7 +403,7 @@ export function progressionRoots(low: number, high: number, direction: Direction
   return roots;
 }
 export function phraseLabel(pattern: Pattern, direction: Direction) {
-  if (pattern === 'major')
+  if (isScalePattern(pattern))
     return direction === 'both' ? 'Up then down' : direction === 'down' ? 'Down' : 'Up';
   if (isGlidePattern(pattern))
     return direction === 'both' ? 'Up & back' : direction === 'down' ? 'Down' : 'Up';
@@ -391,7 +418,7 @@ export function phraseContour(pattern: Pattern, direction: Direction): readonly 
         ? [0, 0, span, span, 0, 0]
         : [0, 0, span, span];
   }
-  if (pattern === 'major') {
+  if (isScalePattern(pattern)) {
     const up = [0, 2, 4, 5, 7, 9, 11, 12];
     return direction === 'down'
       ? up.reverse()
@@ -676,23 +703,27 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
             : 'These vocal phrases need a range of at least seven semitones (a perfect fifth).'
     );
   const offsets: number[] = [
-    ...(isPentatonicPattern(spec.pattern)
+    ...(spec.pattern === 'maqamat'
       ? phraseContour(spec.pattern, spec.direction).map(
           (offset) => offset - (descending ? span : 0)
         )
-      : spec.pattern === 'fiveNote'
-        ? descending
-          ? [0, -2, -3, -5, -7, -5, -3, -2, 0]
-          : PATTERNS.fiveNote.intervals
-        : spec.pattern === 'octaveArpeggio'
+      : isPentatonicPattern(spec.pattern)
+        ? phraseContour(spec.pattern, spec.direction).map(
+            (offset) => offset - (descending ? span : 0)
+          )
+        : spec.pattern === 'fiveNote'
           ? descending
-            ? [0, -5, -8, -12, -8, -5, 0]
-            : PATTERNS.octaveArpeggio.intervals
-          : rossini
-            ? PATTERNS.rossini.intervals
-            : descending
-              ? [0, -3, -7, -5, -3, -2, 0, -3, -7, -5, -3, -2, 0]
-              : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0]),
+            ? [0, -2, -3, -5, -7, -5, -3, -2, 0]
+            : PATTERNS.fiveNote.intervals
+          : spec.pattern === 'octaveArpeggio'
+            ? descending
+              ? [0, -5, -8, -12, -8, -5, 0]
+              : PATTERNS.octaveArpeggio.intervals
+            : rossini
+              ? PATTERNS.rossini.intervals
+              : descending
+                ? [0, -3, -7, -5, -3, -2, 0, -3, -7, -5, -3, -2, 0]
+                : [0, 4, 7, 5, 4, 2, 0, 4, 7, 5, 4, 2, 0]),
   ];
   const lengths =
     spec.pattern === 'arpeggio'
@@ -777,7 +808,7 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
       rounds.push({
         id: rounds.length,
         midi: root,
-        degree: descending ? span % 12 : 0,
+        degree: descending ? (spec.pattern === 'maqamat' ? span : span % 12) : 0,
         onsetBeat: beat,
         endBeat: beat + phraseLength,
       });

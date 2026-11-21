@@ -49,25 +49,35 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
 - Volume is independent beneath tempo and can change during playback with a short gain ramp. Count-in clicks stop when the exercise begins.
 - Play/pause, scrub, restart, and fullscreen. Space toggles playback, R restarts, F toggles fullscreen when a form control is not focused. Tempo is independent: change it at any time with the slider, numeric field, or −/+ buttons. Playback keeps the current round and beat, including through count-ins, rests, and cello glides. Volume also changes live without restarting, in its own row below tempo. Other exercise edits reset playback.
 
-On phones, the practice canvas uses a taller layout with larger keys. The keyboard focuses on the vocal phrase, keeps key sizes fixed for the whole exercise, and slides between rounds. Intro chords remain audible but are not visualized on mobile. Desktop and exported video retain the wide layout.
+The live practice pane uses a borderless white surface with the normal page
+padding. Instead of piano geometry, equally sized touch pads show the distinct
+notes used in the current phrase, in ascending order. Every pad keeps its note
+name visible, including quarter-tone symbols; touching a pad auditions that exact
+pitch. Playback and finger presses use distinct whole-pad highlights. Phone
+spacing keeps the controls, readout and pads on one screen. Video exports retain
+their separate canvas keyboard layout.
 
 Note names stay visible for the full rhythmic slot. The highlighted key follows the sounding duration, so detached notes have a short unlit gap. Repeated notes get a fresh progress bar. No pitch detection or singing assessment is implemented.
 
 ## Maqam scale prototype
 
-Five-Note Scale and Major Scale offer a **Scale tuning** choice: Major, Rast,
-Bayati, or Hijaz. Maqam choices use fixed 24-tone equal-tempered reference
+**Maqamat**, below Glides, plays full octave scales in Hijaz (default), Rast,
+Bayati, Ajam, Nahawand, Kurd, and Nikriz.
+Choose the maqam and optional tonic drone directly in the main pane, and the low/high range and round progression in Practice options; Five-Note Scale and Major Scale keep their
+original major tuning. Maqam choices use fixed 24-tone equal-tempered reference
 intervals (including 50-cent offsets), rather than regional or performer-specific
 intonation. They provide straight scale practice, not characteristic maqam phrases.
 The reference forms use Rast + Rast, Bayati + Nahawand, and Hijaz + Nahawand;
-see [Maqam World](https://www.maqamworld.com/en/maqam.php).
+Nahawand uses its Hijaz upper jins; Nikriz uses Nahawand on the fifth.
+See [Maqam World](https://www.maqamworld.com/en/maqam.php).
 
 **Tonic drone** is optional and off by default. It sounds a quiet sine tone one
 octave below each round's tonic, follows transposed rounds, and stops during rests.
 Maqam scales omit the major-key starting chords. Existing piano samples are
 transposed at fractional playback rates; no extra recordings are required.
-Quarter-tone notes display their pitch name with a `−50¢` offset and a marker in
-the canvas view. The reference piano labels sounding pitches between keys.
+Quarter-tone notes use half-flat (𝄳) and half-sharp (𝄲) symbols in the canvas
+and on piano markers between keys. A Bravura subset supplies the bundled slashed half-flat and single-stem half-sharp
+glyphs under the SIL Open Font License (src/fonts/OFL.txt).
 Preferences persist locally and through account settings. Other exercises retain
 their ordinary tuning and do not play the drone.
 
@@ -240,3 +250,8 @@ and the shared implementation together. No package archives or sync step is need
 actual previous worker's cache and live tabs migrating to the shared-runtime worker.
 The normal test also waits for controller replacement in both tabs before testing
 failure fallback, rather than accepting the old worker's active state.
+
+Major Scale combines the former Five-Note Scale and full Major Scale through an
+on-page 5/8-note selector. Pentatonic Threes has its 6/9/12-note selector in the
+main pane. Glides combines fifth and octave variants through an on-page interval
+selector. These selectors use anchored app-rendered menus on phones and desktops.

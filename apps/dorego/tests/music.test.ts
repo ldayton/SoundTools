@@ -29,11 +29,10 @@ test('exercise choices include Rossini Scale, with Arpeggio & Scale E3-F5 at 150
       'Arpeggio & Scale',
       'Octave Arpeggio',
       'Rossini Scale',
-      'Five-Note Scale',
       'Pentatonic Threes',
       'Major Scale',
-      'Fifth Glide',
-      'Octave Glide',
+      'Glides',
+      'Maqamat',
     ]
   );
   assert.equal(APP_DEFAULT_SPEC.pattern, 'arpeggio');

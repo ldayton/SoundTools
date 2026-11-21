@@ -1,14 +1,11 @@
-import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { ActionIcon, Alert, Button, Group, Text, Title } from '@mantine/core';
 import { ControlIcon } from '@ldayton/ui/control-icon';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { ToolbarSlider } from '@ldayton/ui/toolbar-slider';
-import { PianoKeyboard } from '@ldayton/ui/piano-keyboard';
 import type { PianoVoice } from '@ldayton/ui/piano-motion';
 import { volumePercent, volumeDecibels } from '@ldayton/ui/volume';
 import { formatTime, noteName } from './music';
-import { referenceRows, referenceWindow, referenceOctaves } from './keyboard-layout';
-import { useMediaQuery } from '@mantine/hooks';
 export type PracticeSnapshot = {
   mode: 'ready' | 'starting' | 'playing' | 'paused' | 'complete';
   warming: boolean;
@@ -40,7 +37,13 @@ export type PlaybackSnapshot = {
   rounds: number;
 };
 export type PlaybackModel = SnapshotModel<PlaybackSnapshot>;
-export type PianoSnapshot = { low: number; high: number; root: number; voices: PianoVoice[] };
+export type PianoSnapshot = {
+  low: number;
+  high: number;
+  root: number;
+  pitches: number[];
+  voices: PianoVoice[];
+};
 export type PianoModel = SnapshotModel<PianoSnapshot>;
 
 export function PracticeVolume({
@@ -252,10 +255,12 @@ export function PracticeView({
   playback,
   piano,
   audition,
+  controls,
 }: {
   model: PracticeModel;
   playback: PlaybackModel;
   piano: PianoModel;
+  controls?: ReactNode;
   audition(midi: number): () => void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
@@ -267,10 +272,13 @@ export function PracticeView({
             {state.title}
           </Title>
           <RoundProgress model={playback} />
+          {controls}
           <div className="practice-card" id="practice-card">
             {state.readout && <PracticeReadout state={state.readout} />}
           </div>
-          <ReferenceKeyboard model={piano} audition={audition} />
+          <section className="note-instrument" aria-label="Exercise instrument">
+            <ReferenceKeyboard model={piano} audition={audition} />
+          </section>
         </div>
       </section>
       <Alert id="toast" className="dorego-toast" role="status" hidden={!state.toast}>
@@ -281,13 +289,17 @@ export function PracticeView({
 }
 
 function PitchName({ value }: { value: string }) {
-  const note = /^([A-G])([♯♭]?)(-?\d+)$/.exec(value);
+  const note = /^([A-G])([♯♭𝄲𝄳]?)(-?\d+)$/u.exec(value);
   return (
     <span className="pitch-name">
       {note ? (
         <>
           <span className="pitch-letter">{note[1]}</span>
-          {note[2] && <span className="pitch-accidental">{note[2]}</span>}
+          {note[2] && (
+            <span className="pitch-accidental" data-microtonal={/[𝄲𝄳]/u.test(note[2]) || undefined}>
+              {note[2]}
+            </span>
+          )}
           <span className="pitch-octave">{note[3]}</span>
         </>
       ) : (
@@ -375,40 +387,128 @@ function ReferenceKeyboard({
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const host = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(320);
-  useLayoutEffect(() => {
-    const observer = new ResizeObserver(([entry]) => setWidth(Math.floor(entry.contentRect.width)));
-    if (host.current) observer.observe(host.current);
-    return () => observer.disconnect();
-  }, []);
-  const mobile = useMediaQuery('(max-width:760px)', undefined, { getInitialValueInEffect: false });
-  const range = referenceWindow(state.low, state.high, width);
-  const rows = mobile
-    ? referenceOctaves(state.low, state.high)
-    : referenceRows(range[0], range[1], width);
+  const gestures = useRef(new Map<string, { midi: number; stop(): void }>());
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const [held, setHeld] = useState<number[]>([]);
+  const [focus, setFocus] = useState<number | null>(null);
+  const columns = state.pitches.length <= 5 ? Math.max(1, state.pitches.length) : 4;
+  const signature = state.pitches.join(',');
+  const refresh = () =>
+    setHeld([...new Set([...gestures.current.values()].map((gesture) => gesture.midi))]);
+  const release = (id: string) => {
+    gestures.current.get(id)?.stop();
+    gestures.current.delete(id);
+    refresh();
+  };
+  const clear = () => {
+    for (const gesture of gestures.current.values()) gesture.stop();
+    gestures.current.clear();
+    for (const timer of timers.current) clearTimeout(timer);
+    timers.current.clear();
+    refresh();
+  };
+  useEffect(() => {
+    const keyup = (event: KeyboardEvent) => release(`key:${event.key}`);
+    const visibility = () => {
+      if (document.hidden) clear();
+    };
+    window.addEventListener('keyup', keyup);
+    window.addEventListener('blur', clear);
+    window.addEventListener('pagehide', clear);
+    document.addEventListener('visibilitychange', visibility);
+    return () => {
+      window.removeEventListener('keyup', keyup);
+      window.removeEventListener('blur', clear);
+      window.removeEventListener('pagehide', clear);
+      document.removeEventListener('visibilitychange', visibility);
+      clear();
+    };
+  }, [signature]);
+  const press = (id: string, midi: number) => {
+    release(id);
+    gestures.current.set(id, { midi, stop: audition(midi) });
+    refresh();
+  };
+  const focusPitch = focus !== null && state.pitches.includes(focus) ? focus : state.pitches[0];
   return (
     <div
       ref={host}
-      className="dorego-piano"
+      className="dorego-piano dorego-note-pads"
+      role="group"
+      aria-label="Exercise note pads"
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
       onContextMenu={(event) => event.preventDefault()}
       onDragStart={(event) => event.preventDefault()}
     >
-      {state.voices.some((voice) => !Number.isInteger(voice.pitch)) && (
-        <Text size="sm" ta="center">
-          Between piano keys:{' '}
-          {state.voices
-            .filter((voice) => !Number.isInteger(voice.pitch))
-            .map((voice) => noteName(voice.pitch))
-            .join(', ')}
-        </Text>
-      )}
-      <PianoKeyboard
-        rows={rows}
-        whiteKeyWidth={mobile ? 20 : 32}
-        voices={state.voices.filter((voice) => Number.isInteger(voice.pitch))}
-        label={(midi) => noteName(midi, state.root)}
-        onPress={audition}
-      />
+      {state.pitches.map((midi, index) => {
+        const playing = state.voices.some((voice) => voice.pitch === midi);
+        return (
+          <button
+            key={midi}
+            type="button"
+            data-piano={midi}
+            data-quarter-tone={!Number.isInteger(midi) ? midi : undefined}
+            className={`note-pad piano-key${playing ? ' is-playing' : ''}${held.includes(midi) ? ' is-held' : ''}`}
+            aria-label={noteName(midi, state.root)}
+            aria-pressed={held.includes(midi)}
+            tabIndex={midi === focusPitch ? 0 : -1}
+            onPointerDown={(event) => {
+              if (event.button !== 0) return;
+              event.preventDefault();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              press(`pointer:${event.pointerId}`, midi);
+            }}
+            onPointerUp={(event) => {
+              release(`pointer:${event.pointerId}`);
+              if (event.currentTarget.hasPointerCapture(event.pointerId))
+                event.currentTarget.releasePointerCapture(event.pointerId);
+            }}
+            onPointerCancel={(event) => release(`pointer:${event.pointerId}`)}
+            onLostPointerCapture={(event) => release(`pointer:${event.pointerId}`)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                event.stopPropagation();
+                if (!event.repeat) press(`key:${event.key}`, midi);
+                return;
+              }
+              const next =
+                event.key === 'Home'
+                  ? 0
+                  : event.key === 'End'
+                    ? state.pitches.length - 1
+                    : event.key === 'ArrowRight'
+                      ? index + 1
+                      : event.key === 'ArrowLeft'
+                        ? index - 1
+                        : event.key === 'ArrowDown'
+                          ? index + columns
+                          : event.key === 'ArrowUp'
+                            ? index - columns
+                            : null;
+              if (next !== null) {
+                event.preventDefault();
+                const pitch = state.pitches[Math.max(0, Math.min(state.pitches.length - 1, next))];
+                setFocus(pitch);
+                host.current?.querySelector<HTMLButtonElement>(`[data-piano="${pitch}"]`)?.focus();
+              }
+            }}
+            onClick={(event) => {
+              if (event.detail !== 0) return;
+              press('activation', midi);
+              const timer = setTimeout(() => {
+                timers.current.delete(timer);
+                release('activation');
+              }, 150);
+              timers.current.add(timer);
+            }}
+          >
+            <span className="piano-note-label">
+              <PitchName value={noteName(midi, state.root)} />
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

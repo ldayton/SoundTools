@@ -1,3 +1,4 @@
+import { ExerciseControls } from './maqamat-controls';
 import { account } from './account';
 import { preferences, encodePreferences, decodePreferences } from './preferences';
 import {
@@ -14,7 +15,7 @@ import { Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from
 import { editSpec, MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext } from './diagnostics';
-import { practiceRange } from './keyboard-layout';
+import { phrasePitches, practiceRange } from './keyboard-layout';
 
 import {
   directionName,
@@ -74,6 +75,7 @@ const pianoModel = createViewState<PianoSnapshot>({
   low: spec.low,
   root: spec.low,
   high: spec.low + 12,
+  pitches: [],
   voices: [],
 });
 const reference = new ReferencePiano(spec.volume, (error) => {
@@ -129,6 +131,10 @@ mountAppShell($('#app'), {
     model: practiceModel,
     playback: playbackModel,
     piano: pianoModel,
+    controls: createElement(ExerciseControls, {
+      model: builderModel,
+      change: (patch) => refresh(patch),
+    }),
     audition: (midi) => reference.press(midi),
   }),
   settingsView: createElement(SettingsPage, { onAudioChannelsChange: changeAudioChannels }),
@@ -260,9 +266,10 @@ function update(force = false) {
     });
     const range = practiceRange(exercise, practice.current);
     pianoModel.set({
+      pitches: phrasePitches(exercise, practice.current),
       root: practice.current.midi - practice.current.degree,
-      low: Math.max(24, range.low - 1),
-      high: Math.min(96, range.high + 1),
+      low: Math.max(24, range.low),
+      high: Math.min(96, range.high),
       voices:
         mode === 'playing' && scene.phase !== 'countin'
           ? exercise.notes

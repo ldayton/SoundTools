@@ -1,3 +1,4 @@
+import accidentalLicense from './fonts/OFL.txt?url';
 import { useSyncExternalStore } from 'react';
 import { preferences } from './preferences';
 import { Anchor, Button, Group, Progress, Paper, Select, Stack, Title } from '@mantine/core';
@@ -85,6 +86,9 @@ export function SettingsPage({
             rel="noopener"
           >
             VSCO cello recordings · CC0
+          </Anchor>
+          <Anchor size="sm" href={accidentalLicense} target="_blank" rel="noopener">
+            Bravura accidental glyphs · SIL Open Font License
           </Anchor>
         </Stack>
       </Paper>

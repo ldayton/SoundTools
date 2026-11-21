@@ -1,4 +1,9 @@
-import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  createContext,
+} from '../../../scripts/ci/browser-harness.cjs';
 import { playUntil, openPracticeOptions, readSpecValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
@@ -160,7 +165,7 @@ try {
     'Pentatonic Threes'
   );
   await openPracticeOptions(page);
-  assert.equal(await page.locator('#pentatonic-notes').inputValue(), '9');
+  assert.equal(await page.locator('#pentatonic-notes').inputValue(), '9 notes');
   await seek(secondsAt(1.2, spec.bpm));
   await page.screenshot({ path: `work/pentatonic-nine-${browserName}.png`, fullPage: true });
   assert.deepEqual(errors, []);

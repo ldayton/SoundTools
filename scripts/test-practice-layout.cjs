@@ -227,8 +227,11 @@ const server = spawn(
     await page.locator(".practice-surface").first().waitFor();
     await page.getByRole("button", { name: "Open navigation", exact: true }).click();
     if (app === "dorego") {
-      await nav.locator('[data-pattern="octaveGlide"]').click();
+      await nav.locator('[data-pattern="fifthGlide"]').click();
       await page.getByRole("dialog").waitFor({ state: "hidden" });
+      await page.locator("#glide-interval").click();
+      await page.getByRole("option", { name: "Octave", exact: true }).click();
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("dorego.current")).pattern), "octaveGlide");
       await page
         .getByRole("button", {
           name: /^Expand (practice|playback) options$/,

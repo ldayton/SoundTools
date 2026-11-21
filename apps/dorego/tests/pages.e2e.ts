@@ -346,11 +346,18 @@ try {
     ['octaveArpeggio', 'Octave Arpeggio'],
   ]) {
     await selectExercise(page, pattern);
-    assert.equal(await page.locator('#exercise-title').textContent(), `${label} (Rising first)`);
+    // Entering Major Scale normalizes to one octave. Deliberately give the
+    // subsequent vocal exercise several roots before testing Between rounds.
+    await page.locator('#high-spin').press('Enter');
+    await page.getByRole('dialog', { name: 'Choose highest note' })
+      .getByRole('button', { name: 'G5', exact: true }).click();
+    assert.equal(await page.locator('#exercise-title').textContent(), pattern === 'fiveNote' ? label : `${label} (Rising first)`);
+    assert.equal(await readSpecValue(page, 'direction'), 'up');
     assert.ok(await page.locator('#direction').isVisible());
     assert.ok(await page.locator('#key').isDisabled());
     await page.locator('#direction-down').click();
-    assert.equal(await page.locator('#exercise-title').textContent(), `${label} (Falling first)`);
+    assert.equal(await page.locator('#exercise-title').textContent(), pattern === 'fiveNote' ? label : `${label} (Falling first)`);
+    assert.equal(await readSpecValue(page, 'direction'), 'down');
     await page.locator('#progression-both').click();
     assert.equal(await readSpecValue(page, 'direction'), 'down');
     await page.locator('#direction-up').click();
@@ -377,11 +384,14 @@ try {
     assert.ok(await page.locator('#startingChords').isVisible());
     await page.waitForFunction(() => !document.querySelector<HTMLButtonElement>('#play')?.disabled);
     await page.locator('#direction-down').click();
-    assert.match((await page.locator('#exercise-title').textContent()) ?? '', /\(Down\)/);
+    assert.equal(await page.locator('#exercise-title').textContent(), 'Glides');
+    assert.equal(await readSpecValue(page, 'direction'), 'down');
     await page.locator('#direction-up').click();
-    assert.match((await page.locator('#exercise-title').textContent()) ?? '', /\(Up\)/);
+    assert.equal(await page.locator('#exercise-title').textContent(), 'Glides');
+    assert.equal(await readSpecValue(page, 'direction'), 'up');
     await page.locator('#direction-both').click();
-    assert.match((await page.locator('#exercise-title').textContent()) ?? '', /Up & back/);
+    assert.equal(await page.locator('#exercise-title').textContent(), 'Glides');
+    assert.equal(await readSpecValue(page, 'direction'), 'both');
     await page.locator('#direction-up').click();
     assert.ok(await page.locator('#form-error').isHidden());
   }

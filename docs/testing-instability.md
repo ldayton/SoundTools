@@ -208,3 +208,23 @@ The fixed-port preview may have collided; the listener had gone by inspection,
 so that cause remains unconfirmed. The Hila browser test now accepts the runner's
 `TEST_PORT` override. Diagnostic validation uses separate unused ports; this
 passing rerun does not establish a fix to shared preview-server ownership.
+
+## Maqamat browser scenario isolation (22 November 2026)
+
+First evidence: `apps/notewise/work/browser-results/maqamat.browser.ts-webkit-7c5b1a2b/`.
+The exhaustive key/hand-position loop exceeded WebKit's explicit history quota:
+`Attempt to use history.replaceState() more than 100 times per 10 seconds`.
+The musical diagrams continued to update, but the URL stopped at Nahawand,
+so the final Hijazkar reload assertion correctly failed. Each maqam now runs
+in its own browser context, retaining every key/position assertion and adding
+reload coverage for each maqam. Console errors are asserted as well as page
+errors; no sleeps, retries, deadline increases or product changes mask the quota.
+
+## Guitar legend contract after chord outlines (22 November 2026)
+
+First evidence: `apps/notewise/work/browser-results/guitar-scales.browser.ts-chromium-cfc2c709/`.
+The older generic scale test expected the entire legend to contain only `Root`;
+the previously added `Chord shape` control made that assertion stale. The test
+now independently asserts the Root legend and exact chord-control text, keeping
+root colours and all musical/layout checks. Its preview now uses the shared
+server helper and accepts the coordinator's port override.

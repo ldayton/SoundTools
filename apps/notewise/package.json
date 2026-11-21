@@ -30,7 +30,8 @@
     "test:backing-realism": "tsx tests/backing-realism.browser.ts",
     "test:backing-genres": "tsx tests/country-backing.browser.ts && tsx tests/reggae-funk.browser.ts && tsx tests/soul-folk.browser.ts && tsx tests/folk-country.browser.ts && tsx tests/gospel.browser.ts && tsx tests/gospel-phrases.browser.ts && tsx tests/reggae.browser.ts && tsx tests/pocket-styles.browser.ts && tsx tests/roots-styles.browser.ts",
     "test:scale-fret-range": "tsx tests/scale-fret-range.browser.ts",
-    "test:hila-shapes": "tsx tests/hila-scale-shapes.browser.ts"
+    "test:hila-shapes": "tsx tests/hila-scale-shapes.browser.ts",
+    "test:maqamat": "tsx tests/maqamat.browser.ts"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"

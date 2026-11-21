@@ -95,3 +95,26 @@ To add a live exercise, add its catalog entry and typed factory, then implement 
 **Guitar → Scales** (`/guitar/scales`) shows all scale tones from open strings through fret 5 in upright orientation: low E on the left, high E on the right. The shared Practice options panel offers any of 12 tonics in Major or explicitly labeled Natural minor; it docks beside the diagram on desktop and collapses above it on phones. Roots carry an R marker; gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. An expandable note table provides sounding octaves and open-string alternatives.
 
 This reference view has no grading or MIDI input. Its `guitar-scales` activity uses the shared activity host, durable storage, route catalog and control styles, independently of Music theory → Scales & degrees. Old local-preview `profiles.scales` preferences migrate into the new activity while retaining their original data. Optional `?key=F%23&scale=minor` URL parameters use the same settings validator. `npm run test:guitar-scales --workspace=notewise` checks navigation, all 24 keys, layout, reload, independent activity progress and MIDI isolation.
+
+### Guitar maqamat
+
+The scale selector includes a **Maqamat** group: Hijaz, Kurd, Nahawand,
+Ajam, Nikriz and Hijazkar. These use fingered five-fret hand positions across
+all six strings, rather than CAGED chord labels or relative-major/minor links.
+Hand position, note/finger labels, key, and the chosen maqam survive reloads
+and shareable URLs. Fingerings use fingers 1–4, with at most a one-fret
+extension between adjacent fingers; the five-fret window keeps intervening
+scale pitches available at string changes.
+
+The collections are equal-tempered guitar reference forms. Hijaz uses
+Nahawand on degree 4; Nahawand uses Hijaz on degree 5 (raised seventh).
+The visible reference text identifies upper-jins alternatives, and each
+maqam links to its [MaqamWorld source](https://www.maqamworld.com/en/maqam.php).
+Fret diagrams do not encode traditional intonation, sayr, or modulation.
+Backing accompaniment uses only tonic and fifth, preserving the chosen
+rhythmic style without imposing major/minor chord progressions.
+
+`npm run test:maqamat --workspace notewise` checks diagrams, fingering labels,
+responsive layouts, URLs, persistence and keyboard controls. It is required
+in the Nightly Notewise group; music, pitch and fingering unit tests remain
+in CI.

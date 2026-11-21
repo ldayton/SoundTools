@@ -11,23 +11,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { createRequire } from "node:module";
+import {preview} from "../../../packages/music-practice/browser-tests/server";
 import { readFile } from "node:fs/promises";
-const vite = createRequire(import.meta.url)
-  .resolve("vite/package.json")
-  .replace(/package\.json$/, "bin/vite.js");
-const server = spawn(
-  process.execPath,
-  [vite, "preview", "--host", "127.0.0.1", "--port", "4352", "--strictPort"],
-  { stdio: "ignore" },
-);
-for (let i = 0; i < 100; i++) {
-  try {
-    if ((await fetch("http://127.0.0.1:4352")).ok) break;
-  } catch {}
-  await new Promise((r) => setTimeout(r, 100));
-}
+const server=await preview('notewise',Number(process.env.TEST_PORT || 4352));
 const fixed = await mkdtemp(join(tmpdir(), "notecards-guitar-scales-"));
 const browser = await launchBrowser({ env: { ...process.env, CFFIXED_USER_HOME: fixed } });
 try {
@@ -46,7 +32,7 @@ try {
   });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("http://127.0.0.1:4352");
+  await page.goto(server.base);
   await page.locator('[data-letter="E"]:enabled').waitFor();
   const saved = () =>
     page.evaluate(async () => {
@@ -264,7 +250,7 @@ try {
   await page
     .getByRole("heading", { name: "E♭ natural minor", exact: true })
     .waitFor();
-  await page.goto("http://127.0.0.1:4352/guitar/scales?key=E&scale=major");
+  await page.goto(server.base+"/guitar/scales?key=E&scale=major");
   await page.getByRole("heading", { name: "E major", exact: true }).waitFor();
   const optionalRoot = page.locator(
     '.scale-root.scale-optional[data-string="2"][data-fret="5"]',
@@ -368,6 +354,7 @@ try {
   await page.setViewportSize({ width: 1680, height: 1050 });
   await openPracticeOptions(page);
   const gPattern = await patternSnapshot();
+  assert.equal((await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).textContent())!.trim(),'Chord shape');
   assert.equal(await page.locator(".scale-notes").isVisible(), false);
   assert.equal(await page.locator(".scale-source").isVisible(), false);
   assert.equal(await page.locator(".scale-footnote").isVisible(), false);
@@ -379,7 +366,7 @@ try {
     "5",
   ]);
   assert.equal(
-    (await page.locator(".scale-link-legend").textContent())!.trim(),
+    (await page.locator(".scale-link-legend > span").textContent())!.trim(),
     "Root",
   );
 
@@ -540,7 +527,7 @@ try {
     });
     db.close();
   });
-  await page.goto("http://127.0.0.1:4352/");
+  await page.goto(server.base+"/");
   await page.getByRole("heading", { name: "F major", exact: true }).waitFor();
   assert.equal(new URL(page.url()).pathname, "/guitar/scales");
   await page.waitForFunction(
@@ -563,7 +550,7 @@ try {
   throw error;
 } finally {
   await closeBrowser(browser);
-  server.kill();
+  server.stop();
   await rm(fixed, { recursive: true, force: true }).catch(
     (e: NodeJS.ErrnoException) => {
       if (e.code !== "EACCES" && e.code !== "EPERM") throw e;

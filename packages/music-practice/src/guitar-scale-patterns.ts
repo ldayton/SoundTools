@@ -1,3 +1,4 @@
+import {isMaqam} from "./maqamat";
 import { STRINGS } from "./guitar";
 import { isMajorScale, scaleNotes, type ScaleQuality } from "./guitar-scales";
 
@@ -228,11 +229,15 @@ const majorBlueFrets = Object.fromEntries(SCALE_SHAPES.map(shape =>
   [shape, minorBlueFrets[relativePattern(shape, "major")]])) as Record<ScaleShape, number[][]>;
 const majorBlues = blues(majorPentatonic, majorBlueFrets);
 const templates = { major, minor, "major-pentatonic": majorPentatonic, "minor-pentatonic": minorPentatonic, "major-blues": majorBlues, "minor-blues": minorBlues };
+function templatesFor(quality:ScaleQuality){
+  if(isMaqam(quality))throw Error('Maqamat use their own hand positions');
+  return templates[quality];
+}
 export function patternBounds(
   shape: ScaleShape,
   quality: ScaleQuality = "major",
 ) {
-  const frets = templates[quality][shape].frets.flat();
+  const frets = templatesFor(quality)[shape].frets.flat();
   return [Math.min(...frets), Math.max(...frets)] as const;
 }
 export function patternShift(
@@ -283,7 +288,7 @@ export function patternPositions(
   spelling?: string,
 ) {
   const notes = scaleNotes(tonic, quality, spelling);
-  const template = templates[quality][shape];
+  const template = templatesFor(quality)[shape];
   return template.frets.flatMap((frets, index) => {
     const string = STRINGS.find((s) => s.number === 6 - index)!;
     return frets.map((fret, i) => {

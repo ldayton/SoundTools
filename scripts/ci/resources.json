@@ -1878,5 +1878,21 @@
         "cwd": "apps/notewise"
       }
     ]
+  },
+  "notewise:npm:run test:maqamat --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4504
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/maqamat.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
   }
 }

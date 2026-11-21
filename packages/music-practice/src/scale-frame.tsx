@@ -22,6 +22,8 @@ export const scaleBodyState = () =>
     movable: false,
     footnote: "",
     source: "",
+    sourceLabel: "GuitarScale.org",
+    maqamReference: "",
     rows: [] as { string: number; notes: string }[],
   });
 export function ScaleFrame({
@@ -59,7 +61,7 @@ export function ScaleFrame({
           <Table.Tbody>
             {[
               ["← / →", "Tonic down / up one semitone"],
-              ["↑ / ↓", "Next shape toward higher / lower frets"],
+              ["↑ / ↓", "Next shape or hand position toward higher / lower frets"],
               ["[ / ]", "Shift down / up one octave (12 frets)"],
               ["?", "Show or hide keyboard shortcuts"],
               ["Esc", "Close this panel"],
@@ -114,6 +116,7 @@ export function ScaleFrame({
           <Button size="compact-sm" variant="subtle" disabled={chordFrame===1} onClick={()=>setChordFrame(1)}>Next fingering</Button>
         </div>}
       </section>}
+      {s.maqamReference && <Text className="scale-maqam-reference" size="sm" c="dimmed" mb="sm">{s.maqamReference}</Text>}
       <div className="scale-diagram" />
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
       <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>
@@ -158,9 +161,9 @@ export function ScaleFrame({
               </Table>
             </div>
             {s.source ? <Text className="scale-source">
-              Shapes and fingerings:{" "}
+              {s.maqamReference ? "Maqam reference: " : "Shapes and fingerings: "}
               <a href={s.source} target="_blank" rel="noopener noreferrer">
-                GuitarScale.org
+                {s.sourceLabel}
               </a>
             </Text> : <Text className="scale-source">Shapes supplied by Hila Bar.</Text>}
           </div>

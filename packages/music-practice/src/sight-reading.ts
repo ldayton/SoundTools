@@ -844,9 +844,10 @@ export class SightReading {
       this.acceptanceChanged();
     }
     this.presentation.set({ title: this.hymn.title });
+    const chordProfile = chordEdition(this.hymn);
     this.body.patch({
       title: this.hymn.title,
-      showStrumPattern: !!chordEdition(this.hymn)?.strumPattern &&
+      showStrumPattern: !!chordProfile && "strumPattern" in chordProfile && !!chordProfile.strumPattern &&
         (this.arrangement === "guitar" || this.arrangement === "guitar-chords" || this.arrangement === "guitar-edition" && this.scoreDisplay === "chords"),
       credits: this.hymn.credits
         .filter((credit) => /^(Words:|Music:|Tabledited by )/i.test(credit))

@@ -135,12 +135,8 @@ async function main(args) {
     // snapshot setup failures must not attempt to stop an unstarted stack.
     const events = path.join(directory, 'events.jsonl');
     const starts = new Set(fs.existsSync(events) ? fs.readFileSync(events, 'utf8').trim().split('\n').filter(Boolean).flatMap(line => { try { const event = JSON.parse(line); return event.status === 'running' ? [event.id] : []; } catch { return []; } }) : []);
-    for (const name of created.filter(name => name.startsWith('accounts-'))) {
-      if (!backends[name] || !starts.has(`${name}:backend`)) continue;
-      const stopped = await execute({ id: `stop-${name}`, command: process.execPath, args: ['scripts/ci/account-backend.cjs', 'stop'], cwd: directories[name], env: backends[name] }, { directory: path.join(directories[name], 'work/ci-private') });
-      cleanup.push({ name, exitCode: stopped.exitCode, timedOut: stopped.timedOut });
-      if (stopped.exitCode !== 0 || stopped.timedOut) { passed = false; process.exitCode = 1; }
-    }
+    cleanup.push(...await require('./cleanup.cjs').stopOwnedBackends({ created, backends, starts, directories, execute }));
+    if (cleanup.some(stopped => stopped.exitCode !== 0 || stopped.timedOut)) { passed = false; process.exitCode = 1; }
     for (const name of created) retainEvidence(directories[name], path.join(directory, 'evidence', name));
     for (const name of created) {
       const backendFailed = cleanup.some(result => result.name === name && (result.exitCode !== 0 || result.timedOut));

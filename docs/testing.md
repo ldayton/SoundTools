@@ -293,7 +293,8 @@ never serialized into the inventory.
 Independent tasks finish after a failure; dependants are blocked. There are no
 assertion retries. Cancellation and deadlines terminate task process groups,
 including preview children. The Nightly coordinator stops only its owned backend
-stacks in `finally`. Snapshots are removed after success **or failure** once logs, browser failure
+stacks concurrently in `finally`, with a separate result for each engine even if
+one stop fails. Snapshots are removed after success **or failure** once logs, browser failure
 artifacts, unexpected source diffs and untracked source have been retained under
 the run's `evidence/` directory. Dependency trees, generated builds and backend
 credentials are not retained as failure artifacts. `CI_KEEP_SNAPSHOTS=1` is an

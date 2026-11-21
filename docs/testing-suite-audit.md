@@ -88,7 +88,10 @@ snapshot's exact registered backend stack: stopping it had preserved disposable
 data. Ownership isolation is tested, and the destruction path was exercised
 against ten stopped stacks from this investigation, without selecting developer
 stacks. This cleanup-only change was not included in the measured Mac run.
-The measurement record keeps validation scopes separate.
+The NoteWise release-switch fixture also now waits for both old-release update
+checks to finish before replacing its server release; saved-copy readiness
+alone precedes network completion. That follow-up was not part of the timed
+full Mac run either. The measurement record keeps validation scopes separate.
 
 The remaining Mac critical path is the real audio timing group, which took
 9m28s. Its native microphone/worker/PCM, responsiveness and throttled-rendering

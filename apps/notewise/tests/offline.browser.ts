@@ -111,6 +111,7 @@ const browser = await launchBrowser({
 });
 try {
   const context = await createContext(browser);
+  await context.addInitScript(() => localStorage.setItem('notewise:diagnostics:sharing', 'yes'));
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -161,6 +162,18 @@ try {
       document.querySelector("#offline-status")?.textContent ===
       "Available offline",
   );
+  // "Available offline" proves the saved copy, not completion of the network
+  // update check. Both tabs share the worker's in-flight latest() operation.
+  // Finish the release-A checks before switching the server to release B;
+  // otherwise the reconnect can join an old operation and return A legitimately.
+  for (const tab of [page, untouched]) {
+    await tab.waitForFunction(() => {
+      const events = window.practiceDiagnostics?.snapshot().events as
+        { code: string }[] | undefined;
+      return events?.filter(event => event.code.startsWith('cache.update.')).at(-1)?.code
+        === 'cache.update.ready';
+    }, undefined, { timeout: 20000 });
+  }
   // Verified update is staged while a session is active, never replacing the question.
   assert.equal(
     await page
@@ -473,6 +486,14 @@ try {
     `PASS ${name}: verified install, automatic latest startup, active-session update protection, old tabs, offline practice, fast cached startup, corruption fallback/repair, eviction, failed install/retry, blocked offline access.`,
   );
 } catch (error) {
+  for (const context of browser.contexts()) for (const page of context.pages()) {
+    console.error('Offline failure state:', await page.evaluate(() => ({
+      visibility: document.visibilityState,
+      status: document.querySelector('#offline-status')?.textContent,
+      events: (window.practiceDiagnostics?.snapshot().events as { code: string }[] | undefined)
+        ?.filter(event => event.code.startsWith('cache.')).slice(-20),
+    })).catch(() => 'Page no longer available'));
+  }
   await captureFailure(browser, error);
   throw error;
 } finally {

@@ -309,3 +309,20 @@ the previously added `Chord shape` control made that assertion stale. The test
 now independently asserts the Root legend and exact chord-control text, keeping
 root colours and all musical/layout checks. Its preview now uses the shared
 server helper and accepts the coordinator's port override.
+
+## NoteWise release switch before old update checks finished (22 November 2026)
+
+[Chromium job 137010995964](https://github.com/ldayton/SoundTools/actions/runs/44958194222/job/137010995964)
+failed waiting for the staged-update control. Its first command log and empty
+browser console log are retained; that GitHub artifact did not contain a usable
+trace. The fixture waited for `Available offline` in two tabs before replacing
+the server release. That state precedes `prepare-update` completion; both tabs
+can still share the worker's release-A `latestTask` when the synthetic reconnect
+joins it, legitimately receiving A rather than discovering B.
+
+The fixture now opts into local diagnostics and requires the latest update
+check in each tab to report ready before switching releases. This establishes
+an atomic fixture transition, without changing the product's update policy,
+adding a delay/retry, raising its deadline, or relaxing the staged-release,
+geometry, session-preservation or automatic-update assertions. Failure output
+also records each tab's visibility, status and bounded cache events.

@@ -56,3 +56,14 @@ it captures the joined-but-not-replicating state. The protocol test logs the
 completed readiness boundary and includes channel/status state in a missing
 notification failure. This wait polls infrastructure health; it never retries
 an application write or a failed notification assertion.
+
+The maqamat/Yemenite integration exposed a deterministic account-test focus
+contract: selecting the grouped five-note exercise now leaves `#major-notes`
+focused. Account restoration deliberately defers updates while any editing
+control owns focus. The first failure is retained at
+`/tmp/maqamat-final-accounts-first-failure.log` (expected 132 BPM, retained 160).
+An isolated diagnostic seeded 128 BPM, committed 132 in the follower, observed
+128 in the focused leader, then released focus; the same write propagated in
+266 ms and all takeover/recovery assertions passed. The reliability test now
+seeds a distinct baseline and focuses the transport before measuring propagation.
+No product synchronization guard, assertion deadline or retry policy changed.

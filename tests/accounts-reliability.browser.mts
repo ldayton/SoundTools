@@ -32,6 +32,15 @@ try {
   await selectExercise(first, "fiveNote");
   await first.locator("#bpm").waitFor();
   await waitForAccountIdle(first);
+  // Grouped exercises leave their notes selector focused. Incoming account
+  // changes intentionally wait while a control is being edited; the leader
+  // must be observing, not editing, when measuring follower propagation.
+  // Seed a different value so a previous run cannot satisfy the assertion.
+  await first.locator("#bpm").fill("128");
+  await first.locator("#bpm").press("Tab");
+  await expect(first.locator("#bpm")).toHaveValue("128 BPM");
+  await first.locator("#play").focus();
+  await waitForAccountIdle(first);
   const second = await context.newPage();
   second.on("pageerror", (e) => errors.push(e.message));
   await second.route("**/rest/v1/rpc/account_snapshot_v2", (r) => {

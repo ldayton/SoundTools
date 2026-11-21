@@ -70,7 +70,7 @@ do not maintain a second per-assertion registry or preserve old aliases merely
 to satisfy an inventory snapshot. File execution audits find literal duplication,
 not semantic redundancy. Different files and configurations still require review.
 
-Soundglow's Node/DSP checks run once in Nightly, using a four-process isolated
+Soundglow's Node/DSP checks run once in CI and once in Nightly, using a four-process isolated
 Node pool. The dev-server integration checks run before that pool because one
 starts the real development command and rebuilds UI output; every Nightly browser
 reader and visual fixture waits for these checks locally. Chromium and WebKit
@@ -314,7 +314,7 @@ and npm/OS caches were warm; build outputs were recreated each time. This leaves
 about 14 seconds below the hard budget in these runs, not a p95 guarantee.
 
 CI selects shared/account/offline/diagnostics/music units and contracts, DoReGo
-and SongAlong units, selected Soundglow state/DSP units, all four app builds and
+and SongAlong units, Soundglow state/DSP and development-server checks, all four app builds and
 type checks, DoReGo real PCM/playback checks, critical MIDI permission/grading/
 hotplug, SongAlong audio departure/recovery and guitar controls, and desktop/
 phone WebKit startup, rendering, overflow, runtime errors and isolated auth

@@ -1,4 +1,5 @@
 /** Actual local Postgres/Auth/Realtime protocol contract; never uses production. */
+import { waitForRealtimeReplication } from "../scripts/ci/realtime.cjs";
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
@@ -48,6 +49,7 @@ try {
   });
   const now = snapshot.serverTime;
   let notifications = 0;
+  let realtimeStatus = "joining";
   const live = owner.channel(`account:${user}:${app}`, {
     config: { private: true },
   });
@@ -59,6 +61,7 @@ try {
       20000,
     );
     live.subscribe((status, error) => {
+      realtimeStatus = status;
       if (status === "SUBSCRIBED") {
         clearTimeout(timeout);
         resolve();
@@ -68,6 +71,12 @@ try {
       }
     });
   });
+  // Joining the websocket can precede the separate WAL broadcast connection.
+  // Observe the backend-owned boundary before issuing any tested writes.
+  await waitForRealtimeReplication(env);
+  console.log(
+    "Realtime: private channel subscribed and database broadcast replication ready",
+  );
   const args = {
     p_app: app,
     p_key: key,
@@ -134,7 +143,11 @@ try {
         resolve();
       } else if (Date.now() - start > 10000) {
         clearInterval(timer);
-        reject(Error("No private change notification"));
+        reject(
+          Error(
+            `No private change notification (channel=${live.state}, status=${realtimeStatus})`,
+          ),
+        );
       }
     }, 50);
   });

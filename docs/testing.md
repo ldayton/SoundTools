@@ -73,6 +73,7 @@ offline tests explicitly enable them. Keep credentials out of traces/logs.
 | --- | --- |
 | Open lazy app/route | `waitForApp(page, selector)` and the route's visible control |
 | Open hymn controls after navigation/reload or viewport change | `openHymnControls(page)` waits for startup, toolbar and responsive layout, then opens idempotently |
+| Begin the local database broadcast protocol test | After channel subscription, `waitForRealtimeReplication` requires the tenant health replication connection before any tested writes; a healthy HTTP/DB response is insufficient |
 | Edit a signed-in follower or measure propagation | `waitForAccountIdle(page)` and the expected restored input value before resetting counters |
 | Open a menu after closing a dialog | `waitForDialogClosed(page, selector)` before opening the new menu |
 | Verify an async change | Locator assertions or `expect.poll` on the actual outcome |

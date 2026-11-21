@@ -73,8 +73,10 @@ cleanup and failure evidence.
 CI coverage is deliberately bounded by `scripts/ci/test-strategy.cjs`. Keep shared/music units and contracts, app builds, app unit checks and the
 selected critical browser checks. Real
 backend integration, exhaustive editions, catalogs and long browser scenarios
-belong to Nightly. Every command moved out of CI must remain covered in Nightly;
-current execution ownership checks prevent omissions and repeated files. Historical
+belong to Nightly. Every behavior displaced from CI must retain a Nightly owner.
+Consolidate duplicate executions by naming the remaining regression owner; do
+not preserve literal command strings. Current execution ownership checks prevent
+omissions and repeated files. Historical
 commands and test counts are not coverage guarantees. Read the abstraction and
 retirement rules in docs/testing.md before adding or removing expensive tests. Do not extend the 60-second
 budget or call an aborted/partial run a pass. Measure `npm run ci -- --all`

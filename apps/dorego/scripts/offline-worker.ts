@@ -1,3 +1,4 @@
+import { EXERCISE_SLUGS } from '../src/exercise-url';
 import { workerSource, manifestLimits } from '@ldayton/browser-offline';
 
 // DoReGo adapter: separate interface generations and lazily downloaded sound banks.
@@ -155,7 +156,7 @@ function navigation(event) {
 self.addEventListener('fetch', event => {
   const request = event.request, url = offline.requestURL(request);
   if (!url) return;
-  if (request.mode === 'navigate' && (url.pathname === ROOT || url.pathname === ROOT + 'index.html')) {
+  if (request.mode === 'navigate' && (url.pathname === ROOT || url.pathname === ROOT + 'index.html' || ${JSON.stringify(EXERCISE_SLUGS)}.includes(url.pathname.slice(ROOT.length).split('/')[0]))) {
     event.respondWith(navigation(event)); return;
   }
   event.respondWith((async () => {

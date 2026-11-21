@@ -1,3 +1,4 @@
+import { bindExerciseUrl } from './exercise-url';
 import { ExerciseControls } from './maqamat-controls';
 import { account } from './account';
 import { preferences, encodePreferences, decodePreferences } from './preferences';
@@ -41,6 +42,9 @@ function savedSpec(): ExerciseSpec {
 }
 // Practice can slow down freely; the CLI/video renderer keeps its duration cap.
 const generateExercise = (input: unknown) => generateBoundedExercise(input, Infinity);
+const exerciseUrls = bindExerciseUrl(preferences, window, import.meta.env.BASE_URL, (message) =>
+  toast(message)
+);
 let spec = savedSpec();
 let exercise = generateExercise(spec);
 let renderFailed = false;
@@ -90,6 +94,7 @@ function changeAudioChannels(channels: AudioChannels) {
 changeAudioChannels(readAudioChannels());
 mountAppShell($('#app'), {
   shutdown: () => {
+    exerciseUrls.dispose();
     renderFailed = true;
     ++playRequest;
     reference.shutdown();
@@ -438,6 +443,7 @@ document.addEventListener('visibilitychange', () => {
 
 window.dispatchEvent(new Event('soundtools:ready'));
 preferences.subscribe((source) => {
+  if (source === 'url') void account.changed();
   if (source === 'local') {
     void account.changed();
     return;

@@ -1,3 +1,4 @@
+import { verifyExerciseUrls } from './exercise-url.browser';
 import { verifyYemenite } from './yemenite.e2e';
 import { verifyMaqamScales } from './maqam.e2e';
 import {
@@ -354,7 +355,7 @@ try {
           countIn: 0,
         }
       );
-      await layoutPage.reload();
+      await layoutPage.goto(base);
       await layoutPage.locator('#play:enabled').waitFor();
       await layoutPage.locator('.note-pad').first().waitFor();
       const geometry = await layoutPage.locator('.dorego-note-pads').evaluate((host) => ({
@@ -423,6 +424,7 @@ try {
     }
   }
   await layoutContext.close();
+  await verifyExerciseUrls(browser, base);
   await verifyMaqamScales(browser, base);
   await verifyYemenite(browser, base);
   assert.deepEqual(errors, []);

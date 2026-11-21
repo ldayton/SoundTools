@@ -418,6 +418,9 @@ try {
   page = await context.newPage();
   await page.goto(base);
   await ready(page);
+  await page.goto(base + 'maqamat/hijaz');
+  await ready(page);
+  assert.equal(await page.locator('#exercise-title').textContent(), 'Maqamat');
   const requestCount = soundRequests;
   for (const pattern of Object.keys(PATTERNS) as Pattern[]) {
     for (const highEnd of [false, true]) {
@@ -442,7 +445,7 @@ try {
           progression: 'down',
         }
       );
-      await page.reload();
+      await page.goto(base);
       await page.waitForFunction(() =>
         (window.doregoDiagnostics?.snapshot().events as any[] | undefined)?.some(
           (e) => e.code === 'cache.navigation.ready' && e.details.cacheSource === 'cache'

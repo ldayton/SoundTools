@@ -101,7 +101,7 @@ export async function verifyMaqamScales(browser: Browser, base: string) {
         JSON.stringify({ ...saved, low: 60, high: 74, progression: 'down', repetitions: 1 })
       );
     });
-    await page.reload();
+    await page.goto(base);
     await page.locator('#play:enabled').waitFor();
     assert.match((await page.locator('#exercise-summary').textContent())!, /Round 1 of 3/);
     assert.equal(await page.locator('.note-pad').count(), 8);

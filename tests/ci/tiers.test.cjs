@@ -69,6 +69,14 @@ test('Nightly owns CI execution files and schedules each file once per engine', 
   }
 });
 
+test('the standalone diagnostics SDK browser contract has one owner per engine', () => {
+  const { executions } = require('../../scripts/ci/coverage.cjs');
+  for (const browser of tiers.nightly.browsers) {
+    const files = ['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app => executions(app, 'nightly', browser));
+    assert.equal(files.filter(file => file === 'packages/browser-diagnostics/test-browser.cjs').length, 1);
+  }
+});
+
 test('Soundglow output mutation finishes before browser readers in both runners', async () => {
   const { fastGraph } = require('../../scripts/ci/fast-local.cjs');
   const path = require('node:path');
@@ -79,6 +87,7 @@ test('Soundglow output mutation finishes before browser readers in both runners'
   for (const tasks of [fastGraph({ apps: ['soundglow'] }, root), graph(selected, nightly, directories)]) {
     const units = tasks.filter(task => task.args.includes('test:unit') && task.args.includes('--workspace=soundglow'));
     assert.equal(units.length, 1, 'Node checks have one owner, independent of browser count');
+    assert(units[0].priority > 0, 'A required output prerequisite reserves capacity instead of starving behind leaf work');
     for (const task of tasks.filter(task => /^soundglow:(?:ci|nightly):/.test(task.id) || task.id === 'soundglow:visual-fixture')) {
       if (task !== units[0]) assert(task.needs.includes(units[0].id), `${task.id} reads mutable build output`);
     }

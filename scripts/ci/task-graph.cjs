@@ -20,7 +20,7 @@ function commandTasks(app, tier, browser, cwd = root, { group = 'core', shard = 
     ? browserSuites.map(suite => ['npm', ['exec', '--workspace=dorego', '--', 'tsx', `tests/${suite}.e2e.ts`]]) : [[command, args]]);
   return commands.flatMap(([command, args], index) => {
     const policy = declaration(app, command, args);
-    const base = { id: `${prefix}:${index}`, command: command === 'node' ? process.execPath : command, args, cwd, needs, env: environment(browser, tier), ...policy, ...(app === 'soundglow' && args.includes('test:unit') ? { slots: 4 } : {}), timeoutMs: 20 * 60000 };
+    const base = { id: `${prefix}:${index}`, command: command === 'node' ? process.execPath : command, args, cwd, needs, env: environment(browser, tier), ...policy, ...(app === 'soundglow' && args.includes('test:unit') ? { slots: 4, priority: 80 } : {}), timeoutMs: 20 * 60000 };
     if (policy.partition) {
       const { total, portBase, defaultPort } = policy.partition;
       return Array.from({ length: total }, (_, shard) => {

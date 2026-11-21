@@ -75,6 +75,9 @@ Node pool. The dev-server integration checks run before that pool because one
 starts the real development command and rebuilds UI output; every Nightly browser
 reader and visual fixture waits for these checks locally. Chromium and WebKit
 both exercise the real SDK and cache/script/style/worker/WASM reload contract.
+The standalone SDK check has one owner per engine; app-specific diagnostic UI
+checks remain separate. The Node prerequisite reserves scheduler capacity so
+small browser tasks cannot starve the visual fixture and UI readers.
 Shared diagnostics/offline package units belong to shared validation, not each
 app's canonical lane. Developer convenience umbrellas may still compose them.
 

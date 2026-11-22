@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { scaleNotes, relativeScale } from '../src/guitar-scales';
-import { patternPositions, patternShift, relativePattern, patternBounds, SCALE_SHAPES } from '../src/guitar-scale-patterns';
+import { patternPositions, patternShift, relativePattern, pentatonicOmissions, patternBounds, SCALE_SHAPES } from '../src/guitar-scale-patterns';
 import { guitarScaleFromQuery, mergeGuitarScaleSettings } from '../src/guitar-scale-settings';
 test('pentatonics retain correct note spelling and diatonic degrees', () => {
  assert.deepEqual(scaleNotes(0,'major-pentatonic').map(n=>[n.name,n.degree]), [['C',1],['D',2],['E',3],['G',5],['A',6]]);
@@ -60,4 +60,21 @@ test('every pentatonic is exactly its matching full scale minus the omitted degr
     `${tonic} ${quality} shape ${shape} shift ${shift}`);
   }
  }
+});
+
+test('omitted-note context is exactly the parent scale minus pentatonic notes, clipped at neck edges',()=>{
+ for(const quality of ['major-pentatonic','minor-pentatonic'] as const)for(let tonic=0;tonic<12;tonic++)for(const shape of SCALE_SHAPES){
+  const shift=patternShift(tonic,quality,shape);
+  const ghosts=pentatonicOmissions(tonic,quality,shape,shift);
+  const pcs=new Set(scaleNotes(tonic,quality).map(n=>n.pitchClass));
+  assert.ok(ghosts.length>0);assert.ok(ghosts.every(n=>!pcs.has(n.pitchClass)&&n.fret>=1&&n.fret<=22));
+  assert.ok(ghosts.every(n=>[quality.startsWith('major')?4:2,quality.startsWith('major')?7:6].includes(n.degree)));
+  const parent=quality.startsWith('major')?'major':'minor';
+  const [low,high]=patternBounds(shape,parent);
+  if(low+shift>=1&&high+shift<=22){
+   const expected=patternPositions(tonic,parent,shape,shift).filter(n=>!pcs.has(n.pitchClass));
+   assert.deepEqual(ghosts.map(n=>[n.string,n.fret,n.name,n.midi]),expected.map(n=>[n.string,n.fret,n.name,n.midi]));
+  }
+ }
+ assert.deepEqual(pentatonicOmissions(0,'major','1',0),[]);
 });

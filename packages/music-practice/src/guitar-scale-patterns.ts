@@ -1,6 +1,6 @@
 import {isMaqam} from "./maqamat";
 import { STRINGS } from "./guitar";
-import { isMajorScale, scaleNotes, type ScaleQuality } from "./guitar-scales";
+import { isMajorScale, scaleNotes, scalePositions, type ScaleQuality } from "./guitar-scales";
 
 export const SCALE_SHAPES = ["1", "2", "3", "4", "5"] as const;
 export type ScaleShape = (typeof SCALE_SHAPES)[number];
@@ -330,4 +330,18 @@ export function linkedPatternPositions(
     })
     .sort((a, b) => Number(b.shift === preferredShift) - Number(a.shift === preferredShift) || b.overlap - a.overlap || a.distance - b.distance);
   return candidates[0].notes;
+}
+
+/** Context-only notes removed from the matching major or natural-minor position. */
+export function pentatonicOmissions(tonic:number, quality:ScaleQuality, shape:ScalePattern, shift:number, spelling?:string, firstFret=0,lastFret=5){
+  if(!quality.endsWith('pentatonic'))return [];
+  const parent=isMajorScale(quality)?'major':'minor';
+  const omitted=isMajorScale(quality)?[4,7]:[2,6];
+  if(shape==='map')return scalePositions(tonic,parent,spelling,firstFret,lastFret).filter(n=>omitted.includes(n.degree));
+  // Read the canonical parent first, then clip to the physical neck: its edge
+  // notes may extend beyond a valid pentatonic position's own bounds.
+  const names=scaleNotes(tonic,parent,spelling);
+  return patternPositions(parent==='major'?0:9,parent,shape,0)
+    .filter(n=>omitted.includes(n.degree)&&n.fret+shift>=1&&n.fret+shift<=22)
+    .map(n=>{const note=names[n.degree-1],midi=n.midi+shift;return {...n,...note,fret:n.fret+shift,midi,octave:(midi-note.natural-note.accidental)/12-1};});
 }

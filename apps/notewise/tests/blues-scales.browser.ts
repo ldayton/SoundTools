@@ -39,6 +39,12 @@ try {
   const blues=await readTones();
   assert.deepEqual(blues.filter(n=>n.midi%12!==3),pent,`${family} shape ${shape}: only Eb added; shared fingers unchanged`);
   assert.ok(blues.some(n=>n.midi%12===3));
+  const blue=page.locator('.scale-blue-note');
+  assert.equal(await blue.count(),blues.filter(n=>n.midi%12===3).length);
+  assert.ok(await blue.evaluateAll(es=>es.every(e=>Number(e.getAttribute('data-midi'))%12===3)));
+  await expect(page.locator('.scale-link-legend')).toContainText(family==='major'?'Blue note (♭3)':'Blue note (♭5)');
+  assert.equal(await blue.first().locator('circle').evaluate(e=>getComputedStyle(e).fill),'rgb(156, 54, 181)');
+  await expect(page.locator('.scale-omitted-tone')).toHaveCount(0);
   await expect(page.locator('.scale-footnote')).toContainText('Same finger on adjacent frets: slide one fret.');
   await page.setViewportSize({width:390,height:844});
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

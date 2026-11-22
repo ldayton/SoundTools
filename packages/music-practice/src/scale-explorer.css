@@ -223,3 +223,11 @@
 .scale-chord-panel { border: 1px solid #d6d9e2; border-radius: 8px; padding: 10px; margin: 12px auto; max-width: 340px; }
 .scale-chord-panel > svg { max-height: 240px; }
 .scale-chord-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.scale-tone.scale-blue-note:not(.scale-unused) circle,
+.scale-link-legend .scale-blue-swatch { fill: #9c36b5; background: #9c36b5; }
+.scale-tone.scale-blue-note:not(.scale-unused) text { fill: white; }
+.scale-tone.scale-blue-note .scale-shift-marker { fill: #9c36b5; }
+.scale-omitted-tone { pointer-events: none; }
+.scale-omitted-tone circle { fill: white; stroke: #8b94a5; stroke-width: 2; stroke-dasharray: 3 3; }
+.scale-link-legend .scale-omitted-swatch { background: white; border: 2px dashed #8b94a5; box-sizing: border-box; }

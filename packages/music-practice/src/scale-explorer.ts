@@ -26,6 +26,7 @@ import {
   scaleShapeLabel,
   cagedChordPositions,
   cagedReferenceChord,
+  pentatonicOmissions,
   patternBounds,
   patternShift,
   patternPositions,
@@ -603,6 +604,14 @@ export class ScaleExplorer implements LivePractice {
       ...basePositions,
       ...secondary.filter((n) => !primaryKeys.has(`${n.string}:${n.fret}`)),
     ];
+    const omittedByPosition=new Map(pentatonicOmissions(this.tonic,this.quality,this.pattern,this.shift,this.spelling,this.firstFret,this.lastFret).map(n=>[positionKey(n),n]));
+    if(linked && this.linked!=='map' && this.linked!=='none'){
+      const reference=patternPositions(isMajorScale(this.quality)?0:9,this.quality,this.linked,0);
+      const shift=secondary[0].fret-reference[0].fret;
+      for(const n of pentatonicOmissions(this.tonic,this.quality,this.linked,shift,this.spelling))omittedByPosition.set(positionKey(n),n);
+    }
+    const omittedPositions=[...omittedByPosition.values()];
+    const boardPositions=[...positions,...omittedPositions];
     const chordKeys = new Set<string>();
     const chordDiagrams: {name:string; frets:(number|null)[]}[] = [];
     const addChord = (shape: Exclude<ScalePattern,"map">, shift: number) => {
@@ -621,10 +630,10 @@ export class ScaleExplorer implements LivePractice {
       }
     }
     const firstFret = maqam ? this.firstFret : movable
-      ? Math.min(...positions.map((n) => n.fret))
+      ? Math.min(...boardPositions.map((n) => n.fret))
       : this.firstFret;
     const lastFret = maqam ? this.lastFret : movable
-      ? Math.max(...positions.map((n) => n.fret))
+      ? Math.max(...boardPositions.map((n) => n.fret))
       : this.lastFret;
     const fullStart = Math.max(1, firstFret);
     const fullEnd = lastFret;
@@ -678,6 +687,7 @@ export class ScaleExplorer implements LivePractice {
       const routeNotes = new Map(
         (route?.notes || []).map((n) => [positionKey(n), n]),
       );
+      const omittedNotes=omittedPositions.map(n=>`<g class="scale-omitted-tone" data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>${scaleLabel(n.name)}${n.octave}: omitted from ${isMajorScale(this.quality)?'major':'natural minor'}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/></g>`).join('');
       const notes = positions
         .map((n) => {
           // Use the selected shape's fingering at overlaps, and the linked
@@ -690,6 +700,7 @@ export class ScaleExplorer implements LivePractice {
               : labels === "fingers" && "finger" in fingerNote
                 ? fingerNote.finger
                 : scaleLabel(n.name);
+          const blueNote=this.quality.endsWith('blues') && (n.pitchClass-this.tonic+12)%12===(isMajorScale(this.quality)?3:6);
           const available = routes.has(positionKey(n));
           const chosen =
             !!route && positionKey(route.arrival) === positionKey(n);
@@ -723,7 +734,7 @@ export class ScaleExplorer implements LivePractice {
           const dotLabel = alternate
             ? `<text class="scale-finger-main" x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text><rect class="scale-alternate-badge" x="${x(n.fret) + 6}" y="${y(n.string) + 5}" width="20" height="20" rx="7"/><text class="scale-finger-alternate" x="${x(n.fret) + 16}" y="${y(n.string) + 15}" dy=".35em">${alternate.finger}</text>`
             : `<text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text>`;
-          return `<g class="scale-tone${alternate ? " scale-dual" : ""}${shiftClass}${membership}${chordKeys.has(positionKey(n)) ? " scale-chord-tone" : ""}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? ", root" : ""}${chordKeys.has(positionKey(n)) ? ", CAGED chord note" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
+          return `<g class="scale-tone${blueNote ? " scale-blue-note" : ""}${alternate ? " scale-dual" : ""}${shiftClass}${membership}${chordKeys.has(positionKey(n)) ? " scale-chord-tone" : ""}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${blueNote ? ", blue note" : ""}${n.root ? ", root" : ""}${chordKeys.has(positionKey(n)) ? ", CAGED chord note" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
         })
         .join("");
       const turn = route;
@@ -757,7 +768,7 @@ export class ScaleExplorer implements LivePractice {
         route && (route.previous.string === 6 || route.arrival.string === 6)
           ? 335
           : 290;
-      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${maqam ? "hand position" : hila ? "Seven-position major, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
+      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${maqam ? "hand position" : hila ? "Seven-position major, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${this.quality.endsWith("blues") ? "Purple dots mark the blue note. " : ""}${this.quality.endsWith("pentatonic") ? "Hollow dashed circles mark omitted full-scale notes, which are not played. " : ""}${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
       ${Array.from(
         { length: fullEnd - fullStart + 2 },
         (_, i) => fullStart - 1 + i,
@@ -775,7 +786,7 @@ export class ScaleExplorer implements LivePractice {
         )
         .join(
           "",
-        )}${notes}<defs><marker id="scale-link-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${transition}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
+        )}${omittedNotes}${notes}<defs><marker id="scale-link-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${transition}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
     };
     const diagram = this.element.querySelector<HTMLElement>(".scale-diagram")!;
     const scrollLeft = diagram.scrollLeft;
@@ -807,6 +818,8 @@ export class ScaleExplorer implements LivePractice {
           ? ""
           : "No linked route available for this pair here.",
       reversedColors: this.reversedColors,
+      blueNoteLabel: this.quality.endsWith('blues') ? `Blue note (${isMajorScale(this.quality)?'♭3':'♭5'})` : '',
+      omittedNoteLabel: this.quality.endsWith('pentatonic') ? `Omitted (${isMajorScale(this.quality)?'4, 7':'2, ♭6'})` : '',
       chordOutline: chordKeys.size > 0,
       chordDiagrams,
       linkedLegend: linked ? `${scaleShapeLabel(this.pattern, this.quality)}|${scaleShapeLabel(this.linked, this.quality)}` : "",

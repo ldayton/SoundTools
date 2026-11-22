@@ -14,6 +14,8 @@ export const scaleBodyState = () =>
     shiftMessage: "",
     linkedLegend: "",
     chordOutline: false,
+    blueNoteLabel: "",
+    omittedNoteLabel: "",
     chordDiagrams: [] as {name: string; frets: (number | null)[]}[],
     reversedColors: false,
     linkHelp: "",
@@ -81,6 +83,8 @@ export function ScaleFrame({
       </div>
       <div className="scale-link-legend">
         <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
+        {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
+        {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
         {s.chordOutline && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={chordOpen} aria-controls="scale-chord-panel" aria-label="Show chord shape diagram" onClick={()=>{setChordOpen(!chordOpen);setChordFrame(0);}}><i className="scale-chord-swatch" aria-hidden="true" />Chord shape</button>}
         {s.linkedLegend && <>
         {s.linkedLegend.split("|")

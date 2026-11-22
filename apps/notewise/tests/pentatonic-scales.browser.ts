@@ -42,6 +42,11 @@ try {
   await expect(page.locator('.scale-shift-candidate')).toHaveCount(0);
   await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://guitarscale.org/${parent==='major'?'c-major':'a-minor'}.html`);
   assert.deepEqual(await readTones(),full.filter(n=>[0,2,4,7,9].includes(n.midi%12)),`${key} ${parent} shape ${shape}`);
+  const ghosts=page.locator('.scale-omitted-tone');
+  assert.deepEqual(await ghosts.evaluateAll(es=>es.map(e=>({string:Number(e.getAttribute('data-string')),fret:Number(e.getAttribute('data-fret')),midi:Number(e.getAttribute('data-midi'))}))),full.filter(n=>![0,2,4,7,9].includes(n.midi%12)).map(({string,fret,midi})=>({string,fret,midi})));
+  await expect(page.locator('.scale-link-legend')).toContainText(parent==='major'?'Omitted (4, 7)':'Omitted (2, ♭6)');
+  assert.ok(await ghosts.evaluateAll(es=>es.every(e=>getComputedStyle(e).pointerEvents==='none'&&!e.hasAttribute('tabindex')&&!e.classList.contains('scale-shift-candidate'))));
+  assert.equal(await ghosts.first().locator('circle').evaluate(e=>getComputedStyle(e).fill),'rgb(255, 255, 255)');
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   if(parent==='major'&&shape==='2'){
    await page.locator('.scale-tone[data-string="4"][data-fret="14"]').scrollIntoViewIfNeeded();
@@ -51,6 +56,12 @@ try {
    await page.setViewportSize({width:390,height:844});
   }
  }
+ await page.goto(`${server.base}/guitar/scales?key=C&scale=major-pentatonic&pattern=map&from=1&to=5`);
+ await waitForApp(page,'.scale-diagram svg');
+ assert.ok(await page.locator('.scale-omitted-tone').count()>0);
+ await page.goto(`${server.base}/guitar/scales?key=C&scale=major&pattern=1`);
+ await waitForApp(page,'.scale-diagram svg');
+ await expect(page.locator('.scale-omitted-tone')).toHaveCount(0);
  assert.deepEqual(errors,[]);console.log('PASS pentatonic charts, bidirectional link, clear, exact full-scale subsets and fingers, mobile overflow, no runtime errors');
 } catch (error) {
   await captureFailure(browser, error);

@@ -1,3 +1,4 @@
+import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from 'node:assert/strict';
 import { expect } from '@playwright/test';
 import { launchBrowser, newPage, captureFailure, closeBrowser } from '../../../scripts/ci/browser-harness.cjs';
@@ -48,11 +49,11 @@ try {
   await expect(page.locator('g.abcjs-part')).toHaveText(['A','B','C','Ending']);
   await assertEngraving(page);
   await openPracticeOptions(page);
-  await expect(page.locator('#hymn-arrangement')).toHaveValue('Guitar');
-  await page.locator('#hymn-arrangement').click();
-  await expect(page.locator('.mantine-Select-dropdown:visible [role=option]')).toHaveText(['Piano','Guitar']);
-  assert.equal(await page.locator('.mantine-Select-dropdown:visible [role=option]').locator('svg').count(),2);
-  await page.getByRole('option',{name:'Guitar',exact:true}).click();
+  await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
+  await expect(page.getByRole('radio', { name: 'Sung accompaniment', exact: true })).toBeDisabled();
+  assert.equal(await page.getByRole('radiogroup',{name:'Instrument',exact:true}).locator('svg').count(),3);
+  await selectHymnInstrument(page, 'guitar');
   await page.locator('#hymn-score-display').selectOption('notation');
   await expect(page.locator('[data-name=tabNumber]')).toHaveCount(0);
   await page.locator('#hymn-score-display').selectOption('tab');
@@ -87,11 +88,10 @@ try {
   await page.locator('[data-name=tabNumber]').first().waitFor();
   await openPracticeOptions(page);
   await expect(page.locator('#hymn-score-display')).toHaveValue('tab');
-  await page.locator('#hymn-arrangement').click();
-  await page.getByRole('option',{name:'Piano',exact:true}).click();
+  await selectHymnInstrument(page, 'piano');
   await expect(page.locator('[data-name=tabNumber]')).toHaveCount(0);
   await expect(page.locator('#hymn-score-display')).toHaveCount(0);
-  await page.locator('#hymn-arrangement').click();await page.getByRole('option',{name:'Guitar',exact:true}).click();
+  await selectHymnInstrument(page, 'guitar');
   await expect(page.locator('#hymn-score-display')).toHaveValue('tab');
   await page.locator('#hymn-score-display').selectOption('both');
   await dismissPracticeDrawer(page);
@@ -134,9 +134,9 @@ try {
    await expect(page.locator('.hymn-count')).toHaveText('1 / 97');
    await page.reload();await openPracticeOptions(page);
    await expect(page.locator('#hymn-hands')).toHaveValue('left');
-   await expect(page.locator('#hymn-arrangement')).toHaveValue('Guitar');
+   await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
    await expect(page.locator('#hymn-score-display')).toHaveValue('both');
-   await page.locator('#hymn-arrangement').click();await page.getByRole('option',{name:'Piano',exact:true}).click();
+   await selectHymnInstrument(page, 'piano');
    await expect(page.locator('#hymn-hands')).toHaveValue('left');
    await expect(page.locator('.hymn-count')).toHaveText('1 / 99');
    await assertEngraving(page);

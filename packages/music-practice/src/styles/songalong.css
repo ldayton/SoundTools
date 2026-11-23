@@ -161,10 +161,10 @@
   white-space: normal;
 }
 
-/* Balanced outer columns keep transport centered independently of panel state. */
+/* Fixed outer controls keep the toolbar stable when either sidebar changes. */
 .hymn-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
 }
@@ -176,6 +176,23 @@
 }
 .hymn-toolbar-piano {
   justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hymn-toolbar-instruments {
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.hymn-toolbar-instruments button { border-radius: 0; width: 36px; min-width: 36px; }
+.hymn-toolbar-instruments button:focus-visible { outline-offset: -3px; }
+@media (min-width: 768px) and (max-width: 1119px) {
+  .hymn-toolbar .hymn-fingerings-field .mantine-Checkbox-labelWrapper,
+  .hymn-toolbar .hymn-stanza-indicator { display: none; }
+  .hymn-toolbar .hymn-mode-toggle { width: 96px; min-width: 96px; }
+  .hymn-toolbar-piano { gap: 4px; }
+  .hymn-toolbar-instruments button { width: 32px; min-width: 32px; }
 }
 .hymn-mode-toggle {
   width: 112px;
@@ -202,8 +219,9 @@
   .songalong-header:has(.hymn-toolbar) .application-toolbar {
     display: grid;
     grid-template-columns: 28px 36px minmax(76px, 1fr) 38px 38px;
-    grid-template-areas: "navigation volume playback controls options";
-    grid-template-rows: 44px;
+    grid-template-areas: "navigation volume playback controls options"
+      "instruments instruments instruments instruments instruments";
+    grid-template-rows: 44px 44px;
     align-content: center;
     column-gap: 6px;
     row-gap: 0;
@@ -212,8 +230,9 @@
     .application-toolbar {
     grid-template-areas:
       "navigation volume playback controls options"
+      "instruments instruments instruments instruments instruments"
       "settings settings settings settings settings";
-    grid-template-rows: 44px 112px;
+    grid-template-rows: 44px 44px 112px;
   }
   .songalong-header .application-toolbar-actions,
   .songalong-header-transport,
@@ -233,6 +252,8 @@
   .hymn-toolbar-volume {
     grid-area: volume;
   }
+  .hymn-toolbar-instruments { grid-area: instruments; justify-self: center; }
+  .hymn-toolbar-instruments button { width: 44px; min-width: 44px; height: 44px; }
   .hymn-toolbar-volume > button {
     height: 44px;
   }

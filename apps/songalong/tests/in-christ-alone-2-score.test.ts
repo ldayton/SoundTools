@@ -383,7 +383,7 @@ test("all four printed verses are separate from the existing In Christ Alone edi
   assert.equal(hymnPreferences(hymn.id).arrangement, "original");
   assert.equal(
     hymnPreferences(hymn.id, { arrangement: "melody" }).arrangement,
-    "melody",
+    "original",
   );
   assert.notEqual(
     hymnPreferences(hymn.id).hymn,

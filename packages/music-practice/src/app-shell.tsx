@@ -328,8 +328,8 @@ export function mountAppShell(
           mobileToolbarHeight={
             APP.id === "songalong"
               ? toolbar.expanded
-                ? 168
-                : 56
+                ? 212
+                : 100
               : (narrowToolbar ? 104 : 56) +
                 (snapshot.selected === "rhythm" && noteToolbar.expanded
                   ? 60

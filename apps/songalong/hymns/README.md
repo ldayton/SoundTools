@@ -112,7 +112,9 @@ line in bar 18 uses an additional voice on the same treble staff. All four lyric
 rows come from these photographs, including the second verse and the printed
 “There in the ground” opening; there is no added “Oh” refrain.
 
-The song opens on Original harmony to show the supplied three-staff arrangement.
+The song opens on Sung accompaniment, using Original harmony to show the supplied
+three-staff arrangement. Piano and Guitar stay disabled until this song has those
+instrument editions.
 The About this song link downloads the bundled transcription and remains valid
 offline. This user-supplied arrangement is not an Open Hymnal/public-domain source;
 song rights remain with their respective holders. No guitar edition is inferred.

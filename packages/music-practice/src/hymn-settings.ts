@@ -1,3 +1,4 @@
+import { hymnAvailableArrangements } from "./hymn-instruments";
 import {chordEdition} from "./chord-editions";
 import { validStanzas } from "./hymn-lyrics";
 import type { CountInBars } from "./hymn-count-in";
@@ -5,7 +6,6 @@ import { isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
 import {
   hasInstrumentEditions,
-  hymnArrangements,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -79,7 +79,7 @@ export function mergeHymnSettings(
     : stanzas.includes(base.stanza!)
       ? base.stanza!
       : stanzas[0] || 0;
-  const available = hymnArrangements(hymn).map(a => a.id);
+  const available = hymnAvailableArrangements(hymn).map(a => a.id);
   const requested = s.arrangement ?? base.arrangement;
   const arrangement = hasInstrumentEditions(hymn)
     ? requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
@@ -138,9 +138,9 @@ export function mergeHymnSettings(
       s.arrangement,
       available,
       legacy
-        ? s.chords === true
-          ? "original"
-          : "melody"
+        ? available.includes(s.chords === true ? "original" : "melody")
+          ? s.chords === true ? "original" : "melody"
+          : available[0]
         : available.includes(base.arrangement)
           ? base.arrangement
           : available[0],

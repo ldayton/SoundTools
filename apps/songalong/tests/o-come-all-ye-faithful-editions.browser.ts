@@ -1,3 +1,4 @@
+import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -107,11 +108,9 @@ try {
     await expect(page.locator('.hymn-paper svg').last().locator('.abcjs-note.abcjs-mm19').first()).toBeVisible();
     await checkScore(page);
     await openPracticeOptions(page);
-    await page.locator("#hymn-arrangement").click();
-    await expect(
-      page.locator(".mantine-Select-dropdown:visible [role=option]"),
-    ).toHaveText(["Piano", "Guitar"]);
-    await page.getByRole("option", { name: "Guitar", exact: true }).click();
+    await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
+  await expect(page.getByRole('radio', { name: 'Sung accompaniment', exact: true })).toBeDisabled();
+    await selectHymnInstrument(page, 'guitar');
     await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();
     assert(
       !(await page.locator("[data-name=tabNumber]").allTextContents())
@@ -212,7 +211,7 @@ try {
     await page.reload();
     await page.locator(".hymn-paper svg").first().waitFor();
     await openPracticeOptions(page);
-    await expect(page.locator("#hymn-arrangement")).toHaveValue("Guitar");
+    await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator("#hymn-score-display")).toHaveValue("tab");
     await dismissPracticeDrawer(page);
     if (width === 1440) {

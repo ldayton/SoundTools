@@ -442,3 +442,18 @@ Leave unrelated, uncommitted work alone.
 
 Keep unresolved intermittent cases in [the evidence log](testing-instability.md).
 They remain required tests; recording a case does not disable or retry it.
+
+## SongAlong instrument selector contract
+
+Instrument selection is a three-choice toolbar radio group (Guitar, Piano, Sung
+accompaniment). `apps/songalong/tests/hymn-instruments.test.ts` owns arrangement
+membership, unsupported selection normalization and account/offline snapshot
+roundtrips. The required `instrument-toolbar.browser.ts` command covers the primary
+selection UI on generic capability fixtures and the explicitly named teacher score,
+including keyboard exclusivity, durable selection and desktop/phone layout. It runs
+in CI's Chromium lane and in each Nightly engine, using port 4613. The
+Nightly edition files remain the per-registry-ID witnesses; their old instrument
+menu assertions were replaced with radio-state and availability assertions, while
+musical, tab, layout and persistence assertions remain in place. Generic arrangement
+helpers select the owning instrument first and wait for the options panel before
+inspecting an arrangement picker that may not be mounted on a narrow layout.

@@ -1922,5 +1922,25 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/instrument-toolbar.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4613
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/instrument-toolbar.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

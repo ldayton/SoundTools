@@ -25,6 +25,7 @@ export function HymnControls({
   model,
   panelId,
   settings,
+  instrument,
   staffSize,
   staffSpacing,
   fingerings,
@@ -36,6 +37,7 @@ export function HymnControls({
   model: HymnControlsState;
   panelId: string;
   settings?: ReactNode;
+  instrument?: ReactNode;
   staffSize?: ReactNode;
   staffSpacing?: ReactNode;
   fingerings?: ReactNode;
@@ -151,6 +153,7 @@ export function HymnControls({
           >
             {transport}
           </div>
+          {instrument}
           <ToolbarDisclosure
             className="hymn-controls-toggle"
             opened={toolbar.expanded}
@@ -200,6 +203,7 @@ export function HymnControls({
           aria-label="Sound and display"
         >
           <ToolbarVolume />
+          {instrument}
           {staffSize}
           {staffSpacing}
         </Group>

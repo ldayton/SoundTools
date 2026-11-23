@@ -424,7 +424,7 @@ try {
           .locator(".mantine-AppShell-header")
           .evaluate((el) => el.getBoundingClientRect().height),
       )
-      .toBe(56);
+      .toBe(width < 768 ? 100 : 56);
     await expect
       .poll(() =>
         page.evaluate(
@@ -450,7 +450,7 @@ try {
             .locator(".mantine-AppShell-header")
             .evaluate((el) => el.getBoundingClientRect().height),
         )
-        .toBe(168);
+        .toBe(212);
       await expect(page.locator(".mantine-AppShell-header [data-direction]")).toHaveCount(0);
       await expect(page.locator("#hymn-mode")).toHaveCount(0);
       await expect(page.locator(".piano-toggle")).toHaveCount(0);

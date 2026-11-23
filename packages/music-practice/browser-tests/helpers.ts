@@ -40,11 +40,57 @@ export async function midiAction(
   await page.getByRole("button", { name: label, exact: true }).click();
   await advanceClock?.();
 }
+/** Select the primary instrument through its real toolbar radio control. */
+export async function selectHymnInstrument(
+  page: Page,
+  instrument: "guitar" | "piano" | "sung",
+) {
+  await waitForApp(page, ".hymn-toolbar-instruments");
+  const wasOpen =
+    (await page
+      .locator("#practice-options-reopen")
+      .getAttribute("aria-expanded")) === "true";
+  await dismissPracticeDrawer(page);
+  const selector = `[role="radio"][data-instrument="${instrument}"]`;
+  const button = page.locator(selector);
+  await button.waitFor({ state: "visible" });
+  if ((await button.getAttribute("aria-checked")) !== "true")
+    await button.click();
+  await page.waitForFunction(
+    (selector) =>
+      document.querySelector(selector)?.getAttribute("aria-checked") === "true",
+    selector,
+  );
+  if (wasOpen) await openPracticeOptions(page);
+}
+
 export async function practiceOption(
   page: Page,
   selector: string,
   value: string,
 ) {
+  if (selector === "#hymn-arrangement") {
+    const instrument = value.startsWith("guitar")
+      ? "guitar"
+      : value === "original"
+        ? "sung"
+        : "piano";
+    await selectHymnInstrument(page, instrument);
+    await openPracticeOptions(page);
+    if (await page.locator(selector).count()) {
+      await page.locator(selector).selectOption(value);
+    }
+    await page.waitForFunction(
+      (value) =>
+        document
+          .querySelector(
+            '.hymn-toolbar-instruments [role="radio"][aria-checked="true"]',
+          )
+          ?.getAttribute("data-arrangement") === value,
+      value,
+    );
+    return;
+  }
   if (selector === "#hymn-mode") {
     await dismissPracticeDrawer(page);
     await page.waitForFunction(
@@ -109,13 +155,7 @@ export async function practiceOption(
         .getByRole("button", { name: label, exact: true })
         .click();
     }
-  } else if (
-    selector === "#hymn-key" ||
-    (selector === "#hymn-arrangement" &&
-      (await page
-        .locator(selector)
-        .evaluate((element) => element.tagName !== "SELECT")))
-  ) {
+  } else if (selector === "#hymn-key") {
     await page.locator(selector).click();
     await page.locator(`[role="option"][value="${value}"]`).click();
   } else await page.locator(selector).selectOption(value);
@@ -127,8 +167,10 @@ export async function openHymnControls(page: Page) {
   // reload()/goto() can finish before the lazy route or responsive toolbar.
   // Never let a premature isVisible() silently turn this helper into a no-op.
   await waitForApp(page, ".hymn-controls");
-  await page.waitForFunction((query) =>
-    !!document.querySelector(".hymn-toolbar-mobile") === matchMedia(query).matches,
+  await page.waitForFunction(
+    (query) =>
+      !!document.querySelector(".hymn-toolbar-mobile") ===
+      matchMedia(query).matches,
     MOBILE_SONGALONG_QUERY,
   );
   const button = page.getByRole("button", {

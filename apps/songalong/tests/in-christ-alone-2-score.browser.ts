@@ -31,7 +31,7 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
   await expect(page.locator(".sequence-title")).toHaveText("In Christ Alone 2");
-  await expect(page.locator("#hymn-arrangement")).toHaveValue("original");
+  await expect(page.getByRole("radio", {name:"Sung accompaniment",exact:true})).toHaveAttribute("aria-checked", "true");
   await expect(page.locator("#hymn-key")).toHaveValue("Original (D)");
   await expect(
     page.locator(".hymn-paper svg").first().locator(".abcjs-clef"),
@@ -123,7 +123,7 @@ try {
   await waitForApp(page, ".hymn-paper");
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
-  await expect(page.locator("#hymn-arrangement")).toHaveValue("original");
+  await expect(page.getByRole("radio", {name:"Sung accompaniment",exact:true})).toHaveAttribute("aria-checked", "true");
   await expect(page.locator("#hymn-tempo")).toHaveValue("96 BPM");
   assert.deepEqual(errors, []);
   console.log(

@@ -1,3 +1,4 @@
+import { HymnInstrumentSelector } from "./hymn-instrument-selector";
 import { printedHymnSource } from "./hymn-source";
 import {chordEdition} from "./chord-editions";
 import { validStanzas, hymnEndingBar } from "./hymn-lyrics";
@@ -325,6 +326,10 @@ export class SightReading {
           },
         }),
         transport: createElement(HymnControls, {
+          instrument: createElement(HymnInstrumentSelector, {
+            model: this.options,
+            change: (patch) => this.changeOptions(patch),
+          }),
           settings: createElement(HymnModeAndTempo, {
             model: this.options,
             change: (patch) => this.changeOptions(patch),

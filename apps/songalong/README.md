@@ -130,3 +130,25 @@ Validation: `npm test --workspace=songalong`,
 actual scheduled sample buffers and envelopes, checks finite unclipped audio and
 instrument routing, and writes six-second WAV previews to
 `/tmp/songalong-instrument-audio/`. Use `TEST_BROWSER=webkit` for WebKit.
+
+## Primary instrument selection
+
+The toolbar always shows Guitar, Piano and Sung accompaniment as one radio group.
+Only one instrument is selected; unavailable instruments remain visible and disabled.
+The sidebar lists arrangements belonging to the current instrument, and omits the
+arrangement picker when that instrument has only one arrangement. Reviewed editions
+retain their Piano/Guitar scores; generic staged keyboard arrangements belong to
+Piano and their original vocal harmony belongs to Sung accompaniment. The supplied
+In Christ Alone 2 choir/organ score currently supports Sung accompaniment only.
+
+Existing arrangement IDs still encode the saved instrument and arrangement together,
+so old deep links, account records, offline preferences and bookmarks remain valid.
+No microphone access is requested by the microphone icon. Arrow keys navigate the
+available instruments, skipping unavailable choices; the three icons remain visible
+when the phone's other toolbar controls are collapsed.
+
+`hymn-instruments.test.ts` owns capability, migration and account/offline snapshot
+coverage. `instrument-toolbar.browser.ts` is a required CI/Nightly witness for the
+primary toolbar, exclusivity, keyboard access, persistence and responsive layout.
+Existing edition browser tests retain each registered instrument edition's coverage
+using the toolbar helper instead of the retired instrument dropdown.

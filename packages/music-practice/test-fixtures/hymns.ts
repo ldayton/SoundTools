@@ -1,3 +1,4 @@
+import { hymnAvailableArrangements } from "../src/hymn-instruments";
 /** Generic UI contracts must not depend on a particular song staying unchanged.
  * Edition tests own named songs. These fixtures select by capabilities and fail
  * early with an actionable message if the product retires staged arrangements.
@@ -6,7 +7,6 @@
 import abcjs from "abcjs";
 import hymns from "../src/hymns.json";
 import {
-  hymnArrangements,
   arrangeHymn,
   type Hymn,
 } from "../src/hymn-arrangements";
@@ -64,7 +64,7 @@ export function selectStagedHymn(
       hymn.id === exclude ||
       hymn.stanzas.length < 2 ||
       !staged.every((id) =>
-        hymnArrangements(hymn).some((arrangement) => arrangement.id === id),
+        hymnAvailableArrangements(hymn).some((arrangement) => arrangement.id === id),
       )
     )
       return false;

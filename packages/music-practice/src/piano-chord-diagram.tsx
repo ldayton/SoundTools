@@ -1,65 +1,23 @@
+import {
+  pianoChordEvent,
+  type PianoChordSelection,
+} from "./piano-chord-triggers";
 import { useEffect, useRef, useState } from "react";
 import { Modal, Stack, Text } from "@mantine/core";
 import { PianoKeyboard } from "@ldayton/ui/piano-keyboard";
-import type { AbsoluteElement, RelativeElement, TuneObject } from "abcjs";
-import { attachChordTriggers } from "./guitar-chord-diagram";
-import { pianoChord } from "./piano-chord";
 import { keyLabel } from "./piano-model";
 import { holdPianoNote } from "./piano-audio";
-const eventName = "songalong:piano-chord";
-type Selection = NonNullable<ReturnType<typeof pianoChord>> & {
-  name: string;
-  trigger: SVGElement;
-};
-/** Use engraved/transposed chord names, so symbols and diagrams always agree. */
-export function attachPianoChordDiagrams(paper: HTMLElement, tune: TuneObject) {
-  const passages: (Selection & { element: SVGGraphicsElement })[] = [];
-  for (const line of tune.lines)
-    for (const staff of line.staff || [])
-      for (const voice of staff.voices || [])
-        for (const note of voice) {
-          if (note.el_type !== "note") continue;
-          const absolute = (note as typeof note & { abselem?: AbsoluteElement })
-            .abselem;
-          for (const child of absolute?.children || []) {
-            const ink = child as RelativeElement & {
-              graphelem?: SVGGraphicsElement;
-            };
-            if (ink.type !== "chord" || !ink.graphelem) continue;
-            const name = ink.graphelem.textContent?.trim() || "";
-            const chord = pianoChord(name);
-            if (chord)
-              passages.push({
-                ...chord,
-                name,
-                element: ink.graphelem,
-                trigger: ink.graphelem,
-              });
-          }
-        }
-  attachChordTriggers(
-    paper,
-    passages,
-    "piano-chord-trigger",
-    (passage, trigger) =>
-      window.dispatchEvent(
-        new CustomEvent<Selection>(eventName, {
-          detail: { ...passage, trigger },
-        }),
-      ),
-  );
-}
 export function PianoChordDiagram() {
-  const [selected, setSelected] = useState<Selection | null>(null);
+  const [selected, setSelected] = useState<PianoChordSelection | null>(null);
   const trigger = useRef<SVGElement | null>(null);
   useEffect(() => {
     const open = (event: Event) => {
-      const next = (event as CustomEvent<Selection>).detail;
+      const next = (event as CustomEvent<PianoChordSelection>).detail;
       trigger.current = next.trigger;
       setSelected(next);
     };
-    window.addEventListener(eventName, open);
-    return () => window.removeEventListener(eventName, open);
+    window.addEventListener(pianoChordEvent, open);
+    return () => window.removeEventListener(pianoChordEvent, open);
   }, []);
   const low = selected ? Math.floor(selected.notes[0] / 12) * 12 : 48;
   const high = selected

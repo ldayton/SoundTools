@@ -1,4 +1,4 @@
-import { attachPianoChordDiagrams } from "./piano-chord-diagram";
+import { attachPianoChordDiagrams } from "./piano-chord-triggers";
 import {editionTempoLabel} from "./edition-score";
 import {pickupHymnSystems} from "./instrument-hymn";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";

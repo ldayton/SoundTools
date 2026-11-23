@@ -46,3 +46,18 @@ export function selectHymnInstrument(
     available[0]?.id
   );
 }
+
+/** Sound follows explicit score instrumentation; the primary toolbar choice stays stable. */
+export function hymnPlaybackInstrument(
+  hymn: { id: string },
+  arrangement: Arrangement,
+) {
+  if (isGuitarArrangement(arrangement)) return "guitar" as const;
+  const entry = hymns.find((entry) => entry.id === hymn.id);
+  return arrangement === "original" &&
+    entry &&
+    "accompanimentInstrument" in entry &&
+    entry.accompanimentInstrument === "organ"
+    ? ("organ" as const)
+    : ("piano" as const);
+}

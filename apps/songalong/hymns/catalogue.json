@@ -24,7 +24,8 @@
     "folder": "in-christ-alone-2",
     "source": "user-supplied-score",
     "sourceDetails": "Printed choir and organ teacher arrangement transcribed from two user-supplied photographs, 23 November 2026; teacher chord letters included using the fullest suggestions; other pencil annotations excluded.",
-    "defaultArrangement": "original"
+    "defaultArrangement": "original",
+    "accompanimentInstrument": "organ"
   },
   {
     "id": "jesus-loves-me",

@@ -1,3 +1,4 @@
+import { playbackInstrumentGain } from "./playback-performance";
 import { playbackSample, playbackSamplesFor } from "./playback-samples";
 import type {
   PlaybackInstrument,
@@ -336,15 +337,20 @@ export async function preparePianoPlayback(
         gain = ctx.createGain();
       source.buffer = samples.get(sample.url)!;
       source.playbackRate.value = 2 ** ((midi - sample.pitch) / 12);
+      if (sample.loopStart !== undefined && sample.loopEnd !== undefined) {
+        source.loop = true;
+        source.loopStart = sample.loopStart;
+        source.loopEnd = sample.loopEnd;
+      }
       // Recorded layers already carry their own dynamics; retain gentle level shaping.
       const level =
-        (instrument === "guitar" ? 0.34 : 1.2) *
+        playbackInstrumentGain(instrument) *
         Math.sqrt(Math.max(0, Math.min(1, volume))) *
         attackGain;
       // Preserve the recorded decay; release early when the written note ends.
       const writtenEnd = when + Math.max(0.02, duration);
       // A short physical release replaces the old hard gate; no automatic pedal over rests.
-      const release = instrument === "piano" ? 0.12 : 0.045;
+      const release = instrument === "piano" ? 0.12 : instrument === "organ" ? 0.08 : 0.045;
       when += Math.min(delay, Math.max(0, duration - 0.015));
       const end = Math.max(when + 0.02, writtenEnd) + release;
       gain.gain.setValueAtTime(0, when);

@@ -1,3 +1,4 @@
+import { hymnPlaybackInstrument } from "./hymn-instruments";
 import { HymnInstrumentSelector } from "./hymn-instrument-selector";
 import { printedHymnSource } from "./hymn-source";
 import {chordEdition} from "./chord-editions";
@@ -470,7 +471,7 @@ export class SightReading {
       (pitches, notes) =>
         preparePianoPlayback(
           pitches,
-          isGuitarArrangement(this.arrangement) ? "guitar" : "piano",
+          hymnPlaybackInstrument(this.hymn, this.arrangement),
           notes,
         ),
     );
@@ -964,7 +965,7 @@ export class SightReading {
               this.section,
               prepared.timing,
               {
-                instrument: guitar ? "guitar" : "piano",
+                instrument: hymnPlaybackInstrument(this.hymn, this.arrangement),
                 strum: this.arrangement === "guitar-chords" ||
                   (this.arrangement === "guitar-edition" && this.viewHands === "left"),
                 positionFor: edition

@@ -109,6 +109,8 @@ export function SettingsPage() {
                     "Playback piano source hashes",
                     "Acoustic guitar credits",
                     "Acoustic guitar source hashes",
+                    "Drawbar organ credits",
+                    "Drawbar organ source hashes",
                   ][index]
                 }
               </Anchor>

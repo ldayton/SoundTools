@@ -42,6 +42,9 @@ try {
         state.notes.push({
           buffer: this.buffer,
           rate: this.playbackRate.value,
+          loop: this.loop,
+          loopStart: this.loopStart,
+          loopEnd: this.loopEnd,
           when: args[0] || 0,
           events: gain ? [...(events.get(gain.gain) || [])] : [],
         });
@@ -50,13 +53,18 @@ try {
   });
   await mkdir("/tmp/songalong-instrument-audio", { recursive: true });
   const signatures: number[] = [];
-  for (const arrangement of ["piano", "guitar-edition"]) {
+  for (const [id, arrangement] of [
+    ["amazing-grace", "piano"],
+    ["amazing-grace", "guitar-edition"],
+    ["in-christ-alone-2", "original"],
+  ]) {
+    const organ = id === "in-christ-alone-2";
     const requests: string[] = [];
     const listener = (request: any) => requests.push(request.url());
     page.on("request", listener);
     await page.goto(
       server.base +
-        `/piano/hymns/amazing-grace?mode=playback&arrangement=${arrangement}&tempo=100&countIn=0`,
+        `/piano/hymns/${id}?mode=playback&arrangement=${arrangement}&tempo=100&countIn=0`,
     );
     await page.getByRole("button", { name: "Play", exact: true }).click();
     await page.waitForFunction(
@@ -73,6 +81,9 @@ try {
         const source = ctx.createBufferSource();
         source.buffer = note.buffer;
         source.playbackRate.value = note.rate;
+        source.loop = note.loop;
+        source.loopStart = note.loopStart;
+        source.loopEnd = note.loopEnd;
         const gain = ctx.createGain();
         for (const e of note.events)
           (gain.gain as any)[e.name](e.value, Math.max(0, e.time - first));
@@ -98,9 +109,11 @@ try {
     );
     assert.ok(
       requests.some((url) =>
-        arrangement === "piano"
-          ? /\d+-v[4812]+-/.test(url)
-          : /acoustic-|folk-steel-/.test(url),
+        organ
+          ? /organ-\d+-/.test(url)
+          : arrangement === "piano"
+            ? /\d+-v[4812]+-/.test(url)
+            : /acoustic-|folk-steel-/.test(url),
       ),
     );
     if (arrangement === "piano") {
@@ -129,7 +142,7 @@ try {
     header.write("data", 36);
     header.writeUInt32LE(pcm.length, 40);
     await writeFile(
-      `/tmp/songalong-instrument-audio/${arrangement}.wav`,
+      `/tmp/songalong-instrument-audio/${organ ? "organ" : arrangement}.wav`,
       Buffer.concat([header, pcm]),
     );
     const pausedStarts = await page.evaluate(

@@ -55,9 +55,6 @@ export function PianoChordDiagram() {
             }
             onPress={holdPianoNote}
           />
-          <Text size="xs" c="dimmed" ta="center">
-            Chord tones, lowest to highest. Tap a key to hear it.
-          </Text>
         </Stack>
       )}
     </Modal>

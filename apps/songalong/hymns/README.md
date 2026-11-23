@@ -132,3 +132,7 @@ keyboard, with a compact triad voicing and its octave-qualified notes ordered
 from bass to treble above the keys. Slash chords use the indicated bass note.
 These chord examples do not replace the printed organ voicing or add synthesized
 accompaniment to playback; transposition updates both symbols and diagrams.
+
+The teacher score now declares organ instrumentation explicitly. Playback uses
+the bundled, level-normalized CC0 FreePats drawbar organ, with sustain loops for
+long organ notes; the toolbar grouping remains Voice + Piano.

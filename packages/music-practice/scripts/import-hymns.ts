@@ -17,6 +17,7 @@ const curated = JSON.parse(
   source?: "tab-music" | "user-supplied" | "user-supplied-score";
   sourceDetails?: string;
   defaultArrangement?: "original";
+  accompanimentInstrument?: "organ";
   sourceUrl?: string;
   referenceUrl?: string;
   referenceDetails?: string;

@@ -121,8 +121,8 @@ pulse. Samples are selected by instrument, pitch, dynamics and guitar string,
 then loaded for the song's pitches and cached for later playback. Recordings
 outside the bank's native range are pitch shifted; this is a compact sampler,
 without pedal resonance, release recordings, randomized alternate takes, or
-articulated guitar slides/hammer-ons. Long notes decay with the recording rather
-than looping. The guitar voice is steel-string, not nylon-string.
+articulated guitar slides/hammer-ons. Piano and guitar notes decay with the
+recording; organ notes sustain through the retained sample loops. The guitar voice is steel-string, not nylon-string.
 
 Validation: `npm test --workspace=songalong`,
 `npm run test:instrument-audio --workspace=songalong`, and
@@ -152,3 +152,29 @@ coverage. `instrument-toolbar.browser.ts` is a required CI/Nightly witness for t
 primary toolbar, exclusivity, keyboard access, persistence and responsive layout.
 Existing edition browser tests retain each registered instrument edition's coverage
 using the toolbar helper instead of the retired instrument dropdown.
+
+## Teacher-score drawbar organ playback
+
+In Christ Alone 2 explicitly declares `accompanimentInstrument: "organ"`; its
+original Voice + Piano score uses the FreePats Drawbar Organ Emulation bank.
+Other scores keep their existing sounds. The 2019-07-12 bank was recorded from
+setBfree and is CC0; it is a Hammond-style emulation, not a physical Hammond
+recording. The 16 roots total about 1.9 MiB in 24 kHz mono FLAC. Original pitch
+zones and sustain loops are retained, with an 80 ms key release. The existing
+transport, count-in, pause/resume, seek, transposition and volume controls are reused.
+
+Every root's loop sustain is normalized to -26 dBFS RMS, with a -6 dBFS sample
+peak ceiling. Playback gain 0.82 matches the complete 91-second teacher score
+at 80 BPM to the existing piano reference: both measure -16.7 LUFS integrated;
+organ true peak is -4.8 dBTP (piano -1.2 dBTP). These are measured render levels,
+not a promise that arbitrary scores have identical loudness. Existing piano and
+guitar levels are unchanged. The existing output compressor remains in place.
+
+Rebuild with `python3 packages/music-practice/scripts/build-songalong-organ.py
+/path/to/DrawbarOrganEmulation-SFZ-20190712.tar.xz` (ffmpeg required). The builder
+verifies the pinned archive hash and records original sample hashes, converted
+loop points and measured levels. Credits and source hashes are available in
+Settings and the verified offline pack. `organ-playback.test.ts` owns routing,
+written timing and bank audit invariants. The existing CI toolbar witness checks
+real organ routing, decoded normalization and a 12-second looped sustain; Nightly
+instrument-audio and offline witnesses cover all three playback banks.

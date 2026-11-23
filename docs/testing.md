@@ -462,3 +462,11 @@ CI instrument-toolbar witness and the Nightly teacher-score browser witness.
 `piano-chord.test.ts` owns independent triad/inversion/spelling expectations;
 the score's photo goldens continue to require unchanged printed notes and timing.
 The guitar and piano diagrams share hit-target and keyboard/focus behavior.
+
+SongAlong's drawbar organ uses the existing playback engine. CI's required
+`instrument-toolbar.browser.ts` additionally observes real organ sample loops,
+checks the decoded sustain level, and renders a 12-second held note offline.
+`organ-playback.test.ts` owns explicit score routing, unchanged timing and the
+normalization/loop audit. Nightly's existing instrument-audio and offline commands
+include organ alongside piano/guitar; no new command, tier or duplicated owner
+was introduced. Whole-score loudness calibration is documented in SongAlong's README.

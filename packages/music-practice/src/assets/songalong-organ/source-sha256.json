@@ -1,0 +1,23 @@
+{
+  "archiveUrl": "https://freepats.zenvoid.org/Organ/DrawbarOrganEmulation/DrawbarOrganEmulation-SFZ-20190712.tar.xz",
+  "archiveSha256": "e2da18b0a4d13be7020037e18e4a719387433357e7603d0773990e794dcf5d0f",
+  "files": {
+    "samples/C2.wav": "0998a5191fb38bc4064033ae8f8bd7c47175e1f06dde3c975fa10f31e9439021",
+    "samples/E2.wav": "a4fa2f9e44d26bae5aaea369b36f1196e0b0aa0b54bdd20d54661dff5b47a127",
+    "samples/G#2.wav": "e5525e00bed92342dd1233946264a94b6d5e253289aa9de3935aca2c390ade69",
+    "samples/C3.wav": "223d06e91778199d265dc4c3c5492707dce3e5d0a4d18abac8c33f9ed2e5c491",
+    "samples/E3.wav": "a22d1990a4175132cb478aa6e91179e4705d47db2df7f766d94022f5f08df4b7",
+    "samples/G#3.wav": "f0dd7a9040fe50e349d333f8039ff615ddbdde330ef1eddfa4fd6f594fb61189",
+    "samples/C4.wav": "8f543f1816c320e3742f1616e33932d13b2aa3a540ba313a91506ce545564156",
+    "samples/E4.wav": "d5f7636fc1bac58d4adc008ae943f5f8b2a2801893d0e901dd930b661dfddbde",
+    "samples/G#4.wav": "ea827c88f1e89fcd68f181662304c3d3e72f3244c01996e3c64df2a47f9b3d0a",
+    "samples/C5.wav": "949807f20bb329fc79e032c537c69bf833f03ebdb2f072d5bb28d997097df1b1",
+    "samples/E5.wav": "4a2582b7826bc980f13344a1787ee09d2ebdbc641a19c8b3848fa67927188e5e",
+    "samples/G#5.wav": "805cfd79a556b378565895efc6968246093d51ea31c17fc46d3a9f281518524a",
+    "samples/C6.wav": "82cc2e67d7e972f65fa46f0c98cf92b91816f5ca7bb4d95bf3520be330191bd5",
+    "samples/E6.wav": "96f295278861674ee30c44e4d4b6860c644c6555d8b04d13eab5e9d7a2a16b8a",
+    "samples/G#6.wav": "1ca84cdb811caffe2336b6c7a36ed6d99846a8897f2a0493ea77765714522b3d",
+    "samples/C7.wav": "40a2b25a37a17ad9545acee7406cc9bd25a1551d8b1ebe8ee48b9ae8d7d3153f",
+    "DrawbarOrganEmulation-20190712.sfz": "d3fbbf3d96833cfd3a706204a1bc8a31c81b9fe253812a74ea8b9574b5cfc184"
+  }
+}

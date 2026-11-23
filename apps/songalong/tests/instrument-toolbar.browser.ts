@@ -23,6 +23,22 @@ try {
   const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
   });
+  await page.addInitScript(() => {
+    (window as any).organVoices = [];
+    const start = AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start = function (
+      ...args: Parameters<typeof start>
+    ) {
+      if (this.context instanceof AudioContext && this.loop)
+        (window as any).organVoices.push({
+          buffer: this.buffer,
+          loopStart: this.loopStart,
+          loopEnd: this.loopEnd,
+          rate: this.playbackRate.value,
+        });
+      return start.apply(this, args);
+    };
+  });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   for (const width of [1440, 768, 390, 320]) {
@@ -131,6 +147,49 @@ try {
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(slash).toBeFocused();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await page.waitForFunction(() => (window as any).organVoices.length > 0);
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  const organ = await page.evaluate(async () => {
+    const note = (window as any).organVoices[0];
+    const pcm = note.buffer.getChannelData(0),
+      rate = note.buffer.sampleRate;
+    const from = Math.round(note.loopStart * rate),
+      to = Math.round(note.loopEnd * rate);
+    let energy = 0;
+    for (let i = from; i < to; i++) energy += pcm[i] * pcm[i];
+    const ctx = new OfflineAudioContext(1, 24000 * 12, 24000);
+    const source = ctx.createBufferSource();
+    source.buffer = note.buffer;
+    source.loop = true;
+    source.loopStart = note.loopStart;
+    source.loopEnd = note.loopEnd;
+    source.playbackRate.value = note.rate;
+    source.connect(ctx.destination);
+    source.start(0);
+    source.stop(12);
+    const data = (await ctx.startRendering()).getChannelData(0);
+    let tail = 0,
+      peak = 0;
+    for (let i = 0; i < data.length; i++) {
+      peak = Math.max(peak, Math.abs(data[i]));
+      if (i >= 24000 * 11) tail += data[i] * data[i];
+    }
+    return {
+      rmsDb: 20 * Math.log10(Math.sqrt(energy / (to - from))),
+      tailRms: Math.sqrt(tail / 24000),
+      peak,
+    };
+  });
+  assert.ok(
+    Math.abs(organ.rmsDb - -26) < 0.1,
+    `normalized organ sustain: ${organ.rmsDb}`,
+  );
+  assert.ok(
+    organ.tailRms > 0.01,
+    "held organ note survives past the recorded sample end",
+  );
+  assert.ok(organ.peak < 0.502, "organ sample peak has headroom");
   assert.deepEqual(errors, []);
   console.log(
     "PASS: primary instrument radios, supported choices, keyboard exclusivity, saved selection and responsive toolbar",

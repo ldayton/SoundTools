@@ -32,6 +32,7 @@ try {
   await openHymnControls(page);
   await expect(page.locator(".sequence-title")).toHaveText("In Christ Alone 2");
   await expect(page.locator("#hymn-arrangement")).toHaveValue("original");
+  await expect(page.locator("#hymn-key")).toHaveValue("Original (D)");
   await expect(
     page.locator(".hymn-paper svg").first().locator(".abcjs-clef"),
   ).toHaveCount(3);

@@ -96,7 +96,9 @@ The existing author credits are retained.
 
 `in-christ-alone-2.abc` is a separate transcription of the two photographs supplied
 on 23 November 2026. It does not replace or adapt the existing In Christ Alone
-edition. Only printed material is transcribed: E-flat major, 3/4, “Steadily,”
+edition. The photos are in E-flat major; at the user’s request, every voice is transposed
+down one semitone to D major, which is now this song’s Original key. The
+transcription retains the printed 3/4, “Steadily,”
 choir plus a two-staff organ part, four complete printed verses, 21 numbered
 measures, inner-voice ties, the organ interlude and the final repeat. Pencil
 chord letters, corrections and circles are excluded. The score prints no numeric

@@ -17,7 +17,8 @@ const straight = hymn.harmony.replaceAll(":|", "|]");
 const tune = abcjs.parseOnly(straight)[0];
 const audio = tune.setUpAudio({ qpm: 60, chordsOff: true });
 type Event = [number[], number, number];
-// Independent reading of the supplied photos: MIDI pitch, within-bar quarter beat, length.
+// Independent E-flat photo goldens: MIDI pitch, within-bar quarter beat, length.
+// The requested D-major source edition sounds one semitone below every photo pitch.
 const melody: Event[][] = [
   [
     [[58], 0, 0.5],
@@ -309,7 +310,7 @@ const expected = (bars: Event[][]) =>
     .flatMap((events, index) =>
       events.flatMap(([pitches, start, duration]) =>
         pitches.map((pitch) => [
-          pitch,
+          pitch - 1,
           (index ? 1.5 + (index - 1) * 3 : 0) + start,
           duration,
         ]),
@@ -322,20 +323,20 @@ const actual = (index: number) =>
       n.cmd === "note" ? [[n.pitch, n.start * 4, n.duration * 4]] : [],
     )
     .sort((a, b) => a[1] - b[1] || a[0] - b[0]);
-test("teacher transcription preserves every printed melody, inner-voice and bass attack", () => {
+test("D edition transposes every printed voice by one semitone without changing rhythm", () => {
   assert.equal(tune.warnings?.length || 0, 0);
   assert.equal(audio.totalDuration * 4, 60);
   assert.deepEqual(actual(0), expected(melody));
   assert.deepEqual(actual(1), expected(melody));
   assert.deepEqual(actual(2), expected(inner));
   assert.deepEqual(actual(3), [
-    [56, 49.5, 2],
-    [62, 49.5, 2],
+    [55, 49.5, 2],
+    [61, 49.5, 2],
   ]);
   assert.deepEqual(actual(4), expected(bass));
 });
 test("printed meter, pickup, three staves, organ-only ending and repeat remain intact", () => {
-  assert.equal(hymn.key, "Eb");
+  assert.equal(hymn.key, "D");
   assert.equal(hymn.meter, "3/4");
   assert.equal(tune.getPickupLength() * 4, 1.5);
   assert.equal(hymnBarCount(hymn), 21);

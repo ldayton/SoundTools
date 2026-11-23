@@ -85,3 +85,48 @@ test('repeated-note options default off, reject malformed values, and do not alt
   );
   assert.throws(() => generateExercise({ ...DEFAULT_SPEC, repeatHome: 4 }), /Invalid repeatHome/);
 });
+
+test('repeat counts 2–8 preserve pitches and the final hold in either direction', () => {
+  for (const direction of ['up', 'down'] as const)
+    for (let repeatTurnCount = 2; repeatTurnCount <= 8; repeatTurnCount++)
+      for (let repeatHomeCount = 2; repeatHomeCount <= 8; repeatHomeCount++) {
+        const e = generateExercise({
+          ...DEFAULT_SPEC,
+          pattern: 'octaveArpeggio',
+          direction,
+          progression: 'up',
+          startingChords: false,
+          low: 57,
+          high: 69,
+          repetitions: 1,
+          countIn: 0,
+          restBeats: 0,
+          repeatTurn: true,
+          repeatHome: true,
+          repeatTurnCount,
+          repeatHomeCount,
+        });
+        const pitches =
+          direction === 'up' ? [57, 61, 64, 69, 64, 61, 57] : [69, 64, 61, 57, 61, 64, 69];
+        assert.deepEqual(
+          e.notes.map((n) => n.midi),
+          pitches.flatMap((p, i) =>
+            Array(i === 3 ? repeatTurnCount : i === 6 ? repeatHomeCount : 1).fill(p)
+          )
+        );
+        assert.equal(e.notes.at(-1)!.slotBeats, 2);
+        for (let i = 1; i < e.notes.length; i++)
+          assert.equal(e.notes[i].onsetBeat, e.notes[i - 1].onsetBeat + e.notes[i - 1].slotBeats);
+        assert.equal(e.totalBeats, 8 + repeatTurnCount - 1 + repeatHomeCount - 1);
+      }
+});
+
+test('legacy counts default to four and malformed counts are rejected', () => {
+  const { repeatTurnCount, repeatHomeCount, ...legacy } = DEFAULT_SPEC;
+  const restored = generateExercise(legacy).spec;
+  assert.equal(restored.repeatTurnCount, 4);
+  assert.equal(restored.repeatHomeCount, 4);
+  for (const key of ['repeatTurnCount', 'repeatHomeCount'])
+    for (const value of [1, 9, 3.5, NaN, '4', null])
+      assert.throws(() => generateExercise({ ...DEFAULT_SPEC, [key]: value }), /Invalid repeat/);
+});

@@ -1,5 +1,8 @@
 import { supportsDrone, secondsAt, metronomeBeat, type Exercise } from './music';
 
+// Full-strength amplitude; 50% is the default mixer position.
+export const DRONE_GAIN = 0.24 * 10 ** (9 / 20);
+
 export type AudioEvent = {
   kind: 'note' | 'click' | 'glide' | 'drone';
   id: string;
@@ -56,7 +59,7 @@ export function audioEvents(exercise: Exercise, offset: number): AudioEvent[] {
         duration: end - Math.max(start, offset),
         elapsed: Math.max(0, offset - start),
         frequency: 440 * 2 ** ((round.midi - round.degree - 12 - 69) / 12),
-        velocity: 0.12,
+        velocity: (DRONE_GAIN * (exercise.spec.droneStrength ?? 50)) / 100,
       });
     }
   }

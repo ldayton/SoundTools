@@ -7,7 +7,7 @@ import {
   type YemeniteCollection,
 } from './yemenite-collections';
 import { useSyncExternalStore } from 'react';
-import { Group, Select, Checkbox } from '@mantine/core';
+import { Group, Select, Checkbox, Slider, Text, Stack } from '@mantine/core';
 import {
   isPentatonicPattern,
   isGlidePattern,
@@ -16,6 +16,32 @@ import {
   type ScaleTuning,
 } from './music';
 import type { BuilderModel, SpecPatch } from './builder';
+import type { ExerciseSpec } from './music';
+
+function DroneMixer({ spec, change }: { spec: ExerciseSpec; change(patch: SpecPatch): void }) {
+  return (
+    <Group w="100%" justify="center" gap="md" align="center">
+      <Checkbox
+        id="tonic-drone"
+        label="Tonic drone"
+        checked={!!spec.drone}
+        onChange={(event) => change({ drone: event.currentTarget.checked })}
+      />
+      <Stack gap={2} w={160}>
+        <Text size="xs">Strength {spec.droneStrength ?? 50}%</Text>
+        <Slider
+          id="drone-strength"
+          thumbLabel="Drone strength"
+          min={0}
+          max={100}
+          value={spec.droneStrength ?? 50}
+          label={(value) => `${value}%`}
+          onChange={(droneStrength) => change({ droneStrength })}
+        />
+      </Stack>
+    </Group>
+  );
+}
 
 export function ExerciseControls({
   model,
@@ -72,13 +98,7 @@ export function ExerciseControls({
             if (value) change({ yemeniteCollection: value as YemeniteCollection });
           }}
         />
-        <Checkbox
-          id="tonic-drone"
-          label="Tonic drone"
-          mb={8}
-          checked={!!spec.drone}
-          onChange={(event) => change({ drone: event.currentTarget.checked })}
-        />
+        <DroneMixer spec={spec} change={change} />
       </Group>
     );
   }
@@ -185,13 +205,7 @@ export function ExerciseControls({
         allowDeselect={false}
         comboboxProps={{ withinPortal: true, position: 'bottom-start' }}
       />
-      <Checkbox
-        id="tonic-drone"
-        label="Tonic drone"
-        mb={8}
-        checked={!!spec.drone}
-        onChange={(event) => change({ drone: event.currentTarget.checked })}
-      />
+      <DroneMixer spec={spec} change={change} />
     </Group>
   );
 }

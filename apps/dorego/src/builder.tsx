@@ -336,11 +336,29 @@ export function Builder({
               checked={!!spec.repeatTurn}
               onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
             />
+            <NativeSelect
+              id="repeatTurnCount"
+              label={spec.direction === 'down' ? 'Lowest note count' : 'Highest note count'}
+              description="Total notes, including the first"
+              hidden={!spec.repeatTurn}
+              value={spec.repeatTurnCount ?? 4}
+              data={[2, 3, 4, 5, 6, 7, 8].map(String)}
+              onChange={(event) => change({ repeatTurnCount: Number(event.currentTarget.value) })}
+            />
             <Checkbox
               id="repeatHome"
               label="Home note on return"
               checked={!!spec.repeatHome}
               onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
+            />
+            <NativeSelect
+              id="repeatHomeCount"
+              label={'Home note count'}
+              description="Total notes, including the first"
+              hidden={!spec.repeatHome}
+              value={spec.repeatHomeCount ?? 4}
+              data={[2, 3, 4, 5, 6, 7, 8].map(String)}
+              onChange={(event) => change({ repeatHomeCount: Number(event.currentTarget.value) })}
             />
           </Stack>
           <SimpleGrid cols={2}>

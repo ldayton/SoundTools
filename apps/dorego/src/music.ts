@@ -159,9 +159,12 @@ export interface ExerciseSpec {
   scaleTuning?: ScaleTuning;
   yemeniteCollection?: YemeniteCollection;
   drone?: boolean;
+  droneStrength?: number;
   startingChords?: boolean;
   repeatTurn?: boolean;
   repeatHome?: boolean;
+  repeatTurnCount?: number;
+  repeatHomeCount?: number;
   repeatTwice?: boolean;
   pattern: Pattern;
   key: number;
@@ -240,8 +243,11 @@ export interface Scene {
 }
 export const DEFAULT_SPEC: ExerciseSpec = {
   pattern: 'arpeggio',
+  droneStrength: 50,
   repeatTurn: false,
   repeatHome: false,
+  repeatTurnCount: 4,
+  repeatHomeCount: 4,
   repeatTwice: false,
   key: 4,
   low: 52,
@@ -325,6 +331,7 @@ export function validateSpec(input: unknown): ExerciseSpec {
         ? 'hijaz'
         : ((s.scaleTuning as ScaleTuning) ?? 'major'),
     drone: s.drone === true,
+    droneStrength: s.droneStrength === undefined ? 50 : num('droneStrength', 0, 100),
     pattern: s.pattern as Pattern,
     direction: s.pattern === 'rossini' ? 'up' : (s.direction as Direction),
     voice: s.voice as Voice,
@@ -345,6 +352,8 @@ export function validateSpec(input: unknown): ExerciseSpec {
   if (s.yemeniteCollection !== undefined || s.pattern === 'yemenite')
     result.yemeniteCollection =
       (s.yemeniteCollection as YemeniteCollection) ?? DEFAULT_YEMENITE_COLLECTION;
+  for (const key of ['repeatTurnCount', 'repeatHomeCount'] as const)
+    result[key] = s[key] === undefined ? 4 : num(key, 2, 8, true);
   for (const key of ['repeatTurn', 'repeatHome', 'repeatTwice'] as const) {
     if (s[key] !== undefined && typeof s[key] !== 'boolean')
       throw new Error(`Invalid ${key} setting.`);
@@ -790,7 +799,7 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
           : spec.pattern === 'pentatonic12'
             ? [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 2]
             : offsets.map((_, index) => (index === offsets.length - 1 ? 2 : 1));
-  // Add three distinct attacks, retaining the original duration on the fourth.
+  // Retain the original duration on the final attack.
   if (supportsNoteRepeats(spec.pattern)) {
     const turn = (descending ? Math.min : Math.max)(...offsets);
     const expanded: number[] = [],
@@ -799,9 +808,10 @@ function generateVocalExercise(spec: ExerciseSpec, maxDuration: number): Exercis
       const repeat =
         (offset === turn && spec.repeatTurn) ||
         (offset === 0 && index > 0 && offsets[index - 1] !== 0 && spec.repeatHome);
-      for (let strike = 0; strike < (repeat ? 4 : 1); strike++) {
+      const count = !repeat ? 1 : offset === turn ? spec.repeatTurnCount! : spec.repeatHomeCount!;
+      for (let strike = 0; strike < count; strike++) {
         expanded.push(offset);
-        durations.push(repeat && strike < 3 ? 1 : lengths[index]);
+        durations.push(strike < count - 1 ? 1 : lengths[index]);
       }
     });
     offsets.splice(0, offsets.length, ...expanded);

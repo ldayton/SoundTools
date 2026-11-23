@@ -201,13 +201,25 @@ function stop(reset = true) {
   else player.pause();
 }
 function refresh(patch: SpecPatch = {}) {
+  if (Object.keys(patch).length === 1 && typeof patch.droneStrength === 'number') {
+    const droneStrength = patch.droneStrength;
+    if (!Number.isFinite(droneStrength) || droneStrength < 0 || droneStrength > 100) return;
+    player.setDroneStrength(droneStrength);
+    spec = { ...spec, droneStrength };
+    exercise = { ...exercise, spec: { ...exercise.spec, droneStrength } };
+    persist();
+    populate();
+    return;
+  }
   if (Object.keys(patch).length === 1 && typeof patch.drone === 'boolean') {
     changeDrone(patch.drone);
     return;
   }
   try {
     const next = generateExercise(editSpec(spec, patch));
-    if (Object.entries(next.spec).every(([key, value]) => value === spec[key as keyof ExerciseSpec])) {
+    if (
+      Object.entries(next.spec).every(([key, value]) => value === spec[key as keyof ExerciseSpec])
+    ) {
       setError(null);
       return;
     }
@@ -469,12 +481,18 @@ preferences.subscribe((source) => {
   }
   const next = preferences.state.spec;
   const changedPattern = Object.entries(next).some(
-    ([key, value]) => key !== 'volume' && key !== 'bpm' && key !== 'drone' && value !== spec[key as keyof ExerciseSpec]
+    ([key, value]) =>
+      key !== 'volume' &&
+      key !== 'bpm' &&
+      key !== 'drone' &&
+      key !== 'droneStrength' &&
+      value !== spec[key as keyof ExerciseSpec]
   );
   if (changedPattern) stop();
   else {
     player.setTempo(next.bpm);
     player.setDrone(!!next.drone);
+    player.setDroneStrength(next.droneStrength ?? 50);
   }
   spec = next;
   exercise = generateExercise(spec);

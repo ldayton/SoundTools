@@ -44,6 +44,8 @@ test('legacy glide migration and repeat preferences survive restoration', () => 
     direction: 'up',
     repeatTurn: true,
     repeatHome: true,
+    repeatTurnCount: 8,
+    repeatHomeCount: 2,
     repeatTwice: true,
   };
   assert.equal(restoreSpec(old, null).direction, 'both');
@@ -51,6 +53,8 @@ test('legacy glide migration and repeat preferences survive restoration', () => 
   assert.equal(next.direction, 'up');
   assert.equal(next.repeatTurn, true);
   assert.equal(next.repeatHome, true);
+  assert.equal(next.repeatTurnCount, 8);
+  assert.equal(next.repeatHomeCount, 2);
   assert.equal(next.repeatTwice, true);
 });
 

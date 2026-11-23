@@ -4,7 +4,7 @@ import { CelloGlides, preloadCello } from './cello';
 import * as Tone from 'tone';
 import { secondsAt, type Exercise } from './music';
 import { preloadSteinway, SteinwayGrand } from './steinway';
-import { audioEvents, type AudioEvent } from './audio-timeline';
+import { audioEvents, DRONE_GAIN, type AudioEvent } from './audio-timeline';
 import { configureChannelMix, type AudioChannels } from './audio-channels';
 
 export const RELEASE_TAIL = 0.8;
@@ -19,7 +19,7 @@ function initPlayback() {
     Tone.setContext(context, true);
   }
 }
-function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
+function makeGraph(volume: number, channels: AudioChannels = 'stereo', droneStrength = 50) {
   // Catch unusually loud chord sums without changing ordinary piano dynamics.
   const limiter = new Tone.Limiter(-1).toDestination();
   const output = new Tone.Volume(volume <= -60 ? -Infinity : volume);
@@ -27,6 +27,9 @@ function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
   configureChannelMix(mix, channels);
   Tone.connect(output, mix);
   Tone.connect(mix, limiter);
+  const droneMix = output.context.createGain();
+  droneMix.gain.value = droneStrength / 100;
+  Tone.connect(droneMix, output);
   const synth = new SteinwayGrand(output);
   const cello = new CelloGlides(output);
   const clicks = new Set<() => void>();
@@ -67,11 +70,11 @@ function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
     source.type = 'sine';
     source.frequency.value = frequency;
     source.connect(gain);
-    Tone.connect(gain, output);
+    gain.connect(droneMix);
     gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(0.12, time + Math.min(0.08, duration / 2));
+    gain.gain.linearRampToValueAtTime(DRONE_GAIN, time + Math.min(0.08, duration / 2));
     const release = (at: number, remaining: number) => {
-      gain.gain.setValueAtTime(0.12, at + remaining);
+      gain.gain.setValueAtTime(DRONE_GAIN, at + remaining);
       gain.gain.linearRampToValueAtTime(0, at + remaining + 0.05);
       source.stop(at + remaining + 0.06);
     };
@@ -99,6 +102,11 @@ function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
   };
   return {
     drone,
+    setDroneStrength(value: number) {
+      const now = output.context.immediate();
+      holdParam(droneMix.gain, now);
+      droneMix.gain.linearRampToValueAtTime(value / 100, now + 0.03);
+    },
     synth,
     cello,
     click,
@@ -111,6 +119,7 @@ function makeGraph(volume: number, channels: AudioChannels = 'stereo') {
       clicks.clear();
       output.dispose();
       mix.disconnect();
+      droneMix.disconnect();
       limiter.dispose();
     },
   };
@@ -210,7 +219,7 @@ export class Player {
       if (playbackContext?.state !== 'running')
         throw new Error('Audio is unavailable. Try Resume when the interruption ends.');
       const current = this.exercise!;
-      this.graph = makeGraph(current.spec.volume, this.channels);
+      this.graph = makeGraph(current.spec.volume, this.channels, current.spec.droneStrength);
       this.clock = new TempoClock(Tone.now() + 0.05, this.seekBeat, current.spec.bpm);
       this.events = audioEvents(current, secondsAt(this.seekBeat, current.spec.bpm));
       this.cursor = 0;
@@ -354,6 +363,12 @@ export class Player {
     this.cursor = 0;
     this.fill();
   }
+  setDroneStrength(droneStrength: number) {
+    if (!Number.isFinite(droneStrength) || droneStrength < 0 || droneStrength > 100) return;
+    if (this.exercise)
+      this.exercise = { ...this.exercise, spec: { ...this.exercise.spec, droneStrength } };
+    this.graph?.setDroneStrength(droneStrength);
+  }
   setDrone(drone: boolean) {
     this.reconcile();
     if (!this.exercise || !!this.exercise.spec.drone === drone) return;
@@ -412,7 +427,7 @@ export async function renderAudio(exercise: Exercise): Promise<Uint8Array> {
   let cleanup = () => {};
   const result = await Tone.Offline(
     () => {
-      const graph = makeGraph(exercise.spec.volume);
+      const graph = makeGraph(exercise.spec.volume, 'stereo', exercise.spec.droneStrength);
       cleanup = () => graph.dispose();
       for (const event of audioEvents(exercise, 0)) playEvent(event, graph, event.time);
     },

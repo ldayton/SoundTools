@@ -307,6 +307,9 @@ try {
   );
   await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
   await page.getByRole('checkbox', { name: 'Home note on return', exact: true }).check();
+  assert.equal(await page.locator('#repeatTurnCount').inputValue(), '4');
+  await page.locator('#repeatTurnCount').selectOption('8');
+  await page.locator('#repeatHomeCount').selectOption('2');
   await page.getByRole('checkbox', { name: 'Repeat each round twice', exact: true }).check();
   await page.waitForFunction(
     () => JSON.parse(localStorage.getItem('dorego.current') || '{}').repeatTwice === true
@@ -317,6 +320,10 @@ try {
   assert.ok(await page.locator('#repeatTwice').isChecked(), 'breath practice survives reload');
   assert.ok(await page.locator('#repeatTurn').isChecked());
   assert.ok(await page.locator('#repeatHome').isChecked());
+  assert.equal(await page.locator('#repeatTurnCount').inputValue(), '8');
+  assert.equal(await page.locator('#repeatHomeCount').inputValue(), '2');
+  await page.locator('#repeatTurnCount').selectOption('4');
+  await page.locator('#repeatHomeCount').selectOption('4');
   await page.locator('#repeatTwice').uncheck();
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();
@@ -349,14 +356,22 @@ try {
     // Entering Major Scale normalizes to one octave. Deliberately give the
     // subsequent vocal exercise several roots before testing Between rounds.
     await page.locator('#high-spin').press('Enter');
-    await page.getByRole('dialog', { name: 'Choose highest note' })
-      .getByRole('button', { name: 'G5', exact: true }).click();
-    assert.equal(await page.locator('#exercise-title').textContent(), pattern === 'fiveNote' ? label : `${label} (Rising first)`);
+    await page
+      .getByRole('dialog', { name: 'Choose highest note' })
+      .getByRole('button', { name: 'G5', exact: true })
+      .click();
+    assert.equal(
+      await page.locator('#exercise-title').textContent(),
+      pattern === 'fiveNote' ? label : `${label} (Rising first)`
+    );
     assert.equal(await readSpecValue(page, 'direction'), 'up');
     assert.ok(await page.locator('#direction').isVisible());
     assert.ok(await page.locator('#key').isDisabled());
     await page.locator('#direction-down').click();
-    assert.equal(await page.locator('#exercise-title').textContent(), pattern === 'fiveNote' ? label : `${label} (Falling first)`);
+    assert.equal(
+      await page.locator('#exercise-title').textContent(),
+      pattern === 'fiveNote' ? label : `${label} (Falling first)`
+    );
     assert.equal(await readSpecValue(page, 'direction'), 'down');
     await page.locator('#progression-both').click();
     assert.equal(await readSpecValue(page, 'direction'), 'down');

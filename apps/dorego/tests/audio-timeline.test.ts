@@ -40,14 +40,69 @@ test('the audio timeline keeps simultaneous chords and both accented count-in ba
 });
 test('toggling drone preserves all scheduled piano and click events at the current beat', () => {
   for (const pattern of ['maqamat', 'yemenite'] as const) {
-    const exercise = generateExercise({ ...DEFAULT_SPEC, pattern, low: 60, high: 72, countIn: 4, restBeats: 4, repetitions: 2, drone: false });
-    for (const beat of [0, 2, exercise.rounds[0].onsetBeat + 0.5, exercise.rounds[0].endBeat + 0.5]) {
+    const exercise = generateExercise({
+      ...DEFAULT_SPEC,
+      pattern,
+      low: 60,
+      high: 72,
+      countIn: 4,
+      restBeats: 4,
+      repetitions: 2,
+      drone: false,
+    });
+    for (const beat of [
+      0,
+      2,
+      exercise.rounds[0].onsetBeat + 0.5,
+      exercise.rounds[0].endBeat + 0.5,
+    ]) {
       const offset = (beat * 60) / exercise.spec.bpm;
       const before = audioEvents(exercise, offset);
       const after = audioEvents({ ...exercise, spec: { ...exercise.spec, drone: true } }, offset);
-      assert.deepEqual(after.filter(event => event.kind !== 'drone'), before);
-      const current = exercise.rounds.find(round => round.onsetBeat <= beat && round.endBeat > beat);
-      assert.equal(after.some(event => event.kind === 'drone' && event.time === 0), !!current);
+      assert.deepEqual(
+        after.filter((event) => event.kind !== 'drone'),
+        before
+      );
+      const current = exercise.rounds.find(
+        (round) => round.onsetBeat <= beat && round.endBeat > beat
+      );
+      assert.equal(
+        after.some((event) => event.kind === 'drone' && event.time === 0),
+        !!current
+      );
     }
   }
+});
+
+test('drone strength defaults to 50 percent and scales only drone audio', () => {
+  for (const pattern of ['maqamat', 'yemenite'] as const) {
+    const exercise = generateExercise({ ...DEFAULT_SPEC, pattern, drone: true });
+    const original = audioEvents(exercise, 0);
+    for (const strength of [0, 25, 50, 100]) {
+      const events = audioEvents(
+        { ...exercise, spec: { ...exercise.spec, droneStrength: strength } },
+        0
+      );
+      assert.deepEqual(
+        events.filter((e) => e.kind !== 'drone'),
+        original.filter((e) => e.kind !== 'drone')
+      );
+      const drones = events.filter((e) => e.kind === 'drone');
+      assert.ok(drones.length);
+      assert.ok(
+        drones.every((e) => Math.abs(e.velocity - (0.6764119035034689 * strength) / 100) < 1e-12)
+      );
+    }
+    assert.equal(exercise.spec.droneStrength, 50);
+    assert.ok(
+      original
+        .filter((e) => e.kind === 'drone')
+        .every((e) => Math.abs(e.velocity - 0.33820595175173445) < 1e-12)
+    );
+  }
+  for (const droneStrength of [-1, 101, NaN, '50', null])
+    assert.throws(
+      () => generateExercise({ ...DEFAULT_SPEC, droneStrength }),
+      /Invalid droneStrength/
+    );
 });

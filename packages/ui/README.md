@@ -34,6 +34,8 @@ builds update when shared code changes.
 
 DoReGo, NoteWise and SongAlong use these components directly with Mantine defaults:
 
+- `UpdateBar`: one centered, 48px update row below the main toolbar on desktop
+  and mobile. Update actions stay accessible when navigation is collapsed.
 - `ApplicationLayout`: 72px header, 244px navigation, mobile navigation drawer,
   accessible collapse/focus controls, page title and content container.
 - `PracticeOptionsProvider`, `PracticeWorkspace`, `PracticeOptionsReopen`: one
@@ -57,3 +59,7 @@ apps retain their existing `/settings` routes.
 `node scripts/test-practice-layout.cjs <app> [dist-pages]` from the repository root
 checks the same layout contract against each built app. `TEST_BROWSER` selects
 Chromium, Firefox or WebKit. The app CI jobs run this contract after building.
+
+The shared UI browser contract (`scripts/test-ui-controls.cjs`) runs once per
+engine in the Nightly NoteWise group and covers all four application layouts.
+Real update staging and reload remain owned by each app’s offline tests.

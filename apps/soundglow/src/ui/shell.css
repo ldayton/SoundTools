@@ -39,6 +39,7 @@
 .soundglow-header {
   flex: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -182,7 +183,6 @@
   .soundglow-header {
     padding: 10px 12px;
     gap: 6px;
-    flex-wrap: wrap;
   }
   .soundglow-header .soundglow-actions {
     gap: 6px;
@@ -242,9 +242,6 @@
   visibility: hidden;
 }
 
-@media (max-width: 47.999em) {
-  .soundglow-header { flex-wrap: wrap; }
-  .soundglow-update-ready:not([hidden]) { margin-top: 4px; }
-}
+.soundglow-update-ready:not([hidden]) { margin-top: 4px; }
 
 @media (min-width: 761px) { #stage:has(.panel-resizer[data-resizing]) { transition: none; } }

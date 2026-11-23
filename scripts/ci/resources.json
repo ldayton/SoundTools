@@ -1942,5 +1942,21 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "notewise:node:scripts/test-ui-controls.cjs": {
+    "kind": "ui",
+    "ports": [
+      4970
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "scripts/test-ui-controls.cjs"
+        ],
+        "cwd": ""
+      }
+    ]
   }
 }

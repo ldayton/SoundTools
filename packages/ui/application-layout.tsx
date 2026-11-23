@@ -185,7 +185,7 @@ export function ApplicationLayout({
     : compact
       ? 56
       : 72;
-  const mobileUpdate = !desktop && !!updateAction;
+  const updateVisible = !!updateAction;
   return (
     <>
       <Anchor href="#practice-content" className="skip-link">
@@ -194,7 +194,7 @@ export function ApplicationLayout({
       <AppShell
         transitionDuration={resizing ? 0 : 200}
         header={{
-          height: toolbarHeight + (mobileUpdate ? 48 : 0),
+          height: toolbarHeight + (updateVisible ? 48 : 0),
         }}
         navbar={{
           width: resizableNavigation ? navigationWidth : minimumWidth,
@@ -271,7 +271,7 @@ export function ApplicationLayout({
             <PracticeOptionsReopen />
             {!toolbarOnly && headerActions}
           </Group>
-          {mobileUpdate && <UpdateBar>{updateAction}</UpdateBar>}
+          {updateVisible && <UpdateBar>{updateAction}</UpdateBar>}
         </AppShell.Header>
         {desktop && (
           <AppShell.Navbar
@@ -307,11 +307,6 @@ export function ApplicationLayout({
                 <PanelIcon />
               </ActionIcon>
             </Group>
-            {updateAction && (
-              <Box mb="md" aria-live="polite">
-                {updateAction}
-              </Box>
-            )}
             {navigation}
             {resizableNavigation && !navigationCollapsed && (
               <Box className="navigation-resizer-clip">

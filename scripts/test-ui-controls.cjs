@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { mkdtemp, rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
-const { launchBrowser, newPage } = require("./ci/browser-harness.cjs");
+const { launchBrowser, newPage, captureFailure, closeBrowser } = require("./ci/browser-harness.cjs");
 (async () => {
   const { createServer } = await import("vite"),
     { default: react } = await import("@vitejs/plugin-react");
@@ -213,12 +213,15 @@ const { launchBrowser, newPage } = require("./ci/browser-harness.cjs");
       );
     }
     for (const app of ['notewise', 'songalong', 'dorego', 'soundglow']) {
-      for (const width of [320, 390, 767]) {
+      for (const width of [320, 390, 767, 768, 1280, 1680]) {
         await page.setViewportSize({width, height:844});
         await page.goto(`http://127.0.0.1:4970/?updateBar=${app}`);
         const button = page.getByRole('button', {name:'Complete update', exact:true});
         await button.waitFor().catch(async error => { console.error(app, width, await page.locator('body').innerText(), errors); throw error; });
+        if (app !== 'soundglow') await page.waitForFunction(() => (innerWidth >= 768) === Boolean(document.querySelector('.mantine-AppShell-navbar')));
         const bar = page.locator('.application-update-bar');
+        assert.equal(await page.locator('header .application-update-bar button').count(), 1);
+        assert.equal(await page.locator('nav #offline-update').count(), 0);
         const b = await button.boundingBox(), row = await bar.boundingBox();
         assert.ok(Math.abs(b.x + b.width / 2 - width / 2) <= 1, `${app}/${width} centered`);
         assert.equal(row.height,48);
@@ -229,16 +232,34 @@ const { launchBrowser, newPage } = require("./ci/browser-harness.cjs");
           const main = await page.locator('#practice-content > .workspace-content').boundingBox();
           assert.ok(main.y >= row.y + row.height - 1, `${app} content clears header`);
         }
+        const primary = app === 'soundglow' ? undefined : await page.locator('.application-toolbar').boundingBox();
+        if (app === 'soundglow') {
+          const controls = await page.locator('header > span, header > button').evaluateAll(es => es.map(e => e.getBoundingClientRect().bottom));
+          assert.ok(row.y >= Math.max(...controls), 'Soundglow update has a dedicated row');
+        } else if (width >= 768) {
+          await page.getByRole('button', {name:'Collapse navigation',exact:true}).click();
+          assert.ok(await button.isVisible(), `${app} update remains available with navigation collapsed`);
+          const centered = await button.boundingBox();
+          assert.ok(Math.abs(centered.x + centered.width / 2 - width / 2) <= 1);
+        }
+        if (width === 1280) {
+          await require('node:fs/promises').mkdir('work/update-toolbars',{recursive:true});
+          await page.screenshot({path:`work/update-toolbars/${app}-${engine}-desktop.png`,fullPage:true});
+        }
         await button.click();
         await bar.waitFor({state:'detached'});
+        if (primary) assert.deepEqual(await page.locator('.application-toolbar').boundingBox(),primary,'Update removal preserves primary toolbar geometry');
       }
     }
     assert.deepEqual(errors, []);
     console.log(
       `PASS shared UI/${engine}: drafts, Escape, Enter once, blur, bounds, decimals, rejection, reset, external changes, step controls isolated playback subscriptions, and render recovery (shutdown, reporting failures, focus, dark theme and reload)`,
     );
+  } catch (error) {
+    await captureFailure(browser, error);
+    throw error;
   } finally {
-    await browser?.close();
+    await closeBrowser(browser);
     await server.close();
     await rm(home, { recursive: true, force: true }).catch((error) => {
       if (process.platform !== "darwin" || error.code !== "EACCES") throw error;

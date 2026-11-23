@@ -33,3 +33,11 @@ test('exhaustive suites remain available in the regression profile and Firefox i
   assert.match(JSON.stringify(plan('soundglow', 'nightly')), /test:visual/);
   assert.throws(() => plan('songalong', 'ci', 'firefox'));
 });
+test('shared UI browser controls have one Nightly owner per engine', () => {
+  const { executions } = require('../../scripts/ci/coverage.cjs');
+  for (const browser of ['chromium', 'webkit']) {
+    const scheduled = tier => Object.keys(apps).flatMap(app => executions(app, tier, browser)).filter(file => file === 'scripts/test-ui-controls.cjs');
+    assert.equal(scheduled('nightly').length, 1);
+    assert.equal(scheduled('ci').length, 0);
+  }
+});

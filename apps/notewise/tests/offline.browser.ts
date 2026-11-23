@@ -8,19 +8,7 @@ import { resolve, extname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 async function showUpdate(page: import("playwright").Page) {
-  await page.waitForFunction(
-    () =>
-      innerWidth >= 768 ===
-      Boolean(document.querySelector(".mantine-AppShell-navbar")),
-  );
-  const toggle = page.locator(".nav-toggle");
-  if (page.viewportSize()!.width >= 768 && await toggle.isVisible()) {
-    const expanded = await toggle.getAttribute("aria-expanded");
-    if (expanded !== "true") await toggle.click();
-  }
-  await page
-    .getByRole("button", { name: "Complete update", exact: true })
-    .waitFor({ timeout: 20000 });
+  await page.getByRole('button', {name:'Complete update',exact:true}).waitFor({state:'visible',timeout:20000});
 }
 const name = process.env.TEST_BROWSER || "chromium";
 const type = { chromium, firefox, webkit }[name];
@@ -197,7 +185,10 @@ try {
   for (const width of [320, 390, 1680, 320, 1680]) {
     await page.setViewportSize({ width, height: 900 });
     await showUpdate(page);
-    assert.equal(await page.locator("header #offline-update").count(), width < 768 ? 1 : 0);
+    assert.equal(await page.locator("header #offline-update").count(), 1);
+    const update = await page.locator('#offline-update').boundingBox();
+    assert.ok(update && Math.abs(update.x + update.width / 2 - width / 2) <= 1, 'Update toolbar centers the action at every width');
+    assert.equal(await page.locator('.application-update-bar #offline-update').count(), 1);
     assert.ok(
       await page
         .getByRole("button", { name: "Complete update", exact: true })

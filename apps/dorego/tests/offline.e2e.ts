@@ -11,17 +11,7 @@ import { createHash } from 'node:crypto';
 import { DEFAULT_SPEC, PATTERNS, vocalSpan, type Pattern } from '../src/music';
 
 async function showUpdate(page: import('playwright').Page) {
-  await page.waitForFunction(
-    () => innerWidth >= 768 === Boolean(document.querySelector('.mantine-AppShell-navbar'))
-  );
-  const toggle = page.locator('.nav-toggle');
-  if (page.viewportSize()!.width >= 768 && await toggle.isVisible()) {
-    const expanded = await toggle.getAttribute('aria-expanded');
-    if (expanded !== 'true') await toggle.click();
-  }
-  await page
-    .getByRole('button', { name: 'Complete update', exact: true })
-    .waitFor({ timeout: 20000 });
+  await page.getByRole('button', {name:'Complete update',exact:true}).waitFor({state:'visible',timeout:20000});
 }
 
 // Serve the actual Pages build. Faults occur at the server so they also affect workers.
@@ -336,7 +326,10 @@ try {
   for (const width of [320, 390, 1680, 320, 1680]) {
     await other.setViewportSize({ width, height: 900 });
     await showUpdate(other);
-    assert.equal(await other.locator('header #offline-update').count(), width < 768 ? 1 : 0);
+    assert.equal(await other.locator('header #offline-update').count(), 1);
+    const update = await other.locator('#offline-update').boundingBox();
+    assert.ok(update && Math.abs(update.x + update.width / 2 - width / 2) <= 1, 'Update toolbar centers the action at every width');
+    assert.equal(await other.locator('.application-update-bar #offline-update').count(), 1);
   }
   await other
     .getByRole('button', { name: 'Complete update', exact: true })

@@ -60,6 +60,8 @@ const rpc=page=>page.evaluate(()=>new Promise((resolve,reject)=>{const c=new Mes
  for(const p of [page,other])await p.evaluate(()=>window.dispatchEvent(new Event('focus')));
  await page.waitForFunction(()=>!document.getElementById('update').hidden,undefined,{timeout:20000});await other.waitForFunction(()=>!document.getElementById('update').hidden);
  assert.equal(await page.getByRole('button',{name:'Complete update',exact:true}).count(),1);
+ assert.equal(await page.locator('header .application-update-bar #update').count(),1);
+ const desktopUpdate=await page.locator('#update').boundingBox();assert(Math.abs(desktopUpdate.x+desktopUpdate.width/2-page.viewportSize().width/2)<=1,'Update button is centered on desktop');
  assert.equal(await page.locator('#update').getAttribute('data-version'),releases[1].pack.version);
  assert.equal(await page.evaluate(()=>running&&!paused&&inputMode==='mic'),true);assert((await page.evaluate(()=>processingStats.frames))>before);
  assert.equal(await page.locator('meta[name="soundglow-release"]').getAttribute('content'),releases[0].pack.version,'No automatic reload during capture');

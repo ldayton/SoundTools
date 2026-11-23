@@ -223,12 +223,13 @@ function Crashable() {
   return <Button onClick={() => crash(true)}>Trigger render failure</Button>;
 }
 function UpdateFixture() {
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const [ready, setReady] = useState(true);
   const mode = new URLSearchParams(location.search).get("updateBar");
   const update = ready ? <CompleteUpdateButton onClick={() => setReady(false)} /> : undefined;
-  return <SoundToolsProvider><PracticeOptionsProvider entries={[]}>
+  return <SoundToolsProvider colorScheme={mode === "soundglow" ? "dark" : "light"}><PracticeOptionsProvider entries={[]}>
     {mode === "soundglow" ? <header className="soundglow-header soundtools-ui"><span>Soundglow</span><button>Settings</button>{update && <UpdateBar>{update}</UpdateBar>}</header> :
-      <ApplicationLayout brand="Test" title="Practice" area="Music" navigation={<span>Exercises</span>} navigationOpen={false} navigationCollapsed={false} onNavigationOpen={() => {}} onNavigationClose={() => {}} onNavigationCollapse={() => {}} onNavigationExpand={() => {}} compact={mode !== "dorego"} toolbarOnly={mode !== "dorego"} mobileToolbarHeight={mode === "songalong" ? 104 : 56} headerActions={<button>Practice controls</button>} updateAction={update}><p>Practice content</p></ApplicationLayout>}
+      <ApplicationLayout brand="Test" title="Practice" area="Music" navigation={<span>Exercises</span>} navigationOpen={false} navigationCollapsed={navigationCollapsed} onNavigationOpen={() => {}} onNavigationClose={() => {}} onNavigationCollapse={() => setNavigationCollapsed(true)} onNavigationExpand={() => setNavigationCollapsed(false)} compact={mode !== "dorego"} toolbarOnly={mode !== "dorego"} mobileToolbarHeight={mode === "songalong" ? 104 : 56} headerActions={<button>Practice controls</button>} updateAction={update}><p>Practice content</p></ApplicationLayout>}
   </PracticeOptionsProvider></SoundToolsProvider>;
 }
 const recovery = new URLSearchParams(location.search);

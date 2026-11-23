@@ -68,7 +68,7 @@ export function OfflineStatusPanel({
   );
 }
 
-/** A dedicated, centered mobile row shared by every app. */
+/** A dedicated, centered update row shared by every app and screen size. */
 export function UpdateBar({ children, hidden, className = "" }: { children: ReactNode; hidden?: boolean; className?: string }) {
   return <div className={`application-update-bar ${className}`} hidden={hidden} aria-live="polite">{children}</div>;
 }

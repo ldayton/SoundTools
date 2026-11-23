@@ -92,7 +92,7 @@ To add a live exercise, add its catalog entry and typed factory, then implement 
 
 ## Guitar scale explorer
 
-**Guitar → Scales** (`/guitar/scales`) shows all scale tones from open strings through fret 5 with high E at the top, low E at the bottom, and frets increasing to the right. The shared Practice options panel offers any of 12 tonics in Major or explicitly labeled Natural minor; it docks beside the diagram on desktop and collapses above it on phones. Roots carry an R marker; gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. An expandable note table provides sounding octaves and open-string alternatives.
+**Guitar → Scales** (`/guitar/scales`) defaults to **Berklee 7PS**, with high E at the top, low E at the bottom, and frets increasing to the right. Practice options offers any of 12 tonics, major/natural minor, pentatonic and blues views, plus CAGED regions and a fret-range map; it docks beside the diagram on desktop and collapses above it on phones. In the fret-range map, gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. An expandable note table provides sounding octaves and open-string alternatives.
 
 This reference view has no grading or MIDI input. Its `guitar-scales` activity uses the shared activity host, durable storage, route catalog and control styles, independently of Music theory → Scales & degrees. Old local-preview `profiles.scales` preferences migrate into the new activity while retaining their original data. Optional `?key=F%23&scale=minor` URL parameters use the same settings validator. `npm run test:guitar-scales --workspace=notewise` checks navigation, all 24 keys, layout, reload, independent activity progress and MIDI isolation.
 
@@ -119,14 +119,22 @@ responsive layouts, URLs, persistence and keyboard controls. It is required
 in the Nightly Notewise group; music, pitch and fingering unit tests remain
 in CI.
 
+### Berklee 7PS conventions
+
+The seven major regions follow [Jens Larsen's published Berklee/Leavitt-variant chart](https://jenslarsen.nl/major-scale-7-positions-berklee-system/), **top to bottom**. In C major, Shapes 1–7 begin on F, G, A, B, C, D and E; these chart indices are not scale degrees. Numbering stays fixed when transposing. The existing independently reviewed seven-diagram golden checks every fret and the numbered starting pitches; its source-image hash identifies the reviewed chart.
+
+Natural minor re-roots the relative-major regions, preserving their numbers and coordinates. Major/minor pentatonic views keep only their scale tones in those regions and show omitted parent notes as hollow dots. Blues views add every blue-note pitch between the pentatonic endpoints, using a neighbouring location and, where needed, a one-fret extension. These subset/blue-note views are NoteWise derivations, not separately published seven-box pentatonic/blues fingerings. [Berklee's pentatonic discussion](https://blogs.berklee.edu/2021/04/string-theory-by-robin-stone/) documents deriving major pentatonic by omitting degrees 4 and 7. The app supplies note labels, not invented finger assignments.
+
+Berklee 7PS is the default for unset Western scale preferences. Explicit CAGED choices, fret ranges and old numbered CAGED links retain their meaning. New links use `set=berklee`; `set=hila` and the stored `hilaShape`/`shapeSet: hila` keys remain compatible. Maqamat retain their separate hand-position model. The existing `test:hila-shapes` Nightly command owns the renamed UI, every scale-family selector, published numbering, defaults, legacy links, relative-root restoration and desktop/mobile checks; exhaustive pitches and all 12-key/seven-region combinations stay in inexpensive shared unit tests.
+
 ### CAGED scale conventions
 
 The five movable regions are named for their chord forms (C, A, G, E, D),
 not for their sounding keys. **GuitarScale.org is the single external reference
 for these Western scale regions.** Its diagrams use numbered shapes; NoteWise
 identifies their CAGED names from the embedded tonic chord. The publisher does
-not supply those letter labels. Hila's seven-position system and the maqamat
-above are separate models, outside this reference agreement.
+not supply those letter labels. Berklee 7PS and the maqamat above have their
+own references and remain outside this CAGED reference agreement.
 
 Major and natural-minor diagrams include every scale pitch between their
 lowest and highest sounding notes. Positions and fingers follow the five

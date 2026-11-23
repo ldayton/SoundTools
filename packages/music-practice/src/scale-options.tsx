@@ -1,5 +1,5 @@
 import {MAQAMAT, MAQAM_QUALITIES, isMaqam} from "./maqamat";
-import { HILA_SHAPES, type HilaShape } from "./hila-scale-shapes";
+import { BERKLEE_SHAPES, type BerkleeShape } from "./berklee-scale-shapes";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack, SimpleGrid } from "@mantine/core";
 import { CAGED_SHAPES, scaleShapeLabel, type ScalePattern } from "./guitar-scale-patterns";
@@ -12,7 +12,7 @@ import {
 import { createViewState } from "./view-state";
 export type ScaleOptionsSnapshot = {
   shapeSet: "standard" | "hila";
-  hilaShape: HilaShape;
+  hilaShape: BerkleeShape;
   tonic: number;
   quality: ScaleQuality;
   spelling?: string;
@@ -64,13 +64,13 @@ export function ScaleOptions({
           change({ quality: e.currentTarget.value as ScaleQuality })
         }
       />
-      {state.quality === "major" && (
+      {!isMaqam(state.quality) && (
         <NativeSelect
           label="Shape set"
           value={state.shapeSet}
           data={[
+            { value: "hila", label: "Berklee 7PS" },
             { value: "standard", label: "CAGED · five shapes" },
-            { value: "hila", label: "Seven-position major" },
           ]}
           onChange={(e) =>
             change({ shapeSet: e.currentTarget.value as "standard" | "hila" })
@@ -81,12 +81,12 @@ export function ScaleOptions({
         <NativeSelect
           label="Shape"
           value={String(state.hilaShape)}
-          data={HILA_SHAPES.map((n) => ({
+          data={BERKLEE_SHAPES.map((n) => ({
             value: String(n),
             label: `Shape ${n}`,
           }))}
           onChange={(e) =>
-            change({ hilaShape: Number(e.currentTarget.value) as HilaShape })
+            change({ hilaShape: Number(e.currentTarget.value) as BerkleeShape })
           }
         />
       ) : (

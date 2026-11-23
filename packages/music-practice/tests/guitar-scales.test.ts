@@ -138,7 +138,7 @@ test("preview settings migrate into an independent activity without losing theor
   assert.equal(restored.progress.mode, "guitar-scales");
   assert.deepEqual(restored.activities["guitar-scales"], {
     version: 1,
-    settings: { tonic: 3, quality: "minor" },
+    settings: { tonic: 3, quality: "minor", shapeSet: "hila" },
   });
   assert.deepEqual(restored.activities.sight, raw.activities.sight);
   assert.deepEqual(
@@ -176,19 +176,19 @@ test("preview settings migrate into an independent activity without losing theor
   delete raw.activities["guitar-scales"];
   assert.deepEqual(
     decodeState(raw).activities["guitar-scales"],
-    { version: 1, settings: { tonic: 4, quality: "major" } },
+    { version: 1, settings: { tonic: 4, quality: "major", shapeSet: "hila" } },
     "default preview selection survives",
   );
 });
 test("scale settings and URL overrides share validation without resetting valid values", () => {
-  const base = { tonic: 3, quality: "minor" as const };
+  const base = { tonic: 3, quality: "minor" as const, shapeSet: "hila" as const };
   assert.deepEqual(
     mergeGuitarScaleSettings({ tonic: 12, quality: "harmonic" }, base),
     base,
   );
   assert.deepEqual(
     guitarScaleFromQuery(new URLSearchParams("key=F%23&scale=major"), base),
-    { tonic: 6, quality: "major" },
+    { tonic: 6, quality: "major", shapeSet: "hila" },
   );
   assert.deepEqual(
     guitarScaleFromQuery(new URLSearchParams("key=invalid&scale=no"), base),
@@ -315,18 +315,18 @@ test("relative spelling, saved selections and links retain the actual key signat
   const relative = relativeScale(6, "major");
   assert.deepEqual(
     mergeGuitarScaleSettings(JSON.parse(JSON.stringify(relative))),
-    relative,
+    { ...relative, shapeSet: "hila" },
   );
   assert.deepEqual(
     guitarScaleFromQuery(new URLSearchParams("key=D%23&scale=minor"), {
       tonic: 0,
       quality: "major",
     }),
-    relative,
+    { ...relative, shapeSet: "hila" },
   );
   assert.deepEqual(
     mergeGuitarScaleSettings({ tonic: 0, quality: "major", spelling: "Gb" }),
-    { tonic: 0, quality: "major" },
+    { tonic: 0, quality: "major", shapeSet: "hila" },
   );
   assert.throws(() => scaleNotes(3, "minor", "Gb"));
 });

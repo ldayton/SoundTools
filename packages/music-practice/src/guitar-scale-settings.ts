@@ -1,5 +1,5 @@
 import {isMaqam} from "./maqamat";
-import { HILA_SHAPES, type HilaShape } from "./hila-scale-shapes";
+import { BERKLEE_SHAPES, berkleeShift, type BerkleeShape } from "./berklee-scale-shapes";
 import { choice, object } from "./exercise-settings";
 import {
   SCALE_FRET_LIMIT,
@@ -19,7 +19,7 @@ import {
 } from "./guitar-scale-patterns";
 export type GuitarScaleSettings = ScaleSelection & {
   shapeSet?: "standard" | "hila";
-  hilaShape?: HilaShape;
+  hilaShape?: BerkleeShape;
   pattern?: ScalePattern;
   shift?: number;
   labels?: "fingers" | "notes" | "none";
@@ -42,18 +42,26 @@ export function mergeGuitarScaleSettings(
         : base.tonic,
     quality: choice(source.quality, SCALE_QUALITIES, base.quality),
   };
-  if (source.shapeSet !== undefined || base.shapeSet !== undefined)
+  const patterns = ["map", ...SCALE_SHAPES] as const;
+  const sourcePattern = migratePattern(source.pattern, settings.quality);
+  const explicitPattern = patterns.includes(sourcePattern as ScalePattern);
+  // An explicit legacy CAGED pattern remains a CAGED choice. Unspecified Western
+  // settings start in Berklee 7PS; never replace a saved explicit set selection.
+  const defaultSet = explicitPattern
+    ? "standard"
+    : base.shapeSet || (base.pattern !== undefined ? "standard" : "hila");
+  if ((!isMaqam(settings.quality) && !explicitPattern && base.pattern === undefined) || source.shapeSet !== undefined || base.shapeSet !== undefined)
     settings.shapeSet =
-      settings.quality === "major"
+      !isMaqam(settings.quality)
         ? choice(
             source.shapeSet,
             ["standard", "hila"],
-            base.shapeSet || "standard",
+            defaultSet,
           )
         : "standard";
   if (source.hilaShape !== undefined || base.hilaShape !== undefined)
-    settings.hilaShape = HILA_SHAPES.includes(source.hilaShape as HilaShape)
-      ? (source.hilaShape as HilaShape)
+    settings.hilaShape = BERKLEE_SHAPES.includes(source.hilaShape as BerkleeShape)
+      ? (source.hilaShape as BerkleeShape)
       : base.hilaShape || 1;
   if (source.labels !== undefined || base.labels !== undefined)
     settings.labels = choice(
@@ -87,9 +95,8 @@ export function mergeGuitarScaleSettings(
           : 5,
     );
   }
-  const patterns = ["map", ...SCALE_SHAPES] as const;
   const pattern = choice(
-    migratePattern(source.pattern, settings.quality),
+    sourcePattern,
     patterns,
     base.pattern || "map",
   );
@@ -119,7 +126,9 @@ export function mergeGuitarScaleSettings(
   ) {
     const previousPattern = previous.pattern as ScalePattern;
     if (
-      previousPattern === "map"
+      settings.shapeSet === "hila"
+        ? berkleeShift(previousTonic, previousQuality as ScaleQuality, settings.hilaShape || 1, previous.shift) === previous.shift
+        : previousPattern === "map"
         ? previous.shift === 0
         : patternShift(
             previousTonic,
@@ -163,11 +172,14 @@ export function toggleRelativeScale(settings: GuitarScaleSettings): GuitarScaleS
     spelling: returnPosition.tonic === undefined && returnPosition.quality === undefined ? current.spelling : returnPosition.spelling,
   };
   const relative = relativeScale(current.tonic,current.quality,current.spelling);
-  const pattern = current.pattern && current.pattern !== 'map'
+  const cagedPattern = current.pattern && current.pattern !== 'map'
     ? relativePattern(current.pattern,current.quality) : '1';
+  const pattern = current.shapeSet === "hila" ? current.pattern || "map" : cagedPattern;
   return {
     ...current, ...relative, spelling:relative.spelling, pattern,
-    shift:patternShift(relative.tonic,relative.quality,pattern,current.shift),
+    shift: current.shapeSet === "hila"
+      ? berkleeShift(relative.tonic, relative.quality, current.hilaShape || 1, current.shift)
+      : patternShift(relative.tonic,relative.quality,cagedPattern,current.shift),
     returnPosition:{tonic:current.tonic,quality:current.quality,pattern:current.pattern || 'map',shift:current.shift || 0,
       ...(current.spelling ? {spelling:current.spelling} : {})},
   };
@@ -189,7 +201,7 @@ export function guitarScaleFromQuery(
       quality,
       ...(tonic >= 0 ? { spelling: name } : {}),
       ...(pattern ? { pattern } : {}),
-      ...(query.has("set") ? { shapeSet: query.get("set") } : {}),
+      ...(query.has("set") ? { shapeSet: query.get("set") === "berklee" ? "hila" : query.get("set") } : {}),
       ...(query.has("shape") ? { hilaShape: Number(query.get("shape")) } : {}),
       ...(query.has("from") ? { firstFret: Number(query.get("from")) } : {}),
       ...(query.has("to") ? { lastFret: Number(query.get("to")) } : {}),

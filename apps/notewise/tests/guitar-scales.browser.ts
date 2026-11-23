@@ -70,6 +70,8 @@ try {
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
+  await openPracticeOptions(page);
+  await page.getByLabel("Shape set", {exact:true}).selectOption("standard");
   await practiceOption(page, "#scale-pattern", "map");
   const before = await saved();
   await practiceOption(page, "#scale-key", "0");
@@ -541,7 +543,7 @@ try {
   const migrated = await saved();
   assert.deepEqual(migrated.activities["guitar-scales"], {
     version: 1,
-    settings: { tonic: 5, quality: "major" },
+    settings: { tonic: 5, quality: "major", shapeSet: "hila" },
   });
   assert.equal(migrated.progress.mode, "guitar-scales");
   assert.deepEqual(migrated.activities.patterns, before.activities.patterns);

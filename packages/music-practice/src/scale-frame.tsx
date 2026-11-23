@@ -168,12 +168,12 @@ export function ScaleFrame({
                 </Table.Tbody>
               </Table>
             </div>
-            {s.source ? <Text className="scale-source">
-              {s.maqamReference ? "Maqam reference: " : "Shapes and fingerings: "}
+            {s.source && <Text className="scale-source">
+              {s.maqamReference ? "Maqam reference: " : "Source: "}
               <a href={s.source} target="_blank" rel="noopener noreferrer">
                 {s.sourceLabel}
               </a>
-            </Text> : <Text className="scale-source">Shapes supplied by Hila Bar.</Text>}
+            </Text>}
           </div>
         </ScaleDetails>
       </div>

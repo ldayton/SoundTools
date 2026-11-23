@@ -1,7 +1,7 @@
 import { launchBrowser, newPage, closeBrowser, captureFailure, waitForApp } from "../../../scripts/ci/browser-harness.cjs";
 import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
-import { openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
+import { openPracticeOptions, closePracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
 const server = await preview("notewise", Number(process.env.TEST_PORT || 4597));
 const browser = await launchBrowser();
 try {
@@ -13,11 +13,12 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(
     server.base +
-      "/guitar/scales?key=C&scale=major&set=hila&shape=1&labels=none",
+      "/guitar/scales?key=C&scale=major&labels=none",
   );
   await waitForApp(page, ".scale-diagram svg");
-  await expect(page.locator(".scale-pattern-caption")).toHaveText("Seven-position major · Shape 1");
-  await expect(page.getByText("Shapes supplied by Hila Bar.", {exact:true})).toHaveCount(1);
+  await expect(page.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 1");
+  await expect(page.locator(".scale-source a")).toHaveAttribute("href", "https://jenslarsen.nl/major-scale-7-positions-berklee-system/");
+  await expect(page.locator(".scale-source a")).toHaveText("Jens Larsen · Berklee 7PS");
   await expect(page.locator(".scale-chord-tone")).toHaveCount(0);
   await expect(page.locator(".scale-chord-connection")).toHaveCount(0);
   const tones = page.locator(".scale-diagram .scale-tone");
@@ -35,12 +36,15 @@ try {
   ).toHaveCount(0);
   for (let shape = 1; shape <= 7; shape++) {
     await page.getByLabel("Shape", { exact: true }).selectOption(String(shape));
+    await expect(page.locator(".scale-pattern-caption")).toHaveText(`Berklee 7PS · Shape ${shape}`);
     await expect(tones).toHaveCount(17);
     const pitches = await tones.evaluateAll((es) =>
       es.map((e) => Number(e.getAttribute("data-midi"))),
     );
     expect(new Set(pitches).size).toBe(17);
+    expect(pitches[0]).toBe([41,43,45,47,48,50,52][shape-1]);
   }
+  expect(new URL(page.url()).searchParams.get("set")).toBe("berklee");
   await page.reload();
   await openPracticeOptions(page);
   await expect(page.getByLabel("Shape", { exact: true })).toHaveValue("7");
@@ -54,7 +58,7 @@ try {
   await page.getByLabel("Shape set", { exact: true }).selectOption("standard");
   await expect(page.locator("#scale-pattern")).toBeVisible();
   await expect(page.locator("#scale-linked-pattern")).toBeVisible();
-  await expect(page.getByLabel("Shape set", {exact:true}).locator("option")).toHaveText(["CAGED · five shapes","Seven-position major"]);
+  await expect(page.getByLabel("Shape set", {exact:true}).locator("option")).toHaveText(["Berklee 7PS","CAGED · five shapes"]);
   await page.locator("#scale-pattern").selectOption("4");
   for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"]){
     await page.locator("#scale-quality").selectOption(quality);
@@ -233,7 +237,7 @@ try {
   ).toBe(true);
   await page.keyboard.press("[");
   await page.screenshot({
-    path: "/tmp/notewise-hila-desktop.png",
+    path: "/tmp/notewise-berklee-desktop.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 393, height: 852 });
@@ -243,12 +247,70 @@ try {
     )
     .toBe(true);
   await page.screenshot({
-    path: "/tmp/notewise-hila-mobile.png",
+    path: "/tmp/notewise-berklee-mobile.png",
     fullPage: true,
   });
+  // A new phone context also starts in Berklee; old bookmarks still select it.
+  const freshPhone = await newPage(browser, {viewport:{width:393,height:852}, serviceWorkers:"block"});
+  freshPhone.on("pageerror", e => errors.push(e.message));
+  await freshPhone.goto(server.base + "/guitar/scales?key=C&scale=major");
+  await waitForApp(freshPhone, ".scale-diagram svg");
+  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 1");
+  await openPracticeOptions(freshPhone);
+  await expect(freshPhone.getByLabel("Shape set", {exact:true})).toHaveValue("hila");
+  await expect(freshPhone.getByLabel("Shape", {exact:true})).toHaveValue("1");
+  await freshPhone.screenshot({path:"/tmp/notewise-berklee-default-mobile.png",fullPage:true});
+  await freshPhone.goto(server.base + "/guitar/scales?key=C&scale=major&set=hila&shape=5");
+  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 5");
+  await freshPhone.reload();
+  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 5");
+  await openPracticeOptions(freshPhone);
+  const familyCases = [
+    ["major", "C major", [0,2,4,5,7,9,11],17,0,0],
+    ["minor", "C natural minor", [0,2,3,5,7,8,10],17,0,0],
+    ["major-pentatonic", "C major pentatonic", [0,2,4,7,9],13,4,0],
+    ["minor-pentatonic", "C minor pentatonic", [0,3,5,7,10],13,4,0],
+    ["major-blues", "C major blues", [0,2,3,4,7,9],16,0,3],
+    ["minor-blues", "C minor blues", [0,3,5,6,7,10],16,0,3],
+  ] as const;
+  for (const [quality,title,allowed,count,omitted,blue] of familyCases) {
+    await freshPhone.locator("#scale-quality").selectOption(quality);
+    await expect(freshPhone.locator("#scale-title")).toHaveText(title);
+    await expect(freshPhone.getByLabel("Shape set", {exact:true})).toHaveValue("hila");
+    await expect(freshPhone.getByLabel("Shape", {exact:true})).toHaveValue("5");
+    const familyTones=freshPhone.locator(".scale-diagram .scale-tone");
+    await expect(familyTones).toHaveCount(count);
+    expect(await familyTones.evaluateAll(es=>es.map(e=>Number(e.getAttribute("data-midi"))%12))).toEqual(expect.arrayContaining([...allowed]));
+    expect(await familyTones.evaluateAll(es=>es.every(e=>e.getAttribute("data-fret")!==null&&Number(e.getAttribute("data-fret"))>=1&&Number(e.getAttribute("data-fret"))<=18))).toBe(true);
+    const pcs=await familyTones.evaluateAll(es=>es.map(e=>Number(e.getAttribute("data-midi"))%12));
+    expect(pcs.every(pc=>(allowed as readonly number[]).includes(pc))).toBe(true);
+    await expect(freshPhone.locator(".scale-omitted-tone")).toHaveCount(omitted);
+    await expect(freshPhone.locator(".scale-blue-note")).toHaveCount(blue);
+  }
+  await freshPhone.locator("#scale-quality").selectOption("major-pentatonic");
+  await expect(freshPhone.locator(".scale-omitted-tone")).toHaveCount(4);
+  const coordinates=()=>freshPhone.locator(".scale-tone").evaluateAll(es=>es.map(e=>[e.getAttribute("data-string"),e.getAttribute("data-fret")]));
+  const beforeRelative=await coordinates();
+  await closePracticeOptions(freshPhone);
+  await freshPhone.getByRole("button",{name:"Show A minor pentatonic",exact:true}).click();
+  await expect(freshPhone.locator("#scale-title")).toHaveText("A minor pentatonic");
+  expect(await coordinates()).toEqual(beforeRelative);
+  expect(await freshPhone.locator(".scale-root").evaluateAll(es=>es.every(e=>Number(e.getAttribute("data-midi"))%12===9))).toBe(true);
+  await freshPhone.reload();
+  await expect(freshPhone.locator("#scale-title")).toHaveText("A minor pentatonic");
+  await freshPhone.getByRole("button",{name:"Return to previous scale",exact:true}).click();
+  await expect(freshPhone.locator("#scale-title")).toHaveText("C major pentatonic");
+  expect(await coordinates()).toEqual(beforeRelative);
+  await freshPhone.getByRole("button",{name:"Show A minor pentatonic",exact:true}).click();
+  await expect(freshPhone.locator("#scale-title")).toHaveText("A minor pentatonic");
+  await freshPhone.locator("#scale-title").click();
+  await freshPhone.keyboard.press("ArrowUp");
+  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 6");
+  await expect(freshPhone.getByRole("button",{name:"Return to previous scale",exact:true})).toHaveCount(0);
+  await expect.poll(()=>freshPhone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   expect(errors).toEqual([]);
   console.log(
-    "PASS Hila shapes: seven diagrams, settings, reload, transposition, standard set, keyboard and mobile",
+    "PASS Berklee 7PS: published numbering, defaults, legacy bookmarks, reload, transposition, CAGED, keyboard and mobile",
   );
 } catch(error) {
   await captureFailure(browser,error);

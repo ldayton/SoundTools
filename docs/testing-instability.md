@@ -343,3 +343,14 @@ old version, a stopped replacement, and the subsequent running notification.
 The browser scenario still stops the actual worker through CDP during a held
 model request, now explicitly asserts that request exists, and retains the
 resume-intent and UI-recovery assertions with their original deadlines.
+
+## Chord preview counted notes before the SVG mounted (23 November 2026)
+
+[SongAlong CI job 137708218381](https://github.com/ldayton/SoundTools/actions/runs/45179079195/job/137708218381)
+failed the chord-breakdown timing assertion with six actual attacks but an
+empty expected array. The fixture read `toneCount` immediately after opening
+the dialog and obtained zero before the SVG mounted; its zero-length wait then
+completed before playback. The test now waits for the visible dialog and first
+rendered chord note, and requires a nonempty chord before measuring. Simultaneous
+chord attacks, exact broken-chord offsets, PCM checks and error assertions remain
+unchanged; no sleeps, timeout increases, error filters or assertion retries.

@@ -249,7 +249,12 @@ try {
   await showTreble.check();await expect(page.locator(".hymn-paper svg:visible").first()).toBeVisible();
   await showChords.check();await dismissPracticeDrawer(page);
   await page.getByRole("button",{name:/^Show .* chord diagram$/}).first().click();
-  const chordDialog=page.getByRole("dialog"),toneCount=await chordDialog.locator('[data-string]:not([data-fret="not-played"])').count();
+  const chordDialog=page.getByRole("dialog");
+  const chordNotes=chordDialog.locator('[data-string]:not([data-fret="not-played"])');
+  await chordDialog.waitFor({state:'visible'});
+  await chordNotes.first().waitFor({state:'visible'});
+  const toneCount=await chordNotes.count();
+  assert(toneCount>0,'The preview must exercise a rendered, nonempty chord');
   await page.evaluate(()=>{(window as any).chordPreviewAttacks=[];});
   await chordDialog.getByRole("button",{name:/^Play .* chord and breakdown$/}).click();
   await page.waitForFunction(count=>(window as any).chordPreviewAttacks.length===count*2,toneCount);

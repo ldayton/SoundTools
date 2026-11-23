@@ -18,6 +18,7 @@ export type HymnState = {
   loopCountIn?: boolean;
   mutedStaves?: number[];
   hiddenStaves?: number[];
+  showChordSymbols?: boolean;
   key?: HymnKey;
   octave?: number;
   low?: number | null;

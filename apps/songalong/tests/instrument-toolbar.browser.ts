@@ -14,7 +14,7 @@ import {
   dismissPracticeDrawer,
   openPracticeOptions,
 } from "../../../packages/music-practice/browser-tests/helpers";
-import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
+import { stagedHymn, guitarEditionHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 const server = await preview(
   "songalong",
   Number(process.env.TEST_PORT || 4613),
@@ -92,6 +92,11 @@ try {
         }),
       )
       .toBe(true);
+    if (width >= 768) {
+      assert(await group.evaluate(el => !!el.closest(".hymn-toolbar-playback")));
+      const selectorBox=await group.boundingBox(), startBox=await page.getByRole("button",{name:"Go to start",exact:true}).boundingBox();
+      assert(selectorBox && startBox && selectorBox.x+selectorBox.width<=startBox.x,"Instruments sit immediately left of transport");
+    }
     const boxes = await group
       .getByRole("radio")
       .evaluateAll((elements) =>
@@ -219,6 +224,27 @@ try {
     "held organ note survives past the recorded sample end",
   );
   assert.ok(organ.peak < 0.502, "organ sample peak has headroom");
+  await page.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.id}?arrangement=guitar-edition&display=both&mode=playback`);
+  await waitForApp(page,".hymn-toolbar-instruments");
+  await openPracticeOptions(page);
+  const showTab=page.getByRole("checkbox",{name:"Show Tablature",exact:true});
+  const showTreble=page.getByRole("checkbox",{name:"Show Treble",exact:true});
+  const showChords=page.getByRole("checkbox",{name:"Show Chords",exact:true});
+  await expect(page.getByRole("checkbox",{name:"Play Tablature",exact:true})).toBeDisabled();
+  await expect(page.getByRole("checkbox",{name:"Play Chords",exact:true})).toBeDisabled();
+  await showTab.uncheck();
+  await expect(page.locator("[data-name=tabNumber]")).toHaveCount(0);
+  await showTab.check();await showTreble.uncheck();
+  await expect(page.locator("#hymn-score-display")).toHaveValue("tab");
+  const frets=await page.locator("[data-name=tabNumber]").allTextContents();
+  await showChords.uncheck();
+  await expect(page.locator(".abcjs-chord")).toHaveCount(0);
+  assert.deepEqual(await page.locator("[data-name=tabNumber]").allTextContents(),frets);
+  await page.reload();await waitForApp(page,".hymn-toolbar-instruments");await openPracticeOptions(page);
+  await expect(showChords).not.toBeChecked();await expect(showTreble).not.toBeChecked();await expect(showTab).toBeChecked();
+  await expect(page.getByRole("checkbox",{name:"Play Treble",exact:true})).toBeChecked();
+  await showTab.uncheck();await expect(page.locator(".hymn-paper svg:visible")).toHaveCount(0);
+  await showTreble.check();await expect(page.locator(".hymn-paper svg:visible").first()).toBeVisible();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: primary instrument radios, supported choices, keyboard exclusivity, saved selection and responsive toolbar",

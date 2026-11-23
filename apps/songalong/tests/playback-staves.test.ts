@@ -120,8 +120,11 @@ test("staff choices normalize, survive URL/account/offline roundtrips and reset 
     arrangement: "bass",
     mutedStaves: [1, 1, -1, 2.5, "0", 99],
     hiddenStaves: [0],
+    showChordSymbols: false,
   });
   assert.deepEqual(base.mutedStaves, [1]);
+  assert.equal(hymnSettingsFromQuery(base,new URLSearchParams("showChordSymbols=1")).showChordSymbols,true);
+  assert.equal(mergeHymnSettings(base,{bpm:90}).showChordSymbols,false);
   assert.deepEqual(
     hymnSettingsFromQuery(base, new URLSearchParams("mutedStaves=0,1"))
       .mutedStaves,
@@ -149,6 +152,7 @@ test("staff choices normalize, survive URL/account/offline roundtrips and reset 
   ]).forHymn(stagedHymn.id);
   assert.deepEqual(saved.mutedStaves, [1]);
   assert.deepEqual(saved.hiddenStaves, [0]);
+  assert.equal(saved.showChordSymbols,false);
 });
 
 test("hidden staves are removed for engraving without changing source voices or playback selection", () => {
@@ -201,4 +205,15 @@ test("only the teacher Choir staff uses the choir bank, and staff muting removes
     playbackNotes(choir.audio).every((note) => note.instrument === "choir"),
   );
   assert.equal(choir.audio.totalDuration, mixed.audio.totalDuration);
+});
+
+test("tablature visibility shares the persisted display setting and never owns a playback track",async()=>{
+ const {guitarStaffShown,toggleGuitarStaff}=await import('../../../packages/music-practice/src/hymn-playback-staves');
+ assert.deepEqual(toggleGuitarStaff('both',[],'tab',false),{scoreDisplay:'notation',hiddenStaves:[]});
+ assert.deepEqual(toggleGuitarStaff('both',[],'notation',false),{scoreDisplay:'tab',hiddenStaves:[]});
+ const hidden=toggleGuitarStaff('tab',[],'tab',false);
+ assert.deepEqual(hidden,{scoreDisplay:'tab',hiddenStaves:[0]});
+ assert.equal(guitarStaffShown(hidden.scoreDisplay,hidden.hiddenStaves,'tab'),false);
+ assert.deepEqual(toggleGuitarStaff(hidden.scoreDisplay,hidden.hiddenStaves,'notation',true),{scoreDisplay:'notation',hiddenStaves:[]});
+ assert.deepEqual(toggleGuitarStaff('notation',[],'tab',true),{scoreDisplay:'both',hiddenStaves:[]});
 });

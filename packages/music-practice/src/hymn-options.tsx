@@ -1,3 +1,4 @@
+import {guitarStaffShown,toggleGuitarStaff} from "./hymn-playback-staves";
 import { hymnInstrument, hymnInstrumentArrangements } from "./hymn-instruments";
 import {chordEdition} from "./chord-editions";
 import { ToolbarNumber } from "@ldayton/ui/toolbar-number";
@@ -25,7 +26,6 @@ import {
   Group,
   Button,
   Divider,
-  Fieldset,
   Combobox,
   useCombobox,
   TextInput,
@@ -118,13 +118,7 @@ export function HymnOptions({
           />
         </OptionsSection>
       )}
-      {state.arrangement === "guitar-edition" ? <Fieldset legend="Guitar setup" p="sm">
-        <Stack gap="xs">
-          <Text size="sm">Standard tuning · {profile?.capo ? `Capo ${profile.capo}` : "No capo"}</Text>
-          <Text size="sm">Sounding key: {state.originalKey} major</Text>
-          <Text size="sm">Chord shapes: {profile?.shapes}</Text>
-        </Stack>
-      </Fieldset> : <OptionsSection title="Key & range">
+      {state.arrangement !== "guitar-edition" && <OptionsSection title="Key & range">
         <Stack gap="xs">
           <SimpleGrid cols={2} spacing="xs">
             {(["low", "high"] as const).map((bound) => (
@@ -200,11 +194,22 @@ export function HymnOptions({
           <Table.Tbody>{state.playbackStaves.map(staff=><Table.Tr key={staff.index}>
             <Table.Td>{staff.label}</Table.Td>
             {(["hiddenStaves","mutedStaves"] as const).map((field,index)=><Table.Td key={field}>
-              <Checkbox aria-label={`${index===0 ? "Show" : "Play"} ${staff.label}`} checked={!state[field].includes(staff.index)}
-                onChange={event=>change({viewHands:"both",hiddenStaves:state.hiddenStaves,mutedStaves:state.mutedStaves,
-                  [field]:event.currentTarget.checked ? state[field].filter(n=>n!==staff.index) : [...state[field],staff.index]})}/>
+              <Checkbox aria-label={`${index===0 ? "Show" : "Play"} ${staff.label}`}
+                disabled={index===1 && staff.playable===false}
+                title={index===1 && staff.playable===false ? "Playback follows Treble" : undefined}
+                checked={index===0 && staff.display ? guitarStaffShown(state.scoreDisplay,state.hiddenStaves,staff.display) : staff.playable===false ? false : !state[field].includes(staff.index)}
+                onChange={event=>change(index===0 && staff.display
+                  ? {viewHands:"both",...toggleGuitarStaff(state.scoreDisplay,state.hiddenStaves,staff.display,event.currentTarget.checked)}
+                  : {viewHands:"both",hiddenStaves:state.hiddenStaves,mutedStaves:state.mutedStaves,
+                    [field]:event.currentTarget.checked ? state[field].filter(n=>n!==staff.index) : [...state[field],staff.index]})}/>
             </Table.Td>)}
-          </Table.Tr>)}</Table.Tbody>
+          </Table.Tr>)}
+          {state.chordSymbolsAvailable && <Table.Tr>
+            <Table.Td>Chords</Table.Td>
+            <Table.Td><Checkbox aria-label="Show Chords" checked={state.showChordSymbols} onChange={event=>change({showChordSymbols:event.currentTarget.checked})}/></Table.Td>
+            <Table.Td><Checkbox aria-label="Play Chords" checked={false} disabled title="Playback follows the written notes"/></Table.Td>
+          </Table.Tr>}
+          </Table.Tbody>
         </Table>
       </OptionsSection>}
       {(!editions || state.stanzaChoices.length>1) && (state.arrangement === "melody" ||

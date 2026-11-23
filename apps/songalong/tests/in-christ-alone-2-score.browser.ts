@@ -55,6 +55,8 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
   await expect(page.locator(".sequence-title")).toHaveText("In Christ Alone 2");
+  await expect(page.locator(".hymn-paper svg text").filter({hasText:/^(Choir|Organ)$/})).toHaveCount(2);
+  await expect(page.locator(".hymn-paper svg").first().locator("text").filter({hasText:/^(Choir|Organ)$/})).toHaveCount(2);
   await expect(
     page.getByRole("radio", { name: "Voice + Piano", exact: true }),
   ).toHaveAttribute("aria-checked", "true");
@@ -227,7 +229,7 @@ try {
     "Show",
     "Play",
   ]);
-  await expect(staffTable.getByRole("row")).toHaveCount(4);
+  await expect(staffTable.getByRole("row")).toHaveCount(5);
   await expect(
     page.getByText("Melody limits (optional)", { exact: true }),
   ).toHaveCount(0);

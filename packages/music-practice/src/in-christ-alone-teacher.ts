@@ -156,6 +156,9 @@ export function teacherInstrumentAbc(
         : "(S1 S2)"
       : "{S1 S2}";
   let abc = `X:1\nT:${hymn.title}\nM:3/4\nL:1/64\nQ:1/4=80\n%%score ${names}\nV:S1 clef=${guitar ? "treble-8" : "treble"}${guitar ? " stem=up" : ""}\n${strumming || (guitar && part === "right") ? "" : `V:S2 clef=${guitar ? "treble-8 stem=down" : "bass"}\n`}K:${guitar ? "C" : "D"}\n`;
+  // Keep voices continuous: hard breaks force one-bar tablature systems.
+  const leadBars: string[] = [],
+    bassBars: string[] = [];
   for (let bar = 0; bar < 21; bar++) {
     const end = bar === 20 ? " :|" : " |";
     const accompaniment = changes[bar]
@@ -190,10 +193,12 @@ export function teacherInstrumentAbc(
         return `${bar === 0 && event.at === 0 ? "[P:Verse] " : bar === 17 && event.at === 0 ? "[P:Interlude] " : ""}${guitar && chord ? `"${shapes[chord]}"` : ""}${position ? `"^${position}"` : ""}${token(event)}`;
       })
       .join(" ");
-    abc += `[V:S1] ${strumming ? accompaniment : lead}${end}\n`;
+    leadBars.push(`${strumming ? accompaniment : lead}${end}`);
     if (!strumming && (!guitar || part !== "right"))
-      abc += `[V:S2] ${accompaniment}${end}\n`;
+      bassBars.push(`${accompaniment}${end}`);
   }
+  abc += `[V:S1] ${leadBars.join(" ")}\n`;
+  if (bassBars.length) abc += `[V:S2] ${bassBars.join(" ")}\n`;
   return beamByBeat(abc);
 }
 export function teacherChordLyrics(hymn: HymnLyricData & { harmony: string }) {

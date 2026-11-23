@@ -203,7 +203,6 @@ export function HymnControls({
           aria-label="Sound and display"
         >
           <ToolbarVolume />
-          {instrument}
           {staffSize}
           {staffSpacing}
         </Group>
@@ -214,6 +213,7 @@ export function HymnControls({
           role="group"
           aria-label="Playback controls"
         >
+          {instrument}
           {transport}
           {settings}
           {fingerings}

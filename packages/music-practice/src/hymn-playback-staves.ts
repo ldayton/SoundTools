@@ -91,3 +91,20 @@ export function hidePlaybackStaves(
     line.staff = remaining;
   }
 }
+
+type GuitarDisplay = "notation" | "tab" | "both" | "chords";
+export function guitarStaffShown(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab") {
+  return !hidden.includes(0) && (display === "both" || display === staff || display === "chords" && staff === "notation");
+}
+/** Tab is another view of the same music, so visibility reuses the existing display setting. */
+export function toggleGuitarStaff(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab", shown: boolean) {
+  const notation = staff === "notation" ? shown : guitarStaffShown(display, hidden, "notation");
+  const tab = staff === "tab" ? shown : guitarStaffShown(display, hidden, "tab");
+  return {
+    scoreDisplay: notation && tab ? "both" as const : notation ? "notation" as const : tab ? "tab" as const : display,
+    hiddenStaves: notation || tab ? [] : [0],
+  };
+}
+export function abcHasChordSymbols(abc: string) {
+  return abcjs.parseOnly(abc)[0].lines.some(line => line.staff?.some(staff => staff.voices?.some(voice => voice.some(item => item.el_type === "note" && item.chord?.some((chord:{position?:string}) => chord.position === "default")))));
+}

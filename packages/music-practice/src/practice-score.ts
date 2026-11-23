@@ -4,7 +4,7 @@ import {editionTempoLabel} from "./edition-score";
 import {pickupHymnSystems} from "./instrument-hymn";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
-import { drawBeginnerFingerings, separateGuitarFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
+import { drawBeginnerFingerings, separateBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
 import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
 import { attachChordDiagrams } from "./guitar-chord-diagram";
 import { scoreChordPassages } from "./chord-passage-fingering";
@@ -91,7 +91,9 @@ export function drawPracticeScore(
     octaveNotation?: boolean;
     printedScore?: boolean;
     hiddenStaves?: readonly number[];
+    showChordSymbols?: boolean;
     initialSignatures?: boolean;
+    guitarSetup?: { capo: number; key: string };
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
@@ -108,7 +110,7 @@ export function drawPracticeScore(
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
   const source =
-    (profile && !pickupLayout && (options.fingerstyleTab || profile.layout.mode !== 'balanced') ? `%%barsperstaff ${width < 600 ? 1 : width < 1100 ? 2 : 4}\n` : "") +
+    (profile && !pickupLayout && (options.fingerstyleTab || profile.layout.mode !== 'balanced') ? `%%barsperstaff ${width < 600 ? 1 : width < 800 ? 2 : profile.layout.measuresPerLine ?? (width < 1100 ? 2 : 4)}\n` : "") +
     ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
     (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
@@ -125,6 +127,11 @@ export function drawPracticeScore(
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing(tune) {
       if (options.hiddenStaves?.length) hidePlaybackStaves(tune, options.hiddenStaves);
+      if (options.printedScore)
+        tune.lines.slice(1).forEach(line => line.staff?.forEach(staff => { delete (staff as typeof staff & {title?: unknown}).title; }));
+      if (options.showChordSymbols === false)
+        for (const line of tune.lines) for (const staff of line.staff || []) for (const voice of staff.voices || [])
+          for (const item of voice) if (item.el_type === "note") item.chord = item.chord?.filter((chord:{position?:string}) => chord.position !== "default");
       // abcjs's multi-system tab layout dereferences empty-staff placeholders.
       // Keep the melody staff's placeholder as an explicit no-op plugin.
       if (options.chordTab) {
@@ -274,16 +281,16 @@ export function drawPracticeScore(
         wrapper.remove();
     }
   });
-  if (options.beginnerEdition === "guitar" && !profile) normalizeGuitarRests(tune, options.fromBar || 0);
+  if (options.beginnerEdition === "guitar") normalizeGuitarRests(tune, options.fromBar || 0);
   if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile && tune.lines[0]?.staff?.[0]?.voices?.length === 1);
   if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, profile?.pickup ?? false);
   if (options.guitarTab && !!profile) alignSimultaneousTab(tune, options.fromBar || 0);
   if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly, !!profile);
   if (options.fingerings && options.beginnerEdition)
     drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
-  if (profile && options.beginnerEdition === "guitar" && options.fingerings) separateGuitarFingerings(paper);
+  if (options.beginnerEdition && options.fingerings) separateBeginnerFingerings(paper);
   if (!!profile && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
-  if (options.tabOnly) showOnlyTab(paper, profile ? editionTempoLabel(profile,tune.lines.flatMap(line=>line.staff?.flatMap(staff=>staff.voices?.flatMap(voice=>voice.flatMap(note=>note.el_type==='part'?[note.title]:[]))||[])||[])) : undefined, profile ? 58 : undefined);
+  if (options.tabOnly) showOnlyTab(paper, profile ? editionTempoLabel({...profile,capo:options.guitarSetup ? 0 : profile.capo},tune.lines.flatMap(line=>line.staff?.flatMap(staff=>staff.voices?.flatMap(voice=>voice.flatMap(note=>note.el_type==='part'?[note.title]:[]))||[])||[])) : undefined, profile ? 58 : undefined);
   if (options.chordsOnly) showChordsOnly(paper,tune);
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
@@ -361,10 +368,11 @@ export function drawPracticeScore(
             ).matrixTransform(transform).y + 12,
           );
         }
-        svg.setAttribute(
-          "viewBox",
-          `${box.x} ${top} ${box.width} ${bottom - top}`,
-        );
+        if (Number.isFinite(top) && Number.isFinite(bottom))
+          svg.setAttribute(
+            "viewBox",
+            `${box.x} ${top} ${box.width} ${bottom - top}`,
+          );
       }
     }
     if (options.printedScore) {
@@ -389,6 +397,12 @@ export function drawPracticeScore(
   });
   if (options.hiddenStaves?.length && abcPlaybackStaves(abc).every(staff=>options.hiddenStaves!.includes(staff.index)))
     paper.querySelectorAll<SVGSVGElement>('svg').forEach(svg=>svg.style.display='none');
+  if (options.guitarSetup) {
+    const heading=document.createElement("div");
+    heading.className="hymn-score-setup";
+    heading.textContent=`${options.guitarSetup.capo ? `Capo ${options.guitarSetup.capo}` : "No capo"} · Sounding key: ${options.guitarSetup.key} major`;
+    paper.prepend(heading);
+  }
   attachChordDiagrams(paper, chordPassages);
   if (options.printedScore) attachPianoChordDiagrams(paper, tune);
   if (options.fingerings && !options.beginnerEdition) {
@@ -399,7 +413,7 @@ export function drawPracticeScore(
   const tabElements = new Map<number, HTMLElement[]>();
   if (options.guitarTab)
     for (const line of tune.lines)
-      for (const staff of line.staff || [])
+      for (const staff of (line.staff || []).filter(staff => String(staff.clef?.type) !== "TAB"))
         for (const voice of staff.voices || [])
           for (const item of voice) {
             if (item.el_type !== "note" || item.startChar === undefined)
@@ -420,7 +434,7 @@ export function drawPracticeScore(
     // events to the visible notation/tab glyphs by source position.
     const elements = new Map<number, HTMLElement[]>();
     for (const line of tune.lines)
-      for (const staff of line.staff || [])
+      for (const staff of (line.staff || []).filter(staff => String(staff.clef?.type) !== "TAB"))
         for (const voice of staff.voices || [])
           for (const note of voice) {
             if (note.el_type !== "note" || note.startChar === undefined) continue;
@@ -512,12 +526,48 @@ export function highlightScore(
   event: NoteTimingEvent | undefined,
   viewport: HTMLElement,
   scroll = false,
+  playhead = false,
+  paused = false,
 ) {
   paper
     .querySelectorAll(".sight-current")
     .forEach((e) => e.classList.remove("sight-current"));
   const elements = (event?.elements || []).flat().filter(Boolean);
   elements.forEach((e) => e.classList.add("sight-current"));
+  paper.classList.toggle("score-playback-position", playhead);
+  paper.querySelectorAll(".score-playhead").forEach(node => node.remove());
+  if (playhead && paused && elements[0]) {
+    const element = elements[0] as unknown as SVGGraphicsElement;
+    const svg = element.closest("svg");
+    const head = element.querySelector<SVGGraphicsElement>(".abcjs-notehead") || element;
+    const inverse = svg?.getScreenCTM()?.inverse(), matrix = head.getScreenCTM();
+    if (svg && inverse && matrix) {
+      const box = head.getBBox();
+      const point = new DOMPoint(box.x + box.width / 2, box.y).matrixTransform(inverse.multiply(matrix));
+      const cursor = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      cursor.classList.add("score-playhead");
+      cursor.classList.toggle("is-paused", paused);
+      cursor.setAttribute("aria-hidden", "true");
+      const staves = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff")].flatMap(staff => {
+        const matrix = staff.getScreenCTM();
+        if (!matrix) return [];
+        const box = staff.getBBox(), transform = inverse.multiply(matrix);
+        return [new DOMPoint(box.x,box.y).matrixTransform(transform).y,
+          new DOMPoint(box.x,box.y+box.height).matrixTransform(transform).y];
+      });
+      if (staves.length) {
+        const band = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        const width = 20 / (svg.getScreenCTM()?.a || 1);
+        band.setAttribute("x", String(point.x - 3 - width / 2));
+        band.setAttribute("y", String(Math.min(...staves) - 8));
+        band.setAttribute("width", String(width));
+        band.setAttribute("height", String(Math.max(...staves) - Math.min(...staves) + 16));
+        band.setAttribute("rx", "4");
+        cursor.append(band);
+      }
+      svg.insertBefore(cursor, svg.firstChild);
+    }
+  }
   if (scroll && elements[0]) {
     const note = (
       elements[0].closest("svg") || elements[0]

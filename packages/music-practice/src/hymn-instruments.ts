@@ -9,7 +9,7 @@ export type HymnInstrument = "guitar" | "piano" | "sung";
 export const hymnInstrumentChoices = [
   { id: "guitar", label: "Guitar", icon: "guitar" },
   { id: "piano", label: "Piano", icon: "keyboard" },
-  { id: "sung", label: "Voice + Piano", icon: "microphone" },
+  { id: "sung", label: "Voice + Piano", icon: "vocal-microphone" },
 ] as const;
 /** Existing arrangement IDs remain the persisted/deep-link contract. */
 export function hymnInstrument(arrangement: Arrangement): HymnInstrument {

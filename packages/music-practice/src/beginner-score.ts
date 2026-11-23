@@ -112,7 +112,7 @@ function entries(tune: TuneObject, from: number): Entry[] {
   }
   return result;
 }
-/** Omit the redundant bass-voice rest underneath the shared turnaround chord. */
+/** Omit bass-voice rests that overlap the melody on a shared guitar staff. */
 export function normalizeGuitarRests(tune: TuneObject, from: number) {
   for (const { note, voice, pitches } of entries(tune, from))
     if (voice === 1 && !pitches.length)
@@ -160,11 +160,11 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
     const headBoxes=pitches.map((_,i)=>bounds(heads[i] || group,svg));
     const accidentals=[...group.querySelectorAll<SVGGraphicsElement>('.abcjs-accidental,[data-name^="accidentals."]')]
       .flatMap(e=>{const box=bounds(e,svg);return box?[box.x]:[];});
-    const fingerX=Math.min(...headBoxes.flatMap(b=>b?[b.x]:[]),...accidentals)-9;
+    const fingerX=Math.min(...headBoxes.flatMap(b=>b?[b.x]:[]),...accidentals)-14;
     const fingerY=headBoxes.map(b=>b ? b.y+b.height/2+3 : targetBox.y);
     let above=-Infinity;
     for(let i=fingerY.length-1;i>=0;i--) if(fingers[i]) {
-      fingerY[i]=Math.max(fingerY[i],above+10);above=fingerY[i];
+      fingerY[i]=Math.max(fingerY[i],above+15);above=fingerY[i];
     }
     const section=compactChordFingerings && (instrument === "guitar" || voice === 1) ? 0 : bar<8 ? 0 : bar;
     fingers.forEach((finger,index)=>{
@@ -187,11 +187,14 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
         // Put single-note fretting numerals opposite their voice stems:
         // below melody heads and above bass heads, clear of accidentals.
         x = box.x + box.width / 2;
-        y = voice === 0 ? box.y + box.height + 11 : box.y - 6;
+        y = voice === 0 ? box.y + box.height + 16 : box.y - 8;
       }
-      const mark=text(svg,x,y,String(finger),'beginner-fingering',9);
+      const mark=text(svg,x,y,String(finger),'beginner-fingering',14);
       if (instrument === "guitar" && pitches.length === 1)
         mark.setAttribute("text-anchor", "middle");
+      mark.setAttribute('font-family','sans-serif');
+      mark.setAttribute('font-weight','700');
+      mark.setAttribute('fill','#164e63');
       mark.dataset.instrument=instrument;mark.dataset.voice=String(voice);
       mark.dataset.pitch=String(original[index]);mark.dataset.finger=String(finger);
       mark.setAttribute('aria-label',`${instrument==='piano' ? voice===0?'Right hand':'Left hand' : 'Fretting hand'}: finger ${finger}`);
@@ -368,13 +371,25 @@ export function alignSimultaneousTab(tune:TuneObject,from:number) {
  }
 }
 
-/** Keep opposing voices' fingering numbers distinct beside nearby noteheads. */
-export function separateGuitarFingerings(paper:HTMLElement) {
- for(const svg of paper.querySelectorAll('svg')) {
-  const melody=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-v0 .beginner-fingering')];
-  for(const bass of svg.querySelectorAll<SVGTextElement>('.abcjs-v1 .beginner-fingering')){
-   const a=bounds(bass,svg);if(!a)continue;
-   if(melody.some(mark=>{const b=bounds(mark,svg);return b&&a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;}))bass.setAttribute('x',String(Number(bass.getAttribute('x'))-7));
+/** Keep larger fingering numerals clear of noteheads and each other. */
+export function separateBeginnerFingerings(paper: HTMLElement) {
+  for (const svg of paper.querySelectorAll("svg")) {
+    const heads = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-notehead,[data-name^='accidentals.']")]
+      .flatMap(node => { const box = bounds(node, svg); return box ? [box] : []; });
+    const placed: NonNullable<ReturnType<typeof bounds>>[] = [];
+    for (const mark of svg.querySelectorAll<SVGTextElement>(".beginner-fingering")) {
+      let box = bounds(mark, svg);
+      if (!box) continue;
+      // Move to a clear column beside the note cluster, retaining its voice's height.
+      for (const obstacle of [...heads, ...placed].sort((a,b) => b.x-a.x)) {
+        if (box.x < obstacle.x+obstacle.width && box.x+box.width > obstacle.x
+          && box.y < obstacle.y+obstacle.height && box.y+box.height > obstacle.y) {
+          const shift: number = obstacle.x-box.x-box.width-4;
+          mark.setAttribute("x", String(Number(mark.getAttribute("x"))+shift));
+          box = {...box, x:box.x+shift};
+        }
+      }
+      placed.push(box);
+    }
   }
- }
 }

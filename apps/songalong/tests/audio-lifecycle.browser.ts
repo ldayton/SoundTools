@@ -85,7 +85,10 @@ try {
     await expect(
       page.getByRole("button", { name: "Pause", exact: true }),
     ).toBeVisible();
+    await expect(page.locator(".score-playhead")).toHaveCount(0);
+    await expect(page.locator(".score-playback-position .sight-current").first()).toBeVisible();
     await page.getByRole("button", { name: "Pause", exact: true }).click();
+    await expect(page.locator(".score-playhead")).toBeVisible();
     assert.deepEqual(errors, []);
   }
 

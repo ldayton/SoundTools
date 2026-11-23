@@ -138,7 +138,7 @@ try {
         ).toBeVisible();
       if (display === "notation" || display === "both")
         await expect(page.locator(".abcjs-time-signature")).toHaveCount(1);
-      await expect(page.locator(".abcjs-tempo")).toContainText("Capo 3");
+      await expect(page.locator(".hymn-score-setup")).toContainText("Capo 3");
       if (display === "tab") {
         await expect(page.locator(".tab-rhythm-dot").first()).toBeVisible();
         assert(await page.locator(".tab-rhythm-half").count());

@@ -79,9 +79,9 @@ export type ChordEdition = InstrumentEdition & {
   pickup: boolean;
   tempo: number;
   shapes: string;
-  layout:
+  layout: { measuresPerLine?: number } & (
     | { mode: "balanced" | "fixed" }
-    | { mode: "pickup-attached"; totalBars: number };
+    | { mode: "pickup-attached"; totalBars: number });
   strumPattern?: boolean;
   fingers: (
     instrument: BeginnerInstrument,
@@ -139,7 +139,7 @@ const recipes: Record<ChordEditionId, Recipe> = {
     tempo: 80,
     shapes: "C, small F, G, C/E, Am, Dm and G7",
     guitarKey: "C",
-    layout: { mode: "balanced" },
+    layout: { mode: "balanced", measuresPerLine: 3 },
     fingers: teacherFingers,
     position: teacherGuitarPosition,
     build: ({ hymn, instrument, hands }) => {

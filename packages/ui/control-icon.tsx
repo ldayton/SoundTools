@@ -15,6 +15,7 @@ export type ControlIconName =
   | "stop"
   | "record"
   | "microphone"
+  | "vocal-microphone"
   | "restart"
   | "refresh"
   | "plus"
@@ -85,6 +86,12 @@ const artwork = {
       <rect x="9" y="3" width="6" height="12" rx="3" />
       <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" />
     </>
+  ),
+  "vocal-microphone": (
+    <g transform="rotate(35 12 12)">
+      <circle cx="12" cy="7" r="4" />
+      <path d="M9.8 10.5 10.7 21h2.6l.9-10.5M10 13h4M8.4 6h7.2M8.4 8h7.2M10.8 3.3v7.4M13.2 3.3v7.4" />
+    </g>
   ),
   restart: (
     <>

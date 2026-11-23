@@ -12,6 +12,7 @@ import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
   selectHymnInstrument,
   openPracticeOptions,
+  openHymnControls,
   dismissPracticeDrawer,
 } from "../../../packages/music-practice/browser-tests/helpers";
 const server = await preview("songalong", 4615),
@@ -19,10 +20,13 @@ const server = await preview("songalong", 4615),
 const output = "/tmp/songalong-teacher-editions";
 await mkdir(output, { recursive: true });
 try {
-  for (const width of [1440, 768, 390, 320]) {
+  for (const width of [1960, 1440, 768, 390, 320]) {
     const page = await newPage(browser, { viewport: { width, height: 1000 } });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
     await page.goto(
       server.base + "/piano/hymns/in-christ-alone-2?mode=playback",
     );
@@ -37,7 +41,110 @@ try {
     for (const instrument of ["piano", "guitar", "sung"] as const) {
       await selectHymnInstrument(page, instrument);
       await expect(page.locator(".abcjs-note").first()).toBeVisible();
+      if (width === 1960) {
+        const size = page.getByRole("spinbutton", {
+          name: "Staff size in pixels",
+          exact: true,
+        });
+        await size.fill("27");
+        await size.press("Enter");
+        await expect(size).toHaveValue("27 px");
+      }
+      if (instrument !== "sung") {
+        await openHymnControls(page);
+        await page
+          .getByRole("checkbox", { name: "Show fingerings", exact: true })
+          .check();
+        await expect(page.locator(".beginner-fingering").first()).toBeVisible();
+        assert(
+          await page
+            .locator(".beginner-fingering")
+            .evaluateAll((nodes) =>
+              nodes.every((node) => node.getBoundingClientRect().height >= 12),
+            ),
+        );
+        await openPracticeOptions(page);
+        for (const stanza of await page
+          .locator(".hymn-stanza-checkbox input")
+          .all())
+          await stanza.check();
+        await dismissPracticeDrawer(page);
+        if (width >= 1440)
+          assert(
+            (await page.locator(".hymn-paper svg").count()) < 21,
+            "Desktop combines bars instead of stretching one bar per system",
+          );
+        await page.getByRole("button", { name: "Play", exact: true }).click();
+        await expect(page.locator(".score-playhead")).toHaveCount(0);
+        await expect(
+          page.locator(".score-playback-position .sight-current").first(),
+        ).toBeVisible();
+        await page.getByRole("button", { name: "Pause", exact: true }).click();
+        await expect(page.locator(".score-playhead")).toBeVisible();
+        assert(
+          await page
+            .locator(".score-playhead rect")
+            .evaluateAll(
+              (nodes) =>
+                nodes.length === 1 &&
+                nodes.every((node) => node.getBoundingClientRect().width >= 19),
+            ),
+        );
+        assert(
+          await page
+            .locator(".sight-current .abcjs-notehead")
+            .evaluateAll(
+              (nodes) =>
+                nodes.length > 0 &&
+                nodes.every(
+                  (node) => getComputedStyle(node).fill === "rgb(4, 120, 87)",
+                ),
+            ),
+        );
+        await page.screenshot({
+          path: `${output}/${instrument}-legibility-${width}.png`,
+          fullPage: true,
+        });
+        await openPracticeOptions(page);
+        const allStanzas = page.locator(".hymn-stanza-checkbox input");
+        for (let index = 1; index < 4; index++)
+          await allStanzas.nth(index).uncheck();
+        await dismissPracticeDrawer(page);
+      }
       if (instrument === "guitar") {
+        if (width >= 1440) {
+          const bars = await page
+            .locator(".hymn-paper svg")
+            .first()
+            .locator(".abcjs-note.abcjs-v0")
+            .evaluateAll(
+              (nodes) =>
+                new Set(
+                  nodes.flatMap((node) =>
+                    [...node.classList].filter((name) =>
+                      /^abcjs-m\d+$/.test(name),
+                    ),
+                  ),
+                ).size,
+            );
+          assert.equal(bars, 3, "Desktop guitar uses three bars per system");
+        }
+        await expect(page.locator(".hymn-score-setup")).toHaveText(
+          "Capo 2 · Sounding key: D major",
+        );
+        await expect(
+          page.getByText("Guitar setup", { exact: true }),
+        ).toHaveCount(0);
+        assert(
+          await page
+            .locator(".abcjs-rest.abcjs-v1")
+            .evaluateAll((nodes) =>
+              nodes.every(
+                (node) => getComputedStyle(node).visibility === "hidden",
+              ),
+            ),
+          "The bass pickup rest cannot overlap the melody",
+        );
         await expect(
           page.locator("[data-name=tabNumber]").first(),
         ).toBeVisible();
@@ -59,7 +166,9 @@ try {
           "III",
           "I",
         ]);
-        await expect(page.locator(".tab-rhythm-rest").first()).toBeVisible();
+        await expect(
+          page.locator(".tab-rhythm-rest.abcjs-v0").first(),
+        ).toBeVisible();
       }
       if (instrument === "piano")
         await expect(page.locator("g.abcjs-part")).toHaveText([
@@ -71,8 +180,32 @@ try {
         .getByRole("table", { name: "Playback staves" })
         .getByRole("row");
       await expect(rows).toHaveCount(
-        instrument === "sung" ? 4 : instrument === "guitar" ? 2 : 3,
+        instrument === "sung" ? 5 : instrument === "guitar" ? 4 : 3,
       );
+      if (instrument === "guitar") {
+        await expect(page.getByRole("checkbox",{name:"Play Tablature",exact:true})).toBeDisabled();
+        await page.getByRole("checkbox",{name:"Show Treble",exact:true}).check();
+        await page.getByRole("checkbox",{name:"Show Tablature",exact:true}).uncheck();
+        await expect(page.locator("[data-name=tabNumber]")).toHaveCount(0);
+        await page.getByRole("checkbox",{name:"Show Tablature",exact:true}).check();
+        await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();
+        await page.getByRole("checkbox",{name:"Show Treble",exact:true}).uncheck();
+        await expect(page.locator("#hymn-score-display")).toHaveValue("tab");
+        await page.getByRole("checkbox",{name:"Show Treble",exact:true}).check();
+      }
+      if (instrument !== "piano") {
+        await expect(page.getByRole("checkbox",{name:"Play Chords",exact:true})).toBeDisabled();
+        await page.getByRole("checkbox",{name:"Show Chords",exact:true}).uncheck();
+        await expect(page.locator(".abcjs-chord")).toHaveCount(0);
+        if (instrument === "guitar" && width === 1960) {
+          await page.reload();await waitForApp(page,".hymn-toolbar-instruments");
+          await openPracticeOptions(page);
+          await expect(page.getByRole("checkbox",{name:"Show Chords",exact:true})).not.toBeChecked();
+          await expect(page.locator(".abcjs-chord")).toHaveCount(0);
+        }
+        await page.getByRole("checkbox",{name:"Show Chords",exact:true}).check();
+        await expect(page.locator(".abcjs-chord").first()).toBeVisible();
+      }
       await expect(page.locator(".hymn-stanza-checkbox input")).toHaveCount(4);
       const stanzas = page.locator(".hymn-stanza-checkbox input");
       await stanzas.nth(0).uncheck();

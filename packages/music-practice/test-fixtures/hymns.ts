@@ -184,3 +184,7 @@ export const recoveryBass = abcjs
   .tracks[1].find((event) => event.cmd === "note")!.pitch;
 
 export const recoveryTieIndex = continuationIndex(recoveryHymn);
+
+/** A reviewed guitar score for shared display controls, independent of its title. */
+export const guitarEditionHymn = hymns.find(hymn => hymnAvailableArrangements(hymn).some(arrangement => arrangement.id === "guitar-edition"));
+if (!guitarEditionHymn) throw Error("The guitar display contract requires a reviewed guitar edition fixture");

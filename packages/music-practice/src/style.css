@@ -418,3 +418,25 @@
 .piano-key.piano-hint::after {
   font-size: 15px;
 }
+
+.hymn-paper .score-playhead {
+  fill: #10b981;
+  fill-opacity: 0.2;
+  stroke: #047857;
+  stroke-width: 1;
+  pointer-events: none;
+}
+@media print {
+  .score-playhead { display: none; }
+}
+
+.hymn-paper.score-playback-position .sight-current {
+  fill: #047857;
+  stroke: #047857;
+}
+.hymn-paper .score-playhead.is-paused {
+  fill: #10b981;
+  fill-opacity: 0.2;
+}
+
+.hymn-score-setup { margin: 8px 12px 12px; font-size: 16px; font-weight: 600; }

@@ -33,6 +33,7 @@ export type HymnSettings = {
   loopCountIn?: boolean;
   mutedStaves?: number[];
   hiddenStaves?: number[];
+  showChordSymbols?: boolean;
   key?: HymnKey;
   octave?: number;
   low?: number | null;
@@ -99,6 +100,9 @@ export function mergeHymnSettings(
   return {
     mutedStaves: staffSelection(s.mutedStaves, base.mutedStaves),
     hiddenStaves: staffSelection(s.hiddenStaves, base.hiddenStaves),
+    ...("showChordSymbols" in s || "showChordSymbols" in base ? {
+      showChordSymbols: typeof s.showChordSymbols === "boolean" ? s.showChordSymbols : base.showChordSymbols !== false,
+    } : {}),
     scoreDisplay: choice(s.scoreDisplay, (chordEdition(hymn) ? ["notation", "tab", "both", "chords"] : ["notation", "tab", "both"]) as ("notation" | "tab" | "both" | "chords")[], base.scoreDisplay === "chords" && !chordEdition(hymn) ? "both" : base.scoreDisplay || "both"),
     stanzas,
     ...("stanza" in s || "stanza" in base ? { stanza } : {}),
@@ -185,6 +189,7 @@ export function hymnSettingsFromQuery(
   if (query.has("view")) overrides.viewHands = query.get("view");
   if (query.has("display")) overrides.scoreDisplay = query.get("display");
   if (query.has("hands")) overrides.hands = query.get("hands");
+  if (query.has("showChordSymbols")) overrides.showChordSymbols = query.get("showChordSymbols") !== "0";
   for (const field of ["hiddenStaves", "mutedStaves"] as const)
     if (query.has(field))
       overrides[field] = query.get(field)!.split(",").filter(Boolean).map(Number);

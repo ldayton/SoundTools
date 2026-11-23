@@ -244,3 +244,12 @@ pipeline. The older `in-christ-alone` song remains unchanged.
 Exact music and physical string choices are covered by
 `tests/in-christ-alone-2-editions.test.ts`; responsive rendering, instrument
 switching and saved choices are covered by the corresponding Nightly browser test.
+
+Playback highlights current notes in green while running; a translucent position
+band appears when paused or ready. Reviewed guitar scores list Tablature as a
+separate Show control, with Play disabled because the Treble staff owns its audio.
+Chord symbols have an independent per-song Show preference, retained in URLs,
+local/offline saves and account records. Both visibility controls preserve notes
+and playback timing. Guitar capo/sounding key appear on the score; shape details
+remain in the reading guide. The teacher guitar edition uses three bars per
+desktop system, and the original Choir/Organ names appear only on its first system.

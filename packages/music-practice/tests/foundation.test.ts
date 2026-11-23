@@ -116,6 +116,8 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     mode: "wait",
     hands: "both",
     viewHands: "both",
+    hiddenStaves: [],
+    mutedStaves: [],
     bpm: 80,
     arrangement: "bass",
     scoreDisplay: "both",

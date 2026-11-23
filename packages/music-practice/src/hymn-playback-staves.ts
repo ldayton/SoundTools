@@ -74,6 +74,9 @@ export function hidePlaybackStaves(
 ) {
   for (const line of tune.lines) {
     if (!line.staff) continue;
+    line.staff.forEach((staff,index) => {
+      (staff as typeof staff & {originalStaffIndex?:number}).originalStaffIndex=index;
+    });
     const remaining = line.staff.filter((_, index) => !hidden.includes(index));
     if (!remaining.length) continue; // all-hidden scores are suppressed after layout
     if (

@@ -101,6 +101,16 @@ try {
     await checkScore(page);
     await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
+    const leftHand = () => page.locator('.beginner-fingering[data-voice="1"]').evaluateAll(nodes=>nodes.map(node=>[node.getAttribute('data-pitch'),node.getAttribute('data-finger')]));
+    const originalLeft = await leftHand();
+    assert.ok(originalLeft.length > 0);
+    const showTreble = page.getByRole('table', {name:'Playback staves'}).getByRole('row').nth(1).getByRole('checkbox').nth(0);
+    await showTreble.uncheck();
+    await expect(page.locator('.hymn-paper svg').first().locator('.abcjs-staff')).toHaveCount(1);
+    assert.deepEqual(await leftHand(),originalLeft,'hiding treble retains the exact left-hand fingerings');
+    await expect(page.locator('.beginner-fingering[data-voice="0"]')).toHaveCount(0);
+    await showTreble.check();
+
     await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
   await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeDisabled();
     await selectHymnInstrument(page, 'guitar');

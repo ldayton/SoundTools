@@ -3,7 +3,7 @@ import { fingerstylePosition } from "./fingerstyle-tab";
 export type BeginnerInstrument = "piano" | "guitar";
 const ns = "http://www.w3.org/2000/svg";
 type Note = Extract<VoiceItem, {el_type:"note"}> & {abselem?: AbsoluteElement};
-type Entry = {note:Note; bar:number; voice:number; pitches:number[]; beat:number};
+type Entry = {note:Note; bar:number; voice:number; staffIndex:number; pitches:number[]; beat:number};
 
 export {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
 import {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
@@ -90,7 +90,7 @@ function entries(tune: TuneObject, from: number): Entry[] {
   for (const line of tune.lines) for (const [si,staff] of (line.staff || []).entries()) {
     if (String(staff.clef?.type) === "TAB") continue;
     for (const [vi,voice] of (staff.voices || []).entries()) {
-      const id=si+vi;
+      const id=((staff as typeof staff & {originalStaffIndex?:number}).originalStaffIndex ?? si)+vi;
       const state=states.get(id) || {bar:from,beat:0,notes:false,held:new Map<number,number>()};
       states.set(id,state);
       for (const item of voice) {
@@ -105,7 +105,7 @@ function entries(tune: TuneObject, from: number): Entry[] {
           if(midi===undefined) return [];
           state.held.set(p.pitch,midi);return [midi];
         });
-        result.push({note:item,bar:state.bar,voice:id,pitches,beat:state.beat});
+        result.push({note:item,bar:state.bar,voice:id,staffIndex:si,pitches,beat:state.beat});
         state.beat+=item.duration*4;state.notes=true;
       }
     }
@@ -145,7 +145,7 @@ function line(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,cls:stri
 /** Add only the starting patterns and changes; repeated finger numbers are omitted. */
 export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false) {
   const seen=new Set<string>(),picking=new Map<string,number>();
-  for(const {note,bar,voice,pitches} of entries(tune,from)) {
+  for(const {note,bar,voice,staffIndex,pitches} of entries(tune,from)) {
     if(!pitches.length || note.pitches?.every(p=>p.endTie)) continue;
     const absolute=note.abselem as (AbsoluteElement & {cloned?:AbsoluteElement}) | undefined;
     const group=absolute?.elemset[0] as SVGGraphicsElement | undefined;
@@ -177,7 +177,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
       let x = fingerX, y = fingerY[index];
       if (instrument === "piano" && pitches.length === 1) {
         const noteBox = bounds(group, svg)!;
-        const staff = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff")][voice];
+        const staff = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff")][staffIndex];
         const staffBox = staff && bounds(staff, svg);
         x = box.x + box.width / 2 - 2;
         y = voice === 0 ? Math.min(noteBox.y - 5, (staffBox?.y ?? box.y) - 10)

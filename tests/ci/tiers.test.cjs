@@ -114,7 +114,8 @@ test('every GitHub edition shard is required and their union covers each discove
     assert.deepEqual(union.sort((a, b) => a - b), files);
   }
   assert.throws(() => commandTasks('songalong', 'nightly', 'webkit', undefined, { shard: '1/2' }), /Only edition/);
-  assert.throws(() => commandTasks('songalong', 'nightly', 'webkit', undefined, { group: 'editions', shard: '7/7' }), /empty/);
+  const emptyShard = editionFiles().length + 1;
+  assert.throws(() => commandTasks('songalong', 'nightly', 'webkit', undefined, { group: 'editions', shard: `${emptyShard}/${emptyShard}` }), /empty/);
   const workflow = fs.readFileSync('.github/workflows/validate-app.yml', 'utf8');
   assert.match(workflow, /check-app\.cjs.*matrix\.shard.*matrix\.shards/);
   assert.match(workflow, /group: .*matrix\.shard.*matrix\.shards/);

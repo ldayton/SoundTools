@@ -58,7 +58,7 @@ try {
   await page.getByLabel("Shape set", { exact: true }).selectOption("standard");
   await expect(page.locator("#scale-pattern")).toBeVisible();
   await expect(page.locator("#scale-linked-pattern")).toBeVisible();
-  await expect(page.getByLabel("Shape set", {exact:true}).locator("option")).toHaveText(["Berklee 7PS","CAGED · five shapes"]);
+  await expect(page.getByLabel("Shape set", {exact:true}).locator("option")).toHaveText(["Berklee 7PS","CAGED"]);
   await page.locator("#scale-pattern").selectOption("4");
   for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"]){
     await page.locator("#scale-quality").selectOption(quality);

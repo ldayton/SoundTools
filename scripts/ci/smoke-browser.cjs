@@ -16,6 +16,11 @@ async function authorizeStagedContext(context, origin, bypass) {
     }
   });
 }
+async function closeSmokeContext(context) {
+  // Closing the owner aborts route.fetch downloads and releases its handlers.
+  // Draining handlers first can wait forever on a background response body.
+  await context.close();
+}
 async function smokeBrowser(origin, app, { bypass } = {}) {
   const browser = await launchBrowser();
   try {
@@ -44,12 +49,12 @@ async function smokeBrowser(origin, app, { bypass } = {}) {
         assert.equal(await page.evaluate(() => window.__confirmationDatabaseOpens), 0);
         assert.equal(await page.evaluate(async () => (await navigator.locks.query()).held.some(lock => lock.name?.endsWith('-writer'))), false);
       }
-      await context.unrouteAll({ behavior: 'wait' });
-      await context.close();
+      console.log(`Checking ${app} ${device}: context cleanup`);
+      await closeSmokeContext(context);
       console.log(`PASS ${app} ${device} browser smoke`);
     }
     console.log(`PASS ${app}: MacBook Air and iPhone 14 Pro${app === 'soundglow' ? '' : ', with isolated email confirmation'}`);
   } catch (error) { await captureFailure(browser, error); throw error; }
   finally { await closeBrowser(browser); }
 }
-module.exports = { smokeBrowser, authorizeStagedContext };
+module.exports = { smokeBrowser, authorizeStagedContext, closeSmokeContext };

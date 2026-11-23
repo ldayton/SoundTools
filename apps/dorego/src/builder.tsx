@@ -30,6 +30,7 @@ import {
   type ExerciseSpec,
 } from './music';
 import { MIN_NOTE, MAX_NOTE } from './exercise-settings';
+import { ToolbarNumber } from '@ldayton/ui/toolbar-number';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { ResponsivePitchField } from '@ldayton/ui/responsive-pitch-field';
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
@@ -330,36 +331,46 @@ export function Builder({
             <Text size="sm" fw={500}>
               Repeat notes
             </Text>
-            <Checkbox
-              id="repeatTurn"
-              label={spec.direction === 'down' ? 'Lowest note' : 'Highest note'}
-              checked={!!spec.repeatTurn}
-              onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
-            />
-            <NativeSelect
-              id="repeatTurnCount"
-              label={spec.direction === 'down' ? 'Lowest note count' : 'Highest note count'}
-              description="Total notes, including the first"
-              hidden={!spec.repeatTurn}
-              value={spec.repeatTurnCount ?? 4}
-              data={[2, 3, 4, 5, 6, 7, 8].map(String)}
-              onChange={(event) => change({ repeatTurnCount: Number(event.currentTarget.value) })}
-            />
-            <Checkbox
-              id="repeatHome"
-              label="Home note on return"
-              checked={!!spec.repeatHome}
-              onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
-            />
-            <NativeSelect
-              id="repeatHomeCount"
-              label={'Home note count'}
-              description="Total notes, including the first"
-              hidden={!spec.repeatHome}
-              value={spec.repeatHomeCount ?? 4}
-              data={[2, 3, 4, 5, 6, 7, 8].map(String)}
-              onChange={(event) => change({ repeatHomeCount: Number(event.currentTarget.value) })}
-            />
+            <Group wrap="nowrap" justify="space-between">
+              <Checkbox
+                id="repeatTurn"
+                label={spec.direction === 'down' ? 'Lowest note' : 'Highest note'}
+                checked={!!spec.repeatTurn}
+                onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
+              />
+              <div hidden={!spec.repeatTurn} style={{ flexShrink: 0 }}>
+                <ToolbarNumber
+                  id="repeatTurnCount"
+                  label={spec.direction === 'down' ? 'Lowest note count' : 'Highest note count'}
+                  icon={null}
+                  unit=""
+                  min={2}
+                  max={8}
+                  value={spec.repeatTurnCount ?? 4}
+                  onChange={(value) => change({ repeatTurnCount: value })}
+                />
+              </div>
+            </Group>
+            <Group wrap="nowrap" justify="space-between">
+              <Checkbox
+                id="repeatHome"
+                label="Home note on return"
+                checked={!!spec.repeatHome}
+                onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
+              />
+              <div hidden={!spec.repeatHome} style={{ flexShrink: 0 }}>
+                <ToolbarNumber
+                  id="repeatHomeCount"
+                  label="Home note count"
+                  icon={null}
+                  unit=""
+                  min={2}
+                  max={8}
+                  value={spec.repeatHomeCount ?? 4}
+                  onChange={(value) => change({ repeatHomeCount: value })}
+                />
+              </div>
+            </Group>
           </Stack>
           <SimpleGrid cols={2}>
             {[

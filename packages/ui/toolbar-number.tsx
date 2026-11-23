@@ -72,7 +72,7 @@ export function ToolbarNumber({
           max={max}
           step={step}
           disabled={disabled}
-          suffix={` ${unit}`}
+          suffix={unit ? ` ${unit}` : undefined}
           change={onChange}
         />
       </Box>
@@ -92,7 +92,7 @@ export function ToolbarNumber({
         leftSectionWidth={24}
         rightSectionWidth={24}
         leftSectionPointerEvents="none"
-        suffix={` ${unit}`}
+        suffix={unit ? ` ${unit}` : undefined}
         styles={{
           input: {
             fontVariantNumeric: "tabular-nums",

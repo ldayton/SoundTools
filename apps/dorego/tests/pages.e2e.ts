@@ -308,8 +308,10 @@ try {
   await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
   await page.getByRole('checkbox', { name: 'Home note on return', exact: true }).check();
   assert.equal(await page.locator('#repeatTurnCount').inputValue(), '4');
-  await page.locator('#repeatTurnCount').selectOption('8');
-  await page.locator('#repeatHomeCount').selectOption('2');
+  await page.locator('#repeatTurnCount').fill('8');
+  await page.locator('#repeatTurnCount').press('Enter');
+  await page.locator('#repeatHomeCount').fill('2');
+  await page.locator('#repeatHomeCount').press('Enter');
   await page.getByRole('checkbox', { name: 'Repeat each round twice', exact: true }).check();
   await page.waitForFunction(
     () => JSON.parse(localStorage.getItem('dorego.current') || '{}').repeatTwice === true
@@ -322,8 +324,10 @@ try {
   assert.ok(await page.locator('#repeatHome').isChecked());
   assert.equal(await page.locator('#repeatTurnCount').inputValue(), '8');
   assert.equal(await page.locator('#repeatHomeCount').inputValue(), '2');
-  await page.locator('#repeatTurnCount').selectOption('4');
-  await page.locator('#repeatHomeCount').selectOption('4');
+  await page.locator('#repeatTurnCount').fill('4');
+  await page.locator('#repeatTurnCount').press('Enter');
+  await page.locator('#repeatHomeCount').fill('4');
+  await page.locator('#repeatHomeCount').press('Enter');
   await page.locator('#repeatTwice').uncheck();
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();

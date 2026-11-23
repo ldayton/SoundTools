@@ -358,7 +358,8 @@ try {
     expect(new URL(parityPage.url()).searchParams.get("shape")).toBe("7");
     expect(new URL(parityPage.url()).searchParams.get("link")).toBe("6");
     await parityPage.reload();
-    await waitForApp(parityPage,".scale-shift-candidate");
+    await waitForApp(parityPage,".scale-diagram svg");
+    await expect(parityPage.locator(".scale-shift-candidate").first()).toBeVisible();
     await openPracticeOptions(parityPage);
     await expect(parityPage.getByLabel("Shape",{exact:true})).toHaveValue("7");
     await expect(parityPage.locator("#scale-linked-pattern")).toHaveValue("6");

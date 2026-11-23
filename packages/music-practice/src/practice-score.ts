@@ -557,11 +557,38 @@ export function highlightScore(
       });
       if (staves.length) {
         const band = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        const width = 20 / (svg.getScreenCTM()?.a || 1);
+        const scale = svg.getScreenCTM()?.a || 1;
+        const width = 48 / scale, padding = 44 / scale;
+        const ns = "http://www.w3.org/2000/svg";
+        const id = `score-position-${crypto.randomUUID()}`;
+        const defs = document.createElementNS(ns,"defs");
+        for (const [axis, color, stops] of [
+          ["vertical","#10b981",[[0,0],[0.12,0.25],[0.88,0.25],[1,0]]],
+          ["horizontal","white",[[0,0],[0.18,1],[0.82,1],[1,0]]],
+        ] as const) {
+          const gradient=document.createElementNS(ns,"linearGradient");
+          gradient.id=`${id}-${axis}`;
+          gradient.setAttribute("x2",axis === "horizontal" ? "100%" : "0%");
+          gradient.setAttribute("y2",axis === "vertical" ? "100%" : "0%");
+          for (const [offset,opacity] of stops) {
+            const stop=document.createElementNS(ns,"stop");
+            stop.setAttribute("offset",String(offset));stop.setAttribute("stop-color",color);
+            stop.setAttribute("stop-opacity",String(opacity));gradient.append(stop);
+          }
+          defs.append(gradient);
+        }
+        const mask=document.createElementNS(ns,"mask");
+        mask.id=`${id}-mask`;mask.setAttribute("maskContentUnits","objectBoundingBox");
+        const maskFill=document.createElementNS(ns,"rect");
+        maskFill.setAttribute("width","1");maskFill.setAttribute("height","1");
+        maskFill.style.fill=`url(#${id}-horizontal)`;mask.append(maskFill);defs.append(mask);
+        cursor.append(defs);
+        band.style.fill=`url(#${id}-vertical)`;
+        band.setAttribute("mask",`url(#${id}-mask)`);
         band.setAttribute("x", String(point.x - 3 - width / 2));
-        band.setAttribute("y", String(Math.min(...staves) - 8));
+        band.setAttribute("y", String(Math.min(...staves) - padding));
         band.setAttribute("width", String(width));
-        band.setAttribute("height", String(Math.max(...staves) - Math.min(...staves) + 16));
+        band.setAttribute("height", String(Math.max(...staves) - Math.min(...staves) + 2 * padding));
         band.setAttribute("rx", "4");
         cursor.append(band);
       }

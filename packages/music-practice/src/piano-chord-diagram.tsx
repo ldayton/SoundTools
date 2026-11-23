@@ -1,54 +1,21 @@
 import { ControlIcon } from "@ldayton/ui/control-icon";
-import { diagnostics } from "./diagnostics";
+import { useChordPreview } from "./use-chord-preview";
 import {
   pianoChordEvent,
   type PianoChordSelection,
 } from "./piano-chord-triggers";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionIcon, Group, Modal, Stack, Text } from "@mantine/core";
 import { PianoKeyboard } from "@ldayton/ui/piano-keyboard";
 import { keyLabel } from "./piano-model";
-import { holdPianoNote, preparePianoPlayback } from "./piano-audio";
+import { holdPianoNote } from "./piano-audio";
 export function PianoChordDiagram() {
   const [selected, setSelected] = useState<PianoChordSelection | null>(null);
-  const preview = useRef<{ stop(): void } | null>(null);
-  const generation = useRef(0);
-  const [loading, setLoading] = useState(false);
-  const [previewError, setPreviewError] = useState("");
-  useEffect(() => {
-    setPreviewError("");
-    setLoading(false);
-    return () => {
-      generation.current++;
-      preview.current?.stop();
-      preview.current = null;
-    };
-  }, [selected]);
-  async function playChord() {
-    if (!selected) return;
-    const request = ++generation.current;
-    preview.current?.stop();
-    setLoading(true);
-    setPreviewError("");
-    try {
-      const output = await preparePianoPlayback([...selected.notes], "piano");
-      if (request !== generation.current) {
-        output.stop();
-        return;
-      }
-      preview.current = output;
-      const start = output.now + 0.01;
-      for (const pitch of selected.notes)
-        output.schedule(pitch, start, 1.88, 0.7);
-    } catch (error) {
-      if (request === generation.current) {
-        setPreviewError("Audio couldn’t load. Try again.");
-        diagnostics.capture(error, "piano_chord.preview_failed");
-      }
-    } finally {
-      if (request === generation.current) setLoading(false);
-    }
-  }
+  const tones = useMemo(
+    () => selected?.notes.map((pitch) => ({ pitch })) || [],
+    [selected],
+  );
+  const preview = useChordPreview(tones, "piano");
   const trigger = useRef<SVGElement | null>(null);
   useEffect(() => {
     const open = (event: Event) => {
@@ -86,9 +53,9 @@ export function PianoChordDiagram() {
               <ActionIcon
                 variant="subtle"
                 size={36}
-                loading={loading}
-                aria-label={`Play ${selected.name} chord for 2 seconds`}
-                onClick={() => void playChord()}
+                loading={preview.loading}
+                aria-label={`Play ${selected.name} chord and breakdown`}
+                onClick={() => void preview.play()}
               >
                 <ControlIcon name="play" />
               </ActionIcon>
@@ -102,9 +69,9 @@ export function PianoChordDiagram() {
               <Text ta="center" fw={600} className="piano-chord-notes">
                 {selected.labels.join(" · ")}
               </Text>
-              {previewError && (
+              {preview.error && (
                 <Text role="alert" size="sm" c="red">
-                  {previewError}
+                  {preview.error}
                 </Text>
               )}
               <PianoKeyboard

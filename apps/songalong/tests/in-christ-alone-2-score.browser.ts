@@ -186,12 +186,12 @@ try {
         await page.evaluate(() => ((window as any).chordPreviews = []));
         await dialog
           .getByRole("button", {
-            name: "Play D chord for 2 seconds",
+            name: "Play D chord and breakdown",
             exact: true,
           })
           .click();
         await page.waitForFunction(
-          () => (window as any).chordPreviews.length === 3,
+          () => (window as any).chordPreviews.length === 6,
         );
         const previews = await page.evaluate(() =>
           (window as any).chordPreviews.map((n: any) => ({
@@ -201,16 +201,18 @@ try {
           })),
         );
         assert.equal(
-          new Set(previews.map((n: any) => n.when)).size,
+          new Set(previews.slice(0,3).map((n: any) => n.when)).size,
           1,
           "chord tones attack together",
         );
         assert.ok(
-          previews.every(
-            (n: any) => !n.loop && Math.abs(n.duration - 2.01) < 0.01,
+          previews.slice(0,3).every(
+            (n: any) => !n.loop && Math.abs(n.duration - 1.01) < 0.01,
           ),
-          "two-second piano envelope",
+          "one-second piano chord envelope",
         );
+        assert.deepEqual(previews.slice(3).map((n:any)=>Math.round((n.when-previews[0].when)*100)/100),[1,1.5,2]);
+        assert(previews.slice(3).every((n:any)=>Math.abs(n.duration-.51)<.01));
       }
       if (name === "D/F♯")
         await page.screenshot({

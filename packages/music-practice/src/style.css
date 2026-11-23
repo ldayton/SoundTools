@@ -420,10 +420,7 @@
 }
 
 .hymn-paper .score-playhead {
-  fill: #10b981;
-  fill-opacity: 0.2;
-  stroke: #047857;
-  stroke-width: 1;
+  stroke: none;
   pointer-events: none;
 }
 @media print {
@@ -434,9 +431,8 @@
   fill: #047857;
   stroke: #047857;
 }
-.hymn-paper .score-playhead.is-paused {
-  fill: #10b981;
-  fill-opacity: 0.2;
-}
 
 .hymn-score-setup { margin: 8px 12px 12px; font-size: 16px; font-weight: 600; }
+/* Let the paused glow extend beyond the staff without changing score spacing. */
+.hymn-paper svg:has(.score-playhead) { overflow: visible; }
+.hymn-paper > div:has(> svg .score-playhead) { overflow: visible !important; }

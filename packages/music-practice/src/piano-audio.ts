@@ -1,3 +1,4 @@
+import {chordPreviewGain} from "./chord-preview";
 import { playbackInstrumentGain } from "./playback-performance";
 import { playbackSample, playbackSamplesFor } from "./playback-samples";
 import type {
@@ -316,6 +317,52 @@ export async function preparePianoPlayback(
     },
     get running() {
       return !disabled && ctx.state === "running" && !document.hidden;
+    },
+    /** Measure this voicing before the master volume; song playback gains stay unchanged. */
+    async previewLevel(notes: readonly PerformanceNote[]) {
+      const release = instrument === "piano" ? 0.12 : 0.045;
+      const duration = Math.max(
+        ...notes.map((note) => note.start + note.duration + release),
+      );
+      const render = new OfflineAudioContext(
+        2,
+        Math.ceil((duration + 0.02) * 24000),
+        24000,
+      );
+      const mix = render.createGain();
+      configureChannels(mix);
+      mix.connect(render.destination);
+      for (const note of notes) {
+        const sample = playbackSample(
+          instrument,
+          note.pitch,
+          note.volume,
+          note.string,
+        );
+        const source = render.createBufferSource(),
+          gain = render.createGain();
+        source.buffer = samples.get(sample.url)!;
+        source.playbackRate.value = 2 ** ((note.pitch - sample.pitch) / 12);
+        const level = playbackInstrumentGain(instrument) * Math.sqrt(note.volume);
+        const end = note.start + note.duration;
+        gain.gain.setValueAtTime(0, note.start);
+        gain.gain.linearRampToValueAtTime(level, note.start + 0.005);
+        gain.gain.setValueAtTime(level, end);
+        gain.gain.linearRampToValueAtTime(0, end + release);
+        source.connect(gain).connect(mix);
+        source.start(note.start);
+        source.stop(end + release + 0.01);
+      }
+      const buffer = await render.startRendering();
+      let sum = 0,
+        peak = 0;
+      for (let channel = 0; channel < buffer.numberOfChannels; channel++)
+        for (const value of buffer.getChannelData(channel)) {
+          sum += value * value;
+          peak = Math.max(peak, Math.abs(value));
+        }
+      const rms = Math.sqrt(sum / (buffer.length * buffer.numberOfChannels));
+      return { gain: chordPreviewGain(rms, peak), rms, peak };
     },
     schedule(
       midi: number,

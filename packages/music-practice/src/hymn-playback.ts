@@ -34,7 +34,7 @@ export function playbackNotes(audio: AudioTracks) {
 }
 type PlaybackOutput = Omit<
   Awaited<ReturnType<typeof preparePianoPlayback>>,
-  "click" | "audibleNow"
+  "click" | "audibleNow" | "previewLevel"
 > & {
   click?(when: number, accent: boolean): void;
   readonly audibleNow?: number;

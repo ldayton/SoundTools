@@ -81,15 +81,17 @@ try {
         ).toBeVisible();
         await page.getByRole("button", { name: "Pause", exact: true }).click();
         await expect(page.locator(".score-playhead")).toBeVisible();
+        assert(await page.locator(".score-playhead").evaluate(node => getComputedStyle(node.closest("svg")!.parentElement!).overflow === "visible"), "Paused glow extends beyond the per-system clipping wrapper");
         assert(
           await page
-            .locator(".score-playhead rect")
+            .locator(".score-playhead > rect")
             .evaluateAll(
               (nodes) =>
                 nodes.length === 1 &&
-                nodes.every((node) => node.getBoundingClientRect().width >= 19),
+                nodes.every((node) => node.getBoundingClientRect().width >= 47 && getComputedStyle(node).stroke === "none"),
             ),
         );
+        await expect(page.locator(".score-playhead linearGradient stop").last()).toHaveAttribute("stop-opacity","0");
         assert(
           await page
             .locator(".sight-current .abcjs-notehead")

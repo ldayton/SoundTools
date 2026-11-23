@@ -201,7 +201,11 @@ and Melody limits helper text were removed. Key & range uses the same divider
 section heading as the other options.
 
 Chord diagrams have a play button beside their title. It previews the chord on
-piano for two seconds including release, and cancels on replay, close or unmount.
+piano for one second, then each tone from low to high for half a second. The
+guitar viewer uses the same sequence with its displayed fingering and capo. Both
+measure the actual sampled voicing offline and match preview RMS levels with
+peak headroom; song playback gains are unchanged. Previews cancel on replay,
+close, fingering changes or unmount.
 Highlighted key labels use dark text, with larger lettering on black keys.
 
 ## Human choir for the teacher melody

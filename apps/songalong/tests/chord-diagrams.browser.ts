@@ -20,6 +20,20 @@ try {
     ["iphone-14-pro", iphone14Pro],
   ] as const) {
     const page = await newPage(browser, { ...device, reducedMotion: "reduce" });
+    await page.addInitScript(() => {
+      (window as any).chordSamples=[];
+      const voices=new WeakMap<AudioBufferSourceNode,any>();
+      const start=AudioBufferSourceNode.prototype.start,stop=AudioBufferSourceNode.prototype.stop;
+      AudioBufferSourceNode.prototype.start=function(...args:Parameters<typeof start>){
+        if(this.context instanceof AudioContext && !this.loop){
+          const voice={when:args[0]||0,stop:0};voices.set(this,voice);(window as any).chordSamples.push(voice);
+        }
+        return start.apply(this,args);
+      };
+      AudioBufferSourceNode.prototype.stop=function(...args:Parameters<typeof stop>){
+        const voice=voices.get(this);if(voice)voice.stop=args[0]||0;return stop.apply(this,args);
+      };
+    });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     async function visit(id: string, query: string) {
@@ -68,6 +82,15 @@ try {
     await visit("ill-fly-away", "arrangement=guitar-chords&key=D");
     const d = await open("C");
     await shape([null, 3, 2, null, null, 0]);
+    await page.evaluate(()=>{(window as any).chordSamples=[];});
+    await page.getByRole("dialog").getByRole("button",{name:"Play C chord and breakdown",exact:true}).click();
+    await expect.poll(()=>page.evaluate(()=>(window as any).chordSamples.length)).toBe(6);
+    const played=await page.evaluate(()=>(window as any).chordSamples.map((voice:any)=>({start:voice.when-(window as any).chordSamples[0].when,duration:voice.stop-voice.when})));
+    expect(played.slice(0,3).map((note:any)=>note.start)).toEqual([0,0,0]);
+    expect(played.slice(3).map((note:any)=>Math.round(note.start*100)/100)).toEqual([1,1.5,2]);
+    expect(played.slice(0,3).every((note:any)=>Math.abs(note.duration-1.01)<.01)).toBe(true);
+    expect(played.slice(3).every((note:any)=>Math.abs(note.duration-.51)<.01)).toBe(true);
+
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toBeHidden();
     await expect(d).toBeFocused();

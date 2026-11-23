@@ -1,5 +1,7 @@
+import { useChordPreview } from "./use-chord-preview";
+import { guitarChordTones } from "./chord-preview";
 import { attachChordTriggers } from "./chord-triggers";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionIcon, Group, Modal, Stack, Text } from "@mantine/core";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { fingeringWindow, type ChordPassage } from "./chord-passage-fingering";
@@ -9,21 +11,34 @@ type Selection = Pick<ChordPassage, "name" | "shapes" | "capo"> & {
   descriptions?: string[];
 };
 export function showGuitarChordDiagram(selection: Selection) {
-  window.dispatchEvent(new CustomEvent<Selection>(eventName, {detail: selection}));
+  window.dispatchEvent(
+    new CustomEvent<Selection>(eventName, { detail: selection }),
+  );
 }
 /** Enlarge chord hit targets without changing engraving or passage selection. */
 export function attachChordDiagrams(
   paper: HTMLElement,
   passages: readonly ChordPassage[],
 ) {
-  attachChordTriggers(paper, passages, "guitar-chord-trigger", (passage, trigger) =>
-    showGuitarChordDiagram({ ...passage, trigger }),
+  attachChordTriggers(
+    paper,
+    passages,
+    "guitar-chord-trigger",
+    (passage, trigger) => showGuitarChordDiagram({ ...passage, trigger }),
   );
 }
 export function GuitarChordDiagram() {
   const [selected, setSelected] = useState<Selection | null>(null);
   const trigger = useRef<SVGElement | HTMLElement | null>(null);
   const [frame, setFrame] = useState(0);
+  const tones = useMemo(
+    () =>
+      selected
+        ? guitarChordTones(selected.shapes[frame] || [], selected.capo)
+        : [],
+    [selected, frame],
+  );
+  const preview = useChordPreview(tones, "guitar");
   useEffect(() => {
     const open = (event: Event) => {
       const next = (event as CustomEvent<Selection>).detail;
@@ -35,11 +50,9 @@ export function GuitarChordDiagram() {
     return () => window.removeEventListener(eventName, open);
   }, []);
   return (
-    <Modal
+    <Modal.Root
       opened={!!selected}
       onClose={() => setSelected(null)}
-      title={selected ? `${selected.name} chord` : ""}
-      closeButtonProps={{ "aria-label": "Close chord diagram" }}
       size={280}
       centered
       returnFocus={false}
@@ -48,43 +61,77 @@ export function GuitarChordDiagram() {
         trigger.current = null;
       }}
     >
-      {selected && (
-        <Stack gap="sm">
-          <Text size="sm" c="dimmed">
-            {selected.descriptions?.[frame] || "Written notes at this point in the passage."}
-            {selected.capo
-              ? ` Capo ${selected.capo}; frets are relative to the capo.`
-              : ""}
-          </Text>
-          <GuitarChordGraphic name={selected.name} shapes={selected.shapes} frame={frame} />
-          {selected.shapes.length > 1 && (
-            <Group justify="space-between">
+      <Modal.Overlay />
+      <Modal.Content>
+        <Modal.Header>
+          <Group gap="xs" wrap="nowrap">
+            <Modal.Title>
+              {selected ? `${selected.name} chord` : ""}
+            </Modal.Title>
+            {selected && (
               <ActionIcon
-                variant="default"
-                size={44}
-                aria-label="Previous fingering"
-                disabled={frame === 0}
-                onClick={() => setFrame((n) => n - 1)}
+                variant="subtle"
+                size={36}
+                loading={preview.loading}
+                aria-label={`Play ${selected.name} chord and breakdown`}
+                onClick={() => void preview.play()}
               >
-                <ControlIcon name="chevron-left" />
+                <ControlIcon name="play" />
               </ActionIcon>
-              <Text size="sm" aria-live="polite">
-                {frame + 1} / {selected.shapes.length}
+            )}
+          </Group>
+          <Modal.CloseButton aria-label="Close chord diagram" />
+        </Modal.Header>
+        <Modal.Body>
+          {selected && (
+            <Stack gap="sm">
+              {preview.error && (
+                <Text role="alert" size="sm" c="red">
+                  {preview.error}
+                </Text>
+              )}
+              <Text size="sm" c="dimmed">
+                {selected.descriptions?.[frame] ||
+                  "Written notes at this point in the passage."}
+                {selected.capo
+                  ? ` Capo ${selected.capo}; frets are relative to the capo.`
+                  : ""}
               </Text>
-              <ActionIcon
-                variant="default"
-                size={44}
-                aria-label="Next fingering"
-                disabled={frame === selected.shapes.length - 1}
-                onClick={() => setFrame((n) => n + 1)}
-              >
-                <ControlIcon name="chevron-right" />
-              </ActionIcon>
-            </Group>
+              <GuitarChordGraphic
+                name={selected.name}
+                shapes={selected.shapes}
+                frame={frame}
+              />
+              {selected.shapes.length > 1 && (
+                <Group justify="space-between">
+                  <ActionIcon
+                    variant="default"
+                    size={44}
+                    aria-label="Previous fingering"
+                    disabled={frame === 0}
+                    onClick={() => setFrame((n) => n - 1)}
+                  >
+                    <ControlIcon name="chevron-left" />
+                  </ActionIcon>
+                  <Text size="sm" aria-live="polite">
+                    {frame + 1} / {selected.shapes.length}
+                  </Text>
+                  <ActionIcon
+                    variant="default"
+                    size={44}
+                    aria-label="Next fingering"
+                    disabled={frame === selected.shapes.length - 1}
+                    onClick={() => setFrame((n) => n + 1)}
+                  >
+                    <ControlIcon name="chevron-right" />
+                  </ActionIcon>
+                </Group>
+              )}
+            </Stack>
           )}
-        </Stack>
-      )}
-    </Modal>
+        </Modal.Body>
+      </Modal.Content>
+    </Modal.Root>
   );
 }
 

@@ -25,12 +25,14 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
   await page.addInitScript(() => {
+    (window as any).chordPreviewAttacks = [];
     (window as any).organVoices = [];
     (window as any).choirVoices = [];
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (
       ...args: Parameters<typeof start>
     ) {
+      if (this.context instanceof AudioContext && !this.loop) (window as any).chordPreviewAttacks.push(args[0]||0);
       if (this.context instanceof AudioContext && this.loop)
         (window as any).organVoices.push({
           buffer: this.buffer,
@@ -245,6 +247,16 @@ try {
   await expect(page.getByRole("checkbox",{name:"Play Treble",exact:true})).toBeChecked();
   await showTab.uncheck();await expect(page.locator(".hymn-paper svg:visible")).toHaveCount(0);
   await showTreble.check();await expect(page.locator(".hymn-paper svg:visible").first()).toBeVisible();
+  await showChords.check();await dismissPracticeDrawer(page);
+  await page.getByRole("button",{name:/^Show .* chord diagram$/}).first().click();
+  const chordDialog=page.getByRole("dialog"),toneCount=await chordDialog.locator('[data-string]:not([data-fret="not-played"])').count();
+  await page.evaluate(()=>{(window as any).chordPreviewAttacks=[];});
+  await chordDialog.getByRole("button",{name:/^Play .* chord and breakdown$/}).click();
+  await page.waitForFunction(count=>(window as any).chordPreviewAttacks.length===count*2,toneCount);
+  const attacks=await page.evaluate(()=>(window as any).chordPreviewAttacks as number[]);
+  assert(attacks.slice(0,toneCount).every(time=>time===attacks[0]));
+  assert.deepEqual(attacks.slice(toneCount).map(time=>Math.round((time-attacks[0])*100)/100),Array.from({length:toneCount},(_,index)=>1+index*.5));
+  await chordDialog.getByRole("button",{name:"Close chord diagram",exact:true}).click();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: primary instrument radios, supported choices, keyboard exclusivity, saved selection and responsive toolbar",

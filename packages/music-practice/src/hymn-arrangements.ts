@@ -46,6 +46,7 @@ export function hymnArrangements(hymn: { id: string }): {id:Arrangement;label:st
   if(!edition)return [...ARRANGEMENTS];
   const profile=chordEdition(hymn);
   return [
+    ...(edition.original ? [{id:'original' as const,label:'Voice + Piano',help:'The supplied choir and organ score.'}] : []),
     {id:'piano' as const,label:'Piano',help:'Melody and bass arranged for two hands on a grand staff.'},
     {id:edition.guitarArrangement,label:'Guitar',help:profile
       ?`Fingerstyle melody with supporting bass and harmony, ${profile.capo?`with capo ${profile.capo}`:'without a capo'}.`

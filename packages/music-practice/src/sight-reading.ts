@@ -868,7 +868,8 @@ export class SightReading {
       this.acceptanceChanged();
     }
     this.presentation.set({ title: this.hymn.title });
-    const chordProfile = chordEdition(this.hymn);
+    const reviewed = hasInstrumentEditions(this.hymn) && this.arrangement !== "original";
+    const chordProfile = reviewed ? chordEdition(this.hymn) : undefined;
     this.body.patch({
       title: this.hymn.title,
       showStrumPattern: !!chordProfile && "strumPattern" in chordProfile && !!chordProfile.strumPattern &&
@@ -883,7 +884,7 @@ export class SightReading {
         ),
       arrangement: this.arrangement,
       noKey: false,
-      scoreLabel: hasInstrumentEditions(this.hymn)
+      scoreLabel: reviewed
         ? this.arrangement === "piano" ? "Piano score" : `Guitar score: ${this.scoreDisplay}`
         : this.arrangement !== "melody" && this.viewHands === "left"
           ? "Left-hand hymn score"
@@ -924,21 +925,21 @@ export class SightReading {
         staffScale: this.staffSpacing / 100,
         fingerings:
           this.showFingerings &&
-          (hasInstrumentEditions(this.hymn)
+          (reviewed
             ? (this.key === "original" || this.key === this.hymn.key) &&
               (this.arrangement === "piano" || this.octave === 0)
             : ["melody", "bass", "guitar"].includes(this.arrangement)),
-        beginnerEdition: hasInstrumentEditions(this.hymn)
+        beginnerEdition: reviewed
           ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
-        hymnEdition: chordEdition(this.hymn)?.id,
+        hymnEdition: this.arrangement !== "original" ? chordEdition(this.hymn)?.id : undefined,
         fromBar: score.from,
         lyrics: this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
           this.viewHands !== "left"
             ? {
-                hymn: this.hymn,
+                hymn: isGuitarArrangement(this.arrangement) && this.hands === "left" && chordProfile?.chordLyrics ? chordProfile.chordLyrics(this.hymn) : this.hymn,
                 selected: this.stanzas,
-                offset: hymnMelodyOffset(this.hymn, score.from),
+                offset: isGuitarArrangement(this.arrangement) && this.hands === "left" && chordProfile?.chordLyricOffset ? chordProfile.chordLyricOffset(this.hymn, score.from) : hymnMelodyOffset(this.hymn, score.from),
                 skipChordTies: this.arrangement === "guitar" || this.arrangement === "guitar-chords",
               }
             : undefined,
@@ -952,7 +953,7 @@ export class SightReading {
         octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
           !(this.arrangement === "original" && this.hymn.source === "user-supplied-score"),
         printedScore: this.arrangement === "original" && this.hymn.source === "user-supplied-score",
-        initialSignatures: !hasInstrumentEditions(this.hymn),
+        initialSignatures: !hasInstrumentEditions(this.hymn) || this.arrangement === "original",
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
         hiddenStaves: this.mode === "playback" ? this.effectiveStaves(this.hiddenStaves) : undefined,
@@ -1027,11 +1028,11 @@ export class SightReading {
           {
             transpose: transposition.semitones,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
-            hymnEdition: chordEdition(this.hymn)?.id,
+            hymnEdition: this.arrangement !== "original" ? chordEdition(this.hymn)?.id : undefined,
             octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
               !(this.arrangement === "original" && this.hymn.source === "user-supplied-score"),
             printedScore: this.arrangement === "original" && this.hymn.source === "user-supplied-score",
-            initialSignatures: !hasInstrumentEditions(this.hymn),
+            initialSignatures: !hasInstrumentEditions(this.hymn) || this.arrangement === "original",
             reattackTies: this.reattackTies,
             playback: () => {},
           },
@@ -1377,7 +1378,7 @@ export class SightReading {
     const identity = `${this.hymn.id}:${this.arrangement}`;
     let range = this.rangeCache.get(identity);
     if (!range) {
-      range = hymnPitchRange(arrangeHymn(this.hymn, chordEdition(this.hymn) ? "piano" : "melody", 0, 0, "right").abc);
+      range = hymnPitchRange(arrangeHymn(this.hymn, chordEdition(this.hymn) && this.arrangement !== "original" ? "piano" : "melody", 0, 0, "right").abc);
       this.rangeCache.set(identity, range);
     }
     return range;

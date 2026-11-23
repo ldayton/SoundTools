@@ -68,8 +68,8 @@ export function HymnOptions({
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
-  const editions = hasInstrumentEditions({ id: state.hymn });
-  const profile=chordEdition({id:state.hymn});
+  const editions = hasInstrumentEditions({ id: state.hymn }) && state.arrangement !== "original";
+  const profile=editions ? chordEdition({id:state.hymn}) : undefined;
   const arrangements = hymnInstrumentArrangements({id:state.hymn}, hymnInstrument(state.arrangement));
   const keys = [
     {
@@ -601,7 +601,7 @@ export function HymnFingerings({
     getInitialValueInEffect: false,
   });
   if (state.arrangement === "guitar-chords" || state.arrangement === "guitar-edition" && ["tab", "chords"].includes(state.scoreDisplay)) return null;
-  const editions = hasInstrumentEditions({id:state.hymn});
+  const editions = hasInstrumentEditions({id:state.hymn}) && state.arrangement !== "original";
   const reviewed = (state.key === "original" || state.key === state.originalKey) &&
     (state.arrangement === "piano" || state.octave === 0);
   const checkbox = (

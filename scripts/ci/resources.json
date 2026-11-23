@@ -1942,5 +1942,25 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-2-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4615
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/in-christ-alone-2-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

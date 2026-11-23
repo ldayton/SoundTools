@@ -15,6 +15,12 @@ export const editionGuides: Record<ChordEditionId, EditionGuide> = {
     strum:
       "Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1.",
   },
+  "in-christ-alone-2": {
+    meter: "Teacher arrangement in D major, 3/4. The pickup and final bar each last one and a half beats. Each written pass has 60 beats, including the printed organ interlude; all four verses share this ending.",
+    piano: "Keep the teacher’s melody and rests. Shift for high D and C♯, then follow the upper organ line through the interlude. Left-hand chords stay below the melody.",
+    guitar: "Capo 2. Positions I, III and VII match the existing edition. An open E bass under C/E frees the high C–B leap. During the interlude, keep the C bass light while the melody moves on the D string.",
+    strum: "Small F uses strings 4–1. C/E adds the open low E. Dm is xx0231; G7 is 320001. Chord accompaniment follows the teacher’s changes and ending.",
+  },
   "amazing-grace": {
     meter:
       "G major, 3/4. The pickup lasts one beat; the final bar has two beats. Each verse uses the same melody and ending.",

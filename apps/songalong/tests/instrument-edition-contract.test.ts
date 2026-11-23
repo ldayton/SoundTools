@@ -109,21 +109,21 @@ for (const [id, expected] of Object.entries(musicalBaseline))
 test("one registry supplies instrument choices, capo help and renderer capabilities", () => {
   assert.deepEqual(
     [...instrumentEditionIds].sort(),
-    Object.keys(musicalBaseline).sort(),
+    [...Object.keys(musicalBaseline),"in-christ-alone-2"].sort(),
   );
   for (const id of instrumentEditionIds) {
     const hymn = hymns.find((h) => h.id === id)!,
       edition = instrumentEdition(hymn)!;
     assert.deepEqual(
       hymnArrangements(hymn).map((a) => a.id),
-      ["piano", edition.guitarArrangement],
+      [...(edition.original ? ["original"] : []), "piano", edition.guitarArrangement],
     );
     const profile = chordEdition(hymn);
     if (!profile) continue;
     assert(Object.values(profile.guide).every((text) => text.trim().length));
     assert.equal(Number.isInteger(profile.capo), true);
     if (profile.capo)
-      assert(hymnArrangements(hymn)[1].help.includes(`capo ${profile.capo}`));
+      assert(hymnArrangements(hymn).find(a=>a.id===edition.guitarArrangement)!.help.includes(`capo ${profile.capo}`));
     if (profile.layout.mode === "pickup-attached")
       assert.equal(profile.layout.totalBars, hymnBarCount(hymn));
   }

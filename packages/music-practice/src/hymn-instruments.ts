@@ -1,6 +1,7 @@
 import hymns from "./hymns.json";
 import {
   hymnArrangements,
+  hasInstrumentEditions,
   isGuitarArrangement,
   type Arrangement,
 } from "./hymn-arrangements";
@@ -27,7 +28,7 @@ export function hymnInstrumentArrangements(
   return hymnArrangements(hymn).filter(
     (arrangement) =>
       hymnInstrument(arrangement.id) === instrument &&
-      (!printedScore || instrument === "sung"),
+      (!printedScore || hasInstrumentEditions(hymn) || instrument === "sung"),
   );
 }
 export function hymnAvailableArrangements(hymn: { id: string }) {

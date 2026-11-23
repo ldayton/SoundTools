@@ -39,24 +39,17 @@ test("all songs expose the same ordered primary instruments with explicit arrang
   for (const id of instrumentEditionIds) {
     assert.equal(hymnInstrumentArrangements({ id }, "piano").length, 1, id);
     assert.equal(hymnInstrumentArrangements({ id }, "guitar").length, 1, id);
-    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, 0, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, id === "in-christ-alone-2" ? 1 : 0, id);
   }
 });
-test("the teacher choir/organ arrangement is Voice + Piano, without invented instrumental editions", () => {
-  const hymn = { id: "in-christ-alone-2" };
-  assert.deepEqual(hymnInstrumentArrangements(hymn, "piano"), []);
-  assert.deepEqual(hymnInstrumentArrangements(hymn, "guitar"), []);
-  assert.equal(selectHymnInstrument(hymn, "original", "piano"), undefined);
-  for (const input of [
-    {},
-    { arrangement: "melody" },
-    { chords: false },
-    { chords: true },
-  ]) {
-    const settings = hymnPreferences(hymn.id, input);
-    assert.equal(settings.arrangement, "original");
-    assert.equal(hymnInstrument(settings.arrangement), "sung");
-  }
+test("teacher score keeps Voice + Piano as default alongside adapted instrumental editions", () => {
+  const hymn = {id:"in-christ-alone-2"};
+  assert.equal(hymnPreferences(hymn.id).arrangement,"original");
+  assert.equal(hymnPreferences(hymn.id,{arrangement:"original"}).arrangement,"original");
+  assert.equal(hymnPreferences(hymn.id,{arrangement:"melody"}).arrangement,"piano");
+  assert.equal(selectHymnInstrument(hymn,"original","piano"),"piano");
+  assert.equal(selectHymnInstrument(hymn,"piano","guitar"),"guitar-edition");
+  assert.equal(selectHymnInstrument(hymn,"guitar-edition","sung"),"original");
 });
 test("instrument switching is exclusive, preserves an eligible arrangement, and keeps old deep links meaningful", () => {
   assert.equal(selectHymnInstrument(stagedHymn, "chords", "piano"), "chords");

@@ -1,3 +1,10 @@
+import {
+  teacherInstrumentAbc,
+  teacherFingers,
+  teacherGuitarPosition,
+  teacherChordLyrics,
+  teacherChordOffset,
+} from "./in-christ-alone-teacher";
 import type { Hymn, HymnHands } from "./hymn-arrangements";
 import type { BeginnerInstrument } from "./beginner-score";
 import { bluesPianoAbc, bluesLandmarks } from "./fingerstyle-blues";
@@ -44,6 +51,9 @@ type BuildContext = {
 };
 export type InstrumentEdition = {
   id: string;
+  original?: boolean;
+  chordLyrics?: (hymn: Hymn) => import("./hymn-lyrics").HymnLyricData;
+  chordLyricOffset?: (hymn: Hymn, bar: number) => number;
   guitarArrangement: "guitar-edition" | "guitar-fingerstyle";
   guitarNotation: "written" | "sounding";
   guitarKey?: string;
@@ -55,6 +65,7 @@ export type InstrumentEdition = {
   landmarks?: (abc: string, from: number, guitar: boolean) => string;
 };
 export type ChordEditionId =
+  | "in-christ-alone-2"
   | "in-christ-alone"
   | "amazing-grace"
   | "ill-fly-away"
@@ -118,6 +129,29 @@ const recipes: Record<ChordEditionId, Recipe> = {
           : christFingerstyleAbc(hymn, hands === "right")
         : christPianoAbc(hymn.harmony),
     landmarks: christLandmarks,
+  },
+  "in-christ-alone-2": {
+    original: true,
+    chordLyrics: teacherChordLyrics,
+    chordLyricOffset: (hymn, bar) => teacherChordOffset(hymn.harmony, bar),
+    capo: 2,
+    pickup: true,
+    tempo: 80,
+    shapes: "C, small F, G, C/E, Am, Dm and G7",
+    guitarKey: "C",
+    layout: { mode: "balanced" },
+    fingers: teacherFingers,
+    position: teacherGuitarPosition,
+    build: ({ hymn, instrument, hands }) => {
+      const abc = teacherInstrumentAbc(
+        hymn, instrument, instrument === "guitar" ? hands : "both",
+      );
+      return instrument === "guitar" && hands === "left"
+        ? hymnLyricsAbc(abc, {
+            hymn: teacherChordLyrics(hymn), selected: [1], offset: 0,
+          })
+        : abc;
+    },
   },
   "amazing-grace": {
     capo: 0,

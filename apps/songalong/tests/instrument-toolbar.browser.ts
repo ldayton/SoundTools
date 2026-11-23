@@ -139,10 +139,10 @@ try {
   ).toHaveAttribute("aria-checked", "true");
   await expect(
     page.getByRole("radio", { name: "Piano", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(
     page.getByRole("radio", { name: "Guitar", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   const slash = page
     .getByRole("button", { name: /Show D\/F[♯#] chord diagram/ })
     .first();

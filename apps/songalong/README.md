@@ -225,3 +225,22 @@ Rebuild with `python3 packages/music-practice/scripts/build-songalong-choir.py
 hash and applies the upstream SFZ's 80 ms sample offset before conversion.
 Source: https://github.com/thepok/epic-choir
 Original voices: https://doi.org/10.5281/zenodo.1442513
+
+## Teacher-based In Christ Alone instrumental editions
+
+`in-christ-alone-2` retains its original Voice + Piano score and now also offers
+Piano and Guitar editions. Both follow the printed vocal melody, including rests
+and dotted rhythms, and carry the organ’s upper line through the instrumental
+ending. The pickup and final half-bar complete a 60-beat written pass; the
+printed repeat remains. All four verses use that form, without the older vocal coda.
+
+Piano uses compact left-hand voicings for the teacher’s D/F♯, Bm and Em changes.
+Guitar reuses the existing capo-2 C-family shapes and position/fingering helpers,
+with C/E, Dm and G7 for the fuller harmony. The interlude follows the printed A7
+and fifth-bass motion back to D. Melody, fingerstyle, strummed accompaniment,
+passages, transposition and the staff playback controls use the shared edition
+pipeline. The older `in-christ-alone` song remains unchanged.
+
+Exact music and physical string choices are covered by
+`tests/in-christ-alone-2-editions.test.ts`; responsive rendering, instrument
+switching and saved choices are covered by the corresponding Nightly browser test.

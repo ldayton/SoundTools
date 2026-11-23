@@ -84,9 +84,10 @@ export function mergeHymnSettings(
   const available = hymnAvailableArrangements(hymn).map(a => a.id);
   const requested = s.arrangement ?? base.arrangement;
   const arrangement = hasInstrumentEditions(hymn)
-    ? requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
+    ? requested === "original" && available.includes("original") ? "original" : requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
       ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
+  const reviewed = hasInstrumentEditions(hymn) && arrangement !== "original";
   const changedStaffLayout =
     (s.arrangement !== undefined && s.arrangement !== base.arrangement) ||
     (s.viewHands !== undefined && s.viewHands !== base.viewHands);
@@ -122,8 +123,8 @@ export function mergeHymnSettings(
               : base.loopCountIn || false,
         }
       : {}),
-    viewHands: hasInstrumentEditions(hymn) ? "both" : viewHands,
-    hands: hasInstrumentEditions(hymn)
+    viewHands: reviewed ? "both" : viewHands,
+    hands: reviewed
       ? choice(s.hands, ["right", "left", "both"] as const, base.hands || "both")
       : hands,
     ...("reattackTies" in s || "reattackTies" in base

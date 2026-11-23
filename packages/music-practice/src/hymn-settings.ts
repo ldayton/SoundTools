@@ -186,6 +186,7 @@ export function hymnSettingsFromQuery(
 
 /** Right-sidebar settings belong to one hymn, with independent defaults. */
 export function hymnPreferences(hymn: string, input: unknown = {}) {
+  const entry = hymns.find((entry) => entry.id === hymn);
   const base: HymnSettings = {
     hymn,
     mode: "wait",
@@ -195,7 +196,9 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
     key: "original",
     low: null,
     high: null,
-    arrangement: "melody",
+    arrangement:
+      entry && "defaultArrangement" in entry && entry.defaultArrangement === "original"
+        ? "original" : "melody",
     hands: "both",
     viewHands: "both",
     reattackTies: false,
@@ -206,7 +209,11 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
   };
   const raw = object(input);
   return {
-    ...mergeHymnSettings(base, { ...raw, hymn }),
+    ...mergeHymnSettings(base, {
+      ...(!("arrangement" in raw) && !("chords" in raw) ? { arrangement: base.arrangement } : {}),
+      ...raw,
+      hymn,
+    }),
     zoom: validHymnZoom(raw.zoom) ? (raw.zoom as number) : 1,
   };
 }

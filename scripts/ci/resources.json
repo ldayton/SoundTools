@@ -1902,5 +1902,25 @@
         "cwd": "apps/notewise"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-2-score.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4611
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/in-christ-alone-2-score.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

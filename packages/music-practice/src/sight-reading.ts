@@ -1,3 +1,4 @@
+import { printedHymnSource } from "./hymn-source";
 import {chordEdition} from "./chord-editions";
 import { validStanzas, hymnEndingBar } from "./hymn-lyrics";
 import { RendererLifetime } from "./renderer-lifetime";
@@ -925,7 +926,9 @@ export class SightReading {
         tabOnly: isEditedGuitar(this.arrangement) && this.scoreDisplay === "tab",
         chordTab: this.arrangement === "guitar-chords",
         chordsOnly: this.arrangement === "guitar-edition" && this.scoreDisplay === "chords",
-        octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement),
+        octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
+          !(this.arrangement === "original" && this.hymn.source === "user-supplied-score"),
+        printedScore: this.arrangement === "original" && this.hymn.source === "user-supplied-score",
         initialSignatures: !hasInstrumentEditions(this.hymn),
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
@@ -1000,7 +1003,9 @@ export class SightReading {
             transpose: transposition.semitones,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
             hymnEdition: chordEdition(this.hymn)?.id,
-            octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement),
+            octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
+              !(this.arrangement === "original" && this.hymn.source === "user-supplied-score"),
+            printedScore: this.arrangement === "original" && this.hymn.source === "user-supplied-score",
             initialSignatures: !hasInstrumentEditions(this.hymn),
             reattackTies: this.reattackTies,
             playback: () => {},
@@ -1132,6 +1137,7 @@ export class SightReading {
   private optionsSnapshot(): HymnOptionsSnapshot {
     const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
     const supplied = this.hymn.source === "user-supplied";
+    const printed = this.hymn.source === "user-supplied-score";
     return {
       hymn: this.hymn.id,
       favorites: { ...this.progress.favorites },
@@ -1170,13 +1176,13 @@ export class SightReading {
         referenceUrl:
           "referenceUrl" in this.hymn ? this.hymn.referenceUrl! : null,
         credits: this.hymn.credits.join(" "),
-        url: tabMusic || supplied
+        url: printed ? printedHymnSource(this.hymn.file) : tabMusic || supplied
           ? this.hymn.sourceUrl!
           : "https://github.com/mzealey/openhymnal/blob/d35811b2d5c9b0bbc5887d60a2936454815416e8/Complete/" +
             encodeURIComponent(this.hymn.folder) +
             "/" +
             encodeURIComponent(this.hymn.file),
-        label: supplied ? "GuitarNick source" : tabMusic ? "Tab music source" : "Open Hymnal source",
+        label: printed ? "Transcribed printed score" : supplied ? "GuitarNick source" : tabMusic ? "Tab music source" : "Open Hymnal source",
       },
     };
   }

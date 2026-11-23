@@ -48,7 +48,7 @@ test("screen chords allow sequential entry, saved positions are validated, and s
   assert.deepEqual(searchHymns(hymns, ""), hymns);
 });
 test("all imported melodies preserve soprano pitch, rhythm, rests, ties, and every lyric slot from their harmonized sources", () => {
-  assert.equal(hymns.length, 23);
+  assert.equal(hymns.length, 24);
   const notes = (source: string) =>
     abcjs
       .parseOnly(source)[0]
@@ -74,7 +74,7 @@ test("all imported melodies preserve soprano pitch, rhythm, rests, ties, and eve
   for (const hymn of hymns) {
     assert.match(
       hymn.credits.join(" "),
-      "source" in hymn && ["tab-music", "user-supplied"].includes(hymn.source)
+      "source" in hymn && ["tab-music", "user-supplied", "user-supplied-score"].includes(hymn.source)
         ? /copyright: Rights remain with/
         : /copyright: public domain/,
     );

@@ -73,7 +73,7 @@ function voices(hymn: Hymn): Voice[] {
       staff.voices?.forEach((voice, vi) => {
         const key = `${si}:${vi}`;
         const part = parts.get(key) || {
-          clef: si ? "bass" : "treble",
+          clef: staff.clef?.type?.startsWith("bass") ? "bass" : "treble",
           items: [],
         };
         part.items.push(...voice.map(item => item.el_type === "note" ? {...item, clefOctaveOffset: staff.clef?.type === "treble-8" ? -12 : 0} : item));

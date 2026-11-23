@@ -18,6 +18,15 @@
     "referenceDetails": "D major, 67 BPM"
   },
   {
+    "id": "in-christ-alone-2",
+    "title": "In Christ Alone 2",
+    "file": "in-christ-alone-2.abc",
+    "folder": "in-christ-alone-2",
+    "source": "user-supplied-score",
+    "sourceDetails": "Printed choir and organ teacher arrangement transcribed from two user-supplied photographs, 23 November 2026; pencil annotations excluded.",
+    "defaultArrangement": "original"
+  },
+  {
     "id": "jesus-loves-me",
     "title": "Jesus Loves Me",
     "file": "Jesus_Loves_Me-untitled.abc",

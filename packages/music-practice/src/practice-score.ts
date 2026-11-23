@@ -87,6 +87,7 @@ export function drawPracticeScore(
     rhythmGrid?: boolean;
     reattackTies?: boolean;
     octaveNotation?: boolean;
+    printedScore?: boolean;
     initialSignatures?: boolean;
     playback?: (audio: AudioTracks) => void;
   } = {},
@@ -356,6 +357,19 @@ export function drawPracticeScore(
           "viewBox",
           `${box.x} ${top} ${box.width} ${bottom - top}`,
         );
+      }
+    }
+    if (options.printedScore) {
+      // A narrow choir/organ system can exceed abcjs's requested staff width.
+      // Fit all printed ink rather than cropping a pickup or its lyric rows.
+      const ink = svg.getBBox();
+      if (ink.width && ink.height) {
+        const box = svg.viewBox.baseVal;
+        const left = Math.min(box.x, ink.x - 8);
+        const right = Math.max(box.x + box.width, ink.x + ink.width + 8);
+        const top = Math.min(box.y, ink.y - 8);
+        const bottom = Math.max(box.y + box.height, ink.y + ink.height + 8);
+        svg.setAttribute("viewBox", `${left} ${top} ${right - left} ${bottom - top}`);
       }
     }
     const box = svg.viewBox.baseVal;

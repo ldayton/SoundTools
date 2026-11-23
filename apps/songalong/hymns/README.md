@@ -91,3 +91,33 @@ chunks are derived from the melody timing for all three existing verses; the
 last verse retains its shorter ending. Piano hands can be practised separately;
 the single guitar accompaniment has no fictitious melody/bass practice voices.
 The existing author credits are retained.
+
+## In Christ Alone 2 — teacher's printed choir and organ score
+
+`in-christ-alone-2.abc` is a separate transcription of the two photographs supplied
+on 23 November 2026. It does not replace or adapt the existing In Christ Alone
+edition. Only printed material is transcribed: E-flat major, 3/4, “Steadily,”
+choir plus a two-staff organ part, four complete printed verses, 21 numbered
+measures, inner-voice ties, the organ interlude and the final repeat. Pencil
+chord letters, corrections and circles are excluded. The score prints no numeric
+tempo; the app's adjustable 80 BPM starting tempo is not a source marking.
+
+The opening and final measures each last three eighth notes; a single written
+pass lasts 60 quarter-note beats. The printed repeat remains in the source and
+is interpreted normally by playback. The choir finishes in bar 17 while the
+organ continues through bar 21. The organ's half-note harmony under the moving
+line in bar 18 uses an additional voice on the same treble staff. All four lyric
+rows come from these photographs, including the second verse and the printed
+“There in the ground” opening; there is no added “Oh” refrain.
+
+The song opens on Original harmony to show the supplied three-staff arrangement.
+The About this song link downloads the bundled transcription and remains valid
+offline. This user-supplied arrangement is not an Open Hymnal/public-domain source;
+song rights remain with their respective holders. No guitar edition is inferred.
+
+Independent photo-derived MIDI pitch/duration expectations are owned by
+`in-christ-alone-2-score.test.ts` in CI's SongAlong unit group. The focused
+transcription/browser witness belongs to Nightly's SongAlong core group; the
+catalog partitions also include the new song automatically. This adds no
+exhaustive browser work to the bounded CI lane. The actual-clef hand-selection
+regression is included in the same unit owner.

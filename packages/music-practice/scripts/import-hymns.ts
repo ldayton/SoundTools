@@ -14,7 +14,9 @@ const curated = JSON.parse(
   folder: string;
   aliases?: string[];
   feel?: "swing";
-  source?: "tab-music" | "user-supplied";
+  source?: "tab-music" | "user-supplied" | "user-supplied-score";
+  sourceDetails?: string;
+  defaultArrangement?: "original";
   sourceUrl?: string;
   referenceUrl?: string;
   referenceDetails?: string;
@@ -108,7 +110,8 @@ function stanzaData(source: string, id: string) {
       }))
     : rows.map((syllables) => ({
         endingBar: null,
-        label: plain(syllables).split(/\s+/).slice(0, 8).join(" ") || "Instrumental",
+        label:
+          plain(syllables).split(/\s+/).slice(0, 8).join(" ") || "Instrumental",
         syllables,
       }));
   for (const stanza of stanzas)
@@ -154,9 +157,19 @@ const library = curated.map((entry) => {
   } else if (entry.source === "user-supplied") {
     if (
       !entry.sourceUrl?.startsWith("https://") ||
-      !/^% Transcribed from user-supplied score and tablature\.$/m.test(source) ||
+      !/^% Transcribed from user-supplied score and tablature\.$/m.test(
+        source,
+      ) ||
       !/^C: copyright: Rights remain with /m.test(source)
-    ) throw Error("Missing user-supplied provenance: " + entry.id);
+    )
+      throw Error("Missing user-supplied provenance: " + entry.id);
+  } else if (entry.source === "user-supplied-score") {
+    if (
+      !entry.sourceDetails?.trim() ||
+      !/^% Transcribed from user-supplied printed score\.$/m.test(source) ||
+      !/^C: copyright: Rights remain with /m.test(source)
+    )
+      throw Error("Missing printed-score provenance: " + entry.id);
   } else if (!/^C: copyright: public domain\./im.test(source))
     throw Error("Uncleared score: " + entry.id);
   const clean = cleanSource(source);
@@ -252,7 +265,11 @@ const library = curated.map((entry) => {
       .split("\n")
       .filter((l) => /^C: (Words:|Music:|Tabledited by |copyright:)/.test(l))
       .map((l) => l.slice(3)),
-    sourceUrl: entry.sourceUrl || "https://openhymnal.org/Abc/" + entry.file,
+    sourceUrl:
+      entry.sourceUrl ||
+      (entry.source === "user-supplied-score"
+        ? ""
+        : "https://openhymnal.org/Abc/" + entry.file),
     melody,
     harmony: clean,
   };

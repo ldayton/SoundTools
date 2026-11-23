@@ -15,13 +15,17 @@ try {
  await page.goto(server.base+'/guitar/scales?key=C&scale=major&pattern=1&position=0&link=5');
  await waitForApp(page,'.scale-diagram svg');
  await page.locator('.scale-shift-candidate').first().waitFor();
- await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).click();
+ assert.equal(await page.locator('.scale-chord-connection').count(),0,'collapsed linked shapes have no chord contours');
+ await page.getByRole('button',{name:'Show chord shape',exact:true}).click();
  await page.getByRole('region',{name:'Chord shape diagram',exact:true}).waitFor({state:'visible'});
+ assert.equal(await page.locator('.scale-chord-connection').count(),2,'expanded linked shapes have separate chord contours');
  assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('C major · E shape'));
  await page.getByRole('button',{name:'Next fingering',exact:true}).click();
  assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('C major · G shape'));
  await page.getByRole('button',{name:'Close chord diagram',exact:true}).click();
  await page.getByRole('region',{name:'Chord shape diagram',exact:true}).waitFor({state:'hidden'});
+ assert.equal(await page.locator('.scale-chord-connection').count(),0);
+ assert.equal(await page.locator('.scale-chord-tone').count(),0);
  assert.equal(await page.locator('.scale-diagram svg').count(),1);
  const originalColors = await page.locator('.scale-tone').evaluateAll(notes => Object.fromEntries(notes.map(n => [`${n.getAttribute('data-string')}:${n.getAttribute('data-fret')}`, getComputedStyle(n.querySelector('circle')!).fill])));
  const originalNotes = await page.locator('.scale-tone').evaluateAll(notes => notes.map(n => `${n.getAttribute('data-string')}:${n.getAttribute('data-fret')}`).sort());

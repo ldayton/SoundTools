@@ -20,7 +20,7 @@ try{
   await page.locator('#scale-quality').selectOption(quality);
   await expect(page.locator('#scale-pattern')).toHaveCount(0);
   await expect(page.locator('#scale-linked-pattern')).toHaveCount(0);
-  await expect(page.getByRole('button',{name:'Show chord shape diagram',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Show chord shape',exact:true})).toHaveCount(0);
   await expect(page.locator('.scale-relative-switch')).toHaveCount(0);
   await expect(page.locator('.scale-maqam-reference')).toContainText('Fretted reference');
   await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://www.maqamworld.com/en/maqam/${quality}.php`);

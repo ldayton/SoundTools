@@ -19,6 +19,7 @@ try {
   await expect(page.locator(".scale-pattern-caption")).toHaveText("Seven-position major · Shape 1");
   await expect(page.getByText("Shapes supplied by Hila Bar.", {exact:true})).toHaveCount(1);
   await expect(page.locator(".scale-chord-tone")).toHaveCount(0);
+  await expect(page.locator(".scale-chord-connection")).toHaveCount(0);
   const tones = page.locator(".scale-diagram .scale-tone");
   await expect(tones).toHaveCount(17);
   await openPracticeOptions(page);
@@ -57,14 +58,16 @@ try {
   await page.locator("#scale-pattern").selectOption("4");
   for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"]){
     await page.locator("#scale-quality").selectOption(quality);
-    await expect(page.locator(".scale-chord-tone")).toHaveCount(5);
-    const trigger=page.getByRole('button',{name:'Show chord shape diagram',exact:true});
+    await expect(page.locator(".scale-chord-tone")).toHaveCount(0);
+    const trigger=page.getByRole('button',{name:'Show chord shape',exact:true});
     await expect(trigger).toHaveAttribute('aria-expanded','false');
     await trigger.focus();
     await page.keyboard.press('Enter');
     const dialog=page.getByRole('region',{name:'Chord shape diagram',exact:true});
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(dialog).toBeVisible();
+    await expect(page.locator(".scale-chord-tone")).toHaveCount(5);
+    await expect(page.locator(".scale-chord-connection")).toHaveCount(1);
     expect(await dialog.locator('svg text').allTextContents()).not.toContain('e');
     await expect(dialog).toContainText(quality.startsWith('major')?'D major · A shape':'D minor · Am shape');
     expect(await dialog.locator('svg g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual(await page.locator('.scale-chord-tone').evaluateAll(es=>es.map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort()));
@@ -83,10 +86,15 @@ try {
     }
     await dialog.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
     await expect(dialog.locator('svg')).toHaveAttribute('data-orientation','vertical');
+    expect(await page.locator('.scale-chord-tone circle').first().evaluate(e=>{
+      const style=getComputedStyle(e);
+      return {stroke:style.stroke,width:style.strokeWidth,dashes:style.strokeDasharray.split(/[, ]+/).map(Number.parseFloat),cap:style.strokeLinecap};
+    })).toEqual({stroke:'rgb(255, 255, 255)',width:'4px',dashes:[0.1,6],cap:'round'});
     await page.getByRole('button',{name:'Close chord diagram',exact:true}).click();
     await expect(dialog).toBeHidden();
     await expect(trigger).toBeFocused();
-    expect(await page.locator('.scale-chord-tone circle').first().evaluate(e=>getComputedStyle(e).strokeWidth)).toBe('2.5px');
+    await expect(page.locator(".scale-chord-tone")).toHaveCount(0);
+    await expect(page.locator(".scale-chord-connection")).toHaveCount(0);
     const names=(quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`);
     await expect(page.locator("#scale-pattern option")).toHaveText(["Fret range",...names]);
     await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
@@ -97,7 +105,7 @@ try {
     await page.locator('#scale-quality').selectOption(quality);
     for(const [index,name] of ['E','D','C','A','G'].entries()){
       await page.locator('#scale-pattern').selectOption(String(index+1));
-      await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).click();
+      await page.getByRole('button',{name:'Show chord shape',exact:true}).click();
       const panel=page.getByRole('region',{name:'Chord shape diagram',exact:true});
       await expect(panel).toContainText(`D ${quality} · ${name}${quality==='minor'?'m':''} shape`);
       expect(await panel.locator('g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual(await page.locator('.scale-chord-tone').evaluateAll(es=>es.map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort()));
@@ -132,10 +140,20 @@ try {
   // The six sounding strings of an E-form A chord use four fingers, one barred.
   await page.goto(server.base+'/guitar/scales?key=A&scale=major&set=standard&pattern=1');
   await waitForApp(page,'.scale-diagram svg');
-  const chordTrigger=page.getByRole('button',{name:'Show chord shape diagram',exact:true});
-  await chordTrigger.click();
+  const chordTrigger=page.getByRole('button',{name:'Show chord shape',exact:true});
   const chordPanel=page.getByRole('region',{name:'Chord shape diagram',exact:true});
-  await expect(chordPanel).toBeVisible();
+  async function chordState(open:boolean, target=page) {
+    const toggle=target.getByRole('button',{name:open?'Hide chord shape':'Show chord shape',exact:true});
+    await expect(toggle).toHaveAttribute('aria-expanded',String(open));
+    await expect(target.getByRole('region',{name:'Chord shape diagram',exact:true})).toHaveCount(open?1:0);
+    await expect(target.locator('.scale-chord-tone')).toHaveCount(open?6:0);
+    await expect(target.locator('.scale-chord-connection')).toHaveCount(open?1:0);
+    if(!open)expect(await target.locator('.scale-tone circle').evaluateAll(es=>es.every(e=>getComputedStyle(e).strokeDasharray==='none'))).toBe(true);
+  }
+  await chordState(false);
+  await expect(page.locator('.scale-link-legend > span')).toHaveText(['Root']);
+  await chordTrigger.click();
+  await chordState(true);
   await expect(chordPanel.locator('svg')).toHaveAttribute('data-orientation','horizontal');
   expect(await chordPanel.locator('g[data-string]').evaluateAll(es=>es.map(e=>[Number(e.getAttribute('data-fret')),Number(e.getAttribute('data-finger'))]))).toEqual([[5,1],[7,3],[7,4],[6,2],[5,1],[5,1]]);
   await expect(chordPanel.locator('[data-finger-barre]')).toHaveCount(1);
@@ -143,19 +161,53 @@ try {
   await expect(chordPanel.locator('[data-finger-barre]')).toHaveAttribute('data-from-string','6');
   await expect(chordPanel.locator('[data-finger-barre]')).toHaveAttribute('data-to-string','1');
   await expect(chordPanel.locator('.chord-finger')).toHaveText(['1','3','4','2','1','1']);
-  await expect(chordPanel).toContainText('one finger across several strings');
-  await expect(chordPanel).toContainText('Open E major moved up 5 frets.');
+  const gripPoints=await chordPanel.locator('g[data-string]').evaluateAll(es=>es.map(e=>{
+    const c=e.querySelector('circle')!;return [Number(c.getAttribute('cx')),Number(c.getAttribute('cy'))];
+  }));
+  const connection=chordPanel.locator('.chord-shape-connection');
+  await expect(connection).toHaveCount(1);
+  expect((await connection.getAttribute('points'))!.split(' ').map(p=>p.split(',').map(Number))).toEqual(gripPoints);
+  const scaleConnection=page.locator('.scale-chord-connection');
+  await expect(scaleConnection).toHaveCount(1);
+  const scalePoints=await page.locator('.scale-chord-tone').evaluateAll(es=>es
+    .sort((a,b)=>Number(b.getAttribute('data-string'))-Number(a.getAttribute('data-string')))
+    .map(e=>{const c=e.querySelector('circle')!;return [Number(c.getAttribute('cx')),Number(c.getAttribute('cy'))];}));
+  expect((await scaleConnection.getAttribute('points'))!.split(' ').map(p=>p.split(',').map(Number))).toEqual(scalePoints);
+
   await page.screenshot({path:'/tmp/notewise-chord-clarity-desktop.png',fullPage:true});
-  await page.setViewportSize({width:390,height:844});
-  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  await page.screenshot({path:'/tmp/notewise-chord-clarity-mobile.png',fullPage:true});
+  await page.getByRole('button',{name:'Hide chord shape',exact:true}).click();
+  await chordState(false);
+  await page.screenshot({path:'/tmp/notewise-chord-collapsed-desktop.png',fullPage:true});
+  await chordTrigger.click();
+  await chordState(true);
   await chordPanel.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
   await expect(chordPanel.locator('svg')).toHaveAttribute('data-orientation','vertical');
+  expect((await connection.getAttribute('points'))!.split(' ').map(p=>p.split(',').map(Number))).toEqual(gripPoints);
   await chordPanel.getByRole('button',{name:'Close chord diagram',exact:true}).click();
+  await chordState(false);
   await chordTrigger.click();
   await expect(chordPanel.locator('svg')).toHaveAttribute('data-orientation','horizontal');
   await chordPanel.getByRole('button',{name:'Close chord diagram',exact:true}).click();
-  await page.setViewportSize({width:1440,height:1000});
+  await chordState(false);
+  // A touch context verifies phone taps as well as responsive layout.
+  const phone=await newPage(browser,{viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block'});
+  phone.on('pageerror',e=>errors.push(e.message));
+  await phone.goto(server.base+'/guitar/scales?key=A&scale=major&set=standard&pattern=1');
+  await waitForApp(phone,'.scale-diagram svg');
+  await chordState(false,phone);
+  await phone.getByRole('button',{name:'Show chord shape',exact:true}).tap();
+  await chordState(true,phone);
+  await expect(phone.getByRole('region',{name:'Chord shape diagram',exact:true}).locator('svg')).toHaveAttribute('data-orientation','horizontal');
+  await expect.poll(()=>phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await phone.screenshot({path:'/tmp/notewise-chord-clarity-mobile.png',fullPage:true});
+  await phone.getByRole('button',{name:'Hide chord shape',exact:true}).tap();
+  await chordState(false,phone);
+  await phone.screenshot({path:'/tmp/notewise-chord-collapsed-mobile.png',fullPage:true});
+  await phone.getByRole('button',{name:'Show chord shape',exact:true}).tap();
+  await chordState(true,phone);
+  await phone.getByRole('button',{name:'Close chord diagram',exact:true}).tap();
+  await chordState(false,phone);
+  await phone.close();
   await openPracticeOptions(page);
   await page.locator('#scale-pattern').selectOption('4');
   await page.locator('#scale-quality').selectOption('minor-blues');

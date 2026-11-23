@@ -137,9 +137,10 @@ export function GuitarChordDiagram() {
 }
 
 /** Shared chord artwork for SongAlong's dialog and the inline scale panel. */
-export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false, fingers, barres = []}: {
+export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false, fingers, barres = [], connectShape = false}: {
   name: string; shapes: (number|null)[][]; frame?: number; horizontal?: boolean;
   fingers?: (number|null)[]; barres?: ChordBarre[];
+  connectShape?: boolean;
 }) {
   const shape = shapes[frame] || [];
   const { base, rows } = fingeringWindow(shapes, frame);
@@ -182,6 +183,10 @@ export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false,
                 y1={55 + (barre.fret - base + 0.5) * 40} y2={55 + (barre.fret - base + 0.5) * 40}
                 stroke="currentColor" strokeWidth="18" strokeLinecap="round" opacity="0.35" />
             ))}
+            {connectShape && <polyline className="chord-shape-connection"
+              points={shape.flatMap((f,i)=>f===null?[]:[`${42+i*32},${f===0?28:55+(f-base+0.5)*40}`]).join(' ')}
+              fill="none" stroke="#5f3dc4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              pointerEvents="none" aria-hidden="true" />}
             {shape.map((f, i) => (
               <g
                 key={i}

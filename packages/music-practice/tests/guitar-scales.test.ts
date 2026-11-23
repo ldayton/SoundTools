@@ -481,18 +481,17 @@ test("CAGED outlines mark the anchoring chord, contained in every matching scale
 
 test("chord diagrams show the sounding grip, with one index barre for the E form",()=>{
  assert.deepEqual(cagedChordDiagram(9,'major','1',-3),{
-  name:'A major · E shape',explanation:'Open E major moved up 5 frets.',frets:[5,7,7,6,5,5],fingers:[1,3,4,2,1,1],
+  name:'A major · E shape',frets:[5,7,7,6,5,5],fingers:[1,3,4,2,1,1],
   barres:[{finger:1,fret:5,fromString:6,toString:1}],
  });
  assert.deepEqual(cagedChordDiagram(9,'minor','1',0),{
-  name:'A minor · Em shape',explanation:'Open E minor moved up 5 frets.',frets:[5,7,7,5,5,5],fingers:[1,3,4,1,1,1],
+  name:'A minor · Em shape',frets:[5,7,7,5,5,5],fingers:[1,3,4,1,1,1],
   barres:[{finger:1,fret:5,fromString:6,toString:1}],
  });
  const open=cagedChordDiagram(0,'major','3',-12);
  assert.deepEqual(open.frets,[null,3,2,0,1,0]);
  assert.deepEqual(open.fingers,[null,4,3,null,2,null]);
  assert.deepEqual(open.barres,[]);
- assert.equal(open.explanation,'Open C major form.');
 });
 
 test('every CAGED chord grip has feasible finger assignments and explicit barres',()=>{

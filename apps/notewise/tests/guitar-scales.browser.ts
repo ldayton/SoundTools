@@ -358,7 +358,7 @@ try {
   await page.setViewportSize({ width: 1680, height: 1050 });
   await openPracticeOptions(page);
   const gPattern = await patternSnapshot();
-  assert.equal((await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).textContent())!.trim(),'Chord shape');
+  assert.equal((await page.getByRole('button',{name:'Show chord shape',exact:true}).textContent())!.trim(),'Show chord shape');
   assert.equal(await page.locator(".scale-notes").isVisible(), false);
   assert.equal(await page.locator(".scale-source").isVisible(), false);
   assert.equal(await page.locator(".scale-footnote").isVisible(), false);

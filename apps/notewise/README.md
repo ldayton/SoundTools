@@ -164,14 +164,19 @@ a playable four-note fragment: the fifth note fits the scale region but would
 require an extra fretting finger in the simultaneous grip. Chord outlines and
 blues fingerings are explicit NoteWise adaptations, not published chart fingers.
 
+**Show chord shape** on the legend row expands the chord panel and reveals its
+connecting lines and dotted chord-note outlines on the scale. **Hide chord
+shape** or the panel close button hides both. Chord markings start collapsed.
 The chord panel opens with the same orientation as the scale: high E at the top,
 low E at the bottom, frets increasing to the right. Rotate offers a conventional
 upright chord chart; reopening restores the scale orientation. Finger numbers
 describe the simultaneous chord grip, independently of scale-note fingers.
-Connected bars identify one finger holding several strings, and a short caption
-relates the grip to its open chord (for example, “Open E major moved up 5 frets.”).
+Connected bars identify one finger holding several strings.
 The ten reviewed major/minor grips own their frets, fingers and barres together;
-barres are never guessed from repeated fret numbers in an arbitrary passage.
+barres are never guessed from repeated fret numbers in an arbitrary passage. A purple
+line connects the chord notes in both the panel and the scale, with separate
+contours for linked shapes. White dotted chord-note outlines retain the root
+colors and stay visible against dark root dots.
 
 `packages/music-practice/tests/fixtures/caged-reference.json` records an
 independent transcription of all 20 source charts, reviewed on 2026-11-23,

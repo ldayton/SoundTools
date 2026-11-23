@@ -14,7 +14,8 @@ export const scaleBodyState = () =>
     canReverse: false,
     shiftMessage: "",
     linkedLegend: "",
-    chordOutline: false,
+    chordAvailable: false,
+    chordOpen: false,
     blueNoteLabel: "",
     omittedNoteLabel: "",
     chordDiagrams: [] as ReturnType<typeof cagedChordDiagram>[],
@@ -35,15 +36,16 @@ export function ScaleFrame({
   navigation,
   clearShift,
   reverseLink,
+  setChordOpen,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
   navigation: ReactNode;
   clearShift(): void;
   reverseLink(): void;
+  setChordOpen(open: boolean): void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
-  const [chordOpen,setChordOpen]=useState(false);
   const [horizontal,setHorizontal]=useState(true);
   const [chordFrame,setChordFrame]=useState(0);
   const chordTrigger=useRef<HTMLButtonElement>(null);
@@ -86,7 +88,7 @@ export function ScaleFrame({
         <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
         {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
         {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
-        {s.chordOutline && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={chordOpen} aria-controls="scale-chord-panel" aria-label="Show chord shape diagram" onClick={()=>{setChordOpen(!chordOpen);setChordFrame(0);if(!chordOpen)setHorizontal(true);}}><i className="scale-chord-swatch" aria-hidden="true" />Chord shape</button>}
+        {s.chordAvailable && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={s.chordOpen} aria-controls="scale-chord-panel" onClick={()=>{setChordOpen(!s.chordOpen);setChordFrame(0);if(!s.chordOpen)setHorizontal(true);}}>{s.chordOpen ? "Hide chord shape" : "Show chord shape"}</button>}
         {s.linkedLegend && <>
         {s.linkedLegend.split("|")
           .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
@@ -109,16 +111,14 @@ export function ScaleFrame({
         </div>}
       </div>
       {s.shiftMode && s.shiftMessage && <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>}
-      {s.chordOutline && chordOpen && activeChord && <section id="scale-chord-panel" className="scale-chord-panel" aria-label="Chord shape diagram">
+      {s.chordAvailable && s.chordOpen && activeChord && <section id="scale-chord-panel" className="scale-chord-panel" aria-label="Chord shape diagram">
         <div className="scale-chord-panel-header">
           <Text fw={600}>{activeChord.name}</Text>
           <Button variant="subtle" size="compact-sm" aria-label="Rotate chord diagram" aria-pressed={horizontal} onClick={()=>setHorizontal(!horizontal)}>↻ Rotate</Button>
           <ActionIcon variant="subtle" aria-label="Close chord diagram" onClick={()=>{setChordOpen(false);chordTrigger.current?.focus();}}>×</ActionIcon>
         </div>
-        <Text size="sm" c="dimmed">{activeChord.explanation}</Text>
-        <GuitarChordGraphic name={activeChord.name} shapes={[activeChord.frets]} horizontal={horizontal} fingers={activeChord.fingers} barres={activeChord.barres} />
+        <GuitarChordGraphic name={activeChord.name} shapes={[activeChord.frets]} horizontal={horizontal} fingers={activeChord.fingers} barres={activeChord.barres} connectShape />
         <Text className="scale-chord-finger-key" size="xs" c="dimmed">1 index · 2 middle · 3 ring · 4 little finger</Text>
-        {activeChord.barres.length > 0 && <Text className="scale-chord-barre-help" size="xs" c="dimmed">A connected bar is one finger across several strings.</Text>}
         {s.chordDiagrams.length>1 && <div className="scale-chord-panel-header">
           <Button size="compact-sm" variant="subtle" disabled={chordFrame===0} onClick={()=>setChordFrame(0)}>Previous fingering</Button>
           <Button size="compact-sm" variant="subtle" disabled={chordFrame===1} onClick={()=>setChordFrame(1)}>Next fingering</Button>

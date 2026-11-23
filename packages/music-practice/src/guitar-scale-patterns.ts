@@ -66,11 +66,8 @@ export function cagedChordPositions(shape: ScaleShape, quality: ScaleQuality, sh
 export function cagedChordDiagram(tonic:number, quality:ScaleQuality, shape:ScaleShape, shift:number, spelling?:string) {
   const grip=chordGrip(shape,quality);
   const frets=grip.strings.map(note=>note===null?null:note[0]+shift);
-  const moved=Math.min(...frets.filter((f):f is number=>f!==null));
-  const form=`Open ${chordForm(shape)} ${isMajorScale(quality)?'major':'minor'}`;
   return {
     name:`${scaleLabel(scaleNotes(tonic,quality,spelling)[0].name)} ${isMajorScale(quality)?'major':'minor'} · ${scaleShapeLabel(shape,quality)}`,
-    explanation:moved===0?`${form} form.`:`${form} moved up ${moved} ${moved===1?'fret':'frets'}.`,
     frets,
     fingers:grip.strings.map((note,i)=>note===null||frets[i]===0?null:note[1]),
     barres:grip.barres.map(barre=>({...barre,fret:barre.fret+shift})).filter(barre=>barre.fret>0),

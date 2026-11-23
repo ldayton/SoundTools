@@ -79,6 +79,7 @@ export class ScaleExplorer implements LivePractice {
   private shiftContext = "";
   private linkedShift?: number;
   private reversedColors = false;
+  private chordOpen = false;
   enter() {
     this.active = true;
     document.addEventListener("keydown", this.onKeyDown);
@@ -88,7 +89,8 @@ export class ScaleExplorer implements LivePractice {
   leave() {
     this.active = false;
     document.removeEventListener("keydown", this.onKeyDown);
-    this.body.patch({ shortcutsOpen: false });
+    this.chordOpen = false;
+    this.body.patch({ shortcutsOpen: false, chordOpen: false });
     this.backing.pauseAll();
   }
   dispose() {
@@ -305,6 +307,7 @@ export class ScaleExplorer implements LivePractice {
       element,
       createElement(ScaleFrame, {
         body: this.body,
+        setChordOpen: (open: boolean) => { this.chordOpen = open; this.render(); },
         clearShift: () => {
           this.selectedShift = undefined;
           this.render();
@@ -610,7 +613,7 @@ export class ScaleExplorer implements LivePractice {
     const chordDiagrams: ReturnType<typeof cagedChordDiagram>[] = [];
     const addChord = (shape: Exclude<ScalePattern,"map">, shift: number) => {
       const positions=cagedChordPositions(shape,this.quality,shift);
-      for(const n of positions)chordKeys.add(positionKey(n));
+      if(this.chordOpen)for(const n of positions)chordKeys.add(positionKey(n));
       chordDiagrams.push({
         ...cagedChordDiagram(this.tonic,this.quality,shape,shift,this.spelling),
       });
@@ -623,6 +626,7 @@ export class ScaleExplorer implements LivePractice {
         addChord(this.linked,linkedShift);
       }
     }
+    if(!chordDiagrams.length)this.chordOpen = false;
     const firstFret = maqam ? this.firstFret : movable
       ? Math.min(...boardPositions.map((n) => n.fret))
       : this.firstFret;
@@ -677,6 +681,8 @@ export class ScaleExplorer implements LivePractice {
       keys,
     });
     const renderBoard = () => {
+      // Keep linked chord contours separate; each follows its own sounding grip.
+      const chordConnections = this.chordOpen ? chordDiagrams.map(chord => `<polyline class="scale-chord-connection" aria-hidden="true" points="${chord.frets.flatMap((fret,i)=>fret===null?[]:[`${x(fret)},${y(6-i)}`]).join(' ')}"/>`).join('') : '';
       const routeNotes = new Map(
         (route?.notes || []).map((n) => [positionKey(n), n]),
       );
@@ -779,7 +785,7 @@ export class ScaleExplorer implements LivePractice {
         )
         .join(
           "",
-        )}${omittedNotes}${notes}<defs><marker id="scale-link-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${transition}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
+        )}${omittedNotes}${chordConnections}${notes}<defs><marker id="scale-link-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${transition}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
     };
     const diagram = this.element.querySelector<HTMLElement>(".scale-diagram")!;
     const scrollLeft = diagram.scrollLeft;
@@ -813,7 +819,8 @@ export class ScaleExplorer implements LivePractice {
       reversedColors: this.reversedColors,
       blueNoteLabel: this.quality.endsWith('blues') ? `Blue note (${isMajorScale(this.quality)?'♭3':'♭5'})` : '',
       omittedNoteLabel: this.quality.endsWith('pentatonic') ? `Omitted (${isMajorScale(this.quality)?'4, 7':'2, ♭6'})` : '',
-      chordOutline: chordKeys.size > 0,
+      chordAvailable: chordDiagrams.length > 0,
+      chordOpen: this.chordOpen,
       chordDiagrams,
       linkedLegend: linked ? `${scaleShapeLabel(this.pattern, this.quality)}|${scaleShapeLabel(this.linked, this.quality)}` : "",
       linkHelp: "",

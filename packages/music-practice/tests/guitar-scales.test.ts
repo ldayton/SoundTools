@@ -4,7 +4,7 @@ import {
   CAGED_SHAPES,
   scaleShapeLabel,
   cagedChordPositions,
-  cagedReferenceChord,
+  cagedChordDiagram,
   patternPositions,
   patternShift,
   patternBounds,
@@ -15,6 +15,7 @@ import {
   mergeGuitarScaleSettings,
   guitarScaleFromQuery,
 } from "../src/guitar-scale-settings";
+import { toggleRelativeScale } from "../src/guitar-scale-settings";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -336,7 +337,11 @@ test("Numbered shapes are complete movable fingerings in every major and minor k
       for (let tonic = 0; tonic < 12; tonic++) {
         const shift = patternShift(tonic, quality, shape);
         const positions = patternPositions(tonic, quality, shape, shift);
-        assert.equal(new Set(positions.map((n) => n.pitchClass)).size, 7);
+        const intervals=quality==='major'?[0,2,4,5,7,9,11]:[0,2,3,5,7,8,10];
+        const actual=[...new Set(positions.map(n=>n.midi))].sort((a,b)=>a-b);
+        const expected=Array.from({length:actual.at(-1)!-actual[0]+1},(_,i)=>actual[0]+i)
+          .filter(midi=>intervals.includes((midi-tonic+120)%12));
+        assert.deepEqual(actual,expected,`${tonic} ${quality} shape ${shape}: no skipped pitches`);
         assert.equal(new Set(positions.map((n) => n.string)).size, 6);
         assert.ok(
           positions.every(
@@ -473,6 +478,8 @@ test("relative-position return checkpoints validate against the current key and 
     { pattern: "1", shift: 1 },
     { pattern: "1", shift: NaN },
     { pattern: "map", shift: 2 },
+    { pattern: "1", shift: 0, tonic: 12, quality: "major" },
+    { pattern: "1", shift: 0, tonic: 0, quality: "unknown" },
   ])
     assert.equal(
       mergeGuitarScaleSettings({ ...settings, returnPosition }).returnPosition,
@@ -520,14 +527,29 @@ test("CAGED outlines mark the anchoring chord, contained in every matching scale
  assert.deepEqual(cagedChordPositions("3","major",-12),[{string:5,fret:3},{string:4,fret:2},{string:3,fret:0},{string:2,fret:1},{string:1,fret:0}]);
 });
 
-test("CAGED reference diagrams show their namesake chords in the familiar position",()=>{
- const expected={
-  major:[[0,2,2,1,0,0],[null,null,0,2,3,2],[null,3,2,0,1,0],[null,0,2,2,2,0],[3,2,0,0,0,3]],
-  minor:[[0,2,2,0,0,0],[null,null,0,2,3,1],[null,3,1,0,1,null],[null,0,2,2,1,0],[3,1,0,0,3,3]],
- };
- for(const quality of ["major","minor"] as const)SCALE_SHAPES.forEach((shape,i)=>{
-  const chord=cagedReferenceChord(shape,quality);
-  assert.equal(chord.name,scaleShapeLabel(shape,quality).replace(" shape",""));
-  assert.deepEqual(chord.frets,expected[quality][i]);
- });
+test("chord diagrams show the sounding chord at the outlined frets",()=>{
+ assert.deepEqual(cagedChordDiagram(0,'major','1',0),{name:'C major · E shape',frets:[8,10,10,9,8,8]});
+ assert.deepEqual(cagedChordDiagram(9,'minor','1',0),{name:'A minor · Em shape',frets:[5,7,7,5,5,5]});
+ assert.deepEqual(patternPositions(0,'major','3',0).filter(n=>n.string===4).map(n=>[n.fret,n.finger]),[[12,1],[14,3],[15,4]]);
+});
+
+test('relative scale switches re-root the same pitches and restore the saved scale',()=>{
+ for(const quality of ['major','minor','major-pentatonic','minor-pentatonic','major-blues','minor-blues'] as const)
+ for(let tonic=0;tonic<12;tonic++)for(const pattern of SCALE_SHAPES){
+  const original={tonic,quality,pattern,shift:patternShift(tonic,quality,pattern)};
+  const next=toggleRelativeScale(original);
+  assert.equal(next.tonic,(tonic+(quality.startsWith('major')?9:3))%12);
+  assert.equal(next.quality,quality.startsWith('major')?quality.replace('major','minor'):quality.replace('minor','major'));
+  const before=patternPositions(tonic,quality,pattern,original.shift);
+  const after=patternPositions(next.tonic,next.quality,next.pattern as typeof pattern,next.shift!);
+  const offset=Math.min(...after.map(n=>n.midi))-Math.min(...before.map(n=>n.midi));
+  assert.ok([0,12,-12].includes(offset));
+  const [low,high]=patternBounds(next.pattern as typeof pattern,next.quality);
+  if(low+original.shift>=1 && high+original.shift<=22)assert.equal(offset,0);
+  assert.deepEqual([...new Set(after.map(n=>n.midi-offset))].sort((a,b)=>a-b),[...new Set(before.map(n=>n.midi))].sort((a,b)=>a-b));
+  assert.ok(after.filter(n=>n.root).every(n=>n.pitchClass===next.tonic));
+  assert.deepEqual(mergeGuitarScaleSettings(toggleRelativeScale(mergeGuitarScaleSettings(next))),original);
+ }
+ const origin={tonic:6,quality:'major' as const,spelling:'Gb',pattern:'map' as const,shift:0,firstFret:0,lastFret:5};
+ assert.deepEqual(mergeGuitarScaleSettings(toggleRelativeScale(mergeGuitarScaleSettings(toggleRelativeScale(origin)))),origin);
 });

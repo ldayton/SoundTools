@@ -61,12 +61,12 @@ test('every blues position is exactly its matching pentatonic plus blue notes, w
   }
  }
 });
-test('reviewed major blues shape 2 keeps the full-scale E on the D string',()=>{
+test('major blues D shape retains the conventional pentatonic E on the G string',()=>{
  const notes=patternPositions(0,'major-blues','2',0);
- assert.deepEqual(notes.filter(n=>n.string===4).map(n=>[n.fret,n.finger]),[[10,1],[12,2],[13,3],[14,4]]);
- assert.deepEqual(notes.filter(n=>n.string===3).map(n=>[n.fret,n.finger]),[[12,3]]);
+ assert.deepEqual(notes.filter(n=>n.string===4).map(n=>[n.fret,n.finger]),[[10,1],[12,3],[13,4]]);
+ assert.deepEqual(notes.filter(n=>n.string===3).map(n=>[n.fret,n.finger]),[[9,1],[12,3]]);
 });
-test('edge blue notes use explicit one-fret slides without renumbering shared fingers',()=>{
+test('an available little finger plays the blue note without moving the shared fingers',()=>{
  const notes=patternPositions(9,'minor-blues','1',0).filter(n=>n.string===3);
- assert.deepEqual(notes.map(n=>[n.fret,n.finger]),[[5,2],[7,4],[8,4]]);
+ assert.deepEqual(notes.map(n=>[n.fret,n.finger]),[[5,1],[7,3],[8,4]]);
 });

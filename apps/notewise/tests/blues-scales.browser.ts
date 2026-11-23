@@ -49,7 +49,7 @@ try {
   await page.setViewportSize({width:390,height:844});
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   if(family==='major'&&shape==='2'){
-   await page.locator('.scale-tone[data-string="4"][data-fret="14"]').scrollIntoViewIfNeeded();
+   await page.locator('.scale-tone[data-string="3"][data-fret="9"]').scrollIntoViewIfNeeded();
    await page.screenshot({path:'/tmp/notewise-major-blues-shape-2-mobile.png',fullPage:true});
   }
   await page.setViewportSize({width:1440,height:1000});

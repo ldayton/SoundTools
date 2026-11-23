@@ -118,3 +118,33 @@ rhythmic style without imposing major/minor chord progressions.
 responsive layouts, URLs, persistence and keyboard controls. It is required
 in the Nightly Notewise group; music, pitch and fingering unit tests remain
 in CI.
+
+### CAGED scale conventions
+
+The five movable regions are named for their chord forms (C, A, G, E, D),
+not for their sounding keys. Major and natural-minor diagrams include every
+scale pitch between their lowest and highest sounding notes. Their fingerings
+follow the C-major/A-minor GuitarScale.org diagrams; the C-form major D-string
+row includes the fourth degree (F4 at fret 15 in C major).
+
+Pentatonics use the conventional two-notes-per-string boxes from
+[GuitarScale.org's A minor pentatonic charts](https://www.guitarscale.org/a-pentatonic-minor.html),
+with the corresponding relative-major root mapping. They have their own
+fingerings; they are not made by deleting dots from a seven-note fingering.
+Hollow context notes show omitted degrees within the displayed box's fret
+window. Blues adds blue notes to these boxes, preserving the shared fingers;
+a spare finger is preferred, with a one-fret slide where necessary.
+
+The relative-scale button changes the actual tonic, root markers, chord and
+backing key, and restores the previous scale/position even after reload.
+At a neck boundary the corresponding region may need an octave shift.
+The chord panel shows the sounding chord at exactly the outlined frets, named
+with its CAGED form (for example, “C major · E shape”).
+
+Independent unit checks own full-register pitch completeness, published box
+coordinates, all-key relative/return behavior and playable linked routes.
+Browser checks own the selected tonic/root/URL, durable return, popup-to-outline
+agreement, conventional-box rendering and responsive controls. Old assertions
+requiring exact deletion of full-scale coordinates/fingers were retired with
+that product convention; fixed counts of generated shift routes were replaced
+by coverage of every scale/key/shape plus the existing per-route musical checks.

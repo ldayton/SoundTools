@@ -6,12 +6,15 @@ import {
   SCALE_TONICS,
   SCALE_QUALITIES,
   scaleKeyPitch,
+  relativeScale,
+  type ScaleQuality,
   type ScaleSelection,
 } from "./guitar-scales";
 import {
   SCALE_SHAPES,
   migratePattern,
   patternShift,
+  relativePattern,
   type ScalePattern,
 } from "./guitar-scale-patterns";
 export type GuitarScaleSettings = ScaleSelection & {
@@ -22,7 +25,7 @@ export type GuitarScaleSettings = ScaleSelection & {
   labels?: "fingers" | "notes" | "none";
   firstFret?: number;
   lastFret?: number;
-  returnPosition?: { pattern: ScalePattern; shift: number };
+  returnPosition?: { pattern: ScalePattern; shift: number; tonic?: number; quality?: ScaleQuality; spelling?: string };
 };
 export function mergeGuitarScaleSettings(
   input: unknown,
@@ -106,17 +109,21 @@ export function mergeGuitarScaleSettings(
       : base.shift;
   if (validShift(shift)) settings.shift = shift;
   const previous = object(source.returnPosition);
+  const previousTonic = previous.tonic === undefined ? settings.tonic : previous.tonic;
+  const previousQuality = previous.quality === undefined ? settings.quality : previous.quality;
   if (
     !isMaqam(settings.quality) && patterns.includes(previous.pattern as ScalePattern) &&
-    validShift(previous.shift)
+    validShift(previous.shift) && typeof previousTonic === 'number' &&
+    Number.isInteger(previousTonic) && previousTonic >= 0 && previousTonic < 12 &&
+    SCALE_QUALITIES.includes(previousQuality as ScaleQuality) && !isMaqam(previousQuality as ScaleQuality)
   ) {
     const previousPattern = previous.pattern as ScalePattern;
     if (
       previousPattern === "map"
         ? previous.shift === 0
         : patternShift(
-            settings.tonic,
-            settings.quality,
+            previousTonic,
+            previousQuality as ScaleQuality,
             previousPattern,
             previous.shift,
           ) === previous.shift
@@ -124,6 +131,9 @@ export function mergeGuitarScaleSettings(
       settings.returnPosition = {
         pattern: previousPattern,
         shift: previous.shift,
+        ...(previous.tonic !== undefined ? {tonic:previousTonic} : {}),
+        ...(previous.quality !== undefined ? {quality:previousQuality as ScaleQuality} : {}),
+        ...(typeof previous.spelling === 'string' && scaleKeyPitch(previous.spelling,previousQuality as ScaleQuality) === previousTonic ? {spelling:previous.spelling} : {}),
       };
   }
   const spelling =
@@ -142,6 +152,25 @@ export function mergeGuitarScaleSettings(
     delete settings.returnPosition;
   }
   return settings;
+}
+/** Switch the tonal center as well as the region; preserve a durable way back. */
+export function toggleRelativeScale(settings: GuitarScaleSettings): GuitarScaleSettings {
+  const { returnPosition, ...current } = settings;
+  if (returnPosition) return {
+    ...current, ...returnPosition,
+    tonic: returnPosition.tonic ?? current.tonic,
+    quality: returnPosition.quality ?? current.quality,
+    spelling: returnPosition.tonic === undefined && returnPosition.quality === undefined ? current.spelling : returnPosition.spelling,
+  };
+  const relative = relativeScale(current.tonic,current.quality,current.spelling);
+  const pattern = current.pattern && current.pattern !== 'map'
+    ? relativePattern(current.pattern,current.quality) : '1';
+  return {
+    ...current, ...relative, spelling:relative.spelling, pattern,
+    shift:patternShift(relative.tonic,relative.quality,pattern,current.shift),
+    returnPosition:{tonic:current.tonic,quality:current.quality,pattern:current.pattern || 'map',shift:current.shift || 0,
+      ...(current.spelling ? {spelling:current.spelling} : {})},
+  };
 }
 export function guitarScaleFromQuery(
   query: URLSearchParams,

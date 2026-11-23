@@ -25,7 +25,7 @@ import {
   linkedPatternPositions,
   scaleShapeLabel,
   cagedChordPositions,
-  cagedReferenceChord,
+  cagedChordDiagram,
   pentatonicOmissions,
   patternBounds,
   patternShift,
@@ -48,6 +48,7 @@ import type { LivePractice } from "./live-practice";
 import type { PracticeRoute } from "./navigation";
 import {
   mergeGuitarScaleSettings,
+  toggleRelativeScale,
   guitarScaleFromQuery,
   type GuitarScaleSettings,
 } from "./guitar-scale-settings";
@@ -360,18 +361,10 @@ export class ScaleExplorer implements LivePractice {
         relative: createElement(ScaleRelative, {
           model: this.controls,
           toggle: () => {
-            if (this.returnPosition) {
-              this.pattern = this.returnPosition.pattern;
-              this.shift = this.returnPosition.shift;
-              this.returnPosition = undefined;
-            } else {
-              this.returnPosition = {
-                pattern: this.pattern,
-                shift: this.shift,
-              };
-              this.pattern = isMajorScale(this.quality) ? "5" : "2";
-              this.shift = patternShift(this.tonic, this.quality, this.pattern);
-            }
+            const next=toggleRelativeScale({...this.optionsSnapshot(),shift:this.shift,returnPosition:this.returnPosition});
+            this.tonic=next.tonic;this.quality=next.quality;this.spelling=next.spelling;
+            this.pattern=next.pattern!;this.shift=next.shift!;this.returnPosition=next.returnPosition;
+            this.linked='none';
             this.update();
           },
         }),
@@ -524,11 +517,11 @@ export class ScaleExplorer implements LivePractice {
     const relativeName = scaleLabel(
       relative.spelling || SCALE_TONICS[relative.quality][relative.tonic],
     );
-    const relativeTarget = isMajorScale(this.quality) ? "5" : "2";
+
     const label = this.returnPosition
-      ? "Return to previous shape"
-      : `Show ${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} starting position`;
-    const relativeExplanation = `${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")} ${scaleShapeLabel("1", relative.quality)} · ${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)} ${scaleShapeLabel(relativeTarget, this.quality)}`;
+      ? "Return to previous scale"
+      : `Show ${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")}`;
+    const relativeExplanation = `Shares its notes with ${relativeName} ${scaleQualityLabel(relative.quality)}. Root markers and accompaniment follow the selected scale.`;
     const hila = this.shapeSet === "hila";
     const movable = maqam || hila || this.pattern !== "map";
     const basePositions = isMaqam(this.quality) ? maqamPositions(this.tonic,this.quality,this.firstFret,this.spelling) : hila
@@ -618,7 +611,7 @@ export class ScaleExplorer implements LivePractice {
       const positions=cagedChordPositions(shape,this.quality,shift);
       for(const n of positions)chordKeys.add(positionKey(n));
       chordDiagrams.push({
-        ...cagedReferenceChord(shape,this.quality),
+        ...cagedChordDiagram(this.tonic,this.quality,shape,shift,this.spelling),
       });
     };
     if (!hila && this.pattern !== "map") {
@@ -654,9 +647,9 @@ export class ScaleExplorer implements LivePractice {
         ? "1 index · 2 middle · 3 ring · 4 little finger" + (maqam ? ". Some rows use a one-fret extension." : "") + (this.quality.endsWith("blues") ? ". Same finger on adjacent frets: slide one fret." : "")
         : "Darker dots mark the root notes.";
     const source = isMaqam(this.quality) ? maqamSource(this.quality) :
-      this.quality === "major-blues"
-        ? "https://pulse.berklee.edu/scales/c-major-blues-scale.html"
-        : `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : isMajorScale(this.quality) ? "c-major" : "a-minor"}.html`;
+      this.quality === "major-blues" ? "https://pulse.berklee.edu/scales/c-major-blues-scale.html" :
+      this.quality.endsWith('pentatonic') ? `https://www.guitarscale.org/${isMajorScale(this.quality)?'c-pentatonic-major':'a-pentatonic-minor'}.html` :
+      `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : isMajorScale(this.quality) ? "c-major" : "a-minor"}.html`;
     const keys = [-1, 1].map((direction) => {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],

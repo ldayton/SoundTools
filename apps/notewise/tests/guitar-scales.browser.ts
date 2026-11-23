@@ -97,35 +97,39 @@ try {
     );
   await page
     .getByRole("button", {
-      name: "Show A minor starting position",
+      name: "Show A minor",
       exact: true,
     })
     .click();
-  assert.equal(await page.locator("#scale-title").textContent(), "C major");
-  assert.equal(await page.locator("#scale-pattern").inputValue(), "5");
-  assert.ok((await rootPitchClasses()).every((pc) => pc === 0));
-  assert.match(page.url(), /key=C&scale=major&pattern=5/);
+  assert.equal(await page.locator("#scale-title").textContent(), "A natural minor");
+  assert.equal(await page.locator("#scale-pattern").inputValue(), "1");
+  assert.ok((await rootPitchClasses()).every((pc) => pc === 9));
+  assert.match(page.url(), /key=A&scale=minor&pattern=1/);
+  assert.equal(await page.locator('[data-backing-key]').getAttribute('data-backing-key'),'9');
+  assert.equal(await page.locator('[data-backing-key]').getAttribute('data-backing-quality'),'minor');
   await saveComplete();
   await page.reload();
   await page
-    .getByRole("button", { name: "Return to previous shape", exact: true })
+    .getByRole("button", { name: "Return to previous scale", exact: true })
     .click();
   assert.equal(await page.locator("#scale-pattern").inputValue(), "map");
   assert.deepEqual(await locations(), originalLocations);
+  assert.equal(await page.locator('#scale-title').textContent(),'C major');
+  assert.equal(await page.locator('[data-backing-key]').getAttribute('data-backing-key'),'0');
   await practiceOption(page, "#scale-key", "6");
   await page
     .getByRole("button", {
-      name: "Show D♯ minor starting position",
+      name: "Show D♯ minor",
       exact: true,
     })
     .click();
-  assert.equal(await page.locator("#scale-title").textContent(), "F♯ major");
-  assert.ok((await rootPitchClasses()).every((pc) => pc === 6));
+  assert.equal(await page.locator("#scale-title").textContent(), "D♯ natural minor");
+  assert.ok((await rootPitchClasses()).every((pc) => pc === 3));
   assert.match((await page.locator(".scale-notes").textContent()) || "", /E♯/);
   await saveComplete();
   await page.reload();
   await page
-    .getByRole("button", { name: "Return to previous shape", exact: true })
+    .getByRole("button", { name: "Return to previous scale", exact: true })
     .click();
   await practiceOption(page, "#scale-key", "4");
   assert.equal(await page.locator("#midi-panel").isVisible(), false);
@@ -398,17 +402,17 @@ try {
   assert.deepEqual(await patternSnapshot(), gPattern);
   await page
     .getByRole("button", {
-      name: "Show E minor starting position",
+      name: "Show E minor",
       exact: true,
     })
     .click();
-  assert.equal(await page.locator("#scale-title").textContent(), "G major");
-  assert.equal(await page.locator("#scale-pattern").inputValue(), "5");
-  assert.ok((await rootPitchClasses()).every((pc) => pc === 7));
+  assert.equal(await page.locator("#scale-title").textContent(), "E natural minor");
+  assert.equal(await page.locator("#scale-pattern").inputValue(), "2");
+  assert.ok((await rootPitchClasses()).every((pc) => pc === 4));
   await saveComplete();
   await page.reload();
   await page
-    .getByRole("button", { name: "Return to previous shape", exact: true })
+    .getByRole("button", { name: "Return to previous scale", exact: true })
     .click();
   assert.deepEqual(
     await patternSnapshot(),
@@ -418,19 +422,19 @@ try {
   // Other key/shape choices establish a fresh toggle origin.
   await page
     .getByRole("button", {
-      name: "Show E minor starting position",
+      name: "Show E minor",
       exact: true,
     })
     .click();
   await practiceOption(page, "#scale-pattern", "3");
   await page
     .getByRole("button", {
-      name: "Show E minor starting position",
+      name: "Show G major",
       exact: true,
     })
     .click();
   await page
-    .getByRole("button", { name: "Return to previous shape", exact: true })
+    .getByRole("button", { name: "Return to previous scale", exact: true })
     .click();
   assert.equal(await page.locator("#scale-pattern").inputValue(), "3");
   await practiceOption(page, "#scale-quality", "minor");
@@ -438,18 +442,18 @@ try {
   await practiceOption(page, "#scale-pattern", "1");
   await page
     .getByRole("button", {
-      name: "Show C major starting position",
+      name: "Show C major",
       exact: true,
     })
     .click();
   assert.equal(
     await page.locator("#scale-title").textContent(),
-    "A natural minor",
+    "C major",
   );
-  assert.equal(await page.locator("#scale-pattern").inputValue(), "2");
-  assert.ok((await rootPitchClasses()).every((pc) => pc === 9));
+  assert.equal(await page.locator("#scale-pattern").inputValue(), "5");
+  assert.ok((await rootPitchClasses()).every((pc) => pc === 0));
   await page
-    .getByRole("button", { name: "Return to previous shape", exact: true })
+    .getByRole("button", { name: "Return to previous scale", exact: true })
     .click();
   assert.equal(await page.locator("#scale-pattern").inputValue(), "1");
   for (const shape of ["1", "2", "3", "4", "5"]) {

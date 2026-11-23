@@ -17,9 +17,9 @@ try {
  await page.locator('.scale-shift-candidate').first().waitFor();
  await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).click();
  await page.getByRole('region',{name:'Chord shape diagram',exact:true}).waitFor({state:'visible'});
- assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('E Chord'));
+ assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('C major · E shape'));
  await page.getByRole('button',{name:'Next fingering',exact:true}).click();
- assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('G Chord'));
+ assert.ok((await page.getByRole('region',{name:'Chord shape diagram',exact:true}).textContent())?.includes('C major · G shape'));
  await page.getByRole('button',{name:'Close chord diagram',exact:true}).click();
  await page.getByRole('region',{name:'Chord shape diagram',exact:true}).waitFor({state:'hidden'});
  assert.equal(await page.locator('.scale-diagram svg').count(),1);

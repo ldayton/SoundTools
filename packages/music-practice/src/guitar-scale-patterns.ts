@@ -1,6 +1,6 @@
 import {isMaqam} from "./maqamat";
 import { STRINGS } from "./guitar";
-import { isMajorScale, scaleNotes, scalePositions, type ScaleQuality } from "./guitar-scales";
+import { isMajorScale, scaleLabel, scaleNotes, scalePositions, type ScaleQuality } from "./guitar-scales";
 
 export const SCALE_SHAPES = ["1", "2", "3", "4", "5"] as const;
 export type ScaleShape = (typeof SCALE_SHAPES)[number];
@@ -27,14 +27,11 @@ export function cagedChordPositions(shape: ScaleShape, quality: ScaleQuality, sh
   return (isMajorScale(quality) ? majorChords : minorChords)[shape].flatMap((fret,row)=>
     fret === null ? [] : [{string:6-row,fret:fret+shift}]);
 }
-/** Familiar reference position of the chord that names a CAGED framework. */
-export function cagedReferenceChord(shape: ScaleShape, quality: ScaleQuality) {
-  const shifts = isMajorScale(quality)
-    ? {"1":-8,"2":-10,"3":-12,"4":-3,"5":-5}
-    : {"1":-5,"2":-7,"3":-9,"4":-12,"5":-2};
-  const positions=cagedChordPositions(shape,quality,shifts[shape]);
+/** The sounding tonic chord at the same frets as its outline on the scale. */
+export function cagedChordDiagram(tonic:number, quality:ScaleQuality, shape:ScaleShape, shift:number, spelling?:string) {
+  const positions=cagedChordPositions(shape,quality,shift);
   return {
-    name:scaleShapeLabel(shape,quality).replace(" shape",""),
+    name:`${scaleLabel(scaleNotes(tonic,quality,spelling)[0].name)} ${isMajorScale(quality)?'major':'minor'} · ${scaleShapeLabel(shape,quality)}`,
     frets:Array.from({length:6},(_,i)=>positions.find(n=>n.string===6-i)?.fret ?? null),
   };
 }
@@ -83,7 +80,7 @@ const major: Record<ScaleShape, Fingering> = {
     frets: [
       [12, 13, 15],
       [12, 14, 15],
-      [12, 14],
+      [12, 14, 15],
       [12, 14],
       [12, 13, 15],
       [12, 13, 15],
@@ -91,7 +88,7 @@ const major: Record<ScaleShape, Fingering> = {
     fingers: [
       [1, 2, 4],
       [1, 3, 4],
-      [1, 3],
+      [1, 3, 4],
       [1, 3],
       [1, 2, 4],
       [1, 2, 4],
@@ -175,24 +172,23 @@ const minor: Record<ScaleShape, Fingering> = {
   },
   "5": major["4"],
 };
-// Keep each pentatonic inside its own numbered full-scale position. Retain
-// the parent fingering so removing notes never introduces a new hand shift.
-// These are scale subsets, not necessarily two-notes-per-string boxes.
-function pentatonic(source: Record<ScaleShape, Fingering>) {
-  const pitches = new Set([0, 2, 4, 7, 9]); // C major / A minor pentatonic
-  return Object.fromEntries(SCALE_SHAPES.map(shape => {
-    const rows = source[shape].frets.map((row, index) => row.flatMap((fret, column) =>
-      pitches.has((STRINGS.find(s => s.number === 6 - index)!.midi + fret) % 12)
-        ? [{ fret, finger: source[shape].fingers[index][column] }]
-        : []));
-    return [shape, {
-      frets: rows.map(row => row.map(note => note.fret)),
-      fingers: rows.map(row => row.map(note => note.finger)),
-    }];
-  })) as Record<ScaleShape, Fingering>;
-}
-const minorPentatonic = pentatonic(minor);
-const majorPentatonic = pentatonic(major);
+// Conventional two-note-per-string boxes, independently fingered from the
+// full scales. GuitarScale.org /a-pentatonic-minor.html, shapes 1–5.
+// C major shares A minor's coordinates, with a different tonic/chord anchor.
+const minorPentatonic: Record<ScaleShape, Fingering> = {
+  "1": { frets:[[5,8],[5,7],[5,7],[5,7],[5,8],[5,8]],
+    fingers:[[1,4],[1,3],[1,3],[1,3],[1,4],[1,4]] },
+  "2": { frets:[[8,10],[7,10],[7,10],[7,9],[8,10],[8,10]],
+    fingers:[[2,4],[1,4],[1,4],[1,3],[1,3],[1,3]] },
+  "3": { frets:[[10,12],[10,12],[10,12],[9,12],[10,13],[10,12]],
+    fingers:[[1,3],[1,3],[1,3],[1,3],[1,4],[1,3]] },
+  "4": { frets:[[12,15],[12,15],[12,14],[12,14],[13,15],[12,15]],
+    fingers:[[1,4],[1,4],[1,3],[1,3],[2,4],[1,4]] },
+  "5": { frets:[[3,5],[3,5],[2,5],[2,5],[3,5],[3,5]],
+    fingers:[[1,3],[1,3],[1,4],[1,4],[1,3],[1,3]] },
+};
+const majorPentatonic = Object.fromEntries(SCALE_SHAPES.map(shape =>
+  [shape, minorPentatonic[relativePattern(shape,"major")]])) as Record<ScaleShape,Fingering>;
 // Blue-note placements from GuitarScale.org's A blues diagrams (low E to
 // high E). Keep edge blue notes as well as those inside the pentatonic bounds.
 const minorBlueFrets: Record<ScaleShape, number[][]> = {
@@ -213,6 +209,7 @@ function blues(source: Record<ScaleShape, Fingering>, blueFrets: Record<ScaleSha
         // one fret when the parent fingering leaves none free.
         const finger = before && after && after.finger - before.finger > 1
           ? before.finger + 1
+          : before && !after && before.finger < 4 ? before.finger + 1
           : before && fret - before.fret === 1 ? before.finger
           : after && after.fret - fret === 1 ? after.finger
           : (() => { throw Error('Blue note needs an explicit playable fingering'); })();
@@ -338,10 +335,9 @@ export function pentatonicOmissions(tonic:number, quality:ScaleQuality, shape:Sc
   const parent=isMajorScale(quality)?'major':'minor';
   const omitted=isMajorScale(quality)?[4,7]:[2,6];
   if(shape==='map')return scalePositions(tonic,parent,spelling,firstFret,lastFret).filter(n=>omitted.includes(n.degree));
-  // Read the canonical parent first, then clip to the physical neck: its edge
-  // notes may extend beyond a valid pentatonic position's own bounds.
-  const names=scaleNotes(tonic,parent,spelling);
-  return patternPositions(parent==='major'?0:9,parent,shape,0)
-    .filter(n=>omitted.includes(n.degree)&&n.fret+shift>=1&&n.fret+shift<=22)
-    .map(n=>{const note=names[n.degree-1],midi=n.midi+shift;return {...n,...note,fret:n.fret+shift,midi,octave:(midi-note.natural-note.accidental)/12-1};});
+  // Show the omitted degrees within the actual box window, including notes
+  // on alternative strings. The full-scale fingering is a different layout.
+  const [low,high]=patternBounds(shape,quality);
+  return scalePositions(tonic,parent,spelling,low+shift,high+shift)
+    .filter(n=>omitted.includes(n.degree));
 }

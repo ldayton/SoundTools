@@ -66,8 +66,8 @@ try {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(dialog).toBeVisible();
     expect(await dialog.locator('svg text').allTextContents()).not.toContain('e');
-    await expect(dialog).toContainText(quality.startsWith('major')?'A Chord':'Am Chord');
-    expect(await dialog.locator('svg g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual((quality.startsWith('major')?['5:0','4:2','3:2','2:2','1:0']:['5:0','4:2','3:2','2:1','1:0']).sort());
+    await expect(dialog).toContainText(quality.startsWith('major')?'D major · A shape':'D minor · Am shape');
+    expect(await dialog.locator('svg g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual(await page.locator('.scale-chord-tone').evaluateAll(es=>es.map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort()));
     await dialog.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
     await expect(dialog.locator('svg')).toHaveAttribute('data-orientation','horizontal');
     const low=await dialog.locator('g[data-string="6"]').boundingBox();
@@ -93,19 +93,15 @@ try {
     await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
     await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"A shape":"Am shape");
   }
-  // Independently reviewed reference voicings, low E through high E.
-  const references = {
-    major: [[0,2,2,1,0,0],[null,null,0,2,3,2],[null,3,2,0,1,0],[null,0,2,2,2,0],[3,2,0,0,0,3]],
-    minor: [[0,2,2,0,0,0],[null,null,0,2,3,1],[null,3,1,0,1,null],[null,0,2,2,1,0],[3,1,0,0,3,3]],
-  };
+  // Every popup must depict the exact chord outlined in the selected region.
   for(const quality of ['major','minor'] as const){
     await page.locator('#scale-quality').selectOption(quality);
     for(const [index,name] of ['E','D','C','A','G'].entries()){
       await page.locator('#scale-pattern').selectOption(String(index+1));
       await page.getByRole('button',{name:'Show chord shape diagram',exact:true}).click();
       const panel=page.getByRole('region',{name:'Chord shape diagram',exact:true});
-      await expect(panel).toContainText(`${name}${quality==='minor'?'m':''} Chord`);
-      expect(await panel.locator('g[data-string]').evaluateAll(es=>es.map(e=>e.getAttribute('data-fret')==='not-played'?null:Number(e.getAttribute('data-fret'))))).toEqual(references[quality][index]);
+      await expect(panel).toContainText(`D ${quality} · ${name}${quality==='minor'?'m':''} shape`);
+      expect(await panel.locator('g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual(await page.locator('.scale-chord-tone').evaluateAll(es=>es.map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort()));
       const svg=panel.locator('svg');
       await expect(svg).toHaveAttribute('data-orientation','vertical');
       if(quality==='major'&&name==='C')await page.screenshot({path:'/tmp/caged-reference-vertical.png',fullPage:true});

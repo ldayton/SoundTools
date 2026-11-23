@@ -25,35 +25,26 @@ try {
  await page.getByRole('button',{name:'Clear shift',exact:true}).click();
  await page.setViewportSize({width:1440,height:1000});
  }
- // The rendered pentatonic must remove notes without moving dots or fingers.
- await page.setViewportSize({width:390,height:844});
- const readTones=()=>page.locator('.scale-diagram .scale-tone').evaluateAll(elements=>elements.map(e=>({
-  string:Number(e.getAttribute('data-string')),fret:Number(e.getAttribute('data-fret')),
-  midi:Number(e.getAttribute('data-midi')),finger:e.querySelector('text')?.textContent,
- })));
- for(const [key,parent] of [['C','major'],['A','minor']])for(const shape of ['1','2','3','4','5']){
-  const route=`${server.base}/guitar/scales?key=${key}&pattern=${shape}&position=0&labels=fingers`;
-  await page.goto(`${route}&scale=${parent}`);
+ // Broad pitch/position combinations belong to Node tests. These two browser
+ // witnesses prove conventional-box rendering, labels, source and hollow context.
+ for(const [key,parent,shape] of [['C','major','2'],['A','minor','1']]){
+  await page.goto(`${server.base}/guitar/scales?key=${key}&scale=${parent}-pentatonic&pattern=${shape}&position=0&labels=fingers`);
   await waitForApp(page,'.scale-diagram svg');
   await expect(page.locator('.scale-shift-candidate')).toHaveCount(0);
-  const full=await readTones();
-  await page.goto(`${route}&scale=${parent}-pentatonic`);
-  await waitForApp(page,'.scale-diagram svg');
-  await expect(page.locator('.scale-shift-candidate')).toHaveCount(0);
-  await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://guitarscale.org/${parent==='major'?'c-major':'a-minor'}.html`);
-  assert.deepEqual(await readTones(),full.filter(n=>[0,2,4,7,9].includes(n.midi%12)),`${key} ${parent} shape ${shape}`);
+  const counts=await page.locator('.scale-tone').evaluateAll(es=>[6,5,4,3,2,1].map(s=>es.filter(e=>Number(e.getAttribute('data-string'))===s).length));
+  assert.deepEqual(counts,[2,2,2,2,2,2]);
+  const sample=page.locator(`.scale-tone[data-string="3"][data-fret="${parent==='major'?9:5}"]`);
+  await expect(sample.locator('text')).toHaveText('1');
+  await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://www.guitarscale.org/${parent==='major'?'c-pentatonic-major':'a-pentatonic-minor'}.html`);
   const ghosts=page.locator('.scale-omitted-tone');
-  assert.deepEqual(await ghosts.evaluateAll(es=>es.map(e=>({string:Number(e.getAttribute('data-string')),fret:Number(e.getAttribute('data-fret')),midi:Number(e.getAttribute('data-midi'))}))),full.filter(n=>![0,2,4,7,9].includes(n.midi%12)).map(({string,fret,midi})=>({string,fret,midi})));
-  await expect(page.locator('.scale-link-legend')).toContainText(parent==='major'?'Omitted (4, 7)':'Omitted (2, ♭6)');
+  assert.ok(await ghosts.count()>0);
   assert.ok(await ghosts.evaluateAll(es=>es.every(e=>getComputedStyle(e).pointerEvents==='none'&&!e.hasAttribute('tabindex')&&!e.classList.contains('scale-shift-candidate'))));
   assert.equal(await ghosts.first().locator('circle').evaluate(e=>getComputedStyle(e).fill),'rgb(255, 255, 255)');
-  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  if(parent==='major'&&shape==='2'){
-   await page.locator('.scale-tone[data-string="4"][data-fret="14"]').scrollIntoViewIfNeeded();
-   await page.screenshot({path:'/tmp/notewise-major-pentatonic-shape-2-mobile.png',fullPage:true});
-   await page.setViewportSize({width:1440,height:1000});
-   await page.screenshot({path:'/tmp/notewise-major-pentatonic-shape-2-desktop.png',fullPage:true});
-   await page.setViewportSize({width:390,height:844});
+  await expect(page.locator('.scale-link-legend')).toContainText(parent==='major'?'Omitted (4, 7)':'Omitted (2, ♭6)');
+  for(const width of [390,1440]){
+    await page.setViewportSize({width,height:1000});
+    await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    if(parent==='major')await page.screenshot({path:`/tmp/notewise-conventional-pentatonic-${width}.png`,fullPage:true});
   }
  }
  await page.goto(`${server.base}/guitar/scales?key=C&scale=major-pentatonic&pattern=map&from=1&to=5`);
@@ -62,7 +53,7 @@ try {
  await page.goto(`${server.base}/guitar/scales?key=C&scale=major&pattern=1`);
  await waitForApp(page,'.scale-diagram svg');
  await expect(page.locator('.scale-omitted-tone')).toHaveCount(0);
- assert.deepEqual(errors,[]);console.log('PASS pentatonic charts, bidirectional link, clear, exact full-scale subsets and fingers, mobile overflow, no runtime errors');
+ assert.deepEqual(errors,[]);console.log('PASS pentatonic charts, bidirectional link, clear, conventional two-note boxes and fingers, mobile overflow, no runtime errors');
 } catch (error) {
   await captureFailure(browser, error);
   throw error;

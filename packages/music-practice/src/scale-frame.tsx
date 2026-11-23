@@ -110,7 +110,7 @@ export function ScaleFrame({
       {s.shiftMode && s.shiftMessage && <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>}
       {s.chordOutline && chordOpen && activeChord && <section id="scale-chord-panel" className="scale-chord-panel" aria-label="Chord shape diagram">
         <div className="scale-chord-panel-header">
-          <Text fw={600}>{activeChord.name} Chord</Text>
+          <Text fw={600}>{activeChord.name}</Text>
           <Button variant="subtle" size="compact-sm" aria-label="Rotate chord diagram" aria-pressed={horizontal} onClick={()=>setHorizontal(!horizontal)}>↻ Rotate</Button>
           <ActionIcon variant="subtle" aria-label="Close chord diagram" onClick={()=>{setChordOpen(false);chordTrigger.current?.focus();}}>×</ActionIcon>
         </div>

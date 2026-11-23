@@ -116,7 +116,7 @@
   display: grid;
   grid-template-columns: 30px minmax(0, 1fr) 30px;
   width: var(--backing-control-width);
-  flex: 0 0 var(--backing-control-width);
+  flex: none;
   height: 36px;
   align-items: center;
   border: 1px solid var(--backing-line);
@@ -155,34 +155,16 @@
   margin: 0;
 }
 .backing-track-bottom {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--backing-control-width);
-  gap: 10px;
-  align-items: end;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
   margin-top: 16px;
 }
-.backing-track-key {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0 9px;
-  align-items: baseline;
-}
-.backing-track-key > span {
-  font-size: var(--practice-control-font-size, var(--mantine-font-size-sm));
-  color: var(--backing-muted);
-}
-.backing-track-key strong {
-  font-size: var(--practice-control-font-size, var(--mantine-font-size-sm));
-  font-weight: 500;
-}
-.backing-track-key small {
-  grid-column: 1 / -1;
-  color: var(--backing-muted);
-  font-size: var(--practice-control-caption-size, var(--mantine-font-size-xs));
-}
 .backing-track-play {
+  align-self: flex-end;
   width: var(--backing-control-width);
-  flex: 0 0 var(--backing-control-width);
+  flex: none;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -251,140 +233,6 @@
   }
 }
 
-.metronome-settings {
-  --backing-surface: light-dark(#f3f5fa, #1c2230);
-  --backing-text: light-dark(#2b3855, #e1e7f6);
-  --backing-muted: light-dark(#64718a, #aab6ce);
-  --backing-line: light-dark(#d6ddeb, #39445e);
-  --backing-input: light-dark(#fff, #252e41);
-  --backing-accent: light-dark(#5365a6, #afbef5);
-  --backing-on-accent: light-dark(#fff, #1a2549);
-  --backing-soft: light-dark(#e7ebf5, #2d3851);
-  margin-top: 14px;
-}
-.metronome-link {
-  margin: 0 0 13px;
-  color: var(--backing-muted);
-  font-size: var(--practice-control-caption-size, var(--mantine-font-size-xs));
-  line-height: 1.5;
-}
-.metronome-controls {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-}
-
-.metronome-downbeat {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 16px;
-  font-size: var(--practice-control-font-size, var(--mantine-font-size-sm));
-}
-.metronome-downbeat input {
-  accent-color: var(--backing-accent);
-  width: 16px;
-  height: 16px;
-  margin: 0;
-}
-.metronome-signature {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 0;
-  padding: 0;
-  margin: 12px 0 0;
-}
-.metronome-signature legend {
-  color: var(--backing-muted);
-  font-size: var(--practice-control-font-size, var(--mantine-font-size-sm));
-  margin-bottom: 7px;
-}
-.metronome-signature:disabled {
-  opacity: 0.5;
-}
-.metronome-beats {
-  flex-wrap: wrap;
-  max-width: 95px;
-  justify-content: flex-end;
-}
-.metronome-beats i[data-pulse][data-active] {
-  animation: metronome-pulse 0.22s ease-out forwards;
-}
-@keyframes metronome-pulse {
-  from {
-    background: var(--backing-accent);
-  }
-  to {
-    background: var(--backing-line);
-  }
-}
-
-.metronome-fraction {
-  display: grid;
-  width: var(--backing-control-width);
-  background: var(--backing-input);
-  border: 1px solid var(--backing-line);
-  border-radius: 8px;
-  padding: 0;
-}
-.metronome-fraction > div {
-  display: grid;
-  grid-template-columns: 30px 1fr 30px;
-  align-items: center;
-}
-.metronome-fraction button {
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--backing-muted);
-  height: 30px;
-}
-.metronome-fraction button:hover:not(:disabled) {
-  background: var(--backing-soft);
-}
-.metronome-fraction input {
-  text-align: center;
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  padding: 3px 0;
-  color: var(--backing-text);
-  background: transparent;
-  font-size: var(--practice-control-font-size, var(--mantine-font-size-sm));
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-  appearance: textfield;
-}
-.metronome-fraction > div:first-child input {
-  border-bottom: 1px solid var(--backing-text);
-}
-.metronome-fraction input::-webkit-inner-spin-button,
-.metronome-fraction input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-@media (pointer: coarse) {
-  .metronome-fraction > div {
-    grid-template-columns: 34px minmax(0, 1fr) 34px;
-  }
-  .metronome-fraction button {
-    height: 42px;
-  }
-}
-
-.metronome-meter-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 16px;
-}
-.metronome-meter-row .metronome-downbeat,
-.metronome-meter-row .metronome-signature {
-  margin: 0;
-}
-
 .backing-track-genre {
   margin-bottom: 17px;
 }
@@ -408,4 +256,15 @@
   .backing-mixer-reset {
     min-height: 44px;
   }
+}
+
+.backing-metronome-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--practice-control-font-size, var(--mantine-font-size-sm));
+  cursor: pointer;
+}
+.backing-metronome-option input {
+  accent-color: var(--mantine-primary-color-filled);
 }

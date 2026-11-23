@@ -29,6 +29,10 @@ export function BackingTrackSettings({
     player.model.subscribe,
     player.model.getSnapshot,
   );
+  const metro = useSyncExternalStore(
+    player.metronome.subscribe,
+    player.metronome.getSnapshot,
+  );
   const [draft, setDraft] = useState<string>();
   const active = state.status === "playing" || state.status === "loading";
   const commit = () => {
@@ -40,6 +44,8 @@ export function BackingTrackSettings({
       className="backing-track-settings"
       aria-label="Backing track"
       data-status={state.status}
+      data-backing-key={state.tonic}
+      data-backing-quality={state.quality}
     >
       <header className="backing-track-heading">
         <h3>
@@ -142,16 +148,28 @@ export function BackingTrackSettings({
           </div>
         </div>
         <div className="backing-track-bottom">
-          <div className="backing-track-key">
-            <span>Key</span>
-            <strong
-              data-backing-key={state.tonic}
-              data-backing-quality={state.quality}
-            >
-              {state.keyLabel}
-            </strong>
-            <small>From scale</small>
-          </div>
+          <label className="backing-metronome-option">
+            <input
+              type="checkbox"
+              checked={state.metronomeEnabled}
+              onChange={(event) =>
+                player.setMetronomeEnabled(event.target.checked)
+              }
+            />
+            Metronome
+          </label>
+          {state.metronomeEnabled && (
+            <label className="backing-metronome-option">
+              <input
+                type="checkbox"
+                checked={metro.downbeat}
+                onChange={(event) =>
+                  player.setMetronomeDownbeat(event.target.checked)
+                }
+              />
+              Accent downbeat
+            </label>
+          )}
           <button
             className="backing-track-play"
             type="button"
@@ -167,6 +185,11 @@ export function BackingTrackSettings({
                 : "Play"}
           </button>
         </div>
+        {metro.error && (
+          <p className="backing-track-error" role="alert">
+            {metro.error}
+          </p>
+        )}
         <BackingMixerSettings player={player} style={state.style} />
       </div>
       <footer className="backing-track-footer">

@@ -20,8 +20,12 @@ test("NoteWise settings, active exercise and checkpoints round trip without loca
   state.progress.profiles.piano.low = "D4";
   state.progress.stats[card] = stats();
   state.activities.rhythm = { version: 1, level: "pulse" };
+  state.activities["backing-track"] = { version: 1, metronomeEnabled: true };
   state.activities.audio = { version: 1, volume: 0.3 };
-  state.activities["backing-mixer:folk"] = { version: 1, levels: { bass: 0 } };
+  state.activities["backing-mixer:folk"] = {
+    version: 1,
+    levels: { bass: 0, metronome: 65 },
+  };
   state.activities["backing-mixer:gospel"] = {
     version: 1,
     levels: { organ: 140 },
@@ -35,6 +39,10 @@ test("NoteWise settings, active exercise and checkpoints round trip without loca
   assert.equal(restored.progress.profiles.piano.low, "D4");
   assert.deepEqual(restored.progress.stats[card], state.progress.stats[card]);
   assert.deepEqual(restored.activities.rhythm, state.activities.rhythm);
+  assert.deepEqual(
+    restored.activities["backing-track"],
+    state.activities["backing-track"],
+  );
   for (const genre of ["folk", "gospel"])
     assert.deepEqual(
       restored.activities[`backing-mixer:${genre}`],

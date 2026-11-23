@@ -18,6 +18,7 @@ test("backing settings validate saved values and transposition leaves drums in t
       pattern: "standard",
       mode: "steady",
       tempo: 90,
+      metronomeEnabled: false,
     },
   );
   assert.deepEqual(backingSettings({ style: "rock", tempo: 300 }), {
@@ -25,6 +26,7 @@ test("backing settings validate saved values and transposition leaves drums in t
     pattern: "standard",
     mode: "steady",
     tempo: 180,
+    metronomeEnabled: false,
   });
   assert.equal(backingSettings({ tempo: 1 }).tempo, 50);
   assert.equal(backingSemitones(9), 0);
@@ -115,4 +117,19 @@ test("backing feel and independent metronome tempo use durable activity checkpoi
     "active",
   );
   assert.equal(backingSettings(decoded.activities.metronome).tempo, 112);
+});
+
+test("backing click is opt-in and survives saved-state decoding", () => {
+  assert.equal(backingSettings(undefined).metronomeEnabled, false);
+  assert.equal(
+    backingSettings({ metronomeEnabled: "true" }).metronomeEnabled,
+    false,
+  );
+  const state = migrateLegacy({});
+  state.activities["backing-track"] = { version: 1, metronomeEnabled: true };
+  const saved = decodeState(JSON.parse(JSON.stringify(state)));
+  assert.equal(
+    backingSettings(saved.activities["backing-track"]).metronomeEnabled,
+    true,
+  );
 });

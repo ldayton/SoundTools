@@ -64,7 +64,7 @@ try {
     1,
     "only genre has a selector; the exercise key stays inherited",
   );
-  assert.equal(await group.locator("[data-backing-key]").textContent(), "A");
+  assert.equal(await group.getAttribute("data-backing-key"), "9");
   assert.deepEqual(
     await group
       .getByRole("combobox", { name: "Backing style", exact: true })
@@ -117,7 +117,7 @@ try {
     pausedCount,
   );
   await practiceOption(page, "#scale-key", "0");
-  assert.equal(await group.locator("[data-backing-key]").textContent(), "C");
+  assert.equal(await group.getAttribute("data-backing-key"), "0");
   await group
     .getByRole("button", { name: "Play backing track", exact: true })
     .click();
@@ -191,7 +191,7 @@ try {
     "ready",
     "reload never autoplays",
   );
-  assert.equal(await group.locator("[data-backing-key]").textContent(), "E");
+  assert.equal(await group.getAttribute("data-backing-key"), "4");
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await openPracticeOptions(page);

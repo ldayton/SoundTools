@@ -95,11 +95,18 @@ export const backingPack = manifest as unknown as {
 };
 export function backingSettings(input: unknown) {
   const value = input as
-    | { style?: unknown; mode?: unknown; tempo?: unknown; pattern?: unknown }
+    | {
+        style?: unknown;
+        mode?: unknown;
+        tempo?: unknown;
+        pattern?: unknown;
+        metronomeEnabled?: unknown;
+      }
     | undefined;
   const style = backingGenre(value?.style).id;
   return {
     style,
+    metronomeEnabled: value?.metronomeEnabled === true,
     pattern: backingPattern(style, value?.pattern),
     mode: (value?.mode === "active" ? "active" : "steady") as BackingMode,
     tempo:

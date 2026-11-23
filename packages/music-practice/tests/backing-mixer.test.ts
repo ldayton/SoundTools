@@ -14,7 +14,7 @@ import { decodeState, migrateLegacy } from "../src/durable-state";
 test("mixer controls cover the instruments used by every genre and pattern", () => {
   for (const { id } of backingGenres) {
     const controls = backingMixerControls(id).map((c) => c.id);
-    const used = new Set<string>();
+    const used = new Set<string>(["metronome"]);
     for (const pattern of backingPatterns(id).length
       ? backingPatterns(id).map((p) => p.value)
       : [undefined])
@@ -47,7 +47,15 @@ test("saved balances reject nonfinite values and preserve mute and boosts", () =
         drums: NaN,
       },
     }),
-    { drums: 100, percussion: 100, bass: 0, guitar: 200, keys: 0, organ: 143 },
+    {
+      drums: 100,
+      percussion: 100,
+      bass: 0,
+      guitar: 200,
+      keys: 0,
+      organ: 143,
+      metronome: 100,
+    },
   );
   assert.equal(backingMixerLevels({ levels: { bass: 500 } }).bass, 200);
   assert.deepEqual(backingMixerLevels(null), backingMixerLevels());

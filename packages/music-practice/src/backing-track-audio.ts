@@ -74,6 +74,7 @@ const urls = new Map(
   Object.entries(files).map(([file, url]) => [file.split("/").pop()!, url]),
 );
 type Snapshot = {
+  metronomeEnabled: boolean;
   style: BackingStyle;
   mode: BackingMode;
   pattern: BackingPattern;
@@ -324,7 +325,7 @@ export class BackingTrackPlayer {
       );
     if (this.clickOutput)
       this.clickOutput.gain.setTargetAtTime(
-        getPianoVolume() / 100,
+        (getPianoVolume() * this.balance.getSnapshot().metronome) / 10000,
         this.clickOutput.context.currentTime,
         0.015,
       );
@@ -333,9 +334,11 @@ export class BackingTrackPlayer {
     this.model.set({ ...this.model.getSnapshot(), ...patch });
   }
   private remember() {
-    const { style, mode, tempo, pattern } = this.model.getSnapshot();
+    const { style, mode, tempo, pattern, metronomeEnabled } =
+      this.model.getSnapshot();
     persistence.write("backing-track", {
       version: 1,
+      metronomeEnabled,
       style,
       mode,
       tempo,
@@ -392,6 +395,7 @@ export class BackingTrackPlayer {
     );
     this.balance.set(balance);
     this.mixer?.setLevels(balance);
+    this.applyVolume();
     this.setMix?.(
       this.pack.levels,
       this.mixProfile,
@@ -424,6 +428,7 @@ export class BackingTrackPlayer {
     });
     this.balance.set(levels);
     this.mixer?.setLevels(levels);
+    this.applyVolume();
     this.rememberMixer();
   }
 
@@ -431,6 +436,7 @@ export class BackingTrackPlayer {
     const levels = backingMixerLevels();
     this.balance.set(levels);
     this.mixer?.setLevels(levels);
+    this.applyVolume();
     this.rememberMixer();
   }
 
@@ -474,6 +480,14 @@ export class BackingTrackPlayer {
     this.remember();
     if (this.model.getSnapshot().status === "playing") this.reschedule(beat);
   }
+  setMetronomeEnabled(enabled: boolean) {
+    this.patch({ metronomeEnabled: enabled });
+    this.remember();
+    if (!enabled) this.stopMetronome();
+    else if (backingClockActive(this.model.getSnapshot()))
+      void this.startMetronome();
+  }
+
   setMetronomeTempo(tempo: number) {
     if (!Number.isFinite(tempo) || backingClockActive(this.model.getSnapshot()))
       return;
@@ -833,6 +847,9 @@ export class BackingTrackPlayer {
           : context.currentTime + 0.06;
       this.patch({ status: "playing", syncing: false });
       this.reschedule(resumePosition, joinAt);
+      if (this.model.getSnapshot().metronomeEnabled)
+        await this.startMetronome();
+      if (token !== this.epoch || this.disposed) return;
       this.startTimer();
     } catch (error) {
       if (token !== this.epoch || this.disposed) return;
@@ -862,10 +879,13 @@ export class BackingTrackPlayer {
       this.context &&
       this.metronome.getSnapshot().enabled
     ) {
-      this.metroAnchor =
-        this.context.currentTime -
-        (this.position * 60) / this.metronome.getSnapshot().tempo;
-      this.resetClicks(this.position);
+      if (state.metronomeEnabled) this.stopMetronome();
+      else {
+        this.metroAnchor =
+          this.context.currentTime -
+          (this.position * 60) / this.metronome.getSnapshot().tempo;
+        this.resetClicks(this.position);
+      }
     }
     this.idle();
   }

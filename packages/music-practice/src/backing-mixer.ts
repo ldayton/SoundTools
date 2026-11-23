@@ -13,6 +13,7 @@ export const backingMixerChannels = [
   "guitar",
   "keys",
   "organ",
+  "metronome",
 ] as const;
 export type BackingMixerChannel = (typeof backingMixerChannels)[number];
 export type BackingMixerLevels = Record<BackingMixerChannel, number>;
@@ -69,6 +70,7 @@ export function backingMixerControls(style: BackingGenreId) {
     instruments.keys === "organ-bubble"
   )
     channels.push({ id: "organ", label: "Hammond organ" });
+  channels.push({ id: "metronome", label: "Metronome" });
   return channels;
 }
 

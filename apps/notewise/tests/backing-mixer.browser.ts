@@ -72,6 +72,10 @@ try {
     name: "Reset to genre default",
     exact: true,
   });
+  const clickLevel = panel.getByRole("slider", {
+    name: "Metronome balance",
+    exact: true,
+  });
   const bass = panel.getByRole("slider", { name: "Bass balance", exact: true });
   const guitar = panel.getByRole("slider", {
     name: "Guitar balance",
@@ -88,16 +92,21 @@ try {
   await mixer.click();
   assert.equal(await bass.getAttribute("aria-valuenow"), "100");
   assert.equal(await reset.isDisabled(), true);
+  assert.equal(await clickLevel.getAttribute("aria-valuenow"), "100");
+  await clickLevel.press("Home");
   await bass.press("Home");
   await guitar.press("End");
   assert.equal(await bass.getAttribute("aria-valuenow"), "0");
   assert.equal(await guitar.getAttribute("aria-valuenow"), "200");
   await style.selectOption("gospel");
+  assert.equal(await clickLevel.getAttribute("aria-valuenow"), "100");
   assert.equal(await reset.isDisabled(), true);
   assert.equal(await guitar.count(), 0);
+  await clickLevel.press("End");
   await organ.press("Home");
   await piano.press("End");
   await style.selectOption("blues");
+  assert.equal(await clickLevel.getAttribute("aria-valuenow"), "0");
   assert.equal(await bass.getAttribute("aria-valuenow"), "0");
   assert.equal(await guitar.getAttribute("aria-valuenow"), "200");
   await reset.click();
@@ -116,9 +125,11 @@ try {
   await openPracticeOptions(page);
   await mixer.click();
   assert.equal(await style.inputValue(), "gospel");
+  assert.equal(await clickLevel.getAttribute("aria-valuenow"), "200");
   assert.equal(await organ.getAttribute("aria-valuenow"), "0");
   assert.equal(await piano.getAttribute("aria-valuenow"), "200");
   assert.equal(await panel.getAttribute("data-status"), "ready");
+  await panel.getByRole("checkbox", { name: "Metronome", exact: true }).check();
   await panel
     .getByRole("button", { name: "Play backing track", exact: true })
     .click();

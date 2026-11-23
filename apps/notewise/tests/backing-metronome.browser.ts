@@ -4,6 +4,7 @@ import {
   launchBrowser,
   newPage,
 } from "../../../scripts/ci/browser-harness.cjs";
+import { openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
 import { chromium, firefox, webkit } from "playwright";
 import { spawn } from "node:child_process";
@@ -56,52 +57,23 @@ try {
     name: "Backing track",
     exact: true,
   });
-  const metro = page.getByRole("region", { name: "Metronome", exact: true });
+  await openPracticeOptions(page);
   await backing.waitFor();
-  await metro.waitFor();
-  assert.equal(await backing.locator("input[type=range]").count(), 0);
-  const tempo = backing.getByRole("spinbutton");
-  const initial = Number(await tempo.inputValue());
-  await backing.getByRole("button", { name: "Increase backing tempo" }).click();
-  assert.equal(Number(await tempo.inputValue()), initial + 2);
-  await backing.getByRole("button", { name: "Decrease backing tempo" }).click();
-  assert.equal(Number(await tempo.inputValue()), initial);
-  await backing.getByRole("button", { name: "Active", exact: true }).click();
   assert.equal(
-    await backing
-      .getByRole("button", { name: "Active", exact: true })
-      .getAttribute("aria-pressed"),
-    "true",
+    await page.getByRole("region", { name: "Metronome", exact: true }).count(),
+    0,
   );
-  const downbeat = metro.getByRole("checkbox", {
-    name: "Downbeat",
+  const click = backing.getByRole("checkbox", {
+    name: "Metronome",
     exact: true,
   });
-  const numerator = metro.getByRole("spinbutton", {
-    name: "Time signature numerator",
-  });
-  const denominator = metro.getByRole("spinbutton", {
-    name: "Time signature denominator",
-  });
-  assert.equal(await numerator.isDisabled(), true);
-  await downbeat.check();
-  await numerator.fill("3");
-  await denominator.fill("8");
-  await downbeat.uncheck();
-  assert.equal(await numerator.isDisabled(), true);
-  await metro
-    .getByRole("spinbutton", { name: "Metronome tempo in beats per minute" })
-    .fill("112");
-  await metro
-    .getByRole("spinbutton", { name: "Metronome tempo in beats per minute" })
-    .press("Enter");
-  await metro
-    .getByRole("button", { name: "Play metronome", exact: true })
-    .click();
-  await metro
-    .getByRole("status")
-    .filter({ hasText: "Playing · independent" })
-    .waitFor();
+  assert.equal(await click.isChecked(), false);
+  await click.check();
+  assert.equal(
+    await backing.getAttribute("data-status"),
+    "ready",
+    "enabling click does not start playback",
+  );
   await backing
     .getByRole("button", { name: "Play backing track", exact: true })
     .click();
@@ -109,110 +81,31 @@ try {
     .getByRole("status")
     .filter({ hasText: "Playing · looping" })
     .waitFor({ timeout: 60000 });
-  assert.equal(
-    await metro
-      .getByRole("spinbutton", { name: "Metronome tempo in beats per minute" })
-      .isDisabled(),
-    true,
-  );
-  assert.equal(
-    Number(
-      await metro
-        .getByRole("spinbutton", {
-          name: "Metronome tempo in beats per minute",
-        })
-        .inputValue(),
-    ),
-    initial,
-  );
-  await backing.getByRole("button", { name: "Increase backing tempo" }).click();
-  assert.equal(
-    Number(
-      await metro
-        .getByRole("spinbutton", {
-          name: "Metronome tempo in beats per minute",
-        })
-        .inputValue(),
-    ),
-    initial + 2,
-  );
-  await metro
-    .getByRole("button", { name: "Pause metronome", exact: true })
-    .click();
+  await click.uncheck();
   assert.equal(await backing.getAttribute("data-status"), "playing");
-  await metro
-    .getByRole("button", { name: "Play metronome", exact: true })
-    .click();
-  await downbeat.check();
-  assert.equal(await numerator.inputValue(), "4");
-  assert.equal(await denominator.inputValue(), "4");
-  assert.equal(await numerator.isDisabled(), true);
-  await backing.getByRole("button", { name: "Steady", exact: true }).click();
-  await backing
-    .getByRole("combobox", { name: "Backing style", exact: true })
-    .selectOption("rock");
+  await click.check();
+  await backing.getByRole("button", { name: "Increase backing tempo" }).click();
+  assert.equal(await backing.getAttribute("data-status"), "playing");
   await backing
     .getByRole("button", { name: "Pause backing track", exact: true })
     .click();
-  assert.equal(
-    Number(
-      await metro
-        .getByRole("spinbutton", {
-          name: "Metronome tempo in beats per minute",
-        })
-        .inputValue(),
-    ),
-    112,
+  assert.equal(await click.isChecked(), true);
+  await page.evaluate(
+    async (source) => {
+      const { persistence } = await import(/* @vite-ignore */ source);
+      await persistence.store.flush();
+    },
+    "/@fs" +
+      new URL(
+        "../../../packages/music-practice/src/persistence.ts",
+        import.meta.url,
+      ).pathname,
   );
-  assert.equal(
-    await metro
-      .getByRole("spinbutton", { name: "Metronome tempo in beats per minute" })
-      .isDisabled(),
-    false,
-  );
-  assert.equal(
-    await metro
-      .getByRole("button", { name: "Pause metronome", exact: true })
-      .getAttribute("aria-pressed"),
-    "true",
-  );
-  await metro
-    .getByRole("button", { name: "Pause metronome", exact: true })
-    .click();
-  assert.equal(await numerator.inputValue(), "3");
-  assert.equal(await denominator.inputValue(), "8");
-  await downbeat.uncheck();
   await page.reload();
+  await openPracticeOptions(page);
   await backing.waitFor();
-  assert.equal(
-    await backing
-      .getByRole("combobox", { name: "Backing style", exact: true })
-      .inputValue(),
-    "rock",
-  );
-  assert.equal(
-    await backing
-      .getByRole("button", { name: "Steady", exact: true })
-      .getAttribute("aria-pressed"),
-    "true",
-  );
-  assert.equal(
-    Number(
-      await metro
-        .getByRole("spinbutton", {
-          name: "Metronome tempo in beats per minute",
-        })
-        .inputValue(),
-    ),
-    112,
-  );
+  assert.equal(await click.isChecked(), true);
   assert.equal(await backing.getAttribute("data-status"), "ready");
-  assert.equal(
-    await metro
-      .getByRole("button", { name: "Play metronome", exact: true })
-      .getAttribute("aria-pressed"),
-    "false",
-  );
   // Exercise audio scheduling directly as well as the mounted widgets.
   const audioModule =
     "/@fs" +
@@ -223,6 +116,7 @@ try {
   const result = await page.evaluate(async (moduleUrl) => {
     const { BackingTrackPlayer } = await import(/* @vite-ignore */ moduleUrl);
     const p: any = new BackingTrackPlayer();
+    p.setMetronomeEnabled(false);
     const c = p.audio();
     const clicks: { when: number; frequency: number }[] = [];
     const oscillator = c.createOscillator.bind(c);
@@ -278,9 +172,8 @@ try {
     // must not let a scheduler that stops at the seam pass this regression.
     const seamEvents = sampleTimes.slice(seekStart);
     const tail = seamEvents.find((x) => x.beat > beats - 1);
-    const crossed = !!tail && seamEvents.some(
-      (x) => x.beat < 1 && x.when > tail.when,
-    );
+    const crossed =
+      !!tail && seamEvents.some((x) => x.beat < 1 && x.when > tail.when);
     const maxGap = seamEvents
       .slice(1)
       .reduce((n, x, i) => Math.max(n, x.when - seamEvents[i].when), 0);
@@ -289,6 +182,31 @@ try {
     p.pauseAll();
     const stopped = p.metronome.getSnapshot();
     await new Promise((r) => setTimeout(r, 100));
+    // The integrated option follows the backing transport and edits only click gain.
+    p.setMetronomeEnabled(true);
+    await p.play();
+    const integratedStarted = p.metronome.getSnapshot().enabled;
+    const integratedAnchor = p.anchor;
+    const bandGain = p.output.gain.value;
+    p.setMixerLevel("metronome", 0);
+    const mutedTarget = p.balance.getSnapshot().metronome;
+    p.setMetronomeEnabled(false);
+    const clickStopped =
+      !p.metronome.getSnapshot().enabled && p.metroVoices.size === 0;
+    p.setMetronomeEnabled(true);
+    await Promise.resolve();
+    const stillPlaying =
+      p.model.getSnapshot().status === "playing" &&
+      p.anchor === integratedAnchor;
+    p.setMixerLevel("metronome", 200);
+    const bandUnchanged = p.output.gain.value === bandGain;
+    p.pause();
+    const integratedPaused =
+      !p.metronome.getSnapshot().enabled &&
+      p.metroVoices.size === 0 &&
+      p.model.getSnapshot().metronomeEnabled;
+    p.setMetronomeEnabled(false);
+    p.resetMixer();
     // Render actual sample tails through every boundary, rather than checking
     // event timestamps alone. No count-in, ending or silent gap may recur.
     const { backingAudioGraph } = await import(
@@ -357,6 +275,12 @@ try {
     p.buses = realBuses;
     p.dispose();
     return {
+      integratedStarted,
+      mutedTarget,
+      clickStopped,
+      stillPlaying,
+      bandUnchanged,
+      integratedPaused,
       synced,
       crossed,
       maxGap,
@@ -367,6 +291,12 @@ try {
       accentedClicks,
     };
   }, audioModule);
+  assert.equal(result.integratedStarted, true);
+  assert.equal(result.mutedTarget, 0);
+  assert.equal(result.clickStopped, true);
+  assert.equal(result.stillPlaying, true);
+  assert.equal(result.bandUnchanged, true);
+  assert.equal(result.integratedPaused, true);
   assert.ok(
     result.equalClicks.length >= 1 &&
       result.equalClicks.every((f: number) => f === 1000),

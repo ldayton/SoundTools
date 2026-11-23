@@ -68,14 +68,12 @@ try {
   await backing.waitFor();
   assert.equal(
     await backing
-      .locator("[data-backing-quality]")
       .getAttribute("data-backing-quality"),
     "minor",
   );
   await page.getByLabel("Scale type", { exact: true }).selectOption("major");
   assert.equal(
     await backing
-      .locator("[data-backing-quality]")
       .getAttribute("data-backing-quality"),
     "major",
   );

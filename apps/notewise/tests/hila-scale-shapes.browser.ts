@@ -68,7 +68,6 @@ try {
     expect(await dialog.locator('svg text').allTextContents()).not.toContain('e');
     await expect(dialog).toContainText(quality.startsWith('major')?'D major · A shape':'D minor · Am shape');
     expect(await dialog.locator('svg g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual(await page.locator('.scale-chord-tone').evaluateAll(es=>es.map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort()));
-    await dialog.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
     await expect(dialog.locator('svg')).toHaveAttribute('data-orientation','horizontal');
     const low=await dialog.locator('g[data-string="6"]').boundingBox();
     const high=await dialog.locator('g[data-string="1"]').boundingBox();
@@ -103,6 +102,8 @@ try {
       await expect(panel).toContainText(`D ${quality} · ${name}${quality==='minor'?'m':''} shape`);
       expect(await panel.locator('g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort())).toEqual(await page.locator('.scale-chord-tone').evaluateAll(es=>es.map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`).sort()));
       const svg=panel.locator('svg');
+      await expect(svg).toHaveAttribute('data-orientation','horizontal');
+      await panel.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
       await expect(svg).toHaveAttribute('data-orientation','vertical');
       if(quality==='major'&&name==='C')await page.screenshot({path:'/tmp/caged-reference-vertical.png',fullPage:true});
       await panel.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
@@ -128,6 +129,34 @@ try {
       await expect(panel).toBeHidden();
     }
   }
+  // The six sounding strings of an E-form A chord use four fingers, one barred.
+  await page.goto(server.base+'/guitar/scales?key=A&scale=major&set=standard&pattern=1');
+  await waitForApp(page,'.scale-diagram svg');
+  const chordTrigger=page.getByRole('button',{name:'Show chord shape diagram',exact:true});
+  await chordTrigger.click();
+  const chordPanel=page.getByRole('region',{name:'Chord shape diagram',exact:true});
+  await expect(chordPanel).toBeVisible();
+  await expect(chordPanel.locator('svg')).toHaveAttribute('data-orientation','horizontal');
+  expect(await chordPanel.locator('g[data-string]').evaluateAll(es=>es.map(e=>[Number(e.getAttribute('data-fret')),Number(e.getAttribute('data-finger'))]))).toEqual([[5,1],[7,3],[7,4],[6,2],[5,1],[5,1]]);
+  await expect(chordPanel.locator('[data-finger-barre]')).toHaveCount(1);
+  await expect(chordPanel.locator('[data-finger-barre]')).toHaveAttribute('data-fret','5');
+  await expect(chordPanel.locator('[data-finger-barre]')).toHaveAttribute('data-from-string','6');
+  await expect(chordPanel.locator('[data-finger-barre]')).toHaveAttribute('data-to-string','1');
+  await expect(chordPanel.locator('.chord-finger')).toHaveText(['1','3','4','2','1','1']);
+  await expect(chordPanel).toContainText('one finger across several strings');
+  await expect(chordPanel).toContainText('Open E major moved up 5 frets.');
+  await page.screenshot({path:'/tmp/notewise-chord-clarity-desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:'/tmp/notewise-chord-clarity-mobile.png',fullPage:true});
+  await chordPanel.getByRole('button',{name:'Rotate chord diagram',exact:true}).click();
+  await expect(chordPanel.locator('svg')).toHaveAttribute('data-orientation','vertical');
+  await chordPanel.getByRole('button',{name:'Close chord diagram',exact:true}).click();
+  await chordTrigger.click();
+  await expect(chordPanel.locator('svg')).toHaveAttribute('data-orientation','horizontal');
+  await chordPanel.getByRole('button',{name:'Close chord diagram',exact:true}).click();
+  await page.setViewportSize({width:1440,height:1000});
+  await openPracticeOptions(page);
   await page.locator('#scale-pattern').selectOption('4');
   await page.locator('#scale-quality').selectOption('minor-blues');
   await page.reload();

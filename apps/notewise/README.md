@@ -92,7 +92,7 @@ To add a live exercise, add its catalog entry and typed factory, then implement 
 
 ## Guitar scale explorer
 
-**Guitar → Scales** (`/guitar/scales`) shows all scale tones from open strings through fret 5 in upright orientation: low E on the left, high E on the right. The shared Practice options panel offers any of 12 tonics in Major or explicitly labeled Natural minor; it docks beside the diagram on desktop and collapses above it on phones. Roots carry an R marker; gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. An expandable note table provides sounding octaves and open-string alternatives.
+**Guitar → Scales** (`/guitar/scales`) shows all scale tones from open strings through fret 5 with high E at the top, low E at the bottom, and frets increasing to the right. The shared Practice options panel offers any of 12 tonics in Major or explicitly labeled Natural minor; it docks beside the diagram on desktop and collapses above it on phones. Roots carry an R marker; gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. An expandable note table provides sounding octaves and open-string alternatives.
 
 This reference view has no grading or MIDI input. Its `guitar-scales` activity uses the shared activity host, durable storage, route catalog and control styles, independently of Music theory → Scales & degrees. Old local-preview `profiles.scales` preferences migrate into the new activity while retaining their original data. Optional `?key=F%23&scale=minor` URL parameters use the same settings validator. `npm run test:guitar-scales --workspace=notewise` checks navigation, all 24 keys, layout, reload, independent activity progress and MIDI isolation.
 
@@ -163,6 +163,15 @@ with its CAGED form (for example, “C major · E shape”). The Cm-form outline
 a playable four-note fragment: the fifth note fits the scale region but would
 require an extra fretting finger in the simultaneous grip. Chord outlines and
 blues fingerings are explicit NoteWise adaptations, not published chart fingers.
+
+The chord panel opens with the same orientation as the scale: high E at the top,
+low E at the bottom, frets increasing to the right. Rotate offers a conventional
+upright chord chart; reopening restores the scale orientation. Finger numbers
+describe the simultaneous chord grip, independently of scale-note fingers.
+Connected bars identify one finger holding several strings, and a short caption
+relates the grip to its open chord (for example, “Open E major moved up 5 frets.”).
+The ten reviewed major/minor grips own their frets, fingers and barres together;
+barres are never guessed from repeated fret numbers in an arbitrary passage.
 
 `packages/music-practice/tests/fixtures/caged-reference.json` records an
 independent transcription of all 20 source charts, reviewed on 2026-11-23,

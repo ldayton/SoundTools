@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionIcon, Group, Modal, Stack, Text } from "@mantine/core";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { fingeringWindow, type ChordPassage } from "./chord-passage-fingering";
+import type { ChordBarre } from "./guitar-scale-patterns";
 const eventName = "songalong:guitar-chord";
 type Selection = Pick<ChordPassage, "name" | "shapes" | "capo"> & {
   trigger: SVGElement | HTMLElement;
@@ -136,8 +137,9 @@ export function GuitarChordDiagram() {
 }
 
 /** Shared chord artwork for SongAlong's dialog and the inline scale panel. */
-export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false}: {
+export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false, fingers, barres = []}: {
   name: string; shapes: (number|null)[][]; frame?: number; horizontal?: boolean;
+  fingers?: (number|null)[]; barres?: ChordBarre[];
 }) {
   const shape = shapes[frame] || [];
   const { base, rows } = fingeringWindow(shapes, frame);
@@ -145,9 +147,9 @@ export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false}
   const description = shape
     .map(
       (f, i) =>
-        `${["low E", "A", "D", "G", "B", "high E"][i]}: ${f === null ? "not played" : f === 0 ? "open" : `fret ${f}`}`,
+        `${["low E", "A", "D", "G", "B", "high E"][i]}: ${f === null ? "not played" : f === 0 ? "open" : `fret ${f}${fingers?.[i] ? `, finger ${fingers[i]}` : ""}`}`,
     )
-    .join("; ");
+    .join("; ") + barres.map(b => `; finger ${b.finger} barre at fret ${b.fret}, strings ${b.fromString}–${b.toString}`).join("");
   return (
           <svg
             viewBox={horizontal ? `0 0 ${bottom + 55} 240` : `0 0 240 ${bottom + 55}`}
@@ -173,11 +175,19 @@ export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false}
                 strokeWidth={i === 0 && base === 1 ? 5 : 1.2}
               />
             ))}
+            {barres.map((barre, i) => (
+              <line key={`barre${i}`} data-finger-barre={barre.finger} data-fret={barre.fret}
+                data-from-string={barre.fromString} data-to-string={barre.toString}
+                x1={42 + (6 - barre.fromString) * 32} x2={42 + (6 - barre.toString) * 32}
+                y1={55 + (barre.fret - base + 0.5) * 40} y2={55 + (barre.fret - base + 0.5) * 40}
+                stroke="currentColor" strokeWidth="18" strokeLinecap="round" opacity="0.35" />
+            ))}
             {shape.map((f, i) => (
               <g
                 key={i}
                 data-string={6 - i}
                 data-fret={f === null ? "not-played" : f}
+                data-finger={fingers?.[i] ?? undefined}
               >
                 <line
                   x1={42 + i * 32}
@@ -208,14 +218,21 @@ export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false}
                     strokeWidth="1.5"
                   />
                 ) : (
+                  <g>
                   <circle
                     cx={42 + i * 32}
                     cy={55 + (f - base + 0.5) * 40}
                     r="9"
                     fill="currentColor"
                   />
+                  {fingers?.[i] && <text className="chord-finger"
+                    x={42 + i * 32} y={55 + (f - base + 0.5) * 40}
+                    transform={horizontal ? `rotate(90 ${42 + i * 32} ${55 + (f - base + 0.5) * 40})` : undefined}
+                    textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="600"
+                    fill="var(--mantine-color-body)">{fingers[i]}</text>}
+                  </g>
                 )}
-                <text
+                {!horizontal && <text
                   x={42 + i * 32}
                   y={bottom + 30}
                   transform={horizontal ? `rotate(90 ${42 + i * 32} ${bottom + 30})` : undefined}
@@ -224,15 +241,23 @@ export function GuitarChordGraphic({name, shapes, frame = 0, horizontal = false}
                   fill="currentColor"
                 >
                   {["E", "A", "D", "G", "B", "E"][i]}
-                </text>
+                </text>}
               </g>
             ))}
-            {base > 1 && (
+            {!horizontal && base > 1 && (
               <text transform={horizontal ? "rotate(90 8 80)" : undefined} x="8" y="80" fontSize="14" fill="currentColor">
                 {base}fr
               </text>
             )}
             </g>
+            {horizontal && <>
+              {shape.map((_, i) => <text key={`tuning${i}`} x="10" y={240 - (42 + i * 32)}
+                textAnchor="middle" dominantBaseline="central" fontSize="14" fill="currentColor">
+                {["E", "A", "D", "G", "B", "E"][i]}
+              </text>)}
+              {Array.from({length:rows},(_,i)=><text key={`number${i}`} x={55 + (i + 0.5) * 40} y="18"
+                textAnchor="middle" fontSize="14" fill="currentColor">{base+i}</text>)}
+            </>}
           </svg>
   );
 }

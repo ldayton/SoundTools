@@ -24,33 +24,56 @@ export function cagedScaleSource(quality: ScaleQuality) {
       : 'GuitarScale.org',
   };
 }
+function chordForm(shape: ScaleShape) {
+  return { "1": "E", "2": "D", "3": "C", "4": "A", "5": "G" }[shape];
+}
 export function scaleShapeLabel(shape: ScalePattern | "none", quality: ScaleQuality): string {
   if (shape === "map") return "Fret range";
   if (shape === "none") return "Single shape";
-  const chord = { "1": "E", "2": "D", "3": "C", "4": "A", "5": "G" }[shape];
+  const chord = chordForm(shape);
   return `${chord}${isMajorScale(quality) ? "" : "m"} shape`;
+}
+export type ChordBarre = { finger: number; fret: number; fromString: number; toString: number };
+type ChordGrip = {
+  // Frets and fingers are one reviewed grip, not scale-note finger assignments.
+  strings: (readonly [fret: number, finger: number] | null)[];
+  barres: ChordBarre[];
+};
+const majorChordGrips: Record<ScaleShape, ChordGrip> = {
+  "1": { strings: [[8,1],[10,3],[10,4],[9,2],[8,1],[8,1]], barres: [{finger:1,fret:8,fromString:6,toString:1}] },
+  "2": { strings: [null,null,[10,1],[12,2],[13,4],[12,3]], barres: [] },
+  "3": { strings: [null,[15,4],[14,3],[12,1],[13,2],[12,1]], barres: [{finger:1,fret:12,fromString:3,toString:1}] },
+  "4": { strings: [null,[3,1],[5,2],[5,3],[5,4],[3,1]], barres: [{finger:1,fret:3,fromString:5,toString:1}] },
+  "5": { strings: [[8,3],[7,2],[5,1],[5,1],[5,1],[8,4]], barres: [{finger:1,fret:5,fromString:4,toString:2}] },
+};
+const minorChordGrips: Record<ScaleShape, ChordGrip> = {
+  "1": { strings: [[5,1],[7,3],[7,4],[5,1],[5,1],[5,1]], barres: [{finger:1,fret:5,fromString:6,toString:1}] },
+  "2": { strings: [null,null,[7,1],[9,3],[10,4],[8,2]], barres: [] },
+  // Playable Cm-form fragment; the full five-note grip needs an extra finger.
+  "3": { strings: [null,[12,4],[10,2],[9,1],[10,3],null], barres: [] },
+  "4": { strings: [null,[12,1],[14,3],[14,4],[13,2],[12,1]], barres: [{finger:1,fret:12,fromString:5,toString:1}] },
+  "5": { strings: [[5,3],[3,2],[2,1],[2,1],[5,4],[5,4]], barres: [{finger:1,fret:2,fromString:4,toString:3},{finger:4,fret:5,fromString:2,toString:1}] },
+};
+function chordGrip(shape: ScaleShape, quality: ScaleQuality) {
+  return (isMajorScale(quality) ? majorChordGrips : minorChordGrips)[shape];
 }
 /** The chord voicing anchoring each position, low E through high E. */
 export function cagedChordPositions(shape: ScaleShape, quality: ScaleQuality, shift: number) {
-  const majorChords: Record<ScaleShape, (number | null)[]> = {
-    "1": [8,10,10,9,8,8], "2": [null,null,10,12,13,12],
-    "3": [null,15,14,12,13,12], "4": [null,3,5,5,5,3], "5": [8,7,5,5,5,8],
-  };
-  const minorChords: Record<ScaleShape, (number | null)[]> = {
-    "1": [5,7,7,5,5,5], "2": [null,null,7,9,10,8],
-    // A playable four-note Cm-form fragment. The full five-note shape also
-    // fits the scale, but its simultaneous grip needs an extra fretting finger.
-    "3": [null,12,10,9,10,null], "4": [null,12,14,14,13,12], "5": [5,3,2,2,5,5],
-  };
-  return (isMajorScale(quality) ? majorChords : minorChords)[shape].flatMap((fret,row)=>
-    fret === null ? [] : [{string:6-row,fret:fret+shift}]);
+  return chordGrip(shape,quality).strings.flatMap((note,row) =>
+    note === null ? [] : [{string:6-row,fret:note[0]+shift}]);
 }
-/** The sounding tonic chord at the same frets as its outline on the scale. */
+/** Chord grip at the outlined scale frets. Chord fingers differ from scale fingers. */
 export function cagedChordDiagram(tonic:number, quality:ScaleQuality, shape:ScaleShape, shift:number, spelling?:string) {
-  const positions=cagedChordPositions(shape,quality,shift);
+  const grip=chordGrip(shape,quality);
+  const frets=grip.strings.map(note=>note===null?null:note[0]+shift);
+  const moved=Math.min(...frets.filter((f):f is number=>f!==null));
+  const form=`Open ${chordForm(shape)} ${isMajorScale(quality)?'major':'minor'}`;
   return {
     name:`${scaleLabel(scaleNotes(tonic,quality,spelling)[0].name)} ${isMajorScale(quality)?'major':'minor'} · ${scaleShapeLabel(shape,quality)}`,
-    frets:Array.from({length:6},(_,i)=>positions.find(n=>n.string===6-i)?.fret ?? null),
+    explanation:moved===0?`${form} form.`:`${form} moved up ${moved} ${moved===1?'fret':'frets'}.`,
+    frets,
+    fingers:grip.strings.map((note,i)=>note===null||frets[i]===0?null:note[1]),
+    barres:grip.barres.map(barre=>({...barre,fret:barre.fret+shift})).filter(barre=>barre.fret>0),
   };
 }
 type Fingering = { frets: number[][]; fingers: number[][] };

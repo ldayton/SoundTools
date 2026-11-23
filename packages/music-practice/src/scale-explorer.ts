@@ -607,7 +607,7 @@ export class ScaleExplorer implements LivePractice {
     const omittedPositions=[...omittedByPosition.values()];
     const boardPositions=[...positions,...omittedPositions];
     const chordKeys = new Set<string>();
-    const chordDiagrams: {name:string; frets:(number|null)[]}[] = [];
+    const chordDiagrams: ReturnType<typeof cagedChordDiagram>[] = [];
     const addChord = (shape: Exclude<ScalePattern,"map">, shift: number) => {
       const positions=cagedChordPositions(shape,this.quality,shift);
       for(const n of positions)chordKeys.add(positionKey(n));

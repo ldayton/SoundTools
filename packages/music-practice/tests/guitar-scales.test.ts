@@ -479,9 +479,41 @@ test("CAGED outlines mark the anchoring chord, contained in every matching scale
  assert.deepEqual(cagedChordPositions("3","major",-12),[{string:5,fret:3},{string:4,fret:2},{string:3,fret:0},{string:2,fret:1},{string:1,fret:0}]);
 });
 
-test("chord diagrams show the sounding chord at the outlined frets",()=>{
- assert.deepEqual(cagedChordDiagram(0,'major','1',0),{name:'C major · E shape',frets:[8,10,10,9,8,8]});
- assert.deepEqual(cagedChordDiagram(9,'minor','1',0),{name:'A minor · Em shape',frets:[5,7,7,5,5,5]});
+test("chord diagrams show the sounding grip, with one index barre for the E form",()=>{
+ assert.deepEqual(cagedChordDiagram(9,'major','1',-3),{
+  name:'A major · E shape',explanation:'Open E major moved up 5 frets.',frets:[5,7,7,6,5,5],fingers:[1,3,4,2,1,1],
+  barres:[{finger:1,fret:5,fromString:6,toString:1}],
+ });
+ assert.deepEqual(cagedChordDiagram(9,'minor','1',0),{
+  name:'A minor · Em shape',explanation:'Open E minor moved up 5 frets.',frets:[5,7,7,5,5,5],fingers:[1,3,4,1,1,1],
+  barres:[{finger:1,fret:5,fromString:6,toString:1}],
+ });
+ const open=cagedChordDiagram(0,'major','3',-12);
+ assert.deepEqual(open.frets,[null,3,2,0,1,0]);
+ assert.deepEqual(open.fingers,[null,4,3,null,2,null]);
+ assert.deepEqual(open.barres,[]);
+ assert.equal(open.explanation,'Open C major form.');
+});
+
+test('every CAGED chord grip has feasible finger assignments and explicit barres',()=>{
+ for(const quality of ['major','minor','major-pentatonic','minor-pentatonic','major-blues','minor-blues'] as const)
+ for(let tonic=0;tonic<12;tonic++)for(const shape of SCALE_SHAPES){
+  const chord=cagedChordDiagram(tonic,quality,shape,patternShift(tonic,quality,shape));
+  for(let i=0;i<6;i++)assert.equal(chord.frets[i]===null,chord.fingers[i]===null);
+  for(let finger=1;finger<=4;finger++){
+   const strings=chord.fingers.flatMap((f,i)=>f===finger?[6-i]:[]);
+   const barres=chord.barres.filter(b=>b.finger===finger);
+   if(strings.length>1){
+    assert.equal(barres.length,1);
+    assert.deepEqual([barres[0].fromString,barres[0].toString],[Math.max(...strings),Math.min(...strings)]);
+    assert.ok(strings.every(string=>chord.frets[6-string]===barres[0].fret));
+   }else assert.equal(barres.length,0);
+  }
+  assert.ok(chord.fingers.every(f=>f===null||Number.isInteger(f)&&f>=1&&f<=4));
+  for(const barre of chord.barres)for(let string=barre.toString;string<=barre.fromString;string++){
+   const fret=chord.frets[6-string];assert.ok(fret!==null&&fret>=barre.fret,'a barre cannot cross an open, muted or lower-fretted string');
+  }
+ }
 });
 
 test('relative scale switches re-root the same pitches and restore the saved scale',()=>{

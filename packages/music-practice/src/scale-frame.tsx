@@ -1,3 +1,4 @@
+import type { cagedChordDiagram } from "./guitar-scale-patterns";
 import { GuitarChordGraphic } from "./guitar-chord-diagram";
 import { useMediaQuery } from "@mantine/hooks";
 import { useSyncExternalStore, useState, useRef, type ReactNode } from "react";
@@ -16,7 +17,7 @@ export const scaleBodyState = () =>
     chordOutline: false,
     blueNoteLabel: "",
     omittedNoteLabel: "",
-    chordDiagrams: [] as {name: string; frets: (number | null)[]}[],
+    chordDiagrams: [] as ReturnType<typeof cagedChordDiagram>[],
     reversedColors: false,
     linkHelp: "",
     notes: "",
@@ -43,7 +44,7 @@ export function ScaleFrame({
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   const [chordOpen,setChordOpen]=useState(false);
-  const [horizontal,setHorizontal]=useState(false);
+  const [horizontal,setHorizontal]=useState(true);
   const [chordFrame,setChordFrame]=useState(0);
   const chordTrigger=useRef<HTMLButtonElement>(null);
   const activeChord=s.chordDiagrams[Math.min(chordFrame,s.chordDiagrams.length-1)];
@@ -85,7 +86,7 @@ export function ScaleFrame({
         <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
         {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
         {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
-        {s.chordOutline && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={chordOpen} aria-controls="scale-chord-panel" aria-label="Show chord shape diagram" onClick={()=>{setChordOpen(!chordOpen);setChordFrame(0);}}><i className="scale-chord-swatch" aria-hidden="true" />Chord shape</button>}
+        {s.chordOutline && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={chordOpen} aria-controls="scale-chord-panel" aria-label="Show chord shape diagram" onClick={()=>{setChordOpen(!chordOpen);setChordFrame(0);if(!chordOpen)setHorizontal(true);}}><i className="scale-chord-swatch" aria-hidden="true" />Chord shape</button>}
         {s.linkedLegend && <>
         {s.linkedLegend.split("|")
           .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
@@ -114,7 +115,10 @@ export function ScaleFrame({
           <Button variant="subtle" size="compact-sm" aria-label="Rotate chord diagram" aria-pressed={horizontal} onClick={()=>setHorizontal(!horizontal)}>↻ Rotate</Button>
           <ActionIcon variant="subtle" aria-label="Close chord diagram" onClick={()=>{setChordOpen(false);chordTrigger.current?.focus();}}>×</ActionIcon>
         </div>
-        <GuitarChordGraphic name={activeChord.name} shapes={[activeChord.frets]} horizontal={horizontal} />
+        <Text size="sm" c="dimmed">{activeChord.explanation}</Text>
+        <GuitarChordGraphic name={activeChord.name} shapes={[activeChord.frets]} horizontal={horizontal} fingers={activeChord.fingers} barres={activeChord.barres} />
+        <Text className="scale-chord-finger-key" size="xs" c="dimmed">1 index · 2 middle · 3 ring · 4 little finger</Text>
+        {activeChord.barres.length > 0 && <Text className="scale-chord-barre-help" size="xs" c="dimmed">A connected bar is one finger across several strings.</Text>}
         {s.chordDiagrams.length>1 && <div className="scale-chord-panel-header">
           <Button size="compact-sm" variant="subtle" disabled={chordFrame===0} onClick={()=>setChordFrame(0)}>Previous fingering</Button>
           <Button size="compact-sm" variant="subtle" disabled={chordFrame===1} onClick={()=>setChordFrame(1)}>Next fingering</Button>

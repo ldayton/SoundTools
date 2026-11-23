@@ -15,12 +15,23 @@ export function attachChordDiagrams(
   paper: HTMLElement,
   passages: readonly ChordPassage[],
 ) {
+  attachChordTriggers(paper, passages, "guitar-chord-trigger", (passage, trigger) =>
+    showGuitarChordDiagram({ ...passage, trigger }),
+  );
+}
+/** Shared accessible chord hit targets for guitar and piano diagrams. */
+export function attachChordTriggers<T extends { name: string; element: SVGGraphicsElement }>(
+  paper: HTMLElement,
+  passages: readonly T[],
+  className: string,
+  show: (passage: T, trigger: SVGElement) => void,
+) {
   for (const passage of passages) {
     const { name, element: text } = passage;
-    if (!paper.contains(text) || text.closest(".guitar-chord-trigger"))
+    if (!paper.contains(text) || text.closest(`.${className}`))
       continue;
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    group.classList.add("guitar-chord-trigger");
+    group.classList.add(className);
     group.setAttribute("role", "button");
     group.setAttribute("tabindex", "0");
     group.setAttribute("aria-label", `Show ${name} chord diagram`);
@@ -38,7 +49,7 @@ export function attachChordDiagrams(
     text.parentNode!.insertBefore(group, text);
     group.append(target, text);
     const open = () => {
-      showGuitarChordDiagram({ ...passage, trigger: group });
+      show(passage, group);
     };
     for (const event of ["pointerdown", "mousedown", "touchstart", "dblclick"])
       group.addEventListener(event, (event) => event.stopPropagation());

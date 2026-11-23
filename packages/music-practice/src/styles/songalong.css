@@ -413,10 +413,10 @@
   border-radius: 6px;
 }
 
-.guitar-chord-trigger { cursor: pointer; }
-.guitar-chord-trigger, .guitar-chord-trigger * { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
-.guitar-chord-trigger .abcjs-chord { text-decoration: underline dotted; text-underline-offset: 3px; }
-.guitar-chord-trigger:focus-visible { outline: 1px dotted currentColor; outline-offset: 3px; }
+:is(.guitar-chord-trigger, .piano-chord-trigger) { cursor: pointer; }
+:is(.guitar-chord-trigger, .piano-chord-trigger), :is(.guitar-chord-trigger, .piano-chord-trigger) * { user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
+:is(.guitar-chord-trigger, .piano-chord-trigger) .abcjs-chord { text-decoration: underline dotted; text-underline-offset: 3px; }
+:is(.guitar-chord-trigger, .piano-chord-trigger):focus-visible { outline: 1px dotted currentColor; outline-offset: 3px; }
 
 .hymn-strum-pattern {
   display: flex;

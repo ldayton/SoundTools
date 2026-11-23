@@ -1,3 +1,4 @@
+import { PianoChordDiagram } from "./piano-chord-diagram";
 import { GuitarChordDiagram } from "./guitar-chord-diagram";
 import { restoreFocus } from "@ldayton/ui/restore-focus";
 import { RenderErrorBoundary } from "@ldayton/ui/render-error-boundary";
@@ -445,7 +446,7 @@ export function mountAppShell(
             <SettingsPage key={snapshot.settingsVisit} />
           </section>
         </ApplicationLayout>
-        {APP.id === "songalong" && <GuitarChordDiagram />}
+        {APP.id === "songalong" && <><GuitarChordDiagram /><PianoChordDiagram /></>}
         <PracticeSurfaceViews registry={registry} />
       </PracticeOptionsProvider>
     );

@@ -23,6 +23,7 @@ const browser = await launchBrowser();
 try {
   const page = await newPage(browser, {
     viewport: { width: 1440, height: 1000 },
+    reducedMotion: "reduce",
   });
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -31,7 +32,9 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
   await expect(page.locator(".sequence-title")).toHaveText("In Christ Alone 2");
-  await expect(page.getByRole("radio", {name:"Sung accompaniment",exact:true})).toHaveAttribute("aria-checked", "true");
+  await expect(
+    page.getByRole("radio", { name: "Voice + Piano", exact: true }),
+  ).toHaveAttribute("aria-checked", "true");
   await expect(page.locator("#hymn-key")).toHaveValue("Original (D)");
   await expect(
     page.locator(".hymn-paper svg").first().locator(".abcjs-clef"),
@@ -99,6 +102,67 @@ try {
     );
     assert.deepEqual(clipped, []);
   }
+  async function checkChords() {
+    for (const [name, labels, notes] of [
+      ["D", "D3 · F♯3 · A3", [50, 54, 57]],
+      ["G", "G3 · B3 · D4", [55, 59, 62]],
+      ["A", "A3 · C♯4 · E4", [57, 61, 64]],
+      ["D/F♯", "F♯3 · A3 · D4", [54, 57, 62]],
+      ["Bm", "B3 · D4 · F♯4", [59, 62, 66]],
+      ["Em", "E3 · G3 · B3", [52, 55, 59]],
+    ] as const) {
+      const trigger = page
+        .getByRole("button", {
+          name: `Show ${name} chord diagram`,
+          exact: true,
+        })
+        .first();
+      await trigger.click();
+      const dialog = page.getByRole("dialog", {
+        name: `${name} chord`,
+        exact: true,
+      });
+      await expect(dialog).toBeVisible();
+      await expect
+        .poll(() => dialog.evaluate((el) => getComputedStyle(el).opacity))
+        .toBe("1");
+      await expect(dialog.locator(".piano-chord-notes")).toHaveText(labels);
+      assert.deepEqual(
+        await dialog
+          .locator(".is-playing[data-piano]")
+          .evaluateAll((keys) =>
+            keys.map((key) => Number(key.getAttribute("data-piano"))),
+          ),
+        [...notes],
+      );
+      await expect(dialog.locator("[data-string]")).toHaveCount(0);
+      assert.ok(
+        await dialog.evaluate((el) => {
+          const bounds = el.getBoundingClientRect();
+          const label = el
+            .querySelector(".piano-chord-notes")!
+            .getBoundingClientRect();
+          const keys = el
+            .querySelector(".piano-keybed")!
+            .getBoundingClientRect();
+          return (
+            bounds.left >= 0 &&
+            bounds.right <= innerWidth &&
+            label.bottom <= keys.top
+          );
+        }),
+      );
+      if (name === "D/F♯")
+        await page.screenshot({
+          path: `/tmp/teacher-piano-chord-${page.viewportSize()!.width}.png`,
+        });
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expect(trigger).toBeFocused();
+    }
+    await expect(page.locator(".hymn-paper")).not.toContainText("(Bm)");
+  }
+  await checkChords();
   await checkInk();
   await page.screenshot({
     path: "/tmp/in-christ-alone-2-desktop.png",
@@ -112,6 +176,23 @@ try {
     path: "/tmp/in-christ-alone-2-mobile.png",
     fullPage: true,
   });
+  await page.setViewportSize({ width: 320, height: 844 });
+  await checkChords();
+  await checkInk();
+  await practiceOption(page, "#hymn-key", "Eb");
+  await dismissPracticeDrawer(page);
+  const transposed = page
+    .getByRole("button", { name: "Show E♭/G chord diagram", exact: true })
+    .first();
+  await transposed.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("dialog").locator(".piano-chord-notes"),
+  ).toHaveText("G3 · B♭3 · E♭4");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await practiceOption(page, "#hymn-key", "original");
+  await dismissPracticeDrawer(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
   await waitForApp(page, ".hymn-paper");
@@ -123,7 +204,9 @@ try {
   await waitForApp(page, ".hymn-paper");
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
-  await expect(page.getByRole("radio", {name:"Sung accompaniment",exact:true})).toHaveAttribute("aria-checked", "true");
+  await expect(
+    page.getByRole("radio", { name: "Voice + Piano", exact: true }),
+  ).toHaveAttribute("aria-checked", "true");
   await expect(page.locator("#hymn-tempo")).toHaveValue("96 BPM");
   assert.deepEqual(errors, []);
   console.log(

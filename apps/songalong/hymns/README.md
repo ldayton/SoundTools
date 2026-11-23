@@ -100,8 +100,9 @@ edition. The photos are in E-flat major; at the user’s request, every voice is
 down one semitone to D major, which is now this song’s Original key. The
 transcription retains the printed 3/4, “Steadily,”
 choir plus a two-staff organ part, four complete printed verses, 21 numbered
-measures, inner-voice ties, the organ interlude and the final repeat. Pencil
-chord letters, corrections and circles are excluded. The score prints no numeric
+measures, inner-voice ties, the organ interlude and the final repeat. Teacher pencil chord letters are now included, using the fullest suggestions:
+D/F♯ in bars 11 and 15, Bm in bar 12, and Em in bar 19. Other pencil
+corrections and circles are excluded. The score prints no numeric
 tempo; the app's adjustable 80 BPM starting tempo is not a source marking.
 
 The opening and final measures each last three eighth notes; a single written
@@ -112,7 +113,7 @@ line in bar 18 uses an additional voice on the same treble staff. All four lyric
 rows come from these photographs, including the second verse and the printed
 “There in the ground” opening; there is no added “Oh” refrain.
 
-The song opens on Sung accompaniment, using Original harmony to show the supplied
+The song opens on Voice + Piano, using Original harmony to show the supplied
 three-staff arrangement. Piano and Guitar stay disabled until this song has those
 instrument editions.
 The About this song link downloads the bundled transcription and remains valid
@@ -125,3 +126,9 @@ transcription/browser witness belongs to Nightly's SongAlong core group; the
 catalog partitions also include the new song automatically. This adds no
 exhaustive browser work to the bounded CI lane. The actual-clef hand-selection
 regression is included in the same unit owner.
+
+The teacher chord letters are clickable. Their dialog reuses the shared piano
+keyboard, with a compact triad voicing and its octave-qualified notes ordered
+from bass to treble above the keys. Slash chords use the indicated bass note.
+These chord examples do not replace the printed organ voicing or add synthesized
+accompaniment to playback; transposition updates both symbols and diagrams.

@@ -101,7 +101,7 @@ try {
     await checkScore(page);
     await openPracticeOptions(page);
     await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
-  await expect(page.getByRole('radio', { name: 'Sung accompaniment', exact: true })).toBeDisabled();
+  await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeDisabled();
     await selectHymnInstrument(page, 'guitar');
     await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();
     assert(

@@ -1,7 +1,8 @@
 % Transcribed from user-supplied printed score.
 % Transposed from the printed E-flat score to D major at the user’s request.
 % Teacher arrangement supplied as two photographs, 23 November 2026.
-% Printed notes, rests, ties, slur and lyrics only; all pencil annotations excluded.
+% Printed notes, rests, ties, slur and lyrics retained.
+% Teacher pencil chords added in D, using the fullest suggestions: D/F# and Bm.
 % Bars 1 and 21 are complementary 3/8 measures in the printed 3/4 score.
 % The printed repeat is retained; no additional Oh outro is present.
 X:1
@@ -19,7 +20,7 @@ V:Inner clef=treble stem=down
 V:Sustain clef=treble stem=down
 V:Bass clef=bass
 K:D
-[V:Choir] A,8 B,12D4 | D16 z8 A,8 B,8D8 | E16 z16 F8E4D4 |
+[V:Choir] A,8 "G"B,12D4 | "D"D16 z8 A,8 "G"B,8D8 | "A"E16 z16 "D"F8E4D4 |
 w: In Christ a- lone my hope is found, He is my
 w: In Christ a- lone! who took on flesh, Ful- ness of
 w: There in the ground His bo- dy lay, Light of the
@@ -28,7 +29,7 @@ w: No guilt in life, no fear in death, This is the
 [V:Inner] x8 G,16 | [F,A,]32 [G,B,]16 | [A,C]32 [A,D]16 |
 [V:Sustain] x24 | x48 | x48 |
 [V:Bass] z8 [G,,D,]16 | [D,,D,]32 [G,,D,]16 | A,,16 E,,16 F,,16 |
-[V:Choir] B,8F8 E24 D8 | D16 z8 A,8 B,12D4 | D16 z8 A,8 B,8D8 |
+[V:Choir] "G"B,8F8 "A"E24 D8 | "D"D16 z8 A,8 "G"B,12D4 | "D"D16 z8 A,8 "G"B,8D8 |
 w: light, my strength, my song; This Cor- ner- stone, this so- lid
 w: God in help- less babe! This gift of love and right- eous-
 w: world by dark- ness slain: Then burst- ing forth in glor- ious
@@ -37,7 +38,7 @@ w: power of Christ in me; From life's first cry to fi- nal
 [V:Inner] G,8 [A,D]8 [G,B,D]32 | [F,A,]32 [G,B,]16 | [F,A,]32 [G,B,]16 |
 [V:Sustain] x48 | x48 | x48 |
 [V:Bass] G,,8F,,8 E,,16 A,,16 | D,,32 [G,,D,]16 | [D,,D,]32 [G,,D,]16 |
-[V:Choir] E16 z16 F8E4D4 | B,8F8 E24 D8 | D16 z8 D8 F8A8 |
+[V:Choir] "A"E16 z16 "D"F8E4D4 | "G"B,8F8 "A"E24 D8 | "D"D16 z8 D8 F8A8 |
 w: Ground, firm through the fier- cest drought and storm. What heights of
 w: ness, Scorned by the ones He came to save; Till on that
 w: Day Up from the grave He rose a- gain! And as He
@@ -46,7 +47,7 @@ w: breath, Je- sus com- mands my dest- i- ny. No power of
 [V:Inner] [A,C]32 [A,D]16 | G,8 [A,D]8 [G,B,D]32 | [F,A,]32 [A,D]16 |
 [V:Sustain] x48 | x48 | x48 |
 [V:Bass] A,,16 E,,16 F,,16 | G,,8F,,8 E,,16 A,,16 | D,,32 F,,16 |
-[V:Choir] B16 z8 B8 A8F8 | E16 z8 D8 d8c8 | B16 z8 B8 A8F8 | E16 z8 A,8 B,12D4 |
+[V:Choir] "G"B16 z8 B8 "D"A8F8 | "A"E16 z8 D8 "D/F#"d8c8 | "G"B16 z8 B8 "Bm"A8F8 | "A"E16 z8 A,8 B,12D4 |
 w: love, what depths of peace, when fears are stilled, when striv- ings cease! My com- fort-
 w: cross as Je- sus died, The love of God was sat- is- fied For eve- ry
 w: stands in vic- tor- y Sin's curse has lost its grip on me, For I am
@@ -55,7 +56,7 @@ w: hell, no scheme of man, Can ev- er pluck me from His hand; Till He re-
 [V:Inner] [DF]32 D16 | [A,-D]16 [A,C]16 [DA]16 | [D-A]16 [DG]16 D16 | D16 C16 [G,B,]16 |
 [V:Sustain] x48 | x48 | x48 | x48 |
 [V:Bass] G,,16 G,16 [F,A,]16 | [A,,E,]32 [F,,F,]16 | [G,,G,]32 [A,,E,]16 | [A,,A,]32 [G,,D,]16 |
-[V:Choir] D16 z8 A,8 B,8D8 | E16 z16 F8E4D4 | B,8F8 E24 D8 | D32 z16 | Z |
+[V:Choir] "D"D16 z8 A,8 "G"B,8D8 | "A"E16 z16 "D/F#"F8E4D4 | "G"B,8F8 "A"E24 D8 | "D"D32 z16 | Z |
 w: er, my All in All, Here in the love of Christ I stand.
 w: sin on Him was laid; Here in the death of Christ I live.
 w: His and He is mine Bought with the pre- cious blood of Christ.
@@ -64,7 +65,7 @@ w: turns or calls me home, Here in the power of Christ I'll stand!
 [V:Inner] [F,A,]32 [G,B,]16 | [A,C]32 [A,D]16 | G,8 [A,D]8 [G,B,D]32 | [F,A,]16- [F,A,]8A,8 B,12D4 | E24 F8 [G,CE]12 D4 |
 [V:Sustain] x48 | x48 | x48 | x48 | [G,C]32 x16 |
 [V:Bass] [D,,D,]32 [G,,D,]16 | A,,16 E,,16 F,,16 | G,,8F,,8 E,,16 A,,16 | D,,32 D,16 | A,,32- A,,8A,,8 |
-[V:Choir] Z | Z | z16 z8 :|
+[V:Choir] "Em"Z | "D"Z | z16 z8 :|
 [V:RH] x48 | x48 | x24 :|
 [V:Inner] [G,B,]24 B,8 [G,B,]12 D4 | [F,A,D]24 F,8 (G,4A,4 D8- | [F,A,D]24) :|
 [V:Sustain] x48 | x48 | x24 :|

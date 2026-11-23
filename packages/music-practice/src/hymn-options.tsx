@@ -282,7 +282,7 @@ export function HymnOptions({
           )}
         </>
       ) : <OptionsSection
-        title={hymnInstrument(state.arrangement) === "sung" ? "Sung accompaniment" : "Piano arrangements"}
+        title={hymnInstrument(state.arrangement) === "sung" ? "Voice + Piano" : "Piano arrangements"}
       >
         {arrangements.length > 1 && (
           <NativeSelect id="hymn-arrangement" label="Arrangement" value={state.arrangement}

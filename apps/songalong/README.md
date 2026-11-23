@@ -133,13 +133,13 @@ instrument routing, and writes six-second WAV previews to
 
 ## Primary instrument selection
 
-The toolbar always shows Guitar, Piano and Sung accompaniment as one radio group.
+The toolbar always shows Guitar, Piano and Voice + Piano as one radio group.
 Only one instrument is selected; unavailable instruments remain visible and disabled.
 The sidebar lists arrangements belonging to the current instrument, and omits the
 arrangement picker when that instrument has only one arrangement. Reviewed editions
 retain their Piano/Guitar scores; generic staged keyboard arrangements belong to
-Piano and their original vocal harmony belongs to Sung accompaniment. The supplied
-In Christ Alone 2 choir/organ score currently supports Sung accompaniment only.
+Piano and their original vocal harmony belongs to Voice + Piano. The supplied
+In Christ Alone 2 choir/organ score currently supports Voice + Piano only.
 
 Existing arrangement IDs still encode the saved instrument and arrangement together,
 so old deep links, account records, offline preferences and bookmarks remain valid.

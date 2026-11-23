@@ -1,3 +1,4 @@
+import { attachPianoChordDiagrams } from "./piano-chord-diagram";
 import {editionTempoLabel} from "./edition-score";
 import {pickupHymnSystems} from "./instrument-hymn";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
@@ -242,6 +243,7 @@ export function drawPracticeScore(
     // Guitar tab uses the conventional written octave, sounding one octave lower.
     midiTranspose: transpose + (options.guitarMidiOffset ?? (options.guitarTab ? -12 : 0)),
     ...(options.playback ? { qpm: 60, chordsOff: true } : {}),
+    ...(options.printedScore ? { chordsOff: true } : {}),
   }), swinging);
   if (profile && options.beginnerEdition === "guitar") {
     audio = capoAudio(audio,profile.capo);
@@ -380,6 +382,7 @@ export function drawPracticeScore(
     svg.style.maxWidth = "100%";
   });
   attachChordDiagrams(paper, chordPassages);
+  if (options.printedScore) attachPianoChordDiagrams(paper, tune);
   if (options.fingerings && !options.beginnerEdition) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
     else drawHymnFingerings(tune);

@@ -51,7 +51,7 @@ try {
   await openPracticeOptions(page);
   await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
-  await expect(page.getByRole('radio', { name: 'Sung accompaniment', exact: true })).toBeDisabled();
+  await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeDisabled();
   assert.equal(await page.getByRole('radiogroup',{name:'Instrument',exact:true}).locator('svg').count(),3);
   await selectHymnInstrument(page, 'guitar');
   await page.locator('#hymn-score-display').selectOption('notation');

@@ -24,7 +24,7 @@ test("all songs expose the same ordered primary instruments with explicit arrang
     [
       ["guitar", "Guitar"],
       ["piano", "Piano"],
-      ["sung", "Sung accompaniment"],
+      ["sung", "Voice + Piano"],
     ],
   );
   assert.deepEqual(
@@ -42,7 +42,7 @@ test("all songs expose the same ordered primary instruments with explicit arrang
     assert.equal(hymnInstrumentArrangements({ id }, "sung").length, 0, id);
   }
 });
-test("the teacher choir/organ arrangement is sung accompaniment, without invented instrumental editions", () => {
+test("the teacher choir/organ arrangement is Voice + Piano, without invented instrumental editions", () => {
   const hymn = { id: "in-christ-alone-2" };
   assert.deepEqual(hymnInstrumentArrangements(hymn, "piano"), []);
   assert.deepEqual(hymnInstrumentArrangements(hymn, "guitar"), []);

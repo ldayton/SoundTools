@@ -42,7 +42,7 @@ try {
     ).toBeDisabled();
     const piano = page.getByRole("radio", { name: "Piano", exact: true }),
       sung = page.getByRole("radio", {
-        name: "Sung accompaniment",
+        name: "Voice + Piano",
         exact: true,
       });
     await expect(piano).toHaveAttribute("aria-checked", "true");
@@ -109,7 +109,7 @@ try {
   await page.goto(server.base + "/piano/hymns/in-christ-alone-2?mode=playback");
   await waitForApp(page, ".hymn-toolbar-instruments");
   await expect(
-    page.getByRole("radio", { name: "Sung accompaniment", exact: true }),
+    page.getByRole("radio", { name: "Voice + Piano", exact: true }),
   ).toHaveAttribute("aria-checked", "true");
   await expect(
     page.getByRole("radio", { name: "Piano", exact: true }),
@@ -117,6 +117,20 @@ try {
   await expect(
     page.getByRole("radio", { name: "Guitar", exact: true }),
   ).toBeDisabled();
+  const slash = page
+    .getByRole("button", { name: /Show D\/F[♯#] chord diagram/ })
+    .first();
+  await slash.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator(".piano-chord-notes")).toHaveText(
+    "F♯3 · A3 · D4",
+  );
+  await expect(dialog.locator(".is-playing")).toHaveCount(3);
+  await expect(dialog.locator("[data-string]")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(slash).toBeFocused();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: primary instrument radios, supported choices, keyboard exclusivity, saved selection and responsive toolbar",

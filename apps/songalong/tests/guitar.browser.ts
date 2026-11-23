@@ -37,7 +37,7 @@ try {
       await page.locator("#hymn-score-display").selectOption("chords");
       await expect(page.locator(".hymn-strum-pattern")).toBeVisible();
       await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
-  await expect(page.getByRole('radio', { name: 'Sung accompaniment', exact: true })).toBeDisabled();
+  await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeDisabled();
       await selectHymnInstrument(page, 'piano');
       await expect(page.locator(".abcjs-tabNumber")).toHaveCount(0);
       await selectHymnInstrument(page, 'guitar');

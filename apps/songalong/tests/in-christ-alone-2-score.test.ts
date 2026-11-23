@@ -355,15 +355,47 @@ test("printed meter, pickup, three staves, organ-only ending and repeat remain i
   );
   assert.match(source, /Q:"Steadily"/);
   assert.doesNotMatch(source, /Q:.*=/);
-  for (const line of tune.lines)
-    for (const staff of line.staff || [])
-      for (const voice of staff.voices || [])
-        for (const n of voice)
-          if (n.el_type === "note")
-            assert.ok(
-              !n.chord?.length,
-              "pencil chord annotations are excluded",
-            );
+  const chords = tune.lines
+    .flatMap((line) => line.staff?.[0]?.voices?.[0] || [])
+    .flatMap((note) =>
+      note.el_type === "note"
+        ? (note.chord || []).map((chord: { name: string }) => chord.name)
+        : [],
+    );
+  assert.deepEqual(chords, [
+    "G",
+    "D",
+    "G",
+    "A",
+    "D",
+    "G",
+    "A",
+    "D",
+    "G",
+    "D",
+    "G",
+    "A",
+    "D",
+    "G",
+    "A",
+    "D",
+    "G",
+    "D",
+    "A",
+    "D/F♯",
+    "G",
+    "Bm",
+    "A",
+    "D",
+    "G",
+    "A",
+    "D/F♯",
+    "G",
+    "A",
+    "D",
+    "Em",
+    "D",
+  ]);
   assert.ok(actual(0).every((n) => n[1] + n[2] <= 48.5));
   assert.ok(actual(2).some((n) => n[1] > 49));
 });

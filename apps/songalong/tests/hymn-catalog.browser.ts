@@ -14,7 +14,7 @@ try {
   for (const [index, { width, arrangement, hymn }] of cases.entries()) {
     console.log(`Catalog ${index + 1}/${cases.length}: ${hymn.id}, ${arrangement}, ${width}px`);
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto(`${server.base}/piano/hymns/${hymn.id}?arrangement=${arrangement}&mode=wait`);
+    await page.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${arrangement}&mode=wait`);
     await page.locator('.sequence-title').filter({ hasText: hymn.title }).waitFor();
     if (hymn.stanzas.some(stanza => stanza.syllables.some(syllable => syllable !== '*')))
       await page.locator('.hymn-paper .abcjs-lyric').first().waitFor();
@@ -25,7 +25,7 @@ try {
     assert.equal(await page.locator('.sequence-score').evaluate(e => e.scrollWidth <= e.clientWidth + 1), true, hymn.title);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, hymn.title);
     assert.equal(await page.locator('.sequence-feedback.error').count(), 0);
-    if (hymn.id === 'praise-god-from-whom-all-blessings-flow') {
+    if (hymn.slug === 'praise-god-from-whom-all-blessings-flow') {
       const collisions = await page.locator('.abcjs-lyric').evaluateAll(elements => {
         const words = elements.filter(e => e.textContent?.trim()).map(e => ({ text: e.textContent!, box: e.getBoundingClientRect() }));
         return words.slice(1).flatMap((current, i) => Math.abs(words[i].box.y - current.box.y) < 2 && current.box.x - words[i].box.right < 4 ? [`${words[i].text} / ${current.text}`] : []);

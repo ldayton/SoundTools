@@ -242,7 +242,8 @@ with C/E, Dm and G7 for the fuller harmony. The interlude follows the printed A7
 and fifth-bass motion back to D. Melody, fingerstyle, strummed accompaniment,
 passages, transposition and the staff playback controls use the shared edition
 pipeline. The teacher score replaces the retired tab-music version under the canonical
-`in-christ-alone` ID. Saved teacher-version choices and favorites are promoted;
+`in-christ-alone` URL slug. Songs have permanent UUIDs internally; see
+[Song identity](../../docs/song-identity.md). Saved teacher-version choices and favorites are promoted;
 older teacher links redirect to the canonical route. Legacy verse selections
 map to the corresponding teacher verses, and content checks reject stale music checkpoints.
 

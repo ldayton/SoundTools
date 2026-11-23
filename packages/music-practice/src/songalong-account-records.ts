@@ -1,4 +1,4 @@
-import {migrateHymnIdentity} from "./hymn-identity";
+import {canonicalHymnId, migrateHymnIdentity} from "./hymn-identity";
 import type { Records, Json } from "@ldayton/account";
 import { checkSchema } from "@ldayton/account/model";
 import { migrateLegacy, decodeState, type DurableState } from "./durable-state";
@@ -25,7 +25,7 @@ export function songalongRecords(state: DurableState): Records {
           } else records[`${key}:${id}`] = setting as Json;
         }
       } else if (
-        ["hymn", "mode", "zoom", "zoomByLayout", "low", "high"].includes(key) &&
+        ["catalogueRevision", "hymn", "mode", "zoom", "zoomByLayout", "low", "high"].includes(key) &&
         value !== undefined
       )
         records[`current:${key}`] = value as Json;
@@ -64,22 +64,23 @@ export function restoreSongalongRecords(records: Records): DurableState {
     else if (["activity:audio", "activity:presentation"].includes(key))
       state.activities[key.slice(9)] = value;
   }
-  if (typeof sight.hymn === "string")
+  const migrated = migrateHymnIdentity(sight);
+  if (typeof migrated.hymn === "string")
     state.activities.sight = migrateHymnIdentity({
-      ...sight,
-      ...sight.preferences[sight.hymn],
-      hymn: sight.hymn,
-      mode: sight.mode,
-      zoom: sight.zoom,
+      ...migrated,
+      ...migrated.preferences[migrated.hymn],
+      hymn: migrated.hymn,
+      mode: migrated.mode,
+      zoom: migrated.zoom,
       // Older records stored the range inside each song's pitch record.
       low:
-        sight.low !== undefined
-          ? sight.low
-          : sight.preferences[sight.hymn]?.low,
+        migrated.low !== undefined
+          ? migrated.low
+          : migrated.preferences[migrated.hymn]?.low,
       high:
-        sight.high !== undefined
-          ? sight.high
-          : sight.preferences[sight.hymn]?.high,
+        migrated.high !== undefined
+          ? migrated.high
+          : migrated.preferences[migrated.hymn]?.high,
     });
   return decodeState(state);
 }
@@ -94,7 +95,7 @@ export function songalongLiveKeys(keys: string[], current: string | undefined) {
         key.startsWith(prefix),
       ) &&
         !["hymn:", "bookmarks:", "sections:"].some((prefix) =>
-          key.startsWith(prefix + current + ":"),
+          key.startsWith(prefix) && canonicalHymnId(key.slice(prefix.length).split(":")[0]) === (current ? canonicalHymnId(current) : undefined),
         )),
   );
 }

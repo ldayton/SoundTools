@@ -12,7 +12,7 @@ import {
   graceLyricData,
   graceChordOffset,
 } from "../../../packages/music-practice/src/amazing-grace";
-const hymn = hymns.find((h) => h.id === "amazing-grace")!;
+const hymn = hymns.find((h) => h.slug === "amazing-grace")!;
 function read(abc: string) {
   const tune = abcjs.parseOnly(abc)[0];
   assert.equal(tune.warnings?.length || 0, 0, tune.warnings?.join("\n"));

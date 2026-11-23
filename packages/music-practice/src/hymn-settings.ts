@@ -55,6 +55,7 @@ export function mergeHymnSettings(
   input: unknown,
 ): HymnSettings {
   const s = {...object(input)};
+  base = { ...base, hymn: canonicalHymnId(base.hymn) };
   if(typeof s.hymn === "string")s.hymn=canonicalHymnId(s.hymn);
   const hymn =
     hymns.find((h) => h.id === s.hymn) ||

@@ -1,14 +1,19 @@
 [
   {
-    "id": "amazing-grace",
+    "id": "282dd471-1712-472d-aada-c6944c790ffc",
     "title": "Amazing Grace",
     "file": "Amazing_Grace-New_Britain.abc",
     "folder": "Amazing_Grace",
     "referenceUrl": "https://www.youtube.com/watch?v=9ZXxIyjTY1s",
-    "referenceDetails": "B major, 72 BPM"
+    "referenceDetails": "B major, 72 BPM",
+    "slug": "amazing-grace",
+    "legacyIds": [
+      "amazing-grace"
+    ],
+    "editionKey": "amazing-grace"
   },
   {
-    "id": "in-christ-alone",
+    "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
     "title": "In Christ Alone",
     "file": "in-christ-alone.abc",
     "folder": "in-christ-alone",
@@ -18,28 +23,44 @@
     "accompanimentInstrument": "organ",
     "vocalTracks": [
       0
-    ]
+    ],
+    "slug": "in-christ-alone",
+    "legacyIds": [
+      "in-christ-alone",
+      "in-christ-alone-2"
+    ],
+    "editionKey": "in-christ-alone"
   },
   {
-    "id": "jesus-loves-me",
+    "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
     "title": "Jesus Loves Me",
     "file": "Jesus_Loves_Me-untitled.abc",
     "folder": "Jesus_Loves_Me",
     "referenceUrl": "https://www.youtube.com/watch?v=-jABcYKhDrI",
-    "referenceDetails": "G major, 125 BPM"
+    "referenceDetails": "G major, 125 BPM",
+    "slug": "jesus-loves-me",
+    "legacyIds": [
+      "jesus-loves-me"
+    ],
+    "editionKey": "jesus-loves-me"
   },
   {
-    "id": "ill-fly-away",
+    "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
     "title": "I'll Fly Away",
     "file": "ill-fly-away-tab-music.abc",
     "folder": "ill-fly-away",
     "source": "tab-music",
     "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/ill-fly-away-music.ily",
     "referenceUrl": "https://www.youtube.com/watch?v=192W0bhJNEg",
-    "referenceDetails": "B major, 102 BPM"
+    "referenceDetails": "B major, 102 BPM",
+    "slug": "ill-fly-away",
+    "legacyIds": [
+      "ill-fly-away"
+    ],
+    "editionKey": "ill-fly-away"
   },
   {
-    "id": "o-come-all-ye-faithful",
+    "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
     "title": "O Come, All Ye Faithful",
     "file": "O_Come_All_Ye_Faithful-Adeste_Fideles-Portugese_Hymn.abc",
     "aliases": [
@@ -47,116 +68,189 @@
     ],
     "folder": "O_Come_All_Ye_Faithful",
     "referenceUrl": "https://www.youtube.com/watch?v=AuwoGmsUWhU",
-    "referenceDetails": "E major, 91 BPM"
+    "referenceDetails": "E major, 91 BPM",
+    "slug": "o-come-all-ye-faithful",
+    "legacyIds": [
+      "o-come-all-ye-faithful"
+    ],
+    "editionKey": "o-come-all-ye-faithful"
   },
   {
-    "id": "holy-holy-holy",
+    "id": "9e78b8de-7b68-44fd-97f6-e9b26607a6df",
     "title": "Holy, Holy, Holy",
     "file": "Holy_Holy_Holy-Nicaea.abc",
-    "folder": "Holy_Holy_Holy"
+    "folder": "Holy_Holy_Holy",
+    "slug": "holy-holy-holy",
+    "legacyIds": [
+      "holy-holy-holy"
+    ]
   },
   {
-    "id": "blessed-assurance",
+    "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
     "title": "Blessed Assurance",
     "file": "Blessed_Assurance-Blessed_Assurance-Assurance.abc",
-    "folder": "Blessed_Assurance"
+    "folder": "Blessed_Assurance",
+    "slug": "blessed-assurance",
+    "legacyIds": [
+      "blessed-assurance"
+    ]
   },
   {
-    "id": "what-a-friend-we-have-in-jesus",
+    "id": "6fa2c52e-7d88-4f27-807f-a656b87be56f",
     "title": "What A Friend We Have In Jesus",
     "file": "What_A_Friend_We_Have_In_Jesus-untitled.abc",
-    "folder": "What_A_Friend_We_Have_In_Jesus"
+    "folder": "What_A_Friend_We_Have_In_Jesus",
+    "slug": "what-a-friend-we-have-in-jesus",
+    "legacyIds": [
+      "what-a-friend-we-have-in-jesus"
+    ]
   },
   {
-    "id": "it-is-well-with-my-soul",
+    "id": "b576b5a6-e5d5-4e06-9c38-b977aa39deb8",
     "title": "It Is Well With My Soul",
     "file": "It_Is_Well_With_My_Soul-It_Is_Well-Ville_Du_Havre.abc",
-    "folder": "It_Is_Well_With_My_Soul"
+    "folder": "It_Is_Well_With_My_Soul",
+    "slug": "it-is-well-with-my-soul",
+    "legacyIds": [
+      "it-is-well-with-my-soul"
+    ]
   },
   {
-    "id": "be-thou-my-vision",
+    "id": "8f11604e-0026-4e07-897e-fa204fdc3523",
     "title": "Be Thou My Vision",
     "file": "Be_Thou_My_Vision-Slane.abc",
-    "folder": "Be_Thou_My_Vision"
+    "folder": "Be_Thou_My_Vision",
+    "slug": "be-thou-my-vision",
+    "legacyIds": [
+      "be-thou-my-vision"
+    ]
   },
   {
-    "id": "come-thou-fount",
+    "id": "22545472-d5a3-482d-9728-0582d49d66fc",
     "title": "Come Thou Fount Of Every Blessing",
     "file": "Come_Thou_Fount-Nettleton.abc",
-    "folder": "Come_Thou_Fount"
+    "folder": "Come_Thou_Fount",
+    "slug": "come-thou-fount",
+    "legacyIds": [
+      "come-thou-fount"
+    ]
   },
   {
-    "id": "abide-with-me",
+    "id": "30a82c42-3962-4c3e-a43e-834473e5b895",
     "title": "Abide With Me",
     "file": "Abide_With_Me-Eventide.abc",
-    "folder": "Abide_With_Me"
+    "folder": "Abide_With_Me",
+    "slug": "abide-with-me",
+    "legacyIds": [
+      "abide-with-me"
+    ]
   },
   {
-    "id": "praise-god-from-whom-all-blessings-flow",
+    "id": "df9d4a65-1328-43da-bda8-265dcca17513",
     "title": "Praise God From Whom All Blessings Flow",
     "file": "Praise_God_From_Whom_All_Blessings_Flow-Old_100th.abc",
     "aliases": [
       "Doxology",
       "Old Hundredth"
     ],
-    "folder": "Praise_God_From_Whom_All_Blessings_Flow"
+    "folder": "Praise_God_From_Whom_All_Blessings_Flow",
+    "slug": "praise-god-from-whom-all-blessings-flow",
+    "legacyIds": [
+      "praise-god-from-whom-all-blessings-flow"
+    ]
   },
   {
-    "id": "nearer-my-god-to-thee",
+    "id": "1d791826-c39d-40dc-892b-970bd7236035",
     "title": "Nearer, My God, To Thee",
     "file": "Nearer_My_God_To_Thee-Bethany.abc",
-    "folder": "Nearer_My_God_To_Thee"
+    "folder": "Nearer_My_God_To_Thee",
+    "slug": "nearer-my-god-to-thee",
+    "legacyIds": [
+      "nearer-my-god-to-thee"
+    ]
   },
   {
-    "id": "all-hail-the-power-of-jesus-name",
+    "id": "a10e3f40-085a-4ca9-9ea7-dfad18eb48a5",
     "title": "All Hail The Power Of Jesus' Name",
     "file": "All_Hail_The_Power_Of_Jesus_Name-Coronation.abc",
-    "folder": "All_Hail_The_Power_Of_Jesus_Name"
+    "folder": "All_Hail_The_Power_Of_Jesus_Name",
+    "slug": "all-hail-the-power-of-jesus-name",
+    "legacyIds": [
+      "all-hail-the-power-of-jesus-name"
+    ]
   },
   {
-    "id": "to-god-be-the-glory",
+    "id": "88ab3cdd-2014-4d05-840d-fd9d5834a94e",
     "title": "To God Be The Glory",
     "file": "To_God_Be_the_Glory-To_God_Be_the_Glory.abc",
-    "folder": "To_God_Be_the_Glory"
+    "folder": "To_God_Be_the_Glory",
+    "slug": "to-god-be-the-glory",
+    "legacyIds": [
+      "to-god-be-the-glory"
+    ]
   },
   {
-    "id": "when-i-survey-the-wondrous-cross",
+    "id": "5f74d9fb-2b0b-423a-b216-3961f5792271",
     "title": "When I Survey the Wondrous Cross",
     "file": "When_I_Survey_The_Wondrous_Cross-Duke_Street.abc",
-    "folder": "When_I_Survey_The_Wondrous_Cross"
+    "folder": "When_I_Survey_The_Wondrous_Cross",
+    "slug": "when-i-survey-the-wondrous-cross",
+    "legacyIds": [
+      "when-i-survey-the-wondrous-cross"
+    ]
   },
   {
-    "id": "the-churchs-one-foundation",
+    "id": "6c0ed3b8-0fe3-4180-98a8-f9898f3b1f5f",
     "title": "The Church's One Foundation",
     "file": "The_Churchs_One_Foundation-Aurelia.abc",
-    "folder": "The_Churchs_One_Foundation"
+    "folder": "The_Churchs_One_Foundation",
+    "slug": "the-churchs-one-foundation",
+    "legacyIds": [
+      "the-churchs-one-foundation"
+    ]
   },
   {
-    "id": "silent-night",
+    "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
     "title": "Silent Night",
     "file": "Silent_Night-Stille_Nacht.abc",
-    "folder": "Silent_Night"
+    "folder": "Silent_Night",
+    "slug": "silent-night",
+    "legacyIds": [
+      "silent-night"
+    ]
   },
   {
-    "id": "joy-to-the-world",
+    "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
     "title": "Joy to the World",
     "file": "Joy_To_The_World-Antioch.abc",
-    "folder": "Joy_To_The_World"
+    "folder": "Joy_To_The_World",
+    "slug": "joy-to-the-world",
+    "legacyIds": [
+      "joy-to-the-world"
+    ]
   },
   {
-    "id": "hark-the-herald-angels-sing",
+    "id": "5d610942-d1df-4a00-8023-e47302c439b2",
     "title": "Hark! The Herald Angels Sing",
     "file": "Hark_The_Herald_Angels_Sing-Mendelssohn.abc",
-    "folder": "Hark_The_Herald_Angels_Sing"
+    "folder": "Hark_The_Herald_Angels_Sing",
+    "slug": "hark-the-herald-angels-sing",
+    "legacyIds": [
+      "hark-the-herald-angels-sing"
+    ]
   },
   {
-    "id": "joyful-joyful-we-adore-thee",
+    "id": "09b9a11b-e92e-41ef-95b6-53aea16fff08",
     "title": "Joyful, Joyful, We Adore Thee",
     "file": "Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
-    "folder": "Joyful_Joyful_We_Adore_Thee"
+    "folder": "Joyful_Joyful_We_Adore_Thee",
+    "slug": "joyful-joyful-we-adore-thee",
+    "legacyIds": [
+      "joyful-joyful-we-adore-thee"
+    ]
   },
   {
-    "id": "the-1st-fingerstyle-blues",
+    "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
     "title": "1st Fingerstyle Blues",
     "file": "the-1st-fingerstyle-blues.abc",
     "folder": "the-1st-fingerstyle-blues",
@@ -166,6 +260,11 @@
       "First Fingerstyle Blues",
       "Nicola Mandorino"
     ],
-    "feel": "swing"
+    "feel": "swing",
+    "slug": "the-1st-fingerstyle-blues",
+    "legacyIds": [
+      "the-1st-fingerstyle-blues"
+    ],
+    "editionKey": "the-1st-fingerstyle-blues"
   }
 ]

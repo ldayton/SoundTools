@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "../src/hymn-identity";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { EXERCISES, readRoute } from "../src/navigation";
@@ -25,7 +26,7 @@ test("root remembers practice; settings and unknown pages are independent of exe
   );
   assert.equal(hymn.kind, "exercise");
   if (hymn.kind === "exercise") {
-    assert.equal(hymn.hymn, "amazing-grace");
+    assert.equal(hymn.hymn, canonicalHymnId("amazing-grace"));
     assert.equal(hymn.query.get("section"), "3");
   }
   for (const path of [

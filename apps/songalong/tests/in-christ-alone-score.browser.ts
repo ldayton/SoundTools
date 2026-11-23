@@ -354,7 +354,7 @@ try {
   await practiceOption(page, "#hymn-key", "original");
   await dismissPracticeDrawer(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(server.base + `/piano/hymns/${stagedHymn.id}?mode=playback`);
+  await page.goto(server.base + `/piano/hymns/${stagedHymn.slug}?mode=playback`);
   await waitForApp(page, ".hymn-paper");
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);

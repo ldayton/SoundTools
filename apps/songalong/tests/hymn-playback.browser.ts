@@ -77,7 +77,7 @@ try {
     };
   });
   // The fixture selects metered staged controls by capability, not song name.
-  await page.goto(base + `/piano/hymns/${playbackHymn.id}?bars=2&mode=playback&tempo=200`);
+  await page.goto(base + `/piano/hymns/${playbackHymn.slug}?bars=2&mode=playback&tempo=200`);
   await page.getByRole("button", { name: "Play", exact: true }).waitFor();
   assert.equal(
     await page.evaluate(() => (window as any).playbackProbe.starts.length),
@@ -235,7 +235,7 @@ try {
   // The learner can work on either hand independently, then combine them.
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.id}?arrangement=bass&hands=left&mode=wait&bars=2&section=1`,
+      `/piano/hymns/${playbackHymn.slug}?arrangement=bass&hands=left&mode=wait&bars=2&section=1`,
   );
   await page.locator(".hymn-paper .abcjs-note").first().waitFor();
   await midiAction(page, "Connect MIDI keyboard");
@@ -357,7 +357,7 @@ try {
   // Optional whole-hymn limits constrain keys independently of the visible section.
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.id}?arrangement=melody&mode=wait&bars=2&section=1`,
+      `/piano/hymns/${playbackHymn.slug}?arrangement=melody&mode=wait&bars=2&section=1`,
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   for (const arrangement of [

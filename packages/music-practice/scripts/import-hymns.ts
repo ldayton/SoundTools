@@ -2,6 +2,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import abcjs from "abcjs";
+import { createHymnIdentityIndex } from "../src/hymn-identifiers";
 const root = fileURLToPath(
   new URL("../../../apps/songalong/", import.meta.url),
 );
@@ -9,6 +10,9 @@ const curated = JSON.parse(
   readFileSync(root + "hymns/catalogue.json", "utf8"),
 ) as {
   id: string;
+  slug: string;
+  legacyIds?: string[];
+  editionKey?: string;
   title: string;
   file: string;
   folder: string;
@@ -23,6 +27,7 @@ const curated = JSON.parse(
   referenceUrl?: string;
   referenceDetails?: string;
 }[];
+createHymnIdentityIndex(curated);
 type LyricOverride = {
   shared?: number[][];
   stanzas: { label: string; syllables: string; endingBar?: number }[];

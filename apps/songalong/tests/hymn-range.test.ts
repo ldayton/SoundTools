@@ -19,7 +19,7 @@ import {
   mergeHymnSettings,
   hymnSettingsFromQuery,
 } from "../../../packages/music-practice/src/hymn-settings";
-const hymn = hymns.find((h) => h.id === "amazing-grace")!;
+const hymn = hymns.find((h) => h.slug === "amazing-grace")!;
 const range = { low: 62, high: 74 };
 test("hymn limits use actual pitches across the complete chosen part", () => {
   assert.deepEqual(

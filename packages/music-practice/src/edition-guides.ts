@@ -1,11 +1,11 @@
-import type { ChordEditionId } from "./instrument-editions";
+import type { ChordEditionKey } from "./instrument-editions";
 export type EditionGuide = {
   meter: string;
   piano: string;
   guitar: string;
   strum: string;
 };
-export const editionGuides: Record<ChordEditionId, EditionGuide> = {
+export const editionGuides: Record<ChordEditionKey, EditionGuide> = {
   "in-christ-alone": {
     meter: "Teacher arrangement in D major, 3/4. The pickup and final bar each last one and a half beats. Each written pass has 60 beats, including the printed organ interlude; all four verses share this ending.",
     piano: "Keep the teacher’s melody and rests. Shift for high D and C♯, then follow the upper organ line through the interlude. Left-hand chords stay below the melody.",

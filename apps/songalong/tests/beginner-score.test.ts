@@ -23,7 +23,7 @@ test('piano fingering plans the riff, two hand moves, and the closing chord by h
  assert.deepEqual(beginnerFingers('piano',12,1,[40,47]),[5,1]);
 });
 test('bar and phrase landmarks retain every sounding pitch, duration, and repeat',()=>{
- const hymn=hymns.find(h=>h.id==='the-1st-fingerstyle-blues')!;
+ const hymn=hymns.find(h=>h.slug === 'the-1st-fingerstyle-blues')!;
  for(const arrangement of ['piano','guitar-fingerstyle'] as const) {
   const abc=arrangeHymn(hymn,arrangement,0).abc;
   for(const part of ['A','B','C','Ending']) assert.equal(abc.split(`[P:${part}]`).length,2);

@@ -21,7 +21,7 @@ const geometry = (tune: ReturnType<typeof abcjs.parseOnly>[0]) =>
   notes(tune).map((note) => note.pitches?.map((pitch) => pitch.verticalPos));
 
 test("low hymn parts use stable octave clef marks while keeping treble and bass clefs", () => {
-  const hymn = hymns.find((h) => h.id === "amazing-grace")!;
+  const hymn = hymns.find((h) => h.slug === "amazing-grace")!;
   const abc = arrangeHymn(hymn, "bass", 0, 0, "both").abc;
   const tune = abcjs.parseOnly(abc, { visualTranspose: -8 })[0];
   const before = geometry(tune);

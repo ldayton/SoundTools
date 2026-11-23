@@ -1,4 +1,4 @@
-import {migrateHymnIdentity} from "./hymn-identity";
+import {canonicalHymnId, migrateHymnIdentity} from "./hymn-identity";
 import hymns from "./hymns.json";
 import { hymnEndingBar } from "./hymn-lyrics";
 import {
@@ -13,7 +13,7 @@ import type { Arrangement, HymnHands } from "./hymn-arrangements";
 import { bookmark, restoreBookmark, type Bookmark } from "./bookmarks";
 export type HymnState = {
   version: 1;
-  catalogueRevision?: 1;
+  catalogueRevision?: number;
   mode?: "wait" | "playback";
   bpm?: number;
   countIn?: CountInBars;
@@ -58,6 +58,7 @@ export class HymnProgress {
   private readonly hymnIds: ReadonlySet<string>;
   constructor(saved: HymnState | undefined, hymnIds: readonly string[]) {
     saved=migrateHymnIdentity(saved);
+    hymnIds = hymnIds.map(canonicalHymnId);
     this.hymnIds = new Set(hymnIds);
     this.mode = saved?.mode === "playback" ? "playback" : "wait";
     // The current song's last range becomes the global range for older saves.
@@ -82,6 +83,7 @@ export class HymnProgress {
   }
   mergeInactive(saved: HymnState, current: string) {
     saved=migrateHymnIdentity(saved);
+    current=canonicalHymnId(current);
     this.restoreFavorites(saved.favorites);
     for (const id of Object.keys(this.preferences))
       if (id !== current) delete this.preferences[id];
@@ -111,6 +113,7 @@ export class HymnProgress {
     if (validHymnZoom(zoom)) this.zoomByLayout[layout] = zoom;
   }
   forHymn(id: string) {
+    id=canonicalHymnId(id);
     return {
       ...hymnPreferences(id, this.preferences[id]),
       ...this.range,
@@ -129,7 +132,8 @@ export class HymnProgress {
       low: optionalHymnNote(settings.low),
       high: optionalHymnNote(settings.high),
     };
-    this.preferences[settings.hymn] = { ...settings, zoom };
+    const hymn=canonicalHymnId(settings.hymn);
+    this.preferences[hymn] = { ...settings, hymn, zoom };
   }
   restore(
     settings: HymnSettings,
@@ -163,7 +167,8 @@ export class HymnProgress {
     return {
       ...settings,
       version: 1,
-      catalogueRevision: 1,
+      catalogueRevision: 2,
+      hymn: canonicalHymnId(settings.hymn),
       zoom,
       zoomByLayout: { ...this.zoomByLayout },
       bookmarks: this.bookmarks,
@@ -180,7 +185,8 @@ export function hymnProgressKey(
   originalKey: string,
   section = true,
 ) {
-  const hymn = hymns.find((h) => h.id === settings.hymn);
+  const id = canonicalHymnId(settings.hymn);
+  const hymn = hymns.find((h) => h.id === id);
   const endingBar = hymn
     ? hymnEndingBar(
         hymn,
@@ -197,5 +203,5 @@ export function hymnProgressKey(
     !settings.hands
       ? ""
       : `:hands=${settings.hands}`;
-  return `${settings.hymn}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${settings.stanza && settings.stanza > 1 ? `:stanza=${settings.stanza}` : ""}${endingBar ? `:ending=${endingBar}` : ""}${settings.reattackTies ? ":reattack-ties" : ""}`;
+  return `${id}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${settings.stanza && settings.stanza > 1 ? `:stanza=${settings.stanza}` : ""}${endingBar ? `:ending=${endingBar}` : ""}${settings.reattackTies ? ":reattack-ties" : ""}`;
 }

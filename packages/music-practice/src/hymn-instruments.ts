@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "./hymn-identity";
 import hymns from "./hymns.json";
 import {
   hymnArrangements,
@@ -23,7 +24,7 @@ export function hymnInstrumentArrangements(
   hymn: { id: string },
   instrument: HymnInstrument,
 ) {
-  const entry = hymns.find((h) => h.id === hymn.id);
+  const entry = hymns.find((h) => h.id === canonicalHymnId(hymn.id));
   const printedScore = entry?.source === "user-supplied-score";
   return hymnArrangements(hymn).filter(
     (arrangement) =>
@@ -54,7 +55,7 @@ export function hymnPlaybackInstrument(
   arrangement: Arrangement,
 ) {
   if (isGuitarArrangement(arrangement)) return "guitar" as const;
-  const entry = hymns.find((entry) => entry.id === hymn.id);
+  const entry = hymns.find((entry) => entry.id === canonicalHymnId(hymn.id));
   return arrangement === "original" &&
     entry &&
     "accompanimentInstrument" in entry &&

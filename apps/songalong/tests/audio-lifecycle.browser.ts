@@ -57,7 +57,7 @@ try {
     hold = true;
     blocked.length = 0;
     await page.goto(
-      server.base + `/piano/hymns/${playbackHymn.id}?mode=playback&countIn=0`,
+      server.base + `/piano/hymns/${playbackHymn.slug}?mode=playback&countIn=0`,
     );
     await expect(page.locator(".hymn-paper svg").first()).toBeVisible();
     await expect
@@ -99,7 +99,7 @@ try {
     route.fulfill({ status: 503, body: "Unavailable" }),
   );
   await broken.goto(
-    server.base + `/piano/hymns/${playbackHymn.id}?mode=playback&countIn=0`,
+    server.base + `/piano/hymns/${playbackHymn.slug}?mode=playback&countIn=0`,
   );
   await broken.getByRole("button", { name: "Play", exact: true }).click();
   await expect(

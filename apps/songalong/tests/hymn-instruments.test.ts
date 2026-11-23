@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "../../../packages/music-practice/src/hymn-identity";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -39,7 +40,7 @@ test("all songs expose the same ordered primary instruments with explicit arrang
   for (const id of instrumentEditionIds) {
     assert.equal(hymnInstrumentArrangements({ id }, "piano").length, 1, id);
     assert.equal(hymnInstrumentArrangements({ id }, "guitar").length, 1, id);
-    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, id === "in-christ-alone" ? 1 : 0, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, id === canonicalHymnId("in-christ-alone") ? 1 : 0, id);
   }
 });
 test("teacher score keeps Voice + Piano as default alongside adapted instrumental editions", () => {

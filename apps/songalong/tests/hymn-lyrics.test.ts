@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "../../../packages/music-practice/src/hymn-identity";
 import test from "node:test";
 import assert from "node:assert/strict";
 import abcjs, { type VoiceItemNote } from "abcjs";
@@ -19,7 +20,7 @@ import {
   hymnSettingsFromQuery,
 } from "../../../packages/music-practice/src/hymn-settings";
 import { hymnProgressKey } from "../../../packages/music-practice/src/hymn-progress";
-const hymn = (id: string) => hymns.find((h) => h.id === id)!;
+const hymn = (id: string) => hymns.find((h) => h.id === canonicalHymnId(id))!;
 const notes = (abc: string) =>
   abcjs
     .parseOnly(abc)[0]

@@ -16,7 +16,7 @@ import {
   selectStagedHymn,
 } from "../test-fixtures/hymns";
 import { hymnArrangements } from "../src/hymn-arrangements";
-import { instrumentEditionIds } from "../src/instrument-editions";
+import { instrumentEditionIds, instrumentEdition } from "../src/instrument-editions";
 test("generic fixtures expose staged controls rather than relying on a popular song name", () => {
   for (const hymn of [
     stagedHymn,
@@ -62,7 +62,8 @@ test("incompatible music fails before a browser starts with the migration instru
 });
 test("every registered edition owns unit and automatically enrolled browser coverage", () => {
   for (const id of instrumentEditionIds) {
-    const stem = id === "the-1st-fingerstyle-blues" ? "fingerstyle" : id;
+    const key = instrumentEdition({id})!.editionKey;
+    const stem = key === "the-1st-fingerstyle-blues" ? "fingerstyle" : key;
     for (const extension of ["test.ts", "browser.ts"])
       assert(
         existsSync(

@@ -8,7 +8,7 @@ import {
   hymnBarCount,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import { hymnPreferences } from "../../../packages/music-practice/src/hymn-settings";
-const hymn = hymns.find((h) => h.id === "in-christ-alone")!;
+const hymn = hymns.find((h) => h.slug === "in-christ-alone")!;
 const source = readFileSync(
   new URL("../hymns/source/in-christ-alone.abc", import.meta.url),
   "utf8",
@@ -411,7 +411,7 @@ test("the canonical In Christ Alone contains all four printed verses", () => {
   assert.equal(hymn.source, "user-supplied-score");
   assert.equal(hymn.sourceUrl, "");
   assert.match(hymn.credits.join(" "), /Rights remain with/);
-  assert.equal(hymns.find((h) => h.id === "in-christ-alone")!.key, "D");
+  assert.equal(hymns.find((h) => h.slug === "in-christ-alone")!.key, "D");
   assert.equal(hymnPreferences(hymn.id).arrangement, "original");
   assert.equal(
     hymnPreferences(hymn.id, { arrangement: "melody" }).arrangement,

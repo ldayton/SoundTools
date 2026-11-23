@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "../../../packages/music-practice/src/hymn-identity";
 import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -313,7 +314,7 @@ try {
   // Wait for me advances only after the final answer, skips unchecked stanzas,
   // and restores the active stanza as well as its note after reload.
   const attacks = (id: string) => {
-    const hymn = hymns.find((h) => h.id === id)!;
+    const hymn = hymns.find((h) => h.id === canonicalHymnId(id))!;
     const audio = abcjs
       .parseOnly(arrangeHymn(hymn, ["in-christ-alone", "amazing-grace", "ill-fly-away", "jesus-loves-me", "o-come-all-ye-faithful"].includes(id) ? "piano" : "melody", 0, 0, "right").abc)[0]
       .setUpAudio({ qpm: 60, chordsOff: true });

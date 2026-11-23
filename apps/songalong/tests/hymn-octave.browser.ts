@@ -88,7 +88,7 @@ try {
   });
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&low=38&high=91`,
+      `/piano/hymns/${playbackHymn.slug}?key=${encodeURIComponent(key)}&low=38&high=91`,
   );
   await expect.poll(() => selectedHymnRange(page)).toBe("F♯2–F♯3");
   assert.ok((await page.locator(".hymn-ottava").count()) > 0);
@@ -180,20 +180,20 @@ try {
   // A key is still available when only a different octave fits the exact limits.
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&low=42&high=54`,
+      `/piano/hymns/${playbackHymn.slug}?key=${encodeURIComponent(key)}&low=42&high=54`,
   );
   await openPracticeOptions(page);
   await expect.poll(() => selectedHymnRange(page)).toBe("F♯2–F♯3");
   assert.ok(await page.locator("#hymn-octave-up").isDisabled());
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
-  await page.goto(base + `/piano/hymns/${playbackHymn.id}?low=60&high=60`);
+  await page.goto(base + `/piano/hymns/${playbackHymn.slug}?low=60&high=60`);
   await page.locator(".hymn-no-key").waitFor();
   await openPracticeOptions(page);
   assert.ok(await page.locator("#hymn-octave-up").isDisabled());
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&octave=-2&low=38&high=91&arrangement=bass&view=both`,
+      `/piano/hymns/${playbackHymn.slug}?key=${encodeURIComponent(key)}&octave=-2&low=38&high=91&arrangement=bass&view=both`,
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.ok((await page.locator(".hymn-ottava").count()) >= 2);

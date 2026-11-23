@@ -733,7 +733,7 @@ export class SightReading {
     }
     this.element.dispatchEvent(
       new CustomEvent("hymn-route", {
-        detail: `/piano/hymns/${this.hymn.id}?${q}`,
+        detail: `/piano/hymns/${this.hymn.slug}?${q}`,
       }),
     );
   }

@@ -5,7 +5,7 @@ import abcjs from "abcjs";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 
 test("fingerstyle blues retains tab pitches, swing, chorus repeat and final E7", () => {
-  const song = hymns.find((h) => h.id === "the-1st-fingerstyle-blues")!;
+  const song = hymns.find((h) => h.slug === "the-1st-fingerstyle-blues")!;
   assert(song);
   assert.match(song.harmony, /^Q:"Swing"$/m);
   assert.doesNotMatch(song.harmony, /\(3/);
@@ -31,7 +31,7 @@ test("fingerstyle blues retains tab pitches, swing, chorus repeat and final E7",
 // Independent sounding pitches from the supplied standard-tuning tablature.
 // Onsets are in quarter-note beats, with the printed 2:1 swing applied.
 test("every tab attack matches both chorus passes and the closing chord", () => {
-  const song = hymns.find((h) => h.id === "the-1st-fingerstyle-blues")!;
+  const song = hymns.find((h) => h.slug === "the-1st-fingerstyle-blues")!;
   const riff = [[2/3,64],[1,67],[5/3,64],[2,67],[8/3,69],[11/3,64]];
   const answer = [[0,67],[2/3,64],[1,67],[5/3,64]];
   const melody = [riff,answer,riff,answer,riff,answer,riff,answer,

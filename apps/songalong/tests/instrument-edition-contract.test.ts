@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "../../../packages/music-practice/src/hymn-identity";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -29,7 +30,7 @@ const musicalBaseline: Record<string, string> = {
 };
 for (const [id, expected] of Object.entries(musicalBaseline))
   test(`${id}: full scores and every passage preserve the reviewed music`, () => {
-    const hymn = hymns.find((h) => h.id === id)!;
+    const hymn = hymns.find((h) => h.id === canonicalHymnId(id))!;
     const variants = [];
     for (const arrangement of hymnArrangements(hymn))
       for (const hands of ["both", "right", "left"] as const)
@@ -107,10 +108,10 @@ for (const [id, expected] of Object.entries(musicalBaseline))
 test("one registry supplies instrument choices, capo help and renderer capabilities", () => {
   assert.deepEqual(
     [...instrumentEditionIds].sort(),
-    [...Object.keys(musicalBaseline),"in-christ-alone"].sort(),
+    [...Object.keys(musicalBaseline),"in-christ-alone"].map(canonicalHymnId).sort(),
   );
   for (const id of instrumentEditionIds) {
-    const hymn = hymns.find((h) => h.id === id)!,
+    const hymn = hymns.find((h) => h.id === canonicalHymnId(id))!,
       edition = instrumentEdition(hymn)!;
     assert.deepEqual(
       hymnArrangements(hymn).map((a) => a.id),

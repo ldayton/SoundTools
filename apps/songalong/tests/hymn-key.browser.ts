@@ -88,7 +88,7 @@ try {
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(base + `/piano/hymns/${playbackHymn.id}`);
+  await page.goto(base + `/piano/hymns/${playbackHymn.slug}`);
   await page.locator(".hymn-paper svg").first().waitFor({ state: "attached" });
 
   await page.locator("#hymn-key").waitFor({ state: "attached" });

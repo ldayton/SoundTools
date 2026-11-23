@@ -56,7 +56,7 @@ try {
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(
-      `${server.base}/piano/hymns/${stagedHymn.id}?mode=playback&arrangement=chords`,
+      `${server.base}/piano/hymns/${stagedHymn.slug}?mode=playback&arrangement=chords`,
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await dismissPracticeDrawer(page);
@@ -120,7 +120,7 @@ try {
     await expect(sung).toHaveAttribute("aria-checked", "true");
     // The saved instrument also survives navigating to a clean song link.
     await page.goto(
-      `${server.base}/piano/hymns/${stagedHymn.id}?mode=playback`,
+      `${server.base}/piano/hymns/${stagedHymn.slug}?mode=playback`,
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await expect(sung).toHaveAttribute("aria-checked", "true");
@@ -226,7 +226,7 @@ try {
     "held organ note survives past the recorded sample end",
   );
   assert.ok(organ.peak < 0.502, "organ sample peak has headroom");
-  await page.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.id}?arrangement=guitar-edition&display=both&mode=playback`);
+  await page.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.slug}?arrangement=guitar-edition&display=both&mode=playback`);
   await waitForApp(page,".hymn-toolbar-instruments");
   await openPracticeOptions(page);
   const showTab=page.getByRole("checkbox",{name:"Show Tablature",exact:true});
@@ -257,6 +257,44 @@ try {
   assert(attacks.slice(0,toneCount).every(time=>time===attacks[0]));
   assert.deepEqual(attacks.slice(toneCount).map(time=>Math.round((time-attacks[0])*100)/100),Array.from({length:toneCount},(_,index)=>1+index*.5));
   await chordDialog.getByRole("button",{name:"Close chord diagram",exact:true}).click();
+  // A pre-UUID guest save must survive a public deep link and a cold reload.
+  const migratedPage = await newPage(browser, {viewport:{width:1440,height:1000}});
+  migratedPage.on("pageerror", e => errors.push(e.message));
+  await migratedPage.addInitScript(({slug}) => {
+    localStorage.setItem("soundtools:songalong:sight-reading:v1", JSON.stringify({
+      version:1,catalogueRevision:1,hymn:slug,arrangement:"melody",mode:"playback",bpm:93,
+      preferences:{[slug]:{hymn:slug,arrangement:"melody",bpm:93}},
+      favorites:{[slug]:true},bookmarks:{},sections:{},
+    }));
+  },{slug:stagedHymn.slug});
+  await migratedPage.goto(`${server.base}/piano/hymns/${stagedHymn.id}`);
+  await waitForApp(migratedPage,".hymn-toolbar-instruments");
+  await expect(migratedPage).toHaveURL(new RegExp(`/piano/hymns/${stagedHymn.slug}\\?`));
+  await expect(migratedPage.locator("#hymn-tempo")).toHaveValue("93 BPM");
+  await expect(migratedPage.locator(".hymn-favorite")).toHaveAttribute("aria-pressed","true");
+  await practiceOption(migratedPage,"#hymn-tempo","94");
+  await expect(migratedPage.locator("#saved")).toHaveText("Saved on this device.");
+  const stored = await migratedPage.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve,reject) => {
+      const request=indexedDB.open("soundtools-songalong",1);
+      request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+    });
+    const value = await new Promise<any>((resolve,reject) => {
+      const request=db.transaction("state").objectStore("state").get("root");
+      request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+    });
+    db.close();return value.state.activities.sight;
+  });
+  assert.equal(stored.hymn,stagedHymn.id);
+  assert.equal(stored.catalogueRevision,2);
+  assert.equal(stored.preferences[stagedHymn.id].bpm,94);
+  assert.equal(stored.preferences[stagedHymn.slug],undefined);
+  assert.equal(stored.favorites[stagedHymn.id],true);
+  await migratedPage.reload();
+  await waitForApp(migratedPage,".hymn-toolbar-instruments");
+  await expect(migratedPage.locator("#hymn-tempo")).toHaveValue("94 BPM");
+  await expect(migratedPage.locator(".hymn-favorite")).toHaveAttribute("aria-pressed","true");
+  await migratedPage.close();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: primary instrument radios, supported choices, keyboard exclusivity, saved selection and responsive toolbar",

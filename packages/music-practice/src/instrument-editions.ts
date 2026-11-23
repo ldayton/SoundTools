@@ -1,3 +1,4 @@
+import { canonicalHymnId, hymnForEdition } from "./hymn-identity";
 import {
   teacherInstrumentAbc,
   teacherFingers,
@@ -43,6 +44,7 @@ type BuildContext = {
 };
 export type InstrumentEdition = {
   id: string;
+  editionKey: string;
   original?: boolean;
   chordLyrics?: (hymn: Hymn) => import("./hymn-lyrics").HymnLyricData;
   chordLyricOffset?: (hymn: Hymn, bar: number) => number;
@@ -56,7 +58,8 @@ export type InstrumentEdition = {
   build: (context: BuildContext) => string;
   landmarks?: (abc: string, from: number, guitar: boolean) => string;
 };
-export type ChordEditionId =
+export type ChordEditionId = string;
+export type ChordEditionKey =
   | "in-christ-alone"
   | "amazing-grace"
   | "ill-fly-away"
@@ -89,7 +92,7 @@ export type ChordEdition = InstrumentEdition & {
 };
 type Recipe = Omit<
   ChordEdition,
-  "id" | "guide" | "guitarArrangement" | "guitarNotation"
+  "id" | "editionKey" | "guide" | "guitarArrangement" | "guitarNotation"
 >;
 const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
   instrumentHymnAbc(
@@ -99,7 +102,7 @@ const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
     context.instrument === "guitar" ? context.hands : "both",
   );
 // Musical choices live in the song modules; shared consumers use these capabilities.
-const recipes: Record<ChordEditionId, Recipe> = {
+const recipes: Record<ChordEditionKey, Recipe> = {
   "in-christ-alone": {
     original: true,
     chordLyrics: teacherChordLyrics,
@@ -188,19 +191,21 @@ const recipes: Record<ChordEditionId, Recipe> = {
   },
 };
 const chordEditions = new Map(
-  Object.entries(recipes).map(([id, recipe]) => [
-    id,
+  Object.entries(recipes).map(([key, recipe]) => [
+    hymnForEdition(key).id,
     {
       ...recipe,
-      id: id as ChordEditionId,
-      guide: editionGuides[id as ChordEditionId],
+      id: hymnForEdition(key).id,
+      editionKey: key,
+      guide: editionGuides[key as ChordEditionKey],
       guitarArrangement: "guitar-edition" as const,
       guitarNotation: "written" as const,
     },
   ]),
 );
 const blues: InstrumentEdition = {
-  id: "the-1st-fingerstyle-blues",
+  id: hymnForEdition("the-1st-fingerstyle-blues").id,
+  editionKey: "the-1st-fingerstyle-blues",
   guitarArrangement: "guitar-fingerstyle",
   guitarNotation: "sounding",
   selectWholeVoices: true,
@@ -213,12 +218,12 @@ const instrumentEditions = new Map<string, InstrumentEdition>([
   [blues.id, blues],
 ]);
 export function chordEdition(hymn: { id: string }): ChordEdition | undefined {
-  return chordEditions.get(hymn.id);
+  return chordEditions.get(canonicalHymnId(hymn.id));
 }
 export function instrumentEdition(hymn: {
   id: string;
 }): InstrumentEdition | undefined {
-  return instrumentEditions.get(hymn.id);
+  return instrumentEditions.get(canonicalHymnId(hymn.id));
 }
 export const instrumentEditionIds = Object.freeze([
   ...instrumentEditions.keys(),

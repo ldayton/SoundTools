@@ -63,10 +63,10 @@ test("cloud records preserve all hymn preferences and content-checked checkpoint
   );
   assert.deepEqual(restored.activities.audio, { version: 1, volume: 33 });
   const next = structuredClone(records);
-  next["hymn:amazing-grace:pitch"] = { key: "D", octave: 0, low: 48, high: 84 };
+  next[`hymn:${first.hymn}:pitch`] = { key: "D", octave: 0, low: 48, high: 84 };
   assert.deepEqual(
     changes(records, next).map((change) => change.key),
-    ["hymn:amazing-grace:pitch"],
+    [`hymn:${first.hymn}:pitch`],
   );
   assert.throws(
     () => restoreSongalongRecords({ ...records, schema: 2 }),
@@ -95,7 +95,7 @@ test("cloud roundtrips a global range, independent song tempos, and layout staff
   const records = songalongRecords(state);
   assert.equal(records["current:low"], 48);
   assert.equal(records["current:high"], null);
-  assert.deepEqual(records["hymn:amazing-grace:pitch"], { key: "original" });
+  assert.deepEqual(records[`hymn:${first.hymn}:pitch`], { key: "original" });
   const restored = restoreSongalongRecords(records);
   const loaded = new HymnProgress(restored.activities.sight as any, [
     first.hymn,

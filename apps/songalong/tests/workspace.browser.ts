@@ -74,7 +74,7 @@ try {
       return start.apply(this, args);
     };
   });
-  await page.goto(`http://127.0.0.1:${port}/piano/hymns/${stagedHymn.id}`);
+  await page.goto(`http://127.0.0.1:${port}/piano/hymns/${stagedHymn.slug}`);
   await page.locator(".hymn-paper svg").first().waitFor();
   // Header toggles stay mounted and anchored while either desktop panel changes.
   assert.equal(await page.title(), "SongAlong");

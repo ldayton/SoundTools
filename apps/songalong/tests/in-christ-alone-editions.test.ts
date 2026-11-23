@@ -12,7 +12,7 @@ import {
   teacherChordLyrics,
 } from "../../../packages/music-practice/src/in-christ-alone";
 import { hymnLyricsAbc } from "../../../packages/music-practice/src/hymn-lyrics";
-const hymn = hymns.find((h) => h.id === "in-christ-alone")!;
+const hymn = hymns.find((h) => h.slug === "in-christ-alone")!;
 function read(abc: string, capo = 0) {
   const tune = abcjs.parseOnly(abc.replaceAll(":|", "|]"))[0];
   assert.equal(tune.warnings?.length || 0, 0, tune.warnings?.join("\n"));

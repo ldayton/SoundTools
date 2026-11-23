@@ -12,7 +12,7 @@ import {
   jesusFingers,
 } from "../../../packages/music-practice/src/jesus-loves-me";
 import { capoAudio } from "../../../packages/music-practice/src/chord-editions";
-const hymn = hymns.find((h) => h.id === "jesus-loves-me")!;
+const hymn = hymns.find((h) => h.slug === "jesus-loves-me")!;
 function read(abc: string, capo = 0) {
   const tune = abcjs.parseOnly(abc)[0];
   assert.equal(tune.warnings?.length || 0, 0, tune.warnings?.join("\n"));

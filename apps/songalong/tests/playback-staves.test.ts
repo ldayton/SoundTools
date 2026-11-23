@@ -25,7 +25,7 @@ import {
   restoreSongalongRecords,
 } from "../../../packages/music-practice/src/songalong-account-records";
 test("teacher staff toggles own Choir, all three Organ treble voices, and Organ bass separately", () => {
-  const hymn = hymns.find((h) => h.id === "in-christ-alone")!;
+  const hymn = hymns.find((h) => h.slug === "in-christ-alone")!;
   const staves = abcPlaybackStaves(hymn.harmony);
   assert.deepEqual(staves, [
     { index: 0, label: "Choir", clef: "treble", tracks: [0] },
@@ -156,7 +156,7 @@ test("staff choices normalize, survive URL/account/offline roundtrips and reset 
 });
 
 test("hidden staves are removed for engraving without changing source voices or playback selection", () => {
-  const hymn = hymns.find((h) => h.id === "in-christ-alone")!;
+  const hymn = hymns.find((h) => h.slug === "in-christ-alone")!;
   for (const hidden of [[0], [1], [2], [0, 2]]) {
     const tune = abcjs.parseOnly(hymn.harmony)[0];
     hidePlaybackStaves(tune, hidden);
@@ -174,7 +174,7 @@ test("hidden staves are removed for engraving without changing source voices or 
 });
 
 test("only the teacher Choir staff uses the choir bank, and staff muting removes that voice independently", () => {
-  const hymn = hymns.find((h) => h.id === "in-christ-alone")!;
+  const hymn = hymns.find((h) => h.slug === "in-christ-alone")!;
   const score = arrangeHymn(hymn, "original", 0, 0, "both");
   const audio = abcjs
     .parseOnly(score.abc)[0]

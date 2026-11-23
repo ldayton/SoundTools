@@ -117,7 +117,7 @@ test("derived arrangements retain source chord symbols before transposition", ()
 });
 
 test("octave shifts preserve key, harmony, lyrics, ties and durations in both directions", () => {
-  const hymn = hymns.find((h) => h.id === "amazing-grace")!;
+  const hymn = hymns.find((h) => h.slug === "amazing-grace")!;
   for (const { id } of ARRANGEMENTS) {
     const abc = arrangeHymn(hymn, id, 0).abc;
     for (const octave of [-2, -1, 0, 1]) {

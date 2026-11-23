@@ -7,7 +7,7 @@ import hymns from "../../../packages/music-practice/src/hymns.json";
 import { arrangeHymn, hymnArrangements } from "../../../packages/music-practice/src/hymn-arrangements";
 import { hymnPreferences, hymnSettingsFromQuery } from "../../../packages/music-practice/src/hymn-settings";
 import { fingerstylePosition } from "../../../packages/music-practice/src/fingerstyle-tab";
-const hymn = hymns.find(h => h.id === "the-1st-fingerstyle-blues")!;
+const hymn = hymns.find(h => h.slug === "the-1st-fingerstyle-blues")!;
 function read(abc: string) {
  const tune = abcjs.parseOnly(abc)[0];
  assert.equal(tune.warnings?.length || 0,0);

@@ -1,4 +1,4 @@
-import {canonicalHymnId} from "./hymn-identity";
+import {canonicalHymnId, hymnSlug} from "./hymn-identity";
 import { startPracticeAccount } from "./practice-account-binding";
 import {
   songalongRecords,
@@ -25,7 +25,7 @@ import "./styles/songalong.css";
 
 function canonicalSongUrl(url:URL) {
  const prefix="/piano/hymns/";
- if(url.pathname.startsWith(prefix))url.pathname=prefix+canonicalHymnId(url.pathname.slice(prefix.length));
+ if(url.pathname.startsWith(prefix))url.pathname=prefix+hymnSlug(url.pathname.slice(prefix.length));
  return url;
 }
 const initialUrl=canonicalSongUrl(new URL(location.href));
@@ -203,7 +203,7 @@ void document.fonts.ready
         const saved = persistence.read<{ hymn?: string }>("sight");
         if (route.kind === "exercise") {
           const url = new URL(
-            "/piano/hymns" + (saved?.hymn ? "/" + canonicalHymnId(saved.hymn) : ""),
+            "/piano/hymns" + (saved?.hymn ? "/" + hymnSlug(saved.hymn) : ""),
             location.origin,
           );
           history.replaceState(null, "", url.pathname);

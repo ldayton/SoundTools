@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "../../../packages/music-practice/src/hymn-identity";
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import { mkdir, readFile } from "node:fs/promises";
@@ -148,7 +149,7 @@ try {
     await expect(star).toHaveAttribute("aria-pressed", "false");
     await star.click();
     await openLibrary();
-    const favorites = { "amazing-grace": true, "jesus-loves-me": true };
+    const favorites = { [canonicalHymnId("amazing-grace")]: true, [canonicalHymnId("jesus-loves-me")]: true };
     assert.deepEqual(
       await library.getByRole("option").allTextContents(),
       hymnLibrary(hymns, "", favorites).map((h) => h.title),

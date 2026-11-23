@@ -72,6 +72,10 @@ and outbox for offline use. Guest data remains separate. First login atomically
 imports the current guest state only if that app has no cloud data. Later devices
 load cloud data; they cannot overwrite it by uploading their defaults.
 
+SongAlong records reference permanent song UUIDs, while URLs use readable slugs.
+Legacy song IDs migrate on restore; the catalogue migration revision is synced
+with current settings. See [Song identity](song-identity.md).
+
 Adapters split independent settings into records. Related pitch choices are one
 record; checkpoints include content identity, key, hands and other matching
 semantics. Writes carry the expected revision and an operation UUID. The server

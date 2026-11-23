@@ -85,7 +85,7 @@ test("checked stanzas form an ordered, gapless timeline with unchanged verse and
       );
       assert.equal(plan.audio.totalDuration * 4, duration);
     }
-  const h = hymns.find((h) => h.id === "in-christ-alone")!;
+  const h = hymns.find((h) => h.slug === "in-christ-alone")!;
   const plan = sequence(h, [3, 1, 3]);
   assert.deepEqual(
     plan.verses.map((v) => v.number),

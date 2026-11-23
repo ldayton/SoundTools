@@ -19,7 +19,7 @@ try {
   });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(server.base + `/piano/hymns/${playbackHymn.id}`);
+  await page.goto(server.base + `/piano/hymns/${playbackHymn.slug}`);
   const toggle = page.getByRole("checkbox", {
     name: "Show fingerings",
     exact: true,
@@ -81,7 +81,7 @@ try {
   ).toBeVisible();
   await page.reload();
   await expect(toggle).toBeChecked();
-  await page.goto(server.base + `/piano/hymns/${comparisonHymn.id}`);
+  await page.goto(server.base + `/piano/hymns/${comparisonHymn.slug}`);
   await expect(toggle).toBeChecked();
   await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });

@@ -1,13 +1,17 @@
+import catalogue from "../../../apps/songalong/hymns/catalogue.json";
+import { createHymnIdentityIndex } from "./hymn-identifiers";
+const identity = createHymnIdentityIndex(catalogue);
+export const canonicalHymnId = identity.id;
+export const hymnSlug = identity.slug;
+export const hymnForEdition = identity.edition;
+
 const retired = "in-christ-alone-2",
   canonical = "in-christ-alone";
-export function canonicalHymnId(id: string) {
-  return id === retired ? canonical : id;
-}
 /** Promote the teacher score's saved choices; old score checkpoints remain content-checked. */
 export function migrateHymnIdentity<T>(input: T): T {
   if (!input || typeof input !== "object") return input;
   const state = structuredClone(input) as Record<string, any>;
-  const first = state.catalogueRevision !== 1;
+  const first = (state.catalogueRevision || 0) < 1;
   const teacher = state.preferences?.[retired];
   const verses = (settings: Record<string, any>) => {
     if (Array.isArray(settings.stanzas))
@@ -49,6 +53,31 @@ export function migrateHymnIdentity<T>(input: T): T {
         }
     }
   if (state.hymn === retired) state.hymn = canonical;
-  state.catalogueRevision = 1;
+  if (typeof state.hymn === "string") state.hymn = canonicalHymnId(state.hymn);
+  // Process legacy aliases first, UUID entries last, so canonical data wins
+  // regardless of account record or object insertion order.
+  for (const field of ["preferences", "favorites", "bookmarks", "sections"]) {
+    const values = state[field];
+    if (!values || typeof values !== "object") continue;
+    const target: Record<string, any> = {};
+    const keyFor = (key: string) => {
+      const colon = ["bookmarks", "sections"].includes(field) ? key.indexOf(":") : -1;
+      const reference = colon < 0 ? key : key.slice(0, colon);
+      return canonicalHymnId(reference) + (colon < 0 ? "" : key.slice(colon));
+    };
+    const priority = (key: string) => {
+      if (keyFor(key) === key) return 2;
+      const reference = ["bookmarks", "sections"].includes(field) ? key.split(":")[0] : key;
+      return hymnSlug(reference) === reference ? 1 : 0;
+    };
+    const entries = Object.entries(values).sort(([a], [b]) => priority(a) - priority(b));
+    for (const [key, value] of entries) {
+      const next = keyFor(key);
+      target[next] = field === "preferences" && value && typeof value === "object"
+        ? { ...value, hymn: canonicalHymnId(key) } : value;
+    }
+    state[field] = target;
+  }
+  state.catalogueRevision = 2;
   return state as T;
 }

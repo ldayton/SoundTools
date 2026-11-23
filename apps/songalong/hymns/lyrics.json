@@ -1,5 +1,5 @@
 {
-  "amazing-grace": {
+  "282dd471-1712-472d-aada-c6944c790ffc": {
     "source": "User-supplied lyrics",
     "stanzas": [
       {
@@ -7,16 +7,16 @@
         "syllables": "A- maz- ing * Grace How sweet the sound That saved a * wretch like me * I, once, * was * lost But, now, * I'm * found Was blind, but, * now, I see *"
       },
       {
-        "label": "’Twas grace that thought my heart to fear",
-        "syllables": "’Twas grace that * thought my heart to fear And grace my * fears re- lieved * How pre- * cious * did that grace * ap- * pear The hour I * first be- lieved *"
+        "label": "\u2019Twas grace that thought my heart to fear",
+        "syllables": "\u2019Twas grace that * thought my heart to fear And grace my * fears re- lieved * How pre- * cious * did that grace * ap- * pear The hour I * first be- lieved *"
       },
       {
         "label": "When we've been there ten thousand years",
-        "syllables": "When we've been * there ten thou- sand years Bright shin- ing * as the sun * We've no * less * days To sing * God’s * praise Than when we'd * first be- gun *"
+        "syllables": "When we've been * there ten thou- sand years Bright shin- ing * as the sun * We've no * less * days To sing * God\u2019s * praise Than when we'd * first be- gun *"
       }
     ]
   },
-  "jesus-loves-me": {
+  "d9247c0b-6f6e-4fb8-a216-27df5976a1e2": {
     "source": "User-supplied lyrics",
     "shared": [
       [
@@ -39,7 +39,7 @@
       }
     ]
   },
-  "o-come-all-ye-faithful": {
+  "b091c4f8-c744-4d1a-8e65-18e839eac981": {
     "source": "User-supplied lyrics",
     "shared": [
       [
@@ -62,7 +62,7 @@
       }
     ]
   },
-  "ill-fly-away": {
+  "6a02489e-f64a-45b2-adff-22b1a1e57d76": {
     "source": "User-supplied lyrics",
     "shared": [
       [

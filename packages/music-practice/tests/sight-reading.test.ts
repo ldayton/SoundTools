@@ -1,3 +1,4 @@
+import { canonicalHymnId } from "../src/hymn-identity";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
@@ -40,7 +41,7 @@ test("screen chords allow sequential entry, saved positions are validated, and s
   assert.equal(new WaitForMe([{ pitches: [60] }], 999).index, 0);
   assert.equal(new WaitForMe([{ pitches: [60] }], 1).complete, true);
   assert.equal(
-    searchHymns(hymns, "doxology")[0].id,
+    searchHymns(hymns, "doxology")[0].slug,
     "praise-god-from-whom-all-blessings-flow",
   );
   assert.equal(searchHymns(hymns, "HOLY, HOLY")[0].title, "Holy, Holy, Holy");
@@ -159,7 +160,7 @@ test("tab-music keyboard melodies match independently rendered source MIDI, incl
   const { default: fixtures } =
     await import("../../../packages/music-practice/test-fixtures/tab-music-melodies.json");
   for (const [id, fixture] of Object.entries(fixtures)) {
-    const hymn = hymns.find((h) => h.id === id)!;
+    const hymn = hymns.find((h) => h.id === canonicalHymnId(id))!;
     assert.ok(hymn, id);
     assert.equal(searchHymns(hymns, hymn.title)[0].id, id);
     const tune = abcjs.parseOnly(hymn.melody)[0];

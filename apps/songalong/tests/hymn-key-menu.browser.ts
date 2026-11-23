@@ -73,7 +73,7 @@ try {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(
-      base + `/piano/hymns/${playbackHymn.id}?key=B&low=38&high=91`,
+      base + `/piano/hymns/${playbackHymn.slug}?key=B&low=38&high=91`,
     );
     await openPracticeOptions(page);
     const field = page.locator("#hymn-key");

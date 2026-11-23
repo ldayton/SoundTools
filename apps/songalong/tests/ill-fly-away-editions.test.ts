@@ -11,7 +11,7 @@ import {
   flyGuitarPosition,
   flyFingers,
 } from "../../../packages/music-practice/src/ill-fly-away";
-const hymn = hymns.find((h) => h.id === "ill-fly-away")!;
+const hymn = hymns.find((h) => h.slug === "ill-fly-away")!;
 function read(abc: string) {
   const tune = abcjs.parseOnly(abc)[0];
   assert.equal(tune.warnings?.length || 0, 0, tune.warnings?.join("\n"));

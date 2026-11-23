@@ -17,7 +17,7 @@ import {
   HYMN_KEYS,
   hymnTransposition,
 } from "../../../packages/music-practice/src/hymn-transpose";
-const hymn = hymns.find((h) => h.id === "ill-fly-away")!;
+const hymn = hymns.find((h) => h.slug === "ill-fly-away")!;
 const parse = (abc: string) => {
   const tune = abcjs.parseOnly(abc)[0];
   const audio = tune.setUpAudio({ chordsOff: true });
@@ -87,7 +87,7 @@ test("every key preserves melody timing and guitar playback sounds an octave bel
 });
 test("legacy guitar settings migrate to the instrument edition and unsupported songs fall back to melody", () => {
   assert.deepEqual(hymnArrangements(hymn).map(a=>a.id),["piano","guitar-edition"]);
-  const other = hymns.find((h) => h.id === "holy-holy-holy")!;
+  const other = hymns.find((h) => h.slug === "holy-holy-holy")!;
   assert.ok(!hymnArrangements(other).some((a) => a.id === "guitar"));
   const saved = mergeHymnSettings(hymnPreferences(hymn.id), {
     arrangement: "guitar",

@@ -149,7 +149,7 @@ try {
     );
   await page.goto(
     base +
-      `/piano/hymns/${passageHymn.id}?mode=wait&countIn=0.5&loopCountIn=1&tempo=200&arrangement=melody`,
+      `/piano/hymns/${passageHymn.slug}?mode=wait&countIn=0.5&loopCountIn=1&tempo=200&arrangement=melody`,
   );
   await note(0).waitFor();
   await midiAction(page, "Connect MIDI keyboard");

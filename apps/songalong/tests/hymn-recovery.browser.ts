@@ -68,7 +68,7 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(
       base +
-        `/piano/hymns/${recoveryHymn.id}?arrangement=bass&hands=both&view=both&mode=wait&key=original`,
+        `/piano/hymns/${recoveryHymn.slug}?arrangement=bass&hands=both&view=both&mode=wait&key=original`,
     );
     await page.locator(".hymn-count").filter({ hasText: "1 /" }).waitFor();
     await openPracticeOptions(page);

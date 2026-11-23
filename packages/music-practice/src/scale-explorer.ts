@@ -6,6 +6,9 @@ import {
   berkleeBounds,
   berkleePositions,
   berkleeShift,
+  linkedBerkleePosition,
+  berkleeChordDiagram,
+  type LinkedScaleShape,
   type BerkleeShape,
 } from "./berklee-scale-shapes";
 import { diagnostics } from "./diagnostics";
@@ -26,7 +29,6 @@ import {
 import {
   linkedPatternPositions,
   scaleShapeLabel,
-  cagedChordPositions,
   cagedChordDiagram,
   cagedScaleSource,
   pentatonicOmissions,
@@ -139,6 +141,17 @@ export class ScaleExplorer implements LivePractice {
       this.moveShape(event.key === "ArrowUp" ? 1 : -1);
     else this.moveTonic(event.key === "ArrowLeft" ? -1 : 1);
   };
+  private regionId() { return this.shapeSet === "hila" ? String(this.hilaShape) : this.pattern; }
+  private regionLabel(id:string) { return this.shapeSet === "hila" ? `Shape ${id}` : scaleShapeLabel(id as ScalePattern,this.quality); }
+  private linkContext() { return `${this.shapeSet}:${this.tonic}:${this.quality}:${this.regionId()}:${this.shift}:${this.linked}`; }
+  private linkedPosition() {
+    if(this.linked === "none")throw Error("No linked region selected");
+    if(this.shapeSet === "hila")return linkedBerkleePosition(this.tonic,this.quality,this.hilaShape,this.shift,Number(this.linked) as BerkleeShape,this.spelling,this.linkedShift);
+    const shape=this.linked as Exclude<ScalePattern,"map">;
+    const notes=linkedPatternPositions(this.tonic,this.quality,this.pattern as Exclude<ScalePattern,"map">,this.shift,shape,this.spelling,this.linkedShift);
+    const reference=patternPositions(isMajorScale(this.quality)?0:9,this.quality,shape,0);
+    return {notes,shift:notes[0].fret-reference[0].fret};
+  }
   private moveOctave(direction: number) {
     if(isMaqam(this.quality)){this.moveMaqamPosition(direction*12);return;}
     if (this.shapeSet === "hila") {
@@ -165,9 +178,17 @@ export class ScaleExplorer implements LivePractice {
   private moveShape(direction: number) {
     if(isMaqam(this.quality)){this.moveMaqamPosition(direction);return;}
     if (this.shapeSet === "hila") {
-      this.hilaShape = (((this.hilaShape - 1 + direction + 7) % 7) +
-        1) as BerkleeShape;
-      this.shift = NaN;
+      const shape=(((this.hilaShape-1+direction+7)%7)+1) as BerkleeShape;
+      const [low,high]=berkleeBounds(shape);
+      const current=berkleeBounds(this.hilaShape)[0]+this.shift;
+      const delta=this.tonic-(isMajorScale(this.quality)?0:9);
+      const shift=[delta-12,delta,delta+12]
+        .filter(s=>low+s>=1&&high+s<=18&&(low+s-current)*direction>0)
+        .sort((a,b)=>Math.abs(low+a-current)-Math.abs(low+b-current))[0];
+      if(shift===undefined)return;
+      this.hilaShape=shape;
+      if(this.linked!=="none")this.linked=String(((Number(this.linked)-1+direction+7)%7)+1) as LinkedScaleShape;
+      this.shift=shift;
       this.returnPosition = undefined;
       this.update();
       return;
@@ -191,7 +212,7 @@ export class ScaleExplorer implements LivePractice {
     if (shift === undefined) return;
     this.pattern = next;
     this.shift = shift;
-    if (this.linked !== "none" && this.linked !== "map")
+    if (this.linked !== "none")
       this.linked = String(
         ((Number(this.linked) - 1 + direction + 5) % 5) + 1,
       ) as Exclude<ScalePattern, "map">;
@@ -272,10 +293,10 @@ export class ScaleExplorer implements LivePractice {
   private hilaShape: BerkleeShape = 1;
   private pattern: ScalePattern = "1";
   private shift = 0;
-  private linked: ScalePattern | "none" = (() => {
+  private linked: LinkedScaleShape = (() => {
     const value = new URLSearchParams(location.search).get("link");
-    return ["1", "2", "3", "4", "5"].includes(value || "")
-      ? (value as ScalePattern)
+    return ["1", "2", "3", "4", "5", "6", "7"].includes(value || "")
+      ? (value as LinkedScaleShape)
       : "none";
   })();
   private returnPosition?: GuitarScaleSettings["returnPosition"];
@@ -316,29 +337,11 @@ export class ScaleExplorer implements LivePractice {
           this.render();
         },
         reverseLink: () => {
-          if (
-            this.pattern === "map" ||
-            this.linked === "none" ||
-            this.linked === "map" ||
-            this.pattern === this.linked
-          )
-            return;
-          const secondary = linkedPatternPositions(
-            this.tonic,
-            this.quality,
-            this.pattern,
-            this.shift,
-            this.linked,
-            this.spelling,
-            this.linkedShift,
-          );
-          const primary = patternPositions(
-            this.tonic,
-            this.quality,
-            this.pattern,
-            this.shift,
-            this.spelling,
-          );
+          if ((this.shapeSet === "standard" && this.pattern === "map") || this.linked === "none" || this.regionId() === this.linked) return;
+          const {notes:secondary,shift:secondaryShift}=this.linkedPosition();
+          const primary=this.shapeSet === "hila"
+            ? berkleePositions(this.tonic,this.quality,this.hilaShape,this.shift,this.spelling)
+            : patternPositions(this.tonic,this.quality,this.pattern as Exclude<ScalePattern,"map">,this.shift,this.spelling);
           const reverseRoutes = shiftRoutes(
             secondary,
             primary,
@@ -352,17 +355,16 @@ export class ScaleExplorer implements LivePractice {
               : !reverseRoutes.size
           )
             return;
-          const previousPattern = this.pattern;
+          const previousPattern = this.regionId() as LinkedScaleShape;
           const previousShift = this.shift;
-          this.pattern = this.linked;
-          this.shift =
-            Math.min(...secondary.map((n) => n.fret)) -
-            patternBounds(this.pattern, this.quality)[0];
+          if(this.shapeSet === "hila")this.hilaShape=Number(this.linked) as BerkleeShape;
+          else this.pattern=this.linked as Exclude<ScalePattern,"map">;
+          this.shift=secondaryShift;
           this.linked = previousPattern;
           this.linkedShift = previousShift;
           this.reversedColors = !this.reversedColors;
           this.returnPosition = undefined;
-          this.shiftContext = `${this.tonic}:${this.quality}:${this.pattern}:${this.shift}:${this.linked}`;
+          this.shiftContext = this.linkContext();
           this.update();
         },
         relative: createElement(ScaleRelative, {
@@ -391,7 +393,7 @@ export class ScaleExplorer implements LivePractice {
           model: this.options,
           change: (patch) => {
             if (patch.linked !== undefined) this.linked = patch.linked;
-            if (patch.pattern === this.linked) this.linked = "none";
+            if (patch.shapeSet !== undefined && patch.shapeSet !== this.shapeSet) this.linked = "none";
             const next = mergeGuitarScaleSettings(
               patch,
               this.optionsSnapshot(),
@@ -405,6 +407,7 @@ export class ScaleExplorer implements LivePractice {
             this.firstFret = next.firstFret ?? 0;
             this.lastFret = next.lastFret ?? 5;
             if (
+              patch.linked === undefined &&
               patch.labels === undefined &&
               patch.firstFret === undefined &&
               patch.lastFret === undefined
@@ -493,6 +496,7 @@ export class ScaleExplorer implements LivePractice {
       this.firstFret=Math.max(1,Math.min(14,this.firstFret));this.lastFret=this.firstFret+4;
       return;
     }
+    if(this.linked === this.regionId() || (this.shapeSet === "standard" && (Number(this.linked)>5 || this.pattern === "map")))this.linked="none";
     if (this.shapeSet === "hila")
       this.shift = berkleeShift(this.tonic, this.quality, this.hilaShape, this.shift);
     else if (this.pattern !== "map")
@@ -548,29 +552,19 @@ export class ScaleExplorer implements LivePractice {
             this.spelling,
           );
     const linked =
-      !maqam && !hila &&
+      !maqam &&
       movable &&
       this.linked !== "none" &&
-      this.linked !== "map" &&
-      this.linked !== this.pattern;
-    const context = `${this.tonic}:${this.quality}:${this.pattern}:${this.shift}:${this.linked}`;
+      this.linked !== this.regionId();
+    const context = this.linkContext();
     if (context !== this.shiftContext) {
       this.selectedShift = undefined;
       this.linkedShift = undefined;
       this.reversedColors = false;
       this.shiftContext = context;
     }
-    const secondary = linked
-      ? linkedPatternPositions(
-          this.tonic,
-          this.quality,
-          this.pattern as Exclude<ScalePattern, "map">,
-          this.shift,
-          this.linked as Exclude<ScalePattern, "map">,
-          this.spelling,
-          this.linkedShift,
-        )
-      : [];
+    const linkedPosition=linked ? this.linkedPosition() : undefined;
+    const secondary=linkedPosition?.notes || [];
     const routes = shiftRoutes(
       linked ? (basePositions as ReturnType<typeof patternPositions>) : [],
       secondary,
@@ -604,29 +598,26 @@ export class ScaleExplorer implements LivePractice {
       ...secondary.filter((n) => !primaryKeys.has(`${n.string}:${n.fret}`)),
     ];
     const omittedByPosition=new Map((hila ? berkleeOmissions(this.tonic,this.quality,this.hilaShape,this.shift,this.spelling) : pentatonicOmissions(this.tonic,this.quality,this.pattern,this.shift,this.spelling,this.firstFret,this.lastFret)).map(n=>[positionKey(n),n]));
-    if(linked && this.linked!=='map' && this.linked!=='none'){
-      const reference=patternPositions(isMajorScale(this.quality)?0:9,this.quality,this.linked,0);
-      const shift=secondary[0].fret-reference[0].fret;
-      for(const n of pentatonicOmissions(this.tonic,this.quality,this.linked,shift,this.spelling))omittedByPosition.set(positionKey(n),n);
+    if(linkedPosition && this.linked!=="none"){
+      const omitted=hila
+        ? berkleeOmissions(this.tonic,this.quality,Number(this.linked) as BerkleeShape,linkedPosition.shift,this.spelling)
+        : pentatonicOmissions(this.tonic,this.quality,this.linked as Exclude<ScalePattern,"map">,linkedPosition.shift,this.spelling);
+      for(const n of omitted)omittedByPosition.set(positionKey(n),n);
     }
     const omittedPositions=[...omittedByPosition.values()];
     const boardPositions=[...positions,...omittedPositions];
     const chordKeys = new Set<string>();
     const chordDiagrams: ReturnType<typeof cagedChordDiagram>[] = [];
-    const addChord = (shape: Exclude<ScalePattern,"map">, shift: number) => {
-      const positions=cagedChordPositions(shape,this.quality,shift);
-      if(this.chordOpen)for(const n of positions)chordKeys.add(positionKey(n));
-      chordDiagrams.push({
-        ...cagedChordDiagram(this.tonic,this.quality,shape,shift,this.spelling),
-      });
+    const addChord = (id:string, shift:number) => {
+      const diagram=hila
+        ? berkleeChordDiagram(this.tonic,this.quality,Number(id) as BerkleeShape,shift,this.spelling)
+        : cagedChordDiagram(this.tonic,this.quality,id as Exclude<ScalePattern,"map">,shift,this.spelling);
+      if(this.chordOpen)diagram.frets.forEach((fret,row)=>{if(fret!==null)chordKeys.add(positionKey({string:6-row,fret}));});
+      chordDiagrams.push(diagram);
     };
-    if (!hila && this.pattern !== "map") {
-      addChord(this.pattern,this.shift);
-      if (secondary.length && this.linked !== "none" && this.linked !== "map") {
-        const reference = patternPositions(isMajorScale(this.quality) ? 0 : 9, this.quality, this.linked, 0);
-        const linkedShift = secondary[0].fret - reference[0].fret;
-        addChord(this.linked,linkedShift);
-      }
+    if (!maqam && movable) {
+      addChord(this.regionId(),this.shift);
+      if(linkedPosition)addChord(this.linked,linkedPosition.shift);
     }
     if(!chordDiagrams.length)this.chordOpen = false;
     const firstFret = maqam ? this.firstFret : movable
@@ -648,7 +639,7 @@ export class ScaleExplorer implements LivePractice {
       : movable
         ? `${scaleShapeLabel(this.pattern, this.quality)} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
         : "Fret range";
-    const labels = hila && this.labels === "fingers" ? "notes" : this.labels;
+    const labels = this.labels;
     const footnote =
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger" + (maqam ? ". Some rows use a one-fret extension." : "") + (this.quality.endsWith("blues") ? ". Same finger on adjacent frets: slide one fret." : "")
@@ -735,7 +726,7 @@ export class ScaleExplorer implements LivePractice {
           const dotLabel = alternate
             ? `<text class="scale-finger-main" x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text><rect class="scale-alternate-badge" x="${x(n.fret) + 6}" y="${y(n.string) + 5}" width="20" height="20" rx="7"/><text class="scale-finger-alternate" x="${x(n.fret) + 16}" y="${y(n.string) + 15}" dy=".35em">${alternate.finger}</text>`
             : `<text x="${x(n.fret)}" y="${y(n.string)}" dy=".35em">${label}</text>`;
-          return `<g class="scale-tone${blueNote ? " scale-blue-note" : ""}${alternate ? " scale-dual" : ""}${shiftClass}${membership}${chordKeys.has(positionKey(n)) ? " scale-chord-tone" : ""}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${blueNote ? ", blue note" : ""}${n.root ? ", root" : ""}${chordKeys.has(positionKey(n)) ? ", CAGED chord note" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
+          return `<g class="scale-tone${blueNote ? " scale-blue-note" : ""}${alternate ? " scale-dual" : ""}${shiftClass}${membership}${chordKeys.has(positionKey(n)) ? " scale-chord-tone" : ""}${n.root ? " scale-root" : ""}${n.openAlternative ? " scale-optional" : ""}" ${clickable ? `role="button" tabindex="0" aria-pressed="${chosen}" aria-label="Shift between shapes at string ${n.string}, fret ${n.fret}, ${scaleLabel(n.name)}"` : ""} data-string="${n.string}" data-fret="${n.fret}" data-midi="${n.midi}"><title>String ${n.string}, fret ${n.fret}: ${scaleLabel(n.name)}${n.octave}${blueNote ? ", blue note" : ""}${n.root ? ", root" : ""}${chordKeys.has(positionKey(n)) ? ", chord note" : ""}</title><circle cx="${x(n.fret)}" cy="${y(n.string)}" r="16"/>${clickable ? `<path class="scale-shift-marker" fill-rule="evenodd" d="M ${x(n.fret)} ${y(n.string) - 17.5} A 17.5 17.5 0 1 1 ${x(n.fret) - 17.5} ${y(n.string)} C ${x(n.fret) - 17.5} ${y(n.string) - 7} ${x(n.fret) - 18} ${y(n.string) - 12} ${x(n.fret) - 21} ${y(n.string) - 21} C ${x(n.fret) - 12} ${y(n.string) - 18} ${x(n.fret) - 7} ${y(n.string) - 17.5} ${x(n.fret)} ${y(n.string) - 17.5} Z M ${x(n.fret)} ${y(n.string) - 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) + 14.5} A 14.5 14.5 0 1 0 ${x(n.fret)} ${y(n.string) - 14.5} Z"/>` : ""}${dotLabel}</g>`;
         })
         .join("");
       const turn = route;
@@ -824,7 +815,7 @@ export class ScaleExplorer implements LivePractice {
       chordAvailable: chordDiagrams.length > 0,
       chordOpen: this.chordOpen,
       chordDiagrams,
-      linkedLegend: linked ? `${scaleShapeLabel(this.pattern, this.quality)}|${scaleShapeLabel(this.linked, this.quality)}` : "",
+      linkedLegend: linked ? `${this.regionLabel(this.regionId())}|${this.regionLabel(this.linked)}` : "",
       linkHelp: "",
       notes: noteList,
       maqamReference: isMaqam(this.quality) ? `${MAQAMAT[this.quality].form} Fretted reference; traditional intonation and melodic development vary.` : "",

@@ -1,5 +1,5 @@
 import {MAQAMAT, MAQAM_QUALITIES, isMaqam} from "./maqamat";
-import { BERKLEE_SHAPES, type BerkleeShape } from "./berklee-scale-shapes";
+import { BERKLEE_SHAPES, type BerkleeShape, type LinkedScaleShape } from "./berklee-scale-shapes";
 import { useSyncExternalStore } from "react";
 import { NativeSelect, Stack, SimpleGrid } from "@mantine/core";
 import { CAGED_SHAPES, scaleShapeLabel, type ScalePattern } from "./guitar-scale-patterns";
@@ -20,7 +20,7 @@ export type ScaleOptionsSnapshot = {
   labels: "fingers" | "notes" | "none";
   firstFret: number;
   lastFret: number;
-  linked: ScalePattern | "none";
+  linked: LinkedScaleShape;
 };
 export const scaleOptionsState = createViewState<ScaleOptionsSnapshot>;
 export type ScaleOptionsState = ReturnType<typeof scaleOptionsState>;
@@ -132,17 +132,19 @@ export function ScaleOptions({
           />
         </SimpleGrid>
       )}
-      {!isMaqam(state.quality) && state.shapeSet === "standard" && (
+      {!isMaqam(state.quality) && (
         <NativeSelect
           id="scale-linked-pattern"
           label="Link with"
           value={state.linked}
-          disabled={state.pattern === "map"}
+          disabled={state.shapeSet === "standard" && state.pattern === "map"}
           data={[
             { value: "none", label: "Single shape" },
-            ...CAGED_SHAPES.filter((value) => value !== state.pattern).map(
+            ...(state.shapeSet === "hila"
+              ? BERKLEE_SHAPES.filter(value=>value!==state.hilaShape).map(value=>({value:String(value),label:`Shape ${value}`}))
+              : CAGED_SHAPES.filter((value) => value !== state.pattern).map(
               (value) => ({ value, label: scaleShapeLabel(value, state.quality) }),
-            ),
+            )),
           ]}
           onChange={(e) =>
             change({
@@ -155,13 +157,13 @@ export function ScaleOptions({
         id="scale-dot-labels"
         label="Dots"
         value={
-          !isMaqam(state.quality) && (state.shapeSet === "hila" || state.pattern === "map") &&
+          !isMaqam(state.quality) && state.shapeSet === "standard" && state.pattern === "map" &&
           state.labels === "fingers"
             ? "notes"
             : state.labels
         }
         data={[
-          ...(state.shapeSet === "standard" && (state.pattern !== "map" || isMaqam(state.quality))
+          ...(state.shapeSet === "hila" || state.pattern !== "map" || isMaqam(state.quality)
             ? [{ value: "fingers", label: "Finger numbers" }]
             : []),
           { value: "none", label: "Unlabelled dots" },

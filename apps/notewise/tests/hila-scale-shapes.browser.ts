@@ -30,10 +30,10 @@ try {
   await expect(
     page.getByLabel("Shape", { exact: true }).locator("option"),
   ).toHaveCount(7);
-  await expect(page.locator("#scale-linked-pattern")).toHaveCount(0);
+  await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape","Shape 2","Shape 3","Shape 4","Shape 5","Shape 6","Shape 7"]);
   await expect(
     page.locator('#scale-dot-labels option[value="fingers"]'),
-  ).toHaveCount(0);
+  ).toHaveCount(1);
   for (let shape = 1; shape <= 7; shape++) {
     await page.getByLabel("Shape", { exact: true }).selectOption(String(shape));
     await expect(page.locator(".scale-pattern-caption")).toHaveText(`Berklee 7PS · Shape ${shape}`);
@@ -308,6 +308,73 @@ try {
   await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 6");
   await expect(freshPhone.getByRole("button",{name:"Return to previous scale",exact:true})).toHaveCount(0);
   await expect.poll(()=>freshPhone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  // All combinations are owned by cheap model checks. These two real-browser
+  // witnesses prove the shared UI for desktop and touch, including regions 6/7.
+  const parityPage=await newPage(browser,{viewport:{width:1440,height:1000},serviceWorkers:"block"});
+  parityPage.on("pageerror",e=>errors.push(e.message));
+  for(const [width,quality] of [[1440,"major"],[393,"minor-blues"]] as const){
+    await parityPage.setViewportSize({width,height:1000});
+    await parityPage.goto(server.base+`/guitar/scales?key=C&scale=${quality}&set=berklee&shape=6&labels=fingers`);
+    await waitForApp(parityPage,".scale-diagram svg");
+    await expect(parityPage.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 6");
+    const fingerLabels=await parityPage.locator(".scale-tone text").allTextContents();
+    expect(fingerLabels).toEqual(expect.arrayContaining(["1","3","4"]));
+    expect(fingerLabels.every(label=>/^[1-4]$/.test(label))).toBe(true);
+    await openPracticeOptions(parityPage);
+    await expect(parityPage.locator("#scale-dot-labels")).toHaveValue("fingers");
+    await parityPage.locator("#scale-linked-pattern").selectOption("7");
+    expect(new URL(parityPage.url()).searchParams.get("link")).toBe("7");
+    await closePracticeOptions(parityPage);
+    await expect(parityPage.getByRole("group",{name:"Linked shape controls"})).toBeVisible();
+    await expect(parityPage.locator(".scale-finger-alternate").first()).toBeVisible();
+    await expect(parityPage.locator(".scale-shift-candidate").first()).toBeVisible();
+    await expect(parityPage.locator(".scale-chord-tone")).toHaveCount(0);
+    await parityPage.getByRole("button",{name:"Show chord shape",exact:true}).click();
+    const panel=parityPage.getByRole("region",{name:"Chord shape diagram",exact:true});
+    await expect(panel).toContainText(`C ${quality.startsWith("major")?"major":"minor"} · Shape 6`);
+    await expect(panel.locator("svg")).toHaveAttribute("data-orientation","horizontal");
+    await expect(parityPage.locator(".scale-chord-connection")).toHaveCount(2);
+    for(const shape of [6,7]){
+      if(shape===7)await panel.getByRole("button",{name:"Next fingering",exact:true}).click();
+      await expect(panel).toContainText(` · Shape ${shape}`);
+      const grip=await panel.locator('g[data-string]').evaluateAll(es=>es.filter(e=>e.getAttribute('data-fret')!=='not-played').map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`));
+      const outlined=await parityPage.locator(".scale-chord-tone").evaluateAll(es=>es.map(e=>`${e.getAttribute('data-string')}:${e.getAttribute('data-fret')}`));
+      expect(grip).toHaveLength(3);
+      expect(outlined).toEqual(expect.arrayContaining(grip));
+    }
+    await expect.poll(()=>parityPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await parityPage.screenshot({path:`/tmp/notewise-berklee-parity-${width}.png`,fullPage:true});
+    await panel.getByRole("button",{name:"Close chord diagram",exact:true}).click();
+    await expect(parityPage.locator(".scale-chord-tone")).toHaveCount(0);
+    await expect(parityPage.locator(".scale-chord-connection")).toHaveCount(0);
+    const box=await parityPage.locator(".scale-diagram").boundingBox();
+    await parityPage.locator(".scale-shift-candidate").first().click();
+    await expect(parityPage.locator(".scale-shift-chosen")).toHaveCount(1);
+    await expect(parityPage.locator(".scale-route").first()).toBeVisible();
+    expect((await parityPage.locator(".scale-diagram").boundingBox())!.width).toBe(box!.width);
+    await parityPage.getByRole("button",{name:"Clear shift",exact:true}).click();
+    await expect(parityPage.locator(".scale-shift-chosen")).toHaveCount(0);
+    await parityPage.getByRole("button",{name:"Reverse shapes",exact:true}).click();
+    expect(new URL(parityPage.url()).searchParams.get("shape")).toBe("7");
+    expect(new URL(parityPage.url()).searchParams.get("link")).toBe("6");
+    await parityPage.reload();
+    await waitForApp(parityPage,".scale-shift-candidate");
+    await openPracticeOptions(parityPage);
+    await expect(parityPage.getByLabel("Shape",{exact:true})).toHaveValue("7");
+    await expect(parityPage.locator("#scale-linked-pattern")).toHaveValue("6");
+    await closePracticeOptions(parityPage);
+    await parityPage.locator("#scale-title").click();
+    await parityPage.keyboard.press("ArrowDown");
+    expect(new URL(parityPage.url()).searchParams.get("shape")).toBe("6");
+    expect(new URL(parityPage.url()).searchParams.get("link")).toBe("5");
+    await openPracticeOptions(parityPage);
+    await parityPage.getByLabel("Shape set",{exact:true}).selectOption("standard");
+    await expect(parityPage.locator("#scale-linked-pattern")).toHaveValue("none");
+    expect(new URL(parityPage.url()).searchParams.has("link")).toBe(false);
+    await expect(parityPage.locator('#scale-linked-pattern option[value="6"]')).toHaveCount(0);
+    await expect(parityPage.locator('#scale-linked-pattern option[value="7"]')).toHaveCount(0);
+  }
+  await parityPage.close();
   expect(errors).toEqual([]);
   console.log(
     "PASS Berklee 7PS: published numbering, defaults, legacy bookmarks, reload, transposition, CAGED, keyboard and mobile",

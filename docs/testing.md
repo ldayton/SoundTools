@@ -125,6 +125,9 @@ Catalog-wide assertions must account explicitly for instrumental songs and
 rights/source categories; do not infer those properties from catalog length or
 the first entry.
 
+For the scale-system references, adaptations and regression owners, see
+[the guitar scale-system contract](guitar-scale-systems.md).
+
 ## Silent browser tests
 
 Browser tests must not play through the computer's speakers. Use the shared

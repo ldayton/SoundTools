@@ -73,9 +73,6 @@ export type ChordEdition = InstrumentEdition & {
   pickup: boolean;
   tempo: number;
   shapes: string;
-  layout: { measuresPerLine?: number } & (
-    | { mode: "balanced" | "fixed" }
-    | { mode: "pickup-attached"; totalBars: number });
   strumPattern?: boolean;
   fingers: (
     instrument: BeginnerInstrument,
@@ -112,7 +109,6 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     tempo: 80,
     shapes: "C, small F, G, C/E, Am, Dm and G7",
     guitarKey: "C",
-    layout: { mode: "balanced", measuresPerLine: 3 },
     fingers: teacherFingers,
     position: teacherGuitarPosition,
     build: ({ hymn, instrument, hands }) => {
@@ -131,7 +127,6 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     pickup: true,
     tempo: 72,
     shapes: "G, C, D7 and Em",
-    layout: { mode: "balanced" },
     fingers: graceFingers,
     position: graceGuitarPosition,
     build: ({ hymn, instrument, hands, melody }) =>
@@ -151,7 +146,6 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     pickup: false,
     tempo: 80,
     shapes: "C, small F and G7",
-    layout: { mode: "fixed" },
     strumPattern: true,
     legacyChanges: flyChanges,
     fingers: flyFingers,
@@ -170,7 +164,6 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     tempo: 72,
     shapes: "C, small F and G7",
     guitarKey: jesusEdition.guitarKey,
-    layout: { mode: "fixed" },
     fingers: jesusFingers,
     position: jesusPosition,
     build: buildFrom(jesusEdition),
@@ -181,10 +174,6 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     tempo: 72,
     shapes: "G, C, D, D7, Em, Am, A7 and small Bm",
     guitarKey: faithfulEdition.guitarKey,
-    layout: {
-      mode: "pickup-attached",
-      totalBars: faithfulEdition.changes.length,
-    },
     fingers: faithfulFingers,
     position: faithfulPosition,
     build: buildFrom(faithfulEdition),

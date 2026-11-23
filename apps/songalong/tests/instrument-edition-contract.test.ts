@@ -7,7 +7,6 @@ import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
   arrangeHymn,
   hymnArrangements,
-  hymnBarCount,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import {
   instrumentEditionIds,
@@ -123,8 +122,6 @@ test("one registry supplies instrument choices, capo help and renderer capabilit
     assert.equal(Number.isInteger(profile.capo), true);
     if (profile.capo)
       assert(hymnArrangements(hymn).find(a=>a.id===edition.guitarArrangement)!.help.includes(`capo ${profile.capo}`));
-    if (profile.layout.mode === "pickup-attached")
-      assert.equal(profile.layout.totalBars, hymnBarCount(hymn));
   }
   assert.equal(instrumentEdition({ id: "unregistered" }), undefined);
 });

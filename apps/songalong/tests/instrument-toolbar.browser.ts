@@ -228,6 +228,16 @@ try {
   assert.ok(organ.peak < 0.502, "organ sample peak has headroom");
   await page.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.slug}?arrangement=guitar-edition&display=both&mode=playback`);
   await waitForApp(page,".hymn-toolbar-instruments");
+  await page.setViewportSize({width:1440,height:1000});
+  const staffSize = page.getByRole("spinbutton",{name:"Staff size in pixels",exact:true});
+  await staffSize.fill("40");await staffSize.press("Enter");
+  await expect(staffSize).toHaveValue("40 px");
+  const systemCount = () => page.locator(".hymn-paper svg").count();
+  await expect.poll(() => page.locator('.hymn-paper svg').first().evaluate(svg=>svg.getBoundingClientRect().width)).toBeGreaterThan(600);
+  const largeSystems = await systemCount();
+  await staffSize.fill("27");await staffSize.press("Enter");
+  await expect.poll(systemCount).toBeLessThan(largeSystems);
+  await expect(page.locator('[data-name=tabNumber]').first()).toBeVisible();
   await openPracticeOptions(page);
   const showTab=page.getByRole("checkbox",{name:"Show Tablature",exact:true});
   const showTreble=page.getByRole("checkbox",{name:"Show Treble",exact:true});

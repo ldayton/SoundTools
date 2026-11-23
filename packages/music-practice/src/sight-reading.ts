@@ -930,6 +930,7 @@ export class SightReading {
       this.section = score.section;
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
+        fitHymnSystems: true,
         scale: this.zoom,
         staffScale: this.staffSpacing / 100,
         showChordSymbols: this.showChordSymbols,
@@ -1038,6 +1039,7 @@ export class SightReading {
           practice.abc,
           paper.clientWidth,
           {
+            fitHymnSystems: true,
             transpose: transposition.semitones,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
             hymnEdition: this.arrangement !== "original" ? chordEdition(this.hymn)?.id : undefined,

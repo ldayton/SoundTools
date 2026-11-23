@@ -85,7 +85,7 @@ the secondary A7 and uses light basses/shells under Guitar, with fuller chord
 shapes available for strumming practice (including a four-string Bm without a
 barre). All 62 attacks, slurs, the breathing rest, one-beat pickup and three-beat
 final bar remain intact. The refrain entrance is the last beat of bar 12.
-Responsive systems attach the opening pickup and closing short bar to their
+Responsive systems attach the opening pickup and closing short bar, when they fit, to their
 phrases; the chord chart retains changes beneath held melody notes. Display
 and practice remain independent, with all three verses and shared refrain.
 
@@ -257,5 +257,33 @@ separate Show control, with Play disabled because the Treble staff owns its audi
 Chord symbols have an independent per-song Show preference, retained in URLs,
 local/offline saves and account records. Both visibility controls preserve notes
 and playback timing. Guitar capo/sounding key appear on the score; shape details
-remain in the reading guide. The teacher guitar edition uses three bars per
-desktop system, and the original Choir/Organ names appear only on its first system.
+remain in the reading guide. All songs use the shared content-based system fitter described below. The original
+Choir/Organ names appear only on the first system.
+
+
+### Shared responsive engraving
+
+Every SongAlong arrangement uses one measured system planner, including original
+voice/piano scores, staged arrangements and reviewed piano/guitar editions. It
+measures the prepared visible voices, lyric padding, signatures and chord labels
+in engraving units, then fits them to the available score width at the selected
+staff size. Fingering/tab layouts reserve annotation space. Measurements are
+cached independently of width, with a bounded 32-entry cache.
+
+The planner keeps pickups and final partial measures with neighbours when they
+fit, starts named musical sections on a fresh system, and balances density rather
+than assigning a bar count to a particular song or viewport breakpoint. Short
+final systems are not forced to fill the page. Arrangement ABC and content-checked
+checkpoints are unchanged; only engraving breaks change.
+
+Explicit section breaks are passed to abcjs because its automatic wrapping path
+reparses without restoring tablature plugins. A natural-width render supplies
+measurements using the same preparation callback as final engraving; abcjs's
+metrics-only API skips that callback and would measure hidden staves and unpadded
+lyrics differently. NoteWise's other notation exercises retain their own layouts.
+
+Pure planning regressions live in `packages/music-practice/tests/score-system-plan.test.ts`.
+The existing catalog browser owner covers every supported arrangement at desktop,
+tablet and phone widths; edition suites retain musical, fingering and playback
+contracts. The critical toolbar browser check verifies that reducing staff size
+actually fits more music without losing tab numbers.

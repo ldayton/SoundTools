@@ -104,8 +104,12 @@ try {
       .check();
     await expect(page.locator(".beginner-fingering").first()).toBeVisible();
     await expect(page.locator("g.abcjs-part")).toHaveText(["Verse", "Refrain"]);
-    await expect(page.locator('.hymn-paper svg').first().locator('.abcjs-note.abcjs-mm1').first()).toBeVisible();
-    await expect(page.locator('.hymn-paper svg').last().locator('.abcjs-note.abcjs-mm19').first()).toBeVisible();
+    if (width >= 1440) {
+      await expect(page.locator('.hymn-paper svg').first().locator('.abcjs-note.abcjs-mm1').first()).toBeVisible();
+      await expect(page.locator('.hymn-paper svg').last().locator('.abcjs-note.abcjs-mm19').first()).toBeVisible();
+    }
+    // Narrow systems may separate the short ending to retain readable glyphs.
+    await expect(page.locator('.hymn-paper svg').last().locator('.abcjs-note.abcjs-mm20').first()).toBeVisible();
     await checkScore(page);
     await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);

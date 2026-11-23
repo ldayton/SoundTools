@@ -1,7 +1,7 @@
+import { hymnSystemLayout } from "./hymn-system-layout";
 import { abcPlaybackStaves, hidePlaybackStaves } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
 import {editionTempoLabel} from "./edition-score";
-import {pickupHymnSystems} from "./instrument-hymn";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
 import { drawBeginnerFingerings, separateBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
@@ -71,6 +71,7 @@ export function drawPracticeScore(
   abc: string,
   width: number,
   options: {
+    fitHymnSystems?: boolean;
     scale?: number;
     staffScale?: number;
     fingerings?: boolean;
@@ -98,8 +99,6 @@ export function drawPracticeScore(
   } = {},
 ): PracticeEvent[] {
   const profile=options.hymnEdition?chordEdition({id:options.hymnEdition}):undefined;
-  const pickupLayout = profile?.layout.mode === 'pickup-attached';
-  if(profile?.layout.mode === "pickup-attached") abc=pickupHymnSystems(abc,width<600?1:width<1100?2:4,options.fromBar||0,profile.layout.totalBars);
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const staffScale = options.staffScale ?? 1;
   const scale =
@@ -110,11 +109,55 @@ export function drawPracticeScore(
   // then restore the exact font size below so staff tuning never resizes words.
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
   const source =
-    (profile && !pickupLayout && (options.fingerstyleTab || profile.layout.mode !== 'balanced') ? `%%barsperstaff ${width < 600 ? 1 : width < 800 ? 2 : profile.layout.measuresPerLine ?? (width < 1100 ? 2 : 4)}\n` : "") +
-    ((options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
+    (!options.fitHymnSystems && (options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
-    (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n%%stretchlast 1\n" : "") + (options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
+    (options.fitHymnSystems ? "%%stretchlast 0\n" : "") +
+    (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n" + (!options.fitHymnSystems ? "%%stretchlast 1\n" : "") : "") + (!options.fitHymnSystems && options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
+  const prepareTune = (tune: TuneObject) => {
+    if (options.hiddenStaves?.length) hidePlaybackStaves(tune, options.hiddenStaves);
+    if (options.printedScore)
+      tune.lines.slice(1).forEach(line => line.staff?.forEach(staff => { delete (staff as typeof staff & {title?: unknown}).title; }));
+    if (options.showChordSymbols === false)
+      for (const line of tune.lines) for (const staff of line.staff || []) for (const voice of staff.voices || [])
+        for (const item of voice) if (item.el_type === "note") item.chord = item.chord?.filter((chord:{position?:string}) => chord.position !== "default");
+    // abcjs's multi-system tab layout dereferences empty-staff placeholders.
+    // Keep the melody staff's placeholder as an explicit no-op plugin.
+    if (options.chordTab) {
+      const tabs = (
+        tune as typeof tune & {
+          tablatures?: ({
+            params: object;
+            instance: { render(): void };
+          } | null)[];
+        }
+      ).tablatures;
+      if (tabs && !tabs[0])
+        tabs[0] = { params: {}, instance: { render() {} } };
+    }
+
+    if (options.fingerstyleTab) preserveFingerstyleTab(tune, transpose, profile?.position);
+    if (options.octaveNotation) applyHymnOttava(tune);
+    if (options.initialSignatures)
+      restoreSignatures = initialHymnSignatures(tune);
+    if (options.lyrics) compactHymnLyrics(tune);
+    for (const line of tune.lines)
+      for (const staff of line.staff || [])
+        for (const voice of staff.voices || [])
+          for (const item of voice)
+            if (item.el_type === "note")
+              for (const lyric of item.lyric || [])
+                lyric.syllable =
+                  "\u2002" + lyric.syllable.replace(/\u2002/g, "") + "\u2002";
+    return tune;
+  };
+  const staffwidth = Math.max(140, width / scale - 24);
+  const lineBreaks = options.fitHymnSystems ? hymnSystemLayout(source, {
+    visualTranspose: transpose, initialClef: options.initialSignatures,
+    minPadding: options.beginnerEdition ? 4 : undefined,
+    afterParsing: prepareTune,
+  }, staffwidth, !!options.fingerings || !!options.guitarTab, [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore]) : undefined;
   const tune = abcjs.renderAbc(paper, source, {
+    lineBreaks,
     add_classes: true,
     tablature: options.chordTab
       ? [{ instrument: "" }, { instrument: "guitar" }]
@@ -125,52 +168,15 @@ export function drawPracticeScore(
     visualTranspose: transpose,
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.
-    afterParsing(tune) {
-      if (options.hiddenStaves?.length) hidePlaybackStaves(tune, options.hiddenStaves);
-      if (options.printedScore)
-        tune.lines.slice(1).forEach(line => line.staff?.forEach(staff => { delete (staff as typeof staff & {title?: unknown}).title; }));
-      if (options.showChordSymbols === false)
-        for (const line of tune.lines) for (const staff of line.staff || []) for (const voice of staff.voices || [])
-          for (const item of voice) if (item.el_type === "note") item.chord = item.chord?.filter((chord:{position?:string}) => chord.position !== "default");
-      // abcjs's multi-system tab layout dereferences empty-staff placeholders.
-      // Keep the melody staff's placeholder as an explicit no-op plugin.
-      if (options.chordTab) {
-        const tabs = (
-          tune as typeof tune & {
-            tablatures?: ({
-              params: object;
-              instance: { render(): void };
-            } | null)[];
-          }
-        ).tablatures;
-        if (tabs && !tabs[0])
-          tabs[0] = { params: {}, instance: { render() {} } };
-      }
-
-      if (options.fingerstyleTab) preserveFingerstyleTab(tune, transpose, profile?.position);
-      if (options.octaveNotation) applyHymnOttava(tune);
-      if (options.initialSignatures)
-        restoreSignatures = initialHymnSignatures(tune);
-      if (options.lyrics) compactHymnLyrics(tune);
-      for (const line of tune.lines)
-        for (const staff of line.staff || [])
-          for (const voice of staff.voices || [])
-            for (const item of voice)
-              if (item.el_type === "note")
-                for (const lyric of item.lyric || [])
-                  lyric.syllable =
-                    "\u2002" + lyric.syllable.replace(/\u2002/g, "") + "\u2002";
-      return tune;
-    },
+    afterParsing: prepareTune,
     responsive: "resize",
     oneSvgPerLine: true,
-    staffwidth: Math.max(140, width / scale - 24),
+    staffwidth,
     minPadding: options.beginnerEdition ? 4 : undefined,
-    // abcjs wrapping reparses the tune and drops its tablature plugin. Guitar
-    // uses barsperstaff instead. Edited beginner systems retain their explicit
-    // phrase-aligned breaks; other scores balance systems with wrapping.
+    // SongAlong supplies measured breaks. Legacy tablature avoids automatic
+    // wrapping, whose reparse drops the plugin; other exercises keep wrapping.
     wrap:
-      options.rhythmGrid || options.guitarTab || options.fingerstyleTab || profile && profile.layout.mode !== 'balanced' || (options.beginnerEdition && !profile)
+      options.fitHymnSystems || options.rhythmGrid || options.guitarTab || options.fingerstyleTab || (options.beginnerEdition && !profile)
         ? undefined
         : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
     timeBasedLayout: options.rhythmGrid

@@ -12,8 +12,8 @@ import {
   faithfulPosition,
 } from "../../../packages/music-practice/src/o-come-all-ye-faithful";
 const hymn = hymns.find((h) => h.slug === "o-come-all-ye-faithful")!;
-function read(abc: string) {
-  const tune = abcjs.parseOnly(abc)[0];
+function read(abc: string, lineBreaks?: number[]) {
+  const tune = abcjs.parseOnly(abc, {lineBreaks})[0];
   assert.equal(tune.warnings?.length || 0, 0, tune.warnings?.join("\n"));
   const audio = tune.setUpAudio({ qpm: 60, chordsOff: true });
   return {
@@ -285,13 +285,19 @@ test("three selected verses play gaplessly with the same complete refrain", asyn
   );
 });
 test("responsive systems retain timing and keep pickup and short ending attached", async () => {
-  const { pickupHymnSystems } =
-    await import("../../../packages/music-practice/src/instrument-hymn");
+  const { planScoreSystems } = await import("../../../packages/music-practice/src/score-system-plan");
+  const { sectionBreaks } = await import("../../../packages/music-practice/src/hymn-system-layout");
   for (const a of ["piano", "guitar-edition"] as const)
-    for (const measures of [1, 2, 4]) {
-      const source = arrangeHymn(hymn, a, 0).abc,
-        layout = pickupHymnSystems(source, measures, 0, 21),
-        tune = read(layout);
+    for (const capacity of [180, 300, 600]) {
+      const source = arrangeHymn(hymn, a, 0).abc;
+      let duration = 0;
+      const measures = read(source).tune.lines.flatMap(line=>line.staff?.[0]?.voices?.[0] || []).flatMap(item=>{
+        if(item.el_type === "note")duration+=item.duration;
+        if(item.el_type !== "bar")return [];
+        const bar={width:60,duration};duration=0;return [bar];
+      });
+      const breaks=planScoreSystems(measures,capacity,1);
+      const tune = read(source,sectionBreaks([breaks]));
       assert.deepEqual(tune.tracks, read(source).tracks);
       const rows = tune.tune.lines.filter((l) => l.staff),
         first = rows[0].staff![0].voices![0],

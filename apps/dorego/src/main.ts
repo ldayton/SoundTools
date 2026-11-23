@@ -1,3 +1,5 @@
+import { bindMediaSession } from './media-session';
+import { configurePlaybackSession } from './audio-session';
 import { bindExerciseUrl } from './exercise-url';
 import { ExerciseControls } from './maqamat-controls';
 import { account } from './account';
@@ -52,7 +54,33 @@ let mode: 'ready' | 'starting' | 'playing' | 'paused' | 'complete' = 'ready';
 let playRequest = 0;
 let position = 0;
 let raf = 0;
+// This applies to every audio source on the page, including breath cues.
+configurePlaybackSession(navigator as Navigator & { audioSession?: { type: string } });
+
 const player = new Player();
+const updateMediaSession = bindMediaSession(
+  navigator.mediaSession,
+  (title) => new MediaMetadata({ title, artist: 'DoReGo' }),
+  {
+    play: () => {
+      if (preferences.state.selected === 'warmup' && mode !== 'playing' && mode !== 'starting')
+        return togglePlay();
+    },
+    pause: () => {
+      if (preferences.state.selected === 'warmup' && (mode === 'playing' || mode === 'starting'))
+        stop(false);
+    },
+    seek: (seconds) => {
+      if (preferences.state.selected === 'warmup') seekTo(seconds);
+    },
+    previous: () => {
+      if (preferences.state.selected === 'warmup') moveRound(-1);
+    },
+    next: () => {
+      if (preferences.state.selected === 'warmup') moveRound(1);
+    },
+  }
+);
 
 const builderModel = createViewState<BuilderSnapshot>({ spec: { ...spec }, error: null });
 let formError: string | null = null;
@@ -268,7 +296,19 @@ function changeVolume(volume: number) {
   populate();
   update(true);
 }
+function updateSystemMedia(force = false) {
+  updateMediaSession(
+    preferences.state.selected === 'warmup'
+      ? (exercise.title ?? `${PATTERNS[spec.pattern].name} (${directionName(spec.direction)})`)
+      : '',
+    preferences.state.selected === 'warmup' ? mode : 'ready',
+    preferences.state.selected === 'warmup'
+      ? { position, duration: secondsAt(exercise.totalBeats, spec.bpm), force }
+      : undefined
+  );
+}
 function update(force = false) {
+  updateSystemMedia(force);
   diagnosticsContext(spec, mode, pianoWarming, pianoFailed);
   const duration = secondsAt(exercise.totalBeats, spec.bpm);
   const time = mode === 'ready' ? -1 : position;
@@ -385,8 +425,12 @@ function moveRound(step: number) {
   const current = practiceAt(exercise, position).current.id;
   const target = Math.max(0, Math.min(exercise.rounds.length - 1, current + step));
   if (target === current) return;
+  seekTo(secondsAt(exercise.rounds[target].onsetBeat, spec.bpm));
+}
+function seekTo(seconds: number) {
+  if (pianoWarming || formError || renderFailed || !Number.isFinite(seconds)) return;
+  const at = Math.max(0, Math.min(secondsAt(exercise.totalBeats, spec.bpm), seconds));
   const running = mode === 'playing' || mode === 'starting';
-  const at = secondsAt(exercise.rounds[target].onsetBeat, spec.bpm);
   ++playRequest;
   reference.stopAll();
   player.seek(exercise, at);
@@ -476,6 +520,7 @@ window.dispatchEvent(new Event('soundtools:ready'));
 preferences.subscribe((source) => {
   if (source === 'url') void account.changed();
   if (source === 'local') {
+    updateSystemMedia();
     void account.changed();
     return;
   }

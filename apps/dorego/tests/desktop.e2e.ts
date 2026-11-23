@@ -1,5 +1,10 @@
 import { verifyLiveDrone } from './live-drone';
-import { waitForServer, captureFailure, closeBrowser, createContext } from '../../../scripts/ci/browser-harness.cjs';
+import {
+  waitForServer,
+  captureFailure,
+  closeBrowser,
+  createContext,
+} from '../../../scripts/ci/browser-harness.cjs';
 import { setTempo } from './ui-helpers';
 import { elapsedSeconds } from './ui-helpers';
 import { selectExercise } from './ui-helpers';
@@ -53,6 +58,20 @@ try {
       if (!localStorage.getItem('dorego.current'))
         localStorage.setItem('dorego.current', JSON.stringify(spec));
       localStorage.setItem('dorego.glideShapeVersion', '1');
+      const mediaActions = new Map<string, MediaSessionActionHandler | null>();
+      (window as any).mediaActions = mediaActions;
+      (window as any).mediaRegistrationSessionTypes = [];
+      if (navigator.mediaSession) {
+        const register = navigator.mediaSession.setActionHandler.bind(navigator.mediaSession);
+        navigator.mediaSession.setActionHandler = (action, handler) => {
+          mediaActions.set(action, handler);
+          (window as any).mediaRegistrationSessionTypes.push((navigator as any).audioSession?.type);
+          register(action, handler);
+        };
+      }
+
+      if (!('audioSession' in navigator))
+        Object.defineProperty(navigator, 'audioSession', { value: { type: 'auto' } });
       const probe = {
         monitoring: false,
         context: null as AudioContext | null,
@@ -150,14 +169,79 @@ try {
   };
   await page.goto(base);
   await ready();
+  assert.equal(
+    await page.evaluate(() => (navigator as any).audioSession.type),
+    'playback',
+    'The app requests media playback audio before the first Play'
+  );
+  assert.ok(
+    await page.evaluate(() =>
+      (window as any).mediaRegistrationSessionTypes.every((type: string) => type === 'playback')
+    ),
+    'Playback audio is configured before system media actions'
+  );
   await page.locator('#play').click();
   await playing();
   await progress();
   await audible();
+  assert.equal(await page.evaluate(() => navigator.mediaSession.playbackState), 'playing');
+  assert.equal(
+    await page.evaluate(() => navigator.mediaSession.metadata?.title),
+    await page.locator('#exercise-title').textContent()
+  );
+  await page.evaluate(() => {
+    (window as any).mediaActions.get('pause')({ action: 'pause' });
+    (window as any).mediaActions.get('pause')({ action: 'pause' });
+  });
+  await page.getByRole('button', { name: 'Resume', exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => navigator.mediaSession.playbackState), 'paused');
+  const mediaPause = await position();
+  await page.evaluate(() => {
+    (window as any).mediaActions.get('play')({ action: 'play' });
+    (window as any).mediaActions.get('play')({ action: 'play' });
+  });
+  await playing();
+  await progress();
+  assert.ok((await position()) >= mediaPause, 'System Play resumes without resetting the exercise');
+  await page.evaluate(() =>
+    (window as any).mediaActions.get('seekto')({ action: 'seekto', seekTime: 5 })
+  );
+  await page.waitForFunction(
+    () => Number(document.querySelector('#elapsed')?.getAttribute('data-seconds')) >= 5
+  );
+  await page.evaluate(() => (window as any).mediaActions.get('nexttrack')({ action: 'nexttrack' }));
+  await page.waitForFunction(() =>
+    document.querySelector('#exercise-summary')?.textContent?.includes('Round 2')
+  );
+  await page.evaluate(() =>
+    (window as any).mediaActions.get('previoustrack')({ action: 'previoustrack' })
+  );
+  await page.waitForFunction(() =>
+    document.querySelector('#exercise-summary')?.textContent?.includes('Round 1')
+  );
+
+  await selectExercise(page, 'breathSquares');
+  await page.locator('#breath-play').waitFor();
+  assert.equal(await page.evaluate(() => navigator.mediaSession.metadata), null);
+  await page.evaluate(async () => {
+    await (window as any).mediaActions.get('play')({ action: 'play' });
+  });
+  assert.equal(
+    await page.evaluate(() => navigator.mediaSession.playbackState),
+    'none',
+    'System Play cannot start the previous vocal exercise from Breath Squares'
+  );
+  await selectExercise(page, 'octaveArpeggio');
+  await page.locator('#play').click();
+  await playing();
+
   const beforeSameExercise = await position();
   await page.locator('[data-pattern][aria-current="true"]').click();
   await playing();
-  assert.ok((await position()) >= beforeSameExercise, 'Reselecting the current exercise keeps its playhead');
+  assert.ok(
+    (await position()) >= beforeSameExercise,
+    'Reselecting the current exercise keeps its playhead'
+  );
   await progress();
   if (process.env.NATIVE_WINDOW_TEST) {
     const beforeWindowChange = await position();

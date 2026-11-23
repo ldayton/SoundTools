@@ -354,3 +354,32 @@ completed before playback. The test now waits for the visible dialog and first
 rendered chord note, and requires a nonempty chord before measuring. Simultaneous
 chord attacks, exact broken-chord offsets, PCM checks and error assertions remain
 unchanged; no sleeps, timeout increases, error filters or assertion retries.
+
+
+## Manual iOS simulator warm-return input (23 November 2026)
+
+In the DoReGo iPhone 17 / iOS 27.2 (24B8117) investigation, XCUITest initially
+reported an invalid activation point after returning from a system overlay.
+Subsequent Go to start / Resume taps did not produce the expected DOM state,
+even with full-size control readiness and coordinate diagnostics. This is an
+unresolved simulator/automation or warm-return product issue, not an explained
+flake. No production transport assertion was relaxed.
+
+Retained local evidence under `work/ios-playback-probe/`:
+`system-pause.xcresult`, `system-pause-layout.xcresult`,
+`system-pause-coordinate.xcresult`, and `frames.xcresult`. The last confirms
+application and web-view frames of 402 x 874 points. A fresh-process witness,
+`system-pause-play.xcresult`, successfully invokes the real system Pause/Play
+buttons and verifies the app's Resume state. That witness proves the system
+handler wiring, but does not resolve the warm-return input failure. A physical
+phone comparison is deferred at the user's request to use simulator only.
+
+
+Additional iOS simulator evidence: `work/ios-playback-probe/fresh-warm-resume.xcresult`
+reproduces the Resume failure in a fresh installed diagnostic app with real
+pointer/diagnostic capture. The audio context reports `suspended` and the player
+reports `audio-interrupted`; a cold-start success does not close this case.
+`native-timeline-order.xcresult` also retains the native Next button remaining
+disabled despite successful action and position API calls. These are unresolved
+platform/product distinctions requiring a physical-device comparison, not
+permission to relax any automated transport check. See `docs/dorego-ios-playback.md`.

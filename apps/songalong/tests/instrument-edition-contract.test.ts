@@ -13,13 +13,11 @@ import {
   instrumentEdition,
   chordEdition,
 } from "../../../packages/music-practice/src/instrument-editions";
-// Captured before consolidating the six reviewed editions. Freeze musical output,
-// not generated ABC whitespace or engraving implementation details.
+// Freeze unchanged reviewed music, rather than generated ABC whitespace.
+// In Christ Alone is owned by its independent teacher/photo and edition goldens.
 const musicalBaseline: Record<string, string> = {
   "amazing-grace":
     "89f0730cf58d392e285334db6d55f2e774649380ad4a9f0690b130f8259e407b",
-  "in-christ-alone":
-    "614e878b92604024de7ad01494f3844a5c7c5769cbe586aa9a769dba0a28b014",
   "jesus-loves-me":
     "4462fe1243d35bcd085128570a4e92b7cf4655f27ed4c053f6985c4fe004a65d",
   "ill-fly-away":
@@ -109,7 +107,7 @@ for (const [id, expected] of Object.entries(musicalBaseline))
 test("one registry supplies instrument choices, capo help and renderer capabilities", () => {
   assert.deepEqual(
     [...instrumentEditionIds].sort(),
-    [...Object.keys(musicalBaseline),"in-christ-alone-2"].sort(),
+    [...Object.keys(musicalBaseline),"in-christ-alone"].sort(),
   );
   for (const id of instrumentEditionIds) {
     const hymn = hymns.find((h) => h.id === id)!,

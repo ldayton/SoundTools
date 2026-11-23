@@ -7,15 +7,6 @@ export type EditionGuide = {
 };
 export const editionGuides: Record<ChordEditionId, EditionGuide> = {
   "in-christ-alone": {
-    meter:
-      "D major, 3/4. The pickup lasts one and a half beats. Earlier verses include the four-bar vocal ending; the final verse ends at bar 16.",
-    piano: "Lift and reposition for the octave leap in the melody.",
-    guitar:
-      "Roman numerals mark positions relative to the capo: I = 1st, III = 3rd, VII = 7th. Release the bass during the high C–B leap.",
-    strum:
-      "Small F uses strings 4–1; the index finger covers strings 1 and 2 at fret 1.",
-  },
-  "in-christ-alone-2": {
     meter: "Teacher arrangement in D major, 3/4. The pickup and final bar each last one and a half beats. Each written pass has 60 beats, including the printed organ interlude; all four verses share this ending.",
     piano: "Keep the teacher’s melody and rests. Shift for high D and C♯, then follow the upper organ line through the interlude. Left-hand chords stay below the melody.",
     guitar: "Capo 2. Positions I, III and VII match the existing edition. An open E bass under C/E frees the high C–B leap. During the interlude, keep the C bass light while the melody moves on the D string.",

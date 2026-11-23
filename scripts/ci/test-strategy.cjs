@@ -38,7 +38,7 @@ function nightlyPlan(app, browser, group) {
     soundglow: browser === 'webkit' ? ['test:browser-core', 'test:ui-browsers'] : ['test:unit', 'test:browser-core', 'test:updates', 'test:visual', 'test:resilience'],
   };
   const commands = tasks[app].map(task => npm(app, task));
-  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-2-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'));
+  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'));
   if (app === 'notewise') commands.push(script(app, '../../tests/ci/critical-midi.browser.mts'));
   if (app === 'dorego' && browser === 'chromium') commands.push(
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);

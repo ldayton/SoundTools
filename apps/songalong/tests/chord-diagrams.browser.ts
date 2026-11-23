@@ -154,20 +154,14 @@ try {
         `arrangement=guitar-edition&key=original&display=${display}`,
       );
       await open("F");
-      await shape([null, null, 3, 0, null, null]);
-      await expect(page.getByRole("dialog")).toContainText(
-        "Capo 2; frets are relative to the capo.",
-      );
-      await page
-        .getByRole("button", { name: "Next fingering", exact: true })
-        .click();
       await shape([null, null, 3, 2, null, null]);
-      await page
-        .getByRole("button", { name: "Next fingering", exact: true })
-        .click();
+      await expect(page.getByRole("dialog")).toContainText("Capo 2; frets are relative to the capo.");
+      await page.getByRole("button", {name:"Next fingering",exact:true}).click();
       await shape([null, null, 3, null, 1, null]);
       await close();
       await open("Am");
+      await shape([null, 0, 2, null, null, 3]);
+      await page.getByRole("button", {name:"Next fingering",exact:true}).click();
       await shape([null, 0, 2, null, null, 0]);
       await close();
     }

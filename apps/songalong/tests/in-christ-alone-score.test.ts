@@ -8,9 +8,9 @@ import {
   hymnBarCount,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import { hymnPreferences } from "../../../packages/music-practice/src/hymn-settings";
-const hymn = hymns.find((h) => h.id === "in-christ-alone-2")!;
+const hymn = hymns.find((h) => h.id === "in-christ-alone")!;
 const source = readFileSync(
-  new URL("../hymns/source/in-christ-alone-2.abc", import.meta.url),
+  new URL("../hymns/source/in-christ-alone.abc", import.meta.url),
   "utf8",
 );
 const straight = hymn.harmony.replaceAll(":|", "|]");
@@ -399,8 +399,8 @@ test("printed meter, pickup, three staves, organ-only ending and repeat remain i
   assert.ok(actual(0).every((n) => n[1] + n[2] <= 48.5));
   assert.ok(actual(2).some((n) => n[1] > 49));
 });
-test("all four printed verses are separate from the existing In Christ Alone edition", () => {
-  assert.equal(hymn.title, "In Christ Alone 2");
+test("the canonical In Christ Alone contains all four printed verses", () => {
+  assert.equal(hymn.title, "In Christ Alone");
   assert.equal(hymn.stanzas.length, 4);
   assert.ok(hymn.stanzas.every((s) => s.syllables.length === 64));
   const words = (index: number) =>
@@ -417,10 +417,7 @@ test("all four printed verses are separate from the existing In Christ Alone edi
     hymnPreferences(hymn.id, { arrangement: "melody" }).arrangement,
     "piano",
   );
-  assert.notEqual(
-    hymnPreferences(hymn.id).hymn,
-    hymnPreferences("in-christ-alone").hymn,
-  );
+  assert.equal(hymns.filter(h=>h.id === hymn.id).length,1);
 });
 test("original score is unmodified; hand selection respects the organ's actual treble clef", () => {
   assert.equal(arrangeHymn(hymn, "original", 0, 0, "both").abc, hymn.harmony);

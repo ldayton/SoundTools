@@ -1,3 +1,4 @@
+import {canonicalHymnId} from "./hymn-identity";
 import { hymnAvailableArrangements } from "./hymn-instruments";
 import {chordEdition} from "./chord-editions";
 import { validStanzas } from "./hymn-lyrics";
@@ -53,7 +54,8 @@ export function mergeHymnSettings(
   base: HymnSettings,
   input: unknown,
 ): HymnSettings {
-  const s = object(input);
+  const s = {...object(input)};
+  if(typeof s.hymn === "string")s.hymn=canonicalHymnId(s.hymn);
   const hymn =
     hymns.find((h) => h.id === s.hymn) ||
     hymns.find((h) => h.id === base.hymn) ||
@@ -207,6 +209,7 @@ export function hymnSettingsFromQuery(
 
 /** Right-sidebar settings belong to one hymn, with independent defaults. */
 export function hymnPreferences(hymn: string, input: unknown = {}) {
+  hymn=canonicalHymnId(hymn);
   const entry = hymns.find((entry) => entry.id === hymn);
   const base: HymnSettings = {
     hymn,

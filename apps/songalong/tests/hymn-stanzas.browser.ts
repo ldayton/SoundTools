@@ -195,7 +195,7 @@ try {
     [true, false, false],
     "Another hymn starts with only its first stanza",
   );
-  await visit("in-christ-alone", "?stanzas=3");
+  await visit("in-christ-alone", "?stanzas=4");
   await expect
     .poll(async () => (await lyricWords()).filter((w) => w.trim()).at(-1) || "")
     .toMatch(/stand/);
@@ -203,8 +203,8 @@ try {
   await checks.nth(0).check();
   await page.getByRole("button", { name: "Go to start", exact: true }).click();
   assert(
-    (await page.locator(".hymn-paper .abcjs-note").count()) > lastStanzaNotes,
-    "The Oh ending returns when an earlier stanza is shown",
+    (await page.locator(".hymn-paper .abcjs-note").count()) === lastStanzaNotes,
+    "Every selected verse retains the same instrumental ending",
   );
   await checks.nth(0).uncheck();
   await expect(page.locator("#saved")).toHaveText("Saved on this device.");
@@ -213,7 +213,6 @@ try {
     .poll(async () => (await lyricWords()).filter((w) => w.trim()).at(-1) || "")
     .toMatch(/stand/);
   const references: Record<string, string> = {
-    "in-christ-alone": "3ch6eXkQWU8",
     "jesus-loves-me": "-jABcYKhDrI",
     "amazing-grace": "9ZXxIyjTY1s",
     "ill-fly-away": "192W0bhJNEg",
@@ -231,7 +230,6 @@ try {
     );
     const details: Record<string, string> = {
       "amazing-grace": "B major, 72 BPM",
-      "in-christ-alone": "D major, 67 BPM",
       "jesus-loves-me": "G major, 125 BPM",
       "ill-fly-away": "B major, 102 BPM",
       "o-come-all-ye-faithful": "E major, 91 BPM",
@@ -357,13 +355,13 @@ try {
   await page.getByRole("button", { name: "Go to start", exact: true }).click();
   await expect(counter).toHaveText(/Stanza 1\/2 · 1 \/ 35/);
 
-  await visit("in-christ-alone", "?stanzas=2,3&mode=wait&octave=0&hands=right");
+  await visit("in-christ-alone", "?arrangement=piano&stanzas=2,4&mode=wait&octave=0&hands=right");
   await connectMidi();
   await page.getByRole("button", { name: "Go to start", exact: true }).click();
   const christ = attacks("in-christ-alone");
   await send(christ.pitches);
-  await expect(counter).toHaveText(/Stanza 2\/2 · 1 \/ 64/);
-  await send(christ.pitches.slice(0, 64));
+  await expect(counter).toHaveText(new RegExp(`Stanza 2/2 · 1 / ${christ.pitches.length}`));
+  await send(christ.pitches);
   await expect(counter).toHaveText(/Complete/);
 
   // Real (muted) audio scheduling: the next pickup is scheduled on the same

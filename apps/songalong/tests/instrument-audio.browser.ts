@@ -56,9 +56,9 @@ try {
   for (const [id, arrangement] of [
     ["amazing-grace", "piano"],
     ["amazing-grace", "guitar-edition"],
-    ["in-christ-alone-2", "original"],
+    ["in-christ-alone", "original"],
   ]) {
-    const organ = id === "in-christ-alone-2";
+    const organ = id === "in-christ-alone";
     const requests: string[] = [];
     const listener = (request: any) => requests.push(request.url());
     page.on("request", listener);

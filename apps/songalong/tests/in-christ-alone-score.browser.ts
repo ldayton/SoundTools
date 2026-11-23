@@ -1,3 +1,4 @@
+import {stagedHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { expect } from "@playwright/test";
@@ -51,10 +52,13 @@ try {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(server.base + "/piano/hymns/in-christ-alone-2?mode=playback");
+  await waitForApp(page,".hymn-paper");
+  await expect(page).toHaveURL(/\/piano\/hymns\/in-christ-alone\?/);
+  await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
   await waitForApp(page, ".hymn-paper");
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
-  await expect(page.locator(".sequence-title")).toHaveText("In Christ Alone 2");
+  await expect(page.locator(".sequence-title")).toHaveText("In Christ Alone");
   await expect(page.locator(".hymn-paper svg text").filter({hasText:/^(Choir|Organ)$/})).toHaveCount(2);
   await expect(page.locator(".hymn-paper svg").first().locator("text").filter({hasText:/^(Choir|Organ)$/})).toHaveCount(2);
   await expect(
@@ -85,7 +89,7 @@ try {
   assert.equal(
     downloaded,
     await readFile(
-      new URL("../hymns/source/in-christ-alone-2.abc", import.meta.url),
+      new URL("../hymns/source/in-christ-alone.abc", import.meta.url),
       "utf8",
     ),
   );
@@ -314,7 +318,7 @@ try {
   await checkChords();
   await checkInk();
   await page.screenshot({
-    path: "/tmp/in-christ-alone-2-desktop.png",
+    path: "/tmp/in-christ-alone-desktop.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -322,7 +326,7 @@ try {
   await dismissPracticeDrawer(page);
   await checkInk();
   await page.screenshot({
-    path: "/tmp/in-christ-alone-2-mobile.png",
+    path: "/tmp/in-christ-alone-mobile.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 320, height: 844 });
@@ -350,13 +354,13 @@ try {
   await practiceOption(page, "#hymn-key", "original");
   await dismissPracticeDrawer(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
+  await page.goto(server.base + `/piano/hymns/${stagedHymn.id}?mode=playback`);
   await waitForApp(page, ".hymn-paper");
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
-  await expect(page.locator(".sequence-title")).toHaveText("In Christ Alone");
+  await expect(page.locator(".sequence-title")).toHaveText(stagedHymn.title);
   await expect(page.locator("#hymn-tempo")).not.toHaveValue("96 BPM");
-  await page.goto(server.base + "/piano/hymns/in-christ-alone-2?mode=playback");
+  await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
   await waitForApp(page, ".hymn-paper");
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);

@@ -91,7 +91,7 @@ test("checked stanzas form an ordered, gapless timeline with unchanged verse and
     plan.verses.map((v) => v.number),
     [1, 3],
   );
-  assert(plan.verses[1].end - plan.verses[1].start < plan.verses[0].end);
+  assert.equal(plan.verses[1].end - plan.verses[1].start,plan.verses[0].end);
   assert.deepEqual(
     sequence(h, []).verses.map((v) => v.number),
     [0],

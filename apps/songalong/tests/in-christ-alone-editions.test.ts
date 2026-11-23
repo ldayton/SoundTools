@@ -5,268 +5,204 @@ import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
   arrangeHymn,
   hymnArrangements,
-  guitarMidiOffset,
 } from "../../../packages/music-practice/src/hymn-arrangements";
-import { hymnPreferences } from "../../../packages/music-practice/src/hymn-settings";
+import { capoAudio } from "../../../packages/music-practice/src/edition-score";
 import {
-  christGuitarPosition,
-  christGuitarLyricData,
-  christGuitarChordOffset,
-  christCapoAudio,
-  christFingers,
+  teacherGuitarPosition,
+  teacherChordLyrics,
 } from "../../../packages/music-practice/src/in-christ-alone";
+import { hymnLyricsAbc } from "../../../packages/music-practice/src/hymn-lyrics";
 const hymn = hymns.find((h) => h.id === "in-christ-alone")!;
-function read(abc: string, offset = 0) {
-  const tune = abcjs.parseOnly(abc)[0];
+function read(abc: string, capo = 0) {
+  const tune = abcjs.parseOnly(abc.replaceAll(":|", "|]"))[0];
   assert.equal(tune.warnings?.length || 0, 0, tune.warnings?.join("\n"));
-  let audio = tune.setUpAudio({
-    qpm: 60,
-    chordsOff: true,
-    midiTranspose: offset === 2 ? 0 : offset,
-  });
-  if (offset === 2) audio = christCapoAudio(audio);
+  const audio = capoAudio(tune.setUpAudio({ qpm: 60, chordsOff: true }), capo);
   return {
     tune,
     audio,
     tracks: audio.tracks.map((track) =>
       track.flatMap((n) =>
-        n.cmd === "note" ? [[n.pitch, n.start, n.duration]] : [],
+        n.cmd === "note" ? [[n.pitch, n.start * 4, n.duration * 4]] : [],
       ),
     ),
   };
 }
-test("In Christ Alone has only physical Piano/Guitar editions and migrates prior preferences", () => {
+const piano = read(arrangeHymn(hymn, "piano", 0).abc);
+const guitar = read(arrangeHymn(hymn, "guitar-edition", 0).abc, 2);
+test("teacher instrumental editions retain every vocal pitch, rest and dotted rhythm", () => {
+  const original = read(hymn.harmony);
   assert.deepEqual(
-    hymnArrangements(hymn).map((a) => [a.id, a.label]),
+    hymnArrangements(hymn).map((a) => a.id),
+    ["original", "piano", "guitar-edition"],
+  );
+  assert.deepEqual(
+    piano.tracks[0].filter((n) => n[1] < 48.5),
+    original.tracks[0],
+  );
+  assert.deepEqual(guitar.tracks[0], piano.tracks[0]);
+  for (const score of [piano, guitar]) {
+    assert.equal(score.audio.totalDuration * 4, 60);
+    assert.equal(score.tune.getPickupLength() * 4, 1.5);
+  }
+  // Teacher's printed organ line, in D, continues after the last sung note.
+  assert.deepEqual(
+    piano.tracks[0].filter((n) => n[1] >= 48.5),
     [
-      ["piano", "Piano"],
-      ["guitar-edition", "Guitar"],
+      [59, 48.5, 0.75],
+      [62, 49.25, 0.25],
+      [64, 49.5, 1.5],
+      [66, 51, 0.5],
+      [64, 51.5, 0.75],
+      [62, 52.25, 0.25],
+      [59, 52.5, 1.5],
+      [59, 54, 0.5],
+      [59, 54.5, 0.75],
+      [62, 55.25, 0.25],
+      [62, 55.5, 1.5],
+      [54, 57, 0.5],
+      [55, 57.5, 0.25],
+      [57, 57.75, 0.25],
+      [62, 58, 2],
     ],
   );
-  for (const arrangement of ["original", "melody", "bass", "chords", "broken"])
-    assert.equal(
-      hymnPreferences(hymn.id, { arrangement }).arrangement,
-      "piano",
-    );
-  for (const arrangement of [
-    "guitar",
-    "guitar-chords",
-    "guitar-fingerstyle",
-    "guitar-edition",
-  ]) {
-    const s = hymnPreferences(hymn.id, {
-      arrangement,
-      hands: "left",
-      scoreDisplay: "tab",
-    });
-    assert.equal(s.arrangement, "guitar-edition");
-    assert.equal(s.hands, "left");
-    assert.equal(s.scoreDisplay, "tab");
-  }
-  assert.equal(hymnPreferences(hymn.id).bpm, 70);
+  assert.equal(hymn.stanzas.length, 4);
+  assert(hymn.stanzas.every((s) => s.syllables.length === 64 && !s.endingBar));
 });
-test("piano preserves every source note and duration in a comfortable lower octave", () => {
-  const source = read(hymn.harmony),
-    piano = read(arrangeHymn(hymn, "piano", 0).abc);
-  assert.deepEqual(
-    piano.tracks,
-    source.tracks.map((t) => t.map(([p, s, d]) => [p - 12, s, d])),
-  );
-  assert.equal(piano.audio.totalDuration, 15.375);
-  assert.deepEqual(
-    piano.tune.lines[0].staff?.map((s) => s.clef?.type),
-    ["treble", "bass"],
-  );
-  const melody = piano.tracks[0].map((n) => n[0]);
-  assert.equal(Math.min(...melody), 57);
-  assert.equal(Math.max(...melody), 74);
-  for (const n of piano.tracks[1]) {
-    const chord = piano.tracks[1].filter((m) => m[1] === n[1]).map((m) => m[0]);
-    assert(Math.max(...chord) - Math.min(...chord) <= 7);
+test("compact piano voicings follow slash bass, minor substitutions and the printed ending", () => {
+  const chordAt = (beat: number) =>
+    piano.tracks[1].filter((n) => n[1] === beat).map((n) => n[0]);
+  assert.deepEqual(chordAt(30.5), [42, 45, 50]); // D/F#
+  assert.deepEqual(chordAt(33.5), [47, 50, 54]); // Bm
+  assert.deepEqual(chordAt(49.5), [49, 52, 55]); // rootless A7
+  assert.deepEqual(chordAt(52.5), [40, 43, 47]); // Em
+  assert.deepEqual(chordAt(57.5), [45, 50, 54]); // D/A
+  assert.deepEqual(chordAt(58.5), [38, 42, 45]); // final D
+  for (const start of new Set(piano.tracks[1].map((n) => n[1]))) {
+    const notes = chordAt(start);
+    assert(Math.max(...notes) - Math.min(...notes) <= 9);
   }
-  for (const [hand, index] of [
-    ["right", 0],
-    ["left", 1],
-  ] as const)
+  for (const hand of ["right", "left"] as const)
     assert.deepEqual(
       read(arrangeHymn(hymn, "piano", 0, 0, hand).abc).tracks[0],
-      piano.tracks[index],
+      piano.tracks[hand === "right" ? 0 : 1],
     );
 });
-test("guitar uses the four source chord shapes, capo 2, and the original harmonic rhythm", () => {
-  const score = arrangeHymn(hymn, "guitar-edition", 0, 0, "left"),
-    guitar = read(score.abc, 2);
-  assert.equal(guitar.audio.totalDuration, 15.375);
-  assert.equal(guitar.tune.lines[0].staff?.[0].clef?.type, "treble-8");
-  const attacks = [...new Set(guitar.tracks[0].map((n) => n[1]))];
-  const shapes = new Set<string>();
-  for (const start of attacks) {
-    const chord = guitar.tracks[0]
-      .filter((n) => n[1] === start)
-      .map((n) => n[0] - 2);
-    shapes.add(chord.join(","));
-    const positions = chord.map((p) => christGuitarPosition(p, true)!);
-    assert(positions.every(Boolean));
-    assert.equal(new Set(positions.map((p) => p.str)).size, positions.length);
-    assert(positions.every((p) => p.num >= 0 && p.num <= 3));
-  }
-  assert.deepEqual(
-    [...shapes].sort(),
-    [
-      "48,52,55,60,64",
-      "53,57,60,65",
-      "43,47,50,55,59,67",
-      "45,52,57,60,64",
-    ].sort(),
-  );
-  const piano = read(arrangeHymn(hymn, "piano", 0).abc);
-  assert.deepEqual(attacks, [...new Set(piano.tracks[1].map((n) => n[1]))]);
-  for (const start of attacks) {
-    const actual = guitar.tracks[0]
-      .filter((n) => n[1] === start)
-      .map((n) => n[0] % 12);
-    const expected = piano.tracks[1]
-      .filter((n) => n[1] === start)
-      .map((n) => n[0] % 12);
-    assert.deepEqual(
-      [...new Set(actual)].sort(),
-      [...new Set(expected)].sort(),
-    );
-  }
-  // A section must retain its sounding octave and capo, including after serialization.
-  for (let section = 0; section < 6; section++) {
-    const part = arrangeHymn(hymn, "guitar-edition", 4, section, "left");
-    const actual = read(part.abc, 2).tracks[0];
-    const from = part.from === 0 ? 0 : 0.375 + (part.from - 1) * 0.75;
-    const to = part.to === 21 ? 15.375 : 0.375 + (part.to - 1) * 0.75;
-    const expected = guitar.tracks[0]
-      .filter((n) => n[1] >= from && n[1] < to)
-      .map(([p, s, d]) => [p, s - from, d]);
-    assert.deepEqual(actual, expected, `Section ${section}`);
-  }
-});
-test("all verses retain chord-aligned lyrics and the final verse omits the vocal coda", () => {
-  const data = christGuitarLyricData(hymn);
-  assert.equal(data.stanzas.length, 3);
-  assert.equal(data.stanzas[2].endingBar, 17);
-  assert.equal(data.stanzas[0].syllables[0], "In~Christ~a-");
-  assert.equal(data.stanzas[1].syllables[0], "Here~in~the");
-  assert(
-    data.stanzas[2].syllables
-      .slice(christGuitarChordOffset(17))
-      .every((s) => s === "*"),
-  );
-  assert(
-    !data.stanzas[0].syllables
-      .slice(christGuitarChordOffset(17))
-      .every((s) => s === "*"),
-  );
-  for (const arrangement of ["piano", "guitar-edition"] as const) {
-    const score = arrangeHymn(hymn, arrangement, 0, 0, "both", 17);
-    assert.equal(score.totalBars, 17);
-    assert.equal(
-      read(score.abc, arrangement === "guitar-edition" ? 2 : 0).audio
-        .totalDuration,
-      12.375,
-    );
-  }
-});
-
-test("production playback applies capo once and keeps the last verse ending short", async () => {
-  const { hymnPlaybackScore } =
-    await import("../../../packages/music-practice/src/hymn-playback-score");
-  const score = arrangeHymn(hymn, "guitar-edition", 0);
-  const current = read(score.abc, 2).audio;
-  const plan = hymnPlaybackScore({
-    hymn,
-    arrangement: "guitar-edition",
-    sectionBars: 0,
-    section: 0,
-    hands: "both",
-    totalBars: 21,
-    sections: 1,
-    abc: score.abc,
-    audio: current,
-    transpose: 0,
-    stanzas: [1, 2, 3],
-  });
-  const first = plan.audio.tracks[0]
-    .filter((n) => n.cmd === "note" && n.start === 0)
-    .map((n) => (n.cmd === "note" ? n.pitch : 0));
-  assert.deepEqual(first, [57]);
-  assert.deepEqual(
-    plan.audio.tracks[1]
-      .filter((n) => n.cmd === "note" && n.start === 0)
-      .map((n) => (n.cmd === "note" ? n.pitch : 0)),
-    [55],
-  );
-  assert.equal(plan.audio.totalDuration, 43.125);
-  assert.deepEqual(
-    plan.verses?.map((v) => v.end - v.start),
-    [61.5, 61.5, 49.5],
-  );
-});
-
-test("fingerstyle retains the complete melody and every rhythm, with feasible simultaneous string choices", () => {
-  const score = read(arrangeHymn(hymn, "guitar-edition", 0).abc, 2),
-    piano = read(arrangeHymn(hymn, "piano", 0).abc);
-  assert.deepEqual(score.tracks[0], piano.tracks[0]);
-  assert.equal(score.tracks.length, 2);
-  const notes = score.tracks.flat();
+test("capo-two fingerstyle is physically playable through the lower interlude and high position shift", () => {
+  const notes = guitar.tracks.flat();
   for (const start of new Set(notes.map((n) => n[1]))) {
     const sounding = notes.filter(
       ([, s, d]) => s <= start && s + d > start + 1e-7,
     );
-    const positions = sounding.map(([p]) => christGuitarPosition(p - 2, true)!);
-    assert(positions.every(Boolean));
+    const positions = sounding.map(([p]) =>
+      teacherGuitarPosition(p - 2, true)!,
+    );
+    assert(
+      positions.every(Boolean),
+      `Missing position at ${start}: ${sounding}`,
+    );
     assert.equal(
       new Set(positions.map((p) => p.str)).size,
       positions.length,
-      `String conflict at beat ${start * 4}`,
+      `String conflict at ${start}`,
     );
     const frets = positions.filter((p) => p.num > 0).map((p) => p.num);
-    if (frets.length)
-      assert(
-        Math.max(...frets) - Math.min(...frets) <= 3,
-        `Stretch at beat ${start * 4}`,
-      );
+    assert(
+      !frets.length || Math.max(...frets) - Math.min(...frets) <= 3,
+      `Stretch at ${start}: ${frets}`,
+    );
   }
-  // The source's octave leap is retained; the bass releases for the position shift.
-  assert(score.tracks[0].some(([p]) => p === 74));
-  assert(!score.tracks[1].some(([, s, d]) => s < 7.875 && s + d > 7.625));
-  for (let section = 0; section < 6; section++) {
-    const part = arrangeHymn(hymn, "guitar-edition", 4, section),
-      actual = read(part.abc, 2);
-    if (section === 2)
-      assert(
-        part.abc.includes('"^VII"'),
-        "Position indications survive passage extraction",
-      );
-    const from = part.from === 0 ? 0 : 0.375 + (part.from - 1) * 0.75,
-      to = part.to === 21 ? 15.375 : 0.375 + (part.to - 1) * 0.75;
+  assert(guitar.tracks[0].some((n) => n[0] === 74));
+  assert.deepEqual(
+    read(arrangeHymn(hymn, "guitar-edition", 0, 0, "right").abc, 2).tracks[0],
+    guitar.tracks[0],
+  );
+  const strums = read(arrangeHymn(hymn, "guitar-edition", 0, 0, "left").abc, 2);
+  for (const start of new Set(strums.tracks[0].map((n) => n[1]))) {
+    const positions = strums.tracks[0]
+      .filter((n) => n[1] === start)
+      .map(([p]) => teacherGuitarPosition(p - 2, true)!);
+    assert(positions.every(Boolean));
+    assert.equal(new Set(positions.map((p) => p.str)).size, positions.length);
+  }
+});
+test("chord accompaniment keeps all four verse texts aligned after the silent pickup", () => {
+  const score = arrangeHymn(hymn, "guitar-edition", 0, 0, "left").abc;
+  const lyrics = teacherChordLyrics(hymn);
+  assert.equal(lyrics.stanzas[0].syllables[0], "In~Christ~a-");
+  for (let verse = 1; verse <= 4; verse++) {
+    const tune = abcjs.parseOnly(
+      hymnLyricsAbc(score, { hymn: lyrics, selected: [verse], offset: 0 }),
+    )[0];
+    const words = tune.lines
+      .flatMap((l) => l.staff?.[0]?.voices?.[0] || [])
+      .flatMap((n) =>
+        n.el_type === "note"
+          ? (n.lyric || []).map((l: { syllable: string }) => l.syllable)
+          : [],
+      )
+      .join(" ");
+    assert.match(words, /Christ/);
+    assert.doesNotMatch(words, /Oh/);
+  }
+});
+
+test("practice excerpts preserve the same melody and tied ending as the complete written pass", () => {
+  for (const arrangement of ["piano", "guitar-edition"] as const) {
+    const full = arrangement === "piano" ? piano : guitar;
+    for (const size of [2, 4])
+      for (let section = 0; section < Math.ceil(21 / size); section++) {
+        const part = arrangeHymn(hymn, arrangement, size, section);
+        const from = part.from ? 1.5 + (part.from - 1) * 3 : 0,
+          to = part.to === 21 ? 60 : 1.5 + (part.to - 1) * 3;
+        const expected = full.tracks.map((track) =>
+          track
+            .filter(([, s, d]) => s < to && s + d > from)
+            .map(([p, s, d]) => [
+              p,
+              Math.max(s, from) - from,
+              Math.min(s + d, to) - Math.max(s, from),
+            ]),
+        );
+        assert.deepEqual(
+          read(part.abc, arrangement === "piano" ? 0 : 2).tracks,
+          expected,
+          `${arrangement} ${size} bars, section ${section}`,
+        );
+      }
+  }
+});
+
+test("production playback keeps the teacher form and applies guitar capo exactly once for every verse", async () => {
+  const { hymnPlaybackScore } =
+    await import("../../../packages/music-practice/src/hymn-playback-score");
+  const plans = [];
+  for (const arrangement of ["original", "piano", "guitar-edition"] as const) {
+    const score = arrangeHymn(hymn, arrangement, 0);
+    const audio = abcjs
+      .parseOnly(score.abc)[0]
+      .setUpAudio({ qpm: 60, chordsOff: true });
+    const plan = hymnPlaybackScore({
+      hymn,
+      arrangement,
+      sectionBars: 0,
+      section: 0,
+      hands: "both",
+      totalBars: 21,
+      sections: 1,
+      abc: score.abc,
+      audio,
+      transpose: 0,
+      stanzas: [1, 2, 3, 4],
+    });
     assert.deepEqual(
-      actual.tracks,
-      score.tracks.map((track) =>
-        track
-          .filter(([, s, d]) => s < to && s + d > from)
-          .map(([p, s, d]) => [
-            p,
-            Math.max(s, from) - from,
-            Math.min(s + d, to) - Math.max(s, from),
-          ]),
+      plan.verses?.map((v) => v.end - v.start),
+      [120, 120, 120, 120],
+    );
+    plans.push(
+      plan.audio.tracks[0].flatMap((n) =>
+        n.cmd === "note" ? [[n.pitch, n.start, n.duration]] : [],
       ),
     );
   }
-  assert.deepEqual(
-    read(arrangeHymn(hymn, "guitar-edition", 0, 0, "right").abc, 2).tracks[0],
-    score.tracks[0],
-  );
-});
-
-// A held C grip needs the little finger for the D melody, leaving ring on C bass.
-test("C-shape melody extensions leave the held bass fingers available", () => {
-  for (const bar of [2, 6, 14]) {
-    assert.deepEqual(christFingers("guitar", bar, 0, [64]), [4]);
-    assert.deepEqual(christFingers("guitar", bar, 1, [50, 54]), [3, 2]);
-  }
+  assert.deepEqual(plans[2], plans[1]);
 });

@@ -1,3 +1,4 @@
+import {migrateHymnIdentity} from "./hymn-identity";
 import { abcHasChordSymbols, abcPlaybackStaves, legacyHiddenStaves, type PlaybackStaff } from "./hymn-playback-staves";
 import { hymnPlaybackInstrument } from "./hymn-instruments";
 import { HymnInstrumentSelector } from "./hymn-instrument-selector";
@@ -254,8 +255,8 @@ export class SightReading {
           this.staffSpacingByLayout[layout] = value;
       }
       const saved =
-        persistence.read<HymnState>("sight") ||
-        (persistence.state.legacy.sight as any);
+        migrateHymnIdentity(persistence.read<HymnState>("sight") ||
+        (persistence.state.legacy.sight as any));
       this.progress = new HymnProgress(
         saved,
         hymns.map((hymn) => hymn.id),

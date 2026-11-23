@@ -36,13 +36,11 @@ chords-only chart represents a tied continuation.
 The Amazing Grace unit tests independently verify melody, chord voicings,
 harmonic rhythm, verse duration, lyrics, and passages beginning or ending on ties.
 
-In Christ Alone's Guitar edition is a two-voice fingerstyle setting with the
-complete source melody in conventional octave-transposing notation, capo 2.
-C/E and G/D bass dyads, single F basses, and Am/E support the melody. The bass
-rests on the high C–B leap in bar 10 so the hand can shift to position VII;
-position III and I indications guide the return. Chord symbols retain the
-original C/F/G/Am harmonic rhythm. The full fingerstyle setting is distinct
-from the optional full-shape chord accompaniment used for strumming practice.
+In Christ Alone's teacher-based Guitar edition follows the printed melody,
+rests, four verses and instrumental ending in conventional octave-transposing
+notation, capo 2. C-family chord shapes, including C/E, Am, Dm and G7, support
+the teacher's fullest harmony. Positions I, III and VII retain the high melody;
+full fingerstyle, melody and strummed chord practice remain separate choices.
 
 Notation, rhythmic tablature, combined notation/tab, and a compact chords-only
 lyric chart are display choices of the same Guitar edition. They do not alter
@@ -139,7 +137,7 @@ The sidebar lists arrangements belonging to the current instrument, and omits th
 arrangement picker when that instrument has only one arrangement. Reviewed editions
 retain their Piano/Guitar scores; generic staged keyboard arrangements belong to
 Piano and their original vocal harmony belongs to Voice + Piano. The supplied
-In Christ Alone 2 choir/organ score currently supports Voice + Piano only.
+In Christ Alone teacher score supports Voice + Piano, Piano and Guitar.
 
 Existing arrangement IDs still encode the saved instrument and arrangement together,
 so old deep links, account records, offline preferences and bookmarks remain valid.
@@ -155,7 +153,7 @@ using the toolbar helper instead of the retired instrument dropdown.
 
 ## Teacher-score drawbar organ playback
 
-In Christ Alone 2 explicitly declares `accompanimentInstrument: "organ"`; its
+In Christ Alone explicitly declares `accompanimentInstrument: "organ"`; its
 original Voice + Piano score uses the FreePats Drawbar Organ Emulation bank
 for the Organ staves; its Choir track uses the human bank described below.
 Other scores keep their existing sounds. The 2019-07-12 bank was recorded from
@@ -210,7 +208,7 @@ Highlighted key labels use dark text, with larger lettering on black keys.
 
 ## Human choir for the teacher melody
 
-The Choir track of In Christ Alone 2 now uses epic-choir v1.0 by thepok, derived
+The Choir track of In Christ Alone now uses epic-choir v1.0 by thepok, derived
 from the real singers of VocalSet (Wilkins, Seetharaman, Wahl and Pardo, 2018).
 The Organ tracks retain the drawbar organ. The compact bank contains ten
 alto-section ah/mf roots, covering the teacher melody at its original pitch,
@@ -232,7 +230,7 @@ Original voices: https://doi.org/10.5281/zenodo.1442513
 
 ## Teacher-based In Christ Alone instrumental editions
 
-`in-christ-alone-2` retains its original Voice + Piano score and now also offers
+`in-christ-alone` retains its original Voice + Piano score and now also offers
 Piano and Guitar editions. Both follow the printed vocal melody, including rests
 and dotted rhythms, and carry the organ’s upper line through the instrumental
 ending. The pickup and final half-bar complete a 60-beat written pass; the
@@ -243,10 +241,13 @@ Guitar reuses the existing capo-2 C-family shapes and position/fingering helpers
 with C/E, Dm and G7 for the fuller harmony. The interlude follows the printed A7
 and fifth-bass motion back to D. Melody, fingerstyle, strummed accompaniment,
 passages, transposition and the staff playback controls use the shared edition
-pipeline. The older `in-christ-alone` song remains unchanged.
+pipeline. The teacher score replaces the retired tab-music version under the canonical
+`in-christ-alone` ID. Saved teacher-version choices and favorites are promoted;
+older teacher links redirect to the canonical route. Legacy verse selections
+map to the corresponding teacher verses, and content checks reject stale music checkpoints.
 
 Exact music and physical string choices are covered by
-`tests/in-christ-alone-2-editions.test.ts`; responsive rendering, instrument
+`tests/in-christ-alone-editions.test.ts`; responsive rendering, instrument
 switching and saved choices are covered by the corresponding Nightly browser test.
 
 Playback highlights current notes in green while running; a translucent position

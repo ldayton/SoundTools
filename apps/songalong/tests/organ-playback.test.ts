@@ -8,7 +8,7 @@ import { performNotes } from "../../../packages/music-practice/src/playback-perf
 import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 test("explicit organ instrumentation routes this original score without changing piano/guitar choices", () => {
   assert.equal(
-    hymnPlaybackInstrument({ id: "in-christ-alone-2" }, "original"),
+    hymnPlaybackInstrument({ id: "in-christ-alone" }, "original"),
     "organ",
   );
   assert.equal(hymnPlaybackInstrument(stagedHymn, "original"), "piano");

@@ -8,32 +8,16 @@ Run `npm run import:hymns --workspace=songalong` to reproduce `packages/music-pr
 
 The app supports playback and Wait for me practice, including separate-hand practice and optional re-striking of tied notes. MIDI recognizes exact sounding pitches. Octave-displaced notation uses a small 8 or 15 below the treble or bass clef; it does not change the sounding pitch.
 
-`lyrics.json` contains user-supplied, manually aligned practice lyrics for Amazing Grace, Jesus Loves Me, In Christ Alone and O Come, All Ye Faithful. Repeated copies of the same stanza are omitted. In Christ Alone’s final stanza ends on “I’ll stand” without the four-bar Oh outro when selected alone. Source ABC files and their credits remain unchanged. Reference recording links are separate catalogue metadata.
+`lyrics.json` contains user-supplied, manually aligned practice lyrics for Amazing Grace, Jesus Loves Me and O Come, All Ye Faithful. Repeated copies of the same stanza are omitted. In Christ Alone’s four verses are underlaid in its teacher-score ABC; all retain the instrumental ending. Source ABC files and their credits remain unchanged. Reference recording links are separate catalogue metadata.
 
 ## Tab-music practice editions
 
-“In Christ Alone” (Keith Getty and Stuart Townend) and “I'll Fly Away”
-(Albert E. Brumley) are adapted from Lily's `ldayton/tab-music` repository,
-commit `e45c0e6b77901f4bb2495ae0412e0dff1a112dd0`. The two
-`*-tab-music.abc` files are the checked-in import sources; catalogue entries
-link to the exact LilyPond revisions. These are user-supplied practice editions,
-**not Open Hymnal or public-domain editions**. Song rights remain with their
-respective rights holders.
-
-The melody uses the keyboard edition's written register: In Christ Alone is
-D major, A4–D6, including its original pickup and four-bar Oh ending; I'll Fly
-Away is C major, G4–G5, verse and chorus, with the user's melody revisions.
-Slurs, ties, rests, dotted rhythms, lyrics and the closing fermata are retained.
-The audio-only expressive timing on “God's ce-” remains straight eighths in the
-notation, as in the source keyboard score. The lower voice uses the source's
-simplified chord changes, in compact piano voicings. “Original harmony” here
-means that imported practice harmony, not a published SATB arrangement.
-
-`tests/fixtures/tab-music-melodies.json` records the independently rendered
-keyboard MIDI pitches and durations from that revision. I'll Fly Away is
-raised one octave to match its printed keyboard score; its two expressive
-MIDI eighths are normalized to their printed half-beat lengths. Tests compare
-every melody attack and tied duration against this reference.
+“I'll Fly Away” (Albert E. Brumley) is adapted from Lily's `ldayton/tab-music`
+repository at commit `e45c0e6b77901f4bb2495ae0412e0dff1a112dd0`.
+`ill-fly-away-tab-music.abc` retains its source credits and catalogue reference.
+It is a user-supplied practice edition, not an Open Hymnal/public-domain edition.
+Its melody is in C major, G4–G5, with the user's melody revisions.
+Song rights remain with the respective rights holders.
 
 ## User-supplied guitar score
 
@@ -73,30 +57,10 @@ Piano sounding overlaps are checked for hand spans of at most a sixth; the
 source guitar voicings are checked for distinct strings within a three-fret
 position. These checks do not change the supplied notes or playback timing.
 
-## In Christ Alone instrument editions
+## In Christ Alone — teacher's printed choir and organ score
 
-In Christ Alone offers only Piano and Guitar. Piano preserves the imported
-melody, harmony, pickup, and durations one octave lower, with a grand staff,
-root-position left-hand triads, and selected editorial fingerings. Guitar is
-the separate singing accompaniment from `ldayton/tab-music`'s shared
-`in-christ-alone-music.ily`: C, small F, G, and Am shapes with capo 2, sounding
-in D major. It is chord accompaniment, not a solo fingerstyle transcription.
-Notation/tab display remains independent of instrument and practice settings.
-
-Guitar frets and chord symbols are relative to capo 2; its playback and MIDI
-grading include the capo explicitly because abcjs octave-clef voices override
-the global MIDI transpose. The guitar's key/octave choices retain that reviewed
-capo position. Rhythmic tab includes 3/4 and dotted durations. Chord-level lyric
-chunks are derived from the melody timing for all three existing verses; the
-last verse retains its shorter ending. Piano hands can be practised separately;
-the single guitar accompaniment has no fictitious melody/bass practice voices.
-The existing author credits are retained.
-
-## In Christ Alone 2 — teacher's printed choir and organ score
-
-`in-christ-alone-2.abc` is a separate transcription of the two photographs supplied
-on 23 November 2026. It does not replace or adapt the existing In Christ Alone
-edition. The photos are in E-flat major; at the user’s request, every voice is transposed
+`in-christ-alone.abc` is the canonical transcription of the two photographs supplied
+on 23 November 2026. It replaces the retired tab-music edition, including its ID. The photos are in E-flat major; at the user’s request, every voice is transposed
 down one semitone to D major, which is now this song’s Original key. The
 transcription retains the printed 3/4, “Steadily,”
 choir plus a two-staff organ part, four complete printed verses, 21 numbered
@@ -121,7 +85,7 @@ offline. This user-supplied arrangement is not an Open Hymnal/public-domain sour
 song rights remain with their respective holders. No guitar edition is inferred.
 
 Independent photo-derived MIDI pitch/duration expectations are owned by
-`in-christ-alone-2-score.test.ts` in CI's SongAlong unit group. The focused
+`in-christ-alone-score.test.ts` in CI's SongAlong unit group. The focused
 transcription/browser witness belongs to Nightly's SongAlong core group; the
 catalog partitions also include the new song automatically. This adds no
 exhaustive browser work to the bounded CI lane. The actual-clef hand-selection

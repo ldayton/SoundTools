@@ -1,3 +1,4 @@
+import {canonicalHymnId} from "./hymn-identity";
 import { startPracticeAccount } from "./practice-account-binding";
 import {
   songalongRecords,
@@ -22,7 +23,14 @@ import "./style.css";
 import "./styles/practice.css";
 import "./styles/songalong.css";
 
-let route = readRoute(new URL(location.href), "sight");
+function canonicalSongUrl(url:URL) {
+ const prefix="/piano/hymns/";
+ if(url.pathname.startsWith(prefix))url.pathname=prefix+canonicalHymnId(url.pathname.slice(prefix.length));
+ return url;
+}
+const initialUrl=canonicalSongUrl(new URL(location.href));
+if(initialUrl.pathname!==location.pathname)history.replaceState(null,"",initialUrl.pathname+initialUrl.search);
+let route = readRoute(initialUrl, "sight");
 let practice: SightReading | undefined;
 let midi: ReturnType<typeof mountMidiPanel> | undefined;
 let ready = false;
@@ -115,6 +123,7 @@ function render() {
   refreshInput();
 }
 function visit(url: URL, push: boolean) {
+  url=canonicalSongUrl(url);
   interrupt("navigation");
   route = readRoute(url, "sight");
   if (push) history.pushState(null, "", url.pathname + url.search);
@@ -177,7 +186,7 @@ void document.fonts.ready
       canApply: () => route.kind === "settings" || !!practice?.syncIdle,
       liveKeys: (keys) => {
         const current = persistence.read<{ hymn?: string }>("sight")?.hymn;
-        return songalongLiveKeys(keys, current);
+        return songalongLiveKeys(keys, current ? canonicalHymnId(current) : undefined);
       },
       liveApplied: (_records, state) => {
         if (state.activities.sight)
@@ -194,7 +203,7 @@ void document.fonts.ready
         const saved = persistence.read<{ hymn?: string }>("sight");
         if (route.kind === "exercise") {
           const url = new URL(
-            "/piano/hymns" + (saved?.hymn ? "/" + saved.hymn : ""),
+            "/piano/hymns" + (saved?.hymn ? "/" + canonicalHymnId(saved.hymn) : ""),
             location.origin,
           );
           history.replaceState(null, "", url.pathname);

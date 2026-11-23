@@ -39,30 +39,6 @@
       }
     ]
   },
-  "in-christ-alone": {
-    "source": "User-supplied lyrics",
-    "shared": [
-      [
-        64,
-        68
-      ]
-    ],
-    "stanzas": [
-      {
-        "label": "In Christ alone my hope is found",
-        "syllables": "In Christ a- lone my hope is found He is my light, my strength, my song This cor- ner- stone, this sol- id ground Firm through the fierc- est drought and storm What heights of love, what depths of peace When fears are stilled, when striv- ings cease My com- fort- er, my all in all Here in the love of Christ I stand Oh- oh * *"
-      },
-      {
-        "label": "Here in the ground His body lay",
-        "syllables": "Here in the ground His bod- y lay Light of the world by dark- ness slain Then burst- ing forth in glo- rious day Oh,~up from the grave He rose a- gain And as He stands in vic- to- ry Sin's curse has lost its grip on me For I am His and He is mine Bought with the pre- cious blood of Christ Oh- oh * *"
-      },
-      {
-        "label": "No guilt in life, no fear in death",
-        "syllables": "No guilt in life, no fear in death This is the power of Christ in me From life's first cry to fi- nal breath Oh,~Je- sus com- mands my des- ti- ny No power of hell, no scheme of man Can ev- er pluck me from His hand 'Til He re- turns or calls me home Here in the power of Christ I'll stand * * * *",
-        "endingBar": 17
-      }
-    ]
-  },
   "o-come-all-ye-faithful": {
     "source": "User-supplied lyrics",
     "shared": [

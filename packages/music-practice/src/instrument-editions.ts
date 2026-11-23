@@ -4,7 +4,7 @@ import {
   teacherGuitarPosition,
   teacherChordLyrics,
   teacherChordOffset,
-} from "./in-christ-alone-teacher";
+} from "./in-christ-alone";
 import type { Hymn, HymnHands } from "./hymn-arrangements";
 import type { BeginnerInstrument } from "./beginner-score";
 import { bluesPianoAbc, bluesLandmarks } from "./fingerstyle-blues";
@@ -33,15 +33,7 @@ import {
   graceFingers,
   graceGuitarPosition,
 } from "./amazing-grace";
-import {
-  christPianoAbc,
-  christFingerstyleAbc,
-  christGuitarAbc,
-  christGuitarLyricData,
-  christLandmarks,
-  christFingers,
-  christGuitarPosition,
-} from "./in-christ-alone";
+
 
 type BuildContext = {
   hymn: Hymn;
@@ -65,7 +57,6 @@ export type InstrumentEdition = {
   landmarks?: (abc: string, from: number, guitar: boolean) => string;
 };
 export type ChordEditionId =
-  | "in-christ-alone-2"
   | "in-christ-alone"
   | "amazing-grace"
   | "ill-fly-away"
@@ -110,27 +101,6 @@ const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
 // Musical choices live in the song modules; shared consumers use these capabilities.
 const recipes: Record<ChordEditionId, Recipe> = {
   "in-christ-alone": {
-    capo: 2,
-    pickup: true,
-    tempo: 70,
-    shapes: "C, small F, G and Am",
-    guitarKey: "C",
-    layout: { mode: "balanced" },
-    fingers: christFingers,
-    position: christGuitarPosition,
-    build: ({ hymn, instrument, hands }) =>
-      instrument === "guitar"
-        ? hands === "left"
-          ? hymnLyricsAbc(christGuitarAbc, {
-              hymn: christGuitarLyricData(hymn),
-              selected: [1],
-              offset: 0,
-            })
-          : christFingerstyleAbc(hymn, hands === "right")
-        : christPianoAbc(hymn.harmony),
-    landmarks: christLandmarks,
-  },
-  "in-christ-alone-2": {
     original: true,
     chordLyrics: teacherChordLyrics,
     chordLyricOffset: (hymn, bar) => teacherChordOffset(hymn.harmony, bar),

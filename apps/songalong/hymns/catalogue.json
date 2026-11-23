@@ -10,23 +10,15 @@
   {
     "id": "in-christ-alone",
     "title": "In Christ Alone",
-    "file": "in-christ-alone-tab-music.abc",
+    "file": "in-christ-alone.abc",
     "folder": "in-christ-alone",
-    "source": "tab-music",
-    "sourceUrl": "https://github.com/ldayton/tab-music/blob/e45c0e6b77901f4bb2495ae0412e0dff1a112dd0/scores/in-christ-alone-music.ily",
-    "referenceUrl": "https://www.youtube.com/watch?v=3ch6eXkQWU8",
-    "referenceDetails": "D major, 67 BPM"
-  },
-  {
-    "id": "in-christ-alone-2",
-    "title": "In Christ Alone 2",
-    "file": "in-christ-alone-2.abc",
-    "folder": "in-christ-alone-2",
     "source": "user-supplied-score",
     "sourceDetails": "Printed choir and organ teacher arrangement transcribed from two user-supplied photographs, 23 November 2026; teacher chord letters included using the fullest suggestions; other pencil annotations excluded.",
     "defaultArrangement": "original",
     "accompanimentInstrument": "organ",
-    "vocalTracks": [0]
+    "vocalTracks": [
+      0
+    ]
   },
   {
     "id": "jesus-loves-me",

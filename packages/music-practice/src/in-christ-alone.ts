@@ -1,325 +1,249 @@
-import {capoAudio} from "./edition-score";
+import abcjs, { type VoiceItem } from "abcjs";
+import { beamByBeat } from "./score-melody";
 import { accompanimentLyrics } from "./accompaniment-lyrics";
-import abcjs from "abcjs";
+import { christFingers, christGuitarPosition } from "./in-christ-alone-fingering";
 import type { HymnLyricData } from "./hymn-lyrics";
 import type { BeginnerInstrument } from "./beginner-score";
-
-// Capo-relative C/F/G/Am accompaniment from scores/in-christ-alone-music.ily
-// in ldayton/tab-music. Written pitches use the conventional guitar octave clef.
-const chords = {
-  C: "[CEGce]",
-  F: "[FAcf]",
-  G: "[G,B,DGBg]",
-  Am: "[A,EAce]",
+type Note = Extract<VoiceItem, { el_type: "note" }>;
+type Event = { note: Note; at: number; length: number };
+type Change = { at: number; chord: string };
+const lengths = [24, ...Array(19).fill(48), 24];
+const shapes: Record<string, string> = {
+  D: "C",
+  G: "F",
+  A: "G",
+  "D/F#": "C/E",
+  Bm: "Am",
+  Em: "Dm",
+  A7: "G7",
+  "D/A": "C/G",
 };
-const bars: [keyof typeof chords, number][][] = [
-  [["F", 3]],
-  [
-    ["C", 4],
-    ["F", 2],
-  ],
-  [
-    ["G", 4],
-    ["C", 2],
-  ],
-  [
-    ["F", 2],
-    ["G", 4],
-  ],
-  [
-    ["C", 4],
-    ["F", 2],
-  ],
-  [
-    ["C", 4],
-    ["F", 2],
-  ],
-  [
-    ["G", 4],
-    ["C", 2],
-  ],
-  [
-    ["F", 2],
-    ["G", 4],
-  ],
-  [
-    ["C", 4],
-    ["C", 2],
-  ],
-  [
-    ["F", 4],
-    ["C", 2],
-  ],
-  [
-    ["G", 4],
-    ["C", 2],
-  ],
-  [
-    ["F", 4],
-    ["C", 2],
-  ],
-  [
-    ["G", 4],
-    ["F", 2],
-  ],
-  [
-    ["C", 4],
-    ["F", 2],
-  ],
-  [
-    ["G", 4],
-    ["C", 2],
-  ],
-  [
-    ["F", 2],
-    ["G", 4],
-  ],
-  [["C", 6]],
-  [["C", 6]],
-  [["F", 6]],
-  [["Am", 6]],
-  [["C", 6]],
-];
-export const christGuitarAbc =
-  "X:1\nT:In Christ Alone\nM:3/4\nL:1/8\nQ:1/4=70\nV:S1 clef=treble-8\nK:C\n" +
-  [
-    [0],
-    [1, 2, 3, 4],
-    [5, 6, 7, 8],
-    [9, 10, 11, 12],
-    [13, 14, 15, 16],
-    [17, 18, 19, 20],
-  ]
-    .map(
-      (group) =>
-        `[V:S1] ${group.map((index) => bars[index].map(([chord, duration]) => `"${chord}"${chords[chord]}${duration}`).join(" ") + ` ${index === 20 ? "|]" : "|"}`).join(" ")}\n`,
-    )
-    .join("");
-
-/** Printed fingering/tablature positions are relative to capo 2. */
-export function christGuitarPosition(
+const piano: Record<string, string> = {
+  D: "[D,,F,,A,,]",
+  G: "[G,,B,,D,]",
+  A: "[A,,C,E,]",
+  "D/F#": "[F,,A,,D,]",
+  Bm: "[B,,D,F,]",
+  Em: "[E,,G,,B,,]",
+  A7: "[C,E,G,]",
+  "D/A": "[A,,D,F,]",
+};
+const bass: Record<string, string> = {
+  D: "[CE]",
+  G: "F",
+  A: "[G,D]",
+  "D/F#": "E,",
+  Bm: "[A,E]",
+  Em: "D",
+  A7: "[G,D]",
+  "D/A": "G,",
+};
+const strum: Record<string, string> = {
+  D: "[CEGce]",
+  G: "[FAcf]",
+  A: "[G,B,DGBg]",
+  "D/F#": "[E,CEGce]",
+  Bm: "[A,EAce]",
+  Em: "[DAdf]",
+  A7: "[G,B,DGBf]",
+  "D/A": "[G,CEGc]",
+};
+function voices(source: string) {
+  const tune = abcjs.parseOnly(source)[0];
+  const all: Event[][][] = Array.from({ length: 5 }, () => []);
+  for (const line of tune.lines)
+    for (const [staffIndex, staff] of (line.staff || []).entries())
+      for (const [voiceIndex, voice] of (staff.voices || []).entries()) {
+        const index =
+          staffIndex === 0 ? 0 : staffIndex === 1 ? 1 + voiceIndex : 4;
+        let at = 0;
+        let notes: Event[] = [];
+        for (const note of voice) {
+          if (note.el_type === "note") {
+            const length = Math.round(note.duration * 64);
+            notes.push({ note, at, length });
+            at += length;
+          }
+          if (note.el_type === "bar" && notes.length) {
+            all[index].push(notes);
+            notes = [];
+            at = 0;
+          }
+        }
+        if (notes.length) all[index].push(notes);
+      }
+  return all;
+}
+/** Pencil changes plus the printed dominant-seventh/fifth-bass motion in the interlude. */
+export function teacherChanges(source: string): Change[][] {
+  const bars = voices(source)[0];
+  let previous = "";
+  return bars.map((notes, bar) => {
+    const changes: Change[] = [];
+    for (const { note, at } of notes)
+      for (const chord of note.chord || [])
+        if (chord.position === "default")
+          changes.push({ at, chord: chord.name.replaceAll("♯", "#") });
+    if (bar === 17) changes.unshift({ at: 0, chord: "A7" });
+    if (bar === 19) changes.push({ at: 32, chord: "D/A" });
+    if (bar === 20) changes.unshift({ at: 0, chord: "D" });
+    if (!changes.length || changes[0].at > 0)
+      changes.unshift({ at: 0, chord: previous });
+    previous = changes.at(-1)!.chord;
+    return changes;
+  });
+}
+function top(note: Note) {
+  return [...(note.pitches || [])].sort((a, b) => b.pitch - a.pitch)[0];
+}
+function token(event: Event, from = event.at, length = event.length) {
+  const pitch = top(event.note);
+  return `${pitch ? "(".repeat(pitch.startSlur?.length || 0) : ""}${pitch ? pitch.name.match(/^[\^_=]*[A-Ga-g][',]*/)?.[0] : "z"}${length}${pitch?.startTie && from + length === event.at + event.length ? "-" : ""}${pitch ? ")".repeat(pitch.endSlur?.length || 0) : ""}`;
+}
+/** Retain all vocal rests; after "stand", follow the printed organ's upper line. */
+export function teacherMelody(source: string, guitar = false) {
+  const shifted = guitar
+    ? abcjs.strTranspose(source, abcjs.parseOnly(source), 10)
+    : source;
+  const parts = voices(shifted);
+  return parts[0].map((notes, bar) =>
+    bar < 16
+      ? notes
+      : notes
+          .flatMap((event) => {
+            if (top(event.note)) return [event];
+            return parts[2][bar]
+              .filter(
+                (inner) =>
+                  inner.at < event.at + event.length &&
+                  inner.at + inner.length > event.at,
+              )
+              .map((inner) => {
+                const from = Math.max(event.at, inner.at),
+                  end = Math.min(
+                    event.at + event.length,
+                    inner.at + inner.length,
+                  );
+                return { ...inner, at: from, length: end - from };
+              });
+          })
+          .reduce<Event[]>((merged, event) => {
+            const previous = merged.at(-1);
+            if (
+              previous?.note === event.note &&
+              previous.at + previous.length === event.at
+            )
+              previous.length += event.length;
+            else merged.push({ ...event });
+            return merged;
+          }, []),
+  );
+}
+export function teacherInstrumentAbc(
+  hymn: { harmony: string; title: string },
+  instrument: BeginnerInstrument,
+  part: "right" | "left" | "both" = "both",
+) {
+  const guitar = instrument === "guitar",
+    strumming = guitar && part === "left";
+  const melody = teacherMelody(hymn.harmony, guitar),
+    changes = teacherChanges(hymn.harmony);
+  const names = strumming
+    ? "S1"
+    : guitar
+      ? part === "right"
+        ? "S1"
+        : "(S1 S2)"
+      : "{S1 S2}";
+  let abc = `X:1\nT:${hymn.title}\nM:3/4\nL:1/64\nQ:1/4=80\n%%score ${names}\nV:S1 clef=${guitar ? "treble-8" : "treble"}${guitar ? " stem=up" : ""}\n${strumming || (guitar && part === "right") ? "" : `V:S2 clef=${guitar ? "treble-8 stem=down" : "bass"}\n`}K:${guitar ? "C" : "D"}\n`;
+  // Keep voices continuous: hard breaks force one-bar tablature systems.
+  const leadBars: string[] = [],
+    bassBars: string[] = [];
+  for (let bar = 0; bar < 21; bar++) {
+    const end = bar === 20 ? " :|" : " |";
+    const accompaniment = changes[bar]
+      .map(({ at, chord }, index) => {
+        const duration = (changes[bar][index + 1]?.at ?? lengths[bar]) - at;
+        const name = guitar ? shapes[chord] : chord;
+        // A single C bass frees the moving lower melody in the penultimate bar.
+        const sound = guitar
+          ? strumming
+            ? strum[chord]
+            : bar === 19 && at === 0
+              ? "C"
+              : bass[chord]
+          : piano[chord];
+        return `${name && strumming ? `"${name}"` : ""}${sound || "z"}${duration}`;
+      })
+      .join(" ");
+    const lead = melody[bar]
+      .map((event) => {
+        const chord = changes[bar].find(
+          (change) => change.at === event.at,
+        )?.chord;
+        const position = guitar
+          ? bar === 10 && event.at === 32
+            ? "VII"
+            : [9, 11].includes(bar) && event.at === 0
+              ? "III"
+              : [9, 11].includes(bar) && event.at === 32
+                ? "I"
+                : ""
+          : "";
+        return `${bar === 0 && event.at === 0 ? "[P:Verse] " : bar === 17 && event.at === 0 ? "[P:Interlude] " : ""}${guitar && chord ? `"${shapes[chord]}"` : ""}${position ? `"^${position}"` : ""}${token(event)}`;
+      })
+      .join(" ");
+    leadBars.push(`${strumming ? accompaniment : lead}${end}`);
+    if (!strumming && (!guitar || part !== "right"))
+      bassBars.push(`${accompaniment}${end}`);
+  }
+  abc += `[V:S1] ${leadBars.join(" ")}\n`;
+  if (bassBars.length) abc += `[V:S2] ${bassBars.join(" ")}\n`;
+  return beamByBeat(abc);
+}
+export function teacherChordLyrics(hymn: HymnLyricData & { harmony: string }) {
+  let elapsed = 0;
+  const onsets = teacherChanges(hymn.harmony).flatMap((bar, index) => {
+    const start = elapsed;
+    elapsed += lengths[index] / 64;
+    return bar
+      .filter((change) => change.chord)
+      .map((change) => start + change.at / 64);
+  });
+  return accompanimentLyrics(hymn, onsets);
+}
+export function teacherGuitarPosition(
   pitch: number,
   chord: boolean,
   transpose = 0,
 ) {
-  const p = pitch - transpose;
-  const position: Record<number, [number, number]> = {
-    72: [0, 8],
-    71: [0, 7],
-    69: [0, 5],
-    62: [1, 3],
-    43: [5, 3],
-    47: [4, 2],
-    50: [3, 0],
-    55: [2, 0],
-    59: [1, 0],
-    67: [0, 3],
-    48: [4, 3],
-    52: [3, 2],
-    60: [1, 1],
-    64: [0, 0],
-    53: [3, 3],
-    57: [2, 2],
-    65: [0, 1],
-    45: [4, 0],
-  };
-  const entry = position[p];
-  return entry ? { str: entry[0], num: entry[1] + transpose } : undefined;
+  if (pitch - transpose === 40) return { str: 5, num: transpose };
+  return christGuitarPosition(pitch, chord, transpose);
 }
-export function christFingers(
+export function teacherFingers(
   instrument: BeginnerInstrument,
   bar: number,
   voice: number,
   pitches: number[],
   force = false,
-): (number | null)[] {
-  if (instrument === "guitar") {
-    return pitches.map((sounding) => {
-      const pitch = sounding - 2;
-      if (voice === 1)
-        return (
-          { 43: 2, 48: 3, 52: 2, 53: bar === 9 || bar === 11 ? 1 : 3 }[pitch] ??
-          null
-        );
-      return (
-        {
-          57: 2,
-          60: 1,
-          62: [2, 6, 14].includes(bar) ? 4 : 3,
-          67: 4,
-          69: 3,
-          71: 1,
-          72: 2,
-        }[pitch] ?? null
-      );
-    });
-  }
-  if (voice === 1) return pitches.map((_, i) => [5, 3, 1][i] ?? null);
-  const fingers: Record<number, number> =
-    bar < 8 || (bar >= 12 && bar < 17)
-      ? { 57: 1, 59: 2, 62: 3, 64: 4, 66: 5 }
-      : bar === 8
-        ? { 62: 1, 66: 2, 69: 4 }
-        : bar === 9
-          ? { 71: 5, 69: 4, 66: 2 }
-          : bar === 10
-            ? { 64: 2, 62: 1, 74: 5, 73: 4 }
-            : bar === 11
-              ? { 71: 3, 69: 2, 66: 1 }
-              : { 62: 1, 66: 3 };
-  // Repeated figures need no second set of annotations.
-  const show = force || [0, 2, 8, 9, 10, 11, 12, 17, 19].includes(bar);
-  return pitches.map((p) => (show ? (fingers[p] ?? null) : null));
-}
-export function christLandmarks(abc: string, from = 0, guitar = false) {
-  if (!/^Q:/m.test(abc)) abc = abc.replace(/^K:/m, "Q:1/4=70\nK:");
-  let bar = from;
-  return (
-    "%%barnumbers 1\n%%barnumberfont serif 10\n%%partsfont serif 12\n%%partsbox 1\n" +
-    abc
-      .split("\n")
-      .map((line) => {
-        if (!/^\[V:(?:S1|v0)\]/.test(line)) return line;
-        return line.replace(
-          /(\[V:[^\]]+\]|\|\]?)\s*([^|]*)/g,
-          (all, delimiter: string, music: string) => {
-            if (!music.trim()) return all;
-            const label =
-              bar === 0
-                ? guitar
-                  ? "Capo 2"
-                  : "Verse"
-                : bar === 17
-                  ? "Ending"
-                  : undefined;
-            bar++;
-            return `${delimiter} ${label ? `[P:${label}] ` : ""}${music}`;
-          },
-        );
-      })
-      .join("\n")
-  );
-}
-
-export function christGuitarChordOffset(bar: number) {
-  return bars.slice(0, bar).reduce((sum, bar) => sum + bar.length, 0);
-}
-
-/** Align every selected verse to chord changes using the melody's actual rhythm. */
-export function christGuitarLyricData(
-  hymn: HymnLyricData & { harmony: string },
-): HymnLyricData {
-  let elapsed = 0;
-  const changes = bars.flatMap((bar) =>
-    bar.map(([, duration]) => {
-      const start = elapsed;
-      elapsed += duration / 8;
-      return start;
-    }),
-  );
-  return accompanimentLyrics(hymn, changes, christGuitarChordOffset(17));
-}
-
-/** abcjs octave-clef voices override its global MIDI transpose; apply the capo explicitly. */
-export function christCapoAudio(
-  audio: import("abcjs").AudioTracks,
-): import("abcjs").AudioTracks {
-  return capoAudio(audio,2);
-}
-
-/** A light two-voice fingerstyle setting; pitches and frets are capo-relative. */
-export function christFingerstyleAbc(
-  hymn: { harmony: string },
-  melodyOnly = false,
 ) {
-  const transposed = abcjs.strTranspose(
-    hymn.harmony,
-    abcjs.parseOnly(hymn.harmony),
-    -2,
-  );
-  const tune = abcjs.parseOnly(transposed)[0];
-  const melodyBars: Extract<
-    import("abcjs").VoiceItem,
-    { el_type: "note" }
-  >[][] = [];
-  let current: Extract<import("abcjs").VoiceItem, { el_type: "note" }>[] = [];
-  for (const line of tune.lines)
-    for (const item of line.staff?.[0]?.voices?.[0] || []) {
-      if (item.el_type === "note") current.push(item);
-      if (item.el_type === "bar" && current.length) {
-        melodyBars.push(current);
-        current = [];
-      }
-    }
-  if (current.length) melodyBars.push(current);
-  const bass = { C: "[CE]", F: "F", G: "[G,D]", Am: "[A,E]" };
-  const rows = [
-    [0],
-    [1, 2, 3, 4],
-    [5, 6, 7, 8],
-    [9, 10, 11, 12],
-    [13, 14, 15, 16],
-    [17, 18, 19, 20],
-  ];
-  const header = `X:1\nT:In Christ Alone\nM:3/4\nL:1/64\nQ:1/4=70\n%%score ${melodyOnly ? "S1" : "(S1 S2)"}\nV:S1 clef=treble-8 stem=up\n${melodyOnly ? "" : "V:S2 clef=treble-8 stem=down\n"}K:C\n`;
-  const melody = melodyBars.map((notes, bar) => {
-    let elapsed = 0;
-    const changes = bars[bar].map(([chord, duration]) => {
-      const start = elapsed;
-      elapsed += duration / 8;
-      return { chord, start };
-    });
-    let time = 0;
-    return (
-      notes
-        .map((note) => {
-          const symbol = changes.find((c) => Math.abs(c.start - time) < 1e-7);
-          const pitch = note.pitches![0].name.match(
-            /^[\^_=]*[A-Ga-g][',]*/,
-          )![0];
-          const shift =
-            bar === 10 && time === 0.5
-              ? '"^VII"'
-              : (bar === 9 || bar === 11) && time === 0
-                ? '"^III"'
-                : (bar === 9 || bar === 11) && time === 0.5
-                  ? '"^I"'
-                  : "";
-          const start = time;
-          time += note.duration;
-          return {
-            music: `${symbol ? `"${symbol.chord}"` : ""}${shift}${pitch}${Math.round(note.duration * 64)}`,
-            start,
-            duration: note.duration,
-          };
-        })
-        .reduce((text, n, i, all) => {
-          const previous = all[i - 1],
-            offset = bar === 0 ? 1.5 : 0;
-          const beam =
-            previous &&
-            previous.duration < 0.25 &&
-            n.duration < 0.25 &&
-            Math.floor(previous.start * 4 + offset + 1e-7) ===
-              Math.floor(n.start * 4 + offset + 1e-7);
-          return text + (i && !beam ? " " : "") + n.music;
-        }, "") + (bar === 20 ? " |]" : " |")
-    );
-  });
-  return (
-    header +
-    rows
-      .map(
-        (row) =>
-          `[V:S1] ${row.map((i) => melody[i]).join(" ")}\n` +
-          (melodyOnly
-            ? ""
-            : `[V:S2] ${row.map((i) => bars[i].map(([chord, duration], change) => `${i === 10 && change === 1 ? "z" : bass[chord]}${duration * 8}`).join(" ") + (i === 20 ? " |]" : " |")).join(" ")}\n`),
-      )
-      .join("")
-  );
+  if (instrument === "piano" && voice === 0 && bar >= 16) {
+    const fingers: Record<number, number> =
+      bar < 19
+        ? { 59: 3, 62: 1, 64: 2, 66: 3 }
+        : { 54: 1, 55: 2, 57: 3, 62: 5 };
+    return pitches.map((p) => fingers[p] ?? null);
+  }
+  if (instrument === "guitar" && voice === 0 && bar === 19)
+    return pitches.map((p) => ({ 54: 2, 55: 4, 57: null, 62: 1 })[p] ?? null);
+  return christFingers(instrument, bar, voice, pitches, force);
 }
 
-/** Preserve the reviewed lower piano register and source two-hand setting. */
-export function christPianoAbc(source:string){return abcjs.strTranspose(source,abcjs.parseOnly(source),-12)
- .replace('%%staves S1 | S2','%%score {S1 | S2}').replace('L:1/64','L:1/64\nQ:1/4=70');}
+export function teacherChordOffset(source: string, bar: number) {
+  return teacherChanges(source)
+    .slice(0, bar)
+    .reduce(
+      (sum, changes) => sum + changes.filter((change) => change.chord).length,
+      0,
+    );
+}

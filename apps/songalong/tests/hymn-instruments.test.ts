@@ -39,11 +39,11 @@ test("all songs expose the same ordered primary instruments with explicit arrang
   for (const id of instrumentEditionIds) {
     assert.equal(hymnInstrumentArrangements({ id }, "piano").length, 1, id);
     assert.equal(hymnInstrumentArrangements({ id }, "guitar").length, 1, id);
-    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, id === "in-christ-alone-2" ? 1 : 0, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, id === "in-christ-alone" ? 1 : 0, id);
   }
 });
 test("teacher score keeps Voice + Piano as default alongside adapted instrumental editions", () => {
-  const hymn = {id:"in-christ-alone-2"};
+  const hymn = {id:"in-christ-alone"};
   assert.equal(hymnPreferences(hymn.id).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id,{arrangement:"original"}).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id,{arrangement:"melody"}).arrangement,"piano");

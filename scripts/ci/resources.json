@@ -1139,7 +1139,7 @@
   "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-editions.browser.ts": {
     "kind": "ui",
     "ports": [
-      4599
+      4615
     ],
     "locks": [],
     "coverage": [
@@ -1903,7 +1903,7 @@
       }
     ]
   },
-  "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-2-score.browser.ts": {
+  "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-score.browser.ts": {
     "kind": "ui",
     "ports": [
       4611
@@ -1917,7 +1917,7 @@
           "--workspace=songalong",
           "--",
           "tsx",
-          "tests/in-christ-alone-2-score.browser.ts"
+          "tests/in-christ-alone-score.browser.ts"
         ],
         "cwd": "apps/songalong"
       }
@@ -1938,26 +1938,6 @@
           "--",
           "tsx",
           "tests/instrument-toolbar.browser.ts"
-        ],
-        "cwd": "apps/songalong"
-      }
-    ]
-  },
-  "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-2-editions.browser.ts": {
-    "kind": "ui",
-    "ports": [
-      4615
-    ],
-    "locks": [],
-    "coverage": [
-      {
-        "command": "npm",
-        "args": [
-          "exec",
-          "--workspace=songalong",
-          "--",
-          "tsx",
-          "tests/in-christ-alone-2-editions.browser.ts"
         ],
         "cwd": "apps/songalong"
       }

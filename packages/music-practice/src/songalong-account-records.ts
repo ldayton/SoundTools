@@ -1,3 +1,4 @@
+import {migrateHymnIdentity} from "./hymn-identity";
 import type { Records, Json } from "@ldayton/account";
 import { checkSchema } from "@ldayton/account/model";
 import { migrateLegacy, decodeState, type DurableState } from "./durable-state";
@@ -5,7 +6,7 @@ import type { HymnState } from "./hymn-progress";
 /** Only app data, never diagnostic consent, MIDI identity or legacy recovery blobs. */
 export function songalongRecords(state: DurableState): Records {
   const records: Records = { schema: 1 };
-  const sight = state.activities.sight as HymnState | undefined;
+  const sight = migrateHymnIdentity(state.activities.sight as HymnState | undefined);
   if (sight) {
     for (const [key, value] of Object.entries(sight)) {
       if (["bookmarks", "preferences", "sections", "favorites"].includes(key)) {
@@ -64,7 +65,7 @@ export function restoreSongalongRecords(records: Records): DurableState {
       state.activities[key.slice(9)] = value;
   }
   if (typeof sight.hymn === "string")
-    state.activities.sight = {
+    state.activities.sight = migrateHymnIdentity({
       ...sight,
       ...sight.preferences[sight.hymn],
       hymn: sight.hymn,
@@ -79,7 +80,7 @@ export function restoreSongalongRecords(records: Records): DurableState {
         sight.high !== undefined
           ? sight.high
           : sight.preferences[sight.hymn]?.high,
-    };
+    });
   return decodeState(state);
 }
 

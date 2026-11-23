@@ -1,3 +1,4 @@
+import {migrateHymnIdentity} from "./hymn-identity";
 import hymns from "./hymns.json";
 import { hymnEndingBar } from "./hymn-lyrics";
 import {
@@ -12,6 +13,7 @@ import type { Arrangement, HymnHands } from "./hymn-arrangements";
 import { bookmark, restoreBookmark, type Bookmark } from "./bookmarks";
 export type HymnState = {
   version: 1;
+  catalogueRevision?: 1;
   mode?: "wait" | "playback";
   bpm?: number;
   countIn?: CountInBars;
@@ -55,6 +57,7 @@ export class HymnProgress {
   readonly favorites: Record<string, boolean> = {};
   private readonly hymnIds: ReadonlySet<string>;
   constructor(saved: HymnState | undefined, hymnIds: readonly string[]) {
+    saved=migrateHymnIdentity(saved);
     this.hymnIds = new Set(hymnIds);
     this.mode = saved?.mode === "playback" ? "playback" : "wait";
     // The current song's last range becomes the global range for older saves.
@@ -78,6 +81,7 @@ export class HymnProgress {
           this.preferences[id] = hymnPreferences(id, saved.preferences[id]);
   }
   mergeInactive(saved: HymnState, current: string) {
+    saved=migrateHymnIdentity(saved);
     this.restoreFavorites(saved.favorites);
     for (const id of Object.keys(this.preferences))
       if (id !== current) delete this.preferences[id];
@@ -159,6 +163,7 @@ export class HymnProgress {
     return {
       ...settings,
       version: 1,
+      catalogueRevision: 1,
       zoom,
       zoomByLayout: { ...this.zoomByLayout },
       bookmarks: this.bookmarks,

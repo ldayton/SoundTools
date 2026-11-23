@@ -56,7 +56,6 @@ test("all bundled stanzas align to the melody, with unique first-word labels", (
   for (const id of [
     "amazing-grace",
     "jesus-loves-me",
-    "in-christ-alone",
     "o-come-all-ye-faithful",
   ])
     assert.equal(hymn(id).stanzas.length, 3);
@@ -73,8 +72,8 @@ test("all bundled stanzas align to the melody, with unique first-word labels", (
     /Close besides me/,
   );
   assert.match(
-    words(hymn("in-christ-alone").stanzas[2].syllables),
-    /Here in the power of Christ I'll stand$/,
+    words(hymn("in-christ-alone").stanzas[3].syllables),
+    /Here in the power of Christ I'll stand!$/,
   );
 });
 
@@ -159,46 +158,15 @@ test("stanza choices default independently per hymn, persist empty choices, and 
   assert.deepEqual(validStanzas([99], 3), [1]);
 });
 
-test("In Christ Alone's final stanza ends on stand, with its own musical checkpoint", () => {
-  const h = hymn("in-christ-alone");
-  for (const selected of [[1], [2], [1, 3], [2, 3], [], [1, 2, 3]])
-    assert.equal(hymnEndingBar(h, selected), undefined);
-  assert.equal(hymnEndingBar(h, [3]), 17);
-  for (const { id } of ARRANGEMENTS) {
-    for (const hands of ["right", "left", "both"] as const) {
-      const full = arrangeHymn(h, id, 0, 0, hands);
-      const ending = arrangeHymn(h, id, 0, 0, hands, hymnEndingBar(h, [3]));
-      assert.equal(ending.totalBars, 17);
-      assert(full.totalBars > ending.totalBars);
-      const fullAudio = abcjs.parseOnly(full.abc)[0].setUpAudio({ qpm: 60 });
-      const endAudio = abcjs.parseOnly(ending.abc)[0].setUpAudio({ qpm: 60 });
-      assert(endAudio.totalDuration < fullAudio.totalDuration);
-      assert.equal(abcjs.parseOnly(ending.abc)[0].warnings?.length || 0, 0);
-    }
+test("all four teacher verses share the full instrumental ending and musical checkpoint", () => {
+  const h=hymn("in-christ-alone");
+  assert.equal(h.stanzas.length,4);
+  const settings=hymnPreferences(h.id);
+  for(const selected of [[1],[2],[3],[4],[1,4],[]]){
+    assert.equal(hymnEndingBar(h,selected),undefined);
+    assert.equal(arrangeHymn(h,"piano",0,0,"both",hymnEndingBar(h,selected)).totalBars,21);
+    assert.equal(hymnProgressKey({...settings,stanzas:selected},h.key),hymnProgressKey(settings,h.key));
   }
-  const score = arrangeHymn(h, "melody", 0, 0, "both", 17);
-  const rendered = hymnLyricsAbc(score.abc, {
-    hymn: h,
-    selected: [3],
-    offset: 0,
-  });
-  assert.match(
-    words(
-      notes(rendered).flatMap(
-        (n) => n.lyric?.map((l: { syllable: string }) => l.syllable) || [],
-      ),
-    ),
-    /stand$/,
-  );
-  const settings = hymnPreferences(h.id);
-  assert.equal(
-    hymnProgressKey(settings, h.key),
-    hymnProgressKey({ ...settings, stanzas: [2] }, h.key),
-  );
-  assert.notEqual(
-    hymnProgressKey(settings, h.key),
-    hymnProgressKey({ ...settings, stanzas: [3] }, h.key),
-  );
 });
 
 test("O Come, All Ye Faithful uses the three requested stanzas and one shared refrain", () => {
@@ -225,7 +193,7 @@ test("O Come, All Ye Faithful uses the three requested stanzas and one shared re
 
 test("reviewed word divisions retain complete syllables and intentional multiword underlay", () => {
   const christ = hymn("in-christ-alone").stanzas;
-  assert.deepEqual(christ[0].syllables.slice(21, 23), ["sol-", "id"]);
+  assert.deepEqual(christ[0].syllables.slice(21, 23), ["so-", "lid"]);
   assert.deepEqual(christ[0].syllables.slice(49, 52), ["com-", "fort-", "er,"]);
   assert.deepEqual(
     hymn("o-come-all-ye-faithful").stanzas[1].syllables.slice(20, 24),
@@ -233,8 +201,8 @@ test("reviewed word divisions retain complete syllables and intentional multiwor
   );
   // Added lyric pickups share the existing pitch; they must not shift the
   // following phrase or create additional notes in the reference arrangement.
-  assert.equal(christ[1].syllables[24], "Oh,~up");
-  assert.equal(christ[2].syllables[24], "Oh,~Je-");
+  assert.equal(christ[2].syllables[24], "Up");
+  assert.equal(christ[3].syllables[24], "Je-");
   for (const stanza of hymn("jesus-loves-me").stanzas)
     assert.deepEqual(stanza.syllables.slice(-6), [
       "For~the",

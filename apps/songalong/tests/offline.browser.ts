@@ -71,7 +71,7 @@ try {
   for (const [id, arrangement] of [
     ["amazing-grace", "piano"],
     ["amazing-grace", "guitar-edition"],
-    ["in-christ-alone-2", "original"],
+    ["in-christ-alone", "original"],
   ]) {
     await page.goto(
       server.base +
@@ -81,7 +81,7 @@ try {
     await page.waitForFunction(
       () => (window as any).offlineInstrumentStarts > 0,
     );
-    if (id === "in-christ-alone-2")
+    if (id === "in-christ-alone")
       await page.waitForFunction(
         () =>
           (window as any).offlineOrganStarts > 0 &&

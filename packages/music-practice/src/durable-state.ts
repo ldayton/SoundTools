@@ -1,3 +1,4 @@
+import {migrateHymnIdentity} from "./hymn-identity";
 import { APP } from "./app-profile";
 import {
   legacyGuitarScaleProfile,
@@ -53,9 +54,14 @@ export function decodeState(raw: unknown): DurableState {
         "Unsupported activity version; update this app before continuing.",
       );
   }
+  const decoded=structuredClone(s);
+  if(APP.id === "songalong") {
+    if(decoded.activities.sight)decoded.activities.sight=migrateHymnIdentity(decoded.activities.sight);
+    if(decoded.legacy.sight)decoded.legacy.sight=migrateHymnIdentity(decoded.legacy.sight);
+  }
   return migrateGuitarScalePreview(
     {
-      ...structuredClone(s),
+      ...decoded,
       progress: loadProgress(JSON.stringify(s.progress)),
     },
     s.progress,

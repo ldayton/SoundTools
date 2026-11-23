@@ -139,7 +139,7 @@ try {
       fullPage: true,
     });
   }
-  await page.goto(server.base + "/piano/hymns/in-christ-alone-2?mode=playback");
+  await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
   await waitForApp(page, ".hymn-toolbar-instruments");
   await expect(
     page.getByRole("radio", { name: "Voice + Piano", exact: true }),

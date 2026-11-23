@@ -1,3 +1,4 @@
+import {canonicalHymnId} from "./hymn-identity";
 import { APP_ID, belongsToApp, type PracticeApp } from "./app-profile";
 import { AREAS, EXERCISES, exercise, type Mode } from "./exercise-catalog";
 export { AREAS, EXERCISES, exercise } from "./exercise-catalog";
@@ -33,7 +34,7 @@ export function readRoute(
   const hymnBase = exercise("sight").path + "/";
   const hymn = path.startsWith(hymnBase) ? path.slice(hymnBase.length) : "";
   return app === "songalong" && /^[a-z0-9-]+$/.test(hymn)
-    ? { kind: "exercise", mode: "sight", hymn, query: url.searchParams }
+    ? { kind: "exercise", mode: "sight", hymn: canonicalHymnId(hymn), query: url.searchParams }
     : { kind: "not-found" };
 }
 export function icon(name: string) {

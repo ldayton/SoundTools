@@ -1,0 +1,468 @@
+{
+  "publisher": "GuitarScale.org",
+  "reviewedOn": "2026-11-23",
+  "rows": "strings 6,5,4,3,2,1",
+  "fingerings": "Only the first fifteen charts print fingers. Blues fingers are NoteWise adaptations, not published fingerings.",
+  "charts": [
+    {
+      "quality": "major",
+      "shape": "1",
+      "tonic": 0,
+      "page": "https://www.guitarscale.org/c-major.html",
+      "image": "https://www.guitarscale.org/images/c_major_box1.png",
+      "imageSHA256": "2349954d75910dd3136bbdd5ee6d96e788ac53c0e007386f51c70b8a4e538111",
+      "octaveOffset": 0,
+      "frets": [
+        [7, 8, 10],
+        [7, 8, 10],
+        [7, 9, 10],
+        [7, 9, 10],
+        [8, 10],
+        [7, 8, 10]
+      ],
+      "fingers": [
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3, 4],
+        [1, 3, 4],
+        [2, 4],
+        [1, 2, 4]
+      ]
+    },
+    {
+      "quality": "major",
+      "shape": "2",
+      "tonic": 0,
+      "page": "https://www.guitarscale.org/c-major.html",
+      "image": "https://www.guitarscale.org/images/c_major_box2.png",
+      "imageSHA256": "da97de90afb857e4164f35b9bcad871a8f5c19abd21ce8527866a1249a617dc8",
+      "octaveOffset": 0,
+      "frets": [
+        [10, 12, 13],
+        [10, 12, 14],
+        [10, 12, 14],
+        [10, 12],
+        [10, 12, 13],
+        [10, 12, 13]
+      ],
+      "fingers": [
+        [1, 3, 4],
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3],
+        [1, 3, 4],
+        [1, 3, 4]
+      ]
+    },
+    {
+      "quality": "major",
+      "shape": "3",
+      "tonic": 0,
+      "page": "https://www.guitarscale.org/c-major.html",
+      "image": "https://www.guitarscale.org/images/c_major_box3.png",
+      "imageSHA256": "5f78a639dcd7e101c49a7a329b632383744295c665b000000d9f10c3a680d0a8",
+      "octaveOffset": 0,
+      "frets": [
+        [12, 13, 15],
+        [12, 14, 15],
+        [12, 14, 15],
+        [12, 14],
+        [12, 13, 15],
+        [12, 13, 15]
+      ],
+      "fingers": [
+        [1, 2, 4],
+        [1, 3, 4],
+        [1, 3, 4],
+        [1, 3],
+        [1, 2, 4],
+        [1, 2, 4]
+      ]
+    },
+    {
+      "quality": "major",
+      "shape": "4",
+      "tonic": 0,
+      "page": "https://www.guitarscale.org/c-major.html",
+      "image": "https://www.guitarscale.org/images/c_major_box4.png",
+      "imageSHA256": "c41f121ffe820b82cba557cd6121d69937bf333775d8e03e7370949109d4ff58",
+      "octaveOffset": 0,
+      "frets": [
+        [3, 5],
+        [2, 3, 5],
+        [2, 3, 5],
+        [2, 4, 5],
+        [3, 5, 6],
+        [3, 5]
+      ],
+      "fingers": [
+        [2, 4],
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3, 4],
+        [1, 3, 4],
+        [1, 3]
+      ]
+    },
+    {
+      "quality": "major",
+      "shape": "5",
+      "tonic": 0,
+      "page": "https://www.guitarscale.org/c-major.html",
+      "image": "https://www.guitarscale.org/images/c_major_box5.png",
+      "imageSHA256": "414e842ea883996777fd7580e97d4e151713e375f441e4ca2cffe092ea9249a0",
+      "octaveOffset": 0,
+      "frets": [
+        [5, 7, 8],
+        [5, 7, 8],
+        [5, 7],
+        [4, 5, 7],
+        [5, 6, 8],
+        [5, 7, 8]
+      ],
+      "fingers": [
+        [1, 3, 4],
+        [1, 3, 4],
+        [1, 3],
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3, 4]
+      ]
+    },
+    {
+      "quality": "minor",
+      "shape": "1",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-minor.html",
+      "image": "https://www.guitarscale.org/images/a_minor_box1.png",
+      "imageSHA256": "8d4d1a691a091a2259bc6450ba1dce5f0c89e54ddf48bc9c507e939c98b014e2",
+      "octaveOffset": 0,
+      "frets": [
+        [5, 7, 8],
+        [5, 7, 8],
+        [5, 7],
+        [4, 5, 7],
+        [5, 6, 8],
+        [5, 7, 8]
+      ],
+      "fingers": [
+        [1, 3, 4],
+        [1, 3, 4],
+        [1, 3],
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3, 4]
+      ]
+    },
+    {
+      "quality": "minor",
+      "shape": "2",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-minor.html",
+      "image": "https://www.guitarscale.org/images/a_minor_box2.png",
+      "imageSHA256": "39144db693330465a32e3333efe0c6bc0f526c0ed8aa6238c1aa23dfd804ea6d",
+      "octaveOffset": 0,
+      "frets": [
+        [7, 8, 10],
+        [7, 8, 10],
+        [7, 9, 10],
+        [7, 9, 10],
+        [8, 10],
+        [7, 8, 10]
+      ],
+      "fingers": [
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3, 4],
+        [1, 3, 4],
+        [2, 4],
+        [1, 2, 4]
+      ]
+    },
+    {
+      "quality": "minor",
+      "shape": "3",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-minor.html",
+      "image": "https://www.guitarscale.org/images/a_minor_box3.png",
+      "imageSHA256": "d8fb5028a2dce350c10d17d34a90471d41e24bbc581afd796e5859d32906b233",
+      "octaveOffset": 0,
+      "frets": [
+        [10, 12, 13],
+        [10, 12],
+        [9, 10, 12],
+        [9, 10, 12],
+        [10, 12, 13],
+        [10, 12, 13]
+      ],
+      "fingers": [
+        [1, 3, 4],
+        [1, 3],
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3, 4],
+        [1, 3, 4]
+      ]
+    },
+    {
+      "quality": "minor",
+      "shape": "4",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-minor.html",
+      "image": "https://www.guitarscale.org/images/a_minor_box4.png",
+      "imageSHA256": "88c1023b418e48fca1339e15a53df33cc7b6d4cf5e2f183795ef5721d6d5932f",
+      "octaveOffset": 0,
+      "frets": [
+        [12, 13, 15],
+        [12, 14, 15],
+        [12, 14, 15],
+        [12, 14],
+        [12, 13, 15],
+        [12, 13, 15]
+      ],
+      "fingers": [
+        [1, 2, 4],
+        [1, 3, 4],
+        [1, 3, 4],
+        [1, 3],
+        [1, 2, 4],
+        [1, 2, 4]
+      ]
+    },
+    {
+      "quality": "minor",
+      "shape": "5",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-minor.html",
+      "image": "https://www.guitarscale.org/images/a_minor_box5.png",
+      "imageSHA256": "e06df83d0eb3fa70e38ff5b80395f78e59998a694c7a15c77ba9205d0dfeafaa",
+      "octaveOffset": 0,
+      "frets": [
+        [3, 5],
+        [2, 3, 5],
+        [2, 3, 5],
+        [2, 4, 5],
+        [3, 5, 6],
+        [3, 5]
+      ],
+      "fingers": [
+        [2, 4],
+        [1, 2, 4],
+        [1, 2, 4],
+        [1, 3, 4],
+        [1, 3, 4],
+        [1, 3]
+      ]
+    },
+    {
+      "quality": "minor-pentatonic",
+      "shape": "1",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-pentatonic-minor.html",
+      "image": "https://www.guitarscale.org/images/a_pentatonic_minor_box1.png",
+      "imageSHA256": "1e18dcecbbe86a12f665e32864327f535c464a2fed72af7ff3f92ece6d8ad6da",
+      "octaveOffset": 0,
+      "frets": [
+        [5, 8],
+        [5, 7],
+        [5, 7],
+        [5, 7],
+        [5, 8],
+        [5, 8]
+      ],
+      "fingers": [
+        [1, 4],
+        [1, 3],
+        [1, 3],
+        [1, 3],
+        [1, 4],
+        [1, 4]
+      ]
+    },
+    {
+      "quality": "minor-pentatonic",
+      "shape": "2",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-pentatonic-minor.html",
+      "image": "https://www.guitarscale.org/images/a_pentatonic_minor_box2.png",
+      "imageSHA256": "00321639fec58e4e9b8c542c4a7377acc053b501e7167c75e730814dff6d8c9e",
+      "octaveOffset": 0,
+      "frets": [
+        [8, 10],
+        [7, 10],
+        [7, 10],
+        [7, 9],
+        [8, 10],
+        [8, 10]
+      ],
+      "fingers": [
+        [2, 4],
+        [1, 4],
+        [1, 4],
+        [1, 3],
+        [1, 3],
+        [1, 3]
+      ]
+    },
+    {
+      "quality": "minor-pentatonic",
+      "shape": "3",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-pentatonic-minor.html",
+      "image": "https://www.guitarscale.org/images/a_pentatonic_minor_box3.png",
+      "imageSHA256": "d78d322c6aa998eda46fc9708abc47aa0f236d6112b3a3e48d41e73b6e6ff145",
+      "octaveOffset": 0,
+      "frets": [
+        [10, 12],
+        [10, 12],
+        [10, 12],
+        [9, 12],
+        [10, 13],
+        [10, 12]
+      ],
+      "fingers": [
+        [1, 3],
+        [1, 3],
+        [1, 3],
+        [1, 3],
+        [1, 4],
+        [1, 3]
+      ]
+    },
+    {
+      "quality": "minor-pentatonic",
+      "shape": "4",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-pentatonic-minor.html",
+      "image": "https://www.guitarscale.org/images/a_pentatonic_minor_box4.png",
+      "imageSHA256": "85063dcd290aaae96559005ba39d9781e47dee77b92ceee30f02f9867ac2cd45",
+      "octaveOffset": 0,
+      "frets": [
+        [12, 15],
+        [12, 15],
+        [12, 14],
+        [12, 14],
+        [13, 15],
+        [12, 15]
+      ],
+      "fingers": [
+        [1, 4],
+        [1, 4],
+        [1, 3],
+        [1, 3],
+        [2, 4],
+        [1, 4]
+      ]
+    },
+    {
+      "quality": "minor-pentatonic",
+      "shape": "5",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-pentatonic-minor.html",
+      "image": "https://www.guitarscale.org/images/a_pentatonic_minor_box5.png",
+      "imageSHA256": "6f9911da091a2f3e1d7c858cebb5a5a286c40852db7b7d18ccacc23b99c00d44",
+      "octaveOffset": 0,
+      "frets": [
+        [3, 5],
+        [3, 5],
+        [2, 5],
+        [2, 5],
+        [3, 5],
+        [3, 5]
+      ],
+      "fingers": [
+        [1, 3],
+        [1, 3],
+        [1, 4],
+        [1, 4],
+        [1, 3],
+        [1, 3]
+      ]
+    },
+    {
+      "quality": "minor-blues",
+      "shape": "1",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-blues.html",
+      "image": "https://www.guitarscale.org/images/a_blues_box1.png",
+      "imageSHA256": "be28748b7a35e764643719ac781758d7739299ccb3b4f1c8db323b5add5bb505",
+      "octaveOffset": 0,
+      "frets": [
+        [5, 8],
+        [5, 6, 7],
+        [5, 7],
+        [5, 7, 8],
+        [5, 8],
+        [5, 8]
+      ]
+    },
+    {
+      "quality": "minor-blues",
+      "shape": "2",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-blues.html",
+      "image": "https://www.guitarscale.org/images/a_blues_box2.png",
+      "imageSHA256": "afd6ae3d47e1fc5f01f6b67aaa3ded6f0f2bc9879446435e890720dcd0932f75",
+      "octaveOffset": 0,
+      "frets": [
+        [8, 10, 11],
+        [7, 10],
+        [7, 10],
+        [7, 8, 9],
+        [8, 10],
+        [8, 10, 11]
+      ]
+    },
+    {
+      "quality": "minor-blues",
+      "shape": "3",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-blues.html",
+      "image": "https://www.guitarscale.org/images/a_blues_box3.png",
+      "imageSHA256": "c5b3cb5976965c4486a28389026a209d8e58cabb78409157e7f0ce7d12eb4a08",
+      "octaveOffset": 0,
+      "frets": [
+        [10, 11, 12],
+        [10, 12],
+        [10, 12, 13],
+        [9, 12],
+        [10, 13],
+        [10, 11, 12]
+      ]
+    },
+    {
+      "quality": "minor-blues",
+      "shape": "4",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-blues.html",
+      "image": "https://www.guitarscale.org/images/a_blues_box4.png",
+      "imageSHA256": "39c7e4b2476235be4e4154132eae97ee0985f486c836109b46a1f3507d5cacf9",
+      "octaveOffset": 12,
+      "frets": [
+        [0, 3],
+        [0, 3],
+        [0, 1, 2],
+        [0, 2],
+        [1, 3, 4],
+        [0, 3]
+      ]
+    },
+    {
+      "quality": "minor-blues",
+      "shape": "5",
+      "tonic": 9,
+      "page": "https://www.guitarscale.org/a-blues.html",
+      "image": "https://www.guitarscale.org/images/a_blues_box5.png",
+      "imageSHA256": "8cb41bed1be5ddf4c9e9eb8a316e729c3e4f0aa00f355a45a0154c940dc4c462",
+      "octaveOffset": 0,
+      "frets": [
+        [3, 5],
+        [3, 5, 6],
+        [2, 5],
+        [2, 5],
+        [3, 4, 5],
+        [3, 5]
+      ]
+    }
+  ]
+}

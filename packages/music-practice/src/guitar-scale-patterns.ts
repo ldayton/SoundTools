@@ -7,6 +7,23 @@ export type ScaleShape = (typeof SCALE_SHAPES)[number];
 export type ScalePattern = ScaleShape | "map";
 // IDs remain stable for saved practice state and existing numbered URLs.
 export const CAGED_SHAPES = ["3", "4", "5", "1", "2"] as const;
+// One publisher for all Western scale references. Its charts are numbered;
+// our CAGED form names are identified by the embedded tonic chord below.
+export function cagedScaleSource(quality: ScaleQuality) {
+  if (isMaqam(quality)) throw Error('Maqamat have separate references');
+  const pages = {
+    major: 'c-major.html', minor: 'a-minor.html',
+    'major-pentatonic': 'c-pentatonic-major.html',
+    'minor-pentatonic': 'a-pentatonic-minor.html',
+    'major-blues': 'c-blues.html', 'minor-blues': 'a-blues.html',
+  };
+  return {
+    url: `https://www.guitarscale.org/${pages[quality]}`,
+    label: quality === 'major-blues'
+      ? 'GuitarScale.org · major-blues formula (Related scales)'
+      : 'GuitarScale.org',
+  };
+}
 export function scaleShapeLabel(shape: ScalePattern | "none", quality: ScaleQuality): string {
   if (shape === "map") return "Fret range";
   if (shape === "none") return "Single shape";
@@ -21,7 +38,8 @@ export function cagedChordPositions(shape: ScaleShape, quality: ScaleQuality, sh
   };
   const minorChords: Record<ScaleShape, (number | null)[]> = {
     "1": [5,7,7,5,5,5], "2": [null,null,7,9,10,8],
-    // The high-E chord tone lies outside this scale position; show the four-note voicing.
+    // A playable four-note Cm-form fragment. The full five-note shape also
+    // fits the scale, but its simultaneous grip needs an extra fretting finger.
     "3": [null,12,10,9,10,null], "4": [null,12,14,14,13,12], "5": [5,3,2,2,5,5],
   };
   return (isMajorScale(quality) ? majorChords : minorChords)[shape].flatMap((fret,row)=>
@@ -199,6 +217,8 @@ const minorBlueFrets: Record<ScaleShape, number[][]> = {
   "5": [[], [6], [], [], [4], []],
 };
 function blues(source: Record<ScaleShape, Fingering>, blueFrets: Record<ScaleShape, number[][]>) {
+  // These charts publish locations, not per-dot fingers. Our adaptation keeps
+  // pentatonic fingers and uses a spare finger or an explicit one-fret slide.
   return Object.fromEntries(SCALE_SHAPES.map(shape => {
     const rows = source[shape].frets.map((frets, row) => {
       const notes = frets.map((fret, column) => ({ fret, finger: source[shape].fingers[row][column] }));

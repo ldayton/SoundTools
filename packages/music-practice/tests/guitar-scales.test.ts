@@ -391,36 +391,7 @@ test("Numbered shapes are complete movable fingerings in every major and minor k
   );
 });
 
-// Explicit reference fixtures protect fingerings, not just membership in a scale.
-test("GuitarScale.org reference positions and minor-specific fingerings", () => {
-  assert.deepEqual(
-    SCALE_SHAPES.map((s) => patternBounds(s)[0]),
-    [7, 10, 12, 2, 4],
-  );
-  assert.deepEqual(
-    SCALE_SHAPES.map((s) => patternBounds(s, "minor")[0]),
-    [4, 7, 9, 12, 2],
-  );
-  assert.deepEqual(
-    patternPositions(9, "minor", "3", 0)
-      .filter((n) => n.string === 4)
-      .map((n) => [n.fret, n.finger]),
-    [
-      [9, 1],
-      [10, 2],
-      [12, 4],
-    ],
-  );
-  assert.deepEqual(
-    patternPositions(0, "major", "2", 0)
-      .filter((n) => n.string === 4)
-      .map((n) => [n.fret, n.finger]),
-    [
-      [10, 1],
-      [12, 2],
-      [14, 4],
-    ],
-  );
+test("legacy CAGED URLs retain their region and transposition", () => {
   assert.deepEqual(
     SCALE_SHAPES.map((s) => patternBounds(s)[0] + patternShift(4, "major", s)),
     [11, 2, 4, 6, 8],
@@ -435,25 +406,6 @@ test("GuitarScale.org reference positions and minor-specific fingerings", () => 
       shift: 5,
     }),
     { tonic: 0, quality: "major", pattern: "1" },
-  );
-});
-
-test("A minor Shape 4 includes F on the D string, not B on the G string", () => {
-  const notes = patternPositions(9, "minor", "4", 0);
-  assert.deepEqual(
-    notes.filter((n) => n.string === 4).map((n) => [n.fret, n.finger]),
-    [
-      [12, 1],
-      [14, 3],
-      [15, 4],
-    ],
-  );
-  assert.deepEqual(
-    notes.filter((n) => n.string === 3).map((n) => [n.fret, n.finger]),
-    [
-      [12, 1],
-      [14, 3],
-    ],
   );
 });
 
@@ -530,7 +482,6 @@ test("CAGED outlines mark the anchoring chord, contained in every matching scale
 test("chord diagrams show the sounding chord at the outlined frets",()=>{
  assert.deepEqual(cagedChordDiagram(0,'major','1',0),{name:'C major · E shape',frets:[8,10,10,9,8,8]});
  assert.deepEqual(cagedChordDiagram(9,'minor','1',0),{name:'A minor · Em shape',frets:[5,7,7,5,5,5]});
- assert.deepEqual(patternPositions(0,'major','3',0).filter(n=>n.string===4).map(n=>[n.fret,n.finger]),[[12,1],[14,3],[15,4]]);
 });
 
 test('relative scale switches re-root the same pitches and restore the saved scale',()=>{

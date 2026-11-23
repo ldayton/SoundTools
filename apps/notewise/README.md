@@ -122,24 +122,56 @@ in CI.
 ### CAGED scale conventions
 
 The five movable regions are named for their chord forms (C, A, G, E, D),
-not for their sounding keys. Major and natural-minor diagrams include every
-scale pitch between their lowest and highest sounding notes. Their fingerings
-follow the C-major/A-minor GuitarScale.org diagrams; the C-form major D-string
-row includes the fourth degree (F4 at fret 15 in C major).
+not for their sounding keys. **GuitarScale.org is the single external reference
+for these Western scale regions.** Its diagrams use numbered shapes; NoteWise
+identifies their CAGED names from the embedded tonic chord. The publisher does
+not supply those letter labels. Hila's seven-position system and the maqamat
+above are separate models, outside this reference agreement.
+
+Major and natural-minor diagrams include every scale pitch between their
+lowest and highest sounding notes. Positions and fingers follow the five
+[C-major](https://www.guitarscale.org/c-major.html) and five
+[A-minor](https://www.guitarscale.org/a-minor.html) charts; the C-form major
+D-string row includes the fourth degree (F4 at fret 15 in C major).
 
 Pentatonics use the conventional two-notes-per-string boxes from
 [GuitarScale.org's A minor pentatonic charts](https://www.guitarscale.org/a-pentatonic-minor.html),
 with the corresponding relative-major root mapping. They have their own
 fingerings; they are not made by deleting dots from a seven-note fingering.
 Hollow context notes show omitted degrees within the displayed box's fret
-window. Blues adds blue notes to these boxes, preserving the shared fingers;
-a spare finger is preferred, with a one-fret slide where necessary.
+window. The five [A-blues charts](https://www.guitarscale.org/a-blues.html)
+specify positions and roots, but not fingers. NoteWise adapts pentatonic
+fingerings to add those blue notes: a spare finger is preferred, with a one-fret
+slide where necessary. The source's open-position fourth blues box is moved
+up one octave to keep the movable region consistent with its pentatonic box.
+
+The five C-major pentatonic and major-blues regions re-root the corresponding
+A-minor regions without changing their coordinates. These are derived regions,
+not five independently published major diagrams. The publisher's
+[major-pentatonic page](https://www.guitarscale.org/c-pentatonic-major.html)
+gives the major formula and example positions; its
+[C-blues page](https://www.guitarscale.org/c-blues.html) gives the major-blues
+formula (C D E♭ E G A) under **Related scales**. That page's main diagram is
+minor blues. Other keys transpose these reference regions with key-appropriate
+note spelling; the diagrams are not separate transcriptions of every key page.
 
 The relative-scale button changes the actual tonic, root markers, chord and
 backing key, and restores the previous scale/position even after reload.
 At a neck boundary the corresponding region may need an octave shift.
 The chord panel shows the sounding chord at exactly the outlined frets, named
-with its CAGED form (for example, “C major · E shape”).
+with its CAGED form (for example, “C major · E shape”). The Cm-form outline uses
+a playable four-note fragment: the fifth note fits the scale region but would
+require an extra fretting finger in the simultaneous grip. Chord outlines and
+blues fingerings are explicit NoteWise adaptations, not published chart fingers.
+
+`packages/music-practice/tests/fixtures/caged-reference.json` records an
+independent transcription of all 20 source charts, reviewed on 2026-11-23,
+including the 15 charts with published fingers. Source URLs and image hashes
+identify the reviewed material without making tests depend on live downloads.
+`caged-reference.test.ts` checks every coordinate, root, published finger and
+the ten derived major regions. When updating a region, review the source chart
+independently; never regenerate expected coordinates from production tables.
+These complete reference checks replace the former partial row/box goldens.
 
 Independent unit checks own full-register pitch completeness, published box
 coordinates, all-key relative/return behavior and playable linked routes.

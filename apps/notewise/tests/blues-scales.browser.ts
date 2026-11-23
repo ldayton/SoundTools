@@ -37,6 +37,8 @@ try {
   await page.goto(`${route}&scale=${family}-blues`);
   await waitForApp(page,'.scale-diagram svg');
   const blues=await readTones();
+  await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://www.guitarscale.org/${family==='major'?'c':'a'}-blues.html`);
+  await expect(page.locator('.scale-source a')).toHaveText(family==='major'?'GuitarScale.org · major-blues formula (Related scales)':'GuitarScale.org');
   assert.deepEqual(blues.filter(n=>n.midi%12!==3),pent,`${family} shape ${shape}: only Eb added; shared fingers unchanged`);
   assert.ok(blues.some(n=>n.midi%12===3));
   const blue=page.locator('.scale-blue-note');

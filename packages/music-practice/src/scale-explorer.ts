@@ -26,6 +26,7 @@ import {
   scaleShapeLabel,
   cagedChordPositions,
   cagedChordDiagram,
+  cagedScaleSource,
   pentatonicOmissions,
   patternBounds,
   patternShift,
@@ -646,10 +647,9 @@ export class ScaleExplorer implements LivePractice {
       movable && labels === "fingers"
         ? "1 index · 2 middle · 3 ring · 4 little finger" + (maqam ? ". Some rows use a one-fret extension." : "") + (this.quality.endsWith("blues") ? ". Same finger on adjacent frets: slide one fret." : "")
         : "Darker dots mark the root notes.";
-    const source = isMaqam(this.quality) ? maqamSource(this.quality) :
-      this.quality === "major-blues" ? "https://pulse.berklee.edu/scales/c-major-blues-scale.html" :
-      this.quality.endsWith('pentatonic') ? `https://www.guitarscale.org/${isMajorScale(this.quality)?'c-pentatonic-major':'a-pentatonic-minor'}.html` :
-      `https://guitarscale.org/${this.quality === "minor-blues" ? "a-blues" : isMajorScale(this.quality) ? "c-major" : "a-minor"}.html`;
+    const reference = isMaqam(this.quality)
+      ? {url:maqamSource(this.quality),label:'MaqamWorld'}
+      : cagedScaleSource(this.quality);
     const keys = [-1, 1].map((direction) => {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],
@@ -819,13 +819,13 @@ export class ScaleExplorer implements LivePractice {
       linkHelp: "",
       notes: noteList,
       maqamReference: isMaqam(this.quality) ? `${MAQAMAT[this.quality].form} Fretted reference; traditional intonation and melodic development vary.` : "",
-      sourceLabel: maqam ? "MaqamWorld" : "GuitarScale.org",
+      sourceLabel: reference.label,
       relativeExplanation: maqam ? "Backing uses tonic and fifth, without a Western major/minor progression." : hila
         ? "17 consecutive scale notes across all six strings."
         : relativeExplanation,
       movable,
       footnote,
-      source: hila ? "" : source,
+      source: hila ? "" : reference.url,
       rows: [6, 5, 4, 3, 2, 1].map((string) => ({
         string,
         notes: positions

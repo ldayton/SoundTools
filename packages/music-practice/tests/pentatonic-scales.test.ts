@@ -28,14 +28,6 @@ test('pentatonic selection survives settings and URL parsing',()=>{
  assert.deepEqual(mergeGuitarScaleSettings(settings),settings);
  assert.deepEqual(guitarScaleFromQuery(new URLSearchParams('key=A&scale=minor-pentatonic&pattern=1'),{tonic:0,quality:'major'}),settings);
 });
-// Independent transcription of GuitarScale.org's A minor pentatonic diagrams.
-test('the five pentatonic boxes match the published positions',()=>{
- const frets=[[[5,8],[5,7],[5,7],[5,7],[5,8],[5,8]],[[8,10],[7,10],[7,10],[7,9],[8,10],[8,10]],[[10,12],[10,12],[10,12],[9,12],[10,13],[10,12]],[[12,15],[12,15],[12,14],[12,14],[13,15],[12,15]],[[3,5],[3,5],[2,5],[2,5],[3,5],[3,5]]];
- SCALE_SHAPES.forEach((shape,i)=>assert.deepEqual([6,5,4,3,2,1].map(string=>patternPositions(9,'minor-pentatonic',shape,0).filter(n=>n.string===string).map(n=>n.fret)),frets[i]));
- assert.deepEqual(patternPositions(9,'minor-pentatonic','1',0).filter(n=>n.string===3).map(n=>[n.fret,n.finger]),[[5,1],[7,3]]);
- assert.deepEqual(patternPositions(0,'major-pentatonic','2',0).filter(n=>n.string===3).map(n=>[n.fret,n.finger]),[[9,1],[12,3]]);
-});
-
 test('hollow notes show only omitted degrees within the pentatonic box window',()=>{
  const tuning=[40,45,50,55,59,64];
  for(const quality of ['major-pentatonic','minor-pentatonic'] as const)for(let tonic=0;tonic<12;tonic++)for(const shape of SCALE_SHAPES){

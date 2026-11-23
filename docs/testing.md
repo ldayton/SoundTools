@@ -470,3 +470,18 @@ checks the decoded sustain level, and renders a 12-second held note offline.
 normalization/loop audit. Nightly's existing instrument-audio and offline commands
 include organ alongside piano/guitar; no new command, tier or duplicated owner
 was introduced. Whole-score loudness calibration is documented in SongAlong's README.
+
+Staff Show/Play independence is owned by `playback-staves.test.ts` (track groups,
+all registered editions, preserved music/clock, visibility and account/offline/URL
+roundtrips), CI's existing instrument-toolbar witness (real Show/Play controls and
+normalized choir plus organ audio), and Nightly's teacher-score witness (individual staff
+visibility, all-hidden, durable choices, two-second piano preview, contrast and
+responsive screenshots). Each registry edition browser retains a table contract
+assertion. Key-menu, octave, key and playback witnesses now read the range from
+the selected key label. No new command or tier was added.
+
+Pitch/timing/stanza tests continue to compare every written note; choir timbre
+metadata is checked separately against the teacher's original vocal track. The
+existing instrument-audio and offline owners require both human choir and organ
+samples on that score. Full-song calibrated choir/organ levels are in SongAlong's
+README; the builder retains source hashes and independent decoded measurements.

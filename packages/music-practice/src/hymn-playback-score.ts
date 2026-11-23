@@ -1,4 +1,5 @@
-import {chordEdition,capoAudio} from "./chord-editions";
+import { abcPlaybackStaves, mutePlaybackStaves } from "./hymn-playback-staves";
+import { chordEdition, capoAudio } from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
 import abcjs, { type AudioTracks } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
@@ -23,17 +24,50 @@ export function hymnPlaybackScore(options: {
   transpose: number;
   endingBar?: number;
   stanzas?: readonly number[];
+  mutedStaves?: readonly number[];
 }) {
-  const readAudio = (abc: string) => {
-    const audio = swingAudio(abcjs.parseOnly(abc)[0].setUpAudio({
-      qpm: 60,
-      chordsOff: true,
-      midiTranspose:
-        options.transpose + guitarMidiOffset(options.arrangement),
-    }), options.hymn.feel === "swing");
-    return options.arrangement === "guitar-edition" ? capoAudio(audio,chordEdition(options.hymn)?.capo) : audio;
+  const voicesFor = (audio: AudioTracks, abc: string) => {
+    const staves = abcPlaybackStaves(abc);
+    const vocal =
+      options.arrangement === "original" &&
+      options.hands !== "left" &&
+      "vocalTracks" in options.hymn
+        ? new Set<number>(options.hymn.vocalTracks || [])
+        : new Set<number>();
+    const voiced = {
+      ...audio,
+      tracks: audio.tracks.map((track, index) =>
+        vocal.has(index)
+          ? track.map((event) =>
+              event.cmd === "note"
+                ? { ...event, playbackInstrument: "choir" as const }
+                : event,
+            )
+          : track,
+      ),
+    };
+    return mutePlaybackStaves(voiced, staves, options.mutedStaves || []);
   };
-  const currentAudio = swingAudio(options.audio, options.hymn.feel === "swing");
+  const readAudio = (abc: string) => {
+    const audio = swingAudio(
+      abcjs.parseOnly(abc)[0].setUpAudio({
+        qpm: 60,
+        chordsOff: true,
+        midiTranspose:
+          options.transpose + guitarMidiOffset(options.arrangement),
+      }),
+      options.hymn.feel === "swing",
+    );
+    const voiced =
+      options.arrangement === "guitar-edition"
+        ? capoAudio(audio, chordEdition(options.hymn)?.capo)
+        : audio;
+    return voicesFor(voiced, abc);
+  };
+  const currentAudio = voicesFor(
+    swingAudio(options.audio, options.hymn.feel === "swing"),
+    options.abc,
+  );
   // Schedule the entire song on one audio clock. Restarting the transport at
   // stanza boundaries would add preparation/lead-in gaps and another count-in.
   if (options.stanzas && options.sectionBars === 0) {

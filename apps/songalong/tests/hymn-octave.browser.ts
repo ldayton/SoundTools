@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+import { selectedHymnRange } from "../../../packages/music-practice/browser-tests/helpers";
 import {
   playbackHymn,
   playbackMelody,
@@ -88,8 +90,7 @@ try {
     base +
       `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&low=38&high=91`,
   );
-  const range = page.locator(".hymn-key-range");
-  await range.filter({ hasText: "F♯2–F♯3" }).waitFor();
+  await expect.poll(() => selectedHymnRange(page)).toBe("F♯2–F♯3");
   assert.ok((await page.locator(".hymn-ottava").count()) > 0);
   assert.ok(
     (await page.locator(".hymn-ottava").allTextContents()).every(
@@ -103,7 +104,7 @@ try {
     await page.locator(`#hymn-octave-${direction}`).click();
   };
   await shift("up");
-  assert.equal(await range.textContent(), "F♯3–F♯4");
+  assert.equal(await selectedHymnRange(page), "F♯3–F♯4");
   assert.ok(
     (await page.locator(".hymn-ottava").allTextContents()).every(
       (text) => text === "8",
@@ -111,9 +112,9 @@ try {
   );
   assert.equal(await page.locator(".hymn-paper .abcjs-ledger").count(), 0);
   await shift("up");
-  assert.equal(await range.textContent(), "F♯4–F♯5");
+  assert.equal(await selectedHymnRange(page), "F♯4–F♯5");
   await shift("up");
-  assert.equal(await range.textContent(), "F♯5–F♯6");
+  assert.equal(await selectedHymnRange(page), "F♯5–F♯6");
   assert.ok(await page.locator("#hymn-octave-up").isDisabled());
   await shift("down");
   await shift("down");
@@ -122,7 +123,7 @@ try {
     .filter({ hasText: "Saved on this device." })
     .waitFor();
   await page.reload();
-  await range.filter({ hasText: "F♯3–F♯4" }).waitFor();
+  await expect.poll(() => selectedHymnRange(page)).toBe("F♯3–F♯4");
   await midiAction(page, "Connect MIDI keyboard");
   const note = async (n: number) =>
     page.evaluate((n) => {
@@ -151,7 +152,7 @@ try {
   );
   await practiceOption(page, "#hymn-mode", "playback");
   assert.equal(
-    await range.textContent(),
+    await selectedHymnRange(page),
     "F♯3–F♯4",
     "mode changes retain the chosen octave",
   );
@@ -165,7 +166,7 @@ try {
   await page.setViewportSize({ width: 393, height: 852 });
   await openPracticeOptions(page);
   await page.locator("#hymn-octave-down").click();
-  assert.equal(await range.textContent(), "F♯2–F♯3");
+  assert.equal(await selectedHymnRange(page), "F♯2–F♯3");
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
   assert.ok(
     await page.evaluate(
@@ -182,7 +183,7 @@ try {
       `/piano/hymns/${playbackHymn.id}?key=${encodeURIComponent(key)}&low=42&high=54`,
   );
   await openPracticeOptions(page);
-  await range.filter({ hasText: "F♯2–F♯3" }).waitFor();
+  await expect.poll(() => selectedHymnRange(page)).toBe("F♯2–F♯3");
   assert.ok(await page.locator("#hymn-octave-up").isDisabled());
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
   await page.goto(base + `/piano/hymns/${playbackHymn.id}?low=60&high=60`);

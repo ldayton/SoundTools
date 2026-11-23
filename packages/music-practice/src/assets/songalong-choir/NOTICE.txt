@@ -1,0 +1,8 @@
+Choir samples derived from VocalSet (Wilkins, Seetharaman, Wahl, Pardo 2018), CC BY 4.0,
+https://doi.org/10.5281/zenodo.1442513 — epic-choir by thepok.
+Original library: https://github.com/thepok/epic-choir (v1.0).
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+Original dataset: Julia Wilkins, Prem Seetharaman, Alison Wahl, Bryan Pardo. VocalSet: A Singing Voice Dataset (Version 1.2), 2018.
+Upstream changes: real VocalSet singers excerpted, gently pitch shifted, sustain extended, level matched and placed into a simulated hall as ensemble samples.
+SongAlong changes: alto ah mf vowel subset, original SFZ 80 ms start offset applied; 24 kHz stereo 16-bit FLAC, sustain window normalized to -26 dBFS RMS with a -6 dBFS sample peak ceiling. No words or voice cloning. Source archive/sample hashes and measured levels are retained in the accompanying JSON files. No endorsement by the original authors is implied.

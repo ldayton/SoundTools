@@ -108,6 +108,7 @@ try {
     await expect(page.locator('.hymn-paper svg').last().locator('.abcjs-note.abcjs-mm19').first()).toBeVisible();
     await checkScore(page);
     await openPracticeOptions(page);
+  await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
     await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
   await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeDisabled();
     await selectHymnInstrument(page, 'guitar');

@@ -1,0 +1,16 @@
+{
+  "archiveUrl": "https://github.com/thepok/epic-choir/releases/download/v1.0/epic-choir-v1.0-A.zip",
+  "archiveSha256": "a0ab193e78f45a9e8925280bc19b6dfee215b87f968481d14fd3dcbb2d58b7cf",
+  "files": {
+    "samples/A/A_ah_mf_As3.wav": "0001df7bf644db49136e6c9f4a635dc796420a887245793118668dfde27bfb41",
+    "samples/A/A_ah_mf_As4.wav": "8a352f86aa9c30435ebac40029d3f436ddbb3f81f9680397a6d2eb414ebdd884",
+    "samples/A/A_ah_mf_C4.wav": "75fec5c4cf01b727a723a79c50f8a6a2c504c8b64613292e39ec0868a4fbe5f2",
+    "samples/A/A_ah_mf_C5.wav": "8058968b4c3738fce861f98f7be19ae84f6da581f09db48904415d13b41ea827",
+    "samples/A/A_ah_mf_D4.wav": "b4382c7d2601ffc3567385a6ab1ded2b997415f7f8deba0ef0f0554ffad6e076",
+    "samples/A/A_ah_mf_D5.wav": "925408d68855fe785cbe34490f836ef66f6bbab7880ba9cededf5328eddfebbc",
+    "samples/A/A_ah_mf_E4.wav": "102dd85e9013f43d94b9bd85130d00b6c3ab6f9b338cd647b437e529a8361d00",
+    "samples/A/A_ah_mf_E5.wav": "9d6290952347f33bbf25ffc653a8e54c786a90e8869e073cce15a4ad6a99a0c5",
+    "samples/A/A_ah_mf_Fs4.wav": "dd2a08a8212d06d7e88a7dd0f9d6dc8f7face7bb118e02f119f133f479ce4a13",
+    "samples/A/A_ah_mf_Gs4.wav": "319cbbe22122d21c0e95bc0bf92580dfe9068fc3126d3e6f9f29777757ea75fa"
+  }
+}

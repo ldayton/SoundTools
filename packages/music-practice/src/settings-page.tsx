@@ -111,6 +111,8 @@ export function SettingsPage() {
                     "Acoustic guitar source hashes",
                     "Drawbar organ credits",
                     "Drawbar organ source hashes",
+                    "Choir recording credits",
+                    "Choir source hashes",
                   ][index]
                 }
               </Anchor>

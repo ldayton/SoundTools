@@ -340,3 +340,9 @@ export async function hymnKeyOptions(page: Page) {
   await input.press("Escape");
   return options;
 }
+
+/** Read the user-visible range embedded in the selected key label. */
+export async function selectedHymnRange(page: Page) {
+  const label = await page.locator("#hymn-key").inputValue();
+  return /\(([^()]*–[^()]*)\)$/.exec(label)?.[1] || "";
+}

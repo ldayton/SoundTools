@@ -1,3 +1,4 @@
+import { selectedHymnRange } from "../../../packages/music-practice/browser-tests/helpers";
 import { playbackHymn, playbackMelody, playbackBass, playbackRangeLabel, playbackFittedKey } from "../../../packages/music-practice/test-fixtures/hymns";
 import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from "playwright";
@@ -327,10 +328,9 @@ try {
   await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
-  await page
-    .getByRole("combobox", { name: "Show", exact: true })
-    .selectOption("both");
-  await page.getByRole("button", { name: "Play", exact: true }).waitFor();
+  await page.getByRole("table", {name:"Playback staves"}).getByRole("checkbox", {name:"Show Treble",exact:true}).uncheck();
+  await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(
     () => document.documentElement.scrollWidth <= innerWidth,
@@ -341,9 +341,8 @@ try {
       exact: true,
     })
     .click();
-  await page
-    .getByRole("combobox", { name: "Show", exact: true })
-    .selectOption("left");
+  await page.getByRole("table", {name:"Playback staves"}).getByRole("checkbox", {name:"Show Treble",exact:true}).uncheck();
+  assert.equal(await page.getByRole("checkbox",{name:"Play Treble",exact:true}).isChecked(),true,"hiding a staff keeps its audio enabled");
   assert.equal(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -376,7 +375,7 @@ try {
     ]) {
       await practiceOption(page, "#hymn-key", key);
       assert.equal(
-        await page.locator(".hymn-key-range").textContent(),
+        await selectedHymnRange(page),
         expected,
         `${arrangement} uses only the melody range in ${key}`,
       );
@@ -408,7 +407,7 @@ try {
   await practiceOption(page, "#hymn-hands", "left");
   for (const mode of ["wait", "playback"]) {
     await practiceOption(page, "#hymn-mode", mode);
-    assert.equal(await page.locator(".hymn-key-range").textContent(), "C4–C5");
+    assert.equal(await selectedHymnRange(page), "C4–C5");
     assert.deepEqual(
       (await hymnKeyOptions(page))
         .filter((option) => !option.disabled)

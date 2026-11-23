@@ -55,7 +55,7 @@ test("prepared hymn audio matches full editions, transposition and pickup timing
       .parseOnly(full.abc)[0]
       .setUpAudio({ qpm: 60, chordsOff: true, midiTranspose: -2 });
     assert.deepEqual(
-      playbackNotes(prepared.audio),
+      playbackNotes(prepared.audio).map(({instrument, ...written})=>written),
       playbackNotes(swingAudio(expected, hymn.feel === "swing")),
       hymn.id,
     );

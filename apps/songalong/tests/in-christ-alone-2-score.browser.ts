@@ -25,6 +25,29 @@ try {
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
   });
+  await page.addInitScript(() => {
+    (window as any).chordPreviews = [];
+    const voices = new WeakMap<AudioBufferSourceNode, any>();
+    const start = AudioBufferSourceNode.prototype.start,
+      stop = AudioBufferSourceNode.prototype.stop;
+    AudioBufferSourceNode.prototype.start = function (
+      ...args: Parameters<typeof start>
+    ) {
+      if (this.context instanceof AudioContext && !this.loop) {
+        const voice = { when: args[0] || 0, stop: 0, loop: this.loop };
+        voices.set(this, voice);
+        (window as any).chordPreviews.push(voice);
+      }
+      return start.apply(this, args);
+    };
+    AudioBufferSourceNode.prototype.stop = function (
+      ...args: Parameters<typeof stop>
+    ) {
+      const voice = voices.get(this);
+      if (voice) voice.stop = args[0] || 0;
+      return stop.apply(this, args);
+    };
+  });
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(server.base + "/piano/hymns/in-christ-alone-2?mode=playback");
@@ -35,7 +58,7 @@ try {
   await expect(
     page.getByRole("radio", { name: "Voice + Piano", exact: true }),
   ).toHaveAttribute("aria-checked", "true");
-  await expect(page.locator("#hymn-key")).toHaveValue("Original (D)");
+  await expect(page.locator("#hymn-key")).toHaveValue("Original (D) (A3–D5)");
   await expect(
     page.locator(".hymn-paper svg").first().locator(".abcjs-clef"),
   ).toHaveCount(3);
@@ -152,6 +175,41 @@ try {
           );
         }),
       );
+      const blackLabel = dialog
+        .locator(".black-key.is-playing .piano-note-label")
+        .first();
+      if (await blackLabel.count())
+        await expect(blackLabel).toHaveCSS("color", "rgb(16, 46, 38)");
+      if (name === "D") {
+        await page.evaluate(() => ((window as any).chordPreviews = []));
+        await dialog
+          .getByRole("button", {
+            name: "Play D chord for 2 seconds",
+            exact: true,
+          })
+          .click();
+        await page.waitForFunction(
+          () => (window as any).chordPreviews.length === 3,
+        );
+        const previews = await page.evaluate(() =>
+          (window as any).chordPreviews.map((n: any) => ({
+            when: n.when,
+            duration: n.stop - n.when,
+            loop: n.loop,
+          })),
+        );
+        assert.equal(
+          new Set(previews.map((n: any) => n.when)).size,
+          1,
+          "chord tones attack together",
+        );
+        assert.ok(
+          previews.every(
+            (n: any) => !n.loop && Math.abs(n.duration - 2.01) < 0.01,
+          ),
+          "two-second piano envelope",
+        );
+      }
       if (name === "D/F♯")
         await page.screenshot({
           path: `/tmp/teacher-piano-chord-${page.viewportSize()!.width}.png`,
@@ -162,6 +220,93 @@ try {
     }
     await expect(page.locator(".hymn-paper")).not.toContainText("(Bm)");
   }
+  await openPracticeOptions(page);
+  const staffTable = page.getByRole("table", { name: "Playback staves" });
+  await expect(staffTable.getByRole("columnheader")).toHaveText([
+    "Staff",
+    "Show",
+    "Play",
+  ]);
+  await expect(staffTable.getByRole("row")).toHaveCount(4);
+  await expect(
+    page.getByText("Melody limits (optional)", { exact: true }),
+  ).toHaveCount(0);
+  await expect(page.locator(".hymn-key-range")).toHaveCount(0);
+  const sectionOrder = await page
+    .locator(
+      'section[aria-label="Key & range"],section[aria-label="Staves"],section[aria-label="Stanzas"]',
+    )
+    .evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute("aria-label")),
+    );
+  assert.deepEqual(sectionOrder, ["Key & range", "Staves", "Stanzas"]);
+  const labels = ["Choir", "Organ · treble", "Organ · bass"];
+  for (const label of labels) {
+    await staffTable
+      .getByRole("checkbox", { name: `Show ${label}`, exact: true })
+      .uncheck();
+    await expect(
+      page.locator(".hymn-paper svg").first().locator(".abcjs-staff"),
+    ).toHaveCount(2);
+    await expect(
+      staffTable.getByRole("checkbox", { name: `Play ${label}`, exact: true }),
+    ).toBeChecked();
+    await staffTable
+      .getByRole("checkbox", { name: `Show ${label}`, exact: true })
+      .check();
+  }
+  for (const label of labels)
+    await staffTable
+      .getByRole("checkbox", { name: `Show ${label}`, exact: true })
+      .uncheck();
+  await expect(page.locator(".hymn-paper svg:visible")).toHaveCount(0);
+  for (const label of labels)
+    await expect(
+      staffTable.getByRole("checkbox", { name: `Play ${label}`, exact: true }),
+    ).toBeChecked();
+  for (const label of labels)
+    await staffTable
+      .getByRole("checkbox", { name: `Show ${label}`, exact: true })
+      .check();
+  await staffTable
+    .getByRole("checkbox", { name: "Play Choir", exact: true })
+    .uncheck();
+  await staffTable
+    .getByRole("checkbox", { name: "Show Organ · bass", exact: true })
+    .uncheck();
+  await expect(page.locator("#saved")).toHaveText("Saved on this device.");
+  await page.reload();
+  await waitForApp(page, ".hymn-paper");
+  await openPracticeOptions(page);
+  await expect(
+    staffTable.getByRole("checkbox", { name: "Play Choir", exact: true }),
+  ).not.toBeChecked();
+  await expect(
+    staffTable.getByRole("checkbox", { name: "Show Choir", exact: true }),
+  ).toBeChecked();
+  await expect(
+    staffTable.getByRole("checkbox", {
+      name: "Show Organ · bass",
+      exact: true,
+    }),
+  ).not.toBeChecked();
+  await expect(
+    staffTable.getByRole("checkbox", {
+      name: "Play Organ · bass",
+      exact: true,
+    }),
+  ).toBeChecked();
+  await staffTable
+    .getByRole("checkbox", { name: "Play Choir", exact: true })
+    .check();
+  await staffTable
+    .getByRole("checkbox", { name: "Show Organ · bass", exact: true })
+    .check();
+  await page.screenshot({
+    path: "/tmp/songalong-staff-table-desktop.png",
+    fullPage: true,
+  });
+  await dismissPracticeDrawer(page);
   await checkChords();
   await checkInk();
   await page.screenshot({
@@ -177,6 +322,13 @@ try {
     fullPage: true,
   });
   await page.setViewportSize({ width: 320, height: 844 });
+  await openPracticeOptions(page);
+  await staffTable.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "/tmp/songalong-staff-table-mobile.png",
+    fullPage: true,
+  });
+  await dismissPracticeDrawer(page);
   await checkChords();
   await checkInk();
   await practiceOption(page, "#hymn-key", "Eb");

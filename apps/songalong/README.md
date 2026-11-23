@@ -156,7 +156,8 @@ using the toolbar helper instead of the retired instrument dropdown.
 ## Teacher-score drawbar organ playback
 
 In Christ Alone 2 explicitly declares `accompanimentInstrument: "organ"`; its
-original Voice + Piano score uses the FreePats Drawbar Organ Emulation bank.
+original Voice + Piano score uses the FreePats Drawbar Organ Emulation bank
+for the Organ staves; its Choir track uses the human bank described below.
 Other scores keep their existing sounds. The 2019-07-12 bank was recorded from
 setBfree and is CC0; it is a Hammond-style emulation, not a physical Hammond
 recording. The 16 roots total about 1.9 MiB in 24 kHz mono FLAC. Original pitch
@@ -165,7 +166,8 @@ transport, count-in, pause/resume, seek, transposition and volume controls are r
 
 Every root's loop sustain is normalized to -26 dBFS RMS, with a -6 dBFS sample
 peak ceiling. Playback gain 0.82 matches the complete 91-second teacher score
-at 80 BPM to the existing piano reference: both measure -16.7 LUFS integrated;
+at 80 BPM to the existing piano reference before adding human choir: both
+measure -16.7 LUFS integrated;
 organ true peak is -4.8 dBTP (piano -1.2 dBTP). These are measured render levels,
 not a promise that arbitrary scores have identical loudness. Existing piano and
 guitar levels are unchanged. The existing output compressor remains in place.
@@ -178,3 +180,48 @@ Settings and the verified offline pack. `organ-playback.test.ts` owns routing,
 written timing and bank audit invariants. The existing CI toolbar witness checks
 real organ routing, decoded normalization and a 12-second looped sustain; Nightly
 instrument-audio and offline witnesses cover all three playback banks.
+
+## Independent staff visibility and playback
+
+Playback options now place a Staves table below Key & range and above Stanzas.
+Each real staff has separate Show and Play checkboxes. Show removes the staff
+from engraving without changing its audio; Play mutes every voice assigned to
+that staff without hiding it. For the teacher score, the rows are Choir, Organ
+treble (three voices together), and Organ bass. All-hidden and all-muted states
+are supported; muting retains the complete score/stanza clock. No score width is
+reserved for controls. Changes preserve playback position.
+
+`hiddenStaves` and `mutedStaves` are normalized per-song settings, retained in
+URLs, local/offline preferences and account records. They reset on arrangement
+or legacy displayed-hand changes, so old staff indexes do not mute an unrelated
+layout. Old view/hand links keep their prior visible/audible parts until the
+table is edited. Wait-for-me hand controls remain separate. The selected key
+now includes its actual octave range in parentheses; the separate range caption
+and Melody limits helper text were removed. Key & range uses the same divider
+section heading as the other options.
+
+Chord diagrams have a play button beside their title. It previews the chord on
+piano for two seconds including release, and cancels on replay, close or unmount.
+Highlighted key labels use dark text, with larger lettering on black keys.
+
+## Human choir for the teacher melody
+
+The Choir track of In Christ Alone 2 now uses epic-choir v1.0 by thepok, derived
+from the real singers of VocalSet (Wilkins, Seetharaman, Wahl and Pardo, 2018).
+The Organ tracks retain the drawbar organ. The compact bank contains ten
+alto-section ah/mf roots, covering the teacher melody at its original pitch,
+in 24 kHz stereo FLAC (about 3.7 MiB). It sings open vowels, without lyrics.
+The CC BY 4.0 attribution, original and adaptation details, archive/sample hashes
+and measured levels are bundled and available through Settings and offline.
+
+Each root's 0.25–2.25 second sustain window is normalized to -26 dBFS RMS with a
+-6 dBFS sample peak ceiling. Choir playback gain 1.85 balances its breath/ensemble
+envelope against the existing organ gain 0.82. A full 91-second teacher-score
+render at 80 BPM measures -16.9 LUFS integrated and -3.3 dBTP, against -16.7 LUFS
+for the piano reference. Piano and guitar levels are unchanged.
+
+Rebuild with `python3 packages/music-practice/scripts/build-songalong-choir.py
+/path/to/epic-choir-v1.0-A.zip` (ffmpeg required). This verifies the pinned archive
+hash and applies the upstream SFZ's 80 ms sample offset before conversion.
+Source: https://github.com/thepok/epic-choir
+Original voices: https://doi.org/10.5281/zenodo.1442513

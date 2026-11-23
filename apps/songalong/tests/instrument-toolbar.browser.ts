@@ -12,6 +12,7 @@ import {
   selectHymnInstrument,
   practiceOption,
   dismissPracticeDrawer,
+  openPracticeOptions,
 } from "../../../packages/music-practice/browser-tests/helpers";
 import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 const server = await preview(
@@ -25,6 +26,7 @@ try {
   });
   await page.addInitScript(() => {
     (window as any).organVoices = [];
+    (window as any).choirVoices = [];
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (
       ...args: Parameters<typeof start>
@@ -35,7 +37,15 @@ try {
           loopStart: this.loopStart,
           loopEnd: this.loopEnd,
           rate: this.playbackRate.value,
+          when: args[0] || 0,
         });
+      if (
+        this.context instanceof AudioContext &&
+        !this.loop &&
+        this.buffer &&
+        this.buffer.duration > 2
+      )
+        (window as any).choirVoices.push(this.buffer);
       return start.apply(this, args);
     };
   });
@@ -150,6 +160,25 @@ try {
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.waitForFunction(() => (window as any).organVoices.length > 0);
   await page.getByRole("button", { name: "Pause", exact: true }).click();
+  const choirLevel = await page.evaluate(() => {
+    const buffer = (window as any).choirVoices[0];
+    if (!buffer)
+      throw Error("Choir staff did not schedule its human vowel sample");
+    const from = Math.round(0.25 * buffer.sampleRate),
+      to = Math.round(2.25 * buffer.sampleRate);
+    let sum = 0;
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const data = buffer.getChannelData(c);
+      for (let i = from; i < to; i++) sum += data[i] * data[i];
+    }
+    return (
+      20 * Math.log10(Math.sqrt(sum / ((to - from) * buffer.numberOfChannels)))
+    );
+  });
+  assert.ok(
+    Math.abs(choirLevel - -26) < 0.15,
+    `normalized choir sustain: ${choirLevel}`,
+  );
   const organ = await page.evaluate(async () => {
     const note = (window as any).organVoices[0];
     const pcm = note.buffer.getChannelData(0),

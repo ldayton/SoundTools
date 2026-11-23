@@ -57,8 +57,8 @@ test("count-ins gate score audio, count-only practice stays silent, and cancella
     get running() {
       return running;
     },
-    schedule: (...args: number[]) => {
-      notes.push(args);
+    schedule: (pitch: number, time: number, duration: number) => {
+      notes.push([pitch,time,duration]);
     },
     click: (time: number, accent: boolean) => {
       clicks.push([time, accent]);

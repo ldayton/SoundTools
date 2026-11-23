@@ -1,3 +1,4 @@
+import { abcPlaybackStaves, hidePlaybackStaves } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
 import {editionTempoLabel} from "./edition-score";
 import {pickupHymnSystems} from "./instrument-hymn";
@@ -89,6 +90,7 @@ export function drawPracticeScore(
     reattackTies?: boolean;
     octaveNotation?: boolean;
     printedScore?: boolean;
+    hiddenStaves?: readonly number[];
     initialSignatures?: boolean;
     playback?: (audio: AudioTracks) => void;
   } = {},
@@ -122,6 +124,7 @@ export function drawPracticeScore(
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing(tune) {
+      if (options.hiddenStaves?.length) hidePlaybackStaves(tune, options.hiddenStaves);
       // abcjs's multi-system tab layout dereferences empty-staff placeholders.
       // Keep the melody staff's placeholder as an explicit no-op plugin.
       if (options.chordTab) {
@@ -239,12 +242,15 @@ export function drawPracticeScore(
   // abcjs keeps audio at source pitch unless both transpositions are specified.
   // Use the same shift so notation, spellings and MIDI grading agree.
   const swinging = hasSwing(abc);
-  let audio = swingAudio(tune.setUpAudio({
+  const audioOptions = {
     // Guitar tab uses the conventional written octave, sounding one octave lower.
     midiTranspose: transpose + (options.guitarMidiOffset ?? (options.guitarTab ? -12 : 0)),
     ...(options.playback ? { qpm: 60, chordsOff: true } : {}),
     ...(options.printedScore ? { chordsOff: true } : {}),
-  }), swinging);
+  };
+  const visibleAudio = tune.setUpAudio(audioOptions);
+  let audio = swingAudio(options.hiddenStaves?.length
+    ? abcjs.parseOnly(source)[0].setUpAudio(audioOptions) : visibleAudio, swinging);
   if (profile && options.beginnerEdition === "guitar") {
     audio = capoAudio(audio,profile.capo);
     for (const line of tune.lines) for (const staff of line.staff || [])
@@ -381,6 +387,8 @@ export function drawPracticeScore(
     svg.style.height = `${box.height * fittedScale}px`;
     svg.style.maxWidth = "100%";
   });
+  if (options.hiddenStaves?.length && abcPlaybackStaves(abc).every(staff=>options.hiddenStaves!.includes(staff.index)))
+    paper.querySelectorAll<SVGSVGElement>('svg').forEach(svg=>svg.style.display='none');
   attachChordDiagrams(paper, chordPassages);
   if (options.printedScore) attachPianoChordDiagrams(paper, tune);
   if (options.fingerings && !options.beginnerEdition) {

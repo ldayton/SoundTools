@@ -18,6 +18,7 @@ const curated = JSON.parse(
   sourceDetails?: string;
   defaultArrangement?: "original";
   accompanimentInstrument?: "organ";
+  vocalTracks?: number[];
   sourceUrl?: string;
   referenceUrl?: string;
   referenceDetails?: string;

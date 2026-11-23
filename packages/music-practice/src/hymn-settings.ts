@@ -31,6 +31,8 @@ export type HymnSettings = {
   bpm?: number;
   countIn?: CountInBars;
   loopCountIn?: boolean;
+  mutedStaves?: number[];
+  hiddenStaves?: number[];
   key?: HymnKey;
   octave?: number;
   low?: number | null;
@@ -85,7 +87,17 @@ export function mergeHymnSettings(
     ? requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
       ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
+  const changedStaffLayout =
+    (s.arrangement !== undefined && s.arrangement !== base.arrangement) ||
+    (s.viewHands !== undefined && s.viewHands !== base.viewHands);
+  const staffSelection = (input: unknown, prior: readonly number[] = []) =>
+    Array.isArray(input)
+      ? [...new Set(input.filter((index): index is number =>
+          Number.isInteger(index) && index >= 0 && index < 32))].sort((a,b)=>a-b)
+      : changedStaffLayout ? [] : [...prior];
   return {
+    mutedStaves: staffSelection(s.mutedStaves, base.mutedStaves),
+    hiddenStaves: staffSelection(s.hiddenStaves, base.hiddenStaves),
     scoreDisplay: choice(s.scoreDisplay, (chordEdition(hymn) ? ["notation", "tab", "both", "chords"] : ["notation", "tab", "both"]) as ("notation" | "tab" | "both" | "chords")[], base.scoreDisplay === "chords" && !chordEdition(hymn) ? "both" : base.scoreDisplay || "both"),
     stanzas,
     ...("stanza" in s || "stanza" in base ? { stanza } : {}),
@@ -172,6 +184,9 @@ export function hymnSettingsFromQuery(
   if (query.has("view")) overrides.viewHands = query.get("view");
   if (query.has("display")) overrides.scoreDisplay = query.get("display");
   if (query.has("hands")) overrides.hands = query.get("hands");
+  for (const field of ["hiddenStaves", "mutedStaves"] as const)
+    if (query.has(field))
+      overrides[field] = query.get(field)!.split(",").filter(Boolean).map(Number);
   if (query.has("loopCountIn"))
     overrides.loopCountIn = query.get("loopCountIn") === "1";
   if (query.has("countIn")) overrides.countIn = Number(query.get("countIn"));

@@ -110,3 +110,7 @@
 .piano-key:is(.is-playing, .is-held, .is-sustained, .sight-key-selected, .is-right, .is-wrong, .answer-hover, :active) .piano-note-label {
   visibility: visible;
 }
+
+/* Light playback highlights need dark labels on black and white keys alike. */
+.piano-keybed .piano-key.is-playing:not(.is-held) .piano-note-label { color: #102e26; font-weight: 700; }
+.piano-keybed .black-key .piano-note-label { font-size: 11px; }

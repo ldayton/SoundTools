@@ -51,14 +51,17 @@ try {
   await page
     .getByLabel("Share diagnostic information", { exact: true })
     .waitFor();
-  // All three instrument banks must decode and sound from the verified cache after a cold navigation.
+  // All four instrument banks must decode and sound from the verified cache after a cold navigation.
   await page.addInitScript(() => {
     (window as any).offlineInstrumentStarts = 0;
     (window as any).offlineOrganStarts = 0;
+    (window as any).offlineChoirStarts = 0;
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (
       ...args: Parameters<typeof start>
     ) {
+      if (!this.loop && this.buffer?.numberOfChannels === 2)
+        (window as any).offlineChoirStarts++;
       if (this.loop) (window as any).offlineOrganStarts++;
       if (this.buffer && this.buffer.duration > 2)
         (window as any).offlineInstrumentStarts++;
@@ -79,11 +82,15 @@ try {
       () => (window as any).offlineInstrumentStarts > 0,
     );
     if (id === "in-christ-alone-2")
-      await page.waitForFunction(() => (window as any).offlineOrganStarts > 0);
+      await page.waitForFunction(
+        () =>
+          (window as any).offlineOrganStarts > 0 &&
+          (window as any).offlineChoirStarts > 0,
+      );
     await page.getByRole("button", { name: "Pause", exact: true }).click();
   }
   console.log(
-    `${engine}: SongAlong verified cache, offline hymn deep link, reload, hand settings, settings page and all three instrument voices pass`,
+    `${engine}: SongAlong verified cache, offline hymn deep link, reload, hand settings, settings page and piano, guitar and mixed choir/organ voices pass`,
   );
 } catch (error) {
   await captureFailure(browser, error);

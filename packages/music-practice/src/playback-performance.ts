@@ -1,5 +1,5 @@
 /** Instrument performance choices leave the written score and practice clock unchanged. */
-export type PlaybackInstrument = "piano" | "guitar" | "organ";
+export type PlaybackInstrument = "piano" | "guitar" | "organ" | "choir";
 export type PerformanceOptions = {
   instrument: PlaybackInstrument;
   strum?: boolean;
@@ -9,6 +9,7 @@ export type PerformanceOptions = {
   ) => { str: number; num: number } | undefined;
 };
 export type PerformanceNote = {
+  instrument?: PlaybackInstrument;
   pitch: number;
   start: number;
   duration: number;
@@ -97,5 +98,5 @@ export function pianoLayer(volume: number) {
 
 /** Bank levels preserve existing piano/guitar balance; organ samples are sustain-normalized. */
 export function playbackInstrumentGain(instrument: PlaybackInstrument) {
-  return instrument === "organ" ? 0.82 : instrument === "guitar" ? 0.34 : 1.2;
+  return instrument === "choir" ? 1.85 : instrument === "organ" ? 0.82 : instrument === "guitar" ? 0.34 : 1.2;
 }

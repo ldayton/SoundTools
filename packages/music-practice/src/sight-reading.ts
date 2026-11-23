@@ -1,3 +1,4 @@
+import { abcPlaybackStaves, legacyHiddenStaves, type PlaybackStaff } from "./hymn-playback-staves";
 import { hymnPlaybackInstrument } from "./hymn-instruments";
 import { HymnInstrumentSelector } from "./hymn-instrument-selector";
 import { printedHymnSource } from "./hymn-source";
@@ -52,6 +53,7 @@ import {
   hymnSettingsFromQuery,
   mergeHymnSettings,
   optionalHymnNote,
+  hymnPreferences,
   type HymnSettings,
 } from "./hymn-settings";
 import type { InputPolicy, Interruption } from "./live-practice";
@@ -124,6 +126,9 @@ export class SightReading {
   private scoreDisplay: "notation" | "tab" | "both" | "chords" = "both";
   private hands: HymnHands = "both";
   private viewHands: HymnHands = "both";
+  private mutedStaves: number[] = [];
+  private hiddenStaves: number[] = [];
+  private staffChoicesCache = new Map<string, PlaybackStaff[]>();
   private reattackTies = false;
   private stanzas: number[] = [1];
   private stanza = 1;
@@ -278,6 +283,8 @@ export class SightReading {
       if (Number.isInteger(saved?.octave) && Math.abs(saved!.octave!) <= 10)
         this.octave = saved!.octave;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
+      this.mutedStaves = hymnPreferences(this.hymn.id, saved).mutedStaves || [];
+      this.hiddenStaves = hymnPreferences(this.hymn.id, saved).hiddenStaves || [];
       this.stanzas = validStanzas(saved?.stanzas, this.hymn.stanzas.length);
       this.stanza = this.stanzas.includes(saved?.stanza!)
         ? saved!.stanza!
@@ -620,6 +627,8 @@ export class SightReading {
       old.scoreDisplay !== next.scoreDisplay ||
       old.hands !== next.hands ||
       old.viewHands !== next.viewHands ||
+      old.mutedStaves?.join(",") !== next.mutedStaves?.join(",") ||
+      old.hiddenStaves?.join(",") !== next.hiddenStaves?.join(",") ||
       old.reattackTies !== next.reattackTies ||
       old.stanza !== next.stanza ||
       old.stanzas?.join(",") !== next.stanzas?.join(",") ||
@@ -652,6 +661,8 @@ export class SightReading {
     this.scoreDisplay = next.scoreDisplay || "both";
     this.hands = next.hands || "both";
     this.viewHands = next.viewHands || "both";
+    this.mutedStaves = next.mutedStaves || [];
+    this.hiddenStaves = next.hiddenStaves || [];
     this.reattackTies = next.reattackTies === true;
     this.stanzas = next.stanzas || [1];
     this.stanza = next.stanza ?? this.stanzas[0] ?? 0;
@@ -679,6 +690,8 @@ export class SightReading {
       scoreDisplay: this.scoreDisplay,
       hands: this.hands,
       viewHands: this.viewHands,
+      mutedStaves: this.mutedStaves,
+      hiddenStaves: this.hiddenStaves,
       reattackTies: this.reattackTies,
       stanzas: this.stanzas,
       stanza: this.stanza,
@@ -697,6 +710,8 @@ export class SightReading {
     if (hasInstrumentEditions(this.hymn)) q.set("display", this.scoreDisplay);
     if (this.stanzas.join(",") !== "1")
       q.set("stanzas", this.stanzas.length ? this.stanzas.join(",") : "none");
+    if (this.hiddenStaves.length) q.set("hiddenStaves", this.hiddenStaves.join(","));
+    if (this.mutedStaves.length) q.set("mutedStaves", this.mutedStaves.join(","));
     if (this.reattackTies) q.set("ties", "repeat");
     if (this.countIn) q.set("countIn", String(this.countIn));
     if (this.loopCountIn) q.set("loopCountIn", "1");
@@ -757,6 +772,8 @@ export class SightReading {
     this.scoreDisplay = next.scoreDisplay || "both";
     this.hands = next.hands!;
     this.viewHands = next.viewHands!;
+    this.mutedStaves = next.mutedStaves || [];
+    this.hiddenStaves = next.hiddenStaves || [];
     this.reattackTies = next.reattackTies!;
     this.stanzas = next.stanzas || [1];
     this.stanza = next.stanza ?? this.stanzas[0] ?? 0;
@@ -896,7 +913,7 @@ export class SightReading {
         this.arrangement,
         this.sectionBars,
         this.section,
-        this.viewHands,
+        this.mode === "playback" ? "both" : this.viewHands,
         this.endingBar,
         transposition.semitones,
       );
@@ -938,6 +955,7 @@ export class SightReading {
         initialSignatures: !hasInstrumentEditions(this.hymn),
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
+        hiddenStaves: this.mode === "playback" ? this.effectiveStaves(this.hiddenStaves) : undefined,
         playback: (audio) => {
           this.sectionDuration = audio.totalDuration * 4;
           if (!layoutOnly && !continuingPlayback) {
@@ -947,7 +965,7 @@ export class SightReading {
               arrangement: this.arrangement,
               sectionBars: this.sectionBars,
               section: this.section,
-              hands: this.viewHands,
+              hands: this.mode === "playback" ? "both" : this.viewHands,
               totalBars: score.totalBars,
               sections: this.sections,
               abc: score.abc,
@@ -955,6 +973,7 @@ export class SightReading {
               transpose: transposition.semitones,
               endingBar: this.endingBar,
               stanzas: this.stanzas,
+              mutedStaves: this.effectiveStaves(this.mutedStaves),
             });
             this.playbackVerses = prepared.verses;
             const guitar = isGuitarArrangement(this.arrangement);
@@ -1133,6 +1152,18 @@ export class SightReading {
       this.acceptanceChanged();
     }
   }
+  private staffChoices() {
+    const key = `${this.hymn.id}:${this.arrangement}`;
+    let choices=this.staffChoicesCache.get(key);
+    if(!choices) {
+      choices=abcPlaybackStaves(arrangeHymn(this.hymn,this.arrangement,0,0,"both").abc);
+      this.staffChoicesCache.set(key,choices);
+    }
+    return choices;
+  }
+  private effectiveStaves(indices: readonly number[]) {
+    return [...new Set([...indices,...legacyHiddenStaves(this.staffChoices(),this.viewHands)])].sort((a,b)=>a-b);
+  }
   private publishOptions() {
     this.options.set(this.optionsSnapshot());
     setPracticeOptionsTitle(
@@ -1146,6 +1177,7 @@ export class SightReading {
     const printed = this.hymn.source === "user-supplied-score";
     return {
       hymn: this.hymn.id,
+      playbackStaves: this.staffChoices(),
       favorites: { ...this.progress.favorites },
       key: this.key,
       octave: this.octave ?? 0,
@@ -1157,6 +1189,8 @@ export class SightReading {
       scoreDisplay: this.scoreDisplay,
       hands: this.hands,
       viewHands: this.viewHands,
+      mutedStaves: this.effectiveStaves(this.mutedStaves),
+      hiddenStaves: this.effectiveStaves(this.hiddenStaves),
       reattackTies: this.reattackTies,
       stanzas: this.stanzas,
       zoom: this.zoom,
@@ -1247,7 +1281,18 @@ export class SightReading {
       }
       return;
     }
-    if (patch.stanzas !== undefined) {
+    if (patch.mutedStaves !== undefined || patch.hiddenStaves !== undefined) {
+      const time = this.playback.displayPosition;
+      const state = this.playback.state;
+      this.interrupt("controls");
+      this.viewHands = next.viewHands!;
+      this.mutedStaves = next.mutedStaves || [];
+      this.hiddenStaves = next.hiddenStaves || [];
+      this.restorePending = false;
+      this.render();
+      this.playback.seek(time, state === "paused" ? "paused" : "ready");
+      if (["playing", "loading", "counting"].includes(state)) void this.playback.play(this.bpm, 0);
+    } else if (patch.stanzas !== undefined) {
       const oldStanza = this.stanza;
       const time = Math.max(
         0,
@@ -1318,6 +1363,8 @@ export class SightReading {
       this.arrangement = next.arrangement;
       this.scoreDisplay = next.scoreDisplay || "both";
       this.viewHands = next.viewHands!;
+    this.mutedStaves = next.mutedStaves || [];
+    this.hiddenStaves = next.hiddenStaves || [];
       this.hands = next.hands!;
       this.restoreSection();
       this.restorePending = true;

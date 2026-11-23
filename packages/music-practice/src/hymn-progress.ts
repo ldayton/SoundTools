@@ -16,6 +16,8 @@ export type HymnState = {
   bpm?: number;
   countIn?: CountInBars;
   loopCountIn?: boolean;
+  mutedStaves?: number[];
+  hiddenStaves?: number[];
   key?: HymnKey;
   octave?: number;
   low?: number | null;

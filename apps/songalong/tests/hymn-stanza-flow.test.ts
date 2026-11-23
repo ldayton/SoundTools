@@ -79,7 +79,7 @@ test("checked stanzas form an ordered, gapless timeline with unchanged verse and
       const sort = (notes: typeof expected) =>
         notes.sort((a, b) => a.start - b.start || a.pitch - b.pitch);
       assert.deepEqual(
-        sort(playbackNotes(plan.audio)),
+        sort(playbackNotes(plan.audio).map(({instrument, ...written})=>written)),
         sort(expected),
         h.id + id,
       );

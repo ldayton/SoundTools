@@ -1,0 +1,111 @@
+{
+  "name": "epic-choir alto ah",
+  "license": "CC-BY-4.0",
+  "sampleRate": 24000,
+  "normalization": {
+    "sustainRmsDb": -26,
+    "samplePeakCeilingDb": -6
+  },
+  "samples": [
+    {
+      "file": "choir-ah-58.flac",
+      "pitch": 58,
+      "low": 57,
+      "high": 59,
+      "rmsDb": -26.000029735686173,
+      "peak": 0.23126220703125,
+      "duration": 7.203375,
+      "gainDb": -6.281241698441478
+    },
+    {
+      "file": "choir-ah-60.flac",
+      "pitch": 60,
+      "low": 60,
+      "high": 61,
+      "rmsDb": -26.000035084313865,
+      "peak": 0.2762451171875,
+      "duration": 7.58475,
+      "gainDb": -7.2647770832605545
+    },
+    {
+      "file": "choir-ah-62.flac",
+      "pitch": 62,
+      "low": 62,
+      "high": 63,
+      "rmsDb": -26.000035726024166,
+      "peak": 0.247039794921875,
+      "duration": 7.509375,
+      "gainDb": -7.246854908474846
+    },
+    {
+      "file": "choir-ah-64.flac",
+      "pitch": 64,
+      "low": 64,
+      "high": 65,
+      "rmsDb": -26.00001470686578,
+      "peak": 0.23907470703125,
+      "duration": 7.464875,
+      "gainDb": -7.9045703465001536
+    },
+    {
+      "file": "choir-ah-66.flac",
+      "pitch": 66,
+      "low": 66,
+      "high": 67,
+      "rmsDb": -26.000020861694352,
+      "peak": 0.2598876953125,
+      "duration": 6.586291666666667,
+      "gainDb": -8.040451297979306
+    },
+    {
+      "file": "choir-ah-68.flac",
+      "pitch": 68,
+      "low": 68,
+      "high": 69,
+      "rmsDb": -26.00000888329845,
+      "peak": 0.238739013671875,
+      "duration": 6.581416666666667,
+      "gainDb": -8.897370425423661
+    },
+    {
+      "file": "choir-ah-70.flac",
+      "pitch": 70,
+      "low": 70,
+      "high": 71,
+      "rmsDb": -26.00001113881529,
+      "peak": 0.256744384765625,
+      "duration": 6.585833333333333,
+      "gainDb": -10.272099317076027
+    },
+    {
+      "file": "choir-ah-72.flac",
+      "pitch": 72,
+      "low": 72,
+      "high": 73,
+      "rmsDb": -26.000010738943693,
+      "peak": 0.219818115234375,
+      "duration": 7.026,
+      "gainDb": -8.967401961502663
+    },
+    {
+      "file": "choir-ah-74.flac",
+      "pitch": 74,
+      "low": 74,
+      "high": 75,
+      "rmsDb": -26.000011854944482,
+      "peak": 0.24688720703125,
+      "duration": 7.005125,
+      "gainDb": -10.326372818378802
+    },
+    {
+      "file": "choir-ah-76.flac",
+      "pitch": 76,
+      "low": 76,
+      "high": 77,
+      "rmsDb": -26.000007908209458,
+      "peak": 0.2392578125,
+      "duration": 6.823916666666666,
+      "gainDb": -10.530761846233377
+    }
+  ]
+}

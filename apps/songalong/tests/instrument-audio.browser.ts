@@ -116,6 +116,7 @@ try {
             : /acoustic-|folk-steel-/.test(url),
       ),
     );
+    if (organ) assert.ok(requests.some(url=>/choir-ah-\d+-/.test(url)), "human choir samples loaded alongside organ");
     if (arrangement === "piano") {
       for (const layer of [4, 8, 12])
         assert.ok(

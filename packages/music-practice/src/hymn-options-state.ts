@@ -14,6 +14,8 @@ export type HymnOptionsChange = Partial<
     | "bpm"
     | "countIn"
     | "loopCountIn"
+    | "mutedStaves"
+    | "hiddenStaves"
     | "arrangement"
     | "scoreDisplay"
     | "viewHands"
@@ -23,6 +25,7 @@ export type HymnOptionsChange = Partial<
   >
 > & { zoom?: number; fingerings?: boolean; staffSpacing?: number };
 export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
+  playbackStaves: {index:number; label:string}[];
   favorites: Readonly<Record<string, boolean>>;
   stanzaChoices: { number: number; label: string }[];
   searchOpen: boolean;

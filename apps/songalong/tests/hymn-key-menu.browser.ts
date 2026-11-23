@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+import { selectedHymnRange } from "../../../packages/music-practice/browser-tests/helpers";
 import {
   playbackHymn,
   playbackSourceKey,
@@ -74,16 +76,8 @@ try {
       base + `/piano/hymns/${playbackHymn.id}?key=B&low=38&high=91`,
     );
     await openPracticeOptions(page);
-    const selectedRange = page.locator(".hymn-key-range");
-    await selectedRange
-      .filter({ hasText: lowRange })
-      .waitFor({ state: "attached" });
     const field = page.locator("#hymn-key");
-    assert.equal(
-      await field.inputValue(),
-      "B major",
-      "Closed field has no range",
-    );
+    await expect(field).toHaveValue(`B major (${lowRange})`);
     let options = await hymnKeyOptions(page);
     assert.equal(options.length, 13);
     assert(options.every((option) => option.range && !option.disabled));
@@ -94,19 +88,19 @@ try {
     for (const option of options) {
       await practiceOption(page, "#hymn-key", option.value!);
       assert.equal(
-        await selectedRange.textContent(),
+        await selectedHymnRange(page),
         option.range,
         "Preview matches the chosen octave",
       );
       assert(
-        !/\d/.test(await field.inputValue()),
-        "Selected label never contains octave numbers",
+        (await field.inputValue()).endsWith(`(${option.range})`),
+        "Selected label includes the chosen note range",
       );
     }
     await page.locator("#hymn-octave-up").click();
     await practiceOption(page, "#hymn-key", "B");
     assert.equal(
-      await selectedRange.textContent(),
+      await selectedHymnRange(page),
       lowRange,
       "Reselecting a key uses its previewed lowest octave",
     );
@@ -151,11 +145,14 @@ try {
     await field.press("Enter");
     assert.equal(
       await field.inputValue(),
-      hymnKeyLabel(playbackFittedKey),
+      `${hymnKeyLabel(playbackFittedKey)} (${playbackRangeLabel(playbackFittedKey)})`,
       "Keyboard skips excluded keys",
     );
 
-    const group = page.getByRole("group", { name: "Key & range", exact: true });
+    const group = page.getByRole("region", {
+      name: "Key & range",
+      exact: true,
+    });
     assert.equal(await group.locator("#hymn-key").count(), 1);
     assert.equal(await group.locator("#hymn-low").count(), 1);
     assert.equal(await group.locator("#hymn-high").count(), 1);
@@ -172,7 +169,7 @@ try {
     assert.deepEqual(errors, []);
     await context.close();
     console.log(
-      `${engine} ${device}: menu ranges, disabled entries, lowest octaves, plain selected labels and grouped controls passed`,
+      `${engine} ${device}: menu ranges, disabled entries, lowest octaves, selected labels with ranges and grouped controls passed`,
     );
   }
 } catch (error) {

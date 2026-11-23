@@ -25,7 +25,8 @@
     "source": "user-supplied-score",
     "sourceDetails": "Printed choir and organ teacher arrangement transcribed from two user-supplied photographs, 23 November 2026; teacher chord letters included using the fullest suggestions; other pencil annotations excluded.",
     "defaultArrangement": "original",
-    "accompanimentInstrument": "organ"
+    "accompanimentInstrument": "organ",
+    "vocalTracks": [0]
   },
   {
     "id": "jesus-loves-me",

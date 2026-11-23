@@ -275,7 +275,7 @@ export async function preparePianoPlayback(
         ...new Map(
           notes.map((note) => {
             const sample = playbackSample(
-              instrument,
+              note.instrument || instrument,
               note.pitch,
               note.volume,
               note.string,
@@ -325,10 +325,11 @@ export async function preparePianoPlayback(
       string = -1,
       delay = 0,
       attackGain = 1,
+      voiceInstrument: PlaybackInstrument = instrument,
     ) {
       if (disabled) return;
       const sample = playbackSample(
-          instrument,
+          voiceInstrument,
           midi,
           volume,
           string < 0 ? undefined : string,
@@ -344,13 +345,13 @@ export async function preparePianoPlayback(
       }
       // Recorded layers already carry their own dynamics; retain gentle level shaping.
       const level =
-        playbackInstrumentGain(instrument) *
+        playbackInstrumentGain(voiceInstrument) *
         Math.sqrt(Math.max(0, Math.min(1, volume))) *
         attackGain;
       // Preserve the recorded decay; release early when the written note ends.
       const writtenEnd = when + Math.max(0.02, duration);
       // A short physical release replaces the old hard gate; no automatic pedal over rests.
-      const release = instrument === "piano" ? 0.12 : instrument === "organ" ? 0.08 : 0.045;
+      const release = voiceInstrument === "piano" ? 0.12 : voiceInstrument === "organ" ? 0.08 : voiceInstrument === "choir" ? 0.16 : 0.045;
       when += Math.min(delay, Math.max(0, duration - 0.015));
       const end = Math.max(when + 0.02, writtenEnd) + release;
       gain.gain.setValueAtTime(0, when);

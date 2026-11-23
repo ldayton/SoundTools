@@ -434,3 +434,7 @@
 }
 .hymn-strum-count { font-size: 0.875rem; }
 .hymn-strum-stroke { font-size: 1.25rem; line-height: 1.4; }
+
+.hymn-staff-table { table-layout: fixed; width: 100%; }
+.hymn-staff-table th:first-child { width: 60%; }
+.hymn-staff-table td, .hymn-staff-table th { padding: 6px 4px; overflow-wrap: anywhere; }

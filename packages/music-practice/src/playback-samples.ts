@@ -1,3 +1,6 @@
+import choirManifest from "./assets/songalong-choir/manifest.json";
+import choirNotice from "./assets/songalong-choir/NOTICE.txt?url";
+import choirAudit from "./assets/songalong-choir/source-sha256.json?url";
 import organManifest from "./assets/songalong-organ/manifest.json";
 import organNotice from "./assets/songalong-organ/NOTICE.txt?url";
 import organAudit from "./assets/songalong-organ/source-sha256.json?url";
@@ -15,6 +18,8 @@ export const playbackCredits = [
   guitarAudit,
   organNotice,
   organAudit,
+  choirNotice,
+  choirAudit,
 ];
 const pianoFiles = import.meta.glob<string>("./assets/songalong-piano/*.flac", {
   eager: true,
@@ -42,6 +47,18 @@ const organFiles = import.meta.glob<string>("./assets/songalong-organ/*.flac", {
   eager: true,
   query: "?url",
   import: "default",
+});
+const choirFiles = import.meta.glob<string>("./assets/songalong-choir/*.flac", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+const choir: PlaybackSample[] = choirManifest.samples.map((sample) => {
+  const file = Object.keys(choirFiles).find((path) =>
+    path.endsWith("/" + sample.file),
+  );
+  if (!file) throw Error(`Missing choir recording: ${sample.file}`);
+  return { ...sample, url: choirFiles[file], layer: 0 };
 });
 const organ: PlaybackSample[] = organManifest.samples.map((sample) => {
   const file = Object.keys(organFiles).find((path) =>
@@ -77,7 +94,7 @@ export function playbackSample(
   string?: number,
 ): PlaybackSample {
   const layer =
-    instrument === "organ"
+    instrument === "organ" || instrument === "choir"
       ? 0
       : instrument === "piano"
         ? pianoLayer(volume)
@@ -85,10 +102,16 @@ export function playbackSample(
           ? 40
           : 72;
   const bank = (
-    instrument === "organ" ? organ : instrument === "piano" ? piano : guitar
+    instrument === "choir"
+      ? choir
+      : instrument === "organ"
+        ? organ
+        : instrument === "piano"
+          ? piano
+          : guitar
   ).filter((s) => s.layer === layer);
   const zone =
-    instrument === "organ"
+    instrument === "organ" || instrument === "choir"
       ? bank.find((s) => pitch >= s.low! && pitch <= s.high!)
       : undefined;
   if (zone) return zone;

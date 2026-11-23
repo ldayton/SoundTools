@@ -1,3 +1,4 @@
+import choir from "../../../packages/music-practice/src/assets/songalong-choir/manifest.json";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
@@ -54,5 +55,15 @@ test("bundled organ roots have normalized sustain audit, safe peaks and valid re
     assert.ok(sample.loopStart >= 0 && sample.loopEnd > sample.loopStart);
     assert.ok(Math.abs(sample.rmsDb - -26) < 0.05);
     assert.ok(sample.peak < 0.502);
+  }
+});
+
+test("epic choir ah roots are level-normalized and retain enough vowel sustain for this melody", () => {
+  assert.equal(choir.license, "CC-BY-4.0");
+  assert.equal(choir.samples.length, 10);
+  for (const sample of choir.samples) {
+    assert.ok(Math.abs(sample.rmsDb - -26) < 0.05);
+    assert.ok(sample.peak < 0.502);
+    assert.ok(sample.duration > 4);
   }
 });

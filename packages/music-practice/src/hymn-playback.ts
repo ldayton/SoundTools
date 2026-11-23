@@ -2,6 +2,7 @@ import {
   performNotes,
   type PerformanceNote,
   type PerformanceOptions,
+  type PlaybackInstrument,
 } from "./playback-performance";
 import {
   countInPlan,
@@ -23,6 +24,7 @@ export function playbackNotes(audio: AudioTracks) {
                 start: item.start * 4,
                 duration: item.duration * 4,
                 volume: item.volume / 127,
+                ...((item as typeof item & {playbackInstrument?:PlaybackInstrument}).playbackInstrument ? {instrument:(item as typeof item & {playbackInstrument:PlaybackInstrument}).playbackInstrument} : {}),
               },
             ]
           : [],
@@ -255,6 +257,7 @@ export class HymnPlayback {
             n.string ?? -1,
             n.delay ?? 0,
             n.gain ?? 1,
+            n.instrument,
           );
         }
         if (this.state === "complete" || this.displayPosition >= this.finish) {

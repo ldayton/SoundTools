@@ -32,6 +32,7 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Table,
 } from "@mantine/core";
 import {
   hasInstrumentEditions,
@@ -78,6 +79,8 @@ export function HymnOptions({
     ...HYMN_KEYS.map((key) => ({ value: key, label: hymnKeyLabel(key) })),
   ].map((key) => ({
     ...key,
+    shortLabel: key.label,
+    label: `${key.label}${(key.value === state.key ? state.range : state.keyRanges[key.value as HymnKey]) ? ` (${key.value === state.key ? state.range : state.keyRanges[key.value as HymnKey]})` : ""}`,
     disabled: !state.availableKeys.includes(key.value as HymnKey),
   }));
   return (
@@ -121,11 +124,8 @@ export function HymnOptions({
           <Text size="sm">Sounding key: {state.originalKey} major</Text>
           <Text size="sm">Chord shapes: {profile?.shapes}</Text>
         </Stack>
-      </Fieldset> : <Fieldset legend="Key & range" p="sm">
+      </Fieldset> : <OptionsSection title="Key & range">
         <Stack gap="xs">
-          <Text size="xs" c="dimmed">
-            Melody limits (optional)
-          </Text>
           <SimpleGrid cols={2} spacing="xs">
             {(["low", "high"] as const).map((bound) => (
               <HymnPitchField
@@ -153,7 +153,7 @@ export function HymnOptions({
                   {checked && <CheckIcon size={12} />}
                 </span>
                 <Text component="span" size="sm">
-                  {option.label}
+                  {keys.find(key=>key.value===option.value)?.shortLabel || option.label}
                 </Text>
                 <Text
                   component="span"
@@ -168,15 +168,6 @@ export function HymnOptions({
               </Group>
             )}
           />
-          <Text
-            className="hymn-key-range"
-            size="xs"
-            c="dimmed"
-            aria-live="polite"
-            hidden={state.noMatchingKey}
-          >
-            {state.range}
-          </Text>
           <Group gap="xs" grow>
             <Button
               id="hymn-octave-down"
@@ -202,7 +193,20 @@ export function HymnOptions({
             </Button>
           </Group>
         </Stack>
-      </Fieldset>}
+      </OptionsSection>}
+      {state.mode === "playback" && <OptionsSection title="Staves">
+        <Table className="hymn-staff-table" aria-label="Playback staves">
+          <Table.Thead><Table.Tr><Table.Th>Staff</Table.Th><Table.Th>Show</Table.Th><Table.Th>Play</Table.Th></Table.Tr></Table.Thead>
+          <Table.Tbody>{state.playbackStaves.map(staff=><Table.Tr key={staff.index}>
+            <Table.Td>{staff.label}</Table.Td>
+            {(["hiddenStaves","mutedStaves"] as const).map((field,index)=><Table.Td key={field}>
+              <Checkbox aria-label={`${index===0 ? "Show" : "Play"} ${staff.label}`} checked={!state[field].includes(staff.index)}
+                onChange={event=>change({viewHands:"both",hiddenStaves:state.hiddenStaves,mutedStaves:state.mutedStaves,
+                  [field]:event.currentTarget.checked ? state[field].filter(n=>n!==staff.index) : [...state[field],staff.index]})}/>
+            </Table.Td>)}
+          </Table.Tr>)}</Table.Tbody>
+        </Table>
+      </OptionsSection>}
       {(!editions || state.stanzaChoices.length>1) && (state.arrangement === "melody" ||
         isGuitarArrangement(state.arrangement) ||
         state.viewHands !== "left") && (
@@ -289,7 +293,7 @@ export function HymnOptions({
             data={arrangements.map(arrangement=>({value:arrangement.id,label:arrangement.label}))}
             onChange={event=>change({arrangement:event.currentTarget.value as Arrangement})}/>
         )}
-        {state.arrangement !== "melody" &&
+        {state.mode === "wait" && state.arrangement !== "melody" &&
           !isGuitarArrangement(state.arrangement) && (
             <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">
               <NativeSelect

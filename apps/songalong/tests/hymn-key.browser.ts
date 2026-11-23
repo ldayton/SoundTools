@@ -1,3 +1,4 @@
+import { selectedHymnRange } from "../../../packages/music-practice/browser-tests/helpers";
 import {
   playbackHymn,
   playbackAttacks,
@@ -96,7 +97,7 @@ try {
     "original",
   );
   assert.equal(
-    await page.locator(".hymn-key-range").textContent(),
+    await selectedHymnRange(page),
     playbackRangeLabel("original"),
   );
   await midiAction(page, "Connect MIDI keyboard");
@@ -147,7 +148,7 @@ try {
     "hints allow an immediate retry",
   );
   assert.equal(
-    await page.locator(".hymn-key-range").textContent(),
+    await selectedHymnRange(page),
     playbackRangeLabel("A"),
   );
   await page.setViewportSize({ width: 390, height: 844 });
@@ -238,7 +239,7 @@ try {
     for (const key of ["Bb", "F#"]) {
       await practiceOption(page, "#hymn-key", key);
       assert.equal(
-        await page.locator(".hymn-key-range").textContent(),
+        await selectedHymnRange(page),
         playbackRangeLabel(key as "Bb" | "F#"),
         `${arrangement} reports melody only, even with harmony visible`,
       );
@@ -274,12 +275,12 @@ try {
   );
   await practiceOption(page, "#hymn-key", "Db");
   assert.equal(
-    await page.locator(".hymn-key-range").textContent(),
+    await selectedHymnRange(page),
     playbackRangeLabel("Db"),
   );
   await practiceOption(page, "#hymn-key", "B");
   assert.equal(
-    await page.locator(".hymn-key-range").textContent(),
+    await selectedHymnRange(page),
     playbackRangeLabel("B"),
   );
   await practiceOption(page, "#hymn-key", "F");

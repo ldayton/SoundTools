@@ -3,10 +3,12 @@ import { instrumentEdition } from "./instrument-editions";
 import { abcPlaybackStaves, mutePlaybackStaves } from "./hymn-playback-staves";
 import { chordEdition, capoAudio } from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
+import { guitarSustainAudio, type GuitarSustainEvent } from "./guitar-sustain";
 import abcjs, { type AudioTracks, type VoiceItem } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
+  isGuitarArrangement,
   guitarMidiOffset,
   type Arrangement,
   type HymnHands,
@@ -49,7 +51,8 @@ export function hymnPlaybackScore(options: {
           : track,
       ),
     };
-    return mutePlaybackStaves(voiced, staves, options.mutedStaves || []);
+    const resonant = isGuitarArrangement(options.arrangement) ? guitarSustainAudio(voiced, abc, options.hymn.feel === "swing") : voiced;
+    return mutePlaybackStaves(resonant, staves, options.mutedStaves || []);
   };
   const readAudio = (abc: string) => {
     const capoEdition = options.arrangement === "guitar-edition";
@@ -123,7 +126,8 @@ export function hymnPlaybackScore(options: {
               AudioTracks["tracks"][number][number]
             >((item) =>
               item.cmd === "note"
-                ? [{ ...item, start: item.start + start / 4 }]
+                ? [{ ...item, start: item.start + start / 4,
+                    ...((item as GuitarSustainEvent).guitarRingUntil !== undefined ? {guitarRingUntil: (item as GuitarSustainEvent).guitarRingUntil! + start / 4} : {}) }]
                 : pass === 0
                   ? [item]
                   : [],

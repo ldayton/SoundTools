@@ -3,6 +3,7 @@ import type {CapoChoice} from "./guitar-capo";
 import { voicePianoAbc } from "./voice-piano";
 import { vocalHarmonyGuides } from "./vocal-harmony-guides";
 import {compactPianoHands} from "./piano-voicing";
+import {markGuitarLetRing} from "./guitar-sustain";
 import { teacherInstrumentAbc, teacherVocalAbc } from "./in-christ-alone";
 import {chordEdition,instrumentEdition} from "./instrument-editions";
 import {engraveEdition,selectEditionVoice,isGuitarPositionMark} from "./edition-score";
@@ -277,6 +278,7 @@ export function arrangeHymn(
     let abc = preserveVoices ? selectEditionVoice(score.abc, hands) : score.abc;
     abc = engraveEdition(abc, guitar, edition.guitarNotation, hands);
     if (edition.landmarks) abc = edition.landmarks(abc, score.from, guitar);
+    if (guitar && score.from === 0) abc = markGuitarLetRing(abc);
     return {...score, abc};
   }
   if (

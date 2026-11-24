@@ -10,6 +10,7 @@ import {
   type HymnTiming,
 } from "./hymn-count-in";
 import type { AudioTracks } from "abcjs";
+import type { GuitarSustainEvent } from "./guitar-sustain";
 import type { preparePianoPlayback } from "./piano-audio";
 
 export function playbackNotes(audio: AudioTracks) {
@@ -24,6 +25,7 @@ export function playbackNotes(audio: AudioTracks) {
                 start: item.start * 4,
                 duration: item.duration * 4,
                 volume: item.volume / 127,
+                ...((item as GuitarSustainEvent).guitarRingUntil !== undefined ? {ringUntil: (item as GuitarSustainEvent).guitarRingUntil! * 4} : {}),
                 ...((item as typeof item & {playbackInstrument?:PlaybackInstrument}).playbackInstrument ? {instrument:(item as typeof item & {playbackInstrument:PlaybackInstrument}).playbackInstrument} : {}),
               },
             ]

@@ -12,6 +12,9 @@ import {
   jesusFingers,
 } from "../../../packages/music-practice/src/jesus-loves-me";
 import { capoAudio } from "../../../packages/music-practice/src/chord-editions";
+import { hymnPlaybackScore } from "../../../packages/music-practice/src/hymn-playback-score";
+import { playbackNotes } from "../../../packages/music-practice/src/hymn-playback";
+import { performNotes } from "../../../packages/music-practice/src/playback-performance";
 const hymn = hymns.find((h) => h.slug === "jesus-loves-me")!;
 function read(abc: string, capo = 0) {
   const tune = abcjs.parseOnly(abc)[0];
@@ -252,4 +255,27 @@ test("three verses schedule gaplessly and apply capo exactly once", async () => 
     ),
     [58],
   );
+});
+
+test("solo guitar lets the opening G ring over the two E plucks, clears G7, and ends each stanza cleanly", () => {
+  const score=arrangeHymn(hymn,"guitar-edition",0);
+  assert(score.abc.includes('"^Let ring"'));
+  const prepared=hymnPlaybackScore({hymn,arrangement:"guitar-edition",sectionBars:0,section:0,hands:"both",totalBars:16,sections:1,abc:score.abc,audio:read(score.abc,3).audio,transpose:0,stanzas:[1,2,3]});
+  const source=playbackNotes(prepared.audio);
+  const played=performNotes(source,{instrument:"guitar",positionFor:p=>jesusPosition(p-3,true)});
+  for(const offset of [0,64,128]){
+    const opening=played.find(n=>n.start===offset && n.pitch===58)!;
+    assert.equal(opening.duration,3,"G-string melody rings to the G7 change");
+    assert.equal(source.find(n=>n.start===offset && n.pitch===58)!.duration,1,"engraved quarter note stays a quarter note");
+    assert.equal(played.find(n=>n.start===offset+1 && n.pitch===55)!.duration,1,"E is replucked on the same string");
+    assert.equal(played.find(n=>n.start===offset+2 && n.pitch===55)!.duration,1,"inner note clears at G7");
+    const phrase=played.filter(n=>n.start>=offset && n.start<offset+64);
+    assert(phrase.every(n=>n.start+n.duration<=offset+64+1e-7));
+    for(const t of new Set(phrase.map(n=>n.start))){
+      const active=phrase.filter(n=>n.start<=t && n.start+n.duration>t+1e-7);
+      assert.equal(new Set(active.map(n=>n.string)).size,active.length,`String collision at ${t}`);
+      const frets=active.filter(n=>n.fret!>3).map(n=>n.fret!-3);
+      assert(new Set(frets).size<=4 && (!frets.length || Math.max(...frets)-Math.min(...frets)<=3),`Unplayable held shape at ${t}`);
+    }
+  }
 });

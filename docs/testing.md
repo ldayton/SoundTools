@@ -520,3 +520,18 @@ covers per-score staff choices and unique key choices. Nightly's song-memory and
 key-menu witnesses cover guest windows, saved octaves and responsive menus;
 tests/accounts.browser.mts covers real signed-in link restore and replication on
 both engines. These extend existing command owners, without new lanes or aliases.
+
+## Guitar resonance
+
+Written rhythm and sounding string duration are separate. Solo guitar scores
+carry a Let ring instruction; playback allows separate strings to resonate until
+replayed, a changed harmony, that voice's rest, or the phrase/score end. Detached
+articulations retain their written release. Piano and singer durations stay intact.
+`playback-performance.test.ts` owns independent sustain, string-reuse, rest,
+repeat and swing expectations; `jesus-loves-me-editions.test.ts` owns the opening
+G/E overlap, G7 release, held-shape feasibility and three-stanza endings.
+`instrument-edition-contract.test.ts` checks the complete registry without
+changing written music. CI's existing `guitar.browser.ts` observes actual browser
+sample scheduling and the printed instruction for every registered solo guitar
+edition. Existing instrument-audio and edition browser checks retain PCM and
+responsive notation coverage. No new lane or alias is needed.

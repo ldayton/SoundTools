@@ -14,6 +14,8 @@ export type PerformanceNote = {
   pitch: number;
   start: number;
   duration: number;
+  /** Sounding end for let-ring guitar; independent of the written duration. */
+  ringUntil?: number;
   volume: number;
   string?: number;
   fret?: number;
@@ -67,22 +69,16 @@ export function performNotes(
           ? [string]
           : [],
       );
-      // Respect edition positions; otherwise prefer low frets and unoccupied strings.
+      // Respect edition positions; otherwise stay in the lowest available
+      // position. Replaying a ringing string is preferable to jumping far up
+      // the neck solely to preserve its previous note.
       const string =
         preferred !== undefined && candidates.includes(preferred)
           ? preferred
-          : candidates.sort((a, b) => {
-              const cost = (s: number) =>
-                note.pitch -
-                guitarTuning[s] +
-                ((ringing.get(s)?.start ?? -Infinity) +
-                  (ringing.get(s)?.duration ?? 0) >
-                note.start
-                  ? 20
-                  : 0);
-              return cost(a) - cost(b);
-            })[0];
+          : candidates.sort((a, b) => (note.pitch - guitarTuning[a]) - (note.pitch - guitarTuning[b]))[0];
       if (string === undefined) continue; // Out-of-range music still sounds at its written pitch.
+      if (note.ringUntil !== undefined)
+        note.duration = Math.max(note.duration, note.ringUntil - note.start);
       note.string = string;
       note.fret = note.pitch - guitarTuning[string];
       used.add(string);

@@ -2,6 +2,14 @@ import {practiceHymn,selectSingleCapoPracticeHymn} from "../../../packages/music
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
+import abcjs from "abcjs";
+import hymns from "../../../packages/music-practice/src/hymns.json";
+import { instrumentEditionIds, instrumentEdition, chordEdition } from "../../../packages/music-practice/src/instrument-editions";
+import { arrangeHymn } from "../../../packages/music-practice/src/hymn-arrangements";
+import { guitarSustainAudio } from "../../../packages/music-practice/src/guitar-sustain";
+import { capoAudio } from "../../../packages/music-practice/src/edition-score";
+import { playbackNotes } from "../../../packages/music-practice/src/hymn-playback";
+import { performNotes } from "../../../packages/music-practice/src/playback-performance";
 import {
   launchBrowser,
   newPage,
@@ -104,6 +112,45 @@ try {
       `PASS Guitar legacy-link migration and independent display ${width}px`,
     );
   }
+  // Real scheduling witnesses for every registry entry. Expected sustain math
+  // has independent melody, rest, harmony, repeat and string-reuse unit goldens.
+  const audioPage=await newPage(browser,{viewport:{width:1440,height:1000}});
+  const audioErrors:string[]=[];audioPage.on("pageerror",e=>audioErrors.push(e.message));
+  await audioPage.addInitScript(()=>{
+    const state=((window as any).guitarSustainProbe={notes:[] as {when:number;end?:number}[]});
+    const sources=new WeakMap<AudioBufferSourceNode,{when:number;end?:number}>();
+    const start=AudioBufferSourceNode.prototype.start,stop=AudioBufferSourceNode.prototype.stop;
+    AudioBufferSourceNode.prototype.start=function(...args:Parameters<typeof start>){
+      if(this.context instanceof AudioContext){const note={when:args[0]||0};sources.set(this,note);state.notes.push(note);}
+      return start.apply(this,args);
+    };
+    AudioBufferSourceNode.prototype.stop=function(...args:Parameters<typeof stop>){
+      const note=sources.get(this);if(note && note.end===undefined)note.end=args[0];
+      return stop.apply(this,args);
+    };
+  });
+  for(const id of instrumentEditionIds){
+    const hymn=hymns.find(h=>h.id===id)!,edition=instrumentEdition(hymn)!,capo=chordEdition(hymn)?.capo||0;
+    const abc=arrangeHymn(hymn,edition.guitarArrangement,0).abc;
+    const audio=capoAudio(abcjs.parseOnly(abc)[0].setUpAudio({qpm:60,chordsOff:true}),edition.guitarArrangement==="guitar-edition"?capo:0);
+    const expected=performNotes(playbackNotes(guitarSustainAudio(audio,abc)),{instrument:"guitar",positionFor:(p,chord)=>chordEdition(hymn)?.position(p-capo,chord,0)});
+    const first=Math.min(...expected.map(n=>n.start));
+    const durations=expected.filter(n=>n.start===first).map(n=>n.duration*.5+.045+.01).sort((a,b)=>a-b);
+    await audioPage.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=notation&mode=playback&tempo=120&countIn=0&key=original&octave=0`);
+    await expect(audioPage.locator(".hymn-paper")).toContainText("Let ring");
+    await dismissPracticeDrawer(audioPage);
+    await audioPage.getByRole("button",{name:"Play",exact:true}).click();
+    await audioPage.waitForFunction(count=>(window as any).guitarSustainProbe.notes.filter((n:any)=>n.end!==undefined).length>=count,durations.length);
+    const actual=await audioPage.evaluate(()=>{
+      const notes=(window as any).guitarSustainProbe.notes,first=Math.min(...notes.map((n:any)=>n.when));
+      return notes.filter((n:any)=>Math.abs(n.when-first)<.001).map((n:any)=>n.end-n.when).sort((a:number,b:number)=>a-b);
+    });
+    assert.equal(actual.length,durations.length,hymn.slug);
+    actual.forEach((duration:number,i:number)=>assert(Math.abs(duration-durations[i])<.015,`${hymn.slug}: scheduled ${duration}, expected ${durations[i]}`));
+    await audioPage.getByRole("button",{name:"Pause",exact:true}).click();
+  }
+  assert.deepEqual(audioErrors,[]);await audioPage.close();
+  console.log("PASS: every guitar edition displays let ring and schedules its sounding duration");
 } catch (e) {
   await captureFailure(browser, e);
   throw e;

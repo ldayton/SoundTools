@@ -13,6 +13,9 @@ import {
   instrumentEdition,
   chordEdition,
 } from "../../../packages/music-practice/src/instrument-editions";
+import { guitarSustainAudio } from "../../../packages/music-practice/src/guitar-sustain";
+import { playbackNotes } from "../../../packages/music-practice/src/hymn-playback";
+import { performNotes } from "../../../packages/music-practice/src/playback-performance";
 // Freeze unchanged reviewed music, rather than generated ABC whitespace.
 // In Christ Alone is owned by its independent teacher/photo and edition goldens.
 // Guitar + Voice is new music, independently checked by guitar-voice.test.ts.
@@ -67,7 +70,10 @@ for (const [id, expected] of Object.entries(musicalBaseline))
                         state.time,
                         n.duration,
                         !!n.rest,
-                        n.chord?.map((c: { name: string }) => c.name) || [],
+                        // The new performance instruction does not change the
+                        // frozen notes, harmonies, positions or phrase marks.
+                        n.chord?.filter((c: {name: string; position?: string}) => !(c.name === "Let ring" && c.position === "above"))
+                          .map((c: { name: string }) => c.name) || [],
                         n.pitches?.map((p) => [
                           p.startSlur?.length || 0,
                           p.endSlur?.length || 0,
@@ -146,4 +152,21 @@ test("guitar notation conventions cover new positions and any capo without song 
   assert.equal(editionTempoLabel({ tempo: 72, capo: 3 }), "Capo 3 · ♩ = 72");
   assert.equal(editionTempoLabel({ tempo: 70, capo: 2 }, ["Capo 2"]), "♩ = 70");
   assert.equal(editionTempoLabel({ tempo: 80, capo: 0 }), "♩ = 80");
+});
+
+test("every registered solo guitar keeps its written clock and limits ringing to its available strings and score end", () => {
+  for(const id of instrumentEditionIds){
+    const hymn=hymns.find(h=>h.id===id)!,edition=instrumentEdition(hymn)!;
+    const score=arrangeHymn(hymn,edition.guitarArrangement,0),tune=abcjs.parseOnly(score.abc)[0];
+    assert.equal(tune.warnings?.length||0,0,hymn.slug);
+    assert(score.abc.includes('"^Let ring"'),hymn.slug);
+    const audio=tune.setUpAudio({qpm:60,chordsOff:true}),resonant=guitarSustainAudio(audio,score.abc);
+    assert.deepEqual(resonant.tracks.map(t=>t.filter(n=>n.cmd==="note").map(n=>[n.pitch,n.start,n.duration])),audio.tracks.map(t=>t.filter(n=>n.cmd==="note").map(n=>[n.pitch,n.start,n.duration])));
+    const played=performNotes(playbackNotes(resonant),{instrument:"guitar",positionFor:(p,chord)=>chordEdition(hymn)?.position(p,chord,0)});
+    for(const time of new Set(played.map(n=>n.start))){
+      const active=played.filter(n=>n.start<=time && n.start+n.duration>time+1e-7 && n.string!==undefined);
+      assert.equal(new Set(active.map(n=>n.string)).size,active.length,`${hymn.slug}: string collision at ${time}`);
+    }
+    assert(played.every(n=>Number.isFinite(n.duration) && n.duration>0 && n.start+n.duration<=audio.totalDuration*4+1e-7),hymn.slug);
+  }
 });

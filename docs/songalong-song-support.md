@@ -226,6 +226,10 @@ The supplied Timeless Truths score owns the B-flat melody, four SATB parts and
 four verses. Its twenty printed measures include four one-eighth pickups and
 their complementary five-eighth endings: 48 quarter beats per complete
 verse/refrain, 192 for all four verses. No ending or extra rest is appended.
+The publisher's MusicXML confirms that these are intentional partial measures,
+with hidden end barlines after measures 5 and 15. The archived ABC and complete
+Voice + Piano score retain those hidden bars; they are not invented full bars
+or extra rests at printed system breaks.
 The accompaniment's five-eighth durations are engraved as tied dotted quarters
 and quarters, preserving one attack rather than inventing a five-eighth glyph.
 

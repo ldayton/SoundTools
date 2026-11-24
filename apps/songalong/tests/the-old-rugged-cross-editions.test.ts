@@ -52,6 +52,14 @@ test("every printed pitch, accidental, rhythm, tie and answering part survives t
   assert.equal(time,192);assert.deepEqual(notes(audio.tracks[voice]),expected,`printed part ${voice}`);
  });
  const sourceHeads=read(hymn.harmony).tune.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[]).filter(n=>n.el_type==="note"&&n.pitches?.length);assert.equal(sourceHeads.length,84);
+ // The publisher's MusicXML explicitly marks these partial-measure end bars
+ // "none". Preserve that source structure instead of adding a visible stroke.
+ for(let staff=0;staff<2;staff++)for(let voice=0;voice<2;voice++){
+  const bars=read(hymn.harmony).tune.lines.flatMap(l=>l.staff?.[staff]?.voices?.[voice]||[]).filter(n=>n.el_type==="bar");
+  assert.equal(bars.length,20);assert.deepEqual(bars.flatMap((b,i)=>b.el_type==="bar"&&b.type==="bar_invisible"?[i]:[]),[4,14]);
+ }
+ const vocalBars=read(arrangeHymn(hymn,"original",0).abc).tune.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[]).filter(n=>n.el_type==="bar");
+ assert.deepEqual(vocalBars.flatMap((b,i)=>b.el_type==="bar"&&b.type==="bar_invisible"?[i]:[]),[4,14]);
 });
 test("four complete verses share one refrain, with syllabic reattacks following the active underlay",()=>{
  assert.equal(hymn.stanzas.length,4);assert(hymn.stanzas.every(s=>s.syllables.length===84));

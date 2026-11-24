@@ -110,17 +110,43 @@ try {
       boxes[0].right <= boxes[1].left + 1 &&
         boxes[1].right <= boxes[2].left + 1,
     );
+    const keyboard=page.getByRole("button",{name:"On-screen piano",exact:true});
+    const toolbarGeometry=()=>page.locator(".hymn-toolbar-instruments,.hymn-go-start,.hymn-pause,.hymn-keyboard-toggle,.hymn-controls-toggle").evaluateAll(elements=>elements.filter(el=>el.getClientRects().length).map(el=>{
+      const {x,y,width,height}=el.getBoundingClientRect();return {x,y,width,height};
+    }));
+    if(width>=768){await expect(keyboard).toBeVisible();await expect(keyboard).toBeEnabled();}
+    else await expect(keyboard).toHaveCount(0);
+    await page.evaluate(()=>document.fonts.ready);
+    const initialToolbar=await toolbarGeometry();
+    const checkToolbar=async()=>{
+      const actual=await toolbarGeometry();assert.equal(actual.length,initialToolbar.length,"Instrument switches keep the same toolbar controls");
+      actual.forEach((box,index)=>{for(const axis of ["x","y","width","height"] as const)assert(Math.abs(box[axis]-initialToolbar[index][axis])<=1,`Toolbar ${axis} shifts when switching instruments at ${width}px`);});
+    };
     await piano.focus();
     await piano.press("ArrowRight");
     await expect(page.getByRole("radio",{name:"Guitar",exact:true})).toHaveAttribute("aria-checked","true");
     await expect(sung).toHaveAttribute("aria-pressed","false");
+    await checkToolbar();
+    if(width>=768){
+      await expect(keyboard).toBeVisible();await expect(keyboard).toBeEnabled();
+      await keyboard.click();await expect(page.locator(".practice-piano")).toBeHidden();
+      await expect(keyboard).toHaveAttribute("aria-expanded","false");await checkToolbar();
+    }
     await sung.click();
     await expect(page.locator('[data-instrument="guitar"]')).toHaveAttribute("data-arrangement","guitar-vocal");
     await expect(page.locator(".hymn-paper svg").first().locator(".abcjs-clef")).toHaveCount(2);
+    await checkToolbar();
+    if(width>=768){
+      await expect(page.locator(".practice-piano")).toBeHidden();
+      await keyboard.click();await expect(page.locator(".practice-piano")).toBeVisible();
+      await expect(keyboard).toHaveAttribute("aria-expanded","true");await checkToolbar();
+    }
     await page.screenshot({path:`/tmp/songalong-voice-combo-${width}.png`});
     await piano.click();
     await expect(piano).toHaveAttribute("data-arrangement","original");
     await expect(sung).toHaveAttribute("aria-pressed", "true");
+    await checkToolbar();
+    if(width>=768)await expect(page.locator(".practice-piano")).toBeVisible();
     await expect(group.locator('[aria-checked="true"]')).toHaveCount(1);
     await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
     await expect(page.locator("#saved")).toHaveText("Saved on this device.");
@@ -135,6 +161,7 @@ try {
     await expect(sung).toHaveAttribute("aria-pressed", "true");
     await selectHymnInstrument(page, "piano");
     await selectHymnScore(page, "piano");
+    await checkToolbar();
     await expect(piano).toHaveAttribute("aria-checked", "true");
     await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
     await dismissPracticeDrawer(page);
@@ -321,7 +348,7 @@ try {
   await migratedPage.close();
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: primary instrument radios, supported choices, keyboard exclusivity, saved selection and responsive toolbar",
+    "PASS: primary instrument radios, supported choices, stable piano toggle, saved selection and responsive toolbar",
   );
 } catch (error) {
   await captureFailure(browser, error);

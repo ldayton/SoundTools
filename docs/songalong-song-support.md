@@ -68,7 +68,9 @@ fixed capo stays visible in the score heading. The Original key option and per-s
 All scores use the shared content-based system fitter, which reserves annotation
 space before fingerings are enabled so toggling them does not move measures.
 They share the staff Show/Play table,
-transposition, stanza alignment, note highlighting and playback engine. Vocal
+transposition, stanza alignment, note highlighting and playback engine. The
+desktop on-screen piano and its toolbar toggle are available for every instrument;
+switching instruments preserves the keyboard visibility preference and toolbar geometry. Vocal
 chords reuse the piano diagram with low-to-high octave-qualified labels and
 the normalized chord-then-breakdown preview. Dominant/minor seventh symbols
 retain their seventh in the keyboard example.

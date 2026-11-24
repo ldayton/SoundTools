@@ -58,6 +58,15 @@ export async function openPracticeOptions(page: Page) {
   const expand = page.getByRole('button', { name: 'Expand practice options', exact: true });
   if (await expand.isVisible()) await expand.click();
   await page.locator('#practice-options-content').waitFor();
+  // Visible content can still be translating during the mobile drawer's entrance.
+  // Await that real boundary before measuring or interacting with its controls.
+  await page.locator('#practice-options-content').evaluate((content) =>
+    Promise.all(
+      (content.closest('.mantine-Drawer-content')?.getAnimations() || []).map(
+        (animation) => animation.finished
+      )
+    )
+  );
 }
 export async function openSettings(page: Page) {
   const link = page.getByRole('link', { name: 'Settings', exact: true });

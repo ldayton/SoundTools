@@ -38,7 +38,7 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     async function visit(id: string, query: string) {
       await page.goto(
-        `${server.base}/piano/hymns/${id}?mode=playback&low=none&high=none&octave=0&${query}`,
+        `${server.base}/piano/hymns/${id}?mode=playback&low=none&high=none&octave=0&capo=score&${query}`,
       );
       await expect(page.locator(".sequence-title")).toBeVisible();
     }
@@ -78,7 +78,8 @@ try {
         .click();
       await expect(page.getByRole("dialog")).toBeHidden();
     }
-    // Legacy links migrate to the reviewed edition in C; diagrams follow its engraved voicing.
+    // These exact-voicing witnesses explicitly request the reference arrangement.
+    // Automatic capo selection has its own guitar/capo browser owner.
     await visit("ill-fly-away", "arrangement=guitar-chords&key=D");
     const d = await open("C");
     await shape([null, 3, 2, null, null, 0]);

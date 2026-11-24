@@ -70,7 +70,7 @@ test("cloud records preserve all hymn preferences and content-checked checkpoint
     [`hymn:${first.hymn}:pitch`],
   );
   assert.throws(
-    () => restoreSongalongRecords({ ...records, schema: 2 }),
+    () => restoreSongalongRecords({ ...records, schema: 3 }),
     /Update this app/,
   );
 });
@@ -142,4 +142,13 @@ test("independent layout and presentation edits use separate cloud records, with
   const legacy=restoreSongalongRecords({schema:1,"current:hymn":practiceHymn.id,"activity:presentation":{version:1,fingerings:false,pianoVisible:true},"current:zoomByLayout":{mobile:1,desktop:1},"activity:presentation:fingerings":true,"current:zoomByLayout:mobile":.8});
   assert.equal((legacy.activities.presentation as any).fingerings,true);assert.equal((legacy.activities.presentation as any).pianoVisible,true);
   assert.deepEqual((legacy.activities.sight as any).zoomByLayout,{mobile:.8,desktop:1});
+});
+
+test("the new cloud format imports legacy data and stops older readers from overwriting split settings",async()=>{
+  const {checkSchema}=await import("@ldayton/account/model");
+  const migrated=songalongRecords(restoreSongalongRecords({schema:1,"current:hymn":practiceHymn.id,"activity:presentation":{version:1,fingerings:true},"current:zoomByLayout":{mobile:.8,desktop:1.3}}));
+  assert.equal(migrated.schema,2);assert.equal(migrated["activity:presentation:fingerings"],true);
+  assert.equal(migrated["current:zoomByLayout:mobile"],.8);
+  assert.throws(()=>checkSchema(migrated),/Update this app/);
+  assert.doesNotThrow(()=>restoreSongalongRecords(migrated));
 });

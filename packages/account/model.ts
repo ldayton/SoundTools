@@ -3,8 +3,8 @@ export type Json =
   null | boolean | number | string | Json[] | { [key: string]: Json };
 export type Records = Record<string, Json>;
 export class AccountDataError extends Error {}
-export function checkSchema(records: Records) {
-  if (records.schema !== undefined && records.schema !== 1)
+export function checkSchema(records: Records, maximum=1) {
+  if (records.schema !== undefined && (!Number.isInteger(records.schema) || Number(records.schema)<1 || Number(records.schema)>maximum))
     throw new AccountDataError(
       "Update this app before opening its cloud data. Your saved data is preserved.",
     );

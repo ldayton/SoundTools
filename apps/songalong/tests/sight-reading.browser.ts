@@ -1,3 +1,4 @@
+import {expect} from "@playwright/test";
 import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
 import {
   recoveryHymn,
@@ -118,7 +119,7 @@ try {
     await page.getByRole("option", { name: title, exact: true }).click();
     await closeNavigation(page);
     await page.locator(".sequence-title").filter({ hasText: title }).waitFor();
-    assert.equal(await page.locator(".sequence-title").textContent(), title);
+    await expect(page.locator(".sequence-title")).toHaveText(title);
   };
   // A second search must replace the selected title, even while the input still has focus.
   await choose(recoveryHymn.title);
@@ -141,10 +142,7 @@ try {
     .locator(".sequence-title")
     .filter({ hasText: comparisonHymn.title })
     .waitFor();
-  assert.equal(
-    await page.locator(".sequence-title").textContent(),
-    comparisonHymn.title,
-  );
+  await expect(page.locator(".sequence-title")).toHaveText(comparisonHymn.title);
   await choose(recoveryHymn.title);
   const send = async (data: number[], stale = false) =>
     page.evaluate(
@@ -279,10 +277,7 @@ try {
   await input.click();
   await input.fill("First Fingerstyle Blues");
   await input.press("Enter");
-  assert.equal(
-    await page.locator(".sequence-title").textContent(),
-    "1st Fingerstyle Blues",
-  );
+  await expect(page.locator(".sequence-title")).toHaveText("1st Fingerstyle Blues");
   await choose(recoveryHymn.title);
   await selectHymnScore(page, "piano");
   await setPianoVisible(page, false); // keep the review screenshot focused on the score
@@ -311,10 +306,7 @@ try {
   assert.equal(await page.locator(".hymn-count").textContent(), "Complete");
   assert.equal(await page.locator(".hymn-next").count(), 0);
   await choose(comparisonHymn.title);
-  assert.equal(
-    await page.locator(".sequence-title").textContent(),
-    comparisonHymn.title,
-  );
+  await expect(page.locator(".sequence-title")).toHaveText(comparisonHymn.title);
   // New feature and its entire library are available offline, including lazy-loaded code.
   if (!process.env.TEST_BASE_URL) {
     await page.waitForFunction(

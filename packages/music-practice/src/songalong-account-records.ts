@@ -13,7 +13,7 @@ function put(target:Record<string,any>,path:string[],value:Json){
 }
 /** Only app data, never diagnostic consent, MIDI identity or legacy recovery blobs. */
 export function songalongRecords(state: DurableState): Records {
-  const records: Records = { schema: 1 };
+  const records: Records = { schema: 2 };
   const sight = migrateHymnIdentity(state.activities.sight as HymnState | undefined);
   if (sight) {
     for (const [key, value] of Object.entries(sight)) {
@@ -51,7 +51,7 @@ export function songalongRecords(state: DurableState): Records {
   return records;
 }
 export function restoreSongalongRecords(records: Records): DurableState {
-  checkSchema(records);
+  checkSchema(records,2);
   const state = migrateLegacy({});
   const sight: Record<string, any> = {
     version: 1,

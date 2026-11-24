@@ -245,7 +245,7 @@ void document.fonts.ready
           route = readRoute(url, "sight");
         }
         render();
-        return !!linked;
+        return !!linked || !!records && records.schema !== 2;
       },
     }).catch((error) => diagnostics.capture(error, "account.start_failed"));
     window.dispatchEvent(new Event("soundtools:ready"));

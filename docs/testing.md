@@ -509,6 +509,8 @@ Independent guest-window fields merge, while key/octave/capo and checkpoints sta
 atomic. Guest windows refresh durable state at a safe idle point and before song
 selection. Account presentation fields and desktop/mobile sizes are separate
 records; legacy bundled records remain readable and new fields take precedence.
+SongAlong cloud schema 2 makes older cached readers request an update before
+uploading their obsolete bundles; existing schema 1 data migrates on restore.
 An explicit initial song link outranks the cloud's last-opened song, and its
 retained selection is queued durably rather than merely displayed locally.
 

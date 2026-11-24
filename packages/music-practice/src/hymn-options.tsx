@@ -81,7 +81,7 @@ export function HymnOptions({
   ].map((key) => ({
     ...key,
     shortLabel: key.label,
-    label: `${key.label}${(key.value === selectedKey ? state.range : state.keyRanges[key.value as HymnKey]) ? ` (${key.value === selectedKey ? state.range : state.keyRanges[key.value as HymnKey]})` : ""}`,
+    label: `${key.label}${(key.value === selectedKey && state.range ? state.range : state.keyRanges[key.value as HymnKey]) ? ` (${key.value === selectedKey && state.range ? state.range : state.keyRanges[key.value as HymnKey]})` : ""}`,
     disabled: !state.availableKeys.includes(key.value as HymnKey),
   }));
   return (
@@ -158,7 +158,7 @@ export function HymnOptions({
                   ml="auto"
                   style={{ whiteSpace: "nowrap" }}
                 >
-                  {option.value === selectedKey ? state.range : state.keyRanges[option.value as HymnKey]}
+                  {option.value === selectedKey && state.range ? state.range : state.keyRanges[option.value as HymnKey]}
                 </Text>
               </Group>
             )}

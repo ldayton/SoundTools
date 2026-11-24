@@ -2,6 +2,8 @@
  * Instrumental editions may deliberately use a simpler reharmonization.
  */
 export const vocalHarmonyGuides: Readonly<Record<string, Readonly<Record<number, string>>>> = {
+  // Respect the print's C-sharp/E-natural and F-sharp/A-natural spelling.
+  "the-old-rugged-cross": {20:"C#dim7/Bb",68:"F#dim7/Eb",212:"C#dim7/Bb",260:"F#dim7/Eb",448:"C#dim7/Bb"},
   "fairest-lord-jesus": {176:"C7/Bb",672:"C7/G"},
   "in-the-sweet-by-and-by": {912:"F/C"},
   "are-you-washed-in-the-blood": {

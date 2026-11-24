@@ -6,6 +6,7 @@ This table is checked against the production registry by `song-support.test.ts`.
 
 | Song | Guitar | Piano | Voice + Piano | Guitar + Voice | Source / musical contract |
 | --- | --- | --- | --- | --- | --- |
+| The Old Rugged Cross | Dedicated reference, engine-selected capo | Dedicated | Voice + complete source SATB in playable hand spans | Vocal line + engine-voiced guitar accompaniment | Supplied Timeless Truths B-flat 6/8 score; four verses, shared refrain, answering parts, diminished passing harmonies and verse-dependent articulation |
 | In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Vocal line + guitar chord accompaniment | Teacher melody/rhythm/interlude in D; organ harmony follows teacher chord suggestions |
 | Are You Washed in the Blood? | Dedicated, capo 1 | Dedicated | Voice + complete source SATB harmony | Vocal line + guitar chord accompaniment | Hoffman/Kravchuk A-flat score; four verses, refrain pickup, lower-voice echoes and D-natural secondary dominant |
 | Fairest Lord Jesus | Dedicated reference, engine-selected capo | Dedicated | Voice + complete source SATB in playable hand spans | Vocal line + engine-voiced guitar accompaniment | Hymnary.org/Willis E-flat score; all four verses, fifteen full bars, tied opening phrase and chromatic secondary dominants |
@@ -218,3 +219,42 @@ from About this song, using the same local/offline mechanism as supplied prints.
 The per-edition real-audio sustain witness explicitly selects the reference capo
 whose string assignments it models. Automatic recommendation and manual override
 wiring remain owned by the dedicated capo browser witness.
+
+## The Old Rugged Cross
+
+The supplied Timeless Truths score owns the B-flat melody, four SATB parts and
+four verses. Its twenty printed measures include four one-eighth pickups and
+their complementary five-eighth endings: 48 quarter beats per complete
+verse/refrain, 192 for all four verses. No ending or extra rest is appended.
+The accompaniment's five-eighth durations are engraved as tied dotted quarters
+and quarters, preserving one attack rather than inventing a five-eighth glyph.
+
+The source retains the chromatic E-natural, C-sharp and F-sharp, lower-part
+refrain answers and complete underlay. Source melody has 84 written noteheads
+and 76 tied attacks. Playable underlay articulation yields 77, 77, 76 and 77
+lead attacks in verses 1–4: “Has a”, “For a” and “Where His” rearticulate the
+corresponding held pitches. Shared refrain lyrics occupy one engraved row.
+
+The piano adaptation keeps diminished colours audible with left-hand chords
+within a fifth. Guitar uses a G-family/capo-3 reference with low dominant thirds
+and open-string support where the melody supplies the bass; runtime capo
+selection remains engine-owned. All simultaneous notes occupy separate strings,
+the reference grips are playable, and the final tonic includes its third.
+The adjustable 80 quarter-note BPM starting value is editorial.
+Source piano chord previews name the passing harmonies C-sharp diminished
+seventh over B-flat and F-sharp diminished seventh over E-flat, retaining the
+print's spelling rather than replacing E-natural with an enharmonic F-flat.
+
+`the-old-rugged-cross-editions.test.ts` owns independently read pitch, duration,
+tie and accidental goldens for all printed parts, complete verse/refrain
+underlays, per-verse articulation, physical guitar grips, piano colours and the
+whole/sliced form. The automatically required Nightly edition file covers all
+four instrument/voice combinations at 320, 390, 768 and 1440 px in both engines.
+Existing registry owners retain capo, audio scheduling, offline and shared
+control coverage; no new lane or tier is introduced.
+The edition's all-key vocal-guitar witness checks every selected grip through
+the final transposition/rendering pipeline. Ranked chords are written after
+transposition, so an ABC rewrite cannot lose natural cancellations between
+different octaves. `piano-chord.test.ts` independently owns diminished intervals,
+seventh spelling and slash-bass ordering; the edition browser exercises its
+actual piano preview on desktop and phone.

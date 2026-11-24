@@ -2,6 +2,7 @@ import { blessedEdition, silentEdition, joyEdition, standardPosition, standardFi
 import { washedEdition } from "./are-you-washed-in-the-blood";
 import { sweetEdition, sweetPosition, sweetFingers } from "./in-the-sweet-by-and-by";
 import { fairestEdition, fairestPosition, fairestFingers } from "./fairest-lord-jesus";
+import { ruggedEdition, ruggedPosition, ruggedFingers } from "./the-old-rugged-cross";
 import { canonicalHymnId, hymnForEdition } from "./hymn-identity";
 import {
   teacherInstrumentAbc,
@@ -61,6 +62,7 @@ export type InstrumentEdition = {
 };
 export type ChordEditionId = string;
 export type ChordEditionKey =
+  | "the-old-rugged-cross"
   | "fairest-lord-jesus"
   | "in-the-sweet-by-and-by"
   | "are-you-washed-in-the-blood"
@@ -106,6 +108,11 @@ const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
   );
 // Musical choices live in the song modules; shared consumers use these capabilities.
 const recipes: Record<ChordEditionKey, Recipe> = {
+  "the-old-rugged-cross": {
+    original:true,vocal:true,capo:3,tempo:80,pickup:true,
+    shapes:"G, C, D, D7, A, diminished passing chords and reviewed inversions",guitarKey:ruggedEdition.guitarKey,
+    fingers:ruggedFingers,position:ruggedPosition,build:buildFrom(ruggedEdition),
+  },
   "fairest-lord-jesus": {
     original:true, vocal:true, capo:3, tempo:80, pickup:false,
     shapes:"C, Am, Dm, F, G, G7, A7 and reviewed inversions", guitarKey:fairestEdition.guitarKey,

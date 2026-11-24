@@ -164,7 +164,7 @@
     "title": "Fairest Lord Jesus",
     "aliases": [
       "Beautiful Savior",
-      "Crusaders’ Hymn",
+      "Crusaders\u2019 Hymn",
       "St. Elizabeth"
     ],
     "file": "fairest-lord-jesus.abc",
@@ -178,5 +178,20 @@
       "fairest-lord-jesus"
     ],
     "editionKey": "fairest-lord-jesus"
+  },
+  {
+    "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+    "title": "The Old Rugged Cross",
+    "file": "the-old-rugged-cross.abc",
+    "folder": "the-old-rugged-cross",
+    "source": "user-supplied-score",
+    "sourceDetails": "George Bennard hymn in the supplied Timeless Truths B-flat SATB setting; four verses, shared refrain, answering parts, chromatic passing notes and verse-dependent articulation. The supplied score is marked Public Domain.",
+    "sourceUrl": "https://library.timelesstruths.org/music/The_Old_Rugged_Cross/",
+    "defaultArrangement": "original",
+    "slug": "the-old-rugged-cross",
+    "legacyIds": [
+      "the-old-rugged-cross"
+    ],
+    "editionKey": "the-old-rugged-cross"
   }
 ]

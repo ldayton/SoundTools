@@ -114,7 +114,7 @@ for (const [id, expected] of Object.entries(musicalBaseline))
 test("one registry supplies instrument choices, capo help and renderer capabilities", () => {
   assert.deepEqual(
     [...instrumentEditionIds].sort(),
-    [...Object.keys(musicalBaseline),"in-christ-alone","blessed-assurance","silent-night","joy-to-the-world","are-you-washed-in-the-blood","in-the-sweet-by-and-by","fairest-lord-jesus"].map(canonicalHymnId).sort(),
+    [...Object.keys(musicalBaseline),"in-christ-alone","blessed-assurance","silent-night","joy-to-the-world","are-you-washed-in-the-blood","in-the-sweet-by-and-by","fairest-lord-jesus","the-old-rugged-cross"].map(canonicalHymnId).sort(),
   );
   for (const id of instrumentEditionIds) {
     const hymn = hymns.find((h) => h.id === canonicalHymnId(id))!,

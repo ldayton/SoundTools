@@ -1,3 +1,4 @@
+import { instrumentEdition } from "./instrument-editions";
 import { abcPlaybackStaves, mutePlaybackStaves } from "./hymn-playback-staves";
 import { chordEdition, capoAudio } from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
@@ -31,8 +32,8 @@ export function hymnPlaybackScore(options: {
     const vocal =
       options.arrangement === "original" &&
       options.hands !== "left" &&
-      "vocalTracks" in options.hymn
-        ? new Set<number>(options.hymn.vocalTracks || [])
+      ("vocalTracks" in options.hymn || instrumentEdition(options.hymn)?.vocal)
+        ? new Set<number>("vocalTracks" in options.hymn ? options.hymn.vocalTracks || [] : [0])
         : new Set<number>();
     const voiced = {
       ...audio,

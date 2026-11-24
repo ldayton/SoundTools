@@ -36,6 +36,7 @@ import {
 } from "@mantine/core";
 import {
   hasInstrumentEditions,
+  isInstrumentArrangement,
   isGuitarArrangement,
   isEditedGuitar,
   type Arrangement,
@@ -68,7 +69,7 @@ export function HymnOptions({
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
-  const editions = hasInstrumentEditions({ id: state.hymn }) && state.arrangement !== "original";
+  const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
   const arrangements = hymnInstrumentArrangements({id:state.hymn}, hymnInstrument(state.arrangement));
   const keys = [
@@ -246,6 +247,12 @@ export function HymnOptions({
           </Stack>
         </OptionsSection>
       )}
+      {arrangements.length > 1 && <OptionsSection title="Piano arrangements">
+
+          <NativeSelect id="hymn-arrangement" label="Arrangement" value={state.arrangement}
+            data={arrangements.map(arrangement=>({value:arrangement.id,label:arrangement.label}))}
+            onChange={event=>change({arrangement:event.currentTarget.value as Arrangement})}/>
+      </OptionsSection>}
       {editions ? (
         <>
           <OptionsSection title="Display">
@@ -290,14 +297,9 @@ export function HymnOptions({
             </OptionsSection>
           )}
         </>
-      ) : <OptionsSection
+      ) : state.mode === "wait" ? <OptionsSection
         title={hymnInstrument(state.arrangement) === "sung" ? "Voice + Piano" : "Piano arrangements"}
       >
-        {arrangements.length > 1 && (
-          <NativeSelect id="hymn-arrangement" label="Arrangement" value={state.arrangement}
-            data={arrangements.map(arrangement=>({value:arrangement.id,label:arrangement.label}))}
-            onChange={event=>change({arrangement:event.currentTarget.value as Arrangement})}/>
-        )}
         {state.mode === "wait" && state.arrangement !== "melody" &&
           !isGuitarArrangement(state.arrangement) && (
             <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">
@@ -340,7 +342,7 @@ export function HymnOptions({
             }
           />
         )}
-      </OptionsSection>}
+      </OptionsSection> : null}
       <Accordion id="hymn-source" order={3}>
         {editions && <Accordion.Item value="reading-guide">
           <Accordion.Control>Reading guide</Accordion.Control>
@@ -606,7 +608,7 @@ export function HymnFingerings({
     getInitialValueInEffect: false,
   });
   if (state.arrangement === "guitar-chords" || state.arrangement === "guitar-edition" && ["tab", "chords"].includes(state.scoreDisplay)) return null;
-  const editions = hasInstrumentEditions({id:state.hymn}) && state.arrangement !== "original";
+  const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const reviewed = (state.key === "original" || state.key === state.originalKey) &&
     (state.arrangement === "piano" || state.octave === 0);
   const checkbox = (

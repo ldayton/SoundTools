@@ -78,11 +78,11 @@ rows come from these photographs, including the second verse and the printed
 “There in the ground” opening; there is no added “Oh” refrain.
 
 The song opens on Voice + Piano, using Original harmony to show the supplied
-three-staff arrangement. Piano and Guitar stay disabled until this song has those
-instrument editions.
+three-staff arrangement. Piano and Guitar are dedicated adaptations of the same teacher form, including
+the interlude and ending.
 The About this song link downloads the bundled transcription and remains valid
 offline. This user-supplied arrangement is not an Open Hymnal/public-domain source;
-song rights remain with their respective holders. No guitar edition is inferred.
+song rights remain with their respective holders. Instrumental adaptations are separately authored and verified.
 
 Independent photo-derived MIDI pitch/duration expectations are owned by
 `in-christ-alone-score.test.ts` in CI's SongAlong unit group. The focused
@@ -105,3 +105,10 @@ The Choir track now uses the normalized alto ah/mf section from epic-choir,
 derived from VocalSet under CC BY 4.0, while the four organ voices remain on
 organ. Staff visibility and sound are independently controlled by the Staves
 table in Playback options; this does not change any printed music or lyrics.
+
+## Complete arrangement support
+
+All nine retained songs now have dedicated guitar and piano editions. The eight
+songs with lyrics also offer Voice + Piano; Fingerstyle Blues stays instrumental.
+See [the checked support matrix](../../../docs/songalong-song-support.md) for
+source provenance, musical scope, practice stages and validation owners.

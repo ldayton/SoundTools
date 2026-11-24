@@ -62,15 +62,16 @@ const accompaniment = (voicings: Record<string, number[]>) =>
   changes.flatMap(([start, chord, duration]) =>
     voicings[chord].map((p) => [p, start, duration]),
   );
-test("exactly Piano and Guitar, with legacy settings migrated and display/practice independent", () => {
+test("Piano, Guitar and Voice + Piano, with legacy settings migrated and display/practice independent", () => {
   assert.deepEqual(
     hymnArrangements(hymn).map((a) => [a.id, a.label]),
     [
+      ["original", "Voice + Piano"],
       ["piano", "Piano"],
       ["guitar-edition", "Guitar"],
     ],
   );
-  for (const arrangement of ["melody", "bass", "chords", "broken", "original"])
+  for (const arrangement of ["melody", "bass", "chords", "broken"])
     assert.equal(
       hymnPreferences(hymn.id, { arrangement }).arrangement,
       "piano",
@@ -93,6 +94,7 @@ test("exactly Piano and Guitar, with legacy settings migrated and display/practi
         assert.equal(s.hands, hands);
       }
   }
+  assert.equal(hymnPreferences(hymn.id,{arrangement:"original"}).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id).bpm, 80);
 });
 test("both instruments retain all 53 melody attacks, ornaments, slurs, rest, tie and fermata in a comfortable octave", () => {

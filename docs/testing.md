@@ -111,7 +111,8 @@ There are two distinct owners:
   playback contract now also accepts 2/4; passage labels and whole-bar endpoints
   follow the fixture's measured rhythms through the independently unit-tested
   position model. Retained product music is never changed to supply a fixture.
-  When a song gains a dedicated edition, selection moves to another compatible
+  Dedicated editions may intentionally retain the four progressive piano stages.
+  When those stages are retired from a song, selection moves to another compatible
   song automatically. Unit tests check this migration and fail early if the
   capability disappears from the product entirely.
 - **Edition tests** name real songs and independently verify their musical
@@ -492,3 +493,11 @@ metadata is checked separately against the teacher's original vocal track. The
 existing instrument-audio and offline owners require both human choir and organ
 samples on that score. Full-song calibrated choir/organ levels are in SongAlong's
 README; the builder retains source hashes and independent decoded measurements.
+
+## SongAlong complete arrangement support
+
+The nine-song support standard and musical validation owners are documented in
+[the song support matrix](songalong-song-support.md). The three additional edition
+browser files use the existing automatic Nightly edition registry and reviewed
+resource inventory. Generic controls continue to select real staged arrangements
+by capability; no product music is changed to keep a fixture available.

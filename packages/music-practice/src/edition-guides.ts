@@ -6,6 +6,10 @@ export type EditionGuide = {
   strum: string;
 };
 export const editionGuides: Record<ChordEditionKey, EditionGuide> = {
+  "blessed-assurance": {meter:"D major, 9/8. Count three dotted-quarter beats per full bar. The pickup is three eighth notes; the final bar is six eighth notes. The refrain begins on the last dotted beat of bar 9.",piano:"Retain the source melody and chromatic G♯. Compact left-hand chords support the dotted pulse; shift the right hand for the upper refrain.",guitar:"Capo 2 with C-family shapes. Melody and bass retain the compound rhythm; the final low G supports the melodic C without using the same string.",strum:"Use small F and four-string D7; C/E keeps the open low E beneath C harmony."},
+  "silent-night": {meter:"B♭ major, 3/4, without a pickup. Preserve the dotted eighth and sixteenth figures, the slurred phrase and the complete final bar.",piano:"The source melody ranges from B♭3 to E♭5. Shift for the upper phrases; the left hand stays in compact voicings.",guitar:"Capo 1 with A-family shapes. The complete melody lies in first position; the final open low E lets the low A melody ring on its own string.",strum:"A uses strings 5–1, D uses 4–1, and E7 uses all six strings."},
+  "joy-to-the-world": {meter:"D major, 2/4, without a pickup. All nineteen bars and the short dotted figures remain intact, including the closing descent.",piano:"Keep the octave descent in the right hand and the compact D, G and A7 harmony below it.",guitar:"Capo 2 with C-family shapes. Low open E supports the low melodic C in the first cadence; low G supports the final C on a separate string.",strum:"C uses strings 5–1, small F uses 4–1, and G7 uses all six strings."},
+
   "in-christ-alone": {
     meter: "Teacher arrangement in D major, 3/4. The pickup and final bar each last one and a half beats. Each written pass has 60 beats, including the printed organ interlude; all four verses share this ending.",
     piano: "Keep the teacher’s melody and rests. Shift for high D and C♯, then follow the upper organ line through the interlude. Left-hand chords stay below the melody.",

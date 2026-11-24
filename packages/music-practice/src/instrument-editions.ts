@@ -1,3 +1,4 @@
+import { blessedEdition, silentEdition, joyEdition, standardPosition, standardFingers } from "./standard-hymn-editions";
 import { canonicalHymnId, hymnForEdition } from "./hymn-identity";
 import {
   teacherInstrumentAbc,
@@ -46,6 +47,9 @@ export type InstrumentEdition = {
   id: string;
   editionKey: string;
   original?: boolean;
+  /** Retain the four progressive practice arrangements beside the dedicated score. */
+  practiceStages?: boolean;
+  vocal?: boolean;
   chordLyrics?: (hymn: Hymn) => import("./hymn-lyrics").HymnLyricData;
   chordLyricOffset?: (hymn: Hymn, bar: number) => number;
   guitarArrangement: "guitar-edition" | "guitar-fingerstyle";
@@ -60,6 +64,9 @@ export type InstrumentEdition = {
 };
 export type ChordEditionId = string;
 export type ChordEditionKey =
+  | "blessed-assurance"
+  | "silent-night"
+  | "joy-to-the-world"
   | "in-christ-alone"
   | "amazing-grace"
   | "ill-fly-away"
@@ -100,6 +107,21 @@ const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
   );
 // Musical choices live in the song modules; shared consumers use these capabilities.
 const recipes: Record<ChordEditionKey, Recipe> = {
+  "blessed-assurance": {
+    original:true, vocal:true, practiceStages:true, capo:2, tempo:80, pickup:true,
+    shapes:"C, F, G7, D7, C/E and Am", guitarKey:blessedEdition.guitarKey,
+    fingers:standardFingers(2,"blessed-assurance"), position:standardPosition, build:buildFrom(blessedEdition),
+  },
+  "silent-night": {
+    original:true, vocal:true, practiceStages:true, capo:1, tempo:80, pickup:false,
+    shapes:"A, D and E7", guitarKey:silentEdition.guitarKey,
+    fingers:standardFingers(1,"silent-night"), position:standardPosition, build:buildFrom(silentEdition),
+  },
+  "joy-to-the-world": {
+    original:true, vocal:true, practiceStages:true, capo:2, tempo:80, pickup:false,
+    shapes:"C, F and G7", guitarKey:joyEdition.guitarKey,
+    fingers:standardFingers(2,"joy-to-the-world"), position:standardPosition, build:buildFrom(joyEdition),
+  },
   "in-christ-alone": {
     original: true,
     chordLyrics: teacherChordLyrics,
@@ -123,6 +145,7 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     },
   },
   "amazing-grace": {
+    original: true, vocal: true,
     capo: 0,
     pickup: true,
     tempo: 72,
@@ -142,6 +165,7 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     landmarks: graceLandmarks,
   },
   "ill-fly-away": {
+    original: true, vocal: true,
     capo: 0,
     pickup: false,
     tempo: 80,
@@ -159,6 +183,7 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     landmarks: flyLandmarks,
   },
   "jesus-loves-me": {
+    original: true, vocal: true,
     capo: 3,
     pickup: false,
     tempo: 72,
@@ -169,6 +194,7 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     build: buildFrom(jesusEdition),
   },
   "o-come-all-ye-faithful": {
+    original: true, vocal: true,
     capo: 0,
     pickup: true,
     tempo: 72,

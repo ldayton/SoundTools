@@ -1958,5 +1958,65 @@
         "cwd": ""
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/blessed-assurance-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4630
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/blessed-assurance-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/silent-night-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4631
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/silent-night-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/joy-to-the-world-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4632
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/joy-to-the-world-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

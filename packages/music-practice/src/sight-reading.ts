@@ -80,6 +80,7 @@ import {
   isEditedGuitar,
   guitarMidiOffset,
   hasInstrumentEditions,
+  isInstrumentArrangement,
   hymnMelodyOffset,
   type Arrangement,
   type HymnHands,
@@ -877,7 +878,7 @@ export class SightReading {
       this.acceptanceChanged();
     }
     this.presentation.set({ title: this.hymn.title });
-    const reviewed = hasInstrumentEditions(this.hymn) && this.arrangement !== "original";
+    const reviewed = isInstrumentArrangement(this.hymn, this.arrangement);
     const chordProfile = reviewed ? chordEdition(this.hymn) : undefined;
     this.body.patch({
       title: this.hymn.title,
@@ -944,7 +945,7 @@ export class SightReading {
             : ["melody", "bass", "guitar"].includes(this.arrangement)),
         beginnerEdition: reviewed
           ? this.arrangement === "piano" ? "piano" : "guitar" : undefined,
-        hymnEdition: this.arrangement !== "original" ? chordEdition(this.hymn)?.id : undefined,
+        hymnEdition: reviewed ? chordEdition(this.hymn)?.id : undefined,
         fromBar: score.from,
         lyrics: this.arrangement === "melody" ||
           isGuitarArrangement(this.arrangement) ||
@@ -964,8 +965,8 @@ export class SightReading {
         chordTab: this.arrangement === "guitar-chords",
         chordsOnly: this.arrangement === "guitar-edition" && this.scoreDisplay === "chords",
         octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
-          !(this.arrangement === "original" && this.hymn.source === "user-supplied-score"),
-        printedScore: this.arrangement === "original" && this.hymn.source === "user-supplied-score",
+          !(this.arrangement === "original"),
+        printedScore: this.arrangement === "original",
         initialSignatures: !hasInstrumentEditions(this.hymn) || this.arrangement === "original",
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
@@ -1042,10 +1043,10 @@ export class SightReading {
             fitHymnSystems: true,
             transpose: transposition.semitones,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
-            hymnEdition: this.arrangement !== "original" ? chordEdition(this.hymn)?.id : undefined,
+            hymnEdition: reviewed ? chordEdition(this.hymn)?.id : undefined,
             octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
-              !(this.arrangement === "original" && this.hymn.source === "user-supplied-score"),
-            printedScore: this.arrangement === "original" && this.hymn.source === "user-supplied-score",
+              !(this.arrangement === "original"),
+            printedScore: this.arrangement === "original",
             initialSignatures: !hasInstrumentEditions(this.hymn) || this.arrangement === "original",
             reattackTies: this.reattackTies,
             playback: () => {},

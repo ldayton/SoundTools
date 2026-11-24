@@ -1,7 +1,7 @@
-/** A compact, playable triad voicing; slash basses are the lowest chord tone. */
+/** A compact, playable chord voicing; slash basses are the lowest chord tone. */
 export function pianoChord(name: string) {
   const normalized = name.replaceAll("♯", "#").replaceAll("♭", "b");
-  const match = /^([A-G])([#b]?)(m?)(?:\/([A-G])([#b]?))?$/.exec(normalized);
+  const match = /^([A-G])([#b]?)(m?)(7?)(?:\/([A-G])([#b]?))?$/.exec(normalized);
   if (!match) return undefined;
   const pitchClass = (letter: string, accidental: string) =>
     (({ C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 })[letter]! +
@@ -9,9 +9,10 @@ export function pianoChord(name: string) {
       12) %
     12;
   const root = 48 + pitchClass(match[1], match[2]);
-  let notes = [root, root + (match[3] ? 3 : 4), root + 7];
-  if (match[4]) {
-    const bass = pitchClass(match[4], match[5]);
+  const intervals = [0, match[3] ? 3 : 4, 7, ...(match[4] ? [10] : [])];
+  let notes = intervals.map(interval => root + interval);
+  if (match[5]) {
+    const bass = pitchClass(match[5], match[6]);
     const index = notes.findIndex((note) => note % 12 === bass);
     if (index < 0)
       notes = [
@@ -28,13 +29,13 @@ export function pianoChord(name: string) {
   // Spell chord thirds and fifths by letter, including key-appropriate accidentals.
   const letters = "CDEFGAB";
   const rootIndex = letters.indexOf(match[1]);
-  const tones = [0, 2, 4].map((step, index) => ({
+  const tones = [0, 2, 4, ...(match[4] ? [6] : [])].map((step, index) => ({
     letter: letters[(rootIndex + step) % 7],
-    pitch: (root + [0, match[3] ? 3 : 4, 7][index]) % 12,
+    pitch: (root + intervals[index]) % 12,
   }));
   const labels = notes.map((note) => {
     const tone = tones.find((tone) => tone.pitch === note % 12);
-    const letter = tone?.letter ?? match[4];
+    const letter = tone?.letter ?? match[5];
     const natural = pitchClass(letter, "");
     const difference = ((note % 12) - natural + 12) % 12;
     const offset = difference > 6 ? difference - 12 : difference;

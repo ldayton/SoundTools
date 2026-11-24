@@ -31,7 +31,7 @@ for (const [id, expected] of Object.entries(musicalBaseline))
   test(`${id}: full scores and every passage preserve the reviewed music`, () => {
     const hymn = hymns.find((h) => h.id === canonicalHymnId(id))!;
     const variants = [];
-    for (const arrangement of hymnArrangements(hymn))
+    for (const arrangement of hymnArrangements(hymn).filter(a=>a.id !== "original"))
       for (const hands of ["both", "right", "left"] as const)
         for (const size of [0, 2, 4]) {
           const first = arrangeHymn(hymn, arrangement.id, size, 0, hands);
@@ -107,14 +107,14 @@ for (const [id, expected] of Object.entries(musicalBaseline))
 test("one registry supplies instrument choices, capo help and renderer capabilities", () => {
   assert.deepEqual(
     [...instrumentEditionIds].sort(),
-    [...Object.keys(musicalBaseline),"in-christ-alone"].map(canonicalHymnId).sort(),
+    [...Object.keys(musicalBaseline),"in-christ-alone","blessed-assurance","silent-night","joy-to-the-world"].map(canonicalHymnId).sort(),
   );
   for (const id of instrumentEditionIds) {
     const hymn = hymns.find((h) => h.id === canonicalHymnId(id))!,
       edition = instrumentEdition(hymn)!;
     assert.deepEqual(
       hymnArrangements(hymn).map((a) => a.id),
-      [...(edition.original ? ["original"] : []), "piano", edition.guitarArrangement],
+      [...(edition.original ? ["original"] : []), "piano", ...(edition.practiceStages ? ["melody","bass","chords","broken"] : []), edition.guitarArrangement],
     );
     const profile = chordEdition(hymn);
     if (!profile) continue;

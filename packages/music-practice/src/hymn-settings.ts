@@ -7,6 +7,7 @@ import { isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
 import {
   hasInstrumentEditions,
+  isInstrumentArrangement,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -88,10 +89,10 @@ export function mergeHymnSettings(
   const available = hymnAvailableArrangements(hymn).map(a => a.id);
   const requested = s.arrangement ?? base.arrangement;
   const arrangement = hasInstrumentEditions(hymn)
-    ? requested === "original" && available.includes("original") ? "original" : requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
+    ? typeof requested === "string" && available.includes(requested as Arrangement) ? requested as Arrangement : requested === "original" && available.includes("original") ? "original" : requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
       ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
-  const reviewed = hasInstrumentEditions(hymn) && arrangement !== "original";
+  const reviewed = isInstrumentArrangement(hymn, arrangement || "");
   const changedStaffLayout =
     (s.arrangement !== undefined && s.arrangement !== base.arrangement) ||
     (s.viewHands !== undefined && s.viewHands !== base.viewHands);

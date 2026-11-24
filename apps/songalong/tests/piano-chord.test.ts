@@ -22,6 +22,12 @@ test("teacher chords have ordered triads and the slash note as bass", () => {
   assert.deepEqual(pianoChord("D/F♯"), pianoChord("D/F#"));
 });
 test("unrecognized chord symbols never invent a piano voicing", () => {
-  for (const name of ["", "N.C.", "D7", "D (Bm)"])
+  for (const name of ["", "N.C.", "Dmaj9", "D (Bm)"])
     assert.equal(pianoChord(name), undefined);
+});
+
+test("dominant and minor sevenths retain the seventh and spell every tone",()=>{
+  assert.deepEqual(pianoChord("F7"),{notes:[53,57,60,63],labels:["F3","A3","C4","E♭4"]});
+  assert.deepEqual(pianoChord("E7"),{notes:[52,56,59,62],labels:["E3","G♯3","B3","D4"]});
+  assert.deepEqual(pianoChord("Dm7/C"),{notes:[60,62,65,69],labels:["C4","D4","F4","A4"]});
 });

@@ -1227,6 +1227,7 @@
     "legacyIds": [
       "blessed-assurance"
     ],
+    "editionKey": "blessed-assurance",
     "stanzas": [
       {
         "endingBar": null,
@@ -1506,6 +1507,7 @@
     "legacyIds": [
       "silent-night"
     ],
+    "editionKey": "silent-night",
     "stanzas": [
       {
         "endingBar": null,
@@ -1754,6 +1756,7 @@
     "legacyIds": [
       "joy-to-the-world"
     ],
+    "editionKey": "joy-to-the-world",
     "stanzas": [
       {
         "endingBar": null,

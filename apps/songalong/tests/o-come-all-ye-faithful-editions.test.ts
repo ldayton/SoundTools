@@ -119,14 +119,16 @@ function fixture(voicings: Record<string, number[]>) {
   return changes.flatMap(([s, c, d]) => voicings[c].map((p) => [p, s, d]));
 }
 const boundary = (bar: number) => (bar === 0 ? 0 : 1 + (bar - 1) * 4);
-test("Faithful offers only Piano and Guitar with independent display and practice", () => {
+test("Faithful offers Piano, Guitar and Voice + Piano with independent display and practice", () => {
   assert.deepEqual(
     hymnArrangements(hymn).map((a) => [a.id, a.label]),
     [
+      ["original", "Voice + Piano"],
       ["piano", "Piano"],
       ["guitar-edition", "Guitar"],
     ],
   );
+  assert.equal(hymnPreferences(hymn.id,{arrangement:"original"}).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id).bpm, 72);
   for (const scoreDisplay of ["notation", "tab", "both", "chords"])
     for (const hands of ["both", "right", "left"]) {

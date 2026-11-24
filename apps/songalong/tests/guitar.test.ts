@@ -86,8 +86,8 @@ test("every key preserves melody timing and guitar playback sounds an octave bel
     if (key === "D") assert.equal(notes[0].pitch, 66); // high E string, fret 2 = F#4
   }
 });
-test("legacy guitar settings migrate to the instrument edition and unsupported songs fall back to melody", () => {
-  assert.deepEqual(hymnArrangements(hymn).map(a=>a.id),["piano","guitar-edition"]);
+test("legacy guitar settings migrate to the instrument edition and all retained songs have a guitar edition", () => {
+  assert.deepEqual(hymnArrangements(hymn).map(a=>a.id),["original","piano","guitar-edition"]);
   const other = stagedHymn;
   assert.ok(!hymnArrangements(other).some((a) => a.id === "guitar"));
   const saved = mergeHymnSettings(hymnPreferences(hymn.id), {
@@ -96,7 +96,7 @@ test("legacy guitar settings migrate to the instrument edition and unsupported s
   assert.equal(saved.arrangement, "guitar-edition");
   assert.equal(
     mergeHymnSettings(saved, { hymn: other.id }).arrangement,
-    "melody",
+    "guitar-edition",
   );
 });
 

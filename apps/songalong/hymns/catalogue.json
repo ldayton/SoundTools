@@ -83,7 +83,8 @@
     "slug": "blessed-assurance",
     "legacyIds": [
       "blessed-assurance"
-    ]
+    ],
+    "editionKey": "blessed-assurance"
   },
   {
     "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
@@ -93,7 +94,8 @@
     "slug": "silent-night",
     "legacyIds": [
       "silent-night"
-    ]
+    ],
+    "editionKey": "silent-night"
   },
   {
     "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
@@ -103,7 +105,8 @@
     "slug": "joy-to-the-world",
     "legacyIds": [
       "joy-to-the-world"
-    ]
+    ],
+    "editionKey": "joy-to-the-world"
   },
   {
     "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",

@@ -11,7 +11,7 @@ import {
   hymnPreferences,
   hymnSettingsFromQuery,
 } from "../../../packages/music-practice/src/hymn-settings";
-import { instrumentEditionIds } from "../../../packages/music-practice/src/instrument-editions";
+import { instrumentEditionIds, instrumentEdition } from "../../../packages/music-practice/src/instrument-editions";
 import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import {
   songalongRecords,
@@ -30,17 +30,17 @@ test("all songs expose the same ordered primary instruments with explicit arrang
   );
   assert.deepEqual(
     hymnInstrumentArrangements(stagedHymn, "piano").map((a) => a.id),
-    ["melody", "bass", "chords", "broken"],
+    ["piano", "melody", "bass", "chords", "broken"],
   );
   assert.deepEqual(
     hymnInstrumentArrangements(stagedHymn, "sung").map((a) => a.id),
     ["original"],
   );
-  assert.deepEqual(hymnInstrumentArrangements(stagedHymn, "guitar"), []);
+  assert.deepEqual(hymnInstrumentArrangements(stagedHymn, "guitar").map(a=>a.id), ["guitar-edition"]);
   for (const id of instrumentEditionIds) {
-    assert.equal(hymnInstrumentArrangements({ id }, "piano").length, 1, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "piano").length, instrumentEdition({id})?.practiceStages ? 5 : 1, id);
     assert.equal(hymnInstrumentArrangements({ id }, "guitar").length, 1, id);
-    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, id === canonicalHymnId("in-christ-alone") ? 1 : 0, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, instrumentEdition({id})?.original ? 1 : 0, id);
   }
 });
 test("teacher score keeps Voice + Piano as default alongside adapted instrumental editions", () => {
@@ -55,7 +55,7 @@ test("teacher score keeps Voice + Piano as default alongside adapted instrumenta
 test("instrument switching is exclusive, preserves an eligible arrangement, and keeps old deep links meaningful", () => {
   assert.equal(selectHymnInstrument(stagedHymn, "chords", "piano"), "chords");
   assert.equal(selectHymnInstrument(stagedHymn, "chords", "sung"), "original");
-  assert.equal(selectHymnInstrument(stagedHymn, "original", "piano"), "melody");
+  assert.equal(selectHymnInstrument(stagedHymn, "original", "piano"), "piano");
   for (const arrangement of [
     "melody",
     "bass",

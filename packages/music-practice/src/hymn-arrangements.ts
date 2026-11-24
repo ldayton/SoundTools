@@ -1,3 +1,4 @@
+import { voicePianoAbc } from "./voice-piano";
 import type {HymnChange} from "./instrument-hymn";
 import {chordEdition,instrumentEdition} from "./instrument-editions";
 import {engraveEdition,selectEditionVoice,isGuitarPositionMark} from "./edition-score";
@@ -7,6 +8,8 @@ import { KEYS } from "./model";
 import hymns from "./hymns.json";
 export const hasInstrumentEditions = (hymn: { id: string }) =>
   !!instrumentEdition(hymn);
+export const isInstrumentArrangement = (hymn:{id:string}, arrangement:string) =>
+  hasInstrumentEditions(hymn) && (arrangement === "piano" || isGuitarArrangement(arrangement as Arrangement));
 export const supportsGuitarTab = (hymn: { id: string }) =>
   hasInstrumentEditions(hymn);
 export const ARRANGEMENTS = [
@@ -46,8 +49,9 @@ export function hymnArrangements(hymn: { id: string }): {id:Arrangement;label:st
   if(!edition)return [...ARRANGEMENTS];
   const profile=chordEdition(hymn);
   return [
-    ...(edition.original ? [{id:'original' as const,label:'Voice + Piano',help:'The supplied choir and organ score.'}] : []),
+    ...(edition.original ? [{id:'original' as const,label:'Voice + Piano',help:edition.vocal ? 'Source melody with its own vocal staff and the complete source piano harmony.' : 'The supplied choir and organ score.'}] : []),
     {id:'piano' as const,label:'Piano',help:'Melody and bass arranged for two hands on a grand staff.'},
+    ...(edition.practiceStages ? ARRANGEMENTS.filter(a=>a.id !== 'original') : []),
     {id:edition.guitarArrangement,label:'Guitar',help:profile
       ?`Fingerstyle melody with supporting bass and harmony, ${profile.capo?`with capo ${profile.capo}`:'without a capo'}.`
       :'Original fingerstyle guitar arrangement.'},
@@ -423,6 +427,11 @@ export function arrangeHymn(
   guitarTranspose = 0,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
   const edition = instrumentEdition(hymn);
+  if (arrangement === "original" && edition?.vocal) {
+    const profile = chordEdition(hymn)!;
+    const guitar = edition.build({hymn,instrument:"guitar",hands:"both",melody:()=>arrangeHymn(hymn,"melody",0).abc});
+    return arrangeHymn({...hymn,id:`${hymn.id}:voice`,harmony:voicePianoAbc(hymn.harmony,guitar,profile.capo)},"original",sectionBars,section,hands,endingBar,guitarTranspose);
+  }
   if (edition && (arrangement === "piano" || arrangement === edition.guitarArrangement)) {
     const guitar = arrangement === edition.guitarArrangement;
     const whole = sectionBars === 0 && (!endingBar || endingBar >= hymnBarCount(hymn));

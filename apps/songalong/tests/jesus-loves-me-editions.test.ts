@@ -88,16 +88,18 @@ const bass: [number, number[], number][] = [
   [59.5, [41, 47], 0.5],
   [60, [43], 4],
 ];
-test("Jesus Loves Me offers exactly Piano and Guitar with separate display and practice settings", () => {
+test("Jesus Loves Me offers Piano, Guitar and Voice + Piano with separate display and practice settings", () => {
   assert.deepEqual(
     hymnArrangements(hymn).map((a) => [a.id, a.label]),
     [
+      ["original", "Voice + Piano"],
       ["piano", "Piano"],
       ["guitar-edition", "Guitar"],
     ],
   );
+  assert.equal(hymnPreferences(hymn.id,{arrangement:"original"}).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id).bpm, 72);
-  for (const arrangement of ["melody", "bass", "chords", "broken", "original"])
+  for (const arrangement of ["melody", "bass", "chords", "broken"])
     assert.equal(
       hymnPreferences(hymn.id, { arrangement }).arrangement,
       "piano",

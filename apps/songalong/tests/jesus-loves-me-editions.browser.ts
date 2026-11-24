@@ -1,3 +1,4 @@
+import {checkVocalEdition} from "../../../packages/music-practice/test-fixtures/song-edition.browser";
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
@@ -113,7 +114,7 @@ try {
     await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
     await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
-  await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeDisabled();
+  await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeEnabled();
     await selectHymnInstrument(page, 'guitar');
     await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();
     assert(
@@ -263,6 +264,7 @@ try {
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     );
+    await checkVocalEdition(page,server.base,"jesus-loves-me");
     await page.close();
     console.log(`PASS Jesus Loves Me editions ${width}px`);
   }

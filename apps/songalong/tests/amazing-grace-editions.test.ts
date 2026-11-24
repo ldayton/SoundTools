@@ -62,15 +62,16 @@ const guitarChords: Record<string, number[]> = {
   Em: [40, 47, 52, 55, 59, 64],
   D7: [50, 57, 60, 66],
 };
-test("Amazing Grace exposes Piano and Guitar only and migrates saved arrangements", () => {
+test("Amazing Grace exposes Piano, Guitar and Voice + Piano and migrates saved arrangements", () => {
   assert.deepEqual(
     hymnArrangements(hymn).map((a) => [a.id, a.label]),
     [
+      ["original", "Voice + Piano"],
       ["piano", "Piano"],
       ["guitar-edition", "Guitar"],
     ],
   );
-  for (const arrangement of ["melody", "bass", "chords", "broken", "original"])
+  for (const arrangement of ["melody", "bass", "chords", "broken"])
     assert.equal(
       hymnPreferences(hymn.id, { arrangement }).arrangement,
       "piano",
@@ -90,6 +91,7 @@ test("Amazing Grace exposes Piano and Guitar only and migrates saved arrangement
     assert.equal(s.hands, "left");
     assert.equal(s.scoreDisplay, "tab");
   }
+  assert.equal(hymnPreferences(hymn.id,{arrangement:"original"}).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id).bpm, 72);
 });
 test("piano preserves every source melody attack, ornament, and tie with compact accompaniment", () => {

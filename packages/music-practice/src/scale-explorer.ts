@@ -162,8 +162,11 @@ export class ScaleExplorer implements LivePractice {
     event.preventDefault();
     if (event.key === "[" || event.key === "]")
       this.moveOctave(event.key === "[" ? -1 : 1);
-    else if (event.key === "ArrowUp" || event.key === "ArrowDown")
-      this.moveShape(event.key === "ArrowUp" ? 1 : -1);
+    else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      // Numbered shapes follow the selector order: Down advances, Up reverses.
+      const forward = isMaqam(this.quality) ? "ArrowUp" : "ArrowDown";
+      this.moveShape(event.key === forward ? 1 : -1);
+    }
     else this.moveTonic(event.key === "ArrowLeft" ? -1 : 1);
   };
   private regionId() { return this.shapeSet === "hila" ? String(this.hilaShape) : this.pattern; }

@@ -225,9 +225,9 @@ try {
   await page.getByLabel("Shape", { exact: true }).selectOption("1");
   await page.locator("#scale-dot-labels").selectOption("none");
   await page.locator("#scale-title").click();
-  await page.keyboard.press("ArrowUp");
-  await expect(page.getByLabel("Shape", { exact: true })).toHaveValue("2");
   await page.keyboard.press("ArrowDown");
+  await expect(page.getByLabel("Shape", { exact: true })).toHaveValue("2");
+  await page.keyboard.press("ArrowUp");
   await expect(page.getByLabel("Shape", { exact: true })).toHaveValue("1");
   await page.keyboard.press("]");
   expect(
@@ -304,7 +304,7 @@ try {
   await freshPhone.getByRole("button",{name:"Show A minor pentatonic",exact:true}).click();
   await expect(freshPhone.locator("#scale-title")).toHaveText("A minor pentatonic");
   await freshPhone.locator("#scale-title").click();
-  await freshPhone.keyboard.press("ArrowUp");
+  await freshPhone.keyboard.press("ArrowDown");
   await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 6");
   await expect(freshPhone.getByRole("button",{name:"Return to previous scale",exact:true})).toHaveCount(0);
   await expect.poll(()=>freshPhone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -365,7 +365,7 @@ try {
     await expect(parityPage.locator("#scale-linked-pattern")).toHaveValue("6");
     await closePracticeOptions(parityPage);
     await parityPage.locator("#scale-title").click();
-    await parityPage.keyboard.press("ArrowDown");
+    await parityPage.keyboard.press("ArrowUp");
     expect(new URL(parityPage.url()).searchParams.get("shape")).toBe("6");
     expect(new URL(parityPage.url()).searchParams.get("link")).toBe("5");
     await openPracticeOptions(parityPage);

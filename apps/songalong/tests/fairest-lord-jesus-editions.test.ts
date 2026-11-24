@@ -78,6 +78,7 @@ test("reference guitar chord practice keeps exact seventh voicings on playable d
  const seen=new Set<string>();for(const [start,pitches]of groups){
   const label=labels.get(start)!;if(expected[label]){assert.deepEqual(pitches,expected[label],label);seen.add(label);}
   const positions=pitches.map(p=>fairestPosition(p,true));assert(positions.every(Boolean),`${label}: every tab position exists`);
+  positions.forEach((p,i)=>assert.equal([64,59,55,50,45,40][p!.str]+p!.num,pitches[i],`${label}: tab sounds the written pitch`));
   assert.equal(new Set(positions.map(p=>p!.str)).size,pitches.length,label);
   const frets:(number|null)[]=Array(6).fill(null);for(const p of positions)frets[5-p!.str]=p!.num;
   assert(findGuitarFingering(frets,{maxFingers:4,allowBarres:true}),`${label}: physically playable grip`);

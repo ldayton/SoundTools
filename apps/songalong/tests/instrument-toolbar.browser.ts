@@ -67,7 +67,7 @@ try {
     await expect(group.getByRole("radio")).toHaveCount(3);
     await expect(
       page.getByRole("radio", { name: "Guitar", exact: true }),
-    ).toBeDisabled();
+    ).toBeEnabled();
     const piano = page.getByRole("radio", { name: "Piano", exact: true }),
       sung = page.getByRole("radio", {
         name: "Voice + Piano",
@@ -127,7 +127,7 @@ try {
     await selectHymnInstrument(page, "piano");
     await practiceOption(page, "#hymn-arrangement", "bass");
     await expect(piano).toHaveAttribute("aria-checked", "true");
-    await expect(page.locator("#hymn-arrangement option")).toHaveCount(4);
+    await expect(page.locator("#hymn-arrangement option")).toHaveCount(5);
     await dismissPracticeDrawer(page);
     await expect
       .poll(() =>

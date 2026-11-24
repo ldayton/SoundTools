@@ -1,4 +1,4 @@
-import type { InstrumentHymn } from "./instrument-hymn";
+import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
 import type { BeginnerInstrument } from "./beginner-score";
 import abcjs from "abcjs";
 import hymns from "./hymns.json";
@@ -52,8 +52,21 @@ export function standardFingers(capo:number, slug:string){
   }
   const planned=planPianoFingering(notes,"right");
   const melody=new Map(notes.map((n,i)=>[`${n.bar}:${n.midi}`,planned[i].finger]));
+  const config=slug === "blessed-assurance" ? blessedEdition : slug === "silent-night" ? silentEdition : joyEdition;
+  const guitarTune=abcjs.parseOnly(instrumentHymnAbc(hymn.melody.split("\n").filter(line=>line.trim()&&!/^w:/.test(line)).join("\n")+"\n",config,"guitar"))[0];
+  const guitarAudio=guitarTune.setUpAudio({chordsOff:true}).tracks.map(t=>t.filter(n=>n.cmd==="note"));
+  const bassFingers=new Map<number,Set<number>>();let elapsed=0;
+  for(const [bar,length]of config.barLengths!.entries()){
+    const sounding=guitarAudio[1].filter(n=>n.start<elapsed+length/64&&n.start+n.duration>elapsed);
+    bassFingers.set(bar,new Set(sounding.flatMap(n=>{const fret=positions[n.pitch]?.[1];return fret?[Math.min(4,fret)]:[];})));elapsed+=length/64;
+  }
   return (instrument:BeginnerInstrument,bar:number,voice:number,pitches:number[]):(number|null)[]=>{
     if(instrument==="piano") return pitches.map((pitch,i)=>voice===1?[5,3,1][i]??null:melody.get(`${bar}:${pitch}`)??null);
-    return pitches.map(p=>{const pos=positions[p-capo];return pos?.[1]?Math.min(4,pos[1]):null;});
+    return pitches.map(p=>{
+      const pos=positions[p-capo];if(!pos?.[1])return null;
+      const preferred=voice===0 && [48,62].includes(p-capo)?4:Math.min(4,pos[1]);
+      if(voice===1 || !bassFingers.get(bar)?.has(preferred))return preferred;
+      return [1,2,3,4].find(finger=>!bassFingers.get(bar)?.has(finger))??null;
+    });
   };
 }

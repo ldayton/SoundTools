@@ -151,11 +151,13 @@ export function drawPracticeScore(
     return tune;
   };
   const staffwidth = Math.max(140, width / scale - 24);
+  // Optional finger numbers must not move measures when toggled. Reserve their
+  // small annotation allowance for every practice score, including when hidden.
   const lineBreaks = options.fitHymnSystems ? hymnSystemLayout(source, {
     visualTranspose: transpose, initialClef: options.initialSignatures,
     minPadding: options.beginnerEdition ? 4 : undefined,
     afterParsing: prepareTune,
-  }, staffwidth, !!options.fingerings || !!options.guitarTab, [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore]) : undefined;
+  }, staffwidth, !options.printedScore || !!options.guitarTab, [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore]) : undefined;
   const tune = abcjs.renderAbc(paper, source, {
     lineBreaks,
     add_classes: true,

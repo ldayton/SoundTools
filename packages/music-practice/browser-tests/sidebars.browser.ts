@@ -107,7 +107,7 @@ try {
   await choose(otherStagedHymn.title);
   assert.equal(
     new URL(page.url()).pathname,
-    `/piano/hymns/${otherStagedHymn.id}`,
+    `/piano/hymns/${otherStagedHymn.slug}`,
   );
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
@@ -158,7 +158,7 @@ try {
     .waitFor({ state: "hidden" });
   assert.equal(
     new URL(page.url()).pathname,
-    `/piano/hymns/${otherStagedHymn.id}`,
+    `/piano/hymns/${otherStagedHymn.slug}`,
   );
   assert.deepEqual(errors, []);
   console.log(

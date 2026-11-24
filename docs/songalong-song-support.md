@@ -22,7 +22,8 @@ The three new instrumental editions use `instrumentHymnAbc`, the existing
 edition registry, capo-aware playback/tab, chord diagrams and preview player.
 Their explicit harmonic changes and bass choices are in
 `standard-hymn-editions.ts`; piano melody fingerings reuse the phrase planner.
-Piano chords fit within a fifth. Guitar bass choices use separate strings from
+Piano chords fit within a fifth. Guitar finger suggestions reserve the held bass
+finger when assigning melody fingers. Guitar bass choices use separate strings from
 the melody, including low open-string inversions where a root bass would collide.
 The original 80 BPM starting preference is retained for these three songs;
 it is adjustable and is not represented as an original source marking.
@@ -41,7 +42,9 @@ time, rather than moving the chord or splitting the music. The sung track uses
 the existing normalized choir samples; the other tracks use piano. In Christ
 Alone retains its separately authored choir/organ source and organ routing.
 
-All scores use the shared content-based system fitter, staff Show/Play table,
+All scores use the shared content-based system fitter, which reserves annotation
+space before fingerings are enabled so toggling them does not move measures.
+They share the staff Show/Play table,
 transposition, stanza alignment, note highlighting and playback engine. Vocal
 chords reuse the piano diagram with low-to-high octave-qualified labels and
 the normalized chord-then-breakdown preview. Dominant/minor seventh symbols

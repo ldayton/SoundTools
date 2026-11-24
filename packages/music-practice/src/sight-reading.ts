@@ -967,7 +967,7 @@ export class SightReading {
         octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
           !(this.arrangement === "original"),
         printedScore: this.arrangement === "original",
-        initialSignatures: !hasInstrumentEditions(this.hymn) || this.arrangement === "original",
+        initialSignatures: !reviewed,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: transposition.semitones,
         hiddenStaves: this.mode === "playback" ? this.effectiveStaves(this.hiddenStaves) : undefined,
@@ -1047,7 +1047,7 @@ export class SightReading {
             octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
               !(this.arrangement === "original"),
             printedScore: this.arrangement === "original",
-            initialSignatures: !hasInstrumentEditions(this.hymn) || this.arrangement === "original",
+            initialSignatures: !reviewed,
             reattackTies: this.reattackTies,
             playback: () => {},
           },

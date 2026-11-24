@@ -36,6 +36,10 @@ export function standardEditionContract(slug:string, expected:{bars:number;beats
     const guitar=read(arrangeHymn(hymn,"guitar-edition",0).abc,expected.capo);
     for(const time of [...new Set(guitar.tracks.flat().map(n=>n[1]))]){
       const sounding=guitar.tracks.flat().filter(n=>n[1]<=time+1e-8&&n[1]+n[2]>time+1e-8);
+      const barTimes=[...guitar.tune.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[])];
+      let cursor=0,bar=0;for(const n of barTimes){if(n.el_type==="bar" && cursor<=time/4+1e-8 && cursor>0)bar++;if(n.el_type==="note")cursor+=n.duration;if(cursor>time/4+1e-8)break;}
+      const fingers=guitar.tracks.flatMap((track,voice)=>track.filter(n=>n[1]<=time+1e-8&&n[1]+n[2]>time+1e-8).flatMap(n=>profile.fingers("guitar",bar,voice,[n[0]]).filter(Boolean)));
+      assert.equal(new Set(fingers).size,fingers.length,JSON.stringify({time,fingers}));
       const positions=sounding.map(([pitch])=>profile.position(pitch-expected.capo,true));
       assert(positions.every(Boolean),JSON.stringify(sounding));assert.equal(new Set(positions.map(p=>p!.str)).size,positions.length,JSON.stringify({time,sounding,positions}));
       assert(positions.every(p=>p!.num>=0&&p!.num<=4));

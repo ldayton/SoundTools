@@ -87,7 +87,7 @@ export function mergeHymnSettings(
       ? base.stanza!
       : stanzas[0] || 0;
   const available = hymnAvailableArrangements(hymn).map(a => a.id);
-  const requested = s.arrangement ?? base.arrangement;
+  const requested = choice(s.arrangement, ["melody","bass","chords","broken","original","piano","guitar","guitar-chords","guitar-fingerstyle","guitar-edition"] as const, base.arrangement);
   const arrangement = hasInstrumentEditions(hymn)
     ? typeof requested === "string" && available.includes(requested as Arrangement) ? requested as Arrangement : requested === "original" && available.includes("original") ? "original" : requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
       ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"

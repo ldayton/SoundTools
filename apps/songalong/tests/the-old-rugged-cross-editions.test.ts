@@ -17,7 +17,7 @@ standardEditionContract(slug,{bars:20,beats:48,attacks:76,capo:3,opening:[62,63,
 // Each row is a printed measure. Durations are sixteenths; ties join listed heads.
 const print=[
  [[62,63],[65,64,67,65,65,65],[67,66,69,67,67,67],[69,67,65,63,65,63],[62,62],
-  [62,63],[65,64,67,65,65,65],[67,66,69,67,67,67],[67,65,65,75,74,72],[70,70],
+  [62,63],[65,64,67,65,65,65],[67,66,69,67,67,67],[69,67,65,75,74,72],[70,70],
   [69,70],[72,72,72,72,70,69],[70,70,70,69],[67,67,67,70,69,67],[65,65],
   [65,70],[74,74,74,74,75,74],[67,67,75,75],[74,72,70,65,69,72],[70,70]],
  [[58,60],[62,61,61,62,62,62],[63,63,63,63,64,64],[63,63,62,60,60,60],[58,58],
@@ -52,6 +52,7 @@ test("every printed pitch, accidental, rhythm, tie and answering part survives t
   assert.equal(time,192);assert.deepEqual(notes(audio.tracks[voice]),expected,`printed part ${voice}`);
  });
  const sourceHeads=read(hymn.harmony).tune.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[]).filter(n=>n.el_type==="note"&&n.pitches?.length);assert.equal(sourceHeads.length,84);
+ assert.deepEqual(sourceHeads.slice(0,5).map(n=>n.el_type==="note"?[!!n.startBeam,!!n.endBeam]:[]),[[true,false],[false,true],[true,false],[false,false],[false,true]],"Printed pickup and dotted-quarter beam groups");
  // The publisher's MusicXML explicitly marks these partial-measure end bars
  // "none". Preserve that source structure instead of adding a visible stroke.
  for(let staff=0;staff<2;staff++)for(let voice=0;voice<2;voice++){

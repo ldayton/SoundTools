@@ -245,6 +245,10 @@ and open-string support where the melody supplies the bass; runtime capo
 selection remains engine-owned. All simultaneous notes occupy separate strings,
 the reference grips are playable, and the final tonic includes its third.
 The adjustable 80 quarter-note BPM starting value is editorial.
+Source and playable beaming retain the printed three-eighth groups. The shared
+beaming helper uses dotted-quarter groups in compound meters, including 9/8,
+while preserving ordinary quarter beats; its independent owner is
+`packages/music-practice/tests/score-melody.test.ts`.
 Source piano chord previews name the passing harmonies C-sharp diminished
 seventh over B-flat and F-sharp diminished seventh over E-flat, retaining the
 print's spelling rather than replacing E-natural with an enharmonic F-flat.

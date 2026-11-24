@@ -1,4 +1,5 @@
 import { captureFailure, closeBrowser, launchBrowser, newPage, waitForApp } from '../../../scripts/ci/browser-harness.cjs';
+import { openPracticeOptions } from '../../../packages/music-practice/browser-tests/helpers';
 import { chromium, firefox, webkit } from 'playwright';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -85,6 +86,29 @@ try {
  // and must not invoke the page's octave shortcut while a select has focus.
  await page.keyboard.press(']');
  assert.equal(new URL(page.url()).searchParams.get('position'),'0','focused dropdown must suppress page shortcuts');
+ // Committing a control selection must release shortcut keys. Focusing a select
+ // explicitly is essential: selectOption alone does not reproduce pointer focus.
+ for(const [width,set,label,value,expectedKey] of [
+   [1440,'standard','Scale type','major-pentatonic','Db'],
+   [1440,'standard','Scale key','2','Eb'],
+   [1440,'standard','Pattern','5','Db'],
+   [1440,'hila','Shape','2','Db'],
+   [1440,'hila','Shape set','standard','Db'],
+   [393,'standard','Scale type','minor','C#'],
+   [393,'hila','Shape','2','Db'],
+ ] as const){
+   const controlsPage=await newPage(browser,{viewport:{width,height:1000},hasTouch:width===393});
+   controlsPage.on('pageerror',e=>errors.push(e.message));
+   await controlsPage.goto(`http://127.0.0.1:4362/guitar/scales?key=C&scale=major&set=${set}&pattern=1&shape=1`);
+   await waitForApp(controlsPage,'.scale-diagram svg');await openPracticeOptions(controlsPage);
+   const control=controlsPage.getByLabel(label,{exact:true});
+   await control.focus();await control.selectOption(value);
+   assert.equal(await controlsPage.getByRole('group',{name:'Scale controls',exact:true}).evaluate(e=>document.activeElement===e),true,'committed selection releases the dropdown without leaving the options panel');
+   await controlsPage.keyboard.press('ArrowRight');
+   await controlsPage.waitForFunction(key=>new URL(location.href).searchParams.get('key')===key,expectedKey);
+   assert.ok((await controlsPage.locator('#scale-title').innerText()).startsWith(expectedKey==='C#'?'C♯':expectedKey==='Db'?'D♭':'E♭'));
+   await controlsPage.close();
+ }
  await page.locator('#scale-title').click();
  await page.goto('http://127.0.0.1:4362/guitar/scales?key=F%23&scale=major&pattern=1&position=-6');
  await page.getByRole('heading',{name:'F♯ major',exact:true}).waitFor();

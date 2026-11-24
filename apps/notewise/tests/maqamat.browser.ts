@@ -36,8 +36,8 @@ try{
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:`/tmp/maqam-${quality}-mobile.png`,fullPage:true});
   await page.setViewportSize({width:1440,height:1000});await openPracticeOptions(page);
-  await hand.selectOption('7');
- await page.locator('#scale-title').click();await page.keyboard.press('ArrowUp');
+  await hand.focus();await hand.selectOption('7');
+ await page.keyboard.press('ArrowUp');
  await expect(hand).toHaveValue('8');
  await page.reload();await waitForApp(page,'.scale-diagram svg');await openPracticeOptions(page);
  await expect(page.locator('#scale-quality')).toHaveValue(quality);await expect(hand).toHaveValue('8');

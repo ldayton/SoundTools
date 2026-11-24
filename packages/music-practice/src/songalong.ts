@@ -135,14 +135,14 @@ async function refreshGuest(){
   if(!guestDirty || guestApplying || persistence.accountSave || !practice?.syncIdle || document.hidden)return;
   guestApplying=true;guestDirty=false;
   try{
-    const current=route.kind === "exercise" ? route.hymn : undefined,before=guestView(persistence.state,current);
+    const current=route.kind === "exercise" ? route.hymn : practice?.hymnId,before=guestView(persistence.state,current);
     if(!await persistence.refreshGuest())return;
     const saved=persistence.read<import("./hymn-progress").HymnState>("sight");
     if(saved)practice?.applyInactiveAccountState(saved);
     if(!same(before,guestView(persistence.state,current))){
       interrupt("controls");practice?.dispose();practice=undefined;
       refreshPianoVolume();restorePianoVisibility();
-      if(current){const url=new URL(`/piano/hymns/${hymnSlug(current)}`,location.origin);route=readRoute(url,"sight");history.replaceState(null,"",url.pathname);}
+      if(current && route.kind === "exercise"){const url=new URL(`/piano/hymns/${hymnSlug(current)}`,location.origin);route=readRoute(url,"sight");history.replaceState(null,"",url.pathname);}
       render();
     }
   }catch(error){persistence.fail("Could not refresh saved song options.");diagnostics.capture(error,"songalong.guest_refresh_failed");}

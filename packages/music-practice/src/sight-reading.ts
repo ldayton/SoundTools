@@ -595,6 +595,7 @@ export class SightReading {
     this.progress.mergeInactive(saved, this.hymn.id);
     this.publishOptions();
   }
+  get hymnId() { return this.hymn.id; }
   get syncIdle() {
     const idle =
       this.mode === "playback"

@@ -138,7 +138,7 @@ test("preview settings migrate into an independent activity without losing theor
   assert.equal(restored.progress.mode, "guitar-scales");
   assert.deepEqual(restored.activities["guitar-scales"], {
     version: 1,
-    settings: { tonic: 3, quality: "minor", shapeSet: "hila" },
+    settings: { tonic: 3, quality: "minor", shapeSet: "standard" },
   });
   assert.deepEqual(restored.activities.sight, raw.activities.sight);
   assert.deepEqual(
@@ -176,7 +176,7 @@ test("preview settings migrate into an independent activity without losing theor
   delete raw.activities["guitar-scales"];
   assert.deepEqual(
     decodeState(raw).activities["guitar-scales"],
-    { version: 1, settings: { tonic: 4, quality: "major", shapeSet: "hila" } },
+    { version: 1, settings: { tonic: 4, quality: "major", shapeSet: "standard" } },
     "default preview selection survives",
   );
 });
@@ -315,18 +315,18 @@ test("relative spelling, saved selections and links retain the actual key signat
   const relative = relativeScale(6, "major");
   assert.deepEqual(
     mergeGuitarScaleSettings(JSON.parse(JSON.stringify(relative))),
-    { ...relative, shapeSet: "hila" },
+    { ...relative, shapeSet: "standard" },
   );
   assert.deepEqual(
     guitarScaleFromQuery(new URLSearchParams("key=D%23&scale=minor"), {
       tonic: 0,
       quality: "major",
     }),
-    { ...relative, shapeSet: "hila" },
+    { ...relative, shapeSet: "standard" },
   );
   assert.deepEqual(
     mergeGuitarScaleSettings({ tonic: 0, quality: "major", spelling: "Gb" }),
-    { tonic: 0, quality: "major", shapeSet: "hila" },
+    { tonic: 0, quality: "major", shapeSet: "standard" },
   );
   assert.throws(() => scaleNotes(3, "minor", "Gb"));
 });

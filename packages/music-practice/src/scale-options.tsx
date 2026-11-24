@@ -69,8 +69,8 @@ export function ScaleOptions({
           label="Shape set"
           value={state.shapeSet}
           data={[
-            { value: "hila", label: "Berklee 7PS" },
             { value: "standard", label: "CAGED" },
+            { value: "hila", label: "Berklee 7PS" },
           ]}
           onChange={(e) =>
             change({ shapeSet: e.currentTarget.value as "standard" | "hila" })

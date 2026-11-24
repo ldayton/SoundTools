@@ -1,3 +1,4 @@
+import {capoAccompanimentAbc,type CapoChoice} from "./guitar-capo";
 import { instrumentEdition } from "./instrument-editions";
 import { abcPlaybackStaves, mutePlaybackStaves } from "./hymn-playback-staves";
 import { chordEdition, capoAudio } from "./chord-editions";
@@ -23,6 +24,7 @@ export function hymnPlaybackScore(options: {
   abc: string;
   audio: AudioTracks;
   transpose: number;
+  capoChoice?: CapoChoice;
   endingBar?: number;
   stanzas?: readonly number[];
   mutedStaves?: readonly number[];
@@ -51,6 +53,8 @@ export function hymnPlaybackScore(options: {
   };
   const readAudio = (abc: string) => {
     const capoEdition = options.arrangement === "guitar-edition";
+    if(capoEdition && options.hands === "left" && options.capoChoice)
+      abc=capoAccompanimentAbc(abc,options.capoChoice,(chordEdition(options.hymn)?.capo || 0)+options.transpose-options.capoChoice.fret);
     const audio = swingAudio(
       abcjs.parseOnly(abc)[0].setUpAudio({
         qpm: 60,

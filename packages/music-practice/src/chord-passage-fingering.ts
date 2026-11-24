@@ -64,6 +64,7 @@ type PositionFor = (
   pitch: number,
   chord: boolean,
   transpose: number,
+  group?: readonly number[],
 ) => StringPosition | undefined;
 type TabNote = {
   startChar?: number;
@@ -152,6 +153,7 @@ export function scoreChordPassages(
                         midi.pitch - capo,
                         (n.pitches?.length || 0) > 1,
                         transpose,
+                        (n.midiPitches || []).map((p:{pitch:number})=>p.pitch-capo),
                       )
                     : undefined;
                 tied.set(p.pitch, position);

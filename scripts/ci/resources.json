@@ -687,7 +687,8 @@
     "ports": [
       4574,
       4591,
-      4696
+      4696,
+      4697
     ],
     "locks": [],
     "coverage": [
@@ -709,6 +710,13 @@
         "command": "tsx",
         "args": [
           "tests/chord-diagrams.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar-capo.browser.ts"
         ],
         "cwd": "apps/songalong"
       }
@@ -940,7 +948,8 @@
       4572,
       4574,
       4591,
-      4696
+      4696,
+      4697
     ],
     "locks": [
       "realtime-audio"
@@ -1020,6 +1029,13 @@
         "command": "tsx",
         "args": [
           "tests/chord-diagrams.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      },
+      {
+        "command": "tsx",
+        "args": [
+          "tests/guitar-capo.browser.ts"
         ],
         "cwd": "apps/songalong"
       }

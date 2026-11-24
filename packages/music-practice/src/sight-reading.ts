@@ -1,3 +1,4 @@
+import {recommendGuitarCapos,capoPosition,capoAccompanimentAbc,type CapoChoice} from "./guitar-capo";
 import { bindMediaSession } from "@ldayton/ui/media-session";
 import {migrateHymnIdentity} from "./hymn-identity";
 import { abcHasChordSymbols, abcPlaybackStaves, legacyHiddenStaves, type PlaybackStaff } from "./hymn-playback-staves";
@@ -150,6 +151,10 @@ export class SightReading {
   }
   private hymn = hymns[0];
   private key: HymnKey = "original";
+  private capo: number | null = null;
+  private capoChoices: CapoChoice[] = [];
+  private capoChoice?: CapoChoice;
+  private capoCache = new Map<string,CapoChoice[]>();
   private octave?: number;
   private low: number | null = null;
   private high: number | null = null;
@@ -320,6 +325,7 @@ export class SightReading {
       if (Number.isInteger(saved?.octave) && Math.abs(saved!.octave!) <= 10)
         this.octave = saved!.octave;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
+      this.capo = hymnPreferences(this.hymn.id,saved).capo ?? null;
       this.mutedStaves = hymnPreferences(this.hymn.id, saved).mutedStaves || [];
       this.hiddenStaves = hymnPreferences(this.hymn.id, saved).hiddenStaves || [];
       this.showChordSymbols = hymnPreferences(this.hymn.id, saved).showChordSymbols !== false;
@@ -689,6 +695,7 @@ export class SightReading {
     this.high = next.high ?? null;
     this.hymn = hymn;
     this.key = next.key || "original";
+    this.capo = next.capo ?? null;
     this.octave =
       !route.query.has("octave") &&
       (switching ||
@@ -724,6 +731,7 @@ export class SightReading {
       countIn: this.countIn,
       loopCountIn: this.loopCountIn,
       key: this.key,
+      capo: this.capo,
       octave: this.octave,
       low: this.low,
       high: this.high,
@@ -759,6 +767,7 @@ export class SightReading {
     if (this.countIn) q.set("countIn", String(this.countIn));
     if (this.loopCountIn) q.set("loopCountIn", "1");
     if (this.key !== "original") q.set("key", this.key);
+    if (this.capo !== null) q.set("capo",String(this.capo));
     q.set("octave", String(this.octave ?? 0));
     if (this.low !== null) q.set("low", String(this.low));
     if (this.high !== null) q.set("high", String(this.high));
@@ -804,6 +813,7 @@ export class SightReading {
     const next = this.progress.forHymn(hymn.id);
     this.hymn = hymn;
     this.key = next.key!;
+    this.capo = next.capo ?? null;
     this.octave = next.octave;
     this.low = next.low!;
     this.high = next.high!;
@@ -955,7 +965,21 @@ export class SightReading {
       );
       // Keep dedicated guitar shapes and relative frets; transpose with the capo.
       const capoEdition = this.arrangement === "guitar-edition" && chordProfile;
-      const guitarCapo = capoEdition ? chordProfile.capo + transposition.semitones : chordProfile?.capo;
+      this.capoChoices=[];this.capoChoice=undefined;
+      if(capoEdition){
+        const identity=`${this.hymn.id}:${transposition.semitones}`;
+        let choices=this.capoCache.get(identity);
+        if(!choices){
+          choices=recommendGuitarCapos({abc:arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:transposition.semitones,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position});
+          this.capoCache.set(identity,choices);
+        }
+        this.capoChoices=choices;
+        this.capoChoice=choices.find(c=>c.fret === this.capo) || choices.find(c=>c.scoreSetting) || choices[0];
+        if(this.capo !== null && this.capoChoice?.fret !== this.capo)this.capo=null;
+      }
+      const capoChoice=this.capoChoice;
+      const guitarCapo=capoChoice?.fret ?? (capoEdition ? chordProfile.capo+transposition.semitones : chordProfile?.capo);
+      const shapeTranspose=capoEdition ? chordProfile.capo+transposition.semitones-guitarCapo! : transposition.semitones;
       const score = arrangeHymn(
         this.hymn,
         this.arrangement,
@@ -1006,7 +1030,8 @@ export class SightReading {
         printedScore: this.arrangement === "original",
         initialSignatures: !reviewed,
         reattackTies: this.mode === "wait" && this.reattackTies,
-        transpose: capoEdition ? 0 : transposition.semitones,
+        transpose: shapeTranspose,
+        capoChoice,
         hiddenStaves: this.mode === "playback" ? this.effectiveStaves(this.hiddenStaves) : undefined,
         playback: (audio) => {
           this.sectionDuration = audio.totalDuration * 4;
@@ -1023,6 +1048,7 @@ export class SightReading {
               abc: score.abc,
               audio,
               transpose: transposition.semitones,
+              capoChoice,
               endingBar: this.endingBar,
               stanzas: this.stanzas,
               mutedStaves: this.effectiveStaves(this.mutedStaves),
@@ -1040,8 +1066,8 @@ export class SightReading {
                 strum: this.arrangement === "guitar-chords" ||
                   (this.arrangement === "guitar-edition" && this.viewHands === "left"),
                 positionFor: edition
-                  ? (pitch, chord) => edition.position(
-                      pitch - (capoEdition ? guitarCapo! : edition.capo || 0), chord, capoEdition ? 0 : transposition.semitones,
+                  ? (pitch, chord) => capoChoice ? capoPosition(capoChoice,pitch-guitarCapo!,chord,shapeTranspose) : edition.position(
+                      pitch - (capoEdition ? guitarCapo! : edition.capo || 0), chord, shapeTranspose,
                     )
                   : undefined,
               },
@@ -1074,11 +1100,13 @@ export class SightReading {
         const visible = new Map(this.events.map((e) => [e.milliseconds, e]));
         this.events = drawPracticeScore(
           document.createElement("div"),
-          practice.abc,
+          capoChoice && this.hands === "left" ? capoAccompanimentAbc(practice.abc,capoChoice,shapeTranspose) : practice.abc,
           paper.clientWidth,
           {
             fitHymnSystems: true,
-            transpose: capoEdition ? 0 : transposition.semitones,
+            transpose: shapeTranspose,
+            capoChoice,
+            capoAccompaniment:this.hands === "left",
             guitarSetup: capoEdition ? {capo:guitarCapo!,key:transposition.key} : undefined,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
             hymnEdition: reviewed ? chordEdition(this.hymn)?.id : undefined,
@@ -1266,6 +1294,11 @@ export class SightReading {
       searchOpen: this.searchOpen,
       unmetered: !/^\d+\/\d+$/.test(this.hymn.meter),
       originalKey: this.hymn.key,
+      effectiveCapo:this.capoChoice?.fret ?? chordEdition(this.hymn)?.capo ?? 0,
+      capoChoices:this.capoChoices.map((choice,index)=>({fret:choice.fret,shapeKey:choice.shapeKey,recommended:index===0,scoreSetting:choice.scoreSetting})),
+      capo:this.capo,
+      guitarShapes:this.capoChoice?.chords.join(", ") || chordEdition(this.hymn)?.shapes || "",
+      capoScoreSetting:this.capoChoice?.scoreSetting !== false,
       noMatchingKey: this.noMatchingKey,
       availableKeys: this.availableKeys,
       keyRanges: this.keyRanges,
@@ -1393,10 +1426,17 @@ export class SightReading {
       this.save();
       this.interrupt("controls");
       this.key = next.key!;
+      this.capo = null;
       this.octave = undefined;
       this.restoreSection();
       this.restorePending = true;
       this.render();
+    } else if (patch.capo !== undefined) {
+      const choice=this.capoChoices.find(c=>c.fret === next.capo);
+      if(!choice)return;
+      this.save();this.interrupt("controls");
+      this.capo=choice.scoreSetting ? null : choice.fret;
+      this.restoreSection();this.restorePending=true;this.render();
     } else if (patch.octave !== undefined) {
       if (!this.availableOctaves.includes(next.octave!)) return;
       this.save();

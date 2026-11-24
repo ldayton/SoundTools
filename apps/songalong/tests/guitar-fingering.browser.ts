@@ -35,10 +35,13 @@ try {
     await practiceOption(page,"#hymn-key",target);
     if(profile){
       const capo=(profile.capo+hymnTransposition(hymn.key,target).semitones+12)%12;
+      await expect(page.locator("#hymn-capo")).toHaveValue(String(capo));
+      const suggestions=await page.locator("#hymn-capo option").allTextContents();assert(suggestions.length>=1&&suggestions.length<=3);assert.equal(suggestions.filter(s=>s.includes("recommended")).length,1);
       await expect(page.locator(".hymn-score-setup")).toHaveText(`${capo ? `Capo ${capo}` : "No capo"} · Sounding key: ${target} major`);
       assert.deepEqual(await page.locator(".abcjs-tabNumber").allTextContents(),frets,`${hymn.slug}: capo transposition retains playable frets`);
       assert.deepEqual(await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents(),chords);
     }
+    if(!profile)await expect(page.locator("#hymn-capo")).toHaveCount(0);
     if(hymn.slug === "ill-fly-away"){
       await page.locator(".hymn-score-setup").scrollIntoViewIfNeeded();
       await page.screenshot({path:"work/musical-fixes/ill-fly-away-d-desktop.png"});

@@ -234,7 +234,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
 }
 
 /** Rhythmic tablature: independent melody/bass stems, eighth beams, rests and ties. */
-export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor=fingerstylePosition,rhythms=true,bassRests=false) {
+export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,transpose:number,positionFor:(pitch:number,chord:boolean,transpose:number,group?:readonly number[])=>{str:number;num:number}|undefined=fingerstylePosition,rhythms=true,bassRests=false) {
   const beam=new Map<number,{x:number;y:number;svg:SVGSVGElement;levels:number}[]>();
   const ties=new Map<string,{x:number;y:number;svg:SVGSVGElement}>();
   for(const {note,voice,pitches} of entries(tune,from)) {
@@ -267,7 +267,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
       }
       continue;
     }
-    const positions=pitches.map(p=>positionFor(p,pitches.length>1,transpose));
+    const positions=pitches.map(p=>positionFor(p,pitches.length>1,transpose,pitches));
     if(positions.some(p=>!p)) continue;
     const ys=positions.map(p=>top+p!.str*step);
     const anchor=up?Math.min(...ys)-5:Math.max(...ys)+5;

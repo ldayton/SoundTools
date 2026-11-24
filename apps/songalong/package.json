@@ -24,7 +24,7 @@
     "test:stanzas": "tsx tests/hymn-stanzas.browser.ts",
     "test:catalog": "tsx tests/hymn-catalog.browser.ts",
     "test:editions": "node ../../scripts/ci/test-strategy.cjs editions",
-    "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts",
+    "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts && tsx tests/guitar-capo.browser.ts",
     "test:instrument-audio": "tsx tests/instrument-audio.browser.ts",
     "test:workspace:core": "tsx tests/workspace.browser.ts && tsx tests/hymn-library.browser.ts && tsx tests/staff-size.browser.ts && tsx tests/staff-spacing.browser.ts && tsx tests/song-memory.browser.ts && tsx tests/audio-output.browser.ts"
   },

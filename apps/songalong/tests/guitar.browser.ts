@@ -11,6 +11,7 @@ import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
   openPracticeOptions,
   dismissPracticeDrawer,
+  practiceOption,
 } from "../../../packages/music-practice/browser-tests/helpers";
 const server = await preview("songalong", 4574),
   browser = await launchBrowser();
@@ -29,6 +30,13 @@ try {
       await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
       await expect(page.locator("#hymn-key")).toHaveValue(/D major/);
       await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
+      if(width===1440){
+        await expect(page.locator("#hymn-capo")).toHaveValue("2");
+        await practiceOption(page,"#hymn-capo","0");
+        await expect(page.locator(".hymn-score-setup")).toHaveText("No capo · Sounding key: D major");
+        await expect(page.locator("#hymn-key")).toHaveValue(/D major/);
+        await practiceOption(page,"#hymn-capo","2");
+      }
       assert(
         (await page.locator(".abcjs-chord").allTextContents()).includes("G7"),
       );

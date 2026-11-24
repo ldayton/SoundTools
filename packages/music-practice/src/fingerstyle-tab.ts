@@ -12,7 +12,7 @@ type Plugin = { init(...args: unknown[]): void; render(renderer: unknown, line: 
 type PluginEntry = { classz: new () => Plugin };
 
 /** Keep the original edition's string choices while abcjs lays out the tab. */
-export function preserveFingerstyleTab(tune: TuneObject, transpose: number,positionFor=fingerstylePosition) {
+export function preserveFingerstyleTab(tune: TuneObject, transpose: number,positionFor:(pitch:number,chord:boolean,transpose:number,group?:readonly number[])=>{str:number;num:number}|undefined=fingerstylePosition) {
   const entries = (tune as TuneObject & { tablatures?: (PluginEntry | null)[] }).tablatures;
   for (const entry of entries || []) {
     if (!entry) continue;
@@ -41,6 +41,7 @@ export function preserveFingerstyleTab(tune: TuneObject, transpose: number,posit
               number.note.pitch + number.note.pitchAltered,
               (notes?.length || 0) > 1,
               transpose,
+              (result.notes || []).map(n=>n.note.pitch+n.note.pitchAltered),
             );
             if (position) Object.assign(number, position);
           }

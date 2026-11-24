@@ -37,6 +37,8 @@ export type HymnSettings = {
   hiddenStaves?: number[];
   showChordSymbols?: boolean;
   key?: HymnKey;
+  /** Null retains the reviewed score's capo; an explicit choice keeps the key. */
+  capo?: number | null;
   octave?: number;
   low?: number | null;
   high?: number | null;
@@ -150,6 +152,7 @@ export function mergeHymnSettings(
         ? Number(s.bpm)
         : base.bpm || 80,
     ...(isHymnKey(s.key) ? { key: s.key } : base.key ? { key: base.key } : {}),
+    ...("capo" in s || "capo" in base ? {capo: s.capo === null ? null : Number.isInteger(s.capo) && Number(s.capo)>=0 && Number(s.capo)<=11 ? Number(s.capo) : base.capo ?? null} : {}),
     ...(Number.isInteger(s.octave) && Math.abs(Number(s.octave)) <= 10
       ? { octave: Number(s.octave) }
       : base.octave !== undefined
@@ -204,6 +207,8 @@ export function hymnSettingsFromQuery(
   if (query.has("mode")) overrides.mode = query.get("mode");
   if (query.has("tempo")) overrides.bpm = Number(query.get("tempo"));
   if (query.has("key")) overrides.key = query.get("key");
+  if(query.has("key") && query.get("key") !== base.key && !query.has("capo"))overrides.capo=null;
+  if (query.has("capo")) overrides.capo = query.get("capo") === "score" ? null : Number(query.get("capo"));
   if (query.has("octave")) overrides.octave = Number(query.get("octave"));
   if (query.has("arrangement"))
     overrides.arrangement = query.get("arrangement");

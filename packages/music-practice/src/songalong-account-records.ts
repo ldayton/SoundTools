@@ -12,7 +12,7 @@ export function songalongRecords(state: DurableState): Records {
       if (["bookmarks", "preferences", "sections", "favorites"].includes(key)) {
         for (const [id, setting] of Object.entries(value || {})) {
           if (key === "preferences") {
-            const pitch = ["key", "octave"];
+            const pitch = ["key", "octave", "capo"];
             const settings = setting as Record<string, Json>;
             records[`hymn:${id}:pitch`] = Object.fromEntries(
               pitch

@@ -195,3 +195,20 @@ function writtenTiePlan(hymn:Hymn) {
 }
 export const pianoTieFixture=hymns.map(writtenTiePlan).find(Boolean)!;
 if(!pianoTieFixture)throw Error("Written-tie repetition requires a real piano continuation");
+
+/** Real authored guitar music with a proven alternate capo, for control tests. */
+export async function selectCapoPracticeHymn(){
+ const {chordEdition}=await import("../src/instrument-editions");
+ const {recommendGuitarCapos}=await import("../src/guitar-capo");
+ for(const hymn of hymns){
+  const profile=chordEdition(hymn);if(!profile)continue;
+  const score=arrangeHymn(hymn,"guitar-edition",0),accompaniment=arrangeHymn(hymn,"guitar-edition",0,0,"left");
+  const choices=recommendGuitarCapos({abc:score.abc,accompanimentAbc:accompaniment.abc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+  const alternate=choices.find(c=>!c.scoreSetting);if(!alternate)continue;
+  const notes=abcjs.parseOnly(score.abc)[0].setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"?[n]:[]));
+  const firstTime=Math.min(...notes.map(n=>n.start));
+  const first=notes.filter(n=>n.start<=firstTime+1e-7&&n.start+n.duration>firstTime+1e-7).map(n=>n.pitch+profile.capo);
+  return {hymn,profile,choices,alternate,first};
+ }
+ throw Error("Capo controls require an authored score with an alternate playable position");
+}

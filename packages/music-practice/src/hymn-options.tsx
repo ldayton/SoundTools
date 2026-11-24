@@ -42,7 +42,7 @@ import {
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
-import { HYMN_KEYS, hymnKeyLabel, hymnTransposition, type HymnKey } from "./hymn-transpose";
+import { HYMN_KEYS, hymnKeyLabel, type HymnKey } from "./hymn-transpose";
 import type { CountInBars } from "./hymn-count-in";
 import { hymnLibrary } from "./hymn-library";
 import hymns from "./hymns.json";
@@ -71,7 +71,7 @@ export function HymnOptions({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
-  const capo=profile ? profile.capo + (state.arrangement === "guitar-edition" ? hymnTransposition(state.originalKey,state.key,state.octave).semitones : 0) : 0;
+  const capo=state.effectiveCapo;
   const keys = [
     {
       value: "original",
@@ -163,6 +163,11 @@ export function HymnOptions({
               </Group>
             )}
           />
+          {state.arrangement === "guitar-edition" && state.capoChoices.length>0 && <NativeSelect
+            id="hymn-capo" label="Capo" value={String(state.effectiveCapo)}
+            data={state.capoChoices.map(choice=>({value:String(choice.fret),label:`${choice.fret ? `Capo ${choice.fret}` : "No capo"} · ${choice.shapeKey.replaceAll("#","♯").replaceAll("b","♭")} shapes${choice.recommended ? " (recommended)" : choice.scoreSetting ? " (score setting)" : ""}`}))}
+            onChange={event=>change({capo:Number(event.currentTarget.value)})}
+          />}
           {state.arrangement !== "guitar-edition" && <Group gap="xs" grow>
             <Button
               id="hymn-octave-down"
@@ -346,8 +351,8 @@ export function HymnOptions({
                 <Text size="sm">{profile.guide.meter}</Text>
                 {state.arrangement === "piano" ? <Text size="sm">Play the melody with your right hand and held harmony with your left. Small numbers suggest fingers: 1 is thumb, 5 is little finger. {profile.guide.piano}</Text> : <>
                   <Text size="sm">Standard tuning · {capo ? `Capo ${capo}; frets and chord symbols are relative to the capo.` : 'No capo.'} Sounding key: {state.key === "original" ? state.originalKey : state.key} major. For chord accompaniment, strum at each chord symbol and let it ring.</Text>
-                  <Text size="sm">Melody stems point up; bass/harmony stems point down. Use your thumb for bass, index for inner harmony, and middle or ring for melody. {profile.guide.guitar}</Text>
-                  <Text size="sm">For strumming use {profile.shapes}. {profile.guide.strum} Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
+                  <Text size="sm">Melody stems point up; bass/harmony stems point down. Use your thumb for bass, index for inner harmony, and middle or ring for melody. {state.capoScoreSetting ? profile.guide.guitar : ""}</Text>
+                  <Text size="sm">For strumming use {state.guitarShapes}. {state.capoScoreSetting ? profile.guide.strum : ""} Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
                   <Text size="sm">Chords only hides the notes. Select Chord accompaniment separately under Practice to practise strumming. Dots add half the duration; double stems in tab indicate half notes, double beams sixteenths. Ties sustain notes without plucking again.</Text>
                 </>}
               </> : <>

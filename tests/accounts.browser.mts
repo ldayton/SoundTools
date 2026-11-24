@@ -1,4 +1,4 @@
-import { playbackHymn, playbackMelody } from "../packages/music-practice/test-fixtures/hymns";
+import { playbackHymn, playbackMelody, selectCapoPracticeHymn } from "../packages/music-practice/test-fixtures/hymns";
 import {
   captureFailure,
   closeBrowser,
@@ -15,6 +15,7 @@ import {
   midiAction,
   practiceOption,
   openPracticeOptions,
+  selectHymnInstrument,
 } from "../packages/music-practice/browser-tests/helpers";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
@@ -256,6 +257,27 @@ try {
     engine +
       ": SongAlong settings, hand-scoped MIDI checkpoint, cross-device restore, reload and cached startup passed",
   );
+
+  // Capo is part of the atomic key/octave pitch preference, including a reset.
+  const capoFixture=await selectCapoPracticeHymn();
+  // Active practice deliberately defers cloud changes; release that guard first.
+  await q.getByRole("button",{name:"Pause",exact:true}).click();
+  await q.getByRole("button",{name:"Resume",exact:true}).waitFor();
+  await q.waitForFunction(()=>!!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'));
+  await p.getByRole("option",{name:capoFixture.hymn.title,exact:true}).click();
+  await selectHymnInstrument(p,"guitar");
+  await openPracticeOptions(p);
+  await practiceOption(p,"#hymn-capo",String(capoFixture.alternate.fret));
+  await p.waitForFunction(()=>!!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'));
+  await pull(q);await openPracticeOptions(q);
+  await q.locator(`#hymn-capo option:checked[value="${capoFixture.alternate.fret}"]`).waitFor({state:"attached"});
+  await q.reload();await openPracticeOptions(q);
+  assert.equal(await q.locator("#hymn-capo").inputValue(),String(capoFixture.alternate.fret));
+  await practiceOption(p,"#hymn-capo",String(capoFixture.profile.capo));
+  await p.waitForFunction(()=>!!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'));
+  await pull(q);await openPracticeOptions(q);
+  await q.locator(`#hymn-capo option:checked[value="${capoFixture.profile.capo}"]`).waitFor({state:"attached"});
+  console.log(engine+": SongAlong capo selection and score-setting reset survive account sync and reload");
 
   const mobile = await createContext(browser, {
     ...iphone14Pro,

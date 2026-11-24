@@ -22,6 +22,7 @@ export type HymnState = {
   hiddenStaves?: number[];
   showChordSymbols?: boolean;
   key?: HymnKey;
+  capo?: HymnSettings["capo"];
   octave?: number;
   low?: number | null;
   high?: number | null;
@@ -205,5 +206,5 @@ export function hymnProgressKey(
     !settings.hands
       ? ""
       : `:hands=${settings.hands}`;
-  return `${id}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${hand}${settings.stanza && settings.stanza > 1 ? `:stanza=${settings.stanza}` : ""}${endingBar ? `:ending=${endingBar}` : ""}${settings.reattackTies ? ":reattack-ties" : ""}`;
+  return `${id}:${settings.arrangement}:${settings.sectionBars}${section ? `:${settings.section}` : ""}${hymnKeySuffix(originalKey, settings.key || "original")}${settings.octave ? `:octave=${settings.octave}` : ""}${settings.arrangement === "guitar-edition" && settings.capo != null ? `:capo=${settings.capo}` : ""}${hand}${settings.stanza && settings.stanza > 1 ? `:stanza=${settings.stanza}` : ""}${endingBar ? `:ending=${endingBar}` : ""}${settings.reattackTies ? ":reattack-ties" : ""}`;
 }

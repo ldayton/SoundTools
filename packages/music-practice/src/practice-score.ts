@@ -1,7 +1,8 @@
 import { hymnSystemLayout } from "./hymn-system-layout";
 import { abcPlaybackStaves, hidePlaybackStaves } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
-import {editionTempoLabel} from "./edition-score";
+import {editionTempoLabel,isGuitarPositionMark} from "./edition-score";
+import type {CapoChoice} from "./guitar-capo";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
 import { drawBeginnerFingerings, separateBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
@@ -95,15 +96,30 @@ export function drawPracticeScore(
     showChordSymbols?: boolean;
     initialSignatures?: boolean;
     guitarSetup?: { capo: number; key: string };
+    capoChoice?: CapoChoice;
+    capoAccompaniment?: boolean;
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
   const sourceProfile=options.hymnEdition?chordEdition({id:options.hymnEdition}):undefined;
   const profile=sourceProfile && options.beginnerEdition === "guitar" && options.guitarSetup
     ? {...sourceProfile,capo:options.guitarSetup.capo,
-      fingers:(instrument:BeginnerInstrument,bar:number,voice:number,pitches:number[],force?:boolean)=>sourceProfile.fingers(instrument,bar,voice,pitches.map(p=>p-options.guitarSetup!.capo+sourceProfile.capo),force)}
+      position:options.capoChoice ? (pitch:number,chord:boolean,transpose=0,group?:readonly number[])=>{
+        if(options.capoAccompaniment && options.capoChoice!.scoreSetting)return sourceProfile.position(pitch,chord,transpose);
+        const grip=options.capoAccompaniment && group ? options.capoChoice!.accompaniment?.get(group.map(p=>p-transpose).sort((a,b)=>a-b).join(",")) : undefined;
+        const positions=grip?.positions || options.capoChoice!.positions;
+        return positions.get(`${pitch-transpose}:${chord?1:0}`) || positions.get(`${pitch-transpose}:${chord?0:1}`);
+      } : sourceProfile.position,
+      fingers:(instrument:BeginnerInstrument,bar:number,voice:number,pitches:number[],force?:boolean)=>{
+        const raw=pitches.map(p=>p-options.guitarSetup!.capo);
+        const grip=options.capoAccompaniment ? options.capoChoice?.accompaniment?.get([...raw].sort((a,b)=>a-b).join(",")) : undefined;
+        return options.capoChoice && !options.capoChoice.scoreSetting
+          ? raw.map(p=>(grip?.fingers || options.capoChoice!.fingers).get(`${p}:${pitches.length>1?1:0}`) ?? null)
+          : sourceProfile.fingers(instrument,bar,voice,pitches.map(p=>p-options.guitarSetup!.capo+sourceProfile.capo),force);
+      }}
     : sourceProfile;
   if(options.guitarSetup) abc=abc.replace(/^(Q:)"Capo \d+"\s*/gm,"$1");
+  if(options.capoChoice && !options.capoChoice.scoreSetting) abc=abc.replace(/"\^([IVX]+)"/g,(all,label)=>isGuitarPositionMark(label)?"":all);
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const staffScale = options.staffScale ?? 1;
   const scale =
@@ -298,7 +314,7 @@ export function drawPracticeScore(
   if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile && tune.lines[0]?.staff?.[0]?.voices?.length === 1);
   if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, profile?.pickup ?? false);
   if (options.guitarTab && !!profile) alignSimultaneousTab(tune, options.fromBar || 0);
-  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly, !!profile);
+  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift,group)=>profile.position(pitch-profile.capo,chord,shift,group?.map(p=>p-profile.capo)) : undefined, !!options.tabOnly, !!profile);
   // Measure editorial annotations even when hidden, so the score keeps its
   // geometry when fingerings are toggled. Remove the provisional marks below.
   if (options.beginnerEdition)

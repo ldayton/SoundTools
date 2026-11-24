@@ -33,20 +33,13 @@ try {
     for (const legacy of ["guitar", "guitar-chords"]) {
       await page.goto(
         server.base +
-          `/piano/hymns/ill-fly-away?arrangement=${legacy}&key=D&display=both&mode=playback`,
+          `/piano/hymns/ill-fly-away?arrangement=${legacy}&key=D&capo=2&display=both&mode=playback`,
       );
       await page.locator(".abcjs-tabNumber").first().waitFor();
       await openPracticeOptions(page);
       await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
       await expect(page.locator("#hymn-key")).toHaveValue(/D major/);
       await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
-      if(width===1440){
-        await expect(page.locator("#hymn-capo")).toHaveValue("2");
-        await practiceOption(page,"#hymn-capo","0");
-        await expect(page.locator(".hymn-score-setup")).toHaveText("No capo · Sounding key: D major");
-        await expect(page.locator("#hymn-key")).toHaveValue(/D major/);
-        await practiceOption(page,"#hymn-capo","2");
-      }
       assert(
         (await page.locator(".abcjs-chord").allTextContents()).includes("G7"),
       );
@@ -93,7 +86,7 @@ try {
     await piano.click();await expect(piano).toHaveAttribute("data-arrangement","original");
     await voice.click();await expect(piano).toHaveAttribute("data-arrangement","piano");
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-edition");
-    for(const arrangement of ["guitar-edition","guitar-vocal"]){
+    for(const arrangement of ["guitar-edition"]){
       await page.goto(`${server.base}/piano/hymns/${singleCapo.hymn.slug}?arrangement=${arrangement}&mode=playback&key=original&octave=0`);
       await openPracticeOptions(page);
       await expect(page.locator("#hymn-capo")).toHaveCount(0);

@@ -139,7 +139,7 @@ try {
         ).toBeVisible();
       if (display === "notation" || display === "both")
         await expect(page.locator(".abcjs-time-signature")).toHaveCount(1);
-      await expect(page.locator(".hymn-score-setup")).toContainText("Capo 3");
+      await expect(page.locator(".hymn-score-setup")).toContainText("Capo 1");
       if (display === "tab") {
         await expect(page.locator(".tab-rhythm-dot").first()).toBeVisible();
         assert(await page.locator(".tab-rhythm-half").count());
@@ -214,7 +214,7 @@ try {
     if (width === 1440) {
       await page.goto(
         server.base +
-          "/piano/hymns/jesus-loves-me?arrangement=guitar-edition&display=both&mode=wait",
+          "/piano/hymns/jesus-loves-me?arrangement=guitar-edition&display=both&mode=wait&capo=3",
       );
       await page.locator(".hymn-count").waitFor();
       await midiAction(page, "Connect MIDI keyboard");

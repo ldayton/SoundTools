@@ -977,19 +977,19 @@ export class SightReading {
         this.key,
         this.octave,
       );
-      // Keep dedicated guitar shapes and relative frets; transpose with the capo.
+      // Auto selects the engine's best position; numeric preferences are deliberate overrides.
       const capoEdition = (this.arrangement === "guitar-edition" || guitarVocal) && chordProfile;
       this.capoChoices=[];this.capoChoice=undefined;
       if(capoEdition){
         const guitarShift=guitarVocal ? ((chordProfile.capo+transposition.semitones)%12+12)%12-chordProfile.capo : transposition.semitones;
-        const identity=`${this.hymn.id}:${this.arrangement}:${guitarShift}`;
+        const identity=`${this.hymn.id}:${this.arrangement}:${guitarShift}:${this.capo ?? "auto"}`;
         let choices=this.capoCache.get(identity);
         if(!choices){
-          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position});
+          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position,requestedCapo:this.capo,accompanimentOnly:guitarVocal});
           this.capoCache.set(identity,choices);
         }
         this.capoChoices=choices;
-        this.capoChoice=choices.find(c=>c.fret === this.capo) || choices.find(c=>c.scoreSetting) || choices[0];
+        this.capoChoice=choices.find(c=>c.fret === this.capo) || choices[0];
         if(this.capo !== null && this.capoChoice?.fret !== this.capo)this.capo=null;
       }
       const capoChoice=this.capoChoice;
@@ -1314,7 +1314,7 @@ export class SightReading {
       unmetered: !/^\d+\/\d+$/.test(this.hymn.meter),
       originalKey: this.hymn.key,
       effectiveCapo:this.capoChoice?.fret ?? chordEdition(this.hymn)?.capo ?? 0,
-      capoChoices:this.capoChoices.map((choice,index)=>({fret:choice.fret,shapeKey:choice.shapeKey,recommended:index===0,scoreSetting:choice.scoreSetting})),
+      capoChoices:this.capoChoices.map((choice,index)=>({fret:choice.fret,shapeKey:choice.shapeKey,recommended:index===0})),
       capo:this.capo,
       noMatchingKey: this.noMatchingKey,
       availableKeys: this.availableKeys,
@@ -1454,7 +1454,7 @@ export class SightReading {
       const choice=this.capoChoices.find(c=>c.fret === next.capo);
       if(!choice)return;
       this.save();this.interrupt("controls");
-      this.capo=choice.scoreSetting ? null : choice.fret;
+      this.capo=choice.fret;
       this.restoreSection();this.restorePending=true;this.render();
     } else if (patch.octave !== undefined) {
       if (!this.availableOctaves.includes(next.octave!)) return;

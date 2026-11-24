@@ -17,6 +17,8 @@ export type InstrumentHymn = {
   guitarBars?: Record<number, [string, number][]>;
   groups: number[][];
   barLengths?: number[];
+  /** Closing rest in 1/64 units, shared by every accompaniment version. */
+  endingRest?: number;
   marks: { bar: number; at?: number; label: string }[];
 };
 /** Preserve the supplied melody's tokens while engraving instrument-specific accompaniment. */
@@ -77,16 +79,17 @@ export function instrumentHymnAbc(
   const notes = [...body.matchAll(/([^|]*)(\|\]?)/g)].map((m) => m[1] + m[2]);
   const bass = config.changes.map((changes, bar) => {
     const segments = !piano && !strumming && config.guitarBars?.[bar];
+    const rest = bar === config.changes.length - 1 ? config.endingRest || 0 : 0;
     return (
       (segments
         ? segments.map(([token, length]) => token + length).join(" ")
         : changes
             .map(([at, chord], i) => {
               const length =
-                (changes[i + 1]?.[0] ?? config.barLengths?.[bar] ?? 64) - at;
+                (changes[i + 1]?.[0] ?? (config.barLengths?.[bar] ?? 64) - rest) - at;
               return `${!piano && (strumming || !melodyOnsets.has(`${bar}:${at}`)) ? `"${chord}"` : ""}${(strumming ? config.strum : piano ? config.piano : config.guitar)[chord]}${length}`;
             })
-            .join(" ")) + (bar === config.changes.length - 1 ? " |]" : " |")
+            .join(" ")) + (rest ? ` z${rest}` : "") + (bar === config.changes.length - 1 ? " |]" : " |")
     );
   });
   const grouping =

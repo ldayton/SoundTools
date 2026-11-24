@@ -1,0 +1,39 @@
+% Transcribed from user-supplied printed score.
+% Sanford F. Bennett / Joseph P. Webster; Michael Kravchuk setting in F.
+% Reference: https://michaelkravchuk.com/wp-content/uploads/2017/02/In-the-Sweet-By-and-By-F-Major.pdf
+% Supplied PDF SHA-256: 51ec4eda3d61abee2ec9db465e141ed3595942a3849cf5618cfb18673afd7b2b
+% Both printed chord staves retained, including refrain echoes and final rest.
+% The refrain begins on the last beat of printed measure 9.
+% 80 BPM is an adjustable practice default, not a marking in the print.
+X:1
+T:In the Sweet By and By
+C: Words: Sanford F. Bennett.
+C: Music: Joseph P. Webster.
+C: copyright: Rights remain with the respective rights holders; setting credited to MichaelKravchuk.com on the supplied score.
+M:4/4
+L:1/16
+Q:1/4=80
+%%staves RH | LH
+V:RH clef=treble
+V:LH clef=bass
+K:F
+% Pickup and printed measures 2-5.
+[V:RH] [CF]3[CG] | [CA]4 [CG]2[CF]2 [DG]4 [DF]3[B,D] | [A,C]12 [CF]3[CG] | [CA]4 [CA]2[CA]2 [Cc]4 [Cc]3[FA] | [EG]12 [CF]3[CG] |
+w: There's a land that is fair- er than day, And by faith we can see it a- far; For the
+w: We shall sing on that beau- ti- ful shore The me- lo- di- ous songs of the blessed; And our
+w: To our boun- ti- ful Fa- ther a- bove, We will of- fer our tri- bute of praise For the
+[V:LH] [F,A,]3[F,B,] | [F,C]4 [F,B,]2[F,A,]2 [B,,B,]4 [B,,B,]3[D,F,] | F,12 [F,A,]3[F,B,] | [F,C]4 [F,C]2[F,C]2 [F,A,]4 [F,A,]3[F,C] | [C,C]12 [F,A,]3[F,B,] |
+% Printed measures 6-9, before the common refrain pickup.
+[V:RH] [CA]4 [CG]2[CF]2 [DG]4 [DF]3[B,D] | [A,C]12 [CF]3[CG] | [CA]4 [CG]2[CF]2 [DG]4 [CF]2[CE]2 | [CF]12
+w: Fa- ther waits o- ver the way To pre- pare us a dwell- ing place there.
+w: spir- its shall sor- row no more, Not a sigh for the bless- ing of rest.
+w: glo- ri- ous gift of His love And the bless- ings that hal- low our days.
+[V:LH] [F,C]4 [F,B,]2[F,A,]2 [B,,B,]4 [B,,B,]3[D,F,] | F,12 [F,A,]3[F,B,] | [F,C]4 [F,B,]2[F,A,]2 [B,,B,]4 [C,A,]2[C,G,]2 | [F,,A,]12
+% Refrain pickup and printed measures 10-13.
+[V:RH] [FA]3[GB] | [Ac]12 [Ac]3[FA] | [EG]12 [EG]2[FA]2 | [GB]4 [GB]2[GB]2 [GB]4 [FA]2[EG]2 | [FA]12 [FA]3[GB] |
+w: In the sweet by and by, We shall meet on that beau- ti- ful shore; In the
+[V:LH] z4 | z4 [F,C]3[F,C] [F,C]4 [F,C]3[F,C] | [C,C]4 [C,C]2[C,C]2 [C,C]4 [C,C]2[C,C]2 | [C,C]4 [C,C]2[C,C]2 [C,C]4 [C,C]2[C,C]2 | [F,C]4 [F,C]2[F,C]2 [F,C]4 z4 |
+% Printed measures 14-17. The final quarter rest is part of the written form.
+[V:RH] [Ac]12 [CA]3[CG] | [DF]12 [CE]2[B,D]2 | [A,C]4 [CF]2[CA]2 [CG]4 [CF]2[CE]2 | [CF]12 z4 |]
+w: sweet by and by, We shall meet on that beau- ti- ful shore.
+[V:LH] z4 [F,C]3[F,C] [F,C]4 [F,C]3[A,,F,] | [B,,F,]4 [B,,B,]2[B,,B,]2 [B,,B,]4 [B,,F,]2[B,,F,]2 | [C,F,]4 [C,A,]2[C,C]2 [C,B,]4 [C,A,]2[C,G,]2 | [F,,F,A,]12 z4 |]

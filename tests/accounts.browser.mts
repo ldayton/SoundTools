@@ -274,11 +274,11 @@ try {
   await q.locator(`#hymn-capo option:checked[value="${capoFixture.alternate.fret}"]`).waitFor({state:"attached"});
   await q.reload();await openPracticeOptions(q);
   assert.equal(await q.locator("#hymn-capo").inputValue(),String(capoFixture.alternate.fret));
-  await practiceOption(p,"#hymn-capo",String(capoFixture.profile.capo));
+  await practiceOption(p,"#hymn-capo",String(capoFixture.recommended.fret));
   await p.waitForFunction(()=>!!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'));
   await pull(q);await openPracticeOptions(q);
-  await q.locator(`#hymn-capo option:checked[value="${capoFixture.profile.capo}"]`).waitFor({state:"attached"});
-  console.log(engine+": SongAlong capo selection and score-setting reset survive account sync and reload");
+  await q.locator(`#hymn-capo option:checked[value="${capoFixture.recommended.fret}"]`).waitFor({state:"attached"});
+  console.log(engine+": SongAlong capo selection and recommended selection survive account sync and reload");
   await p.getByRole("button",{name:"Voice",exact:true}).click();
   await p.waitForFunction(()=>!!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'));
   await pull(q);

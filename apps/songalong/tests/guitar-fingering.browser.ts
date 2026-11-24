@@ -29,22 +29,23 @@ try {
     await page.addInitScript({content:await readFile(new URL("../../../packages/music-practice/test-fixtures/midi.js",import.meta.url),"utf8")});
     await page.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=both&mode=playback&key=original&octave=0`);
     await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();
-    const frets=await page.locator(".abcjs-tabNumber").allTextContents();
-    const chords=await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents();
     const keys=await hymnKeyOptions(page);
     assert.equal(keys.length,12);assert(keys.every(k=>!k.disabled),`${hymn.slug}: every key is selectable`);
     const target=hymn.key === "D" ? "E" : "D";
     await practiceOption(page,"#hymn-key",target);
     if(profile){
-      const capo=(profile.capo+hymnTransposition(hymn.key,target).semitones+12)%12;
-      const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,sourceCapo:profile.capo,transpose:capo-profile.capo,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+      // Key selection keeps the solo register within its legal capo octave.
+      const referenceCapo=(profile.capo+hymnTransposition(hymn.key,target).semitones+12)%12;
+      const shift=referenceCapo-profile.capo;
+      const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,sourceCapo:profile.capo,transpose:shift,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+      const capo=choices[0].fret;
       if(choices.length>1){
         await expect(page.locator("#hymn-capo")).toHaveValue(String(capo));
         const suggestions=await page.locator("#hymn-capo option").allTextContents();assert.equal(suggestions.length,choices.length);assert(suggestions.length<=3);assert.equal(suggestions.filter(s=>s.includes("recommended")).length,1);
       }else await expect(page.locator("#hymn-capo")).toHaveCount(0);
       await expect(page.locator(".hymn-score-setup")).toHaveText(`${capo ? `Capo ${capo}` : "No capo"} · Sounding key: ${target} major`);
-      assert.deepEqual(await page.locator(".abcjs-tabNumber").allTextContents(),frets,`${hymn.slug}: capo transposition retains playable frets`);
-      assert.deepEqual(await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents(),chords);
+      const labels=await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents();
+      for(const chord of choices[0].chords)assert(labels.some(label=>label.includes(chord.replaceAll("#","♯").replaceAll("b","♭"))),`${hymn.slug}: recommended chord family is rendered`);
     }
     if(!profile)await expect(page.locator("#hymn-capo")).toHaveCount(0);
     const voice=page.getByRole("button",{name:"Voice",exact:true});
@@ -59,6 +60,10 @@ try {
     if(hymn.slug === "ill-fly-away"){
       await page.locator(".hymn-score-setup").scrollIntoViewIfNeeded();
       await page.screenshot({path:"work/musical-fixes/ill-fly-away-d-desktop.png"});
+      // This witness owns the reviewed C-family transposition and its exact MIDI
+      // chord. The loop above owns automatic engine selection in each key.
+      await page.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=guitar-edition&display=both&mode=playback&key=D&octave=0&capo=2`);
+      await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
       // Actual MIDI grading must move with the capo, including all chord notes.
       await practiceOption(page,"#hymn-mode","wait");
       await closePracticeOptions(page);await midiAction(page,"Connect MIDI keyboard");
@@ -86,7 +91,7 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(
       server.base +
-        "/piano/hymns/ill-fly-away?arrangement=guitar-edition&display=both&mode=playback",
+        "/piano/hymns/ill-fly-away?arrangement=guitar-edition&display=both&mode=playback&capo=0",
     );
     await page.locator(".abcjs-tabNumber").first().waitFor();
     await openHymnControls(page);

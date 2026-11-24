@@ -2054,5 +2054,25 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/in-the-sweet-by-and-by-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4634
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/in-the-sweet-by-and-by-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

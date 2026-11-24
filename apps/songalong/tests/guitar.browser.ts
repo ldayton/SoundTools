@@ -66,6 +66,10 @@ try {
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
     await expect(voice).toHaveAttribute("aria-pressed","true");await expect(piano).toHaveAttribute("aria-checked","false");
     await expect(page.locator(".hymn-paper svg").first().locator(".abcjs-clef")).toHaveCount(2);
+    await openPracticeOptions(page);
+    await expect(page.getByRole("checkbox",{name:"Show Voice",exact:true})).toBeChecked();
+    await expect(page.getByRole("checkbox",{name:"Show Guitar",exact:true})).toBeChecked();
+    await dismissPracticeDrawer(page);
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
     await page.reload();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
     await expect(voice).toHaveAttribute("aria-pressed","true");

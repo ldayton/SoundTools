@@ -33,8 +33,21 @@ export function playbackStaves(tune: TuneObject): PlaybackStaff[] {
       return { index, label, clef, tracks };
     });
 }
+/** abcjs can drop a staff title when its first token changes the local key.
+ * Recover declared voice names before layout and before exposing staff controls.
+ */
+export function restoreDeclaredStaffTitles(tune:TuneObject,abc:string){
+ const names=[...abc.matchAll(/^V:.*$/gm)].map(m=>m[0].match(/\bname="([^"]*)"/)?.[1]);
+ let track=0;
+ for(const staff of tune.lines.find(line=>line.staff?.length)?.staff||[]){
+  const declared=(staff.voices||[]).map(()=>names[track++]).find(Boolean);
+  const named=staff as typeof staff & {title?:string[]};
+  if(declared&&!named.title?.some(Boolean))named.title=[declared];
+ }
+}
 export function abcPlaybackStaves(abc: string) {
-  return playbackStaves(abcjs.parseOnly(abc)[0]);
+  const tune=abcjs.parseOnly(abc)[0];restoreDeclaredStaffTitles(tune,abc);
+  return playbackStaves(tune);
 }
 /** Muting removes attacks only; voice indexes, rests and the full score clock survive. */
 export function mutePlaybackStaves(

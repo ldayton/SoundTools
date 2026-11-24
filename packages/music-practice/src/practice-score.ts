@@ -1,5 +1,5 @@
 import { hymnSystemLayout } from "./hymn-system-layout";
-import { abcPlaybackStaves, hidePlaybackStaves } from "./hymn-playback-staves";
+import { abcPlaybackStaves, hidePlaybackStaves, restoreDeclaredStaffTitles } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
 import {editionTempoLabel,isGuitarPositionMark} from "./edition-score";
 import type {CapoChoice} from "./guitar-capo";
@@ -136,6 +136,7 @@ export function drawPracticeScore(
     (options.fitHymnSystems ? "%%stretchlast 0\n" : "") +
     (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n" + (!options.fitHymnSystems ? "%%stretchlast 1\n" : "") : "") + (!options.fitHymnSystems && options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
   const prepareTune = (tune: TuneObject) => {
+    restoreDeclaredStaffTitles(tune,source);
     if (options.hiddenStaves?.length) hidePlaybackStaves(tune, options.hiddenStaves);
     if (options.printedScore)
       tune.lines.slice(1).forEach(line => line.staff?.forEach(staff => { delete (staff as typeof staff & {title?: unknown}).title; }));

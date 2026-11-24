@@ -1,3 +1,4 @@
+import {abcPlaybackStaves} from "../../../packages/music-practice/src/hymn-playback-staves";
 import test from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
@@ -27,6 +28,7 @@ for(const id of instrumentEditionIds)test(`${id}: four combinations have indepen
  for(const transpose of [-p.capo,0,11-p.capo]){
   const score=arrangeHymn(h,"guitar-vocal",0,0,"both",undefined,transpose),combined=read(score.abc);
   assert.equal(combined.tune.lines[0].staff?.length,2);
+  assert.deepEqual(abcPlaybackStaves(score.abc).map(s=>s.label),["Voice","Guitar"]);
   const guitarKey=combined.tune.lines[0].staff![1].key!;assert.equal(guitarKey.root+(guitarKey.acc||""),p.guitarKey||h.key,"Guitar notation stays capo-relative");assert.equal(combined.audio.totalDuration,melody.audio.totalDuration);
   assert.deepEqual(combined.notes[0],shifted(melody.notes[0],transpose),"Voice retains melody, rests, ties and register");
   assert.deepEqual(combined.notes[1],shifted(guitar.notes[0],p.capo+transpose),"Guitar plays accompaniment rather than the fingerstyle melody");

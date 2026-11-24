@@ -53,7 +53,7 @@ try {
   await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeDisabled();
-  assert.equal(await page.getByRole('radiogroup',{name:'Instrument',exact:true}).locator('svg').count(),3);
+  assert.equal(await page.getByRole('group',{name:'Instruments and voice',exact:true}).locator('svg').count(),3);
   await selectHymnInstrument(page, 'guitar');
   await page.locator('#hymn-score-display').selectOption('notation');
   await expect(page.locator('[data-name=tabNumber]')).toHaveCount(0);

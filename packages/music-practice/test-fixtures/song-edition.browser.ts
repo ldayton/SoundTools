@@ -8,7 +8,8 @@ import {openPracticeOptions,openHymnControls,dismissPracticeDrawer} from "../bro
 
 export async function checkVocalEdition(page:Page, base:string, slug:string) {
   await page.goto(`${base}/piano/hymns/${slug}?arrangement=original&mode=playback`);
-  await expect(page.getByRole("radio",{name:"Voice + Piano",exact:true})).toBeChecked();
+  await expect(page.getByRole("radio",{name:"Piano",exact:true})).toBeChecked();
+  await expect(page.getByRole("button",{name:"Voice",exact:true})).toHaveAttribute("aria-pressed","true");
   await expect(page.locator(".abcjs-note").first()).toBeVisible();
   await openPracticeOptions(page);
   await expect(page.locator("#hymn-arrangement")).toHaveCount(0);

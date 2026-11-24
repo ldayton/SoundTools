@@ -107,11 +107,11 @@ test("every transposed shape is 17 consecutive scale notes within the AP66 fretb
     }
   assert.throws(() => berkleePositions(0, "major", 7, 12));
 });
-test("Berklee is the Western default while explicit CAGED choices and legacy regions survive", () => {
-  assert.equal(mergeGuitarScaleSettings(undefined).shapeSet, "hila");
+test("CAGED is the Western default while explicit Berklee choices and legacy regions survive", () => {
+  assert.equal(mergeGuitarScaleSettings(undefined).shapeSet, "standard");
   const fresh = mergeGuitarScaleSettings({ tonic: 0, quality: "major" });
-  assert.equal(fresh.shapeSet, "hila");
-  assert.equal(guitarScaleFromQuery(new URLSearchParams("key=D"), fresh).shapeSet, "hila");
+  assert.equal(fresh.shapeSet, "standard");
+  assert.equal(guitarScaleFromQuery(new URLSearchParams("key=D"), fresh).shapeSet, "standard");
   for (const pattern of ["map", "1", "2", "3", "4", "5", "E"]) {
     const legacy = guitarScaleFromQuery(new URLSearchParams(`pattern=${pattern}`), fresh);
     assert.equal(legacy.shapeSet, "standard", `legacy ${pattern} URL stays CAGED`);
@@ -120,7 +120,10 @@ test("Berklee is the Western default while explicit CAGED choices and legacy reg
   assert.equal(mergeGuitarScaleSettings(saved).shapeSet, "standard");
   assert.equal(guitarScaleFromQuery(new URLSearchParams("key=D"), saved).shapeSet, "standard");
   for (const quality of ["minor", "major-pentatonic", "minor-pentatonic", "major-blues", "minor-blues"])
-    assert.equal(mergeGuitarScaleSettings({ quality }, fresh).shapeSet, "hila");
+    assert.equal(mergeGuitarScaleSettings({ quality }, fresh).shapeSet, "standard");
+  const berklee = mergeGuitarScaleSettings({ ...fresh, shapeSet: "hila", hilaShape: 2 });
+  assert.equal(mergeGuitarScaleSettings(berklee).shapeSet, "hila");
+  assert.equal(guitarScaleFromQuery(new URLSearchParams("key=D"), berklee).shapeSet, "hila");
 });
 test("canonical Berklee and legacy Hila bookmarks preserve the same numbered shape", () => {
   const base = { tonic: 0, quality: "major" as const, pattern: "4" as const };

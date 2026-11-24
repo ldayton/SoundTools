@@ -543,7 +543,7 @@ try {
   const migrated = await saved();
   assert.deepEqual(migrated.activities["guitar-scales"], {
     version: 1,
-    settings: { tonic: 5, quality: "major", shapeSet: "hila" },
+    settings: { tonic: 5, quality: "major", shapeSet: "standard" },
   });
   assert.equal(migrated.progress.mode, "guitar-scales");
   assert.deepEqual(migrated.activities.patterns, before.activities.patterns);

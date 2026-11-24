@@ -45,11 +45,11 @@ export function mergeGuitarScaleSettings(
   const patterns = ["map", ...SCALE_SHAPES] as const;
   const sourcePattern = migratePattern(source.pattern, settings.quality);
   const explicitPattern = patterns.includes(sourcePattern as ScalePattern);
-  // An explicit legacy CAGED pattern remains a CAGED choice. Unspecified Western
-  // settings start in Berklee 7PS; never replace a saved explicit set selection.
+  // Unspecified Western settings start in CAGED. Preserve explicit Berklee
+  // selections and the meaning of saved patterns and legacy bookmarks.
   const defaultSet = explicitPattern
     ? "standard"
-    : base.shapeSet || (base.pattern !== undefined ? "standard" : "hila");
+    : base.shapeSet || "standard";
   if ((!isMaqam(settings.quality) && !explicitPattern && base.pattern === undefined) || source.shapeSet !== undefined || base.shapeSet !== undefined)
     settings.shapeSet =
       !isMaqam(settings.quality)

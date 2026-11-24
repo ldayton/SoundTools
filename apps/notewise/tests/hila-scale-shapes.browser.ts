@@ -16,6 +16,12 @@ try {
       "/guitar/scales?key=C&scale=major&labels=none",
   );
   await waitForApp(page, ".scale-diagram svg");
+  await expect(page.locator(".scale-pattern-caption")).toHaveText("E shape · 7th position");
+  await openPracticeOptions(page);
+  await expect(page.getByLabel("Shape set", { exact: true })).toHaveValue("standard");
+  await expect(page.locator("#scale-pattern")).toHaveValue("1");
+  await page.screenshot({path:"/tmp/notewise-caged-default-desktop.png",fullPage:true});
+  await page.getByLabel("Shape set", { exact: true }).selectOption("hila");
   await expect(page.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 1");
   await expect(page.locator(".scale-source a")).toHaveAttribute("href", "https://jenslarsen.nl/major-scale-7-positions-berklee-system/");
   await expect(page.locator(".scale-source a")).toHaveText("Jens Larsen · Berklee 7PS");
@@ -58,7 +64,7 @@ try {
   await page.getByLabel("Shape set", { exact: true }).selectOption("standard");
   await expect(page.locator("#scale-pattern")).toBeVisible();
   await expect(page.locator("#scale-linked-pattern")).toBeVisible();
-  await expect(page.getByLabel("Shape set", {exact:true}).locator("option")).toHaveText(["Berklee 7PS","CAGED"]);
+  await expect(page.getByLabel("Shape set", {exact:true}).locator("option")).toHaveText(["CAGED","Berklee 7PS"]);
   await page.locator("#scale-pattern").selectOption("4");
   for(const quality of ["major","major-pentatonic","major-blues","minor","minor-pentatonic","minor-blues"]){
     await page.locator("#scale-quality").selectOption(quality);
@@ -250,16 +256,16 @@ try {
     path: "/tmp/notewise-berklee-mobile.png",
     fullPage: true,
   });
-  // A new phone context also starts in Berklee; old bookmarks still select it.
+  // A new phone context starts in CAGED; explicit Berklee bookmarks still select it.
   const freshPhone = await newPage(browser, {viewport:{width:393,height:852}, serviceWorkers:"block"});
   freshPhone.on("pageerror", e => errors.push(e.message));
   await freshPhone.goto(server.base + "/guitar/scales?key=C&scale=major");
   await waitForApp(freshPhone, ".scale-diagram svg");
-  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 1");
+  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("E shape · 7th position");
   await openPracticeOptions(freshPhone);
-  await expect(freshPhone.getByLabel("Shape set", {exact:true})).toHaveValue("hila");
-  await expect(freshPhone.getByLabel("Shape", {exact:true})).toHaveValue("1");
-  await freshPhone.screenshot({path:"/tmp/notewise-berklee-default-mobile.png",fullPage:true});
+  await expect(freshPhone.getByLabel("Shape set", {exact:true})).toHaveValue("standard");
+  await expect(freshPhone.locator("#scale-pattern")).toHaveValue("1");
+  await freshPhone.screenshot({path:"/tmp/notewise-caged-default-mobile.png",fullPage:true});
   await freshPhone.goto(server.base + "/guitar/scales?key=C&scale=major&set=hila&shape=5");
   await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 5");
   await freshPhone.reload();

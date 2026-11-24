@@ -1,6 +1,6 @@
 # Guitar scale systems
 
-Berklee 7PS is the default; CAGED remains a separate five-region system. Both
+CAGED is the default five-region system; Berklee 7PS remains available. Both
 support major, natural minor, major/minor pentatonic and major/minor blues,
 finger numbers, tonic chord diagrams, relative-scale switching, and linked
 regions with selectable shifts, reversal and keyboard navigation.

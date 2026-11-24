@@ -1688,9 +1688,8 @@ export class SightReading {
       context: this.mode === "playback" ? "Playback" : "Wait for me",
     });
     this.publishOptions();
-    this.pianoPanel.setAvailable(
-      !this.mobileLayout.matches && !isGuitarArrangement(this.arrangement),
-    );
+    // The desktop keyboard is a reference for every instrument; keep its toolbar toggle stable.
+    this.pianoPanel.setAvailable(!this.mobileLayout.matches);
     if (this.mode === "playback") {
       this.playbackView = "";
       this.updatePlayback();

@@ -229,9 +229,9 @@ test("a legacy checkpoint resumes under the UUID and survives an account roundtr
   assert.equal(raw.hymn,practiceHymn.slug);
 });
 
-test("the published library contains exactly the nine selected songs", () => {
+test("the published library contains exactly the ten selected songs", () => {
   assert.deepEqual(hymns.map(song=>song.title).sort(),[
-    "1st Fingerstyle Blues","Amazing Grace","Blessed Assurance","I'll Fly Away","In Christ Alone",
+    "1st Fingerstyle Blues","Amazing Grace","Are You Washed in the Blood?","Blessed Assurance","I'll Fly Away","In Christ Alone",
     "Jesus Loves Me","Joy to the World","O Come, All Ye Faithful","Silent Night",
   ].sort());
 });

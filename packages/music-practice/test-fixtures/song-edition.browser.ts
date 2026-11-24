@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import {expect} from "@playwright/test";
-import {mkdir} from "node:fs/promises";
+import {mkdir,readFile} from "node:fs/promises";
 import type {Page} from "playwright";
 import {launchBrowser,newPage,closeBrowser,captureFailure} from "../../../scripts/ci/browser-harness.cjs";
 import {preview} from "../browser-tests/server";
 import {openPracticeOptions,openHymnControls,dismissPracticeDrawer} from "../browser-tests/helpers";
+import hymns from "../src/hymns.json";
 
 export async function checkVocalEdition(page:Page, base:string, slug:string) {
   await page.goto(`${base}/piano/hymns/${slug}?arrangement=original&mode=playback`);
@@ -28,14 +29,14 @@ export async function checkVocalEdition(page:Page, base:string, slug:string) {
   await dialog.getByRole("button",{name:"Close chord diagram"}).click();await expect(dialog).toBeHidden();
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),"No horizontal page overflow");
 }
-export async function standardEditionBrowser(slug:string,port:number) {
+export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,2,3]) {
   const server=await preview("songalong",port),browser=await launchBrowser();
   try {
     for(const width of [1440,768,390,320]){
       const page=await newPage(browser,{viewport:{width,height:1000}}), errors:string[]=[];
       page.on("pageerror",e=>errors.push(e.message));
       for(const [instrument,arrangement]of [["Piano","piano"],["Guitar","guitar-edition"]]){
-        await page.goto(`${server.base}/piano/hymns/${slug}?arrangement=${arrangement}&mode=playback&stanzas=1,2,3`);
+        await page.goto(`${server.base}/piano/hymns/${slug}?arrangement=${arrangement}&mode=playback&stanzas=${stanzas.join(",")}`);
         await expect(page.getByRole("radio",{name:instrument,exact:true})).toBeChecked();
         await expect(page.locator(".abcjs-note").first()).toBeVisible();
         await openHymnControls(page);
@@ -54,8 +55,27 @@ export async function standardEditionBrowser(slug:string,port:number) {
         if(width===1440||width===390){await mkdir("work/song-support/screenshots",{recursive:true});await page.screenshot({path:`work/song-support/screenshots/${slug}-${arrangement}-${width}.png`});}
       }
       await checkVocalEdition(page,server.base,slug);
+      await openPracticeOptions(page);
+      for(const number of stanzas)await expect(page.locator("#hymn-stanzas input").nth(number-1)).toBeChecked();
+      const hymn=hymns.find(h=>h.slug===slug)!;
+      if(width===1440 && "source" in hymn && hymn.source==="user-supplied-score"){
+        await page.getByRole("button",{name:"About this hymn",exact:true}).click();
+        const source=page.getByRole("link",{name:"Transcribed printed score",exact:true});
+        await expect(source).toBeVisible();
+        const bundled=await source.evaluate(async(a:HTMLAnchorElement)=>({url:a.href,text:await(await fetch(a.href)).text()}));
+        assert.equal(new URL(bundled.url).origin,server.base,"Source must open as a local file, including when shorter than Vite's inline threshold");
+        assert.equal(bundled.text,await readFile(new URL(`../../../apps/songalong/hymns/source/${hymn.file}`,import.meta.url),"utf8"));
+        await page.getByRole("button",{name:"About this hymn",exact:true}).click();
+      }
+      await dismissPracticeDrawer(page);
       if(width===1440||width===390)await page.screenshot({path:`work/song-support/screenshots/${slug}-voice-${width}.png`});
-      assert.deepEqual(errors,[]);await page.close();console.log(`PASS ${slug}: Piano, Guitar, Voice + Piano ${width}px`);
+      // Switching primary instrument while Voice stays on selects Guitar + Voice.
+      await page.getByRole("radio",{name:"Guitar",exact:true}).click();
+      await expect(page.getByRole("button",{name:"Voice",exact:true})).toHaveAttribute("aria-pressed","true");
+      await expect(page.locator(".guitar-chord-trigger").first()).toBeVisible();
+      assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      if(width===1440||width===390)await page.screenshot({path:`work/song-support/screenshots/${slug}-guitar-voice-${width}.png`});
+      assert.deepEqual(errors,[]);await page.close();console.log(`PASS ${slug}: Piano, Guitar, Voice + Piano, Guitar + Voice ${width}px`);
     }
   }catch(error){await captureFailure(browser,error);throw error;}finally{await closeBrowser(browser);server.stop();}
 }

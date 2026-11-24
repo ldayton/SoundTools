@@ -1,4 +1,5 @@
 import { blessedEdition, silentEdition, joyEdition, standardPosition, standardFingers } from "./standard-hymn-editions";
+import { washedEdition } from "./are-you-washed-in-the-blood";
 import { canonicalHymnId, hymnForEdition } from "./hymn-identity";
 import {
   teacherInstrumentAbc,
@@ -58,6 +59,7 @@ export type InstrumentEdition = {
 };
 export type ChordEditionId = string;
 export type ChordEditionKey =
+  | "are-you-washed-in-the-blood"
   | "blessed-assurance"
   | "silent-night"
   | "joy-to-the-world"
@@ -100,6 +102,12 @@ const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
   );
 // Musical choices live in the song modules; shared consumers use these capabilities.
 const recipes: Record<ChordEditionKey, Recipe> = {
+  "are-you-washed-in-the-blood": {
+    original:true, vocal:true, capo:1, tempo:80, pickup:true,
+    shapes:"G, C, D, D7, G/B, D/F♯, A7/E, D/A and D7/F♯", guitarKey:washedEdition.guitarKey,
+    fingers:standardFingers(1,"are-you-washed-in-the-blood",washedEdition),
+    position:standardPosition, build:buildFrom(washedEdition),
+  },
   "blessed-assurance": {
     original:true, vocal:true, capo:2, tempo:80, pickup:true,
     shapes:"C, F, G7, D7, C/E and Am", guitarKey:blessedEdition.guitarKey,

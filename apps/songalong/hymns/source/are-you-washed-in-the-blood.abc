@@ -1,0 +1,52 @@
+% Transcribed from user-supplied printed score.
+% Elisha A. Hoffman; Michael Kravchuk SATB setting, A-flat major.
+% Reference: https://michaelkravchuk.com/wp-content/uploads/2017/12/Are-You-Washed-In-The-Blood-Ab-Major.pdf
+% Supplied PDF SHA-256: 8a1c871e60f4143c5f4e427cbb1e6335f9941a7f9f72fde342b9c740c9bed54c
+% Four independent voices, including the lower-voice refrain echoes and rests.
+% The refrain starts on the last beat of measure 8, not measure 9.
+% 80 BPM is an adjustable practice default; the print has no tempo marking.
+X:1
+T:Are You Washed in the Blood?
+C: Words: Elisha A. Hoffman, 1878.
+C: Music: Elisha A. Hoffman, 1878; setting: Michael Kravchuk.
+C: copyright: Rights remain with the respective rights holders; setting credited to MichaelKravchuk.com on the supplied score.
+M:4/4
+L:1/8
+Q:1/4=80
+%%staves (S A) | (T B)
+V:S clef=treble
+V:A
+V:T clef=bass
+V:B
+K:Ab
+% Pickup and measures 1-4. The D-natural in measure 3 resolves to D-flat in 4.
+[V:S] C E | A2 A2 A E C E | A2 A2 A2 A B | c2 cc c2 B A | B6 A G |
+w: Have you been to Je- sus for the cleans- ing power? Are you washed in the blood of the Lamb? Are you
+w: Are you walk- ing dai- ly by the Sav- ior's side? Are you washed in the blood of the Lamb? Do you
+w: When the Bride- groom com- eth will your robes be white? Are you washed in the blood of the Lamb? Will your
+w: Lay a- side the gar- ments that are stained with sin, And be washed in the blood of the Lamb; There's a
+[V:A] A, C | C2 C2 C C A, C | C2 D2 C2 E E | E2 EE E2 E =D | E6 E D |
+[V:T] E, E, | E,2 E,2 E, A, A, A, | A,2 F,2 E,2 A, G, | A,2 A,A, A,2 B,B, | G,6 A, E, |
+[V:B] A,, A,, | A,,2 A,,2 A,, A,, A,, A,, | A,,2 D,2 A,,2 C, E, | A,2 A,A, A,2 G,F, | E,6 E, E, |
+% Measures 5-8, ending before the common refrain's pickup.
+[V:S] A2 A2 A c B A | F2 F2 F2 F F | E2 EE A2 GG | A6
+w: ful- ly trust- ing in His grace this hour? Are you washed in the blood of the Lamb?
+w: rest each mo- ment in the Cru- ci- fied? Are you washed in the blood of the Lamb?
+w: soul be read- y for the man- sions bright, And be washed in the blood of the Lamb?
+w: foun- tain flow- ing for the soul un- clean, O be washed in the blood of the Lamb!
+[V:A] C2 C2 C E E E | D2 D2 D2 D D | C2 CC E2 DD | C6
+[V:T] E,2 E,2 E, A, G, A, | A,2 A,2 A,2 A,A, | A,2 A,A, C2 B,B, | A,6
+[V:B] A,,2 A,,2 A,, A,, B,, C, | D,2 D,2 D,2 D,D, | E,2 E,E, E,2 E,E, | A,,6
+% Refrain pickup and measures 9-12. Common lyrics are engraved once.
+[V:S] c B | A6 A G | F6 G F | E2 A B c2 d c | B6 c B |
+w: Are you washed in the blood, In the soul- cleans- ing blood of the Lamb? Are your
+[V:A] E D | C6 C E | D6 E D | C2 E E E2 E E | E6 E D |
+[V:T] z2 | z2 A,A, A,2 z2 | z2 A,A, A,2 A,A, | A,2 A,G, A,2 B,A, | G,2 G,G, G,2 A,E, |
+w: Are you washed in the blood, In the * * * * * * * of the Lamb? * *
+[V:B] z2 | z2 A,,A,, A,,2 z2 | z2 D,D, D,2 D,D, | A,,2 C,E, A,2 G,A, | E,2 E,E, E,2 E,E, |
+% Measures 13-16; the three-beat ending completes the one-beat pickup.
+[V:S] A2 A2 A c B A | F2 F2 F2 FF | E2 EE A2 GG | A6 |]
+w: gar- ments spot- less? Are they white as snow? Are you washed in the blood of the Lamb?
+[V:A] C2 C2 C E E E | D2 D2 D2 DD | C2 CC E2 DD | C6 |]
+[V:T] E,2 E,2 E, A,G,A, | A,2 A,2 A,2 A,A, | A,2 A,A, C2 B,E, | E,6 |]
+[V:B] A,,2 A,,2 A,, A,,B,,C, | D,2 D,2 D,2 D,D, | E,2 E,E, E,2 E,E, | A,,6 |]

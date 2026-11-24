@@ -1,4 +1,4 @@
-import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import {practiceHymn,selectSingleCapoPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
@@ -17,6 +17,7 @@ import {
 const server = await preview("songalong", 4574),
   browser = await launchBrowser();
 try {
+  const singleCapo=await selectSingleCapoPracticeHymn();
   for (const width of [1440, 393]) {
     const page = await newPage(browser, { viewport: { width, height: 1000 } });
     const errors: string[] = [];
@@ -70,10 +71,10 @@ try {
     await expect(page.getByRole("checkbox",{name:"Show Voice",exact:true})).toBeChecked();
     await expect(page.getByRole("checkbox",{name:"Show Guitar",exact:true})).toBeChecked();
     await expect(page.locator("#hymn-octave-down")).toBeEnabled();
-    const capoBefore=await page.locator("#hymn-capo").inputValue();
+    const capoBefore=await page.locator(".hymn-score-setup").textContent();
     await page.locator("#hymn-octave-down").click();
     await expect.poll(()=>new URL(page.url()).searchParams.get("octave")).toBe("-1");
-    await expect(page.locator("#hymn-capo")).toHaveValue(capoBefore);
+    await expect(page.locator(".hymn-score-setup")).toHaveText(capoBefore!);
     await expect(page.locator(".hymn-paper svg").first()).toBeVisible();
     await page.locator("#hymn-octave-up").click();
     await expect.poll(()=>new URL(page.url()).searchParams.get("octave")).toBe("0");
@@ -84,6 +85,14 @@ try {
     await piano.click();await expect(piano).toHaveAttribute("data-arrangement","original");
     await voice.click();await expect(piano).toHaveAttribute("data-arrangement","piano");
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-edition");
+    for(const arrangement of ["guitar-edition","guitar-vocal"]){
+      await page.goto(`${server.base}/piano/hymns/${singleCapo.hymn.slug}?arrangement=${arrangement}&mode=playback&key=original&octave=0`);
+      await openPracticeOptions(page);
+      await expect(page.locator("#hymn-capo")).toHaveCount(0);
+      await dismissPracticeDrawer(page);
+      await expect(page.locator(".hymn-score-setup")).toHaveText(`Capo ${singleCapo.capo} · Sounding key: ${singleCapo.hymn.key} major`);
+      await expect(page.locator(".abcjs-note").first()).toBeVisible();
+    }
     assert.deepEqual(errors, []);
     assert(
       await page.evaluate(

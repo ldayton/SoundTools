@@ -7,6 +7,7 @@ This table is checked against the production registry by `song-support.test.ts`.
 | Song | Guitar | Piano | Voice + Piano | Guitar + Voice | Source / musical contract |
 | --- | --- | --- | --- | --- | --- |
 | In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Vocal line + guitar chord accompaniment | Teacher melody/rhythm/interlude in D; organ harmony follows teacher chord suggestions |
+| Are You Washed in the Blood? | Dedicated, capo 1 | Dedicated | Voice + complete source SATB harmony | Vocal line + guitar chord accompaniment | Hoffman/Kravchuk A-flat score; four verses, refrain pickup, lower-voice echoes and D-natural secondary dominant |
 | Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal source; existing instrumental pitches and phrasing preserved |
 | I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Vocal line + guitar chord accompaniment | Supplied tab-music melody, ornaments, verse/chorus and fermata |
 | Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Source melody and complete refrain; E-flat sounding key |
@@ -61,12 +62,15 @@ upper strings, preserving the written melody without an artificial octave leap.
 Dedicated guitar scores support all twelve keys by moving the capo within frets
 0–11 while retaining reviewed chord shapes, fingerings and relative tab. The
 score heading, diagrams, MIDI grading and continuous/stanza audio use the same
-capo. The Original key option and per-song source-key defaults are unchanged.
+capo. A capo selector appears only when multiple playable settings exist; a
+fixed capo stays visible in the score heading. The Original key option and per-song source-key defaults are unchanged.
 
 All scores use the shared content-based system fitter, which reserves annotation
 space before fingerings are enabled so toggling them does not move measures.
 They share the staff Show/Play table,
-transposition, stanza alignment, note highlighting and playback engine. Vocal
+transposition, stanza alignment, note highlighting and playback engine. The
+desktop on-screen piano and its toolbar toggle are available for every instrument;
+switching instruments preserves the keyboard visibility preference and toolbar geometry. Vocal
 chords reuse the piano diagram with low-to-high octave-qualified labels and
 the normalized chord-then-breakdown preview. Dominant/minor seventh symbols
 retain their seventh in the keyboard example.
@@ -107,3 +111,29 @@ capability fixture supplies written piano ties. The melodic fingering catalog
 still checks source melodies under transposition; authored LH chord fingerings
 are owned by the edition tests. This removes dependence on the retired staged
 accompaniment without reducing MIDI recovery, hand-scope or tie coverage.
+
+## Are You Washed in the Blood?
+
+The supplied Michael Kravchuk A-flat SATB score is the single transcription
+reference. `are-you-washed-in-the-blood.abc` records the source URL and supplied
+PDF SHA-256. All four voices, four verses, lower-voice refrain echoes, rests and
+accidentals are retained. Voice + Piano separates the singer from the complete
+source accompaniment. Guitar + Voice keeps the singer at concert pitch.
+
+Piano and fingerstyle Guitar use the same complete melody and explicit reviewed
+harmonic changes in `are-you-washed-in-the-blood.ts`. Piano's separate LH chords
+fit within a fifth. Guitar uses G-family shapes with capo 1; its melody sounds
+an octave below the singer. Root G and open A bass substitutions keep the low
+melody's D string free. The secondary dominant remains Bb7/F in the vocal
+score, with its D-natural, and A7/E relative to the guitar capo. The one-beat
+pickup and three-beat ending form a 64-quarter-beat pass. The refrain starts on
+the last beat of measure 8; it is engraved once and played in every selected
+verse. 80 BPM is an adjustable practice default, not a printed marking.
+
+`are-you-washed-in-the-blood-editions.test.ts` independently specifies every
+printed SATB pitch, duration and rest, the four lyric rows and common refrain.
+It also owns instrumental melody/passages, piano spans, simultaneous guitar
+strings/fingers and four-verse continuous playback. Existing registry-wide tests
+own twelve-key/capo support, choir routing, staff muting and account state.
+The required Nightly edition browser witness checks all four score combinations
+at desktop, tablet and phone widths, including all four selected verses.

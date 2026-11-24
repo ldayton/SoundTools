@@ -2,6 +2,9 @@
  * Instrumental editions may deliberately use a simpler reharmonization.
  */
 export const vocalHarmonyGuides: Readonly<Record<string, Readonly<Record<number, string>>>> = {
+  "are-you-washed-in-the-blood": {
+    256: "Ab/Eb", 400: "Ab/Eb", 768: "Ab/Eb", 912: "Ab/Eb",
+  },
   "blessed-assurance": {
     192: "A/E", 240: "A", 456: "Em/G", 480: "Em/G",
     792: "A/E", 816: "A", 1032: "Em/G", 1056: "Em/G",

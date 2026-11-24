@@ -1,6 +1,8 @@
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {instrumentEditionIds,instrumentEdition,chordEdition} from "../../../packages/music-practice/src/instrument-editions";
 import {hymnTransposition} from "../../../packages/music-practice/src/hymn-transpose";
+import {arrangeHymn} from "../../../packages/music-practice/src/hymn-arrangements";
+import {recommendGuitarCapos} from "../../../packages/music-practice/src/guitar-capo";
 import {readFile,mkdir} from "node:fs/promises";
 import {hymnKeyOptions,practiceOption,midiAction,closePracticeOptions} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
@@ -35,8 +37,11 @@ try {
     await practiceOption(page,"#hymn-key",target);
     if(profile){
       const capo=(profile.capo+hymnTransposition(hymn.key,target).semitones+12)%12;
-      await expect(page.locator("#hymn-capo")).toHaveValue(String(capo));
-      const suggestions=await page.locator("#hymn-capo option").allTextContents();assert(suggestions.length>=1&&suggestions.length<=3);assert.equal(suggestions.filter(s=>s.includes("recommended")).length,1);
+      const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,sourceCapo:profile.capo,transpose:capo-profile.capo,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+      if(choices.length>1){
+        await expect(page.locator("#hymn-capo")).toHaveValue(String(capo));
+        const suggestions=await page.locator("#hymn-capo option").allTextContents();assert.equal(suggestions.length,choices.length);assert(suggestions.length<=3);assert.equal(suggestions.filter(s=>s.includes("recommended")).length,1);
+      }else await expect(page.locator("#hymn-capo")).toHaveCount(0);
       await expect(page.locator(".hymn-score-setup")).toHaveText(`${capo ? `Capo ${capo}` : "No capo"} · Sounding key: ${target} major`);
       assert.deepEqual(await page.locator(".abcjs-tabNumber").allTextContents(),frets,`${hymn.slug}: capo transposition retains playable frets`);
       assert.deepEqual(await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents(),chords);

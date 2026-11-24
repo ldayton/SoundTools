@@ -43,7 +43,7 @@ export const joyEdition: InstrumentHymn = {
 };
 const positions: Record<number,[number,number]>={40:[5,0],41:[5,1],42:[5,2],43:[5,3],45:[4,0],47:[4,2],48:[4,3],49:[4,4],50:[3,0],52:[3,2],53:[3,3],54:[3,4],55:[2,0],56:[2,1],57:[2,2],59:[1,0],60:[1,1],61:[1,2],62:[1,3],64:[0,0],65:[0,1]};
 export function standardPosition(pitch:number,_chord:boolean,transpose=0){const p=positions[pitch-transpose];return p?{str:p[0],num:p[1]+transpose}:undefined;}
-export function standardFingers(capo:number, slug:string){
+export function standardFingers(capo:number, slug:string, edition?:InstrumentHymn){
   const hymn=hymns.find(h=>h.slug===slug)!;
   const tune=abcjs.parseOnly(hymn.melody)[0]; tune.setUpAudio({chordsOff:true});
   let bar=0, seen=false;
@@ -54,7 +54,7 @@ export function standardFingers(capo:number, slug:string){
   }
   const planned=planPianoFingering(notes,"right");
   const melody=new Map(notes.map((n,i)=>[`${n.bar}:${n.midi}`,planned[i].finger]));
-  const config=slug === "blessed-assurance" ? blessedEdition : slug === "silent-night" ? silentEdition : joyEdition;
+  const config=edition ?? (slug === "blessed-assurance" ? blessedEdition : slug === "silent-night" ? silentEdition : joyEdition);
   const guitarTune=abcjs.parseOnly(instrumentHymnAbc(hymn.melody.split("\n").filter(line=>line.trim()&&!/^w:/.test(line)).join("\n")+"\n",config,"guitar"))[0];
   const guitarAudio=guitarTune.setUpAudio({chordsOff:true}).tracks.map(t=>t.filter(n=>n.cmd==="note"));
   const bassFingers=new Map<number,Set<number>>();let elapsed=0;

@@ -214,3 +214,18 @@ export async function selectCapoPracticeHymn(){
  }
  throw Error("Capo controls require an authored score with an alternate playable position");
 }
+
+/** A fixed, positive capo in both guitar scores, to verify information without a picker. */
+export async function selectSingleCapoPracticeHymn(){
+ const {chordEdition}=await import("../src/instrument-editions");
+ const {recommendGuitarCapos}=await import("../src/guitar-capo");
+ const {guitarVocalAccompaniment}=await import("../src/hymn-arrangements");
+ for(const hymn of hymns){
+  const profile=chordEdition(hymn);if(!profile?.capo)continue;
+  const accompanimentAbc=arrangeHymn(hymn,"guitar-edition",0,0,"left").abc;
+  const input={accompanimentAbc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position};
+  const scores=[arrangeHymn(hymn,"guitar-edition",0).abc,guitarVocalAccompaniment(hymn).abc];
+  if(scores.every(abc=>{const choices=recommendGuitarCapos({abc,...input});return choices.length===1&&choices[0].fret===profile.capo;}))return {hymn,capo:profile.capo};
+ }
+ throw Error("Single-capo controls require a real score with one positive capo in both guitar combinations");
+}

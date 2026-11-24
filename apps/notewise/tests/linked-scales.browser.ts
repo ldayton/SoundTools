@@ -1,4 +1,4 @@
-import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
+import { captureFailure, closeBrowser, launchBrowser, newPage, waitForApp } from '../../../scripts/ci/browser-harness.cjs';
 import { chromium, firefox, webkit } from 'playwright';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -90,6 +90,33 @@ try {
  await page.getByRole('heading',{name:'F♯ major',exact:true}).waitFor();
  await page.keyboard.press('ArrowLeft');
  assert.equal(await page.locator('#scale-title').textContent(),'F♯ major','respect first-fret boundary');
+ // G major leaves room to traverse all five forms without hitting a fret limit.
+ // Assert visible labels and stable IDs independently of the production order.
+ await page.goto('http://127.0.0.1:4362/guitar/scales?key=G&scale=major&set=standard&pattern=3&link=none');
+ await waitForApp(page,'.scale-diagram svg');
+ const caged=[['3','C'],['4','A'],['5','G'],['1','E'],['2','D']] as const;
+ assert.deepEqual(await page.locator('#scale-pattern option').allTextContents(),['Fret range',...caged.map(([,name])=>`${name} shape`)]);
+ await page.locator('#scale-title').click();
+ for(const [key,order] of [['ArrowDown',caged.slice(1)],['ArrowUp',caged.slice(0,-1).reverse()]] as const){
+   for(const [id,name] of order){
+     await page.keyboard.press(key);
+     await page.waitForFunction(id=>new URL(location.href).searchParams.get('pattern')===id,id);
+     assert.equal(await page.locator('#scale-pattern').inputValue(),id);
+     assert.ok((await page.locator('.scale-pattern-caption').innerText()).startsWith(`${name} shape ·`));
+   }
+ }
+ // CAGED's selector is C, A, G, E, D; raw IDs are intentionally not that order.
+ for(const [pattern,position,link,key] of [
+   ['3',0,'none','ArrowUp'], ['2',0,'none','ArrowDown'],
+   ['1',0,'2','ArrowDown'], ['4',12,'3','ArrowUp'],
+ ] as const){
+   await page.goto(`http://127.0.0.1:4362/guitar/scales?key=C&scale=major&set=standard&pattern=${pattern}&position=${position}&link=${link}&labels=none`);
+   await waitForApp(page,'.scale-diagram svg');
+   const url=page.url(), diagram=await page.locator('.scale-diagram svg').evaluate(svg=>svg.outerHTML);
+   await page.locator('#scale-title').click();await page.keyboard.press(key);
+   assert.equal(page.url(),url,'CAGED and linked endpoints do not wrap');
+   assert.equal(await page.locator('.scale-diagram svg').evaluate(svg=>svg.outerHTML),diagram,'Blocked navigation leaves the diagram unchanged');
+ }
  await page.getByRole('link',{name:'Scales & degrees',exact:true}).click();
  await page.locator('.scale-card').waitFor({state:'hidden'});
  const url=page.url();await page.keyboard.press('ArrowRight');assert.equal(page.url(),url,'inactive scale controller ignores keys');

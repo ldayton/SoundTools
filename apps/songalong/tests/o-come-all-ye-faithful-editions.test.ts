@@ -124,6 +124,7 @@ test("Faithful offers Piano, Guitar and Voice + Piano with independent display a
     hymnArrangements(hymn).map((a) => [a.id, a.label]),
     [
       ["original", "Voice + Piano"],
+      ["guitar-vocal", "Guitar + Voice"],
       ["piano", "Piano"],
       ["guitar-edition", "Guitar"],
     ],

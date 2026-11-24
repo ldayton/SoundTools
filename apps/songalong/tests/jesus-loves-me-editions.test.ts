@@ -93,6 +93,7 @@ test("Jesus Loves Me offers Piano, Guitar and Voice + Piano with separate displa
     hymnArrangements(hymn).map((a) => [a.id, a.label]),
     [
       ["original", "Voice + Piano"],
+      ["guitar-vocal", "Guitar + Voice"],
       ["piano", "Piano"],
       ["guitar-edition", "Guitar"],
     ],

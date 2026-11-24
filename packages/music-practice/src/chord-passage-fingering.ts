@@ -80,7 +80,8 @@ export function scoreChordPassages(
     positionFor,
     capo = 0,
     transpose = 0,
-  }: { positionFor?: PositionFor; capo?: number; transpose?: number } = {},
+    staffIndexes,
+  }: { positionFor?: PositionFor; capo?: number; transpose?: number; staffIndexes?: readonly number[] } = {},
 ): ChordPassage[] {
   const tab = new Map<number, StringPosition[]>();
   const tabVoices = new Set<string>();
@@ -101,6 +102,7 @@ export function scoreChordPassages(
   for (const line of tune.lines)
     for (const [si, staff] of (line.staff || []).entries()) {
       if (String(staff.clef?.type) === "TAB") continue;
+      if(staffIndexes && !staffIndexes.includes((staff as typeof staff & {originalStaffIndex?:number}).originalStaffIndex ?? si))continue;
       for (const [vi, voice] of (staff.voices || []).entries())
         if (
           voice.some(
@@ -120,6 +122,7 @@ export function scoreChordPassages(
   for (const line of tune.lines)
     for (const [si, staff] of (line.staff || []).entries()) {
       if (String(staff.clef?.type) === "TAB") continue;
+      if(staffIndexes && !staffIndexes.includes((staff as typeof staff & {originalStaffIndex?:number}).originalStaffIndex ?? si))continue;
       for (const [vi, voice] of (staff.voices || []).entries()) {
         const key = `${si}:${vi}`;
         const tied =

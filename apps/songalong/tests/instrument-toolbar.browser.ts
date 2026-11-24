@@ -61,17 +61,17 @@ try {
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await dismissPracticeDrawer(page);
-    const group = page.getByRole("radiogroup", {
-      name: "Instrument",
+    const group = page.getByRole("group", {
+      name: "Instruments and voice",
       exact: true,
     });
-    await expect(group.getByRole("radio")).toHaveCount(3);
+    await expect(group.getByRole("radio")).toHaveCount(2);
     await expect(
       page.getByRole("radio", { name: "Guitar", exact: true }),
     ).toBeEnabled();
     const piano = page.getByRole("radio", { name: "Piano", exact: true }),
-      sung = page.getByRole("radio", {
-        name: "Voice + Piano",
+      sung = page.getByRole("button", {
+        name: "Voice",
         exact: true,
       });
     await expect(piano).toHaveAttribute("aria-checked", "true");
@@ -101,7 +101,7 @@ try {
       assert(selectorBox && startBox && selectorBox.x+selectorBox.width<=startBox.x,"Instruments sit immediately left of transport");
     }
     const boxes = await group
-      .getByRole("radio")
+      .locator("button")
       .evaluateAll((elements) =>
         elements.map((el) => el.getBoundingClientRect().toJSON()),
       );
@@ -112,19 +112,27 @@ try {
     );
     await piano.focus();
     await piano.press("ArrowRight");
-    await expect(sung).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByRole("radio",{name:"Guitar",exact:true})).toHaveAttribute("aria-checked","true");
+    await expect(sung).toHaveAttribute("aria-pressed","false");
+    await sung.click();
+    await expect(page.locator('[data-instrument="guitar"]')).toHaveAttribute("data-arrangement","guitar-vocal");
+    await expect(page.locator(".hymn-paper svg").first().locator(".abcjs-clef")).toHaveCount(2);
+    await page.screenshot({path:`/tmp/songalong-voice-combo-${width}.png`});
+    await piano.click();
+    await expect(piano).toHaveAttribute("data-arrangement","original");
+    await expect(sung).toHaveAttribute("aria-pressed", "true");
     await expect(group.locator('[aria-checked="true"]')).toHaveCount(1);
     await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
     await expect(page.locator("#saved")).toHaveText("Saved on this device.");
     await page.reload();
     await waitForApp(page, ".hymn-toolbar-instruments");
-    await expect(sung).toHaveAttribute("aria-checked", "true");
+    await expect(sung).toHaveAttribute("aria-pressed", "true");
     // The saved instrument also survives navigating to a clean song link.
     await page.goto(
       `${server.base}/piano/hymns/${practiceHymn.slug}?mode=playback`,
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
-    await expect(sung).toHaveAttribute("aria-checked", "true");
+    await expect(sung).toHaveAttribute("aria-pressed", "true");
     await selectHymnInstrument(page, "piano");
     await selectHymnScore(page, "piano");
     await expect(piano).toHaveAttribute("aria-checked", "true");
@@ -143,8 +151,8 @@ try {
   await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
   await waitForApp(page, ".hymn-toolbar-instruments");
   await expect(
-    page.getByRole("radio", { name: "Voice + Piano", exact: true }),
-  ).toHaveAttribute("aria-checked", "true");
+    page.getByRole("button", { name: "Voice", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await expect(
     page.getByRole("radio", { name: "Piano", exact: true }),
   ).toBeEnabled();

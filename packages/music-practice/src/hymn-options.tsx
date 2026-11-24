@@ -1,5 +1,5 @@
 import {guitarStaffShown,toggleGuitarStaff} from "./hymn-playback-staves";
-import { hymnInstrument, hymnInstrumentArrangements } from "./hymn-instruments";
+import { hymnHasVoice } from "./hymn-instruments";
 import {chordEdition} from "./chord-editions";
 import { ToolbarNumber } from "@ldayton/ui/toolbar-number";
 import { STAFF_HEIGHT } from "./notation-metrics";
@@ -162,12 +162,12 @@ export function HymnOptions({
               </Group>
             )}
           />
-          {state.arrangement === "guitar-edition" && state.capoChoices.length>0 && <NativeSelect
+          {(state.arrangement === "guitar-edition" || state.arrangement === "guitar-vocal") && state.capoChoices.length>0 && <NativeSelect
             id="hymn-capo" label="Capo" value={String(state.effectiveCapo)}
             data={state.capoChoices.map(choice=>({value:String(choice.fret),label:`${choice.fret ? `Capo ${choice.fret}` : "No capo"} · ${choice.shapeKey.replaceAll("#","♯").replaceAll("b","♭")} shapes${choice.recommended ? " (recommended)" : choice.scoreSetting ? " (score setting)" : ""}`}))}
             onChange={event=>change({capo:Number(event.currentTarget.value)})}
           />}
-          {state.arrangement !== "guitar-edition" && <Group gap="xs" grow>
+          {state.arrangement !== "guitar-edition" && state.arrangement !== "guitar-vocal" && <Group gap="xs" grow>
             <Button
               id="hymn-octave-down"
               variant="default"
@@ -296,8 +296,9 @@ export function HymnOptions({
           )}
         </>
       ) : state.mode === "wait" ? <OptionsSection
-        title={hymnInstrument(state.arrangement) === "sung" ? "Voice + Piano" : "Piano arrangements"}
+        title={state.arrangement === "guitar-vocal" ? "Guitar + Voice" : hymnHasVoice(state.arrangement) ? "Voice + Piano" : "Piano arrangements"}
       >
+        {state.arrangement === "guitar-vocal" && <NativeSelect id="hymn-hands" label="Practise part" value={state.hands} data={[{value:"both",label:"Voice and guitar"},{value:"right",label:"Voice"},{value:"left",label:"Guitar accompaniment"}]} onChange={event=>change({hands:event.currentTarget.value as HymnHands})}/>}
         {state.mode === "wait" && state.arrangement !== "melody" &&
           !isGuitarArrangement(state.arrangement) && (
             <SimpleGrid cols={state.mode === "wait" ? 2 : 1} spacing="xs">

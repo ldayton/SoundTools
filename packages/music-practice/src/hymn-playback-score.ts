@@ -32,7 +32,7 @@ export function hymnPlaybackScore(options: {
   const voicesFor = (audio: AudioTracks, abc: string) => {
     const staves = abcPlaybackStaves(abc);
     const vocal =
-      options.arrangement === "original" &&
+      (options.arrangement === "original" || options.arrangement === "guitar-vocal") &&
       options.hands !== "left" &&
       ("vocalTracks" in options.hymn || instrumentEdition(options.hymn)?.vocal)
         ? new Set<number>("vocalTracks" in options.hymn ? options.hymn.vocalTracks || [] : [0])
@@ -60,7 +60,7 @@ export function hymnPlaybackScore(options: {
         qpm: 60,
         chordsOff: true,
         midiTranspose:
-          capoEdition ? 0 : options.transpose + guitarMidiOffset(options.arrangement),
+          capoEdition || options.arrangement === "guitar-vocal" ? 0 : options.transpose + guitarMidiOffset(options.arrangement),
       }),
       options.hymn.feel === "swing",
     );
@@ -90,6 +90,7 @@ export function hymnPlaybackScore(options: {
         options.hands,
         number ? hymnEndingBar(options.hymn, [number]) : undefined,
         options.transpose,
+        options.capoChoice,
       ).abc;
       const audio = readAudio(abc);
       const start = offset;
@@ -132,6 +133,7 @@ export function hymnPlaybackScore(options: {
       options.hands,
       options.endingBar,
       options.transpose,
+      options.capoChoice,
     ).abc;
   let elapsed = 0;
   const starts = Array.from({ length: options.sections }, (_, section) => {

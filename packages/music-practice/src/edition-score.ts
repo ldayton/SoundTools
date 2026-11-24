@@ -9,7 +9,7 @@ export function selectEditionVoice(abc: string, hands: HymnHands) {
   return abc
     .split("\n")
     .filter((line) => {
-      const voice = line.match(/^(?:V:\s*|\[V:)([^\s\]]+)/)?.[1];
+      const voice = line.match(/^\s*(?:V:|\[V:)\s*([^\s\]]+)/)?.[1];
       if (voice) { keepLyrics = voice === selected; return keepLyrics; }
       return !/^w:/.test(line) || keepLyrics;
     })

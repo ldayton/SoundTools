@@ -98,6 +98,7 @@ export function drawPracticeScore(
     guitarSetup?: { capo: number; key: string };
     capoChoice?: CapoChoice;
     capoAccompaniment?: boolean;
+    guitarAccompaniment?: {capo:number;positionFor:NonNullable<Parameters<typeof scoreChordPassages>[1]>["positionFor"]};
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
@@ -296,7 +297,9 @@ export function drawPracticeScore(
   if (!(options.fingerstyleTab && options.guitarTab)) options.playback?.(audio);
   // Playback uses quarter-note BPM, including compound meters.
   tune.setTiming(options.playback ? (60 * 0.25) / tune.getBeatLength() : 60, 0);
-  const chordPassages = options.guitarTab || options.beginnerEdition === "guitar"
+  const chordPassages = options.guitarAccompaniment
+    ? scoreChordPassages(tune,{...options.guitarAccompaniment,staffIndexes:[1]})
+    : options.guitarTab || options.beginnerEdition === "guitar"
     ? scoreChordPassages(tune, { positionFor: profile?.position, capo: profile?.capo, transpose })
     : [];
   paper
@@ -436,7 +439,7 @@ export function drawPracticeScore(
   }
   if (!options.fingerings) paper.querySelectorAll(".beginner-fingering,.beginner-picking,.beginner-string").forEach(mark=>mark.remove());
   attachChordDiagrams(paper, chordPassages);
-  if (options.printedScore) attachPianoChordDiagrams(paper, tune);
+  if (options.printedScore && !options.guitarAccompaniment) attachPianoChordDiagrams(paper, tune);
   if (options.fingerings && !options.beginnerEdition) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
     else drawHymnFingerings(tune);

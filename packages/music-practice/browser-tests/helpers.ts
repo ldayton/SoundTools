@@ -51,24 +51,22 @@ export async function selectHymnInstrument(
       .locator("#practice-options-reopen")
       .getAttribute("aria-expanded")) === "true";
   await dismissPracticeDrawer(page);
-  const selector = `[role="radio"][data-instrument="${instrument}"]`;
-  const button = page.locator(selector);
-  await button.waitFor({ state: "visible" });
-  if ((await button.getAttribute("aria-checked")) !== "true")
-    await button.click();
-  await page.waitForFunction(
-    (selector) =>
-      document.querySelector(selector)?.getAttribute("aria-checked") === "true",
-    selector,
-  );
+  const primary=instrument === "sung" ? "piano" : instrument;
+  const button=page.locator(`[role="radio"][data-instrument="${primary}"]`);
+  await button.waitFor({state:"visible"});
+  if(await button.getAttribute("aria-checked")!=="true")await button.click();
+  const voice=page.getByRole("button",{name:"Voice",exact:true});
+  if(await voice.getAttribute("aria-pressed")!==String(instrument === "sung"))await voice.click();
+  await page.waitForFunction(([primary,sung])=>document.querySelector(`[role="radio"][data-instrument="${primary}"]`)?.getAttribute("aria-checked")==="true" && document.querySelector('[data-instrument="sung"]')?.getAttribute("aria-pressed")===sung,[primary,String(instrument === "sung")]);
   if (wasOpen) await openPracticeOptions(page);
 }
 
 /** Select the sole score for an instrument, without a secondary arrangement picker. */
 export async function selectHymnScore(page:Page,value:string) {
-  if (!["piano","original","guitar-edition","guitar-fingerstyle"].includes(value))
+  if (!["piano","original","guitar-edition","guitar-fingerstyle","guitar-vocal"].includes(value))
     throw Error(`Retired or unsupported score: ${value}`);
   await selectHymnInstrument(page,value.startsWith("guitar")?"guitar":value==="original"?"sung":"piano");
+  if(value === "guitar-vocal"){await dismissPracticeDrawer(page);await page.getByRole("button",{name:"Voice",exact:true}).click();}
   await openPracticeOptions(page);
   await page.waitForFunction(value=>document.querySelector('.hymn-toolbar-instruments [role="radio"][aria-checked="true"]')?.getAttribute("data-arrangement")===value,value);
 }

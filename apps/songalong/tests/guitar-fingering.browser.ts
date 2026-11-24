@@ -42,6 +42,15 @@ try {
       assert.deepEqual(await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents(),chords);
     }
     if(!profile)await expect(page.locator("#hymn-capo")).toHaveCount(0);
+    const voice=page.getByRole("button",{name:"Voice",exact:true});
+    if(profile){
+      await closePracticeOptions(page);await voice.click();
+      await expect(page.getByRole("radio",{name:"Guitar",exact:true})).toHaveAttribute("data-arrangement","guitar-vocal");
+      await expect(page.locator(".hymn-paper svg").first().locator(".abcjs-clef")).toHaveCount(2);
+      await expect(voice).toHaveAttribute("aria-pressed","true");
+      await voice.click();await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();
+    }else await expect(voice).toBeDisabled();
+
     if(hymn.slug === "ill-fly-away"){
       await page.locator(".hymn-score-setup").scrollIntoViewIfNeeded();
       await page.screenshot({path:"work/musical-fixes/ill-fly-away-d-desktop.png"});

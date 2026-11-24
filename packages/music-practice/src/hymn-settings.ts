@@ -89,13 +89,13 @@ export function mergeHymnSettings(
       ? base.stanza!
       : stanzas[0] || 0;
   const available = hymnAvailableArrangements(hymn).map(a => a.id);
-  const requested = legacy ? s.chords === true ? "original" : "piano" : choice(s.arrangement, ["melody","bass","chords","broken","original","piano","guitar","guitar-chords","guitar-fingerstyle","guitar-edition"] as const, base.arrangement);
+  const requested = legacy ? s.chords === true ? "original" : "piano" : choice(s.arrangement, ["melody","bass","chords","broken","original","piano","guitar","guitar-chords","guitar-fingerstyle","guitar-edition","guitar-vocal"] as const, base.arrangement);
   const arrangement = hasInstrumentEditions(hymn)
-    ? typeof requested === "string" && available.includes(requested as Arrangement) ? requested as Arrangement : requested === "original" && available.includes("original") ? "original" : requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
+    ? typeof requested === "string" && available.includes(requested as Arrangement) ? requested as Arrangement : requested === "original" && available.includes("original") ? "original" : requested === "guitar-vocal" || requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
       ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
   const retiredStage = ["melody","bass","chords","broken"].includes(String(s.arrangement));
-  const reviewed = isInstrumentArrangement(hymn, arrangement || "");
+  const reviewed = isInstrumentArrangement(hymn, arrangement || "") || arrangement === "guitar-vocal";
   const changedStaffLayout =
     (s.arrangement !== undefined && s.arrangement !== base.arrangement) ||
     (s.viewHands !== undefined && s.viewHands !== base.viewHands);

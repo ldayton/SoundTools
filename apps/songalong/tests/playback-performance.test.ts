@@ -66,3 +66,12 @@ test("out-of-range notes retain pitch and deterministic performance", () => {
     performNotes(source, { instrument: "guitar" }),
   );
 });
+
+test("vocal notes retain their instrument and sustain while the guitar strums and damps strings",()=>{
+ const voice={instrument:"choir" as const,pitch:69,start:0,duration:4,volume:1};
+ const source=[voice,{pitch:45,start:0,duration:1,volume:1},{pitch:52,start:0,duration:1,volume:1},{pitch:57,start:0,duration:1,volume:1},{pitch:45,start:1,duration:1,volume:1}];
+ const result=performNotes(source,{instrument:"guitar",strum:true});
+ assert.deepEqual(result[0],performNotes([voice],{instrument:"choir"})[0]);
+ assert.equal(result[0].string,undefined);assert.equal(result[0].delay,undefined);assert.equal(result[0].duration,4);
+ assert(result.slice(1).some(n=>(n.delay||0)>0));
+});

@@ -4,17 +4,17 @@ The standard is musical completeness, playable instrument parts, and the same
 shared controls. Instrumental pieces do not need an invented vocal edition.
 This table is checked against the production registry by `song-support.test.ts`.
 
-| Song | Guitar | Piano | Voice + Piano | Source / musical contract |
-| --- | --- | --- | --- | --- |
-| In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Teacher melody/rhythm/interlude in D; organ harmony follows teacher chord suggestions |
-| Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Open Hymnal source; existing instrumental pitches and phrasing preserved |
-| I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Supplied tab-music melody, ornaments, verse/chorus and fermata |
-| Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | Source melody and complete refrain; E-flat sounding key |
-| O Come, All Ye Faithful | Dedicated, no capo | Dedicated | Voice + source piano harmony | Open Hymnal melody, pickup, rest, refrain and final partial measure |
-| Blessed Assurance | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Open Hymnal D, 9/8, three-eighth pickup and six-eighth ending |
-| Silent Night | Dedicated, capo 1 | Dedicated | Voice + source piano harmony | Open Hymnal B-flat, 3/4, complete final measure and dotted figures |
-| Joy to the World | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Open Hymnal D, 2/4, nineteen complete measures |
-| 1st Fingerstyle Blues | Supplied fingerstyle score | Dedicated adaptation | Not applicable | Supplied GuitarNick score; swing, repeat, turnaround and final E7 |
+| Song | Guitar | Piano | Voice + Piano | Guitar + Voice | Source / musical contract |
+| --- | --- | --- | --- | --- | --- |
+| In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Vocal line + guitar chord accompaniment | Teacher melody/rhythm/interlude in D; organ harmony follows teacher chord suggestions |
+| Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal source; existing instrumental pitches and phrasing preserved |
+| I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Vocal line + guitar chord accompaniment | Supplied tab-music melody, ornaments, verse/chorus and fermata |
+| Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Source melody and complete refrain; E-flat sounding key |
+| O Come, All Ye Faithful | Dedicated, no capo | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal melody, pickup, rest, refrain and final partial measure |
+| Blessed Assurance | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal D, 9/8, three-eighth pickup and six-eighth ending |
+| Silent Night | Dedicated, capo 1 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal B-flat, 3/4, complete final measure and dotted figures |
+| Joy to the World | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal D, 2/4, nineteen complete measures |
+| 1st Fingerstyle Blues | Supplied fingerstyle score | Dedicated adaptation | Not applicable | Not applicable | Supplied GuitarNick score; swing, repeat, turnaround and final E7 |
 
 ## Shared implementation
 
@@ -28,9 +28,10 @@ the melody, including low open-string inversions where a root bass would collide
 The original 80 BPM starting preference is retained for these three songs;
 it is adjustable and is not represented as an original source marking.
 
-Guitar, Piano and Voice + Piano are the only selectable scores. Fingerstyle
-Blues is instrumental and offers Guitar and Piano. There is no secondary
-arrangement menu. The Melody, Bass, Simple Chords and Broken Chords stages,
+Guitar and Piano are mutually exclusive instruments, with an independent Voice
+toggle. Hymns offer four distinct scores: instrumental Guitar, instrumental Piano,
+Guitar + Voice, and Piano + Voice. Fingerstyle Blues offers the two instrumental
+scores. There is no secondary arrangement menu. See [score combinations](songalong-score-combinations.md). The Melody, Bass, Simple Chords and Broken Chords stages,
 including their automatic accompaniment generators, have been retired.
 
 Legacy stage links and saved choices map to Piano; Melody retains right-hand

@@ -62,8 +62,8 @@ try {
   await expect(page.locator(".hymn-paper svg text").filter({hasText:/^(Choir|Organ)$/})).toHaveCount(2);
   await expect(page.locator(".hymn-paper svg").first().locator("text").filter({hasText:/^(Choir|Organ)$/})).toHaveCount(2);
   await expect(
-    page.getByRole("radio", { name: "Voice + Piano", exact: true }),
-  ).toHaveAttribute("aria-checked", "true");
+    page.getByRole("button", { name: "Voice", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#hymn-key")).toHaveValue("Original (D) (A3–D5)");
   await expect(
     page.locator(".hymn-paper svg").first().locator(".abcjs-clef"),
@@ -365,8 +365,8 @@ try {
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
   await expect(
-    page.getByRole("radio", { name: "Voice + Piano", exact: true }),
-  ).toHaveAttribute("aria-checked", "true");
+    page.getByRole("button", { name: "Voice", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#hymn-tempo")).toHaveValue("96 BPM");
   assert.deepEqual(errors, []);
   console.log(

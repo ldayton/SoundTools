@@ -6,6 +6,7 @@ export type PerformanceOptions = {
   positionFor?: (
     pitch: number,
     chord: boolean,
+    group?: readonly number[],
   ) => { str: number; num: number } | undefined;
 };
 export type PerformanceNote = {
@@ -25,6 +26,15 @@ export function performNotes(
   notes: PerformanceNote[],
   options: PerformanceOptions,
 ): PerformanceNote[] {
+  // A combined score can contain choir and guitar on the same attack. Guitar
+  // string damping and strum delays must never be applied to the singer.
+  const parts=new Map<PlaybackInstrument,number[]>();
+  notes.forEach((note,index)=>{const instrument=note.instrument||options.instrument;const indices=parts.get(instrument)||[];indices.push(index);parts.set(instrument,indices);});
+  if([...parts.keys()].some(instrument=>instrument!==options.instrument)){
+    const performed:PerformanceNote[]=Array(notes.length);
+    for(const [instrument,indices]of parts){const result=performNotes(indices.map(i=>notes[i]),{...options,instrument});indices.forEach((index,i)=>performed[index]=result[i]);}
+    return performed;
+  }
   const result = notes.map((n) => ({ ...n }));
   const groups = new Map<number, PerformanceNote[]>();
   for (const note of result) {
@@ -49,6 +59,7 @@ export function performNotes(
       const position = options.positionFor?.(
         note.pitch,
         options.strum || note.pitch !== top,
+        group.map(n=>n.pitch),
       );
       const preferred = position ? 5 - position.str : undefined;
       const candidates = guitarTuning.flatMap((open, string) =>

@@ -67,6 +67,7 @@ test("Amazing Grace exposes Piano, Guitar and Voice + Piano and migrates saved a
     hymnArrangements(hymn).map((a) => [a.id, a.label]),
     [
       ["original", "Voice + Piano"],
+      ["guitar-vocal", "Guitar + Voice"],
       ["piano", "Piano"],
       ["guitar-edition", "Guitar"],
     ],

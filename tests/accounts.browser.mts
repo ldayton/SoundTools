@@ -278,6 +278,15 @@ try {
   await pull(q);await openPracticeOptions(q);
   await q.locator(`#hymn-capo option:checked[value="${capoFixture.profile.capo}"]`).waitFor({state:"attached"});
   console.log(engine+": SongAlong capo selection and score-setting reset survive account sync and reload");
+  await p.getByRole("button",{name:"Voice",exact:true}).click();
+  await p.waitForFunction(()=>!!document.querySelector('[data-account-status="synced"][data-account-pending="0"]'));
+  await pull(q);
+  await q.waitForFunction(()=>document.querySelector('[data-instrument="guitar"]')?.getAttribute("data-arrangement")==="guitar-vocal");
+  await q.reload();await openPracticeOptions(q);
+  assert.equal(await q.getByRole("button",{name:"Voice",exact:true}).getAttribute("aria-pressed"),"true");
+  assert.equal(await q.getByRole("radio",{name:"Guitar",exact:true}).getAttribute("aria-checked"),"true");
+  console.log(engine+": Guitar + Voice survives account sync and reload as one atomic score preference");
+
 
   const mobile = await createContext(browser, {
     ...iphone14Pro,

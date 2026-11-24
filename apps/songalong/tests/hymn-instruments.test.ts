@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   hymnInstrument,
+  hymnHasVoice,
   hymnInstrumentChoices,
   hymnInstrumentArrangements,
   selectHymnInstrument,
@@ -25,22 +26,16 @@ test("all songs expose the same ordered primary instruments with explicit arrang
     [
       ["guitar", "Guitar"],
       ["piano", "Piano"],
-      ["sung", "Voice + Piano"],
     ],
   );
   assert.deepEqual(
     hymnInstrumentArrangements(practiceHymn, "piano").map((a) => a.id),
-    ["piano"],
+    ["original","piano"],
   );
-  assert.deepEqual(
-    hymnInstrumentArrangements(practiceHymn, "sung").map((a) => a.id),
-    ["original"],
-  );
-  assert.deepEqual(hymnInstrumentArrangements(practiceHymn, "guitar").map(a=>a.id), ["guitar-edition"]);
+  assert.deepEqual(hymnInstrumentArrangements(practiceHymn,"guitar").map(a=>a.id),["guitar-vocal","guitar-edition"]);
   for (const id of instrumentEditionIds) {
-    assert.equal(hymnInstrumentArrangements({ id }, "piano").length, 1, id);
-    assert.equal(hymnInstrumentArrangements({ id }, "guitar").length, 1, id);
-    assert.equal(hymnInstrumentArrangements({ id }, "sung").length, instrumentEdition({id})?.original ? 1 : 0, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "piano").length, instrumentEdition({id})?.original ? 2 : 1, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "guitar").length, instrumentEdition({id})?.original ? 2 : 1, id);
   }
 });
 test("teacher score keeps Voice + Piano as default alongside adapted instrumental editions", () => {
@@ -48,14 +43,14 @@ test("teacher score keeps Voice + Piano as default alongside adapted instrumenta
   assert.equal(hymnPreferences(hymn.id).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id,{arrangement:"original"}).arrangement,"original");
   assert.equal(hymnPreferences(hymn.id,{arrangement:"melody"}).arrangement,"piano");
-  assert.equal(selectHymnInstrument(hymn,"original","piano"),"piano");
+  assert.equal(selectHymnInstrument(hymn,"original","piano"),"original");
   assert.equal(selectHymnInstrument(hymn,"piano","guitar"),"guitar-edition");
-  assert.equal(selectHymnInstrument(hymn,"guitar-edition","sung"),"original");
+  assert.equal(selectHymnInstrument(hymn,"guitar-edition","piano",true),"original");
 });
 test("instrument switching is exclusive, preserves an eligible arrangement, and keeps old deep links meaningful", () => {
   assert.equal(selectHymnInstrument(practiceHymn, "chords", "piano"), "piano");
-  assert.equal(selectHymnInstrument(practiceHymn, "chords", "sung"), "original");
-  assert.equal(selectHymnInstrument(practiceHymn, "original", "piano"), "piano");
+  assert.equal(selectHymnInstrument(practiceHymn, "chords", "piano",true), "original");
+  assert.equal(selectHymnInstrument(practiceHymn, "original", "piano"), "original");
   for (const arrangement of [
     "melody",
     "bass",
@@ -70,7 +65,7 @@ test("instrument switching is exclusive, preserves an eligible arrangement, and 
     assert.equal(settings.arrangement, arrangement === "original" ? "original" : "piano");
     assert.equal(
       hymnInstrument(settings.arrangement),
-      arrangement === "original" ? "sung" : "piano",
+      "piano",
     );
   }
 });
@@ -89,8 +84,9 @@ test("instrument identity survives account/offline snapshots without a second co
   ]);
   assert.equal(
     hymnInstrument(loaded.forHymn(practiceHymn.id).arrangement),
-    "sung",
+    "piano",
   );
+  assert(hymnHasVoice(loaded.forHymn(practiceHymn.id).arrangement));
   assert.equal(records[`hymn:${practiceHymn.id}:arrangement`], "original");
   assert.deepEqual(songalongRecords(restored), records);
 });

@@ -33,7 +33,7 @@ test("teacher instrumental editions retain every vocal pitch, rest and dotted rh
   const original = read(hymn.harmony);
   assert.deepEqual(
     hymnArrangements(hymn).map((a) => a.id),
-    ["original", "piano", "guitar-edition"],
+    ["original", "guitar-vocal", "piano", "guitar-edition"],
   );
   assert.deepEqual(
     piano.tracks[0].filter((n) => n[1] < 48.5),

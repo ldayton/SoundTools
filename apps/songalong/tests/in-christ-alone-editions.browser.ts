@@ -32,9 +32,9 @@ try {
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await expect(
-      page.getByRole("radio", { name: "Voice + Piano", exact: true }),
-    ).toHaveAttribute("aria-checked", "true");
-    for (const label of ["Guitar", "Piano", "Voice + Piano"])
+      page.getByRole("button", { name: "Voice", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    for (const label of ["Guitar", "Piano"])
       await expect(
         page.getByRole("radio", { name: label, exact: true }),
       ).toBeEnabled();
@@ -237,7 +237,7 @@ try {
     await waitForApp(page, ".hymn-toolbar-instruments");
     await expect(
       page.getByRole("radio", { name: "Guitar", exact: true }),
-    ).toHaveAttribute("aria-checked", "true");
+    ).toHaveAttribute("aria-pressed", "true");
     assert.deepEqual(errors, []);
     await page.close();
     console.log(`PASS teacher editions ${width}px`);

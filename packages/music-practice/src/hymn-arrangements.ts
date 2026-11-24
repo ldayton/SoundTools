@@ -1,3 +1,5 @@
+import {guitarVoiceAbc} from "./guitar-voice";
+import type {CapoChoice} from "./guitar-capo";
 import { voicePianoAbc } from "./voice-piano";
 import { vocalHarmonyGuides } from "./vocal-harmony-guides";
 import { teacherVocalAbc } from "./in-christ-alone";
@@ -10,7 +12,7 @@ import hymns from "./hymns.json";
 export const hasInstrumentEditions = (hymn: { id: string }) =>
   !!instrumentEdition(hymn);
 export const isInstrumentArrangement = (hymn:{id:string}, arrangement:string) =>
-  hasInstrumentEditions(hymn) && (arrangement === "piano" || isGuitarArrangement(arrangement as Arrangement));
+  hasInstrumentEditions(hymn) && (arrangement === "piano" || isGuitarArrangement(arrangement as Arrangement) && arrangement !== "guitar-vocal");
 export const supportsGuitarTab = (hymn: { id: string }) =>
   hasInstrumentEditions(hymn);
 // Internal source transformations support edition construction and source audits.
@@ -18,9 +20,9 @@ export const supportsGuitarTab = (hymn: { id: string }) =>
 export const SOURCE_VARIANTS = [{id:"melody"},{id:"original"}] as const;
 export type HymnHands = "right" | "left" | "both";
 export type Arrangement =
-  (typeof SOURCE_VARIANTS)[number]["id"] | "bass" | "chords" | "broken" | "guitar" | "guitar-chords" | "piano" | "guitar-fingerstyle" | "guitar-edition";
+  (typeof SOURCE_VARIANTS)[number]["id"] | "bass" | "chords" | "broken" | "guitar" | "guitar-chords" | "piano" | "guitar-fingerstyle" | "guitar-edition" | "guitar-vocal";
 export const isGuitarArrangement = (value: Arrangement) =>
-  value === "guitar" || value === "guitar-chords" || value === "guitar-fingerstyle" || value === "guitar-edition";
+  value === "guitar" || value === "guitar-chords" || value === "guitar-fingerstyle" || value === "guitar-edition" || value === "guitar-vocal";
 export const isEditedGuitar = (value: Arrangement) => value === "guitar-fingerstyle" || value === "guitar-edition";
 /** Older tab editions store written pitches; fingerstyle uses an octave clef. */
 export const guitarMidiOffset = (value: Arrangement) =>
@@ -31,6 +33,7 @@ export function hymnArrangements(hymn: { id: string }): {id:Arrangement;label:st
   const profile=chordEdition(hymn);
   return [
     ...(edition.original ? [{id:'original' as const,label:'Voice + Piano',help:edition.vocal ? 'Source melody with its own vocal staff and the complete source piano harmony.' : 'The supplied choir and organ score.'}] : []),
+    ...(edition.original && profile ? [{id:"guitar-vocal" as const,label:"Guitar + Voice",help:"Vocal melody with a separate guitar chord accompaniment."}] : []),
     {id:'piano' as const,label:'Piano',help:'Melody and bass arranged for two hands on a grand staff.'},
     {id:edition.guitarArrangement,label:'Guitar',help:profile
       ?`Fingerstyle melody with supporting bass and harmony, ${profile.capo?`with capo ${profile.capo}`:'without a capo'}.`
@@ -228,12 +231,20 @@ export function arrangeHymn(
   hands: HymnHands = "both",
   endingBar?: number,
   guitarTranspose = 0,
+  capoChoice?: CapoChoice,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
   if (["bass","chords","broken"].includes(arrangement))
     return arrangeHymn(hymn,"piano",sectionBars,section,hands,endingBar,guitarTranspose);
   if (arrangement === "guitar" || arrangement === "guitar-chords")
     return arrangeHymn(hymn,instrumentEdition(hymn)?.guitarArrangement || "guitar-edition",sectionBars,section,arrangement === "guitar-chords"?"left":hands,endingBar,guitarTranspose);
   const edition = instrumentEdition(hymn);
+  if(arrangement === "guitar-vocal"){
+    const profile=chordEdition(hymn);if(!profile || !edition?.original)throw Error("Guitar + Voice is unavailable");
+    const vocal=arrangeHymn(hymn,"original",sectionBars,section,"both",endingBar);
+    const melody=selectEditionVoice(vocal.abc,"right"),accompaniment=arrangeHymn(hymn,"guitar-edition",sectionBars,section,"left",endingBar).abc;
+    const harmony=guitarVoiceAbc(melody,accompaniment,profile.capo,guitarTranspose,capoChoice);
+    return {...vocal,abc:selectEditionVoice(harmony,hands)};
+  }
   if (arrangement === "original" && edition?.editionKey === "in-christ-alone")
     return arrangeHymn({...hymn,id:`${hymn.id}:harmonized`,harmony:teacherVocalAbc(hymn.harmony)},arrangement,sectionBars,section,hands,endingBar,guitarTranspose);
   if (arrangement === "original" && edition?.vocal) {

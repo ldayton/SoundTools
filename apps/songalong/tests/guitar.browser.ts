@@ -1,3 +1,4 @@
+import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
@@ -45,8 +46,8 @@ try {
       );
       await page.locator("#hymn-score-display").selectOption("chords");
       await expect(page.locator(".hymn-strum-pattern")).toBeVisible();
-      await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(3);
-  await expect(page.getByRole('radio', { name: 'Voice + Piano', exact: true })).toBeEnabled();
+      await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeEnabled();
       await selectHymnInstrument(page, 'piano');
       await expect(page.locator(".abcjs-tabNumber")).toHaveCount(0);
       await selectHymnInstrument(page, 'guitar');
@@ -57,6 +58,20 @@ try {
       await expect(page.locator("#hymn-score-display")).toHaveValue("chords");
       await dismissPracticeDrawer(page);
     }
+    // Shared four-score control contract, independent of a named edition.
+    await page.goto(`${server.base}/piano/hymns/${practiceHymn.slug}?arrangement=piano&mode=playback`);
+    await expect(page.locator(".hymn-paper svg").first()).toBeVisible();await dismissPracticeDrawer(page);
+    const voice=page.getByRole("button",{name:"Voice",exact:true}),guitar=page.getByRole("radio",{name:"Guitar",exact:true}),piano=page.getByRole("radio",{name:"Piano",exact:true});
+    await voice.click();await expect(piano).toHaveAttribute("data-arrangement","original");
+    await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
+    await expect(voice).toHaveAttribute("aria-pressed","true");await expect(piano).toHaveAttribute("aria-checked","false");
+    await expect(page.locator(".hymn-paper svg").first().locator(".abcjs-clef")).toHaveCount(2);
+    await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
+    await page.reload();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
+    await expect(voice).toHaveAttribute("aria-pressed","true");
+    await piano.click();await expect(piano).toHaveAttribute("data-arrangement","original");
+    await voice.click();await expect(piano).toHaveAttribute("data-arrangement","piano");
+    await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-edition");
     assert.deepEqual(errors, []);
     assert(
       await page.evaluate(

@@ -1,3 +1,4 @@
+import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import assert from "node:assert/strict";
 import { writeFile, mkdir } from "node:fs/promises";
 import {
@@ -57,8 +58,9 @@ try {
     ["amazing-grace", "piano"],
     ["amazing-grace", "guitar-edition"],
     ["in-christ-alone", "original"],
+    [practiceHymn.slug,"guitar-vocal"],
   ]) {
-    const organ = id === "in-christ-alone";
+    const organ = id === "in-christ-alone" && arrangement === "original";
     const requests: string[] = [];
     const listener = (request: any) => requests.push(request.url());
     page.on("request", listener);
@@ -116,7 +118,7 @@ try {
             : /acoustic-|folk-steel-/.test(url),
       ),
     );
-    if (organ) assert.ok(requests.some(url=>/choir-ah-\d+-/.test(url)), "human choir samples loaded alongside organ");
+    if (organ || arrangement === "guitar-vocal") assert.ok(requests.some(url=>/choir-ah-\d+-/.test(url)), "human choir samples loaded alongside accompaniment");
     if (arrangement === "piano") {
       for (const layer of [4, 8, 12])
         assert.ok(

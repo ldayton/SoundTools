@@ -131,19 +131,16 @@ instrument routing, and writes six-second WAV previews to
 
 ## Primary instrument selection
 
-The toolbar always shows Guitar, Piano and Voice + Piano as one radio group.
-Only one instrument is selected; unavailable instruments remain visible and disabled.
-The sidebar lists arrangements belonging to the current instrument, and omits the
-arrangement picker when that instrument has only one arrangement. Reviewed editions
-retain their Piano/Guitar scores; generic staged keyboard arrangements belong to
-Piano and their original vocal harmony belongs to Voice + Piano. The supplied
-In Christ Alone teacher score supports Voice + Piano, Piano and Guitar.
+The toolbar has mutually exclusive Guitar and Piano radios and an independent
+Voice toggle. Switching instruments preserves Voice. Each of the four supported
+combinations loads its own score; unavailable combinations are disabled. Blues
+is instrumental and has Voice disabled. There is no arrangement picker.
 
-Existing arrangement IDs still encode the saved instrument and arrangement together,
-so old deep links, account records, offline preferences and bookmarks remain valid.
-No microphone access is requested by the microphone icon. Arrow keys navigate the
-available instruments, skipping unavailable choices; the three icons remain visible
-when the phone's other toolbar controls are collapsed.
+Existing score IDs preserve old links and saved selections: `original` means
+Piano + Voice; `guitar-vocal` is the separate vocal melody plus guitar chord
+accompaniment. Instrumental Piano and Guitar keep their reviewed solo scores.
+Arrow keys navigate the two instrument radios; Space toggles Voice.
+See [score combinations](../../docs/songalong-score-combinations.md).
 
 `hymn-instruments.test.ts` owns capability, migration and account/offline snapshot
 coverage. `instrument-toolbar.browser.ts` is a required CI/Nightly witness for the

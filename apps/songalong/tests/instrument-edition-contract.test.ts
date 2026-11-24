@@ -114,7 +114,7 @@ test("one registry supplies instrument choices, capo help and renderer capabilit
       edition = instrumentEdition(hymn)!;
     assert.deepEqual(
       hymnArrangements(hymn).map((a) => a.id),
-      [...(edition.original ? ["original"] : []), "piano", ...(edition.practiceStages ? ["melody","bass","chords","broken"] : []), edition.guitarArrangement],
+      [...(edition.original ? ["original"] : []), "piano", edition.guitarArrangement],
     );
     const profile = chordEdition(hymn);
     if (!profile) continue;

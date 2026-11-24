@@ -188,7 +188,7 @@ try {
   );
 
   await p.goto(
-    `http://127.0.0.1:4392/piano/hymns/${playbackHymn.slug}?arrangement=bass&hands=right&view=both&mode=wait&key=original`,
+    `http://127.0.0.1:4392/piano/hymns/${playbackHymn.slug}?arrangement=piano&hands=right&view=both&mode=wait&key=original`,
   );
   await p.locator(".hymn-count").filter({ hasText: "1 /" }).waitFor();
   await login(p);
@@ -243,7 +243,8 @@ try {
   await q.locator(".hymn-count").filter({ hasText: "2 /" }).waitFor();
   await openPracticeOptions(q);
   assert.equal(await q.locator("#hymn-hands").inputValue(), "right");
-  assert.equal(await q.locator("#hymn-view").inputValue(), "both");
+  assert.equal(await q.locator("#hymn-view").count(),0);
+  assert.equal(await q.getByRole("radio",{name:"Piano",exact:true}).getAttribute("aria-checked"),"true");
   assert(
     await q.locator("#hymn-stanzas input[type=checkbox]").nth(1).isChecked(),
   );

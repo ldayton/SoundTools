@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import {
-  stagedHymn,
-  otherStagedHymn,
+  practiceHymn,
+  otherPracticeHymn,
   playbackHymn,
   playbackMelody,
   playbackBass,
@@ -11,46 +11,35 @@ import {
   recoveryHymn,
   recoveryMelody,
   recoveryBass,
-  recoveryTieIndex,
+  pianoTieFixture,
   playbackAttacks,
-  selectStagedHymn,
+  selectPracticeHymn,
 } from "../test-fixtures/hymns";
 import { hymnPitchRange } from "../src/hymn-range";
 import { hymnArrangements } from "../src/hymn-arrangements";
 import { instrumentEditionIds, instrumentEdition } from "../src/instrument-editions";
-test("generic fixtures expose staged controls rather than relying on a popular song name", () => {
-  for (const hymn of [
-    stagedHymn,
-    otherStagedHymn,
-    playbackHymn,
-    passageHymn,
-    recoveryHymn,
-  ])
-    assert.deepEqual(
-      hymnArrangements(hymn)
-        .filter(a=>["melody","bass","chords","broken","original"].includes(a.id)).map((a) => a.id).sort(),
-      ["melody", "bass", "chords", "broken", "original"].sort(),
-    );
-  assert.notEqual(stagedHymn.id, otherStagedHymn.id);
-  assert.notEqual(playbackMelody, playbackBass);
+test("generic fixtures use supported piano and vocal scores without resurrecting retired stages",()=>{
+  for(const hymn of [practiceHymn,otherPracticeHymn,playbackHymn,passageHymn,recoveryHymn]){
+    const ids=hymnArrangements(hymn).map(a=>a.id);
+    assert(ids.includes("piano"));assert(ids.includes("original"));
+    assert(!ids.some(id=>["melody","bass","chords","broken"].includes(id)));
+  }
+  assert.notEqual(practiceHymn.id,otherPracticeHymn.id);
   assert.deepEqual(hymnPitchRange(playbackHymn.melody),{low:62,high:74});
-  assert.match(playbackHymn.melody,/^M:(?:2|4)\/4\s*$/m);
+  assert.notEqual(playbackMelody,playbackBass);
 });
-test("a song promoted to a dedicated edition is skipped without changing generic assertions", () => {
-  const migrated = { ...stagedHymn, id: "amazing-grace" };
-  assert.equal(
-    selectStagedHymn([migrated, otherStagedHymn]).id,
-    otherStagedHymn.id,
-  );
+test("a song without supported instrument scores is skipped without changing its music",()=>{
+  const unsupported={...practiceHymn,id:"unregistered"};
+  assert.equal(selectPracticeHymn([unsupported,otherPracticeHymn]).id,otherPracticeHymn.id);
 });
 test("incompatible music fails before a browser starts with the migration instructions", () => {
   assert.throws(
-    () => selectStagedHymn([], { playback: true }),
+    () => selectPracticeHymn([], { playback: true }),
     /docs\/testing.md/,
   );
   assert.throws(
     () =>
-      selectStagedHymn(
+      selectPracticeHymn(
         [
           {
             ...playbackHymn,
@@ -81,11 +70,11 @@ test("every registered edition owns unit and automatically enrolled browser cove
 
 test("passage and recovery fixtures retain the rhythm and held-note contracts of their browser scenarios", () => {
   assert.equal(
-    selectStagedHymn([passageHymn], { playback: true, passage: true }).id,
+    selectPracticeHymn([passageHymn], { playback: true, passage: true }).id,
     passageHymn.id,
   );
   assert.equal(
-    selectStagedHymn([recoveryHymn], { recovery: true }).id,
+    selectPracticeHymn([recoveryHymn], { recovery: true }).id,
     recoveryHymn.id,
   );
   assert.equal(new Set(recoveryMelody.slice(0, 3)).size, 3);
@@ -95,7 +84,7 @@ test("passage and recovery fixtures retain the rhythm and held-note contracts of
     "partial chord tests require several simultaneous notes",
   );
   assert(
-    recoveryTieIndex > 0,
+    pianoTieFixture.index > 0,
     "tie-repetition checks require a written continuation after the first attack",
   );
 });

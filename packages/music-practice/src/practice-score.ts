@@ -294,9 +294,11 @@ export function drawPracticeScore(
   if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, profile?.pickup ?? false);
   if (options.guitarTab && !!profile) alignSimultaneousTab(tune, options.fromBar || 0);
   if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift)=>profile.position(pitch-profile.capo,chord,shift) : undefined, !!options.tabOnly, !!profile);
-  if (options.fingerings && options.beginnerEdition)
+  // Measure editorial annotations even when hidden, so the score keeps its
+  // geometry when fingerings are toggled. Remove the provisional marks below.
+  if (options.beginnerEdition)
     drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
-  if (options.beginnerEdition && options.fingerings) separateBeginnerFingerings(paper);
+  if (options.beginnerEdition) separateBeginnerFingerings(paper);
   if (!!profile && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
   if (options.tabOnly) showOnlyTab(paper, profile ? editionTempoLabel({...profile,capo:options.guitarSetup ? 0 : profile.capo},tune.lines.flatMap(line=>line.staff?.flatMap(staff=>staff.voices?.flatMap(voice=>voice.flatMap(note=>note.el_type==='part'?[note.title]:[]))||[])||[])) : undefined, profile ? 58 : undefined);
   if (options.chordsOnly) showChordsOnly(paper,tune);
@@ -411,6 +413,7 @@ export function drawPracticeScore(
     heading.textContent=`${options.guitarSetup.capo ? `Capo ${options.guitarSetup.capo}` : "No capo"} · Sounding key: ${options.guitarSetup.key} major`;
     paper.prepend(heading);
   }
+  if (!options.fingerings) paper.querySelectorAll(".beginner-fingering,.beginner-picking,.beginner-string").forEach(mark=>mark.remove());
   attachChordDiagrams(paper, chordPassages);
   if (options.printedScore) attachPianoChordDiagrams(paper, tune);
   if (options.fingerings && !options.beginnerEdition) {

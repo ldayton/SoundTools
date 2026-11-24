@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import abcjs from "abcjs";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
-  ARRANGEMENTS,
+  SOURCE_VARIANTS,
   arrangeHymn,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import {
@@ -76,7 +76,7 @@ test("original requires no transformation and old bookmark keys remain valid; ea
 });
 test("every repertoire arrangement transposes to every offered key without dropping or clamping pitches", () => {
   for (const hymn of hymns)
-    for (const a of ARRANGEMENTS)
+    for (const a of SOURCE_VARIANTS)
       for (const size of [0, 2]) {
         const original = arrangeHymn(hymn, a.id, size).abc;
         for (const key of HYMN_KEYS) {
@@ -98,7 +98,7 @@ test("derived arrangements retain source chord symbols before transposition", ()
     harmony:
       'X:1\nM:4/4\nL:1/4\nK:C\n"C/E"C E G c | "G7/B"B G D G |]\nw: one two three four five six seven eight\n',
   };
-  for (const a of ARRANGEMENTS)
+  for (const a of SOURCE_VARIANTS)
     for (const size of [0, 2]) {
       const abc = arrangeHymn(hymn, a.id, size).abc;
       const tune = abcjs.parseOnly(abc, { visualTranspose: 2 })[0];
@@ -118,7 +118,7 @@ test("derived arrangements retain source chord symbols before transposition", ()
 
 test("octave shifts preserve key, harmony, lyrics, ties and durations in both directions", () => {
   const hymn = hymns.find((h) => h.slug === "amazing-grace")!;
-  for (const { id } of ARRANGEMENTS) {
+  for (const { id } of SOURCE_VARIANTS) {
     const abc = arrangeHymn(hymn, id, 0).abc;
     for (const octave of [-2, -1, 0, 1]) {
       const transposition = hymnTransposition(hymn.key, "B", octave);

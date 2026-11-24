@@ -189,7 +189,7 @@ test("account saves retain the catalogue revision and do not remap teacher verse
   };
   const restored = restoreSongalongRecords(legacy);
   const records = songalongRecords(restored);
-  assert.equal(records["current:catalogueRevision"],3);
+  assert.equal(records["current:catalogueRevision"],4);
   assert.equal(records["current:hymn"],id);
   assert.deepEqual(records[`hymn:${id}:stanzas`],[2,4]);
   assert.deepEqual(songalongRecords(restoreSongalongRecords(records)),records);
@@ -206,27 +206,27 @@ test("live account updates recognize legacy references to the active UUID", asyn
 });
 
 test("a legacy checkpoint resumes under the UUID and survives an account roundtrip", async () => {
-  const { stagedHymn } = await import("../../../packages/music-practice/test-fixtures/hymns");
+  const { practiceHymn } = await import("../../../packages/music-practice/test-fixtures/hymns");
   const { HymnProgress, hymnProgressKey } = await import("../../../packages/music-practice/src/hymn-progress");
-  const settings = {...hymnPreferences(stagedHymn.id),position:3};
-  const key = hymnProgressKey(settings,stagedHymn.key);
-  const oldKey = stagedHymn.slug + key.slice(stagedHymn.id.length);
+  const settings = {...hymnPreferences(practiceHymn.id),position:3};
+  const key = hymnProgressKey(settings,practiceHymn.key);
+  const oldKey = practiceHymn.slug + key.slice(practiceHymn.id.length);
   const raw: any = {
-    version:1,catalogueRevision:1,hymn:stagedHymn.slug,
-    preferences:{[stagedHymn.slug]:{...settings,hymn:stagedHymn.slug}},
-    favorites:{[stagedHymn.slug]:true},sections:{},
+    version:1,catalogueRevision:1,hymn:practiceHymn.slug,
+    preferences:{[practiceHymn.slug]:{...settings,hymn:practiceHymn.slug}},
+    favorites:{[practiceHymn.slug]:true},sections:{},
     bookmarks:{[oldKey]:{version:1,content:"matching-score",position:3,paused:true,length:20}},
   };
-  const progress = new HymnProgress(raw,[stagedHymn.id]);
-  assert.deepEqual(progress.restore(settings,stagedHymn.key,"matching-score",20),{position:3,paused:true});
-  assert.deepEqual(progress.restore(settings,stagedHymn.key,"changed-score",20),{position:0,paused:false});
+  const progress = new HymnProgress(raw,[practiceHymn.id]);
+  assert.deepEqual(progress.restore(settings,practiceHymn.key,"matching-score",20),{position:3,paused:true});
+  assert.deepEqual(progress.restore(settings,practiceHymn.key,"changed-score",20),{position:0,paused:false});
   const state = migrateLegacy({});
-  state.activities.sight = progress.snapshot(settings,stagedHymn.key,1);
+  state.activities.sight = progress.snapshot(settings,practiceHymn.key,1);
   const roundtrip = restoreSongalongRecords(songalongRecords(state)).activities.sight as any;
-  const loaded = new HymnProgress(roundtrip,[stagedHymn.id]);
-  assert.deepEqual(loaded.restore(settings,stagedHymn.key,"matching-score",20),{position:3,paused:true});
-  assert.equal(loaded.favorites[stagedHymn.id],true);
-  assert.equal(raw.hymn,stagedHymn.slug);
+  const loaded = new HymnProgress(roundtrip,[practiceHymn.id]);
+  assert.deepEqual(loaded.restore(settings,practiceHymn.key,"matching-score",20),{position:3,paused:true});
+  assert.equal(loaded.favorites[practiceHymn.id],true);
+  assert.equal(raw.hymn,practiceHymn.slug);
 });
 
 test("the published library contains exactly the nine selected songs", () => {
@@ -260,9 +260,37 @@ test("new vocal staves migrate old piano Show/Play selections exactly once, incl
     assert.deepEqual(migrateHymnIdentity(state),state);assert.deepEqual(raw.hiddenStaves,[0]);
     const durable=migrateLegacy({});durable.activities.sight=raw as any;
     const restored=restoreSongalongRecords(songalongRecords(durable)).activities.sight as any;
-    assert.equal(restored.catalogueRevision,3);assert.deepEqual(restored.hiddenStaves,[2]);assert.deepEqual(restored.mutedStaves,[1]);
+    assert.equal(restored.catalogueRevision,4);assert.deepEqual(restored.hiddenStaves,[2]);assert.deepEqual(restored.mutedStaves,[1]);
     assert.deepEqual(restoreSongalongRecords(songalongRecords(restoreSongalongRecords(songalongRecords(durable)))),restoreSongalongRecords(songalongRecords(durable)));
   }
   assert.deepEqual(migrateHymnIdentity({catalogueRevision:2,hymn:canonicalHymnId("in-christ-alone"),arrangement:"original",hiddenStaves:[0]}).hiddenStaves,[0]);
   assert.deepEqual(migrateHymnIdentity({catalogueRevision:2,hymn:canonicalHymnId("silent-night"),arrangement:"bass",hiddenStaves:[0]}).hiddenStaves,[0]);
+});
+
+
+test("retired stages migrate once to Piano without reusing incompatible practice checkpoints",()=>{
+  for(const arrangement of ["melody","bass","chords","broken"]){
+    const id=canonicalHymnId("joy-to-the-world"),oldKey=`${id}:${arrangement}:0:0`;
+    const raw={catalogueRevision:3,hymn:id,arrangement,position:17,hands:"both",viewHands:"left",bpm:93,
+      preferences:{[id]:{hymn:id,arrangement,position:17}},bookmarks:{[oldKey]:{position:17},[`${id}:piano:0:0`]:{position:2}},sections:{[oldKey]:2}};
+    const migrated=migrateHymnIdentity(raw);
+    assert.equal(migrated.arrangement,"piano");assert.equal(migrated.position,0);assert.equal(migrated.viewHands,"both");
+    assert.equal(migrated.hands,arrangement==="melody"?"right":"both");assert.equal(migrated.bpm,93);
+    assert.equal(migrated.preferences[id].arrangement,"piano");assert.equal(migrated.bookmarks[oldKey],undefined);assert.equal(migrated.sections[oldKey],undefined);
+    assert.deepEqual(migrated.bookmarks[`${id}:piano:0:0`],{position:2});assert.deepEqual(migrateHymnIdentity(migrated),migrated);assert.equal(raw.position,17);
+  }
+});
+
+
+test("new snapshots never reintroduce retired stage IDs, including late account edits",async()=>{
+  const {HymnProgress}=await import("../../../packages/music-practice/src/hymn-progress");
+  const id=canonicalHymnId("joy-to-the-world");
+  for(const arrangement of ["melody","bass","chords","broken"] as const){
+    const progress=new HymnProgress(undefined,[id]);
+    const snapshot=progress.snapshot({...hymnPreferences(id),arrangement,position:12},"D",1);
+    assert.equal(snapshot.arrangement,"piano");assert.equal(snapshot.preferences![id].position,0);
+    assert.equal(snapshot.preferences![id].arrangement,"piano");
+    const late=migrateHymnIdentity({catalogueRevision:4,hymn:id,arrangement,position:12});
+    assert.equal(late.arrangement,"piano");assert.equal(late.position,0);
+  }
 });

@@ -5,11 +5,13 @@ export function selectEditionVoice(abc: string, hands: HymnHands) {
   if (hands === "both") return abc;
   const names = [...abc.matchAll(/^V:\s*(\S+)/gm)].map((m) => m[1]);
   const selected = names[hands === "right" ? 0 : 1];
+  let keepLyrics = true;
   return abc
     .split("\n")
     .filter((line) => {
       const voice = line.match(/^(?:V:\s*|\[V:)([^\s\]]+)/)?.[1];
-      return !voice || voice === selected;
+      if (voice) { keepLyrics = voice === selected; return keepLyrics; }
+      return !/^w:/.test(line) || keepLyrics;
     })
     .map((line) =>
       /^%%(?:staves|score)/.test(line) ? `%%score ${selected}` : line,

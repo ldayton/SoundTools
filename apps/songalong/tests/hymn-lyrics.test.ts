@@ -5,7 +5,7 @@ import abcjs, { type VoiceItemNote } from "abcjs";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
   arrangeHymn,
-  ARRANGEMENTS,
+  SOURCE_VARIANTS,
   hymnMelodyOffset,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import {
@@ -113,7 +113,7 @@ test("lyric selection never changes pitches, timing, ties, rests or accompanimen
         ),
       );
   for (const h of hymns)
-    for (const { id } of ARRANGEMENTS) {
+    for (const { id } of SOURCE_VARIANTS) {
       for (const [bars, section] of [
         [0, 0],
         [4, 1],

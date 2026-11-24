@@ -97,24 +97,19 @@ Do not infer full behavior coverage from a clean duplicate report.
 There are two distinct owners:
 
 - **Generic workflow tests** use capability fixtures from
-  `packages/music-practice/test-fixtures/hymns.ts`. The selector requires staged
-  arrangements and multiple stanzas. Playback additionally requires a quarter-note-metered
-  D4–D5 octave so the existing transposition, range and count-in contracts
-  stay explicit; its opening MIDI pitches come from the fixture's two voices and key labels
-  from the independently unit-tested range model. The source key need not stay
-  the same when a compatible fixture changes.
-  Passage fixtures also require at least three attacks in bar 1 and two in bar 2;
-  recovery fixtures require three different opening melody notes above a
-  sustained bass with a written tied continuation. Attack pitches and counts come from the selected fixture,
-  so named-edition changes cannot silently invalidate grading tests.
-  The nine-song curation retired the former 4/4 fixture. The quarter-note
-  playback contract now also accepts 2/4; passage labels and whole-bar endpoints
-  follow the fixture's measured rhythms through the independently unit-tested
-  position model. Retained product music is never changed to supply a fixture.
-  Dedicated editions may intentionally retain the four progressive piano stages.
-  When those stages are retired from a song, selection moves to another compatible
-  song automatically. Unit tests check this migration and fail early if the
-  capability disappears from the product entirely.
+  `packages/music-practice/test-fixtures/hymns.ts`. The selector requires real
+  Piano and Voice + Piano scores and multiple stanzas. Playback additionally
+  requires a quarter-note meter, no pickup, three opening attacks, and a D4–D5
+  octave so transposition, range and count-in contracts remain explicit. Hand
+  practice is selected within Piano, and never through a retired stage picker.
+  Passage fixtures require three first-bar and two second-bar attacks; labels
+  and endpoints follow the measured rhythm through the unit-tested position model.
+  Recovery uses three different piano melody notes over a sustained authored LH
+  chord. A separate capability fixture supplies a real written LH tie, retaining
+  coverage of re-strike behavior without requiring the retired bass generator.
+  Original source melody/harmony extraction remains an internal edition-building
+  primitive, not a selectable product arrangement. Retained music is never
+  changed to keep a fixture available.
 - **Edition tests** name real songs and independently verify their musical
   content and behavior. Every `apps/songalong/tests/*-editions.browser.ts` is
   enrolled automatically by the policy. `test:editions` uses the same registry;
@@ -499,5 +494,6 @@ README; the builder retains source hashes and independent decoded measurements.
 The nine-song support standard and musical validation owners are documented in
 [the song support matrix](songalong-song-support.md). The three additional edition
 browser files use the existing automatic Nightly edition registry and reviewed
-resource inventory. Generic controls continue to select real staged arrangements
-by capability; no product music is changed to keep a fixture available.
+resource inventory. Generic controls select real instrument scores by capability. The old practice
+stages and their generators are retired; the support matrix records the replacement
+regression owners. No product music is changed to keep a fixture available.

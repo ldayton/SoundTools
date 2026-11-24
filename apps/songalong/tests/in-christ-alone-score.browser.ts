@@ -1,4 +1,4 @@
-import {stagedHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { expect } from "@playwright/test";
@@ -354,11 +354,11 @@ try {
   await practiceOption(page, "#hymn-key", "original");
   await dismissPracticeDrawer(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(server.base + `/piano/hymns/${stagedHymn.slug}?mode=playback`);
+  await page.goto(server.base + `/piano/hymns/${practiceHymn.slug}?mode=playback`);
   await waitForApp(page, ".hymn-paper");
   await page.locator(".hymn-paper svg").first().waitFor();
   await openHymnControls(page);
-  await expect(page.locator(".sequence-title")).toHaveText(stagedHymn.title);
+  await expect(page.locator(".sequence-title")).toHaveText(practiceHymn.title);
   await expect(page.locator("#hymn-tempo")).not.toHaveValue("96 BPM");
   await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
   await waitForApp(page, ".hymn-paper");

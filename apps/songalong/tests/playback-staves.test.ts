@@ -12,7 +12,7 @@ import { hymnPlaybackScore } from "../../../packages/music-practice/src/hymn-pla
 import { arrangeHymn } from "../../../packages/music-practice/src/hymn-arrangements";
 import { hymnInstrumentArrangements } from "../../../packages/music-practice/src/hymn-instruments";
 import { instrumentEditionIds } from "../../../packages/music-practice/src/instrument-editions";
-import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
+import { practiceHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import {
   hymnPreferences,
   mergeHymnSettings,
@@ -53,9 +53,9 @@ test("teacher staff toggles own Choir, all three Organ treble voices, and Organ 
   );
 });
 test("staff filtering preserves every registered edition's audio clock and unmutes to identical written music", () => {
-  for (const id of [stagedHymn.id, ...instrumentEditionIds]) {
+  for (const id of [practiceHymn.id, ...instrumentEditionIds]) {
     const hymn = hymns.find((h) => h.id === id)!;
-    for (const arrangement of id === stagedHymn.id
+    for (const arrangement of id === practiceHymn.id
       ? (["bass", "original"] as const)
       : ([
           "piano",
@@ -88,12 +88,12 @@ test("staff filtering preserves every registered edition's audio clock and unmut
   }
 });
 test("stanza scheduling keeps every verse and duration when all staves are silent", () => {
-  const score = arrangeHymn(stagedHymn, "bass", 0, 0, "both");
+  const score = arrangeHymn(practiceHymn, "bass", 0, 0, "both");
   const audio = abcjs
     .parseOnly(score.abc)[0]
     .setUpAudio({ qpm: 60, chordsOff: true });
   const options = {
-    hymn: stagedHymn,
+    hymn: practiceHymn,
     arrangement: "bass" as const,
     sectionBars: 0,
     section: 0,
@@ -116,7 +116,7 @@ test("stanza scheduling keeps every verse and duration when all staves are silen
   );
 });
 test("staff choices normalize, survive URL/account/offline roundtrips and reset when score layout changes", () => {
-  const base = hymnPreferences(stagedHymn.id, {
+  const base = hymnPreferences(practiceHymn.id, {
     arrangement: "bass",
     mutedStaves: [1, 1, -1, 2.5, "0", 99],
     hiddenStaves: [0],
@@ -145,11 +145,11 @@ test("staff choices normalize, survive URL/account/offline roundtrips and reset 
   );
   const progress = new HymnProgress(undefined, []),
     state = migrateLegacy({});
-  state.activities.sight = progress.snapshot(base, stagedHymn.key, 1);
+  state.activities.sight = progress.snapshot(base, practiceHymn.key, 1);
   const restored = restoreSongalongRecords(songalongRecords(state));
   const saved = new HymnProgress(restored.activities.sight as any, [
-    stagedHymn.id,
-  ]).forHymn(stagedHymn.id);
+    practiceHymn.id,
+  ]).forHymn(practiceHymn.id);
   assert.deepEqual(saved.mutedStaves, [1]);
   assert.deepEqual(saved.hiddenStaves, [0]);
   assert.equal(saved.showChordSymbols,false);

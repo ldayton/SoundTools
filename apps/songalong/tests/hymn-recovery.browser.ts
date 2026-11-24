@@ -2,7 +2,8 @@ import {
   recoveryHymn,
   recoveryMelody,
   recoveryBass,
-  recoveryTieIndex,
+  recoveryLeftPitches,
+  pianoTieFixture,
 } from "../../../packages/music-practice/test-fixtures/hymns";
 const [first, second, third] = recoveryMelody;
 const wrong = second + 1;
@@ -68,22 +69,13 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(
       base +
-        `/piano/hymns/${recoveryHymn.slug}?arrangement=bass&hands=both&view=both&mode=wait&key=original`,
+        `/piano/hymns/${recoveryHymn.slug}?arrangement=piano&hands=both&view=both&mode=wait&key=original`,
     );
     await page.locator(".hymn-count").filter({ hasText: "1 /" }).waitFor();
     await openPracticeOptions(page);
-    const show = await page.locator(".hymn-view-field").boundingBox(),
-      practice = await page.locator(".hymn-hands-field").boundingBox();
-    assert.ok(show && practice);
-    assert.equal(show.y, practice.y);
-    assert.ok(show.x < practice.x);
-    const ties = page.getByRole("checkbox", {
-      name: "Re-strike tied notes",
-      exact: true,
-    });
-    assert.equal(await ties.isChecked(), false);
-    const tieCount = await page.locator(".hymn-paper .abcjs-tie").count();
-    assert.ok(tieCount > 0);
+    assert.equal(await page.locator("#hymn-view").count(),0,"Instrument scores retain both printed hands");
+    const ties=page.getByRole("checkbox",{name:"Re-strike tied notes",exact:true});
+    assert.equal(await ties.isChecked(),false);
     await midiAction(page, "Connect MIDI keyboard");
     await page
       .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
@@ -102,12 +94,12 @@ try {
       Number(
         (await page.locator(".hymn-count").textContent())?.split(" / ")[0],
       );
-    await send(recoveryBass);
+    for(const p of recoveryLeftPitches) await send(p);
     await note(first);
     assert.equal(await step(), 2);
     await note(wrong);
     assert.equal(await step(), 2);
-    await send(recoveryBass, false);
+    for(const p of recoveryLeftPitches) await send(p,false);
     await send(second);
     assert.equal(
       await step(),
@@ -119,7 +111,7 @@ try {
         .locator(`.hymn-piano [data-piano="${recoveryBass}"].is-right`)
         .count(),
     );
-    await send(recoveryBass);
+    for(const p of recoveryLeftPitches) await send(p);
     assert.equal(await step(), 3);
     await send(second, false);
     await note(third);
@@ -128,32 +120,28 @@ try {
       4,
       "normal progress does not need another bass strike",
     );
-    await send(recoveryBass, false);
+    for(const p of recoveryLeftPitches) await send(p,false);
+    // Independently exercise a real written tie on a supported Piano score.
+    await page.goto(base+`/piano/hymns/${pianoTieFixture.hymn.slug}?arrangement=piano&hands=both&mode=wait&ties=repeat`);
+    await openPracticeOptions(page);assert.equal(await ties.isChecked(),true);
+    await midiAction(page,"Connect MIDI keyboard");
+    const tieCount=await page.locator(".hymn-paper .abcjs-tie").count();assert(tieCount>0);
+    let held:number[]=[];
+    for(const entry of pianoTieFixture.steps.slice(0,pianoTieFixture.index)){
+      for(const pitch of held)await send(pitch,false);
+      for(const pitch of entry.pitches)await send(pitch);
+      held=entry.pitches;
+    }
+    assert.equal(await step(),pianoTieFixture.index+1);
+    for(const pitch of held)if(pitch!==pianoTieFixture.bass)await send(pitch,false);
+    for(const pitch of pianoTieFixture.steps[pianoTieFixture.index].pitches)if(pitch!==pianoTieFixture.bass)await send(pitch);
+    assert.equal(await step(),pianoTieFixture.index+1,"The written continuation needs a fresh bass attack");
+    await send(pianoTieFixture.bass,false);await send(pianoTieFixture.bass);
+    assert.equal(await step(),pianoTieFixture.index+2);
+    assert.equal(await page.locator(".hymn-paper .abcjs-tie").count(),tieCount);
+    await page.goto(base+`/piano/hymns/${recoveryHymn.slug}?arrangement=piano&hands=right&mode=wait&ties=repeat`);
     await openPracticeOptions(page);
-    await ties.check();
-    assert.match(page.url(), /ties=repeat/);
-    assert.equal(await step(), 1);
-    assert.equal(
-      await page.locator(".hymn-paper .abcjs-tie").count(),
-      tieCount,
-      "tie notation stays visible",
-    );
-    await send(recoveryBass);
-    for (const pitch of recoveryMelody.slice(0, recoveryTieIndex))
-      await note(pitch);
-    assert.equal(await step(), recoveryTieIndex + 1);
-    const continuation = recoveryMelody[recoveryTieIndex];
-    await send(continuation);
-    assert.equal(
-      await step(),
-      recoveryTieIndex + 1,
-      "a written continuation requires another bass attack when enabled",
-    );
-    await send(recoveryBass, false);
-    await send(recoveryBass);
-    assert.equal(await step(), recoveryTieIndex + 2);
-    await send(continuation, false);
-    await send(recoveryBass, false);
+    await midiAction(page,"Connect MIDI keyboard");
     await page
       .getByRole("combobox", { name: "Practise hands", exact: true })
       .selectOption("right");

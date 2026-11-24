@@ -5,13 +5,13 @@ import { existsSync } from "node:fs";
 import manifest from "../../../packages/music-practice/src/assets/songalong-organ/manifest.json";
 import { hymnPlaybackInstrument } from "../../../packages/music-practice/src/hymn-instruments";
 import { performNotes } from "../../../packages/music-practice/src/playback-performance";
-import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
+import { practiceHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 test("explicit organ instrumentation routes this original score without changing piano/guitar choices", () => {
   assert.equal(
     hymnPlaybackInstrument({ id: "in-christ-alone" }, "original"),
     "organ",
   );
-  assert.equal(hymnPlaybackInstrument(stagedHymn, "original"), "piano");
+  assert.equal(hymnPlaybackInstrument(practiceHymn, "original"), "piano");
   assert.equal(
     hymnPlaybackInstrument({ id: "amazing-grace" }, "piano"),
     "piano",

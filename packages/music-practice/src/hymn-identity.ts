@@ -4,7 +4,7 @@ const identity = createHymnIdentityIndex(catalogue);
 export const canonicalHymnId = identity.id;
 export const hymnSlug = identity.slug;
 export const hymnForEdition = identity.edition;
-export const HYMN_CATALOGUE_REVISION = 3;
+export const HYMN_CATALOGUE_REVISION = 4;
 
 const retired = "in-christ-alone-2",
   canonical = "in-christ-alone";
@@ -94,6 +94,21 @@ export function migrateHymnIdentity<T>(input: T): T {
     if (typeof state.hymn === "string") shift(state,state.hymn);
     for (const [id,settings] of Object.entries(state.preferences || {}))
       if (settings && typeof settings === "object") shift(settings as Record<string,any>,id);
+  }
+  { // Normalize retired scores even if an older account client edits a newer catalogue.
+    const retire = (settings:Record<string,any>) => {
+      if (!["melody","bass","chords","broken"].includes(settings.arrangement)) return;
+      if (settings.arrangement === "melody") settings.hands = "right";
+      settings.arrangement = "piano";
+      settings.viewHands = "both";
+      settings.position = 0;
+    };
+    retire(state);
+    for (const settings of Object.values(state.preferences || {}))
+      if (settings && typeof settings === "object") retire(settings as Record<string,any>);
+    for (const field of ["bookmarks","sections"])
+      for (const key of Object.keys(state[field] || {}))
+        if (/:true:(?:melody|bass|chords|broken):|:(?:melody|bass|chords|broken):/.test(key)) delete state[field][key];
   }
   state.catalogueRevision = HYMN_CATALOGUE_REVISION;
   return state as T;

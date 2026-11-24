@@ -1,11 +1,12 @@
-import { stagedHymn } from "../test-fixtures/hymns";
+import {chordEdition} from "../src/instrument-editions";
+import { practiceHymn, otherPracticeHymn } from "../test-fixtures/hymns";
 import { mergeHymnSettings, hymnSettingsFromQuery } from "../src/hymn-settings";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
 import hymns from "../src/hymns.json";
 import {
-  ARRANGEMENTS,
+  SOURCE_VARIANTS,
   arrangeHymn,
   hymnBarCount,
 } from "../src/hymn-arrangements";
@@ -95,11 +96,11 @@ function topNotes(abc: string) {
       };
     });
 }
-test("all hymn practice stages and sections parse, preserve melody/lyrics, and partition into complete bars", () => {
+test("source melody/harmony scores and sections parse, preserve melody/lyrics, and partition into complete bars", () => {
   for (const hymn of hymns) {
     const total = hymnBarCount(hymn);
     assert.ok(total > 0);
-    for (const stage of ARRANGEMENTS)
+    for (const stage of SOURCE_VARIANTS)
       for (const size of [0, 2, 4]) {
         const whole = arrangeHymn(hymn, stage.id, size);
         assert.ok(whole.sections > 0, hymn.title + " " + stage.id + " must have playable sections");
@@ -152,10 +153,10 @@ test("older interval patterns extend to two bars while preserving position and i
   assert.equal(restorePattern({ ...old, version: 99 }, settings), undefined);
 });
 
-test("hymn practice hands must be visible, while both-hand views allow either hand", () => {
+test("Piano keeps the full printed score and independently selects the practised hand", () => {
   const base = {
-    hymn: stagedHymn.id,
-    arrangement: "bass" as const,
+    hymn: practiceHymn.id,
+    arrangement: "piano" as const,
     sectionBars: 2 as const,
     section: 0,
     position: 0,
@@ -163,36 +164,36 @@ test("hymn practice hands must be visible, while both-hand views allow either ha
   for (const viewHands of ["left", "right", "both"] as const)
     for (const hands of ["left", "right", "both"] as const) {
       const settings = mergeHymnSettings(base, { viewHands, hands });
-      assert.equal(settings.viewHands, viewHands);
-      assert.equal(settings.hands, viewHands === "both" ? hands : viewHands);
+      assert.equal(settings.viewHands, "both");
+      assert.equal(settings.hands, hands);
     }
   assert.equal(
     hymnSettingsFromQuery(base, new URLSearchParams("view=right&hands=left"))
       .hands,
-    "right",
+    "left",
   );
 });
 
 test("hymn defaults isolate song-specific key, hands, tempo, count-in and note limits", async () => {
   const { hymnPreferences } = await import("../src/hymn-settings");
-  const a = hymnPreferences("amazing-grace", {
+  const a = hymnPreferences(practiceHymn.id, {
     key: "F",
     hands: "left",
-    arrangement: "bass",
+    arrangement: "piano",
     bpm: 110,
     countIn: 2,
     low: 60,
     zoom: 1.2,
   });
-  const b = hymnPreferences("silent-night");
+  const b = hymnPreferences(otherPracticeHymn.id);
   assert.equal(a.key, "F");
   assert.equal(a.bpm, 110);
   assert.equal(b.key, "original");
   assert.equal(b.mode, "wait");
-  assert.equal(b.bpm, 80);
+  assert.equal(b.bpm, chordEdition(otherPracticeHymn)!.tempo);
   assert.equal(b.low, null);
   assert.equal(b.countIn, 0);
-  assert.equal(b.arrangement, "melody");
+  assert.equal(b.arrangement, "piano");
   assert.equal(b.zoom, 1);
   assert.equal(b.hands, "both");
 });

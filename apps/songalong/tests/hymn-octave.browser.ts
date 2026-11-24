@@ -73,22 +73,9 @@ try {
       "utf8",
     ),
   });
-  // Exercise actual playback clocks without sending sound to the computer.
-  await page.addInitScript(() => {
-    const connect: Function = AudioNode.prototype.connect;
-    AudioNode.prototype.connect = function (this: AudioNode, ...args: any[]) {
-      if (args[0] === this.context.destination) {
-        const mute = this.context.createGain();
-        mute.gain.value = 0;
-        connect.call(mute, this.context.destination);
-        return connect.call(this, mute);
-      }
-      return connect.apply(this, args);
-    } as typeof AudioNode.prototype.connect;
-  });
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.slug}?key=${encodeURIComponent(key)}&low=38&high=91`,
+      `/piano/hymns/${playbackHymn.slug}?arrangement=piano&hands=right&key=${encodeURIComponent(key)}&low=38&high=91`,
   );
   await expect.poll(() => selectedHymnRange(page)).toBe("F♯2–F♯3");
   assert.ok((await page.locator(".hymn-ottava").count()) > 0);
@@ -110,7 +97,7 @@ try {
       (text) => text === "8",
     ),
   );
-  assert.equal(await page.locator(".hymn-paper .abcjs-ledger").count(), 0);
+  assert.ok(await page.locator(".hymn-paper .abcjs-ledger").count() < 2 * await page.locator(".hymn-paper .abcjs-note").count(), "Both piano hands retain ordinary ledger lines without extreme octave displacement");
   await shift("up");
   assert.equal(await selectedHymnRange(page), "F♯4–F♯5");
   await shift("up");
@@ -180,7 +167,7 @@ try {
   // A key is still available when only a different octave fits the exact limits.
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.slug}?key=${encodeURIComponent(key)}&low=42&high=54`,
+      `/piano/hymns/${playbackHymn.slug}?arrangement=piano&hands=right&key=${encodeURIComponent(key)}&low=42&high=54`,
   );
   await openPracticeOptions(page);
   await expect.poll(() => selectedHymnRange(page)).toBe("F♯2–F♯3");
@@ -193,14 +180,11 @@ try {
   assert.ok(await page.locator("#hymn-octave-down").isDisabled());
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.slug}?key=${encodeURIComponent(key)}&octave=-2&low=38&high=91&arrangement=bass&view=both`,
+      `/piano/hymns/${playbackHymn.slug}?arrangement=piano&hands=right&key=${encodeURIComponent(key)}&octave=-2&low=38&high=91&arrangement=piano&view=both`,
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.ok((await page.locator(".hymn-ottava").count()) >= 2);
-  assert.deepEqual(
-    (await page.locator(".hymn-ottava").allTextContents()).sort(),
-    ["15", "15"],
-  );
+  assert.deepEqual((await page.locator(".hymn-paper svg").first().locator(".hymn-ottava").allTextContents()).sort(),["15","15"]);
   const systems = page
     .locator(".hymn-paper svg")
     .filter({ has: page.locator(".abcjs-staff") });
@@ -213,17 +197,10 @@ try {
     await systems.first().locator(".abcjs-key-signature").count(),
     2,
   );
-  for (let i = 1; i < (await systems.count()); i++) {
-    assert.equal(
-      await systems
-        .nth(i)
-        .locator(
-          ".abcjs-clef,.abcjs-key-signature,.abcjs-time-signature,.hymn-ottava",
-        )
-        .count(),
-      0,
-      "later systems devote their width to the music",
-    );
+  for (let i=1;i<await systems.count();i++) {
+    assert.equal(await systems.nth(i).locator(".abcjs-clef").count(),2,"Dedicated Piano repeats both clefs");
+    assert.equal(await systems.nth(i).locator(".abcjs-key-signature").count(),2);
+    assert.equal(await systems.nth(i).locator(".hymn-ottava").count(),2,"Every repeated displaced clef is marked");
   }
   assert.equal(
     await page.locator(".hymn-ottava path").count(),

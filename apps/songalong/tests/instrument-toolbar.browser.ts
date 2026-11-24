@@ -1,3 +1,4 @@
+import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import {
@@ -14,7 +15,7 @@ import {
   dismissPracticeDrawer,
   openPracticeOptions,
 } from "../../../packages/music-practice/browser-tests/helpers";
-import { stagedHymn, guitarEditionHymn } from "../../../packages/music-practice/test-fixtures/hymns";
+import { practiceHymn, guitarEditionHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 const server = await preview(
   "songalong",
   Number(process.env.TEST_PORT || 4613),
@@ -56,7 +57,7 @@ try {
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(
-      `${server.base}/piano/hymns/${stagedHymn.slug}?mode=playback&arrangement=chords`,
+      `${server.base}/piano/hymns/${practiceHymn.slug}?mode=playback&arrangement=piano`,
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await dismissPracticeDrawer(page);
@@ -120,14 +121,14 @@ try {
     await expect(sung).toHaveAttribute("aria-checked", "true");
     // The saved instrument also survives navigating to a clean song link.
     await page.goto(
-      `${server.base}/piano/hymns/${stagedHymn.slug}?mode=playback`,
+      `${server.base}/piano/hymns/${practiceHymn.slug}?mode=playback`,
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await expect(sung).toHaveAttribute("aria-checked", "true");
     await selectHymnInstrument(page, "piano");
-    await practiceOption(page, "#hymn-arrangement", "bass");
+    await selectHymnScore(page, "piano");
     await expect(piano).toHaveAttribute("aria-checked", "true");
-    await expect(page.locator("#hymn-arrangement option")).toHaveCount(5);
+    await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
     await dismissPracticeDrawer(page);
     await expect
       .poll(() =>
@@ -281,10 +282,10 @@ try {
       preferences:{[slug]:{hymn:slug,arrangement:"melody",bpm:93}},
       favorites:{[slug]:true},bookmarks:{},sections:{},
     }));
-  },{slug:stagedHymn.slug});
-  await migratedPage.goto(`${server.base}/piano/hymns/${stagedHymn.id}`);
+  },{slug:practiceHymn.slug});
+  await migratedPage.goto(`${server.base}/piano/hymns/${practiceHymn.id}`);
   await waitForApp(migratedPage,".hymn-toolbar-instruments");
-  await expect(migratedPage).toHaveURL(new RegExp(`/piano/hymns/${stagedHymn.slug}\\?`));
+  await expect(migratedPage).toHaveURL(new RegExp(`/piano/hymns/${practiceHymn.slug}\\?`));
   await expect(migratedPage.locator("#hymn-tempo")).toHaveValue("93 BPM");
   await expect(migratedPage.locator(".hymn-favorite")).toHaveAttribute("aria-pressed","true");
   await practiceOption(migratedPage,"#hymn-tempo","94");
@@ -300,11 +301,11 @@ try {
     });
     db.close();return value.state.activities.sight;
   });
-  assert.equal(stored.hymn,stagedHymn.id);
-  assert.equal(stored.catalogueRevision,3);
-  assert.equal(stored.preferences[stagedHymn.id].bpm,94);
-  assert.equal(stored.preferences[stagedHymn.slug],undefined);
-  assert.equal(stored.favorites[stagedHymn.id],true);
+  assert.equal(stored.hymn,practiceHymn.id);
+  assert.equal(stored.catalogueRevision,4);
+  assert.equal(stored.preferences[practiceHymn.id].bpm,94);
+  assert.equal(stored.preferences[practiceHymn.slug],undefined);
+  assert.equal(stored.favorites[practiceHymn.id],true);
   await migratedPage.reload();
   await waitForApp(migratedPage,".hymn-toolbar-instruments");
   await expect(migratedPage.locator("#hymn-tempo")).toHaveValue("94 BPM");

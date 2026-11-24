@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import abcjs from "abcjs";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
-  ARRANGEMENTS,
+  SOURCE_VARIANTS,
   arrangeHymn,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import { initialHymnSignatures } from "../../../packages/music-practice/src/hymn-signatures";
@@ -55,7 +55,7 @@ test("low hymn parts use stable octave clef marks while keeping treble and bass 
 
 test("ottava engraving preserves every hymn's audio, spelling, ties and source-note identity", () => {
   for (const hymn of hymns)
-    for (const { id } of ARRANGEMENTS)
+    for (const { id } of SOURCE_VARIANTS)
       for (const transpose of [-24, -12, 0, 12]) {
         const abc = arrangeHymn(hymn, id, 0, 0, "both").abc;
         const baseline = abcjs.parseOnly(abc, {

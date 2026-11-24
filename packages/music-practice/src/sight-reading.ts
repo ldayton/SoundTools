@@ -964,7 +964,7 @@ export class SightReading {
         tabOnly: isEditedGuitar(this.arrangement) && this.scoreDisplay === "tab",
         chordTab: this.arrangement === "guitar-chords",
         chordsOnly: this.arrangement === "guitar-edition" && this.scoreDisplay === "chords",
-        octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
+        octaveNotation: !isGuitarArrangement(this.arrangement) &&
           !(this.arrangement === "original"),
         printedScore: this.arrangement === "original",
         initialSignatures: !reviewed,
@@ -1044,7 +1044,7 @@ export class SightReading {
             transpose: transposition.semitones,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
             hymnEdition: reviewed ? chordEdition(this.hymn)?.id : undefined,
-            octaveNotation: this.arrangement !== "piano" && !isGuitarArrangement(this.arrangement) &&
+            octaveNotation: !isGuitarArrangement(this.arrangement) &&
               !(this.arrangement === "original"),
             printedScore: this.arrangement === "original",
             initialSignatures: !reviewed,

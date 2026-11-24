@@ -1,4 +1,5 @@
-import { stagedHymn, otherStagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
+import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
+import { practiceHymn, otherPracticeHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import { captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
 import { macBookAir13, iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { chromium, firefox, webkit, expect } from "@playwright/test";
@@ -74,7 +75,7 @@ try {
       return start.apply(this, args);
     };
   });
-  await page.goto(`http://127.0.0.1:${port}/piano/hymns/${stagedHymn.slug}`);
+  await page.goto(`http://127.0.0.1:${port}/piano/hymns/${practiceHymn.slug}`);
   await page.locator(".hymn-paper svg").first().waitFor();
   // Header toggles stay mounted and anchored while either desktop panel changes.
   assert.equal(await page.title(), "SongAlong");
@@ -214,10 +215,10 @@ try {
     assert.deepEqual(await toolbarGeometry(), expandedGeometry);
   }
   await expect(page.locator(".sequence-score .sequence-title")).toHaveText(
-    stagedHymn.title,
+    practiceHymn.title,
   );
   await expect(page.locator(".hymn-score-credits")).toContainText(
-    stagedHymn.credits[0],
+    practiceHymn.credits[0],
   );
   await expect(page.getByText("Input", { exact: true })).toHaveCount(0);
   const size = page.getByRole("spinbutton", {
@@ -238,12 +239,12 @@ try {
   await expect(size).toHaveValue("41 px");
   await expect.poll(firstSystemHeight).not.toBe(originalHeight);
   const pixels = await size.inputValue();
-  await page.getByPlaceholder("Search songs").fill(otherStagedHymn.title);
-  await page.getByRole("option", { name: otherStagedHymn.title, exact: true }).click();
+  await page.getByPlaceholder("Search songs").fill(otherPracticeHymn.title);
+  await page.getByRole("option", { name: otherPracticeHymn.title, exact: true }).click();
   await expect(size).toHaveValue(pixels);
-  await page.getByPlaceholder("Search songs").fill(stagedHymn.title);
+  await page.getByPlaceholder("Search songs").fill(practiceHymn.title);
   await page
-    .getByRole("option", { name: stagedHymn.title, exact: true })
+    .getByRole("option", { name: practiceHymn.title, exact: true })
     .click();
   await expect(size).toHaveValue(pixels);
   await page.getByRole("button", { name: "Volume", exact: true }).click();
@@ -378,11 +379,11 @@ try {
   await practiceOption(page, "#hymn-mode", "wait");
   await openPracticeOptions(page);
   await expect(page.locator("#hymn-count-in")).toHaveCount(0);
-  await practiceOption(page, "#hymn-arrangement", "bass");
-  await practiceOption(page, "#hymn-view", "right");
-  await expect(page.locator("#hymn-hands")).toHaveValue("right");
-  await expect(page.locator("#hymn-hands option[value=both]")).toBeDisabled();
-  await practiceOption(page, "#hymn-view", "both");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "both");
+  await expect(page.locator("#hymn-view")).toHaveCount(0);
+  await practiceOption(page,"#hymn-hands","right");
+  await expect(page.locator("#hymn-hands option[value=both]")).toBeEnabled();
   await practiceOption(page, "#hymn-hands", "left");
   await closePracticeOptions(page);
   await page.setViewportSize(macBookAir13.viewport);

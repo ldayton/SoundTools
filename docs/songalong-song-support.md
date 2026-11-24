@@ -4,17 +4,17 @@ The standard is musical completeness, playable instrument parts, and the same
 shared controls. Instrumental pieces do not need an invented vocal edition.
 This table is checked against the production registry by `song-support.test.ts`.
 
-| Song | Guitar | Piano | Voice + Piano | Progressive piano stages | Source / musical contract |
-| --- | --- | --- | --- | --- | --- |
-| In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | — | Supplied teacher score in D; printed rhythm, interlude and ending |
-| Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | — | Open Hymnal source; existing instrumental pitches and phrasing preserved |
-| I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | — | Supplied tab-music melody, ornaments, verse/chorus and fermata |
-| Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | — | Source melody and complete refrain; E-flat sounding key |
-| O Come, All Ye Faithful | Dedicated, no capo | Dedicated | Voice + source piano harmony | — | Open Hymnal melody, pickup, rest, refrain and final partial measure |
-| Blessed Assurance | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Four | Open Hymnal D, 9/8, three-eighth pickup and six-eighth ending |
-| Silent Night | Dedicated, capo 1 | Dedicated | Voice + source piano harmony | Four | Open Hymnal B-flat, 3/4, complete final measure and dotted figures |
-| Joy to the World | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Four | Open Hymnal D, 2/4, nineteen complete measures |
-| 1st Fingerstyle Blues | Supplied fingerstyle score | Dedicated adaptation | Not applicable | — | Supplied GuitarNick score; swing, repeat, turnaround and final E7 |
+| Song | Guitar | Piano | Voice + Piano | Source / musical contract |
+| --- | --- | --- | --- | --- |
+| In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Supplied teacher score in D; printed rhythm, interlude and ending |
+| Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Open Hymnal source; existing instrumental pitches and phrasing preserved |
+| I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Supplied tab-music melody, ornaments, verse/chorus and fermata |
+| Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | Source melody and complete refrain; E-flat sounding key |
+| O Come, All Ye Faithful | Dedicated, no capo | Dedicated | Voice + source piano harmony | Open Hymnal melody, pickup, rest, refrain and final partial measure |
+| Blessed Assurance | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Open Hymnal D, 9/8, three-eighth pickup and six-eighth ending |
+| Silent Night | Dedicated, capo 1 | Dedicated | Voice + source piano harmony | Open Hymnal B-flat, 3/4, complete final measure and dotted figures |
+| Joy to the World | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Open Hymnal D, 2/4, nineteen complete measures |
+| 1st Fingerstyle Blues | Supplied fingerstyle score | Dedicated adaptation | Not applicable | Supplied GuitarNick score; swing, repeat, turnaround and final E7 |
 
 ## Shared implementation
 
@@ -28,9 +28,16 @@ the melody, including low open-string inversions where a root bass would collide
 The original 80 BPM starting preference is retained for these three songs;
 it is adjustable and is not represented as an original source marking.
 
-The four progressive piano stages remain intentional practice choices for the
-three newly arranged hymns: melody, bass, simple chords and broken chords.
-Their saved settings and shared generic workflow coverage remain supported.
+Guitar, Piano and Voice + Piano are the only selectable scores. Fingerstyle
+Blues is instrumental and offers Guitar and Piano. There is no secondary
+arrangement menu. The Melody, Bass, Simple Chords and Broken Chords stages,
+including their automatic accompaniment generators, have been retired.
+
+Legacy stage links and saved choices map to Piano; Melody retains right-hand
+practice. Tempo, key, selected verses and other compatible preferences survive.
+The catalogue revision 4 migration drops incompatible stage checkpoints and
+keeps existing Piano/Guitar/Voice + Piano checkpoints. Instrument-specific hand
+practice, guitar display choices and independent staff Show/Play remain.
 
 For the seven new vocal editions, `voicePianoAbc` gives the source melody a
 separate vocal staff while preserving every source accompaniment voice. It
@@ -65,3 +72,20 @@ retain their seventh in the keyboard example.
 - Existing catalog, key, stanza, playback, offline and account tests remain owners
   of their shared contracts. The support table is not a claim of human teacher
   approval; the new arrangements remain editorial practice adaptations.
+
+## Retired coverage
+
+The former generic stage contracts have been migrated to actual Piano scores.
+`hymn-hands.test.ts` now compares independently selected authored hands across
+whole and sliced scores, including repeats, and verifies legacy stage requests
+resolve to Piano. The old single-note bass generator and generated guitar lesson
+assertions were retired with those renderers; the existing per-song edition
+units remain the musical, fingering, capo, chord and passage goldens. Guitar
+legacy URL coverage stays in `guitar.test.ts` and the existing browser witness.
+
+Generic workflow fixtures in `test-fixtures/hymns.ts` select by real score
+capabilities. Recovery checks use an actual sustained piano chord, and a separate
+capability fixture supplies written piano ties. The melodic fingering catalog
+still checks source melodies under transposition; authored LH chord fingerings
+are owned by the edition tests. This removes dependence on the retired staged
+accompaniment without reducing MIDI recovery, hand-scope or tie coverage.

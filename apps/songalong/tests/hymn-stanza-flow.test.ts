@@ -5,7 +5,7 @@ import abcjs from "abcjs";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {
   arrangeHymn,
-  ARRANGEMENTS,
+  SOURCE_VARIANTS,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import { hymnPlaybackScore } from "../../../packages/music-practice/src/hymn-playback-score";
 import {
@@ -22,7 +22,7 @@ import {
 function sequence(
   hymn: (typeof hymns)[number],
   selected: number[],
-  arrangement: (typeof ARRANGEMENTS)[number]["id"] = "melody",
+  arrangement: (typeof SOURCE_VARIANTS)[number]["id"] = "melody",
 ) {
   const score = arrangeHymn(hymn, arrangement, 0);
   const audio = abcjs
@@ -45,7 +45,7 @@ function sequence(
 
 test("checked stanzas form an ordered, gapless timeline with unchanged verse and refrain notes", () => {
   for (const h of hymns)
-    for (const { id } of ARRANGEMENTS) {
+    for (const { id } of SOURCE_VARIANTS) {
       const selected = h.stanzas.map((s) => s.number);
       const plan = sequence(h, selected, id);
       assert.deepEqual(

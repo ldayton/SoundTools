@@ -87,11 +87,12 @@ export function mergeHymnSettings(
       ? base.stanza!
       : stanzas[0] || 0;
   const available = hymnAvailableArrangements(hymn).map(a => a.id);
-  const requested = legacy ? s.chords === true ? "original" : "melody" : choice(s.arrangement, ["melody","bass","chords","broken","original","piano","guitar","guitar-chords","guitar-fingerstyle","guitar-edition"] as const, base.arrangement);
+  const requested = legacy ? s.chords === true ? "original" : "piano" : choice(s.arrangement, ["melody","bass","chords","broken","original","piano","guitar","guitar-chords","guitar-fingerstyle","guitar-edition"] as const, base.arrangement);
   const arrangement = hasInstrumentEditions(hymn)
     ? typeof requested === "string" && available.includes(requested as Arrangement) ? requested as Arrangement : requested === "original" && available.includes("original") ? "original" : requested === "guitar-fingerstyle" || requested === "guitar-edition" || requested === "guitar" || requested === "guitar-chords"
       ? chordEdition(hymn) ? "guitar-edition" : "guitar-fingerstyle" : "piano"
     : undefined;
+  const retiredStage = ["melody","bass","chords","broken"].includes(String(s.arrangement));
   const reviewed = isInstrumentArrangement(hymn, arrangement || "");
   const changedStaffLayout =
     (s.arrangement !== undefined && s.arrangement !== base.arrangement) ||
@@ -133,7 +134,7 @@ export function mergeHymnSettings(
       : {}),
     viewHands: reviewed ? "both" : viewHands,
     hands: reviewed
-      ? choice(s.hands, ["right", "left", "both"] as const, base.hands || "both")
+      ? s.arrangement === "melody" ? "right" : choice(s.hands, ["right", "left", "both"] as const, s.arrangement === "melody" ? "right" : base.hands || "both")
       : hands,
     ...("reattackTies" in s || "reattackTies" in base
       ? {
@@ -168,7 +169,7 @@ export function mergeHymnSettings(
     ),
     sectionBars: 0,
     section: 0,
-    position:
+    position: retiredStage ? 0 :
       Number.isSafeInteger(s.position) && (s.position as number) >= 0
         ? (s.position as number)
         : base.position,
@@ -224,7 +225,7 @@ export function hymnPreferences(hymn: string, input: unknown = {}) {
     high: null,
     arrangement:
       entry && "defaultArrangement" in entry && entry.defaultArrangement === "original"
-        ? "original" : "melody",
+        ? "original" : "piano",
     hands: "both",
     viewHands: "both",
     reattackTies: false,

@@ -1,3 +1,4 @@
+import {practiceHymn,otherPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -12,29 +13,29 @@ test("cloud records preserve all hymn preferences and content-checked checkpoint
   const state = migrateLegacy({});
   const progress = new HymnProgress(undefined, []);
   const first = {
-    ...hymnPreferences("amazing-grace"),
+    ...hymnPreferences(practiceHymn.id),
     key: "B" as const,
     octave: -1,
     low: 38,
     high: 79,
     stanzas: [1, 2],
-    arrangement: "bass" as const,
+    arrangement: "piano" as const,
     hands: "left" as const,
     viewHands: "both" as const,
     position: 5,
   };
-  progress.snapshot(first, "G", 1.2, {
+  progress.snapshot(first, practiceHymn.key, 1.2, {
     content: "score-1",
     length: 35,
     paused: true,
   });
   const second = {
-    ...hymnPreferences("jesus-loves-me"),
+    ...hymnPreferences(otherPracticeHymn.id),
     mode: "playback" as const,
     bpm: 125,
     position: 2,
   };
-  state.activities.sight = progress.snapshot(second, "C", 1.3, {
+  state.activities.sight = progress.snapshot(second, otherPracticeHymn.key, 1.3, {
     content: "score-2",
     length: 42,
     paused: true,
@@ -53,12 +54,12 @@ test("cloud records preserve all hymn preferences and content-checked checkpoint
   assert.equal(loaded.forHymn(first.hymn).key, "B");
   assert.equal(loaded.forHymn(first.hymn).octave, -1);
   assert.deepEqual(loaded.forHymn(first.hymn).stanzas, [1, 2]);
-  assert.deepEqual(loaded.restore(first, "G", "score-1", 35), {
+  assert.deepEqual(loaded.restore(first, practiceHymn.key, "score-1", 35), {
     position: 5,
     paused: true,
   });
   assert.deepEqual(
-    loaded.restore({ ...first, hands: "right" }, "G", "score-1", 35),
+    loaded.restore({ ...first, hands: "right" }, practiceHymn.key, "score-1", 35),
     { position: 0, paused: false },
   );
   assert.deepEqual(restored.activities.audio, { version: 1, volume: 33 });
@@ -78,16 +79,16 @@ test("cloud roundtrips a global range, independent song tempos, and layout staff
   const state = migrateLegacy({});
   const progress = new HymnProgress(undefined, []);
   const first = {
-    ...hymnPreferences("amazing-grace"),
+    ...hymnPreferences(practiceHymn.id),
     low: 48,
     high: 79,
     bpm: 96,
   };
   progress.remember(first, 1.2, "desktop");
-  const second = { ...progress.forHymn("silent-night"), high: null, bpm: 112 };
+  const second = { ...progress.forHymn(otherPracticeHymn.id), high: null, bpm: 112 };
   state.activities.sight = progress.snapshot(
     second,
-    "C",
+    otherPracticeHymn.key,
     0.8,
     undefined,
     "mobile",
@@ -113,11 +114,11 @@ test("cloud roundtrips a global range, independent song tempos, and layout staff
   const legacy = restoreSongalongRecords({
     schema: 1,
     "current:hymn": first.hymn,
-    "hymn:amazing-grace:pitch": { key: "G", low: 50, high: 81 },
+    [`hymn:${practiceHymn.slug}:pitch`]: { key: practiceHymn.key, low: 50, high: 81 },
   });
   const migrated = new HymnProgress(legacy.activities.sight as any, [
     first.hymn,
   ]);
-  assert.equal(migrated.forHymn("silent-night").low, 50);
-  assert.equal(migrated.forHymn("silent-night").high, 81);
+  assert.equal(migrated.forHymn(otherPracticeHymn.id).low, 50);
+  assert.equal(migrated.forHymn(otherPracticeHymn.id).high, 81);
 });

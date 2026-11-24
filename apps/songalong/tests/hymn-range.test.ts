@@ -7,7 +7,7 @@ import {
   hymnTransposition,
 } from "../../../packages/music-practice/src/hymn-transpose";
 import {
-  ARRANGEMENTS,
+  SOURCE_VARIANTS,
   arrangeHymn,
 } from "../../../packages/music-practice/src/hymn-arrangements";
 import {
@@ -135,7 +135,7 @@ test("range labels preserve the key spelling and correct octave", () => {
 });
 test("all hymn ranges match the actual transposed staff and playback in every hand and key", () => {
   for (const hymn of hymns)
-    for (const { id } of ARRANGEMENTS)
+    for (const { id } of SOURCE_VARIANTS)
       for (const hands of ["right", "left", "both"] as const) {
         const abc = arrangeHymn(hymn, id, 0, 0, hands).abc;
         const source = hymnPitchRange(abc);

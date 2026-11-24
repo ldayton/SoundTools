@@ -1,5 +1,4 @@
 import { voicePianoAbc } from "./voice-piano";
-import type {HymnChange} from "./instrument-hymn";
 import {chordEdition,instrumentEdition} from "./instrument-editions";
 import {engraveEdition,selectEditionVoice,isGuitarPositionMark} from "./edition-score";
 import abcjs, { type VoiceItem } from "abcjs";
@@ -12,32 +11,12 @@ export const isInstrumentArrangement = (hymn:{id:string}, arrangement:string) =>
   hasInstrumentEditions(hymn) && (arrangement === "piano" || isGuitarArrangement(arrangement as Arrangement));
 export const supportsGuitarTab = (hymn: { id: string }) =>
   hasInstrumentEditions(hymn);
-export const ARRANGEMENTS = [
-  { id: "melody", label: "1 · Melody", help: "Read the melody on its own." },
-  {
-    id: "bass",
-    label: "2 · Add bass notes",
-    help: "Use single left-hand bass notes from the hymn, holding repeated notes.",
-  },
-  {
-    id: "chords",
-    label: "3 · Simple chords",
-    help: "Add a held left-hand chord per bar.",
-  },
-  {
-    id: "broken",
-    label: "4 · Broken chords",
-    help: "Play the left-hand harmony one note at a time.",
-  },
-  {
-    id: "original",
-    label: "5 · Original harmony",
-    help: "Play the original hymn’s full harmony.",
-  },
-] as const;
+// Internal source transformations support edition construction and source audits.
+// They are not selectable product scores or persisted practice stages.
+export const SOURCE_VARIANTS = [{id:"melody"},{id:"original"}] as const;
 export type HymnHands = "right" | "left" | "both";
 export type Arrangement =
-  (typeof ARRANGEMENTS)[number]["id"] | "guitar" | "guitar-chords" | "piano" | "guitar-fingerstyle" | "guitar-edition";
+  (typeof SOURCE_VARIANTS)[number]["id"] | "bass" | "chords" | "broken" | "guitar" | "guitar-chords" | "piano" | "guitar-fingerstyle" | "guitar-edition";
 export const isGuitarArrangement = (value: Arrangement) =>
   value === "guitar" || value === "guitar-chords" || value === "guitar-fingerstyle" || value === "guitar-edition";
 export const isEditedGuitar = (value: Arrangement) => value === "guitar-fingerstyle" || value === "guitar-edition";
@@ -46,12 +25,11 @@ export const guitarMidiOffset = (value: Arrangement) =>
   value === "guitar-edition" ? 0 : value === "guitar" || value === "guitar-chords" ? -12 : 0;
 export function hymnArrangements(hymn: { id: string }): {id:Arrangement;label:string;help:string}[] {
   const edition=instrumentEdition(hymn);
-  if(!edition)return [...ARRANGEMENTS];
+  if(!edition)return [];
   const profile=chordEdition(hymn);
   return [
     ...(edition.original ? [{id:'original' as const,label:'Voice + Piano',help:edition.vocal ? 'Source melody with its own vocal staff and the complete source piano harmony.' : 'The supplied choir and organ score.'}] : []),
     {id:'piano' as const,label:'Piano',help:'Melody and bass arranged for two hands on a grand staff.'},
-    ...(edition.practiceStages ? ARRANGEMENTS.filter(a=>a.id !== 'original') : []),
     {id:edition.guitarArrangement,label:'Guitar',help:profile
       ?`Fingerstyle melody with supporting bass and harmony, ${profile.capo?`with capo ${profile.capo}`:'without a capo'}.`
       :'Original fingerstyle guitar arrangement.'},
@@ -153,120 +131,6 @@ function token(pitch: number, key: string, accidentals: Map<string, number>) {
 /** Stock major/seventh shapes for the legacy teaching-score format.
  * Reviewed fingerstyle editions supply their own passage positions. */
 // Low E to high E; null means omit that string. Prefer familiar open shapes.
-const majorShapes = [
-  [null, 3, 2, 0, 1, 0],
-  [null, 4, 6, 6, 6, 4],
-  [null, null, 0, 2, 3, 2],
-  [null, 6, 8, 8, 8, 6],
-  [0, 2, 2, 1, 0, 0],
-  [1, 3, 3, 2, 1, 1],
-  [2, 4, 4, 3, 2, 2],
-  [3, 2, 0, 0, 0, 3],
-  [4, 6, 6, 5, 4, 4],
-  [null, 0, 2, 2, 2, 0],
-  [null, 1, 3, 3, 3, 1],
-  [null, 2, 4, 4, 4, 2],
-];
-const seventhShapes = [
-  [null, 3, 2, 3, 1, 0],
-  [null, 4, 6, 4, 6, 4],
-  [null, null, 0, 2, 1, 2],
-  [null, 6, 8, 6, 8, 6],
-  [0, 2, 0, 1, 0, 0],
-  [1, 3, 1, 2, 1, 1],
-  [2, 4, 2, 3, 2, 2],
-  [3, 2, 0, 0, 0, 1],
-  [4, 6, 4, 5, 4, 4],
-  [null, 0, 2, 0, 2, 0],
-  [null, 1, 3, 1, 3, 1],
-  [null, 2, 1, 2, 0, 2],
-];
-export function guitarChordShape(root: number, seventh = false) {
-  return (seventh ? seventhShapes : majorShapes)[((root % 12) + 12) % 12];
-}
-export function guitarChordPitches(root: number, seventh = false) {
-  const shape = guitarChordShape(root, seventh);
-  return shape.flatMap((fret, string) =>
-    fret === null ? [] : [[40, 45, 50, 55, 59, 64][string] + fret],
-  );
-}
-function guitarChords(
-  from: number,
-  to: number,
-  transpose: number,
-  key: string,
-  changesByBar: HymnChange[][],
-) {
-  return changesByBar
-    .slice(from, to)
-    .map((changes, bar) => {
-      const accidentals = new Map<string, number>();
-      const music = changes
-        .map(([at, chord], index) => {
-          const root = ({ C: 0, F: 5, G7: 7 } as Record<string, number>)[chord];
-          const pitches = guitarChordPitches(
-            root + transpose,
-            chord.endsWith("7"),
-          );
-          // Encode back in the source key so the shared renderer transposes once.
-          const notes = pitches
-            .map((pitch) => token(pitch + 12 - transpose, key, accidentals))
-            .join("");
-          const duration = (changes[index + 1]?.[0] ?? 64) - at;
-          return `"${chord}"[${notes}]${duration}`;
-        })
-        .join(" ");
-      return music + (bar === to - from - 1 ? " |]" : " |");
-    })
-    .join(" ");
-}
-function guitarMelody(bars: Bar[], from: number, changesByBar:HymnChange[][]): Bar[] {
-  return bars.map((bar, index) => {
-    const changes = changesByBar[from + index];
-    let at = 0;
-    const notes = bar.notes.flatMap((note) => {
-      const start = at,
-        end = start + Math.round(note.duration * 64);
-      at = end;
-      const cuts = [
-        start,
-        ...changes
-          .map(([beat]) => beat)
-          .filter((beat) => beat > start && beat < end),
-        end,
-      ];
-      return cuts.slice(0, -1).map((beat, part) => {
-        const copy = structuredClone(note);
-        copy.duration = (cuts[part + 1] - beat) / 64;
-        const chord = changes.find(([offset]) => offset === beat)?.[1];
-        const previous = changes.filter(([offset]) => offset < beat).at(-1)?.[1]
-          ?? changesByBar[from + index - 1]?.at(-1)?.[1];
-        copy.chord = chord && (chord !== previous || (index === 0 && beat === 0))
-          ? [{ name: chord, position: "default" }] : undefined;
-        if (part) {
-          copy.lyric = undefined;
-          copy.decoration = undefined;
-        }
-        if (cuts.length > 2) {
-          copy.startBeam = undefined;
-          copy.endBeam = undefined;
-          copy.pitches?.forEach((pitch) => {
-            if (part) {
-              pitch.endTie = true;
-              pitch.startSlur = undefined;
-            }
-            if (part < cuts.length - 2) {
-              pitch.startTie = {};
-              pitch.endSlur = undefined;
-            }
-          });
-        }
-        return copy;
-      });
-    });
-    return { ...bar, notes };
-  });
-}
 function serialize(bars: Bar[], melody = false) {
   const music: string[] = [];
   const lyrics: string[] = [];
@@ -353,70 +217,7 @@ function serialize(bars: Bar[], melody = false) {
   return { music: music.join(" "), lyrics: lyrics.join(" ") };
 }
 /** One source bass pitch at a time. Repeated pitches become held notes, not extra attacks. */
-function singleBass(source: Voice[], from: number, to: number, key: string) {
-  const candidates = source.filter((v) => v.clef === "bass");
-  const average = (v: Voice) => {
-    const notes = v.bars
-      .flatMap((b) => b.notes)
-      .filter((n) => n.resolvedPitches?.length);
-    const duration = notes.reduce((sum, n) => sum + n.duration, 0);
-    return duration
-      ? notes.reduce(
-          (sum, n) => sum + Math.min(...n.resolvedPitches!) * n.duration,
-          0,
-        ) / duration
-      : Infinity;
-  };
-  const bass = [...(candidates.length ? candidates : source)].sort(
-    (a, b) => average(a) - average(b),
-  )[0];
-  const bars = bass.bars.slice(from, to).map((bar) => {
-    const notes: { pitch?: number; duration: number }[] = [];
-    for (const note of bar.notes) {
-      const pitch = note.resolvedPitches?.length
-        ? Math.min(...note.resolvedPitches)
-        : undefined;
-      const previous = notes.at(-1);
-      if (previous && previous.pitch === pitch)
-        previous.duration += note.duration;
-      else notes.push({ pitch, duration: note.duration });
-    }
-    return notes;
-  });
-  return (
-    bars
-      .map((bar, bi) => {
-        const accidentals = new Map<string, number>();
-        return bar
-          .map((note, ni) => {
-            const next = bar[ni + 1] || bars[bi + 1]?.[0];
-            const tie = note.pitch !== undefined && next?.pitch === note.pitch;
-            let remaining = Math.round(note.duration * 64);
-            const pieces: string[] = [];
-            while (remaining > 0) {
-              const length = [64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1].find(
-                (n) => n <= remaining,
-              )!;
-              remaining -= length;
-              pieces.push(
-                (note.pitch === undefined
-                  ? "z"
-                  : token(note.pitch, key, accidentals)) +
-                  length +
-                  (note.pitch !== undefined && (remaining > 0 || tie)
-                    ? "-"
-                    : ""),
-              );
-            }
-            return pieces.join(" ");
-          })
-          .join(" ");
-      })
-      .join(" | ") + " |]"
-  );
-}
-/** Simplified accompaniment samples the source harmony at each bar's opening.
- * Melody rhythm and syllables stay intact; these are practice arrangements, not new source editions. */
+/** Build an instrument edition or extract its authoritative source melody. */
 export function arrangeHymn(
   hymn: Hymn,
   arrangement: Arrangement,
@@ -426,6 +227,10 @@ export function arrangeHymn(
   endingBar?: number,
   guitarTranspose = 0,
 ): { abc: string; sections: number; section: number; from: number; to: number; totalBars: number } {
+  if (["bass","chords","broken"].includes(arrangement))
+    return arrangeHymn(hymn,"piano",sectionBars,section,hands,endingBar,guitarTranspose);
+  if (arrangement === "guitar" || arrangement === "guitar-chords")
+    return arrangeHymn(hymn,instrumentEdition(hymn)?.guitarArrangement || "guitar-edition",sectionBars,section,arrangement === "guitar-chords"?"left":hands,endingBar,guitarTranspose);
   const edition = instrumentEdition(hymn);
   if (arrangement === "original" && edition?.vocal) {
     const profile = chordEdition(hymn)!;
@@ -443,7 +248,7 @@ export function arrangeHymn(
       ...hymn, id: `${hymn.id}:${arrangement}:${hands}`,
       key: guitar ? edition.guitarKey || hymn.key : hymn.key, harmony,
     };
-    const preserveVoices = edition.selectWholeVoices && whole;
+    const preserveVoices = (edition.selectWholeVoices || !guitar && /\|:|:\|/.test(harmony)) && whole;
     const sliceHands = preserveVoices || (guitar && edition.guitarNotation === "written")
       ? "both" : hands;
     const score = arrangeHymn(source, "original", sectionBars, section, sliceHands, endingBar, guitarTranspose);
@@ -466,22 +271,9 @@ export function arrangeHymn(
   const from = selected * size,
     to = Math.min(count, from + size);
   let melody = source[0].bars.slice(from, to);
-  const legacyChanges = edition?.legacyChanges;
-  if (isGuitarArrangement(arrangement)) {
-    if (!supportsGuitarTab(hymn))
-      throw Error("Guitar tab is not available for this song.");
-    if(!legacyChanges) throw Error("Use this song’s reviewed Guitar edition.");
-    melody = guitarMelody(melody, from, legacyChanges);
-  }
   const header = `X:1\nT:${hymn.title}\nM:${hymn.meter}\nL:1/64\n${hymn.feel === "swing" ? 'Q:"Swing"\n' : ""}`;
   let abc: string;
-  if (arrangement === "guitar-chords") {
-    abc =
-      header +
-      `%%score M C\nV:M clef=treble\nV:C clef=none\nK:${hymn.key}\n` +
-      `[V:M] ${serialize(melody, true).music}\nw:${serialize(melody, true).lyrics}\n` +
-      `[V:C] ${guitarChords(from, to, guitarTranspose, hymn.key, legacyChanges!).replace(/"[^"]+"/g, "")}\n`;
-  } else if (arrangement === "original") {
+  if (arrangement === "original") {
     // Keep the original whole-score edition intact, including its repeat signs.
     if (
       sectionBars === 0 &&
@@ -518,87 +310,8 @@ export function arrangeHymn(
     }
   } else {
     const out = serialize(melody, true);
-    if (arrangement === "melody" || arrangement === "guitar")
-      abc = header + `K:${hymn.key}\n${out.music}\nw:${out.lyrics}\n`;
-    else if (arrangement === "bass") {
-      const bass = singleBass(source, from, to, hymn.key);
-      abc =
-        hands === "left"
-          ? header + `V:B clef=bass\nK:${hymn.key}\n[V:B] ${bass}\n`
-          : header +
-            `%%score M | B\nV:M clef=treble\nV:B clef=bass\nK:${hymn.key}\n[V:M] ${out.music}\nw:${out.lyrics}\n[V:B] ${bass}\n`;
-    } else {
-      let cursor = source[0].bars
-        .slice(0, from)
-        .reduce((s, b) => s + b.duration, 0);
-      const accompaniment: string[] = [];
-      for (const bar of melody) {
-        const accidentals = new Map<string, number>();
-        const sounding: number[] = [];
-        for (const voice of source) {
-          let offset = 0;
-          for (const note of voice.bars.flatMap((b) => b.notes)) {
-            if (
-              offset <= cursor + 1e-7 &&
-              cursor < offset + note.duration - 1e-7
-            ) {
-              sounding.push(...(note.resolvedPitches || []));
-              break;
-            }
-            offset += note.duration;
-          }
-        }
-        const sorted = [...new Set(sounding)].sort((a, b) => a - b);
-        const bass = sorted[0];
-        const length = Math.round(bar.duration * 64);
-        if (bass === undefined) accompaniment.push(`z${length}`);
-        else {
-          // Keep source pitch classes, close-positioned over its bass; never invent a new harmony.
-          const pcs = [...new Set(sorted.map((n) => n % 12))]
-            .sort(
-              (a, b) =>
-                ((a - (bass % 12) + 12) % 12) - ((b - (bass % 12) + 12) % 12),
-            )
-            .slice(0, 3);
-          const chord = pcs.map((pc) => bass + ((pc - (bass % 12) + 12) % 12));
-          if (arrangement === "chords")
-            accompaniment.push(
-              `[${chord.map((n) => token(n, hymn.key, accidentals)).join("")}]${length}`,
-            );
-          else {
-            const quarter = 16;
-            let remaining = length,
-              index = 0;
-            const pattern = [
-              0,
-              Math.min(1, chord.length - 1),
-              chord.length - 1,
-              Math.min(1, chord.length - 1),
-            ];
-            const notes: string[] = [];
-            while (remaining > 0) {
-              const duration = Math.min(quarter, remaining);
-              notes.push(
-                token(
-                  chord[pattern[index++ % pattern.length]],
-                  hymn.key,
-                  accidentals,
-                ) + duration,
-              );
-              remaining -= duration;
-            }
-            accompaniment.push(notes.join(" "));
-          }
-        }
-        cursor += bar.duration;
-      }
-      abc =
-        hands === "left"
-          ? header +
-            `V:B clef=bass\nK:${hymn.key}\n[V:B] ${accompaniment.join(" | ")} |]\n`
-          : header +
-            `%%score M | B\nV:M clef=treble\nV:B clef=bass\nK:${hymn.key}\n[V:M] ${out.music}\nw:${out.lyrics}\n[V:B] ${accompaniment.join(" | ")} |]\n`;
-    }
+    if (arrangement !== "melody") throw Error("Unsupported instrument score");
+    abc = header + `K:${hymn.key}\n${out.music}\nw:${out.lyrics}\n`;
   }
   return { abc, sections, section: selected, from, to, totalBars: count };
 }

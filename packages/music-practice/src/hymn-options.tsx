@@ -71,7 +71,6 @@ export function HymnOptions({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
-  const arrangements = hymnInstrumentArrangements({id:state.hymn}, hymnInstrument(state.arrangement));
   const keys = [
     {
       value: "original",
@@ -247,12 +246,6 @@ export function HymnOptions({
           </Stack>
         </OptionsSection>
       )}
-      {arrangements.length > 1 && <OptionsSection title="Piano arrangements">
-
-          <NativeSelect id="hymn-arrangement" label="Arrangement" value={state.arrangement}
-            data={arrangements.map(arrangement=>({value:arrangement.id,label:arrangement.label}))}
-            onChange={event=>change({arrangement:event.currentTarget.value as Arrangement})}/>
-      </OptionsSection>}
       {editions ? (
         <>
           <OptionsSection title="Display">

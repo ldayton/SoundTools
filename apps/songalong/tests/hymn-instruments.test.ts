@@ -12,7 +12,7 @@ import {
   hymnSettingsFromQuery,
 } from "../../../packages/music-practice/src/hymn-settings";
 import { instrumentEditionIds, instrumentEdition } from "../../../packages/music-practice/src/instrument-editions";
-import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
+import { practiceHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import {
   songalongRecords,
   restoreSongalongRecords,
@@ -29,16 +29,16 @@ test("all songs expose the same ordered primary instruments with explicit arrang
     ],
   );
   assert.deepEqual(
-    hymnInstrumentArrangements(stagedHymn, "piano").map((a) => a.id),
-    ["piano", "melody", "bass", "chords", "broken"],
+    hymnInstrumentArrangements(practiceHymn, "piano").map((a) => a.id),
+    ["piano"],
   );
   assert.deepEqual(
-    hymnInstrumentArrangements(stagedHymn, "sung").map((a) => a.id),
+    hymnInstrumentArrangements(practiceHymn, "sung").map((a) => a.id),
     ["original"],
   );
-  assert.deepEqual(hymnInstrumentArrangements(stagedHymn, "guitar").map(a=>a.id), ["guitar-edition"]);
+  assert.deepEqual(hymnInstrumentArrangements(practiceHymn, "guitar").map(a=>a.id), ["guitar-edition"]);
   for (const id of instrumentEditionIds) {
-    assert.equal(hymnInstrumentArrangements({ id }, "piano").length, instrumentEdition({id})?.practiceStages ? 5 : 1, id);
+    assert.equal(hymnInstrumentArrangements({ id }, "piano").length, 1, id);
     assert.equal(hymnInstrumentArrangements({ id }, "guitar").length, 1, id);
     assert.equal(hymnInstrumentArrangements({ id }, "sung").length, instrumentEdition({id})?.original ? 1 : 0, id);
   }
@@ -53,9 +53,9 @@ test("teacher score keeps Voice + Piano as default alongside adapted instrumenta
   assert.equal(selectHymnInstrument(hymn,"guitar-edition","sung"),"original");
 });
 test("instrument switching is exclusive, preserves an eligible arrangement, and keeps old deep links meaningful", () => {
-  assert.equal(selectHymnInstrument(stagedHymn, "chords", "piano"), "chords");
-  assert.equal(selectHymnInstrument(stagedHymn, "chords", "sung"), "original");
-  assert.equal(selectHymnInstrument(stagedHymn, "original", "piano"), "piano");
+  assert.equal(selectHymnInstrument(practiceHymn, "chords", "piano"), "piano");
+  assert.equal(selectHymnInstrument(practiceHymn, "chords", "sung"), "original");
+  assert.equal(selectHymnInstrument(practiceHymn, "original", "piano"), "piano");
   for (const arrangement of [
     "melody",
     "bass",
@@ -64,10 +64,10 @@ test("instrument switching is exclusive, preserves an eligible arrangement, and 
     "original",
   ] as const) {
     const settings = hymnSettingsFromQuery(
-      hymnPreferences(stagedHymn.id),
+      hymnPreferences(practiceHymn.id),
       new URLSearchParams({ arrangement }),
     );
-    assert.equal(settings.arrangement, arrangement);
+    assert.equal(settings.arrangement, arrangement === "original" ? "original" : "piano");
     assert.equal(
       hymnInstrument(settings.arrangement),
       arrangement === "original" ? "sung" : "piano",
@@ -78,19 +78,19 @@ test("instrument identity survives account/offline snapshots without a second co
   const state = migrateLegacy({});
   const progress = new HymnProgress(undefined, []);
   const settings = {
-    ...hymnPreferences(stagedHymn.id),
+    ...hymnPreferences(practiceHymn.id),
     arrangement: "original" as const,
   };
-  state.activities.sight = progress.snapshot(settings, stagedHymn.key, 1);
+  state.activities.sight = progress.snapshot(settings, practiceHymn.key, 1);
   const records = songalongRecords(state);
   const restored = restoreSongalongRecords(records);
   const loaded = new HymnProgress(restored.activities.sight as any, [
-    stagedHymn.id,
+    practiceHymn.id,
   ]);
   assert.equal(
-    hymnInstrument(loaded.forHymn(stagedHymn.id).arrangement),
+    hymnInstrument(loaded.forHymn(practiceHymn.id).arrangement),
     "sung",
   );
-  assert.equal(records[`hymn:${stagedHymn.id}:arrangement`], "original");
+  assert.equal(records[`hymn:${practiceHymn.id}:arrangement`], "original");
   assert.deepEqual(songalongRecords(restored), records);
 });

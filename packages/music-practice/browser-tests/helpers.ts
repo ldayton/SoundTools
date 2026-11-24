@@ -64,33 +64,20 @@ export async function selectHymnInstrument(
   if (wasOpen) await openPracticeOptions(page);
 }
 
+/** Select the sole score for an instrument, without a secondary arrangement picker. */
+export async function selectHymnScore(page:Page,value:string) {
+  if (!["piano","original","guitar-edition","guitar-fingerstyle"].includes(value))
+    throw Error(`Retired or unsupported score: ${value}`);
+  await selectHymnInstrument(page,value.startsWith("guitar")?"guitar":value==="original"?"sung":"piano");
+  await openPracticeOptions(page);
+  await page.waitForFunction(value=>document.querySelector('.hymn-toolbar-instruments [role="radio"][aria-checked="true"]')?.getAttribute("data-arrangement")===value,value);
+}
+
 export async function practiceOption(
   page: Page,
   selector: string,
   value: string,
 ) {
-  if (selector === "#hymn-arrangement") {
-    const instrument = value.startsWith("guitar")
-      ? "guitar"
-      : value === "original"
-        ? "sung"
-        : "piano";
-    await selectHymnInstrument(page, instrument);
-    await openPracticeOptions(page);
-    if (await page.locator(selector).count()) {
-      await page.locator(selector).selectOption(value);
-    }
-    await page.waitForFunction(
-      (value) =>
-        document
-          .querySelector(
-            '.hymn-toolbar-instruments [role="radio"][aria-checked="true"]',
-          )
-          ?.getAttribute("data-arrangement") === value,
-      value,
-    );
-    return;
-  }
   if (selector === "#hymn-mode") {
     await dismissPracticeDrawer(page);
     await page.waitForFunction(

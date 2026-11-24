@@ -11,6 +11,7 @@ export async function checkVocalEdition(page:Page, base:string, slug:string) {
   await expect(page.getByRole("radio",{name:"Voice + Piano",exact:true})).toBeChecked();
   await expect(page.locator(".abcjs-note").first()).toBeVisible();
   await openPracticeOptions(page);
+  await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
   await expect(page.getByRole("checkbox",{name:"Show Voice",exact:true})).toBeChecked();
   const play=page.getByRole("checkbox",{name:"Play Voice",exact:true});
   await expect(play).toBeChecked();await play.uncheck();await expect(play).not.toBeChecked();
@@ -37,6 +38,7 @@ export async function standardEditionBrowser(slug:string,port:number) {
         await expect(page.getByRole("radio",{name:instrument,exact:true})).toBeChecked();
         await expect(page.locator(".abcjs-note").first()).toBeVisible();
         await openHymnControls(page);
+        await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
         await page.getByRole("checkbox",{name:"Show fingerings",exact:true}).check();
         await expect(page.locator(".beginner-fingering").first()).toBeVisible();
         if(instrument==="Guitar")await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();

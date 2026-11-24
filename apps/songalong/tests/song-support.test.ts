@@ -10,7 +10,7 @@ test("all nine retained songs meet the documented instrument support standard",(
   for(const hymn of hymns){
     assert(matrix.includes(`| ${hymn.title} |`),hymn.title);
     assert.equal(hymnInstrumentArrangements(hymn,"guitar").length,1,hymn.title);
-    assert(hymnInstrumentArrangements(hymn,"piano").some(a=>a.id==="piano"),hymn.title);
+    assert.deepEqual(hymnInstrumentArrangements(hymn,"piano").map(a=>a.id),["piano"],hymn.title);
     const sung=hymnInstrumentArrangements(hymn,"sung");
     assert.equal(sung.length,hymn.slug==="the-1st-fingerstyle-blues"?0:1,hymn.title);
     if(hymn.slug in capos)assert.equal(chordEdition(hymn)!.capo,capos[hymn.slug]);

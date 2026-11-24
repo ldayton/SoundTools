@@ -12,7 +12,7 @@ import type { BeginnerInstrument } from "./beginner-score";
 import { bluesPianoAbc, bluesLandmarks } from "./fingerstyle-blues";
 import { editionGuides, type EditionGuide } from "./edition-guides";
 import { hymnLyricsAbc } from "./hymn-lyrics";
-import { instrumentHymnAbc, type InstrumentHymn,type HymnChange } from "./instrument-hymn";
+import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
 import { jesusEdition, jesusFingers, jesusPosition } from "./jesus-loves-me";
 import {
   faithfulEdition,
@@ -21,7 +21,6 @@ import {
 } from "./o-come-all-ye-faithful";
 import {
   flyEditionAbc,
-  flyChanges,
   flyLandmarks,
   flyFingers,
   flyGuitarPosition,
@@ -47,16 +46,12 @@ export type InstrumentEdition = {
   id: string;
   editionKey: string;
   original?: boolean;
-  /** Retain the four progressive practice arrangements beside the dedicated score. */
-  practiceStages?: boolean;
   vocal?: boolean;
   chordLyrics?: (hymn: Hymn) => import("./hymn-lyrics").HymnLyricData;
   chordLyricOffset?: (hymn: Hymn, bar: number) => number;
   guitarArrangement: "guitar-edition" | "guitar-fingerstyle";
   guitarNotation: "written" | "sounding";
   guitarKey?: string;
-  /** Only for old teaching-score links; reviewed editions use build(). */
-  legacyChanges?: HymnChange[][];
   /** Polyphonic source editions select a single part after slicing the complete score. */
   selectWholeVoices?: boolean;
   build: (context: BuildContext) => string;
@@ -108,17 +103,17 @@ const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
 // Musical choices live in the song modules; shared consumers use these capabilities.
 const recipes: Record<ChordEditionKey, Recipe> = {
   "blessed-assurance": {
-    original:true, vocal:true, practiceStages:true, capo:2, tempo:80, pickup:true,
+    original:true, vocal:true, capo:2, tempo:80, pickup:true,
     shapes:"C, F, G7, D7, C/E and Am", guitarKey:blessedEdition.guitarKey,
     fingers:standardFingers(2,"blessed-assurance"), position:standardPosition, build:buildFrom(blessedEdition),
   },
   "silent-night": {
-    original:true, vocal:true, practiceStages:true, capo:1, tempo:80, pickup:false,
+    original:true, vocal:true, capo:1, tempo:80, pickup:false,
     shapes:"A, D and E7", guitarKey:silentEdition.guitarKey,
     fingers:standardFingers(1,"silent-night"), position:standardPosition, build:buildFrom(silentEdition),
   },
   "joy-to-the-world": {
-    original:true, vocal:true, practiceStages:true, capo:2, tempo:80, pickup:false,
+    original:true, vocal:true, capo:2, tempo:80, pickup:false,
     shapes:"C, F and G7", guitarKey:joyEdition.guitarKey,
     fingers:standardFingers(2,"joy-to-the-world"), position:standardPosition, build:buildFrom(joyEdition),
   },
@@ -171,7 +166,6 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     tempo: 80,
     shapes: "C, small F and G7",
     strumPattern: true,
-    legacyChanges: flyChanges,
     fingers: flyFingers,
     position: flyGuitarPosition,
     build: ({ melody, instrument, hands }) =>

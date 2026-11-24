@@ -1,9 +1,10 @@
+import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
 import {
   passageHymn,
   passagePointLabel, passageRangeLabel, passageSecondBar,
   playbackAttacks,
 } from "../../../packages/music-practice/test-fixtures/hymns";
-const attacks = playbackAttacks("melody", passageHymn);
+const attacks = playbackAttacks("piano", passageHymn);
 import {
   waitForServer,
   captureFailure,
@@ -150,7 +151,7 @@ try {
     );
   await page.goto(
     base +
-      `/piano/hymns/${passageHymn.slug}?mode=wait&countIn=0.5&loopCountIn=1&tempo=200&arrangement=melody`,
+      `/piano/hymns/${passageHymn.slug}?mode=wait&countIn=0.5&loopCountIn=1&tempo=200&arrangement=piano&hands=right`,
   );
   await note(0).waitFor();
   await midiAction(page, "Connect MIDI keyboard");
@@ -426,7 +427,8 @@ try {
   await undo();
   await expect(start).toBeHidden();
   // Preserve coverage of full grand-staff bands and musical spans across system breaks.
-  await practiceOption(page, "#hymn-arrangement", "bass");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "both");
   await closePracticeOptions(page);
   await score.focus();
   await page.keyboard.press("Home");
@@ -447,7 +449,8 @@ try {
   );
   assert.ok(geometry.some((g) => g.count > 1));
   assert.ok(geometry.every((g) => g.full));
-  await practiceOption(page, "#hymn-arrangement", "melody");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "right");
   await closePracticeOptions(page);
   const secondLineLast = Number(
     await page

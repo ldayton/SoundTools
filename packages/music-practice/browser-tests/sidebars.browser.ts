@@ -1,3 +1,4 @@
+import {selectHymnScore} from "./helpers";
 import {
   captureFailure,
   closeBrowser,
@@ -7,7 +8,7 @@ import {
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
 import { practiceOption } from "./helpers";
-import { stagedHymn, otherStagedHymn } from "../test-fixtures/hymns";
+import { practiceHymn, otherPracticeHymn } from "../test-fixtures/hymns";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -49,7 +50,7 @@ try {
   assert.equal(await page.locator("#roundLength").inputValue(), "24");
   await page.locator('nav a[data-mode="piano"]').click();
   assert.equal(await page.locator("#roundLength").inputValue(), "48");
-  await page.goto(song.base + `/piano/hymns/${stagedHymn.id}`);
+  await page.goto(song.base + `/piano/hymns/${practiceHymn.id}`);
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await nav.locator("#hymn-search").count(), 1);
   assert.equal(await page.locator(".practice-options #hymn-search").count(), 0);
@@ -61,7 +62,7 @@ try {
     await page.locator(".sequence-title").filter({ hasText: title }).waitFor();
   };
   await practiceOption(page, "#hymn-key", "F");
-  await practiceOption(page, "#hymn-arrangement", "bass");
+  await selectHymnScore(page, "piano");
   await practiceOption(page, "#hymn-mode", "playback");
   await page.locator("#hymn-tempo").fill("110");
   await page.locator("#hymn-tempo").press("Enter");
@@ -70,20 +71,22 @@ try {
   await page.getByRole("slider", { name: "Piano volume" }).focus();
   await page.keyboard.press("Home");
   await page.keyboard.press("Escape");
-  await choose(otherStagedHymn.title);
+  await choose(otherPracticeHymn.title);
   assert.equal(
     await page.locator('input[name="hymn-key"]').inputValue(),
     "original",
   );
-  assert.equal(await page.locator("#hymn-arrangement").inputValue(), "melody");
+  assert.equal(await page.locator("#hymn-arrangement").count(),0);
+  assert.equal(await page.getByRole("radio",{name:"Piano",exact:true}).getAttribute("aria-checked"),"true");
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
     "playback",
   );
   assert.equal(await page.locator("#hymn-size").inputValue(), "48 px");
-  await choose(stagedHymn.title);
+  await choose(practiceHymn.title);
   assert.equal(await page.locator('input[name="hymn-key"]').inputValue(), "F");
-  assert.equal(await page.locator("#hymn-arrangement").inputValue(), "bass");
+  assert.equal(await page.locator("#hymn-arrangement").count(),0);
+  assert.equal(await page.getByRole("radio",{name:"Piano",exact:true}).getAttribute("aria-checked"),"true");
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
     "playback",
@@ -104,10 +107,10 @@ try {
     .click();
   await nav.locator('.keyboard-menu[data-state="connected"]').waitFor();
   await page.getByRole("link", { name: "Settings", exact: true }).click();
-  await choose(otherStagedHymn.title);
+  await choose(otherPracticeHymn.title);
   assert.equal(
     new URL(page.url()).pathname,
-    `/piano/hymns/${otherStagedHymn.slug}`,
+    `/piano/hymns/${otherPracticeHymn.slug}`,
   );
   assert.equal(
     await page.locator("#hymn-mode").getAttribute("data-mode"),
@@ -124,7 +127,7 @@ try {
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
   await nav.locator("#hymn-search").waitFor();
-  await choose(stagedHymn.title);
+  await choose(practiceHymn.title);
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });
@@ -152,13 +155,13 @@ try {
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
-  await choose(otherStagedHymn.title);
+  await choose(otherPracticeHymn.title);
   await page
     .locator(".mantine-Drawer-content:visible")
     .waitFor({ state: "hidden" });
   assert.equal(
     new URL(page.url()).pathname,
-    `/piano/hymns/${otherStagedHymn.slug}`,
+    `/piano/hymns/${otherPracticeHymn.slug}`,
   );
   assert.deepEqual(errors, []);
   console.log(

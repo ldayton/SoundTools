@@ -1,3 +1,4 @@
+import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
 import { selectedHymnRange } from "../../../packages/music-practice/browser-tests/helpers";
 import {
   playbackHymn,
@@ -88,7 +89,7 @@ try {
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(base + `/piano/hymns/${playbackHymn.slug}`);
+  await page.goto(base + `/piano/hymns/${playbackHymn.slug}?arrangement=piano&hands=right`);
   await page.locator(".hymn-paper svg").first().waitFor({ state: "attached" });
 
   await page.locator("#hymn-key").waitFor({ state: "attached" });
@@ -185,7 +186,8 @@ try {
   await practiceOption(page, "#hymn-key", "A");
   assert.equal(await count(), `3 / ${melody.length}`);
   await practiceOption(page, "#hymn-key", "original");
-  await practiceOption(page, "#hymn-arrangement", "original");
+  await selectHymnScore(page, "original");
+  await practiceOption(page, "#hymn-hands", "both");
   await midiAction(page, "Connect MIDI keyboard");
   await page
     .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
@@ -223,13 +225,10 @@ try {
   for (const pitch of targetChord) await send(pitch, false);
   // Every arrangement renders in flat and sharp keys, with the same responsive controls.
   for (const arrangement of [
-    "melody",
-    "bass",
-    "chords",
-    "broken",
+    "piano",
     "original",
   ]) {
-    await practiceOption(page, "#hymn-arrangement", arrangement);
+    await selectHymnScore(page, arrangement);
     const noteCount = await page.locator(".hymn-paper .abcjs-note").count();
     const words = (
       await page.locator(".hymn-paper .abcjs-lyric").allTextContents()
@@ -257,7 +256,8 @@ try {
       assert.equal(await page.locator(".sequence-feedback.error").count(), 0);
     }
   }
-  await practiceOption(page, "#hymn-arrangement", "melody");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "right");
   await note(first);
   assert.match(
     (
@@ -284,7 +284,8 @@ try {
     playbackRangeLabel("B"),
   );
   await practiceOption(page, "#hymn-key", "F");
-  await practiceOption(page, "#hymn-arrangement", "original");
+  await selectHymnScore(page, "original");
+  await practiceOption(page, "#hymn-hands", "both");
   await page.locator("#hymn-octave-down").click();
   await page.locator("#hymn-octave-down").click();
   await saved();
@@ -346,7 +347,8 @@ try {
   await page.locator("#hymn-octave-up").click();
   await page.locator("#hymn-octave-up").click();
   // A pre-key version-1 activity defaults to Original and reuses its old bookmarks.
-  await practiceOption(page, "#hymn-arrangement", "melody");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "right");
   await practiceOption(page, "#hymn-key", "original");
   await saved();
   await page.evaluate(

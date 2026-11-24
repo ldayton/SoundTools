@@ -1,19 +1,20 @@
+import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
 import {
   recoveryHymn,
   recoveryMelody,
   playbackAttacks,
-  selectStagedHymn,
+  selectPracticeHymn,
 } from "../../../packages/music-practice/test-fixtures/hymns";
 import {
   spellPitch,
   chromaticPitch,
 } from "../../../packages/music-practice/src/guitar";
 import { name } from "../../../packages/music-practice/src/model";
-const comparisonHymn = selectStagedHymn(undefined, {
+const comparisonHymn = selectPracticeHymn(undefined, {
   exclude: recoveryHymn.id,
 });
 const [first, second, third, fourth] = recoveryMelody;
-const wrong = first - 1;
+const wrong = first + 1;
 const chord = playbackAttacks("original", recoveryHymn)[0];
 const sourceKey = recoveryHymn.melody.match(/^K:(\S+)/m)![1];
 const pitchLabel = (pitch: number) => {
@@ -98,7 +99,7 @@ try {
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(base + `piano/hymns/${recoveryHymn.id}`);
+  await page.goto(base + `piano/hymns/${recoveryHymn.id}?arrangement=piano&hands=right`);
   await page.locator(".hymn-paper svg").first().waitFor();
 
   await page.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
@@ -240,7 +241,8 @@ try {
     await page.locator(".hymn-count").textContent(),
     `5 / ${recoveryMelody.length}`,
   );
-  await practiceOption(page, "#hymn-arrangement", "original");
+  await selectHymnScore(page, "original");
+  await practiceOption(page, "#hymn-hands", "both");
   const initial = await page.locator(".hymn-count").textContent();
   assert.match(initial!, /^1 \/ /);
   await midiAction(page, "Connect MIDI keyboard");
@@ -282,7 +284,7 @@ try {
     "1st Fingerstyle Blues",
   );
   await choose(recoveryHymn.title);
-  await practiceOption(page, "#hymn-arrangement", "melody");
+  await selectHymnScore(page, "piano");
   await setPianoVisible(page, false); // keep the review screenshot focused on the score
   await mkdir("work", { recursive: true });
   await page.screenshot({
@@ -294,7 +296,10 @@ try {
     path: `work/sight-reading-${engine}-desktop.png`,
     fullPage: true,
   });
-  // Complete the selected melody, including tied notes.
+  await practiceOption(page,"#hymn-mode","wait");
+  await practiceOption(page,"#hymn-hands","right");
+  await dismissPracticeDrawer(page);
+  // Complete the selected Piano melody, including tied notes.
   const sequence = recoveryMelody;
   await page.locator(".hymn-go-start").click();
   await midiAction(page, "Connect MIDI keyboard");
@@ -345,7 +350,7 @@ try {
         "Available offline",
     );
     await cold.setOffline(true);
-    await firstUse.goto(base + `piano/hymns/${recoveryHymn.id}`);
+    await firstUse.goto(base + `piano/hymns/${recoveryHymn.id}?arrangement=piano&hands=right`);
     await firstUse.locator(".hymn-count").filter({ hasText: /\d/ }).waitFor();
     await firstUse
       .locator(".hymn-count")

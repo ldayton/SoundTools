@@ -154,6 +154,8 @@ export class HymnProgress {
     checkpoint?: { content: string; paused: boolean; length: number },
     layout: "mobile" | "desktop" = "desktop",
   ): HymnState {
+    if (["melody","bass","chords","broken","guitar","guitar-chords"].includes(settings.arrangement))
+      settings = hymnPreferences(settings.hymn,settings);
     this.remember(settings, zoom, layout);
     if (checkpoint)
       this.bookmarks[hymnProgressKey(settings, originalKey)] = bookmark(

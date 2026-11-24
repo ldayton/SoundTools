@@ -1,113 +1,28 @@
-import { playbackHymn, selectStagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
-import { expect } from "@playwright/test";
-import { launchBrowser, newPage, closeBrowser, captureFailure } from "../../../scripts/ci/browser-harness.cjs";
-import { preview } from "../../../packages/music-practice/browser-tests/server";
-import {
-  practiceOption,
-  openHymnControls,
-} from "../../../packages/music-practice/browser-tests/helpers";
-const comparisonHymn = selectStagedHymn(undefined, { exclude: playbackHymn.id });
-const server = await preview(
-  "songalong",
-  Number(process.env.TEST_PORT || 4561),
-);
-const browser = await launchBrowser();
-try {
-  const page = await newPage(browser, {
-    viewport: { width: 1440, height: 1000 },
-    serviceWorkers: "block",
-  });
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(server.base + `/piano/hymns/${playbackHymn.slug}`);
-  const toggle = page.getByRole("checkbox", {
-    name: "Show fingerings",
-    exact: true,
-  });
-  await toggle.waitFor();
-  await expect(
-    page
-      .locator(".hymn-toolbar")
-      .getByRole("checkbox", { name: "Show fingerings", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page
-      .locator(".practice-options")
-      .getByRole("checkbox", { name: "Show fingerings", exact: true }),
-  ).toHaveCount(0);
-  const geometry = () =>
-    page.locator(".hymn-paper svg").evaluateAll((es) =>
-      es.map((e) => ({
-        height: e.getBoundingClientRect().height,
-        // Ignore floating-point noise far below a rendered pixel.
-        viewBox: e
-          .getAttribute("viewBox")
-          ?.split(/\s+/)
-          .map((value) => Math.round(Number(value) * 1e6) / 1e6),
-      })),
-    );
-  const initial = await geometry();
-  await expect(page.locator(".hymn-fingering")).toHaveCount(0);
-  await toggle.check();
-  await expect(page.locator(".hymn-fingering").first()).toBeVisible();
-  expect(await geometry()).toEqual(initial);
-  expect(await page.locator(".hymn-finger-shift").count()).toBeGreaterThan(0);
-  await expect(page.locator(".hymn-finger-shift circle").first()).toBeVisible();
-  const firstPitch = await page
-    .locator(".hymn-fingering")
-    .first()
-    .getAttribute("data-midi");
-  await practiceOption(page, "#hymn-key", /^K:D\s*$/m.test(playbackHymn.melody) ? "G" : "D");
-  expect(
-    await page.locator(".hymn-fingering").first().getAttribute("data-midi"),
-  ).not.toEqual(firstPitch);
-  await practiceOption(page, "#hymn-arrangement", "bass");
-  await expect(
-    page.locator('.hymn-fingering[data-hand="left"]').first(),
-  ).toBeVisible();
-  await expect(
-    page.locator('.hymn-fingering[data-hand="right"]').first(),
-  ).toBeVisible();
-  await practiceOption(page, "#hymn-arrangement", "chords");
-  await expect(toggle).toBeDisabled();
-  await expect(page.locator(".hymn-fingering")).toHaveCount(0);
-  await practiceOption(page, "#hymn-arrangement", "melody");
-  await expect(toggle).toBeChecked();
-  await toggle.uncheck();
-  expect(await page.locator(".hymn-fingering").count()).toBe(0);
-  await toggle.check();
-  await expect(
-    page.getByText("Saved on this device.", { exact: true }),
-  ).toBeVisible();
-  await page.reload();
-  await expect(toggle).toBeChecked();
-  await page.goto(server.base + `/piano/hymns/${comparisonHymn.slug}`);
-  await expect(toggle).toBeChecked();
-  await expect(page.locator(".hymn-fingering").first()).toBeVisible();
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator(".hymn-fingering").first()).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  await expect(
-    page.getByRole("button", { name: "Show controls", exact: true }),
-  ).toBeVisible();
-  await openHymnControls(page);
-  await toggle.uncheck();
-  const mobile = await geometry();
-  await openHymnControls(page);
-  await toggle.check();
-  expect(await geometry()).toEqual(mobile);
-  expect(errors).toEqual([]);
-  console.log(
-    "PASS: optional persistent fingerings, both hands, circled shifts, unsupported chords, no added score height on desktop or mobile",
-  );
-} catch (error) {
-  await captureFailure(browser, error);
-  throw error;
-} finally {
-  await closeBrowser(browser);
-  server.stop();
-}
+import {playbackHymn,selectPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import {expect} from "@playwright/test";
+import {launchBrowser,newPage,closeBrowser,captureFailure} from "../../../scripts/ci/browser-harness.cjs";
+import {preview} from "../../../packages/music-practice/browser-tests/server";
+import {practiceOption,openHymnControls} from "../../../packages/music-practice/browser-tests/helpers";
+const other=selectPracticeHymn(undefined,{exclude:playbackHymn.id});
+const server=await preview("songalong",Number(process.env.TEST_PORT||4561)),browser=await launchBrowser();
+try{
+ const page=await newPage(browser,{viewport:{width:1440,height:1000},serviceWorkers:"block"}),errors:string[]=[];
+ page.on("pageerror",e=>errors.push(e.message));
+ await page.goto(server.base+`/piano/hymns/${playbackHymn.slug}?arrangement=piano`);await openHymnControls(page);
+ const toggle=page.getByRole("checkbox",{name:"Show fingerings",exact:true});
+ await expect(toggle).toBeEnabled();await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
+ await expect(page.locator(".practice-options").getByRole("checkbox",{name:"Show fingerings",exact:true})).toHaveCount(0);
+ const geometry=()=>page.locator(".hymn-paper svg").evaluateAll(es=>es.map(e=>({height:e.getBoundingClientRect().height,viewBox:e.getAttribute("viewBox")?.split(/\s+/).map(n=>Math.round(Number(n)*1e6)/1e6)})));
+ await toggle.uncheck();const initial=await geometry();await toggle.check();
+ await expect(page.locator(".beginner-fingering").first()).toBeVisible();expect(await geometry()).toEqual(initial);
+ await expect(page.locator('.beginner-fingering[data-voice="0"]').first()).toBeVisible();
+ await expect(page.locator('.beginner-fingering[data-voice="1"]').first()).toBeVisible();
+ await practiceOption(page,"#hymn-key","G");await expect(toggle).toBeDisabled();await expect(page.locator(".beginner-fingering")).toHaveCount(0);
+ await practiceOption(page,"#hymn-key","original");await expect(toggle).toBeEnabled();await expect(page.locator(".beginner-fingering").first()).toBeVisible();
+ for(const hand of ["right","left","both"]){await practiceOption(page,"#hymn-hands",hand);expect(await geometry()).toEqual(initial);}
+ await page.reload();await openHymnControls(page);await expect(toggle).toBeChecked();await expect(page.locator(".beginner-fingering").first()).toBeVisible();
+ await page.goto(server.base+`/piano/hymns/${other.slug}?arrangement=piano`);await openHymnControls(page);await expect(toggle).toBeChecked();
+ await page.setViewportSize({width:390,height:844});await openHymnControls(page);await expect(toggle).toBeVisible();await toggle.uncheck();await expect(page.locator(".beginner-fingering")).toHaveCount(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
+ console.log("PASS: dedicated Piano fingerings stay stable, support both hands, original-key eligibility and durable desktop/phone controls");
+}catch(error){await captureFailure(browser,error);throw error;}finally{await closeBrowser(browser);server.stop();}

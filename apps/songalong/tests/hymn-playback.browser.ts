@@ -1,3 +1,5 @@
+import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
+import {playbackLeftPitches} from "../../../packages/music-practice/test-fixtures/hymns";
 import { selectedHymnRange } from "../../../packages/music-practice/browser-tests/helpers";
 import { playbackHymn, playbackMelody, playbackBass, playbackRangeLabel, playbackFittedKey } from "../../../packages/music-practice/test-fixtures/hymns";
 import { waitForServer, captureFailure, closeBrowser, launchBrowser, newPage } from '../../../scripts/ci/browser-harness.cjs';
@@ -207,9 +209,7 @@ try {
   await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
-  await page
-    .getByRole("combobox", { name: "Arrangement", exact: true })
-    .selectOption("bass");
+  await selectHymnScore(page, "original");
   await page.getByRole("button", { name: "Play", exact: true }).waitFor();
   const stopped = await page.evaluate(
     () => (window as any).playbackProbe.starts.length,
@@ -235,7 +235,7 @@ try {
   // The learner can work on either hand independently, then combine them.
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.slug}?arrangement=bass&hands=left&mode=wait&bars=2&section=1`,
+      `/piano/hymns/${playbackHymn.slug}?arrangement=piano&hands=left&mode=wait&bars=2&section=1`,
   );
   await page.locator(".hymn-paper .abcjs-note").first().waitFor();
   await midiAction(page, "Connect MIDI keyboard");
@@ -249,7 +249,7 @@ try {
     (await page.locator(".hymn-count").textContent())!.split(" / ")[0];
   assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
   assert.equal(await number(), "1");
-  assert.equal(await page.locator("#hymn-view").inputValue(), "both");
+  assert.equal(await page.locator("#hymn-view").count(), 0);
   assert.ok(
     (await page.locator(".hymn-paper .abcjs-clef").count()) >= 2,
     "both staves remain visible during left-hand practice",
@@ -260,16 +260,16 @@ try {
     "1",
     "right-hand melody cannot answer left-hand practice",
   );
-  await send(playbackBass);
+  await page.evaluate(pitches=>{for(const pitch of pitches)(window as any).midiTest.send([0x90,pitch,100]);for(const pitch of pitches)(window as any).midiTest.send([0x80,pitch,0]);},playbackLeftPitches);
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })
     .selectOption("both");
   assert.equal(await number(), "1");
-  await page.evaluate((pitch) => (window as any).midiTest.send([0x90, pitch, 100]), playbackBass);
+  for(const pitch of playbackLeftPitches) await page.evaluate((pitch) => (window as any).midiTest.send([0x90,pitch,100]),pitch);
   assert.equal(await number(), "1", "both hands wait for the complete onset");
   await send(playbackMelody);
-  await page.evaluate((pitch) => (window as any).midiTest.send([0x80, pitch, 0]), playbackBass);
+  for(const pitch of playbackLeftPitches) await page.evaluate((pitch) => (window as any).midiTest.send([0x80,pitch,0]),pitch);
   assert.equal(await number(), "2");
   await page
     .getByRole("combobox", { name: "Practise hands", exact: true })
@@ -289,41 +289,10 @@ try {
   await page.locator(".hymn-paper .abcjs-note").first().waitFor();
   assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
   assert.equal(await number(), "2", "left-hand bookmark survives reload");
-  await page
-    .getByRole("combobox", { name: "Show", exact: true })
-    .selectOption("right");
-  assert.equal(await page.locator("#hymn-hands").inputValue(), "right");
-  assert.equal(
-    await page
-      .locator('#hymn-hands option[value="left"]')
-      .evaluate((e) => (e as HTMLOptionElement).disabled),
-    true,
-  );
-  assert.equal(
-    await page
-      .locator('#hymn-hands option[value="both"]')
-      .evaluate((e) => (e as HTMLOptionElement).disabled),
-    true,
-  );
-  await page
-    .getByRole("combobox", { name: "Show", exact: true })
-    .selectOption("left");
-  assert.equal(await page.locator("#hymn-hands").inputValue(), "left");
-  assert.equal(
-    await page
-      .locator('#hymn-hands option[value="right"]')
-      .evaluate((e) => (e as HTMLOptionElement).disabled),
-    true,
-  );
-  await page
-    .getByRole("combobox", { name: "Show", exact: true })
-    .selectOption("both");
-  assert.equal(
-    await page
-      .locator('#hymn-hands option[value="both"]')
-      .evaluate((e) => (e as HTMLOptionElement).disabled),
-    false,
-  );
+  // Instrument scores keep the full grand staff while either hand is practised.
+  assert.equal(await page.locator("#hymn-view").count(),0);
+  assert.ok(await page.locator(".hymn-paper .abcjs-clef").count()>=2);
+  await practiceOption(page,"#hymn-hands","both");
   await practiceOption(page, "#hymn-mode", "playback");
   await dismissPracticeDrawer(page);
   await page.getByRole("button", { name: "Play", exact: true }).click();
@@ -357,17 +326,14 @@ try {
   // Optional whole-hymn limits constrain keys independently of the visible section.
   await page.goto(
     base +
-      `/piano/hymns/${playbackHymn.slug}?arrangement=melody&mode=wait&bars=2&section=1`,
+      `/piano/hymns/${playbackHymn.slug}?arrangement=piano&hands=right&mode=wait&bars=2&section=1`,
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   for (const arrangement of [
-    "melody",
-    "bass",
-    "chords",
-    "broken",
+    "piano",
     "original",
   ]) {
-    await practiceOption(page, "#hymn-arrangement", arrangement);
+    await selectHymnScore(page, arrangement);
     for (const [key, expected] of [
       ["original", "D4–D5"],
       ["Bb", playbackRangeLabel("Bb")],
@@ -381,7 +347,8 @@ try {
       );
     }
   }
-  await practiceOption(page, "#hymn-arrangement", "melody");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "right");
   await practiceOption(page, "#hymn-high", "73");
   assert.equal(
     await page.locator('input[name="hymn-key"]').inputValue(),
@@ -402,8 +369,8 @@ try {
     [playbackFittedKey],
   );
   // Singing limits and the caption stay on the melody even when testing bass only.
-  await practiceOption(page, "#hymn-arrangement", "bass");
-  await practiceOption(page, "#hymn-view", "both");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "both");
   await practiceOption(page, "#hymn-hands", "left");
   for (const mode of ["wait", "playback"]) {
     await practiceOption(page, "#hymn-mode", mode);
@@ -416,7 +383,8 @@ try {
     );
   }
   await practiceOption(page, "#hymn-mode", "wait");
-  await practiceOption(page, "#hymn-arrangement", "melody");
+  await selectHymnScore(page, "piano");
+  await practiceOption(page, "#hymn-hands", "right");
   await page.reload();
   await page.locator(".hymn-paper svg").first().waitFor();
   assert.equal(await page.locator("#hymn-low").inputValue(), "C4");

@@ -275,12 +275,12 @@ test("cross-section tied notes stay single attacks, and starting mid-hymn clips 
 
 test("every section boundary matches the continuous score duration in each hymn arrangement", async () => {
   const { default: abcjs } = await import("abcjs");
-  const { arrangeHymn, ARRANGEMENTS } =
+  const { arrangeHymn, SOURCE_VARIANTS } =
     await import("../../../packages/music-practice/src/hymn-arrangements");
   const { default: hymns } =
     await import("../../../packages/music-practice/src/hymns.json");
   for (const hymn of hymns)
-    for (const { id } of ARRANGEMENTS) {
+    for (const { id } of SOURCE_VARIANTS) {
       const first = arrangeHymn(hymn, id, 2, 0);
       const full = arrangeHymn(hymn, id, first.totalBars, 0);
       const duration = (abc: string) =>

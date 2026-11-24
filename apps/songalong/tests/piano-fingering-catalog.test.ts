@@ -7,10 +7,10 @@ import {
   pianoKeyPosition,
 } from "../../../packages/music-practice/src/piano-fingering";
 import assert from "node:assert/strict";
-test("catalogue melody and bass fingerings remain reachable through transposition", () => {
+test("source melody fingerings remain reachable through transposition", () => {
   let parts = 0;
   for (const hymn of hymns)
-    for (const arrangement of ["melody", "bass"] as const)
+    for (const arrangement of ["melody"] as const)
       for (const transpose of [-5, 0, 4]) {
         const abc = arrangeHymn(hymn, arrangement, 0, 0).abc;
         const tune = abcjs.parseOnly(abc)[0];
@@ -67,5 +67,5 @@ test("catalogue melody and bass fingerings remain reachable through transpositio
           });
         }
       }
-  assert.equal(parts, hymns.length * 9);
+  assert.equal(parts, hymns.length * 3);
 });

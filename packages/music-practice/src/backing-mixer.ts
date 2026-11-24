@@ -76,34 +76,52 @@ export function backingMixerControls(style: BackingGenreId) {
 
 /** Faders follow instrument effects, ahead of both dry and room paths. */
 export class BackingMixer {
-  private inputs = new Map<BackingMixerChannel, GainNode>();
+  private inputs = new Map<
+    string,
+    { channel: BackingMixerChannel; gain: GainNode; baseline: number }
+  >();
   constructor(
     readonly context: BaseAudioContext,
     readonly buses: Map<BackingPart, GainNode>,
     private levels: BackingMixerLevels,
+    private defaultGain: (
+      event: Pick<BackingEvent, "part" | "instrument">,
+    ) => number = () => 1,
   ) {}
   input(event: Pick<BackingEvent, "part" | "instrument">) {
     const channel = backingMixerChannel(event);
-    let gain = this.inputs.get(channel);
-    if (!gain) {
-      gain = this.context.createGain();
-      gain.gain.value = this.levels[channel] / 100;
+    const key = channel + ":" + (event.instrument ?? event.part);
+    let entry = this.inputs.get(key);
+    if (!entry) {
+      const baseline = this.defaultGain(event);
+      const gain = this.context.createGain();
+      gain.gain.value = (baseline * this.levels[channel]) / 100;
       gain.connect(this.buses.get(event.part)!);
-      this.inputs.set(channel, gain);
+      entry = { channel, gain, baseline };
+      this.inputs.set(key, entry);
     }
-    return gain;
+    const baseline = this.defaultGain(event);
+    if (entry.baseline !== baseline) {
+      entry.baseline = baseline;
+      entry.gain.gain.setTargetAtTime(
+        (baseline * this.levels[channel]) / 100,
+        this.context.currentTime,
+        0.015,
+      );
+    }
+    return entry.gain;
   }
   setLevels(levels: BackingMixerLevels) {
     this.levels = levels;
-    for (const [channel, input] of this.inputs)
-      input.gain.setTargetAtTime(
-        levels[channel] / 100,
+    for (const { channel, gain, baseline } of this.inputs.values())
+      gain.gain.setTargetAtTime(
+        (baseline * levels[channel]) / 100,
         this.context.currentTime,
         0.015,
       );
   }
   dispose() {
-    for (const input of this.inputs.values()) input.disconnect();
+    for (const { gain } of this.inputs.values()) gain.disconnect();
     this.inputs.clear();
   }
 }

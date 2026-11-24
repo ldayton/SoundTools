@@ -1,3 +1,5 @@
+import { isMaqam } from "./maqamat";
+import { approvedMixGain } from "./backing-approved";
 import type { ScalePracticeQuality } from "./backing-scale-harmony";
 import { acousticPalette } from "./backing-acoustic-palette";
 import { rootsPalette } from "./backing-roots-palette";
@@ -19,7 +21,7 @@ import {
   backingMixerLevels,
   type BackingMixerChannel,
 } from "./backing-mixer";
-import { genreBackingArrangement } from "./backing-genre-engine";
+import { approvedGenreBackingArrangement as genreBackingArrangement } from "./backing-genre-engine";
 import { BACKING_GENRES, backingGenre } from "./backing-genres";
 import { sharedBackingPocket } from "./backing-shared-pocket";
 import { connectBackingGuitar } from "./backing-guitar-transitions";
@@ -367,6 +369,12 @@ export class BackingTrackPlayer {
       );
     this.harmonicScale = scaleQuality;
     this.patch({ tonic, keyLabel, quality });
+    this.setMix?.(
+      this.pack.levels,
+      this.mixProfile,
+      this.model.getSnapshot().mode,
+      !scaleQuality || !isMaqam(scaleQuality),
+    );
     this.takeCache.clear();
     if (active) void this.play();
   }
@@ -458,6 +466,12 @@ export class BackingTrackPlayer {
         this.context!,
         this.buses,
         this.balance.getSnapshot(),
+        (event) => {
+          const { style, pattern } = this.model.getSnapshot();
+          return this.legacyReference(style)
+            ? 1
+            : approvedMixGain(style, pattern, event);
+        },
       );
     }
     return this.mixer.input(event);
@@ -695,6 +709,7 @@ export class BackingTrackPlayer {
         this.pack.levels,
         this.mixProfile,
         this.model.getSnapshot().mode,
+        !this.harmonicScale || !isMaqam(this.harmonicScale),
       );
       this.output = graph.output;
       this.clickOutput = context.createGain();

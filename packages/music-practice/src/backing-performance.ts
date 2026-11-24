@@ -87,6 +87,7 @@ export function backingAudioGraph(
   levels: Record<BackingPart, number>,
   profile: GenreDefinition["instrumentation"]["mix"] = "approved-drum-forward",
   mode: BackingMode = "steady",
+  approvedCalibration = true,
 ) {
   const buses = new Map<BackingPart, GainNode>();
   const sends = new Map<BackingPart, GainNode>();
@@ -101,7 +102,8 @@ export function backingAudioGraph(
   const sum = context.createGain();
   sum.gain.value = 3;
   const headroom = context.createGain();
-  headroom.gain.value = 0.75 * backingMixGain(profile, mode);
+  headroom.gain.value =
+    0.75 * backingMixGain(profile, mode, approvedCalibration);
   sum.connect(limiter).connect(headroom);
   if (profile === "approved-drum-forward") headroom.connect(output);
   else {
@@ -160,9 +162,11 @@ export function backingAudioGraph(
     next: Record<BackingPart, number>,
     style: typeof profile,
     feel: BackingMode = "steady",
+    approved = approvedCalibration,
   ) {
+    approvedCalibration = approved;
     headroom.gain.setTargetAtTime(
-      0.75 * backingMixGain(style, feel),
+      0.75 * backingMixGain(style, feel, approvedCalibration),
       context.currentTime,
       0.02,
     );

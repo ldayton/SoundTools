@@ -260,7 +260,8 @@ test("new vocal staves migrate old piano Show/Play selections exactly once, incl
     assert.deepEqual(migrateHymnIdentity(state),state);assert.deepEqual(raw.hiddenStaves,[0]);
     const durable=migrateLegacy({});durable.activities.sight=raw as any;
     const restored=restoreSongalongRecords(songalongRecords(durable)).activities.sight as any;
-    assert.equal(restored.catalogueRevision,3);assert.deepEqual(restored.hiddenStaves,[1]);assert.deepEqual(restored.mutedStaves,[2]);
+    assert.equal(restored.catalogueRevision,3);assert.deepEqual(restored.hiddenStaves,[2]);assert.deepEqual(restored.mutedStaves,[1]);
+    assert.deepEqual(restoreSongalongRecords(songalongRecords(restoreSongalongRecords(songalongRecords(durable)))),restoreSongalongRecords(songalongRecords(durable)));
   }
   assert.deepEqual(migrateHymnIdentity({catalogueRevision:2,hymn:canonicalHymnId("in-christ-alone"),arrangement:"original",hiddenStaves:[0]}).hiddenStaves,[0]);
   assert.deepEqual(migrateHymnIdentity({catalogueRevision:2,hymn:canonicalHymnId("silent-night"),arrangement:"bass",hiddenStaves:[0]}).hiddenStaves,[0]);

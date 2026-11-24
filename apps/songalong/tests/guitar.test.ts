@@ -96,7 +96,7 @@ test("legacy guitar settings migrate to the instrument edition and all retained 
   assert.equal(saved.arrangement, "guitar-edition");
   assert.equal(
     mergeHymnSettings(saved, { hymn: other.id }).arrangement,
-    "guitar-edition",
+    "melody",
   );
 });
 

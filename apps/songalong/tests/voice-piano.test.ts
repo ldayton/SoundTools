@@ -22,9 +22,12 @@ for(const hymn of hymns.filter(h=>instrumentEdition(h)?.vocal)){
     // placement changes. This also protects accidentals and tied durations.
     const classes=(tracks:number[][][])=>tracks.map(t=>t.map(([p,s,d])=>[p%12,s,d]).sort((a,b)=>a[1]-b[1]||a[0]-b[0]||a[2]-b[2]));
     assert.deepEqual(classes(notes.slice(1)),classes(source));
-    for(const hand of notes.slice(1))for(const at of new Set(hand.map(n=>n[1]))){
+    for(const staff of abcPlaybackStaves(score.abc).slice(1)){
+      const hand=staff.tracks.flatMap(i=>notes[i]);
+      for(const at of new Set(hand.map(n=>n[1]))){
       const pitches=hand.filter(n=>n[1]<=at+1e-8&&n[1]+n[2]>at+1e-8).map(n=>n[0]);
       assert(Math.max(...pitches)-Math.min(...pitches)<=12,`${hymn.slug} hand span at ${at}`);
+      }
     }
     assert.equal(audio.totalDuration,read(hymn.harmony).audio.totalDuration);
     const chords=tune.lines.flatMap(l=>l.staff?.flatMap(s=>s.voices?.flatMap(v=>v.flatMap(n=>n.el_type==="note"?n.chord?.filter((c:{position:string})=>c.position==="default").map((c:{name:string})=>c.name)||[]:[]))||[])||[]);
@@ -43,5 +46,16 @@ test("reviewed bass voicings keep the bass and close oversized intervals",()=>{
   const abc=arrangeHymn(hymns.find(h=>h.slug===slug)!,"original",0).abc,score=read(abc);
   const lh=abcPlaybackStaves(abc).at(-1)!.tracks.flatMap(i=>score.notes[i]);
   assert.deepEqual(lh.filter(([p,s,d])=>s<=at&&s+d>at).map(n=>n[0]).sort((a,b)=>a-b),expected);
+ }
+});
+
+test("teacher accompaniment stays within an octave across simultaneous organ voices",()=>{
+ const hymn=hymns.find(h=>h.slug==="in-christ-alone")!,abc=arrangeHymn(hymn,"original",0).abc,score=read(abc);
+ for(const staff of abcPlaybackStaves(abc).slice(1)){
+  const notes=staff.tracks.flatMap(i=>score.notes[i]);
+  for(const at of new Set(notes.map(n=>n[1]))){
+   const pitches=notes.filter(n=>n[1]<=at+1e-8&&n[1]+n[2]>at+1e-8).map(n=>n[0]);
+   assert(Math.max(...pitches)-Math.min(...pitches)<=12,`${staff.label} at ${at}`);
+  }
  }
 });

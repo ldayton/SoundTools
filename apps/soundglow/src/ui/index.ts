@@ -10,6 +10,14 @@ import { LibraryActions } from "./library-actions";
 window.SoundglowShell = mountApplicationShell();
 window.SoundglowLibraryActions = LibraryActions;
 
+import { bindMediaSession } from "@ldayton/ui/media-session";
 import { connectPitchSettings } from "../pitch-settings-controller";
-window.SoundglowControllers = { connectPitchSettings };
-declare global { interface Window { SoundglowControllers: { connectPitchSettings: typeof connectPitchSettings } } }
+window.SoundglowControllers = { connectPitchSettings, bindMediaSession };
+declare global {
+  interface Window {
+    SoundglowControllers: {
+      connectPitchSettings: typeof connectPitchSettings;
+      bindMediaSession: typeof bindMediaSession;
+    };
+  }
+}

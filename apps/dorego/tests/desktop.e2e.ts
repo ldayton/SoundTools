@@ -53,23 +53,12 @@ try {
   page.setDefaultTimeout(10000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(createRequire(import.meta.url)('../../../packages/browser-controls/test-fixtures/media-session.cjs').mediaSessionProbe);
   await page.addInitScript(
     (spec) => {
       if (!localStorage.getItem('dorego.current'))
         localStorage.setItem('dorego.current', JSON.stringify(spec));
       localStorage.setItem('dorego.glideShapeVersion', '1');
-      const mediaActions = new Map<string, MediaSessionActionHandler | null>();
-      (window as any).mediaActions = mediaActions;
-      (window as any).mediaRegistrationSessionTypes = [];
-      if (navigator.mediaSession) {
-        const register = navigator.mediaSession.setActionHandler.bind(navigator.mediaSession);
-        navigator.mediaSession.setActionHandler = (action, handler) => {
-          mediaActions.set(action, handler);
-          (window as any).mediaRegistrationSessionTypes.push((navigator as any).audioSession?.type);
-          register(action, handler);
-        };
-      }
-
       if (!('audioSession' in navigator))
         Object.defineProperty(navigator, 'audioSession', { value: { type: 'auto' } });
       const probe = {
@@ -210,27 +199,25 @@ try {
     () => Number(document.querySelector('#elapsed')?.getAttribute('data-seconds')) >= 5
   );
   await page.evaluate(() => (window as any).mediaActions.get('nexttrack')({ action: 'nexttrack' }));
-  await page.waitForFunction(() =>
-    document.querySelector('#exercise-summary')?.textContent?.includes('Round 2')
-  );
-  await page.evaluate(() =>
-    (window as any).mediaActions.get('previoustrack')({ action: 'previoustrack' })
-  );
-  await page.waitForFunction(() =>
-    document.querySelector('#exercise-summary')?.textContent?.includes('Round 1')
-  );
-
+  await page.locator('[data-pattern="rossini"][aria-current="true"]').waitFor();
+  assert.equal(await page.evaluate(() => navigator.mediaSession.playbackState), 'none', 'Selecting the next exercise prepares it without auto-playing');
+  await page.evaluate(() => (window as any).mediaActions.get('previoustrack')({action:'previoustrack'}));
+  await page.locator('[data-pattern="octaveArpeggio"][aria-current="true"]').waitFor();
   await selectExercise(page, 'breathSquares');
   await page.locator('#breath-play').waitFor();
-  assert.equal(await page.evaluate(() => navigator.mediaSession.metadata), null);
-  await page.evaluate(async () => {
-    await (window as any).mediaActions.get('play')({ action: 'play' });
-  });
-  assert.equal(
-    await page.evaluate(() => navigator.mediaSession.playbackState),
-    'none',
-    'System Play cannot start the previous vocal exercise from Breath Squares'
-  );
+  await page.waitForFunction(() => navigator.mediaSession.metadata?.title === 'Breath Squares');
+  await page.evaluate(() => (window as any).mediaActions.get('play')({action:'play'}));
+  await page.waitForFunction(() => navigator.mediaSession.playbackState === 'playing');
+  await page.evaluate(() => (window as any).mediaActions.get('pause')({action:'pause'}));
+  await page.waitForFunction(() => navigator.mediaSession.playbackState === 'paused');
+  await page.evaluate(() => (window as any).mediaActions.get('nexttrack')({action:'nexttrack'}));
+  await page.locator('[data-pattern="arpeggio"][aria-current="true"]').waitFor();
+  await page.waitForFunction(() => navigator.mediaSession.metadata?.title.startsWith('Arpeggio & Scale'));
+  await ready();
+  await page.evaluate(() => (window as any).mediaActions.get('play')({action:'play'}));
+  await playing();
+  await page.evaluate(() => (window as any).mediaActions.get('pause')({action:'pause'}));
+  await paused();
   await selectExercise(page, 'octaveArpeggio');
   await page.locator('#play').click();
   await playing();

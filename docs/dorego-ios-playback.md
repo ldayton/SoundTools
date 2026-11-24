@@ -19,7 +19,7 @@ or keep-alive loop is used.
 ## Automated evidence
 
 `apps/dorego/tests/audio-session.test.ts` owns supported/unsupported session
-configuration. `media-session.test.ts` owns metadata, playback-state mapping and
+configuration. `packages/music-practice/tests/media-session.test.ts` owns shared metadata, playback-state mapping and
 unsupported media actions. `desktop.e2e.ts` owns app wiring: audio-session type,
 system play/pause commands (including duplicate commands), actual PCM, position
 continuity and existing transport regressions. It runs in CI's existing Chromium
@@ -90,9 +90,11 @@ See `docs/testing-instability.md` for the retained failure paths.
 
 ## Native timeline / navigation limitation
 
-The current implementation exposes the timeline, seeking and previous/next round
-through standard Media Session APIs. Unit and browser witnesses verify their
-transport wiring and that tempo changes use musical time without pitch shifting.
+The current implementation exposes the timeline, seeking and previous/next
+exercise through standard Media Session APIs. Exercise navigation follows the
+sidebar, including Breath Squares, and selects the destination ready to play.
+Unit and browser witnesses verify their transport wiring and that tempo changes
+use musical time without pitch shifting.
 On iOS Simulator 27.2, `setActionHandler` accepts all five actions and
 `setPositionState` accepts finite duration/position values, but the native Next
 button remains disabled. This also reproduces in a fresh installed app with

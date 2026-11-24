@@ -1,3 +1,4 @@
+import { bindMediaSession } from "@ldayton/ui/media-session";
 import {isMaqam,MAQAMAT,maqamSource} from "./maqamat";
 import {maqamPositions} from "./maqam-guitar";
 import {
@@ -78,6 +79,27 @@ export class ScaleExplorer implements LivePractice {
   );
   readonly inputPolicy = "none" as const;
   private active = false;
+  private systemMedia = bindMediaSession(
+    navigator.mediaSession,
+    (title) => new MediaMetadata({ title, artist: "NoteWise" }),
+    {
+      play: () => {
+        if (this.active) void this.backing.play();
+      },
+      pause: () => {
+        if (this.active) this.backing.pauseAll();
+      },
+    },
+  );
+  private publishMedia = () => {
+    const state = this.backing.model.getSnapshot();
+    this.systemMedia(
+      this.active ? `Backing track · ${state.keyLabel}` : "",
+      state.status,
+    );
+  };
+  private unlistenMedia = this.backing.model.subscribe(this.publishMedia);
+
   private selectedShift?: string;
   private shiftContext = "";
   private linkedShift?: number;
@@ -85,6 +107,7 @@ export class ScaleExplorer implements LivePractice {
   private chordOpen = false;
   enter() {
     this.active = true;
+    this.publishMedia();
     document.addEventListener("keydown", this.onKeyDown);
     this.render();
     this.publishRoute();
@@ -95,9 +118,11 @@ export class ScaleExplorer implements LivePractice {
     this.chordOpen = false;
     this.body.patch({ shortcutsOpen: false, chordOpen: false });
     this.backing.pauseAll();
+    this.publishMedia();
   }
   dispose() {
     this.leave();
+    this.unlistenMedia();
     this.backing.dispose();
     this.disposeView();
   }

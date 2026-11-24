@@ -32,6 +32,7 @@ export type AppViews = {
   toolbar: ReactNode;
   volumeControl: ReactNode;
   getVolume(): number;
+  moveExercise(step: -1 | 1): void;
   builder: ReactNode;
   practice: ReactNode;
   settingsView: ReactNode;
@@ -44,6 +45,7 @@ function AppShell({
   toolbar,
   volumeControl,
   getVolume,
+  moveExercise,
   builder,
   practice,
   settingsView,
@@ -53,7 +55,7 @@ function AppShell({
   const saved = useSyncExternalStore(listener => preferences.subscribe(listener), () => preferences.state);
   const breathing = saved.selected === 'breathSquares';
   const setBreathing = (value: boolean) => preferences.update({ selected: value ? 'breathSquares' : 'warmup' });
-  const breath = useBreathSession(breathing && !settings, getVolume);
+  const breath = useBreathSession(breathing && !settings, getVolume, moveExercise);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const small = useMediaQuery('(max-width:359px)', undefined, { getInitialValueInEffect: false });

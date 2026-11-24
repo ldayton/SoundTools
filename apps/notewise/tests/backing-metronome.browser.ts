@@ -52,6 +52,7 @@ try {
       return (connect as Function).apply(this, args);
     } as typeof AudioNode.prototype.connect;
   });
+  await page.addInitScript(createRequire(import.meta.url)("../../../packages/browser-controls/test-fixtures/media-session.cjs").mediaSessionProbe);
   await page.goto(url + "/guitar/scales?key=A&scale=major");
   const backing = page.getByRole("region", {
     name: "Backing track",
@@ -81,6 +82,15 @@ try {
     .getByRole("status")
     .filter({ hasText: "Playing · looping" })
     .waitFor({ timeout: 60000 });
+  if (await page.evaluate(() => !!navigator.mediaSession)) {
+  await page.evaluate(() => { for (let i=0;i<2;i++) (window as any).mediaActions.get('pause')({action:'pause'}); });
+  assert.equal(await backing.getAttribute('data-status'), 'paused');
+  await page.evaluate(() => { for (let i=0;i<2;i++) (window as any).mediaActions.get('play')({action:'play'}); });
+  await backing.getByRole('status').filter({hasText:'Playing · looping'}).waitFor();
+  assert.equal(await page.evaluate(() => navigator.mediaSession.playbackState), 'playing');
+  } else {
+    assert.equal(await page.evaluate(() => (window as any).mediaActions.size), 0, 'Unsupported browsers leave system controls unbound and retain normal playback');
+  }
   await click.uncheck();
   assert.equal(await backing.getAttribute("data-status"), "playing");
   await click.check();

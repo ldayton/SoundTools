@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./note-wheel": "./note-wheel.ts"
+    "./note-wheel": "./note-wheel.ts",
+    "./media-session": "./media-session.ts"
   }
 }

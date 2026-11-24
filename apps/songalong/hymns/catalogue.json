@@ -125,5 +125,20 @@
       "the-1st-fingerstyle-blues"
     ],
     "editionKey": "the-1st-fingerstyle-blues"
+  },
+  {
+    "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+    "title": "Are You Washed in the Blood?",
+    "file": "are-you-washed-in-the-blood.abc",
+    "folder": "are-you-washed-in-the-blood",
+    "source": "user-supplied-score",
+    "sourceDetails": "Elisha A. Hoffman hymn in the Michael Kravchuk A-flat SATB setting, transcribed from the supplied Favorite-Scores archive; all four verses and the common refrain, including lower-voice echoes.",
+    "sourceUrl": "https://michaelkravchuk.com/wp-content/uploads/2017/12/Are-You-Washed-In-The-Blood-Ab-Major.pdf",
+    "defaultArrangement": "original",
+    "slug": "are-you-washed-in-the-blood",
+    "legacyIds": [
+      "are-you-washed-in-the-blood"
+    ],
+    "editionKey": "are-you-washed-in-the-blood"
   }
 ]

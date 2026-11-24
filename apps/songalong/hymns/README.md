@@ -2,7 +2,7 @@
 
 The unmodified ABC files in `source/` are from the Open Hymnal Project, maintained by Brian J. Dumont, mirrored at https://github.com/mzealey/openhymnal (commit `d35811b2d5c9b0bbc5887d60a2936454815416e8`). Each selected source explicitly marks its words, music and setting public domain. Original credits and source references are retained in each file. These are historical editions, not modern commercial arrangements.
 
-`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The library contains nine songs: 1st Fingerstyle Blues, Amazing Grace, Blessed Assurance, I’ll Fly Away, In Christ Alone, Jesus Loves Me, O Come, All Ye Faithful, Joy to the World and Silent Night. The first stanza is selected initially; the Stanzas checkboxes add aligned lyric rows. Common choruses and refrains are shown once, even when the first stanza is hidden. Playback and Wait for me continue through the checked stanzas in order, including the refrain on every pass. Playback uses one uninterrupted audio timeline and does not insert count-ins between stanzas; passage looping remains confined to the selected passage. The active stanza and its practice checkpoint are retained per hymn. With no stanzas checked, the music plays once without words.
+`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The library contains ten songs: 1st Fingerstyle Blues, Amazing Grace, Blessed Assurance, I’ll Fly Away, In Christ Alone, Jesus Loves Me, O Come, All Ye Faithful, Joy to the World, Silent Night and Are You Washed in the Blood? The first stanza is selected initially; the Stanzas checkboxes add aligned lyric rows. Common choruses and refrains are shown once, even when the first stanza is hidden. Playback and Wait for me continue through the checked stanzas in order, including the refrain on every pass. Playback uses one uninterrupted audio timeline and does not insert count-ins between stanzas; passage looping remains confined to the selected passage. The active stanza and its practice checkpoint are retained per hymn. With no stanzas checked, the music plays once without words.
 
 Run `npm run import:hymns --workspace=songalong` to reproduce `packages/music-practice/src/hymns.json` entirely offline. The importer extracts all underlaid `w:` stanzas (not unaligned `W:` text), normalizes older abcm2ps editorial decorations, and preserves the full harmony. Melody-only extracts the highest note of the first voice, retaining key, meter, duration, rests, ties, slurs, beaming and syllable alignment. Unsupported constructs or parser warnings fail the import instead of silently discarding music. Sources remain unchanged.
 
@@ -108,7 +108,31 @@ table in Playback options; this does not change any printed music or lyrics.
 
 ## Complete arrangement support
 
-All nine retained songs now have dedicated guitar and piano editions. The eight
+All ten retained songs now have dedicated guitar and piano editions. The nine
 songs with lyrics also offer Voice + Piano; Fingerstyle Blues stays instrumental.
 See [the checked support matrix](../../../docs/songalong-song-support.md) for
 source provenance, musical scope, practice stages and validation owners.
+
+## Are You Washed in the Blood? — supplied SATB score
+
+`are-you-washed-in-the-blood.abc` transcribes the Michael Kravchuk A-flat SATB
+setting from the supplied Favorite-Scores archive. The source URL and exact PDF
+SHA-256 are in the transcription header. Words and music are credited to Elisha
+A. Hoffman; setting credit and rights provenance remain separate from the Open
+Hymnal sources. This is a supplied practice score, not a claim that the modern
+setting is public domain.
+
+All four parts, four underlaid verses and the common refrain are preserved,
+including the lower voices' rhythmic echoes and rests. The D-natural in
+measure 3 belongs to Bb7/F and resolves to D-flat in the next measure. The
+refrain starts with a pickup on the last beat of measure 8. A one-beat opening
+and three-beat ending complete a 64-beat pass; each selected verse includes the
+refrain. Shared lyric sections keep it engraved once.
+
+The song opens on Voice + Piano, with an independent singer above the full
+source harmony. Dedicated Piano, fingerstyle Guitar and Guitar + Voice reuse
+the edition registry and shared controls. Guitar uses open G-family shapes at
+capo 1, with its instrumental melody an octave below the vocal line. Piano
+chords and guitar bass/string choices are authored practice adaptations, not
+changes to the archival SATB. See `docs/songalong-song-support.md` for their
+musical contract and regression owners.

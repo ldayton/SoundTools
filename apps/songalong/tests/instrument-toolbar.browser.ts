@@ -140,9 +140,10 @@ try {
     await expect(page.getByRole("checkbox",{name:"Show Voice",exact:true})).not.toBeChecked();
     await expect(page.getByRole("checkbox",{name:"Play Voice",exact:true})).not.toBeChecked();
     await page.locator("#hymn-key").click();
-    await expect(page.locator('[role="option"][value]')).toHaveCount(12);
-    await expect(page.locator(`[role="option"][value="${practiceHymn.key}"]`)).toHaveCount(0);
-    await expect(page.locator('[role="option"][value="original"]')).toBeVisible();
+    const keyMenu=page.getByRole("listbox",{name:"Key",exact:true});
+    await expect(keyMenu.getByRole("option")).toHaveCount(12);
+    await expect(keyMenu.locator(`[role="option"][value="${practiceHymn.key}"]`)).toHaveCount(0);
+    await expect(keyMenu.locator('[role="option"][value="original"]')).toBeVisible();
     await page.locator("#hymn-key").press("Escape");
     await selectHymnInstrument(page, "piano");
     await selectHymnScore(page, "piano");

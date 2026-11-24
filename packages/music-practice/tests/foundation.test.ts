@@ -116,6 +116,7 @@ test("live preferences reject damaged values without borrowing unrelated flashca
     mode: "wait",
     hands: "both",
     viewHands: "both",
+    staffChoices: {piano:{hiddenStaves:[],mutedStaves:[]}},
     hiddenStaves: [],
     mutedStaves: [],
     bpm: 80,

@@ -9,6 +9,7 @@ import {hymnPreferences,hymnSettingsFromQuery} from "../../../packages/music-pra
 import {hymnProgressKey,HymnProgress} from "../../../packages/music-practice/src/hymn-progress";
 import {songalongRecords,restoreSongalongRecords} from "../../../packages/music-practice/src/songalong-account-records";
 import {migrateLegacy} from "../../../packages/music-practice/src/durable-state";
+import {hymnTransposition} from "../../../packages/music-practice/src/hymn-transpose";
 import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 const open=[64,59,55,50,45,40];
 function source(hymn:typeof hymns[number]){const profile=chordEdition(hymn)!;return {abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position};}
@@ -20,7 +21,7 @@ for(const id of instrumentEditionIds)test(`${id}: capo advice preserves exact so
  const input=source(hymn),tune=abcjs.parseOnly(input.abc)[0],poly=new Map<number,boolean>();
  for(const l of tune.lines)for(const s of l.staff||[])for(const v of s.voices||[])for(const n of v)if(n.el_type==="note")poly.set(n.startChar!,(n.pitches?.length||0)>1);
  const notes=tune.setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"?[n]:[]));
- const choices=recommendGuitarCapos(input);assert(choices.length>=1&&choices.length<=3);assert(choices.some(c=>c.fret===input.sourceCapo&&c.scoreSetting));
+ const choices=recommendGuitarCapos(input);assert(choices.length>=1&&choices.length<=3);assert(choices.every(c=>c.cost<=choices[0].cost*1.25+5));
  assert.deepEqual(choices.map(c=>[c.fret,c.cost]),recommendGuitarCapos(input).map(c=>[c.fret,c.cost]));
  for(const c of choices){
   for(const n of notes){const p=capoPosition(c,n.pitch,poly.get(n.startChar!)||false)!;assert(p,`${hymn.slug} ${n.pitch}`);assert.equal(open[p.str]+p.num+c.fret,n.pitch+input.sourceCapo);assert(p.num>=0&&p.num+c.fret<=24);}
@@ -36,7 +37,7 @@ test("teacher score finds capo 2 from feasibility and chord ranking",()=>{
 });
 test("I'll Fly Away offers distinct useful shape families without changing the key",()=>{
  const h=hymns.find(h=>h.slug==="ill-fly-away")!,input=source(h),choices=recommendGuitarCapos(input);
- assert(choices.some(c=>c.fret===0&&c.shapeKey==="C"));assert(choices.some(c=>c.fret===3&&c.shapeKey==="A"));assert(choices.some(c=>c.fret===5&&c.shapeKey==="G"));
+ const manual=recommendGuitarCapos({...input,requestedCapo:0});assert(manual.some(c=>c.fret===0&&c.shapeKey==="C"));assert(choices.some(c=>c.fret===3&&c.shapeKey==="A"));assert(choices.some(c=>c.fret===5&&c.shapeKey==="G"));
  for(const c of choices){
   const rewritten=capoAccompanimentAbc(input.accompanimentAbc,c,-c.fret),tune=abcjs.parseOnly(rewritten)[0];assert.equal(tune.warnings?.length||0,0);
   const before=abcjs.parseOnly(input.accompanimentAbc)[0].setUpAudio({chordsOff:true}),after=tune.setUpAudio({chordsOff:true});assert.equal(after.totalDuration,before.totalDuration);
@@ -46,16 +47,28 @@ test("I'll Fly Away offers distinct useful shape families without changing the k
   const g7=c.voicings.get("G7")!;assert.deepEqual([...new Set(g7.notes.map(n=>(n.midi+c.fret)%12))].sort((a,b)=>a-b),[2,5,7,11]);assert.equal((g7.bassMidi+c.fret)%12,7);
  }
 });
+test("reference capo has no reserved shortlist slot; explicit choices retain priority",()=>{
+ const h=hymns.find(h=>h.slug==="ill-fly-away")!,input={...source(h),transpose:2};
+ const automatic=recommendGuitarCapos(input),manual=recommendGuitarCapos({...input,requestedCapo:2});
+ assert.equal(automatic[0].fret,0);assert(!automatic.some(c=>c.fret===2));
+ assert.deepEqual(manual.slice(0,automatic.length).map(c=>c.fret),automatic.map(c=>c.fret));
+ assert(manual.some(c=>c.fret===2&&c.scoreSetting));
+ const impossible=recommendGuitarCapos({...input,requestedCapo:11});
+ assert(!impossible.some(c=>c.fret===11),"Manual preferences cannot bypass physical feasibility");
+});
 test("impossible low bass is rejected rather than silently moved up an octave",()=>{
  const choices=recommendGuitarCapos({abc:'X:1\nL:1/4\nV:G clef=treble-8\nK:C\n[V:G] "C/E"[E,C]4 |]',sourceCapo:0,transpose:0,shapeKey:"C",positionFor:p=>p===40?{str:5,num:0}:p===48?{str:4,num:3}:undefined});
  assert.deepEqual(choices.map(c=>c.fret),[0]);
 });
-test("capo choices roundtrip through URLs, progress and account pitch records; old defaults remain original",()=>{
+test("capo choices roundtrip through URLs, progress and account pitch records; automatic defaults retain the original sounding key",()=>{
  const base=hymnPreferences(practiceHymn.id,{arrangement:"guitar-edition"});assert.equal(base.key,"original");assert.equal(base.capo,undefined);
  const selected=hymnSettingsFromQuery(base,new URLSearchParams({capo:"0"}));assert.equal(selected.capo,0);assert.equal(selected.key,"original");
  assert.notEqual(hymnProgressKey(base,practiceHymn.key),hymnProgressKey(selected,practiceHymn.key));
  assert.equal(hymnSettingsFromQuery(selected,new URLSearchParams({key:"E"})).capo,null);
  assert.equal(hymnSettingsFromQuery(selected,new URLSearchParams({capo:"99"})).capo,0);
+ const reference=hymnSettingsFromQuery(base,new URLSearchParams({capo:"score",key:"E"}));
+ assert.equal(reference.capo,((chordEdition(practiceHymn)!.capo+hymnTransposition(practiceHymn.key,"E").semitones)%12+12)%12);
+ assert.equal(reference.key,"E");
  const state=migrateLegacy({}),progress=new HymnProgress(undefined,[practiceHymn.id]);
  state.activities.sight=progress.snapshot(selected,practiceHymn.key,1);const records=songalongRecords(state);
  assert.equal((records[`hymn:${practiceHymn.id}:pitch`] as any).capo,0);
@@ -77,19 +90,28 @@ let choices=0,attacks=0;
 for(const h of hymns){const p=chordEdition(h);if(!p)continue;
  const abc=arrangeHymn(h,'guitar-edition',0).abc,accompanimentAbc=arrangeHymn(h,'guitar-edition',0,0,'left').abc;
  const original=abcjs.parseOnly(accompanimentAbc)[0].setUpAudio({chordsOff:true});
+ const fills=(abc:string)=>{const tune=abcjs.parseOnly(abc)[0],single=new Set<number>();
+  for(const line of tune.lines)for(const staff of line.staff||[])for(const voice of staff.voices||[])for(const n of voice)if(n.el_type==="note"&&n.pitches?.length===1)single.add(n.startChar!);
+  return tune.setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"&&single.has(n.startChar!)?[[n.pitch,n.start,n.duration]]:[]));};
  const rhythm=(audio:typeof original)=>[...new Set(audio.tracks.flatMap(t=>t.flatMap(n=>n.cmd==='note'?[`${n.start}:${n.duration}`]:[])))].sort();
- for(let totalShift=0;totalShift<12;totalShift++){
-  const options=recommendGuitarCapos({abc,accompanimentAbc,sourceCapo:p.capo,transpose:totalShift-p.capo,shapeKey:p.guitarKey||h.key,positionFor:p.position});
-  assert(options.some(c=>c.scoreSetting),`${h.slug}: retain score setting in every key`);
+ for(const accompanimentOnly of [false,true])for(let totalShift=0;totalShift<12;totalShift++){
+  const options=recommendGuitarCapos({abc:accompanimentOnly?accompanimentAbc:abc,accompanimentOnly,accompanimentAbc,sourceCapo:p.capo,transpose:totalShift-p.capo,shapeKey:p.guitarKey||h.key,positionFor:p.position});
+  assert(options.length>0,`${h.slug}: physically proven recommendation in every key`);
   for(const c of options){const rewritten=capoAccompanimentAbc(accompanimentAbc,c,totalShift-c.fret),tune=abcjs.parseOnly(rewritten)[0],audio=tune.setUpAudio({chordsOff:true});
    assert.equal(audio.totalDuration,original.totalDuration);assert.deepEqual(rhythm(audio),rhythm(original),`${h.slug}: preserve attacks, rests and ties`);
+   assert.deepEqual(fills(rewritten),fills(accompanimentAbc),`${h.slug}: retain exact instrumental fills`);
+   if(accompanimentOnly)for(const voicing of c.voicings.values()){
+    assert.equal(new Set(voicing.notes.map(n=>n.string)).size,voicing.notes.length);
+    assert(voicing.fingering.fingers.every(f=>f===null||f>=0&&f<=4));
+   }
    if(c.scoreSetting){assert.equal(rewritten,accompanimentAbc);continue;}
-   const labels=new Map<number,string>(),active=new Map<string,string>();
+   const labels=new Map<number,string>(),poly=new Set<number>(),active=new Map<string,string>();
    for(const l of tune.lines)for(const[si,s]of(l.staff||[]).entries())for(const[vi,v]of(s.voices||[]).entries())for(const n of v)if(n.el_type==='note'){
-    const id=`${si}:${vi}`,label=n.chord?.find((x:{position:string;name:string})=>x.position==='default')?.name;if(label)active.set(id,label);if(n.pitches?.length)labels.set(n.startChar!,active.get(id)!);
+    const id=`${si}:${vi}`,label=n.chord?.find((x:{position:string;name:string})=>x.position==='default')?.name;if(label)active.set(id,label);if(n.pitches?.length)labels.set(n.startChar!,active.get(id)!);if((n.pitches?.length||0)>1)poly.add(n.startChar!);
    }
    const groups=new Map<string,{symbol:string;pitches:number[]}>();
    for(const track of audio.tracks)for(const n of track)if(n.cmd==='note'){
+    if(accompanimentOnly&&!poly.has(n.startChar!))continue; // Single-note instrumental fills are not chord grips.
     const symbol=labels.get(n.startChar!)!;assert(symbol);const id=`${n.start}:${symbol}`,group=groups.get(id)||{symbol,pitches:[]};group.pitches.push(n.pitch+totalShift);groups.set(id,group);
    }
    for(const {symbol,pitches}of groups.values()){

@@ -204,28 +204,29 @@ export async function selectCapoPracticeHymn(){
   const profile=chordEdition(hymn);if(!profile)continue;
   const score=arrangeHymn(hymn,"guitar-edition",0),accompaniment=arrangeHymn(hymn,"guitar-edition",0,0,"left");
   const choices=recommendGuitarCapos({abc:score.abc,accompanimentAbc:accompaniment.abc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
-  const alternate=choices.find(c=>!c.scoreSetting);if(!alternate)continue;
+  const recommended=choices[0],alternate=choices.find(c=>c.fret!==recommended.fret&&!c.scoreSetting);if(!alternate)continue;
   const notes=abcjs.parseOnly(score.abc)[0].setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"?[n]:[]));
   const firstTime=Math.min(...notes.map(n=>n.start));
   const first=notes.filter(n=>n.start<=firstTime+1e-7&&n.start+n.duration>firstTime+1e-7).map(n=>n.pitch+profile.capo);
   const vocal=abcjs.parseOnly(arrangeHymn(hymn,"original",0).abc)[0].setUpAudio({chordsOff:true}).tracks[0].find(n=>n.cmd==="note");
   if(vocal?.cmd!=="note")continue;
-  return {hymn,profile,choices,alternate,first,firstVocal:vocal.pitch};
+  return {hymn,profile,choices,recommended,alternate,first,firstVocal:vocal.pitch};
  }
  throw Error("Capo controls require an authored score with an alternate playable position");
 }
 
-/** A fixed, positive capo in both guitar scores, to verify information without a picker. */
+/** A real single-option score; the shared picker rule is independent of Voice.
+ * Engine-revoiced vocal scores now offer alternatives rather than inheriting an
+ * artificial single option from an unplayable reference grip.
+ */
 export async function selectSingleCapoPracticeHymn(){
  const {chordEdition}=await import("../src/instrument-editions");
  const {recommendGuitarCapos}=await import("../src/guitar-capo");
- const {guitarVocalAccompaniment}=await import("../src/hymn-arrangements");
  for(const hymn of hymns){
-  const profile=chordEdition(hymn);if(!profile?.capo)continue;
+  const profile=chordEdition(hymn);if(!profile)continue;
   const accompanimentAbc=arrangeHymn(hymn,"guitar-edition",0,0,"left").abc;
-  const input={accompanimentAbc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position};
-  const scores=[arrangeHymn(hymn,"guitar-edition",0).abc,guitarVocalAccompaniment(hymn).abc];
-  if(scores.every(abc=>{const choices=recommendGuitarCapos({abc,...input});return choices.length===1&&choices[0].fret===profile.capo;}))return {hymn,capo:profile.capo};
+  const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+  if(choices.length===1&&choices[0].fret>0)return {hymn,capo:choices[0].fret};
  }
- throw Error("Single-capo controls require a real score with one positive capo in both guitar combinations");
+ throw Error("Single-capo controls require a real score with one positive capo");
 }

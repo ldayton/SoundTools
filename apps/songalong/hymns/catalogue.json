@@ -140,5 +140,23 @@
       "are-you-washed-in-the-blood"
     ],
     "editionKey": "are-you-washed-in-the-blood"
+  },
+  {
+    "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+    "title": "In the Sweet By and By",
+    "aliases": [
+      "Sweet By and By"
+    ],
+    "file": "in-the-sweet-by-and-by.abc",
+    "folder": "in-the-sweet-by-and-by",
+    "source": "user-supplied-score",
+    "sourceDetails": "Sanford F. Bennett / Joseph P. Webster hymn in the Michael Kravchuk F-major setting, transcribed from the supplied Favorite-Scores archive; three verses, full refrain, answering parts and final quarter rest.",
+    "sourceUrl": "https://michaelkravchuk.com/wp-content/uploads/2017/02/In-the-Sweet-By-and-By-F-Major.pdf",
+    "defaultArrangement": "original",
+    "slug": "in-the-sweet-by-and-by",
+    "legacyIds": [
+      "in-the-sweet-by-and-by"
+    ],
+    "editionKey": "in-the-sweet-by-and-by"
   }
 ]

@@ -34,7 +34,7 @@ export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   searchOpen: boolean;
   unmetered: boolean;
   originalKey: string;
-  capoChoices: {fret:number;shapeKey:string;recommended:boolean;scoreSetting:boolean}[];
+  capoChoices: {fret:number;shapeKey:string;recommended:boolean}[];
   effectiveCapo: number;
   noMatchingKey: boolean;
   availableKeys: HymnKey[];

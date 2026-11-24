@@ -3,7 +3,7 @@ import { hymnAvailableArrangements } from "./hymn-instruments";
 import {chordEdition} from "./chord-editions";
 import { validStanzas } from "./hymn-lyrics";
 import type { CountInBars } from "./hymn-count-in";
-import { isHymnKey, type HymnKey } from "./hymn-transpose";
+import { hymnTransposition, isHymnKey, type HymnKey } from "./hymn-transpose";
 import hymns from "./hymns.json";
 import {
   hasInstrumentEditions,
@@ -38,7 +38,7 @@ export type HymnSettings = {
   showChordSymbols?: boolean;
   staffChoices?: Record<string,{hiddenStaves:number[];mutedStaves:number[]}>;
   key?: HymnKey;
-  /** Null retains the reviewed score's capo; an explicit choice keeps the key. */
+  /** Null/absent follows the engine recommendation; a number is a user override. */
   capo?: number | null;
   octave?: number;
   low?: number | null;
@@ -216,7 +216,13 @@ export function hymnSettingsFromQuery(
   if (query.has("octave")) overrides.octave = Number(query.get("octave"));
   if (query.has("arrangement"))
     overrides.arrangement = query.get("arrangement");
-  return mergeHymnSettings(base, overrides);
+  const settings=mergeHymnSettings(base, overrides);
+  // Older explicit reference-arrangement links remain deliberate numeric choices.
+  if(query.get("capo")==="score"){
+    const hymn=hymns.find(h=>h.id===settings.hymn),profile=hymn&&chordEdition(hymn);
+    if(hymn&&profile)settings.capo=((profile.capo+hymnTransposition(hymn.key,settings.key).semitones)%12+12)%12;
+  }
+  return settings;
 }
 
 /** Right-sidebar settings belong to one hymn, with independent defaults. */

@@ -14,7 +14,8 @@ try{
   await page.addInitScript({content:await readFile(new URL("../../../packages/music-practice/test-fixtures/midi.js",import.meta.url),"utf8")});
   await page.goto(`${server.base}/piano/hymns/${fixture.hymn.slug}?arrangement=guitar-edition&mode=playback&display=both&key=original&octave=0`);
   await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();await openPracticeOptions(page);
-  await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.profile.capo));
+  await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.recommended.fret));
+  await expect(page.locator("#hymn-capo")).not.toContainText("score setting");
   const sourceFrets=await page.locator(".abcjs-tabNumber").allTextContents();
   const shape=fixture.alternate.shapeKey.replaceAll("#","♯").replaceAll("b","♭");
   await practiceOption(page,"#hymn-capo",String(fixture.alternate.fret));

@@ -8,6 +8,7 @@ This table is checked against the production registry by `song-support.test.ts`.
 | --- | --- | --- | --- | --- | --- |
 | In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Vocal line + guitar chord accompaniment | Teacher melody/rhythm/interlude in D; organ harmony follows teacher chord suggestions |
 | Are You Washed in the Blood? | Dedicated, capo 1 | Dedicated | Voice + complete source SATB harmony | Vocal line + guitar chord accompaniment | Hoffman/Kravchuk A-flat score; four verses, refrain pickup, lower-voice echoes and D-natural secondary dominant |
+| In the Sweet By and By | Dedicated reference, engine-selected capo | Dedicated | Voice + source chord-staff harmony in playable hand spans | Vocal line + engine-voiced guitar accompaniment | Bennett/Webster, Kravchuk F-major setting; three verses, refrain responses and final quarter rest |
 | Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal source; existing instrumental pitches and phrasing preserved |
 | I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Vocal line + guitar chord accompaniment | Supplied tab-music melody, ornaments, verse/chorus and fermata |
 | Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Source melody and complete refrain; E-flat sounding key |
@@ -59,9 +60,16 @@ Silent Night and Joy to the World end on root-position guitar tonic chords.
 The low melody supplies the root, with the remaining chord tones on separate
 upper strings, preserving the written melody without an artificial octave leap.
 
-Dedicated guitar scores support all twelve keys by moving the capo within frets
-0–11 while retaining reviewed chord shapes, fingerings and relative tab. The
-score heading, diagrams, MIDI grading and continuous/stanza audio use the same
+Dedicated guitar scores support all twelve keys. The engine considers every capo
+from 0–11, ranks physically proven positions, and selects the best by default.
+The table's capo numbers describe internal reference arrangements, not privileged
+recommendations. Reference arrangements get neither selection priority nor a
+reserved shortlist slot. Solo guitar preserves the exact melody and held bass;
+Guitar + Voice uses independently playable chord grips while retaining harmonic
+changes, rhythm, rests and single-note instrumental fills. Explicit numeric user
+choices survive reloads and instrument switches when physically valid, even if
+outside the recommended shortlist. Changing key returns to automatic selection.
+The score heading, diagrams, MIDI grading and continuous/stanza audio use the same
 capo. A capo selector appears only when multiple playable settings exist; a
 fixed capo stays visible in the score heading. The Original key option and per-song source-key defaults are unchanged.
 
@@ -137,3 +145,38 @@ strings/fingers and four-verse continuous playback. Existing registry-wide tests
 own twelve-key/capo support, choir routing, staff muting and account state.
 The required Nightly edition browser witness checks all four score combinations
 at desktop, tablet and phone widths, including all four selected verses.
+
+## In the Sweet By and By
+
+The Bennett/Webster hymn is transcribed from the supplied Kravchuk F-major PDF
+(SHA256 `51ec4eda3d61abee2ec9db465e141ed3595942a3849cf5618cfb18673afd7b2b`).
+Both printed chord staves, three verses, refrain answering rhythms and final
+quarter rest are retained in the archive. Voice + Piano extracts an independent
+vocal line and compacts oversized source hand spans without changing pitch
+classes, attacks or durations. The one-beat pickup plus sixteen complete bars
+makes a 65-beat pass; three selected verses last 195 beats.
+
+Piano and guitar are practice adaptations. The internal guitar reference uses
+D-family shapes at capo 3 in the printed F key; the engine chooses the capo for
+the selected score. The source contains no capo instruction. Piano chords fit a
+fifth; the fingerstyle guitar keeps held notes on distinct strings and ends on a
+root-position tonic, followed by the written rest. The adjustable 80 BPM practice
+default is not a tempo marking in the print.
+
+`in-the-sweet-by-and-by-editions.test.ts` independently specifies every source
+notehead, onset, duration and rest, three lyric underlays, the common refrain,
+instrumental melody/passages, physical string/finger occupancy and full-form
+playback for all four editions. Its required Nightly browser witness covers all
+four combinations at 320, 390, 768 and 1440 px. Registry tests retain twelve-key,
+harmony, staff muting and account coverage.
+
+Capo policy is owned by `guitar-capo.test.ts` (unprivileged ranking, explicit
+preferences, physical feasibility, all-key harmony/rhythm/fills and persistence)
+and the existing guitar/capo browser witnesses (automatic selection, key changes,
+manual overrides, diagrams, MIDI and reloads). Fixed-capo presentation uses a real
+single-option solo score; revoiced vocal scores now offer multiple alternatives.
+The shared picker rule remains the same for both combinations.
+
+The legacy-link browser witness retains its explicit capo-2 shape/MIDI contract.
+Its duplicate manual picker roundtrip is owned by `guitar-capo.browser.ts`, which
+also verifies the engine default, changed tab, diagrams and persistence.

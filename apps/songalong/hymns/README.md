@@ -41,8 +41,8 @@ landmarks, followed by Ending. Fingerings are manually selected for the source
 key/position: piano hand patterns and changes; guitar fretting fingers, selected
 string numbers and the opening i–m melody / p bass pattern. They can be toggled
 without changing the notes. Tab-only view includes independent rhythmic voices,
-rests, ties and double-stemmed half notes. The Reading guide explains these
-standard conventions. All annotations are separate from playback and grading.
+rests, ties and double-stemmed half notes. All annotations are separate from
+playback and grading.
 
 The piano ending omits the guitar chord’s inner doubled E, keeping the final
 left-hand E–B within a fifth while retaining the E7 harmony and melodic E.

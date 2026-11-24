@@ -36,8 +36,6 @@ export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   originalKey: string;
   capoChoices: {fret:number;shapeKey:string;recommended:boolean;scoreSetting:boolean}[];
   effectiveCapo: number;
-  guitarShapes: string;
-  capoScoreSetting: boolean;
   noMatchingKey: boolean;
   availableKeys: HymnKey[];
   keyRanges: Partial<Record<HymnKey, string>>;

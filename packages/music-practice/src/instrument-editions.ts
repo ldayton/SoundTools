@@ -10,7 +10,6 @@ import {
 import type { Hymn, HymnHands } from "./hymn-arrangements";
 import type { BeginnerInstrument } from "./beginner-score";
 import { bluesPianoAbc, bluesLandmarks } from "./fingerstyle-blues";
-import { editionGuides, type EditionGuide } from "./edition-guides";
 import { hymnLyricsAbc } from "./hymn-lyrics";
 import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
 import { jesusEdition, jesusFingers, jesusPosition } from "./jesus-loves-me";
@@ -70,7 +69,6 @@ export type ChordEditionKey =
 export type ChordEdition = InstrumentEdition & {
   id: ChordEditionId;
   guitarArrangement: "guitar-edition";
-  guide: EditionGuide;
   capo: number;
   pickup: boolean;
   tempo: number;
@@ -206,7 +204,6 @@ const chordEditions = new Map(
       ...recipe,
       id: hymnForEdition(key).id,
       editionKey: key,
-      guide: editionGuides[key as ChordEditionKey],
       guitarArrangement: "guitar-edition" as const,
       guitarNotation: "written" as const,
     },

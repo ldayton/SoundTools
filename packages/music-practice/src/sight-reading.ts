@@ -1297,8 +1297,6 @@ export class SightReading {
       effectiveCapo:this.capoChoice?.fret ?? chordEdition(this.hymn)?.capo ?? 0,
       capoChoices:this.capoChoices.map((choice,index)=>({fret:choice.fret,shapeKey:choice.shapeKey,recommended:index===0,scoreSetting:choice.scoreSetting})),
       capo:this.capo,
-      guitarShapes:this.capoChoice?.chords.join(", ") || chordEdition(this.hymn)?.shapes || "",
-      capoScoreSetting:this.capoChoice?.scoreSetting !== false,
       noMatchingKey: this.noMatchingKey,
       availableKeys: this.availableKeys,
       keyRanges: this.keyRanges,

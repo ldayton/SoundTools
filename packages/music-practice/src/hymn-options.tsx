@@ -71,7 +71,6 @@ export function HymnOptions({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
-  const capo=state.effectiveCapo;
   const keys = [
     {
       value: "original",
@@ -343,30 +342,6 @@ export function HymnOptions({
         )}
       </OptionsSection> : null}
       <Accordion id="hymn-source" order={3}>
-        {editions && <Accordion.Item value="reading-guide">
-          <Accordion.Control>Reading guide</Accordion.Control>
-          <Accordion.Panel>
-            <Stack gap="xs">
-              {profile ? <>
-                <Text size="sm">{profile.guide.meter}</Text>
-                {state.arrangement === "piano" ? <Text size="sm">Play the melody with your right hand and held harmony with your left. Small numbers suggest fingers: 1 is thumb, 5 is little finger. {profile.guide.piano}</Text> : <>
-                  <Text size="sm">Standard tuning · {capo ? `Capo ${capo}; frets and chord symbols are relative to the capo.` : 'No capo.'} Sounding key: {state.key === "original" ? state.originalKey : state.key} major. For chord accompaniment, strum at each chord symbol and let it ring.</Text>
-                  <Text size="sm">Melody stems point up; bass/harmony stems point down. Use your thumb for bass, index for inner harmony, and middle or ring for melody. {state.capoScoreSetting ? profile.guide.guitar : ""}</Text>
-                  <Text size="sm">For strumming use {state.guitarShapes}. {state.capoScoreSetting ? profile.guide.strum : ""} Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
-                  <Text size="sm">Chords only hides the notes. Select Chord accompaniment separately under Practice to practise strumming. Dots add half the duration; double stems in tab indicate half notes, double beams sixteenths. Ties sustain notes without plucking again.</Text>
-                </>}
-              </> : <>
-              <Text size="sm">A, B and C are four-bar phrases. Repeat these twelve bars, then play the Ending.</Text>
-              {state.arrangement === "piano" ? <Text size="sm">Small numbers suggest fingers: 1 is the thumb, 5 is the little finger. Fingerings mark starting patterns and hand changes. The final left-hand chord spans only a fifth.</Text> : <>
-                <Text size="sm">Numbers on tab lines are frets. Small 1–4 beside the notes are fretting fingers: index to little finger. Circled numbers identify strings. Open strings need no fretting finger.</Text>
-                <Text size="sm">Picking fingers: p = thumb, i = index, m = middle, a = ring. Use the thumb for the bass and alternate i and m for the melody.</Text>
-                <Text size="sm">In rhythmic tab, melody stems point up and bass stems point down. Half notes have double stems; whole notes have no stem. A tie means hold the note without plucking again.</Text>
-              </>}
-              <Text size="sm">Swing: play eighth-note pairs long–short. Keep the bass pulse steady while practising the melody.</Text>
-              </>}
-            </Stack>
-          </Accordion.Panel>
-        </Accordion.Item>}
         <Accordion.Item value="source">
           <Accordion.Control>{editions ? "About this song" : "About this hymn"}</Accordion.Control>
           <Accordion.Panel>

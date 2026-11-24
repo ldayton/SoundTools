@@ -118,7 +118,6 @@ test("one registry supplies instrument choices, capo help and renderer capabilit
     );
     const profile = chordEdition(hymn);
     if (!profile) continue;
-    assert(Object.values(profile.guide).every((text) => text.trim().length));
     assert.equal(Number.isInteger(profile.capo), true);
     if (profile.capo)
       assert(hymnArrangements(hymn).find(a=>a.id===edition.guitarArrangement)!.help.includes(`capo ${profile.capo}`));

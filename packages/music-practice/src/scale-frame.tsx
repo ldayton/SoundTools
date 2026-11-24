@@ -66,7 +66,9 @@ export function ScaleFrame({
           <Table.Tbody>
             {[
               ["← / →", "Tonic down / up one semitone"],
-              ["↑ / ↓", "Next shape or hand position toward higher / lower frets"],
+              s.maqamReference
+                ? ["↑ / ↓", "Hand position toward higher / lower frets"]
+                : ["↓ / ↑", "Next / previous numbered shape"],
               ["[ / ]", "Shift down / up one octave (12 frets)"],
               ["?", "Show or hide keyboard shortcuts"],
               ["Esc", "Close this panel"],

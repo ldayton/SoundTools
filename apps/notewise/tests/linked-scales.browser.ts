@@ -64,11 +64,11 @@ try {
  await page.waitForFunction(() => new URL(location.href).searchParams.get('position') === '0');
  await page.keyboard.press('[');
  assert.equal(new URL(page.url()).searchParams.get('position'),'0','lower octave limit');
- await page.keyboard.press('ArrowUp');
+ await page.keyboard.press('ArrowDown');
  await page.waitForFunction(() => new URL(location.href).searchParams.get('pattern') === '2');
  assert.equal(new URL(page.url()).searchParams.get('key'),'C');
  assert.equal(new URL(page.url()).searchParams.get('link'),'1');
- await page.keyboard.press('ArrowDown');
+ await page.keyboard.press('ArrowUp');
  await page.waitForFunction(() => new URL(location.href).searchParams.get('pattern') === '1');
  assert.equal(new URL(page.url()).searchParams.get('position'),'0');
  assert.equal(new URL(page.url()).searchParams.get('link'),'5');

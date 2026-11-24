@@ -158,5 +158,25 @@
       "in-the-sweet-by-and-by"
     ],
     "editionKey": "in-the-sweet-by-and-by"
+  },
+  {
+    "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+    "title": "Fairest Lord Jesus",
+    "aliases": [
+      "Beautiful Savior",
+      "Crusaders’ Hymn",
+      "St. Elizabeth"
+    ],
+    "file": "fairest-lord-jesus.abc",
+    "folder": "fairest-lord-jesus",
+    "source": "public-domain-score",
+    "sourceDetails": "Hymnary.org public-domain score in E-flat, Richard Storrs Willis setting; four printed verses, all four voices and the complete fifteen-bar form. Anonymous translation for verses 1-3; Joseph A. Seiss for verse 4.",
+    "sourceUrl": "https://hymnary.org/media/fetch/142891",
+    "defaultArrangement": "original",
+    "slug": "fairest-lord-jesus",
+    "legacyIds": [
+      "fairest-lord-jesus"
+    ],
+    "editionKey": "fairest-lord-jesus"
   }
 ]

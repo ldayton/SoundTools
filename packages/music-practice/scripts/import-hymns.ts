@@ -18,7 +18,7 @@ const curated = JSON.parse(
   folder: string;
   aliases?: string[];
   feel?: "swing";
-  source?: "tab-music" | "user-supplied" | "user-supplied-score";
+  source?: "tab-music" | "user-supplied" | "user-supplied-score" | "public-domain-score";
   sourceDetails?: string;
   defaultArrangement?: "original";
   accompanimentInstrument?: "organ";
@@ -177,6 +177,11 @@ const library = curated.map((entry) => {
       !/^C: copyright: Rights remain with /m.test(source)
     )
       throw Error("Missing printed-score provenance: " + entry.id);
+  } else if (entry.source === "public-domain-score") {
+    if (!entry.sourceDetails?.trim() || !entry.sourceUrl?.startsWith("https://") ||
+        !/^% Transcribed from public-domain printed score\.$/m.test(source) ||
+        !/^C: copyright: public domain\./im.test(source))
+      throw Error("Missing public-domain printed-score provenance: " + entry.id);
   } else if (!/^C: copyright: public domain\./im.test(source))
     throw Error("Uncleared score: " + entry.id);
   const clean = cleanSource(source);

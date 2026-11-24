@@ -49,7 +49,7 @@ test("screen chords allow sequential entry, saved positions are validated, and s
   assert.deepEqual(searchHymns(hymns, ""), hymns);
 });
 test("all imported melodies preserve soprano pitch, rhythm, rests, ties, and every lyric slot from their harmonized sources", () => {
-  assert.equal(hymns.length, 11);
+  assert.equal(hymns.length, 12);
   const notes = (source: string) =>
     abcjs
       .parseOnly(source)[0]

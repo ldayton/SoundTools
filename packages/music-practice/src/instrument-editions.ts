@@ -1,6 +1,7 @@
 import { blessedEdition, silentEdition, joyEdition, standardPosition, standardFingers } from "./standard-hymn-editions";
 import { washedEdition } from "./are-you-washed-in-the-blood";
 import { sweetEdition, sweetPosition, sweetFingers } from "./in-the-sweet-by-and-by";
+import { fairestEdition, fairestPosition, fairestFingers } from "./fairest-lord-jesus";
 import { canonicalHymnId, hymnForEdition } from "./hymn-identity";
 import {
   teacherInstrumentAbc,
@@ -60,6 +61,7 @@ export type InstrumentEdition = {
 };
 export type ChordEditionId = string;
 export type ChordEditionKey =
+  | "fairest-lord-jesus"
   | "in-the-sweet-by-and-by"
   | "are-you-washed-in-the-blood"
   | "blessed-assurance"
@@ -104,6 +106,11 @@ const buildFrom = (config: InstrumentHymn) => (context: BuildContext) =>
   );
 // Musical choices live in the song modules; shared consumers use these capabilities.
 const recipes: Record<ChordEditionKey, Recipe> = {
+  "fairest-lord-jesus": {
+    original:true, vocal:true, capo:3, tempo:80, pickup:false,
+    shapes:"C, Am, Dm, F, G, G7, A7 and reviewed inversions", guitarKey:fairestEdition.guitarKey,
+    fingers:fairestFingers,position:fairestPosition,build:buildFrom(fairestEdition),
+  },
   "in-the-sweet-by-and-by": {
     original:true, vocal:true, capo:3, tempo:80, pickup:true,
     shapes:"D, G, A, A7, Em/G and D/A", guitarKey:sweetEdition.guitarKey,

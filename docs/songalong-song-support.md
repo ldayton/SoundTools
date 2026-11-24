@@ -8,6 +8,7 @@ This table is checked against the production registry by `song-support.test.ts`.
 | --- | --- | --- | --- | --- | --- |
 | In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Vocal line + guitar chord accompaniment | Teacher melody/rhythm/interlude in D; organ harmony follows teacher chord suggestions |
 | Are You Washed in the Blood? | Dedicated, capo 1 | Dedicated | Voice + complete source SATB harmony | Vocal line + guitar chord accompaniment | Hoffman/Kravchuk A-flat score; four verses, refrain pickup, lower-voice echoes and D-natural secondary dominant |
+| Fairest Lord Jesus | Dedicated reference, engine-selected capo | Dedicated | Voice + complete source SATB in playable hand spans | Vocal line + engine-voiced guitar accompaniment | Hymnary.org/Willis E-flat score; all four verses, fifteen full bars, tied opening phrase and chromatic secondary dominants |
 | In the Sweet By and By | Dedicated reference, engine-selected capo | Dedicated | Voice + source chord-staff harmony in playable hand spans | Vocal line + engine-voiced guitar accompaniment | Bennett/Webster, Kravchuk F-major setting; three verses, refrain responses and final quarter rest |
 | Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal source; existing instrumental pitches and phrasing preserved |
 | I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Vocal line + guitar chord accompaniment | Supplied tab-music melody, ornaments, verse/chorus and fermata |
@@ -180,3 +181,38 @@ The shared picker rule remains the same for both combinations.
 The legacy-link browser witness retains its explicit capo-2 shape/MIDI contract.
 Its duplicate manual picker roundtrip is owned by `guitar-capo.browser.ts`, which
 also verifies the engine default, changed tab, diagrams and persistence.
+
+## Fairest Lord Jesus
+
+The public-domain Hymnary.org score (Richard Storrs Willis setting) owns the
+transcription and all four printed verse underlays. Its fifteen complete 4/4
+measures last 60 quarter beats, with no pickup, common refrain or appended Amen;
+four selected verses last 240 beats. Tied quarters in the third measure remain
+written separately, retaining the lyric slots and the sustained sound. This is
+the printed Fairest Lord Jesus underlay, including the fourth Beautiful Savior
+verse, rather than a renamed edition of the different Beautiful Savior text.
+
+The archive retains every SATB note and accidental. Voice + Piano gives the
+soprano an independent vocal staff and compacts oversized hand spans while
+retaining pitch classes and rhythm. Piano and guitar are practice adaptations:
+piano chords fit a fifth, minor/seventh colours remain audible, and the guitar
+ends on a root-position tonic. A low fifth bass and upper chord tones avoid the
+relative-minor root colliding with the melody on the A string. Its C-family,
+capo-3 guitar reference does not override runtime engine recommendations.
+The adjustable 80 BPM starting tempo is not printed in the source.
+
+`fairest-lord-jesus-editions.test.ts` owns independent pitch/rhythm/tie goldens for
+all four printed voices, the four complete underlays, chromatic chord colours,
+passages, string/finger occupancy and four-edition stanza playback. The required
+Nightly edition witness covers all four score combinations at 320, 390, 768 and
+1440 px, including the offline bundled transcription. Existing registry-wide
+checks own all-key capo, harmony, hand spans, muting, scheduling and persistence.
+
+Downloaded public-domain prints use the explicit `public-domain-score` source
+category. The importer requires a source URL, provenance, a transcription marker
+and a public-domain declaration. The original transcription remains available
+from About this song, using the same local/offline mechanism as supplied prints.
+
+The per-edition real-audio sustain witness explicitly selects the reference capo
+whose string assignments it models. Automatic recommendation and manual override
+wiring remain owned by the dedicated capo browser witness.

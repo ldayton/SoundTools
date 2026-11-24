@@ -1277,7 +1277,7 @@ export class SightReading {
   private optionsSnapshot(): HymnOptionsSnapshot {
     const tabMusic = "source" in this.hymn && this.hymn.source === "tab-music";
     const supplied = this.hymn.source === "user-supplied";
-    const printed = this.hymn.source === "user-supplied-score";
+    const printed = this.hymn.source === "user-supplied-score" || this.hymn.source === "public-domain-score";
     return {
       hymn: this.hymn.id,
       playbackStaves: isEditedGuitar(this.arrangement)

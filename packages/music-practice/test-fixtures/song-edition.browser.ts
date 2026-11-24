@@ -58,7 +58,7 @@ export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,
       await openPracticeOptions(page);
       for(const number of stanzas)await expect(page.locator("#hymn-stanzas input").nth(number-1)).toBeChecked();
       const hymn=hymns.find(h=>h.slug===slug)!;
-      if(width===1440 && "source" in hymn && hymn.source==="user-supplied-score"){
+      if(width===1440 && "source" in hymn && ["user-supplied-score","public-domain-score"].includes(hymn.source||"")){
         await page.getByRole("button",{name:"About this hymn",exact:true}).click();
         const source=page.getByRole("link",{name:"Transcribed printed score",exact:true});
         await expect(source).toBeVisible();

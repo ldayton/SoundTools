@@ -70,3 +70,19 @@ complete-program calibration and reproducible preview commands are recorded in
 The earlier table above describes the previous arrangements, still reproducible
 with the development reference arranger. Native recordings, mixer percentages
 and the shared mastering graph remain unchanged.
+
+## Approved arrangements: 24 November 2026
+
+The new scores and user-selected instrument balances passed all 36 complete-track checks. Both feels and tonalities retain the factory target. The comparison page is a separate local review tool. [Measurements](backing-approved-calibration.json).
+
+| Preset | LUFS | Maximum LRA | Highest true peak |
+| --- | --- | --- | --- |
+| rock / standard | -24.1 to -24.0 | 4.3 | -6.0 dBTP |
+| blues / standard | -24.5 to -24.4 | 3.5 | -5.7 dBTP |
+| folk / fingerpicked | -24.0 to -24.0 | 2.9 | -8.1 dBTP |
+| folk / strummed | -24.3 to -23.7 | 4.8 | -5.9 dBTP |
+| country / two-step | -24.2 to -23.8 | 4.0 | -6.2 dBTP |
+| gospel / standard | -24.1 to -23.9 | 6.6 | -5.8 dBTP |
+| reggae / standard | -24.2 to -24.2 | 2.7 | -6.4 dBTP |
+| funk / standard | -24.0 to -24.0 | 4.1 | -8.3 dBTP |
+| soul / standard | -24.1 to -24.0 | 2.4 | -9.4 dBTP |

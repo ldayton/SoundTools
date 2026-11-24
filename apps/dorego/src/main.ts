@@ -1,4 +1,5 @@
-import { bindMediaSession } from './media-session';
+import { adjacentExercise } from './exercise-navigation';
+import { bindMediaSession } from '@ldayton/ui/media-session';
 import { configurePlaybackSession } from './audio-session';
 import { bindExerciseUrl } from './exercise-url';
 import { ExerciseControls } from './maqamat-controls';
@@ -63,21 +64,21 @@ const updateMediaSession = bindMediaSession(
   (title) => new MediaMetadata({ title, artist: 'DoReGo' }),
   {
     play: () => {
-      if (preferences.state.selected === 'warmup' && mode !== 'playing' && mode !== 'starting')
+      if (systemWarmupActive() && mode !== 'playing' && mode !== 'starting')
         return togglePlay();
     },
     pause: () => {
-      if (preferences.state.selected === 'warmup' && (mode === 'playing' || mode === 'starting'))
+      if (systemWarmupActive() && (mode === 'playing' || mode === 'starting'))
         stop(false);
     },
     seek: (seconds) => {
-      if (preferences.state.selected === 'warmup') seekTo(seconds);
+      if (systemWarmupActive()) seekTo(seconds);
     },
     previous: () => {
-      if (preferences.state.selected === 'warmup') moveRound(-1);
+      moveExercise(-1);
     },
     next: () => {
-      if (preferences.state.selected === 'warmup') moveRound(1);
+      moveExercise(1);
     },
   }
 );
@@ -124,6 +125,7 @@ mountAppShell($('#app'), {
   shutdown: () => {
     exerciseUrls.dispose();
     renderFailed = true;
+    updateMediaSession('', 'ready');
     ++playRequest;
     reference.shutdown();
     player.shutdown();
@@ -140,6 +142,7 @@ mountAppShell($('#app'), {
     }),
   title: 'Warm-up',
   getVolume: () => spec.volume,
+  moveExercise,
   volumeControl: createElement(PracticeVolume, { model: practiceModel, volume: changeVolume }),
   toolbar: createElement(PracticeToolbar, {
     model: practiceModel,
@@ -296,13 +299,21 @@ function changeVolume(volume: number) {
   populate();
   update(true);
 }
+function systemWarmupActive() { return preferences.state.selected === 'warmup' && location.hash !== '#settings'; }
+function moveExercise(step: -1 | 1) {
+  if (location.hash === '#settings') return;
+  const next = adjacentExercise(spec.pattern, preferences.state.selected, step);
+  stop(false);
+  if (next.pattern) refresh({ pattern: next.pattern });
+  preferences.update({ selected: next.selected });
+}
 function updateSystemMedia(force = false) {
   updateMediaSession(
-    preferences.state.selected === 'warmup'
+    systemWarmupActive()
       ? (exercise.title ?? `${PATTERNS[spec.pattern].name} (${directionName(spec.direction)})`)
       : '',
-    preferences.state.selected === 'warmup' ? mode : 'ready',
-    preferences.state.selected === 'warmup'
+    systemWarmupActive() ? mode : 'ready',
+    systemWarmupActive()
       ? { position, duration: secondsAt(exercise.totalBeats, spec.bpm), force }
       : undefined
   );
@@ -516,6 +527,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+window.addEventListener('hashchange', () => updateSystemMedia(true));
 window.dispatchEvent(new Event('soundtools:ready'));
 preferences.subscribe((source) => {
   if (source === 'url') void account.changed();

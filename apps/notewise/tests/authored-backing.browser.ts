@@ -121,7 +121,7 @@ try {
       });
       assert.equal(first.style, style);
       assert.ok(
-        first.ids?.length,
+        first.ids?.every((id: string) => id.startsWith('approved-')),
         `${style}/${pattern}: authored content must reach the UI player`,
       );
       assert.equal(new Set(first.ids).size, 2);

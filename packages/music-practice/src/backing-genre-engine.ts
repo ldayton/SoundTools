@@ -1,3 +1,5 @@
+import { isMaqam } from "./maqamat";
+import { approvedBackingTake } from "./backing-approved";
 import {
   scalePracticeHarmony,
   type ScalePracticeQuality,
@@ -84,7 +86,7 @@ export function rawGenreBackingArrangement(
       break;
   }
 
-  if (scaleQuality && authored) {
+  if (scaleQuality && authored && !isMaqam(scaleQuality)) {
     const resolved = scalePracticeHarmony(plan, scaleQuality);
     const selected = backingPattern(style, pattern);
     const scored =
@@ -133,6 +135,16 @@ export function referenceGenreBackingArrangement(
       args[7],
       false,
     ),
+    args[6],
+  );
+}
+
+/** Production score; reference arrangers remain independently auditable. */
+export function approvedGenreBackingArrangement(
+  ...args: Parameters<typeof rawGenreBackingArrangement>
+): BackingTake {
+  return levelBackingSections(
+    approvedBackingTake(rawGenreBackingArrangement(...args), args[6], args[7]),
     args[6],
   );
 }

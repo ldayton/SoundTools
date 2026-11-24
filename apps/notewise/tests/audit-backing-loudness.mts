@@ -208,7 +208,8 @@ try {
                 const { BackingTrackPlayer } = await import(
                   /* @vite-ignore */ source + "backing-track-audio.ts"
                 );
-                const p: any = new BackingTrackPlayer();
+                const p: any =
+                  (window as any).__auditPlayer ?? new BackingTrackPlayer();
                 p.setStyle(style);
                 p.setPattern(pattern);
                 p.setKey(
@@ -237,10 +238,11 @@ try {
                 await ready;
                 if (p.model.getSnapshot().status !== "playing")
                   throw Error(JSON.stringify(p.model.getSnapshot()));
-                const live = p.context;
+                const live = p.context,
+                  liveBuses = p.buses;
                 p.pauseAll();
                 await new Promise((r) => setTimeout(r, 100));
-                (window as any).__loudness = { p, live };
+                (window as any).__loudness = { p, live, liveBuses };
               },
               {
                 source,
@@ -375,13 +377,15 @@ try {
                     pcm = new Uint8Array(audio.length * 8),
                     view = new DataView(pcm.buffer);
                   let peak = 0;
-                  for (let ch = 0; ch < 2; ch++)
+                  for (let ch = 0; ch < 2; ch++) {
+                    const channel = audio.getChannelData(ch);
                     for (let i = 0; i < audio.length; i++) {
-                      const n = audio.getChannelData(ch)[i];
+                      const n = channel[i];
                       if (!Number.isFinite(n)) throw Error("Nonfinite audio");
                       peak = Math.max(peak, Math.abs(n));
                       view.setFloat32(i * 8 + ch * 4, n, true);
                     }
+                  }
                   let encoded = "";
                   for (let i = 0; i < pcm.length; i += 16384)
                     encoded += String.fromCharCode(
@@ -490,9 +494,11 @@ try {
               );
             }
             await page.evaluate(() => {
-              const { p, live } = (window as any).__loudness;
+              const { p, live, liveBuses } = (window as any).__loudness;
               p.context = live;
-              p.dispose();
+              p.buses = liveBuses;
+              p.pauseAll();
+              (window as any).__auditPlayer = p;
               delete (window as any).__loudness;
             });
           }

@@ -33,7 +33,8 @@
     "./toolbar-disclosure": "./toolbar-disclosure.tsx",
     "./account-menu": "./account-menu.tsx",
     "./account-entry": "./account-entry.tsx",
-    "./panel-resizer": "./panel-resizer.tsx"
+    "./panel-resizer": "./panel-resizer.tsx",
+    "./media-session": "./media-session.ts"
   },
   "peerDependencies": {
     "react": "^19.2.0",

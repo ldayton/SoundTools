@@ -181,10 +181,15 @@ function paintSpectrum(slices,width,x,maximum=displayMaximum){
 }
 const transportUI=window.SoundglowShell.transport,feedbackUI=window.SoundglowShell.feedback;
 let transportLabel='MIC OFF';
+const updateSystemMedia=window.SoundglowControllers.bindMediaSession(navigator.mediaSession,title=>new MediaMetadata({title,artist:'Soundglow'}),{
+ play(){if(inputMode==='file'&&fileLibrary){if(!fileLibrary.wantPlay&&fileLibrary.isPaused)void fileLibrary.play();return;}if(running&&!starting&&paused)void togglePause(false)},
+ pause(){if(inputMode==='file'&&fileLibrary){fileLibrary.pause();return;}if(running&&!starting&&!paused)void togglePause(false)}
+});
+
 let microphoneId='',microphoneRefresh=0,exampleLoop=true,exampleListen=false;
 function publishTransport(){transportUI.publish({busy:starting,pauseEnabled:running,hidePause:!!filePreview||inputMode==='file',example:inputMode==='speech',microphone:microphoneId,loop:exampleLoop,listen:exampleListen})}
 function notice(message){feedbackUI.publish({notice:message})}
-function state(text,live=false){publishTransport();if(['CONNECTING','LOADING'].includes(text))window.SoundglowDiagnostics?.frame(performance.now(),false);window.SoundglowDiagnostics?.event('transport.state',{state:text});transportLabel=text;feedbackUI.publish({state:text,live})}
+function state(text,live=false){publishTransport();updateSystemMedia(running?(inputMode==='file'?(fileLibrary?.current?.name||'Recording'):inputMode==='speech'?'Speech example':'Microphone'):'',paused?'paused':'playing');if(['CONNECTING','LOADING'].includes(text))window.SoundglowDiagnostics?.frame(performance.now(),false);window.SoundglowDiagnostics?.event('transport.state',{state:text});transportLabel=text;feedbackUI.publish({state:text,live})}
 function stop(keepFileView=false){if(renderFailed)return;if(!keepFileView)clearFileView();if(inputMode==='file'){fileLibrary?.release();fileMediaSource?.disconnect();}window.SoundglowDiagnostics?.frame(performance.now(),false);notifyFeatures('stop');performanceSession?.break();last=0;carry=0;spectrumHistory.clear();rowCache=new WeakMap();heldPeak=newPeakState();featureHistory=[];drawAnalysis();processingStats.lastFrameTime=null;engine?.dispose();engine=null;pcmNode?.disconnect();pcmNode=null;frameQueue=[];currentSpectrumFrame=null;displayPeaks=[];displayMaximum=0;const stoppedMode=inputMode;running=false;if(speechNode){speechNode.onended=null;speechNode.stop();speechNode.disconnect();speechNode=null;}monitor?.disconnect();speechDestination=null;monitor=null;inputMode='mic';cancelAnimationFrame(raf);stream?.getTracks().forEach(t=>t.stop());source?.disconnect();if(audio&&audio.state!=='closed'){if(audio===fileAudioContext)audio.suspend().catch(()=>{});else audio.close().catch(()=>{});}stream=source=audio=null;paused=false;setIcon('freeze','⏸','Pause');setIcon('start','🎙︎','Start microphone');state('STOPPED');feedbackUI.publish({device:stoppedMode==='speech'?'SAMPLE STOPPED':'MICROPHONE OFF'});}
 const recoverable=e=>['NotReadableError','AbortError','OverconstrainedError','TrackStartError'].includes(e.name);
 async function microphones(){
@@ -232,10 +237,10 @@ async function start(){if(renderFailed||starting)return;revealActiveView();if(ru
 function selectedPresetLabel(){return ({soundglow:'Soundglow',praat:'Praat',voice:'Voice Tools',custom:'Unnamed Preset*'})[settingsState.selected]||savedPresets.find(p=>p.id===settingsState.selected)?.name||'Unnamed Preset*'}
 function updateResolution(){feedbackUI.publish({resolution:window.soundglowSession?.viewLabel?.()||selectedPresetLabel()})}
 
-async function togglePause(){
+async function togglePause(reveal=true){
   if(inputMode==='file'&&fileLibrary){await fileLibrary.toggle();return;}
   if(!running||starting)return;
-  revealActiveView();
+  if(reveal)revealActiveView();
   const next=!paused;starting=true;setBusy(true);
   try{
     if(inputMode==='speech'){if(next)await audio.suspend();else await audio.resume();}
@@ -409,7 +414,7 @@ function setIcon(id,icon,label){transportUI.publish(id==='start'?{startIcon:icon
 window.SoundglowShell.connectRecovery(()=>{
   renderFailed=true;returningHome=true;fileConnectEpoch++;filePreviewGeneration++;
   // The failed React tree has gone: shut down resources without repainting it.
-  running=false;paused=true;cancelAnimationFrame(raf);
+  running=false;paused=true;updateSystemMedia('','ready');cancelAnimationFrame(raf);
   const context=audio;audio=null;
   const cleanup=[
     ()=>stream?.getTracks().forEach(track=>track.stop()),

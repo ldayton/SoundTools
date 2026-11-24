@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "genres": {
+    "rock-standard": {
+      "drums": {
+        "db": 0,
+        "muted": false
+      },
+      "percussion": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": -3.5,
+        "muted": false
+      },
+      "guitar": {
+        "db": -7,
+        "muted": false
+      }
+    },
+    "funk-standard": {
+      "drums": {
+        "db": 0,
+        "muted": false
+      },
+      "percussion": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": -3.5,
+        "muted": false
+      },
+      "guitar": {
+        "db": 1,
+        "muted": false
+      }
+    },
+    "folk-strummed": {
+      "drums": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": 6,
+        "muted": false
+      },
+      "guitar": {
+        "db": -4.5,
+        "muted": false
+      }
+    },
+    "folk-fingerpicked": {
+      "drums": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": 1,
+        "muted": false
+      },
+      "guitar": {
+        "db": -9,
+        "muted": false
+      }
+    },
+    "blues-standard": {
+      "drums": {
+        "db": 0,
+        "muted": false
+      },
+      "percussion": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": -2,
+        "muted": false
+      },
+      "guitar": {
+        "db": -6,
+        "muted": false
+      },
+      "lead": {
+        "db": 0,
+        "muted": false
+      }
+    },
+    "country-two-step": {
+      "drums": {
+        "db": 1.5,
+        "muted": false
+      },
+      "bass": {
+        "db": 0,
+        "muted": false
+      },
+      "guitar": {
+        "db": -6.5,
+        "muted": false
+      },
+      "twang": {
+        "db": -8.5,
+        "muted": false
+      }
+    },
+    "reggae-standard": {
+      "drums": {
+        "db": 3,
+        "muted": false
+      },
+      "percussion": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": -0.5,
+        "muted": false
+      },
+      "guitar": {
+        "db": 0,
+        "muted": false
+      },
+      "organ": {
+        "db": 1,
+        "muted": false
+      }
+    },
+    "soul-standard": {
+      "drums": {
+        "db": 2,
+        "muted": false
+      },
+      "percussion": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": 3,
+        "muted": false
+      },
+      "guitar": {
+        "db": 0,
+        "muted": false
+      },
+      "keys": {
+        "db": -3,
+        "muted": false
+      }
+    },
+    "gospel-standard": {
+      "drums": {
+        "db": 1.5,
+        "muted": false
+      },
+      "percussion": {
+        "db": 0,
+        "muted": false
+      },
+      "bass": {
+        "db": 4,
+        "muted": false
+      },
+      "organ": {
+        "db": -6,
+        "muted": false
+      },
+      "piano": {
+        "db": -3.5,
+        "muted": false
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 import { expect, type Route } from "@playwright/test";
 import {
@@ -16,6 +17,7 @@ const server = await preview(
 const browser = await launchBrowser();
 try {
   const page = await newPage(browser);
+  await page.addInitScript(createRequire(import.meta.url)("../../../packages/browser-controls/test-fixtures/media-session.cjs").mediaSessionProbe);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.addInitScript(() => {
@@ -85,6 +87,15 @@ try {
     await expect(
       page.getByRole("button", { name: "Pause", exact: true }),
     ).toBeVisible();
+    if (await page.evaluate(() => !!navigator.mediaSession)) {
+    await page.evaluate(() => { for (let i=0;i<2;i++) (window as any).mediaActions.get('pause')({action:'pause'}); });
+    await expect(page.getByRole('button', {name:'Resume',exact:true})).toBeVisible();
+    assert.equal(await page.evaluate(() => navigator.mediaSession.playbackState),'paused');
+    await page.evaluate(() => { for (let i=0;i<2;i++) (window as any).mediaActions.get('play')({action:'play'}); });
+    await expect(page.getByRole('button', {name:'Pause',exact:true})).toBeVisible();
+    } else {
+      assert.equal(await page.evaluate(() => (window as any).mediaActions.size), 0);
+    }
     await expect(page.locator(".score-playhead")).toHaveCount(0);
     await expect(page.locator(".score-playback-position .sight-current").first()).toBeVisible();
     await page.getByRole("button", { name: "Pause", exact: true }).click();

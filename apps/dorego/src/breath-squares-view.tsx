@@ -1,3 +1,4 @@
+import { bindMediaSession } from '@ldayton/ui/media-session';
 import { preferences } from './preferences';
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Alert, Button, Group, Stack, Text, Title } from '@mantine/core';
@@ -8,14 +9,22 @@ import { ControlIcon } from '@ldayton/ui/control-icon';
 import { formatTime } from './music';
 import { BREATH_STEPS, breathAt, createBreathSession, type BreathSession } from './breath-squares';
 
-export function useBreathSession(enabled: boolean, getVolume: () => number) {
+export function useBreathSession(
+  enabled: boolean,
+  getVolume: () => number,
+  moveExercise: (step: -1 | 1) => void
+) {
   const [session] = useState(() => {
     return createBreathSession(preferences.state.breathing);
   });
-  const settings = useSyncExternalStore(listener => preferences.subscribe(listener), () => preferences.state.breathing);
+  const settings = useSyncExternalStore(
+    (listener) => preferences.subscribe(listener),
+    () => preferences.state.breathing
+  );
   useEffect(() => {
     const current = session.getSnapshot().settings;
-    if (current.rounds !== settings.rounds || current.seconds !== settings.seconds) session.configure(settings);
+    if (current.rounds !== settings.rounds || current.seconds !== settings.seconds)
+      session.configure(settings);
   }, [session, settings]);
   useEffect(() => {
     let previous = session.getSnapshot().settings;
@@ -31,6 +40,21 @@ export function useBreathSession(enabled: boolean, getVolume: () => number) {
       session.pause();
       return;
     }
+    const system = bindMediaSession(
+      navigator.mediaSession,
+      (title) => new MediaMetadata({ title, artist: 'DoReGo' }),
+      {
+        play: () => {
+          if (!['playing', 'starting'].includes(session.getSnapshot().mode)) session.toggle();
+        },
+        pause: session.pause,
+        next: () => moveExercise(1),
+        previous: () => moveExercise(-1),
+      }
+    );
+    const publish = () => system('Breath Squares', session.getSnapshot().mode);
+    publish();
+    const unsubscribeMedia = session.subscribe(publish);
     const metronome = new BreathMetronome(getVolume, session.audioReady, (error) => {
       session.audioFailed();
       diagnostics.capture(error, 'breathing.audio_failed');
@@ -67,11 +91,13 @@ export function useBreathSession(enabled: boolean, getVolume: () => number) {
       document.removeEventListener('visibilitychange', hide);
       document.removeEventListener('freeze', session.pause);
       window.removeEventListener('pagehide', session.pause);
+      unsubscribeMedia();
       session.pause();
       unsubscribe();
       metronome.dispose();
+      system('', 'ready');
     };
-  }, [enabled, session, getVolume]);
+  }, [enabled, session, getVolume, moveExercise]);
   return session;
 }
 export function BreathOptions({ session }: { session: BreathSession }) {

@@ -1,3 +1,4 @@
+import { bindMediaSession } from "@ldayton/ui/media-session";
 import {migrateHymnIdentity} from "./hymn-identity";
 import { abcHasChordSymbols, abcPlaybackStaves, legacyHiddenStaves, type PlaybackStaff } from "./hymn-playback-staves";
 import { hymnPlaybackInstrument } from "./hymn-instruments";
@@ -95,6 +96,37 @@ import { persistence } from "./persistence";
 import { HymnProgress, hymnProgressKey, type HymnState } from "./hymn-progress";
 import { hymnPlaybackScore } from "./hymn-playback-score";
 export class SightReading {
+  private systemMedia = bindMediaSession(
+    navigator.mediaSession,
+    (title) => new MediaMetadata({ title, artist: "SongAlong" }),
+    {
+      play: () => {
+        if (
+          !this.active ||
+          this.mode !== "playback" ||
+          !this.session ||
+          ["playing", "counting", "loading"].includes(this.playback.state)
+        )
+          return;
+        void this.playback.play(this.bpm, this.countInBars);
+        this.update();
+      },
+      pause: () => {
+        if (!this.active || this.mode !== "playback") return;
+        this.playback.pause();
+        this.update();
+      },
+    },
+  );
+  private publishMedia() {
+    const enabled = this.active && this.mode === "playback" && !!this.session;
+    const state = this.playback?.state;
+    this.systemMedia(
+      enabled ? this.hymn.title : "",
+      state === "counting" ? "playing" : state || "ready",
+    );
+  }
+
   private disposeView: () => void;
   private lifetime = new RendererLifetime();
   private body = hymnBodyState();
@@ -226,6 +258,7 @@ export class SightReading {
   dispose() {
     if (this.lifetime.disposed) return;
     this.active = false;
+    this.publishMedia();
     this.closeResults();
     this.playback.pause();
     this.lifetime.dispose();
@@ -594,6 +627,7 @@ export class SightReading {
   }
   leave() {
     this.active = false;
+    this.publishMedia();
     this.closeResults();
     this.interrupt("navigation");
     this.acceptanceChanged();
@@ -1575,6 +1609,7 @@ export class SightReading {
     this.update(true);
   }
   private update(scroll = false, preserveAcceptance = false) {
+    this.publishMedia();
     const session = this.session;
     if (!session) return;
     if (this.passage.selecting) {
@@ -1678,6 +1713,7 @@ export class SightReading {
     });
   }
   private updatePlayback() {
+    this.publishMedia();
     if (!this.session) return;
     let verse: (typeof this.playbackVerses)[number] | undefined;
     for (const candidate of this.playbackVerses) {

@@ -62,7 +62,8 @@ upper strings, preserving the written melody without an artificial octave leap.
 Dedicated guitar scores support all twelve keys by moving the capo within frets
 0–11 while retaining reviewed chord shapes, fingerings and relative tab. The
 score heading, diagrams, MIDI grading and continuous/stanza audio use the same
-capo. The Original key option and per-song source-key defaults are unchanged.
+capo. A capo selector appears only when multiple playable settings exist; a
+fixed capo stays visible in the score heading. The Original key option and per-song source-key defaults are unchanged.
 
 All scores use the shared content-based system fitter, which reserves annotation
 space before fingerings are enabled so toggling them does not move measures.

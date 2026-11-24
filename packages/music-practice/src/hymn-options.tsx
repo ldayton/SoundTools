@@ -162,7 +162,7 @@ export function HymnOptions({
               </Group>
             )}
           />
-          {(state.arrangement === "guitar-edition" || state.arrangement === "guitar-vocal") && state.capoChoices.length>0 && <NativeSelect
+          {(state.arrangement === "guitar-edition" || state.arrangement === "guitar-vocal") && state.capoChoices.length>1 && <NativeSelect
             id="hymn-capo" label="Capo" value={String(state.effectiveCapo)}
             data={state.capoChoices.map(choice=>({value:String(choice.fret),label:`${choice.fret ? `Capo ${choice.fret}` : "No capo"} · ${choice.shapeKey.replaceAll("#","♯").replaceAll("b","♭")} shapes${choice.recommended ? " (recommended)" : choice.scoreSetting ? " (score setting)" : ""}`}))}
             onChange={event=>change({capo:Number(event.currentTarget.value)})}

@@ -46,11 +46,11 @@ for(const id of instrumentEditionIds)test(`${id}: four combinations have indepen
    assert.deepEqual(actual.notes,[vocal.notes[0],shifted(accompaniment.notes[0],p.capo)],"Passage boundaries preserve each independent part");
   }
  }
- const cs=recommendGuitarCapos({abc:arrangeHymn(h,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(h,"guitar-edition",0,0,"left").abc,sourceCapo:p.capo,transpose:0,shapeKey:p.guitarKey||h.key,positionFor:p.position});
+ const cs=recommendGuitarCapos({abc:guitarVocalAccompaniment(h).abc,accompanimentOnly:true,accompanimentAbc:arrangeHymn(h,"guitar-edition",0,0,"left").abc,sourceCapo:p.capo,transpose:0,shapeKey:p.guitarKey||h.key,positionFor:p.position});
  for(const c of cs){
   const combined=read(arrangeHymn(h,"guitar-vocal",0,0,"both",undefined,0,c).abc);
   assert.deepEqual(combined.notes[0],melody.notes[0],"Changing capo must never transpose the singer");
-  if(!c.scoreSetting){const first=[...c.voicings.values()][0];assert.deepEqual(combined.notes[1].filter(n=>n[1]===0).map(n=>n[0]).sort((a,b)=>a-b),first.notes.map(n=>n.midi+c.fret).sort((a,b)=>a-b),"Alternate capo accompaniment sounds at the fixed concert key");}
+  if(!c.scoreSetting){const first=[...c.voicings.values()][0],start=guitar.notes[0][0][1];assert.equal(combined.notes[1][0][1],start,"Leading accompaniment rests remain intact");assert.deepEqual(combined.notes[1].filter(n=>n[1]===start).map(n=>n[0]).sort((a,b)=>a-b),first.notes.map(n=>n.midi+c.fret).sort((a,b)=>a-b),"Alternate capo accompaniment sounds at the fixed concert key");}
  }
 });
 test("combined score survives links, bookmarks and account restore without conflicting instrument fields",()=>{
@@ -61,8 +61,13 @@ test("combined score survives links, bookmarks and account restore without confl
 
 test("teacher guitar accompaniment carries the instrumental handoff after the sung ending",()=>{
  const h=hymns.find(h=>h.slug==="in-christ-alone")!;
- const notes=read(arrangeHymn(h,"guitar-vocal",0).abc).notes[1].filter(n=>n[1]>=12.375 && n[1]<15);
- assert.deepEqual(notes,[[64,12.375,.375],[66,12.75,.125],[64,12.875,.1875],[62,13.0625,.0625],[59,13.125,.375],[59,13.5,.125],[59,13.625,.1875],[62,13.8125,.0625],[62,13.875,.375],[54,14.25,.125],[55,14.375,.0625],[57,14.4375,.0625],[62,14.5,.5]]);
+ const p=chordEdition(h)!,abc=guitarVocalAccompaniment(h).abc;
+ const choices=recommendGuitarCapos({abc,accompanimentAbc:arrangeHymn(h,"guitar-edition",0,0,"left").abc,accompanimentOnly:true,sourceCapo:p.capo,transpose:0,shapeKey:p.guitarKey||h.key,positionFor:p.position});
+ assert(choices.length>0);
+ for(const choice of [undefined,...choices]){
+  const notes=read(arrangeHymn(h,"guitar-vocal",0,0,"both",undefined,0,choice).abc).notes[1].filter(n=>n[1]>=12.375 && n[1]<15);
+  assert.deepEqual(notes,[[64,12.375,.375],[66,12.75,.125],[64,12.875,.1875],[62,13.0625,.0625],[59,13.125,.375],[59,13.5,.125],[59,13.625,.1875],[62,13.8125,.0625],[62,13.875,.375],[54,14.25,.125],[55,14.375,.0625],[57,14.4375,.0625],[62,14.5,.5]],`Interlude survives capo ${choice?.fret??"reference"}`);
+ }
 });
 test("lowering the singer by an octave leaves guitar pitches and capo unchanged",()=>{
  for(const h of hymns.filter(h=>chordEdition(h))){

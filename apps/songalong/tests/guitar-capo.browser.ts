@@ -49,6 +49,19 @@ try{
    await page.evaluate(ns=>{for(const n of ns)(window as any).midiTest.send([0x90,n,100]);},pitches);
    await expect(page.locator(".hymn-count")).not.toHaveText(beforeChord!);
    await page.evaluate(ns=>{for(const n of ns)(window as any).midiTest.send([0x80,n,0]);},pitches);
+   await page.getByRole("button",{name:"Voice",exact:true}).click();
+   await expect(page.getByRole("radio",{name:"Guitar",exact:true})).toHaveAttribute("data-arrangement","guitar-vocal");
+   await practiceOption(page,"#hymn-hands","right");await closePracticeOptions(page);
+   const beforeVoice=await page.locator(".hymn-count").textContent();
+   await page.evaluate(n=>(window as any).midiTest.send([0x90,n,100]),fixture.firstVocal);
+   await expect(page.locator(".hymn-count")).not.toHaveText(beforeVoice!);
+   await page.evaluate(n=>(window as any).midiTest.send([0x80,n,0]),fixture.firstVocal);
+   await practiceOption(page,"#hymn-hands","left");await closePracticeOptions(page);
+   const beforeAccompaniment=await page.locator(".hymn-count").textContent();
+   await page.evaluate(ns=>{for(const n of ns)(window as any).midiTest.send([0x90,n,100]);},pitches);
+   await expect(page.locator(".hymn-count")).not.toHaveText(beforeAccompaniment!);
+   await page.evaluate(ns=>{for(const n of ns)(window as any).midiTest.send([0x80,n,0]);},pitches);
+
   }
   assert.deepEqual(errors,[]);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.close();
   console.log(`PASS ${width}px: recommended capo, fixed sounding key, alternate tab, diagram, reload and instrument persistence`);

@@ -237,7 +237,7 @@ try {
     await waitForApp(page, ".hymn-toolbar-instruments");
     await expect(
       page.getByRole("radio", { name: "Guitar", exact: true }),
-    ).toHaveAttribute("aria-pressed", "true");
+    ).toHaveAttribute("aria-checked", "true");
     assert.deepEqual(errors, []);
     await page.close();
     console.log(`PASS teacher editions ${width}px`);

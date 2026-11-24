@@ -208,7 +208,9 @@ export async function selectCapoPracticeHymn(){
   const notes=abcjs.parseOnly(score.abc)[0].setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"?[n]:[]));
   const firstTime=Math.min(...notes.map(n=>n.start));
   const first=notes.filter(n=>n.start<=firstTime+1e-7&&n.start+n.duration>firstTime+1e-7).map(n=>n.pitch+profile.capo);
-  return {hymn,profile,choices,alternate,first};
+  const vocal=abcjs.parseOnly(arrangeHymn(hymn,"original",0).abc)[0].setUpAudio({chordsOff:true}).tracks[0].find(n=>n.cmd==="note");
+  if(vocal?.cmd!=="note")continue;
+  return {hymn,profile,choices,alternate,first,firstVocal:vocal.pitch};
  }
  throw Error("Capo controls require an authored score with an alternate playable position");
 }

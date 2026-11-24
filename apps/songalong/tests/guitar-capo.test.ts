@@ -124,3 +124,14 @@ for(const h of hymns){const p=chordEdition(h);if(!p)continue;
 }
 assert(choices>0 && attacks>0,"Audit must exercise alternate voicings");
 });
+
+test("generated chords avoid redundant accidentals while preserving natural/sharp cancellations and bar resets",()=>{
+ const abc='X:1\nM:4/4\nL:1/8\nV:G clef=treble-8\nK:D\n[V:G] "D"[DAdf]2 =F2 ^F2 F2 | =F2 ^F2 F2 F2 |]';
+ const choice=recommendGuitarCapos({abc,accompanimentAbc:abc,sourceCapo:0,transpose:0,shapeKey:"D",positionFor:()=>undefined,accompanimentOnly:true,requestedCapo:0}).find(c=>c.fret===0)!;
+ assert(choice);const rewritten=capoAccompanimentAbc(abc,choice,0),tune=abcjs.parseOnly(rewritten)[0];
+ assert.equal(tune.warnings?.length||0,0);
+ assert(!/\[[^\]]*[_=^][^\]]*\]/.test(rewritten),"D chord's notes are already in the key signature");
+ assert.equal((rewritten.match(/=F/g)||[]).length,2);assert.equal((rewritten.match(/\^F/g)||[]).length,2);
+ const single=new Set<number>();for(const line of tune.lines)for(const staff of line.staff||[])for(const voice of staff.voices||[])for(const n of voice)if(n.el_type==="note"&&n.pitches?.length===1)single.add(n.startChar!);
+ assert.deepEqual(tune.setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"&&single.has(n.startChar!)?[n.pitch]:[])),[53,54,54,53,54,54,54]);
+});

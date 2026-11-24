@@ -2,6 +2,7 @@ import abcjs from "abcjs";
 import {searchGuitarChords,findGuitarFingering,type GuitarChordVoicing} from "./guitar-chord-search";
 export type CapoPosition={str:number;num:number};
 type PositionFor=(pitch:number,chord:boolean,transpose?:number)=>CapoPosition|undefined;
+/** scoreSetting only means reuse exact reference voicings; it grants no ranking preference. */
 export type CapoChoice={fret:number;shapeKey:string;chords:string[];cost:number;scoreSetting:boolean;positions:ReadonlyMap<string,CapoPosition>;fingers:ReadonlyMap<string,number>;accompaniment?:ReadonlyMap<string,{positions:ReadonlyMap<string,CapoPosition>;fingers:ReadonlyMap<string,number>}>;voicings:ReadonlyMap<string,GuitarChordVoicing>;reasons:string[]};
 const tuning=[64,59,55,50,45,40]; // abcjs high-E-first order
 const limits={maxFingers:4,allowBarres:true};
@@ -124,6 +125,32 @@ export function capoPosition(choice:CapoChoice,pitch:number,chord:boolean,transp
  return positions.get(keyOf(pitch-transpose,chord)) || positions.get(keyOf(pitch-transpose,!chord));
 }
 
+/** Generated pitches are explicit for safety. Engraving only needs an accidental
+ * when it differs from the key or an earlier accidental in that voice/bar.
+ */
+function simplifyAccidentals(source:string){
+ const tune=abcjs.parseOnly(source)[0],states=new Map<string,Map<string,number>>(),edits:{start:number;end:number;text:string}[]=[];
+ const offsets:Record<string,number>={natural:0,sharp:1,flat:-1,dblsharp:2,dblflat:-2};
+ for(const line of tune.lines)for(const[si,staff]of(line.staff||[]).entries())for(const[vi,voice]of(staff.voices||[]).entries()){
+  const id=`${si}:${vi}`,state=states.get(id)||new Map<string,number>();states.set(id,state);
+  const defaults=new Map((staff.key?.accidentals||[]).map(a=>[a.note.toUpperCase(),offsets[a.acc]]));
+  for(const note of voice){
+   if(note.el_type==="bar")state.clear();
+   if(note.el_type!=="note")continue;
+   const before=source.slice(note.startChar!,note.endChar!);
+   const after=before.replace(/"[^"\n]*"|([_=^]+)([A-Ga-g])([,']*)/g,(all,acc:string,letter:string,tail:string)=>{
+    if(!acc)return all;
+    const octave=Number(letter===letter.toLowerCase())+[...tail].reduce((sum,c)=>sum+(c==="'"?1:-1),0),id=`${letter.toUpperCase()}:${octave}`;
+    const value=acc==="="?0:acc[0]==="^"?acc.length:-acc.length,prior=state.get(id)??defaults.get(letter.toUpperCase())??0;
+    state.set(id,value);return value===prior?letter+tail:all;
+   });
+   if(after!==before)edits.push({start:note.startChar!,end:note.endChar!,text:after});
+  }
+ }
+ for(const e of edits.sort((a,b)=>b.start-a.start))source=source.slice(0,e.start)+e.text+source.slice(e.end);
+ return source;
+}
+
 /** Alternative accompaniment uses ranked chord voicings. Melody/bass editions
  * retain every written pitch; accompaniment may redistribute chord octaves.
  */
@@ -150,5 +177,5 @@ export function capoAccompanimentAbc(source:string,choice:CapoChoice,shapeTransp
   }
  }
  for(const e of edits.sort((a,b)=>b.start-a.start))source=source.slice(0,e.start)+e.text+source.slice(e.end);
- return source;
+ return simplifyAccidentals(source);
 }

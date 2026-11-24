@@ -216,7 +216,7 @@ try {
     if (width === 1440) {
       await page.goto(
         server.base +
-          "/piano/hymns/ill-fly-away?arrangement=guitar-edition&display=both&mode=wait",
+          "/piano/hymns/ill-fly-away?arrangement=guitar-edition&display=both&mode=wait&capo=0",
       );
       await page.locator(".hymn-count").waitFor();
       await midiAction(page, "Connect MIDI keyboard");

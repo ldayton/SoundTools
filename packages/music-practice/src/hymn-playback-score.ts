@@ -5,7 +5,7 @@ import { chordEdition, capoAudio } from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
 import { guitarSustainAudio, type GuitarSustainEvent } from "./guitar-sustain";
 import abcjs, { type AudioTracks, type VoiceItem } from "abcjs";
-import { hymnEndingBar, hymnLyricsAbc, validStanzas } from "./hymn-lyrics";
+import { hymnEndingBar, hymnStanzaAbc, hymnLyricsAbc, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
   hymnMelodyOffset,
@@ -30,15 +30,18 @@ export function hymnPlaybackScore(options: {
   capoChoice?: CapoChoice;
   endingBar?: number;
   stanzas?: readonly number[];
+  stanza?: number;
   mutedStaves?: readonly number[];
 }) {
   const rhythmicLyrics = validStanzas(options.stanzas, options.hymn.stanzas.length)
     .some(number => options.hymn.stanzas[number - 1].syllables.some(token => /\s/.test(token)));
-  const lyricRhythm = (score: ReturnType<typeof arrangeHymn>) =>
-    options.hands === "left" || !rhythmicLyrics ? score.abc : hymnLyricsAbc(score.abc, {
-      hymn: options.hymn, selected: options.stanzas || [],
-      offset: hymnMelodyOffset(options.hymn, score.from),
+  const verseAbc = (score: ReturnType<typeof arrangeHymn>, stanza = options.stanza || 0) => {
+    const offset = hymnMelodyOffset(options.hymn, score.from);
+    const abc = options.hands === "left" ? score.abc : hymnStanzaAbc(score.abc, options.hymn, stanza, offset);
+    return options.hands === "left" || !rhythmicLyrics ? abc : hymnLyricsAbc(abc, {
+      hymn: options.hymn, selected: options.stanzas || [], offset,
     });
+  };
   const voicesFor = (audio: AudioTracks, abc: string) => {
     const staves = abcPlaybackStaves(abc);
     const vocal =
@@ -93,7 +96,7 @@ export function hymnPlaybackScore(options: {
     const selected = validStanzas(options.stanzas, options.hymn.stanzas.length);
     let offset = 0;
     const parts = (selected.length ? selected : [0]).map((number) => {
-      const abc = lyricRhythm(arrangeHymn(
+      const abc = verseAbc(arrangeHymn(
         options.hymn,
         options.arrangement,
         0,
@@ -102,7 +105,7 @@ export function hymnPlaybackScore(options: {
         number ? hymnEndingBar(options.hymn, [number]) : undefined,
         options.transpose,
         options.capoChoice,
-      ));
+      ), number);
       // Stanza selection owns the verse count. A final implicit repeat is
       // a direction to return for the next verse, not to sing this verse twice.
       const tune=abcjs.parseOnly(abc)[0], edits:{start:number;end:number}[]=[];
@@ -150,7 +153,7 @@ export function hymnPlaybackScore(options: {
     };
   }
   const arrange = (bars: number, section: number) =>
-    lyricRhythm(arrangeHymn(
+    verseAbc(arrangeHymn(
       options.hymn,
       options.arrangement,
       bars,

@@ -105,7 +105,8 @@ try {
       `PASS Guitar legacy-link migration and independent display ${width}px`,
     );
   }
-  // Real scheduling witnesses for every registry entry. Expected sustain math
+  // Real scheduling witnesses use explicit reference capos for every registry
+  // entry. Automatic capo selection is owned by guitar-capo.browser.ts. Sustain math
   // has independent melody, rest, harmony, repeat and string-reuse unit goldens.
   const audioPage=await newPage(browser,{viewport:{width:1440,height:1000}});
   const audioErrors:string[]=[];audioPage.on("pageerror",e=>audioErrors.push(e.message));
@@ -129,7 +130,7 @@ try {
     const expected=performNotes(playbackNotes(guitarSustainAudio(audio,abc)),{instrument:"guitar",positionFor:(p,chord)=>chordEdition(hymn)?.position(p-capo,chord,0)});
     const first=Math.min(...expected.map(n=>n.start));
     const durations=expected.filter(n=>n.start===first).map(n=>n.duration*.5+.045+.01).sort((a,b)=>a-b);
-    await audioPage.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=notation&mode=playback&tempo=120&countIn=0&key=original&octave=0`);
+    await audioPage.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=notation&mode=playback&tempo=120&countIn=0&key=original&octave=0${chordEdition(hymn)?`&capo=${capo}`:""}`);
     await expect(audioPage.locator(".hymn-paper")).toContainText("Let ring");
     await dismissPracticeDrawer(audioPage);
     await audioPage.getByRole("button",{name:"Play",exact:true}).click();

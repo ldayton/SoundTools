@@ -14,6 +14,7 @@ import {
   validStanzas,
   compactHymnLyrics,
   hymnEndingBar,
+  hymnStanzaAbc,
 } from "../../../packages/music-practice/src/hymn-lyrics";
 import {
   hymnPreferences,
@@ -34,6 +35,22 @@ const words = (tokens: string[]) =>
     .join(" ")
     .replace(/-\s+/g, "")
     .replace(/~/g, " ");
+
+test("verse-dependent ties split only new syllables in the lead, retaining accompaniment and unconditional ties", () => {
+  const source = `X:1\nM:4/4\nL:1/4\n%%score S | B\nV:S clef=treble\nV:B clef=bass\nK:C\n[V:S] "^keep-this"G-G C-C |]\n[V:B] G,4 |]`;
+  const hymn = {stanzas: [
+    {number:1,label:"Ruler",syllables:["Rul-","er","a","*"]},
+    {number:2,label:"Lord",syllables:["Lord","*","a","*"]},
+  ],lyricSections:[]};
+  const performance = (abc:string) => abcjs.parseOnly(abc)[0].setUpAudio({qpm:60,chordsOff:true}).tracks.map(t=>t.flatMap(n=>n.cmd==="note"?[[n.pitch,n.start*4,n.duration*4]]:[]));
+  const split = hymnStanzaAbc(source,hymn,1);
+  assert.deepEqual(performance(split),[[[67,0,1],[67,1,1],[60,2,2]],[[55,0,4]]]);
+  assert.match(split,/keep-this/);
+  assert.equal(hymnStanzaAbc(source,hymn,2),source);
+  assert.equal(hymnStanzaAbc(source,hymn,0),source,"Without words the printed articulation remains");
+  assert.equal(hymnStanzaAbc(split,hymn,1),split,"Applying a stanza twice is idempotent");
+  assert.match(source,/G-G C-C/,"The archived source is not mutated");
+});
 
 test("all bundled stanzas align to the melody, with unique first-word labels", () => {
   for (const h of hymns) {
@@ -251,4 +268,18 @@ test("melisma identities survive canonical offsets, row compaction and another s
   compactHymnLyrics(partial);
   const first=partial.lines[0].staff![0].voices![0].find(n=>n.el_type==="note")!;
   assert.equal(first.lyric![0].syllable,"_","a continuation keeps its row even when its word is on the previous system");
+});
+
+test("verse articulation treats explicit melismas as sustained syllables", async () => {
+  const {practiceHymn}=await import("../../../packages/music-practice/test-fixtures/hymns");
+  const {hymnStanzaAbc}=await import("../../../packages/music-practice/src/hymn-lyrics");
+  const hymn={...practiceHymn,stanzas:[
+    {number:1,label:"hold",syllables:["Held","_","End"]},
+    {number:2,label:"reattack",syllables:["One","two","End"]},
+  ],lyricSections:[]};
+  const source="X:1\nM:4/4\nL:1/4\nK:C\nC2- C D |]";
+  assert.equal(hymnStanzaAbc(source,hymn,1),source,"_ must not release a printed tie");
+  const separate=hymnStanzaAbc(source,hymn,2);
+  assert.equal(notes(separate)[0].pitches![0].startTie,undefined);
+  assert.equal(notes(separate)[1].pitches![0].endTie,undefined);
 });

@@ -1,0 +1,44 @@
+% Transcribed from public-domain printed score.
+% Source: Hymnary.org, https://hymnary.org/media/fetch/142891
+% PDF SHA-256: bffd508bd75e0ef5e42108cd48a849e143a7b90bad5451bdb98415b21db16bb5
+% All four printed parts and four lyric underlays retained. Fifteen complete bars.
+% The adjustable 80 BPM practice default is not a marking in the print.
+X:1
+T:Fairest Lord Jesus
+C: Words: Anonymous; verse 4: Joseph A. Seiss.
+C: Music: Silesian folk melody, 1842. Setting: Richard Storrs Willis.
+C: copyright: public domain. Score supplied by Hymnary.org; credit retained as requested in the printed source.
+S: Hymnary.org; Crusaders' Hymn (St. Elizabeth), Richard Storrs Willis setting.
+M:4/4
+L:1/4
+Q:1/4=80
+%%staves (S A) | (T B)
+V:S clef=treble stem=up
+V:A clef=treble stem=down
+V:T clef=bass stem=up
+V:B clef=bass stem=down
+K:Eb
+[V:S] E2 E E | (F D) E2 | G-G G G | (A F) G2 |
+w: Fair- est Lord Je- * sus, Rul- er of all na- * ture,
+w: Fair are the mea- * dows, Fair- er still the wood- * lands,
+w: Fair is the sun- * shine, Fair- er still the moon- * light,
+w: Beau- ti- ful Sa- * vior, Lord * of all na- * tions,
+[V:A] B,2 C C | (C B,) B,2 | E-E E =E | (F D) E2 |
+[V:T] G,2 G, G, | (A, F,) G,2 | B,-B, C C | (C B,) B,2 |
+[V:B] E,2 C, C, | (A,, B,,) E,2 | (E, D,) C, B,, | (A,, B,,) E,2 |
+[V:S] B2 (e c) | B2 (A G) | A2 G2 | F4 | B2 c B | (B G) A2 |
+w: O Thou of God and * man the Son; Thee will I che- * rish,
+w: Robed in the bloom- ing * garb of spring; Je- sus is fairer, * Je-
+w: And all the twin- kling, * star- ry host; Je- sus shines brigh- * ter,
+w: Son of * God and * Son of man! Glo- ry and ho- * nor,
+[V:A] E2 E2 | E2 (F E) | F2 E2 | D4 | E2 E E | =E2 F2 |
+[V:T] G,2 (C A,) | G,2 B,2 | B,2 B,2 | B,4 | B,2 A, G, | (G, C) C2 |
+[V:B] E,2 (A,, C,) | E,2 E,2 | D,2 E,2 | B,,4 | G,,2 A,, B,, | C,2 F,2 |
+[V:S] A2 B A | (A F) G G | G G B A | G2 F2 | E4 |]
+w: Thee will I ho- * nor, Thou, my soul's glo- ry, joy, and crown.
+w: sus is pu- rer, * Who makes the wo- e- ful heart to sing.
+w: Je- sus shines pu- * rer Than all the an- gels' heav'n can boast.
+w: Praise, a- do- ra- * tion, Now and for- e- ver- more be Thine!
+[V:A] C2 C C | D2 E E | F E E E | E2 D2 | B,4 |]
+[V:T] F,2 =E, F, | (F, B,) B, B, | =B, C _D C | B,2 A,2 | G,4 |]
+[V:B] F,,2 G,, A,, | B,,2 E, E, | D, C, G,, A,, | B,,2 B,,2 | E,4 |]

@@ -2,7 +2,7 @@
 
 The unmodified ABC files in `source/` are from the Open Hymnal Project, maintained by Brian J. Dumont, mirrored at https://github.com/mzealey/openhymnal (commit `d35811b2d5c9b0bbc5887d60a2936454815416e8`). Each selected source explicitly marks its words, music and setting public domain. Original credits and source references are retained in each file. These are historical editions, not modern commercial arrangements.
 
-`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The library contains eleven songs: 1st Fingerstyle Blues, Amazing Grace, Blessed Assurance, I’ll Fly Away, In Christ Alone, Jesus Loves Me, O Come, All Ye Faithful, Joy to the World, Silent Night, Are You Washed in the Blood? and In the Sweet By and By The first stanza is selected initially; the Stanzas checkboxes add aligned lyric rows. Common choruses and refrains are shown once, even when the first stanza is hidden. Playback and Wait for me continue through the checked stanzas in order, including the refrain on every pass. Playback uses one uninterrupted audio timeline and does not insert count-ins between stanzas; passage looping remains confined to the selected passage. The active stanza and its practice checkpoint are retained per hymn. With no stanzas checked, the music plays once without words.
+`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The library contains twelve songs: 1st Fingerstyle Blues, Amazing Grace, Blessed Assurance, I’ll Fly Away, In Christ Alone, Jesus Loves Me, O Come, All Ye Faithful, Joy to the World, Silent Night, Are You Washed in the Blood? and In the Sweet By and By The first stanza is selected initially; the Stanzas checkboxes add aligned lyric rows. Common choruses and refrains are shown once, even when the first stanza is hidden. Playback and Wait for me continue through the checked stanzas in order, including the refrain on every pass. Playback uses one uninterrupted audio timeline and does not insert count-ins between stanzas; passage looping remains confined to the selected passage. The active stanza and its practice checkpoint are retained per hymn. With no stanzas checked, the music plays once without words.
 
 Run `npm run import:hymns --workspace=songalong` to reproduce `packages/music-practice/src/hymns.json` entirely offline. The importer extracts all underlaid `w:` stanzas (not unaligned `W:` text), normalizes older abcm2ps editorial decorations, and preserves the full harmony. Melody-only extracts the highest note of the first voice, retaining key, meter, duration, rests, ties, slurs, beaming and syllable alignment. Unsupported constructs or parser warnings fail the import instead of silently discarding music. Sources remain unchanged.
 
@@ -108,7 +108,7 @@ table in Playback options; this does not change any printed music or lyrics.
 
 ## Complete arrangement support
 
-All eleven retained songs now have dedicated guitar and piano editions. The ten
+All twelve retained songs now have dedicated guitar and piano editions. The eleven
 songs with lyrics also offer Voice + Piano; Fingerstyle Blues stays instrumental.
 See [the checked support matrix](../../../docs/songalong-song-support.md) for
 source provenance, musical scope, practice stages and validation owners.
@@ -189,3 +189,23 @@ SHU in נָשׁוּבָה on the high D; לְזַמֵּר uses three ordinary ei
 retain their original tied lengths. Necessary added attacks are ordinary eighths
 or quarters, with no sixteenths or implicit tuplets. A sung performance can still
 choose expressive timing; these are editorial lyric settings of the supplied tune.
+
+## Fairest Lord Jesus — public-domain printed score
+
+`fairest-lord-jesus.abc` transcribes the Hymnary.org public-domain score, with
+words credited to the anonymous German/English tradition and verse 4 to Joseph
+A. Seiss; music is the Silesian melody in Richard Storrs Willis's setting. The
+source URL and exact PDF SHA-256 are in the header. All four printed parts and
+all four underlays are retained, including the source's tied quarters and
+E-natural, B-natural and D-flat harmony. The form is fifteen complete bars in
+E-flat major: 60 quarter beats per verse, without a refrain or added Amen.
+Playable melody articulation follows the active underlay: measure 3 has separate
+“Rul-er”/“Fair-er” attacks in verses 1–3 and a sustained “Lord” in verse 4.
+The archived print and accompanying piano voices retain their original ties.
+
+Voice + Piano preserves the source harmony in playable hand spans. Piano,
+solo Guitar and Guitar + Voice reuse the instrument registry and shared controls.
+The internal C-family/capo-3 reference is one arrangement; the engine chooses
+the capo by default. Independent printed-music goldens, physical/playback
+contracts and the required responsive Nightly browser witness are documented
+in the checked support matrix.

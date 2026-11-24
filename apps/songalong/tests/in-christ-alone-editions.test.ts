@@ -196,7 +196,7 @@ test("production playback keeps the teacher form and applies guitar capo exactly
     });
     assert.deepEqual(
       plan.verses?.map((v) => v.end - v.start),
-      [120, 120, 120, 120],
+      [60, 60, 60, 60],
     );
     plans.push(
       plan.audio.tracks[0].flatMap((n) =>

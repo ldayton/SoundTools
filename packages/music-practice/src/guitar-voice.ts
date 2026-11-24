@@ -5,7 +5,8 @@ import {capoAccompanimentAbc,transposeCapoChord,type CapoChoice} from "./guitar-
  * A per-staff MIDI transpose keeps the singer independent of the capo.
  */
 export function guitarVoiceAbc(melody:string,accompaniment:string,sourceCapo:number,transpose=0,choice?:CapoChoice){
- const capo=choice?.fret ?? sourceCapo+transpose,shapeShift=sourceCapo+transpose-capo;
+ const guitarShift=((sourceCapo+transpose)%12+12)%12-sourceCapo;
+ const capo=choice?.fret ?? sourceCapo+guitarShift,shapeShift=sourceCapo+guitarShift-capo;
  let guitar=(choice?capoAccompanimentAbc(accompaniment,choice,shapeShift):accompaniment).replace(/"\^[^"\n]*"/g,"");
  const quoted=[...guitar.slice(guitar.search(/^K:/m)).matchAll(/"([^"\n]+)"/g)].map(m=>transposeCapoChord(m[1],shapeShift));
  guitar=abcjs.strTranspose(guitar,abcjs.parseOnly(guitar),shapeShift);

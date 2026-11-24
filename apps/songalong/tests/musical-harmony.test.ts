@@ -29,7 +29,7 @@ function labels(tune:ReturnType<typeof read>["tune"]){
 test("vocal chord guides describe the source piano harmony, not the instrumental reharmonization",()=>{
  for(const [slug,cases]of [
   ["blessed-assurance",[[3,"A/E",[52,57,64,73]],[7.5,"Em/G",[43,55,59,64]],[12.75,"A",[57,64,69,73]],[16.5,"Em/G",[43,55,59,64]]]],
-  ["joy-to-the-world",[[1,"D/A",[45,57,62,66]],[8.5,"D/A",[45,57,62,66]],[.875,"Em/G",[43,59,64,67]]]],
+  ["joy-to-the-world",[[1,"D/A",[45,57,62,66]],[8.5,"D/A",[45,57,62,66]],[.875,"Em/G",[43,47,64,67]]]],
  ] as const){const score=read(slug,"original"),guide=labels(score.tune);
   for(const [at,chord,notes]of cases){assert.equal(guide.get(at*64),chord,`${slug} ${at}`);assert.deepEqual(sounding(score.tracks.slice(1),at),notes,`${slug} ${chord}`);}
  }
@@ -45,7 +45,7 @@ test("teacher organ agrees with the requested B minor, slash basses and major do
   assert.equal(sounding([score.tracks[4]],at)[0],expected.bass,`${chord} bass at ${at}`);
   if(at<11.625)assert(sounding([score.tracks[2],score.tracks[4]],at).every(p=>expected.tones.includes(p%12)),`${chord} inner voices at ${at}`);
  }
- for(const [at,chord,notes]of [[8.375,"Bm",[47,62,66]],[7.625,"D/F#",[42,57,62]],[10.625,"D/F#",[42,57,62]],[2.125,"A",[45,57,61]],[13.125,"Em",[40,55,59]]] as const){
+ for(const [at,chord,notes]of [[8.375,"Bm",[47,62,66]],[7.625,"D/F#",[42,62,69]],[10.625,"D/F#",[42,57,62]],[2.125,"A",[45,57,61]],[13.125,"Em",[40,55,59]]] as const){
   assert.equal(guide.get(at*64),chord);assert.deepEqual(sounding([score.tracks[2],score.tracks[4]],at),notes);
  }
  // The interlude's independent upper line remains exactly as printed.

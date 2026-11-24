@@ -1,3 +1,4 @@
+import {guitarVocalAccompaniment} from "./hymn-arrangements";
 import {recommendGuitarCapos,capoPosition,capoAccompanimentAbc,type CapoChoice} from "./guitar-capo";
 import { bindMediaSession } from "@ldayton/ui/media-session";
 import {migrateHymnIdentity} from "./hymn-identity";
@@ -968,10 +969,11 @@ export class SightReading {
       const capoEdition = (this.arrangement === "guitar-edition" || guitarVocal) && chordProfile;
       this.capoChoices=[];this.capoChoice=undefined;
       if(capoEdition){
-        const identity=`${this.hymn.id}:${transposition.semitones}`;
+        const guitarShift=guitarVocal ? ((chordProfile.capo+transposition.semitones)%12+12)%12-chordProfile.capo : transposition.semitones;
+        const identity=`${this.hymn.id}:${this.arrangement}:${guitarShift}`;
         let choices=this.capoCache.get(identity);
         if(!choices){
-          choices=recommendGuitarCapos({abc:arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:transposition.semitones,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position});
+          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position});
           this.capoCache.set(identity,choices);
         }
         this.capoChoices=choices;
@@ -1499,7 +1501,7 @@ export class SightReading {
       range,
       this.arrangement === "guitar-edition" ? null : this.low,
       this.arrangement === "guitar-edition" ? null : this.high,
-      (this.arrangement === "guitar-edition" || this.arrangement === "guitar-vocal") ? {min:-(chordEdition(this.hymn)?.capo || 0),max:11-(chordEdition(this.hymn)?.capo || 0)} : this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
+      this.arrangement === "guitar-edition" ? {min:-(chordEdition(this.hymn)?.capo || 0),max:11-(chordEdition(this.hymn)?.capo || 0)} : this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
     );
     this.availableKeys = choices
       .filter((choice) => choice.fits)

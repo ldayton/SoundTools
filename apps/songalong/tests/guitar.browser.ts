@@ -69,6 +69,14 @@ try {
     await openPracticeOptions(page);
     await expect(page.getByRole("checkbox",{name:"Show Voice",exact:true})).toBeChecked();
     await expect(page.getByRole("checkbox",{name:"Show Guitar",exact:true})).toBeChecked();
+    await expect(page.locator("#hymn-octave-down")).toBeEnabled();
+    const capoBefore=await page.locator("#hymn-capo").inputValue();
+    await page.locator("#hymn-octave-down").click();
+    await expect.poll(()=>new URL(page.url()).searchParams.get("octave")).toBe("-1");
+    await expect(page.locator("#hymn-capo")).toHaveValue(capoBefore);
+    await expect(page.locator(".hymn-paper svg").first()).toBeVisible();
+    await page.locator("#hymn-octave-up").click();
+    await expect.poll(()=>new URL(page.url()).searchParams.get("octave")).toBe("0");
     await dismissPracticeDrawer(page);
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
     await page.reload();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");

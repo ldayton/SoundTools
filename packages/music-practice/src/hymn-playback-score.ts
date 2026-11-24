@@ -3,7 +3,7 @@ import { instrumentEdition } from "./instrument-editions";
 import { abcPlaybackStaves, mutePlaybackStaves } from "./hymn-playback-staves";
 import { chordEdition, capoAudio } from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
-import abcjs, { type AudioTracks } from "abcjs";
+import abcjs, { type AudioTracks, type VoiceItem } from "abcjs";
 import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
@@ -92,7 +92,20 @@ export function hymnPlaybackScore(options: {
         options.transpose,
         options.capoChoice,
       ).abc;
-      const audio = readAudio(abc);
+      // Stanza selection owns the verse count. A final implicit repeat is
+      // a direction to return for the next verse, not to sing this verse twice.
+      const tune=abcjs.parseOnly(abc)[0], edits:{start:number;end:number}[]=[];
+      const voices=new Map<string,VoiceItem[]>();
+      for(const line of tune.lines)for(const [si,staff] of (line.staff||[]).entries())for(const [vi,voice] of (staff.voices||[]).entries()){
+        const id=`${si}:${vi}`;voices.set(id,[...(voices.get(id)||[]),...voice]);
+      }
+      for(const voice of voices.values()){
+        const bars=voice.filter(n=>n.el_type==="bar"),last=bars.at(-1);
+        if(last?.type==="bar_right_repeat" && !bars.some(n=>n.type==="bar_left_repeat" || n.type==="bar_dbl_repeat"))edits.push({start:last.startChar,end:last.endChar});
+      }
+      let pass=abc;
+      for(const e of edits.sort((a,b)=>b.start-a.start))pass=pass.slice(0,e.start)+"|]"+pass.slice(e.end);
+      const audio = readAudio(pass);
       const start = offset;
       offset += audio.totalDuration;
       return { audio, number, start: start * 4, end: offset * 4 };

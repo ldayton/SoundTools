@@ -167,7 +167,7 @@ export function HymnOptions({
             data={state.capoChoices.map(choice=>({value:String(choice.fret),label:`${choice.fret ? `Capo ${choice.fret}` : "No capo"} · ${choice.shapeKey.replaceAll("#","♯").replaceAll("b","♭")} shapes${choice.recommended ? " (recommended)" : choice.scoreSetting ? " (score setting)" : ""}`}))}
             onChange={event=>change({capo:Number(event.currentTarget.value)})}
           />}
-          {state.arrangement !== "guitar-edition" && state.arrangement !== "guitar-vocal" && <Group gap="xs" grow>
+          {state.arrangement !== "guitar-edition" && <Group gap="xs" grow>
             <Button
               id="hymn-octave-down"
               variant="default"

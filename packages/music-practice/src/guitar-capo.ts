@@ -142,7 +142,7 @@ export function capoAccompanimentAbc(source:string,choice:CapoChoice,shapeTransp
    if(!note.pitches?.length)continue;
    const voicing=choice.voicings.get(active.get(id)||"");if(!voicing)throw Error("Missing capo accompaniment voicing");
    const before=source.slice(note.startChar!,note.endChar!);
-   if(!/\[[^\]]+\]/.test(before))throw Error("Expected a guitar accompaniment chord");
+   if(!/\[[^\]]+\]/.test(before))continue; // Retain instrumental fills between sung phrases.
    edits.push({start:note.startChar!,end:note.endChar!,text:before.replace(/\[[^\]]+\]/,`[${voicing.notes.map(n=>token(n.midi-shapeTranspose)).join("")}]`)});
   }
  }

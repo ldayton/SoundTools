@@ -192,6 +192,7 @@ export function teacherInstrumentAbc(
   hymn: { harmony: string; title: string },
   instrument: BeginnerInstrument,
   part: "right" | "left" | "both" = "both",
+  vocalAccompaniment = false,
 ) {
   const guitar = instrument === "guitar",
     strumming = guitar && part === "left";
@@ -242,7 +243,7 @@ export function teacherInstrumentAbc(
         return `${bar === 0 && event.at === 0 ? "[P:Verse] " : bar === 17 && event.at === 0 ? "[P:Interlude] " : ""}${guitar && chord ? `"${shapes[chord]}"` : ""}${position ? `"^${position}"` : ""}${token(event)}`;
       })
       .join(" ");
-    leadBars.push(`${strumming ? accompaniment : lead}${end}`);
+    leadBars.push(`${strumming && !(vocalAccompaniment && bar >= 16) ? accompaniment : lead}${end}`);
     if (!strumming && (!guitar || part !== "right"))
       bassBars.push(`${accompaniment}${end}`);
   }

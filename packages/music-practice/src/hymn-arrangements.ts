@@ -2,7 +2,8 @@ import {guitarVoiceAbc} from "./guitar-voice";
 import type {CapoChoice} from "./guitar-capo";
 import { voicePianoAbc } from "./voice-piano";
 import { vocalHarmonyGuides } from "./vocal-harmony-guides";
-import { teacherVocalAbc } from "./in-christ-alone";
+import {compactPianoHands} from "./piano-voicing";
+import { teacherInstrumentAbc, teacherVocalAbc } from "./in-christ-alone";
 import {chordEdition,instrumentEdition} from "./instrument-editions";
 import {engraveEdition,selectEditionVoice,isGuitarPositionMark} from "./edition-score";
 import abcjs, { type VoiceItem } from "abcjs";
@@ -223,6 +224,12 @@ function serialize(bars: Bar[], melody = false) {
 }
 /** One source bass pitch at a time. Repeated pitches become held notes, not extra attacks. */
 /** Build an instrument edition or extract its authoritative source melody. */
+export function guitarVocalAccompaniment(hymn:Hymn, sectionBars=0, section=0, endingBar?:number) {
+  if(instrumentEdition(hymn)?.editionKey !== "in-christ-alone")
+    return arrangeHymn(hymn,"guitar-edition",sectionBars,section,"left",endingBar);
+  const score=arrangeHymn({...hymn,id:`${hymn.id}:guitar-accompaniment`,key:"C",harmony:teacherInstrumentAbc(hymn,"guitar","left",true)},"original",sectionBars,section,"both",endingBar);
+  return {...score,abc:engraveEdition(score.abc,true,"written","left")};
+}
 export function arrangeHymn(
   hymn: Hymn,
   arrangement: Arrangement,
@@ -241,16 +248,16 @@ export function arrangeHymn(
   if(arrangement === "guitar-vocal"){
     const profile=chordEdition(hymn);if(!profile || !edition?.original)throw Error("Guitar + Voice is unavailable");
     const vocal=arrangeHymn(hymn,"original",sectionBars,section,"both",endingBar);
-    const melody=selectEditionVoice(vocal.abc,"right"),accompaniment=arrangeHymn(hymn,"guitar-edition",sectionBars,section,"left",endingBar).abc;
+    const melody=selectEditionVoice(vocal.abc,"right"),accompaniment=guitarVocalAccompaniment(hymn,sectionBars,section,endingBar).abc;
     const harmony=guitarVoiceAbc(melody,accompaniment,profile.capo,guitarTranspose,capoChoice);
     return {...vocal,abc:selectEditionVoice(harmony,hands)};
   }
   if (arrangement === "original" && edition?.editionKey === "in-christ-alone")
-    return arrangeHymn({...hymn,id:`${hymn.id}:harmonized`,harmony:teacherVocalAbc(hymn.harmony)},arrangement,sectionBars,section,hands,endingBar,guitarTranspose);
+    return arrangeHymn({...hymn,id:`${hymn.id}:harmonized`,harmony:compactPianoHands(teacherVocalAbc(hymn.harmony),1)},arrangement,sectionBars,section,hands,endingBar,guitarTranspose);
   if (arrangement === "original" && edition?.vocal) {
     const profile = chordEdition(hymn)!;
     const guitar = edition.build({hymn,instrument:"guitar",hands:"both",melody:()=>arrangeHymn(hymn,"melody",0).abc});
-    return arrangeHymn({...hymn,id:`${hymn.id}:voice`,harmony:voicePianoAbc(hymn.harmony,guitar,profile.capo,vocalHarmonyGuides[edition.editionKey])},"original",sectionBars,section,hands,endingBar,guitarTranspose);
+    return arrangeHymn({...hymn,id:`${hymn.id}:voice`,harmony:voicePianoAbc(compactPianoHands(hymn.harmony),guitar,profile.capo,vocalHarmonyGuides[edition.editionKey])},"original",sectionBars,section,hands,endingBar,guitarTranspose);
   }
   if (edition && (arrangement === "piano" || arrangement === edition.guitarArrangement)) {
     const guitar = arrangement === edition.guitarArrangement;

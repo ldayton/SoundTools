@@ -301,7 +301,7 @@ try {
     db.close();return value.state.activities.sight;
   });
   assert.equal(stored.hymn,stagedHymn.id);
-  assert.equal(stored.catalogueRevision,2);
+  assert.equal(stored.catalogueRevision,3);
   assert.equal(stored.preferences[stagedHymn.id].bpm,94);
   assert.equal(stored.preferences[stagedHymn.slug],undefined);
   assert.equal(stored.favorites[stagedHymn.id],true);

@@ -4,6 +4,7 @@ const identity = createHymnIdentityIndex(catalogue);
 export const canonicalHymnId = identity.id;
 export const hymnSlug = identity.slug;
 export const hymnForEdition = identity.edition;
+export const HYMN_CATALOGUE_REVISION = 3;
 
 const retired = "in-christ-alone-2",
   canonical = "in-christ-alone";
@@ -78,6 +79,22 @@ export function migrateHymnIdentity<T>(input: T): T {
     }
     state[field] = target;
   }
-  state.catalogueRevision = 2;
+  if ((state.catalogueRevision || 0) < 3) {
+    // These original scores gained an independent vocal staff before the two
+    // existing piano staves. Preserve the intent of old Show/Play selections.
+    const shifted = new Set(["blessed-assurance","silent-night","joy-to-the-world"].map(canonicalHymnId));
+    const visited = new WeakSet<object>();
+    const shift = (settings: Record<string, any>, id: string) => {
+      if (!shifted.has(id) || settings.arrangement !== "original" || visited.has(settings)) return;
+      visited.add(settings);
+      for (const field of ["hiddenStaves", "mutedStaves"])
+        if (Array.isArray(settings[field]))
+          settings[field] = settings[field].filter((index:unknown)=>index === 0 || index === 1).map((index:number)=>index+1);
+    };
+    if (typeof state.hymn === "string") shift(state,state.hymn);
+    for (const [id,settings] of Object.entries(state.preferences || {}))
+      if (settings && typeof settings === "object") shift(settings as Record<string,any>,id);
+  }
+  state.catalogueRevision = HYMN_CATALOGUE_REVISION;
   return state as T;
 }

@@ -1,4 +1,4 @@
-import {canonicalHymnId, migrateHymnIdentity} from "./hymn-identity";
+import {canonicalHymnId, migrateHymnIdentity, HYMN_CATALOGUE_REVISION} from "./hymn-identity";
 import hymns from "./hymns.json";
 import { hymnEndingBar } from "./hymn-lyrics";
 import {
@@ -167,7 +167,7 @@ export class HymnProgress {
     return {
       ...settings,
       version: 1,
-      catalogueRevision: 2,
+      catalogueRevision: HYMN_CATALOGUE_REVISION,
       hymn: canonicalHymnId(settings.hymn),
       zoom,
       zoomByLayout: { ...this.zoomByLayout },

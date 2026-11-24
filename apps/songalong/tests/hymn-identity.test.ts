@@ -189,7 +189,7 @@ test("account saves retain the catalogue revision and do not remap teacher verse
   };
   const restored = restoreSongalongRecords(legacy);
   const records = songalongRecords(restored);
-  assert.equal(records["current:catalogueRevision"],2);
+  assert.equal(records["current:catalogueRevision"],3);
   assert.equal(records["current:hymn"],id);
   assert.deepEqual(records[`hymn:${id}:stanzas`],[2,4]);
   assert.deepEqual(songalongRecords(restoreSongalongRecords(records)),records);
@@ -246,4 +246,22 @@ test("removed song preferences cannot replace a retained song or reappear as fav
   assert.deepEqual(progress.favorites,{[retained.id]:true});
   assert.equal(progress.preferences[removed],undefined);
   assert.equal(mergeHymnSettings(hymnPreferences(retained.id),{hymn:removed}).hymn,retained.id);
+});
+
+
+test("new vocal staves migrate old piano Show/Play selections exactly once, including account snapshots",()=>{
+  for(const slug of ["blessed-assurance","silent-night","joy-to-the-world"]){
+    const id=canonicalHymnId(slug);
+    const raw={catalogueRevision:2,hymn:id,arrangement:"original",hiddenStaves:[0],mutedStaves:[1],
+      preferences:{[id]:{hymn:id,arrangement:"original",hiddenStaves:[1],mutedStaves:[0]}}};
+    const state=migrateHymnIdentity(raw);
+    assert.deepEqual(state.hiddenStaves,[1]);assert.deepEqual(state.mutedStaves,[2]);
+    assert.deepEqual(state.preferences[id].hiddenStaves,[2]);assert.deepEqual(state.preferences[id].mutedStaves,[1]);
+    assert.deepEqual(migrateHymnIdentity(state),state);assert.deepEqual(raw.hiddenStaves,[0]);
+    const durable=migrateLegacy({});durable.activities.sight=raw as any;
+    const restored=restoreSongalongRecords(songalongRecords(durable)).activities.sight as any;
+    assert.equal(restored.catalogueRevision,3);assert.deepEqual(restored.hiddenStaves,[1]);assert.deepEqual(restored.mutedStaves,[2]);
+  }
+  assert.deepEqual(migrateHymnIdentity({catalogueRevision:2,hymn:canonicalHymnId("in-christ-alone"),arrangement:"original",hiddenStaves:[0]}).hiddenStaves,[0]);
+  assert.deepEqual(migrateHymnIdentity({catalogueRevision:2,hymn:canonicalHymnId("silent-night"),arrangement:"bass",hiddenStaves:[0]}).hiddenStaves,[0]);
 });

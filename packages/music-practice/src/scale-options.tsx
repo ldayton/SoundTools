@@ -33,7 +33,18 @@ export function ScaleOptions({
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <Stack className="soundtools-ui">
+    <Stack
+      className="soundtools-ui"
+      role="group"
+      aria-label="Scale controls"
+      tabIndex={-1}
+      onChange={(event) => {
+        // A committed selection hands arrows back to the scale shortcuts. Keep
+        // focus inside the phone drawer, without scrolling or adding a Tab stop.
+        if (event.target instanceof HTMLSelectElement)
+          event.currentTarget.focus({ preventScroll: true });
+      }}
+    >
       <NativeSelect
         id="scale-key"
         label="Key"

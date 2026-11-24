@@ -8,6 +8,9 @@ For both systems, ↓ advances the numbered shape (1 → 2), and ↑ reverses it
 Navigation stops at each end of the selector: 1–7 for Berklee and C–A–G–E–D
 for CAGED. Linked shapes move together and stop if either would cross an end.
 Use the octave shortcuts explicitly to move a pattern by twelve frets.
+Committing a scale-control selection releases dropdown focus so shortcuts work
+immediately. Focus stays within the options panel on phones; shortcuts still
+pause while an input is focused for editing.
 
 Berklee numbering follows [Jens Larsen's published chart](https://jenslarsen.nl/major-scale-7-positions-berklee-system/)
 top to bottom. In C major, regions 1–7 begin F, G, A, B, C, D, E. These numbers

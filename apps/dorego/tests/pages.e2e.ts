@@ -305,8 +305,42 @@ try {
     await page.locator('#note-repeats').isVisible(),
     'Arpeggio & Scale exposes note repeats'
   );
+  // Disabled counts reserve their real space on desktop and touch layouts.
+  for (const width of [1280, 393]) {
+    await page.setViewportSize({ width, height: 900 });
+    await openMoreOptions(page);
+    if (width === 393) await page.locator('#repeatHomeCount-up').waitFor();
+    const geometry = () => page.locator('#note-repeats').evaluate((section) => {
+      const box = section.getBoundingClientRect();
+      return { height: box.height, fields: ['repeatTurnCount', 'repeatHomeCount'].map((id) => {
+        const field = section.querySelector(`#${id}`)!.getBoundingClientRect();
+        return [field.x - box.x, field.y - box.y, field.width, field.height];
+      }) };
+    });
+    const before = await geometry();
+    for (const id of ['repeatTurn', 'repeatHome']) {
+      const checkbox = page.locator(`#${id}`), count = page.locator(`#${id}Count`);
+      assert.ok(await count.isVisible(), 'Unchecked repeat count stays visible');
+      assert.ok(await count.isDisabled());
+      const value = await count.inputValue();
+      await checkbox.check();
+      assert.ok(await count.isEnabled());
+      assert.deepEqual(await geometry(), before, 'Enabling repeats must not move the controls');
+      await checkbox.uncheck();
+      assert.ok(await count.isDisabled());
+      assert.equal(await count.inputValue(), value, 'Disabling repeats retains the count');
+      if (width === 393) {
+        assert.ok(await page.locator(`#${id}Count-up`).isDisabled());
+        assert.ok(await page.locator(`#${id}Count-down`).isDisabled());
+      }
+      assert.deepEqual(await geometry(), before, 'Disabling repeats must not move the controls');
+    }
+    await page.screenshot({ path: `/tmp/dorego-repeat-controls-${width}.png`, fullPage: true });
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await openMoreOptions(page);
   await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
-  await page.getByRole('checkbox', { name: 'Home note on return', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Home note', exact: true }).check();
   assert.equal(await page.locator('#repeatTurnCount').inputValue(), '4');
   await page.locator('#repeatTurnCount').fill('8');
   await page.locator('#repeatTurnCount').press('Enter');
@@ -339,9 +373,9 @@ try {
   ]);
   await openMoreOptions(page);
   assert.ok(await page.locator('#note-repeats').isVisible());
-  assert.equal(await page.locator('label[for=repeatHome]').textContent(), 'Home note on return');
+  assert.equal(await page.locator('label[for=repeatHome]').textContent(), 'Home note');
   assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Highest note');
-  await page.getByRole('checkbox', { name: 'Home note on return', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Home note', exact: true }).check();
   await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
   await page.locator('#direction-down').click();
   assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Lowest note');

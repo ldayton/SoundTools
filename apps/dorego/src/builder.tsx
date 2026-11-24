@@ -338,9 +338,10 @@ export function Builder({
                 checked={!!spec.repeatTurn}
                 onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
               />
-              <div hidden={!spec.repeatTurn} style={{ flexShrink: 0 }}>
+              <div style={{ flexShrink: 0 }}>
                 <ToolbarNumber
                   id="repeatTurnCount"
+                  disabled={!spec.repeatTurn}
                   label={spec.direction === 'down' ? 'Lowest note count' : 'Highest note count'}
                   icon={null}
                   unit=""
@@ -354,13 +355,14 @@ export function Builder({
             <Group wrap="nowrap" justify="space-between">
               <Checkbox
                 id="repeatHome"
-                label="Home note on return"
+                label="Home note"
                 checked={!!spec.repeatHome}
                 onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
               />
-              <div hidden={!spec.repeatHome} style={{ flexShrink: 0 }}>
+              <div style={{ flexShrink: 0 }}>
                 <ToolbarNumber
                   id="repeatHomeCount"
+                  disabled={!spec.repeatHome}
                   label="Home note count"
                   icon={null}
                   unit=""

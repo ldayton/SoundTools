@@ -170,7 +170,7 @@ The first eleven notes each last one beat. The return, including the top C5, use
 **long–short–long–short–short–long**: C5 (2), A4 (1), G4 (2), E4 (1), D4 (1), C4 (2).
 **Falling first** mirrors this shape and rhythm in pitch, descending in groups of three
 before climbing stepwise back to its starting note. Under More options, repeat the
-**Highest note** (or **Lowest note**) and/or **Home note on return** for four strikes each;
+**Highest note** (or **Lowest note**) and/or **Home note** for four strikes each;
 the fourth strike retains the two-beat hold. It uses the usual starting-note chords and
 independent between-round progression, and requires a range of at least one octave.
 

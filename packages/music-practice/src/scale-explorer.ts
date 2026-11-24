@@ -3,6 +3,7 @@ import {isMaqam,MAQAMAT,maqamSource} from "./maqamat";
 import {maqamPositions} from "./maqam-guitar";
 import {
   BERKLEE_7PS_REFERENCE,
+  BERKLEE_SHAPES,
   berkleeOmissions,
   berkleeBounds,
   berkleePositions,
@@ -28,6 +29,7 @@ import {
   type ScaleOptionsState,
 } from "./scale-options";
 import {
+  CAGED_SHAPES,
   linkedPatternPositions,
   scaleShapeLabel,
   cagedChordDiagram,
@@ -205,8 +207,17 @@ export class ScaleExplorer implements LivePractice {
   }
   private moveShape(direction: number) {
     if(isMaqam(this.quality)){this.moveMaqamPosition(direction);return;}
+    if(this.shapeSet === "standard" && this.pattern === "map")return;
+    // Use the selectors' order, including CAGED's stable legacy IDs. A linked
+    // pair moves as a unit, so either endpoint reaching an edge stops the move.
+    const shapes: readonly string[] = this.shapeSet === "hila"
+      ? BERKLEE_SHAPES.map(String) : CAGED_SHAPES;
+    const next = shapes[shapes.indexOf(this.regionId()) + direction];
+    const nextLinked = this.linked === "none" ? "none"
+      : shapes[shapes.indexOf(this.linked) + direction];
+    if(!next || !nextLinked)return;
     if (this.shapeSet === "hila") {
-      const shape=(((this.hilaShape-1+direction+7)%7)+1) as BerkleeShape;
+      const shape=Number(next) as BerkleeShape;
       const [low,high]=berkleeBounds(shape);
       const current=berkleeBounds(this.hilaShape)[0]+this.shift;
       const delta=this.tonic-(isMajorScale(this.quality)?0:9);
@@ -215,18 +226,16 @@ export class ScaleExplorer implements LivePractice {
         .sort((a,b)=>Math.abs(low+a-current)-Math.abs(low+b-current))[0];
       if(shift===undefined)return;
       this.hilaShape=shape;
-      if(this.linked!=="none")this.linked=String(((Number(this.linked)-1+direction+7)%7)+1) as LinkedScaleShape;
+      this.linked=nextLinked as LinkedScaleShape;
       this.shift=shift;
       this.returnPosition = undefined;
       this.update();
       return;
     }
     if (this.pattern === "map") return;
-    const next = String(
-      ((Number(this.pattern) - 1 + direction + 5) % 5) + 1,
-    ) as Exclude<ScalePattern, "map">;
+    const shape = next as Exclude<ScalePattern, "map">;
     const [currentLow] = patternBounds(this.pattern, this.quality);
-    const [low, high] = patternBounds(next, this.quality);
+    const [low, high] = patternBounds(shape, this.quality);
     const current = currentLow + this.shift;
     const delta = this.tonic - (isMajorScale(this.quality) ? 0 : 9);
     const shift = [delta - 24, delta - 12, delta, delta + 12, delta + 24]
@@ -238,12 +247,9 @@ export class ScaleExplorer implements LivePractice {
         (a, b) => Math.abs(low + a - current) - Math.abs(low + b - current),
       )[0];
     if (shift === undefined) return;
-    this.pattern = next;
+    this.pattern = shape;
     this.shift = shift;
-    if (this.linked !== "none")
-      this.linked = String(
-        ((Number(this.linked) - 1 + direction + 5) % 5) + 1,
-      ) as Exclude<ScalePattern, "map">;
+    this.linked = nextLinked as LinkedScaleShape;
     this.returnPosition = undefined;
     this.update();
   }

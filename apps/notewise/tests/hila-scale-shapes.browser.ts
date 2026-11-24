@@ -375,6 +375,21 @@ try {
     await expect(parityPage.locator('#scale-linked-pattern option[value="6"]')).toHaveCount(0);
     await expect(parityPage.locator('#scale-linked-pattern option[value="7"]')).toHaveCount(0);
   }
+  // Boundaries follow the selector instead of cycling into another octave.
+  for(const [shape,position,link,key,width] of [
+    [7,0,"none","ArrowDown",1440], [1,12,"none","ArrowUp",1440],
+    [6,0,"7","ArrowDown",1440], [2,0,"1","ArrowUp",1440],
+    [7,0,"none","ArrowDown",393],
+  ] as const){
+    await parityPage.setViewportSize({width,height:1000});
+    await parityPage.goto(server.base+`/guitar/scales?key=C&scale=major&set=berklee&shape=${shape}&position=${position}&link=${link}&labels=none`);
+    await waitForApp(parityPage,".scale-diagram svg");
+    const url=parityPage.url(), diagram=await parityPage.locator(".scale-diagram svg").evaluate(svg=>svg.outerHTML);
+    await parityPage.locator("#scale-title").click();
+    await parityPage.keyboard.press(key);
+    expect(parityPage.url()).toBe(url);
+    expect(await parityPage.locator(".scale-diagram svg").evaluate(svg=>svg.outerHTML)).toBe(diagram);
+  }
   await parityPage.close();
   expect(errors).toEqual([]);
   console.log(

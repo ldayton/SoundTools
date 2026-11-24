@@ -5,7 +5,9 @@ support major, natural minor, major/minor pentatonic and major/minor blues,
 finger numbers, tonic chord diagrams, relative-scale switching, and linked
 regions with selectable shifts, reversal and keyboard navigation.
 For both systems, ↓ advances the numbered shape (1 → 2), and ↑ reverses it.
-Linked shapes move together.
+Navigation stops at each end of the selector: 1–7 for Berklee and C–A–G–E–D
+for CAGED. Linked shapes move together and stop if either would cross an end.
+Use the octave shortcuts explicitly to move a pattern by twelve frets.
 
 Berklee numbering follows [Jens Larsen's published chart](https://jenslarsen.nl/major-scale-7-positions-berklee-system/)
 top to bottom. In C major, regions 1–7 begin F, G, A, B, C, D, E. These numbers

@@ -142,7 +142,11 @@ export async function practiceOption(
     }
   } else if (selector === "#hymn-key") {
     await page.locator(selector).click();
-    await page.locator(`[role="option"][value="${value}"]`).click();
+    const exact=page.locator(`[role="option"][value="${value}"]`);
+    const original=page.locator('[role="option"][value="original"]');
+    // The source tonic is represented by Original, including old callers/links.
+    const alias=await original.count() && (await original.textContent())?.includes(`(${value.replaceAll("#","♯").replaceAll("b","♭")})`);
+    await (alias ? original : exact).click();
   } else await page.locator(selector).selectOption(value);
   if (await page.locator(".notewise-workspace").count())
     await dismissPracticeDrawer(page);

@@ -71,16 +71,17 @@ export function HymnOptions({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
+  const selectedKey=state.key === state.originalKey ? "original" : state.key;
   const keys = [
     {
       value: "original",
       label: `Original (${state.originalKey.replace(/b/g, "♭").replace(/#/g, "♯")})`,
     },
-    ...HYMN_KEYS.map((key) => ({ value: key, label: hymnKeyLabel(key) })),
+    ...HYMN_KEYS.filter(key=>key!==state.originalKey).map((key) => ({ value: key, label: hymnKeyLabel(key) })),
   ].map((key) => ({
     ...key,
     shortLabel: key.label,
-    label: `${key.label}${(key.value === state.key ? state.range : state.keyRanges[key.value as HymnKey]) ? ` (${key.value === state.key ? state.range : state.keyRanges[key.value as HymnKey]})` : ""}`,
+    label: `${key.label}${(key.value === selectedKey ? state.range : state.keyRanges[key.value as HymnKey]) ? ` (${key.value === selectedKey ? state.range : state.keyRanges[key.value as HymnKey]})` : ""}`,
     disabled: !state.availableKeys.includes(key.value as HymnKey),
   }));
   return (
@@ -135,7 +136,7 @@ export function HymnOptions({
             name="hymn-key"
             label="Key"
             aria-label="Hymn key"
-            value={state.noMatchingKey ? null : state.key}
+            value={state.noMatchingKey ? null : state.key === state.originalKey ? "original" : state.key}
             placeholder="No matching key"
             data={keys}
             allowDeselect={false}
@@ -157,7 +158,7 @@ export function HymnOptions({
                   ml="auto"
                   style={{ whiteSpace: "nowrap" }}
                 >
-                  {state.keyRanges[option.value as HymnKey]}
+                  {option.value === selectedKey ? state.range : state.keyRanges[option.value as HymnKey]}
                 </Text>
               </Group>
             )}

@@ -34,7 +34,7 @@ export type AccountSnapshot = {
 };
 export interface AccountBinding {
   read(): Records;
-  apply(records: Records | null): void | Promise<void>;
+  apply(records: Records | null): void | {persistChanges:true} | Promise<void | {persistChanges:true}>;
   pause(): void;
   canApply(): boolean;
   validate?(records: Records): void;
@@ -466,16 +466,18 @@ export class Account {
       return;
     }
     this.applying = true;
+    let persistChanges=false;
     try {
       this.binding.pause();
-      await this.binding.apply(structuredClone(records));
+      persistChanges=(await this.binding.apply(structuredClone(records)))?.persistChanges === true;
       this.bound = true;
       this.applied = structuredClone(records);
-      this.captured = structuredClone(this.binding.read());
+      this.captured = structuredClone(persistChanges ? records : this.binding.read());
       this.set({ updates: false });
     } finally {
       this.applying = false;
     }
+    if(persistChanges)await this.changed();
   }
   sync(): Promise<void> {
     if (this.syncing) {

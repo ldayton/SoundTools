@@ -1,3 +1,4 @@
+import {same,type Json} from "@ldayton/account/model";
 import {migrateHymnIdentity} from "./hymn-identity";
 import { APP } from "./app-profile";
 import {
@@ -191,9 +192,16 @@ export function mergeWindowState(
           JSON.stringify(current[field]?.[key])
         )
           continue;
-        if (key in (current[field] || {}))
-          merged[key] = structuredClone(current[field][key]);
-        else delete merged[key];
+        if (key in (current[field] || {})) {
+          merged[key] = field === "preferences"
+            ? edited(before[field]?.[key] || {},current[field][key],remote[field]?.[key] || {})
+            : structuredClone(current[field][key]);
+          if(field === "preferences"){
+            const pitch=["key","octave","capo"];
+            if(pitch.some(k=>JSON.stringify(before[field]?.[key]?.[k])!==JSON.stringify(current[field][key]?.[k])))
+              for(const k of pitch){if(k in current[field][key])merged[key][k]=structuredClone(current[field][key][k]);else delete merged[key][k];}
+          }
+        } else delete merged[key];
       }
       if (current[field] || remote[field]) result[field] = merged;
     }
@@ -201,6 +209,9 @@ export function mergeWindowState(
       if (field in current || field in remote)
         result[field] = edited(before[field], current[field], remote[field]);
     }
+    const active=result.preferences?.[result.hymn];
+    if(active)for(const [key,value] of Object.entries(active))
+      if(!["low","high","mode","zoom"].includes(key))result[key]=structuredClone(value);
     if (current.zoomByLayout)
       result.zoomByLayout = edited(
         before.zoomByLayout || {},
@@ -251,6 +262,14 @@ export class DurableStore {
   }
   flush() {
     return this.tail;
+  }
+  async refresh() {
+    await this.flush();
+    const before=structuredClone(this.state),base=structuredClone(this.base),stored=await this.adapter.read();
+    if(!stored || !same(before as unknown as Json,this.state as unknown as Json))return false;
+    const latest=decodeState(stored.state),next=mergeWindowState(base,before,latest);
+    const changed=!same(this.state as unknown as Json,next as unknown as Json);
+    Object.assign(this.state,next);this.base=structuredClone(next);return changed;
   }
   save() {
     const snapshot = structuredClone(this.state);

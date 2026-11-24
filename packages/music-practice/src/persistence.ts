@@ -18,6 +18,14 @@ export const persistence = {
   writable: false,
   store: undefined as DurableStore | undefined,
   pending: 0,
+  guestChannel: undefined as BroadcastChannel | undefined,
+  guestListeners: new Set<()=>void>(),
+  async refreshGuest() {
+    if(this.accountSave || !this.store || !this.writable)return false;
+    const changed=await this.store.refresh();
+    if(this.accountSave)return false;
+    this.state=this.store.state;return changed;
+  },
   accountSave: undefined as (() => Promise<boolean>) | undefined,
   accountFlush: undefined as (() => Promise<void>) | undefined,
   fail(message: string) {
@@ -46,6 +54,10 @@ export const persistence = {
       );
       this.state = this.store.state;
       this.writable = true;
+      if(APP.id === "songalong" && typeof BroadcastChannel !== "undefined"){
+        this.guestChannel=new BroadcastChannel("soundtools:songalong:guest");
+        this.guestChannel.onmessage=()=>{for(const listener of this.guestListeners)listener();};
+      }
       if (this.writable) {
         // Retain legacy keys unchanged for rollback. New-schema data is authoritative after migration.
         // Old deployed tabs cannot participate in ownership; detect their writes and stop this writer.
@@ -71,6 +83,8 @@ export const persistence = {
     shellStatus.set({ saved: "Saving on this device…" });
     return this.store.save().then(
       () => {
+        this.guestChannel?.postMessage("changed");
+        for(const listener of this.guestListeners)listener();
         if (--this.pending === 0 && this.writable)
           shellStatus.set({ saved: "Saved on this device." });
         return true;

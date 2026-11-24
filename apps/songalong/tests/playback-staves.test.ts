@@ -217,3 +217,18 @@ test("tablature visibility shares the persisted display setting and never owns a
  assert.deepEqual(toggleGuitarStaff(hidden.scoreDisplay,hidden.hiddenStaves,'notation',true),{scoreDisplay:'notation',hiddenStaves:[]});
  assert.deepEqual(toggleGuitarStaff('notation',[],'tab',true),{scoreDisplay:'both',hiddenStaves:[]});
 });
+
+test("staff Show/Play selections survive score switches, reloads and independent cloud edits",()=>{
+  let settings=hymnPreferences(practiceHymn.id,{arrangement:"original",hiddenStaves:[1],mutedStaves:[0]});
+  settings={...settings,...mergeHymnSettings(settings,{arrangement:"guitar-vocal"})};
+  assert.deepEqual(settings.hiddenStaves,[]);assert.deepEqual(settings.mutedStaves,[]);
+  settings={...settings,...mergeHymnSettings(settings,{hiddenStaves:[0],mutedStaves:[1]})};
+  const state=migrateLegacy({});state.activities.sight=new HymnProgress(undefined,[practiceHymn.id]).snapshot(settings,practiceHymn.key,1);
+  const records=songalongRecords(state),restored=restoreSongalongRecords(records);
+  let loaded=new HymnProgress(restored.activities.sight as any,[practiceHymn.id]).forHymn(practiceHymn.id);
+  assert.deepEqual(loaded.hiddenStaves,[0]);assert.deepEqual(loaded.mutedStaves,[1]);
+  loaded={...loaded,...mergeHymnSettings(loaded,{arrangement:"original"})};
+  assert.deepEqual(loaded.hiddenStaves,[1]);assert.deepEqual(loaded.mutedStaves,[0]);
+  loaded={...loaded,...mergeHymnSettings(loaded,{arrangement:"guitar-vocal"})};
+  assert.deepEqual(loaded.hiddenStaves,[0]);assert.deepEqual(loaded.mutedStaves,[1]);
+});

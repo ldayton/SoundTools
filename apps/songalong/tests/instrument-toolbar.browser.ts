@@ -133,6 +133,17 @@ try {
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await expect(sung).toHaveAttribute("aria-pressed", "true");
+    await openPracticeOptions(page);
+    await page.getByRole("checkbox",{name:"Show Voice",exact:true}).uncheck();
+    await page.getByRole("checkbox",{name:"Play Voice",exact:true}).uncheck();
+    await selectHymnInstrument(page,"guitar");await selectHymnInstrument(page,"sung");await openPracticeOptions(page);
+    await expect(page.getByRole("checkbox",{name:"Show Voice",exact:true})).not.toBeChecked();
+    await expect(page.getByRole("checkbox",{name:"Play Voice",exact:true})).not.toBeChecked();
+    await page.locator("#hymn-key").click();
+    await expect(page.locator('[role="option"][value]')).toHaveCount(12);
+    await expect(page.locator(`[role="option"][value="${practiceHymn.key}"]`)).toHaveCount(0);
+    await expect(page.locator('[role="option"][value="original"]')).toBeVisible();
+    await page.locator("#hymn-key").press("Escape");
     await selectHymnInstrument(page, "piano");
     await selectHymnScore(page, "piano");
     await expect(piano).toHaveAttribute("aria-checked", "true");

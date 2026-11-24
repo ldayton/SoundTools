@@ -36,6 +36,7 @@ export type HymnSettings = {
   mutedStaves?: number[];
   hiddenStaves?: number[];
   showChordSymbols?: boolean;
+  staffChoices?: Record<string,{hiddenStaves:number[];mutedStaves:number[]}>;
   key?: HymnKey;
   /** Null retains the reviewed score's capo; an explicit choice keeps the key. */
   capo?: number | null;
@@ -96,17 +97,20 @@ export function mergeHymnSettings(
     : undefined;
   const retiredStage = ["melody","bass","chords","broken"].includes(String(s.arrangement));
   const reviewed = isInstrumentArrangement(hymn, arrangement || "") || arrangement === "guitar-vocal";
-  const changedStaffLayout =
-    (s.arrangement !== undefined && s.arrangement !== base.arrangement) ||
-    (s.viewHands !== undefined && s.viewHands !== base.viewHands);
-  const staffSelection = (input: unknown, prior: readonly number[] = []) =>
-    Array.isArray(input)
-      ? [...new Set(input.filter((index): index is number =>
-          Number.isInteger(index) && index >= 0 && index < 32))].sort((a,b)=>a-b)
-      : changedStaffLayout ? [] : [...prior];
+  const indexes = (value:unknown, prior:readonly number[]=[]) => Array.isArray(value)
+    ? [...new Set(value.filter((i):i is number=>Number.isInteger(i)&&i>=0&&i<32))].sort((a,b)=>a-b) : [...prior];
+  const staffChoices:NonNullable<HymnSettings["staffChoices"]>={};
+  for(const [id,value] of Object.entries({...base.staffChoices,...object(s.staffChoices)})){
+    if(!available.includes(id as Arrangement))continue;
+    const entry=object(value);staffChoices[id]={hiddenStaves:indexes(entry.hiddenStaves),mutedStaves:indexes(entry.mutedStaves)};
+  }
+  if(!staffChoices[base.arrangement])staffChoices[base.arrangement]={hiddenStaves:indexes(base.hiddenStaves),mutedStaves:indexes(base.mutedStaves)};
+  const target=arrangement || base.arrangement, stored=s.viewHands !== undefined && s.viewHands !== base.viewHands ? {hiddenStaves:[],mutedStaves:[]} : staffChoices[target];
+  const hiddenStaves=indexes(s.hiddenStaves,stored?.hiddenStaves || (target===base.arrangement?base.hiddenStaves:[]));
+  const mutedStaves=indexes(s.mutedStaves,stored?.mutedStaves || (target===base.arrangement?base.mutedStaves:[]));
+  staffChoices[target]={hiddenStaves,mutedStaves};
   return {
-    mutedStaves: staffSelection(s.mutedStaves, base.mutedStaves),
-    hiddenStaves: staffSelection(s.hiddenStaves, base.hiddenStaves),
+    staffChoices,hiddenStaves,mutedStaves,
     ...("showChordSymbols" in s || "showChordSymbols" in base ? {
       showChordSymbols: typeof s.showChordSymbols === "boolean" ? s.showChordSymbols : base.showChordSymbols !== false,
     } : {}),

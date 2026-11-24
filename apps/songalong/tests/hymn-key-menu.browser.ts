@@ -79,7 +79,7 @@ try {
     const field = page.locator("#hymn-key");
     await expect(field).toHaveValue(`B major (${lowRange})`);
     let options = await hymnKeyOptions(page);
-    assert.equal(options.length, 13);
+    assert.equal(options.length, 12);
     assert(options.every((option) => option.range && !option.disabled));
     assert.equal(
       options.find((option) => option.value === "B")!.range,
@@ -159,7 +159,7 @@ try {
     assert.equal(await group.locator("#hymn-octave-up").count(), 1);
     await practiceOption(page, "#hymn-high", "60");
     options = await hymnKeyOptions(page);
-    assert.equal(options.length, 13);
+    assert.equal(options.length, 12);
     assert(
       options.every((option) => option.disabled && option.range),
       "All excluded keys still show ranges",

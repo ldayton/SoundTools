@@ -360,3 +360,19 @@ test("concurrent song windows retain per-song preferences and whole bookmarks", 
   assert.equal(state.zoomByLayout.mobile, 1.2);
   assert.equal(state.low, 50);
 });
+
+test("guest windows merge independent options on one song and retain atomic pitch choices", async()=>{
+  const adapter=new MemoryAdapter(),initial=migrateLegacy({});
+  initial.activities.sight={version:1,hymn:"one",bpm:80,countIn:0,preferences:{one:{bpm:80,countIn:0,key:"D",octave:0,capo:2}}};
+  const a=await DurableStore.open(adapter,initial,"a"),b=await DurableStore.open(adapter,initial,"b");
+  (a.state.activities.sight as any).preferences.one.countIn=1;await a.save();
+  (b.state.activities.sight as any).preferences.one.bpm=111;await b.save();
+  const stored=adapter.value!.state.activities.sight as any;
+  assert.equal(stored.preferences.one.countIn,1);assert.equal(stored.preferences.one.bpm,111);
+  assert.equal(stored.countIn,1);assert.equal(stored.bpm,111);
+  assert.equal(await b.refresh(),true);assert.equal((b.state.activities.sight as any).countIn,1);
+  const local=copy(adapter.value!.state),latest=copy(adapter.value!.state),base=copy(adapter.value!.state);
+  (local.activities.sight as any).preferences.one.key="G";
+  Object.assign((latest.activities.sight as any).preferences.one,{octave:1,capo:3});
+  assert.deepEqual((mergeWindowState(base,local,latest).activities.sight as any).preferences.one,{bpm:111,countIn:1,key:"G",octave:0,capo:2});
+});

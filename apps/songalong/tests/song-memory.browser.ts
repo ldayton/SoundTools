@@ -1,6 +1,7 @@
-import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
+import {practiceHymn,otherPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import { launchBrowser, newPage, createContext, waitForApp } from "../../../scripts/ci/browser-harness.cjs";
 import { expect } from "@playwright/test";
-import { practiceOption } from "../../../packages/music-practice/browser-tests/helpers";
+import { practiceOption,openPracticeOptions } from "../../../packages/music-practice/browser-tests/helpers";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -27,12 +28,12 @@ try {
     await page.getByPlaceholder("Search songs").fill(name);
     await page.getByRole("option", { name, exact: true }).click();
   }
-  await page.goto(server.base + "/piano/hymns/amazing-grace");
+  await page.goto(server.base + `/piano/hymns/${practiceHymn.slug}`);
   await practiceOption(page, "#hymn-mode", "playback");
   await practiceOption(page, "#hymn-tempo", "96");
   await practiceOption(page, "#hymn-low", "48");
   await practiceOption(page, "#hymn-high", "79");
-  await choose("Silent Night");
+  await choose(otherPracticeHymn.title);
   await expect(low).toHaveValue("C3");
   await expect(high).toHaveValue("G5");
   await expect(
@@ -41,7 +42,7 @@ try {
   await practiceOption(page, "#hymn-tempo", "112");
   await practiceOption(page, "#hymn-mode", "wait");
   await practiceOption(page, "#hymn-low", "50");
-  await choose("Amazing Grace");
+  await choose(practiceHymn.title);
   await expect(
     page.getByRole("button", { name: "Playback mode", exact: true }),
   ).toHaveText("Wait for me");
@@ -55,7 +56,7 @@ try {
   ).toHaveText("Playback");
   await expect(tempo).toHaveValue("96 BPM");
   await expect(low).toHaveValue("D3");
-  await choose("Silent Night");
+  await choose(otherPracticeHymn.title);
   await expect(tempo).toHaveValue("112 BPM");
   await expect(low).toHaveValue("D3");
   await expect(high).toHaveValue("G5");
@@ -65,7 +66,7 @@ try {
   // A second song window shares durable storage without locking out either UI.
   const other = await page.context().newPage();
   other.on("pageerror", (e) => errors.push(e.message));
-  await other.goto(server.base + "/piano/hymns/amazing-grace");
+  await other.goto(server.base + `/piano/hymns/${practiceHymn.slug}`);
   await expect(other.locator("#hymn-tempo")).toHaveValue("96 BPM");
   await Promise.all([
     practiceOption(page, "#hymn-tempo", "118"),
@@ -78,7 +79,7 @@ try {
   await expect(other.locator("#saved")).toHaveText("Saved on this device.");
   await page.reload();
   await expect(tempo).toHaveValue("118 BPM");
-  await choose("Amazing Grace");
+  await choose(practiceHymn.title);
   await expect(tempo).toHaveValue("90 BPM");
   await other.screenshot({
     path: "/tmp/songalong-multiple-windows.png",
@@ -101,6 +102,32 @@ try {
   await page.reload();
   await expect(tempo).toHaveValue("92 BPM");
   expect(errors).toEqual([]);
+  // A saved octave survives bare links and cross-song navigation.
+  await page.goto(`${server.base}/piano/hymns/${practiceHymn.slug}?arrangement=piano&mode=playback&low=none&high=none`);
+  await waitForApp(page);await openPracticeOptions(page);
+  await page.locator("#hymn-octave-down").click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get("octave")).toBe("-1");
+  const range=await page.locator("#hymn-key").inputValue();
+  await choose(otherPracticeHymn.title);await choose(practiceHymn.title);
+  await expect(page.locator("#hymn-key")).toHaveValue(range);
+  await page.goto(`${server.base}/piano/hymns/${otherPracticeHymn.slug}`);await waitForApp(page);await openPracticeOptions(page);
+  await page.goto(`${server.base}/piano/hymns/${practiceHymn.slug}`);await waitForApp(page);await openPracticeOptions(page);
+  await expect.poll(()=>new URL(page.url()).searchParams.get("octave")).toBe("-1");
+  await expect(page.locator("#hymn-key")).toHaveValue(range);
+  const second=await context.newPage();await second.goto(`${server.base}/piano/hymns/${practiceHymn.slug}`);await waitForApp(second);await openPracticeOptions(second);
+  await practiceOption(page,"#hymn-count-in","1");
+  await expect(page.locator("#saved")).toHaveText("Saved on this device.");
+  await practiceOption(second,"#hymn-tempo","111");
+  await expect(second.locator("#saved")).toHaveText("Saved on this device.");
+  await second.locator(".hymn-paper").click({position:{x:10,y:10}});
+  await expect(second.locator("#hymn-count-in")).toHaveValue("1");
+  await page.goto(`${server.base}/piano/hymns/${practiceHymn.slug}`);await waitForApp(page);await openPracticeOptions(page);
+  await expect(tempo).toHaveValue("111 BPM");await expect(page.locator("#hymn-count-in")).toHaveValue("1");
+  await second.getByPlaceholder("Search songs").fill(otherPracticeHymn.title);await second.getByRole("option",{name:otherPracticeHymn.title,exact:true}).click();
+  await practiceOption(page,"#hymn-tempo","123");await expect(page.locator("#saved")).toHaveText("Saved on this device.");
+  await second.getByPlaceholder("Search songs").fill(practiceHymn.title);await second.getByRole("option",{name:practiceHymn.title,exact:true}).click();
+  await openPracticeOptions(second);await expect(second.locator("#hymn-tempo")).toHaveValue("123 BPM");
+  await second.close();
   console.log(
     "PASS: global playback mode and note limits, plus per-song tempos, survive song changes and reload",
   );

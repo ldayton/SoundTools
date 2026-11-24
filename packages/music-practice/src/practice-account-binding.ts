@@ -15,7 +15,7 @@ export async function startPracticeAccount(options: {
   beforeApply(): void;
   liveKeys?(keys: string[]): string[];
   liveApplied?(records: Records, state: DurableState): void;
-  applied(records: Records | null, state: DurableState): void;
+  applied(records: Records | null, state: DurableState): boolean | void;
 }) {
   persistence.accountFlush = () => account.flush();
   await account.start({
@@ -54,7 +54,7 @@ export async function startPracticeAccount(options: {
       shellStatus.set({ saved: records ? "" : "Saved on this device." });
       refreshPianoVolume();
       restorePianoVisibility();
-      options.applied(records, next);
+      if(options.applied(records, next))return {persistChanges:true as const};
     },
   });
 }

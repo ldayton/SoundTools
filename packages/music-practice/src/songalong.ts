@@ -1,3 +1,4 @@
+import {same,type Json} from "@ldayton/account/model";
 import {canonicalHymnId, hymnSlug} from "./hymn-identity";
 import { startPracticeAccount } from "./practice-account-binding";
 import {
@@ -6,7 +7,7 @@ import {
   songalongLiveKeys,
 } from "./songalong-account-records";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
-import { shutdownPianoSound } from "./piano-audio";
+import { refreshPianoVolume, shutdownPianoSound } from "./piano-audio";
 import { preventRepeatedButtonActivation } from "./input-guards";
 import { mountAppShell } from "./app-shell";
 import { SightReading } from "./sight-reading";
@@ -31,6 +32,8 @@ function canonicalSongUrl(url:URL) {
 const initialUrl=canonicalSongUrl(new URL(location.href));
 if(initialUrl.pathname!==location.pathname)history.replaceState(null,"",initialUrl.pathname+initialUrl.search);
 let route = readRoute(initialUrl, "sight");
+let pendingLink = route.kind === "exercise" && route.hymn ? route : undefined;
+let accountRestored=false;
 let practice: SightReading | undefined;
 let midi: ReturnType<typeof mountMidiPanel> | undefined;
 let ready = false;
@@ -122,10 +125,38 @@ function render() {
   }
   refreshInput();
 }
+let guestDirty=false,guestApplying=false;
+const guestView=(state:typeof persistence.state,id:string|undefined)=>{
+  const saved=state.activities.sight as import("./hymn-progress").HymnState|undefined;
+  const song=id && saved?.preferences?.[id];
+  return {song:song && Object.fromEntries(Object.entries(song).filter(([key])=>!["mode","low","high","zoom","hymn","position"].includes(key))),mode:saved?.mode,low:saved?.low,high:saved?.high,zoom:saved?.zoomByLayout,presentation:state.activities.presentation,audio:state.activities.audio} as Json;
+};
+async function refreshGuest(){
+  if(!guestDirty || guestApplying || persistence.accountSave || !practice?.syncIdle || document.hidden)return;
+  guestApplying=true;guestDirty=false;
+  try{
+    const current=route.kind === "exercise" ? route.hymn : undefined,before=guestView(persistence.state,current);
+    if(!await persistence.refreshGuest())return;
+    const saved=persistence.read<import("./hymn-progress").HymnState>("sight");
+    if(saved)practice?.applyInactiveAccountState(saved);
+    if(!same(before,guestView(persistence.state,current))){
+      interrupt("controls");practice?.dispose();practice=undefined;
+      refreshPianoVolume();restorePianoVisibility();
+      if(current){const url=new URL(`/piano/hymns/${hymnSlug(current)}`,location.origin);route=readRoute(url,"sight");history.replaceState(null,"",url.pathname);}
+      render();
+    }
+  }catch(error){persistence.fail("Could not refresh saved song options.");diagnostics.capture(error,"songalong.guest_refresh_failed");}
+  finally{guestApplying=false;}
+}
+persistence.guestListeners.add(()=>{guestDirty=true;void refreshGuest();});
+const guestTimer=window.setInterval(()=>void refreshGuest(),500);
+window.addEventListener("focus",()=>{guestDirty=true;void refreshGuest();});
+window.addEventListener("pagehide",()=>clearInterval(guestTimer),{once:true});
 function visit(url: URL, push: boolean) {
   url=canonicalSongUrl(url);
   interrupt("navigation");
   route = readRoute(url, "sight");
+  if(!accountRestored && route.kind === "exercise" && route.hymn)pendingLink=route;
   if (push) history.pushState(null, "", url.pathname + url.search);
   shell.closeMenus();
   render();
@@ -199,9 +230,13 @@ void document.fonts.ready
         practice?.dispose();
         practice = undefined;
       },
-      applied: () => {
+      applied: (records) => {
+        const linked=!!records && pendingLink;
+        if(records)accountRestored=true;
         const saved = persistence.read<{ hymn?: string }>("sight");
-        if (route.kind === "exercise") {
+        if(linked){
+          route=linked;pendingLink=undefined;
+        } else if (route.kind === "exercise") {
           const url = new URL(
             "/piano/hymns" + (saved?.hymn ? "/" + hymnSlug(saved.hymn) : ""),
             location.origin,
@@ -210,6 +245,7 @@ void document.fonts.ready
           route = readRoute(url, "sight");
         }
         render();
+        return !!linked;
       },
     }).catch((error) => diagnostics.capture(error, "account.start_failed"));
     window.dispatchEvent(new Event("soundtools:ready"));

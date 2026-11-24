@@ -1,5 +1,6 @@
-import { playbackHymn, playbackMelody, selectCapoPracticeHymn } from "../packages/music-practice/test-fixtures/hymns";
+import { otherPracticeHymn, playbackHymn, playbackMelody, selectCapoPracticeHymn } from "../packages/music-practice/test-fixtures/hymns";
 import {
+  waitForAccountIdle,
   captureFailure,
   closeBrowser,
   launchBrowser,
@@ -311,6 +312,22 @@ try {
   await closeModal(phone);
   await mobile.close();
   assert.deepEqual(errors, []);
+  // An explicit song link and its options outrank the last-opened cloud song,
+  // and that retained selection must itself be saved and replicated.
+  const prior=new URL(q.url()).pathname.split("/").at(-1);
+  const linked=[playbackHymn,otherPracticeHymn].find(h=>h.slug!==prior)!;
+  await q.goto(`http://127.0.0.1:4392/piano/hymns/${linked.slug}?arrangement=piano&mode=playback&tempo=117&octave=-1`);
+  await waitForAccountIdle(q);await openPracticeOptions(q);
+  assert.equal(new URL(q.url()).pathname,`/piano/hymns/${linked.slug}`);
+  assert.equal(new URL(q.url()).searchParams.get("octave"),"-1");
+  assert.equal(await q.locator("#hymn-tempo").inputValue(),"117 BPM");
+  assert.equal(await q.getByRole("button",{name:"Voice",exact:true}).getAttribute("aria-pressed"),"false");
+  await pull(p);await openPracticeOptions(p);
+  await p.waitForURL(url=>url.pathname===`/piano/hymns/${linked.slug}`);
+  assert.equal(await p.locator("#hymn-tempo").inputValue(),"117 BPM");
+  await q.reload();await waitForAccountIdle(q);await openPracticeOptions(q);
+  assert.equal(new URL(q.url()).pathname,`/piano/hymns/${linked.slug}`);
+  assert.equal(new URL(q.url()).searchParams.get("octave"),"-1");
   await a.close();
   await b.close();
 } catch (error) {

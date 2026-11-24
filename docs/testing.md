@@ -448,7 +448,7 @@ They remain required tests; recording a case does not disable or retry it.
 
 ## SongAlong instrument selector contract
 
-Instrument selection is a three-choice toolbar radio group (Guitar, Piano, Voice + Piano). `apps/songalong/tests/hymn-instruments.test.ts` owns arrangement
+Instrument selection uses exclusive Guitar/Piano controls and an independent Voice toggle. The combined choice is persisted as one score ID. `apps/songalong/tests/hymn-instruments.test.ts` owns arrangement
 membership, unsupported selection normalization and account/offline snapshot
 roundtrips. The required `instrument-toolbar.browser.ts` command covers the primary
 selection UI on generic capability fixtures and the explicitly named teacher score,
@@ -497,3 +497,24 @@ browser files use the existing automatic Nightly edition registry and reviewed
 resource inventory. Generic controls select real instrument scores by capability. The old practice
 stages and their generators are retired; the support matrix records the replacement
 regression owners. No product music is changed to keep a fixture available.
+
+## SongAlong option persistence
+
+Song choices (score, key/octave/capo, tempo, count-in, stanzas, notation and staff
+Show/Play choices) survive song changes, bare routes, reloads and account restore.
+Each score keeps its own staff choices. Original represents the source tonic once
+in the key menu; older explicit source-tonic links remain accepted.
+
+Independent guest-window fields merge, while key/octave/capo and checkpoints stay
+atomic. Guest windows refresh durable state at a safe idle point and before song
+selection. Account presentation fields and desktop/mobile sizes are separate
+records; legacy bundled records remain readable and new fields take precedence.
+An explicit initial song link outranks the cloud's last-opened song, and its
+retained selection is queued durably rather than merely displayed locally.
+
+Unit owners are recovery.test.ts, account-records.test.ts, playback-staves.test.ts
+and the account client's client-sync.test.ts. CI's instrument-toolbar witness
+covers per-score staff choices and unique key choices. Nightly's song-memory and
+key-menu witnesses cover guest windows, saved octaves and responsive menus;
+tests/accounts.browser.mts covers real signed-in link restore and replication on
+both engines. These extend existing command owners, without new lanes or aliases.

@@ -122,3 +122,24 @@ test("cloud roundtrips a global range, independent song tempos, and layout staff
   assert.equal(migrated.forHymn(otherPracticeHymn.id).low, 50);
   assert.equal(migrated.forHymn(otherPracticeHymn.id).high, 81);
 });
+
+test("independent layout and presentation edits use separate cloud records, with legacy fallback",()=>{
+  const state=migrateLegacy({}),progress=new HymnProgress(undefined,[practiceHymn.id]);
+  state.activities.sight=progress.snapshot(hymnPreferences(practiceHymn.id),practiceHymn.key,1);
+  state.activities.presentation={version:1,fingerings:false,pianoVisible:true,staffSpacingByLayout:{mobile:100,desktop:100}};
+  const base=songalongRecords(state),desktop=structuredClone(state),phone=structuredClone(state);
+  (desktop.activities.sight as any).zoomByLayout.desktop=1.3;
+  (phone.activities.sight as any).zoomByLayout.mobile=.8;
+  (desktop.activities.presentation as any).fingerings=true;
+  (phone.activities.presentation as any).pianoVisible=false;
+  const a=changes(base,songalongRecords(desktop)),b=changes(base,songalongRecords(phone));
+  assert.deepEqual(a.map(c=>c.key).sort(),["activity:presentation:fingerings","current:zoomByLayout:desktop"]);
+  assert.deepEqual(b.map(c=>c.key).sort(),["activity:presentation:pianoVisible","current:zoomByLayout:mobile"]);
+  const merged={...base,...Object.fromEntries([...a,...b].map(c=>[c.key,c.value]))};
+  const restored=restoreSongalongRecords(merged);
+  assert.deepEqual((restored.activities.sight as any).zoomByLayout,{mobile:.8,desktop:1.3});
+  assert.deepEqual(restored.activities.presentation,{version:1,fingerings:true,pianoVisible:false,staffSpacingByLayout:{mobile:100,desktop:100}});
+  const legacy=restoreSongalongRecords({schema:1,"current:hymn":practiceHymn.id,"activity:presentation":{version:1,fingerings:false,pianoVisible:true},"current:zoomByLayout":{mobile:1,desktop:1},"activity:presentation:fingerings":true,"current:zoomByLayout:mobile":.8});
+  assert.equal((legacy.activities.presentation as any).fingerings,true);assert.equal((legacy.activities.presentation as any).pianoVisible,true);
+  assert.deepEqual((legacy.activities.sight as any).zoomByLayout,{mobile:.8,desktop:1});
+});

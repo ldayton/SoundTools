@@ -109,3 +109,19 @@ test("a foreground sync waits for the initial durable replica to load", async ()
   await account.sync();
   assert.equal(requests, 1);
 });
+
+test("an explicit selection retained during restore is durably queued as local intent",async(t)=>{
+  t.mock.timers.enable({apis:["setTimeout"]});
+  const original=Object.getOwnPropertyDescriptor(globalThis,"document");
+  Object.defineProperty(globalThis,"document",{configurable:true,value:{activeElement:null}});
+  try{
+    const account:any=new Account("test"),queued:any[]=[];
+    let local={song:"old",tempo:80};
+    account.bound=true;account.applied={song:"old",tempo:80};account.captured={...local};
+    account.engine={state:{initialized:true,device:"test"},records:{song:"remote",tempo:96},change:async(patch:any[])=>queued.push(...patch)};
+    account.binding={read:()=>local,canApply:()=>true,pause:()=>{},apply:()=>{local={song:"linked",tempo:117};return {persistChanges:true};}};
+    await account.apply();
+    assert.deepEqual(queued.map(p=>({key:p.key,value:p.value})),[{key:"song",value:"linked"},{key:"tempo",value:117}]);
+    await account.changed();assert.equal(queued.length,2,"renders never enqueue the retained selection twice");
+  }finally{if(original)Object.defineProperty(globalThis,"document",original);else delete (globalThis as any).document;}
+});

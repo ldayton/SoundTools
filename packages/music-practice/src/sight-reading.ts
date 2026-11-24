@@ -294,9 +294,10 @@ export class SightReading {
         )
           this.staffSpacingByLayout[layout] = value;
       }
-      const saved =
+      let saved =
         migrateHymnIdentity(persistence.read<HymnState>("sight") ||
         (persistence.state.legacy.sight as any));
+      if(saved?.preferences?.[saved.hymn])saved={...saved,...saved.preferences[saved.hymn],mode:saved.mode,low:saved.low,high:saved.high,zoom:saved.zoom};
       this.progress = new HymnProgress(
         saved,
         hymns.map((hymn) => hymn.id),
@@ -327,6 +328,7 @@ export class SightReading {
         this.octave = saved!.octave;
       this.hymn = hymns.find((h) => h.id === saved?.hymn) || hymns[0];
       this.capo = hymnPreferences(this.hymn.id,saved).capo ?? null;
+      this.staffPreferences = hymnPreferences(this.hymn.id, saved).staffChoices || {};
       this.mutedStaves = hymnPreferences(this.hymn.id, saved).mutedStaves || [];
       this.hiddenStaves = hymnPreferences(this.hymn.id, saved).hiddenStaves || [];
       this.showChordSymbols = hymnPreferences(this.hymn.id, saved).showChordSymbols !== false;
@@ -699,8 +701,7 @@ export class SightReading {
     this.capo = next.capo ?? null;
     this.octave =
       !route.query.has("octave") &&
-      (switching ||
-        old.key !== next.key ||
+      (old.key !== next.key && !switching ||
         old.low !== next.low ||
         old.high !== next.high)
         ? undefined
@@ -710,6 +711,7 @@ export class SightReading {
     this.showChordSymbols = next.showChordSymbols !== false;
     this.hands = next.hands || "both";
     this.viewHands = next.viewHands || "both";
+    this.staffPreferences = next.staffChoices || {};
     this.mutedStaves = next.mutedStaves || [];
     this.hiddenStaves = next.hiddenStaves || [];
     this.reattackTies = next.reattackTies === true;
@@ -724,9 +726,11 @@ export class SightReading {
     this.publishOptions();
     return true;
   }
+  private staffPreferences: NonNullable<HymnSettings["staffChoices"]> = {};
   private settings(): HymnSettings {
     return {
       hymn: this.hymn.id,
+      staffChoices: this.staffPreferences,
       mode: this.preferredMode,
       bpm: this.bpm,
       countIn: this.countIn,
@@ -809,8 +813,14 @@ export class SightReading {
     this.publishOptions();
     this.acceptanceChanged();
   }
-  private choose(hymn: (typeof hymns)[number]) {
+  private async choose(hymn: (typeof hymns)[number]) {
     this.save();
+    if(!persistence.accountSave){
+      try{await persistence.refreshGuest();}
+      catch{persistence.fail("Could not load saved song options.");return;}
+      if(this.lifetime.disposed)return;
+      this.progress=new HymnProgress(persistence.read<HymnState>("sight"),hymns.map(h=>h.id));
+    }
     const next = this.progress.forHymn(hymn.id);
     this.hymn = hymn;
     this.key = next.key!;
@@ -827,6 +837,7 @@ export class SightReading {
     this.showChordSymbols = next.showChordSymbols !== false;
     this.hands = next.hands!;
     this.viewHands = next.viewHands!;
+    this.staffPreferences = next.staffChoices || {};
     this.mutedStaves = next.mutedStaves || [];
     this.hiddenStaves = next.hiddenStaves || [];
     this.reattackTies = next.reattackTies!;
@@ -1355,6 +1366,7 @@ export class SightReading {
       return;
     }
     const next = mergeHymnSettings(this.settings(), patch);
+    this.staffPreferences=next.staffChoices || {};
     if (patch.low !== undefined || patch.high !== undefined) {
       this.save();
       this.interrupt("controls");
@@ -1385,7 +1397,8 @@ export class SightReading {
       const state = this.playback.state;
       this.interrupt("controls");
       this.viewHands = next.viewHands!;
-      this.mutedStaves = next.mutedStaves || [];
+      this.staffPreferences = next.staffChoices || {};
+    this.mutedStaves = next.mutedStaves || [];
       this.hiddenStaves = next.hiddenStaves || [];
       this.scoreDisplay = next.scoreDisplay || "both";
     this.showChordSymbols = next.showChordSymbols !== false;
@@ -1472,6 +1485,7 @@ export class SightReading {
       this.scoreDisplay = next.scoreDisplay || "both";
     this.showChordSymbols = next.showChordSymbols !== false;
       this.viewHands = next.viewHands!;
+    this.staffPreferences = next.staffChoices || {};
     this.mutedStaves = next.mutedStaves || [];
     this.hiddenStaves = next.hiddenStaves || [];
       this.hands = next.hands!;

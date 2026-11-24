@@ -30,7 +30,7 @@ try {
     const frets=await page.locator(".abcjs-tabNumber").allTextContents();
     const chords=await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents();
     const keys=await hymnKeyOptions(page);
-    assert.equal(keys.length,13);assert(keys.every(k=>!k.disabled),`${hymn.slug}: every key is selectable`);
+    assert.equal(keys.length,12);assert(keys.every(k=>!k.disabled),`${hymn.slug}: every key is selectable`);
     const target=hymn.key === "D" ? "E" : "D";
     await practiceOption(page,"#hymn-key",target);
     if(profile){

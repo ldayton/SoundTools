@@ -86,7 +86,7 @@ for(const h of hymns){const p=chordEdition(h);if(!p)continue;
    if(c.scoreSetting){assert.equal(rewritten,accompanimentAbc);continue;}
    const labels=new Map<number,string>(),active=new Map<string,string>();
    for(const l of tune.lines)for(const[si,s]of(l.staff||[]).entries())for(const[vi,v]of(s.voices||[]).entries())for(const n of v)if(n.el_type==='note'){
-    const id=`${si}:${vi}`,label=n.chord?.find(x=>x.position==='default')?.name;if(label)active.set(id,label);if(n.pitches?.length)labels.set(n.startChar!,active.get(id)!);
+    const id=`${si}:${vi}`,label=n.chord?.find((x:{position:string;name:string})=>x.position==='default')?.name;if(label)active.set(id,label);if(n.pitches?.length)labels.set(n.startChar!,active.get(id)!);
    }
    const groups=new Map<string,{symbol:string;pitches:number[]}>();
    for(const track of audio.tracks)for(const n of track)if(n.cmd==='note'){

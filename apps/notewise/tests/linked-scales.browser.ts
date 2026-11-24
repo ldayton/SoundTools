@@ -90,6 +90,21 @@ try {
  await page.getByRole('heading',{name:'F♯ major',exact:true}).waitFor();
  await page.keyboard.press('ArrowLeft');
  assert.equal(await page.locator('#scale-title').textContent(),'F♯ major','respect first-fret boundary');
+ // G major leaves room to traverse all five forms without hitting a fret limit.
+ // Assert visible labels and stable IDs independently of the production order.
+ await page.goto('http://127.0.0.1:4362/guitar/scales?key=G&scale=major&set=standard&pattern=3&link=none');
+ await waitForApp(page,'.scale-diagram svg');
+ const caged=[['3','C'],['4','A'],['5','G'],['1','E'],['2','D']] as const;
+ assert.deepEqual(await page.locator('#scale-pattern option').allTextContents(),['Fret range',...caged.map(([,name])=>`${name} shape`)]);
+ await page.locator('#scale-title').click();
+ for(const [key,order] of [['ArrowDown',caged.slice(1)],['ArrowUp',caged.slice(0,-1).reverse()]] as const){
+   for(const [id,name] of order){
+     await page.keyboard.press(key);
+     await page.waitForFunction(id=>new URL(location.href).searchParams.get('pattern')===id,id);
+     assert.equal(await page.locator('#scale-pattern').inputValue(),id);
+     assert.ok((await page.locator('.scale-pattern-caption').innerText()).startsWith(`${name} shape ·`));
+   }
+ }
  // CAGED's selector is C, A, G, E, D; raw IDs are intentionally not that order.
  for(const [pattern,position,link,key] of [
    ['3',0,'none','ArrowUp'], ['2',0,'none','ArrowDown'],

@@ -2,7 +2,7 @@
 
 The unmodified ABC files in `source/` are from the Open Hymnal Project, maintained by Brian J. Dumont, mirrored at https://github.com/mzealey/openhymnal (commit `d35811b2d5c9b0bbc5887d60a2936454815416e8`). Each selected source explicitly marks its words, music and setting public domain. Original credits and source references are retained in each file. These are historical editions, not modern commercial arrangements.
 
-`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The library contains twelve songs: 1st Fingerstyle Blues, Amazing Grace, Blessed Assurance, I’ll Fly Away, In Christ Alone, Jesus Loves Me, O Come, All Ye Faithful, Joy to the World, Silent Night, Are You Washed in the Blood? and In the Sweet By and By The first stanza is selected initially; the Stanzas checkboxes add aligned lyric rows. Common choruses and refrains are shown once, even when the first stanza is hidden. Playback and Wait for me continue through the checked stanzas in order, including the refrain on every pass. Playback uses one uninterrupted audio timeline and does not insert count-ins between stanzas; passage looping remains confined to the selected passage. The active stanza and its practice checkpoint are retained per hymn. With no stanzas checked, the music plays once without words.
+`catalogue.json` is a curated familiarity order, not a measured popularity ranking. Alternate titles are search aliases. The library contains thirteen songs: 1st Fingerstyle Blues, Amazing Grace, Blessed Assurance, I’ll Fly Away, In Christ Alone, Jesus Loves Me, O Come, All Ye Faithful, Joy to the World, Silent Night, Are You Washed in the Blood?, In the Sweet By and By, Fairest Lord Jesus and The Old Rugged Cross. The first stanza is selected initially; the Stanzas checkboxes add aligned lyric rows. Common choruses and refrains are shown once, even when the first stanza is hidden. Playback and Wait for me continue through the checked stanzas in order, including the refrain on every pass. Playback uses one uninterrupted audio timeline and does not insert count-ins between stanzas; passage looping remains confined to the selected passage. The active stanza and its practice checkpoint are retained per hymn. With no stanzas checked, the music plays once without words.
 
 Run `npm run import:hymns --workspace=songalong` to reproduce `packages/music-practice/src/hymns.json` entirely offline. The importer extracts all underlaid `w:` stanzas (not unaligned `W:` text), normalizes older abcm2ps editorial decorations, and preserves the full harmony. Melody-only extracts the highest note of the first voice, retaining key, meter, duration, rests, ties, slurs, beaming and syllable alignment. Unsupported constructs or parser warnings fail the import instead of silently discarding music. Sources remain unchanged.
 
@@ -209,3 +209,18 @@ The internal C-family/capo-3 reference is one arrangement; the engine chooses
 the capo by default. Independent printed-music goldens, physical/playback
 contracts and the required responsive Nightly browser witness are documented
 in the checked support matrix.
+
+## The Old Rugged Cross — supplied Timeless Truths score
+
+The archive's B-flat 6/8 score, credited to George Bennard (1913) and marked
+Public Domain, is transcribed in `the-old-rugged-cross.abc`. Its header records
+the exact supplied PDF hash and source URL. Four verses share the refrain;
+all four printed parts, chromatic passing tones and lower-part answers remain.
+The twenty written measures total 48 quarter beats, with complementary pickups
+and partial endings and no added rest. Verse-dependent ties follow the active
+lyrics in playable notation, MIDI practice and continuous playback.
+
+All four editions use the existing registry, controls and automatic capo engine.
+The G-family/capo-3 setup is an internal reference. Dedicated unit goldens and
+the shared responsive Nightly browser fixture own its musical and UI coverage;
+see the song support matrix for the full contract.

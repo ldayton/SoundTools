@@ -31,3 +31,10 @@ test("dominant and minor sevenths retain the seventh and spell every tone",()=>{
   assert.deepEqual(pianoChord("E7"),{notes:[52,56,59,62],labels:["E3","G♯3","B3","D4"]});
   assert.deepEqual(pianoChord("Dm7/C"),{notes:[60,62,65,69],labels:["C4","D4","F4","A4"]});
 });
+
+test("diminished passing chords retain the flat fifth and diminished seventh",()=>{
+  assert.deepEqual(pianoChord("Cdim"),{notes:[48,51,54],labels:["C3","E♭3","G♭3"]});
+  assert.deepEqual(pianoChord("B♭dim7"),{notes:[58,61,64,67],labels:["B♭3","D♭4","F♭4","A♭♭4"]});
+  assert.deepEqual(pianoChord("Gdim7/Bb"),{notes:[58,61,64,67],labels:["B♭3","D♭4","F♭4","G4"]});
+  assert.deepEqual(pianoChord("C#dim7/Bb"),{notes:[58,61,64,67],labels:["B♭3","C♯4","E4","G4"]});
+});

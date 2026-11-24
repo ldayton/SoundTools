@@ -209,6 +209,7 @@ const library = curated.map((entry) => {
       if (item.el_type === "bar") {
         const bars: Record<string, string> = {
           bar_thin: "|",
+          bar_invisible: "[|]",
           bar_thin_thin: "||",
           bar_thin_thick: "|]",
           bar_left_repeat: "|:",

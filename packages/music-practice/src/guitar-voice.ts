@@ -7,9 +7,18 @@ import {capoAccompanimentAbc,transposeCapoChord,type CapoChoice} from "./guitar-
 export function guitarVoiceAbc(melody:string,accompaniment:string,sourceCapo:number,transpose=0,choice?:CapoChoice){
  const guitarShift=((sourceCapo+transpose)%12+12)%12-sourceCapo;
  const capo=choice?.fret ?? sourceCapo+guitarShift,shapeShift=sourceCapo+guitarShift-capo;
- let guitar=(choice?capoAccompanimentAbc(accompaniment,choice,shapeShift):accompaniment).replace(/"\^[^"\n]*"/g,"");
+ let guitar=accompaniment.replace(/"\^[^"\n]*"/g,"");
  const quoted=[...guitar.slice(guitar.search(/^K:/m)).matchAll(/"([^"\n]+)"/g)].map(m=>transposeCapoChord(m[1],shapeShift));
- guitar=abcjs.strTranspose(guitar,abcjs.parseOnly(guitar),shapeShift);
+ // A zero-shift ABC rewrite can drop octave-specific natural cancellations
+ // after a diminished passing chord. Keep the authored spelling untouched.
+ if(shapeShift)guitar=abcjs.strTranspose(guitar,abcjs.parseOnly(guitar),shapeShift);
+ // Write ranked grips AFTER transposition. abcjs can otherwise lose natural
+ // cancellations between chord octaves, changing a chosen voicing's pitches.
+ // Single-note instrumental fills still use the source transposition above.
+ if(choice){
+  const shifted=shapeShift?{...choice,voicings:new Map([...choice.voicings].map(([name,voicing])=>[transposeCapoChord(name,shapeShift),voicing]))}:choice;
+  guitar=capoAccompanimentAbc(guitar,shifted,0);
+ }
  const guitarKey=guitar.match(/^K:(.*)$/m)![1];
  let i=0;
  const body=(abc:string,id:string,lyrics:boolean)=>abc.slice(abc.match(/^K:.*\n/m)!.index!+abc.match(/^K:.*\n/m)![0].length)

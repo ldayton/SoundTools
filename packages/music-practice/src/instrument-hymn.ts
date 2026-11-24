@@ -77,17 +77,21 @@ export function instrumentHymnAbc(
     .replace(/^w:.*$/gm, "")
     .trim();
   const notes = [...body.matchAll(/([^|]*)(\|\]?)/g)].map((m) => m[1] + m[2]);
+  // A five-eighth partial measure has no single note glyph. Keep its two
+  // compound-meter groups tied, rather than inventing an extra attack.
+  const held = (token: string, length: number) => length === 40
+    ? `${token}24-${token}16` : `${token}${length}`;
   const bass = config.changes.map((changes, bar) => {
     const segments = !piano && !strumming && config.guitarBars?.[bar];
     const rest = bar === config.changes.length - 1 ? config.endingRest || 0 : 0;
     return (
       (segments
-        ? segments.map(([token, length]) => token + length).join(" ")
+        ? segments.map(([token, length]) => held(token, length)).join(" ")
         : changes
             .map(([at, chord], i) => {
               const length =
                 (changes[i + 1]?.[0] ?? (config.barLengths?.[bar] ?? 64) - rest) - at;
-              return `${!piano && (strumming || !melodyOnsets.has(`${bar}:${at}`)) ? `"${chord}"` : ""}${(strumming ? config.strum : piano ? config.piano : config.guitar)[chord]}${length}`;
+              return `${!piano && (strumming || !melodyOnsets.has(`${bar}:${at}`)) ? `"${chord}"` : ""}${held((strumming ? config.strum : piano ? config.piano : config.guitar)[chord], length)}`;
             })
             .join(" ")) + (rest ? ` z${rest}` : "") + (bar === config.changes.length - 1 ? " |]" : " |")
     );

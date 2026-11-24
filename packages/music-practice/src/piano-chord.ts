@@ -1,7 +1,7 @@
 /** A compact, playable chord voicing; slash basses are the lowest chord tone. */
 export function pianoChord(name: string) {
   const normalized = name.replaceAll("♯", "#").replaceAll("♭", "b");
-  const match = /^([A-G])([#b]?)(m?)(7?)(?:\/([A-G])([#b]?))?$/.exec(normalized);
+  const match = /^([A-G])([#b]?)(dim|m)?(7?)(?:\/([A-G])([#b]?))?$/.exec(normalized);
   if (!match) return undefined;
   const pitchClass = (letter: string, accidental: string) =>
     (({ C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 })[letter]! +
@@ -9,7 +9,8 @@ export function pianoChord(name: string) {
       12) %
     12;
   const root = 48 + pitchClass(match[1], match[2]);
-  const intervals = [0, match[3] ? 3 : 4, 7, ...(match[4] ? [10] : [])];
+  const diminished = match[3] === "dim";
+  const intervals = [0, match[3] ? 3 : 4, diminished ? 6 : 7, ...(match[4] ? [diminished ? 9 : 10] : [])];
   let notes = intervals.map(interval => root + interval);
   if (match[5]) {
     const bass = pitchClass(match[5], match[6]);

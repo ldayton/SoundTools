@@ -1,0 +1,51 @@
+% Transcribed from user-supplied printed score.
+% Timeless Truths PDF in Favorite-Scores.zip; all four parts and underlays retained.
+% Source: https://library.timelesstruths.org/music/The_Old_Rugged_Cross/
+% Supplied PDF SHA-256: ebdf8d9248ebaa1114cd0ef3a7ef195ca19b1527831dea443d7798d8e8aea683
+% Each printed system has a two-sixteenth pickup and five-eighth ending.
+% Publisher MusicXML confirms hidden end bars after measures 5 and 15:
+% https://library.timelesstruths.org/library/music/T/The_Old_Rugged_Cross/The_Old_Rugged_Cross.xml
+% The adjustable 80 BPM quarter-note practice default is editorial.
+X:1
+T:The Old Rugged Cross
+C: Words: George Bennard, 1913.
+C: Music: George Bennard, 1913.
+C: copyright: Rights remain with the respective rights holders; the supplied Timeless Truths score is marked Public Domain.
+S: Timeless Truths; supplied Favorite-Scores archive.
+M:6/8
+L:1/16
+Q:1/4=80
+%%staves (S A) | (T B)
+V:S clef=treble stem=up
+V:A clef=treble stem=down
+V:T clef=bass stem=up
+V:B clef=bass stem=down
+K:Bb
+[V:S] DE | F3=EG2 F4 FF | G3^FA2 G4 G-G | (A3G)F2 E2F2E2 | D6-D4 [|]
+w: On a hill far a- way stood an old rug- ged cross, The * em- blem of suf- f'ring and shame; *
+w: Oh, that old rug- ged cross, so de- spised by the world, Has a won- drous at- trac- tion for me; *
+w: In that old rug- ged cross, stained with blood so di- vine, A * won- * drous beau- ty I see, *
+w: To the old rug- ged cross I will ev- er be true; Its * shame and re- proach glad- ly bear; *
+[V:A] B,C | D3^CC2 D4 DD | E3EE2 E4 =E-E | E3-ED2 C2C2C2 | B,6-B,4 [|]
+[V:T] F,F, | B,3B,G,2 B,4 B,B, | B,3A,C2 B,4 C-C | C3A,B,2 A,2A,2F,2 | F,6-F,4 [|]
+[V:B] B,,B,, | B,,3B,,B,,2 B,,4 B,,B,, | E,3E,E,2 E,4 C,-C, | F,3-F,F,2 F,2F,2F,2 | B,,6-B,,4 [|]
+[V:S] DE | F3=EG2 F4 FF | G3^FA2 G4 G-G | A3GF2 e2d2c2 | B6-B4 ||
+w: And I love that old cross where the dear- est and best For a world of lost sin- ners was slain. *
+w: For the dear Lamb of God left His glo- ry a- bove To * bear it to dark Cal- va- ry. *
+w: For 'twas on that old cross Je- sus suf- fered and died, To * par- don and sanc- ti- fy me. *
+w: Then He'll call me some- day to my home far a- way, Where His glo- ry for- ev- er I'll share. *
+[V:A] B,C | D3^CC2 D4 DD | E3EE2 E4 =E-E | E3EE2 G2F2E2 | D6-D4 ||
+[V:T] F,F, | B,3B,G,2 B,4 B,B, | B,3A,C2 B,4 C-C | C3B,A,2 A,2B,2A,2 | B,6-B,4 ||
+[V:B] B,,B,, | B,,3B,,B,,2 B,,4 B,,B,, | E,3E,E,2 E,4 C,-C, | F,3F,F,2 F,2F,2F,2 | B,,6-B,,4 ||
+[V:S] AB | c3cc2 c2B2A2 | B6-B4 BA | G3GG2 B2A2G2 | F6-F4 [|]
+w: So I'll cher- ish the old rug- ged cross, * Till my tro- phies at last I lay down; *
+[V:A] CD | E3EE2 E4 E2 | D2^C2E2 D4 FF | E3EE2 G2F2E2 | D6-D4 [|]
+w: * * * * * cross, the old rug- ged cross, * * * * * * * * * *
+[V:T] F,F, | A,3A,A,2 A,4 F,2 | F,2=E,2G,2 F,4 B,B, | B,3B,B,2 B,2B,2B,2 | B,6-B,4 [|]
+[V:B] F,F, | F,3F,F,2 F,4 F,2 | B,,2B,,2B,,2 B,,4 D,D, | E,3E,E,2 E,2E,2E,2 | B,,6-B,,4 [|]
+[V:S] FB | d3dd2 d2e2d2 | G6-G4 ee | d3cB2 F2A2c2 | B6-B4 |]
+w: I will cling to the old rug- ged cross, * And ex- change it some- day for a crown. *
+[V:A] DD | F3FF2 (F2G2)F2 | E2E2E2 E4 GG | F3ED2 E2E2E2 | D6-D4 |]
+w: * * * * * cross, * the old rug- ged cross, * * * * * * * * * *
+[V:T] B,B, | B,3B,B,2 B,4 B,2 | B,2B,2B,2 B,4 B,B, | B,3A,B,2 A,2C2F,2 | F,6-F,4 |]
+[V:B] B,,B,, | B,,3B,,B,,2 B,,4 B,,2 | E,2E,2E,2 E,4 E,E, | F,3F,F,2 F,2F,2F,2 | B,,6-B,,4 |]

@@ -2094,5 +2094,25 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/the-old-rugged-cross-editions.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4636
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/the-old-rugged-cross-editions.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

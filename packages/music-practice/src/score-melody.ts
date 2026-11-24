@@ -1,8 +1,11 @@
 import abcjs from "abcjs";
-/** Beam short notes within each quarter-note beat without changing the source tokens. */
+/** Beam short notes by quarter-note beats, or three-eighth groups in compound
+ * meters, without changing pitches, durations or existing source beams. */
 export function beamByBeat(abc: string) {
   const tune = abcjs.parseOnly(abc)[0],
     cuts: { from: number; to: number }[] = [];
+  const meter = tune.getMeterFraction();
+  const group = meter.den === 8 && meter.num % 3 === 0 ? 1.5 : 1;
   let beat = 0,
     previous:
       { start: number; duration: number; from: number; to: number } | undefined;
@@ -25,7 +28,7 @@ export function beamByBeat(abc: string) {
         previous &&
         previous.duration < 1 &&
         duration < 1 &&
-        Math.floor(previous.start + 1e-7) === Math.floor(start + 1e-7)
+        Math.floor((previous.start + 1e-7) / group) === Math.floor((start + 1e-7) / group)
       ) {
         const tail = abc.slice(previous.from, previous.to).match(/\s*$/)![0]
             .length,

@@ -81,8 +81,8 @@ const mod=(n:number)=>(n%12+12)%12;
 const roots:Record<string,number>={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 function pitch(letter:string,accidental=''){return mod(roots[letter]+({'#':1,'♯':1,b:-1,'♭':-1}[accidental]||0));}
 function harmony(symbol:string,shift:number){
- const m=/^([A-G])([#b♯♭]?)(m?)(7?)(?:\/([A-G])([#b♯♭]?))?$/.exec(symbol);assert(m,`Audit must explicitly support ${symbol}`);
- const root=pitch(m[1],m[2]),intervals=[0,m[3]?3:4,7,...(m[4]?[10]:[])];
+ const m=/^([A-G])([#b♯♭]?)(dim|m)?(7?)(?:\/([A-G])([#b♯♭]?))?$/.exec(symbol);assert(m,`Audit must explicitly support ${symbol}`);
+ const root=pitch(m[1],m[2]),intervals=m[3]==="dim"?(m[4]?[0,3,6,9]:[0,3,6]):[0,m[3]?3:4,7,...(m[4]?[10]:[])];
  return {tones:intervals.map(i=>mod(root+i+shift)).sort((a,b)=>a-b),required:intervals.filter(i=>!m[4]||i!==7).map(i=>mod(root+i+shift)),bass:mod((m[5]?pitch(m[5],m[6]):root)+shift)};
 }
 test("all sounding keys retain accompaniment rhythm, chord quality and root/slash bass",()=>{

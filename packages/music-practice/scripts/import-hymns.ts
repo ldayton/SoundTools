@@ -30,7 +30,8 @@ const curated = JSON.parse(
 createHymnIdentityIndex(curated);
 type LyricOverride = {
   shared?: number[][];
-  stanzas: { label: string; syllables: string; endingBar?: number }[];
+  credits?: string[];
+  stanzas: { label: string; syllables: string | string[]; endingBar?: number }[];
 };
 const lyricOverrides = JSON.parse(
   readFileSync(root + "hymns/lyrics.json", "utf8"),
@@ -105,7 +106,7 @@ function stanzaData(source: string, id: string) {
   const override = lyricOverrides[id];
   const plain = (tokens: string[]) =>
     tokens
-      .filter((t) => t !== "*")
+      .filter((t) => t !== "*" && t !== "_")
       .join(" ")
       .replace(/-\s+/g, "")
       .replace(/~/g, " ");
@@ -113,7 +114,7 @@ function stanzaData(source: string, id: string) {
     ? override.stanzas.map((stanza) => ({
         label: stanza.label,
         endingBar: stanza.endingBar ?? null,
-        syllables: stanza.syllables.split(/\s+/),
+        syllables: Array.isArray(stanza.syllables) ? stanza.syllables : stanza.syllables.split(/\s+/),
       }))
     : rows.map((syllables) => ({
         endingBar: null,
@@ -268,10 +269,10 @@ const library = curated.map((entry) => {
     ...stanzaData(source, entry.id),
     key,
     meter,
-    credits: source
+    credits: [...source
       .split("\n")
       .filter((l) => /^C: (Words:|Music:|Tabledited by |copyright:)/.test(l))
-      .map((l) => l.slice(3)),
+      .map((l) => l.slice(3)), ...(lyricOverrides[entry.id]?.credits || [])],
     sourceUrl:
       entry.sourceUrl ||
       (entry.source === "user-supplied-score"

@@ -2,12 +2,13 @@ import {checkVocalEdition} from "../../../packages/music-practice/test-fixtures/
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdir } from "node:fs/promises";
 import {
   launchBrowser,
   newPage,
   closeBrowser,
   captureFailure,
+  waitForApp,
 } from "../../../scripts/ci/browser-harness.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
@@ -23,7 +24,7 @@ async function checkScore(page: import("playwright").Page) {
         view = (svg as SVGSVGElement).viewBox.baseVal;
       return [
         ...svg.querySelectorAll<SVGGraphicsElement>(
-          ".abcjs-lyric,.abcjs-tabNumber,.beginner-fingering,.abcjs-part,.abcjs-bar-number,.tab-rhythm",
+          ".abcjs-lyric,.abcjs-tabNumber,.beginner-fingering,.abcjs-part,.abcjs-bar-number,.tab-rhythm,.hymn-lyric-extender",
         ),
       ].flatMap((node) => {
         if (getComputedStyle(node).visibility === "hidden") return [];
@@ -63,6 +64,15 @@ async function checkScore(page: import("playwright").Page) {
     }),
   );
   assert.deepEqual(crowded, [], "Opposing voice fingerings remain distinct");
+  const extenderCollisions=await page.locator(".hymn-paper svg").evaluateAll(svgs=>svgs.flatMap(svg=>{
+    const words=[...svg.querySelectorAll(".abcjs-lyric tspan")].filter(n=>n.textContent?.trim()).map(n=>n.getBoundingClientRect());
+    return [...svg.querySelectorAll(".hymn-lyric-extender rect")].flatMap(n=>{
+      const a=n.getBoundingClientRect();
+      return words.some(b=>a.left<b.right && a.right>b.left && a.top<b.bottom && a.bottom>b.top) ? [n.parentElement?.getAttribute("data-syllable")] : [];
+    });
+  }));
+  assert.deepEqual(extenderCollisions,[],"melisma ink stays clear of syllables and niqqud");
+
   assert(
     await page
       .locator(".hymn-paper svg")
@@ -71,6 +81,98 @@ async function checkScore(page: import("playwright").Page) {
       ),
     "Every system fits its music without blank lyric boxes stretching the ending",
   );
+}
+async function checkHebrewStanzas(page: import("playwright").Page, base: string, width: number) {
+  await page.goto(base + "/piano/hymns/amazing-grace?arrangement=piano&mode=playback&stanzas=1,4,6");
+  await expect(page.locator(".hymn-score-credits")).toContainText("Hebrew translation: Shlomo Kalo");
+  await expect(page.locator(".abcjs-lyric").first()).toHaveText("A-מָהאֶצְ-".normalize("NFC"));
+  await expect(page.locator('.hymn-lyric-extender[data-syllable="' + "דּוֹ".normalize("NFC") + '"]').first()).toBeVisible();
+  assert.ok(!(await page.locator(".abcjs-lyric").allTextContents()).join("").includes("_"), "extenders never print placeholder underscores");
+  const hebrew = page.locator('.abcjs-lyric tspan[lang="he"]');
+  await expect(hebrew.first()).toHaveAttribute("unicode-bidi", "isolate");
+  await expect(hebrew.first()).toHaveAttribute("direction", "ltr");
+  assert.equal(await page.locator('.abcjs-lyric[direction="rtl"]').count(), 0,
+    "Hebrew must not reverse punctuation in the shared English text parent");
+  await checkScore(page);
+  const overlap = await page.locator(".hymn-paper svg").evaluateAll(svgs => svgs.flatMap(svg => {
+    const rows = new Map<number, DOMRect[]>();
+    for (const span of svg.querySelectorAll(".abcjs-lyric tspan")) {
+      if (!span.textContent?.trim()) continue;
+      const box=span.getBoundingClientRect(), key=Math.round(box.y);
+      rows.set(key,[...(rows.get(key)||[]),box]);
+    }
+    return [...rows.values()].flatMap(row=>row.sort((a,b)=>a.x-b.x).slice(1).flatMap((box,index)=>
+      row[index].right-box.left>1 ? [row[index].right-box.left] : []));
+  }));
+  assert.deepEqual(overlap,[],"English and Hebrew lyric fragments remain distinct");
+  await mkdir("work", {recursive:true});
+  if(width===390 || width===1440)
+    await page.screenshot({path:`work/amazing-grace-hebrew-piano-${width}.png`});
+  await openPracticeOptions(page);
+  const choices=page.locator(".hymn-stanza-checkbox input");
+  await expect(choices).toHaveCount(6);
+  await expect(choices.nth(0)).toBeChecked();
+  await expect(choices.nth(3)).toBeChecked();
+  await expect(choices.nth(5)).toBeChecked();
+  await expect(page.locator(".hymn-stanza-checkbox bdi").nth(3)).toHaveText("מה מופלא חסדו");
+  if(width===390) {
+    await page.locator("#hymn-stanzas").scrollIntoViewIfNeeded();
+    await page.screenshot({path:"work/amazing-grace-hebrew-stanzas-mobile.png"});
+  }
+  await choices.nth(0).uncheck();
+  await page.reload();
+  await openPracticeOptions(page);
+  await expect(choices.nth(0)).not.toBeChecked();
+  await expect(choices.nth(3)).toBeChecked();
+  await expect(choices.nth(5)).toBeChecked();
+  await dismissPracticeDrawer(page);
+  await expect(page.locator(".abcjs-lyric").first()).toHaveText("מָהאֶצְ-".normalize("NFC"));
+  await selectHymnInstrument(page,"guitar");
+  await openPracticeOptions(page);
+  await page.locator("#hymn-score-display").selectOption("both");
+  await dismissPracticeDrawer(page);
+  await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();
+  await expect(hebrew.first()).toHaveText("מָה".normalize("NFC"));
+  await checkScore(page);
+  if(width===390)await page.screenshot({path:"work/amazing-grace-hebrew-guitar-mobile.png"});
+  await openPracticeOptions(page);
+  await page.locator("#hymn-score-display").selectOption("chords");
+  await expect(page.locator(".chords-only-score").first()).toBeVisible();
+  await expect(hebrew.first()).toHaveText("מָה".normalize("NFC"));
+  await expect(hebrew.first()).toHaveAttribute("direction","ltr");
+  await checkScore(page);
+  if(width===1440 || width===390) {
+    for(const [number,first] of [[4,"מָה"],[5,"חֶ-"],[6,"אֶצְ-"]] as const) {
+      await page.goto(base + `/piano/hymns/amazing-grace?arrangement=piano&mode=playback&stanzas=${number}`);
+      await waitForApp(page);
+      await expect(page.locator(".abcjs-lyric").first()).toHaveText(first.normalize("NFC"));
+      await expect(page.locator(".hymn-lyric-extender").first()).toBeVisible();
+      await checkScore(page);
+      assert.ok(!(await page.locator(".abcjs-lyric").allTextContents()).join("").includes("_"));
+      await page.screenshot({path:`work/hebrew-phrasing-${number}-${width}.png`});
+    }
+  }
+  if(width===1440 || width===320) {
+    await page.goto(base + "/piano/hymns/amazing-grace?arrangement=piano&mode=playback&stanzas=1,2,3,4,5,6");
+    await waitForApp(page);
+    await expect(page.locator(".abcjs-lyric").first()).toHaveText("A-’TwasWhenמָהחֶ-אֶצְ-".normalize("NFC"));
+    await checkScore(page);
+  }
+  if(width===1440) {
+    // The right-hand-only grading pass must use the same subdivided melody as
+    // the visible two-hand score, including the repeated G in Hebrew verse 1.
+    await page.goto(base + "/piano/hymns/amazing-grace?arrangement=piano&mode=wait&hands=right&view=both&stanzas=4");
+    await waitForApp(page);
+    await expect(page.locator(".hymn-count")).toHaveText(/^1 \/ /);
+    await midiAction(page,"Connect MIDI keyboard");
+    for(const [index,pitch] of [62,67,67].entries()) {
+      await page.evaluate(pitch=>{
+        (window as any).midiTest.send([0x90,pitch,90]);
+        (window as any).midiTest.send([0x80,pitch,0]);
+      },pitch);
+      await expect(page.locator(".hymn-count")).toHaveText(new RegExp(`^${index+2} / `));
+    }
+  }
 }
 const server = await preview("songalong", 4601),
   browser = await launchBrowser();
@@ -92,7 +194,9 @@ try {
       server.base +
         "/piano/hymns/amazing-grace?arrangement=piano&mode=playback",
     );
-    await page.locator(".abcjs-note").first().waitFor();
+    await waitForApp(page);
+    await page.locator(".hymn-paper .abcjs-note").first().waitFor();
+    await expect(page.locator(".hymn-score-credits")).toContainText("Hebrew translation: Shlomo Kalo");
     await openHymnControls(page);
     await page
       .getByRole("checkbox", { name: "Show fingerings", exact: true })
@@ -167,7 +271,7 @@ try {
     await checkScore(page);
     // All three verses share the same pickup and held ending.
     const stanzas = page.locator(".hymn-stanza-checkbox input");
-    await expect(stanzas).toHaveCount(3);
+    await expect(stanzas).toHaveCount(6);
     await stanzas.nth(1).check();
     await stanzas.nth(2).check();
     await page.locator("#hymn-score-display").selectOption("tab");
@@ -262,6 +366,8 @@ try {
       ),
     );
     await checkVocalEdition(page,server.base,"amazing-grace");
+    await checkHebrewStanzas(page,server.base,width);
+    assert.deepEqual(errors, []);
     await page.close();
     console.log(`PASS Amazing Grace editions ${width}px`);
   }

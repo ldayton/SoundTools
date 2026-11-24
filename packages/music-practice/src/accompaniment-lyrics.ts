@@ -29,8 +29,8 @@ export function accompanimentLyrics(
       const chunks = changes.map(() => [] as string[]);
       melody.forEach((start, index) => {
         const syllable = stanza.syllables[index];
-        if (syllable && syllable !== "*")
-          chunks[groupFor(start)].push(syllable);
+        if (syllable && syllable !== "*" && syllable !== "_")
+          chunks[groupFor(start)].push(...syllable.split(/\s+/));
       });
       return {
         ...stanza,

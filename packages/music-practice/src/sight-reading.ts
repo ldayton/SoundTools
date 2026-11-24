@@ -943,7 +943,7 @@ export class SightReading {
       showStrumPattern: !!chordProfile && "strumPattern" in chordProfile && !!chordProfile.strumPattern &&
         (this.arrangement === "guitar" || this.arrangement === "guitar-chords" || this.arrangement === "guitar-edition" && this.scoreDisplay === "chords"),
       credits: this.hymn.credits
-        .filter((credit) => /^(Words:|Music:|Tabledited by )/i.test(credit))
+        .filter((credit) => /^(Words:|Music:|(?:\p{L}+\s+)?translation:|Tabledited by )/iu.test(credit))
         .map((credit) =>
           credit
             .split(/\s+Setting:/i)[0]
@@ -1134,6 +1134,10 @@ export class SightReading {
             printedScore: this.arrangement === "original" || guitarVocal,
             initialSignatures: !reviewed,
             reattackTies: this.reattackTies,
+            lyrics: this.hands === "left" ? undefined : {
+              hymn: this.hymn, selected: this.stanzas,
+              offset: hymnMelodyOffset(this.hymn, practice.from),
+            },
             playback: () => {},
           },
         ).map((e) => ({

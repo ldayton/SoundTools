@@ -12,7 +12,7 @@ import {
   HymnPlayback,
   playbackNotes,
 } from "../../../packages/music-practice/src/hymn-playback";
-import { hymnEndingBar } from "../../../packages/music-practice/src/hymn-lyrics";
+import { hymnEndingBar, hymnLyricsAbc } from "../../../packages/music-practice/src/hymn-lyrics";
 import { hymnPreferences } from "../../../packages/music-practice/src/hymn-settings";
 import {
   HymnProgress,
@@ -43,7 +43,7 @@ function sequence(
   });
 }
 
-test("checked stanzas form an ordered, gapless timeline with unchanged verse and refrain notes", () => {
+test("checked stanzas form an ordered, gapless timeline with their written lyric rhythms", () => {
   for (const h of hymns)
     for (const { id } of SOURCE_VARIANTS) {
       const selected = h.stanzas.map((s) => s.number);
@@ -63,8 +63,9 @@ test("checked stanzas form an ordered, gapless timeline with unchanged verse and
           "both",
           hymnEndingBar(h, [verse.number]),
         ).abc;
+        const written = hymnLyricsAbc(abc, {hymn:h,selected,offset:0});
         const audio = abcjs
-          .parseOnly(h.slug === "in-christ-alone" ? abc.replaceAll(":|","|]") : abc)[0]
+          .parseOnly(h.slug === "in-christ-alone" ? written.replaceAll(":|","|]") : written)[0]
           .setUpAudio({ qpm: 60, chordsOff: true });
         assert.equal(verse.start, duration);
         expected.push(

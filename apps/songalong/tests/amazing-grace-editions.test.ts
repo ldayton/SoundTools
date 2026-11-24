@@ -166,15 +166,15 @@ test("sections resume held notes at the correct pitch and truncate ties at their
     }
   }
 });
-test("all three verses retain their exact words, including empty tied continuations", () => {
+test("all six verses retain their exact words, including empty tied continuations", () => {
   const data = graceLyricData(hymn);
-  assert.equal(data.stanzas.length, 3);
+  assert.equal(data.stanzas.length, 6);
   const letters = (tokens: string[]) =>
     tokens
       .join("")
       .replace(/[^\p{L}\p{N}]/gu, "")
       .toLowerCase();
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < 6; i++)
     assert.equal(
       letters(data.stanzas[i].syllables),
       letters(hymn.stanzas[i].syllables.filter((s) => s !== "*")),
@@ -256,4 +256,96 @@ test("fingerstyle preserves the complete melody one octave lower with first-posi
     read(arrangeHymn(hymn, "guitar-edition", 0, 0, "right").abc).tracks[0],
     score.tracks[0],
   );
+});
+
+test("the three matching Hebrew stanzas preserve the supplied translation and translator-only attribution", () => {
+  const expected = [
+    "מה מופלא חסדו מה מתק קולו שגאל אומלל כמוני אבוד תעיתי אך עכשיו לא עוד אתעה סומא אך עכשיו רואה",
+    "חסד זה למד את לבי לפחוד חסד זה נקה מפחד מה אהוב חסד זה שהאיר בלב בשעה בה האמנתי",
+    "אצלו היינו בעבר מאירים באהבה טהורים קורנים כשמש ועד נשובה עוד נספיק לזמר הללויה הלל לו הלל לנצח",
+  ];
+  const letters = (text: string) => text.replace(/[^\p{L}]/gu, "");
+  assert.deepEqual(hymn.stanzas.slice(3).map(s => letters(s.syllables.join(""))), expected.map(letters));
+  assert.deepEqual(hymn.stanzas.slice(3).map(s => s.number), [4,5,6]);
+  const text = (index: number) => hymn.stanzas[index].syllables.join(" ")
+    .replace(/-\s+/g, "").replace(/~/g, " ").normalize("NFC");
+  assert.ok(text(3).includes("מוּפְלָא".normalize("NFC")), "retained vav uses shuruq");
+  assert.ok(text(3).includes("אוּמְלָל".normalize("NFC")), "full spelling is preserved");
+  assert.ok(text(4).includes("לִמֵּד".normalize("NFC")), "taught, rather than learned");
+
+  assert.deepEqual(hymn.credits.filter(c => /Hebrew|Kalo|קאלו|Zohar|זוהר/.test(c)),
+    ["Hebrew translation: Shlomo Kalo"]);
+  assert.deepEqual(hymnPreferences(hymn.id, { stanzas: [1,4,6] }).stanzas, [1,4,6]);
+});
+
+test("Hebrew and mixed underlay preserve the tune, bar lengths, accompaniment and production playback", async () => {
+  const {hymnLyricsAbc} = await import("../../../packages/music-practice/src/hymn-lyrics");
+  const {hymnPlaybackScore} = await import("../../../packages/music-practice/src/hymn-playback-score");
+  const spans = (abc: string) => {
+    const result: {pitch:string;start:number;end:number}[] = [];
+    let time=0;
+    for(const n of abcjs.parseOnly(abc)[0].lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[])) {
+      if(n.el_type!=="note")continue;
+      const pitch=n.pitches?.map(p=>p.pitch).join(",") || "rest", previous=result.at(-1);
+      if(previous?.pitch===pitch && Math.abs(previous.end-time)<1e-8)previous.end=time+n.duration;
+      else result.push({pitch,start:time,end:time+n.duration});
+      time+=n.duration;
+    }
+    return result;
+  };
+  for(const arrangement of ["piano","guitar-edition","original","guitar-vocal"] as const) {
+    const score=arrangeHymn(hymn,arrangement,0);
+    const source=read(score.abc);
+    for(const selected of [[4],[5],[6],[1,4,6],[1,2,3,4,5,6]]) {
+      const abc=hymnLyricsAbc(score.abc,{hymn,selected,offset:0});
+      const actual=read(abc);
+      assert.equal(actual.audio.totalDuration,source.audio.totalDuration);
+      assert.deepEqual(spans(abc),spans(score.abc),`${arrangement}: identical pitch/time envelope`);
+      assert.deepEqual(actual.tracks.slice(1),source.tracks.slice(1),`${arrangement}: accompaniment intact`);
+      const plan=hymnPlaybackScore({hymn,arrangement,sectionBars:0,section:0,hands:"both",totalBars:17,sections:1,
+        abc:score.abc,audio:actual.audio,transpose:0,stanzas:selected});
+      assert.equal(plan.audio.totalDuration,source.audio.totalDuration*selected.length);
+      assert.deepEqual(plan.verses.map(v=>v.number),selected);
+      // Repeated syllables in the visible score are also repeated in playback.
+      const attacks=(audio:typeof actual.audio)=>audio.tracks[0].filter(n=>n.cmd==="note");
+      assert.equal(attacks(plan.audio).length,attacks(actual.audio).length*selected.length);
+    }
+  }
+});
+
+test("Hebrew phrase landmarks carry word endings across the melody instead of starting words early", async () => {
+  const {hymnLyricsAbc}=await import("../../../packages/music-practice/src/hymn-lyrics");
+  const bare=(text:string)=>text.normalize("NFD").replace(/\p{M}/gu,"");
+  const row=(number:number)=>hymn.stanzas[number-1].syllables.map(bare);
+  assert.deepEqual(row(4).slice(2,10),["חס-","דו","_","מה","מ-","תק","קו- לו,","ש-"],
+    "חסדו carries through the B half note; מה begins on the following A pickup");
+  assert.deepEqual(row(5).slice(0,6),["ח- סד","זה","ל-","מד","_","את"]);
+  assert.deepEqual(row(5).slice(17,23),["מה א-","הוב","_","ח-","סד","זה,"]);
+  assert.deepEqual(row(6).slice(11,14),["קור-","_","נים כ-"]);
+  assert.deepEqual(row(6).slice(18,22),["עד","נ-","שו-","בה,"],"SHU gets the accented high D");
+  const extras=[3,6,12];
+  // Independent spoken-syllable counts, with intentional multi-pitch holds.
+  // Every added attack must carry a syllable; no rhythm changes for empty slots.
+  const sungSyllables=[37,37,46], melodicHolds=[1,4,1];
+  for(let number=4;number<=6;number++) {
+    const stanza=hymn.stanzas[number-1];
+    assert.equal(stanza.syllables.reduce((sum,t)=>sum+t.split(/\s+/).length-1,0),extras[number-4]);
+    const abc=hymnLyricsAbc(hymn.melody,{hymn,selected:[number],offset:0});
+    const rendered=read(abc), tune=rendered.tune;
+    assert.equal(stanza.syllables.flatMap(t=>t.split(/\s+/)).filter(t=>t!=="_").length,sungSyllables[number-4]);
+    assert.equal(rendered.audio.tracks[0].filter(n=>n.cmd==="note").length,
+      sungSyllables[number-4]+melodicHolds[number-4], "no redundant attacks beyond the syllables and intentional melismas");
+    const notes=tune.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[]).filter(n=>n.el_type==="note");
+    assert.ok(notes.every(n=>n.duration>=1/8 && Number.isInteger(n.duration*8)),
+      "extra syllables use ordinary eighths/quarters, never sixteenths or hidden tuplets");
+  }
+  const first=read(hymnLyricsAbc(hymn.melody,{hymn,selected:[4],offset:0})).tune;
+  let time=0;
+  const underlay=first.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[]).flatMap(n=>{
+    if(n.el_type!=="note")return [];
+    const at=time;time+=n.duration;
+    return [{at,duration:n.duration,text:bare(n.lyric?.[0]?.syllable||"")}];
+  });
+  assert.deepEqual(underlay.find(n=>n.at===1),{at:1,duration:1/2,text:"_"});
+  assert.deepEqual(underlay.find(n=>n.at===1.5),{at:1.5,duration:1/4,text:"מה"});
 });

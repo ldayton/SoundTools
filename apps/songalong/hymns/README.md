@@ -154,3 +154,38 @@ reuse the edition registry. Guitar's internal reference arrangement uses D-famil
 shapes at capo 3, but the engine recommendation determines the default position.
 Capo/fingering choices have no authority merely because they occur in an imported
 or internal reference arrangement. See the support matrix for regression owners.
+
+## Hebrew stanzas
+
+Amazing Grace includes the three matching Hebrew verses translated by Shlomo Kalo,
+selectable as stanzas 4–6 alongside the three English verses. The retained Hebrew
+verses correspond to “Amazing Grace”, “’Twas grace” and “When we’ve been there”. Only the Hebrew translation is taken from the supplied reference.
+
+An override's `syllables` may be a space-delimited string or an array with one
+entry per canonical melody note, including `*` at tied continuations. Within an
+array entry, spaces divide a held pitch into repeated notes for extra syllables;
+`~` binds words to one lyric attachment. `_` explicitly continues the previous
+syllable without adding an attack; the shared engraver draws a word extender or
+continued word hyphen, including across systems and in tab/chord views. Selected rows share the union of those
+subdivisions. Dotted notes divide on the beat (half + quarter, or quarter + eighth).
+Engraving, playback and hand practice use the same underlay rhythm; pitches,
+bar lengths and accompaniment stay intact. English-only selections retain their
+original rhythm. Override `credits` are appended to the original source credits.
+Hebrew letters retain their logical order; each engraved stanza fragment is
+isolated from English punctuation while the musical reading order stays LTR.
+
+The Hebrew niqqud was prepared with Nakdan Pro's modern-poetry mode and manually
+reviewed (including לִמֵּד). The supplied full spelling
+is retained; מוּפְלָא and אוּמְלָל use shuruq on their retained vavs. Niqqud is
+attached to the existing syllables without changing the musical underlay.
+Selector labels remain concise and unpointed. This is checked-in editorial text,
+with no runtime diacritization service or model dependency.
+
+The Hebrew underlay is phrased independently of the English word boundaries:
+חַסְדּוֹ carries through the opening B half note before the next מָה pickup.
+The second Hebrew verse extends the stressed endings of לִמֵּד, נִקָּה and אֲהוּב.
+The final Hebrew verse carries קוֹרְנִים over its short melodic figure and places
+SHU in נָשׁוּבָה on the high D; לְזַמֵּר uses three ordinary eighths. All cadences
+retain their original tied lengths. Necessary added attacks are ordinary eighths
+or quarters, with no sixteenths or implicit tuplets. A sung performance can still
+choose expressive timing; these are editorial lyric settings of the supplied tune.

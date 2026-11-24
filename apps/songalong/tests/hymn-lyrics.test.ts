@@ -55,11 +55,11 @@ test("all bundled stanzas align to the melody, with unique first-word labels", (
     );
   }
   for (const id of [
-    "amazing-grace",
     "jesus-loves-me",
     "o-come-all-ye-faithful",
   ])
     assert.equal(hymn(id).stanzas.length, 3);
+  assert.equal(hymn("amazing-grace").stanzas.length, 6);
   assert.match(
     words(hymn("amazing-grace").stanzas[1].syllables),
     /thought my heart/,
@@ -102,7 +102,7 @@ test("a shared chorus appears once, including when the first stanza is unchecked
   );
 });
 
-test("lyric selection never changes pitches, timing, ties, rests or accompaniment", () => {
+test("unchanged syllabic underlay preserves pitches, timing, ties, rests and accompaniment", () => {
   const performance = (abc: string) =>
     abcjs
       .parseOnly(abc)[0]
@@ -121,7 +121,7 @@ test("lyric selection never changes pitches, timing, ties, rests or accompanimen
         const score = arrangeHymn(h, id, bars, section, "both");
         const selection = {
           hymn: h,
-          selected: h.stanzas.map((s) => s.number),
+          selected: h.stanzas.filter(s => s.syllables.every(token => !/\s/.test(token))).map((s) => s.number),
           offset: hymnMelodyOffset(h, score.from),
         };
         const abc = hymnLyricsAbc(score.abc, selection);
@@ -213,4 +213,42 @@ test("reviewed word divisions retain complete syllables and intentional multiwor
       "me",
       "so!",
     ]);
+});
+
+test("syllabic subdivisions share one rhythm across selected rows and retain dotted-note beats", async () => {
+  const {practiceHymn}=await import("../../../packages/music-practice/test-fixtures/hymns");
+  const source="X:1\nM:3/4\nL:1/8\nK:C\n\"C\"!1!C3 D E2- | E2 F4 |]";
+  const hymn={...practiceHymn,stanzas:[
+    {number:1,label:"one",syllables:["One","two","three-","*","four"]},
+    {number:2,label:"עברית",syllables:["א- בא","ב- נו","גד-","*","דו"]},
+  ],lyricSections:[]};
+  const english=hymnLyricsAbc(source,{hymn,selected:[1],offset:0});
+  assert.deepEqual(notes(english).map(n=>n.duration),[3/8,1/8,2/8,2/8,4/8]);
+  const mixed=hymnLyricsAbc(source,{hymn,selected:[1,2],offset:0});
+  assert.equal(abcjs.parseOnly(mixed)[0].warnings?.length||0,0);
+  assert.deepEqual(notes(mixed).map(n=>n.duration),[2/8,1/8,1/16,1/16,2/8,2/8,4/8]);
+  assert.deepEqual(notes(mixed).slice(0,4).map(n=>n.lyric?.map((l: {syllable:string})=>l.syllable)),
+    [["One","א"],["","בא"],["two","ב"],["","נו"]]);
+  assert.equal((mixed.match(/"C"/g)||[]).length,1,"chord annotations are not duplicated");
+  assert.equal((mixed.match(/!1!/g)||[]).length,1,"fingering annotations are not duplicated");
+  assert.ok(notes(mixed)[4].pitches![0].startTie);
+  assert.ok(notes(mixed)[5].pitches![0].endTie);
+});
+
+test("melisma identities survive canonical offsets, row compaction and another stanza's subdivisions", async () => {
+  const {practiceHymn}=await import("../../../packages/music-practice/test-fixtures/hymns");
+  const hymn={...practiceHymn,stanzas:[
+    {number:1,label:"sustain",syllables:["Held","_","Next"]},
+    {number:2,label:"syllabic",syllables:["First","two notes","Last"]},
+  ],lyricSections:[]};
+  const source="X:1\nM:4/4\nL:1/4\nK:C\nC D2 E |]";
+  const parsed=abcjs.parseOnly(hymnLyricsAbc(source,{hymn,selected:[1,2],offset:0}))[0];
+  assert.equal(parsed.warnings?.length||0,0);
+  const items=parsed.lines[0].staff![0].voices![0].filter(n=>n.el_type==="note");
+  assert.deepEqual(items.map(n=>n.lyric?.map((l:{syllable:string})=>l.syllable)),
+    [["Held","First"],["_","two"],["_","notes"],["Next","Last"]]);
+  const partial=abcjs.parseOnly(hymnLyricsAbc(source,{hymn,selected:[1,2],offset:1}))[0];
+  compactHymnLyrics(partial);
+  const first=partial.lines[0].staff![0].voices![0].find(n=>n.el_type==="note")!;
+  assert.equal(first.lyric![0].syllable,"_","a continuation keeps its row even when its word is on the previous system");
 });

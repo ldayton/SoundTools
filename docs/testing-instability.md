@@ -385,3 +385,21 @@ reports `audio-interrupted`; a cold-start success does not close this case.
 disabled despite successful action and position API calls. These are unresolved
 platform/product distinctions requiring a physical-device comparison, not
 permission to relax any automated transport check. See `docs/dorego-ios-playback.md`.
+
+## Local Hebrew-stanza preview (24 November 2026)
+
+During Amazing Grace development, the browser run in
+`work/browser-results/amazing-grace-editions.browser.ts-chromium-32f2b3c5/`
+served `/assets/index-yXO3aJ4f.js` and `/assets/main-DlUiJ273.js`: its retained
+screenshot still has three stanza choices and no translation credit. A later
+preview served the rebuilt eight-stanza bundle with the translation credit.
+The initial attempt also followed a failed TypeScript build, whose log is
+`work/hebrew-build.log` in this development worktree (subsequently replaced by
+successful build output). The precise cause of the second stale preview is
+unconfirmed; it is not evidence of a product stanza-selection fix. Keep this
+case open if old content reappears after a successful build. Edition checks now
+wait for app startup and require the new translation credit before interacting;
+the build and browser commands are chained so a failed build cannot run a stale
+preview. These assertions remain required. Later test-setup failures (a retained
+chords-only preference and a non-unique readiness locator) were diagnosed and
+corrected separately, without changing product music or relaxing assertions.

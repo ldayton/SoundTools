@@ -5,9 +5,10 @@ import { chordEdition, capoAudio } from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
 import { guitarSustainAudio, type GuitarSustainEvent } from "./guitar-sustain";
 import abcjs, { type AudioTracks, type VoiceItem } from "abcjs";
-import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
+import { hymnEndingBar, hymnLyricsAbc, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
+  hymnMelodyOffset,
   isGuitarArrangement,
   guitarMidiOffset,
   type Arrangement,
@@ -31,6 +32,13 @@ export function hymnPlaybackScore(options: {
   stanzas?: readonly number[];
   mutedStaves?: readonly number[];
 }) {
+  const rhythmicLyrics = validStanzas(options.stanzas, options.hymn.stanzas.length)
+    .some(number => options.hymn.stanzas[number - 1].syllables.some(token => /\s/.test(token)));
+  const lyricRhythm = (score: ReturnType<typeof arrangeHymn>) =>
+    options.hands === "left" || !rhythmicLyrics ? score.abc : hymnLyricsAbc(score.abc, {
+      hymn: options.hymn, selected: options.stanzas || [],
+      offset: hymnMelodyOffset(options.hymn, score.from),
+    });
   const voicesFor = (audio: AudioTracks, abc: string) => {
     const staves = abcPlaybackStaves(abc);
     const vocal =
@@ -85,7 +93,7 @@ export function hymnPlaybackScore(options: {
     const selected = validStanzas(options.stanzas, options.hymn.stanzas.length);
     let offset = 0;
     const parts = (selected.length ? selected : [0]).map((number) => {
-      const abc = arrangeHymn(
+      const abc = lyricRhythm(arrangeHymn(
         options.hymn,
         options.arrangement,
         0,
@@ -94,7 +102,7 @@ export function hymnPlaybackScore(options: {
         number ? hymnEndingBar(options.hymn, [number]) : undefined,
         options.transpose,
         options.capoChoice,
-      ).abc;
+      ));
       // Stanza selection owns the verse count. A final implicit repeat is
       // a direction to return for the next verse, not to sing this verse twice.
       const tune=abcjs.parseOnly(abc)[0], edits:{start:number;end:number}[]=[];
@@ -142,7 +150,7 @@ export function hymnPlaybackScore(options: {
     };
   }
   const arrange = (bars: number, section: number) =>
-    arrangeHymn(
+    lyricRhythm(arrangeHymn(
       options.hymn,
       options.arrangement,
       bars,
@@ -151,7 +159,7 @@ export function hymnPlaybackScore(options: {
       options.endingBar,
       options.transpose,
       options.capoChoice,
-    ).abc;
+    ));
   let elapsed = 0;
   const starts = Array.from({ length: options.sections }, (_, section) => {
     const start = elapsed;

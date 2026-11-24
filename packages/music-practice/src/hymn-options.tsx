@@ -227,7 +227,7 @@ export function HymnOptions({
               <Checkbox
                 key={stanza.number}
                 className="hymn-stanza-checkbox"
-                label={stanza.label}
+                label={<bdi>{stanza.label}</bdi>}
                 title={stanza.label}
                 checked={state.stanzas.includes(stanza.number)}
                 onChange={(event) =>

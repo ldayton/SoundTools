@@ -4,6 +4,8 @@ export type HymnLyricData = {
   stanzas: {
     number: number;
     label: string;
+    // One entry per canonical melody note. Spaces within an entry request
+    // repeated-pitch subdivisions; ~ is a word space; _ sustains the previous syllable.
     syllables: string[];
     endingBar?: number | null;
   }[];
@@ -49,12 +51,40 @@ export function hymnLyricRows({ hymn, selected }: HymnLyricsSelection) {
   return rows;
 }
 
-/** Add words before engraving measures their width. Music and source ABC stay untouched. */
+/** Split a held note for a syllabic translation without moving any bar or other voice. */
+function subdivideLyricNote(raw: string, count: number, duration: number) {
+  // Ignore annotations/decorations when locating the actual note or chord.
+  const token = /"[^"\n]*"|![^!\n]*!|\+[^+\n]*\+|(\[[^\]\n]+\]|[=_^]*[A-Ga-g][,']*)(\d*(?:\/+\d*)?)/g;
+  for (const match of raw.matchAll(token)) {
+    if (!match[1]) continue;
+    const length = match[2];
+    const [numerator, denominator] = length.split("/");
+    let n = Number(numerator || 1),
+      d = length.includes("/") ? Number(denominator || 2) : 1;
+    if (/\/\//.test(length)) throw Error("Unsupported syllabic note length");
+    // Keep dotted notes on the beat: a dotted quarter becomes quarter +
+    // eighth, and a dotted half becomes half + quarter, rather than syncopation.
+    const weights = count === 2 && Number.isInteger(Math.log2(duration / 3))
+      ? [2, 1] : Array(count).fill(1);
+    const total = weights.reduce((sum, weight) => sum + weight, 0);
+    const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
+    return raw.slice(0, match.index) + weights.map(weight => {
+      const divisor = gcd(n * weight, d * total);
+      const top = n * weight / divisor, bottom = d * total / divisor;
+      return match[1] + (bottom === 1 ? String(top) : `${top}/${bottom}`);
+    }).join(" ") +
+      raw.slice(match.index! + match[0].length);
+  }
+  throw Error("Cannot subdivide this lyric note");
+}
+
+/** Add words and their syllabic rhythm before engraving measures their width. */
 export function hymnLyricsAbc(
   abc: string,
   selection: HymnLyricsSelection,
 ): string {
   const rows = hymnLyricRows(selection);
+  const hasMelismas = rows.some(row => row.some(token => token.split(/\s+/).includes("_")));
   const tune = abcjs.parseOnly(abc)[0];
   const notes = tune.lines
     .flatMap((line) => line.staff?.[0]?.voices?.[0] || [])
@@ -62,7 +92,8 @@ export function hymnLyricsAbc(
       (note): note is VoiceItemNote =>
         note.el_type === "note" && !!note.pitches?.length,
     );
-  const byLine = new Map<number, number[]>();
+  const byLine = new Map<number, { index: number; count: number }[]>();
+  const edits = new Map<number, { start: number; end: number; text: string }[]>();
   const lines = abc.split("\n");
   let sourceOffset = 0;
   const starts = lines.map((line) => {
@@ -80,7 +111,16 @@ export function hymnLyricsAbc(
       selection.skipChordTies &&
       note.pitches?.[0]?.endTie &&
       note.chord?.length;
-    indices.push(insertedTie ? -1 : selection.offset + sourceIndex++);
+    const index = insertedTie ? -1 : selection.offset + sourceIndex++;
+    const count = Math.max(1, ...rows.map(row => (row[index] || "*").split(/\s+/).length));
+    indices.push({ index, count });
+    if (count > 1) {
+      const start = note.startChar! - starts[line];
+      const end = Math.min(note.endChar! - starts[line], lines[line].length);
+      const changes = edits.get(line) || [];
+      changes.push({start, end, text: subdivideLyricNote(lines[line].slice(start, end), count, note.duration)});
+      edits.set(line, changes);
+    }
     byLine.set(line, indices);
   });
   return lines
@@ -88,9 +128,20 @@ export function hymnLyricsAbc(
       if (/^w:/.test(text)) return [];
       const indices = byLine.get(index);
       if (!indices) return [text];
+      for (const edit of (edits.get(index) || []).sort((a, b) => b.start - a.start))
+        text = text.slice(0, edit.start) + edit.text + text.slice(edit.end);
       const lyrics = rows
-        .map((row) => indices.map((i) => row[i] || "*"))
-        .filter((tokens) => tokens.some((token) => token !== "*"));
+        .map((row) => indices.flatMap(({ index, count }) => {
+          const tokens = (row[index] || "*").split(/\s+/);
+          return Array.from({ length: count }, (_, i) => {
+            const token = tokens[i] || (tokens.at(-1) === "_" ? "_" : "*");
+            // abcjs treats bare _ as a skip but does not retain its identity.
+            // A literal marker keeps its row/position through reflow; the shared
+            // renderer replaces it with an actual lyric extender after layout.
+            return token === "_" ? "\\_" : token;
+          });
+        }))
+        .filter((tokens) => hasMelismas || tokens.some((token) => token !== "*"));
       return [text, ...lyrics.map((tokens) => "w:" + tokens.join(" "))];
     })
     .join("\n");
@@ -106,6 +157,7 @@ export function compactHymnLyrics(tune: TuneObject) {
     for (const note of notes)
       if (note.el_type === "note")
         note.lyric?.forEach((lyric: { syllable: string }, index: number) => {
+          (lyric as typeof lyric & { hymnRow: number }).hymnRow = index;
           if (lyric.syllable.trim()) active.add(index);
         });
     for (const note of notes)

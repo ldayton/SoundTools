@@ -1,3 +1,4 @@
+import { prepareHymnMelismas } from "./hymn-melismas";
 import { hymnSystemLayout } from "./hymn-system-layout";
 import { abcPlaybackStaves, hidePlaybackStaves, restoreDeclaredStaffTitles } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
@@ -14,6 +15,7 @@ import { hasSwing, swingAudio, swingBeat } from "./hymn-swing";
 import { drawHymnFingerings } from "./hymn-fingering";
 import {
   hymnLyricsAbc,
+  hymnLyricRows,
   compactHymnLyrics,
   type HymnLyricsSelection,
 } from "./hymn-lyrics";
@@ -129,7 +131,10 @@ export function drawPracticeScore(
   let restoreSignatures: (() => void) | undefined;
   // abcjs rounds font sizes to whole SVG pixels. Reserve enough lyric space,
   // then restore the exact font size below so staff tuning never resizes words.
-  const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4;
+  const melismaSpace = options.lyrics && hymnLyricRows(options.lyrics).some(row => row.some(token => token.split(/\s+/).includes("_")));
+  // Reserve a little extra leading for extender ink below pointed Hebrew.
+  // Keep actual glyph size fixed while measuring at the corresponding leading.
+  const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4 * (melismaSpace ? 1.25 : 1);
   const source =
     (!options.fitHymnSystems && (options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
     `%%vocalfont sans-serif ${vocalFont}\n` +
@@ -265,7 +270,7 @@ export function drawPracticeScore(
     throw Error("Practice notation could not be read");
   if (options.octaveNotation) drawHymnOttava(applyHymnOttava(tune));
   paper.querySelectorAll(".abcjs-lyric").forEach((lyric) => {
-    if (staffScale !== 1)
+    if (staffScale !== 1 || melismaSpace)
       lyric.setAttribute("font-size", String(16 / staffScale));
     const walker = document.createTreeWalker(lyric, NodeFilter.SHOW_TEXT);
     while (walker.nextNode())
@@ -273,8 +278,20 @@ export function drawPracticeScore(
         /\u2002/g,
         "",
       );
-    // An empty lyric at SVG origin expands its parent note's bounding box
-    // across every preceding system. It has no ink or musical meaning.
+    // abcjs combines all stanza rows into one <text>. Isolate each row so
+    // Hebrew cannot reverse an English row's punctuation. Syllable underlay
+    // follows the music left-to-right; complete chord-view phrases read RTL.
+    for (const fragment of lyric.querySelectorAll("tspan")) {
+      if (!fragment.textContent?.trim()) fragment.textContent = "\u00a0";
+      if (melismaSpace && fragment.hasAttribute("dy")) fragment.setAttribute("dy", "1.5em");
+      if (!/\p{Script=Hebrew}/u.test(fragment.textContent || "")) continue;
+      fragment.setAttribute("direction", /\s/u.test(fragment.textContent?.trim() || "") ? "rtl" : "ltr");
+      fragment.setAttribute("unicode-bidi", "isolate");
+      fragment.setAttribute("lang", "he");
+    }
+  });
+  const drawMelismas = prepareHymnMelismas(tune);
+  paper.querySelectorAll(".abcjs-lyric").forEach(lyric => {
     if (!lyric.textContent?.trim()) lyric.remove();
   });
   // abcjs keeps audio at source pitch unless both transpositions are specified.
@@ -327,6 +344,12 @@ export function drawPracticeScore(
   if (!!profile && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
   if (options.tabOnly) showOnlyTab(paper, profile ? editionTempoLabel({...profile,capo:options.guitarSetup ? 0 : profile.capo},tune.lines.flatMap(line=>line.staff?.flatMap(staff=>staff.voices?.flatMap(voice=>voice.flatMap(note=>note.el_type==='part'?[note.title]:[]))||[])||[])) : undefined, profile ? 58 : undefined);
   if (options.chordsOnly) showChordsOnly(paper,tune);
+  drawMelismas();
+  // Remove the now-empty marker text, whose zero-origin box would otherwise
+  // stretch note hit targets across preceding systems.
+  paper.querySelectorAll(".abcjs-lyric").forEach(lyric => {
+    if (!lyric.textContent?.trim()) lyric.remove();
+  });
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
   paper.querySelectorAll("svg").forEach((svg) => {

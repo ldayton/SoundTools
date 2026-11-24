@@ -44,7 +44,7 @@ test("every printed pitch, rhythm, tie and accidental survives the complete fift
 test("public-domain print has its own provenance and four exact lyric underlays",()=>{
  const source=readFileSync(new URL("../hymns/source/fairest-lord-jesus.abc",import.meta.url),"utf8");
  assert.equal(hymn.source,"public-domain-score");assert.equal(hymn.sourceUrl,"https://hymnary.org/media/fetch/142891");assert.match(source,/copyright: public domain\./);assert.match(source,/Score supplied by Hymnary.org/);
- assert.equal(hymn.stanzas.length,4);assert(hymn.stanzas.every(s=>s.syllables.length===42));
+ assert.equal(hymn.stanzas.length,9);assert(hymn.stanzas.every(s=>s.syllables.length===42));
  const words=(s:string[])=>s.filter(x=>x!=="*").join(" ").replace(/- /g,"");
  assert.equal(words(hymn.stanzas[0].syllables),"Fairest Lord Jesus, Ruler of all nature, O Thou of God and man the Son; Thee will I cherish, Thee will I honor, Thou, my soul's glory, joy, and crown.");
  assert.equal(words(hymn.stanzas[1].syllables),"Fair are the meadows, Fairer still the woodlands, Robed in the blooming garb of spring; Jesus is fairer, Jesus is purer, Who makes the woeful heart to sing.");
@@ -123,4 +123,35 @@ test("reference guitar chord practice keeps exact seventh voicings on playable d
   assert(findGuitarFingering(frets,{maxFingers:4,allowBarres:true}),`${label}: physically playable grip`);
  }
  assert.deepEqual([...seen].sort(),Object.keys(expected).sort());
+});
+
+test("five pointed Hebrew stanzas preserve the melody, printed tie and accompaniment",()=>{
+ assert(hymn.credits.includes("Hebrew translation: Irit Iffert Barrett"));
+ const hebrew=hymn.stanzas.slice(4);
+ assert.deepEqual(hebrew.map(s=>s.label),["מה נהדר אתה","ראש ההרים, חרמון","כל אילנות ארצי","השמש מאירה","קסם העולמות"]);
+ const words=[
+ "מה נהדר אתה פלא ישוע בן אלהים ובן דוד אהוב נפשי אתה אוצר חיי אתה גואל מושיע וידיד",
+ "ראש ההרים חרמון יופי מקסים בו מה לבנה היא טליתו אך זיו ישעי הצח לא יתואר לי כך כי על הכל עלה הודו",
+ "כל אילנות ארצי כל ציץ ופרח מה יפהפים וטוב ריחם טוב טוב מהם פודי ריח ניחוח לי והוא משיב שירת חכם",
+ "השמש מאירה גם הירח הכוכבים מה זוהרים אך מאורם יחשך אך זהרם ידעך ישוע אור לעולמים",
+ "קסם העולמות יופי הטבע הם מידך צור נשמתי אך אין יפה ממך אך אין טהור ממך בך משלמת תקותי",
+ ];
+ const letters=(s:string)=>s.replace(/[^א-ת]/g,"");
+ hebrew.forEach((s,i)=>{
+  assert.equal(letters(s.syllables.join("")),letters(words[i]));
+  assert.equal(s.syllables.length,42);
+  assert.deepEqual(s.syllables.flatMap((t,j)=>t==="_"?[j]:[]),[7,11,17]);
+  assert(s.syllables.every(t=>!(/\s|[\uFB1D-\uFB4F]/u.test(t))),"Canonical Hebrew; no rhythmic subdivisions");
+  assert.match(s.syllables.join(""),/[\u05B0-\u05C7]/u);
+ });
+ for(const arrangement of ["original","guitar-vocal","piano","guitar-edition"] as const){
+  const score=arrangeHymn(hymn,arrangement,0),{audio}=read(score.abc);
+  for(const s of hebrew){
+   const actual=read(hymnStanzaAbc(score.abc,hymn,s.number,0)).audio;
+   assert.deepEqual(actual.tracks.map(notes),audio.tracks.map(notes),`${arrangement}: Hebrew verse ${s.number} keeps every original pitch, duration and accompaniment`);
+  }
+  const plan=hymnPlaybackScore({hymn,arrangement,sectionBars:0,section:0,hands:"both",totalBars:15,sections:1,abc:score.abc,audio,transpose:0,stanzas:[1,5,6,7,8,9]});
+  assert.equal(plan.audio.totalDuration*4,360);
+  assert.deepEqual(plan.verses.map(v=>notes(plan.audio.tracks[0]).filter(([,at])=>at>=v.start&&at<v.end).length),[42,41,41,41,41,41]);
+ }
 });

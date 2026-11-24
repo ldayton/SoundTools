@@ -275,11 +275,11 @@ try {
   assert.equal(await input.inputValue(), "");
   await openNavigation(page);
   await input.click();
-  await input.fill("doxology");
+  await input.fill("First Fingerstyle Blues");
   await input.press("Enter");
   assert.equal(
     await page.locator(".sequence-title").textContent(),
-    "Praise God From Whom All Blessings Flow",
+    "1st Fingerstyle Blues",
   );
   await choose(recoveryHymn.title);
   await practiceOption(page, "#hymn-arrangement", "melody");

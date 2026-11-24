@@ -76,16 +76,6 @@
     "editionKey": "o-come-all-ye-faithful"
   },
   {
-    "id": "9e78b8de-7b68-44fd-97f6-e9b26607a6df",
-    "title": "Holy, Holy, Holy",
-    "file": "Holy_Holy_Holy-Nicaea.abc",
-    "folder": "Holy_Holy_Holy",
-    "slug": "holy-holy-holy",
-    "legacyIds": [
-      "holy-holy-holy"
-    ]
-  },
-  {
     "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
     "title": "Blessed Assurance",
     "file": "Blessed_Assurance-Blessed_Assurance-Assurance.abc",
@@ -93,120 +83,6 @@
     "slug": "blessed-assurance",
     "legacyIds": [
       "blessed-assurance"
-    ]
-  },
-  {
-    "id": "6fa2c52e-7d88-4f27-807f-a656b87be56f",
-    "title": "What A Friend We Have In Jesus",
-    "file": "What_A_Friend_We_Have_In_Jesus-untitled.abc",
-    "folder": "What_A_Friend_We_Have_In_Jesus",
-    "slug": "what-a-friend-we-have-in-jesus",
-    "legacyIds": [
-      "what-a-friend-we-have-in-jesus"
-    ]
-  },
-  {
-    "id": "b576b5a6-e5d5-4e06-9c38-b977aa39deb8",
-    "title": "It Is Well With My Soul",
-    "file": "It_Is_Well_With_My_Soul-It_Is_Well-Ville_Du_Havre.abc",
-    "folder": "It_Is_Well_With_My_Soul",
-    "slug": "it-is-well-with-my-soul",
-    "legacyIds": [
-      "it-is-well-with-my-soul"
-    ]
-  },
-  {
-    "id": "8f11604e-0026-4e07-897e-fa204fdc3523",
-    "title": "Be Thou My Vision",
-    "file": "Be_Thou_My_Vision-Slane.abc",
-    "folder": "Be_Thou_My_Vision",
-    "slug": "be-thou-my-vision",
-    "legacyIds": [
-      "be-thou-my-vision"
-    ]
-  },
-  {
-    "id": "22545472-d5a3-482d-9728-0582d49d66fc",
-    "title": "Come Thou Fount Of Every Blessing",
-    "file": "Come_Thou_Fount-Nettleton.abc",
-    "folder": "Come_Thou_Fount",
-    "slug": "come-thou-fount",
-    "legacyIds": [
-      "come-thou-fount"
-    ]
-  },
-  {
-    "id": "30a82c42-3962-4c3e-a43e-834473e5b895",
-    "title": "Abide With Me",
-    "file": "Abide_With_Me-Eventide.abc",
-    "folder": "Abide_With_Me",
-    "slug": "abide-with-me",
-    "legacyIds": [
-      "abide-with-me"
-    ]
-  },
-  {
-    "id": "df9d4a65-1328-43da-bda8-265dcca17513",
-    "title": "Praise God From Whom All Blessings Flow",
-    "file": "Praise_God_From_Whom_All_Blessings_Flow-Old_100th.abc",
-    "aliases": [
-      "Doxology",
-      "Old Hundredth"
-    ],
-    "folder": "Praise_God_From_Whom_All_Blessings_Flow",
-    "slug": "praise-god-from-whom-all-blessings-flow",
-    "legacyIds": [
-      "praise-god-from-whom-all-blessings-flow"
-    ]
-  },
-  {
-    "id": "1d791826-c39d-40dc-892b-970bd7236035",
-    "title": "Nearer, My God, To Thee",
-    "file": "Nearer_My_God_To_Thee-Bethany.abc",
-    "folder": "Nearer_My_God_To_Thee",
-    "slug": "nearer-my-god-to-thee",
-    "legacyIds": [
-      "nearer-my-god-to-thee"
-    ]
-  },
-  {
-    "id": "a10e3f40-085a-4ca9-9ea7-dfad18eb48a5",
-    "title": "All Hail The Power Of Jesus' Name",
-    "file": "All_Hail_The_Power_Of_Jesus_Name-Coronation.abc",
-    "folder": "All_Hail_The_Power_Of_Jesus_Name",
-    "slug": "all-hail-the-power-of-jesus-name",
-    "legacyIds": [
-      "all-hail-the-power-of-jesus-name"
-    ]
-  },
-  {
-    "id": "88ab3cdd-2014-4d05-840d-fd9d5834a94e",
-    "title": "To God Be The Glory",
-    "file": "To_God_Be_the_Glory-To_God_Be_the_Glory.abc",
-    "folder": "To_God_Be_the_Glory",
-    "slug": "to-god-be-the-glory",
-    "legacyIds": [
-      "to-god-be-the-glory"
-    ]
-  },
-  {
-    "id": "5f74d9fb-2b0b-423a-b216-3961f5792271",
-    "title": "When I Survey the Wondrous Cross",
-    "file": "When_I_Survey_The_Wondrous_Cross-Duke_Street.abc",
-    "folder": "When_I_Survey_The_Wondrous_Cross",
-    "slug": "when-i-survey-the-wondrous-cross",
-    "legacyIds": [
-      "when-i-survey-the-wondrous-cross"
-    ]
-  },
-  {
-    "id": "6c0ed3b8-0fe3-4180-98a8-f9898f3b1f5f",
-    "title": "The Church's One Foundation",
-    "file": "The_Churchs_One_Foundation-Aurelia.abc",
-    "folder": "The_Churchs_One_Foundation",
-    "slug": "the-churchs-one-foundation",
-    "legacyIds": [
-      "the-churchs-one-foundation"
     ]
   },
   {
@@ -227,26 +103,6 @@
     "slug": "joy-to-the-world",
     "legacyIds": [
       "joy-to-the-world"
-    ]
-  },
-  {
-    "id": "5d610942-d1df-4a00-8023-e47302c439b2",
-    "title": "Hark! The Herald Angels Sing",
-    "file": "Hark_The_Herald_Angels_Sing-Mendelssohn.abc",
-    "folder": "Hark_The_Herald_Angels_Sing",
-    "slug": "hark-the-herald-angels-sing",
-    "legacyIds": [
-      "hark-the-herald-angels-sing"
-    ]
-  },
-  {
-    "id": "09b9a11b-e92e-41ef-95b6-53aea16fff08",
-    "title": "Joyful, Joyful, We Adore Thee",
-    "file": "Joyful_Joyful_We_Adore_Thee-Ode_To_Joy.abc",
-    "folder": "Joyful_Joyful_We_Adore_Thee",
-    "slug": "joyful-joyful-we-adore-thee",
-    "legacyIds": [
-      "joyful-joyful-we-adore-thee"
     ]
   },
   {

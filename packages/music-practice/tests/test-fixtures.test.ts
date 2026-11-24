@@ -15,6 +15,7 @@ import {
   playbackAttacks,
   selectStagedHymn,
 } from "../test-fixtures/hymns";
+import { hymnPitchRange } from "../src/hymn-range";
 import { hymnArrangements } from "../src/hymn-arrangements";
 import { instrumentEditionIds, instrumentEdition } from "../src/instrument-editions";
 test("generic fixtures expose staged controls rather than relying on a popular song name", () => {
@@ -33,6 +34,8 @@ test("generic fixtures expose staged controls rather than relying on a popular s
     );
   assert.notEqual(stagedHymn.id, otherStagedHymn.id);
   assert.notEqual(playbackMelody, playbackBass);
+  assert.deepEqual(hymnPitchRange(playbackHymn.melody),{low:62,high:74});
+  assert.match(playbackHymn.melody,/^M:(?:2|4)\/4\s*$/m);
 });
 test("a song promoted to a dedicated edition is skipped without changing generic assertions", () => {
   const migrated = { ...stagedHymn, id: "amazing-grace" };
@@ -52,7 +55,7 @@ test("incompatible music fails before a browser starts with the migration instru
         [
           {
             ...playbackHymn,
-            melody: playbackHymn.melody.replace("M:4/4", "M:none"),
+            melody: playbackHymn.melody.replace(/^M:.*$/m, "M:none"),
           },
         ],
         { playback: true },

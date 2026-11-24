@@ -120,11 +120,11 @@ try {
       await library.getByRole("option").allTextContents(),
       hymnLibrary(hymns, "", {}).map((h) => h.title),
     );
+    // A curated catalog can fit without scrolling; navigation must stay pinned
+    // whether the list fits or overflows the available space.
     await assertPinned();
-    assert.ok(
-      await library.evaluate((el) => el.scrollHeight > el.clientHeight),
-      "Remaining songs must be reachable by scrolling the list",
-    );
+    await library.evaluate(el=>{el.scrollTop=el.scrollHeight;});
+    await expect(library.getByRole("option").last()).toBeInViewport();
     const footerBefore = await tools.boundingBox();
     await page.getByPlaceholder("Search songs").fill("zzzz-no-such-song");
     await expect(
@@ -136,6 +136,12 @@ try {
       "Filtering must not move footer controls",
     );
     await page.getByPlaceholder("Search songs").fill("");
+    await expect(library.getByRole("option")).toHaveCount(hymns.length);
+    await library.evaluate(el => { el.scrollTop = 0; });
+    await expect(library.getByRole("option").first()).toBeInViewport();
+    await library.evaluate(el => { el.scrollTop = el.scrollHeight; });
+    await expect(library.getByRole("option").last()).toBeInViewport();
+    await assertPinned();
     if (mobile)
       await page
         .getByRole("button", { name: "Close navigation", exact: true })

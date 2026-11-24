@@ -96,13 +96,13 @@ function topNotes(abc: string) {
     });
 }
 test("all hymn practice stages and sections parse, preserve melody/lyrics, and partition into complete bars", () => {
-  let scores = 0;
   for (const hymn of hymns) {
     const total = hymnBarCount(hymn);
     assert.ok(total > 0);
     for (const stage of ARRANGEMENTS)
       for (const size of [0, 2, 4]) {
         const whole = arrangeHymn(hymn, stage.id, size);
+        assert.ok(whole.sections > 0, hymn.title + " " + stage.id + " must have playable sections");
         let bars = 0;
         const combined: ReturnType<typeof topNotes> = [];
         for (let i = 0; i < whole.sections; i++) {
@@ -115,7 +115,6 @@ test("all hymn practice stages and sections parse, preserve melody/lyrics, and p
             hymn.title + " " + stage.id + " " + i,
           );
           if (stage.id !== "original") combined.push(...topNotes(result.abc));
-          scores++;
         }
         assert.equal(bars, total);
         if (stage.id !== "original")
@@ -126,7 +125,6 @@ test("all hymn practice stages and sections parse, preserve melody/lyrics, and p
           );
       }
   }
-  assert.ok(scores > 1000);
 });
 
 test("older interval patterns extend to two bars while preserving position and interval restrictions", () => {

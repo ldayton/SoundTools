@@ -1,3 +1,4 @@
+import { stagedHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 import test from "node:test";
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
@@ -87,7 +88,7 @@ test("every key preserves melody timing and guitar playback sounds an octave bel
 });
 test("legacy guitar settings migrate to the instrument edition and unsupported songs fall back to melody", () => {
   assert.deepEqual(hymnArrangements(hymn).map(a=>a.id),["piano","guitar-edition"]);
-  const other = hymns.find((h) => h.slug === "holy-holy-holy")!;
+  const other = stagedHymn;
   assert.ok(!hymnArrangements(other).some((a) => a.id === "guitar"));
   const saved = mergeHymnSettings(hymnPreferences(hymn.id), {
     arrangement: "guitar",

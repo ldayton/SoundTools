@@ -1,5 +1,6 @@
 import {
   passageHymn,
+  passagePointLabel, passageRangeLabel, passageSecondBar,
   playbackAttacks,
 } from "../../../packages/music-practice/test-fixtures/hymns";
 const attacks = playbackAttacks("melody", passageHymn);
@@ -217,15 +218,15 @@ try {
     "drag controls do not move the score",
   );
   await page.mouse.up();
-  await expect(status).toHaveText("Bar 1, beats 2–4");
-  await expect(start).toHaveAttribute("aria-valuetext", "Bar 1, beat 2");
-  await expect(end).toHaveAttribute("aria-valuetext", "Bar 1, beat 4");
+  await expect(status).toHaveText(passageRangeLabel(1,3));
+  await expect(start).toHaveAttribute("aria-valuetext", passagePointLabel(1));
+  await expect(end).toHaveAttribute("aria-valuetext", passagePointLabel(3));
   await end.focus();
   await page.keyboard.press("ArrowRight");
   await expect(end).toHaveAttribute("aria-valuenow", "5");
   await expect(end).toBeFocused();
   await undo();
-  await expect(status).toHaveText("Bar 1, beats 2–4");
+  await expect(status).toHaveText(passageRangeLabel(1,3));
   // Drag an endpoint; ordinary clicks within a passage retain it.
   let handle = (await end.boundingBox())!;
   const target = await center(4);
@@ -240,7 +241,7 @@ try {
   await click(2);
   await expect(end).toHaveAttribute("aria-valuenow", "5");
   await undo();
-  await expect(status).toHaveText("Bar 1, beats 2–4");
+  await expect(status).toHaveText(passageRangeLabel(1,3));
   // Escape and lost pointer capture restore the prior range instead of leaving input blocked.
   let from = await center(5);
   await page.mouse.move(from.x, from.y);
@@ -248,7 +249,7 @@ try {
   await page.mouse.move(from.x + 20, from.y);
   await page.keyboard.press("Escape");
   await page.mouse.up();
-  await expect(status).toHaveText("Bar 1, beats 2–4");
+  await expect(status).toHaveText(passageRangeLabel(1,3));
   await expect(page.locator(".hymn-cancel-passage")).toBeHidden();
   from = await center(5);
   await page.mouse.move(from.x, from.y);
@@ -262,13 +263,13 @@ try {
   });
   await page.mouse.move(from.x + 21, from.y);
   await page.mouse.up();
-  await expect(status).toHaveText("Bar 1, beats 2–4");
+  await expect(status).toHaveText(passageRangeLabel(1,3));
   await expect(page.locator(".hymn-cancel-passage")).toBeHidden();
-  const bar2 = await center(5);
+  const bar2 = await center(passageSecondBar.at(-1)!);
   await page.mouse.dblclick(bar2.x, bar2.y);
   await expect(status).toHaveText("Bar 2");
-  await expect(start).toHaveAttribute("aria-valuenow", "5");
-  await expect(end).toHaveAttribute("aria-valuenow", "6");
+  await expect(start).toHaveAttribute("aria-valuenow", String(passageSecondBar[0]+1));
+  await expect(end).toHaveAttribute("aria-valuenow", String(passageSecondBar.at(-1)!+1));
   await page
     .getByRole("button", { name: "Clear selection", exact: true })
     .click();

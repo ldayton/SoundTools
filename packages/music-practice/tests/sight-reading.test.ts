@@ -41,15 +41,15 @@ test("screen chords allow sequential entry, saved positions are validated, and s
   assert.equal(new WaitForMe([{ pitches: [60] }], 999).index, 0);
   assert.equal(new WaitForMe([{ pitches: [60] }], 1).complete, true);
   assert.equal(
-    searchHymns(hymns, "doxology")[0].slug,
-    "praise-god-from-whom-all-blessings-flow",
+    searchHymns(hymns, "First Fingerstyle Blues")[0].slug,
+    "the-1st-fingerstyle-blues",
   );
-  assert.equal(searchHymns(hymns, "HOLY, HOLY")[0].title, "Holy, Holy, Holy");
+  assert.equal(searchHymns(hymns, "SILENT NIGHT")[0].title, "Silent Night");
   assert.equal(searchHymns(hymns, "no such hymn").length, 0);
   assert.deepEqual(searchHymns(hymns, ""), hymns);
 });
 test("all imported melodies preserve soprano pitch, rhythm, rests, ties, and every lyric slot from their harmonized sources", () => {
-  assert.equal(hymns.length, 23);
+  assert.equal(hymns.length, 9);
   const notes = (source: string) =>
     abcjs
       .parseOnly(source)[0]

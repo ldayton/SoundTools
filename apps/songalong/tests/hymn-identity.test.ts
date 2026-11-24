@@ -228,3 +228,22 @@ test("a legacy checkpoint resumes under the UUID and survives an account roundtr
   assert.equal(loaded.favorites[stagedHymn.id],true);
   assert.equal(raw.hymn,stagedHymn.slug);
 });
+
+test("the published library contains exactly the nine selected songs", () => {
+  assert.deepEqual(hymns.map(song=>song.title).sort(),[
+    "1st Fingerstyle Blues","Amazing Grace","Blessed Assurance","I'll Fly Away","In Christ Alone",
+    "Jesus Loves Me","Joy to the World","O Come, All Ye Faithful","Silent Night",
+  ].sort());
+});
+
+test("removed song preferences cannot replace a retained song or reappear as favorites", async () => {
+  const {HymnProgress} = await import("../../../packages/music-practice/src/hymn-progress");
+  const {mergeHymnSettings} = await import("../../../packages/music-practice/src/hymn-settings");
+  const removed="9e78b8de-7b68-44fd-97f6-e9b26607a6df", retained=hymns[0];
+  const progress=new HymnProgress({version:1,catalogueRevision:2,hymn:removed,
+    preferences:{[removed]:{hymn:removed,bpm:191}},favorites:{[removed]:true,[retained.id]:true},
+    bookmarks:{},sections:{}} as any,hymns.map(song=>song.id));
+  assert.deepEqual(progress.favorites,{[retained.id]:true});
+  assert.equal(progress.preferences[removed],undefined);
+  assert.equal(mergeHymnSettings(hymnPreferences(retained.id),{hymn:removed}).hymn,retained.id);
+});

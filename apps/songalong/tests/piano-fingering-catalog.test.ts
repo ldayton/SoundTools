@@ -8,8 +8,7 @@ import {
 } from "../../../packages/music-practice/src/piano-fingering";
 import assert from "node:assert/strict";
 test("catalogue melody and bass fingerings remain reachable through transposition", () => {
-  let parts = 0,
-    count = 0;
+  let parts = 0;
   for (const hymn of hymns)
     for (const arrangement of ["melody", "bass"] as const)
       for (const transpose of [-5, 0, 4]) {
@@ -48,9 +47,9 @@ test("catalogue melody and bass fingerings remain reachable through transpositio
               }
             }
         for (const part of voices.values()) {
+          assert.ok(part.notes.length > 0, `${hymn.title}: each transposed voice must contain notes`);
           const result = planPianoFingering(part.notes, part.hand);
           parts++;
-          count += result.length;
           assert.equal(result.length, part.notes.length);
           const sign = part.hand === "right" ? 1 : -1;
           result.forEach((f, i) => {
@@ -69,5 +68,4 @@ test("catalogue melody and bass fingerings remain reachable through transpositio
         }
       }
   assert.equal(parts, hymns.length * 9);
-  assert.ok(count > 9000);
 });

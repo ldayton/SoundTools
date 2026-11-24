@@ -90,26 +90,22 @@ export function selectStagedHymn(
         .parseOnly(hymn.melody)[0]
         .setUpAudio({ chordsOff: true })
         .tracks[0].filter((event) => event.cmd === "note");
-      // Passage gestures select four attacks in bar 1 and two in bar 2.
-      if (
-        ![0, 0.25, 0.5, 0.75, 1, 1.5].every(
-          (start, i) => attacks[i]?.start === start,
-        )
-      )
-        return false;
+      const barLength = abcjs.parseOnly(hymn.melody)[0].getBarLength();
+      if (attacks.length < 36 || attacks.filter(n=>n.start<barLength).length<3 ||
+          attacks.filter(n=>n.start>=barLength && n.start<barLength*2).length<2) return false;
     }
     if (!playback) return true;
     const range = hymnPitchRange(hymn.melody);
     return (
       /^K:[A-G](?:b|#)?\s*$/m.test(hymn.melody) &&
-      /^M:4\/4\s*$/m.test(hymn.melody) &&
+      /^M:(?:2|4)\/4\s*$/m.test(hymn.melody) &&
       range.low === 62 &&
       range.high === 74
     );
   });
   if (!hymn)
     throw Error(
-      `No ${playback ? "metered D4–D5 octave" : "staged-arrangement"}${passage ? " with four first-bar and two second-bar attacks" : ""}${recovery ? " with three distinct opening notes over sustained bass" : ""} hymn fixture remains. See docs/testing.md: migrate the generic contract if staged controls were retired; do not alter product music or swap an arbitrary song name.`,
+      `No ${playback ? "metered D4–D5 octave" : "staged-arrangement"}${passage ? " with three or more first-bar and two second-bar attacks" : ""}${recovery ? " with three distinct opening notes over sustained bass" : ""} hymn fixture remains. See docs/testing.md: migrate the generic contract if staged controls were retired; do not alter product music or swap an arbitrary song name.`,
     );
   return hymn;
 }
@@ -188,3 +184,13 @@ export const recoveryTieIndex = continuationIndex(recoveryHymn);
 /** A reviewed guitar score for shared display controls, independent of its title. */
 export const guitarEditionHymn = hymns.find(hymn => hymnAvailableArrangements(hymn).some(arrangement => arrangement.id === "guitar-edition"));
 if (!guitarEditionHymn) throw Error("The guitar display contract requires a reviewed guitar edition fixture");
+
+// Position formatting is independently covered in passage-selection units; browser
+// expectations follow the selected fixture's actual meter and irregular rhythms.
+import { scorePosition, positionLabel, passageLabel } from "../src/passage-selection";
+const passageTune=abcjs.parseOnly(passageHymn.melody)[0];
+const passageNotes=passageTune.setUpAudio({chordsOff:true}).tracks[0].filter(n=>n.cmd==="note");
+export const passagePoints=passageNotes.map(n=>scorePosition(n.start,passageTune.getBarLength(),passageTune.getPickupLength(),passageTune.getBeatLength()));
+export const passagePointLabel=(index:number)=>positionLabel(passagePoints[index]);
+export const passageRangeLabel=(start:number,end:number)=>passageLabel(passagePoints,{start,end});
+export const passageSecondBar=passagePoints.flatMap((point,index)=>point.bar===2?[index]:[]);

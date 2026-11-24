@@ -29,13 +29,6 @@ try {
     assert.equal(await page.locator('.sequence-score').evaluate(e => e.scrollWidth <= e.clientWidth + 1), true, hymn.title);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, hymn.title);
     assert.equal(await page.locator('.sequence-feedback.error').count(), 0);
-    if (hymn.slug === 'praise-god-from-whom-all-blessings-flow') {
-      const collisions = await page.locator('.abcjs-lyric').evaluateAll(elements => {
-        const words = elements.filter(e => e.textContent?.trim()).map(e => ({ text: e.textContent!, box: e.getBoundingClientRect() }));
-        return words.slice(1).flatMap((current, i) => Math.abs(words[i].box.y - current.box.y) < 2 && current.box.x - words[i].box.right < 4 ? [`${words[i].text} / ${current.text}`] : []);
-      });
-      assert.deepEqual(collisions, [], `Lyric spacing at ${width}px, ${arrangement}`);
-    }
     if (arrangement === 'guitar-edition' || arrangement === 'guitar-fingerstyle')
       assert.ok(await page.locator('[data-name=tabNumber]').count(), `${hymn.title}: reflow retains tablature`);
     const lyricOverlaps = await page.locator('.hymn-paper svg').evaluateAll(svgs => svgs.flatMap(svg => {

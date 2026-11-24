@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import {expect} from "@playwright/test";
-import {mkdir} from "node:fs/promises";
+import {mkdir,readFile} from "node:fs/promises";
 import type {Page} from "playwright";
 import {launchBrowser,newPage,closeBrowser,captureFailure} from "../../../scripts/ci/browser-harness.cjs";
 import {preview} from "../browser-tests/server";
 import {openPracticeOptions,openHymnControls,dismissPracticeDrawer} from "../browser-tests/helpers";
+import hymns from "../src/hymns.json";
 
 export async function checkVocalEdition(page:Page, base:string, slug:string) {
   await page.goto(`${base}/piano/hymns/${slug}?arrangement=original&mode=playback`);
@@ -56,6 +57,16 @@ export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,
       await checkVocalEdition(page,server.base,slug);
       await openPracticeOptions(page);
       for(const number of stanzas)await expect(page.locator("#hymn-stanzas input").nth(number-1)).toBeChecked();
+      const hymn=hymns.find(h=>h.slug===slug)!;
+      if(width===1440 && "source" in hymn && hymn.source==="user-supplied-score"){
+        await page.getByRole("button",{name:"About this hymn",exact:true}).click();
+        const source=page.getByRole("link",{name:"Transcribed printed score",exact:true});
+        await expect(source).toBeVisible();
+        const bundled=await source.evaluate(async(a:HTMLAnchorElement)=>({url:a.href,text:await(await fetch(a.href)).text()}));
+        assert.equal(new URL(bundled.url).origin,server.base,"Source must open as a local file, including when shorter than Vite's inline threshold");
+        assert.equal(bundled.text,await readFile(new URL(`../../../apps/songalong/hymns/source/${hymn.file}`,import.meta.url),"utf8"));
+        await page.getByRole("button",{name:"About this hymn",exact:true}).click();
+      }
       await dismissPracticeDrawer(page);
       if(width===1440||width===390)await page.screenshot({path:`work/song-support/screenshots/${slug}-voice-${width}.png`});
       // Switching primary instrument while Voice stays on selects Guitar + Voice.

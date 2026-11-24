@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 import abcjs from "abcjs";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import { arrangeHymn } from "../../../packages/music-practice/src/hymn-arrangements";
-import { hymnLyricsAbc } from "../../../packages/music-practice/src/hymn-lyrics";
+import { hymnLyricsAbc, hymnStanzaAbc } from "../../../packages/music-practice/src/hymn-lyrics";
+import { hymnMelodyOffset } from "../../../packages/music-practice/src/hymn-arrangements";
 import { hymnPlaybackScore } from "../../../packages/music-practice/src/hymn-playback-score";
 import { fairestPosition } from "../../../packages/music-practice/src/fairest-lord-jesus";
 import { findGuitarFingering } from "../../../packages/music-practice/src/guitar-chord-search";
@@ -14,7 +15,8 @@ standardEditionContract(slug,{bars:15,beats:60,attacks:41,capo:3,opening:[63,63,
 // Independent reading of all four printed parts from Hymnary.org's Willis score.
 // SHA256 bffd508bd75e0ef5e42108cd48a849e143a7b90bad5451bdb98415b21db16bb5.
 // Rows are measures, lengths are quarter beats. The first two quarters in
-// measure 3 are tied in S/A/T: 42 written soprano notes, 41 sounding attacks.
+// measure 3 are tied in the archived S/A/T. Active-verse melody articulation
+// is tested separately: 42 attacks for verses 1–3, 41 for verse 4.
 const printed=[
  [[63,63,63],[65,62,63],[67,67,67],[68,65,67],[70,75,72],[70,68,67],[68,67],[65],[70,72,70],[70,67,68],[68,70,68],[68,65,67,67],[67,67,70,68],[67,65],[63]],
  [[58,60,60],[60,58,58],[63,63,64],[65,62,63],[63,63],[63,65,63],[65,63],[62],[63,63,63],[64,65],[60,60,60],[62,63,63],[65,63,63,63],[63,62],[58]],
@@ -64,6 +66,43 @@ test("all four editions repeat the complete form for each of the four verses",()
   const score=arrangeHymn(hymn,arrangement,0),{audio}=read(score.abc);assert.equal(score.totalBars,15);assert.equal(audio.totalDuration*4,60);
   const plan=hymnPlaybackScore({hymn,arrangement,sectionBars:0,section:0,hands:"both",totalBars:15,sections:1,abc:score.abc,audio,transpose:0,stanzas:[1,2,3,4]});
   assert.deepEqual(plan.verses.map(v=>[v.number,v.start,v.end]),[[1,0,60],[2,60,120],[3,120,180],[4,180,240]]);assert.equal(plan.audio.totalDuration*4,240);
+  assert.deepEqual(plan.verses.map(v=>notes(plan.audio.tracks[0]).filter(([,at])=>at>=v.start&&at<v.end).length),[42,42,42,41],`${arrangement}: syllables rearticulate in verses 1–3; Lord remains held in verse 4`);
+  for(const verse of plan.verses){
+   const p=arrangement==="guitar-edition"?55:67;
+   const actual=notes(plan.audio.tracks[0]).filter(([,at])=>at>=verse.start+8&&at<verse.start+10).map(([pitch,at,d])=>[pitch,at-verse.start,d]);
+   assert.deepEqual(actual,verse.number===4?[[p,8,2]]:[[p,8,1],[p,9,1]],`${arrangement}: measure 3, verse ${verse.number}`);
+  }
+ }
+});
+
+test("active-verse notation and sliced passages agree with playback without changing the source accompaniment",()=>{
+ for(const arrangement of ["original","guitar-vocal","piano","guitar-edition"] as const){
+  for(const [bars,section] of [[0,0],[2,1]]){
+   const score=arrangeHymn(hymn,arrangement,bars,section),baseline=read(score.abc).audio;
+   for(const verse of [1,2,3,4]){
+    const rendered=read(hymnStanzaAbc(score.abc,hymn,verse,hymnMelodyOffset(hymn,score.from))).audio;
+    const beat=bars?0:8,events=notes(rendered.tracks[0]).filter(([,at])=>at>=beat&&at<beat+2);
+    assert.deepEqual(events.map(([,at,d])=>[at-beat,d]),verse===4?[[0,2]]:[[0,1],[1,1]],`${arrangement}: verse ${verse}, passage ${section}`);
+    assert.deepEqual(rendered.tracks.slice(1).map(notes),baseline.tracks.slice(1).map(notes),"Accompaniment remains unchanged");
+    if(bars){
+     const abc=hymnStanzaAbc(score.abc,hymn,verse,hymnMelodyOffset(hymn,score.from));
+     const plan=hymnPlaybackScore({hymn,arrangement,sectionBars:bars,section,hands:"both",totalBars:score.totalBars,sections:score.sections,abc,audio:rendered,transpose:0,stanza:verse});
+     assert.deepEqual(notes(plan.audio.tracks[0]).filter(([,at])=>at>=8&&at<10).map(([,at,d])=>[at,d]),verse===4?[[8,2]]:[[8,1],[9,1]],"Continuous passage playback follows the active verse too");
+    }
+   }
+  }
+ }
+});
+
+test("a nonconsecutive verse selection retains each articulation and left-hand practice remains independent",()=>{
+ for(const arrangement of ["piano","guitar-edition"] as const){
+  for(const hands of ["right","left"] as const){
+   const score=arrangeHymn(hymn,arrangement,0,0,hands),{audio}=read(score.abc);
+   const plan=hymnPlaybackScore({hymn,arrangement,sectionBars:0,section:0,hands,totalBars:15,sections:1,abc:score.abc,audio,transpose:0,stanzas:[2,4]});
+   assert.deepEqual(plan.verses.map(v=>v.number),[2,4]);
+   const counts=plan.verses.map(v=>notes(plan.audio.tracks[0]).filter(([,at])=>at>=v.start&&at<v.end).length);
+   assert.deepEqual(counts,hands==="right"?[42,41]:[notes(audio.tracks[0]).length,notes(audio.tracks[0]).length]);
+  }
  }
 });
 

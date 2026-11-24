@@ -29,7 +29,7 @@ export async function checkVocalEdition(page:Page, base:string, slug:string) {
   await dialog.getByRole("button",{name:"Close chord diagram"}).click();await expect(dialog).toBeHidden();
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),"No horizontal page overflow");
 }
-export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,2,3]) {
+export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,2,3],check?: (page:Page,base:string,width:number)=>Promise<void>) {
   const server=await preview("songalong",port),browser=await launchBrowser();
   try {
     for(const width of [1440,768,390,320]){
@@ -75,6 +75,7 @@ export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,
       await expect(page.locator(".guitar-chord-trigger").first()).toBeVisible();
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
       if(width===1440||width===390)await page.screenshot({path:`work/song-support/screenshots/${slug}-guitar-voice-${width}.png`});
+      await check?.(page,server.base,width);
       assert.deepEqual(errors,[]);await page.close();console.log(`PASS ${slug}: Piano, Guitar, Voice + Piano, Guitar + Voice ${width}px`);
     }
   }catch(error){await captureFailure(browser,error);throw error;}finally{await closeBrowser(browser);server.stop();}

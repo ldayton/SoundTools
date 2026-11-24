@@ -28,6 +28,32 @@ export function validStanzas(
   return input.length && !result.length ? fallback.filter(valid) : result;
 }
 
+/** A printed tie can apply to a sustained syllable in one verse but separate
+ * syllables in another. Adapt only the lead melody for the active stanza;
+ * archived music, accompaniment and unconditional ties remain intact. */
+export function hymnStanzaAbc(abc: string, hymn: HymnLyricData, stanza: number, offset = 0): string {
+  const words = hymn.stanzas.find(s => s.number === stanza)?.syllables;
+  if (!words) return abc;
+  const split = new Set(words.flatMap((word, index) =>
+    word && word !== "*" && hymn.stanzas.some(s => s.syllables[index] === "*") ? [index] : []));
+  if (!split.size) return abc;
+  const notes = abcjs.parseOnly(abc)[0].lines.flatMap(line => line.staff?.[0]?.voices?.[0] || [])
+    .filter((note): note is VoiceItemNote => note.el_type === "note" && !!note.pitches?.length);
+  const edits: {start: number; end: number; text: string}[] = [];
+  notes.forEach((note, index) => {
+    const previous = notes[index - 1];
+    if (!split.has(offset + index) || note.pitches?.length !== 1 || !note.pitches[0].endTie ||
+      previous?.pitches?.length !== 1 || !previous.pitches[0].startTie) return;
+    const text = abc.slice(previous.startChar!, previous.endChar!).replace(
+      /"[^"\n]*"|![^!]*!|([_^=]*[A-Ga-g][,']*(?:\d+(?:\/\d*)?|\/+\d*)?)-/g,
+      (token, pitch: string | undefined) => pitch ?? token,
+    );
+    edits.push({start: previous.startChar!, end: previous.endChar!, text});
+  });
+  for (const edit of edits.reverse()) abc = abc.slice(0, edit.start) + edit.text + abc.slice(edit.end);
+  return abc;
+}
+
 /** Shared passages occupy one lyric row, independently of which stanza is first selected. */
 export function hymnLyricRows({ hymn, selected }: HymnLyricsSelection) {
   const stanzas = validStanzas(selected, hymn.stanzas.length).map(

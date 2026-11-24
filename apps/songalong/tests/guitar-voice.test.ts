@@ -9,6 +9,7 @@ import {hymnHasVoice,hymnPrimaryInstrument,selectHymnCombination} from "../../..
 import {hymnPreferences,hymnSettingsFromQuery} from "../../../packages/music-practice/src/hymn-settings";
 import {selectEditionVoice} from "../../../packages/music-practice/src/edition-score";
 import {hymnPlaybackScore} from "../../../packages/music-practice/src/hymn-playback-score";
+import {hymnStanzaAbc} from "../../../packages/music-practice/src/hymn-lyrics";
 import {recommendGuitarCapos} from "../../../packages/music-practice/src/guitar-capo";
 import {songalongRecords,restoreSongalongRecords} from "../../../packages/music-practice/src/songalong-account-records";
 import {HymnProgress} from "../../../packages/music-practice/src/hymn-progress";
@@ -34,7 +35,8 @@ for(const id of instrumentEditionIds)test(`${id}: four combinations have indepen
   assert.deepEqual(combined.notes[1],shifted(guitar.notes[0],p.capo+transpose),"Guitar plays accompaniment rather than the fingerstyle melody");
   for(const [hands,index]of [["right",0],["left",1]] as const)assert.deepEqual(read(arrangeHymn(h,"guitar-vocal",0,0,hands,undefined,transpose).abc).notes,[combined.notes[index]]);
   const prepared=hymnPlaybackScore({hymn:h,arrangement:"guitar-vocal",sectionBars:0,section:0,hands:"both",totalBars:score.totalBars,sections:1,abc:score.abc,audio:combined.audio,transpose,stanzas:[1]});
-  assert.deepEqual(prepared.audio.tracks.map(t=>t.flatMap(n=>n.cmd==="note"?[[n.pitch,n.start,n.duration]]:[])),h.slug === "in-christ-alone" ? combined.notes.map(track=>track.filter(n=>n[1]<15)) : combined.notes);
+  const verseNotes=read(hymnStanzaAbc(score.abc,h,1)).notes;
+  assert.deepEqual(prepared.audio.tracks.map(t=>t.flatMap(n=>n.cmd==="note"?[[n.pitch,n.start,n.duration]]:[])),h.slug === "in-christ-alone" ? verseNotes.map(track=>track.filter(n=>n[1]<15)) : verseNotes);
   assert(prepared.audio.tracks[0].filter(n=>n.cmd==="note").every(n=>(n as typeof n & {playbackInstrument?:string}).playbackInstrument==="choir"));
  }
  for(const size of [2,4]){

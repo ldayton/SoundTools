@@ -187,8 +187,10 @@ also verifies the engine default, changed tab, diagrams and persistence.
 The public-domain Hymnary.org score (Richard Storrs Willis setting) owns the
 transcription and all four printed verse underlays. Its fifteen complete 4/4
 measures last 60 quarter beats, with no pickup, common refrain or appended Amen;
-four selected verses last 240 beats. Tied quarters in the third measure remain
-written separately, retaining the lyric slots and the sustained sound. This is
+four selected verses last 240 beats. The archived third-measure tie is
+verse-dependent in the playable lead: verses 1–3 rearticulate “Rul-er”/“Fair-er”
+as two quarters, while verse 4 sustains “Lord”. The active-verse notation,
+practice onsets and per-verse playback agree; accompaniment remains intact. This is
 the printed Fairest Lord Jesus underlay, including the fourth Beautiful Savior
 verse, rather than a renamed edition of the different Beautiful Savior text.
 

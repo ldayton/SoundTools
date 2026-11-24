@@ -12,7 +12,7 @@ import {
   HymnPlayback,
   playbackNotes,
 } from "../../../packages/music-practice/src/hymn-playback";
-import { hymnEndingBar } from "../../../packages/music-practice/src/hymn-lyrics";
+import { hymnEndingBar, hymnStanzaAbc } from "../../../packages/music-practice/src/hymn-lyrics";
 import { hymnPreferences } from "../../../packages/music-practice/src/hymn-settings";
 import {
   HymnProgress,
@@ -55,14 +55,15 @@ test("checked stanzas form an ordered, gapless timeline with unchanged verse and
       let duration = 0;
       const expected: ReturnType<typeof playbackNotes> = [];
       for (const verse of plan.verses) {
-        const abc = arrangeHymn(
+        const score = arrangeHymn(
           h,
           id,
           0,
           0,
           "both",
           hymnEndingBar(h, [verse.number]),
-        ).abc;
+        );
+        const abc = hymnStanzaAbc(score.abc, h, verse.number);
         const audio = abcjs
           .parseOnly(h.slug === "in-christ-alone" ? abc.replaceAll(":|","|]") : abc)[0]
           .setUpAudio({ qpm: 60, chordsOff: true });

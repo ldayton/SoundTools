@@ -164,6 +164,9 @@ source URL and exact PDF SHA-256 are in the header. All four printed parts and
 all four underlays are retained, including the source's tied quarters and
 E-natural, B-natural and D-flat harmony. The form is fifteen complete bars in
 E-flat major: 60 quarter beats per verse, without a refrain or added Amen.
+Playable melody articulation follows the active underlay: measure 3 has separate
+“Rul-er”/“Fair-er” attacks in verses 1–3 and a sustained “Lord” in verse 4.
+The archived print and accompanying piano voices retain their original ties.
 
 Voice + Piano preserves the source harmony in playable hand spans. Piano,
 solo Guitar and Guitar + Voice reuse the instrument registry and shared controls.

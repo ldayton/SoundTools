@@ -7,7 +7,7 @@ import { hymnPlaybackInstrument } from "./hymn-instruments";
 import { HymnInstrumentSelector } from "./hymn-instrument-selector";
 import { printedHymnSource } from "./hymn-source";
 import {chordEdition} from "./chord-editions";
-import { validStanzas, hymnEndingBar } from "./hymn-lyrics";
+import { validStanzas, hymnEndingBar, hymnStanzaAbc } from "./hymn-lyrics";
 import { RendererLifetime } from "./renderer-lifetime";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { HymnFrame, hymnBodyState } from "./practice-frame";
@@ -1005,6 +1005,8 @@ export class SightReading {
         transposition.semitones,
         capoChoice,
       );
+      if (this.mode === "playback" || this.viewHands !== "left")
+        score.abc = hymnStanzaAbc(score.abc, this.hymn, this.stanza, hymnMelodyOffset(this.hymn, score.from));
       this.section = score.section;
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
@@ -1068,6 +1070,7 @@ export class SightReading {
               capoChoice,
               endingBar: this.endingBar,
               stanzas: this.stanzas,
+              stanza: this.stanza,
               mutedStaves: this.effectiveStaves(this.mutedStaves),
             });
             this.playbackVerses = prepared.verses;
@@ -1114,6 +1117,8 @@ export class SightReading {
             )
           : score;
       if (practice !== score) {
+        if (this.hands !== "left")
+          practice.abc = hymnStanzaAbc(practice.abc, this.hymn, this.stanza, hymnMelodyOffset(this.hymn, practice.from));
         // Grade the selected hand's own onsets, including ties and rests. Map
         // those timings back onto the visible grand staff for highlighting.
         const visible = new Map(this.events.map((e) => [e.milliseconds, e]));
@@ -1787,11 +1792,12 @@ export class SightReading {
     }
     if (!this.passage.range && verse && verse.number !== this.stanza) {
       const oldEnding = this.endingBar;
+      const oldArticulation = hymnStanzaAbc(this.hymn.melody, this.hymn, this.stanza);
       this.stanza = verse.number;
       this.position = 0;
       this.restorePending = false;
       this.playbackView = "";
-      if (oldEnding !== this.endingBar) {
+      if (oldEnding !== this.endingBar || oldArticulation !== hymnStanzaAbc(this.hymn.melody, this.hymn, this.stanza)) {
         this.content = "";
         this.render(true);
         return;

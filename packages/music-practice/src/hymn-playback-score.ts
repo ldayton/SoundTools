@@ -5,11 +5,12 @@ import { chordEdition, capoAudio } from "./chord-editions";
 import { swingAudio } from "./hymn-swing";
 import { guitarSustainAudio, type GuitarSustainEvent } from "./guitar-sustain";
 import abcjs, { type AudioTracks, type VoiceItem } from "abcjs";
-import { hymnEndingBar, validStanzas } from "./hymn-lyrics";
+import { hymnEndingBar, hymnStanzaAbc, validStanzas } from "./hymn-lyrics";
 import {
   arrangeHymn,
   isGuitarArrangement,
   guitarMidiOffset,
+  hymnMelodyOffset,
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
@@ -29,6 +30,7 @@ export function hymnPlaybackScore(options: {
   capoChoice?: CapoChoice;
   endingBar?: number;
   stanzas?: readonly number[];
+  stanza?: number;
   mutedStaves?: readonly number[];
 }) {
   const voicesFor = (audio: AudioTracks, abc: string) => {
@@ -54,7 +56,8 @@ export function hymnPlaybackScore(options: {
     const resonant = isGuitarArrangement(options.arrangement) ? guitarSustainAudio(voiced, abc, options.hymn.feel === "swing") : voiced;
     return mutePlaybackStaves(resonant, staves, options.mutedStaves || []);
   };
-  const readAudio = (abc: string) => {
+  const readAudio = (abc: string, stanza = options.stanza || 0, from = 0) => {
+    if (options.hands !== "left") abc = hymnStanzaAbc(abc, options.hymn, stanza, hymnMelodyOffset(options.hymn, from));
     const capoEdition = options.arrangement === "guitar-edition";
     if(capoEdition && options.hands === "left" && options.capoChoice)
       abc=capoAccompanimentAbc(abc,options.capoChoice,(chordEdition(options.hymn)?.capo || 0)+options.transpose-options.capoChoice.fret);
@@ -108,7 +111,7 @@ export function hymnPlaybackScore(options: {
       }
       let pass=abc;
       for(const e of edits.sort((a,b)=>b.start-a.start))pass=pass.slice(0,e.start)+"|]"+pass.slice(e.end);
-      const audio = readAudio(pass);
+      const audio = readAudio(pass, number);
       const start = offset;
       offset += audio.totalDuration;
       return { audio, number, start: start * 4, end: offset * 4 };
@@ -158,7 +161,7 @@ export function hymnPlaybackScore(options: {
     const audio =
       section === options.section
         ? currentAudio
-        : readAudio(arrange(options.sectionBars, section));
+        : readAudio(arrange(options.sectionBars, section), options.stanza, section * options.sectionBars);
     elapsed += audio.totalDuration * 4;
     return start;
   });

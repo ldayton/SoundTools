@@ -150,3 +150,32 @@ privacy scrubbing. Production DSNs must not silently report a new app under the
 former `notecards` release identity.
 
 See [the 2026-11-19 diagnostics audit](diagnostics-audit.md) for the full reporting survey, exception boundaries, source artifacts and known limitations.
+
+### Offline update failure investigation (24 November 2026)
+
+The downloaded November 15 NoteCards and November 20 SongAlong samples reported
+integrity and storage failures on iOS Safari, respectively. Both had successfully
+opened an existing offline copy. Their diagnostics v0.2 reports lack an underlying
+exception and operation stage, so neither root cause nor later recovery can be
+established from these samples. The November 21 SongAlong v0.3 sample instead
+identifies a network failure during `registration_update`, followed by a transient
+account sync failure with zero pending changes. A working cached copy is distinct
+from a successful update check.
+
+Update discovery now bypasses HTTP caching for the mutable inventory on every
+attempt; immutable resource verification and retries retain their existing cache
+policy. Workers commit a new inventory only after validating the complete saved
+document. Regression coverage lives in the existing shared resource/runtime units,
+`music-practice/tests/offline-inventory.test.ts`, and the Nightly NoteWise offline
+browser witness (a cached release-A inventory must not prevent discovering B).
+These fixes address reproducible failure modes, not a proven diagnosis of those
+historical iOS reports.
+
+Offline failures retain an allowlisted `cacheStage`: cache open/read/verification/
+write, resource fetch, manifest fetch/parse/write, inventory/document validation,
+or latest metadata write. The inner worker stage takes precedence over the
+page's generic `worker_call`. Native exception causes and safe HTTP status survive
+the worker boundary; raw messages, cache keys, resource paths and user content do
+not. Shared unit tests and the existing real-SDK browser witness own this contract.
+Use the stage plus exception cause to distinguish quota/storage faults, invalid
+inventory or content, and network failures before changing recovery behavior.

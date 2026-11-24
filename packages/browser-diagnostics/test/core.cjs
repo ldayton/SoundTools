@@ -749,3 +749,18 @@ test("cyclic causes and aggregate members stay bounded", async () => {
   assert(!JSON.stringify(entry).includes("PRIVATE"));
   await d.dispose();
 });
+
+test("offline failures preserve bounded worker stages over the caller stage and reject private stage values", async () => {
+  const { env } = environment();
+  const d = create({app: "dorego", release: "test"}, env);
+  await d.ready;
+  d.offline("update", "failed", {cacheStage: "worker_call"}, {
+    name: "QuotaExceededError", offlineReason: "quota", cacheStage: "cache_write", message: "PRIVATE",
+  });
+  d.offline("update", "failed", {}, {offlineReason: "integrity", cacheStage: "PRIVATE"});
+  const report = d.snapshot();
+  assert.equal(report.errors[0].details.cacheStage, "cache_write");
+  assert.equal(report.errors[1].details.cacheStage, undefined);
+  assert(!JSON.stringify(report).includes("PRIVATE"));
+  await d.dispose();
+});

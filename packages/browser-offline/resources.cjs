@@ -84,6 +84,7 @@
         idleMs = 8000,
         retryMs = 300,
         onRetry,
+        cache = "default",
       } = {},
     ) {
       for (let attempt = 0; ; attempt++) {
@@ -108,7 +109,7 @@
                   () =>
                     env.fetch(url, {
                       signal: requestController.signal,
-                      cache: attempt ? "reload" : "default",
+                      cache: attempt && cache === "default" ? "reload" : cache,
                     }),
                   inner,
                 );

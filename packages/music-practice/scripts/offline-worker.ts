@@ -44,26 +44,28 @@ async function remember(id,pack){
   if(id&&shellName(pack.shellCache))await metadata.write(id,{shellCache:pack.shellCache,savedAt:Date.now()});
 }
 async function publish(pack,signal){
-  if(!valid(pack))throw Object.assign(Error('Invalid offline inventory'),{offlineReason:'integrity'});
+  await offline.atStage('inventory_validation',async()=>{if(!valid(pack))throw Object.assign(Error('Invalid offline inventory'),{offlineReason:'integrity'});});
   await offline.publish(pack.shellCache,async()=>{
     // A failed first installation can leave a detached cache in WebKit. A
     // shell without a committed inventory is expendable and cheap to rebuild.
     if(!self.registration.active&&await caches.has(pack.shellCache)&&!await(await caches.open(pack.shellCache)).match(MANIFEST))await caches.delete(pack.shellCache);
     await offline.stageAssets(pack.shellCache,pack.files,{signal});
     signal.throwIfAborted();
-    await(await caches.open(pack.shellCache)).put(MANIFEST,new Response(JSON.stringify(pack),{headers:{'Content-Type':'application/json'}}));
-    if(!await savedDocument(pack))throw Object.assign(Error('Incomplete offline copy'),{offlineReason:'integrity'});
+    await offline.atStage('document_validation',async()=>{if(!await savedDocument(pack))throw Object.assign(Error('Incomplete offline copy'),{offlineReason:'integrity'});});
+    signal.throwIfAborted();
+    await offline.atStage('manifest_write',async()=>{await(await caches.open(pack.shellCache)).put(MANIFEST,new Response(JSON.stringify(pack),{headers:{'Content-Type':'application/json'}}));});
     signal.throwIfAborted();
   });
-  await metadata.write('latest',{shellCache:pack.shellCache,savedAt:Date.now()});
+  await offline.atStage('metadata_write',()=>metadata.write('latest',{shellCache:pack.shellCache,savedAt:Date.now()}));
   return pack;
 }
 let latestTask;
 function latest(){
   if(latestTask)return latestTask;
   latestTask=offline.withDeadline(40000,async signal=>{
-    const bytes=await offlineResources.fetchBytes(MANIFEST,{signal,attempts:2,timeoutMs:8000,idleMs:5000});
-    return publish(JSON.parse(new TextDecoder().decode(bytes)),signal);
+    const bytes=await offline.atStage('manifest_fetch',()=>offlineResources.fetchBytes(MANIFEST,{signal,cache:'no-store',attempts:2,timeoutMs:8000,idleMs:5000}));
+    const pack=await offline.atStage('manifest_parse',async()=>JSON.parse(new TextDecoder().decode(bytes)));
+    return publish(pack,signal);
   }).finally(()=>latestTask=null);
   return latestTask;
 }

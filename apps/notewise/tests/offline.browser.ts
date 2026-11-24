@@ -83,7 +83,7 @@ const server = createServer(async (req, res) => {
     const bytes = await readFile(resolve(root, path));
     res.writeHead(200, {
       "Content-Type": mime[extname(path)] || "application/octet-stream",
-      "Cache-Control": "no-store",
+      "Cache-Control": path === "offline-pack.json" ? "public, max-age=3600" : "no-store",
     });
     res.end(bytes);
   } catch {
@@ -172,6 +172,9 @@ try {
   const toolbarBounds = () =>
     page.locator(".application-toolbar").boundingBox();
   const beforeUpdate = await toolbarBounds();
+  // Seed a fresh HTTP cache entry for release A. Update discovery must bypass
+  // it and stage B without waiting for the server's max-age to expire.
+  await page.evaluate(async () => { await (await fetch("/offline-pack.json")).arrayBuffer(); });
   root = rootB;
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
   await page

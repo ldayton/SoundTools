@@ -14,6 +14,7 @@ export interface Resources {
       signal?: AbortSignal;
       bytes?: number;
       sha256?: string;
+      cache?: RequestCache;
       attempts?: number;
       timeoutMs?: number;
       idleMs?: number;

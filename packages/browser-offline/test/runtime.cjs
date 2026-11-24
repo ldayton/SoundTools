@@ -416,3 +416,23 @@ test("worker failures retain safe exception identity, source frames and bounded 
   native.cause = error;
   assert.doesNotThrow(() => JSON.stringify(runtime.failure(error)));
 });
+
+test("staging reports the failing cache operation and preserves the native cause without private values", async () => {
+  const { env } = fixture();
+  env.caches.open = async () => ({
+    match: async () => null,
+    put: async () => { throw new DOMException("PRIVATE cache key", "QuotaExceededError"); },
+  });
+  const runtime = createRuntime(env, "/app/", createResources(env));
+  await assert.rejects(runtime.stageAssets("assets", [{url: "https://example.test/app/private.js"}]), error => {
+    const failure = runtime.failure(error);
+    assert.equal(failure.cacheStage, "cache_write");
+    assert.equal(failure.offlineReason, "quota");
+    assert.equal(failure.cause.name, "QuotaExceededError");
+    assert(!/PRIVATE|private.js/.test(JSON.stringify(failure)));
+    return true;
+  });
+  env.caches.open = async () => { throw new DOMException("PRIVATE", "SecurityError"); };
+  await assert.rejects(runtime.stageAssets("assets", []), error => runtime.failure(error).cacheStage === "cache_open");
+  assert.equal(runtime.failure({cacheStage: "PRIVATE", name: "Error"}).cacheStage, undefined);
+});

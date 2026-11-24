@@ -99,10 +99,24 @@ function createRuntime(env, base, resources) {
       )
         out.code = error.code;
       if (Number.isInteger(error.status)) out.status = error.status;
+      if (stages.includes(error.cacheStage)) out.cacheStage = error.cacheStage;
       if (error.cause) out.cause = failure(error.cause, depth + 1, seen);
       if (Array.isArray(error.errors)) out.errors=error.errors.slice(0,3).map(child=>failure(child,depth+1,seen)).filter(Boolean);
     } catch {}
     return out;
+  }
+  const stages = ["cache_open", "cache_read", "cache_verify", "resource_fetch", "cache_write", "manifest_fetch", "manifest_parse", "inventory_validation", "document_validation", "manifest_write", "metadata_write"];
+  async function atStage(stage, action) {
+    try { return await action(); }
+    catch (cause) {
+      // Preserve the original exception while adding bounded operation context.
+      const error = new Error("Offline operation failed", { cause });
+      error.name = cause?.name || "Error";
+      error.offlineReason = reason(cause);
+      error.cacheStage = stages.includes(cause?.cacheStage) ? cause.cacheStage : stage;
+      if (Number.isInteger(cause?.status)) error.status = cause.status;
+      throw error;
+    }
   }
   function offlineFailure(reason, message) {
     return Object.assign(Error(message), { offlineReason: reason });
@@ -225,7 +239,7 @@ function createRuntime(env, base, resources) {
     files,
     { signal, atomic = false, onRetry } = {},
   ) {
-    const cache = await env.caches.open(cacheName);
+    const cache = await atStage("cache_open", () => env.caches.open(cacheName));
     if (atomic) {
       if (
         !(await complete(
@@ -247,25 +261,25 @@ function createRuntime(env, base, resources) {
           while (remaining.length) {
             signal?.throwIfAborted();
             const file = remaining.shift();
-            const cached = await cache.match(file.url);
+            const cached = await atStage("cache_read", () => cache.match(file.url));
             if (cached?.ok) {
               if (!file.sha256 && !file.bytes) continue;
               try {
                 if (resources)
-                  await resources.verify(await cached.arrayBuffer(), file);
+                  await atStage("cache_verify", async () => resources.verify(await cached.arrayBuffer(), file));
                 continue;
               } catch (error) {
                 if (error.offlineReason !== "integrity") throw error;
                 signal?.throwIfAborted();
-                await cache.delete(file.url);
+                await atStage("cache_write", () => cache.delete(file.url));
               }
             }
             if (resources) {
-              const bytes = await resources.fetchBytes(file.url, {
+              const bytes = await atStage("resource_fetch", () => resources.fetchBytes(file.url, {
                 ...file,
                 signal,
                 onRetry,
-              });
+              }));
               signal?.throwIfAborted();
               const pathname = new URL(file.url, env.location.origin).pathname;
               const extension = pathname.endsWith("/") ? "html" : pathname.split(".").pop();
@@ -283,7 +297,7 @@ function createRuntime(env, base, resources) {
                 flac: "audio/flac",
                 txt: "text/plain",
               };
-              await cache.put(
+              await atStage("cache_write", () => cache.put(
                 file.url,
                 new Response(bytes, {
                   headers: {
@@ -292,7 +306,7 @@ function createRuntime(env, base, resources) {
                     "Content-Length": String(bytes.byteLength),
                   },
                 }),
-              );
+              ));
             } else {
               const response = await env.fetch(
                 new Request(file.url, { cache: "reload", signal }),
@@ -533,6 +547,7 @@ function createRuntime(env, base, resources) {
   }
   return {
     reason,
+    atStage,
     networkResponse,
     assetResponse,
     report,

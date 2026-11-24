@@ -88,3 +88,13 @@ test("nonretryable HTTP failures do not loop; hard deadlines reject a non-aborta
   await Promise.resolve();
   assert(!loader.busy());
 });
+
+test("mutable manifest reads bypass HTTP caching on every retry", async () => {
+  const modes = [];
+  const loader = createResources({crypto: webcrypto, fetch: async (_url, options) => {
+    modes.push(options.cache);
+    return new Response(modes.length === 1 ? "" : "current", {status: modes.length === 1 ? 503 : 200});
+  }});
+  await loader.fetchBytes("https://example.test/offline-pack.json", {cache: "no-store", retryMs: 1});
+  assert.deepEqual(modes, ["no-store", "no-store"]);
+});

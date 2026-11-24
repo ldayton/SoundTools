@@ -148,6 +148,7 @@ test("worker RPC rejection preserves serialized exception and cause instead of a
               failure: {
                 name: "QuotaExceededError",
                 code: 22,
+                cacheStage: "cache_write",
                 stack: "https://example.org/sw.js:10:2",
                 cause: { name: "SecurityError" },
               },
@@ -164,6 +165,7 @@ test("worker RPC rejection preserves serialized exception and cause instead of a
     (error) =>
       error.name === "QuotaExceededError" &&
       error.code === 22 &&
+      error.cacheStage === "cache_write" &&
       error.offlineReason === "quota" &&
       error.errorOrigin === "worker" &&
       error.cause.name === "SecurityError" &&

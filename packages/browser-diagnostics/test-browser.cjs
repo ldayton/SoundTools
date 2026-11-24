@@ -143,8 +143,17 @@ const { launchBrowser, createContext } = require("../../scripts/ci/browser-harne
     });
     await page.waitForFunction(() => d.getState().status === "connected");
     assert.equal(sdkLoads, 1);
+    await page.evaluate(() => {
+      d.offline("update", "failed", { cacheStage: "worker_call" }, {
+        name: "QuotaExceededError", offlineReason: "quota", cacheStage: "cache_write",
+        message: "PRIVATE", url: "SECRET",
+      });
+      d.flush();
+    });
+
     const deadline = Date.now() + 5000;
     const complete = () =>
+      items().some(item => item.type === "event" && item.payload.tags?.code === "cache.update_failed") &&
       ["event", "log", "trace_metric"].every((type) =>
         items().some(
           (item) =>
@@ -159,6 +168,10 @@ const { launchBrowser, createContext } = require("../../scripts/ci/browser-harne
       complete(),
       "Missing event/log/metric envelopes: " + items().map((item) => item.type),
     );
+    const staged = items().find(item => item.type === "event" && item.payload.tags?.code === "cache.update_failed").payload;
+    assert.equal(staged.extra.failure.details.cacheStage, "cache_write");
+    assert.equal(staged.extra.failure.details.cacheReason, "quota");
+    assert(!/PRIVATE|SECRET/.test(JSON.stringify(staged)));
     const event = items().find(
       (i) =>
         i.type === "event" &&

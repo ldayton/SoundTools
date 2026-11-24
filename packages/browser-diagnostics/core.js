@@ -23,6 +23,9 @@
     dpr: "number",
     cacheSource: ["cache", "network"],
     cacheStage: [
+      "cache_open", "cache_read", "cache_verify", "resource_fetch", "cache_write",
+      "manifest_fetch", "manifest_parse", "inventory_validation",
+      "document_validation", "manifest_write", "metadata_write",
       "worker_call",
       "registration_update",
       "worker_activation",
@@ -350,6 +353,9 @@
           retryAfterMs: error?.retryAfterMs,
           errorOrigin: error?.errorOrigin || "page",
           ...details,
+          // The worker knows the failed inner operation better than its caller.
+          ...(baseFields.cacheStage.includes(error?.cacheStage)
+            ? { cacheStage: error.cacheStage } : {}),
           cacheOperation: operation,
           cacheOutcome: outcome,
           cacheReason: reason,

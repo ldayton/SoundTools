@@ -1,4 +1,6 @@
 import type { TuneObject } from "abcjs";
+import { spellPitch, chromaticPitch } from "./guitar";
+import { name } from "./model";
 export type PitchSpellings = Record<number, string>;
 const chromatic = [
   "C",
@@ -24,7 +26,7 @@ export function pitchLabel(midi: number, spellings: PitchSpellings = {}) {
   );
 }
 /** Pair sounding attacks with their written diatonic positions after abcjs resolves the key and bar accidentals. */
-export function scoreSpellings(tune: TuneObject) {
+export function scoreSpellings(tune: TuneObject, soundingKey?: string) {
   const result = new Map<number, PitchSpellings>();
   for (const line of tune.lines)
     for (const staff of line.staff || [])
@@ -37,6 +39,11 @@ export function scoreSpellings(tune: TuneObject) {
             if (written.endTie) continue;
             const sounding = attacks.shift();
             if (!sounding) continue;
+            if(soundingKey) {
+              const card=spellPitch(sounding.pitch,soundingKey) || chromaticPitch(sounding.pitch);
+              labels[sounding.pitch]=name(card)+card.octave;
+              continue;
+            }
             const degree = ((written.pitch % 7) + 7) % 7;
             const octave = 4 + Math.floor(written.pitch / 7);
             const natural = (octave + 1) * 12 + [0, 2, 4, 5, 7, 9, 11][degree];

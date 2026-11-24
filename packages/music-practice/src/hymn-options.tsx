@@ -42,7 +42,7 @@ import {
   type Arrangement,
   type HymnHands,
 } from "./hymn-arrangements";
-import { HYMN_KEYS, hymnKeyLabel, type HymnKey } from "./hymn-transpose";
+import { HYMN_KEYS, hymnKeyLabel, hymnTransposition, type HymnKey } from "./hymn-transpose";
 import type { CountInBars } from "./hymn-count-in";
 import { hymnLibrary } from "./hymn-library";
 import hymns from "./hymns.json";
@@ -71,6 +71,7 @@ export function HymnOptions({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
+  const capo=profile ? profile.capo + (state.arrangement === "guitar-edition" ? hymnTransposition(state.originalKey,state.key,state.octave).semitones : 0) : 0;
   const keys = [
     {
       value: "original",
@@ -118,9 +119,9 @@ export function HymnOptions({
           />
         </OptionsSection>
       )}
-      {state.arrangement !== "guitar-edition" && <OptionsSection title="Key & range">
+      <OptionsSection title="Key & range">
         <Stack gap="xs">
-          <SimpleGrid cols={2} spacing="xs">
+          {state.arrangement !== "guitar-edition" && <SimpleGrid cols={2} spacing="xs">
             {(["low", "high"] as const).map((bound) => (
               <HymnPitchField
                 key={bound}
@@ -129,7 +130,7 @@ export function HymnOptions({
                 onChange={(value) => change({ [bound]: value })}
               />
             ))}
-          </SimpleGrid>
+          </SimpleGrid>}
           <Select
             id="hymn-key"
             name="hymn-key"
@@ -162,7 +163,7 @@ export function HymnOptions({
               </Group>
             )}
           />
-          <Group gap="xs" grow>
+          {state.arrangement !== "guitar-edition" && <Group gap="xs" grow>
             <Button
               id="hymn-octave-down"
               variant="default"
@@ -185,9 +186,9 @@ export function HymnOptions({
             >
               ↑ Octave
             </Button>
-          </Group>
+          </Group>}
         </Stack>
-      </OptionsSection>}
+      </OptionsSection>
       {state.mode === "playback" && <OptionsSection title="Staves">
         <Table className="hymn-staff-table" aria-label="Playback staves">
           <Table.Thead><Table.Tr><Table.Th>Staff</Table.Th><Table.Th>Show</Table.Th><Table.Th>Play</Table.Th></Table.Tr></Table.Thead>
@@ -344,7 +345,7 @@ export function HymnOptions({
               {profile ? <>
                 <Text size="sm">{profile.guide.meter}</Text>
                 {state.arrangement === "piano" ? <Text size="sm">Play the melody with your right hand and held harmony with your left. Small numbers suggest fingers: 1 is thumb, 5 is little finger. {profile.guide.piano}</Text> : <>
-                  <Text size="sm">Standard tuning · {profile.capo ? `Capo ${profile.capo}; frets and chord symbols are relative to the capo.` : 'No capo.'} Sounding key: {state.originalKey} major. For chord accompaniment, strum at each chord symbol and let it ring.</Text>
+                  <Text size="sm">Standard tuning · {capo ? `Capo ${capo}; frets and chord symbols are relative to the capo.` : 'No capo.'} Sounding key: {state.key === "original" ? state.originalKey : state.key} major. For chord accompaniment, strum at each chord symbol and let it ring.</Text>
                   <Text size="sm">Melody stems point up; bass/harmony stems point down. Use your thumb for bass, index for inner harmony, and middle or ring for melody. {profile.guide.guitar}</Text>
                   <Text size="sm">For strumming use {profile.shapes}. {profile.guide.strum} Small numbers beside notation are fingers; numbers on tab lines are frets.</Text>
                   <Text size="sm">Chords only hides the notes. Select Chord accompaniment separately under Practice to practise strumming. Dots add half the duration; double stems in tab indicate half notes, double beams sixteenths. Ties sustain notes without plucking again.</Text>
@@ -602,7 +603,7 @@ export function HymnFingerings({
   });
   if (state.arrangement === "guitar-chords" || state.arrangement === "guitar-edition" && ["tab", "chords"].includes(state.scoreDisplay)) return null;
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
-  const reviewed = (state.key === "original" || state.key === state.originalKey) &&
+  const reviewed = state.arrangement === "guitar-edition" || (state.key === "original" || state.key === state.originalKey) &&
     (state.arrangement === "piano" || state.octave === 0);
   const checkbox = (
     <Checkbox

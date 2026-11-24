@@ -6,7 +6,7 @@ This table is checked against the production registry by `song-support.test.ts`.
 
 | Song | Guitar | Piano | Voice + Piano | Source / musical contract |
 | --- | --- | --- | --- | --- |
-| In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Supplied teacher score in D; printed rhythm, interlude and ending |
+| In Christ Alone | Dedicated, capo 2 | Dedicated | Teacher choir + organ | Teacher melody/rhythm/interlude in D; organ harmony follows teacher chord suggestions |
 | Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Open Hymnal source; existing instrumental pitches and phrasing preserved |
 | I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Supplied tab-music melody, ornaments, verse/chorus and fermata |
 | Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | Source melody and complete refrain; E-flat sounding key |
@@ -42,12 +42,25 @@ practice, guitar display choices and independent staff Show/Play remain.
 For the seven new vocal editions, `voicePianoAbc` gives the source melody a
 separate vocal staff while preserving every source accompaniment voice. It
 retains the source's pitches, durations, repeats and ending. The chord labels
-are the instrumental edition's editorial harmonic guide, transposed from capo
-shapes to sounding names; they do not replace the source harmony. A change
+use sounding names. Blessed Assurance and Joy to the World have reviewed
+source-piano corrections where the instrumental edition deliberately reharmonizes
+the source. Their chord previews therefore describe the written harmony. A change
 under a held vocal note is attached to an accompaniment attack at its actual
 time, rather than moving the chord or splitting the music. The sung track uses
 the existing normalized choir samples; the other tracks use piano. In Christ
-Alone retains its separately authored choir/organ source and organ routing.
+Alone retains its choir/organ instrumentation and archival transcription. Its
+performed organ bass and inner accompaniment follow the teacher's chord guide,
+including B minor and D/F-sharp; choir, doubled melody and melodic interlude
+remain intact. Harmonic changes split sustained accompaniment where necessary.
+
+Silent Night and Joy to the World end on root-position guitar tonic chords.
+The low melody supplies the root, with the remaining chord tones on separate
+upper strings, preserving the written melody without an artificial octave leap.
+
+Dedicated guitar scores support all twelve keys by moving the capo within frets
+0–11 while retaining reviewed chord shapes, fingerings and relative tab. The
+score heading, diagrams, MIDI grading and continuous/stanza audio use the same
+capo. The Original key option and per-song source-key defaults are unchanged.
 
 All scores use the shared content-based system fitter, which reserves annotation
 space before fingerings are enabled so toggling them does not move measures.
@@ -65,7 +78,11 @@ retain their seventh in the keyboard example.
   timelines. They check guitar string occupancy and compact separate piano hands.
 - `voice-piano.test.ts` checks all seven new vocal scores: source melody, all
   accompaniment voices, duration, supported chord labels, choir routing and
-  independent muting without clock changes.
+  independent muting without clock changes. `musical-harmony.test.ts` independently
+  specifies corrected vocal harmonies, teacher basses/voicings and root-position
+  guitar cadences. It also checks the capo and continuous playback contract for
+  every dedicated edition; the existing guitar browser witness checks every
+  registry entry and transposed MIDI grading for I'll Fly Away.
 - Every registry entry owns its required Nightly edition browser witness. New
   shared checks cover 320, 390, 768 and 1440 px, fingerings, tab, clipping,
   chord diagrams and independent vocal staff visibility/playback controls.

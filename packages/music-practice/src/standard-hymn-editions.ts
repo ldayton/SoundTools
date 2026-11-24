@@ -26,7 +26,8 @@ export const silentEdition: InstrumentHymn = {
   piano:{A:"[B,,D,F,]",D:"[E,G,B,]",E7:"[A,,C,E,]"},
   guitar:{A:"E,",D:"F,",E7:"E,"},
   strum:{A:"[A,EAce]",D:"[DAdf]",E7:"[E,B,DGBe]"},
-  guitarBars:{10:[["E,",24],["E,",24]],11:[["E,",48]]},
+  // The melody supplies the low A; place the remaining tonic tones above it.
+  guitarBars:{10:[["E,",24],["E,",24]],11:[["[EAc]",48]]},
   barLengths:Array(12).fill(48),groups:[[0,1,2,3],[4,5,6,7],[8,9,10,11]],marks:[],
 };
 export const joyEdition: InstrumentHymn = {
@@ -36,7 +37,8 @@ export const joyEdition: InstrumentHymn = {
     [[0,"C"],[24,"F"]],[[0,"C"],[24,"F"]],[[0,"G7"]],[[0,"C"]]],
   piano:{C:"[D,F,A,]",F:"[G,,B,,D,]",G7:"[C,E,G,]"},
   guitar:{C:"C",F:"F,",G7:"G,"},strum:{C:"[CEGce]",F:"[FAcf]",G7:"[G,B,DGBf]"},
-  guitarBars:{3:[["E,",32]],15:[["E,",24],["F,",8]],18:[["G,",32]]},
+  // Final melody C is the root bass, with E and G on separate upper strings.
+  guitarBars:{3:[["E,",32]],15:[["E,",24],["F,",8]],18:[["[EG]",32]]},
   barLengths:Array(19).fill(32),groups:[[0,1,2,3],[4,5,6],[7,8,9,10],[11,12,13,14],[15,16,17,18]],marks:[],
 };
 const positions: Record<number,[number,number]>={40:[5,0],41:[5,1],42:[5,2],43:[5,3],45:[4,0],47:[4,2],48:[4,3],49:[4,4],50:[3,0],52:[3,2],53:[3,3],54:[3,4],55:[2,0],56:[2,1],57:[2,2],59:[1,0],60:[1,1],61:[1,2],62:[1,3],64:[0,0],65:[0,1]};
@@ -63,6 +65,8 @@ export function standardFingers(capo:number, slug:string){
   return (instrument:BeginnerInstrument,bar:number,voice:number,pitches:number[]):(number|null)[]=>{
     if(instrument==="piano") return pitches.map((pitch,i)=>voice===1?[5,3,1][i]??null:melody.get(`${bar}:${pitch}`)??null);
     return pitches.map(p=>{
+      if(slug === "silent-night" && bar === 11 && voice === 1)
+        return ({52:1,57:2,61:3} as Record<number,number>)[p-capo] ?? null;
       const pos=positions[p-capo];if(!pos?.[1])return null;
       const preferred=voice===0 && [48,62].includes(p-capo)?4:Math.min(4,pos[1]);
       if(voice===1 || !bassFingers.get(bar)?.has(preferred))return preferred;

@@ -419,8 +419,14 @@ test("the canonical In Christ Alone contains all four printed verses", () => {
   );
   assert.equal(hymns.filter(h=>h.id === hymn.id).length,1);
 });
-test("original score is unmodified; hand selection respects the organ's actual treble clef", () => {
-  assert.equal(arrangeHymn(hymn, "original", 0, 0, "both").abc, hymn.harmony);
+test("teacher chord adaptation preserves the sung and organ melodies; hand selection respects treble clefs", () => {
+  const adapted = abcjs.parseOnly(arrangeHymn(hymn, "original", 0, 0, "both").abc)[0].setUpAudio({chordsOff:true});
+  const archival = abcjs.parseOnly(hymn.harmony)[0].setUpAudio({chordsOff:true});
+  const musical = (tracks: typeof adapted.tracks) => tracks.map(track=>track.map(event=>{
+    const {startChar,endChar,...music}=event as typeof event & {startChar?:number;endChar?:number};return music;
+  }));
+  assert.deepEqual(musical(adapted.tracks.slice(0,2)), musical(archival.tracks.slice(0,2)));
+  assert.equal(adapted.totalDuration, archival.totalDuration);
   const right = abcjs.parseOnly(
     arrangeHymn(hymn, "original", 0, 0, "right").abc,
   )[0];

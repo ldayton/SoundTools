@@ -93,6 +93,55 @@ export function teacherChanges(source: string): Change[][] {
     return changes;
   });
 }
+/** Apply the teacher's harmony to the organ, retaining choir, doubled melody,
+ * accompaniment rhythms, and the melodic interlude. The photo remains archival.
+ */
+export function teacherVocalAbc(source: string) {
+  const parts = voices(source), changes = teacherChanges(source);
+  const inner: Record<string,string> = {
+    D:"[F,A,]", G:"[G,B,]", A:"[A,C]", "D/F#":"[A,D]",
+    Bm:"[DF]", Em:"[G,B,]", A7:"[G,C]", "D/A":"[F,A,]",
+  };
+  const roots: Record<string,string> = {
+    D:"D,,", G:"G,,", A:"A,,", "D/F#":"F,,", Bm:"B,,",
+    Em:"E,,", A7:"A,,", "D/A":"A,,",
+  };
+  const tones: Record<string,number[]> = {
+    D:[2,6,9], G:[7,11,2], A:[9,1,4], "D/F#":[2,6,9],
+    Bm:[11,2,6], Em:[4,7,11], A7:[9,1,4,7], "D/A":[2,6,9],
+  };
+  const pitchClass = (name:string) => {
+    const letter = name.match(/[A-Ga-g]/)![0].toUpperCase();
+    const natural = ({C:0,D:2,E:4,F:5,G:7,A:9,B:11} as Record<string,number>)[letter];
+    const accidental = name.match(/^[\^_=]+/)?.[0];
+    return (natural + (accidental ? accidental === "=" ? 0 : accidental[0] === "^" ? accidental.length : -accidental.length : ["F","C"].includes(letter) ? 1 : 0) + 12) % 12;
+  };
+  const edits:{start:number;end:number;text:string}[]=[];
+  for(const voice of [2,4]) for(const [bar,events] of parts[voice].entries()) {
+    // After the sung ending, Inner becomes the printed organ melody.
+    if(voice === 2 && bar >= 16) continue;
+    const active = (at:number) => changes[bar].filter(c=>c.at <= at).at(-1)?.chord;
+    for(const {note,at,length} of events) {
+      if(!note.pitches?.length) continue;
+      const cuts=[at,...changes[bar].filter(c=>c.at > at && c.at < at+length).map(c=>c.at),at+length];
+      const text=cuts.slice(0,-1).map((from,i)=>{
+        const chord=active(from),duration=cuts[i+1]-from;
+        if(!chord) throw Error("Missing teacher harmony");
+        const changed=changes[bar].some(c=>c.at === from);
+        const original=note.pitches!.map(p=>p.name);
+        const sound=voice === 2 ? inner[chord]
+          : !changed && original.every(p=>tones[chord].includes(pitchClass(p)))
+            ? original.length > 1 ? `[${original.join("")}]` : original[0]
+            : roots[chord];
+        const tied=note.pitches!.some(p=>p.startTie) && i === cuts.length-2 && active(at+length) === chord;
+        return `${sound}${duration}${tied ? "-" : ""}`;
+      }).join(" ");
+      edits.push({start:note.startChar!,end:note.endChar!,text:text+" "});
+    }
+  }
+  for(const edit of edits.sort((a,b)=>b.start-a.start)) source=source.slice(0,edit.start)+edit.text+source.slice(edit.end);
+  return source;
+}
 function top(note: Note) {
   return [...(note.pitches || [])].sort((a, b) => b.pitch - a.pitch)[0];
 }

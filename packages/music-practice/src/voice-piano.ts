@@ -1,7 +1,7 @@
 import abcjs from "abcjs";
 
 /** Retain every source harmony voice and give the sung melody its own staff. */
-export function voicePianoAbc(source: string, guitar: string, capo: number) {
+export function voicePianoAbc(source: string, guitar: string, capo: number, guide: Readonly<Record<number, string>> = {}) {
   const ids = [...source.matchAll(/^V:\s*([^\s]+).*$/gm)].map(match => match[1]);
   const tune = abcjs.parseOnly(source)[0];
   const sopranoEdits: {start:number;end:number;text:string}[]=[];
@@ -55,7 +55,7 @@ export function voicePianoAbc(source: string, guitar: string, capo: number) {
           if (chord) {
             const sample = `X:1\nM:4/4\nK:C\n"${chord.name}"C4 |]`;
             const shifted = capo ? abcjs.strTranspose(sample, abcjs.parseOnly(sample), capo) : sample;
-            changes.set(Math.round(time * 4096), shifted.match(/"([^"]+)"/)![1]);
+            changes.set(Math.round(time * 4096), guide[Math.round(time * 64)] ?? shifted.match(/"([^"]+)"/)![1]);
           }
           time += note.duration;
         }

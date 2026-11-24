@@ -37,6 +37,13 @@ test("score spelling preserves explicit accidentals, enharmonics and octave boun
     "You played G♭4; play C♭5.",
   );
 });
+test("capo guitar feedback names the sounding key rather than altering the shape's note letters",()=>{
+  const tune=abcjs.parseOnly("X:1\nL:1/4\nV:G clef=treble-8\nK:C\n[V:G] C E G |]")[0];
+  tune.setUpAudio({});
+  for(const line of tune.lines)for(const staff of line.staff || [])for(const voice of staff.voices || [])
+    for(const note of voice)if(note.el_type === "note")for(const pitch of note.midiPitches || [])pitch.pitch+=2;
+  assert.deepEqual([...scoreSpellings(tune,"D").values()].flatMap(Object.values),["D3","F♯3","A3"]);
+});
 test("partial chords name remaining fresh held notes without calling them wrong; extras stay distinct", () => {
   const session = new WaitForMe([{ pitches: [60, 64, 67] }]);
   assert.equal(session.answer(60, [60]), "partial");

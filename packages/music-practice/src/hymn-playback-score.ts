@@ -50,18 +50,21 @@ export function hymnPlaybackScore(options: {
     return mutePlaybackStaves(voiced, staves, options.mutedStaves || []);
   };
   const readAudio = (abc: string) => {
+    const capoEdition = options.arrangement === "guitar-edition";
     const audio = swingAudio(
       abcjs.parseOnly(abc)[0].setUpAudio({
         qpm: 60,
         chordsOff: true,
         midiTranspose:
-          options.transpose + guitarMidiOffset(options.arrangement),
+          capoEdition ? 0 : options.transpose + guitarMidiOffset(options.arrangement),
       }),
       options.hymn.feel === "swing",
     );
     const voiced =
-      options.arrangement === "guitar-edition"
-        ? capoAudio(audio, chordEdition(options.hymn)?.capo)
+      capoEdition
+        // abcjs's octave clef overrides midiTranspose. Shift the actual note
+        // events by the same effective capo used by the visible score.
+        ? capoAudio(audio, (chordEdition(options.hymn)?.capo || 0) + options.transpose)
         : audio;
     return voicesFor(voiced, abc);
   };

@@ -953,6 +953,9 @@ export class SightReading {
         this.key,
         this.octave,
       );
+      // Keep dedicated guitar shapes and relative frets; transpose with the capo.
+      const capoEdition = this.arrangement === "guitar-edition" && chordProfile;
+      const guitarCapo = capoEdition ? chordProfile.capo + transposition.semitones : chordProfile?.capo;
       const score = arrangeHymn(
         this.hymn,
         this.arrangement,
@@ -970,11 +973,11 @@ export class SightReading {
         staffScale: this.staffSpacing / 100,
         showChordSymbols: this.showChordSymbols,
         guitarSetup: isGuitarArrangement(this.arrangement) && chordProfile
-          ? {capo:chordProfile.capo,key:this.key === "original" ? this.hymn.key : this.key} : undefined,
+          ? {capo:guitarCapo!,key:this.key === "original" ? this.hymn.key : this.key} : undefined,
         fingerings:
           this.showFingerings &&
           (reviewed
-            ? (this.key === "original" || this.key === this.hymn.key) &&
+            ? !!capoEdition || (this.key === "original" || this.key === this.hymn.key) &&
               (this.arrangement === "piano" || this.octave === 0)
             : ["melody", "bass", "guitar"].includes(this.arrangement)),
         beginnerEdition: reviewed
@@ -1003,7 +1006,7 @@ export class SightReading {
         printedScore: this.arrangement === "original",
         initialSignatures: !reviewed,
         reattackTies: this.mode === "wait" && this.reattackTies,
-        transpose: transposition.semitones,
+        transpose: capoEdition ? 0 : transposition.semitones,
         hiddenStaves: this.mode === "playback" ? this.effectiveStaves(this.hiddenStaves) : undefined,
         playback: (audio) => {
           this.sectionDuration = audio.totalDuration * 4;
@@ -1038,7 +1041,7 @@ export class SightReading {
                   (this.arrangement === "guitar-edition" && this.viewHands === "left"),
                 positionFor: edition
                   ? (pitch, chord) => edition.position(
-                      pitch - (edition.capo || 0), chord, transposition.semitones,
+                      pitch - (capoEdition ? guitarCapo! : edition.capo || 0), chord, capoEdition ? 0 : transposition.semitones,
                     )
                   : undefined,
               },
@@ -1075,7 +1078,8 @@ export class SightReading {
           paper.clientWidth,
           {
             fitHymnSystems: true,
-            transpose: transposition.semitones,
+            transpose: capoEdition ? 0 : transposition.semitones,
+            guitarSetup: capoEdition ? {capo:guitarCapo!,key:transposition.key} : undefined,
             beginnerEdition: this.arrangement === "guitar-edition" ? "guitar" : undefined,
             hymnEdition: reviewed ? chordEdition(this.hymn)?.id : undefined,
             octaveNotation: !isGuitarArrangement(this.arrangement) &&
@@ -1437,7 +1441,9 @@ export class SightReading {
     const identity = `${this.hymn.id}:${this.arrangement}`;
     let range = this.rangeCache.get(identity);
     if (!range) {
-      range = hymnPitchRange(arrangeHymn(this.hymn, chordEdition(this.hymn) && this.arrangement !== "original" ? "piano" : "melody", 0, 0, "right").abc);
+      const guitar = this.arrangement === "guitar-edition";
+      range = hymnPitchRange(arrangeHymn(this.hymn, guitar ? "guitar-edition" : chordEdition(this.hymn) && this.arrangement !== "original" ? "piano" : "melody", 0, 0, "right").abc);
+      if(guitar) { const capo=chordEdition(this.hymn)?.capo || 0;range={low:range.low+capo,high:range.high+capo}; }
       this.rangeCache.set(identity, range);
     }
     return range;
@@ -1450,7 +1456,7 @@ export class SightReading {
       range,
       this.arrangement === "guitar-edition" ? null : this.low,
       this.arrangement === "guitar-edition" ? null : this.high,
-      this.arrangement === "guitar-edition" ? {min:0,max:0} : this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
+      this.arrangement === "guitar-edition" ? {min:-(chordEdition(this.hymn)?.capo || 0),max:11-(chordEdition(this.hymn)?.capo || 0)} : this.arrangement === "guitar-fingerstyle" ? { min: 0, max: 19 } : undefined,
     );
     this.availableKeys = choices
       .filter((choice) => choice.fits)

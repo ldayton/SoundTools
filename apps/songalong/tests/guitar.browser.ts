@@ -27,7 +27,8 @@ try {
       await page.locator(".abcjs-tabNumber").first().waitFor();
       await openPracticeOptions(page);
       await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
-      await expect(page.locator("#hymn-key")).toHaveCount(0);
+      await expect(page.locator("#hymn-key")).toHaveValue(/D major/);
+      await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
       assert(
         (await page.locator(".abcjs-chord").allTextContents()).includes("G7"),
       );

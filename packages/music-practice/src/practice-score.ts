@@ -98,7 +98,12 @@ export function drawPracticeScore(
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
-  const profile=options.hymnEdition?chordEdition({id:options.hymnEdition}):undefined;
+  const sourceProfile=options.hymnEdition?chordEdition({id:options.hymnEdition}):undefined;
+  const profile=sourceProfile && options.beginnerEdition === "guitar" && options.guitarSetup
+    ? {...sourceProfile,capo:options.guitarSetup.capo,
+      fingers:(instrument:BeginnerInstrument,bar:number,voice:number,pitches:number[],force?:boolean)=>sourceProfile.fingers(instrument,bar,voice,pitches.map(p=>p-options.guitarSetup!.capo+sourceProfile.capo),force)}
+    : sourceProfile;
+  if(options.guitarSetup) abc=abc.replace(/^(Q:)"Capo \d+"\s*/gm,"$1");
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
   const staffScale = options.staffScale ?? 1;
   const scale =
@@ -466,7 +471,7 @@ export function drawPracticeScore(
       elements: (event.startCharArray || [event.startChar!]).map(start => elements.get(start) || []),
     }));
   }
-  const spellings = scoreSpellings(tune);
+  const spellings = scoreSpellings(tune, options.beginnerEdition === "guitar" ? options.guitarSetup?.key : undefined);
   const continuations = options.reattackTies
     ? tiedContinuations(tune)
     : new Map<number, MidiPitch[]>();

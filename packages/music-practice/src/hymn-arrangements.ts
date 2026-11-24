@@ -1,4 +1,6 @@
 import { voicePianoAbc } from "./voice-piano";
+import { vocalHarmonyGuides } from "./vocal-harmony-guides";
+import { teacherVocalAbc } from "./in-christ-alone";
 import {chordEdition,instrumentEdition} from "./instrument-editions";
 import {engraveEdition,selectEditionVoice,isGuitarPositionMark} from "./edition-score";
 import abcjs, { type VoiceItem } from "abcjs";
@@ -232,10 +234,12 @@ export function arrangeHymn(
   if (arrangement === "guitar" || arrangement === "guitar-chords")
     return arrangeHymn(hymn,instrumentEdition(hymn)?.guitarArrangement || "guitar-edition",sectionBars,section,arrangement === "guitar-chords"?"left":hands,endingBar,guitarTranspose);
   const edition = instrumentEdition(hymn);
+  if (arrangement === "original" && edition?.editionKey === "in-christ-alone")
+    return arrangeHymn({...hymn,id:`${hymn.id}:harmonized`,harmony:teacherVocalAbc(hymn.harmony)},arrangement,sectionBars,section,hands,endingBar,guitarTranspose);
   if (arrangement === "original" && edition?.vocal) {
     const profile = chordEdition(hymn)!;
     const guitar = edition.build({hymn,instrument:"guitar",hands:"both",melody:()=>arrangeHymn(hymn,"melody",0).abc});
-    return arrangeHymn({...hymn,id:`${hymn.id}:voice`,harmony:voicePianoAbc(hymn.harmony,guitar,profile.capo)},"original",sectionBars,section,hands,endingBar,guitarTranspose);
+    return arrangeHymn({...hymn,id:`${hymn.id}:voice`,harmony:voicePianoAbc(hymn.harmony,guitar,profile.capo,vocalHarmonyGuides[edition.editionKey])},"original",sectionBars,section,hands,endingBar,guitarTranspose);
   }
   if (edition && (arrangement === "piano" || arrangement === edition.guitarArrangement)) {
     const guitar = arrangement === edition.guitarArrangement;

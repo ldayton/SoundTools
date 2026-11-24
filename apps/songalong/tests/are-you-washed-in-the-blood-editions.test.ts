@@ -52,6 +52,14 @@ test("printed SATB: every pitch, rhythm, rest, accidental and final partial meas
   for(const offset of [256,400,768,912])assert.equal(chords.get(offset),"Ab/Eb","source slash bass stays distinct from the root-bass instrumental adaptation");
   assert.deepEqual(vocal.audio.tracks.slice(1).map(notes),score.audio.tracks.map(notes),"source harmony stays intact beside the independent voice");
 });
+test("both instrumental adaptations retain the secondary dominant's D-natural",()=>{
+  for(const [arrangement,expected]of [["piano",[44,46,50]],["guitar-edition",[41,50,56]]] as const){
+    const {audio}=read(arrangeHymn(hymn,arrangement,0).abc);
+    const tracks=arrangement==="guitar-edition"?capoAudio(audio,1).tracks:audio.tracks.slice(1);
+    const sounding=tracks.flatMap(notes).filter(([,start,length])=>start<=25&&start+length>25).map(n=>n[0]).sort((a,b)=>a-b);
+    assert.deepEqual(sounding,expected,"D-flat would erase the written Bb7 harmony");
+  }
+});
 test("four printed verses share one engraved refrain and repeat the whole form during playback",()=>{
   assert.equal(hymn.stanzas.length,4);assert(hymn.stanzas.every(s=>s.syllables.length===75));
   const words=(tokens:string[])=>tokens.join(" ").replace(/- /g,"");

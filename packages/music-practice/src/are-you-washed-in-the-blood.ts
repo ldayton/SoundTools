@@ -40,7 +40,9 @@ export const washedEdition: InstrumentHymn = {
     "D/A":"[E,G,B,]", "D7/F#":"[D,E,G,]",
   },
   // Root G and open A basses leave the D string free for the low melody in 7/15.
-  guitar: {G:"G,",C:"C",D:"D",D7:"A,","G/B":"B,","D/F#":"^F,","A7/E":"E,","D/A":"A,","D7/F#":"^F,"},
+  // Include A7's third in measure 3: its chromatic colour must survive even
+  // in the fingerstyle adaptation (open low E, A-string fret 4, open G).
+  guitar: {G:"G,",C:"C",D:"D",D7:"A,","G/B":"B,","D/F#":"^F,","A7/E":"[E,^C]","D/A":"A,","D7/F#":"^F,"},
   strum: {
     G:"[G,B,DGBg]", C:"[CEGce]", D:"[DAdf]", D7:"[DAcf]",
     "G/B":"[B,DGBg]", "D/F#":"[F,DAdf]", "A7/E":"[E,A,EG^ce]",

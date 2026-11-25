@@ -83,7 +83,7 @@ function measureAndPlan(
       if (cache.size > 32) cache.delete(cache.keys().next().value!);
     } finally { probe.remove(); }
   }
-  return planScoreLayout(metrics, width);
+  return {metrics:structuredClone(metrics),plan:planScoreLayout(metrics, width)};
 }
 
 
@@ -116,6 +116,7 @@ export type AbcScoreLayoutInput = {
  * sizing live here. Instrument adapters still own their musical decorations. */
 export class AbcScoreLayout {
   readonly plan?: ScoreLayoutPlan;
+  private metrics?: Metrics;
   readonly params: AbcVisualParams;
   private paper?: HTMLElement;
   constructor(readonly input: AbcScoreLayoutInput) {
@@ -131,7 +132,10 @@ export class AbcScoreLayout {
     // Validate with the same sizing contract used after engraving.
     scoreFrame(width,scale,{width:1,height:1},true);
     const staffwidth=Math.max(140,width/scale-2*SCORE_LAYOUT.padding);
-    if(mode==="reflow") this.plan=measureAndPlan(source,params,staffwidth,!!input.annotations,input.measurementContext??(!input.params.afterParsing?[]:undefined));
+    if(mode==="reflow") {
+      const measured=measureAndPlan(source,params,staffwidth,!!input.annotations,input.measurementContext??(!input.params.afterParsing?[]:undefined));
+      this.plan=measured.plan;this.metrics=measured.metrics;
+    }
     this.params={...params,staffwidth,
       lineBreaks:this.plan?sectionBreaks(this.plan.sections.map(section=>section.breaks)):undefined,
       responsive:"resize",oneSvgPerLine:true,
@@ -141,7 +145,33 @@ export class AbcScoreLayout {
     };
   }
   render(paper: HTMLElement) {
-    const tune=abcjs.renderAbc(paper,this.input.source,this.params)[0];
+    let tune:ReturnType<typeof abcjs.renderAbc>[number];
+    const limit=this.metrics?.reduce((sum,section)=>sum+section.bars.length,0) || 1;
+    for(let pass=0;;pass++) {
+      tune=abcjs.renderAbc(paper,this.input.source,this.params)[0];
+      if(!this.plan || !this.metrics || pass>=limit)break;
+      // abcjs can add end-of-system lyric/barline glue after the probe's
+      // collision pass. Reconcile its real minimum extent with the planner;
+      // never shrink glyphs, trim ink or loosen the overflow assertion.
+      const svgs=[...paper.querySelectorAll('svg')];let index=0,refined=false;
+      this.plan.sections.forEach((section,s)=>{
+        let missing=0;
+        for(const system of section.systems) {
+          const svg=svgs[index++];if(!svg)continue;
+          // oneSvgPerLine repeats the widest viewBox on every SVG. Read
+          // this system's actual staff extent, not that shared outer width.
+          const staffs=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')];
+          const observed=staffs.length?Math.max(...staffs.map(staff=>{const box=staff.getBBox();return box.x+box.width-SCORE_LAYOUT.padding;})):0;
+          const sounding=this.metrics![s].bars.slice(system.from,system.to).filter(bar=>bar.duration>0).length;
+          if(observed>this.plan!.width+.5 && sounding>1 && system.minimumWidth<=this.plan!.width)
+            missing=Math.max(missing,observed-system.minimumWidth);
+        }
+        if(missing>0){this.metrics![s].startWidth+=missing;refined=true;}
+      });
+      if(!refined)break;
+      this.plan.sections=planScoreLayout(this.metrics,this.plan.width).sections;
+      this.params.lineBreaks=sectionBreaks(this.plan.sections.map(section=>section.breaks));
+    }
     this.paper=paper;
     for(const lyric of paper.querySelectorAll('.abcjs-lyric')) {
       const walker=document.createTreeWalker(lyric,NodeFilter.SHOW_TEXT);

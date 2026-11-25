@@ -487,6 +487,18 @@ Spotlight indexing using 181% CPU; this is evidence of concurrent load, not an
 established cause. A full diagnostic rerun keeps the same commands, assertions,
 locks and budget. A passing rerun does not resolve the timing investigation.
 
+The [next hosted run](https://github.com/ldayton/SoundTools/actions/runs/45663034284/job/139377885779)
+still found two pixels of scrolling at 1119px. Its retained trace (downloaded to
+`work/layout-audit/hosted-second-browser` in the Hebrew/export worktree) shows
+abcjs's final staff length exceeded the requested width; reducing framing padding
+alone was insufficient. The shared adapter now reconciles actual engraved staff
+extents with the probe's minimum and replans before presentation. Per-system
+staff extents matter: abcjs repeats the widest viewBox on every system, so that
+outer box cannot be used as each system's own minimum. The measurement cache is
+cloned before refinement, and indivisible overflow remains explicit. The full
+component property witness passes against a real Linux x64 browser through a
+Playwright connection, including the original width and unchanged audio/scale.
+
 ## Repeat release rebase budget interruption (25 November 2026)
 
 Repeat-options commit `0f3c091` first rebased validation is retained at
@@ -526,3 +538,11 @@ intact to required `score-view.browser.ts` on a separate reviewed port. Instrume
 controls, real organ/choir checks and account migration remain in toolbar.
 All owners remain required in CI and both Nightly engines; no assertion, budget
 or lock was relaxed.
+The feedback fix's first full applicable CI run at `295b6554`, retained at
+`/Users/lily/source/SoundTools-layout-framing-release/work/ci-results/1795627688680-0467b6ec`,
+hit the 60-second coordinator limit (62.17 seconds with cleanup). Completed
+checks passed; instrument-toolbar was cancelled after 32.2 seconds. Its score-size,
+stave/chord visibility, view reload and chord-preview assertions are now an
+independently required `score-view.browser.ts` command on reviewed port 4628.
+The toolbar still owns instruments, organ/choir, migrations and bar-number state.
+All assertions remain required in CI and both Nightly engines.

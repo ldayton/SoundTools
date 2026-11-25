@@ -120,3 +120,11 @@ only one OS/browser variant. Linux references were generated with the pinned
 Playwright downloads, not the differently patched browser preinstalled in the
 container image. Pixel capture uses the component directly and therefore has no
 stale app-build dependency; the bundle fingerprint is recorded in provenance.
+
+The adapter also verifies final engraved staff extents before presentation.
+abcjs can introduce system-end spacing after the compressed probe. When a
+multi-bar system genuinely exceeds the available width, its measured minimum
+refines the shared section overhead and the planner runs again. Refinement is
+bounded by the bar count, uses private copies of cached measurements and retains
+physical scale. It reads each staff's geometry, not abcjs's repeated maximum
+viewBox. Indivisible bars continue to report overflow instead of being shrunk.

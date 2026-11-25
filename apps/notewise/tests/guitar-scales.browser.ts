@@ -215,6 +215,10 @@ try {
     await closePracticeOptions(page);
     const bounds = await page.locator(".scale-diagram").boundingBox();
     assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= width);
+    if (width <= 390) assert.ok(
+      await page.locator(".scale-diagram").evaluate(diagram => diagram.scrollWidth > diagram.clientWidth),
+      "extended fret maps retain their readable zoom and internal scrolling",
+    );
     assert.ok(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -273,6 +277,19 @@ try {
   );
   await practiceOption(page, "#scale-quality", "major");
   await practiceOption(page, "#scale-key", "7");
+  await practiceOption(page, "#scale-pattern", "1");
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const pattern of ["1", "2", "3", "4", "5"]) {
+      await practiceOption(page, "#scale-pattern", pattern);
+      await closePracticeOptions(page);
+      assert.ok(await page.locator(".scale-diagram").evaluate(diagram => {
+        const svg = diagram.querySelector("svg")!;
+        const columns = svg.querySelectorAll(".scale-fret-number").length;
+        return columns > 5 || diagram.scrollWidth <= diagram.clientWidth + 1;
+      }), "basic positions up to five columns fit without horizontal scrolling");
+    }
+  }
   await practiceOption(page, "#scale-pattern", "1");
   const patternSnapshot = () =>
     page.locator(".scale-tone").evaluateAll((nodes) =>

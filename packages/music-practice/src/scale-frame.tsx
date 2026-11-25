@@ -53,7 +53,7 @@ export function ScaleFrame({
   const hoverable = useMediaQuery("(min-width: 48em) and (hover: hover) and (pointer: fine)", undefined, { getInitialValueInEffect: false });
   return (
     <section
-      className="practice-surface scale-card sequence-practice"
+      className={`practice-surface scale-card sequence-practice${s.movable && !s.shiftMode ? " scale-single-position" : ""}`}
       aria-labelledby="scale-title"
     >
       <Modal

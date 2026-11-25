@@ -26,7 +26,7 @@
   overscroll-behavior-x: contain;
 }
 .scale-diagram svg {
-  /* A four-fret board defines the zoom; added frets expand width, not shrink dots. */
+  /* A four-fret board defines the zoom; extended views keep readable dots. */
   width: calc(var(--scale-board-units) * min(100cqw / 297, max(260px, 100dvh - 390px) / 290));
   height: auto;
   max-width: none;
@@ -145,6 +145,10 @@
 @media (max-width: 760px) {
   .scale-diagram svg {
     width: calc(var(--scale-board-units) * 100cqw / 297);
+  }
+  .scale-single-position .scale-diagram svg {
+    /* Fit up to five columns (5 × 65 + 37 label units). Longer views scroll. */
+    width: calc(var(--scale-board-units) * 100cqw / max(297, min(var(--scale-board-units), 362)));
   }
 }
 

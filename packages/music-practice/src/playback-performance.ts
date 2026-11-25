@@ -111,9 +111,10 @@ export function performNotes(
     }
     if (options.strum && group.length > 1) {
       const [beats, unit] = (options.meter || "4/4").split("/").map(Number);
-      const compound = unit === 8 && beats % 3 === 0;
+      const compound = unit === 8 && beats > 3 && beats % 3 === 0;
+      const pulse = compound ? 1.5 : 4 / unit;
       const phase = group[0].start - (options.pickup || 0);
-      const subdivision = Math.round(phase * 2);
+      const subdivision = Math.round(phase / (compound ? 0.5 : pulse / 2));
       const cycle = compound ? 3 : 2;
       const part = ((subdivision % cycle) + cycle) % cycle;
       const up = compound ? part === 2 : part === 1;

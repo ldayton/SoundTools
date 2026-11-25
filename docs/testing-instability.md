@@ -451,3 +451,15 @@ lock. Inspection confirms that witness asserts loading, aborts, UI/playback stat
 and media actions, without PCM or latency measurements. Its inventory declaration
 is corrected from realtime audio to UI; DoReGo's PCM/timing lock is retained.
 All lifecycle assertions remain required in both tiers.
+
+The guitar-expression branch's merged validation at `9cf0ee5`,
+`work/ci-results/1795625969369-b31a43b4`, also exceeded the end-to-end budget
+(62.20 seconds including cleanup). Units/builds and the completed browser commands
+passed, but DoReGo desktop and SongAlong instrument-toolbar were cancelled at the
+deadline. The Playwright connection error printed during DoReGo cancellation is
+not evidence of an independent assertion failure. Two immediately preceding
+local validations on other branches (`1795625823111-1af19aff` and
+`1795625896530-07d1a01f`) also exceeded the budget. This does not identify a
+single cause or establish that any guitar change is free of cost. Preserve the
+first timing report; a later passing run alone does not resolve budget fragility.
+No command, assertion or budget was removed or relaxed for the audition.

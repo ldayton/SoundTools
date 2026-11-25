@@ -17,7 +17,7 @@ export function guitarCadences(chords: readonly PhraseHarmony[], tonic: number):
 
 function metricalWeight(at: number, context: PhraseContext) {
   const [beats, unit] = (context.meter || "4/4").split("/").map(Number);
-  const compound = unit === 8 && beats % 3 === 0;
+  const compound = unit === 8 && beats > 3 && beats % 3 === 0;
   const pulse = compound ? 1.5 : 4 / unit;
   const bar = beats * 4 / unit;
   const phase = ((at - (context.pickup || 0)) % bar + bar) % bar;

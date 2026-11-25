@@ -74,6 +74,10 @@ test("guitar gestures follow eighth-note upstrokes, pickups and compound beats w
   assert.equal(pickup[5].delay,0);assert.equal(pickup[6].delay,0);
   const compound=performNotes([...chord(1),...chord(1.5)],{instrument:"guitar",strum:true,meter:"6/8"});
   assert.equal(compound[5].delay,0);assert.equal(compound[6].delay,0,"second dotted-quarter pulse is a downstroke");
+  const eighth=performNotes([...chord(.25),...chord(.5)],{instrument:"guitar",strum:true,meter:"3/8"});
+  assert.equal(eighth[5].delay,0);assert.equal(eighth[6].delay,0,"3/8 pulses on eighths, matching the practice clock");
+  const cut=performNotes([...chord(1),...chord(2)],{instrument:"guitar",strum:true,meter:"2/2"});
+  assert.equal(cut[5].delay,0);assert.equal(cut[6].delay,0,"cut time pulses on half notes");
   const soft=performNotes(chord(0,0.5),{instrument:"guitar",strum:true});
   assert(soft.at(-1)!.delay!>strummed[5].delay!,"stronger brushes cross the strings faster");
   assert.deepEqual([0.3,0.7,0.9].map(guitarLayer),[40,72,104]);
@@ -169,6 +173,8 @@ test("contour shaping follows the melodic apex, keeps bass independent and respe
   assert(bass.every(n=>n.endGain===undefined));
   assert(melody.some(n=>n.endGain===.84));
   assert.deepEqual(shaped.map(n=>[n.pitch,n.start,n.duration]),playbackNotes(source).map(n=>[n.pitch,n.start,n.duration]));
+  const transposed={...source,tracks:source.tracks.map(t=>t.map(n=>n.cmd==="note"?{...n,pitch:n.pitch+5}:n))};
+  assert.deepEqual(playbackNotes(guitarExpressionAudio(transposed,[],new Set(),{meter:"6/8",pickup:.5})).map(n=>n.expressionGain),shaped.map(n=>n.expressionGain),"transposing the motive preserves phrase shape");
 });
 
 test("unassigned guitar melody replucks the high E string instead of climbing the neck to keep old notes ringing", () => {

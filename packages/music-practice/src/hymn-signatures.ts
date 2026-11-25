@@ -24,9 +24,16 @@ export function initialHymnSignatures(tune: TuneObject): () => void {
       }
       // A signature printed inside the previous system is already in force
       // at the next opening. Track it instead of repeating the change there.
-      for(const voice of staff.voices||[])for(const item of voice) {
-        if(item.el_type==="key")previous.set(index,keyIdentity(item));
-        if(item.el_type==="clef")previousClef.set(index,clefIdentity(item));
+      for(const voice of staff.voices||[]) {
+        // A boundary K: directive may be attached after the previous line's
+        // final note. It still belongs at the next opening. Only a change
+        // followed by music in this system has already been printed inline.
+        const lastNote=voice.findLastIndex(item=>item.el_type==="note");
+        for(let i=0;i<lastNote;i++) {
+          const item=voice[i];
+          if(item.el_type==="key")previous.set(index,keyIdentity(item));
+          if(item.el_type==="clef")previousClef.set(index,clefIdentity(item));
+        }
       }
     });
   return () => {

@@ -672,3 +672,12 @@ timeout increase or assertion relaxation was added.
 The merge with main consolidates its coincident-fermata guard (`0cffae8e`) with
 the shared destination-ink de-duplication used for TAB positions. Glyph width and
 height remain part of identity, preserving genuinely distinct symbols at one anchor.
+
+
+The first full CI on `157247f3` failed two existing signature contracts in
+`apps/songalong/tests/hymn-ottava.test.ts`; evidence:
+`work/ci-results/1795647091688-840dd567/logs/songalong_units.log`. The new inline
+state tracking also consumed key/clef events attached after a system's final note
+by abcjs, incorrectly suppressing a genuine boundary change at the next opening.
+Tracking now requires following music in that same system. Existing boundary
+assertions and new inline-change assertions are both retained unchanged.

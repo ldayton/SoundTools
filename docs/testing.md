@@ -559,6 +559,6 @@ for measurement limits, candidate review and retained comparison artifacts.
 
 The [sequence contract](dorego-sequences.md) centralizes option timing for every
 exercise. `sequence.test.ts` is included by DoReGo's existing CI unit glob. The
-existing required desktop suite calls `sequence.browser.ts` for source continuity,
+independently required `sequence.e2e.ts` command calls `sequence.browser.ts` for source continuity,
 future-round chords/rest, delayed sample preparation, paused edits and deferred
 count-in. The exercise matrix stays in pure units rather than repeated browsers.

@@ -464,3 +464,12 @@ whitespace. Vertical padding and genuinely overflowing ink remain unchanged.
 The same Linux probe reports zero overflow after the correction. Both macOS
 browser visual corpora match the existing approved references, without updates.
 The failure message now retains the complete measured geometry.
+
+The first framing-fix CI attempt ran no tests because another worktree held the
+coordinator lock. The subsequent run at `d4d6bf5` retained in
+`work/ci-results/1795625896530-07d1a01f` again hit the budget (62.15 seconds
+including cleanup), cancelling DoReGo desktop after 33.7 seconds. Its sequence
+witness is now a separately required CI/Nightly command on its own declared port.
+It observes scheduled source identities/times and UI state, with no PCM sampling
+or latency benchmark; desktop retains the realtime lock for actual audio checks.
+All assertions remain and the source-continuity witness has exactly one owner.

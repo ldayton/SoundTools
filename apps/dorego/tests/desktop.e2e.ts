@@ -1,4 +1,3 @@
-import { verifySequence } from './sequence.browser';
 import { verifyLiveDrone } from './live-drone';
 import {
   waitForServer,
@@ -467,7 +466,6 @@ try {
   assert.deepEqual(errors, []);
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
-  await verifySequence(browser!, base);
   await verifyLiveDrone(browser!, base);
 } catch (error) {
   await captureFailure(browser, error);

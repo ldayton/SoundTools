@@ -127,6 +127,8 @@ the first entry.
 
 For the scale-system references, adaptations and regression owners, see
 [the guitar scale-system contract](guitar-scale-systems.md).
+For guitar performance rules, recorded-sample provenance and matched listening
+comparisons, see [guitar playback](guitar-playback.md).
 
 ## Silent browser tests
 

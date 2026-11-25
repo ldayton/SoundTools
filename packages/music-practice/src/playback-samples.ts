@@ -5,7 +5,10 @@ import organManifest from "./assets/songalong-organ/manifest.json";
 import organNotice from "./assets/songalong-organ/NOTICE.txt?url";
 import organAudit from "./assets/songalong-organ/source-sha256.json?url";
 import guitarManifest from "./assets/backing-folk-country/manifest.json";
-import { pianoLayer, type PlaybackInstrument } from "./playback-performance";
+import guitarExtension from "./assets/songalong-guitar/manifest.json";
+import guitarExtensionNotice from "./assets/songalong-guitar/NOTICE.txt?url";
+import guitarExtensionAudit from "./assets/songalong-guitar/source-sha256.json?url";
+import { pianoLayer, guitarLayer, type PlaybackInstrument } from "./playback-performance";
 import pianoNotice from "./assets/songalong-piano/NOTICE.txt?url";
 import pianoAudit from "./assets/songalong-piano/source-sha256.json?url";
 import guitarNotice from "./assets/backing-folk-country/NOTICE.txt?url";
@@ -16,6 +19,8 @@ export const playbackCredits = [
   pianoAudit,
   guitarNotice,
   guitarAudit,
+  guitarExtensionNotice,
+  guitarExtensionAudit,
   organNotice,
   organAudit,
   choirNotice,
@@ -33,6 +38,9 @@ const guitarFiles = import.meta.glob<string>(
   ],
   { eager: true, query: "?url", import: "default" },
 );
+const guitarExtensionFiles = import.meta.glob<string>("./assets/songalong-guitar/*.flac", {
+  eager: true, query: "?url", import: "default",
+});
 export type PlaybackSample = {
   url: string;
   pitch: number;
@@ -73,7 +81,7 @@ const piano: PlaybackSample[] = Object.entries(pianoFiles).map(
     return { url, pitch: Number(pitch), layer: Number(layer) };
   },
 );
-const guitar: PlaybackSample[] = Object.values(guitarManifest.samples)
+const guitar: PlaybackSample[] = [...Object.values(guitarManifest.samples)
   .filter((s) => s.instrument === "acoustic-steel")
   .map((s) => {
     const path = Object.keys(guitarFiles).find((path) =>
@@ -86,7 +94,11 @@ const guitar: PlaybackSample[] = Object.values(guitarManifest.samples)
       layer: s.velocity,
       string: (s as typeof s & { string: number }).string,
     };
-  });
+  }), ...guitarExtension.samples.map(sample => {
+    const url = guitarExtensionFiles["./assets/songalong-guitar/" + sample.file];
+    if (!url) throw Error(`Missing guitar recording: ${sample.file}`);
+    return {...sample, url};
+  })];
 export function playbackSample(
   instrument: PlaybackInstrument,
   pitch: number,
@@ -98,9 +110,7 @@ export function playbackSample(
       ? 0
       : instrument === "piano"
         ? pianoLayer(volume)
-        : volume < 0.55
-          ? 40
-          : 72;
+        : guitarLayer(volume);
   const bank = (
     instrument === "choir"
       ? choir

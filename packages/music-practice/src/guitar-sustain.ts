@@ -1,5 +1,6 @@
 import abcjs, { type AudioTracks } from "abcjs";
 import { swingBeat } from "./hymn-swing";
+import { guitarExpressionAudio } from "./guitar-phrasing";
 
 /** Optional sounding end, in abcjs whole-note units. Written rhythm stays intact. */
 export type GuitarSustainEvent = { guitarRingUntil?: number };
@@ -15,6 +16,7 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
   const chords: { at: number; name: string }[] = [];
   const rests = new Map<string, number[]>();
   const detached = new Set<number>();
+  const punctuation = new Set<number>();
   const voiceIds: string[] = [];
   for (const line of tune.lines) for (const [si, staff] of (line.staff || []).entries()) {
     if (String(staff.clef?.type) === "TAB") continue;
@@ -31,6 +33,7 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
         if (chord) chords.push(...occurrences.map(at => ({ at: time(at), name: chord })));
         if (item.decoration?.some((d: string) => ["staccato", "staccatissimo", "palm-mute"].includes(d)))
           detached.add(item.startChar!);
+        if (item.lyric?.some((lyric: {syllable: string}) => /[.!?;:,]$/.test(lyric.syllable))) punctuation.add(item.startChar!);
       }
       rests.set(id, stops);
     }
@@ -49,7 +52,7 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
     if (chord.name !== previous) changes.push(chord.at);
     previous = chord.name;
   }
-  return {
+  return guitarExpressionAudio({
     ...audio,
     tracks: audio.tracks.map((track, index) => track.map(event => {
       if (event.cmd !== "note" || (event as typeof event & { playbackInstrument?: string }).playbackInstrument === "choir") return event;
@@ -58,7 +61,7 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
       const next = Math.min(...stops.filter(at => at > event.start + 1e-7));
       return { ...event, guitarRingUntil: detached.has(event.startChar!) ? writtenEnd : Math.max(writtenEnd, next) };
     })),
-  };
+  }, changes, punctuation);
 }
 
 /** A performance instruction, not a chord symbol or another selectable staff. */

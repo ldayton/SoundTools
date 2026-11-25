@@ -3,6 +3,7 @@ import {
   closeBrowser,
   launchBrowser,
   createOfflineContext as createContext,
+  waitForApp,
 } from "../../../scripts/ci/browser-harness.cjs";
 import { chromium, firefox, webkit } from "playwright";
 import assert from "node:assert/strict";
@@ -77,6 +78,7 @@ try {
       server.base +
         `/piano/hymns/${id}?mode=playback&arrangement=${arrangement}&tempo=100`,
     );
+    await waitForApp(page, ".hymn-pause");
     await page.getByRole("button", { name: "Play", exact: true }).click();
     await page.waitForFunction(
       () => (window as any).offlineInstrumentStarts > 0,

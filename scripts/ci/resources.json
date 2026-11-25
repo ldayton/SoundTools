@@ -2114,5 +2114,23 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:node:--import tsx scripts/render-guitar-comparison.mts": {
+    "kind": "audio",
+    "ports": [
+      4686
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "--import",
+          "tsx",
+          "scripts/render-guitar-comparison.mts"
+        ],
+        "cwd": ""
+      }
+    ]
   }
 }

@@ -1,0 +1,1562 @@
+{
+  "repository": "facebookincubator/Meta-open-sound",
+  "revision": "514c926efecdb3c7812bf00eedf8e5c8d61dd681",
+  "prefix": "systems/instruments/meta-steel-guitar/",
+  "sfzSha256": "56caac30d0a2c8492749172d37a02a9fa1491e93cf827a7a95dc33ed95dc92a5",
+  "files": [
+    {
+      "file": "acoustic-0-40-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_E2_01.ogg",
+      "sourcePitch": 40,
+      "sourceSha256": "96fde5b81e2d8e2d4bb69f509ba7f19d6b46f59de351552c21ea49a0c9711962",
+      "sha256": "ff1209f44ad05db345f87c0de6cbe4ae7819a9e4d3941a14e1141e7dd18c3ee4"
+    },
+    {
+      "file": "acoustic-0-41-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_F2_01.ogg",
+      "sourcePitch": 41,
+      "sourceSha256": "cff9412be04af7b4cc58a9c74404215a43e463a688725ee7319a82c147e3e76d",
+      "sha256": "03cb580262cfed42809214212f02491ba044842ae19d8d7ffd7ce3752acfaa33"
+    },
+    {
+      "file": "acoustic-0-42-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_Fs2_01.ogg",
+      "sourcePitch": 42,
+      "sourceSha256": "8a87e88d1e456d6eb305ac5cb90127204532dfb14a9bb2da5248ac9b8836b2fc",
+      "sha256": "ba0cd58f95885101e187ae1a7305f3d941db11e31a4c868374e23ef6e3f944c2"
+    },
+    {
+      "file": "acoustic-0-43-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_G2_01.ogg",
+      "sourcePitch": 43,
+      "sourceSha256": "de54855122d6a2eba9a16592a629e35ecb0b417e31633c37775378fdb9037176",
+      "sha256": "a8f1458b2ba8e2ad972e2ec36caed8dee71e991766d72db5cb9205ffd2a9e824"
+    },
+    {
+      "file": "acoustic-0-44-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_Gs2_01.ogg",
+      "sourcePitch": 44,
+      "sourceSha256": "f0bb7afc8aeaae446fe9697ef2cd2d068dd71be05f5901d07c8d3bb70b4bce1e",
+      "sha256": "27f37a2072536d403cca536d648b472662c2f355c9d4c42e737fc2a82379d85b"
+    },
+    {
+      "file": "acoustic-0-45-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_A2_01.ogg",
+      "sourcePitch": 45,
+      "sourceSha256": "461b0adecdfc678e23a1cb95d86ef39a8dd345509799ae74d55fa0f70ab53690",
+      "sha256": "6365aaa599deeb28603e39867a15d657c778d8e3378ac84b0e4560a80a374819"
+    },
+    {
+      "file": "acoustic-0-46-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_As2_01.ogg",
+      "sourcePitch": 46,
+      "sourceSha256": "4e14b5cdf475f647cd8b1a761a00c469736433d226ddef35dacf0f2d83dd5d2b",
+      "sha256": "ba6a47a32ef46b966985e83ec87ed6047f7b7c84c6d665a761ad4f29f5f3371b"
+    },
+    {
+      "file": "acoustic-0-47-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_As2_01.ogg",
+      "sourcePitch": 46,
+      "sourceSha256": "4e14b5cdf475f647cd8b1a761a00c469736433d226ddef35dacf0f2d83dd5d2b",
+      "sha256": "c62e53c407ddfecf760d98e7f2f1dc60287e664f315be6f0e5f7f51cd74a9fa9"
+    },
+    {
+      "file": "acoustic-0-48-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_C3_01.ogg",
+      "sourcePitch": 48,
+      "sourceSha256": "098a55c6601f8be213c21750044bc561f34e80dbe4c20aecb2052f25689f6a67",
+      "sha256": "71f4c526cd46623af3ec94cce01fcab2aea3d910041a468c00e690aac6ad754d"
+    },
+    {
+      "file": "acoustic-0-49-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_Cs3_01.ogg",
+      "sourcePitch": 49,
+      "sourceSha256": "2babd38ce33fa05f00dadfb06fe37e21156263e99e2a85f4012a94ed8b105086",
+      "sha256": "e98688b6b290c2ca6a626454e0c559dc3068b4bea603361276a0680673d1d8c9"
+    },
+    {
+      "file": "acoustic-0-50-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_D3_01.ogg",
+      "sourcePitch": 50,
+      "sourceSha256": "84ff01cd23125efb077fa0673164b6297336b2dc4392fd5b75a322b4a84f69e3",
+      "sha256": "e3415ce7660b611b5c212ea58ffb123456a5ca723270dcb57a7564f27b526a32"
+    },
+    {
+      "file": "acoustic-0-51-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_Ds3_01.ogg",
+      "sourcePitch": 51,
+      "sourceSha256": "7b5ff5ec3b884593bf9eaf135ffc80def2a615ef7ffc23707db6c507fcbb404e",
+      "sha256": "1bdd394c6a3e287296df2089aac3ae79420a755ea02856c222bb4f501f126106"
+    },
+    {
+      "file": "acoustic-0-52-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_E3_01.ogg",
+      "sourcePitch": 52,
+      "sourceSha256": "1e895aabc44550ea571debe8d1706ae04b4801673241fd69437338b7bb47d8ff",
+      "sha256": "21ff4b7d905e6158ef11c255956c49c4f32dcb3afd90227092211795003d5e3a"
+    },
+    {
+      "file": "acoustic-0-53-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_F3_01.ogg",
+      "sourcePitch": 53,
+      "sourceSha256": "44d9d75e17a82aa41ecd41a19545744c698c9719573c1e1f33c364b849222a2c",
+      "sha256": "6ed4fe4ca98c31b0cdb7cf7b05d3d0c86fb0e07985094ce930740c377528c26e"
+    },
+    {
+      "file": "acoustic-0-53-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_F3_01.ogg",
+      "sourcePitch": 53,
+      "sourceSha256": "0575b23501a69943f25f4aceb874ad874d6fd4909f28c774d3b32c7db610bbe9",
+      "sha256": "63fa24932661d03176f2fc433a9e390b6e2b6b9a3b584841164582a9b4db3596"
+    },
+    {
+      "file": "acoustic-0-53-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_F3_01.ogg",
+      "sourcePitch": 53,
+      "sourceSha256": "af36dcbc9863a46919dd4d43d2805cd657268b7138d911707b172dd6b1825a3a",
+      "sha256": "39fc5744860bee64c36ea7d697bb66dcc978caf9637e5a8ccf0ab93292ea0add"
+    },
+    {
+      "file": "acoustic-0-54-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_Fs3_01.ogg",
+      "sourcePitch": 54,
+      "sourceSha256": "dbc5e0a10f1b4580975a5c7887df33681aeb8f8300c2c4a44417f269515c445f",
+      "sha256": "5873490e87a6ed003cadcaf6e5fd8a7be0c1e70651f4c8289746b5a0c91ad300"
+    },
+    {
+      "file": "acoustic-0-54-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_Fs3_01.ogg",
+      "sourcePitch": 54,
+      "sourceSha256": "aa8933426324d1c43e11018c01467bc42b888c0f3b3e827ee91adea8d9a962ef",
+      "sha256": "ff51b7acf9dd224efe6550dbca3227d4f8359992e395ef60c6e3b06d2feba218"
+    },
+    {
+      "file": "acoustic-0-54-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_Fs3_01.ogg",
+      "sourcePitch": 54,
+      "sourceSha256": "ca4dd1342801fc00c79914a3838cfac2ab744d441166ab162d65a0733ee88376",
+      "sha256": "50f74e78623eb55024425f1e0e3e55d72c869030e99aa01ef23ec748d12b3fd4"
+    },
+    {
+      "file": "acoustic-0-55-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_G3_01.ogg",
+      "sourcePitch": 55,
+      "sourceSha256": "b41bf5510d7f5c8e386616254714f0f2bb553f556a4ff360aefa78048a4d59f0",
+      "sha256": "1f2397dab5731e8eecc66c03f35e0b8b22f24e9a7e21ce8c0631c172b398ee8d"
+    },
+    {
+      "file": "acoustic-0-55-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_G3_01.ogg",
+      "sourcePitch": 55,
+      "sourceSha256": "219ef29c6182a61d4a0a5c516fb92d7bee951fe5e6eec3409206bba7d19f78b9",
+      "sha256": "f46d30e5367ba54e10401428d80ac0c7dd2696ea2eb59098f07e2debdefa9650"
+    },
+    {
+      "file": "acoustic-0-55-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_G3_01.ogg",
+      "sourcePitch": 55,
+      "sourceSha256": "446cd81c97ff9d03ffa75622a3e29b18977bc76cedd65c6eaaf0999022135a2a",
+      "sha256": "408a0215db15be6d69890773b5d0074ef197501cd61aaaf45bbbca46fd869c35"
+    },
+    {
+      "file": "acoustic-0-56-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_Gs3_01.ogg",
+      "sourcePitch": 56,
+      "sourceSha256": "a81e8a313761c2b6d1b1e27673f202422e8df2739bfdb07f59ce9d7381b7b798",
+      "sha256": "619e715af85f8a8a72d5d3755e6567bba5a10dbf6660cc404e7a5a59fd6dc2f7"
+    },
+    {
+      "file": "acoustic-0-56-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_Gs3_01.ogg",
+      "sourcePitch": 56,
+      "sourceSha256": "32a097d660d4cd07a569fa8c6571ddb0e92d6cce6c0603b8b88d8ce32b3d3f78",
+      "sha256": "b82fefdfbce4718a84f1022cc6e4f942dd8fe59b85015823131baa136d574778"
+    },
+    {
+      "file": "acoustic-0-56-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_Gs3_01.ogg",
+      "sourcePitch": 56,
+      "sourceSha256": "cec0952fd3fce14373043ccb0229f016763636bf15ef0afec18153b553e98056",
+      "sha256": "ececbd190e09b677ad328802c45d83be0aa4d2ca62a4293cffb319600e50d900"
+    },
+    {
+      "file": "acoustic-0-57-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_A3_01.ogg",
+      "sourcePitch": 57,
+      "sourceSha256": "2090f23ee605134ece6dea71f00a941c78db85a89f6033552b1b530b2b148d8a",
+      "sha256": "68f0a68e0f2a7ee84969a068e421a619fc3c778ee47f6336d0519aa91302150f"
+    },
+    {
+      "file": "acoustic-0-57-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_A3_01.ogg",
+      "sourcePitch": 57,
+      "sourceSha256": "4a426e8f4f26ebc985abf4d8e327ebb5ac54f5c1d74855f94e43153051be6622",
+      "sha256": "d3d75bd22445d55266582b42b0f4ce0f053baac397da87ed043ad1fb434864c0"
+    },
+    {
+      "file": "acoustic-0-57-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_A3_01.ogg",
+      "sourcePitch": 57,
+      "sourceSha256": "d247f4fc20fda5aa329a1bcb68a2daf1cf101fe17def676db91bb827342efef5",
+      "sha256": "1db42d9af84caea4ac3d0cabfdf11fb99e9d3a2a0a89313e99e85b6c9d4d676d"
+    },
+    {
+      "file": "acoustic-0-58-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "c1537e5a720001808dca7b4bf82a1cbdc10df352d8adac2afb30ba04aff97871",
+      "sha256": "e4d38670254b1ac6a0c78a0cece87016412cdb90ef0a188492de413fae112975"
+    },
+    {
+      "file": "acoustic-0-58-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "5b703fbf1f0702943014ff3b10e02ecd757499046f3b90036241cd759faac9d8",
+      "sha256": "1d81e69c184c2e65cf77be98213f574826602adc429523e52aa06bc92c273fc4"
+    },
+    {
+      "file": "acoustic-0-58-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "243dbf92b503466410ea2b074570af08ea270e23b9de0b2cd450812f7d2c5143",
+      "sha256": "4610a65ff1c040663998b4ace939a98ba06ee230e471a0a163370950d393458d"
+    },
+    {
+      "file": "acoustic-0-59-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "b85792d3b68329ab4d7ada5fdc4d747d518f43d0a230dcc6b6d089a8c9defde6",
+      "sha256": "88e08d6342c47e3058a1d3dd07a627cc07f49076555727036303ed2953fd5717"
+    },
+    {
+      "file": "acoustic-0-59-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "fa2e63026098f6cea6a77847d8bf0878c1b75dd767fd373e26e4167311d27f6a",
+      "sha256": "bacb72a7c18f3a444c207300cc036a65662da6fe7f13819150ea0341ade8c0ff"
+    },
+    {
+      "file": "acoustic-0-59-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "7d75e781e6cc97ac7985d690dbf2f026cc8026c64960fb5213d45df34764c875",
+      "sha256": "ca8fbb4c7cb03ad378fc1a46f85b265e6ff5dff8b04f70e675e8ff3b24e2afc2"
+    },
+    {
+      "file": "acoustic-0-60-104.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel03_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "d7237e2a5c3b36e636eac2320ef26216066f0ee2a454e83884e6f59ab80f349e",
+      "sha256": "d8993152068ed5465c464c58693a194fa1ad644d484af891097f09dc9015d738"
+    },
+    {
+      "file": "acoustic-0-60-40.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel01_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "510d3a5a1be198d85b215baba8bc2059ce0703bdb724dff52a2803f9e6b9375b",
+      "sha256": "e68584d1a22733b5bc902f8f978a28448460db7ed7eecdaecd8628bdbe838b73"
+    },
+    {
+      "file": "acoustic-0-60-72.flac",
+      "source": "ogg/INSGuitarSteel_StringLowE_Vel02_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "4a649b95d4b0e2f603338b05ae01027248382398f8e838baa98a8b98fcde762a",
+      "sha256": "5d4e26f8563feec3a3c6b30d9102dd571a6f3cf367015bcb4d924e2aa3705c8c"
+    },
+    {
+      "file": "acoustic-1-45-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_A2_01.ogg",
+      "sourcePitch": 45,
+      "sourceSha256": "6aa682d42a29953c16b04e0abc55286346fda6426dca59ce442ec9b1c0dc1bd2",
+      "sha256": "f2c87ec692bf48a0e6daa1d030f370be41fefc5d12a22adbff2dea98fbc132ce"
+    },
+    {
+      "file": "acoustic-1-46-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_As2_01.ogg",
+      "sourcePitch": 46,
+      "sourceSha256": "872c7d74dc94982103f577a7b41dc6f2a22b555ad25cdc1ce2d504b350734a18",
+      "sha256": "7e15f5f9f37f98f61a64579ad133677134b079fc5936be9627347b3770a3309b"
+    },
+    {
+      "file": "acoustic-1-47-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_B2_01.ogg",
+      "sourcePitch": 47,
+      "sourceSha256": "a97289b4f3a260e1582b31bd7d3236871469d28f8ce08979dcaa97e53b09ed72",
+      "sha256": "0b2f38e14d0e5d66fa7a1f8eb156486e29ced46f3a9e5108cb71b1c847cc46fd"
+    },
+    {
+      "file": "acoustic-1-48-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_C3_01.ogg",
+      "sourcePitch": 48,
+      "sourceSha256": "eb64d234fcd1b62ec602999a4c78c1159154520bf9e579ef398a24e28e0244b8",
+      "sha256": "6356f611cd72eaba930ebc1b8c27120464ecf9338292b899f7a605f92f866942"
+    },
+    {
+      "file": "acoustic-1-49-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_Cs3_01.ogg",
+      "sourcePitch": 49,
+      "sourceSha256": "66ec9ef26eaa3bab02ca38ebdcf616d6676a4ff3bb004a5652cb62e136516528",
+      "sha256": "efa610f46b3a771ca3daeb206098fda9e12b0a7cdbaec4ee305e4cc9ae6f3f10"
+    },
+    {
+      "file": "acoustic-1-50-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_D3_01.ogg",
+      "sourcePitch": 50,
+      "sourceSha256": "5a7e0e48abd8e72784ff84b6b2b52aadf9afe78d0eab0c3b3492623ab0510d33",
+      "sha256": "29fdebe4870b944d572889eb51eaba27d54ca594c156878c1f7ea12aff98be91"
+    },
+    {
+      "file": "acoustic-1-51-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_Ds3_01.ogg",
+      "sourcePitch": 51,
+      "sourceSha256": "2ddfa491e21f6f90171dc5edbe6abc98dc06a3653e114e0797b9b3a44b6f50b8",
+      "sha256": "618ce2a0b268018173b80a4bae02512a2568057270a94be6df73fdfc616c6d23"
+    },
+    {
+      "file": "acoustic-1-52-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_E3_01.ogg",
+      "sourcePitch": 52,
+      "sourceSha256": "1df0fd495a5f8f760915dc1acd3ef20a83e65c47c6237a5a7ae7d2dc9e37370c",
+      "sha256": "647039d7d8777b9c58fbc68254a3e6accaec90e2766960f212b2008fc8e192aa"
+    },
+    {
+      "file": "acoustic-1-53-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_F3_01.ogg",
+      "sourcePitch": 53,
+      "sourceSha256": "3c81fe90e4e0e0b0e258ed1eba1df4089f2e07589688cd77836262381ebe6aef",
+      "sha256": "eb90a9fb4ecaad5a2f90860281a3864c49965bc2d2d2e6499749e5f00c6ee90d"
+    },
+    {
+      "file": "acoustic-1-54-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_Fs3_01.ogg",
+      "sourcePitch": 54,
+      "sourceSha256": "f80aaddee14646d46819bfb96787f7c30587b57482553172a66135a5042225a1",
+      "sha256": "3eeb70194f35be8c6b4db461788d453efe5fd0df94df6f8e1fc4a695b2f94d4d"
+    },
+    {
+      "file": "acoustic-1-55-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_G3_01.ogg",
+      "sourcePitch": 55,
+      "sourceSha256": "cf52df109a9826e90ed3640ecba1f36833c6892f62586a8527b6d2e05aff16d3",
+      "sha256": "48205a664c78e96bd495d9b8d37a39598749e4f09a43181c3a80f03fdff518ef"
+    },
+    {
+      "file": "acoustic-1-56-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_Gs3_01.ogg",
+      "sourcePitch": 56,
+      "sourceSha256": "c835672c3e32aa404a7eada21bd166ed67cf1a254cf5e26e6f91e37d21649854",
+      "sha256": "484608722bcb66c721db4e2477da1fe546e3080fcfeb1260f7472cb36c98d582"
+    },
+    {
+      "file": "acoustic-1-57-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_A3_01.ogg",
+      "sourcePitch": 57,
+      "sourceSha256": "50e64a10a91f3098d5c1d8d764235e96d2591cf989c523929cbdf09a6be1104c",
+      "sha256": "2146b40da393cc7110be9e171925cf78622a390ab7229c9c999c6b3dc86239f2"
+    },
+    {
+      "file": "acoustic-1-58-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "449d2bd91f8a33648562e5184c13a598762179eca175ad319a1127aa7aaebd2d",
+      "sha256": "419bc1ef7c03a22c1ddab4ea4824bd85b3346a58338d7b5995648d0462bdbc69"
+    },
+    {
+      "file": "acoustic-1-58-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "cfa821e1d1a090e1f81ef13daa9b3cd3a0cafd5f4512cc5fe5155617160956ed",
+      "sha256": "6debee0ff59d4e116d3ae194b16c2b8b36aa71200c4fd15b9ec7d16b33b025d6"
+    },
+    {
+      "file": "acoustic-1-58-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "bfa185d495491d982df999935f26daabc4fe3a61794265eb06ad69364563b055",
+      "sha256": "6151bbcbcc36e17c1640f2127f7bac5c0bf25884de7384736385bab9021077f8"
+    },
+    {
+      "file": "acoustic-1-59-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "7ef5f9a14104a605a78e63f35cffc28c3b6e46c781d37a2d618ce6c8cd8c7b5b",
+      "sha256": "614e8cbd49c0bf9fb9d98e0a62644e606e5d8d9116a99a3ca2764aef793d9a31"
+    },
+    {
+      "file": "acoustic-1-59-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "4c6286de8153293ebb40767d492c139229b669b80662d258ca67888868ecc175",
+      "sha256": "b1a61394600c9b245605f2c6f557b6f5ea3a3f505901a0620e04aca17ab81c83"
+    },
+    {
+      "file": "acoustic-1-59-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "077c949a6b9da93f3809a39de31bdcc5330e404f4a2ac40cb014e7960e9a04a7",
+      "sha256": "99f49dbbfe86597a730218482dcf6ccf316bf602e62a5c9213aca6c720921d0b"
+    },
+    {
+      "file": "acoustic-1-60-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "846a4940be9a0cfa7b521825ebdc3b603ac0efbe3a7f7eb78d38b2d82ba28492",
+      "sha256": "2a02853e5ed51fa32bbf7cd54b0f920851eea3d3a517711fa60790e903234bb6"
+    },
+    {
+      "file": "acoustic-1-60-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "8f3037da1dca97ab9e425b3714e386e02489ea51ad19a22471c2aeaaa1da90d2",
+      "sha256": "8f6f39c7cab3863caa235211a9c3f77b12febcf4b8b55fdbe9df12ed56907241"
+    },
+    {
+      "file": "acoustic-1-60-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "260cd485b0d067b1c18c44d31788e57db5910e79dc0cadb5ae5648f59f1be707",
+      "sha256": "e32d6d07697398c94ee75c95c9166073f10ab8605e7dc3577c10befa1e66aeed"
+    },
+    {
+      "file": "acoustic-1-61-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_Cs4_01.ogg",
+      "sourcePitch": 61,
+      "sourceSha256": "94dfcb570c3c20c010464f9102060a372eb381508db5faebeff0f3835e9300ef",
+      "sha256": "c4fd1837d815bd91a07fd1d62c740992b01a124390a6e322d6df3290c307af74"
+    },
+    {
+      "file": "acoustic-1-61-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_Cs4_01.ogg",
+      "sourcePitch": 61,
+      "sourceSha256": "d94e369d20bd1c6657fe7122a0475c28407cf88f3c611b6b0e6b5a0e3e6132e1",
+      "sha256": "6cf21d721a52faa221ea26c2aa2ee04b685c0689ad73636a88f0f0d87767efa2"
+    },
+    {
+      "file": "acoustic-1-61-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_Cs4_01.ogg",
+      "sourcePitch": 61,
+      "sourceSha256": "5862acc2e9c698dffcd92f066a154cd5381b67e7d7c1467dee8b1978e36cfa79",
+      "sha256": "b28fd833a1546c22b8241f4daae9eaefc8941cd4f615622c5ab1f4c157813fda"
+    },
+    {
+      "file": "acoustic-1-62-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_D4_01.ogg",
+      "sourcePitch": 62,
+      "sourceSha256": "a77e62c05dd34427e35561d106267fc1677a88b012ba82df345424dbcf61502f",
+      "sha256": "cc9805da3c7d6d9b4af044c768eb690e888d910f6ed83afa99390c778c4f307e"
+    },
+    {
+      "file": "acoustic-1-62-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_D4_01.ogg",
+      "sourcePitch": 62,
+      "sourceSha256": "f1e3a861751ff1a480d21a70206b164de73e1c051f010052aee930f461a929bc",
+      "sha256": "510d548a4a95189d221081672ef68060cc6abe547e030b583d34b7fb11022e17"
+    },
+    {
+      "file": "acoustic-1-62-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_D4_01.ogg",
+      "sourcePitch": 62,
+      "sourceSha256": "2d454337687eaff17bcb85125216b4b37254d740ad56acac8abd92e6525eb829",
+      "sha256": "8b9e29a1bb4e55fc933e7648d9c23ef5193609a102a1b1afa06df1710fbe90ae"
+    },
+    {
+      "file": "acoustic-1-63-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "574ea9a9c25412b7ac60cc9b6ca59e9f03159bbebd33f613c6bf0475082fc14b",
+      "sha256": "a816c8ad662cd566d80c3a94a9df214f54490a8ac952ce5595aefda4b45652ea"
+    },
+    {
+      "file": "acoustic-1-63-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "c78a8344affb2325c7362d5356e35a26f8c160d0ee4b3adc921ee8a56a45d161",
+      "sha256": "d75aa94a7c43f54a3e726d9041049c274afd17e4f8fe7dea0b5c6f3bcc3acd4e"
+    },
+    {
+      "file": "acoustic-1-63-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "f7dcc2dfd70c93649f2bbdf297cd1cd79972a31941c7acf7036d7eed26e3ae5f",
+      "sha256": "f3185c51a7e768136133581b8a9cba1a85e6d609acc598daeb9d337052106445"
+    },
+    {
+      "file": "acoustic-1-64-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "0d559a70212bc5354b4dbef04986e80efcd2195fce9198e17d06f3fc52658b26",
+      "sha256": "8486e65bfe0166aabc87520639c9a24bdfc99fad5958750cd74afa50824637da"
+    },
+    {
+      "file": "acoustic-1-64-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "2ec6c3442f6a5e5b44603b62d22ba740e976717f1ab6b8227f9db321f3682f56",
+      "sha256": "c46179c2c44c044ef0bf514847c9e07eabe1c89bd83199847f52cf551d1c52c3"
+    },
+    {
+      "file": "acoustic-1-64-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "15ed3318b96f9302c0c71d98f678b2157518a6fd213ce5d735c31c6173f98755",
+      "sha256": "5844d9aa2bb907cc8bc42cf428f4578df65f33f1589090e0dad917d8e65cabd5"
+    },
+    {
+      "file": "acoustic-1-65-104.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel03_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "d041d73fb904ff8c4e4e1f381533eac1b17117efcb8192e36a0bb879a1f62dd7",
+      "sha256": "f67f18f3e4cf836eda26cca353273f179c281571d18f7ffdaa32021a92aa0b79"
+    },
+    {
+      "file": "acoustic-1-65-40.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel01_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "972a93ca75170032a5de784a78d1719305e31f2df46f0bd9c359b9837bb21a3f",
+      "sha256": "bc7109926fc055cf015467a00d6702161b24e74d2af01ac8719233814cff9e23"
+    },
+    {
+      "file": "acoustic-1-65-72.flac",
+      "source": "ogg/INSGuitarSteel_StringA_Vel02_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "b20ddf04450bcba4ee2bc671d0e1b3153bc4a967fdfd5f95a38d0ab922f44184",
+      "sha256": "4bac4c3fc70c9e9bdc58098d0b3464a55b27ed38a43decf5b2c23403d64a99a7"
+    },
+    {
+      "file": "acoustic-2-50-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_D3_01.ogg",
+      "sourcePitch": 50,
+      "sourceSha256": "1bd9fd5dd3f4b5dafa62be47e7104b17c5291e66e455543024777ebdcbf90420",
+      "sha256": "208e85ffb300440715386fbd59207bc6aa3b9a7172d7afb3e144c2c9e2b77784"
+    },
+    {
+      "file": "acoustic-2-51-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_Ds3_01.ogg",
+      "sourcePitch": 51,
+      "sourceSha256": "217e20edf586da23c0d17a8b092e187f69da97bb9ee06f5a92a910c847680969",
+      "sha256": "e32e270a36350fd84f8b8d4bbf6f0e0057814a1dff7c619736be4cca8b2f7da8"
+    },
+    {
+      "file": "acoustic-2-52-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_E3_01.ogg",
+      "sourcePitch": 52,
+      "sourceSha256": "e25637f0bc8445818c2826719446ace99db749526977744cb29731cddd2a8b53",
+      "sha256": "071f7165677d4e3862b6a3afa6566f254db085fe38fb428fa0a030b64ad2fb3f"
+    },
+    {
+      "file": "acoustic-2-53-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_F3_01.ogg",
+      "sourcePitch": 53,
+      "sourceSha256": "91ad288c6180b160801654e58c857de2c6406ccab7cf769d4ec3ba3366200b5c",
+      "sha256": "4b1033244b5c7a8c2377492889d4b4a3c1a6b783a3ece96b56c26bdb72d7e52c"
+    },
+    {
+      "file": "acoustic-2-54-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_Fs3_01.ogg",
+      "sourcePitch": 54,
+      "sourceSha256": "91f0378487e46b7b799b8a6e0926a445d7a6f574f7af551b63b206516ea7273b",
+      "sha256": "2bc4be814f40986eff73202fb113167711af2c4a4257740460e09c5a9e693672"
+    },
+    {
+      "file": "acoustic-2-55-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_G3_01.ogg",
+      "sourcePitch": 55,
+      "sourceSha256": "a0649f075a7f7c2ea63dbd5ac3f3c9ecd52840194c8f707c1f4f1304b061d1fe",
+      "sha256": "2774fe3a999d315815084a931fe085192d489eacd9adc3ce082b5d24debd544c"
+    },
+    {
+      "file": "acoustic-2-56-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_Gs3_01.ogg",
+      "sourcePitch": 56,
+      "sourceSha256": "d609b348686d40d6a4336e96aaaca1c472946807652a205fc5a0cb9447572f30",
+      "sha256": "188e6b3aece9ffd978046c73a0029d58459c051001ca76243db7ffd69a3f7d85"
+    },
+    {
+      "file": "acoustic-2-57-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_A3_01.ogg",
+      "sourcePitch": 57,
+      "sourceSha256": "24cd6245aee130234daccbc4e8028c48914926082ca0eccf79df3a0ab83b1308",
+      "sha256": "1323a022aff548dae99e26ecd1fb2344ea0123b6f37f28444ac1a36c71a8369f"
+    },
+    {
+      "file": "acoustic-2-58-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "c64deca2a6c5377368b0205e60174537505d33193fc1b898d3337516511fd5d1",
+      "sha256": "2e4a075fb0228318e29866d32588e9323d2f7defa7e40e15b9f9e5d07fbcc346"
+    },
+    {
+      "file": "acoustic-2-59-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "f1d3d5d536c17d626ba8699dd4aeccbfa5eb162260a08575a37aa885df6c4ccd",
+      "sha256": "2547e176c730892b9e91b5133aef6663cdd348e8c217cd8c1333c4af12f90764"
+    },
+    {
+      "file": "acoustic-2-60-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "8ebef0457113c34e89345e01935efad0ccd777f69de23789db5ac6a5a78e6541",
+      "sha256": "766bc60e2b3c89a2d83463b684e748466c7fa3f5743015431d67ed822d188047"
+    },
+    {
+      "file": "acoustic-2-61-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_Cs4_01.ogg",
+      "sourcePitch": 61,
+      "sourceSha256": "4f9248187322889ebc217459afbd829d64bf1ef79814d313e68b3ee8d4442f4f",
+      "sha256": "87c82694b0444f2b3dd8243b7eff751c6b39e58dd5cb668dc5a2a9b65b134727"
+    },
+    {
+      "file": "acoustic-2-62-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_D4_01.ogg",
+      "sourcePitch": 62,
+      "sourceSha256": "f7b8823864ccb8652c469880a64b5e99046415cedea4d4ee21c1d943ebf947be",
+      "sha256": "191aa8e6e967852095c683c8e55f063ea1fbfd40e339c188376de03c4f19082c"
+    },
+    {
+      "file": "acoustic-2-63-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "00d7bf557331073fd9579233d9d85978e12d544aaf6bebc25c3fc4086a500dbe",
+      "sha256": "63a72c84665322b3182e5b2c0ad93fdb213357baf72360e530d9589ee1598096"
+    },
+    {
+      "file": "acoustic-2-63-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "2a064e16a6a778280e92d8dbd1e60a01870c1171863850a1610304cc0f12f850",
+      "sha256": "632f280a4983fbd4c6ba7a8400ee2b0f7baaac7750f3fc4cb73cdd407bd4335d"
+    },
+    {
+      "file": "acoustic-2-63-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "faf805ce653cce65f598e030d6277365f0958c3b3c6eec1811f06b00ebc7a295",
+      "sha256": "57391f80c6a63f19b7c9ad8c9c2dbbb75739d620d2c243f67be5a907af93988a"
+    },
+    {
+      "file": "acoustic-2-64-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "6bc10087488c77386b6766a787c02830baad69b993577657b6c14679f258821e",
+      "sha256": "6793930256ca93a9533d099bb14fcaa1b08abcb2f3b6f70c48794cee36dcadb6"
+    },
+    {
+      "file": "acoustic-2-64-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "17f3d2a0c8fb624070cd44c4afb4a2f26aafff65dfe97b26a0834d7d3e52cba7",
+      "sha256": "12c592f4fe8c5f888f01188c480805b5f6362c39b180b5e5f961ba91d6e41c13"
+    },
+    {
+      "file": "acoustic-2-64-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "83bb246bf6837fe754058f7bed00507d2652c177e1ae929e79c7dbcb1ad17008",
+      "sha256": "349f58469013ce33516b80942d037898e4af4dfd7f01ee857a73b2042265f2b0"
+    },
+    {
+      "file": "acoustic-2-65-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "9224e82f8703e52432c13f4fa80f9645975cbce2b4aebf98b75a22f3c901578d",
+      "sha256": "6ab3d03eb8ee5df60c4661aba926117f908e915c5ef664e33ad2892123b26239"
+    },
+    {
+      "file": "acoustic-2-65-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "72572228f719fac089d1fbacd4d5e9e0a764534f4f7bc8fafa93e487fb7b4335",
+      "sha256": "e8a568bb94053e4434449ab83b6e6c516958a0d3183f10f98212288471ff27d9"
+    },
+    {
+      "file": "acoustic-2-65-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "64eb2da38aefbedc699aa08e8f383b5c2e858e5db4327680179a873413321617",
+      "sha256": "2e693c7146b7e9e194e9cc903de8dfcd67be0c7ffeb8287bf62dbc08eb18d374"
+    },
+    {
+      "file": "acoustic-2-66-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_Fs4_01.ogg",
+      "sourcePitch": 66,
+      "sourceSha256": "87afae8f3f917afc1d844170e075d61e3055f03e126d8064b9fb11ecc71cae6f",
+      "sha256": "bee8c81441c9d2849344dc5e62a961621c42ceaf4ace8026a192f32cfc2b8dee"
+    },
+    {
+      "file": "acoustic-2-66-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_Fs4_01.ogg",
+      "sourcePitch": 66,
+      "sourceSha256": "1a163aa231a93f6568b4ece87c0594722a72c244e57c611b8f49c208c8e79e09",
+      "sha256": "34bd8e4838a8d1dcaa95bfc8b52e40709de8118c457616d2e75e9120960c39cc"
+    },
+    {
+      "file": "acoustic-2-66-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_Fs4_01.ogg",
+      "sourcePitch": 66,
+      "sourceSha256": "8b00e76044eb08a824ddcd9151937b151bc0f5bceeb1c92c1fc2f7c8734c65b1",
+      "sha256": "864f36466a641c19a2396a8d6ca4315656b506a35eead0c581bb5e46ca0b56cc"
+    },
+    {
+      "file": "acoustic-2-67-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_G4_01.ogg",
+      "sourcePitch": 67,
+      "sourceSha256": "26efdcf0e22b9d56fa2dc98621e1abb23c0267e0cef9495af1316639d1e2872d",
+      "sha256": "0b8722e66ce19b01251f027ad031a5215f65ca43008e0a896cf242a84e1536b7"
+    },
+    {
+      "file": "acoustic-2-67-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_G4_01.ogg",
+      "sourcePitch": 67,
+      "sourceSha256": "d538d741a7077c11cd9562db77d6a4b804506194aadbee44df3e09838239ea93",
+      "sha256": "e2dc341712039ea1f3da9f6225c01ca3da3def937141b4ac398f3e88e6c87589"
+    },
+    {
+      "file": "acoustic-2-67-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_G4_01.ogg",
+      "sourcePitch": 67,
+      "sourceSha256": "9e70625fe62233a963e52bc5a4383eccd56468259426d0f4f38dd4e5f53ff2c3",
+      "sha256": "6dd3db68d543c457f08c02e72e2c2a33787411c862761718b989547cdd06fe5f"
+    },
+    {
+      "file": "acoustic-2-68-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "cf629d20747e2226a4b639b8b5b41da8370208ca04ec78978f2c887f590233b8",
+      "sha256": "693a5a189dc0a5128226b8c4764864502041a36d707f79be32b75316fd2eee1f"
+    },
+    {
+      "file": "acoustic-2-68-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "0715638ab59661543ab0d4415522b64dd8fe6585356824d88e3e85bbf8cfecf2",
+      "sha256": "d86c287e7b6adcc7b1e800aabb41bad14d43ff19fe7f20f4e180012c28c787e6"
+    },
+    {
+      "file": "acoustic-2-68-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "c5686919b1a9e69d4fcd1ac9a0c8ac8f7df78d32f4cf905ba587a7bc53643bf6",
+      "sha256": "29c6380103fa667e15ad9d38c1461ae2415350b839bbafe231aa58f4471a4264"
+    },
+    {
+      "file": "acoustic-2-69-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "1050c95ca3a967274d7876d796bfd08ed8799b33660ee3899fedea9dfba4096b",
+      "sha256": "4ca4e6ab2bb56617417f5d7c408f7ee02da31acf8b82bb2d1277ee784a4cf0ff"
+    },
+    {
+      "file": "acoustic-2-69-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "50b69c82601972f6c3dab0df0a85c12869140d5569d64a9fbc46cb7e26c5e87a",
+      "sha256": "af04c6e28bbb49e8a223e113da03469029ab047ecd775cc01c712ad797617e30"
+    },
+    {
+      "file": "acoustic-2-69-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "d1d659002dcdf2112b44ec0843a0fe26c28f9b208e6acd27f95acff4caed7998",
+      "sha256": "f35ebe4ed58ea3db65bf04ee5b5f9c2fbba51f16b7d083bc4f598c2d4d42a4e5"
+    },
+    {
+      "file": "acoustic-2-70-104.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel03_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "843a2bdf1ed6e27ef9589331b077ddd10c2bc6b9d3d6ee9fbd40fb5273e6730f",
+      "sha256": "0b2c7f8759ab73a8a8fcc3f7d504f5eaede4340e19367f8886371ba775b663ad"
+    },
+    {
+      "file": "acoustic-2-70-40.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel01_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "de5c8574346d721e733b0fbb9d4c3e4fdc998ea6c378cf0a513fc5df2826330e",
+      "sha256": "cbf52c92e5ced166d7dd7b136e68980dda8f487819efc67a3e0a2cc4bc2fbf40"
+    },
+    {
+      "file": "acoustic-2-70-72.flac",
+      "source": "ogg/INSGuitarSteel_StringD_Vel02_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "611d6c613d3a13f0de20dfd82447d8abee20bebef12a6cd98d3b9cbb4b1b0e97",
+      "sha256": "a04a79232dd4e4a3602ab252b53129f5dd4e9f1bab1326a8b03fec5db1c09c64"
+    },
+    {
+      "file": "acoustic-3-55-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_G3_01.ogg",
+      "sourcePitch": 55,
+      "sourceSha256": "de3de7b7e87c07b47f23ce92162aca96c239f5ea8e01fbff2c236a21ab611893",
+      "sha256": "454d92042847cc6e6b37ca4cceed718669524fd0b6a2d5545ba9406078ee86b9"
+    },
+    {
+      "file": "acoustic-3-56-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_Gs3_01.ogg",
+      "sourcePitch": 56,
+      "sourceSha256": "8cbf1b41d6d5a1189fa37cd26e9e734111d8a2c9d10e0906de2a58115f84fd2b",
+      "sha256": "31e4605bfebcdc64fd2638ec0135165e12b627c207b582c898fdf55bce3fcafb"
+    },
+    {
+      "file": "acoustic-3-57-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_A3_01.ogg",
+      "sourcePitch": 57,
+      "sourceSha256": "a51a57f4f476eea480ab3a31579b159af80a5298082a9ec3622e54f9c5c1ba1d",
+      "sha256": "a6c8c22918d42c21c3eeb1292e362b1d3755f67db2c0d14de03eb3e76dbde769"
+    },
+    {
+      "file": "acoustic-3-58-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_As3_01.ogg",
+      "sourcePitch": 58,
+      "sourceSha256": "bd6b7fbd6ec8fec49a3265148e5837f2e2d95e5dbe0ba115039ce37318723255",
+      "sha256": "d0706f434ab7e0efc893f2fbddfe2e55a2b68a1b651e6ed7c1e219cfd6b3934d"
+    },
+    {
+      "file": "acoustic-3-59-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "b4ab43992a4fb8baa838338573ef71f5b0f1f7c0adf3185a48e01381c741ebd9",
+      "sha256": "8e55a96e37c6edde730b935928d26f41f252f35422487cd54cf45e6f64a79a21"
+    },
+    {
+      "file": "acoustic-3-60-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "e249f80851da39402f74dd7fae2c82e4aaf092489197dab86c753220757c83c1",
+      "sha256": "ee16faedd4763bf1d77054e239970a40ad180d8067b55de28d7e4d734463c3fa"
+    },
+    {
+      "file": "acoustic-3-61-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_Cs4_01.ogg",
+      "sourcePitch": 61,
+      "sourceSha256": "7404250211dfb20d6e2c5ba9c095ec6264556080526de4d17bbf3ed2dc1a216f",
+      "sha256": "47bc4aef45663845a8ddf68d384d4b5f515d8088f60f390e55ead5d1fb8e8ad4"
+    },
+    {
+      "file": "acoustic-3-62-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_D4_01.ogg",
+      "sourcePitch": 62,
+      "sourceSha256": "c67ddc1c9d2b9066e164d0202ffd5800930d5bfcaef08aff9d50626376383041",
+      "sha256": "84a261e3fb3e8632173972d3ce5457061690f4479d853b918e0d7db00372cc28"
+    },
+    {
+      "file": "acoustic-3-63-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "6f9189c02d8d99351fe4b5566564497eadec719aa3113b26e457ee7f45b639a2",
+      "sha256": "0acbe0bd9311285bf31c1f7fab329b9efb78263af67d19033ae56569fa62b043"
+    },
+    {
+      "file": "acoustic-3-64-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "a3b54efb8d98a024418024fa35a2ab125ae2781e6a6aeb1fa1a88baacad1da88",
+      "sha256": "2f0727964db07536880ea6018a2f3ba5108bda39759fafb579fa83ab579460ce"
+    },
+    {
+      "file": "acoustic-3-65-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "059ed7a8c0b9f071be8fd4fb17192e830fcbde544d1214552377fd23121e5fe5",
+      "sha256": "6b256e41fbf4d9bf420a0354a62e1f2583b48a4709cb08e75c4f78828ae4b103"
+    },
+    {
+      "file": "acoustic-3-66-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_Fs4_01.ogg",
+      "sourcePitch": 66,
+      "sourceSha256": "dfcd19399306f3f8d9de1912a207d7b23aca97fcc2660c82eca4d797ee161f10",
+      "sha256": "7003da168ccfeebc3be464720bf49e4aa0065922ab32d04048bff818fd25cc48"
+    },
+    {
+      "file": "acoustic-3-67-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_G4_01.ogg",
+      "sourcePitch": 67,
+      "sourceSha256": "42216a76698085f91693d19c6ed98d5cdbf116355536818135190ed2b21d794c",
+      "sha256": "a902bac1954228c1c581e50d66eec42236455c2a8ba986bde5dea4302b18de67"
+    },
+    {
+      "file": "acoustic-3-68-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "39f746b4e889f1951f57021998f1d20a7614b1774cebf811bc6cef5899227c3b",
+      "sha256": "8c82904a6bfabc6db78b47136c0df37240e0e7fd88a823e876497efb3272f94c"
+    },
+    {
+      "file": "acoustic-3-68-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "df6db300e6ce9a094c08d899c0cf8f0d536ab5ac1135b824900e2b2b4a6c3e76",
+      "sha256": "a2faf745173206db883ee9aa92e71b6683385fd9e4b33afbee9f45584d9f3f41"
+    },
+    {
+      "file": "acoustic-3-68-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "4d19e04d298aaded69883cf11eeb172d2805bfe6e12dced35cd6af9cc2d16375",
+      "sha256": "bcdc9dab3b3a14922294499cdbb2334be0df1da26a5b4d11a241d14c68dd4d14"
+    },
+    {
+      "file": "acoustic-3-69-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "a30423ec32085eee6932e88a63571b81ac658d5ddc8d06cb922fbd1cf2af6f0c",
+      "sha256": "deb573e8f931f8c689ca95a7980a6b2b7976d150c851a1ece06d086280f724e4"
+    },
+    {
+      "file": "acoustic-3-69-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "f56c5fe863ccdb0591614b0036eda6a85904eb9bd0dd5097980faf5dba7c2a01",
+      "sha256": "ab3061816597879d13c8dbb56d351761fdc93ca302dabf1ab0659abfa158e31d"
+    },
+    {
+      "file": "acoustic-3-69-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "999e80ca11c878161dad22c5abb7aceeb4aafd3bc32127fb8b08ada2f7c30dff",
+      "sha256": "922f51d8cd8b63beb2ad252036e68194818b509a5645a022aeef9873d42426f2"
+    },
+    {
+      "file": "acoustic-3-70-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "88edd8ec0dc0a02f27c1350af0e841707aeb6690d881e6c98c062e1df3b94c3c",
+      "sha256": "1b176adb4e9162c15015507eb9c36d52632c25811f84e7b4f56f585adc1ba84a"
+    },
+    {
+      "file": "acoustic-3-70-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "785cd0e7ff8cef534fbc17d0fde188028e6496ee7111d4f55277b6f998c16eea",
+      "sha256": "96c90c33af470ece85f73014baf9863c4dd0455b8a790c73ae59b49a27236349"
+    },
+    {
+      "file": "acoustic-3-70-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "7a7e3c4468052c75eb8262360addf9baffa949d9705cfb9de089c2a46dafd1a2",
+      "sha256": "5c9d75bbcff3089ad3b99f91d08d5739042d2f19fbb01fa8acfcb3dac4dc7e16"
+    },
+    {
+      "file": "acoustic-3-71-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_B4_01.ogg",
+      "sourcePitch": 71,
+      "sourceSha256": "89b4f3b392bc2f8a75f308120dba710f66fc673319f5f6b2d7843d0b7ab5add4",
+      "sha256": "32be38f038cf2dd1a632d7de93a32af414d4b704a06aa8494b627fb75b193907"
+    },
+    {
+      "file": "acoustic-3-71-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_B4_01.ogg",
+      "sourcePitch": 71,
+      "sourceSha256": "bbaa310e28a931bb2d0ca3897811e2ef278a6e9925eaaabcf9f94174715076e0",
+      "sha256": "3a2ed9cf647ee032ae3fa25ebf05f863c2155bd07885b2f86400e531f807fc3b"
+    },
+    {
+      "file": "acoustic-3-71-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_B4_01.ogg",
+      "sourcePitch": 71,
+      "sourceSha256": "5602e0366bfb373a73b57819eb4bdee4a89241c8b029c92f93812e11d20ff420",
+      "sha256": "206c54eb8f875b42f12992dba7cd55f3da9fb4a168f77a677385672d28993246"
+    },
+    {
+      "file": "acoustic-3-72-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_C5_01.ogg",
+      "sourcePitch": 72,
+      "sourceSha256": "379fd459648b1bbfc4493254b6fafa63953c92f83b813152a20c2fa450897ecb",
+      "sha256": "aac24ba05d8911a148e8783ce65a05a937e3c245f79c8d7e46ce2fff5fb93fd8"
+    },
+    {
+      "file": "acoustic-3-72-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_C5_01.ogg",
+      "sourcePitch": 72,
+      "sourceSha256": "c60097272f2a457d90d52650ef29e01dcbece690c75b64797b031bac80c8a2c2",
+      "sha256": "eff4d847442ce6271b149f25f9e11535eae07ca1a8f2bc37af0ebe8882ff0dbf"
+    },
+    {
+      "file": "acoustic-3-72-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_C5_01.ogg",
+      "sourcePitch": 72,
+      "sourceSha256": "6cc981111501e845dc4ebdd5ef2cad5da2eb80c35274413c298302bf629f606f",
+      "sha256": "8eb9a6ea52fb79bd38a04537ca31a1abbb3aca78e4041206db33b86cdccc3cda"
+    },
+    {
+      "file": "acoustic-3-73-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_Cs5_01.ogg",
+      "sourcePitch": 73,
+      "sourceSha256": "2fb6ba68d1236f7cf8fa89f8d348873496d06aef4e3083f17cbf4e9596f53335",
+      "sha256": "1bdbd0b0e9a9d44794f602a229bec7f04490580b75cf81eaf1114259ab70bb13"
+    },
+    {
+      "file": "acoustic-3-73-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_Cs5_01.ogg",
+      "sourcePitch": 73,
+      "sourceSha256": "e2578f419eeb9afd9cbc96599d663444817f6dd1e9f33cbb5ff1612c050212f3",
+      "sha256": "739fe436ea8db7171d45f33310c6d09d2ac5ca04202567dec037fad4f50b5980"
+    },
+    {
+      "file": "acoustic-3-73-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_Cs5_01.ogg",
+      "sourcePitch": 73,
+      "sourceSha256": "fb276239c4345bdbe748df5f4c8f12bf84c1fa7e2e53742c2462a2b9e44b3216",
+      "sha256": "39677d08cb66957cd2fd57b70895e1ee30ef78e1065081574ecdf67c57851d64"
+    },
+    {
+      "file": "acoustic-3-74-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_D5_01.ogg",
+      "sourcePitch": 74,
+      "sourceSha256": "7b7dc47a9c0be11fe5cdeac59d9c1410d517f607387f24b8db19ee942d50de30",
+      "sha256": "d074487d3f059f726e90f7ffde814fa71b405f98cec8eb443a1eb1d468d9ee64"
+    },
+    {
+      "file": "acoustic-3-74-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_D5_01.ogg",
+      "sourcePitch": 74,
+      "sourceSha256": "89977200ad492dbeb421661c13753bb1d71e29077af1d531ac03f5aaf2a8b39f",
+      "sha256": "418009c1329c1126f767e366afd7141ed5911ec80af0a72ebd16fa63e64f3138"
+    },
+    {
+      "file": "acoustic-3-74-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_D5_01.ogg",
+      "sourcePitch": 74,
+      "sourceSha256": "d810367fc315344f02cb71225922cace77e0af2ecf1706ad361bdb1b838b3bb6",
+      "sha256": "149c3e4f966de4935c61869c0a338187b00aaa0350f111441a91424c3621bf9a"
+    },
+    {
+      "file": "acoustic-3-75-104.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel03_Ds5_01.ogg",
+      "sourcePitch": 75,
+      "sourceSha256": "553b888df8b8104caad90627434046916af953df38291a178cc3c8dfcb2fb4a3",
+      "sha256": "246fd5b94d750ebe80be916b9df3dfa4d87d90c7d8f24635a0c5afcc560e20b3"
+    },
+    {
+      "file": "acoustic-3-75-40.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel01_Ds5_01.ogg",
+      "sourcePitch": 75,
+      "sourceSha256": "45cfca9281756f5c2ad032542c31f77a2970bedbeefadd5173c955736fd996e1",
+      "sha256": "47929da3b0b2781d8f0c617fe41db4909164bc805f6723966348dddb5aaf45a6"
+    },
+    {
+      "file": "acoustic-3-75-72.flac",
+      "source": "ogg/INSGuitarSteel_StringG_Vel02_Ds5_01.ogg",
+      "sourcePitch": 75,
+      "sourceSha256": "54c15819f3a25ea81b222d90e83fb7eca13dbb185eb2ec184754a657a5cfab1b",
+      "sha256": "3e955bef6c6ca5bc59068680a4087f75f0566edf1245e00b5a8edbb41ccce569"
+    },
+    {
+      "file": "acoustic-4-59-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_B3_01.ogg",
+      "sourcePitch": 59,
+      "sourceSha256": "9263de3b0b4c95009b82c897fae6cf0099b35dfb81d1c9f430bf1c2621ae704e",
+      "sha256": "73ea53703e3203650543181686729b99eded33f4eb2955eb3c0300b5fc54d3dc"
+    },
+    {
+      "file": "acoustic-4-60-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_C4_01.ogg",
+      "sourcePitch": 60,
+      "sourceSha256": "b2d46d764a444159d6bd908ccf8e205f9df7fe516887c927ad729dd54401b690",
+      "sha256": "4cfa3465e751207afab29d707918e9681c0e20cc24cab8df6b0f9472352a931c"
+    },
+    {
+      "file": "acoustic-4-61-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_Cs4_01.ogg",
+      "sourcePitch": 61,
+      "sourceSha256": "48774d4cc315f75de1be946bfb728337e0151cfed2512294b4a7ebd576a39151",
+      "sha256": "af754f4a55c4e6474bf8d56d5ec2ba9222b402a5e9b3d37d1c888615e9c6f5b9"
+    },
+    {
+      "file": "acoustic-4-62-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_D4_01.ogg",
+      "sourcePitch": 62,
+      "sourceSha256": "b2b0c240ed1d608f7f5877a7ee720871ca42801a414e54dafde1be2105c24534",
+      "sha256": "d3993aedeba300ea7e5d267a22f0fa7781f508f80ff8cb21442cb16ab8decd2f"
+    },
+    {
+      "file": "acoustic-4-63-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_Ds4_01.ogg",
+      "sourcePitch": 63,
+      "sourceSha256": "4b85fe4faed76759b1b2804c8cb2929175f746efd69e671f019a2783c4009d66",
+      "sha256": "47159d9dc09a80648c48796cc6d63d99aff42f652beb93afbc49a94de66dd68e"
+    },
+    {
+      "file": "acoustic-4-64-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "e05a961e3afaafb7df718aac7b7e5ab443445642f0ed2efb36c357f8697676aa",
+      "sha256": "5d65916bf91e41d746cf4830eb6f26545e7ffa659d46851055668f82148783b5"
+    },
+    {
+      "file": "acoustic-4-65-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "f3c3fe3fa9f61d9549dbbfd2847ad2cc8e8d012bf1aabd64dc252f9b306dee52",
+      "sha256": "68c779b8d1793ffac38575da9bb538f4d54f3c558873d31282479caad3363bc2"
+    },
+    {
+      "file": "acoustic-4-66-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_Fs4_01.ogg",
+      "sourcePitch": 66,
+      "sourceSha256": "5cd9d03364a69429fef6380f212dbe73a96e6977ec543634002ef95ff738a5f5",
+      "sha256": "c980678c5eafbefbf7c673a1296fa9ae706dea7c02a974dd27c393c51905b8ff"
+    },
+    {
+      "file": "acoustic-4-67-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_G4_01.ogg",
+      "sourcePitch": 67,
+      "sourceSha256": "31641e40410550c1c0c5808f2aa207791a15083819bf6a4ab239fb7432123826",
+      "sha256": "d54094ed9a9dc1cdcb6487bb590d702d939f7af15755ca4017b1bae459fdff65"
+    },
+    {
+      "file": "acoustic-4-68-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "a9b3e02e502fc1211b8063d0f29d5638b91f2e1fbd520f4a6b1c88e1bdcb59a3",
+      "sha256": "e998111f040dd3fa7519466231f9ea3baa9cb0bff9acbb7f670d484a73cc0473"
+    },
+    {
+      "file": "acoustic-4-69-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "ac13b3b9abe67900aa47c709e698d8717f5c09e1e1b842983ebef6e08746ee63",
+      "sha256": "32eca61166c78567f965e35edee17d63d3eb8d2cbe297c4e85ff43b02e066264"
+    },
+    {
+      "file": "acoustic-4-70-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "39c9b98463c107ce5f9575411b075da6c2fc8f2b681bffe3e636606792d86318",
+      "sha256": "487841f8fe6170e7dba4068156b3e4f1e63779ff95537aa9983653a4d37c1455"
+    },
+    {
+      "file": "acoustic-4-71-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_B4_01.ogg",
+      "sourcePitch": 71,
+      "sourceSha256": "e44ed16fc703842415145ea0b50a2b243889d801932a4d30d7361a7ba8de562d",
+      "sha256": "347ca05db5ecb3ae6aa02c27af73eaafebfb0ef3c376c60eac48972c550c5679"
+    },
+    {
+      "file": "acoustic-4-72-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_C5_01.ogg",
+      "sourcePitch": 72,
+      "sourceSha256": "ee0a2b42c2b575562ccbeb20d1140d0a22507d007962bec9e4300434e519c489",
+      "sha256": "57ef33091e98459d2cf838a7e941d0c7aeab55741c9af897656890bcaf7ba756"
+    },
+    {
+      "file": "acoustic-4-72-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_C5_01.ogg",
+      "sourcePitch": 72,
+      "sourceSha256": "40be645ad55ac105baf336a9e44d4309b4e778931c31dc0a262d844e584d5db6",
+      "sha256": "cfae17a743d074dc69e64d7ca8bef4d96ada7595d75634361075efeada5b1c1e"
+    },
+    {
+      "file": "acoustic-4-72-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_C5_01.ogg",
+      "sourcePitch": 72,
+      "sourceSha256": "0f3c968f242daf3a6ffbd5e75cc02939dca74a70670565505d9ecd596761ba0c",
+      "sha256": "5973be78087ab58824bc299cc8d5add820edff27bbdb8648b92fdb426d4bf3a7"
+    },
+    {
+      "file": "acoustic-4-73-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_Cs5_01.ogg",
+      "sourcePitch": 73,
+      "sourceSha256": "ebf473f764e9780f68676cf3995d6d73667637dbfde81b5d4995c34ea37a4c21",
+      "sha256": "f90aeb6e22e67edd29b5b9a13d59a03f6f434c7421f53c09b3e8484500c45d25"
+    },
+    {
+      "file": "acoustic-4-73-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_Cs5_01.ogg",
+      "sourcePitch": 73,
+      "sourceSha256": "1eb0c26435cb025c7c7349eca51be39b3709895065e02d6ff0d35467d81e0b98",
+      "sha256": "e4c20f9e1f38c1b0fe88706cb4e197ba17b405d50c6eb5845f31d590c8d20a71"
+    },
+    {
+      "file": "acoustic-4-73-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_Cs5_01.ogg",
+      "sourcePitch": 73,
+      "sourceSha256": "39f8508dcdc1410fb58f27db40ee0c96ae3b829c62dcd5efd0c34a1394fcd03f",
+      "sha256": "b1af24229baadc556bd91746407d76e481fa1598b7d99062b99f5d5cfc6a1e40"
+    },
+    {
+      "file": "acoustic-4-74-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_D5_01.ogg",
+      "sourcePitch": 74,
+      "sourceSha256": "93799c228bd29e748c5206b9f50b5ea85fd2f5f46e60db0ba88af80093401d2d",
+      "sha256": "a8c8b390fd1bb20f121a82ec6545a7782e84af0a5338f0d168e4365e77a8db2a"
+    },
+    {
+      "file": "acoustic-4-74-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_D5_01.ogg",
+      "sourcePitch": 74,
+      "sourceSha256": "a88edc6635ffd0a2ffce9416616b7923c12677e85819e14b7bde4847e8f924fe",
+      "sha256": "ae099a09575cb2ae68d16c57e4c5f8c6c832821363a793f8a48bf3073a756d54"
+    },
+    {
+      "file": "acoustic-4-74-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_D5_01.ogg",
+      "sourcePitch": 74,
+      "sourceSha256": "e85fa80040c747539e39b6e5beba3b8eb6de6cc5dfd039041a41f472f22c084d",
+      "sha256": "3cb2f06900eaa9b6e1f9296fe7843f5a3d1911a5e59b33f1d386a7dcf5b3e145"
+    },
+    {
+      "file": "acoustic-4-75-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_Ds5_01.ogg",
+      "sourcePitch": 75,
+      "sourceSha256": "9ecfdac5a4dc19b4f78f41f4f17d6b039a5a28ec071d931991c12b27c85aa594",
+      "sha256": "0356fb65c20fb77815d6431760223c7b286a0e8d55c43effbc15878a997a3fed"
+    },
+    {
+      "file": "acoustic-4-75-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_Ds5_01.ogg",
+      "sourcePitch": 75,
+      "sourceSha256": "7e831a56123981ed471a34c55b8b5ac753e9e0e935f7e5a847febae4421678bf",
+      "sha256": "a875fca4bff59488a4a9fd87cf7d65cb57a57745890b8399e9100775a293e960"
+    },
+    {
+      "file": "acoustic-4-75-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_Ds5_01.ogg",
+      "sourcePitch": 75,
+      "sourceSha256": "8a450bf34b4e6116697e738fd737a1679c19270cd7e73b2f014db6f0db01d315",
+      "sha256": "fdb1e2f31c98d48b32ff43bce159397d74f998a3e33f0060783c16b4c85632f8"
+    },
+    {
+      "file": "acoustic-4-76-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_E5_01.ogg",
+      "sourcePitch": 76,
+      "sourceSha256": "1ce8f8e36f493f5d5e84f9f1c601a1366ef4bf625d940a509076a9839908584f",
+      "sha256": "22207912fe7d2440fb78e3eb79e011d8dc72e2bfb6becbb42589719a4228561e"
+    },
+    {
+      "file": "acoustic-4-76-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_E5_01.ogg",
+      "sourcePitch": 76,
+      "sourceSha256": "cc156e48882fb05f31a1ba40f993dd8e47f086c88e8f11012a2ebed20efd7f3c",
+      "sha256": "fe4c4249185b65164801f1ab1955ee2b7fca8e99ea7d36e17f2f0af825f778d9"
+    },
+    {
+      "file": "acoustic-4-76-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_E5_01.ogg",
+      "sourcePitch": 76,
+      "sourceSha256": "667965637f9cc54f093e218477f024916d559f358e96c1a40b8f4fd69aad0af6",
+      "sha256": "5fd89644f6683270e39218264ad47c939086da0c599505f869cc627161a34fc6"
+    },
+    {
+      "file": "acoustic-4-77-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_F5_01.ogg",
+      "sourcePitch": 77,
+      "sourceSha256": "b4e58c6b4402a7c5a84aa03042d353f0b9012a900dc6678bd90ba3c5b8f7f73d",
+      "sha256": "8d26b816eb7dac20c84dd897469e3b42485ea784b8b5ece1585472785dc02469"
+    },
+    {
+      "file": "acoustic-4-77-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_F5_01.ogg",
+      "sourcePitch": 77,
+      "sourceSha256": "80c4ce8119a841bcaa6bd9eedac5a8f1cd82288f4817316f1bbe51bff7a918df",
+      "sha256": "ee1b3bcc6d18c310648fec9f49f977412f3f1056a54d107dc6d6571a246673a6"
+    },
+    {
+      "file": "acoustic-4-77-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_F5_01.ogg",
+      "sourcePitch": 77,
+      "sourceSha256": "ade4f7382f28cd3095f38a2405f6f81ec9a4d4c6e0ea816fcca9c383fdca6edd",
+      "sha256": "36f9d89e5d68a39c96c7f17a250b6ae14b1aa46525bd2fb9bf8460e44581846b"
+    },
+    {
+      "file": "acoustic-4-78-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_Fs5_01.ogg",
+      "sourcePitch": 78,
+      "sourceSha256": "8b220116463c290aa6f23a657363dc9f530f9f205ceb459db74684013d1adc88",
+      "sha256": "0f1f7abf298b2e7c1dd72d19a76d3b34f8eefb92262a98eab5f9e5e56194fbd6"
+    },
+    {
+      "file": "acoustic-4-78-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_Fs5_01.ogg",
+      "sourcePitch": 78,
+      "sourceSha256": "012e8813c5f5366dba177cff010b88380c964eaa5004b98aadc18d641106b1ff",
+      "sha256": "715a3339ed3f90a49444a0800a63f49fbc1299bc9198af11cbe8760fcc959867"
+    },
+    {
+      "file": "acoustic-4-78-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_Fs5_01.ogg",
+      "sourcePitch": 78,
+      "sourceSha256": "867334bce3520ae0041d9fe4efeb4b1012c6021d0da6c70ff7f74712271442dc",
+      "sha256": "c3bdbf8a2719d210cbdadfb6f6a5ce1e54b2e4d74fb1eeea0b7b04a189d60d48"
+    },
+    {
+      "file": "acoustic-4-79-104.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel03_G5_01.ogg",
+      "sourcePitch": 79,
+      "sourceSha256": "ee44a31368676c281b5f3d53cd18f1a87a27ff31cf5881d416a808ec18a0fad4",
+      "sha256": "30db4f44464bd09057e5116a1885a68a4b29f447f818d075ba129ec7d570cf0b"
+    },
+    {
+      "file": "acoustic-4-79-40.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel01_G5_01.ogg",
+      "sourcePitch": 79,
+      "sourceSha256": "1d533646c16421fcf75387d2ed59e13b350653d8c29aa4f9449acc2ed0202e2c",
+      "sha256": "c47effd41e911c2564c031b47facdff7b3146c6c61b90e30206d1e86b9ee9b08"
+    },
+    {
+      "file": "acoustic-4-79-72.flac",
+      "source": "ogg/INSGuitarSteel_StringB_Vel02_G5_01.ogg",
+      "sourcePitch": 79,
+      "sourceSha256": "9c7d2e1c33d900226ced95719969dde15a3f650812bdf1a5aeefd6efa9907fbf",
+      "sha256": "1052261f98d1ed54da3ec662cc26aec404b75e4f0fe3b0a60288be8eb65f77d7"
+    },
+    {
+      "file": "acoustic-5-64-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_E4_01.ogg",
+      "sourcePitch": 64,
+      "sourceSha256": "e78e82ac2b97a6cffeadcffaf0978de9f40754e760e5560952ca1a43645f0d2d",
+      "sha256": "9d6eccb9a25f0ce7e48aef003c9212520448339e4bb58d953e4665ec2155e794"
+    },
+    {
+      "file": "acoustic-5-65-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_F4_01.ogg",
+      "sourcePitch": 65,
+      "sourceSha256": "4a61cf3ad8bd1942090e80107e31a39b6e57cb75e28d2e8a1b667645f0cca7e9",
+      "sha256": "21455987455ea214bb76d2b49aa996a4ace6694657f158bf3a5338f90cb74fd4"
+    },
+    {
+      "file": "acoustic-5-66-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_Fs4_01.ogg",
+      "sourcePitch": 66,
+      "sourceSha256": "dca19651cf92248ce6dd4e498d2edd021fce62cfe5c63ccb747fd80d5e09b474",
+      "sha256": "4553288283a65b855601baebe59333d974f6441e6a5c539b3bb7c261c95d45e0"
+    },
+    {
+      "file": "acoustic-5-67-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_G4_01.ogg",
+      "sourcePitch": 67,
+      "sourceSha256": "10cc7ce31aa61137f53afd3387c41b263b2472a3a711ae52cea95e50ab796b63",
+      "sha256": "52d520158a2ea7c9d4f4d04bd19ee94a7d37e29264f7d5d657d2e3ac057fb4a6"
+    },
+    {
+      "file": "acoustic-5-68-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_Gs4_01.ogg",
+      "sourcePitch": 68,
+      "sourceSha256": "16502bc764921067fb7f65d9a80bbfe4cab6f03864fcfa40c21557747f616bb1",
+      "sha256": "638d2d93e73267d4b533058d24a2340b237d939b752e49368b0c224d33a3030a"
+    },
+    {
+      "file": "acoustic-5-69-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_A4_01.ogg",
+      "sourcePitch": 69,
+      "sourceSha256": "7ae6df23ed9ea4cfabd8004724c7a022c89a822c1c91f7e9459b8e3f6dedd1a1",
+      "sha256": "92b6eb2215a9010088c843a62ad4211a5268859bd5b6e05a235e5e2a505d6d09"
+    },
+    {
+      "file": "acoustic-5-70-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_As4_01.ogg",
+      "sourcePitch": 70,
+      "sourceSha256": "2496f3e024e93e8868a63421e87c9b6be15cb587b60478618b4d27e6ae9566bf",
+      "sha256": "b07e53073f6164e5cae6555437b1c9dc19f8416470ff1720130ff63ac212c0af"
+    },
+    {
+      "file": "acoustic-5-71-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_B4_01.ogg",
+      "sourcePitch": 71,
+      "sourceSha256": "fc3b460f1bca99d6ee0613b999dc3742d2133e853057a4669c01022b2c2f9ca6",
+      "sha256": "ddbbc57b66f65aba2945c2a3bec34805ec7aa937c301cb02dd366546650fbfe4"
+    },
+    {
+      "file": "acoustic-5-72-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_C5_01.ogg",
+      "sourcePitch": 72,
+      "sourceSha256": "4cd60088ebdb4817c10de91fb3d5bdf583256f721ababc04ab23049e7fdb9cdf",
+      "sha256": "6426c74054bd9204c9218b616809274233e81b89cc0893150e283ebfbcb3393e"
+    },
+    {
+      "file": "acoustic-5-73-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_Cs5_01.ogg",
+      "sourcePitch": 73,
+      "sourceSha256": "17d682912a3b4e055fdb5403b107773e13fd0d27c4052a111f53c66497daa414",
+      "sha256": "ed66d318f98c019d370497e305c2688eff4dc566c5d44bcd5dfb0d4f45664614"
+    },
+    {
+      "file": "acoustic-5-74-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_D5_01.ogg",
+      "sourcePitch": 74,
+      "sourceSha256": "a0be561a8e91a1080bcd0546e831845a863192cdfec912352815edbf98ee4323",
+      "sha256": "a7b09a46e231871179e8938c7e695504a6008b29e39f369cdedd9d9679222c1a"
+    },
+    {
+      "file": "acoustic-5-75-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_Ds5_01.ogg",
+      "sourcePitch": 75,
+      "sourceSha256": "8219cb5a9d45e884bf9befdc1a529bf9e3db343ffebcc59913f88fe4fa5356af",
+      "sha256": "2c7ff49a3da35fb1e6df097f3755fd9591487638dac274d92a25b1b8dc02b677"
+    },
+    {
+      "file": "acoustic-5-76-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_E5_01.ogg",
+      "sourcePitch": 76,
+      "sourceSha256": "06ca40adbbc0353dcd98330dde1b71387197fb502a94d314b29f25a50131fb69",
+      "sha256": "092a346b67b8fb11c79d66748bf09e942a8eaef03c84387c86d01118ac275e5e"
+    },
+    {
+      "file": "acoustic-5-77-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_F5_01.ogg",
+      "sourcePitch": 77,
+      "sourceSha256": "da39fc588f1c2e25e3d38f9756d0d23064fecff2f65e375cb1d0bfcef4b71273",
+      "sha256": "1214f5e2501db914423a3c6fd2a933a47a8e6bdfa7f880b0b49b408a4d9eace4"
+    },
+    {
+      "file": "acoustic-5-77-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_F5_01.ogg",
+      "sourcePitch": 77,
+      "sourceSha256": "c53ed579095ad854588c993492a3bd619942c1bc102d5b90666ada2ba748d403",
+      "sha256": "62ed87d6b1d57153775a1660e96879518d671cb06656dfbfc87faa6ef1956885"
+    },
+    {
+      "file": "acoustic-5-77-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_F5_01.ogg",
+      "sourcePitch": 77,
+      "sourceSha256": "ddd45d8b8cf12dca42fc25267174875fa160848e52020744754800036605470d",
+      "sha256": "dc0a29b3dfa5d0aab538407c8a2b9ac50cc0080c11108baaad5ad8702f01f158"
+    },
+    {
+      "file": "acoustic-5-78-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_Fs5_01.ogg",
+      "sourcePitch": 78,
+      "sourceSha256": "2400b021d87a5f92f7ae7418b2f90b1eced59284e3cf83a963869e5a08ac5f2b",
+      "sha256": "1e211955f5c2c47b0e9ae893e17d71429c69271e2bb4c5e56fe65cb79be17aac"
+    },
+    {
+      "file": "acoustic-5-78-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_Fs5_01.ogg",
+      "sourcePitch": 78,
+      "sourceSha256": "c3d6b2649865f39757391b61f50cac49b4350de7e886485d7f8cedc8e9e303ec",
+      "sha256": "75cafd94ebd0f6c84b4630251ff22700df0d25b26bfb815ecf8dfcb2158efddc"
+    },
+    {
+      "file": "acoustic-5-78-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_Fs5_01.ogg",
+      "sourcePitch": 78,
+      "sourceSha256": "44e4b8de8b5f5e745499c42e24d4f1b245a88248d2d8b9e9ce762db6d5638c6a",
+      "sha256": "8ed5462a9b9356716bfd60758d5aa63b87ef9dce65fb300f76a6a80aaee9df42"
+    },
+    {
+      "file": "acoustic-5-79-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_G5_01.ogg",
+      "sourcePitch": 79,
+      "sourceSha256": "f880af3627ff0dd9d511837ac6e518ff57a68df8765b4abdf0a7b05364d76ace",
+      "sha256": "803abb16ce9dc51b40834db5b3e475bf92b8d1e7197365cd7484b7b34a06c06b"
+    },
+    {
+      "file": "acoustic-5-79-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_G5_01.ogg",
+      "sourcePitch": 79,
+      "sourceSha256": "782b3fdd29a63cb9142ad0ff280a6f860be7e5f8edf7982405d73ee4e060617f",
+      "sha256": "c718a409e871fac362f51c9ad0bc7d55dad4201e7722c9fad9901653cc4076a6"
+    },
+    {
+      "file": "acoustic-5-79-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_G5_01.ogg",
+      "sourcePitch": 79,
+      "sourceSha256": "57bc82af3eeea4fd97d908534d7595141b59bee15321ed2be659b5bc520f3f47",
+      "sha256": "8123381b766349d41103328f6105b81c18f6277380bb3afc829d3387c328c2e3"
+    },
+    {
+      "file": "acoustic-5-80-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_Gs5_01.ogg",
+      "sourcePitch": 80,
+      "sourceSha256": "ad2d8e27b270e282c56493d720378b146426dcf1d1a09d8c2ccd5155516e3ba7",
+      "sha256": "9dcc76e5c3d41453418327fcbf01b64b89a3ea021bcee7c94ecb750a4eecbf7d"
+    },
+    {
+      "file": "acoustic-5-80-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_Gs5_01.ogg",
+      "sourcePitch": 80,
+      "sourceSha256": "60144fcdf6d74d72162749e01aa633dce737feeb8ea145593fb72e0db27e91a4",
+      "sha256": "70dce571b357917066ca6912d19b0831454dab66d6927e3ceb4b908bb19c1eb7"
+    },
+    {
+      "file": "acoustic-5-80-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_Gs5_01.ogg",
+      "sourcePitch": 80,
+      "sourceSha256": "0cadcd433069be734a1bf61b95ed3dd2b17bfa36c33d0816afc2e6ae8b967721",
+      "sha256": "2bf9ef952b17bb0b807ddfa4b727ade86b609fd058ad752ae67abc9299ec0a8f"
+    },
+    {
+      "file": "acoustic-5-81-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_A5_01.ogg",
+      "sourcePitch": 81,
+      "sourceSha256": "3729f8b25478768e5d0ce8f6b5111778560d94afb7114896a4d817d1cfc69b6c",
+      "sha256": "8a61b67f0762ee5430bda56990d0f4b0cb0cd6fa962ed5b54420c1710a836ac4"
+    },
+    {
+      "file": "acoustic-5-81-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_A5_01.ogg",
+      "sourcePitch": 81,
+      "sourceSha256": "7dc05cd9683aff246ddc354257399c39c20e33e17f70273119c4c0f52194eaa2",
+      "sha256": "866c80cba0e3642f1cddf8f9be42b7bf2fa0958e511bfe12b538954b2108f71b"
+    },
+    {
+      "file": "acoustic-5-81-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_A5_01.ogg",
+      "sourcePitch": 81,
+      "sourceSha256": "851cf8e1a78fb5c7abfaec7ed15fafdc3b699a6f243dcf32c8cb00de8fc2cd61",
+      "sha256": "380f0e0cb60ab717ac493b65307150ddc5f3a9b34e6894c767353194082ca30a"
+    },
+    {
+      "file": "acoustic-5-82-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_As5_01.ogg",
+      "sourcePitch": 82,
+      "sourceSha256": "b65a837cc2dc3dba9a97ea83c2963e299d8ba0b4241ebe440b63f67646c2e42c",
+      "sha256": "65400e9b6777daf326e8b62fbd91aeac4eb1337bdefcd34e3b862591910b782d"
+    },
+    {
+      "file": "acoustic-5-82-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_As5_01.ogg",
+      "sourcePitch": 82,
+      "sourceSha256": "346e7bbea715849fb6a43a1cc587ba2cf37e46b542af77ca792cdd8463a2c91a",
+      "sha256": "c6e25b0db4f838c45a2d6e7b04741b12e5bf383cf281d8b33fe8ce64aab79693"
+    },
+    {
+      "file": "acoustic-5-82-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_As5_01.ogg",
+      "sourcePitch": 82,
+      "sourceSha256": "fd8271465da5ac009da2c5106f85169644185ce6e8b81181a654b8710cee69bc",
+      "sha256": "ee6f626152536424d590dd3cd165ded0c16219e2967dcd76245eddc4b5d3ca8f"
+    },
+    {
+      "file": "acoustic-5-83-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_B5_01.ogg",
+      "sourcePitch": 83,
+      "sourceSha256": "80b6744b9c2a2bcc0659af83bcc360f45e5aaa554cafe23ece37c1a6cf95bc05",
+      "sha256": "dd21344d887ae5a284d9abfc83247fb7e3bebf349765eb02542846175e719f51"
+    },
+    {
+      "file": "acoustic-5-83-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_B5_01.ogg",
+      "sourcePitch": 83,
+      "sourceSha256": "133ff66833083aa8e6abbe39ef95684fab2cb6c66ff5ea96fe52875536efed02",
+      "sha256": "788f7b2e12b48daf0e07480b88a277e2d12413b5a916709473c863053e981d49"
+    },
+    {
+      "file": "acoustic-5-83-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_B5_01.ogg",
+      "sourcePitch": 83,
+      "sourceSha256": "ebf51eb01a3a2e121be68b36939a0dec55e2775d48d21c528490bffdd097d8d5",
+      "sha256": "21d8b78ffe868750798d22728e915d3046439a8d889095dda9ac5628cd6acdff"
+    },
+    {
+      "file": "acoustic-5-84-104.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel03_C6_01.ogg",
+      "sourcePitch": 84,
+      "sourceSha256": "3161f340e532c1a531dd2d8b0fbb16be1c82ec81ee7b6ca83677d69c6c6396af",
+      "sha256": "cd614f46fa30832b2fc741dfc5da770128570a4d0f727dc6c7815ed2009c6414"
+    },
+    {
+      "file": "acoustic-5-84-40.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel01_C6_01.ogg",
+      "sourcePitch": 84,
+      "sourceSha256": "4a0294ee5c62013f9e6c3819a461952d16095b291b3c403c8b86d805cadab2e1",
+      "sha256": "631c88ff6c8b5db8c1ea8f04a3ff3e4c66e6dcbd457f6aeac6f954afd81f3b76"
+    },
+    {
+      "file": "acoustic-5-84-72.flac",
+      "source": "ogg/INSGuitarSteel_StringHighE_Vel02_C6_01.ogg",
+      "sourcePitch": 84,
+      "sourceSha256": "5a65e232fee42000b4d81a68ab5e2b871f597d6a3750c852e9c69caaefdaef9d",
+      "sha256": "3fb0ee7b5194411345705b3d4d40c17d8395bdcddd838afdd944ed5f0e1753fb"
+    }
+  ]
+}

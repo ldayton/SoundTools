@@ -3,6 +3,8 @@ export type PlaybackInstrument = "piano" | "guitar" | "organ" | "choir";
 export type PerformanceOptions = {
   instrument: PlaybackInstrument;
   strum?: boolean;
+  meter?: string;
+  pickup?: number;
   positionFor?: (
     pitch: number,
     chord: boolean,
@@ -21,6 +23,8 @@ export type PerformanceNote = {
   fret?: number;
   delay?: number;
   gain?: number;
+  expressionGain?: number;
+  endGain?: number;
 };
 export const guitarTuning = [40, 45, 50, 55, 59, 64] as const;
 
@@ -47,11 +51,11 @@ export function performNotes(
   const ringing = new Map<number, PerformanceNote>();
   for (const [, group] of [...groups].sort(([a], [b]) => a - b)) {
     const top = Math.max(...group.map((n) => n.pitch));
-    // Voice the melody without imposing rubato or random timing on a practice track.
+    // Phrase expression changes dynamics, never the score/practice clock.
     for (const note of group)
       note.volume = Math.min(
         1,
-        note.volume * (note.pitch === top ? 0.92 : 0.72),
+        note.volume * (note.pitch === top ? 0.92 : 0.72) * (options.instrument === "guitar" ? note.expressionGain ?? 1 : 1),
       );
     if (options.instrument !== "guitar") continue;
     // Give simultaneous chord attacks a little more presence than single-note plucks.
@@ -88,11 +92,24 @@ export function performNotes(
       ringing.set(string, note);
     }
     if (options.strum && group.length > 1) {
+      const [beats, unit] = (options.meter || "4/4").split("/").map(Number);
+      const compound = unit === 8 && beats % 3 === 0;
+      const phase = group[0].start - (options.pickup || 0);
+      const subdivision = Math.round(phase * 2);
+      const cycle = compound ? 3 : 2;
+      const part = ((subdivision % cycle) + cycle) % cycle;
+      const up = compound ? part === 2 : part === 1;
       const ordered = [...group].sort(
-        (a, b) => (a.string ?? a.pitch) - (b.string ?? b.pitch),
+        (a, b) => (up ? -1 : 1) * ((a.string ?? a.pitch) - (b.string ?? b.pitch)),
       );
+      const strength = Math.max(...group.map(n => n.volume));
+      // One gesture drives direction, travel time and strength together. Skipped
+      // strings still take time to cross; stronger brushes move a little faster.
+      const spread = 0.052 - 0.014 * strength;
+      const first = ordered[0].string ?? 0;
       ordered.forEach((note, index) => {
-        note.delay = index * 0.009;
+        note.delay = Math.abs((note.string ?? index) - first) / 5 * spread;
+        note.volume *= up ? 0.94 : 1;
       });
     }
   }
@@ -101,6 +118,10 @@ export function performNotes(
 
 export function pianoLayer(volume: number) {
   return volume < 0.56 ? 4 : volume < 0.72 ? 8 : 12;
+}
+
+export function guitarLayer(volume: number) {
+  return volume < 0.55 ? 40 : volume < 0.8 ? 72 : 104;
 }
 
 /** Bank levels preserve existing piano/guitar balance; organ samples are sustain-normalized. */

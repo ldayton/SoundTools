@@ -1,0 +1,1337 @@
+{
+  "license": "CC0-1.0",
+  "samples": [
+    {
+      "string": 0,
+      "pitch": 40,
+      "layer": 104,
+      "file": "acoustic-0-40-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 41,
+      "layer": 104,
+      "file": "acoustic-0-41-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 42,
+      "layer": 104,
+      "file": "acoustic-0-42-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 43,
+      "layer": 104,
+      "file": "acoustic-0-43-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 44,
+      "layer": 104,
+      "file": "acoustic-0-44-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 45,
+      "layer": 104,
+      "file": "acoustic-0-45-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 46,
+      "layer": 104,
+      "file": "acoustic-0-46-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 47,
+      "layer": 104,
+      "file": "acoustic-0-47-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 48,
+      "layer": 104,
+      "file": "acoustic-0-48-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 49,
+      "layer": 104,
+      "file": "acoustic-0-49-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 50,
+      "layer": 104,
+      "file": "acoustic-0-50-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 51,
+      "layer": 104,
+      "file": "acoustic-0-51-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 52,
+      "layer": 104,
+      "file": "acoustic-0-52-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 53,
+      "layer": 40,
+      "file": "acoustic-0-53-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 53,
+      "layer": 72,
+      "file": "acoustic-0-53-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 53,
+      "layer": 104,
+      "file": "acoustic-0-53-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 54,
+      "layer": 40,
+      "file": "acoustic-0-54-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 54,
+      "layer": 72,
+      "file": "acoustic-0-54-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 54,
+      "layer": 104,
+      "file": "acoustic-0-54-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 55,
+      "layer": 40,
+      "file": "acoustic-0-55-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 55,
+      "layer": 72,
+      "file": "acoustic-0-55-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 55,
+      "layer": 104,
+      "file": "acoustic-0-55-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 56,
+      "layer": 40,
+      "file": "acoustic-0-56-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 56,
+      "layer": 72,
+      "file": "acoustic-0-56-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 56,
+      "layer": 104,
+      "file": "acoustic-0-56-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 57,
+      "layer": 40,
+      "file": "acoustic-0-57-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 57,
+      "layer": 72,
+      "file": "acoustic-0-57-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 57,
+      "layer": 104,
+      "file": "acoustic-0-57-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 58,
+      "layer": 40,
+      "file": "acoustic-0-58-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 58,
+      "layer": 72,
+      "file": "acoustic-0-58-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 58,
+      "layer": 104,
+      "file": "acoustic-0-58-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 59,
+      "layer": 40,
+      "file": "acoustic-0-59-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 59,
+      "layer": 72,
+      "file": "acoustic-0-59-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 59,
+      "layer": 104,
+      "file": "acoustic-0-59-104.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 60,
+      "layer": 40,
+      "file": "acoustic-0-60-40.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 60,
+      "layer": 72,
+      "file": "acoustic-0-60-72.flac"
+    },
+    {
+      "string": 0,
+      "pitch": 60,
+      "layer": 104,
+      "file": "acoustic-0-60-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 45,
+      "layer": 104,
+      "file": "acoustic-1-45-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 46,
+      "layer": 104,
+      "file": "acoustic-1-46-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 47,
+      "layer": 104,
+      "file": "acoustic-1-47-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 48,
+      "layer": 104,
+      "file": "acoustic-1-48-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 49,
+      "layer": 104,
+      "file": "acoustic-1-49-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 50,
+      "layer": 104,
+      "file": "acoustic-1-50-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 51,
+      "layer": 104,
+      "file": "acoustic-1-51-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 52,
+      "layer": 104,
+      "file": "acoustic-1-52-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 53,
+      "layer": 104,
+      "file": "acoustic-1-53-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 54,
+      "layer": 104,
+      "file": "acoustic-1-54-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 55,
+      "layer": 104,
+      "file": "acoustic-1-55-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 56,
+      "layer": 104,
+      "file": "acoustic-1-56-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 57,
+      "layer": 104,
+      "file": "acoustic-1-57-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 58,
+      "layer": 40,
+      "file": "acoustic-1-58-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 58,
+      "layer": 72,
+      "file": "acoustic-1-58-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 58,
+      "layer": 104,
+      "file": "acoustic-1-58-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 59,
+      "layer": 40,
+      "file": "acoustic-1-59-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 59,
+      "layer": 72,
+      "file": "acoustic-1-59-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 59,
+      "layer": 104,
+      "file": "acoustic-1-59-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 60,
+      "layer": 40,
+      "file": "acoustic-1-60-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 60,
+      "layer": 72,
+      "file": "acoustic-1-60-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 60,
+      "layer": 104,
+      "file": "acoustic-1-60-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 61,
+      "layer": 40,
+      "file": "acoustic-1-61-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 61,
+      "layer": 72,
+      "file": "acoustic-1-61-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 61,
+      "layer": 104,
+      "file": "acoustic-1-61-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 62,
+      "layer": 40,
+      "file": "acoustic-1-62-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 62,
+      "layer": 72,
+      "file": "acoustic-1-62-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 62,
+      "layer": 104,
+      "file": "acoustic-1-62-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 63,
+      "layer": 40,
+      "file": "acoustic-1-63-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 63,
+      "layer": 72,
+      "file": "acoustic-1-63-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 63,
+      "layer": 104,
+      "file": "acoustic-1-63-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 64,
+      "layer": 40,
+      "file": "acoustic-1-64-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 64,
+      "layer": 72,
+      "file": "acoustic-1-64-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 64,
+      "layer": 104,
+      "file": "acoustic-1-64-104.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 65,
+      "layer": 40,
+      "file": "acoustic-1-65-40.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 65,
+      "layer": 72,
+      "file": "acoustic-1-65-72.flac"
+    },
+    {
+      "string": 1,
+      "pitch": 65,
+      "layer": 104,
+      "file": "acoustic-1-65-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 50,
+      "layer": 104,
+      "file": "acoustic-2-50-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 51,
+      "layer": 104,
+      "file": "acoustic-2-51-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 52,
+      "layer": 104,
+      "file": "acoustic-2-52-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 53,
+      "layer": 104,
+      "file": "acoustic-2-53-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 54,
+      "layer": 104,
+      "file": "acoustic-2-54-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 55,
+      "layer": 104,
+      "file": "acoustic-2-55-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 56,
+      "layer": 104,
+      "file": "acoustic-2-56-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 57,
+      "layer": 104,
+      "file": "acoustic-2-57-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 58,
+      "layer": 104,
+      "file": "acoustic-2-58-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 59,
+      "layer": 104,
+      "file": "acoustic-2-59-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 60,
+      "layer": 104,
+      "file": "acoustic-2-60-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 61,
+      "layer": 104,
+      "file": "acoustic-2-61-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 62,
+      "layer": 104,
+      "file": "acoustic-2-62-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 63,
+      "layer": 40,
+      "file": "acoustic-2-63-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 63,
+      "layer": 72,
+      "file": "acoustic-2-63-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 63,
+      "layer": 104,
+      "file": "acoustic-2-63-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 64,
+      "layer": 40,
+      "file": "acoustic-2-64-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 64,
+      "layer": 72,
+      "file": "acoustic-2-64-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 64,
+      "layer": 104,
+      "file": "acoustic-2-64-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 65,
+      "layer": 40,
+      "file": "acoustic-2-65-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 65,
+      "layer": 72,
+      "file": "acoustic-2-65-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 65,
+      "layer": 104,
+      "file": "acoustic-2-65-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 66,
+      "layer": 40,
+      "file": "acoustic-2-66-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 66,
+      "layer": 72,
+      "file": "acoustic-2-66-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 66,
+      "layer": 104,
+      "file": "acoustic-2-66-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 67,
+      "layer": 40,
+      "file": "acoustic-2-67-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 67,
+      "layer": 72,
+      "file": "acoustic-2-67-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 67,
+      "layer": 104,
+      "file": "acoustic-2-67-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 68,
+      "layer": 40,
+      "file": "acoustic-2-68-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 68,
+      "layer": 72,
+      "file": "acoustic-2-68-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 68,
+      "layer": 104,
+      "file": "acoustic-2-68-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 69,
+      "layer": 40,
+      "file": "acoustic-2-69-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 69,
+      "layer": 72,
+      "file": "acoustic-2-69-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 69,
+      "layer": 104,
+      "file": "acoustic-2-69-104.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 70,
+      "layer": 40,
+      "file": "acoustic-2-70-40.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 70,
+      "layer": 72,
+      "file": "acoustic-2-70-72.flac"
+    },
+    {
+      "string": 2,
+      "pitch": 70,
+      "layer": 104,
+      "file": "acoustic-2-70-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 55,
+      "layer": 104,
+      "file": "acoustic-3-55-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 56,
+      "layer": 104,
+      "file": "acoustic-3-56-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 57,
+      "layer": 104,
+      "file": "acoustic-3-57-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 58,
+      "layer": 104,
+      "file": "acoustic-3-58-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 59,
+      "layer": 104,
+      "file": "acoustic-3-59-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 60,
+      "layer": 104,
+      "file": "acoustic-3-60-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 61,
+      "layer": 104,
+      "file": "acoustic-3-61-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 62,
+      "layer": 104,
+      "file": "acoustic-3-62-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 63,
+      "layer": 104,
+      "file": "acoustic-3-63-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 64,
+      "layer": 104,
+      "file": "acoustic-3-64-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 65,
+      "layer": 104,
+      "file": "acoustic-3-65-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 66,
+      "layer": 104,
+      "file": "acoustic-3-66-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 67,
+      "layer": 104,
+      "file": "acoustic-3-67-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 68,
+      "layer": 40,
+      "file": "acoustic-3-68-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 68,
+      "layer": 72,
+      "file": "acoustic-3-68-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 68,
+      "layer": 104,
+      "file": "acoustic-3-68-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 69,
+      "layer": 40,
+      "file": "acoustic-3-69-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 69,
+      "layer": 72,
+      "file": "acoustic-3-69-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 69,
+      "layer": 104,
+      "file": "acoustic-3-69-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 70,
+      "layer": 40,
+      "file": "acoustic-3-70-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 70,
+      "layer": 72,
+      "file": "acoustic-3-70-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 70,
+      "layer": 104,
+      "file": "acoustic-3-70-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 71,
+      "layer": 40,
+      "file": "acoustic-3-71-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 71,
+      "layer": 72,
+      "file": "acoustic-3-71-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 71,
+      "layer": 104,
+      "file": "acoustic-3-71-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 72,
+      "layer": 40,
+      "file": "acoustic-3-72-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 72,
+      "layer": 72,
+      "file": "acoustic-3-72-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 72,
+      "layer": 104,
+      "file": "acoustic-3-72-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 73,
+      "layer": 40,
+      "file": "acoustic-3-73-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 73,
+      "layer": 72,
+      "file": "acoustic-3-73-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 73,
+      "layer": 104,
+      "file": "acoustic-3-73-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 74,
+      "layer": 40,
+      "file": "acoustic-3-74-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 74,
+      "layer": 72,
+      "file": "acoustic-3-74-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 74,
+      "layer": 104,
+      "file": "acoustic-3-74-104.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 75,
+      "layer": 40,
+      "file": "acoustic-3-75-40.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 75,
+      "layer": 72,
+      "file": "acoustic-3-75-72.flac"
+    },
+    {
+      "string": 3,
+      "pitch": 75,
+      "layer": 104,
+      "file": "acoustic-3-75-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 59,
+      "layer": 104,
+      "file": "acoustic-4-59-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 60,
+      "layer": 104,
+      "file": "acoustic-4-60-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 61,
+      "layer": 104,
+      "file": "acoustic-4-61-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 62,
+      "layer": 104,
+      "file": "acoustic-4-62-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 63,
+      "layer": 104,
+      "file": "acoustic-4-63-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 64,
+      "layer": 104,
+      "file": "acoustic-4-64-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 65,
+      "layer": 104,
+      "file": "acoustic-4-65-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 66,
+      "layer": 104,
+      "file": "acoustic-4-66-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 67,
+      "layer": 104,
+      "file": "acoustic-4-67-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 68,
+      "layer": 104,
+      "file": "acoustic-4-68-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 69,
+      "layer": 104,
+      "file": "acoustic-4-69-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 70,
+      "layer": 104,
+      "file": "acoustic-4-70-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 71,
+      "layer": 104,
+      "file": "acoustic-4-71-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 72,
+      "layer": 40,
+      "file": "acoustic-4-72-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 72,
+      "layer": 72,
+      "file": "acoustic-4-72-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 72,
+      "layer": 104,
+      "file": "acoustic-4-72-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 73,
+      "layer": 40,
+      "file": "acoustic-4-73-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 73,
+      "layer": 72,
+      "file": "acoustic-4-73-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 73,
+      "layer": 104,
+      "file": "acoustic-4-73-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 74,
+      "layer": 40,
+      "file": "acoustic-4-74-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 74,
+      "layer": 72,
+      "file": "acoustic-4-74-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 74,
+      "layer": 104,
+      "file": "acoustic-4-74-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 75,
+      "layer": 40,
+      "file": "acoustic-4-75-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 75,
+      "layer": 72,
+      "file": "acoustic-4-75-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 75,
+      "layer": 104,
+      "file": "acoustic-4-75-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 76,
+      "layer": 40,
+      "file": "acoustic-4-76-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 76,
+      "layer": 72,
+      "file": "acoustic-4-76-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 76,
+      "layer": 104,
+      "file": "acoustic-4-76-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 77,
+      "layer": 40,
+      "file": "acoustic-4-77-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 77,
+      "layer": 72,
+      "file": "acoustic-4-77-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 77,
+      "layer": 104,
+      "file": "acoustic-4-77-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 78,
+      "layer": 40,
+      "file": "acoustic-4-78-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 78,
+      "layer": 72,
+      "file": "acoustic-4-78-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 78,
+      "layer": 104,
+      "file": "acoustic-4-78-104.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 79,
+      "layer": 40,
+      "file": "acoustic-4-79-40.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 79,
+      "layer": 72,
+      "file": "acoustic-4-79-72.flac"
+    },
+    {
+      "string": 4,
+      "pitch": 79,
+      "layer": 104,
+      "file": "acoustic-4-79-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 64,
+      "layer": 104,
+      "file": "acoustic-5-64-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 65,
+      "layer": 104,
+      "file": "acoustic-5-65-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 66,
+      "layer": 104,
+      "file": "acoustic-5-66-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 67,
+      "layer": 104,
+      "file": "acoustic-5-67-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 68,
+      "layer": 104,
+      "file": "acoustic-5-68-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 69,
+      "layer": 104,
+      "file": "acoustic-5-69-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 70,
+      "layer": 104,
+      "file": "acoustic-5-70-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 71,
+      "layer": 104,
+      "file": "acoustic-5-71-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 72,
+      "layer": 104,
+      "file": "acoustic-5-72-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 73,
+      "layer": 104,
+      "file": "acoustic-5-73-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 74,
+      "layer": 104,
+      "file": "acoustic-5-74-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 75,
+      "layer": 104,
+      "file": "acoustic-5-75-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 76,
+      "layer": 104,
+      "file": "acoustic-5-76-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 77,
+      "layer": 40,
+      "file": "acoustic-5-77-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 77,
+      "layer": 72,
+      "file": "acoustic-5-77-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 77,
+      "layer": 104,
+      "file": "acoustic-5-77-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 78,
+      "layer": 40,
+      "file": "acoustic-5-78-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 78,
+      "layer": 72,
+      "file": "acoustic-5-78-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 78,
+      "layer": 104,
+      "file": "acoustic-5-78-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 79,
+      "layer": 40,
+      "file": "acoustic-5-79-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 79,
+      "layer": 72,
+      "file": "acoustic-5-79-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 79,
+      "layer": 104,
+      "file": "acoustic-5-79-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 80,
+      "layer": 40,
+      "file": "acoustic-5-80-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 80,
+      "layer": 72,
+      "file": "acoustic-5-80-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 80,
+      "layer": 104,
+      "file": "acoustic-5-80-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 81,
+      "layer": 40,
+      "file": "acoustic-5-81-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 81,
+      "layer": 72,
+      "file": "acoustic-5-81-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 81,
+      "layer": 104,
+      "file": "acoustic-5-81-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 82,
+      "layer": 40,
+      "file": "acoustic-5-82-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 82,
+      "layer": 72,
+      "file": "acoustic-5-82-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 82,
+      "layer": 104,
+      "file": "acoustic-5-82-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 83,
+      "layer": 40,
+      "file": "acoustic-5-83-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 83,
+      "layer": 72,
+      "file": "acoustic-5-83-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 83,
+      "layer": 104,
+      "file": "acoustic-5-83-104.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 84,
+      "layer": 40,
+      "file": "acoustic-5-84-40.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 84,
+      "layer": 72,
+      "file": "acoustic-5-84-72.flac"
+    },
+    {
+      "string": 5,
+      "pitch": 84,
+      "layer": 104,
+      "file": "acoustic-5-84-104.flac"
+    }
+  ]
+}

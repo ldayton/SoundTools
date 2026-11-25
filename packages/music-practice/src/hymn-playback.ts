@@ -11,6 +11,7 @@ import {
 } from "./hymn-count-in";
 import type { AudioTracks } from "abcjs";
 import type { GuitarSustainEvent } from "./guitar-sustain";
+import type { GuitarExpressionEvent } from "./guitar-phrasing";
 import type { preparePianoPlayback } from "./piano-audio";
 
 export function playbackNotes(audio: AudioTracks) {
@@ -26,6 +27,8 @@ export function playbackNotes(audio: AudioTracks) {
                 duration: item.duration * 4,
                 volume: item.volume / 127,
                 ...((item as GuitarSustainEvent).guitarRingUntil !== undefined ? {ringUntil: (item as GuitarSustainEvent).guitarRingUntil! * 4} : {}),
+                ...((item as GuitarExpressionEvent).guitarExpressionGain !== undefined ? {expressionGain: (item as GuitarExpressionEvent).guitarExpressionGain} : {}),
+                ...((item as GuitarExpressionEvent).guitarEndGain !== undefined ? {endGain: (item as GuitarExpressionEvent).guitarEndGain} : {}),
                 ...((item as typeof item & {playbackInstrument?:PlaybackInstrument}).playbackInstrument ? {instrument:(item as typeof item & {playbackInstrument:PlaybackInstrument}).playbackInstrument} : {}),
               },
             ]
@@ -152,7 +155,7 @@ export class HymnPlayback {
     // Keep cross-bar ties in one score: section changes must not re-attack them.
     this.notes = (
       performance
-        ? performNotes(playbackNotes(audio), performance)
+        ? performNotes(playbackNotes(audio), {...performance, meter: timing.meter, pickup: timing.pickup})
         : playbackNotes(audio)
     )
       .filter((n) => n.start + n.duration > offset)
@@ -260,6 +263,7 @@ export class HymnPlayback {
             n.delay ?? 0,
             n.gain ?? 1,
             n.instrument,
+            n.endGain,
           );
         }
         if (this.state === "complete" || this.displayPosition >= this.finish) {

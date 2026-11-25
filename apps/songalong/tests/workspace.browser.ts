@@ -523,7 +523,8 @@ try {
   await practiceOption(page, "#hymn-mode", "wait");
   await expect(page.locator("#hymn-tempo")).toBeDisabled();
   await expect(page.locator("#hymn-size")).toHaveValue(pixels);
-  await expect(page.locator('.mantine-AppShell-header [data-direction="up"]')).toHaveCount(2);
+  for(const id of ["hymn-size","hymn-staff-spacing","hymn-tempo"])
+    await expect(page.locator(`.mantine-AppShell-header #${id}-up`)).toBeVisible();
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: SongAlong drawer geometry/focus, MIDI blocking, playback pause, constant piano widths, hand constraints and desktop restoration pass`,

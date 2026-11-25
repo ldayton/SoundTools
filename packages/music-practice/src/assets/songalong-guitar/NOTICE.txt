@@ -1,0 +1,14 @@
+Meta Steel Guitar — Meta Platforms Inc. CC0 1.0.
+https://github.com/facebookincubator/Meta-open-sound
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Additional SongAlong recordings: hard velocity at frets 0–12, all three recorded
+velocities at frets 13–20. Existing soft/medium recordings remain in the shared
+backing-folk-country and backing-soul-folk banks without duplication.
+24 kHz, 16-bit FLAC, natural decays capped at six seconds with a 40 ms tail fade.
+Reference libFLAC encoding with 4096-sample blocks for WebKit compatibility.
+No per-note normalization, synthetic sustain loops or invented round robins.
+The missing low-string B2 hard recording uses A#2 raised one semitone, matching
+the documented soft/medium adaptation. All other new samples are native pitch.
+Original source and output hashes, including the pinned revision, accompany this bank.
+Preparation code: MIT, Copyright 2026 Lily Dayton.

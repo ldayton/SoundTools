@@ -1,6 +1,7 @@
 import {chordPreviewGain} from "./chord-preview";
 import { playbackInstrumentGain } from "./playback-performance";
 import { playbackSample, playbackSamplesFor } from "./playback-samples";
+import { performanceEnvelope } from "./performance-envelope";
 import type {
   PlaybackInstrument,
   PerformanceNote,
@@ -345,10 +346,8 @@ export async function preparePianoPlayback(
         source.playbackRate.value = 2 ** ((note.pitch - sample.pitch) / 12);
         const level = playbackInstrumentGain(instrument) * Math.sqrt(note.volume);
         const end = note.start + note.duration;
-        gain.gain.setValueAtTime(0, note.start);
-        gain.gain.linearRampToValueAtTime(level, note.start + 0.005);
-        gain.gain.setValueAtTime(level, end);
-        gain.gain.linearRampToValueAtTime(0, end + release);
+        performanceEnvelope(gain.gain, level, note.start, end, release,
+          instrument === "guitar" ? note.endGain : undefined);
         source.connect(gain).connect(mix);
         source.start(note.start);
         source.stop(end + release + 0.01);
@@ -373,6 +372,7 @@ export async function preparePianoPlayback(
       delay = 0,
       attackGain = 1,
       voiceInstrument: PlaybackInstrument = instrument,
+      endGain = 1,
     ) {
       if (disabled) return;
       const sample = playbackSample(
@@ -401,10 +401,8 @@ export async function preparePianoPlayback(
       const release = voiceInstrument === "piano" ? 0.12 : voiceInstrument === "organ" ? 0.08 : voiceInstrument === "choir" ? 0.16 : 0.045;
       when += Math.min(delay, Math.max(0, duration - 0.015));
       const end = Math.max(when + 0.02, writtenEnd) + release;
-      gain.gain.setValueAtTime(0, when);
-      gain.gain.linearRampToValueAtTime(level, when + 0.005);
-      gain.gain.setValueAtTime(level, Math.max(when + 0.005, writtenEnd));
-      gain.gain.linearRampToValueAtTime(0, end);
+      performanceEnvelope(gain.gain, level, when, Math.max(when + 0.005, writtenEnd), release,
+        voiceInstrument === "guitar" ? endGain : undefined);
       source.connect(gain).connect(output!);
       let stopped = false;
       const stop = () => {

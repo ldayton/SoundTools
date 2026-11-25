@@ -1,10 +1,13 @@
 import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import guitarExtension from "../../../packages/music-practice/src/assets/songalong-guitar/manifest.json";
 import assert from "node:assert/strict";
 import { writeFile, mkdir } from "node:fs/promises";
 import {
   launchBrowser,
   closeBrowser,
   newPage,
+  waitForApp,
+  captureFailure,
 } from "../../../scripts/ci/browser-harness.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 const server = await preview("songalong", 4566);
@@ -53,6 +56,31 @@ try {
     };
   });
   await mkdir("/tmp/songalong-instrument-audio", { recursive: true });
+  // HTTP integrity and a valid FLAC header do not prove native codec support.
+  // Check every new committed recording in the actual browser, once per engine.
+  await page.goto(server.base);
+  await waitForApp(page);
+  const decoded = await page.evaluate(async () => {
+    const pack = await (await fetch("/offline-pack.json")).json();
+    const urls: string[] = pack.files.map((f: {url: string})=>f.url)
+      .filter((url: string)=>/\/acoustic-\d-\d+-(?:40|72|104)-/.test(url));
+    const context = new OfflineAudioContext(1,240,24000), started = performance.now();
+    let next = 0;
+    await Promise.all(Array.from({length:4},async()=>{
+      while(next<urls.length){
+        const url=urls[next++],response=await fetch(url);
+        if(!response.ok)throw Error(`Guitar recording unavailable: ${url}`);
+        let buffer: AudioBuffer;
+        try{buffer=await context.decodeAudioData(await response.arrayBuffer());}
+        catch(error){throw Error(`Guitar recording cannot decode: ${url}`,{cause:error});}
+        if(buffer.sampleRate!==24000 || buffer.duration<0.1 || buffer.duration>6.01 ||
+          !buffer.getChannelData(0).some(x=>Math.abs(x)>0.0001))throw Error(`Invalid decoded guitar recording: ${url}`);
+      }
+    }));
+    return {count:urls.length,elapsedMs:performance.now()-started};
+  });
+  assert.equal(decoded.count,guitarExtension.samples.length);
+  console.log(`Native guitar decoding: ${decoded.count} added recordings, ${decoded.elapsedMs.toFixed(0)}ms`);
   const signatures: number[] = [];
   for (const [id, arrangement] of [
     ["amazing-grace", "piano"],
@@ -68,6 +96,7 @@ try {
       server.base +
         `/piano/hymns/${id}?mode=playback&arrangement=${arrangement}&tempo=100&countIn=0`,
     );
+    await waitForApp(page, ".hymn-pause");
     await page.getByRole("button", { name: "Play", exact: true }).click();
     await page.waitForFunction(
       () => (window as any).instrumentProbe.notes.length >= 4,
@@ -170,6 +199,9 @@ try {
   }
   assert.notEqual(signatures[0], signatures[1]);
   assert.deepEqual(errors, []);
+} catch(error) {
+  await captureFailure(browser,error);
+  throw error;
 } finally {
   await closeBrowser(browser);
   server.stop();

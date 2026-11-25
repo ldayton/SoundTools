@@ -513,3 +513,16 @@ still waiting at the bar-number assertion when cancelled. The release branch
 was then rebased onto upstream `822e5f0`, which fixes optional bar-number behavior;
 its independently recorded full local CI passed. These observations retain the
 failure evidence without treating either cancelled run as a pass.
+
+## Score export CI budget (25 November 2026)
+
+The first full export validation retained in
+`/Users/lily/source/SoundTools-hebrew-fairest/work/ci-results/1795627157570-60633870`
+exceeded the budget (62.17 seconds including cleanup). All completed checks passed,
+including the new PDF export witness (15.8 seconds). Instrument-toolbar was
+cancelled during its score-view checks. Its score size, independent stave/chord
+visibility, reload persistence and chord-preview scheduling assertions now move
+intact to required `score-view.browser.ts` on a separate reviewed port. Instrument
+controls, real organ/choir checks and account migration remain in toolbar.
+All owners remain required in CI and both Nightly engines; no assertion, budget
+or lock was relaxed.

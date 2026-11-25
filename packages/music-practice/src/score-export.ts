@@ -40,7 +40,8 @@ export async function prepareScoreExport(source:ScoreExportSource,paper:ScorePap
   document.body.append(host);
   try {
     source.render(host,width);
-    const setup=host.querySelector(".hymn-score-setup")?.textContent?.match(/^Capo \d+/)?.[0];
+    const setup=[host.querySelector(".hymn-score-setup")?.textContent?.match(/^Capo \d+/)?.[0],
+      host.querySelector(".score-swing-trigger")?.textContent].filter(Boolean).join(" · ");
     const blocks:ExportBlock[]=[header(source,width,setup)];
     for(const original of host.querySelectorAll('svg')) {
       if(getComputedStyle(original).display==='none')continue;

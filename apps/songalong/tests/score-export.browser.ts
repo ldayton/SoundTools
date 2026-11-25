@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {build} from 'esbuild';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {expect} from '@playwright/test';
 import {PDFDocument} from 'pdf-lib';
@@ -55,6 +56,14 @@ try {
  await page.evaluate("Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false})");
  await page.getByRole('button',{name:'Save PDF',exact:true}).click();const download=page.waitForEvent('download');
  await page.getByRole('button',{name:'Mobile',exact:true}).click();assert.match((await download).suggestedFilename(),/-mobile\.pdf$/);
- assert.deepEqual(errors,[]);console.log('PASS: full-score desktop print, both PDF page sizes, native file-share payload and download fallback');
+ const component=await build({entryPoints:[new URL('../../../packages/music-practice/src/score-export.ts',import.meta.url).pathname],bundle:true,write:false,format:'iife',globalName:'ScoreExportTest',platform:'browser'});
+ await page.addScriptTag({content:component.outputFiles[0].text});
+ const metadata=await page.evaluate(`(async()=>{
+  const source={title:'Export fixture',credits:[],render(target){target.innerHTML='<div class="hymn-score-setup">Capo 5 · Sounding key: D major</div><div class="score-swing"><button class="score-swing-trigger">Swing</button></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100"><path d="M20 20h160v2H20z"/></svg>';}};
+  const result=await ScoreExportTest.prepareScoreExport(source,'desktop');
+  return {header:result.blocks[0].svg.textContent,blocks:result.blocks.length};
+ })()`);
+ assert.equal(metadata.blocks,2);assert.match(metadata.header,/Capo 5 · Swing/);assert(!metadata.header.includes('Sounding key'),'Export retains essential capo/feel without duplicate setup text');
+ assert.deepEqual(errors,[]);console.log('PASS: full-score desktop print, both PDF page sizes, native file-share payload, download fallback and essential musical metadata');
 } catch(error){await captureFailure(browser,error);throw error;}
 finally{await closeBrowser(browser);server.stop();}

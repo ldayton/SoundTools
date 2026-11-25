@@ -578,3 +578,8 @@ The bar-number view-preference witness moved intact from instrument-toolbar into
 the independent export/view-options command; its default, on/off and reload
 assertions have one CI/Nightly owner. Toolbar still owns instrument controls,
 preferences/migrations and responsive staff-spacing controls.
+
+`score-view.browser.ts` separately owns score size, independent stave/chord
+visibility, view-option reload and chord-preview scheduling. Those assertions
+were extracted intact from instrument-toolbar so independent required commands
+can overlap; they are not executed twice.

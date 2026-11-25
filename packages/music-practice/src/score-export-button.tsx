@@ -7,15 +7,32 @@ import {prepareScoreExport,printScore,scorePdf,saveScorePdf,type ScoreExportSour
 export function ScoreExportButton({source}:{source():ScoreExportSource|undefined}) {
   const mobile=useMediaQuery(MOBILE_SONGALONG_QUERY);
   const generation=useRef(0);
+  const preparedFor=useRef<ScoreExportSource|undefined>(undefined);
   useEffect(()=>()=>{generation.current++;},[]);
   const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [files,setFiles]=useState<Partial<Record<ScorePaper,File>>>({});
   async function prepare() {
-    const snapshot=source();if(!snapshot){setError('The score is not ready yet.');return;}
+    setOpen(true);setError('');
+    const snapshot=source();
+    if(!snapshot){generation.current++;preparedFor.current=undefined;setFiles({});setBusy(false);setError('The score is not ready yet.');return;}
+    const same=preparedFor.current===snapshot;
+    if(same && (busy || files.mobile && files.desktop))return;
+    const existing=same?files:{};
+    preparedFor.current=snapshot;
     const token=++generation.current;
-    setOpen(true);setBusy(true);setFiles({});setError('');
-    try {const mobile=await scorePdf(await prepareScoreExport(snapshot,'mobile'));const desktop=await scorePdf(await prepareScoreExport(snapshot,'desktop'));if(token===generation.current)setFiles({mobile,desktop});}
-    catch(e){if(token===generation.current)setError(e instanceof Error?e.message:'Could not prepare the PDF.');}finally{if(token===generation.current)setBusy(false);}
+    setBusy(true);if(!same)setFiles({});
+    try {
+      for(const paper of ['mobile','desktop'] as const) {
+        if(token!==generation.current)return;
+        if(existing[paper])continue;
+        const file=await scorePdf(await prepareScoreExport(snapshot,paper));
+        if(token!==generation.current)return;
+        setFiles(current=>({...current,[paper]:file}));
+        // Let the ready choice render before preparing the other size.
+        if(paper==='mobile')await new Promise<void>(resolve=>window.setTimeout(resolve,0));
+      }
+    } catch(e){if(token===generation.current)setError(e instanceof Error?e.message:'Could not prepare the PDF.');}
+    finally{if(token===generation.current)setBusy(false);}
   }
   function print() {
     const snapshot=source();if(!snapshot)return;
@@ -29,8 +46,8 @@ export function ScoreExportButton({source}:{source():ScoreExportSource|undefined
       <Popover.Target><Button variant="default" onClick={()=>{if(open)setOpen(false);else void prepare();}}>Save PDF</Button></Popover.Target>
       <Popover.Dropdown><Stack gap="xs">
         <Text size="sm">PDF size</Text>
-        <Button variant="default" disabled={!files.mobile} loading={busy} onClick={()=>void save('mobile')}>Mobile</Button>
-        <Button variant="default" disabled={!files.desktop} onClick={()=>void save('desktop')}>Desktop</Button>
+        <Button variant="default" disabled={!files.mobile} loading={busy && !files.mobile} onClick={()=>void save('mobile')}>Mobile</Button>
+        <Button variant="default" disabled={!files.desktop} loading={busy && !files.desktop} onClick={()=>void save('desktop')}>Desktop</Button>
         {error&&<Text size="sm" c="red" role="alert">{error}</Text>}
       </Stack></Popover.Dropdown>
     </Popover>:<Button variant="default" leftSection={<ControlIcon name="print" size={18}/>} loading={busy} onClick={print}>Print</Button>}

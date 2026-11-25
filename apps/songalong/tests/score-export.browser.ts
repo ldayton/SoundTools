@@ -2,13 +2,17 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {expect} from '@playwright/test';
-import {PDFDocument} from 'pdf-lib';
+import {PDFDocument,PDFRawStream,PDFName} from 'pdf-lib';
+import {createHash} from 'node:crypto';
 import {launchBrowser,newPage,waitForApp,captureFailure,closeBrowser,browserName} from '../../../scripts/ci/browser-harness.cjs';
 import {preview} from '../../../packages/music-practice/browser-tests/server';
 import {openPracticeOptions} from '../../../packages/music-practice/browser-tests/helpers';
 import {practiceHymn} from '../../../packages/music-practice/test-fixtures/hymns';
 const server=await preview('songalong',4627),browser=await launchBrowser();
 const output=`work/browser-results/score-export-${browserName()}`;await mkdir(output,{recursive:true});
+function imageHashes(pdf:PDFDocument) {
+ return pdf.context.enumerateIndirectObjects().flatMap(([,object])=>object instanceof PDFRawStream&&object.dict.get(PDFName.of('Subtype'))?.toString()==='/Image'?[createHash('sha256').update(object.getContents()).digest('hex')]:[]).sort();
+}
 try {
  const page=await newPage(browser,{viewport:{width:1440,height:1000}});
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
@@ -40,6 +44,7 @@ try {
   await expect(page.locator(".abcjs-bar-number")).toHaveCount(0);
  await page.evaluate(`Object.defineProperty(navigator,'canShare',{configurable:true,value:({files})=>files?.[0]?.type==='application/pdf'});
  Object.defineProperty(navigator,'share',{configurable:true,value:async ({files})=>{window.sharedPdf={name:files[0].name,bytes:Array.from(new Uint8Array(await files[0].arrayBuffer()))};}});`);
+ let originalMobileImages:string[]=[];
  for(const size of ['Mobile','Desktop']) {
   await page.getByRole('button',{name:'Save PDF',exact:true}).click();
   const save=page.getByRole('button',{name:size,exact:true});await expect(save).toBeEnabled();
@@ -49,9 +54,17 @@ try {
   const file=await page.evaluate(()=>{const result=(window as any).sharedPdf;delete (window as any).sharedPdf;return result;});
   assert.match(file.name,new RegExp(`-${size.toLowerCase()}\\.pdf$`));const bytes=Uint8Array.from(file.bytes as number[]);
   assert.equal(new TextDecoder().decode(bytes.slice(0,5)),'%PDF-');const pdf=await PDFDocument.load(bytes);
+  if(size==='Mobile')originalMobileImages=imageHashes(pdf);
   assert(pdf.getPageCount()>0);const width=pdf.getPage(0).getWidth();assert(size==='Mobile'?width<300:Math.abs(width-595.28)<1);
   await writeFile(`${output}/${size.toLowerCase()}.pdf`,bytes);
  }
+ // A changed score view invalidates prepared files, including their actual music images.
+ await numbers.check();await expect(page.locator('.abcjs-bar-number').first()).toBeVisible();
+ await page.getByRole('button',{name:'Save PDF',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Mobile',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Mobile',exact:true}).click();await page.waitForFunction(()=>!!(window as any).sharedPdf);
+ const changed=await page.evaluate(()=>{const result=(window as any).sharedPdf;delete (window as any).sharedPdf;return result;});
+ assert(originalMobileImages.length>0);assert.notDeepEqual(imageHashes(await PDFDocument.load(Uint8Array.from(changed.bytes as number[]))),originalMobileImages,'Changed bar-number view produces new score images, not a stale cached PDF');
  // Without native file sharing the same PDF is downloaded, not replaced with a link.
  await page.evaluate("Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false})");
  await page.getByRole('button',{name:'Save PDF',exact:true}).click();const download=page.waitForEvent('download');

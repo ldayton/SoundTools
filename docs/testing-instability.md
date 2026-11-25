@@ -546,3 +546,16 @@ stave/chord visibility, view reload and chord-preview assertions are now an
 independently required `score-view.browser.ts` command on reviewed port 4628.
 The toolbar still owns instruments, organ/choir, migrations and bar-number state.
 All assertions remain required in CI and both Nightly engines.
+
+## PDF preparation readiness (25 November 2026)
+
+[First hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45699224187)
+kept the Mobile PDF button disabled beyond the existing five-second assertion.
+The artifact is retained locally under `work/layout-audit/printing-hosted-failure`.
+The product waited for both PDF sizes before publishing either result and rebuilt
+both on every reopening. Each size now becomes usable independently, with an
+explicit browser-task yield between sizes; prepared files are reused for the
+same score snapshot and invalidated by score/view changes. The browser witness
+also changes bar numbers and compares embedded score-image hashes, independently
+of PDF creation timestamps, to reject stale cached exports. No timeout, retry or
+assertion was relaxed.

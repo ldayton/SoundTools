@@ -4,13 +4,15 @@ import {mkdir,readFile} from "node:fs/promises";
 import type {Page} from "playwright";
 import {launchBrowser,newPage,closeBrowser,captureFailure} from "../../../scripts/ci/browser-harness.cjs";
 import {preview} from "../browser-tests/server";
-import {openPracticeOptions,openHymnControls,dismissPracticeDrawer} from "../browser-tests/helpers";
+import {openPracticeOptions,openHymnControls,dismissPracticeDrawer,openHymnInstrumentChoices,closeHymnInstrumentChoices} from "../browser-tests/helpers";
 import hymns from "../src/hymns.json";
 
 export async function checkVocalEdition(page:Page, base:string, slug:string) {
   await page.goto(`${base}/piano/hymns/${slug}?arrangement=original&mode=playback`);
+  await openHymnInstrumentChoices(page);
   await expect(page.getByRole("radio",{name:"Piano",exact:true})).toBeChecked();
   await expect(page.getByRole("button",{name:"Voice",exact:true})).toHaveAttribute("aria-pressed","true");
+  await closeHymnInstrumentChoices(page);
   await expect(page.locator(".abcjs-note").first()).toBeVisible();
   await openPracticeOptions(page);
   await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
@@ -37,7 +39,9 @@ export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,
       page.on("pageerror",e=>errors.push(e.message));
       for(const [instrument,arrangement]of [["Piano","piano"],["Guitar","guitar-edition"]]){
         await page.goto(`${server.base}/piano/hymns/${slug}?arrangement=${arrangement}&mode=playback&stanzas=${stanzas.join(",")}`);
+        await openHymnInstrumentChoices(page);
         await expect(page.getByRole("radio",{name:instrument,exact:true})).toBeChecked();
+        await closeHymnInstrumentChoices(page);
         await expect(page.locator(".abcjs-note").first()).toBeVisible();
         await openHymnControls(page);
         await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
@@ -70,8 +74,10 @@ export async function standardEditionBrowser(slug:string,port:number,stanzas=[1,
       await dismissPracticeDrawer(page);
       if(width===1440||width===390)await page.screenshot({path:`work/song-support/screenshots/${slug}-voice-${width}.png`});
       // Switching primary instrument while Voice stays on selects Guitar + Voice.
+      await openHymnInstrumentChoices(page);
       await page.getByRole("radio",{name:"Guitar",exact:true}).click();
       await expect(page.getByRole("button",{name:"Voice",exact:true})).toHaveAttribute("aria-pressed","true");
+      await closeHymnInstrumentChoices(page);
       await expect(page.locator(".guitar-chord-trigger").first()).toBeVisible();
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
       if(width===1440||width===390)await page.screenshot({path:`work/song-support/screenshots/${slug}-guitar-voice-${width}.png`});

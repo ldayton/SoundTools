@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { planScoreLayout, scoreFrame } from "../src/score-layout/plan";
+import { planScoreLayout, scoreFrame, spacingBounds } from "../src/score-layout/plan";
 const SYSTEM_MIN_SPACING=1.1;
 const planScoreSystems=(bars: {width:number;duration:number;breakBefore?:boolean;phraseEnd?:boolean}[],capacity:number,barDuration:number)=>
   planScoreLayout([{startWidth:0,barDuration,bars:bars.map(bar=>({...bar,minimumWidth:bar.width*1.1,naturalWidth:bar.width*1.5}))}],capacity).sections[0].breaks;
@@ -84,4 +84,80 @@ test("invalid geometry fails explicitly instead of propagating NaN into SVGs", (
   for(const width of [0,-1,Infinity,NaN]) assert.throws(()=>planScoreLayout([],width),RangeError);
   assert.throws(()=>planScoreLayout([{startWidth:0,barDuration:1,bars:[{minimumWidth:10,naturalWidth:5,duration:1}]}],100),RangeError);
   assert.throws(()=>scoreFrame(100,0,{width:100,height:100},true),RangeError);
+});
+
+
+test("continuation systems reserve only their measured opening ink", () => {
+  const section={startWidth:80,startWidths:[80,10,10,10,10],barDuration:1,
+    bars:Array.from({length:5},()=>({minimumWidth:60,naturalWidth:80,duration:1}))};
+  const result=planScoreLayout([section],210).sections[0];
+  assert.deepEqual(result.breaks,[1]);
+  assert.equal(result.systems[0].minimumWidth,200);
+  assert.equal(result.systems[1].minimumWidth,190);
+  const changed={...section,startWidths:[80,10,70,10,10]};
+  assert(planScoreLayout([changed],210).sections[0].systems.every(system=>system.minimumWidth<=210));
+  assert.throws(()=>planScoreLayout([{...section,startWidths:[80]}],210),RangeError);
+});
+
+
+test("an overflowing bar range does not inflate every system header",()=>{
+  const section={startWidth:20,barDuration:1,bars:Array.from({length:6},(_,index)=>({minimumWidth:60,naturalWidth:80,duration:1,breakBefore:index===2}))};
+  const before=planScoreLayout([section],200).sections[0];
+  assert.deepEqual(before.breaks,[1,3]);
+  const constrained={...section,rangeMinimums:[{from:0,to:2,minimumWidth:220}]};
+  const after=planScoreLayout([constrained],200).sections[0];
+  assert(!after.systems.some(system=>system.from===0&&system.to===2));
+  assert(after.systems.some(system=>system.to-system.from===2&&system.minimumWidth===140),'Unaffected pairs keep their original width');
+  assert.deepEqual(planScoreLayout([section],200).sections[0],before,'Refinement does not mutate the input');
+  assert.throws(()=>planScoreLayout([{...section,rangeMinimums:[{from:2,to:1,minimumWidth:0}]}],200),RangeError);
+});
+
+
+test("fixed clearance does not scale up with long text or rhythmic width",()=>{
+  assert.deepEqual(spacingBounds(40,60),{minimumWidth:44,naturalWidth:60});
+  assert.deepEqual(spacingBounds(400,600),{minimumWidth:404,naturalWidth:600});
+  assert.deepEqual(spacingBounds(40,40),{minimumWidth:44,naturalWidth:44});
+  assert.throws(()=>spacingBounds(40,50,-1),RangeError);
+});
+
+
+test("measured pickup-pair overflow releases the pickup attachment without losing music",()=>{
+  const plan=planScoreLayout([{startWidth:10,barDuration:1,bars:[
+    {minimumWidth:40,naturalWidth:60,duration:.25},{minimumWidth:60,naturalWidth:80,duration:1}],
+    rangeMinimums:[{from:0,to:2,minimumWidth:220}]}],200);
+  assert.deepEqual(plan.sections[0].breaks,[0]);
+  assert.equal(plan.sections[0].systems.at(-1)?.to,2);
+});
+
+test("balanced line planning matches an independent exhaustive partition oracle",()=>{
+  // Enumerate every partition, rather than reusing the planner's recurrence.
+  for(let seed=1;seed<=24;seed++)for(const width of [180,260,340]) {
+    const bars=Array.from({length:6},(_,i)=>({minimumWidth:35+((seed*17+i*23)%45),naturalWidth:95+((seed*29+i*31)%65),duration:1}));
+    const starts=[65,12,12,35,12,12];
+    const score=(ends:number[])=>{
+      let from=0,total=0;
+      const strains:number[]=[];
+      for(let index=0;index<ends.length;index++) {
+        const to=ends[index],minimum=bars.slice(from,to).reduce((sum,bar)=>sum+bar.minimumWidth,0);
+        const natural=bars.slice(from,to).reduce((sum,bar)=>sum+bar.naturalWidth,0),capacity=width-starts[from];
+        if(minimum>capacity && to-from>1)return Infinity;
+        const compress=Math.max(0,natural-capacity)/Math.max(1,natural-minimum);
+        const expand=Math.max(0,capacity-natural)/Math.max(1,natural);
+        const strain=compress>0?-compress:expand,final=to===bars.length;
+        total+=1+compress*compress+Math.max(0,1-natural/Math.max(1,capacity))**2*(final?.7:6)
+          +(final&&from>0&&to-from===1?1.5:0);
+        if(index>0 && !(final&&strain>=0))total+=.5*(strains.at(-1)!-strain)**2;
+        strains.push(strain);from=to;
+      }
+      return total;
+    };
+    let best=Infinity;
+    for(let mask=0;mask<32;mask++) {
+      const ends=Array.from({length:5},(_,i)=>i+1).filter((_,i)=>mask&(1<<i));ends.push(6);
+      best=Math.min(best,score(ends));
+    }
+    const actual=planScoreLayout([{startWidth:65,startWidths:starts,barDuration:1,bars}],width).sections[0];
+    assert.equal(actual.systems.at(-1)?.to,6);
+    assert(Math.abs(score(actual.systems.map(system=>system.to))-best)<1e-8,`seed ${seed}, width ${width}`);
+  }
 });

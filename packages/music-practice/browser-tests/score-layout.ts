@@ -113,6 +113,54 @@ export async function checkScoreLayoutComponent(page: Page) {
   const padded=await page.evaluate(()=>window.ScoreLayoutFixture.measureLayoutQuality());
   assert(qualityViolations(padded).some(error=>error.includes('scroll height')),'Independent metrics detect injected wrapper whitespace');
   await page.locator('#layout-fixture').evaluate(element=>(element as HTMLElement).style.paddingTop='');
+  const opening=await page.evaluate(()=>{
+    const result=window.ScoreLayoutFixture.renderLayoutFixture(280,'headers');
+    return {audio:result.audio,plan:result.plan,diagnostics:result.diagnostics,lines:[...document.querySelectorAll<SVGSVGElement>('#layout-fixture svg')].map(svg=>({
+      clefs:svg.querySelectorAll('.abcjs-clef').length,keys:svg.querySelectorAll('.abcjs-key-signature').length,
+      x:svg.querySelector<SVGGraphicsElement>('.abcjs-note')!.getBBox().x,
+    }))};
+  });
+  assert(opening.plan?.sections.some(section=>section.systems.some(system=>system.naturalWidth>system.minimumWidth+1)),'Natural and compressed probes measure distinct widths');
+  assert(opening.lines.length>2 && opening.lines[0].clefs>0);
+  assert(opening.lines.slice(1).every(line=>line.clefs===0),'Unchanged clefs consume no continuation ink');
+  assert.equal(opening.lines.reduce((sum,line)=>sum+line.keys,0),2,'Initial signature and one genuine change print exactly once');
+  assert(opening.lines.slice(1).some(line=>line.keys>0),'A genuine key change survives reflow');
+  assert(opening.lines.slice(1).some(line=>line.keys===0&&line.x<opening.lines[0].x/2),'Continuation notes use the recovered header space');
+  const starts=opening.diagnostics.sections[0].startWidths!;
+  assert(starts[1]<starts[0]/2,'Measurements distinguish opening and unchanged continuation headers');
+  const wideOpening=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(800,'headers'));
+  assert.deepEqual(wideOpening.audio,opening.audio,'Header measurement preserves key changes and every sounding pitch');
+  await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'polyphony'));
+  const polyphony=await page.evaluate(()=>window.ScoreLayoutFixture.measureLayoutQuality());
+  assert.deepEqual(qualityViolations(polyphony),[],'Dense lower voices align with the sparse upper voice');
+  await page.locator('#layout-fixture .abcjs-note.abcjs-v1').first().evaluate(node=>node.setAttribute('transform','translate(20 0)'));
+  const misaligned=await page.evaluate(()=>window.ScoreLayoutFixture.measureLayoutQuality());
+  assert(qualityViolations(misaligned).some(error=>error.includes('simultaneous voices misaligned')),'Actual lower-voice displacement is detected independently of the planner');
+  await page.locator('#layout-fixture .abcjs-note.abcjs-v1').first().evaluate(node=>node.setAttribute('transform','translate(0 -150)'));
+  const overlapping=await page.evaluate(()=>window.ScoreLayoutFixture.measureLayoutQuality());
+  assert(qualityViolations(overlapping).some(error=>error.includes('collision between staves')),'Independent observer detects a lower-staff note intruding into the upper staff');
+  const sections=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'sections'));
+  assert.equal(sections.plan?.sections.length,2,'Separated music sections retain independent plans');
+  assert(sections.diagnostics.sections.every(section=>section.bars.some(bar=>bar.naturalWidth>bar.minimumWidth)),'Every section receives an unconstrained natural probe, including non-final sections');
+  const underlays=await page.evaluate(()=>['none','short','long','sparse'].map(underlay=>{
+    const result=window.ScoreLayoutFixture.renderLayoutFixture(1000,'underlay',1.25,{underlay:underlay as 'none'|'short'|'long'|'sparse'});
+    return {audio:result.audio,bars:result.diagnostics.sections[0].bars,quality:window.ScoreLayoutFixture.measureLayoutQuality()};
+  }));
+  underlays.slice(1).forEach(result=>assert.deepEqual(result.audio,underlays[0].audio,'Lyric clearance cannot alter the musical timeline'));
+  // Compare comfortable spacing, not the no-lyrics collision minimum: at
+  // that minimum even 'a' needs extra clearance. Allow one staff space for
+  // word/barline clearance, without multiplying every rhythmic gap.
+  assert(underlays[1].bars.every((bar,i)=>bar.naturalWidth<=underlays[0].bars[i].naturalWidth+7.75),'Short syllables do not inflate comfortable rhythmic spacing beyond barline clearance');
+  assert(underlays[2].bars.every((bar,i)=>bar.minimumWidth>underlays[1].bars[i].minimumWidth),'Long syllables contribute real collision constraints');
+  assert.deepEqual(qualityViolations(underlays[3].quality),[],'Sparse pointed-Hebrew melismas remain clear without padding every sung note');
+  await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'tab-symbols'));
+  assert.equal(await page.locator('.guitar-position').count(),1,'Simultaneous voices share one TAB position mark');
+  assert.equal(await page.locator('.guitar-fermata').count(),1,'Simultaneous fermatas are drawn once in TAB');
+  for(const width of [260,600]) {
+    await page.evaluate(width=>window.ScoreLayoutFixture.renderLayoutFixture(width,'repeat-numbers'),width);
+    const numbers=await page.locator('.abcjs-bar-number').allTextContents();
+    assert(numbers.includes('4') && !numbers.includes('5'),`Empty opening repeats cannot create an extra numbered measure: ${numbers}`);
+  }
   const hidden=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,"hidden-ink"));
   assert(hidden.frames.every(frame=>frame.height<600),"Invisible ink cannot restore a blank area above a system");
   const clipped=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,"clipped-ink"));

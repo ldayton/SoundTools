@@ -616,3 +616,38 @@ completed lanes passed. This remains budget evidence, not a passing run. A new
 required validation follows merging the independently committed export-bound
 fix from main; any passing result does not establish that this budget variance
 has been fixed. No coverage, resource lock, timeout or assertion was relaxed.
+
+
+## Source-guided layout review (26 November 2026)
+
+The first expanded edition checks found stale mobile instrument selectors after
+main's phone chooser change, not a music/layout failure. First evidence:
+`work/browser-results/amazing-grace-editions.browser.ts-chromium-2895f2e4` and
+`fairest-lord-jesus-editions.browser.ts-chromium-83e0aba6` (the latter includes the
+closed chooser in its accessibility snapshot). All affected edition assertions
+now open the chooser through the existing shared helper. Shared vocal/edition
+fixtures do the same and close it before score interaction. Instrument counts,
+voice state, music, clipping and fingering assertions remain in place.
+
+The first short-lyric property incorrectly compared with the *no-lyrics collision
+minimum*. Even a short syllable needs clearance at that minimum. Retained probe:
+`work/layout-audit/probe-underlay.mts`. The corrected contract compares natural
+spacing with at most one staff space of word/barline allowance; long lyrics must
+still increase minimum width, all underlays preserve audio, and sparse pointed
+Hebrew must pass independent geometry checks. This is a corrected test premise,
+not a retry or a relaxed product requirement.
+
+The expected piano/Hebrew visual differences are retained in
+`work/browser-results/score-layout-chromium-ZVthBH` and the final OS/browser
+candidate directories recorded in each changed reference's review provenance.
+Reviewed references retain the same pixel comparator and acceptance limits.
+
+The first complete edition groups retained additional failures at
+`work/ci-results/1795645739193-a564109c` (Chromium) and
+`1795645823757-b6daf8e3` (WebKit). Their first failing owners were fingerstyle,
+I'll Fly Away and In Christ Alone. Different line breaks exposed real shared
+adapter problems: abcjs's empty opening repeat token offset the printed final
+measure to 14 instead of 13; simultaneous notation voices could contribute
+identical TAB fermatas/position marks. The assertions remain unchanged. Generic
+wrapped-repeat and multi-voice TAB fixtures now reproduce the defects; fixes
+live in the shared score-markings/layout boundary and TAB presentation adapter.

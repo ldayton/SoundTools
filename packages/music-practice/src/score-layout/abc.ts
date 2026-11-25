@@ -1,9 +1,9 @@
 import {prepareScoreSvg,type ScorePresentation} from "./svg";
-import {isScoreSectionStart} from "../score-markings";
+import {isScoreSectionStart,correctWrappedBarNumbers} from "../score-markings";
 import abcjs, { type AbcVisualParams, type AbsoluteElement } from "abcjs";
-import { planScoreLayout, scoreFrame, SCORE_LAYOUT, type MeasuredBar, type MeasuredSection, type ScoreLayoutPlan } from "./plan";
+import { planScoreLayout, scoreFrame, spacingBounds, SCORE_LAYOUT, type MeasuredBar, type MeasuredSection, type ScoreLayoutPlan } from "./plan";
 
-type Metrics = MeasuredSection[];
+type Metrics = (Omit<MeasuredSection,"startWidths"> & {startWidths?:number[]})[];
 const cache = new Map<string, Metrics>();
 // abcjs 6.5 declares a flat array, but its parser requires one break array per section.
 export const sectionBreaks = (breaks: number[][]) => breaks as unknown as number[];
@@ -33,52 +33,82 @@ function measureAndPlan(
       const measure = (minimum: boolean): Metrics => {
         // Two real engraving passes distinguish collision-constrained width from
         // natural rhythmic spacing. All visible voices share abcjs's x alignment.
-        const tune = abcjs.renderAbc(probe, source, {
-          ...params, lineBreaks: sectionBreaks(Array.from({length:sections},()=>[])),
-          wrap: undefined, staffwidth: 1,
-          afterParsing: (tune, index, abc) => {
-            params.afterParsing?.(tune,index,abc);
-            tune.formatting.stretchlast = minimum ? 1 : 0;
-            return tune;
-          },
-        })[0];
         const result: Metrics = [];
-        for (const line of tune.lines) {
-          const voice = line.staff?.[0]?.voices?.[0];
-          if (!voice) continue;
-          const bars: MeasuredBar[] = [];
-          let duration = 0, breakBefore = false, lastRight = 0, left: number | undefined, previous: number | undefined;
-          for (const item of voice) {
-            const absolute = (item as typeof item & {abselem?:AbsoluteElement}).abselem;
-            if ((item.el_type === "note" || item.el_type === "bar") && absolute) {
-              left ??= absolute.x;
-              previous ??= absolute.x;
-              lastRight=Math.max(lastRight,absolute.x+absolute.w);
+        for(let sectionIndex=0;sectionIndex<sections;sectionIndex++) {
+          const tune = abcjs.renderAbc(probe, source, {
+            ...params, lineBreaks: sectionBreaks(Array.from({length:sections},()=>[])),
+            // A natural probe needs an unconstrained width. A one-unit target
+            // compresses even stretchlast=0, so it cannot measure natural space.
+            wrap: undefined, staffwidth: minimum ? 1 : 1000000,
+            afterParsing: (tune, index, abc) => {
+              params.afterParsing?.(tune,index,abc);
+              tune.formatting.stretchlast = minimum ? 1 : 0;
+              // abcjs only honours ragged-right on the last music line. Isolate
+              // each section so earlier sections are not justified to the probe.
+              const line=tune.lines.filter(line=>line.staff)[sectionIndex];
+              tune.lines=line?[line]:[];
+              return tune;
+            },
+          })[0];
+          for (const line of tune.lines) {
+            const voice = line.staff?.[0]?.voices?.[0];
+            if (!voice) continue;
+            const bars: MeasuredBar[] = [];
+            let duration = 0, breakBefore = false, lastRight = 0, left: number | undefined, previous: number | undefined;
+            for (const item of voice) {
+              const absolute = (item as typeof item & {abselem?:AbsoluteElement}).abselem;
+              if ((item.el_type === "note" || item.el_type === "bar") && absolute) {
+                left ??= absolute.x;
+                previous ??= absolute.x;
+                lastRight=Math.max(lastRight,absolute.x+absolute.w);
+              }
+              if (item.el_type === "part" || isScoreSectionStart(item)) breakBefore = true;
+              if (item.el_type === "note") duration += item.duration;
+              if (item.el_type === "bar" && absolute && previous !== undefined) {
+                const width=Math.max(0, absolute.x-previous)+(annotations && duration?SCORE_LAYOUT.annotationAllowance:0);
+                bars.push({minimumWidth:width,naturalWidth:width,duration,breakBefore,phraseEnd:item.type!=="bar_thin"});
+                duration=0;breakBefore=false;previous=absolute.x;
+              }
             }
-            if (item.el_type === "part" || isScoreSectionStart(item)) breakBefore = true;
-            if (item.el_type === "note") duration += item.duration;
-            if (item.el_type === "bar" && absolute && previous !== undefined) {
-              const width=Math.max(0, absolute.x-previous)+(annotations && duration?SCORE_LAYOUT.annotationAllowance:0);
-              bars.push({minimumWidth:width,naturalWidth:width,duration,breakBefore,phraseEnd:item.type!=="bar_thin"});
-              duration=0;breakBefore=false;previous=absolute.x;
+            if(duration>0 && previous!==undefined) {
+              const width=Math.max(0,lastRight-previous)+(annotations?SCORE_LAYOUT.annotationAllowance:0);
+              bars.push({minimumWidth:width,naturalWidth:width,duration,breakBefore,phraseEnd:true});
             }
+            if (bars.length) result.push({startWidth:left || 0,bars,barDuration:tune.getBarLength()});
           }
-          if(duration>0 && previous!==undefined) {
-            const width=Math.max(0,lastRight-previous)+(annotations?SCORE_LAYOUT.annotationAllowance:0);
-            bars.push({minimumWidth:width,naturalWidth:width,duration,breakBefore,phraseEnd:true});
-          }
-          if (bars.length) result.push({startWidth:left || 0,bars,barDuration:tune.getBarLength()});
         }
         return result;
       };
       const natural=measure(false), minimum=measure(true);
       metrics=natural.map((section,s)=>({...section,bars:section.bars.map((bar,b)=>{
         const min=Math.min(bar.minimumWidth,minimum[s]?.bars[b]?.minimumWidth??bar.minimumWidth);
-        // Keep a small collision margin. Stretch only the flexible difference,
-        // rather than multiplying clefs, text and all other fixed ink widths.
-        return {...bar,minimumWidth:min*SCORE_LAYOUT.minimumExpansion,
-          naturalWidth:Math.max(min*SCORE_LAYOUT.minimumExpansion,min+(bar.naturalWidth-min)*SCORE_LAYOUT.targetExpansion)};
+        return {...bar,...spacingBounds(min,bar.naturalWidth,bar.duration>0?SCORE_LAYOUT.minimumClearance:0)};
       })}));
+      // Ask the same renderer/preparation policy about every possible line
+      // opening. This captures omitted continuation signatures, changed keys,
+      // multiple staves and TAB headers without guessing glyph widths.
+      const headerTune=abcjs.renderAbc(probe, source, {
+        ...params, wrap:undefined, staffwidth:1,
+        lineBreaks:sectionBreaks(metrics.map(section=>section.bars.flatMap((bar,index)=>
+          bar.duration>0 && index<section.bars.length-1?[index]:[]))),
+      })[0];
+      metrics.forEach(section=>section.startWidths=section.bars.map(()=>section.startWidth));
+      let sectionIndex=0, barIndex=0;
+      for (const line of headerTune.lines) {
+        const voice=line.staff?.[0]?.voices?.[0], section=metrics[sectionIndex];
+        if(!voice || !section) continue;
+        let left:number|undefined, duration=0, count=0;
+        for(const item of voice) {
+          const absolute=(item as typeof item & {abselem?:AbsoluteElement}).abselem;
+          if(absolute && (item.el_type==="note" || item.el_type==="bar")) left??=absolute.x;
+          if(item.el_type==="note")duration+=item.duration;
+          if(item.el_type==="bar" && absolute && left!==undefined){count++;duration=0;}
+        }
+        if(duration>0)count++;
+        if(left!==undefined && count) section.startWidths![barIndex]=left;
+        barIndex+=count;
+        if(barIndex>=section.bars.length){sectionIndex++;barIndex=0;}
+      }
       if(cacheable) cache.set(key, metrics);
       if (cache.size > 32) cache.delete(cache.keys().next().value!);
     } finally { probe.remove(); }
@@ -95,7 +125,7 @@ export function prepareScoreLayoutSource(source: string, options: {staffScale?:n
   // the lyric adapter restores the exact display font after engraving.
   const vocalFont=(Math.ceil(16/staffScale)*3)/4*(options.melismas?1.25:1);
   return `%%barnumbers 1\n%%vocalfont sans-serif ${vocalFont}\n%%stretchlast 0\n`
-    +(options.compactStaves?"%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n":"")+source;
+    +(options.compactStaves?`%%staffsep 24\n%%sysstaffsep ${SCORE_LAYOUT.minimumStaffSeparation}\n%%musicspace 4\n`:"")+source;
 }
 
 export type ScoreLayoutMode = "reflow" | "wrap" | "rhythm";
@@ -119,10 +149,20 @@ export class AbcScoreLayout {
   private metrics?: Metrics;
   readonly params: AbcVisualParams;
   private paper?: HTMLElement;
+  private renderPasses=0;
+  /** Serializable developer/test report. Callers cannot mutate cached metrics. */
+  get diagnostics() {
+    return {renderPasses:this.renderPasses,sections:this.metrics?structuredClone(this.metrics):[]};
+  }
   constructor(readonly input: AbcScoreLayoutInput) {
     const {width,scale,mode,source}=input;
     const params:AbcVisualParams={...input.params,afterParsing:(tune,index,abc)=>{
+      if(mode==="reflow")correctWrappedBarNumbers(tune);
       input.params.afterParsing?.(tune,index,abc);
+      // Reduce only the minimum blank inter-staff gap. abcjs still expands
+      // around notes, lyrics and other engraved content. Explicit source
+      // spacing remains authoritative.
+      tune.formatting.sysstaffsep??=SCORE_LAYOUT.minimumStaffSeparation;
       // Padding is measurement-only and belongs to the shared layout contract.
       for(const line of tune.lines)for(const staff of line.staff||[])for(const voice of staff.voices||[])
         for(const item of voice)if(item.el_type==="note")for(const lyric of item.lyric||[])
@@ -146,16 +186,16 @@ export class AbcScoreLayout {
   }
   render(paper: HTMLElement) {
     let tune:ReturnType<typeof abcjs.renderAbc>[number];
-    const limit=this.metrics?.reduce((sum,section)=>sum+section.bars.length,0) || 1;
+    const limit=this.metrics?.reduce((sum,section)=>sum+section.bars.length*(section.bars.length-1)/2,0) || 1;
     for(let pass=0;;pass++) {
       tune=abcjs.renderAbc(paper,this.input.source,this.params)[0];
+      this.renderPasses=pass+1;
       if(!this.plan || !this.metrics || pass>=limit)break;
       // abcjs can add end-of-system lyric/barline glue after the probe's
       // collision pass. Reconcile its real minimum extent with the planner;
       // never shrink glyphs, trim ink or loosen the overflow assertion.
       const svgs=[...paper.querySelectorAll('svg')];let index=0,refined=false;
       this.plan.sections.forEach((section,s)=>{
-        let missing=0;
         for(const system of section.systems) {
           const svg=svgs[index++];if(!svg)continue;
           // oneSvgPerLine repeats the widest viewBox on every SVG. Read
@@ -163,10 +203,14 @@ export class AbcScoreLayout {
           const staffs=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')];
           const observed=staffs.length?Math.max(...staffs.map(staff=>{const box=staff.getBBox();return box.x+box.width-SCORE_LAYOUT.padding;})):0;
           const sounding=this.metrics![s].bars.slice(system.from,system.to).filter(bar=>bar.duration>0).length;
-          if(observed>this.plan!.width+.5 && sounding>1 && system.minimumWidth<=this.plan!.width)
-            missing=Math.max(missing,observed-system.minimumWidth);
+          if(observed>this.plan!.width+.5 && sounding>1 && system.minimumWidth<=this.plan!.width) {
+            // End glue belongs to this candidate range, not every line in its
+            // section. A range rejected once cannot be selected again.
+            this.metrics![s].rangeMinimums=[...(this.metrics![s].rangeMinimums||[]),
+              {from:system.from,to:system.to,minimumWidth:observed}];
+            refined=true;
+          }
         }
-        if(missing>0){this.metrics![s].startWidth+=missing;refined=true;}
       });
       if(!refined)break;
       this.plan.sections=planScoreLayout(this.metrics,this.plan.width).sections;

@@ -1,6 +1,6 @@
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import {checkVocalEdition} from "../../../packages/music-practice/test-fixtures/song-edition.browser";
-import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
+import { openHymnInstrumentChoices, selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -103,7 +103,8 @@ try {
     await checkScore(page);
     await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
-    await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
+    await openHymnInstrumentChoices(page);
+  await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeEnabled();
     await selectHymnInstrument(page, 'guitar');
     await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();

@@ -25,12 +25,21 @@ It is independent of song identities and application settings storage.
 
 ## Measurement and fitting
 
-Reflow uses two hidden engraving passes with identical visible staves, lyrics,
-chords, tablature and preparation callbacks: natural spacing and compressed
-collision-constrained spacing. The shared policy adds safety/annotation room and
-expresses preferred expansion through the flexible difference between those
-widths. Fixed system-start overhead is reserved separately. abcjs still owns
-within-system note alignment; this component does not replace its engraver.
+Reflow measures compressed collision width and natural rhythmic width separately.
+The natural probe is unconstrained and isolates each section: abcjs otherwise
+compresses an over-wide last line even with `stretchlast=0`, and justifies earlier
+sections to the supplied width. A cached opening probe breaks after each sounding
+bar and applies the same preparation callback, capturing actual continuation
+headers, changed signatures, multiple staves and tablature without guessing glyph
+widths. `startWidths` records the overhead at each possible system start.
+
+Collision clearance is a fixed four engraving units per sounding bar, rather
+than a percentage of every symbol and word. The natural target uses the renderer's
+actual natural spacing, without an additional blanket expansion multiplier.
+abcjs continues to own within-system note alignment and local text clearances;
+this component does not replace its engraver. Short-lyric tests compare comfortable
+spacing, permitting a staff space of word/barline clearance; a no-lyrics collision
+minimum is not enough room for readable lyric text.
 
 Measurements are cached independently of viewport width in a bounded 32-entry
 cache keyed by source, renderer parameters and semantic preparation context. A
@@ -46,11 +55,28 @@ fit-to-box behavior. Hidden ink and rectangular clipped-away source staves are e
 ink bounds. Those bounds are included before sizing both the SVG
 and abcjs's wrapper; stale aspect-ratio padding must not clip or add empty space.
 
-The current adapter reserves each section's measured start overhead on every
-system. This is conservative: more precise continuation-signature measurement
-and a post-engraving replan are future refinements. Overflow is reported and
-contained, not claimed to be impossible. Vertical collision-aware placement
-remains with abcjs and instrument/lyric geometry adapters.
+Final engraved staff extents can impose additional contextual minimum widths.
+Those constraints apply to the exact candidate bar range, rather than inflating
+all section headers. Each rejected multi-bar range is excluded from subsequent
+plans, bounding refinement by the number of possible multi-bar ranges. Private
+copies protect cached measurements. Pickup attachment checks also consult these
+constraints, so an impossible pair is allowed to split without losing music.
+
+The pure planner penalizes compression relative to the available flexibility and
+abrupt changes in density between adjacent justified systems. Naturally short
+final systems do not force their predecessors to match fictitious stretching.
+An exhaustive partition oracle checks global optimality on small synthetic inputs.
+
+The shared minimum inter-staff separation is 24 ABC points (32 engraving units).
+This reduces blank padding; abcjs still expands around engraved notes and lyrics,
+and explicit source spacing remains authoritative. This is a conservative native
+spacing improvement, not a replacement skyline placement engine. Full contour-
+based inter-staff positioning and a new within-measure text solver remain separate
+future work; no SVG coordinates or musical timing are rewritten to simulate them.
+
+`AbcScoreLayout.diagnostics` returns private-copy measurements, contextual range
+constraints and render-pass count. Visual failure reports retain this semantic
+geometry alongside images, making opening-width and replan regressions inspectable.
 
 ## Regression owners
 
@@ -58,8 +84,8 @@ remains with abcjs and instrument/lyric geometry adapters.
   packing, fixed overhead, mandatory boundaries, pickups/repeats/short endings,
   lossless coverage of bars, deterministic plans, explicit impossible fits and
   physical scale preservation. Automatically included in shared CI music units.
-- `packages/music-practice/browser-tests/score-layout.ts`, called by the existing
-  required SongAlong instrument-toolbar browser owner: independent piano,
+- `packages/music-practice/browser-tests/score-layout.ts`, called by the dedicated
+  required SongAlong `score-layout-contract.browser.ts` owner: independent piano,
   guitar-tab, pointed-Hebrew and dense-bar fixtures exercise the component directly
   without app state or a named product song. Checks real engraving, cache reuse,
   unchanged sound, width-dependent breaks and local overflow at unchanged scale.
@@ -121,11 +147,11 @@ Playwright downloads, not the differently patched browser preinstalled in the
 container image. Pixel capture uses the component directly and therefore has no
 stale app-build dependency; the bundle fingerprint is recorded in provenance.
 
-The adapter also verifies final engraved staff extents before presentation.
+The adapter verifies final engraved staff extents before presentation.
 abcjs can introduce system-end spacing after the compressed probe. When a
 multi-bar system genuinely exceeds the available width, its measured minimum
-refines the shared section overhead and the planner runs again. Refinement is
-bounded by the bar count, uses private copies of cached measurements and retains
+adds an exact-range minimum and the planner runs again. Refinement is
+bounded by the number of candidate multi-bar ranges, uses private copies of cached measurements and retains
 physical scale. It reads each staff's geometry, not abcjs's repeated maximum
 viewBox. Indivisible bars continue to report overflow instead of being shrunk.
 
@@ -139,3 +165,33 @@ tune attributions receive separate, quieter lines. Composer-name casing is
 preserved. The shared export browser witness checks actual header ink bounds,
 alignment, title separation and mobile wrapping with independent credit fixtures.
 Desktop Print uses the shared printer icon; mobile Save PDF remains text-only.
+
+
+## Source-guided regression expansion (26 November 2026)
+
+The component owner now includes header changes, separated sections, sparse upper
+voices against moving lower voices, short/long lyrics and pointed-Hebrew melismas.
+Observed rhythmic columns use the union of attacks from every visible voice,
+rather than only the first voice. Synthetic acceptance checks detect less than
+one staff space between distinct columns, more than 0.15 staff space of simultaneous
+anchor misalignment, and cross-staff ink overlap at shared horizontal positions.
+DOM mutations prove that a displaced lower voice and an intruding staff note are
+actually detected. Audio signatures remain invariant through reflow and lyric changes.
+
+Inline key/clef changes update the signature policy's effective end-of-system
+state, preventing the same change from being printed again at the next opening.
+Restoration of musical signatures remains required before audio generation.
+
+The reviewed synthetic comparison against `c9330609` showed a header-heavy phone
+example falling from six systems to four, pointed Hebrew from eight to seven, and
+a desktop piano example about 6% shorter at unchanged physical scale. These are
+fixture measurements, not a promised reduction for every score. The guitar
+references retained their existing geometry. No image tolerance was loosened.
+
+Reflow also normalizes abcjs's wrapped bar-number offset for empty opening
+repeats. The parser counts nonempty measures, while its wrapping stage counts
+all bar tokens; the adapter removes only that empty-bar offset. Synthetic and
+edition checks retain the correct final measure number across break changes.
+The TAB adapter coalesces identical position marks and fermatas from simultaneous
+notation voices at the same horizontal anchor, so a reflow cannot duplicate a
+shared symbol. Distinct symbols and positions are retained.

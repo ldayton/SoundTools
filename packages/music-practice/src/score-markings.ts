@@ -62,3 +62,28 @@ export function restoreSystemBarNumbers(tune:TuneObject,paper:HTMLElement) {
     svg.append(text);
   });
 }
+
+
+/** abcjs wrap_lines counts every bar token, including an empty opening repeat.
+ * Its parser only counts nonempty measures. Correct that wrapping-only offset
+ * before presentation callbacks, retaining numbering on every real measure. */
+export function correctWrappedBarNumbers(tune:TuneObject) {
+  let emptyBars=0;
+  for(const line of tune.lines) {
+    const staff=line.staff?.[0];if(!staff)continue;
+    const opening=staff as typeof staff & {barNumber?:number};
+    if(opening.barNumber!==undefined)opening.barNumber-=emptyBars;
+    const clef=staff.clef as (NonNullable<typeof staff.clef> & {barNumber?:number})|undefined;
+    if(clef?.barNumber!==undefined)staff.clef={...clef,barNumber:clef.barNumber-emptyBars} as typeof clef;
+    let duration=0;
+    for(const item of staff.voices?.[0]||[]) {
+      if(item.el_type==='note')duration+=item.duration;
+      if(item.el_type==='bar') {
+        if(duration===0)emptyBars++;
+        duration=0;
+        const bar=item as SectionItem;
+        if(bar.barNumber!==undefined)bar.barNumber-=emptyBars;
+      }
+    }
+  }
+}

@@ -4,7 +4,7 @@ export type LayoutQuality = {
   staffSpace: number;
   scrollHeight: number;
   viewportOverflow:number;
-  systems: {height:number;topBlank:number;bottomBlank:number;maxNoteGap:number;maxRhythmicGap:number;lyricCollisions:number;lyricCrowding:number;overflows:number}[];
+  systems: {height:number;topBlank:number;bottomBlank:number;maxNoteGap:number;maxRhythmicGap:number;minColumnGap:number;rhythmicColumns:number;staffCollisions:number;alignmentError:number;lyricCollisions:number;lyricCrowding:number;overflows:number}[];
 };
 export type QualityLimits = {maxBlank:number;maxRhythmicGap:number;maxSystemHeight:number;maxScrollOverhead:number};
 export const componentQualityLimits: Readonly<QualityLimits> = Object.freeze({
@@ -19,8 +19,11 @@ export function qualityViolations(quality: LayoutQuality, limits: QualityLimits=
   quality.systems.forEach((system,i)=>{
     if(Object.values(system).some(value=>!Number.isFinite(value))) errors.push(`System ${i}: invalid geometry`);
     if(system.topBlank>limits.maxBlank||system.bottomBlank>limits.maxBlank) errors.push(`System ${i}: blank vertical band`);
+    if(system.rhythmicColumns>1 && system.minColumnGap<1) errors.push(`System ${i}: cramped rhythmic columns`);
+    if(system.alignmentError>.15) errors.push(`System ${i}: simultaneous voices misaligned`);
     if(system.maxRhythmicGap>limits.maxRhythmicGap) errors.push(`System ${i}: excessive note spacing`);
     if(system.height>limits.maxSystemHeight) errors.push(`System ${i}: excessive system height`);
+    if(system.staffCollisions) errors.push(`System ${i}: collision between staves`);
     if(system.lyricCrowding) errors.push(`System ${i}: insufficient lyric separation`);
     if(system.lyricCollisions) errors.push(`System ${i}: lyric collision`);
     if(system.overflows) errors.push(`System ${i}: clipped ink`);

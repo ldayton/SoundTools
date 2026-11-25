@@ -37,7 +37,7 @@ try {
     const violations=qualityViolations(quality);
     const actual=await page.locator('#layout-fixture').screenshot({animations:'disabled'});
     await writeFile(path.join(output,`${fixture.id}.png`),actual);
-    const record:any={...fixture,imageSha256:createHash('sha256').update(actual).digest('hex'),quality,violations,systems:rendered.plan?.sections.map(section=>section.breaks)};
+    const record:any={...fixture,imageSha256:createHash('sha256').update(actual).digest('hex'),quality,violations,diagnostics:rendered.diagnostics,systems:rendered.plan?.sections.map(section=>section.breaks)};
     if(!candidates) {
       const expected=await readFile(new URL(`${fixture.id}.png`,baseline));
       assert.equal(createHash('sha256').update(expected).digest('hex'),approved.records.find((record:any)=>record.id===fixture.id).imageSha256,'Approved baseline integrity');

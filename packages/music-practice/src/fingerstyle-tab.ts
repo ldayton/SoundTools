@@ -161,13 +161,23 @@ export function showOnlyTab(paper: HTMLElement,lyricPadding=58) {
       chord.setAttribute('transform',`translate(0 ${tabBox.y-48-ink.y})`);
       svg.append(chord);
     }
+    // One TAB symbol represents a shared event across notation voices.
+    // abcjs can emit the same annotation in both voices at a system boundary.
+    svg.querySelectorAll('.guitar-position,.guitar-fermata').forEach(node=>node.remove());
+    const copied:{kind:string;text:string;x:number}[]=[];
+    const duplicate=(source:SVGGraphicsElement,kind:string)=>{
+      const text=source.textContent||source.getAttribute('data-name')||'',x=source.getBBox().x;
+      if(copied.some(mark=>mark.kind===kind&&mark.text===text&&Math.abs(mark.x-x)<.01))return true;
+      copied.push({kind,text,x});return false;
+    };
     for(const position of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-annotation')) {
-      if(!isGuitarPositionMark(position.textContent||''))continue;
+      if(!isGuitarPositionMark(position.textContent||'')||duplicate(position,'position'))continue;
       const copy=position.cloneNode(true) as SVGGraphicsElement,ink=position.getBBox();
       copy.classList.add('guitar-position');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-76-ink.y})`);svg.append(copy);
     }
     for(const source of svg.querySelectorAll<SVGGraphicsElement>('[data-name="scripts.ufermata"]')){
+      if(duplicate(source,'fermata'))continue;
       const copy=source.cloneNode(true) as SVGGraphicsElement,ink=source.getBBox();
       copy.classList.add('guitar-fermata');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-14-ink.y-ink.height})`);svg.append(copy);

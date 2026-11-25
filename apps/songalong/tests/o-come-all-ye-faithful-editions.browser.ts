@@ -218,7 +218,7 @@ try {
     await page.reload();
     await page.locator(".hymn-paper svg").first().waitFor();
     await openPracticeOptions(page);
-    await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
     await expectScoreDisplay(page,"tab");
     await dismissPracticeDrawer(page);
     if (width === 1440) {

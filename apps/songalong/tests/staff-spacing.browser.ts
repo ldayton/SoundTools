@@ -64,7 +64,7 @@ try {
   await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 393, height: 852 });
   await expect(
-    page.getByRole("button", { name: "Show controls", exact: true }),
+    page.getByRole("button", { name: "Expand playback options", exact: true }),
   ).toBeVisible();
   await open();
   await expect(field).toHaveValue("100 %");

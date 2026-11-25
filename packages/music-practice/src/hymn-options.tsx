@@ -65,14 +65,17 @@ const countIns = [
 
 export function HymnOptions({
   exportScore,
+  legacy,
   model,
   change,
 }: {
   model: HymnOptionsState;
+  legacy?: ReactNode;
   exportScore(): ScoreExportSource | undefined;
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, { getInitialValueInEffect: false });
   const editions = isInstrumentArrangement({id:state.hymn},state.arrangement);
   const profile=editions ? chordEdition({id:state.hymn}) : undefined;
   const selectedKey=state.key === state.originalKey ? "original" : state.key;
@@ -90,6 +93,10 @@ export function HymnOptions({
   }));
   return (
     <Stack className="soundtools-ui" gap="md">
+      {mobile && <Group justify="space-between" wrap="nowrap">
+        <Text size="sm">Tempo</Text>
+        <HymnModeAndTempo model={model} change={change} />
+      </Group>}
       {state.mode === "playback" && (
         <Group component="section" aria-label="Playback" justify="space-between" wrap="nowrap" gap={6}>
           <Text component="label" htmlFor="hymn-count-in" size="sm" style={{whiteSpace:"nowrap",flexShrink:0}}>Count-in</Text>
@@ -262,8 +269,14 @@ export function HymnOptions({
         </OptionsSection>
       )}
       <OptionsSection title="View options">
+        {mobile && <>
+          <Group justify="space-between" wrap="nowrap"><Text size="sm">Staff size</Text><HymnStaffSize model={model} change={change} /></Group>
+          <Group justify="space-between" wrap="nowrap"><Text size="sm">Staff spacing</Text><HymnStaffSpacing model={model} change={change} /></Group>
+          <HymnFingerings model={model} change={change} />
+        </>}
         <Checkbox label="Bar numbers" checked={state.barNumbers} onChange={event=>change({barNumbers:event.currentTarget.checked})} />
       </OptionsSection>
+      {mobile && legacy}
       <ScoreExportButton source={exportScore} />
       {editions ? (
         <>

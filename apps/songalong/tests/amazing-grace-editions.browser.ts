@@ -309,7 +309,7 @@ try {
     await selectScoreDisplay(page,"tab");
     await page.reload();
     await openPracticeOptions(page);
-    await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
     await expectScoreDisplay(page,"tab");
     await dismissPracticeDrawer(page);
     if (width === 1440) {

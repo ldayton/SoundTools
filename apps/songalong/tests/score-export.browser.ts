@@ -14,7 +14,7 @@ try {
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
  await page.context().addInitScript(()=>{window.print=()=>{document.body.dataset.printed='true';};});
  await page.goto(`${server.base}/piano/hymns/${practiceHymn.slug}?mode=playback`);
- await waitForApp(page,'.hymn-toolbar-instruments');await expect(page.locator('.hymn-paper svg').first()).toBeVisible();await openPracticeOptions(page);
+ await waitForApp(page, ".hymn-controls");await expect(page.locator('.hymn-paper svg').first()).toBeVisible();await openPracticeOptions(page);
  const popupPromise=page.waitForEvent('popup');await page.getByRole('button',{name:'Print',exact:true}).click();const popup=await popupPromise;
  await popup.waitForFunction(()=>document.body.dataset.printed==='true');
  await expect(popup.locator('section svg').first()).toBeVisible();

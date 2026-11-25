@@ -18,6 +18,7 @@ import { shellStatus } from "./shell-status";
 import { mountPracticeSurface } from "./practice-surfaces";
 import {
   HymnControls,
+  HymnLegacyControls,
   HymnPassageControls,
   hymnControlsState,
 } from "./hymn-controls";
@@ -167,6 +168,26 @@ export class SightReading {
   private arrangement: Arrangement = "melody";
   private scoreDisplay: "notation" | "tab" | "both" | "chords" = "both";
   private hands: HymnHands = "both";
+  private restoreOlderBookmark = () => {
+    const old = this.legacyBookmark;
+    if (
+      this.mode === "playback" ||
+      !persistence.writable ||
+      !old ||
+      old.key !== this.bookmarkKey() ||
+      !this.session ||
+      old.position > this.session.steps.length
+    )
+      return;
+    this.position = old.position;
+    this.paused = false;
+    this.legacyBookmark = undefined;
+    this.restorePending = false;
+    this.render();
+    this.save();
+    shellStatus.set({ notice: "" });
+  };
+
   private viewHands: HymnHands = "both";
   private mutedStaves: number[] = [];
   private hiddenStaves: number[] = [];
@@ -451,25 +472,7 @@ export class SightReading {
             this.render();
             this.save();
           },
-          restore: () => {
-            const old = this.legacyBookmark;
-            if (
-              this.mode === "playback" ||
-              !persistence.writable ||
-              !old ||
-              old.key !== this.bookmarkKey() ||
-              !this.session ||
-              old.position > this.session.steps.length
-            )
-              return;
-            this.position = old.position;
-            this.paused = false;
-            this.legacyBookmark = undefined;
-            this.restorePending = false;
-            this.render();
-            this.save();
-            shellStatus.set({ notice: "" });
-          },
+          restore: this.restoreOlderBookmark,
         }),
         passage: createElement(HymnPassageControls, {
           model: this.controls,
@@ -537,6 +540,7 @@ export class SightReading {
     registerPracticeOptions(
       element,
       createElement(HymnOptions, {
+        legacy: createElement(HymnLegacyControls, {model:this.controls,restore:this.restoreOlderBookmark,previous:()=>this.changeSection(this.section-1)}),
         model: this.options,
         exportScore: () => this.exportScore,
         change: (patch) => this.changeOptions(patch),

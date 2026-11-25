@@ -9,19 +9,19 @@ try {
   await page.evaluate(() => {
     (window as any).__soundtoolsStartup = { ready: false };
     setTimeout(() => {
-      document.body.innerHTML = `<div class="hymn-controls hymn-toolbar-mobile"><button aria-label="Show controls">Controls</button><div id="hymn-mobile-controls" hidden>Ready</div></div>`;
+      document.body.innerHTML = `<div class="hymn-controls hymn-toolbar-mobile">Playback</div><div class="practice-options" data-layout="mobile"><button id="practice-options-reopen" aria-label="Expand playback options" aria-expanded="false">Options</button><div id="practice-options-content" hidden>Ready</div></div>`;
       document.querySelector('button')!.onclick = () => {
-        document.getElementById('hymn-mobile-controls')!.hidden = false;
-        document.querySelector('button')!.setAttribute('aria-label', 'Hide controls');
+        document.getElementById('practice-options-content')!.hidden = false;
+        document.querySelector('button')!.setAttribute('aria-expanded', 'true');
       };
       (window as any).__soundtoolsStartup.ready = true;
     }, 100);
   });
   // Called before the toolbar exists: the helper must wait, then open it.
   await openHymnControls(page);
-  assert.equal(await page.locator('#hymn-mobile-controls').isVisible(), true);
+  assert.equal(await page.locator('#practice-options-content').isVisible(), true);
   await openHymnControls(page); // idempotent; never close an already-open drawer
-  assert.equal(await page.locator('#hymn-mobile-controls').isVisible(), true);
+  assert.equal(await page.locator('#practice-options-content').isVisible(), true);
   await page.setContent(`<div data-account-status="restoring" data-account-pending="1"></div><dialog open id="closing">Closing</dialog>
     <script>setTimeout(()=>{const e=document.querySelector('[data-account-status]');e.dataset.accountStatus='synced';e.dataset.accountPending='0';document.querySelector('dialog').remove()},100)</script>`);
   await waitForAccountIdle(page);

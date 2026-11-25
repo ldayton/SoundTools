@@ -57,13 +57,38 @@ try {
     await page.goto(
       `${server.base}/piano/hymns/${practiceHymn.slug}?mode=playback&arrangement=piano`,
     );
-    await waitForApp(page, ".hymn-toolbar-instruments");
+    await waitForApp(page, ".hymn-controls");
     await dismissPracticeDrawer(page);
     await expect(page.locator(".hymn-paper svg").first()).toBeVisible();
     const headers=await page.locator(".hymn-paper svg").evaluateAll(svgs=>svgs.map(svg=>({clefs:svg.querySelectorAll('.abcjs-clef').length,keys:svg.querySelectorAll('.abcjs-key-signature').length})));
     assert(headers.length>1,"Signature regression covers multiple reflowed systems");
     assert(headers[0].clefs>0,"Opening clefs remain visible");
     assert(headers.slice(1).every(header=>header.clefs===0&&header.keys===0),"Unchanged clefs and keys do not repeat after reflow");
+    if (width < 768) {
+      await expect(page.locator(".hymn-controls-toggle")).toHaveCount(0);
+      const primary=page.getByRole("group",{name:"Playback and sound",exact:true});
+      const primaryBox=await primary.boundingBox();
+      assert(primaryBox && Math.abs(primaryBox.x+primaryBox.width/2-width/2)<=1,"Main controls stay centered between the edge expanders");
+      const mainButtons=await primary.locator("button").evaluateAll(buttons=>buttons.map(button=>{const {width,height}=button.getBoundingClientRect();return {width,height};}));
+      assert.equal(mainButtons.length,4);
+      assert(mainButtons.every(box=>box.width===44 && box.height===44),"Playback and sound buttons share square finger-sized targets");
+      await expect(page.locator(".mantine-AppShell-header #hymn-tempo")).toHaveCount(0);
+      await openPracticeOptions(page);
+      const options=page.locator("#practice-options-content");
+      await expect(options.locator("#hymn-tempo")).toBeEnabled();
+      await expect(options.getByRole("checkbox", {name:"Show fingerings",exact:true})).toBeVisible();
+      await expect(options.locator("#hymn-size")).toBeVisible();
+      await expect(options.locator("#hymn-staff-spacing")).toBeVisible();
+      await options.locator("#hymn-tempo").fill("94");
+      await options.locator("#hymn-tempo").press("Enter");
+      await expect(options.locator("#hymn-tempo")).toHaveValue("94 BPM");
+      await dismissPracticeDrawer(page);
+      await openPracticeOptions(page);
+      await expect(options.locator("#hymn-tempo")).toHaveValue("94 BPM");
+      await dismissPracticeDrawer(page);
+    }
+    const picker=page.getByRole("button",{name:"Choose instrument",exact:true});
+    if(width<768){await expect(picker.locator("svg")).toHaveCount(1);await picker.click();}
     const group = page.getByRole("group", {
       name: "Instruments and voice",
       exact: true,
@@ -79,12 +104,12 @@ try {
       });
     await expect(piano).toHaveAttribute("aria-checked", "true");
     assert.equal(
-      await group.evaluate((el) => !!el.closest(".mantine-AppShell-header")),
+      await (width<768?picker:group).evaluate((el) => !!el.closest(".mantine-AppShell-header")),
       true,
     );
     await expect
       .poll(() =>
-        group.evaluate((el) => {
+        (width<768?picker:group).evaluate((el) => {
           const b = el.getBoundingClientRect();
           return (
             b.left >= 0 &&
@@ -114,7 +139,7 @@ try {
         boxes[1].right <= boxes[2].left + 1,
     );
     const keyboard=page.getByRole("button",{name:"On-screen piano",exact:true});
-    const toolbarGeometry=()=>page.locator(".hymn-toolbar-instruments,.hymn-go-start,.hymn-pause,.hymn-keyboard-toggle,.hymn-controls-toggle").evaluateAll(elements=>elements.filter(el=>el.getClientRects().length).map(el=>{
+    const toolbarGeometry=()=>page.locator(width<768?".hymn-instrument-picker,.hymn-go-start,.hymn-pause,#practice-options-reopen":".hymn-toolbar-instruments,.hymn-go-start,.hymn-pause,.hymn-keyboard-toggle").evaluateAll(elements=>elements.filter(el=>el.getClientRects().length).map(el=>{
       const {x,y,width,height}=el.getBoundingClientRect();return {x,y,width,height};
     }));
     if(width>=768){await expect(keyboard).toBeVisible();await expect(keyboard).toBeEnabled();}
@@ -136,7 +161,7 @@ try {
       await expect(keyboard).toHaveAttribute("aria-expanded","false");await checkToolbar();
     }
     await sung.click();
-    await expect(page.locator('[data-instrument="guitar"]')).toHaveAttribute("data-arrangement","guitar-vocal");
+    await expect(page.getByRole('radio',{name:'Guitar',exact:true})).toHaveAttribute("data-arrangement","guitar-vocal");
     await expect(page.locator(".hymn-paper svg").first().locator(".abcjs-clef")).toHaveCount(2);
     await checkToolbar();
     if(width>=768){
@@ -154,13 +179,15 @@ try {
     await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
     await expect(page.locator("#saved")).toHaveText("Saved on this device.");
     await page.reload();
-    await waitForApp(page, ".hymn-toolbar-instruments");
+    await waitForApp(page, ".hymn-controls");
+    if(width<768)await picker.click();
     await expect(sung).toHaveAttribute("aria-pressed", "true");
     // The saved instrument also survives navigating to a clean song link.
     await page.goto(
       `${server.base}/piano/hymns/${practiceHymn.slug}?mode=playback`,
     );
-    await waitForApp(page, ".hymn-toolbar-instruments");
+    await waitForApp(page, ".hymn-controls");
+    if(width<768)await picker.click();
     await expect(sung).toHaveAttribute("aria-pressed", "true");
     await openPracticeOptions(page);
     await page.getByRole("checkbox",{name:"Show Voice",exact:true}).uncheck();
@@ -177,7 +204,8 @@ try {
     await selectHymnInstrument(page, "piano");
     await selectHymnScore(page, "piano");
     await checkToolbar();
-    await expect(piano).toHaveAttribute("aria-checked", "true");
+    if(width<768)await expect(picker).toHaveAttribute("data-arrangement","piano");
+    else await expect(piano).toHaveAttribute("aria-checked", "true");
     await expect(page.locator("#hymn-arrangement")).toHaveCount(0);
     await dismissPracticeDrawer(page);
     await expect
@@ -190,8 +218,9 @@ try {
       fullPage: true,
     });
   }
+  await page.setViewportSize({width:1440,height:1000});
   await page.goto(server.base + "/piano/hymns/in-christ-alone?mode=playback");
-  await waitForApp(page, ".hymn-toolbar-instruments");
+  await waitForApp(page, ".hymn-controls");
   await expect(
     page.getByRole("button", { name: "Voice", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -288,7 +317,7 @@ try {
     }));
   },{slug:practiceHymn.slug});
   await migratedPage.goto(`${server.base}/piano/hymns/${practiceHymn.id}`);
-  await waitForApp(migratedPage,".hymn-toolbar-instruments");
+  await waitForApp(migratedPage, ".hymn-controls");
   await expect(migratedPage).toHaveURL(new RegExp(`/piano/hymns/${practiceHymn.slug}\\?`));
   await expect(migratedPage.locator("#hymn-tempo")).toHaveValue("93 BPM");
   await expect(migratedPage.locator(".hymn-favorite")).toHaveAttribute("aria-pressed","true");
@@ -311,7 +340,7 @@ try {
   assert.equal(stored.preferences[practiceHymn.slug],undefined);
   assert.equal(stored.favorites[practiceHymn.id],true);
   await migratedPage.reload();
-  await waitForApp(migratedPage,".hymn-toolbar-instruments");
+  await waitForApp(migratedPage, ".hymn-controls");
   await expect(migratedPage.locator("#hymn-tempo")).toHaveValue("94 BPM");
   await expect(migratedPage.locator(".hymn-favorite")).toHaveAttribute("aria-pressed","true");
   await migratedPage.close();

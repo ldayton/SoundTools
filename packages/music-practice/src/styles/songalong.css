@@ -221,21 +221,13 @@
 @media (max-width: 767px) {
   .songalong-header:has(.hymn-toolbar) .application-toolbar {
     display: grid;
-    grid-template-columns: 28px 36px minmax(76px, 1fr) 38px 38px;
-    grid-template-areas: "navigation volume playback controls options"
-      "instruments instruments instruments instruments instruments";
-    grid-template-rows: 44px 44px;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    justify-content:space-between;
+    grid-template-areas: "navigation primary options";
+    grid-template-rows: 52px;
     align-content: center;
     column-gap: 6px;
     row-gap: 0;
-  }
-  .songalong-header:has(.hymn-mobile-controls:not([hidden]))
-    .application-toolbar {
-    grid-template-areas:
-      "navigation volume playback controls options"
-      "instruments instruments instruments instruments instruments"
-      "settings settings settings settings settings";
-    grid-template-rows: 44px 44px 112px;
   }
   .songalong-header .application-toolbar-actions,
   .songalong-header-transport,
@@ -252,17 +244,34 @@
     grid-area: options;
     height: 44px;
   }
-  .hymn-toolbar-volume {
-    grid-area: volume;
+  .hymn-mobile-primary {
+    grid-area:primary;
+    justify-self:center;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:4px;
+    border-radius:13px;
+    background:#f0f3f1;
   }
-  .hymn-toolbar-instruments { grid-area: instruments; justify-self: center; }
+  .hymn-mobile-primary .hymn-toolbar-playback { display:flex; }
+  .hymn-mobile-primary button {
+    width:44px!important;
+    min-width:44px!important;
+    height:44px!important;
+    padding:0;
+    border:0;
+    border-radius:9px;
+    background:#fff;
+    color:#35463e;
+  }
+  .hymn-mobile-primary .hymn-pause { background:#0bb487; color:#fff; }
+  .hymn-mobile-primary .hymn-instrument-picker { color:#078568; }
+  .hymn-mobile-primary .hymn-instrument-picker svg { width:26px; height:26px; }
+  .songalong-header #practice-options-reopen { background:transparent; border:0; border-radius:9px; }
+  .songalong-header .hymn-stanza-indicator { display:none; }
   .hymn-toolbar-instruments button { width: 44px; min-width: 44px; height: 44px; }
   .hymn-toolbar-volume > button {
-    height: 44px;
-  }
-  .hymn-controls-toggle {
-    grid-area: controls;
-    width: 38px;
     height: 44px;
   }
   .hymn-toolbar-piano {
@@ -277,26 +286,6 @@
   }
   .hymn-toolbar-playback button {
     height: 44px;
-  }
-  .hymn-mobile-controls {
-    grid-area: settings;
-    box-sizing: border-box;
-    height: 112px;
-    overflow-y: auto;
-    padding-block: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .hymn-mobile-controls .hymn-toolbar-field {
-    display: flex;
-    flex: 0 0 44px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .hymn-mobile-controls .hymn-toolbar-field-label {
-    display: block;
   }
   .songalong-workspace:has(#exercise-content:not([hidden])) {
     padding-inline: 0;

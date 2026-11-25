@@ -1,4 +1,5 @@
 import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
+import { openHymnControls } from "../../../packages/music-practice/browser-tests/helpers";
 import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -23,12 +24,7 @@ try {
     exact: true,
   });
   async function mobileControls() {
-    await expect(page.locator(".hymn-controls-toggle")).toBeVisible();
-    const toggle = page.getByRole("button", {
-      name: "Show controls",
-      exact: true,
-    });
-    if (await toggle.isVisible()) await toggle.click();
+    await openHymnControls(page);
     await expect(size).toBeVisible();
   }
   async function change(value: number) {

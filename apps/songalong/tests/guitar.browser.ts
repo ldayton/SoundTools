@@ -1,3 +1,4 @@
+import {openHymnInstrumentChoices} from "../../../packages/music-practice/browser-tests/helpers";
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import {practiceHymn,selectSingleCapoPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
@@ -38,7 +39,7 @@ try {
       );
       await page.locator(".abcjs-tabNumber").first().waitFor();
       await openPracticeOptions(page);
-      await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+      await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
       await expect(page.locator("#hymn-key")).toHaveValue(/D major/);
       await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
       assert(
@@ -49,6 +50,7 @@ try {
       );
       await selectScoreDisplay(page,"chords");
       await expect(page.locator(".hymn-strum-pattern")).toBeVisible();
+      await openHymnInstrumentChoices(page);
       await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeEnabled();
       await selectHymnInstrument(page, 'piano');
@@ -64,8 +66,10 @@ try {
     // Shared four-score control contract, independent of a named edition.
     await page.goto(`${server.base}/piano/hymns/${practiceHymn.slug}?arrangement=piano&mode=playback`);
     await expect(page.locator(".hymn-paper svg").first()).toBeVisible();await dismissPracticeDrawer(page);
+    await openHymnInstrumentChoices(page);
     const voice=page.getByRole("button",{name:"Voice",exact:true}),guitar=page.getByRole("radio",{name:"Guitar",exact:true}),piano=page.getByRole("radio",{name:"Piano",exact:true});
     await voice.click();await expect(piano).toHaveAttribute("data-arrangement","original");
+    await openHymnInstrumentChoices(page);
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
     await expect(voice).toHaveAttribute("aria-pressed","true");await expect(piano).toHaveAttribute("aria-checked","false");
     await expect(page.locator(".hymn-paper svg").first().locator(".abcjs-clef")).toHaveCount(2);
@@ -81,11 +85,13 @@ try {
     await page.locator("#hymn-octave-up").click();
     await expect.poll(()=>new URL(page.url()).searchParams.get("octave")).toBe("0");
     await dismissPracticeDrawer(page);
+    await openHymnInstrumentChoices(page);
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
-    await page.reload();await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
+    await page.reload();await openHymnInstrumentChoices(page);await expect(guitar).toHaveAttribute("data-arrangement","guitar-vocal");
     await expect(voice).toHaveAttribute("aria-pressed","true");
     await piano.click();await expect(piano).toHaveAttribute("data-arrangement","original");
     await voice.click();await expect(piano).toHaveAttribute("data-arrangement","piano");
+    await openHymnInstrumentChoices(page);
     await guitar.click();await expect(guitar).toHaveAttribute("data-arrangement","guitar-edition");
     for(const arrangement of ["guitar-edition"]){
       await page.goto(`${server.base}/piano/hymns/${singleCapo.hymn.slug}?arrangement=${arrangement}&mode=playback&key=original&octave=0`);

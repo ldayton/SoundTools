@@ -1,21 +1,39 @@
+/* Group the scale identity and shape; keep the relative-key action secondary. */
 .scale-heading {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  text-align: left;
 }
+.scale-heading-text { min-width: 0; }
 .scale-heading h2 {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1.2;
   margin: 0;
   letter-spacing: -0.5px;
 }
-.scale-relative {
-  margin-top: 4px;
-  text-align: center;
+.scale-relative { flex: 0 0 auto; max-width: 42%; }
+.scale-heading .scale-relative-switch {
+  min-height: 36px;
+  max-width: 100%;
+  height: auto;
+  padding: 8px 11px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--mantine-color-violet-1, #e6e0f4);
+  background: var(--mantine-color-violet-0, #fcfaff);
+  border-radius: 7px;
 }
-.scale-key-navigation {
-  margin: 4px 0 12px;
-}
-.scale-pattern-caption {
-  flex: 1;
+.scale-heading .scale-relative-switch .mantine-Button-label { white-space: normal; line-height: 1.25; }
+.scale-key-navigation { margin: 4px 0 12px; }
+.scale-heading .scale-pattern-caption {
+  margin-top: 6px;
+  color: #626872;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
 }
 .scale-diagram {
   margin: auto;
@@ -138,7 +156,7 @@
 }
 @media (max-width: 600px) {
   .scale-heading h2 {
-    font-size: 23px;
+    font-size: 26px;
   }
 }
 
@@ -234,3 +252,9 @@
 .scale-omitted-tone { pointer-events: none; }
 .scale-omitted-tone circle { fill: white; stroke: #8b94a5; stroke-width: 2; stroke-dasharray: 3 3; }
 .scale-link-legend .scale-omitted-swatch { background: white; border: 2px dashed #8b94a5; box-sizing: border-box; }
+
+@media (max-width: 360px) {
+  .scale-heading { gap: 8px; }
+  .scale-heading h2 { font-size: 23px; }
+  .scale-heading .scale-relative-switch { padding-inline: 8px; font-size: 12px; }
+}

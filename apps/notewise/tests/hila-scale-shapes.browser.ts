@@ -16,7 +16,7 @@ try {
       "/guitar/scales?key=C&scale=major&labels=none",
   );
   await waitForApp(page, ".scale-diagram svg");
-  await expect(page.locator(".scale-pattern-caption")).toHaveText("E shape · 7th position");
+  await expect(page.locator(".scale-pattern-caption")).toHaveText("CAGED · E Shape");
   await openPracticeOptions(page);
   await expect(page.getByLabel("Shape set", { exact: true })).toHaveValue("standard");
   await expect(page.locator("#scale-pattern")).toHaveValue("1");
@@ -108,7 +108,7 @@ try {
     const names=(quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`);
     await expect(page.locator("#scale-pattern option")).toHaveText(["Fret range",...names]);
     await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
-    await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"A shape":"Am shape");
+    await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"CAGED · A Shape":"CAGED · Am Shape");
   }
   // Every popup must depict the exact chord outlined in the selected region.
   for(const quality of ['major','minor'] as const){
@@ -261,7 +261,7 @@ try {
   freshPhone.on("pageerror", e => errors.push(e.message));
   await freshPhone.goto(server.base + "/guitar/scales?key=C&scale=major");
   await waitForApp(freshPhone, ".scale-diagram svg");
-  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("E shape · 7th position");
+  await expect(freshPhone.locator(".scale-pattern-caption")).toHaveText("CAGED · E Shape");
   await openPracticeOptions(freshPhone);
   await expect(freshPhone.getByLabel("Shape set", {exact:true})).toHaveValue("standard");
   await expect(freshPhone.locator("#scale-pattern")).toHaveValue("1");

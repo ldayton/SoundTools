@@ -106,8 +106,11 @@ test("repeated hymn keys are omitted for engraving without losing changed keys o
   const staffs = tune.lines.flatMap((line) => line.staff || []);
   assert.equal(staffs.length, 4);
   const original = staffs.map((staff) => staff.key);
+  const clefs=staffs.map(staff=>staff.clef);
   const expected = abcjs.parseOnly(abc)[0].setUpAudio({ qpm: 60 });
   const restore = initialHymnSignatures(tune);
+  assert.equal(staffs[0].clef?.type,"treble");
+  assert(staffs.slice(1).every(staff=>staff.clef?.type==="none"));
   assert.equal(staffs[0].key?.accidentals?.length, 5);
   assert.equal(staffs[1].key?.accidentals?.length, 0);
   assert.equal(
@@ -117,6 +120,14 @@ test("repeated hymn keys are omitted for engraving without losing changed keys o
   );
   assert.equal(staffs[3].key?.accidentals?.length, 0);
   restore();
-  staffs.forEach((staff, i) => assert.equal(staff.key, original[i]));
+  staffs.forEach((staff, i) => {assert.equal(staff.key, original[i]);assert.equal(staff.clef,clefs[i]);});
   assert.deepEqual(tune.setUpAudio({ qpm: 60 }), expected);
 });
+
+ test("real clef changes remain visible while unchanged headers are omitted",()=>{
+  const tune=abcjs.parseOnly("X:1\nM:4/4\nL:1/4\nK:C clef=treble\nC D E F |\nC D E F |\nK:C clef=bass\nC, D, E, F, |\nC, D, E, F, |]\n")[0];
+  const staves=tune.lines.flatMap(line=>line.staff||[]),before=staves.map(staff=>staff.clef);
+  const restore=initialHymnSignatures(tune);
+  assert.deepEqual(staves.map(staff=>staff.clef?.type),["treble","none","bass","none"]);
+  restore();assert.deepEqual(staves.map(staff=>staff.clef),before);
+ });

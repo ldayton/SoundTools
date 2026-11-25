@@ -1050,7 +1050,7 @@ export class SightReading {
           !(this.arrangement === "original"),
         printedScore: this.arrangement === "original" || guitarVocal,
         guitarAccompaniment:guitarVocal && chordProfile ? {capo:guitarCapo!,positionFor:(pitch,chord,_transpose,group)=>capoChoice && !capoChoice.scoreSetting ? capoPosition(capoChoice,pitch,chord,chordProfile.capo+transposition.semitones-guitarCapo!,group) : chordProfile.position(pitch,chord,0)} : undefined,
-        initialSignatures: !reviewed,
+        initialSignatures: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: shapeTranspose,
         capoChoice,
@@ -1141,7 +1141,7 @@ export class SightReading {
             octaveNotation: !isGuitarArrangement(this.arrangement) &&
               !(this.arrangement === "original"),
             printedScore: this.arrangement === "original" || guitarVocal,
-            initialSignatures: !reviewed,
+            initialSignatures: true,
             reattackTies: this.reattackTies,
             lyrics: this.hands === "left" ? undefined : {
               hymn: this.hymn, selected: this.stanzas,

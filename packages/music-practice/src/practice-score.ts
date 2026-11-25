@@ -132,6 +132,7 @@ export function drawPracticeScore(
   const scale =
     (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1) * staffScale;
   const transpose = options.transpose ?? 0;
+  const initialSignatures=options.initialSignatures ?? !!options.fitHymnSystems;
   let restoreSignatures: (() => void) | undefined;
   const melismaSpace = options.lyrics && hymnLyricRows(options.lyrics).some(row => row.some(token => token.split(/\s+/).includes("_")));
   const source=prepareScoreLayoutSource(abc,{staffScale,melismas:!!melismaSpace,compactStaves:!!options.beginnerEdition});
@@ -161,7 +162,7 @@ export function drawPracticeScore(
 
     if (options.fingerstyleTab) preserveFingerstyleTab(tune, transpose, profile?.position);
     if (options.octaveNotation) applyHymnOttava(tune);
-    if (options.initialSignatures)
+    if (initialSignatures)
       restoreSignatures = initialHymnSignatures(tune);
     if (options.lyrics) compactHymnLyrics(tune);
     return tune;
@@ -173,7 +174,7 @@ export function drawPracticeScore(
     presentation: {compact:options.compact,octaveNotation:options.octaveNotation,lyrics:!!options.lyrics,
       tablature:!!(options.guitarTab||options.fingerstyleTab),beginner:!!options.beginnerEdition,
       view:chordsOnly?"chords":options.tabOnly?"tab":"notation"},
-    measurementContext: [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore, options.barNumbers,
+    measurementContext: [options.hiddenStaves, options.showChordSymbols, initialSignatures, options.octaveNotation, options.printedScore, options.barNumbers,
       options.hymnEdition, options.guitarSetup, options.capoChoice?.scoreSetting,
       options.capoChoice ? [...options.capoChoice.positions] : undefined],
     params: {
@@ -183,7 +184,6 @@ export function drawPracticeScore(
       : options.guitarTab
         ? [{ instrument: "guitar" }]
         : undefined,
-    initialClef: options.initialSignatures,
     visualTranspose: transpose,
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.

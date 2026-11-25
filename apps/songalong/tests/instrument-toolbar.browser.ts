@@ -62,6 +62,11 @@ try {
     );
     await waitForApp(page, ".hymn-toolbar-instruments");
     await dismissPracticeDrawer(page);
+    await expect(page.locator(".hymn-paper svg").first()).toBeVisible();
+    const headers=await page.locator(".hymn-paper svg").evaluateAll(svgs=>svgs.map(svg=>({clefs:svg.querySelectorAll('.abcjs-clef').length,keys:svg.querySelectorAll('.abcjs-key-signature').length})));
+    assert(headers.length>1,"Signature regression covers multiple reflowed systems");
+    assert(headers[0].clefs>0,"Opening clefs remain visible");
+    assert(headers.slice(1).every(header=>header.clefs===0&&header.keys===0),"Unchanged clefs and keys do not repeat after reflow");
     const group = page.getByRole("group", {
       name: "Instruments and voice",
       exact: true,

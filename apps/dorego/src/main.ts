@@ -507,17 +507,23 @@ update(true);
 if (preferences.state.selected !== 'breathSquares') void warmPiano();
 // Hiding alone does not pause healthy background audio. Freezing/navigation
 // does: preserve position and require an explicit Resume after restoration.
-window.addEventListener('blur', () => reference.stopAll());
+window.addEventListener('blur', () => {
+  invalidateAudioProbe();
+  reference.stopAll();
+});
 window.addEventListener('pagehide', () => {
   reference.stopAll();
   player.interrupt('page-hidden');
 });
 document.addEventListener('freeze', () => player.interrupt('page-hidden'));
 window.addEventListener('pageshow', () => {
+  invalidateAudioProbe();
+  diagnostics.event('page.restored', audioFailureDetails(undefined));
   player.reconcile();
   update(true);
 });
 document.addEventListener('resume', () => {
+  invalidateAudioProbe();
   player.reconcile();
   update(true);
 });

@@ -319,7 +319,7 @@ export function Builder({
               onChange={(event) => change({ startingChords: event.currentTarget.checked })}
             />
           </div>
-          <div hidden={isGlidePattern(spec.pattern)}>
+          <div hidden={isGlidePattern(spec.pattern) || spec.pattern === 'arpeggio'}>
             <Checkbox
               id="repeatTwice"
               label="Repeat each round twice"
@@ -327,7 +327,7 @@ export function Builder({
               onChange={(event) => change({ repeatTwice: event.currentTarget.checked })}
             />
           </div>
-          <Stack id="note-repeats" gap="xs" hidden={!supportsNoteRepeats(spec.pattern)}>
+          <Stack id="note-repeats" gap="xs" hidden={spec.pattern === 'arpeggio' || !supportsNoteRepeats(spec.pattern)}>
             <Text size="sm" fw={500}>
               Repeat notes
             </Text>

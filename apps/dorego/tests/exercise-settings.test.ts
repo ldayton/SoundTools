@@ -74,3 +74,15 @@ test('saved ranges stay within the note selector octaves without losing a valid 
     assert.equal(next.high - next.low, 12);
   }
 });
+
+test('Arpeggio & Scale disables removed repeat options on restore, shared links and edits only for that exercise', () => {
+  const repeats = {repeatTwice: true, repeatTurn: true, repeatHome: true};
+  for (const pattern of ['arpeggio', 'octaveArpeggio', 'pentatonic12', 'major'] as const) {
+    const saved = {...DEFAULT_SPEC, pattern, ...repeats};
+    for (const next of [restoreSpec(saved, '1'), validate(editSpec(saved, {})),
+      validate(editSpec({...saved, pattern: 'octaveArpeggio'}, {pattern}))]) {
+      for (const key of ['repeatTwice', 'repeatTurn', 'repeatHome'] as const)
+        assert.equal(next[key], pattern !== 'arpeggio', `${pattern}: ${key}`);
+    }
+  }
+});

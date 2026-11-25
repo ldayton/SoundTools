@@ -55,6 +55,11 @@ export function restoreSpec(input: unknown, glideShapeVersion: string | null): E
     glideShapeVersion !== '1'
   )
     saved.direction = 'both';
+  if (saved.pattern === 'arpeggio') {
+    saved.repeatTwice = false;
+    saved.repeatTurn = false;
+    saved.repeatHome = false;
+  }
   const spec = generateExercise(saved).spec;
   const high = Math.min(MAX_NOTE, Math.max(MIN_NOTE + exerciseSpan(spec), spec.high));
   const low = Math.max(MIN_NOTE, Math.min(spec.low, high - exerciseSpan(spec)));
@@ -99,6 +104,11 @@ export function editSpec(
     result.key = startingNote % 12;
     result.low = down ? startingNote - 12 : startingNote;
     result.high = down ? startingNote : startingNote + 12;
+  }
+  if (result.pattern === 'arpeggio') {
+    result.repeatTwice = false;
+    result.repeatTurn = false;
+    result.repeatHome = false;
   }
   result.gate = DEFAULT_SPEC.gate;
   result.noteBeats = DEFAULT_SPEC.noteBeats;

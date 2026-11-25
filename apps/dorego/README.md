@@ -158,7 +158,7 @@ All runtime dependency versions are pinned by `package-lock.json`. The app does 
 
 ### Generated exercises
 
-**Repeat each round twice** runs each note-based phrase twice in the same key without a rest or a second chord introduction. Returning phrases share one home note at the join, lasting a quarter note, then immediately begin the second pass. The final home note keeps its usual longer hold. Existing Repeats and Rest settings still apply between complete rounds. Arpeggio & Scale also supports repeating each highest/lowest turning note and each home-note return four times.
+**Repeat each round twice** runs supported note-based phrases twice in the same key without a rest or a second chord introduction. Returning phrases share one home note at the join, lasting a quarter note, then immediately begin the second pass. The final home note keeps its usual longer hold. Existing Repeats and Rest settings still apply between complete rounds. Arpeggio & Scale omits doubled rounds and note-repeat controls; previously saved values for these options are disabled when restored or edited. Other exercises retain their existing repeat controls.
 
 **Within each round** controls the phrase, with a small preview of its actual contour. Arpeggio & Scale, Octave Arpeggio, Five-Note Scale and both Pentatonic Threes sequences offer **Rising first** and **Falling first**; these phrases already return to their starting note. Glides offer **Up**, **Down** (eight beats each, no return), or **Up & back** (fourteen beats). Rossini has a fixed contour, so this control is hidden.
 

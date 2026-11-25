@@ -301,10 +301,12 @@ try {
     'Arpeggio & Scale (Rising first)'
   );
   await openMoreOptions(page);
-  assert.ok(
-    await page.locator('#note-repeats').isVisible(),
-    'Arpeggio & Scale exposes note repeats'
-  );
+  assert.ok(await page.locator('#note-repeats').isHidden(), 'Arpeggio & Scale omits note repeats');
+  assert.ok(await page.locator('#repeatTwice').isHidden(), 'Arpeggio & Scale omits doubled rounds');
+  await selectExercise(page, 'octaveArpeggio');
+  await openMoreOptions(page);
+  assert.ok(await page.locator('#note-repeats').isVisible());
+  assert.ok(await page.locator('#repeatTwice').isVisible());
   // Disabled counts reserve their real space on desktop and touch layouts.
   for (const width of [1280, 393]) {
     await page.setViewportSize({ width, height: 900 });

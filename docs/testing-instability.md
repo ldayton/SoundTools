@@ -575,3 +575,17 @@ chooser combinations, saved selections and unified options are now owned by
 `mobile-toolbar.browser.ts`. Both run the shared scenario with disjoint widths,
 remain required in CI and Nightly, and retain their assertions and independent
 port locks. No budget, timeout or retry policy changed.
+
+
+## Export-header floating-point bounds (25 November 2026)
+
+[First hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45700198741)
+was `score-export.browser.ts`'s one-pixel header-ink boundary, not a toolbar
+assertion. Artifact `failure-songalong-ci-chromium-core-1-of-1-attempt1`
+retains the trace and exported PDFs. The trace's metadata evaluation measured
+the italic supplemental credit at x=-1.0000211px on desktop and
+x=-1.0000343px on mobile. Both differ from the accepted -1px overhang by
+less than 0.00004px. The comparison now permits a 0.001px numerical epsilon
+around the same one-pixel boundary; title centering, credit alignment,
+separation, wrapping and all PDF assertions remain required and unchanged.
+No product typography, test retry, sleep or timeout changed.

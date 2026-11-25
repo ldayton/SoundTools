@@ -88,7 +88,10 @@ try {
  for(const layout of metadata.layouts) {
   const title=layout.lines[0],words=layout.lines.find(line=>line.text.startsWith('Words:'))!,music=layout.lines.find(line=>line.text.startsWith('Music:'))!,translation=layout.lines.find(line=>line.text.startsWith('Hebrew translation:'))!;
   assert(Math.abs(title.x+title.width/2-layout.width/2)<1,'Title is visually centered');
-  assert(layout.lines.every(line=>line.x>=-1&&line.x+line.width<=layout.width+1),'Header ink fits its page');
+  // Linux SVG bounds place italic overhang at -1.000034px rather than -1px.
+  // Preserve the one-pixel ink boundary while ignoring sub-millipixel rounding.
+  const epsilon=0.001;
+  assert(layout.lines.every(line=>line.x>=-1-epsilon&&line.x+line.width<=layout.width+1+epsilon),'Header ink fits its page');
   assert(words.y>title.y+title.height+5,'Credits have visible separation from the title');
   assert(words.x<1&&translation.x<1,'Words and translator are left-aligned');
   assert(layout.paper==='mobile'?music.x<1:music.x>layout.width/2,'Music credits align to the appropriate desktop/mobile column');

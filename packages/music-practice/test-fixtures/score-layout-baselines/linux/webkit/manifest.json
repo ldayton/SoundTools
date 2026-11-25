@@ -394,18 +394,22 @@
       "id": "guitar-phone",
       "kind": "guitar",
       "width": 320,
-      "imageSha256": "6ae609d4f7f9e0300e7d18a71a2724f9132717554b82baa55ec78123cbbc1e62",
+      "imageSha256": "aff115cfc0f0aa0705f8ee6fcd1bc09ebd89ec8af13815e62f1da2ae995d9464",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 202.4258064516129,
+        "scrollHeight": 177.5483870967742,
         "systems": [
           {
             "height": 24.954838709677418,
             "topBlank": 1.0322113037109375,
             "bottomBlank": 1.0322108114919355,
             "maxNoteGap": 5.508129032258063,
-            "maxRhythmicGap": 5.507814075100806,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.14409986174209,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.1440998617420925,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -415,7 +419,11 @@
             "topBlank": 1.032212386592742,
             "bottomBlank": 1.0322139616935484,
             "maxNoteGap": 6.242064516129032,
-            "maxRhythmicGap": 6.241663778981855,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.816649867314763,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.816649867314766,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -425,7 +433,11 @@
             "topBlank": 1.0322423135080645,
             "bottomBlank": 1.0322391633064516,
             "maxNoteGap": 6.244129032258066,
-            "maxRhythmicGap": 6.243855531754032,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.694839143698469,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.6948391436984735,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -435,47 +447,53 @@
             "topBlank": 1.0321887600806452,
             "bottomBlank": 1.0321887600806452,
             "maxNoteGap": 6.028387096774194,
-            "maxRhythmicGap": 6.02783675655242,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.7857840365238555,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.78578403652386,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 24.961290322580645,
-            "topBlank": 1.0322454637096774,
-            "bottomBlank": 1.0322454637096774,
-            "maxNoteGap": 11.874064516129032,
-            "maxRhythmicGap": 8.396783599231929,
+            "height": 25.911290322580644,
+            "topBlank": 1.0322076612903226,
+            "bottomBlank": 1.0322076612903226,
+            "maxNoteGap": 8.261161290322582,
+            "rhythmicColumns": 4,
+            "minColumnGap": 4.81893116494708,
+            "alignmentError": 0,
+            "maxRhythmicGap": 6.056878844629199,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 25.90967741935484,
-            "topBlank": 1.032195060483871,
-            "bottomBlank": 1.032195060483871,
-            "maxNoteGap": 11.543741935483869,
-            "maxRhythmicGap": 8.162633276799522,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 24.90967741935484,
+            "height": 24.911290322580644,
             "topBlank": 1.0322202620967742,
             "bottomBlank": 1.0322202620967742,
             "maxNoteGap": 6.820129032258067,
-            "maxRhythmicGap": 6.820277847782258,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.84719014070144,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.847190140701444,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
-            "height": 24.95806451612903,
-            "topBlank": 1.034274193548387,
-            "bottomBlank": 1.032258064516129,
+            "height": 24.956451612903226,
+            "topBlank": 1.0322076612903226,
+            "bottomBlank": 1.0322076612903226,
             "maxNoteGap": 0,
+            "rhythmicColumns": 1,
+            "minColumnGap": 0,
+            "alignmentError": 0,
             "maxRhythmicGap": 0,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -483,28 +501,113 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 1,
+        "sections": [
+          {
+            "startWidth": 86.5256875,
+            "bars": [
+              {
+                "minimumWidth": 136.9296875,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 136.234375,
+                "naturalWidth": 197.3306274847714,
+                "duration": 1,
+                "startInset": 27.625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 164.5625,
+                "naturalWidth": 201.1118774847714,
+                "duration": 1,
+                "startInset": 31.40625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 162.6875,
+                "naturalWidth": 198.2837524847714,
+                "duration": 1,
+                "startInset": 28.578125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 90.40625,
+                "naturalWidth": 149.515625,
+                "duration": 1,
+                "startInset": 29.515625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 94.140625,
+                "naturalWidth": 149.0390625,
+                "duration": 1,
+                "startInset": 29.0390625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 174.015625,
+                "naturalWidth": 198.59953311357822,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 52.359375,
+                "naturalWidth": 111.5325012423857,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              86.5256875,
+              65.676,
+              69.45725,
+              66.629125,
+              67.566625,
+              67.0900625,
+              64.7306875,
+              64.7306875
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           0,
           1,
           2,
           3,
-          4,
           5,
           6
         ]
       ],
       "review": {
-        "date": "2026-11-25",
-        "reason": "Broken TAB string lines around fret digits; ledger lines behind noteheads",
-        "source": "score-layout-webkit-sc53w7",
+        "date": "2026-11-26",
+        "reason": "Line headers replace the bar leading inset; two half-note bars share a phone system without changing glyph size, TAB clearance or lyrics",
+        "source": "work/browser-results/score-layout-webkit-svWn3K",
         "provenance": {
-          "bundleSha256": "365874bd800938401b3a5e3a762ae723362ff2f3738f151ef9afc7e8d3099ec2",
+          "bundleSha256": "1f4c0eb462f1578ac0906a42d9b3d793abaf230dc25a3300f3fea46578fecb79",
           "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
           "browser": "27.2",
           "platform": "linux",
-          "generated": "2026-11-25T21:16:22.027Z",
-          "commit": "20b6ee3e-plus-reviewed-ink-change"
+          "generated": "2026-11-25T22:44:23.202Z",
+          "commit": "7689ace-plus-leading-insets",
+          "sourceState": "explicit CI/private snapshot revision"
         }
       }
     },

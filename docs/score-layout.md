@@ -31,7 +31,8 @@ compresses an over-wide last line even with `stretchlast=0`, and justifies earli
 sections to the supplied width. A cached opening probe breaks after each sounding
 bar and applies the same preparation callback, capturing actual continuation
 headers, changed signatures, multiple staves and tablature without guessing glyph
-widths. `startWidths` records the overhead at each possible system start.
+widths. Each bar records its already-included leading inset; a new header replaces
+that inset instead of counting the same clearance twice. `startWidths` records the overhead at each possible system start.
 
 Collision clearance is a fixed four engraving units per sounding bar, rather
 than a percentage of every symbol and word. The natural target uses the renderer's
@@ -185,8 +186,8 @@ Restoration of musical signatures remains required before audio generation.
 The reviewed synthetic comparison against `c9330609` showed a header-heavy phone
 example falling from six systems to four, pointed Hebrew from eight to seven, and
 a desktop piano example about 6% shorter at unchanged physical scale. These are
-fixture measurements, not a promised reduction for every score. The guitar
-references retained their existing geometry. No image tolerance was loosened.
+fixture measurements, not a promised reduction for every score. Accounting for the leading inset also reduced the phone guitar example from
+eight systems to seven (about 12% less height); its desktop geometry stayed unchanged. No image tolerance was loosened.
 
 Reflow also normalizes abcjs's wrapped bar-number offset for empty opening
 repeats. The parser counts nonempty measures, while its wrapping stage counts

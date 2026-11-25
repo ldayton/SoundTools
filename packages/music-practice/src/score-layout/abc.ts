@@ -54,7 +54,7 @@ function measureAndPlan(
             const voice = line.staff?.[0]?.voices?.[0];
             if (!voice) continue;
             const bars: MeasuredBar[] = [];
-            let duration = 0, breakBefore = false, lastRight = 0, left: number | undefined, previous: number | undefined;
+            let duration = 0, breakBefore = false, lastRight = 0, left: number | undefined, previous: number | undefined, leading:number|undefined;
             for (const item of voice) {
               const absolute = (item as typeof item & {abselem?:AbsoluteElement}).abselem;
               if ((item.el_type === "note" || item.el_type === "bar") && absolute) {
@@ -63,16 +63,19 @@ function measureAndPlan(
                 lastRight=Math.max(lastRight,absolute.x+absolute.w);
               }
               if (item.el_type === "part" || isScoreSectionStart(item)) breakBefore = true;
-              if (item.el_type === "note") duration += item.duration;
+              if (item.el_type === "note") {
+                duration += item.duration;
+                if(absolute && previous!==undefined)leading??=Math.max(0,absolute.x-previous);
+              }
               if (item.el_type === "bar" && absolute && previous !== undefined) {
                 const width=Math.max(0, absolute.x-previous)+(annotations && duration?SCORE_LAYOUT.annotationAllowance:0);
-                bars.push({minimumWidth:width,naturalWidth:width,duration,breakBefore,phraseEnd:item.type!=="bar_thin"});
-                duration=0;breakBefore=false;previous=absolute.x;
+                bars.push({minimumWidth:width,naturalWidth:width,duration,startInset:leading??0,breakBefore,phraseEnd:item.type!=="bar_thin"});
+                duration=0;leading=undefined;breakBefore=false;previous=absolute.x;
               }
             }
             if(duration>0 && previous!==undefined) {
               const width=Math.max(0,lastRight-previous)+(annotations?SCORE_LAYOUT.annotationAllowance:0);
-              bars.push({minimumWidth:width,naturalWidth:width,duration,breakBefore,phraseEnd:true});
+              bars.push({minimumWidth:width,naturalWidth:width,duration,startInset:leading??0,breakBefore,phraseEnd:true});
             }
             if (bars.length) result.push({startWidth:left || 0,bars,barDuration:tune.getBarLength()});
           }
@@ -82,7 +85,7 @@ function measureAndPlan(
       const natural=measure(false), minimum=measure(true);
       metrics=natural.map((section,s)=>({...section,bars:section.bars.map((bar,b)=>{
         const min=Math.min(bar.minimumWidth,minimum[s]?.bars[b]?.minimumWidth??bar.minimumWidth);
-        return {...bar,...spacingBounds(min,bar.naturalWidth,bar.duration>0?SCORE_LAYOUT.minimumClearance:0)};
+        return {...bar,startInset:minimum[s]?.bars[b]?.startInset??0,...spacingBounds(min,bar.naturalWidth,bar.duration>0?SCORE_LAYOUT.minimumClearance:0)};
       })}));
       // Ask the same renderer/preparation policy about every possible line
       // opening. This captures omitted continuation signatures, changed keys,

@@ -412,7 +412,11 @@
             "topBlank": 1.032338394657258,
             "bottomBlank": 1.032254914314516,
             "maxNoteGap": 5.470967741935484,
-            "maxRhythmicGap": 5.470948840725806,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.133981124268809,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.161271346513498,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -422,7 +426,11 @@
             "topBlank": 1.0324187247983871,
             "bottomBlank": 1.0322517641129032,
             "maxNoteGap": 6.218322580645161,
-            "maxRhythmicGap": 6.218023878528226,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.80476622291895,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.804766222918953,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -432,7 +440,11 @@
             "topBlank": 1.0322738155241935,
             "bottomBlank": 1.0322013608870968,
             "maxNoteGap": 6.244129032258064,
-            "maxRhythmicGap": 6.243548387096774,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.6754528054990026,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.675452805499005,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -442,7 +454,11 @@
             "topBlank": 1.032062752016129,
             "bottomBlank": 1.032195060483871,
             "maxNoteGap": 6.030451612903226,
-            "maxRhythmicGap": 6.030595545614919,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.7721763836250775,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.77217638362508,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -452,7 +468,11 @@
             "topBlank": 1.0322958669354838,
             "bottomBlank": 1.0322454637096774,
             "maxNoteGap": 11.89367741935484,
-            "maxRhythmicGap": 8.410327810404613,
+            "rhythmicColumns": 2,
+            "minColumnGap": 11.480388658148822,
+            "alignmentError": 0,
+            "maxRhythmicGap": 8.11786067083416,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -462,7 +482,11 @@
             "topBlank": 1.032195060483871,
             "bottomBlank": 1.0322076612903226,
             "maxNoteGap": 11.564387096774194,
-            "maxRhythmicGap": 8.177366431534638,
+            "rhythmicColumns": 2,
+            "minColumnGap": 11.51222004161792,
+            "alignmentError": 0,
+            "maxRhythmicGap": 8.140368857939709,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -472,7 +496,11 @@
             "topBlank": 1.0324092741935484,
             "bottomBlank": 1.0322454637096774,
             "maxNoteGap": 6.799483870967743,
-            "maxRhythmicGap": 6.7999574722782254,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.79510188520171,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.870925421350198,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -482,7 +510,11 @@
             "topBlank": 1.0321824596774194,
             "bottomBlank": 1.0322076612903226,
             "maxNoteGap": 0,
+            "rhythmicColumns": 1,
+            "minColumnGap": 0,
+            "alignmentError": 0,
             "maxRhythmicGap": 0,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -490,6 +522,98 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 2,
+        "sections": [
+          {
+            "startWidth": 86.846,
+            "bars": [
+              {
+                "minimumWidth": 139,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 138,
+                "naturalWidth": 197.7056274847714,
+                "duration": 1,
+                "startInset": 28,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 167,
+                "naturalWidth": 201.7056274847714,
+                "duration": 1,
+                "startInset": 32,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 165,
+                "naturalWidth": 198.7056274847714,
+                "duration": 1,
+                "startInset": 29,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 92,
+                "naturalWidth": 150,
+                "duration": 1,
+                "startInset": 30,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 96,
+                "naturalWidth": 149.5,
+                "duration": 1,
+                "startInset": 29.5,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 177,
+                "naturalWidth": 200.85281374238548,
+                "duration": 1,
+                "startInset": 27,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 53,
+                "naturalWidth": 111.8528137423857,
+                "duration": 1,
+                "startInset": 27,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              86.846,
+              66.051,
+              70.051,
+              67.051,
+              68.051,
+              67.551,
+              65.051,
+              65.051
+            ],
+            "rangeMinimums": [
+              {
+                "from": 4,
+                "to": 6,
+                "minimumWidth": 232.88999938964844
+              }
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           0,
@@ -502,16 +626,17 @@
         ]
       ],
       "review": {
-        "date": "2026-11-25",
-        "reason": "Broken TAB string lines around fret digits; ledger lines behind noteheads",
-        "source": "score-layout-chromium-Jk7yC7",
+        "date": "2026-11-26",
+        "reason": "Line headers replace the bar leading inset; two half-note bars share a phone system without changing glyph size, TAB clearance or lyrics",
+        "source": "work/browser-results/score-layout-chromium-cds8BE",
         "provenance": {
-          "bundleSha256": "365874bd800938401b3a5e3a762ae723362ff2f3738f151ef9afc7e8d3099ec2",
+          "bundleSha256": "1f4c0eb462f1578ac0906a42d9b3d793abaf230dc25a3300f3fea46578fecb79",
           "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
           "browser": "156.0.8078.4",
           "platform": "linux",
-          "generated": "2026-11-25T21:16:20.036Z",
-          "commit": "20b6ee3e-plus-reviewed-ink-change"
+          "generated": "2026-11-25T22:44:21.774Z",
+          "commit": "7689ace-plus-leading-insets",
+          "sourceState": "explicit CI/private snapshot revision"
         }
       }
     },

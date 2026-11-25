@@ -394,18 +394,22 @@
       "id": "guitar-phone",
       "kind": "guitar",
       "width": 320,
-      "imageSha256": "266bb2612de6e25f80f0038cd3231e53fed5f8651aae34b8cb4fff6b32a0464e",
+      "imageSha256": "3872e3744403cd8a062891063dc75a8a28ca4739c4c465002a91206c3415521c",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
-        "scrollHeight": 202.4258064516129,
+        "scrollHeight": 177.5483870967742,
         "systems": [
           {
             "height": 24.954838709677418,
             "topBlank": 1.032338394657258,
             "bottomBlank": 1.032254914314516,
             "maxNoteGap": 5.509161290322581,
-            "maxRhythmicGap": 5.509014301915323,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.144313747569933,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.144313747569935,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -415,7 +419,11 @@
             "topBlank": 1.0324187247983871,
             "bottomBlank": 1.0322517641129032,
             "maxNoteGap": 6.244129032258066,
-            "maxRhythmicGap": 6.243346774193548,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.816862913278966,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.81686291327897,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -425,7 +433,11 @@
             "topBlank": 1.0322738155241935,
             "bottomBlank": 1.0322013608870968,
             "maxNoteGap": 6.243096774193547,
-            "maxRhythmicGap": 6.243549174647177,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.694604946763036,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.694604946763036,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -435,37 +447,39 @@
             "topBlank": 1.032062752016129,
             "bottomBlank": 1.032195060483871,
             "maxNoteGap": 6.02941935483871,
-            "maxRhythmicGap": 6.028983429939516,
-            "lyricCollisions": 0,
-            "lyricCrowding": 0,
-            "overflows": 0
-          },
-          {
-            "height": 24.95967741935484,
-            "topBlank": 1.0322958669354838,
-            "bottomBlank": 1.0322454637096774,
-            "maxNoteGap": 11.87509677419355,
-            "maxRhythmicGap": 8.397097959251129,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.785784377588956,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.785784377588956,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
             "height": 25.90967741935484,
-            "topBlank": 1.032195060483871,
-            "bottomBlank": 1.0322076612903226,
-            "maxNoteGap": 11.543741935483872,
-            "maxRhythmicGap": 8.162425281286374,
+            "topBlank": 1.0322643649193548,
+            "bottomBlank": 1.032195060483871,
+            "maxNoteGap": 8.26116129032258,
+            "rhythmicColumns": 4,
+            "minColumnGap": 4.818897755316609,
+            "alignmentError": 0,
+            "maxRhythmicGap": 6.056836852312422,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
           },
           {
             "height": 24.90967741935484,
-            "topBlank": 1.0324092741935484,
-            "bottomBlank": 1.0322454637096774,
+            "topBlank": 1.0322706653225806,
+            "bottomBlank": 1.032195060483871,
             "maxNoteGap": 6.819096774193548,
-            "maxRhythmicGap": 6.818989415322581,
+            "rhythmicColumns": 4,
+            "minColumnGap": 5.847053704068365,
+            "alignmentError": 0,
+            "maxRhythmicGap": 5.847053704068367,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -475,7 +489,11 @@
             "topBlank": 1.0321824596774194,
             "bottomBlank": 1.0322076612903226,
             "maxNoteGap": 0,
+            "rhythmicColumns": 1,
+            "minColumnGap": 0,
+            "alignmentError": 0,
             "maxRhythmicGap": 0,
+            "staffCollisions": 0,
             "lyricCollisions": 0,
             "lyricCrowding": 0,
             "overflows": 0
@@ -483,28 +501,113 @@
         ]
       },
       "violations": [],
+      "diagnostics": {
+        "renderPasses": 1,
+        "sections": [
+          {
+            "startWidth": 86.5256875,
+            "bars": [
+              {
+                "minimumWidth": 136.9296875,
+                "naturalWidth": 169.7056274847714,
+                "duration": 1,
+                "startInset": 0,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 136.234375,
+                "naturalWidth": 197.3306274847714,
+                "duration": 1,
+                "startInset": 27.625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 164.5625,
+                "naturalWidth": 201.1118774847714,
+                "duration": 1,
+                "startInset": 31.40625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 162.6875,
+                "naturalWidth": 198.2837524847714,
+                "duration": 1,
+                "startInset": 28.578125,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 90.40625,
+                "naturalWidth": 149.515625,
+                "duration": 1,
+                "startInset": 29.515625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 94.140625,
+                "naturalWidth": 149.0390625,
+                "duration": 1,
+                "startInset": 29.0390625,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 174.015625,
+                "naturalWidth": 198.59953311357822,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": false
+              },
+              {
+                "minimumWidth": 52.359375,
+                "naturalWidth": 111.5325012423857,
+                "duration": 1,
+                "startInset": 26.6796875,
+                "breakBefore": false,
+                "phraseEnd": true
+              }
+            ],
+            "barDuration": 1,
+            "startWidths": [
+              86.5256875,
+              65.676,
+              69.45725,
+              66.629125,
+              67.566625,
+              67.0900625,
+              64.7306875,
+              64.7306875
+            ]
+          }
+        ]
+      },
       "systems": [
         [
           0,
           1,
           2,
           3,
-          4,
           5,
           6
         ]
       ],
       "review": {
-        "date": "2026-11-25",
-        "reason": "Broken TAB string lines around fret digits; ledger lines behind noteheads",
-        "source": "score-layout-chromium-JcxyVm",
+        "date": "2026-11-26",
+        "reason": "Line headers replace the bar leading inset; two half-note bars share a phone system without changing glyph size, TAB clearance or lyrics",
+        "source": "work/browser-results/score-layout-chromium-CAPV7s",
         "provenance": {
-          "bundleSha256": "365874bd800938401b3a5e3a762ae723362ff2f3738f151ef9afc7e8d3099ec2",
+          "bundleSha256": "1f4c0eb462f1578ac0906a42d9b3d793abaf230dc25a3300f3fea46578fecb79",
           "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
           "browser": "156.0.8078.4",
           "platform": "darwin",
-          "generated": "2026-11-25T21:14:20.370Z",
-          "commit": "20b6ee3e46664922e67a8c32cc1378d1166cd6ac"
+          "generated": "2026-11-25T22:42:36.283Z",
+          "commit": "7689ace3da111313dbd74ea48603f2dc6aadd0a6",
+          "sourceState": "dirty"
         }
       }
     },

@@ -132,14 +132,14 @@ test("measured pickup-pair overflow releases the pickup attachment without losin
 test("balanced line planning matches an independent exhaustive partition oracle",()=>{
   // Enumerate every partition, rather than reusing the planner's recurrence.
   for(let seed=1;seed<=24;seed++)for(const width of [180,260,340]) {
-    const bars=Array.from({length:6},(_,i)=>({minimumWidth:35+((seed*17+i*23)%45),naturalWidth:95+((seed*29+i*31)%65),duration:1}));
+    const bars=Array.from({length:6},(_,i)=>({minimumWidth:35+((seed*17+i*23)%45),naturalWidth:95+((seed*29+i*31)%65),duration:1,startInset:i===0?0:(seed+i)%15}));
     const starts=[65,12,12,35,12,12];
     const score=(ends:number[])=>{
       let from=0,total=0;
       const strains:number[]=[];
       for(let index=0;index<ends.length;index++) {
         const to=ends[index],minimum=bars.slice(from,to).reduce((sum,bar)=>sum+bar.minimumWidth,0);
-        const natural=bars.slice(from,to).reduce((sum,bar)=>sum+bar.naturalWidth,0),capacity=width-starts[from];
+        const natural=bars.slice(from,to).reduce((sum,bar)=>sum+bar.naturalWidth,0),capacity=width-starts[from]+bars[from].startInset;
         if(minimum>capacity && to-from>1)return Infinity;
         const compress=Math.max(0,natural-capacity)/Math.max(1,natural-minimum);
         const expand=Math.max(0,capacity-natural)/Math.max(1,natural);
@@ -160,4 +160,17 @@ test("balanced line planning matches an independent exhaustive partition oracle"
     assert.equal(actual.systems.at(-1)?.to,6);
     assert(Math.abs(score(actual.systems.map(system=>system.to))-best)<1e-8,`seed ${seed}, width ${width}`);
   }
+});
+
+
+test("line openings replace leading clearance instead of counting it twice",()=>{
+  const section={startWidth:60,startWidths:[60,20,20],barDuration:1,bars:[
+    {minimumWidth:80,naturalWidth:110,startInset:0,duration:1},
+    {minimumWidth:80,naturalWidth:110,startInset:30,duration:1},
+    {minimumWidth:80,naturalWidth:110,startInset:30,duration:1}]};
+  const plan=planScoreLayout([section],200).sections[0];
+  assert.deepEqual(plan.breaks,[0]);
+  assert.equal(plan.systems[1].minimumWidth,150,'160 of measured bars - 30 of old leading clearance + 20 of actual header');
+  assert.equal(plan.systems[1].naturalWidth,210);
+  assert.throws(()=>planScoreLayout([{...section,startWidths:[60],bars:[{minimumWidth:10,naturalWidth:20,startInset:11,duration:1}]}],200),RangeError);
 });

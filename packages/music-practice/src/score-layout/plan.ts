@@ -3,6 +3,8 @@ export type MeasuredBar = {
   minimumWidth: number;
   naturalWidth: number;
   duration: number;
+  /** Leading clearance already included in width, replaced by a line header. */
+  startInset?: number;
   breakBefore?: boolean;
   phraseEnd?: boolean;
 };
@@ -63,6 +65,10 @@ export function planScoreLayout(sections: readonly MeasuredSection[], width: num
       checkWidth(bar.minimumWidth, "Minimum bar width");
       checkWidth(bar.naturalWidth, "Natural bar width");
       checkWidth(bar.duration, "Bar duration");
+      if(bar.startInset!==undefined) {
+        checkWidth(bar.startInset,"Bar start inset");
+        if(bar.startInset>bar.minimumWidth)throw new RangeError("Bar start inset exceeds its minimum width");
+      }
       if (bar.naturalWidth < bar.minimumWidth) throw new RangeError("Natural width cannot be smaller than minimum width");
     }
     if (section.startWidths) {
@@ -77,7 +83,7 @@ export function planScoreLayout(sections: readonly MeasuredSection[], width: num
       const key=`${range.from}:${range.to}`;
       ranges.set(key,Math.max(ranges.get(key)||0,range.minimumWidth));
     }
-    const overhead = (from: number) => section.startWidths?.[from] ?? section.startWidth;
+    const overhead = (from: number) => (section.startWidths?.[from] ?? section.startWidth)-(bars[from]?.startInset||0);
     const capacityAt = (from: number) => Math.max(0, width - overhead(from));
     type Candidate = {system:PlannedSystem;strain:number;cost:number;next?:Candidate};
     const candidates:Candidate[][]=Array.from({length:n+1},()=>[]);

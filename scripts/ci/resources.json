@@ -2204,5 +2204,25 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/mobile-toolbar.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4699
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/mobile-toolbar.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

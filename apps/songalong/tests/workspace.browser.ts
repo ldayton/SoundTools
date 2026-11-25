@@ -414,18 +414,14 @@ try {
           ? macBookAir13.viewport.height
           : iphone14Pro.viewport.height,
     });
-    const hideControls = page.getByRole("button", {
-      name: "Hide controls",
-      exact: true,
-    });
-    if (await hideControls.isVisible()) await hideControls.click();
+    await closePracticeOptions(page);
     await expect
       .poll(() =>
         page
           .locator(".mantine-AppShell-header")
           .evaluate((el) => el.getBoundingClientRect().height),
       )
-      .toBe(width < 768 ? 100 : 56);
+      .toBe(width < 768 ? 64 : 56);
     await expect
       .poll(() =>
         page.evaluate(
@@ -442,53 +438,14 @@ try {
         .evaluateAll((elements) =>
           elements.map((el) => el.getBoundingClientRect().toJSON()),
         );
-      await page
-        .getByRole("button", { name: "Show controls", exact: true })
-        .click();
-      await expect
-        .poll(() =>
-          page
-            .locator(".mantine-AppShell-header")
-            .evaluate((el) => el.getBoundingClientRect().height),
-        )
-        .toBe(212);
-      await expect(page.locator(".mantine-AppShell-header [data-direction]")).toHaveCount(0);
-      await expect(page.locator("#hymn-mode")).toHaveCount(0);
-      await expect(page.locator(".piano-toggle")).toHaveCount(0);
+      await expect(page.locator(".hymn-controls-toggle")).toHaveCount(0);
+      await openPracticeOptions(page);
       await expect(page.locator("#hymn-tempo")).toBeEnabled();
-      assert.ok(
-        await page.evaluate(() => {
-          const header = document
-            .querySelector(".mantine-AppShell-header")!
-            .getBoundingClientRect();
-          // The score has its own header and favorite button below the toolbar.
-          return [...document.querySelectorAll(".mantine-AppShell-header button, .mantine-AppShell-header input")]
-            .filter((el) => el.getClientRects().length)
-            .every((el) => {
-              const r = el.getBoundingClientRect();
-              const scrolling = el.closest(".hymn-mobile-controls");
-              const bounds = scrolling?.getBoundingClientRect() || r;
-              return (
-                r.left >= 0 &&
-                r.right <= innerWidth &&
-                bounds.top >= header.top &&
-                bounds.bottom <= header.bottom
-              );
-            });
-        }),
-        "Mobile controls stay within the header or its bounded scrolling region",
-      );
-      // The extra staff-spacing row intentionally scrolls inside the fixed-height
-      // drawer. Verify every control can be fully revealed without growing it.
-      for (const control of await page.locator(".hymn-mobile-controls button:visible, .hymn-mobile-controls input:visible").all()) {
-        await control.scrollIntoViewIfNeeded();
-        assert.ok(await control.evaluate(el => {
-          const r=el.getBoundingClientRect();
-          const region=el.closest(".hymn-mobile-controls")!.getBoundingClientRect();
-          return r.top >= region.top - 1 && r.bottom <= region.bottom + 1;
-        }), "Every mobile control is reachable within the scrolling region");
-      }
-      await hideControls.click();
+      await expect(page.locator("#hymn-size")).toBeVisible();
+      await expect(page.locator(".mantine-AppShell-header")).toHaveCSS("height", "64px");
+      await expect(page.locator("#practice-options-content #hymn-tempo")).toHaveCount(1);
+      await expect(page.locator("#practice-options-content #hymn-size")).toHaveCount(1);
+      await closePracticeOptions(page);
       assert.deepEqual(
         await page
           .locator(".mantine-AppShell-header button:visible")
@@ -496,7 +453,7 @@ try {
             elements.map((el) => el.getBoundingClientRect().toJSON()),
           ),
         compactGeometry,
-        "Collapsing restores the same compact row",
+        "Closing options preserves the same compact row",
       );
     } else {
       await expect(page.locator("#hymn-mode")).toBeVisible();
@@ -523,7 +480,8 @@ try {
   await practiceOption(page, "#hymn-mode", "wait");
   await expect(page.locator("#hymn-tempo")).toBeDisabled();
   await expect(page.locator("#hymn-size")).toHaveValue(pixels);
-  await expect(page.locator('.mantine-AppShell-header [data-direction="up"]')).toHaveCount(2);
+  // Tempo, staff size and staff spacing each keep their desktop stepper.
+  await expect(page.locator('.mantine-AppShell-header [data-direction="up"]')).toHaveCount(3);
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: SongAlong drawer geometry/focus, MIDI blocking, playback pause, constant piano widths, hand constraints and desktop restoration pass`,

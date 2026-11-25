@@ -559,3 +559,19 @@ same score snapshot and invalidated by score/view changes. The browser witness
 also changes bar numbers and compares embedded score-image hashes, independently
 of PDF creation timestamps, to reject stale cached exports. No timeout, retry or
 assertion was relaxed.
+
+
+## Mobile toolbar CI budget (25 November 2026)
+
+The first release validation at `078bc212` exceeded the 60-second budget
+(62.17 seconds including bootstrap and cleanup). Evidence is retained at
+`/Users/lily/source/SoundTools-mobile-options/work/ci-results/1795640136108-f2543f44`.
+No assertion failed before cancellation: the coordinator interrupted the toolbar
+lane during options reopening. Its closed-page error followed cancellation.
+The expanded phone chooser interactions made the existing combined toolbar
+scenario too long for this lane. Desktop geometry, sample scheduling and guest
+migration remain owned by `instrument-toolbar.browser.ts`; phone geometry,
+chooser combinations, saved selections and unified options are now owned by
+`mobile-toolbar.browser.ts`. Both run the shared scenario with disjoint widths,
+remain required in CI and Nightly, and retain their assertions and independent
+port locks. No budget, timeout or retry policy changed.

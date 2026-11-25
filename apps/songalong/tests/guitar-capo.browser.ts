@@ -1,3 +1,4 @@
+import {openHymnInstrumentChoices} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
 import {expect} from "@playwright/test";
 import {readFile,mkdir} from "node:fs/promises";
@@ -50,6 +51,7 @@ try{
    await page.evaluate(ns=>{for(const n of ns)(window as any).midiTest.send([0x90,n,100]);},pitches);
    await expect(page.locator(".hymn-count")).not.toHaveText(beforeChord!);
    await page.evaluate(ns=>{for(const n of ns)(window as any).midiTest.send([0x80,n,0]);},pitches);
+   await openHymnInstrumentChoices(page);
    await page.getByRole("button",{name:"Voice",exact:true}).click();
    await expect(page.getByRole("radio",{name:"Guitar",exact:true})).toHaveAttribute("data-arrangement","guitar-vocal");
    await practiceOption(page,"#hymn-hands","right");await closePracticeOptions(page);

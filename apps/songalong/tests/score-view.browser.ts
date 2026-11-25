@@ -17,7 +17,7 @@ try {
   };
  });
   await page.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.slug}?arrangement=guitar-edition&display=both&mode=playback`);
-  await waitForApp(page,".hymn-toolbar-instruments");
+  await waitForApp(page, ".hymn-controls");
   await page.setViewportSize({width:1440,height:1000});
   const staffSize = page.getByRole("spinbutton",{name:"Staff size in pixels",exact:true});
   await staffSize.fill("40");await staffSize.press("Enter");
@@ -50,7 +50,7 @@ try {
   await showChords.uncheck();
   await expect(page.locator(".abcjs-chord")).toHaveCount(0);
   assert.deepEqual(await page.locator("[data-name=tabNumber]").allTextContents(),frets);
-  await page.reload();await waitForApp(page,".hymn-toolbar-instruments");await openPracticeOptions(page);
+  await page.reload();await waitForApp(page, ".hymn-controls");await openPracticeOptions(page);
   await expect(showChords).not.toBeChecked();await expect(showTreble).not.toBeChecked();await expect(showTab).toBeChecked();
   await expect(page.getByRole("checkbox",{name:"Play Treble",exact:true})).toBeChecked();
   await showTab.uncheck();await expect(page.locator(".hymn-paper svg:visible")).toHaveCount(0);

@@ -14,7 +14,6 @@ import {
 } from "@ldayton/ui/application-layout";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { ToolbarVolume } from "./sidebar-controls";
-import { hymnToolbarState } from "./hymn-toolbar-state";
 import { NotewiseToolbar, notewiseToolbarState } from "./notewise-toolbar";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { useMediaQuery } from "@mantine/hooks";
@@ -271,10 +270,6 @@ export function mountAppShell(
       notewiseToolbarState.subscribe,
       notewiseToolbarState.getSnapshot,
     );
-    const toolbar = useSyncExternalStore(
-      hymnToolbarState.subscribe,
-      hymnToolbarState.getSnapshot,
-    );
     const offline = useSyncExternalStore(
       offlineState.subscribe,
       offlineState.getSnapshot,
@@ -328,9 +323,7 @@ export function mountAppShell(
           brand={brand}
           mobileToolbarHeight={
             APP.id === "songalong"
-              ? toolbar.expanded
-                ? 212
-                : 100
+              ? 64
               : (narrowToolbar ? 104 : 56) +
                 (snapshot.selected === "rhythm" && noteToolbar.expanded
                   ? 60

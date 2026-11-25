@@ -51,7 +51,7 @@ try {
   await assertEngraving(page);
   await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
-  await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
   await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeDisabled();
   assert.equal(await page.getByRole('group',{name:'Instruments and voice',exact:true}).locator('svg').count(),3);
@@ -145,7 +145,7 @@ try {
    await expect(page.locator('.hymn-count')).toHaveText('1 / 97');
    await page.reload();await openPracticeOptions(page);
    await expect(page.locator('#hymn-hands')).toHaveValue('left');
-   await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
+   await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
    await expectScoreDisplay(page,'both');
    await selectHymnInstrument(page, 'piano');
    await expect(page.locator('#hymn-hands')).toHaveValue('left');

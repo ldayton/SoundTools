@@ -431,3 +431,14 @@ watchdog and a reference-note probe that does not delay the note attack. This
 removes the false cold-start assumption rather than increasing a test timeout.
 The original first-run artifact lacks that diagnostic payload, so its exact cause
 remains unconfirmed.
+
+## Score layout CI budget (25 November 2026)
+
+The first merged-revision validation at `ca85e88` exceeded the 60-second end-to-end
+limit: `work/ci-results/1795625140767-bebcf87d` (62.21 seconds including cleanup).
+The coordinator cancelled DoReGo desktop and SongAlong browser commands; their
+page-closed errors are cancellation artifacts, not passing tests. The shared
+component properties were unnecessarily serialized behind toolbar interactions.
+They now have an independently required CI/Nightly command and resource entry,
+with the same assertions and no server, so the coordinator can overlap that work.
+No coverage, timeout or budget was relaxed.

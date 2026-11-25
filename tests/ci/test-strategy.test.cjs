@@ -82,5 +82,5 @@ test('a diagnostic rerun cannot truncate an existing timing/evidence file', () =
 test('score layout visual corpus is required in Nightly and bounded component properties stay in CI',()=>{
   assert(expanded('songalong','nightly').some(command=>command.includes('score-layout.browser.ts')));
   assert(!expanded('songalong','ci').some(command=>command.includes('score-layout.browser.ts')));
-  assert(expanded('songalong','ci').some(command=>command.includes('instrument-toolbar.browser.ts')));
+  assert(expanded('songalong','ci').some(command=>command.includes('score-layout-contract.browser.ts')));
 });

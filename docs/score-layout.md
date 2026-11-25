@@ -73,7 +73,7 @@ No new test tier, server port or exhaustive CI catalog loop is added.
 ## Layout evaluation
 
 The same independent fixture registry now drives property checks and a reviewed
-visual corpus. The small property witnesses stay inside the existing CI toolbar
+visual corpus. The small property witnesses stay inside the required CI component
 owner: verse-order invariance (within 0.05 engraving units, less than 0.1 CSS pixel,
 with exact system-break equality), cold/cache agreement, resize round trips at nearby
 widths, actual physical scale, source musical signatures and injected-wrapper

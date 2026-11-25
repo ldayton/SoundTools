@@ -777,13 +777,11 @@
     ]
   },
   "songalong:npm:exec --workspace=songalong -- tsx tests/audio-lifecycle.browser.ts": {
-    "kind": "audio",
+    "kind": "ui",
     "ports": [
       4578
     ],
-    "locks": [
-      "realtime-audio"
-    ],
+    "locks": [],
     "coverage": [
       {
         "command": "npm",

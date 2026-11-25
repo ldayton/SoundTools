@@ -442,3 +442,12 @@ component properties were unnecessarily serialized behind toolbar interactions.
 They now have an independently required CI/Nightly command and resource entry,
 with the same assertions and no server, so the coordinator can overlap that work.
 No coverage, timeout or budget was relaxed.
+
+The split-command run retained at `work/ci-results/1795625262772-07ff1686`
+completed the component checks in 2.1 seconds, but still exceeded the total budget
+(62.16 seconds including cleanup). Its final queued command was SongAlong's
+sample-loading/lifecycle witness, unnecessarily waiting for DoReGo's realtime
+lock. Inspection confirms that witness asserts loading, aborts, UI/playback state
+and media actions, without PCM or latency measurements. Its inventory declaration
+is corrected from realtime audio to UI; DoReGo's PCM/timing lock is retained.
+All lifecycle assertions remain required in both tiers.

@@ -523,8 +523,11 @@ try {
   await practiceOption(page, "#hymn-mode", "wait");
   await expect(page.locator("#hymn-tempo")).toBeDisabled();
   await expect(page.locator("#hymn-size")).toHaveValue(pixels);
-  for(const id of ["hymn-size","hymn-staff-spacing","hymn-tempo"])
-    await expect(page.locator(`.mantine-AppShell-header #${id}-up`)).toBeVisible();
+  for(const id of ["hymn-size","hymn-staff-spacing","hymn-tempo"]){
+    const input=page.locator(`.mantine-AppShell-header #${id}`);
+    await expect(input).toBeVisible();
+    await expect(input.locator("..").locator('[data-direction="up"]')).toBeVisible();
+  }
   assert.deepEqual(errors, []);
   console.log(
     `${engine}: SongAlong drawer geometry/focus, MIDI blocking, playback pause, constant piano widths, hand constraints and desktop restoration pass`,

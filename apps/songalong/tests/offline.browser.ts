@@ -11,6 +11,7 @@ import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { practiceHymn } from "../../../packages/music-practice/test-fixtures/hymns";
 const engine = process.env.TEST_BROWSER || "chromium";
 const home = await mkdtemp(join(tmpdir(), "songalong-offline-"));
 const browser = await launchBrowser({
@@ -22,7 +23,7 @@ try {
   const page = await context.newPage();
   await page.goto(
     server.base +
-      "/piano/hymns/amazing-grace?arrangement=bass&view=both&hands=left",
+      `/piano/hymns/${practiceHymn.slug}?arrangement=bass&view=both&hands=left`,
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   await page.getByRole("link", { name: "Settings", exact: true }).click();
@@ -42,7 +43,7 @@ try {
   await context.setOffline(true);
   await page.goto(
     server.base +
-      "/piano/hymns/amazing-grace?arrangement=bass&view=both&hands=left",
+      `/piano/hymns/${practiceHymn.slug}?arrangement=bass&view=both&hands=left`,
   );
   await page.locator(".hymn-paper svg").first().waitFor();
   await page.reload();
@@ -70,8 +71,8 @@ try {
     };
   });
   for (const [id, arrangement] of [
-    ["amazing-grace", "piano"],
-    ["amazing-grace", "guitar-edition"],
+    [practiceHymn.slug, "piano"],
+    [practiceHymn.slug, "guitar-edition"],
     ["in-christ-alone", "original"],
   ]) {
     await page.goto(

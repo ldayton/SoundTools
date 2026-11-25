@@ -83,8 +83,8 @@ try {
   console.log(`Native guitar decoding: ${decoded.count} added recordings, ${decoded.elapsedMs.toFixed(0)}ms`);
   const signatures: number[] = [];
   for (const [id, arrangement] of [
-    ["amazing-grace", "piano"],
-    ["amazing-grace", "guitar-edition"],
+    [practiceHymn.slug, "piano"],
+    [practiceHymn.slug, "guitar-edition"],
     ["in-christ-alone", "original"],
     [practiceHymn.slug,"guitar-vocal"],
   ]) {

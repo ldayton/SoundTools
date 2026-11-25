@@ -133,6 +133,7 @@ try {
     ).toHaveCount(0);
     assert(await page.locator(".tab-rhythm-beam-secondary").count());
     assert(await page.locator(".tab-rhythm-beam-secondary").first().evaluate(n=>getComputedStyle(n).visibility === "visible" && n.getBoundingClientRect().width > 0));
+    await expect(page.locator(".guitar-fermata")).toHaveCount(1);
     await expect(page.locator(".guitar-fermata")).toBeVisible();
     await selectScoreDisplay(page,"chords");
     await expect(page.locator(".abcjs-tabNumber")).toHaveCount(0);

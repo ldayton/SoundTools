@@ -167,8 +167,14 @@ export function showOnlyTab(paper: HTMLElement,lyricPadding=58) {
       copy.classList.add('guitar-position');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-76-ink.y})`);svg.append(copy);
     }
+    const fermatas=new Set<string>();
     for(const source of svg.querySelectorAll<SVGGraphicsElement>('[data-name="scripts.ufermata"]')){
-      const copy=source.cloneNode(true) as SVGGraphicsElement,ink=source.getBBox();
+      const ink=source.getBBox();
+      // Both source voices may carry one shared fermata. They collapse onto
+      // the same tab staff, so identical destination ink needs only one copy.
+      const key=[ink.x,ink.width,ink.height].map(n=>Math.round(n*1000)).join(':');
+      if(fermatas.has(key))continue;fermatas.add(key);
+      const copy=source.cloneNode(true) as SVGGraphicsElement;
       copy.classList.add('guitar-fermata');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-14-ink.y-ink.height})`);svg.append(copy);
     }

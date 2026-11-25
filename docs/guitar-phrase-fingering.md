@@ -46,3 +46,11 @@ Regression owners:
 The unit files are enrolled by the existing shared music glob. Browser ownership
 uses existing CI/Nightly entries in `scripts/ci/test-strategy.cjs`; no new lane or
 convenience-alias expansion is needed.
+
+During integration, the Nightly guitar witness exposed two identical tab fermatas
+on mobile: both source voices were copied to the same destination. Tab rendering
+now merges identical destination marks. The first failure is retained in
+`work/ci-results/1795641259086-4fdcb6ed` (guitar-fingering browser, strict selector
+matching two symbols); source-voice diagnosis is in
+`work/ci-results/1795641422010-466a32b0`. The browser contract still requires one
+visible symbol, with no retry or relaxed assertion.

@@ -77,12 +77,16 @@ export type Pattern = keyof typeof PATTERNS;
 export function isPentatonicPattern(pattern: Pattern) {
   return pattern === 'pentatonic6' || pattern === 'pentatonic9' || pattern === 'pentatonic12';
 }
+/** One identity for each exercise in the sidebar; variants are round options. */
+export function exerciseFamily(pattern: Pattern): Pattern {
+  return isPentatonicPattern(pattern) ? 'pentatonic6'
+    : isGlidePattern(pattern) ? 'fifthGlide'
+    : pattern === 'fiveNote' ? 'major' : pattern;
+}
 export const EXERCISE_PATTERNS = (Object.keys(PATTERNS) as Pattern[]).filter(
-  (pattern) =>
-    pattern !== 'fiveNote' &&
-    pattern !== 'octaveGlide' &&
-    (!isPentatonicPattern(pattern) || pattern === 'pentatonic6')
+  pattern => exerciseFamily(pattern) === pattern
 );
+
 export function isGlidePattern(pattern: Pattern) {
   return pattern === 'fifthGlide' || pattern === 'octaveGlide';
 }
@@ -208,6 +212,7 @@ export interface Exercise {
   rounds: PracticeRound[];
 }
 export interface PracticeRound {
+  commitment?: import('./sequence').RoundCommitment;
   collection?: YemeniteCollection;
   id: number;
   midi: number;
@@ -934,7 +939,7 @@ export function stateAt(exercise: Exercise, seconds: number): Scene {
       upcoming: [],
       phase: 'complete',
       count: 0,
-      repetition: spec.repetitions,
+      repetition: (exercise.rounds.at(-1)?.commitment?.pass ?? spec.repetitions - 1) + 1,
       progress: 1,
     };
   if (beat < spec.countIn)
@@ -953,8 +958,10 @@ export function stateAt(exercise: Exercise, seconds: number): Scene {
     guide.find((n) => n.onsetBeat <= beat + 1e-9 && beat < n.onsetBeat + n.slotBeats - 1e-9) ??
     null;
   const upcoming = guide.filter((n) => n.onsetBeat > beat + 1e-9).slice(0, 3);
+  const committedPass = practiceAt(exercise, seconds).current.commitment?.pass;
   const repetition =
     note?.repetition ??
+    (committedPass === undefined ? undefined : committedPass + 1) ??
     Math.min(
       spec.repetitions,
       Math.floor((beat - spec.countIn) / (exercise.phraseBeats + spec.restBeats)) + 1

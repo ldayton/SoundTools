@@ -77,3 +77,10 @@ test('a diagnostic rerun cannot truncate an existing timing/evidence file', () =
     assert.equal(fs.readFileSync(file, 'utf8'), firstFailure);
   } finally { fs.rmSync(directory, { recursive: true, force: true }); }
 });
+
+
+test('score layout visual corpus is required in Nightly and bounded component properties stay in CI',()=>{
+  assert(expanded('songalong','nightly').some(command=>command.includes('score-layout.browser.ts')));
+  assert(!expanded('songalong','ci').some(command=>command.includes('score-layout.browser.ts')));
+  assert(expanded('songalong','ci').some(command=>command.includes('score-layout-contract.browser.ts')));
+});

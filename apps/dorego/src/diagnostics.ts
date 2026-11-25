@@ -14,7 +14,7 @@ export const diagnostics = create({
   fields: {
     ...audioDiagnosticFields,
     mode: ['ready', 'starting', 'playing', 'paused', 'complete'],
-    reason: ['audio-interrupted', 'clock-stalled', 'scheduling-gap', 'page-hidden'],
+    reason: ['audio-interrupted', 'clock-stalled', 'scheduling-gap', 'page-hidden', 'samples-failed'],
     pattern: Object.keys(PATTERNS),
     bpm: 'number',
     low: 'number',

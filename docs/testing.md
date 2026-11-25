@@ -538,3 +538,29 @@ changing written music. CI's existing `guitar.browser.ts` observes actual browse
 sample scheduling and the printed instruction for every registered solo guitar
 edition. Existing instrument-audio and edition browser checks retain PCM and
 responsive notation coverage. No new lane or alias is needed.
+
+
+## Shared score layout component
+
+The contract and regression ownership are documented in [score-layout.md](score-layout.md).
+Shared music units own the pure geometry planner. The required SongAlong
+score-layout-contract browser witness also exercises the component independently
+with piano, tab, pointed-Hebrew and dense synthetic fixtures, including unchanged
+sound, physical scale, cache reuse and contained overflow. It uses the existing
+browser harness and command resource ownership; no separate lane is introduced.
+
+The score-layout evaluation corpus is a required Nightly-only command,
+`test:score-layout`, with no server port. Small transformation and geometry checks
+remain in the required CI component witness, and quality-contract mutation tests
+are discovered by the shared music unit suite. Reviewed raster baselines are
+separate for macOS/Linux and Chromium/WebKit, with a pinned test font. Normal
+runs cannot replace baselines. See `docs/score-layout.md` and the baseline README
+for measurement limits, candidate review and retained comparison artifacts.
+
+## DoReGo sequence edits
+
+The [sequence contract](dorego-sequences.md) centralizes option timing for every
+exercise. `sequence.test.ts` is included by DoReGo's existing CI unit glob. The
+existing required desktop suite calls `sequence.browser.ts` for source continuity,
+future-round chords/rest, delayed sample preparation, paused edits and deferred
+count-in. The exercise matrix stays in pure units rather than repeated browsers.

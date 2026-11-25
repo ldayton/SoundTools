@@ -1,3 +1,4 @@
+import { verifySequence } from './sequence.browser';
 import { verifyLiveDrone } from './live-drone';
 import {
   waitForServer,
@@ -323,11 +324,10 @@ try {
     .getByRole('dialog', { name: 'Choose lowest note' })
     .getByRole('button', { name: 'F3', exact: true })
     .click();
-  await ready();
-  assert.equal(await position(), 0);
-  await page.locator('#play').click();
   await playing();
   await progress();
+  assert.ok((await position()) > 0, 'Range edits retain the currently sounding round');
+  assert.ok(await page.locator('#next-round').isDisabled(), 'An out-of-range continuation is removed without stopping the current round');
   await page.locator('#restart').click();
   assert.equal(await page.locator('#play').innerText(), 'Play');
   assert.equal(await position(), 0);
@@ -337,7 +337,7 @@ try {
     )
   );
   console.log(
-    `${browserName}: sampled glides, note selection, exercise replacement and restart stop prior voices.`
+    `${browserName}: sampled glides, uninterrupted range edits, exercise replacement and explicit restart.`
   );
 
   // Persistence and obsolete/failed loads: gate fresh requests, change the exercise repeatedly,
@@ -408,11 +408,16 @@ try {
   // A completed one-round exercise has no Next, but Repeat must still play it.
   const finalPage=await context.newPage();
   finalPage.on('pageerror', error => errors.push(error.message));
-  await finalPage.addInitScript(spec => localStorage.setItem('dorego.current',JSON.stringify(spec)), {...DEFAULT_SPEC,pattern:'major',direction:'up',bpm:240,countIn:8,repetitions:1,restBeats:0,low:60,high:72});
+  await finalPage.addInitScript(spec => localStorage.setItem('dorego.current',JSON.stringify(spec)), {...DEFAULT_SPEC,pattern:'major',direction:'up',bpm:240,countIn:8,repetitions:1,restBeats:8,low:60,high:72});
   await finalPage.goto(base);
   await finalPage.locator('#play:enabled').waitFor();
+  const firstRepeatAt=performance.now();
   await finalPage.locator('#repeat-round').click();
   await finalPage.waitForFunction(()=>document.querySelector('#play')?.getAttribute('data-mode')==='playing');
+  await finalPage.getByText('Rest · repeat round in',{exact:true}).waitFor();
+  assert.ok(Number(await finalPage.locator('#elapsed').getAttribute('data-seconds')) <= 2.01, 'The selected round stays at its onset during the replay rest');
+  await finalPage.waitForFunction(()=>Number(document.querySelector('#elapsed')?.getAttribute('data-seconds'))>2.05);
+  assert.ok(performance.now()-firstRepeatAt >= 1900, 'Eight rest beats at 240 BPM precede playback');
   assert.equal(await finalPage.locator('#stage').getAttribute('data-counting'),'false','Repeating starts the round without replaying the session count-in');
   await finalPage.getByRole('button',{name:'Replay',exact:true}).waitFor();
   assert.ok(await finalPage.locator('#next-round').isDisabled());
@@ -422,10 +427,23 @@ try {
     await finalPage.getByRole('button',{name:'Close practice options',exact:true}).click();
   await finalPage.locator('.mantine-Drawer-content:visible').waitFor({state:'hidden'});
   const repeat=finalPage.getByRole('button',{name:'Repeat round',exact:true});
+  await finalPage.waitForFunction(() => {
+    const button = document.querySelector('#repeat-round')?.getBoundingClientRect();
+    return button && Math.abs(button.x + button.width / 2 - innerWidth / 2) < 1;
+  });
   const repeatBounds=await repeat.boundingBox();
   assert.ok(repeatBounds && repeatBounds.height >= 44 && repeatBounds.x >= 0 && repeatBounds.x+repeatBounds.width <= 390);
+  await finalPage.evaluate(async () => {
+    await Promise.all(document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {})));
+  });
   await finalPage.screenshot({path:'/tmp/dorego-repeat-round-mobile.png'});
   await repeat.click();
+  await finalPage.getByText('Rest · repeat round in',{exact:true}).waitFor();
+  await finalPage.locator('#play').click();
+  await finalPage.getByRole('button',{name:'Resume',exact:true}).waitFor();
+  assert.equal(await finalPage.getByText('Rest · repeat round in',{exact:true}).count(),0,'Pause cancels the pending repeat rest');
+  await repeat.click();
+  await finalPage.getByText('Rest · repeat round in',{exact:true}).waitFor();
   await finalPage.waitForFunction(()=>document.querySelector('#play')?.getAttribute('data-mode')==='playing' && Number(document.querySelector('#elapsed')?.getAttribute('data-seconds'))>2.05);
   assert.equal(await finalPage.locator('#exercise-summary').textContent(),'Round 1 of 1');
   assert.ok(await finalPage.locator('#next-round').isDisabled());
@@ -449,6 +467,7 @@ try {
   assert.deepEqual(errors, []);
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
+  await verifySequence(browser!, base);
   await verifyLiveDrone(browser!, base);
 } catch (error) {
   await captureFailure(browser, error);

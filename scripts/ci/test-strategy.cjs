@@ -34,11 +34,11 @@ function nightlyPlan(app, browser, group) {
   const tasks = {
     dorego: ['test:layout', 'test:browsers', ...(browser === 'chromium' ? ['test:diagnostics-ui', 'test:resilience'] : [])],
     notewise: ['test:layout', 'test:workspace', 'test:guitar', 'test:maqamat', 'test:piano', 'test:practice', 'test:theory', 'test:navigation', 'test:midi', 'test:signatures', 'test:offline', 'test:backing', ...(browser === 'chromium' ? ['test:browser', 'test:piano-audio', 'test:diagnostics', 'test:backing-realism', 'test:backing-genres'] : [])],
-    songalong: ['test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog', ...(browser === 'chromium' ? ['test:diagnostics'] : [])],
+    songalong: ['test:score-layout', 'test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog', ...(browser === 'chromium' ? ['test:diagnostics'] : [])],
     soundglow: browser === 'webkit' ? ['test:browser-core', 'test:ui-browsers'] : ['test:unit', 'test:browser-core', 'test:updates', 'test:visual', 'test:resilience'],
   };
   const commands = tasks[app].map(task => npm(app, task));
-  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'));
+  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'));
   if (app === 'notewise') commands.push(script(app, '../../tests/ci/critical-midi.browser.mts'), ['node', ['scripts/test-ui-controls.cjs']]);
   if (app === 'dorego' && browser === 'chromium') commands.push(
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);
@@ -53,7 +53,7 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
   return {
     dorego: [npm(app, 'test:desktop')],
     notewise: [script(app, '../../tests/ci/critical-midi.browser.mts')],
-    songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts')],
+    songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts')],
     soundglow: [npm(app, 'test:unit'), ['node', ['tests/ci/silent-audio.browser.cjs']]],
   }[app];
 }

@@ -777,13 +777,11 @@
     ]
   },
   "songalong:npm:exec --workspace=songalong -- tsx tests/audio-lifecycle.browser.ts": {
-    "kind": "audio",
+    "kind": "ui",
     "ports": [
       4578
     ],
-    "locks": [
-      "realtime-audio"
-    ],
+    "locks": [],
     "coverage": [
       {
         "command": "npm",
@@ -2130,6 +2128,38 @@
           "scripts/render-guitar-comparison.mts"
         ],
         "cwd": ""
+      }
+    ]
+  },
+  "songalong:npm:run test:score-layout --workspace=songalong": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/score-layout.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/score-layout-contract.browser.ts": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/score-layout-contract.browser.ts"
+        ],
+        "cwd": "apps/songalong"
       }
     ]
   }

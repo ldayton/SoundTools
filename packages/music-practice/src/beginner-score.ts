@@ -10,35 +10,6 @@ import {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
 
 export {bluesLandmarks as beginnerLandmarks} from "./fingerstyle-blues";
 
-/** Break on complete measures, ignoring the opening repeat as a measure. */
-export function beginnerSystems(abc: string, measures: number): string {
-  const output: string[] = [];
-  const lines = abc.split("\n");
-  for (let i = 0; i < lines.length; i++) {
-    if (!/^\[V:/.test(lines[i])) { output.push(lines[i]); continue; }
-    const voices: string[][] = [];
-    while (voices.length < 2 && i < lines.length && /^\[V:/.test(lines[i])) {
-      const [, header, music] = lines[i++].match(/^(\[V:[^\]]+\])\s*(.*)$/)!;
-      const chunks: string[] = [];
-      let current = "", start = 0, count = 0;
-      for (const match of music.matchAll(/\|:|:\||\|\]|\|/g)) {
-        const content = music.slice(start, match.index);
-        current += content + match[0];
-        start = match.index! + match[0].length;
-        if (!content.replace(/\[P:[^\]]+\]/g, "").trim()) continue;
-        if (++count === measures) { chunks.push(`${header} ${current}`); current = ""; count = 0; }
-      }
-      current += music.slice(start);
-      if (current.trim()) chunks.push(`${header} ${current}`);
-      voices.push(chunks);
-    }
-    i--;
-    for (let row = 0; row < Math.max(...voices.map(v => v.length)); row++)
-      for (const voice of voices) if (voice[row]) output.push(voice[row]);
-  }
-  return output.join("\n");
-}
-
 /** Normalize bar numbers independently of opening repeats and wrapped systems. */
 export function normalizeBeginnerLandmarks(paper:HTMLElement,tune:TuneObject,from:number,pickup=false) {
   const music = entries(tune, from).filter(entry => entry.voice === 0);

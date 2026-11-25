@@ -1,13 +1,13 @@
 import {prepareScoreMarkings,addSwingHelp} from "./score-markings";
 import { prepareHymnMelismas } from "./hymn-melismas";
-import { hymnSystemLayout } from "./hymn-system-layout";
+import { AbcScoreLayout, prepareScoreLayoutSource } from "./score-layout/abc";
 import { abcHasChordSymbols, abcPlaybackStaves, hidePlaybackStaves, restoreDeclaredStaffTitles } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
 import {isGuitarPositionMark} from "./edition-score";
 import type {CapoChoice} from "./guitar-capo";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
-import { drawBeginnerFingerings, separateBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, beginnerSystems, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
+import { drawBeginnerFingerings, separateBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
 import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
 import { attachChordDiagrams } from "./guitar-chord-diagram";
 import { scoreChordPassages } from "./chord-passage-fingering";
@@ -34,7 +34,7 @@ import abcjs, {
   type AbsoluteElement,
 } from "abcjs";
 import { scoreSpellings, type PitchSpellings } from "./sight-feedback";
-import { applyHymnOttava, drawHymnOttava, fitHymnOttava } from "./hymn-ottava";
+import { applyHymnOttava, drawHymnOttava } from "./hymn-ottava";
 import { initialHymnSignatures } from "./hymn-signatures";
 export type PracticeEvent = NoteTimingEvent & {
   spellings?: PitchSpellings;
@@ -133,17 +133,8 @@ export function drawPracticeScore(
     (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1) * staffScale;
   const transpose = options.transpose ?? 0;
   let restoreSignatures: (() => void) | undefined;
-  // abcjs rounds font sizes to whole SVG pixels. Reserve enough lyric space,
-  // then restore the exact font size below so staff tuning never resizes words.
   const melismaSpace = options.lyrics && hymnLyricRows(options.lyrics).some(row => row.some(token => token.split(/\s+/).includes("_")));
-  // Reserve a little extra leading for extender ink below pointed Hebrew.
-  // Keep actual glyph size fixed while measuring at the corresponding leading.
-  const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4 * (melismaSpace ? 1.25 : 1);
-  const source =
-    (!options.fitHymnSystems && (options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
-    `%%barnumbers 1\n%%vocalfont sans-serif ${vocalFont}\n` +
-    (options.fitHymnSystems ? "%%stretchlast 0\n" : "") +
-    (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n" + (!options.fitHymnSystems ? "%%stretchlast 1\n" : "") : "") + (!options.fitHymnSystems && options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
+  const source=prepareScoreLayoutSource(abc,{staffScale,melismas:!!melismaSpace,compactStaves:!!options.beginnerEdition});
   const prepareTune = (tune: TuneObject) => {
     prepareScoreMarkings(tune, options.barNumbers);
     restoreDeclaredStaffTitles(tune,source);
@@ -173,26 +164,19 @@ export function drawPracticeScore(
     if (options.initialSignatures)
       restoreSignatures = initialHymnSignatures(tune);
     if (options.lyrics) compactHymnLyrics(tune);
-    for (const line of tune.lines)
-      for (const staff of line.staff || [])
-        for (const voice of staff.voices || [])
-          for (const item of voice)
-            if (item.el_type === "note")
-              for (const lyric of item.lyric || [])
-                lyric.syllable =
-                  "\u2002" + lyric.syllable.replace(/\u2002/g, "") + "\u2002";
     return tune;
   };
-  const staffwidth = Math.max(140, width / scale - 24);
-  // Optional finger numbers must not move measures when toggled. Reserve their
-  // small annotation allowance for every practice score, including when hidden.
-  const lineBreaks = options.fitHymnSystems ? hymnSystemLayout(source, {
-    visualTranspose: transpose, initialClef: options.initialSignatures,
-    minPadding: options.beginnerEdition ? 4 : undefined,
-    afterParsing: prepareTune,
-  }, staffwidth, !options.printedScore || !!options.guitarTab, [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore, options.barNumbers]) : undefined;
-  const tune = abcjs.renderAbc(paper, source, {
-    lineBreaks,
+  const layout = new AbcScoreLayout({
+    source, width, scale,
+    mode: options.rhythmGrid ? "rhythm" : options.fitHymnSystems || options.guitarTab || options.fingerstyleTab || options.beginnerEdition ? "reflow" : "wrap",
+    annotations: !options.printedScore || !!options.guitarTab,
+    presentation: {compact:options.compact,octaveNotation:options.octaveNotation,lyrics:!!options.lyrics,
+      tablature:!!(options.guitarTab||options.fingerstyleTab),beginner:!!options.beginnerEdition,
+      view:chordsOnly?"chords":options.tabOnly?"tab":"notation"},
+    measurementContext: [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore, options.barNumbers,
+      options.hymnEdition, options.guitarSetup, options.capoChoice?.scoreSetting,
+      options.capoChoice ? [...options.capoChoice.positions] : undefined],
+    params: {
     add_classes: true,
     tablature: options.chordTab
       ? [{ instrument: "" }, { instrument: "guitar" }]
@@ -204,24 +188,10 @@ export function drawPracticeScore(
     // Reserve breathing room around lyrics before abcjs computes note positions.
     // Remove these measurement-only spaces from the SVG after engraving.
     afterParsing: prepareTune,
-    responsive: "resize",
-    oneSvgPerLine: true,
-    staffwidth,
     minPadding: options.beginnerEdition ? 4 : undefined,
-    // SongAlong supplies measured breaks. Legacy tablature avoids automatic
-    // wrapping, whose reparse drops the plugin; other exercises keep wrapping.
-    wrap:
-      options.fitHymnSystems || options.rhythmGrid || options.guitarTab || options.fingerstyleTab || (options.beginnerEdition && !profile)
-        ? undefined
-        : { minSpacing: 2, maxSpacing: 2.6, preferredMeasuresPerLine: 0 },
-    timeBasedLayout: options.rhythmGrid
-      ? { minPadding: 8, minWidth: Math.max(100, width / scale - 24) }
-      : undefined,
-    paddingtop: 12,
-    paddingbottom: 18,
-    paddingleft: 12,
-    paddingright: 12,
-  })[0] as TuneObject & { noteTimings: NoteTimingEvent[] };
+    },
+  });
+  const tune = layout.render(paper) as TuneObject & { noteTimings: NoteTimingEvent[] };
   if (options.chordTab)
     for (const line of tune.lines)
       for (const voice of line.staff?.[1]?.voices || [])
@@ -277,12 +247,6 @@ export function drawPracticeScore(
   paper.querySelectorAll(".abcjs-lyric").forEach((lyric) => {
     if (staffScale !== 1 || melismaSpace)
       lyric.setAttribute("font-size", String(16 / staffScale));
-    const walker = document.createTreeWalker(lyric, NodeFilter.SHOW_TEXT);
-    while (walker.nextNode())
-      walker.currentNode.textContent = walker.currentNode.textContent!.replace(
-        /\u2002/g,
-        "",
-      );
     // abcjs combines all stanza rows into one <text>. Isolate each row so
     // Hebrew cannot reverse an English row's punctuation. Syllable underlay
     // follows the music left-to-right; complete chord-view phrases read RTL.
@@ -358,105 +322,7 @@ export function drawPracticeScore(
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
   paper.querySelectorAll("svg").forEach((svg) => {
-    if (options.octaveNotation) fitHymnOttava(svg);
-    if (options.compact) {
-      const group = svg.querySelector<SVGGraphicsElement>(
-        ".abcjs-staff-wrapper",
-      );
-      if (group) {
-        const ink = group.getBBox();
-        const box = svg.viewBox.baseVal;
-        svg.setAttribute(
-          "viewBox",
-          `${box.x} ${box.y} ${Math.min(box.width, Math.ceil(ink.x + ink.width + 12))} ${box.height}`,
-        );
-      }
-      svg.style.marginInline = "auto";
-    }
-    // abcjs's per-system SVG can end exactly at the last lyric's ink bounds.
-    // Reserve space inside the viewBox so lower stanzas don't touch its edge.
-    const screen = svg.getScreenCTM();
-    if (screen && options.lyrics) {
-      const inverse = screen.inverse();
-      const box = svg.viewBox.baseVal;
-      let bottom = box.y + box.height;
-      for (const lyric of svg.querySelectorAll<SVGGraphicsElement>(
-        ".abcjs-lyric",
-      )) {
-        const transform = lyric.getScreenCTM();
-        if (!transform) continue;
-        const bounds = lyric.getBBox();
-        const matrix = inverse.multiply(transform);
-        for (const x of [bounds.x, bounds.x + bounds.width])
-          bottom = Math.max(
-            bottom,
-            new DOMPoint(x, bounds.y + bounds.height).matrixTransform(matrix)
-              .y + 12,
-          );
-      }
-      if (bottom > box.y + box.height)
-        svg.setAttribute(
-          "viewBox",
-          `${box.x} ${box.y} ${box.width} ${bottom - box.y}`,
-        );
-    }
-    if (options.guitarTab || options.fingerstyleTab || options.beginnerEdition) {
-      // abcjs can place chord labels outside a per-system SVG's viewBox.
-      const screen = svg.getScreenCTM();
-      if (screen) {
-        const inverse = screen.inverse(),
-          box = svg.viewBox.baseVal;
-        let top = options.beginnerEdition ? Infinity : box.y,
-          bottom = options.beginnerEdition ? -Infinity : box.y + box.height;
-        for (const ink of svg.querySelectorAll<SVGGraphicsElement>(
-          chordsOnly ? ".abcjs-lyric,.abcjs-chord,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.chord-chart-bars,.chord-chart-fermata" : options.tabOnly
-            ? ".guitar-fermata,.guitar-position,.abcjs-lyric,.abcjs-staff,.fingerstyle-tab-clef,.fingerstyle-tab-bars,.tab-rhythm-continuation,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-chord,.abcjs-tabNumber,.tab-rhythm,.tab-rhythm-stem,.tab-rhythm-rest,.tab-rhythm-flag,.tab-rhythm-tie,.beginner-fingering,.beginner-picking,.beginner-string"
-            : ".abcjs-annotation,.guitar-position,.abcjs-staff,.abcjs-staff-extra,.abcjs-bar,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-clef,.abcjs-chord,.abcjs-tabNumber,.abcjs-note,.abcjs-beam,.abcjs-slur,.beginner-fingering,.beginner-picking,.beginner-string",
-        )) {
-          if (getComputedStyle(ink).visibility === "hidden") continue;
-          const matrix = ink.getScreenCTM();
-          if (!matrix) continue;
-          const bounds = ink.getBBox(),
-            transform = inverse.multiply(matrix);
-          if (!bounds.width && !bounds.height) continue;
-          top = Math.min(
-            top,
-            new DOMPoint(bounds.x, bounds.y).matrixTransform(transform).y - 12,
-          );
-          bottom = Math.max(
-            bottom,
-            new DOMPoint(
-              bounds.x + bounds.width,
-              bounds.y + bounds.height,
-            ).matrixTransform(transform).y + 12,
-          );
-        }
-        if (Number.isFinite(top) && Number.isFinite(bottom))
-          svg.setAttribute(
-            "viewBox",
-            `${box.x} ${top} ${box.width} ${bottom - top}`,
-          );
-      }
-    }
-    if (options.printedScore) {
-      // A narrow choir/organ system can exceed abcjs's requested staff width.
-      // Fit all printed ink rather than cropping a pickup or its lyric rows.
-      const ink = svg.getBBox();
-      if (ink.width && ink.height) {
-        const box = svg.viewBox.baseVal;
-        const left = Math.min(box.x, ink.x - 8);
-        const right = Math.max(box.x + box.width, ink.x + ink.width + 8);
-        const top = Math.min(box.y, ink.y - 8);
-        const bottom = Math.max(box.y + box.height, ink.y + ink.height + 8);
-        svg.setAttribute("viewBox", `${left} ${top} ${right - left} ${bottom - top}`);
-      }
-    }
-    const box = svg.viewBox.baseVal;
-    const fittedScale = Math.min(scale, width / box.width);
-    svg.style.display = "block";
-    svg.style.width = `${box.width * fittedScale}px`;
-    svg.style.height = `${box.height * fittedScale}px`;
-    svg.style.maxWidth = "100%";
+    layout.fit(svg);
   });
   if (chordsOnly && options.showChordSymbols === false || !chordsOnly && options.hiddenStaves?.length && abcPlaybackStaves(abc).every(staff=>options.hiddenStaves!.includes(staff.index)))
     paper.querySelectorAll<SVGSVGElement>('svg').forEach(svg=>svg.style.display='none');

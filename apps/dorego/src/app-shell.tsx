@@ -58,7 +58,7 @@ function AppShell({
   const breath = useBreathSession(breathing && !settings, getVolume, moveExercise);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
-  const small = useMediaQuery('(max-width:359px)', undefined, { getInitialValueInEffect: false });
+  const stackedToolbar = useMediaQuery('(max-width:359px) and (min-height:601px)', undefined, { getInitialValueInEffect: false });
   const base = import.meta.env.BASE_URL;
   const offline = useSyncExternalStore(offlineState.subscribe, offlineState.getSnapshot);
   useEffect(() => {
@@ -134,7 +134,7 @@ function AppShell({
       <ApplicationLayout
         compact
         toolbarOnly={!settings}
-        mobileToolbarHeight={small ? 148 : 104}
+        mobileToolbarHeight={stackedToolbar ? 148 : 104}
         headerClassName={settings ? undefined : 'dorego-header'}
         mainClassName="dorego-workspace"
         brand={

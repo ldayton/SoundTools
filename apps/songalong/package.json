@@ -26,7 +26,8 @@
     "test:editions": "node ../../scripts/ci/test-strategy.cjs editions",
     "test:guitar": "tsx tests/guitar.browser.ts && tsx tests/guitar-fingering.browser.ts && tsx tests/chord-diagrams.browser.ts && tsx tests/guitar-capo.browser.ts",
     "test:instrument-audio": "tsx tests/instrument-audio.browser.ts",
-    "test:workspace:core": "tsx tests/workspace.browser.ts && tsx tests/hymn-library.browser.ts && tsx tests/staff-size.browser.ts && tsx tests/staff-spacing.browser.ts && tsx tests/song-memory.browser.ts && tsx tests/audio-output.browser.ts"
+    "test:workspace:core": "tsx tests/workspace.browser.ts && tsx tests/hymn-library.browser.ts && tsx tests/staff-size.browser.ts && tsx tests/staff-spacing.browser.ts && tsx tests/song-memory.browser.ts && tsx tests/audio-output.browser.ts",
+    "test:score-layout": "tsx tests/score-layout.browser.ts"
   },
   "dependencies": {
     "@ldayton/music-practice": "0.1.0"
@@ -36,6 +37,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "5.2.0",
+    "esbuild": "0.28.2",
     "playwright": "1.64.1",
     "tsx": "4.23.15",
     "typescript": "5.9.3",

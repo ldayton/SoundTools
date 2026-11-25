@@ -288,8 +288,8 @@ test("three selected verses play gaplessly with the same complete refrain", asyn
   );
 });
 test("responsive systems retain timing and keep pickup and short ending attached", async () => {
-  const { planScoreSystems } = await import("../../../packages/music-practice/src/score-system-plan");
-  const { sectionBreaks } = await import("../../../packages/music-practice/src/hymn-system-layout");
+  const { planScoreLayout } = await import("../../../packages/music-practice/src/score-layout/plan");
+  const { sectionBreaks } = await import("../../../packages/music-practice/src/score-layout/abc");
   for (const a of ["piano", "guitar-edition"] as const)
     for (const capacity of [180, 300, 600]) {
       const source = arrangeHymn(hymn, a, 0).abc;
@@ -297,9 +297,9 @@ test("responsive systems retain timing and keep pickup and short ending attached
       const measures = read(source).tune.lines.flatMap(line=>line.staff?.[0]?.voices?.[0] || []).flatMap(item=>{
         if(item.el_type === "note")duration+=item.duration;
         if(item.el_type !== "bar")return [];
-        const bar={width:60,duration};duration=0;return [bar];
+        const bar={minimumWidth:66,naturalWidth:90,duration};duration=0;return [bar];
       });
-      const breaks=planScoreSystems(measures,capacity,1);
+      const breaks=planScoreLayout([{startWidth:0,bars:measures,barDuration:1}],capacity).sections[0].breaks;
       const tune = read(source,sectionBreaks([breaks]));
       assert.deepEqual(tune.tracks, read(source).tracks);
       const rows = tune.tune.lines.filter((l) => l.staff),

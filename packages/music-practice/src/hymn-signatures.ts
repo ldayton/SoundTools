@@ -28,7 +28,8 @@ export function initialHymnSignatures(tune: TuneObject): () => void {
         // A boundary K: directive may be attached after the previous line's
         // final note. It still belongs at the next opening. Only a change
         // followed by music in this system has already been printed inline.
-        const lastNote=voice.findLastIndex(item=>item.el_type==="note");
+        let lastNote=-1;
+        for(let i=voice.length-1;i>=0;i--)if(voice[i].el_type==="note"){lastNote=i;break;}
         for(let i=0;i<lastNote;i++) {
           const item=voice[i];
           if(item.el_type==="key")previous.set(index,keyIdentity(item));

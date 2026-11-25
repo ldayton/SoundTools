@@ -376,23 +376,6 @@ try {
   await page.setViewportSize({width:1440,height:1000});
   await expect(page.getByRole("spinbutton",{name:"Staff spacing",exact:true})).toBeVisible();
   await expect(page.getByRole("button",{name:"Adjust staff spacing",exact:true})).toHaveCount(0);
-  const markingsPage=await newPage(browser,{viewport:{width:390,height:844}});
-  await markingsPage.goto(`${server.base}/piano/hymns/${practiceHymn.slug}?arrangement=piano&mode=playback`);
-  await waitForApp(markingsPage,".hymn-pause");
-  await openPracticeOptions(markingsPage);
-  const numbers=markingsPage.getByRole("checkbox",{name:"Bar numbers",exact:true});
-  await expect(numbers).not.toBeChecked();
-  await expect(markingsPage.locator(".abcjs-bar-number,.abcjs-part,.abcjs-tempo")).toHaveCount(0);
-  await numbers.check();
-  await expect(markingsPage.locator(".abcjs-bar-number").first()).toBeVisible();
-  await markingsPage.reload();
-  await waitForApp(markingsPage,".hymn-pause");
-  await openPracticeOptions(markingsPage);
-  await expect(numbers).toBeChecked();
-  await expect(markingsPage.locator(".abcjs-bar-number").first()).toBeVisible();
-  await numbers.uncheck();
-  await expect(markingsPage.locator(".abcjs-bar-number")).toHaveCount(0);
-  await markingsPage.close();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: primary instrument radios, supported choices, stable piano toggle, saved selection and responsive toolbar",

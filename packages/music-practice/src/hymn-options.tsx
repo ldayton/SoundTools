@@ -1,3 +1,5 @@
+import {ScoreExportButton} from "./score-export-button";
+import type {ScoreExportSource} from "./score-export";
 import {guitarStaffShown,toggleGuitarStaff} from "./hymn-playback-staves";
 import { hymnHasVoice } from "./hymn-instruments";
 import {chordEdition} from "./chord-editions";
@@ -62,10 +64,12 @@ const countIns = [
 ];
 
 export function HymnOptions({
+  exportScore,
   model,
   change,
 }: {
   model: HymnOptionsState;
+  exportScore(): ScoreExportSource | undefined;
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
@@ -257,11 +261,12 @@ export function HymnOptions({
           </Stack>
         </OptionsSection>
       )}
+      <OptionsSection title="View options">
+        <Checkbox label="Bar numbers" checked={state.barNumbers} onChange={event=>change({barNumbers:event.currentTarget.checked})} />
+      </OptionsSection>
+      <ScoreExportButton source={exportScore} />
       {editions ? (
         <>
-          <OptionsSection title="View options">
-            <Checkbox label="Bar numbers" checked={state.barNumbers} onChange={event=>change({barNumbers:event.currentTarget.checked})} />
-          </OptionsSection>
           {state.mode === "wait" && (
             <OptionsSection title="Practice">
               {state.arrangement === "guitar-edition" && !profile ? <Text size="sm">Practise the chord accompaniment.</Text> : <NativeSelect

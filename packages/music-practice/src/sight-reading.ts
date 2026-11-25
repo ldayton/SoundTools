@@ -1,3 +1,5 @@
+import {hymnScoreCredits} from "./hymn-score-credits";
+import type {ScoreExportSource} from "./score-export";
 import {guitarVocalAccompaniment} from "./hymn-arrangements";
 import {recommendGuitarCapos,capoPosition,capoAccompanimentAbc,type CapoChoice} from "./guitar-capo";
 import { bindMediaSession } from "@ldayton/ui/media-session";
@@ -250,6 +252,7 @@ export class SightReading {
     this.progress.setZoom(value, this.staffLayout);
   }
   private options!: HymnOptionsState;
+  private exportScore?: ScoreExportSource;
   private showFingerings = false;
   private showBarNumbers = false;
   private staffSpacingByLayout = { mobile: 100, desktop: 100 };
@@ -535,6 +538,7 @@ export class SightReading {
       element,
       createElement(HymnOptions, {
         model: this.options,
+        exportScore: () => this.exportScore,
         change: (patch) => this.changeOptions(patch),
       }),
       this.mode === "playback" ? "Playback options" : "Practice options",
@@ -915,6 +919,7 @@ export class SightReading {
     this.save();
   }
   private render(layoutOnly = false, continuingPlayback = false) {
+    this.exportScore=undefined;
     this.element.dataset.playbackOnly = String(this.mobileLayout.matches);
     const paper = this.$(".hymn-paper");
     this.lastWidth = Math.round(this.$(".sequence-score").clientWidth);
@@ -944,14 +949,7 @@ export class SightReading {
       title: this.hymn.title,
       showStrumPattern: !!chordProfile && "strumPattern" in chordProfile && !!chordProfile.strumPattern &&
         (this.arrangement === "guitar" || this.arrangement === "guitar-chords" || this.arrangement === "guitar-edition" && this.scoreDisplay === "chords"),
-      credits: this.hymn.credits
-        .filter((credit) => /^(Words:|Music:|(?:\p{L}+\s+)?translation:|Tabledited by )/iu.test(credit))
-        .map((credit) =>
-          credit
-            .split(/\s+Setting:/i)[0]
-            .replace(/\s+/g, " ")
-            .trim(),
-        ),
+      credits: hymnScoreCredits(this.hymn.credits),
       arrangement: this.arrangement,
       noKey: false,
       scoreLabel: reviewed
@@ -1011,7 +1009,7 @@ export class SightReading {
         score.abc = hymnStanzaAbc(score.abc, this.hymn, this.stanza, hymnMelodyOffset(this.hymn, score.from));
       this.section = score.section;
       this.sections = score.sections;
-      this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
+      const drawingOptions: NonNullable<Parameters<typeof drawPracticeScore>[3]> = {
         fitHymnSystems: true,
         barNumbers: this.showBarNumbers,
         scale: this.zoom,
@@ -1099,7 +1097,20 @@ export class SightReading {
               this.playback.seek(this.stanzaOffset, "ready");
           }
         },
-      });
+      };
+      this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, drawingOptions);
+      // Export a snapshot of the full music using the exact same display contract.
+      // Rendering it never seeks, pauses or reloads the active practice player.
+      const exportHymn=this.hymn, exportArrangement=this.arrangement, exportStanza=this.stanza;
+      const exportHands=this.mode === "playback" ? "both" : this.viewHands;
+      const exportOptions={...drawingOptions,scale:1,reattackTies:false,playback:undefined};
+      this.exportScore={title:exportHymn.title,credits:hymnScoreCredits(exportHymn.credits),
+        render:(target,width)=>{
+          const full=arrangeHymn(exportHymn,exportArrangement,0,0,exportHands,undefined,transposition.semitones,capoChoice);
+          const abc=hymnStanzaAbc(full.abc,exportHymn,exportStanza,hymnMelodyOffset(exportHymn,full.from));
+          drawPracticeScore(target,abc,width,{...exportOptions,fromBar:full.from,
+            lyrics:exportOptions.lyrics ? {...exportOptions.lyrics,offset:hymnMelodyOffset(exportHymn,full.from)} : undefined});
+        }};
       const visibleEvents = this.events;
       this.visibleEvents = visibleEvents;
       this.passage.bind(visibleEvents);

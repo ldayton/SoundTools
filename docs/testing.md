@@ -562,3 +562,19 @@ exercise. `sequence.test.ts` is included by DoReGo's existing CI unit glob. The
 independently required `sequence.e2e.ts` command calls `sequence.browser.ts` for source continuity,
 future-round chords/rest, delayed sample preparation, paused edits and deferred
 count-in. The exercise matrix stays in pure units rather than repeated browsers.
+
+## Score print and PDF exports
+
+`score-export.test.ts` owns complete-system pagination, ordering, page bounds and
+oversized-system handling. The independently required SongAlong
+`score-export.browser.ts` command runs in CI and both Nightly engines. Using the
+shared generic hymn fixture, it checks bar-number defaults/reload persistence, the actual desktop print window, opening-only
+signatures, both PDF page dimensions and parseable file contents, native file-share
+payloads and the browser download fallback. Browser outputs retain the printable
+sheet screenshot, mobile size chooser and both PDF files, separately by engine.
+The platform share sheet itself remains an OS surface, not a headless browser assertion.
+
+The bar-number view-preference witness moved intact from instrument-toolbar into
+the independent export/view-options command; its default, on/off and reload
+assertions have one CI/Nightly owner. Toolbar still owns instrument controls,
+preferences/migrations and responsive staff-spacing controls.

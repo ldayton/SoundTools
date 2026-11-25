@@ -265,3 +265,19 @@ It separates a pure layout plan from abcjs measurement/rendering and owns displa
 spacing, breaks, physical SVG size, wrapper size and overflow. Songs provide
 musical content and constraints rather than viewport-specific layout rules.
 See the component document for its contracts, current limits and test owners.
+
+### Print and PDF
+
+The button below View options opens a score-only system print dialog on desktop.
+On mobile, Save PDF offers Mobile and Desktop page sizes, then shares an actual
+PDF file through the OS share sheet where available (including Save to Files on
+iPhone). Other browsers download the same PDF. Files are prepared before the
+size button is enabled so the native share call retains the user's gesture.
+
+Both exports use a snapshot of the full arrangement and the same shared renderer
+as the interactive score, retaining the current key/capo, visible staves, chord
+symbols, fingerings, bar-number preference and selected stanzas. Practice passage
+limits and playback state are independent. Pagination keeps systems intact. Print
+uses vector SVGs; generated PDFs rasterize each system at 384 dpi to preserve
+browser-shaped Hebrew and niqqud without relying on a PDF library's RTL shaping.
+The PDF library is loaded only when a PDF is requested.

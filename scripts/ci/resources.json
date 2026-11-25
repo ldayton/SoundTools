@@ -2164,5 +2164,25 @@
         "cwd": "apps/dorego"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/score-export.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4627
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/score-export.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

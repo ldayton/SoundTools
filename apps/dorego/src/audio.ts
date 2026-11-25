@@ -180,6 +180,7 @@ export class Player {
   private clock: TempoClock | null = null;
   private exercise: Exercise | null = null;
   private seekBeat = 0;
+  private replayRestBeats = 0;
   private pending = 0;
   private events: AudioEvent[] = [];
   private cursor = 0;
@@ -190,11 +191,12 @@ export class Player {
     this.watchContext();
     await prepareLive(exercise);
   }
-  async play(exercise: Exercise, offset = 0) {
+  async play(exercise: Exercise, offset = 0, restBeats = 0) {
     this.halt();
     const token = ++this.pending;
     this.exercise = exercise;
     this.seekBeat = (offset * exercise.spec.bpm) / 60;
+    this.replayRestBeats = restBeats;
     initPlayback();
     this.watchContext();
     this.publish('starting');
@@ -211,7 +213,7 @@ export class Player {
         throw new Error('Audio is unavailable. Try Resume when the interruption ends.');
       const current = this.exercise!;
       this.graph = makeGraph(current.spec.volume, this.channels, current.spec.droneStrength);
-      this.clock = new TempoClock(Tone.now() + 0.05, this.seekBeat, current.spec.bpm);
+      this.clock = new TempoClock(Tone.now() + 0.05 + secondsAt(restBeats, current.spec.bpm), this.seekBeat, current.spec.bpm);
       this.events = audioEvents(current, secondsAt(this.seekBeat, current.spec.bpm));
       this.cursor = 0;
       this.health = new PlaybackHealth(this.graph.output.context.immediate(), performance.now());
@@ -300,7 +302,9 @@ export class Player {
     while (this.cursor < this.events.length) {
       const event = this.events[this.cursor];
       const planned = clock.timeAt(Math.max(this.seekBeat, event.onsetBeat));
-      if (planned >= now + 1) break;
+      // Schedule the first source even during a replay rest so a cold audio
+      // context starts rendering immediately, with its attack still in the future.
+      if (planned >= now + 1 && this.cursor !== 0) break;
       this.cursor++;
       if (this.voices.has(event.id) || event.endBeat <= beat) continue;
       const time = Math.max(planned, now + 0.015);
@@ -382,6 +386,10 @@ export class Player {
     this.cursor = 0;
     this.fill();
   }
+  get restRemainingBeats() {
+    if (!this.graph || !this.clock || !this.replayRestBeats || this.state !== 'playing') return 0;
+    return Math.max(0, Math.min(this.replayRestBeats, (this.clock.timeAt(this.seekBeat) - this.graph.output.context.immediate()) * (this.exercise!.spec.bpm / 60)));
+  }
   get position() {
     const bpm = this.exercise?.spec.bpm ?? 60;
     if (!this.graph || !playbackContext || !this.clock) return secondsAt(this.seekBeat, bpm);
@@ -407,6 +415,7 @@ export class Player {
     if (graph) this.seekBeat = (this.position * (this.exercise?.spec.bpm ?? 60)) / 60;
     this.graph = null;
     this.clock = null;
+    this.replayRestBeats = 0;
     this.voices.clear();
     this.health = null;
     if (graph) {

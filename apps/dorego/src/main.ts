@@ -326,6 +326,7 @@ function update(force = false) {
   const duration = secondsAt(exercise.totalBeats, spec.bpm);
   const time = mode === 'ready' ? -1 : position;
   const scene = stateAt(exercise, time);
+  const replayRest = player.restRemainingBeats;
   const practice = practiceAt(exercise, time);
   const roundReadout = (round: typeof practice.current) => {
     const range = practiceRange(exercise, round);
@@ -367,7 +368,7 @@ function update(force = false) {
       low: Math.max(24, range.low),
       high: Math.min(96, range.high),
       voices:
-        mode === 'playing' && scene.phase !== 'countin'
+        mode === 'playing' && !replayRest && scene.phase !== 'countin'
           ? exercise.notes
               .filter(
                 (note) =>
@@ -390,7 +391,9 @@ function update(force = false) {
       toast: toastMessage,
       readout: {
         status:
-          scene.phase === 'countin'
+          replayRest > 0
+            ? 'Rest · repeat round in'
+            : scene.phase === 'countin'
             ? 'Count-in'
             : scene.phase === 'complete'
               ? 'Complete'
@@ -399,7 +402,7 @@ function update(force = false) {
                 : scene.phase === 'ready'
                   ? 'Ready'
                   : '',
-        restCount: scene.phase === 'rest' ? scene.count : null,
+        restCount: replayRest > 0 ? Math.ceil(replayRest) : scene.phase === 'rest' ? scene.count : null,
         countIn:
           scene.phase === 'countin'
             ? {
@@ -446,20 +449,20 @@ function repeatCurrentRound() {
   const at = mode === 'playing' ? player.position : position;
   const round = practiceAt(exercise, at).current;
   diagnostics.event('playback.repeat_round');
-  seekTo(secondsAt(round.onsetBeat, spec.bpm), true);
+  seekTo(secondsAt(round.onsetBeat, spec.bpm), true, spec.restBeats);
 }
-function seekTo(seconds: number, running = mode === 'playing' || mode === 'starting') {
+function seekTo(seconds: number, running = mode === 'playing' || mode === 'starting', restBeats = 0) {
   if (pianoWarming || formError || renderFailed || !Number.isFinite(seconds)) return;
   const at = Math.max(0, Math.min(secondsAt(exercise.totalBeats, spec.bpm), seconds));
   ++playRequest;
   reference.stopAll();
   player.seek(exercise, at);
-  if (running) void startAt(at);
+  if (running) void startAt(at, restBeats);
 }
-async function startAt(offset: number) {
+async function startAt(offset: number, restBeats = 0) {
   const request = ++playRequest;
   try {
-    await player.play(exercise, offset);
+    await player.play(exercise, offset, restBeats);
   } catch (error) {
     if (request !== playRequest) return;
     diagnostics.capture(error, 'playback.start_failed', audioFailureDetails(error));

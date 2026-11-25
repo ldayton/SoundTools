@@ -451,3 +451,16 @@ lock. Inspection confirms that witness asserts loading, aborts, UI/playback stat
 and media actions, without PCM or latency measurements. Its inventory declaration
 is corrected from realtime audio to UI; DoReGo's PCM/timing lock is retained.
 All lifecycle assertions remain required in both tiers.
+
+## Score layout horizontal framing (25 November 2026)
+
+[Hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45658306343/job/139361265583)
+failed the independent space-quality assertion at 1119px on Linux. First evidence
+is retained locally in `work/layout-audit/hosted-failure`. A Linux browser probe
+reproduced a 1.28px excess frame: the final ink was inside the original page, but
+adding eight more horizontal units unnecessarily expanded it. Horizontal framing
+now reserves one unit for stroke edges; the existing engraving padding supplies
+whitespace. Vertical padding and genuinely overflowing ink remain unchanged.
+The same Linux probe reports zero overflow after the correction. Both macOS
+browser visual corpora match the existing approved references, without updates.
+The failure message now retains the complete measured geometry.

@@ -201,7 +201,10 @@ export class AbcScoreLayout {
           visible.top=Math.max(visible.top,clipped.top);visible.bottom=Math.min(visible.bottom,clipped.bottom);
         }
         if(visible.left>visible.right || visible.top>visible.bottom) continue;
-        left=Math.min(left,visible.left-8);right=Math.max(right,visible.right+8);
+        // Horizontal paper already includes engraving padding. Reserve stroke
+        // edges, without adding another eight units beyond an otherwise fitting
+        // final barline (Linux font metrics exposed spurious local scrolling).
+        left=Math.min(left,visible.left-1);right=Math.max(right,visible.right+1);
         top=Math.min(top,visible.top-8);bottom=Math.max(bottom,visible.bottom+8);
       }
       // Vertical whitespace belongs to the visible music, not abcjs's original

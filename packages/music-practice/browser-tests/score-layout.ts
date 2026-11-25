@@ -63,7 +63,7 @@ export async function checkScoreLayoutComponent(page: Page) {
     const result=await page.evaluate(width=>window.ScoreLayoutFixture.renderLayoutFixture(width,'verses'),width);
     assert(result.geometry.every(box=>Math.abs(box.scale-1.25)<.001),'Resize preserves physical staff size');
     const quality=await page.evaluate(()=>window.ScoreLayoutFixture.measureLayoutQuality());
-    assert.deepEqual(qualityViolations(quality),[],`Space-quality contract at ${width}px`);
+    assert.deepEqual(qualityViolations(quality),[],`Space-quality contract at ${width}px: ${JSON.stringify(quality)}`);
     assert.deepEqual(result.audio,reference.audio,'Resize preserves the musical signature');
     if(width===600) assert.deepEqual(result.plan,reference.plan,'Round-trip resize restores the original layout');
   }

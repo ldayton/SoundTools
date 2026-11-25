@@ -16,10 +16,10 @@ import {
   openPracticeOptions,
 } from "../../../packages/music-practice/browser-tests/helpers";
 import { practiceHymn } from "../../../packages/music-practice/test-fixtures/hymns";
-export async function checkInstrumentToolbar(widths:number[], desktopDetails:boolean) {
+export async function checkInstrumentToolbar(widths:number[], desktopDetails:boolean, port:number) {
 const server = await preview(
   "songalong",
-  Number(process.env.TEST_PORT || (desktopDetails?4613:4699)),
+  port,
 );
 const browser = await launchBrowser();
 try {

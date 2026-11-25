@@ -451,3 +451,16 @@ lock. Inspection confirms that witness asserts loading, aborts, UI/playback stat
 and media actions, without PCM or latency measurements. Its inventory declaration
 is corrected from realtime audio to UI; DoReGo's PCM/timing lock is retained.
 All lifecycle assertions remain required in both tiers.
+
+## Local CI budget interruption (25 November 2026)
+
+Scale-heading release `8747c4b` first run retained at
+`/Users/lily/source/SoundTools-scale-heading-release/work/ci-results/1795625823111-1af19aff`:
+62.22 seconds including bootstrap/cleanup exceeded the 60-second budget.
+DoReGo desktop and SongAlong instrument-toolbar lanes were cancelled by the
+coordinator; no assertion had failed before cancellation. SongAlong's subsequent
+"page closed" error occurred during cancellation, at its phone startup wait.
+Builds, unit checks and completed browser lanes passed. Host sampling also showed
+Spotlight indexing using 181% CPU; this is evidence of concurrent load, not an
+established cause. A full diagnostic rerun keeps the same commands, assertions,
+locks and budget. A passing rerun does not resolve the timing investigation.

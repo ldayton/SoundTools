@@ -525,3 +525,12 @@ still waiting at the bar-number assertion when cancelled. The release branch
 was then rebased onto upstream `822e5f0`, which fixes optional bar-number behavior;
 its independently recorded full local CI passed. These observations retain the
 failure evidence without treating either cancelled run as a pass.
+
+The feedback fix's first full applicable CI run at `295b6554`, retained at
+`/Users/lily/source/SoundTools-layout-framing-release/work/ci-results/1795627688680-0467b6ec`,
+hit the 60-second coordinator limit (62.17 seconds with cleanup). Completed
+checks passed; instrument-toolbar was cancelled after 32.2 seconds. Its score-size,
+stave/chord visibility, view reload and chord-preview assertions are now an
+independently required `score-view.browser.ts` command on reviewed port 4628.
+The toolbar still owns instruments, organ/choir, migrations and bar-number state.
+All assertions remain required in CI and both Nightly engines.

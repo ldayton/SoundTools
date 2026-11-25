@@ -562,3 +562,8 @@ exercise. `sequence.test.ts` is included by DoReGo's existing CI unit glob. The
 independently required `sequence.e2e.ts` command calls `sequence.browser.ts` for source continuity,
 future-round chords/rest, delayed sample preparation, paused edits and deferred
 count-in. The exercise matrix stays in pure units rather than repeated browsers.
+
+The required `score-view.browser.ts` command owns score size, independent
+stave/chord visibility, view-option reload and chord-preview scheduling. These
+assertions were extracted intact from instrument-toolbar to overlap independent
+required checks, retaining one execution owner in CI and both Nightly engines.

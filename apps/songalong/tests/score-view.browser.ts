@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict';
+import {expect} from '@playwright/test';
+import {launchBrowser,newPage,waitForApp,captureFailure,closeBrowser} from '../../../scripts/ci/browser-harness.cjs';
+import {preview} from '../../../packages/music-practice/browser-tests/server';
+import {openPracticeOptions,dismissPracticeDrawer,expectScoreDisplay} from '../../../packages/music-practice/browser-tests/helpers';
+import {guitarEditionHymn} from '../../../packages/music-practice/test-fixtures/hymns';
+const server=await preview('songalong',4628),browser=await launchBrowser();
+try {
+ const page=await newPage(browser,{viewport:{width:1440,height:1000}});
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(()=>{
+  (window as any).chordPreviewAttacks=[];
+  const start=AudioBufferSourceNode.prototype.start;
+  AudioBufferSourceNode.prototype.start=function(...args:Parameters<typeof start>){
+   if(this.context instanceof AudioContext&&!this.loop)(window as any).chordPreviewAttacks.push(args[0]||0);
+   return start.apply(this,args);
+  };
+ });
+  await page.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.slug}?arrangement=guitar-edition&display=both&mode=playback`);
+  await waitForApp(page,".hymn-toolbar-instruments");
+  await page.setViewportSize({width:1440,height:1000});
+  const staffSize = page.getByRole("spinbutton",{name:"Staff size in pixels",exact:true});
+  await staffSize.fill("40");await staffSize.press("Enter");
+  await expect(staffSize).toHaveValue("40 px");
+  const systemCount = () => page.locator(".hymn-paper svg").count();
+  await expect.poll(() => page.locator('.hymn-paper svg').first().evaluate(svg=>svg.getBoundingClientRect().width)).toBeGreaterThan(600);
+  const largeSystems = await systemCount();
+  await staffSize.fill("27");await staffSize.press("Enter");
+  await expect.poll(systemCount).toBeLessThan(largeSystems);
+  await expect(page.locator('[data-name=tabNumber]').first()).toBeVisible();
+  await openPracticeOptions(page);
+  const showTab=page.getByRole("checkbox",{name:"Show Tablature",exact:true});
+  const showTreble=page.getByRole("checkbox",{name:"Show Treble",exact:true});
+  const showChords=page.getByRole("checkbox",{name:"Show Chords",exact:true});
+  await expect(page.getByRole("checkbox",{name:"Play Tablature",exact:true})).toBeDisabled();
+  await expect(page.getByRole("checkbox",{name:"Play Chords",exact:true})).toBeDisabled();
+  await expect(page.locator('#hymn-score-display')).toHaveCount(0);
+  await expect(page.getByRole('region',{name:'Display',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('region',{name:'View options',exact:true}).getByRole('checkbox',{name:'Bar numbers',exact:true})).toBeVisible();
+  await showTreble.uncheck();await showTab.uncheck();
+  await expect(page.locator('.chords-only-score').first()).toBeVisible();
+  await expect(showChords).toBeChecked();
+  await expect(page.getByRole('checkbox',{name:'Play Treble',exact:true})).toBeChecked();
+  await showTreble.check();await showTab.check();
+  await showTab.uncheck();
+  await expect(page.locator("[data-name=tabNumber]")).toHaveCount(0);
+  await showTab.check();await showTreble.uncheck();
+  await expectScoreDisplay(page,"tab");
+  const frets=await page.locator("[data-name=tabNumber]").allTextContents();
+  await showChords.uncheck();
+  await expect(page.locator(".abcjs-chord")).toHaveCount(0);
+  assert.deepEqual(await page.locator("[data-name=tabNumber]").allTextContents(),frets);
+  await page.reload();await waitForApp(page,".hymn-toolbar-instruments");await openPracticeOptions(page);
+  await expect(showChords).not.toBeChecked();await expect(showTreble).not.toBeChecked();await expect(showTab).toBeChecked();
+  await expect(page.getByRole("checkbox",{name:"Play Treble",exact:true})).toBeChecked();
+  await showTab.uncheck();await expect(page.locator(".hymn-paper svg:visible")).toHaveCount(0);
+  await showTreble.check();await expect(page.locator(".hymn-paper svg:visible").first()).toBeVisible();
+  await showChords.check();await dismissPracticeDrawer(page);
+  await page.getByRole("button",{name:/^Show .* chord diagram$/}).first().click();
+  const chordDialog=page.getByRole("dialog");
+  const chordNotes=chordDialog.locator('[data-string]:not([data-fret="not-played"])');
+  await chordDialog.waitFor({state:'visible'});
+  await chordNotes.first().waitFor({state:'visible'});
+  const toneCount=await chordNotes.count();
+  assert(toneCount>0,'The preview must exercise a rendered, nonempty chord');
+  await page.evaluate(()=>{(window as any).chordPreviewAttacks=[];});
+  await chordDialog.getByRole("button",{name:/^Play .* chord and breakdown$/}).click();
+  await page.waitForFunction(count=>(window as any).chordPreviewAttacks.length===count*2,toneCount);
+  const attacks=await page.evaluate(()=>(window as any).chordPreviewAttacks as number[]);
+  assert(attacks.slice(0,toneCount).every(time=>time===attacks[0]));
+  assert.deepEqual(attacks.slice(toneCount).map(time=>Math.round((time-attacks[0])*100)/100),Array.from({length:toneCount},(_,index)=>1+index*.5));
+  await chordDialog.getByRole("button",{name:"Close chord diagram",exact:true}).click();
+
+ assert.deepEqual(errors,[]);console.log('PASS: score size, independent staves/chords, saved view options and chord preview schedule');
+} catch(error){await captureFailure(browser,error);throw error;}
+finally{await closeBrowser(browser);server.stop();}

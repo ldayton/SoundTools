@@ -115,7 +115,7 @@ export type AbcScoreLayoutInput = {
 /** The single abcjs layout boundary: measurement, breaks, spacing and physical
  * sizing live here. Instrument adapters still own their musical decorations. */
 export class AbcScoreLayout {
-  plan?: ScoreLayoutPlan;
+  readonly plan?: ScoreLayoutPlan;
   private metrics?: Metrics;
   readonly params: AbcVisualParams;
   private paper?: HTMLElement;
@@ -169,7 +169,7 @@ export class AbcScoreLayout {
         if(missing>0){this.metrics![s].startWidth+=missing;refined=true;}
       });
       if(!refined)break;
-      this.plan=planScoreLayout(this.metrics,this.plan.width);
+      this.plan.sections=planScoreLayout(this.metrics,this.plan.width).sections;
       this.params.lineBreaks=sectionBreaks(this.plan.sections.map(section=>section.breaks));
     }
     this.paper=paper;

@@ -102,3 +102,46 @@ Two further FOSS sources are retained under `test-fixtures/external`:
 required through the existing shared music unit glob in CI and Nightly. The
 upstream data supplies phrase/representation witnesses rather than expert finger
 number ground truth. No product arrangement or production exception was added.
+
+## Independent oracle, seeded cases and mutation checks
+
+`guitar-planner-assurance.test.ts` owns the bounded exhaustive and generative
+checks. Its test-only `guitar-fingering-oracle.ts` has no runtime imports from
+production. It independently builds sounding contacts, enumerates every finger
+assignment and all 24 positions, and visits every legal complete path with DFS
+rather than dynamic programming. Ten focused scenarios cover chords, held bass,
+ties, barre expansion/splitting, releases, rests, unsupported passages, explicit
+substitutions, capo and tempo. Every three-attack phrase over frets 0 through 3
+on alternating strings is also checked against that minimum. An independent
+24-cubed open-string path-count/known-cost check guards the oracle itself.
+
+Sixty-four fixed seeds generate phrases with an explicit feasible hand witness.
+That witness is checked independently before running the planner. The verifier
+checks note multiplicity/timing/fixed tab, complete hand contacts, holds,
+barres, reconstruction, physical constraints and independently recomputed cost.
+The seed corpus includes different positions, capos, budgets, barre policies,
+ties, opens, releases, rests and prototype-like note IDs. Inputs are frozen.
+
+On failure the test remains failed. Diagnostic shrinking deletes whole tied
+contact groups while preserving the failing known-playable subset. Original and
+minimized notes, seed, profile and witness are written to the ignored directory
+`work/guitar-fingering-failures/seed-N.json`. Reproduce with the corresponding
+`known-playable generated phrase seed N` test, inspect the JSON, and promote a
+reviewed minimized example into a permanent regression fixture. Shrinking is not
+an assertion retry or automatic acceptance of a new baseline.
+
+`guitar-planner-mutations.test.ts` compiles isolated in-memory copies with the
+existing pinned esbuild tool. It deliberately breaks tie identity, held-finger
+continuity, open-string barre blocking, note reconstruction, predecessor
+optimization and same-string collision detection. Each witness must pass against
+the real implementation and fail with an AssertionError against its compiling
+mutant. Import, syntax and mutation-site failures do not count as kills. No
+production mutation switches, filesystem source rewrites or application hooks
+are introduced.
+
+These unit files are enrolled by the existing shared music CI/Nightly glob. The
+old two-attack check that reused production grip scoring was retired: its exact
+2-to-4 fret witness and cost accounting are covered by the independent reference
+and minimum-predecessor mutation test. No browser coverage is displaced. The
+oracle validates our specified model and search, not whether the ergonomic
+weights agree with a human guitarist; reviewed musical rankings remain separate.

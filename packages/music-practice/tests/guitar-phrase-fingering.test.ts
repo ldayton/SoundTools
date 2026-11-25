@@ -136,49 +136,6 @@ test("invalid events, ties, and profiles are rejected without fabricated plans",
   assert.deepEqual(planGuitarPhrase([])!.notes, []);
 });
 
-test("shortest path matches an independent exhaustive two-attack oracle", () => {
-  const input = [note("a", 0, 1, 2), note("b", 1, 2, 4)];
-  let best = Infinity;
-  for (let p = 1; p <= 6; p++)
-    for (let f = 1; f <= 4; f++)
-      for (let q = 1; q <= 6; q++)
-        for (let g = 1; g <= 4; g++) {
-          const a = scoreGuitarHand(
-            [null, null, null, null, null, 2],
-            [null, null, null, null, null, f],
-            p,
-          );
-          const b = scoreGuitarHand(
-            [null, null, null, null, 4, null],
-            [null, null, null, null, g, null],
-            q,
-          );
-          if (!a || !b) continue;
-          const shift = (Math.abs(p - q) * 1.5) / 0.5;
-          const movement =
-            f === g
-              ? (0.12 * (650 * Math.abs(2 ** (-2 / 12) - 2 ** (-4 / 12)) + 6)) /
-                0.5
-              : 0;
-          best = Math.min(
-            best,
-            Object.values(a).reduce((x, y) => x + y, 0) +
-              Object.values(b).reduce((x, y) => x + y, 0) +
-              shift +
-              movement,
-          );
-        }
-  const plan = planGuitarPhrase(input)!;
-  assert.ok(Math.abs(plan.cost - best) < 1e-8);
-  assert.ok(
-    Math.abs(
-      plan.states.reduce(
-        (n, s) => n + Object.values(s.costs).reduce((a, b) => a + b, 0),
-        0,
-      ) - plan.cost,
-    ) < 1e-8,
-  );
-});
 test("held common fingers survive chord changes; release boundaries permit new fingers", () => {
   const plan = planGuitarPhrase([
     note("common", 0, 3, 2, 2),

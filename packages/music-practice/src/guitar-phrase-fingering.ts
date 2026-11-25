@@ -123,10 +123,12 @@ export function scoreGuitarHand(
   fingers: readonly (number | null)[],
   position: number,
   profile: GuitarFingeringProfile = {},
+  unplayedStrings: readonly number[] = [],
 ): FingeringCosts | null {
   const grip = assessGuitarFingering(frets, fingers, {
     maxFingers: profile.maxFingers ?? 4,
     allowBarres: profile.allowBarres ?? true,
+    unplayedStrings,
   });
   if (!grip || !Number.isInteger(position) || position < 1 || position > 24)
     return null;
@@ -266,6 +268,11 @@ export function planGuitarPhrase(
       if (frets[index] !== null) return null;
       frets[index] = note.fret;
     }
+    // A missing phrase contact is unplayed, not a requirement to mute it
+    // with the fretting hand. Sounding open/lower strings remain constraints.
+    const unplayedStrings = frets.flatMap((f, index) =>
+      f === null ? [6 - index] : [],
+    );
     const key = frets.join("/");
     let poses = cache.get(key);
     if (!poses) {
@@ -273,9 +280,16 @@ export function planGuitarPhrase(
       for (const grip of guitarHandCandidates(frets, {
         maxFingers: profile.maxFingers ?? 4,
         allowBarres: profile.allowBarres ?? true,
+        unplayedStrings,
       }))
         for (let position = 1; position <= 24; position++) {
-          const local = scoreGuitarHand(frets, grip.fingers, position, profile);
+          const local = scoreGuitarHand(
+            frets,
+            grip.fingers,
+            position,
+            profile,
+            unplayedStrings,
+          );
           if (local) poses.push({ grip, position, local });
         }
       cache.set(key, poses);

@@ -12,8 +12,11 @@ beats, string (1 = high E), fret relative to capo, and optional tie predecessor.
 The planner merges ties and creates a frame at every attack and release, including
 rests. Each frame enumerates the legal complete hand grips and positions. The
 existing shared chord feasibility checker rejects conflicting fingers, excessive
-reach and barres crossing open, muted or lower-fretted strings. A finger can extend
-one fret from its nominal position. Unsupported fixed-tab passages return null;
+reach and barres crossing open, explicitly muted or lower-fretted strings.
+Null contacts in a timed phrase are unplayed strings; barres may cross those
+gaps without creating extra sounding notes. Static chord search retains its
+conservative muted-string policy unless unplayed strings are explicitly supplied.
+A finger can extend one fret from its nominal position. Unsupported fixed-tab passages return null;
 the renderer omits suggestions instead of printing a partial or impossible hand.
 
 A shortest-path search evaluates all candidate states, with no beam pruning.
@@ -54,3 +57,24 @@ now merges identical destination marks. The first failure is retained in
 matching two symbols); source-voice diagnosis is in
 `work/ci-results/1795641422010-466a32b0`. The browser contract still requires one
 visible symbol, with no retry or relaxed assertion.
+
+## External regression cases
+
+The MIT-licensed `tombatossals/chords-db` fixture lives in
+`packages/music-practice/test-fixtures/external/chords-db`, with its upstream
+license, revision and conversion notes. Sixteen reviewed shapes test finger
+assignments as acceptable candidates, absolute fret/pitch agreement, barre
+metadata, complete phrase coverage and candidate uniqueness. These inexpensive
+checks are enrolled by the existing shared music CI unit glob.
+
+The initial imported cases exposed three rejected grips (C6, F6 and Cmaj9): an
+unplayed string was incorrectly treated as an obligatory left-hand mute. The
+shared validator now takes explicit unplayed-string context, used by the phrase
+planner at each attack/release. A continuation regression checks that an open
+string sounding later still rules out a conflicting initial barre while the
+other notes are held. Existing strict muted/open/lower-string assertions remain.
+
+The complete upstream database is a diagnostic corpus, not unquestioned ground
+truth. Some records have invalid finger labels; some valid advanced grips exceed
+our conservative one-fret extension model. In particular, stacked-finger grips
+near the nut still require ergonomic review before broadening that model.

@@ -74,8 +74,9 @@ check; successful Chromium decoding and HTTP cache verification are insufficient
   uses the standard host/resource locks and silent browser harness. It generates
   three before/after excerpts with equal RMS, preserves raw peak/RMS and memory,
   download and offline-render metrics, and writes `work/guitar-comparison/metrics.json`.
-  The baseline is read from Git; scores and reference fingerings are identical in
-  each pair. Audio is rendered offline. This diagnostic is not a full Nightly run.
+  The baseline is read from Git; scores and engine-selected capos/fingerings are
+  identical in each pair. Audio is rendered offline. This diagnostic is not a
+  full Nightly run.
 
 Judge phrase direction, repeated attacks, melody/bass separation and ringing in
 the matched audio. Unit checks protect musical correctness; do not freeze every

@@ -31,7 +31,8 @@ if(!process.env.GUITAR_COMPARISON_WORKER){
   const {launchBrowser,newPage,closeBrowser,captureFailure}=require("./ci/browser-harness.cjs");
   const {default:abcjs}=await import("abcjs");
   const {default:hymns}=await import("../packages/music-practice/src/hymns.json",{with:{type:"json"}});
-  const {arrangeHymn}=await import("../packages/music-practice/src/hymn-arrangements.ts");
+  const {arrangeHymn,guitarVocalAccompaniment}=await import("../packages/music-practice/src/hymn-arrangements.ts");
+  const {recommendGuitarCapos,capoPosition}=await import("../packages/music-practice/src/guitar-capo.ts");
   const {hymnPlaybackScore}=await import("../packages/music-practice/src/hymn-playback-score.ts");
   const {playbackNotes}=await import("../packages/music-practice/src/hymn-playback.ts");
   const {chordEdition}=await import("../packages/music-practice/src/instrument-editions.ts");
@@ -48,7 +49,7 @@ if(!process.env.GUITAR_COMPARISON_WORKER){
     import {performanceEnvelope} from '/packages/music-practice/src/performance-envelope.ts';
     window.guitarRender=async(input)=>{
       const options={instrument:'guitar',strum:input.strum,meter:input.meter,pickup:input.pickup,
-        positionFor:(pitch,chord)=>input.positions[pitch+':'+chord]};
+        positionFor:(pitch,chord,group)=>input.positions[pitch+':'+chord+':'+(group||[]).join(',')]||input.positions[pitch+':'+chord]};
       const notes=(input.before?oldPerformance:performNotes)(input.notes,options).filter(n=>!n.instrument||n.instrument==='guitar');
       const context=new OfflineAudioContext(2,Math.ceil((input.beats*60/input.tempo+0.2)*24000),24000);
       const buffers=new Map(),requests=new Map();let decodedBytes=0;
@@ -92,12 +93,29 @@ if(!process.env.GUITAR_COMPARISON_WORKER){
     await page.waitForFunction(()=>Boolean((window as any).guitarReady));
     for(const item of cases){
       const hymn=hymns.find(h=>h.slug===item.id)!;
-      const score=arrangeHymn(hymn,item.arrangement,0),edition=chordEdition(hymn)!;
+      const edition=chordEdition(hymn)!,vocal=item.arrangement==="guitar-vocal";
+      const reference=arrangeHymn(hymn,"guitar-edition",0);
+      const choice=recommendGuitarCapos({abc:vocal?guitarVocalAccompaniment(hymn,0).abc:reference.abc,
+        accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,
+        sourceCapo:edition.capo,transpose:0,shapeKey:edition.guitarKey||hymn.key,
+        positionFor:edition.position,accompanimentOnly:vocal})[0];
+      assert(choice,`No engine-selected capo for ${item.id}`);
+      const score=arrangeHymn(hymn,item.arrangement,0,0,"both",undefined,0,choice);
       const audio=abcjs.parseOnly(score.abc)[0].setUpAudio({qpm:60,chordsOff:true});
-      const plan=hymnPlaybackScore({hymn,arrangement:item.arrangement,sectionBars:0,section:0,hands:"both",totalBars:score.totalBars,sections:1,abc:score.abc,audio,transpose:0,stanzas:[1]});
+      const plan=hymnPlaybackScore({hymn,arrangement:item.arrangement,sectionBars:0,section:0,hands:"both",totalBars:score.totalBars,sections:1,abc:score.abc,audio,transpose:0,stanzas:[1],capoChoice:choice});
       const notes=playbackNotes(plan.audio).filter(n=>n.start<item.beats);
       const positions:Record<string,unknown>={};
-      for(const n of notes)for(const chord of [true,false])positions[n.pitch+":"+chord]=edition.position(n.pitch-(item.arrangement==="guitar-edition"?edition.capo:0),chord,0);
+      const groups=new Map<number,typeof notes>();
+      for(const note of notes.filter(n=>!n.instrument||n.instrument==="guitar")){
+        const group=groups.get(note.start)||[];group.push(note);groups.set(note.start,group);
+      }
+      for(const group of groups.values())for(const n of group)for(const chord of [true,false]){
+        const pitches=group.map(n=>n.pitch);
+        const position=capoPosition(choice,n.pitch-choice.fret,chord,edition.capo-choice.fret,
+          vocal?pitches.map(p=>p-choice.fret):undefined);
+        positions[n.pitch+":"+chord+":"+pitches.join(",")]=position;
+        positions[n.pitch+":"+chord]??=position;
+      }
       const pair=[];
       for(const before of [true,false]){
         const rendered=await page.evaluate(input=>(window as any).guitarRender(input),{...item,notes,positions,strum:item.arrangement==="guitar-vocal",meter:plan.timing.meter,pickup:plan.timing.pickup,before});
@@ -116,7 +134,7 @@ if(!process.env.GUITAR_COMPARISON_WORKER){
         header.writeUInt32LE(16,16);header.writeUInt16LE(1,20);header.writeUInt16LE(channels.length,22);header.writeUInt32LE(24000,24);
         header.writeUInt32LE(24000*frameBytes,28);header.writeUInt16LE(frameBytes,32);header.writeUInt16LE(16,34);header.write("data",36);header.writeUInt32LE(pcm.length,40);
         writeFileSync(path.join(output,file),Buffer.concat([header,pcm]));
-        const {channels:renderedChannels,...metrics}=render;report.push({...item,before:i===0,file,channels:renderedChannels.length,matchedRms:rms,normalizationGain:gain,...metrics});
+        const {channels:renderedChannels,...metrics}=render;report.push({...item,capo:choice.fret,before:i===0,file,channels:renderedChannels.length,matchedRms:rms,normalizationGain:gain,...metrics});
       }
     }
     assert.deepEqual(errors,[]);

@@ -1,11 +1,10 @@
 import { useSyncExternalStore, type ReactNode } from "react";
-import { Accordion, Button, Group, Text } from "@mantine/core";
+import { Accordion, Button, Group } from "@mantine/core";
 import { createViewState } from "./view-state";
 export const scaleControlsState = createViewState<{
   relative: string;
   returning: boolean;
   movable: boolean;
-  caption: string;
   keys: { label: string; title: string; disabled: boolean }[];
 }>;
 export function ScaleRelative({
@@ -58,14 +57,6 @@ export function ScaleNavigation({
       >
         {state.keys[0]?.label}
       </Button>
-      {state.caption && <Text
-        size="xs"
-        className="scale-pattern-caption"
-        role="status"
-        ta="center"
-      >
-        {state.caption}
-      </Text>}
       <Button
         variant="default"
         size="xs"

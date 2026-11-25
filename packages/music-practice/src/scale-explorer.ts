@@ -319,7 +319,6 @@ export class ScaleExplorer implements LivePractice {
     relative: "",
     returning: false,
     movable: true,
-    caption: "",
     keys: [],
   });
   private options!: ScaleOptionsState;
@@ -671,7 +670,7 @@ export class ScaleExplorer implements LivePractice {
     const caption = maqam ? `Frets ${firstFret}–${lastFret}` : hila
       ? `Berklee 7PS · Shape ${this.hilaShape}`
       : movable
-        ? `${scaleShapeLabel(this.pattern, this.quality)} · ${firstFret}${firstFret % 100 >= 11 && firstFret % 100 <= 13 ? "th" : firstFret % 10 === 1 ? "st" : firstFret % 10 === 2 ? "nd" : firstFret % 10 === 3 ? "rd" : "th"} position`
+        ? `CAGED · ${scaleShapeLabel(this.pattern, this.quality).replace(/ shape$/, " Shape")}`
         : "Fret range";
     const labels = this.labels;
     const footnote =
@@ -704,7 +703,6 @@ export class ScaleExplorer implements LivePractice {
       relative: maqam ? "" : label,
       returning: !!this.returnPosition,
       movable,
-      caption: linked ? "" : caption,
       keys,
     });
     const renderBoard = () => {
@@ -836,6 +834,7 @@ export class ScaleExplorer implements LivePractice {
       });
     this.body.patch({
       title,
+      caption: linked || !movable ? "" : caption,
       shiftMode: linked,
       shiftSelected: !!route,
       canReverse,

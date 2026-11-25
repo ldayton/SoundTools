@@ -8,6 +8,7 @@ import { ScaleDetails } from "./scale-controls";
 export const scaleBodyState = () =>
   frameState({
     title: "",
+    caption: "",
     shortcutsOpen: false,
     shiftMode: false,
     shiftSelected: false,
@@ -78,9 +79,10 @@ export function ScaleFrame({
         <Text size="sm" c="dimmed" mt="md">Linked shapes move together. Shape and octave shifts apply to movable shapes and stop at the fretboard limits. Shortcuts pause while you use an input or this panel.</Text>
       </Modal>
       <div className="scale-heading">
-        <Title order={2} id="scale-title">
-          {s.title}
-        </Title>
+        <div className="scale-heading-text">
+          <Title order={2} id="scale-title">{s.title}</Title>
+          {s.caption && <Text className="scale-pattern-caption" size="sm" role="status">{s.caption}</Text>}
+        </div>
         <div className="scale-relative">{relative}</div>
       </div>
       <div className="scale-key-navigation" hidden={!s.movable}>

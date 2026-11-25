@@ -126,7 +126,7 @@ try {
      await page.keyboard.press(key);
      await page.waitForFunction(id=>new URL(location.href).searchParams.get('pattern')===id,id);
      assert.equal(await page.locator('#scale-pattern').inputValue(),id);
-     assert.ok((await page.locator('.scale-pattern-caption').innerText()).startsWith(`${name} shape ·`));
+     assert.ok((await page.locator('.scale-pattern-caption').innerText())=== `CAGED · ${name} Shape`);
    }
  }
  // CAGED's selector is C, A, G, E, D; raw IDs are intentionally not that order.

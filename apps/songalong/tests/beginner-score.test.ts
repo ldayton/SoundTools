@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import abcjs from 'abcjs';
-import { beginnerFingers, beginnerLandmarks, beginnerSystems } from '../../../packages/music-practice/src/beginner-score';
+import { beginnerFingers, beginnerLandmarks } from '../../../packages/music-practice/src/beginner-score';
 import { arrangeHymn } from '../../../packages/music-practice/src/hymn-arrangements';
 import hymns from '../../../packages/music-practice/src/hymns.json';
 
@@ -34,8 +34,6 @@ test('bar and phrase landmarks retain every sounding pitch, duration, and repeat
   };
   const musical=(audio:ReturnType<typeof read>)=>audio.tracks.map(track=>track.flatMap(n=>n.cmd==='note' ? [[n.pitch,n.start,n.duration,n.volume]]:[]));
   assert.deepEqual(musical(read(abc)),musical(read(plain)));
-  for (const measures of [1,2,4])
-    assert.deepEqual(musical(read(beginnerSystems(abc,measures))),musical(read(abc)));
   assert.equal(read(abc).totalDuration,25);
  }
  assert.match(beginnerLandmarks('X:1\nK:C\n[V:v0] C4 |\n',4),/\[P:B\]/);

@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { planScoreSystems, SYSTEM_MIN_SPACING } from "../src/score-system-plan";
+import { planScoreLayout, scoreFrame } from "../src/score-layout/plan";
+const SYSTEM_MIN_SPACING=1.1;
+const planScoreSystems=(bars: {width:number;duration:number;breakBefore?:boolean;phraseEnd?:boolean}[],capacity:number,barDuration:number)=>
+  planScoreLayout([{startWidth:0,barDuration,bars:bars.map(bar=>({...bar,minimumWidth:bar.width*1.1,naturalWidth:bar.width*1.5}))}],capacity).sections[0].breaks;
 const bars = (widths: number[]) => widths.map(width => ({width,duration:1}));
 
 test("content and physical scale determine fitting, rather than a fixed bar count", () => {
@@ -52,4 +55,33 @@ test("a section label after an opening repeat cannot strand an empty system", ()
   const later=[...bars([80,80]),{width:10,duration:0},{width:80,duration:1,breakBefore:true},...bars([80,80])];
   const laterBreaks=planScoreSystems(later,600,1);
   assert(laterBreaks.includes(1));assert(!laterBreaks.includes(2));
+});
+
+
+test("fixed system overhead is reserved and independent of flexible bar spacing", () => {
+  const section={startWidth:80,barDuration:1,bars:Array.from({length:4},()=>({minimumWidth:60,naturalWidth:80,duration:1}))};
+  const result=planScoreLayout([section],250).sections[0];
+  assert.deepEqual(result.breaks,[1]);
+  assert.deepEqual(result.systems.map(s=>[s.minimumWidth,s.naturalWidth,s.overflow]),[[200,240,0],[200,240,0]]);
+});
+test("indivisible overflow is reported without dropping bars or pretending to fit", () => {
+  const result=planScoreLayout([{startWidth:40,barDuration:1,bars:[{minimumWidth:300,naturalWidth:400,duration:1}]}],200);
+  assert.deepEqual(result.sections[0].systems,[{from:0,to:1,minimumWidth:340,naturalWidth:440,overflow:140}]);
+});
+test("reflow preserves physical staff size; only explicit fit-to-box prompts shrink", () => {
+  assert.deepEqual(scoreFrame(300,1.5,{width:400,height:200},true),{width:600,height:300,scale:1.5,overflow:300});
+  assert.deepEqual(scoreFrame(300,1.5,{width:400,height:200},false),{width:300,height:150,scale:.75,overflow:0});
+});
+test("layout is deterministic, leaves input unchanged and handles independent sections", () => {
+  const sections=[{startWidth:30,barDuration:1,bars:[{minimumWidth:50,naturalWidth:70,duration:1}]}];
+  const original=structuredClone(sections);
+  assert.deepEqual(planScoreLayout(sections,300),planScoreLayout(sections,300));
+  assert.deepEqual(sections,original);
+  assert.equal(planScoreLayout([...sections,...sections],300).sections.length,2);
+  assert.deepEqual(planScoreLayout([],300).sections,[]);
+});
+test("invalid geometry fails explicitly instead of propagating NaN into SVGs", () => {
+  for(const width of [0,-1,Infinity,NaN]) assert.throws(()=>planScoreLayout([],width),RangeError);
+  assert.throws(()=>planScoreLayout([{startWidth:0,barDuration:1,bars:[{minimumWidth:10,naturalWidth:5,duration:1}]}],100),RangeError);
+  assert.throws(()=>scoreFrame(100,0,{width:100,height:100},true),RangeError);
 });

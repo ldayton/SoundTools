@@ -2114,5 +2114,19 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:run test:score-layout --workspace=songalong": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/score-layout.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

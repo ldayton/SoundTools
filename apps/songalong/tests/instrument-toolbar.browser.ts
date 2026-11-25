@@ -1,3 +1,4 @@
+import {checkScoreLayoutComponent} from "../../../packages/music-practice/browser-tests/score-layout";
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import {selectHymnScore} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
@@ -388,6 +389,9 @@ try {
   await numbers.uncheck();
   await expect(markingsPage.locator(".abcjs-bar-number")).toHaveCount(0);
   await markingsPage.close();
+  const componentPage=await newPage(browser,{viewport:{width:1100,height:900}});
+  await checkScoreLayoutComponent(componentPage);
+  await componentPage.close();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: primary instrument radios, supported choices, stable piano toggle, saved selection and responsive toolbar",

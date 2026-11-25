@@ -1,0 +1,511 @@
+{
+  "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
+  "bundleSha256": "eb26994cee9bdb7fd8150a752efe3b1ea7327d584b1eaa5985bed622d139b615",
+  "engine": "chromium",
+  "browser": "156.0.8078.4",
+  "platform": "linux",
+  "dpr": 1,
+  "commit": "8293ab72b63dc7a403bc37ea2814a030e48bb073",
+  "generated": "2026-11-25T13:09:33.551Z",
+  "reviewed": true,
+  "records": [
+    {
+      "id": "piano-phone",
+      "kind": "piano",
+      "width": 320,
+      "imageSha256": "8e55f21bed990bd9ce7c5b3859e7fc2d5ea1f1408d15cfc84725a1b9de8362b8",
+      "quality": {
+        "staffSpace": 9.6875,
+        "viewportOverflow": 0,
+        "scrollHeight": 168.15483870967742,
+        "systems": [
+          {
+            "height": 20.651612903225807,
+            "topBlank": 1.0321555845199093,
+            "bottomBlank": 1.0321887600806452,
+            "maxNoteGap": 5.470967741935484,
+            "maxRhythmicGap": 5.470624369959677,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 21.12741935483871,
+            "topBlank": 1.032335244455645,
+            "bottomBlank": 1.0322202620967742,
+            "maxNoteGap": 5.886967741935484,
+            "maxRhythmicGap": 5.887547253024193,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 20.651612903225807,
+            "topBlank": 1.0322328629032258,
+            "bottomBlank": 1.0321824596774194,
+            "maxNoteGap": 5.921032258064518,
+            "maxRhythmicGap": 5.920909463205645,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 21.62741935483871,
+            "topBlank": 1.0323336693548386,
+            "bottomBlank": 1.0322202620967742,
+            "maxNoteGap": 5.525677419354839,
+            "maxRhythmicGap": 5.732710118447581,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 20.651612903225807,
+            "topBlank": 1.0322265625,
+            "bottomBlank": 1.0321824596774194,
+            "maxNoteGap": 9.231483870967743,
+            "maxRhythmicGap": 7.9537228061478515,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 21.12741935483871,
+            "topBlank": 1.0323336693548386,
+            "bottomBlank": 1.0322202620967742,
+            "maxNoteGap": 9.007483870967743,
+            "maxRhythmicGap": 7.72132916871202,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 21.62741935483871,
+            "topBlank": 1.032258064516129,
+            "bottomBlank": 1.0322202620967742,
+            "maxNoteGap": 6.799483870967743,
+            "maxRhythmicGap": 6.799814138104839,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 20.651612903225807,
+            "topBlank": 1.0322328629032258,
+            "bottomBlank": 1.0321824596774194,
+            "maxNoteGap": 1.551483870967742,
+            "maxRhythmicGap": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          }
+        ]
+      },
+      "violations": [],
+      "systems": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      ]
+    },
+    {
+      "id": "piano-desktop",
+      "kind": "piano",
+      "width": 800,
+      "imageSha256": "bb1df6619b98e4c569865f1a284e5e1755edd7c0e672cfe8b79aee5bb1e1f53d",
+      "quality": {
+        "staffSpace": 9.6875,
+        "viewportOverflow": 0,
+        "scrollHeight": 64.41290322580645,
+        "systems": [
+          {
+            "height": 21.12741935483871,
+            "topBlank": 1.032210220829133,
+            "bottomBlank": 1.0322281376008065,
+            "maxNoteGap": 8.843354838709676,
+            "maxRhythmicGap": 8.84361296622984,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 21.62741935483871,
+            "topBlank": 1.0322423135080645,
+            "bottomBlank": 1.0322265625,
+            "maxNoteGap": 12.820645161290328,
+            "maxRhythmicGap": 10.30807396673387,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 21.62741935483871,
+            "topBlank": 1.0322391633064516,
+            "bottomBlank": 1.0322265625,
+            "maxNoteGap": 9.318193548387098,
+            "maxRhythmicGap": 9.318438130040322,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          }
+        ]
+      },
+      "violations": [],
+      "systems": [
+        [
+          2,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "guitar-phone",
+      "kind": "guitar",
+      "width": 320,
+      "imageSha256": "460b2c5fcff6a28b666990e47fa239c609aae3dc1a62e1cba18c3543e3737641",
+      "quality": {
+        "staffSpace": 9.6875,
+        "viewportOverflow": 0,
+        "scrollHeight": 202.4258064516129,
+        "systems": [
+          {
+            "height": 24.954838709677418,
+            "topBlank": 1.032338394657258,
+            "bottomBlank": 1.032254914314516,
+            "maxNoteGap": 5.470967741935484,
+            "maxRhythmicGap": 5.470948840725806,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 25.90967741935484,
+            "topBlank": 1.0324187247983871,
+            "bottomBlank": 1.0322517641129032,
+            "maxNoteGap": 6.218322580645161,
+            "maxRhythmicGap": 6.218023878528226,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 25.90967741935484,
+            "topBlank": 1.0322738155241935,
+            "bottomBlank": 1.0322013608870968,
+            "maxNoteGap": 6.244129032258064,
+            "maxRhythmicGap": 6.243548387096774,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 24.953225806451613,
+            "topBlank": 1.032062752016129,
+            "bottomBlank": 1.032195060483871,
+            "maxNoteGap": 6.030451612903226,
+            "maxRhythmicGap": 6.030595545614919,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 24.95967741935484,
+            "topBlank": 1.0322958669354838,
+            "bottomBlank": 1.0322454637096774,
+            "maxNoteGap": 11.89367741935484,
+            "maxRhythmicGap": 8.410327810404613,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 25.90967741935484,
+            "topBlank": 1.032195060483871,
+            "bottomBlank": 1.0322076612903226,
+            "maxNoteGap": 11.564387096774194,
+            "maxRhythmicGap": 8.177366431534638,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 24.90967741935484,
+            "topBlank": 1.0324092741935484,
+            "bottomBlank": 1.0322454637096774,
+            "maxNoteGap": 6.799483870967743,
+            "maxRhythmicGap": 6.7999574722782254,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 24.954838709677418,
+            "topBlank": 1.0321824596774194,
+            "bottomBlank": 1.0322076612903226,
+            "maxNoteGap": 0,
+            "maxRhythmicGap": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          }
+        ]
+      },
+      "violations": [],
+      "systems": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      ]
+    },
+    {
+      "id": "guitar-desktop",
+      "kind": "guitar",
+      "width": 800,
+      "imageSha256": "b4de9ec72944121711d5a09b55f079932c737b12f55ed6309f1e9efff0282a03",
+      "quality": {
+        "staffSpace": 9.6875,
+        "viewportOverflow": 0,
+        "scrollHeight": 76.8,
+        "systems": [
+          {
+            "height": 25.90967741935484,
+            "topBlank": 1.0322903540826613,
+            "bottomBlank": 1.0322564894153226,
+            "maxNoteGap": 8.96309677419355,
+            "maxRhythmicGap": 8.963860887096773,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 25.90967741935484,
+            "topBlank": 1.0322108114919355,
+            "bottomBlank": 1.0322013608870968,
+            "maxNoteGap": 13.009548387096771,
+            "maxRhythmicGap": 10.443299521169354,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 24.954838709677418,
+            "topBlank": 1.0323840725806452,
+            "bottomBlank": 1.0322517641129032,
+            "maxNoteGap": 9.318193548387098,
+            "maxRhythmicGap": 9.318660219254033,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          }
+        ]
+      },
+      "violations": [],
+      "systems": [
+        [
+          2,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "hebrew-phone",
+      "kind": "hebrew",
+      "width": 320,
+      "imageSha256": "db6f15a15fec3c1690c5bc3ee7432fa0a9b3f1e9bda092f534edf3062846a3d3",
+      "quality": {
+        "staffSpace": 9.6875,
+        "viewportOverflow": 0,
+        "scrollHeight": 115.81935483870967,
+        "systems": [
+          {
+            "height": 14.64516129032258,
+            "topBlank": 1.032393818516885,
+            "bottomBlank": 1.0322848412298387,
+            "maxNoteGap": 5.437935483870969,
+            "maxRhythmicGap": 5.437336189516129,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 15.12258064516129,
+            "topBlank": 1.0320785030241935,
+            "bottomBlank": 1.0321446572580646,
+            "maxNoteGap": 6.1326451612903226,
+            "maxRhythmicGap": 6.133656360257056,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 15.12258064516129,
+            "topBlank": 1.0320785030241935,
+            "bottomBlank": 1.0321383568548388,
+            "maxNoteGap": 5.953032258064517,
+            "maxRhythmicGap": 5.953000173261088,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 14.64516129032258,
+            "topBlank": 1.0321383568548388,
+            "bottomBlank": 1.0321509576612904,
+            "maxNoteGap": 6.475354838709678,
+            "maxRhythmicGap": 6.475498519405242,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 14.646774193548387,
+            "topBlank": 1.032132056451613,
+            "bottomBlank": 1.0321698588709678,
+            "maxNoteGap": 12.009290322580645,
+            "maxRhythmicGap": 8.491963961006336,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 15.12258064516129,
+            "topBlank": 1.0320816532258064,
+            "bottomBlank": 1.0321383568548388,
+            "maxNoteGap": 11.94425806451613,
+            "maxRhythmicGap": 8.446190747617177,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 14.62258064516129,
+            "topBlank": 1.0321257560483872,
+            "bottomBlank": 1.032195060483871,
+            "maxNoteGap": 8.124903225806452,
+            "maxRhythmicGap": 8.123969884072581,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 11.94032258064516,
+            "topBlank": 1.0320690524193548,
+            "bottomBlank": 1.0321572580645162,
+            "maxNoteGap": 0,
+            "maxRhythmicGap": 0,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          }
+        ]
+      },
+      "violations": [],
+      "systems": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      ]
+    },
+    {
+      "id": "verses-desktop",
+      "kind": "verses",
+      "width": 800,
+      "imageSha256": "0f09d5b62bcfcd9697f008b95ede36ec7230a1a6058a8020d4b75cc0a0000128",
+      "quality": {
+        "staffSpace": 9.6875,
+        "viewportOverflow": 0,
+        "scrollHeight": 52.748387096774195,
+        "systems": [
+          {
+            "height": 17.75483870967742,
+            "topBlank": 1.0321342222152217,
+            "bottomBlank": 1.0321619833669355,
+            "maxNoteGap": 8.874322580645163,
+            "maxRhythmicGap": 8.87412109375,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 17.75483870967742,
+            "topBlank": 1.032135206653226,
+            "bottomBlank": 1.032163558467742,
+            "maxNoteGap": 13.009548387096771,
+            "maxRhythmicGap": 10.443016003024194,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          },
+          {
+            "height": 17.27741935483871,
+            "topBlank": 1.03212890625,
+            "bottomBlank": 1.0321509576612904,
+            "maxNoteGap": 9.318193548387098,
+            "maxRhythmicGap": 9.31796875,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          }
+        ]
+      },
+      "violations": [],
+      "systems": [
+        [
+          2,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "sparse-desktop",
+      "kind": "sparse",
+      "width": 800,
+      "imageSha256": "dcfc25cfdb666fa81a7833176a063923f0654d92e84df85d7b6c1af1b82cf704",
+      "quality": {
+        "staffSpace": 9.6875,
+        "viewportOverflow": 0,
+        "scrollHeight": 9.393548387096773,
+        "systems": [
+          {
+            "height": 9.425806451612903,
+            "topBlank": 1.0321619833669355,
+            "bottomBlank": 1.0321619833669355,
+            "maxNoteGap": 12.627612903225806,
+            "maxRhythmicGap": 6.3136903824344754,
+            "lyricCollisions": 0,
+            "lyricCrowding": 0,
+            "overflows": 0
+          }
+        ]
+      },
+      "violations": [],
+      "systems": [
+        []
+      ]
+    }
+  ],
+  "review": {
+    "reviewer": "Codex",
+    "date": "2026-11-25",
+    "method": "Viewed all seven Linux PNGs per engine individually; checked complete readable notes, lyrics and pointed Hebrew, notation/tab alignment, sparse endings and no accidental viewport cropping. Generated with the package-pinned browser downloads in Ubuntu 24.04."
+  },
+  "sourceState": "Uncommitted layout implementation based on the recorded commit; bundleSha256 identifies the exact browser fixture and renderer code."
+}

@@ -2,8 +2,9 @@ import {checkVocalEdition} from "../../../packages/music-practice/test-fixtures/
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdir } from "node:fs/promises";
 import {
+  waitForApp,
   launchBrowser,
   newPage,
   closeBrowser,
@@ -23,7 +24,7 @@ async function checkScore(page: import("playwright").Page) {
         view = (svg as SVGSVGElement).viewBox.baseVal;
       return [
         ...svg.querySelectorAll<SVGGraphicsElement>(
-          ".abcjs-lyric,.abcjs-tabNumber,.beginner-fingering,.abcjs-part,.abcjs-bar-number,.tab-rhythm",
+          ".abcjs-lyric,.abcjs-tabNumber,.beginner-fingering,.abcjs-part,.abcjs-bar-number,.tab-rhythm,.hymn-lyric-extender",
         ),
       ].flatMap((node) => {
         if (getComputedStyle(node).visibility === "hidden") return [];
@@ -63,6 +64,14 @@ async function checkScore(page: import("playwright").Page) {
     }),
   );
   assert.deepEqual(crowded, [], "Opposing voice fingerings remain distinct");
+  const collisions=await page.locator(".hymn-paper svg").evaluateAll(svgs=>svgs.flatMap(svg=>{
+    const words=[...svg.querySelectorAll(".abcjs-lyric tspan")].filter(n=>n.textContent?.trim()).map(n=>n.getBoundingClientRect());
+    return [...svg.querySelectorAll(".hymn-lyric-extender rect")].flatMap(n=>{
+      const a=n.getBoundingClientRect();
+      return words.some(b=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top)?[n.parentElement?.getAttribute("data-syllable")]:[];
+    });
+  }));
+  assert.deepEqual(collisions,[],"Melisma lines clear Hebrew letters and niqqud");
   assert(
     await page
       .locator(".hymn-paper svg")
@@ -171,7 +180,7 @@ try {
     await checkScore(page);
     // All three verses retain their words and the shared chorus.
     const stanzas = page.locator(".hymn-stanza-checkbox input");
-    await expect(stanzas).toHaveCount(3);
+    await expect(stanzas).toHaveCount(7);
     await stanzas.nth(1).check();
     await stanzas.nth(2).check();
     await page.locator("#hymn-score-display").selectOption("tab");
@@ -264,6 +273,43 @@ try {
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     );
+    // Translations mix with English, and each language prints its refrain once.
+    for(const arrangement of ["piano","guitar-edition"]){
+      await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=playback&display=both&stanzas=1,2,3,4,5,6,7&capo=3`);
+      await waitForApp(page,".hymn-pause");
+      await openPracticeOptions(page);
+      await expect(page.locator("#hymn-stanzas input:checked")).toHaveCount(7);
+      for(const label of ["ישוע אותי אוהב","ישוע מת על הצלב","גם כשכואב לי הלב","ישוע הולך איתי"])
+        await expect(page.getByRole("checkbox",{name:label,exact:true})).toBeChecked();
+      await expect(page.locator(".hymn-paper")).toContainText("מֵת");
+      await expect(page.locator(".hymn-paper")).toContainText("דְּבָ");
+      await checkScore(page);
+      if(arrangement==="guitar-edition")for(const display of ["tab","chords","both"]){
+        await page.locator("#hymn-score-display").selectOption(display);
+        await expect(page.locator("#hymn-score-display")).toHaveValue(display);
+        await checkScore(page);
+      }
+      await dismissPracticeDrawer(page);
+      assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),"Hebrew does not overflow the page");
+      if(width===1440||width===390){
+        await mkdir("work/song-support/screenshots",{recursive:true});
+        await page.screenshot({path:`work/song-support/screenshots/jesus-hebrew-${arrangement}-${width}.png`,fullPage:true});
+      }
+      // Persist a freely mixed subset across reload.
+      await openPracticeOptions(page);
+      for(const index of [1,2,4,5])await page.locator("#hymn-stanzas input").nth(index).uncheck();
+      await page.reload();
+      await waitForApp(page,".hymn-pause");
+      await openPracticeOptions(page);
+      await expect(page.locator("#hymn-stanzas input")).toHaveCount(7);
+      assert.deepEqual(await page.locator("#hymn-stanzas input").evaluateAll(nodes=>nodes.map(n=>(n as HTMLInputElement).checked)),[true,false,false,true,false,false,true]);
+      await checkScore(page);
+      if(width===1440||width===390)for(const stanza of [4,5,6,7]){
+        await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=wait&hands=right&view=right&stanzas=${stanza}&capo=3`);
+        await waitForApp(page,".hymn-pause");
+        await expect(page.locator(".hymn-count")).toHaveText(`1 / ${stanza===4?54:53}`);
+      }
+    }
     await checkVocalEdition(page,server.base,"jesus-loves-me");
     await page.close();
     console.log(`PASS Jesus Loves Me editions ${width}px`);

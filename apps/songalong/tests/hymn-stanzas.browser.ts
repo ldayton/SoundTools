@@ -111,12 +111,12 @@ try {
     page.locator(".hymn-paper .abcjs-lyric").allTextContents();
   await visit("jesus-loves-me");
   const checks = page.locator("#hymn-stanzas input[type=checkbox]");
-  assert.equal(await checks.count(), 3);
+  assert.equal(await checks.count(), 7);
   assert.deepEqual(
     await checks.evaluateAll((es) =>
       es.map((e) => (e as HTMLInputElement).checked),
     ),
-    [true, false, false],
+    [true, false, false, false, false, false, false],
   );
   const firstHeight = await page
     .locator(".hymn-paper svg")
@@ -149,7 +149,7 @@ try {
     await checks.evaluateAll((es) =>
       es.map((e) => (e as HTMLInputElement).checked),
     ),
-    [false, true, true],
+    [false, true, true, false, false, false, false],
   );
   const score = page.locator(".sequence-score");
   await score.focus();
@@ -186,14 +186,14 @@ try {
     await checks.evaluateAll((es) =>
       es.map((e) => (e as HTMLInputElement).checked),
     ),
-    [false, false, false],
+    [false, false, false, false, false, false, false],
   );
   await visit("amazing-grace");
   assert.deepEqual(
     await checks.evaluateAll((es) =>
       es.map((e) => (e as HTMLInputElement).checked),
     ),
-    [true, false, false],
+    [true, false, false, false, false, false],
     "Another hymn starts with only its first stanza",
   );
   await visit("in-christ-alone", "?stanzas=4");

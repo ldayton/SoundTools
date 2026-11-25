@@ -72,10 +72,10 @@ test("all bundled stanzas align to the melody, with unique first-word labels", (
     );
   }
   for (const id of [
-    "jesus-loves-me",
     "o-come-all-ye-faithful",
   ])
     assert.equal(hymn(id).stanzas.length, 3);
+  assert.equal(hymn("jesus-loves-me").stanzas.length, 7);
   assert.equal(hymn("amazing-grace").stanzas.length, 6);
   assert.match(
     words(hymn("amazing-grace").stanzas[1].syllables),
@@ -221,7 +221,7 @@ test("reviewed word divisions retain complete syllables and intentional multiwor
   // following phrase or create additional notes in the reference arrangement.
   assert.equal(christ[2].syllables[24], "Up");
   assert.equal(christ[3].syllables[24], "Je-");
-  for (const stanza of hymn("jesus-loves-me").stanzas)
+  for (const stanza of hymn("jesus-loves-me").stanzas.slice(0,3))
     assert.deepEqual(stanza.syllables.slice(-6), [
       "For~the",
       "Bi-",

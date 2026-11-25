@@ -133,6 +133,18 @@ export async function verifySequence(browser: Browser, base: string) {
     await page.locator('#startingChords').uncheck();
     assert.equal(await page.locator('#play').getAttribute('data-mode'), 'paused');
     assert.equal(await page.locator('#elapsed').getAttribute('data-seconds'), paused);
+    await page.getByRole('button', { name: 'Repeat round', exact: true }).click();
+    await page.getByText('Rest · repeat round in', { exact: true }).waitFor();
+    assert.equal(
+      Number(await page.locator('#elapsed').getAttribute('data-duration')),
+      (20 * 60) / 240,
+      'Repeat rebuilds the current round without the chords just switched off'
+    );
+    await page.waitForFunction(
+      () => Number(document.querySelector('#elapsed')?.getAttribute('data-seconds')) > 3.05
+    );
+    assert.equal(await page.locator('#exercise-summary').textContent(), 'Round 2 of 2');
+    assert.equal(await page.locator('#stage').getAttribute('data-counting'), 'false');
     await page.locator('#restart').click();
     await page.locator('#play').click();
     await page.waitForFunction(

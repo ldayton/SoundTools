@@ -177,17 +177,53 @@ export function transitionSequence(
       position: 0,
       protectedThrough: 0,
     };
-  if (action.type === 'repeat' || action.type === 'move') {
+  if (action.type === 'repeat') {
+    const current = practiceAt(state.timeline, action.position).current;
+    const generated = compile(state.settings);
+    const items = catalogue(generated);
+    const cursor = current.commitment!;
+    const template =
+      items.find(
+        (item) =>
+          item.cursor.pass === cursor.pass &&
+          item.cursor.leg === cursor.leg &&
+          Math.abs(item.cursor.anchor - cursor.anchor) < 1e-6
+      ) ?? items[0];
+    const shift = cursor.anchor - template.cursor.anchor;
+    const repeat = {
+      ...template,
+      round: { ...template.round, midi: template.round.midi + shift },
+      notes: template.notes.map((note) => ({
+        ...note,
+        midi: note.midi + shift,
+        repetition: cursor.pass + 1,
+      })),
+      guide: template.guide,
+      cursor: { ...template.cursor, anchor: cursor.anchor, pass: cursor.pass, leg: cursor.leg },
+    };
+    const timeline = compose(
+      state,
+      generated.spec,
+      generated,
+      current.id,
+      [repeat, ...continuation(items, { ...cursor, settings: generated.spec })],
+      current.onsetBeat
+    );
+    return {
+      state: timeline,
+      effect: 'play',
+      position: secondsAt(current.onsetBeat, generated.spec.bpm),
+      restBeats: state.settings.restBeats,
+      protectedThrough: 0,
+    };
+  }
+  if (action.type === 'move') {
     const current = practiceAt(state.timeline, action.position).current.id;
-    const target =
-      action.type === 'repeat'
-        ? current
-        : Math.max(0, Math.min(state.timeline.rounds.length - 1, current + action.step));
+    const target = Math.max(0, Math.min(state.timeline.rounds.length - 1, current + action.step));
     return {
       state,
-      effect: action.type === 'repeat' ? 'play' : target === current ? 'live' : 'seek',
+      effect: target === current ? 'live' : 'seek',
       position: secondsAt(state.timeline.rounds[target].onsetBeat, state.timeline.spec.bpm),
-      restBeats: action.type === 'repeat' ? state.settings.restBeats : 0,
       protectedThrough: 0,
     };
   }
@@ -233,17 +269,41 @@ export function transitionSequence(
   const current = old.rounds[index];
   const items = catalogue(generated);
   const future = current ? continuation(items, current.commitment!) : items;
-  const prefix = old.rounds.slice(0, index + 1);
-  const notes = current ? old.notes.filter((note) => note.onsetBeat < current.endBeat - 1e-9) : [];
-  const guideNotes = current
-    ? (old.guideNotes ?? old.notes).filter((note) => note.onsetBeat < current.endBeat - 1e-9)
-    : [];
+  return {
+    state: compose(
+      state,
+      settings,
+      generated,
+      index + 1,
+      future,
+      current ? current.endBeat + settings.restBeats : old.spec.countIn
+    ),
+    effect: 'replace-future',
+    position,
+    protectedThrough: current?.endBeat ?? old.spec.countIn,
+  };
+}
+
+/** One assembler owns identities, history preservation and timing for edits and repeats. */
+function compose(
+  state: SequenceState,
+  settings: ExerciseSpec,
+  generated: Exercise,
+  prefixCount: number,
+  future: ReturnType<typeof catalogue>,
+  firstOnset: number
+): SequenceState {
+  const old = state.timeline;
+  const prefix = old.rounds.slice(0, prefixCount);
+  const cutoff = prefix.at(-1)?.endBeat ?? 0;
+  const notes = old.notes.filter((note) => note.onsetBeat < cutoff - 1e-9);
+  const guideNotes = (old.guideNotes ?? old.notes).filter((note) => note.onsetBeat < cutoff - 1e-9);
   const rounds = [...prefix];
   let nextRoundId = state.nextRoundId,
-    nextNoteId = state.nextNoteId,
-    end = current?.endBeat ?? old.spec.countIn - settings.restBeats;
+    nextNoteId = state.nextNoteId;
+  let onset = firstOnset,
+    end = cutoff;
   for (const item of future) {
-    const onset = end + settings.restBeats;
     const shift = onset - item.round.onsetBeat;
     const copies = new Map<number, NoteEvent>();
     for (const note of item.notes) {
@@ -260,24 +320,20 @@ export function transitionSequence(
       endBeat: end,
       commitment: { ...item.cursor, identity: nextRoundId++, settings: { ...settings } },
     });
+    onset = end + settings.restBeats;
   }
   return {
-    state: {
-      settings,
-      nextRoundId,
-      nextNoteId,
-      timeline: {
-        ...generated,
-        notes,
-        guideNotes,
-        rounds,
-        totalBeats: end,
-        spec: { ...settings, countIn: old.spec.countIn },
-        pitches: [...new Set(notes.map((note) => note.midi))].sort((a, b) => a - b),
-      },
+    settings,
+    nextRoundId,
+    nextNoteId,
+    timeline: {
+      ...generated,
+      notes,
+      guideNotes,
+      rounds,
+      totalBeats: end,
+      spec: { ...settings, countIn: old.spec.countIn },
+      pitches: [...new Set(notes.map((note) => note.midi))].sort((a, b) => a - b),
     },
-    effect: 'replace-future',
-    position,
-    protectedThrough: current?.endBeat ?? old.spec.countIn,
   };
 }

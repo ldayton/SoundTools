@@ -184,7 +184,7 @@ test('reducing passes finishes the current round; exercise changes explicitly re
   assert.equal(original.settings.high, 75);
 });
 
-test('repeat and round navigation use the same committed timeline after edits', () => {
+test('repeat refreshes round options while navigation uses the updated timeline', () => {
   const original = createSequence(settings);
   const current = original.timeline.rounds[1];
   const changed = edit(
@@ -195,7 +195,12 @@ test('repeat and round navigation use the same committed timeline after edits', 
   const position = secondsAt(current.onsetBeat + 1, settings.bpm);
   const repeat = transitionSequence(changed, { type: 'repeat', position });
   assert.equal(repeat.effect, 'play');
-  assert.equal(repeat.state.timeline.rounds[1], current);
+  assert.notEqual(
+    repeat.state.timeline.rounds[1].commitment!.identity,
+    current.commitment!.identity
+  );
+  assert.equal(repeat.state.timeline.rounds[1].commitment!.settings.startingChords, true);
+  assert.equal(repeat.state.timeline.rounds[0], original.timeline.rounds[0]);
   assert.equal(repeat.position, secondsAt(current.onsetBeat, settings.bpm));
   assert.equal(repeat.restBeats, 6);
   const next = transitionSequence(changed, { type: 'move', position, step: 1 });
@@ -238,4 +243,55 @@ test('the running count-in stays committed while not-yet-started round content c
   assert.ok(result.state.timeline.rounds[0].commitment!.identity >= original.nextRoundId);
   assert.equal(result.protectedThrough, 4);
   assert.equal(result.position, secondsAt(1, settings.bpm));
+});
+
+test('Repeat uses current options for every exercise, including after completion', () => {
+  for (const pattern of Object.keys(PATTERNS) as Pattern[]) {
+    const original = createSequence({ ...settings, pattern, low: 48, high: 84 });
+    const current = original.timeline.rounds.at(-1)!;
+    const changed = edit(
+      original,
+      { startingChords: true, repeatTwice: true, restBeats: 5, countIn: 8 },
+      original.timeline.totalBeats,
+      'complete'
+    ).state;
+    const result = transitionSequence(changed, {
+      type: 'repeat',
+      position: secondsAt(original.timeline.totalBeats, settings.bpm),
+    });
+    const repeated = result.state.timeline.rounds[current.id];
+    assert.notEqual(repeated.commitment!.identity, current.commitment!.identity, pattern);
+    assert.equal(repeated.commitment!.anchor, current.commitment!.anchor, pattern);
+    assert.equal(repeated.commitment!.settings.repeatTwice, true, pattern);
+    assert.equal(result.state.timeline.spec.countIn, 4, pattern);
+    assert.equal(result.restBeats, 5, pattern);
+    assert.equal(result.state.timeline.rounds.length, original.timeline.rounds.length, pattern);
+    assert.ok(
+      result.state.timeline.notes
+        .filter((note) => note.onsetBeat >= repeated.onsetBeat)
+        .every((note) => note.id >= original.nextNoteId),
+      pattern
+    );
+  }
+});
+
+test('Repeat keeps its pitch outside the edited range and ends without an invalid continuation', () => {
+  const original = createSequence(settings);
+  const current = original.timeline.rounds[0];
+  const changed = edit(
+    original,
+    { low: 62, high: 77, startingChords: true },
+    current.onsetBeat + 1
+  ).state;
+  const repeat = transitionSequence(changed, {
+    type: 'repeat',
+    position: secondsAt(current.onsetBeat + 1, settings.bpm),
+  });
+  assert.equal(repeat.state.timeline.rounds.length, 1);
+  assert.equal(repeat.state.timeline.rounds[0].commitment!.anchor, 60);
+  assert.equal(repeat.state.timeline.rounds[0].commitment!.settings.startingChords, true);
+  assert.equal(
+    Math.min(...phrasePitches(repeat.state.timeline, repeat.state.timeline.rounds[0])),
+    60
+  );
 });

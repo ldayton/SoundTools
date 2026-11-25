@@ -437,6 +437,9 @@ function repeatCurrentRound() {
   if (pianoWarming || pianoFailed || renderFailed) return;
   const at = mode === 'playing' ? player.position : position;
   const result = transitionSequence(sequence, { type: 'repeat', position: at });
+  sequence = result.state;
+  spec = sequence.settings;
+  exercise = sequence.timeline;
   diagnostics.event('playback.repeat_round');
   seekTo(result.position, true, result.restBeats);
 }

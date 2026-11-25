@@ -5,6 +5,8 @@
  */
 export type FingerNote = {
   midi: number;
+  /** Hard editorial constraint, if supplied. */
+  finger?: number;
   duration: number;
   restBefore?: boolean;
   tied?: boolean;
@@ -26,6 +28,30 @@ export function planPianoFingering(
   notes: readonly FingerNote[],
   hand: "right" | "left",
 ): PianoFinger[] {
+  if (hand !== "right" && hand !== "left") throw Error("Invalid piano hand");
+  for (const [index, note] of notes.entries()) {
+    if (
+      !Number.isInteger(note.midi) ||
+      note.midi < 0 ||
+      note.midi > 127 ||
+      !Number.isFinite(note.duration) ||
+      note.duration <= 0 ||
+      (note.finger !== undefined &&
+        (!Number.isInteger(note.finger) ||
+          note.finger < 1 ||
+          note.finger > 5)) ||
+      (note.tied !== undefined && typeof note.tied !== "boolean") ||
+      (note.restBefore !== undefined && typeof note.restBefore !== "boolean")
+    )
+      throw Error("Invalid piano fingering note");
+    if (
+      note.tied &&
+      (!index || note.restBefore || note.midi !== notes[index - 1].midi)
+    )
+      throw Error(
+        "A piano tie must continue the preceding pitch without a rest",
+      );
+  }
   if (!notes.length) return [];
   const sign = hand === "right" ? 1 : -1;
   let states: State[] = [];
@@ -33,7 +59,11 @@ export function planPianoFingering(
     const note = notes[i],
       x = pianoKeyPosition(note.midi);
     const next: State[] = [];
-    for (let finger = 1; finger <= 5; finger++) {
+    for (
+      let finger = note.finger ?? 1;
+      finger <= (note.finger ?? 5);
+      finger++
+    ) {
       const ideal = x - sign * (finger - 1);
       for (
         let anchor = Math.floor(ideal);

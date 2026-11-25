@@ -2,38 +2,31 @@ import type { AbsoluteElement, TuneObject } from "abcjs";
 import { scoreSpellings, pitchLabel } from "./sight-feedback";
 import { planPianoFingering, type FingerNote } from "./piano-fingering";
 const ns = "http://www.w3.org/2000/svg";
-type Entry = { note: FingerNote; absolute: AbsoluteElement; label: string };
-/** Add annotations after engraving: no extra staff rows, no effect on timing/ABC identities. */
-export function drawHymnFingerings(tune: TuneObject) {
-  const spellings = scoreSpellings(tune);
-  const voices = new Map<
-    string,
-    {
-      hand: "right" | "left";
-      notes: Entry[];
-      rest: boolean;
-      invalid: boolean;
-      last?: number;
-    }
-  >();
+type Entry = { note: FingerNote; absolute?: AbsoluteElement; label: string };
+type PianoVoice = {
+  hand: "right" | "left";
+  notes: Entry[];
+  rest: boolean;
+  invalid: boolean;
+  hasPitches: boolean;
+  last?: number;
+};
+/** Generated suggestions are safe only for one monophonic voice per hand.
+ * Editorial edition fingerings use a separate renderer and are preserved. */
+export function pianoFingeringVoices(tune: TuneObject) {
+  const spellings = scoreSpellings(tune),
+    voices = new Map<string, PianoVoice>();
   for (const line of tune.lines)
     for (const [si, staff] of (line.staff || []).entries())
       for (const [vi, voice] of (staff.voices || []).entries()) {
         const id = `${si}:${vi}`;
-        const part =
-          voices.get(id) ||
-          ({
-            hand: staff.clef?.type === "bass" ? "left" : "right",
-            notes: [],
-            rest: false,
-            invalid: false,
-          } as {
-            hand: "right" | "left";
-            notes: Entry[];
-            rest: boolean;
-            invalid: boolean;
-            last?: number;
-          });
+        const part: PianoVoice = voices.get(id) || {
+          hand: staff.clef?.type === "bass" ? "left" : "right",
+          notes: [],
+          rest: false,
+          invalid: false,
+          hasPitches: false,
+        };
         voices.set(id, part);
         for (const item of voice) {
           if (item.el_type !== "note") continue;
@@ -41,6 +34,7 @@ export function drawHymnFingerings(tune: TuneObject) {
             part.rest = true;
             continue;
           }
+          part.hasPitches = true;
           if (item.pitches.length !== 1) {
             part.invalid = true;
             continue;
@@ -50,7 +44,7 @@ export function drawHymnFingerings(tune: TuneObject) {
             item.midiPitches?.[0]?.pitch ?? (tied ? part.last : undefined);
           const absolute = (item as typeof item & { abselem?: AbsoluteElement })
             .abselem;
-          if (midi === undefined || !absolute) {
+          if (midi === undefined) {
             part.invalid = true;
             continue;
           }
@@ -59,7 +53,9 @@ export function drawHymnFingerings(tune: TuneObject) {
               midi,
               duration: item.duration,
               restBefore: part.rest,
-              tied,
+              // A selected passage can start on a continuation: its prior
+              // contact is outside this phrase and cannot constrain the search.
+              tied: tied && part.notes.length > 0,
             },
             absolute,
             label: pitchLabel(midi, spellings.get(item.startChar)),
@@ -68,15 +64,22 @@ export function drawHymnFingerings(tune: TuneObject) {
           part.rest = false;
         }
       }
-  for (const part of voices.values()) {
-    if (part.invalid) continue;
+  const counts = { right: 0, left: 0 };
+  for (const part of voices.values()) if (part.hasPitches) counts[part.hand]++;
+  return [...voices.values()].filter(
+    (part) => part.notes.length && !part.invalid && counts[part.hand] === 1,
+  );
+}
+/** Add annotations after engraving without changing timing or ABC identities. */
+export function drawHymnFingerings(tune: TuneObject) {
+  for (const part of pianoFingeringVoices(tune)) {
     const fingers = planPianoFingering(
       part.notes.map((n) => n.note),
       part.hand,
     );
     part.notes.forEach(({ note, absolute, label: noteName }, i) => {
       // Tied continuations retain their finger; do not repeat the annotation.
-      if (note.tied) return;
+      if (note.tied || !absolute) return;
       const group =
         absolute.elemset.find((e) => e.classList.contains("abcjs-note")) ||
         absolute.elemset[0];

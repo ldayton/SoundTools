@@ -2224,5 +2224,23 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/piano-fingering.browser.ts": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/piano-fingering.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

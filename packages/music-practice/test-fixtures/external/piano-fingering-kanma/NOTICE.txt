@@ -1,0 +1,21 @@
+Source: Philip Abbet (Kanma), piano_fingering
+https://github.com/Kanma/piano_fingering
+Revision: 88963cad52bb3c16438d69f600830a6d43d923ce
+Source file: piano_fingering/test/test_fingering.py
+License: MIT; full upstream LICENSE.txt retained.
+Copyright 2017 Philip Abbet
+
+The original test source is retained as test_fingering.py.txt (data, never
+imported or executed). cases.json contains its eight literal input/expected
+fixtures. Conversion used Python's standard-library AST parser and a restricted
+literal-data reader; it did not import, eval or execute upstream code.
+
+Our TypeScript adapter assigns quarter-note durations to the duration-free
+examples, retains explicit rests as restBefore, and maps supplied finger numbers
+to hard constraints. Six monophonic cases are checked against the actual selected
+fingers. Two chord cases are retained as reference data for a future whole-hand
+planner; current tests explicitly reject feeding a chord to the single-note API.
+These two data/eligibility checks do not claim chord-generation support.
+
+The upstream algorithm cites Blake West's performer. No upstream algorithm,
+cost database, runtime dependency or installation script was imported or run.

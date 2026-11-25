@@ -386,6 +386,50 @@ try {
   console.log(
     `${browserName}: saved controls restore; obsolete loading failures cannot override the final exercise.`
   );
+  // Repeating is a direct playback action, independent of next-round navigation.
+  await page.locator('#restart').click();
+  await page.getByRole('button',{name:'Next round',exact:true}).click();
+  const selectedRound=await page.locator('#exercise-summary').textContent();
+  assert.match(selectedRound!, /Round 2 of/);
+  const selectedStart=await position();
+  await page.getByRole('button',{name:'Repeat round',exact:true}).click();
+  await playing();
+  await progress();
+  assert.equal(await page.locator('#exercise-summary').textContent(),selectedRound);
+  assert.ok((await position()) >= selectedStart);
+  await page.waitForFunction(start => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > start + 0.5, selectedStart);
+  const beforeRepeat=await position();
+  await page.locator('#repeat-round').click();
+  await page.waitForFunction(previous => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) < previous - 0.2, beforeRepeat);
+  await progress();
+  await audible();
+  await page.locator('#play').click();
+  await paused();
+  // A completed one-round exercise has no Next, but Repeat must still play it.
+  const finalPage=await context.newPage();
+  finalPage.on('pageerror', error => errors.push(error.message));
+  await finalPage.addInitScript(spec => localStorage.setItem('dorego.current',JSON.stringify(spec)), {...DEFAULT_SPEC,pattern:'major',direction:'up',bpm:240,countIn:8,repetitions:1,restBeats:0,low:60,high:72});
+  await finalPage.goto(base);
+  await finalPage.locator('#play:enabled').waitFor();
+  await finalPage.locator('#repeat-round').click();
+  await finalPage.waitForFunction(()=>document.querySelector('#play')?.getAttribute('data-mode')==='playing');
+  assert.equal(await finalPage.locator('#stage').getAttribute('data-counting'),'false','Repeating starts the round without replaying the session count-in');
+  await finalPage.getByRole('button',{name:'Replay',exact:true}).waitFor();
+  assert.ok(await finalPage.locator('#next-round').isDisabled());
+  await finalPage.setViewportSize({width:390,height:844});
+  await finalPage.waitForFunction(() => document.querySelector<HTMLElement>('.practice-options')?.dataset.layout === 'mobile' && !document.querySelector('.mantine-AppShell-navbar'));
+  if (await finalPage.locator('#practice-options-reopen').getAttribute('aria-expanded') === 'true')
+    await finalPage.getByRole('button',{name:'Close practice options',exact:true}).click();
+  await finalPage.locator('.mantine-Drawer-content:visible').waitFor({state:'hidden'});
+  const repeat=finalPage.getByRole('button',{name:'Repeat round',exact:true});
+  const repeatBounds=await repeat.boundingBox();
+  assert.ok(repeatBounds && repeatBounds.height >= 44 && repeatBounds.x >= 0 && repeatBounds.x+repeatBounds.width <= 390);
+  await finalPage.screenshot({path:'/tmp/dorego-repeat-round-mobile.png'});
+  await repeat.click();
+  await finalPage.waitForFunction(()=>document.querySelector('#play')?.getAttribute('data-mode')==='playing' && Number(document.querySelector('#elapsed')?.getAttribute('data-seconds'))>2.05);
+  assert.equal(await finalPage.locator('#exercise-summary').textContent(),'Round 1 of 1');
+  assert.ok(await finalPage.locator('#next-round').isDisabled());
+  await finalPage.close();
   // A hung OS resume must release the UI; the next user action gets a fresh engine.
   await page.evaluate(() => {
     const p=(window as any).desktopProbe;

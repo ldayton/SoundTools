@@ -48,6 +48,7 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
 - Tempo −/+ buttons step by 5 BPM. Repeats count additional passes (None means one pass); repeats and rest use stacked arrows on desktop and None–4 dropdowns on mobile.
 - Volume is independent beneath tempo and can change during playback with a short gain ramp. Count-in clicks stop when the exercise begins.
 - Play/pause, scrub, restart, and fullscreen. Space toggles playback, R restarts, F toggles fullscreen when a form control is not focused. Tempo is independent: change it at any time with the slider, numeric field, or −/+ buttons. Playback keeps the current round and beat, including through count-ins, rests, and cello glides. Volume also changes live without restarting, in its own row below tempo. Other exercise edits reset playback.
+- **Repeat round**, below the note display, immediately replays the current round while playing, paused, or finished—even when there is no next round. It includes that round’s introduction, skips the session count-in, then continues normally without changing saved settings.
 
 The live practice pane uses a borderless white surface with the normal page
 padding. Instead of piano geometry, equally sized touch pads show the distinct

@@ -88,6 +88,7 @@
 .practice-card:fullscreen {
   background: white;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -571,4 +572,15 @@
     max-width: 100%;
     margin-inline: auto;
   }
+}
+
+/* Keep the current-round action close to the readout on phones and desktops. */
+.repeat-round-control {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 12px;
+}
+.repeat-round-control button {
+  min-width: 180px;
+  min-height: 44px;
 }

@@ -174,6 +174,7 @@ mountAppShell($('#app'), {
       change: (patch) => refresh(patch),
     }),
     audition: (midi) => reference.press(midi),
+    repeatRound: repeatCurrentRound,
   }),
   settingsView: createElement(SettingsPage, { onAudioChannelsChange: changeAudioChannels }),
 });
@@ -440,10 +441,16 @@ function moveRound(step: number) {
   if (target === current) return;
   seekTo(secondsAt(exercise.rounds[target].onsetBeat, spec.bpm));
 }
-function seekTo(seconds: number) {
+function repeatCurrentRound() {
+  if (pianoWarming || pianoFailed || formError || renderFailed) return;
+  const at = mode === 'playing' ? player.position : position;
+  const round = practiceAt(exercise, at).current;
+  diagnostics.event('playback.repeat_round');
+  seekTo(secondsAt(round.onsetBeat, spec.bpm), true);
+}
+function seekTo(seconds: number, running = mode === 'playing' || mode === 'starting') {
   if (pianoWarming || formError || renderFailed || !Number.isFinite(seconds)) return;
   const at = Math.max(0, Math.min(secondsAt(exercise.totalBeats, spec.bpm), seconds));
-  const running = mode === 'playing' || mode === 'starting';
   ++playRequest;
   reference.stopAll();
   player.seek(exercise, at);

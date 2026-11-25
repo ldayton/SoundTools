@@ -265,6 +265,7 @@ export function PracticeView({
   playback,
   piano,
   audition,
+  repeatRound,
   controls,
 }: {
   model: PracticeModel;
@@ -272,6 +273,7 @@ export function PracticeView({
   piano: PianoModel;
   controls?: ReactNode;
   audition(midi: number): () => void;
+  repeatRound(): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
@@ -285,6 +287,11 @@ export function PracticeView({
           {controls}
           <div className="practice-card" id="practice-card">
             {state.readout && <PracticeReadout state={state.readout} />}
+            <div className="repeat-round-control">
+              <Button id="repeat-round" size="md" radius="xl" leftSection={<ControlIcon name="restart" />} disabled={state.warming || state.failed || !!state.error} onClick={repeatRound}>
+                Repeat round
+              </Button>
+            </div>
           </div>
           <ReferenceKeyboard model={piano} audition={audition} />
         </div>

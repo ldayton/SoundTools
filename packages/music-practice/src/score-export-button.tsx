@@ -1,3 +1,4 @@
+import {ControlIcon} from "@ldayton/ui/control-icon";
 import {useEffect,useRef,useState} from 'react';
 import {Button,Popover,Stack,Text} from '@mantine/core';
 import {useMediaQuery} from '@mantine/hooks';
@@ -32,7 +33,7 @@ export function ScoreExportButton({source}:{source():ScoreExportSource|undefined
         <Button variant="default" disabled={!files.desktop} onClick={()=>void save('desktop')}>Desktop</Button>
         {error&&<Text size="sm" c="red" role="alert">{error}</Text>}
       </Stack></Popover.Dropdown>
-    </Popover>:<Button variant="default" loading={busy} onClick={print}>Print</Button>}
+    </Popover>:<Button variant="default" leftSection={<ControlIcon name="print" size={18}/>} loading={busy} onClick={print}>Print</Button>}
     {!mobile&&error&&<Text size="sm" c="red" role="alert">{error}</Text>}
   </Stack>;
 }

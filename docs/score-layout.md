@@ -128,3 +128,14 @@ refines the shared section overhead and the planner runs again. Refinement is
 bounded by the bar count, uses private copies of cached measurements and retains
 physical scale. It reads each staff's geometry, not abcjs's repeated maximum
 viewBox. Indivisible bars continue to report overflow instead of being shrunk.
+
+## Printed score headers
+
+Print and PDF use the same header in `score-export.ts`: a centered serif title,
+words and translation credits on the left, and musical credits on the right.
+Mobile paper stacks credits left-aligned; this follows the chosen PDF paper,
+independently of the browser viewport. Supplementary credit sentences and quoted
+tune attributions receive separate, quieter lines. Composer-name casing is
+preserved. The shared export browser witness checks actual header ink bounds,
+alignment, title separation and mobile wrapping with independent credit fixtures.
+Desktop Print uses the shared printer icon; mobile Save PDF remains text-only.

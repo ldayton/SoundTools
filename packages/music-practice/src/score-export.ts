@@ -22,15 +22,51 @@ export function paginateScore(blocks:readonly {width:number;height:number}[],pap
   });
   return pages;
 }
-function header(source:ScoreExportSource,width:number,setup?:string):ExportBlock {
+function header(source:ScoreExportSource,width:number,paper:ScorePaper,setup?:string):ExportBlock {
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d')!;let y=0;
-  for(const [text,size] of [[source.title,26],...source.credits.map(c=>[c,13]),...(setup?[[setup,14]]:[])] as [string,number][]) {
-    ctx.font=`${size}px Arial`;let line='';
-    const append=()=>{y+=size*1.35;const node=document.createElementNS(svg.namespaceURI,'text');node.setAttribute('x','0');node.setAttribute('y',String(y));node.setAttribute('font-family','Arial, sans-serif');node.setAttribute('font-size',String(size));node.textContent=line;svg.append(node);};
-    for(const word of text.split(/\s+/)){if(line&&ctx.measureText(`${line} ${word}`).width>width){append();line='';}line+=(line?' ':'')+word;}
-    if(line)append();
+  const ctx=document.createElement('canvas').getContext('2d')!;
+  function draw(text:string,start:number,columnWidth:number,x:number,anchor:'start'|'middle'|'end',size=12,weight=400,family='"Times New Roman", Times, serif',secondary=false) {
+    ctx.font=`${secondary?"italic ":""}${weight} ${size}px ${family}`;let line='',y=start;
+    const append=()=>{
+      y+=size*1.3;
+      const node=document.createElementNS(svg.namespaceURI,'text');
+      node.setAttribute('x',String(x));node.setAttribute('y',String(y));
+      node.setAttribute('text-anchor',anchor);node.setAttribute('font-family',family);
+      node.setAttribute('font-weight',String(weight));node.setAttribute('font-size',String(size));
+      if(secondary){node.setAttribute('font-style','italic');node.setAttribute('fill','#444');}
+      node.textContent=line;svg.append(node);
+    };
+    for(const word of text.split(/\s+/)){if(line&&ctx.measureText(`${line} ${word}`).width>columnWidth){append();line='';}line+=(line?' ':'')+word;}
+    if(line)append();return y;
   }
+  let y=draw(source.title,0,width,width/2,'middle',30,700,'"Times New Roman", Times, serif');
+  function credit(text:string,start:number,columnWidth:number,x:number,anchor:'start'|'end') {
+    // Separate bibliographic sentences and quoted tune attributions, rather
+    // than allowing incidental wrapping to strand a date on its own line.
+    const tune=text.match(/^(Music:\s*['‘"][^'’"]+['’"])\s+(.+)$/);
+    const lines=tune?[tune[1],tune[2]]:text.split(/(?<=\.)\s+(?=[a-z])/);
+    for(const [index,line] of lines.entries()) {
+      const content=index && !tune?line.charAt(0).toUpperCase()+line.slice(1):line;
+      start=draw(content,start,columnWidth,x,anchor,index?11.5:12,400,'"Times New Roman", Times, serif',index>0);
+    }
+    return start+4;
+  }
+  if(source.credits.length) {
+    y+=18;
+    if(paper==='mobile') {
+      for(const text of source.credits)y=credit(text,y,width,0,'start');
+    } else {
+      const columnWidth=(width-28)/2;
+      let left=y,right=y;
+      for(const text of source.credits) {
+        if(/^(Music:|Arranged by |Arrangement:|Arranger:|Tabledited by )/i.test(text))
+          right=credit(text,right,columnWidth,width,'end');
+        else left=credit(text,left,columnWidth,0,'start');
+      }
+      y=Math.max(left,right);
+    }
+  }
+  if(setup)y=draw(setup,y+8,width,0,'start',13);
   y+=12;svg.setAttribute('viewBox',`0 0 ${width} ${y}`);return {svg,width,height:y};
 }
 export async function prepareScoreExport(source:ScoreExportSource,paper:ScorePaper) {
@@ -42,7 +78,7 @@ export async function prepareScoreExport(source:ScoreExportSource,paper:ScorePap
     source.render(host,width);
     const setup=[host.querySelector(".hymn-score-setup")?.textContent?.match(/^Capo \d+/)?.[0],
       host.querySelector(".score-swing-trigger")?.textContent].filter(Boolean).join(" · ");
-    const blocks:ExportBlock[]=[header(source,width,setup)];
+    const blocks:ExportBlock[]=[header(source,width,paper,setup)];
     for(const original of host.querySelectorAll('svg')) {
       if(getComputedStyle(original).display==='none')continue;
       const svg=original.cloneNode(true) as SVGSVGElement;

@@ -1,6 +1,7 @@
 import React from "react";
 
 export type ControlIconName =
+  | "print"
   | "star"
   | "guitar"
   | "keyboard"
@@ -28,6 +29,12 @@ export type ControlIconName =
   | "chevron-left";
 
 const artwork = {
+  print: (
+    <>
+      <path d="M7 8V3h10v5M7 17H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-3" />
+      <path d="M7 14h10v7H7zM17 11h1" />
+    </>
+  ),
   keyboard: (
     <>
       <rect x="3" y="5" width="18" height="14" rx="2" />

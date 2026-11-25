@@ -58,12 +58,30 @@ try {
  await page.getByRole('button',{name:'Mobile',exact:true}).click();assert.match((await download).suggestedFilename(),/-mobile\.pdf$/);
  const component=await build({entryPoints:[new URL('../../../packages/music-practice/src/score-export.ts',import.meta.url).pathname],bundle:true,write:false,format:'iife',globalName:'ScoreExportTest',platform:'browser'});
  await page.addScriptTag({content:component.outputFiles[0].text});
- const metadata=await page.evaluate<{header:string;blocks:number}>(`(async()=>{
-  const source={title:'Export fixture',credits:[],render(target){target.innerHTML='<div class="hymn-score-setup">Capo 5 · Sounding key: D major</div><div class="score-swing"><button class="score-swing-trigger">Swing</button></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100"><path d="M20 20h160v2H20z"/></svg>';}};
+ const metadata=await page.evaluate<{header:string;blocks:number;layouts:{paper:string;width:number;lines:{text:string;x:number;y:number;width:number;height:number}[]}[]}>(`(async()=>{
+  const source={title:'Export fixture',credits:['Words: Example Lyricist, 1779. last verse author unknown, before 1829.',"Music: 'Example Tune' de Example and Another Composer, 1831.",'Hebrew translation: Example Translator'],render(target){target.innerHTML='<div class="hymn-score-setup">Capo 5 · Sounding key: D major</div><div class="score-swing"><button class="score-swing-trigger">Swing</button></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100"><path d="M20 20h160v2H20z"/></svg>';}};
   const result=await ScoreExportTest.prepareScoreExport(source,'desktop');
-  return {header:result.blocks[0].svg.textContent,blocks:result.blocks.length};
+  const layouts=[];
+  for(const paper of ['desktop','mobile']) {
+   const prepared=await ScoreExportTest.prepareScoreExport(source,paper),block=prepared.blocks[0],svg=block.svg;
+   svg.setAttribute('width',String(block.width));svg.setAttribute('height',String(block.height));document.body.append(svg);
+   const lines=[...svg.querySelectorAll('text')].map(node=>{const box=node.getBBox();return {text:node.textContent,x:box.x,y:box.y,width:box.width,height:box.height};});
+   layouts.push({paper,width:block.width,lines});svg.remove();
+  }
+  return {header:result.blocks[0].svg.textContent,blocks:result.blocks.length,layouts};
  })()`);
+ assert(metadata.header.includes('de Example'),'Composer name casing is preserved');
  assert.equal(metadata.blocks,2);assert.match(metadata.header,/Capo 5 · Swing/);assert(!metadata.header.includes('Sounding key'),'Export retains essential capo/feel without duplicate setup text');
- assert.deepEqual(errors,[]);console.log('PASS: full-score desktop print, both PDF page sizes, native file-share payload, download fallback and essential musical metadata');
+ for(const layout of metadata.layouts) {
+  const title=layout.lines[0],words=layout.lines.find(line=>line.text.startsWith('Words:'))!,music=layout.lines.find(line=>line.text.startsWith('Music:'))!,translation=layout.lines.find(line=>line.text.startsWith('Hebrew translation:'))!;
+  assert(Math.abs(title.x+title.width/2-layout.width/2)<1,'Title is visually centered');
+  assert(layout.lines.every(line=>line.x>=-1&&line.x+line.width<=layout.width+1),'Header ink fits its page');
+  assert(words.y>title.y+title.height+5,'Credits have visible separation from the title');
+  assert(words.x<1&&translation.x<1,'Words and translator are left-aligned');
+  assert(layout.paper==='mobile'?music.x<1:music.x>layout.width/2,'Music credits align to the appropriate desktop/mobile column');
+  assert(!layout.lines.some(line=>/^1829\.$/.test(line.text)),'Supplemental credit does not strand its year');
+ }
+ assert.deepEqual(errors,[]);console.log('PASS: header hierarchy, credit columns and mobile wrapping');
+ console.log('PASS: full-score desktop print, both PDF page sizes, native file-share payload, download fallback and essential musical metadata');
 } catch(error){await captureFailure(browser,error);throw error;}
 finally{await closeBrowser(browser);server.stop();}

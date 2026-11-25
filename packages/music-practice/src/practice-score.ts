@@ -1,3 +1,4 @@
+import {restoreSystemBarNumbers} from "./score-markings";
 import {prepareScoreMarkings,addSwingHelp} from "./score-markings";
 import { prepareHymnMelismas } from "./hymn-melismas";
 import { AbcScoreLayout, prepareScoreLayoutSource } from "./score-layout/abc";
@@ -321,6 +322,7 @@ export function drawPracticeScore(
   });
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
+  if(options.barNumbers)restoreSystemBarNumbers(tune,paper);
   paper.querySelectorAll("svg").forEach((svg) => {
     layout.fit(svg);
   });

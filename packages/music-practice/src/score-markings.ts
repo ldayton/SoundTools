@@ -46,3 +46,19 @@ export function addSwingHelp(paper: HTMLElement) {
   button.addEventListener("keydown",event=>{if(event.key==="Escape"){pinned=false;show(false);}});
   wrap.append(button,help);paper.prepend(wrap);
 }
+
+/** abcjs anchors opening bar numbers to clef glyphs. Preserve the optional
+ * numbering when unchanged system clefs are deliberately omitted. */
+export function restoreSystemBarNumbers(tune:TuneObject,paper:HTMLElement) {
+  const lines=tune.lines.filter(line=>line.staff?.length);
+  [...paper.querySelectorAll('svg')].forEach((svg,index)=>{
+    const number=(lines[index]?.staff?.[0] as {barNumber?:number}|undefined)?.barNumber;
+    if(!number || svg.querySelector('.abcjs-clef') || [...svg.querySelectorAll('.abcjs-bar-number')].some(node=>node.textContent===String(number)))return;
+    const staff=svg.querySelector<SVGGraphicsElement>('.abcjs-staff');if(!staff)return;
+    const box=staff.getBBox(),text=document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.classList.add('abcjs-bar-number');text.textContent=String(number);
+    text.setAttribute('x',String(box.x+2));text.setAttribute('y',String(box.y-8));
+    text.setAttribute('font-family','Arial, sans-serif');text.setAttribute('font-size','10');
+    svg.append(text);
+  });
+}

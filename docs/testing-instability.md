@@ -651,3 +651,24 @@ measure to 14 instead of 13; simultaneous notation voices could contribute
 identical TAB fermatas/position marks. The assertions remain unchanged. Generic
 wrapped-repeat and multi-voice TAB fixtures now reproduce the defects; fixes
 live in the shared score-markings/layout boundary and TAB presentation adapter.
+
+## Local tempo-edit recurrence (25 November 2026)
+
+The guitar phrase-planner checkout reproduced the open DoReGo Chromium tempo
+case on `62eb5963`. First local failure:
+`SoundTools-phrase-fingerings/work/ci-results/1795641647024-dbbcf136/logs/dorego_ci_core_chromium_0.log`.
+The bounded event history shows focus at `65 BPM`, an input event containing
+`240`, then Enter about 9 ms later already containing `65 BPM`. The final input,
+ARIA and persisted owner were all 65, with transport playing and busy false.
+The draft was lost before Enter; the responsible state update is not established.
+
+The subsequent full CI run on `3b533c3` passed with no DoReGo source or test
+changes (`work/ci-results/1795642589532-b9f3889e` in that checkout). This is an
+unexplained passing rerun, not a tempo fix. Keep the desktop check required and
+investigate the owner/render update between input and keydown. No retry, delay,
+timeout increase or assertion relaxation was added.
+
+
+The merge with main consolidates its coincident-fermata guard (`0cffae8e`) with
+the shared destination-ink de-duplication used for TAB positions. Glyph width and
+height remain part of identity, preserving genuinely distinct symbols at one anchor.

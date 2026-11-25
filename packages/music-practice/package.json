@@ -25,5 +25,8 @@
   "scripts": {
     "test": "tsx --test tests/*.test.ts",
     "chords": "tsx scripts/chord-search.ts"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }

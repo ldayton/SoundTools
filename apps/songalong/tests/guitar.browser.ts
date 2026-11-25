@@ -100,6 +100,14 @@ try {
       await dismissPracticeDrawer(page);
       await expect(page.locator(".hymn-score-setup")).toHaveText(`Capo ${singleCapo.capo} · Sounding key: ${singleCapo.hymn.key} major`);
       await expect(page.locator(".abcjs-note").first()).toBeVisible();
+      await openPracticeOptions(page);
+      const phraseToggle=page.getByRole('checkbox',{name:'Show fingerings',exact:true});
+      await phraseToggle.check();
+      await expect(page.locator('.beginner-fingering[data-string][data-fret][data-beat]').first()).toBeVisible();
+      const contacts=await page.locator('.beginner-fingering').evaluateAll(nodes=>nodes.map(n=>({finger:Number((n as HTMLElement).dataset.finger),string:Number((n as HTMLElement).dataset.string),fret:Number((n as HTMLElement).dataset.fret)})));
+      assert(contacts.length>0&&contacts.every(n=>n.finger>=1&&n.finger<=4&&n.string>=1&&n.string<=6&&n.fret>0&&n.fret<=24),'Fingering marks come from complete fixed-tab phrase contacts');
+      await dismissPracticeDrawer(page);
+
     }
     assert.deepEqual(errors, []);
     assert(

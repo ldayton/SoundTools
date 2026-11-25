@@ -1,5 +1,8 @@
 import type { AbsoluteElement, TuneObject } from "abcjs";
-import { planGuitarFingering, type GuitarFingerNote } from "./guitar-fingering";
+import {
+  planGuitarPhrase,
+  type GuitarPhraseNote,
+} from "./guitar-phrase-fingering";
 const ns = "http://www.w3.org/2000/svg";
 type TabNote = {
   startChar: number;
@@ -11,33 +14,41 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
   if (chords) return;
   const sources = new Map<
     number,
-    { duration: number; restBefore: boolean; absolute?: AbsoluteElement }
+    {
+      start: number;
+      voice: string;
+      duration: number;
+      ties: boolean[];
+      absolute?: AbsoluteElement;
+    }
   >();
+  const clocks = new Map<string, number>();
   for (const line of tune.lines)
-    for (const staff of line.staff || []) {
+    for (const [si, staff] of (line.staff || []).entries()) {
       if (String(staff.clef?.type) === "TAB") continue;
-      for (const voice of staff.voices || []) {
-        let rest = false;
+      for (const [vi, voice] of (staff.voices || []).entries()) {
+        const id = `${si}:${vi}`;
+        let start = clocks.get(id) || 0;
         for (const item of voice) {
           if (item.el_type !== "note") continue;
-          if (!item.pitches?.length) {
-            rest = true;
-            continue;
-          }
+
           sources.set(item.startChar, {
+            start,
+            voice: id,
             duration: item.duration,
+            ties: (item.pitches || []).map((p) => !!p.endTie),
             absolute: (item as typeof item & { abselem?: AbsoluteElement })
               .abselem,
-            restBefore: rest,
           });
-          rest = false;
+          start += item.duration * 4;
         }
+        clocks.set(id, start);
       }
     }
   const entries: {
     tab: TabNote;
     group: SVGGraphicsElement;
-    notes: GuitarFingerNote[];
+    notes: GuitarPhraseNote[];
   }[] = [];
   for (const line of tune.lines)
     for (const staff of line.staff || []) {
@@ -52,11 +63,12 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
           entries.push({
             tab,
             group,
-            notes: tab.notes.map((n) => ({
+            notes: tab.notes.map((n, index) => ({
+              id: `${tab.startChar}:${index}`,
+              start: source?.start || 0,
               string: n.str + 1,
               fret: Number(n.num),
-              duration: source?.duration || 0.25,
-              restBefore: source?.restBefore,
+              duration: (source?.duration || 0.25) * 4,
             })),
           });
         }
@@ -72,27 +84,34 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
     )
   )
     return;
-  const melody = chords
-    ? []
-    : planGuitarFingering(
-        entries.flatMap((e) => (e.notes.length === 1 ? e.notes : [])),
-      );
-  let at = 0;
+  const held = new Map<string, string>();
+  for (const entry of entries) {
+    const source = sources.get(entry.tab.startChar);
+    entry.notes.forEach((note, index) => {
+      const key = `${source?.voice}:${note.string}:${note.fret}`;
+      if (source?.ties[index]) note.tieFrom = held.get(key);
+      held.set(key, note.id);
+    });
+  }
+  const plan = planGuitarPhrase(entries.flatMap((e) => e.notes));
+  if (!plan) return;
+  const planned = new Map(plan.notes.map((n) => [n.id, n]));
+  let priorPosition: number | undefined;
   for (const { tab, notes } of entries) {
-    if (notes.length !== 1) continue;
-    const planned = melody[at++];
     const source = sources.get(tab.startChar);
     const staffGroup = source?.absolute?.elemset[0] as unknown as
       SVGGraphicsElement | undefined;
-    const head =
-      staffGroup?.querySelector<SVGGraphicsElement>(".abcjs-notehead");
-    if (!staffGroup || !head) continue;
-    const texts = [head];
-    const fingers = [planned.finger];
-    const shift = planned.shift,
-      position = planned.position;
-    for (const [i, finger] of fingers.entries()) {
-      if (!finger || !texts[i]) continue;
+    const texts = [
+      ...(staffGroup?.querySelectorAll<SVGGraphicsElement>(".abcjs-notehead") ||
+        []),
+    ];
+    if (!staffGroup || !texts.length) continue;
+    const position = planned.get(notes[0].id)!.position,
+      shift = priorPosition !== undefined && position !== priorPosition;
+    priorPosition = position;
+    for (const [i, note] of notes.entries()) {
+      const finger = planned.get(note.id)!.finger;
+      if (!finger || !texts[i] || source?.ties[i]) continue;
       const box = texts[i].getBBox();
       const mark = document.createElementNS(ns, "text");
       mark.setAttribute("x", String(box.x - 9));
@@ -106,11 +125,11 @@ export function drawGuitarFingerings(tune: TuneObject, chords: boolean) {
       mark.setAttribute("stroke-width", "2");
       mark.classList.add("guitar-fingering");
       mark.dataset.finger = String(finger);
-      mark.dataset.fret = String(notes[i].fret);
-      mark.dataset.string = String(notes[i].string);
+      mark.dataset.fret = String(note.fret);
+      mark.dataset.string = String(note.string);
       mark.textContent = String(finger);
       const title = document.createElementNS(ns, "title");
-      title.textContent = `String ${notes[i].string}, fret ${notes[i].fret}: finger ${finger}`;
+      title.textContent = `String ${note.string}, fret ${note.fret}: finger ${finger}`;
       mark.append(title);
       staffGroup.append(mark);
     }

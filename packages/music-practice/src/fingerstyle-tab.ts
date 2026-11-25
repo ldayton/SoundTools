@@ -164,11 +164,14 @@ export function showOnlyTab(paper: HTMLElement,lyricPadding=58) {
     // One TAB symbol represents a shared event across notation voices.
     // abcjs can emit the same annotation in both voices at a system boundary.
     svg.querySelectorAll('.guitar-position,.guitar-fermata').forEach(node=>node.remove());
-    const copied:{kind:string;text:string;x:number}[]=[];
+    const projected=new Set<string>();
     const duplicate=(source:SVGGraphicsElement,kind:string)=>{
-      const text=source.textContent||source.getAttribute('data-name')||'',x=source.getBBox().x;
-      if(copied.some(mark=>mark.kind===kind&&mark.text===text&&Math.abs(mark.x-x)<.01))return true;
-      copied.push({kind,text,x});return false;
+      const ink=source.getBBox(),text=source.textContent||source.getAttribute('data-name')||'';
+      // Match destination ink, including size: a genuinely different glyph
+      // at the same anchor must not disappear. Millipixels ignore rounding.
+      const key=kind+':'+text+':'+[ink.x,ink.width,ink.height].map(n=>Math.round(n*1000)).join(':');
+      if(projected.has(key))return true;
+      projected.add(key);return false;
     };
     for(const position of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-annotation')) {
       if(!isGuitarPositionMark(position.textContent||'')||duplicate(position,'position'))continue;

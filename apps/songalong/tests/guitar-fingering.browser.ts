@@ -30,6 +30,15 @@ try {
     await page.addInitScript({content:await readFile(new URL("../../../packages/music-practice/test-fixtures/midi.js",import.meta.url),"utf8")});
     await page.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=both&mode=playback&key=original&octave=0`);
     await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();
+
+      await openPracticeOptions(page);
+      const phraseToggle=page.getByRole('checkbox',{name:'Show fingerings',exact:true});
+      await phraseToggle.check();
+      await expect(page.locator('.beginner-fingering[data-string][data-fret][data-beat]').first()).toBeVisible();
+      const contacts=await page.locator('.beginner-fingering').evaluateAll(nodes=>nodes.map(n=>({finger:Number((n as HTMLElement).dataset.finger),string:Number((n as HTMLElement).dataset.string),fret:Number((n as HTMLElement).dataset.fret)})));
+      assert(contacts.length>0&&contacts.every(n=>n.finger>=1&&n.finger<=4&&n.string>=1&&n.string<=6&&n.fret>0&&n.fret<=24),'Fingering marks come from complete fixed-tab phrase contacts');
+      await closePracticeOptions(page);
+
     const keys=await hymnKeyOptions(page);
     assert.equal(keys.length,12);assert(keys.every(k=>!k.disabled),`${hymn.slug}: every key is selectable`);
     const target=hymn.key === "D" ? "E" : "D";
@@ -124,6 +133,7 @@ try {
     ).toHaveCount(0);
     assert(await page.locator(".tab-rhythm-beam-secondary").count());
     assert(await page.locator(".tab-rhythm-beam-secondary").first().evaluate(n=>getComputedStyle(n).visibility === "visible" && n.getBoundingClientRect().width > 0));
+    await expect(page.locator(".guitar-fermata")).toHaveCount(1);
     await expect(page.locator(".guitar-fermata")).toBeVisible();
     await selectScoreDisplay(page,"chords");
     await expect(page.locator(".abcjs-tabNumber")).toHaveCount(0);

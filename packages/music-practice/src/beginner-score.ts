@@ -1,9 +1,10 @@
+import { planGuitarPhrase, type GuitarPhraseNote, type GuitarFingeringProfile } from "./guitar-phrase-fingering";
 import type { AbsoluteElement, TuneObject, VoiceItem } from "abcjs";
 import { fingerstylePosition } from "./fingerstyle-tab";
 export type BeginnerInstrument = "piano" | "guitar";
 const ns = "http://www.w3.org/2000/svg";
 type Note = Extract<VoiceItem, {el_type:"note"}> & {abselem?: AbsoluteElement};
-type Entry = {note:Note; bar:number; voice:number; staffIndex:number; pitches:number[]; beat:number};
+type Entry = {note:Note; bar:number; voice:number; voiceKey:string; staffIndex:number; pitches:number[]; time:number; beat:number};
 
 export {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
 import {bluesFingers as beginnerFingers} from "./fingerstyle-blues";
@@ -51,14 +52,15 @@ export function normalizeBeginnerLandmarks(paper:HTMLElement,tune:TuneObject,fro
 }
 
 function entries(tune: TuneObject, from: number): Entry[] {
-  const states = new Map<number,{bar:number;beat:number;notes:boolean;held:Map<number,number>}>();
+  const states = new Map<string,{bar:number;beat:number;time:number;notes:boolean;held:Map<number,number>}>();
   const result: Entry[]=[];
   for (const line of tune.lines) for (const [si,staff] of (line.staff || []).entries()) {
     if (String(staff.clef?.type) === "TAB") continue;
     for (const [vi,voice] of (staff.voices || []).entries()) {
       const id=((staff as typeof staff & {originalStaffIndex?:number}).originalStaffIndex ?? si)+vi;
-      const state=states.get(id) || {bar:from,beat:0,notes:false,held:new Map<number,number>()};
-      states.set(id,state);
+      const voiceKey=`${(staff as typeof staff & {originalStaffIndex?:number}).originalStaffIndex ?? si}:${vi}`;
+      const state=states.get(voiceKey) || {bar:from,beat:0,time:0,notes:false,held:new Map<number,number>()};
+      states.set(voiceKey,state);
       for (const item of voice) {
         if (item.el_type === 'bar') {
           if (state.notes) {state.bar++;state.beat=0;state.notes=false;}
@@ -71,8 +73,8 @@ function entries(tune: TuneObject, from: number): Entry[] {
           if(midi===undefined) return [];
           state.held.set(p.pitch,midi);return [midi];
         });
-        result.push({note:item,bar:state.bar,voice:id,staffIndex:si,pitches,beat:state.beat});
-        state.beat+=item.duration*4;state.notes=true;
+        result.push({note:item,bar:state.bar,voice:id,voiceKey,staffIndex:si,pitches,time:state.time,beat:state.beat});
+        state.time+=item.duration*4;state.beat+=item.duration*4;state.notes=true;
       }
     }
   }
@@ -108,10 +110,35 @@ function line(parent:SVGElement,x1:number,y1:number,x2:number,y2:number,cls:stri
   node.classList.add(cls);parent.append(node);return node;
 }
 
+type GuitarPositionFor=(pitch:number,chord:boolean,transpose:number,group?:readonly number[])=>{str:number;num:number}|undefined;
+/** Shared score adapter: keep every voice sounding while the hand is planned. */
+export function planScoreGuitarFingerings(tune:TuneObject,from=0,transpose=0,positionFor:GuitarPositionFor=fingerstylePosition,profile:GuitarFingeringProfile={}){
+  let unsupported=false;
+  const music=entries(tune,from),events:GuitarPhraseNote[]=[],ids=new Map<Note,string[]>(),previous=new Map<string,string>();
+  for(const entry of music){
+    const {note,pitches,time,voiceKey}=entry;
+    ids.set(note,pitches.map((pitch,index)=>{
+      const position=positionFor(pitch,pitches.length>1,transpose,pitches);
+      if(!position){unsupported=true;return "";}
+      const id=`${voiceKey}:${time}:${index}`,key=`${voiceKey}:${pitch}`;
+      const tieFrom=note.pitches?.[index]?.endTie ? previous.get(key) : undefined;
+      events.push({id,start:time,duration:note.duration*4,string:position.str+1,fret:position.num,...(tieFrom?{tieFrom}:{})});
+      previous.set(key,id);return id;
+    }));
+  }
+  const plan=unsupported ? null : planGuitarPhrase(events,profile);
+  const planned=new Map(plan?.notes.map(note=>[note.id,note.finger]));
+  return {plan,ids,planned};
+}
+
 /** Add only the starting patterns and changes; repeated finger numbers are omitted. */
-export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false) {
-  const seen=new Set<string>(),picking=new Map<string,number>();
-  for(const {note,bar,voice,staffIndex,pitches} of entries(tune,from)) {
+export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false, positionFor:GuitarPositionFor=fingerstylePosition,planningTune=tune,capo=0) {
+  const music=entries(tune,from);
+  const guitar=instrument === 'guitar' ? planScoreGuitarFingerings(planningTune,from,transpose,positionFor,{capo}) : undefined;
+  const planned=guitar?.planned || new Map<string,number>();
+  const ids=new Map(music.map(entry=>[entry.note,entry.pitches.map((_,index)=>`${entry.voiceKey}:${entry.time}:${index}`)]));
+  const seen=new Set<string>(),lastFinger=new Map<string,number>(),picking=new Map<string,number>();
+  for(const {note,bar,voice,staffIndex,pitches} of music) {
     if(!pitches.length || note.pitches?.every(p=>p.endTie)) continue;
     const absolute=note.abselem as (AbsoluteElement & {cloned?:AbsoluteElement}) | undefined;
     const group=absolute?.elemset[0] as SVGGraphicsElement | undefined;
@@ -122,7 +149,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
     if(!target) continue;
     const targetBox=bounds(target,svg);if(!targetBox) continue;
     const original=pitches.map(p=>p-transpose);
-    const fingers=fingersFor(instrument,bar,voice,original);
+    const fingers=instrument === 'guitar' ? (ids.get(note)||[]).map(id=>planned.get(id) || 0) : fingersFor(instrument,bar,voice,original);
     const headBoxes=pitches.map((_,i)=>bounds(heads[i] || group,svg));
     const accidentals=[...group.querySelectorAll<SVGGraphicsElement>('.abcjs-accidental,[data-name^="accidentals."]')]
       .flatMap(e=>{const box=bounds(e,svg);return box?[box.x]:[];});
@@ -137,7 +164,11 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
       if (tabOnly) return;
       if(!finger) return;
       const key=`${section}:${voice}:${original[index]}:${finger}`;
-      if(seen.has(key)) return;seen.add(key);
+      if(instrument === 'guitar'){
+        const contact=`${voice}:${original[index]}`;
+        if(lastFinger.get(contact)===finger)return;
+        lastFinger.set(contact,finger);
+      }else {if(seen.has(key)) return;seen.add(key);}
       const head = heads[index] || group;
       const box = bounds(head, svg); if (!box) return;
       let x = fingerX, y = fingerY[index];
@@ -163,6 +194,10 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
       mark.setAttribute('fill','#164e63');
       mark.dataset.instrument=instrument;mark.dataset.voice=String(voice);
       mark.dataset.pitch=String(original[index]);mark.dataset.finger=String(finger);
+      if(instrument === 'guitar'){
+        const event=guitar?.plan?.notes.find(n=>n.id===ids.get(note)?.[index]);
+        if(event){mark.dataset.string=String(event.string);mark.dataset.fret=String(event.fret);mark.dataset.beat=String(event.start);}
+      }
       mark.setAttribute('aria-label',`${instrument==='piano' ? voice===0?'Right hand':'Left hand' : 'Fretting hand'}: finger ${finger}`);
     });
     if(pickingMarks && instrument==='guitar' && pitches.length === 1) {

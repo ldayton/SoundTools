@@ -1,0 +1,28 @@
+Source: tombatossals/chords-db
+https://github.com/tombatossals/chords-db
+Revision: df06fa7b425cf5fd29485ff6591236b3557e3fac
+License: MIT (full upstream license retained in LICENSE)
+Copyright (c) 2016 David Rubert
+
+reviewed-guitar-positions.json contains 16 selected entries copied from
+lib/guitar.json at the revision above, wrapped with source and review identifiers.
+The original position fields are preserved. No upstream test code is included.
+Source positionIndex is zero-based within key/suffix positions.
+
+The selection covers open shapes, movable shapes, partial/full and double barres,
+multiple fingers at the same fret, and barres across unplayed strings.
+It is intentionally not an endorsement of every entry in the upstream database.
+The tests independently reconstruct absolute pitches from string tuning, frets
+and baseFret, then compare the retained MIDI values. Finger assignments are
+acceptable alternatives, not a requirement to choose a single optimal answer.
+
+Conventions:
+- arrays run low E to high E;
+- fret -1 means the string is not played, fret 0 stays open;
+- positive frets are diagram-relative: actual = fret + baseFret - 1;
+- finger 0 on a negative fret is normalized to null in our API;
+- upstream capo describes a barre-style diagram, not an external capo shift.
+
+The duplicate-candidate assertion is independently written. The general idea
+also appears in Conchordance's InstrumentTest.testAlternateFingerings:
+https://github.com/ConchordanceProject/Conchordance/blob/master/src/test/java/com/conchordance/fretted/InstrumentTest.java

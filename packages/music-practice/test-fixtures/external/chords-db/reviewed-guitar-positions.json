@@ -1,0 +1,573 @@
+{
+  "upstream": "https://github.com/tombatossals/chords-db",
+  "revision": "df06fa7b425cf5fd29485ff6591236b3557e3fac",
+  "license": "MIT",
+  "positions": [
+    {
+      "id": "Cmajor-0",
+      "key": "C",
+      "suffix": "major",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          -1,
+          3,
+          2,
+          0,
+          1,
+          0
+        ],
+        "fingers": [
+          0,
+          3,
+          2,
+          0,
+          1,
+          0
+        ],
+        "baseFret": 1,
+        "barres": [],
+        "midi": [
+          48,
+          52,
+          55,
+          60,
+          64
+        ]
+      }
+    },
+    {
+      "id": "Cmajor-1",
+      "key": "C",
+      "suffix": "major",
+      "positionIndex": 1,
+      "position": {
+        "frets": [
+          -1,
+          1,
+          3,
+          3,
+          3,
+          1
+        ],
+        "fingers": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          1
+        ],
+        "barres": [
+          1
+        ],
+        "capo": true,
+        "baseFret": 3,
+        "midi": [
+          48,
+          55,
+          60,
+          64,
+          67
+        ]
+      }
+    },
+    {
+      "id": "Cmajor-2",
+      "key": "C",
+      "suffix": "major",
+      "positionIndex": 2,
+      "position": {
+        "frets": [
+          -1,
+          -1,
+          1,
+          1,
+          1,
+          4
+        ],
+        "fingers": [
+          0,
+          0,
+          1,
+          1,
+          1,
+          4
+        ],
+        "barres": [
+          1
+        ],
+        "baseFret": 5,
+        "midi": [
+          55,
+          60,
+          64,
+          72
+        ]
+      }
+    },
+    {
+      "id": "Cmajor-3",
+      "key": "C",
+      "suffix": "major",
+      "positionIndex": 3,
+      "position": {
+        "frets": [
+          1,
+          3,
+          3,
+          2,
+          1,
+          1
+        ],
+        "fingers": [
+          1,
+          3,
+          4,
+          2,
+          1,
+          1
+        ],
+        "barres": [
+          1
+        ],
+        "capo": true,
+        "baseFret": 8,
+        "midi": [
+          48,
+          55,
+          60,
+          64,
+          67,
+          72
+        ]
+      }
+    },
+    {
+      "id": "Amajor-0",
+      "key": "A",
+      "suffix": "major",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          -1,
+          0,
+          2,
+          2,
+          2,
+          0
+        ],
+        "fingers": [
+          0,
+          0,
+          1,
+          2,
+          3,
+          0
+        ],
+        "baseFret": 1,
+        "barres": [],
+        "midi": [
+          45,
+          52,
+          57,
+          61,
+          64
+        ]
+      }
+    },
+    {
+      "id": "Dmajor-0",
+      "key": "D",
+      "suffix": "major",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          -1,
+          -1,
+          0,
+          2,
+          3,
+          2
+        ],
+        "fingers": [
+          0,
+          0,
+          0,
+          1,
+          3,
+          2
+        ],
+        "baseFret": 1,
+        "barres": [],
+        "midi": [
+          50,
+          57,
+          62,
+          66
+        ]
+      }
+    },
+    {
+      "id": "Emajor-0",
+      "key": "E",
+      "suffix": "major",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          0,
+          2,
+          2,
+          1,
+          0,
+          0
+        ],
+        "fingers": [
+          0,
+          2,
+          3,
+          1,
+          0,
+          0
+        ],
+        "baseFret": 1,
+        "barres": [],
+        "midi": [
+          40,
+          47,
+          52,
+          56,
+          59,
+          64
+        ]
+      }
+    },
+    {
+      "id": "Gmajor-0",
+      "key": "G",
+      "suffix": "major",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          3,
+          2,
+          0,
+          0,
+          0,
+          3
+        ],
+        "fingers": [
+          2,
+          1,
+          0,
+          0,
+          0,
+          3
+        ],
+        "baseFret": 1,
+        "barres": [],
+        "midi": [
+          43,
+          47,
+          50,
+          55,
+          59,
+          67
+        ]
+      }
+    },
+    {
+      "id": "Fmajor-0",
+      "key": "F",
+      "suffix": "major",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          1,
+          3,
+          3,
+          2,
+          1,
+          1
+        ],
+        "fingers": [
+          1,
+          3,
+          4,
+          2,
+          1,
+          1
+        ],
+        "barres": [
+          1
+        ],
+        "capo": true,
+        "baseFret": 1,
+        "midi": [
+          41,
+          48,
+          53,
+          57,
+          60,
+          65
+        ]
+      }
+    },
+    {
+      "id": "Fminor-0",
+      "key": "F",
+      "suffix": "minor",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          1,
+          3,
+          3,
+          1,
+          1,
+          1
+        ],
+        "fingers": [
+          1,
+          3,
+          4,
+          1,
+          1,
+          1
+        ],
+        "barres": [
+          1
+        ],
+        "capo": true,
+        "baseFret": 1,
+        "midi": [
+          41,
+          48,
+          53,
+          56,
+          60,
+          65
+        ]
+      }
+    },
+    {
+      "id": "Bminor-0",
+      "key": "B",
+      "suffix": "minor",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          2,
+          2,
+          4,
+          4,
+          3,
+          2
+        ],
+        "fingers": [
+          1,
+          1,
+          3,
+          4,
+          2,
+          1
+        ],
+        "barres": [
+          2
+        ],
+        "capo": true,
+        "baseFret": 1,
+        "midi": [
+          42,
+          47,
+          54,
+          59,
+          62,
+          66
+        ]
+      }
+    },
+    {
+      "id": "Bmajor-0",
+      "key": "B",
+      "suffix": "major",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          2,
+          2,
+          4,
+          4,
+          4,
+          2
+        ],
+        "fingers": [
+          1,
+          1,
+          2,
+          3,
+          4,
+          1
+        ],
+        "barres": [
+          2
+        ],
+        "capo": true,
+        "baseFret": 1,
+        "midi": [
+          42,
+          47,
+          54,
+          59,
+          63,
+          66
+        ]
+      }
+    },
+    {
+      "id": "C6-3",
+      "key": "C",
+      "suffix": "6",
+      "positionIndex": 3,
+      "position": {
+        "frets": [
+          1,
+          -1,
+          3,
+          2,
+          3,
+          1
+        ],
+        "fingers": [
+          1,
+          0,
+          3,
+          2,
+          4,
+          1
+        ],
+        "barres": [
+          1
+        ],
+        "capo": true,
+        "baseFret": 8,
+        "midi": [
+          48,
+          60,
+          64,
+          69,
+          72
+        ]
+      }
+    },
+    {
+      "id": "F6-0",
+      "key": "F",
+      "suffix": "6",
+      "positionIndex": 0,
+      "position": {
+        "frets": [
+          1,
+          -1,
+          3,
+          2,
+          3,
+          1
+        ],
+        "fingers": [
+          1,
+          0,
+          3,
+          2,
+          4,
+          1
+        ],
+        "barres": [
+          1
+        ],
+        "capo": true,
+        "baseFret": 1,
+        "midi": [
+          41,
+          53,
+          57,
+          62,
+          65
+        ]
+      }
+    },
+    {
+      "id": "Cmaj9-3",
+      "key": "C",
+      "suffix": "maj9",
+      "positionIndex": 3,
+      "position": {
+        "frets": [
+          1,
+          -1,
+          2,
+          2,
+          1,
+          3
+        ],
+        "fingers": [
+          1,
+          0,
+          2,
+          3,
+          1,
+          4
+        ],
+        "barres": [
+          1
+        ],
+        "capo": true,
+        "baseFret": 8,
+        "midi": [
+          48,
+          59,
+          64,
+          67,
+          74
+        ]
+      }
+    },
+    {
+      "id": "Dsus2-3",
+      "key": "D",
+      "suffix": "sus2",
+      "positionIndex": 3,
+      "position": {
+        "frets": [
+          -1,
+          1,
+          1,
+          1,
+          4,
+          4
+        ],
+        "fingers": [
+          0,
+          1,
+          1,
+          1,
+          4,
+          4
+        ],
+        "barres": [
+          1,
+          4
+        ],
+        "capo": true,
+        "baseFret": 7,
+        "midi": [
+          52,
+          57,
+          62,
+          69,
+          74
+        ]
+      }
+    }
+  ]
+}

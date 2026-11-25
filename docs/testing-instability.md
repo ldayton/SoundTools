@@ -403,3 +403,31 @@ the build and browser commands are chained so a failed build cannot run a stale
 preview. These assertions remain required. Later test-setup failures (a retained
 chords-only preference and a non-unique readiness locator) were diagnosed and
 corrected separately, without changing product music or relaxing assertions.
+
+## DoReGo audio recovery development (25 November 2026)
+
+The first WebKit lifecycle run after adding resume deadlines and clock probes
+failed at initial elapsed-time progress (line 65):
+`apps/dorego/work/browser-results/lifecycle.e2e.ts-webkit-aab580f9/` in the
+`SoundTools-dorego-repeat-controls` worktree; command output is retained at
+`/tmp/dorego-recovery-lifecycle-webkit.log`. Its screenshot shows an idle player,
+and the cause remains unconfirmed. A single diagnostic rerun instrumented startup
+failures and passed that point; this is not proof of a fix or a confirmed flake.
+That rerun failed later at the deliberate scheduling-gap test
+(`lifecycle.e2e.ts-webkit-622cd846`, `/tmp/dorego-recovery-diagnose.log`): the test
+blocked the thread while the new asynchronous clock probe was still starting.
+The Pause label covers both starting and playing, so it was not sufficient
+readiness. That witness now requires elapsed audio progress before inducing the
+scheduling gap. Both assertions remain required; no timeout or retry was added.
+
+Later Chromium diagnostics reproduced a concrete product regression introduced by
+that preflight check: `diagnostics.e2e.ts-chromium-d93dc7ed` first timed out waiting
+for render metrics; a diagnostic run `diagnostics.e2e.ts-chromium-e809988f` retained
+`audioState: running`, `audioFailure: clock_stalled`, and a 113 ms startup check.
+No source had been scheduled yet. The related Chromium lifecycle run also failed
+closed-context recovery (`/tmp/dorego-recovery-lifecycle-chromium-final.log`).
+Clock checks now run only after scheduling sources: the existing active-playback
+watchdog and a reference-note probe that does not delay the note attack. This
+removes the false cold-start assumption rather than increasing a test timeout.
+The original first-run artifact lacks that diagnostic payload, so its exact cause
+remains unconfirmed.

@@ -295,3 +295,13 @@ Without range parameters, explicit exercise links use the exercise's default
 range; opening the app root restores saved preferences. Other settings such as
 tempo remain personal preferences. Browser Back/Forward restores the exercise,
 choices and range. Settings retain the exercise URL with `#settings`.
+
+### Returning from another app
+
+Playback remains paused after an OS interruption until Play/Resume is tapped.
+Resume has a deadline and checks rendering-clock progress; a broken context is
+replaced on the next explicit attempt, including reference-piano taps. Clock
+checks do not delay reference-note attacks. Opt-in Sentry diagnostics
+identify resume timeouts, interrupted states, frozen clocks and engine rebuilds.
+They cannot establish whether sound physically reached the speakers; see
+[observability](../../docs/observability.md#dorego-audio-interruption-recovery-25-november-2026).

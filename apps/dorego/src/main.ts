@@ -1,3 +1,4 @@
+import {audioFailureDetails, invalidateAudioProbe} from './live-audio';
 import { adjacentExercise } from './exercise-navigation';
 import { bindMediaSession } from '@ldayton/ui/media-session';
 import { configurePlaybackSession } from './audio-session';
@@ -113,7 +114,7 @@ const pianoModel = createViewState<PianoSnapshot>({
   voices: [],
 });
 const reference = new ReferencePiano(spec.volume, (error) => {
-  diagnostics.capture(error, 'audio.reference_failed');
+  diagnostics.capture(error, 'audio.reference_failed', audioFailureDetails(error));
   toast(error instanceof Error ? error.message : 'Could not play this note. Try again.');
 });
 function changeAudioChannels(channels: AudioChannels) {
@@ -429,6 +430,7 @@ player.onStateChange = (state, nextPosition, reason) => {
   cancelAnimationFrame(raf);
   if (state === 'playing') tick();
   else update(true);
+  if (reason === 'clock-stalled') toast('Audio stopped responding. Tap Resume to try again.');
   if (reason === 'scheduling-gap') toast('Playback paused after a delay. Resume to continue.');
 };
 function moveRound(step: number) {
@@ -453,7 +455,7 @@ async function startAt(offset: number) {
     await player.play(exercise, offset);
   } catch (error) {
     if (request !== playRequest) return;
-    diagnostics.capture(error, 'playback.start_failed');
+    diagnostics.capture(error, 'playback.start_failed', audioFailureDetails(error));
     toast(error instanceof Error ? error.message : 'Could not start audio.');
   }
 }
@@ -520,7 +522,12 @@ document.addEventListener('resume', () => {
   update(true);
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) reference.stopAll();
+  invalidateAudioProbe();
+  diagnostics.event(document.hidden ? 'page.background' : 'page.foreground', {visible: !document.hidden, ...audioFailureDetails(undefined)});
+  if (document.hidden) {
+    reference.stopAll();
+    if (mode === 'starting') player.interrupt('page-hidden');
+  }
   if (!document.hidden) {
     player.reconcile();
     update(true);

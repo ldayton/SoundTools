@@ -386,6 +386,22 @@ try {
   console.log(
     `${browserName}: saved controls restore; obsolete loading failures cannot override the final exercise.`
   );
+  // A hung OS resume must release the UI; the next user action gets a fresh engine.
+  await page.evaluate(() => {
+    const p=(window as any).desktopProbe;
+    p.failedContext=p.context;
+    p.context.resume=()=>new Promise(()=>{});
+  });
+  await page.locator('#play').click();
+  await page.getByText('Audio did not restart. Tap Resume or a piano note to try again.', {exact:true}).waitFor();
+  await paused();
+  await page.locator('#play').click();
+  await playing();
+  await progress();
+  assert.ok(await page.evaluate(() => (window as any).desktopProbe.context !== (window as any).desktopProbe.failedContext));
+  await audible();
+  await page.locator('#play').click();
+  await paused();
   assert.deepEqual(errors, []);
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });

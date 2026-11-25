@@ -1,3 +1,4 @@
+import {initPlayback, startLiveAudio, markAudioUnhealthy, playbackContext, liveAudioSnapshot, observeAudioClock} from './live-audio';
 import { holdParam, TempoClock, type LiveVoice } from './tempo-clock';
 import { PlaybackHealth, type PlaybackInterruption } from './playback-health';
 import { CelloGlides, preloadCello } from './cello';
@@ -8,17 +9,6 @@ import { audioEvents, DRONE_GAIN, type AudioEvent } from './audio-timeline';
 import { configureChannelMix, type AudioChannels } from './audio-channels';
 
 export const RELEASE_TAIL = 0.8;
-let playbackContext: AudioContext | undefined;
-function initPlayback() {
-  if (!playbackContext || playbackContext.state === 'closed') {
-    // This is a sequenced player: reliability matters more than live-key latency.
-    // Let Tone create its compatible context: Firefox still exposes a legacy
-    // AudioListener, which cannot be passed directly to Tone's spatial parameters.
-    const context = new Tone.Context({ latencyHint: 'playback', lookAhead: 0.15 });
-    playbackContext = context.rawContext as AudioContext;
-    Tone.setContext(context, true);
-  }
-}
 function makeGraph(volume: number, channels: AudioChannels = 'stereo', droneStrength = 50) {
   // Catch unusually loud chord sums without changing ordinary piano dynamics.
   const limiter = new Tone.Limiter(-1).toDestination();
@@ -209,7 +199,8 @@ export class Player {
     this.watchContext();
     this.publish('starting');
     try {
-      await Tone.start();
+      if (!await startLiveAudio(() => token === this.pending)) return false;
+      this.watchContext();
       if (token !== this.pending) return false;
       const prepareStarted = performance.now();
       await prepareLive(exercise);
@@ -259,6 +250,10 @@ export class Player {
   }
   interrupt(reason: PlaybackInterruption, audioTime?: number) {
     if (this.state !== 'playing' && this.state !== 'starting') return;
+    if (reason === 'clock-stalled') {
+      markAudioUnhealthy();
+      if (typeof window !== 'undefined' && !document.hidden) window.doregoDiagnostics?.capture(new Error('Audio rendering clock stalled'), 'audio.clock_stalled', {...liveAudioSnapshot(), audioFailure: 'clock_stalled'});
+    }
     const beat = audioTime === undefined ? undefined : this.clock?.beatAt(audioTime);
     this.halt();
     if (beat !== undefined) this.seekBeat = Math.max(0, beat);
@@ -279,6 +274,7 @@ export class Player {
       clock = this.clock,
       bpm = this.exercise.spec.bpm;
     const now = graph.output.context.immediate();
+    observeAudioClock(now);
     const beat = clock.beatAt(now);
     const next = this.events[this.cursor];
     const interruption = this.health?.check(

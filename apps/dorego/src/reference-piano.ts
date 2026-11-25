@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import {startLiveAudio, checkReferenceClock} from './live-audio';
 import { prepareReferenceNote } from './steinway';
 import { configureChannelMix, type AudioChannels } from './audio-channels';
 
@@ -67,7 +68,7 @@ export class ReferencePiano {
     this.stops.add(cancel);
     void (async () => {
       try {
-        await Tone.start();
+        if (!await startLiveAudio(() => !released)) return;
         const prepared = await prepareReferenceNote(midi);
         if (released) return;
         const context = Tone.getContext().rawContext as AudioContext;
@@ -84,6 +85,7 @@ export class ReferencePiano {
         envelope.gain.setValueAtTime(0.7, now + 1.4);
         envelope.gain.linearRampToValueAtTime(0, now + 1.6);
         source.onended = () => {
+          released = true;
           this.stops.delete(cancel);
           source.disconnect();
           envelope.disconnect();
@@ -95,6 +97,10 @@ export class ReferencePiano {
           source.stop(at + 0.15);
         };
         source.start(now);
+        checkReferenceClock(() => !released, (error) => {
+          this.stopAll();
+          this.failed(error);
+        });
         source.stop(now + 1.6);
         if (keyUp) {
           // A cold-cache click still produces a short note once its sample is ready.

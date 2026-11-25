@@ -583,7 +583,3 @@ preferences/migrations and responsive staff-spacing controls.
 visibility, view-option reload and chord-preview scheduling. Those assertions
 were extracted intact from instrument-toolbar so independent required commands
 can overlap; they are not executed twice.
-The required `score-view.browser.ts` command owns score size, independent
-stave/chord visibility, view-option reload and chord-preview scheduling. These
-assertions were extracted intact from instrument-toolbar to overlap independent
-required checks, retaining one execution owner in CI and both Nightly engines.

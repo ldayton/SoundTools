@@ -7,7 +7,7 @@ import {
 } from '../../../scripts/ci/browser-harness.cjs';
 import { setTempo } from './ui-helpers';
 import { elapsedSeconds } from './ui-helpers';
-import { selectExercise } from './ui-helpers';
+import { selectExercise, openPracticeOptions } from './ui-helpers';
 import { readSpecValue, sliderValue, setSlider } from './ui-helpers';
 import { createRequire } from 'node:module';
 const viteCli = createRequire(import.meta.url)
@@ -441,9 +441,17 @@ try {
   await finalPage.locator('#play').click();
   await finalPage.getByRole('button',{name:'Resume',exact:true}).waitFor();
   assert.equal(await finalPage.getByText('Rest · repeat round in',{exact:true}).count(),0,'Pause cancels the pending repeat rest');
+  // The initial cold-start Repeat above owns the timed eight-beat rest check.
+  // This completed-round witness also proves the latest rest setting can be zero.
+  await openPracticeOptions(finalPage);
+  await finalPage.locator('#rest-mobile').fill('0');
+  await finalPage.locator('#rest-mobile').press('Tab');
+  assert.equal(await readSpecValue(finalPage, 'restBeats'), '0');
+  await finalPage.getByRole('button',{name:'Close practice options',exact:true}).click();
+  await finalPage.locator('.mantine-Drawer-content:visible').waitFor({state:'hidden'});
   await repeat.click();
-  await finalPage.getByText('Rest · repeat round in',{exact:true}).waitFor();
   await finalPage.waitForFunction(()=>document.querySelector('#play')?.getAttribute('data-mode')==='playing' && Number(document.querySelector('#elapsed')?.getAttribute('data-seconds'))>2.05);
+  assert.equal(await finalPage.getByText('Rest · repeat round in',{exact:true}).count(),0, 'Repeat uses the newly selected zero rest');
   assert.equal(await finalPage.locator('#exercise-summary').textContent(),'Round 1 of 1');
   assert.ok(await finalPage.locator('#next-round').isDisabled());
   await finalPage.close();

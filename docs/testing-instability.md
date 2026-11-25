@@ -498,3 +498,30 @@ outer box cannot be used as each system's own minimum. The measurement cache is
 cloned before refinement, and indivisible overflow remains explicit. The full
 component property witness passes against a real Linux x64 browser through a
 Playwright connection, including the original width and unchanged audio/scale.
+
+## Repeat release rebase budget interruption (25 November 2026)
+
+Repeat-options commit `0f3c091` first rebased validation is retained at
+`/Users/lily/source/SoundTools-dorego-repeat-controls/work/ci-results/1795626427275-59db22e5`.
+The standard affected CI selected DoReGo plus pending NoteWise/SongAlong releases
+and exceeded the 60-second budget at 62.20 seconds including cleanup. DoReGo
+desktop and SongAlong instrument-toolbar were cancelled; no assertion failed
+before cancellation. Completed checks passed. Spotlight indexing and concurrent
+host activity were observed; these observations do not establish a cause.
+
+The Repeat suite now uses its completed-round case to verify changing the rest
+to zero, rather than waiting through an additional unchanged two-second rest.
+The same suite's initial cold-start Repeat still owns the explicit eight-beat
+rest timing assertion; Pause cancellation and the sequence-boundary witness
+remain required. No checks, assertions, resource locks or budget were removed.
+A subsequent complete CI run must pass on the committed revision; a passing run
+does not by itself resolve the shared timing investigation.
+
+The subsequent run at `769ef63`, retained at
+`/Users/lily/source/SoundTools-dorego-repeat-controls/work/ci-results/1795626769559-2a233a17`,
+also reached the budget (62.19 seconds including cleanup). DoReGo logged all
+behavior cases as passed before process teardown was cancelled. SongAlong was
+still waiting at the bar-number assertion when cancelled. The release branch
+was then rebased onto upstream `822e5f0`, which fixes optional bar-number behavior;
+its independently recorded full local CI passed. These observations retain the
+failure evidence without treating either cancelled run as a pass.

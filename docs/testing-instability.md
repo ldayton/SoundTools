@@ -486,3 +486,21 @@ Builds, unit checks and completed browser lanes passed. Host sampling also showe
 Spotlight indexing using 181% CPU; this is evidence of concurrent load, not an
 established cause. A full diagnostic rerun keeps the same commands, assertions,
 locks and budget. A passing rerun does not resolve the timing investigation.
+
+## Repeat release rebase budget interruption (25 November 2026)
+
+Repeat-options commit `0f3c091` first rebased validation is retained at
+`/Users/lily/source/SoundTools-dorego-repeat-controls/work/ci-results/1795626427275-59db22e5`.
+The standard affected CI selected DoReGo plus pending NoteWise/SongAlong releases
+and exceeded the 60-second budget at 62.20 seconds including cleanup. DoReGo
+desktop and SongAlong instrument-toolbar were cancelled; no assertion failed
+before cancellation. Completed checks passed. Spotlight indexing and concurrent
+host activity were observed; these observations do not establish a cause.
+
+The Repeat suite now uses its completed-round case to verify changing the rest
+to zero, rather than waiting through an additional unchanged two-second rest.
+The same suite's initial cold-start Repeat still owns the explicit eight-beat
+rest timing assertion; Pause cancellation and the sequence-boundary witness
+remain required. No checks, assertions, resource locks or budget were removed.
+A subsequent complete CI run must pass on the committed revision; a passing run
+does not by itself resolve the shared timing investigation.

@@ -32,8 +32,9 @@ The exhaustive `optionTiming` map is the single policy for settings:
 It cancels only future sources and retains committed event identities. Sample
 preparation happens ahead of future rounds; if preparation is delayed, the
 musical clock holds at the next boundary while the audio clock remains monitored.
-Restart generates a fresh sequence from current settings. Repeat replays the
-committed round using the latest inter-round rest.
+Restart generates a fresh sequence from current settings. Repeat creates a fresh round at the current musical anchor with the latest
+round options and inter-round rest, and rebuilds its continuation. Count-in stays
+reserved for a fresh sequence start.
 
 Timing, duration, previews, keyboard pitches and round counts derive from the
 same timeline. Count-in remains the count-in committed at sequence start.

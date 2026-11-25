@@ -224,8 +224,8 @@ export async function login(page: Page, link = false) {
     await page
       .getByRole("button", { name: "Account", exact: true })
       .textContent(),
-    "Account",
-    "routine sync status stays invisible",
+    config.ACCOUNT_APPROVED_EMAIL,
+    "signed-in navigation identifies the account without exposing routine sync status",
   );
 }
 

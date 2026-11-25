@@ -51,15 +51,6 @@ export function engraveEdition(
 export function isGuitarPositionMark(text: string) {
   return /^(?=[IVX]+$)X{0,3}(IX|IV|V?I{0,3})$/.test(text.trim());
 }
-/** Keep capo instructions explicit without repeating an existing part heading. */
-export function editionTempoLabel(
-  edition: { capo: number; tempo: number },
-  parts: readonly string[] = [],
-) {
-  const capo = `Capo ${edition.capo}`;
-  return `${edition.capo > 0 && !parts.includes(capo) ? `${capo} · ` : ""}♩ = ${edition.tempo}`;
-}
-
 export function capoAudio(
   audio: import("abcjs").AudioTracks,
   capo = 0,

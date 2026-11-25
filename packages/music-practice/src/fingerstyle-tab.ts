@@ -106,7 +106,7 @@ export function normalizeFingerstyleTab(paper: HTMLElement,singleVoice=false) {
 }
 
 /** Tab is a view of the same score; crop away its standard staff without changing timing. */
-export function showOnlyTab(paper: HTMLElement,tempoLabel="Swing",lyricPadding=58) {
+export function showOnlyTab(paper: HTMLElement,lyricPadding=58) {
   for (const [index, svg] of [...paper.querySelectorAll("svg")].entries()) {
     const staves = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-staff")]
       .sort((a,b) => a.getBBox().y - b.getBBox().y);
@@ -141,11 +141,11 @@ export function showOnlyTab(paper: HTMLElement,tempoLabel="Swing",lyricPadding=5
     barClip.append(barRect);defs.append(barClip);
     svg.querySelectorAll('.abcjs-bar,:scope > .abcjs-staff-wrapper > path').forEach(group=>group.setAttribute('clip-path',`url(#${barId})`));
     svg.append(defs);
-    for (const part of svg.querySelectorAll<SVGGraphicsElement>('g.abcjs-part,.abcjs-bar-number')) {
+    for (const part of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-bar-number')) {
       const box = part.getBBox();
       const copy = part.cloneNode(true) as SVGGraphicsElement;
       const rhythms = !!svg.querySelector('.tab-rhythm-stem');
-      const offset=part.classList.contains('abcjs-part') ? (rhythms ? 68 : 40) : (rhythms ? 48 : 20);
+      const offset=rhythms ? 48 : 20;
       copy.setAttribute('transform', `translate(0 ${tabBox.y - offset - box.y})`);
       part.remove();
       svg.append(copy);
@@ -171,20 +171,6 @@ export function showOnlyTab(paper: HTMLElement,tempoLabel="Swing",lyricPadding=5
       const copy=source.cloneNode(true) as SVGGraphicsElement,ink=source.getBBox();
       copy.classList.add('guitar-fermata');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-14-ink.y-ink.height})`);svg.append(copy);
-    }
-    const tempo = svg.querySelector<SVGGraphicsElement>(".abcjs-tempo");
-    if (tempo && index === 0) {
-      const label = document.createElementNS(ns, "text");
-      label.textContent = tempoLabel;
-      label.setAttribute("x", String(tabBox.x + 40));
-      label.setAttribute("y", String(tabBox.y - 86));
-      label.setAttribute("font-size", "16");
-      label.setAttribute("font-weight", "bold");
-      label.setAttribute("font-family", "serif");
-      label.setAttribute("stroke", "none");
-      label.setAttribute("class", "abcjs-tempo");
-      svg.querySelectorAll(".abcjs-tempo").forEach(node => node.remove());
-      svg.append(label);
     }
     svg.setAttribute("viewBox", `${box.x} ${top} ${box.width} ${bottom - top}`);
   }

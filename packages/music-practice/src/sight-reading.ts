@@ -251,6 +251,7 @@ export class SightReading {
   }
   private options!: HymnOptionsState;
   private showFingerings = false;
+  private showBarNumbers = false;
   private staffSpacingByLayout = { mobile: 100, desktop: 100 };
   private get staffSpacing() {
     return this.staffSpacingByLayout[this.staffLayout];
@@ -281,6 +282,7 @@ export class SightReading {
       this.showFingerings =
         persistence.read<{ fingerings?: boolean }>("presentation")
           ?.fingerings === true;
+      this.showBarNumbers = persistence.read<{barNumbers?: boolean}>("presentation")?.barNumbers === true;
       const spacing = persistence.read<{
         staffSpacingByLayout?: Partial<Record<"mobile" | "desktop", number>>;
       }>("presentation")?.staffSpacingByLayout;
@@ -1011,6 +1013,7 @@ export class SightReading {
       this.sections = score.sections;
       this.events = drawPracticeScore(paper, score.abc, paper.clientWidth, {
         fitHymnSystems: true,
+        barNumbers: this.showBarNumbers,
         scale: this.zoom,
         staffScale: this.staffSpacing / 100,
         showChordSymbols: this.showChordSymbols,
@@ -1051,7 +1054,7 @@ export class SightReading {
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: shapeTranspose,
         capoChoice,
-        hiddenStaves: this.mode === "playback" ? this.effectiveStaves(this.hiddenStaves) : undefined,
+        hiddenStaves: this.effectiveStaves(this.hiddenStaves),
         playback: (audio) => {
           this.sectionDuration = audio.totalDuration * 4;
           if (!layoutOnly && !continuingPlayback) {
@@ -1128,6 +1131,7 @@ export class SightReading {
           paper.clientWidth,
           {
             fitHymnSystems: true,
+            barNumbers: this.showBarNumbers,
             transpose: shapeTranspose,
             capoChoice,
             capoAccompaniment:this.hands === "left",
@@ -1312,6 +1316,7 @@ export class SightReading {
       stanzas: this.stanzas,
       zoom: this.zoom,
       fingerings: this.showFingerings,
+      barNumbers: this.showBarNumbers,
       staffSpacing: this.staffSpacing,
       low: this.low,
       high: this.high,
@@ -1359,6 +1364,16 @@ export class SightReading {
         ...persistence.read<object>("presentation"),
         version: 1,
         staffSpacingByLayout: { ...this.staffSpacingByLayout },
+      });
+      this.render(true);
+      this.publishOptions();
+      return;
+    }
+    if (patch.barNumbers !== undefined) {
+      this.showBarNumbers = patch.barNumbers === true;
+      persistence.write("presentation", {
+        ...persistence.read<object>("presentation"), version: 1,
+        barNumbers: this.showBarNumbers,
       });
       this.render(true);
       this.publishOptions();

@@ -212,7 +212,9 @@ test("tablature visibility shares the persisted display setting and never owns a
  assert.deepEqual(toggleGuitarStaff('both',[],'tab',false),{scoreDisplay:'notation',hiddenStaves:[]});
  assert.deepEqual(toggleGuitarStaff('both',[],'notation',false),{scoreDisplay:'tab',hiddenStaves:[]});
  const hidden=toggleGuitarStaff('tab',[],'tab',false);
- assert.deepEqual(hidden,{scoreDisplay:'tab',hiddenStaves:[0]});
+ assert.deepEqual(hidden,{scoreDisplay:'chords',hiddenStaves:[]});
+ assert.equal(guitarStaffShown('chords',[],'notation'),false);
+ assert.deepEqual(toggleGuitarStaff('tab',[],'tab',false,false),{scoreDisplay:'tab',hiddenStaves:[0]});
  assert.equal(guitarStaffShown(hidden.scoreDisplay,hidden.hiddenStaves,'tab'),false);
  assert.deepEqual(toggleGuitarStaff(hidden.scoreDisplay,hidden.hiddenStaves,'notation',true),{scoreDisplay:'notation',hiddenStaves:[]});
  assert.deepEqual(toggleGuitarStaff('notation',[],'tab',true),{scoreDisplay:'both',hiddenStaves:[]});

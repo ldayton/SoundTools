@@ -1,8 +1,9 @@
+import {prepareScoreMarkings,addSwingHelp} from "./score-markings";
 import { prepareHymnMelismas } from "./hymn-melismas";
 import { hymnSystemLayout } from "./hymn-system-layout";
-import { abcPlaybackStaves, hidePlaybackStaves, restoreDeclaredStaffTitles } from "./hymn-playback-staves";
+import { abcHasChordSymbols, abcPlaybackStaves, hidePlaybackStaves, restoreDeclaredStaffTitles } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
-import {editionTempoLabel,isGuitarPositionMark} from "./edition-score";
+import {isGuitarPositionMark} from "./edition-score";
 import type {CapoChoice} from "./guitar-capo";
 import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
@@ -78,6 +79,7 @@ export function drawPracticeScore(
     scale?: number;
     staffScale?: number;
     fingerings?: boolean;
+    barNumbers?: boolean;
     guitarTab?: boolean;
     guitarMidiOffset?: number;
     fingerstyleTab?: boolean;
@@ -124,6 +126,8 @@ export function drawPracticeScore(
   if(options.guitarSetup) abc=abc.replace(/^(Q:)"Capo \d+"\s*/gm,"$1");
   if(options.capoChoice && !options.capoChoice.scoreSetting) abc=abc.replace(/"\^([IVX]+)"/g,(all,label)=>isGuitarPositionMark(label)?"":all);
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
+  const chordsOnly = options.chordsOnly || options.showChordSymbols !== false && abcHasChordSymbols(abc) && !!options.hiddenStaves?.length &&
+    abcPlaybackStaves(abc).every(staff=>options.hiddenStaves!.includes(staff.index));
   const staffScale = options.staffScale ?? 1;
   const scale =
     (STAFF_LINE_GAP / ABC_STAFF_LINE_GAP) * (options.scale ?? 1) * staffScale;
@@ -137,10 +141,11 @@ export function drawPracticeScore(
   const vocalFont = (Math.ceil(16 / staffScale) * 3) / 4 * (melismaSpace ? 1.25 : 1);
   const source =
     (!options.fitHymnSystems && (options.guitarTab || options.fingerstyleTab) && !options.beginnerEdition && !profile ? `%%barsperstaff ${width < 600 ? 2 : 4}\n` : "") +
-    `%%vocalfont sans-serif ${vocalFont}\n` +
+    `%%barnumbers 1\n%%vocalfont sans-serif ${vocalFont}\n` +
     (options.fitHymnSystems ? "%%stretchlast 0\n" : "") +
     (options.beginnerEdition ? "%%staffsep 24\n%%sysstaffsep 28\n%%musicspace 4\n" + (!options.fitHymnSystems ? "%%stretchlast 1\n" : "") : "") + (!options.fitHymnSystems && options.beginnerEdition && !profile ? beginnerSystems(abc, width < 600 ? 1 : width < 1100 ? 2 : 4) : abc);
   const prepareTune = (tune: TuneObject) => {
+    prepareScoreMarkings(tune, options.barNumbers);
     restoreDeclaredStaffTitles(tune,source);
     if (options.hiddenStaves?.length) hidePlaybackStaves(tune, options.hiddenStaves);
     if (options.printedScore)
@@ -185,7 +190,7 @@ export function drawPracticeScore(
     visualTranspose: transpose, initialClef: options.initialSignatures,
     minPadding: options.beginnerEdition ? 4 : undefined,
     afterParsing: prepareTune,
-  }, staffwidth, !options.printedScore || !!options.guitarTab, [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore]) : undefined;
+  }, staffwidth, !options.printedScore || !!options.guitarTab, [options.hiddenStaves, options.showChordSymbols, options.initialSignatures, options.octaveNotation, options.printedScore, options.barNumbers]) : undefined;
   const tune = abcjs.renderAbc(paper, source, {
     lineBreaks,
     add_classes: true,
@@ -341,9 +346,9 @@ export function drawPracticeScore(
   if (options.beginnerEdition)
     drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
   if (options.beginnerEdition) separateBeginnerFingerings(paper);
-  if (!!profile && options.beginnerEdition === "guitar" && !options.chordsOnly) spaceGuitarSymbols(paper);
-  if (options.tabOnly) showOnlyTab(paper, profile ? editionTempoLabel({...profile,capo:options.guitarSetup ? 0 : profile.capo},tune.lines.flatMap(line=>line.staff?.flatMap(staff=>staff.voices?.flatMap(voice=>voice.flatMap(note=>note.el_type==='part'?[note.title]:[]))||[])||[])) : undefined, profile ? 58 : undefined);
-  if (options.chordsOnly) showChordsOnly(paper,tune);
+  if (!!profile && options.beginnerEdition === "guitar" && !chordsOnly) spaceGuitarSymbols(paper);
+  if (options.tabOnly) showOnlyTab(paper, profile ? 58 : undefined);
+  if (chordsOnly) showChordsOnly(paper,tune);
   drawMelismas();
   // Remove the now-empty marker text, whose zero-origin box would otherwise
   // stretch note hit targets across preceding systems.
@@ -404,7 +409,7 @@ export function drawPracticeScore(
         let top = options.beginnerEdition ? Infinity : box.y,
           bottom = options.beginnerEdition ? -Infinity : box.y + box.height;
         for (const ink of svg.querySelectorAll<SVGGraphicsElement>(
-          options.chordsOnly ? ".abcjs-lyric,.abcjs-chord,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.chord-chart-bars,.chord-chart-fermata" : options.tabOnly
+          chordsOnly ? ".abcjs-lyric,.abcjs-chord,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.chord-chart-bars,.chord-chart-fermata" : options.tabOnly
             ? ".guitar-fermata,.guitar-position,.abcjs-lyric,.abcjs-staff,.fingerstyle-tab-clef,.fingerstyle-tab-bars,.tab-rhythm-continuation,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-chord,.abcjs-tabNumber,.tab-rhythm,.tab-rhythm-stem,.tab-rhythm-rest,.tab-rhythm-flag,.tab-rhythm-tie,.beginner-fingering,.beginner-picking,.beginner-string"
             : ".abcjs-annotation,.guitar-position,.abcjs-staff,.abcjs-staff-extra,.abcjs-bar,.abcjs-bar-number,.abcjs-part,.abcjs-tempo,.abcjs-clef,.abcjs-chord,.abcjs-tabNumber,.abcjs-note,.abcjs-beam,.abcjs-slur,.beginner-fingering,.beginner-picking,.beginner-string",
         )) {
@@ -453,14 +458,16 @@ export function drawPracticeScore(
     svg.style.height = `${box.height * fittedScale}px`;
     svg.style.maxWidth = "100%";
   });
-  if (options.hiddenStaves?.length && abcPlaybackStaves(abc).every(staff=>options.hiddenStaves!.includes(staff.index)))
+  if (chordsOnly && options.showChordSymbols === false || !chordsOnly && options.hiddenStaves?.length && abcPlaybackStaves(abc).every(staff=>options.hiddenStaves!.includes(staff.index)))
     paper.querySelectorAll<SVGSVGElement>('svg').forEach(svg=>svg.style.display='none');
   if (options.guitarSetup) {
     const heading=document.createElement("div");
     heading.className="hymn-score-setup";
-    heading.textContent=`${options.guitarSetup.capo ? `Capo ${options.guitarSetup.capo}` : "No capo"} · Sounding key: ${options.guitarSetup.key} major`;
+    heading.textContent=`${options.guitarSetup.capo ? `Capo ${options.guitarSetup.capo} · ` : ""}Sounding key: ${options.guitarSetup.key} major`;
     paper.prepend(heading);
   }
+  if (swinging) addSwingHelp(paper);
+  paper.querySelectorAll(".abcjs-part,.abcjs-tempo").forEach(mark=>mark.remove());
   if (!options.fingerings) paper.querySelectorAll(".beginner-fingering,.beginner-picking,.beginner-string").forEach(mark=>mark.remove());
   attachChordDiagrams(paper, chordPassages);
   if (options.printedScore && !options.guitarAccompaniment) attachPianoChordDiagrams(paper, tune);

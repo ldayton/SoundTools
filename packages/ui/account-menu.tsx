@@ -28,12 +28,16 @@ export function AccountMenu() {
     context.account.subscribe,
     context.account.getSnapshot,
   );
+  const signedIn = !!state.user && state.status !== "reauth";
   return (
     <NavLink
       component="button"
       leftSection={<ControlIcon name="account" size={18} />}
-      label={state.user ? "Account" : "Log in"}
-      aria-label={state.user ? "Account" : "Log in"}
+      label={signedIn ? state.email || "Account" : "Log in"}
+      aria-label={signedIn ? "Account" : "Log in"}
+      aria-description={signedIn ? `Signed in as ${state.email}` : undefined}
+      title={signedIn ? state.email || "Account" : "Log in"}
+      styles={{label:{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}}
       data-account-status={state.status}
       data-account-pending={state.pending}
       onClick={(event) => {

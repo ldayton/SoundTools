@@ -335,3 +335,22 @@ export async function selectedHymnRange(page: Page) {
   const label = await page.locator("#hymn-key").inputValue();
   return /\(([^()]*–[^()]*)\)$/.exec(label)?.[1] || "";
 }
+
+/** Score views are combinations of visible layers, never a separate picker. */
+export async function selectScoreDisplay(page:Page,display:string){
+  await openPracticeOptions(page);
+  const notation=page.getByRole("checkbox",{name:"Show Treble",exact:true});
+  const tab=page.getByRole("checkbox",{name:"Show Tablature",exact:true});
+  if(display==="chords")await page.getByRole("checkbox",{name:"Show Chords",exact:true}).check();
+  // Enable the requested layers before disabling others, avoiding an interim
+  // empty score and retaining its independent playback choices.
+  if(display==="both"||display==="notation")await notation.check();
+  if(display==="both"||display==="tab")await tab.check();
+  if(display==="tab"||display==="chords")await notation.uncheck();
+  if(display==="notation"||display==="chords")await tab.uncheck();
+}
+export async function expectScoreDisplay(page:Page,display:string){
+  const {expect}=await import("@playwright/test");
+  await expect(page.getByRole("checkbox",{name:"Show Treble",exact:true})).toBeChecked({checked:display==="both"||display==="notation"});
+  await expect(page.getByRole("checkbox",{name:"Show Tablature",exact:true})).toBeChecked({checked:display==="both"||display==="tab"});
+}

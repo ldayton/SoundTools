@@ -1,3 +1,4 @@
+import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
@@ -155,12 +156,9 @@ try {
             .join("")
             .includes("?"),
         );
-        await expect(page.locator("g.abcjs-part")).toHaveText([
-          "Verse",
-          "Interlude",
-        ]);
+        await expect(page.locator("g.abcjs-part")).toHaveCount(0);
         await openPracticeOptions(page);
-        await page.locator("#hymn-score-display").selectOption("tab");
+        await selectScoreDisplay(page,"tab");
         await expect(page.locator(".guitar-position")).toHaveText([
           "III",
           "I",
@@ -173,10 +171,7 @@ try {
         ).toBeVisible();
       }
       if (instrument === "piano")
-        await expect(page.locator("g.abcjs-part")).toHaveText([
-          "Verse",
-          "Interlude",
-        ]);
+        await expect(page.locator("g.abcjs-part")).toHaveCount(0);
       await openPracticeOptions(page);
       const rows = page
         .getByRole("table", { name: "Playback staves" })
@@ -192,7 +187,7 @@ try {
         await page.getByRole("checkbox",{name:"Show Tablature",exact:true}).check();
         await expect(page.locator("[data-name=tabNumber]").first()).toBeVisible();
         await page.getByRole("checkbox",{name:"Show Treble",exact:true}).uncheck();
-        await expect(page.locator("#hymn-score-display")).toHaveValue("tab");
+        await expectScoreDisplay(page,"tab");
         await page.getByRole("checkbox",{name:"Show Treble",exact:true}).check();
       }
       if (instrument !== "piano") {

@@ -1,3 +1,4 @@
+import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {instrumentEditionIds,instrumentEdition,chordEdition} from "../../../packages/music-practice/src/instrument-editions";
 import {hymnTransposition} from "../../../packages/music-practice/src/hymn-transpose";
@@ -43,7 +44,7 @@ try {
         await expect(page.locator("#hymn-capo")).toHaveValue(String(capo));
         const suggestions=await page.locator("#hymn-capo option").allTextContents();assert.equal(suggestions.length,choices.length);assert(suggestions.length<=3);assert.equal(suggestions.filter(s=>s.includes("recommended")).length,1);
       }else await expect(page.locator("#hymn-capo")).toHaveCount(0);
-      await expect(page.locator(".hymn-score-setup")).toHaveText(`${capo ? `Capo ${capo}` : "No capo"} · Sounding key: ${target} major`);
+      await expect(page.locator(".hymn-score-setup")).toHaveText(`${capo ? `Capo ${capo} · ` : ""}Sounding key: ${target} major`);
       const labels=await page.getByRole("button",{name:/^Show .* chord diagram$/}).allTextContents();
       for(const chord of choices[0].chords)assert(labels.some(label=>label.includes(chord.replaceAll("#","♯").replaceAll("b","♭"))),`${hymn.slug}: recommended chord family is rendered`);
     }
@@ -117,14 +118,14 @@ try {
     await checkbox.uncheck();
     await expect(page.locator(".beginner-fingering")).toHaveCount(0);
     await openPracticeOptions(page);
-    await page.locator("#hymn-score-display").selectOption("tab");
+    await selectScoreDisplay(page,"tab");
     await expect(
       page.getByRole("checkbox", { name: "Show fingerings", exact: true }),
     ).toHaveCount(0);
     assert(await page.locator(".tab-rhythm-beam-secondary").count());
     assert(await page.locator(".tab-rhythm-beam-secondary").first().evaluate(n=>getComputedStyle(n).visibility === "visible" && n.getBoundingClientRect().width > 0));
     await expect(page.locator(".guitar-fermata")).toBeVisible();
-    await page.locator("#hymn-score-display").selectOption("chords");
+    await selectScoreDisplay(page,"chords");
     await expect(page.locator(".abcjs-tabNumber")).toHaveCount(0);
     await expect(page.locator(".chord-chart-fermata")).toBeVisible();
     assert.deepEqual(errors, []);

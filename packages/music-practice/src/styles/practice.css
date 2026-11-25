@@ -182,3 +182,8 @@
   color: var(--mantine-color-orange-9);
   font-weight: 600;
 }
+
+.score-swing { position: relative; width: fit-content; margin: 0 0 .5rem; }
+.score-swing-trigger { background: none; color: inherit; border: 0; padding: .3rem .2rem; font: inherit; font-weight: 600; text-decoration: underline dotted; text-underline-offset: .2em; cursor: help; }
+.score-swing-help { position: absolute; z-index: 20; inset-inline-start: 0; top: 100%; width: min(20rem, 75vw); padding: .65rem .8rem; border-radius: .4rem; background: var(--mantine-color-dark-7, #283238); color: white; font-size: .875rem; line-height: 1.5; box-shadow: 0 2px 8px #0003; }
+.score-swing-trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }

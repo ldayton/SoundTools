@@ -519,12 +519,13 @@ and the account client's client-sync.test.ts. CI's instrument-toolbar witness
 covers per-score staff choices and unique key choices. Nightly's song-memory and
 key-menu witnesses cover guest windows, saved octaves and responsive menus;
 tests/accounts.browser.mts covers real signed-in link restore and replication on
-both engines. These extend existing command owners, without new lanes or aliases.
+both engines, including desktop-to-phone favorites, reload persistence and
+phone-to-desktop offline removals. These extend existing command owners, without new lanes or aliases.
 
 ## Guitar resonance
 
-Written rhythm and sounding string duration are separate. Solo guitar scores
-carry a Let ring instruction; playback allows separate strings to resonate until
+Written rhythm and sounding string duration are separate. Solo guitar playback
+allows separate strings to resonate until
 replayed, a changed harmony, that voice's rest, or the phrase/score end. Detached
 articulations retain their written release. Piano and singer durations stay intact.
 `playback-performance.test.ts` owns independent sustain, string-reuse, rest,

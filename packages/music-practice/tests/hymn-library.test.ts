@@ -113,3 +113,10 @@ test("remote favorites apply immediately without changing active song preference
     [`favorites:${current}`, `favorites:${other}`, `hymn:${other}:bpm`],
   );
 });
+
+test("leading The does not affect song order or search, including inside favorites",()=>{
+ const songs=[{id:"old",title:"The Old Rugged Cross"},{id:"silent",title:"Silent Night"},{id:"come",title:"O Come, All Ye Faithful"},{id:"theatre",title:"Theatre Song"},{id:"lower",title:"the Amazing Song"}];
+ assert.deepEqual(hymnLibrary(songs,"",{}).map(h=>h.id),["lower","come","old","silent","theatre"]);
+ assert.deepEqual(hymnLibrary(songs,"",{old:true,come:true}).map(h=>h.id),["come","old","lower","silent","theatre"]);
+ assert(hymnLibrary(songs,"the old",{}).some(h=>h.title==="The Old Rugged Cross"));
+});

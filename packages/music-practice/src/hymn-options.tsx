@@ -87,11 +87,14 @@ export function HymnOptions({
   return (
     <Stack className="soundtools-ui" gap="md">
       {state.mode === "playback" && (
-        <OptionsSection title="Playback">
+        <Group component="section" aria-label="Playback" justify="space-between" wrap="nowrap" gap={6}>
+          <Text component="label" htmlFor="hymn-count-in" size="sm" style={{whiteSpace:"nowrap",flexShrink:0}}>Count-in</Text>
           <NativeSelect
+            w={80}
+            style={{flexShrink:0}}
             id="hymn-count-in"
             className="hymn-count-in-field"
-            label="Count-in"
+            aria-label="Count-in"
             value={String(state.unmetered ? 0 : state.countIn)}
             description={
               state.unmetered
@@ -109,15 +112,17 @@ export function HymnOptions({
             }
           />
           <Checkbox
+            styles={{label:{whiteSpace:"nowrap",paddingInlineStart:6},root:{flexShrink:0}}}
             id="hymn-loop-count-in"
-            label="Count in before each loop"
+            label="Each loop"
+            aria-label="Count in before each loop"
             disabled={state.unmetered || state.countIn === 0}
             checked={state.loopCountIn}
             onChange={(event) =>
               change({ loopCountIn: event.currentTarget.checked })
             }
           />
-        </OptionsSection>
+        </Group>
       )}
       <OptionsSection title="Key & range">
         <Stack gap="xs">
@@ -194,18 +199,18 @@ export function HymnOptions({
           </Group>}
         </Stack>
       </OptionsSection>
-      {state.mode === "playback" && <OptionsSection title="Staves">
+      {<OptionsSection title="Staves">
         <Table className="hymn-staff-table" aria-label="Playback staves">
           <Table.Thead><Table.Tr><Table.Th>Staff</Table.Th><Table.Th>Show</Table.Th><Table.Th>Play</Table.Th></Table.Tr></Table.Thead>
           <Table.Tbody>{state.playbackStaves.map(staff=><Table.Tr key={staff.index}>
             <Table.Td>{staff.label}</Table.Td>
             {(["hiddenStaves","mutedStaves"] as const).map((field,index)=><Table.Td key={field}>
               <Checkbox aria-label={`${index===0 ? "Show" : "Play"} ${staff.label}`}
-                disabled={index===1 && staff.playable===false}
+                disabled={index===1 && (staff.playable===false || state.mode!=="playback")}
                 title={index===1 && staff.playable===false ? "Playback follows Treble" : undefined}
                 checked={index===0 && staff.display ? guitarStaffShown(state.scoreDisplay,state.hiddenStaves,staff.display) : staff.playable===false ? false : !state[field].includes(staff.index)}
                 onChange={event=>change(index===0 && staff.display
-                  ? {viewHands:"both",...toggleGuitarStaff(state.scoreDisplay,state.hiddenStaves,staff.display,event.currentTarget.checked)}
+                  ? {viewHands:"both",...toggleGuitarStaff(state.scoreDisplay,state.hiddenStaves,staff.display,event.currentTarget.checked,state.chordSymbolsAvailable)}
                   : {viewHands:"both",hiddenStaves:state.hiddenStaves,mutedStaves:state.mutedStaves,
                     [field]:event.currentTarget.checked ? state[field].filter(n=>n!==staff.index) : [...state[field],staff.index]})}/>
             </Table.Td>)}
@@ -254,21 +259,8 @@ export function HymnOptions({
       )}
       {editions ? (
         <>
-          <OptionsSection title="Display">
-            {isEditedGuitar(state.arrangement) ? (
-              <NativeSelect
-                id="hymn-score-display"
-                label="Score"
-                value={state.scoreDisplay}
-                data={[
-                  {value:"notation",label:"Notation"},
-                  {value:"tab",label:"Tablature"},
-                  {value:"both",label:"Notation and tablature"},
-                  ...(profile ? [{value:"chords",label:"Chords only"}] : []),
-                ]}
-                onChange={event => change({scoreDisplay: event.currentTarget.value as "notation" | "tab" | "both" | "chords"})}
-              />
-            ) : <Text size="sm">Grand staff</Text>}
+          <OptionsSection title="View options">
+            <Checkbox label="Bar numbers" checked={state.barNumbers} onChange={event=>change({barNumbers:event.currentTarget.checked})} />
           </OptionsSection>
           {state.mode === "wait" && (
             <OptionsSection title="Practice">
@@ -624,9 +616,6 @@ export function HymnStaffSpacing({
   change(patch: HymnOptionsChange): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
-  const mobile = useMediaQuery(MOBILE_SONGALONG_QUERY, undefined, {
-    getInitialValueInEffect: false,
-  });
   const control = (
     <ToolbarNumber
       id="hymn-staff-spacing"
@@ -640,26 +629,5 @@ export function HymnStaffSpacing({
       onChange={(staffSpacing) => change({ staffSpacing })}
     />
   );
-  return mobile ? (
-    control
-  ) : (
-    <Popover position="bottom-start" withArrow>
-      <Popover.Target>
-        <ActionIcon
-          variant="default"
-          size={36}
-          aria-label="Adjust staff spacing"
-          title={`Staff spacing: ${state.staffSpacing}%`}
-        >
-          <ControlIcon name="staff-spacing" />
-        </ActionIcon>
-      </Popover.Target>
-      <Popover.Dropdown>
-        <Group gap="md" wrap="nowrap">
-          <Text size="sm">Staff spacing</Text>
-          {control}
-        </Group>
-      </Popover.Dropdown>
-    </Popover>
-  );
+  return control;
 }

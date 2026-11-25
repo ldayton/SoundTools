@@ -1,3 +1,4 @@
+import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import {checkVocalEdition} from "../../../packages/music-practice/test-fixtures/song-edition.browser";
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
@@ -104,7 +105,7 @@ try {
       .getByRole("checkbox", { name: "Show fingerings", exact: true })
       .check();
     await expect(page.locator(".beginner-fingering").first()).toBeVisible();
-    await expect(page.locator("g.abcjs-part")).toHaveText(["Verse", "Refrain"]);
+    await expect(page.locator("g.abcjs-part")).toHaveCount(0);
     if (width >= 1440) {
       await expect(page.locator('.hymn-paper svg').first().locator('.abcjs-note.abcjs-mm1').first()).toBeVisible();
       await expect(page.locator('.hymn-paper svg').last().locator('.abcjs-note.abcjs-mm19').first()).toBeVisible();
@@ -123,7 +124,7 @@ try {
         .join("")
         .includes("?"),
     );
-    await expect(page.locator("g.abcjs-part")).toHaveText(["Verse", "Refrain"]);
+    await expect(page.locator("g.abcjs-part")).toHaveCount(0);
     assert(
       (await page.locator("[data-name=tabNumber]").allTextContents())
         .join("")
@@ -138,7 +139,7 @@ try {
     await openPracticeOptions(page);
 
     for (const display of ["notation", "tab", "both", "chords"]) {
-      await page.locator("#hymn-score-display").selectOption(display);
+      await selectScoreDisplay(page,display);
       if (display === "notation" || display === "chords")
         await expect(page.locator("[data-name=tabNumber]")).toHaveCount(0);
       else
@@ -182,7 +183,7 @@ try {
     await expect(stanzas).toHaveCount(3);
     await stanzas.nth(1).check();
     await stanzas.nth(2).check();
-    await page.locator("#hymn-score-display").selectOption("tab");
+    await selectScoreDisplay(page,"tab");
     await checkScore(page);
     const rows = await page
       .locator(".hymn-paper svg")
@@ -205,7 +206,7 @@ try {
     await stanzas.nth(2).uncheck();
     await stanzas.nth(0).uncheck();
     await stanzas.nth(2).check();
-    await expect(page.locator("g.abcjs-part")).toHaveText(["Verse", "Refrain"]);
+    await expect(page.locator("g.abcjs-part")).toHaveCount(0);
     assert(
       (await page.locator(".abcjs-lyric").allTextContents())
         .join(" ")
@@ -213,12 +214,12 @@ try {
     );
     await stanzas.nth(0).check();
     await stanzas.nth(2).uncheck();
-    await page.locator("#hymn-score-display").selectOption("tab");
+    await selectScoreDisplay(page,"tab");
     await page.reload();
     await page.locator(".hymn-paper svg").first().waitFor();
     await openPracticeOptions(page);
     await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
-    await expect(page.locator("#hymn-score-display")).toHaveValue("tab");
+    await expectScoreDisplay(page,"tab");
     await dismissPracticeDrawer(page);
     if (width === 1440) {
       await page.goto(
@@ -230,10 +231,10 @@ try {
       await dismissPracticeDrawer(page);
       await openPracticeOptions(page);
       await expect(page.locator("#hymn-hands")).toHaveValue("both");
-      await page.locator("#hymn-score-display").selectOption("chords");
+      await selectScoreDisplay(page,"chords");
       await expect(page.locator("#hymn-hands")).toHaveValue("both");
       const before = await page.locator(".hymn-count").textContent();
-      await page.locator("#hymn-score-display").selectOption("both");
+      await selectScoreDisplay(page,"both");
       await expect(page.locator(".hymn-count")).toHaveText(before!);
       await dismissPracticeDrawer(page);
       await page.evaluate(() => {
@@ -252,12 +253,12 @@ try {
       });
       await openPracticeOptions(page);
       await page.locator("#hymn-hands").selectOption("left");
-      await page.locator("#hymn-score-display").selectOption("chords");
+      await selectScoreDisplay(page,"chords");
       await page.reload();
       await page.locator(".hymn-paper svg").first().waitFor();
       await openPracticeOptions(page);
       await expect(page.locator("#hymn-hands")).toHaveValue("left");
-      await expect(page.locator("#hymn-score-display")).toHaveValue("chords");
+      await expectScoreDisplay(page,"chords");
       await dismissPracticeDrawer(page);
       await midiAction(page, "Connect MIDI keyboard");
       const chordBefore = await page.locator(".hymn-count").textContent();

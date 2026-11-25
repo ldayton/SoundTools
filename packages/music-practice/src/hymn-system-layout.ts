@@ -1,3 +1,4 @@
+import {isScoreSectionStart} from "./score-markings";
 import abcjs, { type AbcVisualParams, type AbsoluteElement } from "abcjs";
 import { planScoreSystems, type SystemMeasure } from "./score-system-plan";
 
@@ -44,7 +45,7 @@ export function hymnSystemLayout(
             left ??= absolute.x;
             previous ??= absolute.x;
           }
-          if (item.el_type === "part") breakBefore = true;
+          if (item.el_type === "part" || isScoreSectionStart(item)) breakBefore = true;
           if (item.el_type === "note") duration += item.duration;
           if (item.el_type === "bar" && absolute && previous !== undefined) {
             measures.push({

@@ -131,8 +131,8 @@ test("one registry supplies instrument choices, capo help and renderer capabilit
   }
   assert.equal(instrumentEdition({ id: "unregistered" }), undefined);
 });
-test("guitar notation conventions cover new positions and any capo without song IDs", async () => {
-  const { isGuitarPositionMark, editionTempoLabel } =
+test("guitar position notation covers new positions without song IDs", async () => {
+  const { isGuitarPositionMark } =
     await import("../../../packages/music-practice/src/edition-score");
   for (const mark of [
     "I",
@@ -149,9 +149,6 @@ test("guitar notation conventions cover new positions and any capo without song 
     assert(isGuitarPositionMark(mark));
   for (const mark of ["", "p", "i", "m", "a", "Verse", "IIV", "VIIII"])
     assert(!isGuitarPositionMark(mark));
-  assert.equal(editionTempoLabel({ tempo: 72, capo: 3 }), "Capo 3 · ♩ = 72");
-  assert.equal(editionTempoLabel({ tempo: 70, capo: 2 }, ["Capo 2"]), "♩ = 70");
-  assert.equal(editionTempoLabel({ tempo: 80, capo: 0 }), "♩ = 80");
 });
 
 test("every registered solo guitar keeps its written clock and limits ringing to its available strings and score end", () => {

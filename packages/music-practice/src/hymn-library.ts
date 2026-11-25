@@ -17,7 +17,7 @@ export function hymnLibrary<
   return searchHymns(songs, query).sort(
     (a, b) =>
       Number(favorites[b.id] === true) - Number(favorites[a.id] === true) ||
-      titles.compare(a.title, b.title) ||
+      titles.compare(a.title.replace(/^the\s+/i, ""), b.title.replace(/^the\s+/i, "")) ||
       a.id.localeCompare(b.id),
   );
 }

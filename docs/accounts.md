@@ -4,6 +4,10 @@ All four apps use `@ldayton/account` for email login, IndexedDB caching,
 revision-checked synchronization and account status. `@ldayton/ui/account-menu`
 provides their shared Mantine dialog and navigation item. App adapters select and validate only the data that belongs in the cloud.
 
+Navigation identifies a signed-in account by its email address. Signed-out and
+expired sessions show “Log in”; the full email remains available when a narrow
+navigation panel truncates the visible label.
+
 ## Ownership and privacy
 
 - One Supabase project, one approved owner, separate records for each app.

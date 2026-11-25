@@ -1,3 +1,4 @@
+import {expect} from "@playwright/test";
 import { otherPracticeHymn, playbackHymn, playbackMelody, selectCapoPracticeHymn } from "../packages/music-practice/test-fixtures/hymns";
 import {
   waitForAccountIdle,
@@ -17,6 +18,7 @@ import {
   practiceOption,
   openPracticeOptions,
   selectHymnInstrument,
+  closeNavigation,
 } from "../packages/music-practice/browser-tests/helpers";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
@@ -310,6 +312,27 @@ try {
     0,
   );
   await closeModal(phone);
+  // Real backend witness: stars and removals cross independent desktop/phone
+  // storage, survive reload, and queue correctly while the phone is offline.
+  await closeNavigation(phone);
+  const desktopStar=p.locator(".hymn-favorite"),phoneStar=phone.locator(".hymn-favorite");
+  await expect(desktopStar).toHaveAttribute("aria-pressed","false");
+  await desktopStar.click();await waitForAccountIdle(p);
+  await expect(phoneStar).toHaveAttribute("aria-pressed","true");
+  await phone.reload();await pull(phone);await closeNavigation(phone);
+  await expect(phoneStar).toHaveAttribute("aria-pressed","true");
+  await mobile.setOffline(true);
+  await phoneStar.click();
+  await expect(phoneStar).toHaveAttribute("aria-pressed","false");
+  await account(phone);
+  await phone.locator('[data-account-status="offline"]:not([data-account-pending="0"])').waitFor();
+  await closeModal(phone);
+  await mobile.setOffline(false);await waitForAccountIdle(phone);await closeNavigation(phone);
+  await pull(p);
+  await expect(desktopStar).toHaveAttribute("aria-pressed","false");
+  await p.reload();await waitForAccountIdle(p);
+  await expect(desktopStar).toHaveAttribute("aria-pressed","false");
+  console.log(engine+": SongAlong favorites and offline removals replicate between desktop and phone and survive reloads");
   await mobile.close();
   assert.deepEqual(errors, []);
   // An explicit song link and its options outrank the last-opened cloud song,

@@ -25,7 +25,7 @@ export type HymnOptionsChange = Partial<
     | "reattackTies"
     | "stanzas"
   >
-> & { zoom?: number; fingerings?: boolean; staffSpacing?: number };
+> & { zoom?: number; fingerings?: boolean; barNumbers?: boolean; staffSpacing?: number };
 export type HymnOptionsSnapshot = Required<HymnOptionsChange> & {
   playbackStaves: {index:number; label:string; display?:"notation"|"tab"; playable?:boolean}[];
   chordSymbolsAvailable: boolean;

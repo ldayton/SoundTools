@@ -107,15 +107,16 @@ export function hidePlaybackStaves(
 
 type GuitarDisplay = "notation" | "tab" | "both" | "chords";
 export function guitarStaffShown(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab") {
-  return !hidden.includes(0) && (display === "both" || display === staff || display === "chords" && staff === "notation");
+  return !hidden.includes(0) && (display === "both" || display === staff);
 }
 /** Tab is another view of the same music, so visibility reuses the existing display setting. */
-export function toggleGuitarStaff(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab", shown: boolean) {
+export function toggleGuitarStaff(display: GuitarDisplay, hidden: readonly number[], staff: "notation" | "tab", shown: boolean, hasChords = true) {
   const notation = staff === "notation" ? shown : guitarStaffShown(display, hidden, "notation");
   const tab = staff === "tab" ? shown : guitarStaffShown(display, hidden, "tab");
+  if(!notation && !tab && !hasChords)return {scoreDisplay:display,hiddenStaves:[0]};
   return {
-    scoreDisplay: notation && tab ? "both" as const : notation ? "notation" as const : tab ? "tab" as const : display,
-    hiddenStaves: notation || tab ? [] : [0],
+    scoreDisplay: notation && tab ? "both" as const : notation ? "notation" as const : tab ? "tab" as const : "chords" as const,
+    hiddenStaves: [],
   };
 }
 export function abcHasChordSymbols(abc: string) {

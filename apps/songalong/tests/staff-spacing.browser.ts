@@ -1,4 +1,5 @@
-import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
+import {practiceHymn,otherPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import { launchBrowser, newPage, createContext, waitForApp, closeBrowser } from "../../../scripts/ci/browser-harness.cjs";
 import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import { openHymnControls } from "../../../packages/music-practice/browser-tests/helpers";
@@ -19,17 +20,9 @@ try {
     exact: true,
   });
   const open = async () => {
-    await page.locator(".hymn-toolbar").waitFor({ state: "visible" });
-    if (
-      await page
-        .getByRole("button", { name: "Adjust staff spacing", exact: true })
-        .isVisible()
-    ) {
-      if (!(await field.isVisible()))
-        await page
-          .getByRole("button", { name: "Adjust staff spacing", exact: true })
-          .click();
-    } else await openHymnControls(page);
+    await waitForApp(page,".hymn-pause");
+    await page.locator(".abcjs-lyric").first().waitFor();
+    if (!(await field.isVisible())) await openHymnControls(page);
     await expect(field).toBeVisible();
   };
   const change = async (value: number) => {
@@ -52,7 +45,7 @@ try {
           lyric.getScreenCTM()!.d,
       };
     });
-  await page.goto(server.base + "/piano/hymns/amazing-grace");
+  await page.goto(server.base + `/piano/hymns/${practiceHymn.slug}`);
   await page.locator(".abcjs-lyric").first().waitFor();
   await open();
   await expect(field).toHaveValue("100 %");
@@ -65,7 +58,7 @@ try {
     page.getByRole("spinbutton", { name: "Staff size in pixels", exact: true }),
   ).toHaveValue("40 px");
   await page.keyboard.press("Escape");
-  await page.goto(server.base + "/piano/hymns/silent-night");
+  await page.goto(server.base + `/piano/hymns/${otherPracticeHymn.slug}`);
   await open();
   await expect(field).toHaveValue("110 %");
   await page.keyboard.press("Escape");
@@ -81,7 +74,7 @@ try {
   await expect(field).toHaveValue("95 %");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expect(
-    page.getByRole("button", { name: "Adjust staff spacing", exact: true }),
+    page.getByRole("spinbutton", { name: "Staff spacing", exact: true }),
   ).toBeVisible();
   await open();
   await expect(field).toHaveValue("110 %");
@@ -90,6 +83,6 @@ try {
     "PASS: fine staff spacing changes notation without resizing lyrics; global per-layout settings survive song changes and reload",
   );
 } finally {
-  await browser.close();
+  await closeBrowser(browser);
   server.stop();
 }

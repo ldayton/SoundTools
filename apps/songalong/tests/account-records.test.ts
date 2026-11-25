@@ -152,3 +152,11 @@ test("the new cloud format imports legacy data and stops older readers from over
   assert.throws(()=>checkSchema(migrated),/Update this app/);
   assert.doesNotThrow(()=>restoreSongalongRecords(migrated));
 });
+
+test("bar-number presentation preference round-trips independently of fingering and hymn choices",()=>{
+ const state=migrateLegacy({});
+ state.activities.presentation={version:1,barNumbers:true,fingerings:false};
+ const records=songalongRecords(state);
+ assert.equal(records["activity:presentation:barNumbers"],true);
+ assert.deepEqual(restoreSongalongRecords(records).activities.presentation,{version:1,barNumbers:true,fingerings:false});
+});

@@ -1,3 +1,4 @@
+import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import {practiceHymn,selectSingleCapoPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from "node:assert/strict";
@@ -46,18 +47,18 @@ try {
       assert(
         !(await page.locator(".abcjs-chord").allTextContents()).includes("A7"),
       );
-      await page.locator("#hymn-score-display").selectOption("chords");
+      await selectScoreDisplay(page,"chords");
       await expect(page.locator(".hymn-strum-pattern")).toBeVisible();
       await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeEnabled();
       await selectHymnInstrument(page, 'piano');
       await expect(page.locator(".abcjs-tabNumber")).toHaveCount(0);
       await selectHymnInstrument(page, 'guitar');
-      await expect(page.locator("#hymn-score-display")).toHaveValue("chords");
+      await expectScoreDisplay(page,"chords");
       await dismissPracticeDrawer(page);
       await page.reload();
       await openPracticeOptions(page);
-      await expect(page.locator("#hymn-score-display")).toHaveValue("chords");
+      await expectScoreDisplay(page,"chords");
       await dismissPracticeDrawer(page);
     }
     // Shared four-score control contract, independent of a named edition.
@@ -131,7 +132,16 @@ try {
     const first=Math.min(...expected.map(n=>n.start));
     const durations=expected.filter(n=>n.start===first).map(n=>n.duration*.5+.045+.01).sort((a,b)=>a-b);
     await audioPage.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=notation&mode=playback&tempo=120&countIn=0&key=original&octave=0${chordEdition(hymn)?`&capo=${capo}`:""}`);
-    await expect(audioPage.locator(".hymn-paper")).toContainText("Let ring");
+    await expect(audioPage.locator(".hymn-paper")).not.toContainText("Let ring");
+    if(capo===0)await expect(audioPage.locator(".hymn-paper")).not.toContainText("No capo");
+    await expect(audioPage.locator(".abcjs-part,.abcjs-tempo,.abcjs-bar-number")).toHaveCount(0);
+    if(hymn.feel==="swing"){
+      const swing=audioPage.getByRole("button",{name:"Swing",exact:true});
+      await swing.click();
+      await expect(audioPage.getByRole("tooltip")).toContainText("Play each pair of eighth notes long–short");
+      await swing.press("Escape");
+      await expect(audioPage.getByRole("tooltip")).toBeHidden();
+    }
     await dismissPracticeDrawer(audioPage);
     await audioPage.getByRole("button",{name:"Play",exact:true}).click();
     await audioPage.waitForFunction(count=>(window as any).guitarSustainProbe.notes.filter((n:any)=>n.end!==undefined).length>=count,durations.length);
@@ -144,7 +154,7 @@ try {
     await audioPage.getByRole("button",{name:"Pause",exact:true}).click();
   }
   assert.deepEqual(audioErrors,[]);await audioPage.close();
-  console.log("PASS: every guitar edition displays let ring and schedules its sounding duration");
+  console.log("PASS: every guitar edition hides editorial markings while preserving its sounding duration");
 } catch (e) {
   await captureFailure(browser, e);
   throw e;

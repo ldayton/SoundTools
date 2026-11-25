@@ -39,13 +39,8 @@ export function beginnerSystems(abc: string, measures: number): string {
   return output.join("\n");
 }
 
-/** abcjs repeats active part labels on later systems and once per voice. */
+/** Normalize bar numbers independently of opening repeats and wrapped systems. */
 export function normalizeBeginnerLandmarks(paper:HTMLElement,tune:TuneObject,from:number,pickup=false) {
-  const seen=new Set<string>();
-  for(const mark of paper.querySelectorAll('g.abcjs-part')) {
-    const label=mark.textContent?.trim() || '';
-    if(seen.has(label)) mark.remove();else seen.add(label);
-  }
   const music = entries(tune, from).filter(entry => entry.voice === 0);
   for(const svg of paper.querySelectorAll('svg')) {
     const firstNotes = new Map<number, number>();

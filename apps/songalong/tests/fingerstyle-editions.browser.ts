@@ -1,3 +1,4 @@
+import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from 'node:assert/strict';
 import { expect } from '@playwright/test';
@@ -46,7 +47,7 @@ try {
   await page.getByRole('checkbox',{name:'Show fingerings',exact:true}).check();
   await expect(page.locator('.beginner-fingering').first()).toBeVisible();
   await expect(page.locator('.beginner-picking').first()).toBeVisible();
-  await expect(page.locator('g.abcjs-part')).toHaveText(['A','B','C','Ending']);
+  await expect(page.locator("g.abcjs-part")).toHaveCount(0);
   await assertEngraving(page);
   await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
@@ -55,16 +56,25 @@ try {
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeDisabled();
   assert.equal(await page.getByRole('group',{name:'Instruments and voice',exact:true}).locator('svg').count(),3);
   await selectHymnInstrument(page, 'guitar');
-  await page.locator('#hymn-score-display').selectOption('notation');
+  await selectScoreDisplay(page,'notation');
   await expect(page.locator('[data-name=tabNumber]')).toHaveCount(0);
-  await page.locator('#hymn-score-display').selectOption('tab');
+  await selectScoreDisplay(page,'tab');
   await expect(page.locator('[data-name=tabNumber]').first()).toBeVisible();
   assert(await page.locator('.tab-rhythm-stem').count());
   await expect(page.locator('.beginner-fingering')).toHaveCount(0);
   await expect(page.locator('.abcjs-bar.abcjs-v3')).toHaveCount(0);
   assert.equal(await page.locator('.fingerstyle-tab-clef').count(), await page.locator('.hymn-paper svg').count());
-  await expect(page.locator('.hymn-paper svg').first().locator('.abcjs-tempo')).toHaveCount(1);
-  await expect(page.locator('.hymn-paper svg').first().locator('.abcjs-tempo')).toHaveAttribute('stroke','none');
+  await expect(page.locator('.abcjs-tempo')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Swing',exact:true})).toBeVisible();
+  if(width===390){
+   const swing=page.getByRole('button',{name:'Swing',exact:true}),help=page.getByRole('tooltip');
+   await swing.focus();await expect(help).toBeVisible();
+   await expect(help).toHaveText('Play each pair of eighth notes long–short rather than evenly. Keep the beat steady; playback uses the same swing feel.');
+   await swing.press('Escape');await expect(help).toBeHidden();
+   await swing.click();await expect(help).toBeVisible();
+   const bounds=await help.boundingBox();assert(bounds && bounds.x>=0 && bounds.x+bounds.width<=width,'Swing explanation fits the phone');
+   await swing.click();await expect(help).toBeHidden();
+  }
   await assertEngraving(page);
   assert(await page.locator('.tab-rhythm-continuation').evaluateAll(nodes=>nodes.every(n=>{
    const model=(n as SVGElement).ownerSVGElement!.querySelector('.abcjs-tabNumber text')!;
@@ -77,7 +87,7 @@ try {
   await dismissPracticeDrawer(page);
   await page.screenshot({path:`/tmp/songalong-fingerstyle-${width}-tab.png`,fullPage:true});
   assert(await page.locator('.hymn-paper svg').evaluateAll(es=>es.every(e=>(e as SVGSVGElement).viewBox.baseVal.height<400)), 'Each tab system fits its own music, including the whole-note ending');
-  await expect(page.locator('g.abcjs-part').last()).toHaveText('Ending');
+  await expect(page.locator("g.abcjs-part")).toHaveCount(0);
   assert((await page.locator('[data-name=tabNumber]').allTextContents()).includes('2130'));
   if(width===1440) {
    await page.locator('.sequence-score').evaluate(e=>{e.scrollTop=e.scrollHeight;});
@@ -88,13 +98,13 @@ try {
   await page.goto(server.base+'/piano/hymns/the-1st-fingerstyle-blues?arrangement=guitar-fingerstyle&mode=playback');
   await page.locator('[data-name=tabNumber]').first().waitFor();
   await openPracticeOptions(page);
-  await expect(page.locator('#hymn-score-display')).toHaveValue('tab');
+  await expectScoreDisplay(page,'tab');
   await selectHymnInstrument(page, 'piano');
   await expect(page.locator('[data-name=tabNumber]')).toHaveCount(0);
   await expect(page.locator('#hymn-score-display')).toHaveCount(0);
   await selectHymnInstrument(page, 'guitar');
-  await expect(page.locator('#hymn-score-display')).toHaveValue('tab');
-  await page.locator('#hymn-score-display').selectOption('both');
+  await expectScoreDisplay(page,'tab');
+  await selectScoreDisplay(page,'both');
   await dismissPracticeDrawer(page);
   await page.screenshot({path:`/tmp/songalong-fingerstyle-${width}-both.png`,fullPage:true});
   await page.getByRole('button',{name:'Play',exact:true}).click();
@@ -121,7 +131,7 @@ try {
     await expect(page.locator('.hymn-count')).toHaveText('1 / 169');
     await openPracticeOptions(page);
     for(const display of ['notation','tab','both']) {
-     await page.locator('#hymn-score-display').selectOption(display);
+     await selectScoreDisplay(page,display);
      await expect(page.locator('.hymn-count')).toHaveText('1 / 169');
      await expect(page.locator('.sight-current')).not.toHaveCount(0);
     }
@@ -136,11 +146,14 @@ try {
    await page.reload();await openPracticeOptions(page);
    await expect(page.locator('#hymn-hands')).toHaveValue('left');
    await expect(page.getByRole('radio', { name: 'Guitar', exact: true })).toHaveAttribute('aria-checked', 'true');
-   await expect(page.locator('#hymn-score-display')).toHaveValue('both');
+   await expectScoreDisplay(page,'both');
    await selectHymnInstrument(page, 'piano');
    await expect(page.locator('#hymn-hands')).toHaveValue('left');
    await expect(page.locator('.hymn-count')).toHaveText('1 / 99');
    await assertEngraving(page);
+   await expect(page.locator('.abcjs-bar-number')).toHaveCount(0);
+   await openPracticeOptions(page);
+   await page.getByRole('checkbox',{name:'Bar numbers',exact:true}).check();
    const barNumbers=await page.locator('.abcjs-bar-number').allTextContents();
    assert(barNumbers.includes('13') && !barNumbers.includes('14'),barNumbers.join(','));
    await page.screenshot({path:'/tmp/songalong-fingerstyle-1440-piano.png',fullPage:true});

@@ -168,7 +168,7 @@
       "id": "guitar-phone",
       "kind": "guitar",
       "width": 320,
-      "imageSha256": "315548b652a5ce54e7bbe481cafcb893d84802efa04bec070db71226043803b9",
+      "imageSha256": "f475ab715439d94ae6ebde71dc90a65e207432578e6104152ecd58c37019648c",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
@@ -267,13 +267,26 @@
           5,
           6
         ]
-      ]
+      ],
+      "review": {
+        "date": "2026-11-25",
+        "reason": "Broken TAB string lines around fret digits; ledger lines behind noteheads",
+        "source": "score-layout-webkit-Ch8dGP",
+        "provenance": {
+          "bundleSha256": "365874bd800938401b3a5e3a762ae723362ff2f3738f151ef9afc7e8d3099ec2",
+          "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
+          "browser": "27.2",
+          "platform": "darwin",
+          "generated": "2026-11-25T21:14:50.861Z",
+          "commit": "20b6ee3e46664922e67a8c32cc1378d1166cd6ac"
+        }
+      }
     },
     {
       "id": "guitar-desktop",
       "kind": "guitar",
       "width": 800,
-      "imageSha256": "3653976fcaa47187058e9ba1253e2400d2fa5ce4fa7e2bc22bb8d749f425e1af",
+      "imageSha256": "44bada083333444179568e24f904572b9eb6606145639f995da42fbdce94c705",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
@@ -317,7 +330,20 @@
           2,
           5
         ]
-      ]
+      ],
+      "review": {
+        "date": "2026-11-25",
+        "reason": "Broken TAB string lines around fret digits; ledger lines behind noteheads",
+        "source": "score-layout-webkit-Ch8dGP",
+        "provenance": {
+          "bundleSha256": "365874bd800938401b3a5e3a762ae723362ff2f3738f151ef9afc7e8d3099ec2",
+          "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
+          "browser": "27.2",
+          "platform": "darwin",
+          "generated": "2026-11-25T21:14:50.861Z",
+          "commit": "20b6ee3e46664922e67a8c32cc1378d1166cd6ac"
+        }
+      }
     },
     {
       "id": "hebrew-phone",

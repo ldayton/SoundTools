@@ -1,3 +1,4 @@
+import {normalizeScoreInk} from "./ink";
 import {fitHymnOttava} from "../hymn-ottava";
 
 /** Displayed geometry, independent of an edition or song identity. */
@@ -92,4 +93,5 @@ export function prepareScoreSvg(svg: SVGSVGElement, presentation: ScorePresentat
           );
       }
     }
+    normalizeScoreInk(svg);
 }

@@ -168,7 +168,7 @@
       "id": "guitar-phone",
       "kind": "guitar",
       "width": 320,
-      "imageSha256": "bd91094f89a3061b06f0c10e04ab7d5cf279f262b43d2394016ffeba10a33a95",
+      "imageSha256": "6ae609d4f7f9e0300e7d18a71a2724f9132717554b82baa55ec78123cbbc1e62",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
@@ -267,13 +267,26 @@
           5,
           6
         ]
-      ]
+      ],
+      "review": {
+        "date": "2026-11-25",
+        "reason": "Broken TAB string lines around fret digits; ledger lines behind noteheads",
+        "source": "score-layout-webkit-sc53w7",
+        "provenance": {
+          "bundleSha256": "365874bd800938401b3a5e3a762ae723362ff2f3738f151ef9afc7e8d3099ec2",
+          "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
+          "browser": "27.2",
+          "platform": "linux",
+          "generated": "2026-11-25T21:16:22.027Z",
+          "commit": "20b6ee3e-plus-reviewed-ink-change"
+        }
+      }
     },
     {
       "id": "guitar-desktop",
       "kind": "guitar",
       "width": 800,
-      "imageSha256": "c910a66651854edf99644588dbafa0421726875b6659f579f32124d5193ca6e4",
+      "imageSha256": "938bf563eceb83933024d07c5b50c94b0fac69df0215c505fd523cc8ee08ab4a",
       "quality": {
         "staffSpace": 9.6875,
         "viewportOverflow": 0,
@@ -317,7 +330,20 @@
           2,
           5
         ]
-      ]
+      ],
+      "review": {
+        "date": "2026-11-25",
+        "reason": "Broken TAB string lines around fret digits; ledger lines behind noteheads",
+        "source": "score-layout-webkit-sc53w7",
+        "provenance": {
+          "bundleSha256": "365874bd800938401b3a5e3a762ae723362ff2f3738f151ef9afc7e8d3099ec2",
+          "fontSha256": "90a44b1ca994c9f23f23a5d7417843bcdd3b88e87e5bd342d00205d6301dd453",
+          "browser": "27.2",
+          "platform": "linux",
+          "generated": "2026-11-25T21:16:22.027Z",
+          "commit": "20b6ee3e-plus-reviewed-ink-change"
+        }
+      }
     },
     {
       "id": "hebrew-phone",

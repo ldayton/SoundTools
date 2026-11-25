@@ -575,3 +575,18 @@ chooser combinations, saved selections and unified options are now owned by
 `mobile-toolbar.browser.ts`. Both run the shared scenario with disjoint widths,
 remain required in CI and Nightly, and retain their assertions and independent
 port locks. No budget, timeout or retry policy changed.
+
+### 2026-11-25 — engraving references and isolated existing Linux piano drift
+
+The ledger/TAB ink change intentionally fails the prior guitar images on both
+platforms and engines. Retained comparisons are under
+`work/browser-results/score-layout-chromium-JcxyVm`,
+`score-layout-webkit-Ch8dGP`, `score-layout-chromium-Jk7yC7` and
+`score-layout-webkit-sc53w7`. Reviewed broken-string TAB references replace those
+images without changing comparison thresholds. Linux Chromium also retained an
+older piano-desktop break plan `[2,5]`; the current measured-staff refinement
+produces `[1,4]`. `work/layout-audit/ink-layout-isolation.mts` bundles the same
+fixture with the ink normalization replaced by a no-op: both runs produce
+`[1,4]`, establishing that this is pre-existing reference drift, not the ledger
+change. The reviewed new image has unchanged dimensions and passes independent
+spacing/overflow/music contracts. Other piano/lyric references remain unchanged.

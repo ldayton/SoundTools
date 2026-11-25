@@ -17,7 +17,7 @@ export async function readSpecValue(page: Page, key: string) {
 }
 export async function openMoreOptions(page: Page) {
   await openPracticeOptions(page);
-  await page.locator('#countIn').waitFor();
+  await page.locator('#countIn, #countIn-mobile').filter({ visible: true }).waitFor();
 }
 /** Sliders expose their state through ARIA instead of hidden range-input mirrors. */
 export async function sliderValue(page: Page, id: string) {

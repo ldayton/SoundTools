@@ -307,18 +307,18 @@ export function Builder({
             </Text>
           </div>
         </Stack>
-        <Stack gap="sm">
-          <Divider label="Repeats & timing" labelPosition="left" />
-          <div
-            hidden={!vocal || activeScaleTuning(spec) !== 'major' || spec.pattern === 'yemenite'}
-          >
+        <Stack id="practice-timing-options" gap="lg">
+          <Stack gap="sm" hidden={!vocal || activeScaleTuning(spec) !== 'major' || spec.pattern === 'yemenite'}>
+            <Divider label="Accompaniment" labelPosition="left" />
             <Checkbox
               id="startingChords"
               label="Starting-note chords"
               checked={spec.startingChords ?? true}
               onChange={(event) => change({ startingChords: event.currentTarget.checked })}
             />
-          </div>
+          </Stack>
+          <Stack gap="sm" hidden={spec.pattern === 'arpeggio' || (isGlidePattern(spec.pattern) && !supportsNoteRepeats(spec.pattern))}>
+          <Divider label="Phrase variations" labelPosition="left" />
           <div hidden={isGlidePattern(spec.pattern) || spec.pattern === 'arpeggio'}>
             <Checkbox
               id="repeatTwice"
@@ -328,13 +328,10 @@ export function Builder({
             />
           </div>
           <Stack id="note-repeats" gap="xs" hidden={spec.pattern === 'arpeggio' || !supportsNoteRepeats(spec.pattern)}>
-            <Text size="sm" fw={500}>
-              Repeat notes
-            </Text>
             <Group wrap="nowrap" justify="space-between">
               <Checkbox
                 id="repeatTurn"
-                label={spec.direction === 'down' ? 'Lowest note' : 'Highest note'}
+                label={spec.direction === 'down' ? 'Repeat lowest note' : 'Repeat highest note'}
                 checked={!!spec.repeatTurn}
                 onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
               />
@@ -355,7 +352,7 @@ export function Builder({
             <Group wrap="nowrap" justify="space-between">
               <Checkbox
                 id="repeatHome"
-                label="Home note"
+                label="Repeat home note"
                 checked={!!spec.repeatHome}
                 onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
               />
@@ -374,18 +371,21 @@ export function Builder({
               </div>
             </Group>
           </Stack>
-          <SimpleGrid cols={2}>
+          </Stack>
+          <Stack gap="sm">
+          <Divider label="Session timing" labelPosition="left" />
+          <SimpleGrid cols={{ base: 1, sm: 2 }}>
             {[
               {
                 id: 'repeat',
-                label: 'Repeats',
+                label: 'Extra rounds',
                 value: spec.repetitions - 1,
                 max: 15,
                 patch: (value: number) => ({ repetitions: value + 1 }),
               },
               {
                 id: 'rest',
-                label: 'Rest (beats)',
+                label: 'Rest between rounds (beats)',
                 value: spec.restBeats,
                 max: 16,
                 patch: (value: number) => ({ restBeats: value }),
@@ -403,20 +403,15 @@ export function Builder({
                   />
                 </div>
                 <div className="dorego-mobile-count">
-                  <NativeSelect
-                    id={`${field.id}-select`}
-                    label={field.label}
-                    value={String(field.value)}
-                    data={[...Array.from({ length: field.max + 1 }, (_, i) => i)].map((value) => ({
-                      value: String(value),
-                      label: value ? String(value) : 'None',
-                    }))}
-                    onChange={(event) => change(field.patch(Number(event.currentTarget.value)))}
-                  />
+                  <Group wrap="nowrap" justify="space-between">
+                    <Text component="label" htmlFor={`${field.id}-mobile`} size="sm" fw={500}>{field.label}</Text>
+                    <ToolbarNumber id={`${field.id}-mobile`} label={field.label} icon={null} unit="" min={0} max={field.max} value={field.value} onChange={(value) => change(field.patch(value))} />
+                  </Group>
                 </div>
               </div>
             ))}
           </SimpleGrid>
+          <div className="dorego-desktop-count">
           <NativeSelect
             id="countIn"
             label="Count-in"
@@ -429,6 +424,14 @@ export function Builder({
             ]}
             onChange={(event) => change({ countIn: Number(event.currentTarget.value) })}
           />
+          </div>
+          <div className="dorego-mobile-count">
+            <Group wrap="nowrap" justify="space-between">
+              <Text component="label" htmlFor="countIn-mobile" size="sm" fw={500}>Count-in (beats)</Text>
+              <ToolbarNumber id="countIn-mobile" label="Count-in (beats)" icon={null} unit="" min={0} max={8} value={spec.countIn} onChange={(value) => change({ countIn: value })} />
+            </Group>
+          </div>
+          </Stack>
         </Stack>
       </Stack>
     </form>

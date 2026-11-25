@@ -258,28 +258,23 @@ try {
   await page.locator('#low-wheel').press('ArrowDown');
   assert.equal(Number(await readSpecValue(page, 'low')), mobileLow);
 
-  for (const [id, max] of [
-    ['repeat', 15],
-    ['rest', 16],
-  ] as const)
-    assert.deepEqual(
-      await page.locator(`#${id}-select option`).allTextContents(),
-      Array.from({ length: max + 1 }, (_, i) => (i ? String(i) : 'None'))
-    );
-  await page.locator('#repeat-select').selectOption('15');
-  assert.equal(await readSpecValue(page, 'repetitions'), '16');
-  await page.locator('#rest-select').selectOption('16');
-  assert.equal(await readSpecValue(page, 'restBeats'), '16');
-  await page.locator('#repeat-select').selectOption('8');
-  assert.equal(await readSpecValue(page, 'repetitions'), '9');
-  await page.locator('#rest-select').selectOption('8');
-  assert.equal(await readSpecValue(page, 'restBeats'), '8');
-  await page.locator('#repeat-select').selectOption('0');
-  assert.equal(await readSpecValue(page, 'repetitions'), '1');
-  await page.locator('#repeat-select').selectOption('1');
-  await page.locator('#rest-select').selectOption('0');
-  assert.equal(await readSpecValue(page, 'restBeats'), '0');
-  await page.locator('#rest-select').selectOption('2');
+  for (const [id, max, key] of [
+    ['repeat', 15, 'repetitions'], ['rest', 16, 'restBeats'], ['countIn', 8, 'countIn'],
+  ] as const) {
+    const input = page.locator(`#${id}-mobile`);
+    await input.fill('0');
+    await input.press('Enter');
+    assert.ok(await page.locator(`#${id}-mobile-down`).isDisabled());
+    await page.locator(`#${id}-mobile-up`).click();
+    assert.equal(await readSpecValue(page, key), id === 'repeat' ? '2' : '1');
+    await input.fill(String(max));
+    await input.press('Enter');
+    assert.ok(await page.locator(`#${id}-mobile-up`).isDisabled());
+    await page.locator(`#${id}-mobile-down`).click();
+    assert.equal(await readSpecValue(page, key), String(id === 'repeat' ? max : max - 1));
+    await input.fill(id === 'repeat' ? '1' : id === 'rest' ? '2' : '8');
+    await input.press('Enter');
+  }
   await page.locator('#bpm').press('ArrowUp');
   await page.locator('#bpm').press('Tab');
   assert.equal(await page.locator('#bpm').getAttribute('aria-valuenow'), '155');
@@ -338,11 +333,21 @@ try {
       assert.deepEqual(await geometry(), before, 'Disabling repeats must not move the controls');
     }
     await page.screenshot({ path: `/tmp/dorego-repeat-controls-${width}.png`, fullPage: true });
+    if (width === 393) {
+      await page.locator('#repeatTurn').check();
+      await page.locator('#repeatTurnCount-up').click();
+      await page.locator('#repeatTurnCount-up').click();
+      await page.mouse.move(0, 0);
+      await page.locator('#practice-timing-options').screenshot({path:'/tmp/dorego-mobile-sections.png'});
+      await page.locator('#repeatTurnCount-down').click();
+      await page.locator('#repeatTurnCount-down').click();
+      await page.locator('#repeatTurn').uncheck();
+    }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
   await openMoreOptions(page);
-  await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
-  await page.getByRole('checkbox', { name: 'Home note', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Repeat highest note', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Repeat home note', exact: true }).check();
   assert.equal(await page.locator('#repeatTurnCount').inputValue(), '4');
   await page.locator('#repeatTurnCount').fill('8');
   await page.locator('#repeatTurnCount').press('Enter');
@@ -375,13 +380,13 @@ try {
   ]);
   await openMoreOptions(page);
   assert.ok(await page.locator('#note-repeats').isVisible());
-  assert.equal(await page.locator('label[for=repeatHome]').textContent(), 'Home note');
-  assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Highest note');
-  await page.getByRole('checkbox', { name: 'Home note', exact: true }).check();
-  await page.getByRole('checkbox', { name: 'Highest note', exact: true }).check();
+  assert.equal(await page.locator('label[for=repeatHome]').textContent(), 'Repeat home note');
+  assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Repeat highest note');
+  await page.getByRole('checkbox', { name: 'Repeat home note', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Repeat highest note', exact: true }).check();
   await page.locator('#direction-down').click();
-  assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Lowest note');
-  assert.ok(await page.getByRole('checkbox', { name: 'Lowest note', exact: true }).isChecked());
+  assert.equal(await page.locator('label[for=repeatTurn]').textContent(), 'Repeat lowest note');
+  assert.ok(await page.getByRole('checkbox', { name: 'Repeat lowest note', exact: true }).isChecked());
   await page.locator('#repeatTurn').uncheck();
   await page.locator('#repeatHome').uncheck();
 

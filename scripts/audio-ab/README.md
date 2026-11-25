@@ -17,6 +17,8 @@ The guitar renderer prepares this directory automatically. Serve the resulting
 directory over local HTTP. Playback loads only the active pair, keeps position
 when switching, pauses other cards, and releases their decoded buffers. Nothing
 autoplays. The page does not retain old comparison or mixer state.
+Playback and return-to-start buttons use icons with accessible names and tooltips.
+Return-to-start keeps the chosen A/B side and preserves playing/paused state.
 
 Use the original workstream baseline, identical music/key/capo/tempo and static
 integrated-loudness matching. Preserve source revisions and raw metrics outside

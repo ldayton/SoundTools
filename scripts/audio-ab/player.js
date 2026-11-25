@@ -5,12 +5,20 @@ let context, owner;
 const clock = () => context ??= new AudioContext();
 const format = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 const position = s => s.node ? Math.min(s.duration, s.offset + Math.max(0, context.currentTime - s.anchor)) : s.offset;
+const icon = path => `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${path}</svg>`;
+const playIcon = icon('<path fill="currentColor" d="M7 4v16l13-8z"/>');
+const pauseIcon = icon('<path fill="currentColor" d="M6 4h4v16H6zm8 0h4v16h-4z"/>');
+const startIcon = icon('<path fill="currentColor" d="M4 4h3v16H4zm16 0L8 12l12 8z"/>');
 
 function update(s) {
   s.card.dataset.side = s.side;
   s.card.dataset.playing = String(s.playing);
-  s.play.textContent = s.playing ? "Pause" : "Play";
+  if (s.play.dataset.icon !== String(s.playing)) {
+    s.play.innerHTML = s.playing ? pauseIcon : playIcon;
+    s.play.dataset.icon = String(s.playing);
+  }
   s.play.setAttribute("aria-label", `${s.playing ? "Pause" : "Play"} ${s.name}`);
+  s.play.title = s.playing ? "Pause" : "Play";
   s.seek.value = position(s);
   s.time.textContent = `${format(position(s))} / ${format(s.duration)}`;
   s.card.querySelectorAll("[data-side]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.side === s.side)));
@@ -71,6 +79,7 @@ async function start(s) {
   stop(s);
   const generation = ++s.generation;
   s.status.textContent = s.buffers.has(s.side) ? "" : "Loading…";
+  update(s);
   try {
     await clock().resume();
     const decoded = await buffer(s, s.side);
@@ -101,17 +110,22 @@ try {
   for (const clip of comparison.clips) {
     const card = document.createElement("section");
     card.className = "card";
-    card.innerHTML = `<h2></h2><div class="buttons"><button aria-pressed="true" data-side="A">A · Before</button><button aria-pressed="false" data-side="B">B · After</button></div><div class="transport"><button class="play">Play</button><input class="seek" type="range" min="0" step=".01" value="0"><output class="time"></output><input class="volume" type="range" min="0" max="1" step=".01" value="1"></div><small class="source"></small><small class="status" role="status"></small>`;
+    card.innerHTML = `<h2></h2><div class="buttons"><button aria-pressed="true" data-side="A">A · Before</button><button aria-pressed="false" data-side="B">B · After</button></div><div class="transport"><button class="restart" title="Return to start">${startIcon}</button><button class="play"></button><input class="seek" type="range" min="0" step=".01" value="0"><output class="time"></output><input class="volume" type="range" min="0" max="1" step=".01" value="1"></div><small class="source"></small><small class="status" role="status"></small>`;
     card.querySelector("h2").textContent = clip.name;
     card.querySelector(".source").textContent = clip.detail;
     document.querySelector("#grid").append(card);
     const s = {...clip, card, side:"A", offset:0, anchor:0, playing:false, node:null, gain:null, generation:0,
       controller:new AbortController(), buffers:new Map(), pending:new Map(),
-      ...Object.fromEntries(["play","seek","time","volume","status"].map(k => [k, card.querySelector("." + k)]))};
+      ...Object.fromEntries(["restart","play","seek","time","volume","status"].map(k => [k, card.querySelector("." + k)]))};
     states.push(s);
     s.seek.max = s.duration;
     s.seek.setAttribute("aria-label", `Seek ${s.name}`);
     s.volume.setAttribute("aria-label", `Volume ${s.name}`);
+    s.restart.setAttribute("aria-label", `Return to start of ${s.name}`);
+    s.restart.onclick = () => {
+      stop(s); ++s.generation; s.offset = 0;
+      if (s.playing) void start(s); else update(s);
+    };
     s.play.onclick = () => {
       if (s.playing) { pause(s); return; }
       if (s.offset >= s.duration) s.offset = 0;

@@ -116,13 +116,7 @@ export function drawPracticeScore(
         const positions=grip?.positions || options.capoChoice!.positions;
         return positions.get(`${pitch-transpose}:${chord?1:0}`) || positions.get(`${pitch-transpose}:${chord?0:1}`);
       } : sourceProfile.position,
-      fingers:(instrument:BeginnerInstrument,bar:number,voice:number,pitches:number[],force?:boolean)=>{
-        const raw=pitches.map(p=>p-options.guitarSetup!.capo);
-        const grip=options.capoAccompaniment ? options.capoChoice?.accompaniment?.get([...raw].sort((a,b)=>a-b).join(",")) : undefined;
-        return options.capoChoice && !options.capoChoice.scoreSetting
-          ? raw.map(p=>(grip?.fingers || options.capoChoice!.fingers).get(`${p}:${pitches.length>1?1:0}`) ?? null)
-          : sourceProfile.fingers(instrument,bar,voice,pitches.map(p=>p-options.guitarSetup!.capo+sourceProfile.capo),force);
-      }}
+      }
     : sourceProfile;
   if(options.guitarSetup) abc=abc.replace(/^(Q:)"Capo \d+"\s*/gm,"$1");
   if(options.capoChoice && !options.capoChoice.scoreSetting) abc=abc.replace(/"\^([IVX]+)"/g,(all,label)=>isGuitarPositionMark(label)?"":all);
@@ -274,11 +268,13 @@ export function drawPracticeScore(
     ...(options.printedScore ? { chordsOff: true } : {}),
   };
   const visibleAudio = tune.setUpAudio(audioOptions);
+  const fingeringTune=options.beginnerEdition === 'guitar' && options.hiddenStaves?.length ? abcjs.parseOnly(source)[0] : tune;
+  if(fingeringTune!==tune)fingeringTune.setUpAudio(audioOptions);
   let audio = swingAudio(options.hiddenStaves?.length
     ? abcjs.parseOnly(source)[0].setUpAudio(audioOptions) : visibleAudio, swinging);
   if (profile && options.beginnerEdition === "guitar") {
     audio = capoAudio(audio,profile.capo);
-    for (const line of tune.lines) for (const staff of line.staff || [])
+    for (const score of new Set([tune,fingeringTune]))for (const line of score.lines) for (const staff of line.staff || [])
       for (const voice of staff.voices || []) for (const note of voice)
         if (note.el_type === "note") for (const pitch of note.midiPitches || []) pitch.pitch += profile.capo;
   }
@@ -309,7 +305,7 @@ export function drawPracticeScore(
   // Measure editorial annotations even when hidden, so the score keeps its
   // geometry when fingerings are toggled. Remove the provisional marks below.
   if (options.beginnerEdition)
-    drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile);
+    drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile, profile ? (pitch,chord,shift,group)=>profile.position(pitch-profile.capo,chord,shift,group?.map(p=>p-profile.capo)) : undefined, fingeringTune, profile?.capo || 0);
   if (options.beginnerEdition) separateBeginnerFingerings(paper);
   if (!!profile && options.beginnerEdition === "guitar" && !chordsOnly) spaceGuitarSymbols(paper);
   if (options.tabOnly) showOnlyTab(paper, profile ? 58 : undefined);

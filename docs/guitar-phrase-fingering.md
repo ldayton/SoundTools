@@ -1,0 +1,48 @@
+# Guitar phrase fingerings
+
+`packages/music-practice/src/guitar-phrase-fingering.ts` owns fretting-hand
+suggestions for fixed tablature. The score adapter and legacy melody API both
+call it. Guitar engraving no longer chooses fingers from song-specific tables
+or a pitch-to-finger map. Piano editorial fingerings are unchanged. Static chord
+search still owns string/voicing feasibility and capo suggestions; those choices
+are inputs to the phrase planner, not instructions about a finger at every attack.
+
+The input contains identified notes with absolute start/duration in quarter-note
+beats, string (1 = high E), fret relative to capo, and optional tie predecessor.
+The planner merges ties and creates a frame at every attack and release, including
+rests. Each frame enumerates the legal complete hand grips and positions. The
+existing shared chord feasibility checker rejects conflicting fingers, excessive
+reach and barres crossing open, muted or lower-fretted strings. A finger can extend
+one fret from its nominal position. Unsupported fixed-tab passages return null;
+the renderer omits suggestions instead of printing a partial or impossible hand.
+
+A shortest-path search evaluates all candidate states, with no beam pruning.
+Held contacts keep their fingers by default. Optional substitutions have an
+explicit penalty. The cost combines position, physical stretch (650 mm scale
+by default, adjusted for capo), barre width, finger travel, hand shifts and
+repeated-note finger changes. Duration weights grip effort; tempo affects
+transition time. Rests release contacts while retaining hand position. Unoccupied
+finger trajectories are not modeled: this is a conservative, tunable ergonomic
+model, not an anatomical guarantee. Weights are heuristics, not learned parameters.
+
+The result retains each note occurrence, the complete hand-state path, and a
+cost breakdown both per transition/frame and for the whole phrase. This allows
+ranking reviewed alternatives without making every test require one exact answer.
+The score adapter includes hidden voices so display options cannot erase held
+constraints. Source music, pitches, rhythm, strings and frets are not rewritten.
+
+Regression owners:
+
+- `packages/music-practice/tests/guitar-phrase-fingering.test.ts`: comfort rankings,
+  holds/ties, repeated notes, barres, rests, substitutions, invalid input, cost
+  accounting and an independent exhaustive short-path oracle.
+- `packages/music-practice/tests/guitar-score-fingering.test.ts`: multi-voice timing,
+  ties across systems and complete plans for every registered instrument edition.
+- `apps/songalong/tests/guitar-fingering.test.ts`: compatibility melody API.
+- `apps/songalong/tests/guitar.browser.ts`: CI browser witness of planner contacts.
+- `apps/songalong/tests/guitar-fingering.browser.ts`: Nightly edition-wide browser
+  witness, with existing unchanged-tab and fingering-toggle checks.
+
+The unit files are enrolled by the existing shared music glob. Browser ownership
+uses existing CI/Nightly entries in `scripts/ci/test-strategy.cjs`; no new lane or
+convenience-alias expansion is needed.

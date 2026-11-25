@@ -590,3 +590,29 @@ fixture with the ink normalization replaced by a no-op: both runs produce
 `[1,4]`, establishing that this is pre-existing reference drift, not the ledger
 change. The reviewed new image has unchanged dimensions and passes independent
 spacing/overflow/music contracts. Other piano/lyric references remain unchanged.
+
+## Export-header floating-point bounds (25 November 2026)
+
+[First hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45700198741)
+was `score-export.browser.ts`'s one-pixel header-ink boundary, not a toolbar
+assertion. Artifact `failure-songalong-ci-chromium-core-1-of-1-attempt1`
+retains the trace and exported PDFs. The trace's metadata evaluation measured
+the italic supplemental credit at x=-1.0000211px on desktop and
+x=-1.0000343px on mobile. Both differ from the accepted -1px overhang by
+less than 0.00004px. The comparison now permits a 0.001px numerical epsilon
+around the same one-pixel boundary; title centering, credit alignment,
+separation, wrapping and all PDF assertions remain required and unchanged.
+No product typography, test retry, sleep or timeout changed.
+
+
+### 2026-11-25 — engraving validation budget cancellation
+
+The first full local run for `1be7eee` exceeded the 60-second total budget:
+`work/ci-results/1795641495980-e7298136` retained 55.2 seconds in the graph and
+62.15 seconds including setup/cleanup. The DoReGo desktop lane was cancelled
+while checking its final mobile drone case; its Playwright connection error
+followed coordinator cancellation, with no preceding assertion failure. All
+completed lanes passed. This remains budget evidence, not a passing run. A new
+required validation follows merging the independently committed export-bound
+fix from main; any passing result does not establish that this budget variance
+has been fixed. No coverage, resource lock, timeout or assertion was relaxed.

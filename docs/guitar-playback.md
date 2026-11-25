@@ -127,6 +127,32 @@ natural dynamics, lazy working sets and native Chromium/WebKit codec checks.
 Do not mix unrelated guitars into an alleged seamless legato transition, assume
 “free download” grants sample redistribution, or ship a large desktop bank whole.
 
+The backing palette already uses Black And Green's twang subset; the documented
+hammer-on map is additional source material, not an articulation already shipped
+by the hymn sampler.
+
+### Listening finding: I'll Fly Away, 9–11 seconds
+
+The audition's C3/E3/G3 chord starts at 9 seconds. Both sides use the inherited
+medium recordings `acoustic-0-48-2`, `acoustic-1-52-2` and `acoustic-2-55-2`.
+Their two-second waveforms correlate at 0.999879 after scalar gain fitting;
+peaks are 0.191 (A) and 0.179 (B), well below clipping. The issue therefore
+predates this expression workstream and is not an overloaded new mix.
+
+The G3/D-string recording has an unusually strong, moving low resonance:
+its early spectral maximum is about 197.8 Hz, while the second partial is about
+392.3 Hz. That mismatch is a plausible source of the reported warbling/beating;
+these measurements alone do not establish every perceptual cause. The original
+24-bit WAV was extracted by byte range from Meta's published
+`meta-open-sound-meta-steel-guitar-wav.zip` (release `meta-steel-guitar-v1.0.0`),
+verified against its SHA256SUMS, and compared at the same sample rate. It has
+the same spectral mismatch and correlates at 0.999937 with the existing
+OGG-derived asset. Switching to lossless source alone will not remove it.
+All three recorded dynamics show a similar mismatch, so replacing medium with
+soft/hard is not an established remedy. Do not silently change the musical
+voicing/fingering, randomise pitch, or claim that turning it down fixes the source.
+Keep the original audition A immutable while evaluating a cleaner recording.
+
 Judge phrase direction, repeated attacks, melody/bass separation and ringing in
 the matched audio. Unit checks protect musical correctness; do not freeze every
 velocity or envelope point as a proxy for listening quality. The shared

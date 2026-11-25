@@ -1,0 +1,26 @@
+Source: w3c-cg/musicxmlTestSuite (formerly cuthbertLab/musicxmlTestSuite)
+https://github.com/w3c-cg/musicxmlTestSuite
+Revision: 0618bdee1bfcb965ffdd9f4e52271c909d744fd1
+File: xmlFiles/71e-TabStaves.musicxml, preserved unchanged here.
+License: MIT; full upstream license retained in LICENSE.
+Copyright (c) 2016-2026 Michael Scott Asato Cuthbert
+Original suite: Copyright (c) 2010-2016 Reinhold Kainhofer and the GNU LilyPond
+project, released under MIT according to the upstream README.
+
+phrases.json is a derived test fixture for the two standard six-string guitar
+parts P1 and P2. Other instruments and alternate tunings in the original file
+are outside this fixture's scope. No upstream fingering algorithm is included.
+
+Conversion:
+- durations are divided by MusicXML divisions to give quarter-note beats;
+- non-chord notes advance time; chord members reuse the preceding note onset;
+- rests advance time and are retained separately;
+- string/fret assignments and sounding pitches are copied from each note;
+- MIDI pitch = (octave + 1) * 12 + diatonic pitch class + alter;
+- tuning runs low E to high E; strings in note events are 1=high E;
+- IDs record part:measure:zero-based note index (including rests).
+
+These are fixed-tab sequence witnesses, not expert finger-number labels.
+The translated data does not invent upstream finger assignments. Our tests add
+independent pitch/count/rest checks and synthetic time-translation, note-order
+and tied-segmentation transformations. Those transformations are our additions.

@@ -78,3 +78,27 @@ The complete upstream database is a diagnostic corpus, not unquestioned ground
 truth. Some records have invalid finger labels; some valid advanced grips exceed
 our conservative one-fret extension model. In particular, stacked-finger grips
 near the nut still require ergonomic review before broadening that model.
+
+## External phrase and failure fixtures
+
+Two further FOSS sources are retained under `test-fixtures/external`:
+
+- `musicxml-suite`: MIT, source revision and full license in its NOTICE/LICENSE.
+  Two standard-tuning guitar parts from the original `71e-TabStaves.musicxml`
+  provide chords, a rest, opens and large position changes. The original XML is
+  retained alongside the translated timed-note fixture. Tests independently
+  check sounding pitches, multiplicities, concurrent contacts and rest timing.
+  Time translation, tied segmentation and input reordering additionally test
+  that representation changes cannot change the hand plan or its cost.
+- `guitar-tab-generator`: GPL-3.0-only, full license and verbatim minimized
+  failure seeds retained. The three distinct duplicate-pitch regressions and all
+  thirteen distinct-string chord candidates from its worked G3/rest/B3/D4+G4
+  example are adapted to our fixed-tab API. The test adapter retains GPL marking.
+  Same-string conflicts remain impossible; distinct-string unisons retain their
+  separate note identities. Expected feasibility flags describe our conservative
+  hand model, not the upstream program's output or a human fingering assessment.
+
+`guitar-external-phrases.test.ts` and `guitar-upstream-regressions.test.ts` are
+required through the existing shared music unit glob in CI and Nightly. The
+upstream data supplies phrase/representation witnesses rather than expert finger
+number ground truth. No product arrangement or production exception was added.

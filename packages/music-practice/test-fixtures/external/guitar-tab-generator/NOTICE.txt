@@ -1,0 +1,28 @@
+Source: Noah Baculi, guitar-tab-generator
+https://github.com/noahbaculi/guitar-tab-generator
+Revision: e20b68f81fb057f50ac45eb85039a97743fd6d9b
+License: GPL-3.0-only (Cargo.toml); full upstream LICENSE retained here.
+
+Copied verbatim:
+- proptest-regressions/arrangement.txt: six saved minimized failure seeds;
+- README.md section "Pathfinding Algorithm Visualization", through the chord
+  candidate diagram: retained as pathfinding-example.md.
+
+cases.json is an adaptation under GPL-3.0-only:
+- all thirteen distinct-string D4/G4 candidates from the worked example;
+- the three distinct duplicate-pitch failures from the six saved seeds;
+- string/fret choices for those duplicate-pitch tests are our fixed-tab adapter,
+  not fingerings selected or approved by the upstream program.
+
+Upstream generates string/fret arrangements; our planner takes fixed string/fret
+positions and chooses left-hand fingers. The feasible booleans are our reviewed
+expectations under our conservative four-finger model, not upstream labels.
+They exclude spans greater than five frets and duplicate use of one string.
+
+Tests preserve the original example's G3, rest, B3, D4/G4 sequence. They also
+adapt the upstream input-preservation, distinct-string and deterministic-search
+invariants. Equal pitches on distinct strings must retain separate identities.
+The duplicate-pitch cases are not silently changed to sets or deduplicated.
+
+The test adapter guitar-upstream-regressions.test.ts is marked GPL-3.0-only.
+No Rust production implementation or dependency was imported into the app.

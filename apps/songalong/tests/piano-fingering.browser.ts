@@ -35,23 +35,97 @@ try {
   });
   await page.goto("about:blank");
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
-  for (const kind of ["single", "multiple", "chord"] as const) {
+  for (const kind of [
+    "single",
+    "multiple",
+    "chord",
+    "unsupported",
+    "tied",
+  ] as const) {
     const result = await page.evaluate(
       (kind) => window.PianoFingeringFixture.renderPianoFingeringFixture(kind),
       kind,
     );
     assert.ok(result.unchanged);
+    assert.equal(
+      result.status,
+      kind === "unsupported" ? "partial" : "complete",
+    );
+    if (kind === "chord") {
+      const chord = result.marks
+        .filter((m) => m.hand === "right")
+        .sort((a, b) => a.midi - b.midi);
+      assert.deepEqual(
+        chord.map((m) => m.midi),
+        [60, 64, 67],
+      );
+      assert.ok(
+        chord[0].y > chord[1].y && chord[1].y > chord[2].y,
+        JSON.stringify(chord),
+      );
+    }
     assert.ok(result.soundingNotes > 0);
+    if (kind === "tied")
+      assert.equal(
+        result.marks.filter((m) => m.hand === "right" && m.midi === 60).length,
+        1,
+        "tied continuation adds no new attack digit",
+      );
     assert.equal(result.marks.filter((m) => m.hand === "left").length, 4);
     assert.equal(
       result.marks.filter((m) => m.hand === "right").length,
-      kind === "single" ? 4 : 0,
+      kind === "single"
+        ? 4
+        : kind === "multiple" || kind === "tied"
+          ? 5
+          : kind === "chord"
+            ? 3
+            : 0,
     );
     assert.ok(
       result.marks.every((m) => m.finger >= 1 && m.finger <= 5 && m.label),
     );
     await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   }
+  const full = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoPracticeFixture(),
+  );
+  const hidden = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoPracticeFixture(true),
+  );
+  assert.ok(full.generated.length > 0);
+  assert.deepEqual(
+    hidden.generated,
+    full.generated.filter((e) => !e.id?.startsWith("1:")),
+    "hidden voices still constrain the same full-hand plan",
+  );
+  assert.deepEqual(
+    hidden.events,
+    full.events,
+    "hiding notation preserves playback timing and pitches",
+  );
+  const editorial = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoPracticeFixture(false, true),
+  );
+  assert.ok(editorial.editorial.length > 0);
+  assert.ok(editorial.editorial.every((e) => e?.includes("2")));
+  assert.equal(
+    editorial.generated.length,
+    0,
+    "edition route does not acquire generated digits",
+  );
+  const substitution = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoSubstitutionFixture(),
+  );
+  assert.equal(substitution.status, "complete");
+  assert.equal(substitution.substitutions.length, 1);
+  assert.equal(substitution.substitutions[0].beat, "1");
+  assert.equal(substitution.substitutions[0].text, "5→1");
+  assert.ok(substitution.substitutions[0].label?.includes("at beat 2"));
+  assert.ok(
+    substitution.substitutions[0].x > 0 && substitution.substitutions[0].y > 0,
+  );
+  await expect(page.locator(".piano-finger-substitution")).toBeVisible();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: generated piano fingers preserve music and withhold unsupported whole-hand suggestions",

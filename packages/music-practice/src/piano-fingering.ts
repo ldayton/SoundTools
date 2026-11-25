@@ -1,11 +1,17 @@
-/** Phrase-level, constraint-based prototype; suggested fingerings, not an anatomical model.
- * References: Parncutt et al. (1997), MIT 6.006 piano-fingering DP lecture,
- * and https://github.com/marcomusy/pianoplayer (look-ahead/hand movement).
- * This implementation is original TypeScript, with no imported model/code.
- */
+/** Legacy whole-note-duration, single-voice adapter. Generated timed scores use
+ * the whole-hand planner; both APIs share geometry, motion and exact search. */
+import {
+  assertPianoHand,
+  assertPianoNote,
+  pianoSinglePoses,
+  pianoNoteCost,
+  pianoMotionCost,
+  pianoMotion,
+  solvePianoPath,
+} from "./piano-hand-model";
+export { pianoKeyPosition } from "./piano-hand-model";
 export type FingerNote = {
   midi: number;
-  /** Hard editorial constraint, if supplied. */
   finger?: number;
   duration: number;
   restBefore?: boolean;
@@ -17,140 +23,39 @@ export type PianoFinger = {
   shift: boolean;
   crossing: boolean;
 };
-const whitePosition = [0, 0.6, 1, 1.6, 2, 3, 3.6, 4, 4.6, 5, 5.6, 6];
-export const pianoKeyPosition = (midi: number) =>
-  Math.floor(midi / 12) * 7 + whitePosition[((midi % 12) + 12) % 12];
-const black = (midi: number) =>
-  [1, 3, 6, 8, 10].includes(((midi % 12) + 12) % 12);
-type State = { finger: number; anchor: number; cost: number; previous?: State };
-/** One voice of single notes. Fingers run 1 (thumb) to 5, mirrored for LH. */
 export function planPianoFingering(
   notes: readonly FingerNote[],
   hand: "right" | "left",
 ): PianoFinger[] {
-  if (hand !== "right" && hand !== "left") throw Error("Invalid piano hand");
-  for (const [index, note] of notes.entries()) {
-    if (
-      !Number.isInteger(note.midi) ||
-      note.midi < 0 ||
-      note.midi > 127 ||
-      !Number.isFinite(note.duration) ||
-      note.duration <= 0 ||
-      (note.finger !== undefined &&
-        (!Number.isInteger(note.finger) ||
-          note.finger < 1 ||
-          note.finger > 5)) ||
-      (note.tied !== undefined && typeof note.tied !== "boolean") ||
-      (note.restBefore !== undefined && typeof note.restBefore !== "boolean")
-    )
-      throw Error("Invalid piano fingering note");
-    if (
-      note.tied &&
-      (!index || note.restBefore || note.midi !== notes[index - 1].midi)
-    )
+  assertPianoHand(hand);
+  for (const [i, n] of notes.entries()) {
+    assertPianoNote(n);
+    if (n.tied && (!i || n.restBefore || n.midi !== notes[i - 1].midi))
       throw Error(
         "A piano tie must continue the preceding pitch without a rest",
       );
   }
-  if (!notes.length) return [];
-  const sign = hand === "right" ? 1 : -1;
-  let states: State[] = [];
-  for (let i = 0; i < notes.length; i++) {
-    const note = notes[i],
-      x = pianoKeyPosition(note.midi);
-    const next: State[] = [];
-    for (
-      let finger = note.finger ?? 1;
-      finger <= (note.finger ?? 5);
-      finger++
-    ) {
-      const ideal = x - sign * (finger - 1);
-      for (
-        let anchor = Math.floor(ideal);
-        anchor <= Math.ceil(ideal);
-        anchor++
-      ) {
-        const stretch = Math.abs(x - (anchor + sign * (finger - 1)));
-        if (stretch > 0.61) continue;
-        const local =
-          stretch * stretch * 3 +
-          (black(note.midi)
-            ? finger === 1
-              ? 1.8
-              : finger === 5
-                ? 0.4
-                : 0
-            : 0) +
-          (finger === 4 ? 0.15 : 0);
-        if (!i) {
-          next.push({ finger, anchor, cost: local });
-          continue;
-        }
-        let best: State | undefined,
-          cost = Infinity;
-        for (const previous of states) {
-          const p = notes[i - 1],
-            distance = Math.abs(anchor - previous.anchor);
-          if (note.tied && (finger !== previous.finger || distance !== 0))
-            continue;
-          const delta = note.midi - p.midi;
-          const crossed = delta * (finger - previous.finger) * sign < 0;
-          if (crossed && !distance) continue;
-          // A non-thumb crossing needs a complete relocation; don't suggest
-          // passing ordinary fingers over one another in a connected position.
-          const awkward = crossed && finger !== 1 && previous.finger !== 1;
-          const opportunity = note.restBefore
-            ? 0.3
-            : p.duration >= 0.5
-              ? 0.65
-              : 1;
-          let move = distance ? (5 + distance * 1.8) * opportunity : 0;
-          if (awkward) move += 8 * opportunity;
-          if (delta && finger === previous.finger) move += 4 * opportunity;
-          if (!delta && finger !== previous.finger) move += 4;
-          if (crossed && (finger === 1 || previous.finger === 1)) {
-            const over = finger === 1 ? previous.finger : finger;
-            move += over === 3 ? 0 : over === 4 ? 0.3 : 1;
-          }
-          const total = previous.cost + local + move;
-          if (total < cost) {
-            cost = total;
-            best = previous;
-          }
-        }
-        if (best) next.push({ finger, anchor, cost, previous: best });
-      }
-    }
-    if (!next.length) throw Error("No consistent fingering for this voice");
-    states = next;
-  }
-  let state = states.reduce((a, b) => (a.cost <= b.cost ? a : b));
-  const result: PianoFinger[] = Array(notes.length);
-  for (let i = notes.length - 1; i >= 0; i--) {
-    const previous = state.previous;
-    const shift =
-      !!previous &&
-      (previous.anchor !== state.anchor ||
-        (notes[i].midi !== notes[i - 1].midi &&
-          previous.finger === state.finger));
-    result[i] = {
-      finger: state.finger,
-      anchor: state.anchor,
-      shift,
-      crossing:
-        !!previous &&
-        shift &&
-        Math.abs(state.anchor - previous.anchor) <= 4 &&
-        Math.abs(
-          pianoKeyPosition(notes[i].midi) - pianoKeyPosition(notes[i - 1].midi),
-        ) <= 1.6 &&
-        (notes[i].midi - notes[i - 1].midi) *
-          (state.finger - previous.finger) *
-          sign <
-          0 &&
-        (state.finger === 1 || previous.finger === 1),
-    };
-    state = previous!;
-  }
-  return result;
+  const layers = notes.map((n) => pianoSinglePoses(n.midi, n.finger, hand));
+  const result = solvePianoPath(
+    layers,
+    (pose, i) => pianoNoteCost(notes[i].midi, pose.finger, pose.anchor, hand),
+    (a, b, i) => {
+      if (notes[i].tied && (b.finger !== a.finger || b.anchor !== a.anchor))
+        return Infinity;
+      const c = pianoMotionCost(notes[i - 1], notes[i], a, b, hand);
+      return c.movement + c.repeat + c.crossing;
+    },
+  );
+  if (result.status !== "complete")
+    throw Error("No consistent fingering for this voice");
+  return result.path.map((pose, i) => ({
+    ...pose,
+    ...pianoMotion(
+      notes[i - 1] ?? notes[i],
+      notes[i],
+      result.path[i - 1],
+      pose,
+      hand,
+    ),
+  }));
 }

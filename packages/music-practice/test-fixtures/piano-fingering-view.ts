@@ -1,7 +1,7 @@
 import abcjs from "abcjs";
 import { drawHymnFingerings } from "../src/hymn-fingering";
 export function renderPianoFingeringFixture(
-  kind: "single" | "multiple" | "chord",
+  kind: "single" | "multiple" | "chord" | "unsupported" | "tied",
 ) {
   document.body.innerHTML = '<div id="piano-fingering-fixture"></div>';
   const voices =
@@ -12,9 +12,19 @@ export function renderPianoFingeringFixture(
     "X:1\nM:4/4\nL:1/4\n" +
     voices +
     "K:C\n[V:r] " +
-    (kind === "chord" ? "[CEG]4" : "CDEF") +
+    (kind === "unsupported"
+      ? "[CDEFGc]4"
+      : kind === "chord"
+        ? "[CEG]4"
+        : kind === "tied"
+          ? "[C-E] [CF] D2"
+          : "CDEF") +
     " |]\n" +
-    (kind === "single" ? "" : "[V:r2] E4 |]\n") +
+    (kind === "single"
+      ? ""
+      : kind === "chord"
+        ? "[V:r2] E4 |]\n"
+        : "[V:r2] G,4 |]\n") +
     "[V:l] C,D,E,F, |]";
   const tune = abcjs.renderAbc("piano-fingering-fixture", abc, {
     add_classes: true,
@@ -44,8 +54,9 @@ export function renderPianoFingeringFixture(
       ),
     );
   const before = signature();
-  drawHymnFingerings(tune);
+  const plan = drawHymnFingerings(tune);
   return {
+    status: plan.status,
     unchanged: before === signature(),
     soundingNotes: audio.tracks.flatMap((t) =>
       t.filter((n) => n.cmd === "note"),
@@ -53,9 +64,89 @@ export function renderPianoFingeringFixture(
     marks: [...document.querySelectorAll<SVGElement>(".hymn-fingering")].map(
       (mark) => ({
         hand: mark.dataset.hand,
+        midi: Number(mark.dataset.midi),
+        y: Number(mark.querySelector("text")?.getAttribute("y")),
         finger: Number(mark.dataset.finger),
         label: mark.getAttribute("aria-label"),
       }),
     ),
+  };
+}
+
+import { hidePlaybackStaves } from "../src/hymn-playback-staves";
+import { drawBeginnerFingerings } from "../src/beginner-score";
+/** Real shared hidden-staff preparation, full-source planning and editorial path. */
+export function renderPianoPracticeFixture(hidden = false, editorial = false) {
+  document.body.innerHTML = '<div id="practice-fixture"></div>';
+  const abc =
+    "X:1\nM:4/4\nL:1/4\n%%score r h l\nV:r clef=treble\nV:h clef=treble\nV:l clef=bass\nK:C\n[V:r] CDEF |]\n[V:h] G,4 |]\n[V:l] C,D,E,F, |]";
+  const full = abcjs.parseOnly(abc)[0];
+  const audio = full.setUpAudio({ chordsOff: true });
+  const tune = abcjs.renderAbc("practice-fixture", abc, {
+    add_classes: true,
+    staffwidth: 700,
+    afterParsing: (t) => {
+      if (hidden) hidePlaybackStaves(t, [1]);
+      return t;
+    },
+  })[0];
+  tune.setUpAudio({ chordsOff: true });
+  if (editorial)
+    drawBeginnerFingerings(
+      tune,
+      "piano",
+      0,
+      0,
+      false,
+      (_instrument, _bar, _voice, pitches) => pitches.map(() => 2),
+    );
+  else drawHymnFingerings(tune, { planningTune: full });
+  const paper = document.getElementById("practice-fixture")!;
+  return {
+    generated: [...paper.querySelectorAll<SVGElement>(".hymn-fingering")].map(
+      (e) => ({
+        id: e.dataset.noteId,
+        finger: e.dataset.finger,
+        hand: e.dataset.hand,
+        contact: e.dataset.contactId,
+      }),
+    ),
+    editorial: [...paper.querySelectorAll(".beginner-fingering")].map(
+      (e) => e.textContent,
+    ),
+    events: audio.tracks,
+  };
+}
+
+export function renderPianoSubstitutionFixture() {
+  document.body.innerHTML = '<div id="substitution-fixture"></div>';
+  const tune = abcjs.renderAbc(
+    "substitution-fixture",
+    "X:1\nM:4/4\nL:1/4\n%%score (a b c)\nV:a clef=treble\nV:b clef=treble\nV:c clef=treble\nK:C\n[V:a] [CDEF] z3 |]\n[V:b] G3 z |]\n[V:c] z g z2 |]",
+    { add_classes: true, staffwidth: 700 },
+  )[0];
+  tune.setUpAudio({ chordsOff: true });
+  const plan = drawHymnFingerings(tune, {
+    profile: { allowSubstitutions: true },
+    fixedFinger: (e) =>
+      e.midi === 79
+        ? 5
+        : e.start === 0 && e.midi !== 67
+          ? [60, 62, 64, 65].indexOf(e.midi) + 1
+          : undefined,
+  });
+  return {
+    status: plan.status,
+    substitutions: [
+      ...document.querySelectorAll<SVGTextElement>(
+        ".piano-finger-substitution",
+      ),
+    ].map((e) => ({
+      beat: e.dataset.beat,
+      text: e.textContent,
+      label: e.getAttribute("aria-label"),
+      x: Number(e.getAttribute("x")),
+      y: Number(e.getAttribute("y")),
+    })),
   };
 }

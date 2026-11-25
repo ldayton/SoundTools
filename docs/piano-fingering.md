@@ -1,101 +1,118 @@
-# Piano fingering audit and regression baseline
+# Shared piano fingering planning
 
-## Current production ownership
+## Production ownership and behavior
 
-- `piano-fingering.ts`: original TypeScript DP for one voice of single MIDI notes.
-  States contain finger and nominal white-key anchor. It considers ordinary
-  thumb crossings, relocation, repeated notes, rests, black-key penalties and
-  ties. Durations are whole-note fractions; it has no BPM or hand-size profile.
-- `hymn-fingering.ts`: generated annotations for non-edition scores. It groups by
-  staff/voice and historically inferred hand from bass vs other clefs. A chord
-  invalidated one voice; other voices for the same hand were still independently
-  numbered, without reserving their fingers for held notes.
-- `beginner-score.ts` and the `instrument-editions.ts` registry: edition finger
-  providers, including reviewed editorial piano tables. These remain authoritative.
-- `standard-hymn-editions.ts::standardFingers`: uses the monophonic planner for
-  some melody tables, then stores numbers by bar/pitch; its accompaniment uses
-  fixed chord patterns. That lookup can lose occurrence-specific context. It is
-  not a complete hand-state plan and must not be mistaken for one.
+Generated piano annotations use `piano-phrase-fingering.ts`: a timed whole-hand
+planner for explicitly identified RH/LH notes. Starts and physical key-held
+ durations use quarter-note beats. Every voice for a hand shares an attack/release
+timeline. Ties and same-onset unisons preserve all occurrence IDs while sharing
+one physical contact; a later restrike of an already-held key is diagnosed.
 
-The current model is a prototype, not an anatomical guarantee. A piano chord
-cannot be implemented by applying the melody planner to each note or voice.
-A generated voice must not ignore another voice played by the same hand.
+`piano-score-fingering.ts` converts abcjs notation and MIDI attacks, including
+mixed tied/fresh chords. It establishes hand ownership once from source staves,
+normalizes score tempo, and maps visible notation to full-source note IDs.
+`practice-score.ts` retains a complete planning tune when staves are hidden.
+`hymn-fingering.ts` engraves the resulting single/chord digits and movement marks;
+tied continuations do not acquire duplicate attack digits. Hiding notation never
+removes its physical constraints. A cropped source starts a new planning context;
+an orphan continuation needs actual MIDI evidence, not an invented prior finger.
 
-## Changes in this baseline
+`piano-hand-model.ts` centralizes keyboard geometry, single-note motion and exact
+path search. `piano-fingering.ts` remains the compatibility adapter with whole-note
+fraction durations; existing mono scale, tie and licensed reference contracts
+remain unchanged. Generated timed planning can select different digits because
+it considers duration, tempo and concurrent contacts.
 
-The monophonic API now validates hand, integer MIDI 0..127, positive finite
-notated durations, optional boolean flags, and fixed fingers 1..5. A tie must
-continue the preceding pitch without a rest. The previous implementation could
-accept C tied to C-sharp. Conflicting fixed fingers on a tied contact have no
-valid plan and raise the existing unsupported-plan error.
+`beginner-score.ts`, `instrument-editions.ts` and reviewed editorial tables remain
+an explicit separate mode. `standard-hymn-editions.ts::standardFingers` still
+constructs some melody tables through the legacy API; those tables are not being
+replaced by generated whole-hand plans. No song-specific exceptions were added.
 
-An optional `finger` is a hard search constraint. Existing unconstrained costs
-and editorial tables are unchanged. The generated-score adapter permits a
-passage's first visible tied continuation to establish a new initial contact;
-subsequent continuations remain constrained. It now withholds generated marks
-for a whole unsupported hand (chords or multiple pitched voices), while retaining
-supported suggestions for the other hand. This is a conservative boundary until
-whole-hand planning is implemented, not new chord support.
+## Hard constraints and preferences
+
+The exact dynamic program keeps every declared candidate, with no beam pruning.
+Its state includes wrist anchor, active key identities and occupied fingers.
+Held fingers remain reserved. Optional substitutions incur a separate cost and
+return timed events; they are off by default. An overlapping thumb passage needs
+an already-held contact and explicit crossing metadata. Non-thumb digits keep
+mirrored order within simultaneous grips. Reach limits are conservative,
+configurable piano-specific model parameters, not anatomical guarantees.
+
+Costs report posture/black-key preference, movement, repeated-note finger changes,
+crossings and substitutions. Movement considers tempo and actual opportunities.
+Unsupported hands receive a structured diagnostic and no partial suggestions;
+the other hand can still receive a complete plan. Key-hold durations do not mean
+pedal sustain or sample release tails. Cross-hand ownership conflicts, unsupported
+notation, contradictory anchors and insufficient reach are reported explicitly.
+
+Search defaults cap input at 8,000 total / 4,000 notes per hand, 8,000 frames,
+100,000 candidates and 2,000,000 attempted transitions per hand. Callers can lower
+these budgets. Exceeding one returns `search_limit`, never a truncated optimum.
+Statistics retain frame/candidate/transition counts and maximum layer size.
+This deliberately supports a bounded conservative technique set; it does not
+claim human-approved optimum ergonomics, all hand sizes, pedal-aware release,
+arbitrary hand redistribution or every advanced piano technique.
 
 ## External data and execution boundary
 
-Only original source text and literal fixtures were inspected. No downloaded
-FOSS implementation, test runner, package installer or setup script was executed.
-The committed `.py.txt` files are provenance data, not executable test inputs.
-Only our own TypeScript planner, adapters and tests execute.
+Only source text and literal fixtures were inspected. No downloaded FOSS
+implementation, installer or test runner was executed. `.py.txt` files remain
+provenance data. Only our TypeScript implementations and test tools execute.
 
-- Kanma/piano_fingering, MIT: eight input/reference fixtures, retaining original
-  test text, revision, license and attribution. Six monophonic RH/LH scale,
-  rest and fixed-finger cases assert the actual selected fingers. Two chord
-  examples are saved as reference data and explicitly treated as unsupported by
-  the current API; they are not reported as passing chord-generation tests.
-- marcomusy/pianoplayer, MIT: synthetic existing-anchor regression, tested against
-  our real search rather than its source test's stubbed optimizer.
-- PIG and PianoVAM were not imported: the data carry academic/noncommercial
-  restrictions independently of licenses on related software. No score files
-  were assumed redistributable just because a repository's code is MIT.
+- Kanma/piano_fingering, MIT: eight fixtures retain original test text, revision,
+  license and attribution. Six legacy mono examples assert selected digits. Both
+  chord references now execute against our whole-hand planner as feasible fixed
+  alternatives; unconstrained planning must also succeed, without requiring a
+  unique reference optimum.
+- marcomusy/pianoplayer, MIT: the existing-anchor data regression exercises our
+  real planner. Original source remains data only.
+- PIG and PianoVAM were not imported because their data have academic or
+  noncommercial restrictions independently of associated software licenses.
 
-## Verification owners
+## Acceptance and regression owners
 
-- `piano-fingering.test.ts`: existing movement/scale/tie contracts, retained.
-- `piano-fingering-safety.test.ts`: invalid input, false ties and hard anchors.
-- `piano-external-fingering.test.ts`: the licensed external reference cases.
-- `piano-planner-assurance.test.ts` and test-only `piano-fingering-oracle.ts`:
-  independent keyboard geometry/scoring and exhaustive full-path enumeration for
-  64 short RH/LH phrases, with black keys, ties, rests and fixed fingers. The
-  oracle does not call production geometry, scoring or candidate functions.
-- `piano-planner-mutations.test.ts`: six compiling mutations of our own code must
-  fail observable assertions (ignored anchors, broken ties, wrong hand direction,
-  wrong predecessor, lost note and changed-pitch ties). Syntax/import errors do
-  not count as kills. No external source is compiled or executed.
-- `piano-fingering-voices.test.ts`: whole-hand eligibility and passage-start ties.
-- SongAlong `piano-fingering-catalog.test.ts`: all source melodies/transpositions.
-- SongAlong `piano-fingering.browser.ts`: actual SVG annotations for supported
-  hands, suppression of unsupported hands, and unchanged musical data. This is
-  an independent, port-free CI/Nightly command in the executable policy/resource
-  inventory. Existing edition/control browser contracts remain required.
+[Acceptance criteria](piano-whole-hand-acceptance.md) define this phase's contract.
 
-Shared unit coverage uses the existing music test glob, not a new tier. The
-browser witness uses synthetic music to exercise the renderer directly; it
-makes no assumption about a named product song.
+- `piano-fingering.test.ts`, `piano-fingering-safety.test.ts`, and
+  `piano-external-fingering.test.ts`: existing single-voice/reference contracts.
+- `piano-phrase-fingering.test.ts`: chords, mirrored/compressed/octave grips,
+  overlaps, mixed ties, unisons, fixed fingers, explicit thumb passage and
+  substitutions, invalid input, impossible hands, clock precision, representation
+  invariance, dense 240-note passages and explicit resource diagnostics.
+- `piano-fingering-voices.test.ts`: actual abcjs conversion, mixed tie attacks,
+  rests, source anchors, ambiguous chord annotations, changing clefs, cropped
+  continuations and quarter-beat tempo normalization.
+- `piano-planner-assurance.test.ts` / `piano-fingering-oracle.ts`: independent
+  geometry/scoring and exhaustive mono paths for 64 short phrases.
+- `piano-whole-hand-assurance.test.ts` / `piano-whole-hand-oracle.ts`: independently
+  enumerate complete short chord/held-key paths and recompute their costs. The
+  oracle intentionally covers ordinary non-crossed polyphonic frames, not rests
+  or substitutions; those have explicitly specified behavioral witnesses.
+  Forty-eight seeded two-hand phrases preserve known playable fixed witnesses,
+  also run unconstrained, and check held fingers, identity and order invariance.
+  Failures include a replayable seed and deletion-minimized note data.
+- `piano-planner-mutations.test.ts` and `piano-whole-hand-mutations.test.ts`: thirteen
+  compiling mutations must fail observable assertions, including ignored anchors,
+  lost ties/unisons, invalid crossings, held-key substitutions, wrong predecessor,
+  dropped notes, wrong hand and ignored resource budget. Compile/import errors
+  are never counted as mutation kills; only our own source is compiled.
+- SongAlong `piano-fingering-catalog.test.ts`: source melody/transposition coverage.
+- SongAlong `piano-fingering.browser.ts`: registered silent, port-free Chromium /
+  WebKit witness for real SVG chords, overlapping voices, tied attacks, hidden
+  full-source planning, pitch/head order, explicit substitution timing, authored
+  edition routing, unsupported-hand isolation and unchanged notation/audio data.
+  It exercises shared rendering components; existing app/edition contracts own
+  the complete application flows.
 
-## Next architectural contract
+The shared unit glob and existing independently required CI/Nightly browser
+command own the new coverage; no new tier, runner bypass or additional duplicated
+browser command was introduced. Full local CI validates the clean committed HEAD.
 
-A whole-hand planner should consume identified, timed notes with explicit hand,
-MIDI pitch, key-held duration, optional tie predecessor and fixed/editorial digit.
-Time must be normalized to quarter-note beats. Combine every voice for a hand,
-including hidden notation, into one attack/release timeline. Staff/clef changes
-must not silently change hand ownership. Pedal-sustained sound and sample release
-tails must not be confused with fingers physically holding keys.
-
-The result should retain every occurrence, complete simultaneous hand contacts,
-explicit substitutions/crossings, movement annotations, and a cost breakdown.
-Keep hard physical/tie/anchor constraints separate from ergonomic preferences;
-thumb passage during overlapping notes needs explicit piano-specific treatment.
-Do not transplant guitar finger ordering, barre rules or hand geometry.
-
-Start with reviewed chord, held-note and substitution cases before choosing reach
-limits or replacing the existing renderer. Preserve editorial digits as hard
-constraints or an explicit editorial mode. Reference agreement should accept
-multiple musically appropriate answers; exhaustive/property/mutation checks prove
-correctness within a model, not that its weights are pedagogically optimal.
+The first browser witness exposed absent-viewBox SVG bounds clamping every chord
+label to the top edge. The renderer now falls back to actual SVG dimensions;
+the pitch/head-order assertion owns the regression. Initial evidence is retained
+under `work/ci-results/1795647353659-43304209`. A later expanded fixture initially
+imported Vite-only audio modules through the complete app renderer; the fixture
+now exercises the actual shared annotation, hiding and editorial components
+without importing the unrelated audio runtime. No product/browser errors were
+ignored to pass these checks.

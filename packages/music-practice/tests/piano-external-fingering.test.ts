@@ -2,22 +2,33 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import corpus from "../test-fixtures/external/piano-fingering-kanma/cases.json";
 import { planPianoFingering, type FingerNote } from "../src/piano-fingering";
+import {
+  planPianoPhrase,
+  type PianoPhraseNote,
+} from "../src/piano-phrase-fingering";
 for (const c of corpus.cases) {
   const polyphonic = c.expected.some((e) => e.notes.length > 1);
   if (polyphonic) {
-    test(`upstream ${c.id}: retain chord reference data without flattening it`, () => {
-      assert.ok(c.expected.every((e) => e.notes.length === e.fingers.length));
-      for (const e of c.expected) {
-        assert.equal(new Set(e.fingers).size, e.notes.length);
-        assert.ok(e.fingers.every((f) => f >= 1 && f <= 5));
-      }
-      // The current production API is explicitly single-note; accepting a chord
-      // as a MIDI number would fabricate a result. Whole-hand planning is separate.
-      assert.throws(() =>
-        planPianoFingering(
-          [{ midi: c.expected[0].notes as any, duration: 0.25 }],
-          c.hand as "right" | "left",
-        ),
+    test(`upstream ${c.id}: chord reference is a feasible whole-hand alternative`, () => {
+      const notes: PianoPhraseNote[] = c.expected.flatMap((e, i) =>
+        e.notes.map((midi, j) => ({
+          id: `${i}:${j}`,
+          hand: c.hand as "right" | "left",
+          midi,
+          start: i,
+          duration: 1,
+          finger: e.fingers[j],
+        })),
+      );
+      const fixed = planPianoPhrase(notes);
+      assert.equal(fixed.status, "complete");
+      assert.deepEqual(
+        fixed.notes.map((n) => n.finger),
+        notes.map((n) => n.finger),
+      );
+      assert.equal(
+        planPianoPhrase(notes.map(({ finger, ...n }) => n)).status,
+        "complete",
       );
     });
     continue;

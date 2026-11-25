@@ -268,7 +268,7 @@ export function drawPracticeScore(
     ...(options.printedScore ? { chordsOff: true } : {}),
   };
   const visibleAudio = tune.setUpAudio(audioOptions);
-  const fingeringTune=options.beginnerEdition === 'guitar' && options.hiddenStaves?.length ? abcjs.parseOnly(source)[0] : tune;
+  const fingeringTune=options.hiddenStaves?.length && (options.beginnerEdition === 'guitar' || options.fingerings && !options.beginnerEdition && !options.guitarTab) ? abcjs.parseOnly(source)[0] : tune;
   if(fingeringTune!==tune)fingeringTune.setUpAudio(audioOptions);
   let audio = swingAudio(options.hiddenStaves?.length
     ? abcjs.parseOnly(source)[0].setUpAudio(audioOptions) : visibleAudio, swinging);
@@ -337,7 +337,7 @@ export function drawPracticeScore(
   if (options.printedScore && !options.guitarAccompaniment) attachPianoChordDiagrams(paper, tune);
   if (options.fingerings && !options.beginnerEdition) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
-    else drawHymnFingerings(tune);
+    else drawHymnFingerings(tune,{planningTune:fingeringTune});
   }
   // abcjs timings reference staff glyphs but omit their engraved tab clones.
   const tabElements = new Map<number, HTMLElement[]>();

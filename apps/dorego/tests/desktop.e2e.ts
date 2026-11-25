@@ -1,3 +1,4 @@
+import { verifySequence } from './sequence.browser';
 import { verifyLiveDrone } from './live-drone';
 import {
   waitForServer,
@@ -323,11 +324,10 @@ try {
     .getByRole('dialog', { name: 'Choose lowest note' })
     .getByRole('button', { name: 'F3', exact: true })
     .click();
-  await ready();
-  assert.equal(await position(), 0);
-  await page.locator('#play').click();
   await playing();
   await progress();
+  assert.ok((await position()) > 0, 'Range edits retain the currently sounding round');
+  assert.ok(await page.locator('#next-round').isDisabled(), 'An out-of-range continuation is removed without stopping the current round');
   await page.locator('#restart').click();
   assert.equal(await page.locator('#play').innerText(), 'Play');
   assert.equal(await position(), 0);
@@ -337,7 +337,7 @@ try {
     )
   );
   console.log(
-    `${browserName}: sampled glides, note selection, exercise replacement and restart stop prior voices.`
+    `${browserName}: sampled glides, uninterrupted range edits, exercise replacement and explicit restart.`
   );
 
   // Persistence and obsolete/failed loads: gate fresh requests, change the exercise repeatedly,
@@ -467,6 +467,7 @@ try {
   assert.deepEqual(errors, []);
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
+  await verifySequence(browser!, base);
   await verifyLiveDrone(browser!, base);
 } catch (error) {
   await captureFailure(browser, error);

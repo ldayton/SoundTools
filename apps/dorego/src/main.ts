@@ -1,3 +1,4 @@
+import { createSequence, transitionSequence } from './sequence';
 import {audioFailureDetails, invalidateAudioProbe} from './live-audio';
 import { adjacentExercise } from './exercise-navigation';
 import { bindMediaSession } from '@ldayton/ui/media-session';
@@ -25,7 +26,7 @@ import { phrasePitches, practiceRange } from './keyboard-layout';
 import {
   directionName,
   PATTERNS,
-  generateExercise as generateBoundedExercise,
+  exerciseFamily,
   notePitchAt,
   roundNoteName,
   secondsAt,
@@ -44,13 +45,13 @@ const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
 function savedSpec(): ExerciseSpec {
   return preferences.state.spec;
 }
-// Practice can slow down freely; the CLI/video renderer keeps its duration cap.
-const generateExercise = (input: unknown) => generateBoundedExercise(input, Infinity);
 const exerciseUrls = bindExerciseUrl(preferences, window, import.meta.env.BASE_URL, (message) =>
   toast(message)
 );
 let spec = savedSpec();
-let exercise = generateExercise(spec);
+let sequence = createSequence(spec);
+spec = sequence.settings;
+let exercise = sequence.timeline;
 let renderFailed = false;
 let mode: 'ready' | 'starting' | 'playing' | 'paused' | 'complete' = 'ready';
 let playRequest = 0;
@@ -151,7 +152,7 @@ mountAppShell($('#app'), {
     play: () => {
       void togglePlay();
     },
-    restart: () => stop(),
+    restart: restartSequence,
     tempo: changeTempo,
     moveRound,
     volume: changeVolume,
@@ -227,79 +228,66 @@ function setError(message: string | null) {
   builderModel.set({ spec: { ...spec }, error: message });
   update(true);
 }
+function restartSequence() {
+  const result = transitionSequence(sequence, { type: 'restart' });
+  sequence = result.state;
+  exercise = sequence.timeline;
+  position = 0;
+  stop();
+  update(true);
+}
 function stop(reset = true) {
   ++playRequest;
   reference.stopAll();
   if (reset) player.reset();
   else player.pause();
 }
+function applySettings(next: ExerciseSpec) {
+  const result = transitionSequence(sequence, {
+    type: 'settings', settings: next,
+    position: mode === 'playing' ? player.position : position,
+    commitPosition: mode === 'playing' ? player.planningPosition : position, mode,
+  });
+  const old = spec;
+  if (result.effect === 'reset') stop();
+  else {
+    if (next.bpm !== old.bpm) player.setTempo(next.bpm);
+    if (next.volume !== old.volume) player.setVolume(next.volume);
+    if (next.drone !== old.drone) player.setDrone(!!next.drone);
+    if (next.droneStrength !== old.droneStrength) player.setDroneStrength(next.droneStrength ?? 50);
+  }
+  sequence = result.state;
+  spec = sequence.settings;
+  exercise = sequence.timeline;
+  position = result.position;
+  reference.setVolume(spec.volume);
+  if (result.effect !== 'reset') player.replaceSequence(exercise, result.effect === 'replace-future' ? result.protectedThrough : Infinity);
+  setError(null);
+  persist();
+  populate();
+  if (result.effect === 'reset') void warmPiano();
+  update(true);
+}
 function refresh(patch: SpecPatch = {}) {
-  if (Object.keys(patch).length === 1 && typeof patch.droneStrength === 'number') {
-    const droneStrength = patch.droneStrength;
-    if (!Number.isFinite(droneStrength) || droneStrength < 0 || droneStrength > 100) return;
-    player.setDroneStrength(droneStrength);
-    spec = { ...spec, droneStrength };
-    exercise = { ...exercise, spec: { ...exercise.spec, droneStrength } };
-    persist();
-    populate();
-    return;
-  }
-  if (Object.keys(patch).length === 1 && typeof patch.drone === 'boolean') {
-    changeDrone(patch.drone);
-    return;
-  }
   try {
-    const next = generateExercise(editSpec(spec, patch));
-    if (
-      Object.entries(next.spec).every(([key, value]) => value === spec[key as keyof ExerciseSpec])
-    ) {
+    const next = editSpec(spec, patch);
+    if (Object.entries(next).every(([key, value]) => value === spec[key as keyof ExerciseSpec])) {
       setError(null);
       return;
     }
+    applySettings(next);
     diagnostics.event('exercise.changed');
-    stop();
-    exercise = next;
-    spec = exercise.spec;
-    setError(null);
-    persist();
-    populate();
-    void warmPiano();
-    update(true);
   } catch (error) {
     setError(error instanceof Error ? error.message : 'Check the exercise settings.');
   }
 }
 function changeTempo(bpm: number) {
   if (!Number.isFinite(bpm) || bpm < 60 || bpm > 240 || bpm === spec.bpm) return;
-  diagnostics.event('exercise.tempo_changed');
-  player.setTempo(bpm);
-  spec = { ...spec, bpm };
-  exercise = { ...exercise, spec: { ...exercise.spec, bpm } };
-  position = player.position;
-  persist();
-  populate();
-  update(true);
-}
-function changeDrone(drone: boolean) {
-  if (!!spec.drone === drone) return;
-  diagnostics.event('exercise.drone_changed');
-  player.setDrone(drone);
-  spec = { ...spec, drone };
-  exercise = { ...exercise, spec: { ...exercise.spec, drone } };
-  position = player.position;
-  persist();
-  populate();
-  update(true);
+  refresh({ bpm });
 }
 function changeVolume(volume: number) {
   if (!Number.isFinite(volume) || volume < -60 || volume > 0 || volume === spec.volume) return;
-  reference.setVolume(volume);
-  player.setVolume(volume);
-  spec = { ...spec, volume };
-  exercise = { ...exercise, spec: { ...exercise.spec, volume } };
-  persist();
-  populate();
-  update(true);
+  refresh({ volume });
 }
 function systemWarmupActive() { return preferences.state.selected === 'warmup' && location.hash !== '#settings'; }
 function moveExercise(step: -1 | 1) {
@@ -341,7 +329,7 @@ function update(force = false) {
   };
   const description =
     scene.phase === 'countin'
-      ? `Count-in: bar ${Math.floor(scene.beat / 4) + 1} of ${Math.ceil(spec.countIn / 4)}, beat ${scene.count}`
+      ? `Count-in: bar ${Math.floor(scene.beat / 4) + 1} of ${Math.ceil(exercise.spec.countIn / 4)}, beat ${scene.count}`
       : scene.phase === 'complete'
         ? 'Exercise complete'
         : `Current practice note ${describeRound(practice.current)}. Next ${practice.next ? describeRound(practice.next) : 'none'}`;
@@ -384,14 +372,16 @@ function update(force = false) {
       mode,
       warming: pianoWarming,
       failed: pianoFailed,
-      error: formError,
+      error: mode === 'ready' ? formError : null,
       title: exercise.title ?? `${PATTERNS[spec.pattern].name} (${directionName(spec.direction)})`,
       bpm: spec.bpm,
       volume: spec.volume,
       toast: toastMessage,
       readout: {
         status:
-          replayRest > 0
+          player.preparingNextRound
+            ? 'Preparing next round…'
+            : replayRest > 0
             ? 'Rest · repeat round in'
             : scene.phase === 'countin'
             ? 'Count-in'
@@ -408,7 +398,7 @@ function update(force = false) {
             ? {
                 beat: scene.count,
                 bar: Math.floor(scene.beat / 4) + 1,
-                bars: Math.ceil(spec.countIn / 4),
+                bars: Math.ceil(exercise.spec.countIn / 4),
               }
             : null,
         current: roundReadout(practice.current),
@@ -435,24 +425,23 @@ player.onStateChange = (state, nextPosition, reason) => {
   if (state === 'playing') tick();
   else update(true);
   if (reason === 'clock-stalled') toast('Audio stopped responding. Tap Resume to try again.');
+  if (reason === 'samples-failed') toast('Could not load the next round. Tap Resume to try again.');
   if (reason === 'scheduling-gap') toast('Playback paused after a delay. Resume to continue.');
 };
 function moveRound(step: number) {
-  if (pianoWarming || formError || renderFailed) return;
-  const current = practiceAt(exercise, position).current.id;
-  const target = Math.max(0, Math.min(exercise.rounds.length - 1, current + step));
-  if (target === current) return;
-  seekTo(secondsAt(exercise.rounds[target].onsetBeat, spec.bpm));
+  if (pianoWarming || renderFailed) return;
+  const result = transitionSequence(sequence, { type: 'move', position, step });
+  if (result.effect === 'seek') seekTo(result.position);
 }
 function repeatCurrentRound() {
-  if (pianoWarming || pianoFailed || formError || renderFailed) return;
+  if (pianoWarming || pianoFailed || renderFailed) return;
   const at = mode === 'playing' ? player.position : position;
-  const round = practiceAt(exercise, at).current;
+  const result = transitionSequence(sequence, { type: 'repeat', position: at });
   diagnostics.event('playback.repeat_round');
-  seekTo(secondsAt(round.onsetBeat, spec.bpm), true, spec.restBeats);
+  seekTo(result.position, true, result.restBeats);
 }
 function seekTo(seconds: number, running = mode === 'playing' || mode === 'starting', restBeats = 0) {
-  if (pianoWarming || formError || renderFailed || !Number.isFinite(seconds)) return;
+  if (pianoWarming || renderFailed || !Number.isFinite(seconds)) return;
   const at = Math.max(0, Math.min(secondsAt(exercise.totalBeats, spec.bpm), seconds));
   ++playRequest;
   reference.stopAll();
@@ -470,7 +459,7 @@ async function startAt(offset: number, restBeats = 0) {
   }
 }
 async function togglePlay() {
-  if (renderFailed || pianoWarming || formError) return;
+  if (renderFailed || pianoWarming) return;
   if (pianoFailed) {
     void warmPiano();
     return;
@@ -479,7 +468,7 @@ async function togglePlay() {
     stop(false);
     return;
   }
-  if (position >= secondsAt(exercise.totalBeats, spec.bpm)) position = 0;
+  if (position >= secondsAt(exercise.totalBeats, spec.bpm)) restartSequence();
   await startAt(position);
 }
 async function toggleFullscreen() {
@@ -509,7 +498,7 @@ document.addEventListener('keydown', (event) => {
     event.preventDefault();
     void togglePlay();
   }
-  if (event.key.toLowerCase() === 'r') stop();
+  if (event.key.toLowerCase() === 'r') restartSequence();
   if (event.key.toLowerCase() === 'f') void toggleFullscreen();
 });
 populate();
@@ -559,30 +548,12 @@ preferences.subscribe((source) => {
     void account.changed();
     return;
   }
-  const next = preferences.state.spec;
-  const changedPattern = Object.entries(next).some(
-    ([key, value]) =>
-      key !== 'volume' &&
-      key !== 'bpm' &&
-      key !== 'drone' &&
-      key !== 'droneStrength' &&
-      value !== spec[key as keyof ExerciseSpec]
-  );
-  if (changedPattern) stop();
-  else {
-    player.setTempo(next.bpm);
-    player.setDrone(!!next.drone);
-    player.setDroneStrength(next.droneStrength ?? 50);
+  try {
+    applySettings(preferences.state.spec);
+    changeAudioChannels(preferences.state.channels);
+  } catch (error) {
+    setError(error instanceof Error ? error.message : 'Check the restored exercise settings.');
   }
-  spec = next;
-  exercise = generateExercise(spec);
-  changeAudioChannels(preferences.state.channels);
-  reference.setVolume(spec.volume);
-  player.setVolume(spec.volume);
-  formError = null;
-  populate();
-  update(true);
-  if (preferences.state.selected === 'warmup') void warmPiano();
 });
 void account.start({
   read: () => encodePreferences(preferences.state),
@@ -590,9 +561,12 @@ void account.start({
     decodePreferences(records);
   },
   applyPartial: async (records, keys) => {
+    const incomingPattern = (records['exercise.pitch'] as { pattern?: ExerciseSpec['pattern'] } | undefined)?.pattern;
+    const sameExercise = !!incomingPattern && exerciseFamily(incomingPattern) === exerciseFamily(spec.pattern);
     const accepted = keys.filter(
       (key) =>
-        ['exercise.volume', 'exercise.bpm', 'channels'].includes(key) ||
+        (key.startsWith('exercise.') && (key !== 'exercise.pitch' || sameExercise)) ||
+        key === 'channels' ||
         (key === 'breathing' && preferences.state.selected === 'warmup')
     );
     if (!accepted.length) return [];

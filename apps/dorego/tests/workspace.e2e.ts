@@ -263,8 +263,9 @@ try {
   );
   await openPracticeOptions(page);
   assert.equal(await page.locator('.dorego-builder-ui .mantine-Accordion-root').count(), 0);
-  await page.getByLabel('Count-in', { exact: true }).waitFor();
-  await page.getByLabel('Count-in', { exact: true }).selectOption('8');
+  await page.locator('#countIn-mobile').fill('8');
+  await page.locator('#countIn-mobile').press('Tab');
+  assert.equal(await page.locator('#countIn-mobile').getAttribute('aria-valuenow'), '8');
   await page.getByRole('button', { name: 'Close practice options', exact: true }).click();
   await page.locator('#play:enabled').waitFor();
   await setSlider(page, 'volume', 0);

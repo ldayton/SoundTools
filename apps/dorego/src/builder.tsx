@@ -16,6 +16,7 @@ import {
 import {
   PATTERNS,
   EXERCISE_PATTERNS,
+  exerciseFamily,
   isPentatonicPattern,
   isVocalPattern,
   isGlidePattern,
@@ -455,11 +456,7 @@ export function ExerciseSelection({
           key={value}
           data-pattern={value}
           aria-current={
-            active &&
-            (spec.pattern === value ||
-              (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)) ||
-              (value === 'fifthGlide' && isGlidePattern(spec.pattern)) ||
-              (value === 'major' && spec.pattern === 'fiveNote'))
+            active && exerciseFamily(spec.pattern) === value
               ? 'true'
               : undefined
           }
@@ -467,9 +464,7 @@ export function ExerciseSelection({
           onClick={() =>
             change({
               pattern:
-                (value === 'pentatonic6' && isPentatonicPattern(spec.pattern)) ||
-                (value === 'fifthGlide' && isGlidePattern(spec.pattern)) ||
-                (value === 'major' && spec.pattern === 'fiveNote')
+                exerciseFamily(spec.pattern) === value
                   ? spec.pattern
                   : value,
             })

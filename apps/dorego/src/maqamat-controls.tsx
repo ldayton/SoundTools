@@ -62,7 +62,6 @@ export function ExerciseControls({
         justify="center"
         align="flex-end"
         gap={8}
-        my="md"
         role="group"
         aria-label="Yemenite controls"
       >
@@ -107,7 +106,6 @@ export function ExerciseControls({
       <Group
         className="maqamat-controls"
         justify="center"
-        my="md"
         role="group"
         aria-label="Major scale controls"
       >
@@ -133,7 +131,6 @@ export function ExerciseControls({
       <Group
         className="maqamat-controls"
         justify="center"
-        my="md"
         role="group"
         aria-label="Pentatonic controls"
       >
@@ -159,7 +156,6 @@ export function ExerciseControls({
       <Group
         className="maqamat-controls"
         justify="center"
-        my="md"
         role="group"
         aria-label="Glide controls"
       >
@@ -187,7 +183,6 @@ export function ExerciseControls({
       justify="center"
       align="flex-end"
       gap="lg"
-      my="md"
       role="group"
       aria-label="Maqamat controls"
     >

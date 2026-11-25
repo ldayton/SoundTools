@@ -181,6 +181,8 @@ export class Player {
   private exercise: Exercise | null = null;
   private seekBeat = 0;
   private replayRestBeats = 0;
+  private replacement = 0;
+  private preparation: { revision: number; fromBeat: number; ready: boolean; failed?: boolean } | null = null;
   private pending = 0;
   private events: AudioEvent[] = [];
   private cursor = 0;
@@ -205,7 +207,12 @@ export class Player {
       this.watchContext();
       if (token !== this.pending) return false;
       const prepareStarted = performance.now();
-      await prepareLive(exercise);
+      while (token === this.pending) {
+        const preparing: Exercise = this.exercise!;
+        try { await prepareLive(preparing); }
+        catch (error) { if (preparing === this.exercise) throw error; }
+        if (preparing === this.exercise) break;
+      }
       if (typeof window !== 'undefined')
         window.doregoDiagnostics?.metric('samples.prepare_ms', performance.now() - prepareStarted);
       if (token !== this.pending) return false;
@@ -279,10 +286,19 @@ export class Player {
     observeAudioClock(now);
     const beat = clock.beatAt(now);
     const next = this.events[this.cursor];
+    if (this.preparation?.failed && beat >= this.preparation.fromBeat) {
+      this.interrupt('samples-failed');
+      return;
+    }
+    const blocked = this.preparation && !this.preparation.ready;
+    if (this.preparation?.ready) {
+      clock.releaseHold(now + 0.05);
+      this.preparation = null;
+    }
     const interruption = this.health?.check(
       now,
       performance.now(),
-      next ? clock.timeAt(Math.max(this.seekBeat, next.onsetBeat)) : Infinity
+      next && !(blocked && next.onsetBeat >= this.preparation!.fromBeat) ? clock.timeAt(Math.max(this.seekBeat, next.onsetBeat)) : Infinity
     );
     if (interruption) {
       if (typeof window !== 'undefined')
@@ -301,6 +317,7 @@ export class Player {
     // Retain one second of audio-clock scheduling through main-thread stalls.
     while (this.cursor < this.events.length) {
       const event = this.events[this.cursor];
+      if (blocked && event.onsetBeat >= this.preparation!.fromBeat) break;
       const planned = clock.timeAt(Math.max(this.seekBeat, event.onsetBeat));
       // Schedule the first source even during a replay rest so a cold audio
       // context starts rendering immediately, with its attack still in the future.
@@ -323,6 +340,48 @@ export class Player {
       );
       if (voice) this.voices.set(event.id, { event, voice, start: time });
     }
+  }
+  /** Replace only uncommitted events; retain graph, clock, and current sources. */
+  replaceSequence(exercise: Exercise, protectedThrough: number) {
+    this.exercise = exercise;
+    if (!this.graph || !this.clock) return;
+    const now = this.graph.output.context.immediate();
+    for (const [id, entry] of this.voices) {
+      if (entry.event.onsetBeat < protectedThrough) continue;
+      entry.voice.cancel();
+      this.voices.delete(id);
+    }
+    this.events = audioEvents(exercise, secondsAt(this.clock.beatAt(now), exercise.spec.bpm));
+    this.cursor = 0;
+    if (Number.isFinite(protectedThrough)) {
+      const revision = ++this.replacement;
+      const next = exercise.rounds.find(round => round.onsetBeat >= protectedThrough);
+      const waitingAt = this.preparation && !this.preparation.ready && this.clock.beatAt(now) >= this.preparation.fromBeat ? this.preparation.fromBeat : undefined;
+      const fromBeat = waitingAt === undefined ? next?.onsetBeat : Math.min(waitingAt, next?.onsetBeat ?? Infinity);
+      if (fromBeat !== undefined) {
+        this.clock.releaseHold(now);
+        this.clock.holdAt(fromBeat);
+        this.preparation = { revision, fromBeat, ready: false };
+        void prepareLive(exercise).then(() => {
+          if (this.preparation?.revision === revision) this.preparation.ready = true;
+        }).catch(error => {
+          if (this.preparation?.revision !== revision) return;
+          this.preparation.failed = true;
+          if (typeof window !== 'undefined') window.doregoDiagnostics?.capture(error, 'samples.prepare_failed');
+        });
+      } else {
+        this.clock.releaseHold(now);
+        this.preparation = null;
+      }
+    }
+    this.fill();
+  }
+  get planningPosition() {
+    if (!this.clock || !this.graph) return this.position;
+    return secondsAt(this.clock.beatAt(this.graph.output.context.immediate()), this.exercise!.spec.bpm);
+  }
+  get preparingNextRound() {
+    return !!this.preparation && !this.preparation.ready && this.planningPosition >= secondsAt(this.preparation.fromBeat, this.exercise!.spec.bpm);
   }
   setVolume(volume: number) {
     if (!Number.isFinite(volume) || volume < -60 || volume > 0)
@@ -416,6 +475,8 @@ export class Player {
     this.graph = null;
     this.clock = null;
     this.replayRestBeats = 0;
+    this.preparation = null;
+    ++this.replacement;
     this.voices.clear();
     this.health = null;
     if (graph) {

@@ -265,6 +265,7 @@ export function PracticeView({
   playback,
   piano,
   audition,
+  repeatRound,
   controls,
 }: {
   model: PracticeModel;
@@ -272,6 +273,7 @@ export function PracticeView({
   piano: PianoModel;
   controls?: ReactNode;
   audition(midi: number): () => void;
+  repeatRound(): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
@@ -285,6 +287,14 @@ export function PracticeView({
           {controls}
           <div className="practice-card" id="practice-card">
             {state.readout && <PracticeReadout state={state.readout} />}
+            <div className="repeat-round-control">
+              <Button id="repeat-round" size="md" radius="xl" aria-label="Repeat round" title="Repeat round" disabled={state.warming || state.failed || !!state.error} onClick={repeatRound}>
+                {/* Phosphor Repeat Bold, MIT; license in public/phosphor-icons-LICENSE.txt. */}
+                <svg width="36" height="36" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">
+                  <path d="M20,128A76.08,76.08,0,0,1,96,52h99l-3.52-3.51a12,12,0,1,1,17-17l24,24a12,12,0,0,1,0,17l-24,24a12,12,0,0,1-17-17L195,76H96a52.06,52.06,0,0,0-52,52,12,12,0,0,1-24,0Zm204-12a12,12,0,0,0-12,12,52.06,52.06,0,0,1-52,52H61l3.52-3.51a12,12,0,1,0-17-17l-24,24a12,12,0,0,0,0,17l24,24a12,12,0,1,0,17-17L61,204h99a76.08,76.08,0,0,0,76-76A12,12,0,0,0,224,116Z" />
+                </svg>
+              </Button>
+            </div>
           </div>
           <ReferenceKeyboard model={piano} audition={audition} />
         </div>

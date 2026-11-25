@@ -28,3 +28,19 @@ test('practice duration can grow when slowing down, while export remains bounded
   assert.throws(() => generateExercise(slow), /10 minutes/);
   assert.ok(generateExercise(slow, Infinity).totalBeats > 600);
 });
+test('sample preparation can hold a future boundary without moving past it or losing history', () => {
+  const clock = new TempoClock(0, 0, 120);
+  clock.holdAt(8);
+  assert.equal(clock.beatAt(2), 4);
+  assert.equal(clock.beatAt(7), 8);
+  clock.releaseHold(7);
+  assert.equal(clock.beatAt(8), 10);
+  assert.equal(clock.beatAt(2), 4);
+  assert.equal(clock.timeAt(10), 8);
+});
+test('preparation finishing before the boundary leaves its timing unchanged', () => {
+  const clock = new TempoClock(0, 0, 120);
+  clock.holdAt(8);
+  clock.releaseHold(2);
+  assert.equal(clock.timeAt(8), 4);
+});

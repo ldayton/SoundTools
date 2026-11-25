@@ -61,7 +61,19 @@ try {
   const play = page.locator('#play');
   const label = () => play.innerText();
   const position = () => elapsedSeconds(page).then(Number);
+  await page.evaluate(() => {
+    const d=window.doregoDiagnostics!;
+    const capture=d.capture.bind(d);
+    d.capture=(error,code,details)=>{
+      (window as any).lifecycleProbe.failure={message:(error as Error)?.message,code,details};
+      capture(error,code,details);
+    };
+  });
   await play.click();
+  await page.waitForFunction(
+    () => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > 0.05 || !!(window as any).lifecycleProbe.failure
+  );
+  assert.equal(await page.evaluate(() => (window as any).lifecycleProbe.failure), undefined);
   await page.waitForFunction(
     () => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > 0.05
   );
@@ -118,6 +130,15 @@ try {
   });
   await play.click();
   await page.waitForFunction(() => !!(window as any).lifecycleProbe.rejectOld);
+  await page.evaluate(() => {
+    Object.defineProperty(document,'hidden',{configurable:true,value:true});
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  assert.equal(await label(),'Resume','Backgrounding cancels startup without an audio failure');
+  await page.evaluate(() => {
+    delete (document as any).hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
   await page.locator('#restart').click();
   await play.click();
   await page.waitForTimeout(200);
@@ -135,10 +156,13 @@ try {
   })()`);
   await page.waitForFunction(() => document.querySelector('#play')?.textContent === 'Resume');
   await page.evaluate(() => {
-    delete (window as any).lifecycleProbe.context.currentTime;
+    (window as any).lifecycleProbe.failedContext=(window as any).lifecycleProbe.context;
   });
   await play.click();
-  await page.waitForTimeout(300);
+  await page.getByRole('button', {name:'Pause',exact:true}).waitFor();
+  assert.ok(await page.evaluate(() => (window as any).lifecycleProbe.context !== (window as any).lifecycleProbe.failedContext), 'Frozen context is replaced, not reused');
+  const recoveredAt=await position();
+  await page.waitForFunction(previous => Number(document.querySelector('#elapsed')!.getAttribute('data-seconds')) > previous + 0.05, recoveredAt);
   await page.evaluate(() => {
     const end = performance.now() + 1900;
     while (performance.now() < end) {}

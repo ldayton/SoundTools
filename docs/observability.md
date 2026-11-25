@@ -150,3 +150,35 @@ privacy scrubbing. Production DSNs must not silently report a new app under the
 former `notecards` release identity.
 
 See [the 2026-11-19 diagnostics audit](diagnostics-audit.md) for the full reporting survey, exception boundaries, source artifacts and known limitations.
+
+### DoReGo audio interruption recovery (25 November 2026)
+
+DoReGo bounds each Web Audio resume attempt to 1.5 seconds. Rendering-clock checks happen only after scheduling a source: an idle healthy
+context can report running before its clock advances. The existing 1.5-second
+playback watchdog detects frozen clocks; reference notes share one bounded
+1.5-second clock probe without delaying the note attack. Foreground/interruption
+invalidates the previous clock check.
+A stalled playback clock or failed resume marks the context for replacement on
+the next explicit Play/Resume or reference-note gesture. It does not automatically
+restart playback on foregrounding or repeatedly create contexts in the background.
+Decoded piano/cello buffers can be reused; the output graph is rebuilt.
+
+Opt-in diagnostics retain native context state changes, background/foreground
+breadcrumbs, `audio.startup_check_ms`, and bounded fields `audioFailure`
+(`resume_timeout`, `resume_rejected`, `not_running`, `clock_stalled`),
+`audioRecovery` (`needed`, `context_replaced`, `engine_running`) and
+`clockAdvanced`. Startup failures go through the existing playback/reference
+Sentry error paths with these fields; a frozen live clock emits
+`audio.clock_stalled` while the page is visible. Hidden-page suspension remains
+a breadcrumb rather than a standalone fault. Expected page hiding and ordinary interruption are
+breadcrumbs, not standalone errors. No audio recordings, device/output labels,
+or raw error messages are added.
+
+These checks establish engine progress, not audibility. Safari can also report a
+running clock while its output route is silent, and system volume, Bluetooth
+routing, or OS output failures may be invisible to the page. `engine_running`
+therefore does not mean the user heard sound. Unit coverage owns deadlines and
+stale completions; the existing CI desktop witness verifies a hung resume,
+context replacement and nonzero upstream PCM. The existing Nightly lifecycle
+witness owns interruption, frozen-clock and foreground behavior in both engines;
+the diagnostics browser witness verifies the fields survive privacy filtering.

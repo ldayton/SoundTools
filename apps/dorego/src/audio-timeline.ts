@@ -63,9 +63,13 @@ export function audioEvents(exercise: Exercise, offset: number): AudioEvent[] {
       });
     }
   }
+  let roundIndex = 0;
   for (let beat = 0; beat < exercise.totalBeats; beat++) {
     const time = secondsAt(beat, bpm);
-    if (time < offset || (beat >= countIn && !metronome)) continue;
+    while (roundIndex + 1 < exercise.rounds.length && exercise.rounds[roundIndex + 1].onsetBeat <= beat) roundIndex++;
+    const round = exercise.rounds[roundIndex];
+    const roundMetronome = round?.commitment?.settings.metronome ?? metronome;
+    if (time < offset || (beat >= countIn && !roundMetronome)) continue;
     const click = metronomeBeat(beat, countIn);
     events.push({
       kind: 'click',

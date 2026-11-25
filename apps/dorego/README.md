@@ -47,7 +47,9 @@ No account, API key, microphone access, or hosted service is required. CC BY 4.0
 - Exercise, range, tempo, direction, and other preferences are saved automatically in browser local storage and restored on return. New users start with Arpeggio & Scale E3–F5 at 150 BPM.
 - Tempo −/+ buttons step by 5 BPM. Repeats count additional passes (None means one pass); repeats and rest use stacked arrows on desktop and None–4 dropdowns on mobile.
 - Volume is independent beneath tempo and can change during playback with a short gain ramp. Count-in clicks stop when the exercise begins.
-- Play/pause, scrub, restart, and fullscreen. Space toggles playback, R restarts, F toggles fullscreen when a form control is not focused. Tempo is independent: change it at any time with the slider, numeric field, or −/+ buttons. Playback keeps the current round and beat, including through count-ins, rests, and cello glides. Volume also changes live without restarting, in its own row below tempo. Other exercise edits reset playback.
+- Play/pause, scrub, restart, and fullscreen. Space toggles playback, R restarts, F toggles fullscreen when a form control is not focused. Tempo is independent: change it at any time with the slider, numeric field, or −/+ buttons. Playback keeps the current round and beat, including through count-ins, rests, and cello glides. Volume also changes live without restarting, in its own row below tempo. Other exercise edits update future rounds.
+- Option edits preserve the current round and update the remaining sequence. Chords, phrase variations, range, progression and pass changes affect future rounds; a rest already underway stays fixed. Count-in applies to the next fresh start. Tempo, volume and the tonic-drone mixer remain live. Only switching exercises resets playback; an empty continuation ends naturally after the current round. See [the sequence contract](../../docs/dorego-sequences.md).
+- **Repeat round**, below the note display, replays the current round after the configured inter-round rest while playing, paused, or finished—even when there is no next round. It includes that round’s introduction, skips the session count-in, then continues normally without changing saved settings.
 
 The live practice pane uses a borderless white surface with the normal page
 padding. Instead of piano geometry, equally sized touch pads show the distinct
@@ -295,3 +297,13 @@ Without range parameters, explicit exercise links use the exercise's default
 range; opening the app root restores saved preferences. Other settings such as
 tempo remain personal preferences. Browser Back/Forward restores the exercise,
 choices and range. Settings retain the exercise URL with `#settings`.
+
+### Returning from another app
+
+Playback remains paused after an OS interruption until Play/Resume is tapped.
+Resume has a deadline and checks rendering-clock progress; a broken context is
+replaced on the next explicit attempt, including reference-piano taps. Clock
+checks do not delay reference-note attacks. Opt-in Sentry diagnostics
+identify resume timeouts, interrupted states, frozen clocks and engine rebuilds.
+They cannot establish whether sound physically reached the speakers; see
+[observability](../../docs/observability.md#dorego-audio-interruption-recovery-25-november-2026).

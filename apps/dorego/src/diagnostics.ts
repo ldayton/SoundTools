@@ -1,5 +1,6 @@
 import { create, type Client } from '@ldayton/browser-diagnostics';
 import reporterUrl from '@ldayton/browser-diagnostics/sentry.js?url';
+import {audioDiagnosticFields, liveAudioSnapshot} from './live-audio';
 import { PATTERNS, type ExerciseSpec } from './music';
 
 let context: Record<string, unknown> = { view: 'practice' };
@@ -11,8 +12,9 @@ export const diagnostics = create({
   enabled: import.meta.env.VITE_DEPLOY_ENV === 'production',
   environment: import.meta.env.PROD ? 'production' : 'development',
   fields: {
+    ...audioDiagnosticFields,
     mode: ['ready', 'starting', 'playing', 'paused', 'complete'],
-    reason: ['audio-interrupted', 'clock-stalled', 'scheduling-gap', 'page-hidden'],
+    reason: ['audio-interrupted', 'clock-stalled', 'scheduling-gap', 'page-hidden', 'samples-failed'],
     pattern: Object.keys(PATTERNS),
     bpm: 'number',
     low: 'number',
@@ -21,7 +23,7 @@ export const diagnostics = create({
     warming: 'boolean',
     soundFailed: 'boolean',
   },
-  snapshot: () => context,
+  snapshot: () => ({...context, ...liveAudioSnapshot()}),
 });
 export function diagnosticsContext(
   spec: ExerciseSpec,

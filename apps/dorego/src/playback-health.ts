@@ -1,5 +1,5 @@
 export type PlaybackInterruption =
-  'audio-interrupted' | 'clock-stalled' | 'scheduling-gap' | 'page-hidden';
+  'audio-interrupted' | 'clock-stalled' | 'scheduling-gap' | 'page-hidden' | 'samples-failed';
 
 // Detect loss of scheduling coverage separately from visibility. A sustained
 // voice or a rest can safely span a long timer delay without missing any notes.

@@ -46,9 +46,10 @@ export function referenceRows(low: number, high: number, width: number): [number
   return rows;
 }
 export function vocalPhraseNotes(exercise: Exercise, round: PracticeRound) {
+  const settings = round.commitment?.settings ?? exercise.spec;
   const introBeats =
-    isVocalPattern(exercise.spec.pattern) && exercise.spec.startingChords
-      ? 6 * exercise.spec.noteBeats
+    isVocalPattern(settings.pattern) && settings.startingChords
+      ? 6 * settings.noteBeats
       : 0;
   return exercise.notes.filter(
     (note) => note.onsetBeat >= round.onsetBeat + introBeats && note.onsetBeat < round.endBeat

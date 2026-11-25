@@ -1,3 +1,4 @@
+import {initPlayback, startLiveAudio, markAudioUnhealthy, playbackContext, liveAudioSnapshot, observeAudioClock} from './live-audio';
 import { holdParam, TempoClock, type LiveVoice } from './tempo-clock';
 import { PlaybackHealth, type PlaybackInterruption } from './playback-health';
 import { CelloGlides, preloadCello } from './cello';
@@ -8,17 +9,6 @@ import { audioEvents, DRONE_GAIN, type AudioEvent } from './audio-timeline';
 import { configureChannelMix, type AudioChannels } from './audio-channels';
 
 export const RELEASE_TAIL = 0.8;
-let playbackContext: AudioContext | undefined;
-function initPlayback() {
-  if (!playbackContext || playbackContext.state === 'closed') {
-    // This is a sequenced player: reliability matters more than live-key latency.
-    // Let Tone create its compatible context: Firefox still exposes a legacy
-    // AudioListener, which cannot be passed directly to Tone's spatial parameters.
-    const context = new Tone.Context({ latencyHint: 'playback', lookAhead: 0.15 });
-    playbackContext = context.rawContext as AudioContext;
-    Tone.setContext(context, true);
-  }
-}
 function makeGraph(volume: number, channels: AudioChannels = 'stereo', droneStrength = 50) {
   // Catch unusually loud chord sums without changing ordinary piano dynamics.
   const limiter = new Tone.Limiter(-1).toDestination();
@@ -190,6 +180,9 @@ export class Player {
   private clock: TempoClock | null = null;
   private exercise: Exercise | null = null;
   private seekBeat = 0;
+  private replayRestBeats = 0;
+  private replacement = 0;
+  private preparation: { revision: number; fromBeat: number; ready: boolean; failed?: boolean } | null = null;
   private pending = 0;
   private events: AudioEvent[] = [];
   private cursor = 0;
@@ -200,19 +193,26 @@ export class Player {
     this.watchContext();
     await prepareLive(exercise);
   }
-  async play(exercise: Exercise, offset = 0) {
+  async play(exercise: Exercise, offset = 0, restBeats = 0) {
     this.halt();
     const token = ++this.pending;
     this.exercise = exercise;
     this.seekBeat = (offset * exercise.spec.bpm) / 60;
+    this.replayRestBeats = restBeats;
     initPlayback();
     this.watchContext();
     this.publish('starting');
     try {
-      await Tone.start();
+      if (!await startLiveAudio(() => token === this.pending)) return false;
+      this.watchContext();
       if (token !== this.pending) return false;
       const prepareStarted = performance.now();
-      await prepareLive(exercise);
+      while (token === this.pending) {
+        const preparing: Exercise = this.exercise!;
+        try { await prepareLive(preparing); }
+        catch (error) { if (preparing === this.exercise) throw error; }
+        if (preparing === this.exercise) break;
+      }
       if (typeof window !== 'undefined')
         window.doregoDiagnostics?.metric('samples.prepare_ms', performance.now() - prepareStarted);
       if (token !== this.pending) return false;
@@ -220,7 +220,7 @@ export class Player {
         throw new Error('Audio is unavailable. Try Resume when the interruption ends.');
       const current = this.exercise!;
       this.graph = makeGraph(current.spec.volume, this.channels, current.spec.droneStrength);
-      this.clock = new TempoClock(Tone.now() + 0.05, this.seekBeat, current.spec.bpm);
+      this.clock = new TempoClock(Tone.now() + 0.05 + secondsAt(restBeats, current.spec.bpm), this.seekBeat, current.spec.bpm);
       this.events = audioEvents(current, secondsAt(this.seekBeat, current.spec.bpm));
       this.cursor = 0;
       this.health = new PlaybackHealth(this.graph.output.context.immediate(), performance.now());
@@ -259,6 +259,10 @@ export class Player {
   }
   interrupt(reason: PlaybackInterruption, audioTime?: number) {
     if (this.state !== 'playing' && this.state !== 'starting') return;
+    if (reason === 'clock-stalled') {
+      markAudioUnhealthy();
+      if (typeof window !== 'undefined' && !document.hidden) window.doregoDiagnostics?.capture(new Error('Audio rendering clock stalled'), 'audio.clock_stalled', {...liveAudioSnapshot(), audioFailure: 'clock_stalled'});
+    }
     const beat = audioTime === undefined ? undefined : this.clock?.beatAt(audioTime);
     this.halt();
     if (beat !== undefined) this.seekBeat = Math.max(0, beat);
@@ -279,12 +283,22 @@ export class Player {
       clock = this.clock,
       bpm = this.exercise.spec.bpm;
     const now = graph.output.context.immediate();
+    observeAudioClock(now);
     const beat = clock.beatAt(now);
     const next = this.events[this.cursor];
+    if (this.preparation?.failed && beat >= this.preparation.fromBeat) {
+      this.interrupt('samples-failed');
+      return;
+    }
+    const blocked = this.preparation && !this.preparation.ready;
+    if (this.preparation?.ready) {
+      clock.releaseHold(now + 0.05);
+      this.preparation = null;
+    }
     const interruption = this.health?.check(
       now,
       performance.now(),
-      next ? clock.timeAt(Math.max(this.seekBeat, next.onsetBeat)) : Infinity
+      next && !(blocked && next.onsetBeat >= this.preparation!.fromBeat) ? clock.timeAt(Math.max(this.seekBeat, next.onsetBeat)) : Infinity
     );
     if (interruption) {
       if (typeof window !== 'undefined')
@@ -303,8 +317,11 @@ export class Player {
     // Retain one second of audio-clock scheduling through main-thread stalls.
     while (this.cursor < this.events.length) {
       const event = this.events[this.cursor];
+      if (blocked && event.onsetBeat >= this.preparation!.fromBeat) break;
       const planned = clock.timeAt(Math.max(this.seekBeat, event.onsetBeat));
-      if (planned >= now + 1) break;
+      // Schedule the first source even during a replay rest so a cold audio
+      // context starts rendering immediately, with its attack still in the future.
+      if (planned >= now + 1 && this.cursor !== 0) break;
       this.cursor++;
       if (this.voices.has(event.id) || event.endBeat <= beat) continue;
       const time = Math.max(planned, now + 0.015);
@@ -323,6 +340,48 @@ export class Player {
       );
       if (voice) this.voices.set(event.id, { event, voice, start: time });
     }
+  }
+  /** Replace only uncommitted events; retain graph, clock, and current sources. */
+  replaceSequence(exercise: Exercise, protectedThrough: number) {
+    this.exercise = exercise;
+    if (!this.graph || !this.clock) return;
+    const now = this.graph.output.context.immediate();
+    for (const [id, entry] of this.voices) {
+      if (entry.event.onsetBeat < protectedThrough) continue;
+      entry.voice.cancel();
+      this.voices.delete(id);
+    }
+    this.events = audioEvents(exercise, secondsAt(this.clock.beatAt(now), exercise.spec.bpm));
+    this.cursor = 0;
+    if (Number.isFinite(protectedThrough)) {
+      const revision = ++this.replacement;
+      const next = exercise.rounds.find(round => round.onsetBeat >= protectedThrough);
+      const waitingAt = this.preparation && !this.preparation.ready && this.clock.beatAt(now) >= this.preparation.fromBeat ? this.preparation.fromBeat : undefined;
+      const fromBeat = waitingAt === undefined ? next?.onsetBeat : Math.min(waitingAt, next?.onsetBeat ?? Infinity);
+      if (fromBeat !== undefined) {
+        this.clock.releaseHold(now);
+        this.clock.holdAt(fromBeat);
+        this.preparation = { revision, fromBeat, ready: false };
+        void prepareLive(exercise).then(() => {
+          if (this.preparation?.revision === revision) this.preparation.ready = true;
+        }).catch(error => {
+          if (this.preparation?.revision !== revision) return;
+          this.preparation.failed = true;
+          if (typeof window !== 'undefined') window.doregoDiagnostics?.capture(error, 'samples.prepare_failed');
+        });
+      } else {
+        this.clock.releaseHold(now);
+        this.preparation = null;
+      }
+    }
+    this.fill();
+  }
+  get planningPosition() {
+    if (!this.clock || !this.graph) return this.position;
+    return secondsAt(this.clock.beatAt(this.graph.output.context.immediate()), this.exercise!.spec.bpm);
+  }
+  get preparingNextRound() {
+    return !!this.preparation && !this.preparation.ready && this.planningPosition >= secondsAt(this.preparation.fromBeat, this.exercise!.spec.bpm);
   }
   setVolume(volume: number) {
     if (!Number.isFinite(volume) || volume < -60 || volume > 0)
@@ -386,6 +445,10 @@ export class Player {
     this.cursor = 0;
     this.fill();
   }
+  get restRemainingBeats() {
+    if (!this.graph || !this.clock || !this.replayRestBeats || this.state !== 'playing') return 0;
+    return Math.max(0, Math.min(this.replayRestBeats, (this.clock.timeAt(this.seekBeat) - this.graph.output.context.immediate()) * (this.exercise!.spec.bpm / 60)));
+  }
   get position() {
     const bpm = this.exercise?.spec.bpm ?? 60;
     if (!this.graph || !playbackContext || !this.clock) return secondsAt(this.seekBeat, bpm);
@@ -411,6 +474,9 @@ export class Player {
     if (graph) this.seekBeat = (this.position * (this.exercise?.spec.bpm ?? 60)) / 60;
     this.graph = null;
     this.clock = null;
+    this.replayRestBeats = 0;
+    this.preparation = null;
+    ++this.replacement;
     this.voices.clear();
     this.health = null;
     if (graph) {

@@ -1,6 +1,7 @@
 // Keep musical position separate from elapsed wall time. Retain past segments
 // so the audible-output timestamp still maps correctly across a tempo change.
 export class TempoClock {
+  private heldBeat: number | null = null;
   private segments: { time: number; beat: number; bpm: number }[];
   constructor(time: number, beat: number, bpm: number) {
     this.segments = [{ time, beat, bpm }];
@@ -9,7 +10,15 @@ export class TempoClock {
     let index = this.segments.length - 1;
     while (index > 0 && this.segments[index].time > time) index--;
     const segment = this.segments[index];
-    return segment.beat + (Math.max(0, time - segment.time) * segment.bpm) / 60;
+    const beat = segment.beat + (Math.max(0, time - segment.time) * segment.bpm) / 60;
+    return this.heldBeat === null ? beat : Math.min(beat, this.heldBeat);
+  }
+  holdAt(beat: number) { this.heldBeat = beat; }
+  releaseHold(time: number) {
+    if (this.heldBeat === null) return;
+    const beat = this.heldBeat;
+    this.heldBeat = null;
+    if (this.timeAt(beat) < time) this.segments.push({ time, beat, bpm: this.segments.at(-1)!.bpm });
   }
   timeAt(beat: number) {
     const segment = this.segments.at(-1)!;

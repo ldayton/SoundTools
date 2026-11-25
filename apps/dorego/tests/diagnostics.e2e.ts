@@ -80,6 +80,17 @@ try {
   assert.equal(report.app, 'dorego');
   assert.equal((report.errors as any[])[0].code, 'samples.test_failed');
   assert(!JSON.stringify(report).includes('PRIVATE'));
+  await page.evaluate(() => window.doregoDiagnostics!.capture(Error('PRIVATE'), 'playback.start_failed', {
+    audioState:'interrupted', audioFailure:'resume_timeout', audioRecovery:'needed', clockAdvanced:false,
+    deviceLabel:'PRIVATE', audioFailureUrl:'PRIVATE',
+  }));
+  const failure=await page.evaluate(() => (window.doregoDiagnostics!.snapshot().errors as any[]).find(e=>e.code==='playback.start_failed'));
+  assert.equal(failure.details.audioFailure,'resume_timeout');
+  assert.equal(failure.details.audioRecovery,'needed');
+  assert.equal(failure.details.audioState,'interrupted');
+  assert.equal(failure.details.clockAdvanced,false);
+  assert(!JSON.stringify(failure).includes('PRIVATE'));
+
   assert.deepEqual(remote, []);
   await page.reload();
   await sharing.waitFor();
@@ -94,6 +105,12 @@ try {
     () => document.querySelector<HTMLButtonElement>('#play')?.disabled === false
   );
   await page.locator('#play').click();
+  await page.waitForFunction(() => {
+    const report=window.doregoDiagnostics!.snapshot() as any;
+    return report.metrics['audio.startup_check_ms']?.count > 0 && report.context.mode !== 'starting';
+  });
+  const startup=await page.evaluate(() => window.doregoDiagnostics!.snapshot());
+  assert.equal((startup.context as any).mode, 'playing', JSON.stringify(startup));
   await page.waitForFunction(
     () =>
       ((window.doregoDiagnostics!.snapshot().metrics as any)?.['render.interval_ms']?.count || 0) >

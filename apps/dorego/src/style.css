@@ -88,6 +88,7 @@
 .practice-card:fullscreen {
   background: white;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -571,4 +572,50 @@
     max-width: 100%;
     margin-inline: auto;
   }
+}
+
+/* Keep the current-round action close to the readout on phones and desktops. */
+.repeat-round-control {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 12px;
+}
+.repeat-round-control button {
+  min-width: 180px;
+  min-height: 44px;
+}
+
+/* Keep the repeat action and all note pads visible on short phones. */
+@media (max-width: 767px) and (max-height: 600px) {
+  .repeat-round-control {
+    margin-block: 2px;
+  }
+  .note-instrument {
+    margin-top: 6px;
+  }
+}
+@media (max-width: 359px) and (max-height: 600px) {
+  .dorego-transport {
+    gap: 2px;
+    flex-wrap: nowrap;
+  }
+  .dorego-header .dorego-tempo > div {
+    max-width: 68px;
+  }
+  .dorego-header .dorego-tempo input {
+    font-size: 11px;
+    padding-inline: 4px !important;
+  }
+  .dorego-header > .application-toolbar { padding-inline: 10px; }
+}
+
+.maqamat-controls {
+  margin-block: 16px;
+}
+@media (max-width: 767px) {
+  .dorego-workspace .maqamat-controls { margin-block: 6px; }
+}
+@media (max-width: 767px) and (max-height: 600px) {
+  .dorego-workspace .practice-panel { padding-block: 0; }
+  .dorego-workspace .maqamat-controls { margin-block: 2px; row-gap: 4px; }
 }

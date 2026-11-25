@@ -486,3 +486,15 @@ Builds, unit checks and completed browser lanes passed. Host sampling also showe
 Spotlight indexing using 181% CPU; this is evidence of concurrent load, not an
 established cause. A full diagnostic rerun keeps the same commands, assertions,
 locks and budget. A passing rerun does not resolve the timing investigation.
+
+The [next hosted run](https://github.com/ldayton/SoundTools/actions/runs/45663034284/job/139377885779)
+still found two pixels of scrolling at 1119px. Its retained trace (downloaded to
+`work/layout-audit/hosted-second-browser` in the Hebrew/export worktree) shows
+abcjs's final staff length exceeded the requested width; reducing framing padding
+alone was insufficient. The shared adapter now reconciles actual engraved staff
+extents with the probe's minimum and replans before presentation. Per-system
+staff extents matter: abcjs repeats the widest viewBox on every system, so that
+outer box cannot be used as each system's own minimum. The measurement cache is
+cloned before refinement, and indivisible overflow remains explicit. The full
+component property witness passes against a real Linux x64 browser through a
+Playwright connection, including the original width and unchanged audio/scale.

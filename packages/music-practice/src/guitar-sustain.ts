@@ -1,6 +1,7 @@
 import abcjs, { type AudioTracks } from "abcjs";
 import { swingBeat } from "./hymn-swing";
-import { guitarExpressionAudio } from "./guitar-phrasing";
+import { guitarExpressionAudio, guitarCadences, type PhraseHarmony } from "./guitar-phrasing";
+import { parseChordSymbol, notePitchClass } from "./chord-symbol";
 
 /** Optional sounding end, in abcjs whole-note units. Written rhythm stays intact. */
 export type GuitarSustainEvent = { guitarRingUntil?: number };
@@ -48,10 +49,19 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
     }
   }
   let previous = "";
+  const harmony: PhraseHarmony[] = [];
   for (const chord of chords.sort((a, b) => a.at - b.at)) {
-    if (chord.name !== previous) changes.push(chord.at);
+    if (chord.name !== previous) {
+      changes.push(chord.at);
+      try {
+        const parsed = parseChordSymbol(chord.name);
+        harmony.push({at: chord.at, root: parsed.root.pitchClass, dominant: parsed.tones.some(t => t.interval === "3M")});
+      } catch { harmony.push({at: chord.at, root: -1, dominant: false}); }
+    }
     previous = chord.name;
   }
+  const key = tune.getKeySignature(), meter = tune.getMeterFraction();
+  const tonic = /^[A-G]$/.test(key.root) ? notePitchClass(key.root + key.acc) : undefined;
   return guitarExpressionAudio({
     ...audio,
     tracks: audio.tracks.map((track, index) => track.map(event => {
@@ -61,7 +71,8 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
       const next = Math.min(...stops.filter(at => at > event.start + 1e-7));
       return { ...event, guitarRingUntil: detached.has(event.startChar!) ? writtenEnd : Math.max(writtenEnd, next) };
     })),
-  }, changes, punctuation);
+  }, changes, punctuation, {tonic, cadences: tonic === undefined ? [] : guitarCadences(harmony, tonic),
+    meter: `${meter.num}/${meter.den}`, pickup: time(tune.getPickupLength()) * 4});
 }
 
 /** A performance instruction, not a chord symbol or another selectable staff. */

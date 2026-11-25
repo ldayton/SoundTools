@@ -29,6 +29,7 @@ export function playbackNotes(audio: AudioTracks) {
                 ...((item as GuitarSustainEvent).guitarRingUntil !== undefined ? {ringUntil: (item as GuitarSustainEvent).guitarRingUntil! * 4} : {}),
                 ...((item as GuitarExpressionEvent).guitarExpressionGain !== undefined ? {expressionGain: (item as GuitarExpressionEvent).guitarExpressionGain} : {}),
                 ...((item as GuitarExpressionEvent).guitarEndGain !== undefined ? {endGain: (item as GuitarExpressionEvent).guitarEndGain} : {}),
+                ...((item as GuitarExpressionEvent).guitarRole ? {role: (item as GuitarExpressionEvent).guitarRole} : {}),
                 ...((item as typeof item & {playbackInstrument?:PlaybackInstrument}).playbackInstrument ? {instrument:(item as typeof item & {playbackInstrument:PlaybackInstrument}).playbackInstrument} : {}),
               },
             ]

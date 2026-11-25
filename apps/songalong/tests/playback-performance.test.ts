@@ -9,7 +9,7 @@ import {
   pianoLayer,
   guitarLayer,
 } from "../../../packages/music-practice/src/playback-performance";
-import { inferGuitarPhrases, guitarExpressionAudio } from "../../../packages/music-practice/src/guitar-phrasing";
+import { inferGuitarPhrases, guitarExpressionAudio, guitarCadences } from "../../../packages/music-practice/src/guitar-phrasing";
 const note = (pitch: number, start = 0, duration = 2) => ({
   pitch,
   start,
@@ -121,6 +121,54 @@ test("out-of-range notes retain pitch and deterministic performance", () => {
     performNotes(source, { instrument: "guitar" }),
     performNotes(source, { instrument: "guitar" }),
   );
+});
+
+test("picking hand uses thumb and independent upper fingers, alternates plucks, and resets after space", () => {
+  const source = [note(48), note(64), note(67), note(72), note(72, 1), note(72, 2), note(72, 4)];
+  const played = performNotes(source, {instrument:"guitar", positionFor: p => ({str: ({48:5,64:2,67:1,72:0} as Record<number,number>)[p],num:0})});
+  assert.deepEqual(played.map(n => n.pickingFinger), ["thumb","index","middle","ring","index","middle","index"]);
+  assert(played[4].volume > played[5].volume, "alternation changes pluck energy without pretending to add round robins");
+  assert.equal(played[4].volume, played[6].volume, "a separated phrase begins fresh");
+  const crossing=performNotes([note(64,0),note(67,1),note(72,2)],{instrument:"guitar",positionFor:p=>({str:({64:2,67:1,72:0} as Record<number,number>)[p],num:0})});
+  assert.deepEqual(crossing.map(n=>n.pickingFinger),["index","middle","index"],"alternation continues across string changes");
+  assert.deepEqual(played.map(n => [n.pitch,n.start]), source.map(n => [n.pitch,n.start]));
+  assert(performNotes(source,{instrument:"piano"}).every(n => !n.pickingFinger));
+});
+
+test("partial strums keep every authored note and weight bass downstrokes versus treble upstrokes", () => {
+  const chord = (start:number) => [48,64,67].map(p => note(p,start,0.5));
+  const positionFor = (p:number) => ({str: ({48:5,64:2,67:0} as Record<number,number>)[p],num:0});
+  const down = performNotes(chord(0),{instrument:"guitar",strum:true,positionFor});
+  const up = performNotes(chord(.5),{instrument:"guitar",strum:true,positionFor});
+  assert.deepEqual(down.map(n=>n.string),[0,3,5]);
+  assert.equal(down[0].delay,0);assert.equal(up[2].delay,0);
+  assert(down[1].delay! > down[2].delay! / 2, "brush time follows skipped strings");
+  assert(down[0].volume / up[0].volume > down[2].volume / up[2].volume);
+  assert.deepEqual(up.map(n=>n.pitch),[48,64,67]);
+});
+
+test("cadences support held resolutions, including transposed minor keys, without splitting every chord change", () => {
+  const chords=[{at:0,root:2,dominant:false},{at:1,root:9,dominant:true},{at:2,root:2,dominant:false}];
+  assert.deepEqual(guitarCadences(chords,2),[2]);
+  assert.deepEqual(guitarCadences(chords.map(c=>({...c,dominant:false})),2),[]);
+  const melody=[{start:0,duration:1,pitch:62},{start:1,duration:1,pitch:64},{start:2,duration:2,pitch:69},
+    {start:4,duration:2,pitch:62,cadence:true},{start:6,duration:1,pitch:65}];
+  assert.deepEqual(inferGuitarPhrases(melody),[{start:0,end:6,lastStart:4},{start:6,end:7,lastStart:6}]);
+  assert.equal(inferGuitarPhrases(melody.map(n=>({...n,cadence:false}))).length,1);
+  const abc='X:1\nM:4/4\nL:1/4\nK:Dm\n"Dm" D E "A7/C#" A2 | "Dm" D2 F2 |]';
+  const performed=ringing(abc);
+  assert.equal(performed.find(n=>n.start===4)!.endGain,.84,"the held tonic is the phrase end, before the next motive");
+});
+
+test("contour shaping follows the melodic apex, keeps bass independent and respects compound pickups", () => {
+  const abc='X:1\nM:6/8\nL:1/8\n%%score (m b)\nV:m\nV:b\nK:C\n[V:m] G | c2 G A B c | G6 |]\n[V:b] C, | C,6 | C,6 |]';
+  const source=abcjs.parseOnly(abc)[0].setUpAudio({qpm:60,chordsOff:true});
+  const shaped=playbackNotes(guitarExpressionAudio(source,[],new Set(),{meter:"6/8",pickup:.5}));
+  const melody=shaped.filter(n=>n.role==="melody"),bass=shaped.filter(n=>n.role==="bass");
+  assert(melody[1].expressionGain! > melody[0].expressionGain!);
+  assert(bass.every(n=>n.endGain===undefined));
+  assert(melody.some(n=>n.endGain===.84));
+  assert.deepEqual(shaped.map(n=>[n.pitch,n.start,n.duration]),playbackNotes(source).map(n=>[n.pitch,n.start,n.duration]));
 });
 
 test("unassigned guitar melody replucks the high E string instead of climbing the neck to keep old notes ringing", () => {

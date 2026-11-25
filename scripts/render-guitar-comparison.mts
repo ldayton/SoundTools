@@ -4,12 +4,16 @@
  */
 import {createRequire} from "node:module";
 import {execFileSync} from "node:child_process";
-import {mkdirSync,writeFileSync,rmSync} from "node:fs";
+import {mkdirSync,writeFileSync,rmSync,copyFileSync} from "node:fs";
+import {createHash} from "node:crypto";
 import path from "node:path";
 import assert from "node:assert/strict";
 const require=createRequire(import.meta.url),root=path.resolve(import.meta.dirname,"..");
 const {git}=require("./ci/snapshot.cjs");
-const baseline=process.env.GUITAR_BASELINE || process.argv[2] || "origin/main";
+// Before ALWAYS means before the entire guitar expression workstream. Never
+// silently advance this to main/the previous prototype when refreshing clips.
+const originalBaseline="03ba1ed2affe9f88db72dbfea354bbae928c1414";
+const baseline=process.env.GUITAR_BASELINE || process.argv[2] || originalBaseline;
 const output=path.join(root,"work/guitar-comparison");
 mkdirSync(output,{recursive:true});
 
@@ -82,9 +86,9 @@ if(!process.env.GUITAR_COMPARISON_WORKER){
   const server=await createServer({configFile:false,root,cacheDir:path.join(output,"vite-cache"),server:{host:"127.0.0.1",port:4686,strictPort:true},logLevel:"error"});
   await server.listen();const browser=await launchBrowser();
   const cases=[
-    {id:"the-old-rugged-cross",arrangement:"guitar-edition" as const,beats:18,tempo:80,label:"Old Rugged Cross · fingerstyle"},
-    {id:"ill-fly-away",arrangement:"guitar-edition" as const,beats:24,tempo:80,label:"I'll Fly Away · fingerstyle"},
-    {id:"the-old-rugged-cross",arrangement:"guitar-vocal" as const,beats:24,tempo:80,label:"Old Rugged Cross · accompaniment"},
+    {id:"the-old-rugged-cross",arrangement:"guitar-edition" as const,beats:36,tempo:80,label:"Old Rugged Cross · fingerstyle"},
+    {id:"ill-fly-away",arrangement:"guitar-edition" as const,beats:32,tempo:80,label:"I'll Fly Away · fingerstyle"},
+    {id:"the-old-rugged-cross",arrangement:"guitar-vocal" as const,beats:36,tempo:80,label:"Old Rugged Cross · accompaniment"},
   ];
   const report=[];
   try{
@@ -123,9 +127,9 @@ if(!process.env.GUITAR_COMPARISON_WORKER){
         pair.push(rendered);
       }
       assert.equal(pair[0].attacks,pair[1].attacks);
-      const rms=Math.min(...pair.map(p=>p.rms));
+      const inputHash=createHash("sha256").update(JSON.stringify({notes:notes.map(n=>[n.pitch,n.start,n.duration,n.volume,n.instrument]),positions,tempo:item.tempo,capo:choice.fret})).digest("hex");
       for(const [i,render] of pair.entries()){
-        const gain=rms/render.rms,file=`${item.id}-${item.arrangement}-${i===0?"before":"after"}.wav`;
+        const gain=1,file=`${item.id}-${item.arrangement}-${i===0?"before":"after"}.wav`;
         const channels:number[][]=render.channels,frameBytes=channels.length*2;
         const pcm=Buffer.alloc(channels[0].length*frameBytes);
         for(let frame=0;frame<channels[0].length;frame++)for(let channel=0;channel<channels.length;channel++)
@@ -134,11 +138,44 @@ if(!process.env.GUITAR_COMPARISON_WORKER){
         header.writeUInt32LE(16,16);header.writeUInt16LE(1,20);header.writeUInt16LE(channels.length,22);header.writeUInt32LE(24000,24);
         header.writeUInt32LE(24000*frameBytes,28);header.writeUInt16LE(frameBytes,32);header.writeUInt16LE(16,34);header.write("data",36);header.writeUInt32LE(pcm.length,40);
         writeFileSync(path.join(output,file),Buffer.concat([header,pcm]));
-        const {channels:renderedChannels,...metrics}=render;report.push({...item,capo:choice.fret,before:i===0,file,channels:renderedChannels.length,matchedRms:rms,normalizationGain:gain,...metrics});
+        const {channels:renderedChannels,...metrics}=render;report.push({...item,capo:choice.fret,before:i===0,file,inputHash,channels:renderedChannels.length,...metrics});
       }
+      // Static perceptual loudness matching, not compression or per-note
+      // normalisation. Neither side is boosted. Keep raw metrics as evidence.
+      const measure=(file:string)=>{
+        const result=require("node:child_process").spawnSync("ffmpeg",["-hide_banner","-nostdin","-i",file,"-af","loudnorm=I=-24:TP=-1.5:LRA=7:print_format=json","-f","null","-"],{encoding:"utf8"});
+        assert.equal(result.status,0,result.stderr);
+        return JSON.parse(result.stderr.match(/\{[^{}]+\}/s)![0]);
+      };
+      const entries=report.slice(-2),levels=entries.map(r=>measure(path.join(output,r.file)));
+      const target=Math.min(-24,...levels.map(m=>Number(m.input_i)));
+      entries.forEach((entry,i)=>{
+        const file=path.join(output,entry.file),temp=file+".matched.wav",gainDb=target-Number(levels[i].input_i);
+        execFileSync("ffmpeg",["-hide_banner","-loglevel","error","-y","-i",file,"-af",`volume=${gainDb}dB`,"-c:a","pcm_s16le",temp]);
+        copyFileSync(temp,file);rmSync(temp);
+        const matched=measure(file);assert(Math.abs(Number(matched.input_i)-target)<.1);assert(Number(matched.input_tp)<-1);
+        Object.assign(entry,{rawLufs:Number(levels[i].input_i),matchedLufs:Number(matched.input_i),matchedTruePeakDb:Number(matched.input_tp),normalizationGainDb:gainDb});
+      });
     }
     assert.deepEqual(errors,[]);
     writeFileSync(path.join(output,"metrics.json"),JSON.stringify({baseline,head:git(root,["rev-parse","HEAD"]),dirty:!!git(root,["status","--porcelain"]),renders:report},null,2)+"\n");
+    for(const file of ["index.html","player.js"])copyFileSync(path.join(root,"scripts/audio-ab",file),path.join(output,file));
+    writeFileSync(path.join(output,"comparison.json"),JSON.stringify({baseline,clips:cases.map((item,index)=>({
+      name:item.label,detail:`${hymns.find(h=>h.slug===item.id)!.key} · Capo ${report[index*2].capo} · ${item.tempo} BPM`,
+      duration:item.beats*60/item.tempo+.2,files:{A:report[index*2].file,B:report[index*2+1].file},
+    }))},null,2)+"\n");
+    const {checkComparison}=await import("./audio-ab/check.mts");
+    const originalEngine=process.env.TEST_BROWSER;
+    try {
+      for(const engine of ["chromium","webkit"]) {
+        process.env.TEST_BROWSER=engine;
+        const witness=await launchBrowser();
+        try {await checkComparison(witness,"http://127.0.0.1:4686/work/guitar-comparison/",output,engine);}
+        catch(error){await captureFailure(witness,error,path.join(output,`failure-${engine}`));throw error;}
+        finally{await closeBrowser(witness);}
+      }
+    } finally {if(originalEngine===undefined)delete process.env.TEST_BROWSER;else process.env.TEST_BROWSER=originalEngine;}
+    writeFileSync(path.join(output,"page-verification.json"),JSON.stringify({engines:["chromium","webkit"],widths:[1400,390],baseline,passed:true},null,2)+"\n");
     console.log(JSON.stringify(report,null,2));
   }catch(error){await captureFailure(browser,error,path.join(output,"failure"));throw error;}
   finally{await closeBrowser(browser);await server.close();}

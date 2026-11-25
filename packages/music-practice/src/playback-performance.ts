@@ -25,6 +25,9 @@ export type PerformanceNote = {
   gain?: number;
   expressionGain?: number;
   endGain?: number;
+  role?: "melody" | "bass" | "inner";
+  /** Inferred picking hand, not a claim of a separately recorded articulation. */
+  pickingFinger?: "thumb" | "index" | "middle" | "ring";
 };
 export const guitarTuning = [40, 45, 50, 55, 59, 64] as const;
 
@@ -49,7 +52,9 @@ export function performNotes(
     groups.set(note.start, group);
   }
   const ringing = new Map<number, PerformanceNote>();
+  let previousPluck: {start: number; finger: "index" | "middle"} | undefined;
   for (const [, group] of [...groups].sort(([a], [b]) => a - b)) {
+    if (group.length > 1) previousPluck = undefined;
     const top = Math.max(...group.map((n) => n.pitch));
     // Phrase expression changes dynamics, never the score/practice clock.
     for (const note of group)
@@ -85,6 +90,19 @@ export function performNotes(
         note.duration = Math.max(note.duration, note.ringUntil - note.start);
       note.string = string;
       note.fret = note.pitch - guitarTuning[string];
+      if (!options.strum) {
+        // A thumb carries the bass; upper-string chords use i/m/a. Single
+        // melodic attacks alternate i/m, restarting after a breath. This varies
+        // the gesture's energy, never pitch/timing or the sample's identity.
+        const alternate = previousPluck && note.start - previousPluck.start < 1.5;
+        const finger = string < 3 ? "thumb" : group.length > 1
+          ? (["index", "middle", "ring"] as const)[string - 3]
+          : alternate && previousPluck?.finger === "index" ? "middle" : "index";
+        note.pickingFinger = finger;
+        if (group.length === 1 && (finger === "index" || finger === "middle")) previousPluck = {start: note.start, finger};
+        const energy = finger === "thumb" ? 0.96 : finger === "index" ? 1 : finger === "middle" ? 0.96 : 1.02;
+        note.volume = Math.min(1, note.volume * energy);
+      }
       used.add(string);
       const previous = ringing.get(string);
       if (previous && previous.start + previous.duration > note.start)
@@ -109,7 +127,11 @@ export function performNotes(
       const first = ordered[0].string ?? 0;
       ordered.forEach((note, index) => {
         note.delay = Math.abs((note.string ?? index) - first) / 5 * spread;
-        note.volume *= up ? 0.94 : 1;
+        // A partial brush travels only across the authored strings; it never
+        // adds missing chord tones. Upstrokes lean on the treble, downstrokes
+        // on the bass, rather than treating all strings as equal impacts.
+        const treble = (note.string ?? 2.5) / 5;
+        note.volume *= up ? 0.86 + 0.10 * treble : 1 - 0.08 * treble;
       });
     }
   }

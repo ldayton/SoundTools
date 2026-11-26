@@ -1820,5 +1820,9 @@
       ]
     }
   ],
-  "reviewReason": "Reviewed before/after and across Chromium/WebKit on macOS/Linux: contour-based staff clearance, compact notation/TAB and system flow; unchanged line breaks and glyph size; Hebrew points, complete lyric bounds, ledger layering and tab gaps preserved."
+  "review": {
+    "reviewer": "Codex",
+    "date": "2026-11-26",
+    "method": "Reviewed before/after and across Chromium/WebKit on macOS/Linux: contour-based staff clearance, compact notation/TAB and system flow; unchanged line breaks and glyph size; Hebrew points, complete lyric bounds, ledger layering and tab gaps preserved. Viewed all seven complete before/after cases and all four platform/browser contact sheets; independently confirmed unchanged line-break plans."
+  }
 }

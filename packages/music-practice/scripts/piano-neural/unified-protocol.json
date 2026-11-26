@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "version": "unified-v1",
+  "fresh": "All eighteen pinned Mutopia Burgmuller Op100 sources, reserved before implementation/calibration. Evaluate once after policy freeze, never select files by performance.",
+  "physicalModel": "Classic geometry, source anchors, contacts, holds, ties and exact search bounds. The native finite gate is not a physical constraint.",
+  "preferences": "General identifiable moving streams use the twelve published Parncutt relative weights at scale 1, classic posture strain without duplicate color/weak-finger terms, timed movement scale 0.1, and classic repeated-note/substitution costs. Parncutt owns melodic crossing/key-color/weak-finger preference. Chord grips keep classic costs.",
+  "idioms": "Input-only closed positions: at most five distinct pitches, span at most four white-key coordinates and seven semitones within a contiguous unambiguous stream. Chromatic runs: at least six contiguous attacks with same-direction semitone steps. Both retain the established classic objective; no song/family lookup or label-guided selection.",
+  "search": "Exact two-attack memory within a single known/unambiguous moving voice, reset on actual gaps, explicit phrases or ambiguous simultaneous attacks. Held contacts remain reserved even when melodic history resets. No beam or partial hand output.",
+  "fallback": "If unified search exceeds bounds or is unsupported, retain the classic complete hand with explicit reason. Whole-source fixed-input validation and independent conflict checks remain required.",
+  "selection": "No coefficient sweep or fitting. Consumed corpora are regression/development evidence. Freeze this policy before fresh scoring. Product default may change only if fresh generalization, old per-family/sequence coverage and safety gates pass; otherwise keep classic while shipping shared contracts/routing with classic policy.",
+  "runtime": "One versioned plan API with injectable backend. Worker/cache paths share exactly the same core; cache musical inputs and policy, not font size, staves or playback position. Reject stale worker replies. No model weights bundled in product."
+}

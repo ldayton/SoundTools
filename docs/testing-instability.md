@@ -747,3 +747,13 @@ Use the standard `npm run ci -- --base origin/main --all` to validate the exact
 retry commit with the broader all-app graph, previously measured at 54.85s.
 No checks or resource locks are bypassed; the partial-plan timing remains an
 investigation item rather than a passing run.
+
+Hosted run 45801668107 passed all validation, but release job 139848488699
+reproduced the apt contention while downloading 21 MB of fonts: the first
+180-second npx attempt left apt-get 2649 running, and the second attempt
+failed immediately on its frontend lock. Added apt's bounded 120-second lock
+acquisition wait on disposable Linux runners, inside the unchanged 180-second
+provisioning deadline. The new shell-boundary test uses fake sudo/npx and
+checks the emitted apt configuration and unchanged browser-install arguments.
+Retained first release log: `work/hosted-dorego-release.log`. No application
+assertions, test budgets, package mirrors or signing settings were changed.

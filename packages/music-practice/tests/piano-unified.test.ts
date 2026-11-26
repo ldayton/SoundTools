@@ -79,6 +79,92 @@ test("idioms derive from musical structure, preserving closed positions and chro
     [...analyzePianoContexts(renamed).context.values()].map((c) => c.idiom),
   );
 });
+
+test("stretched five-finger regions keep classic digits even beside a general passage", () => {
+  const input = notes([50, 59, 53, 52, 50, 52, 53, 50, 62, 65, 69, 74, 77, 81]);
+  const before = JSON.stringify(input),
+    classic = planPianoPhrase(input),
+    result = planUnifiedPianoPhrase(input, parncuttUniformWeights);
+  const contexts = analyzePianoContexts(input);
+  assert.ok([...contexts.context.values()].some((c) => c.idiom === "general"));
+  const protectedNotes = input.filter(
+    (n) => contexts.context.get(n.id)?.idiom === "closed-position",
+  );
+  assert.ok(protectedNotes.length >= 8);
+  for (const n of protectedNotes)
+    assert.equal(
+      result.plan.notes.find((p) => p.id === n.id)?.finger,
+      classic.notes.find((p) => p.id === n.id)?.finger,
+    );
+  assert.equal(
+    neuralPhysicalViolations(
+      input,
+      new Map(result.plan.notes.map((n) => [n.id, n.finger])),
+    ).length,
+    0,
+  );
+  assert.equal(
+    JSON.stringify(input),
+    before,
+    "generated idiom constraints never rewrite authored input",
+  );
+});
+
+test("compact oscillations count repeated attacks as position context", () => {
+  const input = notes([72, 77, 79, 77, 76, 77, 84, 88]);
+  const ctx = analyzePianoContexts(input),
+    classic = planPianoPhrase(input),
+    candidate = planUnifiedPianoPhrase(input, parncuttUniformWeights).plan;
+  for (const n of input.slice(1, 6)) {
+    assert.equal(ctx.context.get(n.id)?.idiom, "closed-position");
+    assert.equal(
+      candidate.notes.find((p) => p.id === n.id)?.finger,
+      classic.notes.find((p) => p.id === n.id)?.finger,
+    );
+  }
+});
+
+test("uncalibrated chord-to-line hands retain classic planning with an explicit scope decision", () => {
+  const input = [
+    ...notes([60, 64, 67, 72, 76, 79]),
+    { id: "chord", hand: "right" as const, midi: 67, start: 0, duration: 1 },
+  ];
+  const result = planUnifiedPianoPhrase(input, parncuttUniformWeights);
+  assert.equal(result.decisions.right, "classic-polyphonic-scope");
+  assert.deepEqual(result.plan, planPianoPhrase(input));
+});
+
+test("a chord after real hand silence does not disable an earlier monophonic phrase", () => {
+  const first = notes([60, 64, 67, 72, 76, 79]);
+  const separate = [
+    ...first,
+    ...[60, 64, 67].map((midi, i) => ({
+      id: "closing" + i,
+      hand: "right" as const,
+      midi,
+      start: 10,
+      duration: 1,
+    })),
+  ];
+  const alone = planUnifiedPianoPhrase(first, parncuttUniformWeights),
+    combined = planUnifiedPianoPhrase(separate, parncuttUniformWeights);
+  assert.equal(combined.decisions.right, "unified");
+  assert.deepEqual(
+    combined.plan.notes
+      .filter((n) => !n.id.startsWith("closing"))
+      .map((n) => n.finger),
+    alone.plan.notes.map((n) => n.finger),
+  );
+  const classic = planPianoPhrase(separate);
+  assert.deepEqual(
+    combined.plan.notes
+      .filter((n) => n.id.startsWith("closing"))
+      .map((n) => n.finger),
+    classic.notes
+      .filter((n) => n.id.startsWith("closing"))
+      .map((n) => n.finger),
+  );
+});
 test("unified history objective keeps the exact optimum across different two-attack histories", () => {
   const input = notes([60, 62, 64]),
     objective = {

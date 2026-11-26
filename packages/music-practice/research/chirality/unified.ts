@@ -28,7 +28,7 @@ export type PianoContactContext = {
   previous?: string;
   next?: string;
 };
-export const unifiedPianoPolicyVersion = "unified-v2";
+export const unifiedPianoPolicyVersion = "unified-v3";
 
 /** Only input structure enters recognition. No source names, reference digits,
  * learned predictions, or editorial exercise labels enter these preferences. */
@@ -74,8 +74,8 @@ export function analyzePianoContexts(notes: readonly PianoPhraseNote[]) {
       keys = pitches.map(pianoKeyPosition);
     const closed =
       new Set(pitches).size <= 5 &&
-      Math.max(...pitches) - Math.min(...pitches) <= 7 &&
-      Math.max(...keys) - Math.min(...keys) <= 4;
+      Math.max(...pitches) - Math.min(...pitches) <= 9 &&
+      Math.max(...keys) - Math.min(...keys) <= 5;
     chunk.forEach((c, i) =>
       context.set(c.id, {
         idiom: closed ? "closed-position" : "general",
@@ -84,7 +84,8 @@ export function analyzePianoContexts(notes: readonly PianoPhraseNote[]) {
       }),
     );
     // A stream may change hand position several times. Recognize local closed
-    // regions too: four/five distinct keys in the same compact span. Sliding
+    // regions too: at least four attacks on at most five distinct keys within a major sixth, including
+    // stretched positions that skip an intermediate key. Sliding
     // windows are input-only; difference marks avoid quadratic range painting.
     if (!closed) {
       const counts = new Map<number, number>(),
@@ -95,8 +96,8 @@ export function analyzePianoContexts(notes: readonly PianoPhraseNote[]) {
           ks = ps.map(pianoKeyPosition);
         return (
           new Set(ps).size <= 5 &&
-          Math.max(...ps) - Math.min(...ps) <= 7 &&
-          Math.max(...ks) - Math.min(...ks) <= 4
+          Math.max(...ps) - Math.min(...ps) <= 9 &&
+          Math.max(...ks) - Math.min(...ks) <= 5
         );
       };
       for (let begin = 0; begin < chunk.length; begin++) {
@@ -104,7 +105,9 @@ export function analyzePianoContexts(notes: readonly PianoPhraseNote[]) {
           const m = chunk[end++].midi;
           counts.set(m, (counts.get(m) ?? 0) + 1);
         }
-        if (counts.size >= 4) {
+        // Repeated/oscillating fingers are still a compact hand position.
+        // Four attacks provide context without requiring four distinct keys.
+        if (end - begin >= 4) {
           marks[begin]++;
           marks[end]--;
         }
@@ -167,7 +170,38 @@ export function planUnifiedPianoPhrase(
     };
   const analysis = analyzePianoContexts(notes),
     byId = new Map(analysis.contacts.map((c) => [c.id, c]));
-  const general = (id: string) => analysis.context.get(id)?.idiom === "general";
+  // The sequence model has no calibrated chord-to-line transition. Restrict its
+  // preferences to monophonic physical phrases separated by real hand silence.
+  // A chord in another phrase must not disable an otherwise eligible passage.
+  const polyphonicHands = new Set<PianoHand>();
+  const unscored = new Set<string>();
+  for (const hand of ["right", "left"] as const) {
+    let phrase: typeof analysis.contacts = [],
+      end = -Infinity,
+      polyphonic = false;
+    const finish = () => {
+      if (polyphonic) {
+        polyphonicHands.add(hand);
+        for (const c of phrase) unscored.add(c.id);
+      }
+    };
+    for (const c of analysis.contacts
+      .filter((c) => c.hand === hand)
+      .sort((a, b) => a.start - b.start || a.id.localeCompare(b.id))) {
+      if (c.start > end && !pianoSameTime(c.start, end)) {
+        finish();
+        phrase = [];
+        end = -Infinity;
+        polyphonic = false;
+      }
+      if (c.start < end && !pianoSameTime(c.start, end)) polyphonic = true;
+      phrase.push(c);
+      end = Math.max(end, c.end);
+    }
+    finish();
+  }
+  const general = (id: string) =>
+    analysis.context.get(id)?.idiom === "general" && !unscored.has(id);
   const eligiblePair = (a: string, b: string) =>
     general(a) && general(b) && analysis.context.get(b)?.previous === a;
   const localCache = new WeakMap<object, number>(),
@@ -179,11 +213,38 @@ export function planUnifiedPianoPhrase(
     return {
       plan: baseline,
       version: unifiedPianoPolicyVersion,
-      decisions: { right: "protected-context", left: "protected-context" },
+      decisions: Object.fromEntries(
+        (["right", "left"] as const).map((hand) => [
+          hand,
+          polyphonicHands.has(hand)
+            ? "classic-polyphonic-scope"
+            : "protected-context",
+        ]),
+      ),
       contexts: [...analysis.context],
     };
+  // Recognized idioms supply generated constraints from the complete classic
+  // plan. Keeping only their costs allowed neighboring general passages to
+  // change their digits. These are internal search constraints, never source
+  // anchors: provenance and the caller's notes remain unchanged.
+  const classicDigits = new Map(baseline.notes.map((n) => [n.id, n.finger]));
+  const occurrenceRoots = new Map(
+    analysis.contacts.flatMap((c) =>
+      c.noteIds.map((id) => [id, c.id] as const),
+    ),
+  );
+  const constrained = notes.map((n) => {
+    const root = occurrenceRoots.get(n.id);
+    const finger = classicDigits.get(n.id);
+    return root &&
+      !general(root) &&
+      finger !== undefined &&
+      n.finger === undefined
+      ? { ...n, finger }
+      : n;
+  });
   const ranked = planPianoPhraseRanked(
-    notes,
+    constrained,
     {
       local(frame) {
         if (localCache.has(frame.fingers))
@@ -282,7 +343,9 @@ export function planUnifiedPianoPhrase(
     decisions: Record<string, string> = {};
   for (const hand of ["right", "left"] as const) {
     if (!preferredHands.has(hand)) {
-      decisions[hand] = "protected-context";
+      decisions[hand] = polyphonicHands.has(hand)
+        ? "classic-polyphonic-scope"
+        : "protected-context";
       continue;
     }
     if (ranked.hands[hand].status === "complete") {

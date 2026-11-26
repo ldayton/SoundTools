@@ -1,0 +1,30 @@
+{
+  "corpusSha256": "6db905b0767b6cf623ce1468573ccf26375fddc592f365d286e79392e3a0fb4a",
+  "semantics": "Written repeat bodies/all printed alternatives once; compare unique attack pitch and truncated MIDI ticks. Does not validate gold digits or hold articulation approximation.",
+  "rows": [
+    {
+      "id": "czerny-op840-5",
+      "uniqueAttacks": 579,
+      "matched": true
+    },
+    {
+      "id": "czerny-op840-8",
+      "uniqueAttacks": 387,
+      "matched": true
+    },
+    {
+      "id": "czerny-op840-10",
+      "uniqueAttacks": 600,
+      "matched": true
+    }
+  ],
+  "unsupported": [
+    "czerny-op840-1",
+    "czerny-op840-2",
+    "czerny-op840-3",
+    "czerny-op840-4",
+    "czerny-op840-6",
+    "czerny-op840-7",
+    "czerny-op840-9"
+  ]
+}

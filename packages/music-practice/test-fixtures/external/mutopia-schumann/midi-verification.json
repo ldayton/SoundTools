@@ -1,0 +1,62 @@
+{
+  "corpusSha256": "6fe269ada19f2b5d69782f23c00bf63eb742e340536026d3b0874f2dbbb051ef",
+  "semantics": "Written repeat bodies/all printed alternatives once; compare unique attack pitch and truncated MIDI ticks. Does not validate gold digits or hold articulation approximation.",
+  "rows": [
+    {
+      "id": "schumann-op68-02-marche-militaire",
+      "uniqueAttacks": 212,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-03-chanson-fredonnee",
+      "uniqueAttacks": 277,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-04-choral",
+      "uniqueAttacks": 230,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-05-petite-piece",
+      "uniqueAttacks": 279,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-06-pauvre-orpheline",
+      "uniqueAttacks": 230,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-08-cavalier-sauvage",
+      "uniqueAttacks": 312,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-10-gai-laboureur",
+      "uniqueAttacks": 352,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-12-Pere-Fouettard",
+      "uniqueAttacks": 868,
+      "matched": true
+    },
+    {
+      "id": "schumann-op68-25-theater",
+      "uniqueAttacks": 543,
+      "matched": true
+    }
+  ],
+  "unsupported": [
+    "schumann-op68-07-chanson-du-chasseur",
+    "schumann-op68-09-chanson-populaire",
+    "schumann-op68-11-sicilienne",
+    "schumann-op68-13-Mai-cher-Mai",
+    "schumann-op68-14-petite-etude",
+    "schumann-op68-16-premier-chagrin",
+    "schumann-op68-18-moissonneurs",
+    "schumann-op68-26-sans-titre",
+    "schumann-op68-36-chant-de-marins-italiens"
+  ]
+}

@@ -1,0 +1,5099 @@
+{
+  "scope": "Consumed development evidence only; early fresh fields refer to already-consumed Burgmuller, not untouched Schumann/Op840. Protocol and hashes describe each attempt. Final default-promotion decision requires new fresh report.",
+  "attempts": [
+    {
+      "schema": 1,
+      "policy": "unified-v3",
+      "scope": "Frozen policy, fresh eighteen-piece reservation and consumed regression groups. No fitting or fresh-result tuning. Five ornament/cross-staff pieces retained unsupported for both methods. Upstream PIG training overlap cannot be certified.",
+      "hashes": {
+        "fresh": "a056c5f4485090cc572ffb096985dea8f8d578e393c0fddb9a393ae6e5925f03",
+        "reservation": "eec864da2ee8af0e333ac1397f2590fb3b88fd31b2c3e071aec8850d85f4c84a",
+        "weights": "bb454a20f87235722727993ca5de4187fa6bb97b73e9e71afe116f4958d43215",
+        "implementation": {
+          "../../research/chirality/unified.ts": "45335580456abfc0f9d866a610601319c154079f0d08737eace002c147d82793",
+          "../../research/chirality/rules.ts": "542a3e4318ae89ad6e9b7cfcbb04bd39c0b0da0ad9f5285b2c21a57b5d161887",
+          "../../src/piano-phrase-fingering.ts": "4ffcc733bdd18d96690a350d3924f692c734d8b97fd33c8e212d55dc43e61021",
+          "./unified-protocol.json": "40f13e0a8bd6573e76bcee35619e027a686c6b9f385b3de1625995dbb7e585c5",
+          "./unified-v2-protocol.json": "804fb04eed84a8aff9f51804fd2610b5a377fae0271059dd26f29a9fb40da720",
+          "./unified-evaluate.ts": "53c3ddcca55823fc7d7bae40363cefbe5ed8f8eaac2235adca79dc4165cfa173"
+        }
+      },
+      "promotion": {
+        "passed": true,
+        "gates": [
+          {
+            "name": "printed-total",
+            "pass": true
+          },
+          {
+            "name": "fresh-total",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:scales",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:chromatic",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:five-finger",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:technical",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:repertoire",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-broken-chords",
+            "pass": true
+          },
+          {
+            "name": "family:beringer-scales:beringer-scales",
+            "pass": true
+          },
+          {
+            "name": "printed:completeCases",
+            "pass": true
+          },
+          {
+            "name": "printed:completeHands",
+            "pass": true
+          },
+          {
+            "name": "printed:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "printed:coverage",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeCases",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeHands",
+            "pass": true
+          },
+          {
+            "name": "fresh:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "fresh:coverage",
+            "pass": true
+          }
+        ]
+      },
+      "printed": {
+        "classic": {
+          "cases": 152,
+          "eligible": 7947,
+          "matches": 5403,
+          "covered": 7898,
+          "agreement": 0.6798791996979993,
+          "feasibleHands": 302,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 13,
+            "completeHands": 36,
+            "matchedTransitions": 2747
+          }
+        },
+        "unified": {
+          "cases": 152,
+          "eligible": 7947,
+          "matches": 5580,
+          "covered": 7898,
+          "agreement": 0.7021517553793885,
+          "feasibleHands": 302,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 15,
+            "completeHands": 49,
+            "matchedTransitions": 2868
+          }
+        }
+      },
+      "completed": {
+        "classic": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3355,
+          "covered": 8757,
+          "agreement": 0.38312207376955576,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 1970
+          }
+        },
+        "unified": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 4491,
+          "covered": 8757,
+          "agreement": 0.512846865364851,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 12,
+            "matchedTransitions": 3297
+          }
+        }
+      },
+      "fresh": {
+        "classic": {
+          "cases": 18,
+          "eligible": 1012,
+          "matches": 355,
+          "covered": 716,
+          "agreement": 0.35079051383399207,
+          "feasibleHands": 26,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 1,
+            "matchedTransitions": 35
+          }
+        },
+        "unified": {
+          "cases": 18,
+          "eligible": 1012,
+          "matches": 357,
+          "covered": 716,
+          "agreement": 0.35276679841897235,
+          "feasibleHands": 26,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 1,
+            "matchedTransitions": 37
+          }
+        }
+      },
+      "families": {
+        "hanon:scales": {
+          "classic": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          },
+          "unified": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          }
+        },
+        "hanon:chromatic": {
+          "classic": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          },
+          "unified": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          }
+        },
+        "hanon:arpeggios": {
+          "classic": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 164,
+            "covered": 567,
+            "agreement": 0.2892416225749559,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 7
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 339,
+            "covered": 567,
+            "agreement": 0.5978835978835979,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 13,
+              "matchedTransitions": 128
+            }
+          }
+        },
+        "hanon:five-finger": {
+          "classic": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          },
+          "unified": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          }
+        },
+        "hanon:technical": {
+          "classic": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          },
+          "unified": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 346,
+            "covered": 1070,
+            "agreement": 0.3233644859813084,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          }
+        },
+        "hanon:repertoire": {
+          "classic": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 152,
+            "covered": 201,
+            "agreement": 0.7562189054726368,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 2,
+              "completeHands": 11,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 152,
+            "covered": 201,
+            "agreement": 0.7562189054726368,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 3,
+              "completeHands": 11,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "beringer:beringer-arpeggios": {
+          "classic": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1139,
+            "covered": 5136,
+            "agreement": 0.22176791277258567,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 336
+            }
+          },
+          "unified": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1794,
+            "covered": 5136,
+            "agreement": 0.3492990654205608,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 967
+            }
+          }
+        },
+        "beringer:beringer-broken-chords": {
+          "classic": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 880,
+            "covered": 1536,
+            "agreement": 0.5729166666666666,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 529
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 1361,
+            "covered": 1536,
+            "agreement": 0.8860677083333334,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 12,
+              "matchedTransitions": 1225
+            }
+          }
+        },
+        "beringer-scales:beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        }
+      },
+      "totalMs": 5860.197422999993,
+      "attempt": "stretched-costs",
+      "fullLocalArtifact": "work/piano-v3/development.json"
+    },
+    {
+      "schema": 1,
+      "policy": "unified-v3",
+      "developmentOnly": true,
+      "scope": "Frozen V3 policy, untouched eighteen-piece Schumann reservation and consumed Hanon/Beringer/Czerny/Burgmuller groups. No fitting or fresh-result tuning. Every unsupported piece retained for both methods. Common 120 BPM for reserved repertoire. Upstream PIG training overlap cannot be certified.",
+      "hashes": {
+        "fresh": "6fe269ada19f2b5d69782f23c00bf63eb742e340536026d3b0874f2dbbb051ef",
+        "reservation": "e35bb01c2e020ed9ecc83441c22105c7b41a14367e26965e85d323a70766c80b",
+        "weights": "bb454a20f87235722727993ca5de4187fa6bb97b73e9e71afe116f4958d43215",
+        "releasedPlanner": {
+          "ref": "8ec11658",
+          "sha256": "2629388aea82f2dfdc595d8a3aece4b5ccd7274fd2b20840d6d9951558345769"
+        },
+        "implementation": {
+          "../../research/chirality/unified.ts": "44b75946a2d9c992be859c2601fb81b619832b392b38b6b845f446578fd5b096",
+          "../../research/chirality/rules.ts": "542a3e4318ae89ad6e9b7cfcbb04bd39c0b0da0ad9f5285b2c21a57b5d161887",
+          "../../src/piano-phrase-fingering.ts": "4ffcc733bdd18d96690a350d3924f692c734d8b97fd33c8e212d55dc43e61021",
+          "./unified-protocol.json": "40f13e0a8bd6573e76bcee35619e027a686c6b9f385b3de1625995dbb7e585c5",
+          "./unified-v2-protocol.json": "804fb04eed84a8aff9f51804fd2610b5a377fae0271059dd26f29a9fb40da720",
+          "./unified-v3-protocol.json": "854be4638ef28b12539fd3d87bfe1c24af0c58d737528b5d85305ab1c0ed7306",
+          "./unified-v3-evaluate.ts": "31f74c5257aea862b83ce6ca78b41e51cb1cdeb3c44269397e5f028877513a1f"
+        }
+      },
+      "promotion": {
+        "passed": false,
+        "gates": [
+          {
+            "name": "printed-total",
+            "pass": true
+          },
+          {
+            "name": "fresh-total",
+            "pass": false
+          },
+          {
+            "name": "family:hanon:scales",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:chromatic",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:five-finger",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:technical",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:repertoire",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-broken-chords",
+            "pass": true
+          },
+          {
+            "name": "family:beringer-scales:beringer-scales",
+            "pass": true
+          },
+          {
+            "name": "family:burgmuller:burgmuller-op100",
+            "pass": true
+          },
+          {
+            "name": "family:czerny:czerny-op821",
+            "pass": false
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-20",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-21",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-22",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-23",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-24",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-25",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-26",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-27",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-28",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-29",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-30",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-31",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-32",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-33",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-34",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-35",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-36",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-37",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-38",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-39",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-40",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-41",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-42",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-43",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-1-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-2-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-3-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-4-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-5-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-6-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-7-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-8-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-9-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-10-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-11-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-12-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-13-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-14-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-15-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-16-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-17-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-18-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-19-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-20-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-abendlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-kinderlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-op101-no66",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:czerny-op599-no11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:schumann-melodie",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-aller-anfang",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-bey-der-wiege",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-hans-ohne-sorgen",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-matt-und-krank",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-muntere-knabe",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-aflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_ascending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_descending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-dflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "printed:completeCases",
+            "pass": true
+          },
+          {
+            "name": "printed:completeHands",
+            "pass": true
+          },
+          {
+            "name": "printed:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "printed:coverage",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeCases",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeHands",
+            "pass": true
+          },
+          {
+            "name": "fresh:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "fresh:coverage",
+            "pass": true
+          }
+        ]
+      },
+      "printed": {
+        "classic": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6045,
+          "covered": 9195,
+          "agreement": 0.6262301875064746,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 13,
+            "completeHands": 38,
+            "matchedTransitions": 2839
+          }
+        },
+        "unified": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6222,
+          "covered": 9195,
+          "agreement": 0.644566456024034,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 15,
+            "completeHands": 52,
+            "matchedTransitions": 2963
+          }
+        }
+      },
+      "completed": {
+        "classic": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3355,
+          "covered": 8757,
+          "agreement": 0.38312207376955576,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 1970
+          }
+        },
+        "unified": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 4479,
+          "covered": 8757,
+          "agreement": 0.5114765330592669,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 12,
+            "matchedTransitions": 3290
+          }
+        }
+      },
+      "fresh": {
+        "classic": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        },
+        "unified": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        }
+      },
+      "families": {
+        "hanon:scales": {
+          "classic": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          },
+          "unified": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          }
+        },
+        "hanon:chromatic": {
+          "classic": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          },
+          "unified": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          }
+        },
+        "hanon:arpeggios": {
+          "classic": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 164,
+            "covered": 567,
+            "agreement": 0.2892416225749559,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 7
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 339,
+            "covered": 567,
+            "agreement": 0.5978835978835979,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 13,
+              "matchedTransitions": 128
+            }
+          }
+        },
+        "hanon:five-finger": {
+          "classic": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          },
+          "unified": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          }
+        },
+        "hanon:technical": {
+          "classic": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          },
+          "unified": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          }
+        },
+        "hanon:repertoire": {
+          "classic": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 152,
+            "covered": 201,
+            "agreement": 0.7562189054726368,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 2,
+              "completeHands": 11,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 153,
+            "covered": 201,
+            "agreement": 0.7611940298507462,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 3,
+              "completeHands": 12,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "beringer:beringer-arpeggios": {
+          "classic": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1139,
+            "covered": 5136,
+            "agreement": 0.22176791277258567,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 336
+            }
+          },
+          "unified": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1782,
+            "covered": 5136,
+            "agreement": 0.3469626168224299,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 960
+            }
+          }
+        },
+        "beringer:beringer-broken-chords": {
+          "classic": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 880,
+            "covered": 1536,
+            "agreement": 0.5729166666666666,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 529
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 1361,
+            "covered": 1536,
+            "agreement": 0.8860677083333334,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 12,
+              "matchedTransitions": 1225
+            }
+          }
+        },
+        "beringer-scales:beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "burgmuller:burgmuller-op100": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 358,
+            "covered": 716,
+            "agreement": 0.35375494071146246,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 37
+            }
+          }
+        },
+        "czerny:czerny-op821": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 285,
+            "covered": 581,
+            "agreement": 0.4106628242074928,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 58
+            }
+          }
+        }
+      },
+      "collections": {
+        "hanon": {
+          "classic": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5403,
+            "covered": 7898,
+            "agreement": 0.6798791996979993,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 13,
+              "completeHands": 36,
+              "matchedTransitions": 2747
+            }
+          },
+          "unified": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5579,
+            "covered": 7898,
+            "agreement": 0.702025921731471,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 15,
+              "completeHands": 50,
+              "matchedTransitions": 2868
+            }
+          }
+        },
+        "beringer": {
+          "classic": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 2019,
+            "covered": 6672,
+            "agreement": 0.30260791366906475,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 865
+            }
+          },
+          "unified": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 3143,
+            "covered": 6672,
+            "agreement": 0.47107314148681056,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 12,
+              "matchedTransitions": 2185
+            }
+          }
+        },
+        "beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "czerny": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 285,
+            "covered": 581,
+            "agreement": 0.4106628242074928,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 58
+            }
+          }
+        },
+        "burgmuller": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 358,
+            "covered": 716,
+            "agreement": 0.35375494071146246,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 37
+            }
+          }
+        }
+      },
+      "freshPieces": [],
+      "totalMs": 4259.797003999998,
+      "attempt": "generated-constraints",
+      "fullLocalArtifact": "work/piano-v3/development-released.json"
+    },
+    {
+      "schema": 1,
+      "policy": "unified-v3",
+      "developmentOnly": true,
+      "scope": "Frozen V3 policy, untouched eighteen-piece Schumann reservation and consumed Hanon/Beringer/Czerny/Burgmuller groups. No fitting or fresh-result tuning. Every unsupported piece retained for both methods. Common 120 BPM for reserved repertoire. Upstream PIG training overlap cannot be certified.",
+      "hashes": {
+        "fresh": "6fe269ada19f2b5d69782f23c00bf63eb742e340536026d3b0874f2dbbb051ef",
+        "reservation": "e35bb01c2e020ed9ecc83441c22105c7b41a14367e26965e85d323a70766c80b",
+        "weights": "bb454a20f87235722727993ca5de4187fa6bb97b73e9e71afe116f4958d43215",
+        "releasedPlanner": {
+          "ref": "8ec11658",
+          "sha256": "2629388aea82f2dfdc595d8a3aece4b5ccd7274fd2b20840d6d9951558345769"
+        },
+        "implementation": {
+          "../../research/chirality/unified.ts": "220f4aef550ae42067ee35f506581a637bb7a2a9104a421dd4ca00c12a3da1a6",
+          "../../research/chirality/rules.ts": "542a3e4318ae89ad6e9b7cfcbb04bd39c0b0da0ad9f5285b2c21a57b5d161887",
+          "../../src/piano-phrase-fingering.ts": "4ffcc733bdd18d96690a350d3924f692c734d8b97fd33c8e212d55dc43e61021",
+          "./unified-protocol.json": "40f13e0a8bd6573e76bcee35619e027a686c6b9f385b3de1625995dbb7e585c5",
+          "./unified-v2-protocol.json": "804fb04eed84a8aff9f51804fd2610b5a377fae0271059dd26f29a9fb40da720",
+          "./unified-v3-protocol.json": "854be4638ef28b12539fd3d87bfe1c24af0c58d737528b5d85305ab1c0ed7306",
+          "./unified-v3-evaluate.ts": "31f74c5257aea862b83ce6ca78b41e51cb1cdeb3c44269397e5f028877513a1f"
+        }
+      },
+      "promotion": {
+        "passed": false,
+        "gates": [
+          {
+            "name": "printed-total",
+            "pass": true
+          },
+          {
+            "name": "fresh-total",
+            "pass": false
+          },
+          {
+            "name": "family:hanon:scales",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:chromatic",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:five-finger",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:technical",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:repertoire",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-broken-chords",
+            "pass": true
+          },
+          {
+            "name": "family:beringer-scales:beringer-scales",
+            "pass": true
+          },
+          {
+            "name": "family:burgmuller:burgmuller-op100",
+            "pass": true
+          },
+          {
+            "name": "family:czerny:czerny-op821",
+            "pass": false
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-20",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-21",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-22",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-23",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-24",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-25",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-26",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-27",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-28",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-29",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-30",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-31",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-32",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-33",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-34",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-35",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-36",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-37",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-38",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-39",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-40",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-41",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-42",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-43",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-1-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-2-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-3-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-4-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-5-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-6-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-7-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-8-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-9-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-10-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-11-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-12-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-13-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-14-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-15-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-16-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-17-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-18-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-19-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-20-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-abendlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-kinderlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-op101-no66",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:czerny-op599-no11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:schumann-melodie",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-aller-anfang",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-bey-der-wiege",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-hans-ohne-sorgen",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-matt-und-krank",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-muntere-knabe",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-aflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_ascending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_descending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-dflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "printed:completeCases",
+            "pass": true
+          },
+          {
+            "name": "printed:completeHands",
+            "pass": true
+          },
+          {
+            "name": "printed:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "printed:coverage",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeCases",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeHands",
+            "pass": true
+          },
+          {
+            "name": "fresh:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "fresh:coverage",
+            "pass": true
+          }
+        ]
+      },
+      "printed": {
+        "classic": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6045,
+          "covered": 9195,
+          "agreement": 0.6262301875064746,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 13,
+            "completeHands": 38,
+            "matchedTransitions": 2839
+          }
+        },
+        "unified": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6191,
+          "covered": 9195,
+          "agreement": 0.6413550191650265,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 14,
+            "completeHands": 45,
+            "matchedTransitions": 2937
+          }
+        }
+      },
+      "completed": {
+        "classic": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3355,
+          "covered": 8757,
+          "agreement": 0.38312207376955576,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 1970
+          }
+        },
+        "unified": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3820,
+          "covered": 8757,
+          "agreement": 0.43622245061093984,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 2373
+          }
+        }
+      },
+      "fresh": {
+        "classic": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        },
+        "unified": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        }
+      },
+      "families": {
+        "hanon:scales": {
+          "classic": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          },
+          "unified": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          }
+        },
+        "hanon:chromatic": {
+          "classic": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          },
+          "unified": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          }
+        },
+        "hanon:arpeggios": {
+          "classic": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 164,
+            "covered": 567,
+            "agreement": 0.2892416225749559,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 7
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 305,
+            "covered": 567,
+            "agreement": 0.5379188712522046,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 6,
+              "matchedTransitions": 101
+            }
+          }
+        },
+        "hanon:five-finger": {
+          "classic": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          },
+          "unified": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          }
+        },
+        "hanon:technical": {
+          "classic": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          },
+          "unified": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          }
+        },
+        "hanon:repertoire": {
+          "classic": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 152,
+            "covered": 201,
+            "agreement": 0.7562189054726368,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 2,
+              "completeHands": 11,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 153,
+            "covered": 201,
+            "agreement": 0.7611940298507462,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 3,
+              "completeHands": 12,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "beringer:beringer-arpeggios": {
+          "classic": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1139,
+            "covered": 5136,
+            "agreement": 0.22176791277258567,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 336
+            }
+          },
+          "unified": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1564,
+            "covered": 5136,
+            "agreement": 0.3045171339563863,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 680
+            }
+          }
+        },
+        "beringer:beringer-broken-chords": {
+          "classic": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 880,
+            "covered": 1536,
+            "agreement": 0.5729166666666666,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 529
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 920,
+            "covered": 1536,
+            "agreement": 0.5989583333333334,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 588
+            }
+          }
+        },
+        "beringer-scales:beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "burgmuller:burgmuller-op100": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 360,
+            "covered": 716,
+            "agreement": 0.3557312252964427,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 39
+            }
+          }
+        },
+        "czerny:czerny-op821": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 286,
+            "covered": 581,
+            "agreement": 0.41210374639769454,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          }
+        }
+      },
+      "collections": {
+        "hanon": {
+          "classic": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5403,
+            "covered": 7898,
+            "agreement": 0.6798791996979993,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 13,
+              "completeHands": 36,
+              "matchedTransitions": 2747
+            }
+          },
+          "unified": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5545,
+            "covered": 7898,
+            "agreement": 0.6977475777022776,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 14,
+              "completeHands": 43,
+              "matchedTransitions": 2841
+            }
+          }
+        },
+        "beringer": {
+          "classic": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 2019,
+            "covered": 6672,
+            "agreement": 0.30260791366906475,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 865
+            }
+          },
+          "unified": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 2484,
+            "covered": 6672,
+            "agreement": 0.3723021582733813,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1268
+            }
+          }
+        },
+        "beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "czerny": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 286,
+            "covered": 581,
+            "agreement": 0.41210374639769454,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "burgmuller": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 360,
+            "covered": 716,
+            "agreement": 0.3557312252964427,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 39
+            }
+          }
+        }
+      },
+      "freshPieces": [],
+      "totalMs": 3429.191913999998,
+      "attempt": "repeated-positions",
+      "fullLocalArtifact": "work/piano-v3/development-repeats.json"
+    },
+    {
+      "schema": 1,
+      "policy": "unified-v3",
+      "developmentOnly": true,
+      "scope": "Frozen V3 policy, untouched eighteen-piece Schumann reservation and consumed Hanon/Beringer/Czerny/Burgmuller groups. No fitting or fresh-result tuning. Every unsupported piece retained for both methods. Common 120 BPM for reserved repertoire. Upstream PIG training overlap cannot be certified.",
+      "hashes": {
+        "fresh": "6fe269ada19f2b5d69782f23c00bf63eb742e340536026d3b0874f2dbbb051ef",
+        "reservation": "e35bb01c2e020ed9ecc83441c22105c7b41a14367e26965e85d323a70766c80b",
+        "weights": "bb454a20f87235722727993ca5de4187fa6bb97b73e9e71afe116f4958d43215",
+        "releasedPlanner": {
+          "ref": "8ec11658",
+          "sha256": "2629388aea82f2dfdc595d8a3aece4b5ccd7274fd2b20840d6d9951558345769"
+        },
+        "implementation": {
+          "../../research/chirality/unified.ts": "706a51aaf413e96c28e6c3fb425367de02d09a91647fce2273e9e08d6ede1c09",
+          "../../research/chirality/rules.ts": "542a3e4318ae89ad6e9b7cfcbb04bd39c0b0da0ad9f5285b2c21a57b5d161887",
+          "../../src/piano-phrase-fingering.ts": "4ffcc733bdd18d96690a350d3924f692c734d8b97fd33c8e212d55dc43e61021",
+          "./unified-protocol.json": "40f13e0a8bd6573e76bcee35619e027a686c6b9f385b3de1625995dbb7e585c5",
+          "./unified-v2-protocol.json": "804fb04eed84a8aff9f51804fd2610b5a377fae0271059dd26f29a9fb40da720",
+          "./unified-v3-protocol.json": "748efc3ba0123e5da9b88815445b2c72d7679a6484690372daa08740e07398c1",
+          "./unified-v3-evaluate.ts": "31f74c5257aea862b83ce6ca78b41e51cb1cdeb3c44269397e5f028877513a1f"
+        }
+      },
+      "promotion": {
+        "passed": false,
+        "gates": [
+          {
+            "name": "printed-total",
+            "pass": true
+          },
+          {
+            "name": "fresh-total",
+            "pass": false
+          },
+          {
+            "name": "family:hanon:scales",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:chromatic",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:five-finger",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:technical",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:repertoire",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-broken-chords",
+            "pass": true
+          },
+          {
+            "name": "family:beringer-scales:beringer-scales",
+            "pass": true
+          },
+          {
+            "name": "family:burgmuller:burgmuller-op100",
+            "pass": true
+          },
+          {
+            "name": "family:czerny:czerny-op821",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-20",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-21",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-22",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-23",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-24",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-25",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-26",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-27",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-28",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-29",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-30",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-31",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-32",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-33",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-34",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-35",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-36",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-37",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-38",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-39",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-40",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-41",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-42",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-43",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-1-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-2-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-3-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-4-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-5-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-6-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-7-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-8-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-9-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-10-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-11-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-12-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-13-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-14-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-15-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-16-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-17-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-18-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-19-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-20-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-abendlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-kinderlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-op101-no66",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:czerny-op599-no11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:schumann-melodie",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-aller-anfang",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-bey-der-wiege",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-hans-ohne-sorgen",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-matt-und-krank",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-muntere-knabe",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-aflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_ascending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_descending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-dflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "printed:completeCases",
+            "pass": true
+          },
+          {
+            "name": "printed:completeHands",
+            "pass": true
+          },
+          {
+            "name": "printed:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "printed:coverage",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeCases",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeHands",
+            "pass": true
+          },
+          {
+            "name": "fresh:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "fresh:coverage",
+            "pass": true
+          }
+        ]
+      },
+      "printed": {
+        "classic": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6045,
+          "covered": 9195,
+          "agreement": 0.6262301875064746,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 13,
+            "completeHands": 38,
+            "matchedTransitions": 2839
+          }
+        },
+        "unified": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6189,
+          "covered": 9195,
+          "agreement": 0.6411478296902517,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 14,
+            "completeHands": 45,
+            "matchedTransitions": 2934
+          }
+        }
+      },
+      "completed": {
+        "classic": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3355,
+          "covered": 8757,
+          "agreement": 0.38312207376955576,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 1970
+          }
+        },
+        "unified": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3820,
+          "covered": 8757,
+          "agreement": 0.43622245061093984,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 2373
+          }
+        }
+      },
+      "fresh": {
+        "classic": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        },
+        "unified": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        }
+      },
+      "families": {
+        "hanon:scales": {
+          "classic": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          },
+          "unified": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          }
+        },
+        "hanon:chromatic": {
+          "classic": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          },
+          "unified": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          }
+        },
+        "hanon:arpeggios": {
+          "classic": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 164,
+            "covered": 567,
+            "agreement": 0.2892416225749559,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 7
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 305,
+            "covered": 567,
+            "agreement": 0.5379188712522046,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 6,
+              "matchedTransitions": 101
+            }
+          }
+        },
+        "hanon:five-finger": {
+          "classic": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          },
+          "unified": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          }
+        },
+        "hanon:technical": {
+          "classic": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          },
+          "unified": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          }
+        },
+        "hanon:repertoire": {
+          "classic": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 152,
+            "covered": 201,
+            "agreement": 0.7562189054726368,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 2,
+              "completeHands": 11,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 153,
+            "covered": 201,
+            "agreement": 0.7611940298507462,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 3,
+              "completeHands": 12,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "beringer:beringer-arpeggios": {
+          "classic": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1139,
+            "covered": 5136,
+            "agreement": 0.22176791277258567,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 336
+            }
+          },
+          "unified": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1564,
+            "covered": 5136,
+            "agreement": 0.3045171339563863,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 680
+            }
+          }
+        },
+        "beringer:beringer-broken-chords": {
+          "classic": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 880,
+            "covered": 1536,
+            "agreement": 0.5729166666666666,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 529
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 920,
+            "covered": 1536,
+            "agreement": 0.5989583333333334,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 588
+            }
+          }
+        },
+        "beringer-scales:beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "burgmuller:burgmuller-op100": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 357,
+            "covered": 716,
+            "agreement": 0.35276679841897235,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 36
+            }
+          }
+        },
+        "czerny:czerny-op821": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          }
+        }
+      },
+      "collections": {
+        "hanon": {
+          "classic": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5403,
+            "covered": 7898,
+            "agreement": 0.6798791996979993,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 13,
+              "completeHands": 36,
+              "matchedTransitions": 2747
+            }
+          },
+          "unified": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5545,
+            "covered": 7898,
+            "agreement": 0.6977475777022776,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 14,
+              "completeHands": 43,
+              "matchedTransitions": 2841
+            }
+          }
+        },
+        "beringer": {
+          "classic": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 2019,
+            "covered": 6672,
+            "agreement": 0.30260791366906475,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 865
+            }
+          },
+          "unified": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 2484,
+            "covered": 6672,
+            "agreement": 0.3723021582733813,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1268
+            }
+          }
+        },
+        "beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "czerny": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "burgmuller": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 357,
+            "covered": 716,
+            "agreement": 0.35276679841897235,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 36
+            }
+          }
+        }
+      },
+      "freshPieces": [],
+      "totalMs": 3270.5144550000005,
+      "attempt": "mono-scope",
+      "fullLocalArtifact": "work/piano-v3/development-scoped.json"
+    },
+    {
+      "schema": 1,
+      "policy": "unified-v3",
+      "developmentOnly": true,
+      "scope": "Frozen V3 policy, untouched eighteen-piece Schumann and ten-piece Op840 reservations, and consumed Hanon/Beringer/Czerny/Burgmuller groups. No fitting or fresh-result tuning. Every unsupported piece retained for both methods. Common 120 BPM for reserved repertoire. Upstream PIG training overlap cannot be certified.",
+      "hashes": {
+        "fresh": "6fe269ada19f2b5d69782f23c00bf63eb742e340536026d3b0874f2dbbb051ef",
+        "technicalFresh": "6db905b0767b6cf623ce1468573ccf26375fddc592f365d286e79392e3a0fb4a",
+        "technicalReservation": "496e864b2403a86ee6ab95f322f9f4f3f5cd2d56be6dd37c134fae032287ac58",
+        "reservation": "e35bb01c2e020ed9ecc83441c22105c7b41a14367e26965e85d323a70766c80b",
+        "weights": "bb454a20f87235722727993ca5de4187fa6bb97b73e9e71afe116f4958d43215",
+        "releasedPlanner": {
+          "ref": "8ec11658",
+          "sha256": "2629388aea82f2dfdc595d8a3aece4b5ccd7274fd2b20840d6d9951558345769"
+        },
+        "implementation": {
+          "../../research/chirality/unified.ts": "756ee10dd9ee036736b1e1e5778ab8c04e4d04f8203093ccd907b8c6a9db695f",
+          "../../research/chirality/rules.ts": "542a3e4318ae89ad6e9b7cfcbb04bd39c0b0da0ad9f5285b2c21a57b5d161887",
+          "../../src/piano-phrase-fingering.ts": "4ffcc733bdd18d96690a350d3924f692c734d8b97fd33c8e212d55dc43e61021",
+          "./unified-protocol.json": "40f13e0a8bd6573e76bcee35619e027a686c6b9f385b3de1625995dbb7e585c5",
+          "./unified-v2-protocol.json": "804fb04eed84a8aff9f51804fd2610b5a377fae0271059dd26f29a9fb40da720",
+          "./unified-v3-protocol.json": "95d0463ee61985a99712b71ddd0ed2a647691cbeafba3760619364d1953fea6f",
+          "./unified-v3-evaluate.ts": "0cc7888b6e326d960067d2e7ceb5f4275c49de3b7f6b7b00984debd0ac5ef3b0",
+          "./import-schumann.py": "021633185e0f765d612f87d03f56a60fdfa118c76bf63316ecee2ae05f961a6b",
+          "./import-czerny840.py": "c8f9fd37e4f3ba47637d4ba3466fa41a0043808a0fad107001be11ea0e20da61"
+        }
+      },
+      "promotion": {
+        "passed": false,
+        "gates": [
+          {
+            "name": "printed-total",
+            "pass": true
+          },
+          {
+            "name": "fresh-total",
+            "pass": false
+          },
+          {
+            "name": "fresh-family:schumann-op68",
+            "pass": true
+          },
+          {
+            "name": "fresh-family:czerny-op840",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:scales",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:chromatic",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:five-finger",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:technical",
+            "pass": true
+          },
+          {
+            "name": "family:hanon:repertoire",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-arpeggios",
+            "pass": true
+          },
+          {
+            "name": "family:beringer:beringer-broken-chords",
+            "pass": true
+          },
+          {
+            "name": "family:beringer-scales:beringer-scales",
+            "pass": true
+          },
+          {
+            "name": "family:burgmuller:burgmuller-op100",
+            "pass": true
+          },
+          {
+            "name": "family:czerny:czerny-op821",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-20",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-21",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-22",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-23",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-24",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-25",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-26",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-27",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-28",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-29",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-30",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-31",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-32",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-33",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-34",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-39-35",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-36",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-37",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-38",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-39",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-40",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-41",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-42",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-40-43",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-1-0",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-2-1",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-3-2",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-4-3",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-5-4",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-6-5",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-7-6",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-8-7",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-9-8",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-10-9",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-11-10",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-12-11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-13-12",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-14-13",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-15-14",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-16-15",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-17-16",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-18-17",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-19-18",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:hanon-study-20-19",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-abendlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-kinderlied",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:beyer-op101-no66",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:czerny-op599-no11",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:schumann-melodie",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-aller-anfang",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-bey-der-wiege",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-hans-ohne-sorgen",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-matt-und-krank",
+            "pass": true
+          },
+          {
+            "name": "protected-case:hanon:turk-muntere-knabe",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-a_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-aflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-b_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-bflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-c_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_ascending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-chromatic_descending",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-csharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-d_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-dflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-e_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-eflat_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-f_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-fsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_major",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-g_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_harmonic",
+            "pass": true
+          },
+          {
+            "name": "protected-case:beringer-scales:beringer2-scales-gsharp_minor_melodic",
+            "pass": true
+          },
+          {
+            "name": "printed:completeCases",
+            "pass": true
+          },
+          {
+            "name": "printed:completeHands",
+            "pass": true
+          },
+          {
+            "name": "printed:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "printed:coverage",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeCases",
+            "pass": true
+          },
+          {
+            "name": "fresh:completeHands",
+            "pass": true
+          },
+          {
+            "name": "fresh:matchedTransitions",
+            "pass": true
+          },
+          {
+            "name": "fresh:coverage",
+            "pass": true
+          }
+        ]
+      },
+      "printed": {
+        "classic": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6045,
+          "covered": 9195,
+          "agreement": 0.6262301875064746,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 13,
+            "completeHands": 38,
+            "matchedTransitions": 2839
+          }
+        },
+        "unified": {
+          "cases": 189,
+          "eligible": 9653,
+          "matches": 6192,
+          "covered": 9195,
+          "agreement": 0.6414586139024138,
+          "feasibleHands": 360,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 14,
+            "completeHands": 45,
+            "matchedTransitions": 2937
+          }
+        }
+      },
+      "completed": {
+        "classic": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3355,
+          "covered": 8757,
+          "agreement": 0.38312207376955576,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 1970
+          }
+        },
+        "unified": {
+          "cases": 110,
+          "eligible": 8757,
+          "matches": 3820,
+          "covered": 8757,
+          "agreement": 0.43622245061093984,
+          "feasibleHands": 220,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 2373
+          }
+        }
+      },
+      "fresh": {
+        "classic": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        },
+        "unified": {
+          "cases": 0,
+          "eligible": 0,
+          "matches": 0,
+          "covered": 0,
+          "agreement": null,
+          "feasibleHands": 0,
+          "physicalConflicts": 0,
+          "sequence": {
+            "completeCases": 0,
+            "completeHands": 0,
+            "matchedTransitions": 0
+          }
+        }
+      },
+      "freshCollections": {
+        "schumann-op68": {
+          "classic": {
+            "cases": 0,
+            "eligible": 0,
+            "matches": 0,
+            "covered": 0,
+            "agreement": null,
+            "feasibleHands": 0,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 0
+            }
+          },
+          "unified": {
+            "cases": 0,
+            "eligible": 0,
+            "matches": 0,
+            "covered": 0,
+            "agreement": null,
+            "feasibleHands": 0,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 0
+            }
+          }
+        },
+        "czerny-op840": {
+          "classic": {
+            "cases": 0,
+            "eligible": 0,
+            "matches": 0,
+            "covered": 0,
+            "agreement": null,
+            "feasibleHands": 0,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 0
+            }
+          },
+          "unified": {
+            "cases": 0,
+            "eligible": 0,
+            "matches": 0,
+            "covered": 0,
+            "agreement": null,
+            "feasibleHands": 0,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 0
+            }
+          }
+        }
+      },
+      "families": {
+        "hanon:scales": {
+          "classic": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          },
+          "unified": {
+            "cases": 36,
+            "eligible": 1600,
+            "matches": 1075,
+            "covered": 1600,
+            "agreement": 0.671875,
+            "feasibleHands": 72,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 3,
+              "matchedTransitions": 371
+            }
+          }
+        },
+        "hanon:chromatic": {
+          "classic": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          },
+          "unified": {
+            "cases": 8,
+            "eligible": 1070,
+            "matches": 736,
+            "covered": 1021,
+            "agreement": 0.6878504672897197,
+            "feasibleHands": 14,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 502
+            }
+          }
+        },
+        "hanon:arpeggios": {
+          "classic": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 164,
+            "covered": 567,
+            "agreement": 0.2892416225749559,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 7
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 567,
+            "matches": 305,
+            "covered": 567,
+            "agreement": 0.5379188712522046,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 6,
+              "matchedTransitions": 101
+            }
+          }
+        },
+        "hanon:five-finger": {
+          "classic": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          },
+          "unified": {
+            "cases": 20,
+            "eligible": 3439,
+            "matches": 2932,
+            "covered": 3439,
+            "agreement": 0.8525734225065426,
+            "feasibleHands": 40,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 10,
+              "completeHands": 20,
+              "matchedTransitions": 1772
+            }
+          }
+        },
+        "hanon:technical": {
+          "classic": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          },
+          "unified": {
+            "cases": 54,
+            "eligible": 1070,
+            "matches": 344,
+            "covered": 1070,
+            "agreement": 0.32149532710280376,
+            "feasibleHands": 108,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 1,
+              "completeHands": 2,
+              "matchedTransitions": 38
+            }
+          }
+        },
+        "hanon:repertoire": {
+          "classic": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 152,
+            "covered": 201,
+            "agreement": 0.7562189054726368,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 2,
+              "completeHands": 11,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 10,
+            "eligible": 201,
+            "matches": 153,
+            "covered": 201,
+            "agreement": 0.7611940298507462,
+            "feasibleHands": 20,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 3,
+              "completeHands": 12,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "beringer:beringer-arpeggios": {
+          "classic": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1139,
+            "covered": 5136,
+            "agreement": 0.22176791277258567,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 336
+            }
+          },
+          "unified": {
+            "cases": 48,
+            "eligible": 5136,
+            "matches": 1564,
+            "covered": 5136,
+            "agreement": 0.3045171339563863,
+            "feasibleHands": 96,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 680
+            }
+          }
+        },
+        "beringer:beringer-broken-chords": {
+          "classic": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 880,
+            "covered": 1536,
+            "agreement": 0.5729166666666666,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 529
+            }
+          },
+          "unified": {
+            "cases": 24,
+            "eligible": 1536,
+            "matches": 920,
+            "covered": 1536,
+            "agreement": 0.5989583333333334,
+            "feasibleHands": 48,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 588
+            }
+          }
+        },
+        "beringer-scales:beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "burgmuller:burgmuller-op100": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 360,
+            "covered": 716,
+            "agreement": 0.3557312252964427,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 39
+            }
+          }
+        },
+        "czerny:czerny-op821": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          }
+        }
+      },
+      "collections": {
+        "hanon": {
+          "classic": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5403,
+            "covered": 7898,
+            "agreement": 0.6798791996979993,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 13,
+              "completeHands": 36,
+              "matchedTransitions": 2747
+            }
+          },
+          "unified": {
+            "cases": 152,
+            "eligible": 7947,
+            "matches": 5545,
+            "covered": 7898,
+            "agreement": 0.6977475777022776,
+            "feasibleHands": 302,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 14,
+              "completeHands": 43,
+              "matchedTransitions": 2841
+            }
+          }
+        },
+        "beringer": {
+          "classic": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 2019,
+            "covered": 6672,
+            "agreement": 0.30260791366906475,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 865
+            }
+          },
+          "unified": {
+            "cases": 72,
+            "eligible": 6672,
+            "matches": 2484,
+            "covered": 6672,
+            "agreement": 0.3723021582733813,
+            "feasibleHands": 144,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1268
+            }
+          }
+        },
+        "beringer-scales": {
+          "classic": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          },
+          "unified": {
+            "cases": 38,
+            "eligible": 2085,
+            "matches": 1336,
+            "covered": 2085,
+            "agreement": 0.640767386091127,
+            "feasibleHands": 76,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 0,
+              "matchedTransitions": 1105
+            }
+          }
+        },
+        "czerny": {
+          "classic": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          },
+          "unified": {
+            "cases": 19,
+            "eligible": 694,
+            "matches": 287,
+            "covered": 581,
+            "agreement": 0.41354466858789624,
+            "feasibleHands": 32,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 57
+            }
+          }
+        },
+        "burgmuller": {
+          "classic": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 355,
+            "covered": 716,
+            "agreement": 0.35079051383399207,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 35
+            }
+          },
+          "unified": {
+            "cases": 18,
+            "eligible": 1012,
+            "matches": 360,
+            "covered": 716,
+            "agreement": 0.3557312252964427,
+            "feasibleHands": 26,
+            "physicalConflicts": 0,
+            "sequence": {
+              "completeCases": 0,
+              "completeHands": 1,
+              "matchedTransitions": 39
+            }
+          }
+        }
+      },
+      "freshPieces": [],
+      "totalMs": 3528.8538699999945,
+      "attempt": "final-regional-scope",
+      "fullLocalArtifact": "work/piano-v3/development-final.json"
+    }
+  ]
+}

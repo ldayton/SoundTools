@@ -2,7 +2,7 @@
   "schema": 1,
   "role": "Additional untouched technical validation; no inference or label-based selection",
   "revision": "f510d59b6467098839e59d89b5411d4b857c8114",
-  "selection": "All ten available Op840 piece directories and all sixty ly/ily files. Added before any fresh V3 inference because the reserved Schumann repertoire has only 88 unambiguous printed digits. No piece was selected by planner performance. Published-model training overlap cannot be certified. V3 policy changes are finished; only import, tests and evaluation remain.",
+  "selection": "All ten available Op840 piece directories and all sixty ly/ily files. Added before any fresh V3 inference because the reserved Schumann repertoire has only 88 unambiguous printed digits. No piece was selected by planner performance. Published-model training overlap cannot be certified. The regional source-only scope correction was made before final freeze and before any fresh inference; no fresh prediction or reference agreement guided it.",
   "normalization": "Tabs expanded to two spaces and trailing whitespace stripped; final newline retained.",
   "files": [
     {

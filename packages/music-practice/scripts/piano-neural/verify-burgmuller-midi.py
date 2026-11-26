@@ -1,8 +1,11 @@
 """Independent written-pass pitch/onset validation via actual MIDI interpreters."""
-import concurrent.futures,hashlib,json,math,pathlib,subprocess,sys
+import concurrent.futures,hashlib,json,math,pathlib,re,subprocess,sys
 import mido
 def check(case,root):
     source=(root/(case['id']+'.ly')).read_text()
+    # The independent interpreter must expand q itself at scorification; do not
+    # reuse the AST importer's explicit chord-repeat preprocessing.
+    source=re.sub(r"^#\(expand-repeat-chords!.*\)\n",'',source,flags=re.M)
     transform='''
 #(define (written-pass m)
   (let* ((copy (ly:music-deep-copy m)) (name (ly:music-property copy 'name))

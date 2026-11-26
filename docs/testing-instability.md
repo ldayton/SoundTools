@@ -681,3 +681,19 @@ state tracking also consumed key/clef events attached after a system's final not
 by abcjs, incorrectly suppressing a genuine boundary change at the next opening.
 Tracking now requires following music in that same system. Existing boundary
 assertions and new inline-change assertions are both retained unchanged.
+
+## Hebrew lyric release CI budget (26 November 2026)
+
+The first full local CI on `161213e5` exceeded the 60-second budget
+(62.18 seconds including cancellation/cleanup). Evidence:
+`SoundTools-jesus-hebrew-release/work/ci-results/1795680137532-545e769b`.
+The coordinator cancelled `songalong:ci:core:chromium:1` (guitar) at 30.4 seconds;
+its retained error reports the browser closing during an assertion, not an
+established assertion failure. Dependency installation took 7.49 seconds.
+
+One bounded diagnostic rerun of the same commit, with no source, test, coverage,
+timeout or runner changes, passed in 57.46 seconds. Evidence:
+`SoundTools-jesus-hebrew-release/work/ci-results/1795680225674-7b301fde`.
+The guitar command completed in 29.5 seconds. This demonstrates sensitivity to
+setup/execution timing near the budget, not a performance fix or proof of its
+cause. All checks remain required and the 60-second limit is unchanged.

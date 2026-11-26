@@ -59,7 +59,22 @@ pitch. Playback and finger presses use distinct whole-pad highlights. Phone
 spacing keeps the controls, readout and pads on one screen. Video exports retain
 their separate canvas keyboard layout.
 
-Note names stay visible for the full rhythmic slot. The highlighted key follows the sounding duration, so detached notes have a short unlit gap. Repeated notes get a fresh progress bar. No pitch detection or singing assessment is implemented.
+Note names stay visible for the full rhythmic slot. The highlighted key follows the sounding duration, so detached notes have a short unlit gap. Repeated notes get a fresh progress bar. Optional **Voice feedback** in Practice options adds only a grey guide phrase,
+a green sung-pitch ribbon and their legend. It is off by default and remembered
+on this device, separately from account settings. Microphone access starts only
+while playing; pause, disable, navigation away and backgrounding release capture.
+The vetted Soundglow Praat WASM worker is loaded lazily and runs locally; no audio
+is uploaded or retained as a recording. Use headphones to reduce accompaniment
+bleed. Reliable voiced runs are confirmed before drawing, lightly smoothed, and
+broken across uncertain frames, gaps or large jumps. No score, tuning needle or
+automatic octave correction is applied. The ribbon resets for each round and seek.
+This is pitch feedback, not an assessment of vocal technique. Physical-phone
+latency and speaker bleed still require device listening checks.
+
+Regression ownership: `tests/voice-ribbon.test.ts` covers confidence, continuity,
+fractional pitches and glide targets. `tests/voice-feedback.browser.ts` runs inside
+the existing required desktop browser lane with real WASM and generated input,
+covering opt-in, rendering, capture release and permission errors.
 
 ## Maqam scale prototype
 

@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pitchAssets } from './scripts/pitch-assets';
 import { offlineBuild } from './scripts/offline-build';
 
 let revision = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) || 'local';
@@ -18,7 +19,7 @@ export default defineConfig(({ mode }) => ({
   cacheDir: process.env.CI_VITE_CACHE_DIR ? resolve(process.env.CI_VITE_CACHE_DIR, 'dorego') : undefined,
   define: { __DOREGO_BUILD__: JSON.stringify(revision + '-' + fingerprint), 'import.meta.env.VITE_DEPLOY_ENV': JSON.stringify(process.env.VERCEL_ENV || 'development') },
   base: mode === 'pages' ? '/DoReGo/' : '/',
-  plugins: [react(), accountApi(), offlineBuild(revision + '-' + fingerprint)],
+  plugins: [react(), accountApi(), pitchAssets(), offlineBuild(revision + '-' + fingerprint)],
   optimizeDeps: { include: ['@ldayton/browser-diagnostics', '@ldayton/browser-offline'] },
   build: {
     commonjsOptions: { include: [/node_modules/, /packages\/browser-(diagnostics|offline)/] },

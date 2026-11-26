@@ -65,3 +65,9 @@ test('the summary gate requires each selected app validation', () => {
   assert.doesNotThrow(() => gate(good));
   assert.throws(() => gate({ ...good, notewise: { result: 'skipped' } }), /notewise/);
 });
+
+test('DoReGo revalidates and releases when its shared Soundglow pitch assets change', () => {
+  const result = affected(['apps/soundglow/dist/vendor/praat/processor.js']);
+  assert.deepEqual(result.apps, ['dorego', 'soundglow']);
+  assert.deepEqual(result.deploy, ['dorego', 'soundglow']);
+});

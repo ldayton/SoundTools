@@ -267,11 +267,13 @@ export function PracticeView({
   audition,
   repeatRound,
   controls,
+  feedback,
 }: {
   model: PracticeModel;
   playback: PlaybackModel;
   piano: PianoModel;
   controls?: ReactNode;
+  feedback?: ReactNode;
   audition(midi: number): () => void;
   repeatRound(): void;
 }) {
@@ -296,6 +298,7 @@ export function PracticeView({
               </Button>
             </div>
           </div>
+          {feedback}
           <ReferenceKeyboard model={piano} audition={audition} />
         </div>
       </section>

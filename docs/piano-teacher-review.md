@@ -2,6 +2,9 @@
 
 Status: packets prepared; no teacher judgments collected. The production planner
 remains unchanged. This study follows the [pretrained comparison](piano-neural-comparison.md).
+The user declined human review. These packets remain optional historical
+artifacts; they are not a gate for development or promotion. The active work uses
+the automated [hybrid ranking evaluation](piano-hybrid-ranking.md).
 
 Eight four-block product excerpts, containing 209 source note occurrences, were
 frozen before inference at source revision `6a6398e2`. The selection covers two

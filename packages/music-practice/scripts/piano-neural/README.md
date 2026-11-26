@@ -52,3 +52,27 @@ No recipe overwrites the reviewed report. Save new experiments to ignored work
 files and compare their evidence before updating any committed decision. Beam
 width is fixed at six in the adapters. These tools reject incomplete model output,
 changed identities, invalid digits, broken ties and source-anchor changes.
+
+## Hybrid ranking
+
+Human review is not required. See `docs/piano-hybrid-ranking.md` and the frozen
+`hybrid-protocol.json` for the fixed objective, automated gates and full results.
+Reuse the verified original Lumikey beam output; score the classic candidate
+under its own finger history before ranking:
+
+```sh
+npx tsx packages/music-practice/scripts/piano-neural/hybrid-prepare.ts \
+  work/neural-piano work/neural-piano-hybrid
+"$PIANO_PYTHON" packages/music-practice/scripts/piano-neural/score_hybrid.py \
+  work/neural-piano-hybrid/requests.json work/neural-piano/upstream \
+  work/neural-piano-hybrid/scores.json
+npx tsx packages/music-practice/scripts/piano-neural/hybrid-evaluate.ts \
+  work/neural-piano work/neural-piano-hybrid work/neural-piano-hybrid/results.json
+```
+
+Use a new directory for a new experiment; preparation refuses to overwrite the
+frozen requests. For a replay, keep the frozen inputs and rerun the evaluator.
+The baseline candidate has an invalid placeholder likelihood before Python
+scoring; passing it directly to the ranker intentionally fails. Full candidate
+audits stay in `work/neural-piano-hybrid/audit.json`. The committed numeric report
+includes per-case metrics, source/input/weight hashes, decisions and every gate.

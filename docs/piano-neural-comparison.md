@@ -9,8 +9,14 @@ UI setting, score, audio, authored fingering or stored preference changes.
 Lumikey is a useful candidate for a future learned preference model. Its constrained
 six-candidate shortlist raises overall reference agreement, but slightly lowers
 agreement with the stronger printed evidence, regresses three families, and reduces
-complete-case agreement. Fresh independent teacher-reviewed passages are required
-before promotion. No family-based routing or reference-derived choice was added.
+complete-case agreement. Promotion uses automated reference, feasibility and
+regression gates; human review is optional, never a prerequisite. No family-based
+routing or reference-derived choice was added.
+
+The follow-up [hybrid ranking experiment](piano-hybrid-ranking.md) combines true
+neural sequence likelihood with the existing physical costs, including classic
+as a candidate. It improves overall and printed agreement, but fails the declared
+family and complete-case gates, so the released default remains classic.
 
 ## Protocol and data
 

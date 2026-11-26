@@ -134,3 +134,11 @@ comparison rows; planner behavior and recorded benchmark results are unchanged.
 First failure evidence remains at
 `work/ci-results/1795681737472-9135e002`. The full suite must be rerun on the
 corrected commit; the first run is not counted as a pass.
+
+The next CI run on `c5385c7d` reached the build/test lanes but failed with ENOSPC
+while writing evidence and build outputs. Infrastructure failure evidence is
+retained at `work/ci-results/1795681960973-910ee1b1`; that run is not a pass.
+Ignored build outputs were removed from this worktree, and official
+`npm cache verify` garbage-collected 635 MB of unreferenced content without
+removing indexed packages or source files. The complete CI suite is rerun after
+that disk-space recovery, rather than treating completed lanes as sufficient.

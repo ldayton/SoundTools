@@ -86,6 +86,32 @@ class Transformer:
             beam = sorted(next_beam, key=lambda b:(-b[0], b[1]))[:width]
         return [dict(fingers=d,logProbability=s) for s,d,_ in beam]
 
+    def score_sequences(self, notes, sequences):
+        """Likelihood of supplied paths with original future context only.
+
+        Proposed digits update past-finger memory, never the future anchor tokens.
+        This scores a classic path fairly even when it was outside the beam.
+        """
+        for fingers in sequences:
+            if len(fingers) != len(notes) or any(type(f) is not int or not 1 <= f <= 5 for f in fingers):
+                raise ValueError("Invalid supplied sequence")
+            if any('finger' in n and n['finger'] != f for n, f in zip(notes, fingers)):
+                raise ValueError("Supplied sequence changed source anchor")
+        if not sequences:
+            return []
+        previous = [[(-1, float('inf')) for _ in range(5)] for _ in sequences]
+        totals = [0. for _ in sequences]
+        for i, n in enumerate(notes):
+            x = torch.stack([tokens(n, p, notes[i+1:i+21]) for p in previous])
+            logp = self.logits(x).log_softmax(-1)
+            dt = (notes[i+1]['time']-n['time'])/1000 if i+1<len(notes) else 0
+            for j, fingers in enumerate(sequences):
+                digit = fingers[i]-1
+                totals[j] += logp[j, digit].item()
+                previous[j][digit] = (n['midi'], -n['duration']/1000)
+                previous[j] = [(m, age+dt) for m, age in previous[j]]
+        return totals
+
 
 def graph(notes):
     # Four upstream edge types: same onset, forward-next, identity, reverse-next.

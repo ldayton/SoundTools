@@ -64,7 +64,7 @@ export type NeuralPrediction = {
   elapsedMs: number;
 };
 export type NeuralHands = Partial<Record<"left" | "right", NeuralPrediction>>;
-function assignments(
+export function neuralAssignments(
   notes: readonly PianoPhraseNote[],
   hand: "left" | "right",
   prediction: NeuralPrediction,
@@ -106,7 +106,7 @@ export function rawNeuralPlan(
     if (wanted.length && (!p || !p.candidates.length))
       throw Error("Missing neural hand");
     const fs = p
-      ? assignments(notes, hand, p, p.candidates[0])
+      ? neuralAssignments(notes, hand, p, p.candidates[0])
       : new Map<string, number>();
     // Shape adapter for the existing identity/sequence scorer. This does NOT
     // claim feasibility; fixed-input planning and independent checks score that.
@@ -145,7 +145,7 @@ export function constrainedNeuralPlan(
       throw Error("Missing neural hand");
     if (!p) continue;
     for (const [i, candidate] of p.candidates.entries()) {
-      const fs = assignments(notes, hand, p, candidate);
+      const fs = neuralAssignments(notes, hand, p, candidate);
       const fixed = notes.map((n) => ({
         ...n,
         ...(n.hand === hand ? { finger: fs.get(n.id) } : {}),

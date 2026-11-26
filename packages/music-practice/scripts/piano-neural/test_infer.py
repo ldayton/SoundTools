@@ -63,5 +63,28 @@ class AdapterTests(unittest.TestCase):
             for model in models:
                 self.assertEqual(model.predict(notes,6)[0]['fingers'],[5,1])
 
+    def test_hybrid_sequence_scores_use_own_history_without_future_digit_leakage(self):
+        root=Path('work/neural-piano/upstream/lumikey/checkpoints')
+        notes=[{'midi':60,'time':0,'duration':250},{'midi':64,'time':250,'duration':250}]
+        with torch.inference_mode():
+            for hand in ('left','right'):
+                model=Transformer(root/f'fingering_transformer_{hand}.pt')
+                beam=model.predict(notes,6)
+                scores=model.score_sequences(notes,[c['fingers'] for c in beam])
+                for expected,actual in zip(beam,scores):
+                    self.assertAlmostEqual(expected['logProbability'],actual,places=5)
+                # Independently score a specified path, even if outside the beam.
+                initial=[(-1,float('inf')) for _ in range(5)]
+                first=model.logits(tokens(notes[0],initial,notes[1:]).unsqueeze(0)).log_softmax(-1)[0,4]
+                previous=initial.copy();previous[4]=(60,0.)
+                second=model.logits(tokens(notes[1],previous,[]).unsqueeze(0)).log_softmax(-1)[0,0]
+                actual=model.score_sequences(notes,[[5,1]])[0]
+                self.assertAlmostEqual(actual,first.item()+second.item(),places=5)
+                self.assertNotIn('finger',notes[1])
+                for invalid in ([[1]],[[0,1]],[[True,1]]):
+                    with self.assertRaises(ValueError):model.score_sequences(notes,invalid)
+                anchored=[notes[0],{**notes[1],'finger':2}]
+                with self.assertRaises(ValueError):model.score_sequences(anchored,[[5,1]])
+
 
 if __name__=='__main__':unittest.main()

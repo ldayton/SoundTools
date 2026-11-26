@@ -51,7 +51,9 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
     assert(build.needs.includes('shared:diagnostics'));
     assert(tasks.some(task => task.id === `${app}:ci:core:chromium:smoke`));
   }
-  assert(tasks.find(task => task.id === 'dorego:ci:core:chromium:0').locks.includes('realtime-audio'));
+  assert(tasks.find(task => task.args.includes('test:desktop') && task.args.includes('--workspace=dorego')).locks.includes('realtime-audio'));
+  assert(tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('port:4709'));
+  assert(!tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('realtime-audio'));
   assert(!tasks.some(task => /accounts-.*:backend|:editions:/.test(task.id)));
   assert.throws(() => plan('songalong', 'ci', 'chromium', 'editions'), /Nightly/);
 });

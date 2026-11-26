@@ -714,3 +714,10 @@ voice-feedback scenario into a required CI/Nightly lane on port 4709. It tests
 real-WASM input/render/lifecycle outcomes, not hardware latency or measured PCM,
 so it needs no exclusive realtime-audio lock. Existing desktop/drone coverage
 stays in its original lane; no assertions were removed.
+
+The first split-lane audit (`c258590e`,
+`work/ci-results/1795687826256-f20f6677/`) finished all app checks within
+59.49 seconds but failed two stale policy expectations: Nightly's explicit
+extra browser-file list and the desktop audio-lock assertion tied to index 0.
+Updated both consumers for the added lane; desktop retains its audio lock and
+the new lane must retain port 4709 without claiming realtime-audio.

@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/dvdrndlph/pydactyl",
+  "revision": "0ad656db9b778508453a7275dc698b9129ca765e",
+  "files": [
+    {
+      "path": "LICENSE",
+      "upstream": "LICENSE",
+      "sha256": "ce31217159fbb1e8bbe6d093289597dd3a2ed34e490c62715824437976891f61"
+    },
+    {
+      "path": "synthetic-cases.json",
+      "upstream": "test/TestConstant.py",
+      "sha256": "c487b82dbf16681d2b47c1ecc319ff367445dae262cba8ed4c7541d066c3a19b",
+      "selection": [
+        "ONE_NOTE",
+        "TWO_NOTES",
+        "ONE_BLACK_NOTE_PER_STAFF",
+        "TWO_WHITE_NOTES_PER_STAFF",
+        "FOUR_NOTES"
+      ]
+    }
+  ]
+}

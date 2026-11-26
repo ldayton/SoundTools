@@ -39,6 +39,7 @@ function nightlyPlan(app, browser, group) {
   };
   const commands = tasks[app].map(task => npm(app, task));
   if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts'));
+  if (app === 'songalong' && browser === 'chromium') commands.push(script(app, 'tests/piano-benchmark.corpus.ts'));
   if (app === 'notewise') commands.push(script(app, '../../tests/ci/critical-midi.browser.mts'), ['node', ['scripts/test-ui-controls.cjs']]);
   if (app === 'dorego') commands.push(script(app, 'tests/sequence.e2e.ts'));
   if (app === 'dorego' && browser === 'chromium') commands.push(

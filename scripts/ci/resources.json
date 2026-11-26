@@ -2242,5 +2242,23 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/piano-benchmark.corpus.ts": {
+    "kind": "unit",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/piano-benchmark.corpus.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

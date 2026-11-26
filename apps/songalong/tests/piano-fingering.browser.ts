@@ -41,6 +41,7 @@ try {
     "chord",
     "unsupported",
     "tied",
+    "long",
   ] as const) {
     const result = await page.evaluate(
       (kind) => window.PianoFingeringFixture.renderPianoFingeringFixture(kind),
@@ -65,6 +66,13 @@ try {
       );
     }
     assert.ok(result.soundingNotes > 0);
+    if (kind === "long")
+      assert.ok(
+        result.marks.some(
+          (m) => m.hand === "right" && m.label?.includes("cross"),
+        ),
+        "long stepwise run exposes thumb-passage cues",
+      );
     if (kind === "tied")
       assert.equal(
         result.marks.filter((m) => m.hand === "right" && m.midi === 60).length,
@@ -74,13 +82,15 @@ try {
     assert.equal(result.marks.filter((m) => m.hand === "left").length, 4);
     assert.equal(
       result.marks.filter((m) => m.hand === "right").length,
-      kind === "single"
-        ? 4
-        : kind === "multiple" || kind === "tied"
-          ? 5
-          : kind === "chord"
-            ? 3
-            : 0,
+      kind === "long"
+        ? 16
+        : kind === "single"
+          ? 4
+          : kind === "multiple" || kind === "tied"
+            ? 5
+            : kind === "chord"
+              ? 3
+              : 0,
     );
     assert.ok(
       result.marks.every((m) => m.finger >= 1 && m.finger <= 5 && m.label),

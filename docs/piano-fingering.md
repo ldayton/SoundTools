@@ -116,3 +116,13 @@ imported Vite-only audio modules through the complete app renderer; the fixture
 now exercises the actual shared annotation, hiding and editorial components
 without importing the unrelated audio runtime. No product/browser errors were
 ignored to pass these checks.
+
+## Editorial benchmark and contextual thumb passage
+
+The [permissive piano benchmark](piano-benchmark.md) adds pinned, licensed
+historical editorial evidence and an independently reserved validation experiment.
+Timed planning now recognizes long stepwise runs and charges ordinary thumb
+passage as rolling motion within that context. Geometry/search and compatibility
+ownership remain centralized; legacy/editorial tables keep their previous costs.
+The benchmark documents exact-match gains, remaining disagreements, corpus
+coverage, source exclusions, reproduction and CI/Nightly regression owners.

@@ -92,12 +92,43 @@ export function pianoMotionCost(
   }
   return { movement, repeat, crossing };
 }
+/** A released-note thumb passage is a rolling gesture, not a full hand leap.
+ * Keep the compatibility model unchanged for authored legacy melody tables. */
+export function pianoTimedMotionCost(
+  a: { midi: number; duration: number },
+  b: { midi: number },
+  x: PianoPose,
+  y: PianoPose,
+  hand: PianoHand,
+  rolling = false,
+) {
+  const costs = pianoMotionCost(a, b, x, y, hand);
+  const crossed =
+    (b.midi - a.midi) * (y.finger - x.finger) * (hand === "right" ? 1 : -1) < 0;
+  const over = y.finger === 1 ? x.finger : y.finger;
+  if (
+    rolling &&
+    crossed &&
+    (x.finger === 1 || y.finger === 1) &&
+    Math.abs(pianoKeyPosition(b.midi) - pianoKeyPosition(a.midi)) <= 2.1 &&
+    Math.abs(y.anchor - x.anchor) <= 7 &&
+    Number.isFinite(costs.movement)
+  ) {
+    const opportunity = a.duration >= 0.5 ? 0.65 : 1;
+    if (over === 5) costs.crossing += 8;
+    else
+      costs.movement =
+        (0.5 + 0.35 * Math.abs(y.anchor - x.anchor)) * opportunity;
+  }
+  return costs;
+}
 export function pianoMotion(
   a: { midi: number },
   b: { midi: number },
   x: PianoPose | undefined,
   y: PianoPose,
   hand: PianoHand,
+  rolling = false,
 ) {
   const shift =
     !!x &&
@@ -105,8 +136,9 @@ export function pianoMotion(
   const crossing =
     !!x &&
     shift &&
-    Math.abs(y.anchor - x.anchor) <= 4 &&
-    Math.abs(pianoKeyPosition(b.midi) - pianoKeyPosition(a.midi)) <= 1.6 &&
+    Math.abs(y.anchor - x.anchor) <= (rolling ? 7 : 4) &&
+    Math.abs(pianoKeyPosition(b.midi) - pianoKeyPosition(a.midi)) <=
+      (rolling ? 2.1 : 1.6) &&
     (b.midi - a.midi) * (y.finger - x.finger) * (hand === "right" ? 1 : -1) <
       0 &&
     (y.finger === 1 || x.finger === 1);

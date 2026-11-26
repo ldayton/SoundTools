@@ -4,7 +4,7 @@ import {
   pianoKeyPosition,
   pianoNoteCost,
   pianoSinglePoses,
-  pianoMotionCost,
+  pianoTimedMotionCost,
   pianoMotion,
   solvePianoPath,
   type PianoHand,
@@ -464,6 +464,7 @@ function step(
   y: Pose,
   hand: PianoHand,
   p: PianoPhraseProfile,
+  rolling = false,
 ) {
   const costs = zero(),
     events: PianoMovement[] = [],
@@ -508,20 +509,21 @@ function step(
       next = b.active[0],
       from = { anchor: x.anchor, finger: x.fingers[old.id] },
       to = { anchor: y.anchor, finger: y.fingers[next.id] };
-    const c = pianoMotionCost(
+    const c = pianoTimedMotionCost(
       { midi: old.midi, duration: (old.end - old.start) / 4 },
       { midi: next.midi },
       from,
       to,
       hand,
+      rolling,
     );
     if (!Number.isFinite(c.movement)) return null;
     costs.movement = c.movement;
     costs.repeat = c.repeat;
     costs.crossing += c.crossing;
-    if (pianoMotion(old, next, from, to, hand).shift)
+    if (pianoMotion(old, next, from, to, hand, rolling).shift)
       events.push({ at: b.at, kind: "move", noteIds: next.noteIds });
-    if (pianoMotion(old, next, from, to, hand).crossing)
+    if (pianoMotion(old, next, from, to, hand, rolling).crossing)
       events.push({
         at: b.at,
         kind: to.finger === 1 ? "thumb_under" : "finger_over",
@@ -565,6 +567,42 @@ function step(
   costs.repeat *= w.repeat;
   costs.crossing *= w.crossing;
   return { costs, events };
+}
+/** Long stepwise runs need smooth thumb passage; isolated changes, repeated
+ * notes, chords and short five-finger gestures keep ordinary relocation costs. */
+export function pianoRollingEdges(
+  frames: readonly { active: readonly { id: string; midi: number }[] }[],
+) {
+  const result = new Set<number>();
+  let start = 0,
+    direction = 0;
+  const finish = (end: number) => {
+    if (end - start >= 6) for (let i = start + 1; i <= end; i++) result.add(i);
+  };
+  for (let i = 1; i < frames.length; i++) {
+    const a = frames[i - 1].active,
+      b = frames[i].active;
+    const delta =
+      a.length === 1 && b.length === 1 && a[0].id !== b[0].id
+        ? b[0].midi - a[0].midi
+        : 0;
+    const sign = Math.sign(delta),
+      distance =
+        a.length === 1 && b.length === 1
+          ? Math.abs(pianoKeyPosition(b[0].midi) - pianoKeyPosition(a[0].midi))
+          : Infinity;
+    if (!sign || Math.abs(delta) > 2 || distance > 2.1) {
+      finish(i - 1);
+      start = i;
+      direction = 0;
+    } else if (direction && sign !== direction) {
+      finish(i - 1);
+      start = i - 1;
+      direction = sign;
+    } else direction = sign;
+  }
+  finish(frames.length - 1);
+  return result;
 }
 function planHand(
   hand: PianoHand,
@@ -629,6 +667,7 @@ function planHand(
     statistics.maxLayer = Math.max(statistics.maxLayer, layer.length);
     layers.push(layer);
   }
+  const rollingEdges = pianoRollingEdges(frames);
   const w = { ...defaults, ...p.weights };
   const local = (pose: Pose, i: number) =>
     i === 0 && pose.crossed.length
@@ -638,7 +677,15 @@ function planHand(
     layers,
     local,
     (a, b, i) => {
-      const value = step(frames[i - 1], frames[i], a, b, hand, p);
+      const value = step(
+        frames[i - 1],
+        frames[i],
+        a,
+        b,
+        hand,
+        p,
+        rollingEdges.has(i),
+      );
       return value ? total(value.costs) : Infinity;
     },
     p.maxTransitions ?? 2_000_000,
@@ -649,7 +696,15 @@ function planHand(
   let costs = zero();
   const states: PianoHandFrame[] = solved.path.map((pose, i) => {
     const change = i
-      ? step(frames[i - 1], frames[i], solved.path[i - 1], pose, hand, p)!
+      ? step(
+          frames[i - 1],
+          frames[i],
+          solved.path[i - 1],
+          pose,
+          hand,
+          p,
+          rollingEdges.has(i),
+        )!
       : { costs: zero(), events: [] };
     const own = { ...change.costs, posture: local(pose, i) };
     costs = add(costs, own);

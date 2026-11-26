@@ -1,0 +1,82 @@
+{
+  "repository": "https://github.com/ya-luotao/dacapo",
+  "revision": "25754560a496c2beea3c81d72a389fb33fd7e930",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "f9f06dff3f61628668f23dcbfd2fddbabca6e9836cf998739075ef912388cc30"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "7c22604613de520f60fda92943cb429b791af1bb70c8f70f497fc94f800b7f89"
+    },
+    {
+      "path": "scripts/scales/hanon/README.md",
+      "sha256": "43ad5c96aef6216b8fd12334c20c8fd1471664bf5440525c035ae0fc8df74805"
+    },
+    {
+      "path": "scripts/scales/hanon/uncertain.md",
+      "sha256": "19461a6f1b6dd7968fe609747d1c341a984f9859b782fdcb0066e0b51af1535f"
+    },
+    {
+      "path": "scripts/scales/hanon/differences.md",
+      "sha256": "6dc2d63eed16027d7a5448e9e7974b52b0abaa9355166f4421d5de6f5d21fbf9"
+    },
+    {
+      "path": "scripts/scales/hanon/hanon.json",
+      "sha256": "44ca8e3b9e783080e3cd562c61613dc8071c21ed837300a9dac8707537af66ae"
+    },
+    {
+      "path": "scripts/scales/hanon/hanon41.json",
+      "sha256": "44184db9bf0d4156bf8aa42753bed5f6e5b7858be88046e5081d78390fd45a34"
+    },
+    {
+      "path": "scripts/scales/hanon/part1/part1.json",
+      "sha256": "740ebe3019264552845303e62b1d8e8b5b0321b44f053d4d795b3e146abe889d"
+    },
+    {
+      "path": "scripts/scales/hanon/s7/s7.json",
+      "sha256": "3f73ca639c5cf0528f14c5d65ea0c068f54fb093e2fe8e5dae372d3d02bbaed4"
+    },
+    {
+      "path": "src/pieces/library/beyer-abendlied.musicxml",
+      "sha256": "9ebc28a9072f302999bb8182c575243f315483e3da07645aab1a78acbd6122b6"
+    },
+    {
+      "path": "src/pieces/library/beyer-kinderlied.musicxml",
+      "sha256": "6233a07594ce44800ae2f66e6b614bbc57d8c8d1ad6ed49e36b3da20052fae43"
+    },
+    {
+      "path": "src/pieces/library/beyer-op101-no66.musicxml",
+      "sha256": "8fd19a143566a216294afa00d3e92e39a06475a7d65160cc3e7e47c5a8e3ac22"
+    },
+    {
+      "path": "src/pieces/library/czerny-op599-no11.musicxml",
+      "sha256": "ec1f7e85bc9f8e297b0eb072e0f2f33085073cda0d3eb30d181801c4eebcb6bb"
+    },
+    {
+      "path": "src/pieces/library/schumann-melodie.musicxml",
+      "sha256": "2bf7c9cec261e5ce4270815b1e72fa727817cb986dbf6b261b9e1ce2b0c9de95"
+    },
+    {
+      "path": "src/pieces/library/turk-aller-anfang.musicxml",
+      "sha256": "c02ab5401db7576d0c80bbc822335e66ce29a8bf7c13613a163bbc62feace557"
+    },
+    {
+      "path": "src/pieces/library/turk-bey-der-wiege.musicxml",
+      "sha256": "d4e36be70289671dcb0ada28dc060272121f7d9c84fd50add79e5e01e30a5eb8"
+    },
+    {
+      "path": "src/pieces/library/turk-hans-ohne-sorgen.musicxml",
+      "sha256": "8f6392585d068d4f12bf923958153eb711af6e2c1fd718208f89c530e2d77614"
+    },
+    {
+      "path": "src/pieces/library/turk-matt-und-krank.musicxml",
+      "sha256": "3aebf95d29578acbf3360572150fec6abcad91c61a17be191b3a16f08045ed7d"
+    },
+    {
+      "path": "src/pieces/library/turk-muntere-knabe.musicxml",
+      "sha256": "dda26c46a52a6149fbc21a84966986863b3fbd5819bd78dcb80e9271baadab00"
+    }
+  ]
+}

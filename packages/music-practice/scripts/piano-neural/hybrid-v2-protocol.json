@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "study": "hybrid-ranking-2",
+  "previousStudy": "hybrid-ranking-1",
+  "policy": "preserve-movement-complexity",
+  "physicalCostWeight": 0.1,
+  "rule": "A neural hand must not increase the classic hand's relocation, thumb/finger crossing or repeated-note finger-change counts. Then minimize the original hybrid objective among admissible complete hands, retaining classic on ties.",
+  "rationale": "Consumed-corpus failure analysis exposed extra moves, crossings and repeat changes in otherwise simpler passages. Constrain these observable playing actions for every input; never consult case IDs, song names, reference digits or family metadata during selection.",
+  "evaluation": "Reuse all frozen original candidate sequences and true likelihoods, original 262-case denominator and original automatic promotion gates. Report old hybrid, new hybrid and classic. Existing corpus is development/regression evidence; no fresh-holdout claim. Human review is not required.",
+  "noRetuning": "Keep the likelihood/physical weight fixed; do not sweep weights, change reference labels or route by family. Preserve unsupported hands and source anchors. Further changes require recorded failure analysis and independent synthetic regression tests."
+}

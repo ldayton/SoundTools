@@ -55,9 +55,13 @@ arbitrary hand redistribution or every advanced piano technique.
 
 ## External data and execution boundary
 
-Only source text and literal fixtures were inspected. No downloaded FOSS
-implementation, installer or test runner was executed. `.py.txt` files remain
-provenance data. Only our TypeScript implementations and test tools execute.
+Production fingering planning uses our TypeScript implementations. The original
+Kanma/pianoplayer references remain source text and literal fixtures;
+`.py.txt` files are provenance data, not executable dependencies. The separate
+Chirality experiment executes two inspected, pinned upstream AGPL modules from
+ignored offline artifacts to evaluate their published weights; neither source
+nor weights are imported by the product. Our optional corpus tools also use
+Python and the installed LilyPond parser/MIDI interpreter.
 
 - Kanma/piano_fingering, MIT: eight fixtures retain original test text, revision,
   license and attribution. Six legacy mono examples assert selected digits. Both

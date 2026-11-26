@@ -13,10 +13,11 @@ complete-case agreement. Promotion uses automated reference, feasibility and
 regression gates; human review is optional, never a prerequisite. No family-based
 routing or reference-derived choice was added.
 
-The follow-up [hybrid ranking experiment](piano-hybrid-ranking.md) combines true
-neural sequence likelihood with the existing physical costs, including classic
-as a candidate. It improves overall and printed agreement, but fails the declared
-family and complete-case gates, so the released default remains classic.
+The follow-up [hybrid ranking experiment](piano-hybrid-ranking.md) now defaults
+to a conservative simplification guard. It removes the three family regressions,
+preserves complete-case agreement and passes the unchanged automated gates, at
+the cost of a smaller aggregate gain. The product default is still classic;
+no external model runtime was added to the application.
 
 ## Protocol and data
 

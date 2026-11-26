@@ -762,3 +762,21 @@ passed. This did not establish an infrastructure cause or a passing full run;
 no further diagnostic reruns were attempted. Both retained runs are incomplete,
 and the work has not been pushed. Any later push still requires a complete
 passing exact-commit local CI run under the unchanged 60-second policy.
+
+### 2026-11-26 hybrid follow-up: required drone control lane
+
+The follow-up investigates the retained desktop cancellations rather than
+retrying them. `verifyLiveDrone` runs four viewport/scale combinations at the
+end of the desktop suite. Its assertions inspect source identity, scheduled
+stop, gain routing, controls, playhead continuity and persistence; none measures
+PCM, hardware latency or timing precision. Those exact checks now run in the
+required `drone-controls.e2e.ts` owner on port 4710. The desktop owner keeps
+every PCM/precision assertion and its realtime-audio lock. This separates two
+independent behavior owners so the control checks can overlap with desktop.
+
+The shared browser registry includes the new owner for both Nightly engines
+and the developer alias; CI explicitly includes it. Inventory/coverage/lock
+tests retain every file exactly once. No test assertions, deadlines or the
+60-second budget were relaxed. The changed plan's full `--all` measurement,
+including selection, installation, execution and cleanup, is retained at
+`work/neural-piano-hybrid-v2/ci-all.log` with its emitted evidence directory.

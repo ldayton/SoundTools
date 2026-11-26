@@ -67,12 +67,15 @@ npx tsx packages/music-practice/scripts/piano-neural/hybrid-prepare.ts \
   work/neural-piano-hybrid/requests.json work/neural-piano/upstream \
   work/neural-piano-hybrid/scores.json
 npx tsx packages/music-practice/scripts/piano-neural/hybrid-evaluate.ts \
-  work/neural-piano work/neural-piano-hybrid work/neural-piano-hybrid/results.json
+  work/neural-piano work/neural-piano-hybrid work/neural-piano-hybrid/results-v3.json --v3
 ```
 
 Use a new directory for a new experiment; preparation refuses to overwrite the
 frozen requests. For a replay, keep the frozen inputs and rerun the evaluator.
 The baseline candidate has an invalid placeholder likelihood before Python
 scoring; passing it directly to the ranker intentionally fails. Full candidate
-audits stay in `work/neural-piano-hybrid/audit.json`. The committed numeric report
-includes per-case metrics, source/input/weight hashes, decisions and every gate.
+audits stay in `work/neural-piano-hybrid/audit.json`. The corrected report is `docs/piano-hybrid-v3-results.json`; the original v1
+report remains unchanged. The evaluator defaults to the strict v3 guard; use
+`--v1`/`--v2` explicitly for historical trials. V3 admits a neural change only
+when it reduces at least one movement-complexity count and increases none.
+The reports include per-case metrics, source/input/weight hashes and every gate.

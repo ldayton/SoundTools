@@ -115,6 +115,14 @@ omitted `pitchShift` field. The existing inference convention treats an omitted
 shift as zero, so preparation now does the same and still rejects nonzero shifts.
 No result assertion was retried, threshold relaxed or policy retuned.
 
+Final research validation passes 18 shared research unit tests, five real-weight
+Python adapter tests, the SongAlong TypeScript check and a committed-source
+full-corpus replay with identical per-case decisions and metrics. The full local
+CI attempts did not complete: both exceeded the 60-second budget and cancelled
+the DoReGo desktop browser owner; all other owners passed. First failure,
+diagnostic run, timings and remaining uncertainty are retained in
+`testing-instability.md`. This is not a passing CI claim, and nothing was pushed.
+
 The next useful experiment is a richer constrained search or a preference cost
 that addresses these specific sequence regressions, evaluated under a newly
 declared protocol and eventually additional reserved published references.

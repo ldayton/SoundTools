@@ -753,3 +753,12 @@ One diagnostic rerun of the standard full coordinator is retained in
 directory contains the exact result. A passing rerun would demonstrate one
 complete required execution, not explain or fix the first budget failure.
 The limited timing margin remains an open suite-budget concern.
+
+That diagnostic run on `45f8e18e` also failed the budget, at 62.15 seconds
+including cleanup: `work/ci-results/1795693294208-2439f79e/`. DoReGo's build
+returned to 17.71 seconds, but its desktop browser owner was cancelled after
+30.20 seconds, again with no preceding assertion failure. All other owners
+passed. This did not establish an infrastructure cause or a passing full run;
+no further diagnostic reruns were attempted. Both retained runs are incomplete,
+and the work has not been pushed. Any later push still requires a complete
+passing exact-commit local CI run under the unchanged 60-second policy.

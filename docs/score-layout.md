@@ -84,15 +84,24 @@ pitches, durations, horizontal note anchors, or glyph scale.
   export. It respects ancestor visibility, stroke extents and transformed
   rectangular clips; definitions, masks and interaction/debug overlays are not
   obstacles. Contours measure shaped lyric tspans individually, excluding blank rows.
-  SVG frames retain the complete parent text bounds for selection/clipping;
-  system contours can interlock the unpainted portion of those bounds.
+  Canvas shaping supplies vertical glyph ink around the actual SVG baseline,
+  including accents/descenders, while SVG keeps horizontal shaping authoritative.
+  Unsupported text transforms/baselines retain conservative bounds. SVG frames
+  retain complete real text bounds and any extra accent ink for clipping.
+  Unused trailing lyric tspans are removed; internal blank verse rows remain.
 - `vertical.ts` is the explicit abcjs 6.5 adapter. Staff identity comes from native
   voice/staff relationships and element references, with TAB clones taking
   precedence over reused CSS voice classes. Detached editorial ink declares its
   musical anchor through `anchorScoreInk`; adapters never choose staff positions.
   Ledger-layer relocation preserves that ownership.
-- Chord rows and lyric rows move together, outward only when needed. Below-staff
-  chord placement stays below. Melismas move with their lyric lane. Inline
+- Chord rows retain outward collision placement. Lyric blocks can move inward
+  or outward to the nearest safe position, preserving inter-verse baselines and
+  syllable x anchors. The related-staff lyric gap is 0.5 notation staff spaces;
+  the next staff retains the shared 1-space ink clearance. These are engraving
+  units, independent of phone/desktop viewport and physical note size.
+  TAB-only and chords-only compact against their visible ink, independently of
+  clipped/hidden notation. Melismas follow the block and retain ownership through
+  their stable musical note, so trimming blank spans cannot orphan them. Inline
   fingerings and other annotations remain attached to their note/staff and
   participate as obstacles rather than being independently scattered.
 - Staff-owned atoms translate as a unit. Only structural braces and connecting
@@ -257,6 +266,9 @@ The existing required component browser owner includes opposite/facing staff
 protrusions, preserved glyph dimensions and rhythmic anchors, native audio
 identity, brace movement, conservative unknown/explicit-spacing fallbacks,
 hidden/detached timing renders and a real hit-test through overlapping frames.
+Lyric witnesses verify recovery from an injected 80-unit gap, baseline alignment,
+TAB/chords-only behavior, stable melisma ownership after tail trimming, and an
+independent serialized-SVG raster check of Latin and pointed-Hebrew glyph bounds.
 Existing clipping, Hebrew, TAB masks, ledger layering, polyphony and resize
 witnesses continue to exercise the shared measurement boundary. The existing
 export browser owner checks transparent PDF images and the print/page contract.

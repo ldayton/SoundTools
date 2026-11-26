@@ -1,5 +1,7 @@
-import {scoreInkBox,scoreStaffSpace,scoreInkSelector as primitiveSelector,visibleScoreInk as visible} from './geometry';
+import {scoreInkBox as frameInkBox,scoreStaffSpace,scoreInkSelector as primitiveSelector,visibleScoreInk as visible} from './geometry';
 export {scoreInkBox} from './geometry';
+// Only lyric text gets shaped-ink contours; framing retains complete text boxes.
+const scoreInkBox=(node:SVGGraphicsElement,svg:SVGSVGElement)=>frameInkBox(node,svg,true);
 import type {TuneObject,NoteTimingEvent} from 'abcjs';
 import {placeVerticalRows,placeOutsideLanes,skyline,type InkBox,type Skyline,type VerticalPlacement} from './skyline';
 
@@ -10,7 +12,7 @@ const anchors=new WeakMap<Element,Element>();
 export function anchorScoreInk<T extends Element>(node:T,anchor:Element):T {anchors.set(node,anchor);return node;}
 export type VerticalDiagnostics={status:'placed'|'unchanged'|'fallback';reason?:string;offsets:number[];saved:number;annotations?:{staff:number;role:string;offset:number}[];contours?:{top:Skyline;bottom:Skyline;staffTop:number;staffBottom:number}[];constraints:VerticalPlacement['constraints']};
 const reports=new WeakMap<SVGSVGElement,VerticalDiagnostics>();
-export const VERTICAL_SPACING={staffGap:3.5,inkGap:1,systemGap:2} as const;
+export const VERTICAL_SPACING={staffGap:3.5,inkGap:1,systemGap:2,lyricGap:.5} as const;
 
 
 function transform(node:SVGGraphicsElement,svg:SVGSVGElement,dy:number,sy=1,origin=0){
@@ -26,12 +28,19 @@ function transform(node:SVGGraphicsElement,svg:SVGSVGElement,dy:number,sy=1,orig
 /** Explicit abcjs 6.5 adapter. All translations happen after instrument/lyric
  * decoration, before framing/export. Unsupported geometry keeps native spacing.
  * Only connectors change height; staff glyphs are translated, never scaled. */
-export function placeScoreStaves(svg:SVGSVGElement,tune:TuneObject,enabled=true):VerticalDiagnostics {
+export function placeScoreStaves(svg:SVGSVGElement,tune:TuneObject,enabled=true,view:'notation'|'tab'|'chords'='notation'):VerticalDiagnostics {
   // A rendered system is finalized once; callers may frame it repeatedly.
   const previous=reports.get(svg);if(previous)return structuredClone(previous);
   const done=(report:VerticalDiagnostics)=>{reports.set(svg,report);svg.dataset.scoreVertical=report.status;svg.dataset.scoreVerticalSaved=String(report.saved);if(report.reason)svg.dataset.scoreVerticalReason=report.reason;return structuredClone(report);};
   const fallback=(reason:string)=>done({status:'fallback',reason,offsets:[],saved:0,constraints:[]});
   if(!enabled)return fallback('Explicit source spacing');
+  // These are intentional single-layer views. Source notation may be clipped
+  // or hidden; its native staff model must not set the lyric baseline.
+  if(view==='tab'||view==='chords'){
+    const dy=placeVisibleLyrics(svg);
+    return done({status:Math.abs(dy)>.05?'placed':'unchanged',offsets:[],saved:0,constraints:[],
+      annotations:Math.abs(dy)>.05?[{staff:0,role:'lyrics',offset:dy}]:[]});
+  }
   const staffNodes=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')].filter(n=>visible(n)&&!n.closest('[clip-path]'));
   if(staffNodes.length<1)return done({status:'unchanged',offsets:staffNodes.map(()=>0),saved:0,constraints:[]});
   if(svg.querySelector('[clip-path]'))return fallback('Clipped staff geometry');
@@ -120,11 +129,14 @@ export function placeScoreStaves(svg:SVGSVGElement,tune:TuneObject,enabled=true)
     const lyric=laneNodes.filter(n=>owner(n)===staff&&!n.classList.contains('abcjs-chord'));
     const below=(n:SVGGraphicsElement)=>{const b=scoreInkBox(n,svg);return !!b&&(b.top+b.bottom)/2>(boxes[staff].top+boxes[staff].bottom)/2;};
     const lanes=[{nodes:chord.filter(n=>!below(n)),side:'top' as const,role:'chords'},
-      {nodes:lyric,side:'bottom' as const,role:'lyrics'},
+      {nodes:lyric,side:'bottom' as const,role:'lyrics',compact:true},
       {nodes:chord.filter(below),side:'bottom' as const,role:'chords-below'}].filter(l=>l.nodes.length);
     const fixed=[...svg.querySelectorAll<SVGGraphicsElement>(primitiveSelector)].filter(n=>owner(n)===staff&&!n.closest('.abcjs-chord,.abcjs-lyric,.hymn-lyric-extender,.abcjs-bar,.abcjs-brace,.abcjs-bracket'))
       .flatMap(n=>{const b=scoreInkBox(n,svg);return b?[b]:[];});
-    const offsets=placeOutsideLanes(fixed,lanes.map(l=>({side:l.side,ink:l.nodes.flatMap(n=>{const b=scoreInkBox(n,svg);return b?[b]:[];})})),space*.5);
+    const offsets=placeOutsideLanes(fixed,lanes.map(l=>({side:l.side,compact:'compact' in l&&l.compact,padding:l.role==='lyrics'?space*VERTICAL_SPACING.lyricGap:undefined,ink:l.nodes.flatMap(n=>{
+      const ink=n.matches('.abcjs-lyric')&&n.querySelector('tspan')?[...n.querySelectorAll<SVGGraphicsElement>('tspan')]:[n];
+      return ink.flatMap(node=>{const b=scoreInkBox(node,svg);return b?[b]:[];});
+    })})),space*.5);
     lanes.forEach((lane,i)=>{if(offsets[i]>.05||offsets[i]<-.05){for(const node of lane.nodes)transform(node,svg,offsets[i]);annotations.push({staff,role:lane.role,offset:offsets[i]});}});
   }
   // Remeasure after lane placement. Per-primitive boxes keep separated stems,
@@ -179,4 +191,20 @@ export function scoreFlowBlock(svg:SVGSVGElement){
   const space=(staff?scoreStaffSpace(staff,svg)??7.75:7.75)*scale;
   const requested=svg.dataset.scoreSystemGap===undefined?undefined:Number(svg.dataset.scoreSystemGap);
   return {width,height,ink,clearance:requested??(Number.isFinite(space)&&space>0?space*VERTICAL_SPACING.systemGap:12)};
+}
+
+
+function placeVisibleLyrics(svg:SVGSVGElement){
+  const lyrics=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-lyric,.hymn-lyric-extender')].filter(visible);
+  const words=lyrics.flatMap(node=>node.matches('.abcjs-lyric')&&node.querySelector('tspan')?[...node.querySelectorAll<SVGGraphicsElement>('tspan')]:[node]);
+  const ink=words.flatMap(n=>{const b=scoreInkBox(n,svg);return b?[b]:[];});
+  if(!ink.length)return 0;
+  const fixed=[...svg.querySelectorAll<SVGGraphicsElement>(primitiveSelector)].filter(n=>!n.closest('.abcjs-lyric,.hymn-lyric-extender,.abcjs-bar,.chord-chart-bars'))
+    .flatMap(n=>{const b=scoreInkBox(n,svg);return b?[b]:[];});
+  const staff=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')].find(visible);
+  // Use notation staff units even when the visible layer is six-string TAB.
+  const space=staff&&staff.querySelectorAll(':scope > path').length===5?scoreStaffSpace(staff,svg)??7.75:7.75;
+  const [dy]=placeOutsideLanes(fixed,[{side:'bottom',ink,compact:true}],space*VERTICAL_SPACING.lyricGap);
+  if(Math.abs(dy)>.05)for(const node of lyrics)transform(node,svg,dy);
+  return dy;
 }

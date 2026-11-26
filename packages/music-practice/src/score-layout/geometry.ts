@@ -1,7 +1,7 @@
 import type {InkBox} from './skyline';
 
-// Preserve complete text/selectable bounds in each SVG frame, even where an
-// aligned stanza has a blank row; contours can still interlock that blank area.
+// Preserve complete bounds of real text for selection/clipping. Trailing blank
+// lyric lines are removed before measuring; internal verse alignment remains.
 export const scoreFrameSelector='path,text,use,rect,line,polyline,polygon,circle,ellipse';
 export const scoreInkSelector='path,text:not(:has(tspan)),tspan,use,rect,line,polyline,polygon,circle,ellipse';
 
@@ -15,7 +15,7 @@ export function visibleScoreInk(node:SVGGraphicsElement){
   for(let p:Element|null=node.parentElement;p;p=p.parentElement){const s=getComputedStyle(p);if(s.display==='none'||s.opacity==='0')return false;}
   return true;
 }
-export function scoreInkBox(node:SVGGraphicsElement,svg:SVGSVGElement):InkBox|undefined {
+export function scoreInkBox(node:SVGGraphicsElement,svg:SVGSVGElement,preciseText=false):InkBox|undefined {
   if(!visibleScoreInk(node)||node.tagName.toLowerCase()==='tspan'&&!node.textContent?.trim())return;
   const root=svg.getScreenCTM(),matrix=node.getScreenCTM();if(!root||!matrix)return;
   const b=node.getBBox();if(!b.width&&!b.height)return;
@@ -26,6 +26,10 @@ export function scoreInkBox(node:SVGGraphicsElement,svg:SVGSVGElement):InkBox|un
   const points=[[r.x,r.y],[r.x+r.width,r.y],[r.x,r.y+r.height],[r.x+r.width,r.y+r.height]].map(([x,y])=>new DOMPoint(x,y).matrixTransform(projection));
   const stroke=getComputedStyle(node).stroke==='none'?0:parseFloat(getComputedStyle(node).strokeWidth)/2*Math.max(Math.hypot(m.a,m.b),Math.hypot(m.c,m.d));
   const result={left:Math.min(...points.map(p=>p.x))-stroke,right:Math.max(...points.map(p=>p.x))+stroke,top:Math.min(...points.map(p=>p.y))-stroke,bottom:Math.max(...points.map(p=>p.y))+stroke};
+  if(preciseText&&node.closest('.abcjs-lyric')&&(span||node.tagName.toLowerCase()==='text'&&!node.querySelector('tspan'))){
+    const ink=lyricVerticalInk(node,m,result);
+    if(ink){result.top=ink.top-stroke;result.bottom=ink.bottom+stroke;}
+  }
   for(let owner:SVGGraphicsElement|null=node;owner&&owner!==svg;owner=owner.parentElement as unknown as SVGGraphicsElement|null){
     const id=owner.getAttribute('clip-path')?.match(/url\(["']?#([^)'" ]+)/)?.[1];
     const clip=id?svg.querySelector<SVGClipPathElement>(`clipPath[id="${CSS.escape(id)}"]`):null;
@@ -51,4 +55,44 @@ export function scoreStaffSpace(staff:SVGGraphicsElement,svg:SVGSVGElement){
   const first=lines[0].getBBox(),last=lines.at(-1)!.getBBox(),m=root.inverse().multiply(matrix);
   const a=new DOMPoint(0,first.y+first.height/2).matrixTransform(m),b=new DOMPoint(0,last.y+last.height/2).matrixTransform(m);
   return Math.hypot(b.x-a.x,b.y-a.y)/(lines.length-1);
+}
+
+
+const textContexts=new WeakMap<Document,CanvasRenderingContext2D>();
+/** Browser shaping gives actual accent/descender extents; SVG text boxes often
+ * reserve the entire font body even for a short syllable. Keep SVG's horizontal
+ * shaping and use canvas only for vertical ink around the SVG baseline. */
+function lyricVerticalInk(node:SVGGraphicsElement,m:DOMMatrix,bounds:InkBox){
+  if(Math.abs(m.b)>.00001||Math.abs(m.c)>.00001||m.d<=0)return;
+  const text=node as SVGTextContentElement;
+  if(!text.getNumberOfChars?.())return;
+  let context=textContexts.get(node.ownerDocument);
+  if(!context){context=node.ownerDocument.createElement('canvas').getContext('2d')??undefined;if(!context)return;textContexts.set(node.ownerDocument,context);}
+  const style=getComputedStyle(node);
+  if(!['auto','alphabetic'].includes(style.dominantBaseline)||style.writingMode!=='horizontal-tb')return;
+  context.font=style.font||`${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  context.direction=style.direction==='rtl'?'rtl':'ltr';context.textBaseline='alphabetic';
+  const metrics=context.measureText(node.textContent||'');
+  const ascent=metrics.actualBoundingBoxAscent,descent=metrics.actualBoundingBoxDescent;
+  if(![ascent,descent].every(Number.isFinite)||ascent+descent<=0)return;
+  try{
+    const position=text.getStartPositionOfChar(0),baseline=new DOMPoint(position.x,position.y).matrixTransform(m).y;
+    // Some SVG implementations cannot report a baseline for transformed text.
+    // Keep conservative bounds rather than trusting an unrelated origin.
+    const em=parseFloat(style.fontSize)*m.d;
+    if(!Number.isFinite(baseline)||baseline<bounds.top-em||baseline>bounds.bottom+em)return;
+    return {top:baseline-ascent*m.d-.5,bottom:baseline+descent*m.d+.5};
+  }catch{return;}
+}
+
+
+/** abcjs appends a final newline to every lyric. Empty trailing tspans have no
+ * following verse to position, but their font boxes can reserve a whole row. */
+export function trimLyricTails(svg:SVGSVGElement){
+  for(const lyric of svg.querySelectorAll('.abcjs-lyric')){
+    let tail=lyric.lastElementChild;
+    while(tail?.tagName.toLowerCase()==='tspan'&&!tail.textContent?.trim()){
+      tail.remove();tail=lyric.lastElementChild;
+    }
+  }
 }

@@ -1,3 +1,4 @@
+import {trimLyricTails} from './geometry';
 import {normalizeScoreInk} from "./ink";
 import {fitHymnOttava} from "../hymn-ottava";
 
@@ -13,6 +14,7 @@ export type ScorePresentation = {
 
 /** Normalize renderer/instrument geometry before final visible-ink framing. */
 export function prepareScoreSvg(svg: SVGSVGElement, presentation: ScorePresentation = {}) {
+    trimLyricTails(svg);
     if (presentation.octaveNotation) fitHymnOttava(svg);
     if (presentation.compact) {
       const group = svg.querySelector<SVGGraphicsElement>(

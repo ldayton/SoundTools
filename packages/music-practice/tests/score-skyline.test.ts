@@ -64,3 +64,16 @@ test('block flow retains a tall earlier extent when its last block is shorter',(
   {width:100,height:40,ink:[box(70,100,0,40)],clearance:5},
  ]),{positions:[0,0],height:200});
 });
+
+
+test('compact lyric lanes recover arbitrary inherited gaps while retaining aligned rows',()=>{
+ const fixed=[box(0,100,0,4),box(15,17,4,12)];
+ const rows=[box(10,25,40,48),box(60,85,40,50),box(10,25,55,65)];
+ const [dy]=placeOutsideLanes(fixed,[{side:'bottom',ink:rows,compact:true}],2);
+ assert.equal(dy,-26);
+ const shifted=rows.map(b=>({...b,top:b.top+80,bottom:b.bottom+80}));
+ assert.equal(placeOutsideLanes(fixed,[{side:'bottom',ink:shifted,compact:true}],2)[0],dy-80);
+ assert.equal(distance(fixed,rows,2),dy,'Independent all-pairs contact determines the tightest safe placement');
+ assert.equal(placeOutsideLanes(fixed,[{side:'bottom',ink:[box(10,25,1,8)],compact:true}],2)[0],13,'A crowded row still moves outward');
+ assert.equal(placeOutsideLanes(fixed,[{side:'top',ink:[box(10,25,-40,-30)],compact:true}],2)[0],28,'Above-staff compact lanes retain their side');
+});

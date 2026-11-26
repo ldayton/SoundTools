@@ -1,9 +1,11 @@
+import {prepareHymnMelismas} from '../src/hymn-melismas';
 import {scoreInkBox} from '../src/score-layout/geometry';
 import {rhythmQuality,type RhythmAnchor} from "../browser-tests/score-rhythm-quality";
 export {compareLayoutPixels,layoutComparatorSamples} from "./score-layout-images";
 /** Independent engraving fixtures; intentionally unrelated to product songs. */
 import {AbcScoreLayout} from "../src/score-layout/abc";
 import {initialHymnSignatures} from "../src/hymn-signatures";
+import {showChordsOnly} from '../src/chords-only';
 import {showOnlyTab} from "../src/fingerstyle-tab";
 import {prepareScoreMarkings,restoreSystemBarNumbers} from "../src/score-markings";
 
@@ -11,8 +13,8 @@ let lastTune:ReturnType<AbcScoreLayout["render"]>|undefined;
 const melody='"C"C D E F | "G"G A B c | "Am"c B A G | "F"F E D C | "C"C2 E2 | "G"G2 B2 | "F"A G F E | "C"C4 |]';
 const english='one two three four five six sev en eight nine ten now sing this tune well hold this note here end this phrase now rest';
 const hebrew='מַה טּוֹב לָנוּ שִׁיר חָדָשׁ בַּלֵּב אוֹר בָּא כָּאן עוֹד שִׁיר נָעִים לִי הַיּוֹם טוֹב לָנוּ אוֹר לָנוּ שִׁיר עוֹד כָּאן לֵב שָׁלוֹם';
-export type LayoutFixtureKind = "piano"|"guitar"|"hebrew"|"dense"|"hidden-ink"|"clipped-ink"|"partial"|"verses"|"sparse"|"headers"|"polyphony"|"sections"|"underlay"|"tab-symbols"|"repeat-numbers"|"skyline"|"skyline-collision"|"skyline-unknown"|"skyline-explicit"|"skyline-flow";
-export type LayoutFixtureOptions = { reverseVerses?:boolean; cold?:boolean; hidden?:boolean; detached?:boolean; refit?:boolean; underlay?:"none"|"short"|"long"|"sparse" };
+export type LayoutFixtureKind = "piano"|"guitar"|"hebrew"|"dense"|"hidden-ink"|"clipped-ink"|"partial"|"verses"|"sparse"|"headers"|"polyphony"|"sections"|"underlay"|"tab-symbols"|"repeat-numbers"|"skyline"|"skyline-collision"|"skyline-unknown"|"skyline-explicit"|"skyline-flow"|"melismas";
+export type LayoutFixtureOptions = { reverseVerses?:boolean; cold?:boolean; hidden?:boolean; detached?:boolean; refit?:boolean; lyricOffset?:number; tabOnly?:boolean; chordsOnly?:boolean; underlay?:"none"|"short"|"long"|"sparse" };
 export const layoutVisualCases = [
   {id:"piano-phone",kind:"piano",width:320},
   {id:"piano-desktop",kind:"piano",width:800},
@@ -42,6 +44,7 @@ export function renderLayoutFixture(width: number, kind: LayoutFixtureKind, scal
   if(kind==="polyphony") source='X:1\nM:4/4\nL:1/8\n%%score { RH LH }\nV:RH clef=treble\nV:LH clef=bass\nK:C\n[V:RH] C8 | E4 G4 | C8 |]\n[V:LH] C, D, E, F, G, A, B, C | C,2 E,2 G,2 C2 | C,8 |]';
   if(kind.startsWith('skyline'))source=`X:1\nM:4/4\nL:1/4\n%%score { RH LH }\n${kind==='skyline-explicit'?'%%sysstaffsep 80\n':''}V:RH clef=treble\nV:LH clef=bass\nK:C\n[V:RH] C,4 | c4 | c4 | c4 |]\n[V:LH] ${kind==='skyline-collision'?'c4 | C,4 | C,4 | C,4':'C,4 | C,4 | C,4 | c4'} |]`;
   if(kind==='skyline-flow')source='X:1\nM:4/4\nL:1/4\nK:C\nC,4 | c4 |\nP:Second\nc4 | c\'\'4 |]';
+  if(kind==='melismas')source='X:1\nM:4/4\nL:1/4\nK:C\nC D E F | G4 |]\nw: שָׁלוֹם held held held end';
   if(kind==="sparse") source='X:1\nM:4/4\nL:1/4\nK:C\nC4 | G4 | C4 |]';
   let host=document.getElementById('layout-fixture-host');
   if(!host) {host=document.createElement('div');host.id='layout-fixture-host';document.body.append(host);}
@@ -50,15 +53,28 @@ export function renderLayoutFixture(width: number, kind: LayoutFixtureKind, scal
   if(!paper) {paper=document.createElement('div');paper.id='layout-fixture';host.append(paper);}
   if(options.detached)host.remove();
   let restoreHeaders:(()=>void)|undefined;
-  const layout=new AbcScoreLayout({source:kind==="partial"?source.replace(/\|\]\nw:/,"\nw:"):source,width,scale,mode:"reflow",params:{add_classes:true,
+  const layout=new AbcScoreLayout({presentation:{view:options.chordsOnly?'chords':options.tabOnly?'tab':undefined},source:kind==="partial"?source.replace(/\|\]\nw:/,"\nw:"):source,width,scale,mode:"reflow",params:{add_classes:true,
     tablature:(kind==="guitar"||kind==="tab-symbols")?[{instrument:"guitar"}]:undefined,
     afterParsing:tune=>{prepareScoreMarkings(tune,kind==="repeat-numbers");if(kind==="headers"||kind==="repeat-numbers")restoreHeaders=initialHymnSignatures(tune);return tune;},
   },measurementContext:options.cold?undefined:[kind,options.reverseVerses]});
   const tune=layout.render(paper);
   restoreHeaders?.();
   lastTune=tune;
-  if(kind==="tab-symbols")showOnlyTab(paper);
+  if(kind==='melismas'){
+    const notes=tune.lines.flatMap(line=>line.staff?.[0]?.voices?.[0]??[]).filter(n=>n.el_type==='note');
+    notes.slice(1,4).forEach(note=>{
+      if(note.el_type!=='note')return;
+      note.lyric![0].syllable='_';
+      const group=(note as typeof note & {abselem:{elemset:SVGGraphicsElement[]}}).abselem.elemset[0];
+      group.querySelector('tspan')!.textContent='_';
+    });
+    prepareHymnMelismas(tune)();
+  }
+  if(kind==="tab-symbols"||options.tabOnly)showOnlyTab(paper);
+  if(options.chordsOnly)showChordsOnly(paper,tune);
   if(kind==="repeat-numbers")restoreSystemBarNumbers(tune,paper);
+  if(options.lyricOffset)for(const lyric of paper.querySelectorAll<SVGGraphicsElement>('.abcjs-lyric'))
+    lyric.setAttribute('transform',`translate(0 ${options.lyricOffset}) ${lyric.getAttribute('transform')||''}`);
   const nativeGeometry=[...paper.querySelectorAll('svg')].map(observeVerticalGeometry);
   const retained=[...paper.querySelectorAll('.abcjs-note')];
   const nativeAudio=tune.setUpAudio({chordsOff:true}).tracks.map(track=>track.flatMap(e=>e.cmd==='note'?[[e.pitch,e.start,e.duration]]:[]));
@@ -161,13 +177,17 @@ export function measureLayoutQuality() {
 /** Independent browser observer: actual painted rectangles, normalized by the
  * SVG's physical scale. Does not call production contour/placement helpers. */
 function observeVerticalGeometry(svg:SVGSVGElement) {
-  const root=svg.getScreenCTM();if(!root)return {staffs:[],heads:[],bridges:[]};
+  const root=svg.getScreenCTM();if(!root)return {staffs:[],heads:[],bridges:[],lyrics:[]};
   const scale=Math.hypot(root.a,root.b),origin=new DOMPoint(0,0).matrixTransform(root);
   const bounds=(node:Element)=>{const r=node.getBoundingClientRect();return {left:(r.left-origin.x)/scale,top:(r.top-origin.y)/scale,width:r.width/scale,height:r.height/scale};};
   const staffs=[...svg.querySelectorAll('.abcjs-staff')].map(bounds);
   const heads=[...svg.querySelectorAll('.abcjs-notehead')].map(bounds);
   const bridges=[...svg.querySelectorAll('.abcjs-brace')].map(bounds);
-  return {staffs,heads,bridges};
+  const lyrics=[...svg.querySelectorAll<SVGTextContentElement>('.abcjs-lyric tspan')].filter(n=>n.textContent?.trim()&&n.getNumberOfChars()>0).map(n=>{
+    const p=n.getStartPositionOfChar(0),m=root.inverse().multiply(n.getScreenCTM()!);
+    return {...bounds(n),baseline:new DOMPoint(p.x,p.y).matrixTransform(m).y};
+  });
+  return {staffs,heads,bridges,lyrics};
 }
 
 /** CSS visibility is inherited and overridable; display/opacity on ancestors
@@ -187,4 +207,30 @@ export function inkVisibilityWitness() {
   parent.style.opacity='1';svg.style.opacity='0';check();
   svg.style.opacity='1';svg.style.display='none';check();
   svg.remove();return results;
+}
+
+
+/** Raster witness independent of the canvas metrics used for placement. The
+ * image decoder paints a serialized SVG, including a skipped blank lyric row. */
+export async function lyricInkWitness(){
+  const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('width','380');svg.setAttribute('height','200');svg.setAttribute('viewBox','0 0 380 200');
+  svg.innerHTML='<g transform="translate(7 5) scale(1.2)"><text class="abcjs-lyric" x="20" y="40" font-size="20" fill="black" stroke="none"><tspan x="20" y="40">Agyp</tspan><tspan x="20" dy="30"> </tspan><tspan x="20" dy="30" lang="he">מַה נִּפְלָא חַסְדּוֹ</tspan></text></g>';
+  for(const node of svg.querySelectorAll<SVGElement>('text,tspan'))node.style.setProperty('font-family','sans-serif','important');
+  document.body.append(svg);
+  try{
+    const words=[...svg.querySelectorAll<SVGGraphicsElement>('tspan')].filter(n=>n.textContent?.trim());
+    const full=words.map(n=>scoreInkBox(n,svg)!),ink=words.map(n=>scoreInkBox(n,svg,true)!);
+    const clone=svg.cloneNode(true) as SVGSVGElement;clone.setAttribute('width','1520');clone.setAttribute('height','800');
+    const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone));await img.decode();
+    const canvas=document.createElement('canvas');canvas.width=1520;canvas.height=800;
+    const ctx=canvas.getContext('2d')!;ctx.fillStyle='white';ctx.fillRect(0,0,1520,800);ctx.drawImage(img,0,0);
+    const pixels=ctx.getImageData(0,0,1520,800).data;let painted=0,outside=0;
+    for(let y=0;y<800;y++)for(let x=0;x<1520;x++){
+      const i=(y*1520+x)*4;if(pixels[i]>80||pixels[i+1]>80||pixels[i+2]>80)continue;painted++;
+      const px=(x+.5)/4,py=(y+.5)/4;
+      if(!ink.some(b=>px>=b.left-1&&px<=b.right+1&&py>=b.top-1&&py<=b.bottom+1))outside++;
+    }
+    return {painted,outside,full,ink};
+  }finally{svg.remove();}
 }

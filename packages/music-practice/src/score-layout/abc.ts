@@ -276,7 +276,7 @@ export class AbcScoreLayout {
     prepareScoreSvg(svg,this.input.presentation);
     if(this.tune) {
       const explicit=[...this.input.source.matchAll(/^%%sysstaffsep\s+([\d.]+)/gm)].at(-1)?.[1];
-      this.vertical.push(placeScoreStaves(svg,this.tune,explicit===undefined||Number(explicit)===SCORE_LAYOUT.minimumStaffSeparation));
+      this.vertical.push(placeScoreStaves(svg,this.tune,explicit===undefined||Number(explicit)===SCORE_LAYOUT.minimumStaffSeparation,this.input.presentation?.view));
     }
     // Reserve real final ink (including tab, chord labels and pointed lyrics).
     // A renderer may place it outside its original per-system viewBox.
@@ -292,6 +292,12 @@ export class AbcScoreLayout {
         // final barline (Linux font metrics exposed spurious local scrolling).
         left=Math.min(left,visible.left-1);right=Math.max(right,visible.right+1);
         top=Math.min(top,visible.top-8);bottom=Math.max(bottom,visible.bottom+8);
+      }
+      // Preserve complete text boxes for selection, and also reserve shaped
+      // accents/descenders if a font paints beyond that conservative body box.
+      for(const span of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-lyric tspan')){
+        const ink=scoreInkBox(span,svg,true);if(!ink)continue;
+        top=Math.min(top,ink.top-8);bottom=Math.max(bottom,ink.bottom+8);
       }
       // Vertical whitespace belongs to the visible music, not abcjs's original
       // untrimmed system box. Glyphs, lyrics and clipped tab ink were all measured.

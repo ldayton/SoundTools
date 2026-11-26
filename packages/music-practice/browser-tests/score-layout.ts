@@ -28,6 +28,30 @@ export async function prepareScoreLayoutFixture(page: Page) {
 export async function checkScoreLayoutComponent(page: Page) {
   await prepareScoreLayoutFixture(page);
   assert.deepEqual(await page.evaluate(()=>window.ScoreLayoutFixture.inkVisibilityWitness()),[true,false,false,false,false,false],'Only painted ink participates: visible children override inherited visibility, while ancestor display/opacity still suppress ink');
+  const textInk=await page.evaluate(()=>window.ScoreLayoutFixture.lyricInkWitness());
+  assert(textInk.painted>1000&&textInk.outside===0,'Serialized SVG pixels, including pointed Hebrew, stay inside shaped lyric ink bounds');
+  assert(textInk.ink[0].bottom-textInk.ink[0].top<textInk.full[0].bottom-textInk.full[0].top,'Lyric contours exclude unused font-body leading');
+  const normalLyrics=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'verses'));
+  assert(await page.evaluate(()=>[...document.querySelectorAll('.abcjs-lyric')].every(n=>!n.lastElementChild||!!n.lastElementChild.textContent?.trim())),'Unused trailing lyric rows reserve no frame height');
+  const inflatedLyrics=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'verses',1.25,{lyricOffset:80}));
+  assert.deepEqual(normalLyrics.audio,inflatedLyrics.audio,'Compacting lyrics never changes music');
+  for(let system=0;system<normalLyrics.placedGeometry.length;system++){
+    const a=normalLyrics.placedGeometry[system].lyrics,b=inflatedLyrics.placedGeometry[system].lyrics;
+    assert(a.length>0&&a.length===b.length);
+    a.forEach((word,i)=>assert(Math.abs(word.baseline-b[i].baseline)<.01&&Math.abs(word.left-b[i].left)<.01,'An arbitrary native lyric gap is recovered without changing syllable anchors'));
+    const original=normalLyrics.nativeGeometry[system].lyrics;
+    for(let i=1;i<a.length;i++)assert(Math.abs((a[i].baseline-a[0].baseline)-(original[i].baseline-original[0].baseline))<.01,'Aligned English/Hebrew verse baseline spacing is preserved');
+  }
+  for(const view of [{tabOnly:true},{chordsOnly:true}]){
+    const normal=await page.evaluate(view=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar',1.25,view),view);
+    const displaced=await page.evaluate(view=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar',1.25,{...view,lyricOffset:80}),view);
+    assert.deepEqual(normal.audio,displaced.audio,'Single-layer lyric placement preserves its musical source');
+    normal.placedGeometry.forEach((system,i)=>system.lyrics.forEach((word,j)=>assert(Math.abs(word.baseline-displaced.placedGeometry[i].lyrics[j].baseline)<.01,'TAB-only and chords-only recover inherited lyric padding independently of hidden notation')));
+  }
+  const melismas=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'melismas'));
+  assert(melismas.diagnostics.vertical.every(report=>report.status!=='fallback'),'Melisma ownership survives removal of trailing blank lyric spans');
+  assert(await page.locator('.hymn-lyric-extender rect').count()>0,'Pointed Hebrew keeps its visible word extension after compaction');
+  assert.deepEqual(melismas.audio,melismas.nativeAudio);
   const errors: string[]=[];page.on('pageerror',error=>errors.push(error.message));
   for(const kind of ["piano","guitar","hebrew"] as const) {
     let audio: unknown;

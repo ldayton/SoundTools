@@ -60,16 +60,19 @@ export function placeVerticalRows(rows:readonly VerticalRow[],minimumGap:number,
   return {offsets,constraints};
 }
 
-export type OutsideLane={side:'top'|'bottom';ink:readonly InkBox[]};
+export type OutsideLane={side:'top'|'bottom';ink:readonly InkBox[];compact?:boolean;padding?:number};
 /** Preserve aligned rows and their x anchors. Only move a lane outward when
- * needed; lyrics stay together and chord symbols never drift note by note. */
+ * needed, or recover unused space for a compact lane. Its rows stay together;
+ * individual syllables never drift independently. */
 export function placeOutsideLanes(fixed:readonly InkBox[],lanes:readonly OutsideLane[],padding:number){
   const occupied=[...fixed],offsets:number[]=[];
   for(const lane of lanes){
+    const clearance=lane.padding??padding;
     const contact=lane.side==='top'
-      ?skylineClearance(skyline(lane.ink,'bottom'),skyline(occupied,'top'),padding)
-      :skylineClearance(skyline(occupied,'bottom'),skyline(lane.ink,'top'),padding);
-    const magnitude=Math.max(0,contact.distance),dy=magnitude?(lane.side==='top'?-magnitude:magnitude):0;
+      ?skylineClearance(skyline(lane.ink,'bottom'),skyline(occupied,'top'),clearance)
+      :skylineClearance(skyline(occupied,'bottom'),skyline(lane.ink,'top'),clearance);
+    const distance=Number.isFinite(contact.distance)?contact.distance:0;
+    const magnitude=lane.compact?distance:Math.max(0,distance),dy=magnitude?(lane.side==='top'?-magnitude:magnitude):0;
     offsets.push(dy);
     occupied.push(...lane.ink.map(b=>({...b,top:b.top+dy,bottom:b.bottom+dy})));
   }

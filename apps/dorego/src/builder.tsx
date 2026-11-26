@@ -377,7 +377,7 @@ export function Builder({
           </Stack>
           <Stack gap="sm">
           <Divider label="Session timing" labelPosition="left" />
-          <SimpleGrid cols={{ base: 1, sm: 2 }}>
+          <SimpleGrid cols={1}>
             {[
               {
                 id: 'repeat',
@@ -408,7 +408,7 @@ export function Builder({
                 <div className="dorego-mobile-count">
                   <Group wrap="nowrap" justify="space-between">
                     <Text component="label" htmlFor={`${field.id}-mobile`} size="sm" fw={500}>{field.label}</Text>
-                    <ToolbarNumber id={`${field.id}-mobile`} label={field.label} icon={null} unit="" min={0} max={field.max} value={field.value} onChange={(value) => change(field.patch(value))} />
+                    <div style={{ flexShrink: 0 }}><ToolbarNumber id={`${field.id}-mobile`} label={field.label} icon={null} unit="" min={0} max={field.max} value={field.value} onChange={(value) => change(field.patch(value))} /></div>
                   </Group>
                 </div>
               </div>
@@ -431,7 +431,7 @@ export function Builder({
           <div className="dorego-mobile-count">
             <Group wrap="nowrap" justify="space-between">
               <Text component="label" htmlFor="countIn-mobile" size="sm" fw={500}>Count-in (beats)</Text>
-              <ToolbarNumber id="countIn-mobile" label="Count-in (beats)" icon={null} unit="" min={0} max={8} value={spec.countIn} onChange={(value) => change({ countIn: value })} />
+              <div style={{ flexShrink: 0 }}><ToolbarNumber id="countIn-mobile" label="Count-in (beats)" icon={null} unit="" min={0} max={8} value={spec.countIn} onChange={(value) => change({ countIn: value })} /></div>
             </Group>
           </div>
           </Stack>

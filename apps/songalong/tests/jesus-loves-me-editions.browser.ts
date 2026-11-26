@@ -172,7 +172,7 @@ try {
     await checkScore(page);
     // All three verses retain their words and the shared chorus.
     const stanzas = page.locator(".hymn-stanza-checkbox input");
-    await expect(stanzas).toHaveCount(7);
+    await expect(stanzas).toHaveCount(4);
     await stanzas.nth(1).check();
     await stanzas.nth(2).check();
     await selectScoreDisplay(page,"tab");
@@ -267,14 +267,14 @@ try {
     );
     // Translations mix with English, and each language prints its refrain once.
     for(const arrangement of ["piano","guitar-edition"]){
-      await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=playback&display=both&stanzas=1,2,3,4,5,6,7&capo=3`);
+      await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=playback&display=both&stanzas=1,2,3,4&capo=3`);
       await waitForApp(page,".hymn-pause");
       await openPracticeOptions(page);
-      await expect(page.locator("#hymn-stanzas input:checked")).toHaveCount(7);
-      for(const label of ["ישוע אותי אוהב","ישוע מת על הצלב","גם כשכואב לי הלב","ישוע הולך איתי"])
+      await expect(page.locator("#hymn-stanzas input:checked")).toHaveCount(4);
+      for(const label of ["אני יקר לישוע"])
         await expect(page.getByRole("checkbox",{name:label,exact:true})).toBeChecked();
-      await expect(page.locator(".hymn-paper")).toContainText("מֵת");
-      await expect(page.locator(".hymn-paper")).toContainText("דְּבָ");
+      await expect(page.locator(".hymn-paper")).toContainText("מוּ");
+      await expect(page.locator(".hymn-paper")).toContainText("תָּ");
       await checkScore(page);
       if(arrangement==="guitar-edition")for(const display of ["tab","chords","both"]){
         await selectScoreDisplay(page,display);
@@ -289,17 +289,17 @@ try {
       }
       // Persist a freely mixed subset across reload.
       await openPracticeOptions(page);
-      for(const index of [1,2,4,5])await page.locator("#hymn-stanzas input").nth(index).uncheck();
+      for(const index of [1,2])await page.locator("#hymn-stanzas input").nth(index).uncheck();
       await page.reload();
       await waitForApp(page,".hymn-pause");
       await openPracticeOptions(page);
-      await expect(page.locator("#hymn-stanzas input")).toHaveCount(7);
-      assert.deepEqual(await page.locator("#hymn-stanzas input").evaluateAll(nodes=>nodes.map(n=>(n as HTMLInputElement).checked)),[true,false,false,true,false,false,true]);
+      await expect(page.locator("#hymn-stanzas input")).toHaveCount(4);
+      assert.deepEqual(await page.locator("#hymn-stanzas input").evaluateAll(nodes=>nodes.map(n=>(n as HTMLInputElement).checked)),[true,false,false,true]);
       await checkScore(page);
-      if(width===1440||width===390)for(const stanza of [4,5,6,7]){
+      if(width===1440||width===390)for(const stanza of [4]){
         await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=wait&hands=right&view=right&stanzas=${stanza}&capo=3`);
         await waitForApp(page,".hymn-pause");
-        await expect(page.locator(".hymn-count")).toHaveText(`1 / ${stanza===4?54:53}`);
+        await expect(page.locator(".hymn-count")).toHaveText(`1 / 51`);
       }
     }
     await checkVocalEdition(page,server.base,"jesus-loves-me");

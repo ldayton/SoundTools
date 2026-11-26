@@ -280,31 +280,18 @@ test("solo guitar lets the opening G ring over the two E plucks, clears G7, and 
   }
 });
 
-test("four pointed Hebrew verses retain the user's words and add no translation credit",()=>{
- assert.equal(hymn.stanzas.length,7);
- assert.deepEqual(hymn.stanzas.slice(3).map(s=>s.label),["ישוע אותי אוהב","ישוע מת על הצלב","גם כשכואב לי הלב","ישוע הולך איתי"]);
+test("one Hebrew verse and chorus retain the approved child-friendly adaptation",()=>{
+ assert.equal(hymn.stanzas.length,4);
+ assert.deepEqual(hymn.stanzas.slice(3).map(s=>s.label),["אני יקר לישוע"]);
  const bare=(s:string)=>s.normalize("NFD").replace(/\p{M}/gu,"").replace(/[^א-ת]/g,"");
- // Standard pointed spelling omits redundant vowel letters in כולם, איתי,
- // חטאיי, ייקח, אליי, דמעותיי and איתו; the words themselves are unchanged.
- const verse=[
-  "ישוע אותי אוהב כך כתוב והוא נאמן הקטנים כלם שלו הוא חזק ושומרם",
-  "ישוע מת על הצלב פתח לי שער אליו על חטאי הוא יסלח אותי אל ביתו יקח",
-  "גם כשכואב לי הלב ישוע אותי אוהב ממרום הוא בא אלי ומוחה את דמעותי",
-  "ישוע הולך אתי בכל צעד בדרכי יום יבוא אהיה אתו שם לנצח בביתו",
- ];
- const refrain="ישוע אוהב אותי ישוע אתי ישוע אוהב אותי דברו גלה לי זאת";
- hymn.stanzas.slice(3).forEach((s,i)=>{
-  assert.equal(s.syllables.length,49);
-  assert.equal(bare(s.syllables.join("")),bare(verse[i]+refrain));
-  assert.equal(s.syllables.flatMap(t=>t.split(/\s+/)).filter(t=>t!=="_").length,53);
-  assert.deepEqual(s.syllables.flatMap((t,j)=>t==="_"?[j]:[]),i===0?[26]:[]);
-  assert.equal(s.syllables.reduce((n,t)=>n+t.split(/\s+/).length-1,0),i===0?5:4);
- });
- assert(hymn.stanzas[4].syllables[7].startsWith("פָּ-"),"Past-tense patach, not the noun petach");
- assert.equal(hymn.stanzas[6].syllables[22],"לָ-");
- assert.equal(hymn.stanzas[6].syllables[23],"נֶ-");
+ const stanza=hymn.stanzas[3];
+ assert.equal(stanza.syllables.length,49);
+ assert.equal(bare(stanza.syllables.join("")),bare(
+  "אני יקר לישוע הוא קורא לי בוא אלי הוא שומר על הקטנים בידיו הם מוגנים "+
+  "ישוע אתי ישוע שלי ישוע אתי הוא תמיד אוהב אותי"));
+ assert.equal(stanza.syllables.flatMap(t=>t.split(/\s+/)).length,51);
  assert(!hymn.credits.some(c=>/Hebrew|translation|Irit|Barrett|Kalo/i.test(c)),"No translation credit requested");
- assert.deepEqual(hymnPreferences(hymn.id,{stanzas:[1,4,6,7]}).stanzas,[1,4,6,7]);
+ assert.deepEqual(hymnPreferences(hymn.id,{stanzas:[1,4,6,7]}).stanzas,[1,4]);
 });
 
 test("Hebrew underlay preserves every pitch envelope, bar length and accompaniment",async()=>{
@@ -320,11 +307,11 @@ test("Hebrew underlay preserves every pitch envelope, bar length and accompanime
   }
   return result;
  };
- const rows=hymnLyricRows({hymn,selected:[1,2,3,4,5,6,7],offset:0});
+ const rows=hymnLyricRows({hymn,selected:[1,2,3,4],offset:0});
  assert.deepEqual(rows.flatMap((r,i)=>r.slice(28).some(t=>t!=="*")?[i+1]:[]),[1,4],"One English refrain and one Hebrew refrain");
  for(const arrangement of ["piano","guitar-edition","original","guitar-vocal"] as const){
   const score=arrangeHymn(hymn,arrangement,0),source=read(score.abc);
-  for(const selected of [[1,2,3],[4],[5],[6],[7],[1,4,6],[1,2,3,4,5,6,7]]){
+  for(const selected of [[1,2,3],[4],[1,4],[1,2,3,4]]){
    const abc=hymnLyricsAbc(score.abc,{hymn,selected,offset:0}),actual=read(abc);
    assert.deepEqual(envelope(abc),envelope(score.abc),`${arrangement}: ${selected} keeps all pitches at the original times`);
    assert.equal(actual.audio.totalDuration*4,64);
@@ -335,7 +322,7 @@ test("Hebrew underlay preserves every pitch envelope, bar length and accompanime
   }
  }
  const source=arrangeHymn(hymn,"piano",0).abc;
- for(const [number,count] of [[1,49],[4,54],[5,53],[6,53],[7,53]]){
+ for(const [number,count] of [[1,49],[4,51]]){
   const abc=hymnLyricsAbc(source,{hymn,selected:[number],offset:0});
   const notes=read(abc).tune.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[]).filter(n=>n.el_type==="note"&&n.pitches?.length);
   assert.equal(notes.length,count);
@@ -347,7 +334,7 @@ test("Hebrew cadences keep stressed endings long and the refrain's final phrase 
  const {hymnLyricsAbc}=await import("../../../packages/music-practice/src/hymn-lyrics");
  const bare=(s:string)=>s.normalize("NFD").replace(/\p{M}/gu,"");
  const score=arrangeHymn(hymn,"piano",0);
- for(const number of [4,5,6,7]){
+ for(const number of [4]){
   const {tune}=read(hymnLyricsAbc(score.abc,{hymn,selected:[number],offset:0}));
   let beat=0;
   const words=tune.lines.flatMap(l=>l.staff?.[0]?.voices?.[0]||[]).flatMap(n=>{
@@ -355,17 +342,16 @@ test("Hebrew cadences keep stressed endings long and the refrain's final phrase 
    const result={beat,duration:n.duration*4,text:bare(n.lyric?.[0]?.syllable||"")};beat+=result.duration;return [result];
   });
   const at=(beat:number)=>words.find(w=>w.beat===beat);
-  const endings:Record<number,string[]>={4:["הב.","מן.","לו.","רם."],5:["צלב.","ליו.","לח.","קח."],6:["לב.","הב.","לי.","תי."],7:["תי.","כי.","תו.","תו."]};
-  [6,14,22,30].forEach((beat,i)=>assert.deepEqual(at(beat),{beat,duration:2,text:endings[number][i]}));
-  assert.deepEqual([55,56,57,58,59.5,60].map(at),[
-   {beat:55,duration:1,text:"דב"},{beat:56,duration:1,text:"רו"},
-   {beat:57,duration:1,text:"ג"},{beat:58,duration:1.5,text:"לה"},
-   {beat:59.5,duration:.5,text:"לי"},{beat:60,duration:4,text:"זאת."},
+  [14,22,30].forEach((beat,i)=>assert.deepEqual(at(beat),{beat,duration:2,text:["לי.","נים,","נים."][i]}));
+  assert.deepEqual([4,4.5,5,6].map(at),[
+   {beat:4,duration:.5,text:"ל"},{beat:4.5,duration:.5,text:"י"},
+   {beat:5,duration:1,text:"שו"},{beat:6,duration:2,text:"ע,"},
   ]);
-  if(number===4){
-   assert.deepEqual(at(13),{beat:13,duration:.5,text:"נ"});
-   assert.deepEqual(at(13.5),{beat:13.5,duration:.5,text:"א"});
-   assert.equal(at(29)?.text,"_","Carry שומ through the next pitch before רם");
-  }
+  assert.deepEqual([55,55.5,56,57,58,59.5,60].map(at),[
+   {beat:55,duration:.5,text:"הוא"},{beat:55.5,duration:.5,text:"ת"},
+   {beat:56,duration:1,text:"מיד"},{beat:57,duration:1,text:"או"},
+   {beat:58,duration:1.5,text:"הב"},{beat:59.5,duration:.5,text:"או"},
+   {beat:60,duration:4,text:"תי."},
+  ]);
  }
 });

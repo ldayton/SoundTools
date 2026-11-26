@@ -161,6 +161,12 @@ Amazing Grace includes the three matching Hebrew verses translated by Shlomo Kal
 selectable as stanzas 4–6 alongside the three English verses. The retained Hebrew
 verses correspond to “Amazing Grace”, “’Twas grace” and “When we’ve been there”. Only the Hebrew translation is taken from the supplied reference.
 
+Jesus Loves Me retains its three English verses and one Hebrew adaptation beginning
+“אני יקר לישוע”, followed by “ישוע איתי / ישוע שלי / ישוע איתי /
+הוא תמיד אוהב אותי”. It replaces the previous four Hebrew verses. The opening
+לְ־יֵ and the final line's הוּא תָּ־ split their existing notes into ordinary
+eighths; melody pitches, phrase lengths and accompaniment remain unchanged.
+
 An override's `syllables` may be a space-delimited string or an array with one
 entry per canonical melody note, including `*` at tied continuations. Within an
 array entry, spaces divide a held pitch into repeated notes for extra syllables;

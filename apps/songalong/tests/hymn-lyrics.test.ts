@@ -75,7 +75,7 @@ test("all bundled stanzas align to the melody, with unique first-word labels", (
     "o-come-all-ye-faithful",
   ])
     assert.equal(hymn(id).stanzas.length, 3);
-  assert.equal(hymn("jesus-loves-me").stanzas.length, 7);
+  assert.equal(hymn("jesus-loves-me").stanzas.length, 4);
   assert.equal(hymn("amazing-grace").stanzas.length, 6);
   assert.match(
     words(hymn("amazing-grace").stanzas[1].syllables),

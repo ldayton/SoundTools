@@ -71,6 +71,11 @@ provenance data. Only our TypeScript implementations and test tools execute.
 
 ## Acceptance and regression owners
 
+The [cost audit](piano-cost-audit.md) diagnoses printed-reference disagreements
+as ranking tradeoffs, indistinguishable feature vectors or representation issues.
+Its corpus script is optional research; bounded synthetic audit contracts are
+owned by `piano-cost-audit.test.ts` in the existing shared/music CI unit glob.
+
 [Acceptance criteria](piano-whole-hand-acceptance.md) define this phase's contract.
 
 - `piano-fingering.test.ts`, `piano-fingering-safety.test.ts`, and

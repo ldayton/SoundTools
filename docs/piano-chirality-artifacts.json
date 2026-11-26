@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "githubRevision": "cd9c54e0dcdfaf0677690f03978cd23ecd90da22",
+  "sourceRepository": "https://github.com/vibetuned/chirality",
+  "sourceLicense": "AGPL-3.0-or-later; source retained only under ignored work/chirality/upstream, not product code",
+  "sourceSha256": {
+    "chirality/rules/parncutt97.py": "65eb1cc3829ee6ec5692b71ff51800a92952a7293ac4054e46f963d953eb6a4f",
+    "chirality/rules/weight_learning.py": "19703d66b95de6e8f89200c78cf19b78c3d614abcffd37a567b9d4e561ce380a"
+  },
+  "weights": {
+    "repository": "https://huggingface.co/vibetuned/chirality-models",
+    "revision": "723e5014bcfbe240f22f7767a252c076008c31f5",
+    "path": "weights/parncutt.json",
+    "sha256": "bb454a20f87235722727993ca5de4187fa6bb97b73e9e71afe116f4958d43215",
+    "terms": "Model card states PIG-trained learned weights are research/non-profit use. Offline evaluation only; artifact not checked in or shipped."
+  },
+  "modelCardSha256": "6317594631708113d8fca91453200b85d572f7acf805480c4615e43d9c08c2d0"
+}

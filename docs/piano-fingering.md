@@ -76,6 +76,11 @@ an original learned scalar baseline and partial-label structured ranker against
 classic on a pre-reserved fresh corpus. Neither improves enough to replace the
 production planner; weights and contextual scoring remain offline research.
 
+The subsequent [published Chirality weight comparison](piano-chirality-comparison.md)
+uses the actual upstream weights and native Parncutt decoder. Its checked candidate
+has larger aggregate gains, with chromatic/five-finger and whole-piece regressions
+still preventing an across-the-board replacement. It remains an offline experiment.
+
 The [cost audit](piano-cost-audit.md) diagnoses printed-reference disagreements
 as ranking tradeoffs, indistinguishable feature vectors or representation issues.
 Its corpus script is optional research; bounded synthetic audit contracts are

@@ -1,5 +1,8 @@
 # Latent structured piano ranking experiment
 
+The later [Chirality comparison](piano-chirality-comparison.md) tests published
+external weights; this report concerns our two locally trained models only.
+
 Neither learned model earns promotion over the current planner. On the fresh
 Czerny test collection, scalar reweighting gains three printed digits and the
 structured ranker gains one. Both lose the baseline's one completely matched

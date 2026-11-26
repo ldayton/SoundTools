@@ -730,3 +730,26 @@ assertions by ownership: `guitar.browser.ts` retains desktop/phone controls;
 `guitar-sustain.browser.ts` retains every registry entry's real scheduling
 durations and editorial-mark checks. Both are required in CI and Nightly.
 No product music, timing assertions or coverage were changed.
+
+### 2026-11-26 hybrid fingering research: local CI budget
+
+The first full applicable run on `0e275086` exceeded the 60-second budget:
+`work/ci-results/1795693139483-b62d7cfa/local.json` reports 62.17 seconds
+including cancellation/cleanup. The only incomplete owner was
+`dorego:ci:core:chromium:1` (`test:desktop`), cancelled after 23.76 seconds;
+its log shows completed playback checks and no preceding assertion failure.
+All other owners passed. This is an incomplete budget run, not a pass.
+
+Compared with the previous complete run at
+`work/ci-results/1795690074353-21bd08dd/`, DoReGo's build took 24.08 rather
+than 16.76 seconds and Notewise's 16.18 rather than 13.64. Shared music units
+were slightly faster (26.06 versus 26.59 seconds). The hybrid code changes
+only research tools and fixtures; these timings do not establish the cause
+of the build variation or prove that it is unrelated. No failing assertion
+was retried or weakened, and no timeout, coverage owner or budget changed.
+
+One diagnostic rerun of the standard full coordinator is retained in
+`work/neural-piano-hybrid/ci-after-budget-review.log`; its emitted evidence
+directory contains the exact result. A passing rerun would demonstrate one
+complete required execution, not explain or fix the first budget failure.
+The limited timing margin remains an open suite-budget concern.

@@ -47,6 +47,49 @@ export async function checkScoreLayoutComponent(page: Page) {
     }
     assert(lines[0]>lines[2],`${kind} places more music on wide systems`);
   }
+  const hiddenStartup=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar',1.25,{hidden:true}));
+  const detachedTiming=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar',1.25,{detached:true}));
+  const revealed=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar'));
+  assert.deepEqual(detachedTiming.audio,revealed.audio,'Detached timing-only renders never require visual system packing');
+  assert.deepEqual(hiddenStartup.audio,revealed.audio,'Hidden startup/timing renders preserve playback without requiring a painted rectangle');
+  for(const kind of ['skyline','skyline-collision','skyline-unknown','skyline-explicit'] as const){
+    const result=await page.evaluate(kind=>window.ScoreLayoutFixture.renderLayoutFixture(1000,kind),kind);
+    assert(result.retainedReferences,'Placement preserves note element identity for playback and selection');
+    assert.deepEqual(result.audio,result.nativeAudio,'Vertical layout changes no sounding pitches, durations or source events');
+    const before=result.nativeGeometry[0],after=result.placedGeometry[0],report=result.diagnostics.vertical[0];
+    const nativeGap=before.staffs[1].top-before.staffs[0].top,placedGap=after.staffs[1].top-after.staffs[0].top;
+    if(kind==='skyline')assert(nativeGap-placedGap>20,'Opposite-side protrusions recover actual inter-staff space');
+    if(kind==='skyline-collision')assert(placedGap>nativeGap+5,'Real facing protrusions retain an ink clearance');
+    if(kind==='skyline-unknown'||kind==='skyline-explicit'){
+      assert.equal(report.status,'fallback');assert(report.reason);
+      assert(Math.abs(nativeGap-placedGap)<.01,'Unsupported or explicit spacing stays intact');
+    }else{
+      assert(Math.abs(placedGap-nativeGap-report.offsets[1])<.01,'Reported displacement matches independent painted geometry');
+      assert(kind==='skyline'?after.bridges[0].height<before.bridges[0].height:after.bridges[0].height>before.bridges[0].height,'Brace follows the new staff span');
+    }
+    for(let i=0;i<before.heads.length;i++){
+      assert(Math.abs(before.heads[i].left-after.heads[i].left)<.01,'Vertical placement preserves every rhythmic x anchor');
+      assert(Math.abs(before.heads[i].height-after.heads[i].height)<.01&&Math.abs(before.heads[i].width-after.heads[i].width)<.01,'Glyphs are translated, never stretched');
+      const staff=i<4?0:1;
+      assert(Math.abs(before.heads[i].top-before.staffs[staff].top-after.heads[i].top+after.staffs[staff].top)<.01,'Notes keep their written pitches relative to their staff');
+    }
+  }
+  const flowWitness=await page.evaluate(()=>{
+    window.ScoreLayoutFixture.renderLayoutFixture(600,'skyline-flow');
+    const svgs=[...document.querySelectorAll<SVGSVGElement>('#layout-fixture svg')],next=svgs[1].getBoundingClientRect();
+    const head=svgs[0].querySelector('.abcjs-notehead')!,r=head.getBoundingClientRect();
+    let painted=0,blocked=0;
+    for(let ix=1;ix<10;ix++)for(let iy=1;iy<10;iy++){
+      const x=r.x+r.width*ix/10,y=r.y+r.height*iy/10;
+      if(y<next.top||y>next.bottom)continue;
+      const target=document.elementFromPoint(x,y);
+      if(target?.closest('svg')===svgs[0])painted++;
+      if(target?.closest('svg')===svgs[1])blocked++;
+    }
+    return {overlap:parseFloat(svgs[1].parentElement!.style.marginTop),painted,blocked};
+  });
+  assert(flowWitness.overlap<-20,'System contours recover whitespace without shrinking music');
+  assert(flowWitness.painted>0&&flowWitness.blocked===0,'An overlapping blank SVG viewport never blocks the preceding note');
   await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar'));
   const ink = await page.evaluate(()=>({
     ledgers:[...document.querySelectorAll('.abcjs-ledger')].filter(node=>getComputedStyle(node).visibility==='visible').map(node=>({

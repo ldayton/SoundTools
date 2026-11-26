@@ -1,3 +1,6 @@
+import {scoreInkBox,scoreFrameSelector} from './geometry';
+import {planScoreFlow} from './flow';
+import {placeScoreStaves,scoreFlowBlock,type VerticalDiagnostics} from './vertical';
 import {prepareScoreSvg,type ScorePresentation} from "./svg";
 import {isScoreSectionStart,correctWrappedBarNumbers} from "../score-markings";
 import abcjs, { type AbcVisualParams, type AbsoluteElement } from "abcjs";
@@ -153,9 +156,11 @@ export class AbcScoreLayout {
   readonly params: AbcVisualParams;
   private paper?: HTMLElement;
   private renderPasses=0;
+  private tune?:ReturnType<typeof abcjs.renderAbc>[number];
+  private vertical:VerticalDiagnostics[]=[];
   /** Serializable developer/test report. Callers cannot mutate cached metrics. */
   get diagnostics() {
-    return {renderPasses:this.renderPasses,sections:this.metrics?structuredClone(this.metrics):[]};
+    return {renderPasses:this.renderPasses,sections:this.metrics?structuredClone(this.metrics):[],vertical:structuredClone(this.vertical)};
   }
   constructor(readonly input: AbcScoreLayoutInput) {
     const {width,scale,mode,source}=input;
@@ -232,52 +237,56 @@ export class AbcScoreLayout {
     paper.style.width="100%";paper.style.paddingBottom="0";
     paper.style.overflowX=this.input.mode==="reflow"?"auto":"hidden";
     paper.style.minWidth="0";
+    this.tune=tune;this.vertical=[];
     return tune;
+  }
+  /** Pack consecutive finalized systems using the same physical contour
+   * contract as export. Non-music blocks are boundaries, never overprinted. */
+  finish() {
+    if(!this.paper?.isConnected||!this.paper.getClientRects().length)return;
+    const explicit=[...this.input.source.matchAll(/^%%staffsep\s+([\d.]+)/gm)].at(-1)?.[1];
+    if(explicit!==undefined&&Number(explicit)!==24)for(const svg of this.paper.querySelectorAll<SVGSVGElement>('svg'))
+      svg.dataset.scoreSystemGap=String(Number(explicit)*4/3*Number(svg.dataset.scoreScale||this.input.scale));
+    let run:SVGSVGElement[]=[];
+    const pack=()=>{
+      if(run.length<2){run=[];return;}
+      const blocks=run.map(scoreFlowBlock),plan=planScoreFlow(blocks);
+      run.forEach((svg,i)=>{
+        const wrapper=svg.parentElement!;
+        wrapper.style.marginTop=i?`${plan.positions[i]-plan.positions[i-1]-blocks[i-1].height}px`:'0px';
+        wrapper.style.position='relative';
+        wrapper.style.marginBottom=i===run.length-1?`${Math.max(0,plan.height-plan.positions[i]-blocks[i].height)}px`:'0px';
+        // Overlapping SVG viewports must not intercept the previous system's
+        // ink. Painted descendants stay interactive and events still bubble.
+        wrapper.style.pointerEvents='none';svg.style.pointerEvents='none';
+        for(const child of svg.children)if(child instanceof SVGGraphicsElement&&!child.style.pointerEvents)
+          child.style.pointerEvents='visiblePainted';
+        svg.dataset.scoreFlowY=String(plan.positions[i]);
+      });run=[];
+    };
+    for(const child of this.paper.children){
+      const svg=child.querySelector<SVGSVGElement>(':scope > svg');
+      if(svg&&svg.querySelector('.abcjs-staff')&&getComputedStyle(svg).display!=='none')run.push(svg);
+      else pack();
+    }
+    pack();
   }
   /** Call after instrument/lyric decorations have established the final viewBox. */
   fit(svg: SVGSVGElement) {
     prepareScoreSvg(svg,this.input.presentation);
+    if(this.tune) {
+      const explicit=[...this.input.source.matchAll(/^%%sysstaffsep\s+([\d.]+)/gm)].at(-1)?.[1];
+      this.vertical.push(placeScoreStaves(svg,this.tune,explicit===undefined||Number(explicit)===SCORE_LAYOUT.minimumStaffSeparation));
+    }
     // Reserve real final ink (including tab, chord labels and pointed lyrics).
     // A renderer may place it outside its original per-system viewBox.
     const box=svg.viewBox.baseVal;
     const root=svg.getScreenCTM();
     if(root) {
-      const inverse=root.inverse();
       let left=box.x,right=box.x+box.width,top=Infinity,bottom=-Infinity;
-      for(const node of svg.querySelectorAll<SVGGraphicsElement>("path,text,use,rect,line,polyline,polygon,circle,ellipse")) {
-        if(node.closest("defs,clipPath,mask,pattern,marker,symbol")) continue;
-        const style=getComputedStyle(node);
-        if(style.visibility==="hidden" || style.visibility==="collapse" || style.display==="none" || style.opacity==="0") continue;
-        const screen=node.getBoundingClientRect(),matrix=node.getScreenCTM();
-        if(!matrix || (!screen.width && !screen.height)) continue;
-        const extent = (bounds: DOMRect | SVGRect, transform: DOMMatrix) => {
-          const points=[[bounds.x,bounds.y],[bounds.x+bounds.width,bounds.y],
-            [bounds.x,bounds.y+bounds.height],[bounds.x+bounds.width,bounds.y+bounds.height]]
-            .map(([x,y])=>new DOMPoint(x,y).matrixTransform(transform));
-          return {left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),
-            top:Math.min(...points.map(p=>p.y)),bottom:Math.max(...points.map(p=>p.y))};
-        };
-        const visible=extent(node.getBBox(),inverse.multiply(matrix));
-        // SVG getBBox/getBoundingClientRect include portions cut off by a clip.
-        // Our tab/staff adapters use user-space rectangular clipping. Intersect
-        // those constraints rather than resurrecting the cropped source staff.
-        for(let owner: SVGGraphicsElement|null=node;owner && owner!==svg;owner=owner.parentElement as unknown as SVGGraphicsElement|null) {
-          const id=owner.getAttribute("clip-path")?.match(/url\(["']?#([^)'" ]+)/)?.[1];
-          const clip=id?svg.querySelector<SVGClipPathElement>(`clipPath[id="${CSS.escape(id)}"]`):null;
-          const ownerMatrix=owner.getScreenCTM?.();
-          if(!clip || !ownerMatrix || clip.getAttribute("clipPathUnits")==="objectBoundingBox") continue;
-          const rect=clip.querySelector<SVGRectElement>(":scope > rect");
-          if(!rect) continue;
-          let transform=inverse.multiply(ownerMatrix);
-          const clipTransform=clip.transform.baseVal.consolidate()?.matrix;
-          const rectTransform=rect.transform.baseVal.consolidate()?.matrix;
-          if(clipTransform) transform=transform.multiply(clipTransform);
-          if(rectTransform) transform=transform.multiply(rectTransform);
-          const clipped=extent(rect.getBBox(),transform);
-          visible.left=Math.max(visible.left,clipped.left);visible.right=Math.min(visible.right,clipped.right);
-          visible.top=Math.max(visible.top,clipped.top);visible.bottom=Math.min(visible.bottom,clipped.bottom);
-        }
-        if(visible.left>visible.right || visible.top>visible.bottom) continue;
+      for(const node of svg.querySelectorAll<SVGGraphicsElement>(scoreFrameSelector)) {
+        const visible=scoreInkBox(node,svg);
+        if(!visible)continue;
         // Horizontal paper already includes engraving padding. Reserve stroke
         // edges, without adding another eight units beyond an otherwise fitting
         // final barline (Linux font metrics exposed spurious local scrolling).

@@ -15,3 +15,18 @@ test('an oversized indivisible system fits the page without clipping or dropping
  assert(placed.height<=scorePapers.desktop.height-72);assert.equal(placed.width/placed.height,1400/2400);
  assert.throws(()=>paginateScore([{width:NaN,height:1}],'mobile'));
 });
+
+test('contour pagination uses explicit positions and resets placement at a page boundary',()=>{
+ const box=(left:number,right:number,top:number,bottom:number)=>({left,right,top,bottom});
+ const blocks=[{width:300,height:500,ink:[box(0,300,0,200),box(0,50,200,500)],clearance:12},
+  {width:300,height:500,ink:[box(250,300,0,200),box(0,300,200,500)],clearance:12},
+  {width:300,height:500,clearance:12}];
+ const pages=paginateScore(blocks,'mobile');
+ assert.equal(pages.length,2);
+ assert.equal(pages[0][1].y,312,'Opposite protrusions interlock without a full-box gap');
+ assert.equal(pages[1][0].y,0,'The next page starts at its margin, without a carried negative offset');
+ for(const page of pages)for(let j=0;j<page.length;j++)for(let i=0;i<j;i++){
+  const a=page[i],b=page[j],upper=blocks[a.index].ink!,lower=blocks[b.index].ink!;
+  for(const x of upper)for(const y of lower)if(Math.min(x.right,y.right)>Math.max(x.left,y.left))assert(x.bottom+a.y+12<=y.top+b.y);
+ }
+});

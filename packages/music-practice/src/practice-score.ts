@@ -318,6 +318,10 @@ export function drawPracticeScore(
   });
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
+  if (options.fingerings && !options.beginnerEdition) {
+    if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
+    else drawHymnFingerings(tune);
+  }
   if(options.barNumbers)restoreSystemBarNumbers(tune,paper);
   paper.querySelectorAll("svg").forEach((svg) => {
     layout.fit(svg);
@@ -332,13 +336,10 @@ export function drawPracticeScore(
   }
   if (swinging) addSwingHelp(paper);
   paper.querySelectorAll(".abcjs-part,.abcjs-tempo").forEach(mark=>mark.remove());
+  layout.finish();
   if (!options.fingerings) paper.querySelectorAll(".beginner-fingering,.beginner-picking,.beginner-string").forEach(mark=>mark.remove());
   attachChordDiagrams(paper, chordPassages);
   if (options.printedScore && !options.guitarAccompaniment) attachPianoChordDiagrams(paper, tune);
-  if (options.fingerings && !options.beginnerEdition) {
-    if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
-    else drawHymnFingerings(tune);
-  }
   // abcjs timings reference staff glyphs but omit their engraved tab clones.
   const tabElements = new Map<number, HTMLElement[]>();
   if (options.guitarTab)

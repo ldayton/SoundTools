@@ -1,8 +1,9 @@
+import {anchorScoreInk} from './score-layout/vertical';
 import type { AbsoluteElement, TuneObject } from "abcjs";
 
 type Lyric = { syllable: string; divider?: string; hymnRow?: number };
 type Anchor = { span: SVGGraphicsElement; text: string; hyphen: boolean };
-type Segment = { svg: SVGSVGElement; x1: number; x2: number; y: number; anchor: Anchor; row: number };
+type Segment = { svg: SVGSVGElement; x1: number; x2: number; y: number; anchor: Anchor; row: number; owner:SVGGraphicsElement };
 const namespace = "http://www.w3.org/2000/svg";
 
 /** Convert glyph bounds into the owning SVG's coordinates, including staff zoom. */
@@ -61,7 +62,7 @@ export function prepareHymnMelismas(tune: TuneObject) {
         x1: continuing ? (end.left + end.right) / 2 - 6 : start.right + 3,
         x2,
         y: anchor.hyphen ? (reference.top + reference.bottom) / 2 : reference.bottom + 1,
-        anchor, row,
+        anchor, row, owner:span,
       });
     }
     for (const segment of segments) {
@@ -80,7 +81,7 @@ export function prepareHymnMelismas(tune: TuneObject) {
         ink.setAttribute("fill", "currentColor");
         group.append(ink);
       }
-      segment.svg.append(group);
+      anchorScoreInk(group,segment.owner);segment.svg.append(group);
     }
   };
 }

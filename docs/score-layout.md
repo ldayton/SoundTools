@@ -68,15 +68,63 @@ abrupt changes in density between adjacent justified systems. Naturally short
 final systems do not force their predecessors to match fictitious stretching.
 An exhaustive partition oracle checks global optimality on small synthetic inputs.
 
-The shared minimum inter-staff separation is 24 ABC points (32 engraving units).
-This reduces blank padding; abcjs still expands around engraved notes and lyrics,
-and explicit source spacing remains authoritative. This is a conservative native
-spacing improvement, not a replacement skyline placement engine. Full contour-
-based inter-staff positioning and a new within-measure text solver remain separate
-future work; no SVG coordinates or musical timing are rewritten to simulate them.
+## Vertical placement
+
+The native minimum inter-staff separation remains 24 ABC points. After all
+instrument, lyric, octave and fingering decorations, `AbcScoreLayout.fit()` runs
+centralized vertical placement before framing. `finish()` packs consecutive
+systems after their physical frames are known. Neither stage changes musical
+pitches, durations, horizontal note anchors, or glyph scale.
+
+- `skyline.ts` owns exact interval envelopes, opposing-contour clearance,
+  all-preceding-row constraints and aligned outside-staff lanes. It has no DOM
+  or renderer dependency. Separate protrusions can interlock; facing ones must
+  retain clearance. Curves use conservative primitive bounds, not raster samples.
+- `geometry.ts` is the shared visible-ink contract for placement, framing and
+  export. It respects ancestor visibility, stroke extents and transformed
+  rectangular clips; definitions, masks and interaction/debug overlays are not
+  obstacles. Contours measure shaped lyric tspans individually, excluding blank rows.
+  SVG frames retain the complete parent text bounds for selection/clipping;
+  system contours can interlock the unpainted portion of those bounds.
+- `vertical.ts` is the explicit abcjs 6.5 adapter. Staff identity comes from native
+  voice/staff relationships and element references, with TAB clones taking
+  precedence over reused CSS voice classes. Detached editorial ink declares its
+  musical anchor through `anchorScoreInk`; adapters never choose staff positions.
+  Ledger-layer relocation preserves that ownership.
+- Chord rows and lyric rows move together, outward only when needed. Below-staff
+  chord placement stays below. Melismas move with their lyric lane. Inline
+  fingerings and other annotations remain attached to their note/staff and
+  participate as obstacles rather than being independently scattered.
+- Staff-owned atoms translate as a unit. Only structural braces and connecting
+  bar spines change height. Note nodes and event references survive. Native
+  staff coordinates, note positions, shared selectable geometry and timing
+  heights follow the displacement, without touching sounding pitches.
+- Missing ownership, clipped staff/model mismatches and cross-staff musical
+  connectors conservatively retain native internal spacing and report why.
+  Explicit non-default `sysstaffsep` is respected. No edition or song ID controls
+  capability. A within-measure horizontal text solver is still separate work.
+
+`flow.ts` owns physical block positions for screen, print and PDF. It compares
+all preceding contours, preserves block order and retains trailing extents even
+when the last block is shorter. Headers and clipped/unknown blocks reserve their
+full rectangles. Page boundaries start fresh. Screen wrappers use these positions
+without changing SVG scale; painted descendants remain interactive through an
+otherwise overlapping blank SVG viewport. Detached timing-only and hidden startup
+renders do not attempt visual packing.
+
+Print uses explicit per-page block coordinates. PDF embeds transparent system
+images, so a later image cannot erase preceding ink in an interlocking frame.
+Both consume the same contour/page plan. Explicit non-default source `staffsep`
+becomes a shared physical clearance, including export. Rendering starts from
+fresh geometry on each view, scale, stanza or annotation change; vertical
+measurements are not reused across those changes.
+
+Diagnostics include offsets, limiting contacts, final staff contours, annotation
+movements and capability fallbacks. `drawVerticalDiagnostics(svg)` optionally
+paints red/blue contours; that overlay is excluded from measurements and exports.
 
 `AbcScoreLayout.diagnostics` returns private-copy measurements, contextual range
-constraints and render-pass count. Visual failure reports retain this semantic
+constraints, vertical placement reports and render-pass count. Visual failure reports retain this semantic
 geometry alongside images, making opening-width and replan regressions inspectable.
 
 ## Regression owners
@@ -196,3 +244,21 @@ edition checks retain the correct final measure number across break changes.
 The TAB adapter coalesces identical position marks and fermatas from simultaneous
 notation voices at the same horizontal anchor, so a reflow cannot duplicate a
 shared symbol. Distinct symbols and positions are retained.
+
+### Vertical regression ownership
+
+`score-skyline.test.ts` checks exact contact/gap behavior, independent seeded
+all-pairs collision oracles, scale/translation invariance, non-adjacent staff
+constraints, aligned outside lanes and physical system packing.
+`score-export.test.ts` owns contour pagination and page-boundary reset.
+These are automatically included in the existing shared music unit lane.
+
+The existing required component browser owner includes opposite/facing staff
+protrusions, preserved glyph dimensions and rhythmic anchors, native audio
+identity, brace movement, conservative unknown/explicit-spacing fallbacks,
+hidden/detached timing renders and a real hit-test through overlapping frames.
+Existing clipping, Hebrew, TAB masks, ledger layering, polyphony and resize
+witnesses continue to exercise the shared measurement boundary. The existing
+export browser owner checks transparent PDF images and the print/page contract.
+Edition and visual comparisons remain in Nightly; no tier, server or CI command
+is added for the skyline engine.

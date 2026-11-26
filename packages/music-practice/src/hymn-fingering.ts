@@ -1,3 +1,4 @@
+import {anchorScoreInk} from './score-layout/vertical';
 import type { AbsoluteElement, TuneObject } from "abcjs";
 import { scoreSpellings, pitchLabel } from "./sight-feedback";
 import { planPianoFingering, type FingerNote } from "./piano-fingering";
@@ -150,7 +151,7 @@ export function drawHymnFingerings(tune: TuneObject) {
       }
       text.textContent = String(f.finger);
       mark.append(text);
-      svg.append(mark);
+      anchorScoreInk(mark,head);svg.append(mark);
     });
   }
 }

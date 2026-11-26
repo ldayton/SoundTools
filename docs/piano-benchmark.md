@@ -140,3 +140,11 @@ separately labelled Beringer completed references, and retains the original
 eligible-ID floors. See [the ergonomics experiment](piano-ergonomics.md) and its
 new report for current counts, candidate regression results and default policy.
 The original measurements above remain the historical, pre-recovery experiment.
+
+## Release baseline correction
+
+The table above compares two intermediate branch planners. It is historical,
+not a comparison with released main. The [final release review](piano-release-review.md)
+records the direct-main comparison, the corrected conservative default and the
+explicitly superseded intermediate default floors. All underlying cases remain
+required; experimental model reports are not used as default quality claims.

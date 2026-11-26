@@ -409,6 +409,7 @@ function poses(
   frame: Frame,
   hand: PianoHand,
   profile: PianoPhraseProfile,
+  mono = false,
 ): Pose[] {
   const active = frame.active,
     result: Pose[] = [],
@@ -443,7 +444,7 @@ function poses(
               .filter((anchor) => Math.abs(anchor - ideal) <= 1)
               .map((anchor) => ({ finger: f, anchor }));
           })
-      : pianoSinglePoses(c.midi, c.finger, hand, 1);
+      : pianoSinglePoses(c.midi, c.finger, hand, mono ? 0.61 : 1);
     return choices.map((p) => ({
       anchor: p.anchor,
       fingers: { [c.id]: p.finger },
@@ -560,6 +561,7 @@ function step(
   hand: PianoHand,
   p: PianoPhraseProfile,
   rolling = false,
+  mono = false,
 ) {
   const costs = zero(),
     events: PianoMovement[] = [],
@@ -593,7 +595,9 @@ function step(
     if (x.anchor !== y.anchor) return null;
     return { costs, events };
   }
-  const factor = 0.5 / Math.max(0.08, ((b.at - a.at) * 60) / (p.bpm ?? 120)),
+  const factor = mono
+      ? (p.bpm ?? 120) / 60
+      : 0.5 / Math.max(0.08, ((b.at - a.at) * 60) / (p.bpm ?? 120)),
     distance = Math.abs(x.anchor - y.anchor);
   if (
     a.active.length === 1 &&
@@ -755,6 +759,10 @@ function planHand(
   );
   if (!frames) return unsupported("search_limit");
   statistics.frames = frames.length;
+  // A released single-note hand retains the established per-attack objective.
+  // Reserve duration-weighted grip costs and wider poses for concurrent contacts.
+  const mono =
+    p.model !== "ergonomic" && frames.every((f) => f.active.length <= 1);
   const cache = new Map<string, { poses: Pose[]; ids: string[] }>(),
     layers: Pose[][] = [];
   for (const frame of frames) {
@@ -764,7 +772,7 @@ function planHand(
     let cached = cache.get(key);
     if (!cached) {
       cached = {
-        poses: poses(frame, hand, p),
+        poses: poses(frame, hand, p, mono),
         ids: frame.active.map((c) => c.id),
       };
       cache.set(key, cached);
@@ -795,7 +803,16 @@ function planHand(
   );
   const transitionAt = (a: Pose, b: Pose, i: number) => {
     if (p.model !== "ergonomic")
-      return step(frames[i - 1], frames[i], a, b, hand, p, rollingEdges.has(i));
+      return step(
+        frames[i - 1],
+        frames[i],
+        a,
+        b,
+        hand,
+        p,
+        rollingEdges.has(i),
+        mono,
+      );
     let from = edgeCache[i].get(a);
     if (!from) {
       from = new WeakMap();
@@ -819,7 +836,7 @@ function planHand(
     i === 0 && pose.crossed.length
       ? Infinity
       : (pose.posture * w.posture + (pose.comfort ?? 0) * w.comfort) *
-        Math.min(4, frames[i].until - frames[i].at);
+        (mono ? 1 : Math.min(4, frames[i].until - frames[i].at));
   const classicSolve = () =>
     solvePianoPath(
       layers,
@@ -905,12 +922,14 @@ function planHand(
     const own = {
       ...change.costs,
       posture:
-        pose.posture * w.posture * Math.min(4, frames[i].until - frames[i].at),
+        pose.posture *
+        w.posture *
+        (mono ? 1 : Math.min(4, frames[i].until - frames[i].at)),
       comfort:
         change.costs.comfort +
         (pose.comfort ?? 0) *
           w.comfort *
-          Math.min(4, frames[i].until - frames[i].at),
+          (mono ? 1 : Math.min(4, frames[i].until - frames[i].at)),
       context: p.model === "ergonomic" ? nextMemory.cost : 0,
       gesture: nextMemory.gesture ?? 0,
     };

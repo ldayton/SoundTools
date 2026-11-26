@@ -135,3 +135,10 @@ stable voice metadata, reference diagnostics and expanded evidence. An exact
 history-aware ergonomic scoring candidate is implemented and tested, but remains
 opt-in: fresh-source arpeggios and a technical family regressed. Classic stays
 the production default, with every original benchmark floor still enforced.
+
+## Final release review
+
+The [release review](piano-release-review.md) supersedes intermediate default
+quality claims. Released mono behavior is preserved for nonconcurrent hands;
+polyphonic planning retains duration-sensitive grips. The direct-main comparison
+and its original eligible subsets have independent required Nightly owners.

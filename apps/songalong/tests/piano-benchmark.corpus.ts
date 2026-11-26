@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import gestures from "../../../docs/piano-gestures-results.json";
-import original from "../../../docs/piano-benchmark-results.json";
+import release from "../../../docs/piano-release-results.json";
+import { comparePianoRelease } from "../../../packages/music-practice/test-fixtures/piano-release-comparison";
 import golden from "../../../docs/piano-ergonomics-results.json";
 import oldLabels from "../../../packages/music-practice/test-fixtures/piano-benchmark-v1-labels.json";
 import {
@@ -104,7 +105,11 @@ for (const [file, hash] of Object.entries(gestures.dataSha256))
 results["scales:classic"] = evaluatePianoBenchmark(
   loadPianoBenchmark("beringer-scales"),
 );
-guard(results["scales:classic"], gestures.classicScales, "scales:classic");
+guard(
+  results["scales:classic"],
+  release.production["scales:classic"],
+  "scales:classic",
+);
 // Explicit research weights retain their own floors; never replace defaults.
 for (const trial of gestures.validation.trials)
   for (const [tag, expected] of Object.entries(trial.corpora)) {
@@ -133,6 +138,42 @@ for (const trial of gestures.validation.trials)
         `gesture:${source}:${trial.weight}:${metric}`,
       );
   }
+const comparison = await comparePianoRelease([
+  ...loadPianoBenchmark(),
+  ...loadPianoBenchmark("beringer"),
+  ...loadPianoBenchmark("beringer-scales"),
+]);
+assert.equal(
+  comparison.baselineSha256,
+  release.comparison.baselineSha256,
+  "released baseline changed",
+);
+assert.equal(comparison.comparable, release.comparison.comparable);
+assert.deepEqual(comparison.excluded, release.comparison.excluded);
+assert.equal(comparison.summary.eligible, release.comparison.summary.eligible);
+assert.ok(
+  comparison.summary.after >= release.comparison.summary.after &&
+    comparison.summary.after > comparison.summary.before,
+  "must remain a measured win over released main",
+);
+for (const [family, v] of Object.entries(comparison.families)) {
+  assert.ok(v.after >= v.before, `released family regression: ${family}`);
+  assert.ok(
+    v.after >=
+      release.comparison.families[
+        family as keyof typeof release.comparison.families
+      ].after,
+    `release floor regression: ${family}`,
+  );
+}
+for (const row of comparison.rows)
+  if (row.afterCovered < row.beforeCovered)
+    assert.ok(
+      row.collisionNotes.length > 0 &&
+        row.diagnostics.length > 0 &&
+        row.diagnostics.every((d) => d.code === "hand_conflict"),
+      `unexplained released coverage loss: ${row.id}`,
+    );
 const dir = new URL("../work/piano-benchmark/", import.meta.url);
 mkdirSync(dir, { recursive: true });
 writeFileSync(
@@ -142,18 +183,20 @@ writeFileSync(
 for (const partition of ["development", "validation"] as const) {
   guard(
     results["original:" + partition],
-    original.partitions[partition].current,
+    release.production[`original:${partition}`],
     "original:" + partition,
   );
   for (const source of ["hanon", "beringer"] as const)
     for (const model of ["classic", "ergonomic"] as const)
       guard(
         results[`${source}:${partition}:${model}`],
-        golden.corpora[source].partitions[partition][model],
+        model === "classic"
+          ? release.production[`${source}:${partition}:classic`]
+          : golden.corpora[source].partitions[partition][model],
         `${source}:${partition}:${model}`,
       );
 }
 console.log(
-  "PASS: original production floors, expanded editorial corpus, and separate opt-in candidate/reference metrics; report " +
+  "PASS: release-default floors, direct-main improvement gate, expanded references and separate experimental floors; report " +
     new URL("results.json", dir).pathname,
 );

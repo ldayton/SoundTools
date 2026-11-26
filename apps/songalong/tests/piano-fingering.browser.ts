@@ -39,6 +39,7 @@ try {
     "single",
     "multiple",
     "chord",
+    "reversed-chord",
     "unsupported",
     "tied",
     "long",
@@ -52,7 +53,7 @@ try {
       result.status,
       kind === "unsupported" ? "partial" : "complete",
     );
-    if (kind === "chord") {
+    if (kind === "chord" || kind === "reversed-chord") {
       const chord = result.marks
         .filter((m) => m.hand === "right")
         .sort((a, b) => a.midi - b.midi);
@@ -88,7 +89,7 @@ try {
           ? 4
           : kind === "multiple" || kind === "tied"
             ? 5
-            : kind === "chord"
+            : kind === "chord" || kind === "reversed-chord"
               ? 3
               : 0,
     );

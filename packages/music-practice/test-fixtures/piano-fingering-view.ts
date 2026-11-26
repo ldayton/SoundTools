@@ -1,7 +1,14 @@
 import abcjs from "abcjs";
 import { drawHymnFingerings } from "../src/hymn-fingering";
 export function renderPianoFingeringFixture(
-  kind: "single" | "multiple" | "chord" | "unsupported" | "tied" | "long",
+  kind:
+    | "single"
+    | "multiple"
+    | "chord"
+    | "reversed-chord"
+    | "unsupported"
+    | "tied"
+    | "long",
 ) {
   document.body.innerHTML = '<div id="piano-fingering-fixture"></div>';
   const voices =
@@ -14,8 +21,10 @@ export function renderPianoFingeringFixture(
     "K:C\n[V:r] " +
     (kind === "unsupported"
       ? "[CDEFGc]4"
-      : kind === "chord"
-        ? "[CEG]4"
+      : kind === "chord" || kind === "reversed-chord"
+        ? kind === "chord"
+          ? "[CEG]4"
+          : "[GEC]4"
         : kind === "tied"
           ? "[C-E] [CF] D2"
           : kind === "long"
@@ -24,7 +33,7 @@ export function renderPianoFingeringFixture(
     " |]\n" +
     (kind === "single" || kind === "long"
       ? ""
-      : kind === "chord"
+      : kind === "chord" || kind === "reversed-chord"
         ? "[V:r2] E4 |]\n"
         : "[V:r2] G,4 |]\n") +
     "[V:l] C,D,E,F, |]";

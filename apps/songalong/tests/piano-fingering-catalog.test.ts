@@ -7,7 +7,9 @@ import {
   pianoKeyPosition,
 } from "../../../packages/music-practice/src/piano-fingering";
 import assert from "node:assert/strict";
-test("source melody fingerings remain reachable through transposition", () => {
+import { releasedPianoPlanner } from "../../../packages/music-practice/test-fixtures/piano-release-comparison";
+test("source melody fingerings remain reachable and match released legacy digits through transposition", async () => {
+  const released = (await releasedPianoPlanner()).plan;
   let parts = 0;
   for (const hymn of hymns)
     for (const arrangement of ["melody"] as const)
@@ -47,8 +49,16 @@ test("source melody fingerings remain reachable through transposition", () => {
               }
             }
         for (const part of voices.values()) {
-          assert.ok(part.notes.length > 0, `${hymn.title}: each transposed voice must contain notes`);
+          assert.ok(
+            part.notes.length > 0,
+            `${hymn.title}: each transposed voice must contain notes`,
+          );
           const result = planPianoFingering(part.notes, part.hand);
+          assert.deepEqual(
+            result,
+            released(part.notes, part.hand),
+            `${hymn.title}: legacy fingerings changed at transpose ${transpose}`,
+          );
           parts++;
           assert.equal(result.length, part.notes.length);
           const sign = part.hand === "right" ? 1 : -1;

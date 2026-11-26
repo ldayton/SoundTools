@@ -13,21 +13,20 @@ export function exhaustiveRollingCost(
       if (fixed[i] !== undefined && fixed[i] !== finger) continue;
       for (let anchor = -5; anchor <= 79; anchor++) {
         const d = Math.abs(key(m) - anchor - (finger - 1));
-        if (d > 1) continue;
+        if (d > 0.61) continue;
         out.push({
           finger,
           anchor,
           cost:
-            (d * d * 3 +
-              ([1, 3, 6, 8, 10].includes(m % 12)
-                ? finger === 1
-                  ? 1.8
-                  : finger === 5
-                    ? 0.4
-                    : 0
-                : 0) +
-              (finger === 4 ? 0.15 : 0)) *
-            0.25,
+            d * d * 3 +
+            ([1, 3, 6, 8, 10].includes(m % 12)
+              ? finger === 1
+                ? 1.8
+                : finger === 5
+                  ? 0.4
+                  : 0
+              : 0) +
+            (finger === 4 ? 0.15 : 0),
         });
       }
     }
@@ -65,7 +64,7 @@ export function exhaustiveRollingCost(
             else move = 0.5 + 0.35 * d;
           }
         }
-        edge = move * 2 + passing;
+        edge = move + passing;
       }
       visit(i + 1, next, cost + next.cost + edge);
     }

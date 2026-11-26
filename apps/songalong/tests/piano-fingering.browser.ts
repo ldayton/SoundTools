@@ -164,6 +164,18 @@ try {
     );
     await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   }
+  const gesture = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoGestureFixture(),
+  );
+  assert.equal(gesture.status, "complete");
+  assert.equal(gesture.gesture, -1.75);
+  assert.ok(gesture.unchanged);
+  assert.deepEqual(gesture.marks, [
+    { midi: 64, finger: 2 },
+    { midi: 67, finger: 3 },
+    { midi: 72, finger: 1 },
+  ]);
+  await expect(page.locator(".hymn-fingering")).toHaveCount(3);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: generated piano fingers preserve music and withhold unsupported whole-hand suggestions",

@@ -29,3 +29,14 @@ Trailing whitespace in the new Beringer source copies is removed to meet the
 repository whitespace checks. Where changed, manifest entries retain both the
 upstream byte hash (`upstreamSha256`) and normalized saved-file hash (`sha256`).
 No pitches, rhythms, digit sequences or annotation provenance were changed.
+
+## Reserved scale technique family
+
+All 38 `beringer2/scales/*.abcd` files from the same revision are retained as
+reference data. Unannotated `.abc` variants are excluded. 26 `.abcd` files also
+contain no usable digits (`x@x`); these remain coverage cases with explicitly
+flagged labels. Unknown individual digits are flagged, and any digit missing in
+one reference is excluded consistently across its whole alternatives. No missing
+finger is inferred. Source labels are completed transcriptions, not printed gold.
+This is a new technique group, not an independent publication or a perpetual
+holdout. It becomes consumed after the first frozen-candidate evaluation.

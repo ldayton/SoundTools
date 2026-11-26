@@ -1,0 +1,1450 @@
+{
+  "schema": 1,
+  "decision": "Not promoted. All nonzero weights lost development families; zero preserves every production/reference floor.",
+  "development": {
+    "schema": 1,
+    "stage": "development",
+    "sources": {
+      "core": "05f946bdf6546cc1ece3c236653d1594b1c58a0d7b808d756f7b4aeb0c8e0a4b",
+      "preferences": "2d105d04939fecf871d361aa912cd28c8ef3d1c5a1cd56b3ab26b6b33a6bf13a",
+      "hand": "fdf8850fd0d3e17899fe5dd076d3d0730a0c9cb7dff72b798a502098966e3299"
+    },
+    "weights": [
+      0,
+      0.25,
+      0.5,
+      1
+    ],
+    "selectedWeight": 0,
+    "diagnosticWeight": 0.5,
+    "promoted": false,
+    "trials": [
+      {
+        "weight": 0,
+        "losses": [],
+        "matches": 4520,
+        "corpora": {
+          "hanon": {
+            "summary": {
+              "cases": 110,
+              "macroAgreement": 0.5720883098306119,
+              "totalNotes": 17922,
+              "predictedNotes": 17824,
+              "eligible": 5615,
+              "covered": 5566,
+              "matches": 3227,
+              "flagged": 153,
+              "inferred": 2087,
+              "coverage": 0.991273374888691,
+              "agreementSupported": 0.5797700323392023,
+              "agreementAll": 0.5747105966162066
+            },
+            "families": {
+              "scales": {
+                "cases": 24,
+                "macroAgreement": 0.6167227883629259,
+                "totalNotes": 2736,
+                "predictedNotes": 2736,
+                "eligible": 1031,
+                "covered": 1031,
+                "matches": 635,
+                "flagged": 5,
+                "inferred": 1700,
+                "coverage": 1,
+                "agreementSupported": 0.6159068865179438,
+                "agreementAll": 0.6159068865179438
+              },
+              "chromatic": {
+                "cases": 5,
+                "macroAgreement": 0.5017883442036608,
+                "totalNotes": 778,
+                "predictedNotes": 680,
+                "eligible": 680,
+                "covered": 631,
+                "matches": 395,
+                "flagged": 98,
+                "inferred": 0,
+                "coverage": 0.9279411764705883,
+                "agreementSupported": 0.6259904912836767,
+                "agreementAll": 0.5808823529411765
+              },
+              "arpeggios": {
+                "cases": 16,
+                "macroAgreement": 0.4867855638485518,
+                "totalNotes": 800,
+                "predictedNotes": 800,
+                "eligible": 363,
+                "covered": 363,
+                "matches": 173,
+                "flagged": 50,
+                "inferred": 387,
+                "coverage": 1,
+                "agreementSupported": 0.4765840220385675,
+                "agreementAll": 0.4765840220385675
+              },
+              "five-finger": {
+                "cases": 15,
+                "macroAgreement": 0.6609574560640894,
+                "totalNotes": 6750,
+                "predictedNotes": 6750,
+                "eligible": 2572,
+                "covered": 2572,
+                "matches": 1644,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6391912908242613,
+                "agreementAll": 0.6391912908242613
+              },
+              "technical": {
+                "cases": 44,
+                "macroAgreement": 0.44766790790744837,
+                "totalNotes": 6456,
+                "predictedNotes": 6456,
+                "eligible": 872,
+                "covered": 872,
+                "matches": 297,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.34059633027522934,
+                "agreementAll": 0.34059633027522934
+              },
+              "repertoire": {
+                "cases": 6,
+                "macroAgreement": 0.8721694971694971,
+                "totalNotes": 402,
+                "predictedNotes": 402,
+                "eligible": 97,
+                "covered": 97,
+                "matches": 83,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.8556701030927835,
+                "agreementAll": 0.8556701030927835
+              }
+            }
+          },
+          "beringer": {
+            "summary": {
+              "cases": 24,
+              "macroAgreement": 0.841796875,
+              "totalNotes": 1536,
+              "predictedNotes": 1536,
+              "eligible": 1536,
+              "covered": 1536,
+              "matches": 1293,
+              "flagged": 0,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.841796875,
+              "agreementAll": 0.841796875
+            },
+            "families": {
+              "beringer-broken-chords": {
+                "cases": 24,
+                "macroAgreement": 0.841796875,
+                "totalNotes": 1536,
+                "predictedNotes": 1536,
+                "eligible": 1536,
+                "covered": 1536,
+                "matches": 1293,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.841796875,
+                "agreementAll": 0.841796875
+              }
+            }
+          }
+        }
+      },
+      {
+        "weight": 0.25,
+        "losses": [
+          "hanon:scales",
+          "hanon:chromatic",
+          "hanon:five-finger",
+          "hanon:technical",
+          "hanon:repertoire"
+        ],
+        "matches": 4365,
+        "corpora": {
+          "hanon": {
+            "summary": {
+              "cases": 110,
+              "macroAgreement": 0.548446556069764,
+              "totalNotes": 17922,
+              "predictedNotes": 17824,
+              "eligible": 5615,
+              "covered": 5566,
+              "matches": 3044,
+              "flagged": 153,
+              "inferred": 2087,
+              "coverage": 0.991273374888691,
+              "agreementSupported": 0.5468918433345311,
+              "agreementAll": 0.542119323241318
+            },
+            "families": {
+              "scales": {
+                "cases": 24,
+                "macroAgreement": 0.5783753434597166,
+                "totalNotes": 2736,
+                "predictedNotes": 2736,
+                "eligible": 1031,
+                "covered": 1031,
+                "matches": 596,
+                "flagged": 5,
+                "inferred": 1700,
+                "coverage": 1,
+                "agreementSupported": 0.5780795344325897,
+                "agreementAll": 0.5780795344325897
+              },
+              "chromatic": {
+                "cases": 5,
+                "macroAgreement": 0.29722280664843254,
+                "totalNotes": 778,
+                "predictedNotes": 680,
+                "eligible": 680,
+                "covered": 631,
+                "matches": 238,
+                "flagged": 98,
+                "inferred": 0,
+                "coverage": 0.9279411764705883,
+                "agreementSupported": 0.37717908082408874,
+                "agreementAll": 0.35
+              },
+              "arpeggios": {
+                "cases": 16,
+                "macroAgreement": 0.5444095590988258,
+                "totalNotes": 800,
+                "predictedNotes": 800,
+                "eligible": 363,
+                "covered": 363,
+                "matches": 197,
+                "flagged": 50,
+                "inferred": 387,
+                "coverage": 1,
+                "agreementSupported": 0.5426997245179064,
+                "agreementAll": 0.5426997245179064
+              },
+              "five-finger": {
+                "cases": 15,
+                "macroAgreement": 0.6570882601309738,
+                "totalNotes": 6750,
+                "predictedNotes": 6750,
+                "eligible": 2572,
+                "covered": 2572,
+                "matches": 1642,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6384136858475894,
+                "agreementAll": 0.6384136858475894
+              },
+              "technical": {
+                "cases": 44,
+                "macroAgreement": 0.43027241606110717,
+                "totalNotes": 6456,
+                "predictedNotes": 6456,
+                "eligible": 872,
+                "covered": 872,
+                "matches": 292,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.3348623853211009,
+                "agreementAll": 0.3348623853211009
+              },
+              "repertoire": {
+                "cases": 6,
+                "macroAgreement": 0.7711593961593962,
+                "totalNotes": 402,
+                "predictedNotes": 402,
+                "eligible": 97,
+                "covered": 97,
+                "matches": 79,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.8144329896907216,
+                "agreementAll": 0.8144329896907216
+              }
+            }
+          },
+          "beringer": {
+            "summary": {
+              "cases": 24,
+              "macroAgreement": 0.8600260416666666,
+              "totalNotes": 1536,
+              "predictedNotes": 1536,
+              "eligible": 1536,
+              "covered": 1536,
+              "matches": 1321,
+              "flagged": 0,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.8600260416666666,
+              "agreementAll": 0.8600260416666666
+            },
+            "families": {
+              "beringer-broken-chords": {
+                "cases": 24,
+                "macroAgreement": 0.8600260416666666,
+                "totalNotes": 1536,
+                "predictedNotes": 1536,
+                "eligible": 1536,
+                "covered": 1536,
+                "matches": 1321,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.8600260416666666,
+                "agreementAll": 0.8600260416666666
+              }
+            }
+          }
+        }
+      },
+      {
+        "weight": 0.5,
+        "losses": [
+          "hanon:scales",
+          "hanon:chromatic",
+          "hanon:technical",
+          "hanon:repertoire"
+        ],
+        "matches": 4388,
+        "corpora": {
+          "hanon": {
+            "summary": {
+              "cases": 110,
+              "macroAgreement": 0.5549291317613998,
+              "totalNotes": 17922,
+              "predictedNotes": 17824,
+              "eligible": 5615,
+              "covered": 5566,
+              "matches": 3083,
+              "flagged": 153,
+              "inferred": 2087,
+              "coverage": 0.991273374888691,
+              "agreementSupported": 0.5538986704994611,
+              "agreementAll": 0.5490650044523597
+            },
+            "families": {
+              "scales": {
+                "cases": 24,
+                "macroAgreement": 0.5559910700473661,
+                "totalNotes": 2736,
+                "predictedNotes": 2736,
+                "eligible": 1031,
+                "covered": 1031,
+                "matches": 573,
+                "flagged": 5,
+                "inferred": 1700,
+                "coverage": 1,
+                "agreementSupported": 0.5557710960232783,
+                "agreementAll": 0.5557710960232783
+              },
+              "chromatic": {
+                "cases": 5,
+                "macroAgreement": 0.33296865137807696,
+                "totalNotes": 778,
+                "predictedNotes": 680,
+                "eligible": 680,
+                "covered": 631,
+                "matches": 249,
+                "flagged": 98,
+                "inferred": 0,
+                "coverage": 0.9279411764705883,
+                "agreementSupported": 0.39461172741679873,
+                "agreementAll": 0.36617647058823527
+              },
+              "arpeggios": {
+                "cases": 16,
+                "macroAgreement": 0.6249279800959874,
+                "totalNotes": 800,
+                "predictedNotes": 800,
+                "eligible": 363,
+                "covered": 363,
+                "matches": 227,
+                "flagged": 50,
+                "inferred": 387,
+                "coverage": 1,
+                "agreementSupported": 0.6253443526170799,
+                "agreementAll": 0.6253443526170799
+              },
+              "five-finger": {
+                "cases": 15,
+                "macroAgreement": 0.6672445211025342,
+                "totalNotes": 6750,
+                "predictedNotes": 6750,
+                "eligible": 2572,
+                "covered": 2572,
+                "matches": 1669,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6489113530326595,
+                "agreementAll": 0.6489113530326595
+              },
+              "technical": {
+                "cases": 44,
+                "macroAgreement": 0.4111830830640072,
+                "totalNotes": 6456,
+                "predictedNotes": 6456,
+                "eligible": 872,
+                "covered": 872,
+                "matches": 287,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.3291284403669725,
+                "agreementAll": 0.3291284403669725
+              },
+              "repertoire": {
+                "cases": 6,
+                "macroAgreement": 0.7473498723498723,
+                "totalNotes": 402,
+                "predictedNotes": 402,
+                "eligible": 97,
+                "covered": 97,
+                "matches": 78,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.8041237113402062,
+                "agreementAll": 0.8041237113402062
+              }
+            }
+          },
+          "beringer": {
+            "summary": {
+              "cases": 24,
+              "macroAgreement": 0.849609375,
+              "totalNotes": 1536,
+              "predictedNotes": 1536,
+              "eligible": 1536,
+              "covered": 1536,
+              "matches": 1305,
+              "flagged": 0,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.849609375,
+              "agreementAll": 0.849609375
+            },
+            "families": {
+              "beringer-broken-chords": {
+                "cases": 24,
+                "macroAgreement": 0.849609375,
+                "totalNotes": 1536,
+                "predictedNotes": 1536,
+                "eligible": 1536,
+                "covered": 1536,
+                "matches": 1305,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.849609375,
+                "agreementAll": 0.849609375
+              }
+            }
+          }
+        }
+      },
+      {
+        "weight": 1,
+        "losses": [
+          "hanon:scales",
+          "hanon:chromatic",
+          "hanon:technical",
+          "hanon:repertoire",
+          "beringer:beringer-broken-chords"
+        ],
+        "matches": 4349,
+        "corpora": {
+          "hanon": {
+            "summary": {
+              "cases": 110,
+              "macroAgreement": 0.5336904334880487,
+              "totalNotes": 17922,
+              "predictedNotes": 17824,
+              "eligible": 5615,
+              "covered": 5566,
+              "matches": 3086,
+              "flagged": 153,
+              "inferred": 2087,
+              "coverage": 0.991273374888691,
+              "agreementSupported": 0.5544376572044556,
+              "agreementAll": 0.5495992876224399
+            },
+            "families": {
+              "scales": {
+                "cases": 24,
+                "macroAgreement": 0.512778112080615,
+                "totalNotes": 2736,
+                "predictedNotes": 2736,
+                "eligible": 1031,
+                "covered": 1031,
+                "matches": 528,
+                "flagged": 5,
+                "inferred": 1700,
+                "coverage": 1,
+                "agreementSupported": 0.5121241513094084,
+                "agreementAll": 0.5121241513094084
+              },
+              "chromatic": {
+                "cases": 5,
+                "macroAgreement": 0.34740164106879867,
+                "totalNotes": 778,
+                "predictedNotes": 680,
+                "eligible": 680,
+                "covered": 631,
+                "matches": 263,
+                "flagged": 98,
+                "inferred": 0,
+                "coverage": 0.9279411764705883,
+                "agreementSupported": 0.41679873217115687,
+                "agreementAll": 0.38676470588235295
+              },
+              "arpeggios": {
+                "cases": 16,
+                "macroAgreement": 0.6380900873301854,
+                "totalNotes": 800,
+                "predictedNotes": 800,
+                "eligible": 363,
+                "covered": 363,
+                "matches": 232,
+                "flagged": 50,
+                "inferred": 387,
+                "coverage": 1,
+                "agreementSupported": 0.6391184573002755,
+                "agreementAll": 0.6391184573002755
+              },
+              "five-finger": {
+                "cases": 15,
+                "macroAgreement": 0.6927556346014386,
+                "totalNotes": 6750,
+                "predictedNotes": 6750,
+                "eligible": 2572,
+                "covered": 2572,
+                "matches": 1741,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.676905132192846,
+                "agreementAll": 0.676905132192846
+              },
+              "technical": {
+                "cases": 44,
+                "macroAgreement": 0.34558381885733996,
+                "totalNotes": 6456,
+                "predictedNotes": 6456,
+                "eligible": 872,
+                "covered": 872,
+                "matches": 245,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.2809633027522936,
+                "agreementAll": 0.2809633027522936
+              },
+              "repertoire": {
+                "cases": 6,
+                "macroAgreement": 0.7235403485403484,
+                "totalNotes": 402,
+                "predictedNotes": 402,
+                "eligible": 97,
+                "covered": 97,
+                "matches": 77,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.7938144329896907,
+                "agreementAll": 0.7938144329896907
+              }
+            }
+          },
+          "beringer": {
+            "summary": {
+              "cases": 24,
+              "macroAgreement": 0.822265625,
+              "totalNotes": 1536,
+              "predictedNotes": 1536,
+              "eligible": 1536,
+              "covered": 1536,
+              "matches": 1263,
+              "flagged": 0,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.822265625,
+              "agreementAll": 0.822265625
+            },
+            "families": {
+              "beringer-broken-chords": {
+                "cases": 24,
+                "macroAgreement": 0.822265625,
+                "totalNotes": 1536,
+                "predictedNotes": 1536,
+                "eligible": 1536,
+                "covered": 1536,
+                "matches": 1263,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.822265625,
+                "agreementAll": 0.822265625
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "validation": {
+    "schema": 1,
+    "stage": "validation",
+    "sources": {
+      "core": "05f946bdf6546cc1ece3c236653d1594b1c58a0d7b808d756f7b4aeb0c8e0a4b",
+      "preferences": "2d105d04939fecf871d361aa912cd28c8ef3d1c5a1cd56b3ab26b6b33a6bf13a",
+      "hand": "fdf8850fd0d3e17899fe5dd076d3d0730a0c9cb7dff72b798a502098966e3299"
+    },
+    "selectedWeight": 0,
+    "diagnosticWeight": 0.5,
+    "promoted": false,
+    "scaleStatus": "New technique group from the same publication, including unlabelled coverage cases; not independent-source validation. Consumed after this evaluation.",
+    "trials": [
+      {
+        "weight": 0,
+        "corpora": {
+          "hanon": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 41,
+                "completeCases": 2,
+                "eligibleHands": 82,
+                "completeHands": 8,
+                "eligibleTransitions": 1410,
+                "matchedTransitions": 825
+              },
+              "cases": 42,
+              "macroAgreement": 0.6310217918533779,
+              "totalNotes": 6219,
+              "predictedNotes": 6219,
+              "eligible": 2332,
+              "covered": 2332,
+              "matches": 1635,
+              "flagged": 27,
+              "inferred": 970,
+              "coverage": 1,
+              "agreementSupported": 0.701114922813036,
+              "agreementAll": 0.701114922813036
+            },
+            "families": {
+              "scales": {
+                "sequence": {
+                  "eligibleCases": 12,
+                  "completeCases": 0,
+                  "eligibleHands": 24,
+                  "completeHands": 1,
+                  "eligibleTransitions": 234,
+                  "matchedTransitions": 109
+                },
+                "cases": 12,
+                "macroAgreement": 0.6347173594313841,
+                "totalNotes": 1368,
+                "predictedNotes": 1368,
+                "eligible": 569,
+                "covered": 569,
+                "matches": 368,
+                "flagged": 2,
+                "inferred": 797,
+                "coverage": 1,
+                "agreementSupported": 0.6467486818980668,
+                "agreementAll": 0.6467486818980668
+              },
+              "chromatic": {
+                "sequence": {
+                  "eligibleCases": 3,
+                  "completeCases": 0,
+                  "eligibleHands": 6,
+                  "completeHands": 1,
+                  "eligibleTransitions": 384,
+                  "matchedTransitions": 206
+                },
+                "cases": 3,
+                "macroAgreement": 0.6755031909671084,
+                "totalNotes": 390,
+                "predictedNotes": 390,
+                "eligible": 390,
+                "covered": 390,
+                "matches": 256,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6564102564102564,
+                "agreementAll": 0.6564102564102564
+              },
+              "arpeggios": {
+                "sequence": {
+                  "eligibleCases": 8,
+                  "completeCases": 0,
+                  "eligibleHands": 16,
+                  "completeHands": 0,
+                  "eligibleTransitions": 109,
+                  "matchedTransitions": 2
+                },
+                "cases": 8,
+                "macroAgreement": 0.3198830567580567,
+                "totalNotes": 400,
+                "predictedNotes": 400,
+                "eligible": 204,
+                "covered": 204,
+                "matches": 65,
+                "flagged": 23,
+                "inferred": 173,
+                "coverage": 1,
+                "agreementSupported": 0.31862745098039214,
+                "agreementAll": 0.31862745098039214
+              },
+              "five-finger": {
+                "sequence": {
+                  "eligibleCases": 5,
+                  "completeCases": 0,
+                  "eligibleHands": 10,
+                  "completeHands": 1,
+                  "eligibleTransitions": 567,
+                  "matchedTransitions": 440
+                },
+                "cases": 5,
+                "macroAgreement": 0.8559549156750623,
+                "totalNotes": 2300,
+                "predictedNotes": 2300,
+                "eligible": 867,
+                "covered": 867,
+                "matches": 737,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.8500576701268743,
+                "agreementAll": 0.8500576701268743
+              },
+              "technical": {
+                "sequence": {
+                  "eligibleCases": 9,
+                  "completeCases": 1,
+                  "eligibleHands": 18,
+                  "completeHands": 2,
+                  "eligibleTransitions": 78,
+                  "matchedTransitions": 48
+                },
+                "cases": 10,
+                "macroAgreement": 0.7147667147667147,
+                "totalNotes": 1223,
+                "predictedNotes": 1223,
+                "eligible": 198,
+                "covered": 198,
+                "matches": 142,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.7171717171717171,
+                "agreementAll": 0.7171717171717171
+              },
+              "repertoire": {
+                "sequence": {
+                  "eligibleCases": 4,
+                  "completeCases": 1,
+                  "eligibleHands": 8,
+                  "completeHands": 3,
+                  "eligibleTransitions": 38,
+                  "matchedTransitions": 20
+                },
+                "cases": 4,
+                "macroAgreement": 0.7392590286425903,
+                "totalNotes": 538,
+                "predictedNotes": 538,
+                "eligible": 104,
+                "covered": 104,
+                "matches": 67,
+                "flagged": 2,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6442307692307693,
+                "agreementAll": 0.6442307692307693
+              }
+            }
+          },
+          "beringer": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 48,
+                "completeCases": 0,
+                "eligibleHands": 96,
+                "completeHands": 0,
+                "eligibleTransitions": 4464,
+                "matchedTransitions": 1213
+              },
+              "cases": 48,
+              "macroAgreement": 0.44374135872297643,
+              "totalNotes": 5136,
+              "predictedNotes": 5136,
+              "eligible": 5136,
+              "covered": 5136,
+              "matches": 2258,
+              "flagged": 0,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.4396417445482866,
+              "agreementAll": 0.4396417445482866
+            },
+            "families": {
+              "beringer-arpeggios": {
+                "sequence": {
+                  "eligibleCases": 48,
+                  "completeCases": 0,
+                  "eligibleHands": 96,
+                  "completeHands": 0,
+                  "eligibleTransitions": 4464,
+                  "matchedTransitions": 1213
+                },
+                "cases": 48,
+                "macroAgreement": 0.44374135872297643,
+                "totalNotes": 5136,
+                "predictedNotes": 5136,
+                "eligible": 5136,
+                "covered": 5136,
+                "matches": 2258,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.4396417445482866,
+                "agreementAll": 0.4396417445482866
+              }
+            }
+          },
+          "scales": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 12,
+                "completeCases": 0,
+                "eligibleHands": 24,
+                "completeHands": 0,
+                "eligibleTransitions": 1944,
+                "matchedTransitions": 1046
+              },
+              "cases": 38,
+              "macroAgreement": 0.598220958302495,
+              "totalNotes": 8451,
+              "predictedNotes": 8451,
+              "eligible": 2085,
+              "covered": 2085,
+              "matches": 1247,
+              "flagged": 6366,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.5980815347721823,
+              "agreementAll": 0.5980815347721823
+            },
+            "families": {
+              "beringer-scales": {
+                "sequence": {
+                  "eligibleCases": 12,
+                  "completeCases": 0,
+                  "eligibleHands": 24,
+                  "completeHands": 0,
+                  "eligibleTransitions": 1944,
+                  "matchedTransitions": 1046
+                },
+                "cases": 38,
+                "macroAgreement": 0.598220958302495,
+                "totalNotes": 8451,
+                "predictedNotes": 8451,
+                "eligible": 2085,
+                "covered": 2085,
+                "matches": 1247,
+                "flagged": 6366,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.5980815347721823,
+                "agreementAll": 0.5980815347721823
+              }
+            }
+          }
+        }
+      },
+      {
+        "weight": 0.5,
+        "corpora": {
+          "hanon": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 41,
+                "completeCases": 1,
+                "eligibleHands": 82,
+                "completeHands": 5,
+                "eligibleTransitions": 1410,
+                "matchedTransitions": 759
+              },
+              "cases": 42,
+              "macroAgreement": 0.5953136701914186,
+              "totalNotes": 6219,
+              "predictedNotes": 6219,
+              "eligible": 2332,
+              "covered": 2332,
+              "matches": 1516,
+              "flagged": 27,
+              "inferred": 970,
+              "coverage": 1,
+              "agreementSupported": 0.6500857632933105,
+              "agreementAll": 0.6500857632933105
+            },
+            "families": {
+              "scales": {
+                "sequence": {
+                  "eligibleCases": 12,
+                  "completeCases": 0,
+                  "eligibleHands": 24,
+                  "completeHands": 0,
+                  "eligibleTransitions": 234,
+                  "matchedTransitions": 114
+                },
+                "cases": 12,
+                "macroAgreement": 0.6360073879238045,
+                "totalNotes": 1368,
+                "predictedNotes": 1368,
+                "eligible": 569,
+                "covered": 569,
+                "matches": 367,
+                "flagged": 2,
+                "inferred": 797,
+                "coverage": 1,
+                "agreementSupported": 0.6449912126537786,
+                "agreementAll": 0.6449912126537786
+              },
+              "chromatic": {
+                "sequence": {
+                  "eligibleCases": 3,
+                  "completeCases": 0,
+                  "eligibleHands": 6,
+                  "completeHands": 0,
+                  "eligibleTransitions": 384,
+                  "matchedTransitions": 120
+                },
+                "cases": 3,
+                "macroAgreement": 0.423031068097342,
+                "totalNotes": 390,
+                "predictedNotes": 390,
+                "eligible": 390,
+                "covered": 390,
+                "matches": 160,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.41025641025641024,
+                "agreementAll": 0.41025641025641024
+              },
+              "arpeggios": {
+                "sequence": {
+                  "eligibleCases": 8,
+                  "completeCases": 0,
+                  "eligibleHands": 16,
+                  "completeHands": 0,
+                  "eligibleTransitions": 109,
+                  "matchedTransitions": 11
+                },
+                "cases": 8,
+                "macroAgreement": 0.274537037037037,
+                "totalNotes": 400,
+                "predictedNotes": 400,
+                "eligible": 204,
+                "covered": 204,
+                "matches": 55,
+                "flagged": 23,
+                "inferred": 173,
+                "coverage": 1,
+                "agreementSupported": 0.2696078431372549,
+                "agreementAll": 0.2696078431372549
+              },
+              "five-finger": {
+                "sequence": {
+                  "eligibleCases": 5,
+                  "completeCases": 0,
+                  "eligibleHands": 10,
+                  "completeHands": 1,
+                  "eligibleTransitions": 567,
+                  "matchedTransitions": 441
+                },
+                "cases": 5,
+                "macroAgreement": 0.8498526608411685,
+                "totalNotes": 2300,
+                "predictedNotes": 2300,
+                "eligible": 867,
+                "covered": 867,
+                "matches": 731,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.8431372549019608,
+                "agreementAll": 0.8431372549019608
+              },
+              "technical": {
+                "sequence": {
+                  "eligibleCases": 9,
+                  "completeCases": 1,
+                  "eligibleHands": 18,
+                  "completeHands": 2,
+                  "eligibleTransitions": 78,
+                  "matchedTransitions": 52
+                },
+                "cases": 10,
+                "macroAgreement": 0.668109668109668,
+                "totalNotes": 1223,
+                "predictedNotes": 1223,
+                "eligible": 198,
+                "covered": 198,
+                "matches": 133,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6717171717171717,
+                "agreementAll": 0.6717171717171717
+              },
+              "repertoire": {
+                "sequence": {
+                  "eligibleCases": 4,
+                  "completeCases": 0,
+                  "eligibleHands": 8,
+                  "completeHands": 2,
+                  "eligibleTransitions": 38,
+                  "matchedTransitions": 21
+                },
+                "cases": 4,
+                "macroAgreement": 0.76203300124533,
+                "totalNotes": 538,
+                "predictedNotes": 538,
+                "eligible": 104,
+                "covered": 104,
+                "matches": 70,
+                "flagged": 2,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6730769230769231,
+                "agreementAll": 0.6730769230769231
+              }
+            }
+          },
+          "beringer": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 48,
+                "completeCases": 0,
+                "eligibleHands": 96,
+                "completeHands": 0,
+                "eligibleTransitions": 4464,
+                "matchedTransitions": 1265
+              },
+              "cases": 48,
+              "macroAgreement": 0.4627639517345399,
+              "totalNotes": 5136,
+              "predictedNotes": 5136,
+              "eligible": 5136,
+              "covered": 5136,
+              "matches": 2229,
+              "flagged": 0,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.43399532710280375,
+              "agreementAll": 0.43399532710280375
+            },
+            "families": {
+              "beringer-arpeggios": {
+                "sequence": {
+                  "eligibleCases": 48,
+                  "completeCases": 0,
+                  "eligibleHands": 96,
+                  "completeHands": 0,
+                  "eligibleTransitions": 4464,
+                  "matchedTransitions": 1265
+                },
+                "cases": 48,
+                "macroAgreement": 0.4627639517345399,
+                "totalNotes": 5136,
+                "predictedNotes": 5136,
+                "eligible": 5136,
+                "covered": 5136,
+                "matches": 2229,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.43399532710280375,
+                "agreementAll": 0.43399532710280375
+              }
+            }
+          },
+          "scales": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 12,
+                "completeCases": 0,
+                "eligibleHands": 24,
+                "completeHands": 0,
+                "eligibleTransitions": 1944,
+                "matchedTransitions": 925
+              },
+              "cases": 38,
+              "macroAgreement": 0.5314883852266634,
+              "totalNotes": 8451,
+              "predictedNotes": 8451,
+              "eligible": 2085,
+              "covered": 2085,
+              "matches": 1108,
+              "flagged": 6366,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.5314148681055156,
+              "agreementAll": 0.5314148681055156
+            },
+            "families": {
+              "beringer-scales": {
+                "sequence": {
+                  "eligibleCases": 12,
+                  "completeCases": 0,
+                  "eligibleHands": 24,
+                  "completeHands": 0,
+                  "eligibleTransitions": 1944,
+                  "matchedTransitions": 925
+                },
+                "cases": 38,
+                "macroAgreement": 0.5314883852266634,
+                "totalNotes": 8451,
+                "predictedNotes": 8451,
+                "eligible": 2085,
+                "covered": 2085,
+                "matches": 1108,
+                "flagged": 6366,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.5314148681055156,
+                "agreementAll": 0.5314148681055156
+              }
+            }
+          }
+        }
+      },
+      {
+        "weight": 1,
+        "corpora": {
+          "hanon": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 41,
+                "completeCases": 1,
+                "eligibleHands": 82,
+                "completeHands": 5,
+                "eligibleTransitions": 1410,
+                "matchedTransitions": 757
+              },
+              "cases": 42,
+              "macroAgreement": 0.5510433698785051,
+              "totalNotes": 6219,
+              "predictedNotes": 6219,
+              "eligible": 2332,
+              "covered": 2332,
+              "matches": 1461,
+              "flagged": 27,
+              "inferred": 970,
+              "coverage": 1,
+              "agreementSupported": 0.6265008576329331,
+              "agreementAll": 0.6265008576329331
+            },
+            "families": {
+              "scales": {
+                "sequence": {
+                  "eligibleCases": 12,
+                  "completeCases": 0,
+                  "eligibleHands": 24,
+                  "completeHands": 0,
+                  "eligibleTransitions": 234,
+                  "matchedTransitions": 98
+                },
+                "cases": 12,
+                "macroAgreement": 0.5504885460018153,
+                "totalNotes": 1368,
+                "predictedNotes": 1368,
+                "eligible": 569,
+                "covered": 569,
+                "matches": 316,
+                "flagged": 2,
+                "inferred": 797,
+                "coverage": 1,
+                "agreementSupported": 0.5553602811950791,
+                "agreementAll": 0.5553602811950791
+              },
+              "chromatic": {
+                "sequence": {
+                  "eligibleCases": 3,
+                  "completeCases": 0,
+                  "eligibleHands": 6,
+                  "completeHands": 0,
+                  "eligibleTransitions": 384,
+                  "matchedTransitions": 132
+                },
+                "cases": 3,
+                "macroAgreement": 0.4435093625078898,
+                "totalNotes": 390,
+                "predictedNotes": 390,
+                "eligible": 390,
+                "covered": 390,
+                "matches": 168,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.4307692307692308,
+                "agreementAll": 0.4307692307692308
+              },
+              "arpeggios": {
+                "sequence": {
+                  "eligibleCases": 8,
+                  "completeCases": 0,
+                  "eligibleHands": 16,
+                  "completeHands": 0,
+                  "eligibleTransitions": 109,
+                  "matchedTransitions": 11
+                },
+                "cases": 8,
+                "macroAgreement": 0.25246362433862435,
+                "totalNotes": 400,
+                "predictedNotes": 400,
+                "eligible": 204,
+                "covered": 204,
+                "matches": 51,
+                "flagged": 23,
+                "inferred": 173,
+                "coverage": 1,
+                "agreementSupported": 0.25,
+                "agreementAll": 0.25
+              },
+              "five-finger": {
+                "sequence": {
+                  "eligibleCases": 5,
+                  "completeCases": 0,
+                  "eligibleHands": 10,
+                  "completeHands": 0,
+                  "eligibleTransitions": 567,
+                  "matchedTransitions": 444
+                },
+                "cases": 5,
+                "macroAgreement": 0.8555388728491693,
+                "totalNotes": 2300,
+                "predictedNotes": 2300,
+                "eligible": 867,
+                "covered": 867,
+                "matches": 737,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.8500576701268743,
+                "agreementAll": 0.8500576701268743
+              },
+              "technical": {
+                "sequence": {
+                  "eligibleCases": 9,
+                  "completeCases": 1,
+                  "eligibleHands": 18,
+                  "completeHands": 2,
+                  "eligibleTransitions": 78,
+                  "matchedTransitions": 49
+                },
+                "cases": 10,
+                "macroAgreement": 0.6118326118326117,
+                "totalNotes": 1223,
+                "predictedNotes": 1223,
+                "eligible": 198,
+                "covered": 198,
+                "matches": 122,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6161616161616161,
+                "agreementAll": 0.6161616161616161
+              },
+              "repertoire": {
+                "sequence": {
+                  "eligibleCases": 4,
+                  "completeCases": 0,
+                  "eligibleHands": 8,
+                  "completeHands": 3,
+                  "eligibleTransitions": 38,
+                  "matchedTransitions": 23
+                },
+                "cases": 4,
+                "macroAgreement": 0.7131226650062267,
+                "totalNotes": 538,
+                "predictedNotes": 538,
+                "eligible": 104,
+                "covered": 104,
+                "matches": 67,
+                "flagged": 2,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.6442307692307693,
+                "agreementAll": 0.6442307692307693
+              }
+            }
+          },
+          "beringer": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 48,
+                "completeCases": 0,
+                "eligibleHands": 96,
+                "completeHands": 0,
+                "eligibleTransitions": 4464,
+                "matchedTransitions": 1220
+              },
+              "cases": 48,
+              "macroAgreement": 0.44493935394670686,
+              "totalNotes": 5136,
+              "predictedNotes": 5136,
+              "eligible": 5136,
+              "covered": 5136,
+              "matches": 2100,
+              "flagged": 0,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.4088785046728972,
+              "agreementAll": 0.4088785046728972
+            },
+            "families": {
+              "beringer-arpeggios": {
+                "sequence": {
+                  "eligibleCases": 48,
+                  "completeCases": 0,
+                  "eligibleHands": 96,
+                  "completeHands": 0,
+                  "eligibleTransitions": 4464,
+                  "matchedTransitions": 1220
+                },
+                "cases": 48,
+                "macroAgreement": 0.44493935394670686,
+                "totalNotes": 5136,
+                "predictedNotes": 5136,
+                "eligible": 5136,
+                "covered": 5136,
+                "matches": 2100,
+                "flagged": 0,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.4088785046728972,
+                "agreementAll": 0.4088785046728972
+              }
+            }
+          },
+          "scales": {
+            "summary": {
+              "sequence": {
+                "eligibleCases": 12,
+                "completeCases": 0,
+                "eligibleHands": 24,
+                "completeHands": 0,
+                "eligibleTransitions": 1944,
+                "matchedTransitions": 815
+              },
+              "cases": 38,
+              "macroAgreement": 0.4807275418615467,
+              "totalNotes": 8451,
+              "predictedNotes": 8451,
+              "eligible": 2085,
+              "covered": 2085,
+              "matches": 1002,
+              "flagged": 6366,
+              "inferred": 0,
+              "coverage": 1,
+              "agreementSupported": 0.4805755395683453,
+              "agreementAll": 0.4805755395683453
+            },
+            "families": {
+              "beringer-scales": {
+                "sequence": {
+                  "eligibleCases": 12,
+                  "completeCases": 0,
+                  "eligibleHands": 24,
+                  "completeHands": 0,
+                  "eligibleTransitions": 1944,
+                  "matchedTransitions": 815
+                },
+                "cases": 38,
+                "macroAgreement": 0.4807275418615467,
+                "totalNotes": 8451,
+                "predictedNotes": 8451,
+                "eligible": 2085,
+                "covered": 2085,
+                "matches": 1002,
+                "flagged": 6366,
+                "inferred": 0,
+                "coverage": 1,
+                "agreementSupported": 0.4805755395683453,
+                "agreementAll": 0.4805755395683453
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "dataSha256": {
+    "piano-benchmark.json": "24ae0128bddd430959a2c2acf9f99b7cad4c94668e1d2582032c7dca9daf16ec",
+    "piano-beringer.json": "183ddc8fbe2d39cbb282a3c0b351480a115f5093e4c06799318a99e6bdaf1654",
+    "piano-beringer-scales.json": "29846aa3ce8d2719cdbd7d7fac19c245adb90ea4a8bb1888f0291719749b88f0"
+  },
+  "classicScales": {
+    "summary": {
+      "sequence": {
+        "eligibleCases": 12,
+        "completeCases": 0,
+        "eligibleHands": 24,
+        "completeHands": 0,
+        "eligibleTransitions": 1944,
+        "matchedTransitions": 797
+      },
+      "cases": 38,
+      "macroAgreement": 0.45606623526521456,
+      "totalNotes": 8451,
+      "predictedNotes": 8451,
+      "eligible": 2085,
+      "covered": 2085,
+      "matches": 951,
+      "flagged": 6366,
+      "inferred": 0,
+      "coverage": 1,
+      "agreementSupported": 0.45611510791366905,
+      "agreementAll": 0.45611510791366905
+    },
+    "families": {
+      "beringer-scales": {
+        "sequence": {
+          "eligibleCases": 12,
+          "completeCases": 0,
+          "eligibleHands": 24,
+          "completeHands": 0,
+          "eligibleTransitions": 1944,
+          "matchedTransitions": 797
+        },
+        "cases": 38,
+        "macroAgreement": 0.45606623526521456,
+        "totalNotes": 8451,
+        "predictedNotes": 8451,
+        "eligible": 2085,
+        "covered": 2085,
+        "matches": 951,
+        "flagged": 6366,
+        "inferred": 0,
+        "coverage": 1,
+        "agreementSupported": 0.45611510791366905,
+        "agreementAll": 0.45611510791366905
+      }
+    }
+  }
+}

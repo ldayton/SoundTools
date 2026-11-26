@@ -4,6 +4,7 @@ export function exhaustiveErgonomicCost(
   midis: readonly number[],
   hand: "right" | "left",
   fixed: readonly (number | undefined)[] = [],
+  gestureWeight = 0,
 ) {
   const sign = hand === "right" ? 1 : -1,
     key = (m: number) =>
@@ -96,6 +97,86 @@ export function exhaustiveErgonomicCost(
           if (midis[i - 2] === midis[i] && x.finger !== p.finger) edge += 1;
           if (x.finger !== p.finger && a.finger !== 1)
             edge += 0.3 * comfort(midis[i - 2], x.finger, midis[i], p.finger);
+          if (gestureWeight) {
+            const lo = Math.min(x.finger, p.finger),
+              hi = Math.max(x.finger, p.finger);
+            const upper =
+              lo === hi
+                ? [0, 0]
+                : [
+                    ranges[`${lo}:${hi}`][2],
+                    (
+                      {
+                        "1:2": 10,
+                        "1:3": 12,
+                        "1:4": 14,
+                        "1:5": 15,
+                        "2:3": 5,
+                        "2:4": 7,
+                        "2:5": 10,
+                        "3:4": 4,
+                        "3:5": 7,
+                        "4:5": 5,
+                      } as Record<string, number>
+                    )[`${lo}:${hi}`],
+                  ];
+            const lower =
+              lo === hi
+                ? [0, 0]
+                : lo === 1
+                  ? (
+                      {
+                        2: [-3, -5],
+                        3: [-2, -4],
+                        4: [-1, -3],
+                        5: [1, -1],
+                      } as Record<number, number[]>
+                    )[hi]
+                  : lo === 2 && hi === 5
+                    ? [2, 2]
+                    : [1, 1];
+            const orientation = x.finger <= p.finger ? sign : -sign;
+            const delta13 = (midis[i] - midis[i - 2]) * orientation;
+            const size = Math.max(0, lower[0] - delta13, delta13 - upper[0]);
+            const practical = Math.max(
+              0,
+              lower[1] - delta13,
+              delta13 - upper[1],
+            );
+            const d1 = midis[i - 1] - midis[i - 2],
+              d2 = midis[i] - midis[i - 1];
+            const crosses =
+              +(d1 * (a.finger - x.finger) * sign < 0) +
+              +(d2 * (p.finger - a.finger) * sign < 0);
+            const over =
+              a.finger === 1
+                ? d1 * (a.finger - x.finger) * sign < 0
+                  ? x.finger
+                  : p.finger
+                : a.finger;
+            const reward =
+              d1 * d2 > 0 &&
+              crosses === 1 &&
+              digits.includes(1) &&
+              over >= 2 &&
+              over <= 4 &&
+              new Set(digits).size === 3 &&
+              Math.abs(d1) <= 5 &&
+              Math.abs(d2) <= 5 &&
+              Math.abs(d1 + d2) <= 9;
+            const changes =
+              size > 0
+                ? a.finger === 1 && d1 * d2 > 0 && practical > 0
+                  ? 2
+                  : 1
+                : 0;
+            edge +=
+              gestureWeight *
+              (changes +
+                0.25 * size -
+                4 * +reward +
+                4 * +(d1 * d2 > 0 && crosses === 2));
+          }
         }
       }
       visit(i + 1, [...path, p], cost + p.cost + edge);

@@ -25,12 +25,16 @@ export type PianoBenchmarkCase = {
   alternatives?: BenchmarkLabel[][];
 };
 export function loadPianoBenchmark(
-  source: "hanon" | "beringer" = "hanon",
+  source: "hanon" | "beringer" | "beringer-scales" = "hanon",
 ): PianoBenchmarkCase[] {
   return JSON.parse(
     readFileSync(
       new URL(
-        source === "hanon" ? "./piano-benchmark.json" : "./piano-beringer.json",
+        source === "hanon"
+          ? "./piano-benchmark.json"
+          : source === "beringer"
+            ? "./piano-beringer.json"
+            : "./piano-beringer-scales.json",
         import.meta.url,
       ),
       "utf8",
@@ -102,12 +106,62 @@ export function scorePianoBenchmarkCase(
   );
   const covered = eligible.filter((l) => predictions.has(l.id)),
     matches = covered.filter((l) => predictions.get(l.id) === l.finger);
+  const expectedDigits = new Map(eligible.map((l) => [l.id, l.finger]));
+  const sequence = {
+    eligibleCases: +(eligible.length > 0),
+    completeCases: +(eligible.length > 0 && matches.length === eligible.length),
+    eligibleHands: 0,
+    completeHands: 0,
+    eligibleTransitions: 0,
+    matchedTransitions: 0,
+  };
+  for (const hand of ["left", "right"] as const) {
+    const ls = eligible.filter((l) => expected.get(l.id)!.hand === hand);
+    if (ls.length) {
+      sequence.eligibleHands++;
+      if (ls.every((l) => predictions.get(l.id) === l.finger))
+        sequence.completeHands++;
+    }
+  }
+  const streams = new Map<string, PianoPhraseNote[]>();
+  for (const note of c.notes) {
+    const key = JSON.stringify([note.hand, note.voice]);
+    const stream = streams.get(key) ?? [];
+    stream.push(note);
+    streams.set(key, stream);
+  }
+  for (const stream of streams.values()) {
+    stream.sort((a, b) => a.start - b.start || a.id.localeCompare(b.id));
+    for (let i = 1; i < stream.length; i++) {
+      const a = stream[i - 1],
+        b = stream[i];
+      // Only adjacent, contiguous, unambiguous labelled attacks: no sparse-label
+      // bridges, simultaneous chord ordering, ties, rests or phrase boundaries.
+      if (
+        b.phraseStart ||
+        b.tieFrom ||
+        !expectedDigits.has(a.id) ||
+        !expectedDigits.has(b.id) ||
+        Math.abs(a.start + a.duration - b.start) > 1e-8 ||
+        (i > 1 && stream[i - 2].start === a.start) ||
+        (i + 1 < stream.length && stream[i + 1].start === b.start)
+      )
+        continue;
+      sequence.eligibleTransitions++;
+      if (
+        predictions.get(a.id) === expectedDigits.get(a.id) &&
+        predictions.get(b.id) === expectedDigits.get(b.id)
+      )
+        sequence.matchedTransitions++;
+    }
+  }
   return {
     id: c.id,
     family: c.family,
     partition: c.partition,
     referenceKind: kind,
     referenceCount: references.length,
+    sequence,
     totalNotes: c.notes.length,
     predictedNotes: plan.notes.length,
     eligible: eligible.length,
@@ -146,6 +200,21 @@ export function evaluatePianoBenchmark(
         | "inferred",
     ) => rs.reduce((s, r) => s + r[k], 0);
     return {
+      sequence: Object.fromEntries(
+        Object.keys(
+          rows[0]?.sequence ?? {
+            eligibleCases: 0,
+            completeCases: 0,
+            eligibleHands: 0,
+            completeHands: 0,
+            eligibleTransitions: 0,
+            matchedTransitions: 0,
+          },
+        ).map((k) => [
+          k,
+          rs.reduce((s, r) => s + r.sequence[k as keyof typeof r.sequence], 0),
+        ]),
+      ),
       cases: rs.length,
       macroAgreement: rs.filter((r) => r.eligible).length
         ? rs

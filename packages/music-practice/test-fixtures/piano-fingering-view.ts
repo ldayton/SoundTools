@@ -207,3 +207,42 @@ export function renderPianoErgonomicFixture(experimental = false) {
     ),
   };
 }
+
+/** Explicit research route, with independent fixed digits and no score rewrite. */
+export function renderPianoGestureFixture() {
+  document.body.innerHTML = '<div id="gesture-fixture"></div>';
+  const t = abcjs.renderAbc("gesture-fixture", "X:1\nL:1/4\nK:C\nE G c |]", {
+    add_classes: true,
+    staffwidth: 700,
+  })[0];
+  t.setUpAudio({ chordsOff: true });
+  const music = () =>
+    JSON.stringify(
+      t.lines.map((l) =>
+        l.staff?.map((s) =>
+          s.voices?.map((v) =>
+            v
+              .filter((n) => n.el_type === "note")
+              .map((n) => ({ duration: n.duration, pitches: n.pitches })),
+          ),
+        ),
+      ),
+    );
+  const before = music();
+  const p = drawHymnFingerings(t, {
+    profile: { model: "ergonomic", weights: { gesture: 1 } },
+    fixedFinger: (e) =>
+      (({ 64: 2, 67: 3, 72: 1 }) as Record<number, number>)[e.midi],
+  });
+  return {
+    status: p.status,
+    gesture: p.costs.gesture,
+    unchanged: before === music(),
+    marks: [...document.querySelectorAll<SVGElement>(".hymn-fingering")].map(
+      (e) => ({
+        midi: Number(e.dataset.midi),
+        finger: Number(e.dataset.finger),
+      }),
+    ),
+  };
+}

@@ -16,6 +16,7 @@ import {
   pianoPairPossible,
   pianoPairComfort,
   pianoContextCost,
+  pianoGestureCost,
   pianoKeyDepthCost,
   type PianoAttackMemory,
 } from "./piano-ergonomics";
@@ -41,6 +42,7 @@ export type PianoPhraseCosts = {
   substitution: number;
   comfort: number;
   context: number;
+  gesture: number;
   preparation: number;
 };
 export type PianoMovement = {
@@ -128,6 +130,7 @@ const zero = (): PianoPhraseCosts => ({
   substitution: 0,
   comfort: 0,
   context: 0,
+  gesture: 0,
   preparation: 0,
 });
 const add = (a: PianoPhraseCosts, b: PianoPhraseCosts): PianoPhraseCosts => ({
@@ -138,6 +141,7 @@ const add = (a: PianoPhraseCosts, b: PianoPhraseCosts): PianoPhraseCosts => ({
   substitution: a.substitution + b.substitution,
   comfort: a.comfort + b.comfort,
   context: a.context + b.context,
+  gesture: a.gesture + b.gesture,
   preparation: a.preparation + b.preparation,
 });
 const total = (c: PianoPhraseCosts) =>
@@ -150,6 +154,8 @@ const defaults: PianoPhraseCosts = {
   substitution: 18,
   comfort: 1,
   context: 1,
+  // Research-only; calibration must explicitly opt in.
+  gesture: 0,
   preparation: 1,
 };
 const pairReach: Record<string, number> = {
@@ -828,12 +834,13 @@ function planHand(
   const advanceMemory = (memory: Memory, pose: Pose, i: number) => {
     const frame = frames[i],
       fresh = freshByFrame[i];
-    if (!frame.active.length) return { memory: [] as Memory, cost: 0 };
-    if (fresh.length > 1) return { memory: [] as Memory, cost: 0 };
-    if (!fresh.length) return { memory, cost: 0 };
+    if (!frame.active.length)
+      return { memory: [] as Memory, cost: 0, gesture: 0 };
+    if (fresh.length > 1) return { memory: [] as Memory, cost: 0, gesture: 0 };
+    if (!fresh.length) return { memory, cost: 0, gesture: 0 };
     const c = fresh[0];
     if (c.voice === undefined && frame.active.length > 1)
-      return { memory: [] as Memory, cost: 0 };
+      return { memory: [] as Memory, cost: 0, gesture: 0 };
     // A single moving attack can carry melodic history alongside held contacts.
     // Unknown/changing voice or an explicit phrase boundary starts a new context.
     const attack: PianoAttackMemory = {
@@ -843,14 +850,19 @@ function planHand(
       voice: c.voice,
       start: c.start,
       end: c.end,
+      isolated: frame.active.length === 1,
     };
     const history =
       c.phraseStart || memory.at(-1)?.voice !== c.voice ? [] : memory;
+    const gesture =
+      w.gesture && frame.active.length === 1 && history.length === 2
+        ? pianoGestureCost(history[0], history[1], attack, hand) * w.gesture
+        : 0;
     const cost =
       history.length === 2
         ? pianoContextCost(history[0], history[1], attack) * w.context
         : 0;
-    return { memory: [...history, attack].slice(-2), cost };
+    return { memory: [...history, attack].slice(-2), cost, gesture };
   };
   const solved =
     p.model === "ergonomic"
@@ -864,7 +876,7 @@ function planHand(
             const next = advanceMemory(memory, b, i);
             return {
               memory: next.memory,
-              cost: total(transition.costs) + next.cost,
+              cost: total(transition.costs) + next.cost + (next.gesture ?? 0),
             };
           },
           // Attack IDs, voices and phrase resets are fixed by this input layer;
@@ -888,7 +900,7 @@ function planHand(
     const nextMemory =
       p.model === "ergonomic"
         ? advanceMemory(melodicMemory, pose, i)
-        : { memory: [] as Memory, cost: 0 };
+        : { memory: [] as Memory, cost: 0, gesture: 0 };
     melodicMemory = nextMemory.memory;
     const own = {
       ...change.costs,
@@ -900,6 +912,7 @@ function planHand(
           w.comfort *
           Math.min(4, frames[i].until - frames[i].at),
       context: p.model === "ergonomic" ? nextMemory.cost : 0,
+      gesture: nextMemory.gesture ?? 0,
     };
     costs = add(costs, own);
     return {

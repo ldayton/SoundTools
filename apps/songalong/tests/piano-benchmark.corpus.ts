@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import gestures from "../../../docs/piano-gestures-results.json";
 import original from "../../../docs/piano-benchmark-results.json";
 import golden from "../../../docs/piano-ergonomics-results.json";
 import oldLabels from "../../../packages/music-practice/test-fixtures/piano-benchmark-v1-labels.json";
@@ -85,6 +86,53 @@ for (const source of ["hanon", "beringer"] as const) {
         (ns, p) => planPianoPhrase(ns, { ...p, model }),
       );
 }
+for (const [file, hash] of Object.entries(gestures.dataSha256))
+  assert.equal(
+    createHash("sha256")
+      .update(
+        readFileSync(
+          new URL(
+            "../../../packages/music-practice/test-fixtures/" + file,
+            import.meta.url,
+          ),
+        ),
+      )
+      .digest("hex"),
+    hash,
+    "review gesture reference data",
+  );
+results["scales:classic"] = evaluatePianoBenchmark(
+  loadPianoBenchmark("beringer-scales"),
+);
+guard(results["scales:classic"], gestures.classicScales, "scales:classic");
+// Explicit research weights retain their own floors; never replace defaults.
+for (const trial of gestures.validation.trials)
+  for (const [tag, expected] of Object.entries(trial.corpora)) {
+    const source =
+      tag === "scales" ? "beringer-scales" : (tag as "hanon" | "beringer");
+    const baseline =
+      trial.weight === 0 && source !== "beringer-scales"
+        ? results[`${source}:validation:ergonomic`]
+        : undefined;
+    const actual =
+      baseline ??
+      evaluatePianoBenchmark(
+        loadPianoBenchmark(source).filter((c) => c.partition === "validation"),
+        (ns, p) =>
+          planPianoPhrase(ns, {
+            ...p,
+            model: "ergonomic",
+            weights: { gesture: trial.weight },
+          }),
+      );
+    results[`gesture:${source}:${trial.weight}`] = actual;
+    guard(actual, expected, `gesture:${source}:${trial.weight}`);
+    for (const [metric, floor] of Object.entries(expected.summary.sequence))
+      assert.ok(
+        actual.summary.sequence[metric] >= floor,
+        `gesture:${source}:${trial.weight}:${metric}`,
+      );
+  }
 const dir = new URL("../work/piano-benchmark/", import.meta.url);
 mkdirSync(dir, { recursive: true });
 writeFileSync(

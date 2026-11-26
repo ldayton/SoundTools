@@ -168,3 +168,7 @@ the reserved results or automatically enable the candidate.
 See [the phrase evaluation](piano-phrase-evaluation.md) for retained phrase metadata,
 rejected movement candidates, development ablations and current validation evidence.
 The table above records the original experiment before that follow-up.
+
+The subsequent [gesture experiment](piano-gestures.md) retains signed three-attack
+features as disabled research inputs, adds whole-reference/transition metrics and
+a 38-file scale technique group, and documents why nonzero weights were rejected.

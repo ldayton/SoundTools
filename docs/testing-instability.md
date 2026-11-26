@@ -721,3 +721,12 @@ The first split-lane audit (`c258590e`,
 extra browser-file list and the desktop audio-lock assertion tied to index 0.
 Updated both consumers for the added lane; desktop retains its audio lock and
 the new lane must retain port 4709 without claiming realtime-audio.
+
+The corrected policy run (`85a4b152`,
+`work/ci-results/1795687905608-c84fcd5a/`) passed DoReGo and shared checks,
+but exhausted the budget during the existing SongAlong guitar registry loop
+(34.1 seconds for the combined control-and-sustain lane). Split those existing
+assertions by ownership: `guitar.browser.ts` retains desktop/phone controls;
+`guitar-sustain.browser.ts` retains every registry entry's real scheduling
+durations and editorial-mark checks. Both are required in CI and Nightly.
+No product music, timing assertions or coverage were changed.

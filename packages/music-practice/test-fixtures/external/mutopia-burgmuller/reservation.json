@@ -6,111 +6,130 @@
   "files": [
     {
       "file": "25EF-01.ly",
-      "sha256": "7d90a5ee981da904c1dc9aeb4ab4d25575818c8552f6dff47f98b73fde571342",
+      "sha256": "33f0779366468ce3b5af2c33adf7639eee46dd4c154354d73ff4fa370d5fbe90",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-01/25EF-01.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-01/25EF-01.ly",
+      "downloadedTextSha256": "7d90a5ee981da904c1dc9aeb4ab4d25575818c8552f6dff47f98b73fde571342"
     },
     {
       "file": "25EF-02.ly",
-      "sha256": "9ee203a6c2059700b10d45a7a1fd7a122803793af9a2e328d634bee538819a94",
+      "sha256": "86f61ca124a135bd44e56b100262ddf1f2f73d3c76648ccf9d84598e1e43389e",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-02/25EF-02.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-02/25EF-02.ly",
+      "downloadedTextSha256": "9ee203a6c2059700b10d45a7a1fd7a122803793af9a2e328d634bee538819a94"
     },
     {
       "file": "25EF-03.ly",
-      "sha256": "be3b90be0fcfe7d92e34ef189cb633f7007e38ea8d5f290e4c3e5a988f097c81",
+      "sha256": "4c03e14cd3eb97aab3f9958bc803c6f90bd39852b35b63762fd91e7f4f67da0e",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-03/25EF-03.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-03/25EF-03.ly",
+      "downloadedTextSha256": "be3b90be0fcfe7d92e34ef189cb633f7007e38ea8d5f290e4c3e5a988f097c81"
     },
     {
       "file": "25EF-04.ly",
-      "sha256": "0c848eb925abcfec50e85137602bbb224ddc783aec8070cef237227ad366e5c2",
+      "sha256": "717d5302a77182a5f3139bacde01e2605fe21006b9b47ed1d37fdd6c3c5c85c0",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-04/25EF-04.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-04/25EF-04.ly",
+      "downloadedTextSha256": "0c848eb925abcfec50e85137602bbb224ddc783aec8070cef237227ad366e5c2"
     },
     {
       "file": "25EF-05.ly",
-      "sha256": "c46427f96f1c92a82bbad6cb2e5c336fc86b35fa5ab689815024bc07568db873",
+      "sha256": "09818c182ef00cea55906bb2f552773bcd541957bac097abb56b7deaa283c40d",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-05/25EF-05.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-05/25EF-05.ly",
+      "downloadedTextSha256": "c46427f96f1c92a82bbad6cb2e5c336fc86b35fa5ab689815024bc07568db873"
     },
     {
       "file": "25EF-06.ly",
-      "sha256": "140b26569c5858598dddc962d369dd86679a65ff8908fb4320ae0f4047711df3",
+      "sha256": "bfd4edb7a411bdaa33cff70d3e6230b5c8390b00689d4369d214b5d58cfc495f",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-06/25EF-06.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-06/25EF-06.ly",
+      "downloadedTextSha256": "140b26569c5858598dddc962d369dd86679a65ff8908fb4320ae0f4047711df3"
     },
     {
       "file": "25EF-07.ly",
-      "sha256": "c53e24fd09d82f95c34684bbcc51e5a59378d0263a2ee92a6f8e1ab997c1ce18",
+      "sha256": "1f6c7bb447ee2f948eecfb12448bb981ea0865496e33ecc0ea8fb80c4a4f1be3",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-07/25EF-07.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-07/25EF-07.ly",
+      "downloadedTextSha256": "c53e24fd09d82f95c34684bbcc51e5a59378d0263a2ee92a6f8e1ab997c1ce18"
     },
     {
       "file": "25EF-08.ly",
-      "sha256": "31cfd6b390d38f4b5af234c3746f9b3476a7c0463230fdd2ae0b480e996cb448",
+      "sha256": "e3bca6c61f611193dd137dc45259817caf8a8111132987a2632c6fcf2dd758a5",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-08/25EF-08.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-08/25EF-08.ly",
+      "downloadedTextSha256": "31cfd6b390d38f4b5af234c3746f9b3476a7c0463230fdd2ae0b480e996cb448"
     },
     {
       "file": "25EF-09.ly",
-      "sha256": "1cd04c87c640382af62b981c29eabf9ba7a2eab84cb8d2d04cec17792fdf38b7",
+      "sha256": "1cf70746a4b8e38f21255cee67bf499c03b39131524df23578d204341205b110",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-09/25EF-09.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-09/25EF-09.ly",
+      "downloadedTextSha256": "1cd04c87c640382af62b981c29eabf9ba7a2eab84cb8d2d04cec17792fdf38b7"
     },
     {
       "file": "25EF-10.ly",
-      "sha256": "facd4daa13d8b44afb23aa69c21149d4249f2befa99cb83b449b8254a66327f9",
+      "sha256": "f5bd5d15ce42f92476d060f030dade751140a48b4c8fd07564266fbab52e9c45",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-10/25EF-10.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-10/25EF-10.ly",
+      "downloadedTextSha256": "facd4daa13d8b44afb23aa69c21149d4249f2befa99cb83b449b8254a66327f9"
     },
     {
       "file": "25EF-11.ly",
-      "sha256": "321e576376c613a801ed007004411bf106d79720954e9d8d151ce00745e3327d",
+      "sha256": "2bb0a97e03af996ea7c5aea45a51cfd3664bce7acf4c691b87993e73646df6f1",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-11/25EF-11.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-11/25EF-11.ly",
+      "downloadedTextSha256": "321e576376c613a801ed007004411bf106d79720954e9d8d151ce00745e3327d"
     },
     {
       "file": "25EF-12.ly",
-      "sha256": "6329c3490e5cdfc480fe95da9394af7fd0b0bac9a104c006dfdbfdaee5d631be",
+      "sha256": "f7f01e4d9b4810929f045a4f5215a641a5c177f5361e51ff9373cf0a880ca4f0",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-12/25EF-12.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-12/25EF-12.ly",
+      "downloadedTextSha256": "6329c3490e5cdfc480fe95da9394af7fd0b0bac9a104c006dfdbfdaee5d631be"
     },
     {
       "file": "25EF-13.ly",
       "sha256": "7eb71079c435a91e071c158e2549fb56b0a0b99d211b3d1439c2eb6431a766fc",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-13/25EF-13.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-13/25EF-13.ly",
+      "downloadedTextSha256": "7eb71079c435a91e071c158e2549fb56b0a0b99d211b3d1439c2eb6431a766fc"
     },
     {
       "file": "25EF-14.ly",
-      "sha256": "8a386d1b6a8e9ca853901aa86a880cffd8a48f7e66612a886be0f70e11c143b5",
+      "sha256": "afb0cdcd8ae50a8b7fa0d62d325a1154c5df8be3b7b54b8957584cca57f2cd24",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-14/25EF-14.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-14/25EF-14.ly",
+      "downloadedTextSha256": "8a386d1b6a8e9ca853901aa86a880cffd8a48f7e66612a886be0f70e11c143b5"
     },
     {
       "file": "25EF-15.ly",
-      "sha256": "e9e157833e7e9614d6f0d7ec4590b0fbfb79ada852d90c0f7f16236954519a8a",
+      "sha256": "fe5f6786f0df1be64c0ebf529ebbe7bc6523fe4beac6f352cb87a0fab5c6aeba",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-15/25EF-15.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-15/25EF-15.ly",
+      "downloadedTextSha256": "e9e157833e7e9614d6f0d7ec4590b0fbfb79ada852d90c0f7f16236954519a8a"
     },
     {
       "file": "25EF-16.ly",
-      "sha256": "a1d4901914dbcc31ef2e2251b816933edaf5018a0d3ced225496633e2ad8a37c",
+      "sha256": "c89098c81ac941a6dddd8acf9f56db4e16799f6fc5bbe8d1182ecd06688ba8f5",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-16/25EF-16.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-16/25EF-16.ly",
+      "downloadedTextSha256": "a1d4901914dbcc31ef2e2251b816933edaf5018a0d3ced225496633e2ad8a37c"
     },
     {
       "file": "25EF-17.ly",
-      "sha256": "7f0544be4ffefdd03aa862731f1e29c01f7b7a781cb863f4f46b35554eda0ef8",
+      "sha256": "3148c69e713072cec732d029927e96378290c30f0b903cf5ae90d399f839ff8b",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-17/25EF-17.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-17/25EF-17.ly",
+      "downloadedTextSha256": "7f0544be4ffefdd03aa862731f1e29c01f7b7a781cb863f4f46b35554eda0ef8"
     },
     {
       "file": "25EF-18.ly",
-      "sha256": "0d439e1b0d9fc196f469deeafbb9f7c77b4a5edb542a96310bb56aa0e86f6c19",
+      "sha256": "8c017b1c565e2d014cf7b5eb6ba7436d322b1e95f6d43df811572acc8aaf9d99",
       "license": "Public Domain, source copyright and typesetter footer",
-      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-18/25EF-18.ly"
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-18/25EF-18.ly",
+      "downloadedTextSha256": "0d439e1b0d9fc196f469deeafbb9f7c77b4a5edb542a96310bb56aa0e86f6c19"
     }
-  ]
+  ],
+  "normalization": "Trailing whitespace per line and blank EOF only, before implementation/calibration; no musical edits."
 }

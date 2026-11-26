@@ -32,151 +32,151 @@ VoiceI =  \relative c''' {
   R
   R
   R\fermata
-  
+
   g8-.---5_\f g,-.-2 g-.-1 g'-.---5 g,-.-2 g-.-1
   g'-.---5 g,-.-2 g-.-1 g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   \stemNeutral g'-|-5\> f-. d-.-2 b-.-1 a-.-2 g-.\!
-  
+
   \stemDown g'-.--_\p g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   \stemNeutral g' ( e c  c'4) r8
-  
+
   \bar "||"
-  
+
   <b,-1 d-2>4._\p^ \markup{\italic "un poco agitato"} <b d>
   <d-2 f-4>(\> <c es>)\!
   <es g >( <c es>)
   <b-1 d-2>2.
-  
+
   <b d>4._\cresc <b d>\!
   <d f >(\> <c es>)\!
   <es g >( <c es>)
   \tieNeutral <b d> ~ <b d>8 r r
-  
+
   \stemDown g'-.---5_\f g,-.-2 g-.-1 g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   \stemNeutral g'-|-5\> f-. d-.-2 b-. a-.-2 g-.\!
-  
+
   \stemDown g'-.--_\p g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   \stemNeutral g' ( e c  c'4) r8
-  
+
   \repeat volta 2 {
-  
+
   e,4.-4 ( a,)
   c\> ( b)\!
   a-1 ( gis)-2
   b-4 ( a)-1
-  
+
   e'-2\< ( a-5\!
   g8\> f e d c-3 b\!
   a f'-5 e b-1 d-3 c
   a c-2 e-3  a4) r8
   }
-  
+
   \stemDown g-.---5_\f g,-.-2 g-.-1 g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   \stemNeutral g'-|-5\> f-. d-.-2 b-. a-.-2 g-.\!
-  
+
   \stemDown g'-.--_\p g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   g'-.-- g,-. g-. g'-.-- g,-. g-.
   \stemNeutral g' ( e c  c'8) r r
-  
+
   R2.
   R
   R
   \stemDown g8-.---5_\f g,-.-2 g-.-1 g'-| r r
-  
+
   R2.
   R
   R
   g8-.---5 g,-.-2 g-.-1 g'-| r r
-  
+
   g8-.---5_ \markup{\italic "perdendosi"} g,-.-2 g-.-1 g'-| r r
   g8-.---5 g,-.-2 g-.-1 g'-| r \stemNeutral <c,, e>-.
   <c e >4-.-- <c e>8_ \markup{\italic "rall."}-. <c e >4-.-- <c e>8-.
   <c e>2.\fermata
-  
+
   \bar "|."
-  
+
   }
 
 VoiceII =  \relative c {
   <c e g>8^\p-.
-  
+
   <c e g>4-.-- <c e g>8-. <c e g>4-.-- <c e g>8-.
   <c e g>4-.-- <e-5 g-3 c-1>8-. <e g c>4^\cresc-.-- <g-5 c-2 e-1>8-.\!
   <g c e>4-.-- <e g c>8-. <e g c>4-.-- <g b d>8-.
   <g b d>2.^\f_\fermata
-  
+
   <e-5 c'-1>4. <g-5 d'-1>
   <d'-2 f-1> <c-3 e-1>
   <e,-5 c'-1> <c'-2 e-1>
   <g d'>2.
-  
+
   <e c'>4. <g d'>
   <d' f> <c e>
   <e, c'> <g d'>
   <e c'> c4 r8
-  
+
   \Treble r8 fis'-2 ( g) r fis ( g)
   r fis ( g) r fis ( g)
   r fis ( g) r fis ( g)
   \Bass r g,-5 ( b d b  g)
-  
+
   r8 fis-2 ( g) r fis ( g)
   r fis ( g) r fis ( g)
   r fis ( g) r fis ( g)
   r fis ( g) g,-. r r
-  
+
   <e' c'>4. <g d'>
   <d' f> <c e>
   <e,-5 c'-1> <c'-2 e-1>
   <g d'>2.
-  
+
   <e c'>4. <g d'>
   <d' f>->
   <c e>
   <e, c'> <g d'>
   <e c'> c4 r8
-  
+
   \Treble a'8^\p ( c^ \markup{\italic "dolente"}  e) a, ( c  e)
   a, ( d  f) a, ( d  f)
   a, ( d  f) a, ( d  f)
-  a, ( c  e) a, ( c  e) 
-  
+  a, ( c  e) a, ( c  e)
+
   a, ( cis  g') a, ( cis  g')
   <d f>4 r8 r4 r8
   \Bass <e, a c>4 r8 <e gis d'>4 r8
   <a c>4 r8 a,4 r8
-  
+
   <e' c'>4. <g d'>
   <d' f> <c e>
   <e,-5 c'-1> <c'-2 e-1>
   <g d'>2.
-  
+
   <e c'>4. <g d'>
   <d' f>->
   <c e>
   <e, c'> <g d'>
   <e c'> ~ <e c'>8 r <c e g>^\p-.
-  
+
   <c e g>4-.-- <c e g>8-. <c e g>4-.-- <c e g>8-.
   <c e g>4^\cresc-.-- <e g c>8-.\! <e g c>4-.-- <g c e>8-.
   <g c e>4-.-- <e g c>8-. <e g c>4-.-- <g b d>8-.
   <g b d>4. ~ <g b d>8 r <c, e g>^\p-.
-  
+
   <c e g>4-.-- <c e g>8-. <c e g>4-.-- <c e g>8-.
   <c e g>4^\cresc-.-- <e g c>8-.\! <e g c>4-.-- <g c e>8-.
   <g c e>4-.-- <e g c>8-. <e g c>4-.-- <g b d>8-.
   <g b d>4. ~ <g b d>4 <g-3 d'-1>8
-  
+
   <e c'>4. ~ <e c'>4 <g d'>8
   <e c'>4. ~ <e c'>8 r <c g'>^\pp
   <c g'>4 <c g'>8 <c g'>4 <c g'>8

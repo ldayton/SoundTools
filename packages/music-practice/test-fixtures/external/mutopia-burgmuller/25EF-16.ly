@@ -32,34 +32,34 @@ Bass = \clef bass
 
 VoiceI =  \relative c'' {
   \repeat volta 2{
-  
+
   \stemNeutral \slurNeutral \tieNeutral d2-5 ( ~ d8 c bes a
   g2 ~  g8)  d'[-2 ( g f]
   es2 ~ es8 es d c
   d2 ~  d8) r r4
-  
+
   a16-1 ( c a c d c d c  a8) r r4
   g16_\cresc ( bes\! g bes d bes d bes  g8) r r4
   r g'8-5_\sf\> e-3 cis-2 a-1 g-4 e-2\!
   }
-  
+
   \alternative {
     {d8_ \markup{\italic "dim. e poco rit."} d' a d g, d' fis, d'}
     {d, d' fis,-2 d' a-1 d-3 ( cis d}
   }
-  
+
   \repeat volta 2 {
-  
+
   <c!\< es>8)_\p-.-1-4 <c d>-.-1-3 <c es>-. <c d> <c es>-. <c d>-. <c es>-. <c\! d>
   d-2\> ( g f es  d)-.\! d-1 ( es e
   <es!\< g>)-.-2-5 <es f>-.-2-4 <es g>-. <es f>-. <es g>-. <es f>-. <es g>-. <es\! f>-.
   f-1\> ( bes a g  f)-.\!  bes[-3\< ( c  d)\!]
-  
+
   d4._\f ( a8 bes4. g8-1
   fis4.-2 a8 g4.)_\cresc d8\!
   f-4\> es d c-1\! bes-3_\p g d' fis,-2
   }
-  
+
   \alternative {
     {g16-1 bes d bes g-. r r8 r d'-3 cis d}
     {g,16-1 bes d bes g-. r r8 r2}
@@ -72,23 +72,23 @@ VoiceII =  \relative c' {
   g16-5 ( bes g bes d bes d bes  g8) r r4
   c16 ( es c es g es g es  c8) r r4
   g16-5 ( bes g bes d bes d bes  g8)  d'[-1 ( es-2 d-1]
-  
+
   fis,2-2 ~  fis8)  d'[-1 ( es-2 d-1]
   g,2-5 ~  g8) \Treble  bes[-4 ( d-2 g-1]
   bes-2  a)-1 r4 r2
-  
+
   \Bass d,,4-5 c'-1 bes-3 a
   d,4 r r2
-  
-  \Treble <fis' a>8-1-3 <fis a> <fis a> <fis a> <fis a> <fis a> <fis a> <fis a> 
+
+  \Treble <fis' a>8-1-3 <fis a> <fis a> <fis a> <fis a> <fis a> <fis a> <fis a>
   <g bes>2-2-4 ~ <g bes>8 r r4
   <a c>8-1-3 <a c> <a c> <a c> <a c> <a c> <a c> <a c>
   <bes d>2-1-2 ~ <bes d>8 r r4
-  
+
   \Bass fis,16-3 ( a-1 fis a  fis8)-. r g16-4 ( bes g bes  g8)-. r
   a16-3 ( c a c  a8)-. r bes16-4 ( d-1 bes d b-3 d b d
   c4-2 d8 es-2  d)-1 r <d, c'>4
-  
+
   <g bes>4 r16 cis16 ( d bes  g8) r r4
   <g bes>4 r16 cis16 ( d bes  g8) r r4
   }

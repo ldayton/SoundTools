@@ -28,46 +28,46 @@ VoiceI =  \relative c' {
   \override TupletBracket #'bracket-visibility = ##f
   \override TupletNumber #'stencil = ##f
   \repeat volta 2 {
-  \stemUp \slurUp \set tupletSpannerDuration = #(ly:make-moment 1 4) \times 2/3 {b8 ( g'_ \markup{\italic "mormorando"} d b g' d c a' d, a-1 fis'-4 d-2 
+  \stemUp \slurUp \set tupletSpannerDuration = #(ly:make-moment 1 4) \times 2/3 {b8 ( g'_ \markup{\italic "mormorando"} d b g' d c a' d, a-1 fis'-4 d-2
   b8 g' d b_\cresc g'\! d d b' g g d'  b)}
   b4-1 ( b c a
   b b_\dim g\! \times 2/3 {d8 a'  g)}
-  
-  \times 2/3 {b,8( g' d b g' d c a' d, a-1 fis'-4 d-2 
+
+  \times 2/3 {b,8( g' d b g' d c a' d, a-1 fis'-4 d-2
   b8 g' d b_\cresc g'\! d d-1 b' g g-1 d'  b)}
   b4-1 ( b c a
   \stemNeutral \times 2/3 {b8 d g)-5 g-1 ( b d} g4)_ \markup{\large {\italic "Fine."}} r
   }
-  
+
   \times 2/3 {r8 fis, ( a,) r fis' ( a,) r fis' ( a,) r fis' ( a,)
   r g' ( a,) r e' ( a,) r_\cresc cis\! ( a) r d ( a)
   r e' ( a,) r fis' ( a,) r g' ( a,) r e' ( a,)
   r fis' ( a,) r e' ( a,)_\dim r\! d ( a) r e' ( a,)
-  
+
   r fis' ( a,) r fis' ( a,) r e' ( a,) r fis' ( a,)
   r g' ( a,) r e' ( a,)_\cresc r\! cis ( a) r d ( a)
   r e' ( a,) r fis' ( a,) r g' ( a,) r cis ( a
    d)-4 e ( d c! b a g-4_\dim fis\! e d cis-3  c)}
-  \bar "||"   
+  \bar "||"
   }
-  
+
 VoiceII =  \relative c' {
   \override TupletBracket #'bracket-visibility = ##f
   \override TupletNumber #'stencil = ##f
   \set tupletSpannerDuration = #(ly:make-moment 1 4)
-  
+
   \stemDown b4_\pp b c a
   b b d g
   \times 2/3 {b8 g' d b g' d c a' d, a fis' d
   b g' d b e-5 d g,-1 c-5 b } d,4-1
-  
+
   \stemDown b4_\pp b c a
   b b d g
   \times 2/3 {b8 g' d b g' d c a' d, a fis' d}
   s1
-  
+
   s s s s
-  
+
   s s s s
   }
 
@@ -76,17 +76,17 @@ VoiceIII =  \relative c {
   g, d' g,  d')
   g, ( d' g, d'
   g, d' g,  d')
-  
+
   g, ( d' g, d'
   g, d' g,  d')
   g, ( d' g, d'
   g, d'  g,) r
-  
+
   d''-2^\p ( a-5 cis-3 d
   e cis a  b)
   cis ( d e cis
   d-2 g-1 fis  e)-1
-  
+
   d^\p ( a-5 cis-3 d
   e cis a  b)
   cis ( d e-1 g-2

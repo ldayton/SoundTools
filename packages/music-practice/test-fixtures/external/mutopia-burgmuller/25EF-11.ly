@@ -32,54 +32,54 @@ VoiceI =  \relative c'''' {
   c16 ( g  e8)-. g16 ( e  c8)-.
   <c fis>_\cresc-. r\! <c f>-. r
   <c e>-. r <c es a>-. r
-  
+
   <c d>4-. r
   <b g'>-.
   r\fermata
-  
+
   \repeat volta 2 {
-  
+
   c16-1 ( e-2 g8)-.-4 g-.-4 g-.-4
   e16-1 ( g-2 c8)-.-5 c-.-5 c-.-5
   c16-5\> ( a  f8)-. c'16 ( as  f8)-.\!
   c'16-5 ( g  e8)-.-1 e-.-2 e-.-2
-  
+
   g16-4 ( f  d8)-. g16 ( f  d8)-.
   a'16-5 ( g  c,8)-.-1 c-.-2 c-.-2
   e16-4 ( d  a8)-. c16-4 ( b  g8)-.
   c4 r
   }
-  
+
   \repeat volta 2 {
-  
+
   <c e >-2-4( <a c>)-1-2
   <c e >( <a c>)
   <f' a >->-5(
   <d f>)
   <c e>2-1-2
-  
+
   e16-5 ( c  g8)-. g'16 ( e  c8)-.
   c'16 ( g  e8)-. e'16 ( c  g8)-.
 
   \ottava #1
   g'16-5 f e d e d c b-2
   }
-  
+
   \alternative {
     {c4 \ottava #0 r}
     {\ottava #1 c16 e g8-. g-. g-.}
   }
-  
+
   g4\> ( b,)-2\!
   c16-1 ( e  g8)-. g-. g-.
   g4\> ( b,)-2\!
   c16 ( e  g8)-. b,16_\cresc ( d\!  g8)-.
-  
+
   c,16 ( e  g8)-. b,16 ( d  g8)-.
   c,8 \ottava #0 r <e,, c'>4
   <e c'> r
   \bar "|."
-  
+
   }
 
 VoiceII =  \relative c'' {
@@ -87,37 +87,37 @@ VoiceII =  \relative c'' {
   e,16 ( g  c8)-. c,16 ( e  g8)-.-1
   a-.-2 r as-.-3 r
   g-.-1 r fis-. r
-  
+
   g4-.^\sf r
   <g, f'>-. r_\fermata
-  
+
   <c e >8^\p^\leggiermente-. r r4
   <c e g>8-. r r4
   <c f a>8-.-1 r <c f as>-.-1 r
   <c e g>4 r
-  
+
   <b g'>8-. r <b g'>-. r
   <c e>4 r
   <c fis>8-. r <c f>-. r
-  <c e>8-. r \Bass c, r  
-  
+  <c e>8-. r \Bass c, r
+
   \Treble a'16-5^\mf ( c  e8)-. e-. e-.
   a,16 ( c  e8)-. e-. e-.
   d16 ( f  a8)-. d,16 ( f  a8)-.
   a,16 ( c  e8)-. e-. e-.
-  
+
   g,16^\cresc ( c\!  e8)-. c16 ( e  g8)-.
   e16 ( g  c8)-. g16 ( c  e8)-.
   g,8^\f r <g,  f'>4(
-  
+
   <c e>8 r) \Bass c, r
-  \Treble <c' e>4 r 
-  
+  \Treble <c' e>4 r
+
   g16 ( b  d8)-.-1 d-.-2 d-.-2
   <c e>4 r
   g16 ( b  d8)-.-1 d-.-2 d-.-2
   <c e> r d16 ( b  g8)-.
-  
+
   e'16 ( c  g8)-. d'16 ( b  g8)-.
   <c e> r \Bass <c, g'>4^\f
   <c g'> r

@@ -30,18 +30,18 @@ VoiceI =  \relative c' {
   g)_\cresc a16\! ( b c-1 d e f g8 fis g e-3
   f)-.-1 d'-. d,-.-1 b'-. b,-.-1 ( g' f d
   <c e>1)
-  
+
   e,8-1_\p ( f16 g a-1 b c d e8 b-2 c-4 a-2
    g) a16 ( b c-1 d e f g8 fis g e-3
    f)-.-1 d'-. d,-.-1 b'-. b,-.-1 ( g' f d
   c8)_\cresc d16\! ( e f-1 g a b  c4)_\f r_ \markup{\large {\italic "Fine."}}
   }
-  
+
   r8 c-2 ( e)-. a,-2 ( c)-. e,-1 ( a)-. c,-1 (
   <d f>1)
   r8 b'-2 ( d)-. g,-2 ( b)-. d,-1 ( g)-. b,-1 (
   <c e>1)
-  
+
   r8 e,-1 ( f)-.-2 e ( fis)-.-3 e ( gis)-.-3 e (
    a)-.-3 e ( b')-.-4\cresc e, (\! c')-.-5 e, ( a)-. e (
    gis)-. e'-5 ( b)-.-2 e ( c)-. e ( a,)-. e'
@@ -54,22 +54,22 @@ VoiceII =  \relative c {
    e8) ( f16 g a b c-3 d e8 dis e c
   <g d'>1)
   c8-.-2 e-.-1 a,-.-4 c-.-1 g-.-4 c-.-1 e,-.-5 c'-.-1
-  
+
   c,8-5 ( d16 e f g a-3 b c8 gis-3 a-2 f-4
    e8) ( f16 g a b c-3 d e8 dis e c
   <g d'>2.)-1-5 <g  b>4(
    c8)-1 b16 ( a g-1 f e d  c4) r
-  
+
   <a' c>1^\f
   r8 d-2 ( f)-.-1 a,-4 ( d)-.-1 f,-4 ( a)-.-1 d,-5 (
   <g-1 b-2>1)
   r8 c-2 ( e)-.-1 g,-4 ( c)-.-1 e,-4 ( g)-. c,-5 (
-  
+
   e2)^\p r4 d'-1
   c-2 gis-4 a-3 c-1
   b-2 gis-4 a-3 c-2
   e-1_ \markup{\large {\italic "D.C. al Fine."}} e e e
-  
+
   }
 
 \score { {

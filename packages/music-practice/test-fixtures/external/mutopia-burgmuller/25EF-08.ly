@@ -31,7 +31,7 @@ VoiceI =  \relative c'' {
    c,[-3 ( d32 c b c-1] g'8[-3 a32 g fis g-1 ] bes8) r
    e,[-3 ( f32 e dis e-1] g8[-3 a32 g fis g-1 ]  c8)-4 r
    c[-2\< ( d32-1 e f g\!] a8\>  g32[ f e d ] c8)-2\! r
-  
+
   c[->-3 (
   d32 c b c]  a8[-1 bes32-4 a gis a-5] d,8)-1 r
   bes'[-3 ( c32 bes a bes]  g8[-1 a32-4 g fis g ]  d8) r
@@ -40,12 +40,12 @@ VoiceI =  \relative c'' {
   \ottava #1
    f8[-3 g32\dim f\! e f-1] c'8[-3 d32 c b c-1 ] f8)-4 \ottava #0 r
   }
-  
+
   <g,,, c e>4. <g c e >8[-.( <g b d>-. <g c e>-.]
   <g b  f'>4.-^) <g b f' >8[-.( <g b f'>-. <g b e>-.]
   <g b e>[-. <g b d>_\cresc-. <g b e>-.\! <g b d>-. <g b e>-. <g b d>-.]
   <g c >8[)-3( d'32-4 c b c] e8[-3 f32 e dis e]  g8) r
-  
+
   <g, c e>4. <g c e >8[-.( <g b d>-. <g c e>-.]
   <g b  f'>4.-^) <g b f' >8[-.( <g b f'>-. <g b e>-.]
   <g b e>[-. <g b d>_\cresc-. <g b e>-.\! <g b d>-. <g b e>-. <g b d>-.]
@@ -63,12 +63,12 @@ VoiceII =  \relative c {
   <g bes>2 <g bes >8-.( <g bes>)-.
   <c, g' bes> r <c g' bes> r <c g' bes> r
   <f a>2 f,8^\pp^ \markup{\large {\italic "Fine."}} r
-  
+
   c''8[-3^\mf ( d32 c b c-.]  g2)
    d'8[-2 ( e32 d cis d]  g,2)
   <g f'>8[ <g f'> <g f'> <g f'> <g f'> <g f'>]
   <c e>2 ~ <c e>8 g-.-5
-  
+
   c8[-3 ( d32 c b c-.]  g2)
    d'8[-2 ( e32 d cis d]  g,2)
   <g f'>8[ <g f'> <g f'> <g f'> <g f'> <g f'>]

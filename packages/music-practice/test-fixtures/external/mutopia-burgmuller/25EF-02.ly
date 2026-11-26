@@ -31,57 +31,57 @@ crescendo = \markup {\italic "cresc."}
 MD =  \relative c'' {
   \stemNeutral \slurNeutral r2
   r
-  
-  
+
+
   \repeat volta 2 {
-  
+
   a16-1_\markup {\dynamic p \italic "leggieremente"}-( b c b a8-)-. r
   a16-( b c d e8-)-. r
-  d16-1-( e f g a8-)-. r  
+  d16-1-( e f g a8-)-. r
   a16-1-( b c d e8-)-. r
-  
+
   r e,-.-3-[ e-( f-]
   d-)-. r d4-> ~
   d8-[ g-( d e-]
   }
-  
+
   \alternative {
     {c8-)-. r e4-5_\sf}
     {c4 c'8-. r}
   }
-  
+
   \repeat volta 2 {
-  
+
   e,4.-5_\f-( b8
   c4.-) a8-(
   e'4. b8
   c4.-) a8-(
-  
+
   a'4._> e8-2
   f4. e8-)-(
   d_\markup {\italic "dim. e poco rall."}-[ c-3 b a-]
   gis4 e'-5
-  
+
   a,16-1^\markup {\italic "a tempo"}_\p-)-( b c b a8-)-. r
   a16-( b c d e8-)-. r
   d16-1-( e f g a8-)-. r
   a16-1-( b c d e8-)-. r
-  
+
   r b,-.-2_\markup {\italic "dolce"}-[ b-( c-]
   a4 e' ~
   e8-)-[ b-. b-( c-]
   }
-  
+
   \alternative {
     { a2-)}
     {a16-( b c b a8-)-. r}
   }
-  
+
   d16-1-( e f g a8-)-. r
   a16-1-( b c b a8-)-. r
   d16-1-( e f g a8-)-. r
   e,,16^\markup {\italic "risoluto"}_\f-( d c b a8-)-. r
-  
+
   <c' a'>2^\fermata_\sf
   \bar "|."
   }
@@ -89,7 +89,7 @@ MD =  \relative c'' {
 MS =  \relative c' {
   <a c e>4-.^\p <a c e>-.
   <a c e>-. <a c e>-.
-  
+
   <a c e> <a c e>
   <a c e> <a c e>
   <a d f>^\crescendo <a d f>
@@ -98,37 +98,37 @@ MS =  \relative c' {
   <g-1 c-3 e-5> <g c e>
   <g b f'> <g b f'>
   <g b f'> <g b f'>
-  
+
   <c e>8 r e4
   <c e>4. r8
-  
+
   \slurDown gis16-3-( a b a gis8-)-. r
   a16-5-( b c d e8-)-. r
   gis,16-3-( a b a gis8-)-. r
   a16-5-( b c d e8-)-. r
-  
+
   cis16-3-( d e d cis8-)-. r
   \clef treble d16-5-( e f g a8-)-. g-(
   f-1-[ e d dis-]
   e-[ d! c b-]
-  
+
   \clef bass <a c e>4-) <a c e>
   <a c e> <a c e>
   <a d f>^\crescendo <a d f>
   <a c e> <a c e>
-  
+
   <a d e>^\p <a d e>
   <a c e> <a c e>
   <a d e> <a d e>
-  
+
   <a c e> <a c e>
   <a c e> <a c e>
-  
+
   <a d f>^\crescendo <a d f>
   <a c e> <a c e>
   <a d f> <a d f>
   e16-( d c b a8-)-. r
-  
+
   <a' e'>2_\fermata
   }
 

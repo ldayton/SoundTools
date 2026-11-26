@@ -38,6 +38,7 @@ export function ScaleFrame({
   clearShift,
   reverseLink,
   setChordOpen,
+  navigate,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
@@ -45,10 +46,12 @@ export function ScaleFrame({
   clearShift(): void;
   reverseLink(): void;
   setChordOpen(open: boolean): void;
+  navigate(axis: "tonic" | "shape", direction: number): void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   const [horizontal,setHorizontal]=useState(true);
   const [chordFrame,setChordFrame]=useState(0);
+  const touch = useRef<{ x: number; y: number } | null>(null);
   const chordTrigger=useRef<HTMLButtonElement>(null);
   const activeChord=s.chordDiagrams[Math.min(chordFrame,s.chordDiagrams.length-1)];
   const hoverable = useMediaQuery("(min-width: 48em) and (hover: hover) and (pointer: fine)", undefined, { getInitialValueInEffect: false });
@@ -129,7 +132,23 @@ export function ScaleFrame({
         </div>}
       </section>}
       {s.maqamReference && <Text className="scale-maqam-reference" size="sm" c="dimmed" mb="sm">{s.maqamReference}</Text>}
-      <div className="scale-diagram" />
+      <div className="scale-diagram"
+        onTouchStart={(event) => {
+          touch.current = event.touches.length === 1
+            ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+        }}
+        onTouchCancel={() => { touch.current = null; }}
+        onTouchEnd={(event) => {
+          const start = touch.current;
+          touch.current = null;
+          if (!start || event.touches.length || !event.changedTouches.length) return;
+          const dx = event.changedTouches[0].clientX - start.x;
+          const dy = event.changedTouches[0].clientY - start.y;
+          if (Math.max(Math.abs(dx), Math.abs(dy)) < 40) return;
+          if (Math.abs(dx) > Math.abs(dy)) navigate("tonic", dx > 0 ? 1 : -1);
+          else navigate("shape", dy < 0 ? 1 : -1);
+        }}
+      />
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
       <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>
       <div className="scale-note-list">

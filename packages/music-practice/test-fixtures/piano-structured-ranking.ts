@@ -22,6 +22,7 @@ export const initialRankingWeights = (): RankingWeights =>
 export const rankingDot = (a: RankingWeights, b: RankingWeights) =>
   Object.entries(a).reduce((s, [k, v]) => s + v * (b[k] ?? 0), 0);
 const put = (v: RankingWeights, k: string, x = 1) => {
+  if (!Number.isFinite(x)) throw Error("Nonfinite ranking feature: " + k);
   if (x) v[k] = (v[k] ?? 0) + x;
 };
 const merge = (a: RankingWeights, b: RankingWeights) => {
@@ -117,7 +118,10 @@ export function pianoRankingFeatures(
           : "leap";
     const ascending = d * (b.hand === "right" ? 1 : -1) >= 0;
     put(v, `pair:${group}:${ascending ? from : to}:${ascending ? to : from}`);
-    put(v, "pair-comfort", pianoPairComfort(x.midi, from, y.midi, to));
+    // This is a soft comfort feature, not the ergonomic model's same-finger
+    // impossibility sentinel. Released repositioning remains a legal path.
+    if (from !== to)
+      put(v, "pair-comfort", pianoPairComfort(x.midi, from, y.midi, to));
     put(v, "key-depth", pianoKeyDepthCost(x, y, from, to));
     return v;
   };

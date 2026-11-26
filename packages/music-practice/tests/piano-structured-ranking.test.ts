@@ -21,6 +21,57 @@ const phrase = (midis = [60, 62, 64]): PianoPhraseNote[] =>
     start: i,
     duration: 1,
   }));
+test("all released pair features stay finite, including same-finger repositioning", () => {
+  for (const midis of [
+    [60, 62],
+    [61, 60],
+    [60, 72],
+    [60, 60],
+  ]) {
+    const notes = phrase(midis),
+      features = pianoRankingFeatures(notes, "structured");
+    for (let a = 1; a <= 5; a++)
+      for (let b = 1; b <= 5; b++) {
+        const frame = (i: number, digit: number) => ({
+          hand: "right" as const,
+          at: i,
+          until: i + 1,
+          anchor: 30,
+          fingers: { [String(i)]: digit },
+          costs: {
+            posture: 0,
+            movement: 0,
+            repeat: 0,
+            crossing: 0,
+            substitution: 0,
+            comfort: 0,
+            context: 0,
+            gesture: 0,
+            preparation: 0,
+          },
+          active: [
+            {
+              id: String(i),
+              hand: "right" as const,
+              midi: notes[i].midi,
+              start: i,
+              end: i + 1,
+              noteIds: [String(i)],
+            },
+          ],
+        });
+        assert.ok(
+          Object.values(features.edge(frame(0, a), frame(1, b))).every(
+            Number.isFinite,
+          ),
+        );
+      }
+    assert.deepEqual(
+      rankPianoPhrase(notes, initialRankingWeights(), "structured"),
+      planPianoPhrase(notes),
+    );
+  }
+});
 test("zero contextual coefficients preserve exact classic paths, costs and diagnostics", () => {
   for (const notes of [
     phrase(),

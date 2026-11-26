@@ -1,0 +1,943 @@
+{
+  "schema": 1,
+  "study": "latent-structured-v1",
+  "protocolSha256": "ff62eb5f97bc641c6f1d935b9505aa1608277f5dad979424ad2369151bd88a0b",
+  "revision": "ea22a22feb8fa2aa966f337de0df52d234b4b46d",
+  "hashes": {
+    "../../src/piano-phrase-fingering.ts": "79fb5cf564162b27a18897edd0beb2531ba079b7424ddd6bd76678a45ee2bcce",
+    "../../src/piano-hand-model.ts": "fdf8850fd0d3e17899fe5dd076d3d0730a0c9cb7dff72b798a502098966e3299",
+    "../../src/piano-ergonomics.ts": "2d105d04939fecf871d361aa912cd28c8ef3d1c5a1cd56b3ab26b6b33a6bf13a",
+    "../../test-fixtures/piano-structured-ranking.ts": "21b434641712e2b5958c5d2e6cbcea124bfe13113402bbdee21e45007fed8b98",
+    "./structured-train.ts": "8b22cd1fbc93d0cb4fde1dbc20e8850687185111fcd513dc37d370066145afe4",
+    "../../test-fixtures/piano-benchmark.json": "24ae0128bddd430959a2c2acf9f99b7cad4c94668e1d2582032c7dca9daf16ec",
+    "../../test-fixtures/piano-beringer.json": "183ddc8fbe2d39cbb282a3c0b351480a115f5093e4c06799318a99e6bdaf1654",
+    "../../test-fixtures/piano-beringer-scales.json": "29846aa3ce8d2719cdbd7d7fac19c245adb90ea4a8bb1888f0291719749b88f0"
+  },
+  "trainingIds": [
+    "hanon:hanon-39-0",
+    "hanon:hanon-39-1",
+    "hanon:hanon-39-2",
+    "hanon:hanon-39-3",
+    "hanon:hanon-39-4",
+    "hanon:hanon-39-5",
+    "hanon:hanon-39-6",
+    "hanon:hanon-39-7",
+    "hanon:hanon-39-8",
+    "hanon:hanon-39-9",
+    "hanon:hanon-39-10",
+    "hanon:hanon-39-11",
+    "hanon:hanon-39-12",
+    "hanon:hanon-39-13",
+    "hanon:hanon-39-14",
+    "hanon:hanon-39-15",
+    "hanon:hanon-39-16",
+    "hanon:hanon-39-17",
+    "hanon:hanon-39-18",
+    "hanon:hanon-39-19",
+    "hanon:hanon-39-20",
+    "hanon:hanon-39-21",
+    "hanon:hanon-39-22",
+    "hanon:hanon-39-23",
+    "hanon:hanon-39-24",
+    "hanon:hanon-39-25",
+    "hanon:hanon-39-26",
+    "hanon:hanon-39-27",
+    "hanon:hanon-39-28",
+    "hanon:hanon-39-29",
+    "hanon:hanon-39-30",
+    "hanon:hanon-39-31",
+    "hanon:hanon-39-32",
+    "hanon:hanon-39-33",
+    "hanon:hanon-39-34",
+    "hanon:hanon-39-35",
+    "hanon:hanon-40-36",
+    "hanon:hanon-40-37",
+    "hanon:hanon-40-38",
+    "hanon:hanon-40-39",
+    "hanon:hanon-40-40",
+    "hanon:hanon-40-41",
+    "hanon:hanon-40-42",
+    "hanon:hanon-40-43",
+    "hanon:hanon-41-0",
+    "hanon:hanon-41-1",
+    "hanon:hanon-41-2",
+    "hanon:hanon-41-3",
+    "hanon:hanon-41-4",
+    "hanon:hanon-41-5",
+    "hanon:hanon-41-6",
+    "hanon:hanon-41-7",
+    "hanon:hanon-41-8",
+    "hanon:hanon-41-9",
+    "hanon:hanon-41-10",
+    "hanon:hanon-41-11",
+    "hanon:hanon-41-12",
+    "hanon:hanon-41-13",
+    "hanon:hanon-41-14",
+    "hanon:hanon-41-15",
+    "hanon:hanon-41-16",
+    "hanon:hanon-41-17",
+    "hanon:hanon-41-18",
+    "hanon:hanon-41-19",
+    "hanon:hanon-41-20",
+    "hanon:hanon-41-21",
+    "hanon:hanon-41-22",
+    "hanon:hanon-41-23",
+    "hanon:hanon-study-1-0",
+    "hanon:hanon-study-2-1",
+    "hanon:hanon-study-3-2",
+    "hanon:hanon-study-4-3",
+    "hanon:hanon-study-5-4",
+    "hanon:hanon-study-6-5",
+    "hanon:hanon-study-7-6",
+    "hanon:hanon-study-8-7",
+    "hanon:hanon-study-9-8",
+    "hanon:hanon-study-10-9",
+    "hanon:hanon-study-11-10",
+    "hanon:hanon-study-12-11",
+    "hanon:hanon-study-13-12",
+    "hanon:hanon-study-14-13",
+    "hanon:hanon-study-15-14",
+    "hanon:hanon-study-16-15",
+    "hanon:hanon-study-17-16",
+    "hanon:hanon-study-18-17",
+    "hanon:hanon-study-19-18",
+    "hanon:hanon-study-20-19",
+    "hanon:hanon-study-42-0",
+    "hanon:hanon-study-42-1",
+    "hanon:hanon-study-42-2",
+    "hanon:hanon-study-42-3",
+    "hanon:hanon-study-42-4",
+    "hanon:hanon-study-42-5",
+    "hanon:hanon-study-42-6",
+    "hanon:hanon-study-42-7",
+    "hanon:hanon-study-43-8",
+    "hanon:hanon-study-43-9",
+    "hanon:hanon-study-43-10",
+    "hanon:hanon-study-43-11",
+    "hanon:hanon-study-43-12",
+    "hanon:hanon-study-43-13",
+    "hanon:hanon-study-43-14",
+    "hanon:hanon-study-43-15",
+    "hanon:hanon-study-44-16",
+    "hanon:hanon-study-45-17",
+    "hanon:hanon-study-45-18",
+    "hanon:hanon-study-45-19",
+    "hanon:hanon-study-45-20",
+    "hanon:hanon-study-45-21",
+    "hanon:hanon-study-45-22",
+    "hanon:hanon-study-45-23",
+    "hanon:hanon-study-46-24",
+    "hanon:hanon-study-47-25",
+    "hanon:hanon-study-50-26",
+    "hanon:hanon-study-50-27",
+    "hanon:hanon-study-51-28",
+    "hanon:hanon-study-53-29",
+    "hanon:hanon-study-53-30",
+    "hanon:hanon-study-53-31",
+    "hanon:hanon-study-53-32",
+    "hanon:hanon-study-53-33",
+    "hanon:hanon-study-53-34",
+    "hanon:hanon-study-53-35",
+    "hanon:hanon-study-53-36",
+    "hanon:hanon-study-53-37",
+    "hanon:hanon-study-53-38",
+    "hanon:hanon-study-53-39",
+    "hanon:hanon-study-53-40",
+    "hanon:hanon-study-53-41",
+    "hanon:hanon-study-53-42",
+    "hanon:hanon-study-53-43",
+    "hanon:hanon-study-53-44",
+    "hanon:hanon-study-53-45",
+    "hanon:hanon-study-53-46",
+    "hanon:hanon-study-53-47",
+    "hanon:hanon-study-53-48",
+    "hanon:hanon-study-53-49",
+    "hanon:hanon-study-53-50",
+    "hanon:hanon-study-53-51",
+    "hanon:hanon-study-53-52",
+    "hanon:hanon-study-53-53",
+    "hanon:beyer-abendlied",
+    "hanon:beyer-kinderlied",
+    "hanon:beyer-op101-no66",
+    "hanon:czerny-op599-no11",
+    "hanon:schumann-melodie",
+    "hanon:turk-aller-anfang",
+    "hanon:turk-bey-der-wiege",
+    "hanon:turk-hans-ohne-sorgen",
+    "hanon:turk-matt-und-krank",
+    "hanon:turk-muntere-knabe"
+  ],
+  "elapsedMs": 61404.291958,
+  "learners": {
+    "scalar": {
+      "weights": {
+        "crossing": 0.9725085081571855,
+        "movement": 0.2540420569549548,
+        "posture": 1.039322965665765,
+        "repeat": 0.21244938296004318
+      },
+      "averageExamples": 2016,
+      "epochs": [
+        {
+          "epoch": 1,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3360.034542
+        },
+        {
+          "epoch": 2,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3125.6359580000003
+        },
+        {
+          "epoch": 3,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3100.384000000001
+        },
+        {
+          "epoch": 4,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3088.5032499999998
+        },
+        {
+          "epoch": 5,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3087.2090000000007
+        },
+        {
+          "epoch": 6,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3102.3973749999986
+        },
+        {
+          "epoch": 7,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3068.3956249999974
+        },
+        {
+          "epoch": 8,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 3096.765875000001
+        }
+      ]
+    },
+    "structured": {
+      "weights": {
+        "crossing": 1.071894865756249,
+        "end:1": 0.0064397222686438825,
+        "end:2": 0.009247782362715142,
+        "end:3": -0.05494642958806727,
+        "end:4": 0.03856527684671224,
+        "end:5": 0.000693648109995917,
+        "key-depth": 0.4442854800620627,
+        "key:0:1": -0.12618850404987175,
+        "key:0:2": -0.025636989535268467,
+        "key:0:3": 0.08694292527607254,
+        "key:0:4": 0.07621919030401723,
+        "key:0:5": -0.011336621994948939,
+        "key:1:1": 0.3285575723473124,
+        "key:1:2": -0.031644222432524696,
+        "key:1:3": -0.17638543078969263,
+        "key:1:4": -0.3547856311750833,
+        "key:1:5": 0.23425771204998666,
+        "movement": 0.2976241823351023,
+        "pair-comfort": 0.1004061691513109,
+        "pair:leap:1:1": 0.0006424940583084261,
+        "pair:leap:1:2": 0.004320449396040824,
+        "pair:leap:1:3": 0.021051620212166014,
+        "pair:leap:1:4": -0.010748722047340021,
+        "pair:leap:1:5": -0.08372357680949488,
+        "pair:leap:2:2": 0.013970188932188531,
+        "pair:leap:2:3": -0.0008005140260303583,
+        "pair:leap:2:4": -0.0032192432730295028,
+        "pair:leap:2:5": 0.049034920475527946,
+        "pair:leap:3:1": 0.0018036506740887568,
+        "pair:leap:3:2": -0.0007999631318689592,
+        "pair:leap:3:3": 0.0016785212114827084,
+        "pair:leap:3:5": 0.008176366002646514,
+        "pair:leap:4:4": -0.0017786822034450177,
+        "pair:leap:4:5": 0.00016766874043168991,
+        "pair:leap:5:2": -0.0005038505955419936,
+        "pair:leap:5:5": 0.0007286723838693752,
+        "pair:repeat:1:1": 0.11789740479028718,
+        "pair:repeat:1:2": 0.013847403053297529,
+        "pair:repeat:1:3": -0.036478595706334986,
+        "pair:repeat:1:4": -0.0018511610117492865,
+        "pair:repeat:1:5": 0.01656559817055121,
+        "pair:repeat:2:1": 0.0054145247847349615,
+        "pair:repeat:2:2": 0.08078510012059863,
+        "pair:repeat:2:3": -0.02137586199322188,
+        "pair:repeat:2:4": -0.021148187343736725,
+        "pair:repeat:2:5": -0.001233033857763394,
+        "pair:repeat:3:1": -0.0274094618273692,
+        "pair:repeat:3:2": -0.042986943401211695,
+        "pair:repeat:3:3": 0.07516733108751572,
+        "pair:repeat:3:4": -0.022414851423656207,
+        "pair:repeat:3:5": -0.0011547706580736657,
+        "pair:repeat:4:1": -0.00731520707246338,
+        "pair:repeat:4:2": -0.02123114521331463,
+        "pair:repeat:4:3": -0.03615505039906817,
+        "pair:repeat:4:4": -0.20577362935515187,
+        "pair:repeat:4:5": -0.024948767581519708,
+        "pair:repeat:5:1": 0.013293047226592575,
+        "pair:repeat:5:2": 0.0017239417571533694,
+        "pair:repeat:5:3": 0.01284461127107459,
+        "pair:repeat:5:4": -0.011427115149293334,
+        "pair:repeat:5:5": 0.14536481973212237,
+        "pair:step:1:1": 0.0749927482318067,
+        "pair:step:1:2": -0.1386929907183554,
+        "pair:step:1:3": -0.15067052260221758,
+        "pair:step:1:4": -0.006721981165202074,
+        "pair:step:1:5": 0.05841671408691307,
+        "pair:step:2:1": -0.03368918657712198,
+        "pair:step:2:2": 0.26504258893384286,
+        "pair:step:2:3": -0.05280415157871242,
+        "pair:step:2:4": 0.007371065707870331,
+        "pair:step:2:5": 0.0243880701024806,
+        "pair:step:3:1": 0.05900996476316047,
+        "pair:step:3:2": -0.0012113425188694418,
+        "pair:step:3:3": 0.004399406666384404,
+        "pair:step:3:4": -0.037551640656799105,
+        "pair:step:3:5": -0.007267155354879891,
+        "pair:step:4:1": -0.06795761810486149,
+        "pair:step:4:2": -0.0006440539713777304,
+        "pair:step:4:3": 0.018711699945683516,
+        "pair:step:4:4": 0.07584545843543775,
+        "pair:step:4:5": -0.2255121953513636,
+        "pair:step:5:1": 0.031076761087388133,
+        "pair:step:5:2": 0.02475726279676733,
+        "pair:step:5:3": 0.012686692296678112,
+        "pair:step:5:4": 0.003948308820807746,
+        "pair:step:5:5": 0.062076096724538954,
+        "pair:third-fourth:1:1": -0.1426853252588081,
+        "pair:third-fourth:1:2": -0.32743589304467224,
+        "pair:third-fourth:1:3": 0.34459061798044266,
+        "pair:third-fourth:1:4": 0.19837937077439857,
+        "pair:third-fourth:1:5": 0.028404945893435733,
+        "pair:third-fourth:2:1": -0.04202833868587428,
+        "pair:third-fourth:2:2": -0.040993965656281744,
+        "pair:third-fourth:2:3": -0.385293065227489,
+        "pair:third-fourth:2:4": -0.010339544759038326,
+        "pair:third-fourth:2:5": 0.07194107385077213,
+        "pair:third-fourth:3:1": 0.3577940115139762,
+        "pair:third-fourth:3:2": 0.02186130054281296,
+        "pair:third-fourth:3:3": 0.039548421168617696,
+        "pair:third-fourth:3:4": -0.3782647179536551,
+        "pair:third-fourth:3:5": -0.00206625950319265,
+        "pair:third-fourth:4:1": 0.11250807640995106,
+        "pair:third-fourth:4:2": 0.07897273263761194,
+        "pair:third-fourth:4:3": 0.012190604738323537,
+        "pair:third-fourth:4:4": -0.0037623401077790256,
+        "pair:third-fourth:4:5": -0.10526949945974574,
+        "pair:third-fourth:5:1": 0.10317049244033341,
+        "pair:third-fourth:5:2": 0.038389951714451226,
+        "pair:third-fourth:5:3": 0.03514431640216873,
+        "pair:third-fourth:5:4": 0.0011581565115029715,
+        "pair:third-fourth:5:5": -0.0059151229222627714,
+        "posture": 0.8849321419930551,
+        "repeat": 0.2484311316878419,
+        "run:1": -0.017252248335367305,
+        "run:2": 0.07220582880986216,
+        "run:3": -0.1755494937412983,
+        "run:4": 0.04769152417087273,
+        "run:5": 0.07290438909593158,
+        "start:1": -0.10607708377071744,
+        "start:2": 0.08071189052086239,
+        "start:3": -0.01078325228314621,
+        "start:4": 0.1470748026889004,
+        "start:5": -0.11092635715589931,
+        "turn:1": -0.101210254538073,
+        "turn:2": 0.18488922396798632,
+        "turn:3": -0.0687600450629648,
+        "turn:4": 0.07865177793359052,
+        "turn:5": -0.09357070230053899
+      },
+      "averageExamples": 2016,
+      "epochs": [
+        {
+          "epoch": 1,
+          "updates": 245,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4514.951333000001
+        },
+        {
+          "epoch": 2,
+          "updates": 245,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4521.512208
+        },
+        {
+          "epoch": 3,
+          "updates": 246,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4514.075249999994
+        },
+        {
+          "epoch": 4,
+          "updates": 245,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4550.236916000002
+        },
+        {
+          "epoch": 5,
+          "updates": 247,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4522.031583000004
+        },
+        {
+          "epoch": 6,
+          "updates": 245,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4537.642334000004
+        },
+        {
+          "epoch": 7,
+          "updates": 247,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4601.6603749999995
+        },
+        {
+          "epoch": 8,
+          "updates": 245,
+          "incompatible": 3,
+          "labels": 7947,
+          "skipped": [
+            {
+              "id": "hanon:hanon-40-40",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              },
+              "augmented": {
+                "hand": "right",
+                "code": "hand_conflict",
+                "at": 6
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "right",
+              "compatible": {
+                "hand": "right",
+                "code": "reach"
+              }
+            },
+            {
+              "id": "hanon:hanon-study-53-30",
+              "hand": "left",
+              "compatible": {
+                "hand": "left",
+                "code": "reach"
+              }
+            }
+          ],
+          "elapsedMs": 4592.877291000004
+        }
+      ]
+    }
+  }
+}

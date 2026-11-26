@@ -1,0 +1,92 @@
+{
+  "corpusSha256": "87c526a922b4a5d18450ac6ab048497a760b19761782b1186b3f9af292fb2600",
+  "checked": 16,
+  "unsupportedOrnaments": [
+    "Czerny_Op_821_No_004",
+    "Czerny_Op_821_No_005",
+    "Czerny_Op_821_No_013"
+  ],
+  "semantics": "Exact unique attack pitch and quantized onset agreement with actual LilyPond MIDI. Repeated source unisons may share one MIDI attack. Does not independently validate editorial digits or articulation-dependent hold durations.",
+  "rows": [
+    {
+      "id": "Czerny_Op_821_No_001",
+      "uniqueAttacks": 152,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_002",
+      "uniqueAttacks": 112,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_003",
+      "uniqueAttacks": 209,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_006",
+      "uniqueAttacks": 180,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_007",
+      "uniqueAttacks": 114,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_008",
+      "uniqueAttacks": 143,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_009",
+      "uniqueAttacks": 128,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_010",
+      "uniqueAttacks": 167,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_011",
+      "uniqueAttacks": 287,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_012",
+      "uniqueAttacks": 161,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_014",
+      "uniqueAttacks": 179,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_015",
+      "uniqueAttacks": 148,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_016",
+      "uniqueAttacks": 149,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_017",
+      "uniqueAttacks": 142,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_018",
+      "uniqueAttacks": 136,
+      "matched": true
+    },
+    {
+      "id": "Czerny_Op_821_No_019",
+      "uniqueAttacks": 165,
+      "matched": true
+    }
+  ]
+}

@@ -71,6 +71,11 @@ provenance data. Only our TypeScript implementations and test tools execute.
 
 ## Acceptance and regression owners
 
+The [latent structured ranking experiment](piano-structured-ranking.md) compares
+an original learned scalar baseline and partial-label structured ranker against
+classic on a pre-reserved fresh corpus. Neither improves enough to replace the
+production planner; weights and contextual scoring remain offline research.
+
 The [cost audit](piano-cost-audit.md) diagnoses printed-reference disagreements
 as ranking tradeoffs, indistinguishable feature vectors or representation issues.
 Its corpus script is optional research; bounded synthetic audit contracts are

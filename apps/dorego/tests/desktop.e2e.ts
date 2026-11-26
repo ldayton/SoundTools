@@ -1,4 +1,3 @@
-import { verifyLiveDrone } from './live-drone';
 import {
   waitForServer,
   captureFailure,
@@ -474,7 +473,6 @@ try {
   assert.deepEqual(errors, []);
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
-  await verifyLiveDrone(browser!, base);
 } catch (error) {
   await captureFailure(browser, error);
   await mkdir('work', { recursive: true });

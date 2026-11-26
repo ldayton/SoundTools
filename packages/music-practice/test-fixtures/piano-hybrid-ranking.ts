@@ -4,6 +4,7 @@ import {
   planPianoPhrase,
   type PianoHand,
   type PianoPhraseNote,
+  type PianoHandPlan,
 } from "../src/piano-phrase-fingering";
 import {
   neuralAssignments,
@@ -103,12 +104,31 @@ type CandidateAudit = {
     | "duplicate"
     | "unsupported"
     | "physical-conflict"
+    | "movement-regression"
+    | "no-simplification"
     | "baseline-unsupported";
   duplicateOf?: string;
   physicalCost?: number;
   costs?: ReturnType<typeof planPianoPhrase>["costs"];
   objective?: number;
+  complexity?: ReturnType<typeof pianoMovementComplexity>;
 };
+
+export function pianoMovementComplexity(hand: PianoHandPlan) {
+  const events = hand.states.flatMap((state) => state.events);
+  return {
+    relocations: events.filter((event) => event.kind === "move").length,
+    crossings: events.filter(
+      (event) => event.kind === "thumb_under" || event.kind === "finger_over",
+    ).length,
+    repeatChanges: events.filter((event) => event.kind === "repeat_change")
+      .length,
+  };
+}
+export type HybridPolicy =
+  | "unrestricted"
+  | "preserve-movement-complexity"
+  | "reduce-movement-complexity";
 
 /** Rank complete hands, preserving source diagnostics, anchors and tie contacts. */
 export function hybridNeuralPlan(
@@ -116,9 +136,18 @@ export function hybridNeuralPlan(
   predictions: HybridHands,
   bpm: number,
   physicalCostWeight: number,
+  policy: HybridPolicy = "reduce-movement-complexity",
 ) {
   // Validate policy even for empty or unsupported input.
   hybridObjective(0, 0, 1, physicalCostWeight);
+  if (
+    ![
+      "unrestricted",
+      "preserve-movement-complexity",
+      "reduce-movement-complexity",
+    ].includes(policy)
+  )
+    throw Error("Unknown hybrid policy");
   const baseline = planPianoPhrase(notes, { bpm }),
     hands = { ...baseline.hands };
   const decisions: Partial<
@@ -219,6 +248,25 @@ export function hybridNeuralPlan(
         costs: planned.costs,
         objective,
       });
+      const complexity = pianoMovementComplexity(planned),
+        prior = pianoMovementComplexity(classic);
+      audit.complexity = complexity;
+      const keys = Object.keys(prior) as (keyof typeof prior)[];
+      if (
+        policy !== "unrestricted" &&
+        keys.some((key) => complexity[key] > prior[key])
+      ) {
+        audit.status = "movement-regression";
+        continue;
+      }
+      if (
+        policy === "reduce-movement-complexity" &&
+        candidate.source !== "classic" &&
+        !keys.some((key) => complexity[key] < prior[key])
+      ) {
+        audit.status = "no-simplification";
+        continue;
+      }
       if (objective < best) {
         best = objective;
         decision.selected = candidate.id;

@@ -54,6 +54,9 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
   assert(tasks.find(task => task.args.includes('test:desktop') && task.args.includes('--workspace=dorego')).locks.includes('realtime-audio'));
   assert(tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('port:4709'));
   assert(!tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('realtime-audio'));
+  const drone = tasks.find(task => task.args.includes('tests/drone-controls.e2e.ts'));
+  assert(drone.locks.includes('port:4710'));
+  assert(!drone.locks.includes('realtime-audio'), 'Drone controls inspect source lifecycle and gains, not PCM or timing precision');
   assert(!tasks.some(task => /accounts-.*:backend|:editions:/.test(task.id)));
   assert.throws(() => plan('songalong', 'ci', 'chromium', 'editions'), /Nightly/);
 });

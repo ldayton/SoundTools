@@ -27,6 +27,21 @@ const input = process.argv[2],
   output = process.argv[4];
 if (!input || !directory || !output)
   throw Error("Specify neural artifacts, hybrid directory and report output");
+const variant = process.argv[5] ?? "--v3";
+if (!["--v1", "--v2", "--v3"].includes(variant))
+  throw Error("Unknown experiment option");
+const correction =
+  variant !== "--v1"
+    ? JSON.parse(
+        readFileSync(
+          new URL(
+            `./hybrid-${variant.slice(2)}-protocol.json`,
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      )
+    : undefined;
 const hash = (v: string | Buffer) =>
   createHash("sha256").update(v).digest("hex");
 const protocol = JSON.parse(readFileSync(directory + "/protocol.json", "utf8")),
@@ -110,14 +125,35 @@ for (const [index, c] of cases.entries()) {
     constrainedNeuralPlan(c.notes, neural, c.bpm),
   );
   const hybrid = measure("hybrid", () =>
-    hybridNeuralPlan(c.notes, heads, c.bpm, protocol.physicalCostWeight),
+    hybridNeuralPlan(
+      c.notes,
+      heads,
+      c.bpm,
+      protocol.physicalCostWeight,
+      correction?.policy ?? "unrestricted",
+    ),
   );
+  const previous = correction
+    ? measure("hybrid-v1", () =>
+        hybridNeuralPlan(
+          c.notes,
+          heads,
+          c.bpm,
+          protocol.physicalCostWeight,
+          "unrestricted",
+        ),
+      )
+    : undefined;
   audits.push({ id: c.id, decisions: hybrid.decisions });
-  for (const [mode, plan] of [
+  const modes: [string, PianoPhrasePlan][] = [
     ["classic", classic],
     ["first-feasible", constrained.plan],
     ["hybrid", hybrid.plan],
-  ] as const) {
+    ...(previous
+      ? [["hybrid-v1", previous.plan] as [string, PianoPhrasePlan]]
+      : []),
+  ];
+  for (const [mode, plan] of modes) {
     const score = scorePianoBenchmarkCase(c, plan),
       digits = new Map(plan.notes.map((n) => [n.id, n.finger]));
     const violations = neuralPhysicalViolations(c.notes, digits),
@@ -210,7 +246,12 @@ function summarize(rs: typeof rows) {
   };
 }
 const summaries = Object.fromEntries(
-  ["classic", "first-feasible", "hybrid"].map((mode) => {
+  [
+    "classic",
+    "first-feasible",
+    "hybrid",
+    ...(correction ? ["hybrid-v1"] : []),
+  ].map((mode) => {
     const selected = rows.filter((r) => r.mode === mode);
     return [
       mode,
@@ -286,11 +327,12 @@ function timing(values: number[]) {
 }
 const report = {
   schema: 1,
-  study: protocol.study,
+  study: correction?.study ?? protocol.study,
   sourceRevision: execFileSync("git", ["rev-parse", "HEAD"], {
     encoding: "utf8",
   }).trim(),
   protocol,
+  correction,
   hashes: {
     requests: hash(requestBytes),
     scores: hash(scoreBytes),
@@ -334,7 +376,7 @@ const report = {
   rows,
 };
 writeFileSync(
-  directory + "/audit.json",
+  directory + (correction ? `/audit-${correction.study}.json` : "/audit.json"),
   JSON.stringify(audits, null, 2) + "\n",
 );
 writeFileSync(output, JSON.stringify(report, null, 2) + "\n");

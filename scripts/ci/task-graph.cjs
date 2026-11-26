@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const { plan } = require('./test-strategy.cjs');
 const { declaration } = require('./inventory.cjs');
 const root = path.resolve(__dirname, '../..');
-const browserSuites = Object.freeze(['desktop', 'workspace', 'breath-squares', 'breath-audio', 'audio-channels', 'pages', 'lifecycle', 'offline', 'spelling']);
+const browserSuites = Object.freeze(['desktop', 'drone-controls', 'workspace', 'breath-squares', 'breath-audio', 'audio-channels', 'pages', 'lifecycle', 'offline', 'spelling']);
 function environment(browser, tier = 'ci') { return { CI_TIER: tier, TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' }; }
 function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false } = {}) {
   const tasks = [];

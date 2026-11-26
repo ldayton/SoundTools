@@ -3,7 +3,8 @@ import type { Browser } from 'playwright';
 import { newPage, waitForApp } from '../../../scripts/ci/browser-harness.cjs';
 import { DEFAULT_SPEC } from '../src/music';
 
-/** Live audio belongs to the desktop suite's realtime-audio resource lock. */
+/** Source identity, scheduled stop, gain routing and UI/persistence checks.
+ * No measured PCM, hardware latency or real-time precision assertions. */
 export async function verifyLiveDrone(browser: Browser, base: string) {
   for (const width of [1440, 390])
     for (const pattern of ['maqamat', 'yemenite']) {

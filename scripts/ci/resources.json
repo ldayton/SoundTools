@@ -2300,5 +2300,25 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/drone-controls.e2e.ts": {
+    "kind": "ui",
+    "ports": [
+      4710
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/drone-controls.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
   }
 }

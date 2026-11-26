@@ -5,6 +5,7 @@ import {
   hybridNeuralPlan,
   hybridObjective,
   hybridAcceptance,
+  pianoMovementComplexity,
   type HybridHands,
   type HybridMetrics,
 } from "../test-fixtures/piano-hybrid-ranking";
@@ -13,6 +14,95 @@ import {
   type PianoPhraseNote,
 } from "../src/piano-phrase-fingering";
 import { neuralContacts } from "../test-fixtures/piano-neural-comparison";
+
+test("guarded ranking refuses added moves or equal-complexity renumbering regardless of likelihood", () => {
+  const added = candidates(melody, [5, 1, 5, 1], 0, -1000);
+  const guarded = hybridNeuralPlan(
+    melody,
+    added,
+    60,
+    0,
+    "reduce-movement-complexity",
+  );
+  assert.equal(guarded.decisions.right!.selected, "classic");
+  assert.equal(
+    guarded.decisions.right!.candidates.find((c) => c.id === "beam-0")!.status,
+    "movement-regression",
+  );
+  const stable = melody.slice(0, 2),
+    equal = candidates(stable, [2, 3], 0, -1000);
+  const previous = hybridNeuralPlan(
+    stable,
+    equal,
+    60,
+    0,
+    "preserve-movement-complexity",
+  );
+  assert.equal(previous.decisions.right!.selected, "beam-0");
+  const strict = hybridNeuralPlan(stable, equal, 60, 0);
+  assert.equal(strict.decisions.right!.selected, "classic");
+  assert.equal(
+    strict.decisions.right!.candidates.find((c) => c.id === "beam-0")!.status,
+    "no-simplification",
+  );
+});
+test("strict guard still selects a candidate that reduces crossings without adding moves", () => {
+  const notes = [60, 62, 64, 65, 67, 69].map((midi, i) => ({
+    ...melody[0],
+    id: `a${i}`,
+    midi,
+    start: i,
+  }));
+  const p = candidates(notes, [2, 3, 4, 5, 1, 2], 0, -1000);
+  const baseline = planPianoPhrase(notes, { bpm: 60 });
+  assert.deepEqual(pianoMovementComplexity(baseline.hands.right), {
+    relocations: 1,
+    crossings: 1,
+    repeatChanges: 0,
+  });
+  const result = hybridNeuralPlan(
+    notes,
+    p,
+    60,
+    0.1,
+    "reduce-movement-complexity",
+  );
+  assert.equal(result.decisions.right!.selected, "beam-0");
+  assert.deepEqual(pianoMovementComplexity(result.plan.hands.right), {
+    relocations: 1,
+    crossings: 0,
+    repeatChanges: 0,
+  });
+  const renamed = notes.map((n) => ({ ...n, id: "renamed-" + n.id }));
+  const translated = hybridNeuralPlan(
+    renamed,
+    candidates(renamed, [2, 3, 4, 5, 1, 2], 0, -1000),
+    60,
+    0.1,
+    "reduce-movement-complexity",
+  );
+  assert.deepEqual(
+    translated.plan.notes.map((n) => n.finger),
+    result.plan.notes.map((n) => n.finger),
+  );
+});
+test("complexity counts crossings and repeat changes independently of relocations", () => {
+  const hand = structuredClone(
+    planPianoPhrase(melody, { bpm: 60 }).hands.right,
+  );
+  hand.states[0].events = [
+    { at: 0, kind: "move", noteIds: [] },
+    { at: 0, kind: "thumb_under", noteIds: [] },
+    { at: 0, kind: "finger_over", noteIds: [] },
+    { at: 0, kind: "repeat_change", noteIds: [] },
+    { at: 0, kind: "substitution", noteIds: [] },
+  ];
+  assert.deepEqual(pianoMovementComplexity(hand), {
+    relocations: 1,
+    crossings: 2,
+    repeatChanges: 1,
+  });
+});
 const melody: PianoPhraseNote[] = [60, 62, 64, 65].map((midi, i) => ({
   id: `n${i}`,
   hand: "right",
@@ -44,8 +134,8 @@ function candidates(
 }
 test("hybrid ranking trades real physical cost against likelihood and retains classic", () => {
   const p = candidates(melody, [5, 1, 5, 1]);
-  const neural = hybridNeuralPlan(melody, p, 60, 0),
-    physical = hybridNeuralPlan(melody, p, 60, 100);
+  const neural = hybridNeuralPlan(melody, p, 60, 0, "unrestricted"),
+    physical = hybridNeuralPlan(melody, p, 60, 100, "unrestricted");
   assert.equal(neural.decisions.right!.selected, "beam-0");
   assert.deepEqual(
     neural.plan.notes.map((n) => n.finger),
@@ -98,7 +188,7 @@ test("exhaustive two-contact shortlist ranking agrees with an independent object
         : [];
     })
     .sort((a, b) => a.objective - b.objective);
-  const actual = hybridNeuralPlan(notes, p, 60, 0.1);
+  const actual = hybridNeuralPlan(notes, p, 60, 0.1, "unrestricted");
   assert.equal(actual.decisions.right!.selected, expected[0].id);
 });
 test("duplicates and exact objective ties retain classic independently of input ordering", () => {

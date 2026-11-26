@@ -301,7 +301,7 @@ New commands, alias changes and newly observed literal ports fail shared policy
 validation until their inventory entry is reviewed. Inspect the complete alias,
 server helpers, file writes, browser state, audio measurements and backend use
 before updating it. Do not regenerate the catalog blindly or remove locks to get
-a green result. DoReGo's nine browser cases use one registry shared with the
+a green result. DoReGo's ten browser cases use one registry shared with the
 developer alias; edition discovery remains automatic and a new edition requires
 its resource declaration. Scheduler tests exercise graph/coverage invariants,
 contention, capacity, deadlines, cancellation and immutable failure evidence.

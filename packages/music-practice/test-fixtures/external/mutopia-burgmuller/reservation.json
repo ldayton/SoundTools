@@ -97,7 +97,7 @@
     },
     {
       "file": "25EF-14.ly",
-      "sha256": "afb0cdcd8ae50a8b7fa0d62d325a1154c5df8be3b7b54b8957584cca57f2cd24",
+      "sha256": "20a527acf73a8e2d1ad5ad0dfb610f98fcb8a360b7d274ed18538060721c15e2",
       "license": "Public Domain, source copyright and typesetter footer",
       "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/BurgmullerJFF/O100/25EF-14/25EF-14.ly",
       "downloadedTextSha256": "8a386d1b6a8e9ca853901aa86a880cffd8a48f7e66612a886be0f70e11c143b5"
@@ -131,5 +131,5 @@
       "downloadedTextSha256": "0d439e1b0d9fc196f469deeafbb9f7c77b4a5edb542a96310bb56aa0e86f6c19"
     }
   ],
-  "normalization": "Trailing whitespace per line and blank EOF only, before implementation/calibration; no musical edits."
+  "normalization": "Whitespace only before implementation/calibration: trim trailing whitespace/blank EOF and expand tabs to four spaces; no musical edits."
 }

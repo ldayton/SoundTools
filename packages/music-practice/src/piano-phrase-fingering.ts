@@ -192,6 +192,21 @@ type Pose = {
   posture: number;
   comfort?: number;
 };
+/** Offline research hook. Scores may rank existing paths, never add poses or
+ * soften transitions. Contact aliases include tied/unison source note IDs. */
+export type PianoRankingFrame = {
+  hand: PianoHand;
+  at: number;
+  until: number;
+  active: readonly Readonly<Contact>[];
+  anchor: number;
+  fingers: Readonly<Record<string, number>>;
+  costs: Readonly<PianoPhraseCosts>;
+};
+export type PianoRankingObjective = {
+  local(frame: PianoRankingFrame): number;
+  edge(previous: PianoRankingFrame, next: PianoRankingFrame): number;
+};
 type Build = {
   contacts: Contact[];
   aliases: Map<string, string>;
@@ -732,6 +747,7 @@ function planHand(
   input: readonly PianoPhraseNote[],
   built: Build,
   p: PianoPhraseProfile,
+  objective?: PianoRankingObjective,
 ): PianoHandPlan {
   const statistics = { frames: 0, candidates: 0, transitions: 0, maxLayer: 0 };
   const unsupported = (
@@ -832,6 +848,33 @@ function planHand(
     return value;
   };
   const w = { ...defaults, ...p.weights };
+  const rankingFrame = (
+    pose: Pose,
+    i: number,
+    costs: PianoPhraseCosts,
+  ): PianoRankingFrame => ({
+    hand,
+    at: frames[i].at,
+    until: frames[i].until,
+    active: frames[i].active,
+    anchor: pose.anchor,
+    fingers: pose.fingers,
+    costs,
+  });
+  const rankedLocal = (pose: Pose, i: number) => {
+    const value = local(pose, i);
+    if (!objective || !Number.isFinite(value)) return value;
+    const own = zero();
+    own.posture =
+      pose.posture *
+      w.posture *
+      (mono ? 1 : Math.min(4, frames[i].until - frames[i].at));
+    own.comfort =
+      (pose.comfort ?? 0) *
+      w.comfort *
+      (mono ? 1 : Math.min(4, frames[i].until - frames[i].at));
+    return value + objective.local(rankingFrame(pose, i, own));
+  };
   const local = (pose: Pose, i: number) =>
     i === 0 && pose.crossed.length
       ? Infinity
@@ -840,10 +883,16 @@ function planHand(
   const classicSolve = () =>
     solvePianoPath(
       layers,
-      local,
+      rankedLocal,
       (a, b, i) => {
         const value = transitionAt(a, b, i);
-        return value ? total(value.costs) : Infinity;
+        return value
+          ? total(value.costs) +
+              (objective?.edge(
+                rankingFrame(a, i - 1, zero()),
+                rankingFrame(b, i, value.costs),
+              ) ?? 0)
+          : Infinity;
       },
       p.maxTransitions ?? 2_000_000,
     );
@@ -1017,6 +1066,23 @@ export function planPianoPhrase(
   input: readonly PianoPhraseNote[],
   profile: PianoPhraseProfile = {},
 ): PianoPhrasePlan {
+  return planPianoPhraseInternal(input, profile);
+}
+/** Exact classic decoder for offline learning; product defaults are unchanged. */
+export function planPianoPhraseRanked(
+  input: readonly PianoPhraseNote[],
+  objective: PianoRankingObjective,
+  profile: PianoPhraseProfile = {},
+): PianoPhrasePlan {
+  if (profile.model === "ergonomic" || profile.weights)
+    throw Error("Research ranker requires unweighted classic geometry");
+  return planPianoPhraseInternal(input, profile, objective);
+}
+function planPianoPhraseInternal(
+  input: readonly PianoPhraseNote[],
+  profile: PianoPhraseProfile,
+  objective?: PianoRankingObjective,
+): PianoPhrasePlan {
   validateProfile(profile);
   if (input.length > 8000)
     return assemblePianoPhrase(
@@ -1028,8 +1094,8 @@ export function planPianoPhrase(
     );
   validateNotes(input);
   const built = build(input),
-    right = planHand("right", input, built, profile),
-    left = planHand("left", input, built, profile),
+    right = planHand("right", input, built, profile, objective),
+    left = planHand("left", input, built, profile, objective),
     hands = { right, left };
   return assemblePianoPhrase(
     hands,

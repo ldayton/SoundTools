@@ -86,3 +86,16 @@ Fresh source groups are still required before changing the production default.
 - https://static.uni-graz.at/fileadmin/_Persoenliche_Webseite/parncutt_richard/Pdfs/PaSlClRaDe97_FingeringModel.pdf
 - https://github.com/dvdrndlph/pydactyl
 - https://github.com/marcomusy/pianoplayer
+
+## Validation evidence
+
+The full registered 224-case piano corpus passed, including the increased
+experimental arpeggio floor; the shared music suite passed 653 tests. The
+extended renderer witness passed WebKit, with Chromium also required in CI.
+
+The first full CI run on `f2b8f7b3` failed the SongAlong/Notewise TypeScript builds:
+the fallback clock object omitted the new optional field, yielding a union
+without that property. Initialize the pending flag explicitly in new clocks.
+First failure evidence remains in
+`work/ci-results/1795677717771-38045947`; this was a compile-time product defect,
+not an unexplained passing retry. Full CI must pass again after the correction.

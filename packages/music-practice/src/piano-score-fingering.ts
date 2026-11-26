@@ -77,7 +77,11 @@ export function collectPianoScore(
         hand = hands.get(staffIndex)!;
       for (const [vi, voice] of (staff.voices || []).entries()) {
         const key = `${staffIndex}:${vi}`,
-          clock = clocks.get(key) ?? { at: 0, previous: new Map() };
+          clock = clocks.get(key) ?? {
+            at: 0,
+            phraseStart: false,
+            previous: new Map(),
+          };
         clocks.set(key, clock);
         for (const item of voice) {
           if (

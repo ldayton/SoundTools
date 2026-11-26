@@ -706,3 +706,11 @@ The coordinator could not write `local.json` after exhausting storage. This is
 an infrastructure failure, not a passing or complete run. Cleared reproducible
 node_modules installations from five old worktrees, preserving source and audio
 comparison artifacts. Rerun the standard full applicable CI on the final commit.
+
+The next full run (`04fd4f53`, `work/ci-results/1795687683861-03211656/`)
+reached the 60-second budget and cancelled the DoReGo desktop and SongAlong
+guitar commands without a preceding assertion failure. Separated the new
+voice-feedback scenario into a required CI/Nightly lane on port 4709. It tests
+real-WASM input/render/lifecycle outcomes, not hardware latency or measured PCM,
+so it needs no exclusive realtime-audio lock. Existing desktop/drone coverage
+stays in its original lane; no assertions were removed.

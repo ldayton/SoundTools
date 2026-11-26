@@ -2260,5 +2260,25 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/voice-feedback.e2e.ts": {
+    "kind": "ui",
+    "ports": [
+      4709
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/voice-feedback.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
   }
 }

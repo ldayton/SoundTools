@@ -1,4 +1,3 @@
-import { verifyVoiceFeedback } from './voice-feedback.browser';
 import { verifyLiveDrone } from './live-drone';
 import {
   waitForServer,
@@ -476,7 +475,6 @@ try {
   await mkdir('work', { recursive: true });
   await page.screenshot({ path: `work/desktop-${browserName}.png` });
   await verifyLiveDrone(browser!, base);
-  await verifyVoiceFeedback(browser!, base);
 } catch (error) {
   await captureFailure(browser, error);
   await mkdir('work', { recursive: true });

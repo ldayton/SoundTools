@@ -72,8 +72,8 @@ This is pitch feedback, not an assessment of vocal technique. Physical-phone
 latency and speaker bleed still require device listening checks.
 
 Regression ownership: `tests/voice-ribbon.test.ts` covers confidence, continuity,
-fractional pitches and glide targets. `tests/voice-feedback.browser.ts` runs inside
-the existing required desktop browser lane with real WASM and generated input,
+fractional pitches and glide targets. `tests/voice-feedback.browser.ts` has a dedicated required
+CI/Nightly browser lane with real WASM and generated input,
 covering opt-in, rendering, capture release and permission errors.
 
 ## Maqam scale prototype

@@ -16,7 +16,7 @@ import type { BeginnerInstrument } from "./beginner-score";
 import { bluesPianoAbc, bluesLandmarks } from "./fingerstyle-blues";
 import { hymnLyricsAbc } from "./hymn-lyrics";
 import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
-import { jesusEdition, jesusFingers, jesusPosition } from "./jesus-loves-me";
+import { jesusEdition, jesusFingers, jesusPosition, jesusInstrumentAbc } from "./jesus-loves-me";
 import {
   faithfulEdition,
   faithfulFingers,
@@ -212,7 +212,7 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     guitarKey: jesusEdition.guitarKey,
     fingers: jesusFingers,
     position: jesusPosition,
-    build: buildFrom(jesusEdition),
+    build: ({melody, instrument, hands}) => jesusInstrumentAbc(melody(), instrument, instrument === "guitar" ? hands : "both"),
   },
   "o-come-all-ye-faithful": {
     original: true, vocal: true,

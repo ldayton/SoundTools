@@ -145,7 +145,8 @@ try {
         await expect(page.locator(".tab-rhythm-dot").first()).toBeVisible();
         assert(await page.locator(".tab-rhythm-half").count());
         assert(await page.locator(".tab-rhythm-dot").count());
-        await expect(page.locator(".tab-rhythm-continuation")).toHaveCount(0);
+        // Nineteen split bass beats sustain under offbeat Travis fills.
+        await expect(page.locator(".tab-rhythm-continuation")).toHaveCount(19);
 
         await expect(page.locator(".tab-rhythm-time")).toHaveText(["4", "4"]);
         assert(
@@ -299,7 +300,9 @@ try {
       if(width===1440||width===390)for(const stanza of [4]){
         await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=wait&hands=right&view=right&stanzas=${stanza}&capo=3`);
         await waitForApp(page,".hymn-pause");
-        await expect(page.locator(".hymn-count")).toHaveText(`1 / 51`);
+        // Mobile is playback-only, so it includes the new offbeat guitar onsets.
+        // Desktop wait mode still grades only the selected melody hand.
+        await expect(page.locator(".hymn-count")).toHaveText(arrangement === "guitar-edition" && width < 768 ? "1 / 82" : "1 / 51");
       }
     }
     await checkVocalEdition(page,server.base,"jesus-loves-me");

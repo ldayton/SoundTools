@@ -61,35 +61,24 @@ const chords: Record<string, number[]> = {
   IV: [44, 48, 51],
   V7: [50, 53, 56],
 };
-const bass: [number, number[], number][] = [
-  [0, [48], 3],
-  [3, [41, 47], 1],
-  [4, [48], 4],
-  [8, [53], 4],
-  [12, [53], 1],
-  [13, [48], 3],
-  [16, [48], 3],
-  [19, [41, 47], 1],
-  [20, [48], 4],
-  [24, [53], 2],
-  [26, [48], 1],
-  [27, [43], 1],
-  [28, [48], 1],
-  [29, [41, 47], 1],
-  [30, [43], 2],
-  [32, [48], 4],
-  [36, [53], 4],
-  [40, [48], 3],
-  [43, [43], 1],
-  [44, [48], 1],
-  [45, [41, 47], 3],
-  [48, [48], 4],
-  [52, [53], 4],
-  [56, [48], 1],
-  [57, [43], 1],
-  [58, [48], 1.5],
-  [59.5, [41, 47], 0.5],
-  [60, [43], 4],
+// Authored musical expectations: [beat within measure, sounding shape pitch, beats].
+const travisBars: [number, number, number][][] = [
+ [[0,48,1],[.5,52,.5],[1,43,1],[2,48,1],[3,47,1]],
+ [[0,48,1],[1,43,1],[2,48,1],[2.5,52,.5],[3,43,1]],
+ [[0,53,1],[1,48,1],[2,53,1],[3,48,1]],
+ [[0,53,1],[1,43,1],[2,48,1],[2.5,52,.5],[3,43,1]],
+ [[0,48,1],[.5,52,.5],[1,43,1],[2,48,1],[3,47,1]],
+ [[0,48,1],[1,43,1],[2,48,1],[2.5,52,.5],[3,43,1]],
+ [[0,53,1],[1,48,1],[2,48,1],[2.5,52,.5],[3,43,1]],
+ [[0,48,1],[1,47,1],[3,43,1]],
+ [[0,48,1],[.5,52,.5],[1,43,1],[1.5,52,.5],[2,48,1],[3,43,1],[3.5,52,.5]],
+ [[0,53,1],[1,48,1],[1.5,53,.5],[2,53,1],[3,48,1],[3.5,53,.5]],
+ [[0,48,1],[.5,52,.5],[1,43,1],[1.5,52,.5],[2,48,1],[3,43,1]],
+ [[0,48,1],[1,47,1],[2,43,1],[3,47,1]],
+ [[0,48,1],[.5,52,.5],[1,43,1],[1.5,52,.5],[2,48,1],[3,43,1],[3.5,52,.5]],
+ [[0,53,1],[1,48,1],[1.5,53,.5],[2,53,1],[3,48,1],[3.5,53,.5]],
+ [[0,48,1],[.5,52,.5],[1,43,1],[2,48,1],[3,43,1]],
+ [[0,43,1]],
 ];
 test("Jesus Loves Me offers Piano, Guitar and Voice + Piano with separate display and practice settings", () => {
   assert.deepEqual(
@@ -151,11 +140,11 @@ test("piano harmony follows the reviewed tonic, subdominant and dominant rhythm 
       score.tracks[i],
     );
 });
-test("fingerstyle uses the reviewed bass changes, distinct strings and distinct available fingers throughout", () => {
+test("beginner Travis picking has the authored bass and fills, distinct strings and available fingers", () => {
   const score = read(arrangeHymn(hymn, "guitar-edition", 0).abc, 3);
   assert.deepEqual(
     score.tracks[1],
-    bass.flatMap(([s, ps, d]) => ps.map((p) => [p + 3, s, d])),
+    travisBars.flatMap((bar, i) => bar.map(([beat,pitch,duration]) => [pitch+3,i*4+beat,duration])),
   );
   const ns = score.tracks.flatMap((tr, voice) => tr.map((n) => ({ n, voice })));
   for (const t of new Set(ns.map(({ n }) => n[1]))) {

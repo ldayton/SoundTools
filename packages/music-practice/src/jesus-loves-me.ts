@@ -1,4 +1,4 @@
-import type { InstrumentHymn } from "./instrument-hymn";
+import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
 import type { BeginnerInstrument } from "./beginner-score";
 export const jesusEdition: InstrumentHymn = {
   title: "Jesus Loves Me",
@@ -86,6 +86,39 @@ export const jesusEdition: InstrumentHymn = {
     { bar: 8, label: "Refrain" },
   ],
 };
+/** Beginner alternating-thumb edition: first position, no sixteenth-note runs.
+ * Verse fills are sparse; the refrain adds offbeat chord tones beneath the melody.
+ * C/G uses ring on A3 and little finger on E3; small F/C uses ring A3/little D3.
+ * Principles: https://www.fender.com/articles/techniques/travis-picking-on-guitar
+ * and https://www.martymusic.com/beginner-fingerstyle-picking
+ */
+export const jesusTravisBass = [
+  "[C-]8 [CE]8 G,16 C16 B,16",
+  "C16 G,16 [C-]8 [CE]8 G,16",
+  "F16 C16 F16 C16",
+  "F16 G,16 [C-]8 [CE]8 G,16",
+  "[C-]8 [CE]8 G,16 C16 B,16",
+  "C16 G,16 [C-]8 [CE]8 G,16",
+  "F16 C16 [C-]8 [CE]8 G,16",
+  "C16 B,16 z16 G,16",
+  "[C-]8 [CE]8 [G,-]8 [G,E]8 C16 [G,-]8 [G,E]8",
+  "F16 [C-]8 [CF]8 F16 [C-]8 [CF]8",
+  "[C-]8 [CE]8 [G,-]8 [G,E]8 C16 G,16",
+  "C16 B,16 G,16 B,16",
+  "[C-]8 [CE]8 [G,-]8 [G,E]8 C16 [G,-]8 [G,E]8",
+  "F16 [C-]8 [CF]8 F16 [C-]8 [CF]8",
+  "[C-]8 [CE]8 G,16 C16 G,16",
+  "G,16 z48"
+] as const;
+export function jesusInstrumentAbc(source: string, instrument: BeginnerInstrument, part: "right" | "left" | "both" = "both") {
+  const abc = instrumentHymnAbc(source, jesusEdition, instrument, part);
+  if (instrument !== "guitar" || part !== "both") return abc;
+  let group = 0;
+  return abc.replace(/^\[V:S2\].*$/gm, () => {
+    const bars = jesusEdition.groups[group++];
+    return '[V:S2] !mp! ' + bars.map(bar => jesusTravisBass[bar] + (bar === 15 ? ' |]' : ' |')).join(' ');
+  });
+}
 export function jesusPosition(pitch: number, chord: boolean, transpose = 0) {
   const positions: Record<number, [number, number]> = {
     41: [5, 1],
@@ -113,16 +146,7 @@ export function jesusFingers(
   force = false,
 ): (number | null)[] {
   if (instrument === "guitar")
-    return pitches.map((actual) => {
-      const p = actual - 3;
-      return (
-        (
-          (voice === 1
-            ? { 41: 1, 43: 3, 47: 2, 48: 3, 53: 3 }
-            : { 48: 4, 52: 2, 57: 2, 60: 1 }) as Record<number, number>
-        )[p] ?? null
-      );
-    });
+    return pitches.map(actual => ({ 41: 1, 43: 4, 47: 2, 48: 3, 52: 2, 53: 4, 57: 2, 60: 1, 65: 1 } as Record<number, number>)[actual - 3] ?? null);
   if (voice === 1) return pitches.map((_, i) => [5, 3, 1][i] ?? null);
   const high = [2, 3, 9, 13].includes(bar),
     f: Record<number, number> = high

@@ -616,6 +616,42 @@ completed lanes passed. This remains budget evidence, not a passing run. A new
 required validation follows merging the independently committed export-bound
 fix from main; any passing result does not establish that this budget variance
 has been fixed. No coverage, resource lock, timeout or assertion was relaxed.
+
+
+## Source-guided layout review (26 November 2026)
+
+The first expanded edition checks found stale mobile instrument selectors after
+main's phone chooser change, not a music/layout failure. First evidence:
+`work/browser-results/amazing-grace-editions.browser.ts-chromium-2895f2e4` and
+`fairest-lord-jesus-editions.browser.ts-chromium-83e0aba6` (the latter includes the
+closed chooser in its accessibility snapshot). All affected edition assertions
+now open the chooser through the existing shared helper. Shared vocal/edition
+fixtures do the same and close it before score interaction. Instrument counts,
+voice state, music, clipping and fingering assertions remain in place.
+
+The first short-lyric property incorrectly compared with the *no-lyrics collision
+minimum*. Even a short syllable needs clearance at that minimum. Retained probe:
+`work/layout-audit/probe-underlay.mts`. The corrected contract compares natural
+spacing with at most one staff space of word/barline allowance; long lyrics must
+still increase minimum width, all underlays preserve audio, and sparse pointed
+Hebrew must pass independent geometry checks. This is a corrected test premise,
+not a retry or a relaxed product requirement.
+
+The expected piano/Hebrew visual differences are retained in
+`work/browser-results/score-layout-chromium-ZVthBH` and the final OS/browser
+candidate directories recorded in each changed reference's review provenance.
+Reviewed references retain the same pixel comparator and acceptance limits.
+
+The first complete edition groups retained additional failures at
+`work/ci-results/1795645739193-a564109c` (Chromium) and
+`1795645823757-b6daf8e3` (WebKit). Their first failing owners were fingerstyle,
+I'll Fly Away and In Christ Alone. Different line breaks exposed real shared
+adapter problems: abcjs's empty opening repeat token offset the printed final
+measure to 14 instead of 13; simultaneous notation voices could contribute
+identical TAB fermatas/position marks. The assertions remain unchanged. Generic
+wrapped-repeat and multi-voice TAB fixtures now reproduce the defects; fixes
+live in the shared score-markings/layout boundary and TAB presentation adapter.
+
 ## Local tempo-edit recurrence (25 November 2026)
 
 The guitar phrase-planner checkout reproduced the open DoReGo Chromium tempo
@@ -631,3 +667,33 @@ changes (`work/ci-results/1795642589532-b9f3889e` in that checkout). This is an
 unexplained passing rerun, not a tempo fix. Keep the desktop check required and
 investigate the owner/render update between input and keydown. No retry, delay,
 timeout increase or assertion relaxation was added.
+
+
+The merge with main consolidates its coincident-fermata guard (`0cffae8e`) with
+the shared destination-ink de-duplication used for TAB positions. Glyph width and
+height remain part of identity, preserving genuinely distinct symbols at one anchor.
+
+
+The first full CI on `157247f3` failed two existing signature contracts in
+`apps/songalong/tests/hymn-ottava.test.ts`; evidence:
+`work/ci-results/1795647091688-840dd567/logs/songalong_units.log`. The new inline
+state tracking also consumed key/clef events attached after a system's final note
+by abcjs, incorrectly suppressing a genuine boundary change at the next opening.
+Tracking now requires following music in that same system. Existing boundary
+assertions and new inline-change assertions are both retained unchanged.
+
+## Hebrew lyric release CI budget (26 November 2026)
+
+The first full local CI on `161213e5` exceeded the 60-second budget
+(62.18 seconds including cancellation/cleanup). Evidence:
+`SoundTools-jesus-hebrew-release/work/ci-results/1795680137532-545e769b`.
+The coordinator cancelled `songalong:ci:core:chromium:1` (guitar) at 30.4 seconds;
+its retained error reports the browser closing during an assertion, not an
+established assertion failure. Dependency installation took 7.49 seconds.
+
+One bounded diagnostic rerun of the same commit, with no source, test, coverage,
+timeout or runner changes, passed in 57.46 seconds. Evidence:
+`SoundTools-jesus-hebrew-release/work/ci-results/1795680225674-7b301fde`.
+The guitar command completed in 29.5 seconds. This demonstrates sensitivity to
+setup/execution timing near the budget, not a performance fix or proof of its
+cause. All checks remain required and the 60-second limit is unchanged.

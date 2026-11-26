@@ -1,3 +1,4 @@
+import {anchorScoreInk} from './score-layout/vertical';
 import { planGuitarPhrase, type GuitarPhraseNote, type GuitarFingeringProfile } from "./guitar-phrase-fingering";
 import type { AbsoluteElement, TuneObject, VoiceItem } from "abcjs";
 import { fingerstylePosition } from "./fingerstyle-tab";
@@ -192,6 +193,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
       mark.setAttribute('font-family','sans-serif');
       mark.setAttribute('font-weight','700');
       mark.setAttribute('fill','#164e63');
+      anchorScoreInk(mark,tabOnly?target:group);
       mark.dataset.instrument=instrument;mark.dataset.voice=String(voice);
       mark.dataset.pitch=String(original[index]);mark.dataset.finger=String(finger);
       if(instrument === 'guitar'){
@@ -213,6 +215,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
           if(tab) y=voice===0 ? tab.y-34 : tab.y+tab.height+38;
         }
         const mark=text(svg,box.x+box.width/2,y,letter,'beginner-picking',10);
+        anchorScoreInk(mark,tabOnly?target:group);
         mark.setAttribute('text-anchor','middle');
         mark.setAttribute('aria-label',`Picking hand: ${letter==='p'?'thumb':letter==='i'?'index':'middle'} finger`);
         if(voice===0 && count===0 && !tabOnly) {
@@ -226,7 +229,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
             ring.setAttribute('fill','white');ring.setAttribute('stroke','currentColor');ring.setAttribute('stroke-width','0.8');
             circle.append(ring);
             const number=text(circle,x,y+3,String(position.str+1),'beginner-string-number',9);
-            number.setAttribute('text-anchor','middle');number.setAttribute('stroke','none');svg.append(circle);
+            number.setAttribute('text-anchor','middle');number.setAttribute('stroke','none');anchorScoreInk(circle,group);svg.append(circle);
           }
         }
       }
@@ -249,7 +252,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     if(rhythms && voice===0 && !svg.querySelector('.tab-rhythm-meter') && svg===paper.querySelector('svg')) {
       const meter=document.createElementNS(ns,'g');meter.classList.add('tab-rhythm-meter');
       text(meter,box.x+38,top+23,String(tune.getMeterFraction().num),'tab-rhythm-time',16);
-      text(meter,box.x+38,top+43,String(tune.getMeterFraction().den),'tab-rhythm-time',16);svg.append(meter);
+      text(meter,box.x+38,top+43,String(tune.getMeterFraction().den),'tab-rhythm-time',16);anchorScoreInk(meter,staff);svg.append(meter);
     }
     const up=voice===0,lane=up ? top-25 : bottom+25;
     const tabSource=absolute?.cloned?.elemset?.[0] as SVGGraphicsElement|undefined;
@@ -264,7 +267,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
         const matrix=root.inverse().multiply(transform);
         const dy=lane-3-(sourceBox.y+sourceBox.height/2);
         rest.setAttribute('transform',`matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f+dy})`);
-        rest.classList.add('tab-rhythm-rest');svg.append(rest);
+        rest.classList.add('tab-rhythm-rest');anchorScoreInk(rest,staff);svg.append(rest);
       }
       continue;
     }
@@ -277,7 +280,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
     const base = dotted ? duration/1.5 : duration;
     const rhythm=document.createElementNS(ns,'g');rhythm.classList.add('tab-rhythm');
     rhythm.dataset.duration=String(duration);rhythm.dataset.voice=String(voice);
-    svg.append(rhythm);
+    anchorScoreInk(rhythm,staff);svg.append(rhythm);
     if(rhythms && duration < 1) {
       line(rhythm,x,anchor,x,lane,'tab-rhythm-stem');
       if(base===0.5) line(rhythm,x+3,anchor,x+3,lane,'tab-rhythm-half');
@@ -328,7 +331,7 @@ export function drawRhythmicTab(tune:TuneObject,paper:HTMLElement,from:number,tr
           continuation.setAttribute('paint-order', 'stroke');
           continuation.setAttribute('stroke', 'white');
           continuation.setAttribute('stroke-width', '3');
-          svg.append(continuation);
+          anchorScoreInk(continuation,staff);svg.append(continuation);
         }
         const previous=ties.get(key);
         const path=document.createElementNS(ns,'path');

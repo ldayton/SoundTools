@@ -1,3 +1,5 @@
+import {planScoreFlow,type ScoreFlowBlock} from './score-layout/flow';
+import {scoreFlowBlock} from './score-layout/vertical';
 /** Full-score export shares engraving with the interactive score. */
 export type ScoreExportSource = {
   title:string;
@@ -9,16 +11,21 @@ export const scorePapers = {
   desktop:{width:210/25.4*96,height:297/25.4*96,margin:36},
   mobile:{width:390,height:844,margin:16},
 } as const;
-export type ExportBlock={svg:SVGSVGElement;width:number;height:number};
-export function paginateScore(blocks:readonly {width:number;height:number}[],paper:ScorePaper) {
+export type ExportBlock=ScoreFlowBlock & {svg:SVGSVGElement};
+export function paginateScore(blocks:readonly ScoreFlowBlock[],paper:ScorePaper) {
   const {width,height,margin}=scorePapers[paper],inner=width-2*margin,available=height-2*margin;
-  const pages:{index:number;width:number;height:number}[][]=[[]];let used=0;
+  const pages:{index:number;width:number;height:number;y:number}[][]=[[]];
+  let geometry:ScoreFlowBlock[]=[];
   blocks.forEach((block,index)=>{
     if(![block.width,block.height].every(n=>Number.isFinite(n)&&n>0))throw Error('Invalid score export geometry');
     const scale=Math.min(1,inner/block.width,available/block.height);
-    const placed={index,width:block.width*scale,height:block.height*scale};
-    if(used+placed.height>available&&pages.at(-1)!.length){pages.push([]);used=0;}
-    pages.at(-1)!.push(placed);used+=placed.height+12;
+    const sized={width:block.width*scale,height:block.height*scale,
+      clearance:block.clearance===undefined?undefined:block.clearance*scale,
+      ink:block.ink?.map(b=>({...b,left:b.left*scale,right:b.right*scale,top:b.top*scale,bottom:b.bottom*scale}))};
+    let plan=planScoreFlow([...geometry,sized]);
+    if(plan.height>available&&geometry.length){pages.push([]);geometry=[];plan=planScoreFlow([sized]);}
+    geometry.push(sized);
+    pages.at(-1)!.push({index,width:sized.width,height:sized.height,y:plan.positions.at(-1)!});
   });
   return pages;
 }
@@ -88,11 +95,11 @@ export async function prepareScoreExport(source:ScoreExportSource,paper:ScorePap
         if(!copy)return;
         for(const name of ['font-family','font-size','font-weight','font-style','fill','stroke','stroke-width','direction','unicode-bidi','text-anchor','visibility','display'])copy.style.setProperty(name,style.getPropertyValue(name));
       });
-      svg.querySelectorAll('.score-playhead,.passage-overlay,.passage-handle').forEach(n=>n.remove());
+      svg.querySelectorAll('.score-playhead,.passage-overlay,.passage-handle,.score-skyline-debug').forEach(n=>n.remove());
       const rect=original.getBoundingClientRect();
       svg.removeAttribute('style');svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
       svg.setAttribute('width',String(rect.width));svg.setAttribute('height',String(rect.height));
-      blocks.push({svg,width:rect.width,height:rect.height});
+      blocks.push({...scoreFlowBlock(original),svg,width:rect.width,height:rect.height});
     }
     if(blocks.length===1)throw Error('Select score content to export.');
     return {title:source.title,blocks,pages:paginateScore(blocks,paper),paper};
@@ -104,18 +111,19 @@ export async function scorePdf(prepared:PreparedScoreExport):Promise<File> {
   const doc=await PDFDocument.create();doc.setTitle(prepared.title);doc.setCreator('SongAlong');
   const sheet=scorePapers[prepared.paper],factor=.75;
   for(const placements of prepared.pages) {
-    const page=doc.addPage([sheet.width*factor,sheet.height*factor]);let y=sheet.margin;
+    const page=doc.addPage([sheet.width*factor,sheet.height*factor]);
     for(const placement of placements) {
       const block=prepared.blocks[placement.index];
       // Browser rasterization preserves Hebrew shaping/niqqud exactly. Capture
       // at 4 CSS pixels per unit (384 dpi), with no page-wide canvas allocation.
       const canvas=document.createElement('canvas');canvas.width=Math.ceil(placement.width*4);canvas.height=Math.ceil(placement.height*4);
-      const ctx=canvas.getContext('2d')!;ctx.fillStyle='white';ctx.fillRect(0,0,canvas.width,canvas.height);
+      // Transparent blocks can interlock without painting over prior ink.
+      const ctx=canvas.getContext('2d')!;
       const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(block.svg)],{type:'image/svg+xml'}));
       try {const image=new Image();image.src=url;await image.decode();ctx.drawImage(image,0,0,canvas.width,canvas.height);}finally{URL.revokeObjectURL(url);}
       const image=await doc.embedPng(canvas.toDataURL('image/png'));
-      page.drawImage(image,{x:sheet.margin*factor,y:(sheet.height-y-placement.height)*factor,width:placement.width*factor,height:placement.height*factor});
-      y+=placement.height+12;canvas.width=0;canvas.height=0;
+      page.drawImage(image,{x:sheet.margin*factor,y:(sheet.height-sheet.margin-placement.y-placement.height)*factor,width:placement.width*factor,height:placement.height*factor});
+      canvas.width=0;canvas.height=0;
     }
   }
   const bytes=await doc.save();
@@ -124,9 +132,9 @@ export async function scorePdf(prepared:PreparedScoreExport):Promise<File> {
 export function printScore(prepared:PreparedScoreExport,target:Window) {
   const sheet=scorePapers[prepared.paper],doc=target.document;
   doc.title=prepared.title;doc.body.replaceChildren();
-  const style=doc.createElement('style');style.textContent=`@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;background:white;color:black}section{width:${sheet.width}px;height:${sheet.height}px;padding:${sheet.margin}px;break-after:page}section:last-child{break-after:auto}svg{display:block;margin-bottom:12px;max-width:none} @media screen{section{margin:auto;box-shadow:0 0 2px #888}}`;
+  const style=doc.createElement('style');style.textContent=`@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;background:white;color:black}section{width:${sheet.width}px;height:${sheet.height}px;position:relative;break-after:page}section:last-child{break-after:auto}svg{display:block;position:absolute;max-width:none} @media screen{section{margin:auto;box-shadow:0 0 2px #888}}`;
   doc.head.append(style);
-  for(const placements of prepared.pages){const page=doc.createElement('section');for(const placed of placements){const svg=doc.importNode(prepared.blocks[placed.index].svg,true);svg.setAttribute('width',String(placed.width));svg.setAttribute('height',String(placed.height));page.append(svg);}doc.body.append(page);}
+  for(const placements of prepared.pages){const page=doc.createElement('section');for(const placed of placements){const svg=doc.importNode(prepared.blocks[placed.index].svg,true);svg.setAttribute('width',String(placed.width));svg.setAttribute('height',String(placed.height));svg.style.left=`${sheet.margin}px`;svg.style.top=`${sheet.margin+placed.y}px`;page.append(svg);}doc.body.append(page);}
   target.focus();target.print();
 }
 export async function saveScorePdf(file:File) {

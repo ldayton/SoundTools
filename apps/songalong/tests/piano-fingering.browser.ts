@@ -177,6 +177,19 @@ try {
     { midi: 72, finger: 1 },
   ]);
   await expect(page.locator(".hymn-fingering")).toHaveCount(3);
+  const anchored = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoFingeringFixture("multiple", true),
+  );
+  assert.ok(anchored.unchanged);
+  assert.ok(
+    anchored.layout.some((r) => r.status === "placed"),
+    JSON.stringify(anchored.layout),
+  );
+  assert.ok(anchored.alignment.length > 0);
+  assert.ok(
+    anchored.alignment.every((p) => Math.abs(p.before - p.after) < 0.1),
+    JSON.stringify(anchored.alignment),
+  );
   assert.deepEqual(errors, []);
   console.log(
     "PASS: generated piano fingers preserve music and withhold unsupported whole-hand suggestions",

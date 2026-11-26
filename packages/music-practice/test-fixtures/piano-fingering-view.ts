@@ -1,5 +1,7 @@
 import abcjs from "abcjs";
 import { drawHymnFingerings } from "../src/hymn-fingering";
+import { collectPianoScore } from "../src/piano-score-fingering";
+import { placeScoreStaves } from "../src/score-layout/vertical";
 export function renderPianoFingeringFixture(
   kind:
     | "single"
@@ -9,6 +11,7 @@ export function renderPianoFingeringFixture(
     | "unsupported"
     | "tied"
     | "long",
+  finalize = false,
 ) {
   document.body.innerHTML = '<div id="piano-fingering-fixture"></div>';
   const voices =
@@ -66,7 +69,34 @@ export function renderPianoFingeringFixture(
     );
   const before = signature();
   const plan = drawHymnFingerings(tune);
+  const entries = new Map(
+    collectPianoScore(tune).entries.map((e) => [e.id, e]),
+  );
+  const pairs = finalize
+    ? [...document.querySelectorAll<SVGGraphicsElement>(".hymn-fingering")].map(
+        (mark) => {
+          const e = entries.get(mark.dataset.noteId!)!;
+          const group = e.absolute!.elemset.find((n) =>
+            n.classList.contains("abcjs-note"),
+          )!;
+          const head =
+            group.querySelectorAll<SVGGraphicsElement>(".abcjs-notehead")[
+              e.pitchIndex
+            ];
+          const gap = () =>
+            mark.getBoundingClientRect().top - head.getBoundingClientRect().top;
+          return { gap, before: gap() };
+        },
+      )
+    : [];
+  const layout = finalize
+    ? [...document.querySelectorAll<SVGSVGElement>("svg")].map((svg) =>
+        placeScoreStaves(svg, tune),
+      )
+    : [];
   return {
+    layout,
+    alignment: pairs.map((p) => ({ before: p.before, after: p.gap() })),
     status: plan.status,
     unchanged: before === signature(),
     soundingNotes: audio.tracks.flatMap((t) =>

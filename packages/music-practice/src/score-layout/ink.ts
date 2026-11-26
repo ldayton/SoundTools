@@ -1,3 +1,4 @@
+import {anchorScoreInk} from './vertical';
 const ns = 'http://www.w3.org/2000/svg';
 let maskId = 0;
 
@@ -19,6 +20,7 @@ export function normalizeScoreInk(svg: SVGSVGElement) {
         layer.classList.add('score-ledger-layer');
         wrapper.prepend(layer);
       }
+      anchorScoreInk(ledger,ledger.parentElement!);
       ledger.setAttribute('transform', `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`);
       layer.append(ledger);
     }

@@ -55,6 +55,7 @@ try {
   assert.match(file.name,new RegExp(`-${size.toLowerCase()}\\.pdf$`));const bytes=Uint8Array.from(file.bytes as number[]);
   assert.equal(new TextDecoder().decode(bytes.slice(0,5)),'%PDF-');const pdf=await PDFDocument.load(bytes);
   if(size==='Mobile')originalMobileImages=imageHashes(pdf);
+  assert(pdf.context.enumerateIndirectObjects().some(([,object])=>object instanceof PDFRawStream&&object.dict.get(PDFName.of('SMask'))),'PDF blocks retain alpha masks so interlocking systems cannot erase earlier ink');
   assert(pdf.getPageCount()>0);const width=pdf.getPage(0).getWidth();assert(size==='Mobile'?width<300:Math.abs(width-595.28)<1);
   await writeFile(`${output}/${size.toLowerCase()}.pdf`,bytes);
  }

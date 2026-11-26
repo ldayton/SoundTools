@@ -142,3 +142,13 @@ Ignored build outputs were removed from this worktree, and official
 `npm cache verify` garbage-collected 635 MB of unreferenced content without
 removing indexed packages or source files. The complete CI suite is rerun after
 that disk-space recovery, rather than treating completed lanes as sufficient.
+
+## Publication integration
+
+Before publication, current main's skyline layout and compact lyric changes were
+merged. Generated piano annotations retain `anchorScoreInk` ownership and are
+emitted once before layout finalization; full-source hidden-voice planning remains
+intact. Substitution annotations also retain staff ownership. A new assertion in
+the existing piano browser witness requires real stave movement while every digit
+keeps its relative notehead position; Chromium and WebKit pass. The current main
+piano baseline source remains identical to the pinned comparison fixture.

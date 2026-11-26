@@ -161,20 +161,27 @@ export function showOnlyTab(paper: HTMLElement,lyricPadding=58) {
       chord.setAttribute('transform',`translate(0 ${tabBox.y-48-ink.y})`);
       svg.append(chord);
     }
+    // One TAB symbol represents a shared event across notation voices.
+    // abcjs can emit the same annotation in both voices at a system boundary.
+    svg.querySelectorAll('.guitar-position,.guitar-fermata').forEach(node=>node.remove());
+    const projected=new Set<string>();
+    const duplicate=(source:SVGGraphicsElement,kind:string)=>{
+      const ink=source.getBBox(),text=source.textContent||source.getAttribute('data-name')||'';
+      // Match destination ink, including size: a genuinely different glyph
+      // at the same anchor must not disappear. Millipixels ignore rounding.
+      const key=kind+':'+text+':'+[ink.x,ink.width,ink.height].map(n=>Math.round(n*1000)).join(':');
+      if(projected.has(key))return true;
+      projected.add(key);return false;
+    };
     for(const position of svg.querySelectorAll<SVGGraphicsElement>('.abcjs-annotation')) {
-      if(!isGuitarPositionMark(position.textContent||''))continue;
+      if(!isGuitarPositionMark(position.textContent||'')||duplicate(position,'position'))continue;
       const copy=position.cloneNode(true) as SVGGraphicsElement,ink=position.getBBox();
       copy.classList.add('guitar-position');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-76-ink.y})`);svg.append(copy);
     }
-    const fermatas=new Set<string>();
     for(const source of svg.querySelectorAll<SVGGraphicsElement>('[data-name="scripts.ufermata"]')){
-      const ink=source.getBBox();
-      // Both source voices may carry one shared fermata. They collapse onto
-      // the same tab staff, so identical destination ink needs only one copy.
-      const key=[ink.x,ink.width,ink.height].map(n=>Math.round(n*1000)).join(':');
-      if(fermatas.has(key))continue;fermatas.add(key);
-      const copy=source.cloneNode(true) as SVGGraphicsElement;
+      if(duplicate(source,'fermata'))continue;
+      const copy=source.cloneNode(true) as SVGGraphicsElement,ink=source.getBBox();
       copy.classList.add('guitar-fermata');copy.style.visibility='visible';
       copy.setAttribute('transform',`translate(0 ${tabBox.y-14-ink.y-ink.height})`);svg.append(copy);
     }

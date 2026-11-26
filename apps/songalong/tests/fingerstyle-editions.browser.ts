@@ -1,5 +1,5 @@
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
-import { selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
+import { openHymnInstrumentChoices, selectHymnInstrument } from '../../../packages/music-practice/browser-tests/helpers';
 import assert from 'node:assert/strict';
 import { expect } from '@playwright/test';
 import { launchBrowser, newPage, captureFailure, closeBrowser } from '../../../scripts/ci/browser-harness.cjs';
@@ -52,6 +52,7 @@ try {
   await openPracticeOptions(page);
   await expect(page.getByRole('table', { name: 'Playback staves' }).getByRole('columnheader')).toHaveText(['Staff', 'Show', 'Play']);
   await expect(page.locator('.hymn-instrument-picker, .hymn-toolbar-instruments [role="radio"][aria-checked="true"]')).toHaveAttribute('data-instrument', 'guitar');
+  await openHymnInstrumentChoices(page);
   await expect(page.getByRole('radiogroup', { name: 'Instrument', exact: true }).getByRole('radio')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Voice', exact: true })).toBeDisabled();
   assert.equal(await page.getByRole('group',{name:'Instruments and voice',exact:true}).locator('svg').count(),3);

@@ -1,8 +1,9 @@
+import {anchorScoreInk} from './score-layout/vertical';
 import type { AbsoluteElement, TuneObject } from "abcjs";
 
 type Lyric = { syllable: string; divider?: string; hymnRow?: number };
 type Anchor = { span: SVGGraphicsElement; text: string; hyphen: boolean };
-type Segment = { svg: SVGSVGElement; x1: number; x2: number; y: number; anchor: Anchor; row: number };
+type Segment = { svg: SVGSVGElement; x1: number; x2: number; y: number; anchor: Anchor; row: number; owner:SVGGraphicsElement };
 const namespace = "http://www.w3.org/2000/svg";
 
 /** Convert glyph bounds into the owning SVG's coordinates, including staff zoom. */
@@ -21,7 +22,7 @@ function bounds(span: SVGGraphicsElement) {
 /** Capture lyric identity before tab/chord views move the SVG text nodes.
  * Paint after those transforms, so extenders follow the same visible rows. */
 export function prepareHymnMelismas(tune: TuneObject) {
-  const entries: ({span: SVGGraphicsElement; lyric: Lyric; index: number} | null)[] = [];
+  const entries: ({span: SVGGraphicsElement; lyric: Lyric; index: number; owner:SVGGraphicsElement} | null)[] = [];
   for (const line of tune.lines) {
     for (const item of line.staff?.[0]?.voices?.[0] || []) {
       if (item.el_type !== "note") continue;
@@ -31,7 +32,7 @@ export function prepareHymnMelismas(tune: TuneObject) {
       const spans = group?.querySelector(".abcjs-lyric")?.querySelectorAll<SVGGraphicsElement>("tspan");
       if (!spans) continue;
       (item.lyric as Lyric[] | undefined)?.forEach((lyric, index) => {
-        if (spans[index]) entries.push({span: spans[index], lyric, index});
+        if (spans[index]) entries.push({span: spans[index], lyric, index, owner:group!});
       });
     }
   }
@@ -39,7 +40,7 @@ export function prepareHymnMelismas(tune: TuneObject) {
     const anchors = new Map<number, Anchor>(), segments: Segment[] = [];
     for (const entry of entries) {
       if (!entry) { anchors.clear(); continue; }
-      const {span, lyric, index} = entry;
+      const {span, lyric, index, owner} = entry;
       const syllable = lyric.syllable.replace(/\u2002/g, "").trim();
       const row = lyric.hymnRow ?? index;
       if (syllable !== "_") {
@@ -61,7 +62,7 @@ export function prepareHymnMelismas(tune: TuneObject) {
         x1: continuing ? (end.left + end.right) / 2 - 6 : start.right + 3,
         x2,
         y: anchor.hyphen ? (reference.top + reference.bottom) / 2 : reference.bottom + 1,
-        anchor, row,
+        anchor, row, owner,
       });
     }
     for (const segment of segments) {
@@ -80,7 +81,7 @@ export function prepareHymnMelismas(tune: TuneObject) {
         ink.setAttribute("fill", "currentColor");
         group.append(ink);
       }
-      segment.svg.append(group);
+      anchorScoreInk(group,segment.owner);segment.svg.append(group);
     }
   };
 }

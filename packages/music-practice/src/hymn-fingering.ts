@@ -1,8 +1,10 @@
+import { anchorScoreInk } from "./score-layout/vertical";
 import type { TuneObject } from "abcjs";
 import {
   planPianoScore,
   type PianoScoreOptions,
 } from "./piano-score-fingering";
+
 const ns = "http://www.w3.org/2000/svg";
 /** Whole-hand generated annotations. Editorial edition rendering is separate. */
 export function drawHymnFingerings(
@@ -83,7 +85,7 @@ export function drawHymnFingerings(
             height: list[0].svg.height.baseVal.value,
           },
       overflow = Math.max(0, list.at(-1)!.y - (view.y + view.height - 8));
-    for (const { entry, finger, svg, x, y } of list) {
+    for (const { entry, finger, head, svg, x, y } of list) {
       const mark = document.createElementNS(ns, "g");
       mark.classList.add("hymn-fingering");
       if (finger.shift) mark.classList.add("hymn-finger-shift");
@@ -145,6 +147,7 @@ export function drawHymnFingerings(
       }
       text.textContent = String(finger.finger);
       mark.append(text);
+      anchorScoreInk(mark, head);
       svg.append(mark);
     }
   }
@@ -177,6 +180,7 @@ export function drawHymnFingerings(
           `${hand === "right" ? "RH" : "LH"}: at beat ${event.at + 1}, substitute finger ${event.from} with ${event.to}`,
         );
         mark.textContent = `${event.from}→${event.to}`;
+        anchorScoreInk(mark, group);
         svg.append(mark);
       }
   return plan;

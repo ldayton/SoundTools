@@ -71,14 +71,14 @@ const travisBars: [number, number, number][][] = [
  [[0,48,1],[1,43,1],[2,48,1],[2.5,52,.5],[3,43,1]],
  [[0,53,1],[1,48,1],[2,48,1],[2.5,52,.5],[3,43,1]],
  [[0,48,1],[1,47,1],[3,43,1]],
- [[0,48,1],[.5,52,.5],[1,43,1],[1.5,52,.5],[2,48,1],[3,43,1],[3.5,52,.5]],
- [[0,53,1],[1,48,1],[1.5,53,.5],[2,53,1],[3,48,1],[3.5,53,.5]],
+ [[0,48,1],[.5,52,.5],[1,43,1],[2,48,1],[3,43,1],[3.5,52,.5]],
+ [[0,53,1],[1,48,1],[1.5,57,.5],[2,53,1],[3,48,1],[3.5,57,.5]],
  [[0,48,1],[.5,52,.5],[1,43,1],[1.5,52,.5],[2,48,1],[3,43,1]],
  [[0,48,1],[1,47,1],[2,43,1],[3,47,1]],
- [[0,48,1],[.5,52,.5],[1,43,1],[1.5,52,.5],[2,48,1],[3,43,1],[3.5,52,.5]],
- [[0,53,1],[1,48,1],[1.5,53,.5],[2,53,1],[3,48,1],[3.5,53,.5]],
+ [[0,48,1],[.5,52,.5],[1,43,1],[2,48,1],[3,43,1],[3.5,52,.5]],
+ [[0,53,1],[1,48,1],[1.5,57,.5],[2,53,1],[3,48,1],[3.5,53,.5]],
  [[0,48,1],[.5,52,.5],[1,43,1],[2,48,1],[3,43,1]],
- [[0,43,1]],
+ [[0,52,1],[0,55,1]],
 ];
 test("Jesus Loves Me offers Piano, Guitar and Voice + Piano with separate display and practice settings", () => {
   assert.deepEqual(
@@ -146,6 +146,10 @@ test("beginner Travis picking has the authored bass and fills, distinct strings 
     score.tracks[1],
     travisBars.flatMap((bar, i) => bar.map(([beat,pitch,duration]) => [pitch+3,i*4+beat,duration])),
   );
+  const ending = score.audio.tracks.map(track => track.flatMap(n => n.cmd === "note" && n.start === 15 ? [n.volume] : []));
+  assert.equal(ending[0].length, 1);
+  assert.equal(ending[1].length, 2);
+  assert(ending[1].every(volume => volume < ending[0][0]), "Final chord stays quieter than the melody tonic");
   const ns = score.tracks.flatMap((tr, voice) => tr.map((n) => ({ n, voice })));
   for (const t of new Set(ns.map(({ n }) => n[1]))) {
     const sounding = ns.filter(({ n: [, s, d] }) => s <= t && s + d > t + 1e-7),

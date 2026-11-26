@@ -88,6 +88,7 @@ export const jesusEdition: InstrumentHymn = {
 };
 /** Beginner alternating-thumb edition: first position, no sixteenth-note runs.
  * Verse fills are sparse; the refrain adds offbeat chord tones beneath the melody.
+ * Refrain fills leave the next melody attack clear; a quiet tonic pinch closes.
  * C/G uses ring on A3 and little finger on E3; small F/C uses ring A3/little D3.
  * Principles: https://www.fender.com/articles/techniques/travis-picking-on-guitar
  * and https://www.martymusic.com/beginner-fingerstyle-picking
@@ -101,14 +102,14 @@ export const jesusTravisBass = [
   "C16 G,16 [C-]8 [CE]8 G,16",
   "F16 C16 [C-]8 [CE]8 G,16",
   "C16 B,16 z16 G,16",
-  "[C-]8 [CE]8 [G,-]8 [G,E]8 C16 [G,-]8 [G,E]8",
-  "F16 [C-]8 [CF]8 F16 [C-]8 [CF]8",
+  "[C-]8 [CE]8 G,16 C16 [G,-]8 [G,E]8",
+  "F16 [C-]8 [CA]8 F16 [C-]8 [CA]8",
   "[C-]8 [CE]8 [G,-]8 [G,E]8 C16 G,16",
   "C16 B,16 G,16 B,16",
-  "[C-]8 [CE]8 [G,-]8 [G,E]8 C16 [G,-]8 [G,E]8",
-  "F16 [C-]8 [CF]8 F16 [C-]8 [CF]8",
+  "[C-]8 [CE]8 G,16 C16 [G,-]8 [G,E]8",
+  "F16 [C-]8 [CA]8 F16 [C-]8 [CF]8",
   "[C-]8 [CE]8 G,16 C16 G,16",
-  "G,16 z48"
+  "!pp! [EG]16 z48"
 ] as const;
 export function jesusInstrumentAbc(source: string, instrument: BeginnerInstrument, part: "right" | "left" | "both" = "both") {
   const abc = instrumentHymnAbc(source, jesusEdition, instrument, part);

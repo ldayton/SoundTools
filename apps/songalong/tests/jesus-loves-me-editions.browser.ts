@@ -145,8 +145,8 @@ try {
         await expect(page.locator(".tab-rhythm-dot").first()).toBeVisible();
         assert(await page.locator(".tab-rhythm-half").count());
         assert(await page.locator(".tab-rhythm-dot").count());
-        // Nineteen split bass beats sustain under offbeat Travis fills.
-        await expect(page.locator(".tab-rhythm-continuation")).toHaveCount(19);
+        // Seventeen split bass beats sustain under offbeat Travis fills.
+        await expect(page.locator(".tab-rhythm-continuation")).toHaveCount(17);
 
         await expect(page.locator(".tab-rhythm-time")).toHaveText(["4", "4"]);
         assert(
@@ -302,7 +302,7 @@ try {
         await waitForApp(page,".hymn-pause");
         // Mobile is playback-only, so it includes the new offbeat guitar onsets.
         // Desktop wait mode still grades only the selected melody hand.
-        await expect(page.locator(".hymn-count")).toHaveText(arrangement === "guitar-edition" && width < 768 ? "1 / 82" : "1 / 51");
+        await expect(page.locator(".hymn-count")).toHaveText(arrangement === "guitar-edition" && width < 768 ? "1 / 80" : "1 / 51");
       }
     }
     await checkVocalEdition(page,server.base,"jesus-loves-me");

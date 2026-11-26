@@ -1,0 +1,107 @@
+{
+  "study": "PFR1",
+  "status": "prepared-awaiting-independent-teacher-review",
+  "sourceRevision": "6a6398e29c2286f4e455634b86d83c4f786dc186",
+  "protocolSha256": "d7d6afd84da83a175e174733da5e304f496dedacc11ca10860a2e409cd690cab",
+  "notes": 209,
+  "cases": [
+    {
+      "id": "P01",
+      "title": "Jesus Loves Me",
+      "category": "Melody",
+      "from": 4,
+      "to": 8,
+      "fingerprint": "a73b7621876f054ec669677fcb4ef7e0e2419de464555bea17321022c088fc3b",
+      "sourceSha256": "60d1702c73f0b965acc78d39d061943fd3f1ba1647c01268fe7097ad215829e2",
+      "noteCount": 14
+    },
+    {
+      "id": "P02",
+      "title": "Amazing Grace",
+      "category": "Melody",
+      "from": 8,
+      "to": 12,
+      "fingerprint": "dc070f35a3585b23ba3bcf56cccaef88d9536fe8a5b5037c7f5ca2fed6029e1d",
+      "sourceSha256": "1b2c4b7ea60d6b67610b237422baaf06008b7d297de52281a0d579ce98143e76",
+      "noteCount": 12
+    },
+    {
+      "id": "P03",
+      "title": "Jesus Loves Me",
+      "category": "Melody over held chords",
+      "from": 0,
+      "to": 4,
+      "fingerprint": "643eb2522fd296f029c713d01d89743f625d168553702fe0785c2d85cb6eab30",
+      "sourceSha256": "3def31abfc24a52c031df8ad36e2339f97a46722ae31719253520f0c9641a875",
+      "noteCount": 32
+    },
+    {
+      "id": "P04",
+      "title": "I'll Fly Away",
+      "category": "Ties and accompaniment",
+      "from": 8,
+      "to": 12,
+      "fingerprint": "a540b170ad81fdf8d6e5fbaca6f4be9257c24873e08d95b484d2c9c2aab41869",
+      "sourceSha256": "99eec03f76672eae007f21ef735aec03c92bf4c690b2db9a524c5714fa481ed2",
+      "noteCount": 21
+    },
+    {
+      "id": "P05",
+      "title": "In Christ Alone",
+      "category": "Moving accompaniment",
+      "from": 16,
+      "to": 20,
+      "fingerprint": "06c65eca3c73d704cf9e3584d83945aa2b8dc04592247b0601dc41f541a4272e",
+      "sourceSha256": "bd4a1f9b271127f8daf3f29f956d42c7967075d85619fd5d42f9785d60f32658",
+      "noteCount": 37
+    },
+    {
+      "id": "P06",
+      "title": "1st Fingerstyle Blues",
+      "category": "Moving accompaniment",
+      "from": 4,
+      "to": 8,
+      "fingerprint": "c9379962ea4d92859e963522108e7d7b40f6a3cc0f4a334346929d56b6730bb8",
+      "sourceSha256": "81d46a6aeb48676a7eeaeefc3e9a1bf6b69a51cad1eab2646abfbe0b4e6f54a2",
+      "noteCount": 38
+    },
+    {
+      "id": "P07",
+      "title": "Jesus Loves Me",
+      "category": "Ending",
+      "from": 12,
+      "to": 16,
+      "fingerprint": "e88eb2eb8db6b3fc49b832edf357692a8b14d7786d14fb6f8710d6069cc0569d",
+      "sourceSha256": "0c0bf9760731e2d6003a42ae416116302dd275a4cd9869abaf604b9df94ce304",
+      "noteCount": 26
+    },
+    {
+      "id": "P08",
+      "title": "Silent Night",
+      "category": "Ending",
+      "from": 8,
+      "to": 12,
+      "fingerprint": "3db9b2ea36c42e0c882dfdb2b147ac6966a7fcd3fda064745d39e34ff4154754",
+      "sourceSha256": "cd90a232b9a0281bc45c4bc27b7543e8cc4a62dbfd0629f0b8ce97225d09997b",
+      "noteCount": 29
+    }
+  ],
+  "artifacts": {
+    "piano-fingering-independent.pdf": {
+      "pages": 9,
+      "fields": 12,
+      "widgets": 12,
+      "sha256": "5a6142a5f8552cdfd11fd6668142fb827995bbcf3026c9da9d0a0cbd1b508dd8"
+    },
+    "piano-fingering-comparison.pdf": {
+      "pages": 9,
+      "fields": 100,
+      "widgets": 100,
+      "sha256": "ad4063a279495a1de6c74fcb6fa21a1516394bf82b2c88b005198b42e12dff68"
+    },
+    "piano-fingering-organizer-key.pdf": {
+      "pages": 1,
+      "sha256": "ed5540b6f40436881506d912b3b9d7be89d56c9d339fd510043c3ce020cb38ec"
+    }
+  }
+}

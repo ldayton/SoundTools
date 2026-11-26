@@ -1,0 +1,83 @@
+{
+  "study": "PFR1",
+  "sourceRevision": "6a6398e2",
+  "frozenBeforeInference": true,
+  "purpose": "Independent teacher review on product passages not used in the neural reference benchmark",
+  "priorExposure": "Product music has been inspected and feasibility-tested previously. No teacher gold labels exist for this set. Pretrained training overlap is unknown.",
+  "context": "Each printed excerpt is planned independently; no hidden surrounding notes. All candidates receive identical pitches, durations, rests, voices, ties and key.",
+  "methods": ["classic", "lumikey-beam6", "lumikey-constrained6"],
+  "selection": [
+    {
+      "id": "P01",
+      "slug": "jesus-loves-me",
+      "arrangement": "piano",
+      "hands": "right",
+      "section": 1,
+      "category": "Melody"
+    },
+    {
+      "id": "P02",
+      "slug": "amazing-grace",
+      "arrangement": "piano",
+      "hands": "right",
+      "section": 2,
+      "category": "Melody"
+    },
+    {
+      "id": "P03",
+      "slug": "jesus-loves-me",
+      "arrangement": "piano",
+      "hands": "both",
+      "section": 0,
+      "category": "Melody over held chords"
+    },
+    {
+      "id": "P04",
+      "slug": "ill-fly-away",
+      "arrangement": "piano",
+      "hands": "both",
+      "section": 2,
+      "category": "Ties and accompaniment"
+    },
+    {
+      "id": "P05",
+      "slug": "in-christ-alone",
+      "arrangement": "original",
+      "hands": "both",
+      "section": 4,
+      "pianoOnly": true,
+      "category": "Moving accompaniment"
+    },
+    {
+      "id": "P06",
+      "slug": "the-1st-fingerstyle-blues",
+      "arrangement": "piano",
+      "hands": "both",
+      "section": 1,
+      "category": "Moving accompaniment"
+    },
+    {
+      "id": "P07",
+      "slug": "jesus-loves-me",
+      "arrangement": "piano",
+      "hands": "both",
+      "section": 3,
+      "category": "Ending"
+    },
+    {
+      "id": "P08",
+      "slug": "silent-night",
+      "arrangement": "piano",
+      "hands": "both",
+      "section": 2,
+      "category": "Ending"
+    }
+  ],
+  "teacherProcedure": [
+    "Write independent fingering on the unmarked packet before opening proposals",
+    "Score each A/B/C proposal independently for comfort, consistency and beginner suitability",
+    "Choose A/B/C, tie or none; mark problematic notes and preferred corrections",
+    "Return the marked packets without opening the organizer key"
+  ],
+  "noRetuning": "Freeze model weights, beam width, baseline revision and shortlist policy before generating proposals. Keep all eight passages regardless of output quality or agreement. Review is pending until an actual teacher responds."
+}

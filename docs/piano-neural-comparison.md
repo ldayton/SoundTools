@@ -140,6 +140,10 @@ Sources: [Lumikey](https://github.com/lumikey/piano-fingering-model),
 
 ## Coverage and reproduction
 
+The follow-up [blind teacher review PFR1](piano-teacher-review.md) now has
+independent and anonymous comparison packets. Teacher responses are pending;
+packet preparation does not change the production decision above.
+
 `piano-neural-comparison.test.ts` is owned by the existing shared/music CI unit
 glob. It checks contact identity, ties/unisons, invalid outputs, preserved anchors,
 independent held-key conflicts, ranked feasible selection and fallback behavior.

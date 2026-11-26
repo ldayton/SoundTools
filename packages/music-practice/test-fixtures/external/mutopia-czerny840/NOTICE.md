@@ -1,0 +1,3 @@
+# Czerny Op.840 technical validation
+
+All ten Mutopia editions and their original source dependencies are retained with their typesetter attribution. Each primary .ly header states Public Domain and retains the typesetter public-domain notice. Pinned source URLs and hashes are recorded in reservation.json. Files are evaluation material, not application assets. Our parser extracts only controlled RH/LH music definitions and must never execute the upstream include, header, layout, MIDI or Scheme code. Unsupported ornaments and ambiguous digit attachments remain in the evaluation inventory and denominators.

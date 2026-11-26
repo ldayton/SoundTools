@@ -2,7 +2,7 @@
   "schema": 1,
   "role": "Fresh V3 final validation only; no fitting or development selection",
   "revision": "f510d59b6467098839e59d89b5411d4b857c8114",
-  "selection": "Every available LilyPond source in Schumann Op68 except No1 Melodie, already represented in the consumed repertoire. No32 has no LilyPond source. All eighteen other source files reserved before V3 changes or scoring. Files selected by directory inventory, not performance. Upstream model-training overlap cannot be certified.",
+  "selection": "All eighteen directly contained .ly source files in the Schumann Op68 piece directories, excluding No1 Melodie because its musical identity is already represented in consumed repertoire. No32 is a nested multi-file edition outside this single-file import scope. Selection is by source structure and prior overlap, never planner performance. Reserved before V3 implementation or scoring; upstream model-training overlap cannot be certified.",
   "normalization": "Tabs expanded to two spaces; trailing whitespace stripped, final newline retained. Headers, source attribution and license notices preserved.",
   "files": [
     {

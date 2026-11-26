@@ -1,0 +1,489 @@
+{
+  "schema": 1,
+  "role": "Additional untouched technical validation; no inference or label-based selection",
+  "revision": "f510d59b6467098839e59d89b5411d4b857c8114",
+  "selection": "All ten available Op840 piece directories and all sixty ly/ily files. Added before any fresh V3 inference because the reserved Schumann repertoire has only 88 unambiguous printed digits. No piece was selected by planner performance. Published-model training overlap cannot be certified. V3 policy changes are finished; only import, tests and evaluation remain.",
+  "normalization": "Tabs expanded to two spaces and trailing whitespace stripped; final newline retained.",
+  "files": [
+    {
+      "file": "1/czerny-op840-1.ly",
+      "piece": 1,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-1/op840-1-lys/czerny-op840-1.ly",
+      "blobSha": "c77b2a9d3bf82111fa3039faecdc542a9a721ce0",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "0d9618b854cb3664fd430ad206f9eba70e499d89c478b758efd043ddea210e1f"
+    },
+    {
+      "file": "1/defn.ily",
+      "piece": 1,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-1/op840-1-lys/defn.ily",
+      "blobSha": "f9563ce0e8074cee445c4576e6ed4fae20027b42",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "922cb3bc1bfac99ad82488553a0f7955d312d380f245582f41ea96f48f708893"
+    },
+    {
+      "file": "1/etude-01.ily",
+      "piece": 1,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-1/op840-1-lys/etude-01.ily",
+      "blobSha": "5a678bae81bfd255f24a7ea0a78c4fde45a523ec",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "c68f3896ab1d9181bf194ea5a1f376b6176e875db313d764245eec41b1fbfd27"
+    },
+    {
+      "file": "1/score-layout.ily",
+      "piece": 1,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-1/op840-1-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "1/score-midi.ily",
+      "piece": 1,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-1/op840-1-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "1/stile.ily",
+      "piece": 1,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-1/op840-1-lys/stile.ily",
+      "blobSha": "622dc7dc5c06add3c4f30bc9cd184a6137c0fecd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "51e5ad35c3d234720b1fd2844492dd4d3fbe959f620e19469917a770dfca7deb"
+    },
+    {
+      "file": "2/czerny-op840-2.ly",
+      "piece": 2,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-2/op840-2-lys/czerny-op840-2.ly",
+      "blobSha": "396e7a7cc4f27cdd377c0d4b79a723c106bd3aa7",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "b8d539188f730bdb164f1f0a6b4ddc736af1d5d611499938776d541269d174f9"
+    },
+    {
+      "file": "2/defn.ily",
+      "piece": 2,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-2/op840-2-lys/defn.ily",
+      "blobSha": "4e7bd0c2efed6a37c0a8fa90f97cb91451a6a04b",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "f6bb0be4d0826965b6505375961f214b1251a3bd76cbb5751eb62b038ea01dba"
+    },
+    {
+      "file": "2/etude-02.ily",
+      "piece": 2,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-2/op840-2-lys/etude-02.ily",
+      "blobSha": "626d82fcfefe231fc818cfb367430066c05cb361",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "071e13a224750d4317313f31c911faf05f4b48288570bec03efda755b792ea5e"
+    },
+    {
+      "file": "2/score-layout.ily",
+      "piece": 2,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-2/op840-2-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "2/score-midi.ily",
+      "piece": 2,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-2/op840-2-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "2/stile.ily",
+      "piece": 2,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-2/op840-2-lys/stile.ily",
+      "blobSha": "622dc7dc5c06add3c4f30bc9cd184a6137c0fecd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "51e5ad35c3d234720b1fd2844492dd4d3fbe959f620e19469917a770dfca7deb"
+    },
+    {
+      "file": "3/czerny-op840-3.ly",
+      "piece": 3,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-3/op840-3-lys/czerny-op840-3.ly",
+      "blobSha": "629ee302e28a08e903de146d487d3ba51239c114",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "e53a336ccd9f4991630882eed1fabbaab0721130770c831d9a6fc7e386eafe93"
+    },
+    {
+      "file": "3/defn.ily",
+      "piece": 3,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-3/op840-3-lys/defn.ily",
+      "blobSha": "9fe11c649b383ffe0f3408186841d0ae44f85a0a",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "43f3b195c01d69d0afc8f727541788dd3f0dc6f5bbf75eb1cfb5b405e80834c3"
+    },
+    {
+      "file": "3/etude-03.ily",
+      "piece": 3,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-3/op840-3-lys/etude-03.ily",
+      "blobSha": "d06ac2867576ea0f7830b2294c311c94bd49f5e7",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "6f63e3eae2d39d77e5c51a00653672a3c3529da485ca318e57374ed841575e13"
+    },
+    {
+      "file": "3/score-layout.ily",
+      "piece": 3,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-3/op840-3-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "3/score-midi.ily",
+      "piece": 3,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-3/op840-3-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "3/stile.ily",
+      "piece": 3,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-3/op840-3-lys/stile.ily",
+      "blobSha": "622dc7dc5c06add3c4f30bc9cd184a6137c0fecd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "51e5ad35c3d234720b1fd2844492dd4d3fbe959f620e19469917a770dfca7deb"
+    },
+    {
+      "file": "4/czerny-op840-4.ly",
+      "piece": 4,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-4/op840-4-lys/czerny-op840-4.ly",
+      "blobSha": "b861bb84704cc148df74162f89a214a7fb62f8ec",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "c96d55f2ed879022738b677ee8887d9e480164f257aee98ca712840f47dd3028"
+    },
+    {
+      "file": "4/defn.ily",
+      "piece": 4,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-4/op840-4-lys/defn.ily",
+      "blobSha": "92f7e9ea7ad9cf6a26f4c625953dfa2d52932e4b",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "8666d316b642ed095a817ff55ff181de9ec4ebe0b38e88b1c6ce14296c4082d9"
+    },
+    {
+      "file": "4/etude-04.ily",
+      "piece": 4,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-4/op840-4-lys/etude-04.ily",
+      "blobSha": "6311104159c3c7e6b22b335c8912e0d63b9b9224",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "a404e76f388dcb88aeb1c369a7536a4363f50a3cb9e11a40cb40c02becaa8420"
+    },
+    {
+      "file": "4/score-layout.ily",
+      "piece": 4,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-4/op840-4-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "4/score-midi.ily",
+      "piece": 4,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-4/op840-4-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "4/stile.ily",
+      "piece": 4,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-4/op840-4-lys/stile.ily",
+      "blobSha": "622dc7dc5c06add3c4f30bc9cd184a6137c0fecd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "51e5ad35c3d234720b1fd2844492dd4d3fbe959f620e19469917a770dfca7deb"
+    },
+    {
+      "file": "5/czerny-op840-5.ly",
+      "piece": 5,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-5/op840-5-lys/czerny-op840-5.ly",
+      "blobSha": "e6f9dc45afbcd499689db8231e6683204098901d",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "8beaf95014148415a0ae0638c1f8016d824a7d946194148fa1bd245c3b26d210"
+    },
+    {
+      "file": "5/defn.ily",
+      "piece": 5,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-5/op840-5-lys/defn.ily",
+      "blobSha": "154ff84f8cd3813628fbce9f8e6a2e8b0e751901",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "75c660e518e5bf45ce23ebc5a8763013a135276a6da25c09944891869bb659fe"
+    },
+    {
+      "file": "5/etude-05.ily",
+      "piece": 5,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-5/op840-5-lys/etude-05.ily",
+      "blobSha": "53bc8f8514eb2be0b38ac080b13fb03ea14c7c8d",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "c43558de17d31aeda15d9c35a4757421b18e16f99f76f7e470cf9ee463f22ca5"
+    },
+    {
+      "file": "5/score-layout.ily",
+      "piece": 5,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-5/op840-5-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "5/score-midi.ily",
+      "piece": 5,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-5/op840-5-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "5/stile.ily",
+      "piece": 5,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-5/op840-5-lys/stile.ily",
+      "blobSha": "622dc7dc5c06add3c4f30bc9cd184a6137c0fecd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "51e5ad35c3d234720b1fd2844492dd4d3fbe959f620e19469917a770dfca7deb"
+    },
+    {
+      "file": "6/czerny-op840-6.ly",
+      "piece": 6,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-6/op840-6-lys/czerny-op840-6.ly",
+      "blobSha": "33e830094cf693ad4a22451b3a0c1b38e19d0936",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "9fb2684a2ebb4c71dec79369783a2bf25695cbc11af9f6fcf581e3f44ff218ae"
+    },
+    {
+      "file": "6/defn.ily",
+      "piece": 6,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-6/op840-6-lys/defn.ily",
+      "blobSha": "89b548307f003aa9ea0d88971e00b1cb032c11f3",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "39c029578461cebd77bd8df6bfb6a27b5a8de2572cf8de1c5f64887b6120d532"
+    },
+    {
+      "file": "6/etude-06.ily",
+      "piece": 6,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-6/op840-6-lys/etude-06.ily",
+      "blobSha": "ab1b9bad652f238ab066e687d5821edd67f46d5c",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "5a1e36d1bbe3c1a130332946efd7e54bfdceb3199be2e6a29f324a839dd95199"
+    },
+    {
+      "file": "6/score-layout.ily",
+      "piece": 6,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-6/op840-6-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "6/score-midi.ily",
+      "piece": 6,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-6/op840-6-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "6/stile.ily",
+      "piece": 6,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-6/op840-6-lys/stile.ily",
+      "blobSha": "8769c2f83350b5c941250c6c86e4779d631ae577",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "2d57e5a92595ccb61220e9e04640a7b844fb8adfbc9e8dd83727dff1bd0766b0"
+    },
+    {
+      "file": "7/czerny-op840-7.ly",
+      "piece": 7,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-7/op840-7-lys/czerny-op840-7.ly",
+      "blobSha": "03e4e3c00f89bbefa959c31ada732f8d6045b8d3",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "f7b9290d3bb45af2f898582631e56589e32366ed0ab53359f3fb93b07a085e51"
+    },
+    {
+      "file": "7/defn.ily",
+      "piece": 7,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-7/op840-7-lys/defn.ily",
+      "blobSha": "f52d60891a8b6e24330ca1905cfd03d0d734cbcd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "98b6a3ad789e3412943fedd9e5c6c224dd850879f5d814b269e44c401465f95a"
+    },
+    {
+      "file": "7/etude-07.ily",
+      "piece": 7,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-7/op840-7-lys/etude-07.ily",
+      "blobSha": "1153d86b4eed1f34e8cc9d1c5f22edb5670f6629",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "abd1309dbb21e0e9059d8583366ec7e1b063456cdf589fcfab6122f598428af7"
+    },
+    {
+      "file": "7/score-layout.ily",
+      "piece": 7,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-7/op840-7-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "7/score-midi.ily",
+      "piece": 7,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-7/op840-7-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "7/stile.ily",
+      "piece": 7,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-7/op840-7-lys/stile.ily",
+      "blobSha": "7a1ec29123284a83904b45bb513e331cbdad04b6",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "f00709fd8f7f52e3eba5b57e2f857107c1f7047768399abaa1a8fbf80243aaa2"
+    },
+    {
+      "file": "8/czerny-op840-8.ly",
+      "piece": 8,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-8/op840-8-lys/czerny-op840-8.ly",
+      "blobSha": "a8e69e62328f9e63e7e2992d095287fc720aecbe",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "5f60a4066dd47443cf8e612b932bca6f2bfbb9ed73567a0b08ccfe2276545d62"
+    },
+    {
+      "file": "8/defn.ily",
+      "piece": 8,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-8/op840-8-lys/defn.ily",
+      "blobSha": "f52d60891a8b6e24330ca1905cfd03d0d734cbcd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "98b6a3ad789e3412943fedd9e5c6c224dd850879f5d814b269e44c401465f95a"
+    },
+    {
+      "file": "8/etude-08.ily",
+      "piece": 8,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-8/op840-8-lys/etude-08.ily",
+      "blobSha": "4a79bf2231328123c9e1fb830c8f20cbeab0fb0c",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "bb2e3400f6015b3ed21890f3d5e49abd88260fb7f2c00fecb1ac0840ba36e8b8"
+    },
+    {
+      "file": "8/score-layout.ily",
+      "piece": 8,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-8/op840-8-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "8/score-midi.ily",
+      "piece": 8,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-8/op840-8-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "8/stile.ily",
+      "piece": 8,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-8/op840-8-lys/stile.ily",
+      "blobSha": "7a1ec29123284a83904b45bb513e331cbdad04b6",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "f00709fd8f7f52e3eba5b57e2f857107c1f7047768399abaa1a8fbf80243aaa2"
+    },
+    {
+      "file": "9/czerny-op840-9.ly",
+      "piece": 9,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-9/op840-9-lys/czerny-op840-9.ly",
+      "blobSha": "6adac6c87a55a7b8f9b4edb2bae06c46902899c4",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "d3464f30e81d7b44f8a3b0dea20ff8c21ec7d9c6f2d2b2c1d9535436a0a93c35"
+    },
+    {
+      "file": "9/defn.ily",
+      "piece": 9,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-9/op840-9-lys/defn.ily",
+      "blobSha": "f52d60891a8b6e24330ca1905cfd03d0d734cbcd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "98b6a3ad789e3412943fedd9e5c6c224dd850879f5d814b269e44c401465f95a"
+    },
+    {
+      "file": "9/etude-09.ily",
+      "piece": 9,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-9/op840-9-lys/etude-09.ily",
+      "blobSha": "9aabedffad0de54a48c0d31574f1ca41f186c792",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "b3577eb89cc24d0905d8f24d96e19c63e487764cd09bd1ef315f0fa8066b9bfa"
+    },
+    {
+      "file": "9/score-layout.ily",
+      "piece": 9,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-9/op840-9-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "9/score-midi.ily",
+      "piece": 9,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-9/op840-9-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "9/stile.ily",
+      "piece": 9,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-9/op840-9-lys/stile.ily",
+      "blobSha": "7a1ec29123284a83904b45bb513e331cbdad04b6",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "f00709fd8f7f52e3eba5b57e2f857107c1f7047768399abaa1a8fbf80243aaa2"
+    },
+    {
+      "file": "10/czerny-op840-10.ly",
+      "piece": 10,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-10/op840-10-lys/czerny-op840-10.ly",
+      "blobSha": "80c9eb25602f40f0ae37425c50c4b1edb55ce79d",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "b6fcc4e35d354261821a98b8f50e4adfe4a14b5e7d5d6b5663a79a01c5988ab1"
+    },
+    {
+      "file": "10/defn.ily",
+      "piece": 10,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-10/op840-10-lys/defn.ily",
+      "blobSha": "f52d60891a8b6e24330ca1905cfd03d0d734cbcd",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "98b6a3ad789e3412943fedd9e5c6c224dd850879f5d814b269e44c401465f95a"
+    },
+    {
+      "file": "10/etude-10.ily",
+      "piece": 10,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-10/op840-10-lys/etude-10.ily",
+      "blobSha": "2d5706ac3f766cc3469bae9c502e39e50486c9a0",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "d2b57839e3593a1e0a524b094396daf4e62a4c18ac2d86d15e112e6ee02d5898"
+    },
+    {
+      "file": "10/score-layout.ily",
+      "piece": 10,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-10/op840-10-lys/score-layout.ily",
+      "blobSha": "2e5254118286014d41fe98cdfacc8475c247bd14",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "04b05f607c0aa7f174486e8e17317a943f23a450c3b806f499980f5998e8679f"
+    },
+    {
+      "file": "10/score-midi.ily",
+      "piece": 10,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-10/op840-10-lys/score-midi.ily",
+      "blobSha": "7b59ca049538a7a612bd0f190467122b39194164",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "7c19676474d2b9c9bb1d031328485d2ef8d6895f737ee4fc5207865fa324ea2c"
+    },
+    {
+      "file": "10/stile.ily",
+      "piece": 10,
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/CzernyC/O840/op840-10/op840-10-lys/stile.ily",
+      "blobSha": "231f95e286bb3c85ab0328b967fd85659c21686e",
+      "license": "Public Domain; typesetter statement in the primary .ly file",
+      "sha256": "1d4b789a32b2151753e2038a9a48c142015fe21d63b5b8cdb2e0a1b9e83ee379"
+    }
+  ]
+}

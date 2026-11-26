@@ -1,0 +1,2515 @@
+{
+  "policy": "unified-v3",
+  "hashes": {
+    "weights": "bb454a20f87235722727993ca5de4187fa6bb97b73e9e71afe116f4958d43215",
+    "implementation": "756ee10dd9ee036736b1e1e5778ab8c04e4d04f8203093ccd907b8c6a9db695f"
+  },
+  "scope": "Read-only registered piano editions, optional twelve nearest-register semitone transpositions, frozen V3 and fixed published weights; baseline is the shared classic planner, not the legacy published UI callback tables. No product activation, label fitting or score data changes.",
+  "rows": [
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": -5,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": -4,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": -3,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": -2,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": -1,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": 0,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": 1,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": 2,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": 3,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": 4,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": 5,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bb1f2d7b-5879-4785-9f60-31058aaa9515",
+      "shift": 6,
+      "slug": "the-old-rugged-cross",
+      "notes": 243,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": -5,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": -4,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": -3,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": -2,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": -1,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": 0,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": 1,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": 2,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": 3,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": 4,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": 5,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "bfca0b5f-1231-4dee-83e1-90f7afd36779",
+      "shift": 6,
+      "slug": "fairest-lord-jesus",
+      "notes": 147,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": -5,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": -4,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": -3,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": -2,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": -1,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": 0,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": 1,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": 2,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": 3,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": 4,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": 5,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "67aef9ab-3d66-4120-b8a3-62debbfa6929",
+      "shift": 6,
+      "slug": "in-the-sweet-by-and-by",
+      "notes": 156,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": -5,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": -4,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": -3,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": -2,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": -1,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": 0,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": 1,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": 2,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": 3,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": 4,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": 5,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "0077e713-239e-496f-ac97-ade0d674e8c5",
+      "shift": 6,
+      "slug": "are-you-washed-in-the-blood",
+      "notes": 192,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": -5,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": -4,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": -3,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": -2,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": -1,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": 0,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": 1,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": 2,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": 3,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": 4,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": 5,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "3d06e051-0b5d-4885-96e9-ed3760d87a7d",
+      "shift": 6,
+      "slug": "blessed-assurance",
+      "notes": 150,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": -5,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": -4,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": -3,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": -2,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": -1,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": 0,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": 1,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": 2,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": 3,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": 4,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": 5,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6f43158d-146c-40d6-b86b-04f4a88703ab",
+      "shift": 6,
+      "slug": "silent-night",
+      "notes": 85,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": -5,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": -4,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": -3,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": -2,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": -1,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": 0,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": 1,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": 2,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": 3,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": 4,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": 5,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83c8e701-8403-44a0-ab8d-070b2266adc4",
+      "shift": 6,
+      "slug": "joy-to-the-world",
+      "notes": 123,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": -5,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 2,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": -4,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": -3,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 1,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": -2,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": -1,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": 0,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": 1,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": 2,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 2,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": 3,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": 4,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": 5,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "83837d6d-f9a2-450c-9fad-d0c5c4b4899d",
+      "shift": 6,
+      "slug": "in-christ-alone",
+      "notes": 185,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": -5,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": -4,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": -3,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": -2,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": -1,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": 0,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": 1,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": 2,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": 3,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": 4,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": 5,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "282dd471-1712-472d-aada-c6944c790ffc",
+      "shift": 6,
+      "slug": "amazing-grace",
+      "notes": 106,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": -5,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": -4,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": -3,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 2,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": -2,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": -1,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": 0,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": 1,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": 2,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 2,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": 3,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": 4,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 2,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "unified",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": 5,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "6a02489e-f64a-45b2-adff-22b1a1e57d76",
+      "shift": 6,
+      "slug": "ill-fly-away",
+      "notes": 94,
+      "bpm": 80,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": -5,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": -4,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": -3,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": -2,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": -1,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": 0,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": 1,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": 2,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": 3,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": 4,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": 5,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "d9247c0b-6f6e-4fb8-a216-27df5976a1e2",
+      "shift": 6,
+      "slug": "jesus-loves-me",
+      "notes": 121,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": -5,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": -4,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": -3,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": -2,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": -1,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": 0,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": 1,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": 2,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": 3,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": 4,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": 5,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "b091c4f8-c744-4d1a-8e65-18e839eac981",
+      "shift": 6,
+      "slug": "o-come-all-ye-faithful",
+      "notes": 230,
+      "bpm": 72,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "protected-context",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": -5,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": -4,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": -3,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": -2,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": -1,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": 0,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": 1,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": 2,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": 3,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": 4,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": 5,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    },
+    {
+      "id": "62a183e1-3c93-4d29-9297-0d5157f0874a",
+      "shift": 6,
+      "slug": "the-1st-fingerstyle-blues",
+      "notes": 120,
+      "bpm": 120,
+      "baselineStatus": "complete",
+      "candidateStatus": "complete",
+      "changedDigits": 0,
+      "authoredAnchors": 0,
+      "conflicts": 0,
+      "decisions": {
+        "right": "classic-polyphonic-scope",
+        "left": "classic-polyphonic-scope"
+      }
+    }
+  ],
+  "summary": {
+    "editions": 13,
+    "cases": 156,
+    "changedCases": 6,
+    "changedSongs": 2,
+    "defaultKeyChangedDigits": 0,
+    "changedDigits": 11,
+    "physicalConflicts": 0
+  }
+}

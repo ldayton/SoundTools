@@ -1,8 +1,8 @@
 # Unified piano planning
 
-The application now uses one complete timed-score plan for ordinary and instrument-edition piano fingerings. The default objective is still classic. The composed Parncutt policy is implemented and browser-worker tested, but it failed the automatic family regression gate and is not activated in the product. Human review is not required for that decision.
+The application uses one complete timed-score plan for ordinary and instrument-edition piano fingerings. The default objective is still classic. This document records the V2 milestone and its failed family gate. [V3 findings](piano-unified-v3.md) supersede that scoring policy: known regressions are resolved, but fresh and practical gains remain too small to justify product activation. Human review is not required for that decision.
 
-## Composition and ownership
+## V2 composition and ownership
 
 ```mermaid
 flowchart LR
@@ -25,7 +25,7 @@ flowchart LR
 
 Historical sequence/neural/structured experiments remain reproducible research. They do not vote on the product output or add a cascade of whole-hand replacements. No published weights, external runtime, Python or research AGPL module is imported into the product path. The Chirality-derived policy retains the existing research licensing boundary.
 
-## Frozen evaluation and decision
+## V2 frozen evaluation and decision
 
 The eighteen available Mutopia Burgmüller Op.100 sources were reserved and committed before policy implementation. V1 was checked only on consumed development cases. Its scale/five-finger regressions motivated an input-only local closed-position recognizer; V2 was frozen before one development replay and fresh evaluation. No coefficients changed, no training ran, and fresh scores were not used to retune the policy. A subsequent implementation replay reproduced every aggregate count and gate. This is new policy-validation material; overlap with the upstream model's PIG training cannot be certified.
 
@@ -46,6 +46,7 @@ Numeric evidence: [V2 results](piano-unified-results.json), [retained V1 develop
 ## Reproduce and test
 
 Use Node 24. Published coefficients remain an explicitly supplied ignored artifact.
+Reproduce these historical V2 numbers at commit `4034378f`; use the linked V3 commands for the current policy.
 
 ```sh
 python3 packages/music-practice/scripts/piano-neural/import-burgmuller.py work/burgmuller-import

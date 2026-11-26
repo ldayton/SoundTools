@@ -52,6 +52,12 @@ export async function checkScoreLayoutComponent(page: Page) {
   const revealed=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar'));
   assert.deepEqual(detachedTiming.audio,revealed.audio,'Detached timing-only renders never require visual system packing');
   assert.deepEqual(hiddenStartup.audio,revealed.audio,'Hidden startup/timing renders preserve playback without requiring a painted rectangle');
+  const refitted=await page.evaluate(()=>window.ScoreLayoutFixture.renderLayoutFixture(600,'guitar',1.25,{refit:true}));
+  assert.deepEqual(refitted.audio,revealed.audio);
+  for(let system=0;system<revealed.placedGeometry.length;system++)for(let head=0;head<revealed.placedGeometry[system].heads.length;head++){
+    const a=revealed.placedGeometry[system].heads[head],b=refitted.placedGeometry[system].heads[head];
+    assert(Math.abs(a.top-b.top)<.01&&Math.abs(a.left-b.left)<.01,'Repeated finalization never accumulates staff/annotation displacement');
+  }
   for(const kind of ['skyline','skyline-collision','skyline-unknown','skyline-explicit'] as const){
     const result=await page.evaluate(kind=>window.ScoreLayoutFixture.renderLayoutFixture(1000,kind),kind);
     assert(result.retainedReferences,'Placement preserves note element identity for playback and selection');

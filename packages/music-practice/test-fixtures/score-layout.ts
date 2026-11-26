@@ -11,7 +11,7 @@ const melody='"C"C D E F | "G"G A B c | "Am"c B A G | "F"F E D C | "C"C2 E2 | "G
 const english='one two three four five six sev en eight nine ten now sing this tune well hold this note here end this phrase now rest';
 const hebrew='מַה טּוֹב לָנוּ שִׁיר חָדָשׁ בַּלֵּב אוֹר בָּא כָּאן עוֹד שִׁיר נָעִים לִי הַיּוֹם טוֹב לָנוּ אוֹר לָנוּ שִׁיר עוֹד כָּאן לֵב שָׁלוֹם';
 export type LayoutFixtureKind = "piano"|"guitar"|"hebrew"|"dense"|"hidden-ink"|"clipped-ink"|"partial"|"verses"|"sparse"|"headers"|"polyphony"|"sections"|"underlay"|"tab-symbols"|"repeat-numbers"|"skyline"|"skyline-collision"|"skyline-unknown"|"skyline-explicit"|"skyline-flow";
-export type LayoutFixtureOptions = { reverseVerses?:boolean; cold?:boolean; hidden?:boolean; detached?:boolean; underlay?:"none"|"short"|"long"|"sparse" };
+export type LayoutFixtureOptions = { reverseVerses?:boolean; cold?:boolean; hidden?:boolean; detached?:boolean; refit?:boolean; underlay?:"none"|"short"|"long"|"sparse" };
 export const layoutVisualCases = [
   {id:"piano-phone",kind:"piano",width:320},
   {id:"piano-desktop",kind:"piano",width:800},
@@ -85,7 +85,9 @@ export function renderLayoutFixture(width: number, kind: LayoutFixtureKind, scal
     }
     return layout.fit(svg);
   });
+  if(options.refit)paper.querySelectorAll('svg').forEach(svg=>layout.fit(svg));
   layout.finish();
+  if(options.refit)layout.finish();
   if(options.detached)document.body.append(host);
   const geometry=[...paper.querySelectorAll('svg')].map(svg=>({
     scale:svg.getScreenCTM()?.a||0,

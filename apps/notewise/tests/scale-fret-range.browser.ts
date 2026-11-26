@@ -71,8 +71,15 @@ try {
   }
   await page.goto(server.base + "/guitar/scales?key=D&scale=major&shapeSet=standard&pattern=4&position=2");
   await waitForApp(page, ".scale-diagram svg");
-  const swipe = async (dx: number, dy: number) => {
-    await page.locator(".scale-diagram").evaluate((el, {dx, dy}) => {
+  await expect.poll(() => page.locator('#page-title').evaluate(el => {
+    const text = document.createRange();
+    text.selectNodeContents(el);
+    const title = document.querySelector('#scale-title')!;
+    return { padded: text.getBoundingClientRect().left >= 12,
+      aligned: Math.abs(text.getBoundingClientRect().left - title.getBoundingClientRect().left) < 1 };
+  })).toEqual({ padded: true, aligned: true });
+  const swipe = async (dx: number, dy: number, selector = ".scale-diagram") => {
+    await page.locator(selector).evaluate((el, {dx, dy}) => {
       // WebKit does not expose a constructible Touch; supply the touch lists
       // on bubbling DOM events to exercise the same React gesture handlers.
       const start = {clientX: 180, clientY: 350};
@@ -88,7 +95,7 @@ try {
   };
   for (const [key, dx, dy] of [
     ["ArrowLeft", -80, 0], ["ArrowRight", 80, 0],
-    ["ArrowUp", 0, -80], ["ArrowDown", 0, 80],
+    ["ArrowDown", 0, -80], ["ArrowUp", 0, 80],
   ] as const) {
     const before = page.url();
     await page.keyboard.press(key);
@@ -99,6 +106,24 @@ try {
     await swipe(dx, dy);
     await expect.poll(() => page.url()).toBe(expected);
   }
+  // Title, heading, instrument surface and the blank page area all navigate.
+  const contentSwipeStart = page.url();
+  for (const selector of ['#page-title', '.scale-heading', '.scale-card', '#practice-content']) {
+    await page.goto(contentSwipeStart);
+    await waitForApp(page, '.scale-diagram svg');
+    const before = page.url();
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(() => page.url()).not.toBe(before);
+    const expected = page.url();
+    await page.goto(before);
+    await waitForApp(page, '.scale-diagram svg');
+    await swipe(0, -80, selector);
+    await expect.poll(() => page.url()).toBe(expected);
+  }
+  await expect.poll(() => page.locator('#practice-content').evaluate(el => getComputedStyle(el).touchAction)).toBe('pinch-zoom');
+  const beforeControlSwipe = page.url();
+  await swipe(0, -80, '.scale-relative-switch');
+  expect(page.url()).toBe(beforeControlSwipe);
   const beforeTap = page.url();
   await swipe(8, 5);
   expect(page.url()).toBe(beforeTap);

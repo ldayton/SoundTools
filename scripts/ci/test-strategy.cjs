@@ -54,7 +54,7 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
   if (group !== 'core') throw Error('Edition browser coverage belongs to Nightly');
   return {
     dorego: [script(app, 'tests/voice-feedback.e2e.ts'), npm(app, 'test:desktop'), script(app, 'tests/sequence.e2e.ts')],
-    notewise: [script(app, '../../tests/ci/critical-midi.browser.mts')],
+    notewise: [script(app, '../../tests/ci/critical-midi.browser.mts'), npm(app, 'test:scale-fret-range')],
     songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/guitar-sustain.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts')],
     soundglow: [npm(app, 'test:unit'), ['node', ['tests/ci/silent-audio.browser.cjs']]],
   }[app];

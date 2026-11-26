@@ -2300,5 +2300,21 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "notewise:npm:run test:scale-fret-range --workspace=notewise": {
+    "kind": "ui",
+    "ports": [
+      4595
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/scale-fret-range.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
   }
 }

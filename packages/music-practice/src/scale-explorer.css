@@ -266,7 +266,7 @@
     padding-inline: 0;
     padding-bottom: 0;
   }
-  .workspace-content:has(.scale-card) > h1 { padding-inline: 12px; }
+  #exercise-content:has(.scale-card) > .practice-title { padding-inline: 12px; }
   .scale-card.practice-surface {
     border: 0;
     border-radius: 0;
@@ -275,6 +275,9 @@
   }
   .scale-card .scale-note-list,
   .scale-card .scale-shortcuts-button { display: none; }
+  #practice-content:has(#exercise-content:not([hidden]) .practice-workspace-content > div:not([hidden]) .scale-card) {
+    touch-action: pinch-zoom;
+  }
   .scale-card .scale-diagram {
     width: 100%;
     overflow: hidden;

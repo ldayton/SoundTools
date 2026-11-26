@@ -84,7 +84,7 @@ npx tsx packages/music-practice/scripts/audit-piano-costs.ts work/piano-cost-aud
 node --import tsx --test packages/music-practice/tests/piano-cost-audit.test.ts
 ```
 
-The report retains source/implementation hashes, every hand's annotations and
+The report retains source/implementation hashes, every hand's annotation and
 mismatch counts, reference-alternative indices, complete cost vectors, gaps and
 diagnostics. Unannotated notes remain latent choices, never asserted reference
 digits. Whole alternatives are kept separate. Source-fingering conflicts get a

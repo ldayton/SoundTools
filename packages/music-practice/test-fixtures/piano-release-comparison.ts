@@ -7,6 +7,7 @@ import {
   unsupportedPianoHand,
   assemblePianoPhrase,
   type PianoHandPlan,
+  type PianoDiagnostic,
 } from "../src/piano-phrase-fingering";
 import {
   scorePianoBenchmarkCase,
@@ -33,8 +34,18 @@ export async function comparePianoRelease(
   cases: readonly PianoBenchmarkCase[],
 ) {
   const { plan: old, sha256 } = await releasedPianoPlanner();
-  const rows = [],
-    excluded = [];
+  const rows: {
+    id: string;
+    family: string;
+    eligible: number;
+    before: number;
+    after: number;
+    beforeCovered: number;
+    afterCovered: number;
+    diagnostics: PianoDiagnostic[];
+    collisionNotes: string[];
+  }[] = [];
+  const excluded: { id: string; reason: string }[] = [];
   for (const c of cases) {
     let mono = true;
     for (const hand of ["right", "left"]) {

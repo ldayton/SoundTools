@@ -61,7 +61,10 @@ not fresh validation or a demonstration of universal pedagogical quality.
 | **Total** | **15,999** | **6,969 (43.56%)** | **8,311 (51.95%)** |
 
 That is 1,342 additional reference matches and no family losing matches against
-main. Both versions receive the same final labels, whole alternatives and timing
+main. Case-wise, 53 improve, 174 are unchanged, two supported scale cases lose
+3 and 5 matches (`hanon-39-5`, `hanon-39-19`), and one conflicting case is withheld.
+This is not a claim of improvement on every passage. The release gate forbids
+new individual-case losses or worsening those two recorded losses. Both versions receive the same final labels, whole alternatives and timing
 conventions. No reference digits enter inference. Full per-case results, excluded
 cases and the failed pre-review candidate are in `piano-release-results.json`.
 
@@ -123,3 +126,11 @@ implementation. It passes exact digit, anchor and movement-cue equality, rather
 than merely asserting reachability. This protects the legacy constructor used by
 reviewed editions. Full local CI on the final committed revision remains the
 final release-readiness check; this is not a claim that all Nightly groups ran.
+
+
+The first release CI run (`4eec1b35`) failed TypeScript on the new comparison
+helper's implicitly inferred result array. The correction explicitly types the
+comparison rows; planner behavior and recorded benchmark results are unchanged.
+First failure evidence remains at
+`work/ci-results/1795681737472-9135e002`. The full suite must be rerun on the
+corrected commit; the first run is not counted as a pass.

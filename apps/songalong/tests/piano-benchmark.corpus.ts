@@ -166,6 +166,17 @@ for (const [family, v] of Object.entries(comparison.families)) {
     `release floor regression: ${family}`,
   );
 }
+const releaseRows = new Map(
+  release.comparison.rows.map((row) => [row.id, row]),
+);
+for (const row of comparison.rows) {
+  const target = releaseRows.get(row.id);
+  assert.ok(target, `missing release comparison case: ${row.id}`);
+  assert.ok(
+    row.after >= Math.min(row.before, target.after),
+    `new or worsened individual regression: ${row.id}`,
+  );
+}
 for (const row of comparison.rows)
   if (row.afterCovered < row.beforeCovered)
     assert.ok(

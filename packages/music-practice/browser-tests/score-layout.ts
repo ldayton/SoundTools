@@ -27,6 +27,7 @@ export async function prepareScoreLayoutFixture(page: Page) {
 /** Small deterministic browser witnesses in the existing CI owner. */
 export async function checkScoreLayoutComponent(page: Page) {
   await prepareScoreLayoutFixture(page);
+  assert.deepEqual(await page.evaluate(()=>window.ScoreLayoutFixture.inkVisibilityWitness()),[true,false,false,false,false,false],'Only painted ink participates: visible children override inherited visibility, while ancestor display/opacity still suppress ink');
   const errors: string[]=[];page.on('pageerror',error=>errors.push(error.message));
   for(const kind of ["piano","guitar","hebrew"] as const) {
     let audio: unknown;

@@ -1,3 +1,4 @@
+import {scoreInkBox} from '../src/score-layout/geometry';
 import {rhythmQuality,type RhythmAnchor} from "../browser-tests/score-rhythm-quality";
 export {compareLayoutPixels,layoutComparatorSamples} from "./score-layout-images";
 /** Independent engraving fixtures; intentionally unrelated to product songs. */
@@ -167,4 +168,23 @@ function observeVerticalGeometry(svg:SVGSVGElement) {
   const heads=[...svg.querySelectorAll('.abcjs-notehead')].map(bounds);
   const bridges=[...svg.querySelectorAll('.abcjs-brace')].map(bounds);
   return {staffs,heads,bridges};
+}
+
+/** CSS visibility is inherited and overridable; display/opacity on ancestors
+ * suppress descendants even when the descendants explicitly enable themselves. */
+export function inkVisibilityWitness() {
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('width','100');svg.setAttribute('height','100');
+  svg.innerHTML='<g><rect x="10" y="10" width="20" height="20" fill="black"/></g>';
+  document.body.append(svg);
+  const parent=svg.querySelector('g')!,rect=svg.querySelector('rect')!;
+  const results:boolean[]=[];
+  const check=()=>results.push(!!scoreInkBox(rect,svg));
+  parent.style.visibility='hidden';rect.style.visibility='visible';check();
+  parent.style.visibility='visible';rect.style.visibility='hidden';check();
+  rect.style.visibility='visible';parent.style.display='none';check();
+  parent.style.display='block';parent.style.opacity='0';rect.style.opacity='1';check();
+  parent.style.opacity='1';svg.style.opacity='0';check();
+  svg.style.opacity='1';svg.style.display='none';check();
+  svg.remove();return results;
 }

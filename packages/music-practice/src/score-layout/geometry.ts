@@ -8,7 +8,11 @@ export const scoreInkSelector='path,text:not(:has(tspan)),tspan,use,rect,line,po
 /** One visible-ink measurement contract for framing, skylines and export. */
 export function visibleScoreInk(node:SVGGraphicsElement){
   if(node.closest('defs,clipPath,mask,pattern,marker,symbol,.score-playhead,.passage-overlay,.score-skyline-debug'))return false;
-  for(let p:Element|null=node;p&&p.tagName.toLowerCase()!=='svg';p=p.parentElement){const s=getComputedStyle(p);if(s.display==='none'||s.visibility==='hidden'||s.visibility==='collapse'||s.opacity==='0')return false;}
+  // Visibility inherits, but a child may explicitly override it. Display and
+  // opacity suppress the whole subtree and cannot be undone by a descendant.
+  const style=getComputedStyle(node);
+  if(style.visibility==='hidden'||style.visibility==='collapse'||style.display==='none'||style.opacity==='0')return false;
+  for(let p:Element|null=node.parentElement;p;p=p.parentElement){const s=getComputedStyle(p);if(s.display==='none'||s.opacity==='0')return false;}
   return true;
 }
 export function scoreInkBox(node:SVGGraphicsElement,svg:SVGSVGElement):InkBox|undefined {

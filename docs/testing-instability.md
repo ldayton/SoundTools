@@ -780,3 +780,12 @@ tests retain every file exactly once. No test assertions, deadlines or the
 60-second budget were relaxed. The changed plan's full `--all` measurement,
 including selection, installation, execution and cleanup, is retained at
 `work/neural-piano-hybrid-v2/ci-all.log` with its emitted evidence directory.
+
+The repaired plan on `03e03fd6` passed the full `--all` run in **55.30 seconds**
+including selection, dependency installation and cleanup. Evidence:
+`work/ci-results/1795695095467-10482535/`. Desktop completed in 24.1 seconds
+and the independently scheduled drone control owner in 5.9 seconds; every
+required owner passed. This is a coverage-preserving critical-path correction,
+not an unexplained passing rerun of the prior plan. The previous cancelled
+runs remain retained above. The final pre-push-command validation is recorded
+separately in `work/neural-piano-hybrid-v2/ci-final.log`.

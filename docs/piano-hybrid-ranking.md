@@ -129,5 +129,12 @@ plan changed, the full coordinator is measured with `npm run ci -- --all`;
 its exact outcome and retained evidence are in
 `work/neural-piano-hybrid-v2/ci-all.log`.
 
+That full run passed on `03e03fd6` in **55.30 seconds**, including selection,
+installation and cleanup. Both the independent drone owner (5.9 seconds) and
+the precision-audio desktop owner (24.1 seconds) passed. Evidence is retained
+at `work/ci-results/1795695095467-10482535/`. The final committed-HEAD
+`npm run ci -- --base origin/main` result is retained in
+`work/neural-piano-hybrid-v2/ci-final.log`.
+
 The neural experiment remains offline research. Model deployment rights and
 runtime integration remain separate work; human review is not a release gate.

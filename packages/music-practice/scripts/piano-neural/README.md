@@ -74,7 +74,9 @@ Use a new directory for a new experiment; preparation refuses to overwrite the
 frozen requests. For a replay, keep the frozen inputs and rerun the evaluator.
 The baseline candidate has an invalid placeholder likelihood before Python
 scoring; passing it directly to the ranker intentionally fails. Full candidate
-audits stay in `work/neural-piano-hybrid/audit.json`. The corrected report is `docs/piano-hybrid-v3-results.json`; the original v1
+audits for v3 stay in `work/neural-piano-hybrid/audit-hybrid-ranking-3.json`;
+`audit.json` retains the original v1 run. The corrected report is
+`docs/piano-hybrid-v3-results.json`; the original v1
 report remains unchanged. The evaluator defaults to the strict v3 guard; use
 `--v1`/`--v2` explicitly for historical trials. V3 admits a neural change only
 when it reduces at least one movement-complexity count and increases none.

@@ -142,3 +142,12 @@ The [release review](piano-release-review.md) supersedes intermediate default
 quality claims. Released mono behavior is preserved for nonconcurrent hands;
 polyphonic planning retains duration-sensitive grips. The direct-main comparison
 and its original eligible subsets have independent required Nightly owners.
+
+## Pretrained model research
+
+The [isolated neural comparison](piano-neural-comparison.md) evaluates real
+pretrained Transformer, ArGNN and ArLSTM weights against the full reference corpus,
+including a constrained shortlist experiment and Chromium/WebKit ONNX checks.
+The classic default remains enabled: the strongest neural candidate improves
+aggregate agreement but regresses printed references and complete-case agreement.
+The manual research adapters and downloaded weights are separate from app runtime.

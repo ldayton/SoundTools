@@ -1,0 +1,66 @@
+[
+  {
+    "model": "lumikey",
+    "repository": "lumikey/piano-fingering-model",
+    "revision": "e03c0da6bfe6b4299dbdacb421bd5792f1721631",
+    "path": "checkpoints/fingering_transformer_left.pt",
+    "bytes": 433381,
+    "sha256": "f67cc9dc8aed1f169a519f6825324c2ee50186cb36e0f085efdcfc4ed19babb7"
+  },
+  {
+    "model": "lumikey",
+    "repository": "lumikey/piano-fingering-model",
+    "revision": "e03c0da6bfe6b4299dbdacb421bd5792f1721631",
+    "path": "js/models/fingering_transformer_left.onnx",
+    "bytes": 501130,
+    "sha256": "246f2fed013c27ca8c32ce9d070002afcc49da4f1dfb0c43e09a4a3f9f2fb86e"
+  },
+  {
+    "model": "argnn",
+    "repository": "PRamoneda/Automatic-Piano-Fingering",
+    "revision": "d0d2f433c926be5e89540cbafe38bf43820ad2d2",
+    "path": "models/left_ArGNN.pth",
+    "bytes": 2949407,
+    "sha256": "949033ef5f8c0a2223ec9c56ec2682be98c0ddb57cfed6c616962df01191d2cf"
+  },
+  {
+    "model": "argnn",
+    "repository": "PRamoneda/Automatic-Piano-Fingering",
+    "revision": "d0d2f433c926be5e89540cbafe38bf43820ad2d2",
+    "path": "models/left_ArLSTM.pth",
+    "bytes": 849324,
+    "sha256": "84924210010214cd47ab9177984eedc9979740871f5b3c992c29e01f70259f76"
+  },
+  {
+    "model": "lumikey",
+    "repository": "lumikey/piano-fingering-model",
+    "revision": "e03c0da6bfe6b4299dbdacb421bd5792f1721631",
+    "path": "checkpoints/fingering_transformer_right.pt",
+    "bytes": 433428,
+    "sha256": "1e14e3c4f7a1b03d3f93740799ac2fd61930e453dfaaa38e88334d549e1a5097"
+  },
+  {
+    "model": "lumikey",
+    "repository": "lumikey/piano-fingering-model",
+    "revision": "e03c0da6bfe6b4299dbdacb421bd5792f1721631",
+    "path": "js/models/fingering_transformer_right.onnx",
+    "bytes": 501130,
+    "sha256": "f931288302b87f5eec1c8af29a570ee0213a272a13eeb590991a285e1f1b67eb"
+  },
+  {
+    "model": "argnn",
+    "repository": "PRamoneda/Automatic-Piano-Fingering",
+    "revision": "d0d2f433c926be5e89540cbafe38bf43820ad2d2",
+    "path": "models/right_ArGNN.pth",
+    "bytes": 2949407,
+    "sha256": "6430b4bbf6670571c92036298c863b69288b11d982a6b0665f1b93a7cc99f441"
+  },
+  {
+    "model": "argnn",
+    "repository": "PRamoneda/Automatic-Piano-Fingering",
+    "revision": "d0d2f433c926be5e89540cbafe38bf43820ad2d2",
+    "path": "models/right_ArLSTM.pth",
+    "bytes": 849324,
+    "sha256": "87ccafbdf202e75bf937b3c52e78d9000a930f3cab63e08accc6989b504b7c90"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "baseline": "d84a6f59b8028f95ff5a36ea9d8ac9c27cfd495a",
+  "beamWidth": 6,
+  "models": [
+    "lumikey",
+    "argnn",
+    "arlstm"
+  ],
+  "corpus": [
+    "hanon",
+    "beringer",
+    "beringer-scales"
+  ],
+  "selection": "all 262 existing cases, all notes; reference labels never enter inference",
+  "hybrid": "first of six neural candidates feasible under current whole-hand planner per hand; classic fallback for unsupported candidates",
+  "metrics": [
+    "reference agreement by family and evidence",
+    "whole-reference and adjacent-pair agreement",
+    "complete-hand feasibility",
+    "held-finger and grip violations",
+    "fallback frequency",
+    "runtime"
+  ],
+  "promotion": "none from this consumed benchmark; report every regression and abstention; deployment licensing unresolved",
+  "inputConventionAudit": "Report both standard MIDI input and the upstream PIG loader convention (C4=48, standard MIDI minus 12) for ArGNN/ArLSTM; never select by reference agreement."
+}

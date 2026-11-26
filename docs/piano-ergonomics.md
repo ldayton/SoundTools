@@ -162,3 +162,9 @@ the reserved results or automatically enable the candidate.
   https://arxiv.org/abs/1904.10237
 - Randolph et al. (2023), *Modeling Piano Fingering Decisions with Conditional
   Random Fields*: https://nlp.lab.uic.edu/wp-content/uploads/sites/314/2023/06/Randolph_CRF2.pdf
+
+## Follow-up phrase and movement evaluation
+
+See [the phrase evaluation](piano-phrase-evaluation.md) for retained phrase metadata,
+rejected movement candidates, development ablations and current validation evidence.
+The table above records the original experiment before that follow-up.

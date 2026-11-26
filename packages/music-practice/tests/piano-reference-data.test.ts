@@ -20,6 +20,11 @@ test("Beringer transcription remains reproducible, completed rather than printed
     assert.equal(c.evidence, "completed");
     assert.ok(c.labels.every((l) => l.kind === "completed"));
     assert.ok(c.notes.every((n) => n.finger === undefined));
+    if (c.family === "beringer-arpeggios")
+      assert.ok(
+        c.notes.some((n) => n.phraseStart),
+        "source phrase boundaries retained: " + c.id,
+      );
     assert.equal(
       c.partition,
       c.family === "beringer-arpeggios" ? "validation" : "development",

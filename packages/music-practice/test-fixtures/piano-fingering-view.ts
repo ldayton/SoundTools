@@ -158,7 +158,7 @@ export function renderPianoErgonomicFixture(experimental = false) {
   document.body.innerHTML = '<div id="ergonomic-fixture"></div>';
   const t = abcjs.renderAbc(
     "ergonomic-fixture",
-    "X:1\nM:4/4\nL:1/4\nK:C\n[Cc]2 .D E |]",
+    "X:1\nM:4/4\nL:1/4\nK:C\n[Cc]2 || .D E |]",
     { add_classes: true, staffwidth: 700 },
   )[0];
   t.setUpAudio({ chordsOff: true });
@@ -197,6 +197,7 @@ export function renderPianoErgonomicFixture(experimental = false) {
       hold: n.duration,
       notation: n.notatedDuration,
       voice: n.voice,
+      phraseStart: !!n.phraseStart,
     })),
     marks: [...document.querySelectorAll<SVGElement>(".hymn-fingering")].map(
       (e) => ({

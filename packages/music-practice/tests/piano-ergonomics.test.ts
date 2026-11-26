@@ -169,3 +169,39 @@ test("production default accepts fixed fourth-finger octaves without enabling ex
   );
   assert.equal(p.costs.context, 0);
 });
+
+test("score phrase boundaries survive lines, rests and ties without shortening contacts", () => {
+  const t = abcjs.parseOnly(
+    "X:1\nL:1/4\nK:C\nC | D ||\nE- |: E F :| z G |]",
+  )[0];
+  t.setUpAudio({ chordsOff: true });
+  const before = JSON.stringify(t.lines),
+    c = collectPianoScore(t);
+  assert.deepEqual(
+    c.notes.map((n) => !!n.phraseStart),
+    [false, false, true, true, false, true],
+  );
+  assert.equal(c.notes[3].tieFrom, c.notes[2].id);
+  assert.equal(c.notes[2].duration, 1);
+  assert.equal(c.notes[5].start, 6);
+  const p = plan(c.notes);
+  assert.equal(p.status, "complete");
+  assert.equal(p.notes[2].finger, p.notes[3].finger);
+  assert.equal(JSON.stringify(t.lines), before);
+});
+
+test("phrase metadata remains local to each staff and voice", () => {
+  const t = abcjs.parseOnly(
+    "X:1\nL:1/4\nV:R clef=treble\nV:L clef=bass\nK:C\n[V:R] C || D E |]\n[V:L] C, | D, E, |]",
+  )[0];
+  t.setUpAudio({ chordsOff: true });
+  const c = collectPianoScore(t);
+  assert.deepEqual(
+    c.notes.filter((n) => n.hand === "right").map((n) => !!n.phraseStart),
+    [false, true, false],
+  );
+  assert.deepEqual(
+    c.notes.filter((n) => n.hand === "left").map((n) => !!n.phraseStart),
+    [false, false, false],
+  );
+});

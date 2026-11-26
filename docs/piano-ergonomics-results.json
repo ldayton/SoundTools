@@ -628,7 +628,7 @@
       }
     },
     "beringer": {
-      "sha256": "f4cf33fcff83eaa24adbd05b3d185059ec4c9fb339be6f1965d348813aa4f69d",
+      "sha256": "183ddc8fbe2d39cbb282a3c0b351480a115f5093e4c06799318a99e6bdaf1654",
       "partitions": {
         "development": {
           "classic": {
@@ -732,32 +732,32 @@
           "ergonomic": {
             "summary": {
               "cases": 48,
-              "macroAgreement": 0.41582217823026646,
+              "macroAgreement": 0.44374135872297643,
               "totalNotes": 5136,
               "predictedNotes": 5136,
               "eligible": 5136,
               "covered": 5136,
-              "matches": 2133,
+              "matches": 2258,
               "flagged": 0,
               "inferred": 0,
               "coverage": 1,
-              "agreementSupported": 0.415303738317757,
-              "agreementAll": 0.415303738317757
+              "agreementSupported": 0.4396417445482866,
+              "agreementAll": 0.4396417445482866
             },
             "families": {
               "beringer-arpeggios": {
                 "cases": 48,
-                "macroAgreement": 0.41582217823026646,
+                "macroAgreement": 0.44374135872297643,
                 "totalNotes": 5136,
                 "predictedNotes": 5136,
                 "eligible": 5136,
                 "covered": 5136,
-                "matches": 2133,
+                "matches": 2258,
                 "flagged": 0,
                 "inferred": 0,
                 "coverage": 1,
-                "agreementSupported": 0.415303738317757,
-                "agreementAll": 0.415303738317757
+                "agreementSupported": 0.4396417445482866,
+                "agreementAll": 0.4396417445482866
               }
             }
           }

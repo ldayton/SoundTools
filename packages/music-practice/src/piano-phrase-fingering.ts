@@ -883,15 +883,7 @@ function planHand(
     melodicMemory: Memory = [];
   const states: PianoHandFrame[] = solved.path.map((pose, i) => {
     const change = i
-      ? step(
-          frames[i - 1],
-          frames[i],
-          solved.path[i - 1],
-          pose,
-          hand,
-          p,
-          rollingEdges.has(i),
-        )!
+      ? transitionAt(solved.path[i - 1], pose, i)!
       : { costs: zero(), events: [] };
     const nextMemory =
       p.model === "ergonomic"

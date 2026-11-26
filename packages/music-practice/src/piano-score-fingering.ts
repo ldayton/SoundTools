@@ -64,6 +64,7 @@ export function collectPianoScore(
     string,
     {
       at: number;
+      phraseStart?: boolean;
       previous: Map<number, { id: string; midi: number; end: number }>;
     }
   >();
@@ -79,6 +80,17 @@ export function collectPianoScore(
           clock = clocks.get(key) ?? { at: 0, previous: new Map() };
         clocks.set(key, clock);
         for (const item of voice) {
+          if (
+            item.el_type === "bar" &&
+            [
+              "bar_thin_thin",
+              "bar_thin_thick",
+              "bar_left_repeat",
+              "bar_right_repeat",
+              "bar_dbl_repeat",
+            ].includes(item.type)
+          )
+            clock.phraseStart = true;
           if (item.el_type !== "note") continue;
           const note = item as Note,
             duration = item.duration * 4,
@@ -159,6 +171,7 @@ export function collectPianoScore(
                   : duration,
               notatedDuration: duration,
               voice: key,
+              ...(clock.phraseStart ? { phraseStart: true } : {}),
               ...(tieFrom ? { tieFrom } : {}),
               ...(fixed !== undefined ? { finger: fixed } : {}),
             });
@@ -168,6 +181,7 @@ export function collectPianoScore(
               end: clock.at + duration,
             });
           }
+          if (item.pitches?.length) clock.phraseStart = false;
           clock.at += duration;
         }
       }

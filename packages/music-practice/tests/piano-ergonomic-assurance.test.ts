@@ -12,6 +12,8 @@ for (const hand of ["right", "left"] as const)
     [60, 61, 63],
     [64, 65, 64],
     [60, 60, 62],
+    [67, 72, 76],
+    [72, 67, 64],
   ])
     test(`independent ergonomic optimum ${hand} ${midis}`, () => {
       const notes = midis.map((midi, i) => ({

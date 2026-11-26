@@ -157,6 +157,11 @@ try {
     assert.equal(detached.hold, 0.5);
     assert.equal(detached.notation, 1);
     assert.ok(detached.voice);
+    assert.equal(detached.phraseStart, true);
+    assert.equal(
+      ergonomic.notes.find((n) => n.midi === 64)!.phraseStart,
+      false,
+    );
     await expect(page.locator(".hymn-fingering").first()).toBeVisible();
   }
   assert.deepEqual(errors, []);

@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "study": "hybrid-ranking-1",
+  "baselineRevision": "7f4ef97c",
+  "model": "lumikey",
+  "beamWidth": 6,
+  "candidates": "Current classic complete-hand sequence plus the existing six neural beam sequences; deduplicate identical finger sequences with classic retained on ties",
+  "objective": "(-sequenceLogProbability + physicalCostWeight * classicPlannerTotalCost) / physicalContactCount; minimize separately per hand, classic wins exact objective ties",
+  "physicalCostWeight": 0.1,
+  "weightRationale": "One neural nat trades against ten existing planner cost units. Fixed engineering choice before this evaluation; no reference-based tuning or weight sweep.",
+  "likelihood": "Teacher-force each sequence through the unchanged pretrained model using its own past choices. Future context contains only original source anchors, never the proposed future digits or reference labels.",
+  "constraints": "Validate identity, source anchors and complete-hand feasibility with the current planner; independently reject held-key/finger conflicts. Preserve unsupported hands and all source metadata.",
+  "corpus": ["hanon", "beringer", "beringer-scales"],
+  "evaluation": "All existing 262 consumed cases, 39264 source notes, all evidence and original partitions retained. Not a new holdout or a published-paper replication.",
+  "gates": [
+    "Strictly improve total reference matches",
+    "Do not reduce printed-reference matches",
+    "Do not reduce matches in any source-qualified passage family",
+    "Do not reduce complete-case, complete-hand or adjacent-transition agreement",
+    "Do not reduce coverage or feasible hands",
+    "No independent physical violations or changed source music/anchors"
+  ],
+  "runtime": "Report baseline, candidate planning and true likelihood-scoring timings separately. This is an offline research implementation, not a production latency claim.",
+  "decision": "Human review is optional and is not a prerequisite. A failed automated gate retains the released planner; successful regression gates permit further automated validation but do not resolve consumed-data limitations or model deployment rights. No production replacement or publication is part of this experiment."
+}

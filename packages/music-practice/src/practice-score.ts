@@ -268,7 +268,7 @@ export function drawPracticeScore(
     ...(options.printedScore ? { chordsOff: true } : {}),
   };
   const visibleAudio = tune.setUpAudio(audioOptions);
-  const fingeringTune=options.hiddenStaves?.length && (options.beginnerEdition === 'guitar' || options.fingerings && !options.beginnerEdition && !options.guitarTab) ? abcjs.parseOnly(source)[0] : tune;
+  const fingeringTune=options.hiddenStaves?.length && (options.beginnerEdition || options.fingerings && !options.guitarTab) ? abcjs.parseOnly(source)[0] : tune;
   if(fingeringTune!==tune)fingeringTune.setUpAudio(audioOptions);
   let audio = swingAudio(options.hiddenStaves?.length
     ? abcjs.parseOnly(source)[0].setUpAudio(audioOptions) : visibleAudio, swinging);
@@ -337,7 +337,7 @@ export function drawPracticeScore(
   if (swinging) addSwingHelp(paper);
   paper.querySelectorAll(".abcjs-part,.abcjs-tempo").forEach(mark=>mark.remove());
   layout.finish();
-  if (!options.fingerings) paper.querySelectorAll(".beginner-fingering,.beginner-picking,.beginner-string").forEach(mark=>mark.remove());
+  if (!options.fingerings) paper.querySelectorAll(".hymn-fingering,.beginner-fingering,.beginner-picking,.beginner-string").forEach(mark=>mark.remove());
   attachChordDiagrams(paper, chordPassages);
   if (options.printedScore && !options.guitarAccompaniment) attachPianoChordDiagrams(paper, tune);
 

@@ -1,0 +1,7 @@
+{
+  "version": "unified-v2",
+  "parent": "unified-protocol.json",
+  "change": "Correct closed-position recognition to operate on local overlapping regions, not only entire uninterrupted streams. Four or five distinct keys spanning at most four white-key coordinates and seven semitones are protected. Whole closed streams and six-attack chromatic runs remain protected. No coefficient changes.",
+  "reason": "The first development-only comparison found scale and five-finger regressions. Long exercises change position without a rest, so whole-stream recognition failed to identify their component closed positions. V1 results retained; reserved Burgmuller data remain unscored.",
+  "selection": "Freeze before a single development replay and fresh evaluation. No source/family/label input to recognition; no hyperparameter sweep or further tuning on fresh results."
+}

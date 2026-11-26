@@ -2,6 +2,7 @@ import {anchorScoreInk} from './score-layout/vertical';
 import { planGuitarPhrase, type GuitarPhraseNote, type GuitarFingeringProfile } from "./guitar-phrase-fingering";
 import type { AbsoluteElement, TuneObject, VoiceItem } from "abcjs";
 import { fingerstylePosition } from "./fingerstyle-tab";
+import { drawHymnFingerings } from "./hymn-fingering";
 export type BeginnerInstrument = "piano" | "guitar";
 const ns = "http://www.w3.org/2000/svg";
 type Note = Extract<VoiceItem, {el_type:"note"}> & {abselem?: AbsoluteElement};
@@ -133,7 +134,10 @@ export function planScoreGuitarFingerings(tune:TuneObject,from=0,transpose=0,pos
 }
 
 /** Add only the starting patterns and changes; repeated finger numbers are omitted. */
-export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false, positionFor:GuitarPositionFor=fingerstylePosition,planningTune=tune,capo=0) {
+export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstrument,from:number,transpose:number,tabOnly:boolean,fingersFor=beginnerFingers,pickingMarks=true,compactChordFingerings=false, positionFor:GuitarPositionFor=fingerstylePosition,planningTune=tune,capo=0,pianoAuthored=false) {
+  // Edition callback tables were algorithmic/layout hints, not source anchors.
+  // Only an explicit authored annotation layer retains the old ink path.
+  if(instrument==="piano"&&!pianoAuthored)return drawHymnFingerings(tune,{planningTune,editionFingerings:true});
   const music=entries(tune,from);
   const guitar=instrument === 'guitar' ? planScoreGuitarFingerings(planningTune,from,transpose,positionFor,{capo}) : undefined;
   const planned=guitar?.planned || new Map<string,number>();
@@ -195,6 +199,7 @@ export function drawBeginnerFingerings(tune:TuneObject,instrument:BeginnerInstru
       mark.setAttribute('fill','#164e63');
       anchorScoreInk(mark,tabOnly?target:group);
       mark.dataset.instrument=instrument;mark.dataset.voice=String(voice);
+      mark.dataset.fingeringSource=instrument==="piano"?"authored":"generated";
       mark.dataset.pitch=String(original[index]);mark.dataset.finger=String(finger);
       if(instrument === 'guitar'){
         const event=guitar?.plan?.notes.find(n=>n.id===ids.get(note)?.[index]);
@@ -381,15 +386,20 @@ export function separateBeginnerFingerings(paper: HTMLElement) {
     const heads = [...svg.querySelectorAll<SVGGraphicsElement>(".abcjs-notehead,[data-name^='accidentals.']")]
       .flatMap(node => { const box = bounds(node, svg); return box ? [box] : []; });
     const placed: NonNullable<ReturnType<typeof bounds>>[] = [];
-    for (const mark of svg.querySelectorAll<SVGTextElement>(".beginner-fingering")) {
+    for (const label of svg.querySelectorAll<SVGTextElement>(".beginner-fingering")) {
+      // Move the complete generated mark so a shift ring stays centered on its
+      // numeral. Legacy edition text remains a single independently placed node.
+      const mark = label.closest<SVGGraphicsElement>(".hymn-fingering") ?? label;
       let box = bounds(mark, svg);
       if (!box) continue;
+      let shiftX = 0;
       // Move to a clear column beside the note cluster, retaining its voice's height.
       for (const obstacle of [...heads, ...placed].sort((a,b) => b.x-a.x)) {
         if (box.x < obstacle.x+obstacle.width && box.x+box.width > obstacle.x
           && box.y < obstacle.y+obstacle.height && box.y+box.height > obstacle.y) {
           const shift: number = obstacle.x-box.x-box.width-4;
-          mark.setAttribute("x", String(Number(mark.getAttribute("x"))+shift));
+          if (mark === label) mark.setAttribute("x", String(Number(mark.getAttribute("x"))+shift));
+          else {shiftX += shift;mark.setAttribute("transform", `translate(${shiftX} 0)`);}
           box = {...box, x:box.x+shift};
         }
       }

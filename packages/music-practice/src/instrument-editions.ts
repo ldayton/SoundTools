@@ -82,6 +82,8 @@ export type ChordEdition = InstrumentEdition & {
   tempo: number;
   shapes: string;
   strumPattern?: boolean;
+  /** Guitar/layout hints and historical edition digits. Generated piano views
+   * use the shared timed planner; these callbacks are not authored anchors. */
   fingers: (
     instrument: BeginnerInstrument,
     bar: number,

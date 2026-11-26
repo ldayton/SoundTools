@@ -2,6 +2,91 @@ import abcjs from "abcjs";
 import { drawHymnFingerings } from "../src/hymn-fingering";
 import { collectPianoScore } from "../src/piano-score-fingering";
 import { placeScoreStaves } from "../src/score-layout/vertical";
+import {
+  createPianoPlanningService,
+  createPianoWorkerBackend,
+  pianoPlanningVersion,
+} from "../src/piano-planning-service";
+import { planPianoPhrase } from "../src/piano-phrase-fingering";
+import {
+  planUnifiedPianoPhrase,
+  unifiedPianoPolicyVersion,
+} from "../research/chirality/unified";
+import { parncuttUniformWeights } from "../research/chirality/rules";
+import { separateBeginnerFingerings } from "../src/beginner-score";
+
+export function renderPianoEditionPlacementFixture() {
+  document.body.innerHTML = '<div id="edition-placement"></div>';
+  const tune = abcjs.renderAbc(
+    "edition-placement",
+    "X:1\nL:1/4\nK:C\nCDEFGABc |]",
+    { add_classes: true, staffwidth: 700 },
+  )[0];
+  tune.setUpAudio({ chordsOff: true });
+  drawHymnFingerings(tune, { editionFingerings: true });
+  const paper = document.getElementById("edition-placement")!;
+  // Force the whole first shift mark over its notehead to exercise placement
+  // independently of the planner's currently preferred melodic digits.
+  const mark = paper.querySelector<SVGGraphicsElement>(
+    ".hymn-fingering:has(circle)",
+  )!;
+  const text = mark.querySelector("text")!,
+    circle = mark.querySelector("circle")!;
+  const y = Number(text.getAttribute("y")) + 12;
+  text.setAttribute("y", String(y));
+  circle.setAttribute("cy", String(y));
+  separateBeginnerFingerings(paper);
+  const t = text.getBoundingClientRect(),
+    c = circle.getBoundingClientRect();
+  return {
+    shifted: mark.hasAttribute("transform"),
+    centered: Math.abs((t.left + t.right) / 2 - (c.left + c.right) / 2) < 0.1,
+  };
+}
+export async function runPianoWorkerFixture(script: string, unified = false) {
+  const url = URL.createObjectURL(
+      new Blob([script], { type: "text/javascript" }),
+    ),
+    worker = new Worker(url, { type: "module" });
+  const client = createPianoWorkerBackend(worker, {
+    version: unified ? unifiedPianoPolicyVersion : pianoPlanningVersion,
+    ...(unified ? { configuration: { weights: parncuttUniformWeights } } : {}),
+  });
+  try {
+    const service = createPianoPlanningService({
+      backend: client.backend,
+      version: unified ? unifiedPianoPolicyVersion : pianoPlanningVersion,
+    });
+    const notes = [60, 64, 67, 72, 76, 79].map((midi, i) => ({
+      id: String(i),
+      hand: "right" as const,
+      midi,
+      start: i,
+      duration: 1,
+      voice: "melody",
+    }));
+    const changed = notes.map((n) => ({ ...n, midi: n.midi + 1 }));
+    const [old, current] = await Promise.all([
+      service.request({ notes }),
+      service.request({ notes: changed }),
+    ]);
+    const expected = unified
+      ? planUnifiedPianoPhrase(changed, parncuttUniformWeights).plan
+      : planPianoPhrase(changed);
+    const cached = await service.request({ notes: changed });
+    return {
+      old: old.status,
+      current: current.status,
+      matches:
+        current.status === "ready" &&
+        JSON.stringify(current.plan) === JSON.stringify(expected),
+      cached: cached.status === "ready" && cached.cached,
+    };
+  } finally {
+    client.close();
+    URL.revokeObjectURL(url);
+  }
+}
 export function renderPianoFingeringFixture(
   kind:
     | "single"
@@ -117,7 +202,11 @@ export function renderPianoFingeringFixture(
 import { hidePlaybackStaves } from "../src/hymn-playback-staves";
 import { drawBeginnerFingerings } from "../src/beginner-score";
 /** Real shared hidden-staff preparation, full-source planning and editorial path. */
-export function renderPianoPracticeFixture(hidden = false, editorial = false) {
+export function renderPianoPracticeFixture(
+  hidden = false,
+  editorial = false,
+  legacyGenerated = false,
+) {
   document.body.innerHTML = '<div id="practice-fixture"></div>';
   const abc =
     "X:1\nM:4/4\nL:1/4\n%%score r h l\nV:r clef=treble\nV:h clef=treble\nV:l clef=bass\nK:C\n[V:r] CDEF |]\n[V:h] G,4 |]\n[V:l] C,D,E,F, |]";
@@ -132,7 +221,24 @@ export function renderPianoPracticeFixture(hidden = false, editorial = false) {
     },
   })[0];
   tune.setUpAudio({ chordsOff: true });
-  if (editorial)
+  let hintCalls = 0;
+  if (legacyGenerated)
+    drawBeginnerFingerings(
+      tune,
+      "piano",
+      0,
+      0,
+      false,
+      (_instrument, _bar, _voice, pitches) => {
+        hintCalls++;
+        return pitches.map(() => 2);
+      },
+      true,
+      false,
+      undefined,
+      full,
+    );
+  else if (editorial)
     drawBeginnerFingerings(
       tune,
       "piano",
@@ -140,10 +246,17 @@ export function renderPianoPracticeFixture(hidden = false, editorial = false) {
       0,
       false,
       (_instrument, _bar, _voice, pitches) => pitches.map(() => 2),
+      true,
+      false,
+      undefined,
+      tune,
+      0,
+      true,
     );
   else drawHymnFingerings(tune, { planningTune: full });
   const paper = document.getElementById("practice-fixture")!;
   return {
+    hintCalls,
     generated: [...paper.querySelectorAll<SVGElement>(".hymn-fingering")].map(
       (e) => ({
         id: e.dataset.noteId,

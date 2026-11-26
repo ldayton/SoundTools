@@ -23,10 +23,12 @@ fraction durations; existing mono scale, tie and licensed reference contracts
 remain unchanged. Generated timed planning can select different digits because
 it considers duration, tempo and concurrent contacts.
 
-`beginner-score.ts`, `instrument-editions.ts` and reviewed editorial tables remain
-an explicit separate mode. `standard-hymn-editions.ts::standardFingers` still
-constructs some melody tables through the legacy API; those tables are not being
-replaced by generated whole-hand plans. No song-specific exceptions were added.
+`beginner-score.ts` now routes generated piano editions into this same timed
+planner. Historical callback tables remain available to legacy consumers but
+are not authored anchors. Genuine printed ABC digits remain hard constraints;
+an explicitly authored annotation layer remains separate. See
+[unified planning](piano-unified-planning.md) for the runtime/cache/worker
+contract, composed research policy, evaluation and default-promotion decision.
 
 ## Hard constraints and preferences
 

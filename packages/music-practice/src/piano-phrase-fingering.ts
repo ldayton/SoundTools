@@ -202,10 +202,20 @@ export type PianoRankingFrame = {
   anchor: number;
   fingers: Readonly<Record<string, number>>;
   costs: Readonly<PianoPhraseCosts>;
+  /** Classic posture duration factor; preference owners may replace its color
+   * and weak-digit terms without duplicating them. Geometry stays unchanged. */
+  postureScale?: number;
 };
 export type PianoRankingObjective = {
   local(frame: PianoRankingFrame): number;
   edge(previous: PianoRankingFrame, next: PianoRankingFrame): number;
+  /** Optional exact two-attack preference, using the existing bounded memory.
+   * It receives no arbitrary ordering of chord attacks. */
+  melodic?(
+    history: readonly PianoAttackMemory[],
+    attack: PianoAttackMemory,
+    hand: PianoHand,
+  ): number;
 };
 type Build = {
   contacts: Contact[];
@@ -419,6 +429,27 @@ function framesFor(contacts: Contact[], maximum: number): Frame[] | null {
     if (active.size > 5) return frames;
   }
   return frames;
+}
+/** Canonical, validated physical contacts for planners/worker/cache consumers.
+ * Historical external-model adapters keep their frozen input conventions. */
+export function pianoPhraseContacts(input: readonly PianoPhraseNote[]) {
+  if (input.length > 8000)
+    throw Error("Piano contact input exceeds global bound");
+  validateNotes(input);
+  const built = build(input);
+  return {
+    contacts: built.contacts.map((c) => ({ ...c, noteIds: [...c.noteIds] })),
+    diagnostics: { ...built.diagnostics },
+  };
+}
+/** Cheap boundary validation for cache/worker clients; preserve the planner's
+ * oversized-input diagnostic contract without constructing any candidates. */
+export function validatePianoPlanningInput(
+  input: readonly PianoPhraseNote[],
+  profile: PianoPhraseProfile = {},
+) {
+  validateProfile(profile);
+  if (input.length <= 8000) validateNotes(input);
 }
 function poses(
   frame: Frame,
@@ -818,7 +849,7 @@ function planHand(
     () => new WeakMap<Pose, WeakMap<Pose, ReturnType<typeof step>>>(),
   );
   const transitionAt = (a: Pose, b: Pose, i: number) => {
-    if (p.model !== "ergonomic")
+    if (p.model !== "ergonomic" && !objective?.melodic)
       return step(
         frames[i - 1],
         frames[i],
@@ -843,6 +874,7 @@ function planHand(
       hand,
       p,
       rollingEdges.has(i),
+      mono,
     );
     from.set(b, value);
     return value;
@@ -860,6 +892,7 @@ function planHand(
     anchor: pose.anchor,
     fingers: pose.fingers,
     costs,
+    postureScale: mono ? 1 : Math.min(4, frames[i].until - frames[i].at),
   });
   const rankedLocal = (pose: Pose, i: number) => {
     const value = local(pose, i);
@@ -919,22 +952,35 @@ function planHand(
       isolated: frame.active.length === 1,
     };
     const history =
-      c.phraseStart || memory.at(-1)?.voice !== c.voice ? [] : memory;
+      c.phraseStart ||
+      memory.at(-1)?.voice !== c.voice ||
+      (objective?.melodic &&
+        memory.length &&
+        memory.at(-1)!.end < c.start &&
+        !pianoSameTime(memory.at(-1)!.end, c.start))
+        ? []
+        : memory;
     const gesture =
       w.gesture && frame.active.length === 1 && history.length === 2
         ? pianoGestureCost(history[0], history[1], attack, hand) * w.gesture
         : 0;
     const cost =
-      history.length === 2
+      p.model === "ergonomic" && history.length === 2
         ? pianoContextCost(history[0], history[1], attack) * w.context
         : 0;
-    return { memory: [...history, attack].slice(-2), cost, gesture };
+    const preference = objective?.melodic?.(history, attack, hand) ?? 0;
+    return {
+      memory: [...history, attack].slice(-2),
+      cost,
+      gesture,
+      preference,
+    };
   };
   const solved =
-    p.model === "ergonomic"
+    p.model === "ergonomic" || objective?.melodic
       ? solvePianoMemoryPath(
           layers,
-          local,
+          rankedLocal,
           (pose) => advanceMemory([], pose, 0).memory,
           (a, b, memory, i) => {
             const transition = transitionAt(a, b, i);
@@ -942,7 +988,15 @@ function planHand(
             const next = advanceMemory(memory, b, i);
             return {
               memory: next.memory,
-              cost: total(transition.costs) + next.cost + (next.gesture ?? 0),
+              cost:
+                total(transition.costs) +
+                next.cost +
+                (next.gesture ?? 0) +
+                (next.preference ?? 0) +
+                (objective?.edge(
+                  rankingFrame(a, i - 1, zero()),
+                  rankingFrame(b, i, transition.costs),
+                ) ?? 0),
             };
           },
           // Attack IDs, voices and phrase resets are fixed by this input layer;

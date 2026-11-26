@@ -1,7 +1,7 @@
 import type { AbsoluteElement, TuneObject, VoiceItem } from "abcjs";
 import { scoreSpellings, pitchLabel } from "./sight-feedback";
+import { planPianoInput } from "./piano-planning-service";
 import {
-  planPianoPhrase,
   pianoSameTime,
   unsupportedPianoHand,
   assemblePianoPhrase,
@@ -25,6 +25,7 @@ export type PianoScoreEntry = {
   label: string;
   fixedFinger?: number;
   authoredFinger?: boolean;
+  fingerProvenance?: "score" | "explicit-anchor";
   tieFrom?: string;
 };
 export type PianoScoreOptions = {
@@ -32,6 +33,8 @@ export type PianoScoreOptions = {
   profile?: PianoPhraseProfile;
   hands?: ReadonlyMap<number, PianoHand>;
   fixedFinger?: (entry: PianoScoreEntry) => number | undefined;
+  /** Presentation only; never enters the planning cache or objective. */
+  editionFingerings?: boolean;
 };
 /** Establish ownership once from the full source's declared staves; later clef
  * changes and hidden/reindexed visible staves do not change the player's hand. */
@@ -151,12 +154,21 @@ export function collectPianoScore(
               label: pitchLabel(midi, spellings.get(item.startChar)),
               tieFrom,
             };
-            const fixed =
-              fixedFinger?.(entry) ??
-              (editorial.length === 1 && item.pitches?.length === 1
+            const printed =
+              editorial.length === 1 &&
+              item.pitches?.length === 1 &&
+              +editorial[0] >= 1 &&
+              +editorial[0] <= 5
                 ? +editorial[0]
-                : undefined);
+                : undefined;
+            const fixed = printed ?? fixedFinger?.(entry);
             entry.fixedFinger = fixed;
+            entry.fingerProvenance =
+              printed !== undefined
+                ? "score"
+                : fixed !== undefined
+                  ? "explicit-anchor"
+                  : undefined;
             entry.authoredFinger =
               editorial.length === 1 && item.pitches?.length === 1;
             entries.push(entry);
@@ -204,9 +216,12 @@ export function planPianoScore(
       ? (tempo.bpm * (tempo.duration?.reduce((a, b) => a + b, 0) ?? 0.25)) /
         0.25
       : 120;
-  const result = planPianoPhrase(full.notes, {
-    ...options.profile,
-    bpm: options.profile?.bpm ?? bpm,
+  const result = planPianoInput({
+    notes: full.notes,
+    profile: {
+      ...options.profile,
+      bpm: options.profile?.bpm ?? bpm,
+    },
   });
   for (const diagnostic of full.diagnostics)
     result.hands[diagnostic.hand] = unsupportedPianoHand(diagnostic);

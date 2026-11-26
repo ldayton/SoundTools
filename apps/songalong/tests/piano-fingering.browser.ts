@@ -33,7 +33,15 @@ try {
     globalName: "PianoFingeringFixture",
     platform: "browser",
   });
-  await page.goto("about:blank");
+  // Module workers require a non-opaque origin. Intercept the reserved test
+  // domain locally so this fixture owns no TCP port or remote request.
+  await page.route("http://piano.test/**", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      body: "<!doctype html><title>Piano fingering fixture</title>",
+    }),
+  );
+  await page.goto("http://piano.test/");
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   for (const kind of [
     "single",
@@ -123,8 +131,62 @@ try {
   assert.equal(
     editorial.generated.length,
     0,
-    "edition route does not acquire generated digits",
+    "explicit authored annotation route retains authored ink",
   );
+  const generatedEdition = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoPracticeFixture(false, false, true),
+  );
+  assert.equal(
+    generatedEdition.hintCalls,
+    0,
+    "legacy generated tables never become authored piano anchors",
+  );
+  assert.deepEqual(
+    generatedEdition.generated,
+    full.generated,
+    "edition and ordinary piano routes share the same physical plan",
+  );
+  const hiddenEdition = await page.evaluate(() =>
+    window.PianoFingeringFixture.renderPianoPracticeFixture(true, false, true),
+  );
+  assert.deepEqual(
+    hiddenEdition.generated,
+    generatedEdition.generated.filter((e) => !e.id?.startsWith("1:")),
+    "edition hidden staves retain full-source constraints",
+  );
+  assert.deepEqual(
+    await page.evaluate(() =>
+      window.PianoFingeringFixture.renderPianoEditionPlacementFixture(),
+    ),
+    { shifted: true, centered: true },
+    "collision placement moves shift rings and digits together",
+  );
+  for (const [entry, unified] of [
+    ["src/piano-planning-worker.ts", false],
+    ["research/chirality/unified-worker.ts", true],
+  ] as const) {
+    const worker = await build({
+      entryPoints: [
+        new URL("../../../packages/music-practice/" + entry, import.meta.url)
+          .pathname,
+      ],
+      bundle: true,
+      write: false,
+      format: "iife",
+      platform: "browser",
+    });
+    const result = await page.evaluate(
+      ({ script, unified }) =>
+        window.PianoFingeringFixture.runPianoWorkerFixture(script, unified),
+      { script: worker.outputFiles[0].text, unified },
+    );
+    assert.deepEqual(result, {
+      old: "stale",
+      current: "ready",
+      matches: true,
+      cached: true,
+    });
+  }
   const substitution = await page.evaluate(() =>
     window.PianoFingeringFixture.renderPianoSubstitutionFixture(),
   );

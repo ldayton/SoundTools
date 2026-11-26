@@ -13,6 +13,7 @@ export function drawHymnFingerings(
 ) {
   const { plan, entries, planned } = planPianoScore(tune, options),
     seen = new Set<string>();
+  const size = options.editionFingerings ? 14 : 9;
   const rows = new Map<
     SVGElement,
     {
@@ -71,7 +72,7 @@ export function drawHymnFingerings(
     for (const row of list) {
       if (chord) {
         row.x = minX;
-        row.y = Math.max(row.y, previous + 12);
+        row.y = Math.max(row.y, previous + size + 3);
         previous = row.y;
       }
     }
@@ -88,6 +89,8 @@ export function drawHymnFingerings(
     for (const { entry, finger, head, svg, x, y } of list) {
       const mark = document.createElementNS(ns, "g");
       mark.classList.add("hymn-fingering");
+      mark.dataset.fingeringSource = "generated";
+      if (options.editionFingerings) mark.style.color = "#164e63";
       if (finger.shift) mark.classList.add("hymn-finger-shift");
       Object.assign(mark.dataset, {
         hand: entry.hand,
@@ -120,7 +123,7 @@ export function drawHymnFingerings(
         for (const [key, value] of Object.entries({
           cx: markX,
           cy: markY,
-          r: 6.25,
+          r: size * 0.7,
           fill: "white",
           stroke: "currentColor",
           "stroke-width": 0.85,
@@ -134,7 +137,7 @@ export function drawHymnFingerings(
         y: markY,
         "text-anchor": "middle",
         "dominant-baseline": "central",
-        "font-size": 9,
+        "font-size": size,
         "font-family": "sans-serif",
         fill: "currentColor",
       }))
@@ -146,6 +149,18 @@ export function drawHymnFingerings(
         text.setAttribute("stroke-linejoin", "round");
       }
       text.textContent = String(finger.finger);
+      if (options.editionFingerings) {
+        text.classList.add("beginner-fingering");
+        text.setAttribute("font-weight", "700");
+        const [staff, voice] = entry.id.split(":").map(Number);
+        Object.assign(text.dataset, {
+          instrument: "piano",
+          voice: String(staff + voice),
+          pitch: String(entry.midi),
+          finger: String(finger.finger),
+          fingeringSource: "generated",
+        });
+      }
       mark.append(text);
       anchorScoreInk(mark, head);
       svg.append(mark);

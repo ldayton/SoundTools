@@ -1,0 +1,78 @@
+{
+  "corpusSha256": "a056c5f4485090cc572ffb096985dea8f8d578e393c0fddb9a393ae6e5925f03",
+  "semantics": "Written repeat bodies/all printed alternatives once; compare unique attack pitch and truncated MIDI ticks. Does not validate gold digits or hold articulation approximation.",
+  "rows": [
+    {
+      "id": "25EF-01",
+      "uniqueAttacks": 241,
+      "matched": true
+    },
+    {
+      "id": "25EF-02",
+      "uniqueAttacks": 283,
+      "matched": true
+    },
+    {
+      "id": "25EF-04",
+      "uniqueAttacks": 395,
+      "matched": true
+    },
+    {
+      "id": "25EF-05",
+      "uniqueAttacks": 215,
+      "matched": true
+    },
+    {
+      "id": "25EF-06",
+      "uniqueAttacks": 213,
+      "matched": true
+    },
+    {
+      "id": "25EF-07",
+      "uniqueAttacks": 219,
+      "matched": true
+    },
+    {
+      "id": "25EF-08",
+      "uniqueAttacks": 318,
+      "matched": true
+    },
+    {
+      "id": "25EF-09",
+      "uniqueAttacks": 525,
+      "matched": true
+    },
+    {
+      "id": "25EF-11",
+      "uniqueAttacks": 246,
+      "matched": true
+    },
+    {
+      "id": "25EF-15",
+      "uniqueAttacks": 756,
+      "matched": true
+    },
+    {
+      "id": "25EF-16",
+      "uniqueAttacks": 261,
+      "matched": true
+    },
+    {
+      "id": "25EF-17",
+      "uniqueAttacks": 287,
+      "matched": true
+    },
+    {
+      "id": "25EF-18",
+      "uniqueAttacks": 322,
+      "matched": true
+    }
+  ],
+  "unsupported": [
+    "25EF-03",
+    "25EF-10",
+    "25EF-12",
+    "25EF-13",
+    "25EF-14"
+  ]
+}

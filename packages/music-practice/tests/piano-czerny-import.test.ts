@@ -1,6 +1,9 @@
 import test from "node:test";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import assert from "node:assert/strict";
 
 test("reserved source importer preserves rational rhythm, hand, ties and annotation uncertainty", () => {
   execFileSync(
@@ -36,4 +39,76 @@ for rows in ['ROW|bad','ROW|upperStaff|0|1|60|1|1|0|1','ROW|upperStaff|0|1|60|1|
     ],
     { encoding: "utf8" },
   );
+});
+
+test("fresh importer preserves relative prefixes and rejects executable or malformed music", () => {
+  execFileSync(
+    "python3",
+    [
+      "-c",
+      String.raw`
+import importlib.util,sys
+s=importlib.util.spec_from_file_location('burgmuller',sys.argv[1])
+m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+music=m.music_assignments("Global = { \\key c \\major }\nTOP = \\relative c'' { f8' c-1 }\nBOT = { c,4-| }\nignored = { #(system bad) }")
+assert music['TOP']=="\\relative c'' { f'8 c-1 }"
+assert music['BOT']=='{ c,4-\\staccatissimo }'
+assert set(music)=={'Global','TOP','BOT'}
+for source in ['TOP = { #(system "bad") c4 }','TOP = { \\include "bad" }','TOP = { c4']:
+ try:m.music_assignments(source)
+ except ValueError:pass
+ else:raise AssertionError('Executable/malformed source accepted')
+`,
+      fileURLToPath(
+        new URL(
+          "../scripts/piano-neural/import-burgmuller.py",
+          import.meta.url,
+        ),
+      ),
+    ],
+    { encoding: "utf8" },
+  );
+});
+
+test("fresh reservation retains all pieces, source hashes, independent MIDI evidence and separate labels", () => {
+  const root = new URL(
+    "../test-fixtures/external/mutopia-burgmuller/",
+    import.meta.url,
+  );
+  const read = (name: string) => readFileSync(new URL(name, root));
+  const hash = (bytes: Buffer) =>
+    createHash("sha256").update(bytes).digest("hex");
+  const manifestBytes = read("reservation.json"),
+    corpusBytes = read("corpus.json");
+  const manifest = JSON.parse(manifestBytes.toString()),
+    corpus = JSON.parse(corpusBytes.toString()),
+    midi = JSON.parse(read("midi-verification.json").toString());
+  assert.equal(corpus.reservationSha256, hash(manifestBytes));
+  assert.equal(midi.corpusSha256, hash(corpusBytes));
+  assert.equal(manifest.files.length, 18);
+  assert.deepEqual(
+    corpus.cases.map((c: any) => c.id).sort(),
+    manifest.files.map((f: any) => f.file.replace(/\.ly$/, "")).sort(),
+  );
+  for (const file of manifest.files)
+    assert.equal(hash(read(file.file)), file.sha256, file.file);
+  assert.ok(
+    corpus.cases.every((c: any) =>
+      c.notes.every((n: any) => n.finger === undefined),
+    ),
+  );
+  const unsupported = corpus.inventory
+    .filter((i: any) => i.unsupportedNotation)
+    .map((i: any) => i.id)
+    .sort();
+  assert.deepEqual(unsupported, midi.unsupported);
+  assert.equal(unsupported.length, 5);
+  assert.deepEqual(
+    midi.rows.map((r: any) => r.id).sort(),
+    corpus.cases
+      .map((c: any) => c.id)
+      .filter((id: string) => !unsupported.includes(id))
+      .sort(),
+  );
+  assert.ok(midi.rows.every((r: any) => r.matched));
 });

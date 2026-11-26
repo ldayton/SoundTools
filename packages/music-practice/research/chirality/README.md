@@ -93,8 +93,10 @@ grace-note unsupported cases remain in all denominators.
 
 Full numeric/source-hash evidence is in `docs/piano-chirality-port-results.json`.
 The core and adapter bundle as browser ESM without Node/Python/NumPy imports;
-the checked unminified bundle is about 48 KiB, with no model weights. A worker
-client, caching and UI activation have not been added in this core milestone.
+the checked unminified bundle is about 48 KiB, with no model weights. The later
+[unified planning milestone](../../../../docs/piano-unified-planning.md) adds a
+shared cache/client contract and an optional research worker. Its composed
+policy remains gated; production uses the classic shared planner.
 
 ```sh
 node --import tsx --test packages/music-practice/tests/piano-parncutt-port.test.ts

@@ -85,6 +85,12 @@ uses the actual upstream weights and native Parncutt decoder. Its checked candid
 has larger aggregate gains, with chromatic/five-finger and whole-piece regressions
 still preventing an across-the-board replacement. It remains an offline experiment.
 
+An [isolated TypeScript port](../packages/music-practice/research/chirality/README.md)
+provides browser-compatible rule evaluation and bounded decoding, with synthetic
+Python parity and whole-hand fallback tests in the shared/music CI unit glob.
+It retains its AGPL license in the research directory and does not enter the
+application dependency graph or bundle published learned weights.
+
 The [cost audit](piano-cost-audit.md) diagnoses printed-reference disagreements
 as ranking tradeoffs, indistinguishable feature vectors or representation issues.
 Its corpus script is optional research; bounded synthetic audit contracts are

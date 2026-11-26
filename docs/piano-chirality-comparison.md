@@ -1,5 +1,10 @@
 # Published Chirality weight comparison
 
+The subsequent [TypeScript port](../packages/music-practice/research/chirality/README.md)
+reproduces all 1,112 native hand/model outputs exactly and adds bounded decoder,
+rule-grid, anchored-path and physical-fallback tests. It remains isolated from
+application defaults; its full record is `piano-chirality-port-results.json`.
+
 Chirality's published weights are substantially more promising than our locally
 trained scalar/structured models. The offline candidate uses their actual twelve
 Parncutt weights with their unmodified feature extractor and exact decoder. It

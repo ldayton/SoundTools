@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "role": "Fresh V3 final validation only; no fitting or development selection",
+  "revision": "f510d59b6467098839e59d89b5411d4b857c8114",
+  "selection": "Every available LilyPond source in Schumann Op68 except No1 Melodie, already represented in the consumed repertoire. No32 has no LilyPond source. All eighteen other source files reserved before V3 changes or scoring. Files selected by directory inventory, not performance. Upstream model-training overlap cannot be certified.",
+  "normalization": "Tabs expanded to two spaces; trailing whitespace stripped, final newline retained. Headers, source attribution and license notices preserved.",
+  "files": [
+    {
+      "file": "schumann-op68-02-marche-militaire.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-02-marche-militaire/schumann-op68-02-marche-militaire.ly",
+      "blobSha": "4cb1763f6399d7e9c5c260bd6f849a4401704d12",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "9651c5a6d985957cd489d22dbaabf05c8cce406dd837b5e68840d52efe0dfc8c"
+    },
+    {
+      "file": "schumann-op68-03-chanson-fredonnee.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-03-chanson-fredonnee/schumann-op68-03-chanson-fredonnee.ly",
+      "blobSha": "5085362e65abf5b377b19cd55b1046b0c81c16c9",
+      "license": "Creative Commons Attribution-ShareAlike 3.0",
+      "sha256": "322ce4dfb17e3d7de04af2df2a29f3da2da6b1b8ae2560b43aa6663d44c28ba0"
+    },
+    {
+      "file": "schumann-op68-04-choral.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-04-choral/schumann-op68-04-choral.ly",
+      "blobSha": "a363e7e2435ab4b152c2b087ebdbc2cc40ac2a0b",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "36890a9f5fcbecd48da1dabb1a2a4607d6908a2f8607a8a7afcaf13264d0aade"
+    },
+    {
+      "file": "schumann-op68-05-petite-piece.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-05-petite-piece/schumann-op68-05-petite-piece.ly",
+      "blobSha": "31ad71dfe9cfbd9ba5d22e3ad27321370f7f943a",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "89a593d41fd891ca8d85908c4340940f4fd989badedc211c8eaf676be32702ef"
+    },
+    {
+      "file": "schumann-op68-06-pauvre-orpheline.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-06-pauvre-orpheline/schumann-op68-06-pauvre-orpheline.ly",
+      "blobSha": "4d0a3619369de7cdd1dee7cee63d0331470b7c04",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "fe0903a323dcbbb7a25622d89bee741f37d043de998c832f6849f1c18d2b0b8c"
+    },
+    {
+      "file": "schumann-op68-07-chanson-du-chasseur.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-07-chanson-du-chasseur/schumann-op68-07-chanson-du-chasseur.ly",
+      "blobSha": "4b1b9297a13d05c80551032353d7b2e6c4ccc8c5",
+      "license": "Creative Commons Attribution-ShareAlike 3.0",
+      "sha256": "ba0ccfbd4d233d1dbba53c53ef7ddfbb76bcb9e5668abf688af7b721acad5ac8"
+    },
+    {
+      "file": "schumann-op68-08-cavalier-sauvage.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-08-cavalier-sauvage/schumann-op68-08-cavalier-sauvage.ly",
+      "blobSha": "217685db5082b63edbcdfb75b5bedc1f442a8626",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "823f75e13b84bbd56752463dee61f81ee2fcbe003fc4ec9541a860c3cd6eddde"
+    },
+    {
+      "file": "schumann-op68-09-chanson-populaire.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-09-chanson-populaire/schumann-op68-09-chanson-populaire.ly",
+      "blobSha": "0e31291c42682d7a7f15d192fa41e4a2ee3e4413",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "b42891ad1df2a609df4c2006f35656362598f67d45b50abbd9239476f962c7a4"
+    },
+    {
+      "file": "schumann-op68-10-gai-laboureur.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-10-gai-laboureur/schumann-op68-10-gai-laboureur.ly",
+      "blobSha": "52ed57682ed9f37d7292b7eec7560acd4fbe5773",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "f75554d543c2d9f32a5553aca618de66dd8019422ffa80be3b7fda70c7237cbf"
+    },
+    {
+      "file": "schumann-op68-11-sicilienne.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-11-sicilienne/schumann-op68-11-sicilienne.ly",
+      "blobSha": "eca5dc28571bebaa71ed5b5947c8f7d8b321ef96",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "53061d0cc7530ae47e58e9147920629e88e971d0bf88a78bbfb74023a1f9af55"
+    },
+    {
+      "file": "schumann-op68-12-Pere-Fouettard.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-12-Pere-Fouettard/schumann-op68-12-Pere-Fouettard.ly",
+      "blobSha": "3b18d486fc477ab5df05889eec9f0342b446aaaa",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "84bffc3b247a0a4511fef77f906b51ab59bf13d510da3537f4c3901fab48e405"
+    },
+    {
+      "file": "schumann-op68-13-Mai-cher-Mai.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-13-Mai-cher-Mai/schumann-op68-13-Mai-cher-Mai.ly",
+      "blobSha": "b5b4eb87a8a2f1bbb4beede382950409ab538552",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "d0df92d7a83953a1554b0ad139e1bd24b081ae3b67dd014540dfd213dcc34411"
+    },
+    {
+      "file": "schumann-op68-14-petite-etude.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-14-petite-etude/schumann-op68-14-petite-etude.ly",
+      "blobSha": "accf1629d26f761b85781dac879cc446ebbf3113",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "49f4ebfdf9a663d5327b788f5d8515fb8ab242da69acecf37aeb7ea7691bfc9c"
+    },
+    {
+      "file": "schumann-op68-16-premier-chagrin.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-16-premier-chagrin/schumann-op68-16-premier-chagrin.ly",
+      "blobSha": "744ff5fcc9d76058ca96fe2f4527b7c10e688dac",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "16ade0a7c06a9728574188c28fcb2849011f8a48710aeb05bb1a3a4ac3994ad8"
+    },
+    {
+      "file": "schumann-op68-18-moissonneurs.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-18-moissonneurs/schumann-op68-18-moissonneurs.ly",
+      "blobSha": "0e534f70117061af67790506fc72432bb3bed313",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "9eaa03fe0cf3e06a42edf4841c7db2c2651c835a9b97498e5a6643fe9d226f63"
+    },
+    {
+      "file": "schumann-op68-25-theater.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-25-theater/schumann-op68-25-theater.ly",
+      "blobSha": "cccc2a54c0cc574af54c45a543a7c7c7d2a876b8",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "28bbd074019bd33296f9350aad64cf0766a229109a4d875f8154e3ad0b210498"
+    },
+    {
+      "file": "schumann-op68-26-sans-titre.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-26-sans-titre/schumann-op68-26-sans-titre.ly",
+      "blobSha": "edb396d94d04d16a98684c987990f1eadd6d8dfa",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "2bd8057060c8678ad71ac6db0c1f9ab6ed8ade9d881aef14dae0703f702ab701"
+    },
+    {
+      "file": "schumann-op68-36-chant-de-marins-italiens.ly",
+      "url": "https://github.com/MutopiaProject/MutopiaProject/blob/f510d59b6467098839e59d89b5411d4b857c8114/ftp/SchumannR/O68/schumann-op68-36-chant-de-marins-italiens/schumann-op68-36-chant-de-marins-italiens.ly",
+      "blobSha": "bd7813a4c28e60fc01e97fa15442cc8bca3e4148",
+      "license": "Creative Commons Attribution-ShareAlike 2.5",
+      "sha256": "a24ada88f75fabd751a979ade1312bab72db86ccaecac131a843de67953953ff"
+    }
+  ]
+}

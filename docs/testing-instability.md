@@ -730,3 +730,20 @@ assertions by ownership: `guitar.browser.ts` retains desktop/phone controls;
 `guitar-sustain.browser.ts` retains every registry entry's real scheduling
 durations and editorial-mark checks. Both are required in CI and Nightly.
 No product music, timing assertions or coverage were changed.
+
+Hosted run 45799723222, DoReGo job 139839750381, failed before application
+checks in browser provisioning: the second Playwright dependency-install
+attempt could not acquire `/var/lib/dpkg/lock-frontend` (held by apt-get 3293).
+First job log retained under `work/hosted-dorego.log`; shared and the other
+three app validations passed. GitHub's job-retry API returned HTTP 403
+(admin rights required for this connection), so a documentation-only follow-up
+triggers fresh-run validation of the unchanged feature code. This is an
+infrastructure retry, not a retry of an application assertion.
+
+The documentation-only retry's pending-release selection omitted the already
+promoted NoteWise app and hit the local budget during DoReGo's final drone
+cases (`work/ci-results/1795688755457-5529dc6b/`, no earlier assertion failure).
+Use the standard `npm run ci -- --base origin/main --all` to validate the exact
+retry commit with the broader all-app graph, previously measured at 54.85s.
+No checks or resource locks are bypassed; the partial-plan timing remains an
+investigation item rather than a passing run.

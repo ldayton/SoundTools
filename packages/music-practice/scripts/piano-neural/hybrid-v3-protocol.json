@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "study": "hybrid-ranking-3",
+  "previousStudy": "hybrid-ranking-2",
+  "policy": "reduce-movement-complexity",
+  "physicalCostWeight": 0.1,
+  "rule": "A neural hand must strictly reduce at least one classic movement-complexity count (relocations, crossings, repeated-note finger changes) while increasing none. Among admissible candidates use the unchanged hybrid objective. Keep classic if there is no demonstrably simpler candidate.",
+  "rationale": "The preserve-counts trial removed chromatic and repertoire regressions but still renumbered stable five-finger patterns without reducing any playing action. Equal-complexity renumbering is no longer a reason to override the current planner. This structural condition applies to every score without family or reference inputs.",
+  "evaluation": "Retain all original cases, notes, frozen candidate likelihoods and automated gates. Compare classic, the original hybrid and the stricter hybrid. Also retain the failed preserve-counts trial. This is iterative development on consumed data, not fresh validation. Human review is not required.",
+  "tradeoff": "Accept fewer neural changes and potentially lower aggregate agreement in exchange for preserving simple fingerings. Do not tune the 0.1 weight, change labels, omit cases or use family-specific routing."
+}

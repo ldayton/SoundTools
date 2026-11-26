@@ -697,3 +697,12 @@ timeout or runner changes, passed in 57.46 seconds. Evidence:
 The guitar command completed in 29.5 seconds. This demonstrates sensitivity to
 setup/execution timing near the budget, not a performance fix or proof of its
 cause. All checks remain required and the 60-second limit is unchanged.
+
+### 2026-11-26 DoReGo voice ribbon: local disk exhaustion
+
+Local CI for `12057cf8` failed during build output writes with `ENOSPC`, before
+the required browser checks. First logs: `work/ci-results/1795687605532-fb97bcb5/`.
+The coordinator could not write `local.json` after exhausting storage. This is
+an infrastructure failure, not a passing or complete run. Cleared reproducible
+node_modules installations from five old worktrees, preserving source and audio
+comparison artifacts. Rerun the standard full applicable CI on the final commit.

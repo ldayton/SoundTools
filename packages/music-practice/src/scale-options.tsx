@@ -34,7 +34,7 @@ export function ScaleOptions({
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
     <Stack
-      className="soundtools-ui"
+      className="soundtools-ui scale-options"
       role="group"
       aria-label="Scale controls"
       tabIndex={-1}

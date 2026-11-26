@@ -38,10 +38,10 @@ function nightlyPlan(app, browser, group) {
     soundglow: browser === 'webkit' ? ['test:browser-core', 'test:ui-browsers'] : ['test:unit', 'test:browser-core', 'test:updates', 'test:visual', 'test:resilience'],
   };
   const commands = tasks[app].map(task => npm(app, task));
-  if (app === 'songalong') commands.push(script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts'));
+  if (app === 'songalong') commands.push(script(app, 'tests/guitar-sustain.browser.ts'), script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts'));
   if (app === 'songalong' && browser === 'chromium') commands.push(script(app, 'tests/piano-benchmark.corpus.ts'));
   if (app === 'notewise') commands.push(script(app, '../../tests/ci/critical-midi.browser.mts'), ['node', ['scripts/test-ui-controls.cjs']]);
-  if (app === 'dorego') commands.push(script(app, 'tests/sequence.e2e.ts'));
+  if (app === 'dorego') commands.push(script(app, 'tests/sequence.e2e.ts'), script(app, 'tests/voice-feedback.e2e.ts'));
   if (app === 'dorego' && browser === 'chromium') commands.push(
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);
   return commands;
@@ -53,9 +53,9 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
   if (tier === 'nightly') return nightlyPlan(app, browser, group);
   if (group !== 'core') throw Error('Edition browser coverage belongs to Nightly');
   return {
-    dorego: [npm(app, 'test:desktop'), script(app, 'tests/sequence.e2e.ts')],
+    dorego: [script(app, 'tests/voice-feedback.e2e.ts'), npm(app, 'test:desktop'), script(app, 'tests/sequence.e2e.ts')],
     notewise: [script(app, '../../tests/ci/critical-midi.browser.mts')],
-    songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts')],
+    songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/guitar-sustain.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts')],
     soundglow: [npm(app, 'test:unit'), ['node', ['tests/ci/silent-audio.browser.cjs']]],
   }[app];
 }

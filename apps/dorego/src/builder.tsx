@@ -1,3 +1,4 @@
+import { VoiceFeedbackOptions } from './voice-ribbon';
 import { isScalePattern, activeScaleTuning } from './music';
 import { useSyncExternalStore } from 'react';
 import {
@@ -192,6 +193,7 @@ export function Builder({
       onSubmit={(event) => event.preventDefault()}
     >
       <Stack gap="lg">
+        <VoiceFeedbackOptions />
         <Alert id="form-error" color="red" hidden={!error} role="alert">
           {error}
         </Alert>

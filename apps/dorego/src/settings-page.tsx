@@ -90,6 +90,9 @@ export function SettingsPage({
           >
             VSCO cello recordings · CC0
           </Anchor>
+          <Anchor size="sm" href={`${import.meta.env.BASE_URL}pitch-engine/source.tar.gz`}>
+            Praat pitch engine · GPL-3.0-or-later · source
+          </Anchor>
           <Anchor size="sm" href={accidentalLicense} target="_blank" rel="noopener">
             Bravura accidental glyphs · SIL Open Font License
           </Anchor>

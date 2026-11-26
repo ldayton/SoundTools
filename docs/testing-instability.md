@@ -697,3 +697,36 @@ timeout or runner changes, passed in 57.46 seconds. Evidence:
 The guitar command completed in 29.5 seconds. This demonstrates sensitivity to
 setup/execution timing near the budget, not a performance fix or proof of its
 cause. All checks remain required and the 60-second limit is unchanged.
+
+### 2026-11-26 DoReGo voice ribbon: local disk exhaustion
+
+Local CI for `12057cf8` failed during build output writes with `ENOSPC`, before
+the required browser checks. First logs: `work/ci-results/1795687605532-fb97bcb5/`.
+The coordinator could not write `local.json` after exhausting storage. This is
+an infrastructure failure, not a passing or complete run. Cleared reproducible
+node_modules installations from five old worktrees, preserving source and audio
+comparison artifacts. Rerun the standard full applicable CI on the final commit.
+
+The next full run (`04fd4f53`, `work/ci-results/1795687683861-03211656/`)
+reached the 60-second budget and cancelled the DoReGo desktop and SongAlong
+guitar commands without a preceding assertion failure. Separated the new
+voice-feedback scenario into a required CI/Nightly lane on port 4709. It tests
+real-WASM input/render/lifecycle outcomes, not hardware latency or measured PCM,
+so it needs no exclusive realtime-audio lock. Existing desktop/drone coverage
+stays in its original lane; no assertions were removed.
+
+The first split-lane audit (`c258590e`,
+`work/ci-results/1795687826256-f20f6677/`) finished all app checks within
+59.49 seconds but failed two stale policy expectations: Nightly's explicit
+extra browser-file list and the desktop audio-lock assertion tied to index 0.
+Updated both consumers for the added lane; desktop retains its audio lock and
+the new lane must retain port 4709 without claiming realtime-audio.
+
+The corrected policy run (`85a4b152`,
+`work/ci-results/1795687905608-c84fcd5a/`) passed DoReGo and shared checks,
+but exhausted the budget during the existing SongAlong guitar registry loop
+(34.1 seconds for the combined control-and-sustain lane). Split those existing
+assertions by ownership: `guitar.browser.ts` retains desktop/phone controls;
+`guitar-sustain.browser.ts` retains every registry entry's real scheduling
+durations and editorial-mark checks. Both are required in CI and Nightly.
+No product music, timing assertions or coverage were changed.

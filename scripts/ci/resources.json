@@ -2260,5 +2260,45 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "dorego:npm:exec --workspace=dorego -- tsx tests/voice-feedback.e2e.ts": {
+    "kind": "ui",
+    "ports": [
+      4709
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=dorego",
+          "--",
+          "tsx",
+          "tests/voice-feedback.e2e.ts"
+        ],
+        "cwd": "apps/dorego"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/guitar-sustain.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4710
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/guitar-sustain.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

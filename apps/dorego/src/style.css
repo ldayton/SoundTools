@@ -619,3 +619,15 @@
   .dorego-workspace .practice-panel { padding-block: 0; }
   .dorego-workspace .maqamat-controls { margin-block: 2px; row-gap: 4px; }
 }
+
+/* Optional pitch feedback is confined to DoReGo's practice pane. */
+.voice-ribbon { width: 100%; max-width: 640px; margin: 8px auto 0; }
+.voice-ribbon svg { display: block; width: 100%; height: 112px; overflow: hidden; }
+.voice-ribbon path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.voice-ribbon-guide { stroke: #dfe2dc; stroke-width: 9px; }
+.voice-ribbon-voice { stroke: #79c51d; stroke-width: 3px; }
+.voice-ribbon figcaption { display: flex; justify-content: center; gap: 22px; color: #7e8578; font-size: 13px; margin: 6px 0 0; }
+.voice-ribbon figcaption span { display: inline-flex; align-items: center; gap: 7px; }
+.voice-ribbon figcaption i { width: 17px; height: 4px; background: #cdd1c9; }
+.voice-ribbon figcaption span:last-child i { background: #79c51d; }
+@media(max-width: 760px) { .voice-ribbon svg { height: 96px; } }

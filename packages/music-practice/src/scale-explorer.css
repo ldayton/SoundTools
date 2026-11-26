@@ -258,3 +258,31 @@
   .scale-heading h2 { font-size: 23px; }
   .scale-heading .scale-relative-switch { padding-inline: 8px; font-size: 12px; }
 }
+
+/* The phone scale view is a full-width practice canvas. */
+@media (max-width: 760px) {
+  #practice-content:has(.scale-card) {
+    background: var(--mantine-color-body);
+    padding-inline: 0;
+    padding-bottom: 0;
+  }
+  .workspace-content:has(.scale-card) > h1 { padding-inline: 12px; }
+  .scale-card.practice-surface {
+    border: 0;
+    border-radius: 0;
+    padding: 12px;
+    min-height: calc(100dvh - var(--app-shell-header-offset, 72px) - 56px);
+  }
+  .scale-card .scale-note-list,
+  .scale-card .scale-shortcuts-button { display: none; }
+  .scale-card .scale-diagram {
+    width: 100%;
+    overflow: hidden;
+    touch-action: pinch-zoom;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .scale-card .scale-diagram svg { width: 100%; max-width: 100%; }
+  .scale-options:focus { outline: none; }
+  .scale-options { user-select: none; -webkit-user-select: none; }
+}

@@ -364,6 +364,11 @@ export class ScaleExplorer implements LivePractice {
       element,
       createElement(ScaleFrame, {
         body: this.body,
+        navigate: (axis: "tonic" | "shape", direction: number) => {
+          if (!this.active) return;
+          if (axis === "tonic") this.moveTonic(direction);
+          else this.moveShape(isMaqam(this.quality) ? direction : -direction);
+        },
         setChordOpen: (open: boolean) => { this.chordOpen = open; this.render(); },
         clearShift: () => {
           this.selectedShift = undefined;

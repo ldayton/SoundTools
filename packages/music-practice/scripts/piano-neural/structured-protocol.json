@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "study": "latent-structured-v1",
+  "reservedTest": "../../test-fixtures/external/mutopia-czerny/reservation.json",
+  "training": "All printed-evidence Hanon/Beringer cases already consumed in earlier research. Completed annotations are secondary evaluation only. No fresh Czerny labels or scores enter training or selection.",
+  "selection": "No hyperparameter search. One fixed training schedule, final averaged weights after 8 deterministic epochs, both learners. No tuning after test results.",
+  "decoder": "Exact classic candidate graph and physical transition constraints; unknown digits and wrist anchors remain latent. Reference oracle filters the unconstrained graph, never rebuilds geometry from labels. Source anchors always apply.",
+  "objective": "Online latent structured perceptron with Hamming loss augmented inference on printed labels only; compatible latent completion recomputed under current weights at every update. Cost weights update toward compatible minus loss augmented preference, averaged over all examples including no-update examples.",
+  "epochs": 8,
+  "learningRate": 0.02,
+  "regularization": 0.001,
+  "scalar": "Four active classic scalar costs; nonnegative projected weights initialized at one, normalized feature counts per example. Inactive classic components stay fixed.",
+  "structured": "Same scalar features plus input-conditioned attack and pair preferences: black-key/finger, interval/digit transitions, direction and turn contexts, phrase starts/ends, repetition, thumb passage and key depth. Signed contextual weights bounded to [-4,4]; scalar costs remain nonnegative. No ergonomic geometry change.",
+  "evaluation": "All reserved pieces and all old cases, no dropped unsupported hands. Printed and completed separate. Accuracy, complete sequences, coverage, physical conflicts, runtime, source-family results and paired piece differences. Do not promote automatically.",
+  "import": "Use installed LilyPond parser on sanitized music variables, own AST dumper, preserve pitch/time/hand/voice/ties. Compound or ambiguous chord fingerings flagged and excluded only from eligible gold labels, never remove their notes. Retain import failures in inventory.",
+  "acceptance": "Research comparison, not automatic product rollout. Require no new physical conflicts, constraints and input identity preserved, numerical/oracle tests passing, full local CI passing. Report agreement regressions honestly. Fresh-test failures do not authorize refitting."
+}

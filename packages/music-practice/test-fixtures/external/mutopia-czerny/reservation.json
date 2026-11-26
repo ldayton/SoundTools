@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "role": "untouched final test only; never training or model selection",
+  "reservedBeforeTraining": true,
+  "upstreamCommit": "5843d1b1868906b4e20c77ba0bc9f442c6d92a83",
+  "selection": "All 19 directories available under CzernyC/Op_821 at the pinned revision, in numeric order. No selection by planner performance. No.17 source inspected in prior research, never scored.",
+  "files": [
+    {
+      "file": "Czerny_Op_821_No_001.ly",
+      "sha256": "78c2dc9e81cd5aa7f3f28b0c82c9f902b79190ac804922915ebaacc7db2478dd",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_001/Czerny_Op_821_No_001.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_002.ly",
+      "sha256": "e6e2b4c44c9867180b84e54c5516a6b3dc2aba62e6b7271eccc5314c236dddc3",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_002/Czerny_Op_821_No_002.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_003.ly",
+      "sha256": "24369c20985812e451a76c92af89f30c32f7e1d314184beb90b8ce4e40e77361",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_003/Czerny_Op_821_No_003.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_004.ly",
+      "sha256": "2fccac90918e6c758588c0012a979b16965ab433597475545757cc4ed8fb89c2",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_004/Czerny_Op_821_No_004.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_005.ly",
+      "sha256": "36421bc0fc8beeb20d97cfb232160b657670b17c3b3b725dfb3bf4f5af583fe3",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_005/Czerny_Op_821_No_005.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_006.ly",
+      "sha256": "79a0adf36e0c97ce8f17eef648ea623f5c03786ee8f2d4c1fa2d4463e9628b21",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_006/Czerny_Op_821_No_006.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_007.ly",
+      "sha256": "c94daddfb4ed3cefc6b3336e496863d3c62c52f2106a4dd6ced85b8442fc59b0",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_007/Czerny_Op_821_No_007.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_008.ly",
+      "sha256": "6ba263d34f3b9ff5990cfc4cc72237f9a9c1df7d51baae6f5e862bc59cced301",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_008/Czerny_Op_821_No_008.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_009.ly",
+      "sha256": "f26871be0e81985a645d07121faab9e0e921deab074fa73ba5e9382d4f79c070",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_009/Czerny_Op_821_No_009.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_010.ly",
+      "sha256": "efc6a8ffa3e78bb83441e42ab0d6582db093f5ba0ea23d8c93642ce03215c0a7",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_010/Czerny_Op_821_No_010.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_011.ly",
+      "sha256": "33f0e5bd3e3b6c28a4fc25e3f71ddf200bb8af24e826a0180650855c6120a367",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_011/Czerny_Op_821_No_011.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_012.ly",
+      "sha256": "c70a34ecdd4ec7a90e032002b5d5234d07e371f833a9fed31cdc41879f02d713",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_012/Czerny_Op_821_No_012.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_013.ly",
+      "sha256": "9b9c9d187f70143378c80954a936369d14f991336c57839f0a3ee64d6bc2e2cd",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_013/Czerny_Op_821_No_013.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_014.ly",
+      "sha256": "fd9695565580b96b9a9102e76f18190f3d3e3a53e22dd3c05e823e51caa74f6a",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_014/Czerny_Op_821_No_014.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_015.ly",
+      "sha256": "cf3ceb826b7c3e16c5cb54d6ced0a87f8816ba1bf5c1bf188c0b546cfde1352e",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_015/Czerny_Op_821_No_015.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_016.ly",
+      "sha256": "e7600f62a8e7a8f47d0c6adfa01cb533397b889454652205f001500ec3d8563a",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_016/Czerny_Op_821_No_016.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_017.ly",
+      "sha256": "347de546edf8e4bcc6ef8eefa946c0a3d53c579b97151e35eb13976428c0396c",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_017/Czerny_Op_821_No_017.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_018.ly",
+      "sha256": "c0f28afe9381e020838294f4466267dc3a2e5b2af27fde84afb7a137f1b77631",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_018/Czerny_Op_821_No_018.ly"
+    },
+    {
+      "file": "Czerny_Op_821_No_019.ly",
+      "sha256": "2dab234ab699882b5d1ce119ad43fa26bbcc42deccd40dbf8539d06102df19c5",
+      "license": "Public Domain",
+      "source": "https://github.com/MutopiaProject/MutopiaProject/blob/5843d1b1868906b4e20c77ba0bc9f442c6d92a83/ftp/CzernyC/Op_821/Czerny_Op_821_No_019/Czerny_Op_821_No_019.ly"
+    }
+  ]
+}

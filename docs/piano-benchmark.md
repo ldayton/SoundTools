@@ -134,3 +134,9 @@ command, not browser-dependent). It retains per-case diagnostics/mismatches in
 corpus and eligible-label counts, prevents coverage loss, and guards each family's
 recorded agreement floor in both partitions. It never runs twice under different
 browser engines. The policy/resource inventory and policy tests own this choice.
+
+The next implementation recovers individually locatable source digits, adds
+separately labelled Beringer completed references, and retains the original
+eligible-ID floors. See [the ergonomics experiment](piano-ergonomics.md) and its
+new report for current counts, candidate regression results and default policy.
+The original measurements above remain the historical, pre-recovery experiment.

@@ -39,10 +39,14 @@ const uri = (s: string) =>
   Buffer.from(
     transformSync(s, { loader: "ts", format: "esm", target: "es2022" }).code,
   ).toString("base64");
-async function load(s: string, m: string): Promise<typeof planPianoPhrase> {
-  const js = s.replaceAll('"./piano-hand-model"', JSON.stringify(uri(m)));
-  return (await import(uri(js))).planPianoPhrase;
+import {
+  loadPianoPlanner,
+  pianoPlannerSources,
+} from "../test-fixtures/piano-planner-loader";
+async function load(s: string, m: string) {
+  return loadPianoPlanner({ ...pianoPlannerSources, core: s, model: m });
 }
+
 for (const mutant of [
   {
     name: "drops rolling context",

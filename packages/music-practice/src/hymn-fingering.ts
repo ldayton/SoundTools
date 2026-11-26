@@ -25,13 +25,7 @@ export function drawHymnFingerings(
   for (const entry of entries) {
     const finger = planned.get(entry.id),
       absolute = entry.absolute;
-    if (
-      !finger ||
-      !absolute ||
-      entry.tieFrom ||
-      entry.fixedFinger !== undefined
-    )
-      continue;
+    if (!finger || !absolute || entry.tieFrom || entry.authoredFinger) continue;
     const unique = `${entry.hand}:${finger.contactId}:${entry.start}`;
     if (seen.has(unique)) continue;
     seen.add(unique);

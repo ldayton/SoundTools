@@ -24,6 +24,7 @@ export type PianoScoreEntry = {
   absolute?: AbsoluteElement;
   label: string;
   fixedFinger?: number;
+  authoredFinger?: boolean;
   tieFrom?: string;
 };
 export type PianoScoreOptions = {
@@ -140,13 +141,24 @@ export function collectPianoScore(
                 ? +editorial[0]
                 : undefined);
             entry.fixedFinger = fixed;
+            entry.authoredFinger =
+              editorial.length === 1 && item.pitches?.length === 1;
             entries.push(entry);
             notes.push({
               id,
               hand,
               midi,
               start: clock.at,
-              duration,
+              duration:
+                !pitch.endTie &&
+                !pitch.startTie &&
+                (item.decoration || []).some(
+                  (d: string) => d === "staccato" || d === "staccatissimo",
+                )
+                  ? duration * 0.5
+                  : duration,
+              notatedDuration: duration,
+              voice: key,
               ...(tieFrom ? { tieFrom } : {}),
               ...(fixed !== undefined ? { finger: fixed } : {}),
             });

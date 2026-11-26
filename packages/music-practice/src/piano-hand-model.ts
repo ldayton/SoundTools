@@ -149,6 +149,7 @@ export type PianoPath<T> = {
   path: T[];
   cost: number;
   transitions: number;
+  states?: number;
 };
 /** Exact DP: keep every state, stable ties, no beam pruning. */
 export function solvePianoPath<T>(
@@ -197,4 +198,73 @@ export function solvePianoPath<T>(
     index = node.previous;
   }
   return { status: "complete", path, cost, transitions };
+}
+
+/** Exact search with sufficient history. Only identical current candidate AND
+ * future-relevant memory may merge. No beam, cost-only history merging or retries. */
+export function solvePianoMemoryPath<T, M>(
+  layers: readonly (readonly T[])[],
+  local: (value: T, index: number) => number,
+  initial: (value: T) => M,
+  advance: (
+    a: T,
+    b: T,
+    memory: M,
+    index: number,
+  ) => { cost: number; memory: M } | null,
+  key: (memory: M) => string,
+  maxTransitions = 2_000_000,
+  maxStates = 100_000,
+): PianoPath<T> {
+  type Node = { value: T; memory: M; cost: number; previous: number };
+  const history: Node[][] = [];
+  let transitions = 0,
+    states = 0;
+  for (const [i, choices] of layers.entries()) {
+    const layer: Node[] = [],
+      byKey = new Map<string, number>();
+    for (const [choice, value] of choices.entries()) {
+      const own = local(value, i);
+      if (!Number.isFinite(own)) continue;
+      if (!i) {
+        if (++states > maxStates)
+          return { status: "limit", path: [], cost: 0, transitions, states };
+        layer.push({ value, memory: initial(value), cost: own, previous: -1 });
+        continue;
+      }
+      for (const [previous, prior] of history[i - 1].entries()) {
+        if (++transitions > maxTransitions)
+          return { status: "limit", path: [], cost: 0, transitions };
+        const step = advance(prior.value, value, prior.memory, i);
+        if (!step) continue;
+        const cost = prior.cost + own + step.cost;
+        if (!Number.isFinite(cost)) continue;
+        const signature = choice + ":" + key(step.memory),
+          known = byKey.get(signature);
+        if (known === undefined) {
+          byKey.set(signature, layer.length);
+          if (++states > maxStates)
+            return { status: "limit", path: [], cost: 0, transitions, states };
+          layer.push({ value, memory: step.memory, cost, previous });
+        } else if (cost < layer[known].cost)
+          layer[known] = { value, memory: step.memory, cost, previous };
+      }
+    }
+    if (!layer.length)
+      return { status: "unsupported", path: [], cost: 0, transitions };
+    history.push(layer);
+  }
+  if (!history.length)
+    return { status: "complete", path: [], cost: 0, transitions };
+  let index = history
+    .at(-1)!
+    .reduce((best, n, i, all) => (n.cost < all[best].cost ? i : best), 0);
+  const cost = history.at(-1)![index].cost,
+    path: T[] = Array(history.length);
+  for (let i = history.length - 1; i >= 0; i--) {
+    const node = history[i][index];
+    path[i] = node.value;
+    index = node.previous;
+  }
+  return { status: "complete", path, cost, transitions, states };
 }

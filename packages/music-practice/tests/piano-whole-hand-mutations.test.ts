@@ -19,13 +19,14 @@ const uri = (s: string) =>
   Buffer.from(
     transformSync(s, { loader: "ts", format: "esm", target: "es2022" }).code,
   ).toString("base64");
-async function load(s: string): Promise<typeof planPianoPhrase> {
-  return (
-    await import(
-      uri(s.replaceAll('"./piano-hand-model"', JSON.stringify(uri(model))))
-    )
-  ).planPianoPhrase;
+import {
+  loadPianoPlanner,
+  pianoPlannerSources,
+} from "../test-fixtures/piano-planner-loader";
+async function load(s: string) {
+  return loadPianoPlanner({ ...pianoPlannerSources, core: s });
 }
+
 const n = (
   id: string,
   midi: number,
@@ -83,8 +84,8 @@ const cases: {
   },
   {
     name: "ignores transition resource cap",
-    from: "p.maxTransitions ?? 2_000_000,",
-    to: "2_000_000,",
+    from: "p.maxTransitions ?? 2_000_000,\n    );",
+    to: "2_000_000,\n    );",
     check: (p) =>
       assert.equal(
         p([n("a", 60), n("b", 62, 1)], { maxTransitions: 1 }).hands.right

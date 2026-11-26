@@ -8,7 +8,7 @@ import {
 export type BenchmarkLabel = {
   id: string;
   finger?: number;
-  kind: "printed" | "inferred" | "flagged";
+  kind: "printed" | "inferred" | "flagged" | "completed";
   raw?: string;
   reason?: string;
 };
@@ -21,10 +21,20 @@ export type PianoBenchmarkCase = {
   bpm: number;
   notes: PianoPhraseNote[];
   labels: BenchmarkLabel[];
+  evidence?: "printed" | "completed";
+  alternatives?: BenchmarkLabel[][];
 };
-export function loadPianoBenchmark(): PianoBenchmarkCase[] {
+export function loadPianoBenchmark(
+  source: "hanon" | "beringer" = "hanon",
+): PianoBenchmarkCase[] {
   return JSON.parse(
-    readFileSync(new URL("./piano-benchmark.json", import.meta.url), "utf8"),
+    readFileSync(
+      new URL(
+        source === "hanon" ? "./piano-benchmark.json" : "./piano-beringer.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
   ).cases;
 }
 export function scorePianoBenchmarkCase(
@@ -63,20 +73,41 @@ export function scorePianoBenchmarkCase(
       throw Error("Partial unsupported-hand prediction");
   }
   const predictions = new Map(plan.notes.map((n) => [n.id, n.finger]));
-  const eligible = c.labels.filter(
-    (l) => l.kind === "printed" && l.finger !== undefined,
+  const references = [c.labels, ...(c.alternatives ?? [])],
+    kind = c.evidence ?? "printed";
+  for (const labels of references)
+    if (
+      new Set(labels.map((l) => l.id)).size !== labels.length ||
+      labels.some(
+        (l) =>
+          !expected.has(l.id) ||
+          (l.finger !== undefined &&
+            (!Number.isInteger(l.finger) || l.finger < 1 || l.finger > 5)),
+      )
+    )
+      throw Error("Invalid benchmark labels");
+  const correct = (labels: BenchmarkLabel[]) =>
+    labels.filter(
+      (l) =>
+        l.kind === kind &&
+        l.finger !== undefined &&
+        predictions.get(l.id) === l.finger,
+    ).length;
+  const chosen = references.reduce(
+    (best, labels) => (correct(labels) > correct(best) ? labels : best),
+    references[0],
   );
-  if (
-    new Set(c.labels.map((l) => l.id)).size !== c.labels.length ||
-    c.labels.some((l) => !expected.has(l.id))
-  )
-    throw Error("Invalid benchmark labels");
+  const eligible = chosen.filter(
+    (l) => l.kind === kind && l.finger !== undefined,
+  );
   const covered = eligible.filter((l) => predictions.has(l.id)),
     matches = covered.filter((l) => predictions.get(l.id) === l.finger);
   return {
     id: c.id,
     family: c.family,
     partition: c.partition,
+    referenceKind: kind,
+    referenceCount: references.length,
     totalNotes: c.notes.length,
     predictedNotes: plan.notes.length,
     eligible: eligible.length,
@@ -116,6 +147,12 @@ export function evaluatePianoBenchmark(
     ) => rs.reduce((s, r) => s + r[k], 0);
     return {
       cases: rs.length,
+      macroAgreement: rs.filter((r) => r.eligible).length
+        ? rs
+            .filter((r) => r.eligible)
+            .reduce((s, r) => s + r.matches / r.eligible, 0) /
+          rs.filter((r) => r.eligible).length
+        : null,
       totalNotes: sum("totalNotes"),
       predictedNotes: sum("predictedNotes"),
       eligible: sum("eligible"),
@@ -139,5 +176,66 @@ export function evaluatePianoBenchmark(
       ]),
     ),
     rows,
+  };
+}
+
+/** Diagnostics only: constrained references NEVER replace unconstrained output. */
+export function comparePianoReference(
+  c: PianoBenchmarkCase,
+  planner = planPianoPhrase,
+) {
+  const selected = planner(c.notes, { bpm: c.bpm }),
+    kind = c.evidence ?? "printed";
+  const targets = [c.labels, ...(c.alternatives ?? [])].map((labels) => {
+    const fixed = new Map(
+      labels
+        .filter((l) => l.kind === kind && l.finger !== undefined)
+        .map((l) => [l.id, l.finger]),
+    );
+    return planner(
+      c.notes.map((n) => ({
+        ...n,
+        ...(fixed.has(n.id) ? { finger: fixed.get(n.id) } : {}),
+      })),
+      { bpm: c.bpm },
+    );
+  });
+  return {
+    id: c.id,
+    family: c.family,
+    referenceKind: kind,
+    hands: Object.fromEntries(
+      (["right", "left"] as const).map((hand) => {
+        const inference = selected.hands[hand],
+          valid = targets
+            .map((t) => t.hands[hand])
+            .filter((h) => h.status === "complete"),
+          best = valid.sort((a, b) => a.cost - b.cost)[0];
+        return [
+          hand,
+          {
+            classification:
+              inference.status !== "complete"
+                ? "inference-unsupported"
+                : !best
+                  ? "reference-unrepresentable"
+                  : Math.abs(best.cost - inference.cost) < 1e-7
+                    ? "tied-optimum"
+                    : "preference-disagreement",
+            selected:
+              inference.status === "complete"
+                ? { cost: inference.cost, costs: inference.costs }
+                : inference.diagnostic,
+            reference: best
+              ? { cost: best.cost, costs: best.costs }
+              : targets.map((t) => t.hands[hand].diagnostic),
+            costGap:
+              best && inference.status === "complete"
+                ? best.cost - inference.cost
+                : null,
+          },
+        ];
+      }),
+    ),
   };
 }

@@ -10,12 +10,13 @@ import { planPianoPhrase } from "../src/piano-phrase-fingering";
 const partition = process.argv[2];
 if (!["development", "validation", "all"].includes(partition))
   throw Error("Specify development, validation or all");
-const cases = loadPianoBenchmark().filter(
+const corpusSource = process.argv[5] === "beringer" ? "beringer" : "hanon";
+const cases = loadPianoBenchmark(corpusSource).filter(
   (c) => partition === "all" || c.partition === partition,
 );
 let planner = planPianoPhrase;
 const revision = process.argv[4];
-if (revision) {
+if (revision && revision !== "working") {
   if (!/^[a-f0-9]{7,40}$/.test(revision))
     throw Error("Expected baseline commit hash");
   // Compile only OUR historical committed source. No upstream program executes.
@@ -31,29 +32,48 @@ if (revision) {
       transformSync(s, { loader: "ts", format: "esm", target: "es2022" }).code,
     ).toString("base64");
   const model = uri(source("piano-hand-model"));
-  planner = (
-    await import(
-      uri(
-        source("piano-phrase-fingering").replaceAll(
-          '"./piano-hand-model"',
-          JSON.stringify(model),
-        ),
-      )
-    )
-  ).planPianoPhrase;
+  let core = source("piano-phrase-fingering").replaceAll(
+    '"./piano-hand-model"',
+    JSON.stringify(model),
+  );
+  if (core.includes('"./piano-ergonomics"')) {
+    const preferences = uri(
+      source("piano-ergonomics").replaceAll(
+        '"./piano-hand-model"',
+        JSON.stringify(model),
+      ),
+    );
+    core = core.replaceAll('"./piano-ergonomics"', JSON.stringify(preferences));
+  }
+  planner = (await import(uri(core))).planPianoPhrase;
 }
 const result = {
-  sourceRevision: "25754560a496c2beea3c81d72a389fb33fd7e930",
+  sourceRevision:
+    corpusSource === "hanon"
+      ? "25754560a496c2beea3c81d72a389fb33fd7e930"
+      : "0ad656db9b778508453a7275dc698b9129ca765e",
   datasetSha256: createHash("sha256")
     .update(
       readFileSync(
-        new URL("../test-fixtures/piano-benchmark.json", import.meta.url),
+        new URL(
+          corpusSource === "hanon"
+            ? "../test-fixtures/piano-benchmark.json"
+            : "../test-fixtures/piano-beringer.json",
+          import.meta.url,
+        ),
       ),
     )
     .digest("hex"),
   plannerRevision: revision ?? "working-tree",
   partition,
-  ...evaluatePianoBenchmark(cases, planner),
+  ...evaluatePianoBenchmark(cases, (notes, profile) =>
+    planner(notes, {
+      ...profile,
+      ...(process.env.PIANO_MODEL
+        ? { model: process.env.PIANO_MODEL as "classic" | "ergonomic" }
+        : {}),
+    }),
+  ),
 };
 if (process.argv[3])
   writeFileSync(process.argv[3], JSON.stringify(result, null, 2) + "\n");

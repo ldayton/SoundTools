@@ -7,8 +7,18 @@ import {
   pianoTimedMotionCost,
   pianoMotion,
   solvePianoPath,
+  solvePianoMemoryPath,
   type PianoHand,
 } from "./piano-hand-model";
+import {
+  pianoFingerOffset,
+  pianoErgonomicSingleCost,
+  pianoPairPossible,
+  pianoPairComfort,
+  pianoContextCost,
+  pianoKeyDepthCost,
+  type PianoAttackMemory,
+} from "./piano-ergonomics";
 export type { PianoHand } from "./piano-hand-model";
 /** Quarter-note beats; duration is physical/notated key hold, not audio decay. */
 export type PianoPhraseNote = {
@@ -19,6 +29,9 @@ export type PianoPhraseNote = {
   duration: number;
   finger?: number;
   tieFrom?: string;
+  voice?: string;
+  phraseStart?: boolean;
+  notatedDuration?: number;
 };
 export type PianoPhraseCosts = {
   posture: number;
@@ -26,6 +39,9 @@ export type PianoPhraseCosts = {
   repeat: number;
   crossing: number;
   substitution: number;
+  comfort: number;
+  context: number;
+  preparation: number;
 };
 export type PianoMovement = {
   at: number;
@@ -82,6 +98,7 @@ export type PianoHandPlan = {
     candidates: number;
     transitions: number;
     maxLayer: number;
+    states?: number;
   };
 };
 export type PianoPhrasePlan = {
@@ -92,6 +109,8 @@ export type PianoPhrasePlan = {
   cost: number;
 };
 export type PianoPhraseProfile = {
+  /** Classic is production default. Ergonomic is an opt-in research candidate. */
+  model?: "classic" | "ergonomic";
   bpm?: number;
   maxSpan?: number;
   allowSubstitutions?: boolean;
@@ -107,6 +126,9 @@ const zero = (): PianoPhraseCosts => ({
   repeat: 0,
   crossing: 0,
   substitution: 0,
+  comfort: 0,
+  context: 0,
+  preparation: 0,
 });
 const add = (a: PianoPhraseCosts, b: PianoPhraseCosts): PianoPhraseCosts => ({
   posture: a.posture + b.posture,
@@ -114,6 +136,9 @@ const add = (a: PianoPhraseCosts, b: PianoPhraseCosts): PianoPhraseCosts => ({
   repeat: a.repeat + b.repeat,
   crossing: a.crossing + b.crossing,
   substitution: a.substitution + b.substitution,
+  comfort: a.comfort + b.comfort,
+  context: a.context + b.context,
+  preparation: a.preparation + b.preparation,
 });
 const total = (c: PianoPhraseCosts) =>
   Object.values(c).reduce((a, b) => a + b, 0);
@@ -123,11 +148,14 @@ const defaults: PianoPhraseCosts = {
   repeat: 1,
   crossing: 1,
   substitution: 18,
+  comfort: 1,
+  context: 1,
+  preparation: 1,
 };
 const pairReach: Record<string, number> = {
   "1:2": 4,
   "1:3": 5,
-  "1:4": 6,
+  "1:4": 7,
   "1:5": 7,
   "2:3": 2,
   "2:4": 3,
@@ -147,6 +175,8 @@ type Contact = {
   end: number;
   finger?: number;
   noteIds: string[];
+  voice?: string;
+  phraseStart?: boolean;
 };
 type Frame = { at: number; until: number; active: Contact[] };
 type Pose = {
@@ -154,6 +184,7 @@ type Pose = {
   fingers: Record<string, number>;
   crossed: [string, string][];
   posture: number;
+  comfort?: number;
 };
 type Build = {
   contacts: Contact[];
@@ -163,6 +194,8 @@ type Build = {
 };
 function validateProfile(profile: PianoPhraseProfile) {
   if (
+    (profile.model !== undefined &&
+      !["classic", "ergonomic"].includes(profile.model)) ||
     !Number.isFinite(profile.bpm ?? 120) ||
     (profile.bpm ?? 120) <= 0 ||
     !Number.isFinite(profile.maxSpan ?? 7) ||
@@ -195,6 +228,11 @@ function validateNotes(input: readonly PianoPhraseNote[]) {
     assertPianoHand(n.hand);
     assertPianoNote(n);
     if (
+      (n.voice !== undefined && (typeof n.voice !== "string" || !n.voice)) ||
+      (n.phraseStart !== undefined && typeof n.phraseStart !== "boolean") ||
+      (n.notatedDuration !== undefined &&
+        (!Number.isFinite(n.notatedDuration) ||
+          n.notatedDuration < n.duration)) ||
       typeof n.id !== "string" ||
       !n.id ||
       ids.has(n.id) ||
@@ -269,6 +307,8 @@ function build(input: readonly PianoPhraseNote[]): Build {
         end: time.get(n.start + n.duration)!,
         finger: n.finger,
         noteIds: [n.id],
+        voice: n.voice,
+        phraseStart: n.phraseStart,
       });
   }
   const groups = new Map<string, Contact>(),
@@ -279,6 +319,7 @@ function build(input: readonly PianoPhraseNote[]): Build {
     if (same) {
       same.end = Math.max(same.end, c.end);
       same.noteIds.push(...c.noteIds);
+      if (same.voice !== c.voice) same.voice = undefined;
       if (
         same.finger !== undefined &&
         c.finger !== undefined &&
@@ -290,6 +331,7 @@ function build(input: readonly PianoPhraseNote[]): Build {
           at: c.start,
         };
       same.finger ??= c.finger;
+      same.phraseStart ||= c.phraseStart;
     } else {
       groups.set(key, c);
       contacts.push(c);
@@ -365,7 +407,8 @@ function poses(
   const active = frame.active,
     result: Pose[] = [],
     sign = hand === "right" ? 1 : -1,
-    span = profile.maxSpan ?? 7;
+    span = profile.maxSpan ?? 7,
+    ergo = profile.model === "ergonomic";
   if (active.length > 5) return [];
   if (!active.length)
     return Array.from({ length: 85 }, (_, i) => ({
@@ -381,11 +424,27 @@ function poses(
     return [];
   if (active.length === 1) {
     const c = active[0];
-    return pianoSinglePoses(c.midi, c.finger, hand, 1).map((p) => ({
+    const choices = ergo
+      ? Array.from({ length: 5 }, (_, i) => i + 1)
+          .filter((f) => c.finger === undefined || f === c.finger)
+          .flatMap((f) => {
+            const ideal =
+              pianoKeyPosition(c.midi) - sign * pianoFingerOffset(f);
+            return Array.from(
+              { length: 3 },
+              (_, i) => Math.floor(ideal) - 1 + i,
+            )
+              .filter((anchor) => Math.abs(anchor - ideal) <= 1)
+              .map((anchor) => ({ finger: f, anchor }));
+          })
+      : pianoSinglePoses(c.midi, c.finger, hand, 1);
+    return choices.map((p) => ({
       anchor: p.anchor,
       fingers: { [c.id]: p.finger },
       crossed: [],
-      posture: pianoNoteCost(c.midi, p.finger, p.anchor, hand),
+      posture: ergo
+        ? pianoErgonomicSingleCost(c.midi, p.finger, p.anchor, hand)
+        : pianoNoteCost(c.midi, p.finger, p.anchor, hand),
     }));
   }
   function visit(digits: number[]) {
@@ -405,7 +464,11 @@ function poses(
           }
           const a = Math.min(f, other),
             b = Math.max(f, other);
-          if (distance > (pairReach[`${a}:${b}`] * span) / 7) {
+          if (
+            ergo
+              ? !pianoPairPossible(active[j].midi, other, c.midi, f, span)
+              : distance > (pairReach[`${a}:${b}`] * span) / 7
+          ) {
             legal = false;
             break;
           }
@@ -423,7 +486,9 @@ function poses(
       return;
     }
     const ideals = active.map(
-        (c, i) => pianoKeyPosition(c.midi) - sign * (digits[i] - 1),
+        (c, i) =>
+          pianoKeyPosition(c.midi) -
+          sign * (ergo ? pianoFingerOffset(digits[i]) : digits[i] - 1),
       ),
       crossed: Pose["crossed"] = [];
     const thumb = digits.indexOf(1);
@@ -448,10 +513,34 @@ function poses(
         crossed,
         posture:
           active.reduce(
-            (n, c, i) => n + pianoNoteCost(c.midi, digits[i], anchor, hand),
+            (n, c, i) =>
+              n +
+              (ergo
+                ? pianoErgonomicSingleCost(c.midi, digits[i], anchor, hand)
+                : pianoNoteCost(c.midi, digits[i], anchor, hand)),
             0,
           ) +
           crossed.length * 2,
+        comfort: ergo
+          ? active.reduce(
+              (sum, c, i) =>
+                sum +
+                active
+                  .slice(i + 1)
+                  .reduce(
+                    (n, d, j) =>
+                      n +
+                      pianoPairComfort(
+                        c.midi,
+                        digits[i],
+                        d.midi,
+                        digits[i + j + 1],
+                      ),
+                    0,
+                  ),
+              0,
+            )
+          : 0,
       });
   }
   visit([]);
@@ -519,7 +608,15 @@ function step(
     );
     if (!Number.isFinite(c.movement)) return null;
     costs.movement = c.movement;
+    if (p.model === "ergonomic") {
+      if (from.finger !== to.finger)
+        costs.comfort +=
+          0.25 * pianoPairComfort(old.midi, from.finger, next.midi, to.finger);
+      costs.comfort += pianoKeyDepthCost(old, next, from.finger, to.finger);
+    }
     costs.repeat = c.repeat;
+    if (p.model === "ergonomic" && old.end < b.at && old.midi === next.midi)
+      costs.repeat *= 0.3;
     costs.crossing += c.crossing;
     if (pianoMotion(old, next, from, to, hand, rolling).shift)
       events.push({ at: b.at, kind: "move", noteIds: next.noteIds });
@@ -563,6 +660,22 @@ function step(
         .filter((c) => c.start === b.at)
         .flatMap((c) => c.noteIds),
     });
+  if (p.model === "ergonomic" && b.active.length > 1) {
+    const occupied = new Set(Object.values(x.fingers));
+    for (const c of b.active)
+      if (c.start === b.at && !occupied.has(y.fingers[c.id]))
+        costs.preparation +=
+          0.08 *
+          Math.abs(
+            pianoKeyPosition(c.midi) -
+              (x.anchor +
+                (hand === "right" ? 1 : -1) *
+                  pianoFingerOffset(y.fingers[c.id])),
+          ) *
+          factor;
+  }
+  costs.comfort *= w.comfort;
+  costs.preparation *= w.preparation;
   costs.movement *= factor * w.movement;
   costs.repeat *= w.repeat;
   costs.crossing *= w.crossing;
@@ -668,32 +781,106 @@ function planHand(
     layers.push(layer);
   }
   const rollingEdges = pianoRollingEdges(frames);
+  const freshByFrame = frames.map((f) =>
+    f.active.filter((c) => c.start === f.at),
+  );
+  const edgeCache = frames.map(
+    () => new WeakMap<Pose, WeakMap<Pose, ReturnType<typeof step>>>(),
+  );
+  const transitionAt = (a: Pose, b: Pose, i: number) => {
+    if (p.model !== "ergonomic")
+      return step(frames[i - 1], frames[i], a, b, hand, p, rollingEdges.has(i));
+    let from = edgeCache[i].get(a);
+    if (!from) {
+      from = new WeakMap();
+      edgeCache[i].set(a, from);
+    }
+    if (from.has(b)) return from.get(b)!;
+    const value = step(
+      frames[i - 1],
+      frames[i],
+      a,
+      b,
+      hand,
+      p,
+      rollingEdges.has(i),
+    );
+    from.set(b, value);
+    return value;
+  };
   const w = { ...defaults, ...p.weights };
   const local = (pose: Pose, i: number) =>
     i === 0 && pose.crossed.length
       ? Infinity
-      : pose.posture * Math.min(4, frames[i].until - frames[i].at) * w.posture;
-  const solved = solvePianoPath(
-    layers,
-    local,
-    (a, b, i) => {
-      const value = step(
-        frames[i - 1],
-        frames[i],
-        a,
-        b,
-        hand,
-        p,
-        rollingEdges.has(i),
-      );
-      return value ? total(value.costs) : Infinity;
-    },
-    p.maxTransitions ?? 2_000_000,
-  );
+      : (pose.posture * w.posture + (pose.comfort ?? 0) * w.comfort) *
+        Math.min(4, frames[i].until - frames[i].at);
+  const classicSolve = () =>
+    solvePianoPath(
+      layers,
+      local,
+      (a, b, i) => {
+        const value = transitionAt(a, b, i);
+        return value ? total(value.costs) : Infinity;
+      },
+      p.maxTransitions ?? 2_000_000,
+    );
+  type Memory = PianoAttackMemory[];
+  const advanceMemory = (memory: Memory, pose: Pose, i: number) => {
+    const frame = frames[i],
+      fresh = freshByFrame[i];
+    if (!frame.active.length) return { memory: [] as Memory, cost: 0 };
+    if (fresh.length > 1) return { memory: [] as Memory, cost: 0 };
+    if (!fresh.length) return { memory, cost: 0 };
+    const c = fresh[0];
+    if (c.voice === undefined && frame.active.length > 1)
+      return { memory: [] as Memory, cost: 0 };
+    // A single moving attack can carry melodic history alongside held contacts.
+    // Unknown/changing voice or an explicit phrase boundary starts a new context.
+    const attack: PianoAttackMemory = {
+      id: c.id,
+      midi: c.midi,
+      finger: pose.fingers[c.id],
+      voice: c.voice,
+      start: c.start,
+      end: c.end,
+    };
+    const history =
+      c.phraseStart || memory.at(-1)?.voice !== c.voice ? [] : memory;
+    const cost =
+      history.length === 2
+        ? pianoContextCost(history[0], history[1], attack) * w.context
+        : 0;
+    return { memory: [...history, attack].slice(-2), cost };
+  };
+  const solved =
+    p.model === "ergonomic"
+      ? solvePianoMemoryPath(
+          layers,
+          local,
+          (pose) => advanceMemory([], pose, 0).memory,
+          (a, b, memory, i) => {
+            const transition = transitionAt(a, b, i);
+            if (!transition) return null;
+            const next = advanceMemory(memory, b, i);
+            return {
+              memory: next.memory,
+              cost: total(transition.costs) + next.cost,
+            };
+          },
+          // Attack IDs, voices and phrase resets are fixed by this input layer;
+          // only earlier digit choices vary between paths and enter future costs.
+          (memory) => memory.map((a) => a.finger).join("/"),
+          p.maxTransitions ?? 2_000_000,
+          p.maxCandidates ?? 100000,
+        )
+      : classicSolve();
   statistics.transitions = solved.transitions;
+  if (solved.states !== undefined)
+    Object.assign(statistics, { states: solved.states });
   if (solved.status !== "complete")
     return unsupported(solved.status === "limit" ? "search_limit" : "reach");
-  let costs = zero();
+  let costs = zero(),
+    melodicMemory: Memory = [];
   const states: PianoHandFrame[] = solved.path.map((pose, i) => {
     const change = i
       ? step(
@@ -706,7 +893,22 @@ function planHand(
           rollingEdges.has(i),
         )!
       : { costs: zero(), events: [] };
-    const own = { ...change.costs, posture: local(pose, i) };
+    const nextMemory =
+      p.model === "ergonomic"
+        ? advanceMemory(melodicMemory, pose, i)
+        : { memory: [] as Memory, cost: 0 };
+    melodicMemory = nextMemory.memory;
+    const own = {
+      ...change.costs,
+      posture:
+        pose.posture * w.posture * Math.min(4, frames[i].until - frames[i].at),
+      comfort:
+        change.costs.comfort +
+        (pose.comfort ?? 0) *
+          w.comfort *
+          Math.min(4, frames[i].until - frames[i].at),
+      context: p.model === "ergonomic" ? nextMemory.cost : 0,
+    };
     costs = add(costs, own);
     return {
       at: frames[i].at,

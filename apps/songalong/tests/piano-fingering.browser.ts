@@ -136,6 +136,29 @@ try {
     substitution.substitutions[0].x > 0 && substitution.substitutions[0].y > 0,
   );
   await expect(page.locator(".piano-finger-substitution")).toBeVisible();
+  for (const experimental of [false, true]) {
+    const ergonomic = await page.evaluate(
+      (experimental) =>
+        window.PianoFingeringFixture.renderPianoErgonomicFixture(experimental),
+      experimental,
+    );
+    assert.equal(ergonomic.status, "complete");
+    assert.ok(ergonomic.unchanged);
+    assert.deepEqual(
+      ergonomic.marks
+        .filter((m) => m.midi === 60 || m.midi === 72)
+        .sort((a, b) => a.midi - b.midi),
+      [
+        { midi: 60, finger: 1 },
+        { midi: 72, finger: 4 },
+      ],
+    );
+    const detached = ergonomic.notes.find((n) => n.midi === 62)!;
+    assert.equal(detached.hold, 0.5);
+    assert.equal(detached.notation, 1);
+    assert.ok(detached.voice);
+    await expect(page.locator(".hymn-fingering").first()).toBeVisible();
+  }
   assert.deepEqual(errors, []);
   console.log(
     "PASS: generated piano fingers preserve music and withhold unsupported whole-hand suggestions",

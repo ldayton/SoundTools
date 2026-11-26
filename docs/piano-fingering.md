@@ -126,3 +126,12 @@ passage as rolling motion within that context. Geometry/search and compatibility
 ownership remain centralized; legacy/editorial tables keep their previous costs.
 The benchmark documents exact-match gains, remaining disagreements, corpus
 coverage, source exclusions, reproduction and CI/Nightly regression owners.
+
+## Pair comfort, exact history and promotion gate
+
+The [contextual ergonomics implementation](piano-ergonomics.md) adds a default
+fourth-finger octave correction, explicit staccato key holds/notation duration,
+stable voice metadata, reference diagnostics and expanded evidence. An exact
+history-aware ergonomic scoring candidate is implemented and tested, but remains
+opt-in: fresh-source arpeggios and a technical family regressed. Classic stays
+the production default, with every original benchmark floor still enforced.

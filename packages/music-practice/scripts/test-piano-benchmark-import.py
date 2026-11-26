@@ -38,4 +38,12 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(c['notes'][6]['duration'],2)
         self.assertEqual([l['finger']for l in c['labels'][:2]],[1,3])
 
+    def test_only_located_doubtful_digits_are_excluded(self):
+        row={'number':41,'key':'C','mode':'major','header':'synthetic','notes':['C4','D4'],'notesDown':['D4','C4'],'notesLeft':['C3','D3'],'notesLeftDown':['D3','C3'],'rightUp':[1,2],'rightDown':[2,1],'leftUp':[5,4],'leftDown':[4,5],'printed':{k:[True,True]for k in ['rightUp','rightDown','leftUp','leftDown']},'uncertain':{'RH':{'1':'doubtful digit'}}}
+        c=module.scale_cases([row],'synthetic')[0]
+        self.assertEqual([l['kind']for l in c['labels'][:3]],['printed','flagged','printed'])
+        row['uncertain']={'RH':{'unlocated glyph':'doubtful'}}
+        c=module.scale_cases([row],'synthetic')[0]
+        self.assertEqual([l['kind']for l in c['labels'][:3]],['flagged']*3)
+
 if __name__=='__main__':unittest.main()

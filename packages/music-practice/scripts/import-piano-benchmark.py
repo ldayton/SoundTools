@@ -74,9 +74,10 @@ def scale_cases(data, path):
             uncertain=row.get('uncertain',{}).get('RH' if hand=='right' else 'LH',{})
             for t,j in enumerate(order):
                 reason=None
-                if uncertain:
-                    # Resolved readings remain visible in a separate, conservative bucket.
-                    reason='source flags readings in this hand: '+json.dumps(uncertain,sort_keys=True)
+                if uncertain and (not all(str(k).isdigit() for k in uncertain) or str(j) in uncertain):
+                    # Numeric source indices locate individual doubtful digits. A prose
+                    # location still conservatively flags the hand; never guess its index.
+                    reason='source flags this reading: '+json.dumps(uncertain,sort_keys=True)
                 if row['number']==39 and row['key']=='D' and row['mode']=='major' and hand=='left' and j==55:
                     reason='documented suspected engraving slip: printed 1, commonly corrected to 4'
                 add(c,hand,pitch(names[j]),Fraction(t,4),Fraction(1,4),fingers[j], 'flagged' if reason and printed[j] else 'printed' if printed[j] else 'inferred',reason)

@@ -86,58 +86,29 @@ export const jesusEdition: InstrumentHymn = {
     { bar: 8, label: "Refrain" },
   ],
 };
-/** Beginner alternating-thumb edition: first position, no sixteenth-note runs.
- * Verse fills are sparse; the refrain adds offbeat chord tones beneath the melody.
- * Refrain fills leave the next melody attack clear; a quiet tonic pinch closes.
- * C/G uses ring on A3 and little finger on E3; small F/C uses ring A3/little D3.
- * Principles: https://www.fender.com/articles/techniques/travis-picking-on-guitar
- * and https://www.martymusic.com/beginner-fingerstyle-picking
- */
-export const jesusTravisBass = [
-  "[C-]8 [CE]8 G,16 C16 B,16",
-  "C16 G,16 [C-]8 [CE]8 G,16",
-  "F16 C16 F16 C16",
-  "F16 G,16 [C-]8 [CE]8 G,16",
-  "[C-]8 [CE]8 G,16 C16 B,16",
-  "C16 G,16 [C-]8 [CE]8 G,16",
-  "F16 C16 [C-]8 [CE]8 G,16",
-  "C16 B,16 z16 G,16",
-  "[C-]8 [CE]8 G,16 C16 [G,-]8 [G,E]8",
-  "F16 [C-]8 [CA]8 F16 [C-]8 [CA]8",
-  "[C-]8 [CE]8 [G,-]8 [G,E]8 C16 G,16",
-  "C16 B,16 G,16 B,16",
-  "[C-]8 [CE]8 G,16 C16 [G,-]8 [G,E]8",
-  "F16 [C-]8 [CA]8 F16 [C-]8 [CF]8",
-  "[C-]8 [CE]8 G,16 C16 G,16",
-  "!pp! [EG]16 z48"
-] as const;
+/** Raised melody over an invariant root/fifth thumb pulse. No fills or syncopated bass. */
+export const jesusGuitarEdition: InstrumentHymn = {
+  ...jesusEdition, guitarKey: "G", guitarTranspose: 4, capo: 8, tempo: 80,
+  changes: jesusEdition.changes.map(bar => bar.map(([at, chord]) => [at, ({C:"G",F:"C",G7:"D7"} as Record<string,string>)[chord]])),
+  // Keep the separate singing accompaniment at its original concert pitches.
+  strum: {G:"[G,B,DGB]",C:"[CEGc]",D7:"[D,^F,A,D^Fc]"},
+  guitarBars: Object.fromEntries(jesusEdition.changes.map((changes, bar) => [bar,
+    [0,1,2,3].map(beat => {
+      const chord=[...changes].reverse().find(([at]) => at<=beat*16)![1];
+      return [({C:["G,","D"],F:["C","G,"],G7:["D","A,"]} as Record<string,string[]>)[chord][beat%2],16];
+    })])),
+};
 export function jesusInstrumentAbc(source: string, instrument: BeginnerInstrument, part: "right" | "left" | "both" = "both") {
-  const abc = instrumentHymnAbc(source, jesusEdition, instrument, part);
-  if (instrument !== "guitar" || part !== "both") return abc;
-  let group = 0;
-  return abc.replace(/^\[V:S2\].*$/gm, () => {
-    const bars = jesusEdition.groups[group++];
-    return '[V:S2] !mp! ' + bars.map(bar => jesusTravisBass[bar] + (bar === 15 ? ' |]' : ' |')).join(' ');
-  });
+  const abc=instrumentHymnAbc(source,instrument === "guitar" ? jesusGuitarEdition : jesusEdition,instrument,part);
+  return instrument === "guitar" ? abc.replace(/^(\[V:S2\])/gm,"$1 !p! ") : abc;
 }
 export function jesusPosition(pitch: number, chord: boolean, transpose = 0) {
   const positions: Record<number, [number, number]> = {
-    41: [5, 1],
-    43: [5, 3],
-    47: [4, 2],
-    48: [4, 3],
-    50: [3, 0],
-    52: [3, 2],
-    53: [3, 3],
-    55: [2, 0],
-    57: [2, 2],
-    59: [1, 0],
-    60: [1, 1],
-    64: [0, 0],
-    65: [0, 1],
+    43:[5,3],45:[4,0],48:[4,3],50:[3,0],55:[2,0],57:[2,2],
+    59:[1,0],60:[1,1],62:[1,3],64:[0,0],67:[0,3],
   };
-  const p = positions[pitch - transpose];
-  return p ? { str: p[0], num: p[1] + transpose } : undefined;
+  const p=positions[pitch-transpose];
+  return p ? {str:p[0],num:p[1]+transpose} : undefined;
 }
 export function jesusFingers(
   instrument: BeginnerInstrument,
@@ -147,7 +118,7 @@ export function jesusFingers(
   force = false,
 ): (number | null)[] {
   if (instrument === "guitar")
-    return pitches.map(actual => ({ 41: 1, 43: 4, 47: 2, 48: 3, 52: 2, 53: 4, 57: 2, 60: 1, 65: 1 } as Record<number, number>)[actual - 3] ?? null);
+    return pitches.map(actual => ({ 43: 3, 48: 3, 57: 1, 60: 1, 62: 4, 67: 4 } as Record<number, number>)[actual - 8] ?? null);
   if (voice === 1) return pitches.map((_, i) => [5, 3, 1][i] ?? null);
   const high = [2, 3, 9, 13].includes(bar),
     f: Record<number, number> = high

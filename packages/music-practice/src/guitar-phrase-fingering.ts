@@ -132,6 +132,10 @@ export function scoreGuitarHand(
   });
   if (!grip || !Number.isInteger(position) || position < 1 || position > 24)
     return null;
+  return scoreKnownHand(frets,grip,position,profile);
+}
+function scoreKnownHand(frets:GuitarFrets,grip:GuitarFingering,position:number,profile:GuitarFingeringProfile){
+  const fingers=grip.fingers;
   const w = { ...weights, ...profile.weights },
     capo = profile.capo ?? 0,
     length = profile.scaleLength ?? 650,
@@ -160,6 +164,7 @@ type Candidate = {
   fingers: Record<string, number>;
   barres: GuitarFingering["barres"];
   local: FingeringCosts;
+  contacts: (Contact | undefined)[];
 };
 type Node = {
   candidate: Candidate;
@@ -168,6 +173,8 @@ type Node = {
   previous: number;
   step: FingeringCosts;
 };
+
+const handCandidateCache=new Map<string,GuitarFingering[]>();
 
 /** Exact shortest path through complete hand states at every attack/release.
  * No music is rewritten; a physically unsupported fixed-tab passage returns null.
@@ -260,6 +267,7 @@ export function planGuitarPhrase(
     >(),
     layers: Node[][] = [],
     w = { ...weights, ...profile.weights };
+  const fretLocations=Array.from({length:25},(_,fret)=>fretLocation(fret,length));
   for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
     const frame = frames[frameIndex],
       frets: (number | null)[] = Array(6).fill(null);
@@ -277,24 +285,23 @@ export function planGuitarPhrase(
     let poses = cache.get(key);
     if (!poses) {
       poses = [];
-      for (const grip of guitarHandCandidates(frets, {
-        maxFingers: profile.maxFingers ?? 4,
-        allowBarres: profile.allowBarres ?? true,
-        unplayedStrings,
-      }))
-        for (let position = 1; position <= 24; position++) {
-          const local = scoreGuitarHand(
-            frets,
-            grip.fingers,
-            position,
-            profile,
-            unplayedStrings,
-          );
+      const handKey=JSON.stringify([frets,profile.maxFingers??4,profile.allowBarres??true,unplayedStrings]);
+      let hands=handCandidateCache.get(handKey);
+      if(!hands){hands=guitarHandCandidates(frets,{maxFingers:profile.maxFingers??4,allowBarres:profile.allowBarres??true,unplayedStrings});if(handCandidateCache.size>=512)handCandidateCache.delete(handCandidateCache.keys().next().value!);handCandidateCache.set(handKey,hands);}
+      for (const grip of hands)
+        for (let position = Math.max(1,...frets.flatMap((f,i)=>f?[f-grip.fingers[i]!]:[])),
+          last=Math.min(24,...frets.flatMap((f,i)=>f?[f-grip.fingers[i]!+2]:[]));position<=last;position++) {
+          const local = scoreKnownHand(frets,grip,position,profile);
           if (local) poses.push({ grip, position, local });
         }
       cache.set(key, poses);
     }
     const layer: Node[] = [];
+    // Nonnegative transition costs allow an exact lower-bound cutoff.
+    const predecessors=frameIndex?layers[frameIndex-1].map((node,index)=>[index,node] as const).sort((a,b)=>a[1].cost-b[1].cost||a[0]-b[0]):[];
+    const before=frameIndex?frames[frameIndex-1]:undefined;
+    const seconds=before?Math.max(0.08,((frame.at-before.at)*60)/bpm):0;
+    const repeatedContacts=new Map(frame.active.map(note=>[note.hold,before?.active.find(n=>n.hold!==note.hold&&n.string===note.string&&n.fret===note.fret)]));
     for (const pose of poses) {
       const fingers = Object.fromEntries(
         frame.active.map((n) => [n.hold, pose.grip.fingers[6 - n.string]!]),
@@ -310,7 +317,9 @@ export function planGuitarPhrase(
         fingers,
         barres: pose.grip.barres,
         local,
+        contacts: [undefined,...[1,2,3,4].map(finger=>frame.active.find(n=>fingers[n.hold]===finger))],
       };
+      const localTotal=total(local);
       let best: Node | undefined;
       if (!frameIndex)
         best = {
@@ -321,9 +330,9 @@ export function planGuitarPhrase(
           step: local,
         };
       else
-        for (const [previousIndex, prev] of layers[frameIndex - 1].entries()) {
-          const before = frames[frameIndex - 1],
-            transition = zero();
+        for (const [previousIndex, prev] of predecessors) {
+          if(best&&prev.cost+localTotal>best.cost+1e-9)break;
+          const transition = zero();
           let valid = true;
           for (const note of frame.active) {
             const prior = Object.hasOwn(prev.candidate.fingers, note.hold)
@@ -339,44 +348,35 @@ export function planGuitarPhrase(
           }
           if (!valid) continue;
           for (const note of frame.active) {
-            const repeated = before.active.find(
-              (n) =>
-                n.hold !== note.hold &&
-                n.string === note.string &&
-                n.fret === note.fret,
-            );
+            const repeated = repeatedContacts.get(note.hold);
             if (
               repeated &&
               prev.candidate.fingers[repeated.hold] !== fingers[note.hold]
             )
               transition.substitution += w.substitution;
           }
-          const seconds = Math.max(0.08, ((frame.at - before.at) * 60) / bpm);
           transition.shift =
             (Math.abs(candidate.position - prev.candidate.position) * w.shift) /
             seconds;
           // Measure movement of actual fingers, retaining useful contacts across chord changes.
           for (let finger = 1; finger <= 4; finger++) {
-            const from = before.active.find(
-                (n) => prev.candidate.fingers[n.hold] === finger,
-              ),
-              to = frame.active.find((n) => fingers[n.hold] === finger);
+            const from = prev.candidate.contacts[finger],
+              to = candidate.contacts[finger];
             if (from && to && from.hold !== to.hold) {
               const mm = Math.abs(
-                fretLocation(from.fret + capo, length) -
-                  fretLocation(to.fret + capo, length),
+                fretLocations[from.fret + capo] -
+                  fretLocations[to.fret + capo],
               );
               transition.movement +=
                 (w.movement * (mm + Math.abs(from.string - to.string) * 6)) /
                 seconds;
             }
           }
-          const costs = sum(sum(prev.costs, local), transition),
-            cost = total(costs);
+          const cost = prev.cost + localTotal + total(transition);
           if (!best || cost < best.cost - 1e-9)
             best = {
               candidate,
-              costs,
+              costs: sum(sum(prev.costs, local), transition),
               cost,
               previous: previousIndex,
               step: sum(local, transition),

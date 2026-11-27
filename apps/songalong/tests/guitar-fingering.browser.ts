@@ -47,7 +47,7 @@ try {
       // Key selection keeps the solo register within its legal capo octave.
       const referenceCapo=(profile.capo+hymnTransposition(hymn.key,target).semitones+12)%12;
       const shift=referenceCapo-profile.capo;
-      const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,sourceCapo:profile.capo,transpose:shift,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+      const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,sourceCapo:profile.capo,transpose:shift,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position,bpm:profile.tempo});
       const capo=choices[0].fret;
       if(choices.length>1){
         await expect(page.locator("#hymn-capo")).toHaveValue(String(capo));

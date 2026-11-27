@@ -16,7 +16,7 @@ import type { BeginnerInstrument } from "./beginner-score";
 import { bluesPianoAbc, bluesLandmarks } from "./fingerstyle-blues";
 import { hymnLyricsAbc } from "./hymn-lyrics";
 import { instrumentHymnAbc, type InstrumentHymn } from "./instrument-hymn";
-import { jesusEdition, jesusFingers, jesusPosition, jesusInstrumentAbc } from "./jesus-loves-me";
+import { jesusEdition, jesusFingers, jesusPosition, jesusInstrumentAbc, jesusGuitarEdition } from "./jesus-loves-me";
 import {
   faithfulEdition,
   faithfulFingers,
@@ -205,11 +205,11 @@ const recipes: Record<ChordEditionKey, Recipe> = {
   },
   "jesus-loves-me": {
     original: true, vocal: true,
-    capo: 3,
+    capo: 8,
     pickup: false,
-    tempo: 72,
-    shapes: "C, small F and G7",
-    guitarKey: jesusEdition.guitarKey,
+    tempo: 80,
+    shapes: "G, C and D7",
+    guitarKey: jesusGuitarEdition.guitarKey,
     fingers: jesusFingers,
     position: jesusPosition,
     build: ({melody, instrument, hands}) => jesusInstrumentAbc(melody(), instrument, instrument === "guitar" ? hands : "both"),

@@ -203,8 +203,8 @@ export async function selectCapoPracticeHymn(){
  for(const hymn of hymns){
   const profile=chordEdition(hymn);if(!profile)continue;
   const score=arrangeHymn(hymn,"guitar-edition",0),accompaniment=arrangeHymn(hymn,"guitar-edition",0,0,"left");
-  const choices=recommendGuitarCapos({abc:score.abc,accompanimentAbc:accompaniment.abc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
-  const recommended=choices[0],alternate=choices.find(c=>c.fret!==recommended.fret&&!c.scoreSetting);if(!alternate)continue;
+  const choices=recommendGuitarCapos({abc:score.abc,accompanimentAbc:accompaniment.abc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position,bpm:profile.tempo});
+  const recommended=choices[0],alternate=choices.find(c=>c.fret!==recommended.fret);if(!alternate)continue;
   const notes=abcjs.parseOnly(score.abc)[0].setUpAudio({chordsOff:true}).tracks.flatMap(t=>t.flatMap(n=>n.cmd==="note"?[n]:[]));
   const firstTime=Math.min(...notes.map(n=>n.start));
   const first=notes.filter(n=>n.start<=firstTime+1e-7&&n.start+n.duration>firstTime+1e-7).map(n=>n.pitch+profile.capo);
@@ -225,7 +225,7 @@ export async function selectSingleCapoPracticeHymn(){
  for(const hymn of hymns){
   const profile=chordEdition(hymn);if(!profile)continue;
   const accompanimentAbc=arrangeHymn(hymn,"guitar-edition",0,0,"left").abc;
-  const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position});
+  const choices=recommendGuitarCapos({abc:arrangeHymn(hymn,"guitar-edition",0).abc,accompanimentAbc,sourceCapo:profile.capo,transpose:0,shapeKey:profile.guitarKey||hymn.key,positionFor:profile.position,bpm:profile.tempo});
   if(choices.length===1&&choices[0].fret>0)return {hymn,capo:choices[0].fret};
  }
  throw Error("Single-capo controls require a real score with one positive capo");

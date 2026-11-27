@@ -13,7 +13,7 @@ This table is checked against the production registry by `song-support.test.ts`.
 | In the Sweet By and By | Dedicated reference, engine-selected capo | Dedicated | Voice + source chord-staff harmony in playable hand spans | Vocal line + engine-voiced guitar accompaniment | Bennett/Webster, Kravchuk F-major setting; three verses, refrain responses and final quarter rest |
 | Amazing Grace | Dedicated, no capo | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal source; existing instrumental pitches and phrasing preserved |
 | I'll Fly Away | Dedicated, no capo | Dedicated | Voice + source keyboard harmony | Vocal line + guitar chord accompaniment | Supplied tab-music melody, ornaments, verse/chorus and fermata |
-| Jesus Loves Me | Dedicated, capo 3 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Source melody and complete refrain; E-flat sounding key |
+| Jesus Loves Me | Raised melody and regular root/fifth bass, capo 8 (G shapes) | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Source melody and complete refrain; E-flat sounding key |
 | O Come, All Ye Faithful | Dedicated, no capo | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal melody, pickup, rest, refrain and final partial measure |
 | Blessed Assurance | Dedicated, capo 2 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal D, 9/8, three-eighth pickup and six-eighth ending |
 | Silent Night | Dedicated, capo 1 | Dedicated | Voice + source piano harmony | Vocal line + guitar chord accompaniment | Open Hymnal B-flat, 3/4, complete final measure and dotted figures |

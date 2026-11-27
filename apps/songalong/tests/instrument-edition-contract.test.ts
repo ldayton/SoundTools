@@ -23,7 +23,7 @@ const musicalBaseline: Record<string, string> = {
   "amazing-grace":
     "89f0730cf58d392e285334db6d55f2e774649380ad4a9f0690b130f8259e407b",
   "jesus-loves-me":
-    "fde9e91b02349fe56e46538a3020aafc7c4b123403ecf2156160a5e854c70c24",
+    "f40dd4f261356f25ec5650497ca2e3e8ece4014f996beeb0849d0ac50420cd5f",
   "ill-fly-away":
     "100c530e393372e01b2d83cb1d3eb15c3daa3c3039580adc2429eee0065577bc",
   "o-come-all-ye-faithful":

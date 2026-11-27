@@ -20,11 +20,16 @@ try{
   const sourceFrets=await page.locator(".abcjs-tabNumber").allTextContents();
   const shape=fixture.alternate.shapeKey.replaceAll("#","♯").replaceAll("b","♭");
   await practiceOption(page,"#hymn-capo",String(fixture.alternate.fret));
-  await expect(page.locator(".hymn-score-setup")).toHaveText(`Capo ${fixture.alternate.fret} · Sounding key: ${fixture.hymn.key} major`);
+  await expect(page.locator(".hymn-score-setup")).toHaveText(`${fixture.alternate.fret ? `Capo ${fixture.alternate.fret} · ` : ""}Sounding key: ${fixture.hymn.key} major`);
   await expect(page.locator('input[name="hymn-key"]')).toHaveValue("original");
   assert.notDeepEqual(await page.locator(".abcjs-tabNumber").allTextContents(),sourceFrets);
   await expect(page.locator("#hymn-capo option:checked")).toContainText(`${shape} shapes`);
   assert.equal(new URL(page.url()).searchParams.get("capo"),String(fixture.alternate.fret));
+  // Tempo-aware ranking must preserve an explicit playable capo and sounding key.
+  await practiceOption(page,"#hymn-tempo","110");
+  await openPracticeOptions(page);
+  await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.alternate.fret));
+  await expect(page.locator(".hymn-score-setup")).toHaveText(`${fixture.alternate.fret ? `Capo ${fixture.alternate.fret} · ` : ""}Sounding key: ${fixture.hymn.key} major`);
   await page.screenshot({path:`work/capo/screenshots/capo-options-${width}.png`});
   const narrowScore=await page.locator(".abcjs-tabNumber").first().elementHandle();
   await closePracticeOptions(page);
@@ -33,12 +38,22 @@ try{
   await page.screenshot({path:`work/capo/screenshots/capo-score-${width}.png`});
   const chord=fixture.alternate.chords[0].replaceAll("#","♯").replaceAll("b","♭");
   await page.getByRole("button",{name:`Show ${chord} chord diagram`,exact:true}).first().click();
-  await expect(page.getByRole("dialog")).toBeVisible();await expect(page.getByRole("dialog")).toContainText(`Capo ${fixture.alternate.fret}`);
+  await expect(page.getByRole("dialog")).toBeVisible();if(fixture.alternate.fret)await expect(page.getByRole("dialog")).toContainText(`Capo ${fixture.alternate.fret}`);
   await page.getByRole("button",{name:"Close chord diagram",exact:true}).click();await expect(page.getByRole("dialog")).toBeHidden();
   await page.reload();await openPracticeOptions(page);await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.alternate.fret));
   await selectHymnInstrument(page,"piano");await expect(page.locator("#hymn-capo")).toHaveCount(0);
   await selectHymnInstrument(page,"guitar");await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.alternate.fret));
   if(width===1440){
+   await closePracticeOptions(page);
+   await page.getByRole("button",{name:"Play",exact:true}).click();
+   await expect(page.getByRole("button",{name:"Pause",exact:true})).toBeVisible();
+   const playingFrets=await page.locator(".abcjs-tabNumber").allTextContents();
+   await practiceOption(page,"#hymn-tempo","120");
+   await expect(page.getByRole("button",{name:"Pause",exact:true})).toBeVisible();
+   assert.deepEqual(await page.locator(".abcjs-tabNumber").allTextContents(),playingFrets,"Tempo changes keep the active fingering stable");
+   await page.getByRole("button",{name:"Pause",exact:true}).click();
+   await openPracticeOptions(page);
+   await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.alternate.fret));
    await practiceOption(page,"#hymn-mode","wait");await practiceOption(page,"#hymn-hands","both");await closePracticeOptions(page);
    await midiAction(page,"Connect MIDI keyboard");await page.getByText("GO:KEYS 5 connected. Play at your own pace.",{exact:true}).waitFor();
    const before=await page.locator(".hymn-count").textContent();

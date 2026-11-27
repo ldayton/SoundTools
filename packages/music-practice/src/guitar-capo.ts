@@ -1,4 +1,8 @@
 import abcjs from "abcjs";
+import {planGuitarPhrase} from "./guitar-phrase-fingering";
+import {guitarSustainAudio} from "./guitar-sustain";
+import {playbackNotes} from "./hymn-playback";
+import {performNotes} from "./playback-performance";
 import {searchGuitarChords,findGuitarFingering,type GuitarChordVoicing} from "./guitar-chord-search";
 export type CapoPosition={str:number;num:number};
 type PositionFor=(pitch:number,chord:boolean,transpose?:number)=>CapoPosition|undefined;
@@ -7,16 +11,19 @@ export type CapoChoice={fret:number;shapeKey:string;chords:string[];cost:number;
 const tuning=[64,59,55,50,45,40]; // abcjs high-E-first order
 const limits={maxFingers:4,allowBarres:true};
 const keyOf=(pitch:number,chord:boolean)=>`${pitch}:${chord?1:0}`;
+const transposedChords=new Map<string,string>();
 export function transposeCapoChord(chord:string,shift:number){
+ const key=JSON.stringify([chord,shift]),cached=transposedChords.get(key);if(cached!==undefined)return cached;
  const source=`X:1\nL:1/4\nK:C\n"${chord}"C4 |]`;
- return (shift ? abcjs.strTranspose(source,abcjs.parseOnly(source),shift) : source).match(/"([^"]+)"/)![1].replaceAll("♯","#").replaceAll("♭","b");
+ const result=(shift ? abcjs.strTranspose(source,abcjs.parseOnly(source),shift) : source).match(/"([^"]+)"/)![1].replaceAll("♯","#").replaceAll("♭","b");
+ if(transposedChords.size>=512)transposedChords.delete(transposedChords.keys().next().value!);transposedChords.set(key,result);return result;
 }
-const chordCache=new Map<string,GuitarChordVoicing|undefined>();
-function easiest(chord:string){
- if(!chordCache.has(chord))chordCache.set(chord,searchGuitarChords(chord,{maxFret:5,limit:1}).voicings[0]);
- return chordCache.get(chord);
-}
+const factsCache=new Map<string,ReturnType<typeof scoreFacts>>();
 function facts(abc:string,accompanimentOnly=false){
+ const key=JSON.stringify([abc,accompanimentOnly]);let value=factsCache.get(key);
+ if(!value){value=scoreFacts(abc,accompanimentOnly);if(factsCache.size>=64)factsCache.delete(factsCache.keys().next().value!);factsCache.set(key,value);}return value;
+}
+function scoreFacts(abc:string,accompanimentOnly=false){
  const tune=abcjs.parseOnly(abc)[0],poly=new Map<number,boolean>();
  const chords:{at:number;name:string}[]=[],clocks=new Map<string,number>();
  for(const l of tune.lines)for(const [s,staff]of(l.staff||[]).entries())for(const[v,voice]of(staff.voices||[]).entries()){
@@ -52,17 +59,23 @@ function assess(frames:string[][],positions:ReadonlyMap<string,CapoPosition>){
 /** Conservative global string assignments. Exact pitches and every held-note
  * overlap must fit; an unproven candidate is omitted rather than octaved away.
  */
-function positionsFor(frames:string[][],keys:string[],offset:number,positionFor:PositionFor,maxFret:number){
- const preferred=new Map(keys.flatMap(key=>{const[p,c]=key.split(":");const original=positionFor(+p,c==="1",0);return original?[ [key,{str:original.str,num:original.num+offset}] as const ]:[];}));
- if([...preferred.values()].every(p=>p.num>=0&&p.num<=maxFret)&&preferred.size===keys.length&&assess(frames,preferred))return preferred;
+function positionsFor(frames:string[][],keys:string[],offset:number,positionFor:PositionFor,maxFret:number,fixed=false){
+ const results:Map<string,CapoPosition>[]=[],seen=new Set<string>();
+ const add=(positions:Map<string,CapoPosition>)=>{
+  const signature=[...positions].sort(([a],[b])=>a.localeCompare(b)).map(([key,p])=>`${key}:${p.str}:${p.num}`).join("/");
+  if(!seen.has(signature)&&assess(frames,positions)){seen.add(signature);results.push(new Map(positions));}
+ };
+ const preferred=new Map(keys.flatMap(key=>{const[p,c]=key.split(":");const original=positionFor(+p,c==="1",0);return original?[[key,{str:original.str,num:original.num+offset}] as const]:[];}));
+ if(preferred.size===keys.length&&[...preferred].every(([key,p])=>p.num>=0&&p.num<=maxFret&&tuning[p.str]+p.num===Number(key.split(":")[0])+offset))add(preferred);
+ if(fixed)return results;
  const neighbors=new Map(keys.map(k=>[k,new Set(frames.filter(f=>f.includes(k)).flat().filter(x=>x!==k))]));
- const domains=new Map(keys.map(key=>{const pitch=+key.split(":")[0]+offset;
-  return [key,tuning.flatMap((open,str)=>{const num=pitch-open;return num>=0&&num<=maxFret?[{str,num}]:[]}).sort((a,b)=>a.num-b.num||a.str-b.str)] as const;
- }));
+ const domains=new Map(keys.map(key=>{const pitch=+key.split(":")[0]+offset;return [key,tuning.flatMap((open,str)=>{const num=pitch-open;return num>=0&&num<=maxFret?[{str,num}]:[]}).sort((a,b)=>a.num-b.num||a.str-b.str)] as const;}));
  const compatible=(a:CapoPosition,b:CapoPosition)=>a.str!==b.str&&(!a.num||!b.num||Math.abs(a.num-b.num)<=5);
- const chosen=new Map<string,CapoPosition>();
- function visit(remaining:Map<string,CapoPosition[]>):Map<string,CapoPosition>|undefined{
-  if(!remaining.size)return assess(frames,chosen)?new Map(chosen):undefined;
+ const chosen=new Map<string,CapoPosition>();let visited=0;
+ // Bounded alternatives keep interactive selection responsive; every returned layout is proved.
+ function visit(remaining:Map<string,CapoPosition[]>):void{
+  if(++visited>512||results.length>=2)return;
+  if(!remaining.size){add(chosen);return;}
   const [key,options]=[...remaining].sort((a,b)=>a[1].length-b[1].length||neighbors.get(b[0])!.size-neighbors.get(a[0])!.size||a[0].localeCompare(b[0]))[0];
   for(const p of options){
    chosen.set(key,p);const next=new Map(remaining);next.delete(key);let valid=true;
@@ -70,52 +83,102 @@ function positionsFor(frames:string[][],keys:string[],offset:number,positionFor:
     if(chosen.has(neighbor)&&!compatible(p,chosen.get(neighbor)!)){valid=false;break;}
     if(next.has(neighbor)){const d=next.get(neighbor)!.filter(q=>compatible(p,q));if(!d.length){valid=false;break;}next.set(neighbor,d);}
    }
-   if(valid&&frames.filter(f=>f.includes(key)&&f.every(k=>chosen.has(k))).every(f=>!!assess([f],chosen))){const result=visit(next);if(result)return result;}
-   chosen.delete(key);
+   if(valid&&frames.filter(f=>f.includes(key)&&f.every(k=>chosen.has(k))).every(f=>!!assess([f],chosen)))visit(next);
+   chosen.delete(key);if(visited>512||results.length>=2)break;
   }
  }
- if([...domains.values()].some(d=>!d.length))return;
- return visit(domains);
+ if(![...domains.values()].some(d=>!d.length))visit(domains);
+ return results;
 }
-/** Rank only physically proven choices. Costs are internal ordering values,
- * not a universal difficulty percentage. Reference arrangements get no preference;
- * only a deliberately requested, physically valid choice can extend the shortlist.
- */
-export function recommendGuitarCapos(input:{abc:string;accompanimentAbc?:string;sourceCapo:number;transpose:number;shapeKey:string;positionFor:PositionFor;requestedCapo?:number|null;accompanimentOnly?:boolean}){
- const full=facts(input.abc,input.accompanimentOnly),accompaniment=input.accompanimentAbc ? facts(input.accompanimentAbc) : undefined;
- const {frames,keys,chords}=full;
- const scoreCapo=input.sourceCapo+input.transpose;
- const candidates=Array.from({length:12},(_,fret)=>fret),choices:CapoChoice[]=[];
- for(const fret of candidates){
-  const shift=scoreCapo-fret,positions=positionsFor(frames,keys,shift,input.positionFor,Math.min(19,24-fret));if(!positions)continue;
-  const mechanical=assess(frames,positions)!;
-  const grips=new Map<string,{positions:ReadonlyMap<string,CapoPosition>;fingers:ReadonlyMap<string,number>}>();
-  const chordVoicings=new Map<string,GuitarChordVoicing>();
-  let accompanimentCost=0;
-  for(const change of accompaniment?.chords || []){
-    const shape=transposeCapoChord(change.name,shift),voicing=easiest(shape);if(!voicing)continue;
-    chordVoicings.set(change.name.replaceAll("♯","#").replaceAll("♭","b"),voicing);
-    const positions=new Map<string,CapoPosition>(),fingers=new Map<string,number>();
-    for(const note of voicing.notes){const key=keyOf(note.midi-shift,true);positions.set(key,{str:note.string-1,num:note.fret});fingers.set(key,voicing.fingering.fingers[6-note.string]!);}
-    grips.set(voicing.notes.map(n=>n.midi-shift).sort((a,b)=>a-b).join(","),{positions,fingers});
-    accompanimentCost=Math.max(accompanimentCost,voicing.fingering.effort);
-  }
-  const names=chords.map(c=>transposeCapoChord(c.name,shift)),voicings=names.map(easiest);
-  if(voicings.some(v=>!v))continue;
-  const costs=voicings.map(v=>v!.rank.cost+(v!.rank.group==="other"?60:0));
-  let movement=0;
-  for(let i=1;i<voicings.length;i++){
-   const a=voicings[i-1]!,b=voicings[i]!;
-   movement+=Math.abs(a.rank.features.position-b.rank.features.position)/Math.max(.25,(chords[i].at-chords[i-1].at)*4);
-  }
-  const mean=costs.reduce((a,b)=>a+b,0)/Math.max(1,costs.length),worst=costs.length?Math.max(...costs):0;
-  const cost=mean*.35+worst*.35+mechanical.cost*.2+accompanimentCost*.1+movement/Math.max(1,costs.length)*2+fret*.8;
-  choices.push({fret,shapeKey:transposeCapoChord(input.shapeKey,shift),chords:[...new Set(names)],cost,scoreSetting:!input.accompanimentOnly&&fret===scoreCapo,positions,fingers:mechanical.fingers,accompaniment:grips,voicings:chordVoicings,reasons:[input.accompanimentOnly?"Harmony and instrumental fills preserved":"Melody and held bass preserved",...(voicings.every(v=>!v?.fingering.barres.length)?["No chord barres"]:[])]});
+type CapoInput={abc:string;accompanimentAbc?:string;sourceCapo:number;transpose:number;shapeKey:string;positionFor:PositionFor;requestedCapo?:number|null;bpm?:number;referencePerformanceAbc?:string;accompanimentOnly?:boolean};
+const adviceCache=new Map<string,CapoChoice[]>();
+const audioCache=new Map<string,ReturnType<typeof playbackNotes>>();
+const positionIds=new WeakMap<PositionFor,number>();let nextPositionId=0;
+const alternativeChords=new Map<string,GuitarChordVoicing[]>();
+function chordAlternatives(name:string){
+ if(!alternativeChords.has(name))alternativeChords.set(name,searchGuitarChords(name,{maxFret:5,limit:3,voicingPolicy:"complete"}).voicings);
+ return alternativeChords.get(name)!;
+}
+/** Assess exactly the notes/string releases that playback will use, including let-ring. */
+function phraseCost(input:CapoInput,choice:CapoChoice,shift:number,bpm:number){
+ const abc=input.accompanimentOnly?capoAccompanimentAbc(input.abc,choice,shift):input.abc;
+ let playback=audioCache.get(abc);
+ if(!playback){const tune=abcjs.parseOnly(abc)[0];playback=playbackNotes(guitarSustainAudio(tune.setUpAudio({qpm:60,chordsOff:true}),abc));if(audioCache.size>=128)audioCache.delete(audioCache.keys().next().value!);audioCache.set(abc,playback);}
+ const base=input.sourceCapo+input.transpose;
+ let valid=true;
+ // Coincident unisons in separate written voices are one physical contact.
+ const attacks=new Map<string,ReturnType<typeof playbackNotes>[number]>();
+ for(const n of playback){
+  const key=`${n.start}:${n.pitch}`,previous=attacks.get(key);
+  if(previous){previous.duration=Math.max(previous.duration,n.duration);previous.ringUntil=Math.max(previous.ringUntil??0,n.ringUntil??0);}
+  else attacks.set(key,{...n});
  }
- choices.sort((a,b)=>a.cost-b.cost||a.fret-b.fret);
- const best=choices[0]?.cost??0;
- const shortlist=choices.filter(c=>c.cost<=best*1.25+5).slice(0,3);
- const requested=choices.find(c=>c.fret===input.requestedCapo);
+ const notes=performNotes([...attacks.values()].map(n=>({...n,pitch:n.pitch+base})),{instrument:"guitar",strum:input.accompanimentOnly,positionFor:(pitch,chord,group)=>{
+  const p=capoPosition(choice,pitch-base,chord,0,group?.map(p=>p-base));
+  if(!p){valid=false;return;}
+  return {str:p.str,num:p.num+choice.fret};
+ }});
+ if(!valid||notes.some(n=>n.string===undefined||n.fret===undefined||n.fret<choice.fret||n.fret>24))return;
+ const contacts=notes.map((n,i)=>({id:String(i),start:n.start,duration:n.duration,string:6-n.string!,fret:n.fret!-choice.fret})).filter(n=>n.duration>1e-7);
+ const plan=planGuitarPhrase(contacts,{bpm,capo:choice.fret});if(!plan)return;
+ // Normalize by musical duration, retaining the contribution of every repeated passage.
+ const beats=Math.max(1,...contacts.map(n=>n.start+n.duration));
+ const fingers=new Map<string,number>();
+ for(const [key,p] of choice.positions){
+  const pitch=Number(key.split(":")[0])+base;
+  const fs=new Set(plan.notes.flatMap(n=>{const source=notes[Number(n.id)];return source?.pitch===pitch&&n.string===p.str+1?[n.finger]:[];}));
+  if(fs.size===1)fingers.set(key,[...fs][0]);
+ }
+ return {cost:plan.cost/beats,fingers};
+}
+/** Rank the performed part; chord labels alone never stand in for a solo passage.
+ * Lower capo height is a small secondary cost (0.01 per fret). Search is bounded,
+ * so recommendations are proved playable alternatives rather than a global optimum.
+ */
+export function recommendGuitarCapos(input:CapoInput){
+ const bpm=input.bpm??abcjs.parseOnly(input.abc)[0].metaText.tempo?.bpm??80;
+ if(!positionIds.has(input.positionFor))positionIds.set(input.positionFor,++nextPositionId);
+ const cacheKey=JSON.stringify([positionIds.get(input.positionFor),input.abc,input.accompanimentAbc,input.referencePerformanceAbc,input.sourceCapo,input.transpose,input.shapeKey,input.accompanimentOnly,bpm]);
+ let choices=adviceCache.get(cacheKey);
+ if(!choices){
+  const {frames,keys,chords}=facts(input.abc,input.accompanimentOnly),accompaniment=input.accompanimentAbc?facts(input.accompanimentAbc):undefined;
+  const scoreCapo=input.sourceCapo+input.transpose;choices=[];
+  for(let fret=0;fret<12;fret++){
+   const shift=scoreCapo-fret;
+   // An authored reference pattern can differ from the revoiced alternatives.
+   // Its fixed tab must be assessed exactly as performed, including picked notes.
+   const reference=input.accompanimentOnly&&fret===scoreCapo&&input.referencePerformanceAbc;
+   const performed=reference?{...input,abc:reference,accompanimentOnly:false}:input;
+   const layoutFacts=reference?facts(reference):{frames,keys};
+   const layouts=positionsFor(layoutFacts.frames,layoutFacts.keys,shift,input.positionFor,Math.min(19,24-fret),!!reference);
+   let best:CapoChoice|undefined;
+   for(let variant=0;variant<(input.accompanimentOnly?2:1);variant++){
+    const grips=new Map<string,{positions:ReadonlyMap<string,CapoPosition>;fingers:ReadonlyMap<string,number>}>(),voicings=new Map<string,GuitarChordVoicing>();
+    for(const name of new Set((accompaniment?.chords||chords).map(c=>c.name))){
+     const alternatives=chordAlternatives(transposeCapoChord(name,shift)),v=alternatives[Math.min(variant,alternatives.length-1)];if(!v)continue;
+     voicings.set(name.replaceAll("♯","#").replaceAll("♭","b"),v);
+     const positions=new Map<string,CapoPosition>(),fingers=new Map<string,number>();
+     for(const n of v.notes){const key=keyOf(n.midi-shift,true);positions.set(key,{str:n.string-1,num:n.fret});fingers.set(key,v.fingering.fingers[6-n.string]!);}
+     grips.set(v.notes.map(n=>n.midi-shift).sort((a,b)=>a-b).join(","),{positions,fingers});
+    }
+    for(const positions of layouts){
+     const choice:CapoChoice={fret,shapeKey:transposeCapoChord(input.shapeKey,shift),chords:[...new Set(chords.map(c=>transposeCapoChord(c.name,shift)))],cost:0,scoreSetting:(!input.accompanimentOnly||!!reference)&&fret===scoreCapo&&(!accompaniment||accompaniment.keys.every(key=>Number(key.split(":")[0])+shift>=40)),positions,fingers:new Map(),accompaniment:grips,voicings,reasons:[input.accompanimentOnly?"Chord accompaniment and fills assessed":"Melody and held bass assessed","Whole-phrase fingering and movement assessed"]};
+     const result=phraseCost(performed,choice,shift,bpm);if(!result)continue;
+     // A novice must learn each unfamiliar performed chord grip once; this is
+     // separate from physical movement and never uses hypothetical solo chords.
+     const performedGrips=new Set(chords.flatMap(c=>{const v=voicings.get(c.name.replaceAll("♯","#").replaceAll("♭","b"));return v&&v.rank.group!=="familiar-beginner"?[v.notes.map(n=>`${n.string}:${n.fret}`).join(",")]:[];}));
+     const learning=input.accompanimentOnly?performedGrips.size:0;
+     choice.cost=result.cost+learning+fret*.01;choice.fingers=result.fingers;
+     if(!best||choice.cost<best.cost)best=choice;
+    }
+   }
+   if(best)choices.push(best);
+  }
+  choices.sort((a,b)=>a.cost-b.cost||a.fret-b.fret);
+  if(adviceCache.size>=32)adviceCache.delete(adviceCache.keys().next().value!);
+  adviceCache.set(cacheKey,choices);
+ }
+ const best=choices[0]?.cost??0,shortlist=choices.filter(c=>c.cost<=best*1.25+.1).slice(0,3),requested=choices.find(c=>c.fret===input.requestedCapo);
  if(requested&&!shortlist.includes(requested))shortlist.push(requested);
  return shortlist.sort((a,b)=>a.cost-b.cost||a.fret-b.fret);
 }

@@ -69,6 +69,7 @@ const mutations: {
   to: string;
   notes: GuitarPhraseNote[];
   profile?: GuitarFingeringProfile;
+  withoutLowerBound?: boolean;
 }[] = [
   {
     name: "lost tied-contact identity",
@@ -105,6 +106,7 @@ const mutations: {
   },
   {
     name: "worst predecessor chosen instead of best",
+    withoutLowerBound: true,
     target: "phrase",
     from: "if (!best || cost < best.cost - 1e-9)",
     to: "if (!best || cost > best.cost + 1e-9)",
@@ -134,10 +136,11 @@ for (const m of mutations)
       );
     };
     check(await load());
+    let mutatedPhrase=m.target === "phrase"?replaceOnce(phraseSource,m.from,m.to):phraseSource;
+    // The min-cost lower bound is inapplicable to the deliberately max-cost mutant.
+    if(m.withoutLowerBound)mutatedPhrase=replaceOnce(mutatedPhrase,"if(best&&prev.cost+localTotal>best.cost+1e-9)break;","");
     const planner = await load(
-      m.target === "phrase"
-        ? replaceOnce(phraseSource, m.from, m.to)
-        : phraseSource,
+      mutatedPhrase,
       m.target === "chord"
         ? replaceOnce(chordSource, m.from, m.to)
         : chordSource,

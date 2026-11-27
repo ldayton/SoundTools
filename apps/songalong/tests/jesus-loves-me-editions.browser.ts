@@ -124,11 +124,7 @@ try {
         .includes("?"),
     );
     await expect(page.locator("g.abcjs-part")).toHaveCount(0);
-    assert(
-      (await page.locator("[data-name=tabNumber]").allTextContents())
-        .join("")
-        .includes("3"),
-    );
+    assert((await page.locator(".abcjs-tabNumber text").allTextContents()).every(text=>Number(text.trim())<=4),"Recommended beginner tab uses a compact hand position");
     await expect(page.locator("#hymn-hands")).toHaveCount(0);
     for (const display of ["notation", "tab", "both", "chords"]) {
       await selectScoreDisplay(page,display);
@@ -140,13 +136,13 @@ try {
         ).toBeVisible();
       if (display === "notation" || display === "both")
         await expect(page.locator(".abcjs-time-signature")).toHaveCount(1);
-      await expect(page.locator(".hymn-score-setup")).toContainText("Capo 1");
+      await expect(page.locator(".hymn-score-setup")).toContainText(/Capo \d+/);
       if (display === "tab") {
         await expect(page.locator(".tab-rhythm-dot").first()).toBeVisible();
         assert(await page.locator(".tab-rhythm-half").count());
         assert(await page.locator(".tab-rhythm-dot").count());
-        // Seventeen split bass beats sustain under offbeat Travis fills.
-        await expect(page.locator(".tab-rhythm-continuation")).toHaveCount(17);
+        // Beginner thumb quarters have no split bass beats or offbeat fills.
+        await expect(page.locator(".tab-rhythm-continuation")).toHaveCount(0);
 
         await expect(page.locator(".tab-rhythm-time")).toHaveText(["4", "4"]);
         assert(
@@ -216,7 +212,7 @@ try {
     if (width === 1440) {
       await page.goto(
         server.base +
-          "/piano/hymns/jesus-loves-me?arrangement=guitar-edition&display=both&mode=wait&capo=3",
+          "/piano/hymns/jesus-loves-me?arrangement=guitar-edition&display=both&mode=wait&capo=8",
       );
       await page.locator(".hymn-count").waitFor();
       await midiAction(page, "Connect MIDI keyboard");
@@ -237,11 +233,11 @@ try {
       });
       await expect(page.locator(".hymn-count")).toHaveText(before!);
       await page.evaluate(() => {
-        for (const p of [51, 58]) (window as any).midiTest.send([0x90, p, 90]);
+        for (const p of [51, 70]) (window as any).midiTest.send([0x90, p, 90]);
       });
       await expect(page.locator(".hymn-count")).not.toHaveText(before!);
       await page.evaluate(() => {
-        for (const p of [51, 58]) (window as any).midiTest.send([0x80, p, 0]);
+        for (const p of [51, 70]) (window as any).midiTest.send([0x80, p, 0]);
       });
       await openPracticeOptions(page);
       await page.locator("#hymn-hands").selectOption("left");
@@ -255,7 +251,7 @@ try {
       await midiAction(page, "Connect MIDI keyboard");
       const chordBefore = await page.locator(".hymn-count").textContent();
       await page.evaluate(() => {
-        for (const p of [51, 55, 58, 63, 67])
+        for (const p of [51, 55, 58, 63, 67, 75])
           (window as any).midiTest.send([0x90, p, 90]);
       });
       await expect(page.locator(".hymn-count")).not.toHaveText(chordBefore!);
@@ -268,7 +264,7 @@ try {
     );
     // Translations mix with English, and each language prints its refrain once.
     for(const arrangement of ["piano","guitar-edition"]){
-      await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=playback&display=both&stanzas=1,2,3,4&capo=3`);
+      await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=playback&display=both&stanzas=1,2,3,4&capo=8`);
       await waitForApp(page,".hymn-pause");
       await openPracticeOptions(page);
       await expect(page.locator("#hymn-stanzas input:checked")).toHaveCount(4);
@@ -298,11 +294,11 @@ try {
       assert.deepEqual(await page.locator("#hymn-stanzas input").evaluateAll(nodes=>nodes.map(n=>(n as HTMLInputElement).checked)),[true,false,false,true]);
       await checkScore(page);
       if(width===1440||width===390)for(const stanza of [4]){
-        await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=wait&hands=right&view=right&stanzas=${stanza}&capo=3`);
+        await page.goto(`${server.base}/piano/hymns/jesus-loves-me?arrangement=${arrangement}&mode=wait&hands=right&view=right&stanzas=${stanza}&capo=8`);
         await waitForApp(page,".hymn-pause");
         // Mobile is playback-only, so it includes the new offbeat guitar onsets.
         // Desktop wait mode still grades only the selected melody hand.
-        await expect(page.locator(".hymn-count")).toHaveText(arrangement === "guitar-edition" && width < 768 ? "1 / 80" : "1 / 51");
+        await expect(page.locator(".hymn-count")).toHaveText(arrangement === "guitar-edition" && width < 768 ? "1 / 67" : "1 / 51");
       }
     }
     await checkVocalEdition(page,server.base,"jesus-loves-me");

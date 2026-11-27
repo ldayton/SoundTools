@@ -114,12 +114,14 @@ export class SightReading {
           ["playing", "counting", "loading"].includes(this.playback.state)
         )
           return;
+        if(this.capoTempoPending)this.refreshCapoTempo();
         void this.playback.play(this.bpm, this.countInBars);
         this.update();
       },
       pause: () => {
         if (!this.active || this.mode !== "playback") return;
         this.playback.pause();
+        if(this.capoTempoPending)this.refreshCapoTempo();
         this.update();
       },
     },
@@ -159,6 +161,7 @@ export class SightReading {
   private capo: number | null = null;
   private capoChoices: CapoChoice[] = [];
   private capoChoice?: CapoChoice;
+  private capoTempoPending = false;
   private capoCache = new Map<string,CapoChoice[]>();
   private octave?: number;
   private low: number | null = null;
@@ -436,9 +439,13 @@ export class SightReading {
             if (this.mode === "playback") {
               if (
                 ["playing", "counting", "loading"].includes(this.playback.state)
-              )
+              ) {
                 this.playback.pause();
-              else void this.playback.play(this.bpm, this.countInBars);
+                if(this.capoTempoPending)this.refreshCapoTempo();
+              } else {
+                if(this.capoTempoPending)this.refreshCapoTempo();
+                void this.playback.play(this.bpm, this.countInBars);
+              }
               this.playbackView = "";
               this.update();
               return;
@@ -923,6 +930,14 @@ export class SightReading {
     this.render(false, continuingPlayback);
     this.save();
   }
+  private refreshCapoTempo() {
+    this.capoTempoPending = false;
+    const time=this.playback.displayPosition,state=this.playback.state;
+    this.restorePending=false;
+    this.render();
+    if(this.mode === "playback")this.playback.seek(time,state === "paused" ? "paused" : "ready");
+  }
+
   private render(layoutOnly = false, continuingPlayback = false) {
     this.exportScore=undefined;
     this.element.dataset.playbackOnly = String(this.mobileLayout.matches);
@@ -987,10 +1002,10 @@ export class SightReading {
       this.capoChoices=[];this.capoChoice=undefined;
       if(capoEdition){
         const guitarShift=guitarVocal ? ((chordProfile.capo+transposition.semitones)%12+12)%12-chordProfile.capo : transposition.semitones;
-        const identity=`${this.hymn.id}:${this.arrangement}:${guitarShift}:${this.capo ?? "auto"}`;
+        const identity=`${this.hymn.id}:${this.arrangement}:${guitarShift}:${this.capo ?? "auto"}:${this.bpm}`;
         let choices=this.capoCache.get(identity);
         if(!choices){
-          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position,requestedCapo:this.capo,accompanimentOnly:guitarVocal});
+          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0,0,undefined,false).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position,requestedCapo:this.capo,accompanimentOnly:guitarVocal,referencePerformanceAbc:guitarVocal && usesChristPicking(chordProfile.editionKey,guitarShift,chordProfile.capo+guitarShift) ? guitarVocalAccompaniment(this.hymn,0).abc : undefined,bpm:this.bpm});
           this.capoCache.set(identity,choices);
         }
         this.capoChoices=choices;
@@ -1481,6 +1496,11 @@ export class SightReading {
     } else if (patch.bpm !== undefined) {
       this.bpm = next.bpm!;
       this.playback.setTempo(this.bpm);
+      if(this.capoChoices.length) {
+        // Never change a player's shape family underneath an active performance.
+        if(["playing","loading","counting"].includes(this.playback.state))this.capoTempoPending=true;
+        else this.refreshCapoTempo();
+      }
     } else if (patch.key !== undefined) {
       if (!this.availableKeys.includes(next.key!)) return;
       this.save();

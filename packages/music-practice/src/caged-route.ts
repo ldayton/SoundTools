@@ -3,6 +3,7 @@ import {isMaqam} from './maqamat';
 import {scaleNotes, type ScaleQuality} from './guitar-scales';
 import {positionKey, type ShiftNote} from './scale-shift';
 
+export type CagedRouteDirection = 'up' | 'down' | 'both';
 export type CagedRegion = {shape:ScaleShape; shift:number; notes:ShiftNote[]};
 export type CagedRouteNote = ShiftNote & {region:number};
 export type CagedRoute = {regions:CagedRegion[]; notes:CagedRouteNote[]; shifts:{previous:CagedRouteNote;arrival:CagedRouteNote}[]};
@@ -10,8 +11,8 @@ export type CagedRoute = {regions:CagedRegion[]; notes:CagedRouteNote[]; shifts:
 /** One root-to-root scale through five neighbouring positions. The search owns
  * both the diagram and its shift instructions; it never changes a scale pitch
  * or invents fingers outside the reviewed position charts. */
-export function cagedRoute(tonic:number,quality:ScaleQuality,spelling?:string):CagedRoute|undefined {
-  if(isMaqam(quality))return;
+export function cagedRoutes(tonic:number,quality:ScaleQuality,spelling?:string):CagedRoute[] {
+  if(isMaqam(quality))return [];
   const regions=CAGED_SHAPES.map(shape=>{
     const shift=patternShift(tonic,quality,shape);
     return {shape,shift,notes:patternPositions(tonic,quality,shape,shift,spelling)};
@@ -24,13 +25,16 @@ export function cagedRoute(tonic:number,quality:ScaleQuality,spelling?:string):C
   const starts=regions[0].notes.filter(n=>n.root).sort((a,b)=>a.midi-b.midi);
   const finish=Math.max(...regions.at(-1)!.notes.filter(n=>n.root).map(n=>n.midi));
   type Result={cost:number;notes:CagedRouteNote[]};
-  const cache=new Map<string,Result|undefined>();
-  function visit(note:CagedRouteNote,count:number):Result|undefined {
-    if(note.region===4&&note.midi===finish)return count>=2?{cost:0,notes:[note]}:undefined;
-    if(note.midi>=finish)return;
+  // Keep bounded, distinct transition sequences at each state, rather than
+  // variations that merely choose another duplicate note inside one shape.
+  const signature=(notes:CagedRouteNote[])=>notes.flatMap((n,i)=>i&&n.region!==notes[i-1].region?[`${notes[i-1].string}:${notes[i-1].fret}>${n.fret}`]:[]).join('/');
+  const cache=new Map<string,Result[]>();
+  function visit(note:CagedRouteNote,count:number):Result[] {
+    if(note.region===4&&note.midi===finish)return count>=2?[{cost:0,notes:[note]}]:[];
+    if(note.midi>=finish)return [];
     const key=`${note.region}:${positionKey(note)}:${Math.min(2,count)}`;
-    if(cache.has(key))return cache.get(key);
-    let best:Result|undefined;
+    if(cache.has(key))return cache.get(key)!;
+    const candidates:Result[]=[];
     for(const region of [note.region,...(count>=2&&note.region<4?[note.region+1]:[])]){
       for(const candidate of regions[region].notes){
         if(candidate.midi!==next(note.midi))continue;
@@ -39,18 +43,30 @@ export function cagedRoute(tonic:number,quality:ScaleQuality,spelling?:string):C
         // string and move toward higher frets by one scale step, never a leap.
         if(shift ? candidate.string!==note.string||candidate.fret<=note.fret||candidate.fret-note.fret>3
           : candidate.string>note.string||note.string-candidate.string>1)continue;
-        const tail=visit({...candidate,region},shift?1:count+1);if(!tail)continue;
-        const cost=tail.cost+Math.abs(candidate.fret-note.fret)+(shift?Math.abs(candidate.finger-note.finger)*.25:0);
-        if(!best||cost<best.cost)best={cost,notes:[note,...tail.notes]};
+        for(const tail of visit({...candidate,region},shift?1:count+1)){
+          const cost=tail.cost+Math.abs(candidate.fret-note.fret)+(shift?Math.abs(candidate.finger-note.finger)*.25:0);
+          candidates.push({cost,notes:[note,...tail.notes]});
+        }
       }
     }
+    const seen=new Set<string>();
+    const best=candidates.sort((a,b)=>a.cost-b.cost).filter(r=>{const key=signature(r.notes);if(seen.has(key))return false;seen.add(key);return true;}).slice(0,24);
     cache.set(key,best);return best;
   }
   for(const start of starts){
-    const result=visit({...start,region:0},1);if(!result)continue;
-    const notes=result.notes;
-    return {regions,notes,shifts:notes.flatMap((arrival,i)=>i&&arrival.region!==notes[i-1].region?[{previous:notes[i-1],arrival}]:[])};
+    const results=visit({...start,region:0},1);if(!results.length)continue;
+    const routes=results.map(({notes})=>({regions,notes,shifts:notes.flatMap((arrival,i)=>i&&arrival.region!==notes[i-1].region?[{previous:notes[i-1],arrival}]:[])}));
+    // Prefer alternatives that shift on different strings before offering a
+    // different transition note on the same strings. Route 1 remains cheapest.
+    const selected:CagedRoute[]=[],strings=new Set<string>();
+    for(const route of routes){const key=route.shifts.map(s=>s.arrival.string).join(',');if(strings.has(key))continue;strings.add(key);selected.push(route);if(selected.length===4)break;}
+    for(const route of routes){if(selected.length===4)break;if(!selected.includes(route))selected.push(route);}
+    return selected;
   }
+  return [];
+}
+export function cagedRoute(tonic:number,quality:ScaleQuality,spelling?:string):CagedRoute|undefined {
+  return cagedRoutes(tonic,quality,spelling)[0];
 }
 
 export function reverseCagedRoute(route:CagedRoute):CagedRoute {

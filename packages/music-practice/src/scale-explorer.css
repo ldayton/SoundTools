@@ -15,7 +15,7 @@
   letter-spacing: -0.5px;
 }
 .scale-relative { flex: 0 0 auto; max-width: 42%; }
-.scale-heading .scale-relative-switch {
+.scale-toolbar .scale-relative-switch {
   min-height: 36px;
   max-width: 100%;
   height: auto;
@@ -26,7 +26,7 @@
   background: var(--mantine-color-violet-0, #fcfaff);
   border-radius: 7px;
 }
-.scale-heading .scale-relative-switch .mantine-Button-label { white-space: normal; line-height: 1.25; }
+.scale-toolbar .scale-relative-switch .mantine-Button-label { white-space: normal; line-height: 1.25; }
 .scale-key-navigation { margin: 4px 0 12px; }
 .scale-heading .scale-pattern-caption {
   margin-top: 6px;
@@ -256,7 +256,7 @@
 @media (max-width: 360px) {
   .scale-heading { gap: 8px; }
   .scale-heading h2 { font-size: 23px; }
-  .scale-heading .scale-relative-switch { padding-inline: 8px; font-size: 12px; }
+  .scale-toolbar .scale-relative-switch { padding-inline: 8px; font-size: 12px; }
 }
 
 /* The phone scale view is a full-width practice canvas. */
@@ -273,8 +273,7 @@
     padding: 12px;
     min-height: calc(100dvh - var(--app-shell-header-offset, 72px) - 56px);
   }
-  .scale-card .scale-note-list,
-  .scale-card .scale-shortcuts-button { display: none; }
+  .scale-card .scale-note-list { display: none; }
   #practice-content:has(#exercise-content:not([hidden]) .practice-workspace-content > div:not([hidden]) .scale-card) {
     touch-action: pinch-zoom;
   }
@@ -290,22 +289,33 @@
   .scale-options { user-select: none; -webkit-user-select: none; }
 }
 
-.scale-whole-route-line { fill:none; stroke:#40527b; stroke-width:3; opacity:.55; pointer-events:none; }
 .scale-route-shift-number { fill:#a4510d; font-size:16px; font-weight:600; paint-order:stroke; stroke:white; stroke-width:4px; }
 .scale-link-transition[data-route-shift]:focus { outline:none; }
 .scale-link-transition[data-route-shift]:focus > path { stroke-width:5; }
 .scale-whole-route { margin:12px 0; text-align:left; }
 .scale-whole-route-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
-.scale-whole-route ol { margin:8px 0; padding-left:24px; }
+.scale-whole-route ol { display:flex; flex-wrap:wrap; gap:8px 32px; margin:8px 0; padding-left:24px; }
 .scale-whole-route li::marker { color:#a4510d; font-weight:600; }
 .scale-whole-route li button { border:0; background:transparent; color:inherit; font:inherit; font-size:13px; text-align:left; padding:8px 4px; min-height:44px; cursor:pointer; text-decoration:underline; text-decoration-color:#c9ced5; text-underline-offset:3px; }
 .scale-whole-route li button:hover { color:#a4510d; }
 
 /* The long route keeps a readable dot size and pans inside its own canvas. */
 .scale-card:has(.scale-whole-route) { min-width:0; }
-.scale-card .scale-diagram:has(.scale-whole-route-line) { width:100%; overflow-x:auto; touch-action:pan-x pinch-zoom; }
-.scale-card .scale-diagram:has(.scale-whole-route-line) svg { width:max(100%, calc(var(--scale-board-units) * .8px)); max-width:none; }
+.scale-card .scale-diagram:has(.scale-whole-route-board) { width:100%; overflow-x:auto; touch-action:pan-x pinch-zoom; }
+.scale-card .scale-diagram:has(.scale-whole-route-board) svg { width:max(100%, calc(var(--scale-board-units) * .8px)); max-width:none; }
 @media (max-width:760px) {
-  #practice-content:has(#exercise-content:not([hidden]) .practice-workspace-content > div:not([hidden]) .scale-whole-route-line) { touch-action:auto; }
-  .scale-card .scale-diagram:has(.scale-whole-route-line) { touch-action:pan-x pan-y pinch-zoom; }
+  #practice-content:has(#exercise-content:not([hidden]) .practice-workspace-content > div:not([hidden]) .scale-whole-route-board) { touch-action:auto; }
+  .scale-card .scale-diagram:has(.scale-whole-route-board) { touch-action:pan-x pan-y pinch-zoom; }
 }
+
+.scale-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:10px 0; }
+.scale-toolbar:focus { outline:none; }
+.scale-toolbar .scale-key-navigation { margin:0; }
+.scale-toolbar .scale-relative { max-width:none; }
+.scale-toolbar .scale-whole-route { display:flex; flex:1 1 340px; flex-wrap:wrap; align-items:center; gap:8px 20px; min-width:0; margin:0; }
+.scale-toolbar .scale-whole-route-heading { justify-content:flex-start; flex-wrap:nowrap; }
+.scale-toolbar .scale-whole-route ol { gap:8px 24px; margin:0; }
+.scale-toolbar .scale-whole-route li button { min-height:36px; padding-block:6px; }
+.scale-toolbar .scale-link-actions { padding-inline-start:0; border:0; }
+.scale-card .scale-link-legend { justify-content:flex-start; gap:10px 18px; margin:10px 0; }
+.scale-route-order { font-weight:600; }

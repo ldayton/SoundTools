@@ -16,7 +16,7 @@ try {
       "/guitar/scales?key=C&scale=major&pattern=map&from=1&to=5&labels=none",
   );
   await waitForApp(page, ".scale-diagram svg");
-  await expect(page.locator(".scale-shortcuts-button")).toBeVisible();
+  await expect(page.locator(".scale-shortcuts-button")).toHaveCount(0);
   await expect(page.locator(".scale-note-list")).toBeVisible();
   const tones = page.locator(".scale-diagram .scale-tone");
   await expect(tones).toHaveCount(18);
@@ -61,7 +61,7 @@ try {
   // This CAGED position needs four frets; fitting five must not pad it.
   await expect(page.locator(".scale-fret-number")).toHaveCount(4);
   await expect(page.locator(".scale-diagram svg")).toBeVisible();
-  await expect(page.locator(".scale-shortcuts-button")).toBeHidden();
+  await expect(page.locator(".scale-shortcuts-button")).toHaveCount(0);
   await expect(page.locator(".scale-note-list")).toBeHidden();
   for (const width of [320, 393, 430]) {
     await page.setViewportSize({ width, height: 852 });
@@ -150,16 +150,36 @@ try {
   const routePanel=page.getByRole('region',{name:'Across fretboard route'});
   await expect(routePanel).toBeVisible();
   await expect(routePanel.locator('li')).toHaveCount(4);
-  await expect(routePanel).toContainText('E → D → C → A → G');
+  await expect(page.locator('.scale-route-order')).toContainText('E ↔ D ↔ C ↔ A ↔ G');
+  await expect(page.getByRole('combobox',{name:'Route direction'})).toHaveValue('both');
+  for(const arrow of await page.locator('[data-route-shift] > path').all()){await expect(arrow).toHaveAttribute('marker-start','url(#scale-link-arrow)');await expect(arrow).toHaveAttribute('marker-end','url(#scale-link-arrow)');}
   await expect(page.locator('[data-route-shift]')).toHaveCount(4);
-  await expect(page.locator('.scale-whole-route-line')).toHaveCount(1);
+  await expect(page.locator('.scale-whole-route-board')).toHaveCount(1);
+  await expect(page.locator('.scale-diagram polyline')).toHaveCount(0);
   const routePitches=()=>page.locator('[data-route-index]').evaluateAll(nodes=>nodes.sort((a,b)=>Number(a.getAttribute('data-route-index'))-Number(b.getAttribute('data-route-index'))).map(n=>Number(n.getAttribute('data-midi'))));
+  const toolbar=page.getByRole('group',{name:'Scale toolbar',exact:true});
+  await expect(toolbar.getByRole('combobox',{name:'Scale route'})).toHaveValue('0');
+  await expect(toolbar.getByRole('combobox',{name:'Scale route'}).locator('option')).toHaveCount(4);
+  const firstShifts=await page.locator('[data-route-shift]').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('aria-label')));
+  await toolbar.getByRole('combobox',{name:'Scale route'}).selectOption('1');
+  expect(await page.locator('[data-route-shift]').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('aria-label')))).not.toEqual(firstShifts);
+  await expect(page.locator('[data-route-shift]')).toHaveCount(4);
+  await page.reload();
+  await waitForApp(page,'.scale-whole-route');
+  await expect(toolbar.getByRole('combobox',{name:'Scale route'})).toHaveValue('1');
+  expect(new URL(page.url()).searchParams.get('route')).toBe('2');
+  await toolbar.getByRole('combobox',{name:'Scale route'}).selectOption('0');
+  await page.keyboard.press('?');
+  await expect(page.getByRole('dialog',{name:'Scale keyboard shortcuts'})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog',{name:'Scale keyboard shortcuts'})).toHaveCount(0);
   const ascending=await routePitches();
   expect(ascending).toEqual([43,45,47,48,50,52,54,55,57,59,60,62,64,66,67,69,71,72,74,76,78,79]);
   for(const width of [320,393,1440]){
     await page.setViewportSize({width,height:1000});
     await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     if(width>760)await expect.poll(()=>page.locator('.scale-heading').evaluate(el=>{const nav=document.querySelector('.mantine-AppShell-navbar');return !!nav&&el.getBoundingClientRect().left>=nav.getBoundingClientRect().right;})).toBe(true);
+    await expect.poll(()=>page.locator('.scale-link-legend').evaluate(el=>el.getBoundingClientRect().top>=document.querySelector('.scale-toolbar')!.getBoundingClientRect().bottom)).toBe(true);
     await expect.poll(()=>page.locator('.scale-tone.scale-route circle').first().evaluate(el=>el.getBoundingClientRect().width)).toBeGreaterThanOrEqual(25);
   }
   await page.setViewportSize({width:393,height:852});
@@ -170,19 +190,28 @@ try {
   await routePanel.locator('li button').last().click();
   await expect.poll(()=>page.locator('.scale-diagram').evaluate(el=>el.scrollLeft)).toBeGreaterThan(0);
   await expect(page.locator('[data-route-shift]').last()).toBeFocused();
-  await page.getByRole('button',{name:'Reverse route',exact:true}).click();
-  await expect(routePanel).toContainText('Descending · G → A → C → D → E');
+  await page.getByRole('combobox',{name:'Route direction'}).selectOption('down');
+  await expect(page.locator('.scale-route-order')).toContainText('G → A → C → D → E');
+  await expect(page.locator('[data-route-shift] > path').first()).not.toHaveAttribute('marker-start','url(#scale-link-arrow)');
   expect(await routePitches()).toEqual([...ascending].reverse());
   await page.reload();
   await waitForApp(page,'.scale-whole-route');
   await expect(routePanel).toBeVisible();
   expect(new URL(page.url()).searchParams.get('link')).toBe('all');
+  await expect(page.getByRole('combobox',{name:'Route direction'})).toHaveValue('down');
+  expect(await routePitches()).toEqual([...ascending].reverse());
+  await page.getByRole('combobox',{name:'Route direction'}).selectOption('up');
+  await expect(page.locator('.scale-route-order')).toContainText('E → D → C → A → G');
+  expect(await routePitches()).toEqual(ascending);
+  await page.getByRole('combobox',{name:'Route direction'}).selectOption('both');
+  await expect(page.locator('.scale-route-order')).toContainText('E ↔ D ↔ C ↔ A ↔ G');
+  await expect(page.locator('[data-route-shift] > path').first()).toHaveAttribute('marker-start','url(#scale-link-arrow)');
   await openPracticeOptions(page);
   await expect(page.locator('#scale-linked-pattern')).toHaveValue('all');
   await page.locator('#scale-linked-pattern').selectOption('none');
   await closePracticeOptions(page);
   await expect(routePanel).toHaveCount(0);
-  await expect(page.locator('.scale-whole-route-line')).toHaveCount(0);
+  await expect(page.locator('.scale-whole-route-board')).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log(
     "PASS fret range map: complete map, controls, bookmark reload, shape switching and mobile",

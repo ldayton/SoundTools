@@ -15,7 +15,7 @@ import {
 } from "./berklee-scale-shapes";
 import { diagnostics } from "./diagnostics";
 import { shiftRoutes, positionKey } from "./scale-shift";
-import {cagedRoute, reverseCagedRoute} from "./caged-route";
+import {cagedRoutes, reverseCagedRoute, type CagedRouteDirection} from "./caged-route";
 import { ScaleFrame, scaleBodyState } from "./scale-frame";
 import { mountPracticeSurface } from "./practice-surfaces";
 import {
@@ -109,7 +109,14 @@ export class ScaleExplorer implements LivePractice {
   private reversedColors = false;
   private chordOpen = false;
   private wholeRoute = false;
-  private routeReversed = false;
+  private routeDirection:CagedRouteDirection = 'both';
+  private routeVariant=0;
+  private catalog?:{key:string;routes:ReturnType<typeof cagedRoutes>};
+  private routeCatalog(){
+    const key=`${this.tonic}:${this.quality}:${this.spelling||''}`;
+    if(this.catalog?.key!==key)this.catalog={key,routes:cagedRoutes(this.tonic,this.quality,this.spelling)};
+    return this.catalog.routes;
+  }
   enter() {
     this.active = true;
     this.publishMedia();
@@ -293,6 +300,8 @@ export class ScaleExplorer implements LivePractice {
       firstFret: this.firstFret,
       lastFret: this.lastFret,
       wholeRoute:this.wholeRoute,
+      routeDirection:this.routeDirection,
+      routeVariant:this.routeVariant,
       labels: this.labels,
       ...(this.spelling ? { spelling: this.spelling } : {}),
     });
@@ -306,10 +315,12 @@ export class ScaleExplorer implements LivePractice {
       settings.shift !== this.shift ||
       settings.firstFret !== this.firstFret ||
       settings.lastFret !== this.lastFret ||
-      settings.labels !== this.labels || !!settings.wholeRoute !== this.wholeRoute
+      settings.labels !== this.labels || !!settings.wholeRoute !== this.wholeRoute || (settings.routeDirection||"both") !== this.routeDirection || (settings.routeVariant||0)!==this.routeVariant
     ) {
       this.returnPosition = undefined;
       this.wholeRoute=!!settings.wholeRoute;
+      this.routeDirection=settings.routeDirection||"both";
+    this.routeVariant=settings.routeVariant||0;
       this.firstFret = settings.firstFret ?? 0;
       this.lastFret = settings.lastFret ?? 5;
       this.labels = settings.labels || this.labels;
@@ -370,11 +381,14 @@ export class ScaleExplorer implements LivePractice {
     this.lastFret = settings.lastFret ?? 5;
     this.returnPosition = settings.returnPosition;
     this.wholeRoute=!!settings.wholeRoute;
+    this.routeDirection=settings.routeDirection||"both";
+    this.routeVariant=settings.routeVariant||0;
     this.disposeView = mountPracticeSurface(
       element,
       createElement(ScaleFrame, {
         body: this.body,
-        reverseRoute:()=>{this.routeReversed=!this.routeReversed;this.render();},
+        setRouteVariant:(variant:number)=>{this.routeVariant=variant;this.update();},
+        setRouteDirection:(direction:CagedRouteDirection)=>{this.routeDirection=direction;this.update();},
         focusRouteShift:(key:string)=>{
           const node=this.element.querySelector<SVGGraphicsElement>(`[data-route-shift="${key}"]`);
           if(node){node.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});node.focus({preventScroll:true});}
@@ -453,6 +467,8 @@ export class ScaleExplorer implements LivePractice {
             );
             this.shapeSet = next.shapeSet || "standard";
             this.wholeRoute=!!next.wholeRoute;
+            this.routeDirection=next.routeDirection||"both";
+            this.routeVariant=next.routeVariant||0;
             if(this.wholeRoute)this.linked="none";
             this.hilaShape = next.hilaShape || 1;
             this.tonic = next.tonic;
@@ -497,6 +513,10 @@ export class ScaleExplorer implements LivePractice {
     if (this.shapeSet === "hila" || this.pattern !== "map")
       url.searchParams.set("position", String(this.shift));
     else url.searchParams.delete("position");
+    if(this.wholeRoute && this.routeVariant)url.searchParams.set("route",String(this.routeVariant+1));
+    else url.searchParams.delete("route");
+    if(this.wholeRoute && this.routeDirection!=="both")url.searchParams.set("direction",this.routeDirection);
+    else url.searchParams.delete("direction");
     if(this.wholeRoute)url.searchParams.set("link","all");
     else if (this.linked !== "none") url.searchParams.set("link", this.linked);
     else url.searchParams.delete("link");
@@ -524,6 +544,8 @@ export class ScaleExplorer implements LivePractice {
       lastFret: this.lastFret,
       linked: this.linked,
       wholeRoute:this.wholeRoute,
+      routeDirection:this.routeDirection,
+      routeVariant:this.routeVariant,
     };
   }
   private update() {
@@ -538,6 +560,8 @@ export class ScaleExplorer implements LivePractice {
         pattern: this.pattern,
         shift: this.shift,
         ...(this.wholeRoute?{wholeRoute:true}:{}),
+        ...(this.routeDirection!=="both"?{routeDirection:this.routeDirection}:{}),
+        ...(this.routeVariant?{routeVariant:this.routeVariant}:{}),
         ...(this.returnPosition ? { returnPosition: this.returnPosition } : {}),
         firstFret: this.firstFret,
         lastFret: this.lastFret,
@@ -550,6 +574,7 @@ export class ScaleExplorer implements LivePractice {
   }
   private normalizePosition() {
     if(this.shapeSet!=="standard"||isMaqam(this.quality))this.wholeRoute=false;
+    if(this.wholeRoute)this.routeVariant=Math.min(this.routeVariant,Math.max(0,this.routeCatalog().length-1));
     if(isMaqam(this.quality)){
       this.pattern='map';this.shapeSet='standard';this.linked='none';this.returnPosition=undefined;this.shift=0;
       this.firstFret=Math.max(1,Math.min(14,this.firstFret));this.lastFret=this.firstFret+4;
@@ -593,8 +618,9 @@ export class ScaleExplorer implements LivePractice {
     const relativeExplanation = `Shares its notes with ${relativeName} ${scaleQualityLabel(relative.quality)}. Root markers and accompaniment follow the selected scale.`;
     const hila = this.shapeSet === "hila";
     const movable = this.wholeRoute || maqam || hila || this.pattern !== "map";
-    const ascendingRoute=this.wholeRoute?cagedRoute(this.tonic,this.quality,this.spelling):undefined;
-    const fullRoute=ascendingRoute&&(this.routeReversed?reverseCagedRoute(ascendingRoute):ascendingRoute);
+    const routeChoices=this.wholeRoute?this.routeCatalog():[];
+    const ascendingRoute=routeChoices[this.routeVariant];
+    const fullRoute=ascendingRoute&&(this.routeDirection==="down"?reverseCagedRoute(ascendingRoute):ascendingRoute);
     const basePositions = isMaqam(this.quality) ? maqamPositions(this.tonic,this.quality,this.firstFret,this.spelling) : hila
       ? berkleePositions(this.tonic, this.quality, this.hilaShape, this.shift, this.spelling)
       : this.pattern === "map"
@@ -808,7 +834,7 @@ export class ScaleExplorer implements LivePractice {
                   ? 310
                   : y(turn.arrival.string) + 21;
             const description = `${fullRoute?"Shift "+(index+1):"Bidirectional shift"} between string ${turn.previous.string}, fret ${turn.previous.fret}, finger ${turn.previous.finger} and string ${turn.arrival.string}, fret ${turn.arrival.fret}, finger ${turn.arrival.finger}`;
-            return `<g class="scale-link-transition" ${fullRoute?`data-route-shift="${positionKey(turn.arrival)}" tabindex="-1"`:""} role="img" aria-label="${description}"><title>${description}</title><path d="M ${from} ${yFrom} L ${to} ${yTo}" ${fullRoute?"":'marker-start="url(#scale-link-arrow)"'} marker-end="url(#scale-link-arrow)"/>${fullRoute?`<text class="scale-route-shift-number" x="${(from+to)/2}" y="${yFrom-8}">${index+1}</text>`:""}</g>`;
+            return `<g class="scale-link-transition" ${fullRoute?`data-route-shift="${positionKey(turn.arrival)}" tabindex="-1"`:""} role="img" aria-label="${description}"><title>${description}</title><path d="M ${from} ${yFrom} L ${to} ${yTo}" ${fullRoute&&this.routeDirection!=="both"?"":'marker-start="url(#scale-link-arrow)"'} marker-end="url(#scale-link-arrow)"/>${fullRoute?`<text class="scale-route-shift-number" x="${(from+to)/2}" y="${yFrom-8}">${index+1}</text>`:""}</g>`;
           }).join("");
       const boardTop =
         turns.some(turn=>turn.previous.string===1||turn.arrival.string===1)
@@ -818,7 +844,7 @@ export class ScaleExplorer implements LivePractice {
         turns.some(turn=>turn.previous.string===6||turn.arrival.string===6)
           ? 335
           : 290;
-      return `<svg style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked || fullRoute ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${fullRoute ? "All five CAGED shapes" : maqam ? "hand position" : hila ? "Berklee 7PS, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${this.quality.endsWith("blues") ? "Purple dots mark the blue note. " : ""}${this.quality.endsWith("pentatonic") ? "Hollow dashed circles mark omitted full-scale notes, which are not played. " : ""}${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
+      return `<svg ${fullRoute?'class="scale-whole-route-board"':""} style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked || fullRoute ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${fullRoute ? "All five CAGED shapes" : maqam ? "hand position" : hila ? "Berklee 7PS, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${this.quality.endsWith("blues") ? "Purple dots mark the blue note. " : ""}${this.quality.endsWith("pentatonic") ? "Hollow dashed circles mark omitted full-scale notes, which are not played. " : ""}${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
       ${Array.from(
         { length: fullEnd - fullStart + 2 },
         (_, i) => fullStart - 1 + i,
@@ -836,7 +862,7 @@ export class ScaleExplorer implements LivePractice {
         )
         .join(
           "",
-        )}${omittedNotes}${chordConnections}${fullRoute?`<polyline class="scale-whole-route-line" points="${fullRoute.notes.map(n=>`${x(n.fret)},${y(n.string)}`).join(" ")}"/>`:""}${notes}<defs><marker id="scale-link-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${transition}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
+        )}${omittedNotes}${chordConnections}${notes}<defs><marker id="scale-link-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#c36a16"/></marker></defs>${transition}${[1, 2, 3, 4, 5, 6].map((string, i) => `<text class="scale-tuning" x="${firstFret === 0 ? -80 : (fullStart - 1) * step - 20}" y="${y(string)}" dy=".35em">${["E", "B", "G", "D", "A", "E"][i]}</text>`).join("")}</svg>`;
     };
     const diagram = this.element.querySelector<HTMLElement>(".scale-diagram")!;
     const scrollLeft = diagram.scrollLeft;
@@ -861,10 +887,11 @@ export class ScaleExplorer implements LivePractice {
     this.body.patch({
       title,
       wholeRoute:!!fullRoute,
-      routeReversed:this.routeReversed,
-      routeShapes:fullRoute?[...new Set(fullRoute.notes.map(n=>n.region))].map(i=>scaleShapeLabel(fullRoute.regions[i].shape,this.quality).replace(' shape','')).join(' → '):'',
-      routeStart:fullRoute?`Start: string ${fullRoute.notes[0].string}, fret ${fullRoute.notes[0].fret}, finger ${fullRoute.notes[0].finger}`:"",
-      routeSteps:fullRoute?fullRoute.shifts.map(({previous,arrival})=>({key:positionKey(arrival),label:`${scaleShapeLabel(fullRoute.regions[previous.region].shape,this.quality)} → ${scaleShapeLabel(fullRoute.regions[arrival.region].shape,this.quality)} · string ${arrival.string}: fret ${previous.fret} (${previous.finger}) → ${arrival.fret} (${arrival.finger})`})):[],
+      routeDirection:this.routeDirection,
+      routeVariant:this.routeVariant,
+      routeChoices:routeChoices.map((_,i)=>({value:String(i),label:`Route ${i+1}`})),
+      routeShapes:fullRoute?[...new Set(fullRoute.notes.map(n=>n.region))].map(i=>scaleShapeLabel(fullRoute.regions[i].shape,this.quality).replace(' shape','')).join(this.routeDirection==='both'?' ↔ ':' → '):'',
+      routeSteps:fullRoute?fullRoute.shifts.map(({previous,arrival})=>({key:positionKey(arrival),label:`${scaleShapeLabel(fullRoute.regions[previous.region].shape,this.quality).replace(' shape','')} ${this.routeDirection==='both'?'↔':'→'} ${scaleShapeLabel(fullRoute.regions[arrival.region].shape,this.quality).replace(' shape','')}`})):[],
       caption: linked || !movable ? "" : caption,
       shiftMode: linked,
       shiftSelected: !!route,

@@ -21,7 +21,7 @@ test("NoteWise settings, active exercise and checkpoints round trip without loca
   state.progress.stats[card] = stats();
   state.activities.rhythm = { version: 1, level: "pulse" };
   state.activities["backing-track"] = { version: 1, metronomeEnabled: true };
-  state.activities["guitar-scales"] = {version:1,settings:{tonic:7,quality:"major",wholeRoute:true}};
+  state.activities["guitar-scales"] = {version:1,settings:{tonic:7,quality:"major",wholeRoute:true,routeDirection:"down",routeVariant:2}};
   state.activities.audio = { version: 1, volume: 0.3 };
   state.activities["backing-mixer:folk"] = {
     version: 1,

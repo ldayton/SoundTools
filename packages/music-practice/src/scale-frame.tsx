@@ -1,8 +1,9 @@
+import type {CagedRouteDirection} from "./caged-route";
 import type { cagedChordDiagram } from "./guitar-scale-patterns";
 import { GuitarChordGraphic } from "./guitar-chord-diagram";
 import { useMediaQuery } from "@mantine/hooks";
 import { useSyncExternalStore, useState, useRef, useEffect, type ReactNode } from "react";
-import { ActionIcon, Button, Kbd, Modal, Table, Text, Title, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, Kbd, Modal, NativeSelect, Table, Text, Title, Tooltip } from "@mantine/core";
 import { frameState } from "./practice-frame";
 import { ScaleDetails } from "./scale-controls";
 export const scaleBodyState = () =>
@@ -31,9 +32,10 @@ export const scaleBodyState = () =>
     maqamReference: "",
     rows: [] as { string: number; notes: string }[],
     wholeRoute: false,
-    routeReversed: false,
+    routeDirection: 'both' as CagedRouteDirection,
+    routeVariant:0,
+    routeChoices:[] as {value:string;label:string}[],
     routeShapes: '',
-    routeStart: '',
     routeSteps: [] as {key:string;label:string}[],
   });
 export function ScaleFrame({
@@ -44,7 +46,8 @@ export function ScaleFrame({
   reverseLink,
   setChordOpen,
   navigate,
-  reverseRoute,
+  setRouteDirection,
+  setRouteVariant,
   focusRouteShift,
 }: {
   body: ReturnType<typeof scaleBodyState>;
@@ -54,7 +57,8 @@ export function ScaleFrame({
   reverseLink(): void;
   setChordOpen(open: boolean): void;
   navigate(axis: "tonic" | "shape", direction: number): void;
-  reverseRoute():void;
+  setRouteDirection(direction:CagedRouteDirection):void;
+  setRouteVariant(variant:number):void;
   focusRouteShift(key:string):void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
@@ -75,7 +79,7 @@ export function ScaleFrame({
       const e = event as TouchEvent;
       const target = e.target instanceof Element ? e.target : null;
       touch.current = active() && e.touches.length === 1 && !target?.closest(
-        'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [contenteditable="true"], .practice-options, .scale-diagram:has(.scale-whole-route-line)'
+        'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [contenteditable="true"], .practice-options, .scale-diagram:has(.scale-whole-route-board)'
       ) ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
     };
     const move = (event: Event) => { if ((event as TouchEvent).touches.length !== 1) cancel(); };
@@ -128,24 +132,18 @@ export function ScaleFrame({
           <Title order={2} id="scale-title">{s.title}</Title>
           {s.caption && <Text className="scale-pattern-caption" size="sm" role="status">{s.caption}</Text>}
         </div>
-        <div className="scale-relative">{relative}</div>
       </div>
+
+      <div className="scale-toolbar" role="group" aria-label="Scale toolbar" tabIndex={-1} onChange={event=>{if(event.target instanceof HTMLSelectElement)event.currentTarget.focus({preventScroll:true});}}>
       <div className="scale-key-navigation" hidden={!s.movable}>
         {navigation}
       </div>
-      <div className="scale-link-legend">
-        <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
-        {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
-        {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
+        <div className="scale-relative">{relative}</div>
+      {s.wholeRoute && <section className="scale-whole-route" aria-label="Across fretboard route">
+        <div className="scale-whole-route-heading"><NativeSelect aria-label="Scale route" size="xs" value={String(s.routeVariant)} data={s.routeChoices} onChange={event=>setRouteVariant(Number(event.currentTarget.value))} /><NativeSelect aria-label="Route direction" size="xs" value={s.routeDirection} data={[{value:'both',label:'Both ways'},{value:'up',label:'Up the neck'},{value:'down',label:'Down the neck'}]} onChange={event=>setRouteDirection(event.currentTarget.value as CagedRouteDirection)} /></div>
+        <ol>{s.routeSteps.map(step=><li key={step.key}><button type="button" onClick={()=>focusRouteShift(step.key)}>{step.label}</button></li>)}</ol>
+      </section>}
         {s.chordAvailable && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={s.chordOpen} aria-controls="scale-chord-panel" onClick={()=>{setChordOpen(!s.chordOpen);setChordFrame(0);if(!s.chordOpen)setHorizontal(true);}}>{s.chordOpen ? "Hide chord shape" : "Show chord shape"}</button>}
-        {s.linkedLegend && <>
-        {s.linkedLegend.split("|")
-          .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
-          .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }))
-          .map(({ label, color }) => <span key={label}><i className={color} />{label}</span>)}
-        {!s.shiftSelected && <span><i className="link-shared" />Shared note</span>}
-        <span><i className="link-shift" />Clickable shift</span>
-        </>}
         {s.shiftMode && <div className="scale-link-actions" role="group" aria-label="Linked shape controls">
           <Tooltip label="Reverse shapes" disabled={!hoverable} transitionProps={{ duration: 0 }}>
             <ActionIcon variant="subtle" size="md" aria-label="Reverse shapes" disabled={!s.canReverse} onClick={reverseLink}>
@@ -158,6 +156,22 @@ export function ScaleFrame({
             </ActionIcon>
           </Tooltip>
         </div>}
+      </div>
+      <div className="scale-link-legend">
+        {s.wholeRoute && <span className="scale-route-order">{s.routeShapes}</span>}
+        <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
+        {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
+        {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
+
+        {s.linkedLegend && <>
+        {s.linkedLegend.split("|")
+          .map((label, index) => ({ label, color: (index === 0) !== s.reversedColors ? "link-first" : "link-second" }))
+          .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }))
+          .map(({ label, color }) => <span key={label}><i className={color} />{label}</span>)}
+        {!s.shiftSelected && <span><i className="link-shared" />Shared note</span>}
+        <span><i className="link-shift" />Clickable shift</span>
+        </>}
+
       </div>
       {s.shiftMode && s.shiftMessage && <Text className="scale-shift-status" size="sm" role="status">{s.shiftMessage}</Text>}
       {s.chordAvailable && s.chordOpen && activeChord && <section id="scale-chord-panel" className="scale-chord-panel" aria-label="Chord shape diagram">
@@ -175,13 +189,8 @@ export function ScaleFrame({
       </section>}
       {s.maqamReference && <Text className="scale-maqam-reference" size="sm" c="dimmed" mb="sm">{s.maqamReference}</Text>}
       <div className="scale-diagram" />
-      {s.wholeRoute && <section className="scale-whole-route" aria-label="Across fretboard route">
-        <div className="scale-whole-route-heading"><Text fw={600}>{s.routeReversed?'Descending':'Ascending'} · {s.routeShapes}</Text><Button variant="subtle" size="compact-sm" onClick={reverseRoute}>Reverse route</Button></div>
-        <Text size="sm" c="dimmed">{s.routeStart}. Follow the line; orange arrows mark hand shifts.</Text>
-        <ol>{s.routeSteps.map(step=><li key={step.key}><button type="button" onClick={()=>focusRouteShift(step.key)}>{step.label}</button></li>)}</ol>
-      </section>}
+
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
-      <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>
       <div className="scale-note-list">
         <ScaleDetails>
           <div className="scale-detail-body">

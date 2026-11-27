@@ -1,8 +1,7 @@
 import { bindMediaSession } from "@ldayton/ui/media-session";
-import {isMaqam,MAQAMAT,maqamSource} from "./maqamat";
+import {isMaqam,MAQAMAT} from "./maqamat";
 import {maqamPositions} from "./maqam-guitar";
 import {
-  BERKLEE_7PS_REFERENCE,
   BERKLEE_SHAPES,
   berkleeOmissions,
   berkleeBounds,
@@ -34,7 +33,6 @@ import {
   linkedPatternPositions,
   scaleShapeLabel,
   cagedChordDiagram,
-  cagedScaleSource,
   pentatonicOmissions,
   patternBounds,
   patternShift,
@@ -47,7 +45,6 @@ import {
   isMajorScale,
   scaleQualityLabel,
   scaleLabel,
-  scaleNotes,
   scalePositions,
   relativeScale,
   type ScaleQuality,
@@ -389,10 +386,6 @@ export class ScaleExplorer implements LivePractice {
         body: this.body,
         setRouteVariant:(variant:number)=>{this.routeVariant=variant;this.update();},
         setRouteDirection:(direction:CagedRouteDirection)=>{this.routeDirection=direction;this.update();},
-        focusRouteShift:(key:string)=>{
-          const node=this.element.querySelector<SVGGraphicsElement>(`[data-route-shift="${key}"]`);
-          if(node){node.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});node.focus({preventScroll:true});}
-        },
         navigate: (axis: "tonic" | "shape", direction: number) => {
           if (!this.active) return;
           if (axis === "tonic") this.moveTonic(direction);
@@ -603,9 +596,6 @@ export class ScaleExplorer implements LivePractice {
     this.options.set(this.optionsSnapshot());
     const title = `${scaleLabel(this.spelling || SCALE_TONICS[this.quality][this.tonic])} ${scaleQualityLabel(this.quality)}`;
 
-    const noteList = scaleNotes(this.tonic, this.quality, this.spelling)
-      .map((n) => scaleLabel(n.name))
-      .join(" · ");
     const maqam=isMaqam(this.quality);
     const relative = maqam ? {tonic:this.tonic,quality:this.quality,spelling:this.spelling} : relativeScale(this.tonic, this.quality, this.spelling);
     const relativeName = scaleLabel(
@@ -615,7 +605,6 @@ export class ScaleExplorer implements LivePractice {
     const label = this.returnPosition
       ? "Return to previous scale"
       : `Show ${relativeName} ${scaleQualityLabel(relative.quality).replace("natural minor", "minor")}`;
-    const relativeExplanation = `Shares its notes with ${relativeName} ${scaleQualityLabel(relative.quality)}. Root markers and accompaniment follow the selected scale.`;
     const hila = this.shapeSet === "hila";
     const movable = this.wholeRoute || maqam || hila || this.pattern !== "map";
     const routeChoices=this.wholeRoute?this.routeCatalog():[];
@@ -727,13 +716,6 @@ export class ScaleExplorer implements LivePractice {
         ? `CAGED · ${scaleShapeLabel(this.pattern, this.quality).replace(/ shape$/, " Shape")}`
         : "Fret range";
     const labels = this.labels;
-    const footnote =
-      movable && labels === "fingers"
-        ? "1 index · 2 middle · 3 ring · 4 little finger" + (maqam ? ". Some rows use a one-fret extension." : "") + (this.quality.endsWith("blues") ? ". Same finger on adjacent frets: slide one fret." : "")
-        : "Darker dots mark the root notes.";
-    const reference = isMaqam(this.quality)
-      ? {url:maqamSource(this.quality),label:'MaqamWorld'}
-      : cagedScaleSource(this.quality);
     const keys = [-1, 1].map((direction) => {
       const target = scaleLabel(
         SCALE_TONICS[this.quality][(this.tonic + direction + 12) % 12],
@@ -834,7 +816,7 @@ export class ScaleExplorer implements LivePractice {
                   ? 310
                   : y(turn.arrival.string) + 21;
             const description = `${fullRoute?"Shift "+(index+1):"Bidirectional shift"} between string ${turn.previous.string}, fret ${turn.previous.fret}, finger ${turn.previous.finger} and string ${turn.arrival.string}, fret ${turn.arrival.fret}, finger ${turn.arrival.finger}`;
-            return `<g class="scale-link-transition" ${fullRoute?`data-route-shift="${positionKey(turn.arrival)}" tabindex="-1"`:""} role="img" aria-label="${description}"><title>${description}</title><path d="M ${from} ${yFrom} L ${to} ${yTo}" ${fullRoute&&this.routeDirection!=="both"?"":'marker-start="url(#scale-link-arrow)"'} marker-end="url(#scale-link-arrow)"/>${fullRoute?`<text class="scale-route-shift-number" x="${(from+to)/2}" y="${yFrom-8}">${index+1}</text>`:""}</g>`;
+            return `<g class="scale-link-transition" ${fullRoute?`data-route-shift="${positionKey(turn.arrival)}"`:""} role="img" aria-label="${description}"><title>${description}</title><path d="M ${from} ${yFrom} L ${to} ${yTo}" ${fullRoute&&this.routeDirection!=="both"?"":'marker-start="url(#scale-link-arrow)"'} marker-end="url(#scale-link-arrow)"/>${fullRoute?`<text class="scale-route-shift-number" x="${(from+to)/2}" y="${yFrom-8}">${index+1}</text>`:""}</g>`;
           }).join("");
       const boardTop =
         turns.some(turn=>turn.previous.string===1||turn.arrival.string===1)
@@ -844,7 +826,7 @@ export class ScaleExplorer implements LivePractice {
         turns.some(turn=>turn.previous.string===6||turn.arrival.string===6)
           ? 335
           : 290;
-      return `<svg ${fullRoute?'class="scale-whole-route-board"':""} style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked || fullRoute ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${fullRoute ? "All five CAGED shapes" : maqam ? "hand position" : hila ? "Berklee 7PS, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${this.quality.endsWith("blues") ? "Purple dots mark the blue note. " : ""}${this.quality.endsWith("pentatonic") ? "Hollow dashed circles mark omitted full-scale notes, which are not played. " : ""}${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Full note positions are listed below.</desc>
+      return `<svg ${fullRoute?'class="scale-whole-route-board"':""} style="--scale-board-units:${fullRight - fullLeft}" viewBox="${fullLeft} ${boardTop} ${fullRight - fullLeft} ${boardBottom - boardTop}" role="${linked || fullRoute ? "group" : "img"}" aria-labelledby="scale-svg-title-board scale-svg-desc-board"><title id="scale-svg-title-board">${title} guitar scale, ${movable ? `${fullRoute ? "All five CAGED shapes" : maqam ? "hand position" : hila ? "Berklee 7PS, Shape " + this.hilaShape : scaleShapeLabel(this.pattern, this.quality)}, frets ${firstFret}–${lastFret}` : `frets ${firstFret}–${lastFret}`}</title><desc id="scale-svg-desc-board">Six horizontal strings, high E at the top, low E at the bottom. Dark blue dots mark roots; lighter blue dots mark other scale notes. ${this.quality.endsWith("blues") ? "Purple dots mark the blue note. " : ""}${this.quality.endsWith("pentatonic") ? "Hollow dashed circles mark omitted full-scale notes, which are not played. " : ""}${movable && labels === "fingers" ? "Numbers show fingers, 1 index through 4 little finger." : labels === "none" ? "Dots are unlabelled." : "Dots show note names."} Each dot identifies its string, fret and sounding pitch.</desc>
       ${Array.from(
         { length: fullEnd - fullStart + 2 },
         (_, i) => fullStart - 1 + i,
@@ -890,8 +872,6 @@ export class ScaleExplorer implements LivePractice {
       routeDirection:this.routeDirection,
       routeVariant:this.routeVariant,
       routeChoices:routeChoices.map((_,i)=>({value:String(i),label:`Route ${i+1}`})),
-      routeShapes:fullRoute?[...new Set(fullRoute.notes.map(n=>n.region))].map(i=>scaleShapeLabel(fullRoute.regions[i].shape,this.quality).replace(' shape','')).join(this.routeDirection==='both'?' ↔ ':' → '):'',
-      routeSteps:fullRoute?fullRoute.shifts.map(({previous,arrival})=>({key:positionKey(arrival),label:`${scaleShapeLabel(fullRoute.regions[previous.region].shape,this.quality).replace(' shape','')} ${this.routeDirection==='both'?'↔':'→'} ${scaleShapeLabel(fullRoute.regions[arrival.region].shape,this.quality).replace(' shape','')}`})):[],
       caption: linked || !movable ? "" : caption,
       shiftMode: linked,
       shiftSelected: !!route,
@@ -908,23 +888,9 @@ export class ScaleExplorer implements LivePractice {
       chordDiagrams,
       linkedLegend: linked ? `${this.regionLabel(this.regionId())}|${this.regionLabel(this.linked)}` : "",
       linkHelp: "",
-      notes: noteList,
       maqamReference: isMaqam(this.quality) ? `${MAQAMAT[this.quality].form} Fretted reference; traditional intonation and melodic development vary.` : "",
-      sourceLabel: hila ? BERKLEE_7PS_REFERENCE.label + (this.quality === "major" ? "" : " (adapted)") : reference.label,
-      relativeExplanation: maqam ? "Backing uses tonic and fifth, without a Western major/minor progression." : relativeExplanation,
       movable,
-      footnote,
-      source: hila ? BERKLEE_7PS_REFERENCE.url : reference.url,
-      rows: [6, 5, 4, 3, 2, 1].map((string) => ({
-        string,
-        notes: positions
-          .filter((n) => n.string === string)
-          .map(
-            (n) =>
-              `${n.fret === 0 ? "Open" : n.fret}: ${scaleLabel(n.name)}${n.octave}${n.root ? " (root)" : ""}${n.openAlternative ? ` (optional: open string ${n.openAlternative})` : ""}`,
-          )
-          .join("; "),
-      })),
+
     });
   }
 }

@@ -5,7 +5,6 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useSyncExternalStore, useState, useRef, useEffect, type ReactNode } from "react";
 import { ActionIcon, Button, Kbd, Modal, NativeSelect, Table, Text, Title, Tooltip } from "@mantine/core";
 import { frameState } from "./practice-frame";
-import { ScaleDetails } from "./scale-controls";
 export const scaleBodyState = () =>
   frameState({
     title: "",
@@ -23,20 +22,12 @@ export const scaleBodyState = () =>
     chordDiagrams: [] as ReturnType<typeof cagedChordDiagram>[],
     reversedColors: false,
     linkHelp: "",
-    notes: "",
-    relativeExplanation: "",
     movable: false,
-    footnote: "",
-    source: "",
-    sourceLabel: "GuitarScale.org",
     maqamReference: "",
-    rows: [] as { string: number; notes: string }[],
     wholeRoute: false,
     routeDirection: 'both' as CagedRouteDirection,
     routeVariant:0,
     routeChoices:[] as {value:string;label:string}[],
-    routeShapes: '',
-    routeSteps: [] as {key:string;label:string}[],
   });
 export function ScaleFrame({
   body,
@@ -48,7 +39,6 @@ export function ScaleFrame({
   navigate,
   setRouteDirection,
   setRouteVariant,
-  focusRouteShift,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
@@ -59,7 +49,6 @@ export function ScaleFrame({
   navigate(axis: "tonic" | "shape", direction: number): void;
   setRouteDirection(direction:CagedRouteDirection):void;
   setRouteVariant(variant:number):void;
-  focusRouteShift(key:string):void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   const [horizontal,setHorizontal]=useState(true);
@@ -141,7 +130,6 @@ export function ScaleFrame({
         <div className="scale-relative">{relative}</div>
       {s.wholeRoute && <section className="scale-whole-route" aria-label="Across fretboard route">
         <div className="scale-whole-route-heading"><NativeSelect aria-label="Scale route" size="xs" value={String(s.routeVariant)} data={s.routeChoices} onChange={event=>setRouteVariant(Number(event.currentTarget.value))} /><NativeSelect aria-label="Route direction" size="xs" value={s.routeDirection} data={[{value:'both',label:'Both ways'},{value:'up',label:'Up the neck'},{value:'down',label:'Down the neck'}]} onChange={event=>setRouteDirection(event.currentTarget.value as CagedRouteDirection)} /></div>
-        <ol>{s.routeSteps.map(step=><li key={step.key}><button type="button" onClick={()=>focusRouteShift(step.key)}>{step.label}</button></li>)}</ol>
       </section>}
         {s.chordAvailable && <button type="button" className="scale-chord-trigger" ref={chordTrigger} aria-expanded={s.chordOpen} aria-controls="scale-chord-panel" onClick={()=>{setChordOpen(!s.chordOpen);setChordFrame(0);if(!s.chordOpen)setHorizontal(true);}}>{s.chordOpen ? "Hide chord shape" : "Show chord shape"}</button>}
         {s.shiftMode && <div className="scale-link-actions" role="group" aria-label="Linked shape controls">
@@ -158,7 +146,6 @@ export function ScaleFrame({
         </div>}
       </div>
       <div className="scale-link-legend">
-        {s.wholeRoute && <span className="scale-route-order">{s.routeShapes}</span>}
         <span><i className="scale-root-swatch" aria-hidden="true" />Root</span>
         {s.blueNoteLabel && <span><i className="scale-blue-swatch" aria-hidden="true" />{s.blueNoteLabel}</span>}
         {s.omittedNoteLabel && <span><i className="scale-omitted-swatch" aria-hidden="true" />{s.omittedNoteLabel}</span>}
@@ -191,55 +178,7 @@ export function ScaleFrame({
       <div className="scale-diagram" />
 
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
-      <div className="scale-note-list">
-        <ScaleDetails>
-          <div className="scale-detail-body">
-            <Text className="scale-notes">{s.notes}</Text>
-            <Text className="scale-help">
-              Standard tuning · high E at the top, low E at the bottom.
-            </Text>
-            <Text className="scale-footnote">{s.footnote}</Text>
-            <Text className="scale-optional-legend" hidden={s.movable}>
-              Gray notes can also be played on the next open string.
-            </Text>
-            <Text className="scale-relative-explanation">
-              {s.relativeExplanation}
-            </Text>
-            <div className="scale-note-table">
-              <Table>
-                <caption>{s.title} · sounding pitches</caption>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>String</Table.Th>
-                    <Table.Th>Fret: note</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {s.rows.map((row) => (
-                    <Table.Tr key={row.string}>
-                      <Table.Th scope="row">
-                        {row.string}
-                        {row.string === 6
-                          ? " · low E"
-                          : row.string === 1
-                            ? " · high E"
-                            : ""}
-                      </Table.Th>
-                      <Table.Td>{row.notes}</Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </div>
-            {s.source && <Text className="scale-source">
-              {s.maqamReference ? "Maqam reference: " : "Source: "}
-              <a href={s.source} target="_blank" rel="noopener noreferrer">
-                {s.sourceLabel}
-              </a>
-            </Text>}
-          </div>
-        </ScaleDetails>
-      </div>
+
     </section>
   );
 }

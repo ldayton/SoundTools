@@ -17,7 +17,7 @@ try {
   );
   await waitForApp(page, ".scale-diagram svg");
   await expect(page.locator(".scale-shortcuts-button")).toHaveCount(0);
-  await expect(page.locator(".scale-note-list")).toBeVisible();
+  await expect(page.locator("#scale-details,.scale-note-list")).toHaveCount(0);
   const tones = page.locator(".scale-diagram .scale-tone");
   await expect(tones).toHaveCount(18);
   await expect(
@@ -62,7 +62,7 @@ try {
   await expect(page.locator(".scale-fret-number")).toHaveCount(4);
   await expect(page.locator(".scale-diagram svg")).toBeVisible();
   await expect(page.locator(".scale-shortcuts-button")).toHaveCount(0);
-  await expect(page.locator(".scale-note-list")).toBeHidden();
+  await expect(page.locator("#scale-details,.scale-note-list")).toHaveCount(0);
   for (const width of [320, 393, 430]) {
     await page.setViewportSize({ width, height: 852 });
     await expect.poll(() => page.locator(".scale-diagram").evaluate(el =>
@@ -148,9 +148,9 @@ try {
   await expect(page.locator('#scale-linked-pattern')).toHaveValue('all');
   await closePracticeOptions(page);
   const routePanel=page.getByRole('region',{name:'Across fretboard route'});
+  await expect(routePanel.getByRole('button')).toHaveCount(0);
   await expect(routePanel).toBeVisible();
-  await expect(routePanel.locator('li')).toHaveCount(4);
-  await expect(page.locator('.scale-route-order')).toContainText('E ↔ D ↔ C ↔ A ↔ G');
+  await expect(page.locator('.scale-route-order')).toHaveCount(0);
   await expect(page.getByRole('combobox',{name:'Route direction'})).toHaveValue('both');
   for(const arrow of await page.locator('[data-route-shift] > path').all()){await expect(arrow).toHaveAttribute('marker-start','url(#scale-link-arrow)');await expect(arrow).toHaveAttribute('marker-end','url(#scale-link-arrow)');}
   await expect(page.locator('[data-route-shift]')).toHaveCount(4);
@@ -187,11 +187,9 @@ try {
   const beforeRoutePan=page.url();
   await swipe(-80,0,'.scale-diagram');
   expect(page.url()).toBe(beforeRoutePan);
-  await routePanel.locator('li button').last().click();
+  await page.locator('.scale-diagram').evaluate(el=>el.scrollLeft=el.scrollWidth);
   await expect.poll(()=>page.locator('.scale-diagram').evaluate(el=>el.scrollLeft)).toBeGreaterThan(0);
-  await expect(page.locator('[data-route-shift]').last()).toBeFocused();
   await page.getByRole('combobox',{name:'Route direction'}).selectOption('down');
-  await expect(page.locator('.scale-route-order')).toContainText('G → A → C → D → E');
   await expect(page.locator('[data-route-shift] > path').first()).not.toHaveAttribute('marker-start','url(#scale-link-arrow)');
   expect(await routePitches()).toEqual([...ascending].reverse());
   await page.reload();
@@ -201,10 +199,8 @@ try {
   await expect(page.getByRole('combobox',{name:'Route direction'})).toHaveValue('down');
   expect(await routePitches()).toEqual([...ascending].reverse());
   await page.getByRole('combobox',{name:'Route direction'}).selectOption('up');
-  await expect(page.locator('.scale-route-order')).toContainText('E → D → C → A → G');
   expect(await routePitches()).toEqual(ascending);
   await page.getByRole('combobox',{name:'Route direction'}).selectOption('both');
-  await expect(page.locator('.scale-route-order')).toContainText('E ↔ D ↔ C ↔ A ↔ G');
   await expect(page.locator('[data-route-shift] > path').first()).toHaveAttribute('marker-start','url(#scale-link-arrow)');
   await openPracticeOptions(page);
   await expect(page.locator('#scale-linked-pattern')).toHaveValue('all');

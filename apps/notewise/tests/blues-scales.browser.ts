@@ -37,8 +37,6 @@ try {
   await page.goto(`${route}&scale=${family}-blues`);
   await waitForApp(page,'.scale-diagram svg');
   const blues=await readTones();
-  await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://www.guitarscale.org/${family==='major'?'c':'a'}-blues.html`);
-  await expect(page.locator('.scale-source a')).toHaveText(family==='major'?'GuitarScale.org · major-blues formula (Related scales)':'GuitarScale.org');
   assert.deepEqual(blues.filter(n=>n.midi%12!==3),pent,`${family} shape ${shape}: only Eb added; shared fingers unchanged`);
   assert.ok(blues.some(n=>n.midi%12===3));
   const blue=page.locator('.scale-blue-note');
@@ -47,7 +45,7 @@ try {
   await expect(page.locator('.scale-link-legend')).toContainText(family==='major'?'Blue note (♭3)':'Blue note (♭5)');
   assert.equal(await blue.first().locator('circle').evaluate(e=>getComputedStyle(e).fill),'rgb(156, 54, 181)');
   await expect(page.locator('.scale-omitted-tone')).toHaveCount(0);
-  await expect(page.locator('.scale-footnote')).toContainText('Same finger on adjacent frets: slide one fret.');
+  await expect(page.locator('#scale-details,.scale-note-list')).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   if(family==='major'&&shape==='2'){
@@ -57,7 +55,7 @@ try {
   await page.setViewportSize({width:1440,height:1000});
   if(family==='major'&&shape==='2')await page.screenshot({path:'/tmp/notewise-major-blues-shape-2-desktop.png',fullPage:true});
  }
- assert.deepEqual(errors,[]);console.log('PASS blues charts, bidirectional link, clear, exact pentatonic supersets, consistent fingers and slide guidance, mobile overflow, no runtime errors');
+ assert.deepEqual(errors,[]);console.log('PASS blues charts, bidirectional link, clear, exact pentatonic supersets, consistent fingers, mobile overflow, no runtime errors');
 } catch (error) {
   await captureFailure(browser, error);
   throw error;

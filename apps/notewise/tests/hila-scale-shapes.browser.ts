@@ -23,8 +23,6 @@ try {
   await page.screenshot({path:"/tmp/notewise-caged-default-desktop.png",fullPage:true});
   await page.getByLabel("Shape set", { exact: true }).selectOption("hila");
   await expect(page.locator(".scale-pattern-caption")).toHaveText("Berklee 7PS · Shape 1");
-  await expect(page.locator(".scale-source a")).toHaveAttribute("href", "https://jenslarsen.nl/major-scale-7-positions-berklee-system/");
-  await expect(page.locator(".scale-source a")).toHaveText("Jens Larsen · Berklee 7PS");
   await expect(page.locator(".scale-chord-tone")).toHaveCount(0);
   await expect(page.locator(".scale-chord-connection")).toHaveCount(0);
   const tones = page.locator(".scale-diagram .scale-tone");

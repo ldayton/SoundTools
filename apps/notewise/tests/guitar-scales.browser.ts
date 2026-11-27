@@ -127,7 +127,7 @@ try {
     .click();
   assert.equal(await page.locator("#scale-title").textContent(), "D♯ natural minor");
   assert.ok((await rootPitchClasses()).every((pc) => pc === 3));
-  assert.match((await page.locator(".scale-notes").textContent()) || "", /E♯/);
+  assert.match((await page.locator(".scale-tone title").allTextContents().then(text=>text.join(" "))) || "", /E♯/);
   await saveComplete();
   await page.reload();
   await page
@@ -151,7 +151,7 @@ try {
         await page.locator(".scale-root").count(),
       );
       assert.equal(
-        (await page.locator(".scale-notes").textContent())!.split(" · ").length,
+        await page.locator(".scale-tone").evaluateAll(nodes=>new Set(nodes.map(n=>Number(n.getAttribute("data-midi"))%12)).size),
         7,
       );
     }
@@ -228,13 +228,7 @@ try {
       "full neck and legend fit",
     );
   }
-  // Details are desktop-only; phones keep the root/shape legend visible.
-  await page.setViewportSize({width:1440,height:1000});
-  await page.getByText("Details", {exact:true}).waitFor({state:'visible'});
-  await page.getByText("Details", { exact: true }).click();
-  // The accordion keeps its table mounted while hidden. Wait for the expected
-  // cell to become visible instead of reading before React opens the panel.
-  await page.locator(".scale-note-list table").getByRole("cell").filter({ hasText: /Open: C♭4/ }).waitFor();
+  assert.equal(await page.locator('#scale-details,.scale-note-list').count(),0);
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -320,8 +314,7 @@ try {
     "diagram uses the laptop screen height",
   );
   assert.ok(
-    (await page.locator('.scale-note-list button[aria-expanded]').boundingBox())!.y +
-      (await page.locator('.scale-note-list button[aria-expanded]').boundingBox())!.height <= 1050,
+    largeDiagram.y + largeDiagram.height <= 1050,
     "diagram and controls fit the laptop screen",
   );
   await closePracticeOptions(page);
@@ -363,9 +356,9 @@ try {
   await openPracticeOptions(page);
   const gPattern = await patternSnapshot();
   assert.equal((await page.getByRole('button',{name:'Show chord shape',exact:true}).textContent())!.trim(),'Show chord shape');
-  assert.equal(await page.locator(".scale-notes").isVisible(), false);
-  assert.equal(await page.locator(".scale-source").isVisible(), false);
-  assert.equal(await page.locator(".scale-footnote").isVisible(), false);
+  assert.equal(await page.locator(".scale-notes").count(), 0);
+  assert.equal(await page.locator(".scale-source").count(), 0);
+  assert.equal(await page.locator(".scale-footnote").count(), 0);
   assert.equal(await page.locator(".scale-tuning").count(), 6);
   assert.deepEqual(await page.locator(".scale-fret-number").allTextContents(), [
     "2",

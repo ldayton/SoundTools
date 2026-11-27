@@ -23,7 +23,6 @@ try{
   await expect(page.getByRole('button',{name:'Show chord shape',exact:true})).toHaveCount(0);
   await expect(page.locator('.scale-relative-switch')).toHaveCount(0);
   await expect(page.locator('.scale-maqam-reference')).toContainText('Fretted reference');
-  await expect(page.locator('.scale-source a')).toHaveAttribute('href',`https://www.maqamworld.com/en/maqam/${quality}.php`);
   for(const tonic of [0,2,6,9,11])for(const first of [1,7,14]){
    await page.locator('#scale-key').selectOption(String(tonic));await hand.selectOption(String(first));
    const expected=[];const tuning=[64,59,55,50,45,40];
@@ -48,6 +47,6 @@ try{
   await page.close();
  }
  assert.deepEqual(errors,[]);
- console.log('PASS six maqamat: independently checked notes and fingers across keys/positions, sources, mobile, keyboard, reload, and CAGED isolation');
+ console.log('PASS six maqamat: independently checked notes and fingers across keys/positions, mobile, keyboard, reload, and CAGED isolation');
 }catch(error){await captureFailure(browser,error);throw error;}
 finally{await closeBrowser(browser);server.stop();}

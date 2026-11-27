@@ -92,19 +92,18 @@ To add a live exercise, add its catalog entry and typed factory, then implement 
 
 ## Guitar scale explorer
 
-**Guitar → Scales** (`/guitar/scales`) defaults to **CAGED**, with high E at the top, low E at the bottom, and frets increasing to the right. Practice options offers any of 12 tonics, major/natural minor, pentatonic and blues views, plus CAGED regions and a fret-range map; it docks beside the diagram on desktop and collapses above it on phones. In the fret-range map, gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. An expandable note table provides sounding octaves and open-string alternatives.
+**Guitar → Scales** (`/guitar/scales`) defaults to **CAGED**, with high E at the top, low E at the bottom, and frets increasing to the right. Practice options offers any of 12 tonics, major/natural minor, pentatonic and blues views, plus CAGED regions and a fret-range map; it docks beside the diagram on desktop and collapses above it on phones. In the fret-range map, gray fifth-fret notes have an exact same-pitch, same-octave alternative on the adjacent higher open string. G-string fret 5 and high-E fret 5 are never marked optional. Sounding pitches remain available in each dot’s accessible title.
 
 This reference view has no grading or MIDI input. Its `guitar-scales` activity uses the shared activity host, durable storage, route catalog and control styles, independently of Music theory → Scales & degrees. Old local-preview `profiles.scales` preferences migrate into the new activity while retaining their original data. Optional `?key=F%23&scale=minor` URL parameters use the same settings validator. `npm run test:guitar-scales --workspace=notewise` checks navigation, all 24 keys, layout, reload, independent activity progress and MIDI isolation.
 
 **Link with → All five shapes** (`?link=all`) shows one continuous root-to-root
 route through the five lowest neighbouring CAGED positions. The toolbar offers four distinct routes, preferring alternatives with different
 shift strings, while retaining the same root-to-root scale pitches. Route choices
-persist with the activity and `?route=2` through `4` bookmarks. Played notes are highlighted; four numbered arrows show same-string hand shifts. The shift list
-uses the same computed route and can pan/focus each transition. **Both ways** is
+persist with the activity and `?route=2` through `4` bookmarks. Played notes are highlighted; four numbered arrows show same-string hand shifts. **Both ways** is
 the default direction; **Up the neck** and **Down the neck**
 show one-way shifts. Down the neck uses the exact notes and fingerings in reverse
 order. The toolbar groups key navigation, relative scale, route/direction selectors,
-shift links and chord/pair actions. The legend sits below the toolbar; keyboard
+and chord/pair actions. The legend sits below the toolbar; keyboard
 help remains available with `?` without a visible shortcut link.
 The direction persists with the activity and in `?direction=up`/`down` links.
 Phone diagrams pan inside
@@ -116,7 +115,7 @@ The pure route owner is `packages/music-practice/src/caged-route.ts`; its unit
 witness covers all 72 Western key/scale combinations, pitch continuity, chart
 fingerings, all five regions, and reverse symmetry. The existing CI browser owner
 `tests/scale-fret-range.browser.ts` covers selection, bookmarks/reload, four shifts,
-reverse order, phone/desktop bounds, readable dots, and transition navigation.
+reverse order, phone/desktop bounds, readable dots, and diagram arrows.
 
 ### Guitar maqamat
 

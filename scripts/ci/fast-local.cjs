@@ -22,6 +22,12 @@ function fastGraph(selected, cwd) {
       // are disjoint; there is no shared-checkout build race to serialize.
       task.locks = [`build:${app}`];
       if (task.id.endsWith(':build')) task.args.push('--prepared');
+      // SongAlong units read source/fixtures only. Keep their complete required
+      // task, but let the independent app build start after shared preparation.
+      if(app === 'songalong') {
+        if(task.id.endsWith(':units'))task.locks=[];
+        if(task.id.endsWith(':build'))task.needs=task.needs.filter(id=>id!==`${app}:units`);
+      }
     }
     tasks.push(...setup, ...commandTasks(app, 'ci', 'chromium', cwd));
   }

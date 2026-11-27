@@ -276,7 +276,10 @@ runs ready tasks within worker and exclusive-resource limits. Backend startup,
 builds and account integration have explicit critical-path priorities; eligible
 prerequisites reserve capacity rather than starving behind smaller UI commands. Both GitHub's
 `check-app.cjs` and the local coordinator use these modules. `fast-local.cjs`
-assembles the bounded local CI graph; `local.cjs` retains Nightly isolation. Shared checks use
+assembles the bounded local CI graph; SongAlong source-only unit tests and its
+independent app build overlap after shared preparation. Both remain required,
+and browser checks still depend on the fresh build. Other app unit/build locks
+retain their existing ownership. `local.cjs` retains Nightly isolation. Shared checks use
 `run-shared.cjs`. GitHub computes all matrices in the existing changes job and
 starts app setup alongside shared validation; every release still requires shared
 checks, its complete app matrix, and applicable Nightly Accounts checks (CI retains account unit/contracts).

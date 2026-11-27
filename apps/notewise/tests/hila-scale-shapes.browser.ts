@@ -107,7 +107,7 @@ try {
     await expect(page.locator(".scale-chord-connection")).toHaveCount(0);
     const names=(quality.startsWith("major")?["C","A","G","E","D"]:["Cm","Am","Gm","Em","Dm"]).map(n=>`${n} shape`);
     await expect(page.locator("#scale-pattern option")).toHaveText(["Fret range",...names]);
-    await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
+    await expect(page.locator("#scale-linked-pattern option")).toHaveText(["Single shape","All five shapes",...names.filter(n=>!n.startsWith(quality.startsWith("major")?"A ":"Am "))]);
     await expect(page.locator(".scale-pattern-caption")).toContainText(quality.startsWith("major")?"CAGED · A Shape":"CAGED · Am Shape");
   }
   // Every popup must depict the exact chord outlined in the selected region.

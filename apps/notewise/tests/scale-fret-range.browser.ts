@@ -139,6 +139,50 @@ try {
   await expect.poll(() => page.locator(".scale-options").evaluate(el => getComputedStyle(el).userSelect)).toBe("none");
   await closePracticeOptions(page);
   await page.screenshot({ path: "/tmp/scales-mobile.png", fullPage: true });
+  // The five-position route extends the existing linking control. Its visible
+  // notes, arrows and instructions share one route, including on a phone.
+  await page.goto(server.base + "/guitar/scales?key=G&scale=major&pattern=1");
+  await waitForApp(page, ".scale-diagram svg");
+  await openPracticeOptions(page);
+  await page.locator('#scale-linked-pattern').selectOption('all');
+  await expect(page.locator('#scale-linked-pattern')).toHaveValue('all');
+  await closePracticeOptions(page);
+  const routePanel=page.getByRole('region',{name:'Across fretboard route'});
+  await expect(routePanel).toBeVisible();
+  await expect(routePanel.locator('li')).toHaveCount(4);
+  await expect(routePanel).toContainText('E → D → C → A → G');
+  await expect(page.locator('[data-route-shift]')).toHaveCount(4);
+  await expect(page.locator('.scale-whole-route-line')).toHaveCount(1);
+  const routePitches=()=>page.locator('[data-route-index]').evaluateAll(nodes=>nodes.sort((a,b)=>Number(a.getAttribute('data-route-index'))-Number(b.getAttribute('data-route-index'))).map(n=>Number(n.getAttribute('data-midi'))));
+  const ascending=await routePitches();
+  expect(ascending).toEqual([43,45,47,48,50,52,54,55,57,59,60,62,64,66,67,69,71,72,74,76,78,79]);
+  for(const width of [320,393,1440]){
+    await page.setViewportSize({width,height:1000});
+    await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    if(width>760)await expect.poll(()=>page.locator('.scale-heading').evaluate(el=>{const nav=document.querySelector('.mantine-AppShell-navbar');return !!nav&&el.getBoundingClientRect().left>=nav.getBoundingClientRect().right;})).toBe(true);
+    await expect.poll(()=>page.locator('.scale-tone.scale-route circle').first().evaluate(el=>el.getBoundingClientRect().width)).toBeGreaterThanOrEqual(25);
+  }
+  await page.setViewportSize({width:393,height:852});
+  await expect(page.locator('#practice-content')).toHaveCSS('touch-action','auto');
+  const beforeRoutePan=page.url();
+  await swipe(-80,0,'.scale-diagram');
+  expect(page.url()).toBe(beforeRoutePan);
+  await routePanel.locator('li button').last().click();
+  await expect.poll(()=>page.locator('.scale-diagram').evaluate(el=>el.scrollLeft)).toBeGreaterThan(0);
+  await expect(page.locator('[data-route-shift]').last()).toBeFocused();
+  await page.getByRole('button',{name:'Reverse route',exact:true}).click();
+  await expect(routePanel).toContainText('Descending · G → A → C → D → E');
+  expect(await routePitches()).toEqual([...ascending].reverse());
+  await page.reload();
+  await waitForApp(page,'.scale-whole-route');
+  await expect(routePanel).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('link')).toBe('all');
+  await openPracticeOptions(page);
+  await expect(page.locator('#scale-linked-pattern')).toHaveValue('all');
+  await page.locator('#scale-linked-pattern').selectOption('none');
+  await closePracticeOptions(page);
+  await expect(routePanel).toHaveCount(0);
+  await expect(page.locator('.scale-whole-route-line')).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log(
     "PASS fret range map: complete map, controls, bookmark reload, shape switching and mobile",

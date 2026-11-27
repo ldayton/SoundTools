@@ -96,6 +96,21 @@ To add a live exercise, add its catalog entry and typed factory, then implement 
 
 This reference view has no grading or MIDI input. Its `guitar-scales` activity uses the shared activity host, durable storage, route catalog and control styles, independently of Music theory → Scales & degrees. Old local-preview `profiles.scales` preferences migrate into the new activity while retaining their original data. Optional `?key=F%23&scale=minor` URL parameters use the same settings validator. `npm run test:guitar-scales --workspace=notewise` checks navigation, all 24 keys, layout, reload, independent activity progress and MIDI isolation.
 
+**Link with → All five shapes** (`?link=all`) shows one continuous root-to-root
+route through the five lowest neighbouring CAGED positions. A line connects the
+played notes; four numbered arrows show same-string hand shifts. The shift list
+uses the same computed route and can pan/focus each transition. **Reverse route**
+shows the exact notes and fingerings in reverse order. Phone diagrams pan inside
+the canvas at readable dot size, without changing the selected key. The selection
+persists with the scale activity and is shared by the normal account records.
+Berklee and Maqamat retain their existing position views.
+
+The pure route owner is `packages/music-practice/src/caged-route.ts`; its unit
+witness covers all 72 Western key/scale combinations, pitch continuity, chart
+fingerings, all five regions, and reverse symmetry. The existing CI browser owner
+`tests/scale-fret-range.browser.ts` covers selection, bookmarks/reload, four shifts,
+reverse order, phone/desktop bounds, readable dots, and transition navigation.
+
 ### Guitar maqamat
 
 The scale selector includes a **Maqamat** group: Hijaz, Kurd, Nahawand,

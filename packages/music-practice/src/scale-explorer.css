@@ -289,3 +289,23 @@
   .scale-options:focus { outline: none; }
   .scale-options { user-select: none; -webkit-user-select: none; }
 }
+
+.scale-whole-route-line { fill:none; stroke:#40527b; stroke-width:3; opacity:.55; pointer-events:none; }
+.scale-route-shift-number { fill:#a4510d; font-size:16px; font-weight:600; paint-order:stroke; stroke:white; stroke-width:4px; }
+.scale-link-transition[data-route-shift]:focus { outline:none; }
+.scale-link-transition[data-route-shift]:focus > path { stroke-width:5; }
+.scale-whole-route { margin:12px 0; text-align:left; }
+.scale-whole-route-heading { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+.scale-whole-route ol { margin:8px 0; padding-left:24px; }
+.scale-whole-route li::marker { color:#a4510d; font-weight:600; }
+.scale-whole-route li button { border:0; background:transparent; color:inherit; font:inherit; font-size:13px; text-align:left; padding:8px 4px; min-height:44px; cursor:pointer; text-decoration:underline; text-decoration-color:#c9ced5; text-underline-offset:3px; }
+.scale-whole-route li button:hover { color:#a4510d; }
+
+/* The long route keeps a readable dot size and pans inside its own canvas. */
+.scale-card:has(.scale-whole-route) { min-width:0; }
+.scale-card .scale-diagram:has(.scale-whole-route-line) { width:100%; overflow-x:auto; touch-action:pan-x pinch-zoom; }
+.scale-card .scale-diagram:has(.scale-whole-route-line) svg { width:max(100%, calc(var(--scale-board-units) * .8px)); max-width:none; }
+@media (max-width:760px) {
+  #practice-content:has(#exercise-content:not([hidden]) .practice-workspace-content > div:not([hidden]) .scale-whole-route-line) { touch-action:auto; }
+  .scale-card .scale-diagram:has(.scale-whole-route-line) { touch-action:pan-x pan-y pinch-zoom; }
+}

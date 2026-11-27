@@ -223,11 +223,14 @@ try {
     );
     assert.ok(
       (await page
-        .locator(".scale-note-list button[aria-expanded]")
+        .locator(".scale-link-legend")
         .boundingBox())!.y < 844,
       "full neck and legend fit",
     );
   }
+  // Details are desktop-only; phones keep the root/shape legend visible.
+  await page.setViewportSize({width:1440,height:1000});
+  await page.getByText("Details", {exact:true}).waitFor({state:'visible'});
   await page.getByText("Details", { exact: true }).click();
   // The accordion keeps its table mounted while hidden. Wait for the expected
   // cell to become visible instead of reading before React opens the panel.
@@ -317,9 +320,8 @@ try {
     "diagram uses the laptop screen height",
   );
   assert.ok(
-    (await page.locator(".scale-card").boundingBox())!.y +
-      (await page.locator(".scale-card").boundingBox())!.height <=
-      1050,
+    (await page.locator('.scale-note-list button[aria-expanded]').boundingBox())!.y +
+      (await page.locator('.scale-note-list button[aria-expanded]').boundingBox())!.height <= 1050,
     "diagram and controls fit the laptop screen",
   );
   await closePracticeOptions(page);

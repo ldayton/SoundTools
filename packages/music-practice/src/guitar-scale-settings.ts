@@ -23,6 +23,7 @@ export type GuitarScaleSettings = ScaleSelection & {
   pattern?: ScalePattern;
   shift?: number;
   labels?: "fingers" | "notes" | "none";
+  wholeRoute?: boolean;
   firstFret?: number;
   lastFret?: number;
   returnPosition?: { pattern: ScalePattern; shift: number; tonic?: number; quality?: ScaleQuality; spelling?: string };
@@ -100,6 +101,9 @@ export function mergeGuitarScaleSettings(
     patterns,
     base.pattern || "map",
   );
+  if(source.wholeRoute!==undefined||base.wholeRoute!==undefined)
+    settings.wholeRoute=(settings.shapeSet||'standard')==='standard'&&!isMaqam(settings.quality)&&
+      (typeof source.wholeRoute==='boolean'?source.wholeRoute:!!base.wholeRoute);
   if (source.pattern !== undefined || base.pattern !== undefined)
     settings.pattern = pattern;
   const validShift = (shift: unknown): shift is number =>
@@ -206,6 +210,7 @@ export function guitarScaleFromQuery(
       ...(query.has("from") ? { firstFret: Number(query.get("from")) } : {}),
       ...(query.has("to") ? { lastFret: Number(query.get("to")) } : {}),
       ...(query.has("labels") ? { labels: query.get("labels") } : {}),
+      ...(query.has('link') ? {wholeRoute:query.get('link')==='all'} : {}),
       ...(shift !== undefined ? { shift } : {}),
     },
     base,

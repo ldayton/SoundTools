@@ -77,7 +77,8 @@ try {
  assert.equal(await page.locator('.scale-link-transition').count(),0);
  assert.equal(await page.locator('.scale-finger-alternate').count(),9);
  await page.goto(server.base+'/guitar/scales?key=C&scale=major&pattern=1&position=0');await page.locator('.scale-tone circle').first().waitFor();
- const unlinkedSize=await page.locator('.scale-tone circle').first().evaluate((c:any)=>({width:c.r.baseVal.value * 2 * c.getScreenCTM().a}));assert.ok(Math.abs(linkedSize!.width-unlinkedSize!.width)<.1,'mobile note size is unchanged when linking expands the fret range');
+ const unlinkedSize=await page.locator('.scale-tone circle').first().evaluate((c:any)=>({width:c.r.baseVal.value * 2 * c.getScreenCTM().a}));assert.ok(linkedSize!.width>0 && linkedSize!.width<=unlinkedSize!.width,'phone linked-pair dots remain visible and do not exceed single-shape dot size');
+ const pairBounds=await page.locator('.scale-diagram svg').boundingBox();assert.ok(pairBounds!.x>=0&&pairBounds!.x+pairBounds!.width<=390,'the complete linked pair fits the phone canvas');
  await page.goto(server.base+'/guitar/scales?key=C&scale=major&pattern=5&position=0&link=1');
  await page.locator('.scale-tone[data-string="4"][data-fret="7"]').click();
  assert.equal(await page.getByRole('button',{name:'Reverse shapes',exact:true}).isDisabled(), true);

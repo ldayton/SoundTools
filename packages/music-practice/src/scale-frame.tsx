@@ -30,6 +30,11 @@ export const scaleBodyState = () =>
     sourceLabel: "GuitarScale.org",
     maqamReference: "",
     rows: [] as { string: number; notes: string }[],
+    wholeRoute: false,
+    routeReversed: false,
+    routeShapes: '',
+    routeStart: '',
+    routeSteps: [] as {key:string;label:string}[],
   });
 export function ScaleFrame({
   body,
@@ -39,6 +44,8 @@ export function ScaleFrame({
   reverseLink,
   setChordOpen,
   navigate,
+  reverseRoute,
+  focusRouteShift,
 }: {
   body: ReturnType<typeof scaleBodyState>;
   relative: ReactNode;
@@ -47,6 +54,8 @@ export function ScaleFrame({
   reverseLink(): void;
   setChordOpen(open: boolean): void;
   navigate(axis: "tonic" | "shape", direction: number): void;
+  reverseRoute():void;
+  focusRouteShift(key:string):void;
 }) {
   const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
   const [horizontal,setHorizontal]=useState(true);
@@ -66,7 +75,7 @@ export function ScaleFrame({
       const e = event as TouchEvent;
       const target = e.target instanceof Element ? e.target : null;
       touch.current = active() && e.touches.length === 1 && !target?.closest(
-        'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [contenteditable="true"], .practice-options'
+        'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [contenteditable="true"], .practice-options, .scale-diagram:has(.scale-whole-route-line)'
       ) ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
     };
     const move = (event: Event) => { if ((event as TouchEvent).touches.length !== 1) cancel(); };
@@ -112,7 +121,7 @@ export function ScaleFrame({
             ].map(([keys, action]) => <Table.Tr key={keys}><Table.Td><Kbd>{keys}</Kbd></Table.Td><Table.Td>{action}</Table.Td></Table.Tr>)}
           </Table.Tbody>
         </Table>
-        <Text size="sm" c="dimmed" mt="md">Linked shapes move together. Shape and octave shifts apply to movable shapes and stop at the fretboard limits. Shortcuts pause while you use an input or this panel.</Text>
+        <Text size="sm" c="dimmed" mt="md">Linked shapes move together. Shape and octave shifts apply to individual shapes and pairs, and stop at the fretboard limits. Shortcuts pause while you use an input or this panel.</Text>
       </Modal>
       <div className="scale-heading">
         <div className="scale-heading-text">
@@ -166,6 +175,11 @@ export function ScaleFrame({
       </section>}
       {s.maqamReference && <Text className="scale-maqam-reference" size="sm" c="dimmed" mb="sm">{s.maqamReference}</Text>}
       <div className="scale-diagram" />
+      {s.wholeRoute && <section className="scale-whole-route" aria-label="Across fretboard route">
+        <div className="scale-whole-route-heading"><Text fw={600}>{s.routeReversed?'Descending':'Ascending'} · {s.routeShapes}</Text><Button variant="subtle" size="compact-sm" onClick={reverseRoute}>Reverse route</Button></div>
+        <Text size="sm" c="dimmed">{s.routeStart}. Follow the line; orange arrows mark hand shifts.</Text>
+        <ol>{s.routeSteps.map(step=><li key={step.key}><button type="button" onClick={()=>focusRouteShift(step.key)}>{step.label}</button></li>)}</ol>
+      </section>}
       {s.linkHelp && <Text className="scale-link-help">{s.linkHelp}</Text>}
       <Button className="scale-shortcuts-button" variant="subtle" size="compact-xs" aria-keyshortcuts="?" onClick={() => body.patch({ shortcutsOpen: true })}>Keyboard shortcuts (?)</Button>
       <div className="scale-note-list">

@@ -1,3 +1,4 @@
+import { usesChristPicking } from "./christ-picked-accompaniment";
 import {hymnScoreCredits} from "./hymn-score-credits";
 import type {ScoreExportSource} from "./score-export";
 import {guitarVocalAccompaniment} from "./hymn-arrangements";
@@ -998,6 +999,7 @@ export class SightReading {
       }
       const capoChoice=this.capoChoice;
       const guitarCapo=capoChoice?.fret ?? (capoEdition ? chordProfile.capo+transposition.semitones : chordProfile?.capo);
+      const pickedAccompaniment=guitarVocal && usesChristPicking(chordProfile?.editionKey,transposition.semitones,guitarCapo);
       const shapeTranspose=guitarVocal ? 0 : capoEdition ? chordProfile.capo+transposition.semitones-guitarCapo! : transposition.semitones;
       const score = arrangeHymn(
         this.hymn,
@@ -1051,7 +1053,7 @@ export class SightReading {
         octaveNotation: !isGuitarArrangement(this.arrangement) &&
           !(this.arrangement === "original"),
         printedScore: this.arrangement === "original" || guitarVocal,
-        guitarAccompaniment:guitarVocal && chordProfile ? {capo:guitarCapo!,positionFor:(pitch,chord,_transpose,group)=>capoChoice && !capoChoice.scoreSetting ? capoPosition(capoChoice,pitch,chord,chordProfile.capo+transposition.semitones-guitarCapo!,group) : chordProfile.position(pitch,chord,0)} : undefined,
+        guitarAccompaniment:guitarVocal && chordProfile ? {capo:guitarCapo!,positionFor:(pitch,chord,_transpose,group)=>capoChoice && !capoChoice.scoreSetting && !pickedAccompaniment ? capoPosition(capoChoice,pitch,chord,chordProfile.capo+transposition.semitones-guitarCapo!,group) : chordProfile.position(pitch,chord,0)} : undefined,
         initialSignatures: true,
         reattackTies: this.mode === "wait" && this.reattackTies,
         transpose: shapeTranspose,
@@ -1088,10 +1090,10 @@ export class SightReading {
               prepared.timing,
               {
                 instrument: hymnPlaybackInstrument(this.hymn, this.arrangement),
-                strum: this.arrangement === "guitar-vocal" || this.arrangement === "guitar-chords" ||
+                strum: this.arrangement === "guitar-vocal" && !pickedAccompaniment || this.arrangement === "guitar-chords" ||
                   (this.arrangement === "guitar-edition" && this.viewHands === "left"),
                 positionFor: edition
-                  ? (pitch, chord, group) => capoChoice ? capoPosition(capoChoice,pitch-guitarCapo!,chord,guitarVocal ? edition.capo+transposition.semitones-guitarCapo! : shapeTranspose,guitarVocal ? group?.map(p=>p-guitarCapo!) : undefined) : edition.position(
+                  ? (pitch, chord, group) => capoChoice && !pickedAccompaniment ? capoPosition(capoChoice,pitch-guitarCapo!,chord,guitarVocal ? edition.capo+transposition.semitones-guitarCapo! : shapeTranspose,guitarVocal ? group?.map(p=>p-guitarCapo!) : undefined) : edition.position(
                       pitch - (capoEdition ? guitarCapo! : edition.capo || 0), chord, shapeTranspose,
                     )
                   : undefined,

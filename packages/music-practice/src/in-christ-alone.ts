@@ -1,3 +1,4 @@
+import { christPickedBars } from "./christ-picked-accompaniment";
 import abcjs, { type VoiceItem } from "abcjs";
 import { beamByBeat } from "./score-melody";
 import { accompanimentLyrics } from "./accompaniment-lyrics";
@@ -193,11 +194,13 @@ export function teacherInstrumentAbc(
   instrument: BeginnerInstrument,
   part: "right" | "left" | "both" = "both",
   vocalAccompaniment = false,
+  picked = false,
 ) {
   const guitar = instrument === "guitar",
     strumming = guitar && part === "left";
   const melody = teacherMelody(hymn.harmony, guitar),
     changes = teacherChanges(hymn.harmony);
+  const picking = picked ? christPickedBars(changes, lengths) : undefined;
   const names = strumming
     ? "S1"
     : guitar
@@ -243,7 +246,7 @@ export function teacherInstrumentAbc(
         return `${bar === 0 && event.at === 0 ? "[P:Verse] " : bar === 17 && event.at === 0 ? "[P:Interlude] " : ""}${guitar && chord ? `"${shapes[chord]}"` : ""}${position ? `"^${position}"` : ""}${token(event)}`;
       })
       .join(" ");
-    leadBars.push(`${strumming && !(vocalAccompaniment && bar >= 16) ? accompaniment : lead}${end}`);
+    leadBars.push(`${strumming && !(vocalAccompaniment && bar >= 16) ? picking?.[bar] ?? accompaniment : lead}${end}`);
     if (!strumming && (!guitar || part !== "right"))
       bassBars.push(`${accompaniment}${end}`);
   }

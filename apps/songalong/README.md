@@ -227,6 +227,14 @@ Original voices: https://doi.org/10.5281/zenodo.1442513
 
 ## Teacher-based In Christ Alone instrumental editions
 
+The capo-2 C-shape **Guitar + Voice** accompaniment uses a four-quarter-note
+picking cycle per held chord: bass plus strings 3–1, open fourth string,
+strings 3–1, open fourth string. The cycle restarts at chord changes, continues
+across barlines and stops early for shorter chords. Open strings are relative
+to the capo. The sung melody and instrumental ending stay intact; alternate
+capo shapes retain their existing accompaniment. After building SongAlong,
+generate guitar-only and vocal-guide WAV previews with `npx tsx apps/songalong/scripts/render-christ-picked.mts`.
+
 `in-christ-alone` retains its original Voice + Piano score and now also offers
 Piano and Guitar editions. Both follow the printed vocal melody, including rests
 and dotted rhythms, and carry the organ’s upper line through the instrumental

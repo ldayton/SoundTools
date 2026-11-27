@@ -27,12 +27,15 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
   await page.addInitScript(() => {
+    (window as any).pickedAttacks = [];
     (window as any).organVoices = [];
     (window as any).choirVoices = [];
     const start = AudioBufferSourceNode.prototype.start;
     AudioBufferSourceNode.prototype.start = function (
       ...args: Parameters<typeof start>
     ) {
+      if (this.context instanceof AudioContext)
+        (window as any).pickedAttacks.push(args[0] || 0);
       if (this.context instanceof AudioContext && this.loop)
         (window as any).organVoices.push({
           buffer: this.buffer,
@@ -308,6 +311,22 @@ try {
     "held organ note survives past the recorded sample end",
   );
   assert.ok(organ.peak < 0.502, "organ sample peak has headroom");
+  // The user's capo-2 accompaniment plucks chord tones simultaneously; it
+  // must not inherit the rolled-strum delays of the alternate capo versions.
+  await page.goto(server.base + "/piano/hymns/in-christ-alone?arrangement=guitar-vocal&capo=2&mode=playback&tempo=160&stanzas=1");
+  await waitForApp(page, ".hymn-controls");
+  await expect(page.locator(".hymn-score-setup")).toContainText("Capo 2");
+  await openPracticeOptions(page);
+  await page.getByRole("checkbox", {name:"Play Voice",exact:true}).uncheck();
+  await dismissPracticeDrawer(page);
+  await page.evaluate(() => { (window as any).pickedAttacks = []; });
+  await page.getByRole("button", {name:"Play",exact:true}).click();
+  await page.waitForFunction(() => (window as any).pickedAttacks.length >= 9);
+  await page.getByRole("button", {name:"Pause",exact:true}).click();
+  const pickedAttacks: number[] = await page.evaluate(() => (window as any).pickedAttacks);
+  const groups = new Map<number, number>();
+  for (const time of pickedAttacks) groups.set(time, (groups.get(time) || 0) + 1);
+  assert.deepEqual([...groups.values()].slice(0, 3), [4,4,1], "Bass plus three trebles, next chord, then the open fourth string; no rolled attacks");
   // A pre-UUID guest save must survive a public deep link and a cold reload.
   const migratedPage = await newPage(browser, {viewport:{width:1440,height:1000}});
   migratedPage.on("pageerror", e => errors.push(e.message));

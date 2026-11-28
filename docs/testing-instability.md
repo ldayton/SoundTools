@@ -916,3 +916,24 @@ to reproduce retained suffix/caret state in the shared control also passed.
 Those diagnostic changes were removed. None establishes a fix or identifies
 the original resetting write. The tempo investigation remains open; subsequent
 passing validation must not be reported as a tempo regression fix.
+
+### Downstream approved-score checks
+
+The complete genre chain progressed beyond its first legacy metadata failures
+and exposed two more old-generator assumptions. The Soul/Folk witness capped
+Folk at 128 bass notes, while the approved 64-bar score contains 160 (Soul 116).
+It now requires those exact counts and the approved phrasing identity, retaining
+memory, palette, loading, metronome and layout assertions. Gospel required a
+seven-beat organ event from the replaced generator. Its player witness now
+requires the approved 204 organ notes and the exact sustained opening triad
+(major/minor, duration 3.3); the independent 7.5-second organ render still proves
+sustain, drawbar/rotary response and stopping. No music data changed.
+First follow-up failures: `work/nightly-investigation/genres-followup.log` and
+`work/nightly-investigation/genres-approved-followup.log`.
+
+The updated TAB-hint scenario also exposed the tablet's distinct breakpoints:
+options are in a drawer at 768 px while the fingering control remains in the
+main toolbar. Before editing it, dismiss the previous display-options drawer
+then use the toolbar helper, which opens options only on phone layouts.
+Retained first failures: `work/nightly-investigation/fingerstyle-followup-chromium.log`
+and `work/nightly-investigation/fingerstyle-options-chromium.log`.

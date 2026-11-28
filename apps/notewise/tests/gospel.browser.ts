@@ -207,11 +207,21 @@ try {
                   (n: number, b: any) => n + b.length * b.numberOfChannels * 4,
                   0,
                 );
-              const chord = take.events.find(
-                (e: any) =>
-                  e.instrument === "tonewheel-organ" && e.duration > 7,
+              // Approved ensemble organ rearticulates by bar; the solo render
+              // above independently tests multi-bar sustain and release.
+              const organNotes = take.events.filter(
+                (e: any) => e.instrument === "tonewheel-organ",
               );
-              if (!chord) throw Error("No held common tone");
+              const opening = organNotes.filter((e: any) => e.beat < 1);
+              const pitches = opening.map((e: any) => e.note).sort((a: number, b: number) => a - b);
+              const expected = quality === "major" ? [60, 64, 67] : [60, 63, 67];
+              if (take.phrasing !== "approved-ensemble-v1" ||
+                  organNotes.length !== 204 ||
+                  JSON.stringify(pitches) !== JSON.stringify(expected) ||
+                  !opening.every((e: any) => e.duration === 3.3))
+                throw Error("Approved organ voicing changed: " + JSON.stringify({
+                  phrasing: take.phrasing, notes: organNotes.length, opening,
+                }));
               live = p.context;
               p.pauseAll();
               await new Promise((r) => setTimeout(r, 100));

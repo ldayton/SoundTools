@@ -43,7 +43,7 @@ try {
   const tabText=(await page.locator('[data-name=tabNumber]').allTextContents()).join('');
   assert(!tabText.includes('?'),tabText);
   assert(tabText.includes('53535'),tabText);
-  await openHymnControls(page);
+  await dismissPracticeDrawer(page);await openHymnControls(page);
   await page.getByRole('checkbox',{name:'Show fingerings',exact:true}).check();
   await expect(page.locator('.beginner-fingering').first()).toBeVisible();
   await expect(page.locator('.beginner-picking').first()).toBeVisible();
@@ -63,7 +63,7 @@ try {
   await expect(page.locator('[data-name=tabNumber]').first()).toBeVisible();
   assert(await page.locator('.tab-rhythm-stem').count());
   await expect(page.locator('.beginner-fingering').first()).toBeVisible();
-  await openHymnControls(page);
+  await dismissPracticeDrawer(page);await openHymnControls(page);
   const tabFingerings=page.getByRole('checkbox',{name:'Show fingerings',exact:true});
   await expect(tabFingerings).toBeEnabled();await tabFingerings.uncheck();
   await expect(page.locator('.beginner-fingering')).toHaveCount(0);

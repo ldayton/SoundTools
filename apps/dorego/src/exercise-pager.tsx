@@ -19,16 +19,18 @@ export type ExercisePage = Pattern | 'breathSquares';
 
 /** Inactive pages are read-only previews: they create no audio or live controls. */
 function ExercisePreview({ spec, pattern }: { spec: ExerciseSpec; pattern: Pattern }) {
+  // Loudness and tempo do not change preview pitches or rhythmic beat counts.
+  const shape = JSON.stringify({ ...spec, bpm: 120, volume: 0 });
   const exercise = useMemo(
-    () => generateExercise(editSpec(spec, { pattern }), Infinity),
-    [spec, pattern]
+    () => generateExercise(editSpec(JSON.parse(shape) as ExerciseSpec, { pattern }), Infinity),
+    [shape, pattern]
   );
   const round = exercise.rounds[0],
     next = exercise.rounds[1];
   const range = practiceRange(exercise, round);
   const pitches = phrasePitches(exercise, round);
   const columns = Math.min(pitches.length, pitches.length > 5 ? 4 : 5);
-  const duration = Math.round(secondsAt(exercise.totalBeats, exercise.spec.bpm));
+  const duration = Math.round(secondsAt(exercise.totalBeats, spec.bpm));
   return (
     <section className="exercise-page-preview" aria-hidden="true">
       <Title order={1} size="h3" ta="center">

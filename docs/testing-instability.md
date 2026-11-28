@@ -1267,3 +1267,22 @@ coordinator, required commands, port/audio locks, committed revision and
 60-second deadline. No test is removed, retried, relaxed or assigned a longer
 timeout. This is an explicit scheduling comparison, not a passing rerun offered
 as proof that the cancelled run passed.
+
+The four-unit-worker comparison at `37893855`
+(`work/ci-results/1795873732185-c5006a32`) also exceeded the budget at
+62.17 seconds; shared music completed in 38.7 seconds and DoReGo desktop was
+cancelled after 38 seconds. The new DoReGo pager/sequence witness passed.
+This run also retained a real Tagalujah fixture assertion failure:
+`apps/tagaluya/work/browser-results/reader.browser.ts-chromium-fb908ee5`.
+Its next swipe left the heading at Bilingual instead of Next reading fixture.
+The reader's native-input helper sent all six touch moves without allowing a
+compositor frame, the same input-coalescing problem encountered while developing
+the DoReGo witness. Both the ordinary drag and reverse-drag fixture now deliver
+movement across animation frames. Every heading, cancellation, boundary,
+scroll-settlement and resize assertion remains required and unchanged.
+
+DoReGo's inactive previews now cache their musical shape independently of
+loudness and tempo, since those edits do not change pitches or beat counts.
+Their displayed duration still uses the live BPM. The next diagnostic runs the
+owned DoReGo lane through `scripts/ci/check-app.cjs` to distinguish its runtime
+from full-suite resource contention; it is not a substitute for full local CI.

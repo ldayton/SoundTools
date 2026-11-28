@@ -71,7 +71,11 @@ try {
         el.addEventListener("scrollend",()=>el.setAttribute("data-test-scroll-settled","true"),{once:true});
       });
       await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[point]});
-      for(let step=1;step<=6;step++)await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:point.x+dx*step/6,y:point.y+dy*step/6}]});
+      for(let step=1;step<=6;step++){
+        // Deliver physical movement across compositor frames, as in the DoReGo pager witness.
+        await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve())));
+        await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:point.x+dx*step/6,y:point.y+dy*step/6}]});
+      }
       await session.send("Input.dispatchTouchEvent",{type:cancel?"touchCancel":"touchEnd",touchPoints:[]});
       // A changed heading does not prove native momentum/snap has finished.
       // Wait before injecting the next gesture; outward boundary swipes and
@@ -168,7 +172,10 @@ try {
   await expect(page.locator(".swipe-pager-page:not([inert])")).toHaveCount(1);
   if(browser.browserType().name()==="chromium"){
     const session=await page.context().newCDPSession(page);
-    const drag=async(x:number)=>session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x,y:350}]});
+    const drag=async(x:number)=>{
+      await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve())));
+      await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x,y:350}]});
+    };
     await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:220,y:350}]});
     await drag(140);await drag(90);
     await expect.poll(()=>page.locator(".swipe-pager").evaluate(el=>el.scrollLeft)).toBeGreaterThan(30);

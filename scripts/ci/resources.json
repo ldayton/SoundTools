@@ -15,7 +15,8 @@
         ],
         "cwd": "apps/dorego"
       }
-    ]
+    ],
+    "priority": 50
   },
   "dorego:npm:run test:workspace --workspace=dorego": {
     "kind": "ui",
@@ -1506,7 +1507,8 @@
         ],
         "cwd": "apps/dorego"
       }
-    ]
+    ],
+    "priority": 50
   },
   "dorego:npm:exec --workspace=dorego -- tsx tests/workspace.e2e.ts": {
     "kind": "ui",
@@ -2185,7 +2187,8 @@
         ],
         "cwd": "apps/songalong"
       }
-    ]
+    ],
+    "priority": 50
   },
   "songalong:npm:exec --workspace=songalong -- tsx tests/score-view.browser.ts": {
     "kind": "ui",

@@ -842,3 +842,13 @@ cancelled after 43.2 seconds when total execution exceeded the 60-second budget
 this is not a passing unit run. The next validation returns to the standard four
 shared-unit workers used by the preceding 59.92-second passing release. All files,
 locks, assertions and the budget remain unchanged.
+
+The standard-worker run (`1795864251938-2ccf20b5`) completed shared-music in
+29.0 seconds but exceeded the budget at 62.22 seconds. DoReGo desktop waited
+8.8 seconds after its build; SongAlong export waited 22.2 seconds. Both were
+cancelled at the deadline without a passing result. Their resource declarations
+now use the same priority 50 as the other long required browser witnesses;
+DoReGo's equivalent Nightly desktop command retains the same priority. Existing
+scheduler policy tests cover propagation. Coverage, concurrency identities,
+ports/audio locks and the 60-second budget are unchanged; the next measurement
+uses `npm run ci -- --base origin/main --all --workers 16` on the clean commit.

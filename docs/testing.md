@@ -666,3 +666,12 @@ fixtures. Exact musical content, pitches, timing and edition metadata retain the
 independent edition/unit owners; this refactor changes no product arrangement or
 musical golden. A generic fixture must satisfy its required capabilities rather
 than preserve an incidental song title.
+
+The teacher-score edition's five existing viewport cases are two required inner
+partitions, using the same reviewed mechanism as the catalog and four isolated
+ports across both engines. The case registry's union/disjointness is checked in
+CI. All musical, fingering, staff, tab and layout assertions remain unchanged;
+the split avoids placing an observed 801-second WebKit command near the
+15-minute edition-job deadline. Until new partition measurements arrive, the
+old complete-command measurement is retained as a conservative estimate for
+each partition; it is not represented as a measured partition duration.

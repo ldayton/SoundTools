@@ -1170,6 +1170,11 @@
   },
   "songalong:npm:exec --workspace=songalong -- tsx tests/in-christ-alone-editions.browser.ts": {
     "kind": "ui",
+    "partition": {
+      "total": 2,
+      "portBase": 4920,
+      "defaultPort": 4615
+    },
     "ports": [
       4615
     ],

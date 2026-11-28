@@ -103,7 +103,7 @@ test('Soundglow output mutation finishes before browser readers in both runners'
   }
 });
 
-test('every GitHub edition shard is required and their union covers each discovered file exactly once', () => {
+test('every GitHub edition shard is required and their union retains each file and reviewed partition exactly once', () => {
   const { matrix, editionFiles } = require('../../scripts/ci/test-strategy.cjs');
   const { commandTasks } = require('../../scripts/ci/task-graph.cjs');
   const { partition } = require('../../scripts/ci/shard.cjs');
@@ -112,9 +112,11 @@ test('every GitHub edition shard is required and their union covers each discove
     assert.equal(rows.length, Math.min(4, editionFiles().length));
     assert(rows.every(row => row.timeout === 15 && row.shards === rows.length));
     const shards = rows.map(row => commandTasks('songalong', 'nightly', browser, undefined, { group: 'editions', shard: `${row.shard}/${row.shards}` }));
-    assert(shards.every(tasks => tasks.length > 0 && tasks.length <= 4), 'Each required shard has bounded, nonempty edition ownership');
+    assert(shards.every(tasks => tasks.length > 0 && new Set(tasks.map(task=>task.args.at(-1))).size <= 4), 'Each required shard has bounded, nonempty logical edition ownership');
     const tasks = shards.flat();
-    assert.deepEqual(tasks.map(task => task.args.at(-1)).sort(), editionFiles());
+    assert.deepEqual([...new Set(tasks.map(task => task.args.at(-1)))].sort(), editionFiles());
+    const signature=task=>JSON.stringify([task.command,task.args,task.partition,task.locks]);
+    assert.deepEqual(tasks.map(signature).sort(), commandTasks('songalong','nightly',browser,undefined,{group:'editions'}).map(signature).sort());
     assert.equal(new Set(tasks.map(task => task.id)).size, tasks.length);
     assert(tasks.every(task => task.needs.includes('songalong:build')));
   }

@@ -1,3 +1,5 @@
+import { partition } from "../../../scripts/ci/shard.cjs";
+import { widths } from "./in-christ-alone-layout-cases.cjs";
 import {openHymnInstrumentChoices} from "../../../packages/music-practice/browser-tests/helpers";
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
@@ -5,6 +7,7 @@ import { expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import {
   launchBrowser,
+  browserName,
   newPage,
   closeBrowser,
   captureFailure,
@@ -17,12 +20,12 @@ import {
   openHymnControls,
   dismissPracticeDrawer,
 } from "../../../packages/music-practice/browser-tests/helpers";
-const server = await preview("songalong", 4615),
+const server = await preview("songalong", Number(process.env.TEST_PORT || 4615)),
   browser = await launchBrowser();
-const output = "/tmp/songalong-teacher-editions";
+const output = `work/teacher-editions/${browserName()}`;
 await mkdir(output, { recursive: true });
 try {
-  for (const width of [1960, 1440, 768, 390, 320]) {
+  for (const width of partition(widths)) {
     const page = await newPage(browser, { viewport: { width, height: 1000 } });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));

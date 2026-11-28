@@ -91,3 +91,22 @@ test('failure summaries identify the first command and retain original evidence 
   assert.equal(privateReport.excerpt,'Private backend log retained locally.');
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test('both teacher-edition partitions retain every viewport once on isolated ports and caches',()=>{
+  const {widths}=require('../../apps/songalong/tests/in-christ-alone-layout-cases.cjs');
+  const {partition}=require('../../scripts/ci/shard.cjs');
+  assert.deepEqual(widths,[1960,1440,768,390,320]);
+  const all=[];
+  for(const browser of ['chromium','webkit']){
+    const tasks=commandTasks('songalong','nightly',browser,undefined,{group:'editions'}).filter(t=>t.args.at(-1)==='tests/in-christ-alone-editions.browser.ts');
+    assert.equal(tasks.length,2);
+    assert.deepEqual(tasks.map(t=>t.partition),[{index:1,total:2},{index:2,total:2}]);
+    const cases=tasks.flatMap(t=>partition(widths,t.env.TEST_SHARD));
+    assert.deepEqual([...cases].sort((a,b)=>a-b),[...widths].sort((a,b)=>a-b));
+    assert.equal(new Set(cases).size,widths.length);
+    assert(tasks.every(t=>!t.locks.includes('port:4615')));
+    all.push(...tasks);
+  }
+  assert.equal(new Set(all.map(t=>t.env.TEST_PORT)).size,4);
+  assert.equal(new Set(all.map(t=>t.env.CI_VITE_CACHE_DIR)).size,4);
+});

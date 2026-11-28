@@ -44,7 +44,8 @@ test('all existing CI commands have reviewed coverage and resource declarations'
     for (const browser of ['chromium', 'webkit']) assert(commandTasks(app, lane, browser, undefined, { group }).length >= plan(app, lane, browser, group).length);
   }
   assert.throws(() => declaration('songalong', 'node', ['new-unreviewed-test.cjs']), /Missing resource/);
-  assert.deepEqual(commandTasks('songalong', 'nightly', 'chromium', undefined, { group: 'editions' }).map(t => t.args.at(-1)), editionFiles());
+  assert.deepEqual(commandTasks('songalong', 'nightly', 'chromium', undefined, { group: 'editions' }).map(t => t.args.at(-1)),
+    editionFiles().flatMap(file=>Array(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx',file]).partition?.total || 1).fill(file)));
   assert.equal(browserSuites.length, 9);
   assert.deepEqual(commandTasks('dorego', 'nightly', 'chromium').flatMap(t => t.args.filter(arg => /tests\/.*\.e2e\.ts$/.test(arg))).sort(), [...browserSuites.map(suite => `tests/${suite}.e2e.ts`), 'tests/sequence.e2e.ts', 'tests/voice-feedback.e2e.ts'].sort());
   assert.equal(setupTasks('songalong').filter(t => t.id.endsWith(':build')).length, 1);

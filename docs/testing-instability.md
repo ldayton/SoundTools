@@ -1217,3 +1217,35 @@ their existing centered layout and padding. Existing CI live-drone cases also
 check 320x568 Maqamat/Yemenite page bounds and unchanged 44px finger targets.
 Nightly's original bounds assertions remain, with Yemenite added to the same
 exercise layout matrix. No page padding, musical content or timeout is reduced.
+
+## 2026-11-28: Shared UI clock installation race
+
+The same Nightly run's NoteWise Chromium and WebKit groups retained
+`failure-notewise_nightly_core_chromium_37.json`: shared UI controls failed at
+`page.clock.pauseAt(0)` with “Cannot fast-forward to the past.” This is test clock
+setup, before the deferred-focus assertion, rather than a product regression.
+Playwright's installed clock ticks normally, so a protocol round trip can put
+zero in the past. The fixture now pauses at a future virtual instant, following
+the installed API's documented install-before-pause sequence. It retains the
+25ms controlled focus activation and all original keyboard/focus assertions;
+no assertion timeout, retry or wall-clock sleep was added. The first command
+summary and browser bundle remain under `work/suite-final-first-failure/`.
+
+## 2026-11-28: MIDI reload before offline work settles
+
+That run's NoteWise WebKit MIDI command retained a native worker access-control
+page error during the second reload (trace call `dsyy@746`), after the test had
+returned online. First evidence: `failure-notewise_nightly_core_webkit_15.json`
+and `midi.browser.ts-webkit-8a1276ca/trace-0.zip` in the retained bundle. The test
+previously waited only for playable keys after offline reload and for the initial
+“Available offline” label. Neither proves the background worker check has ended.
+
+The shared `waitForOfflineReady` boundary now requires ready status and the
+worker check's idle state, as exposed by the existing retry button. MIDI uses it
+before going offline and around reloads; its zero-page-error assertion remains
+unchanged. A controlled browser regression observes the busy property being read,
+proves the helper stays pending while busy, then explicitly releases it. It also
+covers the hidden settings panel. Both full local MIDI engines pass with that
+boundary. The original trace did not retain busy state at the exact error instant,
+so it cannot alone prove causation; any recurrence after this boundary needs fresh
+investigation, rather than an exception filter or a passing retry.

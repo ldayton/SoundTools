@@ -154,7 +154,9 @@ const { launchBrowser, newPage, captureFailure, closeBrowser } = require("./ci/b
     // Delay the focus trap's activation until after arrow navigation. Its
     // deferred focus must follow the roving cell, not the originally selected one.
     await page.clock.install({ time: 0 });
-    await page.clock.pauseAt(0);
+    // install() starts a ticking clock; zero may already be in the past by
+    // the next protocol round trip. Pause at a future virtual instant instead.
+    await page.clock.pauseAt(60 * 60 * 1000);
     await page.locator("#test-pitch").press("Enter");
     await page
       .locator("#test-pitch-picker")

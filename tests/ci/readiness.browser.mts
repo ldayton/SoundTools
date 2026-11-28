@@ -1,7 +1,7 @@
 // Real-browser regression for the startup races that fake locator tests miss.
 import assert from "node:assert/strict";
 import { launchBrowser, newPage, closeBrowser, captureFailure, waitForAccountIdle, waitForDialogClosed } from "../../scripts/ci/browser-harness.cjs";
-import { gotoHymn, reloadHymn, openHymnControls } from "../../packages/music-practice/browser-tests/helpers";
+import { gotoHymn, reloadHymn, waitForOfflineReady, openHymnControls } from "../../packages/music-practice/browser-tests/helpers";
 const browser = await launchBrowser();
 try {
   const page = await newPage(browser, { viewport: { width: 390, height: 844 } });
@@ -31,19 +31,37 @@ try {
   await page.route('http://readiness.test/**', route => route.fulfill({contentType:'text/html',body:`<div id="loading">Opening saved practice…</div><script>
     window.__soundtoolsStartup={ready:false}; window.order=[];
     setTimeout(()=>{window.__soundtoolsStartup.ready=true;window.order.push('startup')},25);
-    setTimeout(()=>{document.body.innerHTML='<div class="hymn-controls hymn-toolbar-mobile">Controls</div><h1 class="sequence-title">Fixture</h1><div id="saved">Saved on this device.</div><input type="number" id="volume" value="37"><input type="number" id="verification-code" value="123456"><input type="password" id="password" value="private-password"><div class="hymn-paper"></div>';window.order.push('restored')},50);
+    setTimeout(()=>{document.body.innerHTML='<div class="hymn-controls hymn-toolbar-mobile">Controls</div><h1 class="sequence-title">Fixture</h1><div id="saved">Saved on this device.</div><input type="number" id="volume" value="37"><input type="number" id="verification-code" value="123456"><input type="password" id="password" value="private-password"><div id="offline-status" hidden>Available offline</div><button id="offline-retry" hidden disabled>Retry offline setup</button><div class="hymn-paper"></div>';window.order.push('restored')},50);
     setTimeout(()=>{document.querySelector('.hymn-paper').innerHTML='<svg width="20" height="20"><circle cx="10" cy="10" r="5"/></svg>';window.order.push('score')},75);
   </script>`}));
   await gotoHymn(page,'http://readiness.test/piano/hymns/fixture');
-  assert.deepEqual(await page.evaluate(()=>(window as any).order),['startup','restored','score']);
+  assert.deepEqual(await page.evaluate(()=>(window as any).order.slice(0,3)),['startup','restored','score']);
   assert.equal(await page.locator('#volume').inputValue(),'37');
   const {failurePageState}=await import("../../scripts/ci/failure-state.cjs");
   const snapshot=await page.evaluate(failurePageState);
   assert.equal(snapshot.controls[0].value,'37');
   assert(!JSON.stringify(snapshot).includes('private-password'));
   assert(!JSON.stringify(snapshot).includes('123456'));
+  await page.evaluate(() => {
+    Object.defineProperty(document.querySelector('#offline-retry'), 'disabled', {
+      get() {
+        (window as any).cacheReads = ((window as any).cacheReads || 0) + 1;
+        return this.hasAttribute('disabled');
+      },
+    });
+  });
+  let idleResolved = false;
+  const idle = waitForOfflineReady(page).then(() => { idleResolved = true; });
+  await page.waitForFunction(() => (window as any).cacheReads > 0);
+  assert.equal(idleResolved, false, 'A ready label alone must not bypass the in-flight worker check');
+  await page.evaluate(() => {
+    document.querySelector('#offline-retry')!.removeAttribute('disabled');
+    (window as any).order.push('cache-idle');
+  });
+  await idle;
+  assert.deepEqual(await page.evaluate(()=>(window as any).order),['startup','restored','score','cache-idle']);
   await reloadHymn(page);
-  assert.deepEqual(await page.evaluate(()=>(window as any).order),['startup','restored','score']);
+  assert.deepEqual(await page.evaluate(()=>(window as any).order.slice(0,3)),['startup','restored','score']);
   console.log('PASS: delayed mobile startup, idempotent controls, account restoration and dialog completion');
 } catch (error) { await captureFailure(browser, error); throw error; }
 finally { await closeBrowser(browser); }

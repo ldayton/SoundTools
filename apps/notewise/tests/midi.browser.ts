@@ -1,5 +1,6 @@
 import { waitForServer, captureFailure, closeBrowser, launchBrowser, createOfflineContext as createContext } from '../../../scripts/ci/browser-harness.cjs';
 import {
+  waitForOfflineReady,
   practiceOption,
   selectPractice,
   midiAction,
@@ -263,17 +264,14 @@ try {
         JSON.stringify(localStorage).includes("replugged"),
     )),
   );
-  await page.waitForFunction(
-    () =>
-      document.querySelector("#offline-status")?.textContent ===
-      "Available offline",
-  );
+  await waitForOfflineReady(page);
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
   await context.setOffline(true);
   await page.reload();
+  await waitForOfflineReady(page);
   await ready();
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0);
   await midiAction(page, "Connect MIDI keyboard");
@@ -355,7 +353,9 @@ try {
   await on(95);
   assert.equal(await page.locator("#feedback").textContent(), "Yes — B6");
   await off(95);
+  await waitForOfflineReady(page);
   await page.reload();
+  await waitForOfflineReady(page);
   await openPracticeOptions(page);
   assert.equal(await page.locator("#low-spin").inputValue(), "C2");
   assert.equal(await page.locator("#high-spin").inputValue(), "B6");

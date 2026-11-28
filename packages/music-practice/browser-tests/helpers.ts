@@ -387,3 +387,11 @@ export async function expectScoreDisplay(page:Page,display:string){
   await expect(page.getByRole("checkbox",{name:"Show Treble",exact:true})).toBeChecked({checked:display==="both"||display==="notation"});
   await expect(page.getByRole("checkbox",{name:"Show Tablature",exact:true})).toBeChecked({checked:display==="both"||display==="tab"});
 }
+
+/** Cache readiness includes the background worker check, not just usable controls. */
+export async function waitForOfflineReady(page: Page) {
+  await waitForApp(page);
+  await page.waitForFunction(() =>
+    document.querySelector('#offline-status')?.textContent?.trim() === 'Available offline' &&
+    document.querySelector<HTMLButtonElement>('#offline-retry')?.disabled === false);
+}

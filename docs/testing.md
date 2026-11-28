@@ -173,7 +173,7 @@ offline tests explicitly enable them. Keep credentials out of traces/logs.
 | Begin the local database broadcast protocol test | After channel subscription, `waitForRealtimeReplication` requires the tenant health replication connection before any tested writes; a healthy HTTP/DB response is insufficient |
 | Edit a signed-in follower or measure propagation | `waitForAccountIdle(page)` and the expected restored input value before resetting counters |
 | Open a menu after closing a dialog | `waitForDialogClosed(page, selector)` before opening the new menu |
-| Navigate between offline exercise fixtures | Wait for `cache.setup.ready`, not just enabled Play; initial native cache verification must finish first |
+| Navigate between offline exercise fixtures | Wait for `cache.setup.ready`, not just enabled Play; shared music pages use `waitForOfflineReady` for ready status and an idle background worker check, including when settings are hidden. Native cache verification must finish before reload/offline transitions. |
 | Verify an async change | Locator assertions or `expect.poll` on the actual outcome |
 
 Rendering an input is not proof that hydration finished. A helper must not call

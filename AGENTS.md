@@ -1,5 +1,7 @@
 # Development and testing
 
+Before piano-fingering experiments or planner changes, read [the archived research findings](docs/research/piano-fingering-2026-11.md) for prior results, implementation boundaries and already-consumed validation data.
+
 Read [docs/testing.md](docs/testing.md) before changing behavior or tests.
 The executable suite policy is `scripts/ci/test-strategy.cjs`; its invariants
 run in `tests/ci/test-strategy.test.cjs` on every shared CI validation.

@@ -769,3 +769,26 @@ The required witness still verifies real native movement and no accidental
 selection, then explicitly positions the score for its independent double-tap
 selection check. The separate deterministic witness retains full-range access
 and handle alignment assertions. No sleeps, retries or timeout changes were added.
+
+## Frozen piano research archive validation (28 November 2026)
+
+Before backing up the unchanged research commit `ae420530`, the standard
+16-worker local CI run exceeded the 60-second budget at 62.20 seconds.
+The DoReGo build took 31.0 seconds; its desktop check was cancelled after
+16.9 seconds. Retained evidence: `1795860813888-ee848b80`. Completed
+commands passed; the cancelled run is not a validation pass.
+
+After inspecting the build log, process resource usage, dependency timing and
+the coordinator's supported worker setting, the same full suite was run with
+`npm run ci -- --base origin/main --workers 24` on the host reporting 24
+available cores. All 31 required tasks passed at the same commit in 55.90
+seconds, with the DoReGo build taking 17.0 seconds. Evidence:
+`1795860975083-5f8807aa`. Both full runs and command logs are retained in the
+private `piano-fingering-2026-11-28` archive, alongside the research snapshot.
+
+No archived code, test selection, assertion, timeout, resource lock or budget
+was changed. The capacity change and observed build-time variation are
+recorded; this passing run does not establish that the historical runner's
+default performance variability is fixed. This note does not authorize skipping
+future checks or adding assertion retries. Only documentation is carried onto
+main; the research implementation remains archived.

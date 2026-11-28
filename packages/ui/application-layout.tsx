@@ -68,6 +68,7 @@ export function SettingsNavigationLink({
       aria-label="Settings"
       aria-description={updateAvailable ? "App update available" : undefined}
       data-settings
+      px={0}
       active={active}
       aria-current={active ? "page" : undefined}
       onClick={onClick}

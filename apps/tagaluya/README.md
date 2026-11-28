@@ -7,8 +7,9 @@ number controls, settings, privacy and offline lifecycle. Run `npm run dev
 The initial hardcoded service is November 28, 2026. `src/services.ts` keeps the
 provided song order, sections and repetitions. English originals display once;
 Tagalog originals have a phrase-aligned English reading translation. The welcome
-song is explicitly an opening excerpt. Jesus, You Are Glorious comes from the
-supplied Andy Evans chord/lyric PDF, credited in the reader. Copied recommendation
+song contains explicitly labelled fragments from the reference image, with full
+lyrics pending. Jesus, You Are Glorious selects Robert Gay; its lyrics are pending.
+The Andy Evans PDF is a different song and is excluded. Copied recommendation
 links and advertisements are excluded.
 
 No supplied source contains verified staff notation. Melody mode is available
@@ -26,3 +27,9 @@ Gesture recognition and the shell offline controller live in
 `packages/browser-controls`, also used by the existing practice apps. Hosting
 metadata is deliberately unconfigured; the app participates in CI but is not
 published by release jobs until configured.
+
+The song-ending ornament is GDJ's **Flourish Divider**
+(Openclipart ID 308072), released under CC0 1.0 / public domain.
+Source: https://openclipart.org/detail/308072/flourish-divider
+License: https://creativecommons.org/publicdomain/zero/1.0/
+The local SVG preserves the artwork paths, with editor metadata removed.

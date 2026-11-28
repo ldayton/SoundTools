@@ -1,7 +1,9 @@
 import {useCallback,useEffect,useLayoutEffect,useRef,useState,useSyncExternalStore,type CSSProperties} from "react";
-import {ActionIcon,Alert,Button,Group,NavLink,Paper,SegmentedControl,Stack,Text,Title,Tooltip} from "@mantine/core";
+import {Popover,Alert,Button,Group,NavLink,Paper,SegmentedControl,Stack,Text,Title,Tooltip} from "@mantine/core";
+import {useMediaQuery} from "@mantine/hooks";
 import {ApplicationLayout,AppBrand,SidebarTools,SettingsNavigationLink} from "@ldayton/ui/application-layout";
 import {PracticeOptionsProvider,PracticeWorkspace,usePracticeOptions} from "@ldayton/ui/practice-workspace";
+import {ControlIcon} from "@ldayton/ui/control-icon";
 import {ToolbarNumber} from "@ldayton/ui/toolbar-number";
 import {SettingsSections} from "@ldayton/ui/settings-sections";
 import {OfflineStatusPanel,CompleteUpdateButton} from "@ldayton/ui/offline-status-panel";
@@ -21,6 +23,7 @@ function ServiceSongs({service,selected,select}:{service:Service|undefined;selec
 }
 const storageKey="tagaluya:reader:v1";
 export function Tagaluya({services}:{services:Service[]}) {
+  const mobile=useMediaQuery("(max-width: 767px)",undefined,{getInitialValueInEffect:false});
   const [storageError,setStorageError]=useState(false);
   const [preferences,setPreferences]=useState<ReaderPreferences>(()=>{
     let saved={};try{saved=readPreferences(localStorage.getItem(storageKey));}catch{}
@@ -61,20 +64,20 @@ export function Tagaluya({services}:{services:Service[]}) {
     anchor.current=visible?.id;setPreferences(p=>({...p,view:view as ReaderPreferences["view"]}));
   }
   const navigation=<Stack h="100%" gap="sm">
-    <AppBrand name="Tagaluya" icon="/icon.svg" onClick={e=>{e.preventDefault();setSettings(false);}} />
     <Text size="sm" c="dimmed">Services</Text>
     {services.map(s=><NavLink key={s.id} label={new Intl.DateTimeFormat("en",{month:"long",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(s.date+"T12:00:00Z"))} description={s.title} active={!settings&&s.id===service?.id} component="a" href={songPath(s.id)} onClick={e=>{if(e.metaKey||e.ctrlKey)return;e.preventDefault();setPreferences(p=>({...p,service:s.id,song:s.songs[0]?.id||""}));setSettings(false);setNavigationOpen(false);}} />)}
     <SidebarTools><SettingsNavigationLink href="/settings" active={settings} onClick={e=>{e.preventDefault();history.pushState(null,"","/settings");setSettings(true);setNavigationOpen(false);}} /></SidebarTools>
   </Stack>;
+  const sizeControl=<ToolbarNumber id="reading-size" label="Text size" icon={<span aria-hidden="true">Aa</span>} unit="px" value={preferences.textSize} min={18} max={36} step={2} onChange={textSize=>setPreferences(p=>({...p,textSize}))} />;
   const songs=<ServiceSongs service={service} selected={song?.id} select={selectSong}/>;
   let phraseIndex=0,previousKey="";
   return <PracticeOptionsProvider entries={[{id:"songs",title:"Songs",form:songs}]} activeId={settings?undefined:"songs"} activityKey={service?.id} mobileDrawer onMobileOpenChange={setOptionsOpen}>
-    <ApplicationLayout compact toolbarOnly={!settings} mobileToolbarHeight={116} brand={<AppBrand name="Tagaluya" icon="/icon.svg" />} title={settings?"Settings":"Tagaluya"} area="Service reader"
+    <ApplicationLayout compact toolbarOnly={!settings} mobileToolbarHeight={56} brand={<AppBrand name="Tagaluya" icon="/icon.svg" />} title={settings?"Settings":"Tagaluya"} area="Service reader"
       navigation={navigation} navigationOpen={navigationOpen} navigationCollapsed={navigationCollapsed}
       onNavigationOpen={()=>setNavigationOpen(true)} onNavigationClose={()=>setNavigationOpen(false)} onNavigationCollapse={()=>setNavigationCollapsed(true)} onNavigationExpand={()=>setNavigationCollapsed(false)}
-      blocked={navigationOpen||optionsOpen} mainClassName="tagaluya-workspace" headerActions={settings?undefined:<Group gap="xs" wrap="wrap" className="tagaluya-toolbar" aria-label="Reading controls">
-        <ToolbarNumber id="reading-size" label="Text size" icon={<span aria-hidden="true">Aa</span>} unit="px" value={preferences.textSize} min={18} max={36} step={2} onChange={textSize=>setPreferences(p=>({...p,textSize}))} />
-        <Tooltip label={hasMelody(song)?"Choose reading view":"Melody has not been added for this song"} disabled={hasMelody(song)}><SegmentedControl aria-label="Reading view" value={mode} onChange={changeView} data={[{value:"interlinear",label:"Interlinear"},{value:"melody",label:"Melody",disabled:!hasMelody(song)}]} /></Tooltip>
+      blocked={navigationOpen||optionsOpen} mainClassName={settings?undefined:"tagaluya-workspace"} headerActions={settings?undefined:<Group gap="xs" wrap="nowrap" className="tagaluya-toolbar" aria-label="Reading controls">
+        {mobile?<Popover position="bottom" withArrow shadow="md"><Popover.Target><Button variant="default" className="tagaluya-text-size" h={40} px={0} aria-label={`Text size, ${preferences.textSize} pixels`}><span className="tagaluya-text-size-icon" aria-hidden="true"><ControlIcon name="text-size" /></span><span className="tagaluya-text-size-value">{preferences.textSize}</span></Button></Popover.Target><Popover.Dropdown>{sizeControl}</Popover.Dropdown></Popover>:sizeControl}
+        <Tooltip label={hasMelody(song)?"Choose reading view":"Melody has not been added for this song"} disabled={hasMelody(song)}><SegmentedControl aria-label="Reading view" value={mode} onChange={changeView} data={[{value:"interlinear",label:mobile?"Text":"Interlinear"},{value:"melody",label:mobile?"Score":"Melody",disabled:!hasMelody(song)}]} /></Tooltip>
       </Group>} updateAction={cache.updateAvailable?<CompleteUpdateButton onClick={offlineActions.update}/>:undefined}>
       <div hidden={settings}><PracticeWorkspace><Paper component="article" ref={reader} withBorder radius="md" p="lg" className="tagaluya-reader" style={{"--reading-size":`${preferences.textSize}px`} as CSSProperties} aria-labelledby="song-title" lang="en">
         <Text size="sm" c="dimmed" mb="xs">{service?.title} · {service&&new Intl.DateTimeFormat("en",{month:"long",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(service.date+"T12:00:00Z"))}</Text>
@@ -92,9 +95,11 @@ export function Tagaluya({services}:{services:Service[]}) {
             </div>;
           })}
         </section>)}
-        <Text size="sm" c="dimmed" className="song-progress" aria-live="polite">{song&&service?`Song ${service.songs.indexOf(song)+1} of ${service.songs.length} · ${song.title}`:""}</Text>
+        {song?.sections.length ? <div className="song-ending" role="img" aria-label="End of song">
+          <img src="/song-ending.svg" alt="" width="440" height="96" />
+        </div> : null}
       </Paper></PracticeWorkspace></div>
-      {settings&&<SettingsSections consent={{id:"diagnostic-sharing",client:diagnostics}} offline={<OfflineStatusPanel status={cache.status} ready={cache.ready}>{cache.retryVisible&&<Button onClick={offlineActions.retry} disabled={cache.busy}>Retry offline save</Button>}</OfflineStatusPanel>}><Text size="sm" c="dimmed">Your service selection and reading preferences are saved on this device.</Text></SettingsSections>}
+      {settings&&<SettingsSections consent={{id:"diagnostic-sharing",client:diagnostics}} offline={<OfflineStatusPanel status={cache.status} ready={cache.ready}>{cache.retryVisible&&<Button onClick={offlineActions.retry} disabled={cache.busy}>Retry offline save</Button>}</OfflineStatusPanel>}><Text size="sm" c="dimmed" px="md" pb="md" className="tagaluya-settings-note">Your service selection and reading preferences are saved on this device.</Text></SettingsSections>}
     </ApplicationLayout>
   </PracticeOptionsProvider>;
 }

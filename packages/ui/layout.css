@@ -10,6 +10,10 @@
 .sidebar-tools .mantine-NavLink-section[data-position="left"] {
   width: 20px;
 }
+.sidebar-tools [data-settings] .mantine-NavLink-section[data-position="left"] {
+  width:28px;
+  margin-inline-end:var(--mantine-spacing-xs);
+}
 /* The resize track extends beyond the sidebar, but must not make it scroll sideways. */
 .navigation-resizer-clip {
   position: absolute;

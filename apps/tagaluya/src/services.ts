@@ -16,7 +16,7 @@ With all of my life, with all of my strength
 All my hope is in You`);
 const salamatVerse=tl("Verse",[
   ["Ikaw ay mabuti bawat sandali","You are good at every moment"],
-  ["Sa habang buhay ay mananatili","And You will remain so all my life"],
+  ["Sa habang buhay ay mananatili","And You will remain so forever"],
   ["Hindi mapapawi o maikukubli","It cannot be erased or hidden"],
   ["Maging sa dilim ng gabi","Even in the darkness of night"],
   ["Sandigang matibay ang Iyong pangako","Your promise is a firm foundation"],
@@ -43,7 +43,7 @@ const goodChorus=tl("Chorus",[
 ]);
 const worthyPre=tl("Pre-Chorus",[
   ["'Di akalaing tulad ko'y mamahalin","I never thought someone like me would be loved"],
-  ["Ngunit pag-ibig na wagas ang Iyong hatid","Yet You bring pure and boundless love"],
+  ["Ngunit pag-ibig na wagas ang Iyong hatid","Yet You bring pure love"],
 ]);
 const worthyChorus=tl("Chorus",[
   ["Hindi kami karapat-dapat","We are not worthy"],
@@ -93,8 +93,9 @@ export const services:Service[]=[{
       ["O kay saya at kay ganda","Oh, how joyful and beautiful"],
       ["Tayong lahat ay sama-sama","All of us gathered together"],
       ["Umaawit ng papuri","Singing praises"],
+    ]),tl("Chorus fragment",[
       ["Diyos ay buhay!","God is alive!"],
-    ])],undefined,"excerpt"),
+    ])],"Incomplete fragments from the supplied reference image; full lyrics pending.","excerpt"),
     song("he-is-lord","He Is Lord","Call to worship",[
       en("Chorus 1",`He is Lord, He is Lord
 He has risen from the dead and He is Lord
@@ -178,7 +179,7 @@ In You, it's in You`),
         ["Tunay po ang Inyong katapatan","Your faithfulness is truly real"],
         ["Kailanman 'di Kayo nagbabago, Panginoon","You never change, Lord"],
         ["At kahit anuman ang aming nakikita o nararamdaman sa oras na ito","Whatever we may be seeing or feeling right now"],
-        ["Patuloy naming ihahayag at ipagmamalaki na Ikaw ay napakabuting Diyos","We will keep declaring and proclaiming that You are a very good God"],
+        ["Patuloy naming ihahayag at ipagmamalaki na Ikaw ay napakabuting Diyos","We will keep declaring and proudly proclaiming that You are a very good God"],
         ["Hallelujah, purihin ang dakila Mong Pangalan","Hallelujah, praise Your great name"],
       ]),
       tl("Verse 2",[
@@ -203,32 +204,8 @@ In You, it's in You`),
       {...worthyPre,lines:[...worthyPre.lines,...worthyPre.lines]},
       {...worthyChorus,lines:[...worthyChorus.lines,...worthyChorus.lines,...worthyChorus.lines.slice(2)]},
     ]),
-    song("jesus-you-are-glorious","Jesus, You Are Glorious","Victory songs",[
-      en("Verse 1",`Jesus You are glorious
-Beautiful in holiness
-Matchless in Your power and Your strength
-You're the first and You're the last
-The Creator of the universe
-Holding all creation in Your hands
-And the wonder of it all is this,
-The hand that hold the stars in place
-Reaches out in tenderness and grace`),
-      en("Chorus · repeat",`You deserve the highest
-You deserve the highest
-You deserve the highest praise`),
-      en("Verse 2",`Jesus You're beyond all worth
-The highest name in all the earth
-The radiance of the Father's Holy Face
-Your name will last for evermore
-While nations rise and nations fall.
-Even angels give you endless praise
-And the wonder of it all is this
-That you would lay aside all this
-And suffer cruellest death upon the cross`),
-      en("Bridge",`You're marvellous, beyond compare
-And who am I, that You should care?
-This is the mystery of Your Godliness.`),
-    ],"Andy Evans · You Deserve the Highest Praise · © 2005 Firwood Church. Source PDF: used by permission."),
+    song("jesus-you-are-glorious","Jesus, You Are Glorious","Victory songs",[],
+      "Robert Gay · Full lyrics pending. Replaces the different Andy Evans song in the supplied PDF.","pending"),
     song("i-give-you-glory","I Give You Glory","Victory songs",[
       gloryVerse,gloryPre,gloryChorus,gloryVerse,gloryPre,gloryChorus,
       en("Bridge",`With a crown of thorns

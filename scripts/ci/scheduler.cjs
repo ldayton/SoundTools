@@ -29,7 +29,8 @@ async function schedule(tasks, { workers = workerCount(), execute, onEvent = () 
   let used = 0; const graphStarted = Date.now();
   while (pending.size || running.size) {
     let progressed = false;
-    for (const [id, task] of [...pending].sort((a, b) => (b[1].priority || 0) - (a[1].priority || 0))) {
+    for (const [id, task] of [...pending].sort((a, b) => (b[1].priority || 0) - (a[1].priority || 0) ||
+      ((b[1].priority || 0) > 0 ? (b[1].estimatedSeconds || 0) - (a[1].estimatedSeconds || 0) : 0))) {
       const dependencies = task.needs || [];
       if (signal?.aborted || dependencies.some(dep => results.has(dep) && results.get(dep).status !== 'success')) {
         const result = { id, status: signal?.aborted ? 'cancelled' : 'blocked' };

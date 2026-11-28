@@ -628,7 +628,8 @@ use deterministic longest-duration-first assignment, with a bounded file count.
 `scripts/ci/durations.json` records successful Linux Nightly measurements keyed by
 app, engine and command, independent of task indices. Unknown checks remain
 required with an explicit 60-second estimate. Estimates influence Nightly shard
-assignment and bounded queue priority only; they never change assertions,
+assignment and bounded queue priority, and break ties between equally prioritized
+critical commands in both tiers; they never change assertions,
 timeouts, CI coverage or the 60-second local CI budget. Catalog costs include all
 three required inner partitions. Explicit resource/prerequisite priority wins.
 

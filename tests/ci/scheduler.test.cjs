@@ -207,3 +207,12 @@ test('reviewed multi-browser capacity and long-check priority reach the schedule
   assert.equal(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx','tests/guitar-sustain.browser.ts']).priority,50);
   assert.equal(declaration('dorego','npm',['run','test:desktop','--workspace=dorego']).priority,50);
 });
+
+test('measured durations order equal-priority critical work without outranking prerequisites or changing unprioritized order', async () => {
+  const order=[];
+  const jobs=[{...task('short'),priority:50,estimatedSeconds:10},{...task('long'),priority:50,estimatedSeconds:60},
+    {...task('setup'),priority:60,estimatedSeconds:1},{...task('equal'),priority:50,estimatedSeconds:10},
+    {...task('ordinary-first'),estimatedSeconds:1},{...task('ordinary-last'),estimatedSeconds:999}];
+  await schedule(jobs,{workers:1,async execute(t){order.push(t.id);return {exitCode:0};}});
+  assert.deepEqual(order,['setup','long','short','equal','ordinary-first','ordinary-last']);
+});

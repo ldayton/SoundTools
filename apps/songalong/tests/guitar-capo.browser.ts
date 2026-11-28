@@ -2,7 +2,7 @@ import {openHymnInstrumentChoices} from "../../../packages/music-practice/browse
 import assert from "node:assert/strict";
 import {expect} from "@playwright/test";
 import {readFile,mkdir} from "node:fs/promises";
-import {launchBrowser,newPage,closeBrowser,captureFailure} from "../../../scripts/ci/browser-harness.cjs";
+import {launchBrowser,newPage,closeBrowser,captureFailure,waitForApp} from "../../../scripts/ci/browser-harness.cjs";
 import {preview} from "../../../packages/music-practice/browser-tests/server";
 import {practiceOption,openPracticeOptions,closePracticeOptions,midiAction,selectHymnInstrument} from "../../../packages/music-practice/browser-tests/helpers";
 import {selectCapoPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
@@ -14,6 +14,7 @@ try{
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.addInitScript({content:await readFile(new URL("../../../packages/music-practice/test-fixtures/midi.js",import.meta.url),"utf8")});
   await page.goto(`${server.base}/piano/hymns/${fixture.hymn.slug}?arrangement=guitar-edition&mode=playback&display=both&key=original&octave=0`);
+  await waitForApp(page, ".hymn-controls");
   await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();await openPracticeOptions(page);
   await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.recommended.fret));
   await expect(page.locator("#hymn-capo")).not.toContainText("score setting");

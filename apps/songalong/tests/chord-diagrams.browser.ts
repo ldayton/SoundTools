@@ -36,9 +36,9 @@ try {
     });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    async function visit(id: string, query: string) {
+    async function visit(id: string, query: string, octave = 0) {
       await page.goto(
-        `${server.base}/piano/hymns/${id}?mode=playback&low=none&high=none&octave=0&capo=score&${query}`,
+        `${server.base}/piano/hymns/${id}?mode=playback&low=none&high=none&octave=${octave}&capo=score&${query}`,
       );
       await expect(page.locator(".sequence-title")).toBeVisible();
     }
@@ -102,7 +102,11 @@ try {
     await page.keyboard.press("Enter");
     await shape([null, 2, 3, null, 3, null]);
     await close();
-    await visit("ill-fly-away", "arrangement=guitar-chords&key=G");
+    // Nearest-register G is five semitones below C. The explicit reference
+    // capo is seven, so move up one octave to preserve the authored C grip.
+    await visit("ill-fly-away", "arrangement=guitar-chords&key=G", 1);
+    await expect(page.locator(".hymn-score-setup")).toContainText("Capo 7");
+    await expect(page.locator(".hymn-score-setup")).toContainText("G major");
     await open("C");
     await shape([null, 3, 2, null, null, 0]);
     await close();

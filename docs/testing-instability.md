@@ -1015,3 +1015,26 @@ and bounded, with each discovered edition present exactly once per browser.
 All 32 tier, test-strategy and scheduler checks pass in
 `work/nightly-investigation/edition-shards-policy.log`. The exact new commit
 also requires a complete `npm run ci -- --base origin/main --all` measurement.
+
+## Guitar reference-register and startup witnesses (28 November 2026)
+
+The completed main Nightly also exposed two downstream failures previously
+blocked by the TAB-hint assertions. Chromium's `chord-diagrams.browser.ts:107`
+requested capo 7 for I'll Fly Away in G but octave 0 (the key helper's nearest
+register is -5 semitones), while expecting the original C grip. That is not the
+reference register: capo 7 needs +7 semitones. The named exact-voicing witness now
+explicitly requests octave 1 for that G example and independently requires
+`Capo 7` and `G major`, retaining the exact C-grip assertion. Desktop and phone
+passes in both browsers are retained in
+`work/nightly-investigation/chord-diagrams-reference-register-{chromium,webkit}.log`.
+The separate automatic-capo owner remains unchanged in scope and still verifies
+alternate fretboards, diagram, MIDI, persistence and instrument switching.
+
+WebKit's guitar-fingering owner failed its first TAB assertion while the captured
+page still displayed `Opening saved practice…`, before hymn controls existed.
+The guitar-fingering and capo entry witnesses now use the shared `waitForApp`
+barrier for startup and hymn-control readiness before their engraving assertions;
+assertion timeouts and checks are unchanged. Retained first command logs:
+`work/nightly-investigation/main-songalong-chromium-timings/1795866781070-a24d2309/logs/songalong_nightly_core_chromium_7.log`
+and
+`work/nightly-investigation/main-songalong-webkit-timings/1795866783616-ef86ef6f/logs/songalong_nightly_core_webkit_7.log`.

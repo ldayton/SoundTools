@@ -955,3 +955,9 @@ renders for the approved pitched guitar and bass. The legacy scratch generator
 remains covered by `backing-pocket-styles.test.ts` and
 `backing-reggae-funk.test.ts`; no score or audio threshold changed.
 First failed stem: `apps/notewise/work/browser-results/pocket-styles.browser.ts-chromium-60c5d33b`.
+
+The Roots audio witness rendered Blues stems over beats 48–64, now the approved
+bass feature, and consequently measured a silent lead. It now renders the same
+16-beat duration from beat 32, including the authored guitar answer at 38–40.
+All per-stem audibility, contribution, finite PCM and mix thresholds remain.
+The first failure is `work/nightly-investigation/roots-approved-followup.log`.

@@ -1187,3 +1187,15 @@ screenshot are retained as `/tmp/dorego-reader-diagnostic.log` and
 `work/dorego-controls-review/reader-diagnostic.png`. The missing control remains
 unexplained; the diagnostic is not proof of a flake or a fix. No Tagalujah
 assertion, timeout, product behavior, or required CI coverage was changed.
+
+Further inspection identified an artifact mismatch in the failed reader run:
+its network trace requested `index-CGmPmqYG.js` from port 4760, while that CI
+job's retained build log produced `index-BXHdloZw.js`. The diagnostic against
+this checkout's own preview showed the expected controls. This is evidence
+that the failed browser saw a different build, consistent with another local
+preview occupying the fixed port; the foreign server's PID was not retained.
+The following complete run at `10bad442`
+(`work/ci-results/1795871504306-15de30d8`) passed all required checks in
+58.95 seconds. No reader assertion was changed to obtain that pass. The
+preview ownership gap remains an infrastructure issue to investigate, rather
+than evidence that the reading-view control itself is intermittently removed.

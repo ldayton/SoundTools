@@ -51,11 +51,13 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
     assert(build.needs.includes('shared:diagnostics'));
     assert(tasks.some(task => task.id === `${app}:ci:core:chromium:smoke`));
   }
-  const songUnits=tasks.find(task=>task.id==='songalong:units'),songBuild=tasks.find(task=>task.id==='songalong:build');
-  assert(songUnits.needs.includes('shared:diagnostics'));
-  assert(!songBuild.needs.includes(songUnits.id), 'Read-only source tests must not delay the independent build');
-  assert(!songUnits.locks.some(lock=>songBuild.locks.includes(lock)), 'Read-only units do not own the app output');
-  assert(tasks.filter(task=>/^songalong:ci:/.test(task.id)).every(task=>task.needs.includes(songBuild.id)), 'Browsers still require a fresh build');
+  for(const app of ['dorego','songalong']){
+    const units=tasks.find(task=>task.id===`${app}:units`),build=tasks.find(task=>task.id===`${app}:build`);
+    assert(units.needs.includes('shared:diagnostics'));
+    assert(!build.needs.includes(units.id), `${app}: read-only source tests must not delay the independent build`);
+    assert(!units.locks.some(lock=>build.locks.includes(lock)), `${app}: read-only units do not own the app output`);
+    assert(tasks.filter(task=>task.id.startsWith(`${app}:ci:`)).every(task=>task.needs.includes(build.id)), `${app}: browsers still require a fresh build`);
+  }
   assert(tasks.find(task => task.args.includes('test:desktop') && task.args.includes('--workspace=dorego')).locks.includes('realtime-audio'));
   assert(tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('port:4709'));
   assert(!tasks.find(task => task.args.includes('tests/voice-feedback.e2e.ts')).locks.includes('realtime-audio'));

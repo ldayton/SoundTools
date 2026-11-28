@@ -757,3 +757,15 @@ provisioning deadline. The new shell-boundary test uses fake sudo/npx and
 checks the emitted apt configuration and unchanged browser-install arguments.
 Retained first release log: `work/hosted-dorego-release.log`. No application
 assertions, test budgets, package mirrors or signing settings were changed.
+
+## Native swipe distance contract (28 November 2026)
+
+[First hosted failure](https://github.com/ldayton/SoundTools/actions/runs/46128050878)
+retains the `instrument-features.browser.ts` log, screenshot and trace. The
+150-pixel touch gesture scrolled 135 pixels on Linux; the test incorrectly
+required reaching the 303-pixel content limit, relying on macOS momentum.
+This is an overspecified platform contract, not a product scrolling failure.
+The required witness still verifies real native movement and no accidental
+selection, then explicitly positions the score for its independent double-tap
+selection check. The separate deterministic witness retains full-range access
+and handle alignment assertions. No sleeps, retries or timeout changes were added.

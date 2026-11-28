@@ -29,6 +29,10 @@ try {
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   await expect.poll(()=>touch.locator('[data-score-layout]').evaluate(n=>n.scrollLeft)).toBeGreaterThan(0);
   await expect(touch.locator('[data-passage-handle]:not([hidden])')).toHaveCount(0);
+  // Native swipe distance/momentum is platform-dependent. Its movement and
+  // selection independence are checked above; position the next selection
+  // witness explicitly instead of requiring a short swipe to reach the end.
+  await touch.locator('[data-score-layout]').evaluate(n=>{n.scrollLeft=n.scrollWidth;});
   await expect.poll(()=>touch.locator('[data-score-layout]').evaluate(n=>n.scrollLeft)).toBe(touchLayout.max);
   const point=await touch.locator('[data-score-layout]').evaluate(paper=>{
    const frame=paper.getBoundingClientRect();

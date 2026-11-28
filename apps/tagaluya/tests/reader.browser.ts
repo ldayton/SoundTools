@@ -12,7 +12,7 @@ try {
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto(server.base);await waitForApp(page,".tagaluya-reader");
   await expect(page.locator("#song-title")).toHaveText("O Kay Saya at Kay Ganda");
-  await expect(page.locator(".original-line")).toHaveCount(4);await expect(page.locator(".translated-line")).toHaveCount(4);
+  await expect(page.locator(".original-line")).toHaveCount(18);await expect(page.locator(".translated-line")).toHaveCount(18);
   await expect(page.getByRole("link",{name:"He Is Lord",exact:true})).toBeVisible();
   await page.getByRole("link",{name:"He Is Lord",exact:true}).click();await expect(page.locator("#song-title")).toHaveText("He Is Lord");
   await expect(page.getByText("He is God, He is God",{exact:true})).toBeVisible();
@@ -32,6 +32,7 @@ try {
     await page.setViewportSize({width,height:852});
     await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await expect.poll(()=>page.getByRole("banner").evaluate(el=>el.getBoundingClientRect().height)).toBe(56);
+    await expect(page.getByRole("button",{name:"Text size, 28 pixels",exact:true})).toBeVisible();
     const toolbarHeights=await page.locator(".tagaluya-toolbar").evaluate(el=>[el.querySelector(".tagaluya-text-size")!.getBoundingClientRect().height,el.querySelector(".mantine-SegmentedControl-root")!.getBoundingClientRect().height]);
     assert.deepEqual(toolbarHeights,[40,40],"Mobile controls share one height");
     await page.getByRole("button",{name:"Text size, 28 pixels",exact:true}).click();
@@ -39,7 +40,7 @@ try {
     await page.getByRole("button",{name:"Text size, 28 pixels",exact:true}).click();
     await expect(page.locator("#reading-size")).toBeHidden();
     await page.getByRole("button",{name:"Open navigation",exact:true}).click();
-    const brand=page.getByRole("link",{name:"Tagaluya home",exact:true});
+    const brand=page.getByRole("link",{name:"Tagalujah home",exact:true});
     const settingsLink=page.getByRole("link",{name:"Settings",exact:true});
     await expect(brand).toHaveCount(1);
     await expect(settingsLink).toBeVisible();
@@ -47,10 +48,7 @@ try {
     await settingsLink.click();
     await expect(page.getByRole("button",{name:"Close navigation",exact:true})).toBeHidden();
     await expect(page.getByRole("heading",{name:"Settings",exact:true})).toBeVisible();
-    const note=page.locator(".tagaluya-settings-note");
-    await expect(note).toBeVisible();
-    const noteBox=(await note.boundingBox())!;
-    assert(noteBox.x>=16&&noteBox.x+noteBox.width<=width-16,`Settings uses standard shell gutters: ${JSON.stringify(noteBox)}, viewport ${width}`);
+    await expect(page.getByText("Your service selection and reading preferences are saved on this device.",{exact:true})).toHaveCount(0);
     await page.getByRole("button",{name:"Open navigation",exact:true}).click();
     await page.getByRole("link",{name:"November 28, 2026 Evening service",exact:true}).click();
     await expect(page.locator("#song-title")).toHaveText("O Kay Saya at Kay Ganda");
@@ -79,6 +77,6 @@ try {
   await expect(page.getByText("Second line",{exact:true})).toBeVisible();
   await page.screenshot({path:"work/tagaluya/mobile-melody-fixture.png",fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log("PASS Tagaluya: program, bilingual text, size/reload, sidebars, swipes, phone layout and shared melody signatures");
+  console.log("PASS Tagalujah: program, bilingual text, size/reload, sidebars, swipes, phone layout and shared melody signatures");
 } catch(error){await captureFailure(browser,error);throw error;}
 finally {dev?.kill();await closeBrowser(browser);server.stop();}

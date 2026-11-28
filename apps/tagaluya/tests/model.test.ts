@@ -13,7 +13,8 @@ test("Tagalog translations stay paired, English choruses are not invented Tagalo
   const lord=services[0].songs[1];assert(lord.sections[0].phrases.every(p=>p.tagalog===undefined));
   assert.deepEqual(lord.sections[2].phrases[0],{id:"he-is-lord-2-0",tagalog:"Siya ay Diyos, Siya ay Diyos",english:"He is God, He is God"});
   for(const song of services[0].songs){assert.equal(hasMelody(song),false);for(const p of song.sections.flatMap(s=>s.phrases))assert(!/genius|ads\.|Taylor Swift|You might also like/.test(p.english+(p.tagalog||"")));}
-  assert.equal(services[0].songs[0].status,"excerpt");
+  assert.equal(services[0].songs[0].status,"complete");
+  assert.deepEqual(services[0].songs[0].sections.map(s=>s.phrases.length),[4,4,10]);
 });
 test("reading links and invalid saved preferences recover safely",()=>{
   assert.deepEqual(readPreferences("bad"),{});assert.deepEqual(readPreferences('{"version":2}'),{});

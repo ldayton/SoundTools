@@ -22,7 +22,7 @@ function ServiceSongs({service,selected,select}:{service:Service|undefined;selec
   </Stack>;
 }
 const storageKey="tagaluya:reader:v1";
-export function Tagaluya({services}:{services:Service[]}) {
+export function Tagalujah({services}:{services:Service[]}) {
   const mobile=useMediaQuery("(max-width: 767px)",undefined,{getInitialValueInEffect:false});
   const [storageError,setStorageError]=useState(false);
   const [preferences,setPreferences]=useState<ReaderPreferences>(()=>{
@@ -72,7 +72,7 @@ export function Tagaluya({services}:{services:Service[]}) {
   const songs=<ServiceSongs service={service} selected={song?.id} select={selectSong}/>;
   let phraseIndex=0,previousKey="";
   return <PracticeOptionsProvider entries={[{id:"songs",title:"Songs",form:songs}]} activeId={settings?undefined:"songs"} activityKey={service?.id} mobileDrawer onMobileOpenChange={setOptionsOpen}>
-    <ApplicationLayout compact toolbarOnly={!settings} mobileToolbarHeight={56} brand={<AppBrand name="Tagaluya" icon="/icon.svg" />} title={settings?"Settings":"Tagaluya"} area="Service reader"
+    <ApplicationLayout compact toolbarOnly={!settings} mobileToolbarHeight={56} brand={<AppBrand name="Tagalujah" icon="/icon.svg" />} title={settings?"Settings":"Tagalujah"} area="Service reader"
       navigation={navigation} navigationOpen={navigationOpen} navigationCollapsed={navigationCollapsed}
       onNavigationOpen={()=>setNavigationOpen(true)} onNavigationClose={()=>setNavigationOpen(false)} onNavigationCollapse={()=>setNavigationCollapsed(true)} onNavigationExpand={()=>setNavigationCollapsed(false)}
       blocked={navigationOpen||optionsOpen} mainClassName={settings?undefined:"tagaluya-workspace"} headerActions={settings?undefined:<Group gap="xs" wrap="nowrap" className="tagaluya-toolbar" aria-label="Reading controls">
@@ -81,7 +81,7 @@ export function Tagaluya({services}:{services:Service[]}) {
       </Group>} updateAction={cache.updateAvailable?<CompleteUpdateButton onClick={offlineActions.update}/>:undefined}>
       <div hidden={settings}><PracticeWorkspace><Paper component="article" ref={reader} withBorder radius="md" p="lg" className="tagaluya-reader" style={{"--reading-size":`${preferences.textSize}px`} as CSSProperties} aria-labelledby="song-title" lang="en">
         <Text size="sm" c="dimmed" mb="xs">{service?.title} · {service&&new Intl.DateTimeFormat("en",{month:"long",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(service.date+"T12:00:00Z"))}</Text>
-        <Title ref={title} order={1} tabIndex={-1} id="song-title">{song?.title||"Tagaluya"}</Title>
+        <Title ref={title} order={1} tabIndex={-1} id="song-title">{song?.title||"Tagalujah"}</Title>
         {song?.credit&&<Text size="sm" c="dimmed" mt="xs">{song.credit}</Text>}
         {song?.status==="excerpt"&&<Text size="sm" c="dimmed" mt="xs">Opening excerpt</Text>}
         {storageError&&<Alert color="yellow" mt="md">Reading settings cannot be saved in this browser.</Alert>}
@@ -99,7 +99,7 @@ export function Tagaluya({services}:{services:Service[]}) {
           <img src="/song-ending.svg" alt="" width="440" height="96" />
         </div> : null}
       </Paper></PracticeWorkspace></div>
-      {settings&&<SettingsSections consent={{id:"diagnostic-sharing",client:diagnostics}} offline={<OfflineStatusPanel status={cache.status} ready={cache.ready}>{cache.retryVisible&&<Button onClick={offlineActions.retry} disabled={cache.busy}>Retry offline save</Button>}</OfflineStatusPanel>}><Text size="sm" c="dimmed" px="md" pb="md" className="tagaluya-settings-note">Your service selection and reading preferences are saved on this device.</Text></SettingsSections>}
+      {settings&&<SettingsSections consent={{id:"diagnostic-sharing",client:diagnostics}} offline={<OfflineStatusPanel status={cache.status} ready={cache.ready}>{cache.retryVisible&&<Button onClick={offlineActions.retry} disabled={cache.busy}>Retry offline save</Button>}</OfflineStatusPanel>} />}
     </ApplicationLayout>
   </PracticeOptionsProvider>;
 }

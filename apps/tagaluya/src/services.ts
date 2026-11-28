@@ -89,13 +89,32 @@ Because of what the Lord has done for us`);
  * No unverified melody or external lyrics are shipped. */
 export const services:Service[]=[{
   id:"2026-11-28",date:"2026-11-28",title:"Evening service",songs:[
-    song("o-kay-saya-at-kay-ganda","O Kay Saya at Kay Ganda","Welcome song",[tl("Opening",[
-      ["O kay saya at kay ganda","Oh, how joyful and beautiful"],
-      ["Tayong lahat ay sama-sama","All of us gathered together"],
-      ["Umaawit ng papuri","Singing praises"],
-    ]),tl("Chorus fragment",[
-      ["Diyos ay buhay!","God is alive!"],
-    ])],"Incomplete fragments from the supplied reference image; full lyrics pending.","excerpt"),
+    song("o-kay-saya-at-kay-ganda","O Kay Saya at Kay Ganda","Welcome song",[
+      tl("Verse 1",[
+        ["O kay saya at kay ganda","Oh, how joyful and beautiful"],
+        ["Tayong lahat ay sama-sama","We are all gathered together"],
+        ["Umaawit ng papuri","Singing praises"],
+        ["Sumasayaw at kumakanta","Dancing and singing"],
+      ]),
+      tl("Verse 2",[
+        ["O kay saya at kay ganda","Oh, how joyful and beautiful"],
+        ["Tayong lahat ay sama-sama","We are all gathered together"],
+        ["Umaawit ng papuri","Singing praises"],
+        ["Sumasamba","Worshipping"],
+      ]),
+      tl("Chorus",[
+        ["Ipalakpak ang iyong kamay","Clap your hands"],
+        ["Itaas at iwagayway","Raise them and wave them"],
+        ["Sama-samang isisigaw","Together we will shout"],
+        ['"Diyos ay buhay!"','"God is alive!"'],
+        ["Ipalakpak ang iyong kamay","Clap your hands"],
+        ["Itaas at iwagayway","Raise them and wave them"],
+        ["Sama-samang isigaw (Wooh!)","Shout together (Wooh!)"],
+        ["Sama-samang isigaw (Wooh!)","Shout together (Wooh!)"],
+        ["Sama-samang isisigaw","Together we will shout"],
+        ['"Diyos ay buhay!"','"God is alive!"'],
+      ]),
+    ]),
     song("he-is-lord","He Is Lord","Call to worship",[
       en("Chorus 1",`He is Lord, He is Lord
 He has risen from the dead and He is Lord
@@ -204,8 +223,25 @@ In You, it's in You`),
       {...worthyPre,lines:[...worthyPre.lines,...worthyPre.lines]},
       {...worthyChorus,lines:[...worthyChorus.lines,...worthyChorus.lines,...worthyChorus.lines.slice(2)]},
     ]),
-    song("jesus-you-are-glorious","Jesus, You Are Glorious","Victory songs",[],
-      "Robert Gay · Full lyrics pending. Replaces the different Andy Evans song in the supplied PDF.","pending"),
+    song("jesus-you-are-glorious","Jesus, You Are Glorious","Victory songs",[
+      en("Verse",`Prince of Peace
+Eternal Lord Of Glory
+Mighty God
+The Everlasting King`),
+      en("Pre-Chorus",`You reign
+With glorious pow'r and splendor
+Shining bright
+Throughout the heavens
+Jesus You worthy of our praise`),
+      en("Chorus",`Jesus You are glorious
+Jesus You are victorious
+You conquered death
+Hell and grave
+So with one voice
+We offer praise
+And give to You
+The glory due Your name`),
+    ],"Robert Gay"),
     song("i-give-you-glory","I Give You Glory","Victory songs",[
       gloryVerse,gloryPre,gloryChorus,gloryVerse,gloryPre,gloryChorus,
       en("Bridge",`With a crown of thorns

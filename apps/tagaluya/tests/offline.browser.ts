@@ -15,5 +15,5 @@ try{
   await expect(page.locator("#song-title")).toHaveText("Salamat Panginoon");
   await expect(page.getByText("You are good at every moment",{exact:true}).first()).toBeVisible();
   await page.reload();await waitForApp(page,".tagaluya-reader");await expect(page.locator("#song-title")).toHaveText("Salamat Panginoon");
-  assert.deepEqual(errors,[]);console.log("PASS Tagaluya offline: verified shell, deep-linked service/song and translated lyrics after reload");
+  assert.deepEqual(errors,[]);console.log("PASS Tagalujah offline: verified shell, deep-linked service/song and translated lyrics after reload");
 }catch(error){await captureFailure(browser,error);throw error;}finally{await closeBrowser(browser);server.stop();}

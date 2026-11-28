@@ -1,4 +1,4 @@
-# Tagaluya
+# Tagalujah
 
 A service reader using the SoundTools application shell, practice workspace,
 number controls, settings, privacy and offline lifecycle. Run `npm run dev
@@ -7,8 +7,7 @@ number controls, settings, privacy and offline lifecycle. Run `npm run dev
 The initial hardcoded service is November 28, 2026. `src/services.ts` keeps the
 provided song order, sections and repetitions. English originals display once;
 Tagalog originals have a phrase-aligned English reading translation. The welcome
-song contains explicitly labelled fragments from the reference image, with full
-lyrics pending. Jesus, You Are Glorious selects Robert Gay; its lyrics are pending.
+song includes both verses and the chorus from the supplied lyric image. Jesus, You Are Glorious uses the supplied Robert Gay lyrics.
 The Andy Evans PDF is a different song and is excluded. Copied recommendation
 links and advertisements are excluded.
 

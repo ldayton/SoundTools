@@ -1,6 +1,6 @@
 import {createRoot} from "react-dom/client";
 import {SoundToolsProvider} from "@ldayton/ui";
-import {Tagaluya} from "../src/app";
+import {Tagalujah} from "../src/app";
 import type {Service} from "../src/model";
 import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import {arrangeHymn} from "../../../packages/music-practice/src/hymn-arrangements";
@@ -10,4 +10,4 @@ const services:Service[]=[{id:"fixture",date:"2026-11-28",title:"Reader fixture"
   {id:"fixture-first",tagalog:"Unang linya",english:"First line",melody:{abc:melody}},
   {id:"fixture-second",tagalog:"Ikalawang linya",english:"Second line",melody:{abc:melody}},
 ]}]}]}];
-createRoot(document.getElementById("app")!).render(<SoundToolsProvider primaryColor="blue"><Tagaluya services={services}/></SoundToolsProvider>);
+createRoot(document.getElementById("app")!).render(<SoundToolsProvider primaryColor="blue"><Tagalujah services={services}/></SoundToolsProvider>);

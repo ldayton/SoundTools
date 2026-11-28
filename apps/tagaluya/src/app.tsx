@@ -93,7 +93,7 @@ export function Tagalujah({services}:{services:Service[]}) {
       </Paper>;
   }
   return <PracticeOptionsProvider entries={[{id:"songs",title:"Songs",form:songs}]} activeId={settings?undefined:"songs"} activityKey={service?.id} mobileDrawer onMobileOpenChange={setOptionsOpen}>
-    <ApplicationLayout compact toolbarOnly={!settings} mobileToolbarHeight={56} brand={<AppBrand name="Tagalujah" icon="/icon.svg" />} title={settings?"Settings":"Tagalujah"} area="Service reader"
+    <ApplicationLayout compact toolbarOnly={!settings} mobileToolbarHeight={56} brand={<AppBrand name="Tagalujah" icon="/icon.svg" color="wine.6" />} title={settings?"Settings":"Tagalujah"} area="Service reader"
       navigation={navigation} navigationOpen={navigationOpen} navigationCollapsed={navigationCollapsed}
       onNavigationOpen={()=>setNavigationOpen(true)} onNavigationClose={()=>setNavigationOpen(false)} onNavigationCollapse={()=>setNavigationCollapsed(true)} onNavigationExpand={()=>setNavigationCollapsed(false)}
       blocked={navigationOpen||optionsOpen} mainClassName={settings?undefined:"tagaluya-workspace"} headerActions={settings?undefined:<Group gap="xs" wrap="nowrap" className="tagaluya-toolbar" aria-label="Reading controls">

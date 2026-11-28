@@ -11,6 +11,10 @@ try {
   const page=await newPage(browser,{viewport:{width:1440,height:1000},hasTouch:true});
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto(server.base);await waitForApp(page,".tagaluya-reader");
+  await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.body).backgroundColor)).toBe("rgb(247, 240, 229)");
+  await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue("--mantine-color-wine-6").trim())).toBe("#793f50");
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content","#f7f0e5");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content","https://tagalujah.lilydayton.me/icon-512.png");
   // Installed navigation must remain inside an explicit standalone app scope,
   // including when the Home Screen installation starts on a deep song URL.
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href","/manifest.webmanifest");
@@ -20,6 +24,7 @@ try {
   const manifest=await manifestResponse.json();
   assert.equal(manifest.display,"standalone");assert.equal(manifest.id,"/");
   assert.equal(manifest.start_url,"/");assert.equal(manifest.scope,"/");
+  assert.equal(manifest.background_color,"#f7f0e5");assert.equal(manifest.theme_color,"#f7f0e5");
   for(const icon of manifest.icons){
     const response=await page.request.get(new URL(icon.src,server.base+"/manifest.webmanifest").href);
     assert.equal(response.status(),200);const png=await response.body();
@@ -65,6 +70,7 @@ try {
     const brand=page.getByRole("link",{name:"Tagalujah home",exact:true});
     const settingsLink=page.getByRole("link",{name:"Settings",exact:true});
     await expect(brand).toHaveCount(1);
+    await expect.poll(()=>brand.evaluate(el=>getComputedStyle(el).color)).toBe("rgb(121, 63, 80)");
     await expect(settingsLink).toBeVisible();
     // Visibility alone includes the drawer's off-screen opening animation.
     await expect.poll(async()=>(await brand.boundingBox())!.x).toBe(16);

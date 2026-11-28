@@ -1,4 +1,4 @@
-import { MantineProvider, createTheme } from "@mantine/core";
+import { MantineProvider, createTheme, type MantineColorsTuple } from "@mantine/core";
 import { useMemo, type PropsWithChildren } from "react";
 import "./styles.css";
 
@@ -6,14 +6,16 @@ import "./styles.css";
 export function SoundToolsProvider({
   children,
   primaryColor = "violet",
+  primaryColors,
   pageColor = "#f8f9fa",
   colorScheme = "light",
 }: PropsWithChildren<{
   primaryColor?: string;
+  primaryColors?: MantineColorsTuple;
   pageColor?: string;
   colorScheme?: "light" | "dark";
 }>) {
-  const theme = useMemo(() => createTheme({ primaryColor }), [primaryColor]);
+  const theme = useMemo(() => createTheme({ primaryColor, ...(primaryColors ? { colors: { [primaryColor]: primaryColors } } : {}) }), [primaryColor, primaryColors]);
   return (
     <MantineProvider
       theme={theme}

@@ -260,6 +260,12 @@ try {
       ),
     );
     await checkVocalEdition(page,server.base,"ill-fly-away");
+    await page.goto(`${server.base}/piano/hymns/ill-fly-away?arrangement=guitar-vocal&key=D&capo=2&mode=playback`);
+    await expect(page.locator(".guitar-chord-trigger").first()).toBeVisible();
+    await expect(page.locator(".abcjs-chord").filter({hasText:/^Am$/}).first()).toBeVisible();
+    await expect(page.locator(".abcjs-chord").filter({hasText:/^G7$/}).first()).toBeVisible();
+    await checkScore(page);
+    assert.deepEqual(errors, []);
     await page.close();
     console.log(`PASS I'll Fly Away editions ${width}px`);
   }

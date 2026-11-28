@@ -24,6 +24,7 @@ import {
 } from "./o-come-all-ye-faithful";
 import {
   flyEditionAbc,
+  flyVocalAccompanimentAbc,
   flyLandmarks,
   flyFingers,
   flyGuitarPosition,
@@ -58,6 +59,7 @@ export type InstrumentEdition = {
   /** Polyphonic source editions select a single part after slicing the complete score. */
   selectWholeVoices?: boolean;
   build: (context: BuildContext) => string;
+  vocalAccompaniment?: (melody: string) => string;
   landmarks?: (abc: string, from: number, guitar: boolean) => string;
 };
 export type ChordEditionId = string;
@@ -192,6 +194,7 @@ const recipes: Record<ChordEditionKey, Recipe> = {
     pickup: false,
     tempo: 80,
     shapes: "C, small F and G7",
+    vocalAccompaniment: flyVocalAccompanimentAbc,
     strumPattern: true,
     fingers: flyFingers,
     position: flyGuitarPosition,

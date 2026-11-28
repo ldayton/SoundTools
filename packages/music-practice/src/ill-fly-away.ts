@@ -61,6 +61,19 @@ export const flyEdition: InstrumentHymn = {
   guitarBars: { 12: [["C", 64]] },
   marks: [],
 };
+/** Singing accompaniment: keep the instrumental lesson harmony independent. */
+export const flyVocalChanges: [number, string][][] = [
+  [[0,"C"]], [[0,"Am"]], [[0,"F"]], [[0,"G7"],[32,"C"]],
+  [[0,"C"]], [[0,"Am"]], [[0,"C"],[48,"G7"]], [[0,"C"],[48,"G7"]],
+  [[0,"C"],[48,"Am"]], [[0,"C"]], [[0,"F"]], [[0,"G7"],[32,"C"]],
+  [[0,"C"]], [[0,"C"]], [[0,"C"],[48,"G7"]], [[0,"C"]],
+];
+export function flyVocalAccompanimentAbc(melody: string) {
+  return instrumentHymnAbc(melody, {
+    ...flyEdition, changes: flyVocalChanges,
+    strum: {...strum, Am: "[A,EAce]"},
+  }, "guitar", "left");
+}
 export function flyEditionAbc(
   sourceMelody: string,
   instrument: BeginnerInstrument,

@@ -227,7 +227,13 @@ function serialize(bars: Bar[], melody = false) {
 /** One source bass pitch at a time. Repeated pitches become held notes, not extra attacks. */
 /** Build an instrument edition or extract its authoritative source melody. */
 export function guitarVocalAccompaniment(hymn:Hymn, sectionBars=0, section=0, endingBar?:number, picked=true) {
-  if(instrumentEdition(hymn)?.editionKey !== "in-christ-alone")
+  const edition=instrumentEdition(hymn);
+  if(edition?.vocalAccompaniment){
+    const harmony=edition.vocalAccompaniment(arrangeHymn(hymn,"melody",0).abc);
+    const score=arrangeHymn({...hymn,id:`${hymn.id}:guitar-accompaniment`,harmony},"original",sectionBars,section,"both",endingBar);
+    return {...score,abc:engraveEdition(score.abc,true,"written","left")};
+  }
+  if(edition?.editionKey !== "in-christ-alone")
     return arrangeHymn(hymn,"guitar-edition",sectionBars,section,"left",endingBar);
   const score=arrangeHymn({...hymn,id:`${hymn.id}:guitar-accompaniment`,key:"C",harmony:teacherInstrumentAbc(hymn,"guitar","left",true,picked)},"original",sectionBars,section,"both",endingBar);
   return {...score,abc:engraveEdition(score.abc,true,"written","left")};

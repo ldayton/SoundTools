@@ -1005,7 +1005,7 @@ export class SightReading {
         const identity=`${this.hymn.id}:${this.arrangement}:${guitarShift}:${this.capo ?? "auto"}:${this.bpm}`;
         let choices=this.capoCache.get(identity);
         if(!choices){
-          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0,0,undefined,false).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position,requestedCapo:this.capo,accompanimentOnly:guitarVocal,referencePerformanceAbc:guitarVocal && usesChristPicking(chordProfile.editionKey,guitarShift,chordProfile.capo+guitarShift) ? guitarVocalAccompaniment(this.hymn,0).abc : undefined,bpm:this.bpm});
+          choices=recommendGuitarCapos({abc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0,0,undefined,false).abc : arrangeHymn(this.hymn,"guitar-edition",0).abc,accompanimentAbc:guitarVocal ? guitarVocalAccompaniment(this.hymn,0,0,undefined,false).abc : arrangeHymn(this.hymn,"guitar-edition",0,0,"left").abc,sourceCapo:chordProfile.capo,transpose:guitarShift,shapeKey:chordProfile.guitarKey || this.hymn.key,positionFor:chordProfile.position,requestedCapo:this.capo,accompanimentOnly:guitarVocal,referencePerformanceAbc:guitarVocal && usesChristPicking(chordProfile.editionKey,guitarShift,chordProfile.capo+guitarShift) ? guitarVocalAccompaniment(this.hymn,0).abc : undefined,bpm:this.bpm});
           this.capoCache.set(identity,choices);
         }
         this.capoChoices=choices;

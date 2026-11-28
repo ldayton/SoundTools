@@ -44,6 +44,8 @@ icon remains stale. This is separate from the app's service-worker update mechan
 Note by Note uses its staff-and-note SVG in the header and the same complete icon set. Its Vite build copies the public assets; root icons and manifest require revalidation on Vercel.
 
 Tagalujah uses the shared provider with a custom wine color ramp, preserving the
-standard controls and interaction states. Its page/install background is ivory
-(`#f7f0e5`), the principal accent is wine (`#793f50`), and the hymnbook rays use
+standard controls and interaction states. Its page/install background is pure white
+(`#ffffff`), with black (`#000000`) reading text, including translations and
+section labels. The icon retains its ivory tile. The principal accent is wine
+(`#793f50`), and the hymnbook rays use
 gold (`#c49a55`). The approved source SVG also supplies the sidebar and share art.

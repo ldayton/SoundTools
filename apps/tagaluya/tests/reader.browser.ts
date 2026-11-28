@@ -11,9 +11,13 @@ try {
   const page=await newPage(browser,{viewport:{width:1440,height:1000},hasTouch:true});
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto(server.base);await waitForApp(page,".tagaluya-reader");
-  await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.body).backgroundColor)).toBe("rgb(247, 240, 229)");
+  await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.body).backgroundColor)).toBe("rgb(255, 255, 255)");
+  for(const selector of [".tagaluya-reader .original-line",".tagaluya-reader .translated-line",".tagaluya-reader .song-section h2",".tagaluya-reader > .mantine-Text-root"]){
+    await expect.poll(()=>page.locator(selector).first().evaluate(el=>getComputedStyle(el).color)).toBe("rgb(0, 0, 0)");
+  }
+  await expect.poll(()=>page.locator(".tagaluya-reader").evaluate(el=>getComputedStyle(el).backgroundColor)).toBe("rgb(255, 255, 255)");
   await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue("--mantine-color-wine-6").trim())).toBe("#793f50");
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content","#f7f0e5");
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content","#ffffff");
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content","https://tagalujah.lilydayton.me/icon-512.png");
   // Installed navigation must remain inside an explicit standalone app scope,
   // including when the Home Screen installation starts on a deep song URL.
@@ -24,7 +28,7 @@ try {
   const manifest=await manifestResponse.json();
   assert.equal(manifest.display,"standalone");assert.equal(manifest.id,"/");
   assert.equal(manifest.start_url,"/");assert.equal(manifest.scope,"/");
-  assert.equal(manifest.background_color,"#f7f0e5");assert.equal(manifest.theme_color,"#f7f0e5");
+  assert.equal(manifest.background_color,"#ffffff");assert.equal(manifest.theme_color,"#ffffff");
   for(const icon of manifest.icons){
     const response=await page.request.get(new URL(icon.src,server.base+"/manifest.webmanifest").href);
     assert.equal(response.status(),200);const png=await response.body();

@@ -102,7 +102,7 @@ test("phrase dynamics and held-note taper retain pitches, attacks, ties, rests, 
   assert.equal(result.totalDuration,source.totalDuration);
   const shaped=playbackNotes(result), melody=shaped.filter(n=>n.pitch>=60);
   assert(melody[2].expressionGain!>melody[0].expressionGain!);
-  assert.equal(melody.at(-1)!.endGain,0.84,"one taper spans the held tie");
+  assert.equal(melody.at(-1)!.endGain,0.94,"one gentle taper spans the held tie");
   assert(shaped.filter(n=>n.pitch<60).every(n=>n.endGain===undefined),"melody breathing does not damp the bass");
   const voiced={...source,tracks:source.tracks.map((track,i)=>i===0?track.map(n=>n.cmd==="note"?{...n,playbackInstrument:"choir"}:n):track)};
   const vocalResult=guitarExpressionAudio(voiced,[],new Set());
@@ -131,8 +131,8 @@ test("picking hand uses thumb and independent upper fingers, alternates plucks, 
   const source = [note(48), note(64), note(67), note(72), note(72, 1), note(72, 2), note(72, 4)];
   const played = performNotes(source, {instrument:"guitar", positionFor: p => ({str: ({48:5,64:2,67:1,72:0} as Record<number,number>)[p],num:0})});
   assert.deepEqual(played.map(n => n.pickingFinger), ["thumb","index","middle","ring","index","middle","index"]);
-  assert(played[4].volume > played[5].volume, "alternation changes pluck energy without pretending to add round robins");
-  assert.equal(played[4].volume, played[6].volume, "a separated phrase begins fresh");
+  assert(played[4].gain! > played[5].gain!, "alternation changes pluck energy without changing the recorded layer");
+  assert.equal(played[4].gain, played[6].gain, "a separated phrase begins fresh");
   const crossing=performNotes([note(64,0),note(67,1),note(72,2)],{instrument:"guitar",positionFor:p=>({str:({64:2,67:1,72:0} as Record<number,number>)[p],num:0})});
   assert.deepEqual(crossing.map(n=>n.pickingFinger),["index","middle","index"],"alternation continues across string changes");
   assert.deepEqual(played.map(n => [n.pitch,n.start]), source.map(n => [n.pitch,n.start]));
@@ -147,7 +147,7 @@ test("partial strums keep every authored note and weight bass downstrokes versus
   assert.deepEqual(down.map(n=>n.string),[0,3,5]);
   assert.equal(down[0].delay,0);assert.equal(up[2].delay,0);
   assert(down[1].delay! > down[2].delay! / 2, "brush time follows skipped strings");
-  assert(down[0].volume / up[0].volume > down[2].volume / up[2].volume);
+  assert(down[0].gain! / up[0].gain! > down[2].gain! / up[2].gain!);
   assert.deepEqual(up.map(n=>n.pitch),[48,64,67]);
 });
 
@@ -161,7 +161,7 @@ test("cadences support held resolutions, including transposed minor keys, withou
   assert.equal(inferGuitarPhrases(melody.map(n=>({...n,cadence:false}))).length,1);
   const abc='X:1\nM:4/4\nL:1/4\nK:Dm\n"Dm" D E "A7/C#" A2 | "Dm" D2 F2 |]';
   const performed=ringing(abc);
-  assert.equal(performed.find(n=>n.start===4)!.endGain,.84,"the held tonic is the phrase end, before the next motive");
+  assert.equal(performed.find(n=>n.start===4)!.endGain,.94,"the held tonic is the phrase end, before the next motive");
 });
 
 test("contour shaping follows the melodic apex, keeps bass independent and respects compound pickups", () => {
@@ -171,10 +171,31 @@ test("contour shaping follows the melodic apex, keeps bass independent and respe
   const melody=shaped.filter(n=>n.role==="melody"),bass=shaped.filter(n=>n.role==="bass");
   assert(melody[1].expressionGain! > melody[0].expressionGain!);
   assert(bass.every(n=>n.endGain===undefined));
-  assert(melody.some(n=>n.endGain===.84));
+  assert(melody.some(n=>n.endGain===.94));
   assert.deepEqual(shaped.map(n=>[n.pitch,n.start,n.duration]),playbackNotes(source).map(n=>[n.pitch,n.start,n.duration]));
   const transposed={...source,tracks:source.tracks.map(t=>t.map(n=>n.cmd==="note"?{...n,pitch:n.pitch+5}:n))};
   assert.deepEqual(playbackNotes(guitarExpressionAudio(transposed,[],new Set(),{meter:"6/8",pickup:.5})).map(n=>n.expressionGain),shaped.map(n=>n.expressionGain),"transposing the motive preserves phrase shape");
+});
+
+test("inferred accents stay subtle and never promote a pluck into a harder sample layer", () => {
+  // Straddle both recorded-layer thresholds after melody voicing. Written
+  // dynamics must still reach all three recordings; inferred energy must not
+  // change the choice even at those boundaries.
+  const source = [.54,.56,.79,.81].map((volume,start)=>({...note(64,start,1),volume:volume/.92}));
+  const plain=performNotes(source,{instrument:"guitar"});
+  const accented=performNotes(source.map(n=>({...n,expressionGain:1.064})),{instrument:"guitar"});
+  assert.deepEqual(accented.map(n=>guitarLayer(n.volume)),[40,72,72,104]);
+  assert.deepEqual(accented.map(n=>n.volume),plain.map(n=>n.volume));
+  assert(accented.every((n,i)=>n.gain!>plain[i].gain! && 20*Math.log10(n.gain!/plain[i].gain!)<.3));
+  assert.deepEqual(accented.map(n=>[n.pitch,n.start,n.duration,n.string]),plain.map(n=>[n.pitch,n.start,n.duration,n.string]));
+
+  const abc='X:1\nM:4/4\nL:1/4\nK:C\nC D E G | c2 G2 | C4 |]';
+  const shaped=playbackNotes(guitarExpressionAudio(abcjs.parseOnly(abc)[0].setUpAudio({qpm:60,chordsOff:true}),[],new Set()));
+  assert(shaped.every(n=>n.expressionGain!>=.95 && n.expressionGain!<=1.065),"inferred contour stays close to the underlying dynamic");
+  const tail=shaped.find(n=>n.endGain!==undefined)!;
+  assert(tail.endGain!<1 && 20*Math.log10(tail.endGain!)>-.75,"a phrase end tapers gently without isolating it");
+  const chord=performNotes([48,64,67].map(p=>({...note(p),expressionGain:1.064})),{instrument:"guitar",strum:true});
+  assert(chord.every(n=>20*Math.log10(n.gain!)<1),"chord presence and inferred emphasis together add less than 1 dB");
 });
 
 test("unassigned guitar melody replucks the high E string instead of climbing the neck to keep old notes ringing", () => {

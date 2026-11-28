@@ -104,9 +104,11 @@ export function guitarExpressionAudio(audio: AudioTracks, harmony: readonly numb
     const meter = metricalWeight(event.start * 4, context);
     return {...event,
       guitarRole: melody ? "melody" : bass ? "bass" : "inner",
-      guitarExpressionGain: (melody ? 0.92 + 0.20 * arch : bass ? 0.98 + 0.025 * arch : 0.94 + 0.055 * arch) * meter,
+      // Grouping can be convincing while its inferred emphasis is too strong.
+      // Retain the contour and boundaries, at 40% of the original depth.
+      guitarExpressionGain: 1 + 0.4 * ((melody ? 0.92 + 0.20 * arch : bass ? 0.98 + 0.025 * arch : 0.94 + 0.055 * arch) * meter - 1),
       ...(melody && event.start * 4 === phrase.lastStart && event.duration * 4 >= 1
-        ? {guitarEndGain: 0.84} : {}),
+        ? {guitarEndGain: 0.94} : {}),
     };
   }))};
 }

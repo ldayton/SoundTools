@@ -56,15 +56,18 @@ export function performNotes(
   for (const [, group] of [...groups].sort(([a], [b]) => a - b)) {
     if (group.length > 1) previousPluck = undefined;
     const top = Math.max(...group.map((n) => n.pitch));
-    // Phrase expression changes dynamics, never the score/practice clock.
+    // Authored dynamics choose the recorded layer. Inferred phrasing and hand
+    // gestures shape gain separately: an accent must not suddenly switch to a
+    // much harder recording just because it crosses a velocity threshold.
     for (const note of group)
       note.volume = Math.min(
         1,
-        note.volume * (note.pitch === top ? 0.92 : 0.72) * (options.instrument === "guitar" ? note.expressionGain ?? 1 : 1),
+        note.volume * (note.pitch === top ? 0.92 : 0.72),
       );
     if (options.instrument !== "guitar") continue;
-    // Give simultaneous chord attacks a little more presence than single-note plucks.
-    if (group.length > 1) for (const note of group) note.gain = 10 ** (2 / 20);
+    for (const note of group)
+      note.gain = (note.gain ?? 1) * Math.sqrt(note.expressionGain ?? 1)
+        * (group.length > 1 ? 10 ** (0.5 / 20) : 1);
     const used = new Set<number>();
     for (const note of [...group].sort((a, b) => b.pitch - a.pitch)) {
       const position = options.positionFor?.(
@@ -100,8 +103,8 @@ export function performNotes(
           : alternate && previousPluck?.finger === "index" ? "middle" : "index";
         note.pickingFinger = finger;
         if (group.length === 1 && (finger === "index" || finger === "middle")) previousPluck = {start: note.start, finger};
-        const energy = finger === "thumb" ? 0.96 : finger === "index" ? 1 : finger === "middle" ? 0.96 : 1.02;
-        note.volume = Math.min(1, note.volume * energy);
+        const energy = finger === "thumb" ? 0.98 : finger === "index" ? 1 : finger === "middle" ? 0.98 : 1.01;
+        note.gain! *= Math.sqrt(energy);
       }
       used.add(string);
       const previous = ringing.get(string);
@@ -132,7 +135,7 @@ export function performNotes(
         // adds missing chord tones. Upstrokes lean on the treble, downstrokes
         // on the bass, rather than treating all strings as equal impacts.
         const treble = (note.string ?? 2.5) / 5;
-        note.volume *= up ? 0.86 + 0.10 * treble : 1 - 0.08 * treble;
+        note.gain! *= Math.sqrt(up ? 0.94 + 0.04 * treble : 1 - 0.04 * treble);
       });
     }
   }

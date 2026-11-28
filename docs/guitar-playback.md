@@ -37,6 +37,15 @@ hammer-ons. Those require separate, convincing sound models and regression owner
 [KTH's phrase-arch demonstration](https://www.speech.kth.se/music/performance/Texts/phrasing.htm)
 is a reference for shaping, not evidence that a particular inferred boundary is correct.
 
+Listening review found the original interpretation too forceful despite useful
+grouping. The same boundaries and contour now use 40% of their previous expression
+depth, with a 6% final-note taper and only 0.5 dB of added chord presence. Authored
+dynamic level chooses the recording; inferred phrase, finger and brush weights
+use the separate playback gain. A small inferred accent therefore cannot cross
+a velocity threshold into a much harder recording. Written strong dynamics can
+still select the hard layer. Picking alternation and stroke direction remain,
+with subtler energy differences; pitches, timing, rests and resonance are unchanged.
+
 Chord-only/accompaniment strums use beat-aware direction, including pickups and
 dotted-quarter pulses in compound metres. String distance determines brush travel
 time; stronger brushes move a little faster. Offbeat upstrokes are lighter. The

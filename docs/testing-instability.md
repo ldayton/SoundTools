@@ -1022,3 +1022,21 @@ resource inventory and the setup task consuming its declared capacity. A policy
 check guards agreement between the npm command and scheduler slots. Next measure
 the complete `npm run ci -- --all` graph at the ordinary 16-slot setting; no test,
 assertion, port/audio lock or deadline is removed or relaxed.
+
+At the same code commit, the required pre-push invocation with changed-file
+selection retained another budget failure (`1795867977399-6d65985e`, 62.16
+seconds), cancelling mobile-toolbar after it queued 9.7 seconds. The full all-app
+measurement had passed in 58.40 seconds (`1795867903236-78edf736`); that pass does
+not resolve the variable pre-push timing. Using the documented
+`CI_UNIT_WORKERS=4` setting freed capacity and completed in 56.63 seconds, but the
+run failed a real Tagalujah reader assertion (`1795868067937-15b04183`): its second
+rightward swipe left the title at Next instead of Bilingual reading fixture.
+The first screenshot, logs and trace are retained under
+`apps/tagaluya/work/browser-results/reader.browser.ts-chromium-b7577216`.
+The native swipe helper did not await scroll settlement before the next gesture.
+It now arms a real `scrollend` listener before an in-range horizontal drag and
+waits for that event after touch release. Outward boundary/vertical gestures
+remain covered without expecting an event when no horizontal movement occurs.
+All title, cancellation, resize and boundary assertions remain unchanged; no
+sleep, retry, timeout increase or product change was added. The cause of every
+earlier passing run is not inferred from this correction.

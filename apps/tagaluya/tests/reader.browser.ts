@@ -51,9 +51,19 @@ try {
       const point={x:dx>0?bounds.x+24:bounds.x+bounds.width-24,y:350};
       assert(point.x+dx>=bounds.x && point.x+dx<=bounds.x+bounds.width,
         "Native touch gestures must stay inside the viewport at phone widths");
+      const moves=await track.evaluate((el,{dx,dy})=>Math.abs(dx)>Math.abs(dy)&&
+        (dx>0?el.scrollLeft>1:el.scrollLeft<el.scrollWidth-el.clientWidth-1),{dx,dy});
+      if(moves)await track.evaluate(el=>{
+        el.setAttribute("data-test-scroll-settled","false");
+        el.addEventListener("scrollend",()=>el.setAttribute("data-test-scroll-settled","true"),{once:true});
+      });
       await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[point]});
       for(let step=1;step<=6;step++)await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:point.x+dx*step/6,y:point.y+dy*step/6}]});
       await session.send("Input.dispatchTouchEvent",{type:cancel?"touchCancel":"touchEnd",touchPoints:[]});
+      // A changed heading does not prove native momentum/snap has finished.
+      // Wait before injecting the next gesture; outward boundary swipes and
+      // vertical reading gestures need not produce a horizontal scrollend.
+      if(moves)await expect(track).toHaveAttribute("data-test-scroll-settled","true");
       await session.detach();
     }else{
       // WebKit's automation has no native drag injection. Exercise browser

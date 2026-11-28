@@ -146,6 +146,8 @@ try {
   await page.getByRole("button", { name: "Volume", exact: true }).click();
   await volume.focus();
   await page.keyboard.press("Home");
+  assert.equal(await volume.getAttribute("aria-valuenow"), "0", "Home reaches the volume slider");
+  assert.equal(await page.locator('output[for="piano-volume"]').textContent(), "Muted");
   await page.waitForFunction(
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",

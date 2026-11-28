@@ -27,6 +27,8 @@ export function ToolbarSlider({
   valueText?: string;
 }) {
   const mute = useVolumeMute(value, min, max, onChange);
+  // The primary keyboard control stays the slider when a mute button is added.
+  const thumbProps = { id, "data-autofocus": true };
   return (
     <Popover position="bottom" width={withMute ? 76 : 64} trapFocus>
       <Popover.Target>
@@ -43,7 +45,7 @@ export function ToolbarSlider({
         <Stack align="center" gap="sm">
           {withMute && <VolumeMuteButton {...mute} label={label} />}
           <Slider
-            thumbProps={{ id }}
+            thumbProps={thumbProps}
             thumbLabel={label}
             thumbValueText={() => valueText}
             orientation="vertical"

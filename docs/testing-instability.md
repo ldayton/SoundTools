@@ -1038,3 +1038,26 @@ assertion timeouts and checks are unchanged. Retained first command logs:
 `work/nightly-investigation/main-songalong-chromium-timings/1795866781070-a24d2309/logs/songalong_nightly_core_chromium_7.log`
 and
 `work/nightly-investigation/main-songalong-webkit-timings/1795866783616-ef86ef6f/logs/songalong_nightly_core_webkit_7.log`.
+
+## Volume popover autofocus regression (28 November 2026)
+
+[NoteWise Chromium Nightly](https://github.com/ldayton/SoundTools/actions/runs/46143856487/job/140975598619)
+failed `piano-audio.browser.ts:161`: the expected saved mute remained at gain
+0.35. Its first command log is retained under
+`work/nightly-investigation/final-notewise-chromium-timings/1795868276254-d00419fd/logs/notewise_nightly_core_chromium_13.log`.
+The recently added mute button precedes the slider in the popover's focus trap.
+A new regression in the existing shared-controls owner reproduced the wrong
+initial focus, explicitly reporting `Mute toolbar volume` as the active element
+(`work/nightly-investigation/volume-autofocus-before.log`). Deferred focus can
+therefore steal a Home key intended for the volume slider.
+
+The shared toolbar now identifies the slider thumb as the popover's autofocus
+target, preserving the primary keyboard interaction while keeping the new mute
+button. The shared regression requires slider focus and immediate ArrowUp/Down
+volume changes, then retains all mute/unmute assertions. It fails without the
+product fix and passes on Chromium and WebKit with it. The actual piano-audio
+witness still requires an exactly zero output gain after navigation, and now
+also verifies the zero slider value and `Muted` readout before awaiting saving.
+Corrected shared and PCM checks are retained in
+`volume-autofocus-after-{chromium,webkit}.log` and
+`volume-piano-audio-after.log` under `work/nightly-investigation/`.

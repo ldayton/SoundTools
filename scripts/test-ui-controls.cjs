@@ -80,6 +80,15 @@ const { launchBrowser, newPage, captureFailure, closeBrowser } = require("./ci/b
     );
     // Both the compact toolbar and inline volume control use the same mute behavior.
     await page.getByRole("button", { name: "Toolbar volume", exact: true }).click();
+    await page.waitForFunction(() => document.activeElement?.id === "test-toolbar-volume")
+      .catch(async error => {
+        throw new Error("Opening volume must focus its slider, received " +
+          await page.evaluate(() => document.activeElement?.outerHTML), {cause: error});
+      });
+    await page.keyboard.press("ArrowUp");
+    assert.equal(await page.locator("#toolbar-volume-value").textContent(), "38");
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await page.locator("#toolbar-volume-value").textContent(), "37");
     await page.getByRole("button", { name: "Mute toolbar volume", exact: true }).click();
     assert.equal(await page.locator("#toolbar-volume-value").textContent(), "0");
     await page.keyboard.press("Escape");

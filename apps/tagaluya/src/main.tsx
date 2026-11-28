@@ -1,5 +1,6 @@
 import {createRoot} from "react-dom/client";
 import {SoundToolsProvider} from "@ldayton/ui";
+import {tagalujahBrand} from "./brand";
 import {RenderErrorBoundary} from "@ldayton/ui/render-error-boundary";
 import {Tagalujah} from "./app";
 import {services} from "./services";
@@ -7,5 +8,5 @@ import {validateServices} from "./model";
 import {diagnostics,startOffline} from "./offline";
 import "./style.css";
 validateServices(services);
-createRoot(document.getElementById("app")!).render(<RenderErrorBoundary appName="Tagalujah" onStop={()=>{}} onError={e=>diagnostics.capture(e,"ui.render_failed")}><SoundToolsProvider primaryColor="blue"><Tagalujah services={services}/></SoundToolsProvider></RenderErrorBoundary>);
+createRoot(document.getElementById("app")!).render(<RenderErrorBoundary appName="Tagalujah" onStop={()=>{}} onError={e=>diagnostics.capture(e,"ui.render_failed")}><SoundToolsProvider {...tagalujahBrand}><Tagalujah services={services}/></SoundToolsProvider></RenderErrorBoundary>);
 startOffline();

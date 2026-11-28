@@ -2306,7 +2306,8 @@
         ],
         "cwd": "apps/songalong"
       }
-    ]
+    ],
+    "priority": 50
   },
   "notewise:npm:run test:scale-fret-range --workspace=notewise": {
     "kind": "ui",

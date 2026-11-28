@@ -1,18 +1,19 @@
 # App branding
 
-Keep the names **DoReGo**, **NoteWise**, **SongAlong**, and **Soundglow** consistent in page titles, visible headers,
+Keep the names **DoReGo**, **NoteWise**, **SongAlong**, **Soundglow**, and **Tagalujah** consistent in page titles, visible headers,
 app manifests, and share metadata. Their existing SVG marks are the source artwork:
 
 - DoReGo: `apps/dorego/public/icon.svg`
 - Soundglow: `apps/soundglow/dist/favicon.svg`
 - NoteWise: `apps/notewise/public/icon.svg`
 - SongAlong: `apps/songalong/public/icon.svg`
+- Tagalujah: `apps/tagaluya/public/icon.svg` — open hymnbook, ivory, wine and gold.
 
-Run `node scripts/generate-branding.cjs` from the repository root to regenerate all four
+Run `node scripts/generate-branding.cjs` from the repository root to regenerate all five
 sets of raster icons using the workspace's Playwright Chromium installation.
 DoReGo's older Python entry point delegates to the same generator.
 
-All four apps supply:
+All five apps supply:
 
 | Surface | Asset |
 | --- | --- |
@@ -41,3 +42,8 @@ to refresh. Revisit the saved URL after deployment, and recreate the shortcut if
 icon remains stale. This is separate from the app's service-worker update mechanism.
 
 Note by Note uses its staff-and-note SVG in the header and the same complete icon set. Its Vite build copies the public assets; root icons and manifest require revalidation on Vercel.
+
+Tagalujah uses the shared provider with a custom wine color ramp, preserving the
+standard controls and interaction states. Its page/install background is ivory
+(`#f7f0e5`), the principal accent is wine (`#793f50`), and the hymnbook rays use
+gold (`#c49a55`). The approved source SVG also supplies the sidebar and share art.

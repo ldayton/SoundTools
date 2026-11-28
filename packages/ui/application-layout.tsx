@@ -89,18 +89,20 @@ export function AppBrand({
   icon,
   href = "/",
   onClick,
+  color = "inherit",
 }: {
   name: string;
   icon: string;
   href?: string;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  color?: string;
 }) {
   return (
     <Anchor
       href={href}
       onClick={onClick}
       aria-label={`${name} home`}
-      c="inherit"
+      c={color}
       underline="never"
     >
       <Group gap="xs" wrap="nowrap">

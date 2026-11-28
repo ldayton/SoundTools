@@ -961,3 +961,15 @@ bass feature, and consequently measured a silent lead. It now renders the same
 16-beat duration from beat 32, including the authored guitar answer at 38–40.
 All per-stem audibility, contribution, finite PCM and mix thresholds remain.
 The first failure is `work/nightly-investigation/roots-approved-followup.log`.
+
+## Hymnbook branding validation queue (28 November 2026)
+
+The first full local CI run for Tagalujah's approved branding retained evidence
+`1795865638449-8be079b3`. Completed checks passed, but total execution exceeded
+the budget at 62.16 seconds, cancelling `guitar-sustain.browser.ts` after 13.2
+seconds. The native sustain witness had queued for 24.2 seconds after its build;
+its closed-page messages follow cancellation. It is not a passing run. The
+reviewed resource declaration now gives this existing long witness priority 50,
+matching the other long browser checks. Its scheduler-policy assertion verifies
+propagation. All coverage, locks, assertions and budgets remain unchanged. The
+next validation measures `npm run ci -- --base origin/main --all --workers 16`.

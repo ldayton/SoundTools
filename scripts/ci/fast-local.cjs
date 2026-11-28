@@ -12,6 +12,9 @@ const { tiers } = require('./tiers.cjs');
 const { execute } = require('./execute.cjs');
 function fastGraph(selected, cwd) {
   const tasks = sharedTasks(cwd, { unitWorkers: Number(process.env.CI_UNIT_WORKERS || 8) });
+  // Reserve the large shared pool before app setup fills the available slots.
+  // Starting it late leaves otherwise-complete all-app runs waiting at the deadline.
+  tasks.find(task => task.id === 'shared:music').priority = 70;
   const preparation = tasks.find(task => task.id === 'shared:diagnostics');
   preparation.args = ['run', 'build:shared'];
   for (const app of selected.apps) {

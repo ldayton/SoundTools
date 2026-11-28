@@ -33,3 +33,19 @@ test('expired end-to-end budget fails before test execution and releases the hos
     assert.equal(process.exitCode, 1);
   } finally { process.exitCode = previousExitCode; fs.rmSync(root, { recursive: true, force: true }); }
 });
+
+test('all-app CI starts the shared music pool before app setup can starve it', async () => {
+  const {fastGraph}=require('../../scripts/ci/fast-local.cjs');
+  const {schedule}=require('../../scripts/ci/scheduler.cjs');
+  const {apps}=require('../../scripts/ci/apps.cjs');
+  const tasks=fastGraph({apps:Object.keys(apps),accounts:true},path.resolve(__dirname,'../..'));
+  const started=[];
+  const results=await schedule(tasks,{workers:16,execute:async task=>{
+    started.push(task.id);return {exitCode:0};
+  }});
+  assert(results.every(result=>result.status==='success'));
+  assert.equal(started.length,tasks.length,'Every required task remains scheduled');
+  const music=started.indexOf('shared:music');
+  assert(music>started.indexOf('shared:diagnostics'));
+  assert(started.filter(id=>id.endsWith(':build')||id.endsWith(':units')).every(id=>started.indexOf(id)>music));
+});

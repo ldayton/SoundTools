@@ -675,3 +675,17 @@ the split avoids placing an observed 801-second WebKit command near the
 15-minute edition-job deadline. Until new partition measurements arrive, the
 old complete-command measurement is retained as a conservative estimate for
 each partition; it is not represented as a measured partition duration.
+
+`apps/notewise/tests/offline-startup.browser.ts` owns the real cached-startup
+latency budget in both Nightly engines. It uses a fully verified idle cache and a
+positive-control stalled HTTP response, keeping the original 4500ms bound against
+a five-second network stall. Its 32-slot declaration reserves the runner's actual
+capacity (the scheduler caps requests to available workers); unrelated suites
+cannot invalidate the timing observation through CPU contention. The long
+offline lifecycle scenario keeps its functional assertions without another copy
+of that latency measurement. This is Nightly coverage, not a new tier.
+
+Failure capture bounds live page-state reads and screenshots, then awaits driver
+trace-file export before browser shutdown. The scheduled task's existing deadline
+still bounds a hung driver. A short page-read cutoff must not truncate an archive;
+an explicit export failure records its error and removes the incomplete ZIP.

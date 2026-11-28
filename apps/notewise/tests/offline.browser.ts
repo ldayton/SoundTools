@@ -39,7 +39,6 @@ const failedInstallURL = packA.files.find((file: { url: string }) =>
 assert(failedInstallURL, 'The incomplete-install fixture requires the shell manifest');
 let root = rootA,
   networkDown = false,
-  slowNavigation = false,
   breakAssets = false,
   failInstall = false,
   failInstallAsset = false,
@@ -77,8 +76,6 @@ const server = createServer(async (req, res) => {
     res.end("Unavailable");
     return;
   }
-  if (slowNavigation && path === "index.html")
-    await new Promise((r) => setTimeout(r, 5000));
   try {
     const bytes = await readFile(resolve(root, path));
     res.writeHead(200, {
@@ -267,19 +264,7 @@ try {
     () =>
       document.querySelector("#saved")?.textContent === "Saved on this device.",
   );
-  // A complete cached copy starts without waiting for a hung network navigation.
-  networkDown = false;
-  await context.setOffline(false);
-  slowNavigation = true;
-  const start = Date.now();
-  await fresh.goto(base);
-  await fresh.locator('[data-letter="E"]:enabled').waitFor();
-  assert.ok(
-    Date.now() - start < 4500,
-    "Cached startup must beat a 5-second network stall",
-  );
-  slowNavigation = false;
-  console.log("offline practice and fast startup ready");
+  // Real startup latency is owned by the CPU-isolated offline-startup witness.
   // A never-visited deep URL uses the same verified offline shell and honours its settings.
   await context.setOffline(true);
   networkDown = true;
@@ -474,7 +459,7 @@ try {
   );
   await blockedContext.close();
   console.log(
-    `PASS ${name}: verified install, automatic latest startup, active-session update protection, old tabs, offline practice, fast cached startup, corruption fallback/repair, eviction, failed install/retry, blocked offline access.`,
+    `PASS ${name}: verified install, automatic latest startup, active-session update protection, old tabs, offline practice, corruption fallback/repair, eviction, failed install/retry, blocked offline access.`,
   );
 } catch (error) {
   for (const context of browser.contexts()) for (const page of context.pages()) {

@@ -110,3 +110,13 @@ test('both teacher-edition partitions retain every viewport once on isolated por
   assert.equal(new Set(all.map(t=>t.env.TEST_PORT)).size,4);
   assert.equal(new Set(all.map(t=>t.env.CI_VITE_CACHE_DIR)).size,4);
 });
+test('real cached-startup latency has one exclusive Nightly owner on both engines',()=>{
+  for(const browser of ['chromium','webkit']){
+    const tasks=commandTasks('notewise','nightly',browser);
+    const latency=tasks.filter(t=>t.args.at(-1)==='tests/offline-startup.browser.ts');
+    assert.equal(latency.length,1);
+    assert.equal(latency[0].slots,32);
+    assert(latency[0].locks.includes('realtime-audio'));
+    assert(!commandTasks('notewise','ci',browser).some(t=>t.args.at(-1)==='tests/offline-startup.browser.ts'));
+  }
+});

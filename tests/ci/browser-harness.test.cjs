@@ -68,3 +68,36 @@ test('failure capture preserves control state and records unavailable screenshot
     assert.match(fs.readFileSync(path.join(root,'page-0-0-screenshot-error.txt'),'utf8'),/Frozen rendering clock/);
   }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+test('failure capture waits for a slow archive flush and removes a failed partial archive',async()=>{
+  const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+  const file=path.resolve(__dirname,'../../scripts/ci/browser-harness.cjs');
+  const load=require('node:module').createRequire(file),files=new Map(),timers=new Map();
+  let nextTimer=0,release,entered;
+  const started=new Promise(resolve=>{entered=resolve;});
+  const flush=new Promise(resolve=>{release=resolve;});
+  const context={on(){},addInitScript:async()=>{},pages:()=>[],tracing:{start:async()=>{},stop:async({path})=>{entered();await flush;files.set(path,'complete archive');}}};
+  const browser={newContext:async()=>context,contexts:()=>[context]};
+  const module={exports:{}};
+  vm.runInNewContext(fs.readFileSync(file,'utf8'),{module,exports:module.exports,process,console:{error(){}},
+    setTimeout(callback){timers.set(++nextTimer,callback);return nextTimer;},clearTimeout(id){timers.delete(id);},
+    require(id){return id==='node:fs/promises'?{...load(id),mkdir:async()=>{},writeFile:async(p,text)=>{files.set(p,text);},rm:async p=>{files.delete(p);}}:load(id);}
+  },{filename:file});
+  const harness=module.exports;
+  await harness.createContext(browser,{}, {trace:true});
+  let complete=false;
+  const capture=harness.captureFailure(browser,Error('Original assertion'),'/evidence').then(()=>{complete=true;});
+  await started;
+  // Advance every diagnostic timer beyond its deadline without spending CI time.
+  for(const callback of timers.values())callback();
+  await new Promise(setImmediate);
+  assert.equal(complete,false,'Archive export must finish before failure capture returns');
+  release();await capture;
+  assert.equal(files.get('/evidence/trace-0.zip'),'complete archive');
+  assert(!files.has('/evidence/trace-0-error.txt'));
+  context.tracing.stop=async({path})=>{files.set(path,'partial ZIP');throw Error('driver export failed');};
+  await harness.createContext(browser,{}, {trace:true});
+  await harness.captureFailure(browser,Error('Second assertion'),'/failed-export');
+  assert(!files.has('/failed-export/trace-0.zip'));
+  assert.match(files.get('/failed-export/trace-0-error.txt'),/driver export failed/);
+  assert.match(files.get('/failed-export/error.txt'),/Second assertion/);
+});

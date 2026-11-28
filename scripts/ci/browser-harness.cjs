@@ -79,7 +79,11 @@ async function captureFailure(browser, error, destination) {
       });
     }
     if (state?.tracing) {
-      await diagnostic(context.tracing.stop({path:path.join(directory,`trace-${index}.zip`)})).catch(async error=>{
+      const tracePath = path.join(directory,`trace-${index}.zip`);
+      // Archive export is driver/file I/O, not a live-page read. Await its flush:
+      // the task deadline bounds a hung driver; a short page deadline corrupts ZIPs.
+      await context.tracing.stop({path:tracePath}).catch(async error=>{
+        await rm(tracePath,{force:true});
         await writeFile(path.join(directory,`trace-${index}-error.txt`),clean(error.message));
       });
       state.tracing=false;

@@ -56,7 +56,7 @@ function nightlyPlan(app, browser, group) {
   const commands = tasks[app].map(task => npm(app, task));
   if (app === 'songalong') commands.push(script(app, 'tests/guitar-sustain.browser.ts'), script(app, 'tests/audio-lifecycle.browser.ts'), script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/in-christ-alone-score.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts'), script(app, 'tests/instrument-features.browser.ts'));
   if (app === 'songalong' && browser === 'chromium') commands.push(script(app, 'tests/piano-benchmark.corpus.ts'));
-  if (app === 'notewise') commands.push(script(app, '../../tests/ci/critical-midi.browser.mts'), ['node', ['scripts/test-ui-controls.cjs']]);
+  if (app === 'notewise') commands.push(script(app, 'tests/offline-startup.browser.ts'), script(app, '../../tests/ci/critical-midi.browser.mts'), ['node', ['scripts/test-ui-controls.cjs']]);
   if (app === 'dorego') commands.push(script(app, 'tests/sequence.e2e.ts'), script(app, 'tests/voice-feedback.e2e.ts'));
   if (app === 'dorego' && browser === 'chromium') commands.push(
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);

@@ -1249,3 +1249,32 @@ covers the hidden settings panel. Both full local MIDI engines pass with that
 boundary. The original trace did not retain busy state at the exact error instant,
 so it cannot alone prove causation; any recurrence after this boundary needs fresh
 investigation, rather than an exception filter or a passing retry.
+
+## 2026-11-28: Cached-startup timing fixture and trace export
+
+Nightly [46154256894](https://github.com/ldayton/SoundTools/actions/runs/46154256894)
+at `23169a35` retained NoteWise Chromium's original cached-startup failure in
+`work/suite-release-first-failure/`. The recovered trace shows navigation
+`oivg@5517` taking 3759.8ms, followed by application readiness that pushed the
+combined observation over the unchanged 4500ms bound. Its pre-navigation DOM
+snapshot has the offline retry control disabled: reconnect-triggered cache work
+was still active. This real elapsed-time observation also shared runner capacity
+with unrelated suites because the long offline scenario was declared ordinary UI.
+
+The latency assertion now has its own required `offline-startup.browser.ts`
+witness on both engines. It starts from a complete, idle, controlling cached copy,
+retains the 4500ms bound, and proves a real request to the five-second stalled HTML
+endpoint is still pending when the browser is usable. Its reviewed 32-slot demand
+is capped to the runner's actual capacity, giving this short measurement exclusive
+CPU capacity. It does not serialize the much longer offline lifecycle suite.
+Update, pinning, corruption, eviction, failed-install, retry and blocked-storage
+assertions remain in the existing offline owner; none were weakened or skipped.
+
+The new five-second live-page diagnostic cutoff had also interrupted driver ZIP
+export, leaving a 48MB partial trace. The original artifact remains unchanged;
+completed `trace.trace` and `trace.network` streams were recovered separately for
+inspection. Trace export now awaits the driver flush under the existing task
+limit, independently of bounded live-page reads/screenshots. A failed driver export
+removes its partial ZIP and records the export error. The unit regression advances
+virtual diagnostic time while export is pending, proving capture does not finish
+early, and checks failed partial-file cleanup without adding real CI delay.

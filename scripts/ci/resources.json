@@ -3187,5 +3187,28 @@
         "cwd": "apps/notewise"
       }
     ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/offline-startup.browser.ts": {
+    "kind": "timing",
+    "slots": 32,
+    "locks": [
+      "realtime-audio"
+    ],
+    "ports": [
+      4500
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/offline-startup.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
   }
 }

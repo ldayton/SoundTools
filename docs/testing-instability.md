@@ -830,3 +830,15 @@ bundle script after it succeeds. Standalone `build:pages` still type-checks.
 Both Vite configurations, fresh outputs, preflight and SHA/digest validation
 remain required. The build-policy unit witness retains the standalone and paired
 script contracts. This is duplicate-check consolidation, not displaced coverage.
+
+## Standalone-install metadata validation (28 November 2026)
+
+The first full local validation for the Tagalujah installation fix used the
+supported three-worker shared-unit option with 16 coordinator slots. Evidence:
+`1795864168087-23be51b6`. Browser checks, including native paging and the new
+manifest/icon assertions, completed successfully. The shared-music group was
+cancelled after 43.2 seconds when total execution exceeded the 60-second budget
+(62.17 seconds including cleanup). Its pending-file messages follow cancellation;
+this is not a passing unit run. The next validation returns to the standard four
+shared-unit workers used by the preceding 59.92-second passing release. All files,
+locks, assertions and the budget remain unchanged.

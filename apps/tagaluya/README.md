@@ -24,7 +24,8 @@ URLs and offline routes use `/services/:service/:song`.
 
 Gesture recognition and the shell offline controller live in
 `packages/browser-controls`, also used by the existing practice apps. The Vercel project is `tagalujah`, using the standard staged release flow.
-DNS and Sentry configuration are deferred.
+Production is https://tagalujah.lilydayton.me. The `tagalujah` project in Sentry
+uses the shared opt-in diagnostics adapter and production-only source-map uploads.
 
 The song-ending ornament is GDJ's **Flourish Divider**
 (Openclipart ID 308072), released under CC0 1.0 / public domain.

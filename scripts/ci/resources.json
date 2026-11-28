@@ -2368,5 +2368,19 @@
         "cwd": "apps/tagaluya"
       }
     ]
+  },
+  "tagaluya:npm:run test:diagnostics --workspace=tagaluya": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "../../packages/music-practice/browser-tests/diagnostics.browser.ts"
+        ],
+        "cwd": "apps/tagaluya"
+      }
+    ]
   }
 }

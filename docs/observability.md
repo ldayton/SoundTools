@@ -182,3 +182,14 @@ stale completions; the existing CI desktop witness verifies a hung resume,
 context replacement and nonzero upstream PCM. The existing Nightly lifecycle
 witness owns interruption, frozen-clock and foreground behavior in both engines;
 the diagnostics browser witness verifies the fields survive privacy filtering.
+
+### Tagalujah
+
+Tagalujah uses the same browser diagnostics collector, self-hosted SDK and unchecked
+sharing control. Its Sentry project is `team-lily/tagalujah`; its internal app ID
+and release prefix remain `tagaluya`. Runtime and uploaded maps share the exact
+commit revision supplied by Vercel. Production-only Vercel variables follow the
+practice-app column above. Accepted origins are `https://tagalujah.lilydayton.me`
+and `https://tagalujah.vercel.app`. Organization scrubbing removes IP addresses and
+user context. The existing real-SDK diagnostics browser scenario covers this
+adapter in Nightly; release-publication unit checks also cover it in CI.

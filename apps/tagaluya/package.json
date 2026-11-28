@@ -9,7 +9,8 @@
     "test": "tsx --test tests/*.test.ts",
     "test:browser": "tsx tests/reader.browser.ts",
     "test:offline": "tsx tests/offline.browser.ts",
-    "build:vercel": "node ../../scripts/build-vercel.cjs tagaluya"
+    "build:vercel": "node ../../scripts/build-vercel.cjs tagaluya",
+    "test:diagnostics": "tsx ../../packages/music-practice/browser-tests/diagnostics.browser.ts"
   },
   "dependencies": {
     "@ldayton/ui": "0.1.0",

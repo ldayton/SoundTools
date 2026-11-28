@@ -1000,3 +1000,13 @@ The full run failed. No passing rerun, coverage reduction, assertion retry,
 resource-lock bypass or budget extension is claimed. Approved phrase grouping,
 restrained expression, envelope and sample selection sources were unchanged by
 the merge; upstream capo/fingering advice and musical editions were retained.
+
+For publication, inspection of that run found mobile-toolbar waited 7.7 seconds
+and score-view waited 10.4 seconds after the fresh SongAlong build. The six-worker
+shared music pool and independent builds/units consumed the default 16-slot
+coordinator capacity. After merging the latest upstream branding-only change,
+the next full applicable run uses the existing supported `--workers 24` option
+on this 24-core Mac. This measures earlier scheduling of the same required
+commands, with the same host, TCP/audio locks and 60-second limit; it changes no
+assertion, coverage owner, timeout or coordinator code. A pass would validate
+that exact commit, not establish a general timing or flake-rate guarantee.

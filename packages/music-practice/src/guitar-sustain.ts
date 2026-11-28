@@ -1,5 +1,7 @@
 import abcjs, { type AudioTracks } from "abcjs";
 import { swingBeat } from "./hymn-swing";
+import { guitarExpressionAudio, guitarCadences, type PhraseHarmony } from "./guitar-phrasing";
+import { parseChordSymbol, notePitchClass } from "./chord-symbol";
 
 /** Optional sounding end, in abcjs whole-note units. Written rhythm stays intact. */
 export type GuitarSustainEvent = { guitarRingUntil?: number };
@@ -15,6 +17,7 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
   const chords: { at: number; name: string }[] = [];
   const rests = new Map<string, number[]>();
   const detached = new Set<number>();
+  const punctuation = new Set<number>();
   const voiceIds: string[] = [];
   for (const line of tune.lines) for (const [si, staff] of (line.staff || []).entries()) {
     if (String(staff.clef?.type) === "TAB") continue;
@@ -31,6 +34,7 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
         if (chord) chords.push(...occurrences.map(at => ({ at: time(at), name: chord })));
         if (item.decoration?.some((d: string) => ["staccato", "staccatissimo", "palm-mute"].includes(d)))
           detached.add(item.startChar!);
+        if (item.lyric?.some((lyric: {syllable: string}) => /[.!?;:,]$/.test(lyric.syllable))) punctuation.add(item.startChar!);
       }
       rests.set(id, stops);
     }
@@ -45,11 +49,20 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
     }
   }
   let previous = "";
+  const harmony: PhraseHarmony[] = [];
   for (const chord of chords.sort((a, b) => a.at - b.at)) {
-    if (chord.name !== previous) changes.push(chord.at);
+    if (chord.name !== previous) {
+      changes.push(chord.at);
+      try {
+        const parsed = parseChordSymbol(chord.name);
+        harmony.push({at: chord.at, root: parsed.root.pitchClass, dominant: parsed.tones.some(t => t.interval === "3M")});
+      } catch { harmony.push({at: chord.at, root: -1, dominant: false}); }
+    }
     previous = chord.name;
   }
-  return {
+  const key = tune.getKeySignature(), meter = tune.getMeterFraction();
+  const tonic = /^[A-G]$/.test(key.root) ? notePitchClass(key.root + key.acc) : undefined;
+  return guitarExpressionAudio({
     ...audio,
     tracks: audio.tracks.map((track, index) => track.map(event => {
       if (event.cmd !== "note" || (event as typeof event & { playbackInstrument?: string }).playbackInstrument === "choir") return event;
@@ -58,7 +71,8 @@ export function guitarSustainAudio(audio: AudioTracks, abc: string, swing = fals
       const next = Math.min(...stops.filter(at => at > event.start + 1e-7));
       return { ...event, guitarRingUntil: detached.has(event.startChar!) ? writtenEnd : Math.max(writtenEnd, next) };
     })),
-  };
+  }, changes, punctuation, {tonic, cadences: tonic === undefined ? [] : guitarCadences(harmony, tonic),
+    meter: `${meter.num}/${meter.den}`, pickup: time(tune.getPickupLength()) * 4});
 }
 
 /** A performance instruction, not a chord symbol or another selectable staff. */

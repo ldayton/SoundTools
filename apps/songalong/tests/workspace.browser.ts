@@ -480,6 +480,11 @@ try {
   await practiceOption(page, "#hymn-mode", "wait");
   await expect(page.locator("#hymn-tempo")).toBeDisabled();
   await expect(page.locator("#hymn-size")).toHaveValue(pixels);
+  for(const id of ["hymn-size","hymn-staff-spacing","hymn-tempo"]){
+    const input=page.locator(`.mantine-AppShell-header #${id}`);
+    await expect(input).toBeVisible();
+    await expect(input.locator("..").locator('[data-direction="up"]')).toBeVisible();
+  }
   // Tempo, staff size and staff spacing each keep their desktop stepper.
   await expect(page.locator('.mantine-AppShell-header [data-direction="up"]')).toHaveCount(3);
   assert.deepEqual(errors, []);

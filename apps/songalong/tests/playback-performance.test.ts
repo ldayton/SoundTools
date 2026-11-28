@@ -7,7 +7,9 @@ import { swingAudio } from "../../../packages/music-practice/src/hymn-swing";
 import {
   performNotes,
   pianoLayer,
+  guitarLayer,
 } from "../../../packages/music-practice/src/playback-performance";
+import { inferGuitarPhrases, guitarExpressionAudio, guitarCadences } from "../../../packages/music-practice/src/guitar-phrasing";
 const note = (pitch: number, start = 0, duration = 2) => ({
   pitch,
   start,
@@ -45,10 +47,9 @@ test("guitar chords use distinct strings; only accompaniment strums and score en
   const source = [40, 47, 52, 55, 59, 64].map((p) => note(p));
   const strum = performNotes(source, { instrument: "guitar", strum: true });
   assert.equal(new Set(strum.map((n) => n.string)).size, 6);
-  assert.deepEqual(
-    strum.map((n) => n.delay),
-    [0, 0.009, 0.018, 0.026999999999999996, 0.036, 0.045],
-  );
+  assert.equal(strum[0].delay, 0);
+  assert(strum.every((n,i)=>i===0 || n.delay! > strum[i-1].delay!));
+  assert(strum.at(-1)!.delay! > 0.025 && strum.at(-1)!.delay! < 0.065);
   assert.deepEqual(
     strum.map((n) => n.duration),
     source.map((n) => n.duration),
@@ -58,6 +59,61 @@ test("guitar chords use distinct strings; only accompaniment strums and score en
       (n) => n.delay === undefined,
     ),
   );
+});
+
+test("guitar gestures follow eighth-note upstrokes, pickups and compound beats without moving score attacks", () => {
+  const chord=(start:number,volume=0.8)=>[40,47,52,55,59,64].map(p=>({...note(p,start,0.5),volume}));
+  const source=[...chord(0),...chord(0.5),...chord(1)];
+  const played=performNotes(source,{instrument:"guitar"});
+  assert(played.every(n=>n.delay===undefined),"fingerpicked chords stay simultaneous");
+  const strummed=performNotes(source,{instrument:"guitar",strum:true});
+  assert.equal(strummed[0].delay,0);assert.equal(strummed[11].delay,0);assert.equal(strummed[12].delay,0);
+  assert(strummed[6].delay!>strummed[11].delay!);
+  assert.deepEqual(strummed.map(n=>[n.pitch,n.start,n.duration]),source.map(n=>[n.pitch,n.start,n.duration]));
+  const pickup=performNotes(source,{instrument:"guitar",strum:true,pickup:0.5});
+  assert.equal(pickup[5].delay,0);assert.equal(pickup[6].delay,0);
+  const compound=performNotes([...chord(1),...chord(1.5)],{instrument:"guitar",strum:true,meter:"6/8"});
+  assert.equal(compound[5].delay,0);assert.equal(compound[6].delay,0,"second dotted-quarter pulse is a downstroke");
+  const eighth=performNotes([...chord(.25),...chord(.5)],{instrument:"guitar",strum:true,meter:"3/8"});
+  assert.equal(eighth[5].delay,0);assert.equal(eighth[6].delay,0,"3/8 pulses on eighths, matching the practice clock");
+  const cut=performNotes([...chord(1),...chord(2)],{instrument:"guitar",strum:true,meter:"2/2"});
+  assert.equal(cut[5].delay,0);assert.equal(cut[6].delay,0,"cut time pulses on half notes");
+  const soft=performNotes(chord(0,0.5),{instrument:"guitar",strum:true});
+  assert(soft.at(-1)!.delay!>strummed[5].delay!,"stronger brushes cross the strings faster");
+  assert.deepEqual([0.3,0.7,0.9].map(guitarLayer),[40,72,104]);
+});
+
+test("phrase inference needs musical evidence, respects real gaps, and leaves regular bar patterns unsegmented",()=>{
+  const regular=Array.from({length:16},(_,i)=>({start:i,duration:1,pitch:60+i%3}));
+  assert.deepEqual(inferGuitarPhrases(regular),[{start:0,end:16,lastStart:15}]);
+  const melody=[...regular.slice(0,3),{start:3,duration:3,pitch:60,punctuation:true},
+    {start:6,duration:1,pitch:67},{start:7,duration:1,pitch:65},{start:9,duration:2,pitch:60}];
+  assert.deepEqual(inferGuitarPhrases(melody,[6]),[
+    {start:0,end:6,lastStart:3},{start:6,end:8,lastStart:7},{start:9,end:11,lastStart:9},
+  ]);
+});
+
+test("phrase dynamics and held-note taper retain pitches, attacks, ties, rests, bass and singer routing",()=>{
+  const abc='X:1\nM:4/4\nL:1/4\n%%score (m b)\nV:m\nV:b\nK:C\n[V:m] "C" C D E G | c4- | c2 z2 |\n[V:b] C,4 | C,4 | C,4 |]';
+  const source=abcjs.parseOnly(abc)[0].setUpAudio({qpm:60,chordsOff:true});
+  const result=guitarExpressionAudio(source,[],new Set());
+  const identity=(a:typeof source)=>a.tracks.map(t=>t.filter(n=>n.cmd==="note").map(n=>[n.pitch,n.start,n.duration]));
+  assert.deepEqual(identity(result),identity(source));
+  assert.equal(result.totalDuration,source.totalDuration);
+  const shaped=playbackNotes(result), melody=shaped.filter(n=>n.pitch>=60);
+  assert(melody[2].expressionGain!>melody[0].expressionGain!);
+  assert.equal(melody.at(-1)!.endGain,0.94,"one gentle taper spans the held tie");
+  assert(shaped.filter(n=>n.pitch<60).every(n=>n.endGain===undefined),"melody breathing does not damp the bass");
+  const voiced={...source,tracks:source.tracks.map((track,i)=>i===0?track.map(n=>n.cmd==="note"?{...n,playbackInstrument:"choir"}:n):track)};
+  const vocalResult=guitarExpressionAudio(voiced,[],new Set());
+  assert.deepEqual(vocalResult.tracks[0],voiced.tracks[0]);
+  assert.deepEqual(identity(vocalResult),identity(voiced));
+  const mixed={...source,tracks:[source.tracks[0].map((n,i)=>n.cmd==="note"?{...n,playbackInstrument:i===1?"choir":"guitar"}:n)]};
+  const mixedResult=guitarExpressionAudio(mixed,[],new Set());
+  assert.deepEqual(mixedResult.tracks[0][1],mixed.tracks[0][1],"per-note singer routing is preserved even in a mixed track");
+  const explicit={...source,tracks:source.tracks.map(track=>track.map(n=>n.cmd==="note"?{...n,playbackInstrument:"guitar"}:n))};
+  assert(playbackNotes(guitarExpressionAudio(explicit,[],new Set())).some(n=>n.expressionGain!==undefined),"explicit guitar routing is supported");
+  assert.deepEqual(guitarExpressionAudio(source,[],new Set()),result,"inference is repeatable");
 });
 test("out-of-range notes retain pitch and deterministic performance", () => {
   const source = [note(20), note(100)];
@@ -69,6 +125,77 @@ test("out-of-range notes retain pitch and deterministic performance", () => {
     performNotes(source, { instrument: "guitar" }),
     performNotes(source, { instrument: "guitar" }),
   );
+});
+
+test("picking hand uses thumb and independent upper fingers, alternates plucks, and resets after space", () => {
+  const source = [note(48), note(64), note(67), note(72), note(72, 1), note(72, 2), note(72, 4)];
+  const played = performNotes(source, {instrument:"guitar", positionFor: p => ({str: ({48:5,64:2,67:1,72:0} as Record<number,number>)[p],num:0})});
+  assert.deepEqual(played.map(n => n.pickingFinger), ["thumb","index","middle","ring","index","middle","index"]);
+  assert(played[4].gain! > played[5].gain!, "alternation changes pluck energy without changing the recorded layer");
+  assert.equal(played[4].gain, played[6].gain, "a separated phrase begins fresh");
+  const crossing=performNotes([note(64,0),note(67,1),note(72,2)],{instrument:"guitar",positionFor:p=>({str:({64:2,67:1,72:0} as Record<number,number>)[p],num:0})});
+  assert.deepEqual(crossing.map(n=>n.pickingFinger),["index","middle","index"],"alternation continues across string changes");
+  assert.deepEqual(played.map(n => [n.pitch,n.start]), source.map(n => [n.pitch,n.start]));
+  assert(performNotes(source,{instrument:"piano"}).every(n => !n.pickingFinger));
+});
+
+test("partial strums keep every authored note and weight bass downstrokes versus treble upstrokes", () => {
+  const chord = (start:number) => [48,64,67].map(p => note(p,start,0.5));
+  const positionFor = (p:number) => ({str: ({48:5,64:2,67:0} as Record<number,number>)[p],num:0});
+  const down = performNotes(chord(0),{instrument:"guitar",strum:true,positionFor});
+  const up = performNotes(chord(.5),{instrument:"guitar",strum:true,positionFor});
+  assert.deepEqual(down.map(n=>n.string),[0,3,5]);
+  assert.equal(down[0].delay,0);assert.equal(up[2].delay,0);
+  assert(down[1].delay! > down[2].delay! / 2, "brush time follows skipped strings");
+  assert(down[0].gain! / up[0].gain! > down[2].gain! / up[2].gain!);
+  assert.deepEqual(up.map(n=>n.pitch),[48,64,67]);
+});
+
+test("cadences support held resolutions, including transposed minor keys, without splitting every chord change", () => {
+  const chords=[{at:0,root:2,dominant:false},{at:1,root:9,dominant:true},{at:2,root:2,dominant:false}];
+  assert.deepEqual(guitarCadences(chords,2),[2]);
+  assert.deepEqual(guitarCadences(chords.map(c=>({...c,dominant:false})),2),[]);
+  const melody=[{start:0,duration:1,pitch:62},{start:1,duration:1,pitch:64},{start:2,duration:2,pitch:69},
+    {start:4,duration:2,pitch:62,cadence:true},{start:6,duration:1,pitch:65}];
+  assert.deepEqual(inferGuitarPhrases(melody),[{start:0,end:6,lastStart:4},{start:6,end:7,lastStart:6}]);
+  assert.equal(inferGuitarPhrases(melody.map(n=>({...n,cadence:false}))).length,1);
+  const abc='X:1\nM:4/4\nL:1/4\nK:Dm\n"Dm" D E "A7/C#" A2 | "Dm" D2 F2 |]';
+  const performed=ringing(abc);
+  assert.equal(performed.find(n=>n.start===4)!.endGain,.94,"the held tonic is the phrase end, before the next motive");
+});
+
+test("contour shaping follows the melodic apex, keeps bass independent and respects compound pickups", () => {
+  const abc='X:1\nM:6/8\nL:1/8\n%%score (m b)\nV:m\nV:b\nK:C\n[V:m] G | c2 G A B c | G6 |]\n[V:b] C, | C,6 | C,6 |]';
+  const source=abcjs.parseOnly(abc)[0].setUpAudio({qpm:60,chordsOff:true});
+  const shaped=playbackNotes(guitarExpressionAudio(source,[],new Set(),{meter:"6/8",pickup:.5}));
+  const melody=shaped.filter(n=>n.role==="melody"),bass=shaped.filter(n=>n.role==="bass");
+  assert(melody[1].expressionGain! > melody[0].expressionGain!);
+  assert(bass.every(n=>n.endGain===undefined));
+  assert(melody.some(n=>n.endGain===.94));
+  assert.deepEqual(shaped.map(n=>[n.pitch,n.start,n.duration]),playbackNotes(source).map(n=>[n.pitch,n.start,n.duration]));
+  const transposed={...source,tracks:source.tracks.map(t=>t.map(n=>n.cmd==="note"?{...n,pitch:n.pitch+5}:n))};
+  assert.deepEqual(playbackNotes(guitarExpressionAudio(transposed,[],new Set(),{meter:"6/8",pickup:.5})).map(n=>n.expressionGain),shaped.map(n=>n.expressionGain),"transposing the motive preserves phrase shape");
+});
+
+test("inferred accents stay subtle and never promote a pluck into a harder sample layer", () => {
+  // Straddle both recorded-layer thresholds after melody voicing. Written
+  // dynamics must still reach all three recordings; inferred energy must not
+  // change the choice even at those boundaries.
+  const source = [.54,.56,.79,.81].map((volume,start)=>({...note(64,start,1),volume:volume/.92}));
+  const plain=performNotes(source,{instrument:"guitar"});
+  const accented=performNotes(source.map(n=>({...n,expressionGain:1.064})),{instrument:"guitar"});
+  assert.deepEqual(accented.map(n=>guitarLayer(n.volume)),[40,72,72,104]);
+  assert.deepEqual(accented.map(n=>n.volume),plain.map(n=>n.volume));
+  assert(accented.every((n,i)=>n.gain!>plain[i].gain! && 20*Math.log10(n.gain!/plain[i].gain!)<.3));
+  assert.deepEqual(accented.map(n=>[n.pitch,n.start,n.duration,n.string]),plain.map(n=>[n.pitch,n.start,n.duration,n.string]));
+
+  const abc='X:1\nM:4/4\nL:1/4\nK:C\nC D E G | c2 G2 | C4 |]';
+  const shaped=playbackNotes(guitarExpressionAudio(abcjs.parseOnly(abc)[0].setUpAudio({qpm:60,chordsOff:true}),[],new Set()));
+  assert(shaped.every(n=>n.expressionGain!>=.95 && n.expressionGain!<=1.065),"inferred contour stays close to the underlying dynamic");
+  const tail=shaped.find(n=>n.endGain!==undefined)!;
+  assert(tail.endGain!<1 && 20*Math.log10(tail.endGain!)>-.75,"a phrase end tapers gently without isolating it");
+  const chord=performNotes([48,64,67].map(p=>({...note(p),expressionGain:1.064})),{instrument:"guitar",strum:true});
+  assert(chord.every(n=>20*Math.log10(n.gain!)<1),"chord presence and inferred emphasis together add less than 1 dB");
 });
 
 test("unassigned guitar melody replucks the high E string instead of climbing the neck to keep old notes ringing", () => {

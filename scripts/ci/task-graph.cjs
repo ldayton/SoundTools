@@ -7,7 +7,9 @@ const browserSuites = Object.freeze(['desktop', 'workspace', 'breath-squares', '
 function environment(browser, tier = 'ci') { return { CI_TIER: tier, TEST_BROWSER: browser, TEST_BROWSERS: browser, SOUNDGLOW_TEST_BROWSER: browser, CI_USE_BUILD: '1' }; }
 function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false } = {}) {
   const tasks = [];
-  if (!['notewise', 'soundglow'].includes(app)) tasks.push({ id: `${prefix}:units`, command: 'npm', args: app === 'dorego' ? ['run', 'test:unit', '--workspace=' + app] : ['test', '--workspace=' + app], cwd, needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
+  if (!['notewise', 'soundglow'].includes(app)) tasks.push({ id: `${prefix}:units`, command: 'npm', args: app === 'dorego' ? ['run', 'test:unit', '--workspace=' + app] : ['test', '--workspace=' + app], cwd, needs, slots: 2, priority: 60,
+    ...(app === 'songalong' ? declaration(app, 'npm', ['test', '--workspace=' + app]) : {}),
+    locks: [`files:${cwd}`] });
   tasks.push({ id: `${prefix}:build`, command: process.execPath, args: ['scripts/ci/build.cjs', app], cwd, needs: tasks.length ? [tasks[0].id] : needs, locks: [`files:${cwd}`], slots: 2, priority: 60 });
   if (app === 'soundglow' && visual) tasks.push({ id: `${prefix}:visual-fixture`, command: process.execPath, args: ['scripts/ci/prepare-visual.cjs'], cwd, needs: [`${prefix}:build`], locks: [`files:${cwd}`], priority: 60 });
   return tasks;

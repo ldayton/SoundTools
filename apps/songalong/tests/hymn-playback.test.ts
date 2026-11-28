@@ -27,6 +27,23 @@ test("playback preserves rests, note lengths, chords and pitches in quarter-note
     ],
   );
 });
+test("guitar expression reaches the audio output without changing the transport clock", async () => {
+  const oldWindow=(globalThis as any).window,oldClear=globalThis.clearInterval;
+  (globalThis as any).window={setInterval:()=>1};globalThis.clearInterval=(()=>{}) as any;
+  const scheduled:unknown[][]=[];
+  const player=new HymnPlayback(()=>{},error=>{throw error;},async()=>({now:0,running:true,
+    schedule(...args){scheduled.push(args);},stop(){}}));
+  try{
+    const expressed={cmd:"note" as const,pitch:64,start:0,duration:0.5,volume:100,
+      instrument:24,startChar:0,endChar:1,gap:0,guitarExpressionGain:0.95,guitarEndGain:0.84};
+    player.load({...score,tracks:[[expressed]]},[0],0,{meter:"6/8",pickup:0.5},{instrument:"guitar"});
+    await player.play(120);
+    assert.equal(scheduled.length,1);
+    assert.deepEqual(scheduled[0].slice(0,3),[64,0.06,1],"written two beats at 120 BPM remain one second");
+    assert.equal(scheduled[0][8],0.84,"held-note expression reaches the real output contract");
+    assert.equal(player.position,0);
+  }finally{player.pause();(globalThis as any).window=oldWindow;globalThis.clearInterval=oldClear;}
+});
 test("audio-clock transport preserves position, handles live tempo and skips stale notes after a stall", async () => {
   const oldWindow = (globalThis as any).window;
   const oldClear = globalThis.clearInterval;

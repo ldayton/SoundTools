@@ -1,0 +1,182 @@
+/** Manual listening tool. Uses the normal host/resource locks and silent browser
+ * harness; renders PCM offline, never through the computer's speakers.
+ * node --import tsx scripts/render-guitar-comparison.mts [baseline-git-ref]
+ */
+import {createRequire} from "node:module";
+import {execFileSync} from "node:child_process";
+import {mkdirSync,writeFileSync,rmSync,copyFileSync} from "node:fs";
+import {createHash} from "node:crypto";
+import path from "node:path";
+import assert from "node:assert/strict";
+const require=createRequire(import.meta.url),root=path.resolve(import.meta.dirname,"..");
+const {git}=require("./ci/snapshot.cjs");
+// Before ALWAYS means before the entire guitar expression workstream. Never
+// silently advance this to main/the previous prototype when refreshing clips.
+const originalBaseline="03ba1ed2affe9f88db72dbfea354bbae928c1414";
+const baseline=process.env.GUITAR_BASELINE || process.argv[2] || originalBaseline;
+const output=path.join(root,"work/guitar-comparison");
+mkdirSync(output,{recursive:true});
+
+if(!process.env.GUITAR_COMPARISON_WORKER){
+  const ref=git(root,["rev-parse",baseline]);
+  const lock=path.join(path.resolve(root,git(root,["rev-parse","--git-common-dir"])),"soundtools-ci.lock");
+  mkdirSync(lock);writeFileSync(path.join(lock,"owner.json"),JSON.stringify({pid:process.pid,directory:root,diagnostic:"guitar listening comparison"}));
+  try{
+    const args=["--import","tsx","scripts/render-guitar-comparison.mts"];
+    const policy=require("./ci/inventory.cjs").declaration("songalong","node",args);
+    const result=await require("./ci/run.cjs").runTasks([{
+      id:"guitar-listening-comparison",command:process.execPath,args,cwd:root,needs:[],...policy,
+      env:{GUITAR_COMPARISON_WORKER:"1",GUITAR_BASELINE:ref},timeoutMs:120000,
+    }],{workers:1,identity:{tier:"nightly",diagnostic:"Manual loudness-matched guitar renders; not a full Nightly run",baseline:ref}});
+    if(!result.passed)process.exitCode=1;
+  }finally{rmSync(lock,{recursive:true});}
+}else{
+  const {createServer}=await import("vite");
+  const {launchBrowser,newPage,closeBrowser,captureFailure}=require("./ci/browser-harness.cjs");
+  const {default:abcjs}=await import("abcjs");
+  const {default:hymns}=await import("../packages/music-practice/src/hymns.json",{with:{type:"json"}});
+  const {arrangeHymn,guitarVocalAccompaniment}=await import("../packages/music-practice/src/hymn-arrangements.ts");
+  const {recommendGuitarCapos,capoPosition}=await import("../packages/music-practice/src/guitar-capo.ts");
+  const {hymnPlaybackScore}=await import("../packages/music-practice/src/hymn-playback-score.ts");
+  const {playbackNotes}=await import("../packages/music-practice/src/hymn-playback.ts");
+  const {chordEdition}=await import("../packages/music-practice/src/instrument-editions.ts");
+  const source=(file:string)=>execFileSync("git",["show",`${baseline}:packages/music-practice/src/${file}`],{cwd:root,encoding:"utf8"});
+  writeFileSync(path.join(output,"baseline-performance.ts"),source("playback-performance.ts"));
+  writeFileSync(path.join(output,"baseline-samples.ts"),source("playback-samples.ts")
+    .replaceAll('"./assets/','"/packages/music-practice/src/assets/')
+    .replace('"./playback-performance"','"/work/guitar-comparison/baseline-performance.ts"'));
+  writeFileSync(path.join(output,"entry.html"),`<!doctype html><script type="module">
+    import {performNotes,playbackInstrumentGain} from '/packages/music-practice/src/playback-performance.ts';
+    import {performNotes as oldPerformance} from '/work/guitar-comparison/baseline-performance.ts';
+    import {playbackSample} from '/packages/music-practice/src/playback-samples.ts';
+    import {playbackSample as oldSample} from '/work/guitar-comparison/baseline-samples.ts';
+    import {performanceEnvelope} from '/packages/music-practice/src/performance-envelope.ts';
+    window.guitarRender=async(input)=>{
+      const options={instrument:'guitar',strum:input.strum,meter:input.meter,pickup:input.pickup,
+        positionFor:(pitch,chord,group)=>input.positions[pitch+':'+chord+':'+(group||[]).join(',')]||input.positions[pitch+':'+chord]};
+      const notes=(input.before?oldPerformance:performNotes)(input.notes,options).filter(n=>!n.instrument||n.instrument==='guitar');
+      const context=new OfflineAudioContext(2,Math.ceil((input.beats*60/input.tempo+0.2)*24000),24000);
+      const buffers=new Map(),requests=new Map();let decodedBytes=0;
+      const sampleFor=input.before?oldSample:playbackSample;
+      for(const note of notes){
+        const sample=sampleFor('guitar',note.pitch,note.volume,note.string);
+        if(!buffers.has(sample.url)){
+          const response=await fetch(sample.url);if(!response.ok)throw Error('Sample fetch failed');
+          const bytes=await response.arrayBuffer();requests.set(sample.url,bytes.byteLength);
+          const decoded=await context.decodeAudioData(bytes);buffers.set(sample.url,decoded);
+          decodedBytes+=decoded.length*decoded.numberOfChannels*4;
+        }
+        const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffers.get(sample.url);
+        source.playbackRate.value=2**((note.pitch-sample.pitch)/12);
+        const start=note.start*60/input.tempo;
+        const duration=Math.min(note.duration,input.beats-note.start)*60/input.tempo;
+        const delay=Math.min(note.delay||0,Math.max(0,duration-0.015));
+        const level=playbackInstrumentGain('guitar')*Math.sqrt(note.volume)*(note.gain||1);
+        performanceEnvelope(gain.gain,level,start+delay,Math.max(start+delay+0.02,start+duration),0.045,input.before?1:note.endGain);
+        source.connect(gain).connect(context.destination);source.start(start+delay);source.stop(start+duration+0.06);
+      }
+      const start=performance.now(),buffer=await context.startRendering();
+      const channels=Array.from({length:buffer.numberOfChannels},(_,i)=>Array.from(buffer.getChannelData(i)));
+      const peak=Math.max(...channels.map(pcm=>pcm.reduce((p,x)=>Math.max(p,Math.abs(x)),0)));
+      const sum=channels.reduce((total,pcm)=>total+pcm.reduce((s,x)=>s+x*x,0),0);
+      return {channels,renderMs:performance.now()-start,decodedBytes,downloadBytes:[...requests.values()].reduce((a,b)=>a+b,0),sampleFiles:requests.size,
+        attacks:notes.length,peak,rms:Math.sqrt(sum/(buffer.length*buffer.numberOfChannels))};
+    };window.guitarReady=true;
+  </script>`);
+  const server=await createServer({configFile:false,root,cacheDir:path.join(output,"vite-cache"),server:{host:"127.0.0.1",port:4686,strictPort:true},logLevel:"error"});
+  await server.listen();const browser=await launchBrowser();
+  const cases=[
+    {id:"the-old-rugged-cross",arrangement:"guitar-edition" as const,beats:36,tempo:80,label:"Old Rugged Cross · fingerstyle"},
+    {id:"ill-fly-away",arrangement:"guitar-edition" as const,beats:32,tempo:80,label:"I'll Fly Away · fingerstyle"},
+    {id:"the-old-rugged-cross",arrangement:"guitar-vocal" as const,beats:36,tempo:80,label:"Old Rugged Cross · accompaniment"},
+  ];
+  const report=[];
+  try{
+    const page=await newPage(browser),errors:string[]=[];page.on("pageerror",(e:Error)=>errors.push(e.message));
+    await page.goto("http://127.0.0.1:4686/work/guitar-comparison/entry.html");
+    await page.waitForFunction(()=>Boolean((window as any).guitarReady));
+    for(const item of cases){
+      const hymn=hymns.find(h=>h.slug===item.id)!;
+      const edition=chordEdition(hymn)!,vocal=item.arrangement==="guitar-vocal";
+      const reference=arrangeHymn(hymn,"guitar-edition",0);
+      const choice=recommendGuitarCapos({abc:vocal?guitarVocalAccompaniment(hymn,0).abc:reference.abc,
+        accompanimentAbc:arrangeHymn(hymn,"guitar-edition",0,0,"left").abc,
+        sourceCapo:edition.capo,transpose:0,shapeKey:edition.guitarKey||hymn.key,
+        positionFor:edition.position,accompanimentOnly:vocal})[0];
+      assert(choice,`No engine-selected capo for ${item.id}`);
+      const score=arrangeHymn(hymn,item.arrangement,0,0,"both",undefined,0,choice);
+      const audio=abcjs.parseOnly(score.abc)[0].setUpAudio({qpm:60,chordsOff:true});
+      const plan=hymnPlaybackScore({hymn,arrangement:item.arrangement,sectionBars:0,section:0,hands:"both",totalBars:score.totalBars,sections:1,abc:score.abc,audio,transpose:0,stanzas:[1],capoChoice:choice});
+      const notes=playbackNotes(plan.audio).filter(n=>n.start<item.beats);
+      const positions:Record<string,unknown>={};
+      const groups=new Map<number,typeof notes>();
+      for(const note of notes.filter(n=>!n.instrument||n.instrument==="guitar")){
+        const group=groups.get(note.start)||[];group.push(note);groups.set(note.start,group);
+      }
+      for(const group of groups.values())for(const n of group)for(const chord of [true,false]){
+        const pitches=group.map(n=>n.pitch);
+        const position=capoPosition(choice,n.pitch-choice.fret,chord,edition.capo-choice.fret,
+          vocal?pitches.map(p=>p-choice.fret):undefined);
+        positions[n.pitch+":"+chord+":"+pitches.join(",")]=position;
+        positions[n.pitch+":"+chord]??=position;
+      }
+      const pair=[];
+      for(const before of [true,false]){
+        const rendered=await page.evaluate(input=>(window as any).guitarRender(input),{...item,notes,positions,strum:item.arrangement==="guitar-vocal",meter:plan.timing.meter,pickup:plan.timing.pickup,before});
+        assert(rendered.channels.every((pcm:number[])=>pcm.every(Number.isFinite)));assert(rendered.peak>0.001&&rendered.peak<1,`${item.id} raw peak ${rendered.peak}`);
+        pair.push(rendered);
+      }
+      assert.equal(pair[0].attacks,pair[1].attacks);
+      const inputHash=createHash("sha256").update(JSON.stringify({notes:notes.map(n=>[n.pitch,n.start,n.duration,n.volume,n.instrument]),positions,tempo:item.tempo,capo:choice.fret})).digest("hex");
+      for(const [i,render] of pair.entries()){
+        const gain=1,file=`${item.id}-${item.arrangement}-${i===0?"before":"after"}.wav`;
+        const channels:number[][]=render.channels,frameBytes=channels.length*2;
+        const pcm=Buffer.alloc(channels[0].length*frameBytes);
+        for(let frame=0;frame<channels[0].length;frame++)for(let channel=0;channel<channels.length;channel++)
+          pcm.writeInt16LE(Math.round(channels[channel][frame]*gain*32767),frame*frameBytes+channel*2);
+        const header=Buffer.alloc(44);header.write("RIFF");header.writeUInt32LE(36+pcm.length,4);header.write("WAVEfmt ",8);
+        header.writeUInt32LE(16,16);header.writeUInt16LE(1,20);header.writeUInt16LE(channels.length,22);header.writeUInt32LE(24000,24);
+        header.writeUInt32LE(24000*frameBytes,28);header.writeUInt16LE(frameBytes,32);header.writeUInt16LE(16,34);header.write("data",36);header.writeUInt32LE(pcm.length,40);
+        writeFileSync(path.join(output,file),Buffer.concat([header,pcm]));
+        const {channels:renderedChannels,...metrics}=render;report.push({...item,capo:choice.fret,before:i===0,file,inputHash,channels:renderedChannels.length,...metrics});
+      }
+      // Static perceptual loudness matching, not compression or per-note
+      // normalisation. Neither side is boosted. Keep raw metrics as evidence.
+      const measure=(file:string)=>{
+        const result=require("node:child_process").spawnSync("ffmpeg",["-hide_banner","-nostdin","-i",file,"-af","loudnorm=I=-24:TP=-1.5:LRA=7:print_format=json","-f","null","-"],{encoding:"utf8"});
+        assert.equal(result.status,0,result.stderr);
+        return JSON.parse(result.stderr.match(/\{[^{}]+\}/s)![0]);
+      };
+      const entries=report.slice(-2),levels=entries.map(r=>measure(path.join(output,r.file)));
+      const target=Math.min(-24,...levels.map(m=>Number(m.input_i)));
+      entries.forEach((entry,i)=>{
+        const file=path.join(output,entry.file),temp=file+".matched.wav",gainDb=target-Number(levels[i].input_i);
+        execFileSync("ffmpeg",["-hide_banner","-loglevel","error","-y","-i",file,"-af",`volume=${gainDb}dB`,"-c:a","pcm_s16le",temp]);
+        copyFileSync(temp,file);rmSync(temp);
+        const matched=measure(file);assert(Math.abs(Number(matched.input_i)-target)<.1);assert(Number(matched.input_tp)<-1);
+        Object.assign(entry,{rawLufs:Number(levels[i].input_i),matchedLufs:Number(matched.input_i),matchedTruePeakDb:Number(matched.input_tp),normalizationGainDb:gainDb});
+      });
+    }
+    assert.deepEqual(errors,[]);
+    writeFileSync(path.join(output,"metrics.json"),JSON.stringify({baseline,head:git(root,["rev-parse","HEAD"]),dirty:!!git(root,["status","--porcelain"]),renders:report},null,2)+"\n");
+    for(const file of ["index.html","player.js"])copyFileSync(path.join(root,"scripts/audio-ab",file),path.join(output,file));
+    writeFileSync(path.join(output,"comparison.json"),JSON.stringify({baseline,clips:cases.map((item,index)=>({
+      name:item.label,detail:`${hymns.find(h=>h.slug===item.id)!.key} · Capo ${report[index*2].capo} · ${item.tempo} BPM`,
+      duration:item.beats*60/item.tempo+.2,files:{A:report[index*2].file,B:report[index*2+1].file},
+    }))},null,2)+"\n");
+    const {checkComparison}=await import("./audio-ab/check.mts");
+    const originalEngine=process.env.TEST_BROWSER;
+    try {
+      for(const engine of ["chromium","webkit"]) {
+        process.env.TEST_BROWSER=engine;
+        const witness=await launchBrowser();
+        try {await checkComparison(witness,"http://127.0.0.1:4686/work/guitar-comparison/",output,engine);}
+        catch(error){await captureFailure(witness,error,path.join(output,`failure-${engine}`));throw error;}
+        finally{await closeBrowser(witness);}
+      }
+    } finally {if(originalEngine===undefined)delete process.env.TEST_BROWSER;else process.env.TEST_BROWSER=originalEngine;}
+    writeFileSync(path.join(output,"page-verification.json"),JSON.stringify({engines:["chromium","webkit"],widths:[1400,390],baseline,passed:true},null,2)+"\n");
+    console.log(JSON.stringify(report,null,2));
+  }catch(error){await captureFailure(browser,error,path.join(output,"failure"));throw error;}
+  finally{await closeBrowser(browser);await server.close();}
+}

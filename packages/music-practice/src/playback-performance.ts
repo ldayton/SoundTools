@@ -3,6 +3,8 @@ export type PlaybackInstrument = "piano" | "guitar" | "organ" | "choir";
 export type PerformanceOptions = {
   instrument: PlaybackInstrument;
   strum?: boolean;
+  meter?: string;
+  pickup?: number;
   positionFor?: (
     pitch: number,
     chord: boolean,
@@ -21,6 +23,11 @@ export type PerformanceNote = {
   fret?: number;
   delay?: number;
   gain?: number;
+  expressionGain?: number;
+  endGain?: number;
+  role?: "melody" | "bass" | "inner";
+  /** Inferred picking hand, not a claim of a separately recorded articulation. */
+  pickingFinger?: "thumb" | "index" | "middle" | "ring";
 };
 export const guitarTuning = [40, 45, 50, 55, 59, 64] as const;
 
@@ -45,17 +52,22 @@ export function performNotes(
     groups.set(note.start, group);
   }
   const ringing = new Map<number, PerformanceNote>();
+  let previousPluck: {start: number; finger: "index" | "middle"} | undefined;
   for (const [, group] of [...groups].sort(([a], [b]) => a - b)) {
+    if (group.length > 1) previousPluck = undefined;
     const top = Math.max(...group.map((n) => n.pitch));
-    // Voice the melody without imposing rubato or random timing on a practice track.
+    // Authored dynamics choose the recorded layer. Inferred phrasing and hand
+    // gestures shape gain separately: an accent must not suddenly switch to a
+    // much harder recording just because it crosses a velocity threshold.
     for (const note of group)
       note.volume = Math.min(
         1,
         note.volume * (note.pitch === top ? 0.92 : 0.72),
       );
     if (options.instrument !== "guitar") continue;
-    // Give simultaneous chord attacks a little more presence than single-note plucks.
-    if (group.length > 1) for (const note of group) note.gain = 10 ** (2 / 20);
+    for (const note of group)
+      note.gain = (note.gain ?? 1) * Math.sqrt(note.expressionGain ?? 1)
+        * (group.length > 1 ? 10 ** (0.5 / 20) : 1);
     const used = new Set<number>();
     for (const note of [...group].sort((a, b) => b.pitch - a.pitch)) {
       const position = options.positionFor?.(
@@ -81,6 +93,19 @@ export function performNotes(
         note.duration = Math.max(note.duration, note.ringUntil - note.start);
       note.string = string;
       note.fret = note.pitch - guitarTuning[string];
+      if (!options.strum) {
+        // A thumb carries the bass; upper-string chords use i/m/a. Single
+        // melodic attacks alternate i/m, restarting after a breath. This varies
+        // the gesture's energy, never pitch/timing or the sample's identity.
+        const alternate = previousPluck && note.start - previousPluck.start < 1.5;
+        const finger = string < 3 ? "thumb" : group.length > 1
+          ? (["index", "middle", "ring"] as const)[string - 3]
+          : alternate && previousPluck?.finger === "index" ? "middle" : "index";
+        note.pickingFinger = finger;
+        if (group.length === 1 && (finger === "index" || finger === "middle")) previousPluck = {start: note.start, finger};
+        const energy = finger === "thumb" ? 0.98 : finger === "index" ? 1 : finger === "middle" ? 0.98 : 1.01;
+        note.gain! *= Math.sqrt(energy);
+      }
       used.add(string);
       const previous = ringing.get(string);
       if (previous && previous.start + previous.duration > note.start)
@@ -88,11 +113,29 @@ export function performNotes(
       ringing.set(string, note);
     }
     if (options.strum && group.length > 1) {
+      const [beats, unit] = (options.meter || "4/4").split("/").map(Number);
+      const compound = unit === 8 && beats > 3 && beats % 3 === 0;
+      const pulse = compound ? 1.5 : 4 / unit;
+      const phase = group[0].start - (options.pickup || 0);
+      const subdivision = Math.round(phase / (compound ? 0.5 : pulse / 2));
+      const cycle = compound ? 3 : 2;
+      const part = ((subdivision % cycle) + cycle) % cycle;
+      const up = compound ? part === 2 : part === 1;
       const ordered = [...group].sort(
-        (a, b) => (a.string ?? a.pitch) - (b.string ?? b.pitch),
+        (a, b) => (up ? -1 : 1) * ((a.string ?? a.pitch) - (b.string ?? b.pitch)),
       );
+      const strength = Math.max(...group.map(n => n.volume));
+      // One gesture drives direction, travel time and strength together. Skipped
+      // strings still take time to cross; stronger brushes move a little faster.
+      const spread = 0.052 - 0.014 * strength;
+      const first = ordered[0].string ?? 0;
       ordered.forEach((note, index) => {
-        note.delay = index * 0.009;
+        note.delay = Math.abs((note.string ?? index) - first) / 5 * spread;
+        // A partial brush travels only across the authored strings; it never
+        // adds missing chord tones. Upstrokes lean on the treble, downstrokes
+        // on the bass, rather than treating all strings as equal impacts.
+        const treble = (note.string ?? 2.5) / 5;
+        note.gain! *= Math.sqrt(up ? 0.94 + 0.04 * treble : 1 - 0.04 * treble);
       });
     }
   }
@@ -101,6 +144,10 @@ export function performNotes(
 
 export function pianoLayer(volume: number) {
   return volume < 0.56 ? 4 : volume < 0.72 ? 8 : 12;
+}
+
+export function guitarLayer(volume: number) {
+  return volume < 0.55 ? 40 : volume < 0.8 ? 72 : 104;
 }
 
 /** Bank levels preserve existing piano/guitar balance; organ samples are sustain-normalized. */

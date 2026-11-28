@@ -1,4 +1,17 @@
 {
+  "songalong:npm:test --workspace=songalong": {
+    "kind": "unit",
+    "ports": [],
+    "locks": [],
+    "slots": 2,
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": ["--test", "--test-concurrency=2", "tests/*.test.ts"],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
   "dorego:npm:run test:desktop --workspace=dorego": {
     "kind": "audio",
     "ports": [
@@ -2114,6 +2127,24 @@
           "tests/the-old-rugged-cross-editions.browser.ts"
         ],
         "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:node:--import tsx scripts/render-guitar-comparison.mts": {
+    "kind": "audio",
+    "ports": [
+      4686
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "node",
+        "args": [
+          "--import",
+          "tsx",
+          "scripts/render-guitar-comparison.mts"
+        ],
+        "cwd": ""
       }
     ]
   },

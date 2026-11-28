@@ -452,6 +452,18 @@ and media actions, without PCM or latency measurements. Its inventory declaratio
 is corrected from realtime audio to UI; DoReGo's PCM/timing lock is retained.
 All lifecycle assertions remain required in both tiers.
 
+The guitar-expression branch's merged validation at `9cf0ee5`,
+`work/ci-results/1795625969369-b31a43b4`, also exceeded the end-to-end budget
+(62.20 seconds including cleanup). Units/builds and the completed browser commands
+passed, but DoReGo desktop and SongAlong instrument-toolbar were cancelled at the
+deadline. The Playwright connection error printed during DoReGo cancellation is
+not evidence of an independent assertion failure. Two immediately preceding
+local validations on other branches (`1795625823111-1af19aff` and
+`1795625896530-07d1a01f`) also exceeded the budget. This does not identify a
+single cause or establish that any guitar change is free of cost. Preserve the
+first timing report; a later passing run alone does not resolve budget fragility.
+No command, assertion or budget was removed or relaxed for the audition.
+
 ## Score layout horizontal framing (25 November 2026)
 
 [Hosted failure](https://github.com/ldayton/SoundTools/actions/runs/45658306343/job/139361265583)
@@ -973,6 +985,82 @@ reviewed resource declaration now gives this existing long witness priority 50,
 matching the other long browser checks. Its scheduler-policy assertion verifies
 propagation. All coverage, locks, assertions and budgets remain unchanged. The
 next validation measures `npm run ci -- --base origin/main --all --workers 16`.
+
+## Approved guitar playback upstream merge (28 November 2026)
+
+Full applicable CI at merge commit `c157bec3`, incorporating upstream `e265545d`,
+exceeded the 60-second limit at 62.20 seconds including installation and cleanup.
+Evidence: `work/ci-results/1795867252560-3e7a5d8f` in the guitar-expression
+worktree. All 341 SongAlong units, 708 shared music units, shared contracts,
+builds and completed browser commands passed, including the guitar controls and
+native sustain witnesses. The coordinator cancelled mobile-toolbar after 25.8
+seconds and score-view after 23.1 seconds. The mobile drawer's closed-page error
+followed cancellation; it is not evidence of a separate assertion failure.
+The full run failed. No passing rerun, coverage reduction, assertion retry,
+resource-lock bypass or budget extension is claimed. Approved phrase grouping,
+restrained expression, envelope and sample selection sources were unchanged by
+the merge; upstream capo/fingering advice and musical editions were retained.
+
+For publication, inspection of that run found mobile-toolbar waited 7.7 seconds
+and score-view waited 10.4 seconds after the fresh SongAlong build. The six-worker
+shared music pool and independent builds/units consumed the default 16-slot
+coordinator capacity. After merging the latest upstream branding-only change,
+the next full applicable run uses the existing supported `--workers 24` option
+on this 24-core Mac. This measures earlier scheduling of the same required
+commands, with the same host, TCP/audio locks and 60-second limit; it changes no
+assertion, coverage owner, timeout or coordinator code. A pass would validate
+that exact commit, not establish a general timing or flake-rate guarantee.
+
+The 24-slot run at `895304cf` (`1795867727295-171b9dd5`) also exceeded the limit
+at 62.17 seconds. All SongAlong browser checks completed, but DoReGo desktop was
+cancelled after 32.9 seconds. Shared music grew from 31.5 to 38.7 seconds and
+SongAlong units from 23.0 to 31.9 seconds: earlier launches increased contention.
+Inspection found SongAlong's 51 test files using Node's default CPU-count process
+concurrency despite the coordinator reserving two slots. Its unchanged full unit
+glob now runs in two isolated workers, with that command registered in the
+resource inventory and the setup task consuming its declared capacity. A policy
+check guards agreement between the npm command and scheduler slots. Next measure
+the complete `npm run ci -- --all` graph at the ordinary 16-slot setting; no test,
+assertion, port/audio lock or deadline is removed or relaxed.
+
+At the same code commit, the required pre-push invocation with changed-file
+selection retained another budget failure (`1795867977399-6d65985e`, 62.16
+seconds), cancelling mobile-toolbar after it queued 9.7 seconds. The full all-app
+measurement had passed in 58.40 seconds (`1795867903236-78edf736`); that pass does
+not resolve the variable pre-push timing. Using the documented
+`CI_UNIT_WORKERS=4` setting freed capacity and completed in 56.63 seconds, but the
+run failed a real Tagalujah reader assertion (`1795868067937-15b04183`): its second
+rightward swipe left the title at Next instead of Bilingual reading fixture.
+The first screenshot, logs and trace are retained under
+`apps/tagaluya/work/browser-results/reader.browser.ts-chromium-b7577216`.
+The native swipe helper did not await scroll settlement before the next gesture.
+It now arms a real `scrollend` listener before an in-range horizontal drag and
+waits for that event after touch release. Outward boundary/vertical gestures
+remain covered without expecting an event when no horizontal movement occurs.
+All title, cancellation, resize and boundary assertions remain unchanged; no
+sleep, retry, timeout increase or product change was added. The cause of every
+earlier passing run is not inferred from this correction.
+
+The next full run (`1795868204850-64cd3f4b`, commit `b618c704`) completed in
+52.07 seconds, with the corrected reader witness passing. It failed the known
+DoReGo tempo-edit case. First artifacts:
+`apps/dorego/work/browser-results/desktop.e2e.ts-chromium-18d85c73` and the retained
+`dorego_ci_core_chromium_1.log`. Event capture shows focus at 65 BPM, a native
+input event carrying 240, and Enter 12 ms later already containing 65 BPM;
+the settings owner stayed at 65. NumericFormat tracks selection ranges on
+keydown, including the preceding ArrowUp, whereas the helper's bulk `fill`
+replacement does not send that selection/typing sequence. The helper now uses
+Control/Meta+A followed by real digit keys. The exact 240-BPM persisted value,
+musical-position and PCM assertions remain unchanged. No retry, sleep, timeout
+increase or product input change is introduced, and this correction does not
+claim a product fix for every possible programmatic input replacement.
+
+The corrected full pre-push run at `c954af06` passed in 53.68 seconds with
+`CI_UNIT_WORKERS=4`, retaining every required command and the standard 16-slot
+outer coordinator. Evidence: `1795868388705-a66ca721`. This is one measured
+validation, not a claim that all historical timing or input intermittency is
+resolved. Publication then merged the newer upstream Nightly witness repairs
+before validating the final revision again.
 
 ## Offscreen pitch-trigger clock injection (28 November 2026)
 

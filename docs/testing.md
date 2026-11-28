@@ -127,6 +127,8 @@ the first entry.
 
 For the scale-system references, adaptations and regression owners, see
 [the guitar scale-system contract](guitar-scale-systems.md).
+For guitar performance rules, recorded-sample provenance and matched listening
+comparisons, see [guitar playback](guitar-playback.md).
 
 ## Silent browser tests
 
@@ -252,6 +254,12 @@ pool (default six in local CI, four in Nightly, two on GitHub; range 1–8). Wor
 scheduling budgets, not a promise to pin every subprocess to a CPU. Compare worker counts against the same CI inventory. A serial CI baseline
 may exceed the hard deadline and is then a failure, not a performance result. Do not raise concurrency just because a machine has many logical CPUs:
 compare throughput, per-command latency and failures first.
+
+SongAlong's unit command explicitly uses two isolated Node test workers, matching
+its reviewed resource declaration. The same command runs every `*.test.ts` file
+locally, in CI and in Nightly. Never restore Node's CPU-count default without
+measuring the whole suite and updating the declared capacity: the outer
+coordinator cannot otherwise account for those additional child processes.
 
 ```sh
 npm run ci -- --all --workers 12

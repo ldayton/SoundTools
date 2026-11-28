@@ -852,3 +852,15 @@ DoReGo's equivalent Nightly desktop command retains the same priority. Existing
 scheduler policy tests cover propagation. Coverage, concurrency identities,
 ports/audio locks and the 60-second budget are unchanged; the next measurement
 uses `npm run ci -- --base origin/main --all --workers 16` on the clean commit.
+
+## Hymnbook branding validation queue (28 November 2026)
+
+The first full local CI run for Tagalujah's approved branding retained evidence
+`1795865638449-8be079b3`. Completed checks passed, but total execution exceeded
+the budget at 62.16 seconds, cancelling `guitar-sustain.browser.ts` after 13.2
+seconds. The native sustain witness had queued for 24.2 seconds after its build;
+its closed-page messages follow cancellation. It is not a passing run. The
+reviewed resource declaration now gives this existing long witness priority 50,
+matching the other long browser checks. Its scheduler-policy assertion verifies
+propagation. All coverage, locks, assertions and budgets remain unchanged. The
+next validation measures `npm run ci -- --base origin/main --all --workers 16`.

@@ -17,11 +17,13 @@ export function PitchField({
   onChange,
   choices,
   columns = 12,
+  rowColumns = columns,
   optional = false,
   fieldLabel,
 }: {
   choices: readonly PitchChoice[];
   columns?: 7 | 12;
+  rowColumns?: 4 | 6 | 7 | 12;
   optional?: boolean;
   fieldLabel?: string;
   id: string;
@@ -92,7 +94,7 @@ export function PitchField({
       disabled={note.disabled}
       variant={note.value === value ? "light" : "default"}
       size="xs"
-      h={36}
+      h={rowColumns === columns ? 36 : 44}
       px={0}
       aria-label={note.label}
       title={note.label}
@@ -221,8 +223,8 @@ export function PitchField({
             const steps: Record<string, number> = {
               ArrowRight: 1,
               ArrowLeft: -1,
-              ArrowUp: -columns,
-              ArrowDown: columns,
+              ArrowUp: -rowColumns,
+              ArrowDown: rowColumns,
             };
             if (!target || !(event.key in steps)) return;
             event.preventDefault();
@@ -258,14 +260,23 @@ export function PitchField({
             aria-label="Notes by octave"
             style={{
               display: "grid",
-              gridTemplateColumns: `24px repeat(${columns}, minmax(0, 1fr))`,
+              gridTemplateColumns:
+                rowColumns === columns
+                  ? `24px repeat(${columns}, minmax(0, 1fr))`
+                  : `repeat(${rowColumns}, minmax(0, 1fr))`,
               gap: 4,
               alignItems: "center",
             }}
           >
             {octaves.map((octave) => (
               <div key={octave} style={{ display: "contents" }}>
-                <Text size="xs" c="dimmed" ta="center" aria-hidden="true">
+                <Text
+                  size="xs"
+                  c="dimmed"
+                  ta="center"
+                  aria-hidden="true"
+                  style={rowColumns === columns ? undefined : { gridColumn: "1 / -1" }}
+                >
                   {octave}
                 </Text>
                 {Array.from({ length: columns }, (_, column) => {

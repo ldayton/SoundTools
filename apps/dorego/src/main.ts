@@ -19,7 +19,7 @@ import {
 import { SettingsPage } from './settings-page';
 import { createElement } from 'react';
 import { createViewState } from '@ldayton/ui/view-state';
-import { Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from './builder';
+import { PracticeRange, Builder, ExerciseSelection, type BuilderSnapshot, type SpecPatch } from './builder';
 import { editSpec, MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { mountAppShell } from './app-shell';
 import { diagnostics, diagnosticsContext } from './diagnostics';
@@ -151,13 +151,8 @@ mountAppShell($('#app'), {
   volumeControl: createElement(PracticeVolume, { model: practiceModel, volume: changeVolume }),
   toolbar: createElement(PracticeToolbar, {
     model: practiceModel,
-    playback: playbackModel,
-    play: () => {
-      void togglePlay();
-    },
-    restart: restartSequence,
+    range: createElement(PracticeRange, { model: builderModel, change: (patch) => refresh(patch) }),
     tempo: changeTempo,
-    moveRound,
     volume: changeVolume,
   }),
   pause: () => {
@@ -180,6 +175,11 @@ mountAppShell($('#app'), {
     }),
     audition: (midi) => reference.press(midi),
     repeatRound: repeatCurrentRound,
+    play: () => {
+      void togglePlay();
+    },
+    restart: restartSequence,
+    moveRound,
   }),
   settingsView: createElement(SettingsPage, { onAudioChannelsChange: changeAudioChannels }),
 });

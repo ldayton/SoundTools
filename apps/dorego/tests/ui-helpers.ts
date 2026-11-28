@@ -68,6 +68,14 @@ export async function openPracticeOptions(page: Page) {
     )
   );
 }
+/** Dismiss the mobile options modal before using controls in the toolbar. */
+export async function closePracticeOptions(page: Page) {
+  const close = page.getByRole('button', { name: 'Close practice options', exact: true });
+  if (await close.isVisible()) {
+    await close.click();
+    await page.locator('.mantine-Drawer-content:visible').waitFor({ state: 'hidden' });
+  }
+}
 export async function openSettings(page: Page) {
   const link = page.getByRole('link', { name: 'Settings', exact: true });
   if (await page.evaluate(() => matchMedia('(min-width:48em)').matches)) await link.waitFor();

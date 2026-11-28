@@ -158,6 +158,54 @@ try {
   };
   await page.goto(base);
   await ready();
+  // Transport and frequent range controls share their existing state owners at every width.
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.waitForFunction(() => {
+      const header = document.querySelector('.mantine-AppShell-header')!.getBoundingClientRect();
+      const low = document.querySelector('#low-spin')!.getBoundingClientRect();
+      const high = document.querySelector('#high-spin')!.getBoundingClientRect();
+      const stage = document.querySelector('#stage')!.getBoundingClientRect();
+      const controls = document.querySelector('.dorego-transport')!.getBoundingClientRect();
+      return low.width > 0 && high.width > 0 && high.bottom <= header.bottom && controls.top >= stage.bottom &&
+        controls.left >= 0 && controls.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
+    });
+    assert.equal(await page.locator('.mantine-AppShell-header #play, #low-wheel, #high-wheel').count(), 0);
+    const actions = page.getByRole('group', { name: 'Playback controls', exact: true });
+    assert.equal(await actions.locator('button').count(), 5);
+    for (const button of await actions.locator('button').all()) {
+      const box = (await button.boundingBox())!;
+      assert.ok(box.width >= 44 && box.height >= 44, 'Transport actions remain touch-sized');
+    }
+    await page.locator('#high-spin').click();
+    const highPicker = page.getByRole('dialog', { name: 'Choose highest note' });
+    await highPicker.waitFor();
+    if (width <= 760) {
+      const selected = highPicker.getByRole('button', { name: 'F♯4', exact: true });
+      const box = (await selected.boundingBox())!;
+      assert.ok(box.width >= 44 && box.height >= 44, 'Phone note choices remain touch-sized');
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-value')), '70', 'Arrow down follows the four-column phone grid');
+      await page.keyboard.press('ArrowUp');
+    }
+    assert.ok(await highPicker.getByRole('button', { name: 'C4', exact: true }).isDisabled(), 'The octave span remains required');
+    await highPicker.getByRole('button', { name: 'F4', exact: true }).click();
+    assert.equal(await readSpecValue(page, 'high'), '65');
+    await page.locator('#high-spin').click();
+    await highPicker.getByRole('button', { name: 'F♯4', exact: true }).click();
+    await page.locator('#low-spin').click();
+    const lowPicker = page.getByRole('dialog', { name: 'Choose lowest note' });
+    await lowPicker.getByRole('button', { name: 'F3', exact: true }).click();
+    assert.equal(await readSpecValue(page, 'low'), '53');
+    await page.locator('#low-spin').click();
+    await lowPicker.getByRole('button', { name: 'E3', exact: true }).click();
+  }
+  await page.reload();
+  await ready();
+  assert.equal(await readSpecValue(page, 'low'), '52');
+  assert.equal(await readSpecValue(page, 'high'), '66');
+  await page.setViewportSize({ width: 1280, height: 900 });
+
   assert.equal(
     await page.evaluate(() => (navigator as any).audioSession.type),
     'playback',
@@ -427,8 +475,8 @@ try {
   await finalPage.locator('.mantine-Drawer-content:visible').waitFor({state:'hidden'});
   const repeat=finalPage.getByRole('button',{name:'Repeat round',exact:true});
   await finalPage.waitForFunction(() => {
-    const button = document.querySelector('#repeat-round')?.getBoundingClientRect();
-    return button && Math.abs(button.x + button.width / 2 - innerWidth / 2) < 1;
+    const controls = document.querySelector('.dorego-transport')?.getBoundingClientRect();
+    return controls && Math.abs(controls.x + controls.width / 2 - innerWidth / 2) < 1;
   });
   const repeatBounds=await repeat.boundingBox();
   assert.ok(repeatBounds && repeatBounds.height >= 44 && repeatBounds.x >= 0 && repeatBounds.x+repeatBounds.width <= 390);

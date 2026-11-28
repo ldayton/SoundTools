@@ -2,7 +2,7 @@
   "id": "/",
   "name": "NoteWise",
   "short_name": "NoteWise",
-  "description": "Learn notes, scales, intervals, rhythm, and music theory.",
+  "description": "Learn notes, scales, intervals, and music theory.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

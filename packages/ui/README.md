@@ -12,8 +12,12 @@ Share behavior with real consumers, not wrappers around every library component:
 
 - `responsive-pitch-field`: owns labels, desktop popup, optional mobile wheel,
   dismissal, focus and lifecycle. Callers supply musical choices/constraints.
+  An optional compact range adds an Extended range toggle without changing selected notes.
 - `tempo-control`, `committed-number`, `volume-control`: common editing (Enter/blur commit, Escape cancel, optional decimals/rejection/reset) and mute
   presentation; controllers retain musical timing and saved-unit conversions.
+  Toolbar volume popovers and inline volume controls include a separate mute/unmute
+  action, restoring the mounted control's last audible level (50% if opened muted
+  without a prior level). Both use the existing volume callback and saved values.
 - `privacy-section`, `diagnostic-consent`, `offline-status-panel`: consistent presentation while
   service clients retain consent and caching lifecycles.
 - `round-actions`: repeated round navigation; no grading or playback logic.

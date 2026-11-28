@@ -134,7 +134,7 @@ function AppShell({
       <ApplicationLayout
         compact
         toolbarOnly={!settings}
-        mobileToolbarHeight={stackedToolbar ? 148 : 104}
+        mobileToolbarHeight={breathing && stackedToolbar ? 148 : 104}
         headerClassName={settings ? undefined : 'dorego-header'}
         mainClassName="dorego-workspace"
         brand={

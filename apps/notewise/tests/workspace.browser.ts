@@ -87,7 +87,7 @@ try {
     "patterns",
     "scales",
     "intervals",
-    "rhythm",
+
     "guitar-scales",
     "piano",
     "name",
@@ -109,7 +109,7 @@ try {
       "patterns",
       "scales",
       "intervals",
-      "rhythm",
+
       "guitar-scales",
     ].includes(mode)
       ? (
@@ -117,7 +117,6 @@ try {
             patterns: "patterns-practice",
             scales: "scales-practice",
             intervals: "intervals-practice",
-            rhythm: "rhythm-practice",
             "guitar-scales": "guitar-scales-practice",
           } as Record<string, string>
         )[mode]
@@ -204,7 +203,6 @@ try {
   );
   for (const [mode, title] of [
     ["scales", "Scales & degrees"],
-    ["rhythm", "Rhythm reading"],
     ["guitar-scales", "Scales"],
   ]) {
     await selectPractice(page, mode);
@@ -235,67 +233,6 @@ try {
       `${mode} fits on mobile`,
     );
   }
-  await selectPractice(page, "rhythm");
-  assert.equal(await page.locator("header #rhythm-tempo").isVisible(), false);
-  await page
-    .getByRole("button", { name: "Show controls", exact: true })
-    .click();
-  await page.locator("header #rhythm-tempo").waitFor();
-  for (const width of [320, 390, 768, 1680]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.waitForFunction(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    );
-    const fields = await page
-      .locator(".notewise-header :is(button,input):visible")
-      .evaluateAll((es) =>
-        es.map((e) => ({
-          left: e.getBoundingClientRect().left,
-          right: e.getBoundingClientRect().right,
-        })),
-      );
-    assert.ok(
-      fields.every((b) => b.left >= 0 && b.right <= width),
-      `Toolbar fits at ${width}px`,
-    );
-  }
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator(".notewise-controls-toggle").waitFor();
-  const disclose = page.getByRole("button", {
-    name: "Show controls",
-    exact: true,
-  });
-  if (await disclose.isVisible()) await disclose.click();
-  const tempo = page.locator("header #rhythm-tempo");
-  const mainRow = async () =>
-    page
-      .locator(
-        ".notewise-header .nav-toggle, .notewise-controls-toggle, #practice-options-reopen",
-      )
-      .evaluateAll((es) => es.map((el) => el.getBoundingClientRect().toJSON()));
-  const expandedGeometry = await mainRow();
-  for (const id of ["rhythm-tempo-down", "rhythm-tempo-up"]) {
-    const box = await page.locator(`#${id}`).boundingBox();
-    assert(
-      box && box.height >= 42 && box.width >= 44,
-      "Mobile tempo uses full-size side-by-side buttons",
-    );
-  }
-  await tempo.fill("96");
-  await tempo.press("Enter");
-  await page.locator("header .rhythm-start").click();
-  await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Stop", exact: true }).click();
-  await mkdir("work", { recursive: true });
-  await page.screenshot({ path: `work/mobile-rhythm-controls-${engine}.png` });
-  await page
-    .getByRole("button", { name: "Hide controls", exact: true })
-    .click();
-  assert.deepEqual(
-    await mainRow(),
-    expandedGeometry,
-    "Disclosure never moves the primary toolbar buttons",
-  );
   for (const mode of modes) {
     await selectPractice(page, mode);
     await page.waitForFunction(
@@ -357,38 +294,6 @@ try {
   );
   assert.equal(await page.evaluate(() => scrollY), 0);
   await page.screenshot({ path: `work/compact-piano-${engine}.png` });
-  await selectPractice(page, "rhythm");
-  const tap = page.getByRole("button", { name: "Tap rhythm", exact: true });
-  for (const expanded of [false, true]) {
-    if (expanded)
-      await page
-        .getByRole("button", { name: "Show controls", exact: true })
-        .click();
-    const box = await tap.boundingBox();
-    assert(
-      box &&
-        box.y >= 0 &&
-        box.y + box.height <= iphone14Pro.viewport.height &&
-        box.height >= 64,
-      "Tap remains visible with or without the extra control bar",
-    );
-    const score = page.locator("#rhythm-practice .sequence-score");
-    await score.hover();
-    await page.mouse.wheel(0, 1000);
-    assert.deepEqual(
-      await tap.boundingBox(),
-      box,
-      "Scrolling the score never moves Tap",
-    );
-    await tap.click();
-    assert.equal(
-      await page.locator(".rhythm-tap-response").textContent(),
-      "Press Start",
-    );
-    await page.screenshot({
-      path: `work/compact-rhythm-${expanded ? "expanded" : "closed"}-${engine}.png`,
-    });
-  }
   await page.goto(base + "settings");
   await page
     .getByRole("checkbox", { name: "Share diagnostic information" })

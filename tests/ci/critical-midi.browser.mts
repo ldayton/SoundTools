@@ -1,4 +1,4 @@
-// CI's bounded MIDI contract. Exhaustive ranges, devices, offline and recovery
+// CI's bounded startup and MIDI contract. Exhaustive ranges, devices, offline and recovery
 // remain in apps/notewise/tests/midi.browser.ts in Nightly. Do not add loops here.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -16,10 +16,19 @@ try {
   browser = await launchBrowser();
   const context = await createContext(browser, { viewport: { width: 1280, height: 1000 } });
   await context.addInitScript({ content: await readFile(new URL('../../packages/music-practice/test-fixtures/midi.js', import.meta.url), 'utf8') });
+  await context.addInitScript(() => {
+    if(!localStorage.getItem('rhythm-retirement-fixture')) {
+      localStorage.setItem('soundtools:notewise:v1',JSON.stringify({version:5,mode:'rhythm',roundLength:24}));
+      localStorage.setItem('soundtools:notewise:rhythm:v1','obsolete checkpoint');
+      localStorage.setItem('rhythm-retirement-fixture','seeded');
+    }
+  });
   const page = await context.newPage(), errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(origin);
   await waitForApp(page, '[data-letter="E"]:enabled');
+  await expect(page.locator('a[data-mode="rhythm"]')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Rhythm',exact:true})).toHaveCount(0);
   await selectPractice(page, 'piano');
   assert.equal(await page.evaluate(() => (window as any).midiTest.calls()), 0, 'MIDI permission stays user initiated');
   await midiAction(page, 'Connect MIDI keyboard');
@@ -42,6 +51,6 @@ try {
   await page.evaluate(() => (window as any).midiTest.remove('roland'));
   await expect(page.getByText('GO:KEYS 5 connected. Play one note at a time.', { exact: true })).toHaveCount(0);
   assert.deepEqual(errors, []);
-  console.log('PASS critical MIDI: explicit permission, connection, octave grading, held/chord guard and hotplug');
+  console.log('PASS critical MIDI: retired exercise fallback, explicit permission, connection, octave grading, held/chord guard and hotplug');
 } catch (error) { if (browser) await captureFailure(browser, error); throw error; }
 finally { if (browser) await closeBrowser(browser); server.kill(); }

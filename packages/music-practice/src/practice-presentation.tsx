@@ -47,7 +47,7 @@ export function practicePresentation(initial: Partial<Presentation> = {}) {
 }
 export type PresentationModel = ReturnType<typeof practicePresentation>;
 export type PresentationKind =
-  "flashcard" | "theory" | "hymn" | "pattern" | "rhythm";
+  "flashcard" | "theory" | "hymn" | "pattern";
 export function PracticeHeader({
   model,
   kind,

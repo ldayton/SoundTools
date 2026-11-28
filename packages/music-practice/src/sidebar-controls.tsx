@@ -11,6 +11,7 @@ export function ToolbarVolume() {
     <ToolbarSlider
       id="piano-volume"
       label="Piano volume"
+      withMute
       buttonLabel="Volume"
       value={volume}
       min={0}

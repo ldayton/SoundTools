@@ -16,9 +16,9 @@ test("root remembers practice; settings and unknown pages are independent of exe
   assert.deepEqual(readRoute(new URL("https://notes.test/settings"), "piano"), {
     kind: "settings",
   });
-  const root = readRoute(new URL("https://notes.test/"), "rhythm");
+  const root = readRoute(new URL("https://notes.test/"), "patterns");
   assert.equal(root.kind, "exercise");
-  if (root.kind === "exercise") assert.equal(root.mode, "rhythm");
+  if (root.kind === "exercise") assert.equal(root.mode, "patterns");
   const hymn = readRoute(
     new URL("https://notes.test/piano/hymns/amazing-grace?section=3"),
     "staff",
@@ -31,6 +31,7 @@ test("root remembers practice; settings and unknown pages are independent of exe
   }
   for (const path of [
     "/missing",
+    "/rhythm/reading",
     "/piano/keys/extra",
     "/assets/no.js",
     "/piano/hymns/a%2Fb",
@@ -45,4 +46,13 @@ test("app routes cannot cross the practice boundary", () => {
   assert.equal(readRoute(new URL("https://test/guitar/scales"), "sight", "songalong").kind, "not-found");
   const root = readRoute(new URL("https://test/"), "staff", "songalong");
   assert.equal(root.kind === "exercise" && root.mode, "sight");
+});
+
+test("NoteWise exposes no rhythm exercise, area or offline route root", async () => {
+  const {EXERCISES,AREAS,APP_ROUTE_ROOTS}=await import("../src/exercise-catalog");
+  assert(!EXERCISES.some(e=>String(e.mode)==="rhythm"));
+  assert(!AREAS.some(a=>String(a.label)==="Rhythm"));
+  assert(!APP_ROUTE_ROOTS.includes("rhythm"));
+  const root=readRoute(new URL("https://notes.test/"),"rhythm" as any);
+  assert.equal(root.kind === "exercise" && root.mode,"staff");
 });

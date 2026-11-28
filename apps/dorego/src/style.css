@@ -150,15 +150,59 @@
   color: var(--mantine-primary-color-light-color);
   font-weight: 600;
 }
+.dorego-header > .application-toolbar { position: relative; }
 .dorego-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
 }
-.dorego-transport {
-  grid-column: 2;
+.dorego-range {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-default);
+  background: var(--mantine-color-body);
 }
+.dorego-range[hidden] { display: none; }
+.dorego-range .responsive-pitch-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-inline: 8px 0;
+}
+.dorego-range .responsive-pitch-field + .responsive-pitch-field {
+  border-left: 1px solid var(--mantine-color-default-border);
+}
+.dorego-range .responsive-pitch-field > .mantine-Group-root { margin-bottom: 0; }
+.dorego-range .responsive-pitch-field > div:last-child { width: 56px; }
+.dorego-range label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+.dorego-range input {
+  border: 0;
+  background: transparent;
+  font-weight: 600;
+  padding-left: 2px;
+  padding-right: 22px;
+}
+.dorego-range .mantine-Input-section[data-position="right"] { width: 22px; }
+.dorego-toolbar > .dorego-tempo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  justify-self: center;
+}
+.dorego-toolbar > .dorego-transport { grid-column: 2; }
 .dorego-workspace .practice-panel {
   background: #fff;
   padding-block: 24px;
@@ -179,17 +223,6 @@
 }
 .dorego-workspace .practice-card:fullscreen {
   background: white;
-}
-@media (max-width: 767px) {
-  .dorego-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'volume blank' 'transport transport';
-    gap: 8px;
-  }
-  .dorego-transport {
-    grid-area: transport;
-    justify-self: center;
-  }
 }
 @media (max-width: 760px) {
   .dorego-workspace .practice-panel {
@@ -213,14 +246,6 @@
 }
 .dorego-workspace .dorego-piano {
   padding-top: 8px;
-}
-@media (max-width: 767px) {
-  .dorego-toolbar {
-    grid-template-areas: 'volume time' 'transport transport';
-  }
-  .dorego-time {
-    grid-area: time;
-  }
 }
 .dorego-tempo {
   border: 1px solid var(--mantine-color-default-border);
@@ -258,15 +283,19 @@
     grid-column: 4;
     grid-row: 1;
   }
-  .dorego-time {
+  .dorego-toolbar > .dorego-tempo { top: 30px; }
+  .dorego-toolbar > .dorego-transport {
+    grid-column: 1/-1;
+    grid-row: 2;
+    justify-self: center;
+  }
+  .dorego-toolbar > .dorego-time {
     grid-column: 3;
     grid-row: 1;
   }
-  .dorego-transport {
+  .dorego-range {
     grid-column: 1/-1;
     grid-row: 2;
-    flex-wrap: wrap;
-    justify-content: center;
     justify-self: center;
   }
 }
@@ -574,38 +603,24 @@
   }
 }
 
-/* Keep the current-round action close to the readout on phones and desktops. */
-.repeat-round-control {
-  display: flex;
-  justify-content: center;
-  margin: 8px 0 12px;
+/* Keep all transport actions beside the readout, including in fullscreen. */
+.practice-playback { margin: 8px 0 12px; }
+.practice-playback .dorego-transport > button {
+  height: 48px;
+  border-radius: var(--mantine-radius-xl);
 }
-.repeat-round-control button {
-  min-width: 180px;
-  min-height: 44px;
-}
-
-/* Keep the repeat action and all note pads visible on short phones. */
+.practice-playback #play { width: 52px; min-width: 52px; height: 52px; }
+.practice-playback #repeat-round { width: 64px; min-width: 64px; padding-inline: 0; }
+.practice-progress { margin-top: 4px; }
 @media (max-width: 767px) and (max-height: 600px) {
-  .repeat-round-control {
-    margin-block: 2px;
-  }
-  .note-instrument {
-    margin-top: 6px;
-  }
+  .practice-playback { margin-block: 2px; }
+  .practice-playback .dorego-transport > button,
+  .practice-playback #play { height: 44px; }
+  .note-instrument { margin-top: 6px; }
 }
-@media (max-width: 359px) and (max-height: 600px) {
-  .dorego-transport {
-    gap: 2px;
-    flex-wrap: nowrap;
-  }
-  .dorego-header .dorego-tempo > div {
-    max-width: 68px;
-  }
-  .dorego-header .dorego-tempo input {
-    font-size: 11px;
-    padding-inline: 4px !important;
-  }
+@media (max-width: 359px) {
+  .dorego-header .dorego-tempo > div { max-width: 68px; }
+  .dorego-header .dorego-tempo input { font-size: 12px; padding-inline: 4px !important; }
   .dorego-header > .application-toolbar { padding-inline: 10px; }
 }
 

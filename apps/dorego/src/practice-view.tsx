@@ -69,6 +69,7 @@ export function PracticeVolume({
     <ToolbarSlider
       id="volume"
       label="Volume"
+      withMute
       value={percent}
       min={0}
       max={100}
@@ -98,20 +99,83 @@ export function PracticeVolume({
 
 export function PracticeToolbar({
   model,
+  tempo,
+  volume,
+  range,
+}: {
+  model: PracticeModel;
+  tempo(value: number): void;
+  volume(value: number): void;
+  range: ReactNode;
+}) {
+  const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <div className="dorego-toolbar">
+      <PracticeVolume model={model} volume={volume} />
+      {range}
+      <Group className="dorego-tempo" gap={0} wrap="nowrap" role="group" aria-label="Tempo">
+        <ActionIcon
+          id="tempo-down"
+          size={36}
+          variant="subtle"
+          aria-label="Decrease tempo by 5 BPM"
+          disabled={state.bpm <= 60}
+          onClick={() => tempo(Math.max(60, state.bpm - 5))}
+        >
+          −
+        </ActionIcon>
+        <ActionIcon
+          id="tempo-up"
+          size={36}
+          variant="subtle"
+          aria-label="Increase tempo by 5 BPM"
+          disabled={state.bpm >= 240}
+          onClick={() => tempo(Math.min(240, state.bpm + 5))}
+        >
+          +
+        </ActionIcon>
+        <div style={{ width: 96 }}>
+          <CommittedNumber
+            id="bpm"
+            label="Tempo in beats per minute"
+            hideLabel
+            hideControls
+            step={5}
+            min={60}
+            max={240}
+            value={state.bpm}
+            suffix=" BPM"
+            change={tempo}
+            styles={{
+              input: {
+                border: 0,
+                borderRadius: 0,
+                textAlign: 'center',
+                paddingInline: 8,
+                fontVariantNumeric: 'tabular-nums',
+              },
+            }}
+          />
+        </div>
+      </Group>
+    </div>
+  );
+}
+
+function PracticeTransport({
+  model,
   playback,
   play,
   restart,
-  tempo,
-  volume,
   moveRound,
+  repeatRound,
 }: {
   model: PracticeModel;
   playback: PlaybackModel;
   play(): void;
   restart(): void;
-  tempo(value: number): void;
-  volume(value: number): void;
   moveRound(step: number): void;
+  repeatRound(): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   const playing = state.mode === 'playing' || state.mode === 'starting';
@@ -126,106 +190,82 @@ export function PracticeToolbar({
           : state.mode === 'complete'
             ? 'Replay'
             : 'Play';
+
   return (
-    <div className="dorego-toolbar">
-      <PracticeVolume model={model} volume={volume} />
+    <div className="practice-playback">
       <Group
         className="dorego-transport"
-        gap="xs"
+        gap={6}
         wrap="nowrap"
+        justify="center"
         role="group"
         aria-label="Playback controls"
       >
-        <Group gap={4} wrap="nowrap">
-          <Button
-            id="restart"
-            variant="default"
-            aria-label="Go to start"
-            title="Go to start"
-            w={36}
-            miw={36}
-            px={0}
-            onClick={restart}
+        <Button
+          id="restart"
+          variant="default"
+          aria-label="Go to start"
+          title="Go to start"
+          w={44}
+          miw={44}
+          px={0}
+          onClick={restart}
+        >
+          <ControlIcon name="go-start" />
+        </Button>
+        <RoundButton
+          model={playback}
+          step={-1}
+          move={moveRound}
+          disabled={state.warming || !!state.error}
+        />
+        <Button
+          id="play"
+          autoContrast
+          aria-label={label}
+          title={label}
+          w={44}
+          miw={44}
+          px={0}
+          loading={state.warming}
+          disabled={state.warming || !!state.error}
+          aria-busy={state.warming}
+          data-mode={state.warming ? 'warming' : state.failed ? 'failed' : state.mode}
+          onClick={play}
+        >
+          <ControlIcon name={playing ? 'pause' : state.failed ? 'refresh' : 'play'} />
+          <span className="sr-only">{label === 'Loading audio' ? 'Loading...' : label}</span>
+        </Button>
+        <RoundButton
+          model={playback}
+          step={1}
+          move={moveRound}
+          disabled={state.warming || !!state.error}
+        />
+
+        <Button
+          id="repeat-round"
+          variant="light"
+          size="md"
+          radius="xl"
+          aria-label="Repeat round"
+          title="Repeat round"
+          disabled={state.warming || state.failed || !!state.error}
+          onClick={repeatRound}
+        >
+          {/* Phosphor Repeat Bold, MIT; license in public/phosphor-icons-LICENSE.txt. */}
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 256 256"
+            fill="currentColor"
+            aria-hidden="true"
+            focusable="false"
           >
-            <ControlIcon name="go-start" />
-          </Button>
-          <RoundButton
-            model={playback}
-            step={-1}
-            move={moveRound}
-            disabled={state.warming || !!state.error}
-          />
-          <Button
-            id="play"
-            autoContrast
-            aria-label={label}
-            title={label}
-            w={36}
-            miw={36}
-            px={0}
-            loading={state.warming}
-            disabled={state.warming || !!state.error}
-            aria-busy={state.warming}
-            data-mode={state.warming ? 'warming' : state.failed ? 'failed' : state.mode}
-            onClick={play}
-          >
-            <ControlIcon name={playing ? 'pause' : state.failed ? 'refresh' : 'play'} />
-            <span className="sr-only">{label === 'Loading audio' ? 'Loading...' : label}</span>
-          </Button>
-          <RoundButton
-            model={playback}
-            step={1}
-            move={moveRound}
-            disabled={state.warming || !!state.error}
-          />
-        </Group>
-        <Group className="dorego-tempo" gap={0} wrap="nowrap" role="group" aria-label="Tempo">
-          <ActionIcon
-            id="tempo-down"
-            size={36}
-            variant="subtle"
-            aria-label="Decrease tempo by 5 BPM"
-            disabled={state.bpm <= 60}
-            onClick={() => tempo(Math.max(60, state.bpm - 5))}
-          >
-            −
-          </ActionIcon>
-          <ActionIcon
-            id="tempo-up"
-            size={36}
-            variant="subtle"
-            aria-label="Increase tempo by 5 BPM"
-            disabled={state.bpm >= 240}
-            onClick={() => tempo(Math.min(240, state.bpm + 5))}
-          >
-            +
-          </ActionIcon>
-          <div style={{ width: 96 }}>
-            <CommittedNumber
-              id="bpm"
-              label="Tempo in beats per minute"
-              hideLabel
-              hideControls
-              step={5}
-              min={60}
-              max={240}
-              value={state.bpm}
-              suffix=" BPM"
-              change={tempo}
-              styles={{
-                input: {
-                  border: 0,
-                  borderRadius: 0,
-                  textAlign: 'center',
-                  paddingInline: 8,
-                  fontVariantNumeric: 'tabular-nums',
-                },
-              }}
-            />
-          </div>
-        </Group>
+            <path d="M20,128A76.08,76.08,0,0,1,96,52h99l-3.52-3.51a12,12,0,1,1,17-17l24,24a12,12,0,0,1,0,17l-24,24a12,12,0,0,1-17-17L195,76H96a52.06,52.06,0,0,0-52,52,12,12,0,0,1-24,0Zm204-12a12,12,0,0,0-12,12,52.06,52.06,0,0,1-52,52H61l3.52-3.51a12,12,0,1,0-17-17l-24,24a12,12,0,0,0,0,17l24,24a12,12,0,1,0,17-17L61,204h99a76.08,76.08,0,0,0,76-76A12,12,0,0,0,224,116Z" />
+          </svg>
+        </Button>
       </Group>
-      <PlaybackTime model={playback} />
     </div>
   );
 }
@@ -247,8 +287,8 @@ function RoundButton({
     <Button
       id={step < 0 ? 'previous-round' : 'next-round'}
       variant="default"
-      w={36}
-      miw={36}
+      w={44}
+      miw={44}
       px={0}
       aria-label={label}
       title={label}
@@ -266,6 +306,9 @@ export function PracticeView({
   piano,
   audition,
   repeatRound,
+  play,
+  restart,
+  moveRound,
   controls,
   feedback,
 }: {
@@ -276,6 +319,9 @@ export function PracticeView({
   feedback?: ReactNode;
   audition(midi: number): () => void;
   repeatRound(): void;
+  play(): void;
+  restart(): void;
+  moveRound(step: number): void;
 }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
@@ -285,18 +331,14 @@ export function PracticeView({
           <Title id="exercise-title" order={1} size="h3" ta="center" tabIndex={-1}>
             {state.title}
           </Title>
-          <RoundProgress model={playback} />
+          <Group className="practice-progress" gap="sm" justify="center" wrap="nowrap">
+            <RoundProgress model={playback} />
+            <PlaybackTime model={playback} />
+          </Group>
           {controls}
           <div className="practice-card" id="practice-card">
             {state.readout && <PracticeReadout state={state.readout} />}
-            <div className="repeat-round-control">
-              <Button id="repeat-round" size="md" radius="xl" aria-label="Repeat round" title="Repeat round" disabled={state.warming || state.failed || !!state.error} onClick={repeatRound}>
-                {/* Phosphor Repeat Bold, MIT; license in public/phosphor-icons-LICENSE.txt. */}
-                <svg width="36" height="36" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">
-                  <path d="M20,128A76.08,76.08,0,0,1,96,52h99l-3.52-3.51a12,12,0,1,1,17-17l24,24a12,12,0,0,1,0,17l-24,24a12,12,0,0,1-17-17L195,76H96a52.06,52.06,0,0,0-52,52,12,12,0,0,1-24,0Zm204-12a12,12,0,0,0-12,12,52.06,52.06,0,0,1-52,52H61l3.52-3.51a12,12,0,1,0-17-17l-24,24a12,12,0,0,0,0,17l24,24a12,12,0,1,0,17-17L61,204h99a76.08,76.08,0,0,0,76-76A12,12,0,0,0,224,116Z" />
-                </svg>
-              </Button>
-            </div>
+            <PracticeTransport model={model} playback={playback} play={play} restart={restart} moveRound={moveRound} repeatRound={repeatRound} />
           </div>
           {feedback}
           <ReferenceKeyboard model={piano} audition={audition} />
@@ -386,7 +428,7 @@ function PlaybackTime({ model }: { model: PlaybackModel }) {
       component="output"
       id="elapsed"
       className="dorego-time"
-      size="sm"
+      size="xs"
       c="dimmed"
       aria-label="Elapsed time"
       data-seconds={Math.min(state.position, state.duration)}
@@ -399,7 +441,7 @@ function PlaybackTime({ model }: { model: PlaybackModel }) {
 function RoundProgress({ model }: { model: PlaybackModel }) {
   const state = useSyncExternalStore(model.subscribe, model.getSnapshot);
   return (
-    <Text id="exercise-summary" size="xs" c="dimmed" ta="center" mt={4}>
+    <Text id="exercise-summary" size="xs" c="dimmed" ta="center">
       Round {state.round} of {state.rounds}
     </Text>
   );

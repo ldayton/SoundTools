@@ -94,7 +94,6 @@ export function drawPracticeScore(
     lyrics?: HymnLyricsSelection;
     transpose?: number;
     compact?: boolean;
-    rhythmGrid?: boolean;
     reattackTies?: boolean;
     octaveNotation?: boolean;
     printedScore?: boolean;
@@ -180,7 +179,7 @@ export function drawPracticeScore(
   };
   const layout = new AbcScoreLayout({
     source, width, scale,
-    mode: options.rhythmGrid ? "rhythm" : options.fitHymnSystems || options.guitarTab || options.fingerstyleTab || options.beginnerEdition ? "reflow" : "wrap",
+    mode: options.fitHymnSystems || options.guitarTab || options.fingerstyleTab || options.beginnerEdition ? "reflow" : "wrap",
     annotations: !options.printedScore || !!options.guitarTab || !!options.fingerings,
     presentation: {compact:options.compact,octaveNotation:options.octaveNotation,lyrics:!!options.lyrics,
       tablature:!!(options.guitarTab||options.fingerstyleTab),beginner:!!options.beginnerEdition,

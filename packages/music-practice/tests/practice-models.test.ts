@@ -16,12 +16,6 @@ import {
   PATTERN_KEYS,
   type PatternLevel,
 } from "../src/patterns-model";
-import {
-  makeRhythm,
-  rhythmOnsets,
-  RhythmAttempt,
-  type RhythmLevel,
-} from "../src/rhythm-model";
 test("interval patterns stay in the five-finger position, follow the chosen intervals, and avoid identical neighbours", () => {
   for (const key of PATTERN_KEYS)
     for (const hand of ["right", "left"] as const)
@@ -46,34 +40,6 @@ test("interval patterns stay in the five-finger position, follow the chosen inte
           previous = notes;
         }
       }
-});
-test("rhythm generators fill four complete bars, count rests, and never mutate shared tiles", () => {
-  for (const level of ["pulse", "long-short", "eighths"] as RhythmLevel[]) {
-    const bars = makeRhythm(level, () => 0.7);
-    assert.equal(bars.length, 4);
-    assert.ok(bars.every((bar) => bar.reduce((s, n) => s + n.beats, 0) === 4));
-    assert.equal(rhythmOnsets(bars).beats, 16);
-    assert.equal(
-      rhythmOnsets(bars).starts.length,
-      bars.flat().filter((n) => !n.rest).length,
-    );
-    bars[0][0].beats = 99;
-    assert.equal(
-      makeRhythm(level, () => 0.7)[0].reduce((s, n) => s + n.beats, 0),
-      4,
-    );
-  }
-});
-test("rhythm assessment matches each onset once, tolerates small deviations, and detects missed/rest/extra taps", () => {
-  const s = new RhythmAttempt([0, 1, 3], 80, 10000);
-  assert.equal(s.tap(9000), "ignored");
-  assert.equal(s.tap(10040), "hit");
-  assert.equal(s.tap(10040), "extra");
-  assert.equal(s.tap(11490), "extra"); // Beat 2 is a rest.
-  assert.equal(s.tap(12220), "hit");
-  assert.equal(s.missed, 1);
-  assert.equal(s.extras, 2);
-  assert.throws(() => new RhythmAttempt([0], NaN, 0));
 });
 function topNotes(abc: string) {
   const tune = abcjs.parseOnly(abc)[0];

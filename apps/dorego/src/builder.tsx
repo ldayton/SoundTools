@@ -35,6 +35,8 @@ import { MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { ToolbarNumber } from '@ldayton/ui/toolbar-number';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { ResponsivePitchField } from '@ldayton/ui/responsive-pitch-field';
+import { useMediaQuery } from '@mantine/hooks';
+const COMPACT_PITCH_RANGE = { low: 48, high: 83 }; // C3–B5
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
 export type SpecPatch = Partial<ExerciseSpec> & { startingNote?: number };
 export interface BuilderModel {
@@ -54,14 +56,16 @@ function PitchField({
   value: number;
   change(value: number): void;
 }) {
+  const smallPhone = useMediaQuery('(max-width:359px)', undefined, { getInitialValueInEffect: false });
   return (
     <ResponsivePitchField
       id={`${bound}-spin`}
-      wheelId={`${bound}-wheel`}
       label={`${bound === 'low' ? 'Lowest' : 'Highest'} note`}
       value={value}
       onChange={change}
-      mobileWheel
+      mobileColumns={smallPhone ? 4 : 6}
+      compactRange={COMPACT_PITCH_RANGE}
+      displayLabel={bound === 'low' ? 'Lowest' : 'Highest'}
       choices={Array.from({ length: MAX_NOTE - MIN_NOTE + 1 }, (_, index) => {
         const midi = index + MIN_NOTE;
         return {
@@ -73,6 +77,48 @@ function PitchField({
         };
       })}
     />
+  );
+}
+
+export function PracticeRange({
+  model,
+  change,
+}: {
+  model: BuilderModel;
+  change(patch: SpecPatch): void;
+}) {
+  const { spec } = useSyncExternalStore(model.subscribe, model.getSnapshot);
+  return (
+    <div
+      id="note-range"
+      className="dorego-range"
+      role="group"
+      aria-label="Vocal range"
+      hidden={!isVocalPattern(spec.pattern)}
+    >
+      <PitchField
+        bound="low"
+        value={spec.low}
+        change={(low) =>
+          change({
+            low: Math.min(Math.floor(spec.high - exerciseSpan(spec)), Math.max(MIN_NOTE, low)),
+          })
+        }
+        min={MIN_NOTE}
+        max={spec.high - exerciseSpan(spec)}
+      />
+      <PitchField
+        bound="high"
+        value={spec.high}
+        change={(high) =>
+          change({
+            high: Math.max(Math.ceil(spec.low + exerciseSpan(spec)), Math.min(MAX_NOTE, high)),
+          })
+        }
+        min={spec.low + exerciseSpan(spec)}
+        max={MAX_NOTE}
+      />
+    </div>
   );
 }
 
@@ -222,7 +268,7 @@ export function Builder({
               )}
             </NativeSelect>
           </div>
-          <Stack id="note-range" gap="xs" hidden={!vocal}>
+          <Stack gap="xs" hidden={!vocal}>
             <Group id="range-heading" justify="space-between">
               <Text size="sm" fw={500}>
                 Range
@@ -246,36 +292,6 @@ export function Builder({
                 </ActionIcon>
               </Group>
             </Group>
-            <SimpleGrid cols={2}>
-              <PitchField
-                bound="low"
-                value={spec.low}
-                change={(low) =>
-                  change({
-                    low: Math.min(
-                      Math.floor(spec.high - exerciseSpan(spec)),
-                      Math.max(MIN_NOTE, low)
-                    ),
-                  })
-                }
-                min={MIN_NOTE}
-                max={spec.high - exerciseSpan(spec)}
-              />
-              <PitchField
-                bound="high"
-                value={spec.high}
-                change={(high) =>
-                  change({
-                    high: Math.max(
-                      Math.ceil(spec.low + exerciseSpan(spec)),
-                      Math.min(MAX_NOTE, high)
-                    ),
-                  })
-                }
-                min={spec.low + exerciseSpan(spec)}
-                max={MAX_NOTE}
-              />
-            </SimpleGrid>
           </Stack>
         </Stack>
         <Stack gap="sm" hidden={spec.pattern === 'rossini' && roots.length <= 1}>

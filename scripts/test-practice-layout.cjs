@@ -302,7 +302,6 @@ const server = spawn(
       for (const mode of [
         "staff",
         "patterns",
-        "rhythm",
         "scales",
         "intervals",
         "guitar-scales",

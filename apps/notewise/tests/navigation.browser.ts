@@ -188,12 +188,6 @@ try {
       .getAttribute("aria-expanded"),
     "false",
   );
-  await selectPractice(page, "rhythm");
-  await page.locator(".rhythm-start").waitFor();
-  await page.locator(".rhythm-start").click();
-  await selectPractice(page, "piano");
-  await selectPractice(page, "rhythm");
-  assert.match((await page.locator(".rhythm-start").textContent())!, /Start/);
   for (const width of [320, 390, 760, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     assert.ok(
@@ -249,7 +243,7 @@ try {
     "options headers never replace the exercise's controls",
   );
   // Wide-screen options sit beside every exercise, with shared field dimensions and actions.
-  for (const mode of ["piano", "staff", "patterns", "rhythm"]) {
+  for (const mode of ["piano", "staff", "patterns"]) {
     await selectPractice(page, mode);
     const options = page.locator(".practice-options:visible");
     await options.waitFor();
@@ -340,117 +334,21 @@ try {
         "collapsing options closes their overlay",
       );
     }
-    if (mode === "rhythm") {
-      await page.locator(".rhythm-start").click();
-      await page.getByRole("button", { name: "Stop", exact: true }).click();
-      assert.match(
-        (await page.locator(".sequence-feedback:visible").textContent())!,
-        /Stopped/,
-      );
-      assert.ok(
-        await page
-          .getByRole("button", { name: "Start", exact: true })
-          .isVisible(),
-      );
-    }
   }
-  // A complete React form controls the engine and restores its saved configuration.
-  await practiceOption(page, "#rhythm-level", "eighths");
-  await practiceOption(page, "#rhythm-tempo", "115");
-  await page.getByRole("button", { name: "Start", exact: true }).click();
-  const storedRhythm = () =>
-    page.evaluate(
-      () =>
-        new Promise<any>((resolve, reject) => {
-          const request = indexedDB.open("soundtools-notewise");
-          request.onsuccess = () => {
-            const db = request.result;
-            const read = db
-              .transaction("state")
-              .objectStore("state")
-              .get("root");
-            read.onsuccess = () => {
-              resolve(read.result.state.activities.rhythm.bars);
-              db.close();
-            };
-            read.onerror = () => reject(read.error);
-          };
-          request.onerror = () => reject(request.error);
-        }),
-    );
-  await page.waitForFunction(
-    () =>
-      document.querySelector("#saved")?.textContent === "Saved on this device.",
-  );
-  const rhythmBeforeTempo = await storedRhythm();
-  await practiceOption(page, "#rhythm-tempo", "125");
-  await page.waitForFunction(
-    () =>
-      document.querySelector("#saved")?.textContent === "Saved on this device.",
-  );
-  assert.deepEqual(
-    await storedRhythm(),
-    rhythmBeforeTempo,
-    "Tempo edits retain the exact rhythm",
-  );
-  assert.ok(
-    await page.getByRole("button", { name: "Start", exact: true }).isVisible(),
-    "changing settings stops the active attempt",
-  );
-  await selectPractice(page, "piano");
-  await selectPractice(page, "rhythm");
+  await page.setViewportSize({width:390,height:844});
+  await selectPractice(page,"patterns");
   await openPracticeOptions(page);
-  assert.equal(await page.locator("#rhythm-level").inputValue(), "eighths");
-  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125 BPM");
-  await page.waitForFunction(
-    () =>
-      document.querySelector("#saved")?.textContent === "Saved on this device.",
-  );
-  await page.reload();
-  await openPracticeOptions(page);
-  assert.equal(await page.locator("#rhythm-level").inputValue(), "eighths");
-  assert.equal(await page.locator("#rhythm-tempo").inputValue(), "125 BPM");
-  await page.setViewportSize({ width: 390, height: 844 });
-  await openPracticeOptions(page);
-  const rhythmSelect = page.getByRole("combobox", {
-    name: "Rhythm",
-    exact: true,
-  });
-  await rhythmSelect.focus();
-  await rhythmSelect.press("Tab");
-  assert.ok(
-    await page.evaluate(
-      () => !!document.activeElement?.closest('[role="dialog"]'),
-    ),
-    "Tab remains inside the mobile options drawer",
-  );
-  await rhythmSelect.selectOption("pulse");
-  assert.equal(await rhythmSelect.inputValue(), "pulse");
+  const levelSelect=page.locator("#pattern-level");
+  await levelSelect.focus();await levelSelect.press("Tab");
+  assert.ok(await page.evaluate(()=>!!document.activeElement?.closest('[role="dialog"]')),
+    "Tab remains inside the mobile options drawer");
+  await levelSelect.selectOption("leaps");
+  assert.equal(await levelSelect.inputValue(),"leaps");
   await closePracticeOptions(page);
-  await page
-    .getByRole("button", { name: "Show controls", exact: true })
-    .click();
-  const tempo = page.locator("#rhythm-tempo");
-  await page
-    .getByRole("button", {
-      name: "Increase tempo in beats per minute",
-      exact: true,
-    })
-    .click();
-  assert.equal(await tempo.inputValue(), "130 BPM");
-  await page
-    .getByRole("button", {
-      name: "Decrease tempo in beats per minute",
-      exact: true,
-    })
-    .click();
-  assert.equal(await tempo.inputValue(), "125 BPM");
-  assert.ok(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  );
   await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto(base + "rhythm/reading");
+  await page.locator(".route-missing").waitFor();
+  assert.equal(await page.locator('a[data-mode="rhythm"]').count(),0);
   await page.goto(base + "piano/not-a-real-page");
   await page.locator(".route-missing").waitFor();
   await page.locator(".route-missing a").click();
@@ -494,23 +392,23 @@ try {
   await late.locator("#notation svg").waitFor();
   await selectPractice(late, "patterns");
   await late.getByText("Loading practice…", { exact: true }).waitFor();
-  await selectPractice(late, "rhythm");
-  await late.getByRole("button", { name: "Start", exact: true }).click();
+  await selectPractice(late, "piano");
+  await late.locator("#notation svg").waitFor();
   release();
   await late.locator("#pattern-level").waitFor({ state: "attached" });
   assert.equal(
     await late.locator("#page-title").textContent(),
-    "Rhythm reading",
+    "Find piano keys",
   );
   assert.ok(
-    await late.getByRole("button", { name: "Stop", exact: true }).isVisible(),
+    await late.locator("#notation svg").isVisible(),
   );
   assert.ok(await late.locator("#patterns-practice").isHidden());
   assert.deepEqual(lateErrors, []);
   await lateContext.close();
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: deep links, history, MIDI continuity, retained questions, mobile navigation, paused rhythm and unknown routes passed.`,
+    `${engine}: deep links, history, MIDI continuity, retained questions, mobile navigation and unknown routes passed.`,
   );
 } catch (error) {
   await captureFailure(browser, error);

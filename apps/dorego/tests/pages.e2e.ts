@@ -10,6 +10,7 @@ import {
   readSpecValue,
   openMoreOptions,
   openPracticeOptions,
+  closePracticeOptions,
   sliderValue,
   setSlider,
 } from './ui-helpers';
@@ -145,7 +146,7 @@ try {
   assert.equal(await readSpecValue(page, 'low'), '53');
   await page.locator('#low-spin').press('ArrowDown');
   assert.equal(await readSpecValue(page, 'low'), '52');
-  assert.ok(await page.locator('#low-wheel').isHidden());
+  assert.equal(await page.locator('#low-wheel, #high-wheel').count(), 0);
   assert.equal(await page.locator('#low-spin').getAttribute('readonly'), '');
   await page.locator('#low-spin').click();
   await page
@@ -170,7 +171,7 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'low-spin');
   assert.equal(await readSpecValue(page, 'low'), '52', 'Focus movement does not commit a pitch');
   await page.locator('#low-spin').click();
-  await page.locator('#exercise-title').click();
+  await page.locator('.note-instrument').click({ position: { x: 4, y: 4 } });
   assert.ok(await picker.isHidden(), 'Outside click dismisses pitch grid');
   await page.locator('#low-spin').click();
   await page.locator('#low-spin').press('Escape');
@@ -182,24 +183,14 @@ try {
   assert.ok(await picker.isHidden(), 'Resize dismisses the desktop grid');
   await page.setViewportSize({ width: 390, height: 844 });
   await openPracticeOptions(page);
-  await page.waitForFunction(
-    () =>
-      document.querySelector('#high-wheel')!.getBoundingClientRect().height > 0 &&
-      document.querySelector('#high-wheel')!.scrollTop ===
-        (Number(document.querySelector('#high-wheel')!.getAttribute('aria-valuenow')) - 36) * 32
-  );
-  await page.locator('#high-wheel').evaluate((el) => {
-    el.scrollTop -= 96;
-  });
-  await page.waitForFunction(
-    () => document.querySelector('#high-wheel')!.getAttribute('aria-valuenow') === '74'
-  );
-  await page.locator('#high-wheel').evaluate((el) => {
-    el.scrollTop += 96;
-  });
-  await page.waitForFunction(
-    () => document.querySelector('#high-wheel')!.getAttribute('aria-valuenow') === '77'
-  );
+  await closePracticeOptions(page);
+  await page.locator('#high-spin').click();
+  const mobileHighPicker = page.getByRole('dialog', { name: 'Choose highest note' });
+  await mobileHighPicker.getByRole('button', { name: 'D5', exact: true }).click();
+  assert.equal(await readSpecValue(page, 'high'), '74');
+  await page.locator('#high-spin').click();
+  await mobileHighPicker.getByRole('button', { name: 'F5', exact: true }).click();
+  assert.equal(await readSpecValue(page, 'high'), '77');
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.locator('#play').click();
   // Check readiness directly; headless audio drivers have different startup latency.
@@ -246,18 +237,20 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await openPracticeOptions(page);
   assert.ok(await page.locator('#repeat-count').isHidden());
+  await closePracticeOptions(page);
   await page.locator('#low-spin-label').click();
-  assert.equal(
-    await page.evaluate(() => document.activeElement?.id),
-    'low-wheel',
-    'Mobile label focuses visible wheel'
-  );
+  await picker.waitFor();
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-value')), await readSpecValue(page, 'low'), 'Mobile label opens the note chooser at the selected pitch');
+  await page.keyboard.press('Escape');
+  await picker.waitFor({ state: 'hidden' });
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'low-spin');
   const mobileLow = Number(await readSpecValue(page, 'low'));
-  await page.locator('#low-wheel').press('ArrowUp');
+  await page.locator('#low-spin').press('ArrowUp');
   assert.equal(Number(await readSpecValue(page, 'low')), mobileLow + 1);
-  await page.locator('#low-wheel').press('ArrowDown');
+  await page.locator('#low-spin').press('ArrowDown');
   assert.equal(Number(await readSpecValue(page, 'low')), mobileLow);
 
+  await openPracticeOptions(page);
   for (const [id, max, key] of [
     ['repeat', 15, 'repetitions'], ['rest', 16, 'restBeats'], ['countIn', 8, 'countIn'],
   ] as const) {
@@ -480,9 +473,13 @@ try {
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await openPracticeOptions(page);
-  await page.locator('#high-wheel').press('ArrowDown');
+  await closePracticeOptions(page);
+  await page.locator('#high-spin').press('ArrowDown');
+  await openPracticeOptions(page);
   assert.ok(await page.locator('#progression').isHidden());
-  await page.locator('#high-wheel').press('ArrowUp');
+  await closePracticeOptions(page);
+  await page.locator('#high-spin').press('ArrowUp');
+  await openPracticeOptions(page);
   await page.locator('#progression').waitFor({ state: 'visible' });
   assert.ok(await page.locator('#progression').isVisible());
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -531,6 +528,8 @@ try {
   const validSaved = await page.evaluate(() => localStorage.getItem('dorego.current'));
   const highBefore = await readSpecValue(page, 'high');
   await page.locator('#low-spin').click();
+  const extendedRange = page.getByRole('dialog', { name: 'Choose lowest note' }).getByRole('button', { name: 'Extended range', exact: true });
+  if (await extendedRange.getAttribute('aria-pressed') !== 'true') await extendedRange.click();
   const unavailable = page
     .getByRole('dialog', { name: 'Choose lowest note' })
     .getByRole('button', { name: 'B6', exact: true });

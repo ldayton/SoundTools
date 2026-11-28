@@ -14,7 +14,7 @@ import {
 } from "@ldayton/ui/application-layout";
 import { ControlIcon } from "@ldayton/ui/control-icon";
 import { ToolbarVolume } from "./sidebar-controls";
-import { NotewiseToolbar, notewiseToolbarState } from "./notewise-toolbar";
+import { NotewiseToolbar } from "./notewise-toolbar";
 import { MOBILE_SONGALONG_QUERY } from "./songalong-capabilities";
 import { useMediaQuery } from "@mantine/hooks";
 import { APP } from "./app-profile";
@@ -266,10 +266,6 @@ export function mountAppShell(
     );
   }
   function Shell() {
-    const noteToolbar = useSyncExternalStore(
-      notewiseToolbarState.subscribe,
-      notewiseToolbarState.getSnapshot,
-    );
     const offline = useSyncExternalStore(
       offlineState.subscribe,
       offlineState.getSnapshot,
@@ -283,9 +279,6 @@ export function mountAppShell(
       shellStatus.getSnapshot,
     );
     const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
-    useLayoutEffect(() => {
-      notewiseToolbarState.set({ expanded: false });
-    }, [snapshot.selected, snapshot.routeKind]);
     const narrowToolbar = useMediaQuery("(max-width: 374px)", undefined, {
       getInitialValueInEffect: false,
     });
@@ -324,10 +317,7 @@ export function mountAppShell(
           mobileToolbarHeight={
             APP.id === "songalong"
               ? 64
-              : (narrowToolbar ? 104 : 56) +
-                (snapshot.selected === "rhythm" && noteToolbar.expanded
-                  ? 60
-                  : 0)
+              : (narrowToolbar ? 104 : 56)
           }
           headerClassName={
             APP.id === "notewise" ? "notewise-header" : "songalong-header"
@@ -344,10 +334,6 @@ export function mountAppShell(
               ) : (
                 <NotewiseToolbar
                   session={registry.headerFor(activeOptionsId || "flashcards")}
-                  properties={registry.propertiesFor(
-                    activeOptionsId || "flashcards",
-                  )}
-                  hasProperties={snapshot.selected === "rhythm"}
                   pianoPanelId={`${activeOptionsId || "flashcards"}-piano-panel`}
                   pianoRequired={snapshot.selected === "piano"}
                 />

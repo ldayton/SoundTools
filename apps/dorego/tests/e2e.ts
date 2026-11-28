@@ -144,6 +144,8 @@ try {
   await selectExercise(page, 'arpeggio');
   const highBefore = await readSpecValue(page, 'high');
   await page.locator('#low-spin').click();
+  const extendedRange = page.getByRole('dialog', { name: 'Choose lowest note' }).getByRole('button', { name: 'Extended range', exact: true });
+  if (await extendedRange.getAttribute('aria-pressed') !== 'true') await extendedRange.click();
   assert.ok(
     await page
       .getByRole('dialog', { name: 'Choose lowest note' })

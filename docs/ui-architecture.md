@@ -95,3 +95,10 @@ control colors.
   persistence, retries and compile-time misuse of settings commands.
 - App-specific audio, MIDI, notation, offline and resilience suites remain in
   place; shared UI checks do not replace those tests.
+
+Tagaluya uses `ApplicationLayout` and `PracticeOptionsProvider`/workspace for
+service navigation, song selection and responsive drawers. Reading controls use
+the shared toolbar and committed number control. The browser-controls package
+owns directional gesture recognition and the injectable shell offline lifecycle;
+practice apps and Tagaluya share these implementations. Bilingual melody reading
+is a thin adapter over the music-practice score layout, not a separate engraver.

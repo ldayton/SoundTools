@@ -1,0 +1,11 @@
+import {createRoot} from "react-dom/client";
+import {SoundToolsProvider} from "@ldayton/ui";
+import {RenderErrorBoundary} from "@ldayton/ui/render-error-boundary";
+import {Tagaluya} from "./app";
+import {services} from "./services";
+import {validateServices} from "./model";
+import {diagnostics,startOffline} from "./offline";
+import "./style.css";
+validateServices(services);
+createRoot(document.getElementById("app")!).render(<RenderErrorBoundary appName="Tagaluya" onStop={()=>{}} onError={e=>diagnostics.capture(e,"ui.render_failed")}><SoundToolsProvider primaryColor="blue"><Tagaluya services={services}/></SoundToolsProvider></RenderErrorBoundary>);
+startOffline();

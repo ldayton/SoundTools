@@ -5,6 +5,12 @@
   "type": "module",
   "exports": {
     "./note-wheel": "./note-wheel.ts",
-    "./media-session": "./media-session.ts"
+    "./media-session": "./media-session.ts",
+    "./directional-swipe": "./directional-swipe.ts",
+    "./shell-offline": "./shell-offline.ts"
+  },
+  "dependencies": {
+    "@ldayton/browser-offline": "^0.1.0",
+    "@ldayton/browser-diagnostics": "^0.2.0"
   }
 }

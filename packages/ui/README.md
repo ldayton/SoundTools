@@ -63,3 +63,6 @@ Chromium, Firefox or WebKit. The app CI jobs run this contract after building.
 The shared UI browser contract (`scripts/test-ui-controls.cjs`) runs once per
 engine in the Nightly NoteWise group and covers all four application layouts.
 Real update staging and reload remain owned by each app’s offline tests.
+
+`usePracticeOptions()` exposes the existing options context, including
+`closeMobile()`, for consumers whose selection should dismiss the mobile drawer.

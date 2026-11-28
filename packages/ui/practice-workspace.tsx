@@ -85,7 +85,7 @@ function useOptionsState(
 const OptionsContext = createContext<ReturnType<typeof useOptionsState> | null>(
   null,
 );
-function useOptions() {
+export function usePracticeOptions() {
   const value = useContext(OptionsContext);
   if (!value) throw Error("Practice options require the application shell");
   return value;
@@ -118,7 +118,7 @@ export function PracticeOptionsProvider({
   );
 }
 export function PracticeOptionsReopen() {
-  const state = useOptions();
+  const state = usePracticeOptions();
   return (
     <Button
       id="practice-options-reopen"
@@ -153,7 +153,7 @@ export function PracticeOptionsReopen() {
   );
 }
 export function PracticeWorkspace({ children }: PropsWithChildren) {
-  const state = useOptions();
+  const state = usePracticeOptions();
   const workspace = useRef<HTMLDivElement>(null);
   const [minimum, setMinimum] = useState(280);
   const panel = usePanelWidth(minimum);

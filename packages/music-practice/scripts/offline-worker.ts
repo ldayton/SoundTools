@@ -3,13 +3,14 @@ import { workerSource, manifestLimits } from "@ldayton/browser-offline";
 // Bound manifest size while allowing multi-articulation backing sample libraries.
 export const MAX_OFFLINE_FILES = manifestLimits.practice.files;
 export function offlineWorker(config: {
-  app?: "notewise" | "songalong";
+  app?: string;
+  routeRoots?: string[];
   base: string;
   pack: { shellCache: string; files: { url: string; sha256: string }[] };
   inventory: string;
 }) {
   return (
-    `const CONFIG=${JSON.stringify({ ...config, maxFiles: MAX_OFFLINE_FILES, routeRoots: config.app === "songalong" ? ["piano", "settings"] : APP_ROUTE_ROOTS })};\n` +
+    `const CONFIG=${JSON.stringify({ ...config, maxFiles: MAX_OFFLINE_FILES, routeRoots: config.routeRoots ?? (config.app === "songalong" ? ["piano", "settings"] : APP_ROUTE_ROOTS) })};\n` +
     workerSource() +
     String.raw`
 const ROOT=CONFIG.base, MANIFEST=ROOT+'offline-pack.json', META=(CONFIG.app||'notewise')+'-clients-v1';

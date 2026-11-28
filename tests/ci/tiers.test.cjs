@@ -20,7 +20,7 @@ test('CI and Nightly are the only tiers, with explicit event and publication pol
   assert.equal(tiers.nightly.publishes, false);
   const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
   assert.doesNotMatch(workflow, /CI_FULL|inputs\.full/);
-  assert.equal((workflow.match(/needs\.changes\.outputs\.tier == 'ci'/g) || []).length, 4);
+  assert.equal((workflow.match(/needs\.changes\.outputs\.tier == 'ci'/g) || []).length, Object.keys(require('../../scripts/ci/apps.cjs').apps).length);
 });
 
 test('local CI and Nightly graphs use the central browser policy and retain their tier', async () => {
@@ -39,7 +39,7 @@ test('local CI and Nightly graphs use the central browser policy and retain thei
 test('bounded CI builds all apps with one shared preparation and retains isolation locks', () => {
   const path = require('node:path');
   const { fastGraph } = require('../../scripts/ci/fast-local.cjs');
-  const apps = ['dorego', 'notewise', 'songalong', 'soundglow'];
+  const apps = ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya'];
   const tasks = fastGraph({ apps, accounts: true }, path.resolve(__dirname, '../..'));
   assert.equal(tiers.ci.localBudgetMs, 60000);
   assert.equal(tasks.filter(task => task.id === 'shared:diagnostics').length, 1);
@@ -68,7 +68,7 @@ test('bounded CI builds all apps with one shared preparation and retains isolati
 // Guard the current executable model, without freezing historical aliases.
 test('Nightly owns CI execution files and schedules each file once per engine', () => {
   const { executions, duplicates } = require('../../scripts/ci/coverage.cjs');
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya']) {
     const all = tiers.nightly.browsers.flatMap(browser => {
       const files = executions(app, 'nightly', browser);
       assert.deepEqual(duplicates(files), {}, `${app}/${browser}: repeated test execution`);
@@ -81,7 +81,7 @@ test('Nightly owns CI execution files and schedules each file once per engine', 
 test('the standalone diagnostics SDK browser contract has one owner per engine', () => {
   const { executions } = require('../../scripts/ci/coverage.cjs');
   for (const browser of tiers.nightly.browsers) {
-    const files = ['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app => executions(app, 'nightly', browser));
+    const files = ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya'].flatMap(app => executions(app, 'nightly', browser));
     assert.equal(files.filter(file => file === 'packages/browser-diagnostics/test-browser.cjs').length, 1);
   }
 });

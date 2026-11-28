@@ -32,6 +32,7 @@ function validateSelection(app, tier, browser, group) {
 function nightlyPlan(app, browser, group) {
   if (group === 'editions') return editionFiles().map(file => script(app, file));
   const tasks = {
+    tagaluya: ['test:browser', 'test:offline'],
     dorego: ['test:layout', 'test:browsers', ...(browser === 'chromium' ? ['test:diagnostics-ui', 'test:resilience'] : [])],
     notewise: ['test:layout', 'test:workspace', 'test:guitar', 'test:maqamat', 'test:piano', 'test:practice', 'test:theory', 'test:navigation', 'test:midi', 'test:signatures', 'test:offline', 'test:backing', ...(browser === 'chromium' ? ['test:browser', 'test:piano-audio', 'test:diagnostics', 'test:backing-realism', 'test:backing-genres'] : [])],
     songalong: ['test:score-layout', 'test:layout', 'test:split', 'test:sidebars', 'test:hymn-keys', 'test:stanzas', 'test:hymn-playback', 'test:sight', 'test:fingerings', 'test:offline', 'test:catalog', ...(browser === 'chromium' ? ['test:diagnostics'] : [])],
@@ -53,6 +54,7 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
   if (tier === 'nightly') return nightlyPlan(app, browser, group);
   if (group !== 'core') throw Error('Edition browser coverage belongs to Nightly');
   return {
+    tagaluya: [npm(app, 'test:browser')],
     dorego: [script(app, 'tests/voice-feedback.e2e.ts'), npm(app, 'test:desktop'), script(app, 'tests/sequence.e2e.ts')],
     notewise: [script(app, '../../tests/ci/critical-midi.browser.mts'), npm(app, 'test:scale-fret-range')],
     songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/guitar-sustain.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts'), script(app, 'tests/instrument-features.browser.ts')],

@@ -15,12 +15,12 @@ test('transitive account/UI dependencies reach every consumer', () => assert.equ
 test('test and workflow changes validate consumers without publishing', () => {
   assert.deepEqual(affected(['apps/notewise/tests/piano.browser.ts']).apps, ['notewise']);
   assert.deepEqual(affected(['apps/notewise/tests/piano.browser.ts']).deploy, []);
-  assert.equal(affected(['.github/workflows/ci.yml']).apps.length, 4);
+  assert.equal(affected(['.github/workflows/ci.yml']).apps.length, 5);
   assert.deepEqual(affected(['.github/workflows/ci.yml']).deploy, []);
 });
 test('docs require no browsers or deployments', () => assert.deepEqual(affected(['docs/accounts.md', 'README.md']), { apps: [], deploy: [], accounts: false }));
 test('lockfiles, unknown packages and deleted workspaces cannot silently skip apps', () => { for (const file of ['package-lock.json', 'packages/deleted/src/a.ts', 'apps/notecards/src/main.ts']) assert.equal(affected([file]).deploy.length, 4); });
-test('nightly and manual validation cover everything without publishing', () => assert.deepEqual(affected([], undefined, true), { apps: ['dorego', 'notewise', 'songalong', 'soundglow'], deploy: [], accounts: true }));
+test('nightly and manual validation cover everything without publishing', () => assert.deepEqual(affected([], undefined, true), { apps: ['tagaluya', 'dorego', 'notewise', 'songalong', 'soundglow'], deploy: [], accounts: true }));
 test('validates this push and recovers unpublished source changes from live revisions', async () => {
   const base = 'a'.repeat(40), head = 'b'.repeat(40); let diff;
   const r = await changes({ env: { GITHUB_EVENT_NAME: 'push', GITHUB_SHA: head, CI_BASE_SHA: base }, fetch: async url => url.includes('api.github.com') ? Response.json({ workflow_runs: [{ head_sha: base }] }) : Response.json({ app: new URL(url).hostname.split('.')[0], profile: 'production', sha: base }), git: args => { if (args[0] === 'diff') diff = args; return args[0] === 'diff' ? 'apps/dorego/client/src/main.ts\nREADME.md' : ''; } });
@@ -70,4 +70,9 @@ test('DoReGo revalidates and releases when its shared Soundglow pitch assets cha
   const result = affected(['apps/soundglow/dist/vendor/praat/processor.js']);
   assert.deepEqual(result.apps, ['dorego', 'soundglow']);
   assert.deepEqual(result.deploy, ['dorego', 'soundglow']);
+});
+
+test('new app validates fully before hosting is configured', () => {
+  assert.deepEqual(affected(['apps/tagaluya/src/main.tsx']).apps, ['tagaluya']);
+  assert.deepEqual(affected(['apps/tagaluya/src/main.tsx']).deploy, []);
 });

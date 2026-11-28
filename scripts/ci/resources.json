@@ -2335,5 +2335,38 @@
         "cwd": "apps/songalong"
       }
     ]
+  },
+  "tagaluya:npm:run test:browser --workspace=tagaluya": {
+    "kind": "ui",
+    "ports": [
+      4760,
+      4761
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/reader.browser.ts"
+        ],
+        "cwd": "apps/tagaluya"
+      }
+    ]
+  },
+  "tagaluya:npm:run test:offline --workspace=tagaluya": {
+    "kind": "ui",
+    "ports": [
+      4762
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": [
+          "tests/offline.browser.ts"
+        ],
+        "cwd": "apps/tagaluya"
+      }
+    ]
   }
 }

@@ -1,3 +1,4 @@
+import { attachDirectionalSwipe } from "@ldayton/browser-controls/directional-swipe";
 import type {CagedRouteDirection} from "./caged-route";
 import type { cagedChordDiagram } from "./guitar-scale-patterns";
 import { GuitarChordGraphic } from "./guitar-chord-diagram";
@@ -54,40 +55,22 @@ export function ScaleFrame({
   const [horizontal,setHorizontal]=useState(true);
   const [chordFrame,setChordFrame]=useState(0);
   const surface = useRef<HTMLElement>(null);
-  const touch = useRef<{ x: number; y: number } | null>(null);
   const chordTrigger=useRef<HTMLButtonElement>(null);
   const activeChord=s.chordDiagrams[Math.min(chordFrame,s.chordDiagrams.length-1)];
   const hoverable = useMediaQuery("(min-width: 48em) and (hover: hover) and (pointer: fine)", undefined, { getInitialValueInEffect: false });
   useEffect(() => {
     const root = surface.current;
-    const content = root?.closest('#practice-content');
+    const content = root?.closest<HTMLElement>('#practice-content');
     if (!root || !content) return;
     const active = () => root.getClientRects().length > 0 && !root.closest('[hidden]');
-    const cancel = () => { touch.current = null; };
-    const start = (event: Event) => {
-      const e = event as TouchEvent;
-      const target = e.target instanceof Element ? e.target : null;
-      touch.current = active() && e.touches.length === 1 && !target?.closest(
-        'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [contenteditable="true"], .practice-options, .scale-diagram:has(.scale-whole-route-board)'
-      ) ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
-    };
-    const move = (event: Event) => { if ((event as TouchEvent).touches.length !== 1) cancel(); };
-    const end = (event: Event) => {
-      const e = event as TouchEvent, first = touch.current;
-      cancel();
-      if (!first || !active() || e.touches.length || !e.changedTouches.length) return;
-      const dx = e.changedTouches[0].clientX - first.x, dy = e.changedTouches[0].clientY - first.y;
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < 40) return;
-      if (Math.abs(dx) > Math.abs(dy)) navigate('tonic', dx > 0 ? 1 : -1);
-      else navigate('shape', dy > 0 ? 1 : -1);
-    };
-    for (const [type, listener] of [['touchstart', start], ['touchmove', move], ['touchend', end], ['touchcancel', cancel]] as const)
-      content.addEventListener(type, listener, { passive: true });
-    return () => {
-      cancel();
-      for (const [type, listener] of [['touchstart', start], ['touchmove', move], ['touchend', end], ['touchcancel', cancel]] as const)
-        content.removeEventListener(type, listener);
-    };
+    return attachDirectionalSwipe(content, {
+      active, axes:"both", dominance:1,
+      ignore:'button, a, input, select, textarea, summary, [role="button"], [role="slider"], [contenteditable="true"], .practice-options, .scale-diagram:has(.scale-whole-route-board)',
+      onSwipe:direction=>{
+        if(direction==="left"||direction==="right")navigate("tonic",direction==="right"?1:-1);
+        else navigate("shape",direction==="down"?1:-1);
+      },
+    });
   }, [navigate]);
   return (
     <section

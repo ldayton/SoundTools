@@ -6,6 +6,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 // Never build from a moving branch or promote a deployment for an obsolete SHA.
 async function release({ app, sha, token, githubToken, bypass, fetch: request = fetch, sleep = delay, smoke = smokeHTTP, maxPolls = 120, log = console.log }) {
   const config = apps[app];
+  if (config && (!config.project || !config.origin)) throw Error("App hosting has not been configured");
   if (!config || !/^[a-f0-9]{40}$/.test(sha || '')) throw Error('Choose a known app and full commit SHA');
   if (!token || !githubToken) throw Error('Production release credentials are missing');
   async function json(url, options = {}) {

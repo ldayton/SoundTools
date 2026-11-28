@@ -8,7 +8,7 @@ const {
 } = require("./deployment-assets.cjs");
 const root = path.resolve(__dirname, ".."),
   app = process.argv[2];
-if (!["dorego", "soundglow", "notewise", "songalong"].includes(app))
+if (!["dorego", "soundglow", "notewise", "songalong", "tagaluya"].includes(app))
   throw Error("Choose dorego, notewise, songalong or soundglow");
 const project = path.join(root, "apps", app),
   output = path.join(project, app === "soundglow" ? "site" : "dist");
@@ -31,7 +31,7 @@ const previous = path.join(root, "work", "previous-" + app);
     for (const file of fs.readdirSync(originals))
       if (file !== "NOTICE.txt")
         fs.rmSync(path.join(originals, file), { recursive: true });
-  } else if (["notewise", "songalong"].includes(app)) {
+  } else if (["notewise", "songalong", "tagaluya"].includes(app)) {
     execFileSync("npm", ["run", "build", "--workspace=" + app], {
       cwd: root,
       stdio: "inherit",

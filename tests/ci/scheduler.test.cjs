@@ -35,7 +35,7 @@ test('cancellation marks pending tasks and stops scheduling new work', async () 
   assert(results.every(r => r.status === 'cancelled'));
 });
 test('all existing CI commands have reviewed coverage and resource declarations', () => {
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) for (const lane of ['ci', 'nightly']) for (const group of app === 'songalong' && lane === 'nightly' ? ['core', 'editions'] : ['core']) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya']) for (const lane of ['ci', 'nightly']) for (const group of app === 'songalong' && lane === 'nightly' ? ['core', 'editions'] : ['core']) {
     for (const [command, args] of plan(app, lane, 'chromium', group)) {
       const entry = declaration(app, command, args);
       assert(entry.coverage.length);
@@ -114,7 +114,7 @@ test('snapshot copies keep workspace links and writes inside the private checkou
 test('GitHub overlaps independent setup while releases still require shared validation', () => {
   const root = path.resolve(__dirname, '../..');
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow']) {
+  for (const app of ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya']) {
     const section = workflow.split(`\n  ${app}:`)[1].split('\n  ')[0];
     // Check the actual selected app block, not a dependency appearing elsewhere.
     assert.match(workflow, new RegExp(`\\n  ${app}:\\n    needs: \\[changes\\]`));
@@ -180,7 +180,7 @@ test('local pre-push selection uses CI pending-release recovery, not just change
 test('parallel Vite servers and catalog partitions own distinct writable dependency caches', () => {
   const path = require('node:path');
   const cwd = path.resolve(__dirname, '../..');
-  const tasks = ['dorego', 'notewise', 'songalong', 'soundglow'].flatMap(app =>
+  const tasks = ['dorego', 'notewise', 'songalong', 'soundglow', 'tagaluya'].flatMap(app =>
     ['chromium', 'webkit'].flatMap(browser => commandTasks(app, 'nightly', browser, cwd)));
   const caches = tasks.map(task => task.env.CI_VITE_CACHE_DIR);
   assert.equal(new Set(caches).size, tasks.length);

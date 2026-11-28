@@ -67,6 +67,15 @@ jobs:
       app: dorego
       matrix: ${{ toJSON(fromJSON(needs.changes.outputs.matrices).dorego) }}
 
+  tagaluya:
+    needs: [changes]
+    if: contains(fromJSON(needs.changes.outputs.apps), 'tagaluya')
+    uses: ./.github/workflows/validate-app.yml
+    with:
+      app: tagaluya
+      matrix: ${{ toJSON(fromJSON(needs.changes.outputs.matrices).tagaluya) }}
+    secrets: inherit
+
   notewise:
     needs: [changes]
     if: contains(fromJSON(needs.changes.outputs.apps), 'notewise')
@@ -136,7 +145,7 @@ jobs:
   gate:
     name: validation gate
     if: always() && !contains(needs.*.result, 'cancelled')
-    needs: [changes, shared, dorego, notewise, songalong, soundglow, accounts]
+    needs: [changes, shared, dorego, notewise, songalong, soundglow, tagaluya, accounts]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
@@ -194,4 +203,17 @@ jobs:
     uses: ./.github/workflows/release-app.yml
     with:
       app: soundglow
+    secrets: inherit
+
+  release-tagaluya:
+    needs: [changes, shared, tagaluya, accounts]
+    if: >-
+      always() && needs.changes.outputs.tier == 'ci' && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      needs.changes.result == 'success' && needs.shared.result == 'success' && needs.tagaluya.result == 'success' &&
+      (needs.accounts.result == 'success' ||
+      (needs.changes.outputs.accounts != 'true' && needs.accounts.result == 'skipped')) &&
+      contains(fromJSON(needs.changes.outputs.deploy || '[]'), 'tagaluya')
+    uses: ./.github/workflows/release-app.yml
+    with:
+      app: tagaluya
     secrets: inherit

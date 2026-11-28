@@ -1,0 +1,34 @@
+{
+  "name": "tagaluya",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4330 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "test": "tsx --test tests/*.test.ts",
+    "test:browser": "tsx tests/reader.browser.ts",
+    "test:offline": "tsx tests/offline.browser.ts"
+  },
+  "dependencies": {
+    "@ldayton/ui": "0.1.0",
+    "@ldayton/browser-controls": "0.1.0",
+    "@ldayton/browser-diagnostics": "^0.2.0",
+    "@ldayton/browser-offline": "^0.1.0",
+    "@ldayton/music-practice": "0.1.0",
+    "@mantine/core": "9.8.0",
+    "@mantine/hooks": "9.8.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "playwright": "1.64.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}

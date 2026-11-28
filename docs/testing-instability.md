@@ -1249,3 +1249,21 @@ covers the hidden settings panel. Both full local MIDI engines pass with that
 boundary. The original trace did not retain busy state at the exact error instant,
 so it cannot alone prove causation; any recurrence after this boundary needs fresh
 investigation, rather than an exception filter or a passing retry.
+## 2026-11-28: DoReGo native-pager CI budget
+
+The complete applicable CI run at `93001a80`
+(`work/ci-results/1795873525684-c407f3b4`) exhausted the 60-second limit,
+reporting 62.22 seconds including cancellation cleanup. No assertion failed
+before cancellation. The new native-pager/options witness completed in the
+existing sequence owner (15.2 seconds); DoReGo desktop and SongAlong's mobile
+instrument toolbar were cancelled. Their retained logs show ordinary progress
+and browser shutdown from the coordinator, not a failed product assertion.
+
+The six-worker shared music pool took 28.2 seconds and 165.8 CPU seconds.
+The sequence and several independent browser tasks queued for 14.5 seconds;
+SongAlong's mobile toolbar queued for 9.9 seconds. The next measurement uses
+the documented `CI_UNIT_WORKERS=4` configuration with the same standard local
+coordinator, required commands, port/audio locks, committed revision and
+60-second deadline. No test is removed, retried, relaxed or assigned a longer
+timeout. This is an explicit scheduling comparison, not a passing rerun offered
+as proof that the cancelled run passed.

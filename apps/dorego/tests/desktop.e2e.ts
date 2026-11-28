@@ -193,13 +193,13 @@ try {
     }
     if (width < 768) {
       const layout = await page.evaluate(() => {
-        const bounds = (element: Element) => {
-          const { x, width, height } = element.getBoundingClientRect();
-          return { x, width, height };
-        };
+        const { x, width, height } = document.querySelector('.note-instrument')!.getBoundingClientRect();
         return {
-          pads: bounds(document.querySelector('.note-instrument')!),
-          buttons: [...document.querySelectorAll('.dorego-transport > button')].map(bounds),
+          pads: { x, width, height },
+          buttons: [...document.querySelectorAll('.dorego-transport > button')].map(element => {
+            const { x, width, height } = element.getBoundingClientRect();
+            return { x, width, height };
+          }),
         };
       });
       const first = layout.buttons[0], last = layout.buttons.at(-1)!;

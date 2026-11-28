@@ -1158,3 +1158,32 @@ case (`chord-diagrams.browser.ts:43`). Captured accessibility state still showed
 That shared visit helper now uses `waitForApp(page, ".hymn-controls")` before the
 unchanged title and exact-voicing assertions. This applies the already reviewed
 startup boundary to every chord-popup navigation; no timeout or retry changed.
+
+## 2026-11-28: DoReGo mobile layout release validation
+
+The first full local CI at `afcfb50b`
+(`work/ci-results/1795871190826-c73bf614`) failed the desktop witness's
+44-pixel transport-target assertion immediately after resizing to mobile.
+The retained screenshot shows the final, correctly sized controls, while the
+witness allowed measurements during the shell's 200-ms sidebar-padding
+transition. Readiness now also requires the mobile practice panel to be
+centered before measuring targets; the size assertions remain unchanged.
+First artifacts: `apps/dorego/work/browser-results/desktop.e2e.ts-chromium-1bc678a8`.
+
+The next full local CI at `ab24348e`
+(`work/ci-results/1795871280197-c9ced298`) reached the new geometry assertion
+but failed with `ReferenceError: __name is not defined`: tsx/esbuild attached a
+name helper to a nested, assigned arrow function sent to `page.evaluate`.
+The callback now reads the pad rectangle directly and maps button rectangles
+with an inline callback, avoiding a reference to a Node-side compiler helper.
+
+That same run independently failed Tagalujah's existing disabled-Melody-radio
+assertion after reload. The failure screenshot and trace show the reading-view
+control missing; no page error was recorded. First artifacts:
+`apps/tagaluya/work/browser-results/reader.browser.ts-chromium-58f0f2c6`.
+A separate diagnostic using the same built output, song selection, size change,
+and reload found both radio controls present and no page error. Its log and
+screenshot are retained as `/tmp/dorego-reader-diagnostic.log` and
+`work/dorego-controls-review/reader-diagnostic.png`. The missing control remains
+unexplained; the diagnostic is not proof of a flake or a fix. No Tagalujah
+assertion, timeout, product behavior, or required CI coverage was changed.

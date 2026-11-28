@@ -985,3 +985,18 @@ reviewed resource declaration now gives this existing long witness priority 50,
 matching the other long browser checks. Its scheduler-policy assertion verifies
 propagation. All coverage, locks, assertions and budgets remain unchanged. The
 next validation measures `npm run ci -- --base origin/main --all --workers 16`.
+
+## Approved guitar playback upstream merge (28 November 2026)
+
+Full applicable CI at merge commit `c157bec3`, incorporating upstream `e265545d`,
+exceeded the 60-second limit at 62.20 seconds including installation and cleanup.
+Evidence: `work/ci-results/1795867252560-3e7a5d8f` in the guitar-expression
+worktree. All 341 SongAlong units, 708 shared music units, shared contracts,
+builds and completed browser commands passed, including the guitar controls and
+native sustain witnesses. The coordinator cancelled mobile-toolbar after 25.8
+seconds and score-view after 23.1 seconds. The mobile drawer's closed-page error
+followed cancellation; it is not evidence of a separate assertion failure.
+The full run failed. No passing rerun, coverage reduction, assertion retry,
+resource-lock bypass or budget extension is claimed. Approved phrase grouping,
+restrained expression, envelope and sample selection sources were unchanged by
+the merge; upstream capo/fingering advice and musical editions were retained.

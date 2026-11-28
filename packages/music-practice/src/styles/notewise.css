@@ -90,10 +90,6 @@
 .notewise-workspace .practice-options-content {
   padding-block: 8px;
 }
-.notewise-workspace .rhythm-tap {
-  margin-block: 16px;
-  min-height: 76px;
-}
 .notewise-workspace .theory-answers {
   margin-block: 8px;
 }
@@ -116,7 +112,6 @@
     padding-top: calc(var(--app-shell-header-offset, 56px) + 12px);
     padding-inline: 8px;
     padding-bottom: 12px;
-    /* Keep the bottom action anchored while the extra toolbar row opens. */
     transition: none;
   }
   .notewise-workspace .practice-title {
@@ -132,45 +127,6 @@
   .notewise-workspace .location-hint {
     display: none;
   }
-  .notewise-workspace #rhythm-practice .practice-surface {
-    display: flex;
-    flex-direction: column;
-    height: max(
-      180px,
-      calc(100dvh - var(--app-shell-header-offset, 56px) - 68px)
-    );
-    min-height: 0;
-  }
-  .notewise-workspace #rhythm-practice .rhythm-beats {
-    flex: 0 0 auto;
-    margin: 0 0 4px;
-  }
-  .notewise-workspace #rhythm-practice .rhythm-beats span {
-    width: 32px;
-    height: 32px;
-  }
-  .notewise-workspace #rhythm-practice .presentation-feedback {
-    flex: 0 0 auto;
-  }
-  .notewise-workspace #rhythm-practice .sequence-score {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: none;
-  }
-  .notewise-workspace .rhythm-tap-slot {
-    flex: 0 0 auto;
-    padding-block: 8px;
-  }
-  .notewise-workspace .rhythm-tap-slot .rhythm-tap {
-    margin: 0;
-    min-height: 64px;
-  }
-}
-
-/* The primary mobile row keeps actions and drawer triggers in stable slots.
-   Secondary properties appear only when explicitly disclosed. */
-.notewise-mobile-controls {
-  display: none;
 }
 @media (max-width: 767px) {
   .notewise-header:has(.notewise-toolbar) > .application-toolbar {
@@ -182,17 +138,6 @@
     column-gap: 6px;
     row-gap: 0;
     padding: 6px 8px;
-  }
-  .notewise-header:has(.notewise-controls-toggle) > .application-toolbar {
-    grid-template-columns: 26px 36px minmax(0, 1fr) 38px 38px 38px;
-    grid-template-areas: "navigation volume session piano controls options";
-  }
-  .notewise-header:has(.notewise-mobile-controls:not([hidden]))
-    > .application-toolbar {
-    grid-template-areas:
-      "navigation volume session piano controls options"
-      "properties properties properties properties properties properties";
-    grid-template-rows: 44px 60px;
   }
   .notewise-header .application-toolbar-actions,
   .notewise-toolbar {
@@ -210,9 +155,6 @@
     grid-area: piano;
     min-width: 0;
   }
-  .notewise-controls-toggle {
-    grid-area: controls;
-  }
   .notewise-header .nav-toggle {
     grid-area: navigation;
     margin: 0;
@@ -225,7 +167,6 @@
   }
   .notewise-header .notewise-toolbar-volume > button,
   .notewise-header .notewise-toolbar-piano > button,
-  .notewise-header .notewise-controls-toggle,
   .notewise-header #practice-options-reopen {
     height: 44px;
     min-height: 44px;
@@ -251,13 +192,6 @@
     font-size: 12px;
     text-align: center;
   }
-  .notewise-mobile-controls:not([hidden]) {
-    display: block;
-    grid-area: properties;
-    box-sizing: border-box;
-    height: 60px;
-    padding-block: 8px;
-  }
 }
 @media (max-width: 374px) {
   .notewise-header:has(.notewise-toolbar) > .application-toolbar {
@@ -265,19 +199,6 @@
       "navigation volume . piano options"
       "session session session session session";
     grid-template-rows: 44px 48px;
-  }
-  .notewise-header:has(.notewise-controls-toggle) > .application-toolbar {
-    grid-template-areas:
-      "navigation volume . piano controls options"
-      "session session session session session session";
-  }
-  .notewise-header:has(.notewise-mobile-controls:not([hidden]))
-    > .application-toolbar {
-    grid-template-areas:
-      "navigation volume . piano controls options"
-      "session session session session session session"
-      "properties properties properties properties properties properties";
-    grid-template-rows: 44px 48px 60px;
   }
 }
 

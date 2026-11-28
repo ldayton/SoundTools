@@ -59,7 +59,7 @@ const server = createServer(async (req, res) => {
     path =
       url.pathname === "/" ||
       url.pathname === "/settings" ||
-      /^\/(piano|guitar|rhythm|theory)(\/[a-z0-9-]+)*\/?$/.test(url.pathname)
+      /^\/(piano|guitar|theory)(\/[a-z0-9-]+)*\/?$/.test(url.pathname)
         ? "index.html"
         : url.pathname.slice(1);
   if (path === "sw.js" && failInstall) {

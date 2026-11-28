@@ -114,7 +114,7 @@ export async function practiceOption(
     );
     return;
   }
-  if (["#hymn-size", "#hymn-tempo", "#rhythm-tempo"].includes(selector)) {
+  if (["#hymn-size", "#hymn-tempo"].includes(selector)) {
     await dismissPracticeDrawer(page);
     if (selector.startsWith("#hymn-")) await openHymnControls(page);
     await page.locator(selector).fill(value);

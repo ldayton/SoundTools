@@ -20,7 +20,7 @@ export function readRoute(
   if (path === "/" || path === "/index.html")
     return {
       kind: "exercise",
-      mode: belongsToApp(fallback, app)
+      mode: EXERCISES.some(e => e.mode === fallback && belongsToApp(e.mode, app))
         ? fallback
         : app === "songalong"
           ? "sight"
@@ -43,8 +43,6 @@ export function icon(name: string) {
       '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v8m8-8v8M9 13H7V5m10 8h-2V5M9 13v6m6-6v6"/>',
     guitar:
       '<path d="m13 9 6-6 2 2-6 6m-3-3c-2-1-4 0-4 2-4 0-6 4-3 7s7 1 7-3c2 0 3-2 2-4"/><circle cx="9" cy="13" r="1.5"/>',
-    rhythm:
-      '<path d="M9 18V5l10-2v13M9 8l10-2"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="16" cy="16" rx="3" ry="2"/>',
     settings:
       '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="9" cy="18" r="2" fill="currentColor"/>',
     theory: '<path d="M4 7h16M4 12h16M4 17h16M10 3 8 21m8-18-2 18"/>',

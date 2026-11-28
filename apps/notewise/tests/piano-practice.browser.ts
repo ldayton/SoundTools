@@ -121,103 +121,12 @@ try {
   ]) {
     assert.equal(await page.locator(`#pattern-${field}`).inputValue(), value);
   }
-  await selectPractice(page, "rhythm");
-  await page.locator(".rhythm-start").waitFor();
-  const tap = page.locator(".rhythm-tap");
-  await tap.click();
-  assert.equal(
-    await page.locator(".rhythm-tap-response").textContent(),
-    "Press Start",
-  );
-  assert.equal(
-    await tap.evaluate((e) => getComputedStyle(e).userSelect),
-    "none",
-  );
-  for (const width of [390, 1280]) {
-    await page.setViewportSize({ width, height: 1000 });
-    await page.waitForTimeout(100);
-    const widths = await page
-      .locator(".rhythm-bar svg")
-      .evaluateAll((es) => es.map((e) => e.getBoundingClientRect().width));
-    assert.equal(widths.length, 4);
-    assert.ok(
-      widths.every((w) => Math.abs(w - widths[0]) < 1),
-      `equal bar widths at ${width}px: ${widths}`,
-    );
-    const above =
-      (await tap.boundingBox())!.y -
-      ((await page.locator("#rhythm-practice .sequence-score").boundingBox())!
-        .y +
-        (await page.locator("#rhythm-practice .sequence-score").boundingBox())!
-          .height);
-    const below =
-      (await page.locator("#rhythm-practice .practice-surface").boundingBox())!
-        .y +
-      (await page.locator("#rhythm-practice .practice-surface").boundingBox())!
-        .height -
-      (await page
-        .locator("#rhythm-practice .practice-surface")
-        .evaluate(
-          (e) =>
-            parseFloat(getComputedStyle(e).paddingBottom) +
-            parseFloat(getComputedStyle(e).borderBottomWidth),
-        )) -
-      ((await tap.boundingBox())!.y + (await tap.boundingBox())!.height);
-    assert.ok(Math.abs(above - below) < 1, "tap spacing is balanced");
-  }
-  await page.clock.install();
-  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
-  await practiceOption(page, "#rhythm-tempo", "120");
-  await midiAction(page, "Connect MIDI keyboard", () => page.clock.runFor(250));
-  await page
-    .getByText("GO:KEYS 5 connected. Play at your own pace.", { exact: true })
-    .waitFor({ state: "attached" });
-  await page.locator(".rhythm-start").click();
-  assert.match(
-    (await page.locator(".sequence-feedback:visible").textContent())!,
-    /Count-in/,
-  );
-  await tap.click();
-  assert.equal(
-    await page.locator(".rhythm-tap-response").textContent(),
-    "Wait…",
-  );
-  await page.setViewportSize({ width: 900, height: 1000 });
-  await page.clock.runFor(4000);
-  for (let i = 0; i < 16; i++) {
-    await on(60);
-    await off(60);
-    await page.clock.runFor(500);
-  }
-  await page.clock.runFor(250);
-  assert.match(
-    (await page.locator(".sequence-feedback:visible").textContent())!,
-    /16 of 16 on the beat · 0 missed · 0 extra/,
-  );
-  await page.locator(".rhythm-start").click();
-  await page.clock.runFor(500);
-  await page.evaluate(() => window.dispatchEvent(new Event("blur")));
-  await page.clock.runFor(20000);
-  assert.match(
-    (await page.locator(".sequence-feedback:visible").textContent())!,
-    /Stopped/,
-  );
-  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  // Timing assertions are complete; allow normal drawer animations during navigation.
-  await page.clock.resume();
-  for (const mode of ["patterns", "rhythm"]) {
-    await selectPractice(page, mode);
-    await page.setViewportSize({ width: 320, height: 844 });
-    if (mode === "patterns") await page.locator(".pattern-count").waitFor();
-    if (mode === "rhythm") await page.locator(".rhythm-start").waitFor();
-    await page.clock.runFor(100);
-    await page.waitForFunction(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    );
-  }
+  await page.setViewportSize({width:320,height:844});
+  await page.locator(".pattern-count").waitFor();
+  await page.waitForFunction(()=>document.documentElement.scrollWidth<=innerWidth);
   assert.deepEqual(errors, []);
   console.log(
-    `${engine}: interval MIDI/persistence, rhythm timing/count-in/interruption and mobile layouts passed.`,
+    `${engine}: interval MIDI/persistence and mobile layouts passed.`,
   );
 } catch (error) {
   await captureFailure(browser, error);

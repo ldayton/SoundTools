@@ -134,7 +134,7 @@ export function prepareScoreLayoutSource(source: string, options: {staffScale?:n
     +(options.compactStaves?`%%staffsep 24\n%%sysstaffsep ${SCORE_LAYOUT.minimumStaffSeparation}\n%%musicspace 4\n`:"")+source;
 }
 
-export type ScoreLayoutMode = "reflow" | "wrap" | "rhythm";
+export type ScoreLayoutMode = "reflow" | "wrap";
 export type AbcScoreLayoutInput = {
   source: string;
   width: number;
@@ -188,7 +188,6 @@ export class AbcScoreLayout {
       lineBreaks:this.plan?sectionBreaks(this.plan.sections.map(section=>section.breaks)):undefined,
       responsive:"resize",oneSvgPerLine:true,
       wrap:mode==="wrap"?{minSpacing:2,maxSpacing:2.6,preferredMeasuresPerLine:0}:undefined,
-      timeBasedLayout:mode==="rhythm"?{minPadding:8,minWidth:Math.max(100,width/scale-2*SCORE_LAYOUT.padding)}:undefined,
       paddingtop:12,paddingbottom:18,paddingleft:SCORE_LAYOUT.padding,paddingright:SCORE_LAYOUT.padding,
     };
   }

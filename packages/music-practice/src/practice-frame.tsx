@@ -338,55 +338,6 @@ export function HymnFrame({
     </PracticeFrame>
   );
 }
-export const rhythmBodyState = () => frameState({ beat: -1 });
-export function RhythmFrame({
-  presentation,
-  transport,
-  headerHost,
-  tap,
-  body,
-}: FrameProps & { tap: ReactNode; body: ReturnType<typeof rhythmBodyState> }) {
-  const s = useSyncExternalStore(body.subscribe, body.getSnapshot);
-  return (
-    <PracticeFrame
-      presentation={presentation}
-      kind="rhythm"
-      label="Rhythm practice"
-      className="sequence-practice"
-    >
-      <div className="rhythm-beats" aria-label="Beats">
-        {[1, 2, 3, 4].map((beat) => (
-          <span
-            key={beat}
-            data-beat={beat}
-            className={beat === s.beat ? "is-beat" : undefined}
-          >
-            {beat}
-          </span>
-        ))}
-      </div>
-      <div className="presentation-feedback">
-        <PracticeFeedback model={presentation} kind="rhythm" />
-      </div>
-      <div
-        className="sequence-score"
-        tabIndex={0}
-        role="region"
-        aria-label="Four-bar rhythm"
-      >
-        <div className="rhythm-paper" />
-      </div>
-      <div className="rhythm-tap-slot practice-control-slot">{tap}</div>
-      <SessionTransport
-        presentation={presentation}
-        kind="rhythm"
-        transport={transport}
-        headerHost={headerHost}
-      />
-      <div className="rhythm-midi-slot" />
-    </PracticeFrame>
-  );
-}
 export const theoryBodyState = () =>
   frameState({
     question: false,

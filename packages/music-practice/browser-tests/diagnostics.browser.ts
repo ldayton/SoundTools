@@ -39,7 +39,7 @@ const server = createServer(async (req, res) => {
         output,
         path === "/" ||
           path === "/settings" ||
-          /^\/(piano|guitar|rhythm|theory|services)(\/[a-z0-9-]+)*\/?$/.test(path)
+          /^\/(piano|guitar|theory|services)(\/[a-z0-9-]+)*\/?$/.test(path)
           ? "index.html"
           : path.slice(1),
       ),
@@ -47,7 +47,7 @@ const server = createServer(async (req, res) => {
     res.setHeader(
       "Content-Type",
       mime[extname(path)] ||
-        (/^\/(piano|guitar|rhythm|theory|services)(\/[a-z0-9-]+)*\/?$/.test(path) ||
+        (/^\/(piano|guitar|theory|services)(\/[a-z0-9-]+)*\/?$/.test(path) ||
         path === "/" ||
         path === "/settings"
           ? "text/html"

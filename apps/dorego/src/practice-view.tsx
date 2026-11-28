@@ -206,8 +206,6 @@ function PracticeTransport({
           variant="default"
           aria-label="Go to start"
           title="Go to start"
-          w={44}
-          miw={44}
           px={0}
           onClick={restart}
         >
@@ -224,8 +222,6 @@ function PracticeTransport({
           autoContrast
           aria-label={label}
           title={label}
-          w={44}
-          miw={44}
           px={0}
           loading={state.warming}
           disabled={state.warming || !!state.error}
@@ -287,8 +283,6 @@ function RoundButton({
     <Button
       id={step < 0 ? 'previous-round' : 'next-round'}
       variant="default"
-      w={44}
-      miw={44}
       px={0}
       aria-label={label}
       title={label}
@@ -342,11 +336,13 @@ export function PracticeView({
           </div>
           {feedback}
           <ReferenceKeyboard model={piano} audition={audition} />
+          <div className="practice-notice">
+            <Alert id="toast" className="dorego-toast" role="status" hidden={!state.toast}>
+              {state.toast}
+            </Alert>
+          </div>
         </div>
       </section>
-      <Alert id="toast" className="dorego-toast" role="status" hidden={!state.toast}>
-        {state.toast}
-      </Alert>
     </>
   );
 }

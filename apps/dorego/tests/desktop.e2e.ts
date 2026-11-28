@@ -189,6 +189,23 @@ try {
       const box = (await button.boundingBox())!;
       assert.ok(box.width >= 44 && box.height >= 44, 'Transport actions remain touch-sized');
     }
+    if (width < 768) {
+      const layout = await page.evaluate(() => {
+        const bounds = (element: Element) => {
+          const { x, width, height } = element.getBoundingClientRect();
+          return { x, width, height };
+        };
+        return {
+          pads: bounds(document.querySelector('.note-instrument')!),
+          buttons: [...document.querySelectorAll('.dorego-transport > button')].map(bounds),
+        };
+      });
+      const first = layout.buttons[0], last = layout.buttons.at(-1)!;
+      assert.ok(Math.abs(first.x - layout.pads.x) < 1 && Math.abs(last.x + last.width - layout.pads.x - layout.pads.width) < 1, 'Mobile playback actions span the piano pad');
+      for (const button of layout.buttons) {
+        assert.ok(Math.abs(button.width - first.width) < 1 && button.height === first.height, 'Mobile playback buttons have equal dimensions');
+      }
+    }
     // Every part of a range segment toggles once, including native label clicks.
     if (width !== 320) {
       for (const bound of ['low', 'high']) {
@@ -570,6 +587,20 @@ try {
   await page.locator('#play').click();
   await page.getByText('Audio did not restart. Tap Resume or a piano note to try again.', {exact:true}).waitFor();
   await paused();
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.waitForFunction(() => {
+    const panel = document.querySelector('.practice-panel')!.getBoundingClientRect();
+    return document.querySelector<HTMLElement>('.practice-options')?.dataset.layout === 'mobile' &&
+      Math.abs(panel.x + panel.width / 2 - innerWidth / 2) < 1;
+  });
+  const noticePosition = await page.evaluate(() => {
+    const pads = document.querySelector('.note-instrument')!.getBoundingClientRect();
+    const notice = document.querySelector('#toast')!.getBoundingClientRect();
+    return { x: notice.x + notice.width / 2, y: notice.y + notice.height / 2, expectedY: (pads.bottom + innerHeight) / 2 };
+  });
+  assert.ok(Math.abs(noticePosition.x - 195) < 1 && Math.abs(noticePosition.y - noticePosition.expectedY) < 1, 'The error is centered between the piano pads and the bottom of the screen');
+  await page.setViewportSize({ width: 1280, height: 900 });
+
   await page.locator('#play').click();
   await playing();
   await progress();

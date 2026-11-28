@@ -110,12 +110,25 @@
   display: none;
 }
 .dorego-toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 300;
-  max-width: min(90vw, 520px);
+  max-width: min(100%, 50vw, 520px);
+}
+.dorego-workspace:has(.practice-panel) {
+  padding-bottom: 0;
+}
+.dorego-workspace .practice-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - var(--app-shell-header-offset, 72px) - var(--mantine-spacing-md));
+}
+.dorego-workspace .practice-panel > * {
+  flex-shrink: 0;
+}
+.practice-notice {
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding-block: 16px;
 }
 @media (max-width: 760px) {
   .dorego-desktop-count {
@@ -206,7 +219,7 @@
 .dorego-toolbar > .dorego-transport { grid-column: 2; }
 .dorego-workspace .practice-panel {
   background: #fff;
-  padding-block: 24px;
+  padding-block: 24px 0;
   border: 0;
   border-radius: 0;
 }
@@ -227,7 +240,7 @@
 }
 @media (max-width: 760px) {
   .dorego-workspace .practice-panel {
-    padding-block: 20px;
+    padding-block: 20px 0;
   }
   .dorego-workspace .dorego-piano {
     margin-inline: 0;
@@ -470,7 +483,7 @@
 }
 @media (max-width: 767px) {
   .dorego-workspace .practice-panel {
-    padding-block: 4px;
+    padding-block: 4px 0;
   }
   .dorego-workspace #exercise-title {
     font-size: 20px;
@@ -607,16 +620,33 @@
 /* Keep all transport actions beside the readout, including in fullscreen. */
 .practice-playback { margin: 8px 0 12px; }
 .practice-playback .dorego-transport > button {
+  width: 44px;
+  min-width: 44px;
   height: 48px;
   border-radius: var(--mantine-radius-xl);
 }
 .practice-playback #play { width: 52px; min-width: 52px; height: 52px; }
 .practice-playback #repeat-round { width: 64px; min-width: 64px; padding-inline: 0; }
 .practice-progress { margin-top: 4px; }
+@media (max-width: 767px) {
+  .practice-playback .dorego-transport {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: 100%;
+  }
+  .practice-playback .dorego-transport > button,
+  .practice-playback #play,
+  .practice-playback #repeat-round {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+  }
+}
 @media (max-width: 767px) and (max-height: 600px) {
   .practice-playback { margin-block: 2px; }
   .practice-playback .dorego-transport > button,
-  .practice-playback #play { height: 44px; }
+  .practice-playback #play,
+  .practice-playback #repeat-round { height: 44px; }
   .note-instrument { margin-top: 6px; }
 }
 @media (max-width: 359px) {

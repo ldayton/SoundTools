@@ -178,7 +178,9 @@ try {
       const tempo = document.querySelector('.dorego-tempo')!.getBoundingClientRect();
       const stage = document.querySelector('#stage')!.getBoundingClientRect();
       const controls = document.querySelector('.dorego-transport')!.getBoundingClientRect();
-      return low.width > 0 && high.width > 0 && high.bottom <= header.bottom && controls.top >= stage.bottom &&
+      const panel = document.querySelector('.practice-panel')!.getBoundingClientRect();
+      const centeredMobilePanel = innerWidth >= 768 || Math.abs(panel.x + panel.width / 2 - innerWidth / 2) < 1;
+      return centeredMobilePanel && low.width > 0 && high.width > 0 && high.bottom <= header.bottom && controls.top >= stage.bottom &&
         controls.left >= 0 && controls.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
         Math.abs(tempo.x + tempo.width / 2 - innerWidth / 2) < 2;
     });

@@ -896,3 +896,23 @@ remaining genre chain, preserves raw/reference arranger expectations, and checks
 TAB-only hints can be toggled without changing frets. The provisioning lock
 fixture uses an explicit temporary apt root so real Linux host sources cannot
 change what its fake `sudo tee` captures. Complete hosted Nightly remains required.
+
+### Tempo edit recurrence during Nightly repair (28 November 2026)
+
+Pre-push CI on `1c804a31` failed its required DoReGo desktop owner in
+`work/ci-results/1795864532859-7876e45f/logs/dorego_ci_core_chromium_1.log`:
+the input event carried 240, but Enter 11 ms later saw 65 BPM, with persisted
+and ARIA values both 65. This matches the unresolved 25 November case above.
+The run completed in 59.87 seconds; this was an assertion failure, not budget
+exhaustion. The first failure is retained, with no changed assertion or retry.
+
+A diagnostic desktop run wrapped the native value setter and passed; a second
+wrapped the input's React value setter, recorded the value tracker and applied
+6x CPU throttling only during the edit. It also passed, recording the expected
+240 BPM formatter writes and commit. Logs are
+`work/nightly-investigation/tempo-setter-diagnostic.log` and
+`work/nightly-investigation/tempo-own-setter-diagnostic.log`. Focused attempts
+to reproduce retained suffix/caret state in the shared control also passed.
+Those diagnostic changes were removed. None establishes a fix or identifies
+the original resetting write. The tempo investigation remains open; subsequent
+passing validation must not be reported as a tempo regression fix.

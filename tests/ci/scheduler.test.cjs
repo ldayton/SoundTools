@@ -189,3 +189,8 @@ test('parallel Vite servers and catalog partitions own distinct writable depende
   assert.equal(catalogs.length, 6);
   assert.equal(new Set(catalogs.map(task => task.env.CI_VITE_CACHE_DIR)).size, 6);
 });
+
+test('reviewed multi-browser capacity and long-check priority reach the scheduler',()=>{
+  assert.equal(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx','tests/instrument-features.browser.ts']).slots,4);
+  assert.equal(declaration('songalong','npm',['exec','--workspace=songalong','--','tsx','tests/score-view.browser.ts']).priority,50);
+});

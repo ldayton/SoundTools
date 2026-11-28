@@ -48,3 +48,14 @@ export function renderWrappedAccompaniment(){
  return {systems:host.querySelectorAll('svg').length,notes:host.querySelectorAll('.abcjs-note:not(.abcjs-tabNumber)').length,
   misplacedLyrics:[...host.querySelectorAll<SVGGraphicsElement>('.abcjs-lyric')].filter(n=>n.closest('.abcjs-v1')).map(n=>n.textContent)};
 }
+
+/** Opening signatures plus three named staves must fit a normal phone frame. */
+export function renderNarrowKeyboard(){
+ const frameHost=document.createElement('div');frameHost.style.width='369px';document.body.append(frameHost);
+ const host=document.createElement('div');frameHost.append(host);
+ const abc='X:1\nM:4/4\nL:1/4\n%%score Voice | {RH | LH}\nV:Voice clef=treble name="Voice"\nV:RH clef=treble name="Piano"\nV:LH clef=bass\nK:Eb\n[V:Voice] "Eb"G F F "Bb7"E | F G G2 |]\nw: one two three four five six end\n[V:RH] [EG] [DF] [DF] [CE] | [DF] [EG] [EG]2 |]\n[V:LH] [E,G,] G, G, [B,,E,] | G, G, G,2 |]';
+ drawPracticeScore(host,abc,369,{fitHymnSystems:true,printedScore:true,fingerings:true,generatedPianoFingerings:true,pianoStaffIndexes:[1,2]});
+ const frame=host.getBoundingClientRect();
+ const outside=[...host.querySelectorAll<SVGGraphicsElement>('.abcjs-note,.abcjs-lyric,.hymn-fingering,.abcjs-staff-extra')].filter(visibleScoreInk).flatMap(n=>{const b=n.getBoundingClientRect();return b.width&&(b.left<frame.left-1||b.right>frame.right+1)?[n.textContent]:[];});
+ const marks=host.querySelectorAll('.hymn-fingering').length;frameHost.remove();return {outside,marks};
+}

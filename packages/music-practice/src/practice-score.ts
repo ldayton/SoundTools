@@ -139,10 +139,12 @@ export function drawPracticeScore(
   const prepareTune = (tune: TuneObject) => {
     prepareScoreMarkings(tune, options.barNumbers);
     restoreDeclaredStaffTitles(tune,source);
-    if(options.guitarAccompaniment && width<500)
+    if(options.printedScore && width<500)
       for(const line of tune.lines)for(const staff of line.staff||[]){
         const named=staff as typeof staff & {title?:string[]};
-        if(named.title)named.title=named.title.map(name=>name==='Voice'?'Vox':name==='Guitar'?'Gtr.':name);
+        // The instrument toolbar and staff controls retain the full names.
+        // Reserve the narrow score frame for signatures, notes and lyrics.
+        delete named.title;
       }
     // A chord chart retains sung underlay while projecting away its staff.
     const hiddenForLayout=options.chordsOnly&&options.guitarAccompaniment

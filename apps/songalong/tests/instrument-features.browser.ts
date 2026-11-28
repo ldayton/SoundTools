@@ -8,6 +8,8 @@ try {
  const bundle=await build({entryPoints:[new URL('../../../packages/music-practice/test-fixtures/instrument-features.ts',import.meta.url).pathname],bundle:true,write:false,format:'iife',globalName:'InstrumentFeatures',platform:'browser'});
  // Four isolated, read-only render workers match this command's resource inventory.
  const discover=await newPage(browser);await discover.goto('about:blank');await discover.addScriptTag({content:bundle.outputFiles[0].text});
+ const narrowKeyboard=await discover.evaluate(()=>window.InstrumentFeatures.renderNarrowKeyboard());
+ assert(narrowKeyboard.marks>0);assert.deepEqual(narrowKeyboard.outside,[],'Named Voice/keyboard opening, signatures and hints fit the phone page');
  const wrapped=await discover.evaluate(()=>window.InstrumentFeatures.renderWrappedAccompaniment());
  assert(wrapped.systems>1);assert.equal(wrapped.notes,20,'TAB continuation headers must not introduce extra instrument notes');
  assert.deepEqual(wrapped.misplacedLyrics,[],'Voice lyrics belong only to Voice across system boundaries');

@@ -117,6 +117,13 @@ try {
   await waitForApp(combined,'.hymn-controls');await openHymnControls(combined);
   await expect(fingerings).toBeEnabled();await fingerings.check();await dismissPracticeDrawer(combined);
   await expect(combined.locator('.hymn-fingering').first()).toBeVisible();
+  const pianoOutside=await combined.locator('.hymn-paper').evaluate(paper=>{
+   const frame=paper.getBoundingClientRect();
+   return [...paper.querySelectorAll<SVGGraphicsElement>('.abcjs-note,.abcjs-lyric,.hymn-fingering,.abcjs-staff-extra')].filter(n=>getComputedStyle(n).visibility!=='hidden').flatMap(n=>{
+    const b=n.getBoundingClientRect();return b.width&&(b.left<frame.left-1||b.right>frame.right+1)?[n.textContent]:[];
+   });
+  });
+  assert.deepEqual(pianoOutside,[],'Voice/keyboard signatures, notes and fingerings obey the page width');
   assert(await combined.locator('.hymn-fingering').evaluateAll(nodes=>nodes.every(n=>!(n as HTMLElement).dataset.noteId?.startsWith('0:'))),'Keyboard hints never label Voice');
   await combined.close();
  }

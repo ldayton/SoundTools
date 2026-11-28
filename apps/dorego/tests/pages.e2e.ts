@@ -528,6 +528,8 @@ try {
   const validSaved = await page.evaluate(() => localStorage.getItem('dorego.current'));
   const highBefore = await readSpecValue(page, 'high');
   await page.locator('#low-spin').click();
+  const extendedRange = page.getByRole('dialog', { name: 'Choose lowest note' }).getByRole('button', { name: 'Extended range', exact: true });
+  if (await extendedRange.getAttribute('aria-pressed') !== 'true') await extendedRange.click();
   const unavailable = page
     .getByRole('dialog', { name: 'Choose lowest note' })
     .getByRole('button', { name: 'B6', exact: true });

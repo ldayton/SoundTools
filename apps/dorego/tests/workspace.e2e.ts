@@ -77,6 +77,10 @@ try {
   assert.equal(await page.getByRole('button', { name: 'Help', exact: true }).count(), 0);
   await page.locator('#low-spin').click();
   const pitchPicker = page.getByRole('dialog', { name: 'Choose lowest note' });
+  assert.equal(await pitchPicker.locator('button[data-value]').count(), 33);
+  assert.equal(await pitchPicker.locator('button[data-value]').first().getAttribute('data-value'), '52');
+  assert.equal(await pitchPicker.locator('button[data-value]').last().getAttribute('data-value'), '84');
+  await pitchPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
   assert.equal(await pitchPicker.locator('button[data-value]').count(), 60);
   assert.equal(
     await pitchPicker.locator('button[data-value]').first().getAttribute('data-value'),

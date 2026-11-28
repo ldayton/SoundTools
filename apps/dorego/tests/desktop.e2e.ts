@@ -192,13 +192,14 @@ try {
     const highPicker = page.getByRole('dialog', { name: 'Choose highest note' });
     await highPicker.waitFor();
     if (width <= 760) {
+      await page.waitForFunction(() => document.activeElement?.getAttribute('data-value') === '66');
       const selected = highPicker.getByRole('button', { name: 'F♯4', exact: true });
       const box = (await selected.boundingBox())!;
       assert.ok(box.width >= 44 && box.height >= 44, 'Phone note choices remain touch-sized');
       const popup = (await highPicker.boundingBox())!;
       assert.ok(popup.height <= 900 * .65 + 1 && popup.y + popup.height <= 900 - 11, 'Phone chooser stays bounded and scrollable');
       await page.keyboard.press('ArrowDown');
-      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-value')), '70', 'Arrow down follows the four-column phone grid');
+      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-value')), width < 360 ? '70' : '72', 'Arrow down follows the visible phone grid');
       await page.keyboard.press('ArrowUp');
     }
     assert.ok(await highPicker.getByRole('button', { name: 'C4', exact: true }).isDisabled(), 'The octave span remains required');
@@ -212,6 +213,25 @@ try {
     assert.equal(await readSpecValue(page, 'low'), '53');
     await page.locator('#low-spin').click();
     await lowPicker.getByRole('button', { name: 'E3', exact: true }).click();
+    if (width === 390) {
+      await page.locator('#low-spin').click();
+      assert.equal(await lowPicker.locator('button[data-value]').count(), 33);
+      assert.equal(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).getAttribute('aria-pressed'), 'false');
+      await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
+      await lowPicker.getByRole('button', { name: 'D♯3', exact: true }).click();
+      await page.locator('#low-spin').click();
+      assert.equal(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).getAttribute('aria-pressed'), 'true', 'A selected extended note remains visible when reopened');
+      assert.equal(await lowPicker.getByRole('button', { name: 'D♯3', exact: true }).getAttribute('aria-pressed'), 'true');
+      await page.waitForFunction(() => document.activeElement?.getAttribute('data-value') === '51');
+      await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
+      assert.equal(await lowPicker.getByRole('button', { name: 'D♯3', exact: true }).count(), 0);
+      assert.equal(await page.locator('#low-spin').inputValue(), 'D♯3', 'Collapsing the chooser never changes the selected range');
+      assert.ok(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).evaluate(el => el === document.activeElement), 'Collapsing an extended selection retains keyboard focus');
+      await page.keyboard.press('Escape');
+      await lowPicker.waitFor({ state: 'hidden' });
+      await page.locator('#low-spin').click();
+      await lowPicker.getByRole('button', { name: 'E3', exact: true }).click();
+    }
   }
   await page.reload();
   await ready();

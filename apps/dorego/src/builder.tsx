@@ -35,6 +35,8 @@ import { MIN_NOTE, MAX_NOTE } from './exercise-settings';
 import { ToolbarNumber } from '@ldayton/ui/toolbar-number';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { ResponsivePitchField } from '@ldayton/ui/responsive-pitch-field';
+import { useMediaQuery } from '@mantine/hooks';
+const COMPACT_PITCH_RANGE = { low: 52, high: 84 }; // E3–C6
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
 export type SpecPatch = Partial<ExerciseSpec> & { startingNote?: number };
 export interface BuilderModel {
@@ -54,13 +56,15 @@ function PitchField({
   value: number;
   change(value: number): void;
 }) {
+  const smallPhone = useMediaQuery('(max-width:359px)', undefined, { getInitialValueInEffect: false });
   return (
     <ResponsivePitchField
       id={`${bound}-spin`}
       label={`${bound === 'low' ? 'Lowest' : 'Highest'} note`}
       value={value}
       onChange={change}
-      mobileColumns={4}
+      mobileColumns={smallPhone ? 4 : 6}
+      compactRange={COMPACT_PITCH_RANGE}
       displayLabel={bound === 'low' ? 'Lowest' : 'Highest'}
       choices={Array.from({ length: MAX_NOTE - MIN_NOTE + 1 }, (_, index) => {
         const midi = index + MIN_NOTE;

@@ -12,6 +12,7 @@ Share behavior with real consumers, not wrappers around every library component:
 
 - `responsive-pitch-field`: owns labels, desktop popup, optional mobile wheel,
   dismissal, focus and lifecycle. Callers supply musical choices/constraints.
+  An optional compact range adds an Extended range toggle without changing selected notes.
 - `tempo-control`, `committed-number`, `volume-control`: common editing (Enter/blur commit, Escape cancel, optional decimals/rejection/reset) and mute
   presentation; controllers retain musical timing and saved-unit conversions.
   Toolbar volume popovers and inline volume controls include a separate mute/unmute

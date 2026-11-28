@@ -10,4 +10,7 @@ const services:Service[]=[{id:"fixture",date:"2026-11-28",title:"Reader fixture"
   {id:"fixture-first",tagalog:"Unang linya",english:"First line",melody:{abc:melody}},
   {id:"fixture-second",tagalog:"Ikalawang linya",english:"Second line",melody:{abc:melody}},
 ]}]}]}];
+// Multiple generic pages exercise the shared pager without inventing product music.
+const first=services[0].songs[0];
+services[0].songs.push({...first,id:"fixture-next",title:"Next reading fixture"},{...first,id:"fixture-last",title:"Last reading fixture"});
 createRoot(document.getElementById("app")!).render(<SoundToolsProvider primaryColor="blue"><Tagalujah services={services}/></SoundToolsProvider>);

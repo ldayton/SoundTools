@@ -22,8 +22,15 @@ Horizontal swipes move to adjacent songs without wrapping, while vertical
 scrolling remains native. Preferences are versioned local storage; service/song
 URLs and offline routes use `/services/:service/:song`.
 
-Gesture recognition and the shell offline controller live in
-`packages/browser-controls`, also used by the existing practice apps. The Vercel project is `tagalujah`, using the standard staged release flow.
+Mobile song paging uses `packages/ui/swipe-pager`: native horizontal scroll
+snapping with independently scrolling song pages, fixed toolbar geometry, and
+inactive pages excluded from focus and the accessibility tree. Desktop keeps
+the standard document layout. The shared UI styles honor reduced motion for
+transitions and animations across apps. The existing CI reader browser witness
+owns native Chromium dragging/reversal, vertical scrolling, boundaries, resize
+alignment and reduced motion; WebKit also checks snapping and layout.
+The shell offline controller lives in `packages/browser-controls`, also used
+by the existing practice apps. The Vercel project is `tagalujah`, using the standard staged release flow.
 Production is https://tagalujah.lilydayton.me. The `tagalujah` project in Sentry
 uses the shared opt-in diagnostics adapter and production-only source-map uploads.
 

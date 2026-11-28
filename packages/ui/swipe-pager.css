@@ -1,0 +1,4 @@
+.swipe-pager { display:flex; height:100%; min-height:0; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; overscroll-behavior:none; scrollbar-width:none; }
+.swipe-pager::-webkit-scrollbar { display:none; }
+.swipe-pager[data-blocked] { overflow-x:hidden; }
+.swipe-pager-page { flex:0 0 100%; min-width:0; height:100%; overflow-y:auto; overscroll-behavior-y:none; scroll-snap-align:start; scroll-snap-stop:always; }

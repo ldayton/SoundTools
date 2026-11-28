@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./provider.tsx",
+    "./swipe-pager": "./swipe-pager.tsx",
     "./render-error-boundary": "./render-error-boundary.tsx",
     "./restore-focus": "./restore-focus.ts",
     "./view-state": "./view-state.ts",

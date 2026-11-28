@@ -1040,3 +1040,17 @@ remain covered without expecting an event when no horizontal movement occurs.
 All title, cancellation, resize and boundary assertions remain unchanged; no
 sleep, retry, timeout increase or product change was added. The cause of every
 earlier passing run is not inferred from this correction.
+
+The next full run (`1795868204850-64cd3f4b`, commit `b618c704`) completed in
+52.07 seconds, with the corrected reader witness passing. It failed the known
+DoReGo tempo-edit case. First artifacts:
+`apps/dorego/work/browser-results/desktop.e2e.ts-chromium-18d85c73` and the retained
+`dorego_ci_core_chromium_1.log`. Event capture shows focus at 65 BPM, a native
+input event carrying 240, and Enter 12 ms later already containing 65 BPM;
+the settings owner stayed at 65. NumericFormat tracks selection ranges on
+keydown, including the preceding ArrowUp, whereas the helper's bulk `fill`
+replacement does not send that selection/typing sequence. The helper now uses
+Control/Meta+A followed by real digit keys. The exact 240-BPM persisted value,
+musical-position and PCM assertions remain unchanged. No retry, sleep, timeout
+increase or product input change is introduced, and this correction does not
+claim a product fix for every possible programmatic input replacement.

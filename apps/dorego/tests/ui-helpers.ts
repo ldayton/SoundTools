@@ -160,7 +160,11 @@ export async function setTempo(page: Page, bpm: number) {
     };
   })()`);
   try {
-    await page.locator('#bpm').fill(String(bpm));
+    // NumericFormat tracks the selection on keydown. After ArrowUp, a bulk
+    // DOM replacement can reuse that earlier caret range and restore the old
+    // formatted value. Exercise the user's select-and-type edit instead.
+    await page.locator('#bpm').press('ControlOrMeta+A');
+    await page.locator('#bpm').pressSequentially(String(bpm));
     await page.locator('#bpm').press('Enter');
     // ARIA reflects the draft. Also require the settings owner's persisted
     // value so an uncommitted edit cannot be mistaken for a successful commit.

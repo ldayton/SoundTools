@@ -5,6 +5,7 @@ import {
   newPage,
   captureFailure,
   closeBrowser,
+  waitForApp,
 } from "../../../scripts/ci/browser-harness.cjs";
 import { macBookAir13, iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
@@ -40,6 +41,7 @@ try {
       await page.goto(
         `${server.base}/piano/hymns/${id}?mode=playback&low=none&high=none&octave=${octave}&capo=score&${query}`,
       );
+      await waitForApp(page, ".hymn-controls");
       await expect(page.locator(".sequence-title")).toBeVisible();
     }
     async function shape(expected: (number | null)[]) {

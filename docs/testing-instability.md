@@ -1149,3 +1149,12 @@ also verifies the zero slider value and `Muted` readout before awaiting saving.
 Corrected shared and PCM checks are retained in
 `volume-autofocus-after-{chromium,webkit}.log` and
 `volume-piano-audio-after.log` under `work/nightly-investigation/`.
+
+The last WebKit core command in run `46143856487` completed with the same startup
+race in the chord-popup owner's `visit` helper, on the phone In Christ Alone
+case (`chord-diagrams.browser.ts:43`). Captured accessibility state still showed
+`Opening saved practice…` and no title. Its first command log is
+`work/nightly-investigation/final-songalong-webkit-timings/1795868411576-c417a4c7/logs/songalong_nightly_core_webkit_7.log`.
+That shared visit helper now uses `waitForApp(page, ".hymn-controls")` before the
+unchanged title and exact-voicing assertions. This applies the already reviewed
+startup boundary to every chord-popup navigation; no timeout or retry changed.

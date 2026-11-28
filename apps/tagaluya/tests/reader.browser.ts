@@ -43,7 +43,10 @@ try {
     const track=page.locator(".swipe-pager");
     if(browser.browserType().name()==="chromium"){
       const session=await page.context().newCDPSession(page);
-      const point={x:220,y:350};
+      const bounds=(await track.boundingBox())!;
+      const point={x:dx>0?bounds.x+24:bounds.x+bounds.width-24,y:350};
+      assert(point.x+dx>=bounds.x && point.x+dx<=bounds.x+bounds.width,
+        "Native touch gestures must stay inside the viewport at phone widths");
       await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[point]});
       for(let step=1;step<=6;step++)await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:point.x+dx*step/6,y:point.y+dy*step/6}]});
       await session.send("Input.dispatchTouchEvent",{type:cancel?"touchCancel":"touchEnd",touchPoints:[]});

@@ -937,3 +937,13 @@ main toolbar. Before editing it, dismiss the previous display-options drawer
 then use the toolbar helper, which opens options only on phone layouts.
 Retained first failures: `work/nightly-investigation/fingerstyle-followup-chromium.log`
 and `work/nightly-investigation/fingerstyle-options-chromium.log`.
+
+The next Gospel UI assertion expected a `minor-` phrase ID from the legacy
+phrase library; approved phrases instead identify genre, mode and form phase.
+The witness now requires `approved-gospel-active-0` and independently checks the
+actual pitched events use D, F, G and B-flat after selecting G minor pentatonic.
+Its pause/resume, transposition, device and saved-mixer assertions remain.
+The first obsolete-name failure is retained in
+`work/nightly-investigation/genres-organ-followup.log`; a diagnostic initially
+expected all five scale classes, then confirmed the approved voicing omits C
+(`work/nightly-investigation/gospel-phrases-approved-followup.log`).

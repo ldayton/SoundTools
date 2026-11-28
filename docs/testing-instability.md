@@ -947,3 +947,11 @@ The first obsolete-name failure is retained in
 `work/nightly-investigation/genres-organ-followup.log`; a diagnostic initially
 expected all five scale classes, then confirmed the approved voicing omits C
 (`work/nightly-investigation/gospel-phrases-approved-followup.log`).
+
+Funk's player-render witness also requested an isolated legacy `funk-scratch`
+voice that is absent from the approved ensemble. It now explicitly verifies
+that legacy layer is absent and retains separate audible/finite/contributing
+renders for the approved pitched guitar and bass. The legacy scratch generator
+remains covered by `backing-pocket-styles.test.ts` and
+`backing-reggae-funk.test.ts`; no score or audio threshold changed.
+First failed stem: `apps/notewise/work/browser-results/pocket-styles.browser.ts-chromium-60c5d33b`.

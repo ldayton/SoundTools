@@ -1,3 +1,5 @@
+export const readerTextSizeBounds = {min:8,max:36} as const;
+
 export type Phrase = {id:string;tagalog?:string;english:string;melody?:{abc:string}};
 export type SongSection = {id:string;title:string;phrases:Phrase[]};
 export type Song = {id:string;title:string;role:string;status:"complete"|"excerpt"|"pending";sections:SongSection[];credit?:string};
@@ -20,7 +22,7 @@ export function readPreferences(raw:string|null):Partial<ReaderPreferences> {
   try {
     const x=JSON.parse(raw||"null");if(x?.version!==1)return {};
     return {service:typeof x.service==="string"?x.service:undefined,song:typeof x.song==="string"?x.song:undefined,
-      view:x.view==="melody"?"melody":"interlinear",textSize:typeof x.textSize==="number"&&Number.isFinite(x.textSize)?Math.max(18,Math.min(36,x.textSize)):22};
+      view:x.view==="melody"?"melody":"interlinear",textSize:typeof x.textSize==="number"&&Number.isFinite(x.textSize)?Math.max(readerTextSizeBounds.min,Math.min(readerTextSizeBounds.max,x.textSize)):22};
   }catch{return {};}
 }
 export function routeSelection(path:string) {

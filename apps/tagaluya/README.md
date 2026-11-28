@@ -13,7 +13,8 @@ links and advertisements are excluded.
 
 No supplied source contains verified staff notation. The toolbar offers the shared
 minus/plus text-size field directly on desktop and mobile, without a Text/Score
-selector or a size popover. Saved melody preferences remain readable when every
+selector or a size popover. Sizes from 8 to 36 px are supported; smaller saved
+values within that range survive reload without being raised to 18 px. Saved melody preferences remain readable when every
 phrase has real ABC underlay; no tunes are invented. The browser capability fixture
 exercises that compatibility with a shared generic hymn.
 `BilingualMelody` delegates engraving to the existing shared score layout and

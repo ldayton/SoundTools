@@ -45,6 +45,13 @@ try {
   await expect(page.locator("#reading-size")).toHaveValue("24 px");
   await page.getByRole("button",{name:"Decrease text size",exact:true}).click();
   await expect(page.locator("#reading-size")).toHaveValue("22 px");
+  await page.locator("#reading-size").fill("18");await page.locator("#reading-size").press("Enter");
+  await page.getByRole("button",{name:"Decrease text size",exact:true}).click();
+  await expect(page.locator("#reading-size")).toHaveValue("16 px");
+  await expect.poll(()=>page.locator(".original-line").first().evaluate(el=>getComputedStyle(el).fontSize)).toBe("16px");
+  await page.reload();await waitForApp(page,".tagaluya-reader");await expect(page.locator("#reading-size")).toHaveValue("16 px");
+  await page.locator("#reading-size").fill("8");await page.locator("#reading-size").press("Enter");
+  await expect(page.getByRole("button",{name:"Decrease text size",exact:true})).toBeDisabled();
   await page.locator("#reading-size").fill("28");await page.locator("#reading-size").press("Enter");
   await expect.poll(()=>page.locator(".original-line").first().evaluate(el=>getComputedStyle(el).fontSize)).toBe("28px");
   await page.reload();await waitForApp(page,".tagaluya-reader");await expect(page.locator("#reading-size")).toHaveValue("28 px");

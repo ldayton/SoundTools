@@ -8,7 +8,7 @@ import {SettingsSections} from "@ldayton/ui/settings-sections";
 import {OfflineStatusPanel,CompleteUpdateButton} from "@ldayton/ui/offline-status-panel";
 import {SwipePager} from "@ldayton/ui/swipe-pager";
 import {BilingualMelody} from "@ldayton/music-practice/bilingual-melody";
-import {hasMelody,readPreferences,resolveSelection,routeSelection,songPath,type Service,type ReaderPreferences} from "./model";
+import {readerTextSizeBounds,hasMelody,readPreferences,resolveSelection,routeSelection,songPath,type Service,type ReaderPreferences} from "./model";
 import {diagnostics,offline,offlineActions} from "./offline";
 function ServiceSongs({service,selected,select}:{service:Service|undefined;selected?:string;select(id:string):void}) {
   const {closeMobile}=usePracticeOptions();
@@ -59,7 +59,7 @@ export function Tagalujah({services}:{services:Service[]}) {
     {services.map(s=><NavLink key={s.id} label={new Intl.DateTimeFormat("en",{month:"long",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(s.date+"T12:00:00Z"))} description={s.title} active={!settings&&s.id===service?.id} component="a" href={songPath(s.id)} onClick={e=>{if(e.metaKey||e.ctrlKey)return;e.preventDefault();setPreferences(p=>({...p,service:s.id,song:s.songs[0]?.id||""}));setSettings(false);setNavigationOpen(false);}} />)}
     <SidebarTools><SettingsNavigationLink href="/settings" active={settings} onClick={e=>{e.preventDefault();history.pushState(null,"","/settings");setSettings(true);setNavigationOpen(false);}} /></SidebarTools>
   </Stack>;
-  const sizeControl=<ToolbarNumber stepper id="reading-size" label="Text size" icon={<span aria-hidden="true">Aa</span>} unit="px" value={preferences.textSize} min={18} max={36} step={2} onChange={textSize=>setPreferences(p=>({...p,textSize}))} />;
+  const sizeControl=<ToolbarNumber stepper id="reading-size" label="Text size" icon={<span aria-hidden="true">Aa</span>} unit="px" value={preferences.textSize} min={readerTextSizeBounds.min} max={readerTextSizeBounds.max} step={2} onChange={textSize=>setPreferences(p=>({...p,textSize}))} />;
   const songs=<ServiceSongs service={service} selected={song?.id} select={selectSong}/>;
 
   function renderSong(song:NonNullable<typeof service>["songs"][number],active:boolean){

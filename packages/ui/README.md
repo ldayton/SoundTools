@@ -70,3 +70,7 @@ Real update staging and reload remain owned by each app’s offline tests.
 
 `usePracticeOptions()` exposes the existing options context, including
 `closeMobile()`, for consumers whose selection should dismiss the mobile drawer.
+
+`ToolbarNumber` uses explicit minus/plus buttons automatically on touch layouts.
+Set `stepper` to keep that same control on desktop as well; numeric entry, bounds,
+step size and committed-value behavior remain shared with the default field.

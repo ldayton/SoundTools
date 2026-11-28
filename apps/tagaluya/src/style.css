@@ -29,10 +29,4 @@ body { color:#000; --mantine-color-text:#000; --mantine-color-dimmed:#000; }
   .tagaluya-workspace > .workspace-content, .tagaluya-reading, .tagaluya-reading > .practice-workspace, .tagaluya-reading .practice-workspace-content { height:100%; min-height:0; }
   :is(.tagaluya-reader,.tagaluya-reader-preview) { touch-action:auto; border:0; border-radius:0; padding:16px; min-height:calc(100dvh - 56px); }
   .tagaluya-toolbar { flex:1; min-width:0; justify-content:center; }
-  .tagaluya-toolbar .mantine-SegmentedControl-root { height:40px; box-sizing:border-box; align-items:stretch; }
-  .tagaluya-toolbar .mantine-SegmentedControl-label { height:100%; display:flex; align-items:center; justify-content:center; padding:0 6px; font-size:13px; }
-  .tagaluya-text-size .mantine-Button-label { height:100%; }
-  .tagaluya-text-size-icon { display:flex; align-items:center; padding-inline:8px; color:var(--mantine-color-dimmed); border-right:1px solid var(--mantine-color-default-border); }
-  .tagaluya-text-size-icon svg { width:18px; height:18px; }
-  .tagaluya-text-size-value { padding-inline:8px; font-weight:500; font-variant-numeric:tabular-nums; }
 }

@@ -16,6 +16,7 @@ export function ToolbarNumber({
   max,
   step = 1,
   disabled = false,
+  stepper = false,
   onChange,
 }: {
   id: string;
@@ -27,6 +28,8 @@ export function ToolbarNumber({
   max: number;
   step?: number;
   disabled?: boolean;
+  /** Keep explicit minus/plus buttons on wide screens too. */
+  stepper?: boolean;
   onChange(value: number): void;
 }) {
   const touchLayout = useMediaQuery(
@@ -36,7 +39,7 @@ export function ToolbarNumber({
       getInitialValueInEffect: false,
     },
   );
-  if (touchLayout)
+  if (touchLayout || stepper)
     return (
       <Box
         className="toolbar-number-touch"

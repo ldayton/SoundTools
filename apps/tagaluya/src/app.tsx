@@ -1,9 +1,8 @@
 import {useCallback,useEffect,useLayoutEffect,useRef,useState,useSyncExternalStore,type CSSProperties} from "react";
-import {Popover,Alert,Button,Group,NavLink,Paper,SegmentedControl,Stack,Text,Title,Tooltip} from "@mantine/core";
+import {Alert,Button,Group,NavLink,Paper,Stack,Text,Title} from "@mantine/core";
 import {useMediaQuery} from "@mantine/hooks";
 import {ApplicationLayout,AppBrand,SidebarTools,SettingsNavigationLink} from "@ldayton/ui/application-layout";
 import {PracticeOptionsProvider,PracticeWorkspace,usePracticeOptions} from "@ldayton/ui/practice-workspace";
-import {ControlIcon} from "@ldayton/ui/control-icon";
 import {ToolbarNumber} from "@ldayton/ui/toolbar-number";
 import {SettingsSections} from "@ldayton/ui/settings-sections";
 import {OfflineStatusPanel,CompleteUpdateButton} from "@ldayton/ui/offline-status-panel";
@@ -34,9 +33,8 @@ export function Tagalujah({services}:{services:Service[]}) {
   const {service,song}=resolveSelection(services,preferences);
   const [settings,setSettings]=useState(location.pathname==="/settings");
   const [navigationOpen,setNavigationOpen]=useState(false),[navigationCollapsed,setNavigationCollapsed]=useState(false),[optionsOpen,setOptionsOpen]=useState(false);
-  const title=useRef<HTMLHeadingElement>(null),anchor=useRef<string|undefined>(undefined),previousSong=useRef(song?.id);
+  const title=useRef<HTMLHeadingElement>(null),previousSong=useRef(song?.id);
   const cache=useSyncExternalStore(offline.subscribe,offline.getSnapshot);
-  const mode=preferences.view==="melody"&&hasMelody(song)?"melody":"interlinear";
   const selectSong=useCallback((id:string)=>{
     setPreferences(p=>({...p,song:id}));setSettings(false);setNavigationOpen(false);
   },[]);
@@ -54,19 +52,14 @@ export function Tagalujah({services}:{services:Service[]}) {
       window.scrollTo({top:0});
       title.current?.focus({preventScroll:true});previousSong.current=song?.id;
     }
-    if(anchor.current){document.getElementById(anchor.current)?.scrollIntoView({block:"start"});anchor.current=undefined;}
-  },[song?.id,mode]);
+  },[song?.id]);
   useEffect(()=>{window.dispatchEvent(new Event("soundtools:ready"));},[]);
-  function changeView(view:string){
-    const visible=[...document.querySelectorAll<HTMLElement>(".tagaluya-reader:not(.tagaluya-reader-preview) [data-phrase]")].find(p=>p.getBoundingClientRect().bottom>90);
-    anchor.current=visible?.id;setPreferences(p=>({...p,view:view as ReaderPreferences["view"]}));
-  }
   const navigation=<Stack h="100%" gap="sm">
     <Text size="sm" c="dimmed">Services</Text>
     {services.map(s=><NavLink key={s.id} label={new Intl.DateTimeFormat("en",{month:"long",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(s.date+"T12:00:00Z"))} description={s.title} active={!settings&&s.id===service?.id} component="a" href={songPath(s.id)} onClick={e=>{if(e.metaKey||e.ctrlKey)return;e.preventDefault();setPreferences(p=>({...p,service:s.id,song:s.songs[0]?.id||""}));setSettings(false);setNavigationOpen(false);}} />)}
     <SidebarTools><SettingsNavigationLink href="/settings" active={settings} onClick={e=>{e.preventDefault();history.pushState(null,"","/settings");setSettings(true);setNavigationOpen(false);}} /></SidebarTools>
   </Stack>;
-  const sizeControl=<ToolbarNumber id="reading-size" label="Text size" icon={<span aria-hidden="true">Aa</span>} unit="px" value={preferences.textSize} min={18} max={36} step={2} onChange={textSize=>setPreferences(p=>({...p,textSize}))} />;
+  const sizeControl=<ToolbarNumber stepper id="reading-size" label="Text size" icon={<span aria-hidden="true">Aa</span>} unit="px" value={preferences.textSize} min={18} max={36} step={2} onChange={textSize=>setPreferences(p=>({...p,textSize}))} />;
   const songs=<ServiceSongs service={service} selected={song?.id} select={selectSong}/>;
 
   function renderSong(song:NonNullable<typeof service>["songs"][number],active:boolean){
@@ -97,8 +90,7 @@ export function Tagalujah({services}:{services:Service[]}) {
       navigation={navigation} navigationOpen={navigationOpen} navigationCollapsed={navigationCollapsed}
       onNavigationOpen={()=>setNavigationOpen(true)} onNavigationClose={()=>setNavigationOpen(false)} onNavigationCollapse={()=>setNavigationCollapsed(true)} onNavigationExpand={()=>setNavigationCollapsed(false)}
       blocked={navigationOpen||optionsOpen} mainClassName={settings?undefined:"tagaluya-workspace"} headerActions={settings?undefined:<Group gap="xs" wrap="nowrap" className="tagaluya-toolbar" aria-label="Reading controls">
-        {mobile?<Popover position="bottom" withArrow shadow="md"><Popover.Target><Button variant="default" className="tagaluya-text-size" h={40} px={0} aria-label={`Text size, ${preferences.textSize} pixels`}><span className="tagaluya-text-size-icon" aria-hidden="true"><ControlIcon name="text-size" /></span><span className="tagaluya-text-size-value">{preferences.textSize}</span></Button></Popover.Target><Popover.Dropdown>{sizeControl}</Popover.Dropdown></Popover>:sizeControl}
-        <Tooltip label={hasMelody(song)?"Choose reading view":"Melody has not been added for this song"} disabled={hasMelody(song)}><SegmentedControl aria-label="Reading view" value={mode} onChange={changeView} data={[{value:"interlinear",label:mobile?"Text":"Interlinear"},{value:"melody",label:mobile?"Score":"Melody",disabled:!hasMelody(song)}]} /></Tooltip>
+        {sizeControl}
       </Group>} updateAction={cache.updateAvailable?<CompleteUpdateButton onClick={offlineActions.update}/>:undefined}>
       <div hidden={settings} className="tagaluya-reading"><PracticeWorkspace><SwipePager enabled={mobile&&!settings} blocked={navigationOpen||optionsOpen} value={song?.id||""} onChange={selectSong} pages={(service?.songs||[]).map(song=>({id:song.id,content:renderSong(song,song.id===preferences.song)}))}/></PracticeWorkspace></div>
       {settings&&<SettingsSections consent={{id:"diagnostic-sharing",client:diagnostics}} offline={<OfflineStatusPanel status={cache.status} ready={cache.ready}>{cache.retryVisible&&<Button onClick={offlineActions.retry} disabled={cache.busy}>Retry offline save</Button>}</OfflineStatusPanel>} />}

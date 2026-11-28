@@ -39,10 +39,14 @@ try {
   await expect(page.getByRole("link",{name:"He Is Lord",exact:true})).toBeVisible();
   await page.getByRole("link",{name:"He Is Lord",exact:true}).click();await expect(page.locator("#song-title")).toHaveText("He Is Lord");
   await expect(page.getByText("He is God, He is God",{exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"Increase text size",exact:true}).click();
+  await expect(page.locator("#reading-size")).toHaveValue("24 px");
+  await page.getByRole("button",{name:"Decrease text size",exact:true}).click();
+  await expect(page.locator("#reading-size")).toHaveValue("22 px");
   await page.locator("#reading-size").fill("28");await page.locator("#reading-size").press("Enter");
   await expect.poll(()=>page.locator(".original-line").first().evaluate(el=>getComputedStyle(el).fontSize)).toBe("28px");
   await page.reload();await waitForApp(page,".tagaluya-reader");await expect(page.locator("#reading-size")).toHaveValue("28 px");
-  await expect(page.getByRole("radio",{name:"Melody",exact:true})).toBeDisabled();
+  await expect(page.getByRole("radio",{name:/^(Text|Score|Interlinear|Melody)$/})).toHaveCount(0);
   const swipe=async(dx:number,dy:number,cancel=false)=>{
     const track=page.locator(".swipe-pager");
     if(browser.browserType().name()==="chromium"){
@@ -76,13 +80,15 @@ try {
     await page.setViewportSize({width,height:852});
     await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await expect.poll(()=>page.getByRole("banner").evaluate(el=>el.getBoundingClientRect().height)).toBe(56);
-    await expect(page.getByRole("button",{name:"Text size, 28 pixels",exact:true})).toBeVisible();
-    const toolbarHeights=await page.locator(".tagaluya-toolbar").evaluate(el=>[el.querySelector(".tagaluya-text-size")!.getBoundingClientRect().height,el.querySelector(".mantine-SegmentedControl-root")!.getBoundingClientRect().height]);
-    assert.deepEqual(toolbarHeights,[40,40],"Mobile controls share one height");
-    await page.getByRole("button",{name:"Text size, 28 pixels",exact:true}).click();
+    await expect(page.locator("#reading-size")).toBeVisible();
+    await expect(page.getByRole("button",{name:"Decrease text size",exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:"Increase text size",exact:true})).toBeVisible();
-    await page.getByRole("button",{name:"Text size, 28 pixels",exact:true}).click();
-    await expect(page.locator("#reading-size")).toBeHidden();
+    await page.getByRole("button",{name:"Increase text size",exact:true}).click();
+    await expect(page.locator("#reading-size")).toHaveValue("30 px");
+    await expect.poll(()=>page.locator(".tagaluya-reader .original-line").first().evaluate(el=>getComputedStyle(el).fontSize)).toBe("30px");
+    await page.getByRole("button",{name:"Decrease text size",exact:true}).click();
+    await expect(page.locator("#reading-size")).toHaveValue("28 px");
+    await expect(page.getByRole("radio",{name:/^(Text|Score|Interlinear|Melody)$/})).toHaveCount(0);
     await page.getByRole("button",{name:"Open navigation",exact:true}).click();
     const brand=page.getByRole("link",{name:"Tagalujah home",exact:true});
     const settingsLink=page.getByRole("link",{name:"Settings",exact:true});
@@ -169,8 +175,12 @@ try {
   await expect.poll(()=>drawer.evaluate(el=>getComputedStyle(el).transitionDuration)).toBe("0s");
   await page.getByRole("button",{name:"Close navigation",exact:true}).click();
   await expect(drawer).toBeHidden();
-  await page.getByText("Score",{exact:true}).click();
-  await expect(page.getByRole("radio",{name:"Score",exact:true})).toBeChecked();
+  // Retain rendering coverage for previously saved melody preferences, without
+  // reintroducing a toolbar mode selector that the product no longer exposes.
+  await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem("tagaluya:reader:v1")||"{}");localStorage.setItem("tagaluya:reader:v1",JSON.stringify({...saved,view:"melody"}));});
+  await page.goto("http://127.0.0.1:4761/tests/reader.html");await waitForApp(page,".tagaluya-reader");
+  await expect(page.locator("#song-title")).toHaveText("Bilingual reading fixture");
+  await expect(page.getByRole("radio",{name:/^(Text|Score|Interlinear|Melody)$/})).toHaveCount(0);
   await expect(page.locator(".bilingual-melody svg").first()).toBeVisible();
   await expect(page.locator(".swipe-pager-page:not([inert]) .abcjs-clef")).toHaveCount(1);
   await expect(page.locator(".swipe-pager-page:not([inert])").getByText("First line",{exact:true})).toBeVisible();

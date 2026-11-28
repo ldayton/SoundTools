@@ -8,6 +8,7 @@ import {preview} from "../../../packages/music-practice/browser-tests/server";
 const server=await preview("tagaluya",4760),browser=await launchBrowser();
 let dev:ReturnType<typeof spawn>|undefined;
 try {
+  await mkdir("work/tagaluya",{recursive:true});
   const page=await newPage(browser,{viewport:{width:1440,height:1000},hasTouch:true});
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.goto(server.base);await waitForApp(page,".tagaluya-reader");
@@ -35,6 +36,7 @@ try {
     assert.equal(`${png.readUInt32BE(16)}x${png.readUInt32BE(20)}`,icon.sizes);
   }
   await expect(page.locator("#song-title")).toHaveText("O Kay Saya at Kay Ganda");
+  await expect(page.locator(".tagaluya-reader .song-role")).toHaveText("Welcome song");
   await expect(page.locator(".original-line")).toHaveCount(18);await expect(page.locator(".translated-line")).toHaveCount(18);
   await expect(page.getByRole("link",{name:"He Is Lord",exact:true})).toBeVisible();
   await page.getByRole("link",{name:"He Is Lord",exact:true}).click();await expect(page.locator("#song-title")).toHaveText("He Is Lord");
@@ -105,10 +107,20 @@ try {
     await page.getByRole("button",{name:"Open navigation",exact:true}).click();
     await page.getByRole("link",{name:"November 28, 2026 Evening service",exact:true}).click();
     await expect(page.locator("#song-title")).toHaveText("O Kay Saya at Kay Ganda");
-    await page.getByRole("button",{name:"Expand songs",exact:true}).click();
-    await expect(page.getByRole("dialog",{name:"Songs",exact:true})).toBeVisible();
+    await expect(page.locator(".tagaluya-reader .song-role")).toHaveText("Welcome song");
+    if(width===393)await page.screenshot({path:"work/tagaluya/mobile-welcome-contents-button.png"});
+    const contents=page.getByRole("button",{name:"Open table of contents",exact:true});
+    await expect(contents).toBeVisible();
+    const target=await contents.boundingBox(),size=await page.locator(".toolbar-number-touch").boundingBox();
+    assert.equal(target!.height,size!.height,"Contents trigger matches the text-size control height");
+    assert.equal(target!.height,44);assert.equal(target!.width,56);
+    await contents.click();
+    await expect(page.getByRole("dialog",{name:"Table of contents",exact:true})).toBeVisible();
+    await expect.poll(()=>page.getByRole("dialog",{name:"Table of contents",exact:true}).evaluate(el=>Math.abs(el.getBoundingClientRect().bottom-innerHeight)<.1)).toBe(true);
+    if(width===393)await page.screenshot({path:"work/tagaluya/mobile-table-of-contents.png"});
     await page.getByRole("link",{name:"He Is Lord",exact:true}).click();
-    await expect(page.getByRole("dialog",{name:"Songs",exact:true})).toBeHidden();
+    await expect(page.getByRole("dialog",{name:"Table of contents",exact:true})).toBeHidden();
+    await expect(page.locator(".tagaluya-reader .song-role")).toHaveText("Call to worship");
     const documentRequests:string[]=[];
     const recordDocument=(request:import("playwright").Request)=>{if(request.isNavigationRequest())documentRequests.push(request.url());};
     page.on("request",recordDocument);

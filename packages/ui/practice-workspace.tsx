@@ -3,6 +3,7 @@ import { restoreFocus } from "./restore-focus";
 import { createPortal } from "react-dom";
 import { RetainedContent } from "./retained-content";
 import { PanelIcon } from "./panel-icon";
+import { ControlIcon } from "./control-icon";
 import { closePitchFields } from "@ldayton/ui/responsive-pitch-field";
 import {
   createContext,
@@ -18,12 +19,15 @@ import {
 import { ActionIcon, Button, Drawer, Group, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 
+type OptionsPurpose = "options" | "contents";
+
 export type OptionsEntry = { id: string; form: ReactNode; title?: string };
 function useOptionsState(
   views: readonly OptionsEntry[],
   activeId?: string,
   activityKey?: string,
   mobileDrawer = false,
+  purpose: OptionsPurpose = "options",
 ) {
   const desktop = useMediaQuery("(min-width: 70em)", undefined, {
     getInitialValueInEffect: false,
@@ -40,6 +44,8 @@ function useOptionsState(
   const focus = useRef<"toggle" | "reopen" | undefined>(undefined);
   const active = views.some((view) => view.id === activeId);
   const collapsed = desktop ? desktopCollapsed : mobileCollapsed;
+  const title = views.find((view) => view.id === activeId)?.title || "Practice options";
+  const toggleLabel = `${purpose === "contents" ? (collapsed ? "Open" : "Close") : (collapsed ? "Expand" : "Collapse")} ${title.toLowerCase()}`;
   useLayoutEffect(() => {
     if (focus.current)
       restoreFocus(
@@ -50,8 +56,9 @@ function useOptionsState(
   });
   return {
     views,
-    title:
-      views.find((view) => view.id === activeId)?.title || "Practice options",
+    title,
+    purpose,
+    toggleLabel,
     mobileDrawer,
     closeMobile() {
       closePitchFields();
@@ -97,14 +104,17 @@ export function PracticeOptionsProvider({
   entries,
   mobileDrawer = false,
   onMobileOpenChange,
+  purpose = "options",
 }: PropsWithChildren<{
   entries: readonly OptionsEntry[];
   activeId?: string;
   activityKey?: string;
   mobileDrawer?: boolean;
+  /** A navigation panel uses a contents-list trigger instead of an options icon. */
+  purpose?: OptionsPurpose;
   onMobileOpenChange?(opened: boolean): void;
 }>) {
-  const state = useOptionsState(entries, activeId, activityKey, mobileDrawer);
+  const state = useOptionsState(entries, activeId, activityKey, mobileDrawer, purpose);
   const mobileOpen =
     mobileDrawer && !state.desktop && state.active && !state.collapsed;
   const reportedOpen = useRef(false);
@@ -119,6 +129,7 @@ export function PracticeOptionsProvider({
 }
 export function PracticeOptionsReopen() {
   const state = usePracticeOptions();
+  const contents = state.purpose === "contents";
   return (
     <Button
       id="practice-options-reopen"
@@ -130,21 +141,22 @@ export function PracticeOptionsReopen() {
             : undefined
       }
       variant="default"
-      px={state.mobileDrawer ? 0 : undefined}
-      w={state.mobileDrawer ? 38 : undefined}
-      miw={state.mobileDrawer ? 38 : undefined}
-      title={`${!state.collapsed ? "Collapse" : "Expand"} ${state.title.toLowerCase()}`}
+      px={contents || state.mobileDrawer ? 0 : undefined}
+      h={contents ? 44 : undefined}
+      w={contents ? 56 : state.mobileDrawer ? 38 : undefined}
+      miw={contents ? 56 : state.mobileDrawer ? 38 : undefined}
+      title={state.toggleLabel}
       hidden={
         !state.active ||
         (!state.mobileDrawer && (!state.desktop || !state.collapsed))
       }
       disabled={!state.active}
-      aria-label={`${!state.collapsed ? "Collapse" : "Expand"} ${state.title.toLowerCase()}`}
+      aria-label={state.toggleLabel}
       aria-controls="practice-options-content"
       aria-expanded={state.active && !state.collapsed}
       onClick={state.desktop && state.collapsed ? state.reopen : state.toggle}
     >
-      {state.mobileDrawer ? (
+      {contents ? <ControlIcon name="contents" size={28} /> : state.mobileDrawer ? (
         <PanelIcon side={state.desktop ? "right" : "bottom"} />
       ) : (
         "Options"
@@ -176,7 +188,7 @@ export function PracticeWorkspace({ children }: PropsWithChildren) {
     host.className = "practice-options-host";
     return host;
   });
-  const label = `${state.collapsed ? "Expand" : "Collapse"} ${state.title.toLowerCase()}`;
+  const label = state.toggleLabel;
   const drawer = state.mobileDrawer && !state.desktop;
   const content = (
     <div

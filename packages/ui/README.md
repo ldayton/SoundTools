@@ -74,3 +74,7 @@ Real update staging and reload remain owned by each app’s offline tests.
 `ToolbarNumber` uses explicit minus/plus buttons automatically on touch layouts.
 Set `stepper` to keep that same control on desktop as well; numeric entry, bounds,
 step size and committed-value behavior remain shared with the default field.
+
+`PracticeOptionsProvider` accepts `purpose="contents"` for navigation panels.
+It keeps the shared drawer, sidebar and focus behavior, with Open/Close contents
+labels and a larger list-icon trigger. The default options presentation is unchanged.

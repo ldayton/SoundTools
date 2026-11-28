@@ -127,7 +127,20 @@ export function PitchField({
             ? "min(720px, calc(100vw - 24px))"
             : "min(620px, calc(100vw - 24px))"
         }
-        middlewares={{ flip: true, shift: { padding: 12 }, size: true }}
+        middlewares={{
+          flip: true,
+          shift: { padding: 12 },
+          size: {
+            padding: 12,
+            // Mantine's default size middleware replaces the inline height cap.
+            apply({ availableWidth, availableHeight, elements }) {
+              Object.assign(elements.floating.style, {
+                maxWidth: `${availableWidth}px`,
+                maxHeight: `${Math.max(0, Math.min(availableHeight, window.innerHeight * .65))}px`,
+              });
+            },
+          },
+        }}
         keepMounted
         keepMountedMode="display-none"
         trapFocus
@@ -207,6 +220,7 @@ export function PitchField({
           aria-label={`Choose ${label.toLowerCase()}`}
           style={{
             overflowY: "auto",
+            scrollPaddingTop: 36,
             maxHeight: "min(65dvh, var(--popover-available-height, 65dvh))",
           }}
           onKeyDown={(event) => {
@@ -247,7 +261,7 @@ export function PitchField({
             }
           }}
         >
-          <Text size="sm" fw={600} mb="sm">
+          <Text size="sm" fw={600} mb="sm" style={{ position: "sticky", top: 0, zIndex: 1, background: "var(--mantine-color-body)", boxShadow: "0 -12px 0 var(--mantine-color-body)", paddingBottom: 4 }}>
             {label}
           </Text>
           {optional && (

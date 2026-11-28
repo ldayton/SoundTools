@@ -150,6 +150,7 @@
   color: var(--mantine-primary-color-light-color);
   font-weight: 600;
 }
+.dorego-header > .application-toolbar { position: relative; }
 .dorego-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -157,21 +158,50 @@
   gap: 12px;
 }
 .dorego-range {
-  grid-column: 2;
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-default);
+  background: var(--mantine-color-body);
 }
 .dorego-range[hidden] { display: none; }
 .dorego-range .responsive-pitch-field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  padding-inline: 8px 0;
+}
+.dorego-range .responsive-pitch-field + .responsive-pitch-field {
+  border-left: 1px solid var(--mantine-color-default-border);
 }
 .dorego-range .responsive-pitch-field > .mantine-Group-root { margin-bottom: 0; }
-.dorego-range .responsive-pitch-field > div:last-child { width: 76px; }
-.dorego-range label { font-size: 12px; }
-.dorego-toolbar > .dorego-tempo { grid-column: 3; justify-self: end; }
+.dorego-range .responsive-pitch-field > div:last-child { width: 56px; }
+.dorego-range label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+.dorego-range input {
+  border: 0;
+  background: transparent;
+  font-weight: 600;
+  padding-left: 2px;
+  padding-right: 22px;
+}
+.dorego-range .mantine-Input-section[data-position="right"] { width: 22px; }
+.dorego-toolbar > .dorego-tempo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  justify-self: center;
+}
 .dorego-toolbar > .dorego-transport { grid-column: 2; }
 .dorego-workspace .practice-panel {
   background: #fff;
@@ -253,10 +283,7 @@
     grid-column: 4;
     grid-row: 1;
   }
-  .dorego-toolbar > .dorego-tempo {
-    grid-column: 3;
-    grid-row: 1;
-  }
+  .dorego-toolbar > .dorego-tempo { top: 30px; }
   .dorego-toolbar > .dorego-transport {
     grid-column: 1/-1;
     grid-row: 2;

@@ -69,6 +69,7 @@ export function PracticeVolume({
     <ToolbarSlider
       id="volume"
       label="Volume"
+      withMute
       value={percent}
       min={0}
       max={100}

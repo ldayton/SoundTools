@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ActionIcon, Popover, Slider, Stack, Text } from "@mantine/core";
+import { useVolumeMute, VolumeMuteButton } from "./volume-control";
 
 /** Matching vertical controls for settings in a compact transport toolbar. */
 export function ToolbarSlider({
@@ -11,6 +12,7 @@ export function ToolbarSlider({
   max,
   onChange,
   icon,
+  withMute = false,
   valueText = `${value}%`,
 }: {
   id: string;
@@ -21,10 +23,12 @@ export function ToolbarSlider({
   max: number;
   onChange(value: number): void;
   icon: ReactNode;
+  withMute?: boolean;
   valueText?: string;
 }) {
+  const mute = useVolumeMute(value, min, max, onChange);
   return (
-    <Popover position="bottom" width={64} trapFocus>
+    <Popover position="bottom" width={withMute ? 76 : 64} trapFocus>
       <Popover.Target>
         <ActionIcon
           variant="default"
@@ -37,6 +41,7 @@ export function ToolbarSlider({
       </Popover.Target>
       <Popover.Dropdown px="xs" py="sm">
         <Stack align="center" gap="sm">
+          {withMute && <VolumeMuteButton {...mute} label={label} />}
           <Slider
             thumbProps={{ id }}
             thumbLabel={label}

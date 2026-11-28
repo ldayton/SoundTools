@@ -158,6 +158,15 @@ try {
   };
   await page.goto(base);
   await ready();
+  await page.getByRole('button', { name: 'Volume', exact: true }).click();
+  const beforeMute = await page.locator('#volume').getAttribute('aria-valuenow');
+  await page.getByRole('button', { name: 'Mute', exact: true }).click();
+  assert.equal(await page.locator('#volume').getAttribute('aria-valuenow'), '0');
+  assert.equal(await readSpecValue(page, 'volume'), '-60', 'The mute button uses the saved audio setting');
+  await page.getByRole('button', { name: 'Unmute', exact: true }).click();
+  assert.equal(await page.locator('#volume').getAttribute('aria-valuenow'), beforeMute);
+  await page.keyboard.press('Escape');
+  await page.locator('#volume').waitFor({ state: 'hidden' });
   // Transport and frequent range controls share their existing state owners at every width.
   for (const width of [1280, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
@@ -165,10 +174,12 @@ try {
       const header = document.querySelector('.mantine-AppShell-header')!.getBoundingClientRect();
       const low = document.querySelector('#low-spin')!.getBoundingClientRect();
       const high = document.querySelector('#high-spin')!.getBoundingClientRect();
+      const tempo = document.querySelector('.dorego-tempo')!.getBoundingClientRect();
       const stage = document.querySelector('#stage')!.getBoundingClientRect();
       const controls = document.querySelector('.dorego-transport')!.getBoundingClientRect();
       return low.width > 0 && high.width > 0 && high.bottom <= header.bottom && controls.top >= stage.bottom &&
-        controls.left >= 0 && controls.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth;
+        controls.left >= 0 && controls.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth &&
+        Math.abs(tempo.x + tempo.width / 2 - innerWidth / 2) < 2;
     });
     assert.equal(await page.locator('.mantine-AppShell-header #play, #low-wheel, #high-wheel').count(), 0);
     const actions = page.getByRole('group', { name: 'Playback controls', exact: true });
@@ -184,6 +195,8 @@ try {
       const selected = highPicker.getByRole('button', { name: 'F♯4', exact: true });
       const box = (await selected.boundingBox())!;
       assert.ok(box.width >= 44 && box.height >= 44, 'Phone note choices remain touch-sized');
+      const popup = (await highPicker.boundingBox())!;
+      assert.ok(popup.height <= 900 * .65 + 1 && popup.y + popup.height <= 900 - 11, 'Phone chooser stays bounded and scrollable');
       await page.keyboard.press('ArrowDown');
       assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-value')), '70', 'Arrow down follows the four-column phone grid');
       await page.keyboard.press('ArrowUp');

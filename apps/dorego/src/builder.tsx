@@ -65,6 +65,7 @@ function PitchField({
       onChange={change}
       mobileColumns={smallPhone ? 4 : 6}
       compactRange={COMPACT_PITCH_RANGE}
+      inlineLabel
       displayLabel={bound === 'low' ? 'Lowest' : 'Highest'}
       choices={Array.from({ length: MAX_NOTE - MIN_NOTE + 1 }, (_, index) => {
         const midi = index + MIN_NOTE;

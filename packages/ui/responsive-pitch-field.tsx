@@ -14,6 +14,7 @@ export function ResponsivePitchField({
   id,
   label,
   displayLabel,
+  inlineLabel = false,
   value,
   choices,
   onChange,
@@ -27,6 +28,8 @@ export function ResponsivePitchField({
   id: string;
   label: string;
   displayLabel?: string;
+  /** Place label and value inside one popup target. */
+  inlineLabel?: boolean;
   value: number;
   choices: readonly PitchChoice[];
   onChange(value: number): void;
@@ -42,6 +45,7 @@ export function ResponsivePitchField({
   const narrow = useMediaQuery("(max-width: 760px)", undefined, {
     getInitialValueInEffect: false,
   });
+  const labelInsideTarget = inlineLabel && !(mobileWheel && narrow);
   const host = useRef<HTMLDivElement>(null);
   const wheel = useRef<NoteWheel>(null);
   const callback = useRef(onChange);
@@ -84,40 +88,45 @@ export function ResponsivePitchField({
   }, [value, minimum, maximum, mobileWheel]);
   return (
     <div className="responsive-pitch-field">
-      <Group justify="space-between" gap="xs" wrap="nowrap" mb={4}>
-        <Input.Label
-          id={labelId}
-          htmlFor={mobileWheel && narrow ? undefined : id}
-          onClick={() => {
-            if (mobileWheel && narrow)
-              host.current?.focus({ preventScroll: true });
-          }}
-        >
-          {displayLabel ?? label}
-        </Input.Label>
-        {optional && (
-          <Button
-            variant="subtle"
-            size="compact-xs"
-            aria-label={`Clear ${label.toLowerCase()}`}
-            style={{ visibility: value === -1 ? "hidden" : "visible" }}
-            onClick={() => {
-              onChange(-1);
-              setOpened(false);
-              (mobileWheel && narrow
-                ? host.current
-                : document.getElementById(id)
-              )?.focus({ preventScroll: true });
-            }}
-          >
-            Clear
-          </Button>
-        )}
-      </Group>
+      {(!labelInsideTarget || optional) && (
+        <Group justify="space-between" gap="xs" wrap="nowrap" mb={4}>
+          {!labelInsideTarget && (
+            <Input.Label
+              id={labelId}
+              htmlFor={mobileWheel && narrow ? undefined : id}
+              onClick={() => {
+                if (mobileWheel && narrow)
+                  host.current?.focus({ preventScroll: true });
+              }}
+            >
+              {displayLabel ?? label}
+            </Input.Label>
+          )}
+          {optional && (
+            <Button
+              variant="subtle"
+              size="compact-xs"
+              aria-label={`Clear ${label.toLowerCase()}`}
+              style={{ visibility: value === -1 ? "hidden" : "visible" }}
+              onClick={() => {
+                onChange(-1);
+                setOpened(false);
+                (mobileWheel && narrow
+                  ? host.current
+                  : document.getElementById(id)
+                )?.focus({ preventScroll: true });
+              }}
+            >
+              Clear
+            </Button>
+          )}
+        </Group>
+      )}
       <div className={mobileWheel ? "responsive-pitch-desktop" : undefined}>
         <PitchField
           id={id}
           label={label}
+          prefix={labelInsideTarget ? (displayLabel ?? label) : undefined}
           value={value}
           choices={choices}
           columns={columns}

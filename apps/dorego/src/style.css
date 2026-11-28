@@ -169,18 +169,19 @@
   background: var(--mantine-color-body);
 }
 .dorego-range[hidden] { display: none; }
-.dorego-range .responsive-pitch-field {
+.dorego-range .pitch-field-trigger {
   display: flex;
   align-items: center;
   gap: 4px;
   padding-inline: 8px 0;
+  cursor: pointer;
 }
-.dorego-range .responsive-pitch-field + .responsive-pitch-field {
+.dorego-range .responsive-pitch-field + .responsive-pitch-field .pitch-field-trigger {
   border-left: 1px solid var(--mantine-color-default-border);
 }
-.dorego-range .responsive-pitch-field > .mantine-Group-root { margin-bottom: 0; }
-.dorego-range .responsive-pitch-field > div:last-child { width: 56px; }
-.dorego-range label {
+.dorego-range .pitch-field-value { width: 56px; }
+.dorego-range .pitch-field-prefix {
+  cursor: pointer;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: .06em;

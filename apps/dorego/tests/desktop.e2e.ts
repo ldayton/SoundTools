@@ -48,6 +48,7 @@ try {
   const context = await createContext(browser, {
     viewport: { width: 1280, height: 900 },
     serviceWorkers: 'block',
+    hasTouch: true,
   });
   const page = await context.newPage();
   page.setDefaultTimeout(10000);
@@ -187,6 +188,30 @@ try {
     for (const button of await actions.locator('button').all()) {
       const box = (await button.boundingBox())!;
       assert.ok(box.width >= 44 && box.height >= 44, 'Transport actions remain touch-sized');
+    }
+    // Every part of a range segment toggles once, including native label clicks.
+    if (width !== 320) {
+      for (const bound of ['low', 'high']) {
+        const input = page.locator(`#${bound}-spin`);
+        const label = page.locator(`#${bound}-spin-label`);
+        const segment = page.locator('#note-range .responsive-pitch-field').filter({ has: input });
+        const picker = page.getByRole('dialog', { name: `Choose ${bound === 'low' ? 'lowest' : 'highest'} note` });
+        for (const region of ['label', 'note', 'arrow', 'padding']) {
+          const hit = async () => {
+            const box = (await (region === 'label' ? label : region === 'padding' ? segment : input).boundingBox())!;
+            const x = region === 'padding' ? box.x + 3 : region === 'arrow' ? box.x + box.width - 10 : box.x + box.width / 2;
+            const y = box.y + box.height / 2;
+            if (width === 390) await page.touchscreen.tap(x, y);
+            else await page.mouse.click(x, y);
+          };
+          await hit();
+          await picker.waitFor();
+          assert.equal(await input.getAttribute('aria-expanded'), 'true', `${bound} ${region} opens the chooser`);
+          await hit();
+          await picker.waitFor({ state: 'hidden' });
+          assert.equal(await input.getAttribute('aria-expanded'), 'false', `${bound} ${region} closes the chooser once`);
+        }
+      }
     }
     await page.locator('#high-spin').click();
     const highPicker = page.getByRole('dialog', { name: 'Choose highest note' });

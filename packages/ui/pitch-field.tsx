@@ -21,6 +21,7 @@ export function PitchField({
   compactRange,
   optional = false,
   fieldLabel,
+  prefix,
 }: {
   choices: readonly PitchChoice[];
   columns?: 7 | 12;
@@ -29,6 +30,8 @@ export function PitchField({
   compactRange?: { low: number; high: number };
   optional?: boolean;
   fieldLabel?: string;
+  /** Include a visible label in the same popup hit target as the value. */
+  prefix?: string;
   id: string;
   label: string;
   value: number;
@@ -133,6 +136,69 @@ export function PitchField({
       {note.label}
     </Button>
   );
+  const field = (
+    <Input
+      ref={input}
+      id={id}
+      role="combobox"
+      aria-label={label}
+      aria-haspopup="dialog"
+      aria-controls={`${id}-picker`}
+      aria-expanded={opened}
+      readOnly
+      data-mantine-stop-propagation={opened ? "true" : undefined}
+      value={selected?.label || "None"}
+      title={selected?.label || "None"}
+      rightSection={
+        <svg
+          aria-hidden="true"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path d="m3 4.5 3 3 3-3" />
+        </svg>
+      }
+      onClick={() => onOpenedChange(!opened)}
+      styles={{ input: { cursor: "pointer" } }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && opened) {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpenedChange(false);
+          input.current?.focus({ preventScroll: true });
+          return;
+        }
+
+        if (
+          (event.altKey && event.key === "ArrowDown") ||
+          ["F4", "Enter", " "].includes(event.key)
+        ) {
+          event.preventDefault();
+          onOpenedChange(!opened);
+          return;
+        }
+        const steps: Record<string, number> = {
+          ArrowUp: 1,
+          ArrowDown: -1,
+          PageUp: columns,
+          PageDown: -columns,
+        };
+        if (event.key in steps || ["Home", "End"].includes(event.key)) {
+          event.preventDefault();
+          chooseEnabled(
+            event.key === "Home"
+              ? low
+              : event.key === "End"
+                ? high
+                : Math.max(low, Math.min(high, value + steps[event.key])),
+          );
+        }
+      }}
+    />
+  );
   return (
     <Input.Wrapper id={id} label={fieldLabel}>
       <Popover
@@ -175,67 +241,16 @@ export function PitchField({
         transitionProps={{ duration: 0 }}
       >
         <Popover.Target>
-          <Input
-            ref={input}
-            id={id}
-            role="combobox"
-            aria-label={label}
-            aria-haspopup="dialog"
-            aria-controls={`${id}-picker`}
-            aria-expanded={opened}
-            readOnly
-            data-mantine-stop-propagation={opened ? "true" : undefined}
-            value={selected?.label || "None"}
-            title={selected?.label || "None"}
-            rightSection={
-              <svg
-                aria-hidden="true"
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
-                stroke="currentColor"
-              >
-                <path d="m3 4.5 3 3 3-3" />
-              </svg>
-            }
-            onClick={() => onOpenedChange(!opened)}
-            styles={{ input: { cursor: "pointer" } }}
-            onKeyDown={(event) => {
-              if (event.key === "Escape" && opened) {
-                event.preventDefault();
-                event.stopPropagation();
-                onOpenedChange(false);
-                input.current?.focus({ preventScroll: true });
-                return;
-              }
-
-              if (
-                (event.altKey && event.key === "ArrowDown") ||
-                ["F4", "Enter", " "].includes(event.key)
-              ) {
-                event.preventDefault();
-                onOpenedChange(!opened);
-                return;
-              }
-              const steps: Record<string, number> = {
-                ArrowUp: 1,
-                ArrowDown: -1,
-                PageUp: columns,
-                PageDown: -columns,
-              };
-              if (event.key in steps || ["Home", "End"].includes(event.key)) {
-                event.preventDefault();
-                chooseEnabled(
-                  event.key === "Home"
-                    ? low
-                    : event.key === "End"
-                      ? high
-                      : Math.max(low, Math.min(high, value + steps[event.key])),
-                );
-              }
-            }}
-          />
+          {prefix ? (
+            <label className="pitch-field-trigger" htmlFor={id}>
+              <span className="pitch-field-prefix" id={`${id}-label`}>
+                {prefix}
+              </span>
+              <span className="pitch-field-value">{field}</span>
+            </label>
+          ) : (
+            field
+          )}
         </Popover.Target>
         <Popover.Dropdown
           id={`${id}-picker`}

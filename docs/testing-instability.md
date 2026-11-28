@@ -1304,3 +1304,21 @@ than imperative scrollTo to represent user paging. Every original assertion
 remains required. The follow-up isolated DoReGo lane completed successfully in
 40.8 seconds, including its build; desktop finished in 29.4 seconds. This
 supports the fix but does not replace the next complete local CI measurement.
+
+The next complete run (`1795874309115-9a072449`) finished within budget at
+59.39 seconds, with the DoReGo desktop and native-pager cases passing, but
+Tagalujah's He Is Lord → You, You Are God assertion failed. The isolated reader
+run (`1795874478781-ebd31c1e`) reproduced it against the expected bundle.
+The pager and both witnesses now ignore descendant vertical scrollend events
+when settling the horizontal track; this also prevents false readiness signals.
+
+A bounded event-instrumented diagnostic (`1795874628561-c7605474`) then showed
+the physical input delivered over 330 ms: the horizontal track moved from 393
+to 558 pixels, only 165 pixels on a 393-pixel page, then correctly snapped back.
+The fixed 180-pixel test gesture relied on fling velocity to exceed halfway.
+Full navigation gestures now travel 250 pixels, unambiguously exceeding halfway
+at both tested phone widths. The shorter/reversed cancellation, vertical-reading,
+edge and resize assertions are unchanged. Diagnostic instrumentation was removed.
+The corrected isolated reader lane passed in 28.0 seconds including build
+(`1795874722759-1f29d699`). WebKit uses real horizontal wheel input and waits for
+track scrollend, matching the user-intent contract rather than forcing scrollTo.

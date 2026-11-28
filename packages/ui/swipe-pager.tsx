@@ -65,7 +65,8 @@ export function SwipePager({
     observer.observe(el);
     let timer: ReturnType<typeof setTimeout> | undefined,
       touching = false;
-    const settle = () => {
+    const settle = (event?: Event) => {
+      if (event && event.target !== el) return;
       clearTimeout(timer);
       if (resized() || blocked || touching || !el.clientWidth) return;
       // Native snap/resize events also follow prop alignment. Only user input
@@ -81,7 +82,8 @@ export function SwipePager({
         if (page.id !== current.current) change.current(page.id);
       }
     };
-    const scroll = () => {
+    const scroll = (event?: Event) => {
+      if (event && event.target !== el) return;
       clearTimeout(timer);
       timer = setTimeout(settle, 120);
     };

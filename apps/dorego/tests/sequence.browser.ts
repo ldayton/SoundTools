@@ -198,9 +198,14 @@ export async function verifyExerciseNavigation(browser: Browser, base: string) {
       return Math.abs(r.width - innerWidth) < 1 && Math.abs(r.y - header.bottom) < 1 && Math.abs(r.bottom - innerHeight) < 1;
     });
     const swipe = async (dx: number, y: number, startX = dx < 0 ? 320 : 70, vertical = 0, reverse = false) => {
-      await track.evaluate(element => {
+      if (!vertical) await track.evaluate(element => {
         element.setAttribute('data-test-scroll-settled', 'false');
-        element.addEventListener('scrollend', () => element.setAttribute('data-test-scroll-settled', 'true'), { once: true });
+        const controller = new AbortController();
+        element.addEventListener('scrollend', event => {
+          if (event.target !== element) return;
+          element.setAttribute('data-test-scroll-settled', 'true');
+          controller.abort();
+        }, { signal: controller.signal });
       });
       if (browser.browserType().name() === 'chromium') {
         const session = await page.context().newCDPSession(page);

@@ -58,18 +58,22 @@ try {
   await expect(page.getByRole("radio",{name:/^(Text|Score|Interlinear|Melody)$/})).toHaveCount(0);
   const swipe=async(dx:number,dy:number,cancel=false)=>{
     const track=page.locator(".swipe-pager");
+      const moves=await track.evaluate((el,{dx,dy})=>Math.abs(dx)>Math.abs(dy)&&
+        (dx>0?el.scrollLeft>1:el.scrollLeft<el.scrollWidth-el.clientWidth-1),{dx,dy});
+      if(moves)await track.evaluate(el=>{
+        el.setAttribute("data-test-scroll-settled","false");
+        const controller=new AbortController();
+        el.addEventListener("scrollend",event=>{
+          if(event.target!==el)return;
+          el.setAttribute("data-test-scroll-settled","true");controller.abort();
+        },{signal:controller.signal});
+      });
     if(browser.browserType().name()==="chromium"){
       const session=await page.context().newCDPSession(page);
       const bounds=(await track.boundingBox())!;
       const point={x:dx>0?bounds.x+24:bounds.x+bounds.width-24,y:350};
       assert(point.x+dx>=bounds.x && point.x+dx<=bounds.x+bounds.width,
         "Native touch gestures must stay inside the viewport at phone widths");
-      const moves=await track.evaluate((el,{dx,dy})=>Math.abs(dx)>Math.abs(dy)&&
-        (dx>0?el.scrollLeft>1:el.scrollLeft<el.scrollWidth-el.clientWidth-1),{dx,dy});
-      if(moves)await track.evaluate(el=>{
-        el.setAttribute("data-test-scroll-settled","false");
-        el.addEventListener("scrollend",()=>el.setAttribute("data-test-scroll-settled","true"),{once:true});
-      });
       await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[point]});
       for(let step=1;step<=6;step++){
         // Deliver physical movement across compositor frames, as in the DoReGo pager witness.
@@ -80,7 +84,6 @@ try {
       // A changed heading does not prove native momentum/snap has finished.
       // Wait before injecting the next gesture; outward boundary swipes and
       // vertical reading gestures need not produce a horizontal scrollend.
-      if(moves)await expect(track).toHaveAttribute("data-test-scroll-settled","true");
       await session.detach();
     }else{
       // WebKit's automation has no native drag injection. Exercise browser
@@ -90,6 +93,7 @@ try {
       await page.mouse.move(bounds.x+bounds.width/2,350);
       await page.mouse.wheel(-Math.sign(dx)*bounds.width,0);
     }
+    if(moves)await expect(track).toHaveAttribute("data-test-scroll-settled","true");
   };
   for(const width of [393,320]){
     await page.setViewportSize({width,height:852});
@@ -152,11 +156,11 @@ try {
     await swipe(8,100);await expect(page.locator("#song-title")).toHaveText("He Is Lord");
 
 
-    await swipe(-180,0);await expect(page.locator("#song-title")).toHaveText("You, You Are God");
+    await swipe(-250,0);await expect(page.locator("#song-title")).toHaveText("You, You Are God");
     await expect.poll(async()=>(await frame()).scroll).toBe(0);
     const afterSwipe=await frame();assert.equal(afterSwipe.reader,afterSwipe.header,"Swiping retains the toolbar position without a title strip or top gap");
     assert.equal(afterSwipe.windowScroll,0);
-    await swipe(180,0);await expect(page.locator("#song-title")).toHaveText("He Is Lord");
+    await swipe(250,0);await expect(page.locator("#song-title")).toHaveText("He Is Lord");
     await expect(page).toHaveURL(/\/services\/2026-11-28\/he-is-lord$/);
     assert.deepEqual(documentRequests,[],"Paging changes in-scope history without opening another document");
     page.off("request",recordDocument);
@@ -188,15 +192,15 @@ try {
     await expect.poll(()=>page.locator(".swipe-pager").evaluate(el=>el.scrollLeft)).toBe(0);
     await session.detach();
   }
-  await swipe(-180,0);await expect(page.locator("#song-title")).toHaveText("Next reading fixture");
+  await swipe(-250,0);await expect(page.locator("#song-title")).toHaveText("Next reading fixture");
   await page.setViewportSize({width:393,height:852});
   await expect.poll(()=>page.locator(".swipe-pager").evaluate(el=>el.scrollLeft===el.clientWidth)).toBe(true);
-  await swipe(-180,0);await expect(page.locator("#song-title")).toHaveText("Last reading fixture");
-  await swipe(-180,0);
+  await swipe(-250,0);await expect(page.locator("#song-title")).toHaveText("Last reading fixture");
+  await swipe(-250,0);
   await expect.poll(()=>page.locator(".swipe-pager").evaluate(el=>el.scrollLeft===2*el.clientWidth)).toBe(true);
   await expect(page.locator("#song-title")).toHaveText("Last reading fixture");
-  await swipe(180,0);await expect(page.locator("#song-title")).toHaveText("Next reading fixture");
-  await swipe(180,0);await expect(page.locator("#song-title")).toHaveText("Bilingual reading fixture");
+  await swipe(250,0);await expect(page.locator("#song-title")).toHaveText("Next reading fixture");
+  await swipe(250,0);await expect(page.locator("#song-title")).toHaveText("Bilingual reading fixture");
   await page.emulateMedia({reducedMotion:"reduce"});
   await page.getByRole("button",{name:"Open navigation",exact:true}).click();
   const drawer=page.getByRole("dialog",{name:"Tagalujah home",exact:true});

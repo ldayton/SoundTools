@@ -17,12 +17,12 @@ try{
  await expect(page.locator(".beginner-fingering").first()).toBeVisible();expect(await geometry()).toEqual(initial);
  await expect(page.locator('.beginner-fingering[data-voice="0"]').first()).toBeVisible();
  await expect(page.locator('.beginner-fingering[data-voice="1"]').first()).toBeVisible();
- await practiceOption(page,"#hymn-key","G");await expect(toggle).toBeDisabled();await expect(page.locator(".beginner-fingering")).toHaveCount(0);
+ await practiceOption(page,"#hymn-key","G");await expect(toggle).toBeEnabled();await expect(page.locator(".hymn-fingering").first()).toBeVisible();await expect(page.locator(".beginner-fingering")).toHaveCount(0);
  await practiceOption(page,"#hymn-key","original");await expect(toggle).toBeEnabled();await expect(page.locator(".beginner-fingering").first()).toBeVisible();
  for(const hand of ["right","left","both"]){await practiceOption(page,"#hymn-hands",hand);expect(await geometry()).toEqual(initial);}
  await page.reload();await openHymnControls(page);await expect(toggle).toBeChecked();await expect(page.locator(".beginner-fingering").first()).toBeVisible();
  await page.goto(server.base+`/piano/hymns/${other.slug}?arrangement=piano`);await openHymnControls(page);await expect(toggle).toBeChecked();
  await page.setViewportSize({width:390,height:844});await openHymnControls(page);await expect(toggle).toBeVisible();await toggle.uncheck();await expect(page.locator(".beginner-fingering")).toHaveCount(0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
- console.log("PASS: dedicated Piano fingerings stay stable, support both hands, original-key eligibility and durable desktop/phone controls");
+ console.log("PASS: dedicated Piano fingerings stay stable, support both hands, fingerings recalculated for changed keys and durable desktop/phone controls");
 }catch(error){await captureFailure(browser,error);throw error;}finally{await closeBrowser(browser);server.stop();}

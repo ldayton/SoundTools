@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import {expect} from '@playwright/test';
 import {launchBrowser,newPage,waitForApp,captureFailure,closeBrowser} from '../../../scripts/ci/browser-harness.cjs';
 import {preview} from '../../../packages/music-practice/browser-tests/server';
-import {openPracticeOptions,dismissPracticeDrawer,expectScoreDisplay} from '../../../packages/music-practice/browser-tests/helpers';
-import {guitarEditionHymn} from '../../../packages/music-practice/test-fixtures/hymns';
+import {openPracticeOptions,dismissPracticeDrawer,expectScoreDisplay,openHymnControls} from '../../../packages/music-practice/browser-tests/helpers';
+import {guitarEditionHymn,selectOctaveCapableGuitarHymn} from '../../../packages/music-practice/test-fixtures/hymns';
 const server=await preview('songalong',4628),browser=await launchBrowser();
 try {
  const page=await newPage(browser,{viewport:{width:1440,height:1000}});
@@ -71,6 +71,67 @@ try {
   assert.deepEqual(attacks.slice(toneCount).map(time=>Math.round((time-attacks[0])*100)/100),Array.from({length:toneCount},(_,index)=>1+index*.5));
   await chordDialog.getByRole("button",{name:"Close chord diagram",exact:true}).click();
 
+
+ for(const width of [1440,393]){
+  const combined=await newPage(browser,{viewport:{width,height:1000}});
+  combined.on('pageerror',e=>errors.push(e.message));
+  await combined.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.slug}?arrangement=guitar-vocal&display=both&mode=playback&stanzas=1`);
+  await waitForApp(combined,'.hymn-controls');
+  await expect(combined.locator('.abcjs-tabNumber').first()).toBeVisible();
+  await openHymnControls(combined);
+  const fingerings=combined.getByRole('checkbox',{name:'Show fingerings',exact:true});
+  await fingerings.check();
+  await expect(combined.locator('.beginner-fingering[data-staff="1"]').first()).toBeVisible();
+  assert(await combined.locator('.beginner-fingering').evaluateAll(nodes=>nodes.every(n=>(n as HTMLElement).dataset.staff==='1')),'Fretting hints never label the singer');
+  await openPracticeOptions(combined);
+  const guitar=combined.getByRole('checkbox',{name:'Show Guitar',exact:true}),voice=combined.getByRole('checkbox',{name:'Show Voice',exact:true}),tab=combined.getByRole('checkbox',{name:'Show Tablature',exact:true});
+  await guitar.uncheck();await voice.uncheck();
+  await expect(fingerings).toBeEnabled();await expect(tab).toBeChecked();
+  await dismissPracticeDrawer(combined);
+  await expect(combined.locator('.abcjs-tabNumber').first()).toBeVisible();
+  await expect(combined.locator('.beginner-fingering[data-staff="1"]').first()).toBeVisible();
+  await openPracticeOptions(combined);await guitar.check();await expect(voice).not.toBeChecked();
+  await combined.reload();await waitForApp(combined,'.hymn-controls');await openPracticeOptions(combined);
+  await expect(voice).not.toBeChecked();await expect(guitar).toBeChecked();await expect(tab).toBeChecked();
+  await voice.check();await guitar.uncheck();await tab.uncheck();
+  await expect(fingerings).toBeDisabled();await expect(fingerings).toHaveAttribute('title',/notation or tablature/);
+  await dismissPracticeDrawer(combined);
+  await combined.getByRole('button',{name:/^Show .* chord diagram$/}).first().click();
+  await expect(combined.getByRole('dialog',{name:/chord/})).toBeVisible();
+  await combined.getByRole('button',{name:'Close chord diagram',exact:true}).click();
+  await expect(combined.getByRole('dialog',{name:/chord/})).toBeHidden();
+  await openPracticeOptions(combined);await tab.check();await dismissPracticeDrawer(combined);
+  assert(await combined.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mixed voice/tab fits the page');
+  const outside=await combined.locator('.hymn-paper').evaluate(paper=>{
+   const frame=paper.getBoundingClientRect();
+   return [...paper.querySelectorAll<SVGGraphicsElement>('.abcjs-tab-number,.beginner-fingering,.abcjs-lyric')].filter(n=>getComputedStyle(n).visibility!=='hidden').flatMap(n=>{
+    const b=n.getBoundingClientRect();return b.width&&(b.left<frame.left-1||b.right>frame.right+1)?[{text:n.textContent,left:b.left,right:b.right,frame:[frame.left,frame.right]}]:[];
+   });
+  });
+  assert.deepEqual(outside,[],'Voice/TAB/fingering ink obeys the page width');
+  await openPracticeOptions(combined);await tab.uncheck();await voice.uncheck();await dismissPracticeDrawer(combined);
+  await expect(combined.locator('.chords-only-score').first()).toBeVisible();
+  await expect(combined.locator('.abcjs-lyric').first()).toBeVisible();
+
+  await combined.goto(`${server.base}/piano/hymns/${guitarEditionHymn!.slug}?arrangement=original&mode=playback&stanzas=1`);
+  await waitForApp(combined,'.hymn-controls');await openHymnControls(combined);
+  await expect(fingerings).toBeEnabled();await fingerings.check();await dismissPracticeDrawer(combined);
+  await expect(combined.locator('.hymn-fingering').first()).toBeVisible();
+  assert(await combined.locator('.hymn-fingering').evaluateAll(nodes=>nodes.every(n=>!(n as HTMLElement).dataset.noteId?.startsWith('0:'))),'Keyboard hints never label Voice');
+  await combined.close();
+ }
+
+ const higherHymn=await selectOctaveCapableGuitarHymn(),higher=await newPage(browser,{viewport:{width:1440,height:1000}});
+ higher.on('pageerror',e=>errors.push(e.message));
+ await higher.goto(`${server.base}/piano/hymns/${higherHymn.slug}?arrangement=guitar-edition&key=original&octave=0&display=both&mode=playback`);
+ await waitForApp(higher,'.hymn-controls');await expect(higher.locator('.abcjs-tabNumber').first()).toBeVisible();
+ const originalFrets=await higher.locator('.abcjs-tabNumber').allTextContents();
+ await openPracticeOptions(higher);await expect(higher.locator('#hymn-octave-up')).toBeEnabled();await higher.locator('#hymn-octave-up').click();
+ await expect.poll(()=>new URL(higher.url()).searchParams.get('octave')).toBe('1');
+ await expect(higher.locator('.abcjs-tabNumber').first()).toBeVisible();
+ const raisedFrets=await higher.locator('.abcjs-tabNumber').allTextContents();
+ assert(raisedFrets.length>0&&!raisedFrets.some(n=>n.includes('?')),'Higher octave has a complete playable layout');
+ assert.notDeepEqual(raisedFrets,originalFrets);await higher.close();
  assert.deepEqual(errors,[]);console.log('PASS: score size, independent staves/chords, saved view options and chord preview schedule');
 } catch(error){await captureFailure(browser,error);throw error;}
 finally{await closeBrowser(browser);server.stop();}

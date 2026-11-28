@@ -1,33 +1,12 @@
 import { useChordPreview } from "./use-chord-preview";
 import { guitarChordTones } from "./chord-preview";
-import { attachChordTriggers } from "./chord-triggers";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionIcon, Group, Modal, Stack, Text } from "@mantine/core";
 import { ControlIcon } from "@ldayton/ui/control-icon";
-import { fingeringWindow, type ChordPassage } from "./chord-passage-fingering";
+import { fingeringWindow } from "./chord-passage-fingering";
 import type { ChordBarre } from "./guitar-scale-patterns";
-const eventName = "songalong:guitar-chord";
-type Selection = Pick<ChordPassage, "name" | "shapes" | "capo"> & {
-  trigger: SVGElement | HTMLElement;
-  descriptions?: string[];
-};
-export function showGuitarChordDiagram(selection: Selection) {
-  window.dispatchEvent(
-    new CustomEvent<Selection>(eventName, { detail: selection }),
-  );
-}
-/** Enlarge chord hit targets without changing engraving or passage selection. */
-export function attachChordDiagrams(
-  paper: HTMLElement,
-  passages: readonly ChordPassage[],
-) {
-  attachChordTriggers(
-    paper,
-    passages,
-    "guitar-chord-trigger",
-    (passage, trigger) => showGuitarChordDiagram({ ...passage, trigger }),
-  );
-}
+import {guitarChordEvent as eventName,type GuitarChordSelection as Selection} from "./guitar-chord-triggers";
+export {showGuitarChordDiagram,attachChordDiagrams} from "./guitar-chord-triggers";
 export function GuitarChordDiagram() {
   const [selected, setSelected] = useState<Selection | null>(null);
   const trigger = useRef<SVGElement | HTMLElement | null>(null);

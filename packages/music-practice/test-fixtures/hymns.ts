@@ -230,3 +230,10 @@ export async function selectSingleCapoPracticeHymn(){
  }
  throw Error("Single-capo controls require a real score with one positive capo");
 }
+
+/** Real guitar edition with a proved higher-register layout, for octave controls. */
+export async function selectOctaveCapableGuitarHymn(){
+ const {recommendHymnGuitarCapos}=await import('../src/hymn-guitar-capos');
+ for(const hymn of hymns)if(hymnAvailableArrangements(hymn).some(a=>a.id==='guitar-edition')&&recommendHymnGuitarCapos(hymn,{transpose:12}).length)return hymn;
+ throw Error('Octave controls require a physically proved higher guitar register');
+}

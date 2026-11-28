@@ -1,3 +1,4 @@
+import {sourceStaffIndex} from "./hymn-playback-staves";
 import type { AbsoluteElement, TuneObject, VoiceItem } from "abcjs";
 import { scoreSpellings, pitchLabel } from "./sight-feedback";
 import {
@@ -29,6 +30,7 @@ export type PianoScoreEntry = {
 };
 export type PianoScoreOptions = {
   planningTune?: TuneObject;
+  staffIndexes?: readonly number[];
   profile?: PianoPhraseProfile;
   hands?: ReadonlyMap<number, PianoHand>;
   fixedFinger?: (entry: PianoScoreEntry) => number | undefined;
@@ -43,9 +45,7 @@ export function pianoScoreHands(
   for (const line of tune.lines)
     for (const [si, staff] of (line.staff || []).entries()) {
       if (String(staff.clef?.type) === "TAB") continue;
-      const index =
-        (staff as typeof staff & { originalStaffIndex?: number })
-          .originalStaffIndex ?? si;
+      const index = sourceStaffIndex(staff,si);
       if (!result.has(index))
         result.set(index, staff.clef?.type === "bass" ? "left" : "right");
     }
@@ -55,6 +55,7 @@ export function collectPianoScore(
   tune: TuneObject,
   hands = pianoScoreHands(tune),
   fixedFinger?: PianoScoreOptions["fixedFinger"],
+  staffIndexes?: readonly number[],
 ) {
   const notes: PianoPhraseNote[] = [],
     entries: PianoScoreEntry[] = [],
@@ -71,10 +72,9 @@ export function collectPianoScore(
   for (const line of tune.lines)
     for (const [si, staff] of (line.staff || []).entries()) {
       if (String(staff.clef?.type) === "TAB") continue;
-      const staffIndex =
-          (staff as typeof staff & { originalStaffIndex?: number })
-            .originalStaffIndex ?? si,
+      const staffIndex = sourceStaffIndex(staff,si),
         hand = hands.get(staffIndex)!;
+      if(staffIndexes&&!staffIndexes.includes(staffIndex))continue;
       for (const [vi, voice] of (staff.voices || []).entries()) {
         const key = `${staffIndex}:${vi}`,
           clock = clocks.get(key) ?? {
@@ -198,7 +198,7 @@ export function planPianoScore(
 ) {
   const source = options.planningTune ?? tune,
     hands = pianoScoreHands(source, options.hands),
-    full = collectPianoScore(source, hands, options.fixedFinger);
+    full = collectPianoScore(source, hands, options.fixedFinger,options.staffIndexes);
   const tempo = source.metaText?.tempo,
     bpm = tempo?.bpm
       ? (tempo.bpm * (tempo.duration?.reduce((a, b) => a + b, 0) ?? 0.25)) /
@@ -217,7 +217,7 @@ export function planPianoScore(
     visible =
       source === tune
         ? full
-        : collectPianoScore(tune, hands, options.fixedFinger);
+        : collectPianoScore(tune, hands, options.fixedFinger,options.staffIndexes);
   const planned = new Map<string, PlannedPianoNote>(
     plan.notes.map((n) => [n.id, n]),
   );

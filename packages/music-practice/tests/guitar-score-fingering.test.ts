@@ -75,3 +75,14 @@ for (const id of instrumentEditionIds)
       );
     }
   });
+
+test("guitar staff planning excludes the singer and retains source identity when Voice is hidden",()=>{
+ const tune=abcjs.parseOnly("X:1\nM:4/4\nL:1/4\n%%score Voice | Guitar\nV:Voice clef=treble\nV:Guitar clef=treble-8\nK:C\n[V:Voice] c4 |]\n[V:Guitar] [CEG]4 |]")[0];
+ tune.setUpAudio({chordsOff:true});
+ const position=(pitch:number)=>({48:{str:4,num:3},52:{str:3,num:2},55:{str:2,num:0}} as Record<number,{str:number;num:number}>)[pitch];
+ assert.equal(planScoreGuitarFingerings(tune,0,0,position).plan,null);
+ const selected=planScoreGuitarFingerings(tune,0,0,position,{},[1]);
+ assert(selected.plan);assert.equal(selected.plan.notes.length,3);
+ for(const line of tune.lines)line.staff=line.staff?.slice(1).map(staff=>Object.assign(staff,{originalStaffIndex:1}));
+ assert.deepEqual(planScoreGuitarFingerings(tune,0,0,position,{},[1]).plan?.notes,selected.plan.notes);
+});

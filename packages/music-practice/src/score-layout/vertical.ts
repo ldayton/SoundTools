@@ -41,7 +41,8 @@ export function placeScoreStaves(svg:SVGSVGElement,tune:TuneObject,enabled=true,
     return done({status:Math.abs(dy)>.05?'placed':'unchanged',offsets:[],saved:0,constraints:[],
       annotations:Math.abs(dy)>.05?[{staff:0,role:'lyrics',offset:dy}]:[]});
   }
-  const staffNodes=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')].filter(n=>visible(n)&&!n.closest('[clip-path]'));
+  const allStaffNodes=[...svg.querySelectorAll<SVGGraphicsElement>('.abcjs-staff')];
+  const staffNodes=allStaffNodes.filter(n=>visible(n)&&!n.closest('[clip-path]'));
   if(staffNodes.length<1)return done({status:'unchanged',offsets:staffNodes.map(()=>0),saved:0,constraints:[]});
   if(svg.querySelector('[clip-path]'))return fallback('Clipped staff geometry');
   const staffBoxes=staffNodes.map(n=>scoreInkBox(n,svg));
@@ -57,7 +58,7 @@ export function placeScoreStaves(svg:SVGSVGElement,tune:TuneObject,enabled=true,
     const relevant=group.voices?.some((v:any)=>v.children?.some((c:any)=>c.elemset?.some((e:Element)=>e.ownerDocument===svg.ownerDocument&&svg.contains(e))));
     if(!relevant)continue;
     native=group;
-    const modelStaffs=group.staffs as {voices:number[]}[];
+    const modelStaffs=(group.staffs as {voices:number[]}[]).filter((_,index)=>staffNodes.includes(allStaffNodes[index]));
     if(modelStaffs.length!==staffNodes.length)return fallback('Staff/model visibility mismatch');
     modelStaffs.forEach((staff,index)=>{
       ownership.set(staffNodes[index],index);

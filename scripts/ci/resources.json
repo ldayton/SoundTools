@@ -2316,5 +2316,24 @@
         "cwd": "apps/notewise"
       }
     ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/instrument-features.browser.ts": {
+    "kind": "ui",
+    "ports": [],
+    "locks": [],
+    "slots": 4,
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/instrument-features.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
   }
 }

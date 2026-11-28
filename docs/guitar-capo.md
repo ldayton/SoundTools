@@ -55,3 +55,10 @@ a different key returns to the engine recommendation. Null/absent saved capo
 means automatic; numeric choices remain explicit through reloads and instrument
 switches when physically valid. Older explicit `capo=score` links resolve to a
 numeric reference position rather than silently becoming automatic.
+
+Solo guitar range and octave controls test the complete performed part through
+the same advisor. A higher register can use a different playable capo/layout;
+the internal reference capo is not an upper bound on the sounding register.
+The active/preferred key is checked first, and other keys are checked only when
+needed to find a playable match. Guitar + Voice keeps the sung register separate
+from its accompaniment.

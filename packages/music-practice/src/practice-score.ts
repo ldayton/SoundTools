@@ -1,8 +1,9 @@
+import {prepareStaffTab,projectInstrumentNotation} from "./score-staff-views";
 import {restoreSystemBarNumbers} from "./score-markings";
 import {prepareScoreMarkings,addSwingHelp} from "./score-markings";
 import { prepareHymnMelismas } from "./hymn-melismas";
 import { AbcScoreLayout, prepareScoreLayoutSource } from "./score-layout/abc";
-import { abcHasChordSymbols, abcPlaybackStaves, hidePlaybackStaves, restoreDeclaredStaffTitles } from "./hymn-playback-staves";
+import { sourceStaffIndex, abcHasChordSymbols, abcPlaybackStaves, hidePlaybackStaves, restoreDeclaredStaffTitles } from "./hymn-playback-staves";
 import { attachPianoChordDiagrams } from "./piano-chord-triggers";
 import {isGuitarPositionMark} from "./edition-score";
 import type {CapoChoice} from "./guitar-capo";
@@ -10,7 +11,7 @@ import {showChordsOnly,spaceGuitarSymbols} from "./chords-only";
 import {chordEdition,capoAudio,type ChordEditionId} from "./chord-editions";
 import { drawBeginnerFingerings, separateBeginnerFingerings, alignSimultaneousTab, normalizeGuitarRests, drawRhythmicTab, normalizeBeginnerLandmarks, type BeginnerInstrument } from "./beginner-score";
 import { preserveFingerstyleTab, showOnlyTab, normalizeFingerstyleTab } from "./fingerstyle-tab";
-import { attachChordDiagrams } from "./guitar-chord-diagram";
+import { attachChordDiagrams } from "./guitar-chord-triggers";
 import { scoreChordPassages } from "./chord-passage-fingering";
 import { drawGuitarFingerings } from "./guitar-fingering-view";
 import { hasSwing, swingAudio, swingBeat } from "./hymn-swing";
@@ -103,7 +104,11 @@ export function drawPracticeScore(
     guitarSetup?: { capo: number; key: string };
     capoChoice?: CapoChoice;
     capoAccompaniment?: boolean;
-    guitarAccompaniment?: {capo:number;positionFor:NonNullable<Parameters<typeof scoreChordPassages>[1]>["positionFor"]};
+    guitarStaffIndex?: number;
+    guitarNotation?: boolean;
+    pianoStaffIndexes?: readonly number[];
+    generatedPianoFingerings?: boolean;
+    guitarAccompaniment?: {capo:number;positionFor:NonNullable<NonNullable<Parameters<typeof scoreChordPassages>[1]>["positionFor"]>};
     playback?: (audio: AudioTracks) => void;
   } = {},
 ): PracticeEvent[] {
@@ -117,7 +122,7 @@ export function drawPracticeScore(
         return positions.get(`${pitch-transpose}:${chord?1:0}`) || positions.get(`${pitch-transpose}:${chord?0:1}`);
       } : sourceProfile.position,
       }
-    : sourceProfile;
+    : sourceProfile && options.guitarAccompaniment ? {...sourceProfile,capo:options.guitarAccompaniment.capo,position:options.guitarAccompaniment.positionFor} : sourceProfile;
   if(options.guitarSetup) abc=abc.replace(/^(Q:)"Capo \d+"\s*/gm,"$1");
   if(options.capoChoice && !options.capoChoice.scoreSetting) abc=abc.replace(/"\^([IVX]+)"/g,(all,label)=>isGuitarPositionMark(label)?"":all);
   if (options.lyrics) abc = hymnLyricsAbc(abc, options.lyrics);
@@ -134,12 +139,21 @@ export function drawPracticeScore(
   const prepareTune = (tune: TuneObject) => {
     prepareScoreMarkings(tune, options.barNumbers);
     restoreDeclaredStaffTitles(tune,source);
-    if (options.hiddenStaves?.length) hidePlaybackStaves(tune, options.hiddenStaves);
+    if(options.guitarAccompaniment && width<500)
+      for(const line of tune.lines)for(const staff of line.staff||[]){
+        const named=staff as typeof staff & {title?:string[]};
+        if(named.title)named.title=named.title.map(name=>name==='Voice'?'Vox':name==='Guitar'?'Gtr.':name);
+      }
+    // A chord chart retains sung underlay while projecting away its staff.
+    const hiddenForLayout=options.chordsOnly&&options.guitarAccompaniment
+      ? options.hiddenStaves?.filter(index=>index!==0):options.hiddenStaves;
+    if (hiddenForLayout?.length) hidePlaybackStaves(tune, hiddenForLayout);
     if (options.printedScore)
       tune.lines.slice(1).forEach(line => line.staff?.forEach(staff => { delete (staff as typeof staff & {title?: unknown}).title; }));
     if (options.showChordSymbols === false)
       for (const line of tune.lines) for (const staff of line.staff || []) for (const voice of staff.voices || [])
         for (const item of voice) if (item.el_type === "note") item.chord = item.chord?.filter((chord:{position?:string}) => chord.position !== "default");
+    if(options.guitarStaffIndex!==undefined&&options.guitarTab)prepareStaffTab(tune);
     // abcjs's multi-system tab layout dereferences empty-staff placeholders.
     // Keep the melody staff's placeholder as an explicit no-op plugin.
     if (options.chordTab) {
@@ -165,16 +179,18 @@ export function drawPracticeScore(
   const layout = new AbcScoreLayout({
     source, width, scale,
     mode: options.rhythmGrid ? "rhythm" : options.fitHymnSystems || options.guitarTab || options.fingerstyleTab || options.beginnerEdition ? "reflow" : "wrap",
-    annotations: !options.printedScore || !!options.guitarTab,
+    annotations: !options.printedScore || !!options.guitarTab || !!options.fingerings,
     presentation: {compact:options.compact,octaveNotation:options.octaveNotation,lyrics:!!options.lyrics,
       tablature:!!(options.guitarTab||options.fingerstyleTab),beginner:!!options.beginnerEdition,
-      view:chordsOnly?"chords":options.tabOnly?"tab":"notation"},
+      view:chordsOnly?"chords":options.tabOnly&&!options.guitarAccompaniment?"tab":"notation"},
     measurementContext: [options.hiddenStaves, options.showChordSymbols, initialSignatures, options.octaveNotation, options.printedScore, options.barNumbers,
       options.hymnEdition, options.guitarSetup, options.capoChoice?.scoreSetting,
       options.capoChoice ? [...options.capoChoice.positions] : undefined],
     params: {
     add_classes: true,
-    tablature: options.chordTab
+    tablature: options.guitarTab && options.guitarStaffIndex!==undefined
+      ? Array.from({length:options.guitarStaffIndex+1},(_,index)=>({instrument:index===options.guitarStaffIndex?"guitar":""}))
+      : options.chordTab
       ? [{ instrument: "" }, { instrument: "guitar" }]
       : options.guitarTab
         ? [{ instrument: "guitar" }]
@@ -298,17 +314,29 @@ export function drawPracticeScore(
     }
   });
   if (options.beginnerEdition === "guitar") normalizeGuitarRests(tune, options.fromBar || 0);
-  if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!profile && tune.lines[0]?.staff?.[0]?.voices?.length === 1);
+  if (options.fingerstyleTab && options.guitarTab) normalizeFingerstyleTab(paper, !!options.guitarAccompaniment || !!profile && tune.lines[0]?.staff?.[0]?.voices?.length === 1,options.guitarAccompaniment && !options.hiddenStaves?.includes(0)?1:0);
   if (options.beginnerEdition) normalizeBeginnerLandmarks(paper, tune, options.fromBar || 0, profile?.pickup ?? false);
-  if (options.guitarTab && !!profile) alignSimultaneousTab(tune, options.fromBar || 0);
-  if (options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift,group)=>profile.position(pitch-profile.capo,chord,shift,group?.map(p=>p-profile.capo)) : undefined, !!options.tabOnly, !!profile);
+  if (options.guitarTab && !!profile) alignSimultaneousTab(tune, options.fromBar || 0,options.guitarAccompaniment?[options.guitarStaffIndex??1]:undefined);
+  if (!options.guitarAccompaniment && options.guitarTab && options.fingerstyleTab) drawRhythmicTab(tune, paper, options.fromBar || 0, transpose, profile ? (pitch,chord,shift,group)=>profile.position(pitch-profile.capo,chord,shift,group?.map(p=>p-profile.capo)) : undefined, !!options.tabOnly, !!profile);
   // Measure editorial annotations even when hidden, so the score keeps its
   // geometry when fingerings are toggled. Remove the provisional marks below.
-  if (options.beginnerEdition)
+  if (options.beginnerEdition && !options.generatedPianoFingerings)
     drawBeginnerFingerings(tune, options.beginnerEdition, options.fromBar || 0, transpose, !!options.tabOnly, profile ? (instrument,bar,voice,pitches)=>profile.fingers(instrument,bar,voice,pitches,bar===(options.fromBar||0)) : undefined, !profile, !!profile, profile ? (pitch,chord,shift,group)=>profile.position(pitch-profile.capo,chord,shift,group?.map(p=>p-profile.capo)) : undefined, fingeringTune, profile?.capo || 0);
   if (options.beginnerEdition) separateBeginnerFingerings(paper);
   if (!!profile && options.beginnerEdition === "guitar" && !chordsOnly) spaceGuitarSymbols(paper);
-  if (options.tabOnly) showOnlyTab(paper, profile ? 58 : undefined);
+  if(options.guitarAccompaniment && options.guitarTab){
+    const {capo,positionFor}=options.guitarAccompaniment;
+    drawRhythmicTab(tune,paper,options.fromBar||0,0,
+      (pitch,chord,shift,group)=>positionFor(pitch-capo,chord,shift,group?.map(p=>p-capo)),
+      !!options.tabOnly,true,[options.guitarStaffIndex??1]);
+  }
+  if(options.fingerings && options.guitarAccompaniment){
+    const {capo,positionFor}=options.guitarAccompaniment;
+    drawBeginnerFingerings(tune,'guitar',options.fromBar||0,0,!!options.tabOnly,undefined,false,true,
+      (pitch,chord,shift,group)=>positionFor?.(pitch-capo,chord,shift,group?.map(p=>p-capo)),fingeringTune,capo,[options.guitarStaffIndex??1]);
+  }
+  if (options.tabOnly && !options.guitarAccompaniment) showOnlyTab(paper, profile ? 58 : undefined);
+  if(options.guitarAccompaniment && options.guitarNotation===false)projectInstrumentNotation(tune,paper,options.guitarStaffIndex??1,!!options.guitarTab);
   if (chordsOnly) showChordsOnly(paper,tune);
   drawMelismas();
   // Remove the now-empty marker text, whose zero-origin box would otherwise
@@ -318,9 +346,9 @@ export function drawPracticeScore(
   });
   // Explicit physical size prevents short systems and responsive wrappers from
   // stretching staff lines and glyphs differently in each exercise.
-  if (options.fingerings && !options.beginnerEdition) {
+  if (options.fingerings && (!options.beginnerEdition||options.generatedPianoFingerings) && !options.guitarAccompaniment) {
     if (options.guitarTab) drawGuitarFingerings(tune, !!options.chordTab);
-    else drawHymnFingerings(tune,{planningTune:fingeringTune});
+    else drawHymnFingerings(tune,{planningTune:fingeringTune,staffIndexes:options.pianoStaffIndexes});
   }
   if(options.barNumbers)restoreSystemBarNumbers(tune,paper);
   paper.querySelectorAll("svg").forEach((svg) => {
@@ -366,16 +394,24 @@ export function drawPracticeScore(
     // events to the visible notation/tab glyphs by source position.
     const elements = new Map<number, HTMLElement[]>();
     for (const line of tune.lines)
-      for (const staff of (line.staff || []).filter(staff => String(staff.clef?.type) !== "TAB"))
+      for (const [staffIndex,staff] of (line.staff||[]).entries()) {
+        if(String(staff.clef?.type)==="TAB")continue;
+        const notationShown=!options.tabOnly || !!options.guitarAccompaniment && sourceStaffIndex(staff,staffIndex)!==options.guitarStaffIndex;
         for (const voice of staff.voices || [])
           for (const note of voice) {
             if (note.el_type !== "note" || note.startChar === undefined) continue;
             const absolute = (note as typeof note & { abselem?: AbsoluteElement }).abselem;
+            const projectedChords=absolute?.children.flatMap(child=>{
+              const ink=(child as typeof child & {graphelem?:SVGGraphicsElement}).graphelem;
+              return ink?.classList.contains('instrument-view-chord')?[ink]:[];
+            })||[];
             elements.set(note.startChar, [
-              ...((options.tabOnly ? [] : absolute?.elemset || []) as unknown as HTMLElement[]),
+              ...((notationShown?absolute?.elemset||[]:[]) as unknown as HTMLElement[]),
+              ...(projectedChords as unknown as HTMLElement[]),
               ...(tabElements.get(note.startChar) || []),
             ]);
           }
+      }
     const musical = drawPracticeScore(document.createElement("div"), abc, width, {
       ...options,
       lyrics: undefined, // Already applied above, retaining identical source positions.

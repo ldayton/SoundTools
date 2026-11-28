@@ -586,3 +586,15 @@ preferences/migrations and responsive staff-spacing controls.
 visibility, view-option reload and chord-preview scheduling. Those assertions
 were extracted intact from instrument-toolbar so independent required commands
 can overlap; they are not executed twice.
+
+### Instrument-view feature parity
+
+`instrument-features.test.ts` and the required `instrument-features.browser.ts`
+cover every ID in `instrumentEditionIds`, using the real two-bar sources across
+all supported instrument/Voice combinations. The browser command owns four
+isolated render workers, declared in `resources.json`. It verifies instrument-only
+fingerings, full accompaniment TAB, hidden-Voice source identity, score framing,
+and exact source pitches/timing (including the existing swing transformation).
+`score-view.browser.ts` owns desktop/phone controls, independent visibility,
+reload persistence and chord interaction. `fingerings.browser.ts` owns piano
+key changes. Existing musical edition goldens remain the music regression owner.

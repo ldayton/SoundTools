@@ -91,3 +91,11 @@ test("score tempo is normalized to quarter beats and can be overridden", () => {
   assert.deepEqual(a.plan, b.plan);
   assert.ok(fast.plan.costs.movement > a.plan.costs.movement);
 });
+
+test("keyboard staff selection excludes vocals from both hand plans",()=>{
+ const t=tune("%%score Voice R L\nV:Voice clef=treble\nV:R clef=treble\nV:L clef=bass\nK:C\n[V:Voice] [cdefgab]4 |]\n[V:R] CDEF |]\n[V:L] C,4 |]");
+ const selected=planPianoScore(t,{staffIndexes:[1,2]});
+ assert.equal(selected.plan.status,"complete");
+ assert(selected.entries.every(e=>e.id.startsWith("1:")||e.id.startsWith("2:")));
+ assert.deepEqual(selected.entries.map(e=>e.midi),[60,62,64,65,48]);
+});

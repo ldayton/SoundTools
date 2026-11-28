@@ -257,8 +257,15 @@ Exact music and physical string choices are covered by
 switching and saved choices are covered by the corresponding Nightly browser test.
 
 Playback highlights current notes in green while running; a translucent position
-band appears when paused or ready. Reviewed guitar scores list Tablature as a
-separate Show control, with Play disabled because the Treble staff owns its audio.
+band appears when paused or ready. Guitar scores, including Guitar + Voice,
+list Tablature as a separate Show control. Its Play control is disabled because
+TAB shares the guitar staff's audio. Voice visibility remains independent of the
+guitar notation/TAB choices. Guitar fingerings work in notation and TAB-only
+views; keyboard fingerings also work alongside Voice and are replanned for key
+changes. Vocal notes are excluded from both instrument hand planners. Pure chord
+charts keep their lyrics and diagrams; the visible fingering control explains
+that note fingerings require notation or TAB. Guitar range and octave controls
+use actual melody/bass playability, independently of the reference capo height.
 Chord symbols have an independent per-song Show preference, retained in URLs,
 local/offline saves and account records. Both visibility controls preserve notes
 and playback timing. Guitar capo/sounding key appear on the score; shape details

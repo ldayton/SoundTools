@@ -248,7 +248,7 @@ use filesystem copy-on-write where supported, with private workspace links.
 
 `CI_WORKERS` or `--workers` controls outer scheduling (CI: up to 16 locally; Nightly: up to six;
 GitHub: two; range 1–32). `CI_UNIT_WORKERS` bounds the shared music unit-file
-pool (default eight in local CI, four in Nightly, two on GitHub; range 1–8). Worker slots are weighted
+pool (default six in local CI, four in Nightly, two on GitHub; range 1–8). Worker slots are weighted
 scheduling budgets, not a promise to pin every subprocess to a CPU. Compare worker counts against the same CI inventory. A serial CI baseline
 may exceed the hard deadline and is then a failure, not a performance result. Do not raise concurrency just because a machine has many logical CPUs:
 compare throughput, per-command latency and failures first.

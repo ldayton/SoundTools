@@ -134,6 +134,14 @@ const { launchBrowser, newPage, captureFailure, closeBrowser } = require("./ci/b
       root.remove();
       return { normal, preserve, hidden, disabled, inert, invisible, removed, body };
     }), { normal:true, preserve:true, hidden:true, disabled:true, inert:true, invisible:true, removed:true, body:true });
+    // Keyboard press focuses without scrolling in WebKit. Keep the trigger
+    // onscreen before freezing timers, so Floating UI does not hide its popup
+    // as an offscreen reference while this test pauses deferred focus.
+    await page.locator("#test-pitch").scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => {
+      const rect = document.getElementById("test-pitch").getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= innerHeight;
+    });
     // Delay the focus trap's activation until after arrow navigation. Its
     // deferred focus must follow the roving cell, not the originally selected one.
     await page.clock.install({ time: 0 });

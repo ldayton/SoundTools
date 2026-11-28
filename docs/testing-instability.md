@@ -973,3 +973,24 @@ reviewed resource declaration now gives this existing long witness priority 50,
 matching the other long browser checks. Its scheduler-policy assertion verifies
 propagation. All coverage, locks, assertions and budgets remain unchanged. The
 next validation measures `npm run ci -- --base origin/main --all --workers 16`.
+
+## Offscreen pitch-trigger clock injection (28 November 2026)
+
+[Main Nightly](https://github.com/ldayton/SoundTools/actions/runs/46141804114/job/140969297290)
+failed the shared WebKit controls owner waiting for C3. The same failure
+reproduced locally, retained in `work/nightly-investigation/pitch-picker-webkit-repro.log`.
+A diagnostic captured `aria-expanded=true` and a positioned dropdown still
+`display:none`; the native page clock had been paused before keyboard opening.
+Earlier control interactions leave the pitch trigger offscreen. WebKit's
+keyboard focus does not scroll it into view, so Floating UI hides the offscreen
+reference; pausing timers prevents the deferred update from recovering.
+The first failure's command log and artifacts are retained under
+`work/nightly-investigation/main-notewise-webkit/`.
+
+The existing focus-trap test now scrolls its real trigger into view and requires
+its rectangle to be within the viewport before freezing time. It still sends
+Enter and ArrowDown, advances the controlled clock by 25 ms, requires focus on
+C4 and commits it. No timing allowance, retry, product behavior or focus
+assertion changed. `pitch-picker-visible-webkit.log` records the corrected
+shared suite passing; temporary diagnostic code and its shorter timeout were
+removed.

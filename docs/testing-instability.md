@@ -810,3 +810,13 @@ build took 22.6 seconds and its desktop witness was cancelled. It is not a pass.
 The next full validation uses the standard coordinator's supported 24-worker
 setting on this 24-core host, retaining all required tasks, locks and the
 60-second budget, as in the preceding archived-research validation.
+
+The 24-worker run (`1795861486993-f44cc346`) passed the repaired native-scroll
+witness and all completed commands, but again hit the budget at 62.17 seconds;
+DoReGo's build completed 35.2 seconds into the task graph and left too little
+time for its desktop witness. Increasing parallel browser work also increased
+shared-music execution from 26.8 to 35.7 seconds. The next measurement returns
+to 16 coordinator slots and uses the existing `CI_UNIT_WORKERS=2` option: the
+same shared-music files execute in two isolated Node workers, reserving less
+capacity and reducing CPU contention while builds start. No coverage or resource
+locks change. Neither cancelled run is considered a validation pass.

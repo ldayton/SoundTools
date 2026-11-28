@@ -120,3 +120,15 @@ test('real cached-startup latency has one exclusive Nightly owner on both engine
     assert(!commandTasks('notewise','ci',browser).some(t=>t.args.at(-1)==='tests/offline-startup.browser.ts'));
   }
 });
+
+test('bounded local CI starts critical builds and browser work before the terminal DSP pool without dropping reader dependencies',()=>{
+  const {fastGraph}=require('../../scripts/ci/fast-local.cjs');
+  const tasks=fastGraph({apps:['tagaluya','dorego','notewise','songalong','soundglow']},process.cwd());
+  const generic=tasks.find(t=>t.id==='notewise:build');
+  for(const app of ['dorego','songalong'])assert(tasks.find(t=>t.id===app+':build').priority>generic.priority);
+  const pool=tasks.find(t=>t.args.includes('test:unit')&&t.args.includes('--workspace=soundglow'));
+  const browser=tasks.find(t=>t.args.includes('tests/score-view.browser.ts'));
+  assert(pool.priority<browser.priority);
+  assert.equal(pool.slots,4);
+  assert(tasks.filter(t=>t.id.startsWith('soundglow:ci:')&&t!==pool).every(t=>t.needs.includes(pool.id)));
+});

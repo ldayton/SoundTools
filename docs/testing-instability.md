@@ -1362,3 +1362,19 @@ arbitration; no claim of WebKit native-touch coverage is made. All selection,
 cancellation, edge, resize and persistence assertions remain. The complete
 isolated WebKit reader lane passed in 15.7 seconds including build
 (`1795875004742-30254d84`).
+
+## 2026-11-28: Merged native-pager CI queue budget
+
+The complete all-app CI at `1929a174`, after integrating current main, retained
+`work/ci-results/1795877492183-b519715e`: 62.22 seconds including cancellation
+cleanup, with SongAlong score-view cancelled at the unchanged 60-second deadline.
+No assertion failed before cancellation. The four-slot Soundglow pool started at
+20.1s and occupied capacity until 31.8s; score-view then began at 31.8s. SongAlong's
+build had started at 8.4s, after shorter app setup, and completed at 20.9s.
+
+Bounded local CI now prioritizes the DoReGo/SongAlong builds and lets critical
+browser witnesses start before reserving the four-slot Soundglow pool. The pool's
+commands, capacity, locks and reader dependencies are unchanged. This is a
+measured critical-path scheduling correction; it does not remove checks, extend
+the deadline or change hosted/Nightly prerequisite policy. The next complete
+measurement validates the changed committed graph, not an unexplained retry.

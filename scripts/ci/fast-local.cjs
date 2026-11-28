@@ -24,7 +24,11 @@ function fastGraph(selected, cwd) {
       // Shared files are prepared once, before parallel app builds. App outputs
       // are disjoint; there is no shared-checkout build race to serialize.
       task.locks = [`build:${app}`];
-      if (task.id.endsWith(':build')) task.args.push('--prepared');
+      if (task.id.endsWith(':build')) {
+        task.args.push('--prepared');
+        // Their browser witnesses own the measured all-app critical path.
+        if (['songalong','dorego'].includes(app)) task.priority = 65;
+      }
       // These units read source/fixtures only. Keep their complete required
       // task, but let the independent app build start after shared preparation.
       if(['songalong','dorego','tagaluya'].includes(app)) {
@@ -34,6 +38,10 @@ function fastGraph(selected, cwd) {
     }
     tasks.push(...setup, ...commandTasks(app, 'ci', 'chromium', cwd));
   }
+  // Start long browser witnesses before reserving four slots for this pool.
+  // Its readers still depend on it through orderAppChecks below.
+  const soundglowUnits = tasks.find(task=>task.args.includes('test:unit') && task.args.includes('--workspace=soundglow'));
+  if (soundglowUnits) soundglowUnits.priority = 45;
   for (const task of tasks) task.env = { ...task.env, CI_TIER: 'ci' };
   return orderAppChecks(tasks);
 }

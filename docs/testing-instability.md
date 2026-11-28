@@ -1322,3 +1322,14 @@ edge and resize assertions are unchanged. Diagnostic instrumentation was removed
 The corrected isolated reader lane passed in 28.0 seconds including build
 (`1795874722759-1f29d699`). WebKit uses real horizontal wheel input and waits for
 track scrollend, matching the user-intent contract rather than forcing scrollTo.
+
+The WebKit native-wheel experiment (`1795874866950-5a890ccc`) advanced two
+pages for a wheel delta equal to one page width, failing the unchanged adjacent
+song assertion. WebKit automation has no native touch-drag injection. Its
+witnesses therefore retain the original deterministic scrollTo geometry/snap
+scope, with an explicit synthetic wheel-intent signal before scrolling one page
+and an observable track scrollend afterward. Chromium alone owns real touch
+arbitration; no claim of WebKit native-touch coverage is made. All selection,
+cancellation, edge, resize and persistence assertions remain. The complete
+isolated WebKit reader lane passed in 15.7 seconds including build
+(`1795875004742-30254d84`).

@@ -58,16 +58,16 @@ try {
   await expect(page.getByRole("radio",{name:/^(Text|Score|Interlinear|Melody)$/})).toHaveCount(0);
   const swipe=async(dx:number,dy:number,cancel=false)=>{
     const track=page.locator(".swipe-pager");
-      const moves=await track.evaluate((el,{dx,dy})=>Math.abs(dx)>Math.abs(dy)&&
-        (dx>0?el.scrollLeft>1:el.scrollLeft<el.scrollWidth-el.clientWidth-1),{dx,dy});
-      if(moves)await track.evaluate(el=>{
-        el.setAttribute("data-test-scroll-settled","false");
-        const controller=new AbortController();
-        el.addEventListener("scrollend",event=>{
-          if(event.target!==el)return;
-          el.setAttribute("data-test-scroll-settled","true");controller.abort();
-        },{signal:controller.signal});
-      });
+    const moves=await track.evaluate((el,{dx,dy})=>Math.abs(dx)>Math.abs(dy)&&
+      (dx>0?el.scrollLeft>1:el.scrollLeft<el.scrollWidth-el.clientWidth-1),{dx,dy});
+    if(moves)await track.evaluate(el=>{
+      el.setAttribute("data-test-scroll-settled","false");
+      const controller=new AbortController();
+      el.addEventListener("scrollend",event=>{
+        if(event.target!==el)return;
+        el.setAttribute("data-test-scroll-settled","true");controller.abort();
+      },{signal:controller.signal});
+    });
     if(browser.browserType().name()==="chromium"){
       const session=await page.context().newCDPSession(page);
       const bounds=(await track.boundingBox())!;
@@ -81,18 +81,16 @@ try {
         await session.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:point.x+dx*step/6,y:point.y+dy*step/6}]});
       }
       await session.send("Input.dispatchTouchEvent",{type:cancel?"touchCancel":"touchEnd",touchPoints:[]});
-      // A changed heading does not prove native momentum/snap has finished.
-      // Wait before injecting the next gesture; outward boundary swipes and
-      // vertical reading gestures need not produce a horizontal scrollend.
       await session.detach();
     }else{
-      // WebKit's automation has no native drag injection. Exercise browser
-      // snap settlement here; Chromium above owns actual touch arbitration.
+      // WebKit has no native drag injection. Supply the input-intent signal,
+      // then exercise one page's native snap settlement; Chromium owns touch.
       if(cancel||Math.abs(dy)>Math.abs(dx))return;
-      const bounds=(await track.boundingBox())!;
-      await page.mouse.move(bounds.x+bounds.width/2,350);
-      await page.mouse.wheel(-Math.sign(dx)*bounds.width,0);
+      await track.dispatchEvent("wheel",{deltaX:-Math.sign(dx)});
+      await track.evaluate((el,dx)=>el.scrollTo({left:el.scrollLeft-Math.sign(dx)*el.clientWidth,behavior:"instant"}),dx);
     }
+    // A heading change is not evidence that native momentum/snap has finished.
+    // Boundary and vertical gestures need not produce a horizontal scrollend.
     if(moves)await expect(track).toHaveAttribute("data-test-scroll-settled","true");
   };
   for(const width of [393,320]){

@@ -218,10 +218,10 @@ export async function verifyExerciseNavigation(browser: Browser, base: string) {
         await session.send('Input.dispatchTouchEvent', { type: reverse ? 'touchCancel' : 'touchEnd', touchPoints: [] });
         await session.detach();
       } else if (!reverse) {
-        // WebKit automation lacks native touch injection; use its native horizontal wheel.
-        const bounds = (await track.boundingBox())!;
-        await page.mouse.move(startX, y);
-        await page.mouse.wheel(-Math.sign(dx) * bounds.width, 0);
+        // WebKit cannot inject native touch. Signal intent, then settle one page;
+        // Chromium above owns real touch arbitration and piano cancellation.
+        await track.dispatchEvent('wheel', { deltaX: -Math.sign(dx) });
+        await track.evaluate((element, dx) => element.scrollTo({ left: element.scrollLeft - Math.sign(dx) * element.clientWidth, behavior: 'instant' }), dx);
       }
       if (vertical) await page.waitForFunction(() => (document.querySelector('.swipe-pager-page:not([inert])')?.scrollTop ?? 0) > 0);
       else await page.waitForFunction(() => document.querySelector('.swipe-pager')?.getAttribute('data-test-scroll-settled') === 'true');

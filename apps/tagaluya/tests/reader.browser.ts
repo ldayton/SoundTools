@@ -106,6 +106,7 @@ try {
     await expect(page.getByText("Your service selection and reading preferences are saved on this device.",{exact:true})).toHaveCount(0);
     await page.getByRole("button",{name:"Open navigation",exact:true}).click();
     await page.getByRole("link",{name:"November 28, 2026 Evening service",exact:true}).click();
+    await expect(page.getByRole("button",{name:"Close navigation",exact:true})).toBeHidden();
     await expect(page.locator("#song-title")).toHaveText("O Kay Saya at Kay Ganda");
     await expect(page.locator(".tagaluya-reader .song-role")).toHaveText("Welcome song");
     if(width===393)await page.screenshot({path:"work/tagaluya/mobile-welcome-contents-button.png"});

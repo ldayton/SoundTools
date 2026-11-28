@@ -215,17 +215,17 @@ try {
     await lowPicker.getByRole('button', { name: 'E3', exact: true }).click();
     if (width === 390) {
       await page.locator('#low-spin').click();
-      assert.equal(await lowPicker.locator('button[data-value]').count(), 33);
+      assert.equal(await lowPicker.locator('button[data-value]').count(), 36);
       assert.equal(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).getAttribute('aria-pressed'), 'false');
       await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
-      await lowPicker.getByRole('button', { name: 'D♯3', exact: true }).click();
+      await lowPicker.getByRole('button', { name: 'B2', exact: true }).click();
       await page.locator('#low-spin').click();
       assert.equal(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).getAttribute('aria-pressed'), 'true', 'A selected extended note remains visible when reopened');
-      assert.equal(await lowPicker.getByRole('button', { name: 'D♯3', exact: true }).getAttribute('aria-pressed'), 'true');
-      await page.waitForFunction(() => document.activeElement?.getAttribute('data-value') === '51');
+      assert.equal(await lowPicker.getByRole('button', { name: 'B2', exact: true }).getAttribute('aria-pressed'), 'true');
+      await page.waitForFunction(() => document.activeElement?.getAttribute('data-value') === '47');
       await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).click();
-      assert.equal(await lowPicker.getByRole('button', { name: 'D♯3', exact: true }).count(), 0);
-      assert.equal(await page.locator('#low-spin').inputValue(), 'D♯3', 'Collapsing the chooser never changes the selected range');
+      assert.equal(await lowPicker.getByRole('button', { name: 'B2', exact: true }).count(), 0);
+      assert.equal(await page.locator('#low-spin').inputValue(), 'B2', 'Collapsing the chooser never changes the selected range');
       assert.ok(await lowPicker.getByRole('button', { name: 'Extended range', exact: true }).evaluate(el => el === document.activeElement), 'Collapsing an extended selection retains keyboard focus');
       await page.keyboard.press('Escape');
       await lowPicker.waitFor({ state: 'hidden' });

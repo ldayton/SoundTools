@@ -36,7 +36,7 @@ import { ToolbarNumber } from '@ldayton/ui/toolbar-number';
 import { CommittedNumber } from '@ldayton/ui/committed-number';
 import { ResponsivePitchField } from '@ldayton/ui/responsive-pitch-field';
 import { useMediaQuery } from '@mantine/hooks';
-const COMPACT_PITCH_RANGE = { low: 52, high: 84 }; // E3–C6
+const COMPACT_PITCH_RANGE = { low: 48, high: 83 }; // C3–B5
 export type BuilderSnapshot = { spec: ExerciseSpec; error: string | null };
 export type SpecPatch = Partial<ExerciseSpec> & { startingNote?: number };
 export interface BuilderModel {

@@ -3,10 +3,11 @@ const assert = require('node:assert/strict');
 const { release, stagedRequest } = require('../../scripts/ci/release.cjs');
 const { apps } = require('../../scripts/ci/apps.cjs');
 const sha = 'a'.repeat(40);
-function fixture({ stale = 99, build = 'READY', auto = false, smokeFails = false, mismatch = false, reusable = false, alreadyLive = false, protectedStage = false, bypass } = {}) {
+function fixture({ stale = 99, build = 'READY', auto = false, smokeFails = false, mismatch = false, reusable = false, alreadyLive = false, firstRelease = false, protectedStage = false, bypass } = {}) {
   const calls = []; let refs = 0, promoted = false;
   const fetch = async (url, options = {}) => {
     calls.push({ url, ...options });
+    if(firstRelease && url.includes("/v13/deployments/dorego.lilydayton.me") && !promoted) return new Response(null,{status:404});
     let data;
     if (url.includes('api.github.com')) data = { object: { sha: ++refs >= stale ? 'b'.repeat(40) : sha } };
     else if (url.includes('/v9/projects/')) data = { autoAssignCustomDomains: auto, ...(protectedStage ? { ssoProtection: { deploymentType: 'all_except_custom_domains' } } : {}) };
@@ -48,4 +49,10 @@ test('HTTP staging credentials never reach another origin or follow a redirect',
   assert.equal(calls[0].options.redirect, 'error');
   assert.throws(() => request('https://stage.vercel.app.attacker.test/'), /another origin/);
   assert.equal(calls.length, 1);
+});
+
+test('first release promotes a verified stage when the production alias does not exist yet',async()=>{
+  const f=fixture({firstRelease:true});
+  assert.equal((await f.run()).sha,sha);
+  assert.equal(f.calls.filter(c=>c.url.includes('/promote/')).length,1);
 });

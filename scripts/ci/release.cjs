@@ -9,8 +9,9 @@ async function release({ app, sha, token, githubToken, bypass, fetch: request = 
   if (config && (!config.project || !config.origin)) throw Error("App hosting has not been configured");
   if (!config || !/^[a-f0-9]{40}$/.test(sha || '')) throw Error('Choose a known app and full commit SHA');
   if (!token || !githubToken) throw Error('Production release credentials are missing');
-  async function json(url, options = {}) {
+  async function json(url, {allowNotFound = false, ...options} = {}) {
     const response = await request(url, { ...options, signal: AbortSignal.timeout(60000) });
+    if (allowNotFound && response.status === 404) return null;
     if (!response.ok) {
       // Do not echo response bodies: upstream errors may contain credentials or configuration.
       const data = await response.json().catch(() => ({}));
@@ -54,8 +55,8 @@ async function release({ app, sha, token, githubToken, bypass, fetch: request = 
   log(`Checking staged ${app}: ${origin}`);
   await smoke(origin, app, stagedRequest(origin, bypass, request), sha, { bypass });
   if (!await current()) return { id, skipped: 'A newer main revision exists; verified deployment was not promoted' };
-  const currentAlias = await vercel(`/v13/deployments/${new URL(config.origin).hostname}`);
-  if (currentAlias.id !== id) await vercel(`/v10/projects/${config.project}/promote/${id}`, { method: 'POST' });
+  const currentAlias = await vercel(`/v13/deployments/${new URL(config.origin).hostname}`, {allowNotFound:true});
+  if (currentAlias?.id !== id) await vercel(`/v10/projects/${config.project}/promote/${id}`, { method: 'POST' });
   // Promotion is asynchronous. Verify the actual production alias, not just the request.
   let promoted = false;
   for (let i = 0; i < 30; i++) {
@@ -78,7 +79,7 @@ function stagedRequest(origin, bypass, request = fetch) {
 }
 
 async function smokeHTTP(origin, app, request = fetch, expectedSHA, { bypass } = {}) {
-  for (const path of ['/', ...(app === 'soundglow' ? [] : ['/auth/confirm'])]) {
+  for (const path of ['/', ...(app === 'soundglow' || apps[app]?.accounts === false ? [] : ['/auth/confirm'])]) {
     const r = await request(origin + path, { signal: AbortSignal.timeout(30000), cache: 'no-store' });
     if (!r.ok || !r.headers.get('content-type')?.includes('text/html')) throw Error(`Invalid ${app} release document: ${path}`);
     const html = await r.text();

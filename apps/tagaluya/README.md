@@ -23,9 +23,8 @@ scrolling remains native. Preferences are versioned local storage; service/song
 URLs and offline routes use `/services/:service/:song`.
 
 Gesture recognition and the shell offline controller live in
-`packages/browser-controls`, also used by the existing practice apps. Hosting
-metadata is deliberately unconfigured; the app participates in CI but is not
-published by release jobs until configured.
+`packages/browser-controls`, also used by the existing practice apps. The Vercel project is `tagalujah`, using the standard staged release flow.
+DNS and Sentry configuration are deferred.
 
 The song-ending ornament is GDJ's **Flourish Divider**
 (Openclipart ID 308072), released under CC0 1.0 / public domain.

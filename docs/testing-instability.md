@@ -1010,3 +1010,15 @@ on this 24-core Mac. This measures earlier scheduling of the same required
 commands, with the same host, TCP/audio locks and 60-second limit; it changes no
 assertion, coverage owner, timeout or coordinator code. A pass would validate
 that exact commit, not establish a general timing or flake-rate guarantee.
+
+The 24-slot run at `895304cf` (`1795867727295-171b9dd5`) also exceeded the limit
+at 62.17 seconds. All SongAlong browser checks completed, but DoReGo desktop was
+cancelled after 32.9 seconds. Shared music grew from 31.5 to 38.7 seconds and
+SongAlong units from 23.0 to 31.9 seconds: earlier launches increased contention.
+Inspection found SongAlong's 51 test files using Node's default CPU-count process
+concurrency despite the coordinator reserving two slots. Its unchanged full unit
+glob now runs in two isolated workers, with that command registered in the
+resource inventory and the setup task consuming its declared capacity. A policy
+check guards agreement between the npm command and scheduler slots. Next measure
+the complete `npm run ci -- --all` graph at the ordinary 16-slot setting; no test,
+assertion, port/audio lock or deadline is removed or relaxed.

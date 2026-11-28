@@ -255,6 +255,12 @@ scheduling budgets, not a promise to pin every subprocess to a CPU. Compare work
 may exceed the hard deadline and is then a failure, not a performance result. Do not raise concurrency just because a machine has many logical CPUs:
 compare throughput, per-command latency and failures first.
 
+SongAlong's unit command explicitly uses two isolated Node test workers, matching
+its reviewed resource declaration. The same command runs every `*.test.ts` file
+locally, in CI and in Nightly. Never restore Node's CPU-count default without
+measuring the whole suite and updating the declared capacity: the outer
+coordinator cannot otherwise account for those additional child processes.
+
 ```sh
 npm run ci -- --all --workers 12
 npm run ci -- --all --workers 16

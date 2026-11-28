@@ -49,6 +49,16 @@ test('all existing CI commands have reviewed coverage and resource declarations'
   assert.deepEqual(commandTasks('dorego', 'nightly', 'chromium').flatMap(t => t.args.filter(arg => /tests\/.*\.e2e\.ts$/.test(arg))).sort(), [...browserSuites.map(suite => `tests/${suite}.e2e.ts`), 'tests/sequence.e2e.ts', 'tests/voice-feedback.e2e.ts'].sort());
   assert.equal(setupTasks('songalong').filter(t => t.id.endsWith(':build')).length, 1);
 });
+test('SongAlong unit execution cannot silently exceed its reviewed worker budget', () => {
+  const units=setupTasks('songalong').find(task=>task.id==='songalong:units');
+  const policy=declaration('songalong','npm',['test','--workspace=songalong']);
+  const command=policy.coverage.find(entry=>entry.command==='tsx'&&entry.args.includes('--test'));
+  assert(command);
+  assert(command.args.includes(`--test-concurrency=${units.slots}`));
+  assert(command.args.includes('tests/*.test.ts'), 'all existing and future unit files stay required');
+  assert.equal(units.slots,2);
+  assert.deepEqual(units.coverage,policy.coverage);
+});
 test('performance comparison refuses changed coverage, commits or failed runs', () => {
   const before = { inventory: { sha: 'a', workers: 1, tasks: [{ ...task('a'), command: 'node', args: ['a.test.cjs'] }] }, results: { passed: true, elapsedMs: 100 } };
   const after = structuredClone(before); after.inventory.workers = 4; after.results.elapsedMs = 25;

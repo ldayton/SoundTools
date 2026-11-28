@@ -1,4 +1,17 @@
 {
+  "songalong:npm:test --workspace=songalong": {
+    "kind": "unit",
+    "ports": [],
+    "locks": [],
+    "slots": 2,
+    "coverage": [
+      {
+        "command": "tsx",
+        "args": ["--test", "--test-concurrency=2", "tests/*.test.ts"],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
   "dorego:npm:run test:desktop --workspace=dorego": {
     "kind": "audio",
     "ports": [

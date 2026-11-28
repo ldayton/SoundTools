@@ -15,7 +15,7 @@
     "test:sight": "tsx tests/sight-reading.browser.ts && tsx tests/hymn-recovery.browser.ts && npm run test:workspace:core && npm run test:guitar",
     "test:hymn-playback": "tsx tests/instrument-audio.browser.ts && tsx tests/hymn-playback.browser.ts && tsx tests/hymn-passage.browser.ts && tsx tests/hymn-octave.browser.ts",
     "test:hymn-recovery": "tsx tests/hymn-recovery.browser.ts",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "tsx --test --test-concurrency=2 tests/*.test.ts",
     "import:hymns": "tsx ../../packages/music-practice/scripts/import-hymns.ts",
     "test:split": "tsx ../../packages/music-practice/browser-tests/app-split.browser.ts",
     "test:sidebars": "tsx ../../packages/music-practice/browser-tests/sidebars.browser.ts",

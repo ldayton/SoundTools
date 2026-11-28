@@ -163,6 +163,21 @@ export async function verifyLiveDrone(browser: Browser, base: string) {
         await page.locator('#drone-strength [role=slider]').getAttribute('aria-valuenow'),
         '100'
       );
+      if (width === 390) {
+        // Same mobile DOM and four-column pads; only CSS short-screen rules change.
+        await page.setViewportSize({ width: 320, height: 568 });
+        const fit = await page.evaluate(() => ({
+          height: document.documentElement.scrollHeight,
+          viewport: innerHeight,
+          emptyNoticePadding: getComputedStyle(document.querySelector('.practice-notice')!).paddingBlock,
+          pads: [...document.querySelectorAll('.note-pad')].map(pad => {
+            const box=pad.getBoundingClientRect();return {width:box.width,height:box.height,bottom:box.bottom};
+          }),
+        }));
+        assert.equal(fit.emptyNoticePadding, '0px', 'An empty notice reserves no extra padding');
+        assert(fit.height <= fit.viewport + 1, `${pattern}: the smallest phone fits without scrolling`);
+        assert(fit.pads.every(pad=>pad.width>=44 && pad.height>=44 && pad.bottom<=fit.viewport), 'Readable finger targets remain visible');
+      }
       assert.deepEqual(errors, []);
       await page.close();
       console.log(

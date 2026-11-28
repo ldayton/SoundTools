@@ -128,6 +128,9 @@
   flex: 1 0 auto;
   align-items: center;
   justify-content: center;
+  padding-block: 0;
+}
+.practice-notice:has(.dorego-toast:not([hidden])) {
   padding-block: 16px;
 }
 @media (max-width: 760px) {

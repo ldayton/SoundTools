@@ -349,6 +349,7 @@ try {
       ['octaveGlide', 60, 72],
       ['rossini', 59, 78],
       ['maqamat', 60, 72],
+      ['yemenite', 60, 72],
     ] as const) {
       await layoutPage.evaluate(
         (spec) => localStorage.setItem('dorego.current', JSON.stringify(spec)),

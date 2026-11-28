@@ -1199,3 +1199,21 @@ The following complete run at `10bad442`
 58.95 seconds. No reader assertion was changed to obtain that pass. The
 preview ownership gap remains an infrastructure issue to investigate, rather
 than evidence that the reading-view control itself is intermittently removed.
+
+## 2026-11-28: Small-phone empty-notice overflow
+
+Nightly [46151896481](https://github.com/ldayton/SoundTools/actions/runs/46151896481)
+at `e0e3dc56` failed DoReGo's existing workspace fit-on-page assertion on both
+engines. Chromium reported Maqamat at 320x568 requiring 585px. The first retained
+command summary, control-state JSON and screenshot identify restored Hijaz with
+the drone mixer visible. Artifacts are retained locally under
+`work/suite-final-first-failure/`; no diagnostic rerun was treated as a pass.
+
+A local geometry probe reproduced 585px both before and after `document.fonts.ready`.
+The empty notification container added 32px of padding below the instrument,
+even with its alert hidden. This is a product layout regression, not a timeout
+or readiness fix. Empty notices now reserve no padding; visible notices retain
+their existing centered layout and padding. Existing CI live-drone cases also
+check 320x568 Maqamat/Yemenite page bounds and unchanged 44px finger targets.
+Nightly's original bounds assertions remain, with Yemenite added to the same
+exercise layout matrix. No page padding, musical content or timeout is reduced.

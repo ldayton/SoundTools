@@ -1286,3 +1286,21 @@ loudness and tempo, since those edits do not change pitches or beat counts.
 Their displayed duration still uses the live BPM. The next diagnostic runs the
 owned DoReGo lane through `scripts/ci/check-app.cjs` to distinguish its runtime
 from full-suite resource contention; it is not a substitute for full local CI.
+
+The isolated lane at `618d7f48` did not merely run slowly: its desktop witness
+ultimately timed out after 51.8 seconds waiting for Repeat round. First artifacts:
+`apps/dorego/work/browser-results/desktop.e2e.ts-chromium-b37b7e32` and
+`work/ci-results/1795873921147-1ad34681`. Resizing the completed Major Scale
+from desktop to phone had selected Breath Squares. The shared pager interpreted
+native resize/snap settlement as user navigation, so the expected controls
+were absent. The earlier full-suite budget cancellations masked this regression.
+
+The pager now requires touch, horizontal wheel, or arrow-key intent before
+reporting a selection. Resize, prop alignment, and blocked-dialog transitions
+clear that intent and realign the current value. The independent DoReGo pager
+witness explicitly checks a selected page far from the first across desktop and
+phone resizing. WebKit witnesses now use native horizontal wheel input rather
+than imperative scrollTo to represent user paging. Every original assertion
+remains required. The follow-up isolated DoReGo lane completed successfully in
+40.8 seconds, including its build; desktop finished in 29.4 seconds. This
+supports the fix but does not replace the next complete local CI measurement.

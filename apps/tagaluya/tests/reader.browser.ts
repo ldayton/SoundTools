@@ -86,7 +86,9 @@ try {
       // WebKit's automation has no native drag injection. Exercise browser
       // snap settlement here; Chromium above owns actual touch arbitration.
       if(cancel||Math.abs(dy)>Math.abs(dx))return;
-      await track.evaluate((el,dx)=>el.scrollTo({left:el.scrollLeft-Math.sign(dx)*el.clientWidth,behavior:"instant"}),dx);
+      const bounds=(await track.boundingBox())!;
+      await page.mouse.move(bounds.x+bounds.width/2,350);
+      await page.mouse.wheel(-Math.sign(dx)*bounds.width,0);
     }
   };
   for(const width of [393,320]){

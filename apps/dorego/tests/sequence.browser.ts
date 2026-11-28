@@ -213,8 +213,10 @@ export async function verifyExerciseNavigation(browser: Browser, base: string) {
         await session.send('Input.dispatchTouchEvent', { type: reverse ? 'touchCancel' : 'touchEnd', touchPoints: [] });
         await session.detach();
       } else if (!reverse) {
-        // WebKit automation lacks native touch injection; Chromium owns touch arbitration.
-        await track.evaluate((element, dx) => element.scrollTo({ left: element.scrollLeft - Math.sign(dx) * element.clientWidth, behavior: 'instant' }), dx);
+        // WebKit automation lacks native touch injection; use its native horizontal wheel.
+        const bounds = (await track.boundingBox())!;
+        await page.mouse.move(startX, y);
+        await page.mouse.wheel(-Math.sign(dx) * bounds.width, 0);
       }
       if (vertical) await page.waitForFunction(() => (document.querySelector('.swipe-pager-page:not([inert])')?.scrollTop ?? 0) > 0);
       else await page.waitForFunction(() => document.querySelector('.swipe-pager')?.getAttribute('data-test-scroll-settled') === 'true');
@@ -259,6 +261,17 @@ export async function verifyExerciseNavigation(browser: Browser, base: string) {
     await swipe(-250, 720);
     await selected('pentatonic6');
     await swipe(-250, 720);
+    await selected('fifthGlide');
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.waitForFunction(() => {
+      const track = document.querySelector('.swipe-pager')!;
+      return Math.abs(track.scrollLeft - 3 * track.clientWidth) < 1;
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForFunction(() => {
+      const track = document.querySelector('.swipe-pager')!;
+      return Math.abs(track.scrollLeft - 3 * track.clientWidth) < 1;
+    });
     await selected('fifthGlide');
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('dorego.current')!));
     for (const option of ['startingChords', 'repeatTwice', 'repeatTurn', 'repeatHome']) assert.equal(saved[option], true, 'Paging preserves ' + option);

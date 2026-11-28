@@ -22,7 +22,7 @@ async function runTasks(tasks, { directory = path.join(root, 'work/ci-results', 
   try {
     const results = await schedule(tasks, { workers, signal: controller.signal,
       execute: task => execute(task, { directory: task.privateLogDirectory || path.join(directory, 'logs'), signal: controller.signal }),
-      onEvent(event) { try { fs.appendFileSync(events, JSON.stringify(event) + '\n'); } catch (error) { recordingError ||= error; controller.abort(); } console.log(`[ci] ${event.status} ${event.id}${event.elapsedMs === undefined ? '' : ` ${(event.elapsedMs / 1000).toFixed(1)}s`}${event.status === 'failure' ? ` log=${event.log || event.error}` : ''}`); },
+      onEvent(event) { try { fs.appendFileSync(events, JSON.stringify(event) + '\n'); if(event.status === 'failure') require('./failure-summary.cjs').recordFailure(directory, manifest, event); } catch (error) { recordingError ||= error; controller.abort(); } console.log(`[ci] ${event.status} ${event.id}${event.elapsedMs === undefined ? '' : ` ${(event.elapsedMs / 1000).toFixed(1)}s`}${event.status === 'failure' ? ` log=${event.log || event.error}` : ''}`); },
     });
     if (recordingError) throw recordingError;
     const summary = { sha, tier, workers, ...identity, elapsedMs: Math.round(performance.now() - start), passed: results.every(result => result.status === 'success'), results };

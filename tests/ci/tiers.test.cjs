@@ -124,7 +124,7 @@ test('every GitHub edition shard is required and their union covers each discove
     const union = Array.from({ length: total }, (_, index) => partition(files, `${index + 1}/${total}`)).flat();
     assert.deepEqual(union.sort((a, b) => a - b), files);
   }
-  assert.throws(() => commandTasks('songalong', 'nightly', 'webkit', undefined, { shard: '1/2' }), /Only edition/);
+  assert.throws(() => commandTasks('songalong', 'ci', 'webkit', undefined, { shard: '1/2' }), /Only/);
   const emptyShard = editionFiles().length + 1;
   assert.throws(() => commandTasks('songalong', 'nightly', 'webkit', undefined, { group: 'editions', shard: `${emptyShard}/${emptyShard}` }), /empty/);
   const workflow = fs.readFileSync('.github/workflows/validate-app.yml', 'utf8');

@@ -29,7 +29,10 @@ test('CI prioritizes playback, MIDI and lifecycle without exhaustive loops', () 
 });
 test('exhaustive suites remain available in the regression profile and Firefox is not a CI engine', () => {
   assert.match(JSON.stringify(plan('songalong', 'nightly')), /test:catalog/);
-  assert.match(JSON.stringify(plan('notewise', 'nightly')), /test:backing-genres/);
+  const { executions } = require('../../scripts/ci/coverage.cjs');
+  const { leaves } = require('../../scripts/ci/inventory.cjs');
+  const backing = leaves('npm', ['run', 'test:backing-genres', '--workspace=notewise']);
+  for (const leaf of backing) assert(executions('notewise', 'nightly').includes(path.posix.join(leaf.cwd, leaf.args[0])), leaf.args[0]);
   assert.match(JSON.stringify(plan('soundglow', 'nightly')), /test:visual/);
   assert.throws(() => plan('songalong', 'ci', 'firefox'));
 });

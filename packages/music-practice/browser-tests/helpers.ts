@@ -1,6 +1,29 @@
 import type { Page } from "playwright";
 import { waitForApp } from "../../../scripts/ci/browser-harness.cjs";
 import { MOBILE_SONGALONG_QUERY } from "../src/songalong-capabilities";
+/** Normal hymn pages are usable after restoration, responsive controls and engraving.
+ * Empty-score/fault/latency scenarios deliberately own their narrower boundaries.
+ */
+export async function waitForHymnPage(page: Page, title?: string) {
+  await waitForApp(page, ".hymn-controls");
+  await page.waitForFunction(query =>
+    !!document.querySelector(".hymn-toolbar-mobile") === matchMedia(query).matches,
+    MOBILE_SONGALONG_QUERY);
+  await page.locator(".sequence-title").waitFor({state:"visible"});
+  if (title) await page.waitForFunction(title => document.querySelector(".sequence-title")?.textContent?.trim() === title, title);
+  await page.locator(".hymn-paper svg").first().waitFor({state:"visible"});
+}
+export async function gotoHymn(page: Page, url: string, options?: Parameters<Page["goto"]>[1]) {
+  const response = await page.goto(url, options);
+  await waitForHymnPage(page);
+  return response;
+}
+export async function reloadHymn(page: Page, options?: Parameters<Page["reload"]>[0]) {
+  const response = await page.reload(options);
+  await waitForHymnPage(page);
+  return response;
+}
+
 export async function selectPractice(page: Page, mode: string) {
   await dismissPracticeDrawer(page);
   // Wait for React's responsive layout commit after a viewport change.

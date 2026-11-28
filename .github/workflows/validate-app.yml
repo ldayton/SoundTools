@@ -48,13 +48,12 @@ jobs:
           name: timings-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-${{ matrix.shard }}-of-${{ matrix.shards }}-attempt${{ github.run_attempt }}
           path: work/ci-results/
           retention-days: 7
+      - name: Package diagnostic failure evidence
+        if: failure()
+        run: node scripts/ci/failure-artifacts.cjs ${{ inputs.app }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: failure-${{ inputs.app }}-${{ matrix.tier }}-${{ matrix.browser }}-${{ matrix.group }}-${{ matrix.shard }}-of-${{ matrix.shards }}-attempt${{ github.run_attempt }}
-          path: |
-            apps/${{ inputs.app }}/work/
-            apps/${{ inputs.app }}/test-results/
-            apps/${{ inputs.app }}/playwright-report*/**
-            work/browser-results/
+          path: work/ci-failures/${{ inputs.app }}/
           retention-days: 7

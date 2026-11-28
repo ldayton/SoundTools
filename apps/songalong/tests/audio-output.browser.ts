@@ -1,3 +1,5 @@
+import {practiceHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import {gotoHymn} from "../../../packages/music-practice/browser-tests/helpers";
 import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
 import { expect } from "@playwright/test";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
@@ -34,7 +36,7 @@ try {
   await expect(page.getByText("Saved on this device.", { exact: true })).toBeVisible();
   await page.reload();
   await expect(output).toHaveValue("Combined mono");
-  await page.goto(server.base + "/piano/hymns/amazing-grace");
+  await gotoHymn(page, server.base + `/piano/hymns/${practiceHymn.slug}?arrangement=piano&mode=wait`);
   await page.locator(".white-key:visible").first().click();
   await page.waitForFunction(
     () => (window as any).pianoMaster?.channelCount === 1,

@@ -1,3 +1,4 @@
+import { gotoHymn, reloadHymn } from "../../../packages/music-practice/browser-tests/helpers";
 import {selectScoreDisplay,expectScoreDisplay} from "../../../packages/music-practice/browser-tests/helpers";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import {instrumentEditionIds,instrumentEdition,chordEdition} from "../../../packages/music-practice/src/instrument-editions";
@@ -13,7 +14,6 @@ import {
   newPage,
   closeBrowser,
   captureFailure,
-  waitForApp,
 } from "../../../scripts/ci/browser-harness.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
 import {
@@ -29,8 +29,8 @@ try {
     const page=await newPage(browser,{viewport:{width:1440,height:1000}});
     const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
     await page.addInitScript({content:await readFile(new URL("../../../packages/music-practice/test-fixtures/midi.js",import.meta.url),"utf8")});
-    await page.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=both&mode=playback&key=original&octave=0`);
-    await waitForApp(page, ".hymn-controls");
+    await gotoHymn(page, `${server.base}/piano/hymns/${hymn.slug}?arrangement=${edition.guitarArrangement}&display=both&mode=playback&key=original&octave=0`);
+
     await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();
 
       await openPracticeOptions(page);
@@ -74,8 +74,8 @@ try {
       await page.screenshot({path:"work/musical-fixes/ill-fly-away-d-desktop.png"});
       // This witness owns the reviewed C-family transposition and its exact MIDI
       // chord. The loop above owns automatic engine selection in each key.
-      await page.goto(`${server.base}/piano/hymns/${hymn.slug}?arrangement=guitar-edition&display=both&mode=playback&key=D&octave=0&capo=2`);
-      await waitForApp(page, ".hymn-controls");
+      await gotoHymn(page, `${server.base}/piano/hymns/${hymn.slug}?arrangement=guitar-edition&display=both&mode=playback&key=D&octave=0&capo=2`);
+
       await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
       // Actual MIDI grading must move with the capo, including all chord notes.
       await practiceOption(page,"#hymn-mode","wait");
@@ -93,7 +93,7 @@ try {
         await expect(page.locator(".hymn-count")).not.toHaveText(beforeHand!);
         await page.evaluate(ns=>{for(const n of ns)(window as any).midiTest.send([0x80,n,0]);},[...pitches]);
       }
-      await page.reload();await waitForApp(page, ".hymn-controls");await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
+      await reloadHymn(page);await expect(page.locator(".hymn-score-setup")).toHaveText("Capo 2 · Sounding key: D major");
     }
     assert.deepEqual(errors,[]);await page.close();
     console.log(`PASS ${hymn.slug}: key selection, capo/position and score agreement`);
@@ -102,7 +102,7 @@ try {
     const page = await newPage(browser, { viewport: { width, height: 1000 } });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto(
+    await gotoHymn(page,
       server.base +
         "/piano/hymns/ill-fly-away?arrangement=guitar-edition&display=both&mode=playback&capo=0",
     );
@@ -122,7 +122,7 @@ try {
       "Finger numbers must not alter frets",
     );
     assert(frets.join("").includes("4"), "The D sharp uses fret 4");
-    await page.reload();
+    await reloadHymn(page);
     await page.locator(".abcjs-tabNumber").first().waitFor();
     await openHymnControls(page);
     await expect(checkbox).toBeChecked();

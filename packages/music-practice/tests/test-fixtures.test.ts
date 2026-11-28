@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import {
   practiceHymn,
+  libraryHymns,
   otherPracticeHymn,
   playbackHymn,
   playbackMelody,
@@ -87,4 +88,10 @@ test("passage and recovery fixtures retain the rhythm and held-note contracts of
     pianoTieFixture.index > 0,
     "tie-repetition checks require a written continuation after the first attack",
   );
+});
+
+test("library workflows use three distinct supported scores independently of their product titles",()=>{
+  assert.equal(new Set(libraryHymns.map(h=>h.id)).size,3);
+  assert.equal(new Set(libraryHymns.map(h=>h.title)).size,3);
+  for(const hymn of libraryHymns)assert(hymnArrangements(hymn).some(a=>a.id==="piano"));
 });

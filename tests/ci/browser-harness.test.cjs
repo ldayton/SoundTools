@@ -46,3 +46,25 @@ test('silent output preserves native connection returns, disconnect targets and 
   assert.equal(offline.gains.length, 0);
   assert.equal(context.gains.length, 1, 'Repeated policy installation must not wrap the graph twice');
 });
+test('failure state remains valid JSON when the route ends with a sign-in token',()=>{
+  const {redactState}=require('../../scripts/ci/failure-state.cjs');
+  const result=redactState({url:'https://example.test/?access_token=secret',nested:['{"refresh_token":"private"}']},clean);
+  const decoded=JSON.parse(JSON.stringify(result));
+  assert.equal(decoded.url,'https://example.test/?access_token=[redacted]');
+  assert(!JSON.stringify(decoded).includes('private'));
+});
+test('failure capture preserves control state and records unavailable screenshots without hiding the original error',async()=>{
+  const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+  const {captureFailure}=require('../../scripts/ci/browser-harness.cjs');
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'capture-state-'));
+  const page={evaluate:async()=>({url:'https://example.test/?code=secret',focused:{id:'volume'},controls:[{value:'35'}]}),screenshot:async()=>{throw Error('Frozen rendering clock');}};
+  const browser={contexts:()=>[{pages:()=>[page]}]};
+  try{
+    await captureFailure(browser,Error('Original volume assertion'),root);
+    assert.match(fs.readFileSync(path.join(root,'error.txt'),'utf8'),/Original volume assertion/);
+    const data=JSON.parse(fs.readFileSync(path.join(root,'page-0-0.json')));
+    assert.equal(data.focused.id,'volume');assert.equal(data.controls[0].value,'35');
+    assert(!data.url.includes('secret'));
+    assert.match(fs.readFileSync(path.join(root,'page-0-0-screenshot-error.txt'),'utf8'),/Frozen rendering clock/);
+  }finally{fs.rmSync(root,{recursive:true,force:true});}
+});

@@ -255,3 +255,8 @@ export const sharedChorusFixture = (() => {
   }
   throw Error('The stanza contract requires three distinct verses with a shared chorus; do not change product music to create a fixture.');
 })();
+
+/** Three distinct supported scores for library, favorites and keyboard selection. */
+export const libraryHymns = [practiceHymn, otherPracticeHymn,
+  selectPracticeHymn(hymns.filter(hymn => ![practiceHymn.id, otherPracticeHymn.id].includes(hymn.id)))
+] as const;

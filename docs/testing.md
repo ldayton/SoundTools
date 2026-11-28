@@ -27,7 +27,8 @@ that app releases. An unrelated app's failure does not block it. Every edition
 remains required in Nightly; its unit and registry contracts remain in CI. The complete local CI invocation has a hard 60-second budget, including selection,
 installation and cleanup. GitHub CI runs the same coverage on slower hosted
 runners, with a 10-minute per-group safety timeout; Nightly core
-groups have 30 minutes. Nightly edition groups have 15 minutes. GitHub splits their discovered registry
+groups have 30 minutes. SongAlong core runs in two independently required shards per
+engine. Nightly edition groups have 15 minutes. GitHub splits their discovered registry
 into four required shards per engine; every shard is part of the aggregate app
 gate. The local Nightly graph runs that same complete registry using the same discovered files. These
 are limits, not performance targets: split coverage when command timings show
@@ -167,6 +168,7 @@ offline tests explicitly enable them. Keep credentials out of traces/logs.
 | Operation | Required boundary |
 | --- | --- |
 | Open lazy app/route | `waitForApp(page, selector)` and the route's visible control |
+| Open a normal hymn page | `gotoHymn` / `reloadHymn` wait for startup restoration, responsive toolbar, title and visible engraved score; `waitForHymnPage(page, title)` also waits for an in-page song choice. Deliberate empty-score, fault and latency tests own their narrower boundaries. |
 | Open hymn controls after navigation/reload or viewport change | `openHymnControls(page)` waits for startup, toolbar and responsive layout, then opens idempotently |
 | Begin the local database broadcast protocol test | After channel subscription, `waitForRealtimeReplication` requires the tenant health replication connection before any tested writes; a healthy HTTP/DB response is insufficient |
 | Edit a signed-in follower or measure propagation | `waitForAccountIdle(page)` and the expected restored input value before resetting counters |
@@ -611,3 +613,55 @@ and native Chromium touch panning without accidental passage selection.
 `score-view.browser.ts` owns desktop/phone controls, independent visibility,
 reload persistence and chord interaction. `fingerings.browser.ts` owns piano
 key changes. Existing musical edition goldens remain the music regression owner.
+
+## Independent Nightly checks and measured scheduling
+
+Reviewed SongAlong key, playback and sight/workspace/guitar aliases, and NoteWise
+guitar/backing aliases expand into independently scheduled browser commands.
+Developer aliases remain convenient, but an early assertion no longer prevents
+later independent files from executing. Ordered setup/hooks fail policy review
+rather than being silently split. Resource declarations preserve each command's
+TCP/audio ownership; conservation tests require every expanded file exactly once.
+
+SongAlong core has two required shards per engine; editions retain four. Both
+use deterministic longest-duration-first assignment, with a bounded file count.
+`scripts/ci/durations.json` records successful Linux Nightly measurements keyed by
+app, engine and command, independent of task indices. Unknown checks remain
+required with an explicit 60-second estimate. Estimates influence Nightly shard
+assignment and bounded queue priority only; they never change assertions,
+timeouts, CI coverage or the 60-second local CI budget. Catalog costs include all
+three required inner partitions. Explicit resource/prerequisite priority wins.
+
+Refresh the reviewed snapshot from downloaded timing artifacts, not local Mac
+measurements or failed runs:
+
+```sh
+gh run download RUN_ID --pattern 'timings-songalong-*' --dir work/nightly-timings
+node scripts/ci/refresh-durations.cjs work/nightly-timings
+```
+
+Review the resulting plan and conservation tests, then validate the committed
+change. Timings are observations, not percentile guarantees; retain headroom
+rather than raising group deadlines. Newly separated commands acquire their own
+measurements on the next successful hosted Nightly.
+
+Each failed scheduled command writes an immutable `failure-*.json` beside its
+timings with SHA, command, resources, exit/signal/timeout and a bounded first-error
+excerpt. GitHub's job summary includes that command and excerpt. Private backend
+logs stay private. Browser evidence additionally includes bounded control values,
+focused element, startup/account status and allowlisted saved preferences, with
+credential fields excluded and secrets redacted. Capture failures are recorded;
+they do not replace the original assertion.
+
+Failed app jobs package a diagnostic bundle with a byte/file manifest. Screenshots,
+traces, reports, PDFs and measured WAVs remain; generated offline builds, sample
+assets, model files, dependency caches and credential files are excluded. Timing
+artifacts remain separate and always upload. A collector cannot overwrite its
+first bundle. This avoids thousands of generated audio assets obscuring the
+actual failure evidence.
+
+Generic library, staff-size and audio-output checks use capability-selected hymn
+fixtures. Exact musical content, pitches, timing and edition metadata retain their
+independent edition/unit owners; this refactor changes no product arrangement or
+musical golden. A generic fixture must satisfy its required capabilities rather
+than preserve an incidental song title.

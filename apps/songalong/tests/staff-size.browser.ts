@@ -1,3 +1,5 @@
+import {practiceHymn, otherPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
+import { gotoHymn, reloadHymn } from "../../../packages/music-practice/browser-tests/helpers";
 import { launchBrowser, newPage, createContext } from "../../../scripts/ci/browser-harness.cjs";
 import { openHymnControls } from "../../../packages/music-practice/browser-tests/helpers";
 import { expect } from "@playwright/test";
@@ -33,21 +35,21 @@ try {
     await expect(size).toHaveValue(`${value} px`);
     await expect(page.getByText("Saved on this device.", { exact: true })).toBeVisible();
   }
-  await page.goto(server.base + "/piano/hymns/amazing-grace", { waitUntil: "networkidle" });
+  await gotoHymn(page, server.base + `/piano/hymns/${practiceHymn.slug}`);
   await expect(size).toHaveValue("40 px");
   await change(48);
   await page.setViewportSize({ width: 390, height: 844 });
   await mobileControls();
   await expect(size).toHaveValue("40 px");
   await change(32);
-  await page.reload({ waitUntil: "networkidle" });
+  await reloadHymn(page);
   await mobileControls();
   await expect(size).toHaveValue("32 px");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expect(size).toHaveValue("48 px");
-  await page.reload({ waitUntil: "networkidle" });
+  await reloadHymn(page);
   await expect(size).toHaveValue("48 px");
-  await page.goto(server.base + "/piano/hymns/silent-night", { waitUntil: "networkidle" });
+  await gotoHymn(page, server.base + `/piano/hymns/${otherPracticeHymn.slug}`);
   await expect(size).toHaveValue("48 px");
   await page.setViewportSize({ width: 390, height: 844 });
   await mobileControls();

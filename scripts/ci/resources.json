@@ -7,7 +7,11 @@
     "coverage": [
       {
         "command": "tsx",
-        "args": ["--test", "--test-concurrency=2", "tests/*.test.ts"],
+        "args": [
+          "--test",
+          "--test-concurrency=2",
+          "tests/*.test.ts"
+        ],
         "cwd": "apps/songalong"
       }
     ]
@@ -2419,6 +2423,763 @@
           "../../packages/music-practice/browser-tests/diagnostics.browser.ts"
         ],
         "cwd": "apps/tagaluya"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/hymn-key.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4348
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/hymn-key.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/hymn-key-menu.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4386,
+      4387,
+      4388
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/hymn-key-menu.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/instrument-audio.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4566,
+      4812
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/instrument-audio.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/hymn-passage.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4378
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/hymn-passage.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/hymn-octave.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4385
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/hymn-octave.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/sight-reading.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4341
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/sight-reading.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/hymn-recovery.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4358
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/hymn-recovery.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/workspace.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4387
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/workspace.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/hymn-library.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4565
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/hymn-library.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/staff-size.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4535
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/staff-size.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/staff-spacing.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4572
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/staff-spacing.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/song-memory.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4550
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/song-memory.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/audio-output.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4554
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/audio-output.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/guitar-fingering.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4591
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/guitar-fingering.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/chord-diagrams.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4696
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/chord-diagrams.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "songalong:npm:exec --workspace=songalong -- tsx tests/guitar-capo.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4697
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=songalong",
+          "--",
+          "tsx",
+          "tests/guitar-capo.browser.ts"
+        ],
+        "cwd": "apps/songalong"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/guitar-scales.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4352
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/guitar-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/linked-scales.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4362
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/linked-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/scale-loop.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4484
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/scale-loop.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/pentatonic-scales.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4498
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/pentatonic-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/blues-scales.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4502
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/blues-scales.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/scale-fret-range.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4595
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/scale-fret-range.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/hila-scale-shapes.browser.ts": {
+    "kind": "ui",
+    "ports": [
+      4597
+    ],
+    "locks": [],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/hila-scale-shapes.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/backing-track.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4476
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/backing-track.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/backing-metronome.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4384
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/backing-metronome.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/backing-loudness.browser.ts": {
+    "kind": "audio",
+    "ports": [
+      4000
+    ],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/backing-loudness.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/authored-backing.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/authored-backing.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/country-backing.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/country-backing.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/reggae-funk.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/reggae-funk.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/soul-folk.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/soul-folk.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/folk-country.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/folk-country.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/gospel.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/gospel.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/gospel-phrases.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/gospel-phrases.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/reggae.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/reggae.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/pocket-styles.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/pocket-styles.browser.ts"
+        ],
+        "cwd": "apps/notewise"
+      }
+    ]
+  },
+  "notewise:npm:exec --workspace=notewise -- tsx tests/roots-styles.browser.ts": {
+    "kind": "audio",
+    "ports": [],
+    "locks": [
+      "realtime-audio"
+    ],
+    "coverage": [
+      {
+        "command": "npm",
+        "args": [
+          "exec",
+          "--workspace=notewise",
+          "--",
+          "tsx",
+          "tests/roots-styles.browser.ts"
+        ],
+        "cwd": "apps/notewise"
       }
     ]
   }

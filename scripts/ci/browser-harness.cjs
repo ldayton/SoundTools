@@ -26,7 +26,7 @@ async function launchBrowser(options = {}) {
     return browser;
   } catch (e) { if (home) await rm(home, { recursive: true, force: true }).catch(() => {}); throw e; }
 }
-function clean(value) { return String(value).replace(/([?&#](?:token_hash|access_token|refresh_token|code)=)[^&#\s]+/g, '$1[redacted]'); }
+const {clean} = require('./redact.cjs');
 async function createContext(browser, options = {}, { trace = process.env.CI_TRACE !== '0' } = {}) {
   const context = await browser.newContext({ serviceWorkers: 'block', ...options });
   await context.addInitScript(silenceAudioOutput);
@@ -56,6 +56,11 @@ async function ownedPage(context) {
 }
 async function newPage(browser, options = {}) { return ownedPage(await createContext(browser, options)); }
 async function newOfflinePage(browser, options = {}) { return ownedPage(await createOfflineContext(browser, options)); }
+async function diagnostic(promise, ms = 5000) {
+  let timer;
+  try { return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Diagnostic capture exceeded its deadline')),ms);})]); }
+  finally { clearTimeout(timer); }
+}
 async function captureFailure(browser, error, destination) {
   const name = path.basename(process.argv[1] || 'browser').replace(/[^a-zA-Z0-9_.-]/g, '-');
   const directory = destination || path.resolve(process.env.CI_ARTIFACTS || 'work/browser-results', `${name}-${browserName()}-${randomUUID().slice(0, 8)}`);
@@ -63,11 +68,22 @@ async function captureFailure(browser, error, destination) {
   await writeFile(path.join(directory, 'error.txt'), clean(error?.stack || error));
   for (const [index, context] of (browser?.contexts() || []).entries()) {
     const state = contexts.get(context);
-    if (state) {
-      await writeFile(path.join(directory, `context-${index}.log`), state.logs.join('\n'));
-      if (state.tracing) { await context.tracing.stop({ path: path.join(directory, `trace-${index}.zip`) }).catch(() => {}); state.tracing = false; }
+    if (state) await writeFile(path.join(directory, `context-${index}.log`), state.logs.join('\n'));
+    for (const [p, page] of context.pages().entries()) {
+      const prefix = path.join(directory, `page-${index}-${p}`);
+      const {failurePageState,redactState} = require('./failure-state.cjs');
+      const details = await diagnostic(page.evaluate(failurePageState)).catch(error=>({captureError:error.message}));
+      await writeFile(prefix + '.json', JSON.stringify(redactState(details, clean), null, 2));
+      await page.screenshot({ path: prefix + '.png', fullPage: true, timeout: 5000 }).catch(async error => {
+        await writeFile(prefix + '-screenshot-error.txt', clean(error.message));
+      });
     }
-    for (const [p, page] of context.pages().entries()) await page.screenshot({ path: path.join(directory, `page-${index}-${p}.png`), fullPage: true, timeout: 5000 }).catch(() => {});
+    if (state?.tracing) {
+      await diagnostic(context.tracing.stop({path:path.join(directory,`trace-${index}.zip`)})).catch(async error=>{
+        await writeFile(path.join(directory,`trace-${index}-error.txt`),clean(error.message));
+      });
+      state.tracing=false;
+    }
   }
   console.error(`Browser failure artifacts: ${directory}`);
   return directory;

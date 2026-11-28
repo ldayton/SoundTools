@@ -13,6 +13,20 @@ function editionFiles(directory = root) {
 }
 const npm = (app, task) => ['npm', ['run', task, '--workspace=' + app]];
 const script = (app, file) => ['npm', ['exec', '--workspace=' + app, '--', 'tsx', file]];
+// Reviewed independent browser suites; their developer aliases stay convenient.
+// Fail closed if a later hook introduces ordered setup into one of these groups.
+function independentChecks(app, commands) {
+  const aliases = { songalong: ['test:hymn-keys', 'test:hymn-playback', 'test:sight'],
+    notewise: ['test:guitar', 'test:backing', 'test:backing-genres'] };
+  return commands.flatMap(([command, args]) => {
+    if (command !== 'npm' || args[0] !== 'run' || !aliases[app]?.includes(args[1])) return [[command, args]];
+    return require('./inventory.cjs').leaves(command, args).map(leaf => {
+      if (leaf.command !== 'tsx' || leaf.cwd !== 'apps/' + app || leaf.args.length !== 1 || !leaf.args[0].endsWith('.browser.ts'))
+        throw Error('Review ordered setup before splitting ' + app + ':' + args[1]);
+      return script(app, leaf.args[0]);
+    });
+  });
+}
 function matrix(app, tier) {
   validateTier(tier);
   if (!apps[app]) throw Error('Choose a known app');
@@ -21,7 +35,7 @@ function matrix(app, tier) {
       // Four required edition jobs retain the 15-minute budget as WebKit
       // engraving coverage grows; every discovered file still runs once.
       // Partition the discovered registry, never a second hand-maintained list.
-      const shards = group === 'editions' ? Math.min(4, editionFiles().length) : 1;
+      const shards = group === 'editions' ? Math.min(4, editionFiles().length) : app === 'songalong' && tier === 'nightly' ? 2 : 1;
       if (!shards) throw Error('Nightly requires edition browser coverage');
       return Array.from({ length: shards }, (_, index) => ({ tier, group, browser, timeout: budgets[tier][group], shard: index + 1, shards }));
     })) };
@@ -46,7 +60,7 @@ function nightlyPlan(app, browser, group) {
   if (app === 'dorego') commands.push(script(app, 'tests/sequence.e2e.ts'), script(app, 'tests/voice-feedback.e2e.ts'));
   if (app === 'dorego' && browser === 'chromium') commands.push(
     ['node', ['scripts/test-render-recovery.cjs']], ['node', ['tests/ci/protected-stage.browser.cjs']]);
-  return commands;
+  return independentChecks(app, commands);
 }
 // CI maximizes defect detection per second on the Mac Studio. Longer coverage
 // is owned explicitly by Nightly. Convenience aliases do not define coverage.
@@ -58,11 +72,11 @@ function plan(app, tier, browser = 'chromium', group = 'core') {
     tagaluya: [npm(app, 'test:browser')],
     dorego: [script(app, 'tests/voice-feedback.e2e.ts'), npm(app, 'test:desktop'), script(app, 'tests/sequence.e2e.ts')],
     notewise: [script(app, '../../tests/ci/critical-midi.browser.mts'), npm(app, 'test:scale-fret-range')],
-    songalong: [script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/guitar-sustain.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts'), script(app, 'tests/instrument-features.browser.ts')],
+    songalong: [script(app, '../../tests/ci/readiness.browser.mts'), script(app, 'tests/audio-lifecycle.browser.ts'), script(app, 'tests/guitar.browser.ts'), script(app, 'tests/guitar-sustain.browser.ts'), script(app, 'tests/instrument-toolbar.browser.ts'), script(app, 'tests/mobile-toolbar.browser.ts'), script(app, 'tests/score-layout-contract.browser.ts'), script(app, 'tests/score-export.browser.ts'), script(app, 'tests/score-view.browser.ts'), script(app, 'tests/piano-fingering.browser.ts'), script(app, 'tests/instrument-features.browser.ts')],
     soundglow: [npm(app, 'test:unit'), ['node', ['tests/ci/silent-audio.browser.cjs']]],
   }[app];
 }
-module.exports = { budgets, matrix, plan, editionFiles };
+module.exports = { budgets, matrix, plan, editionFiles, independentChecks };
 if (require.main === module) {
   if (process.argv[2] === 'matrix') {
     const value = JSON.stringify(matrix(process.argv[3], process.argv[4]));

@@ -15,14 +15,23 @@ function setupTasks(app, cwd = root, { prefix = app, needs = [], visual = false 
   return tasks;
 }
 function commandTasks(app, tier, browser, cwd = root, { group = 'core', shard = '1/1', prefix = `${app}:${tier}:${group}:${browser}${shard === '1/1' ? '' : ':shard-' + shard.replace('/', '-of-')}`, needs = [`${app}:build`] } = {}) {
-  if (group !== 'editions' && shard !== '1/1') throw Error('Only edition groups accept an outer shard');
-  const selected = require('./shard.cjs').partition(plan(app, tier, browser, group), shard);
+  if (group !== 'editions' && !(app === 'songalong' && tier === 'nightly' && group === 'core') && shard !== '1/1')
+    throw Error('Only Nightly SongAlong core and edition groups accept an outer shard');
+  const planned = plan(app, tier, browser, group);
+  const {estimate, balanced} = require('./duration-plan.cjs');
+  const [part,total] = shard.split('/').map(Number);
+  // Retain strict shard validation for unsharded and balanced execution alike.
+  require('./shard.cjs').partition(planned, shard);
+  if (total > planned.length) throw Error('Requested shard is empty');
+  const selected = total === 1 ? planned : balanced(planned,total,([command,args]) =>
+    estimate(app,browser,command,args) * (declaration(app,command,args).partition?.total || 1))[part-1];
   if (!selected.length) throw Error('Edition shard is empty');
   const commands = selected.flatMap(([command, args]) => app === 'dorego' && args.includes('test:browsers')
     ? browserSuites.map(suite => ['npm', ['exec', '--workspace=dorego', '--', 'tsx', `tests/${suite}.e2e.ts`]]) : [[command, args]]);
   return commands.flatMap(([command, args], index) => {
     const policy = declaration(app, command, args);
-    const base = { id: `${prefix}:${index}`, command: command === 'node' ? process.execPath : command, args, cwd, needs, env: environment(browser, tier), ...policy, ...(app === 'soundglow' && args.includes('test:unit') ? { slots: 4, priority: 80 } : {}), timeoutMs: 20 * 60000 };
+    const estimatedSeconds = estimate(app,browser,command,args);
+    const base = { estimatedSeconds, ...(tier === 'nightly' ? {priority: Math.min(49, Math.log2(estimatedSeconds+1)*4)} : {}), id: `${prefix}:${index}`, command: command === 'node' ? process.execPath : command, args, cwd, needs, env: environment(browser, tier), ...policy, ...(app === 'soundglow' && args.includes('test:unit') ? { slots: 4, priority: 80 } : {}), timeoutMs: 20 * 60000 };
     if (policy.partition) {
       const { total, portBase, defaultPort } = policy.partition;
       return Array.from({ length: total }, (_, shard) => {

@@ -1,3 +1,4 @@
+import { gotoHymn, reloadHymn } from "../../../packages/music-practice/browser-tests/helpers";
 import {practiceHymn,otherPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
 import { launchBrowser, newPage, createContext, waitForApp, closeBrowser } from "../../../scripts/ci/browser-harness.cjs";
 import { expect } from "@playwright/test";
@@ -45,7 +46,7 @@ try {
           lyric.getScreenCTM()!.d,
       };
     });
-  await page.goto(server.base + `/piano/hymns/${practiceHymn.slug}`);
+  await gotoHymn(page, server.base + `/piano/hymns/${practiceHymn.slug}`);
   await page.locator(".abcjs-lyric").first().waitFor();
   await open();
   await expect(field).toHaveValue("100 %");
@@ -58,7 +59,7 @@ try {
     page.getByRole("spinbutton", { name: "Staff size in pixels", exact: true }),
   ).toHaveValue("40 px");
   await page.keyboard.press("Escape");
-  await page.goto(server.base + `/piano/hymns/${otherPracticeHymn.slug}`);
+  await gotoHymn(page, server.base + `/piano/hymns/${otherPracticeHymn.slug}`);
   await open();
   await expect(field).toHaveValue("110 %");
   await page.keyboard.press("Escape");
@@ -69,7 +70,7 @@ try {
   await open();
   await expect(field).toHaveValue("100 %");
   await change(95);
-  await page.reload();
+  await reloadHymn(page);
   await open();
   await expect(field).toHaveValue("95 %");
   await page.setViewportSize({ width: 1440, height: 1000 });

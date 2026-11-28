@@ -1,4 +1,5 @@
-import { canonicalHymnId } from "../../../packages/music-practice/src/hymn-identity";
+import {libraryHymns} from "../../../packages/music-practice/test-fixtures/hymns";
+import { gotoHymn, reloadHymn, waitForHymnPage } from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
 import { expect } from "@playwright/test";
 import { mkdir, readFile } from "node:fs/promises";
@@ -13,6 +14,7 @@ import { preview } from "../../../packages/music-practice/browser-tests/server";
 import hymns from "../../../packages/music-practice/src/hymns.json";
 import { hymnLibrary } from "../../../packages/music-practice/src/hymn-library";
 
+const [firstHymn, secondHymn, thirdHymn] = libraryHymns;
 const server = await preview(
   "songalong",
   Number(process.env.TEST_PORT || 4565),
@@ -62,6 +64,7 @@ try {
       await openLibrary();
       await page.getByPlaceholder("Search songs").fill(title);
       await page.getByRole("option", { name: title, exact: true }).click();
+      await waitForHymnPage(page, title);
       await expect(page.locator(".sequence-title")).toHaveText(title);
       if (mobile)
         await expect(
@@ -111,7 +114,7 @@ try {
         tools.getByRole("button", { name: "Log in", exact: true }),
       ).toBeInViewport({ ratio: 1 });
     }
-    await page.goto(server.base + "/piano/hymns/amazing-grace");
+    await gotoHymn(page, server.base + `/piano/hymns/${firstHymn.slug}`);
     await expect(
       page.getByRole("button", { name: "Add to favorites", exact: true }),
     ).toBeVisible();
@@ -151,11 +154,11 @@ try {
     await star.click();
     await expect(star).toHaveAttribute("aria-pressed", "true");
     await expect(star.locator("svg")).toHaveAttribute("fill", "currentColor");
-    await choose("Jesus Loves Me");
+    await choose(secondHymn.title);
     await expect(star).toHaveAttribute("aria-pressed", "false");
     await star.click();
     await openLibrary();
-    const favorites = { [canonicalHymnId("amazing-grace")]: true, [canonicalHymnId("jesus-loves-me")]: true };
+    const favorites = { [firstHymn.id]: true, [secondHymn.id]: true };
     assert.deepEqual(
       await library.getByRole("option").allTextContents(),
       hymnLibrary(hymns, "", favorites).map((h) => h.title),
@@ -165,9 +168,10 @@ try {
     });
     await expect(library.getByRole("option").last()).toBeInViewport();
     await assertPinned();
-    await page.getByPlaceholder("Search songs").fill("Silent Night");
+    await page.getByPlaceholder("Search songs").fill(thirdHymn.title);
     await page.getByPlaceholder("Search songs").press("Enter");
-    await expect(page.locator(".sequence-title")).toHaveText("Silent Night");
+    await waitForHymnPage(page, thirdHymn.title);
+    await expect(page.locator(".sequence-title")).toHaveText(thirdHymn.title);
     if (mobile)
       await expect(
         page.getByRole("button", { name: "Close navigation", exact: true }),
@@ -180,7 +184,7 @@ try {
     await expect
       .poll(() => page.locator("#practice-content").textContent())
       .toContain("Saved on this device.");
-    await page.reload();
+    await reloadHymn(page);
     await expect(star).toHaveAttribute("aria-pressed", "false");
     await openLibrary();
     await expect

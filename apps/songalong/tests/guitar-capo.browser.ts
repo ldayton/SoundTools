@@ -1,8 +1,9 @@
+import { gotoHymn, reloadHymn } from "../../../packages/music-practice/browser-tests/helpers";
 import {openHymnInstrumentChoices} from "../../../packages/music-practice/browser-tests/helpers";
 import assert from "node:assert/strict";
 import {expect} from "@playwright/test";
 import {readFile,mkdir} from "node:fs/promises";
-import {launchBrowser,newPage,closeBrowser,captureFailure,waitForApp} from "../../../scripts/ci/browser-harness.cjs";
+import {launchBrowser,newPage,closeBrowser,captureFailure} from "../../../scripts/ci/browser-harness.cjs";
 import {preview} from "../../../packages/music-practice/browser-tests/server";
 import {practiceOption,openPracticeOptions,closePracticeOptions,midiAction,selectHymnInstrument} from "../../../packages/music-practice/browser-tests/helpers";
 import {selectCapoPracticeHymn} from "../../../packages/music-practice/test-fixtures/hymns";
@@ -13,8 +14,8 @@ try{
   const page=await newPage(browser,{viewport:{width,height:1000},reducedMotion:"reduce"});
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   await page.addInitScript({content:await readFile(new URL("../../../packages/music-practice/test-fixtures/midi.js",import.meta.url),"utf8")});
-  await page.goto(`${server.base}/piano/hymns/${fixture.hymn.slug}?arrangement=guitar-edition&mode=playback&display=both&key=original&octave=0`);
-  await waitForApp(page, ".hymn-controls");
+  await gotoHymn(page, `${server.base}/piano/hymns/${fixture.hymn.slug}?arrangement=guitar-edition&mode=playback&display=both&key=original&octave=0`);
+
   await expect(page.locator(".abcjs-tabNumber").first()).toBeVisible();await openPracticeOptions(page);
   await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.recommended.fret));
   await expect(page.locator("#hymn-capo")).not.toContainText("score setting");
@@ -41,7 +42,7 @@ try{
   await page.getByRole("button",{name:`Show ${chord} chord diagram`,exact:true}).first().click();
   await expect(page.getByRole("dialog")).toBeVisible();if(fixture.alternate.fret)await expect(page.getByRole("dialog")).toContainText(`Capo ${fixture.alternate.fret}`);
   await page.getByRole("button",{name:"Close chord diagram",exact:true}).click();await expect(page.getByRole("dialog")).toBeHidden();
-  await page.reload();await openPracticeOptions(page);await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.alternate.fret));
+  await reloadHymn(page);await openPracticeOptions(page);await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.alternate.fret));
   await selectHymnInstrument(page,"piano");await expect(page.locator("#hymn-capo")).toHaveCount(0);
   await selectHymnInstrument(page,"guitar");await expect(page.locator("#hymn-capo")).toHaveValue(String(fixture.alternate.fret));
   if(width===1440){

@@ -1,3 +1,4 @@
+import { gotoHymn } from "../../../packages/music-practice/browser-tests/helpers";
 import { expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import {
@@ -5,7 +6,6 @@ import {
   newPage,
   captureFailure,
   closeBrowser,
-  waitForApp,
 } from "../../../scripts/ci/browser-harness.cjs";
 import { macBookAir13, iphone14Pro } from "../../../scripts/test-devices.cjs";
 import { preview } from "../../../packages/music-practice/browser-tests/server";
@@ -38,10 +38,10 @@ try {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     async function visit(id: string, query: string, octave = 0) {
-      await page.goto(
+      await gotoHymn(page,
         `${server.base}/piano/hymns/${id}?mode=playback&low=none&high=none&octave=${octave}&capo=score&${query}`,
       );
-      await waitForApp(page, ".hymn-controls");
+
       await expect(page.locator(".sequence-title")).toBeVisible();
     }
     async function shape(expected: (number | null)[]) {

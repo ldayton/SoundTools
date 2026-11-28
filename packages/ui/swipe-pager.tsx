@@ -14,7 +14,9 @@ export function SwipePager({pages,value,onChange,enabled=true,blocked=false}:{
     if(!el||index<0)return;
     const target=index*el.clientWidth;
     if(Math.abs(el.scrollLeft-target)>1)el.scrollTo({left:target,behavior:"instant"});
-    el.children[index]?.scrollTo({top:0,behavior:"instant"});
+    // Reset off-screen pages as well, so revisiting never reveals an old
+    // vertical position during the drag and then jumps to the top on release.
+    for(const page of el.children)page.scrollTo({top:0,behavior:"instant"});
   },[value,enabled,pages.length]);
   useEffect(()=>{
     const el=track.current;if(!enabled||!el)return;

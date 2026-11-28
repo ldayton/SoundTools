@@ -792,3 +792,21 @@ recorded; this passing run does not establish that the historical runner's
 default performance variability is fixed. This note does not authorize skipping
 future checks or adding assertion retries. Only documentation is carried onto
 main; the research implementation remains archived.
+
+## Native scroll settlement before programmatic positioning (28 November 2026)
+
+The first native-paging local CI run retained evidence at
+`1795861357979-e2e26c7d`; `instrument-features.browser.ts` observed native
+horizontal movement, then expected its subsequent programmatic scroll to stay
+at 287 pixels while receiving 0. The test positioned the selection witness
+before waiting for the preceding native gesture's momentum to finish. It now
+registers `scrollend` before injecting touch and waits for that observable
+boundary before setting the independent selection position. Movement, full-range
+positioning and double-tap selection assertions remain required, with unchanged
+timeouts and no assertion retries. The focused command passes with this wait.
+
+That full run also exceeded the end-to-end budget at 62.16 seconds; the DoReGo
+build took 22.6 seconds and its desktop witness was cancelled. It is not a pass.
+The next full validation uses the standard coordinator's supported 24-worker
+setting on this 24-core host, retaining all required tasks, locks and the
+60-second budget, as in the preceding archived-research validation.

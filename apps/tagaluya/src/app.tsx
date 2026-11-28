@@ -82,7 +82,7 @@ export function Tagalujah({services}:{services:Service[]}) {
           {section.phrases.map(phrase=>{
             const opening=phraseIndex++===0,key=phrase.melody?.abc.match(/^K:(.*)$/m)?.[1]||"",repeatKey=key!==previousKey;previousKey=key;
             return <div className="bilingual-phrase" id={`phrase-${song?.id}-${phrase.id}`} key={phrase.id} data-phrase={phrase.id}>
-              {mode==="melody"&&phrase.melody?<BilingualMelody abc={phrase.melody.abc} size={preferences.textSize} opening={opening} repeatKey={repeatKey}/>:<p className="original-line" lang={phrase.tagalog?"tl":"en"}>{phrase.tagalog||phrase.english}</p>}
+              {preferences.view==="melody"&&hasMelody(song)&&phrase.melody?<BilingualMelody abc={phrase.melody.abc} size={preferences.textSize} opening={opening} repeatKey={repeatKey}/>:<p className="original-line" lang={phrase.tagalog?"tl":"en"}>{phrase.tagalog||phrase.english}</p>}
               {phrase.tagalog&&<p className="translated-line" lang="en">{phrase.english}</p>}
             </div>;
           })}

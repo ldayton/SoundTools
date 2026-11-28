@@ -22,6 +22,10 @@ try {
   const touch=await newPage(browser,{viewport:{width:260,height:500},hasTouch:true});
   await touch.goto('about:blank');await touch.addScriptTag({content:bundle.outputFiles[0].text});
   const touchLayout=await touch.evaluate(()=>window.InstrumentFeatures.renderScrollablePassage(true));
+  await touch.locator('[data-score-layout]').evaluate(paper=>{
+   paper.setAttribute('data-native-scroll','pending');
+   paper.addEventListener('scrollend',()=>paper.setAttribute('data-native-scroll','complete'),{once:true});
+  });
   const cdp=await touch.context().newCDPSession(touch);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:190,y:75}]});
   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:140,y:75}]});
@@ -29,6 +33,7 @@ try {
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   await expect.poll(()=>touch.locator('[data-score-layout]').evaluate(n=>n.scrollLeft)).toBeGreaterThan(0);
   await expect(touch.locator('[data-passage-handle]:not([hidden])')).toHaveCount(0);
+  await expect(touch.locator('[data-score-layout]')).toHaveAttribute('data-native-scroll','complete');
   // Native swipe distance/momentum is platform-dependent. Its movement and
   // selection independence are checked above; position the next selection
   // witness explicitly instead of requiring a short swipe to reach the end.

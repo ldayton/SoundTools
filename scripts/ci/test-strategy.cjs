@@ -18,9 +18,10 @@ function matrix(app, tier) {
   if (!apps[app]) throw Error('Choose a known app');
   return { include: tiers[tier].browsers.flatMap(browser =>
     (app === 'songalong' && tier === 'nightly' ? ['core', 'editions'] : ['core']).flatMap(group => {
-      // Two independent required edition jobs retain the 15-minute budget.
+      // Four required edition jobs retain the 15-minute budget as WebKit
+      // engraving coverage grows; every discovered file still runs once.
       // Partition the discovered registry, never a second hand-maintained list.
-      const shards = group === 'editions' ? Math.min(2, editionFiles().length) : 1;
+      const shards = group === 'editions' ? Math.min(4, editionFiles().length) : 1;
       if (!shards) throw Error('Nightly requires edition browser coverage');
       return Array.from({ length: shards }, (_, index) => ({ tier, group, browser, timeout: budgets[tier][group], shard: index + 1, shards }));
     })) };

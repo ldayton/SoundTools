@@ -109,16 +109,18 @@ test('every GitHub edition shard is required and their union covers each discove
   const { partition } = require('../../scripts/ci/shard.cjs');
   for (const browser of tiers.nightly.browsers) {
     const rows = matrix('songalong', 'nightly').include.filter(row => row.browser === browser && row.group === 'editions');
-    assert.equal(rows.length, 2);
-    assert(rows.every(row => row.timeout === 15 && row.shards === 2));
-    const tasks = rows.flatMap(row => commandTasks('songalong', 'nightly', browser, undefined, { group: 'editions', shard: `${row.shard}/${row.shards}` }));
+    assert.equal(rows.length, Math.min(4, editionFiles().length));
+    assert(rows.every(row => row.timeout === 15 && row.shards === rows.length));
+    const shards = rows.map(row => commandTasks('songalong', 'nightly', browser, undefined, { group: 'editions', shard: `${row.shard}/${row.shards}` }));
+    assert(shards.every(tasks => tasks.length > 0 && tasks.length <= 4), 'Each required shard has bounded, nonempty edition ownership');
+    const tasks = shards.flat();
     assert.deepEqual(tasks.map(task => task.args.at(-1)).sort(), editionFiles());
     assert.equal(new Set(tasks.map(task => task.id)).size, tasks.length);
     assert(tasks.every(task => task.needs.includes('songalong:build')));
   }
   for (const count of [1, 3, 5, 7]) {
     const files = Array.from({ length: count }, (_, index) => index);
-    const total = Math.min(2, count);
+    const total = Math.min(4, count);
     const union = Array.from({ length: total }, (_, index) => partition(files, `${index + 1}/${total}`)).flat();
     assert.deepEqual(union.sort((a, b) => a - b), files);
   }

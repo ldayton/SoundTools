@@ -28,7 +28,7 @@ remains required in Nightly; its unit and registry contracts remain in CI. The c
 installation and cleanup. GitHub CI runs the same coverage on slower hosted
 runners, with a 10-minute per-group safety timeout; Nightly core
 groups have 30 minutes. Nightly edition groups have 15 minutes. GitHub splits their discovered registry
-into two required shards per engine; every shard is part of the aggregate app
+into four required shards per engine; every shard is part of the aggregate app
 gate. The local Nightly graph runs that same complete registry using the same discovered files. These
 are limits, not performance targets: split coverage when command timings show
 growth rather than hiding timeouts.

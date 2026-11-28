@@ -994,3 +994,24 @@ C4 and commits it. No timing allowance, retry, product behavior or focus
 assertion changed. `pitch-picker-visible-webkit.log` records the corrected
 shared suite passing; temporary diagnostic code and its shorter timeout were
 removed.
+
+## WebKit edition shard capacity (28 November 2026)
+
+[WebKit edition shard 1/2](https://github.com/ldayton/SoundTools/actions/runs/46141804114/job/140969297264)
+reached its unchanged 15-minute job limit. Its retained job log is
+`work/nightly-investigation/main-songalong-webkit-editions-1.log`:
+Amazing Grace completed in 380.1 s, Blessed Assurance in 146.8 s and Fingerstyle
+in 110.0 s; In Christ Alone and Jesus Loves Me were still running at cancellation,
+with two further editions not yet started. This is incomplete coverage, not a
+passing run. Local exhaustive diagnostics independently completed In Christ
+Alone on WebKit in 185.7 s, confirming it is a substantial engraving suite.
+
+The discovered edition registry is now divided into four required shards per
+browser instead of two, retaining the 15-minute bound. Existing workflow job
+names, concurrency keys, timing/failure artifact names and aggregate gates
+already include shard identity. No files, scenarios, assertions or resource
+locks are removed. The policy regression requires every shard to be nonempty
+and bounded, with each discovered edition present exactly once per browser.
+All 32 tier, test-strategy and scheduler checks pass in
+`work/nightly-investigation/edition-shards-policy.log`. The exact new commit
+also requires a complete `npm run ci -- --base origin/main --all` measurement.

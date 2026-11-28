@@ -38,6 +38,7 @@ export function AccountMenu() {
       aria-description={signedIn ? `Signed in as ${state.email}` : undefined}
       title={signedIn ? state.email || "Account" : "Log in"}
       styles={{label:{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}}
+      data-account-entry
       data-account-status={state.status}
       data-account-pending={state.pending}
       onClick={(event) => {

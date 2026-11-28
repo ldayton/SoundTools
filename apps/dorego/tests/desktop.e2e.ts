@@ -336,8 +336,8 @@ try {
   await page.evaluate(() => (window as any).mediaActions.get('pause')({action:'pause'}));
   await page.waitForFunction(() => navigator.mediaSession.playbackState === 'paused');
   await page.evaluate(() => (window as any).mediaActions.get('nexttrack')({action:'nexttrack'}));
-  await page.locator('[data-pattern="arpeggio"][aria-current="true"]').waitFor();
-  await page.waitForFunction(() => navigator.mediaSession.metadata?.title.startsWith('Arpeggio & Scale'));
+  await page.locator('[data-pattern="octaveArpeggio"][aria-current="true"]').waitFor();
+  await page.waitForFunction(() => navigator.mediaSession.metadata?.title.startsWith('Octave Arpeggio'));
   await ready();
   await page.evaluate(() => (window as any).mediaActions.get('play')({action:'play'}));
   await playing();

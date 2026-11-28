@@ -10,10 +10,11 @@
 .sidebar-tools .mantine-NavLink-section[data-position="left"] {
   width: 20px;
 }
-.sidebar-tools [data-settings] .mantine-NavLink-section[data-position="left"] {
+.sidebar-tools :is([data-settings], [data-account-entry]) .mantine-NavLink-section[data-position="left"] {
   width:28px;
   margin-inline-end:var(--mantine-spacing-xs);
 }
+.sidebar-tools [data-account-entry] { padding-inline: 0; }
 /* The resize track extends beyond the sidebar, but must not make it scroll sideways. */
 .navigation-resizer-clip {
   position: absolute;

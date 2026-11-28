@@ -26,12 +26,12 @@ test('exercise choices include Rossini Scale, with Arpeggio & Scale E3-F5 at 150
   assert.deepEqual(
     EXERCISE_PATTERNS.map((pattern) => PATTERNS[pattern].name),
     [
-      'Arpeggio & Scale',
       'Octave Arpeggio',
       'Rossini Scale',
       'Pentatonic Threes',
-      'Major Scale',
       'Glides',
+      'Arpeggio & Scale',
+      'Major Scale',
       'Maqamat',
       'Yemenite ✡︎',
     ]

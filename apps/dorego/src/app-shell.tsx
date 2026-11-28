@@ -1,3 +1,4 @@
+import { ExercisePager, type ExercisePage } from './exercise-pager';
 import { restoreFocus } from "@ldayton/ui/restore-focus";
 import { AccountMenu, AccountProvider } from '@ldayton/ui/account-menu';
 import { account } from './account';
@@ -33,6 +34,7 @@ export type AppViews = {
   volumeControl: ReactNode;
   getVolume(): number;
   moveExercise(step: -1 | 1): void;
+  selectExercise(page: ExercisePage): void;
   builder: ReactNode;
   practice: ReactNode;
   settingsView: ReactNode;
@@ -46,6 +48,7 @@ function AppShell({
   volumeControl,
   getVolume,
   moveExercise,
+  selectExercise,
   builder,
   practice,
   settingsView,
@@ -54,10 +57,11 @@ function AppShell({
   const [settings, setSettings] = useState(location.hash === '#settings');
   const saved = useSyncExternalStore(listener => preferences.subscribe(listener), () => preferences.state);
   const breathing = saved.selected === 'breathSquares';
-  const setBreathing = (value: boolean) => preferences.update({ selected: value ? 'breathSquares' : 'warmup' });
   const breath = useBreathSession(breathing && !settings, getVolume, moveExercise);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const stackedToolbar = useMediaQuery('(max-width:359px) and (min-height:601px)', undefined, { getInitialValueInEffect: false });
   const base = import.meta.env.BASE_URL;
   const offline = useSyncExternalStore(offlineState.subscribe, offlineState.getSnapshot);
@@ -88,18 +92,14 @@ function AppShell({
   };
   const navigation = (
     <Stack gap="md" className="dorego-navigation">
-      {selection(() => {
-        setBreathing(false);
-        navigate(false);
-      }, !breathing)}
+      {selection(() => navigate(false), !breathing)}
       <Divider />
       <UnstyledButton
         className="dorego-exercise"
         data-pattern="breathSquares"
         aria-current={breathing ? 'true' : undefined}
         onClick={() => {
-          pause();
-          setBreathing(true);
+          selectExercise('breathSquares');
           navigate(false);
         }}
       >
@@ -121,13 +121,14 @@ function AppShell({
     </Stack>
   );
   return (
-    <AccountProvider account={account} opening={() => { pause(); breath.pause(); }}>
+    <AccountProvider account={account} opening={() => { pause(); breath.pause(); }} onOpenedChange={setAccountOpen}>
     <PracticeOptionsProvider
       entries={[
         { id: 'builder', form: builder },
         { id: 'breathing', form: <BreathOptions session={breath} /> },
       ]}
       mobileDrawer
+      onMobileOpenChange={setOptionsOpen}
       activeId={settings ? undefined : breathing ? 'breathing' : 'builder'}
       activityKey={settings ? 'settings' : breathing ? 'breathing' : 'practice'}
     >
@@ -136,7 +137,7 @@ function AppShell({
         toolbarOnly={!settings}
         mobileToolbarHeight={breathing && stackedToolbar ? 148 : 104}
         headerClassName={settings ? undefined : 'dorego-header'}
-        mainClassName="dorego-workspace"
+        mainClassName={settings ? "dorego-workspace" : "dorego-workspace dorego-practice-page"}
         brand={
           <AppBrand
             name="DoReGo"
@@ -173,7 +174,14 @@ function AppShell({
       >
         <div hidden={settings}>
           <PracticeWorkspace>
-            {breathing ? <BreathSquares session={breath} /> : practice}
+            <ExercisePager
+              spec={saved.spec}
+              selected={saved.selected}
+              practice={practice}
+              breathing={<BreathSquares session={breath} />}
+              blocked={settings || navigationOpen || optionsOpen || accountOpen}
+              select={page => { breath.pause(); selectExercise(page); }}
+            />
           </PracticeWorkspace>
         </div>
         <section id="settings-ui" aria-label="App settings" hidden={!settings}>

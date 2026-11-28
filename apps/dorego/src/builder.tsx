@@ -240,10 +240,73 @@ export function Builder({
       onSubmit={(event) => event.preventDefault()}
     >
       <Stack gap="lg">
-        <VoiceFeedbackOptions />
         <Alert id="form-error" color="red" hidden={!error} role="alert">
           {error}
         </Alert>
+        <Stack gap="sm" hidden={!vocal || activeScaleTuning(spec) !== 'major' || spec.pattern === 'yemenite'}>
+          <Divider label="Accompaniment" labelPosition="left" />
+          <Checkbox
+            id="startingChords"
+            label="Starting-note chords"
+            checked={spec.startingChords ?? true}
+            onChange={(event) => change({ startingChords: event.currentTarget.checked })}
+          />
+        </Stack>
+        <Stack gap="sm" hidden={spec.pattern === 'arpeggio' || (isGlidePattern(spec.pattern) && !supportsNoteRepeats(spec.pattern))}>
+          <Divider label="Phrase variations" labelPosition="left" />
+          <div hidden={isGlidePattern(spec.pattern) || spec.pattern === 'arpeggio'}>
+            <Checkbox
+              id="repeatTwice"
+              label="Repeat each round twice"
+              checked={!!spec.repeatTwice}
+              onChange={(event) => change({ repeatTwice: event.currentTarget.checked })}
+            />
+          </div>
+          <Stack id="note-repeats" gap="xs" hidden={spec.pattern === 'arpeggio' || !supportsNoteRepeats(spec.pattern)}>
+            <Group wrap="nowrap" justify="space-between">
+              <Checkbox
+                id="repeatTurn"
+                label={spec.direction === 'down' ? 'Repeat lowest note' : 'Repeat highest note'}
+                checked={!!spec.repeatTurn}
+                onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
+              />
+              <div style={{ flexShrink: 0 }}>
+                <ToolbarNumber
+                  id="repeatTurnCount"
+                  disabled={!spec.repeatTurn}
+                  label={spec.direction === 'down' ? 'Lowest note count' : 'Highest note count'}
+                  icon={null}
+                  unit=""
+                  min={2}
+                  max={8}
+                  value={spec.repeatTurnCount ?? 4}
+                  onChange={(value) => change({ repeatTurnCount: value })}
+                />
+              </div>
+            </Group>
+            <Group wrap="nowrap" justify="space-between">
+              <Checkbox
+                id="repeatHome"
+                label="Repeat home note"
+                checked={!!spec.repeatHome}
+                onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
+              />
+              <div style={{ flexShrink: 0 }}>
+                <ToolbarNumber
+                  id="repeatHomeCount"
+                  disabled={!spec.repeatHome}
+                  label="Home note count"
+                  icon={null}
+                  unit=""
+                  min={2}
+                  max={8}
+                  value={spec.repeatHomeCount ?? 4}
+                  onChange={(value) => change({ repeatHomeCount: value })}
+                />
+              </div>
+            </Group>
+          </Stack>
+        </Stack>
         <Stack gap="xs">
           <Divider label="Pitch" labelPosition="left" />
           <div hidden={vocal}>
@@ -328,70 +391,6 @@ export function Builder({
           </div>
         </Stack>
         <Stack id="practice-timing-options" gap="lg">
-          <Stack gap="sm" hidden={!vocal || activeScaleTuning(spec) !== 'major' || spec.pattern === 'yemenite'}>
-            <Divider label="Accompaniment" labelPosition="left" />
-            <Checkbox
-              id="startingChords"
-              label="Starting-note chords"
-              checked={spec.startingChords ?? true}
-              onChange={(event) => change({ startingChords: event.currentTarget.checked })}
-            />
-          </Stack>
-          <Stack gap="sm" hidden={spec.pattern === 'arpeggio' || (isGlidePattern(spec.pattern) && !supportsNoteRepeats(spec.pattern))}>
-          <Divider label="Phrase variations" labelPosition="left" />
-          <div hidden={isGlidePattern(spec.pattern) || spec.pattern === 'arpeggio'}>
-            <Checkbox
-              id="repeatTwice"
-              label="Repeat each round twice"
-              checked={!!spec.repeatTwice}
-              onChange={(event) => change({ repeatTwice: event.currentTarget.checked })}
-            />
-          </div>
-          <Stack id="note-repeats" gap="xs" hidden={spec.pattern === 'arpeggio' || !supportsNoteRepeats(spec.pattern)}>
-            <Group wrap="nowrap" justify="space-between">
-              <Checkbox
-                id="repeatTurn"
-                label={spec.direction === 'down' ? 'Repeat lowest note' : 'Repeat highest note'}
-                checked={!!spec.repeatTurn}
-                onChange={(event) => change({ repeatTurn: event.currentTarget.checked })}
-              />
-              <div style={{ flexShrink: 0 }}>
-                <ToolbarNumber
-                  id="repeatTurnCount"
-                  disabled={!spec.repeatTurn}
-                  label={spec.direction === 'down' ? 'Lowest note count' : 'Highest note count'}
-                  icon={null}
-                  unit=""
-                  min={2}
-                  max={8}
-                  value={spec.repeatTurnCount ?? 4}
-                  onChange={(value) => change({ repeatTurnCount: value })}
-                />
-              </div>
-            </Group>
-            <Group wrap="nowrap" justify="space-between">
-              <Checkbox
-                id="repeatHome"
-                label="Repeat home note"
-                checked={!!spec.repeatHome}
-                onChange={(event) => change({ repeatHome: event.currentTarget.checked })}
-              />
-              <div style={{ flexShrink: 0 }}>
-                <ToolbarNumber
-                  id="repeatHomeCount"
-                  disabled={!spec.repeatHome}
-                  label="Home note count"
-                  icon={null}
-                  unit=""
-                  min={2}
-                  max={8}
-                  value={spec.repeatHomeCount ?? 4}
-                  onChange={(value) => change({ repeatHomeCount: value })}
-                />
-              </div>
-            </Group>
-          </Stack>
-          </Stack>
           <Stack gap="sm">
           <Divider label="Session timing" labelPosition="left" />
           <SimpleGrid cols={1}>
@@ -452,6 +451,24 @@ export function Builder({
             </Group>
           </div>
           </Stack>
+        </Stack>
+        <Stack gap="sm" aria-label="Beta features">
+          <Divider
+            label={
+              <Group gap={4} wrap="nowrap">
+                <span>Beta</span>
+                <svg
+                  width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
+                  role="img" aria-label="Experimental"
+                >
+                  <path d="M8 3h8M9 3v15a3 3 0 0 0 6 0V3M9 10h6" />
+                </svg>
+              </Group>
+            }
+            labelPosition="left"
+          />
+          <VoiceFeedbackOptions />
         </Stack>
       </Stack>
     </form>
